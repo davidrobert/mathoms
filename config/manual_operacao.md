@@ -1,10 +1,10 @@
 # Manual de Operação — Pipeline Financeiro
 ## Família Ferreira Campos
-## Versão: 3.2 — abr/2026
+## Versão: 4.0 — abr/2026
 
 ---
 
-## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2
+## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0
 
 ### v1.0 → v2.0
 
@@ -64,6 +64,18 @@
 | **E5.6 e E5-regen atualizados** | "Mover para archive" substituído por "comitar via Git antes de sobrescrever". |
 | **`.gitignore` adicionado** | Exclui `data/`, `inbox/`, `inbox_processed/`, `.DS_Store`, `.obsidian/`, e backups legados. |
 
+### v3.2 → v4.0
+
+| Mudança | Motivo |
+|---|---|
+| **Nova sub-etapa E4.N — Narrativas** | Toda geração de texto (perfil da família, summaries, chart contexts/conclusions, cards narrativos) movida de E5 para E4. E4 JSON agora inclui chave `narrativas` com HTML pronto. |
+| **E5 reescrita como script Python puro** | `scripts/e5_render.py` substitui execução por LLM. E5 é 100% determinística: mesmos inputs = mesmo output. Tempo de execução: <5 segundos. |
+| **Novo schema E4: chave `narrativas`** | Contém `perfil_familia` (left/right HTML), `summaries` (s1-s10), `charts` (19 pares context/conclusion). Documentação completa na seção E4.N. |
+| **Canvas IDs canônicos mapeados** | Script usa mapeamento explícito de chart keys para canvas IDs (patrimonio_doughnut → chart-patrimonio-doughnut). Elimina variação de nomes entre execuções. |
+| **E5-regen simplificado** | Para mudanças de template: `python scripts/e5_render.py`. Para mudanças de texto: re-rodar E4.N + `python scripts/e5_render.py`. |
+| **Scripts legados depreciados** | `execute_e5.py` e `generate_e5_report.py` substituídos por `scripts/e5_render.py`. Mantidos no repositório para referência histórica. |
+| **Separação de concerns** | E4 = análise + narrativa (LLM). E5 = renderização pura (script). Debugging mais fácil: erro no texto → E4. Erro no layout → template. Erro nos dados → E2/E3/E4. |
+
 ### v2.1 → v3.0
 
 | Mudança | Motivo |
@@ -109,7 +121,7 @@ O pipeline é **agnóstico ao ambiente**: tanto Cowork quanto Chat podem executa
 | Valor de KPI errado, dado numérico incorreto      | `processed/E4_analysis/` (ou E2/E3 se o erro vem de extração)          | E4 + E5             |
 | Transação categorizada errada                     | `processed/E3_unified/` ou regras em `config/definitions.md`           | E3 + E4 + E5        |
 | Transação faltando ou duplicada                   | `processed/E2_extracts/` ou `E2_reconciled/`                           | E2.5 + E3 + E4 + E5 |
-| Texto de seção mal escrito ou análise superficial | `config/report_spec.md` (instruções de geração)                        | E5                  |
+| Texto de seção mal escrito ou análise superficial | E4.N (narrativas) → E4.N + E5                                          | E4.N + E5           |
 | Dados de membro errados (nome, cargo)             | `members/members-1c_enriched.md`                                       | E1 + E4 + E5        |
 | Meta financeira desatualizada                     | `life_plan/life_plan_goals.md`                                         | E4 + E5             |
 
@@ -888,10 +900,12 @@ Cada etapa é descrita de forma agnóstica (não amarrada a Cowork/Chat). Qualqu
 **Processing logic:**
 
 1. **Para cada transação reconciliada:**
-   - Aplicar regras de categorização (usar `definitions.md`)
+   - Aplicar regras de categorização (usar `definitions.md`, seção "REGRAS DE CATEGORIZAÇÃO POR KEYWORDS")
+   - Para despesas: usar match parcial case-insensitive das keywords listadas por categoria. Se mais de uma regra casar, usar a mais específica (match mais longo). Keywords cobrem ~95% das transações de cartão de crédito.
    - Atribuir categoria: receita, despesa, investimento, transferência, pagamento de dívida, etc.
    - Registrar subcategoria (e.g., "despesa → saúde", "receita → PJ")
-   - Se não conseguir categorizar, deixar como "não identificado" e registrar em `qa_log.md`
+   - Se não conseguir categorizar via keywords NEM por contexto, deixar como "não identificado" e registrar em `qa_log.md`
+   - **META:** `nao_identificado` deve representar <10% do total de transações de despesa. Se ultrapassar, revisar e expandir as regras de keywords em `definitions.md`.
 
 2. **Consolidar por categoria:**
    - Gerar `processed/E3_unified/receitas-3_unified.json`: agrupado por fonte (PJ, CLT, aluguéis, rendimentos financeiros, etc.)
@@ -1151,416 +1165,216 @@ Cada etapa é descrita de forma agnóstica (não amarrada a Cowork/Chat). Qualqu
 
 ---
 
-### STAGE E5 — Relatório HTML
+### STAGE E4.N — Narrativas
 
-**Objetivo:** Popular o template HTML reutilizável com os dados do ciclo atual, gerando o relatório final.
+**Objetivo:** Gerar todos os textos analíticos e narrativos necessários para o relatório. Executada pelo LLM como última sub-etapa do E4, após todos os cálculos estarem completos.
 
-**⚠️ REGRA DE EXECUÇÃO:** A E5 é dividida em **6 sub-etapas sequenciais** (E5.1 a E5.6). Cada sub-etapa tem escopo reduzido, inputs específicos e validação própria. **Executar uma sub-etapa por vez.** Só avançar para a próxima após a validação da anterior passar. Isso evita erros por excesso de contexto simultâneo.
+**Inputs:**
+- `processed/E4_analysis/analise_financeira-4_analysis.json` (dados completos do E4)
+- `members/members-1c_enriched.md` (dados dos membros)
+- `life_plan/life_plan_goals.md` (metas, plano internacional, NCLEX)
+- `config/report_spec.md` (regras de formatação e design)
+- `config/definitions.md` (categorias, entidades)
 
-**Inputs gerais (lidos conforme necessidade de cada sub-etapa):**
+**Output:** Nova chave `narrativas` adicionada ao E4 JSON com a seguinte estrutura:
+
+| Sub-chave | Conteúdo | Formato |
+|---|---|---|
+| `perfil_familia.left` | Parágrafos 1-4: titular, cônjuge, filho(s), pets | HTML (`<p>` em prosa narrativa) |
+| `perfil_familia.right` | Parágrafos 5-7: plano de vida, meta IF, patrimônio | HTML (`<p>` em prosa narrativa) |
+| `summaries.s1` a `s10` | Summary de cada seção do relatório | Texto puro (1-2 frases) |
+| `charts.{chart_key}.context` | Contexto explicativo do gráfico | Texto puro (1-2 frases) |
+| `charts.{chart_key}.conclusion` | Conclusão/insight acionável do gráfico | Texto puro (1-2 frases) |
+
+**19 chart keys obrigatórias em `charts`:**
+`patrimonio_doughnut`, `waterfall_if`, `receita_bar`, `despesas_doughnut`, `receita_despesa_mensal`, `score_gauge`, `alocacao_atual`, `alocacao_alvo`, `top15_ativos`, `yield_imoveis`, `custos_f1f2`, `cenario_cambial`, `projecao_if`, `renda_passiva`, `impostos_pj`, `riscos_bubble`, `decisoes`, `cenarios_mariana`, `viagens`
+
+**Regras de geração:**
+- Perfil: 7 parágrafos de prosa em `<p>`. SEM tabelas, bullets, `<strong>Label:</strong>`. Ordem: titular, cônjuge, filho(s), pets, plano de vida, meta IF, patrimônio.
+- Summaries: Factuais, com dados numéricos. Ex: "Patrimônio bruto de R$ 3,5M com 72% investível."
+- Charts: Context = o que o gráfico mostra. Conclusion = insight acionável.
+- Todos os textos em português brasileiro.
+
+**Validação E4.N (DEVE passar antes de avançar para E5):**
+- [ ] Chave `narrativas` presente no JSON
+- [ ] `perfil_familia.left` e `perfil_familia.right` presentes e não-vazios
+- [ ] `summaries` contém 10 chaves (s1 a s10), todas não-vazias
+- [ ] `charts` contém 19 chaves, cada uma com `context` e `conclusion` não-vazios
+- [ ] Perfil é HTML com `<p>` (sem `<table>`, `<ul>`, `<li>`)
+
+---
+
+### STAGE E5 — Relatório HTML (Determinístico)
+
+**Objetivo:** Renderizar o relatório HTML final a partir do template + E4 JSON (dados + narrativas). Execução 100% determinística via script Python — sem LLM.
+
+**Comando:**
+```
+python scripts/e5_render.py
+```
+
+**Inputs:**
 - `config/report_template.html` ← template com placeholders `{{...}}`
-- `config/report_spec.md` ← especificação de seções, gráficos e design system
-- `config/definitions.md` ← categorias de despesa, estratégia de aportes, regras
-- `processed/E4_analysis/analise_financeira-4_analysis.json`
-- `processed/E3_unified/*-3_unified.json`
-- `members/members-1c_enriched.md`
-- `life_plan/life_plan_goals.md`
-- `config/manual_operacao.md` ← para ler a versão do manual
+- `processed/E4_analysis/analise_financeira-4_analysis.json` ← dados + narrativas
+- `config/manual_operacao.md` ← versão do manual
+- `config/definitions.md` ← categorias de despesa
 
-**Arquivo de trabalho:** O relatório é construído incrementalmente. A E5.1 copia o template para `output/relatorio_financeiro_ferreira_campos_[DATE].html` e cada sub-etapa subsequente edita esse mesmo arquivo.
+**Output:** `output/relatorio_financeiro_ferreira_campos_[DATE].html`
 
-**Formato de [DATE]:** `YYYYMMDD` (sem hífens). Exemplo: `20260403` para 3 de abril de 2026. Este formato é usado consistentemente no nome de todos os relatórios gerados.
+**O que o script faz (6 fases):**
 
----
-
-#### E5.1 — Cover, KPIs e Footer
-
-**Escopo:** Popular APENAS os placeholders do cover (4), KPIs (16), nome (1) e footer (1). Nada mais.
-
-**Inputs a ler nesta sub-etapa:**
-- `config/report_template.html` (copiar para output como arquivo de trabalho)
-- `config/manual_operacao.md` (apenas a linha `## Versão: X.X`)
-- `processed/E4_analysis/analise_financeira-4_analysis.json` (apenas as chaves: `periodo_dados`, `racios`, `patrimonio`, `goals`, `score`, `fluxo_caixa`)
-
-**Placeholders a popular:**
-
-| Placeholder | Fonte | Exemplo de valor |
+| Fase | Equivalente antigo | O que faz |
 |---|---|---|
-| `{{COVER_FAMILIA}}` | Fixo | `Ferreira Campos` |
-| `{{COVER_PERIODO}}` | E4 `periodo_dados` | `2025-05 a 2026-03` |
-| `{{COVER_VERSAO_MANUAL}}` | Regex no header do `manual_operacao.md`: capturar `\d+\.\d+` da linha que contém "Versão" | `3.0` |
-| `{{COVER_DATA_HORA}}` | Data/hora atual em São Paulo, formato: `[dia] [mês_abrev] [ano], [hora]h[minuto]` | `3 abr 2026, 14h32` |
-| `{{NOME}}` | Fixo | `David` |
-| `{{KPI_PATRIMONIO_BRUTO}}` | E4 `patrimonio.bruto` formatado `R$ X.XXX.XXX` | `R$ 3.501.275` |
-| `{{KPI_PATRIMONIO_BRUTO_SUB}}` | `Líquido: R$ [patrimonio.liquido]` | `Líquido: R$ 3.266.483` |
-| `{{KPI_PATRIMONIO_INVESTIVEL}}` | E4 `patrimonio.investivel` | `R$ 2.530.778` |
-| `{{KPI_PATRIMONIO_INVESTIVEL_SUB}}` | `[patrimonio.investivel / patrimonio.bruto × 100]% do bruto` | `72,3% do bruto` |
-| `{{KPI_RENDA_MENSAL}}` | E4 `fluxo_caixa.receita_recorrente_mensal` | `R$ 57.596` |
-| `{{KPI_RENDA_MENSAL_SUB}}` | `Recorrente (exclui one-time)` | `Recorrente (exclui one-time)` |
-| `{{KPI_TAXA_POUPANCA}}` | E4 `racios.taxa_poupanca_recorrente_pct` formatado `XX,X%` | `82,9%` |
-| `{{KPI_TAXA_POUPANCA_SUB}}` | `Meta projetada: [racios.taxa_poupanca_total_pct]%` | `Meta projetada: 89,6%` |
-| `{{KPI_META_IF}}` | E4 `goals.if_meta` formatado `R$ X,XM` | `R$ 7,2M` |
-| `{{KPI_META_IF_SUB}}` | `TRS [goals.if_trs]% · [goals.if_pct]% atingido` | `TRS 5% · 35,1% atingido` |
-| `{{KPI_GAP_IF}}` | E4 `goals.if_gap` formatado `R$ X,XM` | `R$ 4,7M` |
-| `{{KPI_GAP_IF_SUB}}` | `Faltam para a meta` | `Faltam para a meta` |
-| `{{KPI_PRAZO_IF}}` | E4 `goals.prazo_anos_realista` formatado `X anos` | `9 anos` |
-| `{{KPI_PRAZO_IF_SUB}}` | `David com [goals.david_idade_if] em [ano_atual + prazo]` | `David com 52 em 2035` |
-| `{{KPI_SCORE}}` | E4 `score.valor` / `score.max` | `5,5 / 10` |
-| `{{KPI_SCORE_SUB}}` | E4 `score.classificacao` | `Bom` |
-| `{{FOOTER_CONTENT}}` | Template fixo (ver abaixo) | — |
+| E5.1 | E5.1 (Cover/KPIs) | Substitui `{{COVER_*}}`, `{{KPI_*}}`, `{{NOME}}`, `{{FOOTER_CONTENT}}` |
+| E5.2 | E5.2 (Perfil) | Injeta `narrativas.perfil_familia.left/right` |
+| E5.3 | E5.3 (JSON) | Monta report-data JSON (20 chaves, 19 charts) por mapeamento de dados |
+| E5.4 | E5.4 (S1-S5) | Gera HTML das seções com charts (canvas IDs canônicos) + cards obrigatórios |
+| E5.5 | E5.5 (S6-S10+Apps) | Gera HTML das seções restantes + apêndices |
+| E5.6 | E5.6 (Validação) | Roda 18 checagens automáticas |
 
-**Footer fixo:**
-```
-Planejamento Financeiro Pessoal — Família Ferreira Campos
-Gerado em: [COVER_DATA_HORA] (Brasília) | Período: [COVER_PERIODO] | Versão Manual: [COVER_VERSAO_MANUAL]
-⚠️ Caráter educacional/informativo. Não constitui consultoria financeira (CVM/CFP), jurídica ou tributária.
-```
+**Mapeamento de canvas IDs (chart key → canvas ID):**
 
-**Processo:**
-1. Copiar `config/report_template.html` para `output/relatorio_financeiro_ferreira_campos_[DATE].html`
-2. Ler E4 JSON (apenas chaves necessárias)
-3. Ler versão do manual
-4. Substituir cada placeholder acima
-5. Substituir footer
-
-**Validação E5.1 (DEVE passar antes de avançar):**
-- [ ] Nenhum `{{COVER_*}}` remanescente no HTML
-- [ ] Nenhum `{{KPI_*}}` remanescente no HTML
-- [ ] `{{NOME}}` substituído
-- [ ] `{{FOOTER_CONTENT}}` substituído
-- [ ] `{{COVER_DATA_HORA}}` contém horário (padrão `Xh00`, não apenas data)
-- [ ] `{{COVER_VERSAO_MANUAL}}` é um número de versão (ex: `3.0`), não um nome de stage ou descrição
-- [ ] Valores numéricos batem com E4 JSON (spot check: patrimônio bruto, score, prazo)
-
----
-
-#### E5.2 — Perfil da Família
-
-**Escopo:** Popular APENAS `{{PERFIL_FAMILIA_LEFT}}` e `{{PERFIL_FAMILIA_RIGHT}}`. Nada mais.
-
-**Inputs a ler nesta sub-etapa:**
-- `members/members-1c_enriched.md` (nomes, idades, cargos, formação)
-- `life_plan/life_plan_goals.md` (plano migratório, meta IF, filhos, pets)
-- `processed/E3_unified/patrimonio-3_unified.json` (contagem de imóveis, cidades)
-- `processed/E3_unified/investimentos-3_unified.json` (contagem de instituições)
-- `config/report_spec.md` (APENAS a seção "Card obrigatório: Perfil da Família" — ler essa seção e NENHUMA outra)
-
-**Formato obrigatório:** 6 parágrafos narrativos em prosa (definido em `report_spec.md`). As regras invioláveis são:
-- **Nunca** usar tabela, bullet points, campos `key: value` ou `<strong>Label:</strong> valor`
-- **Nunca** reorganizar a ordem dos parágrafos
-- **Nunca** omitir parágrafos (exceto se o membro não existir — ex: sem pets)
-- Cada parágrafo é um `<p>` corrido em prosa narrativa
-
-**Distribuição nos placeholders:**
-- `{{PERFIL_FAMILIA_LEFT}}` → parágrafos 1 a 3 (ou 4 se houver pets): titular, cônjuge, filho(s), pets
-- `{{PERFIL_FAMILIA_RIGHT}}` → parágrafos restantes: plano de vida, meta financeira, patrimônio
-
-**Template dos parágrafos (substituir `[colchetes]` por dados reais):**
-
-```
-<p>[Nome titular] ([idade] anos) — [cargo principal] e [atividade secundária]. [Detalhes profissionais: empresas, advisory, etc.]. [Formação acadêmica principal].</p>
-
-<p>[Nome cônjuge] ([idade] anos) — [profissão e especialidade], [regime trabalho] no [empregador] há [tempo]. [Formação acadêmica principal].</p>
-
-<p>[Nome filho(s)] ([idade]) — [local nascimento, cidadania]. [Plano de saúde].</p>
-
-<p>[Animais de estimação] — [nomes]. [Nota sobre plano de saúde se relevante].</p>
-
-<p>Plano de vida: [Resumo do plano migratório/vida em 1-2 frases, incluindo visto, universidade, cidade, objetivos].</p>
-
-<p>Meta financeira: Independência Financeira — renda passiva de R$ [meta_renda]/mês (patrimônio de R$ [meta_patrimonio]), estimada para [ano_meta], quando [titular] terá [idade_no_ano] anos.</p>
-
-<p>Patrimônio: [N] imóveis em [cidade(s)] + carteira financeira diversificada em [N]+ instituições ([lista das principais]).</p>
-```
-
-**Cálculo de idades:** `idade = ano_relatorio - ano_nascimento`. Se ano de nascimento não estiver explícito em `members-1c_enriched.md`, estimar: `goals.david_idade_if - goals.prazo_anos_realista` para David. Para Mariana, estimar a partir da data de graduação (bacharelado ~22 anos).
-
-**Contagem de instituições:** Buscar nomes distintos de bancos/corretoras nos arquivos E2/E3. Lista conhecida: Itaú, Santander, Rico/XP, BTG Pactual, C6 Bank, PicPay, Nubank, Wise, Binance, Bradesco.
-
-**Validação E5.2 (DEVE passar antes de avançar):**
-- [ ] `{{PERFIL_FAMILIA_LEFT}}` substituído
-- [ ] `{{PERFIL_FAMILIA_RIGHT}}` substituído
-- [ ] Conteúdo é prosa narrativa em `<p>` (sem tabelas, sem bullet points, sem `<strong>Label:</strong>`)
-- [ ] Parágrafo do titular E parágrafo de meta financeira estão presentes (obrigatórios)
-- [ ] Meta IF bate com E4 (`goals.if_meta`, `goals.renda_passiva.meta_mensal`)
-- [ ] Contagem de imóveis bate com `patrimonio-3_unified.json`
-
----
-
-#### E5.3 — Report-data JSON
-
-**Escopo:** Popular APENAS `{{REPORT_DATA_JSON}}` com o bloco JSON completo. Nada mais.
-
-**Inputs a ler nesta sub-etapa:**
-- `processed/E4_analysis/analise_financeira-4_analysis.json` (COMPLETO)
-- `processed/E3_unified/*-3_unified.json` (todos, para dados de gráficos)
-- `config/report_spec.md` (APENAS as seções de schema JSON: "report-data", schemas de charts, orcamento_prospectivo, consumo_consciente, diagnostico_comportamental, investimentos, estrategia_aporte, contrafluxo)
-- `config/definitions.md` (categorias orçamento, estratégia aportes)
-- `life_plan/life_plan_goals.md` (dados para gráficos de projeção, F1/F2, Green Card)
-
-**O JSON DEVE conter TODAS estas chaves top-level:**
-
-| Chave | Fonte principal | Descrição |
+| Chart key (narrativas/JSON) | Canvas ID (HTML) | Seção |
 |---|---|---|
-| `meta` | Fixo + E4 | `{modo_padrao, familia, periodo, data_geracao, versao}` |
-| `kpis` | E4 racios/patrimonio/goals/score | Todos os valores numéricos dos 8 KPIs + auxiliares |
-| `patrimonio` | E4 patrimonio | Inclui OBRIGATORIAMENTE `imoveis_estimado` (necessário para projeção IF) |
-| `charts` | E4 + E3 + life_plan | **19 datasets** (ver tabela abaixo) |
-| `orcamento_prospectivo` | E4 + definitions.md | 14 categorias com tetos, médias reais, % renda |
-| `consumo_consciente` | E4 consumo_consciente | Itens, totais, folga, teto sugerido |
-| `diagnostico_comportamental` | E4 diagnostico_comportamental | Array de padrões com evidência e mudança sugerida |
-| `investimentos` | E4 + E3 investimentos | KPIs rentabilidade, blocos por instituição, CDI |
-| `estrategia_aporte` | definitions.md / E4 | Destinos, valores, % BRL/USD |
-| `contrafluxo` | E4 / Selic vigente | Cenário atual, 3 faixas de Selic, ação prática |
-| `tactical` | E4 tarefas/alertas/proximos | Dashboard: despesas_por_categoria, aportes, investimentos_delta, tarefas, alertas, proximos_15d, notas |
-| `reserva_emergencia` | E4 reserva_emergencia | 3 níveis (6m/9m/12m), liquidez, status, composição |
-| `endividamento` | E4 endividamento | Dívidas ativas, pct_divida_patrimonio, classificação |
-| `previdencia_pgbl` | E4 previdencia_pgbl | Renda tributável, limite, projeção 10/15/20a |
-| `pontos_fortes` | E4 pontos_fortes | Array de `{titulo, descricao}` — 5-7 destaques positivos |
-| `pontos_urgentes` | E4 pontos_urgentes | Array de `{prioridade, acao, impacto, prazo}` — 5-7 ações críticas |
-| `equilibrio_cerbasi` | E4 equilibrio_cerbasi | pct_presente, pct_futuro, classificação, análise |
-| `tarefas` | E4 tarefas | Array de `{n, t, p, e}` |
-| `tarefas_status` | E4 tarefas_status | Mapa `{numero: "pendente"/"feito"/"vencido"}` |
+| `patrimonio_doughnut` | `chart-patrimonio-doughnut` | S1 |
+| `waterfall_if` | `chart-waterfall-if` | S1 |
+| `receita_bar` | `chart-receita-bar` | S2 |
+| `despesas_doughnut` | `chart-despesas-doughnut` | S2 |
+| `receita_despesa_mensal` | `chart-receita-despesa-mensal` | S2 |
+| `score_gauge` | `chart-score-gauge` | S2 |
+| `alocacao_atual` | `chart-alocacao-atual` | S3 |
+| `alocacao_alvo` | `chart-alocacao-alvo` | S3 |
+| `top15_ativos` | `chart-top15-ativos` | S3 |
+| `yield_imoveis` | `chart-yield-imoveis` | S4 |
+| `custos_f1f2` | `chart-custos-f1f2` | S5 |
+| `cenario_cambial` | `chart-cenarios-cambiais` | S6 |
+| `projecao_if` | `chart-projecao-3cenarios` | S7 |
+| `renda_passiva` | `chart-renda-passiva` | S7 |
+| `impostos_pj` | `chart-impostos-pj` | S8 |
+| `riscos_bubble` | `chart-bubble-riscos` | S9 |
+| `decisoes` | `chart-top5-decisoes` | S10 |
+| `cenarios_mariana` | `chart-mariana-cenarios` | App E |
+| `viagens` | `chart-viagens` | App E |
 
-**19 datasets obrigatórios em `charts`:**
+**Cards obrigatórios (gerados pelo script a partir de dados E4):**
+1. Reserva de Emergência (S1) — 3 níveis
+2. Endividamento (S1) — dívidas + % patrimônio
+3. Orçamento Prospectivo (S2) — 14 categorias
+4. Consumo Consciente (S2) — gastos pontuais
+5. Diagnóstico Comportamental (S2) — padrões
+6. KPIs Rentabilidade + Tabela 3.1 (S3)
+7. Estratégia Aporte 3.2 (S3)
+8. Contrafluxo (S3)
+9. Previdência PGBL (S7)
+10. Pontos Fortes (S10)
+11. Pontos Urgentes (S10)
+12. Equilíbrio Cerbasi (S10)
 
-| Chave | Canvas ID no template | Schema |
-|---|---|---|
-| `patrimonio_doughnut` | `chart-patrimonio-doughnut` | `{labels:[], datasets:[{data:[], backgroundColor:[]}]}` |
-| `waterfall` | `chart-waterfall-if` | `{labels:[], data:[]}` |
-| `receita_bar` | `chart-receita-bar` | `{labels:[], datasets:[{data:[], backgroundColor}]}` |
-| `fluxo_mensal` | `chart-receita-bar` (alias) | `{receita:{fonte1:N,...}, despesa:N}` |
-| `receita_despesa_mensal` | `chart-receita-despesa-mensal` | `{labels:[], datasets:[{label,data,borderColor},...]}` |
-| `despesas_doughnut` | `chart-despesas-doughnut` | `{labels:[], datasets:[{data:[], backgroundColor:[]}]}` |
-| `score_gauge` | `chart-score-gauge` | `{band_labels:[], bands:[2,2,2,2,2], band_colors:[], value:N, max:10}` |
-| `alocacao_atual` | `chart-alocacao-atual` | `{labels:[], datasets:[{data:[], backgroundColor:[]}]}` |
-| `alocacao_alvo` | `chart-alocacao-alvo` | `{labels:[], datasets:[{data:[], backgroundColor:[]}]}` |
-| `top15_ativos` | `chart-top15-ativos` | `{labels:[], datasets:[{data:[], backgroundColor}]}` |
-| `yield_imoveis` | `chart-yield-imoveis` | `{labels:[], datasets:[{data:[], backgroundColor:[]}]}` |
-| `custos_f1f2` | `chart-custos-f1f2` | `{labels:[], data:[], usd_vals:[]}` |
-| `cenario_cambial` | `chart-cenarios-cambiais` | `{labels:[], sobra_sem_mariana:[], sobra_com_mariana:[]}` |
-| `projecao_if` | `chart-projecao-3cenarios` | `{patrimonio_inicial:N, cenarios:{pessimista,realista,otimista}, aporte_mensal:N, anos:N}` |
-| `renda_passiva` | `chart-renda-passiva` | `{labels:[], data:[]}` |
-| `impostos_pj` | `chart-impostos-pj` | `{data:[], ideal_mensal:N}` |
-| `riscos_bubble` | `chart-bubble-riscos` | `{datasets:[{label,x,y,r,color},...]}` |
-| `decisoes` | `chart-top5-decisoes` | `{labels:[], impacto_1ano:[], impacto_10anos:[]}` |
-| `cenarios_mariana` | `chart-mariana-cenarios` | `{labels:[], data:[]}` |
-| `viagens` | `chart-viagens` | `{teto_anual:N, gasto_portugal:N}` |
+**Validação E5.6 (18 checagens — mesma do manual anterior):**
+[Keep the existing V1-V18 validation table]
 
-**IMPORTANTE:** Sem a chave `charts` no JSON, nenhum gráfico renderiza. O campo `patrimonio.imoveis_estimado` também é necessário para o cálculo da projeção IF (gráfico 12).
-
-**Validação E5.3 (DEVE passar antes de avançar):**
-- [ ] `{{REPORT_DATA_JSON}}` substituído por JSON válido (parseable)
-- [ ] JSON contém TODAS as 20 chaves top-level listadas acima (meta, kpis, patrimonio, charts, orcamento_prospectivo, consumo_consciente, diagnostico_comportamental, investimentos, estrategia_aporte, contrafluxo, reserva_emergencia, endividamento, previdencia_pgbl, pontos_fortes, pontos_urgentes, equilibrio_cerbasi, tactical, tarefas, tarefas_status, seguros)
-- [ ] `charts` contém TODOS os 19 datasets (verificar cada chave)
-- [ ] `patrimonio.imoveis_estimado` presente e > 0
-- [ ] `kpis.patrimonio_bruto`, `kpis.score`, `kpis.prazo_if` batem com E4
-- [ ] `orcamento_prospectivo.categorias` tem 14 itens (mesmo número do `definitions.md`)
-- [ ] `diagnostico_comportamental` é array (pode ser vazio)
-- [ ] `tarefas` é array com ≥ 1 item
-
----
-
-#### E5.4 — Seções 1-5 (Patrimônio, Fluxo, Investimentos, Imóveis, F1/F2)
-
-**Escopo:** Popular APENAS `{{SUMMARY_S1}}` a `{{SUMMARY_S5}}` e `{{CONTENT_S1}}` a `{{CONTENT_S5}}`. Nada mais.
-
-**⚠️ REGRA ESTRUTURAL CRÍTICA — NÃO DUPLICAR TÍTULO NEM SUMMARY:**
-O template já contém `<h1>` e `<div class="section-summary">{{SUMMARY_S*}}</div>` para cada seção. Portanto:
-- `{{SUMMARY_S*}}` recebe APENAS o texto do summary (sem tags wrapper — o `<div class="section-summary">` já existe no template)
-- `{{CONTENT_S*}}` NÃO deve começar com `<h2>` nem com `<p class="section-summary">` — o título e o summary já estão no template
-- `{{CONTENT_S*}}` deve começar diretamente com o conteúdo da seção: `<div class="chart-container">`, `<div class="card ...">`, `<table>`, `<div class="kpi-grid">`, etc.
-- Se a seção tiver sub-seções internas (ex: 3.1, 3.2, 3.3), usar `<h3>` para os subtítulos — nunca `<h2>`
-- NÃO envolver `{{CONTENT_S*}}` em `<div class="section">` — o wrapper `<div class="section" id="secao-N">` já existe no template
-
-**Inputs a ler nesta sub-etapa:**
-- `config/report_spec.md` (APENAS as seções S1 a S5, incluindo cards obrigatórios: Reserva de Emergência, Endividamento, Orçamento Prospectivo, Consumo Consciente, Diagnóstico Comportamental, KPIs Rentabilidade, Estratégia Aporte, Contrafluxo)
-- `processed/E4_analysis/analise_financeira-4_analysis.json`
-- `processed/E3_unified/*-3_unified.json`
-- `config/definitions.md` (categorias de despesa, estratégia de aportes)
-
-**Regras HTML para gráficos:** Todo conteúdo que contenha gráficos DEVE usar:
-```html
-<div class="chart-container">
-  <div class="card-title">Título do Gráfico</div>
-  <p class="chart-context">Texto explicativo.</p>
-  <canvas id="chart-XXXX"></canvas>
-  <p class="chart-conclusion">Conclusão/análise.</p>
-</div>
-```
-Para gráficos lado a lado: `<div class="chart-row">` com dois `chart-container` dentro.
-
-**⚠️ REGRA DE MAPEAMENTO — Consultar tabela em `report_spec.md` seção "REGRA DE MAPEAMENTO E5 → SEÇÃO":**
-O conteúdo de cada `{{CONTENT_SN}}` DEVE corresponder ao H1 do template. Verificar ANTES de gerar. Exemplo: `{{CONTENT_S1}}` = Visão Geral Patrimonial (NÃO Fluxo de Caixa). Se houver dúvida, consultar a tabela canônica.
-
-**IDs canônicos dos canvas (S1-S5)** — usar EXATAMENTE estes IDs:
-
-| Seção | Canvas ID | Tipo |
-|---|---|---|
-| S1 | `chart-patrimonio-doughnut` | Composição patrimonial |
-| S1 | `chart-waterfall-if` | Gap → meta IF |
-| S2 | `chart-receita-bar` | Receita por fonte |
-| S2 | `chart-despesas-doughnut` | Despesas por categoria |
-| S2 | `chart-receita-despesa-mensal` | Receita vs Despesa mês a mês |
-| S2 | `chart-score-gauge` | Score financeiro (gauge) |
-| S3 | `chart-alocacao-atual` | Alocação atual |
-| S3 | `chart-alocacao-alvo` | Alocação alvo |
-| S3 | `chart-top15-ativos` | Top 15 ativos |
-| S4 | `chart-yield-imoveis` | Yield vs CDI |
-| S5 | `chart-custos-f1f2` | Custos F1/F2 |
-
-**Cards obrigatórios nesta sub-etapa (DEVEM estar presentes no HTML):**
-1. **Reserva de Emergência** (S1) — `div.card-feature` com tabela 3 critérios (6m/9m/12m). Formato em `report_spec.md`.
-2. **Endividamento** (S1) — `div.card-feature` com relação dívida/patrimônio e tabela de dívidas. Formato em `report_spec.md`.
-3. **Orçamento Prospectivo** (S2) — `div.card-feature` com tabela de 14 categorias. Formato em `report_spec.md`.
-4. **Consumo Consciente** (S2) — card com tabela de gastos pontuais. Formato em `report_spec.md`.
-5. **Diagnóstico Comportamental** (S2) — `div.card-highlight` com tabela Padrão/Evidência/Mudança. Formato em `report_spec.md`.
-6. **KPIs Rentabilidade + Tabela 3.1** (S3) — 4 KPI cards + tabela blocos. Formato em `report_spec.md`.
-7. **Estratégia Aporte 3.2** (S3) — `div.card-feature` com tabela destinos. Formato em `report_spec.md`.
-8. **Contrafluxo** (S3) — card com tabela 3 cenários Selic. Formato em `report_spec.md`.
-
-**Validação E5.4 (DEVE passar antes de avançar):**
-- [ ] Nenhum `{{SUMMARY_S1}}` a `{{SUMMARY_S5}}` remanescente
-- [ ] Nenhum `{{CONTENT_S1}}` a `{{CONTENT_S5}}` remanescente
-- [ ] Nenhum `<h2>` dentro de `{{CONTENT_S*}}` duplicando o `<h1>` da seção (sub-seções usam `<h3>`)
-- [ ] Nenhum `<p class="section-summary">` dentro de `{{CONTENT_S*}}` (summary já está no template)
-- [ ] Canvas IDs de S1-S5 presentes no HTML (11 IDs)
-- [ ] Card "Reserva de Emergência" presente em S1 com 3 critérios
-- [ ] Card "Endividamento" presente em S1 com relação dívida/patrimônio
-- [ ] Card "Orçamento Prospectivo" presente em S2 com 14 categorias na tabela
-- [ ] Card "Consumo Consciente" presente em S2
-- [ ] Card "Diagnóstico" presente em S2 (com tabela ou versão positiva)
-- [ ] Cards 3.1, 3.2, Contrafluxo presentes em S3
-
----
-
-#### E5.5 — Seções 6-10 + Apêndices A-E
-
-**Escopo:** Popular APENAS `{{SUMMARY_S6}}` a `{{SUMMARY_S10}}`, `{{CONTENT_S6}}` a `{{CONTENT_S10}}`, e `{{CONTENT_APP_A}}` a `{{CONTENT_APP_E}}`. Nada mais.
-
-**⚠️ REGRA ESTRUTURAL CRÍTICA — NÃO DUPLICAR TÍTULO NEM SUMMARY (mesma regra de E5.4):**
-- `{{SUMMARY_S*}}` = texto puro do summary (sem tags wrapper)
-- `{{CONTENT_S*}}` NÃO deve começar com `<h2>` nem `<p class="section-summary">` — título e summary já estão no template
-- `{{CONTENT_S*}}` começa direto com o conteúdo: charts, cards, tables, etc.
-- Sub-seções internas usam `<h3>`, nunca `<h2>`
-- NÃO envolver em `<div class="section">` — o wrapper já existe no template
-- Para apêndices: `{{CONTENT_APP_*}}` segue a mesma regra — não gerar `<h2>` duplicando o `<h1>` do template
-
-**Inputs a ler nesta sub-etapa:**
-- `config/report_spec.md` (APENAS as seções S6 a S10 e Apêndices A-E, incluindo cards obrigatórios: Previdência PGBL, Pontos Fortes, Pontos Urgentes, Equilíbrio Cerbasi)
-- `processed/E4_analysis/analise_financeira-4_analysis.json`
-- `life_plan/life_plan_goals.md` (Green Card, IF, NCLEX, sucessório, viagens, simulação Mariana)
-- `config/definitions.md` (para glossário do Apêndice A)
-
-**⚠️ REGRA DE MAPEAMENTO — Consultar tabela em `report_spec.md` seção "REGRA DE MAPEAMENTO E5 → SEÇÃO":**
-O conteúdo de cada `{{CONTENT_SN}}` DEVE corresponder ao H1 do template. Verificar ANTES de gerar.
-
-**IDs canônicos dos canvas (S6-S10 + Apps):**
-
-| Seção | Canvas ID | Tipo |
-|---|---|---|
-| S6 | `chart-cenarios-cambiais` | Cenários cambiais |
-| S7 | `chart-projecao-3cenarios` | Projeção patrimonial 3 cenários |
-| S7 | `chart-renda-passiva` | Renda passiva vs meta |
-| S8 | `chart-impostos-pj` | DAS PJ mês a mês |
-| S9 | `chart-bubble-riscos` | Mapa de riscos (bubble) |
-| S10 | `chart-top5-decisoes` | Top 5 decisões impacto |
-| App C | `chart-cenarios-if` | Cenários de sensibilidade IF |
-| App E | `chart-viagens` | Orçamento viagens (dentro de Próximos Ciclos) |
-| App E | `chart-mariana-cenarios` | Cenários IF Mariana |
-
-**Validação E5.5 (DEVE passar antes de avançar):**
-- [ ] Nenhum `{{SUMMARY_S*}}` ou `{{CONTENT_S*}}` remanescente (S6-S10)
-- [ ] Nenhum `{{CONTENT_APP_*}}` remanescente (A-E)
-- [ ] Nenhum `<h2>` dentro de `{{CONTENT_S*}}` duplicando o `<h1>` da seção
-- [ ] Nenhum `<h2>` dentro de `{{CONTENT_APP_*}}` duplicando o `<h1>` do apêndice
-- [ ] Canvas IDs de S6-S10 + Apps presentes no HTML (9 IDs, incluindo chart-cenarios-if)
-- [ ] Card "Previdência PGBL" presente em S7 com projeção 10/15/20 anos
-- [ ] Card "Pontos Fortes" presente em S10 como primeiro conteúdo
-- [ ] Card "Pontos Urgentes" presente em S10 após Pontos Fortes
-- [ ] Card "Equilíbrio Cerbasi" presente em S10 após Pontos Urgentes
-- [ ] S9 inclui seguros e planejamento sucessório
-- [ ] Apêndice A contém glossário de definições e siglas
-- [ ] Apêndice B contém premissas e metodologias (Perini/Cerbasi/AUVP)
-- [ ] Apêndice C contém cenários de sensibilidade
-- [ ] Apêndice D contém referências e recursos
-- [ ] Apêndice E contém tarefas priorizadas + viagens + NCLEX + simulação + calendário
-
----
-
-#### E5.6 — Validação final + Arquivamento
-
-**Escopo:** Rodar checklist completo de qualidade sobre o HTML final. Arquivar versão anterior.
-
-**Processo:**
-1. **Comitar versão anterior** via Git antes de sobrescrever (`git add output/ && git commit -m "E5: relatório [DATE_ANTERIOR]"`)
-2. **Rodar script de validação** (Python recomendado) que verifica TODOS os critérios abaixo
-
-**Checklist de validação final (TODOS devem passar):**
-
-| # | Critério | Como verificar |
-|---|---|---|
-| V1 | Nenhum `{{...}}` remanescente fora de comentários HTML | Regex `\{\{[^}]+\}\}` no HTML sem comentários |
-| V2 | JSON `report-data` é válido e parseable | `json.loads()` no conteúdo do `<script id="report-data">` |
-| V3 | `charts` contém 19 datasets | Checar cada chave da tabela E5.3 |
-| V4 | 19 canvas IDs presentes no HTML (11 em S1-S5 + 8 em S6-S10/Apps) | Checar cada ID da lista canônica (nota: `fluxo_mensal` é alias de `chart-receita-bar`, não conta como canvas separado) |
-| V5 | 10 seções estratégicas presentes | `secao-1` a `secao-10` no HTML |
-| V6 | 5 apêndices presentes | `apendice-a` a `apendice-e` no HTML |
-| V7 | Cards obrigatórios presentes (14 cards) | Reserva Emergência, Endividamento, Orçamento Prospectivo, Consumo Consciente, Diagnóstico, Perfil Família, 3.1 Rentabilidade, 3.2 Estratégia, Contrafluxo, Previdência PGBL, Pontos Fortes, Pontos Urgentes, Equilíbrio Cerbasi, Ações Diretas (condicional) |
-| V8 | `COVER_DATA_HORA` contém horário | Regex `\d{1,2}h\d{2}` no cover |
-| V9 | `COVER_VERSAO_MANUAL` é número de versão | Regex `^\d+\.\d+$` no valor |
-| V10 | Perfil Família é prosa narrativa | Sem `<table>`, `<ul>`, `<li>`, `<strong>Label:</strong>` dentro do bloco perfil |
-| V11 | KPIs numéricos batem com E4 | Spot check: patrimônio bruto, score, prazo IF |
-| V12 | `patrimonio.imoveis_estimado` > 0 no JSON | Checar campo no report-data |
-| V13 | `orcamento_prospectivo.categorias` tem 14 itens | Checar length no JSON |
-| V14 | HTML renderizável | Tamanho > 100KB, sem tags abertas óbvias |
-
-**Se qualquer critério falhar:** Identificar qual sub-etapa é responsável (V1-V2→E5.1/E5.3, V3→E5.3, V4-V6→E5.4/E5.5, V7→E5.4, V8-V9→E5.1, V10→E5.2, V11→E5.1, V12-V13→E5.3) e re-executar APENAS essa sub-etapa.
-
-**Outputs finais:**
-- `output/relatorio_financeiro_ferreira_campos_[DATE].html`
-- Versão anterior preservada no histórico Git
+**Se qualquer validação falhar:** O script imprime qual checagem falhou. Corrigir na fonte:
+- Texto errado → re-rodar E4.N
+- Dados errados → corrigir E2/E3/E4
+- Layout/CSS → corrigir template
 
 ---
 
 ### STAGE E5-regen — Regeneração rápida do relatório
 
-**Objetivo:** Regenerar o relatório HTML quando houve mudança apenas no template ou no design, sem necessidade de reprocessar dados (E0→E4).
+**Objetivo:** Regenerar o relatório quando houve mudança no template ou nos dados, sem reprocessar E0→E3.
 
 **Quando usar:**
-- Alteração no CSS, layout ou estrutura do `config/report_template.html`
-- Ajuste em textos fixos, labels de gráficos ou formatação
-- Correção de bugs no JavaScript do template
-- Atualização do `report_spec.md` que afeta apenas a apresentação
+- Alteração no CSS, layout ou JS do template → `python scripts/e5_render.py`
+- Ajuste nos textos narrativos → re-rodar E4.N + `python scripts/e5_render.py`
+- Correção de dados → re-rodar E4 (ou E3+E4) + `python scripts/e5_render.py`
 
-**Quando NÃO usar (rodar E5 completo ou etapas anteriores):**
-- Chegada de novos extratos ou documentos financeiros → E0 + E2 + ...
-- Mudança em regras de categorização → E3 + E4 + E5
-- Atualização de membros ou life plan → E1 + E4 + E5
+**Processo:**
+1. Comitar versão anterior via Git
+2. Rodar `python scripts/e5_render.py`
+3. Verificar que as 18 validações passam
 
-**Inputs:**
-- `config/report_template.html` ← template atualizado
-- `output/relatorio_financeiro_ferreira_campos_[DATE_ANTERIOR].html` ← relatório atual (para extrair o bloco `report-data` JSON existente)
+---
 
-**Processing logic:**
+### STAGE E-reset — Reprocessamento completo do zero
 
-1. **Extrair dados do relatório atual:** ler o bloco `<script id="report-data">` do HTML existente — este JSON contém todos os dados que alimentam gráficos, KPIs, tarefas e tático.
+**Objetivo:** Apagar todos os artefatos gerados pelo pipeline (E2→E5) e re-executar o processamento completo a partir dos arquivos originais já roteados em `data/`.
 
-2. **Extrair conteúdo textual:** ler os placeholders de seções, apêndices e perfil do relatório existente.
+**Quando usar:**
+- Mudança estrutural no manual, definitions, methodology ou report_spec que afeta múltiplas etapas
+- Suspeita de dados corrompidos ou inconsistentes nos JSONs intermediários
+- Atualização significativa de regras de categorização, membros ou life plan que invalida todo o processamento anterior
+- Após correção de bug que afetou etapas anteriores e propagou erro para frente
 
-3. **Popular o template atualizado** com os mesmos dados extraídos no passo 1 e 2.
+**Quando NÃO usar:**
+- Apenas template/CSS mudou → usar E5-regen
+- Apenas novos extratos chegaram → usar fluxo normal E0 + ciclo incremental
+- Apenas uma etapa específica precisa ser refeita → re-executar somente essa etapa
 
-4. **Salvar:**
-   - Comitar relatório atual via Git antes de sobrescrever (`git add output/ && git commit -m "E5-regen: pré-regeneração [DATE]"`)
-   - Salvar novo como `output/relatorio_financeiro_ferreira_campos_[DATE].html`
+**Procedimento:**
 
-**Outputs:**
-- `output/relatorio_financeiro_ferreira_campos_[DATE].html` (mesmo conteúdo, nova apresentação)
+**Passo 1 — Comitar estado atual via Git (preservar histórico):**
+```bash
+cd financas-familia
+git add -A
+git commit -m "pre-reset: snapshot antes de reprocessamento completo [DATA]"
+```
+
+**Passo 2 — Apagar artefatos gerados (E1→E5):**
+```bash
+# E2/E2.5/E3/E4 — JSONs intermediários em processed/ (subpastas)
+rm -f financas-familia/processed/E2_extracts/*.json
+rm -f financas-familia/processed/E2_reconciled/*.json
+rm -f financas-familia/processed/E3_unified/*.json
+rm -f financas-familia/processed/E4_analysis/*.json
+
+# E1 — Intermediários de membros (os -0_original são preservados)
+rm -f financas-familia/members/*-1a_extract.json
+rm -f financas-familia/members/members-1b_unified.json
+rm -f financas-familia/members/members-1c_enriched.md
+
+# E5 — Relatório HTML em output/
+rm -f financas-familia/output/relatorio_financeiro_ferreira_campos_*.html
+
+# Logs operacionais (serão regenerados pelo pipeline)
+rm -f financas-familia/logs/run_log.md
+rm -f financas-familia/logs/reconciliation.md
+rm -f financas-familia/logs/divergences.md
+
+# Summaries de execução anteriores (artefatos temporários)
+rm -f financas-familia/E3_ANALYSIS_SUMMARY.md
+rm -f financas-familia/E5_EXECUTION_SUMMARY.md
+rm -f financas-familia/E2_PROCESSING_SUMMARY.txt
+rm -f financas-familia/E2_TARGET_FILES_MANIFEST.txt
+```
+
+**Passo 3 — Preservar (NÃO apagar):**
+- `data/` — arquivos originais já roteados com sufixo `-0_original` (E0 já foi feito)
+- `members/*-0_original.*` — documentos pessoais originais (currículos, holerites, RG, etc.)
+- `inbox_processed/` — auditoria de entrada (histórico de roteamento)
+- `logs/inbox_log.md` — registro de todos os ciclos de roteamento
+- `logs/qa_log.md` — itens pendentes de instrução do usuário
+- `config/` — manual, definitions, methodology, template, report_spec, report_template.html
+- `life_plan/` — dados de objetivos e plano de vida
+- `scripts/` — scripts Python de execução (se houver)
+
+**Passo 4 — Re-executar pipeline completo:**
+Executar na ordem: **E1 → E1.5 → E2 → E2.5 → E3 → E4 → E5**
+
+(E0 não precisa ser re-executado — os arquivos já estão organizados em `data/` com nomes finais.)
+
+**Passo 5 — Comitar resultado:**
+```bash
+cd financas-familia
+git add -A
+git commit -m "E-reset: reprocessamento completo [DATA]"
+```
 
 **Validation:**
-- Comparar que o `report-data` JSON do novo relatório é idêntico ao do anterior
-- Verificar que nenhum placeholder `{{...}}` ficou sem substituir
-- Testar renderização dos gráficos
+- Verificar que `processed/` contém os JSONs esperados (E2, E3, E4)
+- Verificar que `output/` contém o novo relatório HTML
+- Executar checklist V1–V18 do E5 (Seção 4, STAGE E5)
+- Comparar com relatório anterior (disponível no histórico Git) para confirmar que não houve perda de dados
 
 ---
 

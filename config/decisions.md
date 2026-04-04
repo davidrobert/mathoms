@@ -1,5 +1,5 @@
 # Decisions — Pipeline Ferreira Campos
-## Versão: 5.1 — abr/2026
+## Versão: 5.2 — abr/2026
 
 ---
 
@@ -115,7 +115,7 @@ Estes valores são os corretos para a v4.3. Se novos extratos divergirem, regist
 | Patrimônio investível | R$ 3.648.716 | R$ 3.407.041 (v3.0) |
 | % atingido da meta | 40,5% | 37,9% |
 | Rentabilidade carteira | 11,1% a.a. / 0,88%/mês / 81% CDI | 10,7% / 78% CDI |
-| ITSA4 | 693 ações | 763 ou 778 |
+| ITSA4 | 763 ações (693 compradas + 70 bonificação, PM R$7,63) | 778 |
 | Aporte mensal | R$ 20.000 | R$ 24.267 |
 | IF prazo | 9,0 anos (David 52, 2035) — TRS 5%, meta R$7,2M | 12,2 anos (TRS 4%, meta R$9M — v5) |
 | Salário Mariana normalizado | R$ 8.000/mês | R$ 6.720 (v3.0) |

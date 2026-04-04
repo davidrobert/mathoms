@@ -1,5 +1,5 @@
 # Source Hierarchy — Pipeline Ferreira Campos
-## Versão: 5.0 — abr/2026
+## Versão: 5.2 — abr/2026
 
 ---
 

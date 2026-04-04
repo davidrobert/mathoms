@@ -1,15 +1,24 @@
 # Definitions — Pipeline Ferreira Campos
-## Versão: 5.0 — abr/2026
+## Versão: 5.2 — abr/2026
 
 ---
 
 ## MEMBROS DA FAMÍLIA
 
-| Membro | Nome completo | CPF | Nascimento | Papel |
-|---|---|---|---|---|
-| David | David Robert Camargo Ferreira Campos | 287.766.948-36 | 05/09/1981 | Titular, CTO PJ |
-| Mariana | Mariana Teixeira Ferreira (nome fiscal) / Mariana Ferreira Campos | 085.052.396-60 | 30/08/1986 | Cônjuge, enfermeira CLT |
-| Theo | Theo Ferreira Campos | — | 18/07/2025 | Filho, dupla cidadania BR/US |
+| Membro  | Nome completo                                                     | CPF            | Nascimento | Papel                        |
+| ------- | ----------------------------------------------------------------- | -------------- | ---------- | ---------------------------- |
+| David   | David Robert Camargo Ferreira Campos                              | 287.766.948-36 | 05/09/1981 | Titular, CTO PJ              |
+| Mariana | Mariana Teixeira Ferreira (nome fiscal) / Mariana Ferreira Campos | 085.052.396-60 | 30/08/1986 | Cônjuge, enfermeira CLT      |
+| Theo    | Theo Ferreira Campos                                              | —              | 18/07/2025 | Filho, dupla cidadania BR/US |
+
+---
+## ANIMAIS DE ESTIMAÇÃO
+
+| Raça | Nome  | Sexo  |
+| ---- | ----- | ----- |
+| Gato | Zack  | Macho |
+| Gato | Fuzzy | Macho |
+| Gato | Nix   | Femea |
 
 ---
 
@@ -39,8 +48,7 @@
 | Entidade no nome/conteúdo | Código de entidade | Tipo |
 |---|---|---|
 | C6 Bank, Carbon | `c6bank` | Banco + cartão |
-| Itaú, Personnalité | `itaupersonnalite` | Banco (conta PF Personnalité) |
-| Itaú (conta simples, sem Personnalité) | `itau` | Banco |
+| Itaú, Personnalité | `itau` | Banco (conta PF Personnalité David). Nota: código unificado como `itau` — arquivos no disco usam prefixo `itau_`. O código antigo `itaupersonnalite` é aceito como alias. |
 | Santander | `santander` | Banco + cartão |
 | Bradesco | `bradesco` | Banco (Mariana) |
 | BTG Pactual | `btgpactual` | Corretora (Mariana) |
@@ -122,23 +130,23 @@
 | Instituição | Agência | Conta | Tipo | Uso principal |
 |---|---|---|---|---|
 | C6 Bank PJ | 1 | 384366937 | PJ | Receita PJ, pagamento DAS |
-| C6 Bank PF | — | — | PF | Conta operacional (R$ 6.930) |
+| C6 Bank PF | — | — | PF | Conta operacional |
 | Itaú Personnalité | 9652 | 04397-8 | PF | Investimentos + aluguéis David |
-| Santander | 1652 | 01001341-6 | PF | CDBs (R$ 299.478) |
+| Santander | 1652 | 01001341-6 | PF | CDBs |
 | Rico/XP | — | 6742394 | Corretora | Fundos + ações |
-| PicPay | — | 4383290 | PF | RDB liquidez (R$ 53.757) |
-| Wise | — | — | Internacional | Acumulação USD (US$ 4.722) |
-| Bank of America | — | — | Internacional | Dormida EUA (US$ 2.605) |
-| C6 Global USD | — | — | Internacional | Cartão viagem (US$ 92) |
-| C6 Global EUR | — | — | Internacional | Residual (€ 9) |
-| Binance | — | — | Exchange | Crypto (R$ 1.257) |
+| PicPay | — | 4383290 | PF | RDB liquidez |
+| Wise | — | — | Internacional | Acumulação USD |
+| Bank of America | — | — | Internacional | Dormida EUA |
+| C6 Global USD | — | — | Internacional | Cartão viagem |
+| C6 Global EUR | — | — | Internacional | Residual |
+| Binance | — | — | Exchange | Crypto |
 
 ### Mariana
 
 | Instituição | Agência | Conta | Tipo | Uso principal |
 |---|---|---|---|---|
 | Bradesco | 3221 | 77113-9 | PF (CC + Poupança) | Salário Einstein (poupança) + aluguéis (CC) |
-| BTG Pactual | 0001 | 002713513 | Corretora | Investimentos (R$ 375.385) |
+| BTG Pactual | 0001 | 002713513 | Corretora | Investimentos |
 
 ---
 
@@ -153,6 +161,7 @@
 | "CAMILANAKAMURA"                           | Camila Nakamura dentista       | Fatura C6 Carbon  | —                 |
 | "NATHALIA CASA DE"                         | Açougue Nathalia               | Fatura C6 Carbon  | —                 |
 | "Débito RFB CPF 085.052.396-60"            | IRPF parcelamento Mariana      | CC Bradesco       | —                 |
+| "ABDO MOHAMED"                             | Instituto Dr. Barakat de Medicina Integrativa | Faturas/extratos | Categoria: Saúde  |
 
 ---
 
@@ -176,6 +185,117 @@
 | `seguros`             | Seguros (vida, invalidez, residencial, auto, pets) | R$ 1.500    | 1,9%    |
 
 **Total tetos: R$ 32.950/mês (41,9% da renda)**
+
+### REGRAS DE CATEGORIZAÇÃO POR KEYWORDS (usadas no E3)
+
+Abaixo estão os padrões de texto (case-insensitive, match parcial na descrição da transação) que determinam a categoria. Se mais de uma regra casar, usar a mais específica (mais longa). Se nenhuma regra casar, manter como `nao_identificado`.
+
+**`alimentacao`** — Supermercados, restaurantes, cafés, padarias, delivery, açougues:
+`OXXO`, `SACOLAO`, `MERCADO`, `SAKURA`, `VERDURAS E LEGUMES`, `QUEBEC BAR`, `RAMEN`, `THE VIEW BAR`, `GALPAO DA COSTELA`, `EL PELEGRINO`, `BAR DA JULINHA`, `CANTINA`, `CANTINHO DOS MINEIROS`, `BLMT COMERCIO DE ALIME`, `CARR EXPRESS`, `CASA BAUDUCCO`, `CASA PILAO`, `CHAPEU DE SOL`, `CHOCOLATE`, `CHURRASCARIA`, `DENGO`, `EMPADAKI`, `ENRICOCAFEE`, `CAFETERIA`, `GRAN COFFEE`, `GUIMARAES ALIMENTOS`, `IFD*`, `KINDINPAESEDOCES`, `LAGOS DO SUL`, `LAGOSDOSUL`, `LIKA YACEPS`, `LINDT`, `M A DE CARVALHO CHOCOL`, `MINAS QUEIJO`, `MILKMOO`, `MILKY MOO`, `MINI MERC`, `MINIMART`, `MOZI COMERCIO`, `NATA `, `NATHALIACASADE`, `OFNER`, `PAES E DOCES`, `PASTEISOSHIRO`, `PASTELARIA`, `PIRAJA COMERCIO`, `QUIOSQUE CE QUE`, `RDO CHOCOLATES`, `REAL DA VILLA`, `REDE CAMPEAO`, `REDE OBA`, `REST FRANGOASSADO`, `RM MORUMBI`, `ROP COM ALIM`, `S.R. GONCALVES`, `SAMS*`, `SELVAGEM`, `SODIEDOCES`, `STAR CHICKEN`, `TEMPERODAFE`, `TOSTADO CAFE`, `VEGSIM`, `VISTA IBIRAPUERA`, `YES COFFEE`, `GAMBO CAFE`, `BOGO CAFE`, `NOVO - MUG`, `CASA MURDOCK`, `ERVA DOCE BAR`, `O BADEN BADEN`, `MORUMBI TERREO`, `DON MACEDO CARNE`, `JDM COMERCIO DE ALIM`, `GUARAREMA`, `KERO MAIS`, `CINCO M COMERCIO`, `MM CAMPO BELO`, `BG NORTE`, `DESCAMPADO`, `A CASA DE ANTONIA`, `MOMA MADALENA`, `CACAPAVA`, `EJM REST JAPONES`, `PORTO CAIRES`, `R TRES`, `JIM.COM* MAB FOOD`, `JIM.COM* UMETSU COMER`, `TORRALTA`, `TORRALTACOMERCIO`, `NADIR`
+
+**`transporte`** — Estacionamento, combustível, pedágio, mobilidade:
+`PARK`, `AUTOPOSTO`, `AUTOPOSTOKANTAN`, `ULTRAGAS`, `CONCESSIONARIA SPMAR`, `CARRETEIRO REV`, `PUNTO *PRIME AUTO`, `ECOPISTA`, `FELTRIN MOTOS`, `MEGAPASS`, `MC MOBILITY`, `MCOUTINHO MOBILITY`, `EXXON AUTOMATED`, `BANDEIRA PAULISTA PAR`, `AUTOVAGAS`, `MARANATA SERVICOS DE G`, `CORREA CONVENIENCIA`
+
+**`assinaturas`** — Streaming, apps, software, gym:
+`WELLHUB`, `GYMPASS`, `AMAZONPRIMEBR`, `GLOBO*GLOBOPLAY`, `GLOBO GLOBOPLAY`, `GOOGLE *DUOLINGO`, `SURFSHARK`, `PAYPAL *RESCUETIME`, `PAYPAL *CLEVERBRIDG`, `EBN *SONYPLAYSTATN`, `PADDLE.NET*`, `REGISTROBR`, `EC *MELIMAIS`, `MP *MELIMAIS`, `PRODUTOS GLOBO`, `SP FLIPPER DEVICES`, `ASSOCIATION FOR COMPUT`
+
+**`saude`** — Farmácia, tratamentos, bem-estar:
+`CORPO E VIDA`, `REMEDIOPOPULAR`, `NUTRA BODY`, `MP *FARMAPOPULAR`, `SCRIPTS PHARMACY`, `CAMILANAKAMURA`, `ABDO MOHAMED`
+
+**`seguros`** — Seguradoras:
+`SUL AMERICA SEG`
+
+**`vestuario`** — Roupas, acessórios, cosméticos, joalheria, moda:
+`I. M. SATO VESTUARIO`, `LUANA FASHION`, `VICIO FEMININO`, `CARTERS`, `KIKO MILANO`, `PITICAS`, `BAYARD ESPORTES`, `EMY PERFUMARIA`, `SONEDA PERFUMARIA`, `ITRCCABELEIREIROS`, `LOJA OFICIAL`, `TATIANA GIORDANO`
+
+**`lazer_viagens`** — Turismo, entretenimento, parques, hospedagem, duty-free:
+`AIRBNB`, `SEAWORLD`, `BUSCH GARDENS`, `PORTO DUTY FREE`, `TERMINAL III`, `HN HUDSON`, `WEATHERSTATION`, `WDW DROID DEPOT`, `NIC*-DOH ORA VITAL`, `MINUTE SUITES`, `ZIG*VILLA DI PHOENIX`, `ZIG. THE GLOBAL FUNTEC`, `A NOIESA`, `AEROP. ADOLFO SUAREZ`, `ASSOC COMERCIAL PORT`, `AUDASA VISA`, `CATEDRAL DE SANTIAGO`, `CHEZ LAPIN`, `CPPB-RUA AUGUSTA`, `FUNDACAO CULTURSINTR`, `MANTEIGARIA SILVA`, `ATL PANDA EXPRESS`, `FAST POINT MC`, `DOLLAR TREE`, `AMAZON GROCERY`, `AMAZON TIPS`
+
+**`melhoria_reforma`** — Materiais, construção, manutenção residencial:
+`JS MATERIAIS DE CONS`, `ANDRA MATERIAIS`, `FUTURA MADEIRAS`, `DEPOSITO CENTER`, `DEPOSITO GUARANI`, `ROSSE COMERCIO`, `ELETTRICA COMERCIO`, `CONILREM`, `DAISO BRASIL`
+
+**`educacao`** — Livros, papelaria, cursos:
+`LEITURA`, `KALUNGA`, `COPICOPIAS`, `PAPELARIA`
+
+**`servicos_domesticos`** — Equipe doméstica, lavanderia, pet:
+`SUECIA`, `ELIANE`, `ANDREA S LAVANDERIA`, `PET DOGSTORE`, `JIM COM* LAVARAPIDO`, `JIM.COM* LAVARAPIDO`
+
+**`financeiro`** — Taxas bancárias, IOF, juros, tarifas, contador:
+`VINDI *ACCOUNTBANKTEC`, `PAYPAL *DOCUSIGNINC`
+
+**`suporte_familiar`** — Transferências para familiares, presentes infantis:
+`ALO BEBE`, `ICA*ICASEI`, `MAKOS LEMBRANCAS`
+
+**`reserva_desejos`** — Eletrônicos, tech, compras planejadas de alto valor:
+`AMAZON MKTPLACE`, `AMAZON RETA`, `AMAZONMKTPLC`, `MP *VICTORELETRONICOS`
+
+**Regras especiais:**
+- `NATHALIACASADE` = Açougue Nathalia Casa de Carnes → **alimentacao** (NÃO é serviço doméstico)
+- `ABDO MOHAMED` = Instituto Dr. Barakat → **saude**
+- `RECEB PAGFOR GRPQA` = Aluguel QuintoAndar → **NÃO é despesa** (é receita)
+- Transações com `USD` no final geralmente são gastos em viagem internacional → avaliar se `lazer_viagens` ou a categoria do estabelecimento
+
+**Fallback**: Se a descrição não casar com nenhuma regra acima, o operador E3 deve usar o contexto (nome do estabelecimento, valor, conta de origem) para inferir a categoria. Apenas se realmente não for possível identificar, manter como `nao_identificado` e registrar em `qa_log.md`.
+
+### REGRAS DE CATEGORIZAÇÃO DE RECEITAS (usadas no E3)
+
+O E3 gera `receitas-3_unified.json` agrupado por fonte. Abaixo estão as regras para classificar **créditos** (entradas) nas contas:
+
+| Padrão no extrato (case-insensitive) | Categoria receita | Subcategoria | Conta esperada | Membro |
+|---|---|---|---|---|
+| `ARVO`, `DAVID ROBERT CAMARGO` (TED/PIX recebido PJ→PF) | `receita_pj` | Pró-labore Arvo | C6 PJ → C6 PF | David |
+| `BRANDLOVERS`, `BRAND LOVERS` | `receita_pj` | Advisory BrandLovers | C6 PJ | David |
+| `ARBITRALIS` | `receita_pj` | Advisory Arbitralis | C6 PJ | David |
+| `LEARNTOFLY`, `LEARN TO FLY` | `receita_pj` | Mentoria LearnToFly | C6 PJ | David |
+| `KIWIFY` | `receita_pj` | Kiwify (encerrado mai/2025) | C6 PJ | David |
+| `CNRY`, `CANARY` | `receita_pj` | CNRY/Canary (encerrado set/2025) | C6 PJ | David |
+| `BARTE` | `receita_pj` | Barte Brasil (encerrado set/2025) | C6 PJ | David |
+| `Sociedade Beneficente Israelita` | `receita_clt` | Salário Einstein | Poupança Bradesco | Mariana |
+| `GRPQA`, `SISPAG GRPQA`, `RECEB PAGFOR GRPQA` | `receita_aluguel` | Aluguéis QuintoAndar | CC Bradesco / Itaú Personnalité | David + Mariana |
+| `ALUGUEL`, `LOCACAO` (em conta CC, não em fatura cartão) | `receita_aluguel` | Aluguel direto (sem QuintoAndar) | Qualquer CC | Ambos |
+| `RENDIMENTO`, `JUROS S/CAPITAL`, `DIVIDENDO` | `receita_investimento` | Rendimentos financeiros | Rico, BTG, Itaú, Santander | Ambos |
+| `RESGATE`, `LIQUIDACAO` (CDB, fundo, RF) | `receita_resgate` | Resgate de investimento | Qualquer | Ambos |
+| `RESTITUICAO`, `RESTIT IRPF` | `receita_restituicao` | Restituição IRPF | Qualquer CC | Ambos |
+| `FGTS`, `CAIXA ECONOMICA` (saque) | `receita_fgts` | Saque FGTS | Qualquer CC | David |
+
+**Regras especiais receitas:**
+- Créditos PJ→PF do mesmo titular (ex: TED de C6 PJ para C6 PF David) são **transferências internas**, não receita (ver seção abaixo).
+- `GRPQA` em CC Bradesco = receita aluguel Mariana. `GRPQA` em Itaú = receita aluguel David. Nunca classificar como despesa.
+- Rendimentos de poupança Bradesco (créditos automáticos) = `receita_investimento`, subcategoria "rendimento poupança".
+
+### MAPA DE TRANSFERÊNCIAS INTERNAS (usadas no E3)
+
+Transferências entre contas do casal **NÃO são receita nem despesa**. Devem ser classificadas como `transferencia_interna` e excluídas do fluxo de caixa. O E3 usa este mapa para detectá-las:
+
+**Contas do casal (qualquer movimento entre estas é interno):**
+
+| Código | Titular | Instituição | Identificador |
+|---|---|---|---|
+| `c6pj` | David | C6 Bank PJ | Ag. 1, Conta 384366937 |
+| `c6pf` | David | C6 Bank PF | — |
+| `itau` | David | Itaú Personnalité | Ag. 9652, Conta 04397-8 |
+| `santander` | David | Santander | Ag. 1652, Conta 01001341-6 |
+| `rico` | David | Rico/XP | Conta 6742394 |
+| `picpay` | David | PicPay | Conta 4383290 |
+| `wise` | David | Wise | — |
+| `bofa` | David | Bank of America | — |
+| `c6usd` | David | C6 Global USD | — |
+| `c6eur` | David | C6 Global EUR | — |
+| `binance` | David | Binance | — |
+| `bradesco` | Mariana | Bradesco CC + Poupança | Ag. 3221, Conta 77113-9 |
+| `btg` | Mariana | BTG Pactual | Ag. 0001, Conta 002713513 |
+
+**Regras de detecção:**
+1. **TED/PIX entre contas acima** → `transferencia_interna` (ex: C6 PJ → C6 PF, C6 PF → Itaú, David → Mariana via PIX)
+2. **Aplicação/resgate investimento** na mesma instituição → `transferencia_interna` (ex: CC Itaú → CDB Itaú, CC Santander → CDB Santander)
+3. **Remessa internacional** entre contas próprias → `transferencia_interna` (ex: C6 PF → Wise, C6 PF → C6 Global USD)
+4. **Pagamento de fatura de cartão** → `transferencia_interna` (débito na CC que paga a fatura Carbon/Unique/Pão de Açúcar — a despesa já foi registrada na fatura)
+5. **Depósito poupança ↔ CC** no mesmo banco → `transferencia_interna` (ex: Bradesco CC → Bradesco Poupança)
+
+**Exceções (NÃO são transferência interna):**
+- Pagamento de DAS/IRPF via CC → é despesa `financeiro` ou `impostos`
+- Pagamento de financiamento imobiliário → é despesa `moradia`
+- Transferência para terceiros (babá, diarista, familiares) → é despesa na categoria correspondente
 
 ---
 

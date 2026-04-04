@@ -1,5 +1,5 @@
 # Methodology — Pipeline Ferreira Campos
-## Versão: 5.0 — abr/2026
+## Versão: 5.2 — abr/2026
 
 ---
 
@@ -116,17 +116,23 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 
 ---
 
-## SCORE FINANCEIRO — 5 CRITÉRIOS
+## SCORE FINANCEIRO — 5 CRITÉRIOS (v5.2)
 
-| Critério | Peso | Faixas de nota |
-|---|---|---|
-| Taxa de poupança **recorrente** | 25% | <10%=3, 10-15%=5, 15-20%=7, 20-25%=8, ≥25%=10. **USAR RECEITA RECORRENTE** (excluir one-time: rescisões, Kiwify, vendas). Ver nota abaixo. |
-| Controle gastos variáveis | 20% | Amplitude mensal alta=5, moderada=7, baixa=9 |
-| Endividamento | 20% | Dívida zero=10, <30% renda=7, >30%=3 |
-| Diversificação patrimônio | 20% | >70% concentrado=4, 55-70%=6, <55%=8 |
-| Progresso Indep. Financeira | 15% | <25%=4, 25-40%=5.5, 40-60%=7, >60%=9 |
+O score é uma média ponderada de 5 componentes, cada um pontuado de 0 a 10 com interpolação linear entre os extremos.
 
-Score = média ponderada.
+| Componente | Peso | Critério 10/10 | Critério 0/10 |
+|---|---|---|---|
+| Taxa de poupança **recorrente** | 2.0 | ≥ 50% | ≤ 0% (déficit). **USAR RECEITA RECORRENTE** (excluir one-time: rescisões, Kiwify, vendas). |
+| Cobertura de despesas (meses) | 1.5 | ≥ 24 meses | ≤ 3 meses |
+| Taxa de endividamento | 1.5 | ≤ 5% | ≥ 50% |
+| Progresso Indep. Financeira (% da meta) | 2.0 | ≥ 80% | ≤ 5% |
+| Diversificação (categorias ≥ 5% do patrimônio) | 1.0 | ≥ 5 categorias | ≤ 1 categoria |
+
+**Fórmula:** `score = Σ(componente_i × peso_i) / Σ(peso_i)`, arredondado a 1 decimal.
+
+**Classificação:** 0-2 = "Crítico", 2-4 = "Atenção", 4-6 = "Regular", 6-8 = "Bom", 8-10 = "Excelente".
+
+Salvar componentes individuais em `score.componentes[]` para transparência. Ver `manual_operacao.md` (E4, item 5) para detalhes de implementação.
 
 ---
 

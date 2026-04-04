@@ -1,5 +1,5 @@
 # Report Spec — Pipeline Ferreira Campos
-## Versão: 5.0 — abr/2026
+## Versão: 5.2 — abr/2026
 
 ---
 
@@ -63,14 +63,40 @@ Paleta gráficos dark: `['#7EB8DA', '#5CC8F0', '#4ADE80', '#FBBF24', '#FB7185', 
 - **Corpo:** Inter
 
 ### Escala tipográfica (10 tamanhos)
-10px (micro) | 12px (notas, muted) | 13px (corpo cards) | 14px (corpo principal, summaries) | 16px (H2) | 20px (KPI sub) | 22px (H1) | 24px (KPI value) | 30px (KPI hero value) | 38px (cover)
+10px (micro) | 12px (notas, muted) | 13px (corpo cards) | 14px (corpo principal, summaries) | 15px (H3 dentro de cards) | 16px (H2) | 18px (dash-section H2 tático) | 22px (H1) | 24px (KPI value) | 38px (cover)
 
 ### Classes utilitárias CSS
 - Tipografia: `.text-sm` (12px muted), `.text-base` (13px), `.text-lg` (14px), `.text-muted`, `.text-bold`
 - Espaçamento: `.mt-2` (8px), `.mt-3` (12px), `.mt-4` (16px), `.mb-2`, `.mb-3`
 - Layout: `.nowrap` (white-space), `.list-actions` (listas sem bullet com border-bottom)
 
-### Card Variants (9 classes semânticas)
+### ⚠️ REGRAS DE DESIGN OBRIGATÓRIAS (E5)
+
+**1. Espaçamento entre cards — NUNCA usar inline `margin-top` ou `margin-bottom`:**
+O CSS usa seletores adjacentes (`.section .card + .card`, `.section .card + .chart-container`, etc.) que adicionam automaticamente `--space-section-gap: 20px` entre elementos. **É PROIBIDO** adicionar `style="margin-top:20px"` ou qualquer `margin` inline em cards, chart-containers, chart-rows ou alerts dentro de seções.
+
+**2. Títulos dentro de cards — SEMPRE usar `<div class="card-title">`:**
+Todo card DEVE ter `<div class="card-title">` como primeiro elemento filho. Usar `card-title-lg` para cards de destaque. **NUNCA** usar `<h3>` como primeiro filho direto de um card — usar `<div class="card-title">` no lugar. `<h3>` é permitido para sub-seções dentro de cards (ex: "3.1 Rentabilidade...") mas não como título principal do card.
+
+**3. Cores — NUNCA hardcodar valores hex no HTML:**
+Todas as cores devem usar tokens CSS: `var(--color-accent)`, `var(--color-danger)`, etc. Para backgrounds de alertas usar as classes `.alert-danger`, `.alert-warning`, `.alert-success`, `.alert-info`. **NUNCA** usar `style="background:#F0FDF4"` ou similar — quebra o dark mode.
+
+**4. KPI cards com destaque — usar classe `.kpi-card-accent`:**
+Em vez de `style="border-color:var(--color-accent)"`, usar `class="kpi-card kpi-card-accent"`.
+
+**5. Grid inline — NUNCA sobrescrever grids com style inline:**
+Não usar `style="grid-template-columns: repeat(4, 1fr)"` — o CSS já define o grid correto. Se precisar de grid diferente, usar classe CSS.
+
+**6. Tabelas — linhas totais devem usar classe `.total-row`:**
+Linhas de total devem usar `<tr class="total-row">` (background cinza + negrito + border-bottom 2px). Não usar `.td-total` em cells individuais.
+
+**7. Tags vazias — NUNCA gerar `<p>` vazio:**
+Se `chart-context` ou `chart-conclusion` não tiver texto, OMITIR a tag inteira. Não gerar `<p class="chart-context"></p>`.
+
+**8. Contrafluxo card — usar classe `.card-primary` em vez de style inline:**
+`<div class="card card-primary">` em vez de `<div class="card" style="border-left:4px solid var(--color-primary)">`.
+
+### Card Variants (10 classes semânticas)
 
 | Classe | Estilo | Uso |
 |---|---|---|
@@ -79,15 +105,17 @@ Paleta gráficos dark: `['#7EB8DA', '#5CC8F0', '#4ADE80', '#FBBF24', '#FB7185', 
 | `.card-success` | gradiente verde | Resultado positivo (ex: quitação) |
 | `.card-warn` | border-left laranja | Atenção (ex: reserva oportunidade) |
 | `.card-critical` | border-left vermelho | Problema |
-| `.card-primary` | border-left azul escuro | Referência |
+| `.card-primary` | border-left azul escuro | Referência (ex: contrafluxo) |
 | `.card-neutral` | border-left cinza-azul | Contexto |
 | `.card-top-danger` | border-top vermelho | — |
 | `.card-top-accent` | border-top verde | — |
+| `.kpi-card-accent` | border verde (accent) | KPI com destaque (ex: rentabilidade) |
 
-### Table Variants (3 estilos)
+### Table Variants (3 estilos + total-row)
 - **Padrão** — zebrado, alternating rows
 - **`.table-steps`** — border-left azul, 1ª coluna bold nowrap (passo-a-passo)
 - **`.table-compare`** — colunas centralizadas com backgrounds tinted (comparação)
+- **`tr.total-row`** — background `--color-row-total`, font-weight 700, border-bottom 2px
 
 ### Componentes especiais
 - **`.kpi-hero`** — 3 KPIs maiores: font-size 30px, border-top 4px solid primary
@@ -169,11 +197,13 @@ Portanto, ao gerar o conteúdo dos placeholders:
 | `apendice-b` | Premissas e Metodologia | Inflação, câmbio, rentabilidade real, taxa desconto, horizonte, fonte de cada premissa. Metodologias: Bruno Perini (IF number), Cerbasi (equilíbrio), AUVP (contrafluxo/Cerrado). |
 | `apendice-c` | Cenários de Sensibilidade | Tabela otimista/base/pessimista para IF, cambial, Selic, imóveis. Stress-test: "e se Selic cair a 8%?", "e se USD a 6,50?" |
 | `apendice-d` | Referências e Recursos | Links, livros, ferramentas, contatos de assessores. Bruno Perini (Viver de Renda), Cerbasi (Casais Inteligentes), AUVP (plataforma). |
-| `apendice-e` | Próximos Ciclos e Roadmap | Tarefas priorizadas (35 items ¹=1ª sem abr) + Viagens e Milhas (R$45k orçamento) + NCLEX Roadmap (7 etapas) + Simulação Mariana + calendário próximo ciclo |
+| `apendice-e` | Próximos Ciclos e Roadmap | Tarefas priorizadas (usar classes `priority-badge priority-{alta,media,baixa}` — ver "Regra obrigatória: Badges de Prioridade") + Viagens e Milhas (R$45k orçamento) + NCLEX Roadmap (7 etapas) + Simulação Mariana + calendário próximo ciclo |
 
 ### Card obrigatório: Orçamento Prospectivo (dentro de `secao-2` — OBRIGATÓRIO)
 
 **Regra gauge:** O canvas do score gauge DEVE incluir `data-score="X.X"` com o valor numérico calculado pelo E4 (ex: `<canvas id="chart-score-gauge" data-type="gauge" data-score="6.8">`). O `<p class="chart-context">` antes do canvas pode ficar vazio ou com placeholder — o JS do template sobrescreve automaticamente com "Avaliação consolidada: X,X/10 (Classificação)." **NUNCA hardcodar o texto de avaliação manualmente.**
+
+**Regra breakdown do score (obrigatória):** Logo abaixo do canvas do gauge, o template DEVE renderizar automaticamente uma tabela de decomposição com os 5 componentes do score. A fonte de dados é `REPORT_DATA_JSON.score.componentes[]` (gerado pelo E4). A tabela tem 4 colunas: Componente, Valor, Nota (com barra visual proporcional), Peso. Abaixo da tabela, exibir a fórmula resumida: "Score = Σ(nota × peso) / Σ(peso)". O JS do template gera esta tabela dinamicamente — o E5 NÃO deve hardcodar o breakdown no HTML. Se `REPORT_DATA_JSON.score.componentes` não existir ou estiver vazio, o breakdown não é renderizado (graceful degradation).
 
 **Regra:** Este card DEVE ser gerado SEMPRE na secao-2 (Fluxo de Caixa e Orçamento), logo após os gráficos de receita/despesa e o score gauge. É o "painel de controle" da família. Mesmo na primeira execução (sem dados reais de gasto), gerar com a coluna "Média Real" vazia ou com "—".
 
@@ -452,10 +482,11 @@ A seção 3 contém **5 subsseções**, das quais **3 blocos são OBRIGATÓRIOS*
 - CDI referência: `report-data.investimentos.cdi_anual` (taxa Selic vigente)
 
 **Info bar (acima dos KPIs):**
+⚠️ **NÃO usar `<div class="section-summary">` aqui** — o template já injeta o summary via `{{SUMMARY_S3}}`. Esta info bar deve ser um `<p>` simples dentro do conteúdo:
 ```html
-<div class="section-summary">
+<p class="text-sm text-muted">
   {{qtd_imoveis}} imóveis ({{qtd_renda}} para renda) · Yield médio {{yield_medio}}% · Custo de oportunidade R$ {{custo_oportunidade}}/ano · {{melhor_yield_nome}} melhor yield ({{melhor_yield_pct}}%).
-</div>
+</p>
 ```
 
 **Estrutura HTML dos 4 KPIs:**
@@ -466,7 +497,7 @@ A seção 3 contém **5 subsseções**, das quais **3 blocos são OBRIGATÓRIOS*
     <div class="kpi-value">{{rent_anual}}%</div>
     <div class="kpi-sub">nominal bruta</div>
   </div>
-  <div class="kpi-card" style="border-color: var(--color-accent);">
+  <div class="kpi-card kpi-card-accent">
     <div class="kpi-label">RENTABILIDADE MENSAL</div>
     <div class="kpi-value green">{{rent_mensal}}%</div>
     <div class="kpi-sub">ponderada por bloco</div>
@@ -476,7 +507,7 @@ A seção 3 contém **5 subsseções**, das quais **3 blocos são OBRIGATÓRIOS*
     <div class="kpi-value">{{pct_cdi}}%</div>
     <div class="kpi-sub">CDI atual: {{cdi_anual}}% a.a.</div>
   </div>
-  <div class="kpi-card" style="border-color: var(--color-accent);">
+  <div class="kpi-card kpi-card-accent">
     <div class="kpi-label">RETORNO REAL</div>
     <div class="kpi-value green">{{retorno_real}}%</div>
     <div class="kpi-sub">acima da inflação</div>
@@ -602,7 +633,7 @@ A seção 3 contém **5 subsseções**, das quais **3 blocos são OBRIGATÓRIOS*
 
   <!-- Resumo BRL vs USD -->
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
-    <div style="background: #F0FDF4; border-left: 3px solid #16A34A; padding: 12px; border-radius: 8px;">
+    <div class="card card-success" style="padding: 12px;">
       <strong>💰 {{pct_brl}}% em BRL</strong> ({{destinos_brl}}): {{resumo_brl}}
     </div>
     <div class="card card-highlight" style="padding: 12px;">
@@ -649,7 +680,7 @@ A seção 3 contém **5 subsseções**, das quais **3 blocos são OBRIGATÓRIOS*
 
 **Estrutura HTML:**
 ```html
-<div class="card" style="border-left: 4px solid var(--color-primary);">
+<div class="card card-primary">
   <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
     <span style="font-size: 18px;">↔</span>
     <strong>Estratégia de Contrafluxo na Renda Fixa</strong>
@@ -824,6 +855,258 @@ Se qualquer um desses 4 elementos estiver ausente, o E5 falhou e deve ser refeit
 
 ---
 
+## DETALHAMENTO DE SEÇÕES FALTANTES (S4, S5, S6, S8, S9, Apêndices)
+
+As seções abaixo tinham apenas descrição de uma linha na tabela de seções. Para que o E-reset funcione sem ambiguidade, o E5 precisa de instruções explícitas de layout e dados.
+
+---
+
+### Seção 4 — Imóveis e Bens (`secao-4`)
+
+**Fonte de dados:** `patrimonio-3_unified.json` (categoria `imoveis`), `imoveis-3_unified.json` / `dados_imoveis-2_extract.json`, XLSX original, IRPF.
+
+**Card obrigatório: Patrimônio Imobiliário**
+
+```html
+<div class="card">
+  <div class="card-title card-title-lg">Patrimônio Imobiliário</div>
+  <table>
+    <thead>
+      <tr><th>#</th><th>IMÓVEL</th><th>ÁREA</th><th>DONO</th><th>COMPRA</th><th>VALOR IRPF</th><th>ALUGUEL</th><th>STATUS</th></tr>
+    </thead>
+    <tbody>
+      <!-- Para cada imóvel em patrimonio.imoveis[] -->
+      <tr><td>{{num}}</td><td>{{descricao}}</td><td>{{area_m2}}m²</td><td>{{titular}}</td><td>{{data_compra}}</td><td>R$ {{valor_irpf}}</td><td>R$ {{aluguel_mensal}}</td><td>{{status}}</td></tr>
+      <!-- Linha total -->
+      <tr class="total-row"><td colspan="5"><strong>TOTAL ({{qtd_imoveis}} imóveis)</strong></td><td><strong>R$ {{total_irpf}}</strong></td><td><strong>R$ {{total_aluguel}}</strong></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+```
+
+**Blocos adicionais (condicionais — gerar quando dados disponíveis):**
+- **Yield vs CDI:** gráfico `chart-yield-imoveis` (bar) + card com cálculo `(aluguel_anual / valor_estimado) × 100` por imóvel
+- **Custo de oportunidade:** card mostrando quanto o capital imobilizado renderia se investido (CDI × valor_estimado)
+- **Simulação Barão→FIIs:** card com cenário hipotético de venda do imóvel menos rentável e reinvestimento em 5 FIIs de referência, com disclaimer "cenário educacional"
+
+**JSON em `report-data` (exemplo parcial):**
+```json
+"patrimonio": {
+  "imoveis": [
+    {"num": 1, "descricao": "Apt. Barão de Jaceguai 71m²", "area_m2": 71, "titular": "David", "data_compra": "2014-03", "valor_irpf": 297000, "valor_estimado": 550000, "aluguel_mensal": 3200, "yield_anual_pct": 6.98, "status": "Alugado"},
+    {"num": 2, "descricao": "Apt. Sabiá 51m²", "area_m2": 51, "titular": "Mariana", "data_compra": "2017-06", "valor_irpf": 230000, "valor_estimado": 400000, "aluguel_mensal": 2500, "yield_anual_pct": 7.50, "status": "Alugado"}
+  ],
+  "total_irpf": 1200000,
+  "total_estimado": 2100000,
+  "total_aluguel_mensal": 9452,
+  "imoveis_estimado": 2100000
+}
+```
+
+---
+
+### Seção 5 — F1/F2 EUA (`secao-5`)
+
+**Fonte de dados:** `life_plan/life_plan_goals.md` (seção F1/F2), E4 cálculos de custos.
+
+**Estrutura de conteúdo:**
+1. **Stacked bar `chart-custos-eua`:** custos mensais em USD por categoria (tuition, moradia, saúde, transporte, alimentação), com tooltip mostrando equivalente BRL
+2. **Checklist de status:** tabela com itens DECIDIDO/PENDENTE para cada etapa do processo F1/F2
+
+```html
+<div class="chart-container">
+  <p class="chart-context">Custos mensais estimados da fase F1/F2, baseados no plano de vida atualizado em {{data_life_plan}}.</p>
+  <canvas id="chart-custos-eua" data-type="bar-stacked"></canvas>
+  <p class="chart-conclusion">{{conclusao_custos}}</p>
+</div>
+
+<div class="card">
+  <div class="card-title">Checklist F1/F2 — Status das Decisões</div>
+  <table>
+    <thead><tr><th>ITEM</th><th>STATUS</th><th>DETALHE</th><th>PRAZO</th></tr></thead>
+    <tbody>
+      <!-- Para cada item em f1f2_checklist[] -->
+      <tr><td>{{item}}</td><td><span class="priority-badge priority-{{cor}}">{{status}}</span></td><td>{{detalhe}}</td><td>{{prazo}}</td></tr>
+    </tbody>
+  </table>
+</div>
+```
+
+---
+
+### Seção 6 — Green Card (`secao-6`)
+
+**Fonte de dados:** `life_plan/life_plan_goals.md` (seção Green Card), E4 cenários cambiais.
+
+**Estrutura de conteúdo:**
+1. **Gráfico `chart-cenarios-cambio`:** bar agrupado com sobra mensal por cenário cambial (USD 4.50 / 5.50 / 6.50), com e sem renda Mariana
+2. **Card Dolarização:** estratégia de exposição ao dólar (Wise + IVVB11 + ativos USD)
+3. **Card Proteção Patrimonial — 5 Riscos:** tabela com risco cambial, fiscal, migratório, saúde, e carreira + mitigações
+
+```html
+<div class="chart-container">
+  <p class="chart-context">Simulação de fluxo de caixa mensal nos EUA em 3 cenários de câmbio.</p>
+  <canvas id="chart-cenarios-cambio" data-type="bar-grouped"></canvas>
+  <p class="chart-conclusion">{{conclusao_cambio}}</p>
+</div>
+
+<div class="card card-highlight">
+  <div class="card-title">Proteção Patrimonial — 5 Riscos da Migração</div>
+  <table>
+    <thead><tr><th>RISCO</th><th>PROBABILIDADE</th><th>IMPACTO</th><th>MITIGAÇÃO</th></tr></thead>
+    <tbody>
+      <!-- Para cada item em riscos_migracao[] -->
+      <tr><td><strong>{{risco}}</strong></td><td>{{probabilidade}}</td><td>{{impacto}}</td><td>{{mitigacao}}</td></tr>
+    </tbody>
+  </table>
+</div>
+```
+
+---
+
+### Seção 8 — Tributário (`secao-8`)
+
+**Fonte de dados:** E4 análise tributária, `despesas-3_unified.json` (categoria impostos), `receitas-3_unified.json`.
+
+**Estrutura de conteúdo (5 blocos):**
+
+1. **DAS Irregular:** card `.card-critical` com status dos pagamentos DAS, meses atrasados, multas estimadas
+2. **Simples vs Lucro Presumido:** card com tabela comparativa de carga tributária nos dois regimes
+3. **PGBL Portabilidade:** card com análise de fundos disponíveis e recomendação (conecta com card PGBL da S7)
+4. **Carnê-leão passo-a-passo:** card `.card` com tabela `.table-steps` de 7 etapas (site Receita Federal → login Gov.br → declarar aluguéis → gerar DARF → pagar)
+5. **Calendário tributário:** tabela com datas de vencimento mensais (DAS dia 20, IRRF, IRPF provisão, etc.)
+6. **Gráfico `chart-impostos-pj`:** bar comparando imposto pago mês a mês vs ideal
+
+```html
+<div class="card card-critical">
+  <div class="card-title">DAS — Situação Irregular</div>
+  <table>
+    <thead><tr><th>MÊS</th><th>VALOR</th><th>STATUS</th><th>MULTA ESTIMADA</th></tr></thead>
+    <tbody>
+      <!-- Para cada mês em das_status[] -->
+      <tr><td>{{mes}}</td><td>R$ {{valor}}</td><td><span class="priority-badge priority-{{cor}}">{{status}}</span></td><td>R$ {{multa}}</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title">Carnê-Leão — Passo a Passo</div>
+  <table class="table-steps">
+    <thead><tr><th>ETAPA</th><th>AÇÃO</th><th>DETALHE</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1</strong></td><td>Acessar Carnê-Leão Web</td><td>cav.receita.fazenda.gov.br → Login Gov.br</td></tr>
+      <tr><td><strong>2</strong></td><td>Declarar aluguéis recebidos</td><td>Informar valor bruto mensal por imóvel</td></tr>
+      <tr><td><strong>3</strong></td><td>Deduzir despesas permitidas</td><td>IPTU, condomínio pago pelo locador, comissão imobiliária</td></tr>
+      <tr><td><strong>4</strong></td><td>Calcular imposto</td><td>Sistema aplica tabela progressiva automaticamente</td></tr>
+      <tr><td><strong>5</strong></td><td>Gerar DARF</td><td>Código 0190 para pessoa física</td></tr>
+      <tr><td><strong>6</strong></td><td>Pagar até último dia útil do mês seguinte</td><td>PIX, internet banking ou agência</td></tr>
+      <tr><td><strong>7</strong></td><td>Exportar para IRPF anual</td><td>Na declaração de ajuste, importar dados do Carnê-Leão</td></tr>
+    </tbody>
+  </table>
+</div>
+```
+
+---
+
+### Seção 9 — Riscos e Proteção (`secao-9`)
+
+**Fonte de dados:** E4 análise de riscos, `seguros` (chave #20 do JSON), `life_plan/life_plan_goals.md`.
+
+**Estrutura de conteúdo (4 blocos):**
+
+1. **Bubble chart `chart-mapa-riscos`:** X=Probabilidade (1-5), Y=Impacto financeiro (1-5), Raio=Severidade composta. Mínimo 8 riscos mapeados
+2. **Card Seguros:** tabela cobertura atual vs recomendada (vida, DIT, residencial, auto), gap analysis com `.card-warn` para gaps
+3. **Card Top 3 Mitigações:** ações prioritárias de mitigação de risco com custo estimado e impacto
+4. **Card Planejamento Sucessório:** sub-blocos: testamentos BR (inventário vs testamento vital), procuração duradoura, holding familiar (análise custo/benefício), guardianship EUA (para filho menor)
+
+```html
+<div class="chart-container">
+  <p class="chart-context">Mapa de riscos da família: cada bolha representa um risco, posicionado por probabilidade (X) e impacto financeiro (Y). O tamanho indica severidade composta.</p>
+  <canvas id="chart-mapa-riscos" data-type="bubble"></canvas>
+  <p class="chart-conclusion">{{conclusao_riscos}}</p>
+</div>
+
+<div class="card card-feature">
+  <div class="card-title">Seguros — Cobertura Atual vs Recomendada</div>
+  <table>
+    <thead><tr><th>TIPO</th><th>SEGURADORA</th><th>COBERTURA ATUAL</th><th>RECOMENDADA</th><th>GAP</th><th>AÇÃO</th></tr></thead>
+    <tbody>
+      <!-- Para cada item em seguros.cobertura_atual[] + seguros.gap_analysis[] -->
+      <tr><td>{{tipo}}</td><td>{{seguradora}}</td><td>R$ {{cobertura}}</td><td>R$ {{recomendada}}</td><td class="{{cor_gap}}">R$ {{gap}}</td><td>{{acao}}</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card card-highlight">
+  <div class="card-title">Planejamento Sucessório</div>
+  <h3>Testamentos e Procuração (Brasil)</h3>
+  <p>{{texto_testamento_br}}</p>
+  <h3>Holding Familiar</h3>
+  <p>{{texto_holding}}</p>
+  <h3>Guardianship (EUA)</h3>
+  <p>{{texto_guardianship}}</p>
+</div>
+```
+
+---
+
+## DETALHAMENTO DOS APÊNDICES (App A-E)
+
+### Apêndice A — Definições e Siglas (`apendice-a`)
+
+**Objetivo:** Glossário autocontido para leitor sem contexto prévio.
+
+**Estrutura:** Tabela 3 colunas: Sigla/Termo, Significado, Seção de referência. Mínimo 20 termos: IF, TRS, CDI, IPCA+, DAS, PGBL, FII, ETF, DCA, Selic, IRPF, IRRF, CDB, RDB, Carnê-leão, Contrafluxo, Marcação a mercado, Yield, Gap IF, Score Financeiro.
+
+```html
+<div class="card">
+  <div class="card-title">Glossário de Termos e Siglas</div>
+  <table>
+    <thead><tr><th>TERMO / SIGLA</th><th>SIGNIFICADO</th><th>SEÇÃO</th></tr></thead>
+    <tbody>
+      <!-- Alfabético, mínimo 20 termos -->
+      <tr><td><strong>CDI</strong></td><td>Certificado de Depósito Interbancário — taxa de referência para renda fixa</td><td>S3</td></tr>
+      <!-- ... -->
+    </tbody>
+  </table>
+</div>
+```
+
+---
+
+### Apêndice B — Premissas e Metodologia (`apendice-b`)
+
+**Estrutura:** 2 cards.
+
+Card 1 — Premissas: tabela com Premissa, Valor, Fonte (inflação IPCA, câmbio USD/BRL, rentabilidade real, taxa de desconto, horizonte, Selic).
+
+Card 2 — Metodologias: 3 sub-seções (Bruno Perini: número IF = despesa anual / TRS; Cerbasi: equilíbrio presente×futuro; AUVP: contrafluxo + Cerrado).
+
+---
+
+### Apêndice C — Cenários de Sensibilidade (`apendice-c`)
+
+**Estrutura:** Tabela otimista/base/pessimista para 4 variáveis (prazo IF, câmbio, Selic, imóveis) + gráfico `chart-cenarios-if` + stress-tests narrativos ("E se Selic cair a 8%?", "E se USD a 6,50?").
+
+---
+
+### Apêndice D — Referências e Recursos (`apendice-d`)
+
+**Estrutura:** Lista organizada em 4 categorias: Livros (Perini, Cerbasi), Plataformas (AUVP, Kinvo, Status Invest), Ferramentas (Planilha simulação, Carnê-Leão Web), Contatos de assessores.
+
+---
+
+### Apêndice E — Próximos Ciclos e Roadmap (`apendice-e`)
+
+**Estrutura (5 blocos):**
+1. **Tarefas priorizadas:** tabela com colunas #, Tarefa, Prioridade (usar badges `priority-badge`), Responsável, Prazo, Status. Fonte: `tarefas[]`
+2. **Viagens e Milhas:** gráfico `chart-viagens` + 3 mini-KPIs (orçamento anual R$45k, gasto confirmado, milhas acumuladas)
+3. **NCLEX Roadmap:** 7 etapas com status (Mariana)
+4. **Simulação Mariana:** gráfico `chart-mariana-cenarios` (aporte vs anos até IF)
+5. **Calendário próximo ciclo:** tabela data/evento/responsável
+
+---
+
 ### Card obrigatório: Previdência PGBL (dentro de `secao-7` — OBRIGATÓRIO)
 
 **Regra:** Este card DEVE ser gerado SEMPRE na secao-7 (Independência Financeira), após a projeção de renda passiva por fonte. Aborda o benefício fiscal do PGBL (12% da renda tributável), portabilidade, e projeção de acumulação. Metodologia: Bruno Perini (PGBL como "imposto que volta") + AUVP (usar PGBL como alavanca, não como investimento principal).
@@ -981,6 +1264,226 @@ Se qualquer um desses 4 elementos estiver ausente, o E5 falhou e deve ser refeit
 
 ---
 
+### Regra obrigatória: Badges de Prioridade em tabelas (TODAS as seções)
+
+Sempre que o E5 gerar uma tabela com coluna "Prioridade" (tarefas, pontos urgentes, ou qualquer lista priorizada), usar as **classes CSS do template** — NUNCA estilos inline com `background-color: inherit` ou cores hardcoded.
+
+**Classes disponíveis no template:**
+- `priority-badge priority-alta` → fundo vermelho, texto branco
+- `priority-badge priority-media` → fundo azul escuro, texto branco
+- `priority-badge priority-baixa` → fundo cinza, texto branco
+
+**HTML correto para a célula de prioridade:**
+```html
+<td style="text-align:center; padding:6px 4px;"><span class="priority-badge priority-alta">Alta</span></td>
+<td style="text-align:center; padding:6px 4px;"><span class="priority-badge priority-media">Média</span></td>
+<td style="text-align:center; padding:6px 4px;"><span class="priority-badge priority-baixa">Baixa</span></td>
+```
+
+**Mapeamento do JSON do E4:** `tarefas[].p` → `"alta"` / `"media"` / `"baixa"`.
+
+**NUNCA fazer:** `background-color: inherit`, `background-color: var(--color-bg-alt)`, ou qualquer cor inline. As classes CSS garantem contraste correto em light/dark mode.
+
+---
+
+### Schema JSON: `tarefas[]` (chave #18)
+
+**Fonte:** E4 item 9 — geradas a partir de 12 critérios de gatilho (ver `manual_operacao.md`, E4).
+
+```json
+"tarefas": [
+  {
+    "id": 1,
+    "descricao": "Regularizar DAS atrasados",
+    "categoria": "tributario",
+    "p": "alta",
+    "prazo": "2026-04-15",
+    "responsavel": "David",
+    "status": "pendente",
+    "secao_ref": "S8",
+    "gatilho": "DAS irregular detectado em E3"
+  }
+]
+```
+
+**Campos obrigatórios:** `id` (int sequencial), `descricao` (string), `categoria` (uma de: `tributario`, `investimentos`, `seguros`, `fluxo_caixa`, `patrimonio`, `planejamento`, `documentos`, `emergencia`), `p` (prioridade: `alta`/`media`/`baixa`), `prazo` (ISO date ou `"imediato"`), `responsavel` (`"David"`, `"Mariana"`, `"Ambos"`), `status` (`"pendente"`, `"em_andamento"`, `"concluida"`), `secao_ref` (seção do relatório), `gatilho` (critério que gerou a tarefa).
+
+---
+
+### Schema JSON: `tarefas_status` (chave #19)
+
+**Fonte:** Agregação de `tarefas[]` para exibição no dashboard tático D3.
+
+```json
+"tarefas_status": {
+  "total": 40,
+  "concluidas": 12,
+  "em_andamento": 8,
+  "pendentes": 20,
+  "pct_completo": 30,
+  "por_categoria": {
+    "tributario": {"total": 8, "concluidas": 2},
+    "investimentos": {"total": 10, "concluidas": 4},
+    "seguros": {"total": 5, "concluidas": 1},
+    "fluxo_caixa": {"total": 6, "concluidas": 3},
+    "patrimonio": {"total": 4, "concluidas": 1},
+    "planejamento": {"total": 4, "concluidas": 1},
+    "documentos": {"total": 2, "concluidas": 0},
+    "emergencia": {"total": 1, "concluidas": 0}
+  }
+}
+```
+
+---
+
+### Schema JSON: `seguros` (chave #20)
+
+**Fonte:** E4 — extraído de `seguros-3_unified.json` (faturas e holerites que indicam prêmios de seguro).
+
+```json
+"seguros": {
+  "cobertura_atual": [
+    {
+      "tipo": "vida",
+      "seguradora": "Prudential",
+      "titular": "David",
+      "premio_mensal": 350,
+      "cobertura": 500000,
+      "vencimento": "2026-12-01",
+      "status": "ativo"
+    },
+    {
+      "tipo": "residencial",
+      "seguradora": "Porto Seguro",
+      "titular": "David",
+      "premio_mensal": 120,
+      "cobertura": 800000,
+      "vencimento": "2026-08-15",
+      "status": "ativo"
+    }
+  ],
+  "gap_analysis": [
+    {
+      "tipo": "DIT (invalidez temporária)",
+      "status": "sem_cobertura",
+      "recomendacao": "Contratar DIT com cobertura de R$ 30.000/mês (renda mensal)",
+      "impacto": "Risco crítico: sem renda PJ em caso de incapacidade"
+    }
+  ],
+  "premio_total_mensal": 470,
+  "pct_renda": 0.6
+}
+```
+
+**Consumido por:** secao-9 (Riscos e Proteção) — tabela de seguros, gap analysis, e recomendações.
+
+---
+
+### Schema JSON: `tactical` (chave #17)
+
+**Fonte:** E4 — agregação de dados para as 6 seções do modo tático (D1-D6).
+
+```json
+"tactical": {
+  "despesas_por_categoria": [
+    {
+      "categoria": "Alimentação",
+      "emoji": "🍽",
+      "gasto_quinzena": 2100,
+      "teto_mensal": 4500,
+      "pct_consumido": 46.7,
+      "status": "ok"
+    }
+  ],
+  "aportes": [
+    {
+      "destino": "CDB Cofrinhos Itaú",
+      "valor_planejado": 10000,
+      "valor_realizado": 10000,
+      "status": "concluido",
+      "data": "2026-04-05"
+    }
+  ],
+  "investimentos_delta": [
+    {
+      "instituicao": "Itaú",
+      "saldo_anterior": 220000,
+      "saldo_atual": 225207,
+      "delta": 5207,
+      "delta_pct": 2.4
+    }
+  ],
+  "alertas": [
+    {
+      "severidade": "alta",
+      "mensagem": "DAS março não pago — vence em 20/04",
+      "categoria": "tributario",
+      "acao": "Pagar via Simples Nacional"
+    }
+  ],
+  "proximos_15d": [
+    {
+      "data": "2026-04-05",
+      "acao": "Aporte mensal R$ 20k",
+      "status": "agendado"
+    }
+  ],
+  "notas": "Quinzena sem eventos extraordinários. Manter plano."
+}
+```
+
+**Consumido por:** D1 (Fluxo Quinzena), D2 (Aportes), D3 (Checklist — via `tarefas_status`), D4 (Alertas), D5 (Próximos 15 dias), D6 (Notas).
+
+---
+
+### Schemas de Datasets de Gráficos Faltantes
+
+**Chart #17 — `cenarios_mariana` (canvas: `chart-mariana-cenarios`):**
+```json
+"cenarios_mariana": {
+  "labels": ["R$ 5k/mês", "R$ 10k/mês", "R$ 15k/mês", "R$ 20k/mês"],
+  "data": [28, 19, 14, 11],
+  "meta_label": "Anos até IF",
+  "premissa_retorno": 6.0,
+  "meta_patrimonio": 2000000
+}
+```
+
+**Chart #18 — `performance_ativos` (canvas: `chart-performance-ativos`):**
+```json
+"performance_ativos": {
+  "ativos": [
+    {
+      "nome": "CDB Santander 120% CDI",
+      "valor": 150000,
+      "retorno_acumulado_pct": 14.2,
+      "retorno_benchmark_pct": 13.75,
+      "delta_benchmark": 0.45,
+      "tipo": "RF"
+    }
+  ],
+  "benchmark": {"nome": "CDI", "retorno_pct": 13.75}
+}
+```
+
+**Chart #19 — `viagens` (canvas: `chart-viagens`):**
+```json
+"viagens": {
+  "teto_anual": 45000,
+  "gasto_confirmado": 18500,
+  "gasto_planejado": 12000,
+  "disponivel": 14500,
+  "detalhes": [
+    {"destino": "Portugal", "valor": 18500, "status": "confirmado", "data": "2026-06"},
+    {"destino": "EUA (visita)", "valor": 12000, "status": "planejado", "data": "2026-10"}
+  ],
+  "milhas_acumuladas": 85000,
+  "milhas_meta": 150000
+}
+```
+
+---
+
 ### Sempre visível (`data-mode="both"`)
 - Cover hero + 8 KPIs estratégicos
 - Card Perfil da Família
@@ -1065,7 +1568,7 @@ Modo padrão definido em `report-data.meta.modo_padrao`:
 
 ---
 
-## 18 GRÁFICOS OBRIGATÓRIOS
+## 19 GRÁFICOS OBRIGATÓRIOS
 
 | # | Tipo | Descrição |
 |---|---|---|
@@ -1090,6 +1593,61 @@ Modo padrão definido em `report-data.meta.modo_padrao`:
 | 19 | Bar horizontal stacked | Viagens: gasto confirmado vs disponível + 3 mini-KPIs |
 
 **Todos os gráficos devem ter parágrafo de contexto antes E conclusão depois. Não deixar gráficos órfãos.**
+
+### Mapeamento Canvas ID ↔ Chave JSON do Dataset
+
+| # | Canvas ID (HTML) | Chave JSON em `charts` | Seção |
+|---|---|---|---|
+| 1 | `chart-patrimonio-doughnut` | `patrimonio_doughnut` | S1 |
+| 2 | `chart-waterfall-if` | `waterfall_if` | S1 |
+| 3 | `chart-receita-despesa-mensal` | `receita_despesa_mensal` | S2 |
+| 4 | `chart-despesas-doughnut` | `despesas_doughnut` | S2 |
+| 5 | `chart-score-gauge` | `score_gauge` | S2 |
+| 6 | `chart-alocacao-atual` | `alocacao_atual` | S3 |
+| 7 | `chart-alocacao-alvo` | `alocacao_alvo` | S3 |
+| 8 | `chart-top-ativos` | `top_ativos` | S3 |
+| 9 | `chart-yield-imoveis` | `yield_imoveis` | S4 |
+| 10 | `chart-custos-eua` | `custos_f1f2` | S5 |
+| 11 | `chart-cenarios-cambio` | `cenario_cambial` | S6 |
+| 12 | `chart-projecao-patrimonial` | `projecao_if` | S7 |
+| 13 | `chart-renda-passiva` | `renda_passiva` | S7 |
+| 14 | `chart-impostos-pj` | `impostos_pj` | S8 |
+| 15 | `chart-mapa-riscos` | `riscos_bubble` | S9 |
+| 16 | `chart-decisoes-impacto` | `decisoes` | S10 |
+| 17 | `chart-mariana-cenarios` | `cenarios_mariana` | App E |
+| 18 | `chart-performance-ativos` | `performance_ativos` | S3 |
+| 19 | `chart-viagens` | `viagens` | App E |
+
+⚠️ O JS do template busca dados em `REPORT_DATA_JSON.charts[chave_json]`. Se a chave não existir, o canvas fica em branco (graceful degradation). O `chart-receita-camadas` é alias de `chart-receita-despesa-mensal` — mesmo dataset, mesmo canvas.
+
+---
+
+## 20 CHAVES TOP-LEVEL DO `REPORT_DATA_JSON`
+
+Tabela consolidada de todas as chaves obrigatórias no JSON embutido no relatório. O E5.3 DEVE gerar TODAS elas. Cada chave tem schema detalhado mais abaixo neste documento ou no `manual_operacao.md` (E4).
+
+| # | Chave | Fonte principal | Seção que consome | Schema neste doc? |
+|---|---|---|---|---|
+| 1 | `meta` | Fixo + E4 | Cover, Footer | ✅ (workflow) |
+| 2 | `kpis` | E4 racios/patrimonio/goals/score | Cover KPIs | ✅ (E5.1 manual) |
+| 3 | `patrimonio` | E4 patrimonio | S1, S7 (projeção IF) | ✅ (manual E5.3) |
+| 4 | `charts` | E4 + E3 + life_plan | Todos os 19 gráficos | ✅ (tabela acima) |
+| 5 | `orcamento_prospectivo` | E4 + definitions.md | S2 — Card Orçamento | ✅ |
+| 6 | `consumo_consciente` | E4 | S2 — Card Consumo | ✅ |
+| 7 | `diagnostico_comportamental` | E4 | S2 — Card Diagnóstico | ✅ |
+| 8 | `investimentos` | E4 + E3 | S3 — KPIs + tabela 3.1 | ✅ |
+| 9 | `estrategia_aporte` | definitions.md / E4 | S3 — Card 3.2 | ✅ |
+| 10 | `contrafluxo` | E4 / Selic vigente | S3 — Card Contrafluxo | ✅ |
+| 11 | `reserva_emergencia` | E4 | S1 — Card Reserva | ✅ |
+| 12 | `endividamento` | E4 | S1 — Card Endividamento | ✅ |
+| 13 | `previdencia_pgbl` | E4 | S7 — Card PGBL | ✅ |
+| 14 | `pontos_fortes` | E4 | S10 — Card Pontos Fortes | ✅ |
+| 15 | `pontos_urgentes` | E4 | S10 — Card Pontos Urgentes | ✅ |
+| 16 | `equilibrio_cerbasi` | E4 | S10 — Card Equilíbrio | ✅ |
+| 17 | `tactical` | E4 tarefas/alertas | D1-D6 (modo tático) | ✅ (abaixo) |
+| 18 | `tarefas` | E4 | S10, App E, D3 | ✅ (abaixo) |
+| 19 | `tarefas_status` | E4 | D3 — Checklist | ✅ (abaixo) |
+| 20 | `seguros` | E4 + faturas/holerites | S9 — Seguros | ✅ (abaixo) |
 
 ---
 
@@ -1162,7 +1720,7 @@ Os 2 `<button>` HTML (Export MD + Back to Top) ficam FORA do `<script>`. Visibil
 
 ```
 Planejamento Financeiro Pessoal — Família Ferreira Campos
-Gerado em: [DATA às HORA] (Brasília) | Período: Mai/2025–Mar/2026 | Versão Manual Operações: 3.0
+Gerado em: [DATA às HORA] (Brasília) | Período: Mai/2025–Mar/2026 | Versão Manual Operações: 3.2
 ⚠️ Caráter educacional/informativo. Não constitui consultoria financeira (CVM/CFP), jurídica ou tributária.
 ```
 

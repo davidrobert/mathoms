@@ -1,11 +1,21 @@
 #!/usr/bin/env python3
 """
+⚠️  DEPRECATED — abr/2026 (manual v4.0)
+Substituído por: scripts/e5_render.py (determinístico, sem LLM)
+Motivo: Este script misturava renderização com geração de narrativa.
+Com a arquitetura v4.0, narrativas vêm do E4.N e E5 é puro script Python.
+Manter apenas como referência histórica. NÃO EXECUTAR.
+
+--- Original docstring ---
 E5 HTML Financial Report Generator — Ferreira Campos Family
 Generates comprehensive HTML financial analysis from E4 JSON and supporting data
 
 Usage: python generate_e5_report.py
 Output: output/relatorio_financeiro_ferreira_campos_20260403.html
 """
+
+import sys
+sys.exit("DEPRECATED: Use 'python scripts/e5_render.py' instead. See manual_operacao.md v4.0.")
 
 import json
 import os
@@ -89,6 +99,24 @@ def get_renda_passiva_total(goals):
     """Get renda passiva total from either format"""
     rp = goals.get('renda_passiva', {})
     return rp.get('total_mensal', rp.get('atual_mensal', 0))
+
+def get_renda_passiva_pct(goals):
+    """Get renda passiva percentage from either format"""
+    rp = goals.get('renda_passiva', {})
+    return rp.get('pct_meta', rp.get('pct_atingido', 0))
+
+def get_renda_passiva_fonte(rp, fonte_name):
+    """Get individual renda passiva fonte value from either format"""
+    # First try legacy format (flat dict keys)
+    if fonte_name in rp:
+        return rp[fonte_name]
+
+    # Otherwise, search in fontes list
+    fontes = rp.get('fontes', [])
+    for f in fontes:
+        if isinstance(f, dict) and f.get('fonte', '').lower() == fonte_name.lower():
+            return f.get('valor', 0)
+    return 0
 
 def get_cenario(goals, nome):
     """Get scenario data from either dict or array format"""
@@ -350,19 +378,49 @@ def build_content_s1(e4_data):
     comp = patrimonio['composicao']
 
     # Build dynamic summary from composition data
-    items_sorted = sorted(
-        [
-            ('imóveis de investimento', comp['imoveis_investimento']['pct']),
-            ('residência própria', comp['residencia_propria']['pct']),
-            ('investimentos David', comp['investimentos_david']['pct']),
-            ('veículos', comp['veiculos']['pct']),
-            ('investimentos Mariana', comp['investimentos_mariana']['pct']),
-            ('caixa/USD', comp['caixa_moeda_estrangeira']['pct']),
-            ('criptoativos', comp['criptoativos']['pct']),
-        ],
-        key=lambda x: x[1],
-        reverse=True
-    )
+    # Support both dict format (legacy) and list format (composicao_detalhada)
+    if isinstance(comp, list) and len(comp) > 0 and isinstance(comp[0], str):
+        # composicao is just labels — use composicao_detalhada or patrimonio flat fields
+        comp_det = patrimonio.get('composicao_detalhada', [])
+        if comp_det:
+            items_sorted = sorted(
+                [(item['categoria'].lower(), item['pct']) for item in comp_det],
+                key=lambda x: x[1],
+                reverse=True
+            )
+        else:
+            # Fallback: compute from flat patrimonio fields
+            bruto = patrimonio.get('bruto', 1)
+            raw = [
+                ('imóveis de investimento', patrimonio.get('imoveis_investimento', 0)),
+                ('residência própria', patrimonio.get('residencia', 0)),
+                ('investimentos David', patrimonio.get('investimentos_david', 0)),
+                ('veículos', patrimonio.get('veiculos', 0)),
+                ('investimentos Mariana', patrimonio.get('investimentos_mariana', 0)),
+                ('caixa/USD', patrimonio.get('caixa_moeda_estrangeira', 0)),
+                ('criptoativos', patrimonio.get('criptoativos', 0)),
+            ]
+            items_sorted = sorted(
+                [(label, round(val / bruto * 100, 1)) for label, val in raw],
+                key=lambda x: x[1],
+                reverse=True
+            )
+    elif isinstance(comp, dict):
+        items_sorted = sorted(
+            [
+                ('imóveis de investimento', comp['imoveis_investimento']['pct']),
+                ('residência própria', comp['residencia_propria']['pct']),
+                ('investimentos David', comp['investimentos_david']['pct']),
+                ('veículos', comp['veiculos']['pct']),
+                ('investimentos Mariana', comp['investimentos_mariana']['pct']),
+                ('caixa/USD', comp['caixa_moeda_estrangeira']['pct']),
+                ('criptoativos', comp['criptoativos']['pct']),
+            ],
+            key=lambda x: x[1],
+            reverse=True
+        )
+    else:
+        items_sorted = []
     parts = [f'{label} ({pct:.1f}%)' for label, pct in items_sorted]
     summary_text = (
         f'Patrimônio bruto de {fmt_currency(patrimonio["bruto"])} distribuído em 7 categorias: '
@@ -390,15 +448,35 @@ def build_content_s1(e4_data):
     html += '<table class="table-patrimonio">'
     html += '<tr><th>Categoria</th><th style="text-align:right;">Valor</th><th style="text-align:right;">%</th></tr>'
 
-    items = [
-        ('Imóvel de investimento', comp['imoveis_investimento']['valor'], comp['imoveis_investimento']['pct']),
-        ('Residência própria (Tasso da Silveira)', comp['residencia_propria']['valor'], comp['residencia_propria']['pct']),
-        ('Investimentos David', comp['investimentos_david']['valor'], comp['investimentos_david']['pct']),
-        ('Veículos (Toro + 2 motos)', comp['veiculos']['valor'], comp['veiculos']['pct']),
-        ('Investimentos Mariana', comp['investimentos_mariana']['valor'], comp['investimentos_mariana']['pct']),
-        ('Caixa + moeda estrangeira', comp['caixa_moeda_estrangeira']['valor'], comp['caixa_moeda_estrangeira']['pct']),
-        ('Criptoativos', comp['criptoativos']['valor'], comp['criptoativos']['pct']),
-    ]
+    # Build items from composicao_detalhada (list) or legacy dict format
+    comp_det = patrimonio.get('composicao_detalhada', [])
+    if comp_det:
+        # Map category names to friendly labels
+        LABEL_MAP = {
+            'imóveis investimento': 'Imóvel de investimento',
+            'residência própria': 'Residência própria (Tasso da Silveira)',
+            'investimentos david': 'Investimentos David',
+            'veículos': 'Veículos (Toro + 2 motos)',
+            'investimentos mariana': 'Investimentos Mariana',
+            'caixa + moeda estrangeira': 'Caixa + moeda estrangeira',
+            'criptoativos': 'Criptoativos',
+        }
+        items = [
+            (LABEL_MAP.get(item['categoria'].lower(), item['categoria']), item['valor'], item['pct'])
+            for item in comp_det
+        ]
+    elif isinstance(comp, dict):
+        items = [
+            ('Imóvel de investimento', comp['imoveis_investimento']['valor'], comp['imoveis_investimento']['pct']),
+            ('Residência própria (Tasso da Silveira)', comp['residencia_propria']['valor'], comp['residencia_propria']['pct']),
+            ('Investimentos David', comp['investimentos_david']['valor'], comp['investimentos_david']['pct']),
+            ('Veículos (Toro + 2 motos)', comp['veiculos']['valor'], comp['veiculos']['pct']),
+            ('Investimentos Mariana', comp['investimentos_mariana']['valor'], comp['investimentos_mariana']['pct']),
+            ('Caixa + moeda estrangeira', comp['caixa_moeda_estrangeira']['valor'], comp['caixa_moeda_estrangeira']['pct']),
+            ('Criptoativos', comp['criptoativos']['valor'], comp['criptoativos']['pct']),
+        ]
+    else:
+        items = []
 
     for label, valor, pct in items:
         html += f'<tr><td>{label}</td><td class="td-right">{fmt_currency(valor)}</td><td class="td-right">{pct:.1f}%</td></tr>'
@@ -445,14 +523,19 @@ def build_content_s2(e4_data):
     html += '<table>'
     html += '<tr><th>Fonte</th><th style="text-align:right;">Total</th><th style="text-align:right;">Média/mês</th><th>Tipo</th></tr>'
 
+    # por_fonte values may be flat floats or dicts with 'total' key
+    def _get_fonte(key, default=0):
+        v = fluxo.get('por_fonte', {}).get(key, default)
+        return v['total'] if isinstance(v, dict) else v
+
     fontes = [
-        ('Arvo (PJ)', fluxo['por_fonte']['arvo']['total'], 'Recorrente'),
-        ('BrandLovers (PJ)', fluxo['por_fonte']['brandlovers']['total'], 'Recorrente'),
-        ('QuintoAndar (aluguéis)', fluxo['por_fonte']['quintoandar']['total'], 'Recorrente'),
-        ('Kiwify (rescisão)', fluxo['por_fonte']['kiwify']['total'], 'One-time'),
-        ('Rendimentos investimentos', fluxo['por_fonte']['rendimento_aplicacao']['total'], 'Recorrente'),
-        ('Canary/CNRY', fluxo['por_fonte']['cnry_canary']['total'], 'PJ irregular'),
-        ('Outros PJ', fluxo['por_fonte']['pj_nao_identificado']['total'], 'PJ'),
+        ('Arvo (PJ)', _get_fonte('arvo'), 'Recorrente'),
+        ('BrandLovers (PJ)', _get_fonte('brandlovers'), 'Recorrente'),
+        ('QuintoAndar (aluguéis)', _get_fonte('quintoandar'), 'Recorrente'),
+        ('Kiwify (rescisão)', _get_fonte('kiwify_rescisao', _get_fonte('kiwify')), 'One-time'),
+        ('Rendimentos investimentos', _get_fonte('rendimentos', _get_fonte('rendimento_aplicacao')), 'Recorrente'),
+        ('Canary/CNRY', _get_fonte('cnry_canary'), 'PJ irregular'),
+        ('Outros PJ', _get_fonte('pj_nao_identificado') + _get_fonte('arbitralis') + _get_fonte('learntofly') + _get_fonte('barte'), 'PJ'),
     ]
 
     for label, valor, tipo in fontes:
@@ -572,16 +655,20 @@ def build_content_s4(e4_data):
     html += '<table>'
     html += '<tr><th>Cenário</th><th style="text-align:center;">Retorno real</th><th style="text-align:right;">Prazo</th><th style="text-align:right;">David com...</th></tr>'
 
-    cenarios = goals['cenarios']
-    for nome, dados in [('Pessimista', cenarios['pessimista']), ('Realista', cenarios['realista']), ('Otimista', cenarios['otimista'])]:
-        html += f'<tr><td><strong>{nome}</strong></td><td style="text-align:center;">{dados["retorno"]*100:.0f}%</td><td style="text-align:right;"><strong>{dados["prazo_anos"]:.1f} anos</strong></td><td style="text-align:right;">{dados["david_idade"]} anos ({2026 + int(dados["prazo_anos"])})</td></tr>'
+    # Get cenarios from either dict or list format
+    for nome in ['Pessimista', 'Realista', 'Otimista']:
+        dados = get_cenario(goals, nome)
+        if dados:  # Only render if scenario exists
+            html += f'<tr><td><strong>{nome}</strong></td><td style="text-align:center;">{dados.get("retorno", 0)*100:.0f}%</td><td style="text-align:right;"><strong>{dados.get("prazo", 0):.1f} anos</strong></td><td style="text-align:right;">{dados.get("david_idade", "")} anos ({2026 + int(dados.get("prazo", 0))})</td></tr>'
 
     html += '</table>'
 
     # Renda passiva chart
     html += '<div class="chart-container">'
     html += '<div class="card-title">Renda Passiva Atual vs Meta</div>'
-    html += f'<p class="chart-context">Atual: {fmt_currency(goals["renda_passiva"]["total_mensal"])}/mês ({goals["renda_passiva"]["pct_meta"]:.1f}% da meta R$30k).</p>'
+    rp_total = get_renda_passiva_total(goals)
+    rp_pct = get_renda_passiva_pct(goals)
+    html += f'<p class="chart-context">Atual: {fmt_currency(rp_total)}/mês ({rp_pct:.1f}% da meta R$30k).</p>'
     html += '<canvas id="chart-renda-passiva" data-type="bar"></canvas>'
     html += '</div>'
 
@@ -591,18 +678,27 @@ def build_content_s4(e4_data):
     html += '<tr><th>Fonte</th><th style="text-align:right;">Valor/mês</th><th style="text-align:right;">% da meta</th></tr>'
 
     rp = goals['renda_passiva']
-    for fonte, valor in [
-        ('Aluguéis David (Major Freire + Calixto)', rp['alugueis_david']),
-        ('Aluguéis Mariana (Living Wish + Living Concept)', rp['alugueis_mariana']),
-        ('Dividendos/JCP (Rico)', rp['dividendos_jcp']),
-        ('Rendimentos RF (Tesouro, CDB)', rp['rendimentos_rf']),
-        ('BTG cupons', rp['btg_cupons']),
-    ]:
-        pct = (valor / rp['meta_mensal']) * 100
-        html += f'<tr><td>{fonte}</td><td class="td-right">{fmt_currency(valor)}</td><td class="td-right">{pct:.1f}%</td></tr>'
+    rp_meta = rp.get('meta_mensal', 30000)
 
-    html += f'<tr class="td-total"><td><strong>TOTAL ATUAL</strong></td><td class="td-right"><strong>{fmt_currency(rp["total_mensal"])}</strong></td><td class="td-right"><strong>{rp["pct_meta"]:.1f}%</strong></td></tr>'
-    html += f'<tr><td colspan="3"><strong>Meta: {fmt_currency(rp["meta_mensal"])}/mês (R$30k)</strong></td></tr>'
+    # Map display names to fonte field names
+    fonte_mapping = [
+        ('Aluguéis David (Major Freire + Calixto)', 'Aluguéis David'),
+        ('Aluguéis Mariana (Living Wish + Living Concept)', 'Aluguéis Mariana'),
+        ('Dividendos/JCP (Rico)', 'Dividendos/JCP'),
+        ('Rendimentos RF (Tesouro, CDB)', 'Rendimentos RF'),
+        ('BTG cupons', 'BTG cupons'),
+    ]
+
+    for display_name, fonte_key in fonte_mapping:
+        valor = get_renda_passiva_fonte(rp, fonte_key)
+        if valor:  # Only show non-zero values
+            pct = (valor / rp_meta) * 100
+            html += f'<tr><td>{display_name}</td><td class="td-right">{fmt_currency(valor)}</td><td class="td-right">{pct:.1f}%</td></tr>'
+
+    rp_total = get_renda_passiva_total(goals)
+    rp_pct = get_renda_passiva_pct(goals)
+    html += f'<tr class="td-total"><td><strong>TOTAL ATUAL</strong></td><td class="td-right"><strong>{fmt_currency(rp_total)}</strong></td><td class="td-right"><strong>{rp_pct:.1f}%</strong></td></tr>'
+    html += f'<tr><td colspan="3"><strong>Meta: {fmt_currency(rp_meta)}/mês (R$30k)</strong></td></tr>'
     html += '</table>'
 
     # Aporte planejado
@@ -650,20 +746,23 @@ def build_content_s5(e4_data):
 
     html += '<div class="card card-highlight">'
     html += '<h3 class="card-title">David C. Ferreira Campos (PJ + IRPF)</h3>'
-    html += f'<p><strong>Regime:</strong> {david["regime"]}</p>'
-    html += f'<p><strong>IR devido (anual):</strong> {fmt_currency(david["ir_devido"])}</p>'
-    html += f'<p><strong>IR pago:</strong> {fmt_currency(david["ir_pago"])}</p>'
-    html += f'<p class="text-bold" style="color: var(--color-accent);">Saldo a favor: {fmt_currency(david["saldo"])}</p>'
-    html += f'<p><strong>Alíquota efetiva:</strong> {david["aliquota_efetiva_pct"]:.2f}%</p>'
+    # Regime from previdencia_pgbl if available
+    pgbl = e4_data.get('previdencia_pgbl', {})
+    regime = pgbl.get('regime', 'Progressivo')
+    html += f'<p><strong>Regime:</strong> {regime}</p>'
+    html += f'<p><strong>IR devido (anual):</strong> {fmt_currency(david.get("devido", david.get("ir_devido", 0)))}</p>'
+    html += f'<p><strong>IR pago:</strong> {fmt_currency(david.get("pago", david.get("ir_pago", 0)))}</p>'
+    html += f'<p class="text-bold" style="color: var(--color-accent);">Saldo a favor: {fmt_currency(david.get("saldo", 0))}</p>'
+    html += f'<p><strong>Alíquota efetiva:</strong> {david.get("aliquota_efetiva_pct", 0):.2f}%</p>'
     html += '</div>'
 
     html += '<div class="card card-warn">'
     html += '<h3 class="card-title card-title-red">Mariana Teixeira F. Campos (CLT + aluguéis)</h3>'
-    html += f'<p><strong>Regime:</strong> {mariana["regime"]}</p>'
-    html += f'<p><strong>IR devido (anual):</strong> {fmt_currency(mariana["ir_devido"])}</p>'
-    html += f'<p><strong>IR pago:</strong> {fmt_currency(mariana["ir_pago"])}</p>'
-    html += f'<p class="text-bold" style="color: var(--color-danger);">Saldo DEVEDOR: {fmt_currency(mariana["saldo"])}</p>'
-    html += f'<p><strong>Alíquota efetiva:</strong> {mariana["aliquota_efetiva_pct"]:.2f}%</p>'
+    html += f'<p><strong>Regime:</strong> Progressivo (CLT)</p>'
+    html += f'<p><strong>IR devido (anual):</strong> {fmt_currency(mariana.get("devido", mariana.get("ir_devido", 0)))}</p>'
+    html += f'<p><strong>IR pago:</strong> {fmt_currency(mariana.get("pago", mariana.get("ir_pago", 0)))}</p>'
+    html += f'<p class="text-bold" style="color: var(--color-danger);">Saldo DEVEDOR: {fmt_currency(mariana.get("saldo", 0))}</p>'
+    html += f'<p><strong>Alíquota efetiva:</strong> {mariana.get("aliquota_efetiva_pct", 0):.2f}%</p>'
     html += '</div>'
 
     html += '</div>'
@@ -1112,10 +1211,10 @@ def build_appendix_sections(e4_data):
     def prazo_anos(pv, fv, pmt, r_anual):
         return calc_prazo_meses(pv, fv, pmt, r_anual) / 12
 
-    # Cenários principais
-    cen_pess = goals['cenarios']['pessimista']
-    cen_real = goals['cenarios']['realista']
-    cen_otim = goals['cenarios']['otimista']
+    # Cenários principais (from either dict or list format)
+    cen_pess = get_cenario(goals, 'pessimista')
+    cen_real = get_cenario(goals, 'realista')
+    cen_otim = get_cenario(goals, 'otimista')
 
     prazo_r = prazo_anos(pv, fv, aporte_base, 0.06)
     prazo_p = prazo_anos(pv, fv, aporte_base, 0.04)
@@ -1379,7 +1478,7 @@ def generate_report():
         print(f"⚠️  {remaining} placeholders still remain")
 
     # Save output
-    output_path = OUTPUT_DIR / 'relatorio_financeiro_ferreira_campos_20260403.html'
+    output_path = OUTPUT_DIR / 'relatorio_financeiro_ferreira_campos_20260404.html'
 
     # Archive old version if exists
     if output_path.exists():
@@ -1394,6 +1493,66 @@ def generate_report():
     print(f"📄 File size: {output_path.stat().st_size / 1024:.0f} KB")
 
     return output_path
+
+def _build_receita_despesa_mensal(e4_data):
+    """Build receita vs despesa chart data from E4 fluxo_mensal (real monthly data)."""
+    MONTH_LABELS = {
+        '2025-05': 'mai/25', '2025-06': 'jun/25', '2025-07': 'jul/25',
+        '2025-08': 'ago/25', '2025-09': 'set/25', '2025-10': 'out/25',
+        '2025-11': 'nov/25', '2025-12': 'dez/25', '2026-01': 'jan/26',
+        '2026-02': 'fev/26', '2026-03': 'mar/26'
+    }
+    MESES_ORDEM = ['2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12','2026-01','2026-02','2026-03']
+
+    fluxo = e4_data.get('fluxo_mensal', {})
+    if not fluxo:
+        print("⚠️  AVISO: fluxo_mensal ausente no E4 — gráfico receita_despesa_mensal ficará vazio!")
+        return {'labels': [], 'datasets': []}
+
+    # Sort months in chronological order
+    meses = sorted([m for m in fluxo.keys() if m in MONTH_LABELS], key=lambda x: MESES_ORDEM.index(x) if x in MESES_ORDEM else 99)
+
+    labels = [MONTH_LABELS[m] for m in meses]
+    receita_pj = [round(fluxo[m].get('receita_pj', 0), 2) for m in meses]
+    receita_clt = [round(fluxo[m].get('receita_clt_alugueis', 0), 2) for m in meses]
+    despesas = [round(fluxo[m].get('despesas', 0), 2) for m in meses]
+
+    # Validation: check totals match E4 aggregates
+    total_receita_chart = sum(receita_pj) + sum(receita_clt)
+    total_desp_chart = sum(despesas)
+    e4_receita_total = e4_data.get('fluxo_caixa', {}).get('receita_total', 0)
+    if e4_receita_total > 0:
+        diff_pct = abs(total_receita_chart - e4_receita_total) / e4_receita_total * 100
+        if diff_pct > 5:
+            print(f"⚠️  ALERTA: receita mensal do gráfico (R${total_receita_chart:,.2f}) diverge {diff_pct:.1f}% do E4 total (R${e4_receita_total:,.2f})")
+
+    return {
+        'labels': labels,
+        'datasets': [
+            {
+                'label': 'Receita PJ',
+                'data': receita_pj,
+                'backgroundColor': 'rgba(46, 134, 171, 0.7)',
+                'borderColor': '#2E86AB',
+                'stack': 'receita'
+            },
+            {
+                'label': 'CLT + Alugueis',
+                'data': receita_clt,
+                'backgroundColor': 'rgba(106, 153, 78, 0.7)',
+                'borderColor': '#6A994E',
+                'stack': 'receita'
+            },
+            {
+                'label': 'Despesas',
+                'data': despesas,
+                'backgroundColor': 'rgba(214, 40, 40, 0.5)',
+                'borderColor': '#D62828',
+                'stack': 'despesa'
+            }
+        ]
+    }
+
 
 def build_chart_data(e4_data):
     """Build JSON with all chart data"""
@@ -1442,25 +1601,7 @@ def build_chart_data(e4_data):
                 'backgroundColor': ['#D62828', '#F77F00', '#FCBF49', '#EAE2B7', '#003049', '#669BBC', '#780000', '#E63946', '#A4161A', '#9D4EDD', '#3A86FF']
             }]
         },
-        'receita_despesa_mensal': {
-            'labels': ['maio/25', 'jun/25', 'jul/25', 'ago/25', 'set/25', 'out/25', 'nov/25', 'dez/25', 'jan/26', 'fev/26', 'mar/26'],
-            'datasets': [
-                {
-                    'label': 'Receita mensal',
-                    'data': [95000, 85000, 75000, 68000, 72000, 63000, 75000, 80000, 65000, 72000, 58000],
-                    'borderColor': '#2E86AB',
-                    'backgroundColor': 'rgba(46, 134, 171, 0.1)',
-                    'tension': 0.3
-                },
-                {
-                    'label': 'Despesa mensal',
-                    'data': [5500, 4800, 4900, 5200, 5100, 4700, 5300, 5000, 4600, 4500, 4800],
-                    'borderColor': '#D62828',
-                    'backgroundColor': 'rgba(214, 40, 40, 0.1)',
-                    'tension': 0.3
-                }
-            ]
-        },
+        'receita_despesa_mensal': _build_receita_despesa_mensal(e4_data),
         'alocacao_atual': {
             'labels': ['Imóveis', 'RF', 'RV', 'Fundos', 'Liquidez+USD', 'Crypto'],
             'datasets': [{
