@@ -1,0 +1,50 @@
+{
+  "tipo": "faturaaluguel",
+  "instituicao": "QuintoAndar",
+  "propriedade": "Praça Benedito Calixto, 186",
+  "periodo": "2026-02",
+  "itens": [
+    {
+      "descricao": "Aluguel - Fev/2026",
+      "valor": 2000.0
+    },
+    {
+      "descricao": "Taxa de administração - Quinto Andar",
+      "valor": -186.0
+    },
+    {
+      "descricao": "IPTU - Fev/2026",
+      "valor": 82.0
+    },
+    {
+      "descricao": "Despesas condominiais do proprietário",
+      "valor": -8.64
+    },
+    {
+      "descricao": "Fundo - Reserva - Fevereiro/2026",
+      "valor": -37.23
+    }
+  ],
+  "renda_bruta": 2000.0,
+  "descontos": [
+    {
+      "descricao": "Taxa de administração",
+      "valor": 186.0
+    },
+    {
+      "descricao": "Despesas condominiais",
+      "valor": 8.64
+    },
+    {
+      "descricao": "Fundo Reserva",
+      "valor": 37.23
+    },
+    {
+      "descricao": "IPTU",
+      "valor": -82.0
+    }
+  ],
+  "renda_liquida": 1850.13,
+  "data_pagamento": "2026-03-12",
+  "status": "Recebido"
+}

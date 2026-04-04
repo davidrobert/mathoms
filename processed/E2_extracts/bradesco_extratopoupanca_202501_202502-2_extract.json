@@ -1,0 +1,46 @@
+{
+  "tipo": "extratoconta",
+  "subtipo": "poupanca",
+  "instituicao": "Bradesco",
+  "conta": {
+    "numero": "771139",
+    "tipo": "poupanca",
+    "moeda": "BRL",
+    "agencia": "504"
+  },
+  "periodo": {
+    "data_inicio": "2025-01-01",
+    "data_fim": "2025-02-28"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": 30233.45,
+      "data": "2025-01-01"
+    },
+    "saldo_final": {
+      "valor": 29957.45,
+      "data": "2025-02-04"
+    }
+  },
+  "transacoes": [
+    {
+      "data": "2025-01-06",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": 266.0,
+      "saldo_apos": 22217.17
+    },
+    {
+      "data": "2025-02-04",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": 10.0,
+      "saldo_apos": 29957.45
+    }
+  ],
+  "total_periodo": {
+    "total_debitos": 276.0,
+    "total_creditos": 0,
+    "saldo_liquido": -276.0
+  }
+}

@@ -1,0 +1,970 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "C6 Bank",
+  "cartao": {
+    "nome": "Carbon",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": "2026-01-01",
+    "data_fim": "2026-01-31",
+    "data_vencimento": "2026-02-05"
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 46733.76,
+    "compras_internacionais": 0.0,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 0.0,
+    "saldo_atual": 46562.46
+  },
+  "transacoes": [
+    {
+      "data": "2026-11-28",
+      "descricao": "DL *DLRAPPIPROBR",
+      "valor": 34.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-11-28",
+      "descricao": "BONANZA",
+      "valor": 1.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-11-28",
+      "descricao": "RAPPI *DROGARIA SAO P",
+      "valor": 60.49,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-11-28",
+      "descricao": "SAMS*JABAQUARA",
+      "valor": 370.76,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-11-29",
+      "descricao": "RAPPI BRASIL INTERMEDI",
+      "valor": 188.39,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-11-29",
+      "descricao": "NATHALIACASADE",
+      "valor": 457.27,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-11-30",
+      "descricao": "VINDI *ACCOUNTBANKTEC",
+      "valor": 390.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-01",
+      "descricao": "TATIANA GIORDANO REBA",
+      "valor": 7.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-01",
+      "descricao": "RAPPI*PET CENTER COMER",
+      "valor": 113.18,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-01",
+      "descricao": "MERCADOLIVRE*DADDYSTO",
+      "valor": 94.98,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-02",
+      "descricao": "SAKURAPAESEDOCES",
+      "valor": 23.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-02",
+      "descricao": "MERCADOLIVRE*MAE - Estorno",
+      "valor": 134.31,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-02",
+      "descricao": "MERCADOLIVRE*DRAGONGA - Estorno",
+      "valor": 36.99,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-02",
+      "descricao": "APPLE.COM/BILL",
+      "valor": 5.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-03",
+      "descricao": "ERVA DOCE BAR",
+      "valor": 9.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-03",
+      "descricao": "KINDINPAESEDOCES",
+      "valor": 44.09,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-04",
+      "descricao": "DM *SPOTIFY",
+      "valor": 40.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-04",
+      "descricao": "LINKEDIN",
+      "valor": 1079.88,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-05",
+      "descricao": "OXXO VILA GUARANI",
+      "valor": 17.77,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-06",
+      "descricao": "COR",
+      "valor": 84.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-06",
+      "descricao": "TORRALTA",
+      "valor": 21.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-06",
+      "descricao": "JIM.COM* MAB FOOD SER",
+      "valor": 12.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-06",
+      "descricao": "CLUBE LIVELO*CLUBE LIV",
+      "valor": 44.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-06",
+      "descricao": "LEITURA IBIRAPUERA LI",
+      "valor": 50.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-06",
+      "descricao": "CARTERS",
+      "valor": 159.99,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-06",
+      "descricao": "MOUSTACHE BEAMS LTDA",
+      "valor": 29.64,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-07",
+      "descricao": "LP PARK MOSTEIRO",
+      "valor": 30.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-07",
+      "descricao": "IFD*DJAPA MOEMA",
+      "valor": 474.6,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-07",
+      "descricao": "LEROY MERLIN",
+      "valor": 494.44,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-07",
+      "descricao": "TELHA NORTE",
+      "valor": 128.8,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-08",
+      "descricao": "MERCADOLIVRE*MERCADOL",
+      "valor": 249.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-08",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 36.87,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-08",
+      "descricao": "AMAZON BR",
+      "valor": 97.29,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-08",
+      "descricao": "MERCADOLIVRE*MERCADOL",
+      "valor": 360.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-08",
+      "descricao": "ALEX MARTINS DE MACEDO",
+      "valor": 39.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-09",
+      "descricao": "OXXO VILA GUARANI",
+      "valor": 17.61,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-09",
+      "descricao": "MAIS DISTR VEICULOS",
+      "valor": 5000.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-09",
+      "descricao": "BONANZA",
+      "valor": 1.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-09",
+      "descricao": "VAI DE PIZZAS",
+      "valor": 137.8,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-10",
+      "descricao": "FISIOTERAPIA BEBE EIRE",
+      "valor": 1999.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-10",
+      "descricao": "JS MATERIAIS DE CONS",
+      "valor": 29.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-10",
+      "descricao": "NATHALIACASADE",
+      "valor": 269.53,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-11",
+      "descricao": "BONANZA",
+      "valor": 1.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-11",
+      "descricao": "GAMBO CAFE E BISTRO",
+      "valor": 14.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-11",
+      "descricao": "LEROY MERLIN",
+      "valor": 897.29,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-11",
+      "descricao": "MINI MERC AGUA FUNDA",
+      "valor": 84.95,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-11",
+      "descricao": "FIBRA",
+      "valor": 60.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-11",
+      "descricao": "FIBRA",
+      "valor": 28.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-11",
+      "descricao": "MERCADOLIVRE*MERCADOL",
+      "valor": 33.91,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-12",
+      "descricao": "SAKURAPAESEDOCES",
+      "valor": 11.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-12",
+      "descricao": "BONANZA",
+      "valor": 1.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-12",
+      "descricao": "MERCADOLIVRE*MERCADOL",
+      "valor": 21.33,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-12",
+      "descricao": "MERCADOLIVRE*MERCADOL",
+      "valor": 219.94,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-12",
+      "descricao": "MERCADOLIVRE*CARINHAD",
+      "valor": 74.2,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-12",
+      "descricao": "BRUNOMARTINS",
+      "valor": 67.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-13",
+      "descricao": "WELLHUB GYMPASS BR WEL",
+      "valor": 79.89,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-13",
+      "descricao": "ANDRA MATERIAIS ELETRI",
+      "valor": 149.85,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-13",
+      "descricao": "MP *VICTORELETRONICOS",
+      "valor": 20.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-13",
+      "descricao": "ROSSE COMERCIO DE MATE",
+      "valor": 59.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-13",
+      "descricao": "ULTRAGAS",
+      "valor": 135.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-13",
+      "descricao": "TELHA NORTE",
+      "valor": 181.69,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-13",
+      "descricao": "LEROY MERLIN",
+      "valor": 28.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-14",
+      "descricao": "EMPORIO PAES",
+      "valor": 15.09,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-14",
+      "descricao": "MINUTO PA",
+      "valor": 6199.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-14",
+      "descricao": "SANDRA REGINA ORUE DA",
+      "valor": 115.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-14",
+      "descricao": "TELHA NORTE",
+      "valor": 353.8,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-14",
+      "descricao": "CASA PILAO",
+      "valor": 37.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-14",
+      "descricao": "MERCADOLIVRE*MERCADOL",
+      "valor": 75.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-15",
+      "descricao": "TATIANA GIORDANO REBA",
+      "valor": 17.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-15",
+      "descricao": "MERCADOLIVRE*MERCADOL",
+      "valor": 177.48,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-15",
+      "descricao": "JF PARK",
+      "valor": 30.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-15",
+      "descricao": "MERCADOLIVRE*PAPELARI",
+      "valor": 24.15,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-15",
+      "descricao": "KERO MAIS LTDA",
+      "valor": 3.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-15",
+      "descricao": "AMAZONPRIMEBR",
+      "valor": 19.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-16",
+      "descricao": "FEVER* CANDLELIGHT O S",
+      "valor": 205.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-16",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 35.59,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-16",
+      "descricao": "PIRAJA COMERCIO DE ALI",
+      "valor": 44.07,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-16",
+      "descricao": "PIRAJA COMERCIO DE ALI",
+      "valor": 160.48,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-17",
+      "descricao": "OXXO YOU HARMONIA",
+      "valor": 11.49,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-19",
+      "descricao": "GLOBO*GLOBOPLAY",
+      "valor": 22.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-19",
+      "descricao": "TORRALTA",
+      "valor": 259.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-19",
+      "descricao": "VIVARA PLA",
+      "valor": 6455.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-19",
+      "descricao": "ALIANSCE",
+      "valor": 15.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-19",
+      "descricao": "TORRALTA",
+      "valor": 4.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-19",
+      "descricao": "VAI DE PIZZAS",
+      "valor": 153.3,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-20",
+      "descricao": "TORRALTA",
+      "valor": 175.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-20",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 250.45,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-20",
+      "descricao": "NATHALIACASADE",
+      "valor": 179.14,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-20",
+      "descricao": "SODIEDOCES",
+      "valor": 324.78,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-20",
+      "descricao": "DISTRIBUIDORA MENEZES",
+      "valor": 5.3,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-20",
+      "descricao": "MINUTO PA",
+      "valor": 6199.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-20",
+      "descricao": "DL *DLRAPPI BR",
+      "valor": 27.23,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-21",
+      "descricao": "ADMINISTRADORA",
+      "valor": 27.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-22",
+      "descricao": "MINIMART SILVA BRAZ",
+      "valor": 14.99,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-22",
+      "descricao": "ERVA DOCE BAR",
+      "valor": 65.4,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-22",
+      "descricao": "EC *MELIMAIS",
+      "valor": 19.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-23",
+      "descricao": "MINUTO PA",
+      "valor": 6199.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-23",
+      "descricao": "UBER UBER *TRIP HELP.U",
+      "valor": 21.4,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-23",
+      "descricao": "ANDREA S LAVANDERIA PR",
+      "valor": 132.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-23",
+      "descricao": "BONANZA",
+      "valor": 1.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-23",
+      "descricao": "ALIANSCE",
+      "valor": 15.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-24",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 33.48,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-24",
+      "descricao": "SUPERMERCADO DANCAR",
+      "valor": 33.98,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-24",
+      "descricao": "CARRINHO DO DUDA",
+      "valor": 10.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-24",
+      "descricao": "AMO AV MORUMBI DRIVE",
+      "valor": 31.4,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-26",
+      "descricao": "EINSTEIN MORUMBI",
+      "valor": 911.2,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-27",
+      "descricao": "ZIG. THE GLOBAL FUNTEC",
+      "valor": 25.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-27",
+      "descricao": "TORRALTA",
+      "valor": 44.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-27",
+      "descricao": "MP *ASCFDISTRIBUI",
+      "valor": 51.6,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-27",
+      "descricao": "MP *ASCFDISTRIBUI",
+      "valor": 52.7,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-27",
+      "descricao": "SERGIO IROMITSU TABA",
+      "valor": 8.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-27",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 28.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-27",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 258.1,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-27",
+      "descricao": "OUTBACK PLAZA SUL",
+      "valor": 223.11,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-28",
+      "descricao": "RAPPI*RAPPI BRASIL INT",
+      "valor": 34.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-28",
+      "descricao": "GRAN COFFEE",
+      "valor": 13.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-28",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 14.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-28",
+      "descricao": "MERCADOLIVRE*MERCADOL",
+      "valor": 19.72,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-11-27",
+      "descricao": "VISTA IBIRAPUERA",
+      "valor": 613.59,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-05",
+      "descricao": "Inclusao de Pagamento",
+      "valor": 61553.26,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-23",
+      "descricao": "Estorno Tarifa - Estorno",
+      "valor": 98.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-15",
+      "descricao": "J S THENORIO",
+      "valor": 420.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-21",
+      "descricao": "LOJAS MEL CONCEICAO II",
+      "valor": 133.43,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-24",
+      "descricao": "MINI MERC AGUA FUNDA",
+      "valor": 64.95,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-24",
+      "descricao": "MP *VIDESUL",
+      "valor": 49.8,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-24",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 200.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-24",
+      "descricao": "BONANZA",
+      "valor": 1.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-11-27",
+      "descricao": "MARANATA SERVICOS DE G",
+      "valor": 25.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-11-28",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 290.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-01",
+      "descricao": "ANDREA S LAVANDERIA PR",
+      "valor": 100.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-04",
+      "descricao": "LEROY MERLIN",
+      "valor": 1459.3,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-04",
+      "descricao": "TELHA NORTE",
+      "valor": 1284.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-06",
+      "descricao": "VAI DE PIZZAS",
+      "valor": 80.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-24",
+      "descricao": "SUPERMERCADO DANCAR",
+      "valor": 31.98,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-12-26",
+      "descricao": "CAFE DAS COISINHAS",
+      "valor": 77.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

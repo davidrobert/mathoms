@@ -1,0 +1,53 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "Itaú",
+  "cartao": {
+    "nome": "Pão de Açúcar",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": null,
+    "data_fim": null,
+    "data_vencimento": "2025-10-06"
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 0.0,
+    "compras_internacionais": 0.0,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 1872.43,
+    "saldo_atual": 697.45
+  },
+  "transacoes": [
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras",
+      "valor": 4.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras",
+      "valor": 5.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "AMAZON MKTPLACE PMTS -",
+      "valor": 90.86,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "AMAZON MKTPLACE PMTS -",
+      "valor": 396.11,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

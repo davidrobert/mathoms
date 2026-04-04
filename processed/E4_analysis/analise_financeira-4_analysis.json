@@ -1,0 +1,599 @@
+{
+  "tipo": "analise_financeira",
+  "versao": "4.0",
+  "data_geracao": "2026-04-04",
+  "periodo_dados": "2025-05 a 2026-03",
+  "meses_periodo": 11,
+  "fluxo_caixa": {
+    "receita_total": 1071909.4,
+    "receita_recorrente": 664552.44,
+    "receita_one_time": 407356.96,
+    "despesas_pessoais": 298581.6,
+    "das_pj_estimado": 55319,
+    "despesas_totais_estimadas": 353900.6,
+    "fluxo_liquido": 718008.8,
+    "receita_recorrente_mensal": 60413.86,
+    "despesa_mensal_media": 32172.78,
+    "por_fonte": {
+      "arvo": 292666.11,
+      "brandlovers": 50000,
+      "arbitralis": 5500,
+      "learntofly": 1750,
+      "cnry_canary": 120000,
+      "barte": 40000,
+      "kiwify_rescisao": 407356.96,
+      "quintoandar": 65805.14,
+      "salario_mariana_estimado": 88000,
+      "rendimentos": 831.19
+    },
+    "por_categoria_despesa": {
+      "nao_identificado": 39474.55,
+      "reserva_desejos": 73525.72,
+      "saude": 58380.07,
+      "lazer_viagens": 42796.81,
+      "melhoria_reforma": 14719.56,
+      "alimentacao": 21141.77,
+      "transporte": 14127.9,
+      "assinaturas": 9714.12,
+      "vestuario": 8321.64,
+      "seguros": 5337.9,
+      "financeiro": 4756.43,
+      "moradia": 432.21,
+      "suporte_familiar": 89.9,
+      "impostos_pj": 77.0,
+      "educacao": 3197.0,
+      "servicos_domesticos": 2489.02
+    },
+    "nota_das": "DAS PJ estimado R$5.029/mês (life_plan). Valor real não confirmado — extratos PJ parciais."
+  },
+  "racios": {
+    "taxa_poupanca_recorrente_pct": 46.7,
+    "taxa_poupanca_total_pct": 67.0,
+    "taxa_endividamento_pct": 6.7,
+    "cobertura_despesas_meses": 108.8,
+    "rentabilidade_patrimonio_pct": 22.7,
+    "nota": "Taxa de poupança recorrente exclui Kiwify rescisão. DAS estimado."
+  },
+  "evolucao_patrimonial": {
+    "patrimonio_bruto_atual": 3501275.44,
+    "patrimonio_bruto_anterior": 3221173.4,
+    "crescimento_absoluto": 280102.04,
+    "crescimento_pct": 8.7,
+    "nota": "Anterior estimado. Sem relatório prévio para comparação precisa."
+  },
+  "tax_planning": {
+    "david": {
+      "tributavel_anual": 651374.65,
+      "devido": 163779.6,
+      "pago": 154768.78,
+      "saldo": 9010.82,
+      "aliquota_efetiva_pct": 25.14
+    },
+    "mariana": {
+      "tributavel_anual": 203982.98,
+      "devido": 40746.89,
+      "pago": 22575.99,
+      "saldo": 18170.9,
+      "aliquota_efetiva_pct": 19.97
+    },
+    "total_devido_anual": 204526.49,
+    "oportunidades": [
+      "PGBL: Aporte R$21.600/ano (12% renda tributável) → economia R$5.940/ano IRPF",
+      "Previdência regime regressivo: alíquota 10% após 10 anos vs 27,5% tabela progressiva",
+      "Compensação fiscal: Prejuízo BRKM5 (~R$3.500) utilizável para compensar ganhos de capital"
+    ]
+  },
+  "patrimonio": {
+    "bruto": 3501275.44,
+    "liquido": 3266482.83,
+    "dividas": 234792.61,
+    "residencia": 996821.46,
+    "veiculos": 227476.0,
+    "investivel": 2530777.98,
+    "investivel_nota": "Pós-venda Living Concept: base 2.276.978 + 253.800 líquido venda",
+    "imoveis_total": 2169821.46,
+    "imoveis_investimento": 1173000.0,
+    "imoveis_estimado": 2441049.14,
+    "investimentos_david": 605978.87,
+    "investimentos_mariana": 188123.73,
+    "criptoativos": 3189.68,
+    "caixa_moeda_estrangeira": 306685.7,
+    "composicao": [
+      "Residência própria",
+      "Imóveis investimento",
+      "Investimentos David",
+      "Investimentos Mariana",
+      "Criptoativos",
+      "Caixa + Moeda Estrangeira",
+      "Veículos"
+    ],
+    "composicao_detalhada": [
+      {
+        "categoria": "Residência própria",
+        "valor": 996821.46,
+        "pct": 28.5
+      },
+      {
+        "categoria": "Imóveis investimento",
+        "valor": 1173000.0,
+        "pct": 33.5
+      },
+      {
+        "categoria": "Investimentos David",
+        "valor": 605978.87,
+        "pct": 17.3
+      },
+      {
+        "categoria": "Investimentos Mariana",
+        "valor": 188123.73,
+        "pct": 5.4
+      },
+      {
+        "categoria": "Criptoativos",
+        "valor": 3189.68,
+        "pct": 0.1
+      },
+      {
+        "categoria": "Caixa + Moeda Estrangeira",
+        "valor": 306685.7,
+        "pct": 8.8
+      },
+      {
+        "categoria": "Veículos",
+        "valor": 227476.0,
+        "pct": 6.5
+      }
+    ],
+    "soma_categorias": 3501275.44,
+    "diferenca_vs_bruto": 0.0
+  },
+  "goals": {
+    "if_meta": 7200000,
+    "if_trs": 0.05,
+    "if_trs_nota": "TRS 5% — carteira diversificada imóveis+RF+RV. Ref. decisão D15.",
+    "if_pct": 35.1,
+    "if_gap": 4669222.02,
+    "prazo_anos_realista": 9.3,
+    "david_idade_if": 53,
+    "aporte_mensal": 20000,
+    "retorno_real_aa": 0.06,
+    "renda_passiva": {
+      "atual_mensal": 10042,
+      "meta_mensal": 30000,
+      "pct_atingido": 33.5,
+      "fontes": [
+        {
+          "fonte": "Aluguéis David",
+          "valor": 3422
+        },
+        {
+          "fonte": "Aluguéis Mariana",
+          "valor": 5149
+        },
+        {
+          "fonte": "Dividendos/JCP",
+          "valor": 521
+        },
+        {
+          "fonte": "Rendimentos RF",
+          "valor": 650
+        },
+        {
+          "fonte": "BTG cupons",
+          "valor": 300
+        }
+      ]
+    },
+    "cenarios": [
+      {
+        "nome": "Pessimista",
+        "retorno": 0.04,
+        "aporte": 20000,
+        "prazo": 11.9,
+        "david_idade": 55
+      },
+      {
+        "nome": "Realista",
+        "retorno": 0.06,
+        "aporte": 20000,
+        "prazo": 9.3,
+        "david_idade": 53
+      },
+      {
+        "nome": "Otimista",
+        "retorno": 0.08,
+        "aporte": 20000,
+        "prazo": 7.0,
+        "david_idade": 50
+      }
+    ]
+  },
+  "consumo_consciente": {
+    "itens": [
+      {
+        "desc": "CLINICA DERMATOLOGICA",
+        "valor": 11400.0,
+        "data": "2026-11-14",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "ABDO MOHAMED ABDOUNI",
+        "valor": 10600.0,
+        "data": "2026-11-01",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "AIRBNB PAGAM*AIRBNB *",
+        "valor": 9434.06,
+        "data": "2026-04-27",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "VIVARA PLA",
+        "valor": 6455.0,
+        "data": "2026-12-19",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "MINUTO PA",
+        "valor": 6199.0,
+        "data": "2026-01-23",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "MINUTO PA",
+        "valor": 6199.0,
+        "data": "2026-01-24",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "MINUTO PA",
+        "valor": 6199.0,
+        "data": "2026-01-31",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "MINUTO PA",
+        "valor": 6199.0,
+        "data": "2026-03-18",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "MINUTO PA",
+        "valor": 6199.0,
+        "data": "2026-03-23",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "MINUTO PA",
+        "valor": 6199.0,
+        "data": "2026-09-28",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "MINUTO PA",
+        "valor": 6199.0,
+        "data": "2026-12-14",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "MINUTO PA",
+        "valor": 6199.0,
+        "data": "2026-12-20",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "MINUTO PA",
+        "valor": 6199.0,
+        "data": "2026-12-23",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "INSTITUTO DR BARAKAT",
+        "valor": 6000.0,
+        "data": "2026-10-30",
+        "conta": "c6_bank_carbon_credi"
+      },
+      {
+        "desc": "WAWA",
+        "valor": 5346.0,
+        "data": "2026-06-22",
+        "conta": "c6_bank_carbon_credi"
+      }
+    ],
+    "total_pontuais": 153034.94,
+    "equivalente_meses_aporte": 7.7,
+    "folga_mensal": 28241.08,
+    "folga_pct": 46.7,
+    "teto_sugerido": 36998.7
+  },
+  "diagnostico_comportamental": [
+    {
+      "padrao": "Gastos grandes sem planejamento",
+      "evidencia": "R$ 153.035 em gastos pontuais ≥R$2k no período (27 itens). Top: CLINICA DERMATOLOGICA R$ 11.400",
+      "mudanca_sugerida": "Criar conta 'reserva de desejos' com R$3.000/mês provisionados. Antes de compras >R$2k, aguardar 48h e verificar se há saldo na reserva."
+    },
+    {
+      "padrao": "Aluguéis recebidos sem reinvestimento automático",
+      "evidencia": "Aluguéis QuintoAndar (R$8.571/mês) entram em Itaú/Bradesco sem transferência automática para investimento.",
+      "mudanca_sugerida": "Configurar débito automático mensal: Itaú→Cofrinhos R$3.422 + Bradesco→BTG R$5.149. Dia 10 de cada mês."
+    },
+    {
+      "padrao": "DAS PJ sem rastreio nos extratos pessoais",
+      "evidencia": "Pagamentos de DAS (R$5.029/mês) não aparecem nos extratos pessoais processados. Valor estimado do life_plan.",
+      "mudanca_sugerida": "Confirmar com AccountTech se DAS está em dia. Incluir extrato PJ completo no próximo ciclo."
+    }
+  ],
+  "score": {
+    "valor": 8.3,
+    "max": 10,
+    "componentes": [
+      {
+        "item": "Taxa de poupança recorrente (46.7%)",
+        "peso": 2.0,
+        "pontuacao": 9.3
+      },
+      {
+        "item": "Cobertura de despesas (109 meses)",
+        "peso": 1.5,
+        "pontuacao": 10.0
+      },
+      {
+        "item": "Taxa de endividamento (6.7%)",
+        "peso": 1.5,
+        "pontuacao": 9.6
+      },
+      {
+        "item": "Progresso IF (35.1%)",
+        "peso": 2.0,
+        "pontuacao": 4.0
+      },
+      {
+        "item": "Diversificação (6 categorias ≥5%)",
+        "peso": 1.0,
+        "pontuacao": 10.0
+      }
+    ],
+    "classificacao": "Excelente"
+  },
+  "tarefas": [
+    {
+      "n": 1,
+      "t": "Contratar seguro de vida Term Life R$3-5M (20 anos)",
+      "p": "alta",
+      "e": "David não tem seguro de vida. Família com filho de 9 meses e plano de mudança internacional."
+    },
+    {
+      "n": 2,
+      "t": "Contratar seguro de invalidez (60% renda)",
+      "p": "alta",
+      "e": "Proteção inexistente contra perda de capacidade laborativa."
+    },
+    {
+      "n": 3,
+      "t": "Contratar advogado sucessório/tributarista SP",
+      "p": "alta",
+      "e": "Planejamento sucessório pendente antes da mudança para EUA."
+    },
+    {
+      "n": 4,
+      "t": "Preparar testamento público David + Mariana",
+      "p": "alta",
+      "e": "Obrigatório antes da mudança internacional."
+    },
+    {
+      "n": 5,
+      "t": "Preparar procuração pública para Rubens (pai David)",
+      "p": "alta",
+      "e": "Gestão de ativos BR durante estadia nos EUA."
+    },
+    {
+      "n": 6,
+      "t": "Configurar aporte automático mensal R$20k (dia 5)",
+      "p": "alta",
+      "e": "Cofrinhos R$10k + IPCA+ R$5k + IVVB11 R$3k + Wise USD R$2k."
+    },
+    {
+      "n": 7,
+      "t": "Iniciar PGBL Itaú R$1.800/mês (regime regressivo)",
+      "p": "alta",
+      "e": "Economia fiscal R$5.940/ano. Regime regressivo 10% após 10 anos."
+    },
+    {
+      "n": 8,
+      "t": "Atualizar beneficiários PGBL e seguro de vida",
+      "p": "alta",
+      "e": "Incluir Theo e Mariana como beneficiários."
+    },
+    {
+      "n": 9,
+      "t": "Avaliar resgate fundos PFIC antes de mudar para EUA",
+      "p": "alta",
+      "e": "Rico fundos (Alaska, Western, Safari = ~R$181k) são PFIC nos EUA — tributação punitiva."
+    },
+    {
+      "n": 10,
+      "t": "Contratar CPA expatriado (FBAR/FATCA/Form 1040)",
+      "p": "alta",
+      "e": "Obrigatório antes de virar US tax resident."
+    },
+    {
+      "n": 11,
+      "t": "Categorizar transações pendentes",
+      "p": "alta",
+      "e": "428 transações não categorizadas no período."
+    },
+    {
+      "n": 12,
+      "t": "Automatizar reinvestimento de aluguéis QuintoAndar",
+      "p": "media",
+      "e": "R$8.571/mês em aluguéis sem transferência automática para investimento."
+    },
+    {
+      "n": 13,
+      "t": "Cotar seguro residencial (alternativa ao Santander)",
+      "p": "media",
+      "e": "Possível economia de 20-40% com concorrência."
+    },
+    {
+      "n": 14,
+      "t": "Cancelar seguro conta Santander R$10/mês",
+      "p": "media",
+      "e": "Duplica proteção do C6. Economia R$120/ano."
+    },
+    {
+      "n": 15,
+      "t": "Processar extratos PJ completos (C6 PJ)",
+      "p": "media",
+      "e": "DAS e despesas PJ não rastreáveis nos extratos pessoais."
+    },
+    {
+      "n": 16,
+      "t": "Iniciar processo NCLEX Mariana (CGFNS Credentials)",
+      "p": "media",
+      "e": "Etapa 1 do roadmap: US$350, 4-8 semanas."
+    },
+    {
+      "n": 17,
+      "t": "Agendar teste de inglês Mariana (OET ou MET)",
+      "p": "media",
+      "e": "Pré-requisito para NCLEX. OET foco saúde, MET melhor custo-benefício."
+    },
+    {
+      "n": 18,
+      "t": "Avaliar venda BRKM5 para compensação fiscal",
+      "p": "media",
+      "e": "Prejuízo ~R$3.500 utilizável para compensar ganhos de capital."
+    },
+    {
+      "n": 19,
+      "t": "Obter extratos Bradesco CC + Poupança (Mariana)",
+      "p": "media",
+      "e": "Extratos Bradesco com 0 transações — possível falha de extração."
+    },
+    {
+      "n": 20,
+      "t": "Iniciar DCA Crypto R$500/mês (mai/2026)",
+      "p": "baixa",
+      "e": "Diversificação crypto 0,1%→1% da carteira."
+    }
+  ],
+  "tarefas_status": {
+    "1": "pendente",
+    "2": "pendente",
+    "3": "pendente",
+    "4": "pendente",
+    "5": "pendente",
+    "6": "pendente",
+    "7": "pendente",
+    "8": "pendente",
+    "9": "pendente",
+    "10": "pendente",
+    "11": "pendente",
+    "12": "pendente",
+    "13": "pendente",
+    "14": "pendente",
+    "15": "pendente",
+    "16": "pendente",
+    "17": "pendente",
+    "18": "pendente",
+    "19": "pendente",
+    "20": "pendente"
+  },
+  "alertas": [
+    {
+      "tipo": "critico",
+      "titulo": "Seguro de vida INEXISTENTE",
+      "descricao": "David não possui seguro de vida. Risco catastrófico para família com filho de 9 meses."
+    },
+    {
+      "tipo": "critico",
+      "titulo": "Seguro de invalidez INEXISTENTE",
+      "descricao": "Sem proteção contra perda de capacidade laborativa."
+    },
+    {
+      "tipo": "atencao",
+      "titulo": "Fundos PFIC em risco fiscal",
+      "descricao": "~R$181k em fundos Rico (Alaska, Western, Safari, Constellation) serão classificados como PFIC nos EUA."
+    },
+    {
+      "tipo": "atencao",
+      "titulo": "Extratos Bradesco sem transações",
+      "descricao": "Extratos de Mariana (CC + Poupança Bradesco) retornaram 0 transações — possível falha de extração PDF."
+    },
+    {
+      "tipo": "atencao",
+      "titulo": "Transações não categorizadas (428)",
+      "descricao": "R$ 39.475 em despesas sem categoria definida."
+    },
+    {
+      "tipo": "info",
+      "titulo": "Valores corrompidos em PDFs corrigidos",
+      "descricao": "43 transações com valores de extração corrompidos foram corrigidas automaticamente (WIX, SABESP, ELETROPAULO, etc.)."
+    }
+  ],
+  "proximos_15d": [
+    {
+      "data": "2026-04-05",
+      "acao": "Configurar primeiro aporte automático R$20k",
+      "prioridade": "alta"
+    },
+    {
+      "data": "2026-04-07",
+      "acao": "Cotação seguro de vida Term Life (3 corretoras)",
+      "prioridade": "alta"
+    },
+    {
+      "data": "2026-04-10",
+      "acao": "Agendar reunião com advogado sucessório",
+      "prioridade": "alta"
+    },
+    {
+      "data": "2026-04-10",
+      "acao": "Configurar PGBL Itaú R$1.800/mês",
+      "prioridade": "alta"
+    },
+    {
+      "data": "2026-04-15",
+      "acao": "Avaliar resgate PFIC (Rico fundos)",
+      "prioridade": "media"
+    },
+    {
+      "data": "2026-04-18",
+      "acao": "Procurar CPA expatriado (indicação via fórum ExpatBR)",
+      "prioridade": "media"
+    }
+  ],
+  "seguros": {
+    "identificados": [
+      {
+        "tipo": "seguro_vida",
+        "membro": "Mariana",
+        "fonte": "holerite_einstein",
+        "premio_mensal": 27.41,
+        "premio_anual": 328.92,
+        "status": "ativo"
+      },
+      {
+        "tipo": "seguro_conta_c6",
+        "membro": "David",
+        "fonte": "fatura_c6_carbon",
+        "premio_mensal": 20.0,
+        "premio_anual": 240.0,
+        "status": "ativo"
+      }
+    ],
+    "transacoes": [
+      {
+        "desc": "PORTO SEGURO SEGUROS",
+        "valor": 5337.9
+      }
+    ],
+    "gap": [
+      "Seguro de vida David — URGENTE",
+      "Seguro de invalidez David — URGENTE",
+      "Revisão seguro residencial Santander"
+    ]
+  },
+  "notas": "Ciclo abr/2026. Pós-venda Living Concept. TRS 5%. Valores PDF corrigidos (43 txns). Extratos Bradesco sem dados."
+}

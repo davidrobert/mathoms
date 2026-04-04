@@ -1,0 +1,30 @@
+{
+  "tipo": "extratoconta",
+  "instituicao": "Rico",
+  "conta": {
+    "numero": "",
+    "tipo": "corrente",
+    "moeda": "BRL",
+    "agencia": ""
+  },
+  "periodo": {
+    "data_inicio": null,
+    "data_fim": null
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": null,
+      "data": null
+    },
+    "saldo_final": {
+      "valor": null,
+      "data": null
+    }
+  },
+  "transacoes": [],
+  "total_periodo": {
+    "total_debitos": 0.0,
+    "total_creditos": 0.0,
+    "saldo_liquido": 0.0
+  }
+}

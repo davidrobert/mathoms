@@ -1,0 +1,34 @@
+{
+  "tipo": "faturaaluguel",
+  "instituicao": "QuintoAndar",
+  "propriedade": "Rua Major Freire, 496",
+  "periodo": "2026-02",
+  "itens": [
+    {
+      "descricao": "Aluguel - Fev/2026",
+      "valor": 1564.99
+    },
+    {
+      "descricao": "Taxa de administração - Quinto Andar",
+      "valor": -133.02
+    },
+    {
+      "descricao": "IPTU - Fev/2026",
+      "valor": 140.0
+    }
+  ],
+  "renda_bruta": 1564.99,
+  "descontos": [
+    {
+      "descricao": "Taxa de administração",
+      "valor": 133.02
+    },
+    {
+      "descricao": "IPTU",
+      "valor": -140.0
+    }
+  ],
+  "renda_liquida": 1571.97,
+  "data_pagamento": "2026-03-12",
+  "status": "Recebido"
+}

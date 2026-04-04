@@ -1,0 +1,34 @@
+{
+  "tipo": "pontos_milhas_unified",
+  "data_consolidacao": "2026-04-04",
+  "programas": [
+    {
+      "programa": "Livelo",
+      "cartao": "Itaú Personnalité",
+      "titular": "David",
+      "saldo_atual": 132112,
+      "valor_estimado": 1915
+    },
+    {
+      "programa": "Smiles",
+      "cartao": "Diversos",
+      "titular": "David",
+      "saldo_atual": 42408,
+      "valor_estimado": 1270
+    },
+    {
+      "programa": "Átomos (C6)",
+      "cartao": "C6 Carbon",
+      "titular": "David",
+      "saldo_atual": 158695,
+      "valor_estimado": 4451
+    },
+    {
+      "programa": "Esfera",
+      "cartao": "Santander Unique",
+      "titular": "David",
+      "saldo_atual": 6046,
+      "valor_estimado": 90
+    }
+  ]
+}

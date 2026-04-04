@@ -1,0 +1,323 @@
+{
+  "tipo": "irpfdeclaracao",
+  "ano_base": 2023,
+  "declarante": {
+    "nome": "MARIANA TEIXEIRA FERREIRA",
+    "cpf": "085.052.396-60",
+    "data_nascimento": "30/08/1986",
+    "endereco": {
+      "logradouro": "RUA TASSO DA SILVEIRA",
+      "numero": "61",
+      "bairro": "VILA GUARANI",
+      "municipio": "SÃO PAULO",
+      "uf": "SP",
+      "cep": "04316-080"
+    },
+    "ocupacao_principal": "227 - ENFERMEIRO DE NÍVEL SUPERIOR, NUTRICIONISTA, FARMACÊUTICO E AFINS"
+  },
+  "data_declaracao": "2024-04-03",
+  "exercicio": 2024,
+  "bens_direitos": [
+    {
+      "codigo_grupo": "01",
+      "codigo_item": "11",
+      "tipo": "imovel",
+      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA PLANTA DA EMPRESA CYRELA MAGIKLZ CAMPINAS",
+      "valor_31_12_ano_anterior": 116839.26,
+      "valor_31_12_ano_base": 223733.99,
+      "localidade": "SÃO PAULO, SP",
+      "endereco": "AVENIDA ALBERTO AUGUSTO ALVES, 320, APT 812, SANTO AMARO",
+      "data_aquisicao": "09/10/2023",
+      "area_total": "25,7 m²",
+      "cnpj_empresa": "13.177.004/0001-91",
+      "inscricao_municipal": "30105434946"
+    },
+    {
+      "codigo_grupo": "01",
+      "codigo_item": "11",
+      "tipo": "imovel",
+      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS EMPREENDIMENTOS IMOBILIARIOS LTDA",
+      "valor_31_12_ano_anterior": 477436.58,
+      "valor_31_12_ano_base": 477436.58,
+      "localidade": "SÃO PAULO, SP",
+      "endereco": "AVENIDA JOAO DIAS, 2192, TORRE 2 APT 163, SANTO AMARO",
+      "data_aquisicao": "09/04/2018",
+      "area_total": "88,9 m²",
+      "cnpj_empresa": "17.102.653/0001-84",
+      "inscricao_municipal": "087.006.0478-1"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "01",
+      "tipo": "conta_bancaria",
+      "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
+      "valor_31_12_ano_anterior": 36692.14,
+      "valor_31_12_ano_base": 25337.34,
+      "localidade": "BRASIL",
+      "instituicao": "BANCO BRADESCO",
+      "cnpj_instituicao": "60.746.948/0001-12",
+      "agencia": "6543",
+      "conta": "6673-7"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "CERTIFICADO DE DEPOSITO BANCARIO - BTG",
+      "valor_31_12_ano_anterior": 168055.76,
+      "valor_31_12_ano_base": 22000.0,
+      "localidade": "BRASIL",
+      "instituicao": "BTG PACTUAL",
+      "cnpj_instituicao": "30.306.294/0001-45"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "CDB - BTG",
+      "valor_31_12_ano_anterior": 122.79,
+      "valor_31_12_ano_base": 1826.51,
+      "localidade": "BRASIL",
+      "instituicao": "BTG PACTUAL",
+      "cnpj_instituicao": "30.306.294/0001-45"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 4365.03,
+      "localidade": "BRASIL",
+      "instituicao": "BANCO BRADESCO",
+      "cnpj_instituicao": "60.746.948/0001-12"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "SALDO RDB - NUBANK",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 58.23,
+      "localidade": "BRASIL",
+      "instituicao": "NU FINANCEIRA SA",
+      "cnpj_instituicao": "30.680.829/0001-43"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "03",
+      "tipo": "aplicacao",
+      "descricao": "LCI - OPEA SECURITIZADORA S.A. - BTG",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 10349.69,
+      "localidade": "BRASIL",
+      "instituicao": "BTG PACTUAL",
+      "cnpj_instituicao": "02.773.542/0001-22"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "03",
+      "tipo": "aplicacao",
+      "descricao": "LCI - TRUE SECURITIZADORA S.A. - BTG",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 10324.25,
+      "localidade": "BRASIL",
+      "instituicao": "BTG PACTUAL",
+      "cnpj_instituicao": "12.130.744/0001-00"
+    },
+    {
+      "codigo_grupo": "06",
+      "codigo_item": "01",
+      "tipo": "conta_bancaria",
+      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
+      "valor_31_12_ano_anterior": 1.0,
+      "valor_31_12_ano_base": 1.0,
+      "localidade": "BRASIL",
+      "instituicao": "BANCO BRADESCO",
+      "cnpj_instituicao": "60.746.948/0001-12",
+      "banco": "237",
+      "agencia": "0504",
+      "conta": "77113-9"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "01",
+      "tipo": "aplicacao",
+      "descricao": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LONGO PRAZO",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 35868.62,
+      "localidade": "BRASIL",
+      "fundo_cnpj": "11.952.873/0001-10",
+      "administrador_cnpj": "59.281.253/0001-23"
+    }
+  ],
+  "rendimentos": [
+    {
+      "tipo": "clt",
+      "descricao": "RENDIMENTOS TRIBUTÁVEIS RECEBIDOS DE PESSOA JURÍDICA - SOCIEDADE BENEF ISRAELITA BRAS HOSPITAL ALBERT EINSTEIN",
+      "fonte": "SOCIEDADE BENEF ISRAELITA BRAS HOSPITAL ALBERT EINSTEIN",
+      "cnpj_fonte": "60.765.823/0001-30",
+      "valor_bruto": 146176.12,
+      "valor_liquido": 146176.12,
+      "imposto_retido": 26255.09,
+      "contribuicao_previdenciaria": 9940.56,
+      "decimo_terceiro": 9228.14,
+      "irrf_decimo_terceiro": 2301.21
+    },
+    {
+      "tipo": "aluguel",
+      "descricao": "RENDIMENTOS TRIBUTÁVEIS RECEBIDOS DE PESSOA FÍSICA - ALUGUÉIS",
+      "valor_bruto": 6116.71,
+      "valor_liquido": 6116.71,
+      "imposto_retido": 0.0,
+      "detalhe": "Pagamentos mensais: AGO=97.51, SET=1504.80, OUT=1504.80, NOV=1504.80, DEZ=1504.80"
+    },
+    {
+      "tipo": "isento",
+      "descricao": "RESTITUIÇÃO DO IMPOSTO SOBRE A RENDA DE ANOS-CALENDÁRIO ANTERIORES",
+      "valor_bruto": 1099.91,
+      "valor_liquido": 1099.91,
+      "imposto_retido": 0.0,
+      "tipo_renda": "restituicao"
+    },
+    {
+      "tipo": "isento",
+      "descricao": "ABONO DE FÉRIAS / PIS",
+      "fonte": "SOCIEDADE BENEF ISRAELITA BRAS HOSPITAL ALBERT EINSTEIN",
+      "cnpj_fonte": "60.765.823/0001-30",
+      "valor_bruto": 8265.49,
+      "valor_liquido": 8265.49,
+      "imposto_retido": 0.0,
+      "tipo_renda": "abono_ferias_pis"
+    },
+    {
+      "tipo": "outro",
+      "descricao": "13º SALÁRIO - TRIBUTAÇÃO EXCLUSIVA/DEFINITIVA",
+      "valor_bruto": 9228.14,
+      "valor_liquido": 9228.14,
+      "imposto_retido": 0.0
+    },
+    {
+      "tipo": "financeiro",
+      "descricao": "RENDIMENTOS DE APLICAÇÕES FINANCEIRAS - NU FINANCEIRA SA",
+      "fonte": "NU FINANCEIRA SA - SOCIEDADE DE CREDITO FINANCIAMENTO E INVE",
+      "cnpj_fonte": "30.680.829/0001-43",
+      "valor_bruto": 58.23,
+      "valor_liquido": 58.23,
+      "imposto_retido": 0.0,
+      "tipo_tributacao": "exclusiva"
+    },
+    {
+      "tipo": "financeiro",
+      "descricao": "RENDIMENTOS DE APLICAÇÕES FINANCEIRAS - BANCO BTG PACTUAL",
+      "fonte": "BANCO BTG PACTUAL S A",
+      "cnpj_fonte": "30.306.294/0001-45",
+      "valor_bruto": 10836.52,
+      "valor_liquido": 10836.52,
+      "imposto_retido": 0.0,
+      "tipo_tributacao": "exclusiva"
+    },
+    {
+      "tipo": "financeiro",
+      "descricao": "RENDIMENTOS DE APLICAÇÕES FINANCEIRAS - BANCO BRADESCO",
+      "fonte": "BANCO BRADESCO S A",
+      "cnpj_fonte": "60.746.948/0001-12",
+      "valor_bruto": 1220.84,
+      "valor_liquido": 1220.84,
+      "imposto_retido": 0.0,
+      "tipo_tributacao": "exclusiva"
+    },
+    {
+      "tipo": "financeiro",
+      "descricao": "RENDIMENTOS DE APLICAÇÕES FINANCEIRAS - BTG PACTUAL EXPLORER FI MM",
+      "fonte": "BTG PACTUAL EXPLORER FI MM",
+      "cnpj_fonte": "11.952.873/0001-10",
+      "valor_bruto": 468.62,
+      "valor_liquido": 468.62,
+      "imposto_retido": 0.0,
+      "tipo_tributacao": "exclusiva"
+    }
+  ],
+  "dividas_onus": [],
+  "deducoes": [
+    {
+      "tipo": "saude",
+      "descricao": "LEIR MIRANDA ESTEVES - ODONTOLOGO",
+      "cpf_credor": "786.538.606-06",
+      "valor": 1500.0,
+      "valor_nao_dedutivel": 0.0
+    },
+    {
+      "tipo": "saude",
+      "descricao": "TERZIAN - SOCIEDADE DE MEDICOS LTDA",
+      "cnpj_credor": "22.855.820/0001-06",
+      "valor": 250.0,
+      "valor_nao_dedutivel": 118.92
+    },
+    {
+      "tipo": "saude",
+      "descricao": "CLINICA TAKATA LTDA",
+      "cnpj_credor": "71.531.826/0001-25",
+      "valor": 300.0,
+      "valor_nao_dedutivel": 0.0
+    },
+    {
+      "tipo": "saude",
+      "descricao": "LF SAO PAULO SERVICOS MEDICOS LTDA - HONORARIOS MEDICOS/TAXA ADMINISTRATIVA",
+      "cnpj_credor": "71.715.478/0001-46",
+      "valor": 1300.0,
+      "valor_nao_dedutivel": 0.0
+    },
+    {
+      "tipo": "saude",
+      "descricao": "SOMPO SAUDE SEGUROS S.A.",
+      "cnpj_credor": "47.184.510/0001-20",
+      "valor": 302.74,
+      "valor_nao_dedutivel": 0.0
+    },
+    {
+      "tipo": "outro",
+      "descricao": "GRPQA LTDA",
+      "cnpj_credor": "16.788.643/0001-81",
+      "valor": 2607.0,
+      "valor_nao_dedutivel": 0.0
+    }
+  ],
+  "imposto": {
+    "imposto_retido_fonte_titular": 26255.09,
+    "imposto_retido_fonte_dependentes": 0.0,
+    "carne_leao_titular": 0.0,
+    "carne_leao_dependentes": 0.0,
+    "imposto_complementar": 0.0,
+    "imposto_pago_exterior": 0.0,
+    "total_imposto_pago": 26255.09,
+    "imposto_devido": 26715.95,
+    "aliquota_efetiva_percentual": 17.54,
+    "saldo_imposto_pagar": 460.86,
+    "imposto_restituir": 0.0
+  },
+  "totalizadores": {
+    "bens_totais_ano_anterior": 799147.53,
+    "bens_totais_ano_base": 811301.24,
+    "renda_tributavel": 152292.83,
+    "renda_isenta": 9365.4,
+    "renda_tributacao_exclusiva": 21812.35,
+    "desconto_simplificado": 16754.34,
+    "base_calculo_imposto": 135538.49,
+    "imposto_devido": 26715.95,
+    "imposto_pago": 26255.09,
+    "saldo": 460.86,
+    "dividas_onus_ano_anterior": 0.0,
+    "dividas_onus_ano_base": 0.0
+  },
+  "informacoes_adicionais": {
+    "tipo_declaracao": "Declaração de Ajuste Anual Original",
+    "possui_conjuge": false,
+    "residente_exterior_2023": false,
+    "alteracao_dados_cadastrais": true,
+    "portador_deficiencia": false,
+    "dependentes": 0,
+    "alimentandos": 0,
+    "recibo_declaracao_anterior": "14.54.42.45.11-76"
+  }
+}

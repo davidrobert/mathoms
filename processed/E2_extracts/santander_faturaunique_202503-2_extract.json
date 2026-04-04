@@ -1,0 +1,39 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "Santander",
+  "cartao": {
+    "nome": "Unique",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": null,
+    "data_fim": null,
+    "data_vencimento": null
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 301.18,
+    "compras_internacionais": 81.64,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 122.43,
+    "saldo_atual": 382.82
+  },
+  "transacoes": [
+    {
+      "data": "2026-02-16",
+      "descricao": "TURISMOIIPOSTODE",
+      "valor": 171.13,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-02-16",
+      "descricao": "JIM COM* LAVARAPIDO G",
+      "valor": 90.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

@@ -1,0 +1,549 @@
+{
+  "tipo": "extratoconta",
+  "instituicao": "Itau",
+  "conta": {
+    "numero": "004397-8",
+    "tipo": "corrente",
+    "moeda": "BRL",
+    "agencia": "9652"
+  },
+  "periodo": {
+    "data_inicio": "2025-07-01",
+    "data_fim": "2025-12-31"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": 913.72,
+      "data": "2026-03-28"
+    },
+    "saldo_final": {
+      "valor": null,
+      "data": null
+    }
+  },
+  "transacoes": [
+    {
+      "data": "2025-12-29",
+      "descricao": "DA ELETROPAULO",
+      "tipo": "credito",
+      "valor": 31237205.0,
+      "saldo_apos": -665.23
+    },
+    {
+      "data": "2025-12-26",
+      "descricao": "INT /SIMPLES NACIONA",
+      "tipo": "credito",
+      "valor": 72.0,
+      "saldo_apos": -4257.17
+    },
+    {
+      "data": "2025-12-26",
+      "descricao": "INT /SIMPLES NACIONA",
+      "tipo": "credito",
+      "valor": 72.0,
+      "saldo_apos": -3845.09
+    },
+    {
+      "data": "2025-12-26",
+      "descricao": "INT /DARF",
+      "tipo": "credito",
+      "valor": 16253603928123.0,
+      "saldo_apos": -2728.37
+    },
+    {
+      "data": "2025-12-26",
+      "descricao": "INT /DARF",
+      "tipo": "credito",
+      "valor": 16253603942806.0,
+      "saldo_apos": -3366.66
+    },
+    {
+      "data": "2025-12-26",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 1.91,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-12-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1571.97,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-12-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1850.13,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-12-10",
+      "descricao": "FINANC IMOBILIARIO",
+      "tipo": "credito",
+      "valor": 47.0,
+      "saldo_apos": -4306.37
+    },
+    {
+      "data": "2025-12-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 3.97,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.11,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "debito",
+      "valor": 59.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-12-05",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.59,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-12-05",
+      "descricao": "SABESP",
+      "tipo": "credito",
+      "valor": 3334280219.0,
+      "saldo_apos": -347.65
+    },
+    {
+      "data": "2025-11-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 1.04,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-27",
+      "descricao": "DA ELETROPAULO",
+      "tipo": "credito",
+      "valor": 31237205.0,
+      "saldo_apos": -717.99
+    },
+    {
+      "data": "2025-11-25",
+      "descricao": "DEV PIX DAVID ROBER25/11",
+      "tipo": "debito",
+      "valor": 333.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-25",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.45,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "PIX TRANSF DAVID R19/11",
+      "tipo": "credito",
+      "valor": 333.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "BLOQUEIO PIX",
+      "tipo": "debito",
+      "valor": 333.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "DESBLOQUEIO PIX",
+      "tipo": "credito",
+      "valor": 333.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1571.97,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1850.13,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-10",
+      "descricao": "FINANC IMOBILIARIO",
+      "tipo": "credito",
+      "valor": 46.0,
+      "saldo_apos": -4318.7
+    },
+    {
+      "data": "2025-11-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 17.43,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-06",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.76,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "debito",
+      "valor": 59.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-05",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 1.73,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-11-05",
+      "descricao": "SABESP",
+      "tipo": "credito",
+      "valor": 3334280219.0,
+      "saldo_apos": -136.7
+    },
+    {
+      "data": "2025-10-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 6.06,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-10-27",
+      "descricao": "DA ELETROPAULO",
+      "tipo": "credito",
+      "valor": 31237205.0,
+      "saldo_apos": -516.78
+    },
+    {
+      "data": "2025-10-10",
+      "descricao": "FINANC IMOBILIARIO",
+      "tipo": "credito",
+      "valor": 45.0,
+      "saldo_apos": -4330.99
+    },
+    {
+      "data": "2025-10-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 29.9,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-10-09",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1571.97,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-10-09",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1850.13,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 5.08,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "debito",
+      "valor": 697.45,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "SABESP",
+      "tipo": "credito",
+      "valor": 3334280219.0,
+      "saldo_apos": -76.3
+    },
+    {
+      "data": "2025-09-29",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 1.05,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-09-29",
+      "descricao": "DA ELETROPAULO",
+      "tipo": "credito",
+      "valor": 31237205.0,
+      "saldo_apos": -170.92
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1850.13,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1571.97,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-09-10",
+      "descricao": "FINANC IMOBILIARIO",
+      "tipo": "credito",
+      "valor": 44.0,
+      "saldo_apos": -4343.12
+    },
+    {
+      "data": "2025-09-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 10.93,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 4.55,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "debito",
+      "valor": 1872.43,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.18,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "SABESP",
+      "tipo": "credito",
+      "valor": 3334280219.0,
+      "saldo_apos": -76.3
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.43,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "DA ELETROPAULO",
+      "tipo": "credito",
+      "valor": 31237205.0,
+      "saldo_apos": -207.39
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1824.21,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1401.97,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "FINANC IMOBILIARIO",
+      "tipo": "credito",
+      "valor": 43.0,
+      "saldo_apos": -4347.76
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 1.77,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-08-06",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.09,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-08-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "debito",
+      "valor": 59.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-08-05",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.1,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-08-05",
+      "descricao": "SABESP",
+      "tipo": "credito",
+      "valor": 3334280219.0,
+      "saldo_apos": -76.3
+    },
+    {
+      "data": "2025-07-28",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.14,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-28",
+      "descricao": "DA ELETROPAULO",
+      "tipo": "credito",
+      "valor": 31237205.0,
+      "saldo_apos": -126.88
+    },
+    {
+      "data": "2025-07-10",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1821.54,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-10",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1401.97,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-10",
+      "descricao": "FINANC IMOBILIARIO",
+      "tipo": "credito",
+      "valor": 42.0,
+      "saldo_apos": -4359.7
+    },
+    {
+      "data": "2025-07-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.11,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-07",
+      "descricao": "PIX TRANSF RUBENS 06/07",
+      "tipo": "debito",
+      "valor": 1000.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-07",
+      "descricao": "PIX TRANSF DAVID R06/07",
+      "tipo": "debito",
+      "valor": 5000.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-07",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.42,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-07",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "debito",
+      "valor": 154.57,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-07",
+      "descricao": "SABESP",
+      "tipo": "credito",
+      "valor": 3334280219.0,
+      "saldo_apos": -76.3
+    },
+    {
+      "data": "2025-07-03",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 256.98,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-03",
+      "descricao": "APLICACAO CDB COFRINHOS",
+      "tipo": "debito",
+      "valor": 190000.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-03",
+      "descricao": "PIX TRANSF DAVID R03/07",
+      "tipo": "debito",
+      "valor": 6000.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.07,
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "TAR PACOTE ITAU JUN/25",
+      "tipo": "debito",
+      "valor": 43.4,
+      "saldo_apos": null
+    }
+  ],
+  "total_periodo": {
+    "total_debitos": 205610.85,
+    "total_creditos": 32527400997033.926,
+    "saldo_liquido": 0.0
+  }
+}

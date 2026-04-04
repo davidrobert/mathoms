@@ -1,0 +1,235 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "C6 Bank",
+  "cartao": {
+    "nome": "Carbon",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": "2025-07-01",
+    "data_fim": "2025-07-31",
+    "data_vencimento": "2025-08-05"
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 2755.27,
+    "compras_internacionais": 2823.67,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 0.0,
+    "saldo_atual": 5677.76
+  },
+  "transacoes": [
+    {
+      "data": "2026-05-30",
+      "descricao": "VINDI *ACCOUNTBANKTEC",
+      "valor": 390.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-02",
+      "descricao": "AMAZON GROCERY AMZN.CO SE USD",
+      "valor": 52.97,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-02",
+      "descricao": "AMAZON GROCERY AMZN.CO SE IOF Transações Exterior",
+      "valor": 11.14,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-02",
+      "descricao": "APPLE.COM/BILL",
+      "valor": 4.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-03",
+      "descricao": "AMAZON TIPS AM IOF Transações Exterior",
+      "valor": 1.05,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-03",
+      "descricao": "AMAZON TIPS AM USD",
+      "valor": 5.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-03",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 41.78,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-04",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 38.17,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-04",
+      "descricao": "DM *SPOTIFY",
+      "valor": 34.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-05",
+      "descricao": "WEATHERSTATION INN KE USD",
+      "valor": 246.38,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-05",
+      "descricao": "WEATHERSTATION INN KE IOF Transações Exterior",
+      "valor": 51.12,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-05",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 144.78,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-06",
+      "descricao": "LIVELO*CLUBE LIVELO",
+      "valor": 44.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-13",
+      "descricao": "WELLHUB GYMPASS BR GYM",
+      "valor": 69.99,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-15",
+      "descricao": "AMAZONPRIMEBR",
+      "valor": 19.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-24",
+      "descricao": "PRODUTOS GLOBO",
+      "valor": 22.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-25",
+      "descricao": "MP *MELIMAIS",
+      "valor": 24.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-05",
+      "descricao": "Inclusao de Pagamento",
+      "valor": 23150.98,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-07",
+      "descricao": "SHELL MI IOF Transações Exterior",
+      "valor": 4.51,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-07",
+      "descricao": "SHELL MI USD",
+      "valor": 21.86,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-08",
+      "descricao": "PRIP MART",
+      "valor": 199.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-12",
+      "descricao": "EXXON AUTOMATED PETROL TA USD",
+      "valor": 31.44,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-12",
+      "descricao": "EXXON AUTOMATED PETROL TA IOF Transações Exterior",
+      "valor": 6.41,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-15",
+      "descricao": "FAST POINT MC USD",
+      "valor": 36.44,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-15",
+      "descricao": "FAST POINT MC IOF Transações Exterior",
+      "valor": 7.43,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-22",
+      "descricao": "WAWA",
+      "valor": 5346.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-24",
+      "descricao": "Estorno Tarifa - Estorno",
+      "valor": 98.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-07",
+      "descricao": "COBASI GEORGE CORBISIE",
+      "valor": 115.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-08",
+      "descricao": "CAMPEAO",
+      "valor": 28.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-08",
+      "descricao": "AUTO POSTO IRMAOS MIGU",
+      "valor": 207.19,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

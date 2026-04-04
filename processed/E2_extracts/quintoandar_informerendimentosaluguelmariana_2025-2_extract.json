@@ -1,0 +1,19 @@
+{
+  "tipo": "informerendimentos",
+  "instituicao": "QuintoAndar",
+  "ano_base": 2024,
+  "beneficiario": {
+    "nome": "Mariana Ferreira Campos",
+    "cpf": "085.052.396-60"
+  },
+  "rendimentos": [
+    {
+      "propriedade": "Propriedade Mariana 1",
+      "renda_bruta": 74179.77,
+      "descontos": 7423.08,
+      "renda_liquida": 66756.69
+    }
+  ],
+  "total_bruto": 74179.77,
+  "total_liquido": 66756.69
+}

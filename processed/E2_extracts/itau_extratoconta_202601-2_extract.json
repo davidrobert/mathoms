@@ -1,0 +1,311 @@
+{
+  "tipo": "extratoconta",
+  "instituicao": "Itau",
+  "conta": {
+    "numero": "004397-8",
+    "tipo": "corrente",
+    "moeda": "BRL",
+    "agencia": "9652"
+  },
+  "periodo": {
+    "data_inicio": "2026-01-01",
+    "data_fim": "2026-06-30"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": 913.72,
+      "data": "2026-03-28"
+    },
+    "saldo_final": {
+      "valor": null,
+      "data": null
+    }
+  },
+  "transacoes": [
+    {
+      "data": "2026-03-27",
+      "descricao": "REND PAGO APLIC AUT APR",
+      "tipo": "credito",
+      "valor": 0.04,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "DA ELETROPAULO",
+      "tipo": "credito",
+      "valor": 31237205.0,
+      "saldo_apos": -594.07
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1850.13,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1571.97,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "FINANC IMOBILIARIO 050/120",
+      "tipo": "debito",
+      "valor": 4266.94,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.31,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "debito",
+      "valor": 59.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.04,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "SABESP",
+      "tipo": "credito",
+      "valor": 3334280219.0,
+      "saldo_apos": -402.23
+    },
+    {
+      "data": "2026-03-03",
+      "descricao": "IOF",
+      "tipo": "debito",
+      "valor": 0.68,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.04,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "DA ELETROPAULO",
+      "tipo": "credito",
+      "valor": 31237205.0,
+      "saldo_apos": -700.49
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "PIX TRANSF EDER SO17/02",
+      "tipo": "credito",
+      "valor": 89.9,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1850.13,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1571.97,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-10",
+      "descricao": "FINANC IMOBILIARIO 049/120",
+      "tipo": "debito",
+      "valor": 4281.54,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.03,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-06",
+      "descricao": "PIX TRANSF DAVID R06/02",
+      "tipo": "credito",
+      "valor": 4720.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "debito",
+      "valor": 257.54,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.05,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "SABESP",
+      "tipo": "credito",
+      "valor": 3334280219.0,
+      "saldo_apos": -568.02
+    },
+    {
+      "data": "2026-02-03",
+      "descricao": "IOF",
+      "tipo": "debito",
+      "valor": 10.03,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "credito",
+      "valor": 0.05,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "DA ELETROPAULO",
+      "tipo": "credito",
+      "valor": 31237205.0,
+      "saldo_apos": -927.93
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG Multa de Veículo",
+      "tipo": "debito",
+      "valor": 682.06,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG Multa de Veículo Renainf",
+      "tipo": "debito",
+      "valor": 142.27,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG Multa de Veículo Renainf",
+      "tipo": "debito",
+      "valor": 317.56,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG IPVA",
+      "tipo": "credito",
+      "valor": 2026.0,
+      "saldo_apos": -5225.93
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG Licenciamento de Veículo",
+      "tipo": "debito",
+      "valor": 174.08,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "FINANC IMOBILIARIO",
+      "tipo": "credito",
+      "valor": 48.0,
+      "saldo_apos": -4294.0
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAGTO Multa de Veículo",
+      "tipo": "debito",
+      "valor": 142.27,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAGTO Multa de Veículo",
+      "tipo": "debito",
+      "valor": 104.12,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAGTO Licenciamento de Veículo",
+      "tipo": "debito",
+      "valor": 174.08,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PIX TRANSF DAVID R12/01",
+      "tipo": "credito",
+      "valor": 20000.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "JUROS LIMITE DA CONTA",
+      "tipo": "debito",
+      "valor": 374.73,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-09",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1850.13,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-09",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "credito",
+      "valor": 1571.97,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "debito",
+      "valor": 59.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "IOF",
+      "tipo": "debito",
+      "valor": 42.93,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "SABESP",
+      "tipo": "credito",
+      "valor": 3334280219.0,
+      "saldo_apos": -317.54
+    }
+  ],
+  "total_periodo": {
+    "total_debitos": 11088.830000000002,
+    "total_creditos": 10096589422.760002,
+    "saldo_liquido": 0.0
+  }
+}

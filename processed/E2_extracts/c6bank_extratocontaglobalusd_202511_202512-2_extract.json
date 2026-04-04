@@ -1,0 +1,74 @@
+{
+  "tipo": "extratoconta",
+  "subtipo": "global_usd",
+  "instituicao": "C6 Bank",
+  "conta": {
+    "numero": "1003487837",
+    "tipo": "global",
+    "moeda": "USD",
+    "agencia": "0001"
+  },
+  "periodo": {
+    "data_inicio": "2025-11-01",
+    "data_fim": "2025-12-31"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": -1769.64,
+      "data": "2025-11-01"
+    },
+    "saldo_final": {
+      "valor": 9159.0,
+      "data": "2025-12-17"
+    }
+  },
+  "transacoes": [
+    {
+      "data": "2025-11-17",
+      "descricao": "Débito de cartão -US$ 47,98 15/",
+      "tipo": "credito",
+      "valor": 11.0,
+      "saldo_apos": -1758.64
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Saída Transf. Internacional -US$",
+      "tipo": "credito",
+      "valor": 3.84,
+      "saldo_apos": 247.0
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Saída Tarifa Transf. Internacional -US$",
+      "tipo": "credito",
+      "valor": 2000.0,
+      "saldo_apos": 243.16
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Entrada Transf C6 Conta Global Líquido US$",
+      "tipo": "credito",
+      "valor": 1.8,
+      "saldo_apos": -1756.84
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 8900.0,
+      "saldo_apos": 9147.0
+    },
+    {
+      "data": "2025-12-17",
+      "descricao": "Débito de cartão -US$ 25,38 15/",
+      "tipo": "credito",
+      "valor": 12.0,
+      "saldo_apos": 9159.0
+    }
+  ],
+  "total_periodo": {
+    "total_debitos": 0,
+    "total_creditos": 10928.64,
+    "saldo_liquido": 10928.64
+  }
+}

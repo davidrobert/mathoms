@@ -1,0 +1,19 @@
+{
+  "tipo": "informerendimentos",
+  "instituicao": "QuintoAndar",
+  "ano_base": 2024,
+  "beneficiario": {
+    "nome": "David Robert Camargo de Campos",
+    "cpf": "287.766.948-36"
+  },
+  "rendimentos": [
+    {
+      "propriedade": "Rua Major Freire, 496 - ed gisele Ap 12, São Paulo - SP 04304-110",
+      "renda_bruta": 36335.43,
+      "descontos": 4930.03,
+      "renda_liquida": 31405.4
+    }
+  ],
+  "total_bruto": 36335.43,
+  "total_liquido": 31405.4
+}

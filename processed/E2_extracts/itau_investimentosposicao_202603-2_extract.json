@@ -1,0 +1,28 @@
+{
+  "tipo": "investimentosposicao",
+  "instituicao": "Itau",
+  "data_posicao": "2020-03-29",
+  "moeda": "BRL",
+  "total_aplicado": null,
+  "saldo_atual": 341581.2,
+  "rentabilidade": {
+    "valor": null,
+    "percentual": null
+  },
+  "composicao": [
+    {
+      "nome": "CDB-DI",
+      "tipo_produto": "cdb",
+      "valor_total": null,
+      "quantidade": null,
+      "valor_unitario": null
+    },
+    {
+      "nome": "Cofrinhos",
+      "tipo_produto": "outro",
+      "valor_total": 6610.29,
+      "quantidade": null,
+      "valor_unitario": null
+    }
+  ]
+}

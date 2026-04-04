@@ -1,0 +1,30 @@
+{
+  "tipo": "extratoconta",
+  "instituicao": "Bradesco",
+  "conta": {
+    "numero": "77113-9",
+    "tipo": "corrente",
+    "moeda": "BRL",
+    "agencia": "3221"
+  },
+  "periodo": {
+    "data_inicio": "2025-01-01",
+    "data_fim": "2025-12-31"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": 1.0,
+      "data": null
+    },
+    "saldo_final": {
+      "valor": null,
+      "data": null
+    }
+  },
+  "transacoes": [],
+  "total_periodo": {
+    "total_debitos": 0.0,
+    "total_creditos": 0.0,
+    "saldo_liquido": 0.0
+  }
+}

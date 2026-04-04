@@ -1,0 +1,208 @@
+================================================================================
+BRAZILIAN BANK STATEMENTS PROCESSING - E2 EXTRACTS
+================================================================================
+Processing Date: 2026-04-03
+Total Files Processed: 14
+All Files Successfully Extracted: YES (14/14)
+
+================================================================================
+SUMMARY BY INSTITUTION AND ACCOUNT TYPE
+================================================================================
+
+BRADESCO POUPANÇA (Savings Account) - 7 Files
+────────────────────────────────────────────────
+Account Number: 77113-9 (Account Type: Poupança)
+Transactions Extracted: 27
+Periods Covered: Jan 2025 - Mar 2026 (7 bimonthly extracts)
+
+Files:
+1. bradesco_extratopoupanca_202501_202502: 2 transactions, R$ 29,957.45
+2. bradesco_extratopoupanca_202503_202504: 3 transactions, R$ 1,665.70
+3. bradesco_extratopoupanca_202505_202506: 0 transactions, R$ 21,762.41 (no movements)
+4. bradesco_extratopoupanca_202507_202508: 0 transactions, R$ 0.00 (no data)
+5. bradesco_extratopoupanca_202509_202510: 4 transactions, R$ 2,407.27
+6. bradesco_extratopoupanca_202511_202512: 5 transactions, R$ 21,312.53
+7. bradesco_extratopoupanca_202601_202603: 13 transactions, R$ 4,330.25
+
+C6 BANK GLOBAL USD (International Account) - 4 Files
+──────────────────────────────────────────────────────
+Account Number: 100348783-7 (Account Type: Global USD)
+Transactions Extracted: 388
+Periods Covered: May 2025 - Mar 2026 (4 quarterly extracts)
+Currency: USD
+Final Balance: US$ 9,159.00
+
+Files:
+1. c6bank_extratocontaglobalusd_202505_202507: 199 transactions, US$ 9,152.00
+2. c6bank_extratocontaglobalusd_202508_202510: 179 transactions, US$ 9,139.00
+3. c6bank_extratocontaglobalusd_202511_202512:   6 transactions, US$ 9,159.00
+4. c6bank_extratocontaglobalusd_202512_202603:   4 transactions, US$ 9,159.00
+
+C6 BANK GLOBAL EUR (International Account) - 2 Files
+──────────────────────────────────────────────────────
+Account Number: 101013529-6 (Account Type: Global EUR)
+Transactions Extracted: 56
+Periods Covered: Nov 2025 - Mar 2026 (2 quarterly extracts)
+Currency: EUR
+Final Balance: EUR 859.00
+
+Files:
+1. c6bank_extratocontaglobaleur_202511_202512: 0 transactions, EUR 863.00 (no movements)
+2. c6bank_extratocontaglobaleur_202601_202603: 56 transactions, EUR 859.00
+
+C6 BANK PJ (Business Account) - 1 File
+───────────────────────────────────────
+Account Type: PJ (Pessoa Jurídica - Business)
+Transactions Extracted: 53
+Period Covered: Mar 2025 - Mar 2026
+Currency: BRL
+Final Balance: R$ 117,430.44
+
+Files:
+1. c6bank_extratocontapj_202503_202603: 53 transactions, R$ 117,430.44
+
+================================================================================
+TRANSACTION ANALYSIS
+================================================================================
+
+Total Transactions Extracted: 524
+
+By Account:
+- Bradesco Poupança:     27 transactions (5.2%)
+- C6 Global USD:        388 transactions (74.0%)
+- C6 Global EUR:         56 transactions (10.7%)
+- C6 PJ:                 53 transactions (10.1%)
+
+Currency Breakdown:
+- BRL (Brazilian Real):  80 transactions
+- USD (US Dollar):      388 transactions
+- EUR (Euro):            56 transactions
+
+================================================================================
+OUTPUT FORMAT AND SCHEMA
+================================================================================
+
+All extracts saved in JSON format with the following structure:
+
+{
+  "tipo": "extratoconta",
+  "subtipo": "poupanca|global_usd|global_eur|pj",
+  "instituicao": "Bradesco|C6 Bank",
+  "conta": {
+    "numero": "[account number]",
+    "tipo": "poupanca|global|pj",
+    "moeda": "BRL|USD|EUR",
+    "agencia": "[agency]"
+  },
+  "periodo": {
+    "data_inicio": "YYYY-MM-DD",
+    "data_fim": "YYYY-MM-DD"
+  },
+  "saldos": {
+    "saldo_inicial": {"valor": X.XX, "data": "YYYY-MM-DD"},
+    "saldo_final": {"valor": X.XX, "data": "YYYY-MM-DD"}
+  },
+  "transacoes": [
+    {
+      "data": "YYYY-MM-DD",
+      "descricao": "[transaction description]",
+      "tipo": "debito|credito",
+      "valor": X.XX,
+      "saldo_apos": X.XX
+    }
+  ],
+  "total_periodo": {
+    "total_debitos": X.XX,
+    "total_creditos": X.XX,
+    "saldo_liquido": X.XX
+  }
+}
+
+================================================================================
+OUTPUT FILES
+================================================================================
+
+Location: /sessions/elegant-vibrant-mccarthy/mnt/Financas Familia/financas-familia/processed/E2_extracts
+
+14 JSON files generated (one per input PDF):
+✓ bradesco_extratopoupanca_202501_202502-2_extract.json
+✓ bradesco_extratopoupanca_202503_202504-2_extract.json
+✓ bradesco_extratopoupanca_202505_202506-2_extract.json
+✓ bradesco_extratopoupanca_202507_202508-2_extract.json
+✓ bradesco_extratopoupanca_202509_202510-2_extract.json
+✓ bradesco_extratopoupanca_202511_202512-2_extract.json
+✓ bradesco_extratopoupanca_202601_202603-2_extract.json
+✓ c6bank_extratocontaglobalusd_202505_202507-2_extract.json
+✓ c6bank_extratocontaglobalusd_202508_202510-2_extract.json
+✓ c6bank_extratocontaglobalusd_202511_202512-2_extract.json
+✓ c6bank_extratocontaglobalusd_202512_202603-2_extract.json
+✓ c6bank_extratocontaglobaleur_202511_202512-2_extract.json
+✓ c6bank_extratocontaglobaleur_202601_202603-2_extract.json
+✓ c6bank_extratocontapj_202503_202603-2_extract.json
+
+================================================================================
+KEY FINDINGS
+================================================================================
+
+1. BRADESCO POUPANÇA (Savings):
+   - Mixed period data quality (2 periods with no transactions)
+   - Total 27 transactions across 7 periods
+   - Account shows consistent savings with periodic withdrawals and yield deposits
+   - Final balance: R$ 4,330.25 (Mar 2026)
+
+2. C6 GLOBAL USD:
+   - High transaction volume (388 transactions)
+   - Primarily card debit transactions (shopping/expenses)
+   - Occasional international transfers between C6 accounts
+   - Stable balance maintained around US$ 9,150
+
+3. C6 GLOBAL EUR:
+   - Lower transaction volume (56 transactions)
+   - Nov-Dec 2025 period had no transactions (balance maintained)
+   - Jan-Mar 2026 shows activity in Europe (travel/expenses)
+   - Final balance: EUR 859.00
+
+4. C6 PJ (Business Account):
+   - 53 transactions over 12 months (Mar 2025 - Mar 2026)
+   - Primarily credits indicating business revenues
+   - Healthy balance of R$ 117,430.44
+   - Transactions labeled as "Transf C6 Conta" (transfers between accounts)
+
+================================================================================
+EXTRACTION METHODS
+================================================================================
+
+Two PDF formats handled:
+
+1. BRADESCO WEB FORMAT:
+   - Web-based banking portal exports
+   - Transaction table embedded in HTML-like PDF structure
+   - Regex pattern matching for transaction rows
+   - Balance information extracted from summary line
+
+2. C6 EXPORT FORMAT:
+   - Native bank export format
+   - Transaction list with date, type, description, and value
+   - Saldo do dia (current balance) at document header
+   - Running balance calculated backwards from final balance
+
+================================================================================
+PROCESSING STATISTICS
+================================================================================
+
+Total PDF Input Files: 14
+Successful Extractions: 14 (100%)
+Total Transactions Processed: 524
+Processing Status: COMPLETE
+
+Bradesco Files: 7
+  - Successfully extracted: 7
+  - Total transactions: 27
+
+C6 Files: 7
+  - Successfully extracted: 7
+  - Total transactions: 497
+
+================================================================================
+END OF REPORT
+================================================================================

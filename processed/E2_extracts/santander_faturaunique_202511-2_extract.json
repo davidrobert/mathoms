@@ -1,0 +1,46 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "Santander",
+  "cartao": {
+    "nome": "Unique",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": null,
+    "data_fim": null,
+    "data_vencimento": null
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 59.97,
+    "compras_internacionais": 663.75,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 858.39,
+    "saldo_atual": 723.72
+  },
+  "transacoes": [
+    {
+      "data": "2025-11-10",
+      "descricao": "ANUIDADE DIFERENCIADA",
+      "valor": 3.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-11-01",
+      "descricao": "GOOGLE *GOOGLE ONE",
+      "valor": 8.28,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-11-06",
+      "descricao": "GOOGLE *GOOGLE ONE",
+      "valor": 570.16,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

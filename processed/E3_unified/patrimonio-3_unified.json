@@ -1,0 +1,84 @@
+{
+  "tipo": "patrimonio_unified",
+  "data_consolidacao": "2026-04-04",
+  "ano_base": 2024,
+  "bruto": 3501275.44,
+  "liquido": 3266482.83,
+  "dividas": 234792.61,
+  "residencia": 996821.46,
+  "veiculos": 227476.0,
+  "investivel": 2530777.98,
+  "imoveis": {
+    "total": 2169821.46,
+    "investimento": 1173000.0,
+    "lista": [
+      {
+        "nome": "Casa Tasso da Silveira (Residência)",
+        "valor": 996821.46,
+        "membro": "David"
+      },
+      {
+        "nome": "Ap. Barão de Capanema / Calixto",
+        "valor": 350000.0,
+        "membro": "David"
+      },
+      {
+        "nome": "Ap. Ed. Gisele / Major Freire",
+        "valor": 213000.0,
+        "membro": "David"
+      },
+      {
+        "nome": "Casa Leonardo da Vinci",
+        "valor": 80000.0,
+        "membro": "David"
+      },
+      {
+        "nome": "Ap. Living Wish / João Dias",
+        "valor": 530000.0,
+        "membro": "Mariana"
+      }
+    ]
+  },
+  "investimentos_david": 605978.87,
+  "investimentos_mariana": 188123.73,
+  "criptoativos": 3189.68,
+  "caixa_moeda_estrangeira": 306685.7,
+  "composicao": [
+    {
+      "categoria": "Residência própria",
+      "valor": 996821.46,
+      "pct": 28.5
+    },
+    {
+      "categoria": "Imóveis investimento",
+      "valor": 1173000.0,
+      "pct": 33.5
+    },
+    {
+      "categoria": "Investimentos David",
+      "valor": 605978.87,
+      "pct": 17.3
+    },
+    {
+      "categoria": "Investimentos Mariana",
+      "valor": 188123.73,
+      "pct": 5.4
+    },
+    {
+      "categoria": "Criptoativos",
+      "valor": 3189.68,
+      "pct": 0.1
+    },
+    {
+      "categoria": "Caixa + Moeda Estrangeira",
+      "valor": 306685.7,
+      "pct": 8.8
+    },
+    {
+      "categoria": "Veículos",
+      "valor": 227476.0,
+      "pct": 6.5
+    }
+  ],
+  "nota_venda_living_concept": "Ap. Living Concept (Mariana, IRPF R$270k) vendido abr/2026. Líquido R$253.800 reinvestido."
+}

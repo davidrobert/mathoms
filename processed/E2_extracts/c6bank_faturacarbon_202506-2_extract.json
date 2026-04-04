@@ -1,0 +1,326 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "C6 Bank",
+  "cartao": {
+    "nome": "Carbon",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": "2025-06-01",
+    "data_fim": "2025-06-30",
+    "data_vencimento": "2025-07-05"
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 15370.85,
+    "compras_internacionais": 7525.76,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 0.0,
+    "saldo_atual": 23150.98
+  },
+  "transacoes": [
+    {
+      "data": "2026-04-29",
+      "descricao": "PUNTO *PRIME AUTO PO",
+      "valor": 284.01,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-04-29",
+      "descricao": "JS TRAINING",
+      "valor": 59.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-04-30",
+      "descricao": "PELVIE FISIOTERAPIA",
+      "valor": 280.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-04-30",
+      "descricao": "VINDI *ACCOUNTBANKTEC",
+      "valor": 365.35,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-04-30",
+      "descricao": "ESTACIONAMENTO MODELO",
+      "valor": 48.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-01",
+      "descricao": "CARREFOUR SPG",
+      "valor": 48.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-01",
+      "descricao": "RDO CHOCOLATES VILA RO",
+      "valor": 18.67,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-01",
+      "descricao": "CARREFOUR GUATAPARA",
+      "valor": 12.48,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-01",
+      "descricao": "VAI DE PIZZAS",
+      "valor": 129.8,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-02",
+      "descricao": "SAMUELABNERSANTOSMARC",
+      "valor": 90.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-02",
+      "descricao": "VIDESUL COMERCIO DE EM",
+      "valor": 40.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-02",
+      "descricao": "PADARIA DANIELA",
+      "valor": 1.25,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-03",
+      "descricao": "APPLE.COM/BILL",
+      "valor": 4.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-04",
+      "descricao": "DM *SPOTIFY",
+      "valor": 34.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-06",
+      "descricao": "CLUBE LIVELO",
+      "valor": 44.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-08",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 145.49,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-11",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 231.82,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-11",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 253.6,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-11",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 634.14,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-12",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 826.18,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-12",
+      "descricao": "IN *CA TRANSLATION SER MO IOF Transações Exterior",
+      "valor": 14.07,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-12",
+      "descricao": "IN *CA TRANSLATION SER MO USD",
+      "valor": 70.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-12",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 127.28,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-12",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 50.72,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-12",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 91.73,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-12",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 114.6,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-12",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 53.27,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-13",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 63.58,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-13",
+      "descricao": "WELLHUB GYMPASS BR GYM",
+      "valor": 59.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-13",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 352.86,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-14",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 88.52,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-14",
+      "descricao": "AMERICAN AIR*CAPTURERE",
+      "valor": 5110.48,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-15",
+      "descricao": "AMAZONPRIMEBR",
+      "valor": 19.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-17",
+      "descricao": "AIRBNB PAGAM*AIRBNB *",
+      "valor": 5121.14,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-24",
+      "descricao": "PRODUTOS GLOBO",
+      "valor": 22.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-26",
+      "descricao": "MP *MELIMAIS",
+      "valor": 24.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-05",
+      "descricao": "Inclusao de Pagamento",
+      "valor": 46189.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-10",
+      "descricao": "SHELL PO IOF Transações Exterior",
+      "valor": 8.13,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-10",
+      "descricao": "SHELL PO USD",
+      "valor": 40.19,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-18",
+      "descricao": "DOLLAR RAC USD",
+      "valor": 873.68,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-18",
+      "descricao": "DOLLAR RAC IOF Transações Exterior",
+      "valor": 175.05,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-24",
+      "descricao": "Estorno Tarifa - Estorno",
+      "valor": 98.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-05-04",
+      "descricao": "POSTO CARIJO",
+      "valor": 170.92,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

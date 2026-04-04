@@ -1,0 +1,46 @@
+{
+  "tipo": "cdbdetalhes_reconciled",
+  "conta": "santander_cdb",
+  "moeda": "BRL",
+  "data_posicao": "2026-03-29",
+  "arquivos_fonte": [
+    "santander_cdbdetalhesdi1_202603-2_extract.json",
+    "santander_cdbdetalhesdi2_202603-2_extract.json",
+    "santander_cdbdetalhesprog_202603-2_extract.json",
+    "santander_cdbresumo_202603-2_extract.json"
+  ],
+  "dados": {
+    "tipo": "cdbdetalhes",
+    "instituicao": "Santander",
+    "data_posicao": "2026-03-29",
+    "produtos": [
+      {
+        "nome": "CDB DI SANTANDER",
+        "tipo_produto": "CDB",
+        "valor_aplicado": 137409.67,
+        "saldo_atual": 132662.92,
+        "data_aplicacao": null,
+        "vencimento": null,
+        "taxa": null
+      },
+      {
+        "nome": "CDB DI SANTANDER",
+        "tipo_produto": "CDB",
+        "valor_aplicado": 101522.74,
+        "saldo_atual": 98281.27,
+        "data_aplicacao": null,
+        "vencimento": null,
+        "taxa": null
+      },
+      {
+        "nome": "CDB PROG SANTANDER",
+        "tipo_produto": "CDB",
+        "valor_aplicado": 60545.52,
+        "saldo_atual": 58700.06,
+        "data_aplicacao": null,
+        "vencimento": null,
+        "taxa": null
+      }
+    ]
+  }
+}

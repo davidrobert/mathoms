@@ -1,0 +1,278 @@
+{
+  "tipo": "baseline_patrimonial",
+  "data_consolidacao": "2026-04-03",
+  "ano_base_referencia": 2024,
+  "membros": [
+    {
+      "nome": "David Robert Camargo Ferreira Campos",
+      "cpf": "287.766.948-36",
+      "ano_base": 2024,
+      "bens": {
+        "imoveis": [
+          {
+            "descricao": "Apartamento Condomínio Barão de Capanema (Praça Benedito Calixto) — Apto 34",
+            "valor_irpf": 350000.0,
+            "valor_compra_xlsx": 348000.0,
+            "data_compra": "2021-11-16",
+            "fonte": "ambos",
+            "endereco_xlsx": "Praça Benedito Calixto, 186/190, APT 34, Pinheiros, São Paulo",
+            "metragem": 40.76,
+            "situacao_xlsx": "proprio",
+            "situacao_real": "alugado_via_quintoandar_mariana"
+          },
+          {
+            "descricao": "Casa — Rua Tasso da Silveira, 61 — Financiamento quitado Caixa",
+            "valor_irpf": 996821.46,
+            "valor_compra_xlsx": 670000.0,
+            "data_compra": "2022-08-29",
+            "fonte": "ambos",
+            "endereco_xlsx": "R. Tasso da Silveira, 61, Vila Guarani, São Paulo",
+            "metragem": 171.0,
+            "situacao_xlsx": "proprio",
+            "situacao_real": "proprio_residencia"
+          },
+          {
+            "descricao": "Casa — Av. Leonardo da Vinci, 2707",
+            "valor_irpf": 80000.0,
+            "valor_compra_xlsx": 80000.0,
+            "data_compra": "2023-01-13",
+            "fonte": "ambos",
+            "endereco_xlsx": "Av. Leonardo da Vinci, 2707, Vila Guarani, São Paulo",
+            "metragem": 73.0,
+            "situacao_xlsx": "proprio",
+            "situacao_real": "proprio"
+          }
+        ],
+        "veiculos": [
+          {
+            "descricao": "Motocicleta Yamaha NMAX — Preta — Placa DAV0351 — 2018",
+            "valor_irpf": 15093.0,
+            "data_aquisicao": null
+          },
+          {
+            "descricao": "Carro Fiat Toro Ultra — Azul — Placa GDK6A27",
+            "valor_irpf": 191354.0,
+            "data_aquisicao": null
+          },
+          {
+            "descricao": "Motoneta Yamaha NMAX 160 — 2024 — Placa STH2C88",
+            "valor_irpf": 21029.0,
+            "data_aquisicao": null
+          }
+        ],
+        "investimentos": [
+          {
+            "tipo": "renda_fixa_itau",
+            "valor": 151602.49
+          },
+          {
+            "tipo": "renda_fixa_picpay",
+            "valor": 46684.62
+          },
+          {
+            "tipo": "renda_fixa_santander_cdb",
+            "valor": 243285.37
+          },
+          {
+            "tipo": "renda_fixa_c6",
+            "valor": 1765.0
+          },
+          {
+            "tipo": "rdb_nubank",
+            "valor": 189.3
+          },
+          {
+            "tipo": "rico_conta",
+            "valor": 8546.95
+          },
+          {
+            "tipo": "rico_hashdex_crypto",
+            "valor": 3189.68
+          },
+          {
+            "tipo": "rico_dna_energy",
+            "valor": 1416.09
+          },
+          {
+            "tipo": "rico_constellation",
+            "valor": 11409.17
+          },
+          {
+            "tipo": "rico_western_asset_fia_bdr",
+            "valor": 17651.61
+          },
+          {
+            "tipo": "rico_alaska_black_fia_bdr",
+            "valor": 60000.0
+          },
+          {
+            "tipo": "rico_alaska_institucional",
+            "valor": 35000.0
+          },
+          {
+            "tipo": "rico_safari_30",
+            "valor": 25238.59
+          }
+        ],
+        "criptos": 3189.68,
+        "contas_bancarias": 5168.52,
+        "moeda_estrangeira": 34918.47,
+        "outros": 82.15
+      },
+      "total_bens": 2513151.71,
+      "dividas": 234792.61000000002,
+      "patrimonio_liquido": 2278359.1,
+      "renda_anual": {
+        "tributavel": 651374.65,
+        "isenta": 301277.39,
+        "exclusiva": 89363.37,
+        "aluguel_quintoandar_2024": 36335.43,
+        "total_estimada": 1042015.41
+      },
+      "imposto": {
+        "devido": 163779.6,
+        "pago": 154768.78,
+        "saldo": 9010.82,
+        "aliquota_efetiva_pct": 25.14,
+        "recibo_status": "aceita"
+      },
+      "divergencias": [
+        {
+          "descricao": "XLSX mostra Rua Major Freire como 'proprio' mas não está nos imóveis de David no IRPF. Imóvel pode estar na declaração da Mariana.",
+          "tipo": "imovel_xlsx_vs_irpf",
+          "detalhes": "Major Freire (XLSX R$400k) não aparece explicitamente no IRPF David — verificar IRPF Mariana"
+        },
+        {
+          "descricao": "Apartamento Barão Capanema: valor IRPF (R$350k) vs XLSX (R$348k) — diferença de R$2k",
+          "tipo": "valor_discrepante",
+          "detalhes": "Diferença provavelmente por custos de escritura/ITBI incluídos no IRPF"
+        },
+        {
+          "descricao": "Casa Tasso Silveira: valor IRPF (R$996.821) vs XLSX (R$670k) — diferença de R$326.821",
+          "tipo": "valor_discrepante",
+          "detalhes": "IRPF inclui custos totais (financiamento + juros + escritura), XLSX tem apenas valor de compra"
+        }
+      ]
+    },
+    {
+      "nome": "Mariana Teixeira Ferreira Campos",
+      "cpf": "085.052.396-60",
+      "ano_base": 2024,
+      "bens": {
+        "imoveis": [
+          {
+            "descricao": "Apartamento Cond. Living Concept — Comprado na planta Cyrela",
+            "valor_irpf": 270000.0,
+            "fonte": "irpf",
+            "situacao_real": "alugado_via_quintoandar"
+          },
+          {
+            "descricao": "Apartamento Cond. Living Wish — Comprado na planta Cyrela",
+            "valor_irpf": 530000.0,
+            "fonte": "irpf",
+            "situacao_real": "alugado_via_quintoandar"
+          }
+        ],
+        "veiculos": [],
+        "investimentos": [
+          {
+            "tipo": "btg_cdb_b2353",
+            "valor": 22000.0
+          },
+          {
+            "tipo": "btg_cdb_sr",
+            "valor": 3429.16
+          },
+          {
+            "tipo": "btg_cdb_524bfk2f",
+            "valor": 10000.0
+          },
+          {
+            "tipo": "btg_22j1410500",
+            "valor": 9349.69
+          },
+          {
+            "tipo": "btg_22k1692411",
+            "valor": 10324.25
+          },
+          {
+            "tipo": "btg_cra02300mzu",
+            "valor": 9115.01
+          },
+          {
+            "tipo": "btg_cra02300spd",
+            "valor": 9109.54
+          },
+          {
+            "tipo": "btg_cra024001q9",
+            "valor": 9248.83
+          },
+          {
+            "tipo": "btg_23j0138431",
+            "valor": 9164.03
+          },
+          {
+            "tipo": "btg_explorer_rf",
+            "valor": 41408.87
+          },
+          {
+            "tipo": "btg_hedge_rf",
+            "valor": 4494.93
+          },
+          {
+            "tipo": "btg_m8_capital",
+            "valor": 25479.42
+          },
+          {
+            "tipo": "btg_hedge_infra",
+            "valor": 25000.0
+          }
+        ],
+        "criptos": 0,
+        "contas_bancarias": 0,
+        "outros": 0
+      },
+      "total_bens": 988123.73,
+      "dividas": 0,
+      "patrimonio_liquido": 988123.73,
+      "renda_anual": {
+        "tributavel": 203982.98,
+        "isenta": 1336.61,
+        "clt_bruta_anual_estimada": 141693.63,
+        "aluguel_quintoandar_2024": 74179.77,
+        "total_estimada": 205319.59
+      },
+      "imposto": {
+        "devido": 40746.89,
+        "pago": 22575.99,
+        "saldo": 18170.9,
+        "aliquota_efetiva_pct": 19.97,
+        "recibo_status": "aceita"
+      },
+      "divergencias": [
+        {
+          "descricao": "Imóveis Mariana (Living Concept e Living Wish) não constam no XLSX de imóveis",
+          "tipo": "imovel_irpf_sem_xlsx",
+          "detalhes": "XLSX tem apenas 4 imóveis de David. Os 2 imóveis de Mariana (total R$800k no IRPF) não estão no XLSX."
+        },
+        {
+          "descricao": "XLSX mostra Rua Major Freire como imóvel da família mas IRPF David não o declara separadamente",
+          "tipo": "imovel_xlsx_sem_irpf_claro",
+          "detalhes": "Pode ser declarado como parte do financiamento Itaú no IRPF David ou estar na IRPF Mariana"
+        }
+      ]
+    }
+  ],
+  "resumo_familiar": {
+    "patrimonio_bruto_total": 3501275.44,
+    "dividas_total": 234792.61,
+    "patrimonio_liquido_total": 3266482.83,
+    "renda_anual_total_estimada": 1247335.0,
+    "imposto_total_anual": 204526.49,
+    "imoveis_total": 6,
+    "imoveis_valor_irpf_total": 2226821.46,
+    "aluguel_anual_quintoandar": 110515.2,
+    "veiculos_total": 3,
+    "veiculos_valor_total": 227476
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "tipo": "cdbdetalhes",
+  "instituicao": "Santander",
+  "data_posicao": "2024-06-26",
+  "produtos": [
+    {
+      "nome": "CDB DI SANTANDER - 00331652260006380267",
+      "tipo_produto": "CDB",
+      "data_aplicacao": "2024-06-26",
+      "vencimento": "2028-06-05",
+      "taxa": "100,00% do CDI",
+      "valor_aplicado": null,
+      "saldo_atual": null
+    }
+  ]
+}

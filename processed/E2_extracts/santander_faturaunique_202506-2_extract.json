@@ -1,0 +1,46 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "Santander",
+  "cartao": {
+    "nome": "Unique",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": null,
+    "data_fim": null,
+    "data_vencimento": null
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 496.05,
+    "compras_internacionais": 936.6,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 252.13,
+    "saldo_atual": 1375.81
+  },
+  "transacoes": [
+    {
+      "data": "2025-06-09",
+      "descricao": "ANUIDADE DIFERENCIADA",
+      "valor": 10.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-06-01",
+      "descricao": "GOOGLE *GOOGLE ONE",
+      "valor": 119.84,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-06-05",
+      "descricao": "SMILES CLUB SMILES",
+      "valor": 428.4,
+      "categoria": "",
+      "parcelas": "06/06"
+    }
+  ]
+}

@@ -1,0 +1,795 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "C6 Bank",
+  "cartao": {
+    "nome": "Carbon",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": "2025-11-01",
+    "data_fim": "2025-11-30",
+    "data_vencimento": "2025-12-05"
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 16756.75,
+    "compras_internacionais": 2439.67,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 0.0,
+    "saldo_atual": 16905.45
+  },
+  "transacoes": [
+    {
+      "data": "2026-09-20",
+      "descricao": "EBN *AMAZON RETAIL - Estorno",
+      "valor": 64.09,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-30",
+      "descricao": "VINDI *ACCOUNTBANKTEC",
+      "valor": 390.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-30",
+      "descricao": "MERCADOLIVRE*LUARTEBAB",
+      "valor": 78.1,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-30",
+      "descricao": "MERCADOLIVRE*MERCADOL",
+      "valor": 71.01,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-02",
+      "descricao": "APPLE.COM/BILL",
+      "valor": 5.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-04",
+      "descricao": "LEROY MERLIN",
+      "valor": 377.19,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-04",
+      "descricao": "DEPOSITO GUARANI",
+      "valor": 102.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-04",
+      "descricao": "DM *SPOTIFY",
+      "valor": 40.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-04",
+      "descricao": "DEPOSITO GUARANI",
+      "valor": 8.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-04",
+      "descricao": "VIDESUL",
+      "valor": 88.95,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-05",
+      "descricao": "REDE CAMPEAO",
+      "valor": 288.13,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-05",
+      "descricao": "R TRES",
+      "valor": 49.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-05",
+      "descricao": "R TRES",
+      "valor": 6.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-06",
+      "descricao": "JDM COMERCIO DE ALIM",
+      "valor": 47.25,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-06",
+      "descricao": "APE SMART STUDIO",
+      "valor": 15.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-06",
+      "descricao": "COPICOPIAS COPIADORA",
+      "valor": 4.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-06",
+      "descricao": "CLUBE LIVELO*CLUBE LIV",
+      "valor": 44.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-07",
+      "descricao": "MERCADOLIVRE*ROCKETKID",
+      "valor": 37.99,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-07",
+      "descricao": "OFNER PINHEIROS",
+      "valor": 40.8,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-07",
+      "descricao": "ITAIM PARK ESTACIONAM",
+      "valor": 50.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-08",
+      "descricao": "PADARIA DANIELA",
+      "valor": 59.45,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-08",
+      "descricao": "BRENTESINSTITUTO",
+      "valor": 4099.68,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-08",
+      "descricao": "SID PARK ESTACIONAMENT",
+      "valor": 30.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-10",
+      "descricao": "BONANZA",
+      "valor": 1.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-10",
+      "descricao": "MOMA MADALENA",
+      "valor": 372.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-10",
+      "descricao": "ELAINE APARECIDA BUZZ",
+      "valor": 119.69,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-10",
+      "descricao": "SAMS CLUB JABAQUARA",
+      "valor": 1178.61,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-10",
+      "descricao": "DROGARIA CARREFOUR DJA",
+      "valor": 57.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-11",
+      "descricao": "DISTRIBUIDORA MENEZES",
+      "valor": 104.94,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-12",
+      "descricao": "PADARIA DANIELA",
+      "valor": 59.62,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-12",
+      "descricao": "SUPERMERCADO DANCAR",
+      "valor": 63.74,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-13",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 53.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-13",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 245.08,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-13",
+      "descricao": "WELLHUB GYMPASS BR GYM",
+      "valor": 79.89,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-13",
+      "descricao": "A CASA DE ANTONIA",
+      "valor": 62.15,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-13",
+      "descricao": "FAST PARK",
+      "valor": 35.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-14",
+      "descricao": "LEROY MERLIN",
+      "valor": 1097.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-15",
+      "descricao": "AMAZONPRIMEBR",
+      "valor": 19.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-16",
+      "descricao": "HOSPITAL ALBERT EINSTE",
+      "valor": 70.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-16",
+      "descricao": "ELAINE APARECIDA BUZZ",
+      "valor": 187.32,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-16",
+      "descricao": "BONANZA",
+      "valor": 1.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-17",
+      "descricao": "HN HUDSON GUARULHOS",
+      "valor": 40.88,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-18",
+      "descricao": "ICA*ICASEI PRESENTES",
+      "valor": 416.57,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-18",
+      "descricao": "UBER *TRIP SA IOF Transações Exterior",
+      "valor": 4.8,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-18",
+      "descricao": "UBER *TRIP SA USD",
+      "valor": 23.96,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-19",
+      "descricao": "UBER *TRIP SA USD",
+      "valor": 19.81,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-19",
+      "descricao": "UBER *TRIP SA IOF Transações Exterior",
+      "valor": 3.97,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-19",
+      "descricao": "MERCADOLIVRE*PLANETAI",
+      "valor": 299.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-21",
+      "descricao": "VENETIAN STARBUCKS I LA USD",
+      "valor": 11.41,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-21",
+      "descricao": "VENETIAN STARBUCKS I LA IOF Transações Exterior",
+      "valor": 2.26,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-22",
+      "descricao": "THE PLATINUM HOTEL & S LA<style isBold='true'></style> USD",
+      "valor": 20.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-22",
+      "descricao": "THE PLATINUM HOTEL & S LA<style isBold='true'></style> IOF Transações Exterior",
+      "valor": 3.97,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-23",
+      "descricao": "HUDSON NEWS ST",
+      "valor": 1953.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-23",
+      "descricao": "METRO PIZZA D-SW LAS LA IOF Transações Exterior",
+      "valor": 2.04,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-23",
+      "descricao": "METRO PIZZA D-SW LAS LA USD",
+      "valor": 10.28,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-23",
+      "descricao": "ATL PANDA EXPRESS AT IOF Transações Exterior",
+      "valor": 2.49,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-23",
+      "descricao": "ATL PANDA EXPRESS AT USD",
+      "valor": 12.56,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-23",
+      "descricao": "MINUTE SUITES - ATL E LA IOF Transações Exterior",
+      "valor": 0.64,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-23",
+      "descricao": "MINUTE SUITES - ATL E LA USD",
+      "valor": 3.23,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-23",
+      "descricao": "EC *MELIMAIS",
+      "valor": 24.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-23",
+      "descricao": "MERCADOLIVRE*EBAZARCO",
+      "valor": 19.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-24",
+      "descricao": "GLOBO*GLOBOPLAY",
+      "valor": 22.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-24",
+      "descricao": "FISIOTERAPIA BEBE EIRE",
+      "valor": 510.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-24",
+      "descricao": "MARANATA SERVICOS DE G",
+      "valor": 35.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-24",
+      "descricao": "EINSTEIN MORUMBI",
+      "valor": 911.2,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-25",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 14.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-25",
+      "descricao": "EJM RESTAURANTE JAPONE",
+      "valor": 428.34,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-25",
+      "descricao": "MORUMBI TERREO",
+      "valor": 29.7,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-25",
+      "descricao": "MORUMBI TERREO",
+      "valor": 11.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-25",
+      "descricao": "HNA*OBOTICARIO",
+      "valor": 49.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-26",
+      "descricao": "PETZ BANDEIRANTES",
+      "valor": 91.59,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-28",
+      "descricao": "LANCHONETE REAL DA VI",
+      "valor": 16.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-28",
+      "descricao": "RAPPI*RAPPI BRASIL INT",
+      "valor": 34.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-28",
+      "descricao": "DL *DLRAPPI BR",
+      "valor": 84.23,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-26",
+      "descricao": "ELAINE APARECIDA BUZZ",
+      "valor": 230.66,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-27",
+      "descricao": "GRAAL MARKET",
+      "valor": 18.8,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-27",
+      "descricao": "LOJA OFICIAL",
+      "valor": 2.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-27",
+      "descricao": "TEMPERODAFE",
+      "valor": 99.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-27",
+      "descricao": "OLA CACAPAVA",
+      "valor": 225.52,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-27",
+      "descricao": "BG NORTE",
+      "valor": 31.7,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-28",
+      "descricao": "CARREFOUR SPS",
+      "valor": 20.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-28",
+      "descricao": "EMPORIO PAES",
+      "valor": 64.8,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-28",
+      "descricao": "MINUTO PA",
+      "valor": 6199.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-29",
+      "descricao": "ARKOS RESTAURANTE",
+      "valor": 52.97,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-29",
+      "descricao": "ALLPARK EMPREENDIMENTO",
+      "valor": 46.75,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-29",
+      "descricao": "BCA PARK ESTACIONAMENT",
+      "valor": 50.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-30",
+      "descricao": "PORTO CAIRES",
+      "valor": 37.8,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-30",
+      "descricao": "PORTO CAIRES",
+      "valor": 18.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-30",
+      "descricao": "AN ESTACIONAMENTO EIRE",
+      "valor": 39.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-01",
+      "descricao": "OXXO VILA GUARANI",
+      "valor": 44.95,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-01",
+      "descricao": "CUBO BAR E RESTAURANTE",
+      "valor": 51.71,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-02",
+      "descricao": "JF PARK",
+      "valor": 23.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-03",
+      "descricao": "PAES E DOCES SONHO DE",
+      "valor": 9.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-06",
+      "descricao": "Inclusao de Pagamento",
+      "valor": 22298.73,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-18",
+      "descricao": "THE PLATINUM HOTEL & S LA<style isBold='true'></style> USD",
+      "valor": 250.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-18",
+      "descricao": "THE PLATINUM HOTEL & S LA<style isBold='true'></style> IOF Transações Exterior",
+      "valor": 50.05,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-19",
+      "descricao": "BOBBY'S BURGERS LA IOF Transações Exterior",
+      "valor": 3.67,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-19",
+      "descricao": "BOBBY'S BURGERS LA USD",
+      "valor": 18.31,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-22",
+      "descricao": "Estorno Tarifa - Estorno",
+      "valor": 98.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-23",
+      "descricao": "THE PLATINUM HOTEL & S<style isBold='true'></style>",
+      "valor": 1418.03,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-24",
+      "descricao": "AUTOPOSTOKANTAN",
+      "valor": 150.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-03",
+      "descricao": "GUIMARAES ALIMENTOS",
+      "valor": 289.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-04",
+      "descricao": "POINTJABAQUARA",
+      "valor": 324.6,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-05",
+      "descricao": "HENRIQUEDEJESUSSI",
+      "valor": 13.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-05",
+      "descricao": "LOJAS MEL CONCEICAO II",
+      "valor": 56.97,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-05",
+      "descricao": "OXXO VILA GUARANI",
+      "valor": 24.98,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-18",
+      "descricao": "PRIME AUTO POSTO LTDA",
+      "valor": 188.79,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-18",
+      "descricao": "CORREA CONVENIENCIA LT",
+      "valor": 16.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-23",
+      "descricao": "AUTOPOSTOSPMGLTDA",
+      "valor": 160.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-10-24",
+      "descricao": "TERMINAL III DESEMBARQ",
+      "valor": 22.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

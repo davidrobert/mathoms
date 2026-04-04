@@ -1,0 +1,30 @@
+{
+  "tipo": "extratoconta",
+  "instituicao": "Bank of America",
+  "conta": {
+    "numero": "898164032498",
+    "tipo": "corrente",
+    "moeda": "USD",
+    "agencia": ""
+  },
+  "periodo": {
+    "data_inicio": "2026-02-25",
+    "data_fim": "2026-03-26"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": 2.605,
+      "data": "2026-02-25"
+    },
+    "saldo_final": {
+      "valor": 2.605,
+      "data": "2026-03-26"
+    }
+  },
+  "transacoes": [],
+  "total_periodo": {
+    "total_debitos": 0.0,
+    "total_creditos": 0.0,
+    "saldo_liquido": 0.0
+  }
+}

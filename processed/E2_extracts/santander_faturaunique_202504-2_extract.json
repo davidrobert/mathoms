@@ -1,0 +1,46 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "Santander",
+  "cartao": {
+    "nome": "Unique",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": null,
+    "data_fim": null,
+    "data_vencimento": null
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 534.87,
+    "compras_internacionais": 645.15,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 7.3,
+    "saldo_atual": 1180.02
+  },
+  "transacoes": [
+    {
+      "data": "2025-04-08",
+      "descricao": "ANUIDADE DIFERENCIADA",
+      "valor": 8.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-03-21",
+      "descricao": "PAYPAL *RESCUETIME",
+      "valor": 432.16,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-03-31",
+      "descricao": "EBN *SONYPLAYSTATN",
+      "valor": 477.71,
+      "categoria": "",
+      "parcelas": "01/04"
+    }
+  ]
+}

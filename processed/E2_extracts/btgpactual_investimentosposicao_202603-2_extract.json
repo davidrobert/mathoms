@@ -1,0 +1,13 @@
+{
+  "tipo": "investimentosposicao",
+  "instituicao": "BTG Pactual",
+  "data_posicao": null,
+  "moeda": "BRL",
+  "total_aplicado": null,
+  "saldo_atual": null,
+  "rentabilidade": {
+    "valor": null,
+    "percentual": null
+  },
+  "composicao": []
+}

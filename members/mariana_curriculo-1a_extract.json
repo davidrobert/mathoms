@@ -1,0 +1,104 @@
+{
+  "tipo": "curriculo",
+  "membro": "Mariana Teixeira Ferreira Campos",
+  "contato": {
+    "telefone": "+55 11 96073-3929",
+    "email": "mtf3008@gmail.com",
+    "linkedin": "https://www.linkedin.com/in/mariana-ferreira-campos"
+  },
+  "formacao": [
+    {
+      "grau": "Mestrado",
+      "area": "Enfermagem em Saúde do Adulto",
+      "instituicao": "Universidade de São Paulo (USP)",
+      "periodo": "2019–2021"
+    },
+    {
+      "grau": "Especialização",
+      "area": "Enfermagem em Cardiologia e Hemodinâmica",
+      "instituicao": "UNIFESP — Universidade Federal de São Paulo",
+      "periodo": "2011–2012"
+    },
+    {
+      "grau": "Especialização",
+      "area": "Formação Docente em Educação Profissional",
+      "instituicao": "FIOCRUZ — Fundação Oswaldo Cruz",
+      "periodo": null
+    },
+    {
+      "grau": "Bacharelado",
+      "area": "Enfermagem",
+      "instituicao": "PUC Minas",
+      "periodo": "2007–2010"
+    }
+  ],
+  "certificacoes": [
+    "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
+    "Classificação de Risco (Protocolo de Manchester)",
+    "Advanced Trauma Care for Nurses (ATCN)",
+    "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP) e Curso de Osteoporose"
+  ],
+  "idiomas": ["Português (nativo)"],
+  "habilidades": [
+    "Processo de enfermagem",
+    "Cuidados de qualidade ao paciente",
+    "Gestão de equipes",
+    "Auditoria clínica",
+    "Segurança do paciente",
+    "PDCA",
+    "Educação em saúde",
+    "Pesquisa clínica"
+  ],
+  "experiencias": [
+    {
+      "empresa": "Hospital Israelita Albert Einstein",
+      "cargo": "Enfermeiro",
+      "data_inicio": "2018-01",
+      "data_fim": null,
+      "descricao": "Unidade de alta complexidade — Cardiologia, Clínica Médica e Cirúrgica. Auditoria de prontuários, projetos PDCA, preceptoria.",
+      "tempo": "8 anos 3 meses"
+    },
+    {
+      "empresa": "Hospital Israelita Albert Einstein",
+      "cargo": "Enfermeiro",
+      "data_inicio": "2014-08",
+      "data_fim": "2018-06",
+      "descricao": "UPA Campo Limpo.",
+      "tempo": "3 anos 11 meses"
+    },
+    {
+      "empresa": "Faculdade Israelita Albert Einstein",
+      "cargo": "Docente universitário",
+      "data_inicio": "2021-01",
+      "data_fim": "2024-12",
+      "descricao": "Semiologia e Semiotécnica. Metodologias ativas de ensino.",
+      "tempo": "4 anos"
+    },
+    {
+      "empresa": "Senac São Paulo",
+      "cargo": "Docente universitário",
+      "data_inicio": "2012-01",
+      "data_fim": "2016-01",
+      "descricao": "Docência em enfermagem.",
+      "tempo": "4 anos 1 mês"
+    },
+    {
+      "empresa": "Faculdade Sequencial",
+      "cargo": "Docente universitário",
+      "data_inicio": "2013-01",
+      "data_fim": "2015-08",
+      "descricao": "Docência em enfermagem.",
+      "tempo": "2 anos 8 meses"
+    },
+    {
+      "empresa": "Hospital Municipal Dr. Moysés Deutsch (Parceria Einstein)",
+      "cargo": "Enfermeira",
+      "data_inicio": "2011",
+      "data_fim": "2014",
+      "descricao": "UTI Adulto e Pediátrica, Clínica Médica e Cirúrgica.",
+      "tempo": "3 anos"
+    }
+  ],
+  "anos_experiencia": 15,
+  "perfil_resumido": "Enfermeira Mestre (USP) com 15+ anos de experiência em instituições de alta complexidade. Especialista em Cardiologia e Hemodinâmica (UNIFESP). Atua no Hospital Israelita Albert Einstein desde 2014, com foco em auditoria clínica, segurança do paciente e educação em saúde. Docente universitária."
+}

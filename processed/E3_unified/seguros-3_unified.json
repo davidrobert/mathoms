@@ -1,0 +1,37 @@
+{
+  "tipo": "seguros_unified",
+  "data_consolidacao": "2026-04-04",
+  "seguros": [
+    {
+      "tipo": "seguro_vida",
+      "membro": "Mariana",
+      "fonte": "holerite_einstein",
+      "premio_mensal": 27.41,
+      "premio_anual": 328.92,
+      "status": "ativo"
+    },
+    {
+      "tipo": "seguro_conta_c6",
+      "membro": "David",
+      "fonte": "fatura_c6_carbon",
+      "premio_mensal": 20.0,
+      "premio_anual": 240.0,
+      "status": "ativo"
+    }
+  ],
+  "transacoes_seguros": [
+    {
+      "data": "2026-04-09",
+      "descricao": "PORTO SEGURO SEGUROS",
+      "valor": 5337.9,
+      "moeda": "BRL",
+      "conta_origem": "c6_bank_carbon_credit",
+      "tipo_transacao": "",
+      "parcelas": "1/1",
+      "categoria": "seguros",
+      "subcategoria": "seguros",
+      "membro": "David"
+    }
+  ],
+  "nota": "Seguros de vida e invalidez para David INEXISTENTES — ação urgente."
+}

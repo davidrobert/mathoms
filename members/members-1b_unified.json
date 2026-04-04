@@ -1,0 +1,103 @@
+{
+  "tipo": "members_unified",
+  "data_consolidacao": "2026-04-03",
+  "membros": [
+    {
+      "nome_completo": "David Robert Camargo Ferreira Campos",
+      "nome_curto": "David",
+      "contato": {
+        "telefone": "+55 (11) 99681-9851",
+        "email_pessoal": "davidrobert@gmail.com",
+        "email_profissional": "david@arvo.com.br",
+        "linkedin": "https://www.linkedin.com/in/davidrobert/"
+      },
+      "formacao": {
+        "grau_maximo": "Mestrado",
+        "area": "Ciência da Computação — Inteligência Artificial",
+        "instituicao": "USP (IME)",
+        "ano_conclusao": 2008,
+        "graduacao": "Ciência da Computação — PUC/SP — 2004"
+      },
+      "profissao_atual": {
+        "cargo": "Chief Technology Officer (CTO)",
+        "empresa": "Arvo",
+        "setor": "Healthtech (IA/ML para auditoria de claims médicos)",
+        "data_inicio": "2025-09-08",
+        "tipo_contrato": "PJ (inferido)"
+      },
+      "renda": {
+        "fonte": "curriculo",
+        "tipo": "PJ",
+        "salario_mensal": null,
+        "observacao": "Não há holerite disponível. Renda PJ a ser determinada via IRPF ou extratos."
+      },
+      "idiomas": ["Português (nativo)", "Inglês (fluente)"],
+      "anos_experiencia": 20,
+      "historico_resumido": "CTO Arvo (2025-atual) → CTO Kiwify (2024-2025) → Consultant/Dir/EM Loft (2019-2024) → CTO Elo7 (2013-2020) → Architect Abril (2012-2013) → R&D TOTVS (2011-2012) → Engineer NIC.br (2006-2011)",
+      "documentacao_disponivel": {
+        "curriculo": true,
+        "holerite": false,
+        "rg": false,
+        "cpf": false,
+        "passaporte": false,
+        "documentos_us": false
+      },
+      "status_fiscal": "BR (possível US — verificar com IRPF)",
+      "fontes": ["david_curriculo-1a_extract.json"]
+    },
+    {
+      "nome_completo": "Mariana Teixeira Ferreira Campos",
+      "nome_curto": "Mariana",
+      "contato": {
+        "telefone": "+55 11 96073-3929",
+        "email_pessoal": "mtf3008@gmail.com",
+        "linkedin": "https://www.linkedin.com/in/mariana-ferreira-campos"
+      },
+      "formacao": {
+        "grau_maximo": "Mestrado",
+        "area": "Enfermagem em Saúde do Adulto",
+        "instituicao": "USP",
+        "periodo": "2019–2021",
+        "graduacao": "Enfermagem — PUC Minas — 2007–2010",
+        "especializacoes": [
+          "Cardiologia e Hemodinâmica — UNIFESP (2011–2012)",
+          "Formação Docente — FIOCRUZ"
+        ]
+      },
+      "profissao_atual": {
+        "cargo": "Enfermeiro Pl (Grade P4)",
+        "empresa": "Hospital Israelita Albert Einstein",
+        "estabelecimento": "Unidade Morumbi",
+        "setor": "Enfermagem Consultórios (CHCO)",
+        "data_admissao": "2014-07-21",
+        "tipo_contrato": "CLT"
+      },
+      "renda": {
+        "fonte": "holerite",
+        "tipo": "CLT",
+        "salario_mensal_bruto": 10899.51,
+        "salario_base_25dias": 9082.92,
+        "adicional_insalubridade": 270.17,
+        "valor_liquido_fev2026": 3425.41,
+        "observacao": "Valor líquido fev/2026 atípico por férias parciais (5 dias) e adiantamento (R$3.633,17). Salário mensal normal (bruto) é R$10.899,51.",
+        "base_inss": 11882.72,
+        "base_fgts": 11882.72,
+        "fgts_depositado": 950.62,
+        "seguro_vida": 27.41
+      },
+      "idiomas": ["Português (nativo)"],
+      "anos_experiencia": 15,
+      "historico_resumido": "Einstein Enf. (2018-atual) + Docente Fac. Einstein (2021-2024) → Einstein UPA (2014-2018) → Docente Senac/Sequencial (2012-2016) → Hosp. Mun. Moysés Deutsch (2011-2014)",
+      "documentacao_disponivel": {
+        "curriculo": true,
+        "holerite": true,
+        "rg": false,
+        "cpf": false,
+        "passaporte": false,
+        "documentos_us": false
+      },
+      "status_fiscal": "BR",
+      "fontes": ["mariana_curriculo-1a_extract.json", "mariana_holerite-1a_extract.json"]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+# QA Log — E3 Processing — 2026-04-04
+
+## Corrupted Values (43)
+
+- LUSH -: R$73,000,146.00 → R$73.0 (c6_bank_carbon_credit_202505_202605-2_reconciled.json)
+- WIX.COM: R$1,221,037,929.00 → R$12.21 (c6_bank_carbon_credit_202505_202605-2_reconciled.json)
+- REGISTROBR: R$45,987,265.00 → R$45.99 (c6_bank_carbon_credit_202505_202605-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_conta_BRL_202507_202606-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- SABESP: R$3,334,280,219.00 → R$333.43 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+- DA ELETROPAULO: R$31,237,205.00 → R$312.37 (itau_personnalite_BRL_202501_202603-2_reconciled.json)
+
+## Uncategorized Transactions (544)
+
+- UNCAT: ASAAS *FOTOP R$47.70 in c6_bank_carbon_credit
+- UNCAT: VENDIFY R$13.99 in c6_bank_carbon_credit
+- UNCAT: CLUBE LIVELO*CLUBE LIV R$44.90 in c6_bank_carbon_credit
+- UNCAT: OXXO VILA GUARANI R$11.49 in c6_bank_carbon_credit
+- UNCAT: JF PARK R$23.00 in c6_bank_carbon_credit
+- UNCAT: BANDEIRA PAULISTA PAR- R$301.44 in c6_bank_carbon_credit
+- UNCAT: CIDAIBIRA R$36.00 in c6_bank_carbon_credit
+- UNCAT: SACOLAO VILA GUARANI R$82.43 in c6_bank_carbon_credit
+- UNCAT: ESPACO GIRAS*ESP GIRAS R$687.30 in c6_bank_carbon_credit
+- UNCAT: TATUAPE GARDEM R$2.00 in c6_bank_carbon_credit
+- UNCAT: SAKURAPAESEDOCES R$11.50 in c6_bank_carbon_credit
+- UNCAT: TOSTADO CAFE R$18.00 in c6_bank_carbon_credit
+- UNCAT: WELLHUB GYMPASS BR WEL R$79.89 in c6_bank_carbon_credit
+- UNCAT: MINIMART SILVA BRAZ R$13.99 in c6_bank_carbon_credit
+- UNCAT: QUEBEC BAR E RESTAUR R$78.32 in c6_bank_carbon_credit
+- UNCAT: NATHALIACASADE R$255.04 in c6_bank_carbon_credit
+- UNCAT: AMAZONPRIMEBR R$19.90 in c6_bank_carbon_credit
+- UNCAT: MERCADO*PABRUNELLI R$260.10 in c6_bank_carbon_credit
+- UNCAT: OXXO VILA GUARANI R$11.49 in c6_bank_carbon_credit
+- UNCAT: AMAZON BR R$229.56 in c6_bank_carbon_credit
+- UNCAT: RAMEN K ALIMENTOS LTDA R$173.80 in c6_bank_carbon_credit
+- UNCAT: THE VIEW BAR RESTAURAN R$495.50 in c6_bank_carbon_credit
+- UNCAT: AUTOVAGAS-GARAGEM R$37.00 in c6_bank_carbon_credit
+- UNCAT: ITRCCABELEIREIROS R$735.50 in c6_bank_carbon_credit
+- UNCAT: MP *HIDEOMINETA R$18.50 in c6_bank_carbon_credit
+- UNCAT: JOSE ROBERTO RICCIME R$50.00 in c6_bank_carbon_credit
+- UNCAT: ADLERLUCENADASILV R$13.00 in c6_bank_carbon_credit
+- UNCAT: VERDURAS E LEGUMES SEL R$16.00 in c6_bank_carbon_credit
+- UNCAT: ANDERSONYONEMURA R$13.00 in c6_bank_carbon_credit
+- UNCAT: EDSONSHOITINAKATA R$29.00 in c6_bank_carbon_credit
+- UNCAT: JIM.COM* UMETSU COMER R$3.00 in c6_bank_carbon_credit
+- UNCAT: NATHALIACASADE R$129.07 in c6_bank_carbon_credit
+- UNCAT: NATHALIACASADE R$131.48 in c6_bank_carbon_credit
+- UNCAT: MP *MELIMAIS R$19.90 in c6_bank_carbon_credit
+- UNCAT: OXXO VILA GUARANI R$24.99 in c6_bank_carbon_credit
+- UNCAT: GLOBO*GLOBOPLAY R$22.90 in c6_bank_carbon_credit
+- UNCAT: CHAPEU DE SOL R$525.00 in c6_bank_carbon_credit
+- UNCAT: ALE PARK R$78.00 in c6_bank_carbon_credit
+- UNCAT: LUIS GUSTAVO TURINI R$10.00 in c6_bank_carbon_credit
+- UNCAT: LUIS GUSTAVO TURINI R$18.00 in c6_bank_carbon_credit
+- UNCAT: GALPAO DA COSTELA R$78.50 in c6_bank_carbon_credit
+- UNCAT: PIZZA HUT AEROPORTO GU R$45.09 in c6_bank_carbon_credit
+- UNCAT: EL PELEGRINO R$100.68 in c6_bank_carbon_credit
+- UNCAT: AMAZON BR R$199.90 in c6_bank_carbon_credit
+- UNCAT: AMAZON BR - Estorno R$199.90 in c6_bank_carbon_credit
+- UNCAT: LEITURA R$59.90 in c6_bank_carbon_credit
+- UNCAT: CORPO E VIDA R$27.90 in c6_bank_carbon_credit
+- UNCAT: OXXO VILA GUARANI R$4.99 in c6_bank_carbon_credit
+- UNCAT: MARIOLORIOMEDRANO R$15.00 in c6_bank_carbon_credit
+- UNCAT: SAKURAPAESEDOCES R$23.00 in c6_bank_carbon_credit
+- ... and 494 more

@@ -1,0 +1,60 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "Santander",
+  "cartao": {
+    "nome": "Unique",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": null,
+    "data_fim": null,
+    "data_vencimento": null
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 3438.5,
+    "compras_internacionais": 1880.51,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 1375.81,
+    "saldo_atual": 5319.01
+  },
+  "transacoes": [
+    {
+      "data": "2025-07-08",
+      "descricao": "ANUIDADE DIFERENCIADA",
+      "valor": 11.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-06-14",
+      "descricao": "PAYPAL *CLEVERBRIDG",
+      "valor": 615.03,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-07-01",
+      "descricao": "GOOGLE *GOOGLE ONE",
+      "valor": 115.63,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "PAYPAL *CLEVERBRIDG",
+      "valor": 200.37,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-07-06",
+      "descricao": "GOOGLE *GOOGLE NEST",
+      "valor": 861.86,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

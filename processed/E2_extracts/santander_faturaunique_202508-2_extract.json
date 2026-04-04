@@ -1,0 +1,74 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "Santander",
+  "cartao": {
+    "nome": "Unique",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": null,
+    "data_fim": null,
+    "data_vencimento": null
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 737.62,
+    "compras_internacionais": 3805.36,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 5319.01,
+    "saldo_atual": 4542.98
+  },
+  "transacoes": [
+    {
+      "data": "2025-08-01",
+      "descricao": "GOOGLE *GOOGLE ONE",
+      "valor": 118.7,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "ANUIDADE DIFERENCIADA",
+      "valor": 12.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "UNIVERSAL ORLANDO WEBS",
+      "valor": 1063.06,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "SEAWORLD/BUSCH GARDENS",
+      "valor": 691.79,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "SUL AMERICA SEG VIDA",
+      "valor": 567.71,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "WDW TICKETS",
+      "valor": 874.35,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "WDW TICKETS",
+      "valor": 968.68,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

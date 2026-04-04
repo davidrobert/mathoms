@@ -1,0 +1,16 @@
+{
+  "tipo": "carteirarendafixa",
+  "instituicao": "C6 Bank",
+  "data_posicao": null,
+  "produtos": [
+    {
+      "nome": "CDB C6",
+      "tipo_produto": "CDB",
+      "taxa": "103%",
+      "valor_aplicado": null,
+      "saldo_atual": null,
+      "vencimento": null
+    }
+  ],
+  "total_carteira": 6930.11
+}

@@ -1,0 +1,366 @@
+{
+  "tipo": "irpfdeclaracao",
+  "ano_base": 2024,
+  "declarante": {
+    "nome": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+    "cpf": "287.766.948-36"
+  },
+  "data_declaracao": "2025-05-28",
+  "bens_direitos": [
+    {
+      "codigo_grupo": "01",
+      "codigo_item": "11",
+      "tipo": "imovel",
+      "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
+      "valor_31_12_ano_anterior": 350000.0,
+      "valor_31_12_ano_base": 350000.0,
+      "localidade": "SAO PAULO - SP"
+    },
+    {
+      "codigo_grupo": "01",
+      "codigo_item": "12",
+      "tipo": "imovel",
+      "descricao": "COMPRA E VENDA DE CASA - ADQUIRIDO DE CPF 135.542.328-74",
+      "valor_31_12_ano_anterior": 80000.0,
+      "valor_31_12_ano_base": 80000.0,
+      "localidade": "SAO PAULO - SP"
+    },
+    {
+      "codigo_grupo": "01",
+      "codigo_item": "12",
+      "tipo": "imovel",
+      "descricao": "CASA - RUA TASSO DA SILVEIRA, 61 - FINANCIAMENTO QUITADO NA CAIXA",
+      "valor_31_12_ano_anterior": 996821.46,
+      "valor_31_12_ano_base": 996821.46,
+      "localidade": "SAO PAULO - SP"
+    },
+    {
+      "codigo_grupo": "02",
+      "codigo_item": "01",
+      "tipo": "veiculo",
+      "descricao": "MOTOCICLETA YAMAHA NMAX - PRETA - PLACA DAV0351 - ANO 2018",
+      "valor_31_12_ano_anterior": 15093.0,
+      "valor_31_12_ano_base": 15093.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "02",
+      "codigo_item": "01",
+      "tipo": "veiculo",
+      "descricao": "MOTOCICLETA YAMAHA MT 09 TRACER - AZUL - PLACA DAV 0342 - ANO 2018 (ALIENADO)",
+      "valor_31_12_ano_anterior": 51722.0,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "02",
+      "codigo_item": "01",
+      "tipo": "veiculo",
+      "descricao": "CARRO FIAT TORO ULTRA - COR AZUL - PLACA GDK6A27",
+      "valor_31_12_ano_anterior": 191354.0,
+      "valor_31_12_ano_base": 191354.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "02",
+      "codigo_item": "01",
+      "tipo": "veiculo",
+      "descricao": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA STH2C88",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 21029.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "03",
+      "codigo_item": "01",
+      "tipo": "acao",
+      "descricao": "ACOES - ITSA4 - QUANTIDADE 693 (ALIENADA)",
+      "valor_31_12_ano_anterior": 5821.2,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "03",
+      "codigo_item": "01",
+      "tipo": "acao",
+      "descricao": "ACOES - BRKM5 - QUANTIDADE 300 (ALIENADA)",
+      "valor_31_12_ano_anterior": 6267.0,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "03",
+      "codigo_item": "01",
+      "tipo": "acao",
+      "descricao": "ACOES - PETR4 - QUANTIDADE 300 (ALIENADA)",
+      "valor_31_12_ano_anterior": 38883.0,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "01",
+      "tipo": "conta_bancaria",
+      "descricao": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL (ZERADA)",
+      "valor_31_12_ano_anterior": 61507.2,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP",
+      "valor_31_12_ano_anterior": 277658.86,
+      "valor_31_12_ano_base": 151602.49,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "BANCO PICPAY BANK - APLICACAO RENDA FIXA",
+      "valor_31_12_ano_anterior": 73587.74,
+      "valor_31_12_ano_base": 46684.62,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB)",
+      "valor_31_12_ano_anterior": 1886.46,
+      "valor_31_12_ano_base": 243285.37,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "BANCO C6 - APLICACAO EM RENDA FIXA",
+      "valor_31_12_ano_anterior": 23439.0,
+      "valor_31_12_ano_base": 1765.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "SALDO EM RDB NO NUBANK",
+      "valor_31_12_ano_anterior": 5.98,
+      "valor_31_12_ano_base": 189.3,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "06",
+      "codigo_item": "01",
+      "tipo": "conta_bancaria",
+      "descricao": "BANCO CAIXA - CONTA CORRENTE - AG 1218",
+      "valor_31_12_ano_anterior": 275.29,
+      "valor_31_12_ano_base": 230.53,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "06",
+      "codigo_item": "01",
+      "tipo": "conta_bancaria",
+      "descricao": "BANCO ITAU - CONTA CORRENTE",
+      "valor_31_12_ano_anterior": 10.0,
+      "valor_31_12_ano_base": 1.01,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "06",
+      "codigo_item": "01",
+      "tipo": "conta_bancaria",
+      "descricao": "DEPOSITO EM CONTA CORRENTE",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 4936.98,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "06",
+      "codigo_item": "11",
+      "tipo": "outro",
+      "descricao": "USD 6524,00 - MOEDA ESTRANGEIRA",
+      "valor_31_12_ano_anterior": 34433.67,
+      "valor_31_12_ano_base": 34433.67,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "06",
+      "codigo_item": "99",
+      "tipo": "aplicacao",
+      "descricao": "RICO - SALDO EM CONTA - XP INVESTIMENTOS",
+      "valor_31_12_ano_anterior": 15717.49,
+      "valor_31_12_ano_base": 8546.95,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "06",
+      "codigo_item": "99",
+      "tipo": "outro",
+      "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (ILHAS CAYMAN)",
+      "valor_31_12_ano_anterior": 768.94,
+      "valor_31_12_ano_base": 484.8,
+      "localidade": "Cayman, Ilhas"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "01",
+      "tipo": "aplicacao",
+      "descricao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX FIC FIM",
+      "valor_31_12_ano_anterior": 2457.74,
+      "valor_31_12_ano_base": 3189.68,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "01",
+      "tipo": "aplicacao",
+      "descricao": "RICO - DNA ENERGY FIC FIM CP",
+      "valor_31_12_ano_anterior": 1387.66,
+      "valor_31_12_ano_base": 1416.09,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "04",
+      "tipo": "aplicacao",
+      "descricao": "RICO - CONSTELLATION INSTITUCIONAL ADVI",
+      "valor_31_12_ano_anterior": 10000.0,
+      "valor_31_12_ano_base": 11409.17,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "04",
+      "tipo": "aplicacao",
+      "descricao": "RICO - WESTERN ASSET FIA BDR NIVEL I",
+      "valor_31_12_ano_anterior": 17651.61,
+      "valor_31_12_ano_base": 17651.61,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "04",
+      "tipo": "aplicacao",
+      "descricao": "RICO - ALASKA BLACK FIC FIA - BDR",
+      "valor_31_12_ano_anterior": 60000.0,
+      "valor_31_12_ano_base": 60000.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "04",
+      "tipo": "aplicacao",
+      "descricao": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR",
+      "valor_31_12_ano_anterior": 35000.0,
+      "valor_31_12_ano_base": 35000.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "04",
+      "tipo": "aplicacao",
+      "descricao": "RICO - SAFARI 30 FIC FIM II",
+      "valor_31_12_ano_anterior": 25238.59,
+      "valor_31_12_ano_base": 25238.59,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "99",
+      "codigo_item": "07",
+      "tipo": "outro",
+      "descricao": "ITAUSA S.A - JUROS SOBRE CAPITAL CREDITADOS E NAO PAGOS",
+      "valor_31_12_ano_anterior": 192.96,
+      "valor_31_12_ano_base": 82.15,
+      "localidade": "Brasil"
+    }
+  ],
+  "rendimentos": [
+    {
+      "tipo": "pj",
+      "valor_bruto": 153938.74,
+      "valor_liquido": 120713.51,
+      "imposto_retido": 33225.23,
+      "fonte": "DAVID ROBERT CAMARGO DE CAMPOS LTDA"
+    },
+    {
+      "tipo": "pj",
+      "valor_bruto": 466978.67,
+      "valor_liquido": 345435.12,
+      "imposto_retido": 121543.55,
+      "fonte": "KIWIFY PAGAMENTOS TECNOLOGIA E SERVICOS LTDA"
+    },
+    {
+      "tipo": "aluguel",
+      "valor_bruto": 30457.24,
+      "valor_liquido": 30457.24,
+      "imposto_retido": 0.0,
+      "fonte": "Aluguéis"
+    },
+    {
+      "tipo": "isento",
+      "valor_bruto": 301277.39,
+      "valor_liquido": 301277.39,
+      "imposto_retido": 0.0,
+      "fonte": "Simples Nacional - Sócio"
+    },
+    {
+      "tipo": "outro",
+      "valor_bruto": 31259.11,
+      "valor_liquido": 31259.11,
+      "imposto_retido": 10621.04,
+      "fonte": "13º Salário"
+    },
+    {
+      "tipo": "dividendo",
+      "valor_bruto": 2658.8,
+      "valor_liquido": 2658.8,
+      "imposto_retido": 0.0,
+      "fonte": "Juros sobre Capital Próprio - Petrobras e Itausa"
+    },
+    {
+      "tipo": "financeiro",
+      "valor_bruto": 55445.46,
+      "valor_liquido": 55445.46,
+      "imposto_retido": 0.0,
+      "fonte": "Aplicações Financeiras (Petrobras, Itau, Santander, PicPay, C6, NU, Hashdex, DNA)"
+    }
+  ],
+  "dividas_onus": [
+    {
+      "tipo": "financiamento",
+      "descricao": "CREDITO IMOBILIARIO - CREDOR: ITAU UNIBANCO S.A. - CONTRATO 10171192207",
+      "valor_31_12_ano_anterior": 265420.59,
+      "valor_31_12_ano_base": 234642.79
+    },
+    {
+      "tipo": "outro",
+      "descricao": "CHEQUE ESPECIAL BANCO SANTANDER",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 149.82
+    }
+  ],
+  "deducoes": [
+    {
+      "tipo": "saude",
+      "valor": 136.0
+    },
+    {
+      "tipo": "outro",
+      "valor": 2829.36
+    }
+  ],
+  "totalizadores": {
+    "bens_totais_ano_anterior": 2589887.09,
+    "bens_totais_ano_base": 2513151.71,
+    "renda_tributavel": 651374.65,
+    "renda_isenta": 301277.39,
+    "renda_tributacao_exclusiva": 89363.37,
+    "imposto_devido": 163779.6,
+    "imposto_pago": 154768.78,
+    "saldo": 9010.82
+  }
+}

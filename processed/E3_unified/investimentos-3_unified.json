@@ -1,0 +1,263 @@
+{
+  "tipo": "investimentos_unified",
+  "data_posicao": "2026-03",
+  "por_membro": {
+    "David": {
+      "baseline_irpf_2024": [
+        {
+          "tipo": "renda_fixa_itau",
+          "valor": 151602.49
+        },
+        {
+          "tipo": "renda_fixa_picpay",
+          "valor": 46684.62
+        },
+        {
+          "tipo": "renda_fixa_santander_cdb",
+          "valor": 243285.37
+        },
+        {
+          "tipo": "renda_fixa_c6",
+          "valor": 1765.0
+        },
+        {
+          "tipo": "rdb_nubank",
+          "valor": 189.3
+        },
+        {
+          "tipo": "rico_conta",
+          "valor": 8546.95
+        },
+        {
+          "tipo": "rico_hashdex_crypto",
+          "valor": 3189.68
+        },
+        {
+          "tipo": "rico_dna_energy",
+          "valor": 1416.09
+        },
+        {
+          "tipo": "rico_constellation",
+          "valor": 11409.17
+        },
+        {
+          "tipo": "rico_western_asset_fia_bdr",
+          "valor": 17651.61
+        },
+        {
+          "tipo": "rico_alaska_black_fia_bdr",
+          "valor": 60000.0
+        },
+        {
+          "tipo": "rico_alaska_institucional",
+          "valor": 35000.0
+        },
+        {
+          "tipo": "rico_safari_30",
+          "valor": 25238.59
+        }
+      ],
+      "total_baseline": 605978.87,
+      "posicoes_atuais": [
+        {
+          "arquivo_fonte": "itau_investimentos_202003-2_reconciled.json",
+          "conta": "itau_investimentos",
+          "tipo": "investimentosposicao_reconciled",
+          "moeda": "BRL",
+          "data_posicao": "2020-03-29",
+          "dados": {
+            "tipo": "investimentosposicao",
+            "instituicao": "Itau",
+            "data_posicao": "2020-03-29",
+            "moeda": "BRL",
+            "total_aplicado": null,
+            "saldo_atual": 341581.2,
+            "rentabilidade": {
+              "valor": null,
+              "percentual": null
+            },
+            "composicao": [
+              {
+                "nome": "CDB-DI",
+                "tipo_produto": "cdb",
+                "valor_total": null,
+                "quantidade": null,
+                "valor_unitario": null
+              },
+              {
+                "nome": "Cofrinhos",
+                "tipo_produto": "outro",
+                "valor_total": 6610.29,
+                "quantidade": null,
+                "valor_unitario": null
+              }
+            ]
+          }
+        },
+        {
+          "arquivo_fonte": "rico_investimentos_202603-2_reconciled.json",
+          "conta": "rico_investimentos",
+          "tipo": "investimentosposicao_reconciled",
+          "moeda": "BRL",
+          "data_posicao": "2026-03-29",
+          "dados": {
+            "tipo": "investimentosposicao",
+            "instituicao": "Rico",
+            "data_posicao": "2026-03-29",
+            "moeda": "BRL",
+            "total_aplicado": null,
+            "saldo_atual": null,
+            "rentabilidade": {
+              "valor": null,
+              "percentual": null
+            },
+            "composicao": []
+          }
+        },
+        {
+          "arquivo_fonte": "c6_bank_rendafixa_202501_202603-2_reconciled.json",
+          "conta": "c6_bank_rendafixa",
+          "tipo": "carteirarendafixa_reconciled",
+          "moeda": "BRL",
+          "data_posicao": "2026-03",
+          "dados": {
+            "tipo": "carteirarendafixa",
+            "instituicao": "C6 Bank",
+            "data_posicao": null,
+            "produtos": [
+              {
+                "nome": "CDB C6",
+                "tipo_produto": "CDB",
+                "taxa": "103%",
+                "valor_aplicado": null,
+                "saldo_atual": null,
+                "vencimento": null
+              }
+            ],
+            "total_carteira": 6930.11
+          }
+        },
+        {
+          "arquivo_fonte": "santander_cdb_202406_202603-2_reconciled.json",
+          "conta": "santander_cdb",
+          "tipo": "cdbdetalhes_reconciled",
+          "moeda": "BRL",
+          "data_posicao": "2026-03-29",
+          "dados": {
+            "tipo": "cdbdetalhes",
+            "instituicao": "Santander",
+            "data_posicao": "2026-03-29",
+            "produtos": [
+              {
+                "nome": "CDB DI SANTANDER",
+                "tipo_produto": "CDB",
+                "valor_aplicado": 137409.67,
+                "saldo_atual": 132662.92,
+                "data_aplicacao": null,
+                "vencimento": null,
+                "taxa": null
+              },
+              {
+                "nome": "CDB DI SANTANDER",
+                "tipo_produto": "CDB",
+                "valor_aplicado": 101522.74,
+                "saldo_atual": 98281.27,
+                "data_aplicacao": null,
+                "vencimento": null,
+                "taxa": null
+              },
+              {
+                "nome": "CDB PROG SANTANDER",
+                "tipo_produto": "CDB",
+                "valor_aplicado": 60545.52,
+                "saldo_atual": 58700.06,
+                "data_aplicacao": null,
+                "vencimento": null,
+                "taxa": null
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "Mariana": {
+      "baseline_irpf_2024": [
+        {
+          "tipo": "btg_cdb_b2353",
+          "valor": 22000.0
+        },
+        {
+          "tipo": "btg_cdb_sr",
+          "valor": 3429.16
+        },
+        {
+          "tipo": "btg_cdb_524bfk2f",
+          "valor": 10000.0
+        },
+        {
+          "tipo": "btg_22j1410500",
+          "valor": 9349.69
+        },
+        {
+          "tipo": "btg_22k1692411",
+          "valor": 10324.25
+        },
+        {
+          "tipo": "btg_cra02300mzu",
+          "valor": 9115.01
+        },
+        {
+          "tipo": "btg_cra02300spd",
+          "valor": 9109.54
+        },
+        {
+          "tipo": "btg_cra024001q9",
+          "valor": 9248.83
+        },
+        {
+          "tipo": "btg_23j0138431",
+          "valor": 9164.03
+        },
+        {
+          "tipo": "btg_explorer_rf",
+          "valor": 41408.87
+        },
+        {
+          "tipo": "btg_hedge_rf",
+          "valor": 4494.93
+        },
+        {
+          "tipo": "btg_m8_capital",
+          "valor": 25479.42
+        },
+        {
+          "tipo": "btg_hedge_infra",
+          "valor": 25000.0
+        }
+      ],
+      "total_baseline": 188123.73,
+      "posicoes_atuais": [
+        {
+          "arquivo_fonte": "btg_pactual_investimentos_202501_202603-2_reconciled.json",
+          "conta": "btg_pactual_investimentos",
+          "tipo": "investimentosposicao_reconciled",
+          "moeda": "BRL",
+          "data_posicao": "2026-03",
+          "dados": {
+            "tipo": "investimentosposicao",
+            "instituicao": "BTG Pactual",
+            "data_posicao": null,
+            "moeda": "BRL",
+            "total_aplicado": null,
+            "saldo_atual": null,
+            "rentabilidade": {
+              "valor": null,
+              "percentual": null
+            },
+            "composicao": []
+          }
+        }
+      ]
+    }
+  }
+}

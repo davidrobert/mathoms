@@ -1,0 +1,89 @@
+{
+  "tipo": "dados_imoveis",
+  "imoveis": [
+    {
+      "id": "imovel_1",
+      "endereco": "Praça Benedito Calixto, 186/190, APT 34 , - Pinheiros, São Paulo - SP, 05406-040",
+      "localidade": "São Paulo, SP",
+      "tipo_imovel": "apartamento",
+      "data_compra": "2021-11-16",
+      "valor_compra": 348000.0,
+      "vendedor": "Pagamento a vista",
+      "financiamento": {
+        "banco": null,
+        "juros_ano": 0.0,
+        "prazo_meses": 0,
+        "valor_financiado": 0.0,
+        "valor_entrada": 0.0
+      },
+      "situacao_atual": "proprio",
+      "valor_aluguel_mensal": 0.0,
+      "metragem": 40.7631,
+      "matricula": "3421.0",
+      "observacoes": ""
+    },
+    {
+      "id": "imovel_2",
+      "endereco": "R. Major Freire, 496, APT 12 , - São Paulo - SP, 04304-110",
+      "localidade": "São Paulo, SP",
+      "tipo_imovel": "apartamento",
+      "data_compra": null,
+      "valor_compra": 400000.0,
+      "vendedor": "Entrada R$ 40,000.00\nFinanciamento R$ 360,000.00",
+      "financiamento": {
+        "banco": "Banco Itau",
+        "juros_ano": 0.0,
+        "prazo_meses": 0,
+        "valor_financiado": 360.0,
+        "valor_entrada": 40.0
+      },
+      "situacao_atual": "proprio",
+      "valor_aluguel_mensal": 0.0,
+      "metragem": 68.89,
+      "matricula": "74.782",
+      "observacoes": ""
+    },
+    {
+      "id": "imovel_3",
+      "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
+      "localidade": "São Paulo, SP",
+      "tipo_imovel": "casa",
+      "data_compra": "2022-08-29",
+      "valor_compra": 670000.0,
+      "vendedor": "Nome dos Vendedores: Geraldo Costa Fernandes e Odete dos Santos Fernandes\nImovel financiado pela CAIXA, Financiamento concluido",
+      "financiamento": {
+        "banco": null,
+        "juros_ano": 0.0,
+        "prazo_meses": 0,
+        "valor_financiado": 0.0,
+        "valor_entrada": 0.0
+      },
+      "situacao_atual": "proprio",
+      "valor_aluguel_mensal": 0.0,
+      "metragem": 171.0,
+      "matricula": "12.644",
+      "observacoes": ""
+    },
+    {
+      "id": "imovel_4",
+      "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
+      "localidade": "São Paulo, SP",
+      "tipo_imovel": "casa",
+      "data_compra": "2023-01-13",
+      "valor_compra": 80000.0,
+      "vendedor": "Nome da Vendedora: Leonilda de Souza",
+      "financiamento": {
+        "banco": null,
+        "juros_ano": 0.0,
+        "prazo_meses": 0,
+        "valor_financiado": 0.0,
+        "valor_entrada": 0.0
+      },
+      "situacao_atual": "proprio",
+      "valor_aluguel_mensal": 0.0,
+      "metragem": 73.0,
+      "matricula": "20.462",
+      "observacoes": ""
+    }
+  ]
+}

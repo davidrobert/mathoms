@@ -1,0 +1,2643 @@
+{
+  "tipo": "extratoconta_reconciled",
+  "conta": "c6_bank_global_USD",
+  "moeda": "USD",
+  "periodo_total": {
+    "data_inicio": "2025-05-01",
+    "data_fim": "2026-03-29"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": -14480.14,
+      "data": "2025-05-01"
+    },
+    "saldo_final": {
+      "valor": 9159.0,
+      "data": "2026-03-17"
+    }
+  },
+  "arquivos_fonte": [
+    "c6bank_extratocontaglobalusd_202505_202507-2_extract.json",
+    "c6bank_extratocontaglobalusd_202508_202510-2_extract.json",
+    "c6bank_extratocontaglobalusd_202511_202512-2_extract.json",
+    "c6bank_extratocontaglobalusd_202512_202603-2_extract.json"
+  ],
+  "estatisticas": {
+    "total_transacoes_brutas": 388,
+    "duplicatas_removidas": 15,
+    "total_transacoes_unicas": 373
+  },
+  "transacoes": [
+    {
+      "data": "2025-05-02",
+      "descricao": "Entrada Transf C6 Conta Global Líquido US$",
+      "tipo": "credito",
+      "valor": 3.0,
+      "saldo_apos": -14470.14
+    },
+    {
+      "data": "2025-05-06",
+      "descricao": "Débito de cartão -US$ 20,84 03/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14465.14
+    },
+    {
+      "data": "2025-05-07",
+      "descricao": "Débito de cartão -US$ 119,34 05/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14425.14
+    },
+    {
+      "data": "2025-05-07",
+      "descricao": "Débito de cartão -US$ 59,64 05/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14430.14
+    },
+    {
+      "data": "2025-05-07",
+      "descricao": "Débito de cartão -US$ 59,00 04/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14435.14
+    },
+    {
+      "data": "2025-05-07",
+      "descricao": "Débito de cartão -US$ 31,95 04/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14440.14
+    },
+    {
+      "data": "2025-05-07",
+      "descricao": "Débito de cartão -US$ 93,55 04/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14445.14
+    },
+    {
+      "data": "2025-05-07",
+      "descricao": "Débito de cartão -US$ 2,00 04/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14450.14
+    },
+    {
+      "data": "2025-05-07",
+      "descricao": "Débito de cartão -US$ 56,91 04/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14455.14
+    },
+    {
+      "data": "2025-05-07",
+      "descricao": "Débito de cartão -US$ 27,96 04/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14460.14
+    },
+    {
+      "data": "2025-05-08",
+      "descricao": "Débito de cartão Macrobaby \\1361 Florida Mall Cartão 8884 -US$ 182,85 06/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14420.14
+    },
+    {
+      "data": "2025-05-09",
+      "descricao": "Débito de cartão -US$ 114,55 07/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14390.14
+    },
+    {
+      "data": "2025-05-09",
+      "descricao": "Débito de cartão -US$ 511,45 07/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14395.14
+    },
+    {
+      "data": "2025-05-09",
+      "descricao": "Débito de cartão -US$ 253,96 07/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14400.14
+    },
+    {
+      "data": "2025-05-09",
+      "descricao": "Débito de cartão -US$ 30,35 07/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14405.14
+    },
+    {
+      "data": "2025-05-09",
+      "descricao": "Débito de cartão -US$ 156,14 06/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14410.14
+    },
+    {
+      "data": "2025-05-09",
+      "descricao": "Débito de cartão -US$ 136,45 06/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14415.14
+    },
+    {
+      "data": "2025-05-10",
+      "descricao": "Débito de cartão -US$ 90,79 08/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14375.14
+    },
+    {
+      "data": "2025-05-10",
+      "descricao": "Débito de cartão -US$ 371,44 08/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14380.14
+    },
+    {
+      "data": "2025-05-10",
+      "descricao": "Débito de cartão -US$ 56,72 07/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14385.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 4,27 10/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14300.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 12,10 10/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14305.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 7,69 10/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14310.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 8,00 10/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14315.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 15,00 10/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14320.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 4,85 10/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14325.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 34,76 10/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14335.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 6,42 10/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14340.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 1,86 09/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14345.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 12,17 09/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14350.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 76,24 09/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14355.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 150,00 10/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14360.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 60,23 09/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14365.14
+    },
+    {
+      "data": "2025-05-13",
+      "descricao": "Débito de cartão -US$ 143,17 09/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14370.14
+    },
+    {
+      "data": "2025-05-14",
+      "descricao": "Débito de cartão -US$ 75,00 11/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14270.14
+    },
+    {
+      "data": "2025-05-14",
+      "descricao": "Débito de cartão -US$ 381,28 11/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14275.14
+    },
+    {
+      "data": "2025-05-14",
+      "descricao": "Débito de cartão -US$ 30,00 11/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14280.14
+    },
+    {
+      "data": "2025-05-14",
+      "descricao": "Débito de cartão -US$ 35,97 11/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14285.14
+    },
+    {
+      "data": "2025-05-14",
+      "descricao": "Débito de cartão -US$ 15,96 11/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14290.14
+    },
+    {
+      "data": "2025-05-14",
+      "descricao": "Débito de cartão -US$ 21,29 11/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14295.14
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "Débito de cartão Usces Llc \\223 Emerald Lake Cartão 8884 -US$ 348,00 13/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14235.14
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "Débito de cartão -US$ 101,75 13/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14240.14
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "Débito de cartão -US$ 3,64 13/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14245.14
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "Débito de cartão Macrobaby \\1361 Florida Mall Cartão 8884 -US$ 1.163,09 13/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14250.14
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "Débito de cartão -US$ 30,07 12/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14255.14
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "Débito de cartão -US$ 34,79 12/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14260.14
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "Débito de cartão -US$ 26,78 12/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14265.14
+    },
+    {
+      "data": "2025-05-16",
+      "descricao": "Débito de cartão -US$ 70,00 14/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14225.14
+    },
+    {
+      "data": "2025-05-16",
+      "descricao": "Débito de cartão -US$ 599,00 14/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14230.14
+    },
+    {
+      "data": "2025-05-17",
+      "descricao": "Débito de cartão -US$ 65,79 15/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14210.14
+    },
+    {
+      "data": "2025-05-17",
+      "descricao": "Débito de cartão -US$ 21,82 15/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14215.14
+    },
+    {
+      "data": "2025-05-17",
+      "descricao": "Débito de cartão -US$ 1.489,94 15/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14220.14
+    },
+    {
+      "data": "2025-05-19",
+      "descricao": "Débito de cartão -US$ 92,58 15/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -14205.14
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Débito de cartão -US$ 101,39 18/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -12420.14
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Débito de cartão -US$ 20,91 18/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -12425.14
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Débito de cartão -US$ 1.009,80 18/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -12430.14
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Débito de cartão -US$ 8,88 17/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -12435.14
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Débito de cartão -US$ 1.002,60 17/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -12440.14
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Débito de cartão -US$ 40,83 16/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -12445.14
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 1755.0,
+      "saldo_apos": -12450.14
+    },
+    {
+      "data": "2025-05-21",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 1.0,
+      "saldo_apos": -12419.14
+    },
+    {
+      "data": "2025-05-22",
+      "descricao": "Saída Transf. Internacional -US$",
+      "tipo": "credito",
+      "valor": 15000.0,
+      "saldo_apos": 4585.86
+    },
+    {
+      "data": "2025-05-22",
+      "descricao": "Saída Tarifa Transf. Internacional -US$",
+      "tipo": "credito",
+      "valor": 2000.0,
+      "saldo_apos": -10414.14
+    },
+    {
+      "data": "2025-05-22",
+      "descricao": "Débito de cartão -US$ 80,89 20/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": -12414.14
+    },
+    {
+      "data": "2025-05-23",
+      "descricao": "Débito de cartão -US$ 78,80 17/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4595.86
+    },
+    {
+      "data": "2025-05-23",
+      "descricao": "Débito de cartão Tiki Bar \\2300 Wyndham Palm Cartão 8884 -US$ 24,73 21/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4590.86
+    },
+    {
+      "data": "2025-05-24",
+      "descricao": "Débito de cartão -US$ 53,89 22/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4600.86
+    },
+    {
+      "data": "2025-05-27",
+      "descricao": "Débito de cartão -US$ 7,97 25/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4620.86
+    },
+    {
+      "data": "2025-05-27",
+      "descricao": "Débito de cartão -US$ 15,47 24/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4615.86
+    },
+    {
+      "data": "2025-05-27",
+      "descricao": "Débito de cartão -US$ 123,22 24/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4610.86
+    },
+    {
+      "data": "2025-05-27",
+      "descricao": "Débito de cartão -US$ 186,31 24/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4605.86
+    },
+    {
+      "data": "2025-05-28",
+      "descricao": "Débito de cartão -US$ 19,17 26/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4625.86
+    },
+    {
+      "data": "2025-05-30",
+      "descricao": "Débito de cartão -US$ 15,79 28/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4640.86
+    },
+    {
+      "data": "2025-05-30",
+      "descricao": "Débito de cartão -US$ 31,51 28/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4635.86
+    },
+    {
+      "data": "2025-05-30",
+      "descricao": "Débito de cartão -US$ 6,50 28/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4630.86
+    },
+    {
+      "data": "2025-05-31",
+      "descricao": "Débito de cartão -US$ 8,52 29/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4645.86
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "Débito de cartão -US$ 4,29 29/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4650.86
+    },
+    {
+      "data": "2025-06-03",
+      "descricao": "Débito de cartão -US$ 10,64 31/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4671.86
+    },
+    {
+      "data": "2025-06-03",
+      "descricao": "Débito de cartão -US$ 157,95 01/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4666.86
+    },
+    {
+      "data": "2025-06-03",
+      "descricao": "Débito de cartão Sunoco \\167 West Plant St Cartão 4845 -US$ 3,91 31/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4660.86
+    },
+    {
+      "data": "2025-06-03",
+      "descricao": "Débito de cartão -US$ 13,51 31/",
+      "tipo": "credito",
+      "valor": 5.0,
+      "saldo_apos": 4655.86
+    },
+    {
+      "data": "2025-06-06",
+      "descricao": "Débito de cartão -US$ 5,00 04/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4683.86
+    },
+    {
+      "data": "2025-06-06",
+      "descricao": "Débito de cartão -US$ 21,03 04/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4677.86
+    },
+    {
+      "data": "2025-06-07",
+      "descricao": "Débito de cartão -US$ 74,80 05/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4695.86
+    },
+    {
+      "data": "2025-06-07",
+      "descricao": "Débito de cartão -US$ 58,45 05/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4689.86
+    },
+    {
+      "data": "2025-06-09",
+      "descricao": "Débito de cartão -US$ 27,48 06/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4701.86
+    },
+    {
+      "data": "2025-06-10",
+      "descricao": "Débito de cartão Wicked Lick \\335 Duval St Ste Cartão 4845 -US$ 11,93 08/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4749.86
+    },
+    {
+      "data": "2025-06-10",
+      "descricao": "Débito de cartão Keylum Llc \\1114 Duval St Cartão 4845 -US$ 10,75 07/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4743.86
+    },
+    {
+      "data": "2025-06-10",
+      "descricao": "Débito de cartão -US$ 18,78 08/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4737.86
+    },
+    {
+      "data": "2025-06-10",
+      "descricao": "Débito de cartão -US$ 46,20 07/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4731.86
+    },
+    {
+      "data": "2025-06-10",
+      "descricao": "Débito de cartão -US$ 7,47 07/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4725.86
+    },
+    {
+      "data": "2025-06-10",
+      "descricao": "Débito de cartão -US$ 171,90 07/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4719.86
+    },
+    {
+      "data": "2025-06-10",
+      "descricao": "Débito de cartão -US$ 4,25 07/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4713.86
+    },
+    {
+      "data": "2025-06-10",
+      "descricao": "Débito de cartão -US$ 23,64 07/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4707.86
+    },
+    {
+      "data": "2025-06-12",
+      "descricao": "Débito de cartão -US$ 30,00 10/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4767.86
+    },
+    {
+      "data": "2025-06-12",
+      "descricao": "Débito de cartão -US$ 90,56 10/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4761.86
+    },
+    {
+      "data": "2025-06-12",
+      "descricao": "Débito de cartão -US$ 1.009,80 10/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4755.86
+    },
+    {
+      "data": "2025-06-13",
+      "descricao": "Débito de cartão -US$ 67,41 11/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4773.86
+    },
+    {
+      "data": "2025-06-14",
+      "descricao": "Débito de cartão -US$ 11,50 12/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4791.86
+    },
+    {
+      "data": "2025-06-14",
+      "descricao": "Débito de cartão -US$ 13,89 12/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4785.86
+    },
+    {
+      "data": "2025-06-14",
+      "descricao": "Débito de cartão -US$ 44,04 11/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4779.86
+    },
+    {
+      "data": "2025-06-15",
+      "descricao": "Débito de cartão -US$ 34,60 13/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4803.86
+    },
+    {
+      "data": "2025-06-15",
+      "descricao": "Débito de cartão -US$ 19,17 13/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4797.86
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "Entrada Transf C6 Conta Global Líquido US$",
+      "tipo": "credito",
+      "valor": 3.14,
+      "saldo_apos": 4813.0
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "Débito de cartão -US$ 312,10 15/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4809.86
+    },
+    {
+      "data": "2025-06-18",
+      "descricao": "Débito de cartão -US$ 47,04 16/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4825.0
+    },
+    {
+      "data": "2025-06-18",
+      "descricao": "Débito de cartão -US$ 43,00 16/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4819.0
+    },
+    {
+      "data": "2025-06-21",
+      "descricao": "Débito de cartão -US$ 29,00 19/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4843.0
+    },
+    {
+      "data": "2025-06-21",
+      "descricao": "Débito de cartão -US$ 22,88 18/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4837.0
+    },
+    {
+      "data": "2025-06-21",
+      "descricao": "Débito de cartão -US$ 8,60 18/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4831.0
+    },
+    {
+      "data": "2025-06-22",
+      "descricao": "Débito de cartão -US$ 8,90 20/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4855.0
+    },
+    {
+      "data": "2025-06-22",
+      "descricao": "Débito de cartão -US$ 121,10 20/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4849.0
+    },
+    {
+      "data": "2025-06-23",
+      "descricao": "Débito de cartão -US$ 31,95 21/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4885.0
+    },
+    {
+      "data": "2025-06-23",
+      "descricao": "Débito de cartão -US$ 9,57 21/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4879.0
+    },
+    {
+      "data": "2025-06-23",
+      "descricao": "Débito de cartão -US$ 62,44 21/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4873.0
+    },
+    {
+      "data": "2025-06-23",
+      "descricao": "Débito de cartão -US$ 31,00 21/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4867.0
+    },
+    {
+      "data": "2025-06-23",
+      "descricao": "Débito de cartão -US$ 17,51 21/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4861.0
+    },
+    {
+      "data": "2025-06-25",
+      "descricao": "Débito de cartão -US$ 5,00 23/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4897.0
+    },
+    {
+      "data": "2025-06-25",
+      "descricao": "Débito de cartão -US$ 1,74 23/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4891.0
+    },
+    {
+      "data": "2025-06-27",
+      "descricao": "Débito de cartão -US$ 4,00 25/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4915.0
+    },
+    {
+      "data": "2025-06-27",
+      "descricao": "Débito de cartão -US$ 32,00 25/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4909.0
+    },
+    {
+      "data": "2025-06-27",
+      "descricao": "Débito de cartão -US$ 111,88 25/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4903.0
+    },
+    {
+      "data": "2025-06-28",
+      "descricao": "Débito de cartão -US$ 305,42 26/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4921.0
+    },
+    {
+      "data": "2025-06-29",
+      "descricao": "Débito de cartão -US$ 19,91 27/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4927.0
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Débito de cartão -US$ 51,12 28/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4957.0
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Débito de cartão -US$ 26,61 28/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4951.0
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Débito de cartão -US$ 9,57 28/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4945.0
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Débito de cartão -US$ 58,79 28/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4939.0
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Débito de cartão -US$ 56,93 28/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4933.0
+    },
+    {
+      "data": "2025-07-01",
+      "descricao": "Débito de cartão -US$ 23,27 29/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4969.0
+    },
+    {
+      "data": "2025-07-01",
+      "descricao": "Débito de cartão -US$ 9,40 28/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4963.0
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "Em processamento -US$",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 4985.0
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "Débito de cartão -US$ 40,83 30/",
+      "tipo": "credito",
+      "valor": 6.0,
+      "saldo_apos": 4975.0
+    },
+    {
+      "data": "2025-07-03",
+      "descricao": "Débito de cartão -US$ 15,51 01/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 4992.0
+    },
+    {
+      "data": "2025-07-04",
+      "descricao": "Débito de cartão -US$ 54,83 02/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7659.0
+    },
+    {
+      "data": "2025-07-04",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 2660.0,
+      "saldo_apos": 7652.0
+    },
+    {
+      "data": "2025-07-05",
+      "descricao": "Débito de cartão -US$ 16,66 03/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7680.0
+    },
+    {
+      "data": "2025-07-05",
+      "descricao": "Débito de cartão -US$ 9,98 03/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7673.0
+    },
+    {
+      "data": "2025-07-05",
+      "descricao": "Débito de cartão -US$ 26,61 03/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7666.0
+    },
+    {
+      "data": "2025-07-07",
+      "descricao": "Débito de cartão -US$ 9,40 05/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7694.0
+    },
+    {
+      "data": "2025-07-07",
+      "descricao": "Débito de cartão -US$ 188,82 05/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7687.0
+    },
+    {
+      "data": "2025-07-09",
+      "descricao": "Débito de cartão -US$ 69,75 06/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7708.0
+    },
+    {
+      "data": "2025-07-09",
+      "descricao": "Débito de cartão -US$ 29,29 06/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7701.0
+    },
+    {
+      "data": "2025-07-10",
+      "descricao": "Débito de cartão -US$ 67,05 08/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7715.0
+    },
+    {
+      "data": "2025-07-11",
+      "descricao": "Débito de cartão -US$ 6,00 09/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7743.0
+    },
+    {
+      "data": "2025-07-11",
+      "descricao": "Débito de cartão -US$ 31,14 09/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7729.0
+    },
+    {
+      "data": "2025-07-11",
+      "descricao": "Débito de cartão -US$ 2,69 09/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7722.0
+    },
+    {
+      "data": "2025-07-12",
+      "descricao": "Débito de cartão -US$ 7,62 10/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7764.0
+    },
+    {
+      "data": "2025-07-12",
+      "descricao": "Débito de cartão -US$ 15,57 10/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7757.0
+    },
+    {
+      "data": "2025-07-12",
+      "descricao": "Débito de cartão -US$ 1.009,80 10/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7750.0
+    },
+    {
+      "data": "2025-07-13",
+      "descricao": "Débito de cartão -US$ 13,62 10/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7806.0
+    },
+    {
+      "data": "2025-07-13",
+      "descricao": "Débito de cartão -US$ 45,41 11/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7799.0
+    },
+    {
+      "data": "2025-07-13",
+      "descricao": "Débito de cartão -US$ 9,66 11/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7792.0
+    },
+    {
+      "data": "2025-07-13",
+      "descricao": "Débito de cartão -US$ 9,62 11/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7785.0
+    },
+    {
+      "data": "2025-07-13",
+      "descricao": "Débito de cartão -US$ 39,52 11/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7778.0
+    },
+    {
+      "data": "2025-07-13",
+      "descricao": "Débito de cartão -US$ 15,55 11/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7771.0
+    },
+    {
+      "data": "2025-07-14",
+      "descricao": "Débito de cartão -US$ 15,82 12/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7841.0
+    },
+    {
+      "data": "2025-07-14",
+      "descricao": "Débito de cartão -US$ 25,52 12/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7834.0
+    },
+    {
+      "data": "2025-07-14",
+      "descricao": "Débito de cartão -US$ 22,92 12/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7827.0
+    },
+    {
+      "data": "2025-07-14",
+      "descricao": "Débito de cartão -US$ 74,54 12/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7820.0
+    },
+    {
+      "data": "2025-07-14",
+      "descricao": "Débito de cartão -US$ 6,39 12/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7813.0
+    },
+    {
+      "data": "2025-07-15",
+      "descricao": "Débito de cartão -US$ 16,06 13/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 8928.0
+    },
+    {
+      "data": "2025-07-15",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 1073.0,
+      "saldo_apos": 8921.0
+    },
+    {
+      "data": "2025-07-15",
+      "descricao": "Débito de cartão -US$ 8,40 12/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 7848.0
+    },
+    {
+      "data": "2025-07-16",
+      "descricao": "Débito de cartão -US$ 5,00 14/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 8949.0
+    },
+    {
+      "data": "2025-07-16",
+      "descricao": "Débito de cartão -US$ 22,02 13/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 8942.0
+    },
+    {
+      "data": "2025-07-16",
+      "descricao": "Débito de cartão -US$ 13,83 13/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 8935.0
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "Débito de cartão -US$ 54,50 15/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 8963.0
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "Débito de cartão -US$ 38,42 15/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 8956.0
+    },
+    {
+      "data": "2025-07-18",
+      "descricao": "Débito de cartão -US$ 10,00 15/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 8970.0
+    },
+    {
+      "data": "2025-07-19",
+      "descricao": "Débito de cartão -US$ 5,00 17/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 8984.0
+    },
+    {
+      "data": "2025-07-21",
+      "descricao": "Débito de cartão -US$ 5,00 19/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9005.0
+    },
+    {
+      "data": "2025-07-22",
+      "descricao": "Débito de cartão -US$ 5,00 20/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9026.0
+    },
+    {
+      "data": "2025-07-23",
+      "descricao": "Débito de cartão -US$ 5,00 21/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9040.0
+    },
+    {
+      "data": "2025-07-24",
+      "descricao": "Débito de cartão -US$ 54,51 21/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9075.0
+    },
+    {
+      "data": "2025-07-24",
+      "descricao": "Débito de cartão -US$ 16,95 21/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9068.0
+    },
+    {
+      "data": "2025-07-24",
+      "descricao": "Débito de cartão -US$ 5,00 22/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9061.0
+    },
+    {
+      "data": "2025-07-24",
+      "descricao": "Débito de cartão -US$ 8,00 22/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9047.0
+    },
+    {
+      "data": "2025-07-25",
+      "descricao": "Débito de cartão -US$ 8,06 23/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9096.0
+    },
+    {
+      "data": "2025-07-25",
+      "descricao": "Débito de cartão -US$ 24,26 23/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9089.0
+    },
+    {
+      "data": "2025-07-25",
+      "descricao": "Débito de cartão -US$ 217,17 23/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9082.0
+    },
+    {
+      "data": "2025-07-26",
+      "descricao": "Débito de cartão -US$ 81,64 23/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9110.0
+    },
+    {
+      "data": "2025-07-26",
+      "descricao": "Débito de cartão -US$ 132,03 23/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9103.0
+    },
+    {
+      "data": "2025-07-27",
+      "descricao": "Débito de cartão -US$ 15,65 25/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9117.0
+    },
+    {
+      "data": "2025-07-28",
+      "descricao": "Débito de cartão -US$ 10,18 26/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9131.0
+    },
+    {
+      "data": "2025-07-28",
+      "descricao": "Débito de cartão -US$ 20,16 26/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9124.0
+    },
+    {
+      "data": "2025-07-29",
+      "descricao": "Débito de cartão -US$ 21,37 27/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9138.0
+    },
+    {
+      "data": "2025-07-30",
+      "descricao": "Débito de cartão -US$ 30,86 28/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9145.0
+    },
+    {
+      "data": "2025-07-31",
+      "descricao": "Débito de cartão -US$ 17,56 29/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9159.0
+    },
+    {
+      "data": "2025-07-31",
+      "descricao": "Débito de cartão -US$ 121,18 29/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": 9152.0
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "Débito de cartão -US$ 38,82 30/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": -94020.5
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "Débito de cartão -US$ 38,87 30/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": -94027.5
+    },
+    {
+      "data": "2025-08-02",
+      "descricao": "Débito de cartão -US$ 287,22 31/",
+      "tipo": "credito",
+      "valor": 7.0,
+      "saldo_apos": -94013.5
+    },
+    {
+      "data": "2025-08-03",
+      "descricao": "Débito de cartão -US$ 25,00 01/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93973.5
+    },
+    {
+      "data": "2025-08-03",
+      "descricao": "Débito de cartão -US$ 25,74 01/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93981.5
+    },
+    {
+      "data": "2025-08-03",
+      "descricao": "Débito de cartão -US$ 16,75 01/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93989.5
+    },
+    {
+      "data": "2025-08-03",
+      "descricao": "Débito de cartão -US$ 8,60 01/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93997.5
+    },
+    {
+      "data": "2025-08-03",
+      "descricao": "Débito de cartão -US$ 28,22 01/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -94005.5
+    },
+    {
+      "data": "2025-08-04",
+      "descricao": "Débito de cartão -US$ 158,69 01/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93965.5
+    },
+    {
+      "data": "2025-08-07",
+      "descricao": "Débito de cartão -US$ 89,00 05/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93949.5
+    },
+    {
+      "data": "2025-08-07",
+      "descricao": "Débito de cartão -US$ 8,00 05/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93957.5
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Débito de cartão -US$ 83,95 06/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93885.5
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Débito de cartão -US$ 7,61 06/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93893.5
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Débito de cartão -US$ 94,00 06/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93901.5
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Saque -US$ 203,75 06/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93909.5
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Tarifa de saque -US$ 5,00 06/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93917.5
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Débito de cartão -US$ 4,27 06/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93941.5
+    },
+    {
+      "data": "2025-08-09",
+      "descricao": "Débito de cartão -US$ 44,00 07/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93861.5
+    },
+    {
+      "data": "2025-08-09",
+      "descricao": "Débito de cartão -US$ 40,91 07/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93869.5
+    },
+    {
+      "data": "2025-08-09",
+      "descricao": "Débito de cartão -US$ 210,42 07/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93877.5
+    },
+    {
+      "data": "2025-08-10",
+      "descricao": "Débito de cartão -US$ 15,04 08/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93829.5
+    },
+    {
+      "data": "2025-08-10",
+      "descricao": "Débito de cartão -US$ 2,57 08/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93837.5
+    },
+    {
+      "data": "2025-08-10",
+      "descricao": "Débito de cartão -US$ 27,00 08/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93845.5
+    },
+    {
+      "data": "2025-08-10",
+      "descricao": "Débito de cartão -US$ 2,12 08/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93853.5
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "Débito de cartão -US$ 20,21 09/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93797.5
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "Débito de cartão -US$ 195,96 09/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93805.5
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "Débito de cartão -US$ 56,45 09/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93813.5
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "Débito de cartão -US$ 1.009,80 09/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93821.5
+    },
+    {
+      "data": "2025-08-13",
+      "descricao": "Débito de cartão -US$ 12,99 11/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93781.5
+    },
+    {
+      "data": "2025-08-13",
+      "descricao": "Débito de cartão -US$ 1.496,99 10/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93789.5
+    },
+    {
+      "data": "2025-08-14",
+      "descricao": "Débito de cartão -US$ 97,94 12/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93773.5
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "Débito de cartão -US$ 22,28 13/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93765.5
+    },
+    {
+      "data": "2025-08-16",
+      "descricao": "Débito de cartão -US$ 7,72 14/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93749.5
+    },
+    {
+      "data": "2025-08-16",
+      "descricao": "Débito de cartão -US$ 89,84 13/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93757.5
+    },
+    {
+      "data": "2025-08-17",
+      "descricao": "Débito de cartão -US$ 76,67 15/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93741.5
+    },
+    {
+      "data": "2025-08-18",
+      "descricao": "Débito de cartão Wdw Tickets \\1375 E Buena Vist Cartão 8884 -US$ 169,34 15/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93733.5
+    },
+    {
+      "data": "2025-08-19",
+      "descricao": "Saque -US$ 115,56 16/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93717.5
+    },
+    {
+      "data": "2025-08-19",
+      "descricao": "Tarifa de saque -US$ 5,00 16/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93725.5
+    },
+    {
+      "data": "2025-08-24",
+      "descricao": "Débito de cartão -US$ 152,43 22/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93701.5
+    },
+    {
+      "data": "2025-08-24",
+      "descricao": "Débito de cartão -US$ 42,84 22/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93709.5
+    },
+    {
+      "data": "2025-08-26",
+      "descricao": "Débito de cartão -US$ 38,34 24/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93677.5
+    },
+    {
+      "data": "2025-08-26",
+      "descricao": "Débito de cartão -US$ 7,34 23/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93685.5
+    },
+    {
+      "data": "2025-08-26",
+      "descricao": "Débito de cartão -US$ 39,60 23/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93693.5
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "Débito de cartão -US$ 40,00 25/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93661.5
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "Débito de cartão -US$ 36,09 25/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93669.5
+    },
+    {
+      "data": "2025-08-28",
+      "descricao": "Débito de cartão -US$ 1,60 25/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -93653.5
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "Débito de cartão -US$ 164,65 27/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -83645.5
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 10000.0,
+      "saldo_apos": -83653.5
+    },
+    {
+      "data": "2025-08-31",
+      "descricao": "Débito de cartão -US$ 91,67 29/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -83613.5
+    },
+    {
+      "data": "2025-08-31",
+      "descricao": "Débito de cartão -US$ 10,00 29/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -83621.5
+    },
+    {
+      "data": "2025-08-31",
+      "descricao": "Débito de cartão -US$ 3,60 29/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -83629.5
+    },
+    {
+      "data": "2025-08-31",
+      "descricao": "Débito de cartão -US$ 9,00 29/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -83637.5
+    },
+    {
+      "data": "2025-09-01",
+      "descricao": "Débito de cartão -US$ 106,01 30/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -83605.5
+    },
+    {
+      "data": "2025-09-02",
+      "descricao": "Débito de cartão -US$ 41,36 31/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -83589.5
+    },
+    {
+      "data": "2025-09-02",
+      "descricao": "Débito de cartão -US$ 37,86 30/",
+      "tipo": "credito",
+      "valor": 8.0,
+      "saldo_apos": -83597.5
+    },
+    {
+      "data": "2025-09-04",
+      "descricao": "Débito de cartão -US$ 44,31 02/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -83571.5
+    },
+    {
+      "data": "2025-09-04",
+      "descricao": "Débito de cartão -US$ 21,71 02/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -83580.5
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Débito de cartão -US$ 21,91 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79610.5
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Débito de cartão -US$ 137,88 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79619.5
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Débito de cartão -US$ 31,97 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79628.5
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Débito de cartão -US$ 52,28 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79637.5
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Débito de cartão -US$ 19,25 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79646.5
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Débito de cartão -US$ 19,31 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79655.5
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Débito de cartão -US$ 27,99 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79673.5
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Débito de cartão -US$ 6,47 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79682.5
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Débito de cartão -US$ 64,19 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79691.5
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Débito de cartão -US$ 26,73 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79700.5
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 1931.0,
+      "saldo_apos": -79709.5
+    },
+    {
+      "data": "2025-09-06",
+      "descricao": "Débito de cartão -US$ 136,90 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79592.5
+    },
+    {
+      "data": "2025-09-06",
+      "descricao": "Débito de cartão -US$ 30,07 03/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79601.5
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "Débito de cartão -US$ 17,98 06/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79556.5
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "Débito de cartão -US$ 67,35 05/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79565.5
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "Débito de cartão -US$ 71,42 05/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79574.5
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "Débito de cartão -US$ 244,93 05/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -79583.5
+    },
+    {
+      "data": "2025-09-09",
+      "descricao": "Débito de cartão -US$ 15,98 07/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77503.5
+    },
+    {
+      "data": "2025-09-09",
+      "descricao": "Débito de cartão -US$ 116,00 07/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77512.5
+    },
+    {
+      "data": "2025-09-09",
+      "descricao": "Débito de cartão -US$ 281,97 07/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77521.5
+    },
+    {
+      "data": "2025-09-09",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 2026.0,
+      "saldo_apos": -77530.5
+    },
+    {
+      "data": "2025-09-10",
+      "descricao": "Débito de cartão -US$ 639,22 08/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77494.5
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "Débito de cartão -US$ 46,02 09/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77485.5
+    },
+    {
+      "data": "2025-09-12",
+      "descricao": "Débito de cartão -US$ 1.579,79 10/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77476.5
+    },
+    {
+      "data": "2025-09-13",
+      "descricao": "Débito de cartão -US$ 2,97 11/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77458.5
+    },
+    {
+      "data": "2025-09-13",
+      "descricao": "Débito de cartão -US$ 8,07 11/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77467.5
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Débito de cartão -US$ 658,16 12/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77431.5
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Débito de cartão -US$ 16,13 13/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77440.5
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Débito de cartão -US$ 24,79 11/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77449.5
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Débito de cartão -US$ 63,62 14/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77350.5
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Débito de cartão -US$ 24,70 14/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77359.5
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Débito de cartão -US$ 94,79 13/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77368.5
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Débito de cartão -US$ 22,28 13/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77377.5
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Débito de cartão -US$ 93,13 13/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77386.5
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Débito de cartão -US$ 335,39 13/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77395.5
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Débito de cartão -US$ 69,22 13/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77404.5
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Débito de cartão -US$ 175,66 13/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77413.5
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Débito de cartão -US$ 379,99 13/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77422.5
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Débito de cartão -US$ 48,34 15/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77278.5
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Débito de cartão -US$ 112,85 15/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77287.5
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Débito de cartão -US$ 1,16 15/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77296.5
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Débito de cartão -US$ 265,04 14/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77305.5
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Débito de cartão -US$ 28,22 15/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77314.5
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Débito de cartão -US$ 37,96 14/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77323.5
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Débito de cartão -US$ 106,31 14/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77332.5
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Débito de cartão -US$ 38,43 15/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77341.5
+    },
+    {
+      "data": "2025-09-18",
+      "descricao": "Débito de cartão -US$ 48,17 16/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77242.5
+    },
+    {
+      "data": "2025-09-18",
+      "descricao": "Saque -US$ 339,42 15/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77251.5
+    },
+    {
+      "data": "2025-09-18",
+      "descricao": "Tarifa de saque -US$ 5,00 15/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77260.5
+    },
+    {
+      "data": "2025-09-18",
+      "descricao": "Débito de cartão -US$ 128,15 15/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77269.5
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Débito de cartão -US$ 47,93 18/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77215.5
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Débito de cartão -US$ 514,54 17/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77224.5
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Débito de cartão -US$ 58,08 17/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -77233.5
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Débito de cartão -US$ 35,38 18/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -35897.5
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Débito de cartão -US$ 52,64 15/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -35906.5
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Débito de cartão -US$ 234,76 17/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -35915.5
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 33126.0,
+      "saldo_apos": -35924.5
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 8165.0,
+      "saldo_apos": -69050.5
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Débito de cartão -US$ 62,84 19/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -35870.5
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Débito de cartão -US$ 192,43 19/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -35879.5
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Débito de cartão -US$ 38,29 19/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -35888.5
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Débito de cartão -US$ 50,56 20/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -29297.5
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Débito de cartão -US$ 76,25 20/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -29306.5
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Débito de cartão -US$ 29,82 20/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -29315.5
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Débito de cartão -US$ 66,09 20/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -29324.5
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Débito de cartão -US$ 236,40 20/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -29333.5
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Débito de cartão -US$ 36,28 20/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -29342.5
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 6519.0,
+      "saldo_apos": -29351.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Débito de cartão -US$ 11,50 21/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 3627.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Débito de cartão -US$ 2,69 21/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 3618.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Débito de cartão -US$ 40,73 21/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 3609.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Débito de cartão -US$ 9,28 21/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 3600.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Débito de cartão -US$ 42,60 20/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 3591.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Débito de cartão -US$ 47,43 21/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 3582.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 19243.0,
+      "saldo_apos": 3573.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 8599.0,
+      "saldo_apos": -15669.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 1799.0,
+      "saldo_apos": -24268.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 536.0,
+      "saldo_apos": -26067.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Débito de cartão -US$ 41,91 20/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": -26603.5
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 2685.0,
+      "saldo_apos": -26612.5
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Débito de cartão -US$ 26,51 22/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6624.5
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Débito de cartão -US$ 18,61 22/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6615.5
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Débito de cartão -US$ 146,81 22/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6606.5
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Débito de cartão -US$ 48,31 22/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6597.5
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Débito de cartão -US$ 345,94 22/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6588.5
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Débito de cartão -US$ 81,94 21/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6579.5
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Débito de cartão -US$ 5,00 22/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6570.5
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 858.0,
+      "saldo_apos": 6561.5
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 1209.0,
+      "saldo_apos": 4845.5
+    },
+    {
+      "data": "2025-09-25",
+      "descricao": "Débito de cartão -US$ 14,88 23/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6660.5
+    },
+    {
+      "data": "2025-09-25",
+      "descricao": "Débito de cartão -US$ 4,77 23/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6651.5
+    },
+    {
+      "data": "2025-09-25",
+      "descricao": "Débito de cartão -US$ 4,63 23/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6642.5
+    },
+    {
+      "data": "2025-09-25",
+      "descricao": "Débito de cartão Oakley B087 \\4971 Internationa Cartão 4163 -US$ 478,19 22/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6633.5
+    },
+    {
+      "data": "2025-09-26",
+      "descricao": "Débito de cartão -US$ 20,50 24/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6687.5
+    },
+    {
+      "data": "2025-09-26",
+      "descricao": "Débito de cartão -US$ 15,59 24/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6678.5
+    },
+    {
+      "data": "2025-09-26",
+      "descricao": "Débito de cartão -US$ 10,00 23/",
+      "tipo": "credito",
+      "valor": 9.0,
+      "saldo_apos": 6669.5
+    },
+    {
+      "data": "2025-10-01",
+      "descricao": "Saída Transf. Internacional -US$",
+      "tipo": "credito",
+      "valor": 1.5,
+      "saldo_apos": 8689.0
+    },
+    {
+      "data": "2025-10-01",
+      "descricao": "Saída Tarifa Transf. Internacional -US$",
+      "tipo": "credito",
+      "valor": 2000.0,
+      "saldo_apos": 8687.5
+    },
+    {
+      "data": "2025-10-04",
+      "descricao": "Débito de cartão -US$ 260,28 02/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 8699.0
+    },
+    {
+      "data": "2025-10-17",
+      "descricao": "Débito de cartão -US$ 25,58 15/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 8709.0
+    },
+    {
+      "data": "2025-10-20",
+      "descricao": "Débito de cartão -US$ 62,85 18/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 8729.0
+    },
+    {
+      "data": "2025-10-20",
+      "descricao": "Débito de cartão -US$ 605,32 18/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 8719.0
+    },
+    {
+      "data": "2025-10-21",
+      "descricao": "Débito de cartão -US$ 36,57 19/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 8769.0
+    },
+    {
+      "data": "2025-10-21",
+      "descricao": "Débito de cartão -US$ 58,39 19/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 8759.0
+    },
+    {
+      "data": "2025-10-21",
+      "descricao": "Débito de cartão -US$ 46,68 19/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 8749.0
+    },
+    {
+      "data": "2025-10-21",
+      "descricao": "Débito de cartão -US$ 118,35 19/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 8739.0
+    },
+    {
+      "data": "2025-10-22",
+      "descricao": "Débito de cartão -US$ 61,62 21/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 8789.0
+    },
+    {
+      "data": "2025-10-22",
+      "descricao": "Débito de cartão -US$ 47,23 19/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 8779.0
+    },
+    {
+      "data": "2025-10-23",
+      "descricao": "Entrada Cashback Compra Cartão US$",
+      "tipo": "credito",
+      "valor": 300.0,
+      "saldo_apos": 9099.0
+    },
+    {
+      "data": "2025-10-23",
+      "descricao": "Débito de cartão -US$ 21,66 20/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 8799.0
+    },
+    {
+      "data": "2025-10-24",
+      "descricao": "Débito de cartão -US$ 191,83 22/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 9129.0
+    },
+    {
+      "data": "2025-10-24",
+      "descricao": "Débito de cartão -US$ 28,18 21/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 9119.0
+    },
+    {
+      "data": "2025-10-24",
+      "descricao": "Débito de cartão -US$ 78,88 21/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 9109.0
+    },
+    {
+      "data": "2025-10-25",
+      "descricao": "Saque -US$ 102,25 23/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 9159.0
+    },
+    {
+      "data": "2025-10-25",
+      "descricao": "Tarifa de saque -US$ 5,00 23/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 9149.0
+    },
+    {
+      "data": "2025-10-25",
+      "descricao": "Débito de cartão -US$ 25,28 22/",
+      "tipo": "credito",
+      "valor": 10.0,
+      "saldo_apos": 9139.0
+    },
+    {
+      "data": "2025-11-17",
+      "descricao": "Débito de cartão -US$ 47,98 15/",
+      "tipo": "credito",
+      "valor": 11.0,
+      "saldo_apos": -1758.64
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Saída Transf. Internacional -US$",
+      "tipo": "credito",
+      "valor": 3.84,
+      "saldo_apos": 247.0
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Saída Tarifa Transf. Internacional -US$",
+      "tipo": "credito",
+      "valor": 2000.0,
+      "saldo_apos": 243.16
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Entrada Transf C6 Conta Global Líquido US$",
+      "tipo": "credito",
+      "valor": 1.8,
+      "saldo_apos": -1756.84
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Entrada Outros US$",
+      "tipo": "credito",
+      "valor": 8900.0,
+      "saldo_apos": 9147.0
+    },
+    {
+      "data": "2025-12-17",
+      "descricao": "Débito de cartão -US$ 25,38 15/",
+      "tipo": "credito",
+      "valor": 12.0,
+      "saldo_apos": 9159.0
+    },
+    {
+      "data": "2026-01-17",
+      "descricao": "Débito de cartão -US$ 25,34 15/",
+      "tipo": "credito",
+      "valor": 1.0,
+      "saldo_apos": -846.0
+    },
+    {
+      "data": "2026-02-17",
+      "descricao": "Débito de cartão -US$ 25,66 15/",
+      "tipo": "credito",
+      "valor": 2.0,
+      "saldo_apos": -844.0
+    },
+    {
+      "data": "2026-03-15",
+      "descricao": "Entrada Transf C6 Conta Global Líquido US$",
+      "tipo": "credito",
+      "valor": 10000.0,
+      "saldo_apos": 9156.0
+    },
+    {
+      "data": "2026-03-17",
+      "descricao": "Débito de cartão -US$ 25,34 15/",
+      "tipo": "credito",
+      "valor": 3.0,
+      "saldo_apos": 9159.0
+    }
+  ]
+}

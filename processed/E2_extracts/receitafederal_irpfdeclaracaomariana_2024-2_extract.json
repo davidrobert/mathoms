@@ -1,0 +1,256 @@
+{
+  "tipo": "irpfdeclaracao",
+  "ano_base": 2024,
+  "declarante": {
+    "nome": "MARIANA FERREIRA CAMPOS",
+    "cpf": "085.052.396-60"
+  },
+  "data_declaracao": "2025-05-30",
+  "bens_direitos": [
+    {
+      "codigo_grupo": "01",
+      "codigo_item": "11",
+      "tipo": "imovel",
+      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA PLANTA DA EMPRESA CYRELA MAGIKLZ CAMPINAS",
+      "valor_31_12_ano_anterior": 223733.99,
+      "valor_31_12_ano_base": 270000.0,
+      "localidade": "CAMPINAS, SP"
+    },
+    {
+      "codigo_grupo": "01",
+      "codigo_item": "11",
+      "tipo": "imovel",
+      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS",
+      "valor_31_12_ano_anterior": 477436.58,
+      "valor_31_12_ano_base": 530000.0,
+      "localidade": "SAO PAULO, SP - SANTO AMARO"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "01",
+      "tipo": "conta_bancaria",
+      "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
+      "valor_31_12_ano_anterior": 25337.34,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "BTG - PRODUTO CDBB2353UR4",
+      "valor_31_12_ano_anterior": 22000.0,
+      "valor_31_12_ano_base": 22000.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "BTG - CDB-SR - AGENCIA 0001",
+      "valor_31_12_ano_anterior": 1826.51,
+      "valor_31_12_ano_base": 3429.16,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
+      "valor_31_12_ano_anterior": 4365.03,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "SALDO RDB - NUBANK",
+      "valor_31_12_ano_anterior": 58.23,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "02",
+      "tipo": "aplicacao",
+      "descricao": "BTG - PRODUTO CDB524BFK2F",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 10000.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "03",
+      "tipo": "aplicacao",
+      "descricao": "BTG - PRODUTO 22J1410500",
+      "valor_31_12_ano_anterior": 10349.69,
+      "valor_31_12_ano_base": 9349.69,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "03",
+      "tipo": "aplicacao",
+      "descricao": "BTG - PRODUTO 22K1692411",
+      "valor_31_12_ano_anterior": 10324.25,
+      "valor_31_12_ano_base": 10324.25,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "03",
+      "tipo": "aplicacao",
+      "descricao": "BTG - PRODUTO CRA02300MZU",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 9115.01,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "03",
+      "tipo": "aplicacao",
+      "descricao": "BTG - PRODUTO CRA02300SPD",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 9109.54,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "03",
+      "tipo": "aplicacao",
+      "descricao": "BTG - PRODUTO CRA024001Q9",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 9248.83,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "04",
+      "codigo_item": "03",
+      "tipo": "aplicacao",
+      "descricao": "BTG - PRODUTO 23J0138431",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 9164.03,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "06",
+      "codigo_item": "01",
+      "tipo": "conta_bancaria",
+      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
+      "valor_31_12_ano_anterior": 1.0,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "01",
+      "tipo": "aplicacao",
+      "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO",
+      "valor_31_12_ano_anterior": 35868.62,
+      "valor_31_12_ano_base": 41408.87,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "01",
+      "tipo": "aplicacao",
+      "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 4494.93,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "07",
+      "tipo": "aplicacao",
+      "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRIVADO LONGO PRAZO",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 25479.42,
+      "localidade": "Brasil"
+    },
+    {
+      "codigo_grupo": "07",
+      "codigo_item": "10",
+      "tipo": "aplicacao",
+      "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE INVESTIMENTO FINANCEIRO EM INFRAESTRUTURA RENDA FIXA",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 25000.0,
+      "localidade": "Brasil"
+    }
+  ],
+  "rendimentos": [
+    {
+      "tipo": "clt",
+      "valor_bruto": 141842.7,
+      "valor_liquido": 141842.7,
+      "imposto_retido": 22575.99,
+      "fonte": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA HOSPITAL ALBERT E (60.765.823/0001-30)"
+    },
+    {
+      "tipo": "outro",
+      "valor_bruto": 62140.28,
+      "valor_liquido": 62140.28,
+      "imposto_retido": 0.0,
+      "fonte": "Trabalho não assalariado / Aluguéis de pessoa física"
+    },
+    {
+      "tipo": "isento",
+      "valor_bruto": 1336.61,
+      "valor_liquido": 1336.61,
+      "imposto_retido": 0.0,
+      "fonte": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA - ABONO DE FERIAS"
+    },
+    {
+      "tipo": "outro",
+      "valor_bruto": 8301.32,
+      "valor_liquido": 8301.32,
+      "imposto_retido": 1913.12,
+      "fonte": "13º salário (tributação exclusiva)"
+    },
+    {
+      "tipo": "financeiro",
+      "valor_bruto": 3319.56,
+      "valor_liquido": 3319.56,
+      "imposto_retido": 0.0,
+      "fonte": "Rendimentos de aplicações financeiras (tributação exclusiva)"
+    }
+  ],
+  "dividas_onus": [],
+  "deducoes": [
+    {
+      "tipo": "saude",
+      "valor": 400.0,
+      "descricao": "LEIR MIRANDA ESTEVES - ODONTOLOGO"
+    },
+    {
+      "tipo": "saude",
+      "valor": 275.0,
+      "descricao": "BEEP SERVICOS MEDICOS LTDA"
+    },
+    {
+      "tipo": "saude",
+      "valor": 600.0,
+      "descricao": "HT SARAGIOTTO SERVICOS MEDICOS LTDA"
+    },
+    {
+      "tipo": "saude",
+      "valor": 190.54,
+      "descricao": "SUL AMERICA SERVICOS DE SAUDE"
+    },
+    {
+      "tipo": "outro",
+      "valor": 13726.94,
+      "descricao": "GRPQA LTDA"
+    }
+  ],
+  "totalizadores": {
+    "bens_totais_ano_anterior": 811301.24,
+    "bens_totais_ano_base": 988123.73,
+    "renda_tributavel": 203982.98,
+    "renda_isenta": 1336.61,
+    "imposto_devido": 40746.89,
+    "imposto_pago": 22575.99,
+    "saldo": 18170.9
+  }
+}

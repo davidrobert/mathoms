@@ -1,0 +1,284 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "C6 Bank",
+  "cartao": {
+    "nome": "Carbon",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": "2025-10-01",
+    "data_fim": "2025-10-31",
+    "data_vencimento": "2025-11-05"
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 9083.15,
+    "compras_internacionais": 12673.99,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 0.0,
+    "saldo_atual": 22298.73
+  },
+  "transacoes": [
+    {
+      "data": "2026-08-30",
+      "descricao": "VINDI *ACCOUNTBANKTEC",
+      "valor": 390.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-02",
+      "descricao": "APPLE.COM/BILL",
+      "valor": 5.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-04",
+      "descricao": "DM *SPOTIFY",
+      "valor": 40.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-06",
+      "descricao": "CLUBE LIVELO*CLUBE LIV",
+      "valor": 44.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-13",
+      "descricao": "WELLHUB GYMPASS BR GYM",
+      "valor": 79.89,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-14",
+      "descricao": "SP FLIPPER DEVICES CL IOF Transações Exterior",
+      "valor": 53.1,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-14",
+      "descricao": "SP FLIPPER DEVICES CL USD",
+      "valor": 267.69,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-14",
+      "descricao": "APPLE.COM/US",
+      "valor": 80.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-15",
+      "descricao": "AMAZONPRIMEBR",
+      "valor": 19.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-16",
+      "descricao": "THENORTHFACE DE USD",
+      "valor": 205.76,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-16",
+      "descricao": "THENORTHFACE DE IOF Transações Exterior",
+      "valor": 40.33,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-16",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 413.12,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-19",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 191.79,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-19",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 47.45,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-19",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 213.46,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-22",
+      "descricao": "MERCADOLIVRE*MICHELAIN",
+      "valor": 64.79,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-22",
+      "descricao": "MERCADOLIVRE*BCBCOMERC",
+      "valor": 61.89,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-23",
+      "descricao": "LATAM AIR",
+      "valor": 1849.6,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-23",
+      "descricao": "MP *MELIMAIS",
+      "valor": 24.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-24",
+      "descricao": "LATAM AIR",
+      "valor": 917.98,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-24",
+      "descricao": "GLOBO GLOBOPLAY",
+      "valor": 22.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-25",
+      "descricao": "MERCADOLIVRE*UTILECOM",
+      "valor": 52.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-05",
+      "descricao": "Inclusao de Pagamento",
+      "valor": 5582.36,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-23",
+      "descricao": "HERTZ CAR RENTAL DA IOF Transações Exterior",
+      "valor": 41.61,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-23",
+      "descricao": "HERTZ CAR RENTAL DA USD",
+      "valor": 212.72,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-25",
+      "descricao": "TERMINAL III DESEMBARQ",
+      "valor": 35.8,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-25",
+      "descricao": "LS SP PLAZA SUL SAO PA",
+      "valor": 10.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-25",
+      "descricao": "MILKY MOO PLAZA SUL",
+      "valor": 51.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-25",
+      "descricao": "ALIANSCE",
+      "valor": 22.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-13",
+      "descricao": "MERCADINHO BONANZA LT",
+      "valor": 138.4,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-20",
+      "descricao": "DOLLAR TREE OR USD",
+      "valor": 6.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-20",
+      "descricao": "DOLLAR TREE OR IOF Transações Exterior",
+      "valor": 1.27,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-08",
+      "descricao": "DDDRIN SERVICO DE DESI",
+      "valor": 820.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-13",
+      "descricao": "A POSTO PLATINO",
+      "valor": 194.68,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-14",
+      "descricao": "AUTO POSTO GUACU",
+      "valor": 205.38,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-15",
+      "descricao": "F.M ESTETICA AUTOMOTIV",
+      "valor": 80.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-09-23",
+      "descricao": "FELTRIN MOTOS",
+      "valor": 682.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "tipo": "extratoconta",
+  "subtipo": "global_usd",
+  "instituicao": "C6 Bank",
+  "conta": {
+    "numero": "1003487837",
+    "tipo": "global",
+    "moeda": "USD",
+    "agencia": "0001"
+  },
+  "periodo": {
+    "data_inicio": "2025-12-29",
+    "data_fim": "2026-03-29"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": -847.0,
+      "data": "2025-12-29"
+    },
+    "saldo_final": {
+      "valor": 9159.0,
+      "data": "2026-03-17"
+    }
+  },
+  "transacoes": [
+    {
+      "data": "2026-01-17",
+      "descricao": "Débito de cartão -US$ 25,34 15/",
+      "tipo": "credito",
+      "valor": 1.0,
+      "saldo_apos": -846.0
+    },
+    {
+      "data": "2026-02-17",
+      "descricao": "Débito de cartão -US$ 25,66 15/",
+      "tipo": "credito",
+      "valor": 2.0,
+      "saldo_apos": -844.0
+    },
+    {
+      "data": "2026-03-15",
+      "descricao": "Entrada Transf C6 Conta Global Líquido US$",
+      "tipo": "credito",
+      "valor": 10000.0,
+      "saldo_apos": 9156.0
+    },
+    {
+      "data": "2026-03-17",
+      "descricao": "Débito de cartão -US$ 25,34 15/",
+      "tipo": "credito",
+      "valor": 3.0,
+      "saldo_apos": 9159.0
+    }
+  ],
+  "total_periodo": {
+    "total_debitos": 0,
+    "total_creditos": 10006.0,
+    "saldo_liquido": 10006.0
+  }
+}

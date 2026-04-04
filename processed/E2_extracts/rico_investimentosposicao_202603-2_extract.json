@@ -1,0 +1,13 @@
+{
+  "tipo": "investimentosposicao",
+  "instituicao": "Rico",
+  "data_posicao": "2026-03-29",
+  "moeda": "BRL",
+  "total_aplicado": null,
+  "saldo_atual": null,
+  "rentabilidade": {
+    "valor": null,
+    "percentual": null
+  },
+  "composicao": []
+}

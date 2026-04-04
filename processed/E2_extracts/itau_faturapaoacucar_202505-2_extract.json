@@ -1,0 +1,24 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "Itaú",
+  "cartao": {
+    "nome": "Pão de Açúcar",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": null,
+    "data_fim": null,
+    "data_vencimento": "2025-05-06"
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 0.0,
+    "compras_internacionais": 0.0,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 59.0,
+    "saldo_atual": 59.0
+  },
+  "transacoes": []
+}

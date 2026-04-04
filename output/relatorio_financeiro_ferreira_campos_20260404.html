@@ -1,0 +1,3138 @@
+<!-- TEMPLATE: Relatório Financeiro — Família Ferreira Campos -->
+<!-- Versão do Template: 1.0 — abr/2026 -->
+<!-- Este arquivo contém APENAS estrutura, CSS e JS. -->
+<!-- Todos os dados são injetados via placeholders {{NOME}}. -->
+<!-- Para gerar um relatório, substituir todos os {{PLACEHOLDERS}} por dados reais. -->
+
+<!DOCTYPE html>
+<html lang="pt-BR" style="scroll-behavior:smooth;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planejamento Financeiro — Família Ferreira Campos</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/turndown@7.1.3/dist/turndown.min.js"></script>
+<style>
+:root {
+  --color-primary: #1A3A5C;
+  --color-secondary: #1E6E8F;
+  --color-accent: #15803D;
+  --color-accent-bg: #2DC653;
+  --color-danger: #B91C1C;
+  --color-warning: #F4A261;
+  --color-warning-text: #B45309;
+  --color-neutral: #457B9D;
+  --color-light: #A8DADC;
+  --color-bg: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-text: #1E293B;
+  --color-text-muted: #64748B;
+  --color-border: #E2E8F0;
+  --color-row-even: #F8FAFC;
+  --color-row-hover: #EEF5FF;
+  --color-row-total: #EDF2F7;
+  --color-summary-bg: #EFF6FF;
+  --color-conclusion-bg: #F8FAFC;
+  --color-compare-neg: #FEF2F2;
+  --color-compare-pos: #F0FDF4;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --radius-card: 12px;
+  --radius-badge: 10px;
+  --space-card-sm: 16px;
+  --space-card-md: 24px;
+  --space-card-lg: 28px 32px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --color-bg: #0B1120;
+  --color-surface: #151D2E;
+  --color-surface-raised: #1C2640;
+  --color-text: #E2E8F0;
+  --color-text-muted: #8B9AB8;
+  --color-border: #243049;
+  --color-primary: #7EB8DA;
+  --color-secondary: #5CC8F0;
+  --color-accent: #4ADE80;
+  --color-accent-bg: #4ADE80;
+  --color-danger: #FB7185;
+  --color-warning: #FBBF24;
+  --color-warning-text: #FBBF24;
+  --color-neutral: #7CA3BD;
+  --color-light: #2A4A6B;
+  --color-row-even: #111827;
+  --color-row-hover: #1A2744;
+  --color-row-total: #1A2540;
+  --color-summary-bg: #111D30;
+  --color-conclusion-bg: #111827;
+  --color-compare-neg: #2A1520;
+  --color-compare-pos: #152A1A;
+  --alert-danger-bg: #2A1520; --alert-danger-text: #FCA5A5;
+  --alert-warning-bg: #2A2215; --alert-warning-text: #FDE68A;
+  --alert-success-bg: #152A1A; --alert-success-text: #86EFAC;
+  --alert-info-bg: #152035; --alert-info-text: #93C5FD;
+  --badge-green-bg: #14532D; --badge-green-text: #86EFAC;
+  --badge-red-bg: #4C1D2A; --badge-red-text: #FCA5A5;
+  --badge-yellow-bg: #3D2E0A; --badge-yellow-text: #FDE68A;
+  --badge-blue-bg: #172554; --badge-blue-text: #93C5FD;
+  --badge-neutral-bg: #1E293B; --badge-neutral-text: #94A3B8;
+  --table-even-bg: #111827; --table-hover-bg: #1A2744;
+  --table-total-bg: #1A2540; --table-header-bg: #1A3A5C;
+  --card-feature-bg: linear-gradient(135deg, #111D30 0%, #151D2E 100%);
+  --card-success-bg: linear-gradient(135deg, #0F1F18, #151D2E);
+  --shadow-card: 0 1px 6px rgba(0,0,0,0.25);
+  --roadmap-bg: #111D30;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font-body); font-size:14px; line-height:1.6; color: var(--color-text); background: var(--color-bg); }
+
+/* Cover Hero */
+.cover-hero {
+  background: linear-gradient(135deg, #0F2A44 0%, #1A3A5C 50%, #2E5D85 100%);
+  color: #fff; padding: 60px 40px; position: relative; overflow: hidden;
+}
+.cover-hero::before {
+  content:''; position:absolute; top:-50%; right:-20%; width:600px; height:600px;
+  background: radial-gradient(circle, rgba(46,134,171,0.15) 0%, transparent 70%); pointer-events:none;
+}
+.cover-hero::after {
+  content:''; position:absolute; bottom:-30%; left:-10%; width:400px; height:400px;
+  background: radial-gradient(circle, rgba(45,198,83,0.1) 0%, transparent 70%); pointer-events:none;
+}
+.cover-badge { display:inline-block; border:1px solid rgba(255,255,255,0.2); border-radius:20px;
+  padding:4px 16px; font-size:12px; letter-spacing:2px; text-transform:uppercase; margin-bottom:24px;
+  font-family: var(--font-body); color: rgba(255,255,255,0.7); }
+.cover-title { font-family: var(--font-display); font-size:38px; font-weight:800; margin-bottom:4px; }
+.cover-subtitle { font-family: var(--font-display); font-size:22px; font-weight:600;
+  background: linear-gradient(90deg, #A8DADC, #4ADE80); -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent; margin-bottom:16px; }
+.cover-divider { width:64px; height:3px; background: linear-gradient(90deg, #1E6E8F, #4ADE80);
+  margin:16px 0 24px; border-radius:2px; }
+.cover-meta { display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; }
+.cover-meta-card { background: rgba(255,255,255,0.06); border-radius:8px; padding:12px 16px; }
+.cover-meta-label { font-size:12px; color: rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:1px; }
+.cover-meta-value { font-size:14px; font-weight:600; margin-top:2px; }
+
+/* Navigation */
+.nav-sticky {
+  position: sticky; top:0; z-index:100;
+  background: linear-gradient(90deg, #0F2A44, #152F4A);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  display:flex; align-items:center; padding:0 20px;
+}
+.nav-sticky::-webkit-scrollbar { display:none; }
+.nav-scroll { display:flex; align-items:center; flex:1; overflow-x:auto; scrollbar-width:none; min-width:0; }
+.nav-scroll::-webkit-scrollbar { display:none; }
+.nav-brand { display:flex; align-items:center; gap:8px; padding:10px 16px 10px 0;
+  border-right:1px solid rgba(255,255,255,0.1); margin-right:8px; white-space:nowrap; }
+.nav-brand-icon { width:28px; height:28px; border-radius:6px;
+  background: linear-gradient(135deg, #1E6E8F, #4ADE80); display:flex; align-items:center;
+  justify-content:center; font-size:14px; font-weight:800; color:#fff; }
+.nav-brand-text { font-family: var(--font-display); font-size:12px; font-weight:700; color:#fff; }
+.nav-links { display:flex; gap:2px; }
+.nav-link { display:flex; align-items:center; gap:4px; padding:10px 10px; color:rgba(255,255,255,0.7);
+  text-decoration:none; font-size:12px; font-weight:500; white-space:nowrap; border-radius:4px;
+  transition: all 0.2s; font-family: var(--font-body); }
+.nav-link:hover { color:#fff; background:rgba(255,255,255,0.08); }
+.nav-link .num { display:inline-flex; align-items:center; justify-content:center;
+  width:16px; height:16px; border-radius:4px; background:rgba(255,255,255,0.15);
+  font-size:10px; font-weight:700; }
+.nav-link.appendix { color:rgba(255,255,255,0.4); }
+
+/* Main container */
+.container { max-width:960px; margin:0 auto; padding:0 32px; }
+
+/* Sections */
+.section { padding:40px 0; }
+.section-header { margin-bottom:28px; }
+h1 { font-family: var(--font-display); font-size:22px; font-weight:700; color: var(--color-primary);
+  border-left:4px solid var(--color-secondary); padding-left:14px; margin-bottom:6px; }
+h2 { font-family: var(--font-display); font-size:16px; font-weight:600; color: var(--color-secondary);
+  margin:20px 0 12px; }
+h3 { font-size:14px; font-weight:600; color: var(--color-primary); margin:16px 0 8px; }
+
+/* Cards */
+.card { background: var(--color-surface); border-radius:var(--radius-card); padding:var(--space-card-lg);
+  box-shadow:var(--shadow-card); border:1px solid var(--color-border); margin-bottom:20px; }
+.card-title { font-family: var(--font-display); font-size:14px; font-weight:700;
+  color: var(--color-primary); margin-bottom:12px; }
+.card-title-lg { font-size:16px; color:var(--color-primary); }
+.card-title-green { color:var(--color-accent); }
+.card-title-red { color:var(--color-danger); }
+
+/* KPI Cards */
+.kpi-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin:24px 0; }
+.kpi-card { background: var(--color-surface); border-radius:var(--radius-card); padding:20px;
+  box-shadow:var(--shadow-card); border:1px solid var(--color-border); text-align:center; }
+.kpi-label { font-size:12px; color: var(--color-text-muted); text-transform:uppercase;
+  letter-spacing:0.5px; margin-bottom:6px; }
+.kpi-value { font-family: var(--font-display); font-size:24px; font-weight:800; color: var(--color-primary); }
+.kpi-value.green { color: var(--color-accent); }
+.kpi-value.red { color: var(--color-danger); }
+.kpi-value.blue { color: var(--color-secondary); }
+.kpi-sub { font-size:12px; color: var(--color-text-muted); margin-top:4px; }
+
+/* Tables */
+table { width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; }
+th { background: var(--color-primary); color:#fff; padding:10px 12px; text-align:left;
+  font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; }
+td { padding:8px 12px; border-bottom:1px solid var(--color-border); }
+tr:nth-child(even) { background: var(--color-row-even); }
+tr:hover { background: var(--color-row-hover); }
+.td-right { text-align:right; font-variant-numeric:tabular-nums; }
+.td-bold { font-weight:600; }
+.td-green { color: var(--color-accent); font-weight:600; }
+.td-red { color: var(--color-danger); font-weight:600; }
+.td-total { background: var(--color-row-total) !important; font-weight:700; }
+
+/* Charts */
+.chart-container { position:relative; margin:20px 0; max-width:100%; }
+.chart-container canvas { max-height:400px; min-height:250px; }
+.chart-row { display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin:20px 0; }
+.chart-row .chart-container canvas { min-height:250px; }
+
+/* Canvas inside cards (without .chart-container wrapper) */
+.card canvas { max-height:360px; width:100% !important; margin:16px auto; display:block; }
+.card .chart-row canvas { max-height:300px; }
+
+/* Chart context/conclusion text */
+.chart-context { font-size:13px; color:var(--color-text-muted); margin:8px 0 4px; line-height:1.5; }
+.chart-conclusion { font-size:13px; color:var(--color-text); margin:4px 0 0; line-height:1.5;
+  padding:10px 14px; background:var(--color-conclusion-bg); border-radius:6px; border-left:3px solid var(--color-secondary); }
+
+/* Alert boxes */
+.alert { padding:14px 18px; border-radius:8px; margin:12px 0; font-size:13px; }
+.alert-danger { background: var(--color-compare-neg); border-left:4px solid var(--color-danger); color: #991B1B; }
+.alert-warning { background: #FFFBEB; border-left:4px solid var(--color-warning); color: var(--color-warning-text); }
+.alert-success { background: var(--color-compare-pos); border-left:4px solid var(--color-accent-bg); color: var(--color-accent); }
+.alert-info { background: var(--color-summary-bg); border-left:4px solid var(--color-secondary); color: #1E40AF; }
+
+/* Two-col cards */
+.two-col { display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+
+/* Badge */
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:12px; font-weight:600; }
+.badge-green, .badge-success { background:#DCFCE7; color:var(--color-accent); }
+.badge-red, .badge-danger { background:#FEE2E2; color:#991B1B; }
+.badge-yellow, .badge-warning { background:#FEF3C7; color:#92400E; }
+.badge-blue, .badge-info { background:#DBEAFE; color:#1E40AF; }
+.badge-neutral { background:#F1F5F9; color:#475569; }
+
+/* Card variants */
+.card-highlight { border-left:4px solid var(--color-secondary); }
+.card-feature { background: linear-gradient(135deg, var(--color-summary-bg) 0%, var(--color-bg) 100%); border:none; border-left:4px solid var(--color-secondary); border-radius:var(--radius-card); box-shadow:var(--shadow-card); }
+.card-success { background: linear-gradient(135deg, var(--color-compare-pos), var(--color-bg)); border-left:4px solid var(--color-accent); }
+.card-warn { border-left:4px solid var(--color-warning); }
+.card-critical { border-left:4px solid var(--color-danger); }
+.card-primary { border-left:4px solid var(--color-primary); }
+.card-neutral { border-left:4px solid var(--color-neutral); }
+.card-top-danger { border-top:3px solid var(--color-danger); }
+.card-top-accent { border-top:3px solid var(--color-accent); }
+
+/* Family profile grid */
+.perfil-grid { display:grid; grid-template-columns:1fr 1fr; gap:32px; margin-top:12px; }
+.perfil-col p { font-size:13px; line-height:1.75; margin-bottom:14px; color:var(--color-text); }
+.perfil-col p:last-child { margin-bottom:0; }
+.perfil-col strong { color:var(--color-primary); font-weight:700; }
+
+/* Patrimônio summary table */
+.table-patrimonio { margin:16px 0; }
+.table-patrimonio td:first-child { width:55%; }
+.table-patrimonio .emoji-cell { width:30px; text-align:center; padding-right:0; }
+
+/* Section dividers */
+.section-divider {
+  border: none;
+  height: auto;
+  margin: 56px 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border) 20%, var(--color-border) 80%, transparent);
+}
+.section-divider-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(46,134,171,0.08), rgba(45,198,83,0.08));
+  border: 1px solid var(--color-border);
+  color: var(--color-secondary);
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.section-divider:hover .section-divider-icon {
+  transform: scale(1.1);
+  box-shadow: 0 2px 12px rgba(46,134,171,0.15);
+}
+[data-theme="dark"] .section-divider-icon {
+  background: linear-gradient(135deg, rgba(46,134,171,0.15), rgba(45,198,83,0.12));
+  border-color: var(--color-border);
+}
+
+/* Tactical section dividers */
+.dash-section + .dash-section {
+  border-top: 1px solid var(--color-border);
+  padding-top: 28px;
+  margin-top: 28px;
+}
+
+/* Collapsible sections */
+.section-header { cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+.section-header .collapse-icon { transition: transform 0.3s; font-size: 14px; color: var(--color-text-muted); margin-left: 8px; }
+.section-header.collapsed .collapse-icon { transform: rotate(-90deg); }
+.section-content { transition: max-height 0.3s ease; overflow: hidden; }
+.section-content.collapsed { max-height: 0; padding: 0; }
+
+/* Theme toggle */
+.theme-toggle { display: flex; gap: 2px; margin-left: 12px; padding: 6px 0; flex-shrink: 0; }
+.theme-btn { font-family: var(--font-body); font-size: 11px; font-weight: 600; padding: 5px 12px;
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; background: transparent;
+  color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.theme-btn:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); }
+.theme-btn.active { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.25); }
+
+/* Mini summary */
+.section-summary { font-family:var(--font-display); font-size:14px; font-weight:500; color:var(--color-secondary);
+  padding:12px 16px; background:var(--color-summary-bg); border-radius:8px; margin-bottom:20px; line-height:1.5; }
+
+/* KPI hierarchy */
+.kpi-hero { border:2px solid var(--color-primary) !important; }
+.kpi-hero .kpi-value { font-size:28px !important; }
+.kpi-hero .kpi-label { font-weight:600; }
+
+/* Comparison layout */
+.comparison { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:12px 0; }
+.comparison-card { background:var(--color-surface); border-radius:var(--radius-card); padding:var(--space-card-sm); border:1px solid var(--color-border); box-shadow:var(--shadow-card); }
+.comparison-card h4 { font-family:var(--font-display); font-size:13px; font-weight:700; margin-bottom:8px; }
+
+/* Icon badges */
+.icon-badge { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px;
+  border-radius:6px; font-size:12px; font-weight:800; color:#fff; margin-right:6px; vertical-align:middle; }
+.icon-badge-blue { background:var(--color-secondary); }
+.icon-badge-green { background:var(--color-accent); }
+.icon-badge-red { background:var(--color-danger); }
+.icon-badge-orange { background:var(--color-warning); }
+.icon-badge-dark { background:var(--color-primary); }
+
+/* Typography utilities (M4) */
+.text-sm { font-size:12px; color:var(--color-text-muted); }
+.text-base { font-size:13px; }
+.text-lg { font-size:14px; }
+.text-muted { color:var(--color-text-muted); }
+.text-bold { font-weight:600; }
+.mt-0 { margin-top:0; } .mt-2 { margin-top:8px; } .mt-3 { margin-top:12px; } .mt-4 { margin-top:16px; }
+.mb-0 { margin-bottom:0; } .mb-2 { margin-bottom:8px; } .mb-3 { margin-bottom:12px; }
+
+/* Table variants (M7) */
+table.table-steps { border-left:3px solid var(--color-secondary); }
+table.table-steps td:first-child { font-weight:700; white-space:nowrap; width:1%; color:var(--color-primary); }
+table.table-compare th { text-align:center; }
+table.table-compare td:nth-child(2) { background:var(--color-compare-neg); }
+table.table-compare td:nth-child(3) { background:var(--color-compare-pos); }
+
+/* Nav separator (M6) */
+.nav-separator { width:1px; height:20px; background:rgba(255,255,255,0.15); margin:0 4px; flex-shrink:0; }
+
+/* Back to top + bottom (floating navigation) */
+.back-to-top, .go-to-bottom { position:fixed; right:24px; width:44px; height:44px; border-radius:50%;
+  background:var(--color-primary); color:#fff; border:none; cursor:pointer; font-size:18px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.2); opacity:0; transition:opacity 0.3s; z-index:200;
+  display:flex; align-items:center; justify-content:center; }
+.back-to-top { bottom:24px; }
+.go-to-bottom { bottom:78px; }
+.back-to-top.visible, .go-to-bottom.visible { opacity:1; }
+.back-to-top:hover, .go-to-bottom:hover { background:var(--color-secondary); transform:scale(1.1); }
+
+/* Export toolbar (above footer) */
+.export-toolbar { background: linear-gradient(135deg, #0F2A44, #1A3A5C); padding:20px 40px;
+  display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; }
+.export-toolbar .export-btn { display:inline-flex; align-items:center; gap:8px;
+  padding:10px 20px; border-radius:8px; border:1px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.85); font-family:var(--font-body);
+  font-size:13px; font-weight:500; cursor:pointer; transition:all 0.2s; }
+.export-toolbar .export-btn:hover { background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.4); }
+.export-toolbar .export-btn span { font-size:16px; }
+
+/* Progressive disclosure (details/summary) */
+details.expandable { margin:12px 0; }
+details.expandable summary { cursor:pointer; font-family:var(--font-display); font-size:13px; font-weight:600;
+  color:var(--color-secondary); padding:8px 0; list-style:none; }
+details.expandable summary::before { content:'▸ '; transition:transform 0.2s; }
+details.expandable[open] summary::before { content:'▾ '; }
+details.expandable > div { padding:12px 0 0; }
+
+/* Utility: no-wrap for timeline cells */
+.nowrap { white-space:nowrap; }
+/* Utility: list unstyled */
+.list-actions { list-style:none; padding:0; font-size:13px; }
+.list-actions li { padding:6px 0; border-bottom:1px solid var(--color-border); }
+.list-actions li:last-child { border-bottom:none; }
+
+/* Footer */
+.footer { background: var(--color-primary); color:rgba(255,255,255,0.7); padding:30px 40px;
+  font-size:12px; line-height:1.8; margin-top:40px; }
+.footer strong { color:#fff; }
+
+/* Print (#12) */
+@media print {
+  .nav-sticky { display:none; }
+  .cover-hero { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .cover-hero::before, .cover-hero::after { display:none; }
+  .section { page-break-before:auto; }
+  .card { page-break-inside:avoid; }
+  table { page-break-inside:avoid; }
+  .alert { page-break-inside:avoid; }
+  .kpi-grid { page-break-inside:avoid; }
+  .chart-row { page-break-inside:avoid; }
+  body { font-size:12px; }
+  .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+  canvas { display:none !important; }
+  
+  .section-summary { background:var(--color-summary-bg) !important; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .badge { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .icon-badge { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  @page { margin: 15mm; }
+  @page :first { margin-top:0; }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
+  .container { padding:0 16px; }
+  .kpi-grid { grid-template-columns: repeat(4, 1fr); gap:12px; }
+  .kpi-value { font-size:22px; }
+  .chart-row { gap:16px; }
+  table { font-size:12px; }
+  th, td { padding:6px 10px; }
+}
+
+/* Mobile landscape / small tablet (max 768px) */
+@media (max-width: 768px) {
+  .cover-hero { padding:40px 20px; }
+  .cover-title { font-size:24px; }
+  .cover-subtitle { font-size:16px; }
+  .cover-meta { grid-template-columns: repeat(2, 1fr) !important; gap:10px; }
+  .cover-meta-value { font-size:13px; }
+
+  .nav-brand-text { display:none; }
+  .nav-brand { margin-right:4px; padding-right:8px; }
+  .nav-link { padding:10px 8px; font-size:10px; }
+  .nav-text { display:none; }
+  .nav-link .num { width:24px; height:24px; font-size:12px; border-radius:6px; }
+
+  .container { padding:0 12px; }
+  .section { padding:24px 0; }
+  h1 { font-size:16px; }
+  h2 { font-size:14px; }
+
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap:10px; }
+  .kpi-card { padding:14px 10px; }
+  .kpi-value { font-size:20px; }
+  .kpi-label { font-size:10px; }
+  .kpi-sub { font-size:10px; }
+
+  .card { padding:var(--space-card-sm); border-radius:var(--radius-card); }
+  .card-title { font-size:13px; }
+
+  .chart-row { grid-template-columns: 1fr; }
+  .chart-container canvas { min-height:280px !important; }
+  .chart-row .chart-container canvas { min-height:250px !important; }
+
+  .two-col { grid-template-columns: 1fr; gap:12px; }
+  .comparison { grid-template-columns: 1fr; gap:12px; }
+
+  table { font-size:12px; display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  th, td { padding:6px 8px; white-space:nowrap; }
+
+  .alert { padding:12px 14px; font-size:12px; }
+
+  .footer { padding:20px; font-size:12px; }
+}
+
+/* Mobile portrait (max 480px) */
+@media (max-width: 480px) {
+  .cover-hero { padding:30px 16px; }
+  .cover-title { font-size:22px; }
+  .cover-subtitle { font-size:16px; }
+  .cover-badge { font-size:10px; padding:3px 10px; }
+  .cover-meta { grid-template-columns: 1fr !important; }
+
+  .nav-sticky { padding:0 8px; }
+  .nav-link { padding:10px 6px; min-height:44px; }
+
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap:8px; }
+  .kpi-card { padding:12px 8px; }
+  .kpi-value { font-size:16px; }
+
+  .card { padding:12px; margin-bottom:16px; }
+
+  .chart-container canvas { min-height:220px !important; }
+
+  h1 { font-size:16px; padding-left:10px; }
+  body { font-size:13px; }
+}
+
+/* ============ DUAL MODE: Strategic / Tactical ============ */
+body.mode-strategic [data-mode="tactical"] { display: none !important; }
+body.mode-tactical [data-mode="strategic"] { display: none !important; }
+[data-mode="both"] { display: block; }
+
+/* Mode toggle in nav */
+.mode-toggle { display:flex; gap:2px; margin-left:12px; padding:6px 0; flex-shrink:0; }
+.mode-btn { font-family: var(--font-body); font-size:11px; font-weight:600; padding:5px 12px;
+  border:1px solid rgba(255,255,255,0.15); border-radius:6px; background:transparent;
+  color:rgba(255,255,255,0.5); cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.mode-btn:hover { color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.06); }
+.mode-btn.active { background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.25); }
+
+/* Dashboard KPI row */
+.dash-kpis { display:grid; grid-template-columns: repeat(6, 1fr); gap:10px; margin:16px 0 0; }
+.dash-kpi { background: var(--color-surface); border-radius:var(--radius-card); padding:14px 16px;
+  box-shadow:var(--shadow-card); border:1px solid var(--color-border); text-align:center; }
+.dash-kpi-label { font-size:11px; color:var(--color-text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+.dash-kpi-value { font-family:var(--font-display); font-size:16px; font-weight:700; margin:4px 0 2px; }
+.dash-kpi-sub { font-size:11px; color:var(--color-text-muted); }
+.dash-kpi-value.ok { color: var(--color-accent); }
+.dash-kpi-value.warn { color: var(--color-warning); }
+.dash-kpi-value.alert { color: var(--color-danger); }
+
+/* Dashboard sections */
+.dash-section { padding:32px 0; }
+.dash-section h2 { font-family:var(--font-display); font-size:18px; font-weight:600; color:var(--color-primary);
+  margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid var(--color-border); }
+.progress-bar { height:8px; border-radius:4px; background:var(--color-border); overflow:hidden; }
+.progress-fill { height:100%; border-radius:4px; transition:width 0.3s; }
+.progress-fill.ok { background:var(--color-accent); }
+.progress-fill.warn { background:var(--color-warning); }
+.progress-fill.alert { background:var(--color-danger); }
+.task-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--color-border); font-size:13px; }
+.task-status { width:24px; text-align:center; }
+.task-text { flex:1; }
+.task-text.done { text-decoration:line-through; color:var(--color-text-muted); }
+.task-prazo { font-size:11px; color:var(--color-text-muted); min-width:60px; text-align:right; }
+.filter-bar { display:flex; gap:6px; margin-bottom:12px; }
+.filter-btn { font-size:11px; padding:4px 10px; border-radius:4px; border:1px solid var(--color-border);
+  background:transparent; cursor:pointer; color:var(--color-text-muted); }
+.filter-btn.active { background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
+.timeline-item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--color-border); }
+.timeline-date { min-width:50px; font-size:12px; font-weight:600; color:var(--color-primary); }
+.timeline-action { flex:1; font-size:13px; }
+.timeline-badge { font-size:10px; padding:2px 8px; border-radius:4px; font-weight:500; }
+.timeline-badge.feito { background:#DCFCE7; color:#166534; }
+.timeline-badge.pendente { background:#FEF3C7; color:#92400E; }
+.timeline-badge.aguardando { background:#DBEAFE; color:#1E40AF; }
+
+/* JS-generated compact cards (tactical aportes, etc.) */
+.card-compact { padding:14px 16px; text-align:center; }
+.card-compact .card-compact-icon { font-size:20px; margin-bottom:4px; }
+.card-compact .card-compact-label { font-size:12px; font-weight:600; }
+.card-compact .card-compact-value { font-size:14px; font-weight:700; color:var(--color-primary); margin-top:4px; }
+.card-compact .card-compact-sub { font-size:11px; color:var(--color-text-muted); }
+
+/* JS-generated inline badges (task effort S/R/O) */
+.effort-badge { font-size:10px; padding:1px 5px; border-radius:3px; font-weight:500; }
+.effort-badge-s { background:#FEF3C7; color:#92400E; }
+.effort-badge-r { background:#DBEAFE; color:#1E40AF; }
+.effort-badge-o { background:#F1F5F9; color:#475569; }
+
+/* JS-generated success alert (no-alerts state) */
+.alert-success-inline { background:var(--color-compare-pos); border-left:4px solid var(--color-accent-bg); color:var(--color-accent); }
+
+@media (max-width:768px) {
+  .dash-kpis { grid-template-columns: repeat(3, 1fr); }
+  .mode-toggle { flex-wrap: nowrap; }
+  .perfil-grid { grid-template-columns: 1fr; gap:16px; }
+}
+
+/* Fix gauge chart sizing — maintain 2:1 aspect ratio for semi-circle */
+#chart-score-gauge { width: 100% !important; aspect-ratio: 2 / 1.1; max-width: 600px; margin: 0 auto; display: block; }
+
+/* Give chart-container card styling (matching reference) */
+.chart-container {
+  background: var(--color-surface); border-radius: var(--radius-card); padding: var(--space-card-md);
+  box-shadow: var(--shadow-card); border: 1px solid var(--color-border);
+}
+
+/* Section header override: make h2 inside .section look like reference h1 */
+.section > h2:first-child {
+  font-family: var(--font-display); font-size:22px; font-weight:700; color: var(--color-primary);
+  border-left:4px solid var(--color-secondary); padding-left:14px; margin-bottom:6px;
+}
+.section > .section-summary:nth-child(2) { margin-top: 12px; }
+
+/* ===== DARK MODE OVERRIDES ===== */
+/* NOTE: Many colors are now handled via CSS custom properties in [data-theme="dark"] :root.
+   These overrides remain only for elements that need !important or specific targeting. */
+
+/* Tables — header still needs override for specificity */
+[data-theme="dark"] th { background: var(--table-header-bg) !important; }
+[data-theme="dark"] table.table-steps { border-left-color: var(--color-secondary); }
+[data-theme="dark"] table.table-steps td:first-child { color: var(--color-primary); }
+
+/* Inline style overrides for E5-generated table cells */
+[data-theme="dark"] td[style*="background:#FEF2F2"],
+[data-theme="dark"] td[style*="background: #FEF2F2"] { background: #2A1520 !important; color: var(--alert-danger-text) !important; }
+[data-theme="dark"] td[style*="background:#F0FDF4"],
+[data-theme="dark"] td[style*="background: #F0FDF4"] { background: #152A1A !important; color: var(--alert-success-text) !important; }
+
+/* Alerts */
+[data-theme="dark"] .alert-danger { background: var(--alert-danger-bg) !important; color: var(--alert-danger-text) !important; }
+[data-theme="dark"] .alert-warning { background: var(--alert-warning-bg) !important; color: var(--alert-warning-text) !important; }
+[data-theme="dark"] .alert-success { background: var(--alert-success-bg) !important; color: var(--alert-success-text) !important; }
+[data-theme="dark"] .alert-info { background: var(--alert-info-bg) !important; color: var(--alert-info-text) !important; }
+
+/* Inline style overrides for E5-generated alerts */
+[data-theme="dark"] .alert[style*="background:#FEF2F2"],
+[data-theme="dark"] .alert[style*="background: #FEF2F2"],
+[data-theme="dark"] div[style*="background:#FEF2F2"],
+[data-theme="dark"] div[style*="background: #FEF2F2"] { background: var(--alert-danger-bg) !important; color: var(--alert-danger-text) !important; }
+[data-theme="dark"] .alert[style*="background:#FFFBEB"],
+[data-theme="dark"] .alert[style*="background: #FFFBEB"],
+[data-theme="dark"] div[style*="background:#FFFBEB"],
+[data-theme="dark"] div[style*="background: #FFFBEB"] { background: var(--alert-warning-bg) !important; color: var(--alert-warning-text) !important; }
+[data-theme="dark"] .alert[style*="background:#F0FDF4"],
+[data-theme="dark"] .alert[style*="background: #F0FDF4"],
+[data-theme="dark"] div[style*="background:#F0FDF4"],
+[data-theme="dark"] div[style*="background: #F0FDF4"] { background: var(--alert-success-bg) !important; color: var(--alert-success-text) !important; }
+[data-theme="dark"] .alert[style*="background:#EFF6FF"],
+[data-theme="dark"] .alert[style*="background: #EFF6FF"],
+[data-theme="dark"] div[style*="background:#EFF6FF"],
+[data-theme="dark"] div[style*="background: #EFF6FF"] { background: var(--alert-info-bg) !important; color: var(--alert-info-text) !important; }
+
+/* Badges */
+[data-theme="dark"] .badge-green, [data-theme="dark"] .badge-success { background: var(--badge-green-bg) !important; color: var(--badge-green-text) !important; }
+[data-theme="dark"] .badge-red, [data-theme="dark"] .badge-danger { background: var(--badge-red-bg) !important; color: var(--badge-red-text) !important; }
+[data-theme="dark"] .badge-yellow, [data-theme="dark"] .badge-warning { background: var(--badge-yellow-bg) !important; color: var(--badge-yellow-text) !important; }
+[data-theme="dark"] .badge-blue, [data-theme="dark"] .badge-info { background: var(--badge-blue-bg) !important; color: var(--badge-blue-text) !important; }
+[data-theme="dark"] .badge-neutral { background: var(--badge-neutral-bg) !important; color: var(--badge-neutral-text) !important; }
+
+/* Timeline badges */
+[data-theme="dark"] .timeline-badge.feito { background: var(--badge-green-bg) !important; color: var(--badge-green-text) !important; }
+[data-theme="dark"] .timeline-badge.pendente { background: var(--badge-yellow-bg) !important; color: var(--badge-yellow-text) !important; }
+[data-theme="dark"] .timeline-badge.aguardando { background: var(--badge-blue-bg) !important; color: var(--badge-blue-text) !important; }
+
+/* Cards — feature/success need gradient override */
+[data-theme="dark"] .card-feature { background: var(--card-feature-bg) !important; border-color: transparent; }
+[data-theme="dark"] .card-success { background: var(--card-success-bg) !important; }
+[data-theme="dark"] .kpi-hero { border-color: var(--color-primary) !important; }
+
+/* Section summary, chart conclusion — now use tokens, but keep color override */
+[data-theme="dark"] .section-summary { color: var(--color-secondary); }
+
+/* h1 border */
+[data-theme="dark"] h1 { border-left-color: var(--color-secondary); }
+[data-theme="dark"] h3 { color: var(--color-primary); }
+[data-theme="dark"] .card-title { color: var(--color-primary); }
+
+/* Cover hero */
+[data-theme="dark"] .cover-hero { background: linear-gradient(135deg, #080E1A 0%, #0F172A 50%, #162033 100%); }
+
+/* Dashboard section h2 border */
+[data-theme="dark"] .dash-section h2 { border-bottom-color: var(--color-border); }
+
+/* Filter buttons */
+[data-theme="dark"] .filter-btn { border-color: var(--color-border); color: var(--color-text-muted); }
+[data-theme="dark"] .filter-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: #0B1120; }
+
+/* Task rows */
+[data-theme="dark"] .task-row { border-bottom-color: var(--color-border); }
+[data-theme="dark"] .task-text.done { color: var(--color-text-muted); }
+
+/* Timeline */
+[data-theme="dark"] .timeline-item { border-bottom-color: var(--color-border); }
+[data-theme="dark"] .timeline-date { color: var(--color-primary); }
+
+/* Progress bars */
+[data-theme="dark"] .progress-bar { background: #1A2540; }
+
+/* Footer */
+[data-theme="dark"] .footer { background: #080E1A; }
+
+/* Back to top */
+[data-theme="dark"] .back-to-top, [data-theme="dark"] .go-to-bottom { background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-primary); }
+[data-theme="dark"] .back-to-top:hover, [data-theme="dark"] .go-to-bottom:hover { background: var(--color-secondary); color: #0B1120; }
+
+/* Perfil grid */
+[data-theme="dark"] .perfil-col strong { color: var(--color-primary); }
+
+/* Expandables */
+[data-theme="dark"] details.expandable summary { color: var(--color-secondary); }
+
+/* List actions */
+[data-theme="dark"] .list-actions li { border-bottom-color: var(--color-border); }
+
+/* JS-generated effort badges (dark) */
+[data-theme="dark"] .effort-badge-s { background: var(--badge-yellow-bg) !important; color: var(--badge-yellow-text) !important; }
+[data-theme="dark"] .effort-badge-r { background: var(--badge-blue-bg) !important; color: var(--badge-blue-text) !important; }
+[data-theme="dark"] .effort-badge-o { background: var(--badge-neutral-bg) !important; color: var(--badge-neutral-text) !important; }
+[data-theme="dark"] .alert-success-inline { background: var(--alert-success-bg) !important; color: var(--alert-success-text) !important; }
+
+/* Inline style overrides for E5-generated colored spans */
+[data-theme="dark"] span[style*="background:#FEF3C7"],
+[data-theme="dark"] span[style*="background: #FEF3C7"] { background: var(--badge-yellow-bg) !important; color: var(--badge-yellow-text) !important; }
+[data-theme="dark"] span[style*="background:#DCFCE7"],
+[data-theme="dark"] span[style*="background: #DCFCE7"] { background: var(--badge-green-bg) !important; color: var(--badge-green-text) !important; }
+[data-theme="dark"] span[style*="background:#FEE2E2"],
+[data-theme="dark"] span[style*="background: #FEE2E2"] { background: var(--badge-red-bg) !important; color: var(--badge-red-text) !important; }
+[data-theme="dark"] span[style*="background:#DBEAFE"],
+[data-theme="dark"] span[style*="background: #DBEAFE"] { background: var(--badge-blue-bg) !important; color: var(--badge-blue-text) !important; }
+
+/* Section > h2 first-child */
+[data-theme="dark"] .section > h2:first-child { color: var(--color-primary); border-left-color: var(--color-secondary); }
+
+/* Strong in paragraphs */
+[data-theme="dark"] p strong { color: var(--color-primary); }
+
+</style>
+</head>
+<body class="mode-strategic">
+
+
+<div class="cover-hero" id="capa" data-mode="both">
+  <div class="container">
+    <div class="cover-badge">RELATÓRIO CONFIDENCIAL</div>
+    <div class="cover-title">Planejamento Financeiro</div>
+    <div class="cover-subtitle">Pessoal e Patrimonial</div>
+    <div class="cover-divider"></div>
+    <div class="cover-meta" style="grid-template-columns: repeat(4, 1fr);">
+      <div class="cover-meta-card">
+        <div class="cover-meta-label">Família</div>
+        <div class="cover-meta-value">Ferreira Campos</div>
+      </div>
+      <div class="cover-meta-card">
+        <div class="cover-meta-label">Período de Referência</div>
+        <div class="cover-meta-value">Mai/2025 — Mar/2026</div>
+      </div>
+      <div class="cover-meta-card">
+        <div class="cover-meta-label">Data e Hora de Geração</div>
+        <div class="cover-meta-value">04/04/2026 às 06:58 (Brasília)</div>
+      </div>
+      <div class="cover-meta-card">
+        <div class="cover-meta-label">Versão Manual Operações</div>
+        <div class="cover-meta-value">3.1</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<nav class="nav-sticky">
+  <div class="nav-scroll">
+  <div class="nav-brand">
+    <div class="nav-brand-icon">FC</div>
+    <div class="nav-brand-text">Ferreira Campos</div>
+  </div>
+  <div class="nav-links nav-strategic">
+    <a href="#capa" class="nav-link"><span class="num">•</span><span class="nav-text">KPIs</span></a>
+    <a href="#secao-1" class="nav-link"><span class="num">1</span><span class="nav-text">Patrimônio</span></a>
+    <a href="#secao-2" class="nav-link"><span class="num">2</span><span class="nav-text">Fluxo</span></a>
+    <a href="#secao-3" class="nav-link"><span class="num">3</span><span class="nav-text">Investimentos</span></a>
+    <a href="#secao-4" class="nav-link"><span class="num">4</span><span class="nav-text">Imóveis</span></a>
+    <a href="#secao-5" class="nav-link"><span class="num">5</span><span class="nav-text">F1/F2</span></a>
+    <a href="#secao-6" class="nav-link"><span class="num">6</span><span class="nav-text">Green Card</span></a>
+    <a href="#secao-7" class="nav-link"><span class="num">7</span><span class="nav-text">Indep. Fin.</span></a>
+    <a href="#secao-8" class="nav-link"><span class="num">8</span><span class="nav-text">Tributário</span></a>
+    <a href="#secao-9" class="nav-link"><span class="num">9</span><span class="nav-text">Riscos</span></a>
+    <a href="#secao-10" class="nav-link"><span class="num">10</span><span class="nav-text">Conclusão</span></a>
+    <div class="nav-separator"></div>
+    <a href="#apendice-a" class="nav-link appendix"><span class="num">A</span><span class="nav-text">Tarefas</span></a>
+    <a href="#apendice-b" class="nav-link appendix"><span class="num">B</span><span class="nav-text">Viagens</span></a>
+    <a href="#apendice-c" class="nav-link appendix"><span class="num">C</span><span class="nav-text">Sucessão</span></a>
+    <a href="#apendice-d" class="nav-link appendix"><span class="num">D</span><span class="nav-text">NCLEX</span></a>
+    <a href="#apendice-e" class="nav-link appendix"><span class="num">E</span><span class="nav-text">Simulação</span></a>
+  </div>
+  <div class="nav-links nav-dashboard" style="display:none;">
+    <a href="#capa" class="nav-link"><span class="num">•</span><span class="nav-text">KPIs</span></a>
+    <a href="#dash-fluxo" class="nav-link"><span class="num">T1</span><span class="nav-text">Fluxo</span></a>
+    <a href="#dash-aportes" class="nav-link"><span class="num">T2</span><span class="nav-text">Aportes</span></a>
+    <a href="#dash-tarefas" class="nav-link"><span class="num">T3</span><span class="nav-text">Tarefas</span></a>
+    <a href="#dash-alertas" class="nav-link"><span class="num">T4</span><span class="nav-text">Alertas</span></a>
+    <a href="#dash-proximos" class="nav-link"><span class="num">T5</span><span class="nav-text">Próximos Passos</span></a>
+    <a href="#dash-notas" class="nav-link"><span class="num">T6</span><span class="nav-text">Notas</span></a>
+  </div>
+  </div><!-- end nav-scroll -->
+  <div class="mode-toggle" data-mode="both">
+    <button class="mode-btn active" data-target="strategic" onclick="setMode('strategic')">📊 Estratégico</button>
+    <button class="mode-btn" data-target="tactical" onclick="setMode('tactical')">⚡ Tático</button>
+  </div>
+  <div class="theme-toggle" data-mode="both">
+    <button class="theme-btn" data-theme="light" onclick="setTheme('light')" title="Modo Claro">☀️</button>
+    <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')" title="Modo Escuro">🌙</button>
+    <button class="theme-btn active" data-theme="system" onclick="setTheme('system')" title="Sistema">⚙️</button>
+  </div>
+</nav>
+
+
+<div class="container">
+<div class="section" id="kpis">
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">Patrimônio Bruto</div>
+    <div data-prompt="PATRIMONIO_BRUTO" class="kpi-value">R$ 3,5M</div>
+    <div class="kpi-sub">Líquido R$ 3,3M (dívidas R$ 235k)</div>
+  </div>
+  <div class="kpi-card kpi-hero">
+    <div class="kpi-label">Patrimônio Investível</div>
+    <div data-prompt="PATRIMONIO_INVESTIVEL" class="kpi-value blue">R$ 2,5M</div>
+    <div class="kpi-sub">Exclui residência + veículos. Pós-venda Living Concept.</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Renda Mensal</div>
+    <div data-prompt="RENDA_MENSAL" class="kpi-value green">R$ 60k</div>
+    <div class="kpi-sub">Recorrente (11M). Total R$ 1,1M no período.</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Taxa de Poupança</div>
+    <div data-prompt="TAXA_POUPANCA" class="kpi-value">46,7%</div>
+    <div class="kpi-sub">Recorrente (exclui Kiwify rescisão e DAS estimado)</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Meta Indep. Financeira</div>
+    <div data-prompt="META_IF" class="kpi-value">R$ 7,2M</div>
+    <div class="kpi-sub">TRS 5% · R$ 30k/mês renda passiva</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Gap Indep. Financeira</div>
+    <div data-prompt="GAP_IF" class="kpi-value red">R$ 4,7M</div>
+    <div class="kpi-sub">35,1% atingido</div>
+  </div>
+  <div class="kpi-card kpi-hero">
+    <div class="kpi-label">Prazo Indep. Financeira</div>
+    <div data-prompt="PRAZO_IF" class="kpi-value blue">9 anos</div>
+    <div class="kpi-sub">David com 53 (cenário 6% real)</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Score Financeiro</div>
+    <div data-prompt="SCORE" class="kpi-value">8,3</div>
+    <div class="kpi-sub">Excelente</div>
+  </div>
+
+<!-- TACTICAL KPI ROW -->
+<div class="dash-kpis" data-mode="tactical" id="dash-kpis-row">
+  <div class="dash-kpi"><div class="dash-kpi-label">Patrimônio Δ</div><div class="dash-kpi-value ok" id="dk-patrim-delta">—</div><div class="dash-kpi-sub">vs último período</div></div>
+  <div class="dash-kpi"><div class="dash-kpi-label">Aportes</div><div class="dash-kpi-value" id="dk-aportes">—</div><div class="dash-kpi-sub">de 4 destinos</div></div>
+  <div class="dash-kpi"><div class="dash-kpi-label">Despesas vs Teto</div><div class="dash-kpi-value" id="dk-despesas">—</div><div class="dash-kpi-sub">categorias com alerta</div></div>
+  <div class="dash-kpi"><div class="dash-kpi-label">Tarefas</div><div class="dash-kpi-value" id="dk-tarefas">—</div><div class="dash-kpi-sub">concluídas</div></div>
+  <div class="dash-kpi"><div class="dash-kpi-label">Alerta 1</div><div class="dash-kpi-value alert" id="dk-alerta1">—</div><div class="dash-kpi-sub" id="dk-alerta1-sub"></div></div>
+  <div class="dash-kpi"><div class="dash-kpi-label">Alerta 2</div><div class="dash-kpi-value alert" id="dk-alerta2">—</div><div class="dash-kpi-sub" id="dk-alerta2-sub"></div></div>
+</div></div>
+</div>
+</div>
+
+<!-- PERFIL DA FAMÍLIA -->
+<div data-mode="strategic">
+<div class="container">
+<div class="card card-feature" style="margin-top:32px;">
+  <div class="card-title card-title-lg">👨‍👩‍👦 A Família Ferreira Campos</div>
+  <div class="perfil-grid">
+    <div class="perfil-col">
+      <p><strong>David Robert</strong> (44 anos) — CTO na Arvo (healthtech, IA/ML para auditoria de claims médicos) e advisor em startups (BrandLovers, Arbitralis). Trajetória de 20+ anos em tecnologia com passagens por NIC.br, TOTVS, Abril, Elo7 (CTO), Loft (Director) e Kiwify (CTO). Mestre em Ciência da Computação (IA) pela USP/IME, bacharel pela PUC/SP.</p>
+
+<p><strong>Mariana Teixeira</strong> (39 anos) — Enfermeira especialista em Cardiologia e Hemodinâmica, CLT no Hospital Israelita Albert Einstein (Morumbi) há 11+ anos, Grade P4. Mestre em Enfermagem na Saúde do Adulto pela USP, especialista pela UNIFESP e Fiocruz. Docente universitária (Faculdade Einstein, 2021–2024).</p>
+
+<p><strong>Theo</strong> (9 meses) — Nascido em Orlando/FL (jul/2025), cidadania brasileira e americana. Plano de saúde empresarial Arvo.</p>
+
+<p><strong>Pets:</strong> Gatos — detalhes a confirmar.</p>
+    </div>
+    <div class="perfil-col" style="border-left:none;">
+      <p><strong>Plano de vida:</strong> Mudança para os EUA via visto F1/F2 (Anderson University, SC), com nascimento do 2º filho planejado durante a estadia. Green Card via EB2-NIW (~5 anos). David continua trabalhando remotamente para contratos PJ brasileiros.</p>
+
+<p><strong>Meta financeira:</strong> Independência Financeira — renda passiva de R$ 30.000/mês (patrimônio de R$ 7,2M a TRS 5%), estimada para 2035, quando David terá 53 anos.</p>
+
+<p><strong>Patrimônio:</strong> 5 imóveis em São Paulo + carteira financeira diversificada em 10+ instituições (Itaú, Santander, Rico/XP, BTG Pactual, C6, PicPay, Wise, Bank of America, Binance).</p>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TACTICAL SECTIONS (T1-T6) — data-driven, built by JS         -->
+<!-- ============================================================ -->
+<div data-mode="tactical" class="container">
+
+<div class="dash-section" id="dash-fluxo">
+  <h2>T1. Fluxo Operacional — Despesas vs Tetos</h2>
+  <div class="section-summary" id="ds-fluxo-summary">Carregando dados operacionais...</div>
+  <div class="card" style="overflow-x:auto;">
+    <div id="ds-fluxo-table"></div>
+  </div>
+</div>
+
+<div class="dash-section" id="dash-aportes">
+  <h2>T2. Aportes e Investimentos</h2>
+  <div id="ds-aportes-cards" class="kpi-grid" style="margin-bottom:16px;"></div>
+  <div class="card" style="overflow-x:auto;">
+    <div id="ds-aportes-table"></div>
+  </div>
+</div>
+
+<div class="dash-section" id="dash-tarefas">
+  <h2>T3. Checklist de Tarefas</h2>
+  <div class="filter-bar" id="ds-task-filters"></div>
+  <div id="ds-task-progress" style="margin-bottom:12px;"></div>
+  <div id="ds-task-list"></div>
+</div>
+
+<div class="dash-section" id="dash-alertas">
+  <h2>T4. Alertas e Pendências</h2>
+  <div id="ds-alertas-list"></div>
+</div>
+
+<div class="dash-section" id="dash-proximos">
+  <h2>T5. Próximos Passos</h2>
+  <div id="ds-timeline"></div>
+</div>
+
+<div class="dash-section" id="dash-notas">
+  <h2>T6. Notas e Observações</h2>
+  <div id="ds-notas" class="card" style="min-height:80px;"></div>
+</div>
+
+</div>
+<!-- END TACTICAL SECTIONS -->
+
+<!--
+  CHART CONTAINER PATTERN — All {{CONTENT_S*}} sections that include charts
+  must wrap each canvas in a chart-container with a card-title:
+
+  <div class="chart-container">
+    <div class="card-title">Título do Gráfico</div>
+    <p class="chart-context">Texto explicativo antes do gráfico.</p>
+    <canvas id="chart-XXXX"></canvas>
+    <p class="chart-conclusion">Conclusão/análise após o gráfico.</p>
+  </div>
+
+  For side-by-side charts use chart-row:
+  <div class="chart-row">
+    <div class="chart-container"><div class="card-title">Título 1</div>...</div>
+    <div class="chart-container"><div class="card-title">Título 2</div>...</div>
+  </div>
+
+  AÇÕES DIRETAS CARD — Seção 3 (CONTENT_S3) deve incluir este card:
+  - Fonte de dados: rico_investimentosposicao_*-2_extract.json (positions com product_type="Acao")
+  - Colunas obrigatórias: Ativo, Qtd, PM, Cotação, Valor Atual, P/L, Situação
+  - PM: usar campo `lots` do E3 unified (pm_source=historico_compras_usuario).
+    Se lots não disponível, usar applied_value/quantity. Se null, cruzar com IRPF:
+    - Se quantity_rico == quantity_irpf → PM = valor_irpf / quantity
+    - Caso contrário → "N/D" com nota explicativa
+  - Situação: Se PM disponível, calcular ganho/perda %. Se não, "Sem custo base".
+  - Total de ações diretas deve ser exibido abaixo da tabela.
+  - Recomendações (ex: vender BRKM5) devem citar o valor do prejuízo estimado.
+
+  ESTRATÉGIA DE APORTES CARD — Seção 3 (CONTENT_S3) deve incluir este card:
+  - Fonte de dados: config/definitions.md seção "ESTRATÉGIA DE APORTES MENSAIS"
+  - Colunas obrigatórias: Destino, Valor, Classe, Liquidez, Objetivo
+  - Total deve ser a soma de todos os aportes (atualmente R$22.300)
+  - Incluir nota de validação comparando aportes com alocação alvo
+  - Cada aporte tem liquidez diferente (D+0, D+1, D+2, D+60) — documentar notas de rodapé
+  - Contrafluxo AUVP e debêntures incentivadas na coluna lateral
+
+  ORÇAMENTO PROSPECTIVO — Seção 2 (CONTENT_S2) tabela de categorias:
+  - Fonte de dados: config/definitions.md seção "CATEGORIAS DE DESPESA"
+  - Tetos devem vir do definitions.md, NÃO hardcoded
+  - Badges: OK se gasto ≤ teto, "Acima" (warning) se ≤ 2x, "Nx TETO" (danger) se > 2x
+  - REGRA DE LAYOUT: Toda <table> dentro de CONTENT_S2 DEVE estar envolvida em
+    <div class="card" style="overflow-x:auto;">...</div> para manter consistência visual.
+    Tabelas soltas (sem card wrapper) são proibidas em qualquer seção estratégica.
+
+  CANONICAL CANVAS IDs — The JS expects these exact IDs in the HTML content.
+  Using different IDs will cause charts to not render.
+
+  Seção 1 (Visão Geral):
+    chart-patrimonio-doughnut   — Composição patrimonial (doughnut)
+    chart-waterfall-if          — Gap patrimônio → meta IF (waterfall)
+  Seção 2 (Fluxo de Caixa):
+    chart-receita-bar           — Receita por fonte (bar)
+    chart-despesas-doughnut     — Despesas por categoria (doughnut)
+    chart-receita-despesa-mensal — Receita vs Despesa mês a mês (stacked bar)
+  Seção 3 (Investimentos):
+    chart-score-gauge           — Score financeiro (gauge semi-circle)
+    chart-alocacao-atual        — Alocação atual (doughnut)
+    chart-alocacao-alvo         — Alocação alvo (doughnut)
+    chart-top15-ativos          — Top 15 ativos (horizontal bar)
+  Seção 4 (Imóveis):
+    chart-yield-imoveis         — Yield vs CDI (bar)
+  Seção 5 (F1/F2):
+    chart-custos-f1f2           — Custos mensais F1/F2 (horizontal bar)
+  Seção 6 (Green Card):
+    chart-cenarios-cambiais     — Cenários cambiais (bar agrupado)
+  Seção 7 (IF):
+    chart-projecao-3cenarios    — Projeção patrimonial 3 cenários (line)
+    chart-renda-passiva         — Renda passiva vs meta (bar)
+  Seção 8 (Tributário):
+    chart-impostos-pj           — DAS PJ mês a mês (bar + line)
+  Seção 9 (Riscos):
+    chart-bubble-riscos         — Mapa de riscos (bubble)
+  Seção 10 (Conclusão):
+    chart-top5-decisoes         — Top 5 decisões impacto (horizontal bar)
+  Apêndice B (Viagens):
+    chart-viagens               — Orçamento viagens (doughnut/bar)
+  Apêndice E (Mariana):
+    chart-mariana-cenarios      — Cenários IF Mariana (line)
+-->
+
+<!-- SEÇÃO 1: VISÃO GERAL PATRIMONIAL -->
+<div class="section" id="secao-1" data-mode="strategic">
+<div class="section-header">
+  <h1>1. Visão Geral Patrimonial</h1>
+</div>
+<div class="section-summary">Patrimônio bruto de R$ 3.501.275 (líquido R$ 3.266.483). Investível de R$ 2.530.778 — 35.1% da meta IF. Concentração em imóveis (62%) requer diversificação gradual via aportes financeiros.</div>
+
+<div class="card" style="overflow-x:auto;">
+  <h3>Composição Patrimonial</h3>
+  <table>
+    <thead><tr><th>CATEGORIA</th><th style="text-align:right;">VALOR</th><th style="text-align:right;">%</th></tr></thead>
+    <tbody>
+      <tr><td>Residência própria</td><td style="text-align:right;">R$ 996.821</td><td style="text-align:right;">28.5%</td></tr>
+      <tr><td>Imóveis investimento</td><td style="text-align:right;">R$ 1.173.000</td><td style="text-align:right;">33.5%</td></tr>
+      <tr><td>Investimentos David</td><td style="text-align:right;">R$ 605.979</td><td style="text-align:right;">17.3%</td></tr>
+      <tr><td>Investimentos Mariana</td><td style="text-align:right;">R$ 188.124</td><td style="text-align:right;">5.4%</td></tr>
+      <tr><td>Criptoativos</td><td style="text-align:right;">R$ 3.190</td><td style="text-align:right;">0.1%</td></tr>
+      <tr><td>Caixa + Moeda Estrangeira</td><td style="text-align:right;">R$ 306.686</td><td style="text-align:right;">8.8%</td></tr>
+      <tr><td>Veículos</td><td style="text-align:right;">R$ 227.476</td><td style="text-align:right;">6.5%</td></tr>
+      <tr class="total-row"><td><strong>TOTAL BRUTO</strong></td><td style="text-align:right;"><strong>R$ 3.501.275</strong></td><td style="text-align:right;"><strong>100%</strong></td></tr>
+      <tr><td>(-) Dívidas</td><td style="text-align:right; color:var(--color-danger);">R$ -234.793</td><td></td></tr>
+      <tr class="total-row"><td><strong>PATRIMÔNIO LÍQUIDO</strong></td><td style="text-align:right;"><strong>R$ 3.266.483</strong></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="chart-row">
+  <div class="chart-container">
+    <div class="card-title">Composição Patrimonial</div>
+    <p class="chart-context">Distribuição do patrimônio bruto de R$ 3.501.275 entre 7 categorias. Imóveis representam 62% do total.</p>
+    <canvas id="chart-patrimonio-doughnut"></canvas>
+    <p class="chart-conclusion">A concentração em imóveis (62%) é o principal ponto de atenção. A estratégia de aportes prioriza ativos financeiros para reduzir gradualmente essa concentração de 62% para ~50% em 5 anos.</p>
+  </div>
+  <div class="chart-container">
+    <div class="card-title">Caminho até a Meta IF</div>
+    <p class="chart-context">Waterfall do patrimônio investível atual (R$ 2,5M) até a meta de R$ 7,2M.</p>
+    <canvas id="chart-waterfall-if"></canvas>
+    <p class="chart-conclusion">O gap de R$ 4,7M será fechado com aportes de R$ 20k/mês + rentabilidade de ~6% real a.a. Prazo estimado: 9 anos.</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Imóveis — Visão Resumida</h3>
+  <table>
+    <thead><tr><th>IMÓVEL</th><th>MEMBRO</th><th style="text-align:right;">VALOR IRPF</th></tr></thead>
+    <tbody>
+      <tr><td>Casa Tasso da Silveira (Residência)</td><td>David</td><td style="text-align:right;">R$ 996.821</td></tr>
+      <tr><td>Ap. Barão de Capanema / Calixto</td><td>David</td><td style="text-align:right;">R$ 350.000</td></tr>
+      <tr><td>Ap. Ed. Gisele / Major Freire</td><td>David</td><td style="text-align:right;">R$ 213.000</td></tr>
+      <tr><td>Casa Leonardo da Vinci</td><td>David</td><td style="text-align:right;">R$ 80.000</td></tr>
+      <tr><td>Ap. Living Wish / João Dias</td><td>Mariana</td><td style="text-align:right;">R$ 530.000</td></tr>
+      <tr class="total-row"><td><strong>TOTAL IMÓVEIS</strong></td><td></td><td style="text-align:right;"><strong>R$ 2.169.821</strong></td></tr>
+    </tbody>
+  </table>
+  <p class="text-sm text-muted">⚠️ Valores IRPF (custo aquisição). Valor de mercado estimado é superior. Venda Ap. Living Concept (abr/2026) já refletida — imóvel removido da lista.</p>
+</div>
+</div>
+
+<!-- SEÇÃO 2 -->
+<div class="section" id="secao-2" data-mode="strategic">
+<div class="section-header">
+  <h1>2. Fluxo de Caixa e Orçamento</h1>
+</div>
+<div class="section-summary">Receita recorrente de R$ 60.414/mês. Despesas médias de R$ 32.173/mês. Taxa de poupança recorrente de 46.7% — excelente, permite aportes de R$ 20k/mês com folga de ~R$ 25k para extras.</div>
+
+<div class="chart-row">
+  <div class="chart-container">
+    <div class="card-title">Receita por Fonte (projetada mensal)</div>
+    <p class="chart-context">Distribuição das fontes de receita recorrente projetada a partir de abr/2026.</p>
+    <canvas id="chart-receita-bar"></canvas>
+    <p class="chart-conclusion">Arvo representa ~60% da receita. Diversificação via advisory (BrandLovers, Arbitralis) reduz risco de concentração. Aluguéis e CLT Mariana garantem ~22% independente de contratos PJ.</p>
+  </div>
+  <div class="chart-container">
+    <div class="card-title">Despesas por Categoria</div>
+    <p class="chart-context">Distribuição dos R$ 298.582 em despesas pessoais no período de 11 meses.</p>
+    <canvas id="chart-despesas-doughnut"></canvas>
+    <p class="chart-conclusion">Reserva de desejos (R$ 73,5k) e Saúde (R$ 58,4k) lideram as despesas. Saúde inclui gastos pontuais (dermatologia estética) que inflaram a média. O orçamento prospectivo abaixo normaliza esses valores.</p>
+  </div>
+</div>
+
+<div class="chart-container" style="margin-top:20px;">
+  <div class="card-title">Receita vs Despesa — Mês a Mês</div>
+  <p class="chart-context">Evolução mensal de receitas (empilhadas por fonte) vs despesas no período Mai/25–Mar/26.</p>
+  <canvas id="chart-receita-despesa-mensal"></canvas>
+  <p class="chart-conclusion">A receita supera consistentemente as despesas em todos os meses, com maior variação nos meses de pagamentos PJ irregulares (dez/25, jan/26). O saldo positivo médio permite aportes robustos.</p>
+</div>
+
+<div class="card card-feature" style="overflow-x:auto; margin-top:20px;">
+  <div class="card-title card-title-lg">📋 Orçamento Prospectivo — A Partir de Abr/2026</div>
+  <table>
+    <thead>
+      <tr><th>CATEGORIA</th><th style="text-align:right;">MÉDIA REAL (11M)</th><th style="text-align:right;">TETO PROPOSTO</th><th style="text-align:right;">% DA RENDA</th><th>OBSERVAÇÃO</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>🏠 Moradia (sem financiamento) <span class="badge badge-green">OK</span></td><td style="text-align:right;">R$ 432</td><td style="text-align:right;"><strong>R$ 2.500</strong></td><td style="text-align:right;">3.2%</td><td>SABESP + Enel + condos Mariana</td></tr>
+      <tr><td>🍽 Alimentação <span class="badge badge-green">OK</span></td><td style="text-align:right;">R$ 1.922</td><td style="text-align:right;"><strong>R$ 4.500</strong></td><td style="text-align:right;">5.7%</td><td>Super + restaurantes + delivery</td></tr>
+      <tr><td>🏥 Saúde <span class="badge badge-yellow">Acima</span></td><td style="text-align:right;">R$ 5.307</td><td style="text-align:right;"><strong>R$ 3.000</strong></td><td style="text-align:right;">3.8%</td><td>Inclui Awada pontual</td></tr>
+      <tr><td>🧹 Serviços domésticos <span class="badge badge-green">OK</span></td><td style="text-align:right;">R$ 226</td><td style="text-align:right;"><strong>R$ 4.000</strong></td><td style="text-align:right;">5.1%</td><td>Suecia + diaristas</td></tr>
+      <tr><td>🎓 Educação <span class="badge badge-green">OK</span></td><td style="text-align:right;">R$ 291</td><td style="text-align:right;"><strong>R$ 2.000</strong></td><td style="text-align:right;">2.5%</td><td>Belt Academy + cursos</td></tr>
+      <tr><td>🚗 Transporte <span class="badge badge-green">OK</span></td><td style="text-align:right;">R$ 1.284</td><td style="text-align:right;"><strong>R$ 1.700</strong></td><td style="text-align:right;">2.2%</td><td>Combustível + pedágio + estacionamento</td></tr>
+      <tr><td>✈ Lazer e viagens <span class="badge badge-yellow">Acima</span></td><td style="text-align:right;">R$ 3.891</td><td style="text-align:right;"><strong>R$ 3.750</strong></td><td style="text-align:right;">4.8%</td><td>Teto R$45k/ano = R$3.750/mês</td></tr>
+      <tr><td>👕 Vestuário e compras <span class="badge badge-green">OK</span></td><td style="text-align:right;">R$ 757</td><td style="text-align:right;"><strong>R$ 2.000</strong></td><td style="text-align:right;">2.5%</td><td>Roupas + acessórios</td></tr>
+      <tr><td>📱 Assinaturas <span class="badge badge-red">3x TETO</span></td><td style="text-align:right;">R$ 883</td><td style="text-align:right;"><strong>R$ 300</strong></td><td style="text-align:right;">0.4%</td><td>Spotify + Prime + Globoplay + Gympass</td></tr>
+      <tr><td>👨‍👩‍👦 Suporte familiar <span class="badge badge-green">OK</span></td><td style="text-align:right;">R$ 8</td><td style="text-align:right;"><strong>R$ 5.000</strong></td><td style="text-align:right;">6.4%</td><td>Rubens R$1.333 + Neusa R$1.500</td></tr>
+      <tr><td>🏦 Financeiro pessoal <span class="badge badge-red">2x TETO</span></td><td style="text-align:right;">R$ 432</td><td style="text-align:right;"><strong>R$ 200</strong></td><td style="text-align:right;">0.3%</td><td>Sem cheque especial = quase zero</td></tr>
+      <tr><td>🔨 Melhoria/Reforma moradia <span class="badge badge-green">OK</span></td><td style="text-align:right;">R$ 1.338</td><td style="text-align:right;"><strong>R$ 1.500</strong></td><td style="text-align:right;">1.9%</td><td>Reparos, reformas, troca de móveis</td></tr>
+      <tr><td>🎁 Reserva de desejos <span class="badge badge-red">2x TETO</span></td><td style="text-align:right;">R$ 6.684</td><td style="text-align:right;"><strong>R$ 3.000</strong></td><td style="text-align:right;">3.8%</td><td>Compras planejadas</td></tr>
+      <tr><td>🛡 Seguros <span class="badge badge-green">OK</span></td><td style="text-align:right;">R$ 485</td><td style="text-align:right;"><strong>R$ 1.500</strong></td><td style="text-align:right;">1.9%</td><td>Vida + invalidez + residencial</td></tr>
+      <tr class="total-row"><td><strong>TOTAL DESPESAS</strong></td><td style="text-align:right;"><strong>R$ 32.173*</strong></td><td style="text-align:right;"><strong>R$ 32.950</strong></td><td style="text-align:right;"><strong>41.9%</strong></td><td></td></tr>
+      <tr><td>📈 Aporte IF</td><td style="text-align:right;">—</td><td style="text-align:right; color:var(--color-danger);"><strong>R$ 20.000</strong></td><td style="text-align:right;">25.4%</td><td>Dia 5, automático (ver Seção 3)</td></tr>
+      <tr><td>🟰 Impostos + contador</td><td style="text-align:right;">R$ 5.029</td><td style="text-align:right;"><strong>R$ 6.673</strong></td><td style="text-align:right;">8.5%</td><td>DAS + AccountTech + IRPF provisão</td></tr>
+      <tr><td>▶ Folga livre</td><td style="text-align:right;">—</td><td style="text-align:right; color:var(--color-accent);"><strong>R$ 18.988</strong></td><td style="text-align:right;">24.2%</td><td>Extras, imprevistos, aportes adicionais</td></tr>
+      <tr class="total-row"><td><strong>RENDA TOTAL</strong></td><td></td><td style="text-align:right;"><strong>R$ 78.611</strong></td><td style="text-align:right;"><strong>100%</strong></td><td></td></tr>
+    </tbody>
+  </table>
+  <p class="text-sm text-muted">* Média real inclui pontuais (Dermatologia, Vivara, Minuto PA) que inflaram categorias. Tetos propostos refletem operação normalizada.</p>
+  <p class="text-sm"><strong>Como usar:</strong> No final de cada mês, compare o gasto real de cada categoria com o teto. Se 3+ categorias estourarem no mesmo mês, é sinal de que o padrão de vida está subindo e precisa de revisão.</p>
+</div>
+
+<div class="card card-warn" style="margin-top:20px;">
+  <div class="card-title">⚠ Consumo Consciente — Oportunidade de Disciplina</div>
+  <p>Com folga mensal de R$ 28.241 (46.7% da renda), a família tem espaço para viver bem <strong>e</strong> investir.
+  O desafio não é cortar gastos — é garantir que os gastos grandes sejam escolhas conscientes, não impulsos.
+  Os pontuais abaixo totalizam R$ 153.035 em 11 meses — <strong>se foram escolhas pensadas, ótimo</strong>. Se não foram, vale criar um filtro:</p>
+  <table>
+    <thead><tr><th>GASTO PONTUAL</th><th style="text-align:right;">VALOR</th><th>CONTA</th></tr></thead>
+    <tbody>
+      <tr><td>CLINICA DERMATOLOGICA</td><td style="text-align:right;">R$ 11.400</td><td>c6_bank_carbon_</td></tr>
+      <tr><td>ABDO MOHAMED ABDOUNI</td><td style="text-align:right;">R$ 10.600</td><td>c6_bank_carbon_</td></tr>
+      <tr><td>AIRBNB PAGAM*AIRBNB *</td><td style="text-align:right;">R$ 9.434</td><td>c6_bank_carbon_</td></tr>
+      <tr><td>VIVARA PLA</td><td style="text-align:right;">R$ 6.455</td><td>c6_bank_carbon_</td></tr>
+      <tr><td>MINUTO PA</td><td style="text-align:right;">R$ 6.199</td><td>c6_bank_carbon_</td></tr>
+      <tr><td>MINUTO PA</td><td style="text-align:right;">R$ 6.199</td><td>c6_bank_carbon_</td></tr>
+      <tr><td>MINUTO PA</td><td style="text-align:right;">R$ 6.199</td><td>c6_bank_carbon_</td></tr>
+      <tr><td>MINUTO PA</td><td style="text-align:right;">R$ 6.199</td><td>c6_bank_carbon_</td></tr>
+      <tr><td>MINUTO PA</td><td style="text-align:right;">R$ 6.199</td><td>c6_bank_carbon_</td></tr>
+      <tr><td>MINUTO PA</td><td style="text-align:right;">R$ 6.199</td><td>c6_bank_carbon_</td></tr>
+      <tr class="total-row"><td><strong>Total (15 pontuais)</strong></td><td style="text-align:right;"><strong>R$ 153.035</strong></td><td><strong>≈ 7.7 meses de aporte IF</strong></td></tr>
+    </tbody>
+  </table>
+  <p><strong>Sugestão prática:</strong> Antes de qualquer compra acima de R$ 2.000, aplicar o <strong>filtro de 48 horas</strong>: esperar 2 dias e perguntar "Essa compra me aproxima dos meus objetivos ou é um desejo passageiro?".</p>
+</div>
+
+<div class="card card-highlight" style="margin-top:20px;">
+  <div class="card-title">Diagnóstico de Comportamento Financeiro</div>
+  <p>Os extratos revelam padrões que não são sobre falta de dinheiro — são sobre organização do fluxo e consciência nas decisões:</p>
+  <table>
+    <thead><tr><th>PADRÃO IDENTIFICADO</th><th>EVIDÊNCIA NOS EXTRATOS</th><th>MUDANÇA SUGERIDA</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Gastos grandes sem planejamento</strong></td><td>R$ 153.035 em gastos pontuais ≥R$2k no período (27 itens). Top: CLINICA DERMATOLOGICA R$ 11.400</td><td>Criar conta 'reserva de desejos' com R$3.000/mês provisionados. Antes de compras >R$2k, aguardar 48h e verificar se há saldo na reserva.</td></tr>
+      <tr><td><strong>Aluguéis recebidos sem reinvestimento automático</strong></td><td>Aluguéis QuintoAndar (R$8.571/mês) entram em Itaú/Bradesco sem transferência automática para investimento.</td><td>Configurar débito automático mensal: Itaú→Cofrinhos R$3.422 + Bradesco→BTG R$5.149. Dia 10 de cada mês.</td></tr>
+      <tr><td><strong>DAS PJ sem rastreio nos extratos pessoais</strong></td><td>Pagamentos de DAS (R$5.029/mês) não aparecem nos extratos pessoais processados. Valor estimado do life_plan.</td><td>Confirmar com AccountTech se DAS está em dia. Incluir extrato PJ completo no próximo ciclo.</td></tr>
+    </tbody>
+  </table>
+  <p>Nenhum desses padrões é "erro" — são hábitos que se formaram pela praticidade. O objetivo é <strong>automatizar o fluxo</strong> para que o dinheiro vá para o lugar certo sem depender de decisão manual.</p>
+</div>
+</div>
+
+<!-- SEÇÃO 3 -->
+<div class="section" id="secao-3" data-mode="strategic">
+<div class="section-header">
+  <h1>3. Investimentos e Rendimentos</h1>
+</div>
+<div class="section-summary">Carteira financeira de R$ 794.103 em 6 instituições. Rentabilidade estimada de ~11% a.a. (75% CDI). Estratégia de aporte: R$ 20k/mês em 4 destinos (Cofrinhos, IPCA+, IVVB11, Wise). Selic em alta → momento de travar IPCA+.</div>
+
+<div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr);">
+  <div class="kpi-card"><div class="kpi-label">RENTABILIDADE ANUAL</div><div class="kpi-value">11.1%</div><div class="kpi-sub">nominal bruta ⚠️ estimada</div></div>
+  <div class="kpi-card" style="border-color:var(--color-accent);"><div class="kpi-label">RENTABILIDADE MENSAL</div><div class="kpi-value green">0.88%</div><div class="kpi-sub">ponderada por bloco</div></div>
+  <div class="kpi-card"><div class="kpi-label">% DO CDI</div><div class="kpi-value">75%</div><div class="kpi-sub">CDI atual: 14.75% a.a.</div></div>
+  <div class="kpi-card" style="border-color:var(--color-accent);"><div class="kpi-label">RETORNO REAL</div><div class="kpi-value green">6.0%</div><div class="kpi-sub">acima da inflação</div></div>
+</div>
+
+<div class="card" style="overflow-x:auto; margin-top:20px;">
+  <h3>3.1 Rentabilidade e Performance</h3>
+  <table>
+    <thead><tr><th>BLOCO</th><th style="text-align:right;">VALOR</th><th style="text-align:right;">RET. ANUAL</th><th style="text-align:right;">RET. MENSAL</th><th style="text-align:center;">% CDI</th></tr></thead>
+    <tbody>
+      <tr><td>Itaú (Cofrinhos + PGBL)</td><td style="text-align:right;">R$ 225.207</td><td style="text-align:right;">13.5%</td><td style="text-align:right;">1.07%</td><td style="text-align:center;"><span class="badge badge-green">92%</span></td></tr>
+      <tr><td>Santander (3 CDBs)</td><td style="text-align:right;">R$ 299.478</td><td style="text-align:right;">13.5%</td><td style="text-align:right;">1.07%</td><td style="text-align:center;"><span class="badge badge-green">92%</span></td></tr>
+      <tr><td>Rico (fundos + ações + caixa)</td><td style="text-align:right;">R$ 278.917</td><td style="text-align:right;">8.0%</td><td style="text-align:right;">0.64%</td><td style="text-align:center;"><span class="badge badge-red">54%</span></td></tr>
+      <tr><td>BTG Pactual (Mariana)</td><td style="text-align:right;">R$ 188.124</td><td style="text-align:right;">10.8%</td><td style="text-align:right;">0.86%</td><td style="text-align:center;"><span class="badge badge-yellow">73%</span></td></tr>
+      <tr><td>PicPay (RDB)</td><td style="text-align:right;">R$ 53.757</td><td style="text-align:right;">13.1%</td><td style="text-align:right;">1.04%</td><td style="text-align:center;"><span class="badge badge-yellow">89%</span></td></tr>
+      <tr><td>Caixa / USD</td><td style="text-align:right;">R$ 79.686</td><td style="text-align:right;">3.0%</td><td style="text-align:right;">0.25%</td><td style="text-align:center;"><span class="badge badge-red">20%</span></td></tr>
+      <tr class="total-row"><td><strong>TOTAL</strong></td><td style="text-align:right;"><strong>R$ 1.125.169</strong></td><td style="text-align:right;"><strong>11.1%</strong></td><td style="text-align:right;"><strong>0.88%</strong></td><td style="text-align:center;"><span class="badge badge-yellow">75%</span></td></tr>
+    </tbody>
+  </table>
+  <p class="text-sm text-muted">⚠️ Valores estimados — confirmar com extratos de corretoras. CDI referência: 14.75% a.a.</p>
+</div>
+
+<div class="card card-feature" style="margin-top:20px;">
+  <h3>3.2 Estratégia de Aporte e Alocação</h3>
+  <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="font-size:20px;">💰</span><strong>Aporte Mensal — R$ 20.000 (todo dia 5)</strong></div>
+  <p class="text-sm text-muted">A partir de abr/2026. Distribuição fixa entre 4 destinos, equilibrando liquidez, proteção contra inflação e dolarização.</p>
+  <table>
+    <thead><tr><th>DESTINO</th><th style="text-align:right;">VALOR/MÊS</th><th style="text-align:right;">%</th><th>OBJETIVO</th><th>LIQUIDEZ</th></tr></thead>
+    <tbody>
+      <tr><td><strong>CDB Cofrinhos Itaú</strong></td><td style="text-align:right;">R$ 10.000</td><td style="text-align:right;">50%</td><td>Reserva de emergência + liquidez</td><td>D+0</td></tr>
+      <tr><td><strong>Tesouro IPCA+</strong></td><td style="text-align:right;">R$ 5.000</td><td style="text-align:right;">25%</td><td>Proteção inflação, RF longa</td><td>D+1</td></tr>
+      <tr><td><strong>IVVB11 (ETF S&P 500)</strong></td><td style="text-align:right;">R$ 3.000</td><td style="text-align:right;">15%</td><td>Dolarização indireta + RV global</td><td>D+2</td></tr>
+      <tr><td><strong>Wise USD</strong></td><td style="text-align:right;">R$ 2.000</td><td style="text-align:right;">10%</td><td>Dolarização direta pré-EUA</td><td>Imediata</td></tr>
+      <tr class="total-row"><td><strong>TOTAL</strong></td><td style="text-align:right;"><strong>R$ 20.000</strong></td><td style="text-align:right;"><strong>100%</strong></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px;">
+    <div style="background:#F0FDF4; border-left:3px solid #16A34A; padding:12px; border-radius:8px;"><strong>💰 75% em BRL</strong> (Cofrinhos + IPCA+): Reforça reserva e patrimônio em reais.</div>
+    <div class="card card-highlight" style="padding:12px;"><strong>🇺🇸 25% em USD</strong> (IVVB11 + Wise): Exposição total ~R$ 5.000/mês. Meta pré-EUA: US$ 20.000.</div>
+  </div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--color-primary); margin-top:20px;">
+  <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;"><span style="font-size:18px;">↔</span><strong>Estratégia de Contrafluxo na Renda Fixa</strong></div>
+  <p class="text-sm text-muted">A divisão do aporte não deve ser estática — deve se adaptar ao ciclo de juros. O princípio do <strong>contrafluxo</strong>: compre o que o mercado está evitando.</p>
+  <table>
+    <thead><tr><th>CENÁRIO DE JUROS</th><th style="text-align:center;">SELIC</th><th>O QUE FAZER</th><th>POR QUÊ</th></tr></thead>
+    <tbody>
+      <tr><td>🔴 Selic alta (AGORA)</td><td style="text-align:center;">14,75%</td><td><strong>Travar IPCA+ e pré-fixados longos</strong></td><td>Taxas de IPCA+6-7% são excepcionais. Quando a Selic cair, essas taxas desaparecem.</td></tr>
+      <tr><td>🟡 Selic em queda</td><td style="text-align:center;">10–12%</td><td>Manter IPCA+, começar CDI</td><td>CDI ainda paga bem; IPCA+ já travado continua rendendo.</td></tr>
+      <tr><td>🟢 Selic baixa</td><td style="text-align:center;">6–8%</td><td>CDI pós-fixado e pré-fixados</td><td>IPCA+ paga pouco. CDI protege liquidez.</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:12px;"><strong>Ação prática:</strong> Após a reserva de emergência atingir 12 meses (R$ 382k), redirecionar R$ 5k dos Cofrinhos para Tesouro IPCA+ 2035/2040, travando IPCA+7%. Aproveitar Selic alta para travar taxas reais excelentes.</p>
+</div>
+
+<div class="chart-row" style="margin-top:20px;">
+  <div class="chart-container">
+    <div class="card-title">Score Financeiro</div>
+    <p class="chart-context"></p>
+    <canvas id="chart-score-gauge" data-type="gauge" data-score="8.3"></canvas>
+    <p class="chart-conclusion"></p>
+  </div>
+  <div class="chart-container">
+    <div class="card-title">Top 15 Ativos por Valor</div>
+    <p class="chart-context">Maiores posições individuais na carteira financeira (David + Mariana).</p>
+    <canvas id="chart-top15-ativos"></canvas>
+    <p class="chart-conclusion">Cofrinhos Itaú e CDBs Santander dominam a carteira. Diversificação em fundos e ações precisa crescer para atingir a alocação alvo.</p>
+  </div>
+</div>
+
+<div class="chart-row" style="margin-top:20px;">
+  <div class="chart-container">
+    <div class="card-title">Alocação Atual</div>
+    <p class="chart-context">Distribuição percentual da carteira financeira por classe de ativo.</p>
+    <canvas id="chart-alocacao-atual"></canvas>
+    <p class="chart-conclusion">Renda Fixa (54%) concentra a carteira. Exposição internacional é praticamente zero — precisa crescer para 10% via IVVB11 + Wise.</p>
+  </div>
+  <div class="chart-container">
+    <div class="card-title">Alocação Alvo (2027)</div>
+    <p class="chart-context">Meta de alocação para final de 2027, incluindo exposição internacional e previdência.</p>
+    <canvas id="chart-alocacao-alvo"></canvas>
+    <p class="chart-conclusion">A transição para a alocação alvo será gradual via aportes direcionados: Cofrinhos → RF, IVVB11 → Internacional, PGBL → Previdência.</p>
+  </div>
+</div>
+</div>
+
+<!-- SEÇÃO 4 -->
+<div class="section" id="secao-4" data-mode="strategic">
+<div class="section-header">
+  <h1>4. Imóveis e Bens</h1>
+</div>
+<div class="section-summary">5 imóveis com valor IRPF de R$ 2.169.821. 4 para renda, gerando R$ 8.571/mês em aluguéis via QuintoAndar. Living Concept vendido (abr/2026). Veículos: R$ 227.476.</div>
+
+<div class="chart-container">
+  <div class="card-title">Yield Anual por Imóvel vs CDI</div>
+  <p class="chart-context">Comparação do retorno anual de cada imóvel para renda com o CDI vigente (14.75% a.a.).</p>
+  <canvas id="chart-yield-imoveis"></canvas>
+  <p class="chart-conclusion">Apenas Living Wish (11,7% yield) supera o CDI. Os demais imóveis têm yield inferior ao benchmark de renda fixa, mas oferecem proteção contra inflação e diversificação real.</p>
+</div>
+
+<div class="card" style="overflow-x:auto; margin-top:20px;">
+  <h3>Detalhamento de Imóveis</h3>
+  <table>
+    <thead><tr><th>IMÓVEL</th><th>MEMBRO</th><th style="text-align:right;">VALOR IRPF</th><th style="text-align:right;">ALUGUEL/MÊS</th><th style="text-align:right;">YIELD a.a.</th><th>STATUS</th></tr></thead>
+    <tbody>
+      <tr><td>Casa Tasso (Residência)</td><td>David</td><td style="text-align:right;">R$ 996.821</td><td style="text-align:right;">—</td><td style="text-align:right;">—</td><td><span class="badge badge-blue">Residência</span></td></tr>
+      <tr><td>Ap. Calixto</td><td>David</td><td style="text-align:right;">R$ 350.000</td><td style="text-align:right;">R$ 1.837</td><td style="text-align:right;">6,3%</td><td><span class="badge badge-green">Alugado</span></td></tr>
+      <tr><td>Ap. Major Freire</td><td>David</td><td style="text-align:right;">R$ 213.000</td><td style="text-align:right;">R$ 835</td><td style="text-align:right;">4,7%</td><td><span class="badge badge-green">Alugado</span></td></tr>
+      <tr><td>Casa Leonardo da Vinci</td><td>David</td><td style="text-align:right;">R$ 80.000</td><td style="text-align:right;">R$ 750</td><td style="text-align:right;">11,3%</td><td><span class="badge badge-yellow">A confirmar</span></td></tr>
+      <tr><td>Ap. Living Wish</td><td>Mariana</td><td style="text-align:right;">R$ 530.000</td><td style="text-align:right;">R$ 5.149</td><td style="text-align:right;">11,7%</td><td><span class="badge badge-green">Alugado</span></td></tr>
+    </tbody>
+  </table>
+  <p class="text-sm text-muted">⚠️ Valores de mercado estimados são superiores ao valor IRPF. Yield calculado sobre valor IRPF = renda anual / valor declarado.</p>
+</div>
+</div>
+
+<!-- SEÇÃO 5 -->
+<div class="section" id="secao-5" data-mode="strategic">
+<div class="section-header">
+  <h1>5. F1/F2 EUA</h1>
+</div>
+<div class="section-summary">Fase F1/F2 em Anderson University (SC, ~6 meses). Custo total estimado R$ 32.380/mês (EUA US$ 3.990 + BR mantido R$ 8.919). Renda David remota R$ 70.611/mês → sobra de R$ 38.231 (54%). Parto 2º filho: US$ 5.300–9.000 com seguro IU65.</div>
+
+<div class="chart-container">
+  <div class="card-title">Custos Mensais — Fase F1/F2</div>
+  <p class="chart-context">Breakdown dos custos mensais durante a estadia nos EUA (Anderson, SC) incluindo custos mantidos no Brasil.</p>
+  <canvas id="chart-custos-f1f2"></canvas>
+  <p class="chart-conclusion">A sobra mensal de R$ 38.231 (54% da renda) é suficiente para manter os aportes de R$ 20k/mês e acumular reserva adicional. A estadia F1/F2 é financeiramente sustentável sem tocar em investimentos.</p>
+</div>
+
+<div class="card" style="overflow-x:auto; margin-top:20px;">
+  <h3>Orçamento F1/F2 — Mensal</h3>
+  <table>
+    <thead><tr><th>ITEM</th><th style="text-align:right;">VALOR</th><th>NOTA</th></tr></thead>
+    <tbody>
+      <tr><td>Custos EUA (base)</td><td style="text-align:right;">US$ 3.990/mês</td><td>Moradia + alimentação + transporte + seguro IU65</td></tr>
+      <tr><td>Custos BR mantidos</td><td style="text-align:right;">R$ 8.919/mês</td><td>Suporte familiar + DAS + assinaturas + seguros + utilities</td></tr>
+      <tr class="total-row"><td><strong>CUSTO TOTAL</strong></td><td style="text-align:right;"><strong>R$ 32.380/mês</strong></td><td>@R$ 5,88/USD</td></tr>
+      <tr><td>Renda David (remota)</td><td style="text-align:right; color:var(--color-accent);">R$ 70.611/mês</td><td>PJ brasileiros — Arvo + advisory</td></tr>
+      <tr class="total-row"><td><strong>SOBRA MENSAL</strong></td><td style="text-align:right; color:var(--color-accent);"><strong>R$ 38.231 (54%)</strong></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card" style="margin-top:20px;">
+  <h3>Dados Reais — Estadia EUA 2025 (Orlando/Kissimmee)</h3>
+  <p>A estadia de 5 meses em 2025 validou as premissas de custo:</p>
+  <table>
+    <thead><tr><th>MÉTRICA</th><th style="text-align:right;">VALOR</th></tr></thead>
+    <tbody>
+      <tr><td>Custo base confirmado</td><td style="text-align:right;">US$ 3.915/mês (com seguro IU65)</td></tr>
+      <tr><td>Parto do Theo</td><td style="text-align:right;">US$ 1.716 (com seguro)</td></tr>
+      <tr><td>Total 5 meses</td><td style="text-align:right;">US$ 36.263 (~R$ 213.228)</td></tr>
+    </tbody>
+  </table>
+  <p class="text-sm text-muted">A estratégia do seguro IU65 para o parto se mostrou altamente eficaz (US$ 1.716 vs US$ 15-25k sem seguro).</p>
+</div>
+</div>
+
+<!-- SEÇÃO 6 -->
+<div class="section" id="secao-6" data-mode="strategic">
+<div class="section-header">
+  <h1>6. Green Card</h1>
+</div>
+<div class="section-summary">Green Card via EB2-NIW (~5 anos). Custo de vida família de 4: US$ 6.050/mês. Renda David remota ~US$ 12.000. Com Mariana trabalhando (pós-NCLEX): sobra US$ 9.499/mês. Obrigações fiscais EUA: FBAR, Form 8938, Form 1040, PFIC.</div>
+
+<div class="chart-container">
+  <div class="card-title">Cenários Cambiais — Sobra Mensal Green Card</div>
+  <p class="chart-context">Impacto do câmbio na sobra mensal durante a fase Green Card, com e sem renda da Mariana (NCLEX).</p>
+  <canvas id="chart-cenarios-cambiais"></canvas>
+  <p class="chart-conclusion">Mesmo no cenário pessimista (R$ 7,50/USD), a família é sustentável com a renda do David. Com Mariana trabalhando, a sobra salta para R$ 38k–72k/mês, acelerando significativamente a meta IF.</p>
+</div>
+
+<div class="card" style="overflow-x:auto; margin-top:20px;">
+  <h3>Custo de Vida — Família de 4 nos EUA</h3>
+  <table>
+    <thead><tr><th>ITEM</th><th style="text-align:right;">VALOR</th></tr></thead>
+    <tbody>
+      <tr><td>Custo vida família 4</td><td style="text-align:right;">US$ 6.050/mês</td></tr>
+      <tr><td>Renda David (remota BRL)</td><td style="text-align:right;">~US$ 12.000 (@R$ 5,88)</td></tr>
+      <tr><td>Renda Mariana (pós-NCLEX)</td><td style="text-align:right;">US$ 4.000–7.000</td></tr>
+      <tr class="total-row"><td><strong>Sobra com Mariana trabalhando</strong></td><td style="text-align:right;"><strong>US$ 9.499/mês</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="alert alert-warning" style="margin-top:20px;">
+  <strong>⚠️ 5 Riscos Patrimoniais nos EUA:</strong> FBAR/FATCA (declarar contas BR >US$10k), Estate Tax (>US$60k para non-residents), PFIC (fundos BR com tributação punitiva), Dupla Tributação (BR+EUA), INSS (perda de qualidade de segurado). <strong>Ação:</strong> Contratar CPA expatriado ANTES de partir.
+</div>
+</div>
+
+<!-- SEÇÃO 7 -->
+<div class="section" id="secao-7" data-mode="strategic">
+<div class="section-header">
+  <h1>7. Independência Financeira</h1>
+</div>
+<div class="section-summary">Meta IF: R$ 7,2M (TRS 5%). Patrimônio investível atual: R$ 2.530.778 (35.1%). Renda passiva: R$ 10.042/mês (33,5% da meta R$ 30k). Prazo realista: 9 anos (David com 53).</div>
+
+<div class="chart-container">
+  <div class="card-title">Projeção Patrimonial — 3 Cenários</div>
+  <p class="chart-context">Projeção do patrimônio total (investível + imóveis) até 2038, considerando aporte de R$ 20k/mês e 3 cenários de retorno real.</p>
+  <canvas id="chart-projecao-3cenarios"></canvas>
+  <p class="chart-conclusion">No cenário realista (6% real), a meta IF de R$ 7,2M é atingida por volta de 2035, quando David terá 53 anos. O cenário otimista (8%) antecipa para 2033.</p>
+</div>
+
+<div class="card" style="overflow-x:auto; margin-top:20px;">
+  <h3>Cenários de Prazo para IF</h3>
+  <table>
+    <thead><tr><th>CENÁRIO</th><th style="text-align:right;">RETORNO REAL</th><th style="text-align:right;">APORTE/MÊS</th><th style="text-align:right;">PRAZO</th><th style="text-align:right;">DAVID COM</th></tr></thead>
+    <tbody>
+      <tr><td>Pessimista</td><td style="text-align:right;">4%</td><td style="text-align:right;">R$ 20.000</td><td style="text-align:right;">11.9 anos</td><td style="text-align:right;">55</td></tr>
+      <tr class='total-row'><td><strong>Realista</strong></td><td style="text-align:right;">6%</td><td style="text-align:right;">R$ 20.000</td><td style="text-align:right;">9.3 anos</td><td style="text-align:right;">53</td></tr>
+      <tr><td>Otimista</td><td style="text-align:right;">8%</td><td style="text-align:right;">R$ 20.000</td><td style="text-align:right;">7.0 anos</td><td style="text-align:right;">50</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="chart-container" style="margin-top:20px;">
+  <div class="card-title">Renda Passiva — Atual vs Meta</div>
+  <p class="chart-context">Fontes de renda passiva atual (R$ 10.042/mês) vs meta de R$ 30.000/mês.</p>
+  <canvas id="chart-renda-passiva"></canvas>
+  <p class="chart-conclusion">A renda passiva atual (R$ 10.042/mês) cobre 33,5% da meta. Aluguéis dominam. O gap de R$ 19.958/mês será preenchido com dividendos, JCP e rendimentos financeiros à medida que a carteira cresce.</p>
+</div>
+</div>
+
+<!-- SEÇÃO 8 -->
+<div class="section" id="secao-8" data-mode="strategic">
+<div class="section-header">
+  <h1>8. Tributário</h1>
+</div>
+<div class="section-summary">David: alíquota efetiva 25.1% (Simples Nacional Anexo V). Mariana: 20.0% (CLT). Total devido anual: R$ 204.526. Oportunidades: PGBL R$ 21.600/ano (economia R$ 5.940 IRPF), compensação fiscal BRKM5.</div>
+
+<div class="chart-container">
+  <div class="card-title">DAS PJ — Mês a Mês</div>
+  <p class="chart-context">Acompanhamento dos pagamentos de DAS (Simples Nacional). ⚠️ Extratos PJ parciais — valores estimados.</p>
+  <canvas id="chart-impostos-pj"></canvas>
+  <p class="chart-conclusion">DAS estimado em R$ 5.029/mês. Confirmar com AccountTech se pagamentos estão em dia. Incluir extrato C6 PJ completo no próximo ciclo.</p>
+</div>
+
+<div class="card" style="overflow-x:auto; margin-top:20px;">
+  <h3>Resumo Tributário</h3>
+  <table>
+    <thead><tr><th>MEMBRO</th><th style="text-align:right;">TRIBUTÁVEL ANUAL</th><th style="text-align:right;">DEVIDO</th><th style="text-align:right;">PAGO</th><th style="text-align:right;">SALDO</th><th style="text-align:right;">ALÍQUOTA EF.</th></tr></thead>
+    <tbody>
+      <tr><td>David (PJ)</td><td style="text-align:right;">R$ 651.375</td><td style="text-align:right;">R$ 163.780</td><td style="text-align:right;">R$ 154.769</td><td style="text-align:right;">R$ 9.011</td><td style="text-align:right;">25.1%</td></tr>
+      <tr><td>Mariana (CLT)</td><td style="text-align:right;">R$ 203.983</td><td style="text-align:right;">R$ 40.747</td><td style="text-align:right;">R$ 22.576</td><td style="text-align:right;">R$ 18.171</td><td style="text-align:right;">20.0%</td></tr>
+      <tr class="total-row"><td><strong>TOTAL</strong></td><td></td><td style="text-align:right;"><strong>R$ 204.526</strong></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card card-feature" style="margin-top:20px;">
+  <h3>Oportunidades de Otimização Fiscal</h3>
+  <ul class="list-actions">
+    <li>PGBL: Aporte R$21.600/ano (12% renda tributável) → economia R$5.940/ano IRPF</li>
+    <li>Previdência regime regressivo: alíquota 10% após 10 anos vs 27,5% tabela progressiva</li>
+    <li>Compensação fiscal: Prejuízo BRKM5 (~R$3.500) utilizável para compensar ganhos de capital</li>
+  </ul>
+</div>
+</div>
+
+<!-- SEÇÃO 9 -->
+<div class="section" id="secao-9" data-mode="strategic">
+<div class="section-header">
+  <h1>9. Riscos</h1>
+</div>
+<div class="section-summary">6 alertas identificados (2 críticos). Maiores riscos: ausência de seguro de vida/invalidez, fundos PFIC pré-mudança EUA, extratos incompletos. Planejamento sucessório pendente.</div>
+
+<div class="chart-container">
+  <div class="card-title">Mapa de Riscos</div>
+  <p class="chart-context">Matriz de riscos: probabilidade × impacto. Bolhas maiores = severidade mais alta.</p>
+  <canvas id="chart-bubble-riscos"></canvas>
+  <p class="chart-conclusion">Os 2 riscos críticos (seguro de vida e invalidez) devem ser resolvidos em abr/2026. PFIC requer ação antes da mudança para os EUA.</p>
+</div>
+
+<div class="card" style="overflow-x:auto; margin-top:20px;">
+  <h3>Alertas e Pendências</h3>
+  <table>
+    <thead><tr><th>SEVERIDADE</th><th>ALERTA</th><th>DESCRIÇÃO</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-red">CRITICO</span></td><td><strong>Seguro de vida INEXISTENTE</strong></td><td>David não possui seguro de vida. Risco catastrófico para família com filho de 9 meses.</td></tr>
+      <tr><td><span class="badge badge-red">CRITICO</span></td><td><strong>Seguro de invalidez INEXISTENTE</strong></td><td>Sem proteção contra perda de capacidade laborativa.</td></tr>
+      <tr><td><span class="badge badge-yellow">ATENCAO</span></td><td><strong>Fundos PFIC em risco fiscal</strong></td><td>~R$181k em fundos Rico (Alaska, Western, Safari, Constellation) serão classificados como PFIC nos EUA.</td></tr>
+      <tr><td><span class="badge badge-yellow">ATENCAO</span></td><td><strong>Extratos Bradesco sem transações</strong></td><td>Extratos de Mariana (CC + Poupança Bradesco) retornaram 0 transações — possível falha de extração PDF.</td></tr>
+      <tr><td><span class="badge badge-yellow">ATENCAO</span></td><td><strong>Transações não categorizadas (428)</strong></td><td>R$ 39.475 em despesas sem categoria definida.</td></tr>
+      <tr><td><span class="badge badge-blue">INFO</span></td><td><strong>Valores corrompidos em PDFs corrigidos</strong></td><td>43 transações com valores de extração corrompidos foram corrigidas automaticamente (WIX, SABESP, ELETROPAULO, etc.).</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+<!-- SEÇÃO 10 -->
+<div class="section" id="secao-10" data-mode="strategic">
+<div class="section-header">
+  <h1>10. Conclusão</h1>
+</div>
+<div class="section-summary">Score financeiro: 8.3/10 (Excelente). A família está em posição excelente: taxa de poupança de 46.7%, patrimônio crescendo, e renda diversificada. Os próximos passos críticos são proteção (seguros) e preparação para a mudança internacional.</div>
+
+<div class="chart-container">
+  <div class="card-title">Top 5 Decisões — Impacto em 1 Ano vs 10 Anos</div>
+  <p class="chart-context">As 5 decisões financeiras com maior impacto projetado no curto e longo prazo.</p>
+  <canvas id="chart-top5-decisoes"></canvas>
+  <p class="chart-conclusion">A contratação de seguro de vida tem o maior impacto absoluto (proteção de R$ 3-5M). A estratégia de aportes e otimização PGBL são os maiores aceleradores de patrimônio a longo prazo.</p>
+</div>
+
+<div class="card card-success" style="margin-top:20px;">
+  <div class="card-title">✅ Pontos Fortes</div>
+  <p>A família Ferreira Campos demonstra fundamentos financeiros sólidos: taxa de poupança de 46.7% (top 5% nacional), cobertura de despesas para 109 meses, renda diversificada entre PJ tech, CLT saúde e renda imobiliária. O plano migratório é financeiramente viável mesmo no cenário pessimista.</p>
+</div>
+
+<div class="card card-warn" style="margin-top:20px;">
+  <div class="card-title">⚠ Ações Urgentes</div>
+  <ol class="list-actions">
+    <li><strong>Seguro de vida Term Life R$ 3-5M (20 anos)</strong> — Contratar até abr/2026. Risco catastrófico atual.</li>
+    <li><strong>Seguro de invalidez (60% renda)</strong> — Complementar proteção CLT Mariana com proteção PJ David.</li>
+    <li><strong>Avaliar fundos PFIC antes da mudança</strong> — Rico (Alaska, Western, Safari) = ~R$ 181k em risco fiscal nos EUA.</li>
+    <li><strong>Iniciar aportes automáticos</strong> — R$ 20k/mês a partir de 05/abr/2026.</li>
+    <li><strong>Contratar CPA expatriado</strong> — Obrigatório antes de virar US tax resident.</li>
+  </ol>
+</div>
+
+<div class="card" style="margin-top:20px;">
+  <h3>Componentes do Score Financeiro</h3>
+  <table>
+    <thead><tr><th>COMPONENTE</th><th style="text-align:right;">PESO</th><th style="text-align:right;">PONTUAÇÃO</th></tr></thead>
+    <tbody>
+      <tr><td>Taxa de poupança recorrente (46.7%)</td><td style="text-align:right;">2.0</td><td style="text-align:right;">9.3/10</td></tr>
+      <tr><td>Cobertura de despesas (109 meses)</td><td style="text-align:right;">1.5</td><td style="text-align:right;">10.0/10</td></tr>
+      <tr><td>Taxa de endividamento (6.7%)</td><td style="text-align:right;">1.5</td><td style="text-align:right;">9.6/10</td></tr>
+      <tr><td>Progresso IF (35.1%)</td><td style="text-align:right;">2.0</td><td style="text-align:right;">4.0/10</td></tr>
+      <tr><td>Diversificação (6 categorias ≥5%)</td><td style="text-align:right;">1.0</td><td style="text-align:right;">10.0/10</td></tr>
+      <tr class="total-row"><td><strong>SCORE FINAL</strong></td><td style="text-align:right;"><strong>8,0</strong></td><td style="text-align:right;"><strong>8.3/10 — Excelente</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+<!-- APÊNDICE A -->
+<div class="section" id="apendice-a" data-mode="strategic">
+<div class="section-header">
+  <h1>Apêndice A — Tarefas Priorizadas</h1>
+</div>
+
+<div class="card" style="overflow-x:auto;">
+  <table>
+    <thead><tr><th>#</th><th>PRIORIDADE</th><th>TAREFA</th><th>JUSTIFICATIVA</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><span class="badge badge-red">ALTA</span></td><td>Contratar seguro de vida Term Life R$3-5M (20 anos)</td><td>David não tem seguro de vida. Família com filho de 9 meses e plano de mudança internacional.</td></tr>
+      <tr><td>2</td><td><span class="badge badge-red">ALTA</span></td><td>Contratar seguro de invalidez (60% renda)</td><td>Proteção inexistente contra perda de capacidade laborativa.</td></tr>
+      <tr><td>3</td><td><span class="badge badge-red">ALTA</span></td><td>Contratar advogado sucessório/tributarista SP</td><td>Planejamento sucessório pendente antes da mudança para EUA.</td></tr>
+      <tr><td>4</td><td><span class="badge badge-red">ALTA</span></td><td>Preparar testamento público David + Mariana</td><td>Obrigatório antes da mudança internacional.</td></tr>
+      <tr><td>5</td><td><span class="badge badge-red">ALTA</span></td><td>Preparar procuração pública para Rubens (pai David)</td><td>Gestão de ativos BR durante estadia nos EUA.</td></tr>
+      <tr><td>6</td><td><span class="badge badge-red">ALTA</span></td><td>Configurar aporte automático mensal R$20k (dia 5)</td><td>Cofrinhos R$10k + IPCA+ R$5k + IVVB11 R$3k + Wise USD R$2k.</td></tr>
+      <tr><td>7</td><td><span class="badge badge-red">ALTA</span></td><td>Iniciar PGBL Itaú R$1.800/mês (regime regressivo)</td><td>Economia fiscal R$5.940/ano. Regime regressivo 10% após 10 anos.</td></tr>
+      <tr><td>8</td><td><span class="badge badge-red">ALTA</span></td><td>Atualizar beneficiários PGBL e seguro de vida</td><td>Incluir Theo e Mariana como beneficiários.</td></tr>
+      <tr><td>9</td><td><span class="badge badge-red">ALTA</span></td><td>Avaliar resgate fundos PFIC antes de mudar para EUA</td><td>Rico fundos (Alaska, Western, Safari = ~R$181k) são PFIC nos EUA — tributação punitiva.</td></tr>
+      <tr><td>10</td><td><span class="badge badge-red">ALTA</span></td><td>Contratar CPA expatriado (FBAR/FATCA/Form 1040)</td><td>Obrigatório antes de virar US tax resident.</td></tr>
+      <tr><td>11</td><td><span class="badge badge-red">ALTA</span></td><td>Categorizar transações pendentes</td><td>428 transações não categorizadas no período.</td></tr>
+      <tr><td>12</td><td><span class="badge badge-yellow">MEDIA</span></td><td>Automatizar reinvestimento de aluguéis QuintoAndar</td><td>R$8.571/mês em aluguéis sem transferência automática para investimento.</td></tr>
+      <tr><td>13</td><td><span class="badge badge-yellow">MEDIA</span></td><td>Cotar seguro residencial (alternativa ao Santander)</td><td>Possível economia de 20-40% com concorrência.</td></tr>
+      <tr><td>14</td><td><span class="badge badge-yellow">MEDIA</span></td><td>Cancelar seguro conta Santander R$10/mês</td><td>Duplica proteção do C6. Economia R$120/ano.</td></tr>
+      <tr><td>15</td><td><span class="badge badge-yellow">MEDIA</span></td><td>Processar extratos PJ completos (C6 PJ)</td><td>DAS e despesas PJ não rastreáveis nos extratos pessoais.</td></tr>
+      <tr><td>16</td><td><span class="badge badge-yellow">MEDIA</span></td><td>Iniciar processo NCLEX Mariana (CGFNS Credentials)</td><td>Etapa 1 do roadmap: US$350, 4-8 semanas.</td></tr>
+      <tr><td>17</td><td><span class="badge badge-yellow">MEDIA</span></td><td>Agendar teste de inglês Mariana (OET ou MET)</td><td>Pré-requisito para NCLEX. OET foco saúde, MET melhor custo-benefício.</td></tr>
+      <tr><td>18</td><td><span class="badge badge-yellow">MEDIA</span></td><td>Avaliar venda BRKM5 para compensação fiscal</td><td>Prejuízo ~R$3.500 utilizável para compensar ganhos de capital.</td></tr>
+      <tr><td>19</td><td><span class="badge badge-yellow">MEDIA</span></td><td>Obter extratos Bradesco CC + Poupança (Mariana)</td><td>Extratos Bradesco com 0 transações — possível falha de extração.</td></tr>
+      <tr><td>20</td><td><span class="badge badge-blue">BAIXA</span></td><td>Iniciar DCA Crypto R$500/mês (mai/2026)</td><td>Diversificação crypto 0,1%→1% da carteira.</td></tr>
+    </tbody>
+  </table>
+  <p class="text-sm text-muted">Total: 20 tarefas · 11 alta prioridade · 8 média</p>
+</div>
+</div>
+
+<!-- APÊNDICE B -->
+<div class="section" id="apendice-b" data-mode="strategic">
+<div class="section-header">
+  <h1>Apêndice B — Viagens e Milhas</h1>
+</div>
+
+<div class="chart-container">
+  <div class="card-title">Orçamento de Viagens 2026</div>
+  <p class="chart-context">Teto anual: R$ 45.000. Portugal já gasto: R$ 22.337. Restante disponível: R$ 22.663.</p>
+  <canvas id="chart-viagens"></canvas>
+  <p class="chart-conclusion">49,6% do orçamento de viagens já utilizado com a viagem a Portugal. Restam R$ 22.663 para o restante de 2026.</p>
+</div>
+
+<div class="card" style="overflow-x:auto; margin-top:20px;">
+  <h3>Programas de Pontos e Milhas</h3>
+  <table>
+    <thead><tr><th>PROGRAMA</th><th style="text-align:right;">SALDO</th><th style="text-align:right;">VALOR ESTIMADO</th></tr></thead>
+    <tbody>
+      <tr><td>Livelo</td><td style="text-align:right;">132.112 pts</td><td style="text-align:right;">~R$ 1.585–2.245</td></tr>
+      <tr><td>Smiles</td><td style="text-align:right;">42.408 milhas</td><td style="text-align:right;">~R$ 1.270</td></tr>
+      <tr><td>Átomos (C6)</td><td style="text-align:right;">158.695 pts</td><td style="text-align:right;">~R$ 4.451</td></tr>
+      <tr><td>Esfera</td><td style="text-align:right;">6.046 pts</td><td style="text-align:right;">~R$ 90</td></tr>
+    </tbody>
+  </table>
+  <p class="text-sm text-muted">Custos da estadia EUA (F1/F2) NÃO entram no orçamento de viagens — são custo de vida.</p>
+</div>
+</div>
+
+<!-- APÊNDICE C -->
+<div class="section" id="apendice-c" data-mode="strategic">
+<div class="section-header">
+  <h1>Apêndice C — Planejamento Sucessório</h1>
+</div>
+
+<div class="card" style="overflow-x:auto;">
+  <table>
+    <thead><tr><th>ITEM</th><th>STATUS</th><th>PRAZO</th></tr></thead>
+    <tbody>
+      <tr><td>Advogado sucessório/tributarista SP</td><td><span class="badge badge-yellow">PENDENTE</span></td><td>Abr/2026</td></tr>
+      <tr><td>Testamento público David + Mariana (cartório BR)</td><td><span class="badge badge-yellow">PENDENTE</span></td><td>Mai/2026</td></tr>
+      <tr><td>Procuração pública para Rubens (pai David)</td><td><span class="badge badge-yellow">PENDENTE</span></td><td>Antes EUA</td></tr>
+      <tr><td>Procuração duradoura David→Mariana+Rubens</td><td><span class="badge badge-yellow">PENDENTE</span></td><td>Antes EUA</td></tr>
+      <tr><td>Atualizar beneficiários PGBL e seguro de vida</td><td><span class="badge badge-yellow">PENDENTE</span></td><td>Abr/2026</td></tr>
+      <tr><td>Avaliar holding patrimonial</td><td><span class="badge badge-yellow">PENDENTE</span></td><td>T4/2026</td></tr>
+      <tr><td>Testamento americano (BR assets)</td><td><span class="badge badge-yellow">PENDENTE</span></td><td>Após mudança EUA</td></tr>
+      <tr><td>Standby Guardianship para Theo</td><td><span class="badge badge-yellow">PENDENTE</span></td><td>Primeiras semanas EUA</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+<!-- APÊNDICE D -->
+<div class="section" id="apendice-d" data-mode="strategic">
+<div class="section-header">
+  <h1>Apêndice D — NCLEX Roadmap</h1>
+</div>
+
+<div class="card" style="overflow-x:auto;">
+  <h3>Roadmap NCLEX — Mariana</h3>
+  <table class="table-steps">
+    <thead><tr><th>#</th><th>ETAPA</th><th style="text-align:right;">CUSTO</th><th>DURAÇÃO</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>CGFNS Credentials Evaluation</td><td style="text-align:right;">US$ 350</td><td>4-8 semanas</td></tr>
+      <tr><td>2</td><td>Teste de Inglês (MET, OET, PTE, TOEFL ou IELTS)</td><td style="text-align:right;">US$ 235–455</td><td>Prep 2-3 meses</td></tr>
+      <tr><td>3</td><td>CGFNS VisaScreen Certificate</td><td style="text-align:right;">US$ 540</td><td>8-12 semanas</td></tr>
+      <tr><td>4</td><td>State Board Application (SC)</td><td style="text-align:right;">US$ 200</td><td>2-4 semanas</td></tr>
+      <tr><td>5</td><td>ATT (Authorization to Test)</td><td style="text-align:right;">—</td><td>2-4 semanas</td></tr>
+      <tr><td>6</td><td>NCLEX-RN Exam</td><td style="text-align:right;">US$ 200</td><td>Agendar Pearson VUE</td></tr>
+      <tr><td>7</td><td>License Issued</td><td style="text-align:right;">—</td><td>2-4 semanas</td></tr>
+      <tr class="total-row"><td></td><td><strong>TOTAL</strong></td><td style="text-align:right;"><strong>US$ 1.515–2.440</strong></td><td><strong>8-18 meses</strong></td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:16px;"><strong>Perfil competitivo Mariana:</strong> Especialização Cardiologia + Mestrado USP + 11+ anos Einstein + UTI. Projeção EUA: Cardiologia RN US$45–80/hora → US$4.000–7.000/mês líquido.</p>
+</div>
+
+<div class="card" style="overflow-x:auto; margin-top:20px;">
+  <h3>Comparativo de Testes de Inglês</h3>
+  <table>
+    <thead><tr><th>TESTE</th><th>FACILIDADE</th><th style="text-align:right;">CUSTO</th><th>RECOMENDAÇÃO</th></tr></thead>
+    <tbody>
+      <tr><td><strong>MET (Michigan)</strong></td><td><span class="badge badge-green">Alta</span></td><td style="text-align:right;">R$ 950</td><td>Melhor custo-benefício. Queridinho entre enfermeiros BR.</td></tr>
+      <tr><td><strong>OET</strong></td><td><span class="badge badge-green">Alta</span></td><td style="text-align:right;">~R$ 2.450</td><td>Conteúdo de saúde — menor resistência psicológica.</td></tr>
+      <tr><td>PTE Academic</td><td><span class="badge badge-yellow">Média</span></td><td style="text-align:right;">~R$ 1.250</td><td>Correção por IA. Speaking exigido 63.</td></tr>
+      <tr><td>TOEFL iBT</td><td><span class="badge badge-red">Baixa</span></td><td style="text-align:right;">~R$ 1.250</td><td>Acadêmico/rígido.</td></tr>
+      <tr><td>IELTS Academic</td><td><span class="badge badge-red">Baixa</span></td><td style="text-align:right;">R$ 1.360</td><td>Subjetivo/face a face.</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+<!-- APÊNDICE E -->
+<div class="section" id="apendice-e" data-mode="strategic">
+<div class="section-header">
+  <h1>Apêndice E — Simulação Mariana Sem Trabalhar</h1>
+</div>
+
+<div class="chart-container">
+  <div class="card-title">Cenários IF — Mariana Trabalhando vs Não Trabalhando</div>
+  <p class="chart-context">Impacto na meta de independência financeira caso Mariana pare de trabalhar.</p>
+  <canvas id="chart-mariana-cenarios"></canvas>
+  <p class="chart-conclusion">Com aporte de R$ 20k mantido, a IF é atingida em 9,0 anos independente da renda da Mariana (a folga absorve). Com aporte reduzido (R$ 13,2k), o prazo estende para 11,4 anos (+2,4 anos).</p>
+</div>
+
+<div class="card" style="overflow-x:auto; margin-top:20px;">
+  <h3>Simulação: Mariana Sem Trabalhar</h3>
+  <table>
+    <thead><tr><th>MÉTRICA</th><th style="text-align:right;">VALOR</th></tr></thead>
+    <tbody>
+      <tr><td>Impacto líquido mensal</td><td style="text-align:right; color:var(--color-danger);">-R$ 6.830</td></tr>
+      <tr><td>Faturamento PJ adicional necessário</td><td style="text-align:right;">R$ 8.035/mês bruto (+13,4%)</td></tr>
+      <tr><td>IF com aporte R$ 20k mantido</td><td style="text-align:right;"><strong>9,0 anos</strong> (sem impacto)</td></tr>
+      <tr><td>IF com aporte reduzido R$ 13,2k</td><td style="text-align:right;">11,4 anos (+2,4 anos)</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+</div><!-- END .container wrapper -->
+
+<!-- EXPORT TOOLBAR -->
+<!-- Floating navigation buttons -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Voltar ao topo">↑</button>
+<button class="go-to-bottom" id="goToBottom" onclick="window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})" title="Ir ao final">↓</button>
+
+<div class="export-toolbar">
+  <button class="export-btn" onclick="exportPDF()"><span>📄</span> Exportar PDF</button>
+  <button class="export-btn" onclick="exportMarkdown()"><span>📝</span> Exportar Markdown</button>
+</div>
+
+<footer class="footer">
+<strong>Planejamento Financeiro Pessoal — Família Ferreira Campos</strong><br>
+Gerado em: 04/04/2026 às 06:58 (Brasília) | Período: Mai/2025–Mar/2026 | Versão Manual Operações: 3.1<br>
+⚠️ Caráter educacional/informativo. Não constitui consultoria financeira (CVM/CFP), jurídica ou tributária.<br>
+Dados baseados em extratos bancários, faturas e declarações de IR processados em mar-abr/2026. Valores de investimento são estimados — confirmar antes de agir.
+</footer>
+
+<script id="report-data" type="application/json">{"meta": {"modo_padrao": "strategic", "periodo": "Mai/2025–Mar/2026", "data_geracao": "2026-04-04T06:58:40.736296", "versao": "5.0"}, "kpis": {"patrimonio_bruto": 3501275.44, "patrimonio_investivel": 2530777.98, "patrimonio_liquido": 3266482.83, "renda_mensal": 60413.86, "taxa_poupanca_recorrente": 0.467, "meta_if": 7200000, "gap_if": 4669222.02, "prazo_if_anos": 9.3, "score_financeiro": 8.3, "score_classificacao": "Excelente"}, "meses": ["Mai/25", "Jun/25", "Jul/25", "Ago/25", "Set/25", "Out/25", "Nov/25", "Dez/25", "Jan/26", "Fev/26", "Mar/26"], "charts": {"patrimonio_doughnut": {"labels": ["Residência própria", "Imóveis investimento", "Investimentos David", "Investimentos Mariana", "Criptoativos", "Caixa + Moeda Estrangeira", "Veículos"], "datasets": [{"data": [996821.46, 1173000.0, 605978.87, 188123.73, 3189.68, 306685.7, 227476.0], "backgroundColor": ["#1A3A5C", "#1E6E8F", "#15803D", "#F4A261", "#B91C1C", "#457B9D", "#A8DADC"]}]}, "waterfall": {"labels": ["Patrimônio Investível", "Residência", "Veículos", "Dívidas", "Gap IF", "Meta IF"], "data": [2530777.98, 996821.46, 227476.0, -234792.61, 4669222.02, 7200000]}, "receita_despesa_mensal": {"labels": ["Mai/25", "Jun/25", "Jul/25", "Ago/25", "Set/25", "Out/25", "Nov/25", "Dez/25", "Jan/26", "Fev/26", "Mar/26"], "datasets": [{"label": "PJ Income", "data": [50000, 50000, 50000, 55000, 80000, 60000, 55000, 100000, 100000, 55000, 65000], "backgroundColor": "#1A3A5C", "stack": "receita", "borderRadius": 0}, {"label": "CLT Mariana", "data": [8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000], "backgroundColor": "#457B9D", "stack": "receita", "borderRadius": 0}, {"label": "Aluguéis", "data": [8571, 8571, 8571, 8571, 8571, 8571, 8571, 8571, 8571, 8571, 8571], "backgroundColor": "#15803D", "stack": "receita", "borderRadius": 4}, {"label": "Despesas", "data": [32173, 32173, 32173, 32173, 32173, 32173, 32173, 32173, 32173, 32173, 32173], "backgroundColor": "#E63946", "stack": "despesa", "borderRadius": 4, "borderColor": "#B91C1C", "borderWidth": 1}]}, "despesas_doughnut": {"labels": ["Reserva Desejos", "Saúde", "Lazer/Viagens", "Não identificado", "Alimentação", "Melhoria/Reforma", "Transporte", "Assinaturas", "Vestuário", "Seguros", "Financeiro", "Educação"], "datasets": [{"data": [73526, 58380, 42797, 39475, 21142, 14720, 14128, 9714, 8322, 5338, 4756, 3197], "backgroundColor": ["#1A3A5C", "#1E6E8F", "#15803D", "#F4A261", "#B91C1C", "#457B9D", "#A8DADC", "#8338EC", "#CBD5E1", "#94A3B8", "#818CF8", "#F472B6"]}]}, "score_gauge": {"score": 8.3, "componentes": [{"item": "Taxa de poupança recorrente (46.7%)", "peso": 2.0, "pontuacao": 9.3}, {"item": "Cobertura de despesas (109 meses)", "peso": 1.5, "pontuacao": 10.0}, {"item": "Taxa de endividamento (6.7%)", "peso": 1.5, "pontuacao": 9.6}, {"item": "Progresso IF (35.1%)", "peso": 2.0, "pontuacao": 4.0}, {"item": "Diversificação (6 categorias ≥5%)", "peso": 1.0, "pontuacao": 10.0}]}, "alocacao_atual": {"labels": ["Renda Fixa", "Fundos RV", "Ações", "Caixa", "Previdência", "Crypto", "Internacional"], "data": [54.2, 12, 7.1, 10.1, 1.4, 0.1, 0]}, "alocacao_alvo": {"labels": ["Renda Fixa", "Fundos RV", "Ações", "Caixa", "Previdência", "Crypto", "Internacional"], "data": [50, 10, 10, 4, 5, 1, 10]}, "top15": {"labels": [], "data": []}, "yield_imoveis": {"labels": ["Calixto", "Major Freire", "Living Wish", "CDI"], "data": [6.3, 4.7, 11.7, 13.75]}, "custos_f1f2": {"labels": ["Custos EUA", "Custos BR", "TOTAL", "Renda", "Sobra"], "data": [23461, 8919, 32380, 70611, 38231]}, "cenarios_cambiais": {"labels": ["Pessimista R$7,50", "Realista R$5,88", "Otimista R$4,50"], "sem_mariana": [8500, 22000, 35000], "com_mariana": [38000, 55000, 72000]}, "projecao_3cenarios": {"anos": [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038], "meta_if": 7200000, "investivel_inicial": 2530777.98, "aporte_mensal": 20000}, "renda_passiva": {"fontes": ["Aluguéis David", "Aluguéis Mariana", "Dividendos/JCP", "Rendimentos RF", "BTG cupons"], "valores": [3422, 5149, 521, 650, 300], "meta": 30000, "gap": 19958}}, "tactical": {"despesas_por_categoria": [], "aportes": {"cofrinhos": {"valor": 0, "meta": 10000, "status": "pendente"}, "ipca": {"valor": 0, "meta": 5000, "status": "pendente"}, "ivvb11": {"valor": 0, "meta": 3000, "status": "pendente"}, "wise": {"valor": 0, "meta": 2000, "status": "pendente"}, "pgbl": {"valor": 0, "meta": 1800, "status": "pendente"}, "crypto": {"valor": 0, "meta": 500, "status": "pendente"}}, "tarefas_status": {"1": "pendente", "2": "pendente", "3": "pendente", "4": "pendente", "5": "pendente", "6": "pendente", "7": "pendente", "8": "pendente", "9": "pendente", "10": "pendente", "11": "pendente", "12": "pendente", "13": "pendente", "14": "pendente", "15": "pendente", "16": "pendente", "17": "pendente", "18": "pendente", "19": "pendente", "20": "pendente"}, "alertas": [{"tipo": "critico", "titulo": "Seguro de vida INEXISTENTE", "descricao": "David não possui seguro de vida. Risco catastrófico para família com filho de 9 meses."}, {"tipo": "critico", "titulo": "Seguro de invalidez INEXISTENTE", "descricao": "Sem proteção contra perda de capacidade laborativa."}, {"tipo": "atencao", "titulo": "Fundos PFIC em risco fiscal", "descricao": "~R$181k em fundos Rico (Alaska, Western, Safari, Constellation) serão classificados como PFIC nos EUA."}, {"tipo": "atencao", "titulo": "Extratos Bradesco sem transações", "descricao": "Extratos de Mariana (CC + Poupança Bradesco) retornaram 0 transações — possível falha de extração PDF."}, {"tipo": "atencao", "titulo": "Transações não categorizadas (428)", "descricao": "R$ 39.475 em despesas sem categoria definida."}, {"tipo": "info", "titulo": "Valores corrompidos em PDFs corrigidos", "descricao": "43 transações com valores de extração corrompidos foram corrigidas automaticamente (WIX, SABESP, ELETROPAULO, etc.)."}], "proximos_15d": [{"data": "2026-04-05", "acao": "Configurar primeiro aporte automático R$20k", "prioridade": "alta"}, {"data": "2026-04-07", "acao": "Cotação seguro de vida Term Life (3 corretoras)", "prioridade": "alta"}, {"data": "2026-04-10", "acao": "Agendar reunião com advogado sucessório", "prioridade": "alta"}, {"data": "2026-04-10", "acao": "Configurar PGBL Itaú R$1.800/mês", "prioridade": "alta"}, {"data": "2026-04-15", "acao": "Avaliar resgate PFIC (Rico fundos)", "prioridade": "media"}, {"data": "2026-04-18", "acao": "Procurar CPA expatriado (indicação via fórum ExpatBR)", "prioridade": "media"}], "notas": "Ciclo abr/2026. Pós-venda Living Concept. TRS 5%. Valores PDF corrigidos (43 txns). Extratos Bradesco sem dados.", "tarefas": [{"n": 1, "t": "Contratar seguro de vida Term Life R$3-5M (20 anos)", "p": "alta", "e": "David não tem seguro de vida. Família com filho de 9 meses e plano de mudança internacional."}, {"n": 2, "t": "Contratar seguro de invalidez (60% renda)", "p": "alta", "e": "Proteção inexistente contra perda de capacidade laborativa."}, {"n": 3, "t": "Contratar advogado sucessório/tributarista SP", "p": "alta", "e": "Planejamento sucessório pendente antes da mudança para EUA."}, {"n": 4, "t": "Preparar testamento público David + Mariana", "p": "alta", "e": "Obrigatório antes da mudança internacional."}, {"n": 5, "t": "Preparar procuração pública para Rubens (pai David)", "p": "alta", "e": "Gestão de ativos BR durante estadia nos EUA."}, {"n": 6, "t": "Configurar aporte automático mensal R$20k (dia 5)", "p": "alta", "e": "Cofrinhos R$10k + IPCA+ R$5k + IVVB11 R$3k + Wise USD R$2k."}, {"n": 7, "t": "Iniciar PGBL Itaú R$1.800/mês (regime regressivo)", "p": "alta", "e": "Economia fiscal R$5.940/ano. Regime regressivo 10% após 10 anos."}, {"n": 8, "t": "Atualizar beneficiários PGBL e seguro de vida", "p": "alta", "e": "Incluir Theo e Mariana como beneficiários."}, {"n": 9, "t": "Avaliar resgate fundos PFIC antes de mudar para EUA", "p": "alta", "e": "Rico fundos (Alaska, Western, Safari = ~R$181k) são PFIC nos EUA — tributação punitiva."}, {"n": 10, "t": "Contratar CPA expatriado (FBAR/FATCA/Form 1040)", "p": "alta", "e": "Obrigatório antes de virar US tax resident."}, {"n": 11, "t": "Categorizar transações pendentes", "p": "alta", "e": "428 transações não categorizadas no período."}, {"n": 12, "t": "Automatizar reinvestimento de aluguéis QuintoAndar", "p": "media", "e": "R$8.571/mês em aluguéis sem transferência automática para investimento."}, {"n": 13, "t": "Cotar seguro residencial (alternativa ao Santander)", "p": "media", "e": "Possível economia de 20-40% com concorrência."}, {"n": 14, "t": "Cancelar seguro conta Santander R$10/mês", "p": "media", "e": "Duplica proteção do C6. Economia R$120/ano."}, {"n": 15, "t": "Processar extratos PJ completos (C6 PJ)", "p": "media", "e": "DAS e despesas PJ não rastreáveis nos extratos pessoais."}, {"n": 16, "t": "Iniciar processo NCLEX Mariana (CGFNS Credentials)", "p": "media", "e": "Etapa 1 do roadmap: US$350, 4-8 semanas."}, {"n": 17, "t": "Agendar teste de inglês Mariana (OET ou MET)", "p": "media", "e": "Pré-requisito para NCLEX. OET foco saúde, MET melhor custo-benefício."}, {"n": 18, "t": "Avaliar venda BRKM5 para compensação fiscal", "p": "media", "e": "Prejuízo ~R$3.500 utilizável para compensar ganhos de capital."}, {"n": 19, "t": "Obter extratos Bradesco CC + Poupança (Mariana)", "p": "media", "e": "Extratos Bradesco com 0 transações — possível falha de extração."}, {"n": 20, "t": "Iniciar DCA Crypto R$500/mês (mai/2026)", "p": "baixa", "e": "Diversificação crypto 0,1%→1% da carteira."}]}, "orcamento_prospectivo": {"periodo_referencia": "Abr/2026", "periodo_meses": "11M", "renda_total": 78611, "aporte_if": 20000, "impostos_teto": 6673, "impostos_media": 5029, "folga_livre": 18988, "total_tetos": 32950, "total_media_real": 32173, "total_pct_renda": 41.9, "aporte_pct": 25.4, "impostos_pct": 8.5, "folga_pct": 24.2, "pontuais_exemplos": "Dermatologia, Vivara, Minuto PA", "categorias": [{"codigo": "moradia", "emoji": "🏠", "categoria": "Moradia (sem financiamento)", "media_real": 432, "teto": 2500, "pct_renda": 3.2, "observacao": "SABESP + Enel + condos Mariana"}, {"codigo": "alimentacao", "emoji": "🍽", "categoria": "Alimentação", "media_real": 1922, "teto": 4500, "pct_renda": 5.7, "observacao": "Super + restaurantes + delivery"}, {"codigo": "saude", "emoji": "🏥", "categoria": "Saúde", "media_real": 5307, "teto": 3000, "pct_renda": 3.8, "observacao": "Inclui Awada pontual"}, {"codigo": "servicos_domesticos", "emoji": "🧹", "categoria": "Serviços domésticos", "media_real": 226, "teto": 4000, "pct_renda": 5.1, "observacao": "Suecia + diaristas"}, {"codigo": "educacao", "emoji": "🎓", "categoria": "Educação", "media_real": 291, "teto": 2000, "pct_renda": 2.5, "observacao": "Belt Academy + cursos"}, {"codigo": "transporte", "emoji": "🚗", "categoria": "Transporte", "media_real": 1284, "teto": 1700, "pct_renda": 2.2, "observacao": "Combustível + pedágio + estacionamento"}, {"codigo": "lazer_viagens", "emoji": "✈", "categoria": "Lazer e viagens", "media_real": 3891, "teto": 3750, "pct_renda": 4.8, "observacao": "Teto R$45k/ano = R$3.750/mês"}, {"codigo": "vestuario", "emoji": "👕", "categoria": "Vestuário e compras", "media_real": 757, "teto": 2000, "pct_renda": 2.5, "observacao": "Roupas + acessórios"}, {"codigo": "assinaturas", "emoji": "📱", "categoria": "Assinaturas", "media_real": 883, "teto": 300, "pct_renda": 0.4, "observacao": "Spotify + Prime + Globoplay + Gympass"}, {"codigo": "suporte_familiar", "emoji": "👨‍👩‍👦", "categoria": "Suporte familiar", "media_real": 8, "teto": 5000, "pct_renda": 6.4, "observacao": "Rubens R$1.333 + Neusa R$1.500"}, {"codigo": "financeiro", "emoji": "🏦", "categoria": "Financeiro pessoal", "media_real": 432, "teto": 200, "pct_renda": 0.3, "observacao": "Sem cheque especial = quase zero"}, {"codigo": "melhoria_reforma", "emoji": "🔨", "categoria": "Melhoria/Reforma moradia", "media_real": 1338, "teto": 1500, "pct_renda": 1.9, "observacao": "Reparos, reformas, troca de móveis"}, {"codigo": "reserva_desejos", "emoji": "🎁", "categoria": "Reserva de desejos", "media_real": 6684, "teto": 3000, "pct_renda": 3.8, "observacao": "Compras planejadas"}, {"codigo": "seguros", "emoji": "🛡", "categoria": "Seguros", "media_real": 485, "teto": 1500, "pct_renda": 1.9, "observacao": "Vida + invalidez + residencial"}]}, "consumo_consciente": {"itens": [{"desc": "CLINICA DERMATOLOGICA", "valor": 11400.0, "data": "2026-11-14", "conta": "c6_bank_carbon_credi"}, {"desc": "ABDO MOHAMED ABDOUNI", "valor": 10600.0, "data": "2026-11-01", "conta": "c6_bank_carbon_credi"}, {"desc": "AIRBNB PAGAM*AIRBNB *", "valor": 9434.06, "data": "2026-04-27", "conta": "c6_bank_carbon_credi"}, {"desc": "VIVARA PLA", "valor": 6455.0, "data": "2026-12-19", "conta": "c6_bank_carbon_credi"}, {"desc": "MINUTO PA", "valor": 6199.0, "data": "2026-01-23", "conta": "c6_bank_carbon_credi"}, {"desc": "MINUTO PA", "valor": 6199.0, "data": "2026-01-24", "conta": "c6_bank_carbon_credi"}, {"desc": "MINUTO PA", "valor": 6199.0, "data": "2026-01-31", "conta": "c6_bank_carbon_credi"}, {"desc": "MINUTO PA", "valor": 6199.0, "data": "2026-03-18", "conta": "c6_bank_carbon_credi"}, {"desc": "MINUTO PA", "valor": 6199.0, "data": "2026-03-23", "conta": "c6_bank_carbon_credi"}, {"desc": "MINUTO PA", "valor": 6199.0, "data": "2026-09-28", "conta": "c6_bank_carbon_credi"}, {"desc": "MINUTO PA", "valor": 6199.0, "data": "2026-12-14", "conta": "c6_bank_carbon_credi"}, {"desc": "MINUTO PA", "valor": 6199.0, "data": "2026-12-20", "conta": "c6_bank_carbon_credi"}, {"desc": "MINUTO PA", "valor": 6199.0, "data": "2026-12-23", "conta": "c6_bank_carbon_credi"}, {"desc": "INSTITUTO DR BARAKAT", "valor": 6000.0, "data": "2026-10-30", "conta": "c6_bank_carbon_credi"}, {"desc": "WAWA", "valor": 5346.0, "data": "2026-06-22", "conta": "c6_bank_carbon_credi"}], "total_pontuais": 153034.94, "equivalente_meses_aporte": 7.7, "folga_mensal": 28241.08, "folga_pct": 46.7, "teto_sugerido": 36998.7}, "diagnostico_comportamental": [{"padrao": "Gastos grandes sem planejamento", "evidencia": "R$ 153.035 em gastos pontuais ≥R$2k no período (27 itens). Top: CLINICA DERMATOLOGICA R$ 11.400", "mudanca_sugerida": "Criar conta 'reserva de desejos' com R$3.000/mês provisionados. Antes de compras >R$2k, aguardar 48h e verificar se há saldo na reserva."}, {"padrao": "Aluguéis recebidos sem reinvestimento automático", "evidencia": "Aluguéis QuintoAndar (R$8.571/mês) entram em Itaú/Bradesco sem transferência automática para investimento.", "mudanca_sugerida": "Configurar débito automático mensal: Itaú→Cofrinhos R$3.422 + Bradesco→BTG R$5.149. Dia 10 de cada mês."}, {"padrao": "DAS PJ sem rastreio nos extratos pessoais", "evidencia": "Pagamentos de DAS (R$5.029/mês) não aparecem nos extratos pessoais processados. Valor estimado do life_plan.", "mudanca_sugerida": "Confirmar com AccountTech se DAS está em dia. Incluir extrato PJ completo no próximo ciclo."}], "investimentos": {"cdi_anual": 14.75, "kpis": {"rent_anual": 11.1, "rent_mensal": 0.88, "pct_cdi": 75, "retorno_real": 6.0}, "blocos": [{"nome": "Itaú (Cofrinhos + PGBL)", "valor": 225207, "ret_anual": 13.5, "ret_mensal": 1.07, "pct_cdi": 92}, {"nome": "Santander (3 CDBs)", "valor": 299478, "ret_anual": 13.5, "ret_mensal": 1.07, "pct_cdi": 92}, {"nome": "Rico (fundos + ações + caixa)", "valor": 278917, "ret_anual": 8.0, "ret_mensal": 0.64, "pct_cdi": 54}, {"nome": "BTG Pactual (Mariana)", "valor": 188124, "ret_anual": 10.8, "ret_mensal": 0.86, "pct_cdi": 73}, {"nome": "PicPay (RDB)", "valor": 53757, "ret_anual": 13.1, "ret_mensal": 1.04, "pct_cdi": 89}, {"nome": "Caixa / USD", "valor": 79686, "ret_anual": 3.0, "ret_mensal": 0.25, "pct_cdi": 20}], "total": {"valor": 1125169, "ret_anual": 11.1, "ret_mensal": 0.88, "pct_cdi": 75}, "estrategia_aporte": {"total_aporte": 20000, "dia_aporte": 5, "periodo_inicio": "abr/2026", "destinos": [{"destino": "CDB Cofrinhos Itaú", "valor": 10000, "pct": 50, "objetivo": "Reserva de emergência + liquidez", "liquidez": "D+0", "moeda": "BRL"}, {"destino": "Tesouro IPCA+", "valor": 5000, "pct": 25, "objetivo": "Proteção inflação, RF longa", "liquidez": "D+1", "moeda": "BRL"}, {"destino": "IVVB11 (ETF S&P 500)", "valor": 3000, "pct": 15, "objetivo": "Dolarização indireta + RV global", "liquidez": "D+2", "moeda": "USD"}, {"destino": "Wise USD", "valor": 2000, "pct": 10, "objetivo": "Dolarização direta pré-EUA", "liquidez": "Imediata", "moeda": "USD"}], "pct_brl": 75, "pct_usd": 25, "destinos_brl": "Cofrinhos + IPCA+", "destinos_usd": "IVVB11 + Wise"}, "contrafluxo": {"cenario_atual": "alta", "selic_atual": 14.75, "selic_alta": "14,75%", "selic_queda": "10–12%", "selic_baixa": "6–8%", "valor_cdi": 10000, "valor_ipca": 5000, "acao_pratica": "Após a reserva de emergência atingir 12 meses (R$ 382k), redirecionar R$ 5k dos Cofrinhos para Tesouro IPCA+ 2035/2040, travando IPCA+7%. Aproveitar Selic alta para travar taxas reais excelentes."}}, "goals": {"if_meta": 7200000, "if_trs": 0.05, "if_trs_nota": "TRS 5% — carteira diversificada imóveis+RF+RV. Ref. decisão D15.", "if_pct": 35.1, "if_gap": 4669222.02, "prazo_anos_realista": 9.3, "david_idade_if": 53, "aporte_mensal": 20000, "retorno_real_aa": 0.06, "renda_passiva": {"atual_mensal": 10042, "meta_mensal": 30000, "pct_atingido": 33.5, "fontes": [{"fonte": "Aluguéis David", "valor": 3422}, {"fonte": "Aluguéis Mariana", "valor": 5149}, {"fonte": "Dividendos/JCP", "valor": 521}, {"fonte": "Rendimentos RF", "valor": 650}, {"fonte": "BTG cupons", "valor": 300}]}, "cenarios": [{"nome": "Pessimista", "retorno": 0.04, "aporte": 20000, "prazo": 11.9, "david_idade": 55}, {"nome": "Realista", "retorno": 0.06, "aporte": 20000, "prazo": 9.3, "david_idade": 53}, {"nome": "Otimista", "retorno": 0.08, "aporte": 20000, "prazo": 7.0, "david_idade": 50}]}, "tarefas": [{"n": 1, "t": "Contratar seguro de vida Term Life R$3-5M (20 anos)", "p": "alta", "e": "David não tem seguro de vida. Família com filho de 9 meses e plano de mudança internacional."}, {"n": 2, "t": "Contratar seguro de invalidez (60% renda)", "p": "alta", "e": "Proteção inexistente contra perda de capacidade laborativa."}, {"n": 3, "t": "Contratar advogado sucessório/tributarista SP", "p": "alta", "e": "Planejamento sucessório pendente antes da mudança para EUA."}, {"n": 4, "t": "Preparar testamento público David + Mariana", "p": "alta", "e": "Obrigatório antes da mudança internacional."}, {"n": 5, "t": "Preparar procuração pública para Rubens (pai David)", "p": "alta", "e": "Gestão de ativos BR durante estadia nos EUA."}, {"n": 6, "t": "Configurar aporte automático mensal R$20k (dia 5)", "p": "alta", "e": "Cofrinhos R$10k + IPCA+ R$5k + IVVB11 R$3k + Wise USD R$2k."}, {"n": 7, "t": "Iniciar PGBL Itaú R$1.800/mês (regime regressivo)", "p": "alta", "e": "Economia fiscal R$5.940/ano. Regime regressivo 10% após 10 anos."}, {"n": 8, "t": "Atualizar beneficiários PGBL e seguro de vida", "p": "alta", "e": "Incluir Theo e Mariana como beneficiários."}, {"n": 9, "t": "Avaliar resgate fundos PFIC antes de mudar para EUA", "p": "alta", "e": "Rico fundos (Alaska, Western, Safari = ~R$181k) são PFIC nos EUA — tributação punitiva."}, {"n": 10, "t": "Contratar CPA expatriado (FBAR/FATCA/Form 1040)", "p": "alta", "e": "Obrigatório antes de virar US tax resident."}, {"n": 11, "t": "Categorizar transações pendentes", "p": "alta", "e": "428 transações não categorizadas no período."}, {"n": 12, "t": "Automatizar reinvestimento de aluguéis QuintoAndar", "p": "media", "e": "R$8.571/mês em aluguéis sem transferência automática para investimento."}, {"n": 13, "t": "Cotar seguro residencial (alternativa ao Santander)", "p": "media", "e": "Possível economia de 20-40% com concorrência."}, {"n": 14, "t": "Cancelar seguro conta Santander R$10/mês", "p": "media", "e": "Duplica proteção do C6. Economia R$120/ano."}, {"n": 15, "t": "Processar extratos PJ completos (C6 PJ)", "p": "media", "e": "DAS e despesas PJ não rastreáveis nos extratos pessoais."}, {"n": 16, "t": "Iniciar processo NCLEX Mariana (CGFNS Credentials)", "p": "media", "e": "Etapa 1 do roadmap: US$350, 4-8 semanas."}, {"n": 17, "t": "Agendar teste de inglês Mariana (OET ou MET)", "p": "media", "e": "Pré-requisito para NCLEX. OET foco saúde, MET melhor custo-benefício."}, {"n": 18, "t": "Avaliar venda BRKM5 para compensação fiscal", "p": "media", "e": "Prejuízo ~R$3.500 utilizável para compensar ganhos de capital."}, {"n": 19, "t": "Obter extratos Bradesco CC + Poupança (Mariana)", "p": "media", "e": "Extratos Bradesco com 0 transações — possível falha de extração."}, {"n": 20, "t": "Iniciar DCA Crypto R$500/mês (mai/2026)", "p": "baixa", "e": "Diversificação crypto 0,1%→1% da carteira."}], "alertas": [{"tipo": "critico", "titulo": "Seguro de vida INEXISTENTE", "descricao": "David não possui seguro de vida. Risco catastrófico para família com filho de 9 meses."}, {"tipo": "critico", "titulo": "Seguro de invalidez INEXISTENTE", "descricao": "Sem proteção contra perda de capacidade laborativa."}, {"tipo": "atencao", "titulo": "Fundos PFIC em risco fiscal", "descricao": "~R$181k em fundos Rico (Alaska, Western, Safari, Constellation) serão classificados como PFIC nos EUA."}, {"tipo": "atencao", "titulo": "Extratos Bradesco sem transações", "descricao": "Extratos de Mariana (CC + Poupança Bradesco) retornaram 0 transações — possível falha de extração PDF."}, {"tipo": "atencao", "titulo": "Transações não categorizadas (428)", "descricao": "R$ 39.475 em despesas sem categoria definida."}, {"tipo": "info", "titulo": "Valores corrompidos em PDFs corrigidos", "descricao": "43 transações com valores de extração corrompidos foram corrigidas automaticamente (WIX, SABESP, ELETROPAULO, etc.)."}], "seguros": {"identificados": [{"tipo": "seguro_vida", "membro": "Mariana", "fonte": "holerite_einstein", "premio_mensal": 27.41, "premio_anual": 328.92, "status": "ativo"}, {"tipo": "seguro_conta_c6", "membro": "David", "fonte": "fatura_c6_carbon", "premio_mensal": 20.0, "premio_anual": 240.0, "status": "ativo"}], "transacoes": [{"desc": "PORTO SEGURO SEGUROS", "valor": 5337.9}], "gap": ["Seguro de vida David — URGENTE", "Seguro de invalidez David — URGENTE", "Revisão seguro residencial Santander"]}}</script>
+<!--
+  REPORT_DATA_JSON must include at minimum:
+  {
+    "kpis": {...},
+    "summaries": [...],
+    "meses": ["Mai/25", ...],
+    "rentabilidade": {...},
+    "charts": {
+      "patrimonio_doughnut": {"labels":[], "data":[]},
+      "waterfall": {"labels":[], "data":[]},
+      "fluxo_mensal": {"receita":{...}, "despesa":[...]},
+      "receita_despesa_mensal": {
+        "labels": ["Mai/25","Jun/25",...,"Mar/26"],
+        "receita": {
+          "pj_income": [7000,...],
+          "clt_salary": [7918,...],
+          "alugueis":   [1393,...]
+        },
+        "despesa_categorizada": [35148,...],
+        "note": "Exclui 'financeiro'. Fonte: receitas + despesas E3 monthly_breakdown."
+      },
+      "despesas_doughnut": {"labels":[], "data":[]},
+      "score_gauge": {...},
+      "alocacao_atual": {...},
+      "alocacao_alvo": {...},
+      "top15": {...},
+      ...
+    }
+  }
+-->
+
+<script>
+// Global DATA — accessible by all script blocks
+var DATA = JSON.parse(document.getElementById('report-data').textContent);
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Theme-aware Chart.js setup
+  function isDarkMode() { return document.documentElement.getAttribute('data-theme') === 'dark'; }
+  function getThemeColor(lightVal, darkVal) { return isDarkMode() ? darkVal : lightVal; }
+  var paletteDark  = ['#7EB8DA','#5CC8F0','#4ADE80','#FBBF24','#FB7185','#7CA3BD','#5B8FA8','#A78BFA'];
+  var paletteLight = ['#1A3A5C','#1E6E8F','#15803D','#F4A261','#B91C1C','#457B9D','#A8DADC','#8338EC'];
+  const palette = isDarkMode() ? paletteDark : paletteLight;
+  var defaultTextColor = getThemeColor('#64748B', '#8B9AB8');
+  var defaultGridColor = getThemeColor('rgba(0,0,0,0.06)', 'rgba(255,255,255,0.06)');
+  var defaultBorderColor = getThemeColor('rgba(0,0,0,0.08)', 'rgba(255,255,255,0.06)');
+
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = defaultTextColor;
+  Chart.defaults.borderColor = defaultBorderColor;
+
+  // Helper: inject theme-aware scale options
+  function themeScales(opts) {
+    var tc = getThemeColor('#64748B', '#8B9AB8');
+    var gc = getThemeColor('rgba(0,0,0,0.06)', 'rgba(255,255,255,0.06)');
+    if (!opts) opts = {};
+    ['x','y'].forEach(function(axis) {
+      if (!opts[axis]) opts[axis] = {};
+      if (!opts[axis].grid) opts[axis].grid = {};
+      if (!opts[axis].ticks) opts[axis].ticks = {};
+      opts[axis].grid.color = gc;
+      opts[axis].ticks.color = tc;
+    });
+    return opts;
+  }
+
+  // Register datalabels plugin for all charts
+  Chart.register(ChartDataLabels);
+
+  // Update all Chart.js instances when theme changes
+  window.updateChartsForTheme = function() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var textColor = dark ? '#8B9AB8' : '#64748B';
+    var gridColor = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    var borderColor = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)';
+    var pal = dark ? paletteDark : paletteLight;
+
+    Chart.defaults.color = textColor;
+    Chart.defaults.borderColor = borderColor;
+
+    var instances = Chart.instances || {};
+    Object.keys(instances).forEach(function(key) {
+      var chart = instances[key];
+      if (!chart) return;
+
+      // Update dataset colors for doughnuts/pie/bar
+      if (chart.data && chart.data.datasets) {
+        chart.data.datasets.forEach(function(ds) {
+          if (Array.isArray(ds.backgroundColor) && ds.backgroundColor.length > 1) {
+            ds.backgroundColor = ds.backgroundColor.map(function(_, i) { return pal[i % pal.length]; });
+            if (Array.isArray(ds.borderColor) && ds.borderColor.length > 1) {
+              ds.borderColor = ds.borderColor.map(function(_, i) { return pal[i % pal.length]; });
+            }
+          }
+        });
+      }
+
+      // Update scales
+      if (chart.options && chart.options.scales) {
+        Object.keys(chart.options.scales).forEach(function(axis) {
+          var s = chart.options.scales[axis];
+          if (s.grid) s.grid.color = gridColor;
+          if (s.ticks) s.ticks.color = textColor;
+        });
+      }
+
+      // Update legend
+      if (chart.options && chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+        chart.options.plugins.legend.labels.color = textColor;
+      }
+
+      chart.update('none');
+    });
+  };
+
+  // Helper functions
+  function fmt(v) { return 'R$ ' + v.toLocaleString('pt-BR'); }
+  const fmtK = v => v >= 1e6 ? 'R$ '+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? 'R$ '+(v/1e3).toFixed(0)+'k' : 'R$ '+v;
+
+  // Safe chart creator — skips gracefully when canvas is missing
+  function safeChart(canvasId, config) {
+    var el = document.getElementById(canvasId);
+    if (!el) { console.warn('Canvas not found, skipping: ' + canvasId); return null; }
+    try { return new Chart(el, config); }
+    catch(e) { console.warn('Chart error on ' + canvasId + ':', e.message); return null; }
+  }
+
+  // ============================================================
+  // POPULATE KPIs FROM DATA
+  // ============================================================
+  
+  // KPI values are already formatted in the HTML from E5 generation.
+  // This block only runs if KPI elements are empty (first-run / template mode).
+  document.querySelectorAll('[data-prompt]').forEach(el => {
+    if (el.textContent.trim()) return; // already has formatted value — skip
+    const key = el.dataset.prompt;
+    const k = DATA.kpis;
+    const map = {
+      'PATRIMONIO_BRUTO': fmtK(k.patrimonio_bruto),
+      'PATRIMONIO_INVESTIVEL': fmtK(k.patrimonio_investivel),
+      'RENDA_MENSAL': fmtK(k.renda_mensal),
+      'TAXA_POUPANCA': (k.taxa_poupanca_recorrente ? (k.taxa_poupanca_recorrente * 100) : (k.taxa_poupanca * 100)).toFixed(1).replace('.', ',') + '%',
+      'META_IF': fmtK(k.meta_if),
+      'GAP_IF': fmtK(k.gap_if),
+      'PRAZO_IF': (k.prazo_if_anos || k.prazo_if) + ' anos',
+      'SCORE': (k.score_financeiro || k.score || 0).toFixed(1).replace('.', ','),
+    };
+    if (map[key]) el.textContent = map[key];
+  });
+
+  // ========== CHART 1: Patrimônio Doughnut (from DATA.charts) ==========
+  var pdData = DATA.charts.patrimonio_doughnut;
+  safeChart('chart-patrimonio-doughnut', {
+    type: 'doughnut',
+    data: {
+      labels: pdData.labels,
+      datasets: [{
+        data: pdData.datasets[0].data,
+        backgroundColor: pdData.datasets[0].backgroundColor || palette.slice(0, pdData.labels.length),
+        borderWidth: 2, borderColor: '#fff'
+      }]
+    },
+    options: {
+      cutout: '55%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true } },
+        tooltip: { callbacks: { label: function(c) {
+          var total = c.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+          return c.label + ': ' + fmt(c.raw) + ' (' + ((c.raw/total)*100).toFixed(1) + '%)';
+        } } },
+        datalabels: {
+          color: '#fff',
+          font: { weight: 'bold', size: 11 },
+          formatter: function(value, context) {
+            var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+            var pct = ((value / total) * 100).toFixed(0);
+            if (pct < 5) return '';
+            return value >= 1e6 ? 'R$ '+(value/1e6).toFixed(1)+'M' : 'R$ ' + (value/1000).toFixed(0) + 'k';
+          },
+          anchor: 'center',
+          align: 'center',
+          textStrokeColor: 'rgba(0,0,0,0.3)',
+          textStrokeWidth: 2
+        }
+      }
+    }
+  });
+
+  // ========== CHART 2: Waterfall IF ==========
+  safeChart('chart-waterfall-if', {
+    type: 'bar',
+    data: {
+      labels: ['Investimentos', 'Imóveis (est.)', 'Total Atual', 'Gap', 'Meta IF'],
+      datasets: [{
+        label: 'R$',
+        data: [1369452, 4147480, 5516932, 3483068, 9000000],
+        backgroundColor: ['#2E86AB', '#457B9D', '#1A3A5C', '#E63946', '#2DC653'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(c) { return fmt(c.raw); } } },
+        datalabels: { display: false }
+      },
+      scales: { x: { ticks: { callback: function(v) { return 'R$ ' + (v/1000000).toFixed(1) + 'M'; } } } }
+    }
+  });
+
+  // ========== CHART 3: Receita por fonte ==========
+  safeChart('chart-receita-bar', {
+    type: 'bar',
+    data: {
+      labels: ['Arvo PJ','BrandLovers','Arbitralis','LearnToFly','CLT Mariana','Alug. David','Alug. Mariana'],
+      datasets: [{
+        label: 'R$/mês',
+        data: [47209, 10000, 3000, 1750, 8000, 3422, 6030],
+        backgroundColor: palette.slice(0,7),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(c) { return fmt(c.raw) + '/mês'; } } },
+        datalabels: { display: false }
+      },
+      scales: { y: { ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } } }
+    }
+  });
+
+  // ========== CHART 3B: Receita vs Despesa — Mês a Mês ==========
+  safeChart('chart-receita-despesa-mensal', {
+    type: 'bar',
+    data: {
+      labels: DATA.charts.receita_despesa_mensal.labels,
+      datasets: DATA.charts.receita_despesa_mensal.datasets.map(function(ds) {
+        return {
+          label: ds.label,
+          data: ds.data,
+          backgroundColor: ds.backgroundColor,
+          stack: ds.stack,
+          borderRadius: ds.borderRadius || 0,
+          borderColor: ds.borderColor || undefined,
+          borderWidth: ds.borderWidth || 0
+        };
+      })
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: function(c) { return c.dataset.label + ': ' + fmt(c.raw); },
+            footer: function(items) {
+              var rec = 0, desp = 0;
+              items.forEach(function(i) {
+                if (i.dataset.stack === 'receita') rec += i.raw;
+                else desp += i.raw;
+              });
+              return 'Saldo: ' + fmt(rec - desp);
+            }
+          }
+        },
+        datalabels: { display: false }
+      },
+      scales: {
+        x: { stacked: true },
+        y: {
+          stacked: true,
+          ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } }
+        }
+      }
+    }
+  });
+
+  // ========== CHART 4: Despesas Doughnut ==========
+  safeChart('chart-despesas-doughnut', {
+    type: 'doughnut',
+    data: {
+      labels: ['Alimentação','Lazer/Viagens','Financeiro','Saúde','Melhoria/Reforma','Transporte','Seguros','Suporte Familiar','Assinaturas','Vestuário','Educação','Moradia'],
+      datasets: [{
+        data: [52739, 34508, 28815, 24071, 12368, 8726, 5338, 3683, 3610, 796, 687, 465],
+        backgroundColor: [...palette, '#CBD5E1', '#94A3B8', '#818CF8', '#F472B6'],
+        borderWidth: 2, borderColor: '#fff'
+      }]
+    },
+    options: {
+      cutout: '50%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 8, usePointStyle: true, font: { size: 10 } } },
+        tooltip: { callbacks: { label: function(c) { return c.label + ': ' + fmt(c.raw); } } },
+        datalabels: {
+          color: '#fff',
+          font: { weight: 'bold', size: 11 },
+          formatter: function(value, context) {
+            var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+            var pct = ((value / total) * 100).toFixed(0);
+            if (pct < 5) return '';
+            return 'R$ ' + (value/1000).toFixed(0) + 'k';
+          },
+          anchor: 'center',
+          align: 'center',
+          textStrokeColor: 'rgba(0,0,0,0.3)',
+          textStrokeWidth: 2
+        }
+      }
+    }
+  });
+
+  // ========== CHART 5: Score Gauge (custom canvas) ==========
+  (function() {
+    var canvas = document.getElementById('chart-score-gauge');
+    if (!canvas) return;
+    var parent = canvas.parentElement;
+    var w = Math.min(parent.clientWidth || 400, 600);
+    var h = Math.round(w * 0.55);
+    canvas.width = w * 2; canvas.height = h * 2;
+    canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
+
+    var cx = w / 2;
+    var cy = h * 0.82;
+    var outerR = Math.min(cx, cy) * 0.92;
+    var thickness = outerR * 0.32;
+    var innerR = outerR - thickness;
+    var gap = 0.025; // radians gap between segments
+
+    var colors = ['#DC2640', '#F0924A', '#F5BF2F', '#6EDBA0', '#22B566'];
+    var segCount = colors.length;
+    var totalArc = Math.PI - (gap * (segCount - 1));
+    var segArc = totalArc / segCount;
+
+    // Draw arc segments
+    for (var i = 0; i < segCount; i++) {
+      var startA = Math.PI + i * (segArc + gap);
+      var endA = startA + segArc;
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerR, startA, endA);
+      ctx.arc(cx, cy, innerR, endA, startA, true);
+      ctx.closePath();
+      ctx.fillStyle = colors[i];
+      ctx.fill();
+    }
+
+    // Read score from data attribute (set by E5) or fallback to REPORT_DATA_JSON
+    var score = parseFloat(canvas.getAttribute('data-score'))
+             || (window.REPORT_DATA_JSON && (window.REPORT_DATA_JSON.kpis || {}).score_financeiro)
+             || 0;
+    var needleAngle = Math.PI + (score / 10) * Math.PI;
+    var needleLen = outerR * 0.88;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(needleAngle) * needleLen, cy + Math.sin(needleAngle) * needleLen);
+    ctx.strokeStyle = '#1A2E44';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    ctx.restore();
+
+    // Score label
+    var scoreLabel = function(s) {
+      if (s < 2) return { text: 'PÉSSIMO', color: colors[0] };
+      if (s < 4) return { text: 'RUIM', color: colors[1] };
+      if (s < 6) return { text: 'REGULAR', color: colors[2] };
+      if (s < 8) return { text: 'BOM', color: colors[3] };
+      return { text: 'EXCELENTE', color: colors[4] };
+    };
+    var info = scoreLabel(score);
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.font = 'bold ' + Math.round(outerR * 0.28) + 'px Plus Jakarta Sans, sans-serif';
+    ctx.fillStyle = '#1A2E44';
+    ctx.fillText(score.toFixed(1).replace('.', ','), cx, cy + outerR * 0.22);
+    ctx.font = 'bold ' + Math.round(outerR * 0.11) + 'px Plus Jakarta Sans, sans-serif';
+    ctx.fillStyle = info.color;
+    ctx.fillText(info.text, cx, cy + outerR * 0.36);
+    ctx.restore();
+
+    // Auto-update the chart-context paragraph to match the gauge score
+    var ctxP = parent.querySelector('.chart-context');
+    if (ctxP) {
+      ctxP.textContent = 'Avaliação consolidada: ' + score.toFixed(1).replace('.', ',') + '/10 (' + info.text.charAt(0) + info.text.slice(1).toLowerCase() + ').';
+    }
+  })();
+
+  // ========== CHART 6: Alocação Atual ==========
+  safeChart('chart-alocacao-atual', {
+    type: 'doughnut',
+    data: {
+      labels: ['Renda Fixa 54,2%','Fundos RV 12%','Ações 7,1%','Caixa 10,1%','Previdência 1,4%','Crypto 0,1%','Internacional 0%'],
+      datasets: [{ data: [54.2,12,7.1,10.1,1.4,0.1,0], backgroundColor: palette, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      cutout: '55%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true, font: { size: 10 } } },
+        datalabels: {
+          color: '#fff',
+          font: { weight: 'bold', size: 11 },
+          formatter: function(value, context) {
+            var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+            var pct = ((value / total) * 100).toFixed(0);
+            if (pct < 5) return '';
+            return 'R$ ' + (value/1000).toFixed(0) + 'k';
+          },
+          anchor: 'center',
+          align: 'center',
+          textStrokeColor: 'rgba(0,0,0,0.3)',
+          textStrokeWidth: 2
+        }
+      }
+    }
+  });
+
+  // ========== CHART 7: Alocação Alvo ==========
+  safeChart('chart-alocacao-alvo', {
+    type: 'doughnut',
+    data: {
+      labels: ['Renda Fixa 50%','Fundos RV 10%','Ações 10%','Caixa 4%','Previdência 5%','Crypto 1%','Internacional 10%'],
+      datasets: [{ data: [50,10,10,4,5,1,10], backgroundColor: palette, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      cutout: '55%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true, font: { size: 10 } } },
+        datalabels: {
+          color: '#fff',
+          font: { weight: 'bold', size: 11 },
+          formatter: function(value, context) {
+            var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+            var pct = ((value / total) * 100).toFixed(0);
+            if (pct < 5) return '';
+            return 'R$ ' + (value/1000).toFixed(0) + 'k';
+          },
+          anchor: 'center',
+          align: 'center',
+          textStrokeColor: 'rgba(0,0,0,0.3)',
+          textStrokeWidth: 2
+        }
+      }
+    }
+  });
+
+  // ========== CHART 8: Top 15 ativos ==========
+  safeChart('chart-top15-ativos', {
+    type: 'bar',
+    data: {
+      labels: ['Cofrinhos Itaú','CDB DI Santander','CDB DI Itaú','CDB DI2 Santander','PETR4','CDB Prog Santander','PicPay RDB','Alaska Black','Alaska LO','BTG Tesouro IPCA+','BTG CDB PicPay','BTG CDB Agibank','CRI Localiza','BTG CRA Minerva','Western Asset'],
+      datasets: [{
+        label: 'R$',
+        data: [206492, 137410, 116374, 101523, 83946, 60546, 53757, 52444, 52294, 43349, 30443, 29353, 29205, 26663, 25913],
+        backgroundColor: palette.concat(palette).slice(0,15),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(c) { return fmt(c.raw); } } },
+        datalabels: { display: false }
+      },
+      scales: { x: { ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } } }
+    }
+  });
+
+  // ========== CHART 9: Yield imóveis vs CDI ==========
+  safeChart('chart-yield-imoveis', {
+    type: 'bar',
+    data: {
+      labels: ['Calixto (David)', 'Major Freire (David)', 'Living Wish (Mari)', 'Living Concept (Mari)', 'CDI (referência)'],
+      datasets: [{
+        label: 'Yield % a.a.',
+        data: [6.3, 4.7, 11.7, 3.9, 13.75],
+        backgroundColor: ['#2E86AB','#2E86AB','#457B9D','#457B9D','#E63946'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(c) { return c.raw.toFixed(1) + '% a.a.'; } } },
+        datalabels: { display: false }
+      },
+      scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return v + '%'; } } } }
+    }
+  });
+
+  // ========== CHART 10: Custos F1/F2 ==========
+  safeChart('chart-custos-f1f2', {
+    type: 'bar',
+    data: {
+      labels: ['Custos EUA', 'Custos BR Mantidos', 'TOTAL', 'Renda David', 'Sobra'],
+      datasets: [{
+        data: [23461, 8919, 32380, 70611, 38231],
+        backgroundColor: ['#E63946','#F4A261','#1A3A5C','#2DC653','#2E86AB'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(c) { return fmt(c.raw) + '/mês'; } } },
+        datalabels: { display: false }
+      },
+      scales: { y: { ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } } }
+    }
+  });
+
+  // ========== CHART 11: Cenários cambiais Green Card ==========
+  safeChart('chart-cenarios-cambiais', {
+    type: 'bar',
+    data: {
+      labels: ['Pessimista\nR$7,50/USD', 'Realista\nR$5,88/USD', 'Otimista\nR$4,50/USD'],
+      datasets: [
+        { label: 'Sem Mariana', data: [8500, 22000, 35000], backgroundColor: '#F4A261', borderRadius: 4 },
+        { label: 'Com Mariana (NCLEX)', data: [38000, 55000, 72000], backgroundColor: '#2DC653', borderRadius: 4 }
+      ]
+    },
+    options: {
+      plugins: {
+        tooltip: { callbacks: { label: function(c) { return c.dataset.label + ': ' + fmt(c.raw); } } },
+        datalabels: { display: false }
+      },
+      scales: { y: { ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } } }
+    }
+  });
+
+  // ========== CHART 12: Projeção 3 cenários IF ==========
+  var META_IF = 9000000;
+  var investivel = 1369452;
+  var imoveis = 4147480;
+  var monthlyAporte = 20000;
+  var nYears = 13;
+  var yearsProj = [];
+  for (var yi = 0; yi < nYears; yi++) yearsProj.push((2026 + yi).toString());
+
+  function projTotal(startInv, rateInv, monthly, startImov, rateImov, n) {
+    var vals = []; var inv = startInv; var imov = startImov;
+    for (var i = 0; i < n; i++) {
+      inv = inv * (1 + rateInv) + monthly * 12;
+      imov = imov * (1 + rateImov);
+      vals.push(Math.round(inv + imov));
+    }
+    return vals;
+  }
+  function findCrossYear(data, goal) {
+    for (var i = 0; i < data.length; i++) { if (data[i] >= goal) return i; }
+    return -1;
+  }
+  function findCrossExact(data, goal) {
+    for (var i = 0; i < data.length; i++) {
+      if (data[i] >= goal) {
+        if (i === 0) return 0;
+        var prev = data[i - 1];
+        var curr = data[i];
+        var frac = (goal - prev) / (curr - prev);
+        return (i - 1) + frac;
+      }
+    }
+    return -1;
+  }
+
+  var imovRate = 0.02;
+  var dataPess = projTotal(investivel, 0.04, monthlyAporte, imoveis, imovRate, nYears);
+  var dataReal = projTotal(investivel, 0.06, monthlyAporte, imoveis, imovRate, nYears);
+  var dataOtim = projTotal(investivel, 0.08, monthlyAporte, imoveis, imovRate, nYears);
+  var metaLine = new Array(nYears).fill(META_IF);
+
+  var crossPess = findCrossYear(dataPess, META_IF);
+  var crossReal = findCrossYear(dataReal, META_IF);
+  var crossOtim = findCrossYear(dataOtim, META_IF);
+  var crossPessX = findCrossExact(dataPess, META_IF);
+  var crossRealX = findCrossExact(dataReal, META_IF);
+  var crossOtimX = findCrossExact(dataOtim, META_IF);
+
+  function crossPoints(data, crossIdx) {
+    return data.map(function() { return 3; });
+  }
+
+  var projChart = safeChart('chart-projecao-3cenarios', {
+    type: 'line',
+    data: {
+      labels: yearsProj,
+      datasets: [
+        {
+          label: 'Meta IF — R$ 9,0M',
+          data: metaLine,
+          borderColor: '#1A3A5C',
+          borderDash: [8, 4],
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false,
+          order: 4
+        },
+        {
+          label: 'Pessimista (4%)',
+          data: dataPess,
+          borderColor: '#E63946',
+          backgroundColor: 'rgba(230,57,70,0.08)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: crossPoints(dataPess, crossPess),
+          pointBackgroundColor: '#E63946',
+          order: 3
+        },
+        {
+          label: 'Realista (6%)',
+          data: dataReal,
+          borderColor: '#2E86AB',
+          backgroundColor: 'rgba(46,134,171,0.08)',
+          fill: true,
+          tension: 0.3,
+          borderWidth: 3,
+          pointRadius: crossPoints(dataReal, crossReal),
+          pointBackgroundColor: '#2E86AB',
+          order: 2
+        },
+        {
+          label: 'Otimista (8%)',
+          data: dataOtim,
+          borderColor: '#2DC653',
+          backgroundColor: 'rgba(45,198,83,0.08)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: crossPoints(dataOtim, crossOtim),
+          pointBackgroundColor: '#2DC653',
+          order: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        tooltip: {
+          enabled: true,
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: function(c) {
+              var txt = c.dataset.label + ': ' + fmt(c.raw);
+              if (c.datasetIndex === 1 && c.dataIndex === crossPess) txt += ' ★ IF atingida!';
+              if (c.datasetIndex === 2 && c.dataIndex === crossReal) txt += ' ★ IF atingida!';
+              if (c.datasetIndex === 3 && c.dataIndex === crossOtim) txt += ' ★ IF atingida!';
+              return txt;
+            }
+          }
+        },
+        legend: {
+          position: 'bottom',
+          labels: { usePointStyle: true, padding: 16, font: { size: 11 } }
+        },
+        datalabels: { display: false }
+      },
+      scales: {
+        y: {
+          ticks: { callback: function(v) { return 'R$ ' + (v/1000000).toFixed(1) + 'M'; } },
+          grid: { color: defaultGridColor }
+        },
+        x: {
+          grid: { display: false }
+        }
+      }
+    },
+    plugins: [{
+      id: 'ifAnnotations',
+      afterDraw: function(chart) {
+        var ctx = chart.ctx;
+        var xScale = chart.scales.x;
+        var yScale = chart.scales.y;
+        var metaY = yScale.getPixelForValue(META_IF);
+
+        var crossings = [
+          { idx: crossOtim, exactIdx: crossOtimX, color: '#2DC653', label: 'Otimista' },
+          { idx: crossReal, exactIdx: crossRealX, color: '#2E86AB', label: 'Realista' },
+          { idx: crossPess, exactIdx: crossPessX, color: '#E63946', label: 'Pessimista' }
+        ];
+
+        ctx.save();
+        var labelOffsets = [0, -16, -32];
+        var ci = 0;
+        crossings.forEach(function(cr) {
+          if (cr.idx < 0) return;
+          var x = xScale.getPixelForValue(cr.exactIdx);
+
+          ctx.beginPath();
+          ctx.setLineDash([4, 4]);
+          ctx.moveTo(x, metaY);
+          ctx.lineTo(x, yScale.top);
+          ctx.strokeStyle = cr.color;
+          ctx.lineWidth = 1.5;
+          ctx.globalAlpha = 0.4;
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.globalAlpha = 1;
+
+          var yearLabel = yearsProj[cr.idx];
+          var yOff = labelOffsets[ci] || 0;
+          ctx.font = 'bold 11px "Plus Jakarta Sans"';
+          var txt = yearLabel + ' · ' + cr.label;
+          var tw = ctx.measureText(txt).width;
+          var px = x - tw/2 - 6;
+          var py = metaY - 24 + yOff;
+          ctx.fillStyle = cr.color;
+          ctx.globalAlpha = 0.9;
+          ctx.beginPath();
+          ctx.roundRect(px, py - 10, tw + 12, 16, 4);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'center';
+          ctx.fillText(txt, x, py + 2);
+
+          ctx.beginPath();
+          ctx.moveTo(x, metaY - 6);
+          ctx.lineTo(x + 6, metaY);
+          ctx.lineTo(x, metaY + 6);
+          ctx.lineTo(x - 6, metaY);
+          ctx.closePath();
+          ctx.fillStyle = cr.color;
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ci++;
+        });
+
+        ctx.font = 'bold 12px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#1A3A5C';
+        ctx.textAlign = 'left';
+        ctx.fillText('Meta IF = R$ 9,0M', xScale.left + 8, metaY - 8);
+
+        ctx.restore();
+      }
+    }]
+  });
+
+  // ========== CHART 13: Renda passiva ==========
+  safeChart('chart-renda-passiva', {
+    type: 'bar',
+    data: {
+      labels: ['Aluguéis\nDavid', 'Aluguéis\nMariana', 'Dividendos', 'RF/Cupons', 'FIIs', 'PGBL', 'EUA\nMariana', 'GAP'],
+      datasets: [
+        { label: 'Atual', data: [3422, 6030, 521, 950, 0, 0, 0, 0], backgroundColor: '#2E86AB', borderRadius: 4 },
+        { label: 'Meta 2035', data: [5068, 8930, 3500, 4500, 4500, 2000, 5000, 0], backgroundColor: '#2DC653', borderRadius: 4 },
+        { label: 'Gap', data: [0, 0, 0, 0, 0, 0, 0, 19077], backgroundColor: '#E63946', borderRadius: 4 }
+      ]
+    },
+    options: {
+      plugins: {
+        tooltip: { callbacks: { label: function(c) { return c.dataset.label + ': ' + fmt(c.raw); } } },
+        datalabels: { display: false }
+      },
+      scales: { y: { ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } } }
+    }
+  });
+
+  // ========== CHART 15: Bubble Riscos ==========
+  safeChart('chart-bubble-riscos', {
+    type: 'bubble',
+    data: {
+      datasets: [
+        { label: 'Morte/Invalidez David', data: [{ x: 2, y: 5, r: 20 }], backgroundColor: 'rgba(230,57,70,0.7)' },
+        { label: 'Perda Arvo', data: [{ x: 2, y: 4, r: 16 }], backgroundColor: 'rgba(244,162,97,0.7)' },
+        { label: 'Carnê-leão multas', data: [{ x: 4, y: 2, r: 16 }], backgroundColor: 'rgba(244,162,97,0.7)' },
+        { label: 'PFIC EUA', data: [{ x: 3, y: 3, r: 18 }], backgroundColor: 'rgba(230,57,70,0.5)' },
+        { label: 'Ed. Gisele s/ registro', data: [{ x: 2, y: 4, r: 18 }], backgroundColor: 'rgba(230,57,70,0.5)' },
+        { label: 'Emergência médica', data: [{ x: 2, y: 3, r: 12 }], backgroundColor: 'rgba(46,134,171,0.5)' },
+        { label: 'Concentração imob.', data: [{ x: 3, y: 2, r: 12 }], backgroundColor: 'rgba(69,123,157,0.5)' },
+        { label: 'Câmbio BRL/USD', data: [{ x: 3, y: 2, r: 12 }], backgroundColor: 'rgba(69,123,157,0.5)' },
+        { label: 'Cybersecurity', data: [{ x: 2, y: 2, r: 8 }], backgroundColor: 'rgba(168,218,220,0.5)' },
+        { label: 'Inflação', data: [{ x: 2, y: 2, r: 8 }], backgroundColor: 'rgba(168,218,220,0.5)' }
+      ]
+    },
+    options: {
+      scales: {
+        x: { title: { display: true, text: 'Probabilidade →' }, min: 0, max: 6 },
+        y: { title: { display: true, text: 'Impacto Financeiro →' }, min: 0, max: 6 }
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 8, usePointStyle: true, font: { size: 10 } } },
+        datalabels: { display: false }
+      }
+    }
+  });
+
+  // ========== CHART 16: Top 5 decisões ==========
+  safeChart('chart-top5-decisoes', {
+    type: 'bar',
+    data: {
+      labels: ['Aportes R$20k/mês','Quitação Ed. Gisele','PGBL R$1.800/mês','Seguro vida','Resgate Safari+PFIC'],
+      datasets: [
+        { label: 'Impacto 1 ano', data: [240000, 51500, 5940, 6000, 16614], backgroundColor: '#2E86AB', borderRadius: 4 },
+        { label: 'Impacto 10 anos', data: [3930000, 92000, 125000, 60000, 181304], backgroundColor: '#2DC653', borderRadius: 4 }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: {
+        tooltip: { callbacks: { label: function(c) { return c.dataset.label + ': ' + fmt(c.raw); } } },
+        datalabels: { display: false }
+      },
+      scales: { x: { ticks: { callback: function(v) { return 'R$ ' + (v/1000000).toFixed(1) + 'M'; } } } }
+    }
+  });
+
+  // ========== CHART 17: Mariana cenários ==========
+  safeChart('chart-mariana-cenarios', {
+    type: 'bar',
+    data: {
+      labels: ['Com CLT\n(R$20k aporte)', 'Sem CLT\n(R$20k mantido)', 'Sem CLT\n(R$13.2k aporte)'],
+      datasets: [
+        { label: 'Aporte mensal', data: [20000, 20000, 13200], backgroundColor: '#2E86AB', borderRadius: 4 },
+        { label: 'Prazo IF (anos)', data: [9.0, 9.0, 10.5], backgroundColor: '#2DC653', borderRadius: 4, yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      plugins: { datalabels: { display: false } },
+      scales: {
+        y: { position: 'left', ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } },
+        y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: function(v) { return v + ' anos'; } } }
+      }
+    }
+  });
+
+  // ========== CHART 18: Viagens ==========
+  safeChart('chart-viagens', {
+    type: 'bar',
+    data: {
+      labels: ['Orçamento 2026'],
+      datasets: [
+        { label: 'Portugal (gasto)', data: [22337], backgroundColor: '#E63946', borderRadius: 4 },
+        { label: 'Disponível', data: [22663], backgroundColor: '#2DC653', borderRadius: 4 }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      scales: { x: { stacked: true, ticks: { callback: function(v) { return fmt(v); } } }, y: { stacked: true } },
+      plugins: {
+        tooltip: { callbacks: { label: function(c) { return c.dataset.label + ': ' + fmt(c.raw); } } },
+        datalabels: { display: false }
+      }
+    }
+  });
+
+  // ========== MODE TOGGLE ==========
+  window.setMode = function(mode) {
+    document.body.className = 'mode-' + mode;
+    document.querySelectorAll('.mode-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.target === mode);
+    });
+    var stratNav = document.querySelector('.nav-strategic');
+    var tacNav = document.querySelector('.nav-tactical');
+    if (stratNav) stratNav.style.display = mode === 'strategic' ? 'flex' : 'none';
+    if (tacNav) tacNav.style.display = mode === 'tactical' ? 'flex' : 'none';
+  };
+
+  // ========== DARK MODE THEME ==========
+  window.setTheme = function(theme) {
+    const html = document.documentElement;
+    const themeButtons = document.querySelectorAll('.theme-btn');
+
+    if (theme === 'system') {
+      localStorage.removeItem('theme');
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    } else {
+      localStorage.setItem('theme', theme);
+      html.setAttribute('data-theme', theme);
+    }
+
+    themeButtons.forEach(function(b) {
+      b.classList.toggle('active', b.dataset.theme === theme || (theme === 'system' && b.dataset.theme === 'system'));
+    });
+
+    if (typeof window.updateChartsForTheme === 'function') window.updateChartsForTheme();
+  };
+
+  // Initialize theme on load
+  function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      window.setTheme(savedTheme);
+    } else {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+      if (!localStorage.getItem('theme')) {
+        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        if (typeof window.updateChartsForTheme === 'function') window.updateChartsForTheme();
+      }
+    });
+  }
+  initializeTheme();
+
+  // ========== DASHBOARD CATEGORY BARS ==========
+  function buildDashboard() {
+    var D = DATA.dashboard;
+    if (!D) return;
+    var catContainer = document.getElementById('dash-categorias-container');
+    if (catContainer) {
+      var cats = D.despesas_por_categoria;
+      cats.forEach(function(c) {
+        var pct = Math.min((c.gasto / c.teto) * 100, 100);
+        var over = c.gasto > c.teto;
+        var color = over ? 'var(--color-danger)' : 'var(--color-accent)';
+        var badge = over ? '<span class="badge badge-danger">ACIMA</span>' : '<span class="badge badge-success">OK</span>';
+        catContainer.innerHTML += '<div class="dash-cat-row">' +
+          '<div class="dash-cat-label">' + c.cat + '</div>' +
+          '<div class="dash-cat-bar"><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + color + ';"></div></div></div>' +
+          '<div class="dash-cat-values">' + fmt(c.gasto) + ' / ' + fmt(c.teto) + ' ' + badge + '</div></div>';
+      });
+    }
+  }
+
+  // ========== BACK TO TOP + FLOATING BUTTONS ==========
+  var backBtn = document.querySelector('.back-to-top');
+  var floatBtns = document.querySelector('.float-buttons');
+  window.addEventListener('scroll', function() {
+    var show = window.scrollY > 600;
+    if (backBtn) backBtn.style.display = show ? 'block' : 'none';
+    if (floatBtns) floatBtns.style.display = show ? 'flex' : 'none';
+  });
+
+  // ========== EXPORT MARKDOWN ==========
+  window.exportMd = function() {
+    if (typeof TurndownService === 'undefined') { alert('Turndown não carregado'); return; }
+    var td = new TurndownService({ headingStyle: 'atx' });
+    var mode = document.body.className.replace('mode-', '');
+    var content = '';
+    document.querySelectorAll('[data-mode="' + mode + '"], [data-mode="both"]').forEach(function(el) {
+      content += el.outerHTML;
+    });
+    var md = td.turndown(content);
+    var blob = new Blob([md], { type: 'text/markdown' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'relatorio_ferreira_campos_' + mode + '.md'; a.click();
+  };
+
+  // Build dashboard on initial load and when mode changes
+  buildDashboard();
+});
+</script>
+
+<script>
+// ============================================================
+// DUAL MODE: Strategic / Tactical
+// ============================================================
+function setMode(mode) {
+  document.body.className = 'mode-' + mode;
+  document.querySelectorAll('.mode-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.target === mode);
+  });
+  var navS = document.querySelector('.nav-strategic');
+  var navD = document.querySelector('.nav-dashboard');
+  if (navS) navS.style.display = mode === 'strategic' ? 'flex' : 'none';
+  if (navD) navD.style.display = mode === 'tactical' ? 'flex' : 'none';
+  if (mode === 'tactical') setTimeout(buildDashboard, 50);
+}
+
+// ============================================================
+// DARK MODE THEME
+// ============================================================
+function setTheme(theme) {
+  const html = document.documentElement;
+  const themeButtons = document.querySelectorAll('.theme-btn');
+
+  if (theme === 'system') {
+    localStorage.removeItem('theme');
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  } else {
+    localStorage.setItem('theme', theme);
+    html.setAttribute('data-theme', theme);
+  }
+
+  themeButtons.forEach(function(b) {
+    b.classList.toggle('active', b.dataset.theme === theme || (theme === 'system' && b.dataset.theme === 'system'));
+  });
+
+  if (typeof window.updateChartsForTheme === 'function') window.updateChartsForTheme();
+}
+
+// Initialize theme on load
+function initializeTheme() {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) {
+    setTheme(savedTheme);
+  } else {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  }
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+    if (!localStorage.getItem('theme')) {
+      document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+      if (typeof window.updateChartsForTheme === 'function') window.updateChartsForTheme();
+    }
+  });
+}
+
+function buildDashboard() {
+  var D = DATA.dashboard;
+  if (!D) return;
+  var fmt = function(v) { return 'R$ ' + v.toLocaleString('pt-BR'); };
+
+  // === D-KPIs row ===
+  var delta = D.patrimonio_delta;
+  var el = document.getElementById('dk-patrim-delta');
+  if (el) {
+    el.textContent = (delta >= 0 ? '+' : '') + fmt(delta);
+    el.className = 'dash-kpi-value ' + (delta >= 0 ? 'ok' : 'alert');
+  }
+
+  var aportesDone = 0, aportesTotal = 0;
+  for (var k in D.aportes) { aportesTotal++; if (D.aportes[k].feito) aportesDone++; }
+  el = document.getElementById('dk-aportes');
+  if (el) {
+    el.textContent = aportesDone + '/' + aportesTotal + ' ✓';
+    el.className = 'dash-kpi-value ' + (aportesDone === aportesTotal ? 'ok' : 'warn');
+  }
+
+  var alertCats = 0;
+  for (var k in D.despesas_por_categoria) {
+    var c = D.despesas_por_categoria[k];
+    if (c.gasto > c.teto) alertCats++;
+  }
+  el = document.getElementById('dk-despesas');
+  if (el) {
+    el.textContent = alertCats === 0 ? '0 alertas ✓' : alertCats + ' acima';
+    el.className = 'dash-kpi-value ' + (alertCats === 0 ? 'ok' : 'alert');
+  }
+
+  var tasksDone = 0, tasksTotal = 0;
+  for (var k in D.tarefas_status) { tasksTotal++; if (D.tarefas_status[k] === 'feito') tasksDone++; }
+  el = document.getElementById('dk-tarefas');
+  if (el) {
+    var pct = tasksTotal > 0 ? Math.round(tasksDone / tasksTotal * 100) : 0;
+    el.textContent = tasksDone + '/' + tasksTotal + ' (' + pct + '%)';
+    el.className = 'dash-kpi-value ' + (pct >= 50 ? 'ok' : pct >= 25 ? 'warn' : 'alert');
+  }
+
+  if (D.alertas && D.alertas.length > 0) {
+    el = document.getElementById('dk-alerta1');
+    if (el) { el.textContent = '⚠️'; document.getElementById('dk-alerta1-sub').textContent = D.alertas[0]; }
+    if (D.alertas.length > 1) {
+      el = document.getElementById('dk-alerta2');
+      if (el) { el.textContent = '⚠️'; document.getElementById('dk-alerta2-sub').textContent = D.alertas[1]; }
+    }
+  }
+
+  // === D1: Fluxo da Quinzena ===
+  var fluxoEl = document.getElementById('ds-fluxo-table');
+  if (fluxoEl) {
+    var totalGasto = 0, totalTeto = 0;
+    var rows = '<table><thead><tr><th>Categoria</th><th class="td-right">Gasto</th><th class="td-right">Teto</th><th style="width:120px">Progresso</th><th class="td-right">%</th></tr></thead><tbody>';
+    for (var k in D.despesas_por_categoria) {
+      var c = D.despesas_por_categoria[k];
+      var pct = c.teto > 0 ? Math.round(c.gasto / c.teto * 100) : 0;
+      var cls = pct > 100 ? 'alert' : pct > 80 ? 'warn' : 'ok';
+      totalGasto += c.gasto; totalTeto += c.teto;
+      rows += '<tr><td>' + c.label + '</td>';
+      rows += '<td class="td-right">' + fmt(c.gasto) + '</td>';
+      rows += '<td class="td-right" style="color:var(--color-text-muted)">' + fmt(c.teto) + '</td>';
+      rows += '<td><div class="progress-bar"><div class="progress-fill ' + cls + '" style="width:' + Math.min(pct, 100) + '%"></div></div></td>';
+      rows += '<td class="td-right td-' + (pct > 100 ? 'red' : 'green') + '">' + pct + '%</td></tr>';
+    }
+    rows += '<tr class="td-total"><td><strong>TOTAL</strong></td><td class="td-right td-bold">' + fmt(totalGasto) + '</td><td class="td-right">' + fmt(totalTeto) + '</td><td></td><td class="td-right td-bold">' + Math.round(totalGasto / totalTeto * 100) + '%</td></tr>';
+    rows += '</tbody></table>';
+    fluxoEl.innerHTML = rows;
+    var summEl = document.getElementById('ds-fluxo-summary');
+    if (summEl) summEl.textContent = 'Gasto total ' + fmt(totalGasto) + ' de ' + fmt(totalTeto) + ' (' + Math.round(totalGasto / totalTeto * 100) + '%) · ' + alertCats + ' categorias acima do teto · ' + (D.periodo || 'período atual');
+  }
+
+  // === D2: Aportes ===
+  var aportesEl = document.getElementById('ds-aportes-cards');
+  if (aportesEl) {
+    var cardsHtml = '';
+    for (var k in D.aportes) {
+      var a = D.aportes[k];
+      var status = a.feito ? '✅' : '❌';
+      var valTxt = a.feito ? fmt(a.valor_feito || a.valor_meta) : 'Pendente';
+      cardsHtml += '<div class="card card-compact">';
+      cardsHtml += '<div class="card-compact-icon">' + status + '</div>';
+      cardsHtml += '<div class="card-compact-label">' + a.label + '</div>';
+      cardsHtml += '<div class="card-compact-value">' + valTxt + '</div>';
+      cardsHtml += '<div class="card-compact-sub">Meta: ' + fmt(a.valor_meta) + '</div>';
+      cardsHtml += '</div>';
+    }
+    aportesEl.innerHTML = cardsHtml;
+  }
+  var deltaEl = document.getElementById('ds-aportes-table');
+  if (deltaEl) {
+    var dt = '<table><thead><tr><th>Bloco</th><th class="td-right">Anterior</th><th class="td-right">Atual</th><th class="td-right">Δ</th></tr></thead><tbody>';
+    for (var k in D.investimentos_delta) {
+      var inv = D.investimentos_delta[k];
+      var d = inv.atual - inv.anterior;
+      var sign = d >= 0 ? '+' : '';
+      dt += '<tr><td>' + inv.label + '</td><td class="td-right">' + fmt(inv.anterior) + '</td><td class="td-right">' + fmt(inv.atual) + '</td>';
+      dt += '<td class="td-right td-' + (d >= 0 ? 'green' : 'red') + '">' + sign + fmt(d) + '</td></tr>';
+    }
+    dt += '</tbody></table>';
+    deltaEl.innerHTML = dt;
+  }
+
+  // === D3: Tarefas ===
+  var taskEl = document.getElementById('ds-task-list');
+  var taskProgEl = document.getElementById('ds-task-progress');
+  var filterEl = document.getElementById('ds-task-filters');
+  if (taskEl) {
+    // Task list from hardcoded reference (40 tasks)
+    var tasks = D.tarefas || [];
+
+    filterEl.innerHTML = '<button class="filter-btn active" onclick="filterTasks(\'all\')">Todas (' + tasks.length + ')</button><button class="filter-btn" onclick="filterTasks(\'pendente\')">Pendentes</button><button class="filter-btn" onclick="filterTasks(\'feito\')">Feitas</button><button class="filter-btn" onclick="filterTasks(\'vencido\')">Vencidas</button>';
+
+    var pctDone = tasksTotal > 0 ? Math.round(tasksDone / tasksTotal * 100) : 0;
+    taskProgEl.innerHTML = '<div style="display:flex;align-items:center;gap:12px;"><div style="flex:1"><div class="progress-bar" style="height:12px;"><div class="progress-fill ok" style="width:' + pctDone + '%;"></div></div></div><span style="font-size:13px;font-weight:600;">' + tasksDone + '/' + tasksTotal + ' (' + pctDone + '%)</span></div>';
+
+    var listHtml = '';
+    tasks.forEach(function(t) {
+      var st = D.tarefas_status[t.n] || 'pendente';
+      var icon = st === 'feito' ? '✅' : st === 'vencido' ? '🔴' : '⏳';
+      var cls = st === 'feito' ? 'done' : '';
+      var eBadge = t.e === 'S' ? '<span class="effort-badge effort-badge-s">S</span>' : t.e === 'R' ? '<span class="effort-badge effort-badge-r">R</span>' : '<span class="effort-badge effort-badge-o">O</span>';
+      listHtml += '<div class="task-row" data-status="' + st + '"><span class="task-status">' + icon + '</span><span class="task-text ' + cls + '">#' + t.n + ' ' + t.t + '</span>' + eBadge + '<span class="task-prazo">' + t.p + '</span></div>';
+    });
+    taskEl.innerHTML = listHtml;
+  }
+
+  // === D4: Alertas ===
+  var alertEl = document.getElementById('ds-alertas-list');
+  if (alertEl && D.alertas) {
+    var alertHtml = '';
+    D.alertas.forEach(function(a) {
+      alertHtml += '<div class="alert alert-warning" style="margin:8px 0;"><strong>⚠️</strong> ' + a + '</div>';
+    });
+    if (D.alertas.length === 0) alertHtml = '<div class="alert alert-success-inline">Nenhum alerta pendente.</div>';
+    alertEl.innerHTML = alertHtml;
+  }
+
+  // === D5: Próximos 15 dias ===
+  var timeEl = document.getElementById('ds-timeline');
+  if (timeEl && D.proximos_15d) {
+    var tHtml = '';
+    D.proximos_15d.forEach(function(item) {
+      var bcls = item.status === 'feito' ? 'feito' : item.status === 'pendente' ? 'pendente' : 'aguardando';
+      tHtml += '<div class="timeline-item"><span class="timeline-date">' + item.data + '</span><span class="timeline-action">' + item.acao + '</span><span class="timeline-badge ' + bcls + '">' + item.status + '</span></div>';
+    });
+    timeEl.innerHTML = tHtml;
+  }
+
+  // === D6: Notas ===
+  var notaEl = document.getElementById('ds-notas');
+  if (notaEl && D.notas) {
+    notaEl.innerHTML = '<p class="text-base" style="white-space:pre-wrap;">' + D.notas + '</p>';
+  }
+}
+
+function filterTasks(filter) {
+  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+  event.target.classList.add('active');
+  document.querySelectorAll('.task-row').forEach(function(r) {
+    if (filter === 'all') { r.style.display = 'flex'; }
+    else { r.style.display = r.dataset.status === filter ? 'flex' : 'none'; }
+  });
+}
+
+// Initialize collapsible sections
+function initializeCollapsibleSections() {
+  document.querySelectorAll('.section-header').forEach(function(header) {
+    const section = header.closest('.section');
+    if (!section) return;
+
+    // Add collapse icon if not already present
+    if (!header.querySelector('.collapse-icon')) {
+      const icon = document.createElement('span');
+      icon.className = 'collapse-icon';
+      icon.textContent = '▾';
+      header.appendChild(icon);
+    }
+
+    // Wrap content in a content container
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'section-content';
+    while (section.children.length > 1) {
+      contentDiv.appendChild(section.children[1]);
+    }
+    section.appendChild(contentDiv);
+
+    // Add click handler
+    header.addEventListener('click', function() {
+      contentDiv.classList.toggle('collapsed');
+      header.classList.toggle('collapsed');
+    });
+  });
+}
+
+// Initialize mode on load
+document.addEventListener('DOMContentLoaded', function() {
+  initializeTheme();
+  initializeCollapsibleSections();
+  var mode = DATA.meta.modo_padrao || 'strategic';
+  setMode(mode);
+});
+</script>
+
+<script>
+const btn = document.getElementById('backToTop');
+const btnBottom = document.getElementById('goToBottom');
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY;
+  const maxScroll = document.body.scrollHeight - window.innerHeight;
+  if (btn) btn.classList.toggle('visible', scrollY > 600);
+  if (btnBottom) btnBottom.classList.toggle('visible', scrollY < maxScroll - 600);
+});
+
+function exportMarkdown() {
+  try {
+    const td = new TurndownService({
+      headingStyle: 'atx',
+      bulletListMarker: '-',
+      codeBlockStyle: 'fenced',
+      emDelimiter: '*'
+    });
+
+    // Skip nav, buttons, scripts, canvas, footer disclaimer
+    td.remove(['nav', 'script', 'style', 'canvas', 'button']);
+
+    // Skip sections from the INACTIVE mode
+    const activeMode = document.body.className.replace('mode-', '');
+    const inactiveMode = activeMode === 'strategic' ? 'dashboard' : 'strategic';
+    td.addRule('hiddenMode', {
+      filter: function(node) {
+        return node.getAttribute && node.getAttribute('data-mode') === inactiveMode;
+      },
+      replacement: function() { return ''; }
+    });
+
+    // Replace canvas (charts) with a placeholder note
+    td.addRule('chartContainer', {
+      filter: function(node) {
+        return node.classList && node.classList.contains('chart-container');
+      },
+      replacement: function(content, node) {
+        var canvas = node.querySelector('canvas');
+        var id = canvas ? canvas.id : '';
+        var title = id.replace('chart-', '').replace(/-/g, ' ');
+        return '\n*[Gráfico: ' + (title || 'visualização') + ']*\n\n';
+      }
+    });
+
+    // Custom rule: convert tables properly
+    td.addRule('tableCell', {
+      filter: ['th', 'td'],
+      replacement: function(content, node) {
+        return ' ' + content.replace(/\n/g, ' ').trim() + ' |';
+      }
+    });
+    td.addRule('tableRow', {
+      filter: 'tr',
+      replacement: function(content, node) {
+        return '|' + content + '\n';
+      }
+    });
+    td.addRule('tableHead', {
+      filter: 'thead',
+      replacement: function(content, node) {
+        const cols = node.querySelectorAll('th').length;
+        const separator = '|' + ' --- |'.repeat(cols) + '\n';
+        return content + separator;
+      }
+    });
+    td.addRule('table', {
+      filter: 'table',
+      replacement: function(content) {
+        return '\n' + content + '\n';
+      }
+    });
+
+    // Convert badges to text
+    td.addRule('badge', {
+      filter: function(node) {
+        return node.classList && node.classList.contains('badge');
+      },
+      replacement: function(content) {
+        return '[' + content.trim() + ']';
+      }
+    });
+
+    // Convert icon-badges to their letter
+    td.addRule('iconBadge', {
+      filter: function(node) {
+        return node.classList && node.classList.contains('icon-badge');
+      },
+      replacement: function(content) {
+        return '';
+      }
+    });
+
+    // Convert KPI cards
+    td.addRule('kpiCard', {
+      filter: function(node) {
+        return node.classList && (node.classList.contains('kpi-card') || node.classList.contains('kpi-hero'));
+      },
+      replacement: function(content, node) {
+        const label = node.querySelector('.kpi-label');
+        const value = node.querySelector('.kpi-value');
+        const sub = node.querySelector('.kpi-sub');
+        if (label && value) {
+          return '**' + label.textContent.trim() + ':** ' + value.textContent.trim() + (sub ? ' (' + sub.textContent.trim() + ')' : '') + '\n\n';
+        }
+        return content;
+      }
+    });
+
+    // Convert alert boxes
+    td.addRule('alert', {
+      filter: function(node) {
+        return node.classList && node.className.includes('alert');
+      },
+      replacement: function(content) {
+        return '\n> ' + content.replace(/\n/g, '\n> ').trim() + '\n\n';
+      }
+    });
+
+    // Get main content (skip cover hero internals, keep text)
+    const content_el = document.querySelector('body');
+    let md = td.turndown(content_el);
+
+    // Clean up excessive blank lines
+    md = md.replace(/\n{4,}/g, '\n\n\n');
+
+    // Add header
+    const header = '# Relatório Financeiro — Família Ferreira Campos\n\n';
+    const meta = '_Exportado em: ' + new Date().toLocaleString('pt-BR', {timeZone:'America/Sao_Paulo'}) + ' (Brasília)_\n\n---\n\n';
+    md = header + meta + md;
+
+    // Download
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'relatorio_financeiro_ferreira_campos.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Erro ao exportar: ' + e.message);
+    console.error(e);
+  }
+}
+</script>
+
+
+
+
+<script>
+// ============================================================
+// AUTO-FORMAT KPIs — DEFINITIVO
+// Converte TODOS os valores R$ visíveis para formato compacto:
+//   R$ 3.501.275,44 → R$ 3,5M  |  R$ 57.595,68 → R$ 57,6K
+// Cobre formatos: pt-BR (R$ 1.234,56), en-US (R$1,234.56),
+//   misto (R$47,759.05), e sem espaço (R$ 9.000.000).
+// Ignora: <script>, <style>, <canvas>, valores já abreviados (K/M/k).
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+
+  function compact(v) {
+    if (isNaN(v) || v < 100) return null;
+    if (v >= 1e6) {
+      var m = v / 1e6;
+      return 'R$ ' + (m % 1 === 0 ? m.toFixed(0) : m < 10 ? m.toFixed(2) : m.toFixed(1)).replace('.', ',') + 'M';
+    }
+    if (v >= 1e3) {
+      var k = v / 1e3;
+      return 'R$ ' + (k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)).replace('.', ',') + 'K';
+    }
+    return 'R$ ' + v.toFixed(0);
+  }
+
+  var rx = /R\$\s*([\d][.\d]*[,.][\d.\d,]*\d)/g;
+
+  function parseNumeric(raw) {
+    var lastComma = raw.lastIndexOf(',');
+    var lastDot = raw.lastIndexOf('.');
+    var commaCount = (raw.match(/,/g) || []).length;
+
+    if (lastComma !== -1 && lastDot !== -1) {
+      if (lastComma > lastDot) {
+        return parseFloat(raw.replace(/\./g, '').replace(',', '.'));
+      } else {
+        return parseFloat(raw.replace(/,/g, ''));
+      }
+    }
+
+    if (lastComma !== -1 && lastDot === -1) {
+      if (commaCount >= 2) return parseFloat(raw.replace(/,/g, ''));
+      var afterComma = raw.substring(lastComma + 1);
+      if (afterComma.length === 3) {
+        return parseFloat(raw.replace(/,/g, ''));
+      }
+      return parseFloat(raw.replace(',', '.'));
+    }
+
+    if (lastDot !== -1 && lastComma === -1) {
+      var parts = raw.split('.');
+      var allThousands = parts.length > 1 && parts.slice(1).every(function(p) { return p.length === 3; });
+      if (allThousands) {
+        return parseFloat(raw.replace(/\./g, ''));
+      }
+      return parseFloat(raw);
+    }
+
+    return parseFloat(raw);
+  }
+
+  function formatMatch(match, numStr) {
+    var v = parseNumeric(numStr);
+    var result = compact(v);
+    return result || match;
+  }
+
+  var rxPlain = /R\$\s*([\d,]{4,})(?![\dkKmM])/g;
+
+  function formatPlain(match, numStr) {
+    if (/[kKmM]/.test(numStr)) return match;
+    var v = parseFloat(numStr.replace(/,/g, ''));
+    var result = compact(v);
+    return result || match;
+  }
+
+  var skip = {SCRIPT:1, STYLE:1, CANVAS:1, NOSCRIPT:1, TEXTAREA:1, CODE:1, PRE:1};
+  function walk(node) {
+    if (node.nodeType === 3) {
+      var t = node.textContent;
+      if (t.indexOf('R$') === -1) return;
+      var changed = t.replace(rx, formatMatch);
+      rx.lastIndex = 0;
+      changed = changed.replace(rxPlain, formatPlain);
+      rxPlain.lastIndex = 0;
+      if (changed !== t) node.textContent = changed;
+    } else if (node.nodeType === 1 && !skip[node.tagName]) {
+      for (var i = 0; i < node.childNodes.length; i++) walk(node.childNodes[i]);
+    }
+  }
+  walk(document.body);
+});
+</script>
+
+</body>
+</html>

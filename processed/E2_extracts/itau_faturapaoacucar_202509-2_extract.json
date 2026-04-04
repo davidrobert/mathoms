@@ -1,0 +1,53 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "Itaú",
+  "cartao": {
+    "nome": "Pão de Açúcar",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": null,
+    "data_fim": null,
+    "data_vencimento": "2025-09-06"
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 0.0,
+    "compras_internacionais": 0.0,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 59.0,
+    "saldo_atual": 1872.43
+  },
+  "transacoes": [
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras",
+      "valor": 3.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-08-04",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 132.41,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras",
+      "valor": 4.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2025-08-25",
+      "descricao": "AMAZON RETA*",
+      "valor": 8.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

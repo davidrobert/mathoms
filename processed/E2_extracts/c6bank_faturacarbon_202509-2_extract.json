@@ -1,0 +1,200 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "C6 Bank",
+  "cartao": {
+    "nome": "Carbon",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": "2025-09-01",
+    "data_fim": "2025-09-30",
+    "data_vencimento": "2025-10-05"
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 744.68,
+    "compras_internacionais": 5240.64,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 0.0,
+    "saldo_atual": 5582.36
+  },
+  "transacoes": [
+    {
+      "data": "2026-07-30",
+      "descricao": "VINDI *ACCOUNTBANKTEC",
+      "valor": 390.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-02",
+      "descricao": "AMAZON PRIME ALUGUEL",
+      "valor": 7.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-02",
+      "descricao": "APPLE.COM/BILL",
+      "valor": 5.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-03",
+      "descricao": "AMAZON PRIME ALUGUEL",
+      "valor": 7.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-04",
+      "descricao": "DM *SPOTIFY",
+      "valor": 34.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-04",
+      "descricao": "AMAZON PRIME ALUGUEL",
+      "valor": 19.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-06",
+      "descricao": "CLUBE LIVELO*CLUBE LIV",
+      "valor": 44.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-11",
+      "descricao": "MERCADOPAGO *BARATOPE",
+      "valor": 57.89,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-12",
+      "descricao": "AMAZON PRIME ALUGUEL",
+      "valor": 19.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-13",
+      "descricao": "WELLHUB GYMPASS BR GYM",
+      "valor": 79.89,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-15",
+      "descricao": "AMAZONPRIMEBR",
+      "valor": 19.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-17",
+      "descricao": "AMAZON PRIME ALUGUEL",
+      "valor": 7.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-18",
+      "descricao": "SUNDRY SHOP KI USD",
+      "valor": 2.15,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-18",
+      "descricao": "SUNDRY SHOP KI IOF Transações Exterior",
+      "valor": 0.43,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-19",
+      "descricao": "GLOBO*GLOBOPLAY",
+      "valor": 22.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-21",
+      "descricao": "SUNDRY SHOP KI IOF Transações Exterior",
+      "valor": 1.41,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-21",
+      "descricao": "SUNDRY SHOP KI USD",
+      "valor": 6.98,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-24",
+      "descricao": "MP *MELIMAIS",
+      "valor": 24.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-05",
+      "descricao": "Inclusao de Pagamento",
+      "valor": 17321.46,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-12",
+      "descricao": "DOLLAR TREE OR USD",
+      "valor": 12.25,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-12",
+      "descricao": "DOLLAR TREE OR IOF Transações Exterior",
+      "valor": 2.46,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-24",
+      "descricao": "Estorno Tarifa - Estorno",
+      "valor": 98.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-16",
+      "descricao": "WDW DROID DEPOT LA USD",
+      "valor": 127.79,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-16",
+      "descricao": "WDW DROID DEPOT LA IOF Transações Exterior",
+      "valor": 25.46,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-08-19",
+      "descricao": "DESC MASTERCARDWALMART - Estorno",
+      "valor": 17.1,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

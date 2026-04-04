@@ -1,0 +1,298 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "C6 Bank",
+  "cartao": {
+    "nome": "Carbon",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": "2025-08-01",
+    "data_fim": "2025-08-31",
+    "data_vencimento": "2025-09-05"
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 8563.82,
+    "compras_internacionais": 9191.84,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 0.0,
+    "saldo_atual": 17321.46
+  },
+  "transacoes": [
+    {
+      "data": "2026-06-30",
+      "descricao": "VINDI *ACCOUNTBANKTEC",
+      "valor": 390.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-02",
+      "descricao": "APPLE.COM/BILL",
+      "valor": 5.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-04",
+      "descricao": "DM*SPOTIFY",
+      "valor": 34.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-06",
+      "descricao": "LIVELO*CLUBE LIVELO",
+      "valor": 44.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-09",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 38.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-09",
+      "descricao": "EBN *AMAZON RETAIL - Estorno",
+      "valor": 740.39,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-09",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 740.39,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-09",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 787.38,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-09",
+      "descricao": "EBN *AMAZON RETAIL - Estorno",
+      "valor": 103.49,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-10",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 205.73,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-11",
+      "descricao": "EBN *AMAZON RETAIL",
+      "valor": 330.67,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-11",
+      "descricao": "AMAZON MARKETPLACE SE USD",
+      "valor": 24.7,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-11",
+      "descricao": "AMAZON MARKETPLACE SE IOF Transações Exterior",
+      "valor": 4.87,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-12",
+      "descricao": "AMAZON MARKETPLACE SE USD",
+      "valor": 159.99,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-12",
+      "descricao": "AMAZON MARKETPLACE SE IOF Transações Exterior",
+      "valor": 31.55,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-12",
+      "descricao": "AMAZON MARKETPLACE SE USD",
+      "valor": 994.49,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-12",
+      "descricao": "AMAZON MARKETPLACE SE IOF Transações Exterior",
+      "valor": 196.09,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-12",
+      "descricao": "AMAZON MARKETPLACE SE USD",
+      "valor": 18.91,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-12",
+      "descricao": "AMAZON MARKETPLACE SE IOF Transações Exterior",
+      "valor": 3.73,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-13",
+      "descricao": "WELLHUB GYMPASS BR GYM",
+      "valor": 79.89,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-13",
+      "descricao": "AMAZON MARKETPLACE SE USD",
+      "valor": 159.99,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-13",
+      "descricao": "AMAZON MARKETPLACE SE IOF Transações Exterior",
+      "valor": 31.55,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-15",
+      "descricao": "REGISTROBR",
+      "valor": 76.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-15",
+      "descricao": "AMAZONPRIMEBR",
+      "valor": 19.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-19",
+      "descricao": "PRODUTOS GLOBO",
+      "valor": 22.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-25",
+      "descricao": "MP *MELIMAIS",
+      "valor": 24.9,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-26",
+      "descricao": "DOMINO'S",
+      "valor": 3232.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-07",
+      "descricao": "Inclusao de Pagamento",
+      "valor": 5677.76,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-21",
+      "descricao": "SCRIPTS PHARMACY OR USD",
+      "valor": 3.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-21",
+      "descricao": "SCRIPTS PHARMACY OR IOF Transações Exterior",
+      "valor": 0.61,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-22",
+      "descricao": "SCRIPTS PHARMACY OR IOF Transações Exterior",
+      "valor": 3.79,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-22",
+      "descricao": "SCRIPTS PHARMACY OR USD",
+      "valor": 18.5,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-22",
+      "descricao": "NIC*-DOH ORA VITAL STA OR USD",
+      "valor": 26.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-22",
+      "descricao": "NIC*-DOH ORA VITAL STA OR IOF Transações Exterior",
+      "valor": 5.33,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-22",
+      "descricao": "SCRIPTS PHARMACY OR USD",
+      "valor": 15.04,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-22",
+      "descricao": "SCRIPTS PHARMACY OR IOF Transações Exterior",
+      "valor": 3.08,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-15",
+      "descricao": "LATAM AIRLINES",
+      "valor": 5229.63,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-20",
+      "descricao": "DESCAMPADO",
+      "valor": 287.17,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-07-20",
+      "descricao": "AUTO POSTO ROTA",
+      "valor": 169.06,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

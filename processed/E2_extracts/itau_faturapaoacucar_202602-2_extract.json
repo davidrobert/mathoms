@@ -1,0 +1,39 @@
+{
+  "tipo": "faturacc",
+  "instituicao": "Itaú",
+  "cartao": {
+    "nome": "Pão de Açúcar",
+    "tipo": "credit",
+    "ultimos_digitos": "0000"
+  },
+  "periodo": {
+    "data_inicio": null,
+    "data_fim": null,
+    "data_vencimento": "2026-02-06"
+  },
+  "resumo": {
+    "saldo_anterior": 0.0,
+    "compras_nacionais": 0.0,
+    "compras_internacionais": 0.0,
+    "juros": 0.0,
+    "taxa_mensal": 0.0,
+    "pagamentos_efetuados": 59.0,
+    "saldo_atual": 257.54
+  },
+  "transacoes": [
+    {
+      "data": "2026-06-08",
+      "descricao": "BRASIL PARAL*Bras",
+      "valor": 8.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    },
+    {
+      "data": "2026-06-08",
+      "descricao": "BRASIL PARAL*Bras",
+      "valor": 9.0,
+      "categoria": "",
+      "parcelas": "1/1"
+    }
+  ]
+}

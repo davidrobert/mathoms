@@ -1,0 +1,20 @@
+# ============================================
+# financas-familia — .gitignore
+# ============================================
+
+# Arquivos financeiros originais (PDFs, imagens)
+# Imutáveis, grandes (~21MB), sensíveis.
+# Mantidos localmente, não versionados.
+data/
+inbox/
+inbox_processed/
+
+# OS / Editor
+.DS_Store
+.obsidian/
+
+# Backups legados — substituídos pelo histórico Git
+*.bak
+*_backup.*
+*_prev.*
+*_pre_fix.*
