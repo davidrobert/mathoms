@@ -1325,7 +1325,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       "score_gauge": {...},
       "alocacao_atual": {...},
       "alocacao_alvo": {...},
-      "top15": {...},
+      "top15_ativos": {"labels":["Cofrinhos",...], "data":[206491,...]},
       ...
     }
   }
@@ -1490,28 +1490,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 2: Waterfall IF ==========
-  safeChart('chart-waterfall-if', {
-    type: 'bar',
-    data: {
-      labels: ['Investimentos', 'Imóveis (est.)', 'Total Atual', 'Gap', 'Meta IF'],
-      datasets: [{
-        label: 'R$',
-        data: [1369452, 4147480, 5516932, 3483068, 9000000],
-        backgroundColor: ['#2E86AB', '#457B9D', '#1A3A5C', '#E63946', '#2DC653'],
-        borderRadius: 4
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: function(c) { return fmt(c.raw); } } },
-        datalabels: { display: false }
+  // ========== CHART 2: Waterfall IF (dados dinâmicos via DATA.charts.waterfall_if) ==========
+  (function() {
+    var wf = DATA.charts.waterfall_if || {};
+    var labels = wf.labels || ['Investível Atual', 'Gap', 'Meta IF'];
+    var values = wf.data   || [0, 0, 0];
+    // Cores: azul para investível atual, vermelho para gap, verde para meta
+    var colors = ['#2E86AB', '#E63946', '#2DC653'];
+    safeChart('chart-waterfall-if', {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'R$',
+          data: values,
+          backgroundColor: colors.slice(0, values.length),
+          borderRadius: 4
+        }]
       },
-      scales: { x: { ticks: { callback: function(v) { return 'R$ ' + (v/1000000).toFixed(1) + 'M'; } } } }
-    }
-  });
+      options: {
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: function(c) { return fmt(c.raw); } } },
+          datalabels: { display: false }
+        },
+        scales: { x: { ticks: { callback: function(v) { return 'R$ ' + (v/1000000).toFixed(1) + 'M'; } } } }
+      }
+    });
+  })();
 
   // ========== CHART 3: Receita por fonte ==========
   safeChart('chart-receita-bar', {
@@ -1652,9 +1659,9 @@ document.addEventListener('DOMContentLoaded', function() {
       ctx.fill();
     }
 
-    // Read score from data attribute (set by E5) or fallback to REPORT_DATA_JSON
+    // Read score from data attribute (set by E5) or fallback to DATA (parsed from #report-data)
     var score = parseFloat(canvas.getAttribute('data-score'))
-             || (window.REPORT_DATA_JSON && (window.REPORT_DATA_JSON.kpis || {}).score_financeiro)
+             || (window.DATA && (window.DATA.kpis || {}).score)
              || 0;
     var needleAngle = Math.PI + (score / 10) * Math.PI;
     var needleLen = outerR * 0.88;
@@ -1694,8 +1701,8 @@ document.addEventListener('DOMContentLoaded', function() {
       ctxP.textContent = 'Avaliação consolidada: ' + score.toFixed(1).replace('.', ',') + '/10 (' + info.text.charAt(0) + info.text.slice(1).toLowerCase() + ').';
     }
 
-    // ── Score Breakdown Table (reads from REPORT_DATA_JSON.score.componentes) ──
-    var scoreData = window.REPORT_DATA_JSON && window.REPORT_DATA_JSON.score;
+    // ── Score Breakdown Table (reads from DATA.score.componentes) ──
+    var scoreData = window.DATA && window.DATA.score;
     var comps = scoreData && scoreData.componentes;
     if (comps && comps.length) {
       var barColors = ['#22B566','#22B566','#6EDBA0','#F5BF2F','#F0924A','#DC2640'];
@@ -1787,15 +1794,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 8: Top 15 ativos ==========
+  // ========== CHART 8: Top 15 Ativos Financeiros (dinâmico via DATA) ==========
+  var t15 = DATA.charts.top15_ativos || {labels:[], data:[]};
   safeChart('chart-top15-ativos', {
     type: 'bar',
     data: {
-      labels: ['Cofrinhos Itaú','CDB DI Santander','CDB DI Itaú','CDB DI2 Santander','PETR4','CDB Prog Santander','PicPay RDB','Alaska Black','Alaska LO','BTG Tesouro IPCA+','BTG CDB PicPay','BTG CDB Agibank','CRI Localiza','BTG CRA Minerva','Western Asset'],
+      labels: t15.labels,
       datasets: [{
         label: 'R$',
-        data: [206492, 137410, 116374, 101523, 83946, 60546, 53757, 52444, 52294, 43349, 30443, 29353, 29205, 26663, 25913],
-        backgroundColor: palette.concat(palette).slice(0,15),
+        data: t15.data,
+        backgroundColor: palette.concat(palette).slice(0, t15.labels.length),
         borderRadius: 4
       }]
     },
@@ -1857,7 +1865,7 @@ document.addEventListener('DOMContentLoaded', function() {
   safeChart('chart-cenarios-cambiais', {
     type: 'bar',
     data: {
-      labels: ['Pessimista\nR$7,50/USD', 'Realista\nR$5,88/USD', 'Otimista\nR$4,50/USD'],
+      labels: [['Pessimista','R$ 7,50/USD'], ['Realista','R$ 5,88/USD'], ['Otimista','R$ 4,50/USD']],
       datasets: [
         { label: 'Sem Mariana', data: [8500, 22000, 35000], backgroundColor: '#F4A261', borderRadius: 4 },
         { label: 'Com Mariana (NCLEX)', data: [38000, 55000, 72000], backgroundColor: '#2DC653', borderRadius: 4 }

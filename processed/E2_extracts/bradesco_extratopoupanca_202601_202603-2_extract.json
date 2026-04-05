@@ -1,123 +1,15 @@
 {
-  "tipo": "extratoconta",
-  "subtipo": "poupanca",
-  "instituicao": "Bradesco",
-  "conta": {
-    "numero": "771139",
-    "tipo": "poupanca",
-    "moeda": "BRL",
-    "agencia": "504"
-  },
+  "banco": "Bradesco",
+  "tipo": "extratopoupanca",
+  "titular": "Mariana Teixeira Ferreira",
+  "conta": "504",
+  "agencia": "3221",
+  "moeda": "BRL",
   "periodo": {
-    "data_inicio": "N/A",
-    "data_fim": "N/A"
+    "inicio": "2026-01-01",
+    "fim": "2026-03-31"
   },
-  "saldos": {
-    "saldo_inicial": {
-      "valor": 51094.79,
-      "data": "N/A"
-    },
-    "saldo_final": {
-      "valor": 4330.25,
-      "data": "2026-03-25"
-    }
-  },
-  "transacoes": [
-    {
-      "data": "2026-01-05",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 1673.05,
-      "saldo_apos": 27551.59
-    },
-    {
-      "data": "2026-01-06",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 220.0,
-      "saldo_apos": 27331.59
-    },
-    {
-      "data": "2026-01-20",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 1782.63,
-      "saldo_apos": 29987.35
-    },
-    {
-      "data": "2026-01-21",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 3183.24,
-      "saldo_apos": 26804.11
-    },
-    {
-      "data": "2026-01-23",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 28.03,
-      "saldo_apos": 26776.08
-    },
-    {
-      "data": "2026-01-26",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 100.0,
-      "saldo_apos": 26676.08
-    },
-    {
-      "data": "2026-01-29",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 86.66,
-      "saldo_apos": 26331.32
-    },
-    {
-      "data": "2026-02-04",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 807.57,
-      "saldo_apos": 29432.53
-    },
-    {
-      "data": "2026-03-04",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 1116.46,
-      "saldo_apos": 37752.13
-    },
-    {
-      "data": "2026-03-09",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 32.0,
-      "saldo_apos": 37613.72
-    },
-    {
-      "data": "2026-03-10",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 220.0,
-      "saldo_apos": 37393.72
-    },
-    {
-      "data": "2026-03-24",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 37304.9,
-      "saldo_apos": 4540.25
-    },
-    {
-      "data": "2026-03-25",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 210.0,
-      "saldo_apos": 4330.25
-    }
-  ],
-  "total_periodo": {
-    "total_debitos": 46764.54,
-    "total_creditos": 0,
-    "saldo_liquido": -46764.54
-  }
+  "saldo_inicial": null,
+  "saldo_final": null,
+  "transacoes": []
 }

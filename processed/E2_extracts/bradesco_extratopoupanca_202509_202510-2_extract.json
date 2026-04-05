@@ -1,60 +1,15 @@
 {
-  "tipo": "extratoconta",
-  "subtipo": "poupanca",
-  "instituicao": "Bradesco",
-  "conta": {
-    "numero": "771139",
-    "tipo": "poupanca",
-    "moeda": "BRL",
-    "agencia": "3221"
-  },
+  "banco": "Bradesco",
+  "tipo": "extratopoupanca",
+  "titular": "Mariana Teixeira Ferreira",
+  "conta": "504",
+  "agencia": "3221",
+  "moeda": "BRL",
   "periodo": {
-    "data_inicio": "2025-09-01",
-    "data_fim": "2025-10-31"
+    "inicio": "2025-09-01",
+    "fim": "2025-10-31"
   },
-  "saldos": {
-    "saldo_inicial": {
-      "valor": 5193.53,
-      "data": "2025-09-01"
-    },
-    "saldo_final": {
-      "valor": 2407.27,
-      "data": "2025-10-28"
-    }
-  },
-  "transacoes": [
-    {
-      "data": "2025-10-14",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 230.0,
-      "saldo_apos": 655.29
-    },
-    {
-      "data": "2025-10-20",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 1683.86,
-      "saldo_apos": 3279.67
-    },
-    {
-      "data": "2025-10-22",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 624.4,
-      "saldo_apos": 2655.27
-    },
-    {
-      "data": "2025-10-28",
-      "descricao": "bx Aut Cta Cor*",
-      "tipo": "debito",
-      "valor": 248.0,
-      "saldo_apos": 2407.27
-    }
-  ],
-  "total_periodo": {
-    "total_debitos": 2786.26,
-    "total_creditos": 0,
-    "saldo_liquido": -2786.26
-  }
+  "saldo_inicial": null,
+  "saldo_final": null,
+  "transacoes": []
 }

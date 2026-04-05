@@ -1,46 +1,119 @@
 {
-  "tipo": "faturacc",
-  "instituicao": "Santander",
-  "cartao": {
-    "nome": "Unique",
-    "tipo": "credit",
-    "ultimos_digitos": "0000"
-  },
-  "periodo": {
-    "data_inicio": null,
-    "data_fim": null,
-    "data_vencimento": null
-  },
-  "resumo": {
-    "saldo_anterior": 0.0,
-    "compras_nacionais": 496.05,
-    "compras_internacionais": 936.6,
-    "juros": 0.0,
-    "taxa_mensal": 0.0,
-    "pagamentos_efetuados": 252.13,
-    "saldo_atual": 1375.81
-  },
+  "banco": "Santander",
+  "tipo": "faturaunique",
+  "cartao": "Unique",
+  "titular": null,
+  "moeda": "BRL",
+  "data_vencimento": "2025-06-15",
+  "saldo_anterior": 252.13,
+  "total_compras": 496.05,
+  "pagamentos": 252.13,
+  "saldo_atual": 1375.81,
   "transacoes": [
     {
+      "data": null,
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 7.47,
+      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "DEB AUTOM DE FATURA EM C/",
+      "valor": -252.13,
+      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+    },
+    {
+      "data": "2025-05-19",
+      "descricao": "SCP COMPLETO- MAI/25",
+      "valor": 25.1,
+      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+    },
+    {
       "data": "2025-06-09",
-      "descricao": "ANUIDADE DIFERENCIADA",
-      "valor": 10.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "ANUIDADE DIFERENCIADA 10/12",
+      "valor": 0.0,
+      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+    },
+    {
+      "data": "2025-05-29",
+      "descricao": "SCP BASICO- MAI/25",
+      "valor": 10.39,
+      "cartao": "SONIA C C DE CAMPOS - 5228 XXXX XXXX 6006"
+    },
+    {
+      "data": "2025-05-21",
+      "descricao": "DESCONTO ESFERA*LYFTUS -56,84",
+      "valor": -10.0,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871"
+    },
+    {
+      "data": "2025-05-19",
+      "descricao": "LYFT *1 RIDE 05-18",
+      "valor": 512.8,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 84.99
+      }
+    },
+    {
+      "data": null,
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 17.33,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-05-29",
+      "descricao": "AMAZON PRIME*NN79P0VS0",
+      "valor": 90.46,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 14.99
+      }
+    },
+    {
+      "data": null,
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 3.17,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-06-01",
       "descricao": "GOOGLE *GOOGLE ONE",
       "valor": 119.84,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 19.99
+      }
+    },
+    {
+      "data": null,
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 4.19,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-06-05",
       "descricao": "SMILES CLUB SMILES",
       "valor": 428.4,
-      "categoria": "",
-      "parcelas": "06/06"
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871"
+    },
+    {
+      "data": "2025-06-06",
+      "descricao": "GOOGLE *TELEGRAM",
+      "valor": 213.5,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 35.99
+      }
     }
-  ]
+  ],
+  "cartoes": []
 }

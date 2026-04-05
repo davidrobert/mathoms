@@ -1,41 +1,8 @@
 {
+  "banco": "Binance",
   "tipo": "extratoconta",
-  "instituicao": "Binance",
-  "conta": {
-    "tipo": "exchange",
-    "moeda": "USD"
-  },
-  "periodo": {
-    "data_inicio": "2026-02-29",
-    "data_fim": "2026-03-29"
-  },
-  "saldos": {
-    "saldo_final": {
-      "valor": 1257.19,
-      "data": "2026-03-29"
-    }
-  },
-  "holdings_criptomoedas": [
-    {
-      "cripto": "BTC",
-      "quantidade": 0.00311425,
-      "valor_usd": 137.34
-    },
-    {
-      "cripto": "ETH",
-      "quantidade": 0.01325066,
-      "valor_usd": 42.76
-    },
-    {
-      "cripto": "ADA",
-      "quantidade": 7.78980311,
-      "valor_usd": 3.77
-    },
-    {
-      "cripto": "AXS",
-      "quantidade": 1.54143134,
-      "valor_usd": 83.47
-    }
-  ],
-  "notas_ocr": "Extracted from Binance mobile app screenshot - conta Geral, moeda BRL $1,257.19"
+  "moeda": "USD",
+  "data_posicao": "2026-03-26",
+  "assets": [],
+  "saldo_total_usd": 0
 }

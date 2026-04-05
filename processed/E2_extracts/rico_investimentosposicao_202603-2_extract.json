@@ -1,13 +1,78 @@
 {
+  "banco": "Rico",
   "tipo": "investimentosposicao",
-  "instituicao": "Rico",
   "data_posicao": "2026-03-29",
-  "moeda": "BRL",
-  "total_aplicado": null,
-  "saldo_atual": null,
-  "rentabilidade": {
-    "valor": null,
-    "percentual": null
-  },
-  "composicao": []
+  "saldo_total": 278916.64,
+  "produtos": [
+    {
+      "nome": "Alaska Black FIC de FIA - BDR NIVEL I",
+      "tipo": "Fundo de Investimento",
+      "saldo_atual": 52443.66,
+      "quantidade": 1,
+      "preco_unitario": 52443.66
+    },
+    {
+      "nome": "Alaska Institucional Long Only FIF em Acoes RL",
+      "tipo": "Fundo de Investimento",
+      "saldo_atual": 52294.2,
+      "quantidade": 1,
+      "preco_unitario": 52294.2
+    },
+    {
+      "nome": "Safari 30 FIF em Cotas de FIM II",
+      "tipo": "Fundo de Investimento",
+      "saldo_atual": 16613.5,
+      "quantidade": 1,
+      "preco_unitario": 16613.5
+    },
+    {
+      "nome": "Constellation Institucional Advisory FIC de Acoes RL",
+      "tipo": "Fundo de Investimento",
+      "saldo_atual": 12585.32,
+      "quantidade": 1,
+      "preco_unitario": 12585.32
+    },
+    {
+      "nome": "Western Asset BDR FIF",
+      "tipo": "Fundo de Investimento",
+      "saldo_atual": 25913.09,
+      "quantidade": 1,
+      "preco_unitario": 25913.09
+    },
+    {
+      "nome": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
+      "tipo": "Fundo de Investimento",
+      "saldo_atual": 3264.13,
+      "quantidade": 1,
+      "preco_unitario": 3264.13
+    },
+    {
+      "nome": "XP Alocacao Sofisticada FIM CP RL",
+      "tipo": "Fundo de Investimento",
+      "saldo_atual": 1576.08,
+      "quantidade": 1,
+      "preco_unitario": 1576.08
+    },
+    {
+      "nome": "PETR4",
+      "tipo": "Acao",
+      "saldo_atual": 83946.0,
+      "quantidade": 1700,
+      "preco_unitario": 49.38
+    },
+    {
+      "nome": "ITSA4",
+      "tipo": "Acao",
+      "saldo_atual": 10285.16,
+      "quantidade": 778,
+      "preco_unitario": 13.22
+    },
+    {
+      "nome": "BRKM5",
+      "tipo": "Acao",
+      "saldo_atual": 2700.0,
+      "quantidade": 300,
+      "preco_unitario": 9.0
+    }
+  ]
 }

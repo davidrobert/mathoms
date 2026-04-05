@@ -1,893 +1,1074 @@
 {
-  "tipo": "faturacc",
-  "instituicao": "C6 Bank",
-  "cartao": {
-    "nome": "Carbon",
-    "tipo": "credit",
-    "ultimos_digitos": "0000"
-  },
-  "periodo": {
-    "data_inicio": "2026-03-01",
-    "data_fim": "2026-03-31",
-    "data_vencimento": "2026-04-05"
-  },
-  "resumo": {
-    "saldo_anterior": 0.0,
-    "compras_nacionais": 24374.31,
-    "compras_internacionais": 16456.01,
-    "juros": 0.0,
-    "taxa_mensal": 0.0,
-    "pagamentos_efetuados": 0.0,
-    "saldo_atual": 41406.31
-  },
+  "banco": "C6 Bank",
+  "tipo": "faturacarbon",
+  "cartao": "Carbon",
+  "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+  "moeda": "BRL",
+  "data_vencimento": "2026-03-05",
+  "saldo_anterior": null,
+  "total_compras_nacionais": 24374.31,
+  "total_compras_internacionais": 16456.01,
+  "pagamentos": -98.0,
+  "saldo_atual": 41406.31,
+  "limite_total": 224000.0,
   "transacoes": [
+    {
+      "data": "2025-11-28",
+      "descricao": "AIR EUROPA LINEAS AE",
+      "valor": 2747.6,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "parcela": "3/3"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "BEYPAY*SAO PAULO",
+      "valor": 14.14,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "parcela": "2/12"
+    },
     {
       "data": "2026-01-28",
       "descricao": "DROGARIA_SP DROGARIASA",
       "valor": 2599.05,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-01-29",
       "descricao": "PADARIA DANIELA",
       "valor": 18.33,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-01-29",
       "descricao": "AMAZON BR",
       "valor": 199.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "AMAZON BR",
+      "valor": 199.9,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-01-29",
       "descricao": "RAPPI*RAIA DROGASIL SA",
       "valor": 22.1,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-01-30",
       "descricao": "VINDI *ACCOUNTBANKTEC",
       "valor": 390.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-01-31",
       "descricao": "PADARIA DANIELA",
       "valor": 31.57,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-01-31",
-      "descricao": "MINUTO PA",
-      "valor": 6199.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "MINUTO PA 6199",
+      "valor": 48.05,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-01-31",
       "descricao": "LEITURA",
       "valor": 59.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-01-31",
       "descricao": "CORPO E VIDA",
       "valor": 27.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-01",
-      "descricao": "HOTEL MUNDIAL IOF Transações Exterior",
+      "descricao": "HOTEL MUNDIAL",
       "valor": 30.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-01",
-      "descricao": "HOTEL MUNDIAL USD",
-      "valor": 156.74,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "HOTEL MUNDIAL",
+      "valor": 857.01,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 156.74,
+        "cotacao": 5.47
+      }
     },
     {
       "data": "2026-02-01",
-      "descricao": "HOTEL AT BOOKING.COM IOF Transações Exterior",
+      "descricao": "HOTEL AT BOOKING.COM",
       "valor": 23.48,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-01",
-      "descricao": "HOTEL AT BOOKING.COM USD",
-      "valor": 122.69,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "HOTEL AT BOOKING.COM",
+      "valor": 670.83,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 122.69,
+        "cotacao": 5.47
+      }
     },
     {
       "data": "2026-02-01",
-      "descricao": "HOTEL AT BOOKING.COM IOF Transações Exterior",
+      "descricao": "HOTEL AT BOOKING.COM",
       "valor": 21.85,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-01",
-      "descricao": "HOTEL AT BOOKING.COM USD",
-      "valor": 114.16,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "HOTEL AT BOOKING.COM",
+      "valor": 624.19,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 114.16,
+        "cotacao": 5.47
+      }
     },
     {
       "data": "2026-02-01",
       "descricao": "OXXO VILA GUARANI",
       "valor": 4.99,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-01",
-      "descricao": "HOTEL AT BOOKING.COM USD",
-      "valor": 478.69,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "HOTEL AT BOOKING.COM",
+      "valor": 2634.71,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 478.69,
+        "cotacao": 5.5
+      }
     },
     {
       "data": "2026-02-01",
-      "descricao": "HOTEL AT BOOKING.COM IOF Transações Exterior",
+      "descricao": "HOTEL AT BOOKING.COM",
       "valor": 92.21,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-02",
-      "descricao": "SAN FRANCISCO HOTEL MO USD",
-      "valor": 411.25,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "SAN FRANCISCO HOTEL MO",
+      "valor": 2263.52,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 411.25,
+        "cotacao": 5.5
+      }
     },
     {
       "data": "2026-02-02",
-      "descricao": "SAN FRANCISCO HOTEL MO IOF Transações Exterior",
+      "descricao": "SAN FRANCISCO HOTEL MO",
       "valor": 79.22,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-02",
       "descricao": "RAPPI *SUPERMERCADOS",
       "valor": 164.23,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-02",
       "descricao": "MARIOLORIOMEDRANO",
       "valor": 15.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-02",
       "descricao": "PADARIA DANIELA",
       "valor": 11.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-02",
       "descricao": "MERCADOLIVRE*MERCADOL",
       "valor": 230.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-02",
       "descricao": "SAFIRA SUPERMERCADO",
       "valor": 6.89,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-03",
       "descricao": "SAKURAPAESEDOCES",
       "valor": 23.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-03",
-      "descricao": "REGISTROBR",
-      "valor": 45987265.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "REGISTROBR 45987265",
+      "valor": 76.0,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-03",
       "descricao": "APPLECOMBILL",
       "valor": 5.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-03",
       "descricao": "JF PARK",
       "valor": 33.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2026-02-03",
+      "descricao": "RAIA29",
+      "valor": 170.71,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-04",
       "descricao": "MOUSTACHE BEAMS LTDA",
       "valor": 207.18,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-04",
       "descricao": "DM*SPOTIFY",
       "valor": 40.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-04",
       "descricao": "NADIR",
       "valor": 24.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-04",
       "descricao": "AIR EUROPA NOT-AVAILA",
       "valor": 1493.66,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-05",
       "descricao": "PADARIA SANTA MARINA",
       "valor": 10.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-05",
       "descricao": "AIR EUROPA NOT-AVAILA",
       "valor": 1013.66,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-05",
       "descricao": "PRIME AUTO POSTO LTDA",
       "valor": 300.06,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-05",
-      "descricao": "BKG*BOOKING.COM HOTEL IOF Transações Exterior",
+      "descricao": "BKG*BOOKING.COM HOTEL",
       "valor": 40.95,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-05",
-      "descricao": "BKG*BOOKING.COM HOTEL USD",
-      "valor": 211.45,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "BKG*BOOKING.COM HOTEL",
+      "valor": 1170.04,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 211.45,
+        "cotacao": 5.53
+      }
     },
     {
       "data": "2026-02-06",
       "descricao": "SAKURAPAESEDOCES",
       "valor": 33.48,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2026-02-06",
+      "descricao": "DROGASIL2886",
+      "valor": 338.46,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-06",
       "descricao": "LOJAS MEL CONCEICAO II",
       "valor": 72.97,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-06",
       "descricao": "SUPERMERCADO VILA DAS",
       "valor": 135.99,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-06",
       "descricao": "CORPO E VIDA",
       "valor": 497.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2026-02-06",
+      "descricao": "MP *33798933SAMUELABN",
+      "valor": 50.0,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-06",
       "descricao": "CLUBE LIVELO*CLUBE LIV",
       "valor": 44.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-06",
       "descricao": "AIR EUROPA",
       "valor": 215.57,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2026-02-06",
+      "descricao": "50292594JOSIANE",
+      "valor": 62.9,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-08",
-      "descricao": "AEROP. ADOLFO SUAREZ M USD",
-      "valor": 25.24,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "AEROP. ADOLFO SUAREZ M",
+      "valor": 139.66,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 25.24,
+        "cotacao": 5.53
+      }
     },
     {
       "data": "2026-02-08",
-      "descricao": "AEROP. ADOLFO SUAREZ M IOF Transações Exterior",
+      "descricao": "AEROP. ADOLFO SUAREZ M",
       "valor": 4.89,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-08",
-      "descricao": "AEROP. ADOLFO SUAREZ M IOF Transações Exterior",
+      "descricao": "AEROP. ADOLFO SUAREZ M",
       "valor": 0.44,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-08",
-      "descricao": "AEROP. ADOLFO SUAREZ M USD",
-      "valor": 2.28,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "AEROP. ADOLFO SUAREZ M",
+      "valor": 12.62,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 2.28,
+        "cotacao": 5.53
+      }
     },
     {
       "data": "2026-02-08",
-      "descricao": "MC MOBILITY IOF Transações Exterior",
+      "descricao": "MC MOBILITY",
       "valor": 139.19,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-08",
-      "descricao": "MC MOBILITY USD",
-      "valor": 718.69,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "MC MOBILITY",
+      "valor": 3976.8,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 718.69,
+        "cotacao": 5.53
+      }
     },
     {
       "data": "2026-02-08",
-      "descricao": "CPPB-RUA AUGUSTA USD",
-      "valor": 18.62,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "CPPB-RUA AUGUSTA",
+      "valor": 103.03,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 18.62,
+        "cotacao": 5.53
+      }
     },
     {
       "data": "2026-02-08",
-      "descricao": "CPPB-RUA AUGUSTA IOF Transações Exterior",
+      "descricao": "CPPB-RUA AUGUSTA",
       "valor": 3.61,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-08",
-      "descricao": "CONFRARIA DO SUSHI IOF Transações Exterior",
+      "descricao": "CONFRARIA DO SUSHI",
       "valor": 5.1,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-08",
-      "descricao": "CONFRARIA DO SUSHI USD",
-      "valor": 26.32,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "CONFRARIA DO SUSHI",
+      "valor": 145.64,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 26.32,
+        "cotacao": 5.53
+      }
     },
     {
       "data": "2026-02-08",
-      "descricao": "CONFRARIA DO SUSHI USD",
-      "valor": 38.22,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "CONFRARIA DO SUSHI",
+      "valor": 211.49,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 38.22,
+        "cotacao": 5.53
+      }
     },
     {
       "data": "2026-02-08",
-      "descricao": "CONFRARIA DO SUSHI IOF Transações Exterior",
+      "descricao": "CONFRARIA DO SUSHI",
       "valor": 7.4,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-08",
-      "descricao": "MANTEIGARIA SILVA USD",
-      "valor": 7.21,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "MANTEIGARIA SILVA",
+      "valor": 39.9,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 7.21,
+        "cotacao": 5.53
+      }
     },
     {
       "data": "2026-02-08",
-      "descricao": "MANTEIGARIA SILVA IOF Transações Exterior",
+      "descricao": "MANTEIGARIA SILVA",
       "valor": 1.4,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-09",
       "descricao": "PRIMO RICO",
       "valor": 3197.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-09",
-      "descricao": "SILETRICA USD",
-      "valor": 7.09,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "SILETRICA",
+      "valor": 39.05,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 7.09,
+        "cotacao": 5.51
+      }
     },
     {
       "data": "2026-02-09",
-      "descricao": "SILETRICA IOF Transações Exterior",
+      "descricao": "SILETRICA",
       "valor": 1.37,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-09",
-      "descricao": "KIKO MILANO IOF Transações Exterior",
+      "descricao": "KIKO MILANO",
       "valor": 1.16,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-09",
-      "descricao": "KIKO MILANO USD",
-      "valor": 6.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "KIKO MILANO",
+      "valor": 33.05,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 6.0,
+        "cotacao": 5.51
+      }
     },
     {
       "data": "2026-02-09",
-      "descricao": "FUNDACAO CULTURSINTR IOF Transações Exterior",
+      "descricao": "CBD MARTIM M0NIZ",
+      "valor": 0.53,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2026-02-09",
+      "descricao": "CBD MARTIM M0NIZ",
+      "valor": 15.04,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 2.73,
+        "cotacao": 5.51
+      }
+    },
+    {
+      "data": "2026-02-09",
+      "descricao": "FUNDACAO CULTURSINTR",
       "valor": 9.27,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-09",
-      "descricao": "FUNDACAO CULTURSINTR USD",
-      "valor": 48.08,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "FUNDACAO CULTURSINTR",
+      "valor": 264.84,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 48.08,
+        "cotacao": 5.51
+      }
     },
     {
       "data": "2026-02-13",
-      "descricao": "CATEDRAL DE SANTIAGO USD",
-      "valor": 9.67,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "CATEDRAL DE SANTIAGO",
+      "valor": 52.59,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 9.67,
+        "cotacao": 5.44
+      }
     },
     {
       "data": "2026-02-13",
-      "descricao": "CATEDRAL DE SANTIAGO IOF Transações Exterior",
+      "descricao": "CATEDRAL DE SANTIAGO",
       "valor": 1.84,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-13",
       "descricao": "WELLHUB GYMPASS BR WEL",
       "valor": 89.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-15",
-      "descricao": "PADDLE.NET* AIAPP LO USD",
-      "valor": 59.99,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "PADDLE.NET* AIAPP LO",
+      "valor": 326.23,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 59.99,
+        "cotacao": 5.44
+      }
     },
     {
       "data": "2026-02-15",
-      "descricao": "PADDLE.NET* AIAPP LO IOF Transações Exterior",
+      "descricao": "PADDLE.NET* AIAPP LO",
       "valor": 11.42,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-15",
       "descricao": "AMAZONPRIMEBR",
       "valor": 19.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-16",
       "descricao": "MERCADOLIVRE*MERCADOLI",
       "valor": 29.43,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2026-02-17",
+      "descricao": "MERCADOLIVRE*6PRODUTO",
+      "valor": 1989.4,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2026-02-17",
+      "descricao": "MERCADOLIVRE*3PRODUTOS",
+      "valor": 131.22,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-18",
       "descricao": "NATHALIACASADE",
       "valor": 406.81,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-18",
       "descricao": "SACOLAO VILA GUARANI",
       "valor": 47.99,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-18",
       "descricao": "RAPPI *SUPERMERCADOS",
       "valor": 466.41,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-18",
       "descricao": "BOGO CAFE.",
       "valor": 23.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-18",
       "descricao": "BOGO CAFE.",
       "valor": 41.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-19",
       "descricao": "GLOBO*GLOBOPLAY",
       "valor": 22.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-19",
       "descricao": "LEROY MERLIN",
       "valor": 1071.75,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-19",
       "descricao": "RAPHAEL PERES ALLEMANY",
       "valor": 10.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-19",
       "descricao": "MERCADO*DANIELELETRO",
       "valor": 38.42,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-19",
       "descricao": "LEROY MERLIN",
       "valor": 77.58,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-19",
       "descricao": "MERCADOLIVRE*MERCADOL",
       "valor": 346.06,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-20",
       "descricao": "TORRALTA",
       "valor": 76.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-20",
       "descricao": "CANTINA DA NAIDE",
       "valor": 27.5,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-20",
       "descricao": "TORRALTA",
       "valor": 23.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "DROGASIL2886",
+      "valor": 169.54,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-20",
       "descricao": "EC *MELIMAIS",
       "valor": 19.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-21",
       "descricao": "NATHALIACASADE",
       "valor": 238.78,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2026-02-21",
+      "descricao": "PAO DE ACUCAR-2336",
+      "valor": 688.84,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-21",
       "descricao": "MERCADOLIVRE*SOLUTIONS",
       "valor": 46.35,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2026-02-22",
+      "descricao": "MERCADOLIVRE*2PRODUTOS",
+      "valor": 289.89,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-22",
       "descricao": "IGUASPORT LTDA",
       "valor": 1081.1,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-22",
       "descricao": "CONILREM",
       "valor": 49.35,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-24",
       "descricao": "MERCADINHO BONANZA LT",
       "valor": 45.2,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-25",
       "descricao": "TORRALTACOMERCIO",
       "valor": 29.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-25",
       "descricao": "DROGARIA ONLINE",
       "valor": 153.24,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-25",
       "descricao": "BAR DA JULINHA",
       "valor": 18.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-25",
       "descricao": "ARKO S RESTAURANTE LT",
       "valor": 68.21,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2026-02-05",
       "descricao": "Inclusao de Pagamento",
       "valor": 20841.19,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
       "data": "2026-02-12",
-      "descricao": "AUDASA VISA IOF Transações Exterior",
+      "descricao": "AUDASA VISA",
       "valor": 0.82,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-12",
-      "descricao": "AUDASA VISA USD",
-      "valor": 4.29,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "AUDASA VISA",
+      "valor": 23.4,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 4.29,
+        "cotacao": 5.46
+      }
     },
     {
       "data": "2026-02-12",
-      "descricao": "AUDASA VISA IOF Transações Exterior",
+      "descricao": "AUDASA VISA",
       "valor": 1.17,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-12",
-      "descricao": "AUDASA VISA USD",
-      "valor": 6.11,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "AUDASA VISA",
+      "valor": 33.33,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 6.11,
+        "cotacao": 5.46
+      }
     },
     {
       "data": "2026-02-12",
-      "descricao": "AUDASA VISA USD",
-      "valor": 9.13,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "AUDASA VISA",
+      "valor": 49.81,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 9.13,
+        "cotacao": 5.46
+      }
     },
     {
       "data": "2026-02-12",
-      "descricao": "AUDASA VISA IOF Transações Exterior",
+      "descricao": "AUDASA VISA",
       "valor": 1.74,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-12",
-      "descricao": "A NOIESA USD",
-      "valor": 101.22,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "A NOIESA",
+      "valor": 552.17,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 101.22,
+        "cotacao": 5.46
+      }
     },
     {
       "data": "2026-02-12",
-      "descricao": "A NOIESA IOF Transações Exterior",
+      "descricao": "A NOIESA",
       "valor": 19.33,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-14",
-      "descricao": "CHEZ LAPIN IOF Transações Exterior",
+      "descricao": "CHEZ LAPIN",
       "valor": 22.75,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-14",
-      "descricao": "CHEZ LAPIN USD",
-      "valor": 119.53,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "CHEZ LAPIN",
+      "valor": 650.02,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 119.53,
+        "cotacao": 5.44
+      }
     },
     {
       "data": "2026-02-16",
-      "descricao": "HOTEL PORTO JARDIM USD",
-      "valor": 51.91,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "HOTEL PORTO JARDIM",
+      "valor": 282.29,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 51.91,
+        "cotacao": 5.44
+      }
     },
     {
       "data": "2026-02-16",
-      "descricao": "HOTEL PORTO JARDIM IOF Transações Exterior",
+      "descricao": "HOTEL PORTO JARDIM",
       "valor": 9.88,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-16",
-      "descricao": "ASSOC COMERCIAL PORT USD",
-      "valor": 28.37,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "ASSOC COMERCIAL PORT",
+      "valor": 154.28,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 28.37,
+        "cotacao": 5.44
+      }
     },
     {
       "data": "2026-02-16",
-      "descricao": "ASSOC COMERCIAL PORT IOF Transações Exterior",
+      "descricao": "ASSOC COMERCIAL PORT",
       "valor": 5.4,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-16",
-      "descricao": "NATA",
-      "valor": 7.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "NATA 7 PORTO",
+      "valor": 16.42,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 3.02,
+        "cotacao": 5.44
+      }
     },
     {
       "data": "2026-02-16",
-      "descricao": "PARQUE RIBEIRA IOF Transações Exterior",
+      "descricao": "NATA 7 PORTO",
+      "valor": 0.57,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2026-02-16",
+      "descricao": "PARQUE RIBEIRA",
       "valor": 1.66,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-16",
-      "descricao": "PARQUE RIBEIRA USD",
-      "valor": 8.7,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "PARQUE RIBEIRA",
+      "valor": 47.31,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 8.7,
+        "cotacao": 5.44
+      }
     },
     {
       "data": "2026-02-16",
-      "descricao": "AREAS PORTUGAL SA USD",
-      "valor": 14.97,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "AREAS PORTUGAL SA",
+      "valor": 81.41,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 14.97,
+        "cotacao": 5.44
+      }
     },
     {
       "data": "2026-02-16",
-      "descricao": "AREAS PORTUGAL SA IOF Transações Exterior",
+      "descricao": "AREAS PORTUGAL SA",
       "valor": 2.85,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-16",
-      "descricao": "PORTO DUTY FREE WALK MA IOF Transações Exterior",
+      "descricao": "PORTO DUTY FREE WALK MA",
       "valor": 17.01,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-16",
-      "descricao": "PORTO DUTY FREE WALK MA USD",
-      "valor": 89.35,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "PORTO DUTY FREE WALK MA",
+      "valor": 485.89,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 89.35,
+        "cotacao": 5.44
+      }
     },
     {
       "data": "2026-02-17",
       "descricao": "ROP COM ALIM",
       "valor": 58.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
       "data": "2026-02-24",
       "descricao": "Estorno Tarifa - Estorno",
       "valor": 98.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
+    },
+    {
+      "data": "2026-02-24",
+      "descricao": "Anuidade Diferenciada",
+      "valor": 98.0,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "parcela": "3/12"
     },
     {
       "data": "2026-02-26",
-      "descricao": "MCOUTINHO MOBILITY USD",
-      "valor": 92.26,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "MCOUTINHO MOBILITY",
+      "valor": 499.44,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 92.26,
+        "cotacao": 5.41
+      }
     },
     {
       "data": "2026-02-26",
-      "descricao": "MCOUTINHO MOBILITY IOF Transações Exterior",
+      "descricao": "MCOUTINHO MOBILITY",
       "valor": 17.48,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2026-02-12",
       "descricao": "MARCONI BASSO",
       "valor": 1150.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 1619 - SONIA CRISTINA"
     },
     {
       "data": "2026-01-31",
       "descricao": "MERCADINHO BONANZA LT",
       "valor": 49.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
+    },
+    {
+      "data": "2026-02-13",
+      "descricao": "FELTRIN MOTOS",
+      "valor": 442.05,
+      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS",
+      "parcela": "1/2"
+    }
+  ],
+  "cartoes": [
+    {
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "subtotal": 36730.83
+    },
+    {
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "subtotal": 3034.43
+    },
+    {
+      "cartao": "C6 Carbon Final 1619 - SONIA CRISTINA",
+      "subtotal": 1150.0
+    },
+    {
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
+      "subtotal": 49.0
+    },
+    {
+      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS",
+      "subtotal": 442.05
     }
   ]
 }

@@ -1,0 +1,19 @@
+{
+  "banco": "Itaú",
+  "tipo": "faturapaoacucar",
+  "cartao": "Pão de Açúcar",
+  "data_vencimento": "2025-05-06",
+  "saldo_anterior": 59.0,
+  "pagamento_efetuado": -59.0,
+  "total_compras": 59.0,
+  "pagamentos": -59.0,
+  "saldo_atual": 0.0,
+  "transacoes": [
+    {
+      "data": "2025-06-07",
+      "descricao": "Brasilp*BrasilPara 11/12",
+      "valor": 59.0,
+      "parcela": "1/12"
+    }
+  ]
+}

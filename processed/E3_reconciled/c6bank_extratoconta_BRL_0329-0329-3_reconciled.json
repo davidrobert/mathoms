@@ -1,0 +1,306 @@
+{
+  "banco": "C6 Bank",
+  "tipo_conta": "extratoconta",
+  "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-03-29",
+    "fim": "2026-03-29"
+  },
+  "saldo_inicial": 6930.11,
+  "saldo_final": 54586.83,
+  "fontes": [
+    "c6bank_extratoconta_202603-2_extract.json"
+  ],
+  "transacoes_total": 41,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-03-29",
+      "descricao": "Pix enviado para PARCELA EXPRESS SERVICOS DIGITAIS LTDA",
+      "valor": -48.28,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-03-31",
+      "descricao": "Pix recebido de POMPEIA MOTOS MULTIMARCAS LTDA",
+      "valor": 49402.0,
+      "tipo": "credito",
+      "saldo_apos": 47995.17
+    },
+    {
+      "data": "2025-03-31",
+      "descricao": "Pix enviado para ELAINE WENZEL",
+      "valor": -10.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-03-31",
+      "descricao": "Pix enviado para Maria Lucia Marques Oliveira",
+      "valor": -200.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-01",
+      "descricao": "RECEBIMENTO DE TED",
+      "valor": 600.0,
+      "tipo": "credito",
+      "saldo_apos": 5777.52
+    },
+    {
+      "data": "2025-04-01",
+      "descricao": "Pix enviado para FUNDACAO SAO PAULO",
+      "valor": -78.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-01",
+      "descricao": "IOF CHEQUE ESPECIAL",
+      "valor": -40.0,
+      "tipo": "debito",
+      "saldo_apos": 48382.18
+    },
+    {
+      "data": "2025-04-01",
+      "descricao": "JUROS CHEQUE ESP",
+      "valor": -104.39,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-02",
+      "descricao": "Cambio",
+      "valor": -17456.46,
+      "tipo": "debito",
+      "saldo_apos": 28397.72
+    },
+    {
+      "data": "2025-04-02",
+      "descricao": "Pix enviado para Maria Lucia Marques Oliveira",
+      "valor": -750.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-02",
+      "descricao": "Pix enviado para ANA LUCIA SANTOS",
+      "valor": -1200.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-03",
+      "descricao": "Cambio",
+      "valor": -15000.0,
+      "tipo": "debito",
+      "saldo_apos": 14045.72
+    },
+    {
+      "data": "2025-04-03",
+      "descricao": "Debito de Cartao",
+      "valor": -30.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-03",
+      "descricao": "Pix recebido de Douglas Camargo de Campos",
+      "valor": 100.0,
+      "tipo": "credito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-04",
+      "descricao": "Pix enviado para RUBENS DE CAMPOS",
+      "valor": -1500.0,
+      "tipo": "debito",
+      "saldo_apos": 12545.72
+    },
+    {
+      "data": "2025-04-05",
+      "descricao": "Pix enviado para RUBENS DE CAMPOS",
+      "valor": -500.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-05",
+      "descricao": "Outros gastos",
+      "valor": -40.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-06",
+      "descricao": "Pix enviado para paqueta nossa senhora do brasil",
+      "valor": -500.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-07",
+      "descricao": "Entradas",
+      "valor": 300.0,
+      "tipo": "credito",
+      "saldo_apos": 3712.06
+    },
+    {
+      "data": "2025-04-07",
+      "descricao": "Pagamento",
+      "valor": -15967.78,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-10",
+      "descricao": "Outros gastos",
+      "valor": -20.0,
+      "tipo": "debito",
+      "saldo_apos": 5947.94
+    },
+    {
+      "data": "2025-04-10",
+      "descricao": "Pix enviado para REGIANE DONIZETTI BALBINO",
+      "valor": -100.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-10",
+      "descricao": "Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
+      "valor": 10000.0,
+      "tipo": "credito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-12",
+      "descricao": "Outros gastos",
+      "valor": -23.0,
+      "tipo": "debito",
+      "saldo_apos": 4602.48
+    },
+    {
+      "data": "2025-04-14",
+      "descricao": "Outros gastos",
+      "valor": -428.8,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-16",
+      "descricao": "Pix enviado para ELIBERTO JOSE DE LIMA",
+      "valor": -500.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-16",
+      "descricao": "Pix enviado para RECEITA FEDERAL",
+      "valor": -166.08,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-16",
+      "descricao": "Pagamento",
+      "valor": -226.68,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-17",
+      "descricao": "Pagamento",
+      "valor": -576.12,
+      "tipo": "debito",
+      "saldo_apos": 4036.36
+    },
+    {
+      "data": "2025-04-18",
+      "descricao": "Outros gastos",
+      "valor": -352.75,
+      "tipo": "debito",
+      "saldo_apos": 3898.31
+    },
+    {
+      "data": "2025-04-18",
+      "descricao": "Outros gastos",
+      "valor": -28.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-21",
+      "descricao": "Outros gastos",
+      "valor": -70.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-21",
+      "descricao": "Outros gastos",
+      "valor": -6.2,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-21",
+      "descricao": "Outros gastos",
+      "valor": -16.5,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-21",
+      "descricao": "Outros gastos",
+      "valor": -12.8,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-21",
+      "descricao": "Outros gastos",
+      "valor": -9.8,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-22",
+      "descricao": "Outros gastos",
+      "valor": -5.8,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Pix enviado para ANA MARIA DE OLIVEIRA",
+      "valor": -80.0,
+      "tipo": "debito",
+      "saldo_apos": 4555.41
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Entradas",
+      "valor": 1080.0,
+      "tipo": "credito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Pix enviado para Poupa Medi",
+      "valor": -280.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Outros gastos",
+      "valor": -50.0,
+      "tipo": "debito",
+      "saldo_apos": null
+    }
+  ]
+}

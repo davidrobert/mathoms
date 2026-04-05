@@ -1,0 +1,75 @@
+{
+  "banco": "PicPay",
+  "tipo_conta": "extratoconta",
+  "titular": "David Robert Camargo Ferreira Campos",
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-12-29",
+    "fim": "2026-03-28"
+  },
+  "saldo_inicial": 52275.17,
+  "saldo_final": 53756.56,
+  "fontes": [
+    "picpay_extratoconta_202512_202603-2_extract.json"
+  ],
+  "transacoes_total": 8,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-12-29",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "valor": 14.23,
+      "tipo": "credito",
+      "saldo_apos": 52275.17
+    },
+    {
+      "data": "2025-12-30",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "valor": 14.28,
+      "tipo": "credito",
+      "saldo_apos": 52289.45
+    },
+    {
+      "data": "2025-12-31",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "valor": 14.24,
+      "tipo": "credito",
+      "saldo_apos": 52303.69
+    },
+    {
+      "data": "2026-01-02",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "valor": 14.29,
+      "tipo": "credito",
+      "saldo_apos": 52317.98
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "valor": 14.28,
+      "tipo": "credito",
+      "saldo_apos": 52332.26
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "valor": 14.28,
+      "tipo": "credito",
+      "saldo_apos": 52346.54
+    },
+    {
+      "data": "2026-03-26",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "valor": 14.52,
+      "tipo": "credito",
+      "saldo_apos": 53742.06
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "valor": 14.5,
+      "tipo": "credito",
+      "saldo_apos": 53756.56
+    }
+  ]
+}

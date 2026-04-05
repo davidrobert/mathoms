@@ -1,235 +1,313 @@
 {
-  "tipo": "faturacc",
-  "instituicao": "C6 Bank",
-  "cartao": {
-    "nome": "Carbon",
-    "tipo": "credit",
-    "ultimos_digitos": "0000"
-  },
-  "periodo": {
-    "data_inicio": "2025-07-01",
-    "data_fim": "2025-07-31",
-    "data_vencimento": "2025-08-05"
-  },
-  "resumo": {
-    "saldo_anterior": 0.0,
-    "compras_nacionais": 2755.27,
-    "compras_internacionais": 2823.67,
-    "juros": 0.0,
-    "taxa_mensal": 0.0,
-    "pagamentos_efetuados": 0.0,
-    "saldo_atual": 5677.76
-  },
+  "banco": "C6 Bank",
+  "tipo": "faturacarbon",
+  "cartao": "Carbon",
+  "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+  "moeda": "BRL",
+  "data_vencimento": "2025-07-05",
+  "saldo_anterior": null,
+  "total_compras_nacionais": 2755.27,
+  "total_compras_internacionais": 2823.67,
+  "pagamentos": -98.0,
+  "saldo_atual": 5677.76,
+  "limite_total": 224000.0,
   "transacoes": [
     {
-      "data": "2026-05-30",
+      "data": "2025-05-30",
       "descricao": "VINDI *ACCOUNTBANKTEC",
       "valor": 390.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-02",
-      "descricao": "AMAZON GROCERY AMZN.CO SE USD",
-      "valor": 52.97,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-05-30",
+      "descricao": "MERCADOLIVRE*7PRODUTO",
+      "valor": 200.48,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-02",
-      "descricao": "AMAZON GROCERY AMZN.CO SE IOF Transações Exterior",
+      "data": "2025-05-30",
+      "descricao": "MERCADOLIVRE*7PRODUTO",
+      "valor": 129.9,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "AMAZON GROCERY AMZN.CO SE",
+      "valor": 318.23,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 52.97,
+        "cotacao": 6.01
+      }
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "AMAZON GROCERY AMZN.CO SE",
       "valor": 11.14,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
-      "data": "2026-06-02",
+      "data": "2025-06-02",
       "descricao": "APPLE.COM/BILL",
       "valor": 4.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-03",
-      "descricao": "AMAZON TIPS AM IOF Transações Exterior",
+      "data": "2025-06-03",
+      "descricao": "AMAZON TIPS AM",
       "valor": 1.05,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
-      "data": "2026-06-03",
-      "descricao": "AMAZON TIPS AM USD",
-      "valor": 5.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-06-03",
+      "descricao": "AMAZON TIPS AM",
+      "valor": 29.96,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 5.0,
+        "cotacao": 5.99
+      }
     },
     {
-      "data": "2026-06-03",
+      "data": "2025-06-03",
       "descricao": "EBN *AMAZON RETAIL",
       "valor": 41.78,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-04",
+      "data": "2025-06-04",
       "descricao": "EBN *AMAZON RETAIL",
       "valor": 38.17,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-04",
+      "data": "2025-06-04",
       "descricao": "DM *SPOTIFY",
       "valor": 34.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-05",
-      "descricao": "WEATHERSTATION INN KE USD",
-      "valor": 246.38,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-06-05",
+      "descricao": "WEATHERSTATION INN KE",
+      "valor": 1460.61,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 246.38,
+        "cotacao": 5.93
+      }
     },
     {
-      "data": "2026-06-05",
-      "descricao": "WEATHERSTATION INN KE IOF Transações Exterior",
+      "data": "2025-06-05",
+      "descricao": "WEATHERSTATION INN KE",
       "valor": 51.12,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
-      "data": "2026-06-05",
+      "data": "2025-06-05",
       "descricao": "EBN *AMAZON RETAIL",
       "valor": 144.78,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-06",
+      "data": "2025-06-06",
       "descricao": "LIVELO*CLUBE LIVELO",
       "valor": 44.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-13",
+      "data": "2025-06-13",
       "descricao": "WELLHUB GYMPASS BR GYM",
       "valor": 69.99,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-15",
+      "data": "2025-06-14",
+      "descricao": "HOTELCOM73139275741253",
+      "valor": 1031.7,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-06-15",
       "descricao": "AMAZONPRIMEBR",
       "valor": 19.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-24",
+      "data": "2025-06-24",
       "descricao": "PRODUTOS GLOBO",
       "valor": 22.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-25",
+      "data": "2025-06-25",
       "descricao": "MP *MELIMAIS",
       "valor": 24.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-05",
+      "data": "2025-06-05",
       "descricao": "Inclusao de Pagamento",
       "valor": 23150.98,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-07",
-      "descricao": "SHELL MI IOF Transações Exterior",
+      "data": "2025-06-07",
+      "descricao": "SHELL MI",
       "valor": 4.51,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
-      "data": "2026-06-07",
-      "descricao": "SHELL MI USD",
-      "valor": 21.86,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-06-07",
+      "descricao": "SHELL MI",
+      "valor": 128.76,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 21.86,
+        "cotacao": 5.89
+      }
     },
     {
-      "data": "2026-06-08",
-      "descricao": "PRIP MART",
-      "valor": 199.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-06-08",
+      "descricao": "PRIP MART 199 BO",
+      "valor": 220.23,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 37.39,
+        "cotacao": 5.89
+      }
     },
     {
-      "data": "2026-06-12",
-      "descricao": "EXXON AUTOMATED PETROL TA USD",
-      "valor": 31.44,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-06-08",
+      "descricao": "PRIP MART 199 BO",
+      "valor": 7.71,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
-      "data": "2026-06-12",
-      "descricao": "EXXON AUTOMATED PETROL TA IOF Transações Exterior",
+      "data": "2025-06-12",
+      "descricao": "EXXON AUTOMATED PETROL TA",
+      "valor": 183.27,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 31.44,
+        "cotacao": 5.83
+      }
+    },
+    {
+      "data": "2025-06-12",
+      "descricao": "EXXON AUTOMATED PETROL TA",
       "valor": 6.41,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
-      "data": "2026-06-15",
-      "descricao": "FAST POINT MC USD",
-      "valor": 36.44,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-06-15",
+      "descricao": "WAL-MART #5214 KI",
+      "valor": 2.3,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
-      "data": "2026-06-15",
-      "descricao": "FAST POINT MC IOF Transações Exterior",
+      "data": "2025-06-15",
+      "descricao": "WAL-MART #5214 KI",
+      "valor": 65.81,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 11.29,
+        "cotacao": 5.83
+      }
+    },
+    {
+      "data": "2025-06-15",
+      "descricao": "FAST POINT MC",
+      "valor": 212.41,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 36.44,
+        "cotacao": 5.83
+      }
+    },
+    {
+      "data": "2025-06-15",
+      "descricao": "FAST POINT MC",
       "valor": 7.43,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
-      "data": "2026-06-22",
-      "descricao": "WAWA",
-      "valor": 5346.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-06-22",
+      "descricao": "WAWA 5346 BR",
+      "valor": 7.15,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
-      "data": "2026-06-24",
+      "data": "2025-06-22",
+      "descricao": "WAWA 5346 BR",
+      "valor": 204.39,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 35.39,
+        "cotacao": 5.78
+      }
+    },
+    {
+      "data": "2025-06-24",
       "descricao": "Estorno Tarifa - Estorno",
       "valor": 98.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
-      "data": "2026-06-07",
+      "data": "2025-06-24",
+      "descricao": "Anuidade Diferenciada",
+      "valor": 98.0,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "parcela": "7/12"
+    },
+    {
+      "data": "2025-06-07",
       "descricao": "COBASI GEORGE CORBISIE",
       "valor": 115.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS"
     },
     {
-      "data": "2026-06-08",
-      "descricao": "CAMPEAO",
-      "valor": 28.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-06-08",
+      "descricao": "CAMPEAO 28 POSTOS DE S",
+      "valor": 233.88,
+      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS"
     },
     {
-      "data": "2026-06-08",
+      "data": "2025-06-08",
       "descricao": "AUTO POSTO IRMAOS MIGU",
       "valor": 207.19,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS"
+    }
+  ],
+  "cartoes": [
+    {
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "subtotal": 4071.31
+    },
+    {
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "subtotal": 1050.38
+    },
+    {
+      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS",
+      "subtotal": 556.07
     }
   ]
 }

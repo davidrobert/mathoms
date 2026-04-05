@@ -1,156 +1,66 @@
 {
-  "tipo": "curriculo",
-  "membro": "David Robert Camargo Ferreira Campos",
-  "contato": {
-    "telefone": "+55 (11) 99681-9851",
-    "email": "davidrobert@gmail.com",
-    "linkedin": "https://www.linkedin.com/in/davidrobert/",
-    "github": "https://github.com/davidrobert/",
-    "lattes": "http://lattes.cnpq.br/2986072670677092"
-  },
-  "formacao": [
+  "full_name": "David Robert Camargo Ferreira Campos",
+  "profession_current_role": "Chief Technology Officer (CTO) at Arvo",
+  "professional_experiences": [
     {
-      "grau": "Mestrado",
-      "area": "Ciência da Computação — Inteligência Artificial",
-      "instituicao": "Universidade de São Paulo (USP), Instituto de Matemática e Estatística (IME)",
-      "ano_conclusao": 2008
+      "dates": "September 2025 - Current",
+      "title": "Chief Technology Officer (CTO)",
+      "company": "Arvo",
+      "description": "AI-first healthcare technology company specializing in medical claims auditing and fraud detection"
     },
     {
-      "grau": "Bacharelado",
-      "area": "Ciência da Computação",
-      "instituicao": "Pontifícia Universidade Católica de São Paulo (PUC/SP)",
-      "ano_conclusao": 2004
+      "dates": "June 2024 - May 2025",
+      "title": "Chief Technology Officer (CTO)",
+      "company": "Kiwify",
+      "description": "E-commerce and digital products platform"
+    },
+    {
+      "dates": "June 2019 - June 2024",
+      "title": "Software Engineering Consultant / Director of Software Engineering / Engineering Manager",
+      "company": "Loft",
+      "description": "Proptech company in real estate market transformation"
+    },
+    {
+      "dates": "August 2013 - July 2020",
+      "title": "Chief Technology Officer (CTO)",
+      "company": "Elo7",
+      "description": "Brazilian e-commerce platform for creative and handmade products"
     }
   ],
-  "idiomas": ["Português (nativo)", "Inglês (fluente)"],
-  "habilidades_tecnicas": [
-    "Java", "C/C++", "Python", "Go", "Kotlin", "JavaScript", "Ruby",
-    "Microservices", "DDD", "REST APIs", "AWS", "GCP", "Kubernetes", "Docker",
-    "Terraform", "Ansible", "CI/CD", "DNSSEC", "Machine Learning",
-    "Hadoop", "Spark", "Big Data", "Data Engineering"
-  ],
-  "experiencias": [
+  "education": [
     {
-      "empresa": "Arvo",
-      "local": "São Paulo/SP, Brasil",
-      "cargo": "Chief Technology Officer (CTO)",
-      "data_inicio": "2025-09-08",
-      "data_fim": null,
-      "descricao": "Healthtech brasileira que usa IA/ML para auditoria de claims médicos. Dirige estratégia tecnológica, cybersecurity (LGPD/HIPAA), visão AI-First, career ladder engineering v2.0.",
-      "resultados": [
-        "Integrou IA no SDLC, reduzindo tempo de review de PRs em 20%",
-        "Framework de engenharia padronizando expectativas técnicas",
-        "Fundação tecnológica escalável para modelos de ML de auditoria"
-      ]
+      "course": "Master in Computer Science - Artificial Intelligence",
+      "institution": "University of São Paulo (USP), Institute of Mathematics and Statistics (IME)",
+      "dates": "2008"
     },
     {
-      "empresa": "Kiwify",
-      "local": "Balneário Camboriú/SC, Brasil",
-      "cargo": "Chief Technology Officer (CTO)",
-      "data_inicio": "2024-06-17",
-      "data_fim": "2025-05-05",
-      "descricao": "Plataforma de e-commerce e produtos digitais. Estratégia tech, 5 squads de engenharia, infra para 7k req/min.",
-      "resultados": [
-        "5 squads estruturados, tempo de dev reduzido em 30%",
-        "Estabilidade em picos de 7.000 req/min, custos operacionais reduzidos em 20%",
-        "Lançamento de vendas internacionais com multi-currency",
-        "Continuous Delivery reduzindo tempo de lançamento em 40%"
-      ]
-    },
-    {
-      "empresa": "Loft",
-      "local": "São Paulo/SP, Brasil",
-      "cargo": "Software Engineering Consultant",
-      "data_inicio": "2022-12-02",
-      "data_fim": "2024-06-30",
-      "descricao": "Proptech brasileira (unicórnio). Gestão de 60+ engenheiros, estratégia tech, integração CrediHome/CredPago.",
-      "resultados": [
-        "Redução de 40% no tempo de deploy",
-        "Disponibilidade 99.99%",
-        "Volume de transações 5x maior",
-        "Redução de 30% nos custos de cloud"
-      ]
-    },
-    {
-      "empresa": "Loft",
-      "local": "São Paulo/SP, Brasil",
-      "cargo": "Director of Software Engineering",
-      "data_inicio": "2021-11-01",
-      "data_fim": "2022-12-01",
-      "descricao": "Recrutamento de 70+ engenheiros, migração de sistemas legados para microserviços, integração 123i.",
-      "resultados": [
-        "Redução de 60% no tempo de carregamento da plataforma",
-        "Redução de 45% em operações manuais",
-        "Dobrou volume de propriedades transacionadas em menos de 1 ano"
-      ]
-    },
-    {
-      "empresa": "Loft",
-      "local": "São Paulo/SP, Brasil",
-      "cargo": "Engineering Manager",
-      "data_inicio": "2019-06-17",
-      "data_fim": "2021-10-31",
-      "descricao": "Liderança de equipes de engenharia cross-functional para soluções proptech.",
-      "resultados": [
-        "Princípios de engenharia implementados, turnover reduzido em 20%",
-        "Melhoria de 15% na taxa de conversão de candidatos",
-        "Expansão inicial do marketplace"
-      ]
-    },
-    {
-      "empresa": "Elo7",
-      "local": "São Paulo/SP, Brasil",
-      "cargo": "Chief Technology Officer (CTO)",
-      "data_inicio": "2013-08-05",
-      "data_fim": "2020-07-06",
-      "descricao": "Plataforma brasileira de e-commerce de produtos artesanais ('Brazilian Etsy'). Liderança de 70 engenheiros.",
-      "resultados": [
-        "Arquitetura de microserviços para milhões de interações diárias",
-        "Deploy reduzido de dias para minutos",
-        "Custos AWS reduzidos em 35%",
-        "Busca inteligente aumentou conversão em 15%",
-        "Velocidade da plataforma melhorada em 40%"
-      ]
-    },
-    {
-      "empresa": "Abril",
-      "local": "São Paulo/SP, Brasil",
-      "cargo": "Solutions Architect I",
-      "data_inicio": "2012-03-02",
-      "data_fim": "2013-08-02",
-      "descricao": "Grupo de mídia brasileiro. Arquitetura da plataforma Alexandria para portais digitais (Veja, Exame, Placar).",
-      "resultados": [
-        "Redução de 60% no tempo de resposta dos portais",
-        "Cache distribuído reduziu carga dos servidores em 50%"
-      ]
-    },
-    {
-      "empresa": "TOTVS",
-      "local": "São Paulo/SP, Brasil",
-      "cargo": "Research and Development Engineer IV",
-      "data_inicio": "2011-02-07",
-      "data_fim": "2012-03-01",
-      "descricao": "Líder em soluções de gestão empresarial na América Latina. Desenvolvimento de VM proprietária e compilador.",
-      "resultados": [
-        "Redução de 35% no consumo de memória da VM",
-        "Melhoria de 40% no tempo de compilação",
-        "Redução de 25% no tempo médio de execução"
-      ]
-    },
-    {
-      "empresa": "NIC.br",
-      "local": "São Paulo/SP, Brasil",
-      "cargo": "Software Engineer",
-      "data_inicio": "2006-04-11",
-      "data_fim": "2011-01-31",
-      "descricao": "Entidade responsável pela infraestrutura da Internet no Brasil. Desenvolvimento de DNSSHIM e servidor DNS proprietário com DNSSEC.",
-      "resultados": [
-        "Implementação do DNSSHIM (open-source Hidden Master DNS)",
-        "Servidor DNS proprietário com extensões DNSSEC",
-        "Segurança e confiabilidade da resolução de nomes no Brasil"
-      ]
+      "course": "Bachelor of Computer Science",
+      "institution": "Pontifical Catholic University of São Paulo (PUC/SP)",
+      "dates": "2004"
     }
   ],
-  "anos_experiencia": 20,
-  "perfil_resumido": "CTO com 20+ anos em tecnologia, especialista em arquitetura de software escalável, liderança de equipes de engenharia (70+ engenheiros), e transformação digital em setores como healthtech, e-commerce, proptech e infraestrutura de internet."
+  "skills": [
+    "Software Architecture",
+    "Platform Design",
+    "Domain-Driven Design (DDD)",
+    "Scalable High-Availability Systems",
+    "Cloud Computing (AWS, GCP, Cloudflare)",
+    "Microservices Architecture",
+    "DevOps and CI/CD",
+    "AI/ML Integration",
+    "Security and Compliance (LGPD, HIPAA)",
+    "Technical Leadership",
+    "Team Management",
+    "Agile Methodologies (Scrum, Kanban)",
+    "Infrastructure Engineering",
+    "High-Transaction-Rate Web Services"
+  ],
+  "languages": [
+    "Portuguese (Native)",
+    "English (Fluent)"
+  ],
+  "certifications": [
+    "Certified Scrum Master (CSM) - Scrum Alliance",
+    "AWS Certified Solutions Architect"
+  ]
 }

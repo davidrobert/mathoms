@@ -1,795 +1,763 @@
 {
-  "tipo": "faturacc",
-  "instituicao": "C6 Bank",
-  "cartao": {
-    "nome": "Carbon",
-    "tipo": "credit",
-    "ultimos_digitos": "0000"
-  },
-  "periodo": {
-    "data_inicio": "2025-05-01",
-    "data_fim": "2025-05-31",
-    "data_vencimento": "2025-06-05"
-  },
-  "resumo": {
-    "saldo_anterior": 0.0,
-    "compras_nacionais": 36255.16,
-    "compras_internacionais": 9783.49,
-    "juros": 0.0,
-    "taxa_mensal": 0.0,
-    "pagamentos_efetuados": 0.0,
-    "saldo_atual": 46189.5
-  },
+  "banco": "C6 Bank",
+  "tipo": "faturacarbon",
+  "cartao": "Carbon",
+  "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+  "moeda": "BRL",
+  "data_vencimento": "2025-05-05",
+  "saldo_anterior": null,
+  "total_compras_nacionais": 36255.16,
+  "total_compras_internacionais": 9783.49,
+  "pagamentos": -277.83,
+  "saldo_atual": 46189.5,
+  "limite_total": 224000.0,
   "transacoes": [
     {
-      "data": "2026-03-28",
+      "data": "2025-03-28",
       "descricao": "PADARIA DANIELA",
       "valor": 86.6,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-28",
+      "data": "2025-03-28",
       "descricao": "CAMILANAKAMURA",
       "valor": 1500.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-28",
+      "data": "2025-03-28",
       "descricao": "RDSAUDE ONLINE",
       "valor": 113.89,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-28",
+      "data": "2025-03-28",
       "descricao": "MMW ESTACIONAMENTOS EI",
       "valor": 37.98,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-28",
+      "data": "2025-03-28",
       "descricao": "KALUNGA",
       "valor": 8.7,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-28",
+      "data": "2025-03-28",
       "descricao": "EMPADAKI REVENDA VAREJ",
       "valor": 20.98,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-28",
+      "data": "2025-03-28",
       "descricao": "SAMS CLUB JABAQUARA",
       "valor": 543.66,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-28",
+      "data": "2025-03-28",
       "descricao": "EMPADAKI REVENDA VAREJ",
       "valor": 11.98,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-28",
+      "data": "2025-03-28",
       "descricao": "OXXO VILA GUARANI",
       "valor": 41.88,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-29",
+      "data": "2025-03-29",
       "descricao": "IFD*KOMEZUSHI SERVICOS",
       "valor": 110.99,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-29",
+      "data": "2025-03-29",
       "descricao": "SPACE SETE COM DE ALIM",
       "valor": 196.62,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-29",
+      "data": "2025-03-29",
       "descricao": "MILKMOO MORUMBI",
       "valor": 20.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-29",
+      "data": "2025-03-29",
       "descricao": "MULTIPLAN ADMINISTRADO",
       "valor": 31.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-30",
+      "data": "2025-03-30",
       "descricao": "VINDI *ACCOUNTBANKTEC",
       "valor": 365.35,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-30",
+      "data": "2025-03-30",
       "descricao": "POINTJABAQUARA",
       "valor": 271.66,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-30",
+      "data": "2025-03-30",
       "descricao": "OXXO VILA GUARANI",
       "valor": 29.48,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-03-31",
+      "data": "2025-03-31",
       "descricao": "NUTRA BODY",
       "valor": 483.89,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-03",
+      "data": "2025-04-03",
       "descricao": "X PARK ESTACIONAMENTO",
       "valor": 30.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "YES COFFEE",
       "valor": 9.5,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "INST TADEU CVINTAL ITC",
       "valor": 800.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "ESTAC T*ESTACIONAMENT",
       "valor": 20.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "MERCADOLIVRE*JAPAVEND",
       "valor": 179.83,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "RDSAUDE ONLINE",
       "valor": 215.68,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "RAPPI *RAPPI RAPPI BR",
       "valor": 53.34,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "RAPPI *RAPPI RAPPI BR",
       "valor": 276.24,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "DM *SPOTIFY",
       "valor": 34.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "RAPPI *RAPPI RAPPI BR",
       "valor": 26.31,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "MMW ESTACIONAMENTOS EI",
       "valor": 23.99,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "LEROY MERLIN",
       "valor": 72.57,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-04",
+      "data": "2025-04-04",
       "descricao": "SUPERMERCADO VILA DAS",
       "valor": 696.93,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-05",
+      "data": "2025-04-05",
       "descricao": "FLEXPAG *SABESP",
       "valor": 227.21,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-05",
+      "data": "2025-04-05",
       "descricao": "TELHA NORTE",
       "valor": 246.49,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-05",
+      "data": "2025-04-05",
       "descricao": "LINDT SPRUNGLI BRAZIL",
       "valor": 309.95,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-05",
+      "data": "2025-04-05",
       "descricao": "DENGOCHOCOLATESSA",
       "valor": 93.92,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-05",
+      "data": "2025-04-05",
       "descricao": "CHILLI BEANS IBIRAPUER",
       "valor": 1522.98,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-06",
+      "data": "2025-04-06",
       "descricao": "LIVELO S.A.*CLUBE LIVE",
       "valor": 44.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-06",
+      "data": "2025-04-06",
       "descricao": "ESFERA",
       "valor": 806.05,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-06",
+      "data": "2025-04-06",
       "descricao": "ELETTRICA COMERCIO DE",
       "valor": 171.2,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-06",
+      "data": "2025-04-06",
       "descricao": "MOZI COMERCIO E ALIMEN",
       "valor": 28.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-06",
+      "data": "2025-04-06",
       "descricao": "AUTOPOSTO",
       "valor": 323.83,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-07",
+      "data": "2025-04-07",
       "descricao": "MERCADOLIVRE*JAPAVEND - Estorno",
       "valor": 179.83,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-07",
+      "data": "2025-04-07",
       "descricao": "MERCADOLIVRE*JHPETS",
       "valor": 149.97,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-07",
+      "data": "2025-04-07",
       "descricao": "AMAZONMKTPLC*LOTSHOMES",
       "valor": 93.84,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-07",
+      "data": "2025-04-07",
       "descricao": "LIVELO S.A.",
       "valor": 839.37,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-07",
+      "data": "2025-04-07",
       "descricao": "OXXO VILA GUARANI",
       "valor": 42.6,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-07",
+      "data": "2025-04-07",
       "descricao": "AMAZON BR",
       "valor": 29.98,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-08",
+      "data": "2025-04-08",
       "descricao": "TELHA NORTE",
       "valor": 89.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-08",
+      "data": "2025-04-08",
       "descricao": "X PARK ESTACIONAMENTO",
       "valor": 30.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-09",
+      "data": "2025-04-09",
       "descricao": "PORTO SEGURO SEGUROS",
       "valor": 5337.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-10",
+      "data": "2025-04-10",
       "descricao": "PADARIA DANIELA",
       "valor": 65.83,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-10",
+      "data": "2025-04-10",
       "descricao": "TELHA NORTE",
       "valor": 431.5,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-10",
+      "data": "2025-04-10",
       "descricao": "OXXO VILA GUARANI",
       "valor": 31.92,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-10",
+      "data": "2025-04-10",
       "descricao": "ENG ARMANDO PEREIRA",
       "valor": 113.8,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-10",
-      "descricao": "DROGARIA SAO PAULO",
-      "valor": 3.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-04-10",
+      "descricao": "DROGARIA SAO PAULO 003",
+      "valor": 70.97,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-11",
+      "data": "2025-04-11",
+      "descricao": "4MS",
+      "valor": 75.0,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-04-11",
       "descricao": "SACOLAO VILA GUARANI",
       "valor": 9.99,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-12",
+      "data": "2025-04-12",
       "descricao": "ALO BEBE",
       "valor": 59.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-12",
+      "data": "2025-04-12",
       "descricao": "I. M. SATO VESTUARIO",
       "valor": 19.5,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-12",
+      "data": "2025-04-12",
       "descricao": "I. M. SATO VESTUARIO",
       "valor": 44.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-12",
+      "data": "2025-04-12",
       "descricao": "SONEDA PERFUMARIA",
       "valor": 74.88,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-12",
+      "data": "2025-04-12",
       "descricao": "SONEDA PERFUMARIA",
       "valor": 10.99,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-12",
+      "data": "2025-04-12",
       "descricao": "CHURRASCARIA ESTANCIA",
       "valor": 373.25,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-12",
+      "data": "2025-04-12",
       "descricao": "SUPERMERCADO VILA DAS",
       "valor": 850.97,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-13",
+      "data": "2025-04-13",
       "descricao": "MERCADOLIVRE*MERCADOL",
       "valor": 803.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-13",
+      "data": "2025-04-13",
       "descricao": "WELLHUB GYMPASS BR GYM",
       "valor": 59.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-13",
+      "data": "2025-04-13",
       "descricao": "VAI DE PIZZAS",
       "valor": 68.4,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-15",
+      "data": "2025-04-15",
       "descricao": "AMAZON MARKETPLACE",
       "valor": 68.55,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-15",
+      "data": "2025-04-15",
+      "descricao": "AMAZONMKTPLC*55.140.56",
+      "valor": 149.78,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-04-15",
+      "descricao": "AMAZON MARKETPLACE",
+      "valor": 68.55,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-04-15",
+      "descricao": "AMAZON MARKETPLACE",
+      "valor": 68.55,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-04-15",
       "descricao": "AMAZON MARKETPLACE",
       "valor": 319.8,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-15",
+      "data": "2025-04-15",
       "descricao": "AMAZON MARKETPLACE",
       "valor": 117.72,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-15",
+      "data": "2025-04-15",
       "descricao": "SAMUELABNERSANTOSMARC",
       "valor": 25.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-15",
+      "data": "2025-04-15",
       "descricao": "SAMUELABNERSANTOSMARC",
       "valor": 90.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-15",
+      "data": "2025-04-15",
       "descricao": "AMAZONPRIMEBR",
       "valor": 19.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-16",
+      "data": "2025-04-16",
       "descricao": "RAPPI*RAPPI BRASIL INT",
       "valor": 34.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-16",
-      "descricao": "CARREFOUR SPS",
-      "valor": 20.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-04-16",
+      "descricao": "CARREFOUR SPS 20",
+      "valor": 650.63,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-16",
+      "data": "2025-04-16",
       "descricao": "GUIMARAES ALIMENTOS",
       "valor": 259.6,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-17",
+      "data": "2025-04-17",
       "descricao": "X PARK ESTACIONAMENTO",
       "valor": 30.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-17",
-      "descricao": "SURFSHARK.COM LE IOF Transações Exterior",
+      "data": "2025-04-17",
+      "descricao": "SURFSHARK.COM LE",
       "valor": 1.57,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
-      "data": "2026-04-17",
-      "descricao": "SURFSHARK.COM LE USD",
-      "valor": 7.5,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-04-17",
+      "descricao": "SURFSHARK.COM LE",
+      "valor": 46.42,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 7.5,
+        "cotacao": 6.19
+      }
     },
     {
-      "data": "2026-04-17",
+      "data": "2025-04-17",
       "descricao": "VAI DE PIZZAS",
       "valor": 200.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-18",
+      "data": "2025-04-18",
       "descricao": "DENGOCHOCOLATESSA",
       "valor": 149.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-18",
+      "data": "2025-04-18",
       "descricao": "SHOPPING CENTER IBIRAP",
       "valor": 16.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-18",
-      "descricao": "LOJAS AMERICANAS",
-      "valor": 43.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-04-18",
+      "descricao": "LOJAS AMERICANAS 43",
+      "valor": 79.43,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-18",
+      "data": "2025-04-18",
       "descricao": "MEGAPASS",
       "valor": 27.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-18",
+      "data": "2025-04-18",
       "descricao": "M NEGOCIOS E SERVICOS",
       "valor": 41.1,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-18",
+      "data": "2025-04-18",
       "descricao": "MATHEUS MATIAS DE OLI",
       "valor": 20.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-19",
+      "data": "2025-04-19",
       "descricao": "ELAINE APARECIDA BUZZ",
       "valor": 355.63,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-19",
+      "data": "2025-04-19",
+      "descricao": "PAO DE ACUCAR-2336",
+      "valor": 194.52,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-04-19",
       "descricao": "PRIME AUTO POSTO LTDA",
       "valor": 27.49,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-20",
+      "data": "2025-04-20",
+      "descricao": "PAO DE ACUCAR-2336",
+      "valor": 30.92,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-04-20",
       "descricao": "SAMS CLUB JABAQUARA",
       "valor": 121.21,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-20",
+      "data": "2025-04-20",
       "descricao": "PROPIG *FPS BATERIAS L",
       "valor": 1006.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-21",
+      "data": "2025-04-21",
+      "descricao": "DROGASIL2886",
+      "valor": 47.11,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-04-21",
       "descricao": "PRIME AUTO POSTO LTDA",
       "valor": 98.53,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-21",
+      "data": "2025-04-21",
       "descricao": "REST FRANGOASSADO JAG",
       "valor": 9.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-22",
-      "descricao": "IN *CA TRANSLATION SER MO IOF Transações Exterior",
+      "data": "2025-04-21",
+      "descricao": "MERCADOLIVRE*2PRODUTO",
+      "valor": 103.84,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-04-21",
+      "descricao": "MERCADOLIVRE*2PRODUTO",
+      "valor": 155.0,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-04-22",
+      "descricao": "IN *CA TRANSLATION SER MO",
       "valor": 329.11,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "tipo_lancamento": "iof"
     },
     {
-      "data": "2026-04-22",
-      "descricao": "IN *CA TRANSLATION SER MO USD",
-      "valor": 1580.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-04-22",
+      "descricao": "IN *CA TRANSLATION SER MO",
+      "valor": 9737.07,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 1580.0,
+        "cotacao": 6.16
+      }
     },
     {
-      "data": "2026-04-23",
+      "data": "2025-04-23",
       "descricao": "MINAS QUEIJO",
       "valor": 115.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-23",
+      "data": "2025-04-23",
       "descricao": "MINAS QUEIJO",
       "valor": 33.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-23",
+      "data": "2025-04-23",
       "descricao": "POSTO PAIN",
       "valor": 139.11,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-23",
+      "data": "2025-04-23",
       "descricao": "MERCADOLIVRE*RICAPET",
       "valor": 77.99,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-23",
+      "data": "2025-04-23",
       "descricao": "M L MATOS CONVENIENCIA",
       "valor": 15.98,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-24",
+      "data": "2025-04-24",
       "descricao": "PRIME AUTO POSTO LTDA",
       "valor": 37.45,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-24",
+      "data": "2025-04-24",
       "descricao": "PRIME AUTO POSTO LTDA",
       "valor": 59.95,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-25",
+      "data": "2025-04-25",
       "descricao": "TORRALTACOMERCIO",
       "valor": 34.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-25",
+      "data": "2025-04-25",
       "descricao": "VIDESUL",
       "valor": 19.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-25",
+      "data": "2025-04-25",
       "descricao": "TORRALTA",
       "valor": 24.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-26",
+      "data": "2025-04-26",
       "descricao": "EJM REST JAPONES",
       "valor": 252.67,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-26",
-      "descricao": "CARREFOUR SPG",
-      "valor": 48.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "data": "2025-04-26",
+      "descricao": "CARREFOUR SPG 48",
+      "valor": 484.16,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-26",
+      "data": "2025-04-26",
       "descricao": "MP *MELIMAIS",
       "valor": 24.9,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-27",
+      "data": "2025-04-27",
       "descricao": "AIRBNB PAGAM*AIRBNB *",
       "valor": 9434.06,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-03",
+      "data": "2025-04-03",
       "descricao": "BRENTESINSTITUTO",
       "valor": 789.69,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-07",
+      "data": "2025-04-07",
       "descricao": "Inclusao de Pagamento",
       "valor": 15967.78,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-23",
+      "data": "2025-04-23",
+      "descricao": "Anuidade Diferenciada",
+      "valor": 98.0,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "parcela": "5/12"
+    },
+    {
+      "data": "2025-04-23",
       "descricao": "Estorno Tarifa - Estorno",
       "valor": 98.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
-      "data": "2026-04-12",
+      "data": "2025-04-12",
       "descricao": "GARCIARODASE",
       "valor": 260.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS"
+    }
+  ],
+  "cartoes": [
+    {
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
+      "subtotal": 45139.81
+    },
+    {
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "subtotal": 789.69
+    },
+    {
+      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS",
+      "subtotal": 260.0
     }
   ]
 }

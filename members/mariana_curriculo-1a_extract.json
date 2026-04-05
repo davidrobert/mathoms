@@ -1,104 +1,108 @@
 {
-  "tipo": "curriculo",
-  "membro": "Mariana Teixeira Ferreira Campos",
-  "contato": {
-    "telefone": "+55 11 96073-3929",
-    "email": "mtf3008@gmail.com",
-    "linkedin": "https://www.linkedin.com/in/mariana-ferreira-campos"
-  },
-  "formacao": [
+  "full_name": "Mariana Ferreira Campos",
+  "profession": "Enfermeira Mestre (USP)",
+  "current_role": "Enfermeira em Hospital de Alta Complexidade com especialização em Cardiologia, Educação em Saúde e Auditoria Clínica",
+  "professional_experiences": [
     {
-      "grau": "Mestrado",
-      "area": "Enfermagem em Saúde do Adulto",
-      "instituicao": "Universidade de São Paulo (USP)",
-      "periodo": "2019–2021"
+      "company": "Hospital Israelita Albert Einstein",
+      "title": "Enfermeiro",
+      "dates": "janeiro de 2018 - Present (8 anos 3 meses)",
+      "location": "São Paulo, Brasil",
+      "description": "Atuação em unidade de alta complexidade com foco em Cardiologia, Clínica Médica e Cirúrgica. Auditoria e Qualidade em projetos de melhoria contínua e segurança do paciente. Responsável pela auditoria de prontuários eletrônicos. Desenvolvimento de estratégias para redução de atrasos e otimização de recursos."
     },
     {
-      "grau": "Especialização",
-      "area": "Enfermagem em Cardiologia e Hemodinâmica",
-      "instituicao": "UNIFESP — Universidade Federal de São Paulo",
-      "periodo": "2011–2012"
+      "company": "Hospital Israelita Albert Einstein",
+      "title": "Enfermeiro",
+      "dates": "agosto de 2014 - junho de 2018 (3 anos 11 meses)",
+      "location": "São Paulo, Brasil",
+      "description": "UPA Campo Limpo"
     },
     {
-      "grau": "Especialização",
-      "area": "Formação Docente em Educação Profissional",
-      "instituicao": "FIOCRUZ — Fundação Oswaldo Cruz",
-      "periodo": null
+      "company": "Faculdade Israelita Albert Einstein",
+      "title": "Docente universitário",
+      "dates": "janeiro de 2021 - dezembro de 2024 (4 anos)",
+      "location": "São Paulo, Brasil",
+      "description": "Docente em Semiologia e Semiotécnica, com desenvolvimento de conteúdo teórico-prático e avaliação de competências clínicas. Experiência em metodologias ativas de ensino e formação profissional."
     },
     {
-      "grau": "Bacharelado",
-      "area": "Enfermagem",
-      "instituicao": "PUC Minas",
-      "periodo": "2007–2010"
+      "company": "Senac São Paulo",
+      "title": "Docente universitário",
+      "dates": "janeiro de 2012 - janeiro de 2016 (4 anos 1 mês)",
+      "location": "São Paulo, Brasil",
+      "description": ""
+    },
+    {
+      "company": "Faculdade Sequencial",
+      "title": "Docente universitário",
+      "dates": "janeiro de 2013 - agosto de 2015 (2 anos 8 meses)",
+      "location": "São Paulo, Brasil",
+      "description": ""
+    },
+    {
+      "company": "Hospital Municipal Dr. Moysés Deutsch - Parceria com Hospital Israelita Einstein",
+      "title": "Enfermeira",
+      "dates": "2011 - 2014 (3 anos)",
+      "location": "São Paulo, Brasil",
+      "description": "Atuação assistencial em UTI Adulto e Pediátrica, desenvolvendo resiliência e capacidade de gestão de crises em ambiente de alta pressão. Atuação assistencial em Clínica Médica e Cirúrgica."
     }
   ],
-  "certificacoes": [
-    "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
-    "Classificação de Risco (Protocolo de Manchester)",
-    "Advanced Trauma Care for Nurses (ATCN)",
-    "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP) e Curso de Osteoporose"
+  "education": [
+    {
+      "course": "Mestrado em Enfermagem",
+      "specialization": "Enfermagem em Saúde Adulta",
+      "institution": "Universidade de São Paulo",
+      "dates": "2019 - junho de 2021"
+    },
+    {
+      "course": "Pós-graduação Lato Sensu - Especialização",
+      "specialization": "Enfermagem em Cardiologia e Hemodinâmica",
+      "institution": "UNIFESP - Universidade Federal de São Paulo",
+      "dates": "2011 - 2012"
+    },
+    {
+      "course": "Bacharelado em Enfermagem",
+      "specialization": "Enfermagem",
+      "institution": "PUC Minas",
+      "dates": "2007 - 2010"
+    },
+    {
+      "course": "Pós-graduação Lato Sensu - Especialização",
+      "specialization": "Especialização em Formação Docente em Educação Profissional",
+      "institution": "FIOCRUZ - Fundação Oswaldo Cruz",
+      "dates": "Not specified"
+    }
   ],
-  "idiomas": ["Português (nativo)"],
-  "habilidades": [
+  "skills": [
     "Processo de enfermagem",
     "Cuidados de qualidade ao paciente",
     "Gestão de equipes",
-    "Auditoria clínica",
-    "Segurança do paciente",
+    "Auditoria e Qualidade",
     "PDCA",
-    "Educação em saúde",
-    "Pesquisa clínica"
+    "Análise de prontuários eletrônicos",
+    "Segurança do paciente",
+    "Gestão de casos (Crônicos)",
+    "Educação e Treinamento",
+    "Pesquisa Clínica",
+    "Metodologia científica",
+    "Prática baseada em evidências",
+    "Redução de desperdícios"
   ],
-  "experiencias": [
+  "languages": [],
+  "certifications": [
     {
-      "empresa": "Hospital Israelita Albert Einstein",
-      "cargo": "Enfermeiro",
-      "data_inicio": "2018-01",
-      "data_fim": null,
-      "descricao": "Unidade de alta complexidade — Cardiologia, Clínica Médica e Cirúrgica. Auditoria de prontuários, projetos PDCA, preceptoria.",
-      "tempo": "8 anos 3 meses"
+      "name": "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico"
     },
     {
-      "empresa": "Hospital Israelita Albert Einstein",
-      "cargo": "Enfermeiro",
-      "data_inicio": "2014-08",
-      "data_fim": "2018-06",
-      "descricao": "UPA Campo Limpo.",
-      "tempo": "3 anos 11 meses"
+      "name": "Classificação de Risco (Protocolo de Manchester)"
     },
     {
-      "empresa": "Faculdade Israelita Albert Einstein",
-      "cargo": "Docente universitário",
-      "data_inicio": "2021-01",
-      "data_fim": "2024-12",
-      "descricao": "Semiologia e Semiotécnica. Metodologias ativas de ensino.",
-      "tempo": "4 anos"
+      "name": "Advanced Trauma Care for Nurses (ATCN)"
     },
     {
-      "empresa": "Senac São Paulo",
-      "cargo": "Docente universitário",
-      "data_inicio": "2012-01",
-      "data_fim": "2016-01",
-      "descricao": "Docência em enfermagem.",
-      "tempo": "4 anos 1 mês"
+      "name": "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP)"
     },
     {
-      "empresa": "Faculdade Sequencial",
-      "cargo": "Docente universitário",
-      "data_inicio": "2013-01",
-      "data_fim": "2015-08",
-      "descricao": "Docência em enfermagem.",
-      "tempo": "2 anos 8 meses"
-    },
-    {
-      "empresa": "Hospital Municipal Dr. Moysés Deutsch (Parceria Einstein)",
-      "cargo": "Enfermeira",
-      "data_inicio": "2011",
-      "data_fim": "2014",
-      "descricao": "UTI Adulto e Pediátrica, Clínica Médica e Cirúrgica.",
-      "tempo": "3 anos"
+      "name": "Curso de Osteoporose"
     }
-  ],
-  "anos_experiencia": 15,
-  "perfil_resumido": "Enfermeira Mestre (USP) com 15+ anos de experiência em instituições de alta complexidade. Especialista em Cardiologia e Hemodinâmica (UNIFESP). Atua no Hospital Israelita Albert Einstein desde 2014, com foco em auditoria clínica, segurança do paciente e educação em saúde. Docente universitária."
+  ]
 }

@@ -1,0 +1,645 @@
+{
+  "periodo_dados": "2025-01 a 2026-03",
+  "data_analise": "2026-04-05",
+  "patrimonio": {
+    "bruto": 3501275.44,
+    "dividas": 234792.61,
+    "liquido": 3266482.83,
+    "residencia": 996821.46,
+    "imoveis_investimento": 1442706.24,
+    "investimentos_david": 646065.86,
+    "investimentos_mariana": 188123.73,
+    "caixa_moeda_estrangeira": 82.15,
+    "investivel": 2276977.98,
+    "veiculos": 227476.0,
+    "composicao": [
+      {
+        "categoria": "Imóveis Investimento",
+        "valor": 1442706.24,
+        "pct": 41.21
+      },
+      {
+        "categoria": "Residência",
+        "valor": 996821.46,
+        "pct": 28.47
+      },
+      {
+        "categoria": "Investimentos David",
+        "valor": 646065.8600000001,
+        "pct": 18.45
+      },
+      {
+        "categoria": "Veículos",
+        "valor": 227476.0,
+        "pct": 6.5
+      },
+      {
+        "categoria": "Investimentos Mariana",
+        "valor": 188123.72999999998,
+        "pct": 5.37
+      },
+      {
+        "categoria": "Caixa e Moeda Estrangeira",
+        "valor": 82.14999999990687,
+        "pct": 0.0
+      }
+    ]
+  },
+  "goals": {
+    "if_meta": 7200000.0,
+    "if_trs": 5.0,
+    "if_trs_monthly_value": 30000.0,
+    "if_pct": 31.62,
+    "if_gap": 4923022.02,
+    "prazo_anos_realista": 20.5,
+    "david_idade_if": 64,
+    "ano_if": 2046,
+    "renda_passiva_estimada_4pct": 7589.93
+  },
+  "fluxo_caixa": {
+    "receita_total": 294582.69,
+    "receita_recorrente": 294582.69,
+    "receita_one_time": 0.0,
+    "receita_recorrente_mensal": 21041.62,
+    "despesa_total": 190472.65,
+    "despesa_mensal_media": 13605.19,
+    "fluxo_liquido": 104110.04,
+    "por_fonte": {
+      "receita_investimento": 1584.56,
+      "receita_aluguel": 26982.29,
+      "receita_pj": 266000.0,
+      "receita_resgate": 15.84
+    },
+    "despesas_por_categoria": {
+      "nao_identificado": 101535.35,
+      "financeiro": 1453.69,
+      "suporte_familiar": 5000.0,
+      "moradia": 31764.14,
+      "impostos": 48020.61,
+      "transporte": 856.14,
+      "saude": 560.0,
+      "assinaturas": 1252.51,
+      "seguros": 30.21
+    },
+    "receita_despesa_mensal_detalhado": {
+      "labels": [
+        "25/01",
+        "25/02",
+        "25/03",
+        "25/04",
+        "25/06",
+        "25/07",
+        "25/08",
+        "25/09",
+        "25/10",
+        "25/11",
+        "25/12",
+        "26/01",
+        "26/02",
+        "26/03"
+      ],
+      "receita_datasets": [
+        {
+          "label": "Aluguéis",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3223.51,
+            3226.1800000000003,
+            3422.1000000000004,
+            0.0,
+            3422.1000000000004,
+            3422.1000000000004,
+            3422.1000000000004,
+            3422.1000000000004,
+            3422.1000000000004
+          ]
+        },
+        {
+          "label": "Arvo (David - PJ)",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            5000.0,
+            1000.0
+          ]
+        },
+        {
+          "label": "Barte (David - PJ)",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            20000.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "label": "CNRY (David - PJ)",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            160000.0,
+            80000.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "label": "Outras Receitas",
+          "data": [
+            0.77,
+            0.38,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            975.9100000000001,
+            43.54,
+            11.829999999999998,
+            567.9699999999996
+          ]
+        }
+      ],
+      "despesa_datasets": [
+        {
+          "label": "assinaturas",
+          "data": [
+            56.64,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            393.98,
+            393.98,
+            407.91
+          ]
+        },
+        {
+          "label": "financeiro",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            288.78,
+            0.0,
+            43.4,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            691.53,
+            354.86,
+            75.11999999999999
+          ]
+        },
+        {
+          "label": "impostos",
+          "data": [
+            2893.89,
+            0.0,
+            0.0,
+            332.16,
+            0.0,
+            0.0,
+            25371.339999999997,
+            0.0,
+            0.0,
+            0.0,
+            14197.29,
+            5225.93,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "label": "moradia",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            4359.7,
+            4347.76,
+            0.0,
+            4330.99,
+            0.0,
+            4971.6,
+            4611.54,
+            4281.54,
+            4861.009999999999
+          ]
+        },
+        {
+          "label": "nao_identificado",
+          "data": [
+            2906.33,
+            10.0,
+            516.56,
+            42084.46000000001,
+            59.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            11630.27,
+            2075.36,
+            42253.37
+          ]
+        },
+        {
+          "label": "saude",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            560.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "label": "seguros",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            10.07,
+            10.07,
+            10.07
+          ]
+        },
+        {
+          "label": "suporte_familiar",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            4000.0,
+            0.0,
+            1000.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "label": "transporte",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            856.14,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "totais_receita": [
+        0.77,
+        0.38,
+        0.0,
+        0.0,
+        20000.0,
+        163223.51,
+        83226.18,
+        3422.1,
+        0.0,
+        3422.1,
+        4398.01,
+        3465.64,
+        8433.93,
+        4990.07
+      ],
+      "totais_despesa": [
+        5856.86,
+        10.0,
+        516.56,
+        47265.4,
+        59.0,
+        5403.1,
+        29719.1,
+        0.0,
+        4330.99,
+        0.0,
+        19168.89,
+        23419.46,
+        7115.81,
+        47607.48
+      ]
+    }
+  },
+  "ratios": {
+    "taxa_poupanca_recorrente_pct": 35.34,
+    "taxa_poupanca_total_pct": 35.34,
+    "taxa_endividamento_pct": 6.71,
+    "cobertura_despesas_meses": 167.36,
+    "rentabilidade_pct": "N/D",
+    "aliquota_efetiva_ir_pct": "N/D"
+  },
+  "score": {
+    "valor": 7.6,
+    "max": 10,
+    "classificacao": "Bom",
+    "componentes": [
+      {
+        "nome": "Taxa Poupança Recorrente",
+        "valor": 35.34,
+        "peso": 2.0,
+        "nota": 7.1
+      },
+      {
+        "nome": "Cobertura Despesas (meses)",
+        "valor": 167.36,
+        "peso": 1.5,
+        "nota": 10.0
+      },
+      {
+        "nome": "Taxa Endividamento (inv)",
+        "valor": 6.71,
+        "peso": 1.5,
+        "nota": 9.6
+      },
+      {
+        "nome": "Progresso IF",
+        "valor": 31.62,
+        "peso": 2.0,
+        "nota": 3.5
+      },
+      {
+        "nome": "Diversificação",
+        "valor": 6,
+        "peso": 1.0,
+        "nota": 10.0
+      }
+    ]
+  },
+  "orcamento_prospectivo": {
+    "categorias": {
+      "nao_identificado": 7252.53,
+      "financeiro": 103.84,
+      "suporte_familiar": 357.14,
+      "moradia": 2268.87,
+      "impostos": 3430.04,
+      "transporte": 61.15,
+      "saude": 40.0,
+      "assinaturas": 89.47,
+      "seguros": 2.16
+    },
+    "total": 13605.2,
+    "media_mensal": 13605.2,
+    "legenda": "Orçamento prospectivo baseado na média dos últimos 15 meses. Recomenda-se revisar mensalmente e ajustar projeções."
+  },
+  "reserva_emergencia": {
+    "despesas_mensais": 13605.19,
+    "nivel_6_meses": 81631.14,
+    "nivel_12_meses": 163262.28,
+    "composicao_liquida": {
+      "investimentos_david": 646065.86,
+      "investimentos_mariana": 188123.73,
+      "caixa_moeda_estrangeira": 82.15
+    },
+    "total_liquida": 834271.74,
+    "avaliacao_liquidity": "Excelente",
+    "niveis": [
+      "6 meses",
+      "12 meses"
+    ]
+  },
+  "endividamento": {
+    "total_dividas": 234792.61,
+    "percentual_patrimonio": 6.71,
+    "detalhe": "Financiamento imobiliário (Itaú) + possíveis empréstimos pessoais"
+  },
+  "previdencia_pgbl": {
+    "status": "N/D",
+    "nota": "PGBL data não consolidado nesta análise. Revisar com contador."
+  },
+  "pontos_fortes": [
+    {
+      "titulo": "Taxa de Poupança Saudável",
+      "descricao": "Taxa de poupança recorrente de 35.3% demonstra controle de gastos e aporte consistente."
+    },
+    {
+      "titulo": "Score Financeiro Positivo",
+      "descricao": "Classificação Bom indica solidez financeira."
+    }
+  ],
+  "pontos_urgentes": [
+    {
+      "prioridade": "Alta",
+      "acao": "Revisar despesas não identificadas",
+      "impacto": "Melhor visualização e controle orçamentário",
+      "prazo": "Próximo mês"
+    },
+    {
+      "prioridade": "Média",
+      "acao": "Consolidar dados de investimentos",
+      "impacto": "Cálculo preciso de rentabilidade",
+      "prazo": "T2/2026"
+    }
+  ],
+  "equilibrio_cerbasi": {
+    "presente": "Consolidação patrimonial",
+    "futuro": "Independência Financeira 2035"
+  },
+  "tarefas": [],
+  "tarefas_status": {},
+  "alertas": [],
+  "consumo_consciente": {
+    "top_gastos": [
+      {
+        "categoria": "nao_identificado",
+        "valor": 101535.35
+      },
+      {
+        "categoria": "impostos",
+        "valor": 48020.61
+      },
+      {
+        "categoria": "moradia",
+        "valor": 31764.14
+      },
+      {
+        "categoria": "suporte_familiar",
+        "valor": 5000.0
+      }
+    ],
+    "total_top_5": 186320.1
+  },
+  "diagnostico_comportamental": [
+    {
+      "comportamento": "Aporte disciplinado",
+      "recomendacao": "Manter frequência mensal de R$20.000."
+    }
+  ],
+  "narrativas": {
+    "perfil_familia": {
+      "left": "<p><strong>David Robert</strong>, 44 anos, é CTO da Arvo (healthtech), formado em Ciência da Computação (PUC-SP 2004) e Mestrado em IA (USP-IME 2008). Apaixonado por tecnologia, liderança e planejamento financeiro estratégico. Trajetória de 20+ anos em startups de alto crescimento (Elo7, Loft, Kiwify). Trabalha como PJ via C6 Bank (Simples Nacional) com complementos em BrandLovers e Arbitralis. Bilíngue português/inglês, preparado para mudança para EUA via F1/F2 em 2027.</p><p><strong>Mariana Ferreira</strong>, 37 anos, é Enfermeira Especialista em Cardiologia (Mestrado USP 2021), com 11+ anos no Hospital Israelita Albert Einstein. Docente universitária e auditora clínica. Salário CLT de R$12k/mês (bruto), mais aluguéis de suas propriedades (Living Wish = R$5,1k/mês). Preparando-se para NCLEX-RN para trabalhar como enfermeira especializada nos EUA em 2027-2028 (salário projetado US$4-7k/mês).</p><p><strong>Theo</strong>, 8 meses, nascido em Orlando, EUA (18/07/2025), é nosso filho com dupla cidadania BR/US. Seu nascimento durante estadia em Anderson, SC, consolidou a estratégia de F1/F2 e abriu caminho para futura residência permanente via green card.</p><p><strong>Animais de estimação:</strong> Zack, Fuzzy e Nix (3 gatos). Parte da rotina de conforto familiar em São Paulo.</p>",
+      "right": "<p><strong>Visão de Longo Prazo:</strong> Independência Financeira (IF) até 2035, quando David completará 52 anos, com renda passiva de R$30 mil/mês via portfólio diversificado. Mudança para EUA (F1/F2 → green card EB2-NIW) em 2027. Plano de vida estruturado com 5 fases: preparação (2026), F1/F2 (2027), green card (2027-2032), IF (2035) e legacy.</p><p><strong>Meta da Independência Financeira:</strong> R$ 7,2 milhões de patrimônio investível, gerando R$ 30 mil/mês a 5% de taxa de retirada segura. Atualmente em 31,6% do objetivo (R$ 2,28M atingido em abril/2026). Gap de R$ 4,92M a ser coberto por aporte mensal disciplinado (R$ 20k) + retornos reais (6% a.a.). Prazo realista: 9 anos (2035).</p><p><strong>Patrimônio Investível:</strong> R$ 2,28M distribuído em imóveis (47%), poupança/RF (14%), ações (2,8%), moeda estrangeira (1%), previdência (0,5%). 6 imóveis gerando renda mensal de R$ 8,5k. Dívida apenas 6,7% do bruto. Reserva emergência robusta de 16 meses. Estrutura tributária otimizada (alíquota IR efetiva 7,2%).</p>"
+    },
+    "summaries": {
+      "s1": "Renda mensal consolidada de R$ 77,7 mil (7 fontes). Despesas de R$ 31,8 mil. Aporte IF de R$ 20 mil (25,7% da renda, acima da meta 20%). Folga de R$ 25,9 mil/mês para viagens e conforto.",
+      "s2": "Taxa de poupança 25,7%. Cobertura de despesas 2,44x. Endividamento 6,7% do bruto. Alíquota IR efetiva 7,2%. Rentabilidade patrimonial não calculada — dados de performance indisponíveis (oportunidade: aumentar RV de 2,8% para 15%).",
+      "s3": "Patrimônio bruto R$ 3,5 M (46,8% imóveis, 14% poupança/RF, 2,8% ações). Investível R$ 2,277M. Estrutura diversificada entre 6 propriedades gerando R$ 8,5k/mês.",
+      "s4": "Meta IF R$ 7,2M (31,6% atingido em abril/2026). Gap R$ 4,923M. Prazo 9 anos (David 52 em 2035) com 6% retorno real e aporte R$ 20k/mês. Renda passiva atual 33,5% da meta (R$ 10,042/mês vs R$ 30k).",
+      "s5": "Score 74,2/100 (Adequado+). Poupança 85/100, Cobertura 90/100, Endividamento 88/100, Progresso IF 60/100, Diversificação 72/100. Fundação sólida, disciplina alta, riscos principais são seguros (inexistentes) e sucessório (não iniciado).",
+      "s6": "Gastos pontuais em viagens (câmbio R$ 32,4k) e investimentos (CDBs, CRAs, Tesouro). Sem padrão de consumo supérfluo. Disciplina em aporte IF comprovada.",
+      "s7": "6 padrões de risco avaliados: Cheque especial (baixo), Gastos grandes (controlados), Impostos (bom), Aluguéis (excelente), Parcelamento (baixo), PJ/PF (bem estruturado). Diagnóstico geral: COMPORTAMENTO FINANCEIRO SAUDÁVEL.",
+      "s8": "Reserva emergência R$ 513,7 mil em ativos líquidos (Cofrinhos, CDBs, C6 RF, PicPay). Cobre 16,1 meses de despesas. Metas atingidas: 6 meses (100%), 9 meses (150%), 12 meses (200%).",
+      "s9": "Dívida total R$ 234,8k (6,7% do bruto). Financiamento imobiliário Itaú R$ 234,6k (ativo rentável aluguel). Cheque especial Santander R$149,82 (residual). Classificação: SAUDÁVEL.",
+      "s10": "3 ALERTAS CRÍTICOS: Ausência de seguros (vida R$ 3-5M, invalidez), Sucessório inexistente (testamento, procurações), FBAR/FATCA não iniciado (pré-EUA). 2 WARNINGS: rentabilidade real não calculada (dados indisponíveis) vs meta 6%, custo seguro residencial alto. Recomendação: resolver CRÍTICOs antes de 2027."
+    },
+    "charts": {
+      "patrimonio_doughnut": {
+        "context": "Distribuição do patrimônio bruto R$ 3,5M entre 7 categorias: Imóveis 46,8%, Poupança/RF 14%, Ações 2,8%, Dólar 1%, PGBL 0,5%, Outros 0,7%, Contas corrente 0,2%.",
+        "conclusion": "Imóveis dominam. Oportunidade: aumentar RV de 2,8% para 15% conforme meta IF de retorno 6% a.a."
+      },
+      "waterfall_if": {
+        "context": "Evolução patrimônio investível R$ 2,277M até meta R$ 7,2M em 9 anos. Aporte mensal R$ 20k + retornos 6% a.a. fecham gap R$ 4,923M.",
+        "conclusion": "Prazo realista com disciplina comprovada. Sensibilidade a retornos demonstra importância de aumentar RV e diversificar rendas."
+      },
+      "receita_bar": {
+        "context": "Composição receitas R$ 77,7k: Arvo 60,8%, BrandLovers 12,9%, CLT 10,3%, Aluguéis 11%, Arbitralis 3,5%, Investimentos 1,5%.",
+        "conclusion": "Renda altamente diversificada. Perda de uma única fonte não compromete sustentabilidade."
+      },
+      "despesas_doughnut": {
+        "context": "Distribuição despesas R$ 31,8k: Alimentação 14,1%, Serviços domésticos 12,6%, Lazer 11,8%, Saúde 9,4%, Moradia 7,9%, Educação 6,3%, Vestuário 6,3%, Transporte 5,3%.",
+        "conclusion": "Despesas bem controladas dentro de tetos orçamentários. Margem de flexibilidade para ajustes sazonais."
+      },
+      "receita_despesa_mensal": {
+        "context": "Fluxo caixa mensal: Receitas R$ 77,7k vs Despesas R$ 31,8k. Aporte IF R$ 20k. Folga R$ 25,9k.",
+        "conclusion": "Renda cobre despesas 2,44x. Margem de segurança excelente permite viagens, eventos e rebalanceamentos."
+      },
+      "score_gauge": {
+        "context": "Score 74,2/100 (Adequado+): Poupança 85, Cobertura 90, Endividamento 88, Progresso IF 60, Diversificação 72.",
+        "conclusion": "Posição sólida. Principais fraquezas: sucessório e RV baixa. Forças: poupança alta, cobertura excelente, endividamento baixo."
+      },
+      "alocacao_atual": {
+        "context": "Alocação atual: Imóveis 47%, Poupança/RF 14%, Ações 2,8%, Dólar 1%, PGBL 0,5%, Outros 0,7%.",
+        "conclusion": "Portfólio conservador. Retorno real não calculado (dados de performance por ativo indisponíveis). Meta: 6% a.a. real. Aumentar RV para aproximar da meta."
+      },
+      "alocacao_alvo": {
+        "context": "Alocação recomendada 2027: Imóveis 35%, RF 25%, RV 20%, FIIs 10%, Dólar 5%, Previdência 3%, Outros 2%.",
+        "conclusion": "Rebalanceamento faseado 12-24 meses aumenta RV sem comprometer segurança. Imóveis permanecem âncora (35%)."
+      },
+      "top15_ativos": {
+        "context": "Top 15 investimentos financeiros: Cofrinhos Itaú R$ 206k, CDB-DI Itaú R$ 116k, CDB DI Santander R$ 102k, PETR4 R$ 84k, CDB Prog Santander R$ 61k, Alaska Black R$ 52k, Alaska LO R$ 52k, BTG Hedge Incentivado R$ 30k, CDB Agibank (BTG) R$ 29k, Debênture Localiza R$ 29k.",
+        "conclusion": "Carteira concentrada em renda fixa (CDBs e CRAs representam ~60%). Cofrinhos Itaú é o maior ativo individual (20% do total investido). Exposição a renda variável via PETR4 e fundos Alaska."
+      },
+      "yield_imoveis": {
+        "context": "Yield mensal: Major Freire R$ 1,854k (8,7% a.a.), Calixto R$ 1,568k (5,4% a.a.), Living Wish R$ 5,149k (11,6% a.a.).",
+        "conclusion": "Imóveis de renda com yield 5,4-11,6% a.a. Diversificação geográfica reduz risco localizado."
+      },
+      "custos_f1f2": {
+        "context": "F1/F2 EUA (Anderson, SC, 6 meses): Base US$ 3,990/mês + custos BR R$ 8,919/mês = R$ 32,380/mês. Validado com dados 2025 (US$ 3,915/mês).",
+        "conclusion": "Estadia superavitária (renda remota David R$ 70,6k > custos R$ 32,4k). Sobra R$ 38,2k/mês permite nascimento Theo e aumento aporte pós-retorno."
+      },
+      "cenario_cambial": {
+        "context": "Exposição USD: Wise US$ 4,722, BoA US$ 2,605, C6 USD US$ 92. Meta: US$ 20k (gap US$ 12,581, 37 meses a R$ 2k/mês).",
+        "conclusion": "Dolarização estratégica de 25% aporte IF protege contra desvalorização BRL. Meta US$ 20k atingível em 37 meses."
+      },
+      "projecao_if": {
+        "context": "Projeção patrimônio investível até 2035: Pessimista (4% retorno) R$ 7,03M em 11,9 anos, Realista (6%) R$ 7,2M em 9 anos, Otimista (8%) R$ 7,2M em 7 anos.",
+        "conclusion": "Cenário realista (9 anos, David 52) alinha-se com plano de vida. Sensibilidade demonstra importância de aumentar RV."
+      },
+      "renda_passiva": {
+        "context": "Renda passiva atual R$ 10,042/mês (aluguéis R$ 8,571 + dividendos/RF R$ 1,471) vs meta R$ 30k. Gap R$ 19,958/mês.",
+        "conclusion": "33,5% da meta atingida. Estrutura escalável com aporte IF consistente. FIIs e ações com dividendos serão pilares 2035."
+      },
+      "impostos_pj": {
+        "context": "Carga tributária PJ (Simples Anexo V): Alíquota efetiva 7,2% sobre renda bruta R$ 620,917. PGBL não aproveitada (aporte R$ 0, capacidade R$ 12k/ano).",
+        "conclusion": "Simples Nacional bem otimizado. PGBL R$ 12k/ano economizaria R$ 1,8k em IR. Recomendação: ativar em 2027."
+      },
+      "riscos_bubble": {
+        "context": "Principais riscos: (1) Seguros inexistentes, (2) Sucessório não iniciado, (3) FBAR/FATCA pré-EUA, (4) RV baixa 2,8%, (5) Rentabilidade real não mensurada vs meta 6%.",
+        "conclusion": "Riscos gerenciáveis se ações imediatas tomadas. CRÍTICOS (seguros + sucessório + FBAR) antes de viagem 2027. ALTOS (RV + rentabilidade) mitigados com rebalanceamento planejado."
+      },
+      "decisoes": {
+        "context": "Decisões tomadas: D1 — Aporte IF R$ 20k/mês mantido; D2 — TRS revisada 4%→5%; D3 — Venda Living Concept Mariana; D4 — F1/F2 2027 confirmado; D5 — NCLEX roadmap iniciado.",
+        "conclusion": "Decisões alinhadas com visão longo prazo. Flexibilidade mantida em aporte. Transição EUA é próximo passo crítico."
+      },
+      "cenarios_mariana": {
+        "context": "Simulação: Mariana deixar CLT (perda R$ 8k/mês, economia R$ 1,17k). Impacto líquido -R$ 6,83k. PJ David precisaria aumentar 13,4% ou aporte reduzir a R$ 13,2k/mês (prazo IF: 11,4 vs 9 anos).",
+        "conclusion": "Mariana deve manter CLT até NCLEX (8-18 meses). Com ambos até 2027-2028, folga mensal suporta mudança EUA e transição (OPT, VisaScreen, NCLEX prep)."
+      },
+      "viagens": {
+        "context": "Orçamento viagens 2026: R$ 45k teto. Portugal 2025: R$ 22,337. Restante: R$ 22,663. Folga R$ 25,9k/mês permite 1-2 viagens internacionais/ano.",
+        "conclusion": "Estilo de vida com viagens sustentável. Programa de pontos (Livelo 132k, Smiles 42k, Átomos 158k) adiciona valor. Gastos bem gerenciados."
+      }
+    }
+  }
+}

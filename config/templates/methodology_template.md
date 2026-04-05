@@ -34,7 +34,7 @@ Ao final de cada etapa concluída, antes de avançar para a próxima, obrigatori
 
 ---
 
-## PIPELINE DE DADOS (E0 a E2.5)
+## PIPELINE DE DADOS (E0 a E3)
 
 Ver manual_operacao.md para detalhes completos.
 
@@ -44,7 +44,7 @@ Ver manual_operacao.md para detalhes completos.
 | E1 | Mapeamento de membros | Currículos, holerites, docs pessoais | members-1c_enriched.md |
 | E1.5 | Baseline patrimonial | IRPF + XLSX imóveis/veículos | baseline_patrimonial-1.5_consolidated.json |
 | E2 | Extração de extratos financeiros | PDFs de extratos, faturas, posições | -2_extract.json por arquivo |
-| E2.5 | Reconciliação por conta | Todos os -2_extract.json | -2_reconciled.json por conta |
+| E3 | Reconciliação por conta | Todos os -2_extract.json | -3_reconciled.json por conta |
 
 ---
 

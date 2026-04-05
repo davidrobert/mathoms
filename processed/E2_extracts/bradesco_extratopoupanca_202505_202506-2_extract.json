@@ -1,31 +1,15 @@
 {
-  "tipo": "extratoconta",
-  "subtipo": "poupanca",
-  "instituicao": "Bradesco",
-  "conta": {
-    "numero": "771139",
-    "tipo": "poupanca",
-    "moeda": "BRL",
-    "agencia": "3221"
-  },
+  "banco": "Bradesco",
+  "tipo": "extratopoupanca",
+  "titular": "Mariana Teixeira Ferreira",
+  "conta": "504",
+  "agencia": "3221",
+  "moeda": "BRL",
   "periodo": {
-    "data_inicio": "2025-05-01",
-    "data_fim": "2025-06-30"
+    "inicio": "2025-05-01",
+    "fim": "2025-06-30"
   },
-  "saldos": {
-    "saldo_inicial": {
-      "valor": 0.0,
-      "data": "2025-05-01"
-    },
-    "saldo_final": {
-      "valor": 21762.41,
-      "data": "2025-06-30"
-    }
-  },
-  "transacoes": [],
-  "total_periodo": {
-    "total_debitos": 0,
-    "total_creditos": 0,
-    "saldo_liquido": 0
-  }
+  "saldo_inicial": null,
+  "saldo_final": null,
+  "transacoes": []
 }

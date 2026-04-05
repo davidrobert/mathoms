@@ -1,0 +1,24 @@
+{
+  "banco": "Bradesco",
+  "tipo_conta": "extratopoupanca",
+  "titular": "Mariana Teixeira Ferreira",
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-01-01",
+    "fim": "2026-03-31"
+  },
+  "saldo_inicial": null,
+  "saldo_final": null,
+  "fontes": [
+    "bradesco_extratopoupanca_202501_202502-2_extract.json",
+    "bradesco_extratopoupanca_202503_202504-2_extract.json",
+    "bradesco_extratopoupanca_202505_202506-2_extract.json",
+    "bradesco_extratopoupanca_202507_202508-2_extract.json",
+    "bradesco_extratopoupanca_202509_202510-2_extract.json",
+    "bradesco_extratopoupanca_202511_202512-2_extract.json",
+    "bradesco_extratopoupanca_202601_202603-2_extract.json"
+  ],
+  "transacoes_total": 0,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": []
+}

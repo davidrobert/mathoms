@@ -1,39 +1,23 @@
 {
-  "tipo": "faturacc",
-  "instituicao": "Itaú",
-  "cartao": {
-    "nome": "Pão de Açúcar",
-    "tipo": "credit",
-    "ultimos_digitos": "0000"
-  },
-  "periodo": {
-    "data_inicio": null,
-    "data_fim": null,
-    "data_vencimento": "2025-07-06"
-  },
-  "resumo": {
-    "saldo_anterior": 0.0,
-    "compras_nacionais": 0.0,
-    "compras_internacionais": 0.0,
-    "juros": 0.0,
-    "taxa_mensal": 0.0,
-    "pagamentos_efetuados": 59.0,
-    "saldo_atual": 154.57
-  },
-  "transacoes": [
+  "banco": "Itaú",
+  "tipo": "faturapaoacucar",
+  "cartao": "Pão de Açúcar",
+  "titular": "DAVID ROBERT CAMARGO DE CAMPOS",
+  "moeda": "BRL",
+  "data_vencimento": "2025-07-06",
+  "saldo_anterior": 59.0,
+  "total_compras": 154.57,
+  "pagamentos": -59.0,
+  "saldo_atual": 154.57,
+  "transacoes": [],
+  "compras_parceladas_futuras": [
     {
       "data": "2025-06-08",
       "descricao": "BRASIL PARAL*Bras",
-      "valor": 1.0,
-      "categoria": "",
-      "parcelas": "1/1"
-    },
-    {
-      "data": "2025-06-08",
-      "descricao": "BRASIL PARAL*Bras",
-      "valor": 2.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "valor": 59.0,
+      "cartao": null,
+      "parcela": "02/12"
     }
-  ]
+  ],
+  "numero_cartao": "4771.XXXX.XXXX.5739"
 }

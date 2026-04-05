@@ -1,31 +1,13 @@
 {
-  "tipo": "extratoconta",
-  "subtipo": "global_eur",
-  "instituicao": "C6 Bank",
-  "conta": {
-    "numero": "1010135296",
-    "tipo": "global",
-    "moeda": "EUR",
-    "agencia": "0001"
-  },
+  "banco": "C6 Bank",
+  "tipo": "extratocontaglobal",
+  "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+  "moeda": "EUR",
   "periodo": {
-    "data_inicio": "2025-11-01",
-    "data_fim": "2025-12-31"
+    "inicio": "2025-11-01",
+    "fim": "2025-12-31"
   },
-  "saldos": {
-    "saldo_inicial": {
-      "valor": 0.0,
-      "data": "2025-11-01"
-    },
-    "saldo_final": {
-      "valor": 863.0,
-      "data": "2025-12-31"
-    }
-  },
-  "transacoes": [],
-  "total_periodo": {
-    "total_debitos": 0,
-    "total_creditos": 0,
-    "saldo_liquido": 0
-  }
+  "saldo_inicial": -8.63,
+  "saldo_final": -8.63,
+  "transacoes": []
 }

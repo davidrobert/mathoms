@@ -1,70 +1,32 @@
-# Reconciliation Log — Pipeline Ferreira Campos
+# E3 Reconciliation Summary
+Generated: 2026-04-05T07:38:26.865386
 
-## E2.5 — Reconciliação por Conta — 2026-04-03
+## Statistics
+- Accounts processed: 15
+- Total transactions reconciled: 330
+- Total duplicates removed: 52
+- Files written: 15
 
-### Resumo Geral
+## Saldo Continuity Warnings
+- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202507-2_extract.json (prev_final=913.72, next_initial=217815.53, gap=216901.81)
+- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202601-0_original-2_extract.json (prev_final=913.72, next_initial=-10044.05, gap=10957.77)
+- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202601-2_extract.json (prev_final=913.72, next_initial=-10044.05, gap=10957.77)
+- ('Itaú', 'faturapaoacucar'): Saldo gap: itau_faturapaoacucar_202505-2_extract.json (prev_final=0.0, next_initial=59.0, gap=59.00)
+- ('Santander', 'extratoconta', 'BRL'): Saldo gap: santander_extratoconta_202601_202603-2_extract.json (prev_final=280.6, next_initial=-3294.01, gap=3574.61)
 
-| Métrica | Valor |
-|---|---|
-| Contas identificadas | 27 |
-| Arquivos reconciliados gerados | 27 |
-| Transações brutas (total) | 1.924 |
-| Duplicatas removidas | 27 |
-| Transações únicas (total) | 1.903 |
-
-### Detalhamento por Conta
-
-| Conta | Tipo | Arq | Brut | Dup | Uniq | Período |
-|---|---|---|---|---|---|---|
-| bankofamerica_conta_USD | Extrato CC | 1 | 0 | 0 | 0 | fev-mar/2026 |
-| binance_conta_USD | Extrato exchange | 3 | 0 | 0 | 0 | mar/2026 (OCR) |
-| bradesco_conta_BRL | Extrato CC | 2 | 0 | 0 | 0 | jan/2025-mar/2026 |
-| bradesco_poupanca_BRL | Poupança | 7 | 27 | 0 | 27 | jan/2025-mar/2026 |
-| btg_pactual_conta_BRL | Extrato CC | 1 | 0 | 0 | 0 | fev-mar/2026 |
-| btg_pactual_investimentos | Posição inv. | 1 | 0 | 0 | 0 | mar/2026 |
-| c6_bank_carbon_credit | Fatura cartão | 12 | 995 | 0 | 995 | mai/2025-abr/2026 |
-| c6_bank_conta_BRL | Extrato CC | 1 | 0 | 0 | 0 | mar/2026 |
-| c6_bank_global_EUR | Conta global | 2 | 56 | 3 | 53 | nov/2025-mar/2026 |
-| c6_bank_global_USD | Conta global | 4 | 388 | 15 | 373 | mai/2025-mar/2026 |
-| c6_bank_pj_BRL | Conta PJ | 1 | 53 | 0 | 53 | mar/2025-mar/2026 |
-| c6_bank_rendafixa | Renda fixa | 1 | 0 | 0 | 1 | mar/2026 |
-| itau_conta_BRL | Extrato CC | 2 | 114 | 1 | 113 | jul/2025-jan/2026 |
-| itau_investimentos | Posição inv. | 1 | 0 | 0 | 2 | mar/2026 |
-| itau_personnalite_BRL | Extrato CC | 1+2jpg | 235 | 1 | 234 | mai/2025-mar/2026 |
-| itau_pao_acucar_credit | Fatura cartão | 11 | 22 | 7 | 15 | mai/2025-mar/2026 |
-| picpay_conta_BRL | Extrato CC | 1 | 0 | 0 | 0 | dez/2025-mar/2026 |
-| quintoandar_calixto_aluguel | Fatura aluguel | 1 | 0 | 0 | 0 | fev/2026 |
-| quintoandar_major_freire_aluguel | Fatura aluguel | 1 | 0 | 0 | 0 | fev/2026 |
-| rico_conta_BRL | Extrato CC | 1 | 0 | 0 | 0 | out/2025-mar/2026 |
-| rico_investimentos | Posição inv. | 1 | 0 | 0 | 0 | mar/2026 |
-| santander_cdb | CDB detalhes | 4 | 0 | 0 | 3 | mar/2026 |
-| santander_conta_BRL | Extrato CC | 2 | 0 | 0 | 0 | nov/2025-mar/2026 |
-| santander_unique_credit | Fatura cartão | 12 | 34 | 0 | 34 | mar/2025-fev/2026 |
-| wise_conta_BRL | Extrato CC | 1 | 0 | 0 | 0 | jan/2025-mar/2026 |
-| wise_conta_USD | Extrato CC | 1 | 0 | 0 | 0 | jan/2025-mar/2026 |
-
-### Deduplicações Detectadas
-
-| Conta | Duplicatas | Razão |
-|---|---|---|
-| c6_bank_global_USD | 15 | Períodos sobrepostos entre 4 extratos (dez/2025 aparece em 2 arquivos) |
-| itau_pao_acucar_credit | 7 | Transações com datas/valores idênticos entre faturas consecutivas |
-| c6_bank_global_EUR | 3 | Período sobreposição nov-dez/2025 |
-| itau_conta_BRL | 1 | Transação duplicada entre jul/2025 e jan/2026 |
-| itau_personnalite_BRL | 1 | Transação duplicada |
-
-### Gaps Identificados
-
-| Conta | Gap | Detalhes |
-|---|---|---|
-| bradesco_conta_BRL | Transações não extraídas | PDF com layout de tabela complexo — 0 transações extraídas apesar de períodos longos |
-| santander_conta_BRL | Transações não extraídas | Mesmo problema de parsing de tabelas |
-| picpay_conta_BRL | Transações não extraídas | PDF layout especial |
-| wise_conta_BRL/USD | Transações não extraídas | Wise usa formato de relatório diferente |
-| bankofamerica_conta_USD | Transações não extraídas | Apenas saldos disponíveis |
-
-### Observações
-
-- **Contas com mais transações:** C6 Carbon (995), C6 Global USD (373), Itaú Personnalité (234), Itaú CC (113)
-- **Posições de investimento** são snapshots pontuais (mar/2026), não séries temporais
-- **Alguns bancos** têm PDFs com layouts que dificultam extração automatizada de transações — dados de saldos e resumos foram extraídos mesmo quando transações individuais não puderam ser parseadas
+## Reconciled Accounts
+- BTG Pactual | extratoconta | BRL | 2026-02-27 to 2026-03-29 | 37 txns
+- Bank of America | extratoconta | USD | 2026-02-25 to 2026-03-26 | 0 txns
+- Bradesco | extratoconta | BRL | 2025-01-01 to 2026-03-29 | 145 txns
+- Bradesco | extratopoupanca | BRL | 2025-01-01 to 2026-03-31 | 0 txns
+- C6 Bank | extratoconta | BRL | 2025-03-29 to 2026-03-29 | 41 txns
+- C6 Bank | extratocontaglobal | EUR | 2025-11-01 to 2026-03-29 | 0 txns
+- C6 Bank | extratocontaglobal | USD | 2025-05-01 to 2026-03-29 | 0 txns
+- C6 Bank | extratocontapj | BRL | 2025-03-29 to 2026-03-29 | 11 txns
+- Itaú | extratoconta | BRL | 2025-07-01 to 2026-06-30 | 51 txns
+- Itaú | faturapaoacucar | BRL | 2025-04-01 to 2026-03-06 | 1 txns
+- PicPay | extratoconta | BRL | 2025-12-29 to 2026-03-28 | 8 txns
+- Rico | extratoconta | BRL | 2025-09-30 to 2026-03-29 | 14 txns
+- Santander | extratoconta | BRL | 2025-11-01 to 2026-03-29 | 22 txns
+- Wise | extratoconta | BRL | 2026-01-01 to 2026-03-31 | 0 txns
+- Wise | extratoconta | USD | 2026-01-01 to 2026-03-31 | 0 txns

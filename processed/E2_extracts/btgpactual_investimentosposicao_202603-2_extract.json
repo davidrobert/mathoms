@@ -1,13 +1,148 @@
 {
+  "banco": "BTG Pactual",
   "tipo": "investimentosposicao",
-  "instituicao": "BTG Pactual",
-  "data_posicao": null,
-  "moeda": "BRL",
-  "total_aplicado": null,
-  "saldo_atual": null,
-  "rentabilidade": {
-    "valor": null,
-    "percentual": null
-  },
-  "composicao": []
+  "data_posicao": "2026-03-31",
+  "saldo_total": 375384.56,
+  "produtos": [
+    {
+      "nome": "BANCO AGIBANK S.A",
+      "tipo": "CDB Pós-fixado",
+      "saldo_atual": 29353.39,
+      "quantidade": 22,
+      "preco_unitario": 1393.2295
+    },
+    {
+      "nome": "PICPAY BANK - Pré-fixado",
+      "tipo": "CDB",
+      "saldo_atual": 30442.6,
+      "quantidade": 27,
+      "preco_unitario": 1154.5504
+    },
+    {
+      "nome": "BANCO DIGIMAIS S.A",
+      "tipo": "CDB Pós-fixado",
+      "saldo_atual": 12631.0,
+      "quantidade": 10,
+      "preco_unitario": 1318.9084
+    },
+    {
+      "nome": "PICPAY BANK - Pré-fixado",
+      "tipo": "CDB",
+      "saldo_atual": 22563.46,
+      "quantidade": 20,
+      "preco_unitario": 1155.3613
+    },
+    {
+      "nome": "CRI - TEX COURIER",
+      "tipo": "CRI Pré-fixado",
+      "saldo_atual": 8002.3,
+      "quantidade": 10,
+      "preco_unitario": 800.2304
+    },
+    {
+      "nome": "CRI - ONCOCLINICAS II",
+      "tipo": "CRI Pré-fixado",
+      "saldo_atual": 7020.69,
+      "quantidade": 9,
+      "preco_unitario": 780.0777
+    },
+    {
+      "nome": "CRA - Zamp",
+      "tipo": "CRA Pré-fixado",
+      "saldo_atual": 8608.78,
+      "quantidade": 9,
+      "preco_unitario": 956.5322
+    },
+    {
+      "nome": "CRA - MADERO",
+      "tipo": "CRA Pré-fixado",
+      "saldo_atual": 7778.47,
+      "quantidade": 9,
+      "preco_unitario": 864.2747
+    },
+    {
+      "nome": "CRA - FS AGRISOLUTIONS",
+      "tipo": "CRA Pré-fixado",
+      "saldo_atual": 7276.46,
+      "quantidade": 9,
+      "preco_unitario": 808.4966
+    },
+    {
+      "nome": "CRA - CEREAL",
+      "tipo": "CRA Pré-fixado",
+      "saldo_atual": 8795.66,
+      "quantidade": 9,
+      "preco_unitario": 977.2959
+    },
+    {
+      "nome": "CRA - Caramuru",
+      "tipo": "CRA Pré-fixado",
+      "saldo_atual": 20318.78,
+      "quantidade": 21,
+      "preco_unitario": 967.5611
+    },
+    {
+      "nome": "CRA - MINERVA",
+      "tipo": "CRA Pré-fixado",
+      "saldo_atual": 26663.31,
+      "quantidade": 27,
+      "preco_unitario": 987.5304
+    },
+    {
+      "nome": "CRA - ELDORADO",
+      "tipo": "CRA Pré-fixado com índice",
+      "saldo_atual": 28517.95,
+      "quantidade": 29,
+      "preco_unitario": 983.3777
+    },
+    {
+      "nome": "LOCALIZA RENT A CAR SA",
+      "tipo": "Debenture",
+      "saldo_atual": 29205.27,
+      "quantidade": 26,
+      "preco_unitario": 1134.9326
+    },
+    {
+      "nome": "CSN MINERACAO S.A",
+      "tipo": "Debenture",
+      "saldo_atual": 6993.62,
+      "quantidade": 9,
+      "preco_unitario": 777.0693
+    },
+    {
+      "nome": "Tesouro IPCA+ com Juros Semestrais",
+      "tipo": "Titulo Publico",
+      "saldo_atual": 43348.99,
+      "quantidade": 10,
+      "preco_unitario": 4354.637
+    },
+    {
+      "nome": "Tesouro IPCA+ com Juros Semestrais",
+      "tipo": "Titulo Publico",
+      "saldo_atual": 8585.49,
+      "quantidade": 2,
+      "preco_unitario": 4292.7495
+    },
+    {
+      "nome": "BTG HEDGE FIRF CRPR SUB",
+      "tipo": "Fundo de Investimento",
+      "saldo_atual": 2544.45,
+      "quantidade": 1,
+      "preco_unitario": 2544.45
+    },
+    {
+      "nome": "BTG HEDGE INCENTIVADO",
+      "tipo": "Fundo de Investimento",
+      "saldo_atual": 30091.92,
+      "quantidade": 1,
+      "preco_unitario": 30091.92
+    },
+    {
+      "nome": "3R - Cupom Semestral",
+      "tipo": "COE",
+      "saldo_atual": 20449.45,
+      "quantidade": 1,
+      "preco_unitario": 20449.45
+    }
+  ]
 }

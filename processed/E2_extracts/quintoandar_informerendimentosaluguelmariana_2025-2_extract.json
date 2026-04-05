@@ -1,19 +1,27 @@
 {
-  "tipo": "informerendimentos",
-  "instituicao": "QuintoAndar",
-  "ano_base": 2024,
-  "beneficiario": {
-    "nome": "Mariana Ferreira Campos",
-    "cpf": "085.052.396-60"
-  },
-  "rendimentos": [
+  "beneficiario": "Mariana Teixeira Ferreira",
+  "cpf": "085.052.396-60",
+  "year_base": 2025,
+  "administradora": "GRPQA LTDA",
+  "total_renda_bruta": 74179.77,
+  "total_descontos": 7423.08,
+  "total_renda_liquida": 66756.69,
+  "properties": [
     {
-      "propriedade": "Propriedade Mariana 1",
-      "renda_bruta": 74179.77,
-      "descontos": 7423.08,
-      "renda_liquida": 66756.69
+      "property_name": "Avenida Alberto Augusto Alves, 320 - 812",
+      "property_address": "São Paulo - SP 05724-030",
+      "property_code": "894064293",
+      "renda_bruta": 7424.71,
+      "descontos": 1548.62,
+      "renda_liquida": 5876.09
+    },
+    {
+      "property_name": "Avenida João Dias, 2192 - 163 Torre 2",
+      "property_address": "São Paulo - SP 04724-003",
+      "property_code": "894326656",
+      "renda_bruta": 66755.06,
+      "descontos": 5874.46,
+      "renda_liquida": 60880.60
     }
-  ],
-  "total_bruto": 74179.77,
-  "total_liquido": 66756.69
+  ]
 }

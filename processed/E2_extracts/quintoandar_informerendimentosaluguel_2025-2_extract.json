@@ -1,19 +1,27 @@
 {
-  "tipo": "informerendimentos",
-  "instituicao": "QuintoAndar",
-  "ano_base": 2024,
-  "beneficiario": {
-    "nome": "David Robert Camargo de Campos",
-    "cpf": "287.766.948-36"
-  },
-  "rendimentos": [
+  "beneficiario": "David Robert Camargo de Campos",
+  "cpf": "287.766.948-36",
+  "year_base": 2025,
+  "administradora": "GRPQA LTDA",
+  "total_renda_bruta": 36335.43,
+  "total_descontos": 4930.03,
+  "total_renda_liquida": 31405.40,
+  "properties": [
     {
-      "propriedade": "Rua Major Freire, 496 - ed gisele Ap 12, São Paulo - SP 04304-110",
-      "renda_bruta": 36335.43,
-      "descontos": 4930.03,
-      "renda_liquida": 31405.4
+      "property_name": "Rua Major Freire, 496 - ed gisele Ap 12",
+      "property_address": "São Paulo - SP 04304-110",
+      "property_code": "893592092",
+      "renda_bruta": 18543.82,
+      "descontos": 1576.19,
+      "renda_liquida": 16967.63
+    },
+    {
+      "property_name": "Praça Benedito Calixto, 186 - 34",
+      "property_address": "São Paulo - SP 05406-040",
+      "property_code": "893592095",
+      "renda_bruta": 17791.61,
+      "descontos": 3353.84,
+      "renda_liquida": 14437.77
     }
-  ],
-  "total_bruto": 36335.43,
-  "total_liquido": 31405.4
+  ]
 }

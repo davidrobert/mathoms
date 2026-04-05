@@ -1,39 +1,73 @@
 {
-  "tipo": "faturacc",
-  "instituicao": "Santander",
-  "cartao": {
-    "nome": "Unique",
-    "tipo": "credit",
-    "ultimos_digitos": "0000"
-  },
-  "periodo": {
-    "data_inicio": null,
-    "data_fim": null,
-    "data_vencimento": null
-  },
-  "resumo": {
-    "saldo_anterior": 0.0,
-    "compras_nacionais": 42.43,
-    "compras_internacionais": 209.7,
-    "juros": 0.0,
-    "taxa_mensal": 0.0,
-    "pagamentos_efetuados": 1180.02,
-    "saldo_atual": 252.13
-  },
+  "banco": "Santander",
+  "tipo": "faturaunique",
+  "cartao": "Unique",
+  "titular": null,
+  "moeda": "BRL",
+  "data_vencimento": "2025-05-15",
+  "saldo_anterior": 1180.02,
+  "total_compras": 42.43,
+  "pagamentos": 1180.02,
+  "saldo_atual": 252.13,
   "transacoes": [
     {
+      "data": "2025-04-15",
+      "descricao": "DEB AUTOM DE FATURA EM C/",
+      "valor": -1180.02,
+      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+    },
+    {
+      "data": "2025-04-22",
+      "descricao": "SCP COMPLETO- ABR/25",
+      "valor": 24.96,
+      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+    },
+    {
       "data": "2025-05-08",
-      "descricao": "ANUIDADE DIFERENCIADA",
-      "valor": 9.0,
-      "categoria": "",
-      "parcelas": "1/1"
+      "descricao": "ANUIDADE DIFERENCIADA 09/12",
+      "valor": 0.0,
+      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+    },
+    {
+      "data": "2025-04-29",
+      "descricao": "SCP BASICO- ABR/25",
+      "valor": 10.39,
+      "cartao": "SONIA C C DE CAMPOS - 5228 XXXX XXXX 6006"
+    },
+    {
+      "data": "2025-04-29",
+      "descricao": "AMAZON PRIME*0M7KP7QL3",
+      "valor": 90.06,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 14.99
+      }
+    },
+    {
+      "data": null,
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 3.04,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-05-01",
       "descricao": "GOOGLE *GOOGLE ONE",
       "valor": 119.64,
-      "categoria": "",
-      "parcelas": "1/1"
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 19.99
+      }
+    },
+    {
+      "data": null,
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 4.04,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
     }
-  ]
+  ],
+  "cartoes": []
 }

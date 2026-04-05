@@ -1,16 +1,11 @@
 {
+  "banco": "C6 Bank",
   "tipo": "carteirarendafixa",
-  "instituicao": "C6 Bank",
-  "data_posicao": null,
+  "data_posicao": "2026-03-29",
   "produtos": [
     {
-      "nome": "CDB C6",
-      "tipo_produto": "CDB",
-      "taxa": "103%",
-      "valor_aplicado": null,
-      "saldo_atual": null,
-      "vencimento": null
+      "nome": "Renda Fixa",
+      "valor_atual": 6930.11
     }
-  ],
-  "total_carteira": 6930.11
+  ]
 }

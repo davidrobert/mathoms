@@ -1,0 +1,1035 @@
+{
+  "banco": "Bradesco",
+  "tipo_conta": "extratoconta",
+  "titular": "Mariana Teixeira Ferreira",
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-01-01",
+    "fim": "2026-03-29"
+  },
+  "saldo_inicial": 1.0,
+  "saldo_final": 1.0,
+  "fontes": [
+    "bradesco_extratoconta_202501_202512-2_extract.json",
+    "bradesco_extratoconta_202601_202603-2_extract.json"
+  ],
+  "transacoes_total": 145,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-01-02",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1808.49,
+      "tipo": "credito",
+      "saldo_apos": 1809.49
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "Ted Dif.litud",
+      "valor": 1500.0,
+      "tipo": "debito",
+      "saldo_apos": 309.49
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "Transfe Pix",
+      "valor": 100.0,
+      "tipo": "debito",
+      "saldo_apos": 209.49
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "Transfe Pix",
+      "valor": 163.5,
+      "tipo": "debito",
+      "saldo_apos": 45.99
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "Pix Qrcode Din",
+      "valor": 22.0,
+      "tipo": "debito",
+      "saldo_apos": 23.99
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "Pix Qrcode Din",
+      "valor": 22.99,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2025-01-06",
+      "descricao": "bx Aut Poupanca",
+      "valor": 266.0,
+      "tipo": "credito",
+      "saldo_apos": 267.0
+    },
+    {
+      "data": "2025-01-06",
+      "descricao": "Transfe Pix",
+      "valor": 266.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2025-01-09",
+      "descricao": "Receb Pagfor",
+      "valor": 1629.4,
+      "tipo": "credito",
+      "saldo_apos": 1630.4
+    },
+    {
+      "data": "2025-01-09",
+      "descricao": "Receb Pagfor",
+      "valor": 5091.8,
+      "tipo": "credito",
+      "saldo_apos": 6722.2
+    },
+    {
+      "data": "2025-01-09",
+      "descricao": "Apl.invest Fac",
+      "valor": 6721.2,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2025-01-10",
+      "descricao": "Resgate Inv Fac",
+      "valor": 99.0,
+      "tipo": "credito",
+      "saldo_apos": 100.0
+    },
+    {
+      "data": "2025-01-10",
+      "descricao": "Pix Qrcode Est",
+      "valor": 99.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2025-01-13",
+      "descricao": "Resgate Inv Fac",
+      "valor": 363.5,
+      "tipo": "credito",
+      "saldo_apos": 364.5
+    },
+    {
+      "data": "2025-01-13",
+      "descricao": "Transfe Pix",
+      "valor": 200.0,
+      "tipo": "debito",
+      "saldo_apos": 164.5
+    },
+    {
+      "data": "2025-01-13",
+      "descricao": "Transfe Pix",
+      "valor": 163.5,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2025-01-15",
+      "descricao": "Resgate Inv Fac",
+      "valor": 56.64,
+      "tipo": "credito",
+      "saldo_apos": 57.64
+    },
+    {
+      "data": "2025-01-15",
+      "descricao": "Conta Telefone",
+      "valor": 56.64,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2025-01-20",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1101.96,
+      "tipo": "credito",
+      "saldo_apos": 1102.96
+    },
+    {
+      "data": "2025-01-20",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.05,
+      "tipo": "credito",
+      "saldo_apos": 1103.01
+    },
+    {
+      "data": "2025-01-20",
+      "descricao": "Gasto c Credito",
+      "valor": 1102.01,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2025-01-22",
+      "descricao": "Resgate Inv Fac",
+      "valor": 52.33,
+      "tipo": "credito",
+      "saldo_apos": 53.33
+    },
+    {
+      "data": "2025-01-22",
+      "descricao": "Transfe Pix",
+      "valor": 52.33,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2025-01-28",
+      "descricao": "Resgate Inv Fac",
+      "valor": 599.91,
+      "tipo": "credito",
+      "saldo_apos": 600.91
+    },
+    {
+      "data": "2025-01-28",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.09,
+      "tipo": "credito",
+      "saldo_apos": 601.0
+    },
+    {
+      "data": "2025-01-28",
+      "descricao": "Transfe Pix",
+      "valor": 600.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "Resgate Inv Fac",
+      "valor": 3008.26,
+      "tipo": "credito",
+      "saldo_apos": 3009.26
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.63,
+      "tipo": "credito",
+      "saldo_apos": 3009.89
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "Pgto Elet Trib",
+      "valor": 2893.89,
+      "tipo": "debito",
+      "saldo_apos": 116.0
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "Transfe Pix",
+      "valor": 40.0,
+      "tipo": "debito",
+      "saldo_apos": 76.0
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "Transfe Pix",
+      "valor": 75.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "bx Aut Poupanca",
+      "valor": 60.02,
+      "tipo": "credito",
+      "saldo_apos": 61.02
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1439.6,
+      "tipo": "credito",
+      "saldo_apos": 1500.62
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.38,
+      "tipo": "credito",
+      "saldo_apos": 1501.0
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "Ted Dif.litud",
+      "valor": 1500.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2025-02-04",
+      "descricao": "bx Aut Poupanca",
+      "valor": 10.0,
+      "tipo": "credito",
+      "saldo_apos": 11.0
+    },
+    {
+      "data": "2025-02-04",
+      "descricao": "Pix Qrcode Din",
+      "valor": 10.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-02",
+      "descricao": "Resgate Inv Fac",
+      "valor": 10.0,
+      "tipo": "credito",
+      "saldo_apos": 11.0
+    },
+    {
+      "data": "2026-01-02",
+      "descricao": "Transfe Pix",
+      "valor": 6.5,
+      "tipo": "debito",
+      "saldo_apos": 4.5
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1673.05,
+      "tipo": "credito",
+      "saldo_apos": 1677.55
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1481.58,
+      "tipo": "credito",
+      "saldo_apos": 3159.13
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.41,
+      "tipo": "credito",
+      "saldo_apos": 3159.54
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Pagto Cobranca",
+      "valor": 1126.71,
+      "tipo": "debito",
+      "saldo_apos": 2032.83
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Pagto Cobranca",
+      "valor": 531.83,
+      "tipo": "debito",
+      "saldo_apos": 1501.0
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Ted Dif.litud",
+      "valor": 1500.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "bx Aut Poupanca",
+      "valor": 220.0,
+      "tipo": "credito",
+      "saldo_apos": 221.0
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "Transfe Pix",
+      "valor": 220.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-09",
+      "descricao": "Receb Pagfor",
+      "valor": 315.81,
+      "tipo": "credito",
+      "saldo_apos": 316.81
+    },
+    {
+      "data": "2026-01-09",
+      "descricao": "Receb Pagfor",
+      "valor": 4908.86,
+      "tipo": "credito",
+      "saldo_apos": 5225.67
+    },
+    {
+      "data": "2026-01-09",
+      "descricao": "Apl.invest Fac",
+      "valor": 5224.67,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "Resgate Inv Fac",
+      "valor": 16.99,
+      "tipo": "credito",
+      "saldo_apos": 17.99
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "Pix Qrcode Din",
+      "valor": 16.99,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-14",
+      "descricao": "Resgate Inv Fac",
+      "valor": 355.13,
+      "tipo": "credito",
+      "saldo_apos": 356.13
+    },
+    {
+      "data": "2026-01-14",
+      "descricao": "Pagto Cobranca",
+      "valor": 355.13,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Resgate Inv Fac",
+      "valor": 48.99,
+      "tipo": "credito",
+      "saldo_apos": 49.99
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Devolucao Pix",
+      "valor": 16.99,
+      "tipo": "credito",
+      "saldo_apos": 66.98
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Transfe Pix",
+      "valor": 10.0,
+      "tipo": "debito",
+      "saldo_apos": 56.98
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Conta Telefone",
+      "valor": 55.98,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1782.63,
+      "tipo": "credito",
+      "saldo_apos": 1783.63
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "Resgate Inv Fac",
+      "valor": 4803.56,
+      "tipo": "credito",
+      "saldo_apos": 6587.19
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.28,
+      "tipo": "credito",
+      "saldo_apos": 6587.47
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "Gasto c Credito",
+      "valor": 5599.47,
+      "tipo": "debito",
+      "saldo_apos": 988.0
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "Transfe Pix",
+      "valor": 220.0,
+      "tipo": "debito",
+      "saldo_apos": 768.0
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "Pix Qrcode Din",
+      "valor": 767.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-21",
+      "descricao": "bx Aut Poupanca",
+      "valor": 3183.24,
+      "tipo": "credito",
+      "saldo_apos": 3184.24
+    },
+    {
+      "data": "2026-01-21",
+      "descricao": "Pix Qrcode Din",
+      "valor": 3183.24,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-23",
+      "descricao": "bx Aut Poupanca",
+      "valor": 28.03,
+      "tipo": "credito",
+      "saldo_apos": 29.03
+    },
+    {
+      "data": "2026-01-23",
+      "descricao": "Transfe Pix",
+      "valor": 28.03,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-26",
+      "descricao": "bx Aut Poupanca",
+      "valor": 100.0,
+      "tipo": "credito",
+      "saldo_apos": 101.0
+    },
+    {
+      "data": "2026-01-26",
+      "descricao": "Transfe Pix",
+      "valor": 100.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "bx Aut Poupanca",
+      "valor": 356.39,
+      "tipo": "credito",
+      "saldo_apos": 357.39
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "Pix Qrcode Din",
+      "valor": 194.96,
+      "tipo": "debito",
+      "saldo_apos": 162.43
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "Pix Qrcode Din",
+      "valor": 69.99,
+      "tipo": "debito",
+      "saldo_apos": 92.44
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "Pix Qrcode Din",
+      "valor": 21.9,
+      "tipo": "debito",
+      "saldo_apos": 70.54
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "Pix Qrcode Din",
+      "valor": 69.54,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "bx Aut Poupanca",
+      "valor": 86.66,
+      "tipo": "credito",
+      "saldo_apos": 87.66
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "Pix Qrcode Din",
+      "valor": 56.76,
+      "tipo": "debito",
+      "saldo_apos": 30.9
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "Pix Qrcode Din",
+      "valor": 29.9,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Resgl/vencto Cdb",
+      "valor": 2588.99,
+      "tipo": "credito",
+      "saldo_apos": 2589.99
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Apl.invest Fac",
+      "valor": 1553.0,
+      "tipo": "debito",
+      "saldo_apos": 1036.99
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Transfe Pix",
+      "valor": 1000.0,
+      "tipo": "debito",
+      "saldo_apos": 36.99
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Pix Qrcode Din",
+      "valor": 35.99,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Resgate Inv Fac",
+      "valor": 860.58,
+      "tipo": "credito",
+      "saldo_apos": 861.58
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.01,
+      "tipo": "credito",
+      "saldo_apos": 861.59
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Transfe Pix",
+      "valor": 220.0,
+      "tipo": "debito",
+      "saldo_apos": 641.59
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Pix Qrcode Din",
+      "valor": 427.5,
+      "tipo": "debito",
+      "saldo_apos": 214.09
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Pix Qrcode Din",
+      "valor": 88.5,
+      "tipo": "debito",
+      "saldo_apos": 125.59
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Pix Qrcode Din",
+      "valor": 69.99,
+      "tipo": "debito",
+      "saldo_apos": 55.6
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Pix Qrcode Din",
+      "valor": 54.6,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-02-03",
+      "descricao": "Resgate Inv Fac",
+      "valor": 69.99,
+      "tipo": "credito",
+      "saldo_apos": 70.99
+    },
+    {
+      "data": "2026-02-03",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.01,
+      "tipo": "credito",
+      "saldo_apos": 71.0
+    },
+    {
+      "data": "2026-02-03",
+      "descricao": "Transfe Pix",
+      "valor": 70.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "bx Aut Poupanca",
+      "valor": 807.57,
+      "tipo": "credito",
+      "saldo_apos": 808.57
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "Resgate Inv Fac",
+      "valor": 692.42,
+      "tipo": "credito",
+      "saldo_apos": 1500.99
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.01,
+      "tipo": "credito",
+      "saldo_apos": 1501.0
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "Ted Dif.litud",
+      "valor": 1500.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "bx Aut Poupanca",
+      "valor": 145.0,
+      "tipo": "credito",
+      "saldo_apos": 146.0
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "Transf Autoriz",
+      "valor": 75.0,
+      "tipo": "debito",
+      "saldo_apos": 71.0
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "Transfe Pix",
+      "valor": 70.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "Receb Pagfor",
+      "valor": 507.0,
+      "tipo": "credito",
+      "saldo_apos": 508.0
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "Receb Pagfor",
+      "valor": 1002.15,
+      "tipo": "credito",
+      "saldo_apos": 1510.15
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "Apl.invest Fac",
+      "valor": 1509.15,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Resgate Inv Fac",
+      "valor": 55.98,
+      "tipo": "credito",
+      "saldo_apos": 56.98
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Conta Telefone",
+      "valor": 55.98,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "Resgate Inv Fac",
+      "valor": 779.74,
+      "tipo": "credito",
+      "saldo_apos": 780.74
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.03,
+      "tipo": "credito",
+      "saldo_apos": 780.77
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "Gasto c Credito",
+      "valor": 779.77,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-02-24",
+      "descricao": "Resgate Inv Fac",
+      "valor": 219.98,
+      "tipo": "credito",
+      "saldo_apos": 220.98
+    },
+    {
+      "data": "2026-02-24",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.02,
+      "tipo": "credito",
+      "saldo_apos": 221.0
+    },
+    {
+      "data": "2026-02-24",
+      "descricao": "Transfe Pix",
+      "valor": 220.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1116.46,
+      "tipo": "credito",
+      "saldo_apos": 1117.46
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "Resgate Inv Fac",
+      "valor": 383.46,
+      "tipo": "credito",
+      "saldo_apos": 1500.92
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.08,
+      "tipo": "credito",
+      "saldo_apos": 1501.0
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "Ted Dif.litud",
+      "valor": 1500.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "bx Aut Poupanca",
+      "valor": 120.0,
+      "tipo": "credito",
+      "saldo_apos": 121.0
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "Transfe Pix",
+      "valor": 20.0,
+      "tipo": "debito",
+      "saldo_apos": 101.0
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "Transfe Pix",
+      "valor": 100.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "bx Aut Poupanca",
+      "valor": 32.0,
+      "tipo": "credito",
+      "saldo_apos": 33.0
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "Pix Qrcode Din",
+      "valor": 32.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "bx Aut Poupanca",
+      "valor": 220.0,
+      "tipo": "credito",
+      "saldo_apos": 221.0
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "Transfe Pix",
+      "valor": 220.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "Receb Pagfor",
+      "valor": 1607.9,
+      "tipo": "credito",
+      "saldo_apos": 1608.9
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "Receb Pagfor",
+      "valor": 1789.45,
+      "tipo": "credito",
+      "saldo_apos": 3398.35
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "Apl.invest Fac",
+      "valor": 3397.35,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-12",
+      "descricao": "Resgate Inv Fac",
+      "valor": 995.11,
+      "tipo": "credito",
+      "saldo_apos": 996.11
+    },
+    {
+      "data": "2026-03-12",
+      "descricao": "Transfe Pix",
+      "valor": 4.89,
+      "tipo": "credito",
+      "saldo_apos": 1001.0
+    },
+    {
+      "data": "2026-03-12",
+      "descricao": "Transfe Pix",
+      "valor": 1000.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "Transfe Pix",
+      "valor": 1000.0,
+      "tipo": "credito",
+      "saldo_apos": 1001.0
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "Apl.invest Fac",
+      "valor": 1000.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Resgate Inv Fac",
+      "valor": 55.98,
+      "tipo": "credito",
+      "saldo_apos": 56.98
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Conta Telefone",
+      "valor": 55.98,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-19",
+      "descricao": "Resgate Inv Fac",
+      "valor": 299.99,
+      "tipo": "credito",
+      "saldo_apos": 300.99
+    },
+    {
+      "data": "2026-03-19",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.01,
+      "tipo": "credito",
+      "saldo_apos": 301.0
+    },
+    {
+      "data": "2026-03-19",
+      "descricao": "Transfe Pix",
+      "valor": 300.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "Resgate Inv Fac",
+      "valor": 351.35,
+      "tipo": "credito",
+      "saldo_apos": 352.35
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.02,
+      "tipo": "credito",
+      "saldo_apos": 352.37
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "Gasto c Credito",
+      "valor": 316.67,
+      "tipo": "debito",
+      "saldo_apos": 35.7
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "Transfe Pix",
+      "valor": 34.7,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "bx Aut Poupanca",
+      "valor": 37304.9,
+      "tipo": "credito",
+      "saldo_apos": 37305.9
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "Resgate Inv Fac",
+      "valor": 2694.92,
+      "tipo": "credito",
+      "saldo_apos": 40000.82
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "Rent.inv.facil",
+      "valor": 0.18,
+      "tipo": "credito",
+      "saldo_apos": 40001.0
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "Ted d Hbank*",
+      "valor": 40000.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "bx Aut Poupanca",
+      "valor": 210.0,
+      "tipo": "credito",
+      "saldo_apos": 211.0
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "Transfe Pix",
+      "valor": 20.0,
+      "tipo": "credito",
+      "saldo_apos": 231.0
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "Transfe Pix",
+      "valor": 230.0,
+      "tipo": "debito",
+      "saldo_apos": 1.0
+    }
+  ]
+}

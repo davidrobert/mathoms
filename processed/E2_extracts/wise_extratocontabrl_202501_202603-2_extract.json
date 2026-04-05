@@ -1,30 +1,13 @@
 {
+  "banco": "Wise",
   "tipo": "extratoconta",
-  "instituicao": "Wise",
-  "conta": {
-    "numero": "",
-    "tipo": "corrente",
-    "moeda": "BRL",
-    "agencia": ""
-  },
+  "titular": "David Robert Camargo Ferreira Campos",
+  "moeda": "BRL",
   "periodo": {
-    "data_inicio": null,
-    "data_fim": null
+    "inicio": "2026-01-01",
+    "fim": "2026-03-31"
   },
-  "saldos": {
-    "saldo_inicial": {
-      "valor": null,
-      "data": null
-    },
-    "saldo_final": {
-      "valor": null,
-      "data": null
-    }
-  },
-  "transacoes": [],
-  "total_periodo": {
-    "total_debitos": 0.0,
-    "total_creditos": 0.0,
-    "saldo_liquido": 0.0
-  }
+  "saldo_inicial": 0,
+  "saldo_final": 0,
+  "transacoes": []
 }

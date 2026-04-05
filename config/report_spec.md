@@ -489,6 +489,8 @@ A seção 3 contém **5 subsseções**, das quais **3 blocos são OBRIGATÓRIOS*
 </p>
 ```
 
+**REGRA CRÍTICA — Rentabilidade: NUNCA hardcodar valores de rentabilidade (anual, mensal, % CDI, retorno real).** Esses KPIs DEVEM ser calculados a partir de dados reais de performance extraídos dos relatórios das corretoras. Se os dados de performance (valor aplicado, rentabilidade acumulada por ativo) não estiverem disponíveis nos extratos processados (E2/E3), os KPIs devem exibir "N/D" e um alerta amarelo deve ser renderizado abaixo do card informando: "Dados de performance por ativo indisponíveis. Incluir relatórios de rentabilidade das corretoras no inbox para calcular." Quando os relatórios de performance estiverem disponíveis, o E4 deve calcular: rentabilidade ponderada por valor de cada ativo, rentabilidade consolidada da carteira, retorno real (nominal − IPCA), e % do CDI.
+
 **Estrutura HTML dos 4 KPIs:**
 ```html
 <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr);">
@@ -822,17 +824,36 @@ Se qualquer um desses 4 elementos estiver ausente, o E5 falhou e deve ser refeit
 ```html
 <div class="card card-feature">
   <div class="card-title">Reserva de Emergência — 3 Critérios</div>
-  <p>Baseado na despesa mensal média de R$ {{despesa_mensal}} (últimos {{periodo_meses}} meses):</p>
+  <p>Baseado na despesa mensal média de <strong>R$ {{despesa_mensal}}</strong>:</p>
+
+  <!-- Tabela 1: Níveis de cobertura -->
   <table>
-    <thead><tr><th>CRITÉRIO</th><th>MESES</th><th>VALOR NECESSÁRIO</th><th>LIQUIDEZ ATUAL</th><th>STATUS</th></tr></thead>
+    <thead><tr><th>Critério</th><th>Meses</th><th>Valor Necessário</th><th>Liquidez Atual</th><th>Status</th></tr></thead>
     <tbody>
-      <tr><td>Mínimo (Perini)</td><td>6</td><td>R$ {{minimo_6m}}</td><td rowspan="3">R$ {{liquidez_imediata}}</td><td>{{status_minimo}}</td></tr>
+      <tr><td>Mínimo (Perini)</td><td>6</td><td>R$ {{minimo_6m}}</td><td rowspan="3">R$ {{liquidez_imediata}}<br><small>({{cobertura_meses}} meses)</small></td><td>{{status_minimo}}</td></tr>
       <tr><td>Conforto</td><td>9</td><td>R$ {{conforto_9m}}</td><td>{{status_conforto}}</td></tr>
       <tr><td>Conservador (Cerbasi)</td><td>12</td><td>R$ {{conservador_12m}}</td><td>{{status_conservador}}</td></tr>
     </tbody>
   </table>
-  <p><strong>Onde está a reserva:</strong> {{composicao_liquidez}} (detalhar CDB LD, Tesouro Selic, poupança, CC).</p>
-  <p><strong>Recomendação:</strong> {{recomendacao}}</p>
+
+  <!-- Tabela 2: Composição da liquidez imediata -->
+  <p><strong>Composição da Liquidez Imediata:</strong></p>
+  <table>
+    <thead><tr><th>Componente</th><th>Valor (R$)</th><th>Liquidez (Resgate)</th></tr></thead>
+    <tbody>
+      <!-- Iterar sobre composicao_liquida do E4: cada ativo com valor > 0 -->
+      <tr><td>{{nome_ativo}}</td><td>R$ {{valor}} ({{pct_do_total}}%)</td><td>{{prazo_resgate: D+0, D+1}}</td></tr>
+      ...
+      <tr style="font-weight:bold;"><td>Total</td><td>R$ {{total_liquido}}</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Rodapé: critérios de inclusão na reserva -->
+  <p style="font-size:0.85em; color:#666;">
+    <strong>Nota:</strong> Consideram-se reserva de emergência apenas ativos com liquidez D+0 ou D+1
+    e sem volatilidade relevante: CDB liquidez diária, Tesouro Selic, poupança e contas remuneradas.
+    Não se incluem: CDB com vencimento, fundos de ações, multimercado, criptomoedas ou imóveis.
+  </p>
 </div>
 ```
 
@@ -842,13 +863,19 @@ Se qualquer um desses 4 elementos estiver ausente, o E5 falhou e deve ser refeit
   "despesa_mensal": 32950,
   "periodo_meses": 11,
   "liquidez_imediata": 284000,
+  "cobertura_meses": 8.6,
   "minimo_6m": 197700,
   "conforto_9m": 296550,
   "conservador_12m": 395400,
   "status_minimo": "✅ Coberto",
   "status_conforto": "⚠ Parcial",
   "status_conservador": "❌ Abaixo",
-  "composicao_liquidez": "CDB LD R$180k + Tesouro Selic R$74k + CC R$30k",
+  "composicao_liquida": {
+    "cofrinhos_itau": 180000,
+    "cdb_santander": 74000,
+    "conta_corrente": 30000,
+    "total_liquido": 284000
+  },
   "recomendacao": "Priorizar completar o nível conforto (9 meses) antes de aumentar posição em ativos ilíquidos."
 }
 ```
@@ -885,7 +912,7 @@ As seções abaixo tinham apenas descrição de uma linha na tabela de seções.
 ```
 
 **Blocos adicionais (condicionais — gerar quando dados disponíveis):**
-- **Yield vs CDI:** gráfico `chart-yield-imoveis` (bar) + card com cálculo `(aluguel_anual / valor_estimado) × 100` por imóvel
+- **Yield vs CDI:** gráfico `chart-yield-imoveis` (bar) + card com cálculo `(aluguel_anual / valor_estimado) × 100` por imóvel. **OBRIGATÓRIO:** incluir nota explicativa do conceito de yield antes do gráfico — "Yield (rentabilidade) é o retorno anual que o imóvel gera em aluguéis, expresso como % do valor estimado. Fórmula: (aluguel anual ÷ valor estimado) × 100. Comparar com CDI ajuda a avaliar se o capital imobilizado rende mais ou menos que aplicação de baixo risco."
 - **Custo de oportunidade:** card mostrando quanto o capital imobilizado renderia se investido (CDI × valor_estimado)
 - **Simulação Barão→FIIs:** card com cenário hipotético de venda do imóvel menos rentável e reinvestimento em 5 FIIs de referência, com disclaimer "cenário educacional"
 
@@ -1577,7 +1604,7 @@ Modo padrão definido em `report-data.meta.modo_padrao`:
 | 3 | Bar vertical (8 camadas empilhadas + barra vermelha) | Receita por 8 fontes separadas vs Despesa mês a mês |
 | 4 | Doughnut | Distribuição despesas por categoria |
 | 5 | Doughnut (gauge, 5 faixas + needle) | Score Financeiro — **OBRIGATÓRIO:** `<canvas id="chart-score-gauge" data-type="gauge" data-score="X.X">` onde X.X é o score calculado pelo E4. O JS do template lê `data-score` para posicionar a agulha e atualiza automaticamente o `<p class="chart-context">`. **NÃO** escrever texto "Avaliação consolidada: X/10" manualmente — o JS gera sozinho. |
-| 6 | Doughnut | Alocação ATUAL |
+| 6 | Doughnut | Alocação ATUAL — **conclusion DEVE exibir retorno real calculado vs meta 6% quando dados disponíveis; caso contrário exibir "não calculado" + alerta amarelo** |
 | 7 | Doughnut | Alocação ALVO |
 | 8 | Bar horizontal | Top 15 ativos financeiros por valor |
 | 9 | Bar | Yield anual por imóvel vs CDI |

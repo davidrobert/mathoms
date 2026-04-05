@@ -1,0 +1,251 @@
+{
+  "consolidation_date": "2026-04-04T22:12:27.736762",
+  "posicoes": {
+    "BTG Pactual_BANCO AGIBANK S.A": {
+      "banco": "BTG Pactual",
+      "nome": "BANCO AGIBANK S.A",
+      "valor_atual": 29353.39,
+      "tipo": "CDB Pós-fixado",
+      "vencimento": ""
+    },
+    "BTG Pactual_PICPAY BANK - Pré-fixado": {
+      "banco": "BTG Pactual",
+      "nome": "PICPAY BANK - Pré-fixado",
+      "valor_atual": 22563.46,
+      "tipo": "CDB",
+      "vencimento": ""
+    },
+    "BTG Pactual_BANCO DIGIMAIS S.A": {
+      "banco": "BTG Pactual",
+      "nome": "BANCO DIGIMAIS S.A",
+      "valor_atual": 12631.0,
+      "tipo": "CDB Pós-fixado",
+      "vencimento": ""
+    },
+    "BTG Pactual_CRI - TEX COURIER": {
+      "banco": "BTG Pactual",
+      "nome": "CRI - TEX COURIER",
+      "valor_atual": 8002.3,
+      "tipo": "CRI Pré-fixado",
+      "vencimento": ""
+    },
+    "BTG Pactual_CRI - ONCOCLINICAS II": {
+      "banco": "BTG Pactual",
+      "nome": "CRI - ONCOCLINICAS II",
+      "valor_atual": 7020.69,
+      "tipo": "CRI Pré-fixado",
+      "vencimento": ""
+    },
+    "BTG Pactual_CRA - Zamp": {
+      "banco": "BTG Pactual",
+      "nome": "CRA - Zamp",
+      "valor_atual": 8608.78,
+      "tipo": "CRA Pré-fixado",
+      "vencimento": ""
+    },
+    "BTG Pactual_CRA - MADERO": {
+      "banco": "BTG Pactual",
+      "nome": "CRA - MADERO",
+      "valor_atual": 7778.47,
+      "tipo": "CRA Pré-fixado",
+      "vencimento": ""
+    },
+    "BTG Pactual_CRA - FS AGRISOLUTIONS": {
+      "banco": "BTG Pactual",
+      "nome": "CRA - FS AGRISOLUTIONS",
+      "valor_atual": 7276.46,
+      "tipo": "CRA Pré-fixado",
+      "vencimento": ""
+    },
+    "BTG Pactual_CRA - CEREAL": {
+      "banco": "BTG Pactual",
+      "nome": "CRA - CEREAL",
+      "valor_atual": 8795.66,
+      "tipo": "CRA Pré-fixado",
+      "vencimento": ""
+    },
+    "BTG Pactual_CRA - Caramuru": {
+      "banco": "BTG Pactual",
+      "nome": "CRA - Caramuru",
+      "valor_atual": 20318.78,
+      "tipo": "CRA Pré-fixado",
+      "vencimento": ""
+    },
+    "BTG Pactual_CRA - MINERVA": {
+      "banco": "BTG Pactual",
+      "nome": "CRA - MINERVA",
+      "valor_atual": 26663.31,
+      "tipo": "CRA Pré-fixado",
+      "vencimento": ""
+    },
+    "BTG Pactual_CRA - ELDORADO": {
+      "banco": "BTG Pactual",
+      "nome": "CRA - ELDORADO",
+      "valor_atual": 28517.95,
+      "tipo": "CRA Pré-fixado com índice",
+      "vencimento": ""
+    },
+    "BTG Pactual_LOCALIZA RENT A CAR SA": {
+      "banco": "BTG Pactual",
+      "nome": "LOCALIZA RENT A CAR SA",
+      "valor_atual": 29205.27,
+      "tipo": "Debenture",
+      "vencimento": ""
+    },
+    "BTG Pactual_CSN MINERACAO S.A": {
+      "banco": "BTG Pactual",
+      "nome": "CSN MINERACAO S.A",
+      "valor_atual": 6993.62,
+      "tipo": "Debenture",
+      "vencimento": ""
+    },
+    "BTG Pactual_Tesouro IPCA+ com Juros Semestrais": {
+      "banco": "BTG Pactual",
+      "nome": "Tesouro IPCA+ com Juros Semestrais",
+      "valor_atual": 8585.49,
+      "tipo": "Titulo Publico",
+      "vencimento": ""
+    },
+    "BTG Pactual_BTG HEDGE FIRF CRPR SUB": {
+      "banco": "BTG Pactual",
+      "nome": "BTG HEDGE FIRF CRPR SUB",
+      "valor_atual": 2544.45,
+      "tipo": "Fundo de Investimento",
+      "vencimento": ""
+    },
+    "BTG Pactual_BTG HEDGE INCENTIVADO": {
+      "banco": "BTG Pactual",
+      "nome": "BTG HEDGE INCENTIVADO",
+      "valor_atual": 30091.92,
+      "tipo": "Fundo de Investimento",
+      "vencimento": ""
+    },
+    "BTG Pactual_3R - Cupom Semestral": {
+      "banco": "BTG Pactual",
+      "nome": "3R - Cupom Semestral",
+      "valor_atual": 20449.45,
+      "tipo": "COE",
+      "vencimento": ""
+    },
+    "C6 Bank_Renda Fixa": {
+      "banco": "C6 Bank",
+      "nome": "Renda Fixa",
+      "valor_atual": 6930.11,
+      "tipo": "",
+      "vencimento": ""
+    },
+    "Itaú_CDB-DI": {
+      "banco": "Itaú",
+      "nome": "CDB-DI",
+      "valor_atual": 116374.26,
+      "tipo": "CDB",
+      "vencimento": ""
+    },
+    "Itaú_Itau Prev Corp Platinum Rv49 Mm Pgbl": {
+      "banco": "Itaú",
+      "nome": "Itau Prev Corp Platinum Rv49 Mm Pgbl",
+      "valor_atual": 18715.24,
+      "tipo": "Previdência",
+      "vencimento": ""
+    },
+    "Itaú_Cofrinhos": {
+      "banco": "Itaú",
+      "nome": "Cofrinhos",
+      "valor_atual": 206491.7,
+      "tipo": "Aplicação Automática",
+      "vencimento": ""
+    },
+    "Rico_Alaska Black FIC de FIA - BDR NIVEL I": {
+      "banco": "Rico",
+      "nome": "Alaska Black FIC de FIA - BDR NIVEL I",
+      "valor_atual": 52443.66,
+      "tipo": "Fundo de Investimento",
+      "vencimento": ""
+    },
+    "Rico_Alaska Institucional Long Only FIF em Acoes RL": {
+      "banco": "Rico",
+      "nome": "Alaska Institucional Long Only FIF em Acoes RL",
+      "valor_atual": 52294.2,
+      "tipo": "Fundo de Investimento",
+      "vencimento": ""
+    },
+    "Rico_Safari 30 FIF em Cotas de FIM II": {
+      "banco": "Rico",
+      "nome": "Safari 30 FIF em Cotas de FIM II",
+      "valor_atual": 16613.5,
+      "tipo": "Fundo de Investimento",
+      "vencimento": ""
+    },
+    "Rico_Constellation Institucional Advisory FIC de Acoes RL": {
+      "banco": "Rico",
+      "nome": "Constellation Institucional Advisory FIC de Acoes RL",
+      "valor_atual": 12585.32,
+      "tipo": "Fundo de Investimento",
+      "vencimento": ""
+    },
+    "Rico_Western Asset BDR FIF": {
+      "banco": "Rico",
+      "nome": "Western Asset BDR FIF",
+      "valor_atual": 25913.09,
+      "tipo": "Fundo de Investimento",
+      "vencimento": ""
+    },
+    "Rico_Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM": {
+      "banco": "Rico",
+      "nome": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
+      "valor_atual": 3264.13,
+      "tipo": "Fundo de Investimento",
+      "vencimento": ""
+    },
+    "Rico_XP Alocacao Sofisticada FIM CP RL": {
+      "banco": "Rico",
+      "nome": "XP Alocacao Sofisticada FIM CP RL",
+      "valor_atual": 1576.08,
+      "tipo": "Fundo de Investimento",
+      "vencimento": ""
+    },
+    "Rico_PETR4": {
+      "banco": "Rico",
+      "nome": "PETR4",
+      "valor_atual": 83946.0,
+      "tipo": "Acao",
+      "vencimento": ""
+    },
+    "Rico_ITSA4": {
+      "banco": "Rico",
+      "nome": "ITSA4",
+      "valor_atual": 10285.16,
+      "tipo": "Acao",
+      "vencimento": ""
+    },
+    "Rico_BRKM5": {
+      "banco": "Rico",
+      "nome": "BRKM5",
+      "valor_atual": 2700.0,
+      "tipo": "Acao",
+      "vencimento": ""
+    },
+    "Santander_CDB DI SANTANDER": {
+      "banco": "Santander",
+      "nome": "CDB DI SANTANDER",
+      "valor_atual": 101522.74,
+      "tipo": "",
+      "vencimento": "2028-08-09"
+    },
+    "Santander_CDB PROG SANTANDER": {
+      "banco": "Santander",
+      "nome": "CDB PROG SANTANDER",
+      "valor_atual": 60545.52,
+      "tipo": "",
+      "vencimento": "2028-08-09"
+    }
+  },
+  "total_investido": 1057601.16,
+  "por_instituicao": {
+    "BTG Pactual": 285400.45,
+    "C6 Bank": 6930.11,
+    "Itaú": 341581.2,
+    "Rico": 261621.14,
+    "Santander": 162068.26
+  }
+}

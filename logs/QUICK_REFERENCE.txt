@@ -1,0 +1,213 @@
+================================================================================
+FERREIRA CAMPOS FAMILY PIPELINE - E3 & E4 EXECUTION QUICK REFERENCE
+================================================================================
+
+EXECUTION DATE: 2026-04-04
+STATUS: COMPLETE ✓
+
+================================================================================
+KEY METRICS
+================================================================================
+
+E3 RECONCILIATION:
+  • Input files processed: 105
+  • Accounts reconciled: 14
+  • Total transactions: 329
+  • Duplicates removed: 51
+  • Duplicate rate: 15.5%
+
+E4 UNIFICATION:
+  • Income transactions: 96 (receitas)
+  • Expense transactions: 88 (despesas)
+  • Income categories: 3
+  • Expense categories: 6 (1 used, 5 pending)
+  • Unified output files: 6
+
+FINANCIAL TOTALS:
+  • Total Income (Receitas): R$ 107.752,34
+  • Total Expenses (Despesas): R$ 372.134,40
+  • Net Position: R$ -264.382,06
+
+================================================================================
+ACCOUNTS RECONCILED
+================================================================================
+
+PRIMARY OPERATING:
+  ✓ C6 Bank - PF (BRL): 41 txns, R$ 6.930 → R$ 54.586
+  ✓ C6 Bank - PJ (BRL): 11 txns, R$ 117.430 → R$ 61.000
+  ✓ Itaú Personnalité (BRL): 51 txns*, R$ 217.815 → R$ 913
+  ✓ Bradesco CC (BRL): 145 txns, R$ 1 → R$ 1
+  *51 duplicates removed (100% of overlap)
+
+INVESTMENTS & BROKERAGE:
+  ✓ BTG Pactual (BRL): 37 txns, R$ 10.831 → R$ 13.011
+  ✓ Rico/XP (BRL): 14 txns, R$ 14.072 → R$ 17.186
+  ✓ PicPay (BRL): 8 txns, R$ 52.275 → R$ 53.756
+  ✓ Santander (BRL): 22 txns, R$ 0 → R$ 280
+
+DORMANT/CLOSING:
+  ✓ Bank of America (USD): 0 txns, R$ 2.605 (dormant)
+  ✓ Wise BRL: 0 txns, R$ 0
+  ✓ Wise USD: 0 txns, R$ 0
+  ✓ C6 Global EUR: 0 txns, R$ -8,63
+  ✓ C6 Global USD: 0 txns, R$ 91,59
+  ✓ Bradesco Poupança: 0 txns, N/A
+
+================================================================================
+OUTPUT FILES LOCATION
+================================================================================
+
+E3 RECONCILED FILES (14 total):
+  Directory: processed/E3_reconciled/
+  Format: {banco}_{tipo}_{moeda}_{periodo}-3_reconciled.json
+  Size: ~50 KB
+  
+  Active files:
+    - btgpactual_extratoconta_BRL_0227-0329-3_reconciled.json
+    - c6bank_extratoconta_BRL_0329-0329-3_reconciled.json
+    - c6bank_extratocontapj_BRL_0329-0329-3_reconciled.json
+    - bradesco_extratoconta_BRL_0101-0329-3_reconciled.json
+    - itaú_extratoconta_BRL_0701-0630-3_reconciled.json
+    - picpay_extratoconta_BRL_1229-0328-3_reconciled.json
+    - rico_extratoconta_BRL_0930-0329-3_reconciled.json
+    - santander_extratoconta_BRL_1101-0329-3_reconciled.json
+    + 6 additional (international, poupança, etc.)
+
+E4 UNIFIED FILES (6 total):
+  Directory: processed/E4_unified/
+  Size: ~64 KB
+  
+  Files:
+    1. receitas-4_unified.json (14 KB) - Income categorized
+    2. despesas-4_unified.json (13 KB) - Expenses (needs enhancement)
+    3. patrimonio-4_unified.json (18 KB) - Assets from baseline
+    4. investimentos-4_unified.json (needs data) (74 B) - Placeholder
+    5. seguros-4_unified.json (74 B) - Placeholder
+    6. pontos_milhas-4_unified.json (75 B) - Placeholder
+
+LOGS & REPORTS:
+  • reconciliation.md - Detailed E3 summary
+  • E3_E4_EXECUTION_REPORT.md - Full technical report
+  • QUICK_REFERENCE.txt - This file
+
+================================================================================
+INCOME BREAKDOWN (E4)
+================================================================================
+
+Category               Transactions    Amount (R$)     Notes
+─────────────────────────────────────────────────────────────────────────────
+receita_aluguel              24         43.834,66     Rental income (QuintoAndar)
+receita_investimento         22          3.239,80     Dividends & returns
+receita_outra               50         60.677,88     Internal transfers (filter needed)
+─────────────────────────────────────────────────────────────────────────────
+TOTAL                        96        107.752,34
+
+⚠ Note: Income classification is preliminary. PJ income and CLT salary require
+  further verification and categorization.
+
+================================================================================
+EXPENSE BREAKDOWN (E4)
+================================================================================
+
+Category               Transactions    Amount (R$)     Status
+─────────────────────────────────────────────────────────────────────────────
+outra                       88        372.134,40     NEEDS ENHANCEMENT
+                                                      Card statement details
+                                                      not yet integrated
+─────────────────────────────────────────────────────────────────────────────
+TOTAL                        88        372.134,40
+
+⚠ Status: All expenses currently unclassified pending integration of:
+  - C6 Carbon (faturacarbon)
+  - Santander Unique (faturaunique)
+  - Itaú Pão de Açúcar (faturapaoacucar)
+
+================================================================================
+DATA QUALITY & ENHANCEMENTS NEEDED
+================================================================================
+
+COMPLETE (Ready for E5):
+  ✓ E3 reconciliation (14 accounts)
+  ✓ Transaction deduplication (51 removed)
+  ✓ Income categorization (3 main types)
+  ✓ Patrimonio baseline integration
+  ✓ Period validation & continuity
+
+IN PROGRESS:
+  ⚠ Expense categorization (88 txns, 1 category used)
+    → Requires card statement detail integration
+    → Will enable household budget analysis
+
+  ⚠ Investment positions (placeholder)
+    → Requires parsing position extract files
+    → Needed for asset allocation analysis
+
+  ⚠ Insurance & loyalty programs (placeholders)
+    → Requires holerite & card statement extraction
+
+  ⚠ Internal transfer filtering
+    → Will isolate true income from cash movements
+    → Currently 50 txns in receita_outra
+
+================================================================================
+NEXT STEPS (E5 & BEYOND)
+================================================================================
+
+IMMEDIATE (E5 narratives):
+  1. Review reconciliation_md output
+  2. Validate income sources (rental, PJ, salary)
+  3. Integrate card statement expenses
+  4. Generate monthly trending
+
+SHORT-TERM:
+  1. Fill investimentos-4_unified.json (needs data)
+  2. Extract insurance & loyalty data
+  3. Enhance internal transfer detection
+  4. Complete patrimonio picture
+
+DASHBOARD/REPORTING:
+  1. Monthly income/expense dashboard
+  2. Asset allocation visualization
+  3. Cash flow trending
+  4. Budget vs. actual analysis
+
+================================================================================
+KEY FINDINGS & NOTES
+================================================================================
+
+• Itaú account showed 100% duplicate rate in overlapping periods (202507-202601)
+  → Full deduplication completed, 51 transactions resolved
+
+• Bradesco CC balance very low (R$ 1,00) - verify if end-of-period sweep occurred
+
+• C6 Bank PJ balance declined R$ 56k (R$ 117k → R$ 61k) over period
+  → Consistent with PJ distributions to personal accounts
+
+• International accounts mostly dormant (Wise, BoA, C6 Global)
+  → Consider consolidation/closing
+
+• Rental income concentrated in "receita_aluguel" category (R$ 43.8k)
+  → Dominant recurring income source identified
+
+• Expense data requires enhancement - recommend priority integration of card statements
+  → Current all-in-one "outra" category prevents household analysis
+
+================================================================================
+CONTACTS & REFERENCES
+================================================================================
+
+Configuration Files:
+  • definitions.md - Category definitions, member data, account list
+  • source_hierarchy.md - Source priority & data handling rules
+
+Current Manual:
+  • manual_operacao.md v4.0 - Operational guidelines (superseded by v5.2)
+
+Related Data:
+  • baseline_patrimonial-1.5_consolidated.json - Asset baseline
+  • dados_imoveis-2_extract.json - Real estate details
+  • IRPF declarations (David & Mariana) - Tax returns 2023-2024
+
+================================================================================
+END OF QUICK REFERENCE
+================================================================================

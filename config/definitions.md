@@ -152,16 +152,16 @@
 
 ## IDENTIFICADORES NOS EXTRATOS
 
-| Campo no extrato                           | Significado real               | Conta             | Cuidado           |
-| ------------------------------------------ | ------------------------------ | ----------------- | ----------------- |
-| "Sociedade Beneficente Israelita"          | Salário Einstein (Mariana)     | Poupança Bradesco | NÃO aparece no CC |
-| "GRPQA Ltda." ou "Grpqa" ou "SISPAG GRPQA" | Aluguéis QuintoAndar (Mariana) | CC Bradesco       | NÃO é salário     |
-| "GRPQA Ltda." ou "Grpqa" ou "SISPAG GRPQA" | Aluguéis QuintoAndar (David)   | Itaú Personnalité | —                 |
-| "VINDI *ACCOUNTBANKTEC"                    | AccountTech contador           | Fatura C6 Carbon  | —                 |
-| "CAMILANAKAMURA"                           | Camila Nakamura dentista       | Fatura C6 Carbon  | —                 |
-| "NATHALIA CASA DE"                         | Açougue Nathalia               | Fatura C6 Carbon  | —                 |
-| "Débito RFB CPF 085.052.396-60"            | IRPF parcelamento Mariana      | CC Bradesco       | —                 |
-| "ABDO MOHAMED"                             | Instituto Dr. Barakat de Medicina Integrativa | Faturas/extratos | Categoria: Saúde  |
+| Campo no extrato                           | Significado real                              | Conta             | Cuidado           |
+| ------------------------------------------ | --------------------------------------------- | ----------------- | ----------------- |
+| "Sociedade Beneficente Israelita"          | Salário Einstein (Mariana)                    | Poupança Bradesco | NÃO aparece no CC |
+| "GRPQA Ltda." ou "Grpqa" ou "SISPAG GRPQA" | Aluguéis QuintoAndar (Mariana)                | CC Bradesco       | NÃO é salário     |
+| "GRPQA Ltda." ou "Grpqa" ou "SISPAG GRPQA" | Aluguéis QuintoAndar (David)                  | Itaú Personnalité | —                 |
+| "VINDI *ACCOUNTBANKTEC"                    | AccountTech contador                          | Fatura C6 Carbon  | —                 |
+| "CAMILANAKAMURA"                           | Camila Nakamura dentista                      | Fatura C6 Carbon  | —                 |
+| "NATHALIA CASA DE"                         | Açougue Nathalia                              | Fatura C6 Carbon  | —                 |
+| "Débito RFB CPF 085.052.396-60"            | IRPF parcelamento Mariana                     | CC Bradesco       | —                 |
+| "ABDO MOHAMED"                             | Instituto Dr. Barakat de Medicina Integrativa | Faturas/extratos  | Categoria: Saúde  |
 
 ---
 
@@ -419,15 +419,18 @@ goals.if_gap           = if_meta − investivel
 
 **Categorias da tabela patrimonial (devem somar exatamente ao bruto):**
 
+> ⚠️ **Regras detalhadas em `config/regras_composicao_patrimonial.md`** — o arquivo canônico
+> com tabelas de matching, exemplos e validações. A tabela abaixo é um resumo.
+
 | # | Categoria | Cálculo |
 |---|---|---|
-| 1 | Residência própria | IRPF David → Tasso da Silveira |
-| 2 | Imóveis investimento | E4.imoveis − Residência |
-| 3 | Investimentos David | baseline.investimentos[] (inclui Hashdex — é fundo regulado, não crypto direto) |
-| 4 | Investimentos Mariana | baseline.investimentos[] (BTG) |
-| 5 | Criptoativos | Binance saldo (crypto direta: BTC, ETH, ADA, AXS etc.) |
-| 6 | Caixa + Moeda | bruto − categorias 1-5 − categoria 7 (residual) |
-| 7 | Veículos | baseline.veiculos[] |
+| 1 | Residência própria | IRPF David → imóvel Tasso da Silveira |
+| 2 | Imóveis investimento | SUM(ALL imoveis ALL members) − Residência. **Inclui David E Mariana.** |
+| 3 | Investimentos David | baseline.investimentos[] + contas_bancarias[] de tipo investimento (CDB, RDB, RF, Poupança, conta corretora). Hashdex fica aqui (fundo regulado). |
+| 4 | Investimentos Mariana | baseline.investimentos[] + contas_bancarias[] de tipo investimento (mesma regra cat.3) |
+| 5 | Criptoativos | Binance saldo (crypto direta: BTC, ETH, ADA, AXS etc.) — NÃO inclui fundos crypto regulados |
+| 6 | Caixa + Moeda | bruto − categorias 1-5 − categoria 7 (RESIDUAL). Deve conter apenas CC puras + moeda estrangeira. Se > 5% do bruto → warning. |
+| 7 | Veículos | SUM(ALL veiculos ALL members) |
 
 **Validações (bloquear geração se falhar):**
 - `SUM(categorias 1–7) == bruto`

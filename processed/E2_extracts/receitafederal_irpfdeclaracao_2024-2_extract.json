@@ -1,366 +1,497 @@
 {
-  "tipo": "irpfdeclaracao",
-  "ano_base": 2024,
   "declarante": {
-    "nome": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-    "cpf": "287.766.948-36"
+    "name": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+    "cpf": "287.766.948-36",
+    "year_base": 2023,
+    "year_filed": 2024,
+    "date_birth": "05/09/1981",
+    "spouse_cpf": "085.052.396-60",
+    "spouse_exists": true,
+    "address": "RUA TASSO DA SILVEIRA, 61, VILA GUARANI Z SUL, SAO PAULO, SP 04316-080",
+    "phone": "(11) 99681-9851",
+    "email": "DAVIDROBERT@GMAIL.COM",
+    "occupation_code": "01",
+    "occupation_description": "Empregado de empresa do setor privado, exceto de instituicoes financeiras",
+    "principal_occupation": "Analista de sistemas, desenvolvedor de software, administrador de redes e bancos de dados e outros especialistas em informatica"
   },
-  "data_declaracao": "2025-05-28",
   "bens_direitos": [
     {
-      "codigo_grupo": "01",
-      "codigo_item": "11",
-      "tipo": "imovel",
-      "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
-      "valor_31_12_ano_anterior": 350000.0,
-      "valor_31_12_ano_base": 350000.0,
-      "localidade": "SAO PAULO - SP"
+      "code": "01",
+      "group": "11",
+      "description": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
+      "location": "PRACA BENEDITO CALIXTO, APTO 34, PINHEIROS, SAO PAULO, SP",
+      "situacao_31_12_anterior": 350000.00,
+      "situacao_31_12_ano_base": 350000.00,
+      "acquisition_date": "10/12/2021",
+      "area_m2": 40.7,
+      "registered": true,
+      "county": "13O CARTORIO DE REGISTRO DE IMOVEIS DE SAO PAULO"
     },
     {
-      "codigo_grupo": "01",
-      "codigo_item": "12",
-      "tipo": "imovel",
-      "descricao": "COMPRA E VENDA DE CASA - ADQUIRIDO DE CPF 135.542.328-74",
-      "valor_31_12_ano_anterior": 80000.0,
-      "valor_31_12_ano_base": 80000.0,
-      "localidade": "SAO PAULO - SP"
+      "code": "01",
+      "group": "11",
+      "description": "APARTAMENTO - EDIFICIO GISELE - APTO 12 COM UMA VAGA DE GARAGEM N48 - ALIENACAO FIDUCIARIA AO ITAU UNIBANCO S/A - CONTRATO 101711192207",
+      "location": "RUA MAJOR FREIRE, N 496, VILA MONTE ALEGRE, SAO PAULO, SP",
+      "situacao_31_12_anterior": 212706.24,
+      "situacao_31_12_ano_base": 212706.24,
+      "acquisition_date": "02/02/2022",
+      "area_m2": 68.8,
+      "registered": true,
+      "county": "8 CARTORIO DE REGISTRO DE IMOVEIS"
     },
     {
-      "codigo_grupo": "01",
-      "codigo_item": "12",
-      "tipo": "imovel",
-      "descricao": "CASA - RUA TASSO DA SILVEIRA, 61 - FINANCIAMENTO QUITADO NA CAIXA",
-      "valor_31_12_ano_anterior": 996821.46,
-      "valor_31_12_ano_base": 996821.46,
-      "localidade": "SAO PAULO - SP"
+      "code": "01",
+      "group": "12",
+      "description": "COMPRA E VENDA DE CASA - ADQUIRIDO DE CPF 135.542.328-74 EM 12/01/2023 - VALOR: R$ 80.000,00 - PARTICIPACAO: 100% - INFORMADO POR CNPJ 22.901.777/0001-60",
+      "location": "QUADRA 33 LOTE 27, JABOAQUARA, SAO PAULO, SP",
+      "situacao_31_12_anterior": 80000.00,
+      "situacao_31_12_ano_base": 80000.00,
+      "acquisition_date": "12/01/2023",
+      "area_m2": 0.0
     },
     {
-      "codigo_grupo": "02",
-      "codigo_item": "01",
-      "tipo": "veiculo",
-      "descricao": "MOTOCICLETA YAMAHA NMAX - PRETA - PLACA DAV0351 - ANO 2018",
-      "valor_31_12_ano_anterior": 15093.0,
-      "valor_31_12_ano_base": 15093.0,
-      "localidade": "Brasil"
+      "code": "01",
+      "group": "12",
+      "description": "CASA - RUA TASSO DA SILVEIRA, 61 - SAO PAULO - SP - FINANCIAMENTO QUITADO NA CAIXA CONTRATO: 1.4444.0514.760-3 - VENDEDOR: GERALDO COSTA FERNANDES - CPF: 570.499.478-49 - DATA DA COMPRA 04/FEV/2014",
+      "location": "RUA TASSO DA SILVEIRA, 61, VILA GUARANI, SAO PAULO, SP",
+      "situacao_31_12_anterior": 996821.46,
+      "situacao_31_12_ano_base": 996821.46,
+      "acquisition_date": "04/02/2014",
+      "area_m2": 171.0,
+      "registered": true,
+      "county": "OITAVO CARTORIO DE REGISTRO DE IMOVEIS"
     },
     {
-      "codigo_grupo": "02",
-      "codigo_item": "01",
-      "tipo": "veiculo",
-      "descricao": "MOTOCICLETA YAMAHA MT 09 TRACER - AZUL - PLACA DAV 0342 - ANO 2018 (ALIENADO)",
-      "valor_31_12_ano_anterior": 51722.0,
-      "valor_31_12_ano_base": 0.0,
-      "localidade": "Brasil"
+      "code": "02",
+      "group": "01",
+      "description": "VEICULO - MOTOCICLETA YAMAHA NMAX - PRETA - PLACA DAV0351 - ANO 2018",
+      "situacao_31_12_anterior": 15093.00,
+      "situacao_31_12_ano_base": 15093.00,
+      "renavam": "01143226094"
     },
     {
-      "codigo_grupo": "02",
-      "codigo_item": "01",
-      "tipo": "veiculo",
-      "descricao": "CARRO FIAT TORO ULTRA - COR AZUL - PLACA GDK6A27",
-      "valor_31_12_ano_anterior": 191354.0,
-      "valor_31_12_ano_base": 191354.0,
-      "localidade": "Brasil"
+      "code": "02",
+      "group": "01",
+      "description": "VEICULO - MOTOCICLETA YAMAHA MT 09 TRACER - AZUL - PLACA DAV 0342 - ANO 2018",
+      "situacao_31_12_anterior": 51722.00,
+      "situacao_31_12_ano_base": 0.00,
+      "renavam": "01165524977"
     },
     {
-      "codigo_grupo": "02",
-      "codigo_item": "01",
-      "tipo": "veiculo",
-      "descricao": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA STH2C88",
-      "valor_31_12_ano_anterior": 0.0,
-      "valor_31_12_ano_base": 21029.0,
-      "localidade": "Brasil"
+      "code": "02",
+      "group": "01",
+      "description": "VEICULO - CARRO FIAT TORO ULTRA - COR AZUL - PLACA GDK6A27",
+      "situacao_31_12_anterior": 191354.00,
+      "situacao_31_12_ano_base": 191354.00,
+      "renavam": "01294108287"
     },
     {
-      "codigo_grupo": "03",
-      "codigo_item": "01",
-      "tipo": "acao",
-      "descricao": "ACOES - ITSA4 - QUANTIDADE 693 (ALIENADA)",
-      "valor_31_12_ano_anterior": 5821.2,
-      "valor_31_12_ano_base": 0.0,
-      "localidade": "Brasil"
+      "code": "02",
+      "group": "01",
+      "description": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA STH2C88",
+      "situacao_31_12_anterior": 0.00,
+      "situacao_31_12_ano_base": 21029.00
     },
     {
-      "codigo_grupo": "03",
-      "codigo_item": "01",
-      "tipo": "acao",
-      "descricao": "ACOES - BRKM5 - QUANTIDADE 300 (ALIENADA)",
-      "valor_31_12_ano_anterior": 6267.0,
-      "valor_31_12_ano_base": 0.0,
-      "localidade": "Brasil"
+      "code": "03",
+      "group": "01",
+      "description": "ACOES - ITSA4 - QUANTIDADE 693",
+      "situacao_31_12_anterior": 5821.20,
+      "situacao_31_12_ano_base": 0.00,
+      "owner_cpf": "287.766.948-36",
+      "trade_code": "ITSA4",
+      "traded_on_bovespa": false
     },
     {
-      "codigo_grupo": "03",
-      "codigo_item": "01",
-      "tipo": "acao",
-      "descricao": "ACOES - PETR4 - QUANTIDADE 300 (ALIENADA)",
-      "valor_31_12_ano_anterior": 38883.0,
-      "valor_31_12_ano_base": 0.0,
-      "localidade": "Brasil"
+      "code": "03",
+      "group": "01",
+      "description": "ACOES - BRKM5 - QUANTIDADE 300",
+      "situacao_31_12_anterior": 6267.00,
+      "situacao_31_12_ano_base": 0.00,
+      "owner_cpf": "287.766.948-36",
+      "trade_code": "BRKM5",
+      "traded_on_bovespa": false
     },
     {
-      "codigo_grupo": "04",
-      "codigo_item": "01",
-      "tipo": "conta_bancaria",
-      "descricao": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL (ZERADA)",
-      "valor_31_12_ano_anterior": 61507.2,
-      "valor_31_12_ano_base": 0.0,
-      "localidade": "Brasil"
+      "code": "03",
+      "group": "01",
+      "description": "ACOES - PETR4 - QUANTIDADE 300",
+      "situacao_31_12_anterior": 38883.00,
+      "situacao_31_12_ano_base": 0.00,
+      "owner_cpf": "287.766.948-36",
+      "trade_code": "PETR4",
+      "traded_on_bovespa": true
     },
     {
-      "codigo_grupo": "04",
-      "codigo_item": "02",
-      "tipo": "aplicacao",
-      "descricao": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP",
-      "valor_31_12_ano_anterior": 277658.86,
-      "valor_31_12_ano_base": 151602.49,
-      "localidade": "Brasil"
+      "code": "04",
+      "group": "01",
+      "description": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL",
+      "situacao_31_12_anterior": 61507.20,
+      "situacao_31_12_ano_base": 0.00,
+      "owner_cpf": "287.766.948-36",
+      "banco": "104",
+      "agencia": "",
+      "conta": ""
     },
     {
-      "codigo_grupo": "04",
-      "codigo_item": "02",
-      "tipo": "aplicacao",
-      "descricao": "BANCO PICPAY BANK - APLICACAO RENDA FIXA",
-      "valor_31_12_ano_anterior": 73587.74,
-      "valor_31_12_ano_base": 46684.62,
-      "localidade": "Brasil"
+      "code": "04",
+      "group": "02",
+      "description": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP - AG/CONTA 9652/0004397-8",
+      "situacao_31_12_anterior": 277658.86,
+      "situacao_31_12_ano_base": 151602.49,
+      "owner_cpf": "287.766.948-36",
+      "banco": "ITAU"
     },
     {
-      "codigo_grupo": "04",
-      "codigo_item": "02",
-      "tipo": "aplicacao",
-      "descricao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB)",
-      "valor_31_12_ano_anterior": 1886.46,
-      "valor_31_12_ano_base": 243285.37,
-      "localidade": "Brasil"
+      "code": "04",
+      "group": "02",
+      "description": "BANCO PICPAY BANK BANCO MULTIPLO S.A. - AGENCIA: 0001 - CONTA: 438329-0 - INSTITUICAO: 380",
+      "situacao_31_12_anterior": 73587.74,
+      "situacao_31_12_ano_base": 46684.62,
+      "owner_cpf": "287.766.948-36",
+      "banco": "PICPAY"
     },
     {
-      "codigo_grupo": "04",
-      "codigo_item": "02",
-      "tipo": "aplicacao",
-      "descricao": "BANCO C6 - APLICACAO EM RENDA FIXA",
-      "valor_31_12_ano_anterior": 23439.0,
-      "valor_31_12_ano_base": 1765.0,
-      "localidade": "Brasil"
+      "code": "04",
+      "group": "02",
+      "description": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB) - AGENCIA: 1652 - CONTA: 01001416",
+      "situacao_31_12_anterior": 1886.46,
+      "situacao_31_12_ano_base": 243285.37,
+      "owner_cpf": "287.766.948-36",
+      "banco": "SANTANDER"
     },
     {
-      "codigo_grupo": "04",
-      "codigo_item": "02",
-      "tipo": "aplicacao",
-      "descricao": "SALDO EM RDB NO NUBANK",
-      "valor_31_12_ano_anterior": 5.98,
-      "valor_31_12_ano_base": 189.3,
-      "localidade": "Brasil"
+      "code": "04",
+      "group": "02",
+      "description": "BANCO C6 - APLICACAO EM RENDA FIXA",
+      "situacao_31_12_anterior": 23439.00,
+      "situacao_31_12_ano_base": 1765.00,
+      "owner_cpf": "287.766.948-36",
+      "banco": "C6"
     },
     {
-      "codigo_grupo": "06",
-      "codigo_item": "01",
-      "tipo": "conta_bancaria",
-      "descricao": "BANCO CAIXA - CONTA CORRENTE - AG 1218",
-      "valor_31_12_ano_anterior": 275.29,
-      "valor_31_12_ano_base": 230.53,
-      "localidade": "Brasil"
+      "code": "04",
+      "group": "02",
+      "description": "SALDO EM RDB NO NUBANK",
+      "situacao_31_12_anterior": 5.98,
+      "situacao_31_12_ano_base": 189.30,
+      "owner_cpf": "287.766.948-36",
+      "banco": "NUBANK"
     },
     {
-      "codigo_grupo": "06",
-      "codigo_item": "01",
-      "tipo": "conta_bancaria",
-      "descricao": "BANCO ITAU - CONTA CORRENTE",
-      "valor_31_12_ano_anterior": 10.0,
-      "valor_31_12_ano_base": 1.01,
-      "localidade": "Brasil"
+      "code": "06",
+      "group": "01",
+      "description": "BANCO CAIXA - CONTA CORRENTE - AG 1218 CONTA 22539-4 - CONTA 00058413927.40 - RECUPERADO DA CONTA ANTIGA 00100022539-4",
+      "situacao_31_12_anterior": 275.29,
+      "situacao_31_12_ano_base": 230.53,
+      "owner_cpf": "287.766.948-36",
+      "banco": "104",
+      "agencia": "1218",
+      "conta": "00058413927.40"
     },
     {
-      "codigo_grupo": "06",
-      "codigo_item": "01",
-      "tipo": "conta_bancaria",
-      "descricao": "DEPOSITO EM CONTA CORRENTE",
-      "valor_31_12_ano_anterior": 0.0,
-      "valor_31_12_ano_base": 4936.98,
-      "localidade": "Brasil"
+      "code": "06",
+      "group": "01",
+      "description": "BANCO ITAU - CONTA CORRENTE",
+      "situacao_31_12_anterior": 10.00,
+      "situacao_31_12_ano_base": 1.01,
+      "owner_cpf": "287.766.948-36",
+      "banco": "341",
+      "agencia": "9652",
+      "conta": "4397-8"
     },
     {
-      "codigo_grupo": "06",
-      "codigo_item": "11",
-      "tipo": "outro",
-      "descricao": "USD 6524,00 - MOEDA ESTRANGEIRA",
-      "valor_31_12_ano_anterior": 34433.67,
-      "valor_31_12_ano_base": 34433.67,
-      "localidade": "Brasil"
+      "code": "06",
+      "group": "01",
+      "description": "DEPOSITO EM CONTA CORRENTE DE DEPOSITO A VISTA OU DE INVESTIMENTO",
+      "situacao_31_12_anterior": 0.00,
+      "situacao_31_12_ano_base": 4936.98,
+      "owner_cpf": "287.766.948-36",
+      "banco": "336",
+      "agencia": "0001",
+      "conta": "13095222-2"
     },
     {
-      "codigo_grupo": "06",
-      "codigo_item": "99",
-      "tipo": "aplicacao",
-      "descricao": "RICO - SALDO EM CONTA - XP INVESTIMENTOS",
-      "valor_31_12_ano_anterior": 15717.49,
-      "valor_31_12_ano_base": 8546.95,
-      "localidade": "Brasil"
+      "code": "06",
+      "group": "11",
+      "description": "U$ 6524.00",
+      "situacao_31_12_anterior": 34433.67,
+      "situacao_31_12_ano_base": 34433.67,
+      "owner_cpf": "287.766.948-36"
     },
     {
-      "codigo_grupo": "06",
-      "codigo_item": "99",
-      "tipo": "outro",
-      "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (ILHAS CAYMAN)",
-      "valor_31_12_ano_anterior": 768.94,
-      "valor_31_12_ano_base": 484.8,
-      "localidade": "Cayman, Ilhas"
+      "code": "06",
+      "group": "99",
+      "description": "RICO - SALDO EM CONTA - XP INVESTIMENTOS CCVM S/A",
+      "situacao_31_12_anterior": 15717.49,
+      "situacao_31_12_ano_base": 8546.95,
+      "owner_cpf": "287.766.948-36",
+      "instituicao": "XP INVESTIMENTOS CCVM S/A"
     },
     {
-      "codigo_grupo": "07",
-      "codigo_item": "01",
-      "tipo": "aplicacao",
-      "descricao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX FIC FIM",
-      "valor_31_12_ano_anterior": 2457.74,
-      "valor_31_12_ano_base": 3189.68,
-      "localidade": "Brasil"
+      "code": "06",
+      "group": "99",
+      "description": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS CAYMAN) AG: 0001/CC: 100348783-7",
+      "situacao_31_12_anterior": 768.94,
+      "situacao_31_12_ano_base": 484.80,
+      "owner_cpf": "287.766.948-36",
+      "pais": "Cayman, Ilhas",
+      "lucro_ou_prejuizo": 0.00,
+      "imposto_pago_exterior": 0.00
     },
     {
-      "codigo_grupo": "07",
-      "codigo_item": "01",
-      "tipo": "aplicacao",
-      "descricao": "RICO - DNA ENERGY FIC FIM CP",
-      "valor_31_12_ano_anterior": 1387.66,
-      "valor_31_12_ano_base": 1416.09,
-      "localidade": "Brasil"
+      "code": "07",
+      "group": "01",
+      "description": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F",
+      "situacao_31_12_anterior": 2457.74,
+      "situacao_31_12_ano_base": 3189.68,
+      "owner_cpf": "287.766.948-36",
+      "fundo_cnpj": "33.736.873/0001-16"
     },
     {
-      "codigo_grupo": "07",
-      "codigo_item": "04",
-      "tipo": "aplicacao",
-      "descricao": "RICO - CONSTELLATION INSTITUCIONAL ADVI",
-      "valor_31_12_ano_anterior": 10000.0,
-      "valor_31_12_ano_base": 11409.17,
-      "localidade": "Brasil"
+      "code": "07",
+      "group": "01",
+      "description": "RICO - DNA ENERGY FIC FIM CP",
+      "situacao_31_12_anterior": 1387.66,
+      "situacao_31_12_ano_base": 1416.09,
+      "owner_cpf": "287.766.948-36",
+      "fundo_cnpj": "35.956.056/0001-07"
     },
     {
-      "codigo_grupo": "07",
-      "codigo_item": "04",
-      "tipo": "aplicacao",
-      "descricao": "RICO - WESTERN ASSET FIA BDR NIVEL I",
-      "valor_31_12_ano_anterior": 17651.61,
-      "valor_31_12_ano_base": 17651.61,
-      "localidade": "Brasil"
+      "code": "07",
+      "group": "04",
+      "description": "RICO - CONSTELLATION INSTITUTIONAL ADVI 34.462.109/0001-62",
+      "situacao_31_12_anterior": 10000.00,
+      "situacao_31_12_ano_base": 11409.17,
+      "owner_cpf": "287.766.948-36",
+      "fundo_cnpj": "34.462.109/0001-62",
+      "traded_on_bovespa": false
     },
     {
-      "codigo_grupo": "07",
-      "codigo_item": "04",
-      "tipo": "aplicacao",
-      "descricao": "RICO - ALASKA BLACK FIC FIA - BDR",
-      "valor_31_12_ano_anterior": 60000.0,
-      "valor_31_12_ano_base": 60000.0,
-      "localidade": "Brasil"
+      "code": "07",
+      "group": "04",
+      "description": "RICO - WESTERN ASSET FIA BDR NIVEL I 19.831.126/0001-36",
+      "situacao_31_12_anterior": 17651.61,
+      "situacao_31_12_ano_base": 17651.61,
+      "owner_cpf": "287.766.948-36",
+      "fundo_cnpj": "19.831.126/0001-36",
+      "traded_on_bovespa": false
     },
     {
-      "codigo_grupo": "07",
-      "codigo_item": "04",
-      "tipo": "aplicacao",
-      "descricao": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR",
-      "valor_31_12_ano_anterior": 35000.0,
-      "valor_31_12_ano_base": 35000.0,
-      "localidade": "Brasil"
+      "code": "07",
+      "group": "04",
+      "description": "RICO - ALASKA BLACK FIC FIA - BDR 12.987.743/0001-86",
+      "situacao_31_12_anterior": 60000.00,
+      "situacao_31_12_ano_base": 60000.00,
+      "owner_cpf": "287.766.948-36",
+      "fundo_cnpj": "12.987.743/0001-86",
+      "traded_on_bovespa": false
     },
     {
-      "codigo_grupo": "07",
-      "codigo_item": "04",
-      "tipo": "aplicacao",
-      "descricao": "RICO - SAFARI 30 FIC FIM II",
-      "valor_31_12_ano_anterior": 25238.59,
-      "valor_31_12_ano_base": 25238.59,
-      "localidade": "Brasil"
+      "code": "07",
+      "group": "04",
+      "description": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR 26.673.556/0001-32",
+      "situacao_31_12_anterior": 35000.00,
+      "situacao_31_12_ano_base": 35000.00,
+      "owner_cpf": "287.766.948-36",
+      "fundo_cnpj": "26.673.556/0001-32",
+      "traded_on_bovespa": false
     },
     {
-      "codigo_grupo": "99",
-      "codigo_item": "07",
-      "tipo": "outro",
-      "descricao": "ITAUSA S.A - JUROS SOBRE CAPITAL CREDITADOS E NAO PAGOS",
-      "valor_31_12_ano_anterior": 192.96,
-      "valor_31_12_ano_base": 82.15,
-      "localidade": "Brasil"
+      "code": "07",
+      "group": "04",
+      "description": "RICO - SAFARI 30 FIC FIM II",
+      "situacao_31_12_anterior": 25238.59,
+      "situacao_31_12_ano_base": 25238.59,
+      "owner_cpf": "287.766.948-36",
+      "fundo_cnpj": "23.960.625/0001-09",
+      "traded_on_bovespa": false
+    },
+    {
+      "code": "99",
+      "group": "07",
+      "description": "ITAUSA S.A. - POSICAO ACIONARIA - JUROS SOBRE CAPITAL CREDITADOS E NAO PAGOS (CNPJ 61.532.644/0001-15)",
+      "situacao_31_12_anterior": 192.96,
+      "situacao_31_12_ano_base": 82.15,
+      "owner_cpf": "287.766.948-36",
+      "cnpj": "61.532.644/0001-15"
     }
   ],
-  "rendimentos": [
+  "rendimentos_tributaveis": [
     {
-      "tipo": "pj",
-      "valor_bruto": 153938.74,
-      "valor_liquido": 120713.51,
+      "source": "DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "cnpj": "48.771.488/0001-87",
+      "type": "Rendimentos Recebidos de Pessoa Juridica",
+      "rendimentos_recebidos": 153938.74,
+      "contribuicao_previdenciaria": 6070.68,
       "imposto_retido": 33225.23,
-      "fonte": "DAVID ROBERT CAMARGO DE CAMPOS LTDA"
+      "decimo_terceiro_salario": 0.00,
+      "irrf_sobre_decimoterceiro": 0.00,
+      "value": 153938.74
     },
     {
-      "tipo": "pj",
-      "valor_bruto": 466978.67,
-      "valor_liquido": 345435.12,
+      "source": "KIWIFY PAGAMENTOS TECNOLOGIA E SERVICOS LTDA",
+      "cnpj": "36.149.947/0001-06",
+      "type": "Rendimentos Recebidos de Pessoa Juridica",
+      "rendimentos_recebidos": 466978.67,
+      "contribuicao_previdenciaria": 5453.10,
       "imposto_retido": 121543.55,
-      "fonte": "KIWIFY PAGAMENTOS TECNOLOGIA E SERVICOS LTDA"
+      "decimo_terceiro_salario": 31259.11,
+      "irrf_sobre_decimoterceiro": 10621.04,
+      "value": 466978.67
     },
     {
-      "tipo": "aluguel",
-      "valor_bruto": 30457.24,
-      "valor_liquido": 30457.24,
-      "imposto_retido": 0.0,
-      "fonte": "Aluguéis"
+      "source": "Pessoa Fisica - Rendimentos de Aluguel",
+      "type": "Aluguel Pessoa Fisica",
+      "total_monthly_rents": 30457.24,
+      "value": 30457.24
+    }
+  ],
+  "rendimentos_isentos": [
+    {
+      "type": "13. Rendimento de socio ou titular de microempresa ou empresa de pequeno porte optante pelo Simples Nacional, exceto pro labore, aluguel e servicos prestados",
+      "value": 301277.39,
+      "beneficiary_cpf": "287.766.948-36",
+      "beneficiary_name": "Titular",
+      "source_cnpj": "48.771.488/0001-87",
+      "source_name": "DAVID ROBERT CAMARGO DE CAMPOS LTDA"
     },
     {
-      "tipo": "isento",
-      "valor_bruto": 301277.39,
-      "valor_liquido": 301277.39,
-      "imposto_retido": 0.0,
-      "fonte": "Simples Nacional - Sócio"
+      "type": "06. Rendimentos de aplicacoes financeiras",
+      "value": 55445.46,
+      "details": [
+        {
+          "source": "PETROLEO BRASILEIRO S.A. PETROBRAS",
+          "source_cnpj": "33.000.167/0001-01",
+          "value": 200.77
+        },
+        {
+          "source": "ITAU UNIBANCO S.A.",
+          "source_cnpj": "60.701.190/0001-04",
+          "value": 41231.46
+        },
+        {
+          "source": "BANCO SANTANDER (BRASIL) S.A",
+          "source_cnpj": "90.400.888/0001-42",
+          "value": 511.97
+        },
+        {
+          "source": "PICPAY BANK BANCO MULTIPLO S.A",
+          "source_cnpj": "09.516.419/0001-75",
+          "value": 9414.38
+        },
+        {
+          "source": "NU FINANCEIRA S.A. - SOCIEDADE DE CREDITO, FINANCIAMENTO E I",
+          "source_cnpj": "30.680.829/0001-43",
+          "value": 0.02
+        },
+        {
+          "source": "BANCO C6 SA",
+          "source_cnpj": "31.872.495/0001-72",
+          "value": 3326.64
+        },
+        {
+          "source": "HASHDEX 20 NASDAQ CRYPTO INDEX FIC FIM",
+          "source_cnpj": "33.736.873/0001-16",
+          "value": 731.81
+        },
+        {
+          "source": "DNA ENERGY FIC FIM CP",
+          "source_cnpj": "35.956.056/0001-07",
+          "value": 28.41
+        }
+      ]
     },
     {
-      "tipo": "outro",
-      "valor_bruto": 31259.11,
-      "valor_liquido": 31259.11,
-      "imposto_retido": 10621.04,
-      "fonte": "13º Salário"
-    },
-    {
-      "tipo": "dividendo",
-      "valor_bruto": 2658.8,
-      "valor_liquido": 2658.8,
-      "imposto_retido": 0.0,
-      "fonte": "Juros sobre Capital Próprio - Petrobras e Itausa"
-    },
-    {
-      "tipo": "financeiro",
-      "valor_bruto": 55445.46,
-      "valor_liquido": 55445.46,
-      "imposto_retido": 0.0,
-      "fonte": "Aplicações Financeiras (Petrobras, Itau, Santander, PicPay, C6, NU, Hashdex, DNA)"
+      "type": "10. Juros sobre capital proprio",
+      "value": 2658.80,
+      "details": [
+        {
+          "source": "PETROLEO BRASILEIRO S.A. PETROBRAS",
+          "source_cnpj": "33.000.167/0001-01",
+          "value": 2431.31
+        },
+        {
+          "source": "ITAUSA S.A.",
+          "source_cnpj": "61.532.644/0001-15",
+          "value": 227.49
+        }
+      ]
     }
   ],
   "dividas_onus": [
     {
-      "tipo": "financiamento",
-      "descricao": "CREDITO IMOBILIARIO - CREDOR: ITAU UNIBANCO S.A. - CONTRATO 10171192207",
-      "valor_31_12_ano_anterior": 265420.59,
-      "valor_31_12_ano_base": 234642.79
+      "code": "11",
+      "description": "CREDITO IMOBILIARIO - CREDOR: ITAU UNIBANCO S.A. - CONTRATO 10171192207",
+      "situacao_31_12_anterior": 265420.59,
+      "situacao_31_12_ano_base": 234642.79,
+      "valor_pago_em_2024": 54416.00
     },
     {
-      "tipo": "outro",
-      "descricao": "CHEQUE ESPECIAL BANCO SANTANDER",
-      "valor_31_12_ano_anterior": 0.0,
-      "valor_31_12_ano_base": 149.82
+      "code": "11",
+      "description": "CHEQUE ESPECIAL BANCO SANTANDER",
+      "situacao_31_12_anterior": 0.00,
+      "situacao_31_12_ano_base": 149.82,
+      "valor_pago_em_2024": 0.00
     }
   ],
-  "deducoes": [
+  "pagamentos_dedutiveis": [
     {
-      "tipo": "saude",
-      "valor": 136.0
+      "code": "21",
+      "beneficiary": "FLEURY S/A",
+      "beneficiary_cnpj": "60.840.055/0001-31",
+      "value": 136.00,
+      "not_deductible_portion": 0.00,
+      "description": "Saude"
     },
     {
-      "tipo": "outro",
-      "valor": 2829.36
+      "code": "71",
+      "beneficiary": "GRPQA LTDA",
+      "beneficiary_cnpj": "16.788.643/0001-81",
+      "value": 2829.36,
+      "not_deductible_portion": 0.00,
+      "description": "Educacao"
     }
   ],
-  "totalizadores": {
-    "bens_totais_ano_anterior": 2589887.09,
-    "bens_totais_ano_base": 2513151.71,
-    "renda_tributavel": 651374.65,
-    "renda_isenta": 301277.39,
-    "renda_tributacao_exclusiva": 89363.37,
-    "imposto_devido": 163779.6,
+  "totals": {
+    "total_bens": 2513151.71,
+    "total_bens_anterior": 2589887.09,
+    "total_dividas": 234792.61,
+    "total_dividas_anterior": 265420.59,
+    "total_rendimentos_tributaveis": 651374.65,
+    "total_rendimentos_isentos": 301277.39,
+    "total_rendimentos_exclusivos": 89363.37,
+    "imposto_retido_na_fonte": 154768.78,
+    "imposto_devido": 163779.60,
     "imposto_pago": 154768.78,
-    "saldo": 9010.82
+    "imposto_a_restituir": 0.00,
+    "saldo_imposto_a_pagar": 9010.82
+  },
+  "tax_summary": {
+    "total_taxable_income": 651374.65,
+    "simplified_discount": 16754.34,
+    "taxable_base": 634620.31,
+    "tax_owed": 163779.60,
+    "rra_tax": 0.00,
+    "effective_tax_rate_percent": 25.14,
+    "installment_value": 9010.82,
+    "installment_count": 1,
+    "due_tax": 154768.78
+  },
+  "patrimony_evolution": {
+    "assets_end_2023": 2589887.09,
+    "assets_end_2024": 2513151.71,
+    "debts_end_2023": 265420.59,
+    "debts_end_2024": 234792.61,
+    "net_worth_end_2023": 2324466.50,
+    "net_worth_end_2024": 2278359.10
+  },
+  "file_metadata": {
+    "declaration_type": "Declaracao de Ajuste Anual Original",
+    "last_declaration_receipt": "28.30.05.47.83-50",
+    "filing_date": "28/05/2025",
+    "filing_time": "15:05:47",
+    "control_number": "837638517565215",
+    "total_pages": 15
   }
 }

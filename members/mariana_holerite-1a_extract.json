@@ -1,55 +1,68 @@
 {
-  "tipo": "holerite",
-  "membro": "Mariana Teixeira Ferreira",
-  "empresa": "SBIBHAE — Hospital Israelita Albert Einstein",
-  "estabelecimento": "Unidade Morumbi",
-  "categoria": "Enfermagem P",
-  "matricula": 36108,
-  "cargo": "Enfermeiro Pl",
-  "subarea_rh": "0028",
-  "carga_horaria_mensal": 200.00,
-  "unidade_organizacional": "Enfermagem Consultórios",
-  "centro_custo": "CHCO",
-  "banco": {
-    "codigo": 237,
-    "agencia": "6543",
-    "conta": "6673"
+  "member_name": "Mariana Teixeira Ferreira",
+  "period": "202602",
+  "employer": "AE00 SBIBHAE - Albert Einstein",
+  "establishment": "AEMO Unidade Morumbi",
+  "category": "Enfermagem P",
+  "role_position": "Enfermeiro Pl",
+  "employee_id": "36108",
+  "admission_date": "21.07.2014",
+  "gross_salary": 12086.06,
+  "monthly_salary": 10899.51,
+  "deductions": [
+    {
+      "code": "0314",
+      "description": "Contr. INSS Remuneração",
+      "amount": 988.07
+    },
+    {
+      "code": "0401",
+      "description": "Tributo IRRF",
+      "amount": 1447.57
+    },
+    {
+      "code": "B02",
+      "description": "Adiantamento pago",
+      "amount": 3633.17
+    },
+    {
+      "code": "1014",
+      "description": "Seguro de Vida",
+      "amount": 27.41
+    },
+    {
+      "code": "1025",
+      "description": "Refeição",
+      "amount": 34.80
+    },
+    {
+      "code": "MO90",
+      "description": "Desconto de Férias",
+      "amount": 2529.63
+    }
+  ],
+  "total_deductions": 8660.65,
+  "net_salary": 3425.41,
+  "credit_date": "27.02.2026",
+  "benefits": {
+    "insalubrity_allowance": {
+      "description": "Adic. de insalubrid. 20%",
+      "amount": 270.17
+    },
+    "vacation_days": {
+      "description": "Férias no mês",
+      "amount": 1870.62
+    },
+    "vacation_third": {
+      "description": "Férias 1/3 no mês",
+      "amount": 623.54
+    }
   },
-  "referencia": "Fevereiro 2026",
-  "grade": "P4",
-  "data_admissao": "2014-07-21",
-  "dependentes_ir": 0,
-  "salario_mensal": 10899.51,
-  "proventos": {
-    "salario_mensal": {"rubrica": "0001", "qtde": 25.00, "valor": 9082.92},
-    "adicional_insalubridade_20pct": {"rubrica": "/325", "qtde": 25.00, "valor": 270.17},
-    "provisao_contribuicao_inss_rec": {"rubrica": "M389", "qtde": 0.00, "valor": 203.34},
-    "ferias_no_mes": {"rubrica": "MC03", "qtde": 5.00, "valor": 1870.62},
-    "ferias_1_3_no_mes": {"rubrica": "MC04", "qtde": 5.00, "valor": 623.54},
-    "medias_ferias_no_mes": {"rubrica": "MC13", "qtde": 0.00, "valor": 26.60},
-    "medias_ferias_1_3_no_mes": {"rubrica": "MC14", "qtde": 0.00, "valor": 8.87}
+  "fgts": {
+    "base": 11882.72,
+    "deposited": 950.62
   },
-  "descontos": {
-    "contribuicao_inss": {"rubrica": "/314", "qtde": 14.00, "valor": 988.07},
-    "irrf": {"rubrica": "/401", "qtde": 27.50, "valor": 1447.57},
-    "adiantamento_pago": {"rubrica": "/B02", "qtde": 0.00, "valor": 3633.17},
-    "seguro_vida": {"rubrica": "1014", "qtde": 0.00, "valor": 27.41},
-    "refeicao": {"rubrica": "1025", "qtde": 10.00, "valor": 34.80},
-    "desconto_ferias": {"rubrica": "MO90", "qtde": 0.00, "valor": 2529.63}
-  },
-  "totais": {
-    "total_proventos": 12086.06,
-    "total_descontos": 8660.65,
-    "valor_liquido": 3425.41
-  },
-  "bases": {
-    "base_inss": 11882.72,
-    "base_ir": 0.00,
-    "base_ir_13": 0.00,
-    "base_fgts": 11882.72,
-    "fgts_depositado": 950.62
-  },
-  "data_credito": "2026-02-27",
-  "valor_depositado": 3425.41,
-  "observacoes": "Mês com férias parciais (5 dias). Salário base R$9.082,92 para 25 dias trabalhados. Valor líquido baixo por conta de desconto de férias (R$2.529,63) e adiantamento (R$3.633,17)."
+  "inss_base": 11882.72,
+  "dependents_ir": 0,
+  "grade": "P4"
 }
