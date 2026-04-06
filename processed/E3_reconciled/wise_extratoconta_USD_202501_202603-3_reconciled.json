@@ -1,1 +1,56 @@
-{"_tombstone": true}
+{
+  "banco": "Wise",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "USD",
+  "periodo_cobertura": {
+    "inicio": "2025-01-01",
+    "fim": "2026-03-29"
+  },
+  "saldo_inicial": 0,
+  "saldo_inicial_unknown": true,
+  "saldo_final": 4701.94,
+  "saldo_final_unknown": false,
+  "fontes": [
+    "wise_extratocontausd_202501_202603-2_extract.json"
+  ],
+  "transacoes_total": 5,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-09-23",
+      "descricao": "Pago para AppFolio, Inc. F",
+      "valor": -2.49,
+      "saldo_apos": 4701.94,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Pago para De Paula Realty",
+      "valor": -175.29,
+      "saldo_apos": 4704.43,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "Recebeu dinheiro de IU65 Premium & B",
+      "valor": 20.0,
+      "saldo_apos": null,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "Pago para IU65 Premium & B",
+      "valor": -121.42,
+      "saldo_apos": 4580.52,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-18",
+      "descricao": "Recebeu dinheiro de Douglas Camargo De Campos",
+      "valor": 4721.94,
+      "saldo_apos": 4701.94,
+      "tipo": "credito"
+    }
+  ]
+}

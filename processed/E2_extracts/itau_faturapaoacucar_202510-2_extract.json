@@ -1,5 +1,67 @@
 {
-  "erro": "seek of closed file",
-  "requires_llm_fallback": true,
-  "tipo": "fatura"
+  "banco": "Itaú",
+  "tipo": "faturapaoacucar",
+  "cartao": "Pão de Açúcar",
+  "titular": "DAVID ROBERT CAMARGO DE CAMPOS",
+  "moeda": "BRL",
+  "data_vencimento": "2025-10-06",
+  "saldo_anterior": 1872.43,
+  "total_compras": 697.45,
+  "pagamentos": -1872.43,
+  "saldo_atual": 697.45,
+  "transacoes": [
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras",
+      "valor": 59.0,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "parcela": "04/12"
+    }
+  ],
+  "compras_parceladas_futuras": [
+    {
+      "data": "2025-08-30",
+      "descricao": "AMAZON RETA* RK4N12ZW3",
+      "valor": 112.91,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-09-06",
+      "descricao": "AMAZON MKTPL*BJ8I19AQ3",
+      "valor": 96.04,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-09-06",
+      "descricao": "AMAZON MKTPL*A510Y5UY3",
+      "valor": 894.84,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "AMAZON MKTPLACE PMTS -",
+      "valor": 90.86,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "ESTORNO CUSTO DE IOF -",
+      "valor": 3.16,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "AMAZON MKTPLACE PMTS -",
+      "valor": 396.11,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "ESTORNO CUSTO DE IOF -",
+      "valor": 13.89,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    }
+  ],
+  "numero_cartao": "4771.XXXX.XXXX.5739",
+  "parse_quality": "ok"
 }

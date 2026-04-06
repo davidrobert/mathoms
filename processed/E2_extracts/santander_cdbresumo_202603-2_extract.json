@@ -1,0 +1,49 @@
+{
+  "tipo": "cdbresumo",
+  "instituicao": "Santander",
+  "membro": "david",
+  "data_posicao": "2026-03-29",
+  "moeda": "BRL",
+  "valor_total_cdb": 299477.93,
+  "produtos": [
+    {
+      "nome": "CDB DI SANTANDER",
+      "operacao": "00331652260006380267",
+      "valor_aplicado": null,
+      "data_aplicacao": "2024-06-26",
+      "taxa": "100% CDI",
+      "vencimento": "2028-06-05",
+      "saldo_bruto": 137409.67,
+      "saldo_liquido": 132662.92,
+      "rentabilidade_bruta": null,
+      "ir_provisorio": null,
+      "disponivel_para_resgate": 132662.92
+    },
+    {
+      "nome": "CDB DI SANTANDER",
+      "operacao": "00331652260006541929",
+      "valor_aplicado": null,
+      "data_aplicacao": "2024-08-30",
+      "taxa": "100% CDI",
+      "vencimento": "2028-08-09",
+      "saldo_bruto": 101522.74,
+      "saldo_liquido": 98281.27,
+      "rentabilidade_bruta": null,
+      "ir_provisorio": null,
+      "disponivel_para_resgate": 98281.27
+    },
+    {
+      "nome": "CDB PROG SANTANDER",
+      "operacao": "00331652260006541912",
+      "valor_aplicado": null,
+      "data_aplicacao": "2024-08-30",
+      "taxa": "95% CDI",
+      "vencimento": "2028-08-09",
+      "saldo_bruto": 60545.52,
+      "saldo_liquido": 58700.06,
+      "rentabilidade_bruta": null,
+      "ir_provisorio": null,
+      "disponivel_para_resgate": 58700.06
+    }
+  ]
+}

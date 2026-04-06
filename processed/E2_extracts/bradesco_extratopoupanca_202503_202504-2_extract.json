@@ -1,0 +1,92 @@
+{
+  "banco": "Bradesco",
+  "tipo": "extratopoupanca",
+  "membro": "mariana",
+  "conta": "AG 3221 CC 77113-9",
+  "moeda": "BRL",
+  "periodo": {
+    "inicio": "2025-03-01",
+    "fim": "2025-04-30"
+  },
+  "saldo_inicial": 37777.93,
+  "saldo_final": 5240.53,
+  "transacoes": [
+    {
+      "data": "2025-03-05",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 65.27,
+      "saldo_apos": 37777.93
+    },
+    {
+      "data": "2025-03-07",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -36262.61,
+      "saldo_apos": 1515.32
+    },
+    {
+      "data": "2025-03-10",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -110.00,
+      "saldo_apos": 1405.32
+    },
+    {
+      "data": "2025-03-13",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 8.07,
+      "saldo_apos": 1413.39
+    },
+    {
+      "data": "2025-03-14",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4139.58,
+      "saldo_apos": 5552.97
+    },
+    {
+      "data": "2025-03-31",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 6598.53,
+      "saldo_apos": 12151.50
+    },
+    {
+      "data": "2025-04-14",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 9.51,
+      "saldo_apos": 12161.01
+    },
+    {
+      "data": "2025-04-14",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 27.77,
+      "saldo_apos": 12188.78
+    },
+    {
+      "data": "2025-04-15",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4139.58,
+      "saldo_apos": 16328.36
+    },
+    {
+      "data": "2025-04-24",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -14662.66,
+      "saldo_apos": 1665.70
+    },
+    {
+      "data": "2025-04-30",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 3574.83,
+      "saldo_apos": 5240.53
+    }
+  ]
+}

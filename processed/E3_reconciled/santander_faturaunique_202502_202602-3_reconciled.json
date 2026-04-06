@@ -63,13 +63,6 @@
       }
     },
     {
-      "data": "2025-02-28",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 2.86,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-03-02",
       "descricao": "SCP BASICO- MAR/26",
       "valor": 10.85,
@@ -80,6 +73,13 @@
       "descricao": "ANUIDADE DIFERENCIADA",
       "valor": 0.0,
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+    },
+    {
+      "data": "2025-03-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 2.86,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-03-15",
@@ -104,13 +104,6 @@
       }
     },
     {
-      "data": "2025-03-21",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 14.61,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-03-29",
       "descricao": "AMAZON PRIME*I17DY7XE3",
       "valor": 91.32,
@@ -119,13 +112,6 @@
         "moeda_original": "USD",
         "valor_original": 14.99
       }
-    },
-    {
-      "data": "2025-03-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 3.09,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-03-31",
@@ -164,6 +150,20 @@
     },
     {
       "data": "2025-04-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 14.61,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-04-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 3.09,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-04-15",
       "descricao": "DEB AUTOM DE FATURA EM C/",
       "valor": -1180.02,
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
@@ -191,13 +191,6 @@
       }
     },
     {
-      "data": "2025-04-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 3.04,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-05-01",
       "descricao": "GOOGLE *GOOGLE ONE",
       "valor": 119.64,
@@ -208,17 +201,24 @@
       }
     },
     {
-      "data": "2025-05-01",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 4.04,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-05-08",
       "descricao": "ANUIDADE DIFERENCIADA 09/12",
       "valor": 0.0,
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 3.04,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 4.04,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-05-15",
@@ -243,13 +243,6 @@
       }
     },
     {
-      "data": "2025-05-19",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 17.33,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-05-21",
       "descricao": "DESCONTO ESFERA*LYFTUS -56,84",
       "valor": -10.0,
@@ -272,13 +265,6 @@
       }
     },
     {
-      "data": "2025-05-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 3.17,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-06-01",
       "descricao": "GOOGLE *GOOGLE ONE",
       "valor": 119.84,
@@ -287,13 +273,6 @@
         "moeda_original": "USD",
         "valor_original": 19.99
       }
-    },
-    {
-      "data": "2025-06-01",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 4.19,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-06-05",
@@ -328,17 +307,31 @@
       }
     },
     {
-      "data": "2025-06-14",
+      "data": "2025-06-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 21.53,
+      "valor": 7.47,
+      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-06-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 17.33,
       "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
       "tipo_lancamento": "iof"
     },
     {
       "data": "2025-06-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 7.47,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
+      "valor": 3.17,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-06-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 4.19,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
       "tipo_lancamento": "iof"
     },
     {
@@ -364,13 +357,6 @@
       }
     },
     {
-      "data": "2025-06-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 2.96,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-06-30",
       "descricao": "SCP BASICO- JUN/25",
       "valor": 10.39,
@@ -393,13 +379,6 @@
       }
     },
     {
-      "data": "2025-07-01",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 3.91,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-07-02",
       "descricao": "PAYPAL *CLEVERBRIDG",
       "valor": 200.37,
@@ -408,13 +387,6 @@
         "moeda_original": "USD",
         "valor_original": 34.68
       }
-    },
-    {
-      "data": "2025-07-02",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 6.77,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-07-06",
@@ -441,16 +413,37 @@
     },
     {
       "data": "2025-07-15",
-      "descricao": "DEB AUTOM DE FATURA EM C/ -5.319,01 COTAÇÃO DOLAR R$",
-      "valor": 5.9226,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 21.53,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-07-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 3.11,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
+      "valor": 2.96,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
       "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-07-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 3.91,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-07-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 6.77,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-07-15",
+      "descricao": "DEB AUTOM DE FATURA EM C/ -5.319,01 COTAÇÃO DOLAR R$",
+      "valor": 5.9226,
+      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
     },
     {
       "data": "2025-07-17",
@@ -464,13 +457,6 @@
     },
     {
       "data": "2025-07-17",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 37.21,
-      "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
-      "tipo_lancamento": "iof"
-    },
-    {
-      "data": "2025-07-17",
       "descricao": "SEAWORLD/BUSCH GARDENS",
       "valor": 691.79,
       "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
@@ -478,13 +464,6 @@
         "moeda_original": "USD",
         "valor_original": 117.13
       }
-    },
-    {
-      "data": "2025-07-17",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 24.21,
-      "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
-      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-07-17",
@@ -504,13 +483,6 @@
     },
     {
       "data": "2025-07-17",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 30.6,
-      "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
-      "tipo_lancamento": "iof"
-    },
-    {
-      "data": "2025-07-17",
       "descricao": "WDW TICKETS",
       "valor": 968.68,
       "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
@@ -518,13 +490,6 @@
         "moeda_original": "USD",
         "valor_original": 164.01
       }
-    },
-    {
-      "data": "2025-07-17",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 33.9,
-      "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
-      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-07-21",
@@ -553,17 +518,52 @@
       }
     },
     {
-      "data": "2025-08-01",
+      "data": "2025-08-08",
+      "descricao": "ANUIDADE DIFERENCIADA 12/12",
+      "valor": 0.0,
+      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 3.11,
+      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-08-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 4.15,
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
       "tipo_lancamento": "iof"
     },
     {
-      "data": "2025-08-08",
-      "descricao": "ANUIDADE DIFERENCIADA 12/12",
-      "valor": 0.0,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+      "data": "2025-08-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 37.21,
+      "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 24.21,
+      "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 30.6,
+      "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 33.9,
+      "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-08-15",
@@ -588,13 +588,6 @@
       }
     },
     {
-      "data": "2025-08-21",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 16.24,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-08-29",
       "descricao": "SCP BASICO- AGO/25",
       "valor": 10.39,
@@ -609,13 +602,6 @@
         "moeda_original": "USD",
         "valor_original": 14.99
       }
-    },
-    {
-      "data": "2025-08-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 3.01,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-09-01",
@@ -638,6 +624,20 @@
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 4.02,
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 16.24,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 3.01,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
       "tipo_lancamento": "iof"
     },
     {
@@ -669,13 +669,6 @@
       }
     },
     {
-      "data": "2025-09-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 2.97,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-10-01",
       "descricao": "GOOGLE *GOOGLE ONE",
       "valor": 112.69,
@@ -684,13 +677,6 @@
         "moeda_original": "USD",
         "valor_original": 19.99
       }
-    },
-    {
-      "data": "2025-10-01",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 3.94,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-10-02",
@@ -707,13 +693,6 @@
         "moeda_original": "USD",
         "valor_original": 199.99
       }
-    },
-    {
-      "data": "2025-10-02",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 39.48,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-10-02",
@@ -736,6 +715,27 @@
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 1.91,
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 2.97,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 3.94,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 39.48,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
       "tipo_lancamento": "iof"
     },
     {
@@ -767,13 +767,6 @@
       }
     },
     {
-      "data": "2025-10-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 2.99,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-11-01",
       "descricao": "GOOGLE *GOOGLE ONE",
       "valor": 8.28,
@@ -782,13 +775,6 @@
         "moeda_original": "USD",
         "valor_original": 1.45
       }
-    },
-    {
-      "data": "2025-11-01",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 0.29,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-11-06",
@@ -814,6 +800,20 @@
       "tipo_lancamento": "iof"
     },
     {
+      "data": "2025-11-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 2.99,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
+      "data": "2025-11-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 0.29,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
+    },
+    {
       "data": "2025-11-17",
       "descricao": "DEB AUTOM DE FATURA EM C/",
       "valor": -723.72,
@@ -836,13 +836,6 @@
       }
     },
     {
-      "data": "2025-11-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 2.97,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2025-12-01",
       "descricao": "SCP BASICO- DEZ/25",
       "valor": 10.39,
@@ -853,6 +846,13 @@
       "descricao": "ANUIDADE DIFERENCIADA",
       "valor": 0.0,
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 2.97,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
     },
     {
       "data": "2025-12-15",
@@ -936,17 +936,17 @@
       }
     },
     {
-      "data": "2026-01-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 2.88,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
       "data": "2026-02-09",
       "descricao": "ANUIDADE DIFERENCIADA",
       "valor": 0.0,
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+    },
+    {
+      "data": "2026-02-15",
+      "descricao": "IOF DESPESA NO EXTERIOR",
+      "valor": 2.88,
+      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
+      "tipo_lancamento": "iof"
     }
   ]
 }

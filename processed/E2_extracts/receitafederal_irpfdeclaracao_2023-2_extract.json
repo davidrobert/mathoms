@@ -1,0 +1,189 @@
+{
+  "tipo": "irpf_declaracao",
+  "membro": "mariana",
+  "cpf": "085.052.396-60",
+  "ano_declaracao": 2024,
+  "ano_base": 2023,
+  "bens_direitos": [
+    {
+      "codigo": "11",
+      "grupo": "01",
+      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA PLANTA DA EMPRESA CYRELA MAGIKLZ CAMPINAS",
+      "situacao_ano_anterior": 116839.26,
+      "situacao_ano_base": 223733.99,
+      "data_aquisicao": "2023-10-09",
+      "cnpj_entidade": "13.177.004/0001-91"
+    },
+    {
+      "codigo": "11",
+      "grupo": "01",
+      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS",
+      "situacao_ano_anterior": 477436.58,
+      "situacao_ano_base": 477436.58,
+      "data_aquisicao": "2018-04-09",
+      "cnpj_entidade": "17.102.653/0001-84"
+    },
+    {
+      "codigo": "01",
+      "grupo": "04",
+      "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
+      "situacao_ano_anterior": 36692.14,
+      "situacao_ano_base": 25337.34,
+      "data_aquisicao": null,
+      "cnpj_entidade": "60.746.948/0001-12"
+    },
+    {
+      "codigo": "02",
+      "grupo": "04",
+      "descricao": "CERTIFICADO DE DEPOSITO BANCARIO - BTG",
+      "situacao_ano_anterior": 168055.76,
+      "situacao_ano_base": 22000.00,
+      "data_aquisicao": null,
+      "cnpj_entidade": "30.306.294/0001-45"
+    },
+    {
+      "codigo": "02",
+      "grupo": "04",
+      "descricao": "CDB - BTG",
+      "situacao_ano_anterior": 122.79,
+      "situacao_ano_base": 1826.51,
+      "data_aquisicao": null,
+      "cnpj_entidade": "30.306.294/0001-45"
+    },
+    {
+      "codigo": "02",
+      "grupo": "04",
+      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
+      "situacao_ano_anterior": 0.00,
+      "situacao_ano_base": 4365.03,
+      "data_aquisicao": null,
+      "cnpj_entidade": "60.746.948/0001-12"
+    },
+    {
+      "codigo": "02",
+      "grupo": "04",
+      "descricao": "SALDO RDB - NUBANK",
+      "situacao_ano_anterior": 0.00,
+      "situacao_ano_base": 58.23,
+      "data_aquisicao": null,
+      "cnpj_entidade": "30.680.829/0001-43"
+    },
+    {
+      "codigo": "03",
+      "grupo": "04",
+      "descricao": "LCI - OPEA SECURITIZADORA S.A. - BTG",
+      "situacao_ano_anterior": 0.00,
+      "situacao_ano_base": 10349.69,
+      "data_aquisicao": null,
+      "cnpj_entidade": "02.773.542/0001-22"
+    },
+    {
+      "codigo": "03",
+      "grupo": "04",
+      "descricao": "LCI - TRUE SECURITIZADORA S.A. - BTG",
+      "situacao_ano_anterior": 0.00,
+      "situacao_ano_base": 10324.25,
+      "data_aquisicao": null,
+      "cnpj_entidade": "12.130.744/0001-00"
+    },
+    {
+      "codigo": "01",
+      "grupo": "06",
+      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
+      "situacao_ano_anterior": 1.00,
+      "situacao_ano_base": 1.00,
+      "data_aquisicao": null,
+      "cnpj_entidade": "60.746.948/0001-12"
+    },
+    {
+      "codigo": "01",
+      "grupo": "07",
+      "descricao": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LONGO PRAZO",
+      "situacao_ano_anterior": 0.00,
+      "situacao_ano_base": 35868.62,
+      "data_aquisicao": null,
+      "cnpj_entidade": "11.952.873/0001-10"
+    }
+  ],
+  "rendimentos_tributaveis": {
+    "total": 152292.83,
+    "fontes": [
+      {
+        "fonte": "SOCIEDADE BENEF ISRAELITA BRAS - HOSPITAL ALBERT EINSTEIN",
+        "cnpj": "60.765.823/0001-30",
+        "valor": 146176.12
+      },
+      {
+        "fonte": "Rendimentos de Pessoa Física (aluguéis)",
+        "cnpj": null,
+        "valor": 6116.71
+      }
+    ]
+  },
+  "rendimentos_isentos": {
+    "total": 9365.40,
+    "itens": [
+      {
+        "descricao": "Restituição do imposto sobre a renda de anos-calendário anteriores",
+        "valor": 1099.91
+      },
+      {
+        "descricao": "Abono de férias/PIS",
+        "valor": 8265.49
+      }
+    ]
+  },
+  "rendimentos_exclusivos": {
+    "total": 21812.35,
+    "itens": [
+      {
+        "descricao": "13º salário",
+        "valor": 9228.14
+      },
+      {
+        "descricao": "Rendimentos de aplicações financeiras",
+        "valor": 12584.21
+      }
+    ]
+  },
+  "dividas_onus": [],
+  "pagamentos_dedutiveis": [
+    {
+      "tipo": "saude",
+      "descricao": "LEIR MIRANDA ESTEVES - ODONTÓLOGO",
+      "valor": 1500.00
+    },
+    {
+      "tipo": "saude",
+      "descricao": "TERZIAN - SOCIEDADE DE MÉDICOS LTDA",
+      "valor": 250.00
+    },
+    {
+      "tipo": "saude",
+      "descricao": "CLINICA TAKATA LTDA",
+      "valor": 300.00
+    },
+    {
+      "tipo": "saude",
+      "descricao": "LF SAO PAULO SERVICOS MEDICOS LTDA - HONORARIOS MEDICOS",
+      "valor": 1300.00
+    },
+    {
+      "tipo": "saude",
+      "descricao": "SOMPO SAUDE SEGUROS S.A.",
+      "valor": 302.74
+    },
+    {
+      "tipo": "outro",
+      "descricao": "GRPQA LTDA - Aluguel (QuintoAndar)",
+      "valor": 2607.00
+    }
+  ],
+  "total_bens_ano_anterior": 799147.53,
+  "total_bens_ano_base": 811301.24,
+  "total_dividas_ano_anterior": 0.00,
+  "total_dividas_ano_base": 0.00,
+  "imposto_devido": 26715.95,
+  "imposto_pago": 26255.09,
+  "resultado": 460.86
+}

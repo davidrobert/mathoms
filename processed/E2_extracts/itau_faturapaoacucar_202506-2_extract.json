@@ -1,5 +1,23 @@
 {
-  "erro": "seek of closed file",
-  "requires_llm_fallback": true,
-  "tipo": "fatura"
+  "banco": "Itaú",
+  "tipo": "faturapaoacucar",
+  "cartao": "Pão de Açúcar",
+  "titular": "DAVID ROBERT CAMARGO DE CAMPOS",
+  "moeda": "BRL",
+  "data_vencimento": "2025-06-06",
+  "saldo_anterior": 59.0,
+  "total_compras": 59.0,
+  "pagamentos": -59.0,
+  "saldo_atual": 59.0,
+  "transacoes": [
+    {
+      "data": "2025-06-07",
+      "descricao": "Brasilp*BrasilPara12/12",
+      "valor": 59.0,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    }
+  ],
+  "compras_parceladas_futuras": [],
+  "numero_cartao": "4771.XXXX.XXXX.5739",
+  "parse_quality": "ok"
 }

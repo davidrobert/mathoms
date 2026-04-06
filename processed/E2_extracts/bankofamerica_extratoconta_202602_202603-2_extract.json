@@ -1,0 +1,17 @@
+{
+  "tipo": "extratoconta",
+  "instituicao": "Bank of America",
+  "membro": "david",
+  "conta": "8981 6403 2498",
+  "moeda": "USD",
+  "periodo": {
+    "inicio": "2026-02-25",
+    "fim": "2026-03-26"
+  },
+  "saldo_inicial": 2605.0,
+  "saldo_final": 2605.0,
+  "depositos": 0.0,
+  "retiradas": 0.0,
+  "taxas": 0.0,
+  "transacoes": []
+}

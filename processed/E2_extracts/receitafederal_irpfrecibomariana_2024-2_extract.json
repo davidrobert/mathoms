@@ -1,0 +1,14 @@
+{
+  "tipo": "irpf_recibo",
+  "membro": "mariana",
+  "cpf": "085.052.396-60",
+  "ano_declaracao": 2025,
+  "ano_base": 2024,
+  "imposto_devido": 40746.89,
+  "imposto_pago": 22575.99,
+  "resultado": -18170.90,
+  "data_entrega": "2025-05-30",
+  "situacao": "em_processamento",
+  "numero_recibo": "14.54.94.96.65 - 76",
+  "observacoes": "Parcelamento de 8 cotas de R$ 2.271,36 cada com vencimento inicial em 30/05/2025. Débito automático autorizado a partir da 2ª cota. Declaração original recebida via Internet pelo SERPRO em 30/05/2025 às 20:05:23. Conta bancária: Banco 237, Agência 0504, Conta 0077113-9."
+}

@@ -1,0 +1,46 @@
+{
+  "tipo": "investimentosposicao",
+  "instituicao": "Itaú",
+  "membro": "david",
+  "data_posicao": "2026-03-26",
+  "moeda": "BRL",
+  "total_aplicado": null,
+  "saldo_atual": null,
+  "rentabilidade": {
+    "valor": 3159.59,
+    "percentual": 0.91,
+    "periodo": "02/03/2026 a 26/03/2026"
+  },
+  "composicao": [
+    {
+      "tipo_produto": "CDB",
+      "nome": "CDB-DI",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 116374.26,
+      "percentual_carteira": 34.07,
+      "rentabilidade_instrumento": null,
+      "valor_aplicado": 116374.26
+    },
+    {
+      "tipo_produto": "previdencia",
+      "nome": "Itau Prev Corp Platinum Rv49 MM PGBL",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 18715.24,
+      "percentual_carteira": 5.48,
+      "rentabilidade_instrumento": 7.39,
+      "valor_aplicado": 18715.24
+    },
+    {
+      "tipo_produto": "cofrinhos",
+      "nome": "Cofrinhos",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 206491.7,
+      "percentual_carteira": 60.45,
+      "rentabilidade_instrumento": null
+    }
+  ],
+  "pm_note": "Total estimado de saldo_atual = 341581.20 (somando as posições identificadas)"
+}
