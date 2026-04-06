@@ -1,10 +1,19 @@
 # Manual de Operação — Pipeline Financeiro
 ## Família Ferreira Campos
-## Versão: 5.3.1 — abr/2026
+## Versão: 5.4 — abr/2026
 
 ---
 
-## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1
+## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1 → v5.4
+
+### v5.3.1 → v5.4
+
+| Mudança | Motivo |
+|---|---|
+| **Novo STAGE: `E-full-reset`** | Reprocessamento completo desde E0-unlock/E0-audit até E6. Antes, o operador precisava lembrar a sequência manual de E0-unlock → E0-audit → E0 → E-reset → etapas LLM. Agora há um procedimento documentado passo a passo com ordem das etapas LLM, pontos de re-cascata, e validação final. |
+| **E-full-reset: tabela de ordem das etapas LLM** | Documenta a sequência correta: E1 → E1.5 → E2-extratos → re-cascata E3→E6 → E5.N → E6 render. Inclui artefatos gerados por cada etapa. |
+| **E-full-reset: re-cascata após E2-extratos** | Explicita que após E2-extratos é necessário `e_reset.py --from E3` antes de E5.N, para que novos extratos sejam reconciliados/categorizados/analisados. |
+| **E-full-reset: validação final inclui e0_audit.py** | Passo 8 roda `e0_audit.py` novamente ao final para confirmar que o pipeline não introduziu inconsistências. |
 
 ### v5.3 → v5.3.1
 
@@ -2204,12 +2213,121 @@ git commit -m "E-reset-from-E[N]: reprocessamento parcial [DATA]"
 
 ---
 
+### STAGE E-full-reset — Reprocessamento completo desde E0 (unlock + audit + pipeline inteiro)
+
+**Objetivo:** Executar o ciclo completo do pipeline desde a verificação de integridade dos PDFs (E0-unlock, E0-audit) até o relatório final (E6), incluindo todas as etapas LLM e determinísticas. É o "nuclear option" — reconstrói tudo do zero a partir dos originais em `data/`.
+
+**Quando usar:**
+- Reprocessamento completo solicitado explicitamente pelo usuário
+- Suspeita de PDFs corrompidos ou encriptados que escaparam para `data/`
+- Mudança estrutural profunda (novo membro, reestruturação de contas, novo banco) que invalida E1 em diante
+- Primeira execução após migração de versão major do pipeline
+- Após correção de bug em E0-unlock ou E0-audit que pode ter permitido dados ruins
+
+**Quando NÃO usar:**
+- Artefatos E1 estão corretos e apenas etapas E2→E6 precisam ser refeitas → usar `E-reset`
+- Apenas uma etapa específica precisa ser refeita → usar `E-reset-from`
+- Apenas template/CSS mudou → usar `E6-regen`
+
+**Diferença para E-reset:** E-reset preserva artefatos E1 e não roda E0-unlock/E0-audit. E-full-reset inclui verificação de integridade dos PDFs originais e re-execução de **todas** as etapas LLM (E1, E1.5, E2-extratos, E5.N).
+
+**Procedimento:**
+
+> Nota: todos os comandos nesta seção assumem working directory = `financas-familia/`.
+
+**Passo 1 — Comitar estado atual via Git (preservar histórico):**
+```bash
+git add -A
+git commit -m "pre-full-reset: snapshot antes de reprocessamento E0→E6 [DATA]"
+```
+
+**Passo 2 — E0-unlock: Verificar e desbloquear PDFs encriptados:**
+```bash
+python scripts/e0_unlock.py --dry-run          # Preview: listar status de todos os PDFs
+python scripts/e0_unlock.py                     # Executar: desbloquear PDFs no inbox (se houver)
+python scripts/e0_unlock.py --check-destinations # Safety net: varrer data/ e members/ por PDFs encriptados
+```
+Se `--check-destinations` encontrar PDFs encriptados em `data/` ou `members/`, o script desbloqueia in-place. Se nenhuma senha funcionar, registra em `qa_log.md` e move para `nao_identificados/`.
+
+**Passo 3 — E0-audit: Auditoria de integridade:**
+```bash
+python scripts/e0_audit.py
+```
+Analisar o relatório. As 7 checagens são:
+1. Filename vs JSON content mismatch
+2. Arquivos órfãos
+3. Possíveis duplicatas
+4. Cross-reference inbox_log.md
+5. Gaps de saldo no E3
+6. *(reservada)*
+7. Colisão de nomes (severity ERROR — bloqueia continuação)
+
+**Se houver ERRORs:** corrigir antes de prosseguir. Erros de colisão de nomes se propagam por todo o pipeline.
+**Se apenas WARNs:** registrar em `qa_log.md` e prosseguir com cautela.
+
+**Passo 4 — E0: Roteamento de novos arquivos (se houver):**
+Se existem arquivos no `inbox/`:
+- Executar o algoritmo de detecção (Seção 3.1)
+- Verificar tamanho (Passo 8a) e encriptação (Passo 8b)
+- Copiar para `inbox_processed/[DATA]/` e mover para `data/`
+- Atualizar `logs/inbox_log.md`
+
+Se o `inbox/` está vazio, pular este passo.
+
+**Passo 5 — E-reset: Limpeza + etapas determinísticas (E2-faturas → E3 → E4 → E5 → E6):**
+```bash
+python scripts/e_reset.py --dry-run   # Preview
+python scripts/e_reset.py             # Executar
+```
+O script apaga artefatos E2→E6 e re-executa as etapas determinísticas automaticamente.
+
+**Passo 6 — Etapas LLM (execução manual, nesta ordem):**
+
+| Ordem | Etapa | O que fazer | Artefatos gerados |
+|---|---|---|---|
+| 6a | **E1** | Mapeamento de membros (currículos, docs pessoais) | `members/*-1a_extract.json`, `members-1b_unified.json` |
+| 6b | **E1.5** | Baseline patrimonial (IRPF, XLSX imóveis/veículos) | `members-1c_enriched.md` |
+| 6c | **E2-extratos** | Extração de extratos bancários (PDFs → JSON) | `E2_extracts/*-2_extract.json` |
+| 6d | **Re-cascatear E3→E6** | `python scripts/e_reset.py --from E3` | Artefatos E3→E6 |
+| 6e | **E5.N** | Narrativas analíticas | Chave `narrativas` nos JSONs E5 |
+| 6f | **Re-render E6** | `python scripts/e6_render.py` | `output/*.html` |
+
+> **Importante:** Após E2-extratos (6c), é necessário re-cascatear com `e_reset.py --from E3` (6d) para que os novos extratos sejam reconciliados, categorizados e analisados antes de gerar narrativas.
+
+**Passo 7 — Comitar resultado:**
+```bash
+git add -A
+git commit -m "E-full-reset: reprocessamento completo E0→E6 [DATA]"
+```
+
+**Passo 8 — Validação final:**
+- Executar checklist V1–V19 do E6 (Seção 4, STAGE E6)
+- Comparar com relatório anterior via `git diff` para confirmar que não houve perda de dados
+- Verificar que `e0_audit.py` não reporta novos ERRORs:
+```bash
+python scripts/e0_audit.py
+```
+
+**Resumo de tempo estimado:**
+
+| Fase | Tipo | Tempo estimado |
+|---|---|---|
+| E0-unlock + E0-audit | Determinístico | ~10s |
+| E0 (roteamento) | LLM | Variável (depende de nº de arquivos no inbox) |
+| E-reset (E2-fat → E3 → E4 → E5 → E6) | Determinístico | ~15s |
+| E1 + E1.5 | LLM | ~5–10 min |
+| E2-extratos | LLM | ~5–15 min (depende de nº de PDFs) |
+| E3 → E6 (re-cascata) | Determinístico | ~15s |
+| E5.N + E6 render | LLM + Determinístico | ~5 min |
+
+---
+
 ### STAGE E-save — Commit e push para remote
 
 **Execução:** `python scripts/e_save.py -m "mensagem"` | Flags: `--dry-run` (preview), `--no-push` (commit local)
 
 **Quando usar:**
-- Após qualquer execução bem-sucedida do pipeline (E1→E6, E-reset, E-reset-from)
+- Após qualquer execução bem-sucedida do pipeline (E1→E6, E-reset, E-reset-from, E-full-reset)
 - Após edição significativa de configs (manual, definitions, methodology, milhas, etc.)
 - Após correção de bugs em scripts ou templates
 - Em qualquer momento que o estado atual represente um "ponto bom" que vale preservar
