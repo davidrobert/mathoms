@@ -1,0 +1,18 @@
+{
+  "banco": "Wise",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-01-01",
+    "fim": "2026-03-29"
+  },
+  "saldo_inicial": 0,
+  "saldo_final": 0.0,
+  "fontes": [
+    "wise_extratocontabrl_202501_202603-2_extract.json"
+  ],
+  "transacoes_total": 0,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": []
+}

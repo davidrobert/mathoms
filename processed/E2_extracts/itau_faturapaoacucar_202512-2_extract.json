@@ -27,5 +27,6 @@
       "parcela": "07/12"
     }
   ],
-  "numero_cartao": "4771.XXXX.XXXX.5739"
+  "numero_cartao": "4771.XXXX.XXXX.5739",
+  "parse_quality": "ok"
 }

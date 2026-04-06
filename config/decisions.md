@@ -1,5 +1,5 @@
 # Decisions — Pipeline Ferreira Campos
-## Versão: 5.2 — abr/2026
+## Versão: 5.3 — abr/2026
 
 ---
 
@@ -21,7 +21,7 @@
 | D12 | Teto mensal de despesas pessoais: R$35.000 | Mar/2026 | Inclui média dos pontuais diluídos. Revisar trimestralmente. Se 3+ categorias estourarem no mesmo mês, revisar prioridades. | Decidido |
 | D13 | Reserva de desejos: R$3.000/mês | Mar/2026 | Separar da folga para compras planejadas >R$2k. Filtro de 48h antes de qualquer compra >R$2k. | Decidido |
 | D14 | Transferência automática C6 PJ→PF | Mar/2026 | R$5k dia 1 de cada mês — eliminar cheque especial recorrente | Pendente configuração |
-| D15 | Revisar TRS para 5% + vender Living Concept | Abr/2026 | TRS 4%→5% (carteira diversificada imóveis+RF+RV sustenta 5%). Vender Ap. Living Concept (Mariana, R$270k IRPF, yield 3,9%) → líquido ~R$254k reinvestido. Nova meta: R$7.200.000 (R$30k/mês ÷ 5%). Prazo 9,0 anos (David 52, 2035). Supersede D06. | Decidido |
+| D15 | Revisar TRS para 5% + avaliar venda Living Concept | Abr/2026 | TRS 4%→5% (carteira diversificada imóveis+RF+RV sustenta 5%). Avaliar venda Ap. Living Concept (Mariana, R$270k IRPF, yield 3,9%, pior entre alugados, vago 7 meses em 2025) → líquido estimado ~R$254k para reinvestir. Nova meta: R$7.200.000 (R$30k/mês ÷ 5%). Prazo 9,0 anos (David 52, 2035). Supersede D06. | TRS decidido; venda pendente avaliação (prazo 2027) |
 
 ---
 
@@ -45,7 +45,7 @@
 | FGTS Kiwify (CAIXA) | David | Abr/2026 | Confirmar valor + solicitar saque. Levar: RG, CPF, CTPS digital, termo rescisão. |
 | Atualizar IPTU 2026 — imóveis David (QuintoAndar) | David | 30/04/2026 | Atualizar dados de IPTU 2026 na plataforma QuintoAndar para os imóveis do David (Calixto + Major Freire). |
 | Atualizar IPTU 2026 — imóveis Mariana (QuintoAndar) | Mariana | 30/04/2026 | Atualizar dados de IPTU 2026 na plataforma QuintoAndar para os imóveis da Mariana (Living Wish + Living Concept). |
-| **Vender Ap. Living Concept (D15)** | **Mariana + corretor** | **T2/2026** | **Ref. D15. Yield 3,9%, pior entre imóveis alugados. Valor IRPF R$270k — levantar valor de mercado real. Líquido estimado ~R$254k (após 6% custos). Reinvestir em RF/RV.** |
+| Avaliar venda Ap. Living Concept (D15) | Mariana + corretor | 2027 | Ref. D15. Yield 3,9%, pior entre imóveis alugados. Vago 7 meses em 2025. Valor IRPF R$270k — levantar valor de mercado real. Líquido estimado ~R$254k (após 6% custos). Decisão de venda pendente avaliação. |
 | Simulação venda Barão de Capanema | David + corretora | T3/2026 | Yield 2,8% vs CDI 13,15%. Pode valer R$900k-1,1M (IRPF: R$350k). Custo oportunidade R$57.800/ano. Decisão não urgente — avaliar após estabilizar aportes e reserva. |
 
 ### Seguros

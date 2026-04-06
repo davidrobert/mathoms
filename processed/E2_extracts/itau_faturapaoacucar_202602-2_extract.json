@@ -9,15 +9,30 @@
   "total_compras": 257.54,
   "pagamentos": -59.0,
   "saldo_atual": 257.54,
-  "transacoes": [],
+  "transacoes": [
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras",
+      "valor": 59.0,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "parcela": "08/12"
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "SQSP* DOMAIN#218016570",
+      "valor": 191.8,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    }
+  ],
   "compras_parceladas_futuras": [
     {
       "data": "2025-06-08",
       "descricao": "BRASIL PARAL*Bras",
       "valor": 59.0,
-      "cartao": null,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
       "parcela": "09/12"
     }
   ],
-  "numero_cartao": "4771.XXXX.XXXX.5739"
+  "numero_cartao": "4771.XXXX.XXXX.5739",
+  "parse_quality": "ok"
 }

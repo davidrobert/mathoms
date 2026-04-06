@@ -1,8 +1,65 @@
 {
-  "banco": "Binance",
   "tipo": "extratoconta",
-  "moeda": "USD",
-  "data_posicao": "2026-03-26",
-  "assets": [],
-  "saldo_total_usd": 0
+  "instituicao": "Binance",
+  "membro": "david",
+  "moeda": "BRL",
+  "data_snapshot": "2026-03-29",
+  "saldo_total_estimado": 1257.45,
+  "observacao": "Valores em BRL. Screenshot mostra carteira de criptomoedas",
+  "carteira_cripto": [
+    {
+      "simbolo": "BTC",
+      "nome": "Bitcoin",
+      "quantidade": 0.00311425,
+      "valor_unitario_usd": null,
+      "valor_total_usd": null,
+      "pnl_24h": "+891.76%",
+      "rentabilidade_24h": null
+    },
+    {
+      "simbolo": "ETH",
+      "nome": "Ethereum",
+      "quantidade": 0.01325066,
+      "valor_unitario_usd": null,
+      "valor_total_usd": null,
+      "pnl_24h": "+82.10%",
+      "rentabilidade_24h": null
+    },
+    {
+      "simbolo": "ADA",
+      "nome": "Cardano",
+      "quantidade": 7.78980311,
+      "valor_unitario_usd": null,
+      "valor_total_usd": null,
+      "pnl_24h": "-105.2%",
+      "rentabilidade_24h": null
+    },
+    {
+      "simbolo": "AXS",
+      "nome": "Axie Infinity",
+      "quantidade": 1.54143134,
+      "valor_unitario_usd": null,
+      "valor_total_usd": null,
+      "pnl_24h": "-102.6%",
+      "rentabilidade_24h": null
+    },
+    {
+      "simbolo": "SUSHI",
+      "nome": "SushiSwap",
+      "quantidade": 2.99616491,
+      "valor_unitario_usd": null,
+      "valor_total_usd": null,
+      "pnl_24h": "-350.0%",
+      "rentabilidade_24h": null
+    },
+    {
+      "simbolo": "ALICE",
+      "nome": "MyNeighborAlice",
+      "quantidade": 1.36104419,
+      "valor_unitario_usd": null,
+      "valor_total_usd": null,
+      "pnl_24h": "-60.0%",
+      "rentabilidade_24h": null
+    }
+  ]
 }

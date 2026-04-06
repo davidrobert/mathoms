@@ -1,15 +1,281 @@
 {
   "banco": "Bradesco",
   "tipo": "extratopoupanca",
-  "titular": "Mariana Teixeira Ferreira",
-  "conta": "504",
-  "agencia": "3221",
+  "membro": "mariana",
+  "conta": "AG 3221 CC 77113-9",
   "moeda": "BRL",
   "periodo": {
     "inicio": "2026-01-01",
     "fim": "2026-03-31"
   },
-  "saldo_inicial": null,
-  "saldo_final": null,
-  "transacoes": []
+  "saldo_inicial": 29224.64,
+  "saldo_final": 4359.28,
+  "transacoes": [
+    {
+      "data": "2026-01-05",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 1673.05,
+      "saldo_apos": 27551.59
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 220.0,
+      "saldo_apos": 27331.59
+    },
+    {
+      "data": "2026-01-14",
+      "descricao": "Rendimentos 1406708",
+      "tipo": "credito",
+      "valor": 29.44,
+      "saldo_apos": 27361.03
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "tr Sal p/poup 1502372",
+      "tipo": "credito",
+      "valor": 4359.8,
+      "saldo_apos": 31720.83
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Rendimentos 1506728",
+      "tipo": "credito",
+      "valor": 31.08,
+      "saldo_apos": 31751.91
+    },
+    {
+      "data": "2026-01-19",
+      "descricao": "Rendimentos 1906592",
+      "tipo": "credito",
+      "valor": 18.07,
+      "saldo_apos": 31769.98
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 1782.63,
+      "saldo_apos": 29987.35
+    },
+    {
+      "data": "2026-01-21",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 3183.24,
+      "saldo_apos": 26804.11
+    },
+    {
+      "data": "2026-01-23",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 28.03,
+      "saldo_apos": 26776.08
+    },
+    {
+      "data": "2026-01-26",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 100.0,
+      "saldo_apos": 26676.08
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "Rendimentos 2706707",
+      "tipo": "credito",
+      "valor": 38.96,
+      "saldo_apos": 26715.04
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "Rendimentos 2806728",
+      "tipo": "credito",
+      "valor": 59.33,
+      "saldo_apos": 26774.37
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 356.39,
+      "saldo_apos": 26417.98
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 86.66,
+      "saldo_apos": 26331.32
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "tr Sal p/poup 3002372",
+      "tipo": "credito",
+      "valor": 3902.36,
+      "saldo_apos": 30233.68
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Rendimentos 0106727",
+      "tipo": "credito",
+      "valor": 6.42,
+      "saldo_apos": 30240.1
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 807.57,
+      "saldo_apos": 29432.53
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "tr Sal p/poup 0502372",
+      "tipo": "credito",
+      "valor": 2326.29,
+      "saldo_apos": 31758.82
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 145.0,
+      "saldo_apos": 31613.82
+    },
+    {
+      "data": "2026-02-13",
+      "descricao": "tr Sal p/poup 1302372",
+      "tipo": "credito",
+      "valor": 3633.17,
+      "saldo_apos": 35246.99
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Rendimentos 1406766",
+      "tipo": "credito",
+      "valor": 29.89,
+      "saldo_apos": 35276.88
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Rendimentos 1506746",
+      "tipo": "credito",
+      "valor": 45.04,
+      "saldo_apos": 35321.92
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "tr Sal p/poup 2702372",
+      "tipo": "credito",
+      "valor": 3425.41,
+      "saldo_apos": 38747.33
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Rendimentos 2706726",
+      "tipo": "credito",
+      "valor": 39.33,
+      "saldo_apos": 38786.66
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "Rendimentos 0106213",
+      "tipo": "credito",
+      "valor": 25.21,
+      "saldo_apos": 38811.87
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "Rendimentos 2806726",
+      "tipo": "credito",
+      "valor": 56.72,
+      "saldo_apos": 38868.59
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 1116.46,
+      "saldo_apos": 37752.13
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "Rendimentos 0506229",
+      "tipo": "credito",
+      "valor": 13.59,
+      "saldo_apos": 37765.72
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 120.0,
+      "saldo_apos": 37645.72
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 32.0,
+      "saldo_apos": 37613.72
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 220.0,
+      "saldo_apos": 37393.72
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "tr Sal p/poup 1302372",
+      "tipo": "credito",
+      "valor": 4359.8,
+      "saldo_apos": 41753.52
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "Rendimentos 1306196",
+      "tipo": "credito",
+      "valor": 22.51,
+      "saldo_apos": 41776.03
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Rendimentos 1406189",
+      "tipo": "credito",
+      "valor": 27.53,
+      "saldo_apos": 41803.56
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Rendimentos 1506189",
+      "tipo": "credito",
+      "valor": 41.59,
+      "saldo_apos": 41845.15
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 37304.9,
+      "saldo_apos": 4540.25
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 210.0,
+      "saldo_apos": 4330.25
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "Rendimentos 2706702",
+      "tipo": "credito",
+      "valor": 29.03,
+      "saldo_apos": 4359.28
+    }
+  ]
 }

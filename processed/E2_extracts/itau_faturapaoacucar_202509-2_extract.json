@@ -22,9 +22,7 @@
       "descricao": "EBN *AMAZON RETAIL",
       "valor": 132.41,
       "cartao": "DAVID R C DE CAMPOS (final 4984)"
-    }
-  ],
-  "compras_parceladas_futuras": [
+    },
     {
       "data": "2025-08-07",
       "descricao": "AMAZON RETA* Y76ZD1FJ3",
@@ -36,7 +34,33 @@
       "descricao": "AMAZON MKTPL*JF2978P03",
       "valor": 210.11,
       "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-08-25",
+      "descricao": "AMAZON RETA*",
+      "valor": 8.0,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "AMAZON RETA* YK9XM77E3",
+      "valor": 201.66,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "AMAZON RETA* NS9LS8KK3",
+      "valor": 317.06,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-08-28",
+      "descricao": "AMAZON MKTPL*761GA95A3",
+      "valor": 400.3,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
     }
   ],
-  "numero_cartao": "4771.XXXX.XXXX.5739"
+  "compras_parceladas_futuras": [],
+  "numero_cartao": "4771.XXXX.XXXX.5739",
+  "parse_quality": "ok"
 }

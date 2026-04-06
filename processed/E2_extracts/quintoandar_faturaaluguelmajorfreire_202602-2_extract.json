@@ -20,5 +20,6 @@
     }
   ],
   "data_recebimento": "2026-03-12",
-  "endereco": "Rua Major Freire, 496"
+  "endereco": "Rua Major Freire, 496",
+  "parse_quality": "ok"
 }

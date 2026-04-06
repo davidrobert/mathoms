@@ -4,10 +4,10 @@
   "cartao": "Unique",
   "titular": "DAVID ROBERT CAMARGO FERREIRA",
   "moeda": "BRL",
-  "data_vencimento": "2026-03-15",
+  "data_vencimento": "2025-03-15",
   "saldo_anterior": 122.43,
   "total_compras": 301.18,
-  "pagamentos": 122.43,
+  "pagamentos": -122.43,
   "saldo_atual": 382.82,
   "transacoes": [
     {
@@ -57,12 +57,13 @@
       }
     },
     {
-      "data": null,
+      "data": "2025-03-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 2.86,
       "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
       "tipo_lancamento": "iof"
     }
   ],
-  "cartoes": []
+  "cartoes": [],
+  "parse_quality": "ok"
 }

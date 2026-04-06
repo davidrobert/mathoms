@@ -25,5 +25,6 @@
       "cartao": "Lançamentos no cartão (final 4984)"
     }
   ],
-  "numero_cartao": "4771.XXXX.XXXX.5739"
+  "numero_cartao": "4771.XXXX.XXXX.5739",
+  "parse_quality": "ok"
 }

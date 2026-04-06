@@ -1,27 +1,54 @@
 {
-  "beneficiario": "Mariana Teixeira Ferreira",
+  "tipo": "informe_rendimentos_aluguel",
+  "membro": "mariana",
   "cpf": "085.052.396-60",
-  "year_base": 2025,
-  "administradora": "GRPQA LTDA",
-  "total_renda_bruta": 74179.77,
-  "total_descontos": 7423.08,
-  "total_renda_liquida": 66756.69,
-  "properties": [
+  "ano_base": 2025,
+  "fonte": "QuintoAndar",
+  "propriedades": [
     {
-      "property_name": "Avenida Alberto Augusto Alves, 320 - 812",
-      "property_address": "São Paulo - SP 05724-030",
-      "property_code": "894064293",
-      "renda_bruta": 7424.71,
-      "descontos": 1548.62,
-      "renda_liquida": 5876.09
+      "endereco": "Avenida Alberto Augusto Alves, 320 - 812, São Paulo - SP 05724-030",
+      "codigo_imavel": "894064293",
+      "renda_bruta_anual": 7424.71,
+      "descontos_anual": 1548.62,
+      "renda_liquida_anual": 5876.09,
+      "detalhamento_mensal": [
+        {"mes": "2025-01", "bruto": 1714.78, "desconto": 150.90, "liquido": 1563.88},
+        {"mes": "2025-02", "bruto": 1714.78, "desconto": 150.90, "liquido": 1563.88},
+        {"mes": "2025-03", "bruto": 1714.78, "desconto": 150.90, "liquido": 1563.88},
+        {"mes": "2025-04", "bruto": 1314.66, "desconto": 130.21, "liquido": 1184.45},
+        {"mes": "2025-05", "bruto": 0.00, "desconto": 0.00, "liquido": 0.00},
+        {"mes": "2025-06", "bruto": 0.00, "desconto": 0.00, "liquido": 0.00},
+        {"mes": "2025-07", "bruto": 0.00, "desconto": 0.00, "liquido": 0.00},
+        {"mes": "2025-08", "bruto": 0.00, "desconto": 0.00, "liquido": 0.00},
+        {"mes": "2025-09", "bruto": 0.00, "desconto": 0.00, "liquido": 0.00},
+        {"mes": "2025-10", "bruto": 0.00, "desconto": 0.00, "liquido": 0.00},
+        {"mes": "2025-11", "bruto": 0.00, "desconto": 0.00, "liquido": 0.00},
+        {"mes": "2025-12", "bruto": 965.71, "desconto": 965.71, "liquido": 0.00}
+      ]
     },
     {
-      "property_name": "Avenida João Dias, 2192 - 163 Torre 2",
-      "property_address": "São Paulo - SP 04724-003",
-      "property_code": "894326656",
-      "renda_bruta": 66755.06,
-      "descontos": 5874.46,
-      "renda_liquida": 60880.60
+      "endereco": "Avenida João Dias, 2192 - 163 Torre 2, São Paulo - SP 04724-003",
+      "codigo_imavel": "894326656",
+      "renda_bruta_anual": 66755.06,
+      "descontos_anual": 5874.46,
+      "renda_liquida_anual": 60880.60,
+      "detalhamento_mensal": [
+        {"mes": "2025-01", "bruto": 5400.00, "desconto": 475.20, "liquido": 4924.80},
+        {"mes": "2025-02", "bruto": 5400.00, "desconto": 475.20, "liquido": 4924.80},
+        {"mes": "2025-03", "bruto": 5503.26, "desconto": 484.29, "liquido": 5018.97},
+        {"mes": "2025-04", "bruto": 5646.23, "desconto": 496.87, "liquido": 5149.36},
+        {"mes": "2025-05", "bruto": 5646.23, "desconto": 496.87, "liquido": 5149.36},
+        {"mes": "2025-06", "bruto": 5646.23, "desconto": 496.87, "liquido": 5149.36},
+        {"mes": "2025-07", "bruto": 5646.23, "desconto": 496.87, "liquido": 5149.36},
+        {"mes": "2025-08", "bruto": 5646.23, "desconto": 496.87, "liquido": 5149.36},
+        {"mes": "2025-09", "bruto": 5646.23, "desconto": 496.87, "liquido": 5149.36},
+        {"mes": "2025-10", "bruto": 5646.23, "desconto": 496.87, "liquido": 5149.36},
+        {"mes": "2025-11", "bruto": 5646.23, "desconto": 496.87, "liquido": 5149.36},
+        {"mes": "2025-12", "bruto": 5281.96, "desconto": 464.81, "liquido": 4817.15}
+      ]
     }
-  ]
+  ],
+  "total_bruto_anual": 74179.77,
+  "total_descontos_anual": 7423.08,
+  "total_liquido_anual": 66756.69
 }

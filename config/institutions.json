@@ -1,0 +1,42 @@
+{
+  "_comment": "Mapeamento de bancos e tipos de conta — fonte única para e0_audit.py e outros scripts.",
+  "banco_canonical": {
+    "bankofamerica": "bank of america",
+    "btgpactual": "btg pactual",
+    "c6bank": "c6 bank",
+    "picpay": "picpay",
+    "bradesco": "bradesco",
+    "itau": "itaú",
+    "santander": "santander",
+    "rico": "rico",
+    "wise": "wise",
+    "binance": "binance",
+    "receitafederal": "receita federal",
+    "quintoandar": "quintoandar"
+  },
+  "tipo_aliases": {
+    "extratoconta": ["extratoconta", "extrato conta"],
+    "extratopoupanca": ["extratopoupanca", "extrato poupanca"],
+    "extratocontaglobalusd": ["extratocontaglobalusd", "extratocontaglobal"],
+    "extratocontaglobaleur": ["extratocontaglobaleur", "extratocontaglobal"],
+    "extratocontapj": ["extratocontapj", "extrato conta pj"],
+    "extratocontapersonnalite": ["extratocontapersonnalite", "extratoconta", "extrato conta"],
+    "faturacarbon": ["faturacarbon", "fatura carbon"],
+    "faturaunique": ["faturaunique", "fatura unique"],
+    "faturapaoacucar": ["faturapaoacucar", "fatura pao de acucar"],
+    "investimentosposicao": ["investimentosposicao", "investimentos posicao"],
+    "carteirarendafixa": ["carteirarendafixa", "carteira renda fixa"],
+    "cdbdetalhesdi1": ["cdbdetalhesdi1", "cdb detalhes"],
+    "cdbdetalhesdi2": ["cdbdetalhesdi2", "cdb detalhes"],
+    "cdbdetalhesprog": ["cdbdetalhesprog", "cdb detalhes"],
+    "cdbresumo": ["cdbresumo", "cdb resumo"],
+    "faturaaluguelcalixto": ["faturaaluguelcalixto", "faturaaluguel"],
+    "faturaaluguelmajorfreire": ["faturaaluguelmajorfreire", "faturaaluguel"],
+    "irpfdeclaracao": ["irpfdeclaracao", "irpf declaracao"],
+    "irpfdeclaracaomariana": ["irpfdeclaracaomariana", "irpf declaracao"],
+    "irpfrecibo": ["irpfrecibo", "irpf recibo"],
+    "irpfrecibomariana": ["irpfrecibomariana", "irpf recibo"],
+    "informerendimentosaluguel": ["informerendimentosaluguel", "informe rendimentos"],
+    "informerendimentosaluguelmariana": ["informerendimentosaluguelmariana", "informe rendimentos"]
+  }
+}

@@ -13,6 +13,9 @@ inbox_processed/
 .DS_Store
 .obsidian/
 
+# Senhas
+config/passwords.txt
+
 # Backups legados — substituídos pelo histórico Git
 *.bak
 *_backup.*

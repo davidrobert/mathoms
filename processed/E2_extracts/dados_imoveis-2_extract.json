@@ -1,238 +1,117 @@
 {
-  "metadata": {
-    "data_extracao": "2026-04-04T18:49:27.209845",
-    "total_propriedades": 4,
-    "fonte": "dados_imoveis-0_original.xlsx",
-    "planilha": "Imoveis"
-  },
-  "propriedades": [
+  "tipo": "dados_imoveis",
+  "data_extracao": "2026-04-06",
+  "imoveis": [
     {
-      "id": 1,
-      "nome_propriedade": "Apartamento \nPraça Benedito Calixto",
-      "tipo": "Apartamento",
+      "id": "imovel_1",
       "endereco": "Praça Benedito Calixto, 186/190, APT 34 \n- Pinheiros, São Paulo - SP, 05406-040",
-      "data_compra": "2021-11-16 00:00:00",
-      "valor_compra": 348000,
-      "valor_anuncio_loft": "???",
-      "vendedor": null,
-      "proprietario": "David Robert ou Mariana",
-      "situacao_atual": "Não especificado",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "tipo": "apartamento",
+      "area_m2": 40.76,
+      "data_compra": "2021-11-16",
+      "valor_compra": 348000.0,
+      "vendedor": "",
+      "proprietario": "ambos",
       "financiamento": {
-        "banco": "---",
-        "valor_parcela": "---",
-        "detalhes": "Pagamento a vista"
+        "tem_financiamento": false,
+        "banco": null,
+        "valor_financiado": null,
+        "taxa_juros_anual": null,
+        "prazo_meses": null,
+        "parcela_mensal": null,
+        "saldo_devedor": null,
+        "data_inicio": null,
+        "data_fim": null
       },
-      "caracteristicas_fisicas": {
-        "area_construida": "40,7631m2",
-        "numero_apto": "34"
-      },
-      "registros": {
-        "matricula_imovel": 3421.0,
-        "matricula_garagem": "---",
-        "numero_contribuinte_imovel": "013.036.0155-9",
-        "numero_contribuinte_garagem": "---"
-      },
-      "impostos_taxas": {
-        "iptu_ano": 2025,
-        "iptu_valor": 1083.4
-      },
-      "condominio": {
-        "nome": "Barão de Capanema",
-        "valor_mensal": 668.87
-      },
-      "servicos": {
-        "sabesp_numero": "responsabilidade do inquilino",
-        "enel_instalacao": "49338323",
-        "comgas": "???"
-      },
-      "datas_importantes": {
-        "data_ccv": "2021-10-21 00:00:00",
-        "data_registro": "2021-11-16 00:00:00",
-        "data_chaves": "2021-11-17 00:00:00"
-      },
-      "administradora": {
-        "nome": "Graiche Construtora e Imobiliária Ltda",
-        "link": "https://graiche.com.br/"
-      },
-      "contatos": {
-        "zelador": "???",
-        "portaria": "???"
-      },
-      "midia": {
-        "album_fotos": "???"
-      },
-      "notas": "---"
+      "situacao_atual": "proprio",
+      "renda_aluguel_mensal": 0.0,
+      "valor_estimado_atual": null,
+      "observacoes": "Pagamento a vista"
     },
     {
-      "id": 2,
-      "nome_propriedade": "Apartamento \nRua Major Freire",
-      "tipo": "Apartamento",
+      "id": "imovel_2",
       "endereco": "R. Major Freire, 496, APT 12 \n- São Paulo - SP, 04304-110",
-      "data_compra": "AINDA NÃO TEM",
-      "valor_compra": 400000,
-      "valor_anuncio_loft": "480000",
-      "vendedor": null,
-      "proprietario": "David Robert ou Mariana",
-      "situacao_atual": "Não especificado",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "tipo": "apartamento",
+      "area_m2": 68.89,
+      "data_compra": null,
+      "valor_compra": 400000.0,
+      "vendedor": "",
+      "proprietario": "ambos",
       "financiamento": {
+        "tem_financiamento": true,
         "banco": "Banco Itau",
-        "valor_parcela": "R$ 4294,00 \n(parcela de Janeiro/2026)",
-        "detalhes": "Entrada R$ 40,000.00\nFinanciamento R$ 360,000.00"
+        "valor_financiado": 360000.0,
+        "taxa_juros_anual": null,
+        "prazo_meses": null,
+        "parcela_mensal": null,
+        "saldo_devedor": null,
+        "data_inicio": null,
+        "data_fim": null
       },
-      "caracteristicas_fisicas": {
-        "area_construida": "68,89 m²",
-        "numero_apto": "12"
-      },
-      "registros": {
-        "matricula_imovel": 74.782,
-        "matricula_garagem": "74.826",
-        "numero_contribuinte_imovel": "047.176.0274-9",
-        "numero_contribuinte_garagem": "047.176.0879-8"
-      },
-      "impostos_taxas": {
-        "iptu_ano": 2025,
-        "iptu_valor": 484.73
-      },
-      "condominio": {
-        "nome": "Edificio Gisele",
-        "valor_mensal": 599.51
-      },
-      "servicos": {
-        "sabesp_numero": "responsabilidade do inquilino",
-        "enel_instalacao": "0052298680",
-        "comgas": "???"
-      },
-      "datas_importantes": {
-        "data_ccv": "2021-10-21 00:00:00",
-        "data_registro": "AINDA NÃO TEM",
-        "data_chaves": "2022-02-02 00:00:00"
-      },
-      "administradora": {
-        "nome": "Tecnad Administradora de Imóveis",
-        "link": "http://www.tecnad.com.br/"
-      },
-      "contatos": {
-        "zelador": "Sérgio Moreira: +55 11 96378-5696",
-        "portaria": "Portaria Virtual: Delta Omega\ncentral.relacionamento@deltaomega.com.br\n+55 11 3777 9132"
-      },
-      "midia": {
-        "album_fotos": "???"
-      },
-      "notas": "---"
+      "situacao_atual": "proprio",
+      "renda_aluguel_mensal": 0.0,
+      "valor_estimado_atual": null,
+      "observacoes": "Entrada R$ 40,000.00\nFinanciamento R$ 360,000.00"
     },
     {
-      "id": 3,
-      "nome_propriedade": "Casa\nTasso da Silveira",
-      "tipo": "Casa",
+      "id": "imovel_3",
       "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
-      "data_compra": "2022-08-29 00:00:00",
-      "valor_compra": 670000,
-      "valor_anuncio_loft": "---",
-      "vendedor": "Nome dos Vendedores: Geraldo Costa Fernandes e Odete dos Santos Fernandes\nImovel financiado pela CAIXA, Financiamento concluido",
-      "proprietario": "David Robert ou Mariana",
-      "situacao_atual": "Não especificado",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "tipo": "casa",
+      "area_m2": 171.0,
+      "data_compra": "2022-08-29",
+      "valor_compra": 670000.0,
+      "vendedor": "Geraldo Costa Fernandes e Odete dos Santos Fernandes",
+      "proprietario": "ambos",
       "financiamento": {
-        "banco": "---",
-        "valor_parcela": "---",
-        "detalhes": "Nome dos Vendedores: Geraldo Costa Fernandes e Odete dos Santos Fernandes\nImovel financiado pela CAIXA, Financiamento concluido"
+        "tem_financiamento": false,
+        "banco": null,
+        "valor_financiado": null,
+        "taxa_juros_anual": null,
+        "prazo_meses": null,
+        "parcela_mensal": null,
+        "saldo_devedor": null,
+        "data_inicio": null,
+        "data_fim": null
       },
-      "caracteristicas_fisicas": {
-        "area_construida": "171 m² (antes das reformas)\n218 m² (considerado no IPTU)",
-        "numero_apto": "---"
-      },
-      "registros": {
-        "matricula_imovel": 12.644,
-        "matricula_garagem": "---",
-        "numero_contribuinte_imovel": "310.050.0118-6",
-        "numero_contribuinte_garagem": "---"
-      },
-      "impostos_taxas": {
-        "iptu_ano": 2025,
-        "iptu_valor": 4565.4
-      },
-      "condominio": {
-        "nome": "---",
-        "valor_mensal": null
-      },
-      "servicos": {
-        "sabesp_numero": "86040713644133",
-        "enel_instalacao": "0054995434",
-        "comgas": "não tem"
-      },
-      "datas_importantes": {
-        "data_ccv": "2013-12-26 00:00:00",
-        "data_registro": "2022-08-29 00:00:00",
-        "data_chaves": "???"
-      },
-      "administradora": {
-        "nome": "---",
-        "link": "---"
-      },
-      "contatos": {
-        "zelador": "---",
-        "portaria": "---"
-      },
-      "midia": {
-        "album_fotos": "???"
-      },
-      "notas": "---"
+      "situacao_atual": "proprio",
+      "renda_aluguel_mensal": 0.0,
+      "valor_estimado_atual": null,
+      "observacoes": "Nome dos Vendedores: Geraldo Costa Fernandes e Odete dos Santos Fernandes\nImovel financiado pela CAIXA, Financiamento concluido"
     },
     {
-      "id": 4,
-      "nome_propriedade": "Casa\nLeonardo da Vinci",
-      "tipo": "Casa",
+      "id": "imovel_4",
       "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
-      "data_compra": "2023-01-13 00:00:00",
-      "valor_compra": 80000,
-      "valor_anuncio_loft": "---",
-      "vendedor": "Nome da Vendedora: Leonilda de Souza",
-      "proprietario": "David Robert ou Mariana",
-      "situacao_atual": "Não especificado",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "tipo": "casa",
+      "area_m2": 73.0,
+      "data_compra": "2023-01-13",
+      "valor_compra": 80000.0,
+      "vendedor": "Leonilda de Souza",
+      "proprietario": "ambos",
       "financiamento": {
-        "banco": "---",
-        "valor_parcela": "---",
-        "detalhes": "Nome da Vendedora: Leonilda de Souza"
+        "tem_financiamento": false,
+        "banco": null,
+        "valor_financiado": null,
+        "taxa_juros_anual": null,
+        "prazo_meses": null,
+        "parcela_mensal": null,
+        "saldo_devedor": null,
+        "data_inicio": null,
+        "data_fim": null
       },
-      "caracteristicas_fisicas": {
-        "area_construida": "73 m² (considerado no IPTU)",
-        "numero_apto": "---"
-      },
-      "registros": {
-        "matricula_imovel": 20.462,
-        "matricula_garagem": "---",
-        "numero_contribuinte_imovel": "310.045.0146-01",
-        "numero_contribuinte_garagem": "---"
-      },
-      "impostos_taxas": {
-        "iptu_ano": 2025,
-        "iptu_valor": 773.1
-      },
-      "condominio": {
-        "nome": "---",
-        "valor_mensal": null
-      },
-      "servicos": {
-        "sabesp_numero": "responsabilidade do morador",
-        "enel_instalacao": "???",
-        "comgas": "não tem"
-      },
-      "datas_importantes": {
-        "data_ccv": "2023-12-01 00:00:00",
-        "data_registro": "2023-01-13 00:00:00",
-        "data_chaves": "NÃO RECEBIDO"
-      },
-      "administradora": {
-        "nome": "---",
-        "link": "---"
-      },
-      "contatos": {
-        "zelador": "---",
-        "portaria": "---"
-      },
-      "midia": {
-        "album_fotos": "???"
-      },
-      "notas": "---"
+      "situacao_atual": "proprio",
+      "renda_aluguel_mensal": 0.0,
+      "valor_estimado_atual": null,
+      "observacoes": "Nome da Vendedora: Leonilda de Souza"
     }
-  ]
+  ],
+  "total_valor_compra": 1498000.0,
+  "total_saldo_devedor": 0,
+  "total_renda_aluguel_mensal": 0.0
 }

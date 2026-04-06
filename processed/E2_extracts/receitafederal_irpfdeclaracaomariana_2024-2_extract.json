@@ -1,400 +1,183 @@
 {
-  "declarante": {
-    "name": "MARIANA FERREIRA CAMPOS",
-    "cpf": "085.052.396-60",
-    "birth_date": "30/08/1986",
-    "year_base": 2023,
-    "year_filed": 2024,
-    "declaration_type": "Declaração de Ajuste Anual Original",
-    "occupation_code": "01",
-    "occupation_description": "Empregado de empresa do setor privado, exceto de instituições financeiras",
-    "occupation_principal": "227 - Enfermeiro de nível superior, nutricionista, farmacêutico e afins",
-    "address": "RUA TASSO DA SILVEIRA, 61, VILA GUARANI Z SUL, SÃO PAULO, SP, 04316-080",
-    "email": "MTF2006@GMAIL.COM",
-    "phone": "(11) 96073-3929",
-    "has_dependents": false,
-    "is_non_resident": false,
-    "has_disability": false,
-    "spouse_cpf": "287.766.948-36"
-  },
-  "rendimentos_tributaveis": {
-    "pessoa_juridica_titular": [
-      {
-        "source": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA HOSPITAL ALBERT E",
-        "cnpj": "60.765.823/0001-30",
-        "rendimentos_recebidos_pj": 141842.70,
-        "contribuicao_previdenciaria_oficial": 10906.20,
-        "imposto_retido_fonte": 22575.99,
-        "decimo_terceiro_salario": 8301.32,
-        "irrf_decimo_terceiro": 1913.12
-      }
-    ],
-    "pessoa_fisica_exterior": {
-      "trabalho_nao_assalariado": 0.00,
-      "aluguel_temporada": 62140.28,
-      "outros": 0.00,
-      "exterior": 0.00,
-      "total_mensal_detalhado": {
-        "jan": 1504.80,
-        "fev": 4294.11,
-        "mar": 1504.80,
-        "abr": 3094.84,
-        "mai": 6429.60,
-        "jun": 6429.60,
-        "jul": 6439.13,
-        "ago": 6488.68,
-        "set": 6488.68,
-        "out": 6488.68,
-        "nov": 6488.68,
-        "dez": 6488.68
-      }
-    },
-    "total_pessoa_fisica_exterior": 62140.28
-  },
-  "rendimentos_isentos": {
-    "abono_ferias": {
-      "beneficiario_cpf": "085.052.396-60",
-      "fonte_cnpj": "60.765.823/0001-30",
-      "nome_fonte": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA HOSPITAL ALBERT E",
-      "descricao": "ABONO DE FÉRIAS PIS",
-      "valor": 1336.61
-    },
-    "total_isentos": 1336.61
-  },
-  "rendimentos_sujeitos_tributacao_exclusiva": {
-    "decimo_terceiro_salario": 8301.32,
-    "aplicacoes_financeiras": {
-      "total": 3319.56,
-      "detalhado": [
-        {
-          "beneficiario_cpf": "085.052.396-60",
-          "cnpj_fonte": "00.888.897/0001-31",
-          "nome_fonte": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO P",
-          "valor": 150.83
-        },
-        {
-          "beneficiario_cpf": "085.052.396-60",
-          "cnpj_fonte": "11.952.873/0001-10",
-          "nome_fonte": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO",
-          "valor": 2350.78
-        },
-        {
-          "beneficiario_cpf": "085.052.396-60",
-          "cnpj_fonte": "39.958.460/0001-62",
-          "nome_fonte": "M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI",
-          "valor": 479.38
-        },
-        {
-          "beneficiario_cpf": "085.052.396-60",
-          "cnpj_fonte": "60.746.948/0001-12",
-          "nome_fonte": "BANCO BRADESCO S A",
-          "valor": 326.17
-        },
-        {
-          "beneficiario_cpf": "085.052.396-60",
-          "cnpj_fonte": "30.680.829/0001-43",
-          "nome_fonte": "NU FINANCEIRA S.A. - SOCIEDADE DE CREDITO, FINANCIAMENTO E I",
-          "valor": 3.91
-        },
-        {
-          "beneficiario_cpf": "085.052.396-60",
-          "cnpj_fonte": "30.306.294/0001-45",
-          "nome_fonte": "BANCO BTG PACTUAL S A",
-          "valor": 8.49
-        }
-      ]
-    },
-    "total_exclusiva": 11620.88
-  },
+  "tipo": "irpf_declaracao",
+  "membro": "mariana",
+  "cpf": "085.052.396-60",
+  "ano_declaracao": 2025,
+  "ano_base": 2024,
   "bens_direitos": [
     {
-      "code": "01",
-      "subcode": "11",
-      "grupo": "Imóvel (residencial)",
-      "description": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA PLANTA DA EMPRESA CYRELA MAGIKLZ CAMPINAS CNPJ/IMF SOB N 13.177.004 0001-91",
-      "localizacao": "Brasil - São Paulo",
-      "proprietario": "Titular",
+      "codigo": "11",
+      "grupo": "01",
+      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA PLANTA DA EMPRESA CYRELA MAGIKLZ CAMPINAS",
+      "situacao_ano_anterior": 223733.99,
+      "situacao_ano_base": 382857.60,
+      "data_aquisicao": "2023-10-09",
+      "cnpj_entidade": "13.177.004/0001-91"
+    },
+    {
+      "codigo": "11",
+      "grupo": "01",
+      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS",
+      "situacao_ano_anterior": 477436.58,
+      "situacao_ano_base": 477436.58,
+      "data_aquisicao": "2018-04-09",
+      "cnpj_entidade": "17.102.653/0001-84"
+    },
+    {
+      "codigo": "01",
+      "grupo": "04",
+      "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
+      "situacao_ano_anterior": 25337.34,
+      "situacao_ano_base": 51652.33,
       "data_aquisicao": null,
-      "situacao_31_12_2023": 223733.99,
-      "situacao_31_12_2024": 270000.00,
-      "inscricao_municipal": "30105433946"
+      "cnpj_entidade": "60.746.948/0001-12"
     },
     {
-      "code": "01",
-      "subcode": "11",
-      "grupo": "Imóvel (residencial)",
-      "description": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS EMPREENDIMENTOS IMOBILIARIOS LTDA CNPJ/IMF SOB O NUMERO 17.102.653/0001-84 COM 88,91 M2",
-      "localizacao": "Brasil - São Paulo (Bairro: Santo Amaro, CEP: 04724-003)",
-      "proprietario": "Titular",
-      "logradouro": "AVENIDA JOAO DIAS, Nº 2192, Área Total: 88,9 m²",
-      "cartorio": "11 REGISTRO DE IMOVEIS DE SAO PAULO",
-      "data_aquisicao": "09/04/2018",
-      "matricula": "453.527",
-      "situacao_31_12_2023": 477436.58,
-      "situacao_31_12_2024": 530000.00
+      "codigo": "02",
+      "grupo": "04",
+      "descricao": "CERTIFICADO DE DEPOSITO BANCARIO - BTG",
+      "situacao_ano_anterior": 22000.00,
+      "situacao_ano_base": 22000.00,
+      "data_aquisicao": null,
+      "cnpj_entidade": "30.306.294/0001-45"
     },
     {
-      "code": "04",
-      "subcode": "01",
-      "grupo": "Depósitos e valores em banco",
-      "description": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "banco": "237",
-      "agencia": "6543",
-      "conta": "77113-9",
-      "situacao_31_12_2023": 25337.34,
-      "situacao_31_12_2024": 0.00
+      "codigo": "02",
+      "grupo": "04",
+      "descricao": "CDB - BTG",
+      "situacao_ano_anterior": 1826.51,
+      "situacao_ano_base": 2061.60,
+      "data_aquisicao": null,
+      "cnpj_entidade": "30.306.294/0001-45"
     },
     {
-      "code": "04",
-      "subcode": "02",
-      "grupo": "Investimento financeiro",
-      "description": "BTG - PRODUTO CDBB2353UR4",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "30.306.294/0001-45",
-      "situacao_31_12_2023": 22000.00,
-      "situacao_31_12_2024": 22000.00
+      "codigo": "02",
+      "grupo": "04",
+      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
+      "situacao_ano_anterior": 4365.03,
+      "situacao_ano_base": 4576.15,
+      "data_aquisicao": null,
+      "cnpj_entidade": "60.746.948/0001-12"
     },
     {
-      "code": "04",
-      "subcode": "02",
-      "grupo": "Investimento financeiro",
-      "description": "BTG - CDB-SR - AGENCIA 0001",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "30.306.294/0001-45",
-      "situacao_31_12_2023": 1826.51,
-      "situacao_31_12_2024": 3429.16
+      "codigo": "02",
+      "grupo": "04",
+      "descricao": "SALDO RDB - NUBANK",
+      "situacao_ano_anterior": 58.23,
+      "situacao_ano_base": 69.77,
+      "data_aquisicao": null,
+      "cnpj_entidade": "30.680.829/0001-43"
     },
     {
-      "code": "04",
-      "subcode": "02",
-      "grupo": "Investimento financeiro",
-      "description": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "60.746.948/0001-12",
-      "situacao_31_12_2023": 4365.03,
-      "situacao_31_12_2024": 0.00
+      "codigo": "03",
+      "grupo": "04",
+      "descricao": "LCI - OPEA SECURITIZADORA S.A. - BTG",
+      "situacao_ano_anterior": 10349.69,
+      "situacao_ano_base": 10349.69,
+      "data_aquisicao": null,
+      "cnpj_entidade": "02.773.542/0001-22"
     },
     {
-      "code": "04",
-      "subcode": "02",
-      "grupo": "Investimento financeiro",
-      "description": "SALDO RDB - NUBANK",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "30.680.829/0001-43",
-      "situacao_31_12_2023": 58.23,
-      "situacao_31_12_2024": 0.00
+      "codigo": "03",
+      "grupo": "04",
+      "descricao": "LCI - TRUE SECURITIZADORA S.A. - BTG",
+      "situacao_ano_anterior": 10324.25,
+      "situacao_ano_base": 10324.25,
+      "data_aquisicao": null,
+      "cnpj_entidade": "12.130.744/0001-00"
     },
     {
-      "code": "04",
-      "subcode": "02",
-      "grupo": "Investimento financeiro",
-      "description": "BTG - PRODUTO CDB524BFK2F",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "30.306.294/0001-45",
-      "situacao_31_12_2023": 0.00,
-      "situacao_31_12_2024": 10000.00
+      "codigo": "01",
+      "grupo": "06",
+      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
+      "situacao_ano_anterior": 1.00,
+      "situacao_ano_base": 1.00,
+      "data_aquisicao": null,
+      "cnpj_entidade": "60.746.948/0001-12"
     },
     {
-      "code": "04",
-      "subcode": "03",
-      "grupo": "Fundo de investimento",
-      "description": "BTG - PRODUTO 22J1410500",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "30.306.294/0001-45",
-      "situacao_31_12_2023": 10349.69,
-      "situacao_31_12_2024": 9349.69
-    },
-    {
-      "code": "04",
-      "subcode": "03",
-      "grupo": "Fundo de investimento",
-      "description": "BTG - PRODUTO 22K1692411",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "30.306.294/0001-45",
-      "situacao_31_12_2023": 10324.25,
-      "situacao_31_12_2024": 10324.25
-    },
-    {
-      "code": "04",
-      "subcode": "03",
-      "grupo": "Fundo de investimento",
-      "description": "BTG - PRODUTO CRA023000MZU",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "30.306.294/0001-45",
-      "situacao_31_12_2023": 0.00,
-      "situacao_31_12_2024": 9115.01
-    },
-    {
-      "code": "04",
-      "subcode": "03",
-      "grupo": "Fundo de investimento",
-      "description": "BTG - PRODUTO GRA023000SPD",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "30.306.294/0001-45",
-      "situacao_31_12_2023": 0.00,
-      "situacao_31_12_2024": 9109.54
-    },
-    {
-      "code": "04",
-      "subcode": "03",
-      "grupo": "Fundo de investimento",
-      "description": "BTG - PRODUTO CRA0240010Q",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "30.306.294/0001-45",
-      "situacao_31_12_2023": 0.00,
-      "situacao_31_12_2024": 9248.83
-    },
-    {
-      "code": "04",
-      "subcode": "03",
-      "grupo": "Fundo de investimento",
-      "description": "BTG - PRODUTO 23J0138431",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "30.306.294/0001-45",
-      "situacao_31_12_2023": 0.00,
-      "situacao_31_12_2024": 9164.03
-    },
-    {
-      "code": "06",
-      "subcode": "01",
-      "grupo": "Conta corrente",
-      "description": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "banco": "237",
-      "agencia": "6543",
-      "conta": "77113-9",
-      "situacao_31_12_2023": 1.00,
-      "situacao_31_12_2024": 0.00,
-      "nota": "Conta pagamento? Não"
-    },
-    {
-      "code": "07",
-      "subcode": "01",
-      "grupo": "Fundo de investimento renda fixa",
-      "description": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LO",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "11.952.873/0001-10",
-      "situacao_31_12_2023": 35868.62,
-      "situacao_31_12_2024": 41408.87
-    },
-    {
-      "code": "07",
-      "subcode": "01",
-      "grupo": "Fundo de investimento renda fixa",
-      "description": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "00.888.897/0001-31",
-      "situacao_31_12_2023": 0.00,
-      "situacao_31_12_2024": 4494.93
-    },
-    {
-      "code": "07",
-      "subcode": "07",
-      "grupo": "Fundo de investimento renda fixa",
-      "description": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRIVADO LONGO PRAZO - INFORMADO POR CNPJ 59.281.253/0001-23",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "39.958.460/0001-62",
-      "situacao_31_12_2023": 0.00,
-      "situacao_31_12_2024": 25479.42,
-      "negociados_bolsa": false
-    },
-    {
-      "code": "07",
-      "subcode": "10",
-      "grupo": "Fundo de investimento",
-      "description": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE INVESTIMENTO FINANCEIRO EM INFRAESTRUTURA RENDA FIXA - INFORMADO POR CNPJ 59.281.253/0001-23",
-      "localizacao": "Brasil",
-      "proprietario": "Titular",
-      "cnpj_fundo": "51.697.128/0001-97",
-      "situacao_31_12_2023": 0.00,
-      "situacao_31_12_2024": 25000.00,
-      "negociados_bolsa": false
+      "codigo": "01",
+      "grupo": "07",
+      "descricao": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LONGO PRAZO",
+      "situacao_ano_anterior": 35868.62,
+      "situacao_ano_base": 34830.76,
+      "data_aquisicao": null,
+      "cnpj_entidade": "11.952.873/0001-10"
     }
   ],
-  "dividas_onus": [],
-  "pagamentos_dedutiveis": {
-    "saude": [
+  "rendimentos_tributaveis": {
+    "total": 147959.91,
+    "fontes": [
       {
-        "codigo": "11",
-        "nome_beneficiario": "LEIR MIRANDA ESTEVES",
-        "cpf_cnpj": "786.538.606-06",
-        "descricao": "ODONTOLOGISTA",
-        "valor_pago": 400.00,
-        "parcela_nao_deductivel": 0.00
+        "fonte": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA HOSPITAL ALBERT EINSTEIN",
+        "cnpj": "60.765.823/0001-30",
+        "valor": 141842.70
       },
       {
-        "codigo": "21",
-        "nome_beneficiario": "BEEP SERVICOS MEDICOS LTDA",
-        "cpf_cnpj": "28.286.170/0001-01",
-        "valor_pago": 275.00,
-        "parcela_nao_deductivel": 0.00
-      },
-      {
-        "codigo": "21",
-        "nome_beneficiario": "HT SARAGIOTTO SERVICOS MEDICOS LTDA",
-        "cpf_cnpj": "47.078.968/0001-02",
-        "valor_pago": 600.00,
-        "parcela_nao_deductivel": 0.00
-      },
-      {
-        "codigo": "26",
-        "nome_beneficiario": "SUL AMERICA SERVICOS DE SAUDE",
-        "cpf_cnpj": "02.868.602/0001-51",
-        "valor_pago": 190.54,
-        "parcela_nao_deductivel": 0.00
-      },
-      {
-        "codigo": "71",
-        "nome_beneficiario": "GRPQA LTDA",
-        "cpf_cnpj": "16.788.643/0001-81",
-        "valor_pago": 13726.94,
-        "parcela_nao_deductivel": 0.00
+        "fonte": "Rendimentos de Pessoa Física (aluguéis)",
+        "cnpj": null,
+        "valor": 6117.21
       }
-    ],
-    "total_saude": 15192.48
+    ]
   },
-  "totals": {
-    "total_bens_direitos": 988123.73,
-    "total_bens_direitos_anterior": 811301.24,
-    "total_dividas": 0.00,
-    "total_rendimentos_tributaveis": 203982.98,
-    "total_rendimentos_isentos": 1336.61,
-    "total_rendimentos_exclusivos": 11620.88,
-    "imposto_retido_fonte": 22575.99,
-    "imposto_pago": 22575.99,
-    "imposto_devido": 40746.89,
-    "aliquota_efetiva_percent": 19.97,
-    "imposto_a_restituir": 0.00,
-    "saldo_imposto_pagar": 18170.90,
-    "parcelamento_valor_quota": 2271.36,
-    "parcelamento_numero_quotas": 8
+  "rendimentos_isentos": {
+    "total": 9453.86,
+    "itens": [
+      {
+        "descricao": "Restituição do imposto sobre a renda de anos-calendário anteriores",
+        "valor": 1188.37
+      },
+      {
+        "descricao": "Abono de férias/PIS",
+        "valor": 8265.49
+      }
+    ]
   },
-  "informacoes_adicionais": {
-    "banco_debito_automatico": "SIM",
-    "banco_numero": "237",
-    "agencia_sem_dv": "504",
-    "conta_debito": "0077113.9",
-    "data_entrega": "30/05/2025 às 20:05:23",
-    "numero_recibo_anterior": "28.37.40.23.30-93",
-    "controle": "838216781775959",
-    "patrimonio_31_12_2023": 811301.24,
-    "patrimonio_31_12_2024": 988123.73
-  }
+  "rendimentos_exclusivos": {
+    "total": 24114.31,
+    "itens": [
+      {
+        "descricao": "13º salário",
+        "valor": 8301.32
+      },
+      {
+        "descricao": "Rendimentos de aplicações financeiras",
+        "valor": 14792.99
+      },
+      {
+        "descricao": "Outros rendimentos exclusivos",
+        "valor": 1020.00
+      }
+    ]
+  },
+  "dividas_onus": [],
+  "pagamentos_dedutiveis": [
+    {
+      "tipo": "saude",
+      "descricao": "CLINICA TAKATA LTDA",
+      "valor": 2200.00
+    },
+    {
+      "tipo": "saude",
+      "descricao": "LF SAO PAULO SERVICOS MEDICOS LTDA",
+      "valor": 7000.00
+    },
+    {
+      "tipo": "saude",
+      "descricao": "TERZIAN - SOCIEDADE DE MÉDICOS LTDA",
+      "valor": 7700.00
+    },
+    {
+      "tipo": "outro",
+      "descricao": "GRPQA LTDA - Aluguel (QuintoAndar)",
+      "valor": 2947.68
+    }
+  ],
+  "total_bens_ano_anterior": 811301.24,
+  "total_bens_ano_base": 988123.73,
+  "total_dividas_ano_anterior": 0.00,
+  "total_dividas_ano_base": 0.00,
+  "imposto_devido": 20784.49,
+  "imposto_pago": 20184.53,
+  "resultado": 599.96
 }

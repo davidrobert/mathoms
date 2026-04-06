@@ -17,221 +17,48 @@ Date: 2026-04-05
 
 import json
 import os
+import sys
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Tuple, Optional
 from collections import defaultdict
 
 
 # ============================================================================
-# KEYWORD CATEGORIZATION RULES (from definitions.md)
+# LOAD CONFIGURATION FROM JSON FILES
 # ============================================================================
 
-EXPENSE_KEYWORDS = {
-    "moradia": [
-        # Financiamento imobiliário (definitions.md: "financ imobiliário → moradia")
-        "FINANC IMOBILIARIO", "FINANCIAMENTO IMOBILI",
-        # Utilities (água, luz, gás)
-        "ELETROPAULO", "ENEL", "CPFL", "CESP", "COMGAS",
-        "SABESP", "SANEPAR", "COPASA",
-        # Condomínio
-        "CONDOMINIO",
-    ],
-    "alimentacao": [
-        "OXXO", "SACOLAO", "MERCADO", "SAKURA", "VERDURAS E LEGUMES", "QUEBEC BAR",
-        "RAMEN", "THE VIEW BAR", "GALPAO DA COSTELA", "EL PELEGRINO", "BAR DA JULINHA",
-        "CANTINA", "CANTINHO DOS MINEIROS", "BLMT COMERCIO DE ALIME", "CARR EXPRESS",
-        "CASA BAUDUCCO", "CASA PILAO", "CHAPEU DE SOL", "CHOCOLATE", "CHURRASCARIA",
-        "DENGO", "EMPADAKI", "ENRICOCAFEE", "CAFETERIA", "GRAN COFFEE",
-        "GUIMARAES ALIMENTOS", "IFD*", "KINDINPAESEDOCES", "LAGOS DO SUL", "LAGOSDOSUL",
-        "LIKA YACEPS", "LINDT", "M A DE CARVALHO CHOCOL", "MINAS QUEIJO", "MILKMOO",
-        "MILKY MOO", "MINI MERC", "MINIMART", "MOZI COMERCIO", "NATA ", "NATHALIACASADE",
-        "OFNER", "PAES E DOCES", "PASTEISOSHIRO", "PASTELARIA", "PIRAJA COMERCIO",
-        "QUIOSQUE CE QUE", "RDO CHOCOLATES", "REAL DA VILLA", "REDE CAMPEAO", "REDE OBA",
-        "REST FRANGOASSADO", "RM MORUMBI", "ROP COM ALIM", "S.R. GONCALVES", "SAMS*",
-        "SELVAGEM", "SODIEDOCES", "STAR CHICKEN", "TEMPERODAFE", "TOSTADO CAFE",
-        "VEGSIM", "VISTA IBIRAPUERA", "YES COFFEE", "GAMBO CAFE", "BOGO CAFE",
-        "NOVO - MUG", "CASA MURDOCK", "ERVA DOCE BAR", "O BADEN BADEN", "MORUMBI TERREO",
-        "DON MACEDO CARNE", "JDM COMERCIO DE ALIM", "GUARAREMA", "KERO MAIS",
-        "CINCO M COMERCIO", "MM CAMPO BELO", "BG NORTE", "DESCAMPADO", "A CASA DE ANTONIA",
-        "MOMA MADALENA", "CACAPAVA", "EJM REST JAPONES", "PORTO CAIRES", "R TRES",
-        "JIM.COM* MAB FOOD", "JIM.COM* UMETSU COMER", "TORRALTA", "TORRALTACOMERCIO", "NADIR"
-    ],
-    "transporte": [
-        "PARK", "AUTOPOSTO", "AUTOPOSTOKANTAN", "ULTRAGAS", "CONCESSIONARIA SPMAR",
-        "CARRETEIRO REV", "PUNTO *PRIME AUTO", "ECOPISTA", "FELTRIN MOTOS",
-        "MEGAPASS", "MC MOBILITY", "MCOUTINHO MOBILITY", "EXXON AUTOMATED",
-        "BANDEIRA PAULISTA PAR", "AUTOVAGAS", "MARANATA SERVICOS DE G", "CORREA CONVENIENCIA",
-        # Multas e licenciamento
-        "MULTA DE VEICULO", "MULTA VEICULO", "DETRAN",
-        "LICENCIAMENTO DE VEICULO", "LICENCIAMENTO VEICULO",
-    ],
-    "assinaturas": [
-        "WELLHUB", "GYMPASS", "AMAZONPRIMEBR", "GLOBO*GLOBOPLAY", "GLOBO GLOBOPLAY",
-        "GOOGLE *DUOLINGO", "SURFSHARK", "PAYPAL *RESCUETIME", "PAYPAL *CLEVERBRIDG",
-        "EBN *SONYPLAYSTATN", "PADDLE.NET*", "REGISTROBR", "EC *MELIMAIS", "MP *MELIMAIS",
-        "PRODUTOS GLOBO", "SP FLIPPER DEVICES", "ASSOCIATION FOR COMPUT",
-        # Telecomunicações
-        "TELEFONE CELULAR VIVO", "VIVO MOVEL", "CONTA TELEFONE",
-        "CLARO CELULAR", "TIM CELULAR", "NET SERVICOS",
-    ],
-    "saude": [
-        "CORPO E VIDA", "REMEDIOPOPULAR", "NUTRA BODY", "MP *FARMAPOPULAR",
-        "SCRIPTS PHARMACY", "CAMILANAKAMURA", "ABDO MOHAMED",
-        # Planos de saúde
-        "POUPA MEDI",
-    ],
-    "seguros": [
-        "SUL AMERICA SEG",
-        "MENSALIDADE DE SEGURO",
-    ],
-    "vestuario": [
-        "I. M. SATO VESTUARIO", "LUANA FASHION", "VICIO FEMININO", "CARTERS",
-        "KIKO MILANO", "PITICAS", "BAYARD ESPORTES", "EMY PERFUMARIA", "SONEDA PERFUMARIA",
-        "ITRCCABELEIREIROS", "LOJA OFICIAL", "TATIANA GIORDANO"
-    ],
-    "lazer_viagens": [
-        "AIRBNB", "SEAWORLD", "BUSCH GARDENS", "PORTO DUTY FREE", "TERMINAL III",
-        "HN HUDSON", "WEATHERSTATION", "WDW DROID DEPOT", "NIC*-DOH ORA VITAL",
-        "MINUTE SUITES", "ZIG*VILLA DI PHOENIX", "ZIG. THE GLOBAL FUNTEC", "A NOIESA",
-        "AEROP. ADOLFO SUAREZ", "ASSOC COMERCIAL PORT", "AUDASA VISA", "CATEDRAL DE SANTIAGO",
-        "CHEZ LAPIN", "CPPB-RUA AUGUSTA", "FUNDACAO CULTURSINTR", "MANTEIGARIA SILVA",
-        "ATL PANDA EXPRESS", "FAST POINT MC", "DOLLAR TREE", "AMAZON GROCERY", "AMAZON TIPS"
-    ],
-    "melhoria_reforma": [
-        "JS MATERIAIS DE CONS", "ANDRA MATERIAIS", "FUTURA MADEIRAS", "DEPOSITO CENTER",
-        "DEPOSITO GUARANI", "ROSSE COMERCIO", "ELETTRICA COMERCIO", "CONILREM", "DAISO BRASIL"
-    ],
-    "educacao": [
-        "LEITURA", "KALUNGA", "COPICOPIAS", "PAPELARIA"
-    ],
-    "servicos_domesticos": [
-        "SUECIA", "ELIANE", "ANDREA S LAVANDERIA", "PET DOGSTORE",
-        "JIM COM* LAVARAPIDO", "JIM.COM* LAVARAPIDO"
-    ],
-    "financeiro": [
-        "VINDI *ACCOUNTBANKTEC", "PAYPAL *DOCUSIGNINC",
-        # Juros e taxas bancárias
-        "IOF CHEQUE ESPECIAL", "IOF", "TARIFA",
-        "JUROS LIMITE DA CONTA", "JUROS CHEQUE ESP", "JUROS SALDO UTILIZ",
-        "JUROS LIMITE", "JUROS UTILIZ",
-        "TAR PACOTE", "TAXA PERMANENCIA",
-    ],
-    "impostos": [
-        "DEBITO RFB", "DAS SIMPLES", "DARF", "GPS INSS", "IRPF", "IPTU", "IPVA",
-        "SIMPLES NACIONAL", "SIMPLES NACIONA",
-        # Pagamentos tributários
-        "RECEITA FEDERAL", "PGTO ELET TRIB", "PGTO TRIB",
-        "INT /SIMPLES",
-    ],
-    "suporte_familiar": [
-        "ALO BEBE", "ICA*ICASEI", "MAKOS LEMBRANCAS", "RUBENS DE CAMPOS",
-        "PIX TRANSF RUBENS",
-    ],
-    "reserva_desejos": [
-        "AMAZON MKTPLACE", "AMAZON RETA", "AMAZONMKTPLC", "MP *VICTORELETRONICOS"
-    ]
-}
+SCRIPTS_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = SCRIPTS_DIR.parent
+CONFIG_DIR = PROJECT_DIR / "config"
 
-INCOME_KEYWORDS = {
-    "receita_pj": [
-        "ARVO", "DAVID ROBERT CAMARGO", "BRANDLOVERS", "BRAND LOVERS",
-        "ARBITRALIS", "LEARNTOFLY", "LEARN TO FLY", "KIWIFY", "CNRY", "CANARY", "BARTE"
-    ],
-    "receita_clt": [
-        "SOCIEDADE BENEFICENTE ISRAELITA"
-    ],
-    "receita_aluguel": [
-        "GRPQA", "SISPAG GRPQA", "RECEB PAGFOR GRPQA", "ALUGUEL", "LOCACAO"
-    ],
-    "receita_investimento": [
-        "RENDIMENTO", "JUROS S/CAPITAL", "DIVIDENDO", "RENT.INV.FACIL",
-        "RENDIMENTO DISPONIVEL", "RENDIMENTO DE CONTA"
-    ],
-    "receita_resgate": [
-        "RESGATE", "LIQUIDACAO"
-    ],
-    "receita_restituicao": [
-        "RESTITUICAO", "RESTIT IRPF"
-    ],
-    "receita_fgts": [
-        "FGTS", "CAIXA ECONOMICA"
-    ]
-}
+def _load_json_config(filename: str) -> dict:
+    """Load a JSON config file from config/ directory."""
+    path = CONFIG_DIR / filename
+    if not path.exists():
+        print(f"FATAL: Config file not found: {path}", file=sys.stderr)
+        sys.exit(1)
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-# Internal transfer detection patterns
-# These are CLEARLY internal (between family accounts or investment applications)
-# PIX/TED to third parties are NOT transfers — they're expenses or nao_identificado
-INTERNAL_TRANSFER_PATTERNS = [
-    # Poupança sweeps
-    "bx Aut Poupanca",          # Bradesco CC ↔ Poupança auto sweep
-    "Transf p/ Poupanca",       # Transfer to poupança
-    # Investment applications/redemptions
-    "Apl.invest Fac",           # Investment application (Bradesco)
-    "Apl.invest",               # Investment application
-    "Aplicacao CDB",            # CDB application
-    "Resgate Inv Fac",          # Investment redemption (Bradesco)
-    "Resgate CDB",              # CDB redemption
-    # Investment purchases (renda fixa, renda variável)
-    "COMPRA - CRA",             # CRA (Certificado de Recebíveis do Agronegócio)
-    "COMPRA DE NTNB",           # NTN-B (Tesouro IPCA+)
-    "COMPRA DE LFT",            # LFT (Tesouro Selic)
-    "COMPRA DE NTN",            # NTN (Tesouro Direto)
-    "COMPRA DE LCI",            # LCI
-    "COMPRA DE LCA",            # LCA
-    "LIQ BOLSA",                # Stock market liquidation (debit/credit margem)
-    "DEBITO MARGEM",            # Margin debit (brokerage)
-    # Currency exchange between own accounts
-    "Cambio",                   # FX conversion (C6 PF → C6 Global)
-    # TED to known internal accounts
-    "Ted Dif.litud",            # TED to BTG (Mariana internal)
-    # Credit card bill payments (expense already in fatura)
-    "Pagto Cobranca",           # Boleto payment (card bill or internal)
-    "Pagamento de fatura",      # Card bill payment from CC
-    "ITAU VISA ITAUCARD",       # Itaú card bill via auto-debit
-    "FAT.CARTAO MASTER",        # Mastercard bill auto-debit
-    "FAT.CARTAO VISA",          # Visa bill auto-debit
-    "FAT CARTAO",               # Generic card bill
-    "PGTO CARTAO",              # Card payment
-    "Debito de Cartao",         # Card debit (PicPay/similar)
-    # PIX to self (Itaú format: "PIX TRANSF DAVID R03/07")
-    "PIX TRANSF DAVID",         # David to self across accounts
-    "PIX TRANSF MARIANA",       # Mariana to self across accounts
-]
+_categorization = _load_json_config("categorization.json")
+_family = _load_json_config("family_members.json")
 
-# Extended internal transfer patterns that check recipient/context
-# (PIX transfers to known family accounts)
-INTERNAL_TRANSFER_RECIPIENTS = [
-    "DAVID ROBERT CAMARGO DE CAMPOS",      # David's PJ → PF
-    "DAVID ROBERT CAMARGO FERREIRA CAMPOS", # David full name variant
-    "MARIANA TEIXEIRA FERREIRA",            # Between spouses
-    "MARIANA FERREIRA CAMPOS",              # Between spouses
-    "C6 BANK",                              # Transfer to C6
-    "PICPAY",                               # Transfer to PicPay
-]
+EXPENSE_KEYWORDS = _categorization["expense_keywords"]
+INCOME_KEYWORDS = _categorization["income_keywords"]
+INTERNAL_TRANSFER_PATTERNS = _categorization["internal_transfer_patterns"]
+# PIX patterns from family config (items like "PIX TRANSF DAVID")
+INTERNAL_TRANSFER_PATTERNS += _family.get("transferencias_internas", {}).get("patterns_pix", [])
+
+INTERNAL_TRANSFER_RECIPIENTS = _family.get("transferencias_internas", {}).get("recipients", [])
+
+PJ_SOURCE_MAPPING = {"receita_pj": _categorization["pj_source_mapping"]}
+CLT_SOURCE_MAPPING = _categorization["clt_source_mapping"]
 
 
-# ============================================================================
-# PJ INCOME SOURCE MAPPING
-# ============================================================================
-
-PJ_SOURCE_MAPPING = {
-    "receita_pj": {
-        "ARVO": "Arvo (David - PJ)",
-        "DAVID ROBERT CAMARGO": "Arvo (David - PJ)",
-        "BRANDLOVERS": "BrandLovers (David - PJ)",
-        "BRAND LOVERS": "BrandLovers (David - PJ)",
-        "ARBITRALIS": "Arbitralis (David - PJ)",
-        "LEARNTOFLY": "Learn To Fly (David - PJ)",
-        "LEARN TO FLY": "Learn To Fly (David - PJ)",
-        "KIWIFY": "Kiwify (David - PJ)",
-        "CNRY": "CNRY (David - PJ)",
-        "CANARY": "CNRY (David - PJ)",
-        "BARTE": "Barte (David - PJ)"
-    }
-}
-
-
+# NOTE: All keyword data, transfer patterns, PJ/CLT mappings, and transfer
+# recipients are now loaded from config/categorization.json and
+# config/family_members.json. See those files to add/edit keywords.
 def normalize_text(text: str) -> str:
     """Normalize text for matching: uppercase, remove accents."""
     if not text:
@@ -259,13 +86,13 @@ def find_longest_matching_keyword(description: str, keywords_dict: Dict[str, Lis
             # Handle wildcard patterns (* at start/end)
             if norm_keyword.endswith("*"):
                 pattern = norm_keyword[:-1]
-                if norm_desc.startswith(pattern) or pattern in norm_desc:
+                if norm_desc.startswith(pattern):
                     if longest_match is None or len(norm_keyword) > len(longest_match):
                         longest_match = norm_keyword
                         longest_category = category
             elif norm_keyword.startswith("*"):
                 pattern = norm_keyword[1:]
-                if norm_desc.endswith(pattern) or pattern in norm_desc:
+                if norm_desc.endswith(pattern):
                     if longest_match is None or len(norm_keyword) > len(longest_match):
                         longest_match = norm_keyword
                         longest_category = category
@@ -296,6 +123,16 @@ def is_internal_transfer(description: str, tipo: Optional[str] = None, banco: st
         if normalize_text(recipient) in norm_desc:
             return True
 
+    # v4.7: Bank-specific patterns (too generic to use globally)
+    # "Pagamento" alone in C6 Bank extrato = credit card bill payment
+    norm_banco = normalize_text(banco)
+    if "C6" in norm_banco and norm_desc.strip() == normalize_text("Pagamento"):
+        return True
+
+    # v5.0.1: TED to Hbank (Bradesco → BTG Pactual, Mariana investment transfer)
+    if "TED D HBANK" in norm_desc:
+        return True
+
     return False
 
 
@@ -315,16 +152,30 @@ def categorize_expense(description: str) -> Optional[str]:
     return category
 
 
-def categorize_income(description: str, account_type: str = "") -> Optional[str]:
+def categorize_income(description: str, account_type: str = "",
+                      banco: str = "", titular: str = "") -> Optional[str]:
     """Categorize a credit transaction as income."""
-    # Special case: RECEB PAGFOR GRPQA = aluguel, not another category
-    if "RECEB PAGFOR GRPQA" in normalize_text(description):
+    norm_desc = normalize_text(description)
+    norm_titular = normalize_text(titular)
+    norm_banco = normalize_text(banco)
+
+    # Special case: RECEB PAGFOR GRPQA = aluguel (QuintoAndar), not another category
+    if "RECEB PAGFOR GRPQA" in norm_desc:
         return "receita_aluguel"
-    if "GRPQA" in normalize_text(description):
+    if "GRPQA" in norm_desc:
         return "receita_aluguel"
 
-    # Einstein salary only in Bradesco Poupanca
-    if "SOCIEDADE BENEFICENTE ISRAELITA" in normalize_text(description) and "poupanca" in account_type:
+    # v5.2: RECEB PAGFOR (sem GRPQA) no Bradesco da Mariana = salário Einstein (CLT)
+    # Padrão: depósito via folha de pagamento, sempre dia ~9-11, valores consistentes
+    # com salário líquido + benefícios. Não confundir com RECEB PAGFOR GRPQA (aluguel).
+    if ("RECEB PAGFOR" in norm_desc
+            and "GRPQA" not in norm_desc
+            and "BRADESCO" in norm_banco
+            and ("MARIANA" in norm_titular)):
+        return "receita_clt"
+
+    # Einstein salary via SOCIEDADE BENEFICENTE ISRAELITA (any Bradesco account)
+    if "SOCIEDADE BENEFICENTE ISRAELITA" in norm_desc and "BRADESCO" in norm_banco:
         return "receita_clt"
 
     category, _ = find_longest_matching_keyword(description, INCOME_KEYWORDS)
@@ -342,13 +193,28 @@ def get_pj_origin(description: str) -> str:
     return "Outras Receitas PJ"
 
 
+def get_clt_origin(description: str) -> str:
+    """Map CLT income description to origin source. v5.3"""
+    norm_desc = normalize_text(description)
+
+    for keyword, origin in CLT_SOURCE_MAPPING.items():
+        if normalize_text(keyword) in norm_desc:
+            return origin
+
+    # v5.3.1: fallback to first CLT mapping value or generic label
+    if CLT_SOURCE_MAPPING:
+        return next(iter(CLT_SOURCE_MAPPING.values()))
+    return "Receita CLT"
+
+
 def format_periodo(start_date: str, end_date: str) -> str:
     """Format period from dates like 2025-01-01 to 2026-03-29."""
     try:
         start = start_date[:7]  # YYYY-MM
         end = end_date[:7]
         return f"{start} a {end}"
-    except:
+    except (ValueError, TypeError, IndexError) as e:
+        print(f"  [WARN] Erro ao parsear data: {e}")
         return "N/D"
 
 
@@ -365,6 +231,14 @@ def load_reconciled_files(input_dir: Path) -> List[Dict]:
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
+                # Skip tombstoned files from E3 cleanup
+                if data.get('_tombstone'):
+                    continue
+                transacoes = data.get('transacoes_total', data.get('transacoes'))
+                if transacoes is None:
+                    print(f"  [WARN] {file_path.name}: campo transacoes ausente — pulando")
+                    continue
+                # Note: transacoes can be 0 or [] for legitimate empty months — don't skip those
                 reconciled_data.append(data)
         except Exception as e:
             print(f"[E4.0] WARNING: Failed to load {file_path.name}: {e}")
@@ -405,7 +279,20 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
             data = tx.get("data", "")
             descricao = tx.get("descricao", "")
             valor = tx.get("valor", 0.0)
+            # Type validation for valor
+            if isinstance(valor, str):
+                try:
+                    valor = float(valor.replace(".", "").replace(",", "."))
+                except (ValueError, TypeError):
+                    print(f"  [WARN] valor não-numérico: '{valor}' em {tx.get('descricao', '?')}")
+                    valor = 0.0
             tipo = tx.get("tipo")  # For faturas, may be missing (treat as debito)
+            # v5.1: Infer tipo from valor sign when missing (E2 extracts may omit it)
+            # Faturas excluded: positive values in faturas are purchases (expenses)
+            if tipo is None and valor is not None:
+                is_fatura = tipo_conta.startswith("fatura")
+                if not is_fatura:
+                    tipo = "credito" if valor > 0 else "debito"
             saldo_apos = tx.get("saldo_apos")
 
             # Detect internal transfers first
@@ -424,33 +311,42 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
 
             # Categorize based on tipo (credito/debito)
             if tipo == "credito":
-                category = categorize_income(descricao, tipo_conta)
-                if category:
-                    origin = "Rendimentos Financeiros"
-                    if category == "receita_pj":
-                        origin = get_pj_origin(descricao)
-                    elif category == "receita_clt":
-                        origin = "Einstein (Mariana - CLT)"
-                    elif category == "receita_aluguel":
-                        origin = "Aluguéis"
-                    elif category == "receita_restituicao":
-                        origin = "Restituições"
-                    elif category == "receita_fgts":
-                        origin = "FGTS"
-                    else:
-                        origin = "Outras Receitas"
+                category = categorize_income(descricao, tipo_conta, banco, titular)
+                # v4.8: unmatched creditos default to "outras_receitas" instead of being dropped
+                if not category:
+                    category = "outras_receitas"
 
-                    receitas.append({
-                        "data": data,
-                        "descricao": descricao,
-                        "valor": valor,
-                        "banco": banco,
-                        "categoria": category,
-                        "origem": origin,
-                        "tipo_conta": tipo_conta,
-                        "titular": titular,
-                        "moeda": moeda
-                    })
+                origin = "Outras Receitas"
+                if category == "receita_pj":
+                    origin = get_pj_origin(descricao)
+                elif category == "receita_clt":
+                    origin = get_clt_origin(descricao)
+                elif category == "receita_aluguel":
+                    origin = "Aluguéis"
+                elif category == "receita_investimento":
+                    origin = "Rendimentos Financeiros"
+                elif category == "receita_resgate":
+                    origin = "Resgates"
+                elif category == "receita_venda_ativo":
+                    origin = "Venda de Ativo"
+                elif category == "receita_restituicao":
+                    origin = "Restituições"
+                elif category == "receita_fgts":
+                    origin = "FGTS"
+                elif category == "outras_receitas":
+                    origin = "Outras Receitas"
+
+                receitas.append({
+                    "data": data,
+                    "descricao": descricao,
+                    "valor": valor,
+                    "banco": banco,
+                    "categoria": category,
+                    "origem": origin,
+                    "tipo_conta": tipo_conta,
+                    "titular": titular,
+                    "moeda": moeda
+                })
             else:  # debito or fatura (no tipo field)
                 category = categorize_expense(descricao)
                 if category is None:
@@ -487,6 +383,14 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
     return receitas, despesas, transferencias, len(receitas), len(despesas), len(transferencias)
 
 
+def compute_periodo(transactions: List[Dict]) -> str:
+    """Compute period string from transaction dates."""
+    dates = [tx.get("data", "")[:7] for tx in transactions if tx.get("data")]
+    if dates:
+        return f"{min(dates)} a {max(dates)}"
+    return "N/D"
+
+
 def build_receitas_unified(receitas: List[Dict]) -> Dict:
     """Build unified receitas output file."""
     # Group by category
@@ -500,9 +404,10 @@ def build_receitas_unified(receitas: List[Dict]) -> Dict:
 
     total_geral = sum(totals_por_categoria.values())
 
+    BRT = timezone(timedelta(hours=-3))
     return {
-        "consolidation_date": datetime.utcnow().isoformat(),
-        "periodo": "2025-01 a 2026-03",
+        "consolidation_date": datetime.now(BRT).isoformat(),
+        "periodo": compute_periodo(receitas),
         "categorias": sorted(by_category.keys()),
         "total_categorias": len(by_category),
         "total_transacoes": len(receitas),
@@ -525,9 +430,10 @@ def build_despesas_unified(despesas: List[Dict]) -> Dict:
 
     total_geral = sum(totals_por_categoria.values())
 
+    BRT = timezone(timedelta(hours=-3))
     return {
-        "consolidation_date": datetime.utcnow().isoformat(),
-        "periodo": "2025-01 a 2026-03",
+        "consolidation_date": datetime.now(BRT).isoformat(),
+        "periodo": compute_periodo(despesas),
         "categorias": sorted(by_category.keys()),
         "total_categorias": len(by_category),
         "total_transacoes": len(despesas),
@@ -562,12 +468,14 @@ def build_fluxo_mensal_detalhado(receitas: List[Dict], despesas: List[Dict]) -> 
                     receita_por_mes[month][origem] = 0.0
                 receita_por_mes[month][origem] += tx["valor"]
 
-    # Fill zeros for missing origins
+    # Fill zeros for missing origins and round to 2 decimals
     for month in months_sorted:
         for origem in receita_origens:
             if origem not in receita_por_mes[month]:
                 receita_por_mes[month][origem] = 0.0
-        receita_por_mes[month]["_total"] = sum(v for k, v in receita_por_mes[month].items() if k != "_total")
+            else:
+                receita_por_mes[month][origem] = round(receita_por_mes[month][origem], 2)
+        receita_por_mes[month]["_total"] = round(sum(v for k, v in receita_por_mes[month].items() if k != "_total"), 2)
 
     # Build despesas by category and month
     despesa_categorias = set()
@@ -584,15 +492,17 @@ def build_fluxo_mensal_detalhado(receitas: List[Dict], despesas: List[Dict]) -> 
                     despesa_por_mes[month][categoria] = 0.0
                 despesa_por_mes[month][categoria] += tx["valor"]
 
-    # Fill zeros for missing categories
+    # Fill zeros for missing categories and round to 2 decimals
     for month in months_sorted:
         for categoria in despesa_categorias:
             if categoria not in despesa_por_mes[month]:
                 despesa_por_mes[month][categoria] = 0.0
-        despesa_por_mes[month]["_total"] = sum(v for k, v in despesa_por_mes[month].items() if k != "_total")
+            else:
+                despesa_por_mes[month][categoria] = round(despesa_por_mes[month][categoria], 2)
+        despesa_por_mes[month]["_total"] = round(sum(v for k, v in despesa_por_mes[month].items() if k != "_total"), 2)
 
     return {
-        "periodo": "2025-01 a 2026-03",
+        "periodo": compute_periodo(receitas + despesas),
         "meses_ordenados": months_sorted,
         "receitas": {
             "origens": sorted(receita_origens),
@@ -607,8 +517,13 @@ def build_fluxo_mensal_detalhado(receitas: List[Dict], despesas: List[Dict]) -> 
 
 def save_json(file_path: Path, data: Dict) -> None:
     """Save JSON file with nice formatting."""
-    with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    try:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except (IOError, OSError) as e:
+        print(f"  [ERROR] Falha ao salvar {file_path}: {e}", file=sys.stderr)
+        raise
 
 
 def preserve_existing_file(file_path: Path) -> bool:
@@ -617,6 +532,57 @@ def preserve_existing_file(file_path: Path) -> bool:
         size = file_path.stat().st_size
         return size > 100
     return False
+
+
+# ============================================================================
+# QA LOG GENERATION
+# ============================================================================
+
+def generate_qa_log(despesas: List[Dict], log_path: Path) -> None:
+    """Generate qa_log.md with unidentified transactions for manual review."""
+    nao_id = [tx for tx in despesas if tx.get("categoria") == "nao_identificado"]
+    total_despesas = len(despesas)
+    taxa = (len(nao_id) / total_despesas * 100) if total_despesas > 0 else 0.0
+
+    lines = []
+    lines.append("# QA Log — E4 Categorização")
+    lines.append(f"## Execução: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    lines.append("")
+    lines.append(f"### Transações não identificadas: {len(nao_id)}")
+    lines.append("")
+    lines.append("| Data | Descrição | Valor | Banco | Fonte |")
+    lines.append("|---|---|---|---|---|")
+
+    for tx in sorted(nao_id, key=lambda x: x.get("data", "")):
+        data = tx.get("data", "")
+        desc = tx.get("descricao", "")
+        valor = tx.get("valor", 0.0)
+        banco = tx.get("banco", "")
+        fonte = tx.get("tipo_conta", "")
+        lines.append(f"| {data} | {desc} | R${valor:,.2f} | {banco} | {fonte} |")
+
+    lines.append("")
+    meta_status = "✅ DENTRO DA META" if taxa < 10.0 else "⚠️ ACIMA DA META (<10%)"
+    lines.append(f"### Taxa: {taxa:.1f}% {meta_status}")
+    lines.append("")
+
+    # Notes for specific items to investigate
+    notas = []
+    for tx in nao_id:
+        desc_up = tx.get("descricao", "").upper()
+        if "ZS RES PREMI" in desc_up:
+            notas.append(f"- **ZS RES PREMI** (R${tx['valor']:,.2f}, {tx['banco']}): Investigar — possível resgate de prêmio de seguro ou programa de pontos Santander.")
+    if notas:
+        lines.append("### Notas para investigação")
+        lines.append("")
+        # Deduplicate
+        for nota in sorted(set(notas)):
+            lines.append(nota)
+        lines.append("")
+
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines))
 
 
 # ============================================================================
@@ -643,6 +609,10 @@ def main():
     reconciled_data = load_reconciled_files(input_dir)
     print(f"[E4.1] Loaded {len(reconciled_data)} reconciled account files")
 
+    if not reconciled_data:
+        print("[E4.1] FATAL: Nenhum arquivo E3 reconciliado encontrado. Abortando.", file=sys.stderr)
+        sys.exit(1)
+
     print("[E4.2] Processing transactions...")
     receitas, despesas, transferencias, n_receitas, n_despesas, n_transfers = process_transactions(reconciled_data)
     print(f"[E4.2] Processed: {n_receitas} receitas, {n_despesas} despesas, {n_transfers} internal transfers")
@@ -664,27 +634,26 @@ def main():
     save_json(output_dir / "fluxo_mensal_detalhado-4_unified.json", fluxo_unified)
     print("[E4.3] Saved fluxo_mensal_detalhado-4_unified.json")
 
-    # Patrimonio: preserve existing if non-empty
+    # Patrimonio: always regenerate from baseline
     patrimonio_path = output_dir / "patrimonio-4_unified.json"
-    if not preserve_existing_file(patrimonio_path):
-        patrimonio = load_patrimonio(baseline_path)
-        if patrimonio:
-            save_json(patrimonio_path, patrimonio)
-            print("[E4.4] Saved patrimonio-4_unified.json (from baseline)")
-        else:
-            save_json(patrimonio_path, {"dados": []})
-            print("[E4.4] Saved empty patrimonio placeholder")
+    patrimonio = load_patrimonio(baseline_path)
+    if patrimonio:
+        save_json(patrimonio_path, patrimonio)
+        print("[E4.4] Saved patrimonio-4_unified.json (from baseline)")
     else:
-        print("[E4.4] Preserved existing patrimonio-4_unified.json (>100 bytes)")
+        save_json(patrimonio_path, {"dados": []})
+        print("[E4.4] Saved empty patrimonio placeholder (no baseline found)")
 
-    # Placeholder files: preserve existing if non-empty, else create empty
+    # Placeholder files: always regenerate (allows clean reprocessing via e-reset)
     for placeholder_file in ["investimentos-4_unified.json", "seguros-4_unified.json", "pontos_milhas-4_unified.json"]:
         file_path = output_dir / placeholder_file
-        if not preserve_existing_file(file_path):
-            save_json(file_path, {"dados": []})
-            print(f"[E4.4] Created empty {placeholder_file} placeholder")
-        else:
-            print(f"[E4.4] Preserved existing {placeholder_file} (>100 bytes)")
+        save_json(file_path, {"dados": []})
+        print(f"[E4.4] Created empty {placeholder_file} placeholder")
+
+    # Generate QA log
+    qa_log_path = base_dir / "logs" / "qa_log.md"
+    generate_qa_log(despesas, qa_log_path)
+    print(f"[E4.5] Generated qa_log.md")
 
     # Summary
     print("\n" + "="*70)
@@ -703,4 +672,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit:
+        raise
+    except Exception as e:
+        print(f"[E4] FATAL: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        sys.exit(1)

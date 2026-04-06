@@ -1,0 +1,43 @@
+{
+  "tipo": "extratocontaglobalusd",
+  "instituicao": "C6 Bank",
+  "membro": "david",
+  "conta": "100348783-7",
+  "moeda": "USD",
+  "periodo": {
+    "inicio": "2026-01-05",
+    "fim": "2026-04-05"
+  },
+  "saldo_inicial": 91.59,
+  "saldo_final": 91.59,
+  "transacoes": [
+    {
+      "data": "2026-03-17",
+      "descricao": "Débito de cartão",
+      "valor": -25.34,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-15",
+      "descricao": "Entrada Transf C6 Conta Global Líquido",
+      "valor": 100.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-02-17",
+      "descricao": "Débito de cartão",
+      "valor": -25.66,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-17",
+      "descricao": "Débito de cartão",
+      "valor": -25.34,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    }
+  ]
+}

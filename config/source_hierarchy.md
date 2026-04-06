@@ -1,5 +1,5 @@
 # Source Hierarchy — Pipeline Ferreira Campos
-## Versão: 5.2 — abr/2026
+## Versão: 5.3 — abr/2026
 
 ---
 
@@ -73,6 +73,7 @@ Estas correções foram feitas entre v3.0 e v4.3 e devem ser mantidas. Se um ext
 | Patrimônio investível R$3.407.041 | v4.0 | Corrigido para R$3.648.716 (pós-quitação). |
 | Score Financeiro 6,4/10 | v4.2 | Corrigido para 6,8/10 (receita recorrente maior). |
 | Taxa de poupança 11,9% | v4.2 | Corrigido para 18,8% (salário Mariana real adicionado). |
+| POMPEIA MOTOS = receita PJ | v5.1 | Corrigido para `receita_venda_ativo` (venda Yamaha MT09, desinvestimento de ativo). |
 
 ---
 

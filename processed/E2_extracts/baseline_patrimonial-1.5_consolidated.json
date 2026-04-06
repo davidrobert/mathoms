@@ -1,468 +1,210 @@
 {
-  "consolidation_date": "2026-04-04",
-  "members": {
-    "david": {
+  "tipo": "baseline_patrimonial",
+  "data_consolidacao": "2026-04-06",
+  "membros": [
+    {
+      "nome": "David Robert Camargo Ferreira Campos",
       "cpf": "287.766.948-36",
-      "name": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-      "year_base": 2023,
-      "total_bens": 2513151.71,
-      "total_dividas": 234792.61,
-      "patrimonio_liquido": 2278359.10,
-      "imoveis": [
-        {
-          "description": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
-          "location": "PRACA BENEDITO CALIXTO, APTO 34, PINHEIROS, SAO PAULO, SP",
-          "valor_31_12_ano_base": 350000.00,
-          "area_m2": 40.7,
-          "irpf_data": true,
-          "xlsx_reference": "Apartamento Praça Benedito Calixto",
-          "xlsx_valor_compra": 348000,
-          "xlsx_data_compra": "2021-11-16"
-        },
-        {
-          "description": "APARTAMENTO - EDIFICIO GISELE - APTO 12 COM UMA VAGA DE GARAGEM N48 - ALIENACAO FIDUCIARIA AO ITAU UNIBANCO S/A",
-          "location": "RUA MAJOR FREIRE, N 496, VILA MONTE ALEGRE, SAO PAULO, SP",
-          "valor_31_12_ano_base": 212706.24,
-          "area_m2": 68.8,
-          "irpf_data": true,
-          "xlsx_reference": "Apartamento Rua Major Freire",
-          "xlsx_valor_compra": 400000,
-          "debt_associated": "CREDITO IMOBILIARIO - CREDOR: ITAU UNIBANCO S.A. - CONTRATO 10171192207"
-        },
-        {
-          "description": "COMPRA E VENDA DE CASA - ADQUIRIDO DE CPF 135.542.328-74 EM 12/01/2023 - VALOR: R$ 80.000,00 - PARTICIPACAO: 100% - INFORMADO POR CNPJ 22.901.777/0001-60",
-          "location": "QUADRA 33 LOTE 27, JABOAQUARA, SAO PAULO, SP",
-          "valor_31_12_ano_base": 80000.00,
-          "area_m2": 0.0,
-          "irpf_data": true,
-          "xlsx_reference": "Casa Leonardo da Vinci",
-          "xlsx_valor_compra": 80000,
-          "xlsx_data_compra": "2023-01-13"
-        },
-        {
-          "description": "CASA - RUA TASSO DA SILVEIRA, 61 - SAO PAULO - SP - FINANCIAMENTO QUITADO NA CAIXA CONTRATO: 1.4444.0514.760-3",
-          "location": "RUA TASSO DA SILVEIRA, 61, VILA GUARANI, SAO PAULO, SP",
-          "valor_31_12_ano_base": 996821.46,
-          "area_m2": 171.0,
-          "irpf_data": true,
-          "xlsx_reference": "Casa Tasso da Silveira",
-          "xlsx_valor_compra": 670000,
-          "xlsx_data_compra": "2022-08-29"
-        }
-      ],
-      "veiculos": [
-        {
-          "description": "VEICULO - MOTOCICLETA YAMAHA NMAX - PRETA - PLACA DAV0351 - ANO 2018",
-          "valor_31_12_ano_base": 15093.00,
-          "renavam": "01143226094"
-        },
-        {
-          "description": "VEICULO - CARRO FIAT TORO ULTRA - COR AZUL - PLACA GDK6A27",
-          "valor_31_12_ano_base": 191354.00,
-          "renavam": "01294108287"
-        },
-        {
-          "description": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA STH2C88",
-          "valor_31_12_ano_base": 21029.00
-        }
-      ],
-      "investimentos": [
-        {
-          "type": "Ações",
-          "description": "ACOES - ITSA4 - QUANTIDADE 693",
-          "valor_31_12_ano_base": 0.00,
-          "note": "sold in 2023"
-        },
-        {
-          "type": "Ações",
-          "description": "ACOES - BRKM5 - QUANTIDADE 300",
-          "valor_31_12_ano_base": 0.00,
-          "note": "sold in 2023"
-        },
-        {
-          "type": "Ações",
-          "description": "ACOES - PETR4 - QUANTIDADE 300",
-          "valor_31_12_ano_base": 0.00,
-          "note": "sold in 2023"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F",
-          "valor_31_12_ano_base": 3189.68,
-          "fundo_cnpj": "33.736.873/0001-16"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "RICO - DNA ENERGY FIC FIM CP",
-          "valor_31_12_ano_base": 1416.09,
-          "fundo_cnpj": "35.956.056/0001-07"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "RICO - CONSTELLATION INSTITUTIONAL ADVI",
-          "valor_31_12_ano_base": 11409.17,
-          "fundo_cnpj": "34.462.109/0001-62"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "RICO - WESTERN ASSET FIA BDR NIVEL I",
-          "valor_31_12_ano_base": 17651.61,
-          "fundo_cnpj": "19.831.126/0001-36"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "RICO - ALASKA BLACK FIC FIA - BDR",
-          "valor_31_12_ano_base": 60000.00,
-          "fundo_cnpj": "12.987.743/0001-86"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR",
-          "valor_31_12_ano_base": 35000.00,
-          "fundo_cnpj": "26.673.556/0001-32"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "RICO - SAFARI 30 FIC FIM II",
-          "valor_31_12_ano_base": 25238.59,
-          "fundo_cnpj": "23.960.625/0001-09"
-        }
-      ],
-      "contas_bancarias": [
-        {
-          "banco": "CAIXA ECONOMICA FEDERAL",
-          "tipo": "Poupança",
-          "valor_31_12_ano_base": 0.00,
-          "note": "Closed in 2023"
-        },
-        {
-          "banco": "ITAU",
-          "tipo": "Aplicacao RDB/CDP",
-          "agencia": "9652",
-          "conta": "0004397-8",
-          "valor_31_12_ano_base": 151602.49
-        },
-        {
-          "banco": "PICPAY",
-          "tipo": "Conta Investimento",
-          "valor_31_12_ano_base": 46684.62
-        },
-        {
-          "banco": "SANTANDER",
-          "tipo": "Aplicacao CDB",
-          "valor_31_12_ano_base": 243285.37
-        },
-        {
-          "banco": "C6",
-          "tipo": "Aplicacao Renda Fixa",
-          "valor_31_12_ano_base": 1765.00
-        },
-        {
-          "banco": "NUBANK",
-          "tipo": "RDB",
-          "valor_31_12_ano_base": 189.30
-        },
-        {
-          "banco": "CAIXA",
-          "tipo": "Conta Corrente",
-          "agencia": "1218",
-          "conta": "00058413927.40",
-          "valor_31_12_ano_base": 230.53
-        },
-        {
-          "banco": "ITAU",
-          "tipo": "Conta Corrente",
-          "valor_31_12_ano_base": 1.01
-        },
-        {
-          "banco": "BANCO 336",
-          "tipo": "Conta Corrente Investimento",
-          "valor_31_12_ano_base": 4936.98
-        },
-        {
-          "tipo": "Moeda Estrangeira",
-          "descricao": "U$ 6524.00",
-          "valor_31_12_ano_base": 34433.67
-        },
-        {
-          "banco": "XP INVESTIMENTOS",
-          "tipo": "RICO - Saldo em Conta",
-          "valor_31_12_ano_base": 8546.95
-        },
-        {
-          "tipo": "Moeda Estrangeira",
-          "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS CAYMAN)",
-          "valor_31_12_ano_base": 484.80
-        }
-      ],
-      "rendimentos": {
-        "tributaveis_total": 651374.65,
-        "isentos_total": 359381.65,
-        "alugueis_2025_bruto": 36335.43,
-        "alugueis_2025_liquido": 31405.40,
-        "details": {
-          "rendimentos_pj_bruto": 620917.41,
-          "aluguel_pf_bruto": 30457.24,
-          "alugueis_2025_properties": [
-            {
-              "property": "Rua Major Freire, 496 - ed gisele Ap 12",
-              "renda_bruta": 18543.82,
-              "renda_liquida": 16967.63
-            },
-            {
-              "property": "Praça Benedito Calixto, 186 - 34",
-              "renda_bruta": 17791.61,
-              "renda_liquida": 14437.77
-            }
-          ]
-        }
+      "ano_base": 2024,
+      "bens": {
+        "imoveis": [
+          {
+            "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
+            "valor_irpf": 350000.0,
+            "valor_compra": null,
+            "data_compra": "2021-12-10",
+            "fonte": "irpf"
+          },
+          {
+            "descricao": "APARTAMENTO - EDIFICIOO GISELE - APTO 12 COM UMA VAGA DE GARAGEM (ALIENACAO FIDUCIARIA ITAU)",
+            "valor_irpf": 212706.24,
+            "valor_compra": 400000.0,
+            "data_compra": "2022-02-02",
+            "fonte": "ambos"
+          },
+          {
+            "descricao": "COMPRA E VENDA DE CASA - ADQUIRIDO EM 12/01/2023",
+            "valor_irpf": 80000.0,
+            "valor_compra": null,
+            "data_compra": "2023-01-12",
+            "fonte": "irpf"
+          },
+          {
+            "descricao": "CASA - RUA TASSO DA SILVEIRA, 61 - SAO PAULO - SP - FINANCIAMENTO QUITADO NA CAIXA",
+            "valor_irpf": 996821.46,
+            "valor_compra": 670000.0,
+            "data_compra": "2014-02-04",
+            "fonte": "ambos"
+          }
+        ],
+        "veiculos": [
+          {
+            "descricao": "VEICULO - MOTOCICLETA YAMAHA NMAX - PRETA - PLACA DAV0351 - ANO 2018",
+            "valor_irpf": 15093.0,
+            "valor_aquisicao": 15093.0,
+            "data_aquisicao": null
+          },
+          {
+            "descricao": "VEICULO - MOTOCICLETA YAMAHA MT 09 TRACER - AZUL - PLACA DAV 0342 - ANO 2018",
+            "valor_irpf": 0,
+            "valor_aquisicao": 0,
+            "data_aquisicao": null
+          },
+          {
+            "descricao": "VEICULO - CARRO FIAT TORO ULTRA - COR AZUL - PLACA GDK6A27",
+            "valor_irpf": 191354.0,
+            "valor_aquisicao": 191354.0,
+            "data_aquisicao": null
+          },
+          {
+            "descricao": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA STH2C88",
+            "valor_irpf": 21029.0,
+            "valor_aquisicao": 21029.0,
+            "data_aquisicao": null
+          }
+        ],
+        "investimentos": [
+          {
+            "tipo": "ACOES - ITSA4 - QUANTIDADE 693",
+            "valor": 0
+          },
+          {
+            "tipo": "ACOES - BRKM5 - QUANTIDADE 300",
+            "valor": 0
+          },
+          {
+            "tipo": "ACOES - PETR4 - QUANTIDADE 300",
+            "valor": 0
+          },
+          {
+            "tipo": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP - AG/CONTA 9652/0004397-8",
+            "valor": 151602.49
+          },
+          {
+            "tipo": "BANCO PICPAY BANK BANCO MULTIPLO S.A. - AGENCIA: 0001 CONTA: 438329-0",
+            "valor": 46684.62
+          },
+          {
+            "tipo": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB) - AGENCIA: 1652 - CONTA: 010013416",
+            "valor": 243285.37
+          },
+          {
+            "tipo": "BANCO C6 - APLICACAO EM RENDA FIXA",
+            "valor": 1765.0
+          },
+          {
+            "tipo": "SALDO EM RDB NO NUBANK",
+            "valor": 189.3
+          },
+          {
+            "tipo": "RICO - DNA ENERGY FIC FIM CP",
+            "valor": 1416.09
+          },
+          {
+            "tipo": "RICO - CONSTELLATION INSTITUCIONAL ADVI",
+            "valor": 11409.17
+          },
+          {
+            "tipo": "RICO - WESTERN ASSET FIA BDR NIVEL I",
+            "valor": 17651.61
+          },
+          {
+            "tipo": "RICO - ALASKA BLACK FIC FIA - BDR",
+            "valor": 60000.0
+          },
+          {
+            "tipo": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR",
+            "valor": 35000.0
+          },
+          {
+            "tipo": "RICO - SAFARI 30 FIC FIM II",
+            "valor": 25238.59
+          },
+          {
+            "tipo": "ITAUSA S.A - POSICAO ACIONARIA - JUROS SOBRE CAPITAL CREDITADOS E NAO PAGOS",
+            "valor": 82.15
+          }
+        ],
+        "criptos": 3189.68,
+        "contas_bancarias": 48633.94,
+        "outros": 0.0
       },
-      "dividas_detalhes": [
+      "total_bens": 2513151.71,
+      "dividas": 234792.61,
+      "patrimonio_liquido": 2278359.1,
+      "divergencias": [
         {
-          "type": "Crédito Imobiliário",
-          "credor": "ITAU UNIBANCO S.A.",
-          "contrato": "10171192207",
-          "saldo_31_12_ano_base": 234642.79,
-          "imovel_associado": "Rua Major Freire, 496 - Apto 12"
+          "descricao": "Imóvel no IRPF David sem match no XLSX: APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
+          "tipo": "imovel_não_xlsx",
+          "detalhes": "Valor IRPF: R$ 350,000.00"
         },
         {
-          "type": "Cheque Especial",
-          "credor": "BANCO SANTANDER",
-          "saldo_31_12_ano_base": 149.82
+          "descricao": "Imóvel no IRPF David sem match no XLSX: COMPRA E VENDA DE CASA - ADQUIRIDO EM 12/01/2023",
+          "tipo": "imovel_não_xlsx",
+          "detalhes": "Valor IRPF: R$ 80,000.00"
         }
       ]
     },
-    "mariana": {
+    {
+      "nome": "Mariana Ferreira Campos",
       "cpf": "085.052.396-60",
-      "name": "MARIANA FERREIRA CAMPOS",
-      "year_base": 2023,
-      "total_bens": 988123.73,
-      "total_dividas": 0.00,
-      "patrimonio_liquido": 988123.73,
-      "imoveis": [
-        {
-          "description": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA PLANTA DA EMPRESA CYRELA MAGIKLZ CAMPINAS",
-          "location": "Brasil - São Paulo (Santo Amaro)",
-          "valor_31_12_ano_base": 270000.00,
-          "matricula_imovel": "488435",
-          "cartorio": "11 REGISTRO DE IMOVEIS DE SAO PAULO",
-          "irpf_data": true,
-          "xlsx_reference": "Apartamento Avenida Alberto Augusto Alves",
-          "xlsx_valor_compra": null,
-          "xlsx_data_compra": null
-        },
-        {
-          "description": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS EMPREENDIMENTOS IMOBILIARIOS LTDA",
-          "location": "Brasil - São Paulo (Bairro: Santo Amaro, CEP: 04724-003)",
-          "valor_31_12_ano_base": 530000.00,
-          "area_m2": 88.91,
-          "logradouro": "AVENIDA JOAO DIAS, Nº 2192",
-          "matricula_imovel": "453.527",
-          "cartorio": "11 REGISTRO DE IMOVEIS DE SAO PAULO",
-          "data_aquisicao": "09/04/2018",
-          "irpf_data": true,
-          "xlsx_reference": "Apartamento Avenida João Dias",
-          "xlsx_valor_compra": null,
-          "xlsx_data_compra": null
-        }
-      ],
-      "veiculos": [],
-      "investimentos": [
-        {
-          "type": "CDB",
-          "description": "BTG - PRODUTO CDBB2353UR4",
-          "valor_31_12_ano_base": 22000.00,
-          "cnpj_fundo": "30.306.294/0001-45"
-        },
-        {
-          "type": "CDB",
-          "description": "BTG - CDB-SR - AGENCIA 0001",
-          "valor_31_12_ano_base": 3429.16,
-          "cnpj_fundo": "30.306.294/0001-45"
-        },
-        {
-          "type": "CDB",
-          "description": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
-          "valor_31_12_ano_base": 0.00,
-          "cnpj_fundo": "60.746.948/0001-12",
-          "note": "closed in 2023"
-        },
-        {
-          "type": "RDB",
-          "description": "SALDO RDB - NUBANK",
-          "valor_31_12_ano_base": 0.00,
-          "cnpj_fundo": "30.680.829/0001-43",
-          "note": "closed in 2023"
-        },
-        {
-          "type": "CDB",
-          "description": "BTG - PRODUTO CDB524BFK2F",
-          "valor_31_12_ano_base": 10000.00,
-          "cnpj_fundo": "30.306.294/0001-45"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "BTG - PRODUTO 22J1410500",
-          "valor_31_12_ano_base": 9349.69,
-          "cnpj_fundo": "30.306.294/0001-45"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "BTG - PRODUTO 22K1692411",
-          "valor_31_12_ano_base": 10324.25,
-          "cnpj_fundo": "30.306.294/0001-45"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "BTG - PRODUTO CRA023000MZU",
-          "valor_31_12_ano_base": 9115.01,
-          "cnpj_fundo": "30.306.294/0001-45"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "BTG - PRODUTO GRA023000SPD",
-          "valor_31_12_ano_base": 9109.54,
-          "cnpj_fundo": "30.306.294/0001-45"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "BTG - PRODUTO CRA0240010Q",
-          "valor_31_12_ano_base": 9248.83,
-          "cnpj_fundo": "30.306.294/0001-45"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "BTG - PRODUTO 23J0138431",
-          "valor_31_12_ano_base": 9164.03,
-          "cnpj_fundo": "30.306.294/0001-45"
-        },
-        {
-          "type": "Fundo de Investimento Renda Fixa",
-          "description": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LO",
-          "valor_31_12_ano_base": 41408.87,
-          "cnpj_fundo": "11.952.873/0001-10"
-        },
-        {
-          "type": "Fundo de Investimento Renda Fixa",
-          "description": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI",
-          "valor_31_12_ano_base": 4494.93,
-          "cnpj_fundo": "00.888.897/0001-31"
-        },
-        {
-          "type": "Fundo de Investimento Renda Fixa",
-          "description": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRIVADO LONGO PRAZO",
-          "valor_31_12_ano_base": 25479.42,
-          "cnpj_fundo": "39.958.460/0001-62"
-        },
-        {
-          "type": "Fundo de Investimento",
-          "description": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE INVESTIMENTO FINANCEIRO EM INFRAESTRUTURA RENDA FIXA",
-          "valor_31_12_ano_base": 25000.00,
-          "cnpj_fundo": "51.697.128/0001-97"
-        }
-      ],
-      "contas_bancarias": [
-        {
-          "banco": "BANCO BRADESCO",
-          "tipo": "Conta de Investimento",
-          "agencia": "6543",
-          "conta": "77113-9",
-          "valor_31_12_ano_base": 0.00,
-          "note": "Closed in 2023"
-        },
-        {
-          "banco": "BANCO BRADESCO",
-          "tipo": "Conta Corrente",
-          "agencia": "6543",
-          "conta": "77113-9",
-          "valor_31_12_ano_base": 0.00,
-          "note": "Closed in 2023"
-        }
-      ],
-      "rendimentos": {
-        "tributaveis_total": 203982.98,
-        "isentos_total": 1336.61,
-        "alugueis_2025_bruto": 74179.77,
-        "alugueis_2025_liquido": 66756.69,
-        "details": {
-          "rendimentos_pj_bruto": 141842.70,
-          "aluguel_pf_bruto": 62140.28,
-          "alugueis_2025_properties": [
-            {
-              "property": "Avenida Alberto Augusto Alves, 320 - 812",
-              "renda_bruta": 7424.71,
-              "renda_liquida": 5876.09
-            },
-            {
-              "property": "Avenida João Dias, 2192 - 163 Torre 2",
-              "renda_bruta": 66755.06,
-              "renda_liquida": 60880.60
-            }
-          ]
-        }
+      "ano_base": 2024,
+      "bens": {
+        "imoveis": [
+          {
+            "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA PLANTA DA EMPRESA CYRELA MAGIKLZ CAMPINAS",
+            "valor_irpf": 382857.6,
+            "valor_compra": null,
+            "data_compra": "2023-10-09",
+            "fonte": "irpf"
+          },
+          {
+            "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS",
+            "valor_irpf": 477436.58,
+            "valor_compra": null,
+            "data_compra": "2018-04-09",
+            "fonte": "irpf"
+          }
+        ],
+        "veiculos": [],
+        "investimentos": [
+          {
+            "tipo": "CERTIFICADO DE DEPOSITO BANCARIO - BTG",
+            "valor": 22000.0
+          },
+          {
+            "tipo": "CDB - BTG",
+            "valor": 2061.6
+          },
+          {
+            "tipo": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
+            "valor": 4576.15
+          },
+          {
+            "tipo": "SALDO RDB - NUBANK",
+            "valor": 69.77
+          },
+          {
+            "tipo": "LCI - OPEA SECURITIZADORA S.A. - BTG",
+            "valor": 10349.69
+          },
+          {
+            "tipo": "LCI - TRUE SECURITIZADORA S.A. - BTG",
+            "valor": 10324.25
+          },
+          {
+            "tipo": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LONGO PRAZO",
+            "valor": 34830.76
+          }
+        ],
+        "criptos": 0.0,
+        "contas_bancarias": 51653.33,
+        "outros": 0.0
       },
-      "dividas_detalhes": []
+      "total_bens": 988123.73,
+      "dividas": 0.0,
+      "patrimonio_liquido": 988123.73,
+      "divergencias": []
     }
-  },
-  "familia": {
-    "total_bens_bruto": 3501275.44,
-    "total_dividas": 234792.61,
-    "patrimonio_liquido": 3266482.83,
-    "total_imoveis_count": 6,
-    "imoveis_por_proprietario": {
-      "david": 4,
-      "mariana": 2,
-      "compartilhado": 0
-    },
-    "total_rendimentos_tributaveis": 855357.63,
-    "total_rendimentos_isentos": 360718.26,
-    "total_alugueis_2025_bruto": 110515.20,
-    "total_alugueis_2025_liquido": 98162.09,
-    "resumo_ativos_por_categoria": {
-      "imoveis": 1639450.70,
-      "veiculos": 227476.00,
-      "investimentos_fundos": 237661.22,
-      "investimentos_acoes": 0.00,
-      "contas_bancarias_poupanca": 491763.09,
-      "contas_corrente": 6171.21,
-      "moeda_estrangeira": 34918.47,
-      "outros": 0.00
-    }
-  },
-  "divergencias": [
-    {
-      "tipo": "Propriedade em IRPF mas não totalmente mapeada em XLSX",
-      "descricao": "Apartamento Praça Benedito Calixto está em XLSX com valor de compra 348.000 (nov/2021), mas IRPF registra valor de 31/12/2023 de 350.000",
-      "impacto": "BAIXO - diferença de 2.000 é esperada por apreciação entre data de compra e data-base IRPF"
-    },
-    {
-      "tipo": "Valor de compra inconsistente",
-      "descricao": "Casa Tasso da Silveira: IRPF (996.821 em 31/12/2023) vs XLSX (670.000 valor de compra 2022-08-29)",
-      "impacto": "MEDIO - pode indicar reformas/melhorias não registradas no XLSX ou avaliação diferente no IRPF"
-    },
-    {
-      "tipo": "Propriedade XLSX sem detalhes completos em IRPF",
-      "descricao": "Apartamento Living Wish (Mariana): IRPF registra 530.000, XLSX também tem valor de compra para referência",
-      "impacto": "BAIXO - propriedade corretamente reportada em ambas fontes"
-    },
-    {
-      "tipo": "Data de aquisição discrepância",
-      "descricao": "Apartamento Living Concept (Mariana): IRPF mostra aquisição 09/10/2023 mas IRPF 2022 mostra valor anterior de 116.839 em 31/12/2022",
-      "impacto": "MEDIO - possível erro de transcrição ou aquisição parcial/gradual"
-    }
-  ],
-  "notas_consolidacao": {
-    "year_base_utilizado": 2023,
-    "ano_irpf_mais_recente": 2024,
-    "data_consolidacao": "2026-04-04",
-    "fontes_dados": [
-      "receitafederal_irpfdeclaracao_2024-2_extract.json (David, year-base 2023)",
-      "receitafederal_irpfdeclaracaomariana_2024-2_extract.json (Mariana, year-base 2023)",
-      "dados_imoveis-2_extract.json (XLSX properties reference)",
-      "quintoandar_informerendimentosaluguel_2025-2_extract.json (David rental 2025)",
-      "quintoandar_informerendimentosaluguelmariana_2025-2_extract.json (Mariana rental 2025)"
-    ],
-    "metodologia": "Consolidação em 31/12/2023 (ano-base 2023 das IRPFs mais recentes). Rendimentos 2025 extraídos dos informes QuintoAndar conforme solicitado. Propriedades cruzadas entre IRPF e XLSX.",
-    "validacao_patrimonio": "Patrimônio investível familia = total_bens_bruto (3.501.275,44) - residência (996.821,46 - Tasso Silveira) - veículos (227.476,00) = 2.276.977,98. Validação: este valor é menor que total_bens_bruto conforme esperado."
-  }
+  ]
 }

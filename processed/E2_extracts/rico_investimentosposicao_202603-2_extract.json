@@ -1,78 +1,113 @@
 {
-  "banco": "Rico",
   "tipo": "investimentosposicao",
+  "instituicao": "Rico",
+  "membro": "david",
   "data_posicao": "2026-03-29",
-  "saldo_total": 278916.64,
-  "produtos": [
+  "moeda": "BRL",
+  "total_aplicado": 261730.24,
+  "saldo_atual": 278916.64,
+  "rentabilidade": {
+    "valor": null,
+    "percentual": null,
+    "pm_note": "Rentabilidade calculada implicitamente: (278916.64 - 261730.24) / 261730.24"
+  },
+  "composicao": [
     {
-      "nome": "Alaska Black FIC de FIA - BDR NIVEL I",
-      "tipo": "Fundo de Investimento",
-      "saldo_atual": 52443.66,
-      "quantidade": 1,
-      "preco_unitario": 52443.66
+      "tipo_produto": "fundo",
+      "nome": "Alaska Black FIC de FIA - BDR NÍVEL I",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 52443.66,
+      "percentual_carteira": 18.8,
+      "rentabilidade_instrumento": -13.24,
+      "valor_aplicado": 60000.0
     },
     {
-      "nome": "Alaska Institucional Long Only FIF em Acoes RL",
-      "tipo": "Fundo de Investimento",
-      "saldo_atual": 52294.2,
-      "quantidade": 1,
-      "preco_unitario": 52294.2
+      "tipo_produto": "fundo",
+      "nome": "Alaska Institucional Long Only FIF em Ações RL",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 52294.2,
+      "percentual_carteira": 18.75,
+      "rentabilidade_instrumento": 42.0,
+      "valor_aplicado": 35000.0
     },
     {
-      "nome": "Safari 30 FIF em Cotas de FIM II",
-      "tipo": "Fundo de Investimento",
-      "saldo_atual": 16613.5,
-      "quantidade": 1,
-      "preco_unitario": 16613.5
+      "tipo_produto": "fundo",
+      "nome": "Safari 30 FIC em FIA",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 16613.5,
+      "percentual_carteira": 5.96,
+      "rentabilidade_instrumento": -34.17,
+      "valor_aplicado": 25238.59
     },
     {
-      "nome": "Constellation Institucional Advisory FIC de Acoes RL",
-      "tipo": "Fundo de Investimento",
-      "saldo_atual": 12585.32,
-      "quantidade": 1,
-      "preco_unitario": 12585.32
+      "tipo_produto": "fundo",
+      "nome": "Constellation Institucional Advisory FIC de Ações RL",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 12585.32,
+      "percentual_carteira": 4.51,
+      "rentabilidade_instrumento": 24.09,
+      "valor_aplicado": 10000.0
     },
     {
+      "tipo_produto": "fundo",
       "nome": "Western Asset BDR FIF",
-      "tipo": "Fundo de Investimento",
-      "saldo_atual": 25913.09,
-      "quantidade": 1,
-      "preco_unitario": 25913.09
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 25913.09,
+      "percentual_carteira": 9.29,
+      "rentabilidade_instrumento": 39.78,
+      "valor_aplicado": null
     },
     {
+      "tipo_produto": "fundo",
       "nome": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
-      "tipo": "Fundo de Investimento",
-      "saldo_atual": 3264.13,
-      "quantidade": 1,
-      "preco_unitario": 3264.13
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 3264.13,
+      "percentual_carteira": 1.17,
+      "rentabilidade_instrumento": 62.54,
+      "valor_aplicado": 2008.21
     },
     {
-      "nome": "XP Alocacao Sofisticada FIM CP RL",
-      "tipo": "Fundo de Investimento",
-      "saldo_atual": 1576.08,
-      "quantidade": 1,
-      "preco_unitario": 1576.08
+      "tipo_produto": "fundo",
+      "nome": "XP Alocação Sofisticada FIM CP RL",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 1576.08,
+      "percentual_carteira": 0.57,
+      "rentabilidade_instrumento": 16.18,
+      "valor_aplicado": 1356.59
     },
     {
+      "tipo_produto": "acao",
       "nome": "PETR4",
-      "tipo": "Acao",
-      "saldo_atual": 83946.0,
-      "quantidade": 1700,
-      "preco_unitario": 49.38
+      "quantidade": 1700.0,
+      "valor_unitario": 49.38,
+      "valor_total": 83946.0,
+      "percentual_carteira": 30.1,
+      "rentabilidade_instrumento": null
     },
     {
+      "tipo_produto": "acao",
       "nome": "ITSA4",
-      "tipo": "Acao",
-      "saldo_atual": 10285.16,
-      "quantidade": 778,
-      "preco_unitario": 13.22
+      "quantidade": 778.0,
+      "valor_unitario": 13.22,
+      "valor_total": 10285.16,
+      "percentual_carteira": 3.69,
+      "rentabilidade_instrumento": null
     },
     {
+      "tipo_produto": "acao",
       "nome": "BRKM5",
-      "tipo": "Acao",
-      "saldo_atual": 2700.0,
-      "quantidade": 300,
-      "preco_unitario": 9.0
+      "quantidade": 300.0,
+      "valor_unitario": 9.0,
+      "valor_total": 2700.0,
+      "percentual_carteira": 0.97,
+      "rentabilidade_instrumento": null
     }
   ]
 }

@@ -1,14 +1,14 @@
 {
-  "banco": "Santander",
   "tipo": "extratoconta",
-  "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+  "instituicao": "Santander",
+  "membro": "david",
   "conta": "01001341-6",
   "moeda": "BRL",
   "periodo": {
     "inicio": "2025-11-01",
     "fim": "2025-12-31"
   },
-  "saldo_inicial": 0.0,
-  "saldo_final": 280.6,
+  "saldo_inicial": 0.00,
+  "saldo_final": 280.60,
   "transacoes": []
 }

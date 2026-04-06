@@ -14,10 +14,47 @@ import re
 import os
 import sys
 import shutil
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REPORT = os.path.join(BASE, 'output', 'relatorio_202604.html')
+
+def _extract_version_from_manual():
+    """Extrai versão do manual_operacao.md."""
+    manual_path = Path(__file__).resolve().parent.parent / "config" / "manual_operacao.md"
+    if manual_path.exists():
+        # Read just the first few lines
+        with open(manual_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                m = re.search(r'Versão:\s*([\d.]+)', line)
+                if m:
+                    return f"v{m.group(1)}"
+                if line.startswith("---") and not line.startswith("## "):
+                    break  # past the header
+    return "v5.3"  # fallback
+
+# Dynamic report filename: find the most recent relatorio_*.html in output/
+def _find_report():
+    output_dir = os.path.join(BASE, 'output')
+    import glob
+    candidates = sorted(glob.glob(os.path.join(output_dir, 'relatorio_*.html')), reverse=True)
+    # Filter out archive files (those with _pre_regen_ in name)
+    candidates = [c for c in candidates if '_pre_regen_' not in c]
+    if candidates:
+        result_path = candidates[0]
+    else:
+        # Fallback: generate from current date
+        result_path = os.path.join(output_dir, f'relatorio_{datetime.now().strftime("%Y%m")}.html')
+
+    # Check if path exists before returning
+    if not os.path.exists(result_path):
+        print(f"  [ERROR] Relatório não encontrado: {result_path}")
+        print(f"  Execute e6_render.py primeiro para gerar o relatório.")
+        sys.exit(1)
+
+    return result_path
+
+REPORT = _find_report()
 
 # Parse optional --source argument
 source = REPORT
@@ -32,7 +69,8 @@ with open(source, 'r', encoding='utf-8') as f:
     html = f.read()
 
 # Archive before modifying
-ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+BRT = timezone(timedelta(hours=-3))
+ts = datetime.now(BRT).strftime('%Y%m%d_%H%M%S')
 archive = REPORT.replace('.html', f'_pre_regen_{ts}.html')
 if os.path.exists(REPORT):
     shutil.copy2(REPORT, archive)
@@ -52,30 +90,51 @@ if 'Versão do Prompt' in html:
     changes += 1
     print("[OK] Versão do Prompt → Versão Manual Operações")
 
-# ─── 3. COVER: Version value → 3.0 ──────────────────────────────────
+# ─── 3. COVER: Version value (from manual_operacao.md) ──────────────────
+_version = _extract_version_from_manual()
+html_before = html
 html = re.sub(
     r'(Versão Manual Operações</div>\s*<div class="cover-meta-value">)[^<]*(</div>)',
-    r'\g<1>v3.0\2', html, count=1
+    rf'\g<1>{_version}\2', html, count=1
 )
-changes += 1
+if html != html_before:
+    changes += 1
+    print(f"[OK] Version: {_version}")
 
-# ─── 4. COVER: Family name ──────────────────────────────────────────
+# ─── 4. COVER: Family name (from config) ──────────────────────────────
+_fm_path = os.path.join(BASE, 'config', 'family_members.json')
+_family_sobrenome = "Ferreira Campos"
+if os.path.exists(_fm_path):
+    import json as _json
+    with open(_fm_path, 'r', encoding='utf-8') as _f:
+        _fm = _json.load(_f)
+    _family_sobrenome = _fm.get("familia", {}).get("sobrenome", _family_sobrenome)
+
+html_before = html
 html = re.sub(
     r'(cover-meta-label">Família</div>\s*<div class="cover-meta-value">)[^<]*(</div>)',
-    r'\g<1>Ferreira Campos\2', html, count=1
+    rf'\g<1>{_family_sobrenome}\2', html, count=1
 )
-changes += 1
-print("[OK] Cover family name: Ferreira Campos")
+if html != html_before:
+    changes += 1
+    print(f"[OK] Cover family name: {_family_sobrenome}")
+else:
+    print(f"  [WARN] Regex não fez match: cover-meta-label familia...")
 
-# ─── 5. COVER: Update timestamp ─────────────────────────────────────
-now = datetime.now()
+# ─── 5. COVER: Update timestamp (São Paulo timezone) ──────────────────
+BRT = timezone(timedelta(hours=-3))
+now = datetime.now(BRT)
 data_hora = now.strftime('%d/%m/%Y — %H:%M')
+html_before = html
 html = re.sub(
     r'(Data e Hora de Geração</div>\s*<div class="cover-meta-value">)[^<]*(</div>)',
     rf'\g<1>{data_hora}\2', html, count=1
 )
-changes += 1
-print(f"[OK] Timestamp: {data_hora}")
+if html != html_before:
+    changes += 1
+    print(f"[OK] Timestamp (BRT): {data_hora}")
+else:
+    print(f"  [WARN] Regex não fez match: Data e Hora de Geração...")
 
 # ─── 6. DARK MODE CSS ───────────────────────────────────────────────
 DARK_CSS = """
@@ -143,18 +202,24 @@ DARK_CSS = """
 
 # Remove existing dark mode CSS block if present, then always inject fresh
 if '[data-theme="dark"]' in html:
-    # Remove old dark mode block (everything from first [data-theme="dark"] to the line before next non-dark rule)
-    html = re.sub(r'\[data-theme="dark"\][^\n]*\n', '', html)
+    # Remove old dark mode blocks (including multi-line rules)
+    html = re.sub(r'\[data-theme="dark"\][^{]*\{[^}]*\}', '', html, flags=re.DOTALL)
+    # Also remove @media (prefers-color-scheme: dark) blocks
+    html = re.sub(r'@media\s*\(prefers-color-scheme:\s*dark\)\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}', '', html, flags=re.DOTALL)
     print("[OK] Removed old dark mode CSS")
 
 # Insert after :root { ... } block
+html_before = html
 html = re.sub(
     r'(--font-body:[^}]+\})',
     r'\1\n' + DARK_CSS,
     html, count=1
 )
-changes += 1
-print("[OK] Dark mode CSS injected (fresh)")
+if html != html_before:
+    changes += 1
+    print("[OK] Dark mode CSS injected (fresh)")
+else:
+    print("  [WARN] Regex não fez match: --font-body root...")
 
 # ─── 7. COLLAPSE CSS ────────────────────────────────────────────────
 COLLAPSE_CSS = """
@@ -266,7 +331,7 @@ html = re.sub(
 if 'familia-card' not in html:
     html = re.sub(
         r'(<!-- PERFIL DA FAMÍLIA -->.*?<div class="card")([^>]*>)',
-        r'\1 familia-card"\2\n  <div class="card-title" style="font-size:16px;">👨‍👩‍👦 A Família Ferreira Campos</div>',
+        rf'\1 familia-card"\2\n  <div class="card-title" style="font-size:16px;">👨‍👩‍👦 A Família {_family_sobrenome}</div>',
         html, count=1, flags=re.DOTALL
     )
 
@@ -282,14 +347,17 @@ THEME_BUTTONS = """<div class="theme-toggle" data-mode="both">
 
 if 'theme-toggle' not in html or 'theme-btn' not in html.split('<script')[0]:
     # Find the mode-toggle div end and insert after it
+    html_before = html
     html = re.sub(
         r'(</div>\s*)(</div>\s*<!-- /nav-sticky -->)',
         r'\1' + THEME_BUTTONS + r'\n\2',
         html, count=1
     )
-    if 'theme-toggle' in html.split('<script')[0]:
+    if html != html_before and 'theme-toggle' in html.split('<script')[0]:
         changes += 1
         print("[OK] Theme toggle buttons injected in nav")
+    elif html == html_before:
+        print("  [WARN] Regex não fez match: nav-sticky...")
 
 # ─── 15. Remove Export Prompt button ─────────────────────────────────
 html = re.sub(r'<button[^>]*onclick="exportPrompt\(\)"[^>]*>.*?</button>', '', html)

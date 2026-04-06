@@ -1,0 +1,78 @@
+{
+  "_comment": "Dados da família — fonte única para todos os scripts do pipeline.",
+  "familia": {
+    "sobrenome": "Ferreira Campos"
+  },
+  "membros": {
+    "david": {
+      "nome_completo": "David Robert Camargo Ferreira Campos",
+      "nome_curto": "David",
+      "nome_solteiro": "David Robert Camargo de Campos",
+      "nome_pj": "David Robert Camargo de Campos Ltda.",
+      "cpf": "287.766.948-36",
+      "data_nascimento": "1981-09-05",
+      "papel": "titular",
+      "variantes_nome": [
+        "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "DAVID ROBERT CAMARGO DE CAMPOS",
+        "DAVID ROBERT CAMARGO",
+        "DAVID ROBERT"
+      ],
+      "regex_nome_fatura": {
+        "c6_carbon": "DAVID ROBERT\\s+CAMARGO(?:\\s+FERREIRA\\s+CAMPOS)?",
+        "santander_unique": "DAVID ROBERT CAMARGO FERREIR\\w*(?:\\s+CAMPOS)?",
+        "itau_paoacucar": "(?:Titular\\s+)?(DAVID ROBERT CAMARGO DE CAMPOS)"
+      },
+      "profissao": "CTO da Arvo",
+      "regime": "PJ Simples Nacional (Anexo V)",
+      "formacao": "Ciência da Computação PUC-SP, mestrado IA USP/IME"
+    },
+    "mariana": {
+      "nome_completo": "Mariana Ferreira Campos",
+      "nome_curto": "Mariana",
+      "nome_solteira": "Mariana Teixeira Ferreira",
+      "nome_fiscal": "Mariana Teixeira Ferreira",
+      "cpf": "085.052.396-60",
+      "data_nascimento": "1986-08-30",
+      "papel": "conjuge",
+      "variantes_nome": [
+        "MARIANA FERREIRA CAMPOS",
+        "MARIANA TEIXEIRA FERREIRA",
+        "MARIANA TEIXEIRA"
+      ],
+      "profissao": "Enfermeira no Hospital Israelita Albert Einstein",
+      "emprego_inicio": "julho de 2014",
+      "regime": "CLT",
+      "formacao": "Enfermagem, especialização Cardiologia/Hemodinâmica UNIFESP, mestrado Enfermagem USP"
+    },
+    "theo": {
+      "nome_completo": "Theo Ferreira Campos",
+      "nome_curto": "Theo",
+      "data_nascimento": "2025-07-18",
+      "papel": "filho",
+      "cidadania": ["brasileira", "americana"],
+      "local_nascimento": "Orlando, Flórida"
+    }
+  },
+  "pets": ["Zack", "Fuzzy", "Nix"],
+  "endereco": {
+    "rua": "Rua Tasso da Silveira",
+    "bairro": "Vila Guarani",
+    "cidade": "São Paulo"
+  },
+  "transferencias_internas": {
+    "patterns_pix": [
+      "PIX TRANSF DAVID",
+      "PIX TRANSF MARIANA"
+    ],
+    "recipients": [
+      "DAVID ROBERT CAMARGO DE CAMPOS",
+      "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "MARIANA TEIXEIRA FERREIRA",
+      "MARIANA FERREIRA CAMPOS",
+      "MARIANA TEIXEIRA",
+      "C6 BANK",
+      "PICPAY"
+    ]
+  }
+}

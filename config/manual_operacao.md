@@ -1,10 +1,149 @@
 # Manual de Operação — Pipeline Financeiro
 ## Família Ferreira Campos
-## Versão: 4.7 — abr/2026
+## Versão: 5.3.1 — abr/2026
 
 ---
 
-## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7
+## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1
+
+### v5.3 → v5.3.1
+
+| Mudança | Motivo |
+|---|---|
+| **Fix: tabela V1-V19 inserida no E6.6** | Placeholder `[Keep the existing V1-V18 validation table]` ficou no manual sem conteúdo. Tabela agora completa com 19 checagens (conforme `e6_render.py`). Contagem corrigida: 18→19. |
+| **Fix: "E4 JSON" → "E5 analysis JSON" na STAGE E5** | 12+ referências dentro da STAGE E5 diziam "Salvar no E4 JSON" mas o destino real é `analise_financeira-5_analysis.json`. Ambiguidade podia causar roteamento errado. |
+| **Fix: changelog v5.1→v5.2 duplicado unificado** | Duas seções `### v5.1 → v5.2` com conteúdos diferentes foram unificadas em uma única. |
+| **Fix: referência E5.4/E5.5 → E6.4/E6.5** | Seção 1.1.1 ainda referenciava numeração pré-v4.5. Atualizada para E6.4/E6.5. |
+| **Fix: valores hardcoded removidos de exemplos de schema** | ~20 valores monetários reais (Arvo 47.550, patrimônio 2.360.000, etc.) nos exemplos de JSON substituídos por placeholders genéricos com nota indicando que são calculados dinamicamente. |
+| **Fix: Selic 14,25% e faixas inconsistentes** | Exemplo de contrafluxo tinha Selic fixa em 14,25% e faixas (13-15%, 10-12%, 6-8%) inconsistentes com critérios (≥12%, 8-12%, <8%). Corrigidos ambos. |
+| **Fix: "37 faturas ~8s" → linguagem genérica** | Seção operacional de E2-faturas agora diz "proporcional ao número de faturas (~0,2s por fatura)" em vez de contagem fixa de um ciclo. |
+| **Fix: origens PJ/CLT referenciam categorization.json** | Nomes de empresas PJ/CLT nos exemplos agora referenciam `PJ_SOURCE_MAPPING` e `CLT_SOURCE_MAPPING` do `categorization.json` em vez de listar nomes fixos. |
+| **Fix: "14 categorias" → "todas as categorias do definitions.md"** | Contagem fixa de categorias de despesa substituída por referência dinâmica ao config. |
+| **Fix: e5_analyze.py período fallback dinâmico** | Fallback "2025-01 a 2026-03" substituído por derivação dinâmica a partir de `meses_ordenados` do fluxo mensal. |
+| **Fix: e5_analyze.py ONE_TIME_INCOME carregado de config** | Keywords one-time agora carregadas de `categorization.json` (chaves `one_time_income_keywords` e `one_time_income_categories`), com fallback para valores internos. |
+| **Fix: e4_categorize.py fallback CLT dinâmico** | Fallback "Einstein (Mariana - CLT)" substituído por primeiro valor do `CLT_SOURCE_MAPPING`, sem string hardcoded. |
+| **Fix: report_spec.md período dinâmico** | "Mai/25–Mar/26" substituído por "período dinâmico do fluxo_mensal_detalhado". |
+
+### v5.2 → v5.3
+
+| Mudança | Motivo |
+|---|---|
+| **Fix: Passo 8 expandido com check de encriptação (8b)** | C6 Global EUR/USD foram roteados encriptados porque Passo 8 só verificava tamanho > 0. PDFs com senha passavam direto. Agora Passo 8 tem sub-etapa 8b que exige `e0_unlock.py` antes do roteamento. |
+| **Novo: `e0_unlock.py --check-destinations`** | Varredura pós-roteamento: varre `data/` e `members/` por PDFs encriptados que escaparam e desbloqueia in-place. Recomendado rodar após cada E0.A como safety net. |
+| **Regra: NUNCA rotear PDF encriptado** | Formalizada no Passo 8b. PDFs encriptados devem ser desbloqueados no inbox ou enviados para `nao_identificados/`. |
+
+### v5.1 → v5.2
+
+| Mudança | Motivo |
+|---|---|
+| **Novo script: `scripts/e0_audit.py`** | Auditoria de integridade entre `data/`, `E2_extracts/` e `E3_reconciled/`. 5 checagens: (1) filename vs JSON content mismatch, (2) arquivos órfãos, (3) possíveis duplicatas, (4) cross-reference inbox_log.md, (5) gaps de saldo no E3. Não altera nenhum arquivo — apenas imprime relatório. |
+| **Flags:** | `--check 1,3` (checagens específicas), `--json` (saída JSON para scripts). |
+| **Uso recomendado** | Rodar `python scripts/e0_audit.py` antes de E-reset para detectar problemas de roteamento que se propagariam pelo pipeline. |
+| **Checagem 7: colisão de nomes** | Detecta arquivos no inbox/ que gerariam o mesmo nome destino mas têm conteúdo diferente (hash). Severity ERROR — bloqueia E-reset via e0_audit integrado. |
+| **Convenção de sufixo de letra** | Formalizada: quando há colisão de nome, adicionar letra (`a`, `b`, `c`) ao período. Já existia informalmente (Binance, Itaú Personnalité). Agora documentada no E0 Passo 7 e seção de nomenclatura. |
+| **E0 Passo 7 expandido** | Agora compara hash antes de decidir: duplicata (ignorar) vs colisão (sufixo de letra). Inclui procedimento de rename do arquivo existente quando necessário. |
+| **E-reset: scripts E3/E4/E5 agora retornam exit code 1 em caso de erro** | Antes, erros eram engolidos e o pipeline continuava sobre dados vazios. Agora `e_reset.py` aborta a cascata corretamente. |
+| **E5: `TODAY = date.today()` em vez de data hardcodada** | Idades, projeções IF e `ano_if` estavam congelados em 2026-04-05. |
+| **E-reset: pre-check de dependências Python** | Verifica `pdfplumber` e `pytz` antes de apagar qualquer artefato. Antes, import faltante causava abort após deleção. |
+| **E-reset: limpeza de narrativas no `--from E5.N`** | Nova fase 1.5 remove chave `narrativas` dos JSONs E5, garantindo que E6 não renderize narrativas obsoletas. |
+| **E-reset: identificação de faturas por tipo JSON** | Glob de faturas agora inspeciona campo `tipo` no JSON ao invés de padrão no filename. Future-proof para novos bancos. |
+| **E-reset: artefatos E1 preservados no full reset** | `members/*-1a_extract.json`, `members-1b_unified.json`, `members-1c_enriched.md` não são mais deletados — E1 é LLM e não pode ser regenerado automaticamente. |
+| **E-reset: validação de conteúdo pós-execução** | `validate()` agora verifica JSON parseável e campos obrigatórios não-vazios (`transacoes` em E3, `score`/`patrimonio` em E5), além de existência. |
+| **E-reset: mensagem pós-pipeline sugere `e6_render.py` diretamente** | Antes sugeria `e_reset.py --from E6` (indireção desnecessária). |
+| **E3: qa_log.md sem acumulação de seções E3** | Seções `## E3 Temporal Gaps` anteriores são removidas antes de escrever nova, evitando crescimento indefinido. |
+| **E-reset: aviso para `--clean-only --from E5.N`** | Informa que narrativas são internas ao JSON e que apenas HTML será removido. |
+
+### v5.0.1 → v5.1
+
+| Mudança | Motivo |
+|---|---|
+| **Fix: E0.A instrução `cp` → `mv`** | Inbox permanecia com 169 arquivos após E0 (80 stubs 0-bytes + 89 renomeados). Manual dizia "copiar" mas o correto é "mover". Inbox deve ficar vazio após E0.A. |
+| **Novo: validação de integridade (Passo 8)** | Arquivos de 0 bytes eram roteados sem verificação. Novo passo rejeita arquivos vazios/corrompidos com warning no qa_log. |
+| **Novo: tipo `extratocontapersonnalite`** | Tipo não existia na tabela de detecção. Scripts E3 já tratavam, mas LLM podia renomear como `extratoconta` genérico, perdendo a distinção de conta. |
+| **Novo: `faturaaluguel[propriedade]` documentado** | Convenção de propriedade colada ao tipo (ex: `faturaaluguelcalixto`) existia nos scripts e arquivos reais mas não no manual. LLM podia inserir underscore separador, quebrando regex do E2. |
+| **Novo: regra multi-membro Grupo B** | IRPF/informes de múltiplos membros não tinham convenção documentada. Agora: `[tipo][membro]` colado, titular pode omitir sufixo. |
+| **Novo: formato `YYYY` para documentos anuais** | Passo 4 só mencionava `YYYYMM`. Documentos anuais (IRPF, informes) usam `YYYY` na prática. |
+| **Novo: nota sobre detecção de JPG** | 5 JPGs no pipeline (Binance, Itaú) não tinham instrução de detecção. Tipo é inferido exclusivamente pelo nome; OCR fica para E2. |
+| **Novo: validações V5-V7 no setup** | V5 (inbox vazio), V6 (contagem inbox_processed == inbox_log), V7 (nenhum arquivo 0 bytes nos destinos). Antes: só V1-V4. |
+| **Novo: ciclo para faturas de aluguel isoladas** | Tabela 3.2 não cobria cenário de apenas faturas QuintoAndar. Adicionada linha: E2-faturas + E3→E6. |
+| **Fix: regra de auditoria inbox_processed** | Esclarecido que apenas arquivo com nome original vai para inbox_processed. Antes: renomeados eram duplicados lá. |
+| **Fix E4: origin mapping receita_investimento/receita_resgate** | Ambas caíam no `else` branch e viravam "Outras Receitas" no fluxo. "Rendimentos Financeiros" desaparecia do fluxo mensal. |
+| **Fix E4: case-sensitivity C6 Bank "Pagamento"** | `"c6" in norm_banco` falhava após normalize_text() (retorna uppercase). R$16k classificados erroneamente como nao_identificado. |
+| **Fix E4: POMPEIA MOTOS reclassificada** | Era `receita_pj` mas é venda da Yamaha MT09 → `receita_venda_ativo`. |
+| **Fix E4: BRANDLOVRS no PJ_SOURCE_MAPPING** | Variante de typo no C6 Bank não tinha mapeamento → caía em "Outras Receitas PJ". |
+| **Fix E4: RECEB PAGFOR e CAIXA ECONOMICA restringidos** | `RECEB PAGFOR` genérico podia capturar qualquer pagfor como aluguel. `CAIXA ECONOMICA` podia capturar qualquer TED da Caixa como FGTS. |
+| **Novo E4: qa_log.md gerado pelo script** | Manual exigia mas script não gerava. Agora `generate_qa_log()` escreve `logs/qa_log.md` com taxa e notas para investigação. |
+| **Novo E4: período dinâmico** | Período era hardcoded "2025-01 a 2026-03". Agora calculado a partir das datas reais. |
+| **Novo E4: reprocessamento limpo** | Removida lógica `preserve_existing_file` que impedia regeneração de patrimônio/investimentos/seguros em re-runs. |
+| **Novo E4: keywords expandidas** | `TED D HBANK` (transferência interna), `AMAZON MKTPL`, `SAMUELABNERSANTOSMARC` (serviços domésticos). |
+| **Fix: definitions.md sincronizado com e4_categorize.py** | Keywords `financeiro` divergiam. Referências "E3" corrigidas para "E4". Regras especiais atualizadas. |
+
+### v5.0 → v5.0.1
+
+| Mudança | Motivo |
+|---|---|
+| **Fix: Santander fallback vencimento validado contra ref_year** | Fatura 202503 gerava `data_vencimento: 2026-03-15` (ano errado). Fallback agora busca data coerente com YYYYMM do filename; se não achar, estima com dia 15 + warning. |
+| **Fix: Itaú seção "Lançamentos internacionais" reconhecida** | Transações internacionais (SQSP, etc.) eram perdidas porque "Limites de crédito" na right-column desligava `in_lancamentos` antes de capturá-las. +11 transações recuperadas. |
+| **Fix: Itaú `tx_simple` aceita valores negativos** | Estornos/créditos (`valor < 0`) eram descartados pelo filtro `valor > 0`. Agora aceita `valor != 0`. |
+| **Fix: output filename robusto** | Regex de renomeação falhava com variantes, gerando duplicatas `*-0_original-2_extract.json`. Agora usa regex único com `-0_original` opcional. |
+| **Novo: `validate_parse_result()`** | Pós-parse emite warning e marca `parse_quality` quando resultado é vazio (`empty_result`) ou saldo > 0 sem transações (`missing_transactions`). |
+| **Novo: `safe_date()` valida datas** | Impede datas impossíveis como `2026-02-31`. Ajusta dia para último dia do mês com warning. |
+| **Novo: guard `ref_month=None`** | `resolve_date` e `resolve_date_ddmm` não crasham mais quando filename não contém YYYYMM. |
+| **Novo: `parse_brl` formato contábil** | Suporta `(1.234,56)` como negativo (formato contábil comum em PDFs financeiros). |
+| **Convenção: `pagamentos` sempre negativo** | Santander e Itaú agora aplicam `-abs(val)` em pagamentos, alinhando com C6 Carbon. |
+| **Warning: arquivos não-renomeados** | Inbox com faturas sem sufixo `-0_original` agora emite `WARN` listando nomes (antes: ignorados silenciosamente). |
+| **Fix: QuintoAndar skip-list invertida** | Skip-list ampla descartava itens legítimos contendo nomes de meses. Agora: match do item primeiro, rejeição apenas por descrição exata de header. +1 item recuperado. |
+| **Seção 7.1: schema fatura atualizado** | Schema antigo (com `instituicao`, `resumo{}`, `periodo{}`) divergia do output real. Atualizado para schema flat real + novo schema QuintoAndar. LLM fallback agora gera formato compatível com E3. |
+
+### v5.0 → v5.1
+
+| Mudança | Motivo |
+|---|---|
+| **E3: cleanup de E3_reconciled/ no início** | Script agora remove/tombstona todos os `.json` existentes antes de escrever. Elimina arquivos fantasma `{}` de execuções LLM anteriores que poluíam E4. |
+| **E3: arquivos `-0_original` ignorados** | Backups de extratos pré-correção (e.g. `itau_extratoconta_202507-0_original-2_extract.json`) são agora filtrados. Eliminava warnings falsos de saldo e duplicatas espúrias. |
+| **E3: deduplicação apenas entre arquivos** | Transações idênticas `(data, valor, descrição)` dentro do MESMO arquivo são preservadas — representam compras legítimas distintas. Dedup opera apenas cross-file. Recuperou ~10 transações perdidas (Amazon, iFood, Dr. Barakat). |
+| **E3: periodo de fatura ajustado por datas reais** | Periodo sintetizado a partir de `data_vencimento` é ajustado se transações reais começam antes. Ex: venc=05/05 → synth_inicio=01/04, mas txns começam 28/03 → inicio=28/03. |
+| **E3: filenames YYYYMM para todos os tipos** | Contas correntes usavam MMDD (perdia informação de ano). Agora todas usam YYYYMM, consistente com faturas. Ex: `bradesco_extratoconta_BRL_202501_202603-3_reconciled.json`. |
+| **E3: `extratocontapersonnalite` reconhecido** | Tipo adicionado ao `TIPO_CANONICAL`. Itaú Personnalité agora é processado corretamente. |
+| **E3: saldo None tratado explicitamente** | Arquivos com `saldo_inicial/final=None` (ex: Bradesco poupança) agora usam 0 com warning no log, evitando TypeError downstream. |
+| **E3: log explícito para faturas sem `data_vencimento`** | Faturas com vencimento vazio são logadas claramente antes do skip (antes era silencioso). |
+| **E3: validação contra baseline patrimonial** | Novo step compara saldos em 31/12 com valores declarados no IRPF. Discrepâncias registradas em `reconciliation.md`. |
+| **E3: detecção de gaps temporais** | Gaps > 2 dias entre extratos consecutivos da mesma conta são detectados e registrados em `logs/qa_log.md`. |
+
+### v4.9 → v5.0
+
+| Mudança | Motivo |
+|---|---|
+| **E1: `config/definitions.md` como input obrigatório** | E1 não consultava dados cadastrais (CPF, nascimento, nomes solteiro/casado, papel). Idades eram estimadas a partir de formatura. Membros sem documentos (Theo) não apareciam no output. |
+| **E1: novo passo 0 — carregar dados cadastrais** | LLM agora inicia lendo `definitions.md` para usar como base de verdade para nomes, idades e lista de membros. |
+| **E1: schemas 1a formalizados em português** | JSONs reais estavam em inglês e divergiam entre si e do schema. Padronizado: `tipo`, `membro`, `nome_completo`, `nome_atual`, etc. Chaves obrigatórias listadas explicitamente. |
+| **E1: schema holerite expandido** | Faltavam campos extraíveis: FGTS, base INSS, grade, matrícula, proventos adicionais, dependentes IR. `nome_no_documento` preserva nome fiscal (pode ser solteira). |
+| **E1: novo schema `members-1b_unified.json`** | Antes não havia schema — estrutura era ad-hoc a cada execução. Agora formalizado com `nomes_alternativos[]`, `salario{}` com fonte e nota, e inclusão obrigatória de todos os membros do definitions. |
+| **E1: spec formal para `members-1c_enriched.md`** | Template obrigatório com ordem (Titular→Cônjuge→Filhos), idade calculada (não estimada), bloco mínimo para membros sem documentos. |
+| **E1: holerites com período no nome do arquivo** | Antes: `[membro]_holerite-1a_extract.json` (único). Agora: `[membro]_holerite_[período]-1a_extract.json` (um por holerite). |
+| **E1: tabela de campos por tipo de documento pessoal** | Passo 3 dizia "dados demográficos relevantes" sem especificar. Agora: tabela com campos exatos para RG, CPF, passaporte, visto, certidões, SSN, driver's license, green card. |
+| **E1: regras de resolução de conflito expandidas** | Passo 4 tinha 1 exemplo (salário). Agora: tabela com 10 cenários (nome, cargo, empresa, datas, idiomas, múltiplos holerites, membro sem docs, etc.). |
+| **E1: validação V1-V5** | Antes: genérica ("chaves obrigatórias vide schema"). Agora: 5 níveis — schema compliance, valores numéricos, consistência 1a→1b, consistência 1b→1c, documentos corrompidos. |
+| **E1: regra de idiomas inferidos** | Se currículo não listar idiomas, inferir nativo do idioma do documento. Elimina arrays vazios. |
+| **E1: overlaps temporais são válidos** | Instrução explícita para não "corrigir" datas sobrepostas entre experiências. |
+| **`definitions.md`: nova seção NOMES (solteiro/casado)** | Tabela com nomes de solteiro e casado de David, Mariana e Theo. Instrução para mapear variantes sem tratar como divergência. |
+
+### v4.8 → v4.9
+
+| Mudança | Motivo |
+|---|---|
+| **Novo script: `scripts/e_reset.py`** | E-reset e E-reset-from agora são determinísticos. Script unificado para limpeza de artefatos e re-execução automática das etapas determinísticas (E2-faturas, E3, E4, E5, E6). Etapas LLM (E1, E1.5, E2-extratos, E5.N) são puladas com lembrete no console. |
+| **Flags disponíveis** | `--from E[N]` (reset parcial), `--dry-run` (preview sem mudanças), `--clean-only` (só apagar artefatos), `--no-validate` (pular validação). |
+| **Safety: proteção de arquivos preservados** | Script nunca apaga `inbox_log.md`, `qa_log.md`, `data/`, `members/*-0_original.*`, `config/`, `life_plan/`, `scripts/`. Validação pós-execução verifica presença dos artefatos esperados. |
+| **Procedimento E-reset/E-reset-from simplificado** | Passos manuais de `rm -f` substituídos por invocação do script. Git commit antes/depois continua sendo responsabilidade do operador (LLM ou humano). |
+
+### v4.7 → v4.8
+
+| Mudança | Motivo |
+|---|---|
+| **Novo script: `scripts/e_save.py`** | Commit + push 100% determinístico via Python. Safety check automático (bloqueia `data/`, `inbox/`, `inbox_processed/`), validação de prefixo na mensagem de commit, staging, commit e push em um único comando. Flags: `--dry-run` (preview), `--no-push` (commit local), `--force-add` (ignorar safety). Execução: `python scripts/e_save.py -m "mensagem"`. |
+| **Convenção de mensagem validada pelo script** | Mensagens devem usar prefixos padronizados (`pipeline:`, `config:`, `docs:`, `fix:`, `update:`, etc.). Script rejeita mensagens fora da convenção. |
+| **Safety check redundante ao `.gitignore`** | Além do `.gitignore`, o script verifica programaticamente que nenhum arquivo de diretórios proibidos está sendo staged. Duas camadas de proteção contra commit acidental de dados sensíveis. |
 
 ### v4.6 → v4.7
 
@@ -182,17 +321,17 @@ O pipeline é **agnóstico ao ambiente**: tanto Cowork quanto Chat podem executa
 
 ### Diagnóstico rápido
 
-| Sintoma                                           | Onde corrigir                                                          | Depois rodar        |
-| ------------------------------------------------- | ---------------------------------------------------------------------- | ------------------- |
-| Layout quebrado, CSS errado, JS com bug           | `config/report_template.html`                                          | E6-regen            |
-| Label de gráfico errado, texto fixo errado        | `config/report_template.html`                                          | E6-regen            |
-| Gráfico não renderiza (canvas não encontrado)     | `config/report_template.html` (verificar IDs canônicos na Seção 4, E6) | E6-regen            |
-| Valor de KPI errado, dado numérico incorreto      | `processed/E5_analysis/` (ou E2/E4 se o erro vem de extração)          | E5 + E6             |
-| Transação categorizada errada                     | `processed/E4_unified/` ou regras em `config/definitions.md`           | E4 + E5 + E6        |
-| Transação faltando ou duplicada                   | `processed/E2_extracts/` ou `E3_reconciled/`                           | E3 + E4 + E5 + E6   |
-| Texto de seção mal escrito ou análise superficial | E5.N (narrativas) → E5.N + E6                                          | E5.N + E6           |
-| Dados de membro errados (nome, cargo)             | `members/members-1c_enriched.md`                                       | E1 + E5 + E6        |
-| Meta financeira desatualizada                     | `life_plan/life_plan_goals.md`                                         | E5 + E6             |
+| Sintoma                                           | Onde corrigir                                                          | Depois rodar      |
+| ------------------------------------------------- | ---------------------------------------------------------------------- | ----------------- |
+| Layout quebrado, CSS errado, JS com bug           | `config/report_template.html`                                          | E6-regen          |
+| Label de gráfico errado, texto fixo errado        | `config/report_template.html`                                          | E6-regen          |
+| Gráfico não renderiza (canvas não encontrado)     | `config/report_template.html` (verificar IDs canônicos na Seção 4, E6) | E6-regen          |
+| Valor de KPI errado, dado numérico incorreto      | `processed/E5_analysis/` (ou E2/E4 se o erro vem de extração)          | E5 + E6           |
+| Transação categorizada errada                     | `processed/E4_unified/` ou regras em `config/definitions.md`           | E4 + E5 + E6      |
+| Transação faltando ou duplicada                   | `processed/E2_extracts/` ou `E3_reconciled/`                           | E3 + E4 + E5 + E6 |
+| Texto de seção mal escrito ou análise superficial | E5.N (narrativas) → E5.N + E6                                          | E5.N + E6         |
+| Dados de membro errados (nome, cargo)             | `members/members-1c_enriched.md`                                       | E1 + E5 + E6      |
+| Meta financeira desatualizada                     | `life_plan/life_plan_goals.md`                                         | E5 + E6           |
 
 ### Regra para o assistente
 
@@ -259,7 +398,7 @@ O arquivo `config/report_template.html` é o template estrutural para o relatór
 
 - **Se já existir** em `config/report_template.html`: usar como está (não gerar automaticamente).
 - **Se não existir**: solicitar ao usuário. Este arquivo é criado manualmente ou por um designer — o pipeline NÃO o gera automaticamente, apenas o popula.
-- **Requisitos mínimos do template:** deve conter os 19 canvas IDs listados em E5.4/E5.5, os placeholders `{{COVER_*}}`, `{{KPI_*}}`, `{{SUMMARY_S*}}`, `{{CONTENT_S*}}`, `{{CONTENT_APP_*}}`, `{{PERFIL_FAMILIA_*}}`, `{{REPORT_DATA_JSON}}` e `{{FOOTER_CONTENT}}`.
+- **Requisitos mínimos do template:** deve conter os 19 canvas IDs listados em E6.4/E6.5, os placeholders `{{COVER_*}}`, `{{KPI_*}}`, `{{SUMMARY_S*}}`, `{{CONTENT_S*}}`, `{{CONTENT_APP_*}}`, `{{PERFIL_FAMILIA_*}}`, `{{REPORT_DATA_JSON}}` e `{{FOOTER_CONTENT}}`.
 
 ### 1.2 — Localização dos arquivos financeiros
 
@@ -322,10 +461,14 @@ Para cada arquivo que o usuário fornece:
 
 1. Copiar para `inbox_processed/[DATA-DE-HOJE]/` com o **nome original** (auditoria)
 2. **Detectar o tipo** usando regras da Seção 3 (instituição, tipo de documento, período)
-3. Copiar para o **diretório de destino** com o **nome final** (sufixo `-0_original` inserido antes da extensão)
-4. Se o arquivo de destino já existir, **não sobrescrever** — registrar como duplicata no log
+3. **Validar integridade:** verificar que o arquivo tem tamanho > 0 bytes. Arquivos vazios ou < 1KB devem ser registrados em `qa_log.md` como `WARN | Arquivo [nome] vazio ou corrompido ([tamanho] bytes) — NÃO roteado` e **NÃO movidos** para o destino.
+4. **Mover** (não copiar) para o **diretório de destino** com o **nome final** (sufixo `-0_original` inserido antes da extensão). Após o move, o arquivo NÃO deve permanecer no inbox.
+5. Se o arquivo de destino já existir, **não sobrescrever** — registrar como duplicata no log
 
-**Regra crítica:** nunca modificar o conteúdo dos arquivos — apenas copiar e renomear.
+**Regras críticas:**
+- Nunca modificar o conteúdo dos arquivos — apenas mover e renomear.
+- Apenas o arquivo com o **nome original** deve existir em `inbox_processed/` (auditoria). O arquivo renomeado NÃO é copiado para `inbox_processed/`.
+- Ao final de E0.A, o inbox deve estar **vazio** (exceto arquivos não identificados, que vão para `inbox_processed/[DATA]/nao_identificados/`).
 
 #### GRUPO A — `data/financial_statements/` — Extratos e faturas
 
@@ -341,8 +484,15 @@ Para cada arquivo que o usuário fornece:
 **Exemplos:**
 - `c6bank_extratoconta_202603-0_original.pdf` ← Extrato C6 março 2026
 - `itau_faturapaoacucar_202601-0_original.pdf` ← Fatura Pão de Açúcar janeiro 2026
+- `itau_extratocontapersonnalite_202505_202603-0_original.pdf` ← Extrato Itaú Personnalité (sub-variante de conta)
 - `santander_cdbdetalhes_202603-0_original.pdf` ← Detalhe CDB Santander março 2026
 - `bradesco_extratopoupanca_202602_202603-0_original.pdf` ← Poupança fevereiro-março 2026
+- `quintoandar_faturaaluguelcalixto_202602-0_original.pdf` ← Fatura aluguel QuintoAndar (propriedade Calixto)
+- `quintoandar_faturaaluguelmajorfreire_202602-0_original.pdf` ← Fatura aluguel QuintoAndar (propriedade Major Freire)
+
+**Nota sobre sub-variantes e propriedades:** Quando o tipo de conta ou propriedade é relevante, o identificador é **colado ao tipo** sem underscore separador (ex: `extratocontapersonnalite`, `faturaaluguelcalixto`). O underscore seguinte separa o período: `[instituição]_[tipo][variante]_[período]-0_original.[ext]`.
+
+**Nota sobre sufixo de letra (colisão de nomes):** Quando dois ou mais arquivos **distintos** (hashes diferentes) gerariam o mesmo nome destino, adicionar uma letra ao final do período: `a`, `b`, `c`, etc. Formato: `[instituição]_[tipo]_[período][letra]-0_original.[ext]`. Exemplo: `binance_extratoconta_202603a-0_original.jpg`, `binance_extratoconta_202603b-0_original.jpg`. O sufixo é transparente para o pipeline — E2 preserva no JSON e E3 faz merge automático.
 
 **Destino:** `data/financial_statements/[nome_final]`
 
@@ -359,9 +509,14 @@ Para cada arquivo que o usuário fornece:
 ```
 
 **Exemplos:**
-- `receitafederal_irpfdeclaracao_2024-0_original.pdf` ← IRPF 2024
+- `receitafederal_irpfdeclaracao_2024-0_original.pdf` ← IRPF 2024 (David, titular — sem sufixo de membro)
+- `receitafederal_irpfdeclaracaomariana_2024-0_original.pdf` ← IRPF 2024 Mariana
 - `receitafederal_irpfrecibo_2024-0_original.pdf` ← Recibo IRPF 2024
+- `receitafederal_irpfrecibomariana_2024-0_original.pdf` ← Recibo IRPF 2024 Mariana
 - `quintoandar_informerendimentosaluguel_2025-0_original.pdf` ← Informe aluguel 2025
+- `quintoandar_informerendimentosaluguelmariana_2025-0_original.pdf` ← Informe aluguel 2025 Mariana
+
+**Regra multi-membro:** Quando há declarações/informes de mais de um membro, o nome do membro é colado ao tipo (sem underscore separador): `[instituição]_[tipo][membro]_[período]-0_original.[ext]`. O titular (David) pode omitir o sufixo; todos os demais membros devem incluí-lo.
 
 **Destino:** `data/income_tax_br/[nome_final]`
 
@@ -518,6 +673,20 @@ ls financas-familia/inbox_processed/[DATA-DE-HOJE]/ 2>/dev/null | wc -l
 
 # V4 — Logs gerados
 ls financas-familia/logs/ 2>/dev/null
+
+# V5 — Inbox vazio (todos os arquivos devem ter sido movidos)
+echo "inbox residual:" && find financas-familia/inbox/ -type f 2>/dev/null | wc -l
+# Esperado: 0. Se > 0, listar arquivos restantes como erro.
+
+# V6 — Contagem inbox_processed == contagem inbox_log
+echo "inbox_processed (apenas nomes originais):" && \
+  find financas-familia/inbox_processed/[DATA-DE-HOJE]/ -type f 2>/dev/null | wc -l
+# Esperado: igual ao "Total processados" no inbox_log.md.
+# inbox_processed deve conter APENAS arquivos com nome original (auditoria), NÃO renomeados.
+
+# V7 — Nenhum arquivo de 0 bytes nos diretórios de destino
+find financas-familia/data/ financas-familia/members/ -type f -empty 2>/dev/null
+# Esperado: nenhum resultado. Arquivos vazios indicam problema na cópia/download original.
 ```
 
 ---
@@ -557,6 +726,8 @@ Para cada novo arquivo em `/inbox/`:
 file [arquivo]
 ```
 
+> **Nota sobre arquivos JPG/PNG:** Para imagens, o conteúdo não pode ser inspecionado como texto (requer OCR, que será feito em E2). A detecção de tipo e instituição é feita **exclusivamente pelo nome do arquivo**. Rotear normalmente com base no nome; o OCR será aplicado na etapa E2.
+
 **Passo 2 — Identificar a instituição** pela combinação de nome + conteúdo:
 
 | Padrões no nome                             | Padrões no conteúdo                                            | Instituição     | Entidade                  |
@@ -580,6 +751,7 @@ file [arquivo]
 | Indicadores | Tipo | Código |
 |---|---|---|
 | "extrato", "lançamentos", "statement" | Extrato conta corrente | `extratoconta` |
+| "extrato" + "Personnalité" ou conta Personnalité | Extrato conta Personnalité | `extratocontapersonnalite` |
 | "extrato" + "PJ", "pessoa jurídica", CNPJ | Extrato conta PJ | `extratocontapj` |
 | "global", "USD" | Extrato conta global USD | `extratocontaglobalusd` |
 | "global", "EUR" | Extrato conta global EUR | `extratocontaglobaleur` |
@@ -591,7 +763,7 @@ file [arquivo]
 | "renda fixa", "CDB" | Carteira renda fixa | `carteirarendafixa` |
 | "CDB", "detalhe" + número | Detalhe CDB Santander | `cdbdetalhes` |
 | "resumo" + CDB | Resumo CDB | `cdbresumo` |
-| "fatura" + "aluguel" | Fatura de aluguel QuintoAndar | `faturaaluguel` |
+| "fatura" + "aluguel" | Fatura de aluguel QuintoAndar | `faturaaluguel[propriedade]` (ex: `faturaaluguelcalixto`, `faturaaluguelmajorfreire`) |
 | "informe", "rendimentos" | Informe de rendimentos | `informerendimentos` |
 | "declaração", "IRPF" | Declaração IRPF | `irpfdeclaracao` |
 | "recibo", "entrega" + IRPF | Recibo IRPF | `irpfrecibo` |
@@ -611,7 +783,8 @@ file [arquivo]
 
 **Passo 4 — Extrair o período:**
 - Padrão preferencial: `YYYYMM` ou `YYYYMM_YYYYMM` no nome
-- Se não houver, verificar conteúdo
+- Para documentos anuais (IRPF, informes de rendimentos): usar apenas `YYYY` como período (ex: `receitafederal_irpfdeclaracao_2024-0_original.pdf`)
+- Se não houver período no nome, verificar conteúdo
 - Para arquivos sem período identificável, usar `[AAAAMMDD]` (data de hoje) e registrar em `qa_log.md`
 
 **Passo 5 — Determinar diretório de destino:**
@@ -638,24 +811,65 @@ Exemplos:
 - `RG_David_2024.pdf` → `david_rg-0_original.pdf`
 - `Dados_Veiculos_2026.xlsx` → `dados_veiculos-0_original.xlsx`
 
-**Passo 7 — Verificar duplicata:**
+**Passo 7 — Verificar duplicata e colisão de nome:**
 ```bash
 ls financas-familia/data/[destino]/[nome_final] 2>/dev/null
 ```
-Se existir → registrar como duplicata e **não sobrescrever**.
+Se o arquivo destino **já existir**, comparar hashes:
+- **Hash idêntico** (mesmo conteúdo) → registrar como `DUPLICATA IGNORADA` no inbox_log e **não mover**.
+- **Hash diferente** (conteúdo distinto, mesmo nome) → **COLISÃO**. Aplicar sufixo de letra:
+  1. Se o arquivo existente NÃO tem sufixo de letra, renomeá-lo adicionando `a` ao período: `bradesco_extratoconta_202603-0_original.pdf` → `bradesco_extratoconta_202603a-0_original.pdf`
+  2. Nomear o novo arquivo com a próxima letra: `bradesco_extratoconta_202603b-0_original.pdf`
+  3. Registrar a colisão e resolução no inbox_log.
 
-**Passo 8 — Executar:**
+**Convenção de sufixo de letra:** Quando múltiplos arquivos distintos compartilham o mesmo `[instituição]_[tipo]_[período]`, adicionar uma letra ao final do período: `a`, `b`, `c`, etc. Exemplos reais no pipeline: `binance_extratoconta_202603a` (screenshot página 1), `binance_extratoconta_202603b` (screenshot página 2), `itau_extratocontapersonnalite_202603a` e `202603b` (extratos parciais do mesmo mês).
+
+O sufixo de letra é transparente para o pipeline downstream: E2 preserva o sufixo no nome do JSON, e E3 faz merge natural das transações de mesma conta.
+
+**Passo 8 — Validar integridade antes de mover:**
+
+**8a. Verificar tamanho:**
 ```bash
-# Cópia de auditoria
+# Verificar tamanho do arquivo
+stat -c %s financas-familia/inbox/[nome_original]
+```
+Se tamanho == 0 bytes (ou < 1KB para PDFs):
+- Registrar em `logs/qa_log.md`: `[DATA] E0 | WARN | Arquivo [nome_original] vazio ou corrompido ([tamanho] bytes) — NÃO roteado`
+- **NÃO mover** para o destino
+- Manter no inbox para investigação manual
+
+**8b. Verificar encriptação (PDFs):**
+Para cada PDF, verificar se está protegido por senha **antes** de rotear:
+```bash
+python scripts/e0_unlock.py          # Desbloqueia PDFs no inbox
+python scripts/e0_unlock.py --dry-run # Apenas lista status
+```
+Se o PDF estiver encriptado:
+- Tentar desbloquear com senhas de `config/passwords.txt`
+- Se desbloqueado: substituir o original pela versão sem senha e prosseguir roteamento
+- Se nenhuma senha funcionar: registrar em `qa_log.md` e mover para `nao_identificados/`
+- **NUNCA rotear um PDF encriptado para os diretórios de destino** — E2 falhará na extração
+
+**Validação pós-roteamento (recomendado):**
+```bash
+python scripts/e0_unlock.py --check-destinations
+```
+Varre `data/` e `members/` por PDFs encriptados que escaparam e desbloqueia in-place.
+
+**Passo 9 — Executar:**
+```bash
+# Cópia de auditoria (apenas nome original, NÃO renomeado)
 cp financas-familia/inbox/[nome_original] \
    financas-familia/inbox_processed/[DATA-DE-HOJE]/[nome_original]
 
-# Mover para destino
+# Mover para destino (inbox fica vazio após esta etapa)
 mv financas-familia/inbox/[nome_original] \
    financas-familia/data/[destino]/[nome_final]
 ```
 
-**Passo 9 — Arquivos não identificados:**
+> **Atenção:** O comando é `mv` (mover), NÃO `cp`. Após E0, o inbox deve estar vazio. Se o arquivo permanecer no inbox após o move, investigar o motivo.
+
+**Passo 10 — Arquivos não identificados:**
 Se não conseguir identificar depois de analisar nome + conteúdo:
 - Registrar em `logs/qa_log.md` como `"arquivo não identificado — aguardando instrução"`
 - Mover para `financas-familia/inbox_processed/[DATA]/nao_identificados/[nome_original]`
@@ -669,7 +883,8 @@ Após rotear todos os arquivos, analisar quais tipos foram recebidos e determina
 
 | Arquivos recebidos | Tipo de ciclo | Etapas necessárias |
 |---|---|---|
-| Apenas extratos de conta corrente + faturas | **E2 rápido** | E2 (extração), E3 (reconciliação), E4 (unificação) |
+| Apenas extratos de conta corrente + faturas de cartão | **E2 rápido** | E2 (extração), E3 (reconciliação), E4 (unificação) |
+| Apenas faturas de aluguel QuintoAndar | **E2-faturas + E3→E6** | E2-faturas, E3, E4, E5, E5.N, E6 (afeta receita de aluguel e fluxo de caixa) |
 | Extratos novos para períodos já processados | **E3 + E4** | Detectar sobreposições, reconciliar apenas deltas |
 | Declaração IRPF nova OU XLSX de imóveis | **E1.5 + E2 + E3 + E4 + E5 + E6** | Ciclo completo (baseline muda) |
 | Novos currículos, holerites, documentos pessoais | **E1 + E1.5 + E2 + E3 + E4 + E5 + E6** | Ciclo completo (perfil do membro muda) |
@@ -715,9 +930,10 @@ Cada etapa é descrita de forma agnóstica (não amarrada a Cowork/Chat). Qualqu
 
 ### STAGE E1 — Mapeamento de membros
 
-**Objetivo:** Extrair informações de membros (perfil, experiência, renda) de currículos, holerites e documentos pessoais.
+**Objetivo:** Extrair informações de membros (perfil, experiência, renda) de currículos, holerites e documentos pessoais, consolidar em JSON unificado e gerar documento enriquecido em Markdown.
 
 **Inputs:**
+- `config/definitions.md` **(obrigatório)** — dados cadastrais: nomes (solteiro/casado), CPF, nascimento, papel na família, empresa PJ, animais de estimação
 - `members/[membro]_curriculo-0_original.[docx/pdf]`
 - `members/[membro]_holerite_[período]-0_original.pdf`
 - `members/[membro]_rg-0_original.[pdf/jpg]`
@@ -730,45 +946,126 @@ Cada etapa é descrita de forma agnóstica (não amarrada a Cowork/Chat). Qualqu
 
 **Processing logic:**
 
+0. **Carregar dados cadastrais:**
+   - Ler `config/definitions.md`.
+   - Extrair tabela MEMBROS DA FAMÍLIA (nome completo, CPF, nascimento, papel) e tabela NOMES (solteiro/casado).
+   - Estes dados são a **fonte de verdade** para: idades exatas (calcular a partir de `nascimento`), `nome_atual`, resolução de ambiguidades de nome entre documentos, e garantia de que todos os membros listados estejam no output — mesmo os que não possuem documentos em `members/`.
+
 1. **Para cada currículo (DOCX ou PDF):**
-   - Ler o documento (se DOCX, usar DOCX reader; se PDF, usar PDF reader)
-   - Extrair: nome completo, profissão/cargo, experiências profissionais (datas, títulos, empresas), formação (cursos, certificações, datas), habilidades, idiomas
-   - Salvar em `members/[membro]_curriculo-1a_extract.json`
+   - Ler o documento (se DOCX, usar DOCX reader; se PDF, usar PDF reader).
+   - Extrair conforme **schema `curriculo-1a_extract.json`** (Seção 7.2): `tipo`, `membro`, `nome_completo` (como no documento), `nome_atual` (do definitions), `profissao_cargo`, `experiencias[]`, `formacao[]`, `certificacoes[]`, `habilidades[]`, `idiomas[]`.
+   - **Idiomas:** se o currículo não listar seção de idiomas, inferir idioma nativo a partir do idioma do documento e do país de atuação. Ex: currículo em português + atuação no Brasil → `{"idioma": "Português", "nivel": "nativo", "fonte": "inferido"}`.
+   - **Overlaps temporais:** experiências com datas sobrepostas são válidas e comuns (consultoria paralela a emprego CLT, docência acumulada com cargo hospitalar). NÃO ajustar datas para eliminar overlaps.
+   - **Datas:** se o documento diz "junho de 2019", converter para `2019-06`. Se diz apenas "2019", usar `2019-01`. "Present" / "presente" / "atual" → `"presente"`.
+   - Salvar em `members/[membro]_curriculo-1a_extract.json`.
 
 2. **Para cada holerite:**
-   - Ler o PDF
-   - Extrair: nome do membro, período, salário bruto, descontos, salário líquido, empresa, cargo, data de admissão
-   - Salvar em `members/[membro]_holerite-1a_extract.json`
+   - Ler o PDF.
+   - Extrair conforme **schema `holerite-1a_extract.json`** (Seção 7.2): `tipo`, `membro`, `nome_no_documento` (preservar exatamente como está, pode ser nome de solteira), `periodo`, `empresa`, `estabelecimento`, `cargo`, `categoria`, `grade`, `matricula`, `data_admissao`, `salario_base_mensal`, `salario_bruto`, `proventos_adicionais[]`, `descontos[]`, `total_descontos`, `salario_liquido`, `data_credito`, `fgts{}`, `inss_base`, `dependentes_ir`, `observacoes`.
+   - **Mapeamento nome→membro:** o `nome_no_documento` pode ser nome de solteiro(a) (ex: "Mariana Teixeira Ferreira"). Usar a tabela NOMES do `definitions.md` para mapear ao `id` correto do membro. Nunca tratar como divergência — é esperado.
+   - **Proventos excepcionais:** se o holerite contiver férias, 13º ou adiantamento, registrar em `proventos_adicionais[]` E mencionar em `observacoes`.
+   - Salvar em `members/[membro]_holerite_[período]-1a_extract.json` (um arquivo **por holerite**, com o período no nome).
 
 3. **Para cada documento pessoal (RG, CPF, passaporte, visto, certidões, SSN, drivers license, green card):**
-   - Ler o documento (PDF ou JPG usando OCR se necessário)
-   - Extrair: tipo de documento, número, data de emissão, data de validade, dados demográficos relevantes
-   - Salvar em `members/[membro]_[tipo]-1a_extract.json`
+   - Ler o documento (PDF ou JPG usando OCR se necessário).
+   - Extrair campos conforme tabela abaixo:
 
-4. **Consolidar para cada membro:**
-   - Combinar todos os extratos de todos os membros em `members/members-1b_unified.json`
-   - Resolver conflitos de dados (e.g., se currículo e holerite diferem em salário, usar holerite como mais recente)
+   | Tipo | Campos a extrair |
+   |---|---|
+   | RG | `numero`, `orgao_emissor`, `data_emissao`, `uf`, `nome_completo`, `filiacao` (nome dos pais), `naturalidade` |
+   | CPF | `numero`, `nome_completo`, `data_nascimento` (se constar) |
+   | Passaporte | `numero`, `pais_emissor`, `data_emissao`, `data_validade`, `nome_completo`, `nacionalidade` |
+   | Visto | `tipo_visto`, `pais`, `numero`, `data_emissao`, `data_validade`, `status` |
+   | Certidão nascimento | `nome`, `data_nascimento`, `local_nascimento`, `nome_pai`, `nome_mae`, `cartorio`, `livro_folha` |
+   | Certidão casamento | `nomes_conjuges`, `data_casamento`, `regime_bens`, `cartorio` |
+   | SSN | `numero` (últimos 4 se parcial), `nome_completo` |
+   | Driver's license | `numero`, `estado`, `data_emissao`, `data_validade`, `classe` |
+   | Green card | `numero`, `nome_completo`, `data_emissao`, `pais_nascimento`, `categoria` |
 
-5. **Gerar documento enriquecido:**
-   - Salvar em `members/members-1c_enriched.md` com seção para cada membro listando:
-     - Perfil básico (nome, idade estimada, idiomas)
-     - Histórico profissional resumido
-     - Cargo e empresa atuais
-     - Salário atual (de holerite mais recente)
-     - Documentação (quais documentos pessoais estão disponíveis)
-     - Status fiscal (BR, US, ou ambos)
+   - Todos os JSONs devem conter adicionalmente: `tipo` (código do documento), `membro` (id), `nome_no_documento` (exatamente como consta).
+   - Salvar em `members/[membro]_[tipo]-1a_extract.json`.
+
+4. **Consolidar (`members-1b_unified.json`):**
+   - **a.** Iniciar com a lista de membros de `config/definitions.md` como base — garante que todos apareçam, mesmo os que não possuem documentos em `members/`.
+   - **b.** Para cada membro, mesclar dados de todos os `-1a_extract.json` correspondentes.
+   - **c.** Seguir o **schema `members-1b_unified.json`** (Seção 7.2).
+   - **d.** Regras de resolução de conflito:
+
+   | Campo | Regra |
+   |---|---|
+   | Nome | `nome_atual` = do `definitions.md`. Variantes encontradas nos documentos → `nomes_alternativos[]`. |
+   | Salário | Holerite mais recente prevalece. Se há apenas currículo: `salario` = `null` com `nota` explicativa. |
+   | Cargo | Currículo para descrição narrativa, holerite para cargo formal (código funcional). `cargo_atual` = o do currículo (mais descritivo). |
+   | Empresa | Holerite prevalece para empregador atual se CLT. Currículo prevalece se PJ. |
+   | Data admissão | Holerite prevalece (dado formal). |
+   | Formação | Unir todas as fontes sem duplicar. Ordenar por data descendente. |
+   | Overlaps de datas | Manter ambas experiências — overlaps são válidos (trabalho paralelo, docência + CLT). |
+   | Idiomas | Unir de todas as fontes. Se nenhuma fonte listar, inferir nativo do idioma do currículo. |
+   | Membro sem documentos | Criar entrada com dados do `definitions.md`. Campos sem fonte = `null`. `documentos_disponiveis: []`. |
+   | Múltiplos holerites | Usar o mais recente para `salario`. Se houve variação significativa entre períodos, mencionar em `nota`. |
+
+5. **Gerar documento enriquecido (`members-1c_enriched.md`):**
+   - Seguir o **template obrigatório** abaixo. Ordem dos membros: Titular → Cônjuge → Filhos.
+   - Template por membro:
+
+   ```markdown
+   ## [Nome Atual Completo] ([Nomes Alternativos se houver])
+
+   **Perfil:** [Nacionalidade], [idade] anos (nasc. DD/MM/YYYY). [Idiomas].
+
+   **Histórico profissional:** [Resumo 2-3 frases: anos de carreira, áreas, progressão].
+
+   **Cargo atual:** [Cargo] na [Empresa] ([tipo vínculo]). [Desde MM/YYYY].
+
+   **Salário atual ([fonte], [período]):**
+   - Base mensal: R$ X.XXX,XX
+   - Bruto no período: R$ X.XXX,XX [nota se férias, 13º, etc.]
+   - Descontos principais: INSS R$ X.XXX,XX | IRRF R$ X.XXX,XX
+   - [Outras linhas relevantes: FGTS, benefícios]
+
+   **Documentação disponível:** [lista de documentos processados].
+
+   **Status fiscal:** [BR / US / BR+US]. [Detalhes regime se relevante].
+   ```
+
+   - **Idade:** calcular a partir de `data_nascimento` do `definitions.md`, NUNCA estimar a partir de formatura.
+   - **Membros sem documentos (ex: Theo):** bloco mínimo — perfil básico do `definitions.md` + nota "Sem documentos processados neste ciclo".
+   - **Salário PJ sem holerite:** escrever "PJ — valor a confirmar via extratos bancários de [instituição]".
 
 **Outputs:**
-- `members/[membro]_curriculo-1a_extract.json`
-- `members/[membro]_holerite-1a_extract.json`
-- `members/[membro]_[tipo_documento]-1a_extract.json` (para cada documento pessoal)
+- `members/[membro]_curriculo-1a_extract.json` (um por currículo)
+- `members/[membro]_holerite_[período]-1a_extract.json` (um por holerite, com período no nome)
+- `members/[membro]_[tipo_documento]-1a_extract.json` (um por documento pessoal)
 - `members/members-1b_unified.json`
 - `members/members-1c_enriched.md`
 
 **Validation:**
-- Todos os extratos devem ter chaves obrigatórias (vide schema abaixo)
-- Nenhum documento pode estar vazio (se arquivo PDF corrompido, registrar em `qa_log.md`)
-- Unificado deve ter entradas para todos os membros detectados
+
+V1 — **Schema compliance:**
+- Cada `-1a_extract.json` deve conter **todas** as chaves obrigatórias do schema correspondente (Seção 7.2).
+- Nenhum valor obrigatório pode ser `null` ou string vazia (exceto quando o schema permite explicitamente).
+
+V2 — **Valores numéricos (holerites):**
+- `salario_bruto > 0`
+- `salario_liquido > 0`
+- `salario_liquido ≤ salario_bruto`
+- `total_descontos ≈ soma(descontos[].valor)` (tolerância: ±R$0,10 por arredondamento)
+
+V3 — **Consistência 1a → 1b:**
+- Todo `membro` presente em algum `-1a_extract.json` DEVE ter entrada correspondente no `1b_unified`.
+- Todo membro do `definitions.md` DEVE ter entrada no `1b_unified` (mesmo sem documentos).
+- `membros.length ≥ número_de_membros_em_definitions`
+
+V4 — **Consistência 1b → 1c:**
+- Todo membro do `1b_unified` DEVE ter seção no `1c_enriched.md`.
+- Idade no `1c_enriched` deve bater com `data_nascimento` do `definitions.md`.
+
+V5 — **Documentos corrompidos ou vazios:**
+- Se um PDF/JPG não puder ser lido (corrompido, protegido por senha, escaneado sem OCR legível): registrar em `qa_log.md`:
+  ```
+  [YYYY-MM-DD] E1 | WARN | Arquivo [nome] não pôde ser processado: [motivo]. Membro [id] terá dados parciais.
+  ```
+- NÃO interromper a execução. Continuar com os documentos disponíveis.
 
 ---
 
@@ -893,7 +1190,7 @@ Cada etapa é descrita de forma agnóstica (não amarrada a Cowork/Chat). Qualqu
 python scripts/e2_extract_faturas.py
 ```
 O script é 100% determinístico (zero LLM) para bancos conhecidos. Usa pdfplumber para extração de texto.
-Tempo de execução: ~8s para 37 faturas. Mesmos inputs = mesmos outputs.
+Tempo de execução: proporcional ao número de faturas (~0,2s por fatura). Mesmos inputs = mesmos outputs.
 
 **Opções CLI:**
 - `--dry-run` — mostra o que seria processado sem gravar arquivos
@@ -957,44 +1254,58 @@ python scripts/e3_reconcile.py
 O script é 100% determinístico (zero LLM). Mesmos inputs = mesmos outputs. Tempo de execução: ~2s.
 
 **Inputs:**
-- TODOS os `processed/E2_extracts/*-2_extract.json` (multitude)
-- `processed/E2_extracts/baseline_patrimonial-1.5_consolidated.json`
+- TODOS os `processed/E2_extracts/*-2_extract.json` (exceto `-0_original`, baseline, dados_imoveis e tipos não-transacionais)
+- `processed/E2_extracts/baseline_patrimonial-1.5_consolidated.json` (para validação cruzada)
+
+**Regras de filtragem de inputs:**
+- Arquivos `-0_original-2_extract.json` são **sempre ignorados** (backups de versões anteriores à correção LLM)
+- Tipos ignorados: `investimentosposicao`, `carteirarendafixa`, `cdbdetalhes`, `cdbresumo`, `faturaaluguel`, `informerendimentos`, `irpf`
+- Faturas aceitas: `faturacarbon`, `faturaunique`, `faturapaoacucar` (demais tipos `fatura*` são ignorados)
+- Tipos de conta reconhecidos: `extratoconta`, `extratocontapj`, `extratocontapersonnalite`, `extratopoupanca`, `extratocontaglobal`, `extratocontaglobalusd`, `extratocontaglobaleur`
 
 **Processing logic:**
 
+0. **Cleanup do diretório E3_reconciled/:**
+   - Antes de processar, remove (ou tombstona) todos os `.json` existentes no diretório de output
+   - Garante que arquivos fantasma de execuções anteriores (LLM ou script) não poluam o resultado
+
 1. **Para cada conta identificada (e.g., "Itaú Personnalité PF", "C6 Bank USD"):**
    - Agrupar todos os extratos dessa conta em ordem cronológica
+   - Chave de agrupamento: `(banco, tipo, moeda)` para contas correntes; `(banco, tipo)` para faturas
+   - Para faturas sem campo `periodo`: sintetizar a partir de `data_vencimento` (1º dia do mês anterior até vencimento), ajustando `periodo.inicio` para a data da transação mais antiga se esta for anterior ao valor sintetizado
+   - Faturas com `data_vencimento` vazio e sem transações: skip com log explícito. Com transações: derivar periodo das datas reais
    - Para períodos sobrepostos (detectar por datas):
      - Buscar duplicatas por regra: **data + valor + descrição** = mesma transação
-     - Manter apenas uma cópia
-     - Registrar qual extrato foi fonte de verdade
-   - Preencher gaps: se há gap entre dois extratos, registrar em `qa_log.md`
+     - **Deduplicação apenas entre arquivos diferentes** — transações idênticas dentro do mesmo arquivo são mantidas (representam compras legítimas distintas, ex: 3 compras na Amazon no mesmo dia)
+     - Ao encontrar duplicata cross-file, manter as transações do arquivo com mais ocorrências daquela assinatura
+   - Detectar gaps temporais entre extratos consecutivos (> 2 dias) e registrar em `logs/qa_log.md`
    - Compilar lista de TODAS as transações de forma consolidada
 
 2. **Validação de saldos:**
-   - Pegar saldo inicial do extrato mais antigo
-   - Aplicar transações em ordem cronológica
-   - Comparar saldo final calculado com saldo final reportado
-   - Se houver diferença, registrar discrepância em `logs/reconciliation.md`
+   - Pegar saldo inicial do extrato mais antigo (se `None`, usar 0 com warning)
+   - Comparar saldo final de cada extrato com saldo inicial do próximo
+   - Se houver diferença > R$0.01, registrar discrepância em `logs/reconciliation.md`
 
 3. **Validação contra baseline:**
    - Se há IRPF para 31/12 de ano anterior, comparar saldo nessa data com baseline
    - Se há IRPF para 31/12 de ano-base, comparar saldo em 31/12 com baseline
-   - Registrar variações esperadas vs. inesperadas
+   - Registrar variações esperadas vs. inesperadas em `logs/reconciliation.md`
 
 4. **Gerar arquivo consolidado por conta:**
-   - Nome: `processed/E3_reconciled/[banco]_[tipo_conta]_[período_total]-3_reconciled.json`
-   - Conteúdo: todas as transações deduplicated, saldos validados, datas de cobertura completas
+   - Formato do nome: `processed/E3_reconciled/[banco]_[tipo_conta]_[moeda]_[YYYYMM]_[YYYYMM]-3_reconciled.json` (contas correntes) ou `[banco]_[tipo_conta]_[YYYYMM]_[YYYYMM]-3_reconciled.json` (faturas, sem moeda)
+   - Conteúdo: todas as transações deduplicated, saldos validados, datas de cobertura completas, lista de fontes
 
 **Outputs:**
-- `processed/E3_reconciled/[banco]_[tipo_conta]_[período_total]-3_reconciled.json` para cada conta
-- `logs/reconciliation.md` com resumo de cada conta e deduplicações
+- `processed/E3_reconciled/[banco]_[tipo]_[YYYYMM]_[YYYYMM]-3_reconciled.json` para cada conta
+- `logs/reconciliation.md` com resumo de cada conta, deduplicações, warnings de saldo e baseline
+- `logs/qa_log.md` com gaps temporais detectados (append)
 
 **Validation:**
 - Cada account reconciliado deve ter saldo inicial, transações deduplicated, saldo final
-- Nenhuma transação deve aparecer mais de uma vez
-- Gaps devem ser documentados
+- Nenhuma transação de arquivos diferentes deve aparecer mais de uma vez (intra-arquivo preservadas)
+- Gaps temporais devem ser documentados em `qa_log.md`
 - Saldos devem bater (ou divergência documentada)
+- Saldos `None` convertidos para 0 com warning no log
 
 ---
 
@@ -1035,8 +1346,8 @@ O script é 100% determinístico (zero LLM). Keywords hardcoded do `definitions.
 2b. **Gerar breakdown mensal por origem (CRÍTICO para gráfico `receita_despesa_mensal`):**
    - Gerar `processed/E4_unified/fluxo_mensal_detalhado-4_unified.json`
    - **Receitas:** Para cada transação de receita categorizada no item 1, identificar a **origem nomeada** usando as REGRAS DE CATEGORIZAÇÃO DE RECEITAS em `definitions.md` e agregar valor por mês (YYYY-MM).
-     - Origens PJ: usar subcategoria (ex: "Arvo (David - PJ)", "BrandLovers (David - PJ)", "Arbitralis (David - PJ)", "Learn To Fly (David - PJ)"). Conta esperada: C6 PJ.
-     - Origem CLT: "Einstein (Mariana - CLT)". Conta esperada: Poupança Bradesco.
+     - Origens PJ: usar subcategoria conforme `PJ_SOURCE_MAPPING` em `config/categorization.json` (ex: "Arvo (David - PJ)", etc.). Conta esperada: C6 PJ.
+     - Origem CLT: conforme `CLT_SOURCE_MAPPING` em `config/categorization.json` (ex: "Einstein (Mariana - CLT)"). Conta esperada: Poupança Bradesco.
      - Aluguéis: "Aluguéis" (QuintoAndar via GRPQA + diretos).
      - Rendimentos: "Rendimentos Financeiros" (rendimentos de poupança, CDB, fundos, dividendos).
      - Outras: agrupar como "Outras Receitas".
@@ -1045,36 +1356,32 @@ O script é 100% determinístico (zero LLM). Keywords hardcoded do `definitions.
      ```json
      {
        "periodo": "YYYY-MM a YYYY-MM",
-       "meses_ordenados": ["2025-04", "2025-05", ..., "2026-03"],
+       "meses_ordenados": ["YYYY-MM", "YYYY-MM", "..."],
        "receitas": {
-         "origens": ["Arvo (David - PJ)", "BrandLovers (David - PJ)", "Arbitralis (David - PJ)", "Learn To Fly (David - PJ)", "Einstein (Mariana - CLT)", "Aluguéis", "Rendimentos Financeiros", "Outras Receitas"],
+         "origens": ["[origens PJ conforme PJ_SOURCE_MAPPING do definitions.md]", "[CLT conforme CLT_SOURCE_MAPPING]", "Aluguéis", "Rendimentos Financeiros", "Outras Receitas"],
          "por_mes": {
-           "2025-04": {
-             "Arvo (David - PJ)": 47550.00,
-             "BrandLovers (David - PJ)": 10000.00,
-             "Arbitralis (David - PJ)": 3000.00,
-             "Learn To Fly (David - PJ)": 1000.00,
-             "Einstein (Mariana - CLT)": 8500.00,
-             "Aluguéis": 8571.00,
-             "Rendimentos Financeiros": 257.05,
+           "YYYY-MM": {
+             "[Origem PJ 1]": 0.00,
+             "[Origem CLT]": 0.00,
+             "Aluguéis": 0.00,
+             "Rendimentos Financeiros": 0.00,
              "Outras Receitas": 0.00,
-             "_total": 78878.05
+             "_total": 0.00
            }
          }
        },
        "despesas": {
-         "categorias": ["moradia", "saúde", "alimentação", "educação", "transporte", ...],
+         "categorias": ["[categorias conforme definitions.md]"],
          "por_mes": {
-           "2025-04": {
-             "moradia": 12500.00,
-             "saúde": 3200.00,
-             "alimentação": 4800.00,
-             "_total": 31500.00
+           "YYYY-MM": {
+             "[categoria]": 0.00,
+             "_total": 0.00
            }
          }
        }
      }
      ```
+   > **Nota:** Os nomes das origens de receita PJ e CLT vêm de `PJ_SOURCE_MAPPING` e `CLT_SOURCE_MAPPING` em `config/categorization.json`. As categorias de despesa vêm de `config/definitions.md`. Todos os valores são calculados dinamicamente a partir dos dados do período.
    - **Validação:** Para cada mês, `receitas.por_mes[mes]._total` deve ser consistente com `receitas-4_unified.json` e `despesas.por_mes[mes]._total` com `despesas-4_unified.json`.
    - **⚠️ IMPORTANTE:** Este JSON é a fonte de verdade para o gráfico `receita_despesa_mensal`. Sem ele, o gráfico usa médias planas (incorreto).
 
@@ -1155,27 +1462,24 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
    - Gerar chave `receita_despesa_mensal_detalhado` no JSON de análise E4 com a estrutura abaixo:
      ```json
      "receita_despesa_mensal_detalhado": {
-       "labels": ["abr/25", "mai/25", "jun/25", ..., "mar/26"],
+       "labels": ["mmm/YY", "mmm/YY", "..."],
        "receita_datasets": [
-         {"label": "Arvo (David - PJ)", "data": [47550, 47550, ...]},
-         {"label": "BrandLovers (David - PJ)", "data": [10000, 10000, ...]},
-         {"label": "Arbitralis (David - PJ)", "data": [3000, 0, ...]},
-         {"label": "Learn To Fly (David - PJ)", "data": [1000, 1000, ...]},
-         {"label": "Einstein (Mariana - CLT)", "data": [8500, 8500, ...]},
-         {"label": "Aluguéis", "data": [8571, 8571, ...]},
-         {"label": "Rendimentos Financeiros", "data": [257, 300, ...]},
-         {"label": "Outras Receitas", "data": [0, 0, ...]}
+         {"label": "[Origem PJ 1]", "data": [0.00, "..."]},
+         {"label": "[Origem CLT]", "data": [0.00, "..."]},
+         {"label": "Aluguéis", "data": [0.00, "..."]},
+         {"label": "Rendimentos Financeiros", "data": [0.00, "..."]},
+         {"label": "Outras Receitas", "data": [0.00, "..."]}
        ],
        "despesa_datasets": [
-         {"label": "Moradia", "data": [12500, 12500, ...]},
-         {"label": "Saúde", "data": [3200, 2800, ...]},
-         {"label": "Alimentação", "data": [4800, 5100, ...]},
-         ...
+         {"label": "[Categoria 1]", "data": [0.00, "..."]},
+         {"label": "[Categoria 2]", "data": [0.00, "..."]},
+         "..."
        ],
-       "totais_receita": [78878, 75050, ...],
-       "totais_despesa": [31500, 28900, ...]
+       "totais_receita": [0.00, "..."],
+       "totais_despesa": [0.00, "..."]
      }
      ```
+   > **Nota:** Labels e datasets são gerados dinamicamente. Origens de receita conforme `categorization.json`. Categorias de despesa conforme `definitions.md`.
    - Cada array `data` tem exatamente N elementos (um por mês no período).
    - `totais_receita[i]` = soma de todos `receita_datasets[*].data[i]`.
    - `totais_despesa[i]` = soma de todos `despesa_datasets[*].data[i]`.
@@ -1184,8 +1488,8 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
 1c. **Orçamento Prospectivo (OBRIGATÓRIO — alimenta card 6 do E5):**
    - Input: `despesas-4_unified.json`
    - Agrupar despesas por categoria (usando categorias do `definitions.md`) e calcular a **média mensal** de cada categoria no período analisado.
-   - Gerar chave `orcamento_prospectivo` no E4 JSON com:
-     - `categorias`: objeto `{categoria: valor_media_mensal}` (14 categorias)
+   - Gerar chave `orcamento_prospectivo` no E5 analysis JSON com:
+     - `categorias`: objeto `{categoria: valor_media_mensal}` (todas as categorias do `definitions.md`)
      - `total`: soma das médias mensais
      - `media_mensal`: igual a `total` (valor explícito para clareza)
      - `variacao_pct`: variação % do total em relação ao período anterior (se disponível)
@@ -1201,7 +1505,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
    - Input secundário (se existir): `processed/E4_unified/pontos_milhas-4_unified.json` (dados extraídos de faturas de cartão)
    - Para cada programa listado em `milhas.md`, extrair: `programa`, `titular`, `saldo_pontos`, `valor_estimado_brl`, resgates no período com `valor_equivalente_brl`.
    - Se `pontos_milhas-4_unified.json` existir, usar para complementar/validar dados de acúmulo de pontos via faturas.
-   - Gerar chave `programa_milhas` no E4 JSON com:
+   - Gerar chave `programa_milhas` no E5 analysis JSON com:
      - `programas`: array de objetos `{programa, titular, saldo_pontos, valor_estimado_brl, economia_periodo_brl}`
        - `economia_periodo_brl` = soma dos `valor_equivalente_brl` de todos os resgates do programa no período
      - `total_valor_estimado_brl`: soma de todos `valor_estimado_brl`
@@ -1213,7 +1517,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
    - Taxa de poupança **recorrente** = (receitas_recorrentes - despesas_totais) / receitas_recorrentes
      - ⚠️ **RECEITAS RECORRENTES** = excluir receitas one-time (rescisões, Kiwify, vendas de ativos, restituições extraordinárias)
      - ⚠️ **DESPESAS TOTAIS** = pessoais + PJ (DAS, impostos) + financiamentos — não apenas despesas-4_unified
-     - ⚠️ Salvar AMBOS os valores no E4: `taxa_poupanca_recorrente_pct` (KPI principal) e `taxa_poupanca_total_pct` (informativo)
+     - ⚠️ Salvar AMBOS os valores no E5 analysis JSON: `taxa_poupanca_recorrente_pct` (KPI principal) e `taxa_poupanca_total_pct` (informativo)
      - O KPI do relatório DEVE exibir a taxa RECORRENTE como valor principal, e a projetada como subtítulo
    - Taxa de endividamento = dívidas / patrimônio bruto
    - Cobertura de despesas = patrimônio / (despesas anuais) = meses de cobertura
@@ -1279,10 +1583,10 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
    - Soma dos percentuais = 100,0%
    - `goals.if_pct = patrimonio.investivel / goals.if_meta × 100` (calcular, nunca hardcodar)
    - `goals.if_gap = goals.if_meta − patrimonio.investivel` (calcular, nunca hardcodar)
-   - Nenhum valor no E4 deve ser copiado do life_plan; o E4 CALCULA e o life_plan é ATUALIZADO com o resultado
+   - Nenhum valor no E5 analysis JSON deve ser copiado do life_plan; o E5 CALCULA e o life_plan é ATUALIZADO com o resultado
 
 6b. **Tabelas-resumo por categoria (OBRIGATÓRIO — alimentam cards de visão geral no relatório):**
-   - Para cada dimensão abaixo, gerar um bloco no E4 JSON com array de objetos `{categoria, valor, pct}` ordenado por valor decrescente, mais um `total`:
+   - Para cada dimensão abaixo, gerar um bloco no E5 analysis JSON com array de objetos `{categoria, valor, pct}` ordenado por valor decrescente, mais um `total`:
 
    **i. Patrimônio por categoria** (`patrimonio.tabela_categorias`):
    - Fonte: item 6 acima (visão patrimonial consolidada)
@@ -1296,15 +1600,16 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
      ```json
      "patrimonio": {
        "tabela_categorias": [
-         {"categoria": "Imóveis para renda (5 imóveis)", "valor": 2360000, "pct": 38.8},
-         {"categoria": "Residência própria (Tasso da Silveira)", "valor": 2200000, "pct": 36.2},
-         {"categoria": "Investimentos David", "valor": 860272, "pct": 14.1},
-         ...
+         {"categoria": "Imóveis para renda ({N} imóveis)", "valor": 0.00, "pct": 0.0},
+         {"categoria": "Residência própria ([endereço])", "valor": 0.00, "pct": 0.0},
+         {"categoria": "Investimentos [Membro]", "valor": 0.00, "pct": 0.0},
+         "..."
        ],
-       "tabela_dividas": 0,
-       "tabela_investivel": 3648716
+       "tabela_dividas": 0.00,
+       "tabela_investivel": 0.00
      }
      ```
+   > **Nota:** Valores, contagem de imóveis ({N}) e endereço da residência são calculados dinamicamente a partir do baseline patrimonial. O label "({N} imóveis)" deve refletir a contagem real excluindo residência.
 
    **ii. Receitas por fonte** (`fluxo_caixa.tabela_receitas`):
    - Fonte: `receitas-4_unified.json` agrupado por origem (PJ por empresa, CLT, aluguéis, rendimentos financeiros, outras)
@@ -1314,10 +1619,8 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
      ```json
      "fluxo_caixa": {
        "tabela_receitas": [
-         {"categoria": "Arvo (David - PJ)", "valor": 570600, "pct": 52.3},
-         {"categoria": "Einstein (Mariana - CLT)", "valor": 102000, "pct": 9.4},
-         {"categoria": "Aluguéis", "valor": 102852, "pct": 9.4},
-         ...
+         {"categoria": "[Origem conforme categorization.json]", "valor": 0.00, "pct": 0.0},
+         "..."
        ]
      }
      ```
@@ -1330,9 +1633,8 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
      ```json
      "investimentos": {
        "tabela_classes": [
-         {"categoria": "Renda Fixa (CDB/CRA/LCI)", "valor": 650000, "pct": 52.6},
-         {"categoria": "Fundos Multimercado", "valor": 280000, "pct": 22.7},
-         ...
+         {"categoria": "[Classe de ativo]", "valor": 0.00, "pct": 0.0},
+         "..."
        ]
      }
      ```
@@ -1376,7 +1678,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
      - `consumo_consciente.folga_pct` = folga_mensal / receita_recorrente × 100
      - `consumo_consciente.teto_sugerido` = despesas_recorrentes × 1.15 (margem 15% para pontuais diluídos)
    - Se não houver gastos pontuais ≥ R$ 2.000 no período, gerar o bloco mesmo assim com `itens: []` e uma nota positiva em `analise`
-   - Salvar no E4 analysis JSON no bloco `consumo_consciente`
+   - Salvar no E5 analysis JSON no bloco `consumo_consciente`
 
 8. **Diagnóstico de Comportamento Financeiro (OBRIGATÓRIO):**
    - Varrer os dados unificados (E3) e extratos (E2) para detectar padrões comportamentais recorrentes.
@@ -1397,7 +1699,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
      - `mudanca_sugerida`: recomendação prática e específica de automatização
    - **Se NENHUM padrão for detectado**, gerar o bloco com array vazio e nota positiva: "Nenhum padrão comportamental de risco identificado — excelente disciplina financeira."
    - **Tom:** Não julgar. Padrões são hábitos formados pela praticidade. O objetivo é automatizar o fluxo.
-   - Salvar no E4 analysis JSON no bloco `diagnostico_comportamental[]`
+   - Salvar no E5 analysis JSON no bloco `diagnostico_comportamental[]`
 
 9. **Estratégia de Contrafluxo na Renda Fixa (OBRIGATÓRIO):**
    - Determinar o cenário de juros atual com base na Selic vigente (buscar em `definitions.md` ou input do ciclo):
@@ -1413,21 +1715,22 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
      - Cenário de juros vigente
      - Exemplo para Selic alta: "Após a reserva de emergência atingir 12 meses (R$ Xk), redirecionar R$ Yk dos Cofrinhos: R$ Zk para manutenção + R$ Wk para Tesouro IPCA+ 2035/2040 (travando IPCA+N%). Aproveitar o momento de Selic alta para travar taxas reais excelentes antes do ciclo virar."
    - **Referência metodológica:** Raul Sena / AUVP — princípio do contrafluxo: comprar o que o mercado está evitando, pois é onde estão as melhores taxas
-   - Salvar no E4 JSON no bloco `investimentos.contrafluxo` com a estrutura:
+   - Salvar no E5 analysis JSON no bloco `investimentos.contrafluxo` com a estrutura:
      ```json
      "investimentos": {
        "contrafluxo": {
          "cenario_atual": "alta | queda | baixa",
-         "selic_atual": 14.25,
-         "selic_alta": "13-15%",
-         "selic_queda": "10-12%",
-         "selic_baixa": "6-8%",
-         "valor_cdi": 10000,
-         "valor_ipca": 5000,
+         "selic_atual": 0.00,
+         "selic_alta": "≥12%",
+         "selic_queda": "8-12%",
+         "selic_baixa": "<8%",
+         "valor_cdi": 0.00,
+         "valor_ipca": 0.00,
          "acao_pratica": "[texto personalizado — ver regras acima]"
        }
      }
      ```
+   > **Nota:** `selic_atual` deve ser obtida de `definitions.md` ou fonte externa atualizada a cada ciclo. `valor_cdi` e `valor_ipca` vêm de `life_plan_goals.md`. As faixas textuais devem ser consistentes com os critérios de classificação (≥12%, 8-12%, <8%).
    - **⚠️ Este bloco alimenta o card obrigatório #12 (Contrafluxo) no E5. Se ausente, E5 gera card genérico (fallback educacional), mas o card personalizado é SEMPRE preferível.**
 
 10. **Reserva de Emergência (OBRIGATÓRIO):**
@@ -1442,7 +1745,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
     - Detalhar a composição da liquidez em `composicao_liquida{}`: para cada ativo incluído, registrar chave, valor e prazo de resgate (D+0, D+1). Incluir `total_liquido` e `cobertura_meses` (= total_liquido / despesa_mensal).
     - Gerar recomendação baseada no nível atingido
     - O card E5 DEVE exibir: (1) tabela de 3 níveis com coluna de liquidez atual, (2) tabela de composição (Componente | Valor | Liquidez/Resgate), (3) rodapé explicativo dos critérios de inclusão.
-    - Salvar no E4 JSON no bloco `reserva_emergencia`
+    - Salvar no E5 analysis JSON no bloco `reserva_emergencia`
 
 10b. **Reserva de Oportunidade (OBRIGATÓRIO):**
     - **Pré-requisito:** Só calcular se reserva de emergência atingir pelo menos o nível `conforto_9m` (status "✅ Coberto" ou "⚠ Parcial"). Caso contrário, gerar bloco com `status: "Aguardando emergência"` e recomendação de priorizar a reserva de emergência.
@@ -1468,7 +1771,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
       | **Rentabilidade** | Irrelevante — prioridade é liquidez | Pode buscar CDI+ desde que liquidez ≤ 90 dias |
 
     - Gerar recomendação personalizada baseada no status e na composição atual
-    - Salvar no E4 JSON no bloco `reserva_oportunidade`
+    - Salvar no E5 analysis JSON no bloco `reserva_oportunidade`
 
 11. **Endividamento (OBRIGATÓRIO):**
     - Levantar todas as dívidas ativas: financiamentos, consórcios, parcelas de cartão, empréstimos, cheque especial
@@ -1477,7 +1780,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
     - Classificar: "Livre de Dívidas" (0%), "Controlado" (<10%), "Atenção" (10-30%), "Crítico" (>30%)
     - Gerar recomendação geral (prioridade de quitação, avalanche vs bola de neve)
     - Se não houver dívidas, gerar bloco com `dividas: []` e classificação "Livre de Dívidas"
-    - Salvar no E4 JSON no bloco `endividamento`
+    - Salvar no E5 analysis JSON no bloco `endividamento`
 
 12. **Previdência PGBL (OBRIGATÓRIO):**
     - Calcular renda tributável anual (pró-labore David + CLT Mariana + aluguéis tributáveis)
@@ -1487,21 +1790,21 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
     - Projeção de acumulação em 10/15/20 anos com taxa real de 6% a.a. (juros compostos)
     - Renda mensal projetada = acumulado × 4% / 12 (regra dos 4%)
     - Status de portabilidade (se o fundo atual é adequado)
-    - Salvar no E4 JSON no bloco `previdencia_pgbl`
+    - Salvar no E5 analysis JSON no bloco `previdencia_pgbl`
 
 13. **Pontos Fortes (OBRIGATÓRIO):**
     - Varrer TODOS os outputs anteriores (E1 a E4) e identificar 5-7 destaques positivos
     - Critérios: taxa poupança acima de 20%, diversificação, ausência de dívidas, patrimônio crescente, disciplina de aporte, proteção patrimonial, planejamento
     - Para cada ponto: `{titulo, descricao}` — título curto + descrição com dados concretos
     - Tom: celebrativo e motivacional
-    - Salvar no E4 JSON no bloco `pontos_fortes[]`
+    - Salvar no E5 analysis JSON no bloco `pontos_fortes[]`
 
 14. **Pontos Urgentes (OBRIGATÓRIO):**
     - Varrer TODOS os outputs anteriores e identificar 5-7 ações críticas priorizadas por impacto
     - Critérios: dívidas de juros alto, impostos irregulares, reserva insuficiente, seguros vencidos, documentos expirados, oportunidades fiscais perdidas
     - Para cada ponto: `{prioridade, acao, impacto, prazo}` — numerado por urgência
     - Tom: direto e acionável, sem ser alarmista
-    - Salvar no E4 JSON no bloco `pontos_urgentes[]`
+    - Salvar no E5 analysis JSON no bloco `pontos_urgentes[]`
 
 15. **Equilíbrio Presente × Futuro — Cerbasi (OBRIGATÓRIO):**
     - Calcular proporção gastos-presente vs investimentos-futuro:
@@ -1510,7 +1813,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
     - Classificar: "Equilibrado" (futuro 20-40%), "Pendendo para Futuro" (>40%), "Pendendo para Presente" (<20%), "Desequilibrado" (<10% ou >50%)
     - Gerar análise contextualizada (fase de vida da família, dependentes, plano migratório)
     - Gerar recomendação baseada no framework Cerbasi
-    - Salvar no E4 JSON no bloco `equilibrio_cerbasi`
+    - Salvar no E5 analysis JSON no bloco `equilibrio_cerbasi`
 
 16. **Gerar arquivo de análise:**
    - Salvar em `processed/E5_analysis/analise_financeira-5_analysis.json` com:
@@ -1558,7 +1861,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
 - `config/report_spec.md` (regras de formatação e design)
 - `config/definitions.md` (categorias, entidades)
 
-**Output:** Nova chave `narrativas` adicionada ao E4 JSON com a seguinte estrutura:
+**Output:** Nova chave `narrativas` adicionada ao E5 analysis JSON (`analise_financeira-5_analysis.json`) com a seguinte estrutura:
 
 | Sub-chave | Conteúdo | Formato |
 |---|---|---|
@@ -1592,6 +1895,46 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
 - [ ] `charts` contém 19 chaves, cada uma com `context` e `conclusion` não-vazios
 - [ ] Perfil é HTML com `<p>` (sem `<table>`, `<ul>`, `<li>`)
 - [ ] Nenhum texto contém `KM` como sufixo monetário, ponto decimal em `R$`, ou espaço entre `k` e `M`
+
+#### E5.N — Enriquecimento de Tarefas (v5.3+)
+
+**Fluxo híbrido (curado + LLM):**
+1. `config/tarefas.md` → E5 (parser determinístico) → `tarefas[]` no JSON (formato `{n, t, p, e, categoria, ref}`)
+2. E5.N (LLM) lê `tarefas[]` + dados financeiros → pode adicionar `tarefas_sugeridas[]` ao JSON
+
+**Input para enriquecimento:**
+- `tarefas[]` já parseado do E5 JSON
+- `config/decisions.md` (decisões confirmadas + pendências)
+- `config/tarefas.md` (backlog curado — fonte da verdade)
+- Dados financeiros do E5 JSON (score, ratios, reserva, endividamento, patrimônio)
+- `life_plan/life_plan_goals.md`
+
+**Output adicional:** Chave `tarefas_sugeridas` no E5 JSON:
+```json
+"tarefas_sugeridas": [
+  {
+    "t": "Descrição da tarefa sugerida",
+    "motivo": "Dado financeiro que motivou a sugestão",
+    "p": "alta|media|baixa"
+  }
+]
+```
+
+**Regras para sugestão de novas tarefas:**
+- O LLM pode sugerir tarefas NÃO presentes no `tarefas.md` com base em:
+  - Métricas que pioraram desde o ciclo anterior
+  - Deadlines próximos (ex: IRPF, DAS)
+  - Oportunidades detectadas nos dados (ex: spread de CDB, rebalanceamento)
+- Tarefas sugeridas aparecem em bloco separado no Apêndice E ("Tarefas Sugeridas pela Análise")
+- O titular decide se inclui no `tarefas.md` do próximo ciclo — sugestões NUNCA entram automaticamente no backlog curado
+
+**Manutenção do `config/tarefas.md`:**
+- Atualizar a cada ciclo: marcar `feito`, adicionar novas, ajustar prazos
+- Manter numeração estável (#) entre ciclos para tracking
+- Tarefas `feito` ficam 1 ciclo no arquivo, depois vão para "Concluídas"
+- Formato: `| # | Tarefa | Categoria | Prazo | Status | Ref |`
+- Categorias: Invest. | Orçamento | Tributário | Seguros | Imóveis | Financeiro | Plan. EUA | Jurídico | Sucessório | Pipeline
+- Prioridades: S (Essencial) | R (Recomendada) | O (Opcional) — definidas por seção do arquivo
 
 ---
 
@@ -1681,8 +2024,29 @@ Texto-modelo (adaptar com dados reais de cada período):
 
 O E4 DEVE gerar a chave `orcamento_prospectivo.legenda` com o texto já montado (usando valores calculados de `media_mensal`, `receita_recorrente` e o percentual). O E5 render script injeta esse texto no card antes da tabela.
 
-**Validação E6.6 (18 checagens — mesma do manual anterior):**
-[Keep the existing V1-V18 validation table]
+**Validação E6.6 (19 checagens automáticas):**
+
+| Check | Nome | Critério |
+|---|---|---|
+| V1 | Placeholders resolvidos | Nenhum `{{...}}` restante fora de comentários HTML |
+| V2 | JSON válido | `report-data` JSON parseia sem erro |
+| V3 | 19 datasets de gráficos | `charts` no JSON contém 19 chaves |
+| V4 | 19 canvas IDs | HTML contém 19 `<canvas id="chart-...">` |
+| V5 | 9+ seções | HTML contém 9+ `id="secao-N"` |
+| V6 | 5 apêndices | HTML contém 5 `id="apendice-[a-e]"` |
+| V7 | Cards obrigatórios presentes | Todos os cards listados na seção E6 existem no HTML |
+| V8 | COVER_DATA_HORA | Contém padrão de data/hora válido |
+| V9 | COVER_VERSAO | Contém número de versão válido |
+| V10 | Perfil é prosa narrativa | `perfil_familia` contém `<p>`, sem `<table>`, `<ul>`, `<li>` |
+| V11 | KPIs consistentes com E5 | Valores de KPI no HTML batem com JSON |
+| V12 | Imóveis estimados > 0 | `patrimonio.imoveis_estimado > 0` |
+| V13 | Orçamento com categorias | `orcamento_prospectivo` tem 14+ categorias |
+| V14 | HTML > 100KB | Tamanho do HTML > 100KB (relatório completo) |
+| V15 | CSS: sem inline margin | Nenhum `margin-top`/`margin-bottom` inline no HTML |
+| V16 | CSS: .card-title primeiro filho | Todo `.card` tem `.card-title` como primeiro filho |
+| V17 | CSS: sem hex hardcoded | Nenhuma cor hexadecimal hardcoded no HTML (usar variáveis CSS) |
+| V18 | CSS: tr.total-row | Linhas de total usam classe `tr.total-row` |
+| V19 | Formato monetário válido | Nenhum `KM`, `k M` separado, nem ponto decimal em `R$` (ver regras E5.N) |
 
 **Se qualquer validação falhar:** O script imprime qual checagem falhou. Corrigir na fonte:
 - Texto errado → re-rodar E5.N
@@ -1709,7 +2073,7 @@ O E4 DEVE gerar a chave `orcamento_prospectivo.legenda` com o texto já montado 
 
 ### STAGE E-reset — Reprocessamento completo do zero
 
-**Objetivo:** Apagar todos os artefatos gerados pelo pipeline (E2→E6) e re-executar o processamento completo a partir dos arquivos originais já roteados em `data/`.
+**Objetivo:** Apagar todos os artefatos gerados pelo pipeline (E2→E6) e re-executar o processamento completo a partir dos arquivos originais já roteados em `data/`. Artefatos E1 (`members/*-1a_extract.json`, `members-1b_unified.json`, `members-1c_enriched.md`) são **preservados** porque E1 é LLM-driven e não pode ser regenerado automaticamente.
 
 **Quando usar:**
 - Mudança estrutural no manual, definitions, methodology ou report_spec que afeta múltiplas etapas
@@ -1720,70 +2084,54 @@ O E4 DEVE gerar a chave `orcamento_prospectivo.legenda` com o texto já montado 
 **Quando NÃO usar:**
 - Apenas template/CSS mudou → usar E6-regen
 - Apenas novos extratos chegaram → usar fluxo normal E0 + ciclo incremental
-- Apenas uma etapa específica precisa ser refeita → re-executar somente essa etapa
+- Apenas uma etapa específica precisa ser refeita → usar `E-reset-from`
 
 **Procedimento:**
 
+> Nota: todos os comandos nesta seção assumem working directory = `financas-familia/`.
+
 **Passo 1 — Comitar estado atual via Git (preservar histórico):**
 ```bash
-cd financas-familia
 git add -A
 git commit -m "pre-reset: snapshot antes de reprocessamento completo [DATA]"
 ```
 
-**Passo 2 — Apagar artefatos gerados (E1→E6):**
+**Passo 2 — Preview (opcional mas recomendado):**
 ```bash
-# E2/E3/E4/E5 — JSONs intermediários em processed/ (subpastas)
-rm -f financas-familia/processed/E2_extracts/*.json
-rm -f financas-familia/processed/E3_reconciled/*.json
-rm -f financas-familia/processed/E4_unified/*.json
-rm -f financas-familia/processed/E5_analysis/*.json
-
-# E1 — Intermediários de membros (os -0_original são preservados)
-rm -f financas-familia/members/*-1a_extract.json
-rm -f financas-familia/members/members-1b_unified.json
-rm -f financas-familia/members/members-1c_enriched.md
-
-# E6 — Relatório HTML em output/
-rm -f financas-familia/output/relatorio_financeiro_ferreira_campos_*.html
-
-# Logs operacionais (serão regenerados pelo pipeline)
-rm -f financas-familia/logs/run_log.md
-rm -f financas-familia/logs/reconciliation.md
-rm -f financas-familia/logs/divergences.md
-
-# Summaries de execução anteriores (artefatos temporários)
-rm -f financas-familia/E3_ANALYSIS_SUMMARY.md
-rm -f financas-familia/E5_EXECUTION_SUMMARY.md
-rm -f financas-familia/E2_PROCESSING_SUMMARY.txt
-rm -f financas-familia/E2_TARGET_FILES_MANIFEST.txt
+python scripts/e_reset.py --dry-run
 ```
 
-**Passo 3 — Preservar (NÃO apagar):**
-- `data/` — arquivos originais já roteados com sufixo `-0_original` (E0 já foi feito)
-- `members/*-0_original.*` — documentos pessoais originais (currículos, holerites, RG, etc.)
-- `inbox_processed/` — auditoria de entrada (histórico de roteamento)
-- `logs/inbox_log.md` — registro de todos os ciclos de roteamento
-- `logs/qa_log.md` — itens pendentes de instrução do usuário
-- `config/` — manual, definitions, methodology, template, report_spec, report_template.html
-- `life_plan/` — dados de objetivos e plano de vida
-- `scripts/` — scripts Python de execução (se houver)
+**Passo 3 — Executar reset completo:**
+```bash
+python scripts/e_reset.py
+```
 
-**Passo 4 — Re-executar pipeline completo:**
-Executar na ordem: **E1 → E1.5 → E2 → E3 → E4 → E5 → E5.N → E6**
+O script automaticamente:
+- Apaga artefatos gerados (E2→E6 JSONs, HTML, logs operacionais, `__pycache__`)
+- Preserva `data/`, `members/*-0_original.*`, artefatos E1 (`*-1a_extract.json`, `*-1b_unified.json`, `*-1c_enriched.md`), `config/`, `life_plan/`, `inbox_processed/`, `logs/inbox_log.md`, `logs/qa_log.md`
+- Verifica dependências Python (pdfplumber, pytz) **antes** de apagar qualquer artefato
+- Executa etapas determinísticas: `e2_extract_faturas.py` → `e3_reconcile.py` → `e4_categorize.py` → `e5_analyze.py` → `e6_render.py`
+- Pula etapas LLM (E1, E1.5, E2-extratos, E5.N) com lembrete no console
+- Valida presença dos artefatos esperados ao final
 
-(E0 não precisa ser re-executado — os arquivos já estão organizados em `data/` com nomes finais.)
+**Passo 4 — Executar etapas LLM pendentes:**
+O script informa quais etapas LLM precisam ser executadas manualmente (E1, E1.5, E2-extratos, E5.N).
 
 **Passo 5 — Comitar resultado:**
 ```bash
-cd financas-familia
 git add -A
 git commit -m "E-reset: reprocessamento completo [DATA]"
 ```
 
+**Flags disponíveis:**
+| Flag | Efeito |
+|---|---|
+| `--dry-run` | Mostra o que seria feito sem executar nenhuma mudança |
+| `--clean-only` | Apenas apaga artefatos, não re-executa o pipeline |
+| `--no-validate` | Pula validação pós-execução |
+
 **Validation:**
-- Verificar que `processed/` contém os JSONs esperados (E3, E4, E5)
-- Verificar que `output/` contém o novo relatório HTML
+- O script valida presença **e conteúdo** dos artefatos E3/E4/E5/E6 (JSON parseável, campos obrigatórios não-vazios)
 - Executar checklist V1–V18 do E6 (Seção 4, STAGE E6)
 - Comparar com relatório anterior (disponível no histórico Git) para confirmar que não houve perda de dados
 
@@ -1793,54 +2141,124 @@ git commit -m "E-reset: reprocessamento completo [DATA]"
 
 **Objetivo:** Reprocessar o pipeline a partir de uma etapa específica, limpando artefatos daquela etapa em diante. Mais rápido que E-reset pois preserva etapas anteriores intactas.
 
-**Sintaxe:** `E-reset-from E[N]` onde N é a etapa inicial (E2-faturas, E3, E4, E5, E5.N ou E6).
+**Sintaxe:** `python scripts/e_reset.py --from E[N]` onde N é a etapa inicial.
+
+**Valores válidos para `--from`:** E2-faturas, E3, E4, E5, E5.N, E6.
 
 **Quando usar:**
-- Novo parser de fatura ou correção em parser existente → `E-reset-from E2-faturas`
-- Mudança em `definitions.md` (regras de categorização) → `E-reset-from E4`
-- Mudança em `report_spec.md` ou `life_plan_goals.md` → `E-reset-from E5`
-- Mudança em narrativas ou textos analíticos → `E-reset-from E5.N`
-- Mudança no template HTML/CSS → `E6-regen` (mais rápido ainda)
+- Novo parser de fatura ou correção em parser existente → `--from E2-faturas`
+- Mudança em `definitions.md` (regras de categorização) → `--from E4`
+- Mudança em `report_spec.md` ou `life_plan_goals.md` → `--from E5`
+- Mudança em narrativas ou textos analíticos → `--from E5.N`
+- Mudança no template HTML/CSS → `--from E6` (equivalente a E6-regen)
 
 **Procedimento:**
 
+> Nota: todos os comandos nesta seção assumem working directory = `financas-familia/`.
+
 **Passo 1 — Comitar estado atual via Git:**
 ```bash
-cd financas-familia
 git add -A
 git commit -m "pre-reset-from-E[N]: snapshot antes de reprocessamento parcial [DATA]"
 ```
 
-**Passo 2 — Apagar artefatos da etapa escolhida em diante:**
-
-| E-reset-from | Apaga |
-|---|---|
-| `E2-faturas` | `E2_extracts/*fatura*-2_extract.json` + `E2_extracts/quintoandar_fatura*-2_extract.json` + `E3_reconciled/*.json` + `E4_unified/*.json` + `E5_analysis/*.json` + `output/*.html` + logs operacionais |
-| `E3` | `E3_reconciled/*.json` + `E4_unified/*.json` + `E5_analysis/*.json` + `output/*.html` + logs operacionais |
-| `E4` | `E4_unified/*.json` + `E5_analysis/*.json` + `output/*.html` + logs operacionais |
-| `E5` | `E5_analysis/*.json` + `output/*.html` |
-| `E5.N` | Chave `narrativas` do E5 JSON + `output/*.html` |
-| `E6` | `output/*.html` (equivalente a E6-regen) |
-
-**Passo 3 — Re-executar pipeline a partir da etapa escolhida:**
-
-| E-reset-from | Executa |
-|---|---|
-| `E2-faturas` | `python scripts/e2_extract_faturas.py` → `python scripts/e3_reconcile.py` → `python scripts/e4_categorize.py` → `python scripts/e5_analyze.py` → E5.N (LLM) → `python scripts/e6_render.py` |
-| `E3` | `python scripts/e3_reconcile.py` → `python scripts/e4_categorize.py` → `python scripts/e5_analyze.py` → E5.N (LLM) → `python scripts/e6_render.py` |
-| `E4` | `python scripts/e4_categorize.py` → `python scripts/e5_analyze.py` → E5.N (LLM) → `python scripts/e6_render.py` |
-| `E5` | `python scripts/e5_analyze.py` → E5.N (LLM) → `python scripts/e6_render.py` |
-| `E5.N` | E5.N (LLM) → `python scripts/e6_render.py` |
-| `E6` | `python scripts/e6_render.py` |
-
-**Passo 4 — Comitar resultado:**
+**Passo 2 — Preview (opcional mas recomendado):**
 ```bash
-cd financas-familia
+python scripts/e_reset.py --from E[N] --dry-run
+```
+
+**Passo 3 — Executar reset parcial:**
+```bash
+python scripts/e_reset.py --from E[N]
+```
+
+O script automaticamente:
+- Apaga artefatos da etapa escolhida em diante (cascata)
+- Quando E5.N está na cascata, **limpa a chave `narrativas`** dos JSONs E5 (garante que narrativas velhas não passem para E6)
+- Verifica dependências Python antes de apagar artefatos
+- Executa etapas determinísticas na sequência correta
+- Pula E5.N (LLM) com lembrete
+- Valida artefatos ao final (existência + conteúdo JSON)
+
+**Referência de cascata (o que o script apaga e executa):**
+
+| `--from` | Apaga | Executa |
+|---|---|---|
+| `E2-faturas` | Faturas E2 (por tipo, não filename) + E3 + E4 + E5 + E6 + logs | e2_extract_faturas → e3 → e4 → e5 → (E5.N LLM) → e6 |
+| `E3` | E3 + E4 + E5 + E6 + logs | e3 → e4 → e5 → (E5.N LLM) → e6 |
+| `E4` | E4 + E5 + E6 + logs | e4 → e5 → (E5.N LLM) → e6 |
+| `E5` | E5 + E6 | e5 → (E5.N LLM) → e6 |
+| `E5.N` | narrativas do E5 JSON + E6 | (E5.N LLM) → e6 |
+| `E6` | E6 | e6 |
+
+**Passo 4 — Executar etapas LLM pendentes (se houver):**
+O script informa quais etapas LLM precisam ser executadas manualmente.
+
+**Passo 5 — Comitar resultado:**
+```bash
 git add -A
 git commit -m "E-reset-from-E[N]: reprocessamento parcial [DATA]"
 ```
 
 **Validation:** Mesma do E-reset (checklist V1–V18 do E6), comparando com relatório anterior via Git.
+
+---
+
+### STAGE E-save — Commit e push para remote
+
+**Execução:** `python scripts/e_save.py -m "mensagem"` | Flags: `--dry-run` (preview), `--no-push` (commit local)
+
+**Quando usar:**
+- Após qualquer execução bem-sucedida do pipeline (E1→E6, E-reset, E-reset-from)
+- Após edição significativa de configs (manual, definitions, methodology, milhas, etc.)
+- Após correção de bugs em scripts ou templates
+- Em qualquer momento que o estado atual represente um "ponto bom" que vale preservar
+
+**Pré-condição:** Alterações já feitas e validadas. Não executar E-save com trabalho incompleto ou erros conhecidos.
+
+**O script faz automaticamente:**
+1. Verifica que está dentro do repositório Git
+2. Valida a mensagem de commit contra a convenção de prefixos (Seção 4.5.3)
+3. Lista arquivos alterados no console
+4. Safety check: bloqueia se detectar arquivos em `data/`, `inbox/` ou `inbox_processed/` (proteção redundante ao `.gitignore`)
+5. `git add -A` (staging)
+6. `git commit -m "[mensagem]"`
+7. `git push origin main` (a menos que `--no-push`)
+8. Mostra os últimos 3 commits para confirmação
+
+**Exemplos de uso:**
+
+```bash
+# Após pipeline completo
+python scripts/e_save.py -m "pipeline: ciclo mar/2026 — relatório gerado"
+
+# Após alteração em config (sem push, só commit local)
+python scripts/e_save.py -m "config: definitions.md — nova keyword restaurante" --no-push
+
+# Preview: ver o que seria comitado sem alterar nada
+python scripts/e_save.py -m "docs: manual v4.8 — comando E-save" --dry-run
+
+# Após correção em script
+python scripts/e_save.py -m "fix: e4_categorize.py — normalização acentos"
+
+# Após reprocessamento parcial
+python scripts/e_save.py -m "pipeline: re-run E3→E6 — novas regras categorização"
+```
+
+**Convenção de mensagens (prefixos válidos):**
+
+| Situação | Prefixo | Exemplo |
+|---|---|---|
+| Pipeline executado | `pipeline:` | `pipeline: ciclo mar/2026 — relatório gerado` |
+| Alteração em config | `config:` | `config: definitions.md — nova keyword` |
+| Atualização do manual | `docs:` | `docs: manual v4.8 — comando E-save` |
+| Correção em script | `fix:` | `fix: e4_categorize.py — normalização` |
+| Arquivo atualizado | `update:` | `update: david_curriculo — CV atualizado` |
+| Pré-substituição | `pre-update:` | `pre-update: david_curriculo antes de substituição` |
+| Re-extração | `E2:` | `E2: re-extração C6 jan-mar/26` |
+| Refatoração | `refactor:` | `refactor: extrair helpers comuns` |
+
+> **Se o push falhar** por divergência com o remote, o script orienta: `git pull --rebase origin main` e depois rodar E-save novamente.
 
 ---
 
@@ -1856,7 +2274,7 @@ O pipeline usa Git como sistema de controle de versão. Todos os arquivos de tex
 | `processed/` (JSONs E2-E4) | `inbox/` (arquivos temporários em trânsito) |
 | `output/` (relatório HTML atual) | `inbox_processed/` (auditoria de entrada) |
 | `logs/` (inbox_log, run_log, qa_log, etc.) | `.DS_Store`, `.obsidian/` |
-| `scripts/` (e3_reconcile.py, e4_categorize.py, e5_analyze.py, e6_render.py, e6_regen.py) | `*.bak`, `*_backup.*`, `*_prev.*` |
+| `scripts/` (e3_reconcile.py, e4_categorize.py, e5_analyze.py, e6_render.py, e6_regen.py, e_reset.py, e_save.py) | `*.bak`, `*_backup.*`, `*_prev.*` |
 | `members/` (currículos, documentos pessoais) | |
 | `life_plan/` | |
 
@@ -2082,41 +2500,74 @@ Cada -2_extract.json deve seguir um schema específico. Aqui estão os schemas e
 }
 ```
 
-**Fatura de cartão de crédito:**
+**Fatura de cartão de crédito (C6, Santander, Itaú):**
 
-> **Nota:** O campo `tipo` no schema abaixo usa o valor genérico `faturacc`. Na prática, o nome do arquivo segue o código de roteamento específico da Seção 3 (ex: `faturacarbon`, `faturaunique`, `faturapaoacucar`). Ao gerar o extract JSON, usar o código de roteamento como `tipo` (ex: `"tipo": "faturacarbon"`), não o genérico.
+> **Nota (v4.9.1):** Schema atualizado para refletir o output real de `e2_extract_faturas.py`.
+> Campos `forex`, `tipo_lancamento`, `cartoes`, `compras_parceladas_futuras` e `parse_quality` são opcionais.
+> O campo `pagamentos` é SEMPRE negativo por convenção (reduz saldo da fatura).
+> Se o LLM processar faturas fallback, deve gerar JSON neste formato (não no formato antigo com `instituicao`/`resumo`).
 
 ```json
 {
+  "banco": "C6 Bank | Santander | Itaú",
   "tipo": "faturacarbon | faturaunique | faturapaoacucar",
-  "instituicao": "[banco]",
-  "cartao": {
-    "nome": "[nome cartão]",
-    "tipo": "credit | debit",
-    "ultimos_digitos": "0000"
-  },
-  "periodo": {
-    "data_inicio": "YYYY-MM-DD",
-    "data_fim": "YYYY-MM-DD",
-    "data_vencimento": "YYYY-MM-DD"
-  },
-  "resumo": {
-    "saldo_anterior": 0.00,
-    "compras_nacionais": 0.00,
-    "compras_internacionais": 0.00,
-    "juros": 0.00,
-    "taxa_mensal": 0.00,
-    "pagamentos_efetuados": 0.00,
-    "saldo_atual": 0.00
-  },
+  "cartao": "Carbon | Unique | Pão de Açúcar",
+  "titular": "NOME COMPLETO DO TITULAR",
+  "moeda": "BRL",
+  "data_vencimento": "YYYY-MM-DD",
+  "saldo_anterior": 0.00,
+  "total_compras_nacionais": 0.00,
+  "total_compras_internacionais": 0.00,
+  "total_compras": 0.00,
+  "pagamentos": -0.00,
+  "saldo_atual": 0.00,
+  "limite_total": 0.00,
+  "parse_quality": "ok | empty_result | missing_transactions",
   "transacoes": [
     {
       "data": "YYYY-MM-DD",
-      "descricao": "[descrição]",
+      "descricao": "[conforme documento]",
       "valor": 0.00,
-      "categoria": "[categoria conforme documento ou em branco]",
-      "parcelas": "1/1 | 2/3 | etc"
+      "cartao": "[identificação do cartão/titular]",
+      "parcela": "3/12",
+      "forex": {
+        "moeda_original": "USD | EUR",
+        "valor_original": 0.00,
+        "cotacao": 0.00
+      },
+      "tipo_lancamento": "iof"
     }
+  ],
+  "cartoes": [
+    { "cartao": "[nome]", "subtotal": 0.00 }
+  ],
+  "compras_parceladas_futuras": [
+    {
+      "data": "YYYY-MM-DD",
+      "descricao": "[estabelecimento]",
+      "valor": 0.00,
+      "cartao": "[titular (final NNNN)]",
+      "parcela": "2/12"
+    }
+  ]
+}
+```
+
+**Fatura de aluguel (QuintoAndar):**
+
+```json
+{
+  "banco": "QuintoAndar",
+  "tipo": "faturaaluguel",
+  "propriedade": "[nome curto da propriedade]",
+  "moeda": "BRL",
+  "periodo_referencia": "YYYY-MM",
+  "total_recebido": 0.00,
+  "data_recebimento": "YYYY-MM-DD",
+  "endereco": "[endereço completo]",
+  "parse_quality": "ok | empty_result",
+  "itens": [
+    { "descricao": "[item discriminado]", "valor": 0.00 }
   ]
 }
 ```
@@ -2322,66 +2773,158 @@ Cada -2_extract.json deve seguir um schema específico. Aqui estão os schemas e
 
 ### 7.2 — Schemas adicionais (E1, E3, E4)
 
-**Currículo (-1a_extract.json):**
+**Currículo (`[membro]_curriculo-1a_extract.json`):**
+
+Chaves obrigatórias: `tipo`, `membro`, `nome_completo`, `nome_atual`, `profissao_cargo`, `experiencias` (≥1), `formacao` (≥1), `idiomas` (≥1).
+
 ```json
 {
   "tipo": "curriculo",
-  "membro": "[nome do membro]",
-  "nome_completo": "[nome]",
-  "profissao_cargo": "[cargo principal]",
+  "membro": "david | mariana",
+  "nome_completo": "[nome como aparece no documento — pode ser solteiro ou casado]",
+  "nome_atual": "[nome atual completo, do definitions.md]",
+  "profissao_cargo": "[cargo principal atual]",
   "experiencias": [
     {
       "empresa": "[nome da empresa]",
-      "cargo": "[título]",
+      "cargo": "[título do cargo]",
+      "tipo_vinculo": "PJ | CLT | freelance | docencia",
       "data_inicio": "YYYY-MM",
       "data_fim": "YYYY-MM | presente",
-      "descricao": "[resumo]"
+      "descricao": "[resumo 1-2 frases, pode ser vazio]"
     }
   ],
   "formacao": [
     {
-      "instituicao": "[nome]",
+      "instituicao": "[nome da instituição]",
       "curso": "[nome do curso]",
-      "grau": "graduacao | pos_graduacao | mestrado | doutorado | certificacao",
+      "grau": "graduacao | pos_graduacao | especializacao | mestrado | doutorado | certificacao",
       "data_conclusao": "YYYY"
+    }
+  ],
+  "certificacoes": [
+    {
+      "nome": "[nome da certificação]",
+      "instituicao": "[entidade emissora, se disponível]"
     }
   ],
   "habilidades": ["[habilidade1]", "[habilidade2]"],
   "idiomas": [
     {
-      "idioma": "[nome]",
-      "nivel": "nativo | fluente | avancado | intermediario | basico"
+      "idioma": "[Português | Inglês | ...]",
+      "nivel": "nativo | fluente | avancado | intermediario | basico",
+      "fonte": "documento | inferido"
     }
   ]
 }
 ```
 
-**Holerite (-1a_extract.json):**
+> **Nota:** Se o currículo não listar idiomas, inferir nativo a partir do idioma do documento (ex: PT-BR → `{"idioma": "Português", "nivel": "nativo", "fonte": "inferido"}`). Overlaps de datas entre experiências são válidos — não ajustar.
+
+---
+
+**Holerite (`[membro]_holerite_[período]-1a_extract.json`):**
+
+Chaves obrigatórias: `tipo`, `membro`, `nome_no_documento`, `periodo`, `empresa`, `cargo`, `salario_bruto`, `descontos`, `total_descontos`, `salario_liquido`.
+
 ```json
 {
   "tipo": "holerite",
-  "membro": "[nome do membro]",
+  "membro": "david | mariana",
+  "nome_no_documento": "[nome exato como consta no holerite — pode ser nome de solteira]",
   "periodo": "YYYY-MM",
-  "empresa": "[nome da empresa]",
-  "cargo": "[cargo]",
+  "empresa": "[nome do empregador]",
+  "estabelecimento": "[unidade/filial, se disponível]",
+  "cargo": "[cargo formal]",
+  "categoria": "[categoria funcional, se disponível]",
+  "grade": "[grade/nível, se disponível — ex: P4]",
+  "matricula": "[ID do funcionário, se disponível]",
   "data_admissao": "YYYY-MM-DD",
+  "salario_base_mensal": 0.00,
   "salario_bruto": 0.00,
+  "proventos_adicionais": [
+    {
+      "codigo": "[código, se disponível]",
+      "descricao": "[descrição do provento]",
+      "valor": 0.00
+    }
+  ],
   "descontos": [
     {
-      "descricao": "INSS | IRRF | vale_transporte | plano_saude | outro",
+      "codigo": "[código, se disponível]",
+      "descricao": "INSS | IRRF | adiantamento | seguro_vida | refeicao | ferias | outro",
       "valor": 0.00
     }
   ],
   "total_descontos": 0.00,
   "salario_liquido": 0.00,
-  "beneficios": [
+  "data_credito": "YYYY-MM-DD (se disponível)",
+  "fgts": {
+    "base": 0.00,
+    "depositado": 0.00
+  },
+  "inss_base": 0.00,
+  "dependentes_ir": 0,
+  "observacoes": "[notas relevantes — férias no período, 13º, adiantamento, etc.]"
+}
+```
+
+> **Nota:** `nome_no_documento` pode diferir do `nome_atual` do membro (ex: holerite Einstein usa nome de solteira "Mariana Teixeira Ferreira"). O mapeamento nome→membro é feito pela tabela NOMES do `definitions.md`, não pelo nome no documento. Um arquivo por holerite, com período no nome do arquivo.
+
+---
+
+**Members unified (`members-1b_unified.json`):**
+
+Chaves obrigatórias por membro: `id`, `nome_atual`, `papel_familia`, `documentos_disponiveis`. Demais campos podem ser `null` se não houver fonte.
+
+```json
+{
+  "tipo": "members_unified",
+  "data_geracao": "YYYY-MM-DD",
+  "fonte_definitions": true,
+  "membros": [
     {
-      "descricao": "[nome do benefício]",
-      "valor": 0.00
+      "id": "david | mariana | theo",
+      "nome_atual": "[nome atual completo — casado — do definitions.md]",
+      "nomes_alternativos": ["[nome de solteiro]", "[nome fiscal]", "[nome no currículo se diferir]"],
+      "cpf": "XXX.XXX.XXX-XX (de definitions.md, ou null se não disponível)",
+      "data_nascimento": "YYYY-MM-DD (de definitions.md)",
+      "papel_familia": "Titular | Cônjuge | Filho",
+      "empregador_atual": "[nome da empresa ou null]",
+      "cargo_atual": "[cargo ou null]",
+      "tipo_vinculo": "PJ | CLT | null",
+      "data_admissao": "YYYY-MM-DD ou null",
+      "formacao_maxima": "[descrição da formação mais alta]",
+      "idiomas": [
+        {"idioma": "...", "nivel": "...", "fonte": "documento | inferido"}
+      ],
+      "experiencias": [
+        {
+          "empresa": "...",
+          "cargo": "...",
+          "tipo_vinculo": "PJ | CLT | docencia | freelance",
+          "data_inicio": "YYYY-MM",
+          "data_fim": "YYYY-MM | presente"
+        }
+      ],
+      "salario": {
+        "bruto": 0.00,
+        "liquido": 0.00,
+        "periodo_referencia": "YYYY-MM",
+        "fonte": "holerite | extrato | estimativa",
+        "nota": "[explicação se líquido atípico — férias, adiantamento, etc.]"
+      },
+      "documentos_disponiveis": ["curriculo", "holerite", "rg", "cpf"],
+      "status_fiscal": "BR | US | BR+US",
+      "observacoes": "[notas relevantes]"
     }
   ]
 }
 ```
+
+> **Nota:** Membros sem documentos (ex: Theo) são incluídos com dados do `definitions.md` e campos sem fonte = `null`. A lista de `membros` deve conter **todos** os membros do `definitions.md`, nunca menos.
+
+---
 
 **Seguros (-4_unified.json):**
 ```json
@@ -2438,16 +2981,13 @@ Cada -2_extract.json deve seguir um schema específico. Aqui estão os schemas e
       "[categoria]": 0.00
     },
     "receita_despesa_mensal_detalhado": {
-      "labels": ["abr/25", "mai/25", "..."],
+      "labels": ["mmm/YY", "..."],
       "receita_datasets": [
-        {"label": "Arvo (David - PJ)", "data": [0.00, "..."]},
-        {"label": "Einstein (Mariana - CLT)", "data": [0.00, "..."]},
-        {"label": "Aluguéis", "data": [0.00, "..."]},
+        {"label": "[Origem conforme categorization.json]", "data": [0.00, "..."]},
         "..."
       ],
       "despesa_datasets": [
-        {"label": "Moradia", "data": [0.00, "..."]},
-        {"label": "Saúde", "data": [0.00, "..."]},
+        {"label": "[Categoria conforme definitions.md]", "data": [0.00, "..."]},
         "..."
       ],
       "totais_receita": [0.00, "..."],
@@ -2559,8 +3099,8 @@ Cada -2_extract.json deve seguir um schema específico. Aqui estão os schemas e
   "programa_milhas": {
     "programas": [
       {
-        "programa": "Livelo",
-        "titular": "David",
+        "programa": "[nome do programa]",
+        "titular": "[nome do membro]",
         "saldo_pontos": 0,
         "valor_estimado_brl": 0,
         "economia_periodo_brl": 0
@@ -2575,11 +3115,11 @@ Cada -2_extract.json deve seguir um schema específico. Aqui estão os schemas e
     "contrafluxo": {
       "cenario_atual": "alta | queda | baixa",
       "selic_atual": 0.00,
-      "selic_alta": "13-15%",
-      "selic_queda": "10-12%",
-      "selic_baixa": "6-8%",
-      "valor_cdi": 0,
-      "valor_ipca": 0,
+      "selic_alta": "≥12%",
+      "selic_queda": "8-12%",
+      "selic_baixa": "<8%",
+      "valor_cdi": 0.00,
+      "valor_ipca": 0.00,
       "acao_pratica": "[texto personalizado baseado no cenário + status reserva emergência + valores de aporte]"
     }
   },

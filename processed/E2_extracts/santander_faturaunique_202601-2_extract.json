@@ -7,11 +7,11 @@
   "data_vencimento": "2026-01-15",
   "saldo_anterior": 124.69,
   "total_compras": 284.81,
-  "pagamentos": 124.69,
+  "pagamentos": -124.69,
   "saldo_atual": 372.85,
   "transacoes": [
     {
-      "data": null,
+      "data": "2026-01-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 3.08,
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
@@ -64,5 +64,6 @@
       }
     }
   ],
-  "cartoes": []
+  "cartoes": [],
+  "parse_quality": "ok"
 }

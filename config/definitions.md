@@ -1,24 +1,24 @@
 # Definitions — Pipeline Ferreira Campos
-## Versão: 5.2 — abr/2026
+## Versão: 5.3 — abr/2026
 
 ---
 
-## MEMBROS DA FAMÍLIA
+## MEMBROS DA FAMÍLIA, NOMES E PETS
 
-| Membro  | Nome completo                                                     | CPF            | Nascimento | Papel                        |
-| ------- | ----------------------------------------------------------------- | -------------- | ---------- | ---------------------------- |
-| David   | David Robert Camargo Ferreira Campos                              | 287.766.948-36 | 05/09/1981 | Titular, CTO PJ              |
-| Mariana | Mariana Teixeira Ferreira (nome fiscal) / Mariana Ferreira Campos | 085.052.396-60 | 30/08/1986 | Cônjuge, enfermeira CLT      |
-| Theo    | Theo Ferreira Campos                                              | —              | 18/07/2025 | Filho, dupla cidadania BR/US |
+> **Fonte canônica:** `config/family_members.json`
+> Nomes completos, nomes de solteiro/casado, datas de nascimento, variantes de nome, pets e endereço estão centralizados nesse arquivo JSON. Não duplicar aqui — qualquer correção deve ser feita no JSON.
 
----
-## ANIMAIS DE ESTIMAÇÃO
+**Referência rápida (derivada do JSON):**
 
-| Raça | Nome  | Sexo  |
-| ---- | ----- | ----- |
-| Gato | Zack  | Macho |
-| Gato | Fuzzy | Macho |
-| Gato | Nix   | Femea |
+| Membro  | CPF            | Nascimento | Papel                        |
+| ------- | -------------- | ---------- | ---------------------------- |
+| David   | 287.766.948-36 | 05/09/1981 | Titular, CTO PJ              |
+| Mariana | 085.052.396-60 | 30/08/1986 | Cônjuge, enfermeira CLT      |
+| Theo    | —              | 18/07/2025 | Filho, dupla cidadania BR/US |
+
+> Documentos emitidos antes do casamento podem conter o nome de solteiro(a).
+> O holerite do Hospital Einstein usa o nome fiscal (solteira) de Mariana: "Mariana Teixeira Ferreira".
+> Ao encontrar qualquer variante desses nomes em documentos, mapear para o `id` do membro correto sem tratar como divergência.
 
 ---
 
@@ -58,6 +58,7 @@
 | Bank of America | `bankofamerica` | Banco (EUA) |
 | QuintoAndar, GRPQA | `quintoandar` | Gestora de aluguéis |
 | Binance | `binance` | Exchange crypto |
+| Kiwify | `kiwify` | Ex-empregador CLT (David). Qualquer receita Kiwify = salário CLT, não receita PJ. |
 | Receita Federal, RFB | `receitafederal` | Órgão fiscal |
 
 ---
@@ -184,62 +185,69 @@
 | `reserva_desejos`     | Reserva de desejos                                 | R$ 3.000    | 3,9%    |
 | `seguros`             | Seguros (vida, invalidez, residencial, auto, pets) | R$ 1.500    | 1,9%    |
 
-**Total tetos: R$ 32.950/mês (41,9% da renda)**
+**Total tetos: R$ 34.950/mês (44,5% da renda)**
 
-### REGRAS DE CATEGORIZAÇÃO POR KEYWORDS (usadas no E3)
+### REGRAS DE CATEGORIZAÇÃO POR KEYWORDS (usadas no E4)
 
 Abaixo estão os padrões de texto (case-insensitive, match parcial na descrição da transação) que determinam a categoria. Se mais de uma regra casar, usar a mais específica (mais longa). Se nenhuma regra casar, manter como `nao_identificado`.
 
+**`moradia`** — Financiamento, condomínio, utilities, materiais grandes, manutenção:
+`FINANC IMOBILIARIO`, `FINANCIAMENTO IMOBILI`, `ELETROPAULO`, `ENEL`, `CPFL`, `CESP`, `COMGAS`, `SABESP`, `SANEPAR`, `COPASA`, `CONDOMINIO`, `LEROY MERLIN`, `TELHA NORTE`, `DDDRIN SERVICO DE DESI`
+
 **`alimentacao`** — Supermercados, restaurantes, cafés, padarias, delivery, açougues:
-`OXXO`, `SACOLAO`, `MERCADO`, `SAKURA`, `VERDURAS E LEGUMES`, `QUEBEC BAR`, `RAMEN`, `THE VIEW BAR`, `GALPAO DA COSTELA`, `EL PELEGRINO`, `BAR DA JULINHA`, `CANTINA`, `CANTINHO DOS MINEIROS`, `BLMT COMERCIO DE ALIME`, `CARR EXPRESS`, `CASA BAUDUCCO`, `CASA PILAO`, `CHAPEU DE SOL`, `CHOCOLATE`, `CHURRASCARIA`, `DENGO`, `EMPADAKI`, `ENRICOCAFEE`, `CAFETERIA`, `GRAN COFFEE`, `GUIMARAES ALIMENTOS`, `IFD*`, `KINDINPAESEDOCES`, `LAGOS DO SUL`, `LAGOSDOSUL`, `LIKA YACEPS`, `LINDT`, `M A DE CARVALHO CHOCOL`, `MINAS QUEIJO`, `MILKMOO`, `MILKY MOO`, `MINI MERC`, `MINIMART`, `MOZI COMERCIO`, `NATA `, `NATHALIACASADE`, `OFNER`, `PAES E DOCES`, `PASTEISOSHIRO`, `PASTELARIA`, `PIRAJA COMERCIO`, `QUIOSQUE CE QUE`, `RDO CHOCOLATES`, `REAL DA VILLA`, `REDE CAMPEAO`, `REDE OBA`, `REST FRANGOASSADO`, `RM MORUMBI`, `ROP COM ALIM`, `S.R. GONCALVES`, `SAMS*`, `SELVAGEM`, `SODIEDOCES`, `STAR CHICKEN`, `TEMPERODAFE`, `TOSTADO CAFE`, `VEGSIM`, `VISTA IBIRAPUERA`, `YES COFFEE`, `GAMBO CAFE`, `BOGO CAFE`, `NOVO - MUG`, `CASA MURDOCK`, `ERVA DOCE BAR`, `O BADEN BADEN`, `MORUMBI TERREO`, `DON MACEDO CARNE`, `JDM COMERCIO DE ALIM`, `GUARAREMA`, `KERO MAIS`, `CINCO M COMERCIO`, `MM CAMPO BELO`, `BG NORTE`, `DESCAMPADO`, `A CASA DE ANTONIA`, `MOMA MADALENA`, `CACAPAVA`, `EJM REST JAPONES`, `PORTO CAIRES`, `R TRES`, `JIM.COM* MAB FOOD`, `JIM.COM* UMETSU COMER`, `TORRALTA`, `TORRALTACOMERCIO`, `NADIR`
+`OXXO`, `SACOLAO`, `MERCADO`, `SAKURA`, `VERDURAS E LEGUMES`, `QUEBEC BAR`, `RAMEN`, `THE VIEW BAR`, `GALPAO DA COSTELA`, `EL PELEGRINO`, `BAR DA JULINHA`, `CANTINA`, `CANTINHO DOS MINEIROS`, `BLMT COMERCIO DE ALIME`, `CARR EXPRESS`, `CASA BAUDUCCO`, `CASA PILAO`, `CHAPEU DE SOL`, `CHOCOLATE`, `CHURRASCARIA`, `DENGO`, `EMPADAKI`, `ENRICOCAFEE`, `CAFETERIA`, `GRAN COFFEE`, `GUIMARAES ALIMENTOS`, `IFD*`, `KINDINPAESEDOCES`, `LAGOS DO SUL`, `LAGOSDOSUL`, `LIKA YACEPS`, `LINDT`, `M A DE CARVALHO CHOCOL`, `MINAS QUEIJO`, `MILKMOO`, `MILKY MOO`, `MINI MERC`, `MINIMART`, `MOZI COMERCIO`, `NATA `, `NATHALIACASADE`, `OFNER`, `PAES E DOCES`, `PASTEISOSHIRO`, `PASTELARIA`, `PIRAJA COMERCIO`, `QUIOSQUE CE QUE`, `RDO CHOCOLATES`, `REAL DA VILLA`, `REDE CAMPEAO`, `REDE OBA`, `REST FRANGOASSADO`, `RM MORUMBI`, `ROP COM ALIM`, `S.R. GONCALVES`, `SAMS*`, `SELVAGEM`, `SODIEDOCES`, `STAR CHICKEN`, `TEMPERODAFE`, `TOSTADO CAFE`, `VEGSIM`, `VISTA IBIRAPUERA`, `YES COFFEE`, `GAMBO CAFE`, `BOGO CAFE`, `NOVO - MUG`, `CASA MURDOCK`, `ERVA DOCE BAR`, `O BADEN BADEN`, `MORUMBI TERREO`, `DON MACEDO CARNE`, `JDM COMERCIO DE ALIM`, `GUARAREMA`, `KERO MAIS`, `CINCO M COMERCIO`, `MM CAMPO BELO`, `BG NORTE`, `DESCAMPADO`, `A CASA DE ANTONIA`, `MOMA MADALENA`, `CACAPAVA`, `EJM REST JAPONES`, `PORTO CAIRES`, `R TRES`, `JIM.COM* MAB FOOD`, `JIM.COM* UMETSU COMER`, `TORRALTA`, `TORRALTACOMERCIO`, `NADIR`, `PADARIA DANIELA`, `BONANZA 0001`, `MERCADINHO BONANZA`, `WM SUPERCENTER`, `WAL-MART`, `PAO DE ACUCAR`, `5M COMERCIO ATACADISTA`, `CARREFOUR`, `EXTRA HIPER`, `VAI DE PIZZAS`, `DOMINO'S`, `CONFRARIA DO SUSHI`, `KIRA SUSHI`, `OUTBACK`, `MCDONALD'S`, `ALCHINGER LANCHONETE`, `MOUSTACHE BEAMS`, `LANCHONETE REAL DA VI`, `LANCHONETE CAMPING`, `BOTHANICO RESTAURANTE`, `CUBO BAR E RESTAURANTE`, `ARKO S RESTAURANTE`, `ARKOS RESTAURANTE`, `RESTAURANTE PAND`, `SPACE SETE COM DE ALIM`, `PIZZA HUT`, `DEL NERO E MIRANDEZ`, `EMPORIO PAES`, `EMPORIO PINHEIROS`, `PADARIA SANTA MARINA`, `PADARIA FAMA`, `CAFE DAS COISINHAS`, `HORTIFRUTIRUI`, `GRAAL MARKET`, `PRODUTOS NATURAIS`, `RJB ACAI E TAPIOCA`, `BOBBY'S BURGERS`, `METRO PIZZA`, `CARRINHO DO DUDA`, `AMO AV MORUMBI DRIVE`, `RAPPI*RAPPI BRASIL INT`, `RAPPI *RAPPI RAPPI BR`, `RAPPI BRASIL INTERMEDI`, `DL *DLRAPPI BR`, `DL*DLRAPPI BR`, `DL *DLRAPPIPROBR`, `EJM RESTAURANTE JAPONE`, `PAYGO*LG ESPETOS`, `POINTJABAQUARA`, `M L MATOS CONVENIENCIA`, `EMPORIOMATTERLTDA`
 
 **`transporte`** — Estacionamento, combustível, pedágio, mobilidade:
-`PARK`, `AUTOPOSTO`, `AUTOPOSTOKANTAN`, `ULTRAGAS`, `CONCESSIONARIA SPMAR`, `CARRETEIRO REV`, `PUNTO *PRIME AUTO`, `ECOPISTA`, `FELTRIN MOTOS`, `MEGAPASS`, `MC MOBILITY`, `MCOUTINHO MOBILITY`, `EXXON AUTOMATED`, `BANDEIRA PAULISTA PAR`, `AUTOVAGAS`, `MARANATA SERVICOS DE G`, `CORREA CONVENIENCIA`
+`PARK`, `AUTOPOSTO`, `AUTOPOSTOKANTAN`, `ULTRAGAS`, `CONCESSIONARIA SPMAR`, `CARRETEIRO REV`, `PUNTO *PRIME AUTO`, `ECOPISTA`, `FELTRIN MOTOS`, `MEGAPASS`, `MC MOBILITY`, `MCOUTINHO MOBILITY`, `EXXON AUTOMATED`, `BANDEIRA PAULISTA PAR`, `AUTOVAGAS`, `MARANATA SERVICOS DE G`, `CORREA CONVENIENCIA`, `PRIME AUTO POSTO`, `AUTO POSTO`, `MINUTO PA`, `SHELL PO`, `SHELL MI`, `POSTO SHELL`, `POSTO LIDER`, `ML20 IMIGRANTES AUTO`, `RACETRAC`, `WAWA`, `ARCO #`, `UBER *TRIP`, `UBER UBER *TRIP`, `LYFT`, `CAMPEAO 28 POSTOS`, `POSTO ACACIAS`, `POSTO CARIJO`, `POSTO PAIN`, `TURISMOIIPOSTODE`, `A POSTO PLATINO`, `AUTO POSTO GALENA`, `AUTO POSTO PARQUE JAB`, `AUTO POSTO IRMAOS`, `AUTO POSTO GUACU`, `AUTO POSTO SONIMAR`, `AUTO POSTO ROTA`, `ESTACIONAMENTO MODELO`, `AN ESTACIONAMENTO`, `MMW ESTACIONAMENTOS`, `ESTAC T*ESTACIONAMENT`, `LTL ESTACIONAMENTO`, `MP *ESTACIONAMENT`, `F.M ESTETICA AUTOMOTIV`, `MAIS DISTR VEICULOS`, `PROPIG *FPS BATERIAS`
 
-**`assinaturas`** — Streaming, apps, software, gym:
-`WELLHUB`, `GYMPASS`, `AMAZONPRIMEBR`, `GLOBO*GLOBOPLAY`, `GLOBO GLOBOPLAY`, `GOOGLE *DUOLINGO`, `SURFSHARK`, `PAYPAL *RESCUETIME`, `PAYPAL *CLEVERBRIDG`, `EBN *SONYPLAYSTATN`, `PADDLE.NET*`, `REGISTROBR`, `EC *MELIMAIS`, `MP *MELIMAIS`, `PRODUTOS GLOBO`, `SP FLIPPER DEVICES`, `ASSOCIATION FOR COMPUT`
+**`assinaturas`** — Streaming, apps, software, gym, seguros cartão:
+`WELLHUB`, `GYMPASS`, `AMAZONPRIMEBR`, `GLOBO*GLOBOPLAY`, `GLOBO GLOBOPLAY`, `GOOGLE *DUOLINGO`, `SURFSHARK`, `PAYPAL *RESCUETIME`, `PAYPAL *CLEVERBRIDG`, `EBN *SONYPLAYSTATN`, `PADDLE.NET*`, `REGISTROBR`, `EC *MELIMAIS`, `MP *MELIMAIS`, `PRODUTOS GLOBO`, `SP FLIPPER DEVICES`, `ASSOCIATION FOR COMPUT`, `DM *SPOTIFY`, `DM*SPOTIFY`, `EBN *SPOTIFY`, `GOOGLE *GOOGLE ONE`, `APPLE.COM/BILL`, `APPLECOMBILL`, `AMAZON PRIME ALUGUEL`, `AMAZON PRIME*`, `CLUBE LIVELO*CLUBE LIV`, `LIVELO*CLUBE LIVELO`, `CLUBE LIVELO`, `LIVELO S.A.`, `SMILES CLUB`, `ESFERA`, `1PASSWORD*`, `LINKEDIN`, `WIX.COM`, `GOOGLE *TELEGRAM`, `GOOGLE *GOOGLE NEST`, `SQSP* DOMAIN`, `SCP COMPLETO`, `SCP BASICO`, `BRASILP*BRASILPARA`, `BRASIL PARAL*BRAS`
 
-**`saude`** — Farmácia, tratamentos, bem-estar:
-`CORPO E VIDA`, `REMEDIOPOPULAR`, `NUTRA BODY`, `MP *FARMAPOPULAR`, `SCRIPTS PHARMACY`, `CAMILANAKAMURA`, `ABDO MOHAMED`
+**`saude`** — Farmácia, tratamentos, clínicas, fisioterapia, bem-estar:
+`CORPO E VIDA`, `REMEDIOPOPULAR`, `NUTRA BODY`, `MP *FARMAPOPULAR`, `SCRIPTS PHARMACY`, `CAMILANAKAMURA`, `ABDO MOHAMED`, `EINSTEIN MORUMBI`, `HOSPITAL ALBERT EINSTE`, `CLINICA DERMATOLOGICA`, `INSTITUTO DR BARAKAT`, `PDV*BARA CLINICA`, `BRENTESINSTITUTO`, `FISIOTERAPIA BEBE EIRE`, `PELVIE FISIOTERAPIA`, `INST TADEU CVINTAL`, `AWADA ESTETICA`, `DROGASIL`, `DROGARIA SAO PAULO`, `DROGARIA_SP DROGARIASA`, `DROGARIA ONLINE`, `DROGARIA GUARANI`, `DROGARIA CRUZEIRO`, `DROGARIA CARREFOUR`, `RDSAUDE ONLINE`, `DPS SUPLEMENTOS`, `RAIA`, `MARCONI BASSO`, `DROGARIA X FARMACIA`, `PG *LIVANCE`, `ESPACO GIRAS`
 
 **`seguros`** — Seguradoras:
-`SUL AMERICA SEG`
+`SUL AMERICA SEG`, `MENSALIDADE DE SEGURO`, `PORTO SEGURO SEGUROS`, `TOKIO MARINE`
 
 **`vestuario`** — Roupas, acessórios, cosméticos, joalheria, moda:
-`I. M. SATO VESTUARIO`, `LUANA FASHION`, `VICIO FEMININO`, `CARTERS`, `KIKO MILANO`, `PITICAS`, `BAYARD ESPORTES`, `EMY PERFUMARIA`, `SONEDA PERFUMARIA`, `ITRCCABELEIREIROS`, `LOJA OFICIAL`, `TATIANA GIORDANO`
+`I. M. SATO VESTUARIO`, `LUANA FASHION`, `VICIO FEMININO`, `CARTERS`, `KIKO MILANO`, `PITICAS`, `BAYARD ESPORTES`, `EMY PERFUMARIA`, `SONEDA PERFUMARIA`, `ITRCCABELEIREIROS`, `LOJA OFICIAL`, `TATIANA GIORDANO`, `VIVARA`, `CHILLI BEANS`, `THENORTHFACE`, `ROSS STORES`, `OTICAS RB1`, `IGUASPORT`, `HNA*OBOTICARIO`, `LUSH`
 
-**`lazer_viagens`** — Turismo, entretenimento, parques, hospedagem, duty-free:
-`AIRBNB`, `SEAWORLD`, `BUSCH GARDENS`, `PORTO DUTY FREE`, `TERMINAL III`, `HN HUDSON`, `WEATHERSTATION`, `WDW DROID DEPOT`, `NIC*-DOH ORA VITAL`, `MINUTE SUITES`, `ZIG*VILLA DI PHOENIX`, `ZIG. THE GLOBAL FUNTEC`, `A NOIESA`, `AEROP. ADOLFO SUAREZ`, `ASSOC COMERCIAL PORT`, `AUDASA VISA`, `CATEDRAL DE SANTIAGO`, `CHEZ LAPIN`, `CPPB-RUA AUGUSTA`, `FUNDACAO CULTURSINTR`, `MANTEIGARIA SILVA`, `ATL PANDA EXPRESS`, `FAST POINT MC`, `DOLLAR TREE`, `AMAZON GROCERY`, `AMAZON TIPS`
+**`lazer_viagens`** — Turismo, entretenimento, parques, hospedagem, duty-free, aluguel carro:
+`AIRBNB`, `SEAWORLD`, `BUSCH GARDENS`, `PORTO DUTY FREE`, `TERMINAL III`, `HN HUDSON`, `WEATHERSTATION`, `WDW DROID DEPOT`, `NIC*-DOH ORA VITAL`, `MINUTE SUITES`, `ZIG*VILLA DI PHOENIX`, `ZIG. THE GLOBAL FUNTEC`, `A NOIESA`, `AEROP. ADOLFO SUAREZ`, `ASSOC COMERCIAL PORT`, `AUDASA VISA`, `CATEDRAL DE SANTIAGO`, `CHEZ LAPIN`, `CPPB-RUA AUGUSTA`, `FUNDACAO CULTURSINTR`, `MANTEIGARIA SILVA`, `ATL PANDA EXPRESS`, `FAST POINT MC`, `DOLLAR TREE`, `AMAZON GROCERY`, `AMAZON TIPS`, `AIR EUROPA`, `LATAM AIR`, `LATAM AIRLINES`, `AMERICAN AIR*`, `HOTEL AT BOOKING.COM`, `HOTEIS.COM`, `BKG*BOOKING.COM`, `HOTELCOM`, `SAN FRANCISCO HOTEL`, `S F FLAT HOTEL`, `HOTEL MUNDIAL`, `HOTEL PORTO JARDIM`, `THE PLATINUM HOTEL`, `DOLLAR RAC`, `NVE*RENTCARSLTDA`, `HERTZ CAR RENTAL`, `WDW TICKETS`, `UNIVERSAL ORLANDO`, `HUDSON NEWS`, `SUNDRY SHOP`, `PRIP MART`, `AREAS PORTUGAL`, `CBD MARTIM`, `SP BAG OF SALT`, `VENETIAN STARBUCKS`, `FEVER*`, `TARGET T-`, `LOJAS AMERICANAS`, `PLAZA SUL`, `ALIANSCE`, `SHOPPING CENTER IBIRAP`, `PARQUE RIBEIRA`, `BOFT BRASIL`
 
 **`melhoria_reforma`** — Materiais, construção, manutenção residencial:
-`JS MATERIAIS DE CONS`, `ANDRA MATERIAIS`, `FUTURA MADEIRAS`, `DEPOSITO CENTER`, `DEPOSITO GUARANI`, `ROSSE COMERCIO`, `ELETTRICA COMERCIO`, `CONILREM`, `DAISO BRASIL`
+`JS MATERIAIS DE CONS`, `ANDRA MATERIAIS`, `FUTURA MADEIRAS`, `DEPOSITO CENTER`, `DEPOSITO GUARANI`, `ROSSE COMERCIO`, `ELETTRICA COMERCIO`, `CONILREM`, `DAISO BRASIL`, `SILETRICA`
 
-**`educacao`** — Livros, papelaria, cursos:
-`LEITURA`, `KALUNGA`, `COPICOPIAS`, `PAPELARIA`
+**`educacao`** — Livros, papelaria, cursos, tradução:
+`LEITURA`, `KALUNGA`, `COPICOPIAS`, `PAPELARIA`, `PRIMO RICO`, `FUNDACAO SAO PAULO`, `IN *CA TRANSLATION SER`
 
 **`servicos_domesticos`** — Equipe doméstica, lavanderia, pet:
-`SUECIA`, `ELIANE`, `ANDREA S LAVANDERIA`, `PET DOGSTORE`, `JIM COM* LAVARAPIDO`, `JIM.COM* LAVARAPIDO`
+`SUECIA`, `ELIANE`, `ANDREA S LAVANDERIA`, `PET DOGSTORE`, `JIM COM* LAVARAPIDO`, `JIM.COM* LAVARAPIDO`, `COBASI`, `PETZ`, `RAPPI*PET CENTER`, `ELAINE APARECIDA BUZZ`, `RK2LAVARAPIDOE`, `SAMUELABNERSANTOSMARC`, `MP *33798933SAMUELABN`
 
-**`financeiro`** — Taxas bancárias, IOF, juros, tarifas, contador:
-`VINDI *ACCOUNTBANKTEC`, `PAYPAL *DOCUSIGNINC`
+**`financeiro`** — Taxas bancárias, IOF, juros, tarifas, anuidades, contador:
+`VINDI *ACCOUNTBANKTEC`, `PAYPAL *DOCUSIGNINC`, `IOF CHEQUE ESPECIAL`, `IOF`, `TARIFA`, `JUROS LIMITE DA CONTA`, `JUROS CHEQUE ESP`, `JUROS SALDO UTILIZ`, `JUROS LIMITE`, `JUROS UTILIZ`, `TAR PACOTE`, `TAXA PERMANENCIA`, `ANUIDADE DIFERENCIADA`, `IOF DESPESA NO EXTERIOR`, `Multa Contratual`, `Juros de Mora`, `Encargos`
+
+> **Nota v5.0.1:** `DEB AUTOM DE FATURA` foi removido desta lista pois é tratado como transferência interna (pagamento de fatura de cartão — a despesa já foi registrada na fatura).
 
 **`suporte_familiar`** — Transferências para familiares, presentes infantis:
-`ALO BEBE`, `ICA*ICASEI`, `MAKOS LEMBRANCAS`
+`ALO BEBE`, `ICA*ICASEI`, `MAKOS LEMBRANCAS`, `RUBENS DE CAMPOS`, `PIX TRANSF RUBENS`
 
-**`reserva_desejos`** — Eletrônicos, tech, compras planejadas de alto valor:
-`AMAZON MKTPLACE`, `AMAZON RETA`, `AMAZONMKTPLC`, `MP *VICTORELETRONICOS`
+**`reserva_desejos`** — Eletrônicos, tech, compras online, alto valor:
+`AMAZON MKTPLACE`, `AMAZON RETA`, `AMAZONMKTPLC`, `MP *VICTORELETRONICOS`, `AMAZON MARKETPLACE`, `AMAZON BR`, `AMAZON MARK*`, `AMAZON MKTPL`, `APPLE.COM/US`, `GRUPO CASAS BAHIA`, `LOJAS MEL`, `DISTRIBUIDORA MENEZES`, `VIDESUL`
 
 **Regras especiais:**
 - `NATHALIACASADE` = Açougue Nathalia Casa de Carnes → **alimentacao** (NÃO é serviço doméstico)
 - `ABDO MOHAMED` = Instituto Dr. Barakat → **saude**
 - `RECEB PAGFOR GRPQA` = Aluguel QuintoAndar → **NÃO é despesa** (é receita)
+- `POMPEIA MOTOS` = Venda da Yamaha MT09 → **receita_venda_ativo** (NÃO é receita PJ). Classificar como receita one-time de desinvestimento de ativo.
+- `TED D HBANK` (Bradesco) = Transferência para BTG Pactual (Mariana) → **transferência interna**
 - Transações com `USD` no final geralmente são gastos em viagem internacional → avaliar se `lazer_viagens` ou a categoria do estabelecimento
 
-**Fallback**: Se a descrição não casar com nenhuma regra acima, o operador E3 deve usar o contexto (nome do estabelecimento, valor, conta de origem) para inferir a categoria. Apenas se realmente não for possível identificar, manter como `nao_identificado` e registrar em `qa_log.md`.
+**Fallback**: Se a descrição não casar com nenhuma regra acima, o script E4 classifica como `nao_identificado` e registra em `logs/qa_log.md`.
 
-### REGRAS DE CATEGORIZAÇÃO DE RECEITAS (usadas no E3)
+### REGRAS DE CATEGORIZAÇÃO DE RECEITAS (usadas no E4)
 
-O E3 gera `receitas-3_unified.json` agrupado por fonte. Abaixo estão as regras para classificar **créditos** (entradas) nas contas:
+O E4 gera `receitas-4_unified.json` agrupado por categoria. Abaixo estão as regras para classificar **créditos** (entradas) nas contas:
 
 | Padrão no extrato (case-insensitive) | Categoria receita | Subcategoria | Conta esperada | Membro |
 |---|---|---|---|---|
@@ -247,7 +255,7 @@ O E3 gera `receitas-3_unified.json` agrupado por fonte. Abaixo estão as regras 
 | `BRANDLOVERS`, `BRAND LOVERS` | `receita_pj` | Advisory BrandLovers | C6 PJ | David |
 | `ARBITRALIS` | `receita_pj` | Advisory Arbitralis | C6 PJ | David |
 | `LEARNTOFLY`, `LEARN TO FLY` | `receita_pj` | Mentoria LearnToFly | C6 PJ | David |
-| `KIWIFY` | `receita_pj` | Kiwify (encerrado mai/2025) | C6 PJ | David |
+| `KIWIFY` | `receita_clt` | Salário CLT Kiwify (encerrado mai/2025) | Itaú Personnalité | David |
 | `CNRY`, `CANARY` | `receita_pj` | CNRY/Canary (encerrado set/2025) | C6 PJ | David |
 | `BARTE` | `receita_pj` | Barte Brasil (encerrado set/2025) | C6 PJ | David |
 | `Sociedade Beneficente Israelita` | `receita_clt` | Salário Einstein | Poupança Bradesco | Mariana |
@@ -256,14 +264,17 @@ O E3 gera `receitas-3_unified.json` agrupado por fonte. Abaixo estão as regras 
 | `RENDIMENTO`, `JUROS S/CAPITAL`, `DIVIDENDO` | `receita_investimento` | Rendimentos financeiros | Rico, BTG, Itaú, Santander | Ambos |
 | `RESGATE`, `LIQUIDACAO` (CDB, fundo, RF) | `receita_resgate` | Resgate de investimento | Qualquer | Ambos |
 | `RESTITUICAO`, `RESTIT IRPF` | `receita_restituicao` | Restituição IRPF | Qualquer CC | Ambos |
-| `FGTS`, `CAIXA ECONOMICA` (saque) | `receita_fgts` | Saque FGTS | Qualquer CC | David |
+| `FGTS`, `SAQUE FGTS` | `receita_fgts` | Saque FGTS | Qualquer CC | David |
+| `POMPEIA MOTOS` | `receita_venda_ativo` | Venda Yamaha MT09 | Qualquer | David |
+
+> **Nota v5.0.1:** `CAIXA ECONOMICA` removido de `receita_fgts` (genérico demais). `RECEB PAGFOR` sem GRPQA removido de `receita_aluguel` (genérico demais).
 
 **Regras especiais receitas:**
 - Créditos PJ→PF do mesmo titular (ex: TED de C6 PJ para C6 PF David) são **transferências internas**, não receita (ver seção abaixo).
 - `GRPQA` em CC Bradesco = receita aluguel Mariana. `GRPQA` em Itaú = receita aluguel David. Nunca classificar como despesa.
 - Rendimentos de poupança Bradesco (créditos automáticos) = `receita_investimento`, subcategoria "rendimento poupança".
 
-### MAPA DE TRANSFERÊNCIAS INTERNAS (usadas no E3)
+### MAPA DE TRANSFERÊNCIAS INTERNAS (usadas no E4)
 
 Transferências entre contas do casal **NÃO são receita nem despesa**. Devem ser classificadas como `transferencia_interna` e excluídas do fluxo de caixa. O E3 usa este mapa para detectá-las:
 
@@ -312,7 +323,7 @@ Transferências entre contas do casal **NÃO são receita nem despesa**. Devem s
 
 | Contrato | Período | Total recebido |
 |---|---|---|
-| Kiwify (rescisão) | jun/2024–mai/2025 | R$ 407.357 |
+| Kiwify (CLT, rescisão) | jun/2024–mai/2025 | R$ 407.357 |
 | CNRY/Canary (advisor) | até set/2025 | R$ 80.000 |
 | Barte Brasil (advisory) | até set/2025 | R$ 40.000 |
 
@@ -339,10 +350,10 @@ Transferências entre contas do casal **NÃO são receita nem despesa**. Devem s
 | 3 | Ap | Ed. Gisele, Rua Major Freire 496, Ap 12 | 68,89m² | David | R$ 213k | R$ 1.572 | Alugado (Gabriel). Financiamento Itaú. |
 | 4 | Casa | Casa Leonardo da Vinci, Av. Leonardo da Vinci 2707, Jabaquara | 73m² | David | R$ 80k | — | Usufruto vitalício (Leonilda) |
 | 5 | Ap | Living Wish, Av. João Dias 2192, T2 Ap 163 | 88,9m² | Mariana | R$ 530k | R$ 5.149 | Alugado (Wesley) |
-| ~~6~~ | ~~Ap~~ | ~~Living Concept, Av. Alberto Augusto Alves 320, Ap 812~~ | ~~25,7m²~~ | ~~Mariana~~ | ~~R$ 270k~~ | ~~R$ 881~~ | **VENDIDO (D15, abr/2026). Yield 3,9% — capital reinvestido em RF/RV.** |
+| 6 | Ap | Living Concept, Av. Alberto Augusto Alves 320, Ap 812 | 25,7m² | Mariana | R$ 270k | R$ 881 | Alugado. Avaliar venda (D15, prazo 2027). Yield 3,9%, pior entre imóveis alugados. |
 | 7 | — | (reservado para futuras aquisições) | — | — | — | — | — |
 
-**Total aluguéis: R$ 8.571/mês** (David R$ 3.422 + Mariana R$ 5.149) — pós-venda Living Concept
+**Total aluguéis: R$ 9.452/mês** (David R$ 3.422 + Mariana R$ 6.030)
 
 **Notas sobre IRPF dos imóveis:**
 - Imóveis 1 e 4 usam código IRPF **01-12** (compra e venda de casa). Os demais usam **01-11** (apartamento).

@@ -1,0 +1,3865 @@
+{
+  "tipo": "extratoconta",
+  "instituicao": "C6 Bank",
+  "membro": "david",
+  "conta": "130952222",
+  "moeda": "BRL",
+  "periodo": {
+    "inicio": "2025-04-05",
+    "fim": "2026-04-05"
+  },
+  "saldo_inicial": -4255.76,
+  "saldo_final": -334.05,
+  "transacoes": [
+    {
+      "data": "2025-04-05",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -500.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-05",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -40.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-06",
+      "descricao": "Saída PIX Pix enviado para paroquia nossa senhora do brasil",
+      "valor": -50.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-07",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 300.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-04-07",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -15967.78,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-10",
+      "descricao": "Outros gastos SEGURO CONTA C6",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-10",
+      "descricao": "Saída PIX Pix enviado para REGIANE DONIZETI BALBINO",
+      "valor": -320.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-10",
+      "descricao": "Entrada PIX Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
+      "valor": 10000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-04-12",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -23.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-16",
+      "descricao": "Outros gastos Pix enviado para WARWICK PARKER",
+      "valor": -428.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-16",
+      "descricao": "Saída PIX Pix enviado para ELIBELTO JOSE DE LIMA",
+      "valor": -500.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-16",
+      "descricao": "Saída PIX Pix enviado para RECEITA FEDERAL",
+      "valor": -166.98,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-16",
+      "descricao": "Pagamento Boleto",
+      "valor": -226.68,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-17",
+      "descricao": "Pagamento TRIBUTOS FEDERAIS DARF NUMERADO",
+      "valor": -576.12,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-18",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -35.75,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-18",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -28.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.2,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -16.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -12.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -9.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-22",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Saída PIX Pix enviado para ANA MARIA DE OLIVEIRA",
+      "valor": -80.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 1080.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Saída PIX Pix enviado para Poupa Medi",
+      "valor": -280.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.2,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -9.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -16.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -12.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-25",
+      "descricao": "Outros gastos Câmbio",
+      "valor": -5798.53,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-25",
+      "descricao": "Entrada PIX Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
+      "valor": 14000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-04-25",
+      "descricao": "Outros gastos Câmbio",
+      "valor": -12000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-25",
+      "descricao": "Outros gastos Câmbio",
+      "valor": -2337.93,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-25",
+      "descricao": "Entrada PIX Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
+      "valor": 2000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-04-26",
+      "descricao": "Saída PIX Pix enviado para ELIBELTO JOSE DE LIMA",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-26",
+      "descricao": "Saída PIX Pix enviado para Mariana Dos Santos Almeida",
+      "valor": -50.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-26",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -28.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-04-29",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 560.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-04-30",
+      "descricao": "Saída PIX Pix enviado para CLIMEFE CLINICA DE MEDICINA FETAL S S LT",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-01",
+      "descricao": "Entrada PIX Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
+      "valor": 26000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-05-02",
+      "descricao": "Saída PIX Pix enviado para José Martins Ferreira Prates",
+      "valor": -8.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-02",
+      "descricao": "Outros gastos Câmbio",
+      "valor": -17294.96,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-02",
+      "descricao": "Saída PIX Pix enviado para ANA LUCIA SANTOS",
+      "valor": -1800.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-03",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -21.47,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-03",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -65.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -12.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -11.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -8.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -8.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-04",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -8.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-04",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-04",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-04",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -8.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-04",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -11.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-04",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -12.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-04",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-05",
+      "descricao": "Entrada PIX Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
+      "valor": 40000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-05-05",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-05-05",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -46189.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-05",
+      "descricao": "Entrada PIX Pix recebido de Douglas Camargo de Campos",
+      "valor": 100.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-05-06",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 280.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-05-07",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -2.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-07",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -2.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-10",
+      "descricao": "Outros gastos SEGURO CONTA C6",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-11",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-11",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-17",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -32.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-24",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-24",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -12.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-24",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -16.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-24",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -12.2,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-24",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -12.2,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-24",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -16.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-24",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -12.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-24",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-26",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-26",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -28.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-26",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-28",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-28",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -28.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-28",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-28",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-29",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-29",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -28.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-29",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.2,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-05-29",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-03",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -0.09,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-03",
+      "descricao": "Entrada PIX Pix recebido de Douglas Camargo de Campos",
+      "valor": 100.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-06-05",
+      "descricao": "Entrada PIX Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
+      "valor": 24000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-06-05",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -23150.98,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-07",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -2.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -12.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -16.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -9.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.2,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.2,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -9.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-10",
+      "descricao": "Outros gastos SEGURO CONTA C6",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-10",
+      "descricao": "Saída PIX Pix enviado para ********",
+      "valor": -55.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-11",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -2.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-12",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -2.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 17000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "Outros gastos Câmbio",
+      "valor": -18000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-19",
+      "descricao": "Saída PIX Pix enviado para BELT ACADEMY",
+      "valor": -1950.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -2.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-24",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -2.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-25",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -2.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-26",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -2.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -2.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-27",
+      "descricao": "Saída PIX Pix enviado para HT SARAGIOTTO SERVICOS MEDICOS LTDA",
+      "valor": -600.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-06-27",
+      "descricao": "Entrada PIX Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
+      "valor": 2500.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -2.8,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-01",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -7.74,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "Entrada PIX Pix recebido de Douglas Camargo de Campos",
+      "valor": 100.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -38.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-03",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 600.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-07-04",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-04",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-06",
+      "descricao": "Entrada PIX Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
+      "valor": 5000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-07-07",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -5677.76,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-10",
+      "descricao": "Outros gastos SEGURO CONTA C6",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-16",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -36.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -5.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -4.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-17",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -17.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.3,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.3,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -21.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Entradas C6TAG PEDAG ESTORNO",
+      "valor": 21.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -17.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-21",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -65.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-21",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -26.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-07-27",
+      "descricao": "Saída PIX",
+      "valor": -1950.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 26000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "Saída PIX Pix enviado para David Robert Camargo Ferreira Campos",
+      "valor": -5100.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-02",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -9.09,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-02",
+      "descricao": "Outros gastos JUROS CHEQUE ESP",
+      "valor": -26.53,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-05",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -17321.46,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-10",
+      "descricao": "Outros gastos SEGURO CONTA C6",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-19",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -600.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-20",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 6000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-08-26",
+      "descricao": "Saída PIX",
+      "valor": -1950.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-28",
+      "descricao": "Entradas RESGATE DE CDB VENC",
+      "valor": 2408.14,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-08-28",
+      "descricao": "Outros gastos EMISSAO DE CDB",
+      "valor": -2404.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -4.18,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -4.18,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -7.51,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -15.58,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -15.58,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -15.58,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -15.58,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-02",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -0.96,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-02",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -5582.36,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-10",
+      "descricao": "Outros gastos SEGURO CONTA C6",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-10",
+      "descricao": "Saída PIX Pix enviado para JULIANA ARGONDIZO DE ROSIS DINATO",
+      "valor": -500.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 1500.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 980.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-09-13",
+      "descricao": "Saída PIX Pix enviado para Eliane Costa Goncalves",
+      "valor": -440.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-13",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-13",
+      "descricao": "Saída PIX Pix enviado para Vitória Maria Silva Moreira",
+      "valor": -195.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -17.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.3,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.3,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -17.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 8000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 5000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Saída PIX Pix enviado para JAIR DE SOUZA FERREIRA",
+      "valor": -9000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -4.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Entrada PIX Pix recebido de Douglas Camargo de Campos",
+      "valor": 100.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -16.06,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -15.58,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.78,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -18.34,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -18.34,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -15.58,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.78,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -16.06,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -4.28,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -4.28,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -7.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Saída PIX Pix enviado para SERGIO PALMEIRA DA SILVA",
+      "valor": -1080.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-25",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -104.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -14.23,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -35.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Débito de Cartão LOJA SAO BENTO APARECIDA BRA",
+      "valor": -90.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -4.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-29",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -14.23,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-29",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -300.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Saída PIX Pix enviado para ZOOP BRASIL",
+      "valor": -251.65,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Saída PIX Pix recusado",
+      "valor": -251.65,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Entradas Pix estornado",
+      "valor": 251.65,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Saída PIX Pix recusado",
+      "valor": -251.65,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Entradas Pix estornado",
+      "valor": 251.65,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Pagamento Belt Academy",
+      "valor": -1950.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 10000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Saída PIX Pix enviado para Carlos Augusto Silva Ribeiro Junior",
+      "valor": -200.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-01",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 500.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-10-01",
+      "descricao": "Saída PIX Pix enviado para HELEN SASAKE TAKAGI",
+      "valor": -500.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-02",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -17.38,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-02",
+      "descricao": "Entrada PIX Pix recebido de Douglas Camargo de Campos",
+      "valor": 100.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-10-02",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-02",
+      "descricao": "Saída PIX Pix enviado para HELEN SASAKE TAKAGI",
+      "valor": -500.09,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-02",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-04",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -25.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-04",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -25.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-05",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -25.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -22298.73,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-07",
+      "descricao": "Saída PIX Pix enviado para ROBERTO FERNANDO ALVES DE SOUZA",
+      "valor": -100.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-08",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-10",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-10",
+      "descricao": "Outros gastos SEGURO CONTA C6",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-10",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -27.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-11",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -25.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -1334.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-16",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 20000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-10-17",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -77.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-18",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-18",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -17.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-18",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-18",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-18",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.3,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.3,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -17.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-24",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -36.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-25",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -27.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-25",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -29.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-26",
+      "descricao": "Saída PIX Pix enviado para LUMMA ROBERTA DA SILVA",
+      "valor": -3000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-27",
+      "descricao": "Saída PIX Pix enviado para Carlos Augusto Silva Ribeiro Junior",
+      "valor": -80.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-27",
+      "descricao": "Pagamento TRIBUTOS FEDERAIS DARF NUMERADO",
+      "valor": -7607.45,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-27",
+      "descricao": "Pagamento SIMPLES NACIONAL",
+      "valor": -2701.2,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-27",
+      "descricao": "Saída PIX Pix enviado para RECEITA FEDERAL",
+      "valor": -6650.15,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-27",
+      "descricao": "Pagamento TRIBUTOS FEDERAIS DARF NUMERADO",
+      "valor": -2454.03,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-27",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 20000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-10-29",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -2446.83,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "Entrada PIX Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
+      "valor": 500.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "Saída PIX",
+      "valor": -1950.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 4000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-11-02",
+      "descricao": "Saída PIX Pix enviado para Marcelo Silva Santos",
+      "valor": -30.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-04",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -74.12,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-04",
+      "descricao": "Saída PIX Pix enviado para STUDIO 19",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-05",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -16905.45,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-07",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-08",
+      "descricao": "Saída PIX Pix enviado para EDILBERTO RODRIGUES COUTINHO",
+      "valor": -15.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-09",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -25.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-09",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-10",
+      "descricao": "Outros gastos SEGURO CONTA C6",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-11",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -25.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-11",
+      "descricao": "Débito de Cartão 1 CART REG PES NATURAI SAO PAULO BRA",
+      "valor": -312.28,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-14",
+      "descricao": "Saída PIX Pix enviado para CLINICA DERMATOLOGICA DRA.ADRIANA AWADA LTDA",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-14",
+      "descricao": "Saída PIX Pix enviado para VESALTEC SERRALHERIA E COMERCIO LTDA",
+      "valor": -700.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-14",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 20000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-11-14",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -1875.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-14",
+      "descricao": "Saída PIX Pix enviado para DANIEL JESUS DO ROSARIO",
+      "valor": -250.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-14",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-15",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -9.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -4.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-20",
+      "descricao": "Saída PIX Pix enviado para AMANTIKIR",
+      "valor": -270.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Outros gastos Câmbio",
+      "valor": -10021.33,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Saída PIX Pix enviado para Hermann Ronaldo Wecke",
+      "valor": -150.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 11000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-11-22",
+      "descricao": "Saída PIX Pix enviado para 50.340.497 LEVY VICARI DE OLIVEIRA",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -8.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -4.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-23",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Entradas C6TAG PEDAG ESTORNO",
+      "valor": 8.1,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -7.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-25",
+      "descricao": "Saída PIX Pix enviado para Cleidiany Ribeiro Anacleto Kawamura",
+      "valor": -150.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-28",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -3021.83,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-28",
+      "descricao": "Saída PIX Pix enviado para AMAZON.COM.BR",
+      "valor": -5345.73,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-29",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -9.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-29",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-11-29",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-01",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-01",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 10000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-12-02",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -112.76,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-02",
+      "descricao": "Outros gastos JUROS CHEQUE ESP",
+      "valor": -483.09,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-02",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-12-05",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 50000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-12-05",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -61553.26,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-06",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -32.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-07",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 11000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "Saída PIX Pix enviado para LUMMA ROBERTA DA SILVA",
+      "valor": -1950.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "Pagamento Belt Academy",
+      "valor": -1950.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "Entrada PIX Pix recebido de Douglas Camargo de Campos",
+      "valor": 975.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 20800.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "Saída PIX Pix enviado para GRUPO CASAS BAHIA S.A.",
+      "valor": -18233.19,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-09",
+      "descricao": "Saída PIX Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-09",
+      "descricao": "Entrada PIX Pix recebido de EDUARDO FREITAS DE SOUZA",
+      "valor": 800.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-12-10",
+      "descricao": "Outros gastos SEGURO CONTA C6",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-12",
+      "descricao": "Saída PIX Pix enviado para MIQUEIAS FERREIRA DA SILVA",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "Saída PIX Pix enviado para HELEN SASAKE TAKAGI",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-16",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 3959.5,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-12-16",
+      "descricao": "Saída PIX Pix enviado para SHEILA APARECIDA DA ROCHA DE CAMARGO",
+      "valor": -100.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-19",
+      "descricao": "Saída PIX Pix enviado para DOUGLAS CAMARGO DE CAMPOS",
+      "valor": -848.49,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-19",
+      "descricao": "Saída PIX Pix enviado para ELIAS PAIVA",
+      "valor": -750.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-20",
+      "descricao": "Saída PIX Pix enviado para DOUGLAS CAMARGO DE CAMPOS",
+      "valor": -466.49,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-20",
+      "descricao": "Saída PIX Pix enviado para Anderson Sampaio de Vasconcelos",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-20",
+      "descricao": "Saída PIX Pix enviado para Cleidiany Ribeiro Anacleto Kawamura",
+      "valor": -450.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-21",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-22",
+      "descricao": "Entrada PIX Pix recebido de Kiwify Pagamentos, Tecnologia e Servicos Ltda",
+      "valor": 2863.38,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2025-12-22",
+      "descricao": "Saída PIX Pix enviado para INACIO JOSE MACEDO",
+      "valor": -9400.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-22",
+      "descricao": "Saída PIX Pix enviado para POUPA MEDI",
+      "valor": -98.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-24",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-26",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -2243.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-28",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -38.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-30",
+      "descricao": "Pagamento Belt Academy",
+      "valor": -1950.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-30",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-31",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2025-12-31",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-01",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-01",
+      "descricao": "Saída PIX Pix enviado para RAFAEL BARROSO DE CARVALHO",
+      "valor": -200.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-01",
+      "descricao": "Devolução PIX Devol recebida pix de RAFAEL BARROSO DE CARVALHO",
+      "valor": 200.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-01-03",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -102.76,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-03",
+      "descricao": "Outros gastos JUROS CHEQUE ESP",
+      "valor": -326.47,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-03",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -27.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 50000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -46562.46,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 8800.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-08",
+      "descricao": "Saída PIX Pix enviado para HELEN SASAKE TAKAGI",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-10",
+      "descricao": "Outros gastos SEGURO CONTA C6",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-10",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -27.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -143.51,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -142.47,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -141.32,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -140.09,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -138.89,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -137.51,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -136.25,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -134.93,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -133.54,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -43.35,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -66.57,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -66.08,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -65.55,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -64.98,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -64.43,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -63.78,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -63.2,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -62.59,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -61.94,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Débito de Cartão VENDIFY SAO PAULO BRA",
+      "valor": -26.97,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 5000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "Saída PIX Pix enviado para RECEITA FEDERAL",
+      "valor": -142.62,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "Saída PIX Pix enviado para RECEITA FEDERAL",
+      "valor": -1507.2,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-16",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-01-16",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -100.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-17",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "Saída PIX Pix enviado para FULL FACE MEDIC",
+      "valor": -1095.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-24",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-26",
+      "descricao": "Saída PIX Pix enviado para LUMMA ROBERTA DA SILVA",
+      "valor": -2100.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "Saída PIX Pix enviado para HT SARAGIOTTO SERVICOS MEDICOS LTDA",
+      "valor": -680.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Pagamento Belt Academy",
+      "valor": -1950.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -1100.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 14000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-31",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -191.41,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-01-31",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 680.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-02-03",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -32.47,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-03",
+      "descricao": "Outros gastos JUROS CHEQUE ESP",
+      "valor": -274.97,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-03",
+      "descricao": "Saída PIX Pix enviado para AIR EUROPA LINEAS AEREAS SOCIEDAD ANONIMA",
+      "valor": -1263.99,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-03",
+      "descricao": "Saída PIX Pix enviado para HELEN SASAKE TAKAGI",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -20841.19,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -4871.34,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -1155.94,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -34.92,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 30000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -824.88,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-06",
+      "descricao": "Saída PIX Pix enviado para SABESP",
+      "valor": -568.02,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-07",
+      "descricao": "Outros gastos Câmbio",
+      "valor": -3219.62,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-07",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -54.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-07",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -1.65,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-07",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -1.32,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -4.28,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -4.28,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -7.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.78,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -16.06,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -15.58,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -15.58,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.78,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -16.06,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -4.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -5.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-09",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-09",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-10",
+      "descricao": "Outros gastos SEGURO CONTA C6",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-13",
+      "descricao": "Outros gastos Câmbio",
+      "valor": -2260.94,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-13",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 10000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-02-13",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-15",
+      "descricao": "Outros gastos Câmbio",
+      "valor": -970.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-16",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -9.1,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-16",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-17",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -54.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-17",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -1.65,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-19",
+      "descricao": "Entrada PIX Pix recebido de Douglas Camargo de Campos",
+      "valor": 980.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "Saída PIX Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+      "valor": -482.59,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "Saída PIX Pix enviado para Elias Paiva",
+      "valor": -800.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-23",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-02-25",
+      "descricao": "Saída PIX Pix enviado para Andressa Nunes Da SILVA",
+      "valor": -2300.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-26",
+      "descricao": "Saída PIX Pix enviado para REINALDO MARTINS DE ARAUJO",
+      "valor": -1200.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -2491.41,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Saída PIX Pix enviado para REINALDO MARTINS DE ARAUJO",
+      "valor": -2300.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -17.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-28",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.3,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-02-28",
+      "descricao": "Entrada PIX Pix recebido de REINALDO MARTINS DE ARAUJO",
+      "valor": 1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-03-01",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.3,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-01",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-01",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-01",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -17.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-01",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-01",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-01",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -3.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-03",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -5.87,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "Saída PIX Pix enviado para REINALDO MARTINS DE ARAUJO",
+      "valor": -2000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "Saída PIX Pix enviado para RUBENS DE CAMPOS",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 5000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-03-06",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 41000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-03-06",
+      "descricao": "Pagamento PGTO FAT CARTAO C6",
+      "valor": -41406.31,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-06",
+      "descricao": "Saída PIX Pix enviado para REINALDO MARTINS DE ARAUJO",
+      "valor": -1500.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-07",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -67.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-07",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -1.65,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-07",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -0.92,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "Saída PIX Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO",
+      "valor": -760.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "Saída PIX Pix enviado para HELEN SASAKE TAKAGI",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "Outros gastos SEGURO CONTA C6 Março 26",
+      "valor": -20.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-12",
+      "descricao": "Entradas RECEBIMENTO DE TED",
+      "valor": 1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "Saída PIX Pix enviado para ANDAIMES CUPECE",
+      "valor": -270.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-14",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -22.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-15",
+      "descricao": "Entrada PIX Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 5000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-03-15",
+      "descricao": "Outros gastos Câmbio",
+      "valor": -556.64,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Saída PIX",
+      "valor": -1950.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "Saída PIX Pix enviado para LUMMA ROBERTA DA SILVA",
+      "valor": -1350.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-21",
+      "descricao": "Débito de Cartão Hubcaps SAO PAULO BRA",
+      "valor": -24.99,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "Saída PIX Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO",
+      "valor": -500.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-28",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -78.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-28",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -1.65,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-28",
+      "descricao": "Entrada PIX PIX RECEBIDO C6",
+      "valor": 10000.0,
+      "saldo_apos": 0.0,
+      "tipo": "credito"
+    },
+    {
+      "data": "2026-03-29",
+      "descricao": "Saída PIX Pix enviado para David Robert Camargo Ferreira Campos",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-30",
+      "descricao": "Saída PIX Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA",
+      "valor": -380.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-30",
+      "descricao": "Saída PIX Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA",
+      "valor": -59.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-31",
+      "descricao": "Saída PIX Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA",
+      "valor": -292.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-31",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -2191.41,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-31",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -300.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-03-31",
+      "descricao": "Saída PIX Pix enviado para David Robert Camargo Ferreira Campos",
+      "valor": -500.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-01",
+      "descricao": "Pagamento Belt Academy",
+      "valor": -1950.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-02",
+      "descricao": "Outros gastos IOF CHEQUE ESPECIAL",
+      "valor": -41.22,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-02",
+      "descricao": "Outros gastos JUROS CHEQUE ESP",
+      "valor": -110.13,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-02",
+      "descricao": "Saída PIX Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO",
+      "valor": -1000.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-02",
+      "descricao": "Saída PIX Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA",
+      "valor": -395.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-02",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -17.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-03",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.3,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-05",
+      "descricao": "Saída PIX Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
+      "valor": -3790.21,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-05",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.3,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-05",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -6.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-05",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -10.5,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-05",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -17.6,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-05",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -8.4,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-05",
+      "descricao": "Outros gastos C6TAG ESTACIONAMENTO",
+      "valor": -45.0,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    },
+    {
+      "data": "2026-04-05",
+      "descricao": "Outros gastos C6TAG PEDAGIO",
+      "valor": -13.7,
+      "saldo_apos": 0.0,
+      "tipo": "debito"
+    }
+  ]
+}

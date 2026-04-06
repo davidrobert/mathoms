@@ -1,58 +1,105 @@
 {
-  "extraction_date": "2026-04-04",
-  "members": [
+  "tipo": "members_unified",
+  "data_geracao": "2026-04-05",
+  "fonte_definitions": true,
+  "membros": [
     {
       "id": "david",
-      "full_name": "David Robert Camargo Ferreira Campos",
-      "role_in_family": "Titular",
-      "current_employer": "Arvo",
-      "current_role": "Chief Technology Officer (CTO)",
-      "employment_type": "PJ",
-      "education_highest": "Mestrado em Ciência da Computação - Inteligência Artificial (USP/IME, 2008)",
-      "languages": ["Português (Nativo)", "Inglês (Fluente)"],
-      "professional_experiences": [
-        {"dates": "set/2025 - atual", "title": "CTO", "company": "Arvo", "type": "PJ"},
-        {"dates": "jun/2024 - mai/2025", "title": "CTO", "company": "Kiwify", "type": "PJ"},
-        {"dates": "jun/2019 - jun/2024", "title": "Director of Software Engineering", "company": "Loft", "type": "PJ/CLT"},
-        {"dates": "ago/2013 - jul/2020", "title": "CTO", "company": "Elo7", "type": "PJ"}
+      "nome_atual": "David Robert Camargo Ferreira Campos",
+      "nomes_alternativos": ["David Robert Camargo de Campos"],
+      "cpf": "287.766.948-36",
+      "data_nascimento": "1981-09-05",
+      "papel_familia": "Titular",
+      "empregador_atual": "Arvo",
+      "cargo_atual": "Chief Technology Officer (CTO)",
+      "tipo_vinculo": "PJ",
+      "data_admissao": null,
+      "formacao_maxima": "Mestrado em Ciência da Computação — Inteligência Artificial (USP/IME, 2008)",
+      "idiomas": [
+        {"idioma": "Português", "nivel": "nativo", "fonte": "documento"},
+        {"idioma": "Inglês", "nivel": "fluente", "fonte": "documento"}
       ],
-      "salary_current": null,
-      "salary_source": "PJ - pró-labore (ver extratos C6 PJ)",
-      "documents_available": ["curriculo"],
-      "tax_status": "BR + US (a confirmar)"
+      "experiencias": [
+        {"empresa": "Arvo", "cargo": "CTO", "tipo_vinculo": "PJ", "data_inicio": "2025-09", "data_fim": "presente"},
+        {"empresa": "Kiwify", "cargo": "CTO", "tipo_vinculo": "CLT", "data_inicio": "2024-06", "data_fim": "2025-05"},
+        {"empresa": "Loft", "cargo": "Software Engineering Consultant", "tipo_vinculo": "PJ", "data_inicio": "2022-12", "data_fim": "2024-06"},
+        {"empresa": "Loft", "cargo": "Director of Software Engineering", "tipo_vinculo": "CLT", "data_inicio": "2021-11", "data_fim": "2022-12"},
+        {"empresa": "Loft", "cargo": "Engineering Manager", "tipo_vinculo": "CLT", "data_inicio": "2019-06", "data_fim": "2021-10"},
+        {"empresa": "Elo7", "cargo": "CTO", "tipo_vinculo": "PJ", "data_inicio": "2013-08", "data_fim": "2020-07"},
+        {"empresa": "Abril", "cargo": "Solutions Architect I", "tipo_vinculo": "CLT", "data_inicio": "2012-03", "data_fim": "2013-08"},
+        {"empresa": "TOTVS", "cargo": "R&D Engineer IV", "tipo_vinculo": "CLT", "data_inicio": "2011-02", "data_fim": "2012-03"},
+        {"empresa": "NIC.br", "cargo": "Software Engineer", "tipo_vinculo": "CLT", "data_inicio": "2006-04", "data_fim": "2011-01"},
+        {"empresa": "Agência Estado", "cargo": "Jr System Analyst / Trainee", "tipo_vinculo": "CLT", "data_inicio": "2002-06", "data_fim": "2006-03"}
+      ],
+      "salario": {
+        "bruto": null,
+        "liquido": null,
+        "periodo_referencia": null,
+        "fonte": null,
+        "nota": "PJ — pró-labore via C6 Bank PJ. Valor a confirmar via extratos bancários."
+      },
+      "documentos_disponiveis": ["curriculo"],
+      "status_fiscal": "BR+US",
+      "observacoes": "Empresa PJ: DAVID ROBERT CAMARGO DE CAMPOS LTDA (CNPJ 48.771.488/0001-87), Simples Nacional Anexo V. Status US a confirmar."
     },
     {
       "id": "mariana",
-      "full_name": "Mariana Teixeira Ferreira",
-      "name_cv": "Mariana Ferreira Campos",
-      "role_in_family": "Cônjuge",
-      "current_employer": "Hospital Israelita Albert Einstein",
-      "current_role": "Enfermeiro Pl (Enfermagem P, grade P4)",
-      "employment_type": "CLT",
-      "admission_date": "2014-07-21",
-      "education_highest": "Mestrado em Enfermagem - Saúde Adulta (USP, 2019-2021)",
-      "languages": ["Português (Nativo)"],
-      "professional_experiences": [
-        {"dates": "jan/2018 - atual", "title": "Enfermeiro", "company": "Hospital Israelita Albert Einstein", "type": "CLT"},
-        {"dates": "ago/2014 - jun/2018", "title": "Enfermeiro", "company": "Hospital Israelita Albert Einstein - UPA Campo Limpo", "type": "CLT"},
-        {"dates": "jan/2021 - dez/2024", "title": "Docente universitário", "company": "Faculdade Israelita Albert Einstein", "type": "CLT"},
-        {"dates": "2011 - 2014", "title": "Enfermeira", "company": "Hospital Municipal Dr. Moysés Deutsch", "type": "CLT"}
+      "nome_atual": "Mariana Ferreira Campos",
+      "nomes_alternativos": ["Mariana Teixeira Ferreira"],
+      "cpf": "085.052.396-60",
+      "data_nascimento": "1986-08-30",
+      "papel_familia": "Cônjuge",
+      "empregador_atual": "Hospital Israelita Albert Einstein",
+      "cargo_atual": "Enfermeira — Cardiologia, Auditoria Clínica e Educação em Saúde",
+      "tipo_vinculo": "CLT",
+      "data_admissao": "2014-07-21",
+      "formacao_maxima": "Mestrado em Enfermagem — Enfermagem em Saúde Adulta (USP, 2021)",
+      "idiomas": [
+        {"idioma": "Português", "nivel": "nativo", "fonte": "inferido"}
       ],
-      "salary_gross": 12086.06,
-      "salary_monthly_base": 10899.51,
-      "salary_net": 3425.41,
-      "salary_net_note": "Líquido reduzido por adiantamento (R$3.633,17) e desconto de férias (R$2.529,63) no período 202602",
-      "salary_period": "202602",
-      "salary_source": "holerite",
-      "deductions_inss": 988.07,
-      "deductions_irrf": 1447.57,
-      "fgts_deposited": 950.62,
-      "benefits": {
-        "insalubrity_20pct": 270.17,
-        "seguro_vida": 27.41
+      "experiencias": [
+        {"empresa": "Hospital Israelita Albert Einstein", "cargo": "Enfermeiro", "tipo_vinculo": "CLT", "data_inicio": "2018-01", "data_fim": "presente"},
+        {"empresa": "Hospital Israelita Albert Einstein — UPA Campo Limpo", "cargo": "Enfermeiro", "tipo_vinculo": "CLT", "data_inicio": "2014-08", "data_fim": "2018-06"},
+        {"empresa": "Faculdade Israelita Albert Einstein", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2021-01", "data_fim": "2024-12"},
+        {"empresa": "Senac São Paulo", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2012-01", "data_fim": "2016-01"},
+        {"empresa": "Faculdade Sequencial", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2013-01", "data_fim": "2015-08"},
+        {"empresa": "Hospital Municipal Dr. Moysés Deutsch", "cargo": "Enfermeira", "tipo_vinculo": "CLT", "data_inicio": "2011-01", "data_fim": "2014-01"}
+      ],
+      "salario": {
+        "bruto": 12086.06,
+        "liquido": 3425.41,
+        "periodo_referencia": "2026-02",
+        "fonte": "holerite",
+        "nota": "Líquido atipicamente baixo: contém adiantamento (R$3.633,17) e desconto de férias (R$2.529,63). Salário-base mensal normal: R$10.899,51."
       },
-      "documents_available": ["curriculo", "holerite"],
-      "tax_status": "BR"
+      "documentos_disponiveis": ["curriculo", "holerite"],
+      "status_fiscal": "BR",
+      "observacoes": "Holerite usa nome de solteira (Mariana Teixeira Ferreira) — esperado, conforme tabela NOMES do definitions.md. Cargo formal no holerite: Enfermeiro Pl (grade P4, categoria Enfermagem P)."
+    },
+    {
+      "id": "theo",
+      "nome_atual": "Theo Ferreira Campos",
+      "nomes_alternativos": [],
+      "cpf": null,
+      "data_nascimento": "2025-07-18",
+      "papel_familia": "Filho",
+      "empregador_atual": null,
+      "cargo_atual": null,
+      "tipo_vinculo": null,
+      "data_admissao": null,
+      "formacao_maxima": null,
+      "idiomas": [],
+      "experiencias": [],
+      "salario": {
+        "bruto": null,
+        "liquido": null,
+        "periodo_referencia": null,
+        "fonte": null,
+        "nota": null
+      },
+      "documentos_disponiveis": [],
+      "status_fiscal": "BR+US",
+      "observacoes": "Dupla cidadania BR/US. Sem documentos processados neste ciclo."
     }
   ]
 }

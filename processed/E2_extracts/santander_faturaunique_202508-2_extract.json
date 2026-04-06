@@ -7,7 +7,7 @@
   "data_vencimento": "2025-08-15",
   "saldo_anterior": 5319.01,
   "total_compras": 737.62,
-  "pagamentos": 5319.01,
+  "pagamentos": -5319.01,
   "saldo_atual": 4542.98,
   "transacoes": [
     {
@@ -17,7 +17,7 @@
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
     },
     {
-      "data": null,
+      "data": "2025-08-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 3.11,
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
@@ -34,7 +34,7 @@
       }
     },
     {
-      "data": null,
+      "data": "2025-08-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 4.15,
       "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
@@ -67,7 +67,7 @@
       }
     },
     {
-      "data": null,
+      "data": "2025-08-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 37.21,
       "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
@@ -84,7 +84,7 @@
       }
     },
     {
-      "data": null,
+      "data": "2025-08-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 24.21,
       "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
@@ -107,7 +107,7 @@
       }
     },
     {
-      "data": null,
+      "data": "2025-08-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 30.6,
       "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
@@ -124,7 +124,7 @@
       }
     },
     {
-      "data": null,
+      "data": "2025-08-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 33.9,
       "cartao": "RUBENS DE CAMPOS - 5228 XXXX XXXX 2028",
@@ -137,5 +137,6 @@
       "cartao": "SONIA C C DE CAMPOS - 5228 XXXX XXXX 6006"
     }
   ],
-  "cartoes": []
+  "cartoes": [],
+  "parse_quality": "ok"
 }

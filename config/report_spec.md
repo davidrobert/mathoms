@@ -1,5 +1,5 @@
 # Report Spec — Pipeline Ferreira Campos
-## Versão: 5.2 — abr/2026
+## Versão: 5.3 — abr/2026
 
 ---
 
@@ -184,7 +184,7 @@ Portanto, ao gerar o conteúdo dos placeholders:
 | ID | Seção | Conteúdo principal |
 |---|---|---|
 | `secao-1` | Visão Geral Patrimonial | Doughnut patrimônio (de `patrimonio-3_unified.json`: imóveis, veículos, investimentos, criptos, contas, empresas) + waterfall meta IF + card **Reserva de Emergência** (obrigatório — 3 critérios: mínimo, conforto, conservador; cálculos de `reserva_emergencia` do E4) + reserva oportunidade + card quitação + card **Endividamento** (obrigatório — relação dívida/patrimônio, composição, cronograma quitação; de `endividamento` do E4) |
-| `secao-2` | Fluxo de Caixa e Orçamento | Receita 7 camadas + despesas doughnut + **Receita vs Despesa mês a mês** (stacked bar `chart-receita-despesa-mensal`: 3 stacks receita PJ/CLT/Aluguéis + 1 stack despesa s/ financeiro, Mai/25–Mar/26, fonte: receitas + despesas E3 monthly_breakdown) + score gauge (5 faixas + needle) + **Orçamento Prospectivo** (card obrigatório `.card-feature`, tabela 13+ categorias com tetos de `definitions.md`, fonte: `orcamento_prospectivo` do E4) + **Consumo Consciente** (card obrigatório) + **Diagnóstico de Comportamento Financeiro** (card obrigatório, tabela Padrão/Evidência/Mudança, fonte: `diagnostico_comportamental[]` do E4) |
+| `secao-2` | Fluxo de Caixa e Orçamento | Receita 7 camadas + despesas doughnut + **Receita vs Despesa mês a mês** (stacked bar `chart-receita-despesa-mensal`: 3 stacks receita PJ/CLT/Aluguéis + 1 stack despesa s/ financeiro, período dinâmico do fluxo_mensal_detalhado, fonte: receitas + despesas E3 monthly_breakdown) + score gauge (5 faixas + needle) + **Orçamento Prospectivo** (card obrigatório `.card-feature`, tabela 13+ categorias com tetos de `definitions.md`, fonte: `orcamento_prospectivo` do E4) + **Consumo Consciente** (card obrigatório) + **Diagnóstico de Comportamento Financeiro** (card obrigatório, tabela Padrão/Evidência/Mudança, fonte: `diagnostico_comportamental[]` do E4) |
 | `secao-3` | Investimentos e Rendimentos | 3.1 Rentabilidade (4 KPIs + benchmark acumulado) · 3.2 Estratégia aporte (R$22,3k: R$20k investimentos + R$1,8k PGBL + R$500 DCA Crypto + **Contrafluxo AUVP** — quadro didático Selic↑→Prefixado, Selic↓→IPCA+, regra prática + coluna liquidez + nota validação vs alocação alvo) · 3.3 Card **Ações Diretas — Rico** (tabela: Ativo/Qtd/PM/Cotação/Valor/P&L/Situação — dados de `rico_investimentosposicao`, PM de `lots` no E3 ou IRPF, total + notas de lote) · 3.4 Análise ativos (top 15 + fundamentalista PM/lotes + marcação mercado IPCA+ + crypto 1% + FIIs ref.) · 3.5 Consolidação corretoras |
 | `secao-4` | Imóveis e Bens | Card **Patrimônio Imobiliário** (tabela #/Imóvel/Área/Dono/Compra/IRPF/Aluguel/Status + linha resumo com totais) + yield vs CDI + custo oportunidade + simulação Barão→FIIs + 5 FIIs referência com disclaimer. Fonte: `patrimonio-3_unified.json` / `imoveis-3_unified.json` + XLSX + IRPF |
 | `secao-5` | F1/F2 EUA | Stacked bar custos USD + checklist status DECIDIDO/PENDENTE |

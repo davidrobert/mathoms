@@ -16,31 +16,66 @@ def analyze_financials():
     despesas_path = str(base / "processed" / "E4_unified" / "despesas-4_unified.json")
     
     # Read files
-    with open(receitas_path, 'r', encoding='utf-8') as f:
-        receitas = json.load(f)
+    try:
+        with open(receitas_path, 'r', encoding='utf-8') as f:
+            receitas = json.load(f)
+    except FileNotFoundError:
+        print(f"[ERROR] Arquivo não encontrado: {receitas_path}")
+        print("  Execute e4_categorize.py primeiro.")
+        import sys
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"[ERROR] JSON malformado em {receitas_path}: {e}")
+        import sys
+        sys.exit(1)
+
+    try:
+        with open(despesas_path, 'r', encoding='utf-8') as f:
+            despesas = json.load(f)
+    except FileNotFoundError:
+        print(f"[ERROR] Arquivo não encontrado: {despesas_path}")
+        print("  Execute e4_categorize.py primeiro.")
+        import sys
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"[ERROR] JSON malformado em {despesas_path}: {e}")
+        import sys
+        sys.exit(1)
     
-    with open(despesas_path, 'r', encoding='utf-8') as f:
-        despesas = json.load(f)
-    
-    # Define period
-    months_list = [
-        '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12',
-        '2026-01', '2026-02', '2026-03'
-    ]
+    # Derive period dynamically from available data
+    all_months = set()
+    for fonte_data in receitas.get('por_fonte', {}).values():
+        all_months.update(fonte_data.get('por_mes', {}).keys())
+    for cat_data in despesas.get('por_categoria', {}).values():
+        all_months.update(cat_data.get('por_mes', {}).keys())
+    months_list = sorted(all_months) if all_months else []
     
     # ===== RECEITAS ANALYSIS =====
     por_fonte = receitas.get('por_fonte', {})
+    # FIXME: Lista hardcoded — manter sincronizada com e4_categorize.py PJ_SOURCE_MAPPING
     pj_sources = ['arvo', 'pj_nao_identificado', 'arbitralis', 'barte', 'brandlovers', 'cnry_canary', 'learntofly']
     non_pj_sources = ['quintoandar']
-    
+    unknown_sources = set()
+
     monthly_receitas = defaultdict(lambda: {'PJ': 0, 'CLT + Alugueis': 0})
-    
+
     for fonte, fonte_data in por_fonte.items():
         por_mes = fonte_data.get('por_mes', {})
-        categoria = 'PJ' if fonte in pj_sources else 'CLT + Alugueis'
-        
+        fonte_lower = fonte.lower()
+        if fonte_lower in pj_sources:
+            categoria = 'PJ'
+        elif fonte_lower in non_pj_sources:
+            categoria = 'CLT + Alugueis'
+        else:
+            unknown_sources.add(fonte)
+            categoria = 'CLT + Alugueis'  # default
+
         for month, value in por_mes.items():
             monthly_receitas[month][categoria] += value
+
+    # Report any sources not in either list
+    if unknown_sources:
+        print(f"  [WARN] Fontes de receita não classificadas (defaulting para CLT+Alugueis): {unknown_sources}")
     
     # ===== DESPESAS ANALYSIS =====
     por_categoria = despesas.get('por_categoria', {})
@@ -54,8 +89,9 @@ def analyze_financials():
             monthly_despesas[month] += value
     
     # ===== OUTPUT =====
+    period_label = f"{months_list[0]} TO {months_list[-1]}" if months_list else "NO DATA"
     print("=" * 120)
-    print("E3 UNIFIED FINANCIAL ANALYSIS - MAY 2025 TO MARCH 2026")
+    print(f"E4 UNIFIED FINANCIAL ANALYSIS - {period_label}")
     print("=" * 120)
     
     print(f"\n{'Mês':<12} {'Receita PJ':<18} {'CLT + Alugueis':<18} {'Total Receita':<18} {'Despesas':<18} {'Saldo':<18}")
@@ -67,17 +103,17 @@ def analyze_financials():
     
     for month in months_list:
         pj = monthly_receitas[month].get('PJ', 0)
-        aluguel = monthly_receitas[month].get('CLT + Alugueis', 0)
-        total_rec = pj + aluguel
+        clt_aluguel = monthly_receitas[month].get('CLT + Alugueis', 0)
+        total_rec = pj + clt_aluguel
         desp = monthly_despesas.get(month, 0)
         saldo = total_rec - desp
-        
+
         total_pj += pj
-        total_aluguel += aluguel
+        total_aluguel += clt_aluguel
         total_despesas += desp
         
         if total_rec > 0 or desp > 0:
-            print(f"{month:<12} R$ {pj:>14,.2f}   R$ {aluguel:>14,.2f}   R$ {total_rec:>14,.2f}   R$ {desp:>14,.2f}   R$ {saldo:>14,.2f}")
+            print(f"{month:<12} R$ {pj:>14,.2f}   R$ {clt_aluguel:>14,.2f}   R$ {total_rec:>14,.2f}   R$ {desp:>14,.2f}   R$ {saldo:>14,.2f}")
     
     print("-" * 110)
     total_rec = total_pj + total_aluguel

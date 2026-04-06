@@ -7,7 +7,7 @@
   "data_vencimento": "2025-05-15",
   "saldo_anterior": 1180.02,
   "total_compras": 42.43,
-  "pagamentos": 1180.02,
+  "pagamentos": -1180.02,
   "saldo_atual": 252.13,
   "transacoes": [
     {
@@ -45,7 +45,7 @@
       }
     },
     {
-      "data": null,
+      "data": "2025-05-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 3.04,
       "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
@@ -62,12 +62,13 @@
       }
     },
     {
-      "data": null,
+      "data": "2025-05-15",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 4.04,
       "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
       "tipo_lancamento": "iof"
     }
   ],
-  "cartoes": []
+  "cartoes": [],
+  "parse_quality": "ok"
 }

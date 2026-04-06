@@ -1,14 +1,3 @@
 {
-  "consolidation_date": "2026-04-04T22:12:27.739688",
-  "seguros": [
-    {
-      "tipo": "Seguro de vida",
-      "seguradora": "Einstein (CLT)",
-      "titular": "Mariana",
-      "premio_mensal": 27.41,
-      "cobertura": "Vida",
-      "status": "Ativo",
-      "fonte": "Holerite fev/2026"
-    }
-  ]
+  "dados": []
 }

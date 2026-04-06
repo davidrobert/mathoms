@@ -36,7 +36,32 @@
       "descricao": "AMAZON MKTPL*A510Y5UY3",
       "valor": 894.84,
       "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "AMAZON MKTPLACE PMTS -",
+      "valor": 90.86,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "ESTORNO CUSTO DE IOF -",
+      "valor": 3.16,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "AMAZON MKTPLACE PMTS -",
+      "valor": 396.11,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "ESTORNO CUSTO DE IOF -",
+      "valor": 13.89,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
     }
   ],
-  "numero_cartao": "4771.XXXX.XXXX.5739"
+  "numero_cartao": "4771.XXXX.XXXX.5739",
+  "parse_quality": "ok"
 }

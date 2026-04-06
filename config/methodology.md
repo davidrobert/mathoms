@@ -1,5 +1,5 @@
 # Methodology — Pipeline Ferreira Campos
-## Versão: 5.2 — abr/2026
+## Versão: 5.3 — abr/2026
 
 ---
 
@@ -7,7 +7,7 @@
 
 Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada na metodologia "Viver de Renda", enriquecida com:
 
-- **Gustavo Cerbasi** — comportamento financeiro, equilíbrio presente × futuro
+- **Gustavo Cerbasi / Inteligência Financeira** — comportamento financeiro, equilíbrio presente × futuro
 - **Raul Sena / AUVP** — análise fundamentalista, contrafluxo, FIIs
 
 Combinações obrigatórias:

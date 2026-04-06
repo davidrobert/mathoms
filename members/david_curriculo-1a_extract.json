@@ -1,66 +1,145 @@
 {
-  "full_name": "David Robert Camargo Ferreira Campos",
-  "profession_current_role": "Chief Technology Officer (CTO) at Arvo",
-  "professional_experiences": [
+  "tipo": "curriculo",
+  "membro": "david",
+  "nome_completo": "David Robert Camargo Ferreira Campos",
+  "nome_atual": "David Robert Camargo Ferreira Campos",
+  "profissao_cargo": "Chief Technology Officer (CTO) na Arvo",
+  "experiencias": [
     {
-      "dates": "September 2025 - Current",
-      "title": "Chief Technology Officer (CTO)",
-      "company": "Arvo",
-      "description": "AI-first healthcare technology company specializing in medical claims auditing and fraud detection"
+      "empresa": "Arvo",
+      "cargo": "Chief Technology Officer (CTO)",
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2025-09",
+      "data_fim": "presente",
+      "descricao": "Healthtech brasileira de auditoria de contas médicas e detecção de fraudes com IA. Dirige estratégia tecnológica, governança de IA e frameworks de cibersegurança (LGPD, HIPAA)."
     },
     {
-      "dates": "June 2024 - May 2025",
-      "title": "Chief Technology Officer (CTO)",
-      "company": "Kiwify",
-      "description": "E-commerce and digital products platform"
+      "empresa": "Kiwify",
+      "cargo": "Chief Technology Officer (CTO)",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2024-06",
+      "data_fim": "2025-05",
+      "descricao": "Plataforma de e-commerce e produtos digitais. Estruturou 5 squads, otimizou infra para 7.000 req/min, lançou vendas internacionais com multi-moeda."
     },
     {
-      "dates": "June 2019 - June 2024",
-      "title": "Software Engineering Consultant / Director of Software Engineering / Engineering Manager",
-      "company": "Loft",
-      "description": "Proptech company in real estate market transformation"
+      "empresa": "Loft",
+      "cargo": "Software Engineering Consultant",
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2022-12",
+      "data_fim": "2024-06",
+      "descricao": "Proptech. Gestão de +60 engenheiros, integração tecnológica CrediHome/CredPago, redução de custos cloud em 30%."
     },
     {
-      "dates": "August 2013 - July 2020",
-      "title": "Chief Technology Officer (CTO)",
-      "company": "Elo7",
-      "description": "Brazilian e-commerce platform for creative and handmade products"
+      "empresa": "Loft",
+      "cargo": "Director of Software Engineering",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2021-11",
+      "data_fim": "2022-12",
+      "descricao": "Recrutamento e onboarding de +70 engenheiros, migração para microservices, implementação LGPD."
+    },
+    {
+      "empresa": "Loft",
+      "cargo": "Engineering Manager",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2019-06",
+      "data_fim": "2021-10",
+      "descricao": "Liderou squads cross-funcionais, definiu princípios de engenharia, reduziu turnover em 20%."
+    },
+    {
+      "empresa": "Elo7",
+      "cargo": "Chief Technology Officer (CTO)",
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2013-08",
+      "data_fim": "2020-07",
+      "descricao": "E-commerce de produtos criativos e artesanais. Gestão de 70 engenheiros, arquitetura microservices, redução de custos AWS em 35%."
+    },
+    {
+      "empresa": "Abril",
+      "cargo": "Solutions Architect I",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2012-03",
+      "data_fim": "2013-08",
+      "descricao": "Grupo de mídia. Arquitetura distribuída da plataforma Alexandria (Veja, Exame, Placar)."
+    },
+    {
+      "empresa": "TOTVS",
+      "cargo": "Research and Development Engineer IV",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2011-02",
+      "data_fim": "2012-03",
+      "descricao": "Desenvolvimento e manutenção de máquina virtual proprietária em C/C++/Assembly. Redução de 35% no consumo de memória."
+    },
+    {
+      "empresa": "NIC.br",
+      "cargo": "Software Engineer",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2006-04",
+      "data_fim": "2011-01",
+      "descricao": "Infraestrutura de internet do Brasil. Desenvolvimento DNSSHIM, servidor DNS proprietário com DNSSEC. Palestras em GTER, Campus Party."
+    },
+    {
+      "empresa": "Agência Estado",
+      "cargo": "Jr System Analyst / Trainee",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2002-06",
+      "data_fim": "2006-03",
+      "descricao": "Agência de notícias financeiras. Desenvolvimento de ferramentas para portal Estadão, sistema de visualização digital dos jornais."
     }
   ],
-  "education": [
+  "formacao": [
     {
-      "course": "Master in Computer Science - Artificial Intelligence",
-      "institution": "University of São Paulo (USP), Institute of Mathematics and Statistics (IME)",
-      "dates": "2008"
+      "instituicao": "Universidade de São Paulo (USP), Instituto de Matemática e Estatística (IME)",
+      "curso": "Mestrado em Ciência da Computação — Inteligência Artificial",
+      "grau": "mestrado",
+      "data_conclusao": "2008"
     },
     {
-      "course": "Bachelor of Computer Science",
-      "institution": "Pontifical Catholic University of São Paulo (PUC/SP)",
-      "dates": "2004"
+      "instituicao": "Pontifícia Universidade Católica de São Paulo (PUC/SP)",
+      "curso": "Bacharelado em Ciência da Computação",
+      "grau": "graduacao",
+      "data_conclusao": "2004"
     }
   ],
-  "skills": [
-    "Software Architecture",
-    "Platform Design",
+  "certificacoes": [
+    {
+      "nome": "Oracle Certified Professional, Java SE 5 Programmer",
+      "instituicao": "Oracle"
+    },
+    {
+      "nome": "Innovation Leadership",
+      "instituicao": "Massachusetts Institute of Technology (MIT)"
+    },
+    {
+      "nome": "Duolingo English Test",
+      "instituicao": "Duolingo"
+    }
+  ],
+  "habilidades": [
+    "Arquitetura de software",
+    "Platform design",
     "Domain-Driven Design (DDD)",
-    "Scalable High-Availability Systems",
+    "Sistemas escaláveis de alta disponibilidade",
     "Cloud Computing (AWS, GCP, Cloudflare)",
-    "Microservices Architecture",
-    "DevOps and CI/CD",
-    "AI/ML Integration",
-    "Security and Compliance (LGPD, HIPAA)",
-    "Technical Leadership",
-    "Team Management",
-    "Agile Methodologies (Scrum, Kanban)",
-    "Infrastructure Engineering",
-    "High-Transaction-Rate Web Services"
+    "Microservices",
+    "DevOps e CI/CD",
+    "Integração AI/ML",
+    "Segurança e compliance (LGPD, HIPAA)",
+    "Liderança técnica",
+    "Gestão de equipes (100+ engenheiros)",
+    "Agile (Scrum, Kanban)",
+    "Engenharia de infraestrutura",
+    "Java, Python, Go, Kotlin, C/C++, Ruby"
   ],
-  "languages": [
-    "Portuguese (Native)",
-    "English (Fluent)"
-  ],
-  "certifications": [
-    "Certified Scrum Master (CSM) - Scrum Alliance",
-    "AWS Certified Solutions Architect"
+  "idiomas": [
+    {
+      "idioma": "Português",
+      "nivel": "nativo",
+      "fonte": "documento"
+    },
+    {
+      "idioma": "Inglês",
+      "nivel": "fluente",
+      "fonte": "documento"
+    }
   ]
 }

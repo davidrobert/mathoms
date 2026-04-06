@@ -38,6 +38,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 INBOX_DIR = BASE_DIR / "inbox"
 OUTPUT_DIR = BASE_DIR / "processed" / "E2_extracts"
 
+# Load family member data for name matching in parsers
+def _load_family_config() -> dict:
+    _fm_path = BASE_DIR / "config" / "family_members.json"
+    if _fm_path.exists():
+        with open(_fm_path, "r", encoding="utf-8") as _f:
+            return json.load(_f)
+    return {}
+
+_FAMILY = _load_family_config()
+_TITULAR = _FAMILY.get("membros", {}).get("david", {})
+
 # Meses PT-BR → número
 MESES_BR = {
     'jan': '01', 'fev': '02', 'mar': '03', 'abr': '04',
@@ -76,11 +87,15 @@ def parse_brl(text: str) -> Optional[float]:
         return None
     text = text.strip().replace("R$", "").replace("US$", "").replace("EUR", "").strip()
     text = text.replace(" ", "")
-    # Handle negative: (-) 98,00 or -98,00
+    # Handle negative: (-) 98,00 or -98,00 or (1.234,56) contábil
     negative = False
     if text.startswith("(-)") or text.startswith("-"):
         negative = True
         text = text.lstrip("(-)").strip()
+    elif text.startswith("(") and text.endswith(")"):
+        # Formato contábil: (1.234,56) = negativo
+        negative = True
+        text = text[1:-1].strip()
     # Remove thousand separator dots, replace decimal comma
     text = text.replace(".", "").replace(",", ".")
     try:
@@ -98,31 +113,61 @@ def infer_year_from_filename(filename: str) -> Optional[int]:
     return None
 
 
+def safe_date(year: int, month: int, day: int) -> str:
+    """Retorna data ISO válida, ajustando dia se necessário."""
+    import calendar
+    if year < 1900 or year > 2100:
+        log("WARN", f"  Ano suspeito: {year}-{month:02d}-{day:02d}")
+        year = max(1900, min(2100, year))
+    if month < 1 or month > 12:
+        log("WARN", f"  Mês inválido: {year}-{month:02d}-{day:02d} → ajustado para mês 01")
+        month = 1
+    max_day = calendar.monthrange(year, month)[1]
+    if day > max_day:
+        log("WARN", f"  Data ajustada: {year}-{month:02d}-{day:02d} → dia {max_day}")
+        day = max_day
+    if day < 1:
+        log("WARN", f"  Data inválida: {year}-{month:02d}-{day:02d} → dia 1")
+        day = 1
+    return f"{year}-{month:02d}-{day:02d}"
+
+
 def resolve_date(day: int, month_str: str, ref_year: int, ref_month: int) -> str:
     """Resolve a date like '28 nov' given reference year/month of the fatura.
     If the month is after the fatura month, it's likely the previous year.
     """
+    if ref_year is None or ref_month is None:
+        month_num = int(MESES_BR.get(month_str.lower().strip(), '0'))
+        if month_num == 0:
+            log("WARN", f"  Sem ref_year/ref_month e mês não reconhecido: '{month_str}'")
+            return f"{ref_year or datetime.now().year}-01-{day:02d}"
+        return safe_date(ref_year or datetime.now().year, month_num, day)
+
     month_str_lower = month_str.lower().strip()
     month_num = int(MESES_BR.get(month_str_lower, '0'))
     if month_num == 0:
         # Try DD/MM format
-        return f"{ref_year}-{ref_month:02d}-{day:02d}"
+        return safe_date(ref_year, ref_month, day)
 
     year = ref_year
-    # If transaction month is significantly after fatura month, it's previous year
-    # e.g., fatura Mar(03), transaction Nov(11) → previous year
-    if month_num > ref_month + 1:
+    # Circular distance: handle year boundaries
+    # If transaction month is more than 6 months ahead circularly, assume previous year
+    forward_distance = (month_num - ref_month) % 12
+    if forward_distance > 6:
+        # Month is more than 6 months "ahead" circularly = likely previous year
         year -= 1
 
-    return f"{year}-{month_num:02d}-{day:02d}"
+    return safe_date(year, month_num, day)
 
 
 def resolve_date_ddmm(dd: int, mm: int, ref_year: int, ref_month: int) -> str:
     """Resolve DD/MM format given fatura reference."""
+    if ref_year is None or ref_month is None:
+        return safe_date(ref_year or datetime.now().year, mm, dd)
     year = ref_year
     if mm > ref_month + 1:
         year -= 1
-    return f"{year}-{mm:02d}-{dd:02d}"
+    return safe_date(year, mm, dd)
 
 
 # =============================================================================
@@ -157,165 +202,171 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
         ref_year = int(m.group(1))
         ref_month = int(m.group(2))
 
-    with pdfplumber.open(pdf_path) as pdf:
-        all_text = []
-        for page in pdf.pages:
-            text = page.extract_text()
-            if text:
-                all_text.append(text)
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            all_text = []
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    all_text.append(text)
 
-        full_text = "\n".join(all_text)
+            full_text = "\n".join(all_text)
 
-        # --- Extract header info ---
-        # Titular
-        m = re.search(r'(?:DAVID ROBERT\s+CAMARGO(?:\s+FERREIRA\s+CAMPOS)?)', full_text)
-        if m:
-            result["titular"] = "DAVID ROBERT CAMARGO FERREIRA CAMPOS"
+            # --- Extract header info ---
+            # Titular
+            _c6_regex = _TITULAR.get("regex_nome_fatura", {}).get("c6_carbon", r"DAVID ROBERT\s+CAMARGO(?:\s+FERREIRA\s+CAMPOS)?")
+            m = re.search(_c6_regex, full_text)
+            if m:
+                result["titular"] = _TITULAR.get("variantes_nome", ["DAVID ROBERT CAMARGO FERREIRA CAMPOS"])[0]
 
-        # Vencimento: "05 de Março" or "Vencimento: 05 de Março"
-        m = re.search(r'[Vv]encimento[:\s]+(\d{1,2})\s+de\s+(\w+)', full_text)
-        if m and ref_year:
-            day = int(m.group(1))
-            month_name = m.group(2).lower()
-            month_num = MESES_BR.get(month_name)
-            if month_num:
-                result["data_vencimento"] = f"{ref_year}-{month_num}-{day:02d}"
+            # Vencimento: "05 de Março" or "Vencimento: 05 de Março"
+            m = re.search(r'[Vv]encimento[:\s]+(\d{1,2})\s+de\s+(\w+)', full_text)
+            if m and ref_year:
+                day = int(m.group(1))
+                month_name = m.group(2).lower()
+                month_num = MESES_BR.get(month_name)
+                if month_num:
+                    result["data_vencimento"] = f"{ref_year}-{month_num}-{day:02d}"
 
-        # Valor total: "R$ 41.406,31" near "Valor da fatura"
-        m = re.search(r'Valor da fatura:\s*R\$\s*([\d.,]+)', full_text)
-        if m:
-            result["saldo_atual"] = parse_brl(m.group(1))
+            # Valor total: "R$ 41.406,31" near "Valor da fatura"
+            m = re.search(r'Valor da fatura:\s*R\$\s*([\d.,]+)', full_text)
+            if m:
+                result["saldo_atual"] = parse_brl(m.group(1))
 
-        # Limite total
-        m = re.search(r'Limite total:\s*R\$\s*([\d.,]+)', full_text)
-        if m:
-            result["limite_total"] = parse_brl(m.group(1))
+            # Limite total
+            m = re.search(r'Limite total:\s*R\$\s*([\d.,]+)', full_text)
+            if m:
+                result["limite_total"] = parse_brl(m.group(1))
 
-        # Resumo da fatura - compras nacionais/internacionais
-        m = re.search(r'Compras nacionais\s+([\d.,]+)', full_text)
-        if m:
-            result["total_compras_nacionais"] = parse_brl(m.group(1))
-        m = re.search(r'Compras internacionais\s+([\d.,]+)', full_text)
-        if m:
-            result["total_compras_internacionais"] = parse_brl(m.group(1))
+            # Resumo da fatura - compras nacionais/internacionais
+            m = re.search(r'Compras nacionais\s+([\d.,]+)', full_text)
+            if m:
+                result["total_compras_nacionais"] = parse_brl(m.group(1))
+            m = re.search(r'Compras internacionais\s+([\d.,]+)', full_text)
+            if m:
+                result["total_compras_internacionais"] = parse_brl(m.group(1))
 
-        # Estornos/créditos
-        m = re.search(r'Estornos\s*/\s*Crédito na Fatura\s+\(?\-?\)?\s*([\d.,]+)', full_text)
-        if m:
-            result["pagamentos"] = -parse_brl(m.group(1))
+            # Estornos/créditos
+            m = re.search(r'Estornos\s*/\s*Crédito na Fatura\s+\(?\-?\)?\s*([\d.,]+)', full_text)
+            if m:
+                result["pagamentos"] = -parse_brl(m.group(1))
 
-        # --- Extract transactions ---
-        # Pattern: "DD mmm  DESCRIPTION  [USD info | Cotação...]  VALUE"
-        # Transaction lines have format: "28 nov AIR EUROPA LINEAS AE - Parcela 3/3 2.747,60"
-        # or with forex: "01 fev HOTEL MUNDIAL USD 156,74 | Cotação USD: R$5,47 857,01"
+            # --- Extract transactions ---
+            # Pattern: "DD mmm  DESCRIPTION  [USD info | Cotação...]  VALUE"
+            # Transaction lines have format: "28 nov AIR EUROPA LINEAS AE - Parcela 3/3 2.747,60"
+            # or with forex: "01 fev HOTEL MUNDIAL USD 156,74 | Cotação USD: R$5,47 857,01"
 
-        current_card_name = None
-        current_card_subtotal = None
+            current_card_name = None
+            current_card_subtotal = None
 
-        tx_pattern = re.compile(
-            r'^(\d{1,2})\s+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s+'
-            r'(.+?)\s+'
-            r'([\d.,]+)\s*$',
-            re.MULTILINE
-        )
+            tx_pattern = re.compile(
+                r'^(\d{1,2})\s+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s+'
+                r'(.+?)\s+'
+                r'([\d.,]+)\s*$',
+                re.MULTILINE
+            )
 
-        # Card header: "C6 Carbon Virtual Final 5241 - DAVID ROBERT"
-        card_pattern = re.compile(
-            r'C6 Carbon\s+(?:Virtual\s+)?Final\s+(\d{4})\s*-\s*(.+?)(?:\s+Cartão|\s+Subtotal)',
-            re.IGNORECASE
-        )
+            # Card header: "C6 Carbon Virtual Final 5241 - DAVID ROBERT"
+            card_pattern = re.compile(
+                r'C6 Carbon\s+(?:Virtual\s+)?Final\s+(\d{4})\s*-\s*(.+?)(?:\s+Cartão|\s+Subtotal)',
+                re.IGNORECASE
+            )
 
-        subtotal_pattern = re.compile(
-            r'Subtotal deste cartão\s+R\$\s*([\d.,]+)',
-            re.IGNORECASE
-        )
+            subtotal_pattern = re.compile(
+                r'Subtotal deste cartão\s+R\$\s*([\d.,]+)',
+                re.IGNORECASE
+            )
 
-        cards_seen = {}
+            cards_seen = {}
 
-        for page in all_text:
-            lines = page.split('\n')
+            for page in all_text:
+                lines = page.split('\n')
 
-            for line in lines:
-                # Check for card header
-                card_m = card_pattern.search(line)
-                if card_m:
-                    current_card_name = f"C6 Carbon Final {card_m.group(1)} - {card_m.group(2).strip()}"
+                for line in lines:
+                    # Check for card header
+                    card_m = card_pattern.search(line)
+                    if card_m:
+                        current_card_name = f"C6 Carbon Final {card_m.group(1)} - {card_m.group(2).strip()}"
 
-                sub_m = subtotal_pattern.search(line)
-                if sub_m and current_card_name:
-                    current_card_subtotal = parse_brl(sub_m.group(1))
-                    if current_card_name not in cards_seen:
-                        cards_seen[current_card_name] = current_card_subtotal
+                    sub_m = subtotal_pattern.search(line)
+                    if sub_m and current_card_name:
+                        current_card_subtotal = parse_brl(sub_m.group(1))
+                        if current_card_name not in cards_seen:
+                            cards_seen[current_card_name] = current_card_subtotal
 
-                # Match transaction line
-                tx_m = tx_pattern.match(line.strip())
-                if tx_m:
-                    day = int(tx_m.group(1))
-                    month_str = tx_m.group(2)
-                    raw_desc = tx_m.group(3).strip()
-                    valor = parse_brl(tx_m.group(4))
+                    # Match transaction line
+                    tx_m = tx_pattern.match(line.strip())
+                    if tx_m:
+                        day = int(tx_m.group(1))
+                        month_str = tx_m.group(2)
+                        raw_desc = tx_m.group(3).strip()
+                        valor = parse_brl(tx_m.group(4))
 
-                    if valor is None:
-                        continue
+                        if valor is None:
+                            continue
 
-                    # Resolve date
-                    date_str = resolve_date(day, month_str, ref_year, ref_month)
+                        # Resolve date
+                        date_str = resolve_date(day, month_str, ref_year, ref_month)
 
-                    # Parse forex info from description
-                    forex_info = None
-                    parcela = None
-                    descricao = raw_desc
+                        # Parse forex info from description
+                        forex_info = None
+                        parcela = None
+                        descricao = raw_desc
 
-                    # Extract forex: "USD 156,74 | Cotação USD: R$5,47"
-                    forex_m = re.search(
-                        r'(USD|EUR)\s+([\d.,]+)\s*\|\s*Cotação\s+\w+:\s*R\$\s*([\d.,]+)',
-                        raw_desc
-                    )
-                    if forex_m:
-                        forex_info = {
-                            "moeda_original": forex_m.group(1),
-                            "valor_original": parse_brl(forex_m.group(2)),
-                            "cotacao": parse_brl(forex_m.group(3)),
+                        # Extract forex: "USD 156,74 | Cotação USD: R$5,47"
+                        forex_m = re.search(
+                            r'(USD|EUR)\s+([\d.,]+)\s*\|\s*Cotação\s+\w+:\s*R\$\s*([\d.,]+)',
+                            raw_desc
+                        )
+                        if forex_m:
+                            forex_info = {
+                                "moeda_original": forex_m.group(1),
+                                "valor_original": parse_brl(forex_m.group(2)),
+                                "cotacao": parse_brl(forex_m.group(3)),
+                            }
+                            descricao = raw_desc[:forex_m.start()].strip()
+
+                        # IOF marker
+                        iof_m = re.search(r'IOF Transações Exterior', raw_desc)
+                        if iof_m:
+                            descricao = raw_desc[:iof_m.start()].strip()
+                            if not descricao:
+                                # IOF line without merchant name - use previous tx's merchant
+                                descricao = "IOF Transações Exterior"
+
+                        # Extract parcela: "- Parcela 3/3"
+                        parcela_m = re.search(r'-\s*Parcela\s+(\d+/\d+)', raw_desc)
+                        if parcela_m:
+                            parcela = parcela_m.group(1)
+                            descricao = raw_desc[:parcela_m.start()].strip()
+
+                        tx = {
+                            "data": date_str,
+                            "descricao": descricao,
+                            "valor": valor,
+                            "cartao": current_card_name,
                         }
-                        descricao = raw_desc[:forex_m.start()].strip()
+                        if parcela:
+                            tx["parcela"] = parcela
+                        if forex_info:
+                            tx["forex"] = forex_info
+                        if iof_m and not forex_m:
+                            tx["tipo_lancamento"] = "iof"
 
-                    # IOF marker
-                    iof_m = re.search(r'IOF Transações Exterior', raw_desc)
-                    if iof_m:
-                        descricao = raw_desc[:iof_m.start()].strip()
-                        if not descricao:
-                            # IOF line without merchant name - use previous tx's merchant
-                            descricao = "IOF Transações Exterior"
+                        result["transacoes"].append(tx)
 
-                    # Extract parcela: "- Parcela 3/3"
-                    parcela_m = re.search(r'-\s*Parcela\s+(\d+/\d+)', raw_desc)
-                    if parcela_m:
-                        parcela = parcela_m.group(1)
-                        descricao = raw_desc[:parcela_m.start()].strip()
+            # Build cards summary
+            for card_name, subtotal in cards_seen.items():
+                result["cartoes"].append({
+                    "cartao": card_name,
+                    "subtotal": subtotal,
+                })
 
-                    tx = {
-                        "data": date_str,
-                        "descricao": descricao,
-                        "valor": valor,
-                        "cartao": current_card_name,
-                    }
-                    if parcela:
-                        tx["parcela"] = parcela
-                    if forex_info:
-                        tx["forex"] = forex_info
-                    if iof_m and not forex_m:
-                        tx["tipo_lancamento"] = "iof"
+        log("INFO", f"  → {len(result['transacoes'])} transações extraídas")
+    except Exception as e:
+        log("ERROR", f"  Falha ao abrir PDF {pdf_path.name}: {e}")
+        return {"erro": str(e), "requires_llm_fallback": True, "tipo": "fatura"}
 
-                    result["transacoes"].append(tx)
-
-        # Build cards summary
-        for card_name, subtotal in cards_seen.items():
-            result["cartoes"].append({
-                "cartao": card_name,
-                "subtotal": subtotal,
-            })
-
-    log("INFO", f"  → {len(result['transacoes'])} transações extraídas")
     return result
 
 
@@ -349,24 +400,26 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
         "cartoes": [],
     }
 
-    with pdfplumber.open(pdf_path) as pdf:
-        all_text = []
-        for page in pdf.pages:
-            text = page.extract_text()
-            if text:
-                all_text.append(text)
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            all_text = []
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    all_text.append(text)
 
-        full_text = "\n".join(all_text)
+            full_text = "\n".join(all_text)
 
-        # --- Header ---
-        m = re.search(r'(DAVID ROBERT CAMARGO FERREIR\w*(?:\s+CAMPOS)?)', full_text)
-        if m:
-            result["titular"] = m.group(1).strip()
+            # --- Header ---
+            _unique_regex = _TITULAR.get("regex_nome_fatura", {}).get("santander_unique", r"DAVID ROBERT CAMARGO FERREIR\w*(?:\s+CAMPOS)?")
+            m = re.search(_unique_regex, full_text)
+            if m:
+                result["titular"] = m.group(0).strip()
 
-        # Total a Pagar + Vencimento: Santander layout has headers on one line,
-        # values on another: "Total a Pagar  Vencimento  Melhor Data..."
-        #                    "R$ 372,85      15/01/2026  10/02/2026"
-        m = re.search(r'R\$\s*([\d.,]+)\s+(\d{2}/\d{2}/\d{4})\s+\d{2}/\d{2}/\d{4}', full_text)
+            # Total a Pagar + Vencimento: Santander layout has headers on one line,
+            # values on another: "Total a Pagar  Vencimento  Melhor Data..."
+            #                    "R$ 372,85      15/01/2026  10/02/2026"
+            m = re.search(r'R\$\s*([\d.,]+)\s+(\d{2}/\d{2}/\d{4})\s+\d{2}/\d{2}/\d{4}', full_text)
         if m:
             result["saldo_atual"] = parse_brl(m.group(1))
             venc_parts = m.group(2).split("/")
@@ -382,12 +435,17 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
             m = re.search(r'Total a Pagar\s*\n?\s*R\$\s*([\d.,]+)', full_text)
             if m:
                 result["saldo_atual"] = parse_brl(m.group(1))
-        if result["data_vencimento"] is None:
-            m = re.search(r'(\d{2}/\d{2}/\d{4})', full_text)
-            if m:
-                venc_parts = m.group(1).split("/")
-                if len(venc_parts) == 3:
-                    result["data_vencimento"] = f"{venc_parts[2]}-{venc_parts[1]}-{venc_parts[0]}"
+        if result["data_vencimento"] is None and ref_year and ref_month:
+            # Fallback: buscar data DD/MM/YYYY que seja coerente com ref_year/ref_month
+            candidates = re.findall(r'(\d{2})/(\d{2})/(\d{4})', full_text)
+            for dd, mm, yyyy in candidates:
+                if int(yyyy) == ref_year and int(mm) == ref_month:
+                    result["data_vencimento"] = f"{yyyy}-{mm}-{dd}"
+                    break
+            # Se nenhuma data do mês correto, usar ref_year-ref_month-15 como estimativa
+            if result["data_vencimento"] is None:
+                result["data_vencimento"] = f"{ref_year}-{ref_month:02d}-15"
+                log("WARN", f"  Vencimento estimado (sem match exato): {result['data_vencimento']}")
 
         # Saldo Anterior
         m = re.search(r'Saldo Anterior\s+([\d.,]+)', full_text)
@@ -399,10 +457,11 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
         if m:
             result["total_compras"] = parse_brl(m.group(1))
 
-        # Total pagamentos
+        # Total pagamentos (sempre negativo por convenção — reduzem saldo da fatura)
         m = re.search(r'Total de pagamentos\s+([\d.,]+)', full_text)
         if m:
-            result["pagamentos"] = parse_brl(m.group(1))
+            val = parse_brl(m.group(1))
+            result["pagamentos"] = -abs(val) if val else None
 
         # --- Transactions by card holder ---
         # pdfplumber merges left+right columns into single lines, so we need
@@ -449,8 +508,14 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
             if 'IOF DESPESA NO EXTERIOR' in line and not re.match(r'\s*\d{2}/\d{2}', line):
                 iof_m = re.search(r'IOF DESPESA NO EXTERIOR\s+([\d.,]+)', line)
                 if iof_m:
+                    # IOF has no date in the PDF; prefer date of preceding transaction
+                    iof_date = result.get("data_vencimento")
+                    if result.get("transacoes") and len(result["transacoes"]) > 0:
+                        last_tx = result["transacoes"][-1]
+                        if last_tx.get("data"):
+                            iof_date = last_tx["data"]
                     result["transacoes"].append({
-                        "data": None,
+                        "data": iof_date,
                         "descricao": "IOF DESPESA NO EXTERIOR",
                         "valor": parse_brl(iof_m.group(1)),
                         "cartao": current_card,
@@ -496,7 +561,11 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
                 result["transacoes"].append(tx)
 
-    log("INFO", f"  → {len(result['transacoes'])} transações extraídas")
+        log("INFO", f"  → {len(result['transacoes'])} transações extraídas")
+    except Exception as e:
+        log("ERROR", f"  Falha ao abrir PDF {pdf_path.name}: {e}")
+        return {"erro": str(e), "requires_llm_fallback": True, "tipo": "fatura"}
+
     return result
 
 
@@ -536,8 +605,9 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
         "compras_parceladas_futuras": [],
     }
 
-    with pdfplumber.open(pdf_path) as pdf:
-        all_text = []
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            all_text = []
         for page in pdf.pages:
             text = page.extract_text()
             if text:
@@ -546,7 +616,8 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
         full_text = "\n".join(all_text)
 
         # --- Header ---
-        m = re.search(r'(?:Titular\s+)?(DAVID ROBERT CAMARGO DE CAMPOS)', full_text)
+        _itau_regex = _TITULAR.get("regex_nome_fatura", {}).get("itau_paoacucar", r"(?:Titular\s+)?(DAVID ROBERT CAMARGO DE CAMPOS)")
+        m = re.search(_itau_regex, full_text)
         if m:
             result["titular"] = m.group(1)
 
@@ -563,9 +634,11 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
         if m:
             result["saldo_anterior"] = parse_brl(m.group(1))
 
+        # Pagamentos (sempre negativo por convenção)
         m = re.search(r'Pagamento efetuado em \d+/\d+/\d+\s+(-?\s*[\d.,]+)', full_text)
         if m:
-            result["pagamentos"] = parse_brl(m.group(1))
+            val = parse_brl(m.group(1))
+            result["pagamentos"] = -abs(val) if val else None
 
         m = re.search(r'Lançamentos atuais\s+([\d.,]+)', full_text)
         if m:
@@ -607,16 +680,32 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 in_lancamentos = True
                 in_parceladas = False
                 continue
+            if 'Lançamentos internacionais' in line:
+                # Seção internacional é parte dos lançamentos atuais
+                in_lancamentos = True
+                in_parceladas = False
+                continue
             if 'Compras parceladas' in line and 'próximas faturas' in line:
                 in_lancamentos = False
                 in_parceladas = True
                 continue
-            if any(s in line for s in ['Limites de crédito', 'Fique atento', 'Continua...',
-                                        'Pagamentos em', 'lojas são aceitos', 'apenas em dinheiro',
-                                        'cartão de débito', 'Não são aceitos']):
-                in_lancamentos = False
-                in_parceladas = False
-                continue
+            # Stop markers — mas apenas se a linha NÃO contém também um card header
+            # ou transação (pdfplumber merge de colunas pode colocar stop markers
+            # na mesma linha que dados válidos)
+            has_card_header = bool(re.search(r'\(final\s+\d+\)', line))
+            has_tx_date = bool(re.match(r'\s*(?:@\s*)?\d{2}/\d{2}\s', line.strip()))
+            if not has_card_header and not has_tx_date:
+                if any(s in line for s in ['Fique atento', 'Continua...',
+                                            'Pagamentos em', 'lojas são aceitos', 'apenas em dinheiro',
+                                            'cartão de débito', 'Não são aceitos']):
+                    in_lancamentos = False
+                    in_parceladas = False
+                    continue
+                # "Limites de crédito" sozinho (não embutido em right-column junk)
+                if re.match(r'^\s*Limites de crédito\s*$', line):
+                    in_lancamentos = False
+                    in_parceladas = False
+                    continue
 
             if not (in_lancamentos or in_parceladas):
                 continue
@@ -625,7 +714,7 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
             card_m = re.search(r'([A-Z][\w\s]+)\(final\s+(\d+)\)', line)
             if card_m:
                 current_card = f"{card_m.group(1).strip()} (final {card_m.group(2)})"
-                continue
+                # Don't continue — line might also contain tx data from right-column merge
 
             # TRY TRANSACTION MATCH FIRST (before skips), because pdfplumber
             # merges right-column text (Encargos) onto transaction lines.
@@ -663,7 +752,7 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     raw_desc = tx_m.group(2).strip()
                     valor = parse_brl(tx_m.group(3))
 
-                    if valor is not None and valor > 0:
+                    if valor is not None and valor != 0:
                         date_str = resolve_date_ddmm(int(dd), int(mm_str), ref_year, ref_month)
                         tx = {
                             "data": date_str,
@@ -676,7 +765,11 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
                         else:
                             result["transacoes"].append(tx)
 
-    log("INFO", f"  → {len(result['transacoes'])} transações, {len(result['compras_parceladas_futuras'])} parceladas futuras")
+        log("INFO", f"  → {len(result['transacoes'])} transações, {len(result['compras_parceladas_futuras'])} parceladas futuras")
+    except Exception as e:
+        log("ERROR", f"  Falha ao abrir PDF {pdf_path.name}: {e}")
+        return {"erro": str(e), "requires_llm_fallback": True, "tipo": "fatura"}
+
     return result
 
 
@@ -710,10 +803,11 @@ def parse_quintoandar(pdf_path: Path, filename: str) -> Dict[str, Any]:
         "data_recebimento": None,
     }
 
-    with pdfplumber.open(pdf_path) as pdf:
-        all_text = []
-        for page in pdf.pages:
-            text = page.extract_text()
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            all_text = []
+            for page in pdf.pages:
+                text = page.extract_text()
             if text:
                 all_text.append(text)
 
@@ -741,29 +835,32 @@ def parse_quintoandar(pdf_path: Path, filename: str) -> Dict[str, Any]:
             r'(.+?)\s+(-?R\$\s*[\d.,]+)',
         )
 
-        for line in full_text.split('\n'):
-            # Skip headers and non-item lines
-            if any(s in line for s in ['Total de', 'Recebido', 'Receber até', 'Faturas de aluguel',
-                                        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-                                        'Ver detalhes', 'Data de recebimento', 'Você recebe',
-                                        'semana', 'anterior', 'Nota fiscal', 'Consulte', 'Acessar',
-                                        'Precisa de ajuda', 'dúvidas', 'QuintoAndar']):
-                continue
+        # Headers/footers a rejeitar SOMENTE se não houver match de item válido
+        SKIP_EXACT = {'total de', 'subtotal', 'você recebe', 'recebido'}
 
-            item_m = item_pattern.match(line.strip())
+        for line in full_text.split('\n'):
+            stripped = line.strip()
+            # Tentar match primeiro — antes de aplicar skip-list
+            item_m = item_pattern.match(stripped)
             if item_m:
                 desc = item_m.group(1).strip()
                 valor_str = item_m.group(2).strip()
                 valor = parse_brl(valor_str)
 
                 if valor is not None and desc and len(desc) > 3:
+                    # Rejeitar apenas descrições que são claramente headers
+                    if desc.lower().strip() in SKIP_EXACT:
+                        continue
                     result["itens"].append({
                         "descricao": desc,
                         "valor": valor,
                     })
 
-    log("INFO", f"  → {len(result['itens'])} itens extraídos")
+        log("INFO", f"  → {len(result['itens'])} itens extraídos")
+    except Exception as e:
+        log("ERROR", f"  Falha ao abrir PDF {pdf_path.name}: {e}")
+        return {"erro": str(e), "requires_llm_fallback": True, "tipo": "fatura"}
+
     return result
 
 
@@ -793,6 +890,29 @@ def generate_llm_fallback(pdf_path: Path, filename: str) -> Dict[str, Any]:
         "transacoes": [],
         "nota": "Banco/formato não reconhecido pelo parser determinístico. Requer processamento LLM.",
     }
+
+
+# =============================================================================
+# Post-parse validation
+# =============================================================================
+
+def validate_parse_result(result: Dict[str, Any], filename: str) -> Dict[str, Any]:
+    """Adiciona metadata de qualidade ao resultado do parse."""
+    saldo = result.get("saldo_atual") or 0
+    txns = len(result.get("transacoes", []))
+    itens = len(result.get("itens", []))
+    venc = result.get("data_vencimento", "")
+
+    if saldo == 0 and txns == 0 and itens == 0 and not venc:
+        result["parse_quality"] = "empty_result"
+        log("WARN", f"  Resultado completamente vazio para {filename} — verificar PDF")
+    elif saldo > 0 and txns == 0 and itens == 0:
+        result["parse_quality"] = "missing_transactions"
+        log("WARN", f"  Saldo R$ {saldo:.2f} mas 0 transações para {filename}")
+    else:
+        result["parse_quality"] = "ok"
+
+    return result
 
 
 # =============================================================================
@@ -846,11 +966,15 @@ def main():
         files = []
         for p in sorted(INBOX_DIR.glob("*fatura*-0_original.pdf")):
             files.append(p)
-        # Also check for non-renamed files
+        # Warn about non-renamed files (missing -0_original suffix)
+        non_standard = []
         for p in sorted(INBOX_DIR.glob("*fatura*.pdf")):
-            if "-0_original" not in p.name and p not in files:
-                # Skip if a -0_original version exists
-                pass  # We only process -0_original versions
+            if "-0_original" not in p.name:
+                non_standard.append(p.name)
+        if non_standard:
+            log("WARN", f"{len(non_standard)} arquivo(s) fatura sem sufixo -0_original (ignorados):")
+            for name in non_standard:
+                log("WARN", f"  → {name}")
 
     if not files:
         log("WARN", "Nenhuma fatura encontrada para processar.")
@@ -871,6 +995,10 @@ def main():
                 log("WARN", f"  Skipped: {filename}")
                 continue
 
+            # Validate parse quality
+            if not result.get("requires_llm_fallback"):
+                result = validate_parse_result(result, filename)
+
             # Count transactions
             txn_count = len(result.get("transacoes", []))
             txn_count += len(result.get("itens", []))  # QuintoAndar
@@ -883,9 +1011,8 @@ def main():
 
             # Generate output filename
             # e.g., c6bank_faturacarbon_202603-0_original.pdf → c6bank_faturacarbon_202603-2_extract.json
-            out_name = re.sub(r'-0_original\.pdf$', '-2_extract.json', filename)
-            if out_name == filename:
-                out_name = filename.replace('.pdf', '-2_extract.json')
+            # Robusto: remove qualquer variação de -0_original antes de .pdf
+            out_name = re.sub(r'(-0_original)?\.pdf$', '-2_extract.json', filename, flags=re.IGNORECASE)
 
             out_path = output_dir / out_name
 

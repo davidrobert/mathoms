@@ -18,5 +18,6 @@
     }
   ],
   "compras_parceladas_futuras": [],
-  "numero_cartao": "4771.XXXX.XXXX.5739"
+  "numero_cartao": "4771.XXXX.XXXX.5739",
+  "parse_quality": "ok"
 }

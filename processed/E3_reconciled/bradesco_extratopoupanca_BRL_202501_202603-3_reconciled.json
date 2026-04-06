@@ -1,0 +1,914 @@
+{
+  "banco": "Bradesco",
+  "tipo_conta": "extratopoupanca",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-01-01",
+    "fim": "2026-03-31"
+  },
+  "saldo_inicial": 24291.66,
+  "saldo_final": 4359.28,
+  "fontes": [
+    "bradesco_extratopoupanca_202501_202502-2_extract.json",
+    "bradesco_extratopoupanca_202503_202504-2_extract.json",
+    "bradesco_extratopoupanca_202505_202506-2_extract.json",
+    "bradesco_extratopoupanca_202507_202508-2_extract.json",
+    "bradesco_extratopoupanca_202509_202510-2_extract.json",
+    "bradesco_extratopoupanca_202511_202512-2_extract.json",
+    "bradesco_extratopoupanca_202601_202603-2_extract.json"
+  ],
+  "transacoes_total": 127,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-01-02",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 31.66,
+      "saldo_apos": 24291.66
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "bx Aut Cta Cor* 0077113",
+      "tipo": "debito",
+      "valor": -1808.49,
+      "saldo_apos": 22483.17
+    },
+    {
+      "data": "2025-01-06",
+      "descricao": "bx Aut Cta Cor* 0077113",
+      "tipo": "debito",
+      "valor": -266.0,
+      "saldo_apos": 22217.17
+    },
+    {
+      "data": "2025-01-13",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 23.72,
+      "saldo_apos": 22240.89
+    },
+    {
+      "data": "2025-01-14",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 23.87,
+      "saldo_apos": 22264.76
+    },
+    {
+      "data": "2025-01-15",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4139.58,
+      "saldo_apos": 26404.34
+    },
+    {
+      "data": "2025-01-15",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 17.38,
+      "saldo_apos": 26421.72
+    },
+    {
+      "data": "2025-01-20",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 12.08,
+      "saldo_apos": 26433.8
+    },
+    {
+      "data": "2025-01-21",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 12.3,
+      "saldo_apos": 26446.1
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 3535.83,
+      "saldo_apos": 29981.93
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 45.54,
+      "saldo_apos": 30027.47
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "bx Aut Cta Cor* 0077113",
+      "tipo": "debito",
+      "valor": -60.02,
+      "saldo_apos": 29967.45
+    },
+    {
+      "data": "2025-02-04",
+      "descricao": "bx Aut Cta Cor* 0077113",
+      "tipo": "debito",
+      "valor": -10.0,
+      "saldo_apos": 29957.45
+    },
+    {
+      "data": "2025-02-13",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 27.97,
+      "saldo_apos": 29985.42
+    },
+    {
+      "data": "2025-02-14",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4139.58,
+      "saldo_apos": 34125.0
+    },
+    {
+      "data": "2025-02-14",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 28.13,
+      "saldo_apos": 34153.13
+    },
+    {
+      "data": "2025-02-17",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 47.54,
+      "saldo_apos": 34200.67
+    },
+    {
+      "data": "2025-02-20",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 14.05,
+      "saldo_apos": 34214.72
+    },
+    {
+      "data": "2025-02-21",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 14.32,
+      "saldo_apos": 34229.04
+    },
+    {
+      "data": "2025-02-28",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 3483.62,
+      "saldo_apos": 37712.66
+    },
+    {
+      "data": "2025-03-05",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 65.27,
+      "saldo_apos": 37777.93
+    },
+    {
+      "data": "2025-03-07",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -36262.61,
+      "saldo_apos": 1515.32
+    },
+    {
+      "data": "2025-03-10",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -110.0,
+      "saldo_apos": 1405.32
+    },
+    {
+      "data": "2025-03-13",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 8.07,
+      "saldo_apos": 1413.39
+    },
+    {
+      "data": "2025-03-14",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4139.58,
+      "saldo_apos": 5552.97
+    },
+    {
+      "data": "2025-03-31",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 6598.53,
+      "saldo_apos": 12151.5
+    },
+    {
+      "data": "2025-04-14",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 9.51,
+      "saldo_apos": 12161.01
+    },
+    {
+      "data": "2025-04-14",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 27.77,
+      "saldo_apos": 12188.78
+    },
+    {
+      "data": "2025-04-15",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4139.58,
+      "saldo_apos": 16328.36
+    },
+    {
+      "data": "2025-04-24",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -14662.66,
+      "saldo_apos": 1665.7
+    },
+    {
+      "data": "2025-04-30",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 3574.83,
+      "saldo_apos": 5240.53
+    },
+    {
+      "data": "2025-05-02",
+      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 11.15,
+      "saldo_apos": 5251.68
+    },
+    {
+      "data": "2025-05-02",
+      "descricao": "bx Aut Cta Cor",
+      "tipo": "debito",
+      "valor": -1500.0,
+      "saldo_apos": 3751.68
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4139.58,
+      "saldo_apos": 7891.26
+    },
+    {
+      "data": "2025-05-30",
+      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 3778.33,
+      "saldo_apos": 11669.59
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 25.21,
+      "saldo_apos": 11694.8
+    },
+    {
+      "data": "2025-06-05",
+      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4282.7,
+      "saldo_apos": 15977.5
+    },
+    {
+      "data": "2025-06-13",
+      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 2759.72,
+      "saldo_apos": 18737.22
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 27.91,
+      "saldo_apos": 18765.13
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 2997.28,
+      "saldo_apos": 21762.41
+    },
+    {
+      "data": "2025-07-01",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 50.68,
+      "saldo_apos": 21813.09
+    },
+    {
+      "data": "2025-07-07",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 28.81,
+      "saldo_apos": 21841.9
+    },
+    {
+      "data": "2025-07-14",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 18.51,
+      "saldo_apos": 21860.41
+    },
+    {
+      "data": "2025-07-15",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4139.58,
+      "saldo_apos": 25999.99
+    },
+    {
+      "data": "2025-07-15",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 27.95,
+      "saldo_apos": 26027.94
+    },
+    {
+      "data": "2025-07-31",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 3777.75,
+      "saldo_apos": 29805.69
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 71.75,
+      "saldo_apos": 29877.44
+    },
+    {
+      "data": "2025-08-05",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 29.01,
+      "saldo_apos": 29906.45
+    },
+    {
+      "data": "2025-08-13",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 18.76,
+      "saldo_apos": 29925.21
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4139.58,
+      "saldo_apos": 34064.79
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 56.43,
+      "saldo_apos": 34121.22
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4241.08,
+      "saldo_apos": 38362.3
+    },
+    {
+      "data": "2025-09-01",
+      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 97.28,
+      "saldo_apos": 38459.58
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 29.38,
+      "saldo_apos": 38488.96
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4359.8,
+      "saldo_apos": 42848.76
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 18.94,
+      "saldo_apos": 42867.7
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 84.16,
+      "saldo_apos": 42951.86
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 3954.66,
+      "saldo_apos": 46906.52
+    },
+    {
+      "data": "2025-10-01",
+      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 126.85,
+      "saldo_apos": 47033.37
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 29.41,
+      "saldo_apos": 47062.78
+    },
+    {
+      "data": "2025-10-13",
+      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 18.89,
+      "saldo_apos": 47081.67
+    },
+    {
+      "data": "2025-10-13",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -46196.38,
+      "saldo_apos": 885.29
+    },
+    {
+      "data": "2025-10-14",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -230.0,
+      "saldo_apos": 655.29
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4359.8,
+      "saldo_apos": 5015.09
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 5.97,
+      "saldo_apos": 5021.06
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "Reg Rendimento* - Poup Facil-depos a Partir 4/5/12",
+      "tipo": "debito",
+      "valor": -1.55,
+      "saldo_apos": 5019.51
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -55.98,
+      "saldo_apos": 4963.53
+    },
+    {
+      "data": "2025-10-20",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -1683.86,
+      "saldo_apos": 3279.67
+    },
+    {
+      "data": "2025-10-22",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -624.4,
+      "saldo_apos": 2655.27
+    },
+    {
+      "data": "2025-10-28",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -248.0,
+      "saldo_apos": 2407.27
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 5196.53,
+      "saldo_apos": 7603.8
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "bx Aut Cta Cor*",
+      "tipo": "debito",
+      "valor": -2444.16,
+      "saldo_apos": 5159.64
+    },
+    {
+      "data": "2025-11-04",
+      "descricao": "bx Aut Cta Cor",
+      "tipo": "debito",
+      "valor": -1535.0,
+      "saldo_apos": 3624.64
+    },
+    {
+      "data": "2025-11-05",
+      "descricao": "bx Aut Cta Cor",
+      "tipo": "debito",
+      "valor": -300.0,
+      "saldo_apos": 3324.64
+    },
+    {
+      "data": "2025-11-14",
+      "descricao": "Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 4359.8,
+      "saldo_apos": 7684.44
+    },
+    {
+      "data": "2025-11-17",
+      "descricao": "Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 16.29,
+      "saldo_apos": 7700.73
+    },
+    {
+      "data": "2025-11-27",
+      "descricao": "Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 5769.9,
+      "saldo_apos": 13470.63
+    },
+    {
+      "data": "2025-11-28",
+      "descricao": "Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 9532.78,
+      "saldo_apos": 23003.41
+    },
+    {
+      "data": "2025-12-01",
+      "descricao": "Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 6.09,
+      "saldo_apos": 23009.5
+    },
+    {
+      "data": "2025-12-04",
+      "descricao": "bx Aut Cta Cor",
+      "tipo": "debito",
+      "valor": -1072.81,
+      "saldo_apos": 21936.69
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "bx Aut Cta Cor",
+      "tipo": "debito",
+      "valor": -404.16,
+      "saldo_apos": 21532.53
+    },
+    {
+      "data": "2025-12-10",
+      "descricao": "bx Aut Cta Cor",
+      "tipo": "debito",
+      "valor": -220.0,
+      "saldo_apos": 21312.53
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 2179.9,
+      "saldo_apos": 23492.43
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 29.26,
+      "saldo_apos": 23521.69
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 16.12,
+      "saldo_apos": 23537.81
+    },
+    {
+      "data": "2025-12-19",
+      "descricao": "Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 2741.19,
+      "saldo_apos": 26279.0
+    },
+    {
+      "data": "2025-12-29",
+      "descricao": "Sociedade Beneficente Israelita",
+      "tipo": "credito",
+      "valor": 2848.01,
+      "saldo_apos": 29127.01
+    },
+    {
+      "data": "2025-12-29",
+      "descricao": "Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 38.84,
+      "saldo_apos": 29165.85
+    },
+    {
+      "data": "2025-12-29",
+      "descricao": "Poup Facil-depos a Partir 4/5/12",
+      "tipo": "credito",
+      "valor": 58.79,
+      "saldo_apos": 29224.64
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 1673.05,
+      "saldo_apos": 27551.59
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 220.0,
+      "saldo_apos": 27331.59
+    },
+    {
+      "data": "2026-01-14",
+      "descricao": "Rendimentos 1406708",
+      "tipo": "credito",
+      "valor": 29.44,
+      "saldo_apos": 27361.03
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "tr Sal p/poup 1502372",
+      "tipo": "credito",
+      "valor": 4359.8,
+      "saldo_apos": 31720.83
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Rendimentos 1506728",
+      "tipo": "credito",
+      "valor": 31.08,
+      "saldo_apos": 31751.91
+    },
+    {
+      "data": "2026-01-19",
+      "descricao": "Rendimentos 1906592",
+      "tipo": "credito",
+      "valor": 18.07,
+      "saldo_apos": 31769.98
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 1782.63,
+      "saldo_apos": 29987.35
+    },
+    {
+      "data": "2026-01-21",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 3183.24,
+      "saldo_apos": 26804.11
+    },
+    {
+      "data": "2026-01-23",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 28.03,
+      "saldo_apos": 26776.08
+    },
+    {
+      "data": "2026-01-26",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 100.0,
+      "saldo_apos": 26676.08
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "Rendimentos 2706707",
+      "tipo": "credito",
+      "valor": 38.96,
+      "saldo_apos": 26715.04
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "Rendimentos 2806728",
+      "tipo": "credito",
+      "valor": 59.33,
+      "saldo_apos": 26774.37
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 356.39,
+      "saldo_apos": 26417.98
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 86.66,
+      "saldo_apos": 26331.32
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "tr Sal p/poup 3002372",
+      "tipo": "credito",
+      "valor": 3902.36,
+      "saldo_apos": 30233.68
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Rendimentos 0106727",
+      "tipo": "credito",
+      "valor": 6.42,
+      "saldo_apos": 30240.1
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 807.57,
+      "saldo_apos": 29432.53
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "tr Sal p/poup 0502372",
+      "tipo": "credito",
+      "valor": 2326.29,
+      "saldo_apos": 31758.82
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 145.0,
+      "saldo_apos": 31613.82
+    },
+    {
+      "data": "2026-02-13",
+      "descricao": "tr Sal p/poup 1302372",
+      "tipo": "credito",
+      "valor": 3633.17,
+      "saldo_apos": 35246.99
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Rendimentos 1406766",
+      "tipo": "credito",
+      "valor": 29.89,
+      "saldo_apos": 35276.88
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Rendimentos 1506746",
+      "tipo": "credito",
+      "valor": 45.04,
+      "saldo_apos": 35321.92
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "tr Sal p/poup 2702372",
+      "tipo": "credito",
+      "valor": 3425.41,
+      "saldo_apos": 38747.33
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Rendimentos 2706726",
+      "tipo": "credito",
+      "valor": 39.33,
+      "saldo_apos": 38786.66
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "Rendimentos 0106213",
+      "tipo": "credito",
+      "valor": 25.21,
+      "saldo_apos": 38811.87
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "Rendimentos 2806726",
+      "tipo": "credito",
+      "valor": 56.72,
+      "saldo_apos": 38868.59
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 1116.46,
+      "saldo_apos": 37752.13
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "Rendimentos 0506229",
+      "tipo": "credito",
+      "valor": 13.59,
+      "saldo_apos": 37765.72
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 120.0,
+      "saldo_apos": 37645.72
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 32.0,
+      "saldo_apos": 37613.72
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 220.0,
+      "saldo_apos": 37393.72
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "tr Sal p/poup 1302372",
+      "tipo": "credito",
+      "valor": 4359.8,
+      "saldo_apos": 41753.52
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "Rendimentos 1306196",
+      "tipo": "credito",
+      "valor": 22.51,
+      "saldo_apos": 41776.03
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Rendimentos 1406189",
+      "tipo": "credito",
+      "valor": 27.53,
+      "saldo_apos": 41803.56
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Rendimentos 1506189",
+      "tipo": "credito",
+      "valor": 41.59,
+      "saldo_apos": 41845.15
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 37304.9,
+      "saldo_apos": 4540.25
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "bx Aut Cta Cor* 0077113 -",
+      "tipo": "debito",
+      "valor": 210.0,
+      "saldo_apos": 4330.25
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "Rendimentos 2706702",
+      "tipo": "credito",
+      "valor": 29.03,
+      "saldo_apos": 4359.28
+    }
+  ]
+}

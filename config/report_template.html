@@ -78,15 +78,6 @@
   /* Shadows */
   --shadow-card: 0 1px 3px rgba(0,0,0,0.06);
   --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.1);
-  /* Alert tokens (light) */
-  --alert-danger-bg: #FEF2F2;
-  --alert-danger-text: #991B1B;
-  --alert-warning-bg: #FFFBEB;
-  --alert-warning-text: var(--color-warning-text);
-  --alert-success-bg: #F0FDF4;
-  --alert-success-text: var(--color-accent);
-  --alert-info-bg: #EFF6FF;
-  --alert-info-text: #1E40AF;
   /* Badge tokens (light) */
   --badge-green-bg: #DCFCE7;
   --badge-green-text: var(--color-accent);
@@ -1520,15 +1511,48 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   })();
 
-  // ========== CHART 3: Receita por fonte ==========
+  // ========== CHART 2B: Fluxo de Caixa Mensal (dinâmico via DATA) ==========
+  var fmData = DATA.charts.fluxo_mensal || {labels:[], datasets:[{data:[]}]};
+  safeChart('chart-fluxo-mensal', {
+    type: 'bar',
+    data: {
+      labels: fmData.labels,
+      datasets: [{
+        label: fmData.datasets[0].label || 'Fluxo de Caixa (R$)',
+        data: fmData.datasets[0].data,
+        backgroundColor: fmData.datasets[0].backgroundColor || ['#15803D', '#B91C1C', '#2E86AB'],
+        borderRadius: fmData.datasets[0].borderRadius || 4
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(c) { return c.label + ': ' + fmt(c.raw); } } },
+        datalabels: {
+          anchor: 'end', align: 'top', color: 'var(--text-primary)',
+          font: { weight: 'bold', size: 12 },
+          formatter: function(v) { return fmt(v); }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { callback: function(v) { return v >= 1000 ? 'R$ ' + (v/1000).toFixed(0) + 'k' : 'R$ ' + v; } }
+        }
+      }
+    }
+  });
+
+  // ========== CHART 3: Receita por fonte (dinâmico via DATA) ==========
+  var rbData = DATA.charts.receita_bar || {labels:[], datasets:[{data:[]}]};
   safeChart('chart-receita-bar', {
     type: 'bar',
     data: {
-      labels: ['Arvo PJ','BrandLovers','Arbitralis','LearnToFly','CLT Mariana','Alug. David','Alug. Mariana'],
+      labels: rbData.labels,
       datasets: [{
         label: 'R$/mês',
-        data: [47209, 10000, 3000, 1750, 8000, 3422, 6030],
-        backgroundColor: palette.slice(0,7),
+        data: rbData.datasets[0].data,
+        backgroundColor: rbData.datasets[0].backgroundColor || palette.slice(0, rbData.labels.length),
         borderRadius: 4
       }]
     },
@@ -1570,8 +1594,9 @@ document.addEventListener('DOMContentLoaded', function() {
             footer: function(items) {
               var rec = 0, desp = 0;
               items.forEach(function(i) {
-                if (i.dataset.stack === 'receita') rec += i.raw;
-                else desp += i.raw;
+                var v = i.raw || 0;
+                if (i.dataset.stack === 'receita') rec += v;
+                else desp += v;
               });
               return 'Saldo: ' + fmt(rec - desp);
             }
@@ -1583,20 +1608,21 @@ document.addEventListener('DOMContentLoaded', function() {
         x: { stacked: true },
         y: {
           stacked: true,
-          ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } }
+          ticks: { callback: function(v) { return v >= 1000 ? 'R$ ' + (v/1000).toFixed(0) + 'k' : 'R$ ' + Math.round(v); } }
         }
       }
     }
   });
 
-  // ========== CHART 4: Despesas Doughnut ==========
+  // ========== CHART 4: Despesas Doughnut (dinâmico via DATA) ==========
+  var ddData = DATA.charts.despesas_doughnut || {labels:[], datasets:[{data:[]}]};
   safeChart('chart-despesas-doughnut', {
     type: 'doughnut',
     data: {
-      labels: ['Alimentação','Lazer/Viagens','Financeiro','Saúde','Melhoria/Reforma','Transporte','Seguros','Suporte Familiar','Assinaturas','Vestuário','Educação','Moradia'],
+      labels: ddData.labels,
       datasets: [{
-        data: [52739, 34508, 28815, 24071, 12368, 8726, 5338, 3683, 3610, 796, 687, 465],
-        backgroundColor: [...palette, '#CBD5E1', '#94A3B8', '#818CF8', '#F472B6'],
+        data: ddData.datasets[0].data,
+        backgroundColor: ddData.datasets[0].backgroundColor || [...palette, '#CBD5E1', '#94A3B8', '#818CF8', '#F472B6'],
         borderWidth: 2, borderColor: '#fff'
       }]
     },
@@ -1747,11 +1773,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Caso contrário, dados são R$ reais → exibir "R$ Xk"
     return 'R$ ' + (value/1000).toFixed(0) + 'k';
   }
+  var aaData = DATA.charts.alocacao_atual || {labels:[], datasets:[{data:[]}]};
   safeChart('chart-alocacao-atual', {
     type: 'doughnut',
     data: {
-      labels: ['Renda Fixa 54,2%','Fundos RV 12%','Ações 7,1%','Caixa 10,1%','Previdência 1,4%','Crypto 0,1%','Internacional 0%'],
-      datasets: [{ data: [54.2,12,7.1,10.1,1.4,0.1,0], backgroundColor: palette, borderWidth: 2, borderColor: '#fff' }]
+      labels: aaData.labels,
+      datasets: [{ data: aaData.datasets[0].data, backgroundColor: aaData.datasets[0].backgroundColor || palette, borderWidth: 2, borderColor: '#fff' }]
     },
     options: {
       cutout: '55%',
@@ -1770,12 +1797,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 7: Alocação Alvo ==========
+  // ========== CHART 7: Alocação Alvo (dinâmico via DATA) ==========
+  var alvData = DATA.charts.alocacao_alvo || {labels:[], datasets:[{data:[]}]};
   safeChart('chart-alocacao-alvo', {
     type: 'doughnut',
     data: {
-      labels: ['Renda Fixa 50%','Fundos RV 10%','Ações 10%','Caixa 4%','Previdência 5%','Crypto 1%','Internacional 10%'],
-      datasets: [{ data: [50,10,10,4,5,1,10], backgroundColor: palette, borderWidth: 2, borderColor: '#fff' }]
+      labels: alvData.labels,
+      datasets: [{ data: alvData.datasets[0].data, backgroundColor: alvData.datasets[0].backgroundColor || palette, borderWidth: 2, borderColor: '#fff' }]
     },
     options: {
       cutout: '55%',
@@ -1818,15 +1846,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 9: Yield imóveis vs CDI ==========
+  // ========== CHART 9: Yield imóveis vs CDI (dinâmico via DATA) ==========
+  var yiData = DATA.charts.yield_imoveis || {labels:[], datasets:[{data:[], backgroundColor:[]}]};
   safeChart('chart-yield-imoveis', {
     type: 'bar',
     data: {
-      labels: ['Calixto (David)', 'Major Freire (David)', 'Living Wish (Mari)', 'Living Concept (Mari)', 'CDI (referência)'],
+      labels: yiData.labels,
       datasets: [{
         label: 'Yield % a.a.',
-        data: [6.3, 4.7, 11.7, 3.9, 13.75],
-        backgroundColor: ['#2E86AB','#2E86AB','#457B9D','#457B9D','#E63946'],
+        data: yiData.datasets[0].data,
+        backgroundColor: yiData.datasets[0].backgroundColor || ['#2E86AB','#2E86AB','#457B9D','#457B9D','#E63946'],
         borderRadius: 4
       }]
     },
@@ -1840,14 +1869,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 10: Custos F1/F2 ==========
+  // ========== CHART 10: Custos F1/F2 (dinâmico via DATA) ==========
+  var cfData = DATA.charts.custos_f1f2 || {labels:[], datasets:[{data:[], backgroundColor:[]}]};
   safeChart('chart-custos-f1f2', {
     type: 'bar',
     data: {
-      labels: ['Custos EUA', 'Custos BR Mantidos', 'TOTAL', 'Renda David', 'Sobra'],
+      labels: cfData.labels,
       datasets: [{
-        data: [23461, 8919, 32380, 70611, 38231],
-        backgroundColor: ['#E63946','#F4A261','#1A3A5C','#2DC653','#2E86AB'],
+        data: cfData.datasets[0].data,
+        backgroundColor: cfData.datasets[0].backgroundColor || ['#E63946','#F4A261','#1A3A5C','#2DC653','#2E86AB'],
         borderRadius: 4
       }]
     },
@@ -1861,15 +1891,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 11: Cenários cambiais Green Card ==========
+  // ========== CHART 11: Cenários cambiais Green Card (dinâmico via DATA) ==========
+  var ccData = DATA.charts.cenarios_cambiais || {labels:[], datasets:[]};
   safeChart('chart-cenarios-cambiais', {
     type: 'bar',
     data: {
-      labels: [['Pessimista','R$ 7,50/USD'], ['Realista','R$ 5,88/USD'], ['Otimista','R$ 4,50/USD']],
-      datasets: [
-        { label: 'Sem Mariana', data: [8500, 22000, 35000], backgroundColor: '#F4A261', borderRadius: 4 },
-        { label: 'Com Mariana (NCLEX)', data: [38000, 55000, 72000], backgroundColor: '#2DC653', borderRadius: 4 }
-      ]
+      labels: ccData.labels,
+      datasets: (ccData.datasets || []).map(function(ds) {
+        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4 };
+      })
     },
     options: {
       plugins: {
@@ -1881,11 +1911,12 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // ========== CHART 12: Projeção 3 cenários IF ==========
-  var META_IF = 9000000;
-  var investivel = 1369452;
-  var imoveis = 4147480;
-  var monthlyAporte = 20000;
-  var nYears = 13;
+  var projData = DATA.charts.projecao_3cenarios || {};
+  var META_IF = projData.meta_if || DATA.kpis.meta_if || 0;
+  var investivel = projData.investivel || DATA.kpis.patrimonio_investivel || 0;
+  var imoveis = projData.imoveis || 0;
+  var monthlyAporte = projData.aporte_mensal || 0;
+  var nYears = projData.anos || 13;
   var yearsProj = [];
   for (var yi = 0; yi < nYears; yi++) yearsProj.push((2026 + yi).toString());
 
@@ -1915,10 +1946,13 @@ document.addEventListener('DOMContentLoaded', function() {
     return -1;
   }
 
-  var imovRate = 0.02;
-  var dataPess = projTotal(investivel, 0.04, monthlyAporte, imoveis, imovRate, nYears);
-  var dataReal = projTotal(investivel, 0.06, monthlyAporte, imoveis, imovRate, nYears);
-  var dataOtim = projTotal(investivel, 0.08, monthlyAporte, imoveis, imovRate, nYears);
+  var imovRate = projData.taxa_imoveis || 0.02;
+  var taxaPess = projData.taxa_pessimista || 0.04;
+  var taxaReal = projData.taxa_realista || 0.06;
+  var taxaOtim = projData.taxa_otimista || 0.08;
+  var dataPess = projTotal(investivel, taxaPess, monthlyAporte, imoveis, imovRate, nYears);
+  var dataReal = projTotal(investivel, taxaReal, monthlyAporte, imoveis, imovRate, nYears);
+  var dataOtim = projTotal(investivel, taxaOtim, monthlyAporte, imoveis, imovRate, nYears);
   var metaLine = new Array(nYears).fill(META_IF);
 
   var crossPess = findCrossYear(dataPess, META_IF);
@@ -1938,7 +1972,7 @@ document.addEventListener('DOMContentLoaded', function() {
       labels: yearsProj,
       datasets: [
         {
-          label: 'Meta IF — R$ 9,0M',
+          label: 'Meta IF — ' + fmtK(META_IF),
           data: metaLine,
           borderColor: '#1A3A5C',
           borderDash: [8, 4],
@@ -1948,7 +1982,7 @@ document.addEventListener('DOMContentLoaded', function() {
           order: 4
         },
         {
-          label: 'Pessimista (4%)',
+          label: 'Pessimista (' + (taxaPess*100).toFixed(0) + '%)',
           data: dataPess,
           borderColor: '#E63946',
           backgroundColor: 'rgba(230,57,70,0.08)',
@@ -1959,7 +1993,7 @@ document.addEventListener('DOMContentLoaded', function() {
           order: 3
         },
         {
-          label: 'Realista (6%)',
+          label: 'Realista (' + (taxaReal*100).toFixed(0) + '%)',
           data: dataReal,
           borderColor: '#2E86AB',
           backgroundColor: 'rgba(46,134,171,0.08)',
@@ -1971,7 +2005,7 @@ document.addEventListener('DOMContentLoaded', function() {
           order: 2
         },
         {
-          label: 'Otimista (8%)',
+          label: 'Otimista (' + (taxaOtim*100).toFixed(0) + '%)',
           data: dataOtim,
           borderColor: '#2DC653',
           backgroundColor: 'rgba(45,198,83,0.08)',
@@ -2087,23 +2121,22 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.font = 'bold 12px "Plus Jakarta Sans"';
         ctx.fillStyle = '#1A3A5C';
         ctx.textAlign = 'left';
-        ctx.fillText('Meta IF = R$ 9,0M', xScale.left + 8, metaY - 8);
+        ctx.fillText('Meta IF = ' + fmtK(META_IF), xScale.left + 8, metaY - 8);
 
         ctx.restore();
       }
     }]
   });
 
-  // ========== CHART 13: Renda passiva ==========
+  // ========== CHART 13: Renda passiva (dinâmico via DATA) ==========
+  var rpData = DATA.charts.renda_passiva || {labels:[], datasets:[]};
   safeChart('chart-renda-passiva', {
     type: 'bar',
     data: {
-      labels: ['Aluguéis\nDavid', 'Aluguéis\nMariana', 'Dividendos', 'RF/Cupons', 'FIIs', 'PGBL', 'EUA\nMariana', 'GAP'],
-      datasets: [
-        { label: 'Atual', data: [3422, 6030, 521, 950, 0, 0, 0, 0], backgroundColor: '#2E86AB', borderRadius: 4 },
-        { label: 'Meta 2035', data: [5068, 8930, 3500, 4500, 4500, 2000, 5000, 0], backgroundColor: '#2DC653', borderRadius: 4 },
-        { label: 'Gap', data: [0, 0, 0, 0, 0, 0, 0, 19077], backgroundColor: '#E63946', borderRadius: 4 }
-      ]
+      labels: rpData.labels,
+      datasets: (rpData.datasets || []).map(function(ds) {
+        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4 };
+      })
     },
     options: {
       plugins: {
@@ -2114,22 +2147,44 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 15: Bubble Riscos ==========
+  // ========== CHART 14: Impostos PJ (dinâmico via DATA) ==========
+  var ipData = DATA.charts.impostos_pj || {labels:[], datasets:[{data:[]}]};
+  safeChart('chart-impostos-pj', {
+    type: 'bar',
+    data: {
+      labels: ipData.labels,
+      datasets: [{
+        label: ipData.datasets[0].label || 'Valores (R$)',
+        data: ipData.datasets[0].data,
+        backgroundColor: ipData.datasets[0].backgroundColor || palette.slice(0, ipData.labels.length),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end', align: 'right', color: 'var(--text-primary)',
+          font: { weight: 'bold', size: 11 },
+          formatter: function(v) { return v >= 1000 ? 'R$ ' + (v/1000).toFixed(0) + 'k' : 'R$ ' + v.toLocaleString('pt-BR'); }
+        }
+      },
+      scales: {
+        x: { ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } },
+        y: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // ========== CHART 15: Bubble Riscos (dinâmico via DATA) ==========
+  var brData = DATA.charts.bubble_riscos || {datasets:[]};
   safeChart('chart-bubble-riscos', {
     type: 'bubble',
     data: {
-      datasets: [
-        { label: 'Morte/Invalidez David', data: [{ x: 2, y: 5, r: 20 }], backgroundColor: 'rgba(230,57,70,0.7)' },
-        { label: 'Perda Arvo', data: [{ x: 2, y: 4, r: 16 }], backgroundColor: 'rgba(244,162,97,0.7)' },
-        { label: 'Carnê-leão multas', data: [{ x: 4, y: 2, r: 16 }], backgroundColor: 'rgba(244,162,97,0.7)' },
-        { label: 'PFIC EUA', data: [{ x: 3, y: 3, r: 18 }], backgroundColor: 'rgba(230,57,70,0.5)' },
-        { label: 'Ed. Gisele s/ registro', data: [{ x: 2, y: 4, r: 18 }], backgroundColor: 'rgba(230,57,70,0.5)' },
-        { label: 'Emergência médica', data: [{ x: 2, y: 3, r: 12 }], backgroundColor: 'rgba(46,134,171,0.5)' },
-        { label: 'Concentração imob.', data: [{ x: 3, y: 2, r: 12 }], backgroundColor: 'rgba(69,123,157,0.5)' },
-        { label: 'Câmbio BRL/USD', data: [{ x: 3, y: 2, r: 12 }], backgroundColor: 'rgba(69,123,157,0.5)' },
-        { label: 'Cybersecurity', data: [{ x: 2, y: 2, r: 8 }], backgroundColor: 'rgba(168,218,220,0.5)' },
-        { label: 'Inflação', data: [{ x: 2, y: 2, r: 8 }], backgroundColor: 'rgba(168,218,220,0.5)' }
-      ]
+      datasets: (brData.datasets || []).map(function(ds) {
+        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor };
+      })
     },
     options: {
       scales: {
@@ -2143,15 +2198,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 16: Top 5 decisões ==========
+  // ========== CHART 16: Top 5 decisões (dinâmico via DATA) ==========
+  var t5Data = DATA.charts.top5_decisoes || {labels:[], datasets:[]};
   safeChart('chart-top5-decisoes', {
     type: 'bar',
     data: {
-      labels: ['Aportes R$20k/mês','Quitação Ed. Gisele','PGBL R$1.800/mês','Seguro vida','Resgate Safari+PFIC'],
-      datasets: [
-        { label: 'Impacto 1 ano', data: [240000, 51500, 5940, 6000, 16614], backgroundColor: '#2E86AB', borderRadius: 4 },
-        { label: 'Impacto 10 anos', data: [3930000, 92000, 125000, 60000, 181304], backgroundColor: '#2DC653', borderRadius: 4 }
-      ]
+      labels: t5Data.labels,
+      datasets: (t5Data.datasets || []).map(function(ds) {
+        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4 };
+      })
     },
     options: {
       indexAxis: 'y',
@@ -2163,15 +2218,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 17: Mariana cenários ==========
+  // ========== CHART 17: Mariana cenários (dinâmico via DATA) ==========
+  var mcData = DATA.charts.mariana_cenarios || {labels:[], datasets:[]};
   safeChart('chart-mariana-cenarios', {
     type: 'bar',
     data: {
-      labels: ['Com CLT\n(R$20k aporte)', 'Sem CLT\n(R$20k mantido)', 'Sem CLT\n(R$13.2k aporte)'],
-      datasets: [
-        { label: 'Aporte mensal', data: [20000, 20000, 13200], backgroundColor: '#2E86AB', borderRadius: 4 },
-        { label: 'Prazo IF (anos)', data: [9.0, 9.0, 10.5], backgroundColor: '#2DC653', borderRadius: 4, yAxisID: 'y1' }
-      ]
+      labels: mcData.labels,
+      datasets: (mcData.datasets || []).map(function(ds) {
+        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4, yAxisID: ds.yAxisID || undefined };
+      })
     },
     options: {
       plugins: { datalabels: { display: false } },
@@ -2182,15 +2237,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 18: Viagens ==========
+  // ========== CHART 18: Viagens (dinâmico via DATA) ==========
+  var vgData = DATA.charts.viagens || {labels:[], datasets:[]};
   safeChart('chart-viagens', {
     type: 'bar',
     data: {
-      labels: ['Orçamento 2026'],
-      datasets: [
-        { label: 'Portugal (gasto)', data: [22337], backgroundColor: '#E63946', borderRadius: 4 },
-        { label: 'Disponível', data: [22663], backgroundColor: '#2DC653', borderRadius: 4 }
-      ]
+      labels: vgData.labels,
+      datasets: (vgData.datasets || []).map(function(ds) {
+        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4 };
+      })
     },
     options: {
       indexAxis: 'y',
@@ -2202,104 +2257,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== MODE TOGGLE ==========
-  window.setMode = function(mode) {
-    document.body.className = 'mode-' + mode;
-    document.querySelectorAll('.mode-btn').forEach(function(b) {
-      b.classList.toggle('active', b.dataset.target === mode);
-    });
-    var stratNav = document.querySelector('.nav-strategic');
-    var tacNav = document.querySelector('.nav-tactical');
-    if (stratNav) stratNav.style.display = mode === 'strategic' ? 'flex' : 'none';
-    if (tacNav) tacNav.style.display = mode === 'tactical' ? 'flex' : 'none';
-  };
-
-  // ========== DARK MODE THEME ==========
-  window.setTheme = function(theme) {
-    const html = document.documentElement;
-    const themeButtons = document.querySelectorAll('.theme-btn');
-
-    if (theme === 'system') {
-      localStorage.removeItem('theme');
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      html.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    } else {
-      localStorage.setItem('theme', theme);
-      html.setAttribute('data-theme', theme);
-    }
-
-    themeButtons.forEach(function(b) {
-      b.classList.toggle('active', b.dataset.theme === theme || (theme === 'system' && b.dataset.theme === 'system'));
-    });
-
-    if (typeof window.updateChartsForTheme === 'function') window.updateChartsForTheme();
-  };
-
-  // Initialize theme on load
-  function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      window.setTheme(savedTheme);
-    } else {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    }
-
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-      if (!localStorage.getItem('theme')) {
-        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-        if (typeof window.updateChartsForTheme === 'function') window.updateChartsForTheme();
-      }
-    });
-  }
-  initializeTheme();
-
-  // ========== DASHBOARD CATEGORY BARS ==========
-  function buildDashboard() {
-    var D = DATA.dashboard;
-    if (!D) return;
-    var catContainer = document.getElementById('dash-categorias-container');
-    if (catContainer) {
-      var cats = D.despesas_por_categoria;
-      cats.forEach(function(c) {
-        var pct = Math.min((c.gasto / c.teto) * 100, 100);
-        var over = c.gasto > c.teto;
-        var color = over ? 'var(--color-danger)' : 'var(--color-accent)';
-        var badge = over ? '<span class="badge badge-danger">ACIMA</span>' : '<span class="badge badge-success">OK</span>';
-        catContainer.innerHTML += '<div class="dash-cat-row">' +
-          '<div class="dash-cat-label">' + c.cat + '</div>' +
-          '<div class="dash-cat-bar"><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + color + ';"></div></div></div>' +
-          '<div class="dash-cat-values">' + fmt(c.gasto) + ' / ' + fmt(c.teto) + ' ' + badge + '</div></div>';
-      });
-    }
-  }
-
-  // ========== BACK TO TOP + FLOATING BUTTONS ==========
-  var backBtn = document.querySelector('.back-to-top');
-  var floatBtns = document.querySelector('.float-buttons');
-  window.addEventListener('scroll', function() {
-    var show = window.scrollY > 600;
-    if (backBtn) backBtn.style.display = show ? 'block' : 'none';
-    if (floatBtns) floatBtns.style.display = show ? 'flex' : 'none';
-  });
-
-  // ========== EXPORT MARKDOWN ==========
-  window.exportMd = function() {
-    if (typeof TurndownService === 'undefined') { alert('Turndown não carregado'); return; }
-    var td = new TurndownService({ headingStyle: 'atx' });
-    var mode = document.body.className.replace('mode-', '');
-    var content = '';
-    document.querySelectorAll('[data-mode="' + mode + '"], [data-mode="both"]').forEach(function(el) {
-      content += el.outerHTML;
-    });
-    var md = td.turndown(content);
-    var blob = new Blob([md], { type: 'text/markdown' });
-    var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = 'relatorio_ferreira_campos_' + mode + '.md'; a.click();
-  };
-
-  // Build dashboard on initial load and when mode changes
-  buildDashboard();
+  // NOTE: setMode, setTheme, initializeTheme, buildDashboard são definidas
+  // no bloco <script> global abaixo. Não duplicar aqui.
 });
 </script>
 
@@ -2592,7 +2551,7 @@ function exportMarkdown() {
 
     // Skip sections from the INACTIVE mode
     const activeMode = document.body.className.replace('mode-', '');
-    const inactiveMode = activeMode === 'strategic' ? 'dashboard' : 'strategic';
+    const inactiveMode = activeMode === 'strategic' ? 'tactical' : 'strategic';
     td.addRule('hiddenMode', {
       filter: function(node) {
         return node.getAttribute && node.getAttribute('data-mode') === inactiveMode;
