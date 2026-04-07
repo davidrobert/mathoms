@@ -1,7 +1,7 @@
 # QA Log — E4 Categorização
-## Execução: 2026-04-06 23:12
+## Execução: 2026-04-07 10:18
 
-### Transações não identificadas: 328
+### Transações não identificadas: 409
 
 | Data | Descrição | Valor | Banco | Fonte |
 |---|---|---|---|---|
@@ -71,57 +71,100 @@
 | 2025-03-15 | MP *MARIANADIEGEC | R$6.00 | C6 Bank | faturacarbon |
 | 2025-03-15 | MARCELO JOSE GONCALVES | R$10.00 | C6 Bank | faturacarbon |
 | 2025-03-31 | tr Sal p/poup Sociedade Beneficente Israelita | R$6,598.53 | bradesco | extratoconta |
+| 2025-04-08 | PIX RECEBIDA - BRANDLOVRS LTDA | R$7,500.00 | c6bank | extratoconta |
+| 2025-04-10 | PIX RECEBIDA - CNRY MANAGEMENT LTDA | R$15,000.00 | c6bank | extratoconta |
+| 2025-04-11 | PIX ENVIADA - PAGUE AQUI ELETROTEC | R$150.00 | c6bank | extratoconta |
 | 2025-04-14 | Rendimentos Poup Facil-depos a Partir 4/5/12 Rendimentos Poup Facil-depos a Partir 4/5/12 | R$9.51 | bradesco | extratoconta |
 | 2025-04-15 | tr Sal p/poup Sociedade Beneficente Israelita | R$4,139.58 | bradesco | extratoconta |
+| 2025-04-15 | SALÁRIO DEPOSITO | R$12,000.00 | c6bank | extratoconta |
+| 2025-04-15 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$10,000.00 | c6bank | extratoconta |
+| 2025-04-18 | PAGAMENTO CARTAO CREDITO | R$3,500.00 | c6bank | extratoconta |
+| 2025-04-20 | PIX RECEBIDA - BRANDLOVRS LTDA | R$8,500.00 | c6bank | extratoconta |
 | 2025-04-21 | Dinheiro adicionado à conta | R$100.00 | Wise | extratoconta |
 | 2025-04-22 | Pago para IU65 Premium & B | R$94.39 | Wise | extratoconta |
 | 2025-04-24 | bx Aut Cta Cor* - | R$14,662.66 | bradesco | extratoconta |
+| 2025-04-25 | PIX RECEBIDA - ARVO SAUDE | R$4,200.00 | c6bank | extratoconta |
+| 2025-04-25 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$8,000.00 | c6bank | extratoconta |
 | 2025-04-27 | Dinheiro adicionado à conta | R$100.00 | Wise | extratoconta |
 | 2025-04-30 | tr Sal p/poup Sociedade Beneficente Israelita Total - Os dados acima têm como base 31/03/2026 às 22h27 e estão sujeitos a alterações. Últimos Lançamen | R$51,035.27 | bradesco | extratoconta |
 | 2025-05-02 | Pago para IU65 Premium & B | R$94.39 | Wise | extratoconta |
 | 2025-05-02 | Rendimentos Poup Facil-depos a Partir 4/5/12 bx Aut Cta Cor* - | R$1,500.00 | bradesco | extratoconta |
+| 2025-05-02 | PIX ENVIADA - TRANSFERENCIA PESSOAL | R$2,000.00 | c6bank | extratoconta |
+| 2025-05-08 | PIX RECEBIDA - BRANDLOVRS LTDA | R$7,500.00 | c6bank | extratoconta |
+| 2025-05-08 | PIX RECEBIDA - BARTE BRASIL LTDA | R$12,000.00 | c6bank | extratoconta |
+| 2025-05-12 | TARGET LOJA | R$124.56 | c6bank | extratoconta |
 | 2025-05-15 | tr Sal p/poup Sociedade Beneficente Israelita | R$4,139.58 | bradesco | extratoconta |
+| 2025-05-15 | SALÁRIO DEPOSITO | R$12,000.00 | c6bank | extratoconta |
+| 2025-05-15 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$9,000.00 | c6bank | extratoconta |
+| 2025-05-15 | AMAZON COMPRA | R$67.89 | c6bank | extratoconta |
 | 2025-05-18 | Recebeu dinheiro de Douglas Camargo De Campos | R$100.00 | Wise | extratoconta |
 | 2025-05-19 | Recebeu dinheiro de Douglas Camargo De Campos | R$1,390.00 | Wise | extratoconta |
+| 2025-05-20 | PAGAMENTO CARTAO CREDITO | R$4,200.00 | c6bank | extratoconta |
+| 2025-05-22 | PIX RECEBIDA - ARVO SAUDE LTDA | R$11,500.00 | c6bank | extratoconta |
 | 2025-05-25 | Dinheiro adicionado à conta | R$1,900.00 | Wise | extratoconta |
+| 2025-05-25 | PIX RECEBIDA - CNRY MANAGEMENT | R$3,600.00 | c6bank | extratoconta |
 | 2025-05-28 | Pago para Anderson Univers | R$2,940.00 | Wise | extratoconta |
 | 2025-05-30 | Dinheiro adicionado à conta | R$500.00 | Wise | extratoconta |
 | 2025-05-30 | tr Sal p/poup Sociedade Beneficente Israelita | R$3,778.33 | bradesco | extratoconta |
+| 2025-05-30 | Pix recebido de BRANDLOVRS LTDA | R$7,000.00 | c6bank | extratoconta |
 | 2025-06-02 | Pago para IU65 Premium & B | R$94.39 | Wise | extratoconta |
 | 2025-06-02 | Pago para AppFolio, Inc. F | R$2.49 | Wise | extratoconta |
 | 2025-06-02 | Pago para De Paula Realty | R$493.33 | Wise | extratoconta |
 | 2025-06-02 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$25.21 | bradesco | extratoconta |
+| 2025-06-02 | Pix recebido de BARTE BRASIL LTDA | R$10,000.00 | c6bank | extratoconta |
+| 2025-06-02 | DISNEY RESORT | R$450.00 | c6bank | extratoconta |
 | 2025-06-05 | tr Sal p/poup Sociedade Beneficente Israelita | R$4,282.70 | bradesco | extratoconta |
+| 2025-06-05 | PIX ENVIADA - PAGUE AQUI ELETROTEC | R$150.00 | c6bank | extratoconta |
+| 2025-06-05 | PIX RECEBIDA - CNRY MANAGEMENT LTDA | R$16,000.00 | c6bank | extratoconta |
+| 2025-06-10 | PIX RECEBIDA - BRANDLOVRS LTDA | R$7,500.00 | c6bank | extratoconta |
+| 2025-06-12 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$12,000.00 | c6bank | extratoconta |
 | 2025-06-13 | tr Sal p/poup Sociedade Beneficente Israelita | R$2,759.72 | bradesco | extratoconta |
+| 2025-06-15 | SALÁRIO DEPOSITO | R$12,000.00 | c6bank | extratoconta |
 | 2025-06-16 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$27.91 | bradesco | extratoconta |
+| 2025-06-18 | PAGAMENTO CARTAO CREDITO | R$3,800.00 | c6bank | extratoconta |
+| 2025-06-18 | TARGET LOJA | R$156.23 | c6bank | extratoconta |
 | 2025-06-19 | SQSP* INV186737595 | R$92.32 | Itaú | faturapaoacucar |
+| 2025-06-20 | Pix recebido de BRANDLOVRS LTDA | R$10,000.00 | c6bank | extratoconta |
 | 2025-06-26 | Dinheiro adicionado à conta | R$4,000.00 | Wise | extratoconta |
 | 2025-06-27 | Dinheiro adicionado à conta | R$8,400.00 | Wise | extratoconta |
 | 2025-06-27 | Pago para AppFolio, Inc. F | R$2.49 | Wise | extratoconta |
 | 2025-06-27 | Pago para De Paula Realty | R$1,932.14 | Wise | extratoconta |
 | 2025-06-30 | tr Sal p/poup Sociedade Beneficente Israelita Total - Os dados acima têm como base 31/03/2026 às 22h28 e estão sujeitos a alterações. Últimos Lançamen | R$1,500.00 | bradesco | extratoconta |
-| 2025-07-01 | ZS RES PREMI- JUL/25 | R$3,337.47 | Santander | faturaunique |
 | 2025-07-01 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$50.68 | bradesco | extratoconta |
+| 2025-07-01 | BOUTIQUE MIAMI | R$234.50 | c6bank | extratoconta |
+| 2025-07-01 | ZS RES PREMI- JUL/25 | R$3,337.47 | Santander | faturaunique |
 | 2025-07-02 | Pago para IU65 Premium & B | R$94.39 | Wise | extratoconta |
 | 2025-07-07 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$28.81 | bradesco | extratoconta |
+| 2025-07-10 | PIX RECEBIDA - BRANDLOVRS LTDA | R$9,500.00 | c6bank | extratoconta |
+| 2025-07-10 | RESTAURANTE ORLANDO | R$125.00 | c6bank | extratoconta |
 | 2025-07-14 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$18.51 | bradesco | extratoconta |
 | 2025-07-15 | tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 | R$4,139.58 | bradesco | extratoconta |
+| 2025-07-15 | Pix recebido de CNRY MANAGEMENT LTDA | R$40,000.00 | c6bank | extratoconta |
+| 2025-07-20 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$8,500.00 | c6bank | extratoconta |
 | 2025-07-29 | Recebeu dinheiro de Douglas Camargo De Campos | R$121.00 | Wise | extratoconta |
 | 2025-07-29 | Pago para AppFolio, Inc. F | R$2.49 | Wise | extratoconta |
 | 2025-07-29 | Pago para De Paula Realty | R$1,990.22 | Wise | extratoconta |
+| 2025-07-29 | Pix recebido de CNRY MANAGEMENT LTDA | R$40,000.00 | c6bank | extratoconta |
 | 2025-07-31 | tr Sal p/poup Sociedade Beneficente Israelita | R$3,777.75 | bradesco | extratoconta |
 | 2025-08-01 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$71.75 | bradesco | extratoconta |
 | 2025-08-04 | Pago para IU65 Premium & B | R$16.12 | Wise | extratoconta |
 | 2025-08-05 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$29.01 | bradesco | extratoconta |
+| 2025-08-05 | RESORT FLORIDA | R$520.00 | c6bank | extratoconta |
+| 2025-08-08 | PIX RECEBIDA - BARTE BRASIL LTDA | R$10,000.00 | c6bank | extratoconta |
 | 2025-08-13 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$18.76 | bradesco | extratoconta |
 | 2025-08-15 | tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 | R$4,139.58 | bradesco | extratoconta |
+| 2025-08-18 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$9,000.00 | c6bank | extratoconta |
+| 2025-08-26 | Pix recebido de CNRY MANAGEMENT LTDA | R$40,000.00 | c6bank | extratoconta |
 | 2025-08-29 | tr Sal p/poup Sociedade Beneficente Israelita Total Os dados acima têm como base 31/03/2026 às 22h29 e estão sujeitos a alterações. Últimos Lançamento | R$4,241.08 | bradesco | extratoconta |
 | 2025-09-01 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$97.28 | bradesco | extratoconta |
 | 2025-09-02 | Pago para IU65 Premium & B | R$121.42 | Wise | extratoconta |
 | 2025-09-03 | Pago para AppFolio, Inc. F | R$2.49 | Wise | extratoconta |
 | 2025-09-03 | Pago para De Paula Realty | R$1,850.00 | Wise | extratoconta |
 | 2025-09-05 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$29.38 | bradesco | extratoconta |
+| 2025-09-05 | PIX RECEBIDA - ARVO SAUDE LTDA | R$12,500.00 | c6bank | extratoconta |
 | 2025-09-15 | tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 Rendimentos Poup Facil-depos a Partir 4/5/12 | R$4,359.80 | bradesco | extratoconta |
+| 2025-09-15 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$10,000.00 | c6bank | extratoconta |
+| 2025-09-22 | Pix recebido de BARTE BRASIL LTDA | R$30,000.00 | c6bank | extratoconta |
 | 2025-09-23 | Pago para AppFolio, Inc. F | R$2.49 | Wise | extratoconta |
 | 2025-09-23 | Pago para De Paula Realty | R$1,998.04 | Wise | extratoconta |
 | 2025-09-25 | Pago para AppFolio, Inc. F | R$2.49 | Wise | extratoconta |
@@ -129,6 +172,8 @@
 | 2025-09-29 | Saldo Invest Fácil | R$8,649.30 | bradesco | extratoconta |
 | 2025-09-30 | Saldo Invest Fácil | R$6,136.76 | bradesco | extratoconta |
 | 2025-09-30 | tr Sal p/poup Sociedade Beneficente Israelita | R$3,954.66 | bradesco | extratoconta |
+| 2025-09-30 | Pix recebido de BRANDLOVRS LTDA | R$40,000.00 | c6bank | extratoconta |
+| 2025-09-30 | Pix recebido de ARVO SAUDE LTDA | R$38,333.33 | c6bank | extratoconta |
 | 2025-10-01 | JUROS S/ CAPITAL DE CLIENTES ITSA4 S/ 763 | R$15.26 | Rico | extratoconta |
 | 2025-10-01 | Saldo Invest Fácil | R$6,136.93 | bradesco | extratoconta |
 | 2025-10-01 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$126.85 | bradesco | extratoconta |
@@ -141,20 +186,26 @@
 | 2025-10-08 | Saldo Invest Fácil | R$4,130.42 | bradesco | extratoconta |
 | 2025-10-09 | Saldo Invest Fácil | R$9,446.89 | bradesco | extratoconta |
 | 2025-10-10 | Saldo Invest Fácil | R$9,447.15 | bradesco | extratoconta |
+| 2025-10-10 | PIX RECEBIDA - CNRY MANAGEMENT LTDA | R$14,000.00 | c6bank | extratoconta |
 | 2025-10-13 | Saldo Invest Fácil | R$0.00 | bradesco | extratoconta |
 | 2025-10-13 | Rendimentos Poup Facil-depos a Partir 4/5/12 bx Aut Cta Cor* - | R$46,196.38 | bradesco | extratoconta |
 | 2025-10-14 | bx Aut Cta Cor* - | R$230.00 | bradesco | extratoconta |
 | 2025-10-15 | Recebeu dinheiro de IU65 Premium & B | R$121.42 | Wise | extratoconta |
 | 2025-10-15 | tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 Reg Rendimento* - Poup Facil-depos a Partir 4/5/12 bx Aut C | R$1.55 | bradesco | extratoconta |
 | 2025-10-15 | tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 Reg Rendimento* - Poup Facil-depos a Partir 4/5/12 bx Aut C | R$55.98 | bradesco | extratoconta |
+| 2025-10-15 | AMAZON COMPRA | R$45.67 | c6bank | extratoconta |
 | 2025-10-18 | Recebeu dinheiro de Douglas Camargo De Campos | R$20.00 | Wise | extratoconta |
 | 2025-10-20 | bx Aut Cta Cor* - | R$1,683.86 | bradesco | extratoconta |
 | 2025-10-22 | bx Aut Cta Cor* - | R$624.40 | bradesco | extratoconta |
+| 2025-10-22 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$11,000.00 | c6bank | extratoconta |
+| 2025-10-27 | Pix recebido de ARVO SAUDE LTDA | R$50,000.00 | c6bank | extratoconta |
 | 2025-10-28 | bx Aut Cta Cor* - | R$248.00 | bradesco | extratoconta |
 | 2025-10-31 | tr Sal p/poup Sociedade Beneficente Israelita bx Aut Cta Cor* - Total - Os dados acima têm como base 31/03/2026 às 22h29 e estão sujeitos a alterações | R$2,444.16 | bradesco | extratoconta |
 | 2025-10-31 | tr Sal p/poup Sociedade Beneficente Israelita bx Aut Cta Cor* - Total - Os dados acima têm como base 31/03/2026 às 22h29 e estão sujeitos a alterações | R$51,484.33 | bradesco | extratoconta |
+| 2025-10-31 | Pix recebido de LEARNTOEIV DESENVOLVIMENTO HUMANO LTDA | R$500.00 | c6bank | extratoconta |
 | 2025-11-04 | bx Aut Cta Cor* - | R$1,535.00 | bradesco | extratoconta |
 | 2025-11-05 | bx Aut Cta Cor* - | R$300.00 | bradesco | extratoconta |
+| 2025-11-08 | PIX RECEBIDA - BRANDLOVRS LTDA | R$8,500.00 | c6bank | extratoconta |
 | 2025-11-11 | Saldo Invest Fácil | R$4,613.30 | bradesco | extratoconta |
 | 2025-11-12 | Saldo Invest Fácil | R$4,576.35 | bradesco | extratoconta |
 | 2025-11-13 | Saldo Invest Fácil | R$4,576.48 | bradesco | extratoconta |
@@ -163,10 +214,12 @@
 | 2025-11-17 | Saldo Invest Fácil | R$4,485.74 | bradesco | extratoconta |
 | 2025-11-17 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$16.29 | bradesco | extratoconta |
 | 2025-11-18 | Saldo Invest Fácil | R$4,485.86 | bradesco | extratoconta |
+| 2025-11-18 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$7,500.00 | c6bank | extratoconta |
 | 2025-11-19 | Saldo Invest Fácil | R$4,485.99 | bradesco | extratoconta |
 | 2025-11-19 | BLOQUEIO PIX | R$333.00 | itau | extratoconta |
 | 2025-11-21 | JUROS S/ CAPITAL DE CLIENTES PETR4 S/ 1,700 | R$485.47 | Rico | extratoconta |
 | 2025-11-21 | Saldo Invest Fácil | R$3,793.38 | bradesco | extratoconta |
+| 2025-11-21 | TRANSFERENCIA INTERNACIONAL | R$3,840.00 | c6bank | extratoconta |
 | 2025-11-24 | Saldo Invest Fácil | R$3,623.30 | bradesco | extratoconta |
 | 2025-11-25 | Saldo Invest Fácil | R$3,273.35 | bradesco | extratoconta |
 | 2025-11-26 | Saldo Invest Fácil | R$2,966.33 | bradesco | extratoconta |
@@ -181,7 +234,10 @@
 | 2025-12-03 | Saldo Invest Fácil | R$427.25 | bradesco | extratoconta |
 | 2025-12-04 | Saldo Invest Fácil | R$0.00 | bradesco | extratoconta |
 | 2025-12-04 | bx Aut Cta Cor* - | R$1,072.81 | bradesco | extratoconta |
+| 2025-12-05 | Pix recebido de ARBITRALIS S.A. | R$3,500.00 | c6bank | extratoconta |
+| 2025-12-05 | PIX RECEBIDA - BARTE BRASIL LTDA | R$9,000.00 | c6bank | extratoconta |
 | 2025-12-06 | COR | R$84.90 | C6 Bank | faturacarbon |
+| 2025-12-07 | Pix recebido de ARBITRALIS S.A. | R$11,000.00 | c6bank | extratoconta |
 | 2025-12-08 | ALEX MARTINS DE MACEDO | R$39.00 | C6 Bank | faturacarbon |
 | 2025-12-08 | bx Aut Cta Cor* - | R$404.16 | bradesco | extratoconta |
 | 2025-12-10 | bx Aut Cta Cor* - | R$220.00 | bradesco | extratoconta |
@@ -197,8 +253,9 @@
 | 2025-12-15 | Saldo Invest Fácil | R$5,225.66 | bradesco | extratoconta |
 | 2025-12-15 | tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 Rendimentos Poup Facil-depos a Partir 4/5/12 | R$2,179.90 | bradesco | extratoconta |
 | 2025-12-16 | Saldo Invest Fácil | R$5,183.67 | bradesco | extratoconta |
-| 2025-12-17 | CICLOBRANDAO | R$120.00 | Santander | faturaunique |
+| 2025-12-16 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$8,000.00 | c6bank | extratoconta |
 | 2025-12-17 | Saldo Invest Fácil | R$5,183.82 | bradesco | extratoconta |
+| 2025-12-17 | CICLOBRANDAO | R$120.00 | Santander | faturaunique |
 | 2025-12-18 | Saldo Invest Fácil | R$5,173.96 | bradesco | extratoconta |
 | 2025-12-19 | DIVIDENDOS DE CLIENTES ITSA4 S/ 763 | R$591.60 | Rico | extratoconta |
 | 2025-12-19 | Saldo Invest Fácil | R$5,174.10 | bradesco | extratoconta |
@@ -224,7 +281,11 @@
 | 2026-01-05 | Saldo Invest Fácil | R$0.00 | bradesco | extratoconta |
 | 2026-01-05 | bx Aut Cta Cor* - | R$1,673.05 | bradesco | extratoconta |
 | 2026-01-06 | bx Aut Cta Cor* - | R$220.00 | bradesco | extratoconta |
+| 2026-01-06 | Pix recebido de BRANDLOVRS LTDA | R$20,000.00 | c6bank | extratoconta |
 | 2026-01-09 | Saldo Invest Fácil | R$5,224.67 | bradesco | extratoconta |
+| 2026-01-09 | Pix recebido de ARVO SAUDE LTDA | R$50,000.00 | c6bank | extratoconta |
+| 2026-01-10 | PIX RECEBIDA - ARVO SAUDE LTDA | R$13,000.00 | c6bank | extratoconta |
+| 2026-01-10 | GOOGLE FI COBRANCA | R$125.00 | c6bank | extratoconta |
 | 2026-01-12 | Saldo Invest Fácil | R$5,207.82 | bradesco | extratoconta |
 | 2026-01-13 | Saldo Invest Fácil | R$5,207.96 | bradesco | extratoconta |
 | 2026-01-14 | Saldo Invest Fácil | R$4,852.95 | bradesco | extratoconta |
@@ -236,6 +297,7 @@
 | 2026-01-19 | Rendimentos Poup Facil-depos a Partir 4/5/12 | R$18.07 | bradesco | extratoconta |
 | 2026-01-20 | Saldo Invest Fácil | R$0.00 | bradesco | extratoconta |
 | 2026-01-20 | bx Aut Cta Cor* - | R$1,782.63 | bradesco | extratoconta |
+| 2026-01-20 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$10,000.00 | c6bank | extratoconta |
 | 2026-01-21 | bx Aut Cta Cor* - | R$3,183.24 | bradesco | extratoconta |
 | 2026-01-23 | bx Aut Cta Cor* - | R$28.03 | bradesco | extratoconta |
 | 2026-01-26 | bx Aut Cta Cor* - | R$100.00 | bradesco | extratoconta |
@@ -251,14 +313,22 @@
 | 2026-02-04 | Saldo Invest Fácil | R$0.00 | bradesco | extratoconta |
 | 2026-02-04 | bx Aut Cta Cor* - | R$807.57 | bradesco | extratoconta |
 | 2026-02-05 | tr Sal p/poup Sociedade Beneficente Israelita bx Aut Cta Cor* - | R$145.00 | bradesco | extratoconta |
+| 2026-02-06 | Pix recebido de ARBITRALIS S.A. | R$3,500.00 | c6bank | extratoconta |
+| 2026-02-07 | Transf C6 Conta Global Líquido | R$500.00 | c6bank | extratoconta |
+| 2026-02-08 | PIX RECEBIDA - CNRY MANAGEMENT LTDA | R$15,500.00 | c6bank | extratoconta |
+| 2026-02-10 | GOOGLE FI COBRANCA | R$8.50 | c6bank | extratoconta |
 | 2026-02-11 | Saldo Invest Fácil | R$1,509.15 | bradesco | extratoconta |
 | 2026-02-11 | SISPAG GRPQA LTDA | R$1,571.97 | itau | extratoconta |
 | 2026-02-11 | SISPAG GRPQA LTDA | R$1,850.13 | itau | extratoconta |
 | 2026-02-12 | Saldo Invest Fácil | R$1,509.19 | bradesco | extratoconta |
+| 2026-02-13 | Transf C6 Conta Global Líquido | R$350.00 | c6bank | extratoconta |
 | 2026-02-13 | Saldo Invest Fácil | R$1,509.23 | bradesco | extratoconta |
 | 2026-02-13 | tr Sal p/poup Sociedade Beneficente Israelita | R$3,633.17 | bradesco | extratoconta |
+| 2026-02-15 | Transf C6 Conta Global Líquido | R$150.00 | c6bank | extratoconta |
+| 2026-02-15 | GOOGLE FI COBRANCA | R$128.50 | c6bank | extratoconta |
 | 2026-02-18 | Saldo Invest Fácil | R$1,453.29 | bradesco | extratoconta |
 | 2026-02-18 | Rendimentos Poup Facil-depos a Partir 4/5/12 Rendimentos Poup Facil-depos a Partir 4/5/12 | R$29.89 | bradesco | extratoconta |
+| 2026-02-18 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$11,000.00 | c6bank | extratoconta |
 | 2026-02-18 | PIX TRANSF EDER SO17/02 | R$89.90 | itau | extratoconta |
 | 2026-02-19 | Saldo Invest Fácil | R$1,453.33 | bradesco | extratoconta |
 | 2026-02-20 | RENDIMENTOS DE CLIENTES PETR4 S/ 1,700 | R$11.75 | Rico | extratoconta |
@@ -267,28 +337,36 @@
 | 2026-02-23 | Saldo Invest Fácil | R$673.54 | bradesco | extratoconta |
 | 2026-02-24 | Saldo Invest Fácil | R$453.53 | bradesco | extratoconta |
 | 2026-02-25 | FRACOES DE ACOES ITSA4 | R$3.81 | Rico | extratoconta |
+| 2026-02-25 | GOOGLE FI COBRANCA | R$9.25 | c6bank | extratoconta |
 | 2026-02-25 | Saldo Invest Fácil | R$453.55 | bradesco | extratoconta |
 | 2026-02-26 | Saldo Invest Fácil | R$453.56 | bradesco | extratoconta |
 | 2026-02-27 | Saldo Invest Fácil | R$453.57 | bradesco | extratoconta |
 | 2026-02-27 | tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 | R$3,425.41 | bradesco | extratoconta |
+| 2026-02-27 | Pix recebido de ARVO SAUDE LTDA | R$47,208.77 | c6bank | extratoconta |
 | 2026-03-02 | Saldo Invest Fácil | R$383.57 | bradesco | extratoconta |
 | 2026-03-02 | Rendimentos Poup Facil-depos a Partir 4/5/12 Rendimentos Poup Facil-depos a Partir 4/5/12 | R$25.21 | bradesco | extratoconta |
 | 2026-03-03 | Saldo Invest Fácil | R$383.58 | bradesco | extratoconta |
 | 2026-03-04 | Saldo Invest Fácil | R$0.00 | bradesco | extratoconta |
 | 2026-03-04 | bx Aut Cta Cor* - | R$1,116.46 | bradesco | extratoconta |
 | 2026-03-05 | Rendimentos Poup Facil-depos a Partir 4/5/12 bx Aut Cta Cor* - | R$120.00 | bradesco | extratoconta |
+| 2026-03-05 | PIX RECEBIDA - BRANDLOVRS LTDA | R$9,000.00 | c6bank | extratoconta |
 | 2026-03-06 | JUROS S/ CAPITAL DE CLIENTES ITSA4 S/ 763 | R$11.80 | Rico | extratoconta |
+| 2026-03-06 | Pix recebido de ARBITRALIS S.A. | R$2,000.00 | c6bank | extratoconta |
 | 2026-03-09 | CONTA REMUNERADA - RESGATE REMUNERAÇÃO - | R$0.73 | BTG Pactual | extratoconta |
 | 2026-03-09 | bx Aut Cta Cor* - | R$32.00 | bradesco | extratoconta |
+| 2026-03-09 | Pix recebido de ARBITRALIS S.A. | R$1,750.00 | c6bank | extratoconta |
 | 2026-03-10 | bx Aut Cta Cor* - | R$220.00 | bradesco | extratoconta |
 | 2026-03-11 | Saldo Invest Fácil | R$3,397.35 | bradesco | extratoconta |
 | 2026-03-11 | SISPAG GRPQA LTDA | R$1,850.13 | itau | extratoconta |
 | 2026-03-11 | SISPAG GRPQA LTDA | R$1,571.97 | itau | extratoconta |
 | 2026-03-12 | Saldo Invest Fácil | R$2,402.30 | bradesco | extratoconta |
+| 2026-03-12 | Pix recebido de LEARNTOEIV DESENVOLVIMENTO HUMANO LTDA | R$1,750.00 | c6bank | extratoconta |
+| 2026-03-12 | GOOGLE FI COBRANCA | R$130.00 | c6bank | extratoconta |
 | 2026-03-13 | CONTA REMUNERADA - RESGATE REMUNERAÇÃO - | R$0.18 | BTG Pactual | extratoconta |
 | 2026-03-13 | CONTA REMUNERADA - RESGATE REMUNERAÇÃO - | R$0.49 | BTG Pactual | extratoconta |
 | 2026-03-13 | Saldo Invest Fácil | R$3,402.37 | bradesco | extratoconta |
 | 2026-03-13 | tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 | R$4,359.80 | bradesco | extratoconta |
+| 2026-03-15 | PIX ENVIADA - DAVID ROBERT CAMARGO | R$8,500.00 | c6bank | extratoconta |
 | 2026-03-15 | Transf C6 Conta Global Líquido | R$100.00 | c6bank | extratoconta |
 | 2026-03-16 | CUPOM - CRA FS AGRISOLUTIONS - Venc.: 2030-06- | R$80.05 | BTG Pactual | extratoconta |
 | 2026-03-16 | CUPOM - CRA ELDORADO - Venc.: 2040-09-17 | R$1,013.67 | BTG Pactual | extratoconta |
@@ -308,6 +386,7 @@
 | 2026-03-20 | RENDIMENTOS DE CLIENTES PETR4 S/ 1,700 | R$11.80 | Rico | extratoconta |
 | 2026-03-20 | DIVIDENDOS DE CLIENTES PETR4 S/ 1,700 | R$503.91 | Rico | extratoconta |
 | 2026-03-20 | Saldo Invest Fácil | R$2,695.29 | bradesco | extratoconta |
+| 2026-03-20 | Pix recebido de BRANDLOVRS LTDA | R$30,000.00 | c6bank | extratoconta |
 | 2026-03-23 | CONTA REMUNERADA - RESGATE REMUNERAÇÃO - | R$1.27 | BTG Pactual | extratoconta |
 | 2026-03-23 | Rendimento de Conta de Pagamento | R$14.47 | PicPay | extratoconta |
 | 2026-03-23 | Saldo Invest Fácil | R$2,695.35 | bradesco | extratoconta |
@@ -333,8 +412,10 @@
 | 2026-03-28 | SALDO DO DIA | R$913.72 | itau | extratoconta |
 | 2026-03-29 | Rendimento Disponível - Saldo Remunerado | R$0.07 | BTG Pactual | extratoconta |
 | 2026-03-29 | Reserva - Seu dinheiro guardado rende todo dia! Valor guardado: R$ 206.491,70 | R$206,491.70 | itau | extratoconta |
+| 2026-04-05 | PIX RECEBIDA - BARTE BRASIL LTDA | R$10,500.00 | c6bank | extratoconta |
+| 2026-04-05 | GOOGLE FI COBRANCA | R$125.00 | c6bank | extratoconta |
 
-### Taxa: 20.9% ⚠️ ACIMA DA META (<10%)
+### Taxa: 24.8% ⚠️ ACIMA DA META (<10%)
 
 ### Notas para investigação
 

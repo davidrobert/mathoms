@@ -1,1 +1,119 @@
-{"_tombstone": true}
+{
+  "banco": "Rico",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "",
+    "fim": ""
+  },
+  "saldo_inicial": 0,
+  "saldo_inicial_unknown": true,
+  "saldo_final": 0,
+  "saldo_final_unknown": true,
+  "fontes": [
+    "rico_extratoconta_202510_202603-2_extract.json"
+  ],
+  "transacoes_total": 14,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-10-01",
+      "descricao": "JUROS S/ CAPITAL DE CLIENTES ITSA4 S/ 763",
+      "tipo": "crédito",
+      "valor": 15.26,
+      "saldo_apos": 14072.74
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "JUROS S/ CAPITAL DE CLIENTES PETR4 S/ 1,700",
+      "tipo": "crédito",
+      "valor": 485.47,
+      "saldo_apos": 14558.21
+    },
+    {
+      "data": "2025-12-19",
+      "descricao": "DIVIDENDOS DE CLIENTES ITSA4 S/ 763",
+      "tipo": "crédito",
+      "valor": 591.6,
+      "saldo_apos": 15149.81
+    },
+    {
+      "data": "2025-12-22",
+      "descricao": "DIVIDENDOS DE CLIENTES PETR4 S/ 1,700",
+      "tipo": "crédito",
+      "valor": 341.56,
+      "saldo_apos": 15686.5
+    },
+    {
+      "data": "2025-12-22",
+      "descricao": "JUROS S/ CAPITAL DE CLIENTES PETR4 S/ 1,700",
+      "tipo": "crédito",
+      "valor": 195.13,
+      "saldo_apos": 15344.94
+    },
+    {
+      "data": "2026-01-02",
+      "descricao": "JUROS S/ CAPITAL DE CLIENTES ITSA4 S/ 763",
+      "tipo": "crédito",
+      "valor": 15.26,
+      "saldo_apos": 15701.76
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "RENDIMENTOS DE CLIENTES PETR4 S/ 1,700",
+      "tipo": "crédito",
+      "valor": 11.75,
+      "saldo_apos": 16394.98
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "JUROS S/ CAPITAL DE CLIENTES PETR4 S/ 1,700",
+      "tipo": "crédito",
+      "valor": 681.47,
+      "saldo_apos": 16383.23
+    },
+    {
+      "data": "2026-02-25",
+      "descricao": "FRACOES DE ACOES ITSA4",
+      "tipo": "crédito",
+      "valor": 3.81,
+      "saldo_apos": 16398.79
+    },
+    {
+      "data": "2026-03-06",
+      "descricao": "JUROS S/ CAPITAL DE CLIENTES ITSA4 S/ 763",
+      "tipo": "crédito",
+      "valor": 11.8,
+      "saldo_apos": 16410.59
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "JUROS S/ CAPITAL DE CLIENTES PETR4 S/ 1,700",
+      "tipo": "crédito",
+      "valor": 253.13,
+      "saldo_apos": 17186.4
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "RENDIMENTOS DE CLIENTES PETR4 S/ 1,700",
+      "tipo": "crédito",
+      "valor": 6.97,
+      "saldo_apos": 16933.27
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "RENDIMENTOS DE CLIENTES PETR4 S/ 1,700",
+      "tipo": "crédito",
+      "valor": 11.8,
+      "saldo_apos": 16926.3
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "DIVIDENDOS DE CLIENTES PETR4 S/ 1,700",
+      "tipo": "crédito",
+      "valor": 503.91,
+      "saldo_apos": 16914.5
+    }
+  ]
+}

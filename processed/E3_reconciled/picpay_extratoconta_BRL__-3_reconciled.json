@@ -1,1 +1,77 @@
-{"_tombstone": true}
+{
+  "banco": "PicPay",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "",
+    "fim": ""
+  },
+  "saldo_inicial": 0,
+  "saldo_inicial_unknown": true,
+  "saldo_final": 0,
+  "saldo_final_unknown": true,
+  "fontes": [
+    "picpay_extratoconta_202512_202603-2_extract.json"
+  ],
+  "transacoes_total": 8,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2026-03-18",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "tipo": "crédito",
+      "valor": 14.68,
+      "saldo_apos": 53654.92
+    },
+    {
+      "data": "2026-03-19",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "tipo": "crédito",
+      "valor": 14.69,
+      "saldo_apos": 53669.61
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "tipo": "crédito",
+      "valor": 14.48,
+      "saldo_apos": 53684.09
+    },
+    {
+      "data": "2026-03-23",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "tipo": "crédito",
+      "valor": 14.47,
+      "saldo_apos": 53698.56
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "tipo": "crédito",
+      "valor": 14.48,
+      "saldo_apos": 53713.04
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "tipo": "crédito",
+      "valor": 14.5,
+      "saldo_apos": 53727.54
+    },
+    {
+      "data": "2026-03-26",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "tipo": "crédito",
+      "valor": 14.52,
+      "saldo_apos": 53742.06
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "Rendimento de Conta de Pagamento",
+      "tipo": "crédito",
+      "valor": 14.5,
+      "saldo_apos": 53756.56
+    }
+  ]
+}

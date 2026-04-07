@@ -1,1 +1,270 @@
-{"_tombstone": true}
+{
+  "banco": "itau",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "",
+    "fim": ""
+  },
+  "saldo_inicial": 0,
+  "saldo_inicial_unknown": true,
+  "saldo_final": 0,
+  "saldo_final_unknown": true,
+  "fontes": [
+    "itau_extratoconta_202507-2_extract.json",
+    "itau_extratoconta_202601-2_extract.json",
+    "itau_extratocontapersonnalite_202505_202603-2_extract.json",
+    "itau_extratocontapersonnalite_202603a-2_extract.json",
+    "itau_extratocontapersonnalite_202603b-2_extract.json"
+  ],
+  "transacoes_total": 35,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-09-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "débito",
+      "valor": 697.45,
+      "saldo_apos": 9281.4
+    },
+    {
+      "data": "2025-09-29",
+      "descricao": "DA ELETROPAULO 31237205",
+      "tipo": "débito",
+      "valor": 170.92,
+      "saldo_apos": 10050.07
+    },
+    {
+      "data": "2025-10-10",
+      "descricao": "FINANC IMOBILIARIO 000045",
+      "tipo": "débito",
+      "valor": 4330.99,
+      "saldo_apos": 8402.41
+    },
+    {
+      "data": "2025-11-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "débito",
+      "valor": 59.0,
+      "saldo_apos": 7698.48
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "PIX TRANSF DAVID R19/11",
+      "tipo": "crédito",
+      "valor": 333.0,
+      "saldo_apos": 7152.31
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "BLOQUEIO PIX",
+      "tipo": "débito",
+      "valor": 333.0,
+      "saldo_apos": 6819.76
+    },
+    {
+      "data": "2025-11-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "crédito",
+      "valor": 1.04,
+      "saldo_apos": 6102.81
+    },
+    {
+      "data": "2025-12-05",
+      "descricao": "SABESP 3334280219",
+      "tipo": "débito",
+      "valor": 347.65,
+      "saldo_apos": 5755.75
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "débito",
+      "valor": 59.0,
+      "saldo_apos": 5696.86
+    },
+    {
+      "data": "2025-12-10",
+      "descricao": "FINANC IMOBILIARIO 000047",
+      "tipo": "débito",
+      "valor": 4306.37,
+      "saldo_apos": 1394.46
+    },
+    {
+      "data": "2025-12-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1571.97,
+      "saldo_apos": 4816.56
+    },
+    {
+      "data": "2025-12-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1850.13,
+      "saldo_apos": 6819.31
+    },
+    {
+      "data": "2025-12-26",
+      "descricao": "INT /SIMPLES NACIONA 072",
+      "tipo": "débito",
+      "valor": 4257.17,
+      "saldo_apos": -10044.05
+    },
+    {
+      "data": "2025-12-26",
+      "descricao": "INT /DARF 1625360392 8123",
+      "tipo": "débito",
+      "valor": 2728.37,
+      "saldo_apos": -9378.82
+    },
+    {
+      "data": "2025-12-29",
+      "descricao": "SALDO DO DIA",
+      "tipo": "saldo",
+      "valor": 913.72,
+      "saldo_apos": 913.72
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG IPVA 2026",
+      "tipo": "débito",
+      "valor": 5225.93,
+      "saldo_apos": -5754.21
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG Multa de Veiculo",
+      "tipo": "débito",
+      "valor": 682.06,
+      "saldo_apos": -6436.27
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PIX TRANSF DAVID R12/01",
+      "tipo": "crédito",
+      "valor": 20000.0,
+      "saldo_apos": 13563.73
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "crédito",
+      "valor": 0.05,
+      "saldo_apos": 399.65
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "DA ELETROPAULO 31237205",
+      "tipo": "débito",
+      "valor": 927.93,
+      "saldo_apos": -528.28
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "SABESP 3334280219",
+      "tipo": "débito",
+      "valor": 568.02,
+      "saldo_apos": 3716.04
+    },
+    {
+      "data": "2026-02-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "débito",
+      "valor": 257.54,
+      "saldo_apos": 4284.06
+    },
+    {
+      "data": "2026-02-10",
+      "descricao": "FINANC IMOBILIARIO 049/120",
+      "tipo": "débito",
+      "valor": 4281.54,
+      "saldo_apos": 993.24
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1571.97,
+      "saldo_apos": 3424.65
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1850.13,
+      "saldo_apos": 5274.78
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "PIX TRANSF EDER SO17/02",
+      "tipo": "crédito",
+      "valor": 89.9,
+      "saldo_apos": 3514.55
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "SABESP 3334280219",
+      "tipo": "débito",
+      "valor": 402.23,
+      "saldo_apos": 2411.23
+    },
+    {
+      "data": "2026-03-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "débito",
+      "valor": 59.0,
+      "saldo_apos": 2352.23
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "FINANC IMOBILIARIO 050/120",
+      "tipo": "débito",
+      "valor": 4266.94,
+      "saldo_apos": -887.27
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1850.13,
+      "saldo_apos": 1507.7
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1571.97,
+      "saldo_apos": 3379.67
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "REND PAGO APLIC AUT APR",
+      "tipo": "crédito",
+      "valor": 0.04,
+      "saldo_apos": 913.76
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "DA ELETROPAULO 31237205",
+      "tipo": "débito",
+      "valor": 594.07,
+      "saldo_apos": 319.69
+    },
+    {
+      "data": "2026-03-28",
+      "descricao": "SALDO DO DIA",
+      "tipo": "saldo",
+      "valor": 913.72,
+      "saldo_apos": 913.72
+    },
+    {
+      "data": "2026-03-29",
+      "descricao": "Reserva - Seu dinheiro guardado rende todo dia! Valor guardado: R$ 206.491,70",
+      "tipo": "saldo",
+      "valor": 206491.7,
+      "saldo_apos": 206491.7
+    }
+  ]
+}
