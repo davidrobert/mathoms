@@ -1,17 +1,22 @@
 {
-  "document_type": "IRPF_RECEIPT",
-  "total_tax": 0,
-  "delivery_date": "2025-05-30",
-  "status": null,
-  "taxpayer_info": {
+  "tipo": "irpfrecibo",
+  "exercicio": 2025,
+  "ano_calendario": 2024,
+  "declarante": {
+    "nome": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
     "cpf": "287.766.948-36"
   },
-  "extraction_status": "processed",
-  "pages_processed": 2,
-  "total_pages": 2,
-  "first_page_text": "MINISTÉRIO DA FAZENDA IMPOSTO SOBRE A RENDA - PESSOA FÍSICA\nSECRETARIA ESPECIAL DA RECEITA FEDERAL DO BRASIL EXERCÍCIO 2025 ANO-CALENDÁRIO 2024\nRECIBO DE ENTREGA DA DECLARAÇÃO DE AJUSTE ANUAL - OPÇÃO PELO DESCONTO SIMPLIFICADO\nDECLARAÇÃO ORIGINAL\nIDENTIFICAÇÃO DO DECLARANTE\nCPF do declarante Nome do declarante Telefone\n287.766.948-36 DAVID ROBERT CAMARGO FERREIRA CAMPOS\nEndereço Número Complemento\nRUA TASSO DA SILVEIRA 61\nBairro/Distrito CEP Município UF\nVILA GUARANI Z SUL 04316-080 SAO PAULO SP\n(Valores em Reais)\nTOTAL RENDIMENTOS TRIBUTÁVEIS 651.374,65\n163.779,60\nIMPOSTO DEVIDO\nIMPOSTO A RESTITUIR 0,00\nSALDO DO IMPOSTO A PAGAR 9.010,82\nIMPOSTO A PAGAR\nGANHO DE CAPITAL - MOEDA EM ESPÉCIE 0,00\nPARCELAMENTO (Vencimento da 1a quota em 30/05/2025)\nNÚMERO DE QUOTAS 1\nVALOR DA QUOTA 9.010,82\nDeclaração recebida via Internet JV\npelo Agente Receptor SERPRO\nem 28/05/2025 às 15:05:47\n3986406783\n3986406783",
-  "periodo": {
-    "inicio": "2024-01-01",
-    "fim": "2024-12-31"
-  }
+  "tipo_declaracao": "Declaração de Ajuste Anual Original - Desconto Simplificado",
+  "data_entrega": "2025-05-28T15:05:47",
+  "numero_recibo": "41.12.98.65.44-47",
+  "total_rendimentos_tributaveis": 651374.65,
+  "imposto_devido": 163779.6,
+  "imposto_a_restituir": 0.0,
+  "saldo_imposto_a_pagar": 9010.82,
+  "parcelamento": {
+    "numero_quotas": 1,
+    "valor_quota": 9010.82,
+    "vencimento_1a_quota": "2025-05-30"
+  },
+  "debito_automatico": false
 }

@@ -2,11 +2,220 @@
   "banco": "Bradesco",
   "tipo": "extratopoupanca",
   "moeda": "BRL",
+  "numero_conta": "Ag 504 Conta 77113-9",
+  "titular": null,
   "periodo": {
-    "inicio": "2020-26-01",
-    "fim": "2020-26-01"
+    "inicio": "2026-01-01",
+    "fim": "2026-03-31"
   },
-  "saldo_inicial": 0,
-  "saldo_final": 19.0,
-  "transacoes": []
+  "saldo_inicial": null,
+  "saldo_final": 4359.28,
+  "transacoes": [
+    {
+      "data": "2026-01-05",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1673.05
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -220.0
+    },
+    {
+      "data": "2026-01-14",
+      "descricao": "Rendimentos",
+      "valor": 29.44
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "tr Sal p/poup",
+      "valor": 4359.8
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Rendimentos",
+      "valor": 31.08
+    },
+    {
+      "data": "2026-01-19",
+      "descricao": "Rendimentos",
+      "valor": 18.07
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1782.63
+    },
+    {
+      "data": "2026-01-21",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -3183.24
+    },
+    {
+      "data": "2026-01-23",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -28.03
+    },
+    {
+      "data": "2026-01-26",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -100.0
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "Rendimentos",
+      "valor": 38.96
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "Rendimentos",
+      "valor": 59.33
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -356.39
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -86.66
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "tr Sal p/poup",
+      "valor": 3902.36
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Rendimentos",
+      "valor": 6.42
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -807.57
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "tr Sal p/poup",
+      "valor": 2326.29
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -145.0
+    },
+    {
+      "data": "2026-02-13",
+      "descricao": "tr Sal p/poup",
+      "valor": 3633.17
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Rendimentos",
+      "valor": 29.89
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Rendimentos",
+      "valor": 45.04
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "tr Sal p/poup",
+      "valor": 3425.41
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Rendimentos",
+      "valor": 39.33
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "Rendimentos",
+      "valor": 25.21
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "Rendimentos",
+      "valor": 56.72
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1116.46
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "Rendimentos",
+      "valor": 13.59
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -120.0
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -32.0
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -220.0
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "tr Sal p/poup",
+      "valor": 4359.8
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "Rendimentos",
+      "valor": 22.51
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Rendimentos",
+      "valor": 27.53
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Rendimentos",
+      "valor": 41.59
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -37304.9
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -210.0
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "Rendimentos",
+      "valor": 29.03
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "Total 22.520,57",
+      "valor": -47385.93
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "0800 570 0022 0800",
+      "valor": 704.0
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "0800",
+      "valor": 722.0
+    }
+  ],
+  "notas": []
 }

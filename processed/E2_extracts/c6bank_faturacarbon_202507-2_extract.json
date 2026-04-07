@@ -310,9 +310,5 @@
       "subtotal": 556.07
     }
   ],
-  "parse_quality": "ok",
-  "periodo": {
-    "inicio": "2025-07-01",
-    "fim": "2025-07-31"
-  }
+  "parse_quality": "ok"
 }

@@ -1,160 +1,117 @@
 {
-  "banco": "santander",
+  "banco": "Santander",
   "tipo_conta": "extratoconta",
-  "titular": null,
+  "titular": "david",
   "moeda": "BRL",
   "periodo_cobertura": {
     "inicio": "2025-11-01",
-    "fim": "2026-03-31"
+    "fim": "2026-03-29"
   },
-  "saldo_inicial": 0,
-  "saldo_inicial_unknown": true,
-  "saldo_final": 0,
-  "saldo_final_unknown": true,
+  "saldo_inicial": 0.0,
+  "saldo_inicial_unknown": false,
+  "saldo_final": 280.6,
+  "saldo_final_unknown": false,
   "fontes": [
     "santander_extratoconta_202511_202512-2_extract.json",
     "santander_extratoconta_202601_202603-2_extract.json"
   ],
-  "transacoes_total": 23,
+  "transacoes_total": 19,
   "transacoes_duplicadas_removidas": 0,
   "transacoes": [
     {
-      "data": "2025-11-01",
-      "descricao": "SALDO ANTERIOR",
-      "valor": 0.0,
-      "saldo_apos": null
-    },
-    {
       "data": "2026-01-02",
-      "descricao": "IOF ADICIONAL - AUTOMATICO PERIODO: 01/12 A 31/12/25 000000 -2,13",
-      "valor": -3304.13,
-      "saldo_apos": null
-    },
-    {
-      "data": "2026-01-02",
-      "descricao": "IOF IMPOSTO OPERACOES FINANCEIRAS PERIODO: 01/12 A 31/12/25000000 -7,99",
-      "valor": -3302.0,
-      "saldo_apos": null
+      "descricao": "IOF ADICIONAL - AUTOMATICO PERIODO: 01/12 A 31/12/25",
+      "valor": -2.13
     },
     {
       "data": "2026-01-05",
-      "descricao": "JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/12 A 02/01/26 000000 -263,75",
-      "valor": -3567.88,
-      "saldo_apos": null
+      "descricao": "JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/12 A 02/01/26",
+      "valor": -263.75
     },
     {
       "data": "2026-01-06",
-      "descricao": "DEBITO AUT. TELEFONE CELULAR VIVO MOVEL-SP 000000 -338,00",
-      "valor": -3905.88,
-      "saldo_apos": null
+      "descricao": "DEBITO AUT. TELEFONE CELULAR VIVO MOVEL-SP",
+      "valor": -338.0
     },
     {
       "data": "2026-01-15",
-      "descricao": "DEBITO AUT. FAT.CARTAO MASTER CARD FINAL 2506 000000 -372,85",
-      "valor": -4278.73,
-      "saldo_apos": null
+      "descricao": "DEBITO AUT. FAT.CARTAO MASTER CARD FINAL 2506",
+      "valor": -372.85
     },
     {
       "data": "2026-01-27",
-      "descricao": "MENSALIDADE DE SEGURO Parc 007/012 AP 749936 -10,07",
-      "valor": -4288.8,
-      "saldo_apos": null
+      "descricao": "MENSALIDADE DE SEGURO Parc 007/012 AP",
+      "valor": -10.07
     },
     {
       "data": "2026-02-02",
-      "descricao": "IOF ADICIONAL - AUTOMATICO PERIODO: 01/01 A 31/01/26 000000 -3,75",
-      "valor": -4302.77,
-      "saldo_apos": null
-    },
-    {
-      "data": "2026-02-02",
-      "descricao": "IOF IMPOSTO OPERACOES FINANCEIRAS PERIODO: 01/01 A 31/01/26000000 -10,22",
-      "valor": -4299.02,
-      "saldo_apos": null
+      "descricao": "IOF ADICIONAL - AUTOMATICO PERIODO: 01/01 A 31/01/26",
+      "valor": -3.75
     },
     {
       "data": "2026-02-03",
-      "descricao": "JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/01 A 02/02/26 000000 -340,89",
-      "valor": -4643.66,
-      "saldo_apos": null
+      "descricao": "JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/01 A 02/02/26",
+      "valor": -340.89
     },
     {
       "data": "2026-02-04",
-      "descricao": "PIX RECEBIDO DOUGLAS CAMARGO DE CAMPOS 420211 100,00",
-      "valor": -4543.66,
-      "saldo_apos": null
+      "descricao": "PIX RECEBIDO DOUGLAS CAMARGO DE CAMPOS",
+      "valor": 100.0
     },
     {
       "data": "2026-02-06",
-      "descricao": "PIX RECEBIDO DAVID ROBERT CAMARGO DE C 000000 5.000,00",
-      "valor": 118.34,
-      "saldo_apos": null
+      "descricao": "DEBITO AUT. TELEFONE CELULAR VIVO MOVEL-SP",
+      "valor": -338.0
     },
     {
       "data": "2026-02-06",
-      "descricao": "DEBITO AUT. TELEFONE CELULAR VIVO MOVEL-SP 000000 -338,00",
-      "valor": -4881.66,
-      "saldo_apos": null
+      "descricao": "PIX RECEBIDO DAVID ROBERT CAMARGO DE C",
+      "valor": 5000.0
     },
     {
       "data": "2026-02-18",
-      "descricao": "DEBITO AUT. FAT.CARTAO MASTER CARD FINAL 2506 000000 -122,43",
-      "valor": -4.09,
-      "saldo_apos": null
+      "descricao": "DEBITO AUT. FAT.CARTAO MASTER CARD FINAL 2506",
+      "valor": -122.43
     },
     {
       "data": "2026-02-27",
-      "descricao": "MENSALIDADE DE SEGURO Parc 008/012 AP 749936 -10,07",
-      "valor": -14.16,
-      "saldo_apos": null
+      "descricao": "MENSALIDADE DE SEGURO Parc 008/012 AP",
+      "valor": -10.07
     },
     {
       "data": "2026-03-02",
-      "descricao": "IOF ADICIONAL - AUTOMATICO PERIODO: 01/02 A 28/02/26 000000 -1,38",
-      "valor": -17.37,
-      "saldo_apos": null
-    },
-    {
-      "data": "2026-03-02",
-      "descricao": "IOF IMPOSTO OPERACOES FINANCEIRAS PERIODO: 01/02 A 28/02/26000000 -1,83",
-      "valor": -15.99,
-      "saldo_apos": null
+      "descricao": "IOF ADICIONAL - AUTOMATICO PERIODO: 01/02 A 28/02/26",
+      "valor": -1.38
     },
     {
       "data": "2026-03-03",
-      "descricao": "JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/02 A 02/03/26 000000 -57,21",
-      "valor": -74.58,
-      "saldo_apos": null
+      "descricao": "JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/02 A 02/03/26",
+      "valor": -57.21
     },
     {
       "data": "2026-03-04",
-      "descricao": "PIX RECEBIDO DOUGLAS CAMARGO DE CAMPOS 210798 100,00",
-      "valor": 25.42,
-      "saldo_apos": null
+      "descricao": "PIX RECEBIDO DOUGLAS CAMARGO DE CAMPOS",
+      "valor": 100.0
     },
     {
       "data": "2026-03-09",
-      "descricao": "DEBITO AUT. TELEFONE CELULAR VIVO MOVEL-SP 000000 -351,93",
-      "valor": -326.51,
-      "saldo_apos": null
+      "descricao": "DEBITO AUT. TELEFONE CELULAR VIVO MOVEL-SP",
+      "valor": -351.93
     },
     {
       "data": "2026-03-16",
-      "descricao": "DEBITO AUT. FAT.CARTAO MASTER CARD FINAL 2506 000000 -382,82",
-      "valor": -709.33,
-      "saldo_apos": null
+      "descricao": "DEBITO AUT. FAT.CARTAO MASTER CARD FINAL 2506",
+      "valor": -382.82
     },
     {
       "data": "2026-03-27",
-      "descricao": "MENSALIDADE DE SEGURO Parc 009/012 AP 749936 -10,07",
-      "valor": -719.4,
-      "saldo_apos": null
+      "descricao": "MENSALIDADE DE SEGURO Parc 009/012 AP",
+      "valor": -10.07
     },
     {
       "data": "2026-03-30",
-      "descricao": "PIX RECEBIDO DAVID ROBERT CAMARGO FERR 000000 1.000,00",
-      "valor": 280.6,
-      "saldo_apos": null
+      "descricao": "PIX RECEBIDO DAVID ROBERT CAMARGO FERR",
+      "valor": 1000.0
     }
   ]
 }

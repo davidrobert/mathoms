@@ -1,14 +1,171 @@
 {
-  "banco": "wise",
-  "tipo": "extratoconta",
-  "moeda": "BRL",
+  "banco": "Wise",
+  "tipo": "extratocontausd",
+  "moeda": "USD",
   "numero_conta": null,
+  "titular": "david",
   "periodo": {
     "inicio": "2025-01-01",
-    "fim": "2026-03-31"
+    "fim": "2026-03-29"
   },
-  "saldo_inicial": null,
-  "saldo_final": null,
-  "transacoes": [],
+  "saldo_inicial": -0.0,
+  "saldo_final": 4721.94,
+  "transacoes": [
+    {
+      "data": "2025-04-21",
+      "descricao": "Dinheiro adicionado à conta",
+      "valor": 100.0
+    },
+    {
+      "data": "2025-04-22",
+      "descricao": "Pago para IU65 Premium & B",
+      "valor": -94.39
+    },
+    {
+      "data": "2025-04-27",
+      "descricao": "Dinheiro adicionado à conta",
+      "valor": 100.0
+    },
+    {
+      "data": "2025-05-02",
+      "descricao": "Pago para IU65 Premium & B",
+      "valor": -94.39
+    },
+    {
+      "data": "2025-05-18",
+      "descricao": "Recebeu dinheiro de Douglas Camargo De Campos com a referência \"Sent",
+      "valor": 100.0
+    },
+    {
+      "data": "2025-05-19",
+      "descricao": "Recebeu dinheiro de Douglas Camargo De Campos com a referência \"Sent",
+      "valor": 1390.0
+    },
+    {
+      "data": "2025-05-25",
+      "descricao": "Dinheiro adicionado à conta",
+      "valor": 1900.0
+    },
+    {
+      "data": "2025-05-28",
+      "descricao": "Pago para Anderson Univers",
+      "valor": -2940.0
+    },
+    {
+      "data": "2025-05-30",
+      "descricao": "Dinheiro adicionado à conta",
+      "valor": 500.0
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "Pago para De Paula Realty",
+      "valor": -493.33
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "Pago para AppFolio, Inc. F",
+      "valor": -2.49
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "Pago para IU65 Premium & B",
+      "valor": -94.39
+    },
+    {
+      "data": "2025-06-26",
+      "descricao": "Dinheiro adicionado à conta",
+      "valor": 4000.0
+    },
+    {
+      "data": "2025-06-27",
+      "descricao": "Pago para De Paula Realty",
+      "valor": -1932.14
+    },
+    {
+      "data": "2025-06-27",
+      "descricao": "Pago para AppFolio, Inc. F",
+      "valor": -2.49
+    },
+    {
+      "data": "2025-06-27",
+      "descricao": "Dinheiro adicionado à conta",
+      "valor": 8400.0
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "Pago para IU65 Premium & B",
+      "valor": -94.39
+    },
+    {
+      "data": "2025-07-29",
+      "descricao": "Pago para De Paula Realty",
+      "valor": -1990.22
+    },
+    {
+      "data": "2025-07-29",
+      "descricao": "Pago para AppFolio, Inc. F",
+      "valor": -2.49
+    },
+    {
+      "data": "2025-07-29",
+      "descricao": "Recebeu dinheiro de Douglas Camargo De Campos com a referência \"\"",
+      "valor": 121.0
+    },
+    {
+      "data": "2025-08-04",
+      "descricao": "Pago para IU65 Premium & B",
+      "valor": -16.12
+    },
+    {
+      "data": "2025-09-02",
+      "descricao": "Pago para IU65 Premium & B",
+      "valor": -121.42
+    },
+    {
+      "data": "2025-09-03",
+      "descricao": "Pago para De Paula Realty",
+      "valor": -1850.0
+    },
+    {
+      "data": "2025-09-03",
+      "descricao": "Pago para AppFolio, Inc. F",
+      "valor": -2.49
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Pago para De Paula Realty",
+      "valor": -1998.04
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Pago para AppFolio, Inc. F",
+      "valor": -2.49
+    },
+    {
+      "data": "2025-09-25",
+      "descricao": "Pago para De Paula Realty",
+      "valor": -175.29
+    },
+    {
+      "data": "2025-09-25",
+      "descricao": "Pago para AppFolio, Inc. F",
+      "valor": -2.49
+    },
+    {
+      "data": "2025-10-02",
+      "descricao": "Pago para IU65 Premium & B",
+      "valor": -121.42
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "Recebeu dinheiro de IU65 Premium & B com a referência \"111000028615896\"",
+      "valor": 121.42
+    },
+    {
+      "data": "2025-10-18",
+      "descricao": "Recebeu dinheiro de Douglas Camargo De Campos com a referência \"\"",
+      "valor": 20.0
+    }
+  ],
   "notas": []
 }

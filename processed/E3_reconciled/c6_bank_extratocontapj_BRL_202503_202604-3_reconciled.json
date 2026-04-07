@@ -1,0 +1,298 @@
+{
+  "banco": "C6 Bank",
+  "tipo_conta": "extratocontapj",
+  "titular": "david",
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-03-29",
+    "fim": "2026-04-05"
+  },
+  "saldo_inicial": 7000.0,
+  "saldo_inicial_unknown": false,
+  "saldo_final": 164639.21,
+  "saldo_final_unknown": false,
+  "fontes": [
+    "c6bank_extratocontapj_202503_202603-2_extract.json",
+    "c6bank_extratocontapj_202504_202604-2_extract.json"
+  ],
+  "transacoes_total": 46,
+  "transacoes_duplicadas_removidas": 35,
+  "transacoes": [
+    {
+      "data": "2025-03-05",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -5000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-03-06",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -41000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-03-09",
+      "descricao": "Pix recebido de ARBITRALIS S.A.",
+      "valor": 2000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-03-12",
+      "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
+      "valor": 1750.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-03-15",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS Pix recebido de BRANDLOVERS LTDA",
+      "valor": -5000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-05-30",
+      "descricao": "Pix recebido de BRANDLOVRS LTDA.",
+      "valor": 7000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "Pix recebido de BARTE BRASIL LTDA.",
+      "valor": 10000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -17000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-06-20",
+      "descricao": "Pix recebido de BRANDLOVRS LTDA.",
+      "valor": 10000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-07-15",
+      "descricao": "Pix recebido de CNRY MANAGEMENT LTDA",
+      "valor": 40000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-07-29",
+      "descricao": "Pix recebido de CNRY MANAGEMENT LTDA",
+      "valor": 40000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -26000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-08-26",
+      "descricao": "Pix recebido de CNRY MANAGEMENT LTDA Pix enviado para RECEITA FEDERAL",
+      "valor": 40000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-08-26",
+      "descricao": "Pix enviado para RECEITA FEDERAL Pix enviado para RECEITA FEDERAL",
+      "valor": -2217.06,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -980.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -1500.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -5000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Pix recebido de BARTE BRASIL LTDA.",
+      "valor": 30000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Pix recebido de BRANDLOVRS LTDA Pix recebido de ARVO SAUDE LTDA",
+      "valor": 40000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -10000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-10-16",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -20000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-10-27",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -20000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-10-30",
+      "descricao": "Pix recebido de ARVO SAUDE LTDA",
+      "valor": 50000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -4000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-11-14",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -20000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -11000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-11-27",
+      "descricao": "Pix recebido de ARVO SAUDE LTDA",
+      "valor": 8333.33,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-11-28",
+      "descricao": "Pix recebido de ARVO SAUDE LTDA",
+      "valor": 46624.29,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2025-12-01",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -10000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-12-05",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -50000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2025-12-07",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -11000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -50000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -8800.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-09",
+      "descricao": "Pix recebido de BRANDLOVERS LTDA",
+      "valor": 20000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -20000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -14000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS Pix recebido de ARBITRALIS S.A.",
+      "valor": -30000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-02-06",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -5000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-02-13",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -10000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Pix recebido de ARVO SAUDE LTDA",
+      "valor": 47208.77,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -5000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-03-06",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "valor": -41000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "Pix recebido de ARBITRALIS S.A.",
+      "valor": 2000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2026-03-12",
+      "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
+      "valor": 1750.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2026-03-15",
+      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS Pix recebido de BRANDLOVERS LTDA",
+      "valor": -5000.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-03-30",
+      "descricao": "Pix recebido de ARVO SAUDE LTDA",
+      "valor": 47208.77,
+      "tipo_lancamento": "Entrada PIX"
+    }
+  ]
+}

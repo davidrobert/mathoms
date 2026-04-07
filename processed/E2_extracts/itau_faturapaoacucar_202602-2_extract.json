@@ -1,31 +1,32 @@
 {
-  "banco": "itau",
+  "banco": "Itaú",
   "tipo": "faturapaoacucar",
+  "cartao": "Pão de Açúcar",
+  "titular": "DAVID ROBERT CAMARGO DE CAMPOS",
   "moeda": "BRL",
-  "periodo": {
-    "inicio": "2026-02-01",
-    "fim": "2026-02-28"
-  },
   "data_vencimento": "2026-02-06",
-  "valor_total": 257.54,
+  "saldo_anterior": 59.0,
+  "total_compras_nacionais": 59.0,
+  "total_compras_internacionais": 198.54,
+  "total_compras": 257.53999999999996,
+  "pagamentos": -59.0,
+  "saldo_atual": 257.54,
+  "limite_total": 95220.0,
+  "parse_quality": "ok",
   "transacoes": [
     {
       "data": "2026-06-08",
       "descricao": "BRASIL PARAL*Bras 08/12",
-      "valor": -59.0,
-      "cartao": "titular"
+      "valor": 95220.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": "08/12"
     },
     {
       "data": "2026-01-15",
       "descricao": "SQSP* DOMAIN#218016570",
-      "valor": -191.8,
-      "cartao": "titular"
-    },
-    {
-      "data": "2026-06-08",
-      "descricao": "BRASIL PARAL*Bras 09/12",
-      "valor": -59.0,
-      "cartao": "titular"
+      "valor": 191.8,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
     }
   ]
 }

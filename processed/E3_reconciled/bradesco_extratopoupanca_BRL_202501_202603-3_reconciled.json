@@ -1,0 +1,737 @@
+{
+  "banco": "Bradesco",
+  "tipo_conta": "extratopoupanca",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-01-01",
+    "fim": "2026-03-31"
+  },
+  "saldo_inicial": 0,
+  "saldo_inicial_unknown": true,
+  "saldo_final": 4359.28,
+  "saldo_final_unknown": false,
+  "fontes": [
+    "bradesco_extratopoupanca_202501_202502-2_extract.json",
+    "bradesco_extratopoupanca_202503_202504-2_extract.json",
+    "bradesco_extratopoupanca_202505_202506-2_extract.json",
+    "bradesco_extratopoupanca_202507_202508-2_extract.json",
+    "bradesco_extratopoupanca_202509_202510-2_extract.json",
+    "bradesco_extratopoupanca_202511_202512-2_extract.json",
+    "bradesco_extratopoupanca_202601_202603-2_extract.json"
+  ],
+  "transacoes_total": 142,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-01-02",
+      "descricao": "Rendimentos",
+      "valor": 31.66
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1808.49
+    },
+    {
+      "data": "2025-01-06",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -266.0
+    },
+    {
+      "data": "2025-01-13",
+      "descricao": "Rendimentos",
+      "valor": 23.72
+    },
+    {
+      "data": "2025-01-14",
+      "descricao": "Rendimentos",
+      "valor": 23.87
+    },
+    {
+      "data": "2025-01-15",
+      "descricao": "tr Sal p/poup",
+      "valor": 4139.58
+    },
+    {
+      "data": "2025-01-15",
+      "descricao": "Rendimentos",
+      "valor": 17.38
+    },
+    {
+      "data": "2025-01-20",
+      "descricao": "Rendimentos",
+      "valor": 12.08
+    },
+    {
+      "data": "2025-01-21",
+      "descricao": "Rendimentos",
+      "valor": 12.3
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "tr Sal p/poup",
+      "valor": 3535.83
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "Rendimentos",
+      "valor": 45.54
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -60.02
+    },
+    {
+      "data": "2025-02-04",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -10.0
+    },
+    {
+      "data": "2025-02-13",
+      "descricao": "Rendimentos",
+      "valor": 27.97
+    },
+    {
+      "data": "2025-02-14",
+      "descricao": "tr Sal p/poup",
+      "valor": 4139.58
+    },
+    {
+      "data": "2025-02-14",
+      "descricao": "Rendimentos",
+      "valor": 28.13
+    },
+    {
+      "data": "2025-02-17",
+      "descricao": "Rendimentos",
+      "valor": 47.54
+    },
+    {
+      "data": "2025-02-20",
+      "descricao": "Rendimentos",
+      "valor": 14.05
+    },
+    {
+      "data": "2025-02-21",
+      "descricao": "Rendimentos",
+      "valor": 14.32
+    },
+    {
+      "data": "2025-02-28",
+      "descricao": "tr Sal p/poup",
+      "valor": 3483.62
+    },
+    {
+      "data": "2025-02-28",
+      "descricao": "Total 15.597,17",
+      "valor": -2144.51
+    },
+    {
+      "data": "2025-02-28",
+      "descricao": "0800 570 0022 0800",
+      "valor": 704.0
+    },
+    {
+      "data": "2025-02-28",
+      "descricao": "0800",
+      "valor": 722.0
+    },
+    {
+      "data": "2025-03-05",
+      "descricao": "Rendimentos",
+      "valor": 65.27
+    },
+    {
+      "data": "2025-03-07",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -36262.61
+    },
+    {
+      "data": "2025-03-10",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -110.0
+    },
+    {
+      "data": "2025-03-13",
+      "descricao": "Rendimentos",
+      "valor": 8.07
+    },
+    {
+      "data": "2025-03-14",
+      "descricao": "tr Sal p/poup",
+      "valor": 4139.58
+    },
+    {
+      "data": "2025-03-31",
+      "descricao": "tr Sal p/poup",
+      "valor": 6598.53
+    },
+    {
+      "data": "2025-04-14",
+      "descricao": "Rendimentos",
+      "valor": 9.51
+    },
+    {
+      "data": "2025-04-14",
+      "descricao": "Rendimentos",
+      "valor": 27.77
+    },
+    {
+      "data": "2025-04-15",
+      "descricao": "tr Sal p/poup",
+      "valor": 4139.58
+    },
+    {
+      "data": "2025-04-24",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -14662.66
+    },
+    {
+      "data": "2025-04-30",
+      "descricao": "tr Sal p/poup",
+      "valor": 3574.83
+    },
+    {
+      "data": "2025-04-30",
+      "descricao": "Total 18.563,14",
+      "valor": -51035.27
+    },
+    {
+      "data": "2025-04-30",
+      "descricao": "0800 570 0022 0800",
+      "valor": 704.0
+    },
+    {
+      "data": "2025-04-30",
+      "descricao": "0800",
+      "valor": 722.0
+    },
+    {
+      "data": "2025-05-02",
+      "descricao": "Rendimentos",
+      "valor": 11.15
+    },
+    {
+      "data": "2025-05-02",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "tr Sal p/poup",
+      "valor": 4139.58
+    },
+    {
+      "data": "2025-05-30",
+      "descricao": "tr Sal p/poup",
+      "valor": 3778.33
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "Rendimentos",
+      "valor": 25.21
+    },
+    {
+      "data": "2025-06-05",
+      "descricao": "tr Sal p/poup",
+      "valor": 4282.7
+    },
+    {
+      "data": "2025-06-13",
+      "descricao": "tr Sal p/poup",
+      "valor": 2759.72
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "Rendimentos",
+      "valor": 27.91
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "tr Sal p/poup",
+      "valor": 2997.28
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Total 18.021,88",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "0800 570 0022 0800",
+      "valor": 704.0
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "0800",
+      "valor": 722.0
+    },
+    {
+      "data": "2025-07-01",
+      "descricao": "Rendimentos",
+      "valor": 50.68
+    },
+    {
+      "data": "2025-07-07",
+      "descricao": "Rendimentos",
+      "valor": 28.81
+    },
+    {
+      "data": "2025-07-14",
+      "descricao": "Rendimentos",
+      "valor": 18.51
+    },
+    {
+      "data": "2025-07-15",
+      "descricao": "tr Sal p/poup",
+      "valor": 4139.58
+    },
+    {
+      "data": "2025-07-15",
+      "descricao": "Rendimentos",
+      "valor": 27.95
+    },
+    {
+      "data": "2025-07-31",
+      "descricao": "tr Sal p/poup",
+      "valor": 3777.75
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "Rendimentos",
+      "valor": 71.75
+    },
+    {
+      "data": "2025-08-05",
+      "descricao": "Rendimentos",
+      "valor": 29.01
+    },
+    {
+      "data": "2025-08-13",
+      "descricao": "Rendimentos",
+      "valor": 18.76
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "tr Sal p/poup",
+      "valor": 4139.58
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "Rendimentos",
+      "valor": 56.43
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "tr Sal p/poup",
+      "valor": 4241.08
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "0800 570 0022 0800",
+      "valor": 704.0
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "0800",
+      "valor": 722.0
+    },
+    {
+      "data": "2025-09-01",
+      "descricao": "Rendimentos",
+      "valor": 97.28
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Rendimentos",
+      "valor": 29.38
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "tr Sal p/poup",
+      "valor": 4359.8
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "Rendimentos",
+      "valor": 84.16
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "tr Sal p/poup",
+      "valor": 3954.66
+    },
+    {
+      "data": "2025-10-01",
+      "descricao": "Rendimentos",
+      "valor": 126.85
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "Rendimentos",
+      "valor": 29.41
+    },
+    {
+      "data": "2025-10-13",
+      "descricao": "Rendimentos",
+      "valor": 18.89
+    },
+    {
+      "data": "2025-10-13",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -46196.38
+    },
+    {
+      "data": "2025-10-14",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -230.0
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "tr Sal p/poup",
+      "valor": 4359.8
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -55.98
+    },
+    {
+      "data": "2025-10-20",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1683.86
+    },
+    {
+      "data": "2025-10-22",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -624.4
+    },
+    {
+      "data": "2025-10-28",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -248.0
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "tr Sal p/poup",
+      "valor": 5196.53
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -2444.16
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "Total 18.281,67",
+      "valor": -51484.33
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "0800 570 0022 0800",
+      "valor": 704.0
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "0800",
+      "valor": 722.0
+    },
+    {
+      "data": "2025-11-04",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1535.0
+    },
+    {
+      "data": "2025-11-05",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -300.0
+    },
+    {
+      "data": "2025-11-14",
+      "descricao": "tr Sal p/poup",
+      "valor": 4359.8
+    },
+    {
+      "data": "2025-11-17",
+      "descricao": "Rendimentos",
+      "valor": 16.29
+    },
+    {
+      "data": "2025-11-27",
+      "descricao": "tr Sal p/poup",
+      "valor": 5769.9
+    },
+    {
+      "data": "2025-11-28",
+      "descricao": "tr Sal p/poup",
+      "valor": 9532.78
+    },
+    {
+      "data": "2025-12-01",
+      "descricao": "Rendimentos",
+      "valor": 6.09
+    },
+    {
+      "data": "2025-12-04",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1072.81
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -404.16
+    },
+    {
+      "data": "2025-12-10",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -220.0
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "tr Sal p/poup",
+      "valor": 2179.9
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "Rendimentos",
+      "valor": 16.12
+    },
+    {
+      "data": "2025-12-19",
+      "descricao": "tr Sal p/poup",
+      "valor": 2741.19
+    },
+    {
+      "data": "2025-12-29",
+      "descricao": "tr Sal p/poup",
+      "valor": 2848.01
+    },
+    {
+      "data": "2025-12-29",
+      "descricao": "Rendimentos",
+      "valor": 58.79
+    },
+    {
+      "data": "2025-12-29",
+      "descricao": "Total 27.596,97",
+      "valor": -3531.97
+    },
+    {
+      "data": "2025-12-29",
+      "descricao": "0800 570 0022 0800",
+      "valor": 704.0
+    },
+    {
+      "data": "2025-12-29",
+      "descricao": "0800",
+      "valor": 722.0
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1673.05
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -220.0
+    },
+    {
+      "data": "2026-01-14",
+      "descricao": "Rendimentos",
+      "valor": 29.44
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "tr Sal p/poup",
+      "valor": 4359.8
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Rendimentos",
+      "valor": 31.08
+    },
+    {
+      "data": "2026-01-19",
+      "descricao": "Rendimentos",
+      "valor": 18.07
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1782.63
+    },
+    {
+      "data": "2026-01-21",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -3183.24
+    },
+    {
+      "data": "2026-01-23",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -28.03
+    },
+    {
+      "data": "2026-01-26",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -100.0
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "Rendimentos",
+      "valor": 38.96
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "Rendimentos",
+      "valor": 59.33
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -356.39
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -86.66
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "tr Sal p/poup",
+      "valor": 3902.36
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Rendimentos",
+      "valor": 6.42
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -807.57
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "tr Sal p/poup",
+      "valor": 2326.29
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -145.0
+    },
+    {
+      "data": "2026-02-13",
+      "descricao": "tr Sal p/poup",
+      "valor": 3633.17
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Rendimentos",
+      "valor": 29.89
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Rendimentos",
+      "valor": 45.04
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "tr Sal p/poup",
+      "valor": 3425.41
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "Rendimentos",
+      "valor": 39.33
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "Rendimentos",
+      "valor": 25.21
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "Rendimentos",
+      "valor": 56.72
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1116.46
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "Rendimentos",
+      "valor": 13.59
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -120.0
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -32.0
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -220.0
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "tr Sal p/poup",
+      "valor": 4359.8
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "Rendimentos",
+      "valor": 22.51
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Rendimentos",
+      "valor": 27.53
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Rendimentos",
+      "valor": 41.59
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -37304.9
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -210.0
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "Rendimentos",
+      "valor": 29.03
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "Total 22.520,57",
+      "valor": -47385.93
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "0800 570 0022 0800",
+      "valor": 704.0
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "0800",
+      "valor": 722.0
+    }
+  ]
+}

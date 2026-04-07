@@ -1,147 +1,228 @@
 {
-  "stage": "E1.5",
-  "description": "Baseline Patrimonial - Ferreira Campos Family",
-  "extraction_date": "2026-04-07T13:20:32.241332",
-  "base_year": 2024,
-  "family": {
-    "surname": "Ferreira Campos",
-    "members": [
-      {
-        "name": "David Robert Camargo Ferreira Campos",
-        "cpf": "287.766.948-36",
-        "birth_date": "1981-09-05",
-        "role": "Titular - CTO PJ",
-        "marital_status": "Casado",
-        "spouse_cpf": "085.052.396-60"
+  "tipo": "baseline_patrimonial",
+  "data_consolidacao": "2026-04-07",
+  "membros": [
+    {
+      "nome": "David Robert Camargo Ferreira Campos",
+      "cpf": "287.766.948-36",
+      "ano_base": 2024,
+      "bens": {
+        "imoveis": [
+          {
+            "descricao": "Apto Praça Benedito Calixto 190/34, Pinheiros SP",
+            "valor_irpf": 350000.0,
+            "valor_compra": 348000.0,
+            "data_compra": "2021-12-10",
+            "fonte": "ambos"
+          },
+          {
+            "descricao": "Apto Rua Major Freire 496/12, Vila Monte Alegre SP",
+            "valor_irpf": 212706.24,
+            "valor_compra": 400000.0,
+            "data_compra": "2022-02-02",
+            "fonte": "ambos"
+          },
+          {
+            "descricao": "Casa Rua Tasso da Silveira 61, Vila Guarani SP",
+            "valor_irpf": 996821.46,
+            "valor_compra": 670000.0,
+            "data_compra": "2014-02-04",
+            "fonte": "ambos"
+          },
+          {
+            "descricao": "Casa Av. Leonardo da Vinci 2707, Jabaquara SP",
+            "valor_irpf": 80000.0,
+            "valor_compra": 80000.0,
+            "data_compra": "2023-01-12",
+            "fonte": "ambos"
+          }
+        ],
+        "veiculos": [
+          {
+            "descricao": "Yamaha NMAX 2018 (DAV0351)",
+            "valor_irpf": 15093.0,
+            "valor_aquisicao": 15093.0,
+            "data_aquisicao": null
+          },
+          {
+            "descricao": "Fiat Toro Ultra (GDK6A27)",
+            "valor_irpf": 191354.0,
+            "valor_aquisicao": 191354.0,
+            "data_aquisicao": null
+          },
+          {
+            "descricao": "Yamaha NMAX 160 2024 (STH2C88)",
+            "valor_irpf": 21029.0,
+            "valor_aquisicao": 21029.0,
+            "data_aquisicao": "2024-01-01"
+          }
+        ],
+        "investimentos": [
+          {
+            "tipo": "Renda Fixa - Itaú RDB/CDP",
+            "valor": 151602.49
+          },
+          {
+            "tipo": "Renda Fixa - PicPay",
+            "valor": 46684.62
+          },
+          {
+            "tipo": "Renda Fixa - Santander CDB",
+            "valor": 243285.37
+          },
+          {
+            "tipo": "Renda Fixa - C6 Bank",
+            "valor": 1765.0
+          },
+          {
+            "tipo": "Renda Fixa - Nubank RDB",
+            "valor": 189.3
+          },
+          {
+            "tipo": "Saldo Rico/XP",
+            "valor": 8546.95
+          },
+          {
+            "tipo": "Depósito Cayman (USD)",
+            "valor": 484.8
+          },
+          {
+            "tipo": "Fundo - Hashdex Crypto",
+            "valor": 3189.68
+          },
+          {
+            "tipo": "Fundo - DNA Energy",
+            "valor": 1416.09
+          },
+          {
+            "tipo": "Fundo - Constellation Advi",
+            "valor": 11409.17
+          },
+          {
+            "tipo": "Fundo - Western Asset BDR",
+            "valor": 17651.61
+          },
+          {
+            "tipo": "Fundo - Alaska Black FIA BDR",
+            "valor": 60000.0
+          },
+          {
+            "tipo": "Fundo - Alaska Black Institucional",
+            "valor": 35000.0
+          },
+          {
+            "tipo": "Fundo - Safari 30",
+            "valor": 25238.59
+          },
+          {
+            "tipo": "JCP Itaúsa (creditado não pago)",
+            "valor": 82.15
+          }
+        ],
+        "criptos": 0.0,
+        "contas_bancarias": 5168.52,
+        "outros": 34433.67
       },
-      {
-        "name": "Mariana Ferreira Campos",
-        "cpf": "085.052.396-60",
-        "birth_date": "1986-08-30",
-        "role": "Dependente/CLT - Enfermeira",
-        "marital_status": "Casada",
-        "spouse_cpf": "287.766.948-36"
-      },
-      {
-        "name": "Theo",
-        "birth_date": "2025-07-18",
-        "role": "Filho",
-        "age_at_base_year": "Nascido em 2025"
-      }
-    ]
-  },
-  "income_summary": {
-    "declaration_base_year": 2024,
-    "by_member": {
-      "david": {
-        "total_taxable": 651374.65,
-        "clt_salaries": 620917.41,
-        "simples_nacional": 301277.39,
-        "rental_income": 30457.24,
-        "financial_returns": 55445.46,
-        "bonus_13": 31259.11,
-        "tax_exempt": 301277.39,
-        "exclusive_taxation": 89363.37
-      },
-      "mariana": {
-        "total_taxable": 203982.98,
-        "clt_salaries": 141842.7,
-        "simples_nacional": 0,
-        "rental_income": 0,
-        "financial_returns": 0,
-        "bonus_13": 8301.32,
-        "tax_exempt": 0,
-        "exclusive_taxation": 0
-      }
+      "total_bens": 2513151.71,
+      "dividas": 234792.61,
+      "patrimonio_liquido": 2278359.1,
+      "divergencias": [
+        {
+          "descricao": "Valor IRPF do apto Major Freire (R$212.706,24) menor que valor de compra XLSX (R$400.000) — normal pois IRPF registra custo de aquisição parcial (financiamento em andamento)",
+          "tipo": "valor_discrepante",
+          "detalhes": "Diferença de R$187.293,76 explicada pelo financiamento Itaú não quitado"
+        },
+        {
+          "descricao": "Valor IRPF da casa Tasso (R$996.821,46) maior que valor de compra XLSX (R$670.000) — normal pois inclui reformas e custo acumulado",
+          "tipo": "valor_discrepante",
+          "detalhes": "Diferença de R$326.821,46 explicada por reformas e custos incorporados ao imóvel"
+        }
+      ]
     },
-    "family_total_taxable": 855357.63
-  },
-  "assets_summary": {
-    "by_member": {
-      "david": {
-        "real_estate": 2589887.09,
-        "financial_applications": 2513151.71,
-        "total": 2589887.09
+    {
+      "nome": "Mariana Ferreira Campos",
+      "cpf": "085.052.396-60",
+      "ano_base": 2024,
+      "bens": {
+        "imoveis": [
+          {
+            "descricao": "Apto Living Concept, Av. Alberto Augusto Alves 320/812, Santo Amaro SP",
+            "valor_irpf": 270000.0,
+            "valor_compra": 270000.0,
+            "data_compra": "2023-10-09",
+            "fonte": "ambos"
+          },
+          {
+            "descricao": "Apto Living Wish, Av. João Dias 2192 T2/163, Santo Amaro SP",
+            "valor_irpf": 530000.0,
+            "valor_compra": 530000.0,
+            "data_compra": "2018-04-09",
+            "fonte": "ambos"
+          }
+        ],
+        "veiculos": [],
+        "investimentos": [
+          {
+            "tipo": "CDB BTG (CDBB2353UR4)",
+            "valor": 22000.0
+          },
+          {
+            "tipo": "CDB BTG (CDB-SR)",
+            "valor": 3429.16
+          },
+          {
+            "tipo": "CDB BTG (CDB524BFK2F)",
+            "valor": 10000.0
+          },
+          {
+            "tipo": "LCI BTG (22J1410500)",
+            "valor": 9349.69
+          },
+          {
+            "tipo": "LCI BTG (22K1692411)",
+            "valor": 10324.25
+          },
+          {
+            "tipo": "CRA BTG (CRA02300MZU)",
+            "valor": 9115.01
+          },
+          {
+            "tipo": "CRA BTG (CRA02300SPD)",
+            "valor": 9109.54
+          },
+          {
+            "tipo": "CRA BTG (CRA024001Q9)",
+            "valor": 9248.83
+          },
+          {
+            "tipo": "LCI BTG (23J0138431)",
+            "valor": 9164.03
+          },
+          {
+            "tipo": "Fundo BTG Explorer RF Ativa LP",
+            "valor": 41408.87
+          },
+          {
+            "tipo": "Fundo BTG Hedge RF Crédito Privado",
+            "valor": 4494.93
+          },
+          {
+            "tipo": "Fundo BTG M8 Capital Plus RF CP LP",
+            "valor": 25479.42
+          },
+          {
+            "tipo": "Fundo BTG Hedge Incentivado Infra RF",
+            "valor": 25000.0
+          }
+        ],
+        "criptos": 0.0,
+        "contas_bancarias": 0.0,
+        "outros": 0.0
       },
-      "mariana": {
-        "real_estate": 988123.73,
-        "financial_applications": 811301.24,
-        "total": 988123.73
-      }
-    },
-    "family_total_assets": 3578010.82,
-    "real_estate_properties_count": 34,
-    "real_estate_from_xlsx": 34
-  },
-  "liabilities_summary": {
-    "by_member": {
-      "david": {
-        "total": 265420.59
-      },
-      "mariana": {
-        "total": 0
-      }
-    },
-    "family_total_liabilities": 265420.59
-  },
-  "taxes_summary": {
-    "2024_by_member": {
-      "david": {
-        "withheld": 154768.78,
-        "due": 163779.6,
-        "balance": 9010.820000000007
-      },
-      "mariana": {
-        "withheld": 22575.99,
-        "due": 40746.89,
-        "balance": 18170.899999999998
-      }
-    },
-    "family_total_due": 204526.49,
-    "family_total_withheld": 177344.77
-  },
-  "rental_income_2025": {
-    "david": {
-      "gross_rental": 0,
-      "deductions": 0,
-      "net": 0
-    },
-    "mariana": {
-      "gross_rental": 0,
-      "deductions": 0,
-      "net": 0
+      "total_bens": 988123.73,
+      "dividas": 0.0,
+      "patrimonio_liquido": 988123.73,
+      "divergencias": []
     }
-  },
-  "data_sources": {
-    "irpf_declarations_2024": [
-      "receitafederal_irpfdeclaracao_2024-0_original.pdf",
-      "receitafederal_irpfdeclaracaomariana_2024-0_original.pdf"
-    ],
-    "irpf_receipts_2024": [
-      "receitafederal_irpfrecibo_2024-0_original.pdf",
-      "receitafederal_irpfrecibomariana_2024-0_original.pdf"
-    ],
-    "rental_reports_2025": [
-      "quintoandar_informerendimentosaluguel_2025-0_original.pdf",
-      "quintoandar_informerendimentosaluguelmariana_2025-0_original.pdf"
-    ],
-    "real_estate_data": [
-      "dados_imoveis-0_original.xlsx"
-    ]
-  },
-  "extraction_status": {
-    "irpf_2024_david": "complete",
-    "irpf_2024_mariana": "complete",
-    "irpf_receipts": "complete",
-    "quintoandar_reports": "extracted",
-    "real_estate_data": "complete"
-  },
-  "notes": [
-    "Consolidated from IRPF declarations (base year 2024)",
-    "Total family taxable income: R$ 855,357.63",
-    "Total family assets (IRPF): R$ 3,578,010.82",
-    "Total family liabilities: R$ 265,420.59",
-    "Real estate properties tracked: 34",
-    "Rental income reports for 2025 extracted but not yet consolidated with IRPF"
   ]
 }

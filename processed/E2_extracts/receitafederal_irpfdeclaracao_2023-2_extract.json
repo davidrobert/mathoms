@@ -1,21 +1,132 @@
 {
-  "base_year": 2023,
-  "person": "david",
-  "taxpayer": {
-    "name": "MARIANA TEIXEIRA FERREIRA",
-    "cpf": "085.052.396-60",
-    "birth_date": null,
-    "spouse_cpf": null
+  "tipo": "irpfdeclaracao",
+  "ano_base": 2023,
+  "declarante": {
+    "nome": "MARIANA TEIXEIRA FERREIRA",
+    "cpf": "085.052.396-60"
   },
-  "income": {},
-  "assets": {},
-  "liabilities": {},
-  "taxes": {},
-  "pages": 12,
-  "extraction_method": "raw_document_storage",
-  "note": "2023 file appears to contain 2022 or prior year data - review required",
-  "periodo": {
-    "inicio": "2023-01-01",
-    "fim": "2023-12-31"
+  "data_declaracao": "2024-05-28",
+  "bens_direitos": [
+    {
+      "tipo": "imovel",
+      "descricao": "Apartamento Cond. Living Concept, Av. Alberto Augusto Alves 320 Apto 812, Santo Amaro, SP. Matrícula 488435. 25,7m². Compra na planta Cyrela. Aquisição 09/10/2023.",
+      "valor_31_12_ano_anterior": 116839.26,
+      "valor_31_12_ano_base": 223733.99,
+      "localidade": "São Paulo, SP"
+    },
+    {
+      "tipo": "imovel",
+      "descricao": "Apartamento Cond. Living Wish, Av. João Dias 2192 Torre 2 Apto 163, Santo Amaro, SP. Matrícula 453.527. 88,9m². Compra na planta Cyrela. Aquisição 09/04/2018.",
+      "valor_31_12_ano_anterior": 477436.58,
+      "valor_31_12_ano_base": 477436.58,
+      "localidade": "São Paulo, SP"
+    },
+    {
+      "tipo": "conta_bancaria",
+      "descricao": "Bradesco Ag 6543 Conta 6673-7 (poupança).",
+      "valor_31_12_ano_anterior": 36692.14,
+      "valor_31_12_ano_base": 25337.34,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "CDB BTG Pactual.",
+      "valor_31_12_ano_anterior": 168055.76,
+      "valor_31_12_ano_base": 22000.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "CDB BTG (2o produto).",
+      "valor_31_12_ano_anterior": 122.79,
+      "valor_31_12_ano_base": 1826.51,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "CDB Bradesco - Renda Fixa.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 4365.03,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Nubank - RDB.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 58.23,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "LCI BTG - Opea Securitizadora.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 10349.69,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "LCI BTG - True Securitizadora.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 10324.25,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "conta_bancaria",
+      "descricao": "Bradesco Ag 6543 Conta 6673-7 (corrente).",
+      "valor_31_12_ano_anterior": 1.0,
+      "valor_31_12_ano_base": 1.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG Pactual Explorer Renda Fixa Ativa FI LP. CNPJ 11.952.873/0001-10.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 35868.62,
+      "localidade": "Brasil"
+    }
+  ],
+  "rendimentos": [
+    {
+      "tipo": "clt",
+      "valor_bruto": 146176.12,
+      "valor_liquido": 146176.12,
+      "fonte": "SBIBHAE - Hospital Albert Einstein (CNPJ 60.765.823/0001-30)"
+    },
+    {
+      "tipo": "aluguel",
+      "valor_bruto": 6116.71,
+      "valor_liquido": 6116.71,
+      "fonte": "Aluguéis recebidos de pessoa física (ago-dez 2023)"
+    },
+    {
+      "tipo": "financeiro",
+      "valor_bruto": 12584.21,
+      "valor_liquido": 12584.21,
+      "fonte": "Rendimentos de aplicações financeiras (tributação exclusiva)"
+    },
+    {
+      "tipo": "outro",
+      "valor_bruto": 9365.4,
+      "valor_liquido": 9365.4,
+      "fonte": "Rendimentos isentos (restituição IR + abono férias/PIS Einstein)"
+    }
+  ],
+  "dívidas_ônus": [],
+  "deducoes": [
+    {
+      "tipo": "saude",
+      "valor": 3852.74
+    },
+    {
+      "tipo": "outro",
+      "valor": 2607.0
+    }
+  ],
+  "totalizadores": {
+    "bens_totais": 811301.24,
+    "renda_tributavel": 152292.83,
+    "imposto_devido": 26715.95,
+    "imposto_pago": 26255.09,
+    "saldo": 460.86
   }
 }

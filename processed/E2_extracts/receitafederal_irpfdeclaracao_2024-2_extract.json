@@ -1,39 +1,295 @@
 {
-  "base_year": 2024,
-  "person": "david",
-  "taxpayer": {
-    "name": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-    "cpf": "287.766.948-36",
-    "birth_date": "05/09/1981",
-    "spouse_cpf": "085.052.396-60"
+  "tipo": "irpfdeclaracao",
+  "ano_base": 2024,
+  "declarante": {
+    "nome": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+    "cpf": "287.766.948-36"
   },
-  "income": {
-    "clt_salaries": 620917.41,
-    "rental_income": 30457.24,
-    "simples_nacional": 301277.39,
-    "financial_returns": 55445.46,
-    "bonus_13": 31259.11,
-    "tax_exempt_total": 301277.39,
-    "exclusive_taxation_total": 89363.37,
-    "total_taxable": 651374.65
-  },
-  "assets": {
-    "real_estate": 2589887.09,
-    "financial_applications": 2513151.71,
-    "total": 2589887.09
-  },
-  "liabilities": {
-    "financing": 265420.59,
-    "total": 265420.59
-  },
-  "taxes": {
-    "withheld": 154768.78,
-    "due": 163779.6
-  },
-  "pages": 15,
-  "extraction_method": "direct_value_matching",
-  "periodo": {
-    "inicio": "2024-01-01",
-    "fim": "2024-12-31"
+  "data_declaracao": "2025-05-28",
+  "bens_direitos": [
+    {
+      "tipo": "imovel",
+      "descricao": "Apartamento - Cond. Barão de Capanema - Apto 34, Praça Benedito Calixto 190, Pinheiros, SP. Matrícula 3421. 40,7m². Compra à vista 10/12/2021.",
+      "valor_31_12_ano_anterior": 350000.0,
+      "valor_31_12_ano_base": 350000.0,
+      "localidade": "São Paulo, SP"
+    },
+    {
+      "tipo": "imovel",
+      "descricao": "Apartamento - Edifício Gisele - Apto 12 + Vaga N48, Rua Major Freire 496, Vila Monte Alegre, SP. Matrícula 74782. 68,8m². Alienação fiduciária Itaú. Compra 02/02/2022.",
+      "valor_31_12_ano_anterior": 212706.24,
+      "valor_31_12_ano_base": 212706.24,
+      "localidade": "São Paulo, SP"
+    },
+    {
+      "tipo": "imovel",
+      "descricao": "Casa - Av. Leonardo da Vinci 2707, Jabaquara, SP. Matrícula 20462. Compra 12/01/2023 R$80.000.",
+      "valor_31_12_ano_anterior": 80000.0,
+      "valor_31_12_ano_base": 80000.0,
+      "localidade": "São Paulo, SP"
+    },
+    {
+      "tipo": "imovel",
+      "descricao": "Casa - Rua Tasso da Silveira 61, Vila Guarani, SP. Matrícula 12.644. 171m². Financiamento CAIXA quitado. Compra 04/02/2014.",
+      "valor_31_12_ano_anterior": 996821.46,
+      "valor_31_12_ano_base": 996821.46,
+      "localidade": "São Paulo, SP"
+    },
+    {
+      "tipo": "veiculo",
+      "descricao": "Motocicleta Yamaha NMAX - Preta - Placa DAV0351 - Ano 2018. RENAVAM 01143226094.",
+      "valor_31_12_ano_anterior": 15093.0,
+      "valor_31_12_ano_base": 15093.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "veiculo",
+      "descricao": "Motocicleta Yamaha MT 09 Tracer - Azul - Placa DAV0342 - Ano 2018. RENAVAM 01165524977. Vendida em 2024.",
+      "valor_31_12_ano_anterior": 51722.0,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "veiculo",
+      "descricao": "Carro Fiat Toro Ultra - Azul - Placa GDK6A27. RENAVAM 01294108287.",
+      "valor_31_12_ano_anterior": 191354.0,
+      "valor_31_12_ano_base": 191354.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "veiculo",
+      "descricao": "Motoneta Yamaha/NMAX 160 Modelo 2024 - Placa STH2C88. RENAVAM 01388189191. Adquirida em 2024.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 21029.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "acao",
+      "descricao": "Ações ITSA4 - Itaúsa - Quantidade 693. Vendidas em 2024.",
+      "valor_31_12_ano_anterior": 5821.2,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "acao",
+      "descricao": "Ações BRKM5 - Braskem - Quantidade 300. Vendidas em 2024.",
+      "valor_31_12_ano_anterior": 6267.0,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "acao",
+      "descricao": "Ações PETR4 - Petrobras - Quantidade 300. Vendidas em 2024.",
+      "valor_31_12_ano_anterior": 38883.0,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "conta_bancaria",
+      "descricao": "Poupança Caixa Econômica Federal. Encerrada em 2024.",
+      "valor_31_12_ano_anterior": 61507.2,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Banco Itaú - Renda Fixa RDB/CDP - Ag/Conta 9652/0004397-8.",
+      "valor_31_12_ano_anterior": 277658.86,
+      "valor_31_12_ano_base": 151602.49,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "PicPay Bank - Ag 0001 Conta 438329-0.",
+      "valor_31_12_ano_anterior": 73587.74,
+      "valor_31_12_ano_base": 46684.62,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Banco Santander - CDB - Ag 1652 Conta 010013416.",
+      "valor_31_12_ano_anterior": 1886.46,
+      "valor_31_12_ano_base": 243285.37,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Banco C6 - Renda Fixa.",
+      "valor_31_12_ano_anterior": 23439.0,
+      "valor_31_12_ano_base": 1765.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Nubank - RDB.",
+      "valor_31_12_ano_anterior": 5.98,
+      "valor_31_12_ano_base": 189.3,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "conta_bancaria",
+      "descricao": "Caixa - Conta Corrente Ag 1218 Conta 22539-4.",
+      "valor_31_12_ano_anterior": 275.29,
+      "valor_31_12_ano_base": 230.53,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "conta_bancaria",
+      "descricao": "Banco Itaú - Conta Corrente Ag 9652 Conta 4397-8.",
+      "valor_31_12_ano_anterior": 10.0,
+      "valor_31_12_ano_base": 1.01,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "conta_bancaria",
+      "descricao": "Depósito conta corrente (Banco 336 Ag 0001 Conta 13095222-2).",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 4936.98,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "outro",
+      "descricao": "Moeda estrangeira em espécie: US$ 6.524,00.",
+      "valor_31_12_ano_anterior": 34433.67,
+      "valor_31_12_ano_base": 34433.67,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Rico - Saldo em conta - XP Investimentos.",
+      "valor_31_12_ano_anterior": 15717.49,
+      "valor_31_12_ano_base": 8546.95,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Depósito em moeda estrangeira dólar (Ilhas Cayman) Ag 0001 CC 100348783-7.",
+      "valor_31_12_ano_anterior": 768.94,
+      "valor_31_12_ano_base": 484.8,
+      "localidade": "Cayman, Ilhas"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Rico - Hashdex 20 Nasdaq Crypto Index FIC FIM. CNPJ 33.736.873/0001-16.",
+      "valor_31_12_ano_anterior": 2457.74,
+      "valor_31_12_ano_base": 3189.68,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Rico - DNA Energy FIC FIM CP. CNPJ 35.956.056/0001-07.",
+      "valor_31_12_ano_anterior": 1387.66,
+      "valor_31_12_ano_base": 1416.09,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Rico - Constellation Institucional ADVI. CNPJ 34.462.109/0001-62.",
+      "valor_31_12_ano_anterior": 10000.0,
+      "valor_31_12_ano_base": 11409.17,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Rico - Western Asset FIA BDR Nível I. CNPJ 19.831.126/0001-36.",
+      "valor_31_12_ano_anterior": 17651.61,
+      "valor_31_12_ano_base": 17651.61,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Rico - Alaska Black FIC FIA BDR. CNPJ 12.987.743/0001-86.",
+      "valor_31_12_ano_anterior": 60000.0,
+      "valor_31_12_ano_base": 60000.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Rico - Alaska Black Institucional FIA BDR. CNPJ 26.673.556/0001-32.",
+      "valor_31_12_ano_anterior": 35000.0,
+      "valor_31_12_ano_base": 35000.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Rico - Safari 30 FIC FIM II. CNPJ 23.960.625/0001-09.",
+      "valor_31_12_ano_anterior": 25238.59,
+      "valor_31_12_ano_base": 25238.59,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "outro",
+      "descricao": "Itaúsa - Posição acionária - JCP creditados e não pagos. CNPJ 61.532.644/0001-15.",
+      "valor_31_12_ano_anterior": 192.96,
+      "valor_31_12_ano_base": 82.15,
+      "localidade": "Brasil"
+    }
+  ],
+  "rendimentos": [
+    {
+      "tipo": "pj",
+      "valor_bruto": 153938.74,
+      "valor_liquido": 153938.74,
+      "fonte": "David Robert Camargo de Campos Ltda (CNPJ 48.771.488/0001-87)"
+    },
+    {
+      "tipo": "pj",
+      "valor_bruto": 466978.67,
+      "valor_liquido": 466978.67,
+      "fonte": "Kiwify Pagamentos Tecnologia e Serviços Ltda (CNPJ 36.149.947/0001-06)"
+    },
+    {
+      "tipo": "aluguel",
+      "valor_bruto": 30457.24,
+      "valor_liquido": 30457.24,
+      "fonte": "Aluguéis recebidos de pessoa física (carnê-leão)"
+    },
+    {
+      "tipo": "outro",
+      "valor_bruto": 301277.39,
+      "valor_liquido": 301277.39,
+      "fonte": "Rendimento isento - Simples Nacional (David Robert Camargo de Campos Ltda)"
+    },
+    {
+      "tipo": "financeiro",
+      "valor_bruto": 55445.46,
+      "valor_liquido": 55445.46,
+      "fonte": "Rendimentos de aplicações financeiras (tributação exclusiva)"
+    },
+    {
+      "tipo": "dividendo",
+      "valor_bruto": 2658.8,
+      "valor_liquido": 2658.8,
+      "fonte": "JCP - Petrobras R$2.431,31 + Itaúsa R$227,49"
+    }
+  ],
+  "dívidas_ônus": [
+    {
+      "tipo": "financiamento",
+      "descricao": "Crédito imobiliário Itaú Unibanco - Contrato 10171192207 (Apto Major Freire)",
+      "valor": 234642.79
+    },
+    {
+      "tipo": "outro",
+      "descricao": "Cheque especial Banco Santander",
+      "valor": 149.82
+    }
+  ],
+  "deducoes": [
+    {
+      "tipo": "saude",
+      "valor": 136.0
+    },
+    {
+      "tipo": "outro",
+      "valor": 2829.36
+    }
+  ],
+  "totalizadores": {
+    "bens_totais": 2513151.71,
+    "renda_tributavel": 651374.65,
+    "imposto_devido": 163779.6,
+    "imposto_pago": 154768.78,
+    "saldo": 9010.82
   }
 }

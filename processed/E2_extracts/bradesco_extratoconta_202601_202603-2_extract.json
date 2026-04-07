@@ -1,14 +1,393 @@
 {
-  "banco": "bradesco",
+  "banco": "Bradesco",
   "tipo": "extratoconta",
   "moeda": "BRL",
-  "numero_conta": null,
+  "numero_conta": "Ag 3221 Conta 77113-9",
+  "titular": "mariana",
   "periodo": {
     "inicio": "2026-01-01",
-    "fim": "2026-03-31"
+    "fim": "2026-03-29"
   },
-  "saldo_inicial": null,
-  "saldo_final": null,
-  "transacoes": [],
-  "notas": []
+  "saldo_inicial": 1.0,
+  "saldo_final": 1.0,
+  "transacoes": [
+    {
+      "data": "2026-01-02",
+      "descricao": "Resgate Inv Fac",
+      "valor": 10.0
+    },
+    {
+      "data": "2026-01-02",
+      "descricao": "1412261",
+      "valor": -6.5
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1673.05
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "6749522",
+      "valor": -1500.0
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "bx Aut Poupanca",
+      "valor": 220.0
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "Des: Eliane Costa Goncalve",
+      "valor": -220.0
+    },
+    {
+      "data": "2026-01-09",
+      "descricao": "0903221",
+      "valor": 315.81
+    },
+    {
+      "data": "2026-01-09",
+      "descricao": "Apl.invest Fac",
+      "valor": -5224.67
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "Resgate Inv Fac",
+      "valor": 16.99
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "2053308",
+      "valor": -16.99
+    },
+    {
+      "data": "2026-01-14",
+      "descricao": "Resgate Inv Fac",
+      "valor": 355.13
+    },
+    {
+      "data": "2026-01-14",
+      "descricao": "Conselho Regional de",
+      "valor": -355.13
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Resgate Inv Fac",
+      "valor": 48.99
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "6898270",
+      "valor": -55.98
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1782.63
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "2202021",
+      "valor": -767.0
+    },
+    {
+      "data": "2026-01-21",
+      "descricao": "bx Aut Poupanca",
+      "valor": 3183.24
+    },
+    {
+      "data": "2026-01-21",
+      "descricao": "0605509",
+      "valor": -3183.24
+    },
+    {
+      "data": "2026-01-23",
+      "descricao": "bx Aut Poupanca",
+      "valor": 28.03
+    },
+    {
+      "data": "2026-01-23",
+      "descricao": "Des: Amanda Santos Santana",
+      "valor": -28.03
+    },
+    {
+      "data": "2026-01-26",
+      "descricao": "bx Aut Poupanca",
+      "valor": 100.0
+    },
+    {
+      "data": "2026-01-26",
+      "descricao": "1736125",
+      "valor": -100.0
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "bx Aut Poupanca",
+      "valor": 356.39
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "2206138",
+      "valor": -69.54
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "bx Aut Poupanca",
+      "valor": 86.66
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "2216129",
+      "valor": -29.9
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Resg/vencto Cdb",
+      "valor": 2588.99
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "2154047",
+      "valor": -35.99
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Resgate Inv Fac",
+      "valor": 860.58
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "2147085",
+      "valor": -54.6
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "bx Aut Poupanca",
+      "valor": 807.57
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "9475284",
+      "valor": -1500.0
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "bx Aut Poupanca",
+      "valor": 145.0
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "1832115",
+      "valor": -70.0
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "1103221",
+      "valor": 507.0
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "Apl.invest Fac",
+      "valor": -1509.15
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Resgate Inv Fac",
+      "valor": 55.98
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "6898270",
+      "valor": -55.98
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "Resgate Inv Fac",
+      "valor": 779.74
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "Gasto c Credito",
+      "valor": -779.77
+    },
+    {
+      "data": "2026-02-24",
+      "descricao": "Resgate Inv Fac",
+      "valor": 219.98
+    },
+    {
+      "data": "2026-02-24",
+      "descricao": "Des: Eliane Costa Goncalve",
+      "valor": -220.0
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "Resgate Inv Fac",
+      "valor": 69.99
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "1147429",
+      "valor": -70.0
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1116.46
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "7244026",
+      "valor": -1500.0
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "bx Aut Poupanca",
+      "valor": 120.0
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "1557442",
+      "valor": -100.0
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "bx Aut Poupanca",
+      "valor": 32.0
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "2307396",
+      "valor": -32.0
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "bx Aut Poupanca",
+      "valor": 220.0
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "Des: Eliane Costa Goncalve",
+      "valor": -220.0
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "1103221",
+      "valor": 1607.9
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "Apl.invest Fac",
+      "valor": -3397.35
+    },
+    {
+      "data": "2026-03-12",
+      "descricao": "Resgate Inv Fac",
+      "valor": 995.11
+    },
+    {
+      "data": "2026-03-12",
+      "descricao": "0945283",
+      "valor": -1000.0
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "0724175",
+      "valor": 1000.0
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "Apl.invest Fac",
+      "valor": -1000.0
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Resgate Inv Fac",
+      "valor": 55.98
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "6898270",
+      "valor": -55.98
+    },
+    {
+      "data": "2026-03-19",
+      "descricao": "Resgate Inv Fac",
+      "valor": 299.99
+    },
+    {
+      "data": "2026-03-19",
+      "descricao": "1540571",
+      "valor": -300.0
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "Resgate Inv Fac",
+      "valor": 351.35
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "1755047",
+      "valor": -34.7
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "9084842",
+      "valor": -40000.0
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "bx Aut Poupanca",
+      "valor": 210.0
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "Des: Eliane Costa Goncalve",
+      "valor": -230.0
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "Total 75.324,78",
+      "valor": -75324.78
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "1238361",
+      "valor": 20.0
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "Total 20,00",
+      "valor": 0.0
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "Se preferir, fale com a BIA pelo WhatsApp (11)",
+      "valor": 3335.0
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "Se preferir, fale com a BIA pelo WhatsApp (11)",
+      "valor": 3335.0
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "0800",
+      "valor": 722.0
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "0800",
+      "valor": 727.0
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "Se Preferir, fale com a BIA pelo (11)",
+      "valor": 3335.0
+    }
+  ],
+  "notas": [
+    "INFO: 1 possíveis duplicatas intra-arquivo"
+  ]
 }

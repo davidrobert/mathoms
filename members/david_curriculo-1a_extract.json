@@ -3,220 +3,168 @@
   "membro": "david",
   "nome_completo": "David Robert Camargo Ferreira Campos",
   "nome_atual": "David Robert Camargo Ferreira Campos",
-  "profissao_cargo": "CTO da Arvo",
+  "profissao_cargo": "Chief Technology Officer (CTO) na Arvo",
   "experiencias": [
     {
       "empresa": "Arvo",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Chief Technology Officer (CTO)",
-      "data_inicio": "2025-09-08",
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2025-09",
       "data_fim": "presente",
-      "tipo_contrato": "PJ"
+      "descricao": "Healthtech brasileira que usa IA/ML para auditoria de sinistros médicos. Dirige estratégia tecnológica, frameworks de cybersegurança (LGPD/HIPAA), visão AI-First no SDLC."
     },
     {
       "empresa": "Kiwify",
-      "localizacao": "Balneário Camboriú, SC, Brasil",
       "cargo": "Chief Technology Officer (CTO)",
-      "data_inicio": "2024-06-17",
-      "data_fim": "2025-05-05",
-      "tipo_contrato": "CLT"
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2024-06",
+      "data_fim": "2025-05",
+      "descricao": "Plataforma de e-commerce e produtos digitais. Estruturou 5 squads, otimizou infra para 7k req/min, lançou vendas internacionais com multi-moeda."
     },
     {
       "empresa": "Loft",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Software Engineering Consultant",
-      "data_inicio": "2022-12-02",
-      "data_fim": "2024-06-30",
-      "tipo_contrato": "PJ"
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2022-12",
+      "data_fim": "2024-06",
+      "descricao": "Proptech. Gestão de 60+ engenheiros, integração CredHome/CredPago, disponibilidade 99.99%, redução 30% custos cloud."
     },
     {
       "empresa": "Loft",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Director of Software Engineering",
-      "data_inicio": "2021-11-01",
-      "data_fim": "2022-12-01",
-      "tipo_contrato": "CLT"
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2021-11",
+      "data_fim": "2022-12",
+      "descricao": "Recrutou 70+ engenheiros, migração para microserviços, crescimento startup a unicórnio."
     },
     {
       "empresa": "Loft",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Engineering Manager",
-      "data_inicio": "2019-06-17",
-      "data_fim": "2021-10-31",
-      "tipo_contrato": "CLT"
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2019-06",
+      "data_fim": "2021-10",
+      "descricao": "Liderança de equipes cross-funcionais, definição de princípios de engenharia, expansão inicial do marketplace."
     },
     {
       "empresa": "Elo7",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Chief Technology Officer (CTO)",
-      "data_inicio": "2013-08-05",
-      "data_fim": "2020-07-06",
-      "tipo_contrato": "CLT"
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2013-08",
+      "data_fim": "2020-07",
+      "descricao": "Marketplace de artesanato ('Etsy brasileiro'). Gestão de 70 engenheiros, arquitetura microserviços, redução 35% custos AWS, busca inteligente +15% conversão."
     },
     {
       "empresa": "Abril",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Solutions Architect I",
-      "data_inicio": "2012-03-02",
-      "data_fim": "2013-08-02",
-      "tipo_contrato": "CLT"
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2012-03",
+      "data_fim": "2013-08",
+      "descricao": "Grupo de mídia. Arquitetura distribuída da plataforma Alexandria para portais Veja, Exame, Placar."
     },
     {
       "empresa": "TOTVS",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Research and Development Engineer IV",
-      "data_inicio": "2011-02-07",
-      "data_fim": "2012-03-01",
-      "tipo_contrato": "CLT"
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2011-02",
+      "data_fim": "2012-03",
+      "descricao": "Desenvolvimento de máquina virtual e compilador proprietário em C/C++/Assembly. Redução 35% consumo de memória."
     },
     {
       "empresa": "NIC.br",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Software Engineer",
-      "data_inicio": "2006-04-11",
-      "data_fim": "2011-01-31",
-      "tipo_contrato": "CLT"
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2006-04",
+      "data_fim": "2011-01",
+      "descricao": "Infraestrutura de Internet do Brasil. Desenvolvimento do DNSSHIM (Hidden Master DNS com DNSSEC). Java, C/C++, Python."
     },
     {
       "empresa": "Agência Estado",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Jr System Analyst",
-      "data_inicio": "2004-01-02",
-      "data_fim": "2006-03-17",
-      "tipo_contrato": "CLT"
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2004-01",
+      "data_fim": "2006-03",
+      "descricao": "Agência de notícias financeiras. Ferramentas para portal Estadão em Perl/PHP."
     },
     {
       "empresa": "Agência Estado",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Trainee",
-      "data_inicio": "2002-06-24",
-      "data_fim": "2003-12-24",
-      "tipo_contrato": "Trainee"
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2002-06",
+      "data_fim": "2003-12",
+      "descricao": "Suporte ao desenvolvimento e manutenção de sistemas internos."
     },
     {
-      "empresa": "2nd Armored Communications Company, Brazilian Army",
-      "localizacao": "Campinas, SP, Brasil",
-      "cargo": "Instruction Internship",
-      "data_inicio": "2001-07-01",
-      "data_fim": "2001-07-31",
-      "tipo_contrato": "Internship"
+      "empresa": "Exército Brasileiro - 2ª Cia Com Bld",
+      "cargo": "Estágio de Instrução",
+      "tipo_vinculo": "freelance",
+      "data_inicio": "2001-07",
+      "data_fim": "2001-07",
+      "descricao": "Comando de pelotão de cabos de Comunicações. Avaliação final 9.65, menção Muito Bom."
     },
     {
-      "empresa": "Center for the Preparation of Reserve Officers of São Paulo (CPOR/SP), Brazilian Army",
-      "localizacao": "São Paulo, SP, Brasil",
-      "cargo": "Aspiring Communications Officer",
-      "data_inicio": "2000-01-24",
-      "data_fim": "2000-12-02",
-      "tipo_contrato": "Training"
+      "empresa": "Exército Brasileiro - CPOR/SP",
+      "cargo": "Aspirante a Oficial de Comunicações",
+      "tipo_vinculo": "freelance",
+      "data_inicio": "2000-01",
+      "data_fim": "2000-12",
+      "descricao": "Formação de oficiais da reserva. 1º lugar, Medalha Prêmio Corrêa Lima, melhor atirador, melhor desempenho físico e acadêmico."
     }
   ],
   "formacao": [
     {
-      "grau": "Mestrado",
-      "area": "Ciência da Computação - Inteligência Artificial",
-      "instituicao": "Universidade de São Paulo (USP), Instituto de Matemática e Estatística (IME)",
-      "ano_conclusao": 2008
+      "instituicao": "Universidade de São Paulo (USP) - Instituto de Matemática e Estatística (IME)",
+      "curso": "Mestrado em Ciência da Computação — Inteligência Artificial",
+      "grau": "mestrado",
+      "data_conclusao": "2008"
     },
     {
-      "grau": "Bacharelado",
-      "area": "Ciência da Computação",
-      "instituicao": "Universidade Católica de São Paulo (PUC/SP)",
-      "ano_conclusao": 2004
+      "instituicao": "Pontifícia Universidade Católica de São Paulo (PUC/SP)",
+      "curso": "Bacharelado em Ciência da Computação",
+      "grau": "graduacao",
+      "data_conclusao": "2004"
     }
   ],
   "certificacoes": [
     {
-      "titulo": "Oracle Certified Professional, Java SE 5 Programmer",
-      "ano": null
+      "nome": "Oracle Certified Professional, Java SE 5 Programmer",
+      "instituicao": "Oracle"
     },
     {
-      "titulo": "Duolingo English Test",
-      "certificado_id": "do79ylsw7jbg92lq"
+      "nome": "Duolingo English Test",
+      "instituicao": "Duolingo"
+    },
+    {
+      "nome": "Innovation Leadership",
+      "instituicao": "Massachusetts Institute of Technology (MIT)"
+    },
+    {
+      "nome": "MarTech Strategy: Leveraging Data and Technology in Marketing",
+      "instituicao": "Northwestern University"
+    },
+    {
+      "nome": "Business Strategy",
+      "instituicao": "University of La Verne"
     }
   ],
   "habilidades": [
-    "Arquitetura de Software",
-    "Design Domain-Driven (DDD)",
-    "Sistemas Escaláveis e de Alta Disponibilidade",
-    "JavaScript",
-    "Java",
-    "C/C++",
-    "Python",
-    "Go",
-    "Kotlin",
-    "Microserviços",
-    "APIs Robustas",
-    "Continuous Integration (CI)",
-    "Continuous Delivery (CD)",
-    "Machine Learning",
-    "Big Data",
-    "ETL Pipelines",
-    "Hadoop",
-    "Spark",
-    "AWS",
-    "GCP",
-    "Kubernetes",
-    "Docker",
-    "DevOps",
-    "Infrastructure as Code (Terraform, Ansible)",
-    "Observability (Logging, Tracing, Metrics)",
-    "Cybersecurity",
-    "DNSSEC",
-    "Gestão de Equipes",
-    "Liderança Técnica",
-    "Inovação"
+    "Java", "C/C++", "Python", "Go", "Kotlin", "JavaScript", "Ruby",
+    "Microservices Architecture", "Domain-Driven Design (DDD)",
+    "AWS", "GCP", "Kubernetes", "Docker", "Terraform",
+    "CI/CD", "DevOps", "DNSSEC",
+    "Machine Learning", "Big Data", "Hadoop", "Spark",
+    "Scrum", "Kanban", "OKRs",
+    "Team Leadership (100+ engineers)", "Cybersecurity"
   ],
   "idiomas": [
     {
       "idioma": "Português",
-      "nivel": "Nativo"
+      "nivel": "nativo",
+      "fonte": "inferido"
     },
     {
       "idioma": "Inglês",
-      "nivel": "Fluente"
-    }
-  ],
-  "associacoes_profissionais": [
-    {
-      "organizacao": "ACM (Association for Computing Machinery)",
-      "id": "8670699"
-    }
-  ],
-  "cursos_e_certificados": [
-    "Innovation Leadership - MIT - 2021",
-    "MarTech Strategy: Leveraging Data and Technology in Marketing - Northwestern University - 2021",
-    "Business Strategy - University of La Verne - 2018",
-    "Business English - ELS Language Centers - 2018",
-    "Architecture and Design in Java Projects - Caelum - 2012",
-    "Agile Software Development Practices - Caelum - 2012",
-    "Ruby and Advanced Rails: Dealing with Everyday Problems - Caelum - 2012",
-    "Agile Web 2.0 Development with Ruby on Rails - Caelum - 2012",
-    "Java Lab with Tests, XML and Design Patterns - Caelum - 2011",
-    "Mobile Development with Google Android - Caelum - 2011"
-  ],
-  "congresos_como_palestrante": [
-    "Startups & High-Performance Teams - More Deliveries - 2022",
-    "Strategies for Talent Acquisition and Team Building - NOMAH - 2021",
-    "Engineering Culture & Its Impact on Recruitment - AWS Startups CTO's - 2019",
-    "Why working in startups is good for your health - Liga Ventures - 2017",
-    "High Performance Teams - Outstanding Software - 2016",
-    "Introduction to the Go Programming Language - Universidade Federal de Lavras (UFLA) - 2015"
-  ],
-  "premios": [
-    {
-      "titulo": "Strategic Impact Award",
-      "organizacao": "Kiwify",
-      "ano": 2024
-    },
-    {
-      "titulo": "Award of the III PUC-SP \"R. Stevens\" Programming Cup",
-      "organizacao": "Pontifical Catholic University of São Paulo (PUC/SP)",
-      "ano": 2002
-    },
-    {
-      "titulo": "Diploma of Honor to Merit",
-      "organizacao": "Center for the Preparation of Reserve Officers of São Paulo (CPOR/SP)",
-      "ano": 2000
+      "nivel": "fluente",
+      "fonte": "documento"
     }
   ]
 }

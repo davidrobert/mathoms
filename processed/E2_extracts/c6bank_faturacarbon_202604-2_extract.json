@@ -915,9 +915,5 @@
       "subtotal": 442.04
     }
   ],
-  "parse_quality": "ok",
-  "periodo": {
-    "inicio": "2026-04-01",
-    "fim": "2026-04-30"
-  }
+  "parse_quality": "ok"
 }

@@ -1,31 +1,60 @@
 {
-  "banco": "itau",
+  "banco": "Itaú",
   "tipo": "faturapaoacucar",
+  "cartao": "Pão de Açúcar",
+  "titular": "DAVID ROBERT CAMARGO DE CAMPOS",
   "moeda": "BRL",
-  "periodo": {
-    "inicio": "2025-10-01",
-    "fim": "2025-10-31"
-  },
   "data_vencimento": "2025-10-06",
-  "valor_total": 697.45,
+  "saldo_anterior": 1872.43,
+  "total_compras_nacionais": 59.0,
+  "total_compras_internacionais": 638.45,
+  "total_compras": 697.45,
+  "pagamentos": -1872.43,
+  "saldo_atual": 697.45,
+  "limite_total": 82800.0,
+  "parse_quality": "ok",
   "transacoes": [
-    {
-      "data": "2025-06-08",
-      "descricao": "BRASIL PARAL*Bras 04/12",
-      "valor": -59.0,
-      "cartao": "titular"
-    },
     {
       "data": "2025-09-06",
       "descricao": "AMAZON MKTPL*BJ8I19AQ3",
-      "valor": -96.04,
-      "cartao": "titular"
+      "valor": 413.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
     },
     {
       "data": "2025-09-06",
       "descricao": "AMAZON MKTPL*A510Y5UY3",
-      "valor": -894.84,
-      "cartao": "titular"
+      "valor": 894.84,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "AMAZON MKTPLACE PMTS -",
+      "valor": 90.86,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "ESTORNO CUSTO DE IOF -",
+      "valor": 3.16,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "AMAZON MKTPLACE PMTS - 396,11",
+      "valor": 3600.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "ESTORNO CUSTO DE IOF -",
+      "valor": 13.89,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
     }
   ]
 }

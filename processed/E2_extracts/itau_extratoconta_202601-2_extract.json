@@ -1,14 +1,111 @@
 {
-  "banco": "itau",
+  "banco": "Itaú",
   "tipo": "extratoconta",
   "moeda": "BRL",
-  "numero_conta": "004397",
+  "numero_conta": "004397-8",
+  "titular": "david",
   "periodo": {
     "inicio": "2026-01-01",
     "fim": "2026-01-31"
   },
-  "saldo_inicial": null,
-  "saldo_final": null,
-  "transacoes": [],
+  "saldo_inicial": -10044.05,
+  "saldo_final": 913.72,
+  "transacoes": [
+    {
+      "data": "2026-03-27",
+      "descricao": "DA ELETROPAULO 31237205",
+      "valor": -594.07
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "valor": 1571.97
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "FINANC IMOBILIARIO 050/120",
+      "valor": -4266.94
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "SABESP 3334280219",
+      "valor": -402.23
+    },
+    {
+      "data": "2026-03-03",
+      "descricao": "IOF",
+      "valor": -0.68
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.04
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "valor": 1571.97
+    },
+    {
+      "data": "2026-02-10",
+      "descricao": "FINANC IMOBILIARIO 049/120",
+      "valor": -4281.54
+    },
+    {
+      "data": "2026-02-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "valor": -257.54
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.05
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "DA ELETROPAULO 31237205",
+      "valor": -927.93
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG Multa de Veículo",
+      "valor": -682.06
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG Multa de Veículo Renainf",
+      "valor": -317.56
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG Licenciamento de Veículo",
+      "valor": -174.08
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAGTO Multa de Veículo",
+      "valor": -142.27
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAGTO Licenciamento de Veículo",
+      "valor": -174.08
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "JUROS LIMITE DA CONTA",
+      "valor": -374.73
+    },
+    {
+      "data": "2026-01-09",
+      "descricao": "SISPAG GRPQA LTDA",
+      "valor": 1850.13
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "SABESP 3334280219",
+      "valor": -317.54
+    }
+  ],
   "notas": []
 }

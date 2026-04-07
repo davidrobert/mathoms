@@ -772,9 +772,5 @@
       "subtotal": 2187.02
     }
   ],
-  "parse_quality": "ok",
-  "periodo": {
-    "inicio": "2026-02-01",
-    "fim": "2026-02-28"
-  }
+  "parse_quality": "ok"
 }

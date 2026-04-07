@@ -1,11 +1,41 @@
 {
-  "banco": "Itaú",
   "tipo": "investimentosposicao",
-  "data_posicao": "2026-03-02",
-  "saldo_total": 0,
-  "composicao": [],
-  "periodo": {
-    "inicio": "2026-03-01",
-    "fim": "2026-03-31"
-  }
+  "instituicao": "itau",
+  "data_posicao": "2026-03-29",
+  "moeda": "BRL",
+  "total_aplicado": 341581.2,
+  "saldo_atual": 341581.2,
+  "rentabilidade": {
+    "valor": 3159.59,
+    "percentual": 0.91
+  },
+  "composicao": [
+    {
+      "tipo_produto": "CDB",
+      "nome": "CDB-DI",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 116374.26,
+      "percentual_carteira": 34.07,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "CDB",
+      "nome": "Itau Prev Corp Platinum Rv49 Mm Pgbl",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 18715.24,
+      "percentual_carteira": 5.48,
+      "rentabilidade_instrumento": 1288.35
+    },
+    {
+      "tipo_produto": "fundo",
+      "nome": "Cofrinhos",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 206491.7,
+      "percentual_carteira": 60.45,
+      "rentabilidade_instrumento": 6610.29
+    }
+  ]
 }

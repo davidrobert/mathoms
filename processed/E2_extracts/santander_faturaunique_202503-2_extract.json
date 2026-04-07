@@ -65,9 +65,5 @@
     }
   ],
   "cartoes": [],
-  "parse_quality": "ok",
-  "periodo": {
-    "inicio": "2025-03-01",
-    "fim": "2025-03-31"
-  }
+  "parse_quality": "ok"
 }

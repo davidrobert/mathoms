@@ -1,287 +1,108 @@
 {
-  "_metadata": {
-    "versao": "1b_unified",
-    "data_geracao": "2026-04-07",
-    "descricao": "Dados consolidados de todos os membros da família com informações extraídas dos documentos e dados das definições"
-  },
-  "membros": {
-    "david": {
-      "tipo": "person",
-      "papel": "titular",
-      "nome_completo": "David Robert Camargo Ferreira Campos",
+  "tipo": "members_unified",
+  "data_geracao": "2026-04-07",
+  "fonte_definitions": true,
+  "membros": [
+    {
+      "id": "david",
       "nome_atual": "David Robert Camargo Ferreira Campos",
-      "nome_solteiro": "David Robert Camargo de Campos",
-      "nome_curto": "David",
+      "nomes_alternativos": ["David Robert Camargo de Campos"],
       "cpf": "287.766.948-36",
       "data_nascimento": "1981-09-05",
-      "idade": 44,
-      "profissao_cargo": "CTO da Arvo",
-      "regime": "PJ Simples Nacional (Anexo V)",
-      "empresa_pj": "David Robert Camargo de Campos Ltda.",
-      "cnpj_pj": "48.771.488/0001-87",
-      "documentos_disponiveis": [
-        {
-          "tipo": "curriculo",
-          "arquivo": "david_curriculo-0_original.docx",
-          "processado": true,
-          "arquivo_extract": "david_curriculo-1a_extract.json"
-        }
+      "papel_familia": "Titular",
+      "empregador_atual": "Arvo",
+      "cargo_atual": "Chief Technology Officer (CTO)",
+      "tipo_vinculo": "PJ",
+      "data_admissao": "2025-09-08",
+      "formacao_maxima": "Mestrado em Ciência da Computação — Inteligência Artificial (USP/IME, 2008)",
+      "idiomas": [
+        {"idioma": "Português", "nivel": "nativo", "fonte": "inferido"},
+        {"idioma": "Inglês", "nivel": "fluente", "fonte": "documento"}
       ],
       "experiencias": [
-        {
-          "empresa": "Arvo",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Chief Technology Officer (CTO)",
-          "data_inicio": "2025-09-08",
-          "data_fim": "presente",
-          "tipo_contrato": "PJ"
-        },
-        {
-          "empresa": "Kiwify",
-          "localizacao": "Balneário Camboriú, SC, Brasil",
-          "cargo": "Chief Technology Officer (CTO)",
-          "data_inicio": "2024-06-17",
-          "data_fim": "2025-05-05",
-          "tipo_contrato": "CLT"
-        },
-        {
-          "empresa": "Loft",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Software Engineering Consultant",
-          "data_inicio": "2022-12-02",
-          "data_fim": "2024-06-30",
-          "tipo_contrato": "PJ"
-        },
-        {
-          "empresa": "Loft",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Director of Software Engineering",
-          "data_inicio": "2021-11-01",
-          "data_fim": "2022-12-01",
-          "tipo_contrato": "CLT"
-        },
-        {
-          "empresa": "Loft",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Engineering Manager",
-          "data_inicio": "2019-06-17",
-          "data_fim": "2021-10-31",
-          "tipo_contrato": "CLT"
-        },
-        {
-          "empresa": "Elo7",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Chief Technology Officer (CTO)",
-          "data_inicio": "2013-08-05",
-          "data_fim": "2020-07-06",
-          "tipo_contrato": "CLT"
-        },
-        {
-          "empresa": "Abril",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Solutions Architect I",
-          "data_inicio": "2012-03-02",
-          "data_fim": "2013-08-02",
-          "tipo_contrato": "CLT"
-        },
-        {
-          "empresa": "TOTVS",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Research and Development Engineer IV",
-          "data_inicio": "2011-02-07",
-          "data_fim": "2012-03-01",
-          "tipo_contrato": "CLT"
-        },
-        {
-          "empresa": "NIC.br",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Software Engineer",
-          "data_inicio": "2006-04-11",
-          "data_fim": "2011-01-31",
-          "tipo_contrato": "CLT"
-        },
-        {
-          "empresa": "Agência Estado",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Jr System Analyst",
-          "data_inicio": "2004-01-02",
-          "data_fim": "2006-03-17",
-          "tipo_contrato": "CLT"
-        },
-        {
-          "empresa": "Agência Estado",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Trainee",
-          "data_inicio": "2002-06-24",
-          "data_fim": "2003-12-24",
-          "tipo_contrato": "Trainee"
-        }
+        {"empresa": "Arvo", "cargo": "CTO", "tipo_vinculo": "PJ", "data_inicio": "2025-09", "data_fim": "presente"},
+        {"empresa": "Kiwify", "cargo": "CTO", "tipo_vinculo": "CLT", "data_inicio": "2024-06", "data_fim": "2025-05"},
+        {"empresa": "Loft", "cargo": "Software Engineering Consultant", "tipo_vinculo": "PJ", "data_inicio": "2022-12", "data_fim": "2024-06"},
+        {"empresa": "Loft", "cargo": "Director of Software Engineering", "tipo_vinculo": "PJ", "data_inicio": "2021-11", "data_fim": "2022-12"},
+        {"empresa": "Loft", "cargo": "Engineering Manager", "tipo_vinculo": "PJ", "data_inicio": "2019-06", "data_fim": "2021-10"},
+        {"empresa": "Elo7", "cargo": "CTO", "tipo_vinculo": "PJ", "data_inicio": "2013-08", "data_fim": "2020-07"},
+        {"empresa": "Abril", "cargo": "Solutions Architect I", "tipo_vinculo": "PJ", "data_inicio": "2012-03", "data_fim": "2013-08"},
+        {"empresa": "TOTVS", "cargo": "R&D Engineer IV", "tipo_vinculo": "CLT", "data_inicio": "2011-02", "data_fim": "2012-03"},
+        {"empresa": "NIC.br", "cargo": "Software Engineer", "tipo_vinculo": "CLT", "data_inicio": "2006-04", "data_fim": "2011-01"},
+        {"empresa": "Agência Estado", "cargo": "Jr System Analyst", "tipo_vinculo": "CLT", "data_inicio": "2004-01", "data_fim": "2006-03"},
+        {"empresa": "Agência Estado", "cargo": "Trainee", "tipo_vinculo": "CLT", "data_inicio": "2002-06", "data_fim": "2003-12"},
+        {"empresa": "Exército Brasileiro - 2ª Cia Com Bld", "cargo": "Estágio de Instrução", "tipo_vinculo": "freelance", "data_inicio": "2001-07", "data_fim": "2001-07"},
+        {"empresa": "Exército Brasileiro - CPOR/SP", "cargo": "Aspirante a Oficial de Comunicações", "tipo_vinculo": "freelance", "data_inicio": "2000-01", "data_fim": "2000-12"}
       ],
-      "formacao": [
-        {
-          "grau": "Mestrado",
-          "area": "Ciência da Computação - Inteligência Artificial",
-          "instituicao": "Universidade de São Paulo (USP), Instituto de Matemática e Estatística (IME)",
-          "ano_conclusao": 2008
-        },
-        {
-          "grau": "Bacharelado",
-          "area": "Ciência da Computação",
-          "instituicao": "Universidade Católica de São Paulo (PUC/SP)",
-          "ano_conclusao": 2004
-        }
-      ],
-      "idiomas": [
-        {
-          "idioma": "Português",
-          "nivel": "Nativo"
-        },
-        {
-          "idioma": "Inglês",
-          "nivel": "Fluente"
-        }
-      ],
-      "habilidades_principais": [
-        "Arquitetura de Software",
-        "Design Domain-Driven (DDD)",
-        "Sistemas Escaláveis",
-        "AWS",
-        "Kubernetes",
-        "DevOps",
-        "Gestão de Equipes",
-        "Liderança Técnica"
-      ]
+      "salario": {
+        "bruto": null,
+        "liquido": null,
+        "periodo_referencia": null,
+        "fonte": null,
+        "nota": "PJ — valor a confirmar via extratos bancários de C6 Bank PJ"
+      },
+      "documentos_disponiveis": ["curriculo"],
+      "status_fiscal": "BR+US",
+      "observacoes": "Dupla atuação: CTO da Arvo (PJ principal) + advisory/mentoria para BrandLovers, Arbitralis, LearnToFly. Encerrou Kiwify (CLT) em mai/2025. Experiência com Elo7 e Loft overlaps temporalmente — válido (consultoria paralela)."
     },
-    "mariana": {
-      "tipo": "person",
-      "papel": "conjuge",
-      "nome_completo": "Mariana Ferreira Campos",
+    {
+      "id": "mariana",
       "nome_atual": "Mariana Ferreira Campos",
-      "nome_solteira": "Mariana Teixeira Ferreira",
-      "nome_fiscal": "Mariana Teixeira Ferreira",
-      "nome_curto": "Mariana",
+      "nomes_alternativos": ["Mariana Teixeira Ferreira"],
       "cpf": "085.052.396-60",
       "data_nascimento": "1986-08-30",
-      "idade": 39,
-      "profissao_cargo": "Enfermeira no Hospital Israelita Albert Einstein",
-      "regime": "CLT",
-      "empresa_principal": "Hospital Israelita Albert Einstein",
-      "data_inicio_emprego": "2014-07",
-      "documentos_disponiveis": [
-        {
-          "tipo": "curriculo",
-          "arquivo": "mariana_curriculo-0_original.pdf",
-          "processado": true,
-          "arquivo_extract": "mariana_curriculo-1a_extract.json"
-        },
-        {
-          "tipo": "holerite",
-          "periodo": "2026-02",
-          "arquivo": "mariana_holerite_202602-0_original.pdf",
-          "processado": true,
-          "arquivo_extract": "mariana_holerite_202602-1a_extract.json"
-        }
-      ],
-      "dados_holerite_202602": {
-        "nome_no_documento": "Mariana Teixeira Ferreira",
-        "estabelecimento": "AEMO Unidade Morumbi",
-        "cargo": "Enfermeiro Pl",
-        "grade": "P4",
-        "matricula": "36108",
-        "data_admissao": "2014-07-21",
-        "salario_base_mensal": 9082.92,
-        "salario_bruto": 12086.06,
-        "total_descontos": 8660.65,
-        "salario_liquido": 3425.41,
-        "data_credito": "2026-02-27",
-        "fgts_depositado": 950.62,
-        "dependentes_ir": 0
-      },
-      "experiencias": [
-        {
-          "empresa": "Hospital Israelita Albert Einstein",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Enfermeiro",
-          "data_inicio": "2018-01",
-          "data_fim": "presente",
-          "tipo_contrato": "CLT"
-        },
-        {
-          "empresa": "Hospital Israelita Albert Einstein",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Enfermeiro",
-          "departamento": "UPA Campo Limpo",
-          "data_inicio": "2014-08",
-          "data_fim": "2018-06",
-          "tipo_contrato": "CLT"
-        },
-        {
-          "empresa": "Faculdade Israelita Albert Einstein",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Docente universitário",
-          "data_inicio": "2021-01",
-          "data_fim": "2024-12",
-          "tipo_contrato": "Docente"
-        },
-        {
-          "empresa": "Senac São Paulo",
-          "localizacao": "São Paulo, SP, Brasil",
-          "cargo": "Docente universitário",
-          "data_inicio": "2012-01",
-          "data_fim": "2016-01",
-          "tipo_contrato": "Docente"
-        }
-      ],
-      "formacao": [
-        {
-          "grau": "Mestrado",
-          "area": "Enfermagem em Saúde do Adulto",
-          "instituicao": "Universidade de São Paulo (USP)",
-          "data_conclusao": "2021-06"
-        },
-        {
-          "grau": "Pós-graduação Lato Sensu - Especialização",
-          "area": "Enfermagem em Cardiologia e Hemodinâmica",
-          "instituicao": "UNIFESP - Universidade Federal de São Paulo",
-          "data_conclusao": "2012"
-        },
-        {
-          "grau": "Bacharelado",
-          "area": "Enfermagem",
-          "instituicao": "PUC Minas",
-          "data_conclusao": "2010"
-        }
-      ],
+      "papel_familia": "Cônjuge",
+      "empregador_atual": "Hospital Israelita Albert Einstein",
+      "cargo_atual": "Enfermeiro Pl",
+      "tipo_vinculo": "CLT",
+      "data_admissao": "2014-07-21",
+      "formacao_maxima": "Mestrado em Enfermagem — Enfermagem em Saúde Adulta (USP, 2021)",
       "idiomas": [
-        {
-          "idioma": "Português",
-          "nivel": "Nativo"
-        }
+        {"idioma": "Português", "nivel": "nativo", "fonte": "inferido"}
       ],
-      "habilidades_principais": [
-        "Auditoria Clínica",
-        "Segurança do Paciente",
-        "Gestão de Equipes",
-        "Cardiologia",
-        "Educação em Saúde",
-        "Pesquisa Clínica"
-      ]
+      "experiencias": [
+        {"empresa": "Hospital Israelita Albert Einstein", "cargo": "Enfermeiro", "tipo_vinculo": "CLT", "data_inicio": "2018-01", "data_fim": "presente"},
+        {"empresa": "Hospital Israelita Albert Einstein", "cargo": "Enfermeiro", "tipo_vinculo": "CLT", "data_inicio": "2014-08", "data_fim": "2018-06"},
+        {"empresa": "Faculdade Israelita Albert Einstein", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2021-01", "data_fim": "2024-12"},
+        {"empresa": "Senac São Paulo", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2012-01", "data_fim": "2016-01"},
+        {"empresa": "Faculdade Sequencial", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2013-01", "data_fim": "2015-08"},
+        {"empresa": "Hospital Municipal Dr. Moysés Deutsch", "cargo": "Enfermeira", "tipo_vinculo": "CLT", "data_inicio": "2011-01", "data_fim": "2014-01"}
+      ],
+      "salario": {
+        "bruto": 12086.06,
+        "liquido": 3425.41,
+        "periodo_referencia": "2026-02",
+        "fonte": "holerite",
+        "nota": "Líquido atípico: inclui 5 dias de férias (MC03/MC04) e desconto de férias (R$2.529,63) + adiantamento (R$3.633,17). Salário base mensal: R$10.899,51."
+      },
+      "documentos_disponiveis": ["curriculo", "holerite"],
+      "status_fiscal": "BR",
+      "observacoes": "Enfermeira PLeno no Einstein desde jul/2014 (11+ anos). Grade P4. Experiência de docência paralela ao emprego CLT (2012-2024) — overlap válido. Nome fiscal no holerite: Mariana Teixeira Ferreira (nome de solteira)."
     },
-    "theo": {
-      "tipo": "person",
-      "papel": "filho",
-      "nome_completo": "Theo Ferreira Campos",
-      "nome_curto": "Theo",
+    {
+      "id": "theo",
+      "nome_atual": "Theo Ferreira Campos",
+      "nomes_alternativos": [],
       "cpf": null,
       "data_nascimento": "2025-07-18",
-      "idade": 0,
-      "cidadania": [
-        "brasileira",
-        "americana"
-      ],
-      "local_nascimento": "Orlando, Flórida, EUA",
+      "papel_familia": "Filho",
+      "empregador_atual": null,
+      "cargo_atual": null,
+      "tipo_vinculo": null,
+      "data_admissao": null,
+      "formacao_maxima": null,
+      "idiomas": [],
+      "experiencias": [],
+      "salario": {
+        "bruto": null,
+        "liquido": null,
+        "periodo_referencia": null,
+        "fonte": null,
+        "nota": null
+      },
       "documentos_disponiveis": [],
-      "observacoes": "Bebê - sem documentos processados neste ciclo"
+      "status_fiscal": "BR+US",
+      "observacoes": "Nascido em Orlando, Flórida em 18/07/2025. Dupla cidadania brasileira e americana. Sem documentos processados neste ciclo."
     }
-  }
+  ]
 }

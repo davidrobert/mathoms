@@ -1,0 +1,185 @@
+{
+  "banco": "Itaú",
+  "tipo_conta": "faturapaoacucar",
+  "titular": "DAVID ROBERT CAMARGO DE CAMPOS",
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-04-06",
+    "fim": "2026-03-06"
+  },
+  "saldo_inicial": 59.0,
+  "saldo_inicial_unknown": false,
+  "saldo_final": 59.0,
+  "saldo_final_unknown": false,
+  "fontes": [
+    "itau_faturapaoacucar_202505-2_extract.json",
+    "itau_faturapaoacucar_202506-2_extract.json",
+    "itau_faturapaoacucar_202507-2_extract.json",
+    "itau_faturapaoacucar_202508-2_extract.json",
+    "itau_faturapaoacucar_202511-2_extract.json",
+    "itau_faturapaoacucar_202512-2_extract.json",
+    "itau_faturapaoacucar_202509-2_extract.json",
+    "itau_faturapaoacucar_202510-2_extract.json",
+    "itau_faturapaoacucar_202601-2_extract.json",
+    "itau_faturapaoacucar_202602-2_extract.json",
+    "itau_faturapaoacucar_202603-2_extract.json"
+  ],
+  "transacoes_total": 22,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-06-07",
+      "descricao": "Brasilp*BrasilPara12/12",
+      "valor": 59.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras 01/12",
+      "valor": 82800.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": "01/12"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras 03/12",
+      "valor": 59.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": "03/12"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras 06/12",
+      "valor": 59.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": "06/12"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras 07/12",
+      "valor": 59.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": "07/12"
+    },
+    {
+      "data": "2025-06-19",
+      "descricao": "SQSP* INV186737595",
+      "valor": 92.32,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-08-07",
+      "descricao": "AMAZON RETA* Y76ZD1FJ3 224,07 Demais faturas",
+      "valor": 472.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "AMAZON MKTPL*JF2978P03",
+      "valor": 210.11,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-08-25",
+      "descricao": "AMAZON RETA* 8Y9WW7DJ3",
+      "valor": 270.97,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "AMAZON RETA* YK9XM77E3",
+      "valor": 201.66,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "AMAZON RETA* NS9LS8KK3 317,06",
+      "valor": 3600.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-08-28",
+      "descricao": "AMAZON MKTPL*761GA95A3",
+      "valor": 400.3,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-09-06",
+      "descricao": "AMAZON MKTPL*BJ8I19AQ3",
+      "valor": 413.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-09-06",
+      "descricao": "AMAZON MKTPL*A510Y5UY3",
+      "valor": 894.84,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "AMAZON MKTPLACE PMTS -",
+      "valor": 90.86,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "ESTORNO CUSTO DE IOF -",
+      "valor": 3.16,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "AMAZON MKTPLACE PMTS - 396,11",
+      "valor": 3600.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "ESTORNO CUSTO DE IOF -",
+      "valor": 13.89,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "SQSP* DOMAIN#218016570",
+      "valor": 191.8,
+      "cartao": "Pão de Açúcar",
+      "parcela": null
+    },
+    {
+      "data": "2026-06-08",
+      "descricao": "BRASIL PARAL*Bras 08/12",
+      "valor": 59.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": "08/12"
+    },
+    {
+      "data": "2026-06-08",
+      "descricao": "BRASIL PARAL*Bras 08/12",
+      "valor": 95220.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": "08/12"
+    },
+    {
+      "data": "2026-06-08",
+      "descricao": "BRASIL PARAL*Bras 10/12",
+      "valor": 59.0,
+      "cartao": "Pão de Açúcar",
+      "parcela": "10/12"
+    }
+  ]
+}

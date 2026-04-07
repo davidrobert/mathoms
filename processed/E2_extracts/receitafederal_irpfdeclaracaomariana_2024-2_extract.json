@@ -1,39 +1,188 @@
 {
-  "base_year": 2024,
-  "person": "mariana",
-  "taxpayer": {
-    "name": "MARIANA FERREIRA CAMPOS",
-    "cpf": "085.052.396-60",
-    "birth_date": "30/08/1986",
-    "spouse_cpf": "287.766.948-36"
+  "tipo": "irpfdeclaracao",
+  "ano_base": 2024,
+  "declarante": {
+    "nome": "MARIANA FERREIRA CAMPOS",
+    "cpf": "085.052.396-60"
   },
-  "income": {
-    "clt_salaries": 141842.7,
-    "rental_income": 0,
-    "simples_nacional": 0,
-    "financial_returns": 0,
-    "bonus_13": 8301.32,
-    "tax_exempt_total": 0,
-    "exclusive_taxation_total": 0,
-    "total_taxable": 203982.98
-  },
-  "assets": {
-    "real_estate": 988123.73,
-    "financial_applications": 811301.24,
-    "total": 988123.73
-  },
-  "liabilities": {
-    "financing": 0,
-    "total": 0
-  },
-  "taxes": {
-    "withheld": 22575.99,
-    "due": 40746.89
-  },
-  "pages": 13,
-  "extraction_method": "direct_value_matching",
-  "periodo": {
-    "inicio": "2024-01-01",
-    "fim": "2024-12-31"
+  "data_declaracao": "2025-05-30",
+  "bens_direitos": [
+    {
+      "tipo": "imovel",
+      "descricao": "Apartamento Cond. Living Concept, Av. Alberto Augusto Alves 320 Apto 812, Santo Amaro, SP. Matrícula 488435. 25,7m². Aquisição 09/10/2023.",
+      "valor_31_12_ano_anterior": 223733.99,
+      "valor_31_12_ano_base": 270000.0,
+      "localidade": "São Paulo, SP"
+    },
+    {
+      "tipo": "imovel",
+      "descricao": "Apartamento Cond. Living Wish, Av. João Dias 2192 Torre 2 Apto 163, Santo Amaro, SP. Matrícula 453.527. 88,9m². Aquisição 09/04/2018.",
+      "valor_31_12_ano_anterior": 477436.58,
+      "valor_31_12_ano_base": 530000.0,
+      "localidade": "São Paulo, SP"
+    },
+    {
+      "tipo": "conta_bancaria",
+      "descricao": "Bradesco Ag 6543 Conta 6673-7 (poupança). Encerrada.",
+      "valor_31_12_ano_anterior": 25337.34,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG - Produto CDBB2353UR4.",
+      "valor_31_12_ano_anterior": 22000.0,
+      "valor_31_12_ano_base": 22000.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG - CDB-SR Ag 0001.",
+      "valor_31_12_ano_anterior": 1826.51,
+      "valor_31_12_ano_base": 3429.16,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "CDB Bradesco - Renda Fixa. Encerrada.",
+      "valor_31_12_ano_anterior": 4365.03,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "Nubank - RDB. Encerrada.",
+      "valor_31_12_ano_anterior": 58.23,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG - Produto CDB524BFK2F.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 10000.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG - LCI Produto 22J1410500.",
+      "valor_31_12_ano_anterior": 10349.69,
+      "valor_31_12_ano_base": 9349.69,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG - LCI Produto 22K1692411.",
+      "valor_31_12_ano_anterior": 10324.25,
+      "valor_31_12_ano_base": 10324.25,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG - CRA Produto CRA02300MZU.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 9115.01,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG - CRA Produto CRA02300SPD.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 9109.54,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG - CRA Produto CRA024001Q9.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 9248.83,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG - LCI Produto 23J0138431.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 9164.03,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "conta_bancaria",
+      "descricao": "Bradesco Ag 6543 Conta 6673-7 (corrente). Encerrada.",
+      "valor_31_12_ano_anterior": 1.0,
+      "valor_31_12_ano_base": 0.0,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG Pactual Explorer Renda Fixa Ativa FI LP. CNPJ 11.952.873/0001-10.",
+      "valor_31_12_ano_anterior": 35868.62,
+      "valor_31_12_ano_base": 41408.87,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG Pactual Hedge FI Renda Fixa Crédito Privado. CNPJ 00.888.897/0001-31.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 4494.93,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG M8 Capital Plus FI RF Crédito Privado LP. CNPJ 39.958.460/0001-62.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 25479.42,
+      "localidade": "Brasil"
+    },
+    {
+      "tipo": "aplicacao",
+      "descricao": "BTG Pactual Hedge FI Incentivado Infraestrutura RF. CNPJ 51.697.128/0001-97.",
+      "valor_31_12_ano_anterior": 0.0,
+      "valor_31_12_ano_base": 25000.0,
+      "localidade": "Brasil"
+    }
+  ],
+  "rendimentos": [
+    {
+      "tipo": "clt",
+      "valor_bruto": 141842.7,
+      "valor_liquido": 141842.7,
+      "fonte": "SBIBHAE - Hospital Albert Einstein (CNPJ 60.765.823/0001-30)"
+    },
+    {
+      "tipo": "aluguel",
+      "valor_bruto": 62140.28,
+      "valor_liquido": 62140.28,
+      "fonte": "Aluguéis recebidos de pessoa física (jan-dez 2024)"
+    },
+    {
+      "tipo": "financeiro",
+      "valor_bruto": 3319.56,
+      "valor_liquido": 3319.56,
+      "fonte": "Rendimentos de aplicações financeiras (tributação exclusiva)"
+    },
+    {
+      "tipo": "outro",
+      "valor_bruto": 1336.61,
+      "valor_liquido": 1336.61,
+      "fonte": "Rendimentos isentos (abono férias/PIS Einstein)"
+    }
+  ],
+  "dívidas_ônus": [],
+  "deducoes": [
+    {
+      "tipo": "saude",
+      "valor": 1465.54
+    },
+    {
+      "tipo": "outro",
+      "valor": 13726.94
+    }
+  ],
+  "totalizadores": {
+    "bens_totais": 988123.73,
+    "renda_tributavel": 203982.98,
+    "imposto_devido": 40746.89,
+    "imposto_pago": 22575.99,
+    "saldo": 18170.9
   }
 }

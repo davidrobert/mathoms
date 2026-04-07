@@ -1,21 +1,17 @@
 {
-  "banco": "santander",
+  "banco": "Santander",
   "tipo": "extratoconta",
   "moeda": "BRL",
-  "numero_conta": null,
+  "numero_conta": "1652 / 01001341-6",
+  "titular": "david",
   "periodo": {
     "inicio": "2025-11-01",
     "fim": "2025-12-31"
   },
-  "saldo_inicial": null,
+  "saldo_inicial": 0.0,
   "saldo_final": null,
-  "transacoes": [
-    {
-      "data": "2025-11-01",
-      "descricao": "SALDO ANTERIOR",
-      "valor": 0.0,
-      "saldo_apos": null
-    }
-  ],
-  "notas": []
+  "transacoes": [],
+  "notas": [
+    "Conta sem movimentação no período (apenas saldo anterior registrado)"
+  ]
 }

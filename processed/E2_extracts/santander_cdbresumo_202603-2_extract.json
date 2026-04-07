@@ -1,9 +1,76 @@
 {
-  "banco": "Santander",
-  "tipo": "cdbdetalhes",
-  "produtos": [],
-  "periodo": {
-    "inicio": "2026-03-01",
-    "fim": "2026-03-31"
-  }
+  "tipo": "cdbresumo",
+  "instituicao": "santander",
+  "data_posicao": "2026-03-29",
+  "moeda": "BRL",
+  "total_aplicado": null,
+  "saldo_atual": 299477.93,
+  "rentabilidade": {
+    "valor": null,
+    "percentual": null
+  },
+  "composicao": [
+    {
+      "tipo_produto": "CDB",
+      "nome": "CDB DI SANTANDER (Operação 00331652260006380267)",
+      "quantidade": 1,
+      "valor_unitario": null,
+      "valor_total": 137409.67,
+      "percentual_carteira": 45.92,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "CDB",
+      "nome": "CDB DI SANTANDER (Operação 00331652260006541929)",
+      "quantidade": 1,
+      "valor_unitario": null,
+      "valor_total": 101522.74,
+      "percentual_carteira": 33.92,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "CDB",
+      "nome": "CDB PROG SANTANDER (Operação 00331652260006541912)",
+      "quantidade": 1,
+      "valor_unitario": null,
+      "valor_total": 60545.52,
+      "percentual_carteira": 20.22,
+      "rentabilidade_instrumento": null
+    }
+  ],
+  "resumo": [
+    {
+      "tipo_cdb": "CDB DI SANTANDER",
+      "rentabilidade_percentual": 100.0,
+      "operacoes": [
+        {
+          "numero_operacao": "00331652260006380267",
+          "valor_total": 137409.67,
+          "disponivel_resgate": 132662.92,
+          "data_contratacao": "2024-06-26",
+          "data_vencimento": "2028-06-05"
+        },
+        {
+          "numero_operacao": "00331652260006541929",
+          "valor_total": 101522.74,
+          "disponivel_resgate": 98281.27,
+          "data_contratacao": "2024-08-30",
+          "data_vencimento": "2028-08-09"
+        }
+      ]
+    },
+    {
+      "tipo_cdb": "CDB PROG SANTANDER",
+      "rentabilidade_percentual": 95.0,
+      "operacoes": [
+        {
+          "numero_operacao": "00331652260006541912",
+          "valor_total": 60545.52,
+          "disponivel_resgate": 58700.06,
+          "data_contratacao": "2024-08-30",
+          "data_vencimento": "2028-08-09"
+        }
+      ]
+    }
+  ]
 }

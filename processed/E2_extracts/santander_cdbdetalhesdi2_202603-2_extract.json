@@ -1,9 +1,27 @@
 {
-  "banco": "Santander",
   "tipo": "cdbdetalhes",
-  "produtos": [],
-  "periodo": {
-    "inicio": "2026-03-01",
-    "fim": "2026-03-31"
-  }
+  "instituicao": "santander",
+  "data_posicao": "2026-03-29",
+  "moeda": "BRL",
+  "total_aplicado": null,
+  "saldo_atual": 137409.67,
+  "rentabilidade": {
+    "valor": null,
+    "percentual": 100.0
+  },
+  "composicao": [
+    {
+      "tipo_produto": "CDB",
+      "nome": "CDB DI SANTANDER",
+      "quantidade": 1,
+      "valor_unitario": null,
+      "valor_total": 137409.67,
+      "percentual_carteira": 100.0,
+      "rentabilidade_instrumento": null
+    }
+  ],
+  "operacao": "00331652260006380267",
+  "data_contratacao": "2024-06-26",
+  "data_vencimento": "2028-06-05",
+  "prazo_dias": 1440
 }

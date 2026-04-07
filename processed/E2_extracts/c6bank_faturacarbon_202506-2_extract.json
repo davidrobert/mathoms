@@ -382,9 +382,5 @@
       "subtotal": 402.49
     }
   ],
-  "parse_quality": "ok",
-  "periodo": {
-    "inicio": "2025-06-01",
-    "fim": "2025-06-30"
-  }
+  "parse_quality": "ok"
 }

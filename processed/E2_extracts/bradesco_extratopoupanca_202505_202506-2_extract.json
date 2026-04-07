@@ -2,11 +2,75 @@
   "banco": "Bradesco",
   "tipo": "extratopoupanca",
   "moeda": "BRL",
+  "numero_conta": "Ag 3221 Conta 77113-9",
+  "titular": null,
   "periodo": {
-    "inicio": "2020-25-01",
-    "fim": "2020-25-01"
+    "inicio": "2025-05-01",
+    "fim": "2025-06-30"
   },
-  "saldo_inicial": 0,
-  "saldo_final": 9.0,
-  "transacoes": []
+  "saldo_inicial": null,
+  "saldo_final": 21762.41,
+  "transacoes": [
+    {
+      "data": "2025-05-02",
+      "descricao": "Rendimentos",
+      "valor": 11.15
+    },
+    {
+      "data": "2025-05-02",
+      "descricao": "bx Aut Cta Cor*",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "tr Sal p/poup",
+      "valor": 4139.58
+    },
+    {
+      "data": "2025-05-30",
+      "descricao": "tr Sal p/poup",
+      "valor": 3778.33
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "Rendimentos",
+      "valor": 25.21
+    },
+    {
+      "data": "2025-06-05",
+      "descricao": "tr Sal p/poup",
+      "valor": 4282.7
+    },
+    {
+      "data": "2025-06-13",
+      "descricao": "tr Sal p/poup",
+      "valor": 2759.72
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "Rendimentos",
+      "valor": 27.91
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "tr Sal p/poup",
+      "valor": 2997.28
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Total 18.021,88",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "0800 570 0022 0800",
+      "valor": 704.0
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "0800",
+      "valor": 722.0
+    }
+  ],
+  "notas": []
 }

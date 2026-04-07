@@ -7,132 +7,114 @@
   "experiencias": [
     {
       "empresa": "Hospital Israelita Albert Einstein",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Enfermeiro",
+      "tipo_vinculo": "CLT",
       "data_inicio": "2018-01",
       "data_fim": "presente",
-      "duracao_meses": 99,
-      "tipo_contrato": "CLT"
+      "descricao": "Unidade de alta complexidade com foco em Cardiologia, Clínica Médica e Cirúrgica. Auditoria de prontuários eletrônicos, projetos PDCA, segurança do paciente."
     },
     {
       "empresa": "Hospital Israelita Albert Einstein",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Enfermeiro",
-      "departamento": "UPA Campo Limpo",
+      "tipo_vinculo": "CLT",
       "data_inicio": "2014-08",
       "data_fim": "2018-06",
-      "duracao_meses": 47,
-      "tipo_contrato": "CLT"
+      "descricao": "UPA Campo Limpo."
     },
     {
       "empresa": "Faculdade Israelita Albert Einstein",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Docente universitário",
+      "tipo_vinculo": "docencia",
       "data_inicio": "2021-01",
       "data_fim": "2024-12",
-      "duracao_meses": 48,
-      "tipo_contrato": "Docente"
+      "descricao": "Docente em Semiologia e Semiotécnica, metodologias ativas de ensino."
     },
     {
       "empresa": "Senac São Paulo",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Docente universitário",
+      "tipo_vinculo": "docencia",
       "data_inicio": "2012-01",
       "data_fim": "2016-01",
-      "duracao_meses": 49,
-      "tipo_contrato": "Docente"
+      "descricao": ""
     },
     {
       "empresa": "Faculdade Sequencial",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Docente universitário",
+      "tipo_vinculo": "docencia",
       "data_inicio": "2013-01",
       "data_fim": "2015-08",
-      "duracao_meses": 32,
-      "tipo_contrato": "Docente"
+      "descricao": ""
     },
     {
       "empresa": "Hospital Municipal Dr. Moysés Deutsch - Parceria com Hospital Israelita Einstein",
-      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Enfermeira",
-      "data_inicio": "2011",
-      "data_fim": "2014",
-      "tipo_contrato": "CLT"
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2011-01",
+      "data_fim": "2014-01",
+      "descricao": "UTI Adulto e Pediátrica, Clínica Médica e Cirúrgica."
     }
   ],
   "formacao": [
     {
-      "grau": "Mestrado",
-      "area": "Enfermagem em Saúde do Adulto",
       "instituicao": "Universidade de São Paulo (USP)",
-      "data_conclusao": "2021-06"
+      "curso": "Mestrado em Enfermagem — Enfermagem em Saúde Adulta",
+      "grau": "mestrado",
+      "data_conclusao": "2021"
     },
     {
-      "grau": "Pós-graduação Lato Sensu - Especialização",
-      "area": "Enfermagem em Cardiologia e Hemodinâmica",
       "instituicao": "UNIFESP - Universidade Federal de São Paulo",
+      "curso": "Especialização em Enfermagem em Cardiologia e Hemodinâmica",
+      "grau": "especializacao",
       "data_conclusao": "2012"
     },
     {
-      "grau": "Pós-graduação Lato Sensu - Especialização",
-      "area": "Especialização em Formação Docente em Educação Profissional",
-      "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz"
+      "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
+      "curso": "Especialização em Formação Docente em Educação Profissional",
+      "grau": "especializacao",
+      "data_conclusao": null
     },
     {
-      "grau": "Bacharelado",
-      "area": "Enfermagem",
       "instituicao": "PUC Minas",
+      "curso": "Bacharelado em Enfermagem",
+      "grau": "graduacao",
       "data_conclusao": "2010"
     }
   ],
   "certificacoes": [
     {
-      "titulo": "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico"
+      "nome": "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
+      "instituicao": "Hospital Albert Einstein"
     },
     {
-      "titulo": "Classificação de Risco (Protocolo de Manchester)"
+      "nome": "Classificação de Risco (Protocolo de Manchester)",
+      "instituicao": null
     },
     {
-      "titulo": "Advanced Trauma Care for Nurses (ATCN)"
+      "nome": "Advanced Trauma Care for Nurses (ATCN)",
+      "instituicao": null
+    },
+    {
+      "nome": "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP) e Curso de Osteoporose",
+      "instituicao": "USP"
     }
   ],
   "habilidades": [
     "Processo de enfermagem",
     "Cuidados de qualidade ao paciente",
     "Gestão de equipes",
-    "Auditoria Clínica",
-    "Segurança do Paciente",
-    "Análise de Prontuários Eletrônicos",
-    "Ciclo PDCA",
-    "Gestão de Crônicos",
-    "Osteoporose - Auditoria e Qualidade",
-    "Acompanhamento de pacientes crônicos",
-    "Esclerose Múltipla",
-    "Educação e Treinamento",
-    "Pesquisa Clínica",
-    "Metodologia Científica",
-    "Prática Baseada em Evidências",
-    "Cardiologia",
-    "Clínica Médica",
-    "Clínica Cirúrgica",
-    "UTI Adulto",
-    "UTI Pediátrica"
+    "Auditoria clínica",
+    "Segurança do paciente",
+    "PDCA",
+    "Pesquisa clínica",
+    "Metodologia científica",
+    "Educação em saúde",
+    "Cardiologia e Hemodinâmica"
   ],
   "idiomas": [
     {
       "idioma": "Português",
-      "nivel": "Nativo"
+      "nivel": "nativo",
+      "fonte": "inferido"
     }
-  ],
-  "competencias_principais": [
-    "Processo de enfermagem",
-    "Cuidados de qualidade ao paciente",
-    "Gestão de equipes",
-    "Auditoria e Qualidade",
-    "Classificação de Risco",
-    "Cardiologia e Hemodinâmica",
-    "Educação em Saúde",
-    "Docência Universitária",
-    "Formação Profissional"
   ]
 }

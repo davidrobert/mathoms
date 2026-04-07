@@ -1,16 +1,109 @@
 {
-  "document_type": "QUINTOANDAR_RENTAL_REPORT",
-  "base_year": 2025,
-  "gross_rental_income": 0,
-  "total_deductions": 0,
-  "net_income": 0,
-  "properties": [],
-  "extraction_status": "processed",
-  "pages_processed": 3,
-  "total_pages": 3,
-  "first_page_text": "Comprovante anual de rendimentos de aluguéis Ano-calendário\n2025\nA tabela abaixo contém o valor bruto dos aluguéis pagos e os descontos aplicáveis (taxas de corretagem e administração) de cada mês\nem 2025.\nOs rendimentos detalhados de cada imóvel estão nas próximas páginas.\nRendimentos (em Reais)\nDiscriminado mensal de todos os seus imóveis.\nMês Valor do aluguel Descontos Rendimento líquido\nJaneiro R$ 7.114,78 R$ 626,10 R$ 6.488,68\nFevereiro R$ 7.114,78 R$ 626,10 R$ 6.488,68\nMarço R$ 7.218,04 R$ 635,19 R$ 6.582,85\nAbril R$ 6.960,89 R$ 627,08 R$ 6.333,81\nMaio R$ 5.646,23 R$ 496,87 R$ 5.149,36\nJunho R$ 5.646,23 R$ 496,87 R$ 5.149,36\nJulho R$ 5.646,23 R$ 496,87 R$ 5.149,36\nAgosto R$ 5.646,23 R$ 496,87 R$ 5.149,36\nSetembro R$ 5.646,23 R$ 496,87 R$ 5.149,36\nOutubro R$ 5.646,23 R$ 496,87 R$ 5.149,36\nNovembro R$ 5.646,23 R$ 496,87 R$ 5.149,36\nDezembro R$ 6.247,67 R$ 1.430,52 R$ 4.817,15\nBeneficiário do rendimento (Locador): Total dos aluguéis: R$ 74.179,77\nMariana Teixeira Ferreira\nTotal dos descontos: R$ 7.423,08\n085.052.396-60\nAdministradora do imóvel: Rendimento líquido: R$ 66.756,69\nGRPQA LTDA\n© GRPQA LTDA\nR. Girassol, 555 - Vila Madalena, São Paulo - SP, 05433-001\nCRECI-SP J24.344 - www.quintoandar.com.br\nDescritivo detalhado por imóvel Ano-calendário\n2025\nAvenida Alberto Augusto Alves, 320 - 812 Cód. Imóvel Imóvel\nSão Paulo - SP 894064293 1/2\n05724-030\nRendimentos (em Reais)\nDiscriminado mensal dos contratos relativos ao imóvel durante o ano de 2025.\nMês Fonte Pagadora CPF da Fonte Pagadora Cód. Contrato Valor do AluguelDescontos Rendimento Líquido\nJaneiro Luana Pereira Da Silva 444.334.888-36 571095 R$ 1.714,78 R$ 150,90 R$ 1.563,88\nFevereiro Luana Pereira Da Silva 444.334.888-36 571095 R$ 1.714,78 R$ 150,90 R$ 1.563,88\nMarço Luana Pereira Da Silva 444.334.888-36 571095 R$ 1.714,78 R$ 150,90 R$ 1.563,88\nAbril Luana Pereira Da Silva 444.334.888-36 571095 R$ 1.314,66 R$ 130,21 R$ 1.184,45\nMaio - - - - - -\nJunho Luana Pereira Da Silva 444.334.888-36 571095 R$ 0,00 R$ 0",
-  "periodo": {
-    "inicio": "2025-01-01",
-    "fim": "2025-12-31"
-  }
+  "tipo": "informerendimentosaluguel",
+  "ano_calendario": 2025,
+  "beneficiario": {
+    "nome": "Mariana Teixeira Ferreira",
+    "cpf": "085.052.396-60"
+  },
+  "administradora": "GRPQA LTDA (QuintoAndar)",
+  "total_alugueis_bruto": 74179.77,
+  "total_descontos": 7423.08,
+  "rendimento_liquido": 66756.69,
+  "imoveis": [
+    {
+      "endereco": "Avenida Alberto Augusto Alves, 320 - Apto 812, São Paulo - SP, 05724-030",
+      "codigo_imovel": "894064293",
+      "total_alugueis": 7424.71,
+      "total_descontos": 1548.62,
+      "rendimento_liquido": 5876.09,
+      "inquilino_principal": "Luana Pereira Da Silva",
+      "cpf_inquilino": "444.334.888-36",
+      "contrato": "571095",
+      "nota": "Imóvel com vacância mai-nov, novo contrato em dez (Brenda Maraisa De Souza)"
+    },
+    {
+      "endereco": "Avenida João Dias, 2192 - Torre 2 Apto 163, São Paulo - SP, 04724-003",
+      "codigo_imovel": "894326656",
+      "total_alugueis": 66755.06,
+      "total_descontos": 5874.46,
+      "rendimento_liquido": 60880.6,
+      "inquilino": "Wesley Augusto De Almeida Sandes",
+      "cpf_inquilino": "351.146.508-74",
+      "contrato": "689924"
+    }
+  ],
+  "mensal": [
+    {
+      "mes": "2025-01",
+      "bruto": 7114.78,
+      "descontos": 626.1,
+      "liquido": 6488.68
+    },
+    {
+      "mes": "2025-02",
+      "bruto": 7114.78,
+      "descontos": 626.1,
+      "liquido": 6488.68
+    },
+    {
+      "mes": "2025-03",
+      "bruto": 7218.04,
+      "descontos": 635.19,
+      "liquido": 6582.85
+    },
+    {
+      "mes": "2025-04",
+      "bruto": 6960.89,
+      "descontos": 627.08,
+      "liquido": 6333.81
+    },
+    {
+      "mes": "2025-05",
+      "bruto": 5646.23,
+      "descontos": 496.87,
+      "liquido": 5149.36
+    },
+    {
+      "mes": "2025-06",
+      "bruto": 5646.23,
+      "descontos": 496.87,
+      "liquido": 5149.36
+    },
+    {
+      "mes": "2025-07",
+      "bruto": 5646.23,
+      "descontos": 496.87,
+      "liquido": 5149.36
+    },
+    {
+      "mes": "2025-08",
+      "bruto": 5646.23,
+      "descontos": 496.87,
+      "liquido": 5149.36
+    },
+    {
+      "mes": "2025-09",
+      "bruto": 5646.23,
+      "descontos": 496.87,
+      "liquido": 5149.36
+    },
+    {
+      "mes": "2025-10",
+      "bruto": 5646.23,
+      "descontos": 496.87,
+      "liquido": 5149.36
+    },
+    {
+      "mes": "2025-11",
+      "bruto": 5646.23,
+      "descontos": 496.87,
+      "liquido": 5149.36
+    },
+    {
+      "mes": "2025-12",
+      "bruto": 6247.67,
+      "descontos": 1430.52,
+      "liquido": 4817.15
+    }
+  ]
 }

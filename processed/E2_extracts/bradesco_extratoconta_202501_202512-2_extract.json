@@ -1,14 +1,993 @@
 {
-  "banco": "bradesco",
+  "banco": "Bradesco",
   "tipo": "extratoconta",
   "moeda": "BRL",
-  "numero_conta": null,
+  "numero_conta": "Ag 3221 Conta 77113-9",
+  "titular": "mariana",
   "periodo": {
     "inicio": "2025-01-01",
     "fim": "2025-12-31"
   },
-  "saldo_inicial": null,
-  "saldo_final": null,
-  "transacoes": [],
-  "notas": []
+  "saldo_inicial": 1.0,
+  "saldo_final": 1.0,
+  "transacoes": [
+    {
+      "data": "2025-01-02",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1808.49
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "2230217",
+      "valor": -22.99
+    },
+    {
+      "data": "2025-01-06",
+      "descricao": "bx Aut Poupanca",
+      "valor": 266.0
+    },
+    {
+      "data": "2025-01-06",
+      "descricao": "1245066",
+      "valor": -266.0
+    },
+    {
+      "data": "2025-01-09",
+      "descricao": "0903221",
+      "valor": 1629.4
+    },
+    {
+      "data": "2025-01-09",
+      "descricao": "Apl.invest Fac",
+      "valor": -6721.2
+    },
+    {
+      "data": "2025-01-10",
+      "descricao": "Resgate Inv Fac",
+      "valor": 99.0
+    },
+    {
+      "data": "2025-01-10",
+      "descricao": "Des: Carla Mayara Marconde",
+      "valor": -99.0
+    },
+    {
+      "data": "2025-01-13",
+      "descricao": "Resgate Inv Fac",
+      "valor": 363.5
+    },
+    {
+      "data": "2025-01-13",
+      "descricao": "2348173",
+      "valor": -163.5
+    },
+    {
+      "data": "2025-01-15",
+      "descricao": "Resgate Inv Fac",
+      "valor": 56.64
+    },
+    {
+      "data": "2025-01-15",
+      "descricao": "6898270",
+      "valor": -56.64
+    },
+    {
+      "data": "2025-01-20",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1101.96
+    },
+    {
+      "data": "2025-01-20",
+      "descricao": "Gasto c Credito",
+      "valor": -1102.01
+    },
+    {
+      "data": "2025-01-22",
+      "descricao": "Resgate Inv Fac",
+      "valor": 52.33
+    },
+    {
+      "data": "2025-01-22",
+      "descricao": "Des: Patrycia Casetta Rosa 22/01",
+      "valor": -52.33
+    },
+    {
+      "data": "2025-01-28",
+      "descricao": "Resgate Inv Fac",
+      "valor": 599.91
+    },
+    {
+      "data": "2025-01-28",
+      "descricao": "2008592",
+      "valor": -600.0
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "Resgate Inv Fac",
+      "valor": 3008.26
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "Des: Antonia Gecileuda Roc",
+      "valor": -75.0
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "bx Aut Poupanca",
+      "valor": 60.02
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "3879513",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-02-04",
+      "descricao": "bx Aut Poupanca",
+      "valor": 10.0
+    },
+    {
+      "data": "2025-02-04",
+      "descricao": "Des: Estacar Estacionament",
+      "valor": -10.0
+    },
+    {
+      "data": "2025-02-11",
+      "descricao": "1103221",
+      "valor": 1629.4
+    },
+    {
+      "data": "2025-02-11",
+      "descricao": "Apl.invest Fac",
+      "valor": -6721.2
+    },
+    {
+      "data": "2025-02-17",
+      "descricao": "Resgate Inv Fac",
+      "valor": 56.64
+    },
+    {
+      "data": "2025-02-17",
+      "descricao": "6898270",
+      "valor": -56.64
+    },
+    {
+      "data": "2025-02-20",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1105.44
+    },
+    {
+      "data": "2025-02-20",
+      "descricao": "Gasto c Credito",
+      "valor": -1105.49
+    },
+    {
+      "data": "2025-02-27",
+      "descricao": "Resgate Inv Fac",
+      "valor": 25.0
+    },
+    {
+      "data": "2025-02-27",
+      "descricao": "1357061",
+      "valor": -25.0
+    },
+    {
+      "data": "2025-03-05",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1547.7
+    },
+    {
+      "data": "2025-03-05",
+      "descricao": "1656168",
+      "valor": -48.0
+    },
+    {
+      "data": "2025-03-07",
+      "descricao": "1931554",
+      "valor": -190.0
+    },
+    {
+      "data": "2025-03-10",
+      "descricao": "bx Aut Poupanca",
+      "valor": 110.0
+    },
+    {
+      "data": "2025-03-10",
+      "descricao": "1914222",
+      "valor": -60.0
+    },
+    {
+      "data": "2025-03-11",
+      "descricao": "1103221",
+      "valor": 1629.4
+    },
+    {
+      "data": "2025-03-11",
+      "descricao": "Apl.invest Fac",
+      "valor": -6721.2
+    },
+    {
+      "data": "2025-03-17",
+      "descricao": "Resgate Inv Fac",
+      "valor": 56.64
+    },
+    {
+      "data": "2025-03-17",
+      "descricao": "6898270",
+      "valor": -56.64
+    },
+    {
+      "data": "2025-03-18",
+      "descricao": "Resgate Inv Fac",
+      "valor": 10.0
+    },
+    {
+      "data": "2025-03-18",
+      "descricao": "1618231",
+      "valor": -10.0
+    },
+    {
+      "data": "2025-03-20",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1192.75
+    },
+    {
+      "data": "2025-03-20",
+      "descricao": "Gasto c Credito",
+      "valor": -1192.8
+    },
+    {
+      "data": "2025-03-25",
+      "descricao": "Resgate Inv Fac",
+      "valor": 599.95
+    },
+    {
+      "data": "2025-03-25",
+      "descricao": "1911467",
+      "valor": -600.0
+    },
+    {
+      "data": "2025-03-27",
+      "descricao": "Resgate Inv Fac",
+      "valor": 89.99
+    },
+    {
+      "data": "2025-03-27",
+      "descricao": "1454308",
+      "valor": -90.0
+    },
+    {
+      "data": "2025-04-01",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1549.68
+    },
+    {
+      "data": "2025-04-01",
+      "descricao": "1019482",
+      "valor": -50.0
+    },
+    {
+      "data": "2025-04-08",
+      "descricao": "Resgate Inv Fac",
+      "valor": 349.87
+    },
+    {
+      "data": "2025-04-08",
+      "descricao": "1340441",
+      "valor": -350.0
+    },
+    {
+      "data": "2025-04-09",
+      "descricao": "Resgate Inv Fac",
+      "valor": 937.6
+    },
+    {
+      "data": "2025-04-09",
+      "descricao": "2218413",
+      "valor": -339.89
+    },
+    {
+      "data": "2025-04-10",
+      "descricao": "1003221",
+      "valor": 1629.4
+    },
+    {
+      "data": "2025-04-10",
+      "descricao": "2114024",
+      "valor": -91.45
+    },
+    {
+      "data": "2025-04-14",
+      "descricao": "Resgate Inv Fac",
+      "valor": 78.03
+    },
+    {
+      "data": "2025-04-14",
+      "descricao": "1527294",
+      "valor": -78.07
+    },
+    {
+      "data": "2025-04-15",
+      "descricao": "Resgate Inv Fac",
+      "valor": 56.61
+    },
+    {
+      "data": "2025-04-15",
+      "descricao": "6898270",
+      "valor": -56.64
+    },
+    {
+      "data": "2025-04-16",
+      "descricao": "Resgate Inv Fac",
+      "valor": 999.48
+    },
+    {
+      "data": "2025-04-16",
+      "descricao": "1118343",
+      "valor": -1000.0
+    },
+    {
+      "data": "2025-04-22",
+      "descricao": "Resgate Inv Fac",
+      "valor": 622.28
+    },
+    {
+      "data": "2025-04-22",
+      "descricao": "Gasto c Credito",
+      "valor": -1423.36
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Resgate Inv Fac",
+      "valor": 84.99
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "1500508",
+      "valor": -60.0
+    },
+    {
+      "data": "2025-04-24",
+      "descricao": "1537210",
+      "valor": -535.5
+    },
+    {
+      "data": "2025-05-02",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1500.0
+    },
+    {
+      "data": "2025-05-02",
+      "descricao": "1298446",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-05-09",
+      "descricao": "0903221",
+      "valor": 1146.25
+    },
+    {
+      "data": "2025-05-09",
+      "descricao": "Apl.invest Fac",
+      "valor": -6462.61
+    },
+    {
+      "data": "2025-05-12",
+      "descricao": "Resgate Inv Fac",
+      "valor": 140.0
+    },
+    {
+      "data": "2025-05-12",
+      "descricao": "0840186",
+      "valor": -140.0
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "Resgate Inv Fac",
+      "valor": 56.64
+    },
+    {
+      "data": "2025-05-15",
+      "descricao": "6898270",
+      "valor": -56.64
+    },
+    {
+      "data": "2025-05-19",
+      "descricao": "Resgate Inv Fac",
+      "valor": 585.97
+    },
+    {
+      "data": "2025-05-19",
+      "descricao": "1046223",
+      "valor": -140.0
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Resgate Inv Fac",
+      "valor": 2462.34
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Gasto c Credito",
+      "valor": -2462.47
+    },
+    {
+      "data": "2025-05-21",
+      "descricao": "2103221",
+      "valor": 154.8
+    },
+    {
+      "data": "2025-05-21",
+      "descricao": "Apl.invest Fac",
+      "valor": -471.0
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1982.42
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "9652927",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-06-03",
+      "descricao": "Resgate Inv Fac",
+      "valor": 785.47
+    },
+    {
+      "data": "2025-06-03",
+      "descricao": "Oma Condominio Locacao e",
+      "valor": -443.45
+    },
+    {
+      "data": "2025-06-11",
+      "descricao": "1103221",
+      "valor": 5316.36
+    },
+    {
+      "data": "2025-06-11",
+      "descricao": "Apl.invest Fac",
+      "valor": -5316.36
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "Resgate Inv Fac",
+      "valor": 111.9
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "6898270",
+      "valor": -55.98
+    },
+    {
+      "data": "2025-06-26",
+      "descricao": "Resgate Inv Fac",
+      "valor": 121.91
+    },
+    {
+      "data": "2025-06-26",
+      "descricao": "1322154",
+      "valor": -122.0
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Resgate Inv Fac",
+      "valor": 471.0
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "2020181",
+      "valor": -2294.07
+    },
+    {
+      "data": "2025-07-01",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1499.72
+    },
+    {
+      "data": "2025-07-01",
+      "descricao": "8643102",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "Resgate Inv Fac",
+      "valor": 439.89
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "Oma Condominio Locacao e",
+      "valor": -439.98
+    },
+    {
+      "data": "2025-07-03",
+      "descricao": "Resgate Inv Fac",
+      "valor": 342.18
+    },
+    {
+      "data": "2025-07-03",
+      "descricao": "0000211",
+      "valor": -342.26
+    },
+    {
+      "data": "2025-07-10",
+      "descricao": "1003221",
+      "valor": 5316.36
+    },
+    {
+      "data": "2025-07-10",
+      "descricao": "Apl.invest Fac",
+      "valor": -5316.36
+    },
+    {
+      "data": "2025-07-21",
+      "descricao": "Resgate Inv Fac",
+      "valor": 45.86
+    },
+    {
+      "data": "2025-07-21",
+      "descricao": "Gasto c Credito",
+      "valor": -45.89
+    },
+    {
+      "data": "2025-07-30",
+      "descricao": "Resgate Inv Fac",
+      "valor": 117.65
+    },
+    {
+      "data": "2025-07-30",
+      "descricao": "2313549",
+      "valor": -117.74
+    },
+    {
+      "data": "2025-07-31",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1053.23
+    },
+    {
+      "data": "2025-07-31",
+      "descricao": "2020212",
+      "valor": -2319.05
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1499.62
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "8671058",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-08-05",
+      "descricao": "Resgate Inv Fac",
+      "valor": 342.15
+    },
+    {
+      "data": "2025-08-05",
+      "descricao": "0000212",
+      "valor": -342.27
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "1103221",
+      "valor": 5316.36
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "Apl.invest Fac",
+      "valor": -5316.36
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "Resgate Inv Fac",
+      "valor": 55.95
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "6898270",
+      "valor": -55.98
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "Resgate Inv Fac",
+      "valor": 451.72
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "Oma Condominio Locacao e",
+      "valor": -452.05
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "Resgate Inv Fac",
+      "valor": 432.89
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "2020241",
+      "valor": -2348.13
+    },
+    {
+      "data": "2025-09-04",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1499.54
+    },
+    {
+      "data": "2025-09-04",
+      "descricao": "1365630",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "1103221",
+      "valor": 5316.36
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "Apl.invest Fac",
+      "valor": -5316.36
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "Resgate Inv Fac",
+      "valor": 55.95
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "6898270",
+      "valor": -55.98
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Resgate Inv Fac",
+      "valor": 2510.29
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "2020273",
+      "valor": -2374.47
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "Resgate Inv Fac",
+      "valor": 817.69
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "1532769",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-10-09",
+      "descricao": "0903221",
+      "valor": 5316.36
+    },
+    {
+      "data": "2025-10-09",
+      "descricao": "Apl.invest Fac",
+      "valor": -5316.36
+    },
+    {
+      "data": "2025-10-13",
+      "descricao": "Des: Vanessa Emiliano Dias",
+      "valor": -216.0
+    },
+    {
+      "data": "2025-10-14",
+      "descricao": "bx Aut Poupanca",
+      "valor": 230.0
+    },
+    {
+      "data": "2025-10-14",
+      "descricao": "Des: Eliane Costa Goncalve",
+      "valor": -220.0
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "bx Aut Poupanca",
+      "valor": 55.98
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "6898270",
+      "valor": -55.98
+    },
+    {
+      "data": "2025-10-20",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1683.86
+    },
+    {
+      "data": "2025-10-20",
+      "descricao": "Gasto c Credito",
+      "valor": -1683.86
+    },
+    {
+      "data": "2025-10-22",
+      "descricao": "bx Aut Poupanca",
+      "valor": 624.4
+    },
+    {
+      "data": "2025-10-22",
+      "descricao": "1624308",
+      "valor": -199.4
+    },
+    {
+      "data": "2025-10-28",
+      "descricao": "bx Aut Poupanca",
+      "valor": 248.0
+    },
+    {
+      "data": "2025-10-28",
+      "descricao": "Des: Eliane Costa Goncalve",
+      "valor": -220.0
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "bx Aut Poupanca",
+      "valor": 2444.16
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "2020304",
+      "valor": -2402.19
+    },
+    {
+      "data": "2025-11-04",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1535.0
+    },
+    {
+      "data": "2025-11-04",
+      "descricao": "1452386",
+      "valor": -35.0
+    },
+    {
+      "data": "2025-11-05",
+      "descricao": "bx Aut Poupanca",
+      "valor": 300.0
+    },
+    {
+      "data": "2025-11-05",
+      "descricao": "1532107",
+      "valor": -300.0
+    },
+    {
+      "data": "2025-11-11",
+      "descricao": "1103221",
+      "valor": 5316.36
+    },
+    {
+      "data": "2025-11-11",
+      "descricao": "Des: Eliane Costa Goncalve",
+      "valor": -220.0
+    },
+    {
+      "data": "2025-11-12",
+      "descricao": "Resgate Inv Fac",
+      "valor": 37.07
+    },
+    {
+      "data": "2025-11-12",
+      "descricao": "6972091",
+      "valor": -37.07
+    },
+    {
+      "data": "2025-11-17",
+      "descricao": "Resgate Inv Fac",
+      "valor": 90.98
+    },
+    {
+      "data": "2025-11-17",
+      "descricao": "6898270",
+      "valor": -55.98
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Resgate Inv Fac",
+      "valor": 692.6
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Gasto c Credito",
+      "valor": -692.64
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Resgate Inv Fac",
+      "valor": 170.14
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "1024454",
+      "valor": -41.75
+    },
+    {
+      "data": "2025-11-25",
+      "descricao": "Resgate Inv Fac",
+      "valor": 349.97
+    },
+    {
+      "data": "2025-11-25",
+      "descricao": "2249073",
+      "valor": -130.0
+    },
+    {
+      "data": "2025-11-26",
+      "descricao": "Resgate Inv Fac",
+      "valor": 307.02
+    },
+    {
+      "data": "2025-11-26",
+      "descricao": "1243004",
+      "valor": -307.05
+    },
+    {
+      "data": "2025-11-28",
+      "descricao": "Resgate Inv Fac",
+      "valor": 2500.89
+    },
+    {
+      "data": "2025-11-28",
+      "descricao": "2020332",
+      "valor": -2431.26
+    },
+    {
+      "data": "2025-12-01",
+      "descricao": "Resgate Inv Fac",
+      "valor": 37.55
+    },
+    {
+      "data": "2025-12-01",
+      "descricao": "0921250",
+      "valor": -37.56
+    },
+    {
+      "data": "2025-12-04",
+      "descricao": "bx Aut Poupanca",
+      "valor": 1072.81
+    },
+    {
+      "data": "2025-12-04",
+      "descricao": "9124354",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "bx Aut Poupanca",
+      "valor": 404.16
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "2153289",
+      "valor": -404.16
+    },
+    {
+      "data": "2025-12-10",
+      "descricao": "bx Aut Poupanca",
+      "valor": 220.0
+    },
+    {
+      "data": "2025-12-10",
+      "descricao": "Des: Eliane Costa Goncalve",
+      "valor": -220.0
+    },
+    {
+      "data": "2025-12-11",
+      "descricao": "1103221",
+      "valor": 5316.36
+    },
+    {
+      "data": "2025-12-11",
+      "descricao": "Apl.invest Fac",
+      "valor": -5316.36
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "Resgate Inv Fac",
+      "valor": 90.98
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "6898270",
+      "valor": -55.98
+    },
+    {
+      "data": "2025-12-16",
+      "descricao": "Resgate Inv Fac",
+      "valor": 42.13
+    },
+    {
+      "data": "2025-12-16",
+      "descricao": "2124546",
+      "valor": -42.13
+    },
+    {
+      "data": "2025-12-18",
+      "descricao": "Resgate Inv Fac",
+      "valor": 10.0
+    },
+    {
+      "data": "2025-12-18",
+      "descricao": "0924300",
+      "valor": -10.0
+    },
+    {
+      "data": "2025-12-22",
+      "descricao": "Resgate Inv Fac",
+      "valor": 889.99
+    },
+    {
+      "data": "2025-12-22",
+      "descricao": "Gasto c Credito",
+      "valor": -890.04
+    },
+    {
+      "data": "2025-12-23",
+      "descricao": "Resgate Inv Fac",
+      "valor": 324.98
+    },
+    {
+      "data": "2025-12-23",
+      "descricao": "Des: Eliane Costa Goncalve",
+      "valor": -220.0
+    },
+    {
+      "data": "2025-12-30",
+      "descricao": "Resgate Inv Fac",
+      "valor": 2466.7
+    },
+    {
+      "data": "2025-12-30",
+      "descricao": "2020364",
+      "valor": -2455.11
+    },
+    {
+      "data": "2025-12-30",
+      "descricao": "Total 249.535,80",
+      "valor": -249535.8
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "1238361",
+      "valor": 20.0
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "Total 20,00",
+      "valor": 0.0
+    },
+    {
+      "data": "2025-12-31",
+      "descricao": "Se preferir, fale com a BIA pelo WhatsApp (11)",
+      "valor": 3335.0
+    },
+    {
+      "data": "2025-12-31",
+      "descricao": "Se preferir, fale com a BIA pelo WhatsApp (11)",
+      "valor": 3335.0
+    },
+    {
+      "data": "2025-12-31",
+      "descricao": "0800",
+      "valor": 722.0
+    },
+    {
+      "data": "2025-12-31",
+      "descricao": "0800",
+      "valor": 727.0
+    },
+    {
+      "data": "2025-12-31",
+      "descricao": "Se Preferir, fale com a BIA pelo (11)",
+      "valor": 3335.0
+    }
+  ],
+  "notas": [
+    "INFO: 1 possíveis duplicatas intra-arquivo"
+  ]
 }

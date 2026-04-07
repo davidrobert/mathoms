@@ -1,11 +1,95 @@
 {
-  "banco": "BTG Pactual",
   "tipo": "investimentosposicao",
-  "data_posicao": "2026-11-10",
-  "saldo_total": 0,
-  "composicao": [],
-  "periodo": {
-    "inicio": "2026-03-01",
-    "fim": "2026-03-31"
-  }
+  "instituicao": "btgpactual",
+  "data_posicao": "2026-03-31",
+  "moeda": "BRL",
+  "total_aplicado": 362373.34,
+  "saldo_atual": 375384.56,
+  "rentabilidade": {
+    "valor": 13011.22,
+    "percentual": 3.59
+  },
+  "composicao": [
+    {
+      "tipo_produto": "CDB",
+      "nome": "BANCO AGIBANK S.A",
+      "quantidade": 22,
+      "valor_unitario": 1393.2295,
+      "valor_total": 29353.39,
+      "percentual_carteira": null,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "CDB",
+      "nome": "BANCO DIGIMAIS S.A.",
+      "quantidade": 10,
+      "valor_unitario": 1318.9084,
+      "valor_total": 12631.0,
+      "percentual_carteira": null,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "título",
+      "nome": "LOCALIZA RENT A CAR SA - DEBÊNTURE",
+      "quantidade": 26,
+      "valor_unitario": 1134.9326,
+      "valor_total": 29205.27,
+      "percentual_carteira": null,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "título",
+      "nome": "CSN MINERACAO S.A. - DEBÊNTURE",
+      "quantidade": 9,
+      "valor_unitario": 777.0693,
+      "valor_total": 6993.62,
+      "percentual_carteira": null,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "título",
+      "nome": "TÍTULO PÚBLICO",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 32636.37,
+      "percentual_carteira": null,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "fundo",
+      "nome": "BTG HEDGE INCENTIVADO I",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 30091.92,
+      "percentual_carteira": null,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "COE",
+      "nome": "3R - Cupom Semestral",
+      "quantidade": 1,
+      "valor_unitario": 20449.45,
+      "valor_total": 20449.45,
+      "percentual_carteira": 5.44,
+      "rentabilidade_instrumento": 15.56
+    },
+    {
+      "tipo_produto": "outro",
+      "nome": "Swap - Principal R$ 50.000,00",
+      "quantidade": 1,
+      "valor_unitario": -448.78,
+      "valor_total": -448.78,
+      "percentual_carteira": -0.12,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "outro",
+      "nome": "Conta Investimento",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 13011.22,
+      "percentual_carteira": 3.46,
+      "rentabilidade_instrumento": 0.0
+    }
+  ]
 }

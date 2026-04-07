@@ -1,11 +1,50 @@
 {
-  "banco": "C6Bank",
   "tipo": "investimentosposicao",
+  "instituicao": "c6bank",
   "data_posicao": "2026-03-31",
-  "saldo_total": 0,
-  "composicao": [],
-  "periodo": {
-    "inicio": "2026-03-01",
-    "fim": "2026-03-31"
-  }
+  "moeda": "BRL",
+  "total_aplicado": 6930.11,
+  "saldo_atual": 6930.11,
+  "rentabilidade": {
+    "valor": null,
+    "percentual": null
+  },
+  "composicao": [
+    {
+      "tipo_produto": "CDB",
+      "nome": "CDB C6 Pós-fixado Diária",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": null,
+      "percentual_carteira": null,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "CDB",
+      "nome": "CDB C6 Limite Garantido",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": null,
+      "percentual_carteira": null,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "CDB",
+      "nome": "CDB C6 Pós-fixado 3 meses",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": null,
+      "percentual_carteira": null,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "CDB",
+      "nome": "CDB C6 Pós-fixado 6 meses",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": null,
+      "percentual_carteira": null,
+      "rentabilidade_instrumento": null
+    }
+  ]
 }
