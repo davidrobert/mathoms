@@ -4,8 +4,8 @@
   "titular": null,
   "moeda": "USD",
   "periodo_cobertura": {
-    "inicio": "",
-    "fim": ""
+    "inicio": "2025-05-10",
+    "fim": "2026-04-05"
   },
   "saldo_inicial": 0,
   "saldo_inicial_unknown": true,

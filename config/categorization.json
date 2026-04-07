@@ -7,7 +7,9 @@
       "SABESP", "SANEPAR", "COPASA",
       "CONDOMINIO",
       "LEROY MERLIN", "TELHA NORTE",
-      "DDDRIN SERVICO DE DESI"
+      "DDDRIN SERVICO DE DESI",
+      "DE PAULA REALTY",
+      "APPFOLIO"
     ],
     "alimentacao": [
       "OXXO", "SACOLAO", "MERCADO", "SAKURA", "VERDURAS E LEGUMES", "QUEBEC BAR",
@@ -46,7 +48,8 @@
       "RAPPI *DROGARIA SAO P", "RAPPI*RAIA DROGASIL",
       "EJM RESTAURANTE JAPONE", "PAYGO*LG ESPETOS",
       "POINTJABAQUARA",
-      "M L MATOS CONVENIENCIA", "EMPORIOMATTERLTDA"
+      "M L MATOS CONVENIENCIA", "EMPORIOMATTERLTDA",
+      "SAMS CLUB", "SAM'S CLUB", "SAMS*"
     ],
     "transporte": [
       "PARK", "AUTOPOSTO", "AUTOPOSTOKANTAN", "ULTRAGAS", "CONCESSIONARIA SPMAR",
@@ -84,7 +87,8 @@
       "GOOGLE *TELEGRAM", "GOOGLE *GOOGLE NEST",
       "SQSP* DOMAIN",
       "SCP COMPLETO", "SCP BASICO",
-      "BRASILP*BRASILPARA", "BRASIL PARAL*BRAS"
+      "BRASILP*BRASILPARA", "BRASIL PARAL*BRAS",
+      "GOOGLE FI"
     ],
     "saude": [
       "CORPO E VIDA", "REMEDIOPOPULAR", "NUTRA BODY", "MP *FARMAPOPULAR",
@@ -99,7 +103,8 @@
       "DROGARIA CARREFOUR", "RDSAUDE ONLINE", "DPS SUPLEMENTOS",
       "RAIA", "MARCONI BASSO",
       "DROGARIA X FARMACIA", "PG *LIVANCE",
-      "ESPACO GIRAS"
+      "ESPACO GIRAS",
+      "IU65 PREMIUM"
     ],
     "seguros": [
       "SUL AMERICA SEG",
@@ -116,6 +121,7 @@
     ],
     "lazer_viagens": [
       "AIRBNB", "SEAWORLD", "BUSCH GARDENS", "PORTO DUTY FREE", "TERMINAL III",
+      "RESORT FLORIDA", "DISNEY RESORT", "BOUTIQUE MIAMI", "RESTAURANTE ORLANDO",
       "HN HUDSON", "WEATHERSTATION", "WDW DROID DEPOT", "NIC*-DOH ORA VITAL",
       "MINUTE SUITES", "ZIG*VILLA DI PHOENIX", "ZIG. THE GLOBAL FUNTEC", "A NOIESA",
       "AEROP. ADOLFO SUAREZ", "ASSOC COMERCIAL PORT", "AUDASA VISA", "CATEDRAL DE SANTIAGO",
@@ -145,7 +151,8 @@
       "LEITURA", "KALUNGA", "COPICOPIAS", "PAPELARIA",
       "PRIMO RICO",
       "FUNDACAO SAO PAULO",
-      "IN *CA TRANSLATION SER"
+      "IN *CA TRANSLATION SER",
+      "ANDERSON UNIVERS"
     ],
     "servicos_domesticos": [
       "SUECIA", "ELIANE", "ANDREA S LAVANDERIA", "PET DOGSTORE",
@@ -179,20 +186,25 @@
     "reserva_desejos": [
       "AMAZON MKTPLACE", "AMAZON RETA", "AMAZONMKTPLC", "MP *VICTORELETRONICOS",
       "AMAZON MARKETPLACE", "AMAZON BR", "AMAZON MARK*", "AMAZON MKTPL",
+      "AMAZON COMPRA",
       "APPLE.COM/US",
       "GRUPO CASAS BAHIA", "LOJAS MEL",
-      "DISTRIBUIDORA MENEZES", "VIDESUL"
+      "DISTRIBUIDORA MENEZES", "VIDESUL",
+      "TARGET LOJA"
     ]
   },
   "income_keywords": {
     "receita_pj": [
       "ARVO", "DAVID ROBERT CAMARGO", "BRANDLOVERS", "BRAND LOVERS",
       "BRANDLOVRS",
-      "ARBITRALIS", "LEARNTOFLY", "LEARN TO FLY", "CNRY", "CANARY", "BARTE"
+      "ARBITRALIS", "LEARNTOFLY", "LEARN TO FLY", "CNRY", "CANARY", "BARTE",
+      "LEARNTOEIV"
     ],
     "receita_clt": [
       "SOCIEDADE BENEFICENTE ISRAELITA",
-      "KIWIFY"
+      "KIWIFY",
+      "SALÁRIO DEPOSITO",
+      "SALARIO DEPOSITO"
     ],
     "receita_aluguel": [
       "GRPQA", "SISPAG GRPQA", "RECEB PAGFOR GRPQA", "ALUGUEL", "LOCACAO"
@@ -203,7 +215,9 @@
       "RENDIMENTO DISPONIVEL", "RENDIMENTO DE CONTA",
       "CUPOM - CRA", "CUPOM - CRI",
       "REND PAGO APLIC",
-      "FRACOES DE ACOES"
+      "FRACOES DE ACOES",
+      "SALDO INVEST FÁCIL", "SALDO INVEST FACIL",
+      "LIQ BOLSA"
     ],
     "receita_resgate": [
       "RESGATE", "LIQUIDACAO",
@@ -235,7 +249,6 @@
     "COMPRA DE NTN",
     "COMPRA DE LCI",
     "COMPRA DE LCA",
-    "LIQ BOLSA",
     "DEBITO MARGEM",
     "Cambio",
     "Ted Dif.litud",
@@ -251,7 +264,17 @@
     "Gasto c Credito",
     "DEB AUTOM DE FATURA",
     "RECEBIMENTO TRANSFERENCIA",
-    "RECEBIMENTO DE TED"
+    "RECEBIMENTO DE TED",
+    "Dinheiro adicionado à conta",
+    "Dinheiro adicionado a conta",
+    "Transf C6 Conta Global",
+    "bx Aut Cta Cor",
+    "Reserva - Seu dinheiro guardado rende",
+    "PAGAMENTO CARTAO CREDITO",
+    "SALDO DO DIA",
+    "TRANSFERENCIA INTERNACIONAL",
+    "TRANSFERENCIA PESSOAL",
+    "Total - Os dados aci"
   ],
   "pj_source_mapping": {
     "ARVO": "Arvo (David - PJ)",
@@ -264,7 +287,8 @@
     "LEARN TO FLY": "Learn To Fly (David - PJ)",
     "CNRY": "CNRY (David - PJ)",
     "CANARY": "CNRY (David - PJ)",
-    "BARTE": "Barte (David - PJ)"
+    "BARTE": "Barte (David - PJ)",
+    "LEARNTOEIV": "LearnToEiv (David - PJ)"
   },
   "clt_source_mapping": {
     "KIWIFY": "Kiwify (David - CLT)",

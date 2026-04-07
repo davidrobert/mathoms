@@ -270,14 +270,20 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
         if "transacoes" not in account_data:
             continue
 
-        banco = account_data.get("banco", "Unknown")
-        tipo_conta = account_data.get("tipo_conta", "")
+        # v5.3: Normalize all string fields from E3 to remove accents upfront.
+        # E2 LLM output may include accented values (crédito, débito, Itaú, etc.)
+        # that would fail against hardcoded comparisons downstream.
+        banco_raw = account_data.get("banco", "Unknown")
+        banco = normalize_text(banco_raw).lower() if banco_raw else "unknown"
+        tipo_conta_raw = account_data.get("tipo_conta", "")
+        tipo_conta = normalize_text(tipo_conta_raw).lower() if tipo_conta_raw else ""
         titular = account_data.get("titular", "")
         moeda = account_data.get("moeda", "BRL")
 
         for tx in account_data["transacoes"]:
             data = tx.get("data", "")
-            descricao = tx.get("descricao", "")
+            descricao_raw = tx.get("descricao", "")
+            descricao = descricao_raw  # keep original for output; normalize_text used in matching fns
             valor = tx.get("valor", 0.0)
             # Type validation for valor
             if isinstance(valor, str):
@@ -287,6 +293,9 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
                     print(f"  [WARN] valor não-numérico: '{valor}' em {tx.get('descricao', '?')}")
                     valor = 0.0
             tipo = tx.get("tipo")  # For faturas, may be missing (treat as debito)
+            # v5.2: Normalize tipo to remove accents (E2/E3 may store "crédito"/"débito")
+            if tipo is not None:
+                tipo = normalize_text(tipo).lower()  # "crédito" → "CREDITO" → "credito"
             # v5.1: Infer tipo from valor sign when missing (E2 extracts may omit it)
             # Faturas excluded: positive values in faturas are purchases (expenses)
             if tipo is None and valor is not None:
@@ -296,13 +305,14 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
             saldo_apos = tx.get("saldo_apos")
 
             # Detect internal transfers first
+            # (is_internal_transfer already normalizes internally)
             if is_internal_transfer(descricao, tipo):
                 transferencias.append({
                     "data": data,
                     "descricao": descricao,
                     "valor": valor,
-                    "banco": banco,
-                    "tipo_conta": tipo_conta,
+                    "banco": banco_raw,
+                    "tipo_conta": tipo_conta_raw,
                     "titular": titular,
                     "tipo": tipo or "debito",
                     "moeda": moeda
@@ -310,6 +320,7 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
                 continue
 
             # Categorize based on tipo (credito/debito)
+            # tipo is already normalized (no accents, lowercase)
             if tipo == "credito":
                 category = categorize_income(descricao, tipo_conta, banco, titular)
                 # v4.8: unmatched creditos default to "outras_receitas" instead of being dropped
@@ -340,10 +351,10 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
                     "data": data,
                     "descricao": descricao,
                     "valor": valor,
-                    "banco": banco,
+                    "banco": banco_raw,
                     "categoria": category,
                     "origem": origin,
-                    "tipo_conta": tipo_conta,
+                    "tipo_conta": tipo_conta_raw,
                     "titular": titular,
                     "moeda": moeda
                 })
@@ -357,8 +368,8 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
                             "data": data,
                             "descricao": descricao,
                             "valor": valor,
-                            "banco": banco,
-                            "tipo_conta": tipo_conta,
+                            "banco": banco_raw,
+                            "tipo_conta": tipo_conta_raw,
                             "titular": titular,
                             "tipo": tipo or "debito",
                             "moeda": moeda
@@ -373,9 +384,9 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
                     "data": data,
                     "descricao": descricao,
                     "valor": valor_abs,
-                    "banco": banco,
+                    "banco": banco_raw,
                     "categoria": category,
-                    "tipo_conta": tipo_conta,
+                    "tipo_conta": tipo_conta_raw,
                     "titular": titular,
                     "moeda": moeda
                 })

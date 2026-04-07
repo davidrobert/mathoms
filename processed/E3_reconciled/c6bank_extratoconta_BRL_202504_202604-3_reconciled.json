@@ -4,8 +4,8 @@
   "titular": null,
   "moeda": "BRL",
   "periodo_cobertura": {
-    "inicio": "",
-    "fim": ""
+    "inicio": "2025-04-08",
+    "fim": "2026-04-05"
   },
   "saldo_inicial": 0,
   "saldo_inicial_unknown": true,

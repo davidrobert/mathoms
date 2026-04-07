@@ -63,7 +63,9 @@
   "transferencias_internas": {
     "patterns_pix": [
       "PIX TRANSF DAVID",
-      "PIX TRANSF MARIANA"
+      "PIX TRANSF MARIANA",
+      "PIX ENVIADA - DAVID",
+      "PIX ENVIADA - MARIANA"
     ],
     "recipients": [
       "DAVID ROBERT CAMARGO DE CAMPOS",

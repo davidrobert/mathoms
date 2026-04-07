@@ -4,8 +4,8 @@
   "titular": null,
   "moeda": "EUR",
   "periodo_cobertura": {
-    "inicio": "",
-    "fim": ""
+    "inicio": "2026-02-10",
+    "fim": "2026-02-10"
   },
   "saldo_inicial": 0,
   "saldo_inicial_unknown": true,

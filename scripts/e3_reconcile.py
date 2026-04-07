@@ -647,7 +647,12 @@ def reconcile_account(
     first_path, first_data = sorted_group[0]
     banco = first_data.get('banco', first_data.get('instituicao', '')).strip()
     tipo = first_data.get('tipo', '').strip()
+    # v2.1: Use same moeda resolution as get_account_key() — check conta.moeda fallback
     moeda = first_data.get('moeda', '').strip()
+    if not moeda:
+        conta = first_data.get('conta', {})
+        if isinstance(conta, dict):
+            moeda = conta.get('moeda', '').strip()
     if not moeda:
         log_progress("E3.3", f"[WARN] moeda ausente em {first_path.name}, usando default BRL")
         moeda = 'BRL'
@@ -675,9 +680,11 @@ def reconcile_account(
     # Sort chronologically with proper date parsing
     dedup_txns.sort(key=lambda x: _parse_date_for_sort(x.get('data', '')))
 
-    # Determine period coverage
-    periodo_inicio = sorted_group[0][1].get('periodo', {}).get('inicio', '')
-    periodo_fim = sorted_group[-1][1].get('periodo', {}).get('fim', '')
+    # Determine period coverage (v2.1: also try data_inicio/data_fim keys from E2)
+    periodo_obj_first = sorted_group[0][1].get('periodo', {})
+    periodo_inicio = periodo_obj_first.get('inicio', '') or periodo_obj_first.get('data_inicio', '')
+    periodo_obj_last = sorted_group[-1][1].get('periodo', {})
+    periodo_fim = periodo_obj_last.get('fim', '') or periodo_obj_last.get('data_fim', '')
 
     # Use first file's saldo_inicial and last file's saldo_final (#9)
     saldo_inicial = first_data.get('saldo_inicial')
