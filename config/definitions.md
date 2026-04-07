@@ -153,16 +153,16 @@
 
 ## IDENTIFICADORES NOS EXTRATOS
 
-| Campo no extrato                           | Significado real                              | Conta             | Cuidado           |
-| ------------------------------------------ | --------------------------------------------- | ----------------- | ----------------- |
-| "Sociedade Beneficente Israelita"          | Salário Einstein (Mariana)                    | Poupança Bradesco | NÃO aparece no CC |
-| "GRPQA Ltda." ou "Grpqa" ou "SISPAG GRPQA" | Aluguéis QuintoAndar (Mariana)                | CC Bradesco       | NÃO é salário     |
-| "GRPQA Ltda." ou "Grpqa" ou "SISPAG GRPQA" | Aluguéis QuintoAndar (David)                  | Itaú Personnalité | —                 |
-| "VINDI *ACCOUNTBANKTEC"                    | AccountTech contador                          | Fatura C6 Carbon  | —                 |
-| "CAMILANAKAMURA"                           | Camila Nakamura dentista                      | Fatura C6 Carbon  | —                 |
-| "NATHALIA CASA DE"                         | Açougue Nathalia                              | Fatura C6 Carbon  | —                 |
-| "Débito RFB CPF 085.052.396-60"            | IRPF parcelamento Mariana                     | CC Bradesco       | —                 |
-| "ABDO MOHAMED"                             | Instituto Dr. Barakat de Medicina Integrativa | Faturas/extratos  | Categoria: Saúde  |
+| Campo no extrato                                                                     | Significado real                              | Conta             | Cuidado           |
+| ------------------------------------------------------------------------------------ | --------------------------------------------- | ----------------- | ----------------- |
+| "Sociedade Beneficente Israelita" ou "tr Sal p/poup Sociedade Beneficente Israelita" | Salário Einstein (Mariana)                    | Poupança Bradesco | NÃO aparece no CC |
+| "GRPQA Ltda." ou "Grpqa" ou "SISPAG GRPQA" ou "SISPAG GRPQA LTDA"                    | Aluguéis QuintoAndar (Mariana)                | CC Bradesco       | NÃO é salário     |
+| "GRPQA Ltda." ou "Grpqa" ou "SISPAG GRPQA" ou "SISPAG GRPQA LTDA"                    | Aluguéis QuintoAndar (David)                  | Itaú Personnalité | —                 |
+| "VINDI *ACCOUNTBANKTEC"                                                              | AccountTech contador                          | Fatura C6 Carbon  | —                 |
+| "CAMILANAKAMURA"                                                                     | Camila Nakamura dentista                      | Fatura C6 Carbon  | —                 |
+| "NATHALIA CASA DE"                                                                   | Açougue Nathalia                              | Fatura C6 Carbon  | —                 |
+| "Débito RFB CPF 085.052.396-60"                                                      | IRPF parcelamento Mariana                     | CC Bradesco       | —                 |
+| "ABDO MOHAMED"                                                                       | Instituto Dr. Barakat de Medicina Integrativa | Faturas/extratos  | Categoria: Saúde  |
 
 ---
 

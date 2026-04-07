@@ -1,0 +1,31 @@
+{
+  "tipo": "extratoconta",
+  "instituicao": "c6bank",
+  "membro": "david",
+  "conta": {
+    "numero": "13055222",
+    "tipo": "corrente",
+    "moeda": "BRL",
+    "agencia": "1"
+  },
+  "periodo": {
+    "data_inicio": "2025-03-29",
+    "data_fim": "2026-03-29"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": 6930.11,
+      "data": "2025-03-29"
+    },
+    "saldo_final": {
+      "valor": 54586.83,
+      "data": "2026-03-29"
+    }
+  },
+  "transacoes": [],
+  "total_periodo": {
+    "total_debitos": 0.0,
+    "total_creditos": 0.0,
+    "saldo_liquido": 0.0
+  }
+}

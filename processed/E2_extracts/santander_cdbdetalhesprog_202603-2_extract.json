@@ -1,23 +1,23 @@
 {
-  "tipo": "cdbdetalhes",
-  "instituicao": "Santander",
+  "tipo": "cdb_detalhes",
+  "instituicao": "santander",
   "membro": "david",
   "data_posicao": "2026-03-29",
   "moeda": "BRL",
-  "produtos": [
+  "aplicacoes": [
     {
-      "nome": "CDB PROG SANTANDER",
+      "tipo_produto": "CDB Progressivo",
       "operacao": "00331652260006541912",
-      "valor_aplicado": null,
+      "valor_aplicado": 0.0,
       "data_aplicacao": "2024-08-30",
       "taxa": "95% CDI",
+      "prazo_dias": 1440,
       "vencimento": "2028-08-09",
-      "prazo": "1440 dias",
       "saldo_bruto": 60545.52,
-      "saldo_liquido": 58700.06,
-      "rentabilidade_bruta": null,
-      "ir_provisorio": null,
-      "disponivel_para_resgate": 58700.06
+      "ir_provisionado": 0.0,
+      "saldo_liquido": 58700.06
     }
-  ]
+  ],
+  "total_bruto": 60545.52,
+  "total_liquido": 58700.06
 }

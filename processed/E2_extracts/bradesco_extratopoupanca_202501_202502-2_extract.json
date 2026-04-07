@@ -1,155 +1,144 @@
 {
-  "banco": "Bradesco",
-  "tipo": "extratopoupanca",
+  "tipo": "extratoconta",
+  "instituicao": "bradesco",
   "membro": "mariana",
-  "conta": "AG 504 CC 77113-9",
-  "moeda": "BRL",
-  "periodo": {
-    "inicio": "2025-01-01",
-    "fim": "2025-02-28"
+  "conta": {
+    "numero": "77113-9",
+    "tipo": "poupança",
+    "moeda": "BRL",
+    "agencia": "504"
   },
-  "saldo_inicial": 24291.66,
-  "saldo_final": 37712.66,
+  "periodo": {
+    "data_inicio": "2025-01-01",
+    "data_fim": "2025-02-28"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": null,
+      "data": "2025-01-01"
+    },
+    "saldo_final": {
+      "valor": null,
+      "data": "2025-02-28"
+    }
+  },
   "transacoes": [
     {
       "data": "2025-01-02",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
-      "valor": 31.66,
-      "saldo_apos": 24291.66
-    },
-    {
-      "data": "2025-01-02",
-      "descricao": "bx Aut Cta Cor* 0077113",
-      "tipo": "debito",
-      "valor": -1808.49,
-      "saldo_apos": 22483.17
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12 bx Aut Cta Cor* -",
+      "tipo": "débito",
+      "valor": 1808.49,
+      "saldo_apos": null
     },
     {
       "data": "2025-01-06",
-      "descricao": "bx Aut Cta Cor* 0077113",
-      "tipo": "debito",
-      "valor": -266.00,
-      "saldo_apos": 22217.17
+      "descricao": "bx Aut Cta Cor* -",
+      "tipo": "débito",
+      "valor": 266.0,
+      "saldo_apos": null
     },
     {
       "data": "2025-01-13",
       "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
+      "tipo": "crédito",
       "valor": 23.72,
-      "saldo_apos": 22240.89
+      "saldo_apos": null
     },
     {
       "data": "2025-01-14",
       "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
+      "tipo": "crédito",
       "valor": 23.87,
-      "saldo_apos": 22264.76
+      "saldo_apos": null
     },
     {
       "data": "2025-01-15",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
-      "tipo": "credito",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "crédito",
       "valor": 4139.58,
-      "saldo_apos": 26404.34
-    },
-    {
-      "data": "2025-01-15",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
-      "valor": 17.38,
-      "saldo_apos": 26421.72
+      "saldo_apos": null
     },
     {
       "data": "2025-01-20",
       "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
+      "tipo": "crédito",
       "valor": 12.08,
-      "saldo_apos": 26433.80
+      "saldo_apos": null
     },
     {
       "data": "2025-01-21",
       "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
-      "valor": 12.30,
-      "saldo_apos": 26446.10
+      "tipo": "crédito",
+      "valor": 12.3,
+      "saldo_apos": null
     },
     {
       "data": "2025-01-31",
       "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
-      "tipo": "credito",
+      "tipo": "crédito",
       "valor": 3535.83,
-      "saldo_apos": 29981.93
+      "saldo_apos": null
     },
     {
       "data": "2025-02-03",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
-      "valor": 45.54,
-      "saldo_apos": 30027.47
-    },
-    {
-      "data": "2025-02-03",
-      "descricao": "bx Aut Cta Cor* 0077113",
-      "tipo": "debito",
-      "valor": -60.02,
-      "saldo_apos": 29967.45
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12 bx Aut Cta Cor* -",
+      "tipo": "débito",
+      "valor": 60.02,
+      "saldo_apos": null
     },
     {
       "data": "2025-02-04",
-      "descricao": "bx Aut Cta Cor* 0077113",
-      "tipo": "debito",
-      "valor": -10.00,
-      "saldo_apos": 29957.45
+      "descricao": "bx Aut Cta Cor* -",
+      "tipo": "débito",
+      "valor": 10.0,
+      "saldo_apos": null
     },
     {
       "data": "2025-02-13",
       "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
+      "tipo": "crédito",
       "valor": 27.97,
-      "saldo_apos": 29985.42
+      "saldo_apos": null
     },
     {
       "data": "2025-02-14",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
-      "tipo": "credito",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "crédito",
       "valor": 4139.58,
-      "saldo_apos": 34125.00
-    },
-    {
-      "data": "2025-02-14",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
-      "valor": 28.13,
-      "saldo_apos": 34153.13
+      "saldo_apos": null
     },
     {
       "data": "2025-02-17",
       "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
+      "tipo": "crédito",
       "valor": 47.54,
-      "saldo_apos": 34200.67
+      "saldo_apos": null
     },
     {
       "data": "2025-02-20",
       "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
+      "tipo": "crédito",
       "valor": 14.05,
-      "saldo_apos": 34214.72
+      "saldo_apos": null
     },
     {
       "data": "2025-02-21",
       "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
+      "tipo": "crédito",
       "valor": 14.32,
-      "saldo_apos": 34229.04
+      "saldo_apos": null
     },
     {
       "data": "2025-02-28",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
-      "tipo": "credito",
-      "valor": 3483.62,
-      "saldo_apos": 37712.66
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita Total - Os dados acima têm como base 31/03/2026 às 22h26 e estão sujeitos a alterações. Últimos Lançamen",
+      "tipo": "débito",
+      "valor": 2144.51,
+      "saldo_apos": null
     }
-  ]
+  ],
+  "total_periodo": {
+    "total_debitos": 4289.02,
+    "total_creditos": 11990.84,
+    "saldo_liquido": 7701.819999999998
+  }
 }

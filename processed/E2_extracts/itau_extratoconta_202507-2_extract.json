@@ -1,0 +1,137 @@
+{
+  "tipo": "extratoconta",
+  "instituicao": "itau",
+  "membro": "david",
+  "conta": {
+    "numero": "004397-8",
+    "tipo": "corrente",
+    "moeda": "BRL",
+    "agencia": "9652"
+  },
+  "periodo": {
+    "data_inicio": "2025-07-01",
+    "data_fim": "2025-12-31"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": 913.72,
+      "data": "2025-07-01"
+    },
+    "saldo_final": {
+      "valor": 217815.53,
+      "data": "2025-12-31"
+    }
+  },
+  "transacoes": [
+    {
+      "data": "2025-12-29",
+      "descricao": "SALDO DO DIA",
+      "tipo": "saldo",
+      "valor": 913.72,
+      "saldo_apos": 913.72
+    },
+    {
+      "data": "2025-12-26",
+      "descricao": "INT /SIMPLES NACIONA 072",
+      "tipo": "débito",
+      "valor": 4257.17,
+      "saldo_apos": -10044.05
+    },
+    {
+      "data": "2025-12-26",
+      "descricao": "INT /DARF 1625360392 8123",
+      "tipo": "débito",
+      "valor": 2728.37,
+      "saldo_apos": -9378.82
+    },
+    {
+      "data": "2025-12-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1571.97,
+      "saldo_apos": 4816.56
+    },
+    {
+      "data": "2025-12-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1850.13,
+      "saldo_apos": 6819.31
+    },
+    {
+      "data": "2025-12-10",
+      "descricao": "FINANC IMOBILIARIO 000047",
+      "tipo": "débito",
+      "valor": 4306.37,
+      "saldo_apos": 1394.46
+    },
+    {
+      "data": "2025-12-08",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "débito",
+      "valor": 59.0,
+      "saldo_apos": 5696.86
+    },
+    {
+      "data": "2025-12-05",
+      "descricao": "SABESP 3334280219",
+      "tipo": "débito",
+      "valor": 347.65,
+      "saldo_apos": 5755.75
+    },
+    {
+      "data": "2025-11-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "crédito",
+      "valor": 1.04,
+      "saldo_apos": 6102.81
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "PIX TRANSF DAVID R19/11",
+      "tipo": "crédito",
+      "valor": 333.0,
+      "saldo_apos": 7152.31
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "BLOQUEIO PIX",
+      "tipo": "débito",
+      "valor": 333.0,
+      "saldo_apos": 6819.76
+    },
+    {
+      "data": "2025-11-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "débito",
+      "valor": 59.0,
+      "saldo_apos": 7698.48
+    },
+    {
+      "data": "2025-10-10",
+      "descricao": "FINANC IMOBILIARIO 000045",
+      "tipo": "débito",
+      "valor": 4330.99,
+      "saldo_apos": 8402.41
+    },
+    {
+      "data": "2025-09-29",
+      "descricao": "DA ELETROPAULO 31237205",
+      "tipo": "débito",
+      "valor": 170.92,
+      "saldo_apos": 10050.07
+    },
+    {
+      "data": "2025-09-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "débito",
+      "valor": 697.45,
+      "saldo_apos": 9281.4
+    }
+  ],
+  "total_periodo": {
+    "total_debitos": 0.0,
+    "total_creditos": 0.0,
+    "saldo_liquido": 216901.81
+  }
+}

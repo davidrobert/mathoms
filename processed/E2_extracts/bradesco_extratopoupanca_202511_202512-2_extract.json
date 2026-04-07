@@ -1,187 +1,123 @@
 {
-  "tipo": "extratopoupanca",
-  "instituicao": "Bradesco",
+  "tipo": "extratoconta",
+  "instituicao": "bradesco",
   "membro": "mariana",
-  "conta": "AG 3221 CC 77113-9",
-  "moeda": "BRL",
-  "periodo": {
-    "inicio": "2025-11-01",
-    "fim": "2025-12-31"
+  "conta": {
+    "numero": "77113-9",
+    "tipo": "poupança",
+    "moeda": "BRL",
+    "agencia": "3221"
   },
-  "saldo_inicial": 5159.64,
-  "saldo_final": 29224.64,
+  "periodo": {
+    "data_inicio": "2025-11-01",
+    "data_fim": "2025-12-31"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": null,
+      "data": "2025-11-01"
+    },
+    "saldo_final": {
+      "valor": null,
+      "data": "2025-12-31"
+    }
+  },
   "transacoes": [
     {
       "data": "2025-11-04",
-      "descricao": "bx Aut Cta Cor",
-      "tipo": "debito",
-      "valor": -1535.0,
-      "saldo_apos": 3624.64
+      "descricao": "bx Aut Cta Cor* -",
+      "tipo": "débito",
+      "valor": 1535.0,
+      "saldo_apos": null
     },
     {
       "data": "2025-11-05",
-      "descricao": "bx Aut Cta Cor",
-      "tipo": "debito",
-      "valor": -300.0,
-      "saldo_apos": 3324.64
+      "descricao": "bx Aut Cta Cor* -",
+      "tipo": "débito",
+      "valor": 300.0,
+      "saldo_apos": null
     },
     {
       "data": "2025-11-14",
-      "descricao": "Sociedade Beneficente Israelita",
-      "tipo": "credito",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "crédito",
       "valor": 4359.8,
-      "saldo_apos": 7684.44
+      "saldo_apos": null
     },
     {
       "data": "2025-11-17",
-      "descricao": "Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "crédito",
       "valor": 16.29,
-      "saldo_apos": 7700.73
+      "saldo_apos": null
     },
     {
       "data": "2025-11-27",
-      "descricao": "Sociedade Beneficente Israelita",
-      "tipo": "credito",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "crédito",
       "valor": 5769.9,
-      "saldo_apos": 13470.63
+      "saldo_apos": null
     },
     {
       "data": "2025-11-28",
-      "descricao": "Sociedade Beneficente Israelita",
-      "tipo": "credito",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "crédito",
       "valor": 9532.78,
-      "saldo_apos": 23003.41
+      "saldo_apos": null
     },
     {
       "data": "2025-12-01",
-      "descricao": "Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "crédito",
       "valor": 6.09,
-      "saldo_apos": 23009.5
+      "saldo_apos": null
     },
     {
       "data": "2025-12-04",
-      "descricao": "bx Aut Cta Cor",
-      "tipo": "debito",
-      "valor": -1072.81,
-      "saldo_apos": 21936.69
+      "descricao": "bx Aut Cta Cor* -",
+      "tipo": "débito",
+      "valor": 1072.81,
+      "saldo_apos": null
     },
     {
       "data": "2025-12-08",
-      "descricao": "bx Aut Cta Cor",
-      "tipo": "debito",
-      "valor": -404.16,
-      "saldo_apos": 21532.53
+      "descricao": "bx Aut Cta Cor* -",
+      "tipo": "débito",
+      "valor": 404.16,
+      "saldo_apos": null
     },
     {
       "data": "2025-12-10",
-      "descricao": "bx Aut Cta Cor",
-      "tipo": "debito",
-      "valor": -220.0,
-      "saldo_apos": 21312.53
+      "descricao": "bx Aut Cta Cor* -",
+      "tipo": "débito",
+      "valor": 220.0,
+      "saldo_apos": null
     },
     {
       "data": "2025-12-15",
-      "descricao": "Sociedade Beneficente Israelita",
-      "tipo": "credito",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "crédito",
       "valor": 2179.9,
-      "saldo_apos": 23492.43
-    },
-    {
-      "data": "2025-12-15",
-      "descricao": "Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
-      "valor": 29.26,
-      "saldo_apos": 23521.69
-    },
-    {
-      "data": "2025-12-15",
-      "descricao": "Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
-      "valor": 16.12,
-      "saldo_apos": 23537.81
+      "saldo_apos": null
     },
     {
       "data": "2025-12-19",
-      "descricao": "Sociedade Beneficente Israelita",
-      "tipo": "credito",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "crédito",
       "valor": 2741.19,
-      "saldo_apos": 26279.0
+      "saldo_apos": null
     },
     {
       "data": "2025-12-29",
-      "descricao": "Sociedade Beneficente Israelita",
-      "tipo": "credito",
-      "valor": 2848.01,
-      "saldo_apos": 29127.01
-    },
-    {
-      "data": "2025-12-29",
-      "descricao": "Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
-      "valor": 38.84,
-      "saldo_apos": 29165.85
-    },
-    {
-      "data": "2025-12-29",
-      "descricao": "Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
-      "valor": 58.79,
-      "saldo_apos": 29224.64
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 Rendimentos Poup Facil-depos a Partir 4/5/12 Total - Os dad",
+      "tipo": "débito",
+      "valor": 3531.97,
+      "saldo_apos": null
     }
   ],
-  "resumo": {
-    "total_creditos": 27596.97,
-    "total_debitos": 3531.97,
-    "saldo_liquido": 24065.0,
-    "salarios_encontrados": {
-      "2025-11-14": {
-        "descricao": "Salário base",
-        "valor_esperado": 4359.8,
-        "valor_encontrado": 4359.8,
-        "status": "confirmado"
-      },
-      "2025-11-27": {
-        "descricao": "Bônus",
-        "valor_esperado": 5769.9,
-        "valor_encontrado": 5769.9,
-        "status": "confirmado"
-      },
-      "2025-11-28": {
-        "descricao": "13º salário",
-        "valor_esperado": 9532.78,
-        "valor_encontrado": 9532.78,
-        "status": "confirmado"
-      },
-      "2025-12-15": {
-        "descricao": "Salário base",
-        "valor_esperado": 2179.9,
-        "valor_encontrado": 2179.9,
-        "status": "confirmado"
-      },
-      "2025-12-19": {
-        "descricao": "Salário base",
-        "valor_esperado": 2741.19,
-        "valor_encontrado": 2741.19,
-        "status": "confirmado"
-      },
-      "2025-12-29": {
-        "descricao": "Salário base",
-        "valor_esperado": 2848.01,
-        "valor_encontrado": 2848.01,
-        "status": "confirmado"
-      }
-    },
-    "total_salarios_encontrados": 27431.58,
-    "total_salarios_esperados": 27431.58,
-    "observacoes": [
-      "Todas as 6 transações de salário esperadas foram confirmadas",
-      "Total de salários: R$ 27.431,58",
-      "Rendimentos (Poup Facil): R$ 165,39",
-      "Débitos diversos (bx Aut Cta Cor): R$ 3.531,97",
-      "Saldo final: R$ 29.224,64"
-    ]
-  },
-  "banco": "Bradesco"
+  "total_periodo": {
+    "total_debitos": 7063.94,
+    "total_creditos": 24605.95,
+    "saldo_liquido": 17542.01
+  }
 }

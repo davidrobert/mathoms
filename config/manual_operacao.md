@@ -2229,7 +2229,7 @@ git commit -m "E-reset-from-E[N]: reprocessamento parcial [DATA]"
 - Apenas uma etapa específica precisa ser refeita → usar `E-reset-from`
 - Apenas template/CSS mudou → usar `E6-regen`
 
-**Diferença para E-reset:** E-reset preserva artefatos E1 e não roda E0-unlock/E0-audit. E-full-reset inclui verificação de integridade dos PDFs originais e re-execução de **todas** as etapas LLM (E1, E1.5, E2-extratos, E5.N).
+**Diferença para E-reset:** E-reset preserva artefatos E1 e não roda E0-unlock/E0-audit. E-full-reset move **todos** os arquivos de `data/` e `members/` de volta para `inbox/`, permitindo re-roteamento completo, e re-executa **todas** as etapas LLM (E1, E1.5, E2-extratos, E5.N).
 
 **Procedimento:**
 
@@ -2241,15 +2241,21 @@ git add -A
 git commit -m "pre-full-reset: snapshot antes de reprocessamento E0→E6 [DATA]"
 ```
 
-**Passo 2 — E0-unlock: Verificar e desbloquear PDFs encriptados:**
+**Passo 2 — Mover arquivos de data/ e members/ → inbox/ (re-roteamento):**
+```bash
+python scripts/e_reset.py --move-to-inbox --dry-run   # Preview: listar o que seria movido
+python scripts/e_reset.py --move-to-inbox --clean-only # Executar: mover + limpar artefatos (sem re-executar pipeline)
+```
+O script move todos os arquivos de `data/` (financial_statements, income_tax_br, etc.) e os originais de `members/` (`*-0_original.*`) de volta para `inbox/`. Artefatos E1 em `members/` (extract, unified, enriched) são removidos. A estrutura de diretórios em `data/` é preservada (vazia).
+
+**Passo 3 — E0-unlock: Verificar e desbloquear PDFs encriptados:**
 ```bash
 python scripts/e0_unlock.py --dry-run          # Preview: listar status de todos os PDFs
-python scripts/e0_unlock.py                     # Executar: desbloquear PDFs no inbox (se houver)
-python scripts/e0_unlock.py --check-destinations # Safety net: varrer data/ e members/ por PDFs encriptados
+python scripts/e0_unlock.py                     # Executar: desbloquear PDFs no inbox
 ```
-Se `--check-destinations` encontrar PDFs encriptados em `data/` ou `members/`, o script desbloqueia in-place. Se nenhuma senha funcionar, registra em `qa_log.md` e move para `nao_identificados/`.
+Se PDFs encriptados forem encontrados sem senha válida, registra em `qa_log.md` e move para `nao_identificados/`.
 
-**Passo 3 — E0-audit: Auditoria de integridade:**
+**Passo 4 — E0-audit: Auditoria de integridade:**
 ```bash
 python scripts/e0_audit.py
 ```
@@ -2265,42 +2271,40 @@ Analisar o relatório. As 7 checagens são:
 **Se houver ERRORs:** corrigir antes de prosseguir. Erros de colisão de nomes se propagam por todo o pipeline.
 **Se apenas WARNs:** registrar em `qa_log.md` e prosseguir com cautela.
 
-**Passo 4 — E0: Roteamento de novos arquivos (se houver):**
-Se existem arquivos no `inbox/`:
-- Executar o algoritmo de detecção (Seção 3.1)
+**Passo 5 — E0: Roteamento de TODOS os arquivos do inbox/:**
+Agora que todos os arquivos estão de volta no `inbox/`:
+- Executar o algoritmo de detecção (Seção 3.1) para **cada** arquivo
 - Verificar tamanho (Passo 8a) e encriptação (Passo 8b)
 - Copiar para `inbox_processed/[DATA]/` e mover para `data/`
 - Atualizar `logs/inbox_log.md`
 
-Se o `inbox/` está vazio, pular este passo.
-
-**Passo 5 — E-reset: Limpeza + etapas determinísticas (E2-faturas → E3 → E4 → E5 → E6):**
+**Passo 6 — E-reset: Limpeza + etapas determinísticas (E2-faturas → E3 → E4 → E5 → E6):**
 ```bash
 python scripts/e_reset.py --dry-run   # Preview
 python scripts/e_reset.py             # Executar
 ```
 O script apaga artefatos E2→E6 e re-executa as etapas determinísticas automaticamente.
 
-**Passo 6 — Etapas LLM (execução manual, nesta ordem):**
+**Passo 7 — Etapas LLM (execução manual, nesta ordem):**
 
 | Ordem | Etapa | O que fazer | Artefatos gerados |
 |---|---|---|---|
-| 6a | **E1** | Mapeamento de membros (currículos, docs pessoais) | `members/*-1a_extract.json`, `members-1b_unified.json` |
-| 6b | **E1.5** | Baseline patrimonial (IRPF, XLSX imóveis/veículos) | `members-1c_enriched.md` |
-| 6c | **E2-extratos** | Extração de extratos bancários (PDFs → JSON) | `E2_extracts/*-2_extract.json` |
-| 6d | **Re-cascatear E3→E6** | `python scripts/e_reset.py --from E3` | Artefatos E3→E6 |
-| 6e | **E5.N** | Narrativas analíticas | Chave `narrativas` nos JSONs E5 |
-| 6f | **Re-render E6** | `python scripts/e6_render.py` | `output/*.html` |
+| 7a | **E1** | Mapeamento de membros (currículos, docs pessoais) | `members/*-1a_extract.json`, `members-1b_unified.json` |
+| 7b | **E1.5** | Baseline patrimonial (IRPF, XLSX imóveis/veículos) | `members-1c_enriched.md` |
+| 7c | **E2-extratos** | Extração de extratos bancários (PDFs → JSON) | `E2_extracts/*-2_extract.json` |
+| 7d | **Re-cascatear E3→E6** | `python scripts/e_reset.py --from E3` | Artefatos E3→E6 |
+| 7e | **E5.N** | Narrativas analíticas | Chave `narrativas` nos JSONs E5 |
+| 7f | **Re-render E6** | `python scripts/e6_render.py` | `output/*.html` |
 
-> **Importante:** Após E2-extratos (6c), é necessário re-cascatear com `e_reset.py --from E3` (6d) para que os novos extratos sejam reconciliados, categorizados e analisados antes de gerar narrativas.
+> **Importante:** Após E2-extratos (7c), é necessário re-cascatear com `e_reset.py --from E3` (7d) para que os novos extratos sejam reconciliados, categorizados e analisados antes de gerar narrativas.
 
-**Passo 7 — Comitar resultado:**
+**Passo 8 — Comitar resultado:**
 ```bash
 git add -A
 git commit -m "E-full-reset: reprocessamento completo E0→E6 [DATA]"
 ```
 
-**Passo 8 — Validação final:**
+**Passo 9 — Validação final:**
 - Executar checklist V1–V19 do E6 (Seção 4, STAGE E6)
 - Comparar com relatório anterior via `git diff` para confirmar que não houve perda de dados
 - Verificar que `e0_audit.py` não reporta novos ERRORs:
@@ -2312,8 +2316,9 @@ python scripts/e0_audit.py
 
 | Fase | Tipo | Tempo estimado |
 |---|---|---|
+| Move data/+members/ → inbox/ | Determinístico | ~5s |
 | E0-unlock + E0-audit | Determinístico | ~10s |
-| E0 (roteamento) | LLM | Variável (depende de nº de arquivos no inbox) |
+| E0 (roteamento de todos os arquivos) | LLM | Variável (depende de nº de arquivos no inbox) |
 | E-reset (E2-fat → E3 → E4 → E5 → E6) | Determinístico | ~15s |
 | E1 + E1.5 | LLM | ~5–10 min |
 | E2-extratos | LLM | ~5–15 min (depende de nº de PDFs) |

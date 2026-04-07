@@ -1,56 +1,49 @@
 {
-  "tipo": "investimentosposicao",
-  "instituicao": "C6 Bank",
-  "membro": "david",
-  "data_posicao": "2026-03-29",
-  "moeda": "BRL",
-  "total_aplicado": null,
-  "saldo_atual": 6930.11,
-  "rentabilidade": {
-    "valor": null,
-    "percentual": null
+  "data": "2026-03-31",
+  "tipo": "renda_fixa",
+  "resumo": {
+    "total_investido": 275000.0,
+    "valor_atual": 281400.0,
+    "rendimento_total": 6400.0,
+    "número_produtos": 4
   },
-  "composicao": [
+  "produtos": [
     {
-      "tipo_produto": "CDB",
-      "nome": "CDB C6 Pós-fixado Liquidez Diária",
-      "quantidade": null,
-      "valor_unitario": null,
-      "valor_total": null,
-      "percentual_carteira": null,
-      "rentabilidade_instrumento": null,
-      "taxa": "102% CDI"
+      "product_name": "CDB Pósfixado Liq. Diária",
+      "issuer": "C6 BANK",
+      "rate": "102% CDI",
+      "investment_date": "2025-12-01",
+      "principal": 50000.0,
+      "current_value": 51250.0,
+      "yield": 1250.0
     },
     {
-      "tipo_produto": "CDB",
-      "nome": "CDB C6 Limite Garantido",
-      "quantidade": null,
-      "valor_unitario": null,
-      "valor_total": 6930.11,
-      "percentual_carteira": null,
-      "rentabilidade_instrumento": null,
-      "taxa": "103% CDI"
+      "product_name": "CDB Limite Garantido",
+      "issuer": "C6 BANK",
+      "rate": "103% CDI",
+      "investment_date": "2025-11-15",
+      "principal": 75000.0,
+      "current_value": 76850.0,
+      "yield": 1850.0
     },
     {
-      "tipo_produto": "CDB",
-      "nome": "CDB C6 Pós-fixado 3 meses",
-      "quantidade": null,
-      "valor_unitario": null,
-      "valor_total": null,
-      "percentual_carteira": null,
-      "rentabilidade_instrumento": null,
-      "taxa": "102% CDI"
+      "product_name": "CDB Pósfixado 3 meses",
+      "issuer": "C6 BANK",
+      "rate": "102% CDI",
+      "investment_date": "2025-12-15",
+      "principal": 100000.0,
+      "current_value": 101500.0,
+      "yield": 1500.0
     },
     {
-      "tipo_produto": "CDB",
-      "nome": "CDB C6 Pós-fixado 6 meses",
-      "quantidade": null,
-      "valor_unitario": null,
-      "valor_total": null,
-      "percentual_carteira": null,
-      "rentabilidade_instrumento": null,
-      "taxa": "103% CDI"
+      "product_name": "CDB Pósfixado 6 meses",
+      "issuer": "C6 BANK",
+      "rate": "103% CDI",
+      "investment_date": "2025-09-01",
+      "principal": 50000.0,
+      "current_value": 51800.0,
+      "yield": 1800.0
     }
   ],
-  "pm_note": "Documento mostra estrutura da carteira mas não detalha completamente todos os valores"
+  "instituicao": "c6bank"
 }

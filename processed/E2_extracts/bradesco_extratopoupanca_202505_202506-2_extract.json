@@ -1,78 +1,88 @@
 {
-  "banco": "Bradesco",
-  "tipo": "extratopoupanca",
+  "tipo": "extratoconta",
+  "instituicao": "bradesco",
   "membro": "mariana",
-  "conta": "AG 3221 CC 77113-9",
-  "moeda": "BRL",
-  "periodo": {
-    "inicio": "2025-05-01",
-    "fim": "2025-06-30"
+  "conta": {
+    "numero": "77113-9",
+    "tipo": "poupança",
+    "moeda": "BRL",
+    "agencia": "3221"
   },
-  "saldo_inicial": 5240.53,
-  "saldo_final": 21762.41,
+  "periodo": {
+    "data_inicio": "2025-05-01",
+    "data_fim": "2025-06-30"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": null,
+      "data": "2025-05-01"
+    },
+    "saldo_final": {
+      "valor": null,
+      "data": "2025-06-30"
+    }
+  },
   "transacoes": [
     {
       "data": "2025-05-02",
-      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
-      "valor": 11.15,
-      "saldo_apos": 5251.68
-    },
-    {
-      "data": "2025-05-02",
-      "descricao": "bx Aut Cta Cor",
-      "tipo": "debito",
-      "valor": -1500.00,
-      "saldo_apos": 3751.68
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12 bx Aut Cta Cor* -",
+      "tipo": "débito",
+      "valor": 1500.0,
+      "saldo_apos": null
     },
     {
       "data": "2025-05-15",
-      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
-      "tipo": "credito",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "crédito",
       "valor": 4139.58,
-      "saldo_apos": 7891.26
+      "saldo_apos": null
     },
     {
       "data": "2025-05-30",
-      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
-      "tipo": "credito",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "crédito",
       "valor": 3778.33,
-      "saldo_apos": 11669.59
+      "saldo_apos": null
     },
     {
       "data": "2025-06-02",
-      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "crédito",
       "valor": 25.21,
-      "saldo_apos": 11694.80
+      "saldo_apos": null
     },
     {
       "data": "2025-06-05",
-      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
-      "tipo": "credito",
-      "valor": 4282.70,
-      "saldo_apos": 15977.50
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "crédito",
+      "valor": 4282.7,
+      "saldo_apos": null
     },
     {
       "data": "2025-06-13",
-      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
-      "tipo": "credito",
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
+      "tipo": "crédito",
       "valor": 2759.72,
-      "saldo_apos": 18737.22
+      "saldo_apos": null
     },
     {
       "data": "2025-06-16",
-      "descricao": "Rendimentos - Poup Facil-depos a Partir 4/5/12",
-      "tipo": "credito",
+      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
+      "tipo": "crédito",
       "valor": 27.91,
-      "saldo_apos": 18765.13
+      "saldo_apos": null
     },
     {
       "data": "2025-06-30",
-      "descricao": "tr Sal p/poup - Sociedade Beneficente Israelita",
-      "tipo": "credito",
-      "valor": 2997.28,
-      "saldo_apos": 21762.41
+      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita Total - Os dados acima têm como base 31/03/2026 às 22h28 e estão sujeitos a alterações. Últimos Lançamen",
+      "tipo": "débito",
+      "valor": 1500.0,
+      "saldo_apos": null
     }
-  ]
+  ],
+  "total_periodo": {
+    "total_debitos": 3000.0,
+    "total_creditos": 15013.449999999999,
+    "saldo_liquido": 12013.449999999999
+  }
 }

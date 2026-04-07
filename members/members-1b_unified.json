@@ -1,105 +1,99 @@
 {
-  "tipo": "members_unified",
-  "data_geracao": "2026-04-05",
-  "fonte_definitions": true,
+  "tipo": "members_1b_unified",
+  "data_geracao": "2026-04-06",
+  "fonte_definitions": "definitions.yml + arquivos de extração (curriculo, holerite)",
   "membros": [
     {
-      "id": "david",
-      "nome_atual": "David Robert Camargo Ferreira Campos",
-      "nomes_alternativos": ["David Robert Camargo de Campos"],
+      "tipo_membro": "titular",
+      "nome_completo": "David Robert Camargo Ferreira Campos",
+      "nome_solteiro": "David Robert Camargo de Campos",
       "cpf": "287.766.948-36",
-      "data_nascimento": "1981-09-05",
-      "papel_familia": "Titular",
-      "empregador_atual": "Arvo",
-      "cargo_atual": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "PJ",
-      "data_admissao": null,
-      "formacao_maxima": "Mestrado em Ciência da Computação — Inteligência Artificial (USP/IME, 2008)",
-      "idiomas": [
-        {"idioma": "Português", "nivel": "nativo", "fonte": "documento"},
-        {"idioma": "Inglês", "nivel": "fluente", "fonte": "documento"}
+      "nascimento": "1981-09-05",
+      "idade_em_2026_04_06": 44,
+      "genero_inferido": "M",
+      "papel_familia": "titular",
+      "status_civil_inferido": "casado",
+      "cidadania": ["Brasil"],
+      "documentacao_disponivel": [
+        "curriculo_1a_extract.json"
       ],
-      "experiencias": [
-        {"empresa": "Arvo", "cargo": "CTO", "tipo_vinculo": "PJ", "data_inicio": "2025-09", "data_fim": "presente"},
-        {"empresa": "Kiwify", "cargo": "CTO", "tipo_vinculo": "CLT", "data_inicio": "2024-06", "data_fim": "2025-05"},
-        {"empresa": "Loft", "cargo": "Software Engineering Consultant", "tipo_vinculo": "PJ", "data_inicio": "2022-12", "data_fim": "2024-06"},
-        {"empresa": "Loft", "cargo": "Director of Software Engineering", "tipo_vinculo": "CLT", "data_inicio": "2021-11", "data_fim": "2022-12"},
-        {"empresa": "Loft", "cargo": "Engineering Manager", "tipo_vinculo": "CLT", "data_inicio": "2019-06", "data_fim": "2021-10"},
-        {"empresa": "Elo7", "cargo": "CTO", "tipo_vinculo": "PJ", "data_inicio": "2013-08", "data_fim": "2020-07"},
-        {"empresa": "Abril", "cargo": "Solutions Architect I", "tipo_vinculo": "CLT", "data_inicio": "2012-03", "data_fim": "2013-08"},
-        {"empresa": "TOTVS", "cargo": "R&D Engineer IV", "tipo_vinculo": "CLT", "data_inicio": "2011-02", "data_fim": "2012-03"},
-        {"empresa": "NIC.br", "cargo": "Software Engineer", "tipo_vinculo": "CLT", "data_inicio": "2006-04", "data_fim": "2011-01"},
-        {"empresa": "Agência Estado", "cargo": "Jr System Analyst / Trainee", "tipo_vinculo": "CLT", "data_inicio": "2002-06", "data_fim": "2006-03"}
-      ],
-      "salario": {
-        "bruto": null,
-        "liquido": null,
-        "periodo_referencia": null,
-        "fonte": null,
-        "nota": "PJ — pró-labore via C6 Bank PJ. Valor a confirmar via extratos bancários."
+      "cargo_atual": "CTO",
+      "empresa_atual": "Arvo",
+      "tipo_contrato_atual": "PJ",
+      "data_inicio_cargo_atual": "2025-09",
+      "formacao": {
+        "superior": "Master Computer Science/AI (USP/IME, 2008)",
+        "segundo_grau": "Bachelor Computer Science (PUC/SP, 2004)"
       },
-      "documentos_disponiveis": ["curriculo"],
-      "status_fiscal": "BR+US",
-      "observacoes": "Empresa PJ: DAVID ROBERT CAMARGO DE CAMPOS LTDA (CNPJ 48.771.488/0001-87), Simples Nacional Anexo V. Status US a confirmar."
+      "idiomas": ["Portuguese (nativo)", "English (fluente)"]
     },
     {
-      "id": "mariana",
-      "nome_atual": "Mariana Ferreira Campos",
-      "nomes_alternativos": ["Mariana Teixeira Ferreira"],
+      "tipo_membro": "conjuge",
+      "nome_completo": "Mariana Ferreira Campos",
+      "nome_solteira": "Mariana Teixeira Ferreira",
       "cpf": "085.052.396-60",
-      "data_nascimento": "1986-08-30",
-      "papel_familia": "Cônjuge",
-      "empregador_atual": "Hospital Israelita Albert Einstein",
-      "cargo_atual": "Enfermeira — Cardiologia, Auditoria Clínica e Educação em Saúde",
-      "tipo_vinculo": "CLT",
-      "data_admissao": "2014-07-21",
-      "formacao_maxima": "Mestrado em Enfermagem — Enfermagem em Saúde Adulta (USP, 2021)",
-      "idiomas": [
-        {"idioma": "Português", "nivel": "nativo", "fonte": "inferido"}
+      "nascimento": "1986-08-30",
+      "idade_em_2026_04_06": 39,
+      "genero_inferido": "F",
+      "papel_familia": "conjuge",
+      "status_civil_inferido": "casada",
+      "cidadania": ["Brasil"],
+      "documentacao_disponivel": [
+        "curriculo_1a_extract.json",
+        "holerite_202602-1a_extract.json"
       ],
-      "experiencias": [
-        {"empresa": "Hospital Israelita Albert Einstein", "cargo": "Enfermeiro", "tipo_vinculo": "CLT", "data_inicio": "2018-01", "data_fim": "presente"},
-        {"empresa": "Hospital Israelita Albert Einstein — UPA Campo Limpo", "cargo": "Enfermeiro", "tipo_vinculo": "CLT", "data_inicio": "2014-08", "data_fim": "2018-06"},
-        {"empresa": "Faculdade Israelita Albert Einstein", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2021-01", "data_fim": "2024-12"},
-        {"empresa": "Senac São Paulo", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2012-01", "data_fim": "2016-01"},
-        {"empresa": "Faculdade Sequencial", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2013-01", "data_fim": "2015-08"},
-        {"empresa": "Hospital Municipal Dr. Moysés Deutsch", "cargo": "Enfermeira", "tipo_vinculo": "CLT", "data_inicio": "2011-01", "data_fim": "2014-01"}
-      ],
-      "salario": {
-        "bruto": 12086.06,
-        "liquido": 3425.41,
-        "periodo_referencia": "2026-02",
-        "fonte": "holerite",
-        "nota": "Líquido atipicamente baixo: contém adiantamento (R$3.633,17) e desconto de férias (R$2.529,63). Salário-base mensal normal: R$10.899,51."
+      "cargo_atual": "Enfermeiro Pl (P4)",
+      "empresa_atual": "SBIBHAE - Albert Einstein",
+      "tipo_contrato_atual": "CLT",
+      "data_inicio_cargo_atual": "2018-01",
+      "salario_bruto_conhecido": {
+        "periodo": "2026-02",
+        "valor": 12086.06,
+        "moeda": "BRL"
       },
-      "documentos_disponiveis": ["curriculo", "holerite"],
-      "status_fiscal": "BR",
-      "observacoes": "Holerite usa nome de solteira (Mariana Teixeira Ferreira) — esperado, conforme tabela NOMES do definitions.md. Cargo formal no holerite: Enfermeiro Pl (grade P4, categoria Enfermagem P)."
+      "formacao": {
+        "superior": [
+          "Mestrado Enfermagem (USP, 2019-2021)",
+          "Bacharelado Enfermagem (PUC Minas, 2007-2010)"
+        ],
+        "especializacoes": [
+          "Cardiologia/Hemodinâmica (UNIFESP, 2011-2012)",
+          "Formação Docente (FIOCRUZ)"
+        ]
+      },
+      "idiomas": ["Portuguese (nativo)"]
     },
     {
-      "id": "theo",
-      "nome_atual": "Theo Ferreira Campos",
-      "nomes_alternativos": [],
+      "tipo_membro": "filho",
+      "nome_completo": "Theo Ferreira Campos",
       "cpf": null,
-      "data_nascimento": "2025-07-18",
-      "papel_familia": "Filho",
-      "empregador_atual": null,
-      "cargo_atual": null,
-      "tipo_vinculo": null,
-      "data_admissao": null,
-      "formacao_maxima": null,
-      "idiomas": [],
-      "experiencias": [],
-      "salario": {
-        "bruto": null,
-        "liquido": null,
-        "periodo_referencia": null,
-        "fonte": null,
-        "nota": null
-      },
-      "documentos_disponiveis": [],
-      "status_fiscal": "BR+US",
-      "observacoes": "Dupla cidadania BR/US. Sem documentos processados neste ciclo."
+      "nascimento": "2025-07-18",
+      "idade_em_2026_04_06": 0,
+      "meses_de_vida": 8,
+      "genero_inferido": "M",
+      "papel_familia": "filho",
+      "status_civil": "solteiro",
+      "cidadania": ["Brasil", "USA"],
+      "documentacao_disponivel": [],
+      "notas": "Dupla cidadania BR/US. Sem documentação de renda. Dependente."
     }
-  ]
+  ],
+  "resumo_familiar": {
+    "total_membros": 3,
+    "titulares": 1,
+    "dependentes": 2,
+    "faixa_etaria_titular": "40-49 anos",
+    "renda_conhecida_clt": {
+      "membro": "Mariana",
+      "empresa": "Albert Einstein",
+      "salario_bruto_fev_2026": 12086.06,
+      "moeda": "BRL"
+    },
+    "renda_pj_inferida": {
+      "membro": "David",
+      "empresa": "Arvo",
+      "tipo_contrato": "PJ (nenhum holerite disponível)",
+      "nota": "Dados de renda PJ não extraídos nesta fase"
+    }
+  }
 }

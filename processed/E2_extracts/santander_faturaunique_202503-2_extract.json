@@ -57,7 +57,7 @@
       }
     },
     {
-      "data": "2025-03-15",
+      "data": "2025-02-28",
       "descricao": "IOF DESPESA NO EXTERIOR",
       "valor": 2.86,
       "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
@@ -65,5 +65,9 @@
     }
   ],
   "cartoes": [],
-  "parse_quality": "ok"
+  "parse_quality": "ok",
+  "periodo": {
+    "data_inicio": "2025-02-16",
+    "data_fim": "2025-03-09"
+  }
 }

@@ -9,6 +9,7 @@ Usage:
   python scripts/e_reset.py --from E4        # Reprocessamento parcial de E4 em diante
   python scripts/e_reset.py --dry-run        # Show what would be deleted (no changes)
   python scripts/e_reset.py --from E5 --dry-run
+  python scripts/e_reset.py --move-to-inbox  # E-full-reset: data/+members/ → inbox/
 
 Valid --from values: E0, E1, E2-faturas, E3, E4, E5, E5.N, E6
 
@@ -43,6 +44,8 @@ E4_UNIFIED    = PROCESSED_DIR / "E4_unified"
 E5_ANALYSIS   = PROCESSED_DIR / "E5_analysis"
 
 MEMBERS_DIR   = PROJECT_DIR / "members"
+DATA_DIR      = PROJECT_DIR / "data"
+INBOX_DIR     = PROJECT_DIR / "inbox"
 OUTPUT_DIR    = PROJECT_DIR / "output"
 LOGS_DIR      = PROJECT_DIR / "logs"
 
@@ -68,6 +71,102 @@ PRESERVED_LOGS = {
 def _glob(pattern: str) -> list[Path]:
     """Resolve glob pattern relative to PROJECT_DIR."""
     return [Path(p) for p in glob.glob(str(PROJECT_DIR / pattern))]
+
+
+def artifacts_purge_data() -> list[Path]:
+    """Artifacts in data/ — all files inside subdirectories.
+    Used by --purge-data to force full reprocessing from inbox/.
+    Preserves directory structure (financial_statements/, income_tax_br/, etc.)
+    but removes all files within them."""
+    files: list[Path] = []
+    if DATA_DIR.is_dir():
+        for child in DATA_DIR.rglob("*"):
+            if child.is_file() and child.name != ".DS_Store":
+                files.append(child)
+    return files
+
+
+def move_data_and_members_to_inbox(dry_run: bool = False) -> int:
+    """Move ALL files from data/ and members/ back to inbox/ for re-routing.
+
+    Moves:
+      - data/**/*  (all files in all subdirectories)
+      - members/*-0_original.*  (only originals, NOT extract/unified/enriched)
+
+    Preserves:
+      - Empty directory structure in data/ (financial_statements/, etc.)
+      - E1 artifacts in members/ (extract, unified, enriched)
+      - .DS_Store files
+
+    Returns count of files moved.
+    """
+    import shutil
+
+    if not INBOX_DIR.is_dir():
+        INBOX_DIR.mkdir(parents=True, exist_ok=True)
+
+    count = 0
+
+    # --- Move files from data/ subdirectories → inbox/ ---
+    if DATA_DIR.is_dir():
+        for child in sorted(DATA_DIR.rglob("*")):
+            if child.is_file() and child.name != ".DS_Store":
+                dest = INBOX_DIR / child.name
+                # Handle name collision (unlikely but safe)
+                if dest.exists():
+                    stem = dest.stem
+                    suffix = dest.suffix
+                    i = 1
+                    while dest.exists():
+                        dest = INBOX_DIR / f"{stem}_dup{i}{suffix}"
+                        i += 1
+                if dry_run:
+                    print(f"  [DRY-RUN] Moveria: data/{child.relative_to(DATA_DIR)} → inbox/{dest.name}")
+                else:
+                    try:
+                        shutil.move(str(child), str(dest))
+                        print(f"  Movido: data/{child.relative_to(DATA_DIR)} → inbox/{dest.name}")
+                    except Exception as e:
+                        # Fallback: copy + truncate (mounted FS may not support move)
+                        try:
+                            shutil.copy2(str(child), str(dest))
+                            child.write_bytes(b"")
+                            child.unlink()
+                            print(f"  Movido (copy+del): data/{child.relative_to(DATA_DIR)} → inbox/{dest.name}")
+                        except Exception as e2:
+                            print(f"  [ERRO] Não conseguiu mover {child.name}: {e2}")
+                            continue
+                count += 1
+
+    # --- Move original files from members/ → inbox/ ---
+    if MEMBERS_DIR.is_dir():
+        for child in sorted(MEMBERS_DIR.iterdir()):
+            if child.is_file() and child.name != ".DS_Store" and "-0_original." in child.name:
+                dest = INBOX_DIR / child.name
+                if dest.exists():
+                    stem = dest.stem
+                    suffix = dest.suffix
+                    i = 1
+                    while dest.exists():
+                        dest = INBOX_DIR / f"{stem}_dup{i}{suffix}"
+                        i += 1
+                if dry_run:
+                    print(f"  [DRY-RUN] Moveria: members/{child.name} → inbox/{dest.name}")
+                else:
+                    try:
+                        shutil.move(str(child), str(dest))
+                        print(f"  Movido: members/{child.name} → inbox/{dest.name}")
+                    except Exception as e:
+                        try:
+                            shutil.copy2(str(child), str(dest))
+                            child.unlink()
+                            print(f"  Movido (copy+del): members/{child.name} → inbox/{dest.name}")
+                        except Exception as e2:
+                            print(f"  [ERRO] Não conseguiu mover {child.name}: {e2}")
+                            continue
+                count += 1
+
+    return count
 
 
 def artifacts_full_reset() -> list[Path]:
@@ -456,6 +555,11 @@ Estágios válidos para --from: {', '.join(VALID_FROM_STAGES)}
         "--no-unlock", action="store_true",
         help="Pular desbloqueio de PDFs protegidos por senha (e0_unlock) antes do reset.",
     )
+    parser.add_argument(
+        "--move-to-inbox", action="store_true",
+        help="Mover TODOS os arquivos de data/ e originais de members/ de volta para inbox/ "
+             "antes do reset, permitindo re-roteamento completo (usado por E-full-reset).",
+    )
 
     args = parser.parse_args()
     dry_run = args.dry_run
@@ -473,6 +577,42 @@ Estágios válidos para --from: {', '.join(VALID_FROM_STAGES)}
         print("  MODO: --dry-run (nenhuma mudança será feita)")
     print(f"  Projeto: {PROJECT_DIR}")
     print("=" * 60)
+
+    # --- Phase -1: Move data/ + members/ originals back to inbox/ ---
+    if args.move_to_inbox:
+        print(f"\n--- Fase -1: Movendo arquivos de data/ e members/ → inbox/ ---")
+        moved = move_data_and_members_to_inbox(dry_run)
+        print(f"  Total: {moved} arquivo(s) {'identificados' if dry_run else 'movidos'} para inbox/")
+
+        # Also clean E1 artifacts from members/ (extract, unified, enriched)
+        # since originals are gone and E1 must be re-executed
+        if not dry_run:
+            e1_artifacts = []
+            if MEMBERS_DIR.is_dir():
+                for child in MEMBERS_DIR.iterdir():
+                    if child.is_file() and child.name != ".DS_Store" and "-0_original." not in child.name:
+                        e1_artifacts.append(child)
+            if e1_artifacts:
+                print(f"\n  Limpando {len(e1_artifacts)} artefato(s) E1 em members/ (serão recriados):")
+                for f in e1_artifacts:
+                    try:
+                        f.unlink()
+                        print(f"    Removido: members/{f.name}")
+                    except Exception:
+                        try:
+                            f.write_text("")
+                            print(f"    Truncado: members/{f.name}")
+                        except Exception as e2:
+                            print(f"    [AVISO] Não removeu: members/{f.name} ({e2})")
+        else:
+            e1_count = 0
+            if MEMBERS_DIR.is_dir():
+                for child in MEMBERS_DIR.iterdir():
+                    if child.is_file() and child.name != ".DS_Store" and "-0_original." not in child.name:
+                        print(f"  [DRY-RUN] Removeria artefato E1: members/{child.name}")
+                        e1_count += 1
+            if e1_count:
+                print(f"  Total: {e1_count} artefato(s) E1 seriam removidos")
 
     # --- Fix #10: Warn about --clean-only with E5.N ---
     if args.clean_only and from_stage == "E5.N":

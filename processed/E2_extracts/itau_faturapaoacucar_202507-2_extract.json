@@ -5,34 +5,56 @@
   "titular": "DAVID ROBERT CAMARGO DE CAMPOS",
   "moeda": "BRL",
   "data_vencimento": "2025-07-06",
-  "saldo_anterior": 59.0,
+  "saldo_anterior": 0.0,
+  "total_compras_nacionais": 59.0,
+  "total_compras_internacionais": 95.57,
   "total_compras": 154.57,
   "pagamentos": -59.0,
-  "saldo_atual": 154.57,
+  "saldo_atual": 0.0,
+  "limite_total": 82800.0,
   "transacoes": [
     {
       "data": "2025-06-08",
-      "descricao": "BRASIL PARAL*Bras",
+      "descricao": "BRASIL PARAL*Bras 01/12",
       "valor": 59.0,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)",
-      "parcela": "01/12"
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
     },
     {
       "data": "2025-06-19",
       "descricao": "SQSP* INV186737595",
       "valor": 92.32,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 87.0,
+        "cotacao": 5.81
+      }
+    },
+    {
+      "data": "2025-06-19",
+      "descricao": "Repasse de IOF",
+      "valor": 3.25,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "tipo_lancamento": "iof"
     }
   ],
   "compras_parceladas_futuras": [
     {
       "data": "2025-06-08",
-      "descricao": "BRASIL PARAL*Bras",
+      "descricao": "BRASIL PARAL*Bras 02/12",
       "valor": 59.0,
       "cartao": "DAVID R C DE CAMPOS (final 4984)",
-      "parcela": "02/12"
+      "parcela": "2/12"
+    },
+    {
+      "data": "2025-07-08",
+      "descricao": "BRASIL PARAL*Bras (future)",
+      "valor": 590.0,
+      "parcela": "future"
     }
   ],
-  "numero_cartao": "4771.XXXX.XXXX.5739",
-  "parse_quality": "ok"
+  "periodo": {
+    "data_inicio": "2025-06-08",
+    "data_fim": "2025-06-19"
+  }
 }

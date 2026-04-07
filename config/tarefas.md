@@ -79,6 +79,7 @@ Este arquivo é o **backlog curado** de tarefas da família. Atualizado a cada c
 | 33 | Verificar vigência dos seguros veiculares (Toro + NMax) e agendar renovação antes de viajar | Seguros | Antes EUA | pendente | — |
 | 34 | Após reserva emergência atingir 12 meses (R$382k), realocar os R$10k dos Cofrinhos: R$5k → reserva de oportunidade (CDB liquidez, meta R$50-80k) + R$5k → Tesouro IPCA+ 2035/2040 (contrafluxo, travar IPCA+7%) | Invest. | Jan/27 | pendente | — |
 | 35 | Avaliar venda Living Concept (yield 3,2% vs CDI 13,15%). Imóvel ficou vago 7 meses em 2025. | Imóveis | 2027 | pendente | D15 |
+| 41 | Atualizar cadastro e pagar anuidade do Clube de Tiro Águia de Haia | Financeiro | Abr/2026 | pendente | — |
 
 ---
 

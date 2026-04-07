@@ -6,16 +6,19 @@
   "moeda": "BRL",
   "data_vencimento": "2025-09-06",
   "saldo_anterior": 59.0,
+  "total_compras_nacionais": 191.41,
+  "total_compras_internacionais": 1681.02,
   "total_compras": 1872.43,
   "pagamentos": -59.0,
-  "saldo_atual": 1872.43,
+  "saldo_atual": 0.0,
+  "limite_total": 82800.0,
   "transacoes": [
     {
       "data": "2025-06-08",
-      "descricao": "BRASIL PARAL*Bras",
+      "descricao": "BRASIL PARAL*Bras 03/12",
       "valor": 59.0,
       "cartao": "DAVID R C DE CAMPOS (final 4984)",
-      "parcela": "03/12"
+      "parcela": "3/12"
     },
     {
       "data": "2025-08-04",
@@ -27,40 +30,93 @@
       "data": "2025-08-07",
       "descricao": "AMAZON RETA* Y76ZD1FJ3",
       "valor": 224.07,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 38.7,
+        "cotacao": 5.79
+      }
     },
     {
       "data": "2025-08-08",
       "descricao": "AMAZON MKTPL*JF2978P03",
       "valor": 210.11,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 36.54,
+        "cotacao": 5.75
+      }
     },
     {
       "data": "2025-08-25",
-      "descricao": "AMAZON RETA*",
-      "valor": 8.0,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+      "descricao": "AMAZON RETA* 8Y9WW7DJ3",
+      "valor": 270.97,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 47.29,
+        "cotacao": 5.73
+      }
     },
     {
       "data": "2025-08-27",
       "descricao": "AMAZON RETA* YK9XM77E3",
       "valor": 201.66,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 34.95,
+        "cotacao": 5.77
+      }
     },
     {
       "data": "2025-08-27",
       "descricao": "AMAZON RETA* NS9LS8KK3",
       "valor": 317.06,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 54.95,
+        "cotacao": 5.77
+      }
     },
     {
       "data": "2025-08-28",
       "descricao": "AMAZON MKTPL*761GA95A3",
       "valor": 400.3,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)"
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "forex": {
+        "moeda_original": "USD",
+        "valor_original": 69.86,
+        "cotacao": 5.73
+      }
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Repasse de IOF",
+      "valor": 56.85,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "tipo_lancamento": "iof"
     }
   ],
-  "compras_parceladas_futuras": [],
-  "numero_cartao": "4771.XXXX.XXXX.5739",
-  "parse_quality": "ok"
+  "compras_parceladas_futuras": [
+    {
+      "data": "2025-08-06",
+      "descricao": "BRASIL PARAL*Bras 04/12",
+      "valor": 59.0,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "parcela": "4/12"
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "BRASIL PARAL (future)",
+      "valor": 472.0,
+      "parcela": "future"
+    }
+  ],
+  "periodo": {
+    "data_inicio": "2025-06-08",
+    "data_fim": "2025-08-28"
+  }
 }

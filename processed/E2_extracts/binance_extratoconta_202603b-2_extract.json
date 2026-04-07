@@ -1,65 +1,69 @@
 {
-  "tipo": "extratoconta",
-  "instituicao": "Binance",
+  "tipo": "investimentosposicao",
+  "instituicao": "binance",
   "membro": "david",
+  "data_posicao": "2026-03-29",
   "moeda": "BRL",
-  "data_snapshot": "2026-03-29",
-  "saldo_total_estimado": 1257.45,
-  "observacao": "Valores em BRL. Screenshot mostra carteira de criptomoedas",
-  "carteira_cripto": [
+  "saldo_atual": 1257.45,
+  "nota": "Screenshot B: continuação da lista de ativos. BTC, ETH, ADA, AXS, SUSHI, ALICE.",
+  "composicao": [
     {
-      "simbolo": "BTC",
-      "nome": "Bitcoin",
+      "tipo_produto": "cripto",
+      "nome": "BTC",
+      "nome_completo": "Bitcoin",
       "quantidade": 0.00311425,
-      "valor_unitario_usd": null,
-      "valor_total_usd": null,
-      "pnl_24h": "+891.76%",
-      "rentabilidade_24h": null
+      "valor_brl": 1094.51,
+      "pnl_dia_brl": 7.31,
+      "pnl_dia_pct": 0.67,
+      "preco_medio_brl": 248753.86
     },
     {
-      "simbolo": "ETH",
-      "nome": "Ethereum",
+      "tipo_produto": "cripto",
+      "nome": "ETH",
+      "nome_completo": "Ethereum",
       "quantidade": 0.01325066,
-      "valor_unitario_usd": null,
-      "valor_total_usd": null,
-      "pnl_24h": "+82.10%",
-      "rentabilidade_24h": null
+      "valor_brl": 139.69,
+      "pnl_dia_brl": 0.6312,
+      "pnl_dia_pct": 0.46
     },
     {
-      "simbolo": "ADA",
-      "nome": "Cardano",
+      "tipo_produto": "cripto",
+      "nome": "ADA",
+      "nome_completo": "Cardano",
       "quantidade": 7.78980311,
-      "valor_unitario_usd": null,
-      "valor_total_usd": null,
-      "pnl_24h": "-105.2%",
-      "rentabilidade_24h": null
+      "valor_brl": 9.99,
+      "pnl_dia_brl": -0.1052,
+      "pnl_dia_pct": -0.93
     },
     {
-      "simbolo": "AXS",
-      "nome": "Axie Infinity",
+      "tipo_produto": "cripto",
+      "nome": "AXS",
+      "nome_completo": "Axie Infinity",
       "quantidade": 1.54143134,
-      "valor_unitario_usd": null,
-      "valor_total_usd": null,
-      "pnl_24h": "-102.6%",
-      "rentabilidade_24h": null
+      "valor_brl": 9.23,
+      "pnl_dia_brl": -0.1052,
+      "pnl_dia_pct": -0.87,
+      "preco_medio_brl": 347.6
     },
     {
-      "simbolo": "SUSHI",
-      "nome": "SushiSwap",
+      "tipo_produto": "cripto",
+      "nome": "SUSHI",
+      "nome_completo": "Sushi",
       "quantidade": 2.99616491,
-      "valor_unitario_usd": null,
-      "valor_total_usd": null,
-      "pnl_24h": "-350.0%",
-      "rentabilidade_24h": null
+      "valor_brl": 2.38,
+      "pnl_dia_brl": 0.004,
+      "pnl_dia_pct": 0.37,
+      "preco_medio_brl": 69.95
     },
     {
-      "simbolo": "ALICE",
-      "nome": "MyNeighborAlice",
+      "tipo_produto": "cripto",
+      "nome": "ALICE",
+      "nome_completo": "My Neighbor Alice",
       "quantidade": 1.36104419,
-      "valor_unitario_usd": null,
-      "valor_total_usd": null,
-      "pnl_24h": "-60.0%",
-      "rentabilidade_24h": null
+      "valor_brl": 0.75,
+      "pnl_dia_brl": 0.001,
+      "pnl_dia_pct": -0.19,
+      "preco_medio_brl": 76.59
     }
   ]
 }

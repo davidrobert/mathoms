@@ -1,0 +1,47 @@
+{
+  "tipo": "extratoconta",
+  "instituicao": "itau",
+  "membro": "david",
+  "conta": {
+    "numero": "desconhecido",
+    "tipo": "personnalite",
+    "moeda": "BRL",
+    "agencia": "desconhecido"
+  },
+  "periodo": {
+    "data_inicio": "2026-03-29",
+    "data_fim": "2026-03-29"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": 206491.7,
+      "valor_guardado": 206491.7,
+      "data": "2026-03-29"
+    },
+    "saldo_final": {
+      "valor": 206491.7,
+      "data": "2026-03-29"
+    }
+  },
+  "transacoes": [
+    {
+      "data": "2026-03-29",
+      "descricao": "Reserva - Seu dinheiro guardado rende todo dia! Valor guardado: R$ 206.491,70",
+      "tipo": "saldo",
+      "valor": 206491.7,
+      "saldo_apos": 206491.7
+    }
+  ],
+  "informacoes_adicionais": {
+    "rendimento_bruto": 20614.62,
+    "iof": 0.0,
+    "imposto_de_renda": 4122.02,
+    "rendimento_liquido": 16491.7,
+    "total_guardado": 206491.7
+  },
+  "total_periodo": {
+    "total_debitos": 0.0,
+    "total_creditos": 0.0,
+    "saldo_liquido": 0.0
+  }
+}

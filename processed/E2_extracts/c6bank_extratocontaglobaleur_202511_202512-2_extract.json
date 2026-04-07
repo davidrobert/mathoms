@@ -1,14 +1,33 @@
 {
-  "tipo": "extratocontaglobaleur",
-  "instituicao": "C6 Bank",
-  "membro": "david",
-  "conta": "101013529-6",
+  "tipo_conta": "global_eur",
   "moeda": "EUR",
   "periodo": {
-    "inicio": "2025-11-01",
-    "fim": "2025-12-31"
+    "data_inicio": "2026-02-10",
+    "data_fim": "2026-02-25"
   },
-  "saldo_inicial": 8.63,
-  "saldo_final": 8.63,
-  "transacoes": []
+  "resumo": {
+    "saldo_inicial": 0,
+    "saldo_final": -17.75,
+    "total_créditos": 0,
+    "total_débitos": 17.75,
+    "saldo_líquido": -17.75
+  },
+  "transacoes": [
+    {
+      "data": "2026-02-10",
+      "tipo": "débito",
+      "descricao": "GOOGLE FI COBRANCA",
+      "valor": 8.5,
+      "saldo_apos": -8.5
+    },
+    {
+      "data": "2026-02-25",
+      "tipo": "débito",
+      "descricao": "GOOGLE FI COBRANCA",
+      "valor": 9.25,
+      "saldo_apos": -17.75
+    }
+  ],
+  "tipo": "extratoconta",
+  "instituicao": "c6bank"
 }

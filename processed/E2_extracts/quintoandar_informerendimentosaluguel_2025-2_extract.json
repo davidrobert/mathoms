@@ -1,54 +1,25 @@
 {
   "tipo": "informe_rendimentos_aluguel",
   "membro": "david",
-  "cpf": "287.766.948-36",
   "ano_base": 2025,
   "fonte": "QuintoAndar",
   "propriedades": [
     {
       "endereco": "Rua Major Freire, 496 - ed gisele Ap 12, São Paulo - SP 04304-110",
-      "codigo_imavel": "893592092",
-      "renda_bruta_anual": 18543.82,
-      "descontos_anual": 1576.19,
-      "renda_liquida_anual": 16967.63,
-      "detalhamento_mensal": [
-        {"mes": "2025-01", "bruto": 1489.65, "desconto": 126.62, "liquido": 1363.03},
-        {"mes": "2025-02", "bruto": 1489.65, "desconto": 126.62, "liquido": 1363.03},
-        {"mes": "2025-03", "bruto": 1489.65, "desconto": 126.62, "liquido": 1363.03},
-        {"mes": "2025-04", "bruto": 1554.95, "desconto": 132.17, "liquido": 1422.78},
-        {"mes": "2025-05", "bruto": 1564.99, "desconto": 133.02, "liquido": 1431.97},
-        {"mes": "2025-06", "bruto": 1564.99, "desconto": 133.02, "liquido": 1431.97},
-        {"mes": "2025-07", "bruto": 1564.99, "desconto": 133.02, "liquido": 1431.97},
-        {"mes": "2025-08", "bruto": 1564.99, "desconto": 133.02, "liquido": 1431.97},
-        {"mes": "2025-09", "bruto": 1564.99, "desconto": 133.02, "liquido": 1431.97},
-        {"mes": "2025-10", "bruto": 1564.99, "desconto": 133.02, "liquido": 1431.97},
-        {"mes": "2025-11", "bruto": 1564.99, "desconto": 133.02, "liquido": 1431.97},
-        {"mes": "2025-12", "bruto": 1564.99, "desconto": 133.02, "liquido": 1431.97}
-      ]
+      "codigo_imovel": "893592092",
+      "renda_bruta": 18543.82,
+      "descontos": 1576.19,
+      "renda_liquida": 16967.63
     },
     {
       "endereco": "Praça Benedito Calixto, 186 - 34, São Paulo - SP 05406-040",
-      "codigo_imavel": "893592095",
-      "renda_bruta_anual": 17791.61,
-      "descontos_anual": 3353.84,
-      "renda_liquida_anual": 14437.77,
-      "detalhamento_mensal": [
-        {"mes": "2025-01", "bruto": 0.00, "desconto": 0.00, "liquido": 0.00},
-        {"mes": "2025-02", "bruto": 0.00, "desconto": 0.00, "liquido": 0.00},
-        {"mes": "2025-03", "bruto": 316.44, "desconto": 316.44, "liquido": 0.00},
-        {"mes": "2025-04", "bruto": 1475.17, "desconto": 1251.56, "liquido": 223.61},
-        {"mes": "2025-05", "bruto": 2000.00, "desconto": 186.00, "liquido": 1814.00},
-        {"mes": "2025-06", "bruto": 2000.00, "desconto": 260.46, "liquido": 1739.54},
-        {"mes": "2025-07", "bruto": 2000.00, "desconto": 223.23, "liquido": 1776.77},
-        {"mes": "2025-08", "bruto": 2000.00, "desconto": 223.23, "liquido": 1776.77},
-        {"mes": "2025-09", "bruto": 2000.00, "desconto": 223.23, "liquido": 1776.77},
-        {"mes": "2025-10", "bruto": 2000.00, "desconto": 223.23, "liquido": 1776.77},
-        {"mes": "2025-11", "bruto": 2000.00, "desconto": 223.23, "liquido": 1776.77},
-        {"mes": "2025-12", "bruto": 2000.00, "desconto": 223.23, "liquido": 1776.77}
-      ]
+      "codigo_imovel": "893592095",
+      "renda_bruta": 17791.61,
+      "descontos": 3353.84,
+      "renda_liquida": 14437.77
     }
   ],
-  "total_bruto_anual": 36335.43,
-  "total_descontos_anual": 4930.03,
-  "total_liquido_anual": 31405.40
+  "total_bruto": 36335.43,
+  "total_descontos": 4930.03,
+  "total_liquido": 31405.4
 }

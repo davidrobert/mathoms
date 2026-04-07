@@ -6,27 +6,38 @@
   "moeda": "BRL",
   "data_vencimento": "2026-01-06",
   "saldo_anterior": 59.0,
+  "total_compras_nacionais": 59.0,
+  "total_compras_internacionais": 0.0,
   "total_compras": 59.0,
   "pagamentos": -59.0,
-  "saldo_atual": 59.0,
+  "saldo_atual": 0.0,
+  "limite_total": 95220.0,
   "transacoes": [
     {
-      "data": "2025-06-08",
-      "descricao": "BRASIL PARAL*Bras",
+      "data": "2025-08-06",
+      "descricao": "BRASIL PARAL*Bras 07/12",
       "valor": 59.0,
       "cartao": "DAVID R C DE CAMPOS (final 4984)",
-      "parcela": "07/12"
+      "parcela": "7/12"
     }
   ],
   "compras_parceladas_futuras": [
     {
-      "data": "2025-06-08",
-      "descricao": "BRASIL PARAL*Bras",
+      "data": "2025-08-06",
+      "descricao": "BRASIL PARAL*Bras 08/12",
       "valor": 59.0,
-      "cartao": "Lançamentos no cartão (final 4984)",
-      "parcela": "08/12"
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "parcela": "8/12"
+    },
+    {
+      "data": "2026-01-08",
+      "descricao": "BRASIL PARAL (future)",
+      "valor": 236.0,
+      "parcela": "future"
     }
   ],
-  "numero_cartao": "4771.XXXX.XXXX.5739",
-  "parse_quality": "ok"
+  "periodo": {
+    "data_inicio": "2025-08-06",
+    "data_fim": "2025-08-06"
+  }
 }

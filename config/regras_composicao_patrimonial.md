@@ -62,8 +62,7 @@ imoveis_investimento = SUM(david.imoveis[].valor_31_12_ano_base)
 - David: Benedito Calixto (350.000), Major Freire (212.706,24), Leonardo da Vinci (80.000)
 - Mariana: Living Concept (270.000), Living Wish (530.000)
 
-**⚠️ ERRO COMUM:** Incluir apenas imóveis de David. Mariana possui 2 apartamentos de investimento
-que DEVEM ser contados aqui.
+**⚠️ ERRO COMUM:** Incluir apenas imóveis de David. Mariana possui 2 apartamentos de investimento que DEVEM ser contados aqui.
 
 ---
 

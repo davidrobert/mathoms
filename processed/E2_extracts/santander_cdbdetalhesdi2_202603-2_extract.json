@@ -1,23 +1,23 @@
 {
-  "tipo": "cdbdetalhes",
-  "instituicao": "Santander",
+  "tipo": "cdb_detalhes",
+  "instituicao": "santander",
   "membro": "david",
   "data_posicao": "2026-03-29",
   "moeda": "BRL",
-  "produtos": [
+  "aplicacoes": [
     {
-      "nome": "CDB DI SANTANDER",
-      "operacao": "00331652260006541929",
-      "valor_aplicado": null,
-      "data_aplicacao": "2024-08-30",
+      "tipo_produto": "CDB DI",
+      "operacao": "00331652260006380267",
+      "valor_aplicado": 0.0,
+      "data_aplicacao": "2024-06-26",
       "taxa": "100% CDI",
-      "vencimento": "2028-08-09",
-      "prazo": "1440 dias",
-      "saldo_bruto": 101522.74,
-      "saldo_liquido": 98281.27,
-      "rentabilidade_bruta": null,
-      "ir_provisorio": null,
-      "disponivel_para_resgate": 98281.27
+      "prazo_dias": 1440,
+      "vencimento": "2028-06-05",
+      "saldo_bruto": 137409.67,
+      "ir_provisionado": 0.0,
+      "saldo_liquido": 132662.92
     }
-  ]
+  ],
+  "total_bruto": 137409.67,
+  "total_liquido": 132662.92
 }

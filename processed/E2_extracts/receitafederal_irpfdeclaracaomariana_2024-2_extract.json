@@ -1,183 +1,292 @@
 {
   "tipo": "irpf_declaracao",
   "membro": "mariana",
-  "cpf": "085.052.396-60",
-  "ano_declaracao": 2025,
   "ano_base": 2024,
-  "bens_direitos": [
+  "ano_exercicio": 2025,
+  "cpf": "085.052.396-60",
+  "data_entrega": "2025-05-30",
+  "dados_declarante": {
+    "nome": "MARIANA FERREIRA CAMPOS",
+    "data_nascimento": "1986-08-30",
+    "endereco": "RUA TASSO DA SILVEIRA, 61",
+    "bairro": "VILA GUARANI Z SUL",
+    "municipio": "SAO PAULO",
+    "uf": "SP",
+    "cep": "04316-080",
+    "email": "MTF3008@GMAIL.COM",
+    "telefone": "(11) 96073-3929",
+    "natureza_ocupacao": "01 - Empregado de empresa do setor privado, exceto de instituições financeiras",
+    "ocupacao_principal": "227 - Enfermeiro de nível superior, nutricionista, farmacêutico e afins",
+    "possui_conjuge": true,
+    "cpf_conjuge": "287.766.948-36",
+    "tipo_declaracao": "Declaração de Ajuste Anual Original",
+    "recibo_anterior": "28.37.40.23.30-93"
+  },
+  "bens_e_direitos": [
     {
-      "codigo": "11",
       "grupo": "01",
+      "codigo": "11",
       "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA PLANTA DA EMPRESA CYRELA MAGIKLZ CAMPINAS",
-      "situacao_ano_anterior": 223733.99,
-      "situacao_ano_base": 382857.60,
+      "situacao_31_12_anterior": 223733.99,
+      "situacao_31_12_atual": 270000.0,
       "data_aquisicao": "2023-10-09",
-      "cnpj_entidade": "13.177.004/0001-91"
+      "observacoes": "AVENIDA ALBERTO AUGUSTO ALVES, 320, APTO 812, SANTO AMARO, SAO PAULO, SP, CEP 05724-030. Area: 25,7 m². Matrícula: 488435"
     },
     {
-      "codigo": "11",
       "grupo": "01",
-      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS",
-      "situacao_ano_anterior": 477436.58,
-      "situacao_ano_base": 477436.58,
+      "codigo": "11",
+      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS EMPREENDIMENTOS IMOBILIARIOS LTDA",
+      "situacao_31_12_anterior": 477436.58,
+      "situacao_31_12_atual": 530000.0,
       "data_aquisicao": "2018-04-09",
-      "cnpj_entidade": "17.102.653/0001-84"
+      "observacoes": "AVENIDA JOAO DIAS, 2192, TORRE 2 APT 163, SANTO AMARO, SAO PAULO, SP, CEP 04724-003. Area: 88,9 m². Matrícula: 453.527"
     },
     {
-      "codigo": "01",
       "grupo": "04",
+      "codigo": "01",
       "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
-      "situacao_ano_anterior": 25337.34,
-      "situacao_ano_base": 51652.33,
+      "situacao_31_12_anterior": 25337.34,
+      "situacao_31_12_atual": 0.0,
       "data_aquisicao": null,
-      "cnpj_entidade": "60.746.948/0001-12"
+      "observacoes": "Banco: 237, Agencia: 0504, Conta: 77113-9"
     },
     {
-      "codigo": "02",
       "grupo": "04",
-      "descricao": "CERTIFICADO DE DEPOSITO BANCARIO - BTG",
-      "situacao_ano_anterior": 22000.00,
-      "situacao_ano_base": 22000.00,
+      "codigo": "02",
+      "descricao": "BTG - PRODUTO CDBB2353UR4",
+      "situacao_31_12_anterior": 22000.0,
+      "situacao_31_12_atual": 22000.0,
       "data_aquisicao": null,
-      "cnpj_entidade": "30.306.294/0001-45"
+      "observacoes": "CNPJ: 30.306.294/0001-45"
     },
     {
-      "codigo": "02",
       "grupo": "04",
-      "descricao": "CDB - BTG",
-      "situacao_ano_anterior": 1826.51,
-      "situacao_ano_base": 2061.60,
+      "codigo": "02",
+      "descricao": "BTG - CDB-SR - AGENCIA 0001",
+      "situacao_31_12_anterior": 1826.51,
+      "situacao_31_12_atual": 3429.16,
       "data_aquisicao": null,
-      "cnpj_entidade": "30.306.294/0001-45"
+      "observacoes": "CNPJ: 30.306.294/0001-45"
     },
     {
-      "codigo": "02",
       "grupo": "04",
+      "codigo": "02",
       "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
-      "situacao_ano_anterior": 4365.03,
-      "situacao_ano_base": 4576.15,
+      "situacao_31_12_anterior": 4365.03,
+      "situacao_31_12_atual": 0.0,
       "data_aquisicao": null,
-      "cnpj_entidade": "60.746.948/0001-12"
+      "observacoes": "CNPJ: 60.746.948/0001-12"
     },
     {
+      "grupo": "04",
       "codigo": "02",
-      "grupo": "04",
       "descricao": "SALDO RDB - NUBANK",
-      "situacao_ano_anterior": 58.23,
-      "situacao_ano_base": 69.77,
+      "situacao_31_12_anterior": 58.23,
+      "situacao_31_12_atual": 0.0,
       "data_aquisicao": null,
-      "cnpj_entidade": "30.680.829/0001-43"
+      "observacoes": "CNPJ: 30.680.829/0001-43"
     },
     {
-      "codigo": "03",
       "grupo": "04",
-      "descricao": "LCI - OPEA SECURITIZADORA S.A. - BTG",
-      "situacao_ano_anterior": 10349.69,
-      "situacao_ano_base": 10349.69,
+      "codigo": "02",
+      "descricao": "BTG - PRODUTO CDB524BFK2F",
+      "situacao_31_12_anterior": 0.0,
+      "situacao_31_12_atual": 10000.0,
       "data_aquisicao": null,
-      "cnpj_entidade": "02.773.542/0001-22"
+      "observacoes": "CNPJ: 30.306.294/0001-45"
     },
     {
-      "codigo": "03",
       "grupo": "04",
-      "descricao": "LCI - TRUE SECURITIZADORA S.A. - BTG",
-      "situacao_ano_anterior": 10324.25,
-      "situacao_ano_base": 10324.25,
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO 22J1410500",
+      "situacao_31_12_anterior": 10349.69,
+      "situacao_31_12_atual": 9349.69,
       "data_aquisicao": null,
-      "cnpj_entidade": "12.130.744/0001-00"
+      "observacoes": "CNPJ: 30.306.294/0001-45"
     },
     {
-      "codigo": "01",
+      "grupo": "04",
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO 22K1692411",
+      "situacao_31_12_anterior": 10324.25,
+      "situacao_31_12_atual": 10324.25,
+      "data_aquisicao": null,
+      "observacoes": "CNPJ: 30.306.294/0001-45"
+    },
+    {
+      "grupo": "04",
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO CRA02300MZU",
+      "situacao_31_12_anterior": 0.0,
+      "situacao_31_12_atual": 9115.01,
+      "data_aquisicao": null,
+      "observacoes": "CNPJ: 30.306.294/0001-45"
+    },
+    {
+      "grupo": "04",
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO CRA02300SPD",
+      "situacao_31_12_anterior": 0.0,
+      "situacao_31_12_atual": 9109.54,
+      "data_aquisicao": null,
+      "observacoes": "CNPJ: 30.306.294/0001-45"
+    },
+    {
+      "grupo": "04",
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO CRA024001Q9",
+      "situacao_31_12_anterior": 0.0,
+      "situacao_31_12_atual": 9248.83,
+      "data_aquisicao": null,
+      "observacoes": "CNPJ: 30.306.294/0001-45"
+    },
+    {
+      "grupo": "04",
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO 23J0138431",
+      "situacao_31_12_anterior": 0.0,
+      "situacao_31_12_atual": 9164.03,
+      "data_aquisicao": null,
+      "observacoes": "CNPJ: 30.306.294/0001-45"
+    },
+    {
       "grupo": "06",
-      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
-      "situacao_ano_anterior": 1.00,
-      "situacao_ano_base": 1.00,
-      "data_aquisicao": null,
-      "cnpj_entidade": "60.746.948/0001-12"
-    },
-    {
       "codigo": "01",
-      "grupo": "07",
-      "descricao": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LONGO PRAZO",
-      "situacao_ano_anterior": 35868.62,
-      "situacao_ano_base": 34830.76,
+      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
+      "situacao_31_12_anterior": 1.0,
+      "situacao_31_12_atual": 0.0,
       "data_aquisicao": null,
-      "cnpj_entidade": "11.952.873/0001-10"
+      "observacoes": "Banco: 237, Agencia: 0504, Conta: 77113-9"
+    },
+    {
+      "grupo": "07",
+      "codigo": "01",
+      "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LO",
+      "situacao_31_12_anterior": 35868.62,
+      "situacao_31_12_atual": 41408.87,
+      "data_aquisicao": null,
+      "observacoes": "CNPJ do Fundo: 11.952.873/0001-10"
+    },
+    {
+      "grupo": "07",
+      "codigo": "01",
+      "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI",
+      "situacao_31_12_anterior": 0.0,
+      "situacao_31_12_atual": 4494.93,
+      "data_aquisicao": null,
+      "observacoes": "CNPJ do Fundo: 00.888.897/0001-31"
+    },
+    {
+      "grupo": "07",
+      "codigo": "07",
+      "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRIVADO LONGO PRAZO",
+      "situacao_31_12_anterior": 0.0,
+      "situacao_31_12_atual": 25479.42,
+      "data_aquisicao": null,
+      "observacoes": "CNPJ do Fundo: 39.958.460/0001-62"
+    },
+    {
+      "grupo": "07",
+      "codigo": "10",
+      "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE INVESTIMENTO FINANCEIRO EM INFRAESTRUTURA RENDA FIXA",
+      "situacao_31_12_anterior": 0.0,
+      "situacao_31_12_atual": 25000.0,
+      "data_aquisicao": null,
+      "observacoes": "CNPJ do Fundo: 51.697.128/0001-97"
     }
   ],
-  "rendimentos_tributaveis": {
-    "total": 147959.91,
-    "fontes": [
-      {
-        "fonte": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA HOSPITAL ALBERT EINSTEIN",
-        "cnpj": "60.765.823/0001-30",
-        "valor": 141842.70
-      },
-      {
-        "fonte": "Rendimentos de Pessoa Física (aluguéis)",
-        "cnpj": null,
-        "valor": 6117.21
-      }
-    ]
-  },
-  "rendimentos_isentos": {
-    "total": 9453.86,
-    "itens": [
-      {
-        "descricao": "Restituição do imposto sobre a renda de anos-calendário anteriores",
-        "valor": 1188.37
-      },
-      {
-        "descricao": "Abono de férias/PIS",
-        "valor": 8265.49
-      }
-    ]
-  },
-  "rendimentos_exclusivos": {
-    "total": 24114.31,
-    "itens": [
-      {
-        "descricao": "13º salário",
-        "valor": 8301.32
-      },
-      {
-        "descricao": "Rendimentos de aplicações financeiras",
-        "valor": 14792.99
-      },
-      {
-        "descricao": "Outros rendimentos exclusivos",
-        "valor": 1020.00
-      }
-    ]
-  },
+  "rendimentos_tributaveis_pj": [
+    {
+      "cnpj_fonte": "60.765.823/0001-30",
+      "nome_fonte": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA HOSPITAL ALBERT E",
+      "rendimento_bruto": 141842.7,
+      "imposto_retido": 22575.99,
+      "contribuicao_prev": 10906.2
+    }
+  ],
+  "rendimentos_isentos": [
+    {
+      "tipo": "abono_ferias_pis",
+      "descricao": "ABONO DE FERIAS PIS",
+      "valor": 1336.61
+    }
+  ],
+  "rendimentos_tributacao_exclusiva": [
+    {
+      "tipo": "13o_salario",
+      "descricao": "13º salário",
+      "valor": 8301.32
+    },
+    {
+      "tipo": "aplicacoes_financeiras_btg_hedge",
+      "descricao": "Rendimentos de aplicações financeiras - BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO P",
+      "valor": 150.83
+    },
+    {
+      "tipo": "aplicacoes_financeiras_btg_explorer",
+      "descricao": "Rendimentos de aplicações financeiras - BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO",
+      "valor": 2350.78
+    },
+    {
+      "tipo": "aplicacoes_financeiras_m8_capital",
+      "descricao": "Rendimentos de aplicações financeiras - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI",
+      "valor": 479.38
+    },
+    {
+      "tipo": "aplicacoes_financeiras_bradesco",
+      "descricao": "Rendimentos de aplicações financeiras - BANCO BRADESCO S A",
+      "valor": 326.17
+    },
+    {
+      "tipo": "aplicacoes_financeiras_nu",
+      "descricao": "Rendimentos de aplicações financeiras - NU FINANCEIRA S.A.",
+      "valor": 3.91
+    },
+    {
+      "tipo": "aplicacoes_financeiras_btg",
+      "descricao": "Rendimentos de aplicações financeiras - BANCO BTG PACTUAL S A",
+      "valor": 8.49
+    }
+  ],
   "dividas_onus": [],
-  "pagamentos_dedutiveis": [
+  "pagamentos_deducoes": [
     {
-      "tipo": "saude",
-      "descricao": "CLINICA TAKATA LTDA",
-      "valor": 2200.00
+      "tipo": "honorarios_profissionais",
+      "descricao": "LEIR MIRANDA ESTEVES",
+      "cnpj_cpf": "786.538.606-06",
+      "valor": 400.0
     },
     {
-      "tipo": "saude",
-      "descricao": "LF SAO PAULO SERVICOS MEDICOS LTDA",
-      "valor": 7000.00
+      "tipo": "servicos_medicos",
+      "descricao": "BEEP SERVICOS MEDICOS LTDA (ODONTOLOGO)",
+      "cnpj_cpf": "28.286.170/0001-01",
+      "valor": 275.0
     },
     {
-      "tipo": "saude",
-      "descricao": "TERZIAN - SOCIEDADE DE MÉDICOS LTDA",
-      "valor": 7700.00
+      "tipo": "servicos_medicos",
+      "descricao": "HT SARAGIOTTO SERVICOS MEDICOS LTDA",
+      "cnpj_cpf": "47.078.968/0001-02",
+      "valor": 600.0
     },
     {
-      "tipo": "outro",
-      "descricao": "GRPQA LTDA - Aluguel (QuintoAndar)",
-      "valor": 2947.68
+      "tipo": "seguros_saude",
+      "descricao": "SUL AMERICA SERVICOS DE SAUDE",
+      "cnpj_cpf": "02.866.602/0001-51",
+      "valor": 190.54
+    },
+    {
+      "tipo": "aluguel",
+      "descricao": "GRPQA LTDA",
+      "cnpj_cpf": "16.788.643/0001-81",
+      "valor": 13726.94
     }
   ],
-  "total_bens_ano_anterior": 811301.24,
-  "total_bens_ano_base": 988123.73,
-  "total_dividas_ano_anterior": 0.00,
-  "total_dividas_ano_base": 0.00,
-  "imposto_devido": 20784.49,
-  "imposto_pago": 20184.53,
-  "resultado": 599.96
+  "totais": {
+    "bens_31_12_anterior": 811301.24,
+    "bens_31_12_atual": 988123.73,
+    "rendimentos_tributaveis_total": 203982.98,
+    "imposto_devido": 40746.89,
+    "imposto_pago": 22575.99,
+    "resultado": 18170.9
+  }
 }

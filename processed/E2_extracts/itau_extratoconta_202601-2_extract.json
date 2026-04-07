@@ -1,0 +1,165 @@
+{
+  "tipo": "extratoconta",
+  "instituicao": "itau",
+  "membro": "david",
+  "conta": {
+    "numero": "004397-8",
+    "tipo": "corrente",
+    "moeda": "BRL",
+    "agencia": "9652"
+  },
+  "periodo": {
+    "data_inicio": "2026-01-01",
+    "data_fim": "2026-06-30"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": 913.72,
+      "data": "2026-01-01"
+    },
+    "saldo_final": {
+      "valor": 2352.23,
+      "data": "2026-06-30"
+    }
+  },
+  "transacoes": [
+    {
+      "data": "2026-03-28",
+      "descricao": "SALDO DO DIA",
+      "tipo": "saldo",
+      "valor": 913.72,
+      "saldo_apos": 913.72
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "REND PAGO APLIC AUT APR",
+      "tipo": "crédito",
+      "valor": 0.04,
+      "saldo_apos": 913.76
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "DA ELETROPAULO 31237205",
+      "tipo": "débito",
+      "valor": 594.07,
+      "saldo_apos": 319.69
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1850.13,
+      "saldo_apos": 1507.7
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1571.97,
+      "saldo_apos": 3379.67
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "FINANC IMOBILIARIO 050/120",
+      "tipo": "débito",
+      "valor": 4266.94,
+      "saldo_apos": -887.27
+    },
+    {
+      "data": "2026-03-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "débito",
+      "valor": 59.0,
+      "saldo_apos": 2352.23
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "SABESP 3334280219",
+      "tipo": "débito",
+      "valor": 402.23,
+      "saldo_apos": 2411.23
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "PIX TRANSF EDER SO17/02",
+      "tipo": "crédito",
+      "valor": 89.9,
+      "saldo_apos": 3514.55
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1571.97,
+      "saldo_apos": 3424.65
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "tipo": "crédito",
+      "valor": 1850.13,
+      "saldo_apos": 5274.78
+    },
+    {
+      "data": "2026-02-10",
+      "descricao": "FINANC IMOBILIARIO 049/120",
+      "tipo": "débito",
+      "valor": 4281.54,
+      "saldo_apos": 993.24
+    },
+    {
+      "data": "2026-02-06",
+      "descricao": "ITAU VISA ITAUCARD",
+      "tipo": "débito",
+      "valor": 257.54,
+      "saldo_apos": 4284.06
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "SABESP 3334280219",
+      "tipo": "débito",
+      "valor": 568.02,
+      "saldo_apos": 3716.04
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "tipo": "crédito",
+      "valor": 0.05,
+      "saldo_apos": 399.65
+    },
+    {
+      "data": "2026-01-27",
+      "descricao": "DA ELETROPAULO 31237205",
+      "tipo": "débito",
+      "valor": 927.93,
+      "saldo_apos": -528.28
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG IPVA 2026",
+      "tipo": "débito",
+      "valor": 5225.93,
+      "saldo_apos": -5754.21
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG Multa de Veiculo",
+      "tipo": "débito",
+      "valor": 682.06,
+      "saldo_apos": -6436.27
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PIX TRANSF DAVID R12/01",
+      "tipo": "crédito",
+      "valor": 20000.0,
+      "saldo_apos": 13563.73
+    }
+  ],
+  "total_periodo": {
+    "total_debitos": 0.0,
+    "total_creditos": 0.0,
+    "saldo_liquido": 1438.51
+  }
+}

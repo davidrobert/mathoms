@@ -1,14 +1,14 @@
 {
   "tipo": "irpf_recibo",
   "membro": "david",
-  "cpf": "287.766.948-36",
-  "ano_declaracao": 2025,
   "ano_base": 2024,
-  "imposto_devido": 163779.60,
-  "imposto_pago": 154768.78,
-  "resultado": -9010.82,
+  "ano_exercicio": 2025,
+  "cpf": "287.766.948-36",
   "data_entrega": "2025-05-28",
-  "situacao": "em_processamento",
   "numero_recibo": "41.12.98.65.44 - 47",
-  "observacoes": "Parcelamento de 1 cota de R$ 9.010,82 com vencimento em 30/05/2025. Declaração original recebida via Internet pelo SERPRO em 28/05/2025 às 15:05:47."
+  "imposto_devido": 163779.6,
+  "imposto_pago": 154768.78,
+  "resultado": 9010.82,
+  "parcelas": 1,
+  "situacao": "aceita"
 }

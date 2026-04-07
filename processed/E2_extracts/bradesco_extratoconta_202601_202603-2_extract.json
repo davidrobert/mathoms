@@ -1,771 +1,676 @@
 {
   "tipo": "extratoconta",
-  "instituicao": "Bradesco",
+  "instituicao": "bradesco",
   "membro": "mariana",
-  "conta": "AG 3221 CC 77113-9",
-  "moeda": "BRL",
-  "periodo": {
-    "inicio": "2026-01-01",
-    "fim": "2026-03-29"
+  "conta": {
+    "numero": "77113-9",
+    "tipo": "corrente",
+    "moeda": "BRL",
+    "agencia": "3221"
   },
-  "saldo_inicial": 1.0,
-  "saldo_final": 1.0,
+  "periodo": {
+    "data_inicio": "2026-01-01",
+    "data_fim": "2026-03-29"
+  },
+  "saldos": {
+    "saldo_inicial": {
+      "valor": 1.0,
+      "data": "2026-01-01"
+    },
+    "saldo_final": {
+      "valor": null,
+      "data": "2026-03-29"
+    }
+  },
   "transacoes": [
     {
       "data": "2026-01-02",
-      "descricao": "Resgate Inv Fac",
+      "descricao": "Resgate Inv Fac Transfe Pix - Des: Danielle de Almeida j 02/01",
+      "tipo": "débito",
+      "valor": 6.5,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "bx Aut Poupanca Resgate Inv Fac Rent.inv.facil Pagto Cobranca - Condominio Living Wish Pagto Cobranca Oma Condominio Locacao e - Venda Ted Dif.titul -",
+      "tipo": "débito",
+      "valor": 1126.71,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "bx Aut Poupanca Resgate Inv Fac Rent.inv.facil Pagto Cobranca - Condominio Living Wish Pagto Cobranca Oma Condominio Locacao e - Venda Ted Dif.titul -",
+      "tipo": "débito",
+      "valor": 531.83,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "bx Aut Poupanca Resgate Inv Fac Rent.inv.facil Pagto Cobranca - Condominio Living Wish Pagto Cobranca Oma Condominio Locacao e - Venda Ted Dif.titul -",
+      "tipo": "débito",
+      "valor": 1500.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "bx Aut Poupanca Transfe Pix Des: Eliane Costa Goncalve - 06/01 Receb Pagfor",
+      "tipo": "débito",
+      "valor": 220.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-09",
+      "descricao": "Grpqa Ltda. Receb Pagfor Grpqa Ltda. Apl.invest Fac -",
+      "tipo": "débito",
+      "valor": 5224.67,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "Resgate Inv Fac Pix Qrcode Din - Des: Shpp Brasil Instituic 10/01",
+      "tipo": "débito",
+      "valor": 16.99,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-14",
+      "descricao": "Resgate Inv Fac Pagto Cobranca Conselho Regional de - Enfermagem",
+      "tipo": "débito",
+      "valor": 355.13,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Resgate Inv Fac Devolucao Pix Rem: Shpp Brasil Instituic 15/01 Transfe Pix - Des: Juliana Maria da Silv 15/01 Conta Telefone - Claro S/a - Movel-",
+      "tipo": "débito",
       "valor": 10.0,
-      "saldo_apos": 11.0,
-      "tipo": "credito"
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Resgate Inv Fac Devolucao Pix Rem: Shpp Brasil Instituic 15/01 Transfe Pix - Des: Juliana Maria da Silv 15/01 Conta Telefone - Claro S/a - Movel-",
+      "tipo": "débito",
+      "valor": 55.98,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "bx Aut Poupanca Resgate Inv Fac Rent.inv.facil Gasto c Credito - Transfe Pix Des: Eliane Costa Goncalve - 20/01 Pix Qrcode Din - Des: Concavo e Convex",
+      "tipo": "débito",
+      "valor": 5599.47,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "bx Aut Poupanca Resgate Inv Fac Rent.inv.facil Gasto c Credito - Transfe Pix Des: Eliane Costa Goncalve - 20/01 Pix Qrcode Din - Des: Concavo e Convex",
+      "tipo": "débito",
+      "valor": 220.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "bx Aut Poupanca Resgate Inv Fac Rent.inv.facil Gasto c Credito - Transfe Pix Des: Eliane Costa Goncalve - 20/01 Pix Qrcode Din - Des: Concavo e Convex",
+      "tipo": "débito",
+      "valor": 767.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-21",
+      "descricao": "bx Aut Poupanca Pix Qrcode Din - Des: Secretaria Municipal 21/01",
+      "tipo": "débito",
+      "valor": 3183.24,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-23",
+      "descricao": "bx Aut Poupanca Transfe Pix Des: Amanda Santos Santana - 23/01",
+      "tipo": "débito",
+      "valor": 28.03,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-26",
+      "descricao": "bx Aut Poupanca Transfe Pix - Des: Maria Engracia Alves 25/01",
+      "tipo": "débito",
+      "valor": 100.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "bx Aut Poupanca Pix Qrcode Din - Des: Moda Mundial Brasil p 28/01 Pix Qrcode Din - Des: Shpp Brasil Instituic 28/01 Pix Qrcode Din - Des: Shpp Brasil ",
+      "tipo": "débito",
+      "valor": 194.96,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "bx Aut Poupanca Pix Qrcode Din - Des: Moda Mundial Brasil p 28/01 Pix Qrcode Din - Des: Shpp Brasil Instituic 28/01 Pix Qrcode Din - Des: Shpp Brasil ",
+      "tipo": "débito",
+      "valor": 69.99,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "bx Aut Poupanca Pix Qrcode Din - Des: Moda Mundial Brasil p 28/01 Pix Qrcode Din - Des: Shpp Brasil Instituic 28/01 Pix Qrcode Din - Des: Shpp Brasil ",
+      "tipo": "débito",
+      "valor": 21.9,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "bx Aut Poupanca Pix Qrcode Din - Des: Moda Mundial Brasil p 28/01 Pix Qrcode Din - Des: Shpp Brasil Instituic 28/01 Pix Qrcode Din - Des: Shpp Brasil ",
+      "tipo": "débito",
+      "valor": 69.54,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "bx Aut Poupanca Pix Qrcode Din - Des: Shpp Brasil Instituic 29/01 Pix Qrcode Din - Des: Shpp Brasil Instituic 29/01",
+      "tipo": "débito",
+      "valor": 56.76,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "bx Aut Poupanca Pix Qrcode Din - Des: Shpp Brasil Instituic 29/01 Pix Qrcode Din - Des: Shpp Brasil Instituic 29/01",
+      "tipo": "débito",
+      "valor": 29.9,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Resg/vencto Cdb Apl.invest Fac - Transfe Pix - Des: Suecia Pereira de Oli 30/01 Pix Qrcode Din - Des: Shpp Brasil Instituic 30/01",
+      "tipo": "débito",
+      "valor": 1553.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Resg/vencto Cdb Apl.invest Fac - Transfe Pix - Des: Suecia Pereira de Oli 30/01 Pix Qrcode Din - Des: Shpp Brasil Instituic 30/01",
+      "tipo": "débito",
+      "valor": 1000.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Resg/vencto Cdb Apl.invest Fac - Transfe Pix - Des: Suecia Pereira de Oli 30/01 Pix Qrcode Din - Des: Shpp Brasil Instituic 30/01",
+      "tipo": "débito",
+      "valor": 35.99,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Resgate Inv Fac Rent.inv.facil Transfe Pix Des: Eliane Costa Goncalve - 02/02 Pix Qrcode Din - Des: Iguasport Ltda 02/02 Pix Qrcode Din - Des: Shpp Br",
+      "tipo": "débito",
+      "valor": 220.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Resgate Inv Fac Rent.inv.facil Transfe Pix Des: Eliane Costa Goncalve - 02/02 Pix Qrcode Din - Des: Iguasport Ltda 02/02 Pix Qrcode Din - Des: Shpp Br",
+      "tipo": "débito",
+      "valor": 427.5,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Resgate Inv Fac Rent.inv.facil Transfe Pix Des: Eliane Costa Goncalve - 02/02 Pix Qrcode Din - Des: Iguasport Ltda 02/02 Pix Qrcode Din - Des: Shpp Br",
+      "tipo": "débito",
+      "valor": 88.5,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Resgate Inv Fac Rent.inv.facil Transfe Pix Des: Eliane Costa Goncalve - 02/02 Pix Qrcode Din - Des: Iguasport Ltda 02/02 Pix Qrcode Din - Des: Shpp Br",
+      "tipo": "débito",
+      "valor": 69.99,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Resgate Inv Fac Rent.inv.facil Transfe Pix Des: Eliane Costa Goncalve - 02/02 Pix Qrcode Din - Des: Iguasport Ltda 02/02 Pix Qrcode Din - Des: Shpp Br",
+      "tipo": "débito",
+      "valor": 54.6,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "bx Aut Poupanca Resgate Inv Fac Rent.inv.facil Ted Dif.titul - Dest. Neusa Cimar Teixeira",
+      "tipo": "débito",
+      "valor": 1500.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "bx Aut Poupanca Transf Autoriz - Odilia Gomes Dos Santos Transfe Pix - Des: Maria Gizelia Dos San 05/02 Receb Pagfor",
+      "tipo": "débito",
+      "valor": 75.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "bx Aut Poupanca Transf Autoriz - Odilia Gomes Dos Santos Transfe Pix - Des: Maria Gizelia Dos San 05/02 Receb Pagfor",
+      "tipo": "débito",
+      "valor": 70.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "Grpqa Ltda. Receb Pagfor Grpqa Ltda. Apl.invest Fac -",
+      "tipo": "débito",
+      "valor": 1509.15,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-18",
+      "descricao": "Resgate Inv Fac Conta Telefone - Claro S/a - Movel-",
+      "tipo": "débito",
+      "valor": 55.98,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "Resgate Inv Fac Rent.inv.facil Gasto c Credito -",
+      "tipo": "débito",
+      "valor": 779.77,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-02-24",
+      "descricao": "Resgate Inv Fac Rent.inv.facil Transfe Pix Des: Eliane Costa Goncalve - 24/02",
+      "tipo": "débito",
+      "valor": 220.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "Resgate Inv Fac Rent.inv.facil Transfe Pix - Des: Michele Aparecida da 01/03",
+      "tipo": "débito",
+      "valor": 70.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "bx Aut Poupanca Resgate Inv Fac Rent.inv.facil Ted Dif.titul - Dest. Neusa Cimar Teixeira",
+      "tipo": "débito",
+      "valor": 1500.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "bx Aut Poupanca Transfe Pix - Des: Patrycia Casetta 05/03 Transfe Pix - Des: Danielle de Almeida j 05/03",
+      "tipo": "débito",
+      "valor": 20.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "bx Aut Poupanca Transfe Pix - Des: Patrycia Casetta 05/03 Transfe Pix - Des: Danielle de Almeida j 05/03",
+      "tipo": "débito",
+      "valor": 100.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-09",
+      "descricao": "bx Aut Poupanca Pix Qrcode Din - Des: Moda Mundial Brasil p 07/03",
+      "tipo": "débito",
+      "valor": 32.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-10",
+      "descricao": "bx Aut Poupanca Transfe Pix Des: Eliane Costa Goncalve - 10/03 Receb Pagfor",
+      "tipo": "débito",
+      "valor": 220.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "Grpqa Ltda. Receb Pagfor Grpqa Ltda. Apl.invest Fac -",
+      "tipo": "débito",
+      "valor": 3397.35,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-12",
+      "descricao": "Resgate Inv Fac Transfe Pix Rem: Aline Lopes Oliveira 12/03 Transfe Pix - Des: Danielle de Almeida j 12/03 Transfe Pix",
+      "tipo": "débito",
+      "valor": 1000.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-13",
+      "descricao": "Rem: Danielle de Almeida j 13/03 Apl.invest Fac -",
+      "tipo": "débito",
+      "valor": 1000.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-16",
+      "descricao": "Resgate Inv Fac Conta Telefone - Claro S/a - Movel-",
+      "tipo": "débito",
+      "valor": 55.98,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-19",
+      "descricao": "Resgate Inv Fac Rent.inv.facil Transfe Pix - Des: Danielle de Almeida j 19/03",
+      "tipo": "débito",
+      "valor": 300.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "Resgate Inv Fac Rent.inv.facil Gasto c Credito - Transfe Pix - Des: Kate Costa Cristo de 20/03",
+      "tipo": "débito",
+      "valor": 316.67,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "Resgate Inv Fac Rent.inv.facil Gasto c Credito - Transfe Pix - Des: Kate Costa Cristo de 20/03",
+      "tipo": "débito",
+      "valor": 34.7,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "bx Aut Poupanca Resgate Inv Fac Rent.inv.facil Ted d Hbank* - Dest. Mariana Teixeira Fer",
+      "tipo": "débito",
+      "valor": 40000.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "bx Aut Poupanca Transfe Pix Rem: Aline Lopes Oliveira 25/03 Transfe Pix Des: Eliane Costa Goncalve - 25/03 Total - Os dados acima têm como base 29/03/",
+      "tipo": "débito",
+      "valor": 230.0,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-25",
+      "descricao": "bx Aut Poupanca Transfe Pix Rem: Aline Lopes Oliveira 25/03 Transfe Pix Des: Eliane Costa Goncalve - 25/03 Total - Os dados acima têm como base 29/03/",
+      "tipo": "débito",
+      "valor": 75324.78,
+      "saldo_apos": null
+    },
+    {
+      "data": "2026-03-27",
+      "descricao": "Rem: Samuel Dias da Costa 27/03 Total Saldos Invest Fácil Data Histórico Saldo (R$)",
+      "tipo": "crédito",
+      "valor": 20.0,
+      "saldo_apos": null
     },
     {
       "data": "2026-01-02",
-      "descricao": "Transfe Pix Des: Danielle de Almeida | 02/01",
-      "valor": -6.5,
-      "saldo_apos": 4.5,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 1482.15,
+      "saldo_apos": null
     },
     {
       "data": "2026-01-05",
-      "descricao": "bx Aut Poupanca",
-      "valor": 1673.05,
-      "saldo_apos": 1677.55,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-05",
-      "descricao": "Resgate Inv Fac",
-      "valor": 1481.58,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-05",
-      "descricao": "Rent.inv.facil",
-      "valor": 0.41,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-05",
-      "descricao": "Pagto Cobranca Condominio Living Wish",
-      "valor": -1126.71,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-05",
-      "descricao": "Pagto Cobranca Oma Condominio Locacao e Venda",
-      "valor": -531.83,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-05",
-      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
-      "valor": -1500.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-06",
-      "descricao": "bx Aut Poupanca",
-      "valor": 220.0,
-      "saldo_apos": 221.0,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-06",
-      "descricao": "Transfe Pix Des: Eliane Costa Goncalve 06/01",
-      "valor": -220.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 0.0,
+      "saldo_apos": null
     },
     {
       "data": "2026-01-09",
-      "descricao": "Receb Pagfor Grpqa Ltda.",
-      "valor": 315.81,
-      "saldo_apos": 316.81,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-09",
-      "descricao": "Receb Pagfor Grpqa Ltda.",
-      "valor": 4908.86,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-09",
-      "descricao": "Apl.invest Fac",
-      "valor": -5224.67,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 5224.67,
+      "saldo_apos": null
     },
     {
       "data": "2026-01-12",
-      "descricao": "Resgate Inv Fac",
-      "valor": 16.99,
-      "saldo_apos": 17.99,
-      "tipo": "credito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 5207.82,
+      "saldo_apos": null
     },
     {
-      "data": "2026-01-12",
-      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 10/01",
-      "valor": -16.99,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-14",
-      "descricao": "Resgate Inv Fac",
-      "valor": 355.13,
-      "saldo_apos": 356.13,
-      "tipo": "credito"
+      "data": "2026-01-13",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 5207.96,
+      "saldo_apos": null
     },
     {
       "data": "2026-01-14",
-      "descricao": "Pagto Cobranca Conselho Regional de Enfermagem",
-      "valor": -355.13,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 4852.95,
+      "saldo_apos": null
     },
     {
       "data": "2026-01-15",
-      "descricao": "Resgate Inv Fac",
-      "valor": 48.99,
-      "saldo_apos": 49.99,
-      "tipo": "credito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 4804.08,
+      "saldo_apos": null
     },
     {
-      "data": "2026-01-15",
-      "descricao": "Devolucao Pix Rem: Shpp Brasil Instituic 15/01",
-      "valor": 16.99,
-      "saldo_apos": null,
-      "tipo": "credito"
+      "data": "2026-01-16",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 4804.22,
+      "saldo_apos": null
     },
     {
-      "data": "2026-01-15",
-      "descricao": "Transfe Pix Des: Juliana Maria da Silv 15/01",
-      "valor": -10.0,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-15",
-      "descricao": "Conta Telefone Claro S/a - Movel-168982707",
-      "valor": -55.98,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "data": "2026-01-19",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 4804.35,
+      "saldo_apos": null
     },
     {
       "data": "2026-01-20",
-      "descricao": "bx Aut Poupanca",
-      "valor": 1782.63,
-      "saldo_apos": 1783.63,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-20",
-      "descricao": "Resgate Inv Fac",
-      "valor": 4803.56,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-20",
-      "descricao": "Rent.inv.facil",
-      "valor": 0.28,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-20",
-      "descricao": "Gasto c Credito",
-      "valor": -5599.47,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-20",
-      "descricao": "Transfe Pix Des: Eliane Costa Goncalve 20/01",
-      "valor": -220.0,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-20",
-      "descricao": "Pix Qrcode Din Des: Concavo e Convexo 20/01",
-      "valor": -767.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-21",
-      "descricao": "bx Aut Poupanca",
-      "valor": 3183.24,
-      "saldo_apos": 3184.24,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-21",
-      "descricao": "Pix Qrcode Din Des: Secretaria Municipal 21/01",
-      "valor": -3183.24,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-23",
-      "descricao": "bx Aut Poupanca",
-      "valor": 28.03,
-      "saldo_apos": 29.03,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-23",
-      "descricao": "Transfe Pix Des: Amanda Santos Santana 23/01",
-      "valor": -28.03,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-26",
-      "descricao": "bx Aut Poupanca",
-      "valor": 100.0,
-      "saldo_apos": 101.0,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-26",
-      "descricao": "Transfe Pix Des: Maria Engracia Alves 25/01",
-      "valor": -100.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-28",
-      "descricao": "bx Aut Poupanca",
-      "valor": 356.39,
-      "saldo_apos": 357.39,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-28",
-      "descricao": "Pix Qrcode Din Des: Moda Mundial Brasil p 28/01",
-      "valor": -194.96,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-28",
-      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
-      "valor": -69.99,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-28",
-      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
-      "valor": -21.9,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-28",
-      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
-      "valor": -69.54,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-29",
-      "descricao": "bx Aut Poupanca",
-      "valor": 86.66,
-      "saldo_apos": 87.66,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-29",
-      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 29/01",
-      "valor": -56.76,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-29",
-      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 29/01",
-      "valor": -29.9,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 0.0,
+      "saldo_apos": null
     },
     {
       "data": "2026-01-30",
-      "descricao": "Resg/vencto Cdb",
-      "valor": 2588.99,
-      "saldo_apos": 2589.99,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-01-30",
-      "descricao": "Apl.invest Fac",
-      "valor": -1553.0,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-30",
-      "descricao": "Transfe Pix Des: Suecia Pereira de Oli 30/01",
-      "valor": -1000.0,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-01-30",
-      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 30/01",
-      "valor": -35.99,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 1553.0,
+      "saldo_apos": null
     },
     {
       "data": "2026-02-02",
-      "descricao": "Resgate Inv Fac",
-      "valor": 860.58,
-      "saldo_apos": 861.58,
-      "tipo": "credito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 692.43,
+      "saldo_apos": null
     },
     {
-      "data": "2026-02-02",
-      "descricao": "Rent.inv.facil",
-      "valor": 0.01,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-02-02",
-      "descricao": "Transfe Pix Des: Eliane Costa Goncalve 02/02",
-      "valor": -220.0,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-02-02",
-      "descricao": "Pix Qrcode Din Des: Iguassuport Ltda 02/02",
-      "valor": -427.5,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-02-02",
-      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 01/02",
-      "valor": -88.5,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-02-02",
-      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 01/02",
-      "valor": -69.99,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-02-02",
-      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 01/02",
-      "valor": -54.6,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "data": "2026-02-03",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 692.45,
+      "saldo_apos": null
     },
     {
       "data": "2026-02-04",
-      "descricao": "bx Aut Poupanca",
-      "valor": 807.57,
-      "saldo_apos": 808.57,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-02-04",
-      "descricao": "Resgate Inv Fac",
-      "valor": 692.42,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-02-04",
-      "descricao": "Rent.inv.facil",
-      "valor": 0.01,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-02-04",
-      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
-      "valor": -1500.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-02-05",
-      "descricao": "bx Aut Poupanca",
-      "valor": 145.0,
-      "saldo_apos": 146.0,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-02-05",
-      "descricao": "Transf Autoriz Odilia Gomes Dos Santos",
-      "valor": -75.0,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-02-05",
-      "descricao": "Transfe Pix Des: Maria Gizelia Dos San 05/02",
-      "valor": -70.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 0.0,
+      "saldo_apos": null
     },
     {
       "data": "2026-02-11",
-      "descricao": "Receb Pagfor Grpqa Ltda.",
-      "valor": 507.0,
-      "saldo_apos": 508.0,
-      "tipo": "credito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 1509.15,
+      "saldo_apos": null
     },
     {
-      "data": "2026-02-11",
-      "descricao": "Receb Pagfor Grpqa Ltda.",
-      "valor": 1002.15,
-      "saldo_apos": null,
-      "tipo": "credito"
+      "data": "2026-02-12",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 1509.19,
+      "saldo_apos": null
     },
     {
-      "data": "2026-02-11",
-      "descricao": "Apl.invest Fac",
-      "valor": -1509.15,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "data": "2026-02-13",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 1509.23,
+      "saldo_apos": null
     },
     {
       "data": "2026-02-18",
-      "descricao": "Resgate Inv Fac",
-      "valor": 55.98,
-      "saldo_apos": 56.98,
-      "tipo": "credito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 1453.29,
+      "saldo_apos": null
     },
     {
-      "data": "2026-02-18",
-      "descricao": "Conta Telefone Claro S/a - Movel-168982707",
-      "valor": -55.98,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-02-20",
-      "descricao": "Resgate Inv Fac",
-      "valor": 779.74,
-      "saldo_apos": 780.74,
-      "tipo": "credito"
+      "data": "2026-02-19",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 1453.33,
+      "saldo_apos": null
     },
     {
       "data": "2026-02-20",
-      "descricao": "Rent.inv.facil",
-      "valor": 0.03,
-      "saldo_apos": null,
-      "tipo": "credito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 673.52,
+      "saldo_apos": null
     },
     {
-      "data": "2026-02-20",
-      "descricao": "Gasto c Credito",
-      "valor": -779.77,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-02-24",
-      "descricao": "Resgate Inv Fac",
-      "valor": 219.98,
-      "saldo_apos": 220.98,
-      "tipo": "credito"
+      "data": "2026-02-23",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 673.54,
+      "saldo_apos": null
     },
     {
       "data": "2026-02-24",
-      "descricao": "Rent.inv.facil",
-      "valor": 0.02,
-      "saldo_apos": null,
-      "tipo": "credito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 453.53,
+      "saldo_apos": null
     },
     {
-      "data": "2026-02-24",
-      "descricao": "Transfe Pix Des: Eliane Costa Goncalve 24/02",
-      "valor": -220.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-02-26",
-      "descricao": "Resgate Inv Fac",
-      "valor": 69.99,
-      "saldo_apos": 70.99,
-      "tipo": "credito"
+      "data": "2026-02-25",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 453.55,
+      "saldo_apos": null
     },
     {
       "data": "2026-02-26",
-      "descricao": "Rent.inv.facil",
-      "valor": 0.01,
-      "saldo_apos": null,
-      "tipo": "credito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 453.56,
+      "saldo_apos": null
     },
     {
-      "data": "2026-02-26",
-      "descricao": "Transfe Pix Des: Michele Aparecida da 01/03",
-      "valor": -70.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "data": "2026-02-27",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 453.57,
+      "saldo_apos": null
     },
     {
-      "data": "2026-03-04",
-      "descricao": "bx Aut Poupanca",
-      "valor": 1116.46,
-      "saldo_apos": 1117.46,
-      "tipo": "credito"
+      "data": "2026-03-02",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 383.57,
+      "saldo_apos": null
     },
     {
-      "data": "2026-03-04",
-      "descricao": "Resgate Inv Fac",
-      "valor": 383.46,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-04",
-      "descricao": "Rent.inv.facil",
-      "valor": 0.08,
-      "saldo_apos": null,
-      "tipo": "credito"
+      "data": "2026-03-03",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 383.58,
+      "saldo_apos": null
     },
     {
       "data": "2026-03-04",
-      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
-      "valor": -1500.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-03-05",
-      "descricao": "bx Aut Poupanca",
-      "valor": 120.0,
-      "saldo_apos": 121.0,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-05",
-      "descricao": "Transfe Pix Des: Patrycia Casetta 05/03",
-      "valor": -20.0,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-03-05",
-      "descricao": "Transfe Pix Des: Danielle de Almeida | 05/03",
-      "valor": -100.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-03-09",
-      "descricao": "bx Aut Poupanca",
-      "valor": 32.0,
-      "saldo_apos": 33.0,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-09",
-      "descricao": "Pix Qrcode Din Des: Moda Mundial Brasil p 07/03",
-      "valor": -32.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-03-10",
-      "descricao": "bx Aut Poupanca",
-      "valor": 220.0,
-      "saldo_apos": 221.0,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-10",
-      "descricao": "Transfe Pix Des: Eliane Costa Goncalve 10/03",
-      "valor": -220.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 0.0,
+      "saldo_apos": null
     },
     {
       "data": "2026-03-11",
-      "descricao": "Receb Pagfor Grpqa Ltda.",
-      "valor": 1607.9,
-      "saldo_apos": 1608.9,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-11",
-      "descricao": "Receb Pagfor Grpqa Ltda.",
-      "valor": 1789.45,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-11",
-      "descricao": "Apl.invest Fac",
-      "valor": -3397.35,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 3397.35,
+      "saldo_apos": null
     },
     {
       "data": "2026-03-12",
-      "descricao": "Resgate Inv Fac",
-      "valor": 995.11,
-      "saldo_apos": 996.11,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-12",
-      "descricao": "Transfe Pix Rem: Aline Lopes Oliveira 12/03",
-      "valor": 4.89,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-12",
-      "descricao": "Transfe Pix Des: Danielle de Almeida | 12/03",
-      "valor": -1000.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 2402.3,
+      "saldo_apos": null
     },
     {
       "data": "2026-03-13",
-      "descricao": "Transfe Pix Rem: Danielle de Almeida | 13/03",
-      "valor": 1000.0,
-      "saldo_apos": 1001.0,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-13",
-      "descricao": "Apl.invest Fac",
-      "valor": -1000.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 3402.37,
+      "saldo_apos": null
     },
     {
       "data": "2026-03-16",
-      "descricao": "Resgate Inv Fac",
-      "valor": 55.98,
-      "saldo_apos": 56.98,
-      "tipo": "credito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 3346.46,
+      "saldo_apos": null
     },
     {
-      "data": "2026-03-16",
-      "descricao": "Conta Telefone Claro S/a - Movel-168982707",
-      "valor": -55.98,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "data": "2026-03-17",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 3346.53,
+      "saldo_apos": null
     },
     {
-      "data": "2026-03-19",
-      "descricao": "Resgate Inv Fac",
-      "valor": 299.99,
-      "saldo_apos": 300.99,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-19",
-      "descricao": "Rent.inv.facil",
-      "valor": 0.01,
-      "saldo_apos": null,
-      "tipo": "credito"
+      "data": "2026-03-18",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 3346.61,
+      "saldo_apos": null
     },
     {
       "data": "2026-03-19",
-      "descricao": "Transfe Pix Des: Danielle de Almeida | 19/03",
-      "valor": -300.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 3046.64,
+      "saldo_apos": null
     },
     {
       "data": "2026-03-20",
-      "descricao": "Resgate Inv Fac",
-      "valor": 351.35,
-      "saldo_apos": 352.35,
-      "tipo": "credito"
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 2695.29,
+      "saldo_apos": null
     },
     {
-      "data": "2026-03-20",
-      "descricao": "Rent.inv.facil",
-      "valor": 0.02,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-20",
-      "descricao": "Gasto c Credito",
-      "valor": -316.67,
-      "saldo_apos": null,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-03-20",
-      "descricao": "Transfe Pix Des: Kate Costa Cristo de 20/03",
-      "valor": -34.7,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "data": "2026-03-23",
+      "descricao": "Saldo Invest Fácil",
+      "tipo": "crédito",
+      "valor": 2695.35,
+      "saldo_apos": null
     },
     {
       "data": "2026-03-24",
-      "descricao": "bx Aut Poupanca",
-      "valor": 37304.9,
-      "saldo_apos": 37305.9,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-24",
-      "descricao": "Resgate Inv Fac",
-      "valor": 2694.92,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-24",
-      "descricao": "Rent.inv.facil",
-      "valor": 0.18,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-24",
-      "descricao": "Ted d Hbank* Dest. Mariana Teixeira Fer",
-      "valor": -40000.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
-    },
-    {
-      "data": "2026-03-25",
-      "descricao": "bx Aut Poupanca",
-      "valor": 210.0,
-      "saldo_apos": 211.0,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-25",
-      "descricao": "Transfe Pix Rem: Aline Lopes Oliveira 25/03",
-      "valor": 20.0,
-      "saldo_apos": null,
-      "tipo": "credito"
-    },
-    {
-      "data": "2026-03-25",
-      "descricao": "Transfe Pix Des: Eliane Costa Goncalve 25/03",
-      "valor": -230.0,
-      "saldo_apos": 1.0,
-      "tipo": "debito"
+      "descricao": "Saldo Invest Fácil Os dados acima têm como base 29/03/2026 às 21h45 e estão sujeitos a alterações. Fone Fácil Bradesco Capitais e Regiões Metropolitan",
+      "tipo": "crédito",
+      "valor": 0.0,
+      "saldo_apos": null
     }
-  ]
+  ],
+  "total_periodo": {
+    "total_debitos": 150649.56,
+    "total_creditos": 78387.59000000001,
+    "saldo_liquido": -72261.96999999999
+  }
 }

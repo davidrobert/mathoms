@@ -1,145 +1,136 @@
 {
-  "tipo": "curriculo",
-  "membro": "david",
-  "nome_completo": "David Robert Camargo Ferreira Campos",
-  "nome_atual": "David Robert Camargo Ferreira Campos",
-  "profissao_cargo": "Chief Technology Officer (CTO) na Arvo",
-  "experiencias": [
+  "tipo": "curriculo_1a_extract",
+  "data_geracao": "2026-04-06",
+  "fonte_documento": "David CV (DOCX, English)",
+  "cpf": "287.766.948-36",
+  "nome_no_documento": "David Robert Camargo Ferreira Campos",
+  "nome_solteiro": "David Robert Camargo de Campos",
+  "nascimento": "1981-09-05",
+  "data_extracao": "2026-04-06",
+  "idioma_cv": "English",
+  "idiomas_inferidos": ["Portuguese (nativo)", "English (fluente)"],
+  "educacao": [
+    {
+      "grau": "Master",
+      "campo": "Computer Science / AI",
+      "instituicao": "USP/IME",
+      "ano_conclusao": 2008
+    },
+    {
+      "grau": "Bachelor",
+      "campo": "Computer Science",
+      "instituicao": "PUC/SP",
+      "ano_conclusao": 2004
+    }
+  ],
+  "historico_profissional": [
     {
       "empresa": "Arvo",
-      "cargo": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "PJ",
+      "cargo": "CTO",
       "data_inicio": "2025-09",
       "data_fim": "presente",
-      "descricao": "Healthtech brasileira de auditoria de contas médicas e detecção de fraudes com IA. Dirige estratégia tecnológica, governança de IA e frameworks de cibersegurança (LGPD, HIPAA)."
+      "tipo_contrato_inferido": "PJ"
     },
     {
       "empresa": "Kiwify",
-      "cargo": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "CLT",
+      "cargo": "CTO",
       "data_inicio": "2024-06",
       "data_fim": "2025-05",
-      "descricao": "Plataforma de e-commerce e produtos digitais. Estruturou 5 squads, otimizou infra para 7.000 req/min, lançou vendas internacionais com multi-moeda."
+      "tipo_contrato_inferido": "CLT"
     },
     {
       "empresa": "Loft",
-      "cargo": "Software Engineering Consultant",
-      "tipo_vinculo": "PJ",
-      "data_inicio": "2022-12",
-      "data_fim": "2024-06",
-      "descricao": "Proptech. Gestão de +60 engenheiros, integração tecnológica CrediHome/CredPago, redução de custos cloud em 30%."
-    },
-    {
-      "empresa": "Loft",
-      "cargo": "Director of Software Engineering",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2021-11",
-      "data_fim": "2022-12",
-      "descricao": "Recrutamento e onboarding de +70 engenheiros, migração para microservices, implementação LGPD."
-    },
-    {
-      "empresa": "Loft",
-      "cargo": "Engineering Manager",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2019-06",
-      "data_fim": "2021-10",
-      "descricao": "Liderou squads cross-funcionais, definiu princípios de engenharia, reduziu turnover em 20%."
+      "posicoes": [
+        {
+          "cargo": "Director of Software Engineering",
+          "data_inicio": "2021-11",
+          "data_fim": "2022-12"
+        },
+        {
+          "cargo": "Software Engineering Consultant",
+          "data_inicio": "2022-12",
+          "data_fim": "2024-06"
+        },
+        {
+          "cargo": "Engineering Manager",
+          "data_inicio": "2019-06",
+          "data_fim": "2021-10"
+        }
+      ]
     },
     {
       "empresa": "Elo7",
-      "cargo": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "PJ",
+      "cargo": "CTO",
       "data_inicio": "2013-08",
-      "data_fim": "2020-07",
-      "descricao": "E-commerce de produtos criativos e artesanais. Gestão de 70 engenheiros, arquitetura microservices, redução de custos AWS em 35%."
+      "data_fim": "2020-07"
     },
     {
       "empresa": "Abril",
       "cargo": "Solutions Architect I",
-      "tipo_vinculo": "CLT",
       "data_inicio": "2012-03",
-      "data_fim": "2013-08",
-      "descricao": "Grupo de mídia. Arquitetura distribuída da plataforma Alexandria (Veja, Exame, Placar)."
+      "data_fim": "2013-08"
     },
     {
       "empresa": "TOTVS",
-      "cargo": "Research and Development Engineer IV",
-      "tipo_vinculo": "CLT",
+      "cargo": "R&D Engineer IV",
       "data_inicio": "2011-02",
-      "data_fim": "2012-03",
-      "descricao": "Desenvolvimento e manutenção de máquina virtual proprietária em C/C++/Assembly. Redução de 35% no consumo de memória."
+      "data_fim": "2012-03"
     },
     {
       "empresa": "NIC.br",
       "cargo": "Software Engineer",
-      "tipo_vinculo": "CLT",
       "data_inicio": "2006-04",
-      "data_fim": "2011-01",
-      "descricao": "Infraestrutura de internet do Brasil. Desenvolvimento DNSSHIM, servidor DNS proprietário com DNSSEC. Palestras em GTER, Campus Party."
+      "data_fim": "2011-01"
     },
     {
       "empresa": "Agência Estado",
-      "cargo": "Jr System Analyst / Trainee",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2002-06",
-      "data_fim": "2006-03",
-      "descricao": "Agência de notícias financeiras. Desenvolvimento de ferramentas para portal Estadão, sistema de visualização digital dos jornais."
-    }
-  ],
-  "formacao": [
-    {
-      "instituicao": "Universidade de São Paulo (USP), Instituto de Matemática e Estatística (IME)",
-      "curso": "Mestrado em Ciência da Computação — Inteligência Artificial",
-      "grau": "mestrado",
-      "data_conclusao": "2008"
+      "posicoes": [
+        {
+          "cargo": "Jr System Analyst",
+          "data_inicio": "2004-01",
+          "data_fim": "2006-03"
+        },
+        {
+          "cargo": "Trainee",
+          "data_inicio": "2002-06",
+          "data_fim": "2003-12"
+        }
+      ]
     },
     {
-      "instituicao": "Pontifícia Universidade Católica de São Paulo (PUC/SP)",
-      "curso": "Bacharelado em Ciência da Computação",
-      "grau": "graduacao",
-      "data_conclusao": "2004"
+      "empresa": "Brazilian Army CPOR/SP",
+      "cargo": "Aspiring Officer",
+      "data_inicio": "2000-01",
+      "data_fim": "2000-12"
+    },
+    {
+      "empresa": "Brazilian Army 2nd Armored Communication Company",
+      "cargo": "Instruction Internship",
+      "data_inicio": "2001-07",
+      "data_fim": "2001-07"
     }
   ],
   "certificacoes": [
-    {
-      "nome": "Oracle Certified Professional, Java SE 5 Programmer",
-      "instituicao": "Oracle"
-    },
-    {
-      "nome": "Innovation Leadership",
-      "instituicao": "Massachusetts Institute of Technology (MIT)"
-    },
-    {
-      "nome": "Duolingo English Test",
-      "instituicao": "Duolingo"
-    }
+    "Oracle Java SE 5",
+    "Duolingo English Test",
+    "MIT Innovation Leadership (2021)",
+    "Outros (conforme CV)"
   ],
-  "habilidades": [
-    "Arquitetura de software",
-    "Platform design",
-    "Domain-Driven Design (DDD)",
-    "Sistemas escaláveis de alta disponibilidade",
-    "Cloud Computing (AWS, GCP, Cloudflare)",
+  "competencias_tecnicas": [
+    "Java",
+    "C++",
+    "Python",
+    "Go",
+    "Kotlin",
+    "JavaScript",
+    "Ruby",
     "Microservices",
-    "DevOps e CI/CD",
-    "Integração AI/ML",
-    "Segurança e compliance (LGPD, HIPAA)",
-    "Liderança técnica",
-    "Gestão de equipes (100+ engenheiros)",
-    "Agile (Scrum, Kanban)",
-    "Engenharia de infraestrutura",
-    "Java, Python, Go, Kotlin, C/C++, Ruby"
+    "AWS",
+    "GCP",
+    "Kubernetes",
+    "Docker",
+    "DNSSEC",
+    "AI/ML"
   ],
-  "idiomas": [
-    {
-      "idioma": "Português",
-      "nivel": "nativo",
-      "fonte": "documento"
-    },
-    {
-      "idioma": "Inglês",
-      "nivel": "fluente",
-      "fonte": "documento"
-    }
-  ]
+  "notas": "CV em inglês; trabalha no Brasil; certificação Duolingo + cursos MIT indicam English fluente; Portuguese nativo inferido"
 }

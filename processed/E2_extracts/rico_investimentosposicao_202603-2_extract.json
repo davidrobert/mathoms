@@ -6,108 +6,94 @@
   "moeda": "BRL",
   "total_aplicado": 261730.24,
   "saldo_atual": 278916.64,
-  "rentabilidade": {
-    "valor": null,
-    "percentual": null,
-    "pm_note": "Rentabilidade calculada implicitamente: (278916.64 - 261730.24) / 261730.24"
-  },
   "composicao": [
     {
-      "tipo_produto": "fundo",
+      "tipo_produto": "Fundo de Investimento",
       "nome": "Alaska Black FIC de FIA - BDR NÍVEL I",
       "quantidade": null,
       "valor_unitario": null,
       "valor_total": 52443.66,
-      "percentual_carteira": 18.8,
-      "rentabilidade_instrumento": -13.24,
-      "valor_aplicado": 60000.0
+      "percentual_carteira": 18.8
     },
     {
-      "tipo_produto": "fundo",
+      "tipo_produto": "Fundo de Investimento",
       "nome": "Alaska Institucional Long Only FIF em Ações RL",
       "quantidade": null,
       "valor_unitario": null,
       "valor_total": 52294.2,
-      "percentual_carteira": 18.75,
-      "rentabilidade_instrumento": 42.0,
-      "valor_aplicado": 35000.0
+      "percentual_carteira": 18.75
     },
     {
-      "tipo_produto": "fundo",
-      "nome": "Safari 30 FIC em FIA",
+      "tipo_produto": "Fundo de Investimento",
+      "nome": "Safari 30 FIF em Cotas de FIM II",
       "quantidade": null,
       "valor_unitario": null,
       "valor_total": 16613.5,
-      "percentual_carteira": 5.96,
-      "rentabilidade_instrumento": -34.17,
-      "valor_aplicado": 25238.59
+      "percentual_carteira": 5.96
     },
     {
-      "tipo_produto": "fundo",
+      "tipo_produto": "Fundo de Investimento",
       "nome": "Constellation Institucional Advisory FIC de Ações RL",
       "quantidade": null,
       "valor_unitario": null,
       "valor_total": 12585.32,
-      "percentual_carteira": 4.51,
-      "rentabilidade_instrumento": 24.09,
-      "valor_aplicado": 10000.0
+      "percentual_carteira": 4.51
     },
     {
-      "tipo_produto": "fundo",
+      "tipo_produto": "Fundo de Investimento",
       "nome": "Western Asset BDR FIF",
       "quantidade": null,
       "valor_unitario": null,
       "valor_total": 25913.09,
-      "percentual_carteira": 9.29,
-      "rentabilidade_instrumento": 39.78,
-      "valor_aplicado": null
+      "percentual_carteira": 9.29
     },
     {
-      "tipo_produto": "fundo",
+      "tipo_produto": "Fundo de Investimento",
       "nome": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
       "quantidade": null,
       "valor_unitario": null,
       "valor_total": 3264.13,
-      "percentual_carteira": 1.17,
-      "rentabilidade_instrumento": 62.54,
-      "valor_aplicado": 2008.21
+      "percentual_carteira": 1.17
     },
     {
-      "tipo_produto": "fundo",
+      "tipo_produto": "Fundo de Investimento",
       "nome": "XP Alocação Sofisticada FIM CP RL",
       "quantidade": null,
       "valor_unitario": null,
       "valor_total": 1576.08,
-      "percentual_carteira": 0.57,
-      "rentabilidade_instrumento": 16.18,
-      "valor_aplicado": 1356.59
+      "percentual_carteira": 0.57
     },
     {
-      "tipo_produto": "acao",
+      "tipo_produto": "Ação",
       "nome": "PETR4",
-      "quantidade": 1700.0,
+      "quantidade": 1700,
       "valor_unitario": 49.38,
       "valor_total": 83946.0,
-      "percentual_carteira": 30.1,
-      "rentabilidade_instrumento": null
+      "percentual_carteira": 30.1
     },
     {
-      "tipo_produto": "acao",
+      "tipo_produto": "Ação",
       "nome": "ITSA4",
-      "quantidade": 778.0,
+      "quantidade": 763,
       "valor_unitario": 13.22,
       "valor_total": 10285.16,
-      "percentual_carteira": 3.69,
-      "rentabilidade_instrumento": null
+      "percentual_carteira": 3.69
     },
     {
-      "tipo_produto": "acao",
+      "tipo_produto": "Ação",
       "nome": "BRKM5",
-      "quantidade": 300.0,
+      "quantidade": 300,
       "valor_unitario": 9.0,
       "valor_total": 2700.0,
-      "percentual_carteira": 0.97,
-      "rentabilidade_instrumento": null
+      "percentual_carteira": 0.97
+    },
+    {
+      "tipo_produto": "pm_note",
+      "nome": "Stocks without applied_value",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": null,
+      "percentual_carteira": null
     }
   ]
 }
