@@ -1,32 +1,11 @@
 {
+  "banco": "Itaú",
   "tipo": "investimentosposicao",
-  "instituicao": "itau",
-  "membro": "david",
-  "data_posicao": "2026-03-29",
-  "moeda": "BRL",
-  "total_aplicado": 341581.2,
-  "saldo_atual": 341581.2,
-  "composicao": [
-    {
-      "tipo_produto": "CDB",
-      "nome": "CDB-DI",
-      "quantidade": 1.0,
-      "valor_unitario": 116374.26,
-      "valor_total": 116374.26
-    },
-    {
-      "tipo_produto": "Previdência",
-      "nome": "Itau Prev Corp Platinum Rv49 Mm Pgbl",
-      "quantidade": 1.0,
-      "valor_unitario": 18715.24,
-      "valor_total": 18715.24
-    },
-    {
-      "tipo_produto": "Cofrinhos",
-      "nome": "Cofrinhos",
-      "quantidade": 1.0,
-      "valor_unitario": 206491.7,
-      "valor_total": 206491.7
-    }
-  ]
+  "data_posicao": "2026-03-02",
+  "saldo_total": 0,
+  "composicao": [],
+  "periodo": {
+    "inicio": "2026-03-01",
+    "fim": "2026-03-31"
+  }
 }

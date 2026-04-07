@@ -418,7 +418,7 @@
   ],
   "parse_quality": "ok",
   "periodo": {
-    "data_inicio": "2024-07-30",
-    "data_fim": "2024-08-24"
+    "inicio": "2025-09-01",
+    "fim": "2025-09-30"
   }
 }

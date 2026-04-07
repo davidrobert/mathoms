@@ -1,513 +1,147 @@
 {
-  "tipo": "baseline_patrimonial",
-  "versao": "1.5",
-  "data_consolidacao": "2026-04-06",
-  "membros": {
-    "david": {
-      "nome": "David Robert Camargo Ferreira Campos",
-      "total_bens": 2509962.029999999,
-      "total_dividas": 0,
-      "bens": {
-        "imoveis": [
-          {
-            "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
-            "description": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
-            "valor_31_12_ano_base": 350000.0,
-            "valor": 350000.0,
-            "grupo": "01",
-            "codigo": "11"
-          },
-          {
-            "descricao": "APARTAMENTO - EDIFICIO GISELE - APTO 12 COM VAGA DE GARAGEM - ALIENACAO FIDUCIARIA ITAU",
-            "description": "APARTAMENTO - EDIFICIO GISELE - APTO 12 COM VAGA DE GARAGEM - ALIENACAO FIDUCIARIA ITAU",
-            "valor_31_12_ano_base": 212706.24,
-            "valor": 212706.24,
-            "grupo": "01",
-            "codigo": "11"
-          },
-          {
-            "descricao": "COMPRA E VENDA DE CASA - PARTICIPACAO 100%",
-            "description": "COMPRA E VENDA DE CASA - PARTICIPACAO 100%",
-            "valor_31_12_ano_base": 80000.0,
-            "valor": 80000.0,
-            "grupo": "01",
-            "codigo": "12"
-          },
-          {
-            "descricao": "CASA - RUA TASSO DA SILVEIRA, 61 - FINANCIAMENTO QUITADO CAIXA",
-            "description": "CASA - RUA TASSO DA SILVEIRA, 61 - FINANCIAMENTO QUITADO CAIXA",
-            "valor_31_12_ano_base": 996821.46,
-            "valor": 996821.46,
-            "grupo": "01",
-            "codigo": "12"
-          }
-        ],
-        "veiculos": [
-          {
-            "descricao": "MOTOCICLETA YAMAHA NMAX - PRETA - PLACA DAV0351 - ANO 2018",
-            "description": "MOTOCICLETA YAMAHA NMAX - PRETA - PLACA DAV0351 - ANO 2018",
-            "valor_31_12_ano_base": 15093.0,
-            "valor": 15093.0,
-            "grupo": "02",
-            "codigo": "01"
-          },
-          {
-            "descricao": "MOTOCICLETA YAMAHA MT 09 TRACER - AZUL - PLACA DAV 0342 - ANO 2018",
-            "description": "MOTOCICLETA YAMAHA MT 09 TRACER - AZUL - PLACA DAV 0342 - ANO 2018",
-            "valor_31_12_ano_base": 0,
-            "valor": 0,
-            "grupo": "02",
-            "codigo": "01"
-          },
-          {
-            "descricao": "CARRO FIAT TORO ULTRA - COR AZUL - PLACA GDK6A27",
-            "description": "CARRO FIAT TORO ULTRA - COR AZUL - PLACA GDK6A27",
-            "valor_31_12_ano_base": 191354.0,
-            "valor": 191354.0,
-            "grupo": "02",
-            "codigo": "01"
-          },
-          {
-            "descricao": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA STH2C88",
-            "description": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA STH2C88",
-            "valor_31_12_ano_base": 21029.0,
-            "valor": 21029.0,
-            "grupo": "02",
-            "codigo": "01"
-          }
-        ],
-        "investimentos": [
-          {
-            "descricao": "ACOES - ITSA4 - QUANTIDADE 693",
-            "description": "ACOES - ITSA4 - QUANTIDADE 693",
-            "valor_31_12_ano_base": 0,
-            "valor": 0,
-            "grupo": "03",
-            "codigo": "01"
-          },
-          {
-            "descricao": "ACOES - BRKM5 - QUANTIDADE 300",
-            "description": "ACOES - BRKM5 - QUANTIDADE 300",
-            "valor_31_12_ano_base": 0,
-            "valor": 0,
-            "grupo": "03",
-            "codigo": "01"
-          },
-          {
-            "descricao": "ACOES - PETR4 - QUANTIDADE 300",
-            "description": "ACOES - PETR4 - QUANTIDADE 300",
-            "valor_31_12_ano_base": 0,
-            "valor": 0,
-            "grupo": "03",
-            "codigo": "01"
-          },
-          {
-            "descricao": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL",
-            "description": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL",
-            "valor_31_12_ano_base": 0,
-            "valor": 0,
-            "grupo": "04",
-            "codigo": "01"
-          },
-          {
-            "descricao": "BANCO ITAU - APLICACAO RENDA FIXA - RDB/CDP AG/CONTA 9652/0004397-8",
-            "description": "BANCO ITAU - APLICACAO RENDA FIXA - RDB/CDP AG/CONTA 9652/0004397-8",
-            "valor_31_12_ano_base": 151602.49,
-            "valor": 151602.49,
-            "grupo": "04",
-            "codigo": "02"
-          },
-          {
-            "descricao": "BANCO PICPAY BANK - AGENCIA: 0001 CONTA: 438329-0",
-            "description": "BANCO PICPAY BANK - AGENCIA: 0001 CONTA: 438329-0",
-            "valor_31_12_ano_base": 46684.62,
-            "valor": 46684.62,
-            "grupo": "04",
-            "codigo": "02"
-          },
-          {
-            "descricao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB) AG 1652 - CONTA 010013416",
-            "description": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB) AG 1652 - CONTA 010013416",
-            "valor_31_12_ano_base": 243285.37,
-            "valor": 243285.37,
-            "grupo": "04",
-            "codigo": "02"
-          },
-          {
-            "descricao": "BANCO C6 - APLICACAO EM RENDA FIXA",
-            "description": "BANCO C6 - APLICACAO EM RENDA FIXA",
-            "valor_31_12_ano_base": 1765.0,
-            "valor": 1765.0,
-            "grupo": "04",
-            "codigo": "02"
-          },
-          {
-            "descricao": "SALDO EM RDB NO NUBANK",
-            "description": "SALDO EM RDB NO NUBANK",
-            "valor_31_12_ano_base": 189.3,
-            "valor": 189.3,
-            "grupo": "04",
-            "codigo": "02"
-          },
-          {
-            "descricao": "BANCO CAIXA - CONTA CORRENTE - AG 1218 CONTA 22539-4",
-            "description": "BANCO CAIXA - CONTA CORRENTE - AG 1218 CONTA 22539-4",
-            "valor_31_12_ano_base": 230.53,
-            "valor": 230.53,
-            "grupo": "06",
-            "codigo": "01"
-          },
-          {
-            "descricao": "BANCO ITAU - CONTA CORRENTE",
-            "description": "BANCO ITAU - CONTA CORRENTE",
-            "valor_31_12_ano_base": 1.01,
-            "valor": 1.01,
-            "grupo": "06",
-            "codigo": "01"
-          },
-          {
-            "descricao": "DEPOSITO EM CONTA CORRENTE DEPOSITO A VISTA OU INVESTIMENTO",
-            "description": "DEPOSITO EM CONTA CORRENTE DEPOSITO A VISTA OU INVESTIMENTO",
-            "valor_31_12_ano_base": 4936.98,
-            "valor": 4936.98,
-            "grupo": "06",
-            "codigo": "01"
-          },
-          {
-            "descricao": "RICO - SALDO EM CONTA - XP INVESTIMENTOS CCTVM S/A",
-            "description": "RICO - SALDO EM CONTA - XP INVESTIMENTOS CCTVM S/A",
-            "valor_31_12_ano_base": 34433.67,
-            "valor": 34433.67,
-            "grupo": "06",
-            "codigo": "11"
-          },
-          {
-            "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR - ILHAS CAYMAN - AG 0001/CC 100348783-7",
-            "description": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR - ILHAS CAYMAN - AG 0001/CC 100348783-7",
-            "valor_31_12_ano_base": 8546.95,
-            "valor": 8546.95,
-            "grupo": "06",
-            "codigo": "99"
-          },
-          {
-            "descricao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F",
-            "description": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F",
-            "valor_31_12_ano_base": 484.8,
-            "valor": 484.8,
-            "grupo": "07",
-            "codigo": "01"
-          },
-          {
-            "descricao": "RICO - DNA ENERGY FIC FIM CP",
-            "description": "RICO - DNA ENERGY FIC FIM CP",
-            "valor_31_12_ano_base": 1416.09,
-            "valor": 1416.09,
-            "grupo": "07",
-            "codigo": "01"
-          },
-          {
-            "descricao": "RICO - CONSTELLATION INSTITUCIONAL ADVI",
-            "description": "RICO - CONSTELLATION INSTITUCIONAL ADVI",
-            "valor_31_12_ano_base": 11409.17,
-            "valor": 11409.17,
-            "grupo": "07",
-            "codigo": "04"
-          },
-          {
-            "descricao": "RICO - WESTERN ASSET FIA BDR NIVEL I",
-            "description": "RICO - WESTERN ASSET FIA BDR NIVEL I",
-            "valor_31_12_ano_base": 17651.61,
-            "valor": 17651.61,
-            "grupo": "07",
-            "codigo": "04"
-          },
-          {
-            "descricao": "RICO - ALASKA BLACK FIC FIA - BDR",
-            "description": "RICO - ALASKA BLACK FIC FIA - BDR",
-            "valor_31_12_ano_base": 60000.0,
-            "valor": 60000.0,
-            "grupo": "07",
-            "codigo": "04"
-          },
-          {
-            "descricao": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR",
-            "description": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR",
-            "valor_31_12_ano_base": 35000.0,
-            "valor": 35000.0,
-            "grupo": "07",
-            "codigo": "04"
-          },
-          {
-            "descricao": "RICO - SAFARI 30 FIC FIM II",
-            "description": "RICO - SAFARI 30 FIC FIM II",
-            "valor_31_12_ano_base": 25238.59,
-            "valor": 25238.59,
-            "grupo": "07",
-            "codigo": "04"
-          }
-        ]
-      }
-    },
-    "mariana": {
-      "nome": "Mariana Ferreira Campos",
-      "total_bens": 988123.7300000001,
-      "total_dividas": 0,
-      "bens": {
-        "imoveis": [
-          {
-            "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA PLANTA DA EMPRESA CYRELA MAGIKLZ CAMPINAS",
-            "description": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA PLANTA DA EMPRESA CYRELA MAGIKLZ CAMPINAS",
-            "valor_31_12_ano_base": 270000.0,
-            "valor": 270000.0,
-            "grupo": "01",
-            "codigo": "11"
-          },
-          {
-            "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS EMPREENDIMENTOS IMOBILIARIOS LTDA",
-            "description": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS EMPREENDIMENTOS IMOBILIARIOS LTDA",
-            "valor_31_12_ano_base": 530000.0,
-            "valor": 530000.0,
-            "grupo": "01",
-            "codigo": "11"
-          }
-        ],
-        "veiculos": [],
-        "investimentos": [
-          {
-            "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
-            "description": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
-            "valor_31_12_ano_base": 0,
-            "valor": 0,
-            "grupo": "04",
-            "codigo": "01"
-          },
-          {
-            "descricao": "BTG - PRODUTO CDBB2353UR4",
-            "description": "BTG - PRODUTO CDBB2353UR4",
-            "valor_31_12_ano_base": 22000.0,
-            "valor": 22000.0,
-            "grupo": "04",
-            "codigo": "02"
-          },
-          {
-            "descricao": "BTG - CDB-SR - AGENCIA 0001",
-            "description": "BTG - CDB-SR - AGENCIA 0001",
-            "valor_31_12_ano_base": 3429.16,
-            "valor": 3429.16,
-            "grupo": "04",
-            "codigo": "02"
-          },
-          {
-            "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
-            "description": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
-            "valor_31_12_ano_base": 0,
-            "valor": 0,
-            "grupo": "04",
-            "codigo": "02"
-          },
-          {
-            "descricao": "SALDO RDB - NUBANK",
-            "description": "SALDO RDB - NUBANK",
-            "valor_31_12_ano_base": 0,
-            "valor": 0,
-            "grupo": "04",
-            "codigo": "02"
-          },
-          {
-            "descricao": "BTG - PRODUTO CDB524BFK2F",
-            "description": "BTG - PRODUTO CDB524BFK2F",
-            "valor_31_12_ano_base": 10000.0,
-            "valor": 10000.0,
-            "grupo": "04",
-            "codigo": "02"
-          },
-          {
-            "descricao": "BTG - PRODUTO 22J1410500",
-            "description": "BTG - PRODUTO 22J1410500",
-            "valor_31_12_ano_base": 9349.69,
-            "valor": 9349.69,
-            "grupo": "04",
-            "codigo": "03"
-          },
-          {
-            "descricao": "BTG - PRODUTO 22K1692411",
-            "description": "BTG - PRODUTO 22K1692411",
-            "valor_31_12_ano_base": 10324.25,
-            "valor": 10324.25,
-            "grupo": "04",
-            "codigo": "03"
-          },
-          {
-            "descricao": "BTG - PRODUTO CRA02300MZU",
-            "description": "BTG - PRODUTO CRA02300MZU",
-            "valor_31_12_ano_base": 9115.01,
-            "valor": 9115.01,
-            "grupo": "04",
-            "codigo": "03"
-          },
-          {
-            "descricao": "BTG - PRODUTO CRA02300SPD",
-            "description": "BTG - PRODUTO CRA02300SPD",
-            "valor_31_12_ano_base": 9109.54,
-            "valor": 9109.54,
-            "grupo": "04",
-            "codigo": "03"
-          },
-          {
-            "descricao": "BTG - PRODUTO CRA024001Q9",
-            "description": "BTG - PRODUTO CRA024001Q9",
-            "valor_31_12_ano_base": 9248.83,
-            "valor": 9248.83,
-            "grupo": "04",
-            "codigo": "03"
-          },
-          {
-            "descricao": "BTG - PRODUTO 23J0138431",
-            "description": "BTG - PRODUTO 23J0138431",
-            "valor_31_12_ano_base": 9164.03,
-            "valor": 9164.03,
-            "grupo": "04",
-            "codigo": "03"
-          },
-          {
-            "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
-            "description": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
-            "valor_31_12_ano_base": 0,
-            "valor": 0,
-            "grupo": "06",
-            "codigo": "01"
-          },
-          {
-            "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LO",
-            "description": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LO",
-            "valor_31_12_ano_base": 41408.87,
-            "valor": 41408.87,
-            "grupo": "07",
-            "codigo": "01"
-          },
-          {
-            "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI",
-            "description": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI",
-            "valor_31_12_ano_base": 4494.93,
-            "valor": 4494.93,
-            "grupo": "07",
-            "codigo": "01"
-          },
-          {
-            "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRIVADO LONGO PRAZO",
-            "description": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRIVADO LONGO PRAZO",
-            "valor_31_12_ano_base": 25479.42,
-            "valor": 25479.42,
-            "grupo": "07",
-            "codigo": "07"
-          },
-          {
-            "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE INVESTIMENTO FINANCEIRO EM INFRAESTRUTURA RENDA FIXA",
-            "description": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE INVESTIMENTO FINANCEIRO EM INFRAESTRUTURA RENDA FIXA",
-            "valor_31_12_ano_base": 25000.0,
-            "valor": 25000.0,
-            "grupo": "07",
-            "codigo": "10"
-          }
-        ]
-      }
-    }
-  },
-  "fontes": [
-    "receitafederal_irpfdeclaracao_2024 (David, ano-base 2024)",
-    "receitafederal_irpfdeclaracao_2023 (Mariana*, ano-base 2023)",
-    "receitafederal_irpfdeclaracaomariana_2024 (Mariana, ano-base 2024)",
-    "receitafederal_irpfrecibo_2024 (David)",
-    "receitafederal_irpfrecibomariana_2024 (Mariana)",
-    "quintoandar_informerendimentosaluguel_2025 (David)",
-    "quintoandar_informerendimentosaluguelmariana_2025 (Mariana)",
-    "dados_imoveis-0_original.xlsx"
-  ],
-  "imoveis": {
-    "total": 6,
-    "david_familia": [
+  "stage": "E1.5",
+  "description": "Baseline Patrimonial - Ferreira Campos Family",
+  "extraction_date": "2026-04-07T13:20:32.241332",
+  "base_year": 2024,
+  "family": {
+    "surname": "Ferreira Campos",
+    "members": [
       {
-        "nome": "Apartamento Praça Benedito Calixto",
-        "tipo": "apartamento",
-        "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
-        "valor_compra": 348000.0,
-        "uso": "aluguel",
-        "titular": "david"
+        "name": "David Robert Camargo Ferreira Campos",
+        "cpf": "287.766.948-36",
+        "birth_date": "1981-09-05",
+        "role": "Titular - CTO PJ",
+        "marital_status": "Casado",
+        "spouse_cpf": "085.052.396-60"
       },
       {
-        "nome": "Apartamento Rua Major Freire",
-        "tipo": "apartamento",
-        "endereco": "R. Major Freire, 496, APT 12 - São Paulo - SP, 04304-110",
-        "valor_compra": 400000.0,
-        "uso": "aluguel",
-        "titular": "david"
+        "name": "Mariana Ferreira Campos",
+        "cpf": "085.052.396-60",
+        "birth_date": "1986-08-30",
+        "role": "Dependente/CLT - Enfermeira",
+        "marital_status": "Casada",
+        "spouse_cpf": "287.766.948-36"
       },
       {
-        "nome": "Casa Tasso da Silveira",
-        "tipo": "casa",
-        "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
-        "valor_compra": 670000.0,
-        "uso": "residencia_principal",
-        "titular": "familia"
-      },
-      {
-        "nome": "Casa Leonardo da Vinci",
-        "tipo": "casa",
-        "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
-        "valor_compra": 80000.0,
-        "uso": "desconhecido",
-        "titular": "david"
-      }
-    ],
-    "mariana": [
-      {
-        "nome": "Apartamento Living Concept (Mariana)",
-        "tipo": "apartamento",
-        "endereco": "Av. Alberto Augusto Alves, 320, APTO 812, Santo Amaro, São Paulo - SP, 05724-030",
-        "valor_irpf_31_12_2023": 223733.99,
-        "uso": "aluguel",
-        "titular": "mariana"
-      },
-      {
-        "nome": "Apartamento Living Wish (Mariana)",
-        "tipo": "apartamento",
-        "endereco": "R. João Dias, 621 - Santo Amaro, São Paulo",
-        "valor_irpf_31_12_2023": 477436.58,
-        "uso": "aluguel",
-        "titular": "mariana"
+        "name": "Theo",
+        "birth_date": "2025-07-18",
+        "role": "Filho",
+        "age_at_base_year": "Nascido em 2025"
       }
     ]
   },
-  "resumo_patrimonial": {
-    "total_bruto_familia": 3498085.759999999,
-    "david_bens": 2509962.029999999,
-    "mariana_bens": 988123.7300000001,
-    "nota": "Patrimônio investível = bruto − residência − veículos. Calcular dinamicamente, nunca hardcodar."
+  "income_summary": {
+    "declaration_base_year": 2024,
+    "by_member": {
+      "david": {
+        "total_taxable": 651374.65,
+        "clt_salaries": 620917.41,
+        "simples_nacional": 301277.39,
+        "rental_income": 30457.24,
+        "financial_returns": 55445.46,
+        "bonus_13": 31259.11,
+        "tax_exempt": 301277.39,
+        "exclusive_taxation": 89363.37
+      },
+      "mariana": {
+        "total_taxable": 203982.98,
+        "clt_salaries": 141842.7,
+        "simples_nacional": 0,
+        "rental_income": 0,
+        "financial_returns": 0,
+        "bonus_13": 8301.32,
+        "tax_exempt": 0,
+        "exclusive_taxation": 0
+      }
+    },
+    "family_total_taxable": 855357.63
   },
-  "divergencias_detectadas": [
-    {
-      "id": "DIV-001",
-      "descricao": "Arquivo receitafederal_irpfdeclaracao_2023 contém dados de Mariana (CPF 085.052.396-60), mas filename não tem sufixo 'mariana'. Possível erro de nomeação na fonte original.",
-      "severidade": "media",
-      "acao": "Manter extract como membro=mariana (correto). Não existe IRPF 2023 de David no pipeline."
+  "assets_summary": {
+    "by_member": {
+      "david": {
+        "real_estate": 2589887.09,
+        "financial_applications": 2513151.71,
+        "total": 2589887.09
+      },
+      "mariana": {
+        "real_estate": 988123.73,
+        "financial_applications": 811301.24,
+        "total": 988123.73
+      }
     },
-    {
-      "id": "DIV-002",
-      "descricao": "Patrimônio Mariana cresceu de R$811.301,24 (2023) para R$988.123,73 (2024), aumento de R$176.822,49 (+21,8%).",
-      "severidade": "info",
-      "acao": "Crescimento consistente com aquisição de novos imóveis e valorização."
+    "family_total_assets": 3578010.82,
+    "real_estate_properties_count": 34,
+    "real_estate_from_xlsx": 34
+  },
+  "liabilities_summary": {
+    "by_member": {
+      "david": {
+        "total": 265420.59
+      },
+      "mariana": {
+        "total": 0
+      }
     },
-    {
-      "id": "DIV-003",
-      "descricao": "Casa Leonardo da Vinci: data_ccv (2023-12-01) é posterior a data_registro (2023-01-13). Possível inversão de datas no XLSX.",
-      "severidade": "baixa",
-      "acao": "Verificar com David. Pode ser que CCV foi assinado antes do registro oficial."
+    "family_total_liabilities": 265420.59
+  },
+  "taxes_summary": {
+    "2024_by_member": {
+      "david": {
+        "withheld": 154768.78,
+        "due": 163779.6,
+        "balance": 9010.820000000007
+      },
+      "mariana": {
+        "withheld": 22575.99,
+        "due": 40746.89,
+        "balance": 18170.899999999998
+      }
     },
-    {
-      "id": "DIV-004",
-      "descricao": "Apt Major Freire: data_registro = None ('AINDA NÃO TEM' no XLSX). Imóvel sem registro em cartório.",
-      "severidade": "media",
-      "acao": "Informativo. Imóvel pode estar só com CCV/escritura, sem matrícula registrada."
+    "family_total_due": 204526.49,
+    "family_total_withheld": 177344.77
+  },
+  "rental_income_2025": {
+    "david": {
+      "gross_rental": 0,
+      "deductions": 0,
+      "net": 0
+    },
+    "mariana": {
+      "gross_rental": 0,
+      "deductions": 0,
+      "net": 0
     }
+  },
+  "data_sources": {
+    "irpf_declarations_2024": [
+      "receitafederal_irpfdeclaracao_2024-0_original.pdf",
+      "receitafederal_irpfdeclaracaomariana_2024-0_original.pdf"
+    ],
+    "irpf_receipts_2024": [
+      "receitafederal_irpfrecibo_2024-0_original.pdf",
+      "receitafederal_irpfrecibomariana_2024-0_original.pdf"
+    ],
+    "rental_reports_2025": [
+      "quintoandar_informerendimentosaluguel_2025-0_original.pdf",
+      "quintoandar_informerendimentosaluguelmariana_2025-0_original.pdf"
+    ],
+    "real_estate_data": [
+      "dados_imoveis-0_original.xlsx"
+    ]
+  },
+  "extraction_status": {
+    "irpf_2024_david": "complete",
+    "irpf_2024_mariana": "complete",
+    "irpf_receipts": "complete",
+    "quintoandar_reports": "extracted",
+    "real_estate_data": "complete"
+  },
+  "notes": [
+    "Consolidated from IRPF declarations (base year 2024)",
+    "Total family taxable income: R$ 855,357.63",
+    "Total family assets (IRPF): R$ 3,578,010.82",
+    "Total family liabilities: R$ 265,420.59",
+    "Real estate properties tracked: 34",
+    "Rental income reports for 2025 extracted but not yet consolidated with IRPF"
   ]
 }

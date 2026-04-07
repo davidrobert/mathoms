@@ -1,49 +1,11 @@
 {
-  "data": "2026-03-31",
-  "tipo": "renda_fixa",
-  "resumo": {
-    "total_investido": 275000.0,
-    "valor_atual": 281400.0,
-    "rendimento_total": 6400.0,
-    "número_produtos": 4
-  },
-  "produtos": [
-    {
-      "product_name": "CDB Pósfixado Liq. Diária",
-      "issuer": "C6 BANK",
-      "rate": "102% CDI",
-      "investment_date": "2025-12-01",
-      "principal": 50000.0,
-      "current_value": 51250.0,
-      "yield": 1250.0
-    },
-    {
-      "product_name": "CDB Limite Garantido",
-      "issuer": "C6 BANK",
-      "rate": "103% CDI",
-      "investment_date": "2025-11-15",
-      "principal": 75000.0,
-      "current_value": 76850.0,
-      "yield": 1850.0
-    },
-    {
-      "product_name": "CDB Pósfixado 3 meses",
-      "issuer": "C6 BANK",
-      "rate": "102% CDI",
-      "investment_date": "2025-12-15",
-      "principal": 100000.0,
-      "current_value": 101500.0,
-      "yield": 1500.0
-    },
-    {
-      "product_name": "CDB Pósfixado 6 meses",
-      "issuer": "C6 BANK",
-      "rate": "103% CDI",
-      "investment_date": "2025-09-01",
-      "principal": 50000.0,
-      "current_value": 51800.0,
-      "yield": 1800.0
-    }
-  ],
-  "instituicao": "c6bank"
+  "banco": "C6Bank",
+  "tipo": "investimentosposicao",
+  "data_posicao": "2026-03-31",
+  "saldo_total": 0,
+  "composicao": [],
+  "periodo": {
+    "inicio": "2026-03-01",
+    "fim": "2026-03-31"
+  }
 }

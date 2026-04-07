@@ -1,11 +1,25 @@
 {
-  "banco": "QuintoAndar",
+  "banco": "quintoandar",
   "tipo": "faturaaluguel",
   "propriedade": "majorfreire",
-  "moeda": "BRL",
-  "periodo_referencia": "2026-02",
-  "total_recebido": null,
-  "itens": [],
-  "data_recebimento": null,
-  "parse_quality": "empty_result"
+  "periodo": {
+    "inicio": "2026-02-01",
+    "fim": "2026-02-28"
+  },
+  "data_vencimento": "2026-03-12",
+  "itens": [
+    {
+      "descricao": "Aluguel - Fev/2026",
+      "valor": 1564.99
+    },
+    {
+      "descricao": "Taxa de administração - Quinto Andar",
+      "valor": 133.02
+    },
+    {
+      "descricao": "IPTU - Fev/2026",
+      "valor": 140.0
+    }
+  ],
+  "valor_total": 1838.01
 }

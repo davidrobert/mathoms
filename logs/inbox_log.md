@@ -118,3 +118,127 @@
 | 96 | santander_faturaunique_202602-0_original.pdf | santander_faturaunique_202602-0_original.pdf | data/financial_statements/ | ✅ |
 | 97 | wise_extratocontabrl_202501_202603-0_original.pdf | wise_extratocontabrl_202501_202603-0_original.pdf | data/financial_statements/ | ✅ |
 | 98 | wise_extratocontausd_202501_202603-0_original.pdf | wise_extratocontausd_202501_202603-0_original.pdf | data/financial_statements/ | ✅ |
+
+## Ciclo 2026-04-07 — 97 arquivos recebidos (E-full-reset)
+
+### Resumo
+
+| Métrica | Valor |
+|---|---|
+| Arquivos detectados | 97 |
+| Roteados com sucesso | 94 |
+| Duplicatas ignoradas | 2 |
+| Não identificados | 1 |
+| financial_statements/ | 83 |
+| income_tax_br/ | 7 |
+| real_estate/ | 1 |
+| vehicles/ | 0 |
+| members/ | 3 |
+
+### Detalhamento
+
+| Arquivo | Tipo detectado | Destino | Status |
+|---|---|---|---|
+| bankofamerica_extratoconta_202602_202603-0_original.pdf | data/financial_statements | bankofamerica_extratoconta_202602_202603-0_original.pdf | ✅ OK |
+| binance_extratoconta_202603a-0_original.jpg | data/financial_statements | binance_extratoconta_202603a-0_original.jpg | ✅ OK |
+| binance_extratoconta_202603b-0_original.jpg | data/financial_statements | binance_extratoconta_202603b-0_original.jpg | ✅ OK |
+| binance_extratoconta_202603c-0_original.jpg | data/financial_statements | binance_extratoconta_202603c-0_original.jpg | ✅ OK |
+| bradesco_extratoconta_202501_202512-0_original.pdf | data/financial_statements | bradesco_extratoconta_202501_202512-0_original.pdf | ✅ OK |
+| bradesco_extratoconta_202601_202603-0_original.pdf | data/financial_statements | bradesco_extratoconta_202601_202603-0_original.pdf | ✅ OK |
+| bradesco_extratopoupanca_202501_202502-0_original.pdf | data/financial_statements | bradesco_extratopoupanca_202501_202502-0_original.pdf | ✅ OK |
+| bradesco_extratopoupanca_202503_202504-0_original.pdf | data/financial_statements | bradesco_extratopoupanca_202503_202504-0_original.pdf | ✅ OK |
+| bradesco_extratopoupanca_202505_202506-0_original.pdf | data/financial_statements | bradesco_extratopoupanca_202505_202506-0_original.pdf | ✅ OK |
+| bradesco_extratopoupanca_202507_202508-0_original.pdf | data/financial_statements | bradesco_extratopoupanca_202507_202508-0_original.pdf | ✅ OK |
+| bradesco_extratopoupanca_202509_202510-0_original.pdf | data/financial_statements | bradesco_extratopoupanca_202509_202510-0_original.pdf | ✅ OK |
+| bradesco_extratopoupanca_202511_202512-0_original.pdf | data/financial_statements | bradesco_extratopoupanca_202511_202512-0_original.pdf | ✅ OK |
+| bradesco_extratopoupanca_202601_202603-0_original.pdf | data/financial_statements | bradesco_extratopoupanca_202601_202603-0_original.pdf | ✅ OK |
+| btgpactual_extratoconta_202602_202603-0_original.pdf | data/financial_statements | btgpactual_extratoconta_202602_202603-0_original.pdf | ✅ OK |
+| btgpactual_extratoconta_202602_202603-0_original.txt | data/financial_statements | btgpactual_extratoconta_202602_202603-0_original.txt | ✅ OK |
+| btgpactual_investimentosposicao_202603-0_original.pdf | data/financial_statements | btgpactual_investimentosposicao_202603-0_original.pdf | ✅ OK |
+| c6bank_carteirarendafixa_202603-0_original.pdf | data/financial_statements | c6bank_carteirarendafixa_202603-0_original.pdf | ✅ OK |
+| c6bank_extratoconta_202504_202604-0_original.pdf | data/financial_statements | c6bank_extratoconta_202504_202604-0_original.pdf | ✅ OK |
+| c6bank_extratoconta_202603-0_original.pdf | data/financial_statements | c6bank_extratoconta_202603-0_original.pdf | ✅ OK |
+| c6bank_extratocontaglobaleur_202511_202512-0_original.pdf | data/financial_statements | c6bank_extratocontaglobaleur_202511_202512-0_original.pdf | ✅ OK |
+| c6bank_extratocontaglobaleur_202601_202603-0_original.pdf | data/financial_statements | c6bank_extratocontaglobaleur_202601_202603-0_original.pdf | ✅ OK |
+| c6bank_extratocontaglobaleur_202601_202604-0_original.pdf | data/financial_statements | c6bank_extratocontaglobaleur_202601_202604-0_original.pdf | ✅ OK |
+| c6bank_extratocontaglobalusd_202505_202507-0_original.pdf | data/financial_statements | c6bank_extratocontaglobalusd_202505_202507-0_original.pdf | ✅ OK |
+| c6bank_extratocontaglobalusd_202508_202510-0_original.pdf | data/financial_statements | c6bank_extratocontaglobalusd_202508_202510-0_original.pdf | ✅ OK |
+| c6bank_extratocontaglobalusd_202511_202512-0_original.pdf | data/financial_statements | c6bank_extratocontaglobalusd_202511_202512-0_original.pdf | ✅ OK |
+| c6bank_extratocontaglobalusd_202512_202603-0_original.pdf | data/financial_statements | c6bank_extratocontaglobalusd_202512_202603-0_original.pdf | ✅ OK |
+| c6bank_extratocontaglobalusd_202601_202604-0_original.pdf | data/financial_statements | c6bank_extratocontaglobalusd_202601_202604-0_original.pdf | ✅ OK |
+| c6bank_extratocontapj_202503_202603-0_original.pdf | data/financial_statements | c6bank_extratocontapj_202503_202603-0_original.pdf | ✅ OK |
+| c6bank_extratocontapj_202504_202604-0_original.pdf | data/financial_statements | c6bank_extratocontapj_202504_202604-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202505-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202505-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202506-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202506-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202507-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202507-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202508-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202508-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202509-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202509-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202510-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202510-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202511-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202511-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202512-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202512-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202601-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202601-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202602-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202602-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202603-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202603-0_original.pdf | ✅ OK |
+| c6bank_faturacarbon_202604-0_original.pdf | data/financial_statements | c6bank_faturacarbon_202604-0_original.pdf | ✅ OK |
+| dados_imoveis-0_original.xlsx | data/real_estate | dados_imoveis-0_original.xlsx | ✅ OK |
+| david_curriculo-0_original.docx | members | david_curriculo-0_original.docx | ✅ OK |
+| extrato-da-sua-conta-01KNG8Q5RJX9E7JYHXGQCHQWFG.pdf | DUPLICATA | inbox_processed | DUPLICATA IGNORADA |
+| extrato-da-sua-conta-01KNG8V00Y3CVBK0HYFS4D51BZ.pdf | DUPLICATA | inbox_processed | DUPLICATA IGNORADA |
+| extrato1.txt | não identificado | nao_identificados/ | ⚠️ Não identificado |
+| itau_extratoconta_202507-0_original.pdf | data/financial_statements | itau_extratoconta_202507-0_original.pdf | ✅ OK |
+| itau_extratoconta_202601-0_original.pdf | data/financial_statements | itau_extratoconta_202601-0_original.pdf | ✅ OK |
+| itau_extratocontapersonnalite_202505_202603-0_original.pdf | data/financial_statements | itau_extratocontapersonnalite_202505_202603-0_original.pdf | ✅ OK |
+| itau_extratocontapersonnalite_202603a-0_original.jpg | data/financial_statements | itau_extratocontapersonnalite_202603a-0_original.jpg | ✅ OK |
+| itau_extratocontapersonnalite_202603b-0_original.jpg | data/financial_statements | itau_extratocontapersonnalite_202603b-0_original.jpg | ✅ OK |
+| itau_faturapaoacucar_202505-0_original.pdf | data/financial_statements | itau_faturapaoacucar_202505-0_original.pdf | ✅ OK |
+| itau_faturapaoacucar_202506-0_original.pdf | data/financial_statements | itau_faturapaoacucar_202506-0_original.pdf | ✅ OK |
+| itau_faturapaoacucar_202507-0_original.pdf | data/financial_statements | itau_faturapaoacucar_202507-0_original.pdf | ✅ OK |
+| itau_faturapaoacucar_202508-0_original.pdf | data/financial_statements | itau_faturapaoacucar_202508-0_original.pdf | ✅ OK |
+| itau_faturapaoacucar_202509-0_original.pdf | data/financial_statements | itau_faturapaoacucar_202509-0_original.pdf | ✅ OK |
+| itau_faturapaoacucar_202510-0_original.pdf | data/financial_statements | itau_faturapaoacucar_202510-0_original.pdf | ✅ OK |
+| itau_faturapaoacucar_202511-0_original.pdf | data/financial_statements | itau_faturapaoacucar_202511-0_original.pdf | ✅ OK |
+| itau_faturapaoacucar_202512-0_original.pdf | data/financial_statements | itau_faturapaoacucar_202512-0_original.pdf | ✅ OK |
+| itau_faturapaoacucar_202601-0_original.pdf | data/financial_statements | itau_faturapaoacucar_202601-0_original.pdf | ✅ OK |
+| itau_faturapaoacucar_202602-0_original.pdf | data/financial_statements | itau_faturapaoacucar_202602-0_original.pdf | ✅ OK |
+| itau_faturapaoacucar_202603-0_original.pdf | data/financial_statements | itau_faturapaoacucar_202603-0_original.pdf | ✅ OK |
+| itau_investimentosposicao_202603-0_original.pdf | data/financial_statements | itau_investimentosposicao_202603-0_original.pdf | ✅ OK |
+| mariana_curriculo-0_original.pdf | members | mariana_curriculo-0_original.pdf | ✅ OK |
+| mariana_holerite_202602-0_original.pdf | members | mariana_holerite_202602-0_original.pdf | ✅ OK |
+| picpay_extratoconta_202512_202603-0_original.pdf | data/financial_statements | picpay_extratoconta_202512_202603-0_original.pdf | ✅ OK |
+| quintoandar_faturaaluguelcalixto_202602-0_original.pdf | data/financial_statements | quintoandar_faturaaluguelcalixto_202602-0_original.pdf | ✅ OK |
+| quintoandar_faturaaluguelmajorfreire_202602-0_original.pdf | data/financial_statements | quintoandar_faturaaluguelmajorfreire_202602-0_original.pdf | ✅ OK |
+| quintoandar_informerendimentosaluguel_2025-0_original.pdf | data/income_tax_br | quintoandar_informerendimentosaluguel_2025-0_original.pdf | ✅ OK |
+| quintoandar_informerendimentosaluguelmariana_2025-0_original.pdf | data/income_tax_br | quintoandar_informerendimentosaluguelmariana_2025-0_original.pdf | ✅ OK |
+| receitafederal_irpfdeclaracao_2023-0_original.pdf | data/income_tax_br | receitafederal_irpfdeclaracao_2023-0_original.pdf | ✅ OK |
+| receitafederal_irpfdeclaracao_2024-0_original.pdf | data/income_tax_br | receitafederal_irpfdeclaracao_2024-0_original.pdf | ✅ OK |
+| receitafederal_irpfdeclaracaomariana_2024-0_original.pdf | data/income_tax_br | receitafederal_irpfdeclaracaomariana_2024-0_original.pdf | ✅ OK |
+| receitafederal_irpfrecibo_2024-0_original.pdf | data/income_tax_br | receitafederal_irpfrecibo_2024-0_original.pdf | ✅ OK |
+| receitafederal_irpfrecibomariana_2024-0_original.pdf | data/income_tax_br | receitafederal_irpfrecibomariana_2024-0_original.pdf | ✅ OK |
+| rico_extratoconta_202510_202603-0_original.pdf | data/financial_statements | rico_extratoconta_202510_202603-0_original.pdf | ✅ OK |
+| rico_investimentosposicao_202603-0_original.pdf | data/financial_statements | rico_investimentosposicao_202603-0_original.pdf | ✅ OK |
+| santander_cdbdetalhesdi1_202603-0_original.pdf | data/financial_statements | santander_cdbdetalhesdi1_202603-0_original.pdf | ✅ OK |
+| santander_cdbdetalhesdi2_202603-0_original.pdf | data/financial_statements | santander_cdbdetalhesdi2_202603-0_original.pdf | ✅ OK |
+| santander_cdbdetalhesprog_202603-0_original.pdf | data/financial_statements | santander_cdbdetalhesprog_202603-0_original.pdf | ✅ OK |
+| santander_cdbresumo_202603-0_original.pdf | data/financial_statements | santander_cdbresumo_202603-0_original.pdf | ✅ OK |
+| santander_extratoconta_202511_202512-0_original.pdf | data/financial_statements | santander_extratoconta_202511_202512-0_original.pdf | ✅ OK |
+| santander_extratoconta_202601_202603-0_original.pdf | data/financial_statements | santander_extratoconta_202601_202603-0_original.pdf | ✅ OK |
+| santander_faturaunique_202503-0_original.pdf | data/financial_statements | santander_faturaunique_202503-0_original.pdf | ✅ OK |
+| santander_faturaunique_202504-0_original.pdf | data/financial_statements | santander_faturaunique_202504-0_original.pdf | ✅ OK |
+| santander_faturaunique_202505-0_original.pdf | data/financial_statements | santander_faturaunique_202505-0_original.pdf | ✅ OK |
+| santander_faturaunique_202506-0_original.pdf | data/financial_statements | santander_faturaunique_202506-0_original.pdf | ✅ OK |
+| santander_faturaunique_202507-0_original.pdf | data/financial_statements | santander_faturaunique_202507-0_original.pdf | ✅ OK |
+| santander_faturaunique_202508-0_original.pdf | data/financial_statements | santander_faturaunique_202508-0_original.pdf | ✅ OK |
+| santander_faturaunique_202509-0_original.pdf | data/financial_statements | santander_faturaunique_202509-0_original.pdf | ✅ OK |
+| santander_faturaunique_202510-0_original.pdf | data/financial_statements | santander_faturaunique_202510-0_original.pdf | ✅ OK |
+| santander_faturaunique_202511-0_original.pdf | data/financial_statements | santander_faturaunique_202511-0_original.pdf | ✅ OK |
+| santander_faturaunique_202512-0_original.pdf | data/financial_statements | santander_faturaunique_202512-0_original.pdf | ✅ OK |
+| santander_faturaunique_202601-0_original.pdf | data/financial_statements | santander_faturaunique_202601-0_original.pdf | ✅ OK |
+| santander_faturaunique_202602-0_original.pdf | data/financial_statements | santander_faturaunique_202602-0_original.pdf | ✅ OK |
+| wise_extratocontabrl_202501_202603-0_original.pdf | data/financial_statements | wise_extratocontabrl_202501_202603-0_original.pdf | ✅ OK |
+| wise_extratocontausd_202501_202603-0_original.pdf | data/financial_statements | wise_extratocontausd_202501_202603-0_original.pdf | ✅ OK |
+
+### Ciclo determinado
+
+**Tipo:** Full cycle (E-full-reset)
+**Razão:** Reprocessamento completo solicitado pelo usuário
+

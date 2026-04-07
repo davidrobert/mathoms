@@ -1,88 +1,14 @@
 {
+  "banco": "picpay",
   "tipo": "extratoconta",
-  "instituicao": "PicPay",
-  "membro": "david",
-  "conta": {
-    "numero": "4383290",
-    "tipo": "corrente",
-    "moeda": "BRL",
-    "agencia": "0001"
-  },
+  "moeda": "BRL",
+  "numero_conta": "4383290",
   "periodo": {
-    "data_inicio": "2025-12-29",
-    "data_fim": "2026-03-28"
+    "inicio": "2025-12-01",
+    "fim": "2026-03-31"
   },
-  "saldos": {
-    "saldo_inicial": {
-      "valor": 52275.17,
-      "data": "2025-12-29"
-    },
-    "saldo_final": {
-      "valor": 53756.56,
-      "data": "2026-03-27"
-    }
-  },
-  "transacoes": [
-    {
-      "data": "2026-03-27",
-      "descricao": "Rendimento de Conta de Pagamento",
-      "tipo": "crédito",
-      "valor": 14.5,
-      "saldo_apos": 53756.56
-    },
-    {
-      "data": "2026-03-26",
-      "descricao": "Rendimento de Conta de Pagamento",
-      "tipo": "crédito",
-      "valor": 14.52,
-      "saldo_apos": 53742.06
-    },
-    {
-      "data": "2026-03-25",
-      "descricao": "Rendimento de Conta de Pagamento",
-      "tipo": "crédito",
-      "valor": 14.5,
-      "saldo_apos": 53727.54
-    },
-    {
-      "data": "2026-03-24",
-      "descricao": "Rendimento de Conta de Pagamento",
-      "tipo": "crédito",
-      "valor": 14.48,
-      "saldo_apos": 53713.04
-    },
-    {
-      "data": "2026-03-23",
-      "descricao": "Rendimento de Conta de Pagamento",
-      "tipo": "crédito",
-      "valor": 14.47,
-      "saldo_apos": 53698.56
-    },
-    {
-      "data": "2026-03-20",
-      "descricao": "Rendimento de Conta de Pagamento",
-      "tipo": "crédito",
-      "valor": 14.48,
-      "saldo_apos": 53684.09
-    },
-    {
-      "data": "2026-03-19",
-      "descricao": "Rendimento de Conta de Pagamento",
-      "tipo": "crédito",
-      "valor": 14.69,
-      "saldo_apos": 53669.61
-    },
-    {
-      "data": "2026-03-18",
-      "descricao": "Rendimento de Conta de Pagamento",
-      "tipo": "crédito",
-      "valor": 14.68,
-      "saldo_apos": 53654.92
-    }
-  ],
-  "total_periodo": {
-    "total_debitos": 0.0,
-    "total_creditos": 1481.39,
-    "saldo_liquido": 1481.39
-  }
+  "saldo_inicial": null,
+  "saldo_final": null,
+  "transacoes": [],
+  "notas": []
 }

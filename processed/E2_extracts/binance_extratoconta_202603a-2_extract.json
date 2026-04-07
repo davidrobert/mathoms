@@ -1,49 +1,56 @@
 {
-  "tipo": "investimentosposicao",
-  "instituicao": "binance",
-  "membro": "david",
-  "data_posicao": "2026-03-29",
+  "banco": "Binance",
+  "tipo": "extratoconta",
   "moeda": "BRL",
-  "saldo_atual": 1257.19,
-  "nota": "Screenshot A: visão geral com gráfico. Valor total estimado R$1.257,19. Pico 360d: R$2.437,14, mínimo: R$1.182,38.",
-  "composicao": [
+  "data": "2025-03-29",
+  "saldo_total_estimado": 1257.19,
+  "pnl_24h": "+197.60",
+  "pnl_24h_percentual": "+0.61%",
+  "posicoes": [
     {
-      "tipo_produto": "cripto",
-      "nome": "BTC",
-      "nome_completo": "Bitcoin",
+      "criptomoeda": "BTC",
+      "ticker": "Bitcoin",
       "quantidade": 0.00311425,
-      "valor_brl": 1094.51,
-      "pnl_dia_brl": 7.31,
-      "pnl_dia_pct": 0.67,
-      "preco_medio_brl": 248753.86
+      "valor_unitario": null,
+      "valor_total": null,
+      "pnl": "+181.09",
+      "pnl_percentual": "+0.61%",
+      "status": "TRADE"
     },
     {
-      "tipo_produto": "cripto",
-      "nome": "ETH",
-      "nome_completo": "Ethereum",
+      "criptomoeda": "ETH",
+      "ticker": "Ethereum",
       "quantidade": 0.01325066,
-      "valor_brl": 139.69,
-      "pnl_dia_brl": 0.6312,
-      "pnl_dia_pct": 0.46
+      "valor_unitario": null,
+      "valor_total": null,
+      "pnl": "+82.10",
+      "pnl_percentual": "+0.65%",
+      "status": "TRADE"
     },
     {
-      "tipo_produto": "cripto",
-      "nome": "ADA",
-      "nome_completo": "Cardano",
+      "criptomoeda": "ADA",
+      "ticker": "Cardano",
       "quantidade": 7.78980311,
-      "valor_brl": 9.99,
-      "pnl_dia_brl": -0.1052,
-      "pnl_dia_pct": -0.93
+      "valor_unitario": null,
+      "valor_total": null,
+      "pnl": "-1052.02",
+      "pnl_percentual": "-0.93%",
+      "status": "TRADE"
     },
     {
-      "tipo_produto": "cripto",
-      "nome": "AXS",
-      "nome_completo": "Axie Infinity",
+      "criptomoeda": "AXS",
+      "ticker": "Axis Infinity",
       "quantidade": 1.54143134,
-      "valor_brl": 9.23,
-      "pnl_dia_brl": -0.1052,
-      "pnl_dia_pct": -0.87,
-      "preco_medio_brl": 347.6
+      "valor_unitario": null,
+      "valor_total": null,
+      "pnl": "-1052.02",
+      "pnl_percentual": "-0.93%",
+      "status": "TRADE"
     }
-  ]
+  ],
+  "nota": "Primeira tela da conta Binance de 29/03/2025",
+  "periodo": {
+    "inicio": "2026-03-01",
+    "fim": "2026-03-31"
+  }
 }

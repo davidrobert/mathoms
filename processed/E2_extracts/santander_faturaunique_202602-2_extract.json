@@ -55,7 +55,7 @@
   "cartoes": [],
   "parse_quality": "ok",
   "periodo": {
-    "data_inicio": "2026-01-15",
-    "data_fim": "2026-02-09"
+    "inicio": "2026-02-01",
+    "fim": "2026-02-28"
   }
 }

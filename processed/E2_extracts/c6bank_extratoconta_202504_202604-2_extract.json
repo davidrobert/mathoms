@@ -1,131 +1,14 @@
 {
-  "tipo_conta": "corrente",
-  "moeda": "BRL",
-  "periodo": {
-    "data_inicio": "2025-04-08",
-    "data_fim": "2025-06-22"
-  },
-  "resumo": {
-    "saldo_inicial": 0,
-    "saldo_final": 39500.0,
-    "total_créditos": 66300.0,
-    "total_débitos": 26800.0,
-    "saldo_líquido": 39500.0
-  },
-  "transacoes": [
-    {
-      "data": "2025-04-08",
-      "tipo": "crédito",
-      "descricao": "PIX RECEBIDA - BRANDLOVRS LTDA",
-      "valor": 7500.0,
-      "saldo_apos": 7500.0
-    },
-    {
-      "data": "2025-04-11",
-      "tipo": "débito",
-      "descricao": "PIX ENVIADA - PAGUE AQUI ELETROTEC",
-      "valor": 150.0,
-      "saldo_apos": 7350.0
-    },
-    {
-      "data": "2025-04-15",
-      "tipo": "crédito",
-      "descricao": "SALÁRIO DEPOSITO",
-      "valor": 12000.0,
-      "saldo_apos": 19350.0
-    },
-    {
-      "data": "2025-04-18",
-      "tipo": "débito",
-      "descricao": "PAGAMENTO CARTAO CREDITO",
-      "valor": 3500.0,
-      "saldo_apos": 15850.0
-    },
-    {
-      "data": "2025-04-22",
-      "tipo": "débito",
-      "descricao": "INVESTIMENTO - APLICACAO CDB",
-      "valor": 5000.0,
-      "saldo_apos": 10850.0
-    },
-    {
-      "data": "2025-04-25",
-      "tipo": "crédito",
-      "descricao": "PIX RECEBIDA - ARVO SAUDE",
-      "valor": 4200.0,
-      "saldo_apos": 15050.0
-    },
-    {
-      "data": "2025-05-02",
-      "tipo": "débito",
-      "descricao": "PIX ENVIADA - TRANSFERENCIA PESSOAL",
-      "valor": 2000.0,
-      "saldo_apos": 13050.0
-    },
-    {
-      "data": "2025-05-08",
-      "tipo": "crédito",
-      "descricao": "PIX RECEBIDA - BRANDLOVRS LTDA",
-      "valor": 7500.0,
-      "saldo_apos": 20550.0
-    },
-    {
-      "data": "2025-05-15",
-      "tipo": "crédito",
-      "descricao": "SALÁRIO DEPOSITO",
-      "valor": 12000.0,
-      "saldo_apos": 32550.0
-    },
-    {
-      "data": "2025-05-20",
-      "tipo": "débito",
-      "descricao": "PAGAMENTO CARTAO CREDITO",
-      "valor": 4200.0,
-      "saldo_apos": 28350.0
-    },
-    {
-      "data": "2025-05-25",
-      "tipo": "crédito",
-      "descricao": "PIX RECEBIDA - CNRY MANAGEMENT",
-      "valor": 3600.0,
-      "saldo_apos": 31950.0
-    },
-    {
-      "data": "2025-06-05",
-      "tipo": "débito",
-      "descricao": "PIX ENVIADA - PAGUE AQUI ELETROTEC",
-      "valor": 150.0,
-      "saldo_apos": 31800.0
-    },
-    {
-      "data": "2025-06-10",
-      "tipo": "crédito",
-      "descricao": "PIX RECEBIDA - BRANDLOVRS LTDA",
-      "valor": 7500.0,
-      "saldo_apos": 39300.0
-    },
-    {
-      "data": "2025-06-15",
-      "tipo": "crédito",
-      "descricao": "SALÁRIO DEPOSITO",
-      "valor": 12000.0,
-      "saldo_apos": 51300.0
-    },
-    {
-      "data": "2025-06-18",
-      "tipo": "débito",
-      "descricao": "PAGAMENTO CARTAO CREDITO",
-      "valor": 3800.0,
-      "saldo_apos": 47500.0
-    },
-    {
-      "data": "2025-06-22",
-      "tipo": "débito",
-      "descricao": "INVESTIMENTO - APLICACAO CDB",
-      "valor": 8000.0,
-      "saldo_apos": 39500.0
-    }
-  ],
+  "banco": "c6bank",
   "tipo": "extratoconta",
-  "instituicao": "c6bank"
+  "moeda": "BRL",
+  "numero_conta": "130952222",
+  "periodo": {
+    "inicio": "2025-04-05",
+    "fim": "2025-04-30"
+  },
+  "saldo_inicial": null,
+  "saldo_final": null,
+  "transacoes": [],
+  "notas": []
 }

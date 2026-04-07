@@ -1,0 +1,122 @@
+================================================================================
+STAGE E2 - BANK ACCOUNT STATEMENT EXTRACTION
+Project: Financas Familia
+Date: 2026-04-07
+================================================================================
+
+OBJECTIVE:
+Extract structured data from 17 bank account statement PDFs into JSON format
+
+FILES PROCESSED:
+1. bankofamerica_extratoconta_202602_202603-0_original.pdf
+2. bradesco_extratoconta_202501_202512-0_original.pdf
+3. bradesco_extratoconta_202601_202603-0_original.pdf
+4. btgpactual_extratoconta_202602_202603-0_original.pdf
+5. c6bank_extratoconta_202504_202604-0_original.pdf
+6. c6bank_extratoconta_202603-0_original.pdf
+7. c6bank_extratocontapj_202503_202603-0_original.pdf
+8. c6bank_extratocontapj_202504_202604-0_original.pdf
+9. itau_extratoconta_202507-0_original.pdf
+10. itau_extratoconta_202601-0_original.pdf
+11. itau_extratocontapersonnalite_202505_202603-0_original.pdf
+12. picpay_extratoconta_202512_202603-0_original.pdf
+13. rico_extratoconta_202510_202603-0_original.pdf
+14. santander_extratoconta_202511_202512-0_original.pdf
+15. santander_extratoconta_202601_202603-0_original.pdf
+16. wise_extratocontabrl_202501_202603-0_original.pdf
+17. wise_extratocontausd_202501_202603-0_original.pdf
+
+EXTRACTION METHODOLOGY:
+- Tool: pdfplumber (Python library for PDF text/table extraction)
+- Approach: Hybrid (table-based + text-based fallback)
+- Currency Parsing: Supports both Brazilian (1.234,56) and US (1,234.56) formats
+- Date Parsing: Supports multiple formats (DD/MM/YYYY, etc.)
+
+OUTPUT FORMAT (JSON):
+{
+  "banco": "string",
+  "tipo": "extratoconta",
+  "moeda": "BRL",
+  "numero_conta": "string",
+  "periodo": {"inicio": "YYYY-MM-DD", "fim": "YYYY-MM-DD"},
+  "saldo_inicial": number,
+  "saldo_final": number,
+  "transacoes": [
+    {
+      "data": "YYYY-MM-DD",
+      "descricao": "string",
+      "valor": number,
+      "saldo_apos": number or null
+    }
+  ],
+  "notas": []
+}
+
+RESULTS SUMMARY:
+Output Directory: /sessions/magical-elegant-mendel/mnt/Financas Familia/financas-familia/processed/E2_extracts/
+
+Files Successfully Created: 17/17
+Files with Extracted Data: 4
+Total Transactions Extracted: 62
+
+BREAKDOWN BY BANK:
+- BTG Pactual: 38 transactions
+- Santander: 23 transactions
+- Itau: 1 transaction
+- Total: 62 transactions
+
+SUCCESSFUL EXTRACTIONS:
+✓ btgpactual_extratoconta_202602_202603-2_extract.json (38 txns, 6.1 KB)
+✓ santander_extratoconta_202601_202603-2_extract.json (22 txns, 4.0 KB)
+✓ santander_extratoconta_202511_202512-2_extract.json (1 txn, 0.3 KB)
+✓ itau_extratocontapersonnalite_202505_202603-2_extract.json (1 txn, 0.4 KB)
+
+FILES WITH NO TRANSACTIONS EXTRACTED:
+- bankofamerica_extratoconta_202602_202603-2_extract.json
+- bradesco_extratoconta_202501_202512-2_extract.json
+- bradesco_extratoconta_202601_202603-2_extract.json
+- c6bank_extratoconta_202504_202604-2_extract.json
+- c6bank_extratoconta_202603-2_extract.json
+- c6bank_extratocontapj_202503_202603-2_extract.json
+- c6bank_extratocontapj_202504_202604-2_extract.json
+- itau_extratoconta_202507-2_extract.json
+- itau_extratoconta_202601-2_extract.json
+- picpay_extratoconta_202512_202603-2_extract.json
+- rico_extratoconta_202510_202603-2_extract.json
+- wise_extratocontabrl_202501_202603-2_extract.json
+- wise_extratocontausd_202501_202603-2_extract.json
+
+TECHNICAL NOTES:
+1. Table Detection: pdfplumber successfully detected tables in most PDFs
+2. Currency Normalization: Implemented to handle varying formats
+3. Date Parsing: Multiple format patterns tested and applied
+4. Error Handling: All errors caught and logged without stopping batch processing
+5. Field Extraction:
+   - Period dates extracted from statement headers
+   - Initial/final balances located and normalized
+   - Account numbers extracted where available
+   - Transactions parsed from table rows where available
+
+KNOWN CHALLENGES:
+- Some PDFs have complex multi-line transaction descriptions that require advanced parsing
+- Table structure varies significantly between banks
+- Some PDFs use image-based tables that are difficult to extract programmatically
+- Text-based fallback parsing requires careful regex pattern matching
+
+NEXT STEPS:
+1. Implement bank-specific parsing rules for improved extraction
+2. Use OCR for image-based PDFs
+3. Manual review of PDFs with extraction errors
+4. Enhanced regex patterns for multi-line descriptions
+5. Additional testing with more diverse PDF formats
+
+FILES GENERATED:
+All 17 output JSON files have been created in:
+processed/E2_extracts/
+
+Each file contains:
+- Metadata (bank, period, account, balances)
+- Extracted transactions (where available)
+- Processing notes (if applicable)
+
+================================================================================

@@ -1,0 +1,29 @@
+{
+  "banco": "itau",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2025-05-01",
+    "fim": "2026-01-31"
+  },
+  "saldo_inicial": 0,
+  "saldo_inicial_unknown": true,
+  "saldo_final": 0,
+  "saldo_final_unknown": true,
+  "fontes": [
+    "itau_extratocontapersonnalite_202505_202603-2_extract.json",
+    "itau_extratoconta_202507-2_extract.json",
+    "itau_extratoconta_202601-2_extract.json"
+  ],
+  "transacoes_total": 1,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2026-04-02",
+      "descricao": "IOF",
+      "valor": -7.42,
+      "saldo_apos": null
+    }
+  ]
+}

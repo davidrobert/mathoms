@@ -1,136 +1,222 @@
 {
-  "tipo": "curriculo_1a_extract",
-  "data_geracao": "2026-04-06",
-  "fonte_documento": "David CV (DOCX, English)",
-  "cpf": "287.766.948-36",
-  "nome_no_documento": "David Robert Camargo Ferreira Campos",
-  "nome_solteiro": "David Robert Camargo de Campos",
-  "nascimento": "1981-09-05",
-  "data_extracao": "2026-04-06",
-  "idioma_cv": "English",
-  "idiomas_inferidos": ["Portuguese (nativo)", "English (fluente)"],
-  "educacao": [
-    {
-      "grau": "Master",
-      "campo": "Computer Science / AI",
-      "instituicao": "USP/IME",
-      "ano_conclusao": 2008
-    },
-    {
-      "grau": "Bachelor",
-      "campo": "Computer Science",
-      "instituicao": "PUC/SP",
-      "ano_conclusao": 2004
-    }
-  ],
-  "historico_profissional": [
+  "tipo": "curriculo",
+  "membro": "david",
+  "nome_completo": "David Robert Camargo Ferreira Campos",
+  "nome_atual": "David Robert Camargo Ferreira Campos",
+  "profissao_cargo": "CTO da Arvo",
+  "experiencias": [
     {
       "empresa": "Arvo",
-      "cargo": "CTO",
-      "data_inicio": "2025-09",
+      "localizacao": "São Paulo, SP, Brasil",
+      "cargo": "Chief Technology Officer (CTO)",
+      "data_inicio": "2025-09-08",
       "data_fim": "presente",
-      "tipo_contrato_inferido": "PJ"
+      "tipo_contrato": "PJ"
     },
     {
       "empresa": "Kiwify",
-      "cargo": "CTO",
-      "data_inicio": "2024-06",
-      "data_fim": "2025-05",
-      "tipo_contrato_inferido": "CLT"
+      "localizacao": "Balneário Camboriú, SC, Brasil",
+      "cargo": "Chief Technology Officer (CTO)",
+      "data_inicio": "2024-06-17",
+      "data_fim": "2025-05-05",
+      "tipo_contrato": "CLT"
     },
     {
       "empresa": "Loft",
-      "posicoes": [
-        {
-          "cargo": "Director of Software Engineering",
-          "data_inicio": "2021-11",
-          "data_fim": "2022-12"
-        },
-        {
-          "cargo": "Software Engineering Consultant",
-          "data_inicio": "2022-12",
-          "data_fim": "2024-06"
-        },
-        {
-          "cargo": "Engineering Manager",
-          "data_inicio": "2019-06",
-          "data_fim": "2021-10"
-        }
-      ]
+      "localizacao": "São Paulo, SP, Brasil",
+      "cargo": "Software Engineering Consultant",
+      "data_inicio": "2022-12-02",
+      "data_fim": "2024-06-30",
+      "tipo_contrato": "PJ"
+    },
+    {
+      "empresa": "Loft",
+      "localizacao": "São Paulo, SP, Brasil",
+      "cargo": "Director of Software Engineering",
+      "data_inicio": "2021-11-01",
+      "data_fim": "2022-12-01",
+      "tipo_contrato": "CLT"
+    },
+    {
+      "empresa": "Loft",
+      "localizacao": "São Paulo, SP, Brasil",
+      "cargo": "Engineering Manager",
+      "data_inicio": "2019-06-17",
+      "data_fim": "2021-10-31",
+      "tipo_contrato": "CLT"
     },
     {
       "empresa": "Elo7",
-      "cargo": "CTO",
-      "data_inicio": "2013-08",
-      "data_fim": "2020-07"
+      "localizacao": "São Paulo, SP, Brasil",
+      "cargo": "Chief Technology Officer (CTO)",
+      "data_inicio": "2013-08-05",
+      "data_fim": "2020-07-06",
+      "tipo_contrato": "CLT"
     },
     {
       "empresa": "Abril",
+      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Solutions Architect I",
-      "data_inicio": "2012-03",
-      "data_fim": "2013-08"
+      "data_inicio": "2012-03-02",
+      "data_fim": "2013-08-02",
+      "tipo_contrato": "CLT"
     },
     {
       "empresa": "TOTVS",
-      "cargo": "R&D Engineer IV",
-      "data_inicio": "2011-02",
-      "data_fim": "2012-03"
+      "localizacao": "São Paulo, SP, Brasil",
+      "cargo": "Research and Development Engineer IV",
+      "data_inicio": "2011-02-07",
+      "data_fim": "2012-03-01",
+      "tipo_contrato": "CLT"
     },
     {
       "empresa": "NIC.br",
+      "localizacao": "São Paulo, SP, Brasil",
       "cargo": "Software Engineer",
-      "data_inicio": "2006-04",
-      "data_fim": "2011-01"
+      "data_inicio": "2006-04-11",
+      "data_fim": "2011-01-31",
+      "tipo_contrato": "CLT"
     },
     {
       "empresa": "Agência Estado",
-      "posicoes": [
-        {
-          "cargo": "Jr System Analyst",
-          "data_inicio": "2004-01",
-          "data_fim": "2006-03"
-        },
-        {
-          "cargo": "Trainee",
-          "data_inicio": "2002-06",
-          "data_fim": "2003-12"
-        }
-      ]
+      "localizacao": "São Paulo, SP, Brasil",
+      "cargo": "Jr System Analyst",
+      "data_inicio": "2004-01-02",
+      "data_fim": "2006-03-17",
+      "tipo_contrato": "CLT"
     },
     {
-      "empresa": "Brazilian Army CPOR/SP",
-      "cargo": "Aspiring Officer",
-      "data_inicio": "2000-01",
-      "data_fim": "2000-12"
+      "empresa": "Agência Estado",
+      "localizacao": "São Paulo, SP, Brasil",
+      "cargo": "Trainee",
+      "data_inicio": "2002-06-24",
+      "data_fim": "2003-12-24",
+      "tipo_contrato": "Trainee"
     },
     {
-      "empresa": "Brazilian Army 2nd Armored Communication Company",
+      "empresa": "2nd Armored Communications Company, Brazilian Army",
+      "localizacao": "Campinas, SP, Brasil",
       "cargo": "Instruction Internship",
-      "data_inicio": "2001-07",
-      "data_fim": "2001-07"
+      "data_inicio": "2001-07-01",
+      "data_fim": "2001-07-31",
+      "tipo_contrato": "Internship"
+    },
+    {
+      "empresa": "Center for the Preparation of Reserve Officers of São Paulo (CPOR/SP), Brazilian Army",
+      "localizacao": "São Paulo, SP, Brasil",
+      "cargo": "Aspiring Communications Officer",
+      "data_inicio": "2000-01-24",
+      "data_fim": "2000-12-02",
+      "tipo_contrato": "Training"
+    }
+  ],
+  "formacao": [
+    {
+      "grau": "Mestrado",
+      "area": "Ciência da Computação - Inteligência Artificial",
+      "instituicao": "Universidade de São Paulo (USP), Instituto de Matemática e Estatística (IME)",
+      "ano_conclusao": 2008
+    },
+    {
+      "grau": "Bacharelado",
+      "area": "Ciência da Computação",
+      "instituicao": "Universidade Católica de São Paulo (PUC/SP)",
+      "ano_conclusao": 2004
     }
   ],
   "certificacoes": [
-    "Oracle Java SE 5",
-    "Duolingo English Test",
-    "MIT Innovation Leadership (2021)",
-    "Outros (conforme CV)"
+    {
+      "titulo": "Oracle Certified Professional, Java SE 5 Programmer",
+      "ano": null
+    },
+    {
+      "titulo": "Duolingo English Test",
+      "certificado_id": "do79ylsw7jbg92lq"
+    }
   ],
-  "competencias_tecnicas": [
+  "habilidades": [
+    "Arquitetura de Software",
+    "Design Domain-Driven (DDD)",
+    "Sistemas Escaláveis e de Alta Disponibilidade",
+    "JavaScript",
     "Java",
-    "C++",
+    "C/C++",
     "Python",
     "Go",
     "Kotlin",
-    "JavaScript",
-    "Ruby",
-    "Microservices",
+    "Microserviços",
+    "APIs Robustas",
+    "Continuous Integration (CI)",
+    "Continuous Delivery (CD)",
+    "Machine Learning",
+    "Big Data",
+    "ETL Pipelines",
+    "Hadoop",
+    "Spark",
     "AWS",
     "GCP",
     "Kubernetes",
     "Docker",
+    "DevOps",
+    "Infrastructure as Code (Terraform, Ansible)",
+    "Observability (Logging, Tracing, Metrics)",
+    "Cybersecurity",
     "DNSSEC",
-    "AI/ML"
+    "Gestão de Equipes",
+    "Liderança Técnica",
+    "Inovação"
   ],
-  "notas": "CV em inglês; trabalha no Brasil; certificação Duolingo + cursos MIT indicam English fluente; Portuguese nativo inferido"
+  "idiomas": [
+    {
+      "idioma": "Português",
+      "nivel": "Nativo"
+    },
+    {
+      "idioma": "Inglês",
+      "nivel": "Fluente"
+    }
+  ],
+  "associacoes_profissionais": [
+    {
+      "organizacao": "ACM (Association for Computing Machinery)",
+      "id": "8670699"
+    }
+  ],
+  "cursos_e_certificados": [
+    "Innovation Leadership - MIT - 2021",
+    "MarTech Strategy: Leveraging Data and Technology in Marketing - Northwestern University - 2021",
+    "Business Strategy - University of La Verne - 2018",
+    "Business English - ELS Language Centers - 2018",
+    "Architecture and Design in Java Projects - Caelum - 2012",
+    "Agile Software Development Practices - Caelum - 2012",
+    "Ruby and Advanced Rails: Dealing with Everyday Problems - Caelum - 2012",
+    "Agile Web 2.0 Development with Ruby on Rails - Caelum - 2012",
+    "Java Lab with Tests, XML and Design Patterns - Caelum - 2011",
+    "Mobile Development with Google Android - Caelum - 2011"
+  ],
+  "congresos_como_palestrante": [
+    "Startups & High-Performance Teams - More Deliveries - 2022",
+    "Strategies for Talent Acquisition and Team Building - NOMAH - 2021",
+    "Engineering Culture & Its Impact on Recruitment - AWS Startups CTO's - 2019",
+    "Why working in startups is good for your health - Liga Ventures - 2017",
+    "High Performance Teams - Outstanding Software - 2016",
+    "Introduction to the Go Programming Language - Universidade Federal de Lavras (UFLA) - 2015"
+  ],
+  "premios": [
+    {
+      "titulo": "Strategic Impact Award",
+      "organizacao": "Kiwify",
+      "ano": 2024
+    },
+    {
+      "titulo": "Award of the III PUC-SP \"R. Stevens\" Programming Cup",
+      "organizacao": "Pontifical Catholic University of São Paulo (PUC/SP)",
+      "ano": 2002
+    },
+    {
+      "titulo": "Diploma of Honor to Merit",
+      "organizacao": "Center for the Preparation of Reserve Officers of São Paulo (CPOR/SP)",
+      "ano": 2000
+    }
+  ]
 }

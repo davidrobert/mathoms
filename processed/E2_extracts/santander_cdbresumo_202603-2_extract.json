@@ -1,41 +1,9 @@
 {
-  "tipo": "cdb_resumo",
-  "instituicao": "santander",
-  "membro": "david",
-  "data_posicao": "2026-03-29",
-  "moeda": "BRL",
-  "aplicacoes": [
-    {
-      "tipo_produto": "CDB DI",
-      "valor_aplicado": 0.0,
-      "data_aplicacao": "2024-06-26",
-      "taxa": "100% CDI",
-      "vencimento": "2028-06-05",
-      "saldo_bruto": 137409.67,
-      "ir_provisionado": 0.0,
-      "saldo_liquido": 132662.92
-    },
-    {
-      "tipo_produto": "CDB DI",
-      "valor_aplicado": 0.0,
-      "data_aplicacao": "2024-08-30",
-      "taxa": "100% CDI",
-      "vencimento": "2028-08-09",
-      "saldo_bruto": 101522.74,
-      "ir_provisionado": 0.0,
-      "saldo_liquido": 98281.27
-    },
-    {
-      "tipo_produto": "CDB Progressivo",
-      "valor_aplicado": 0.0,
-      "data_aplicacao": "2024-08-30",
-      "taxa": "95% CDI",
-      "vencimento": "2028-08-09",
-      "saldo_bruto": 60545.52,
-      "ir_provisionado": 0.0,
-      "saldo_liquido": 58700.06
-    }
-  ],
-  "total_bruto": 299477.93,
-  "total_liquido": 289644.25
+  "banco": "Santander",
+  "tipo": "cdbdetalhes",
+  "produtos": [],
+  "periodo": {
+    "inicio": "2026-03-01",
+    "fim": "2026-03-31"
+  }
 }

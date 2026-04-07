@@ -762,7 +762,7 @@
   ],
   "parse_quality": "ok",
   "periodo": {
-    "data_inicio": "2024-03-28",
-    "data_fim": "2024-04-27"
+    "inicio": "2025-05-01",
+    "fim": "2025-05-31"
   }
 }

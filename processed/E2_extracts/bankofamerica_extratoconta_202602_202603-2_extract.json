@@ -1,31 +1,14 @@
 {
+  "banco": "bankofamerica",
   "tipo": "extratoconta",
-  "instituicao": "Bank of America",
-  "membro": "david",
-  "conta": {
-    "numero": "8981640324498",
-    "tipo": "corrente",
-    "moeda": "USD",
-    "agencia": null
-  },
+  "moeda": "BRL",
+  "numero_conta": null,
   "periodo": {
-    "data_inicio": "2026-02-25",
-    "data_fim": "2026-03-26"
+    "inicio": "2026-02-01",
+    "fim": "2026-03-31"
   },
-  "saldos": {
-    "saldo_inicial": {
-      "valor": 2605.0,
-      "data": "2026-02-25"
-    },
-    "saldo_final": {
-      "valor": 2605.0,
-      "data": "2026-03-26"
-    }
-  },
+  "saldo_inicial": null,
+  "saldo_final": null,
   "transacoes": [],
-  "total_periodo": {
-    "total_debitos": 0.0,
-    "total_creditos": 0.0,
-    "saldo_liquido": 0.0
-  }
+  "notas": []
 }

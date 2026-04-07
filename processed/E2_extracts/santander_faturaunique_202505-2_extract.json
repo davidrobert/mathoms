@@ -72,7 +72,7 @@
   "cartoes": [],
   "parse_quality": "ok",
   "periodo": {
-    "data_inicio": "2025-04-15",
-    "data_fim": "2025-05-08"
+    "inicio": "2025-05-01",
+    "fim": "2025-05-31"
   }
 }

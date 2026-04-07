@@ -1,47 +1,12 @@
 {
-  "tipo_conta": "global_usd",
+  "banco": "C6Bank",
+  "tipo": "extratocontaglobal",
   "moeda": "USD",
   "periodo": {
-    "data_inicio": "2025-08-05",
-    "data_fim": "2025-10-15"
+    "inicio": "2020-25-01",
+    "fim": "2020-25-01"
   },
-  "resumo": {
-    "saldo_inicial": 0,
-    "saldo_final": -959.12,
-    "total_créditos": 0,
-    "total_débitos": 959.12,
-    "saldo_líquido": -959.12
-  },
-  "transacoes": [
-    {
-      "data": "2025-08-05",
-      "tipo": "débito",
-      "descricao": "RESORT FLORIDA",
-      "valor": 520.0,
-      "saldo_apos": -520.0
-    },
-    {
-      "data": "2025-08-12",
-      "tipo": "débito",
-      "descricao": "THEME PARK ORLANDO",
-      "valor": 315.0,
-      "saldo_apos": -835.0
-    },
-    {
-      "data": "2025-09-08",
-      "tipo": "débito",
-      "descricao": "WALMART SUPERMERCADO",
-      "valor": 78.45,
-      "saldo_apos": -913.45
-    },
-    {
-      "data": "2025-10-15",
-      "tipo": "débito",
-      "descricao": "AMAZON COMPRA",
-      "valor": 45.67,
-      "saldo_apos": -959.12
-    }
-  ],
-  "tipo": "extratoconta",
-  "instituicao": "c6bank"
+  "saldo_inicial": 0,
+  "saldo_final": 0,
+  "transacoes": []
 }

@@ -1,61 +1,31 @@
 {
-  "banco": "Itaú",
+  "banco": "itau",
   "tipo": "faturapaoacucar",
-  "cartao": "Pão de Açúcar",
-  "titular": "DAVID ROBERT CAMARGO DE CAMPOS",
   "moeda": "BRL",
+  "periodo": {
+    "inicio": "2026-02-01",
+    "fim": "2026-02-28"
+  },
   "data_vencimento": "2026-02-06",
-  "saldo_anterior": 59.0,
-  "total_compras_nacionais": 59.0,
-  "total_compras_internacionais": 198.54,
-  "total_compras": 257.54,
-  "pagamentos": -59.0,
-  "saldo_atual": 0.0,
-  "limite_total": 95220.0,
+  "valor_total": 257.54,
   "transacoes": [
     {
-      "data": "2025-08-06",
+      "data": "2026-06-08",
       "descricao": "BRASIL PARAL*Bras 08/12",
-      "valor": 59.0,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)",
-      "parcela": "8/12"
+      "valor": -59.0,
+      "cartao": "titular"
     },
     {
       "data": "2026-01-15",
       "descricao": "SQSP* DOMAIN#218016570",
-      "valor": 191.8,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)",
-      "forex": {
-        "moeda_original": "USD",
-        "valor_original": 180.0,
-        "cotacao": 5.71
-      }
+      "valor": -191.8,
+      "cartao": "titular"
     },
     {
-      "data": "2026-01-15",
-      "descricao": "Repasse de IOF",
-      "valor": 6.74,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)",
-      "tipo_lancamento": "iof"
-    }
-  ],
-  "compras_parceladas_futuras": [
-    {
-      "data": "2025-08-06",
+      "data": "2026-06-08",
       "descricao": "BRASIL PARAL*Bras 09/12",
-      "valor": 59.0,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)",
-      "parcela": "9/12"
-    },
-    {
-      "data": "2026-02-08",
-      "descricao": "BRASIL PARAL (future)",
-      "valor": 177.0,
-      "parcela": "future"
+      "valor": -59.0,
+      "cartao": "titular"
     }
-  ],
-  "periodo": {
-    "data_inicio": "2025-08-06",
-    "data_fim": "2026-01-15"
-  }
+  ]
 }

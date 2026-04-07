@@ -1,25 +1,16 @@
 {
-  "tipo": "informe_rendimentos_aluguel",
-  "membro": "mariana",
-  "ano_base": 2025,
-  "fonte": "QuintoAndar",
-  "propriedades": [
-    {
-      "endereco": "Avenida Alberto Augusto Alves, 320 - 812, São Paulo - SP 05724-030",
-      "codigo_imovel": "894064293",
-      "renda_bruta": 7424.71,
-      "descontos": 1548.62,
-      "renda_liquida": 5876.09
-    },
-    {
-      "endereco": "Avenida João Dias, 2192 - 163 Torre 2, São Paulo - SP 04724-003",
-      "codigo_imovel": "894326656",
-      "renda_bruta": 66755.06,
-      "descontos": 5874.46,
-      "renda_liquida": 60880.6
-    }
-  ],
-  "total_bruto": 74179.77,
-  "total_descontos": 7423.08,
-  "total_liquido": 66756.69
+  "document_type": "QUINTOANDAR_RENTAL_REPORT",
+  "base_year": 2025,
+  "gross_rental_income": 0,
+  "total_deductions": 0,
+  "net_income": 0,
+  "properties": [],
+  "extraction_status": "processed",
+  "pages_processed": 3,
+  "total_pages": 3,
+  "first_page_text": "Comprovante anual de rendimentos de aluguéis Ano-calendário\n2025\nA tabela abaixo contém o valor bruto dos aluguéis pagos e os descontos aplicáveis (taxas de corretagem e administração) de cada mês\nem 2025.\nOs rendimentos detalhados de cada imóvel estão nas próximas páginas.\nRendimentos (em Reais)\nDiscriminado mensal de todos os seus imóveis.\nMês Valor do aluguel Descontos Rendimento líquido\nJaneiro R$ 7.114,78 R$ 626,10 R$ 6.488,68\nFevereiro R$ 7.114,78 R$ 626,10 R$ 6.488,68\nMarço R$ 7.218,04 R$ 635,19 R$ 6.582,85\nAbril R$ 6.960,89 R$ 627,08 R$ 6.333,81\nMaio R$ 5.646,23 R$ 496,87 R$ 5.149,36\nJunho R$ 5.646,23 R$ 496,87 R$ 5.149,36\nJulho R$ 5.646,23 R$ 496,87 R$ 5.149,36\nAgosto R$ 5.646,23 R$ 496,87 R$ 5.149,36\nSetembro R$ 5.646,23 R$ 496,87 R$ 5.149,36\nOutubro R$ 5.646,23 R$ 496,87 R$ 5.149,36\nNovembro R$ 5.646,23 R$ 496,87 R$ 5.149,36\nDezembro R$ 6.247,67 R$ 1.430,52 R$ 4.817,15\nBeneficiário do rendimento (Locador): Total dos aluguéis: R$ 74.179,77\nMariana Teixeira Ferreira\nTotal dos descontos: R$ 7.423,08\n085.052.396-60\nAdministradora do imóvel: Rendimento líquido: R$ 66.756,69\nGRPQA LTDA\n© GRPQA LTDA\nR. Girassol, 555 - Vila Madalena, São Paulo - SP, 05433-001\nCRECI-SP J24.344 - www.quintoandar.com.br\nDescritivo detalhado por imóvel Ano-calendário\n2025\nAvenida Alberto Augusto Alves, 320 - 812 Cód. Imóvel Imóvel\nSão Paulo - SP 894064293 1/2\n05724-030\nRendimentos (em Reais)\nDiscriminado mensal dos contratos relativos ao imóvel durante o ano de 2025.\nMês Fonte Pagadora CPF da Fonte Pagadora Cód. Contrato Valor do AluguelDescontos Rendimento Líquido\nJaneiro Luana Pereira Da Silva 444.334.888-36 571095 R$ 1.714,78 R$ 150,90 R$ 1.563,88\nFevereiro Luana Pereira Da Silva 444.334.888-36 571095 R$ 1.714,78 R$ 150,90 R$ 1.563,88\nMarço Luana Pereira Da Silva 444.334.888-36 571095 R$ 1.714,78 R$ 150,90 R$ 1.563,88\nAbril Luana Pereira Da Silva 444.334.888-36 571095 R$ 1.314,66 R$ 130,21 R$ 1.184,45\nMaio - - - - - -\nJunho Luana Pereira Da Silva 444.334.888-36 571095 R$ 0,00 R$ 0",
+  "periodo": {
+    "inicio": "2025-01-01",
+    "fim": "2025-12-31"
+  }
 }

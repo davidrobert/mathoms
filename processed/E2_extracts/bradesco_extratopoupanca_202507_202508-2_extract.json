@@ -1,102 +1,12 @@
 {
-  "tipo": "extratoconta",
-  "instituicao": "bradesco",
-  "membro": "mariana",
-  "conta": {
-    "numero": "77113-9",
-    "tipo": "poupança",
-    "moeda": "BRL",
-    "agencia": "3221"
-  },
+  "banco": "Bradesco",
+  "tipo": "extratopoupanca",
+  "moeda": "BRL",
   "periodo": {
-    "data_inicio": "2025-07-01",
-    "data_fim": "2025-08-31"
+    "inicio": "2020-25-01",
+    "fim": "2020-25-01"
   },
-  "saldos": {
-    "saldo_inicial": {
-      "valor": null,
-      "data": "2025-07-01"
-    },
-    "saldo_final": {
-      "valor": null,
-      "data": "2025-08-31"
-    }
-  },
-  "transacoes": [
-    {
-      "data": "2025-07-01",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "crédito",
-      "valor": 50.68,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-07-07",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "crédito",
-      "valor": 28.81,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-07-14",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "crédito",
-      "valor": 18.51,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-07-15",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "crédito",
-      "valor": 4139.58,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-07-31",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
-      "tipo": "crédito",
-      "valor": 3777.75,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-08-01",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "crédito",
-      "valor": 71.75,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-08-05",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "crédito",
-      "valor": 29.01,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-08-13",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "crédito",
-      "valor": 18.76,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-08-15",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "crédito",
-      "valor": 4139.58,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-08-29",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita Total Os dados acima têm como base 31/03/2026 às 22h29 e estão sujeitos a alterações. Últimos Lançamento",
-      "tipo": "crédito",
-      "valor": 4241.08,
-      "saldo_apos": null
-    }
-  ],
-  "total_periodo": {
-    "total_debitos": 0,
-    "total_creditos": 16515.510000000002,
-    "saldo_liquido": 16515.510000000002
-  }
+  "saldo_inicial": 0,
+  "saldo_final": 8.0,
+  "transacoes": []
 }

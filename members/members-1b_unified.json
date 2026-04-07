@@ -1,99 +1,287 @@
 {
-  "tipo": "members_1b_unified",
-  "data_geracao": "2026-04-06",
-  "fonte_definitions": "definitions.yml + arquivos de extração (curriculo, holerite)",
-  "membros": [
-    {
-      "tipo_membro": "titular",
+  "_metadata": {
+    "versao": "1b_unified",
+    "data_geracao": "2026-04-07",
+    "descricao": "Dados consolidados de todos os membros da família com informações extraídas dos documentos e dados das definições"
+  },
+  "membros": {
+    "david": {
+      "tipo": "person",
+      "papel": "titular",
       "nome_completo": "David Robert Camargo Ferreira Campos",
+      "nome_atual": "David Robert Camargo Ferreira Campos",
       "nome_solteiro": "David Robert Camargo de Campos",
+      "nome_curto": "David",
       "cpf": "287.766.948-36",
-      "nascimento": "1981-09-05",
-      "idade_em_2026_04_06": 44,
-      "genero_inferido": "M",
-      "papel_familia": "titular",
-      "status_civil_inferido": "casado",
-      "cidadania": ["Brasil"],
-      "documentacao_disponivel": [
-        "curriculo_1a_extract.json"
+      "data_nascimento": "1981-09-05",
+      "idade": 44,
+      "profissao_cargo": "CTO da Arvo",
+      "regime": "PJ Simples Nacional (Anexo V)",
+      "empresa_pj": "David Robert Camargo de Campos Ltda.",
+      "cnpj_pj": "48.771.488/0001-87",
+      "documentos_disponiveis": [
+        {
+          "tipo": "curriculo",
+          "arquivo": "david_curriculo-0_original.docx",
+          "processado": true,
+          "arquivo_extract": "david_curriculo-1a_extract.json"
+        }
       ],
-      "cargo_atual": "CTO",
-      "empresa_atual": "Arvo",
-      "tipo_contrato_atual": "PJ",
-      "data_inicio_cargo_atual": "2025-09",
-      "formacao": {
-        "superior": "Master Computer Science/AI (USP/IME, 2008)",
-        "segundo_grau": "Bachelor Computer Science (PUC/SP, 2004)"
-      },
-      "idiomas": ["Portuguese (nativo)", "English (fluente)"]
+      "experiencias": [
+        {
+          "empresa": "Arvo",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Chief Technology Officer (CTO)",
+          "data_inicio": "2025-09-08",
+          "data_fim": "presente",
+          "tipo_contrato": "PJ"
+        },
+        {
+          "empresa": "Kiwify",
+          "localizacao": "Balneário Camboriú, SC, Brasil",
+          "cargo": "Chief Technology Officer (CTO)",
+          "data_inicio": "2024-06-17",
+          "data_fim": "2025-05-05",
+          "tipo_contrato": "CLT"
+        },
+        {
+          "empresa": "Loft",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Software Engineering Consultant",
+          "data_inicio": "2022-12-02",
+          "data_fim": "2024-06-30",
+          "tipo_contrato": "PJ"
+        },
+        {
+          "empresa": "Loft",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Director of Software Engineering",
+          "data_inicio": "2021-11-01",
+          "data_fim": "2022-12-01",
+          "tipo_contrato": "CLT"
+        },
+        {
+          "empresa": "Loft",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Engineering Manager",
+          "data_inicio": "2019-06-17",
+          "data_fim": "2021-10-31",
+          "tipo_contrato": "CLT"
+        },
+        {
+          "empresa": "Elo7",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Chief Technology Officer (CTO)",
+          "data_inicio": "2013-08-05",
+          "data_fim": "2020-07-06",
+          "tipo_contrato": "CLT"
+        },
+        {
+          "empresa": "Abril",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Solutions Architect I",
+          "data_inicio": "2012-03-02",
+          "data_fim": "2013-08-02",
+          "tipo_contrato": "CLT"
+        },
+        {
+          "empresa": "TOTVS",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Research and Development Engineer IV",
+          "data_inicio": "2011-02-07",
+          "data_fim": "2012-03-01",
+          "tipo_contrato": "CLT"
+        },
+        {
+          "empresa": "NIC.br",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Software Engineer",
+          "data_inicio": "2006-04-11",
+          "data_fim": "2011-01-31",
+          "tipo_contrato": "CLT"
+        },
+        {
+          "empresa": "Agência Estado",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Jr System Analyst",
+          "data_inicio": "2004-01-02",
+          "data_fim": "2006-03-17",
+          "tipo_contrato": "CLT"
+        },
+        {
+          "empresa": "Agência Estado",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Trainee",
+          "data_inicio": "2002-06-24",
+          "data_fim": "2003-12-24",
+          "tipo_contrato": "Trainee"
+        }
+      ],
+      "formacao": [
+        {
+          "grau": "Mestrado",
+          "area": "Ciência da Computação - Inteligência Artificial",
+          "instituicao": "Universidade de São Paulo (USP), Instituto de Matemática e Estatística (IME)",
+          "ano_conclusao": 2008
+        },
+        {
+          "grau": "Bacharelado",
+          "area": "Ciência da Computação",
+          "instituicao": "Universidade Católica de São Paulo (PUC/SP)",
+          "ano_conclusao": 2004
+        }
+      ],
+      "idiomas": [
+        {
+          "idioma": "Português",
+          "nivel": "Nativo"
+        },
+        {
+          "idioma": "Inglês",
+          "nivel": "Fluente"
+        }
+      ],
+      "habilidades_principais": [
+        "Arquitetura de Software",
+        "Design Domain-Driven (DDD)",
+        "Sistemas Escaláveis",
+        "AWS",
+        "Kubernetes",
+        "DevOps",
+        "Gestão de Equipes",
+        "Liderança Técnica"
+      ]
     },
-    {
-      "tipo_membro": "conjuge",
+    "mariana": {
+      "tipo": "person",
+      "papel": "conjuge",
       "nome_completo": "Mariana Ferreira Campos",
+      "nome_atual": "Mariana Ferreira Campos",
       "nome_solteira": "Mariana Teixeira Ferreira",
+      "nome_fiscal": "Mariana Teixeira Ferreira",
+      "nome_curto": "Mariana",
       "cpf": "085.052.396-60",
-      "nascimento": "1986-08-30",
-      "idade_em_2026_04_06": 39,
-      "genero_inferido": "F",
-      "papel_familia": "conjuge",
-      "status_civil_inferido": "casada",
-      "cidadania": ["Brasil"],
-      "documentacao_disponivel": [
-        "curriculo_1a_extract.json",
-        "holerite_202602-1a_extract.json"
+      "data_nascimento": "1986-08-30",
+      "idade": 39,
+      "profissao_cargo": "Enfermeira no Hospital Israelita Albert Einstein",
+      "regime": "CLT",
+      "empresa_principal": "Hospital Israelita Albert Einstein",
+      "data_inicio_emprego": "2014-07",
+      "documentos_disponiveis": [
+        {
+          "tipo": "curriculo",
+          "arquivo": "mariana_curriculo-0_original.pdf",
+          "processado": true,
+          "arquivo_extract": "mariana_curriculo-1a_extract.json"
+        },
+        {
+          "tipo": "holerite",
+          "periodo": "2026-02",
+          "arquivo": "mariana_holerite_202602-0_original.pdf",
+          "processado": true,
+          "arquivo_extract": "mariana_holerite_202602-1a_extract.json"
+        }
       ],
-      "cargo_atual": "Enfermeiro Pl (P4)",
-      "empresa_atual": "SBIBHAE - Albert Einstein",
-      "tipo_contrato_atual": "CLT",
-      "data_inicio_cargo_atual": "2018-01",
-      "salario_bruto_conhecido": {
-        "periodo": "2026-02",
-        "valor": 12086.06,
-        "moeda": "BRL"
+      "dados_holerite_202602": {
+        "nome_no_documento": "Mariana Teixeira Ferreira",
+        "estabelecimento": "AEMO Unidade Morumbi",
+        "cargo": "Enfermeiro Pl",
+        "grade": "P4",
+        "matricula": "36108",
+        "data_admissao": "2014-07-21",
+        "salario_base_mensal": 9082.92,
+        "salario_bruto": 12086.06,
+        "total_descontos": 8660.65,
+        "salario_liquido": 3425.41,
+        "data_credito": "2026-02-27",
+        "fgts_depositado": 950.62,
+        "dependentes_ir": 0
       },
-      "formacao": {
-        "superior": [
-          "Mestrado Enfermagem (USP, 2019-2021)",
-          "Bacharelado Enfermagem (PUC Minas, 2007-2010)"
-        ],
-        "especializacoes": [
-          "Cardiologia/Hemodinâmica (UNIFESP, 2011-2012)",
-          "Formação Docente (FIOCRUZ)"
-        ]
-      },
-      "idiomas": ["Portuguese (nativo)"]
+      "experiencias": [
+        {
+          "empresa": "Hospital Israelita Albert Einstein",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Enfermeiro",
+          "data_inicio": "2018-01",
+          "data_fim": "presente",
+          "tipo_contrato": "CLT"
+        },
+        {
+          "empresa": "Hospital Israelita Albert Einstein",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Enfermeiro",
+          "departamento": "UPA Campo Limpo",
+          "data_inicio": "2014-08",
+          "data_fim": "2018-06",
+          "tipo_contrato": "CLT"
+        },
+        {
+          "empresa": "Faculdade Israelita Albert Einstein",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Docente universitário",
+          "data_inicio": "2021-01",
+          "data_fim": "2024-12",
+          "tipo_contrato": "Docente"
+        },
+        {
+          "empresa": "Senac São Paulo",
+          "localizacao": "São Paulo, SP, Brasil",
+          "cargo": "Docente universitário",
+          "data_inicio": "2012-01",
+          "data_fim": "2016-01",
+          "tipo_contrato": "Docente"
+        }
+      ],
+      "formacao": [
+        {
+          "grau": "Mestrado",
+          "area": "Enfermagem em Saúde do Adulto",
+          "instituicao": "Universidade de São Paulo (USP)",
+          "data_conclusao": "2021-06"
+        },
+        {
+          "grau": "Pós-graduação Lato Sensu - Especialização",
+          "area": "Enfermagem em Cardiologia e Hemodinâmica",
+          "instituicao": "UNIFESP - Universidade Federal de São Paulo",
+          "data_conclusao": "2012"
+        },
+        {
+          "grau": "Bacharelado",
+          "area": "Enfermagem",
+          "instituicao": "PUC Minas",
+          "data_conclusao": "2010"
+        }
+      ],
+      "idiomas": [
+        {
+          "idioma": "Português",
+          "nivel": "Nativo"
+        }
+      ],
+      "habilidades_principais": [
+        "Auditoria Clínica",
+        "Segurança do Paciente",
+        "Gestão de Equipes",
+        "Cardiologia",
+        "Educação em Saúde",
+        "Pesquisa Clínica"
+      ]
     },
-    {
-      "tipo_membro": "filho",
+    "theo": {
+      "tipo": "person",
+      "papel": "filho",
       "nome_completo": "Theo Ferreira Campos",
+      "nome_curto": "Theo",
       "cpf": null,
-      "nascimento": "2025-07-18",
-      "idade_em_2026_04_06": 0,
-      "meses_de_vida": 8,
-      "genero_inferido": "M",
-      "papel_familia": "filho",
-      "status_civil": "solteiro",
-      "cidadania": ["Brasil", "USA"],
-      "documentacao_disponivel": [],
-      "notas": "Dupla cidadania BR/US. Sem documentação de renda. Dependente."
-    }
-  ],
-  "resumo_familiar": {
-    "total_membros": 3,
-    "titulares": 1,
-    "dependentes": 2,
-    "faixa_etaria_titular": "40-49 anos",
-    "renda_conhecida_clt": {
-      "membro": "Mariana",
-      "empresa": "Albert Einstein",
-      "salario_bruto_fev_2026": 12086.06,
-      "moeda": "BRL"
-    },
-    "renda_pj_inferida": {
-      "membro": "David",
-      "empresa": "Arvo",
-      "tipo_contrato": "PJ (nenhum holerite disponível)",
-      "nota": "Dados de renda PJ não extraídos nesta fase"
+      "data_nascimento": "2025-07-18",
+      "idade": 0,
+      "cidadania": [
+        "brasileira",
+        "americana"
+      ],
+      "local_nascimento": "Orlando, Flórida, EUA",
+      "documentos_disponiveis": [],
+      "observacoes": "Bebê - sem documentos processados neste ciclo"
     }
   }
 }

@@ -1,43 +1,25 @@
 {
-  "banco": "Itaú",
+  "banco": "itau",
   "tipo": "faturapaoacucar",
-  "cartao": "Pão de Açúcar",
-  "titular": "DAVID ROBERT CAMARGO DE CAMPOS",
   "moeda": "BRL",
+  "periodo": {
+    "inicio": "2025-11-01",
+    "fim": "2025-11-30"
+  },
   "data_vencimento": "2025-11-06",
-  "saldo_anterior": 697.45,
-  "total_compras_nacionais": 59.0,
-  "total_compras_internacionais": 0.0,
-  "total_compras": 59.0,
-  "pagamentos": -697.45,
-  "saldo_atual": 0.0,
-  "limite_total": 82800.0,
+  "valor_total": 59.0,
   "transacoes": [
     {
-      "data": "2025-08-06",
+      "data": "2025-06-08",
       "descricao": "BRASIL PARAL*Bras 05/12",
-      "valor": 59.0,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)",
-      "parcela": "5/12"
-    }
-  ],
-  "compras_parceladas_futuras": [
-    {
-      "data": "2025-08-06",
-      "descricao": "BRASIL PARAL*Bras 06/12",
-      "valor": 59.0,
-      "cartao": "DAVID R C DE CAMPOS (final 4984)",
-      "parcela": "6/12"
+      "valor": -59.0,
+      "cartao": "titular"
     },
     {
-      "data": "2025-11-08",
-      "descricao": "BRASIL PARAL (future)",
-      "valor": 354.0,
-      "parcela": "future"
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras 06/12",
+      "valor": -59.0,
+      "cartao": "titular"
     }
-  ],
-  "periodo": {
-    "data_inicio": "2025-08-06",
-    "data_fim": "2025-08-06"
-  }
+  ]
 }

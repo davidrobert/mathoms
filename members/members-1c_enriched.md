@@ -1,151 +1,198 @@
-# Perfis Enriquecidos - Família Ferreira Campos
-
-**Data de geração:** 2026-04-06
-**Fonte:** definitions.yml + extrações de currículos e holerites
+# Família Ferreira Campos — Membros Processados
+## Ciclo: STAGE E1 (abr/2026)
 
 ---
 
-## David Robert Camargo Ferreira Campos (David Robert Camargo de Campos)
+## David Robert Camargo Ferreira Campos
+**Papel:** Titular | **Idade:** 44 anos | **Data de Nascimento:** 05/09/1981
 
-**Perfil:**
-Tecnologista de 44 anos (nascido 1981-09-05), casado com Mariana, pai de Theo. Titular do núcleo financeiro familiar. Brasileiro com domínio de português nativo e inglês fluente. Atua no mercado de tecnologia em posições sênior desde 2000.
+### Identificação
+- **Nome Completo:** David Robert Camargo Ferreira Campos
+- **Nome de Solteiro:** David Robert Camargo de Campos
+- **CPF:** 287.766.948-36
+- **Contato:** davidrobert@gmail.com | +55 (11) 99681-9851
 
-**Histórico profissional:**
-- **Arvo** (2025-09 a presente): CTO | Contrato PJ | *Cargo atual*
-- **Kiwify** (2024-06 a 2025-05): CTO | Contrato CLT
-- **Loft** (2019-06 a 2024-06): Engineering Manager → Director of SW Engineering → Software Engineering Consultant
-- **Elo7** (2013-08 a 2020-07): CTO | 7+ anos na empresa
-- **Abril** (2012-03 a 2013-08): Solutions Architect I
-- **TOTVS** (2011-02 a 2012-03): R&D Engineer IV
-- **NIC.br** (2006-04 a 2011-01): Software Engineer | ~5 anos
-- **Agência Estado** (2002-06 a 2006-03): Trainee → Jr System Analyst
-- **Brazilian Army** (2000-01 a 2001-07): Aspiring Officer / Instruction Internship
+### Profissão e Regime
+- **Cargo Atual:** Chief Technology Officer (CTO) da Arvo
+- **Regime Laboral:** PJ Simples Nacional (Anexo V)
+- **Empresa PJ:** David Robert Camargo de Campos Ltda.
+- **CNPJ:** 48.771.488/0001-87
+- **Conta Bancária PJ:** C6 Bank — Ag. 1, Conta 384366937
 
-**Cargo atual:**
-CTO na Arvo, modelo de negócio PJ (Simples Nacional presumido), desde setembro de 2025. Continuidade em papéis estratégicos de engenharia/tecnologia.
+### Situação Financeira
+**PJ — valor a confirmar via extratos bancários**
 
-**Formação acadêmica:**
-- Master em Computer Science / AI (USP/IME, conclusão 2008)
-- Bachelor em Computer Science (PUC/SP, conclusão 2004)
-- Certificações: Oracle Java SE 5, Duolingo English Test, MIT Innovation Leadership (2021), outras
+### Formação Acadêmica
+- **Mestrado** em Ciência da Computação - Inteligência Artificial (Universidade de São Paulo - USP/IME, 2008)
+- **Bacharelado** em Ciência da Computação (Pontifical Catholic University of São Paulo - PUC/SP, 2004)
 
-**Competências técnicas:**
-Java, C++, Python, Go, Kotlin, JavaScript, Ruby, Microservices, AWS, GCP, Kubernetes, Docker, DNSSEC, AI/ML.
+### Experiência Profissional (seleção das 5 últimas posições)
+1. **Chief Technology Officer (CTO)** — Arvo (Set/2025 - Presente)
+   - Empresa healthtech de IA/ML para auditoria de sinistros de saúde
 
-**Salário atual:**
-Sem holerite na documentação. Renda PJ na Arvo (dados de faturamento não extraídos nesta fase).
+2. **Chief Technology Officer (CTO)** — Kiwify (Jun/2024 - Mai/2025)
+   - Plataforma de tecnologia para criação e gerenciamento de negócios online
 
-**Documentação disponível:**
-- `david_curriculo-1a_extract.json` (CV em inglês, estruturado)
+3. **Software Engineering Consultant** — Loft (Dez/2022 - Jun/2024)
+   - Proptech inovadora para compra, venda e financiamento de imóveis
+   - Gerenciamento de equipe de 60+ engenheiros
 
-**Status fiscal:**
-PJ - Simples Nacional (inferido). Sem dados de IRPF, imposto municipal ou estadual nesta fase.
+4. **Director of Software Engineering** — Loft (Nov/2021 - Dez/2022)
+   - Expansão e escala da engenharia durante crescimento exponencial
 
-**Observações:**
-CV em inglês reflete atuação com equipes internacionais. Trajetória com progressão consistente (7+ anos na Elo7, CTO em 3+ empresas). Certificação Duolingo e MIT Innovation Leadership indicam engajamento com educação continuada.
+5. **Engineering Manager** — Loft (Jun/2019 - Out/2021)
+   - Liderança de equipes cross-funcionais de engenharia
+
+**Experiência Total:** 20+ anos em liderança técnica, arquitetura de software e transformação digital
+
+### Principais Habilidades
+- Arquitetura de Software, Domain-Driven Design (DDD)
+- Sistemas Escaláveis e de Alta Disponibilidade
+- Linguagens: JavaScript, Java, C/C++, Python, Go, Kotlin
+- Microserviços, APIs Robustas, CI/CD
+- Machine Learning, Big Data, ETL Pipelines
+- Cloud: AWS, GCP, Kubernetes, Docker
+- DevOps, Infrastructure as Code, Observability
+- Cybersecurity, DNSSEC
+- Gestão de Equipes (100+ engenheiros mentorados), Liderança Técnica
+
+### Idiomas
+- Português (Nativo)
+- Inglês (Fluente — Duolingo English Test)
+
+### Certificações e Associações
+- Oracle Certified Professional, Java SE 5 Programmer
+- Member: ACM (Association for Computing Machinery) — ID 8670699
+
+### Documentos Processados
+- ✅ david_curriculo-0_original.docx → david_curriculo-1a_extract.json
 
 ---
 
-## Mariana Ferreira Campos (Mariana Teixeira Ferreira)
+## Mariana Ferreira Campos
+**Papel:** Cônjuge | **Idade:** 39 anos | **Data de Nascimento:** 30/08/1986
 
-**Perfil:**
-Enfermeira de 39 anos (nascida 1986-08-30), casada com David, mãe de Theo. Brasileira com português nativo. Profissional da saúde com dupla atuação em assistência e docência (2011-2024). Empregada CLT no Hospital Israelita Albert Einstein desde 2018.
+### Identificação
+- **Nome Completo:** Mariana Ferreira Campos
+- **Nome de Solteira:** Mariana Teixeira Ferreira
+- **Nome Fiscal:** Mariana Teixeira Ferreira (conforme holerite)
+- **CPF:** 085.052.396-60
+- **Contato:** mtf3008@gmail.com | +55 11 96073-3929
 
-**Histórico profissional:**
-- **Hospital Israelita Albert Einstein** (2018-01 a presente): Enfermeiro Pl (grade P4) | CLT | *Cargo atual*
-  *(Também atuava em UPA Campo Limpo da mesma instituição de 2014-08 a 2018-06)*
-- **Faculdade Israelita Albert Einstein** (2021-01 a 2024-12): Docente universitário | Sobreposição com assistência
-- **Senac São Paulo** (2012-01 a 2016-01): Docente universitário | Sobreposição com outros cargos
-- **Faculdade Sequencial** (2013-01 a 2015-08): Docente universitário | Sobreposição com outros cargos
-- **Hospital Municipal Dr. Moysés Deutsch** (2011-01 a 2014-01): Enfermeira | Parceria Einstein
+### Profissão e Regime
+- **Cargo Atual:** Enfermeiro (Hospital Israelita Albert Einstein)
+- **Regime Laboral:** CLT
+- **Empresa:** Hospital Israelita Albert Einstein
+- **Estabelecimento:** AEMO Unidade Morumbi
+- **Data de Admissão:** 21/07/2014
+- **Matrícula:** 36108
+- **Grade:** P4
+- **Carga Horária:** 200 horas/mês
 
-**Cargo atual:**
-Enfermeiro Pl, grade P4, matrícula 36108 no Hospital Israelita Albert Einstein (SBIBHAE, código AE00, unidade Morumbi). CLT desde janeiro de 2018. Data de admissão Einstein: 2014-07-21.
+### Situação Financeira (Fevereiro 2026)
+- **Salário Base Mensal:** R$ 9.082,92
+- **Salário Bruto:** R$ 12.086,06
+  - Inclui adicionais de insalubridade, férias no mês, provisão INSS
+- **Total de Descontos:** R$ 8.660,65
+  - INSS Remuneração (R$ 988,07)
+  - Tributo IRRF (R$ 1.447,57)
+  - Adiantamento pago (R$ 3.633,17)
+  - Seguro de Vida (R$ 27,41)
+  - Refeição (R$ 34,80)
+  - Desconto de Férias (R$ 2.529,63)
+- **Salário Líquido (Fevereiro):** R$ 3.425,41
+  - Nota: Valor reduzido devido a adiantamento de férias e desconto de férias
+- **Data de Crédito:** 27/02/2026
+- **FGTS Depositado:** R$ 950,62
+- **Base INSS:** R$ 11.882,72
+- **Dependentes para IR:** 0
 
-**Salário atual (fev/2026):**
-- **Salário bruto:** R$ 12.086,06 (período 2026-02)
-- **Proventos:** Salário mensal R$ 9.082,92 + adicionais insalubridade (20%) + férias (5 dias) + provisões
-- **Descontos:** INSS (R$ 988,07) + IRRF (R$ 1.447,57) + adiantamentos (R$ 3.633,17) + refeição + seguro vida
-- **Salário líquido:** R$ 3.425,41 (reduzido por descontos extraordinários de férias/adiantamento em fev/2026)
-- **FGTS base:** R$ 11.882,72 | **Depositado:** R$ 950,62
-- **Data de crédito:** 2026-02-27
+### Formação Acadêmica
+- **Mestrado** em Enfermagem - Enfermagem em Saúde do Adulto (USP, 2021)
+- **Pós-graduação Lato Sensu - Especialização** em Enfermagem em Cardiologia e Hemodinâmica (UNIFESP, 2012)
+- **Pós-graduação Lato Sensu - Especialização** em Formação Docente em Educação Profissional (FIOCRUZ)
+- **Bacharelado** em Enfermagem (PUC Minas, 2010)
 
-**Formação acadêmica:**
-- Mestrado em Enfermagem (USP, 2019-2021)
-- Bacharelado em Enfermagem (PUC Minas, 2007-2010)
-- Especialização em Cardiologia / Hemodinâmica (UNIFESP, 2011-2012)
-- Especialização em Formação Docente (FIOCRUZ, sem datas)
+### Experiência Profissional
+1. **Enfermeiro** — Hospital Israelita Albert Einstein (Jan/2018 - Presente | 8 anos 3 meses)
+   - Unidade de alta complexidade: Cardiologia, Clínica Médica e Cirúrgica
+   - Auditoria e Qualidade: Projetos de melhoria contínua e segurança do paciente
+   - Responsável por auditoria de prontuários eletrônicos
+   - Preceptoria e suporte clínico
 
-**Certificações:**
-Auditoria e Qualidade PDCA, Classificação de Risco Manchester, ATCN, Gestão de Crônicos.
+2. **Enfermeiro** — Hospital Israelita Albert Einstein / UPA Campo Limpo (Ago/2014 - Jun/2018 | 3 anos 11 meses)
+   - Atendimento de urgência e emergência
 
-**Competências:**
-Processo de enfermagem, Cuidados de qualidade ao paciente, Gestão de equipes.
+3. **Docente Universitário** — Faculdade Israelita Albert Einstein (Jan/2021 - Dez/2024 | 4 anos)
+   - Docência em Semiologia e Semiotécnica
+   - Desenvolvimento de conteúdo teórico-prático
 
-**Documentação disponível:**
-- `mariana_curriculo-1a_extract.json` (CV em português, estruturado)
-- `mariana_holerite_202602-1a_extract.json` (Holerite fev/2026)
+4. **Docente Universitário** — Senac São Paulo (Jan/2012 - Jan/2016 | 4 anos 1 mês)
 
-**Status fiscal:**
-CLT - Enfermagem. IRRF e INSS retidos na fonte pelo empregador. Dependentes IR: 0 (nenhum dependente declarado no holerite fev/2026, Theo nasceu em jul/2025).
+5. **Enfermeira** — Hospital Municipal Dr. Moysés Deutsch (2011 - 2014 | 3 anos)
+   - UTI Adulto e Pediátrica
+   - Clínica Médica e Cirúrgica
 
-**Observações:**
-- Holerite fev/2026 inclui 5 dias de férias + adiantamentos, reduzindo significativamente o líquido
-- Documento (holerite) usa nome de solteira (Mariana Teixeira Ferreira) conforme registrado no Einstein
-- Trajetória com overlaps de docência (2012-2016 Senac + Sequencial simultâneos, 2021-2024 Einstein) indicando atuação em múltiplos vínculos
-- Admissão Einstein data de 2014-07-21, mas atuação clínica iniciada 2014-08 em UPA, transferência para Enfermeiro em 2018-01
-- Mestrado concluído 2021 enquanto empregada e docente
+**Experiência Total:** 10+ anos em instituições de alta complexidade, combinando assistência crítica, auditoria clínica e docência universitária
+
+### Principais Habilidades
+- Processo de Enfermagem, Cuidados de Qualidade
+- Auditoria Clínica e Segurança do Paciente
+- Gestão de Equipes
+- Análise de Prontuários Eletrônicos, Ciclo PDCA
+- Gestão de Casos Crônicos (Osteoporose, Esclerose Múltipla)
+- Educação e Treinamento Corporativo
+- Pesquisa Clínica e Metodologia Científica
+- Prática Baseada em Evidências
+- Especialidades: Cardiologia, Clínica Médica, Clínica Cirúrgica, UTI
+
+### Idiomas
+- Português (Nativo)
+
+### Certificações
+- Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico
+- Classificação de Risco (Protocolo de Manchester)
+- Advanced Trauma Care for Nurses (ATCN)
+
+### Documentos Processados
+- ✅ mariana_curriculo-0_original.pdf → mariana_curriculo-1a_extract.json
+- ✅ mariana_holerite_202602-0_original.pdf → mariana_holerite_202602-1a_extract.json
 
 ---
 
 ## Theo Ferreira Campos
+**Papel:** Filho | **Idade:** 0 anos (8 meses) | **Data de Nascimento:** 18/07/2025
 
-**Perfil:**
-Filho de 8 meses (nascido 2025-07-18), brasileiro com dupla cidadania Brasil/EUA. Dependente do núcleo familiar. Sem documentação de renda ou fiscal nesta fase.
+### Identificação
+- **Nome Completo:** Theo Ferreira Campos
+- **Cidadania:** Brasileira e Americana
+- **Local de Nascimento:** Orlando, Flórida, EUA
+- **CPF:** (A obter)
 
-**Histórico profissional:**
-N/A (dependente, criança)
+### Situação Financeira
+Sem documentos processados neste ciclo.
 
-**Cargo atual:**
-N/A
-
-**Salário atual:**
-N/A
-
-**Formação acadêmica:**
-N/A (criança)
-
-**Documentação disponível:**
-Nenhuma (dados apenas de definitions.yml)
-
-**Status fiscal:**
-Dependente de David (titular). Possível beneficiário de abatimento no IR futuro com documentação formal.
-
-**Observações:**
-- Dupla cidadania BR/US (presumível de pais David brasileiro + Mariana brasileira, mas Theo nasceu nos EUA ou em contexto binacional)
-- Sem CPF na documentação (típico para menores de 0 anos no Brasil)
-- Incluso em análises de dependência familiar e patrimônio investível futuro
+### Documentos Disponíveis
+Nenhum documento de renda ou currículo aplicável.
 
 ---
 
-## Resumo Consolidado
-
-| Aspecto | David | Mariana | Theo |
-|--------|-------|---------|------|
-| **Idade (2026-04-06)** | 44 anos | 39 anos | 8 meses |
-| **CPF** | 287.766.948-36 | 085.052.396-60 | Sem CPF |
-| **Status** | Titular / Casado | Cônjuge / Casada | Filho / Dependente |
-| **Cidadania** | Brasil | Brasil | Brasil + USA |
-| **Vínculo atual** | CTO/PJ (Arvo) | Enfermeiro/CLT (Einstein) | N/A |
-| **Data início vínculo** | 2025-09 | 2018-01 (Einstein) | 2025-07-18 |
-| **Renda conhecida** | Sem holerite | R$ 12.086,06 (fev/2026) | N/A |
-| **Formação** | Master CS/AI + Bachelor CS | Mestrado Enfermagem + Bacharelado | N/A |
-| **Idiomas** | PT (nativo) + EN (fluente) | PT (nativo) | N/A |
+## Resumo de Documentos Processados
+| Membro | Tipo | Arquivo Original | Status | Extract |
+|--------|------|-----------------|--------|---------|
+| David | Currículo | david_curriculo-0_original.docx | ✅ Processado | 1a_extract.json |
+| Mariana | Currículo | mariana_curriculo-0_original.pdf | ✅ Processado | 1a_extract.json |
+| Mariana | Holerite (Feb 2026) | mariana_holerite_202602-0_original.pdf | ✅ Processado | 1a_extract.json |
+| Theo | — | — | — | — |
 
 ---
 
-**Notas finais:**
-- David não possui holerite CLT/PJ extraído; renda da Arvo a ser documentada em fase E2+
-- Mariana usa nome de solteira no holerite Einstein (conforme registro); nome completo é Mariana Ferreira Campos
-- Overlaps profissionais de Mariana (docência + assistência) são válidos e indicam pluralidade de vínculos
-- Theo, apesar de recém-nascido, é integrante do núcleo para projeções de patrimônio investível e dependência fiscal futura
+## Observações
+1. **David**: PJ desde Set/2025. Valor de remuneração deve ser confirmado via extratos bancários (C6 Bank - conta PJ).
+2. **Mariana**: CLT desde Jul/2014. Salário líquido de Fevereiro reduzido por motivo de adiantamento e desconto de férias. Valor típico de salário líquido deve ser superior.
+3. **Theo**: Recém-nascido, sem documentos a processar neste estágio.
+4. Todos os dados de CPF, datas de nascimento e nomes estão de acordo com `config/family_members.json`.
+
+---
+
+**Gerado em:** 07/04/2026

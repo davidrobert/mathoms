@@ -1,7 +1,7 @@
 # QA Log — E4 Categorização
-## Execução: 2026-04-07 11:38
+## Execução: 2026-04-07 13:32
 
-### Transações não identificadas: 64
+### Transações não identificadas: 60
 
 | Data | Descrição | Valor | Banco | Fonte |
 |---|---|---|---|---|
@@ -49,13 +49,9 @@
 | 2025-03-15 | MP *SIRLEYROSAPIN | R$21.00 | C6 Bank | faturacarbon |
 | 2025-03-15 | MP *MARIANADIEGEC | R$6.00 | C6 Bank | faturacarbon |
 | 2025-03-15 | MARCELO JOSE GONCALVES | R$10.00 | C6 Bank | faturacarbon |
-| 2025-04-11 | PIX ENVIADA - PAGUE AQUI ELETROTEC | R$150.00 | c6bank | extratoconta |
-| 2025-06-05 | PIX ENVIADA - PAGUE AQUI ELETROTEC | R$150.00 | c6bank | extratoconta |
-| 2025-06-19 | SQSP* INV186737595 | R$92.32 | Itaú | faturapaoacucar |
+| 2025-06-19 | SQSP* INV186737595 | R$92.32 | itau | faturapaoacucar |
 | 2025-07-01 | ZS RES PREMI- JUL/25 | R$3,337.47 | Santander | faturaunique |
-| 2025-10-15 | tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 Reg Rendimento* - Poup Facil-depos a Partir 4/5/12 bx Aut C | R$1.55 | bradesco | extratoconta |
-| 2025-10-15 | tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 Reg Rendimento* - Poup Facil-depos a Partir 4/5/12 bx Aut C | R$55.98 | bradesco | extratoconta |
-| 2025-11-19 | BLOQUEIO PIX | R$333.00 | itau | extratoconta |
+| 2025-11-01 | SALDO ANTERIOR | R$0.00 | santander | extratoconta |
 | 2025-12-06 | COR | R$84.90 | C6 Bank | faturacarbon |
 | 2025-12-08 | ALEX MARTINS DE MACEDO | R$39.00 | C6 Bank | faturacarbon |
 | 2025-12-11 | FIBRA | R$60.00 | C6 Bank | faturacarbon |
@@ -68,9 +64,9 @@
 | 2025-12-27 | MP *ASCFDISTRIBUI | R$51.60 | C6 Bank | faturacarbon |
 | 2025-12-27 | MP *ASCFDISTRIBUI | R$52.70 | C6 Bank | faturacarbon |
 | 2025-12-27 | SERGIO IROMITSU TABA | R$8.00 | C6 Bank | faturacarbon |
-| 2025-12-29 | tr Sal p/poup Sociedade Beneficente Israelita Rendimentos Poup Facil-depos a Partir 4/5/12 Rendimentos Poup Facil-depos a Partir 4/5/12 Total - Os dad | R$3,531.97 | bradesco | extratoconta |
+| 2026-02-04 | PIX RECEBIDO DOUGLAS CAMARGO DE CAMPOS 420211 100,00 | R$4,543.66 | santander | extratoconta |
 
-### Taxa: 4.8% ✅ DENTRO DA META
+### Taxa: 4.7% ✅ DENTRO DA META
 
 ### Notas para investigação
 

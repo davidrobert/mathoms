@@ -1,31 +1,21 @@
 {
+  "banco": "santander",
   "tipo": "extratoconta",
-  "instituicao": "santander",
-  "membro": "david",
-  "conta": {
-    "numero": "01001341-6",
-    "tipo": "corrente",
-    "moeda": "BRL",
-    "agencia": "1652"
-  },
+  "moeda": "BRL",
+  "numero_conta": null,
   "periodo": {
-    "data_inicio": "2025-11-01",
-    "data_fim": "2025-12-31"
+    "inicio": "2025-11-01",
+    "fim": "2025-12-31"
   },
-  "saldos": {
-    "saldo_inicial": {
+  "saldo_inicial": null,
+  "saldo_final": null,
+  "transacoes": [
+    {
+      "data": "2025-11-01",
+      "descricao": "SALDO ANTERIOR",
       "valor": 0.0,
-      "data": "2025-11-01"
-    },
-    "saldo_final": {
-      "valor": 280.6,
-      "data": "2025-12-31"
+      "saldo_apos": null
     }
-  },
-  "transacoes": [],
-  "total_periodo": {
-    "total_debitos": 0.0,
-    "total_creditos": 0.0,
-    "saldo_liquido": 280.6
-  }
+  ],
+  "notas": []
 }

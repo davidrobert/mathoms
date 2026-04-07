@@ -1,46 +1,107 @@
 {
-  "tipo": "holerite_1a_extract",
-  "data_geracao": "2026-04-06",
-  "fonte_documento": "Mariana holerite PDF 2026-02",
-  "cpf": "085.052.396-60",
+  "tipo": "holerite",
+  "membro": "mariana",
   "nome_no_documento": "Mariana Teixeira Ferreira",
   "periodo": "2026-02",
-  "data_credito": "2026-02-27",
-  "empresa_codigo": "AE00",
-  "empresa_nome": "SBIBHAE - Albert Einstein",
+  "empresa": "AE00 SBIBHAE - Albert Einstein",
   "estabelecimento": "AEMO Unidade Morumbi",
   "cargo": "Enfermeiro Pl",
   "categoria": "Enfermagem P",
   "grade": "P4",
   "matricula": "36108",
   "data_admissao": "2014-07-21",
-  "salario_base_mensal": 10899.51,
-  "proventos": {
-    "0001_salario_mensal": 9082.92,
-    "325_adic_insalubridade_20pct": 270.17,
-    "M389_provisao_contr_inss_rec": 203.34,
-    "MC03_ferias_5dias": 1870.62,
-    "MC04_ferias_1_3_5dias": 623.54,
-    "MC13_medias_ferias": 26.60,
-    "MC14_medias_ferias_1_3": 8.87
-  },
-  "total_proventos_salario_bruto": 12086.06,
-  "descontos": {
-    "314_inss": 988.07,
-    "401_irrf": 1447.57,
-    "B02_adiantamento_pago": 3633.17,
-    "1014_seguro_vida": 27.41,
-    "1025_refeicao": 34.80,
-    "MO90_desconto_ferias": 2529.63
-  },
+  "salario_base_mensal": 9082.92,
+  "salario_bruto": 12086.06,
+  "proventos_adicionais": [
+    {
+      "rubrica": "/325",
+      "descricao": "Adic. de insalubrid. 20%",
+      "valor": 270.17,
+      "quantidade": 25.0
+    },
+    {
+      "rubrica": "M389",
+      "descricao": "Provisão Contr. INSS rec.",
+      "valor": 203.34,
+      "quantidade": 0.0
+    },
+    {
+      "rubrica": "MC03",
+      "descricao": "Férias no mês",
+      "valor": 1870.62,
+      "quantidade": 5.0
+    },
+    {
+      "rubrica": "MC04",
+      "descricao": "Férias 1/3 no mês",
+      "valor": 623.54,
+      "quantidade": 5.0
+    },
+    {
+      "rubrica": "MC13",
+      "descricao": "Médias férias no mês",
+      "valor": 26.60,
+      "quantidade": 0.0
+    },
+    {
+      "rubrica": "MC14",
+      "descricao": "Médias férias 1/3 no mês",
+      "valor": 8.87,
+      "quantidade": 0.0
+    }
+  ],
+  "descontos": [
+    {
+      "rubrica": "/314",
+      "descricao": "Contr. INSS Remuneração",
+      "valor": 988.07,
+      "quantidade": 14.0
+    },
+    {
+      "rubrica": "/401",
+      "descricao": "Tributo IRRF",
+      "valor": 1447.57,
+      "quantidade": 27.5
+    },
+    {
+      "rubrica": "/B02",
+      "descricao": "Adiantamento pago",
+      "valor": 3633.17,
+      "quantidade": 0.0
+    },
+    {
+      "rubrica": "1014",
+      "descricao": "Seguro de Vida",
+      "valor": 27.41,
+      "quantidade": 0.0
+    },
+    {
+      "rubrica": "1025",
+      "descricao": "Refeicao",
+      "valor": 34.80,
+      "quantidade": 10.0
+    },
+    {
+      "rubrica": "MO90",
+      "descricao": "Desconto de Férias",
+      "valor": 2529.63,
+      "quantidade": 0.0
+    }
+  ],
   "total_descontos": 8660.65,
   "salario_liquido": 3425.41,
+  "data_credito": "2026-02-27",
   "fgts": {
-    "base": 11882.72,
-    "depositado": 950.62
+    "base_fgts": 11882.72,
+    "fgts_depositado": 950.62
   },
   "inss_base": 11882.72,
   "dependentes_ir": 0,
-  "observacoes": "Período inclui 5 dias de férias (MC03/MC04/MC13/MC14). Adiantamento de R$3.633,17 já descontado. Desconto de Férias MO90 R$2.529,63 referente ao adiantamento de férias.",
-  "notas": "Holerite com muitos créditos de férias e adiantamentos no mês 02/2026; salário líquido reduzido pelos descontos extraordinários"
+  "observacoes": "Holerite de Fevereiro de 2026. Inclui férias no mês (MC03 e MC04) e desconto de férias (MO90). Grande adiantamento pago (3633.17 BRL). Base para INSS: 11.882,72 BRL. Base para IR: 0,00 BRL.",
+  "banco": "237",
+  "agencia": "6543",
+  "conta_bancaria": "6673",
+  "carga_horaria_mensal": 200.0,
+  "tipo_contrato": "Mensalista",
+  "referencia": "Fevereiro 2026"
 }

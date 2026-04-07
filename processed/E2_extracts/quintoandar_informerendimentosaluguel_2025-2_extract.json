@@ -1,25 +1,16 @@
 {
-  "tipo": "informe_rendimentos_aluguel",
-  "membro": "david",
-  "ano_base": 2025,
-  "fonte": "QuintoAndar",
-  "propriedades": [
-    {
-      "endereco": "Rua Major Freire, 496 - ed gisele Ap 12, São Paulo - SP 04304-110",
-      "codigo_imovel": "893592092",
-      "renda_bruta": 18543.82,
-      "descontos": 1576.19,
-      "renda_liquida": 16967.63
-    },
-    {
-      "endereco": "Praça Benedito Calixto, 186 - 34, São Paulo - SP 05406-040",
-      "codigo_imovel": "893592095",
-      "renda_bruta": 17791.61,
-      "descontos": 3353.84,
-      "renda_liquida": 14437.77
-    }
-  ],
-  "total_bruto": 36335.43,
-  "total_descontos": 4930.03,
-  "total_liquido": 31405.4
+  "document_type": "QUINTOANDAR_RENTAL_REPORT",
+  "base_year": 2025,
+  "gross_rental_income": 0,
+  "total_deductions": 0,
+  "net_income": 0,
+  "properties": [],
+  "extraction_status": "processed",
+  "pages_processed": 3,
+  "total_pages": 3,
+  "first_page_text": "Comprovante anual de rendimentos de aluguéis Ano-calendário\n2025\nA tabela abaixo contém o valor bruto dos aluguéis pagos e os descontos aplicáveis (taxas de corretagem e administração) de cada mês\nem 2025.\nOs rendimentos detalhados de cada imóvel estão nas próximas páginas.\nRendimentos (em Reais)\nDiscriminado mensal de todos os seus imóveis.\nMês Valor do aluguel Descontos Rendimento líquido\nJaneiro R$ 1.489,65 R$ 126,62 R$ 1.363,03\nFevereiro R$ 1.489,65 R$ 126,62 R$ 1.363,03\nMarço R$ 1.806,09 R$ 443,06 R$ 1.363,03\nAbril R$ 3.030,12 R$ 1.383,73 R$ 1.646,39\nMaio R$ 3.564,99 R$ 319,02 R$ 3.245,97\nJunho R$ 3.564,99 R$ 393,48 R$ 3.171,51\nJulho R$ 3.564,99 R$ 356,25 R$ 3.208,74\nAgosto R$ 3.564,99 R$ 356,25 R$ 3.208,74\nSetembro R$ 3.564,99 R$ 356,25 R$ 3.208,74\nOutubro R$ 3.564,99 R$ 356,25 R$ 3.208,74\nNovembro R$ 3.564,99 R$ 356,25 R$ 3.208,74\nDezembro R$ 3.564,99 R$ 356,25 R$ 3.208,74\nBeneficiário do rendimento (Locador): Total dos aluguéis: R$ 36.335,43\nDavid Robert Camargo de Campos\nTotal dos descontos: R$ 4.930,03\n287.766.948-36\nAdministradora do imóvel: Rendimento líquido: R$ 31.405,40\nGRPQA LTDA\n© GRPQA LTDA\nR. Girassol, 555 - Vila Madalena, São Paulo - SP, 05433-001\nCRECI-SP J24.344 - www.quintoandar.com.br\nDescritivo detalhado por imóvel Ano-calendário\n2025\nRua Major Freire, 496 - ed gisele Ap 12 Cód. Imóvel Imóvel\nSão Paulo - SP 893592092 1/2\n04304-110\nRendimentos (em Reais)\nDiscriminado mensal dos contratos relativos ao imóvel durante o ano de 2025.\nMês Fonte Pagadora CPF da Fonte Pagadora Cód. Contrato Valor do Aluguel Descontos Rendimento Líquido\nJaneiro Gabriel Ortega Mischi 431.139.888-37 343756 R$ 1.489,65 R$ 126,62 R$ 1.363,03\nFevereiro Gabriel Ortega Mischi 431.139.888-37 343756 R$ 1.489,65 R$ 126,62 R$ 1.363,03\nMarço Gabriel Ortega Mischi 431.139.888-37 343756 R$ 1.489,65 R$ 126,62 R$ 1.363,03\nAbril Gabriel Ortega Mischi 431.139.888-37 343756 R$ 1.554,95 R$ 132,17 R$ 1.422,78\nMaio Gabriel Ortega Mischi 431.139.888-37 343756 R$ 1.564,99 R$ 133,02 R$ 1.431",
+  "periodo": {
+    "inicio": "2025-01-01",
+    "fim": "2025-12-31"
+  }
 }

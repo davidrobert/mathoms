@@ -1,88 +1,12 @@
 {
-  "tipo": "extratoconta",
-  "instituicao": "bradesco",
-  "membro": "mariana",
-  "conta": {
-    "numero": "77113-9",
-    "tipo": "poupança",
-    "moeda": "BRL",
-    "agencia": "3221"
-  },
+  "banco": "Bradesco",
+  "tipo": "extratopoupanca",
+  "moeda": "BRL",
   "periodo": {
-    "data_inicio": "2025-05-01",
-    "data_fim": "2025-06-30"
+    "inicio": "2020-25-01",
+    "fim": "2020-25-01"
   },
-  "saldos": {
-    "saldo_inicial": {
-      "valor": null,
-      "data": "2025-05-01"
-    },
-    "saldo_final": {
-      "valor": null,
-      "data": "2025-06-30"
-    }
-  },
-  "transacoes": [
-    {
-      "data": "2025-05-02",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12 bx Aut Cta Cor* -",
-      "tipo": "débito",
-      "valor": 1500.0,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-05-15",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
-      "tipo": "crédito",
-      "valor": 4139.58,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-05-30",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
-      "tipo": "crédito",
-      "valor": 3778.33,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-06-02",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "crédito",
-      "valor": 25.21,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-06-05",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
-      "tipo": "crédito",
-      "valor": 4282.7,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-06-13",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita",
-      "tipo": "crédito",
-      "valor": 2759.72,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-06-16",
-      "descricao": "Rendimentos Poup Facil-depos a Partir 4/5/12",
-      "tipo": "crédito",
-      "valor": 27.91,
-      "saldo_apos": null
-    },
-    {
-      "data": "2025-06-30",
-      "descricao": "tr Sal p/poup Sociedade Beneficente Israelita Total - Os dados acima têm como base 31/03/2026 às 22h28 e estão sujeitos a alterações. Últimos Lançamen",
-      "tipo": "débito",
-      "valor": 1500.0,
-      "saldo_apos": null
-    }
-  ],
-  "total_periodo": {
-    "total_debitos": 3000.0,
-    "total_creditos": 15013.449999999999,
-    "saldo_liquido": 12013.449999999999
-  }
+  "saldo_inicial": 0,
+  "saldo_final": 9.0,
+  "transacoes": []
 }

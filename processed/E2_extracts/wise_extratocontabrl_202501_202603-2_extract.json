@@ -1,31 +1,14 @@
 {
+  "banco": "wise",
   "tipo": "extratoconta",
-  "instituicao": "Wise",
-  "membro": "david",
-  "conta": {
-    "numero": "2964355",
-    "tipo": "corrente",
-    "moeda": "BRL",
-    "agencia": null
-  },
+  "moeda": "BRL",
+  "numero_conta": null,
   "periodo": {
-    "data_inicio": "2025-01-01",
-    "data_fim": "2026-03-29"
+    "inicio": "2025-01-01",
+    "fim": "2026-03-31"
   },
-  "saldos": {
-    "saldo_inicial": {
-      "valor": null,
-      "data": "2025-01-01"
-    },
-    "saldo_final": {
-      "valor": 0.0,
-      "data": "2026-03-29"
-    }
-  },
+  "saldo_inicial": null,
+  "saldo_final": null,
   "transacoes": [],
-  "total_periodo": {
-    "total_debitos": 0.0,
-    "total_creditos": 0.0,
-    "saldo_liquido": 0.0
-  }
+  "notas": []
 }
