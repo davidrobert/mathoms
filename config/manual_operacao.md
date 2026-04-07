@@ -1166,12 +1166,63 @@ V5 — **Documentos corrompidos ou vazios:**
 
 **Processing logic:**
 
-> **Arquitetura híbrida (v4.7):** Faturas de cartão de crédito e aluguel são processadas pelo
-> script determinístico `e2_extract_faturas.py`. Extratos de conta, investimentos e CDBs
-> continuam sendo processados via LLM. Isso garante velocidade e reprodutibilidade para os
-> formatos conhecidos, com fallback LLM para bancos novos.
+> **Arquitetura híbrida (v5.5):** Faturas de cartão de crédito e aluguel são processadas pelo
+> script determinístico `e2_extract_faturas.py`. **Extratos bancários** (conta corrente, poupança,
+> conta global, conta PJ) são processados pelo script determinístico `e2_extract_extratos.py` (v5.5).
+> Investimentos, CDBs, IRPF e informes de rendimentos continuam sendo processados via LLM.
+> Isso garante velocidade, reprodutibilidade e precisão para os formatos conhecidos,
+> com fallback LLM apenas para bancos novos ou formatos desconhecidos.
 
-#### E2-extratos (LLM)
+#### E2-extratos (determinístico — v5.5)
+
+**Execução:**
+```bash
+python scripts/e2_extract_extratos.py
+```
+O script é 100% determinístico (zero LLM) para bancos conhecidos. Usa pdfplumber para extração
+de texto e tabelas. Tempo de execução: ~50s para ~32 extratos. Mesmos inputs = mesmos outputs.
+
+**Opções CLI:**
+- `--dry-run` — mostra o que seria processado sem gravar arquivos
+- `--file <caminho>` — processa apenas um extrato específico
+- `--output-dir <caminho>` — diretório de saída (padrão: `processed/E2_extracts/`)
+
+**Parsers disponíveis (v5.5):**
+
+| Banco | Tipo | Método | Obs |
+|-------|------|--------|-----|
+| C6 Bank | `extratoconta` | TABLE | Multi-página, ~670 rows/tabela |
+| C6 Bank | `extratocontapj` | TABLE | Mesmo formato de C6 Conta |
+| C6 Bank | `extratocontaglobalusd` | TABLE | Valor com prefixo moeda (US$) |
+| C6 Bank | `extratocontaglobaleur` | TABLE | Valor com prefixo moeda (€) |
+| Itaú | `extratoconta` | TABLE | Muitas mini-tabelas (1 row cada) |
+| Itaú | `extratocontapersonnalite` | TABLE | Mesmo formato de Itaú Conta |
+| PicPay | `extratoconta` | TABLE | Tabelas perfeitas 5 colunas |
+| Bradesco | `extratoconta` | REGEX | Multi-linha, 14+ páginas |
+| Bradesco | `extratopoupanca` | REGEX | Screenshot do app, texto extraível |
+| Santander | `extratoconta` | REGEX | Linhas completas com docto 6 dígitos |
+| BTG Pactual | `extratoconta` | REGEX | Saldo Inicial/Final explícitos |
+| Rico | `extratoconta` | REGEX | Dividendos/JCP, data Liq + Mov |
+| Wise | `extratocontausd` | REGEX | Transação+data em linhas alternadas |
+| Wise | `extratocontabrl` | REGEX | Mesmo formato Wise USD |
+| Bank of America | `extratoconta` | REGEX | Formato US (MM/DD/YY), USD |
+
+**Validation gate integrada:**
+O script inclui validação automática pós-extração:
+- Rejeita (ERROR) JSONs com 0 transações quando o PDF tem >500 chars de texto
+  (exceto contas explicitamente sem movimentação)
+- Detecta transações com valor None
+- Detecta possíveis duplicatas intra-arquivo
+- Registra notas em cada JSON para auditoria
+
+**Lógica de roteamento:**
+1. Identifica banco e tipo pelo nome do arquivo (padrão: `[banco]_extrato*_[período]-0_original.pdf`)
+2. Despacha para o parser determinístico correspondente (TABLE ou REGEX)
+3. Se banco desconhecido → gera JSON com `"requires_llm_fallback": true`
+
+#### E2-extratos-llm (LLM fallback — apenas bancos sem parser)
+
+Para bancos sem parser determinístico ou arquivos marcados com `requires_llm_fallback`:
 
 1. **Para cada extrato de conta (CC, PJ, Global, Poupança):**
    - Ler o PDF (se JPG, usar OCR)
@@ -2278,33 +2329,38 @@ Agora que todos os arquivos estão de volta no `inbox/`:
 - Copiar para `inbox_processed/[DATA]/` e mover para `data/`
 - Atualizar `logs/inbox_log.md`
 
-**Passo 6 — E-reset: Limpeza + etapas determinísticas (E2-faturas → E3 → E4 → E5 → E6):**
-```bash
-python scripts/e_reset.py --dry-run   # Preview
-python scripts/e_reset.py             # Executar
-```
-O script apaga artefatos E2→E6 e re-executa as etapas determinísticas automaticamente.
-
-**Passo 7 — Etapas LLM (execução manual, nesta ordem):**
+**Passo 6 — Etapas LLM pré-extração (execução manual, nesta ordem):**
 
 | Ordem | Etapa | O que fazer | Artefatos gerados |
 |---|---|---|---|
-| 7a | **E1** | Mapeamento de membros (currículos, docs pessoais) | `members/*-1a_extract.json`, `members-1b_unified.json` |
-| 7b | **E1.5** | Baseline patrimonial (IRPF, XLSX imóveis/veículos) | `members-1c_enriched.md` |
-| 7c | **E2-extratos** | Extração de extratos bancários (PDFs → JSON) | `E2_extracts/*-2_extract.json` |
-| 7d | **Re-cascatear E3→E6** | `python scripts/e_reset.py --from E3` | Artefatos E3→E6 |
-| 7e | **E5.N** | Narrativas analíticas | Chave `narrativas` nos JSONs E5 |
-| 7f | **Re-render E6** | `python scripts/e6_render.py` | `output/*.html` |
+| 6a | **E1** | Mapeamento de membros (currículos, docs pessoais) | `members/*-1a_extract.json`, `members-1b_unified.json` |
+| 6b | **E1.5** | Baseline patrimonial (IRPF, XLSX imóveis/veículos) | `members-1c_enriched.md`, `E2_extracts/*-1.5_*.json` |
+| 6c | **E2-extratos-llm** | Extração LLM de investimentos, CDBs, informes (apenas tipos sem parser determinístico) | `E2_extracts/*-2_extract.json` |
 
-> **Importante:** Após E2-extratos (7c), é necessário re-cascatear com `e_reset.py --from E3` (7d) para que os novos extratos sejam reconciliados, categorizados e analisados antes de gerar narrativas.
+> **Nota (v5.5):** Extratos bancários (conta corrente, poupança, global, PJ) agora são processados deterministicamente no Passo 7. A etapa 6c é apenas para tipos sem parser: `investimentosposicao`, `carteirarendafixa`, `cdbdetalhes`, `cdbresumo`, `informerendimentos`, `irpf`.
 
-**Passo 8 — Comitar resultado:**
+**Passo 7 — Etapas determinísticas completas (E2-faturas + E2-extratos + E3→E6):**
+```bash
+python scripts/e2_extract_faturas.py               # E2-faturas (cartões de crédito + aluguel)
+python scripts/e2_extract_extratos.py               # E2-extratos (contas bancárias — v5.5)
+python scripts/e_reset.py --from E3                 # Cascata E3→E4→E5→E6
+```
+Os três scripts são 100% determinísticos. `e2_extract_extratos.py` possui validation gate integrada que rejeita extrações com 0 transações quando o PDF contém texto significativo. Tempo total: ~60s.
+
+**Passo 8 — Narrativas e render final:**
+
+| Ordem | Etapa | O que fazer | Artefatos gerados |
+|---|---|---|---|
+| 8a | **E5.N** | Narrativas analíticas | Chave `narrativas` nos JSONs E5 |
+| 8b | **E6 render** | `python scripts/e6_render.py` | `output/*.html` |
+
+**Passo 9 — Comitar resultado:**
 ```bash
 git add -A
 git commit -m "E-full-reset: reprocessamento completo E0→E6 [DATA]"
 ```
 
-**Passo 9 — Validação final:**
+**Passo 10 — Validação final:**
 - Executar checklist V1–V19 do E6 (Seção 4, STAGE E6)
 - Comparar com relatório anterior via `git diff` para confirmar que não houve perda de dados
 - Verificar que `e0_audit.py` não reporta novos ERRORs:
@@ -2319,10 +2375,9 @@ python scripts/e0_audit.py
 | Move data/+members/ → inbox/ | Determinístico | ~5s |
 | E0-unlock + E0-audit | Determinístico | ~10s |
 | E0 (roteamento de todos os arquivos) | LLM | Variável (depende de nº de arquivos no inbox) |
-| E-reset (E2-fat → E3 → E4 → E5 → E6) | Determinístico | ~15s |
 | E1 + E1.5 | LLM | ~5–10 min |
-| E2-extratos | LLM | ~5–15 min (depende de nº de PDFs) |
-| E3 → E6 (re-cascata) | Determinístico | ~15s |
+| E2-extratos-llm (investimentos, CDBs, IRPF) | LLM | ~3–5 min |
+| E2-faturas + E2-extratos + E3→E6 | Determinístico | ~60s |
 | E5.N + E6 render | LLM + Determinístico | ~5 min |
 
 ---

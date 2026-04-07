@@ -328,25 +328,26 @@ def strip_narrativas_from_e5_files(dry_run: bool = False) -> int:
 # =============================================================================
 
 DETERMINISTIC_SCRIPTS = {
-    "E2-faturas": SCRIPTS_DIR / "e2_extract_faturas.py",
-    "E3":         SCRIPTS_DIR / "e3_reconcile.py",
-    "E4":         SCRIPTS_DIR / "e4_categorize.py",
-    "E5":         SCRIPTS_DIR / "e5_analyze.py",
-    "E6":         SCRIPTS_DIR / "e6_render.py",
+    "E2-faturas":  SCRIPTS_DIR / "e2_extract_faturas.py",
+    "E2-extratos": SCRIPTS_DIR / "e2_extract_extratos.py",
+    "E3":          SCRIPTS_DIR / "e3_reconcile.py",
+    "E4":          SCRIPTS_DIR / "e4_categorize.py",
+    "E5":          SCRIPTS_DIR / "e5_analyze.py",
+    "E6":          SCRIPTS_DIR / "e6_render.py",
 }
 
-LLM_STAGES = {"E0", "E1", "E1.5", "E2", "E5.N"}
+LLM_STAGES = {"E0", "E1", "E1.5", "E2-llm", "E5.N"}
 
-EXECUTION_ORDER_FULL = ["E0", "E1", "E1.5", "E2", "E2-faturas", "E3", "E4", "E5", "E5.N", "E6"]
+EXECUTION_ORDER_FULL = ["E0", "E1", "E1.5", "E2-llm", "E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6"]
 EXECUTION_ORDER_FROM = {
-    "E0":         ["E0", "E1", "E1.5", "E2", "E2-faturas", "E3", "E4", "E5", "E5.N", "E6"],
-    "E1":         ["E1", "E1.5", "E2", "E2-faturas", "E3", "E4", "E5", "E5.N", "E6"],
-    "E2-faturas": ["E2-faturas", "E3", "E4", "E5", "E5.N", "E6"],
-    "E3":         ["E3", "E4", "E5", "E5.N", "E6"],
-    "E4":         ["E4", "E5", "E5.N", "E6"],
-    "E5":         ["E5", "E5.N", "E6"],
-    "E5.N":       ["E5.N", "E6"],
-    "E6":         ["E6"],
+    "E0":          ["E0", "E1", "E1.5", "E2-llm", "E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6"],
+    "E1":          ["E1", "E1.5", "E2-llm", "E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6"],
+    "E2-faturas":  ["E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6"],
+    "E3":          ["E3", "E4", "E5", "E5.N", "E6"],
+    "E4":          ["E4", "E5", "E5.N", "E6"],
+    "E5":          ["E5", "E5.N", "E6"],
+    "E5.N":        ["E5.N", "E6"],
+    "E6":          ["E6"],
 }
 
 
