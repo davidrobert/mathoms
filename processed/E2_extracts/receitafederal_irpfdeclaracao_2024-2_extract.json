@@ -1,295 +1,648 @@
 {
-  "tipo": "irpfdeclaracao",
+  "tipo": "irpf_declaracao",
+  "membro": "david",
+  "ano_exercicio": 2025,
   "ano_base": 2024,
-  "declarante": {
+  "informacoes_contribuinte": {
     "nome": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-    "cpf": "287.766.948-36"
+    "cpf": "287.766.948-36",
+    "data_nascimento": "05/09/1981",
+    "conjuge_cpf": "085.052.396-60",
+    "endereco": "RUA TASSO DA SILVEIRA, 61",
+    "numero": "61",
+    "bairro": "VILA GUARANI Z SUL",
+    "municipio": "SAO PAULO",
+    "estado": "SP",
+    "cep": "04316-080",
+    "email": "DAVIDROBERT@GMAIL.COM",
+    "telefone": "(11) 99681-9851",
+    "ocupacao_principal": "212 - Analista de sistemas, desenvolvedor de software, administrador de redes e bancos de dados",
+    "tipo_declaracao": "Declaração de Ajuste Anual Original",
+    "recibo_ultima_declaracao": "28.30.05.47.83-50"
   },
-  "data_declaracao": "2025-05-28",
+  "dependentes": [],
   "bens_direitos": [
     {
-      "tipo": "imovel",
-      "descricao": "Apartamento - Cond. Barão de Capanema - Apto 34, Praça Benedito Calixto 190, Pinheiros, SP. Matrícula 3421. 40,7m². Compra à vista 10/12/2021.",
-      "valor_31_12_ano_anterior": 350000.0,
-      "valor_31_12_ano_base": 350000.0,
-      "localidade": "São Paulo, SP"
+      "grupo": "01",
+      "codigo": "11",
+      "discriminacao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
+      "localizacao": "PRACA BENEDITO CALIXTO, 190, APTO 34, PINHEIROS, SAO PAULO, SP, 05406-040",
+      "iptu": "013.036.0155-9",
+      "area_m2": 40.7,
+      "data_aquisicao": "10/12/2021",
+      "cartorio": "13O CARTORIO DE REGISTRO DE IMOVEIS DE SAO PAULO",
+      "matricula": "3421",
+      "valor_31_12_2023": 350000.0,
+      "valor_31_12_2024": 350000.0,
+      "pais": "Brasil"
     },
     {
-      "tipo": "imovel",
-      "descricao": "Apartamento - Edifício Gisele - Apto 12 + Vaga N48, Rua Major Freire 496, Vila Monte Alegre, SP. Matrícula 74782. 68,8m². Alienação fiduciária Itaú. Compra 02/02/2022.",
-      "valor_31_12_ano_anterior": 212706.24,
-      "valor_31_12_ano_base": 212706.24,
-      "localidade": "São Paulo, SP"
+      "grupo": "01",
+      "codigo": "11",
+      "discriminacao": "APARTAMENTO - EDIFICIO GISELE - APTO 12 COM UMA VAGA DE GARAGEM N48 - ALIENACAO FIDUCIARIA AO ITAU UNIBANCO S/A",
+      "contrato": "10171192207",
+      "localizacao": "RUA MAJOR FREIRE, 496, APTO 12, VILA MONTE ALEGRE, SAO PAULO, SP, 04304-110",
+      "area_m2": 68.8,
+      "data_aquisicao": "02/02/2022",
+      "cartorio": "8 CARTORIO DE REGISTRO DE IMOVEIS",
+      "matricula": "74782",
+      "valor_31_12_2023": 212706.24,
+      "valor_31_12_2024": 212706.24,
+      "pais": "Brasil"
     },
     {
-      "tipo": "imovel",
-      "descricao": "Casa - Av. Leonardo da Vinci 2707, Jabaquara, SP. Matrícula 20462. Compra 12/01/2023 R$80.000.",
-      "valor_31_12_ano_anterior": 80000.0,
-      "valor_31_12_ano_base": 80000.0,
-      "localidade": "São Paulo, SP"
+      "grupo": "01",
+      "codigo": "12",
+      "discriminacao": "COMPRA E VENDA DE CASA - ADQUIRIDO EM 12/01/2023",
+      "adquirente_cpf": "135.542.328-74",
+      "percentual_participacao": "100.00%",
+      "cnpj_informante": "22.901.777/0001-60",
+      "localizacao": "LEONARDO DA VINCI, 2707, QUADRA 33 LOTE 27, JABAQUARA, SAO PAULO, SP, 14000-000",
+      "iptu": "31004501460",
+      "data_aquisicao": "12/01/2023",
+      "cartorio": "",
+      "matricula": "20462",
+      "valor_31_12_2023": 80000.0,
+      "valor_31_12_2024": 80000.0,
+      "pais": "Brasil"
     },
     {
-      "tipo": "imovel",
-      "descricao": "Casa - Rua Tasso da Silveira 61, Vila Guarani, SP. Matrícula 12.644. 171m². Financiamento CAIXA quitado. Compra 04/02/2014.",
-      "valor_31_12_ano_anterior": 996821.46,
-      "valor_31_12_ano_base": 996821.46,
-      "localidade": "São Paulo, SP"
+      "grupo": "01",
+      "codigo": "12",
+      "discriminacao": "CASA - RUA TASSO DA SILVEIRA, 61 - FINANCIAMENTO QUITADO NA CAIXA",
+      "contrato_caixa": "1.4444.0514.760-3",
+      "vendedor_cpf": "570.499.478-49",
+      "localizacao": "RUA TASSO DA SILVEIRA, 61, VILA GUARANI, SAO PAULO, SP, 04316-080",
+      "iptu": "31005001186",
+      "area_m2": 171.0,
+      "data_aquisicao": "04/02/2014",
+      "cartorio": "OITAVO CARTORIO DE REGISTRO DE IMOVEIS",
+      "matricula": "12.644.-",
+      "valor_31_12_2023": 996821.46,
+      "valor_31_12_2024": 996821.46,
+      "pais": "Brasil"
     },
     {
-      "tipo": "veiculo",
-      "descricao": "Motocicleta Yamaha NMAX - Preta - Placa DAV0351 - Ano 2018. RENAVAM 01143226094.",
-      "valor_31_12_ano_anterior": 15093.0,
-      "valor_31_12_ano_base": 15093.0,
-      "localidade": "Brasil"
+      "grupo": "02",
+      "codigo": "01",
+      "discriminacao": "VEICULO - MOTOCICLETA YAMAHA NMAX - PRETA",
+      "placa": "DAV0351",
+      "ano": "2018",
+      "renavam": "01143226094",
+      "valor_31_12_2023": 15093.0,
+      "valor_31_12_2024": 15093.0,
+      "pais": "Brasil"
     },
     {
-      "tipo": "veiculo",
-      "descricao": "Motocicleta Yamaha MT 09 Tracer - Azul - Placa DAV0342 - Ano 2018. RENAVAM 01165524977. Vendida em 2024.",
-      "valor_31_12_ano_anterior": 51722.0,
-      "valor_31_12_ano_base": 0.0,
-      "localidade": "Brasil"
+      "grupo": "02",
+      "codigo": "01",
+      "discriminacao": "VEICULO - MOTOCICLETA YAMAHA MT 09 TRACER - AZUL",
+      "placa": "DAV 0342",
+      "ano": "2018",
+      "renavam": "01165524977",
+      "valor_31_12_2023": 51722.0,
+      "valor_31_12_2024": 0.0,
+      "pais": "Brasil",
+      "observacao": "Alienado em 2024"
     },
     {
-      "tipo": "veiculo",
-      "descricao": "Carro Fiat Toro Ultra - Azul - Placa GDK6A27. RENAVAM 01294108287.",
-      "valor_31_12_ano_anterior": 191354.0,
-      "valor_31_12_ano_base": 191354.0,
-      "localidade": "Brasil"
+      "grupo": "02",
+      "codigo": "01",
+      "discriminacao": "VEICULO - CARRO FIAT TORO ULTRA - COR AZUL",
+      "placa": "GDK6A27",
+      "renavam": "01294108287",
+      "valor_31_12_2023": 191354.0,
+      "valor_31_12_2024": 191354.0,
+      "pais": "Brasil"
     },
     {
-      "tipo": "veiculo",
-      "descricao": "Motoneta Yamaha/NMAX 160 Modelo 2024 - Placa STH2C88. RENAVAM 01388189191. Adquirida em 2024.",
-      "valor_31_12_ano_anterior": 0.0,
-      "valor_31_12_ano_base": 21029.0,
-      "localidade": "Brasil"
+      "grupo": "02",
+      "codigo": "01",
+      "discriminacao": "MOTONETA YAMAHA/NMAX 160 MODELO 2024",
+      "placa": "STH2C88",
+      "renavam": "01388189191",
+      "valor_31_12_2023": 0.0,
+      "valor_31_12_2024": 21029.0,
+      "pais": "Brasil",
+      "observacao": "Adquirido em 2024"
     },
     {
-      "tipo": "acao",
-      "descricao": "Ações ITSA4 - Itaúsa - Quantidade 693. Vendidas em 2024.",
-      "valor_31_12_ano_anterior": 5821.2,
-      "valor_31_12_ano_base": 0.0,
-      "localidade": "Brasil"
+      "grupo": "03",
+      "codigo": "01",
+      "discriminacao": "ACOES - ITSA4",
+      "quantidade": 693,
+      "cnpj_empresa": "61.532.644/0001-15",
+      "negociados_bolsa": false,
+      "valor_31_12_2023": 5821.2,
+      "valor_31_12_2024": 0.0,
+      "pais": "Brasil",
+      "observacao": "Alienadas em 2024"
     },
     {
-      "tipo": "acao",
-      "descricao": "Ações BRKM5 - Braskem - Quantidade 300. Vendidas em 2024.",
-      "valor_31_12_ano_anterior": 6267.0,
-      "valor_31_12_ano_base": 0.0,
-      "localidade": "Brasil"
+      "grupo": "03",
+      "codigo": "01",
+      "discriminacao": "ACOES - BRKM5",
+      "quantidade": 300,
+      "cnpj_empresa": "42.150.391/0001-70",
+      "negociados_bolsa": false,
+      "valor_31_12_2023": 6267.0,
+      "valor_31_12_2024": 0.0,
+      "pais": "Brasil",
+      "observacao": "Alienadas em 2024"
     },
     {
-      "tipo": "acao",
-      "descricao": "Ações PETR4 - Petrobras - Quantidade 300. Vendidas em 2024.",
-      "valor_31_12_ano_anterior": 38883.0,
-      "valor_31_12_ano_base": 0.0,
-      "localidade": "Brasil"
+      "grupo": "03",
+      "codigo": "01",
+      "discriminacao": "ACOES - PETR4",
+      "quantidade": 300,
+      "cnpj_empresa": "33.000.167/0001-01",
+      "negociados_bolsa": true,
+      "codigo_negociacao": "PETR4",
+      "valor_31_12_2023": 38883.0,
+      "valor_31_12_2024": 0.0,
+      "pais": "Brasil",
+      "observacao": "Alienadas em 2024"
     },
     {
-      "tipo": "conta_bancaria",
-      "descricao": "Poupança Caixa Econômica Federal. Encerrada em 2024.",
-      "valor_31_12_ano_anterior": 61507.2,
-      "valor_31_12_ano_base": 0.0,
-      "localidade": "Brasil"
+      "grupo": "04",
+      "codigo": "01",
+      "discriminacao": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL",
+      "cnpj_instituicao": "00.360.305/0001-04",
+      "banco": "104",
+      "valor_31_12_2023": 61507.2,
+      "valor_31_12_2024": 0.0,
+      "pais": "Brasil",
+      "observacao": "Resgatado em 2024"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Banco Itaú - Renda Fixa RDB/CDP - Ag/Conta 9652/0004397-8.",
-      "valor_31_12_ano_anterior": 277658.86,
-      "valor_31_12_ano_base": 151602.49,
-      "localidade": "Brasil"
+      "grupo": "04",
+      "codigo": "02",
+      "discriminacao": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP",
+      "agencia_conta": "9652/0004397-8",
+      "cnpj_instituicao": "60.701.190/0001-04",
+      "banco": "341",
+      "agencia": "9652",
+      "conta": "4397-8",
+      "valor_31_12_2023": 277658.86,
+      "valor_31_12_2024": 151602.49,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "PicPay Bank - Ag 0001 Conta 438329-0.",
-      "valor_31_12_ano_anterior": 73587.74,
-      "valor_31_12_ano_base": 46684.62,
-      "localidade": "Brasil"
+      "grupo": "04",
+      "codigo": "02",
+      "discriminacao": "BANCO PICPAY BANK BANCO MULTIPLO S.A. - RENDA FIXA",
+      "agencia_conta": "0001/438329-0",
+      "cnpj_instituicao": "09.516.419/0001-75",
+      "banco": "380",
+      "agencia": "0001",
+      "conta": "438329-0",
+      "valor_31_12_2023": 73587.74,
+      "valor_31_12_2024": 46684.62,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Banco Santander - CDB - Ag 1652 Conta 010013416.",
-      "valor_31_12_ano_anterior": 1886.46,
-      "valor_31_12_ano_base": 243285.37,
-      "localidade": "Brasil"
+      "grupo": "04",
+      "codigo": "02",
+      "discriminacao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB)",
+      "agencia_conta": "1652/010013416",
+      "cnpj_instituicao": "90.400.888/0001-42",
+      "banco": "033",
+      "agencia": "1652",
+      "conta": "010013416",
+      "valor_31_12_2023": 1886.46,
+      "valor_31_12_2024": 243285.37,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Banco C6 - Renda Fixa.",
-      "valor_31_12_ano_anterior": 23439.0,
-      "valor_31_12_ano_base": 1765.0,
-      "localidade": "Brasil"
+      "grupo": "04",
+      "codigo": "02",
+      "discriminacao": "BANCO C6 - APLICACAO EM RENDA FIXA",
+      "cnpj_instituicao": "31.872.495/0001-72",
+      "banco": "336",
+      "valor_31_12_2023": 23439.0,
+      "valor_31_12_2024": 1765.0,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Nubank - RDB.",
-      "valor_31_12_ano_anterior": 5.98,
-      "valor_31_12_ano_base": 189.3,
-      "localidade": "Brasil"
+      "grupo": "04",
+      "codigo": "02",
+      "discriminacao": "SALDO EM RDB NO NUBANK",
+      "cnpj_instituicao": "30.680.829/0001-43",
+      "banco": "260",
+      "valor_31_12_2023": 5.98,
+      "valor_31_12_2024": 189.3,
+      "pais": "Brasil"
     },
     {
-      "tipo": "conta_bancaria",
-      "descricao": "Caixa - Conta Corrente Ag 1218 Conta 22539-4.",
-      "valor_31_12_ano_anterior": 275.29,
-      "valor_31_12_ano_base": 230.53,
-      "localidade": "Brasil"
+      "grupo": "06",
+      "codigo": "01",
+      "discriminacao": "BANCO CAIXA - CONTA CORRENTE",
+      "agencia_conta": "1218/22539-4",
+      "cnpj_instituicao": "00.360.305/0001-04",
+      "banco": "104",
+      "agencia": "1218",
+      "conta": "000584139274-0",
+      "conta_pagamento": false,
+      "valor_31_12_2023": 275.29,
+      "valor_31_12_2024": 230.53,
+      "pais": "Brasil"
     },
     {
-      "tipo": "conta_bancaria",
-      "descricao": "Banco Itaú - Conta Corrente Ag 9652 Conta 4397-8.",
-      "valor_31_12_ano_anterior": 10.0,
-      "valor_31_12_ano_base": 1.01,
-      "localidade": "Brasil"
+      "grupo": "06",
+      "codigo": "01",
+      "discriminacao": "BANCO ITAU - CONTA CORRENTE",
+      "cnpj_instituicao": "60.701.190/0001-04",
+      "banco": "341",
+      "agencia": "9652",
+      "conta": "4397-8",
+      "conta_pagamento": false,
+      "valor_31_12_2023": 10.0,
+      "valor_31_12_2024": 1.01,
+      "pais": "Brasil"
     },
     {
-      "tipo": "conta_bancaria",
-      "descricao": "Depósito conta corrente (Banco 336 Ag 0001 Conta 13095222-2).",
-      "valor_31_12_ano_anterior": 0.0,
-      "valor_31_12_ano_base": 4936.98,
-      "localidade": "Brasil"
+      "grupo": "06",
+      "codigo": "01",
+      "discriminacao": "DEPOSITO EM CONTA CORRENTE DE DEPOSITO A VISTA OU DE INVESTIMENTO",
+      "cnpj_instituicao": "32.345.784/0001-86",
+      "banco": "336",
+      "agencia": "0001",
+      "conta": "13095222-2",
+      "conta_pagamento": false,
+      "valor_31_12_2023": 0.0,
+      "valor_31_12_2024": 4936.98,
+      "pais": "Brasil"
     },
     {
-      "tipo": "outro",
-      "descricao": "Moeda estrangeira em espécie: US$ 6.524,00.",
-      "valor_31_12_ano_anterior": 34433.67,
-      "valor_31_12_ano_base": 34433.67,
-      "localidade": "Brasil"
+      "grupo": "06",
+      "codigo": "11",
+      "discriminacao": "DOLAR AMERICANO",
+      "moeda": "USD",
+      "quantidade": 6524.0,
+      "valor_31_12_2023": 34433.67,
+      "valor_31_12_2024": 34433.67,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Rico - Saldo em conta - XP Investimentos.",
-      "valor_31_12_ano_anterior": 15717.49,
-      "valor_31_12_ano_base": 8546.95,
-      "localidade": "Brasil"
+      "grupo": "06",
+      "codigo": "99",
+      "discriminacao": "RICO - SALDO EM CONTA - XP INVESTIMENTOS CCTVM S/A",
+      "cnpj_instituicao": "02.332.886/0001-04",
+      "valor_31_12_2023": 15717.49,
+      "valor_31_12_2024": 8546.95,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Depósito em moeda estrangeira dólar (Ilhas Cayman) Ag 0001 CC 100348783-7.",
-      "valor_31_12_ano_anterior": 768.94,
-      "valor_31_12_ano_base": 484.8,
-      "localidade": "Cayman, Ilhas"
+      "grupo": "06",
+      "codigo": "99",
+      "discriminacao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (ILHAS CAYMAN)",
+      "moeda": "USD",
+      "agencia_conta": "0001/100348783-7",
+      "valor_31_12_2023": 768.94,
+      "valor_31_12_2024": 484.8,
+      "pais": "Cayman, Ilhas",
+      "aplicacao_financeira": true,
+      "lucro_prejuizo": 0.0,
+      "imposto_pago_exterior": 0.0
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Rico - Hashdex 20 Nasdaq Crypto Index FIC FIM. CNPJ 33.736.873/0001-16.",
-      "valor_31_12_ano_anterior": 2457.74,
-      "valor_31_12_ano_base": 3189.68,
-      "localidade": "Brasil"
+      "grupo": "07",
+      "codigo": "01",
+      "discriminacao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX FIC FIM",
+      "cnpj_fundo": "33.736.873/0001-16",
+      "tipo": "Fundo de Investimento",
+      "valor_31_12_2023": 2457.74,
+      "valor_31_12_2024": 3189.68,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Rico - DNA Energy FIC FIM CP. CNPJ 35.956.056/0001-07.",
-      "valor_31_12_ano_anterior": 1387.66,
-      "valor_31_12_ano_base": 1416.09,
-      "localidade": "Brasil"
+      "grupo": "07",
+      "codigo": "01",
+      "discriminacao": "RICO - DNA ENERGY FIC FIM",
+      "cnpj_fundo": "35.956.056/0001-07",
+      "tipo": "Fundo de Investimento",
+      "valor_31_12_2023": 1387.66,
+      "valor_31_12_2024": 1416.09,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Rico - Constellation Institucional ADVI. CNPJ 34.462.109/0001-62.",
-      "valor_31_12_ano_anterior": 10000.0,
-      "valor_31_12_ano_base": 11409.17,
-      "localidade": "Brasil"
+      "grupo": "07",
+      "codigo": "04",
+      "discriminacao": "RICO - CONSTELLATION INSTITUCIONAL ADVI",
+      "cnpj_fundo": "34.462.109/0001-62",
+      "tipo": "Fundo de Investimento",
+      "negociados_bolsa": false,
+      "valor_31_12_2023": 10000.0,
+      "valor_31_12_2024": 11409.17,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Rico - Western Asset FIA BDR Nível I. CNPJ 19.831.126/0001-36.",
-      "valor_31_12_ano_anterior": 17651.61,
-      "valor_31_12_ano_base": 17651.61,
-      "localidade": "Brasil"
+      "grupo": "07",
+      "codigo": "04",
+      "discriminacao": "RICO - WESTERN ASSET FIA BDR NIVEL I",
+      "cnpj_fundo": "19.831.126/0001-36",
+      "tipo": "Fundo de Investimento em Ações",
+      "negociados_bolsa": false,
+      "valor_31_12_2023": 17651.61,
+      "valor_31_12_2024": 17651.61,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Rico - Alaska Black FIC FIA BDR. CNPJ 12.987.743/0001-86.",
-      "valor_31_12_ano_anterior": 60000.0,
-      "valor_31_12_ano_base": 60000.0,
-      "localidade": "Brasil"
+      "grupo": "07",
+      "codigo": "04",
+      "discriminacao": "RICO - ALASKA BLACK FIC FIA - BDR",
+      "cnpj_fundo": "12.987.743/0001-86",
+      "tipo": "Fundo de Investimento em Ações",
+      "negociados_bolsa": false,
+      "valor_31_12_2023": 60000.0,
+      "valor_31_12_2024": 60000.0,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Rico - Alaska Black Institucional FIA BDR. CNPJ 26.673.556/0001-32.",
-      "valor_31_12_ano_anterior": 35000.0,
-      "valor_31_12_ano_base": 35000.0,
-      "localidade": "Brasil"
+      "grupo": "07",
+      "codigo": "04",
+      "discriminacao": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR",
+      "cnpj_fundo": "26.673.556/0001-32",
+      "tipo": "Fundo de Investimento em Ações",
+      "negociados_bolsa": false,
+      "valor_31_12_2023": 35000.0,
+      "valor_31_12_2024": 35000.0,
+      "pais": "Brasil"
     },
     {
-      "tipo": "aplicacao",
-      "descricao": "Rico - Safari 30 FIC FIM II. CNPJ 23.960.625/0001-09.",
-      "valor_31_12_ano_anterior": 25238.59,
-      "valor_31_12_ano_base": 25238.59,
-      "localidade": "Brasil"
+      "grupo": "07",
+      "codigo": "04",
+      "discriminacao": "RICO - SAFARI 30 FIC FIM II",
+      "cnpj_fundo": "23.960.625/0001-09",
+      "tipo": "Fundo de Investimento",
+      "negociados_bolsa": false,
+      "valor_31_12_2023": 25238.59,
+      "valor_31_12_2024": 25238.59,
+      "pais": "Brasil"
     },
     {
-      "tipo": "outro",
-      "descricao": "Itaúsa - Posição acionária - JCP creditados e não pagos. CNPJ 61.532.644/0001-15.",
-      "valor_31_12_ano_anterior": 192.96,
-      "valor_31_12_ano_base": 82.15,
-      "localidade": "Brasil"
+      "grupo": "99",
+      "codigo": "07",
+      "discriminacao": "ITAUSA S.A - POSICAO ACIONARIA - JUROS SOBRE CAPITAL CREDITADOS E NAO PAGOS",
+      "cnpj_empresa": "61.532.644/0001-15",
+      "valor_31_12_2023": 192.96,
+      "valor_31_12_2024": 82.15,
+      "pais": "Brasil"
     }
   ],
-  "rendimentos": [
+  "rendimentos_tributaveis": [
     {
-      "tipo": "pj",
-      "valor_bruto": 153938.74,
-      "valor_liquido": 153938.74,
-      "fonte": "David Robert Camargo de Campos Ltda (CNPJ 48.771.488/0001-87)"
+      "fonte": "DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "cnpj": "48.771.488/0001-87",
+      "rendimentos_recebidos": 153938.74,
+      "contribuicao_previdenciaria": 6070.68,
+      "imposto_retido": 33225.23,
+      "decimo_terceiro_salario": 0.0,
+      "irrf_decimo_terceiro": 0.0,
+      "tipo": "Pessoa Jurídica"
     },
     {
-      "tipo": "pj",
-      "valor_bruto": 466978.67,
-      "valor_liquido": 466978.67,
-      "fonte": "Kiwify Pagamentos Tecnologia e Serviços Ltda (CNPJ 36.149.947/0001-06)"
+      "fonte": "KIWIFY PAGAMENTOS TECNOLOGIA E SERVICOS LTDA",
+      "cnpj": "36.149.947/0001-06",
+      "rendimentos_recebidos": 466978.67,
+      "contribuicao_previdenciaria": 5453.1,
+      "imposto_retido": 121543.55,
+      "decimo_terceiro_salario": 31259.11,
+      "irrf_decimo_terceiro": 10621.04,
+      "tipo": "Pessoa Jurídica"
     },
     {
-      "tipo": "aluguel",
-      "valor_bruto": 30457.24,
-      "valor_liquido": 30457.24,
-      "fonte": "Aluguéis recebidos de pessoa física (carnê-leão)"
-    },
-    {
-      "tipo": "outro",
-      "valor_bruto": 301277.39,
-      "valor_liquido": 301277.39,
-      "fonte": "Rendimento isento - Simples Nacional (David Robert Camargo de Campos Ltda)"
-    },
-    {
-      "tipo": "financeiro",
-      "valor_bruto": 55445.46,
-      "valor_liquido": 55445.46,
-      "fonte": "Rendimentos de aplicações financeiras (tributação exclusiva)"
-    },
-    {
-      "tipo": "dividendo",
-      "valor_bruto": 2658.8,
-      "valor_liquido": 2658.8,
-      "fonte": "JCP - Petrobras R$2.431,31 + Itaúsa R$227,49"
+      "tipo": "Pessoa Física - Aluguéis",
+      "periodo": "Mensal",
+      "meses": [
+        {
+          "mes": "JAN",
+          "valor": 2661.9
+        },
+        {
+          "mes": "FEV",
+          "valor": 2661.9
+        },
+        {
+          "mes": "MAR",
+          "valor": 2661.9
+        },
+        {
+          "mes": "ABR",
+          "valor": 2724.94
+        },
+        {
+          "mes": "MAI",
+          "valor": 2781.59
+        },
+        {
+          "mes": "JUN",
+          "valor": 2781.59
+        },
+        {
+          "mes": "JUL",
+          "valor": 2781.59
+        },
+        {
+          "mes": "AGO",
+          "valor": 2781.59
+        },
+        {
+          "mes": "SET",
+          "valor": 2781.59
+        },
+        {
+          "mes": "OUT",
+          "valor": 2781.59
+        },
+        {
+          "mes": "NOV",
+          "valor": 1694.03
+        },
+        {
+          "mes": "DEZ",
+          "valor": 1363.03
+        }
+      ],
+      "total_anual": 30457.24
     }
   ],
-  "dívidas_ônus": [
+  "rendimentos_isentos": [
     {
-      "tipo": "financiamento",
-      "descricao": "Crédito imobiliário Itaú Unibanco - Contrato 10171192207 (Apto Major Freire)",
-      "valor": 234642.79
-    },
-    {
-      "tipo": "outro",
-      "descricao": "Cheque especial Banco Santander",
-      "valor": 149.82
+      "tipo": "13. Rendimento de sócio ou titular de microempresa ou empresa de pequeno porte optante pelo Simples Nacional",
+      "descricao": "Exceto pro labore, aluguéis e serviços prestados",
+      "beneficiario": "Titular",
+      "cpf_beneficiario": "287.766.948-36",
+      "cnpj_fonte": "48.771.488/0001-87",
+      "nome_fonte": "DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 301277.39
     }
   ],
-  "deducoes": [
+  "rendimentos_exclusivos_definitivos": [
     {
-      "tipo": "saude",
-      "valor": 136.0
+      "tipo": "01. 13º salário",
+      "beneficiario": "Titular",
+      "cpf_beneficiario": "287.766.948-36",
+      "valor": 31259.11
     },
     {
-      "tipo": "outro",
-      "valor": 2829.36
+      "tipo": "06. Rendimentos de aplicações financeiras",
+      "itens": [
+        {
+          "beneficiario": "Titular",
+          "cpf_beneficiario": "287.766.948-36",
+          "cnpj_fonte": "33.000.167/0001-01",
+          "nome_fonte": "PETROLEO BRASILEIRO S.A. PETROBRAS",
+          "valor": 200.77
+        },
+        {
+          "beneficiario": "Titular",
+          "cpf_beneficiario": "287.766.948-36",
+          "cnpj_fonte": "60.701.190/0001-04",
+          "nome_fonte": "ITAU UNIBANCO S.A.",
+          "valor": 41231.46
+        },
+        {
+          "beneficiario": "Titular",
+          "cpf_beneficiario": "287.766.948-36",
+          "cnpj_fonte": "90.400.888/0001-42",
+          "nome_fonte": "BANCO SANTANDER (BRASIL) SA",
+          "valor": 511.97
+        },
+        {
+          "beneficiario": "Titular",
+          "cpf_beneficiario": "287.766.948-36",
+          "cnpj_fonte": "09.516.419/0001-75",
+          "nome_fonte": "PICPAY BANK BANCO MULTIPLO S.A",
+          "valor": 9414.38
+        },
+        {
+          "beneficiario": "Titular",
+          "cpf_beneficiario": "287.766.948-36",
+          "cnpj_fonte": "30.680.829/0001-43",
+          "nome_fonte": "NU FINANCEIRA S.A. - SOCIEDADE DE CREDITO, FINANCIAMENTO E I",
+          "valor": 0.02
+        },
+        {
+          "beneficiario": "Titular",
+          "cpf_beneficiario": "287.766.948-36",
+          "cnpj_fonte": "31.872.495/0001-72",
+          "nome_fonte": "BANCO C6 SA",
+          "valor": 3326.64
+        },
+        {
+          "beneficiario": "Titular",
+          "cpf_beneficiario": "287.766.948-36",
+          "cnpj_fonte": "33.736.873/0001-16",
+          "nome_fonte": "HASHDEX 20 NASDAQ CRYPTO INDEX FIC FIM",
+          "valor": 731.81
+        },
+        {
+          "beneficiario": "Titular",
+          "cpf_beneficiario": "287.766.948-36",
+          "cnpj_fonte": "35.956.056/0001-07",
+          "nome_fonte": "DNA ENERGY FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVES",
+          "valor": 28.41
+        }
+      ],
+      "total": 55445.46
+    },
+    {
+      "tipo": "10. Juros sobre capital próprio",
+      "itens": [
+        {
+          "beneficiario": "Titular",
+          "cpf_beneficiario": "287.766.948-36",
+          "cnpj_fonte": "33.000.167/0001-01",
+          "nome_fonte": "PETROLEO BRASILEIRO S.A. PETROBRAS",
+          "valor": 2431.31
+        },
+        {
+          "beneficiario": "Titular",
+          "cpf_beneficiario": "287.766.948-36",
+          "cnpj_fonte": "61.532.644/0001-15",
+          "nome_fonte": "ITAUSA S.A.",
+          "valor": 227.49
+        }
+      ],
+      "total": 2658.8
     }
   ],
-  "totalizadores": {
-    "bens_totais": 2513151.71,
-    "renda_tributavel": 651374.65,
+  "dividas": [
+    {
+      "codigo": "11",
+      "tipo": "CREDITO IMOBILIARIO",
+      "credor": "ITAU UNIBANCO S.A.",
+      "contrato": "10171192207",
+      "saldo_31_12_2023": 265420.59,
+      "saldo_31_12_2024": 234642.79,
+      "valor_pago_2024": 54416.0
+    },
+    {
+      "codigo": "11",
+      "tipo": "CHEQUE ESPECIAL",
+      "credor": "BANCO SANTANDER",
+      "saldo_31_12_2023": 0.0,
+      "saldo_31_12_2024": 149.82,
+      "valor_pago_2024": 0.0
+    }
+  ],
+  "pagamentos_deducoes": [
+    {
+      "codigo": "21",
+      "tipo": "Despesa com Saúde",
+      "beneficiario": "FLEURY S/A",
+      "cnpj": "60.840.055/0001-31",
+      "valor_pago": 136.0,
+      "parcela_nao_dedutivel": 0.0
+    },
+    {
+      "codigo": "71",
+      "tipo": "Despesa com Educação",
+      "beneficiario": "GRPQA LTDA",
+      "cnpj": "16.788.643/0001-81",
+      "valor_pago": 2829.36,
+      "parcela_nao_dedutivel": 0.0
+    }
+  ],
+  "imposto": {
+    "rendimentos_tributaveis_total": 651374.65,
+    "desconto_simplificado": 16754.34,
+    "base_calculo": 634620.31,
     "imposto_devido": 163779.6,
-    "imposto_pago": 154768.78,
-    "saldo": 9010.82
+    "imposto_devido_rra": 0.0,
+    "aliquota_efetiva_percentual": 25.14,
+    "imposto_retido_fonte_titular": 154768.78,
+    "imposto_retido_fonte_dependentes": 0.0,
+    "carne_leao_titular": 0.0,
+    "carne_leao_dependentes": 0.0,
+    "imposto_complementar": 0.0,
+    "imposto_pago_exterior": 0.0,
+    "imposto_retido_lei_11033_2004": 0.0,
+    "imposto_retido_rra": 0.0,
+    "total_imposto_pago": 154768.78,
+    "imposto_restituir": 0.0,
+    "saldo_imposto_pagar": 9010.82,
+    "parcelamento": {
+      "valor_quota": 9010.82,
+      "numero_quotas": 1
+    }
+  },
+  "resumo": {
+    "bens_direitos_31_12_2023": 2589887.09,
+    "bens_direitos_31_12_2024": 2513151.71,
+    "dividas_31_12_2023": 265420.59,
+    "dividas_31_12_2024": 234792.61,
+    "patrimonio_liquido_2023": 2324466.5,
+    "patrimonio_liquido_2024": 2278359.1,
+    "variacao_patrimonio": -46107.4,
+    "rendimentos_isentos_nao_tributaveis": 301277.39,
+    "rendimentos_exclusivos_definitivos": 89363.37,
+    "imposto_retido_lei_11033_2004_total": 0.0,
+    "imposto_ganhos_capital": 0.0,
+    "imposto_renda_variavel": 0.0,
+    "donativos_politicos": 0.0,
+    "data_entrega_declaracao": "28/05/2025 15:05:47",
+    "numero_controle": "837638517565215"
   }
 }

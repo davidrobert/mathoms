@@ -6,81 +6,81 @@
   "moeda": "BRL",
   "data_vencimento": "2025-08-05",
   "saldo_anterior": null,
-  "total_compras_nacionais": 8563.82,
+  "total_compras_nacionais": 8973.5,
   "total_compras_internacionais": 9191.84,
-  "pagamentos": -843.88,
-  "saldo_atual": 17321.46,
-  "limite_total": 224000.0,
+  "pagamentos": -6521.64,
+  "saldo_atual": 11643.7,
+  "limite_total": null,
   "transacoes": [
     {
-      "data": "2024-06-30",
-      "descricao": "VINDI *ACCOUNTBANKTEC",
+      "data": "2025-06-30",
+      "descricao": "VINDI  *ACCOUNTBANKTEC",
       "valor": 390.0,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-02",
+      "data": "2025-07-02",
       "descricao": "APPLE.COM/BILL",
       "valor": 5.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-04",
+      "data": "2025-07-04",
       "descricao": "DM*SPOTIFY",
       "valor": 34.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-06",
+      "data": "2025-07-06",
       "descricao": "LIVELO*CLUBE LIVELO",
       "valor": 44.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-09",
-      "descricao": "EBN *AMAZON RETAIL",
+      "data": "2025-07-09",
+      "descricao": "EBN    *AMAZON RETAIL",
       "valor": 38.5,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-09",
-      "descricao": "EBN *AMAZON RETAIL - Estorno",
+      "data": "2025-07-09",
+      "descricao": "EBN    *AMAZON RETAIL",
+      "valor": -740.39,
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
+    },
+    {
+      "data": "2025-07-09",
+      "descricao": "EBN    *AMAZON RETAIL",
       "valor": 740.39,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-09",
-      "descricao": "EBN *AMAZON RETAIL",
-      "valor": 740.39,
-      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
-    },
-    {
-      "data": "2024-07-09",
-      "descricao": "EBN *AMAZON RETAIL",
+      "data": "2025-07-09",
+      "descricao": "EBN    *AMAZON RETAIL",
       "valor": 787.38,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-09",
-      "descricao": "EBN *AMAZON RETAIL - Estorno",
-      "valor": 103.49,
+      "data": "2025-07-09",
+      "descricao": "EBN    *AMAZON RETAIL",
+      "valor": -103.49,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-10",
-      "descricao": "EBN *AMAZON RETAIL",
+      "data": "2025-07-10",
+      "descricao": "EBN    *AMAZON RETAIL",
       "valor": 205.73,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-11",
-      "descricao": "EBN *AMAZON RETAIL",
+      "data": "2025-07-11",
+      "descricao": "EBN    *AMAZON RETAIL",
       "valor": 330.67,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-11",
-      "descricao": "AMAZON MARKETPLACE SE",
+      "data": "2025-07-11",
+      "descricao": "AMAZON MARKETPLACE     SE",
       "valor": 144.09,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
       "forex": {
@@ -90,15 +90,14 @@
       }
     },
     {
-      "data": "2024-07-11",
-      "descricao": "AMAZON MARKETPLACE SE",
+      "data": "2025-07-11",
+      "descricao": "AMAZON MARKETPLACE     SE",
       "valor": 4.87,
-      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-12",
-      "descricao": "AMAZON MARKETPLACE SE",
+      "data": "2025-07-12",
+      "descricao": "AMAZON MARKETPLACE     SE",
       "valor": 933.33,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
       "forex": {
@@ -108,15 +107,14 @@
       }
     },
     {
-      "data": "2024-07-12",
-      "descricao": "AMAZON MARKETPLACE SE",
+      "data": "2025-07-12",
+      "descricao": "AMAZON MARKETPLACE     SE",
       "valor": 31.55,
-      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-12",
-      "descricao": "AMAZON MARKETPLACE SE",
+      "data": "2025-07-12",
+      "descricao": "AMAZON MARKETPLACE     SE",
       "valor": 5801.56,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
       "forex": {
@@ -126,15 +124,14 @@
       }
     },
     {
-      "data": "2024-07-12",
-      "descricao": "AMAZON MARKETPLACE SE",
+      "data": "2025-07-12",
+      "descricao": "AMAZON MARKETPLACE     SE",
       "valor": 196.09,
-      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-12",
-      "descricao": "AMAZON MARKETPLACE SE",
+      "data": "2025-07-12",
+      "descricao": "AMAZON MARKETPLACE     SE",
       "valor": 110.32,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
       "forex": {
@@ -144,21 +141,20 @@
       }
     },
     {
-      "data": "2024-07-12",
-      "descricao": "AMAZON MARKETPLACE SE",
+      "data": "2025-07-12",
+      "descricao": "AMAZON MARKETPLACE     SE",
       "valor": 3.73,
-      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-13",
+      "data": "2025-07-13",
       "descricao": "WELLHUB GYMPASS BR GYM",
       "valor": 79.89,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-13",
-      "descricao": "AMAZON MARKETPLACE SE",
+      "data": "2025-07-13",
+      "descricao": "AMAZON MARKETPLACE     SE",
       "valor": 933.33,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
       "forex": {
@@ -168,15 +164,14 @@
       }
     },
     {
-      "data": "2024-07-13",
-      "descricao": "AMAZON MARKETPLACE SE",
+      "data": "2025-07-13",
+      "descricao": "AMAZON MARKETPLACE     SE",
       "valor": 31.55,
-      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-13",
-      "descricao": "RACETRAC2584 KI",
+      "data": "2025-07-13",
+      "descricao": "RACETRAC2584           KI",
       "valor": 225.59,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
       "forex": {
@@ -186,44 +181,43 @@
       }
     },
     {
-      "data": "2024-07-13",
-      "descricao": "RACETRAC2584 KI",
+      "data": "2025-07-13",
+      "descricao": "RACETRAC2584           KI",
       "valor": 7.62,
-      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-15",
+      "data": "2025-07-15",
       "descricao": "REGISTROBR",
       "valor": 76.0,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-15",
+      "data": "2025-07-15",
       "descricao": "REGISTROBR",
       "valor": 76.0,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-15",
+      "data": "2025-07-15",
       "descricao": "AMAZONPRIMEBR",
       "valor": 19.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-19",
+      "data": "2025-07-19",
       "descricao": "PRODUTOS GLOBO",
       "valor": 22.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-25",
+      "data": "2025-07-25",
       "descricao": "MP *MELIMAIS",
       "valor": 24.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-26",
+      "data": "2025-07-26",
       "descricao": "DOMINO'S 3232",
       "valor": 471.28,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
@@ -234,21 +228,21 @@
       }
     },
     {
-      "data": "2024-07-26",
+      "data": "2025-07-26",
       "descricao": "DOMINO'S 3232",
       "valor": 16.49,
-      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-07",
+      "data": "2025-07-07",
       "descricao": "Inclusao de Pagamento",
-      "valor": 5677.76,
-      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
+      "valor": -5677.76,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "pagamento"
     },
     {
-      "data": "2024-07-21",
-      "descricao": "SCRIPTS PHARMACY OR",
+      "data": "2025-07-21",
+      "descricao": "SCRIPTS PHARMACY       OR",
       "valor": 17.51,
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
       "forex": {
@@ -258,22 +252,20 @@
       }
     },
     {
-      "data": "2024-07-21",
-      "descricao": "SCRIPTS PHARMACY OR",
+      "data": "2025-07-21",
+      "descricao": "SCRIPTS PHARMACY       OR",
       "valor": 0.61,
-      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-22",
-      "descricao": "SCRIPTS PHARMACY OR",
+      "data": "2025-07-22",
+      "descricao": "SCRIPTS PHARMACY       OR",
       "valor": 3.79,
-      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-22",
-      "descricao": "SCRIPTS PHARMACY OR",
+      "data": "2025-07-22",
+      "descricao": "SCRIPTS PHARMACY       OR",
       "valor": 108.3,
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
       "forex": {
@@ -283,7 +275,7 @@
       }
     },
     {
-      "data": "2024-07-22",
+      "data": "2025-07-22",
       "descricao": "NIC*-DOH ORA VITAL STA OR",
       "valor": 152.2,
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
@@ -294,15 +286,14 @@
       }
     },
     {
-      "data": "2024-07-22",
+      "data": "2025-07-22",
       "descricao": "NIC*-DOH ORA VITAL STA OR",
       "valor": 5.33,
-      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-22",
-      "descricao": "SCRIPTS PHARMACY OR",
+      "data": "2025-07-22",
+      "descricao": "SCRIPTS PHARMACY       OR",
       "valor": 88.04,
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
       "forex": {
@@ -312,29 +303,28 @@
       }
     },
     {
-      "data": "2024-07-22",
-      "descricao": "SCRIPTS PHARMACY OR",
+      "data": "2025-07-22",
+      "descricao": "SCRIPTS PHARMACY       OR",
       "valor": 3.08,
-      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
-      "data": "2024-07-23",
+      "data": "2025-07-23",
       "descricao": "Anuidade Diferenciada",
       "valor": 98.0,
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "parcela": "8/12"
+      "parcela": "8/12",
+      "tipo_lancamento": "anuidade"
     },
     {
-      "data": "2024-07-02",
-      "descricao": "WAL-MART #5214 KI",
+      "data": "2025-07-02",
+      "descricao": "WAL-MART #5214         KI",
       "valor": 6.97,
-      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
     },
     {
-      "data": "2024-07-02",
-      "descricao": "WAL-MART #5214 KI",
+      "data": "2025-07-02",
+      "descricao": "WAL-MART #5214         KI",
       "valor": 206.29,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
       "forex": {
@@ -344,19 +334,19 @@
       }
     },
     {
-      "data": "2024-07-15",
+      "data": "2025-07-15",
       "descricao": "LATAM AIRLINES",
       "valor": 5229.63,
       "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS"
     },
     {
-      "data": "2024-07-20",
+      "data": "2025-07-20",
       "descricao": "DESCAMPADO",
       "valor": 287.17,
       "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS"
     },
     {
-      "data": "2024-07-20",
+      "data": "2025-07-20",
       "descricao": "AUTO POSTO ROTA",
       "valor": 169.06,
       "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS"
@@ -369,7 +359,7 @@
     },
     {
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "subtotal": 476.86
+      "subtotal": -5200.9
     },
     {
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",

@@ -4,7 +4,7 @@
   "nome_no_documento": "Mariana Teixeira Ferreira",
   "periodo": "2026-02",
   "empresa": "SBIBHAE - Albert Einstein",
-  "estabelecimento": "AEMO Unidade Morumbi",
+  "estabelecimento": "Unidade Morumbi",
   "cargo": "Enfermeiro Pl",
   "categoria": "Enfermagem P",
   "grade": "P4",
@@ -15,12 +15,12 @@
   "proventos_adicionais": [
     {
       "codigo": "0001",
-      "descricao": "Salário mensal (25 dias)",
+      "descricao": "Salário mensal",
       "valor": 9082.92
     },
     {
       "codigo": "/325",
-      "descricao": "Adicional de insalubridade 20%",
+      "descricao": "Adic. insalubridade 20%",
       "valor": 270.17
     },
     {
@@ -30,12 +30,12 @@
     },
     {
       "codigo": "MC03",
-      "descricao": "Férias no mês (5 dias)",
+      "descricao": "Férias no mês",
       "valor": 1870.62
     },
     {
       "codigo": "MC04",
-      "descricao": "Férias 1/3 no mês (5 dias)",
+      "descricao": "Férias 1/3 no mês",
       "valor": 623.54
     },
     {
@@ -67,17 +67,17 @@
     },
     {
       "codigo": "1014",
-      "descricao": "seguro_vida",
+      "descricao": "Seguro de Vida",
       "valor": 27.41
     },
     {
       "codigo": "1025",
-      "descricao": "refeicao",
+      "descricao": "Refeição",
       "valor": 34.80
     },
     {
       "codigo": "MO90",
-      "descricao": "ferias",
+      "descricao": "Desconto de Férias",
       "valor": 2529.63
     }
   ],
@@ -90,5 +90,5 @@
   },
   "inss_base": 11882.72,
   "dependentes_ir": 0,
-  "observacoes": "Holerite inclui 5 dias de férias (MC03/MC04/MC13/MC14) e desconto de férias (MO90). Salário líquido atipicamente baixo neste mês devido ao desconto de férias (R$2.529,63) e adiantamento (R$3.633,17). Salário base mensal integral: R$10.899,51. Banco: 237 (Bradesco), Ag. 6543, Conta 6673."
+  "observacoes": "Período inclui 5 dias de férias. Líquido atipicamente baixo devido a desconto de férias (R$ 2.529,63) e adiantamento (R$ 3.633,17)."
 }

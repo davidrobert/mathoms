@@ -6,20 +6,27 @@
   "moeda": "BRL",
   "data_vencimento": "2025-08-06",
   "saldo_anterior": 154.57,
-  "total_compras_nacionais": 59.0,
-  "total_compras_internacionais": 0.0,
   "total_compras": 59.0,
   "pagamentos": -154.57,
   "saldo_atual": 59.0,
-  "limite_total": 82800.0,
-  "parse_quality": "ok",
   "transacoes": [
     {
       "data": "2025-06-08",
-      "descricao": "BRASIL PARAL*Bras 03/12",
+      "descricao": "BRASIL PARAL*Bras",
       "valor": 59.0,
-      "cartao": "Pão de Açúcar",
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
+      "parcela": "02/12"
+    }
+  ],
+  "compras_parceladas_futuras": [
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras",
+      "valor": 59.0,
+      "cartao": "Lançamentos no cartão (final 4984)",
       "parcela": "03/12"
     }
-  ]
+  ],
+  "numero_cartao": "4771.XXXX.XXXX.5739",
+  "parse_quality": "ok"
 }

@@ -3,23 +3,23 @@
   "membro": "david",
   "nome_completo": "David Robert Camargo Ferreira Campos",
   "nome_atual": "David Robert Camargo Ferreira Campos",
-  "profissao_cargo": "Chief Technology Officer (CTO) na Arvo",
+  "profissao_cargo": "CTO at Arvo",
   "experiencias": [
     {
       "empresa": "Arvo",
-      "cargo": "Chief Technology Officer (CTO)",
+      "cargo": "CTO",
       "tipo_vinculo": "PJ",
       "data_inicio": "2025-09",
       "data_fim": "presente",
-      "descricao": "Healthtech brasileira que usa IA/ML para auditoria de sinistros médicos. Dirige estratégia tecnológica, frameworks de cybersegurança (LGPD/HIPAA), visão AI-First no SDLC."
+      "descricao": "Chief Technology Officer at Arvo."
     },
     {
       "empresa": "Kiwify",
-      "cargo": "Chief Technology Officer (CTO)",
+      "cargo": "CTO",
       "tipo_vinculo": "CLT",
       "data_inicio": "2024-06",
       "data_fim": "2025-05",
-      "descricao": "Plataforma de e-commerce e produtos digitais. Estruturou 5 squads, otimizou infra para 7k req/min, lançou vendas internacionais com multi-moeda."
+      "descricao": "Chief Technology Officer at Kiwify. 12-month tenure."
     },
     {
       "empresa": "Loft",
@@ -27,47 +27,47 @@
       "tipo_vinculo": "PJ",
       "data_inicio": "2022-12",
       "data_fim": "2024-06",
-      "descricao": "Proptech. Gestão de 60+ engenheiros, integração CredHome/CredPago, disponibilidade 99.99%, redução 30% custos cloud."
+      "descricao": "Consultant for software engineering initiatives at Loft. 18-month engagement."
     },
     {
       "empresa": "Loft",
       "cargo": "Director of Software Engineering",
-      "tipo_vinculo": "PJ",
+      "tipo_vinculo": "CLT",
       "data_inicio": "2021-11",
       "data_fim": "2022-12",
-      "descricao": "Recrutou 70+ engenheiros, migração para microserviços, crescimento startup a unicórnio."
+      "descricao": "Led software engineering division at Loft. 14-month tenure."
     },
     {
       "empresa": "Loft",
       "cargo": "Engineering Manager",
-      "tipo_vinculo": "PJ",
+      "tipo_vinculo": "CLT",
       "data_inicio": "2019-06",
       "data_fim": "2021-10",
-      "descricao": "Liderança de equipes cross-funcionais, definição de princípios de engenharia, expansão inicial do marketplace."
+      "descricao": "Managed engineering teams at Loft. 28-month tenure."
     },
     {
       "empresa": "Elo7",
-      "cargo": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "PJ",
+      "cargo": "CTO",
+      "tipo_vinculo": "CLT",
       "data_inicio": "2013-08",
       "data_fim": "2020-07",
-      "descricao": "Marketplace de artesanato ('Etsy brasileiro'). Gestão de 70 engenheiros, arquitetura microserviços, redução 35% custos AWS, busca inteligente +15% conversão."
+      "descricao": "Chief Technology Officer at Elo7. 83-month tenure as core technology leader."
     },
     {
       "empresa": "Abril",
       "cargo": "Solutions Architect I",
-      "tipo_vinculo": "PJ",
+      "tipo_vinculo": "CLT",
       "data_inicio": "2012-03",
       "data_fim": "2013-08",
-      "descricao": "Grupo de mídia. Arquitetura distribuída da plataforma Alexandria para portais Veja, Exame, Placar."
+      "descricao": "Solutions architect at Abril. 18-month tenure."
     },
     {
       "empresa": "TOTVS",
-      "cargo": "Research and Development Engineer IV",
+      "cargo": "R&D Engineer IV",
       "tipo_vinculo": "CLT",
       "data_inicio": "2011-02",
       "data_fim": "2012-03",
-      "descricao": "Desenvolvimento de máquina virtual e compilador proprietário em C/C++/Assembly. Redução 35% consumo de memória."
+      "descricao": "Senior R&D Engineer at TOTVS. 14-month tenure."
     },
     {
       "empresa": "NIC.br",
@@ -75,7 +75,7 @@
       "tipo_vinculo": "CLT",
       "data_inicio": "2006-04",
       "data_fim": "2011-01",
-      "descricao": "Infraestrutura de Internet do Brasil. Desenvolvimento do DNSSHIM (Hidden Master DNS com DNSSEC). Java, C/C++, Python."
+      "descricao": "Software engineer at NIC.br (Brazilian Internet Steering Committee). 57-month tenure."
     },
     {
       "empresa": "Agência Estado",
@@ -83,7 +83,7 @@
       "tipo_vinculo": "CLT",
       "data_inicio": "2004-01",
       "data_fim": "2006-03",
-      "descricao": "Agência de notícias financeiras. Ferramentas para portal Estadão em Perl/PHP."
+      "descricao": "Junior systems analyst at Agência Estado. 27-month tenure."
     },
     {
       "empresa": "Agência Estado",
@@ -91,69 +91,66 @@
       "tipo_vinculo": "CLT",
       "data_inicio": "2002-06",
       "data_fim": "2003-12",
-      "descricao": "Suporte ao desenvolvimento e manutenção de sistemas internos."
+      "descricao": "Trainee program at Agência Estado. 19-month tenure."
     },
     {
-      "empresa": "Exército Brasileiro - 2ª Cia Com Bld",
-      "cargo": "Estágio de Instrução",
-      "tipo_vinculo": "freelance",
-      "data_inicio": "2001-07",
-      "data_fim": "2001-07",
-      "descricao": "Comando de pelotão de cabos de Comunicações. Avaliação final 9.65, menção Muito Bom."
-    },
-    {
-      "empresa": "Exército Brasileiro - CPOR/SP",
-      "cargo": "Aspirante a Oficial de Comunicações",
-      "tipo_vinculo": "freelance",
+      "empresa": "Brazilian Army",
+      "cargo": "Communications Officer Aspirant / Instruction Internship",
+      "tipo_vinculo": "docencia",
       "data_inicio": "2000-01",
-      "data_fim": "2000-12",
-      "descricao": "Formação de oficiais da reserva. 1º lugar, Medalha Prêmio Corrêa Lima, melhor atirador, melhor desempenho físico e acadêmico."
+      "data_fim": "2001-07",
+      "descricao": "Military training and communications instruction. 19-month tenure."
     }
   ],
   "formacao": [
     {
-      "instituicao": "Universidade de São Paulo (USP) - Instituto de Matemática e Estatística (IME)",
-      "curso": "Mestrado em Ciência da Computação — Inteligência Artificial",
+      "instituicao": "USP/IME",
+      "curso": "Computer Science (AI)",
       "grau": "mestrado",
       "data_conclusao": "2008"
     },
     {
-      "instituicao": "Pontifícia Universidade Católica de São Paulo (PUC/SP)",
-      "curso": "Bacharelado em Ciência da Computação",
+      "instituicao": "PUC/SP",
+      "curso": "Computer Science",
       "grau": "graduacao",
       "data_conclusao": "2004"
     }
   ],
   "certificacoes": [
     {
-      "nome": "Oracle Certified Professional, Java SE 5 Programmer",
-      "instituicao": "Oracle"
+      "nome": "Oracle Certified Professional Java SE 5",
+      "instituicao": ""
     },
     {
       "nome": "Duolingo English Test",
-      "instituicao": "Duolingo"
+      "instituicao": ""
     },
     {
       "nome": "Innovation Leadership",
-      "instituicao": "Massachusetts Institute of Technology (MIT)"
-    },
-    {
-      "nome": "MarTech Strategy: Leveraging Data and Technology in Marketing",
-      "instituicao": "Northwestern University"
+      "instituicao": "MIT"
     },
     {
       "nome": "Business Strategy",
-      "instituicao": "University of La Verne"
+      "instituicao": "Univ La Verne"
     }
   ],
   "habilidades": [
-    "Java", "C/C++", "Python", "Go", "Kotlin", "JavaScript", "Ruby",
-    "Microservices Architecture", "Domain-Driven Design (DDD)",
-    "AWS", "GCP", "Kubernetes", "Docker", "Terraform",
-    "CI/CD", "DevOps", "DNSSEC",
-    "Machine Learning", "Big Data", "Hadoop", "Spark",
-    "Scrum", "Kanban", "OKRs",
-    "Team Leadership (100+ engineers)", "Cybersecurity"
+    "Java",
+    "C/C++",
+    "Python",
+    "Go",
+    "Kotlin",
+    "JavaScript",
+    "microservices",
+    "DDD",
+    "AWS",
+    "GCP",
+    "Kubernetes",
+    "Docker",
+    "DNSSEC",
+    "CI/CD",
+    "Scrum",
+    "Kanban"
   ],
   "idiomas": [
     {
@@ -164,7 +161,7 @@
     {
       "idioma": "Inglês",
       "nivel": "fluente",
-      "fonte": "documento"
+      "fonte": "CV em inglês, Duolingo test, cursos de universidades americanas"
     }
   ]
 }

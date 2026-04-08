@@ -1,27 +1,22 @@
 {
-  "tipo": "cdbdetalhes",
+  "tipo": "cdb_detalhes",
   "instituicao": "santander",
   "data_posicao": "2026-03-29",
-  "moeda": "BRL",
-  "total_aplicado": null,
-  "saldo_atual": 137409.67,
-  "rentabilidade": {
-    "valor": null,
-    "percentual": 100.0
-  },
-  "composicao": [
+  "produtos": [
     {
-      "tipo_produto": "CDB",
-      "nome": "CDB DI SANTANDER",
-      "quantidade": 1,
-      "valor_unitario": null,
-      "valor_total": 137409.67,
-      "percentual_carteira": 100.0,
-      "rentabilidade_instrumento": null
+      "produto": "CDB Progressivo",
+      "tipo_produto": "cdb",
+      "valor_aplicado": null,
+      "saldo_bruto": null,
+      "saldo_liquido": null,
+      "data_aplicacao": "2024-06-26",
+      "vencimento": "2028-06-05",
+      "taxa": "100% CDI",
+      "ir_provisao": null,
+      "iof_provisao": null,
+      "rentabilidade_bruta_pct": 100.0
     }
   ],
-  "operacao": "00331652260006380267",
-  "data_contratacao": "2024-06-26",
-  "data_vencimento": "2028-06-05",
-  "prazo_dias": 1440
+  "saldo_total_bruto": 0,
+  "saldo_total_liquido": 0
 }

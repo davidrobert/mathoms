@@ -6,11 +6,11 @@
   "moeda": "BRL",
   "data_vencimento": "2026-01-05",
   "saldo_anterior": null,
-  "total_compras_nacionais": 46733.76,
-  "total_compras_internacionais": 0.0,
-  "pagamentos": -269.3,
-  "saldo_atual": 46562.46,
-  "limite_total": 224000.0,
+  "total_compras_nacionais": 46831.76,
+  "total_compras_internacionais": null,
+  "pagamentos": -61822.56,
+  "saldo_atual": -14990.8,
+  "limite_total": null,
   "transacoes": [
     {
       "data": "2025-11-05",
@@ -21,19 +21,19 @@
     },
     {
       "data": "2025-11-28",
-      "descricao": "DL *DLRAPPIPROBR",
+      "descricao": "DL     *DLRAPPIPROBR",
       "valor": 34.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2025-11-28",
-      "descricao": "BONANZA 0001 S",
+      "descricao": "BONANZA     0001     S",
       "valor": 103.1,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2025-11-28",
-      "descricao": "RAPPI *DROGARIA SAO P",
+      "descricao": "RAPPI  *DROGARIA SAO P",
       "valor": 60.49,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
@@ -90,7 +90,7 @@
     },
     {
       "data": "2025-11-30",
-      "descricao": "VINDI *ACCOUNTBANKTEC",
+      "descricao": "VINDI  *ACCOUNTBANKTEC",
       "valor": 390.0,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
@@ -127,14 +127,14 @@
     },
     {
       "data": "2025-12-02",
-      "descricao": "MERCADOLIVRE*MAE - Estorno",
-      "valor": 134.31,
+      "descricao": "MERCADOLIVRE*MAE",
+      "valor": -134.31,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2025-12-02",
-      "descricao": "MERCADOLIVRE*DRAGONGA - Estorno",
-      "valor": 36.99,
+      "descricao": "MERCADOLIVRE*DRAGONGA",
+      "valor": -36.99,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
@@ -157,7 +157,7 @@
     },
     {
       "data": "2025-12-04",
-      "descricao": "DM *SPOTIFY",
+      "descricao": "DM          *SPOTIFY",
       "valor": 40.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
@@ -295,7 +295,7 @@
     },
     {
       "data": "2025-12-09",
-      "descricao": "BONANZA 0001 S",
+      "descricao": "BONANZA     0001     S",
       "valor": 128.45,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
@@ -331,7 +331,7 @@
     },
     {
       "data": "2025-12-11",
-      "descricao": "BONANZA 0001 S",
+      "descricao": "BONANZA     0001     S",
       "valor": 86.43,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
@@ -379,7 +379,7 @@
     },
     {
       "data": "2025-12-12",
-      "descricao": "BONANZA 0001 S",
+      "descricao": "BONANZA     0001     S",
       "valor": 118.05,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
@@ -631,7 +631,7 @@
     },
     {
       "data": "2025-12-20",
-      "descricao": "DL *DLRAPPI BR",
+      "descricao": "DL     *DLRAPPI BR",
       "valor": 27.23,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
@@ -643,7 +643,7 @@
     },
     {
       "data": "2025-12-22",
-      "descricao": "MINIMART SILVA BRAZ",
+      "descricao": "MINIMART  SILVA BRAZ",
       "valor": 14.99,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
@@ -655,13 +655,13 @@
     },
     {
       "data": "2025-12-22",
-      "descricao": "MINIMART SILVA BRAZ",
+      "descricao": "MINIMART  SILVA BRAZ",
       "valor": 14.99,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
       "data": "2025-12-22",
-      "descricao": "EC *MELIMAIS",
+      "descricao": "EC          *MELIMAIS",
       "valor": 19.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
@@ -685,7 +685,7 @@
     },
     {
       "data": "2025-12-23",
-      "descricao": "BONANZA 0001 S",
+      "descricao": "BONANZA     0001     S",
       "valor": 17.5,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
@@ -788,7 +788,7 @@
     },
     {
       "data": "2025-12-28",
-      "descricao": "GRAN COFFEE",
+      "descricao": "GRAN  COFFEE",
       "valor": 13.0,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
@@ -813,21 +813,24 @@
     {
       "data": "2025-12-05",
       "descricao": "Inclusao de Pagamento",
-      "valor": 61553.26,
-      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
+      "valor": -61553.26,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "pagamento"
     },
     {
       "data": "2025-12-23",
-      "descricao": "Estorno Tarifa - Estorno",
-      "valor": 98.0,
-      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
+      "descricao": "Estorno Tarifa",
+      "valor": -98.0,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "estorno"
     },
     {
       "data": "2025-12-23",
       "descricao": "Anuidade Diferenciada",
       "valor": 98.0,
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "parcela": "1/12"
+      "parcela": "1/12",
+      "tipo_lancamento": "anuidade"
     },
     {
       "data": "2025-12-15",
@@ -861,7 +864,7 @@
     },
     {
       "data": "2025-12-24",
-      "descricao": "BONANZA 0001 S",
+      "descricao": "BONANZA     0001     S",
       "valor": 115.38,
       "cartao": "C6 Carbon Final 1619 - SONIA CRISTINA"
     },
@@ -927,7 +930,7 @@
     },
     {
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "subtotal": 613.59
+      "subtotal": -60939.67
     },
     {
       "cartao": "C6 Carbon Final 1619 - SONIA CRISTINA",

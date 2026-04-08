@@ -1,22 +1,11 @@
 {
-  "tipo": "irpfrecibo",
-  "exercicio": 2025,
-  "ano_calendario": 2024,
-  "declarante": {
-    "nome": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-    "cpf": "287.766.948-36"
-  },
-  "tipo_declaracao": "Declaração de Ajuste Anual Original - Desconto Simplificado",
-  "data_entrega": "2025-05-28T15:05:47",
-  "numero_recibo": "41.12.98.65.44-47",
-  "total_rendimentos_tributaveis": 651374.65,
-  "imposto_devido": 163779.6,
-  "imposto_a_restituir": 0.0,
-  "saldo_imposto_a_pagar": 9010.82,
-  "parcelamento": {
-    "numero_quotas": 1,
-    "valor_quota": 9010.82,
-    "vencimento_1a_quota": "2025-05-30"
-  },
-  "debito_automatico": false
+  "tipo": "irpf_recibo",
+  "membro": "david",
+  "ano_exercicio": 2025,
+  "ano_base": 2024,
+  "imposto_total": 9010.82,
+  "data_entrega": "2025-05-28",
+  "situacao": "aceita",
+  "numero_recibo": "41.12.98.65.44 - 47",
+  "hash_recibo": "41.12.98.65.44 - 47"
 }

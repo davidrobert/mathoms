@@ -36,7 +36,7 @@ except ImportError:
 # =============================================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-INBOX_DIR = BASE_DIR / "inbox"
+INBOX_DIR = BASE_DIR / "data" / "financial_statements"
 OUTPUT_DIR = BASE_DIR / "processed" / "E2_extracts"
 
 # Load family member data for name matching in parsers

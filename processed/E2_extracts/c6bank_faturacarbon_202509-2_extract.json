@@ -6,87 +6,87 @@
   "moeda": "BRL",
   "data_vencimento": "2025-09-05",
   "saldo_anterior": null,
-  "total_compras_nacionais": 744.68,
+  "total_compras_nacionais": 1026.11,
   "total_compras_internacionais": 5240.64,
-  "pagamentos": -115.1,
-  "saldo_atual": 5582.36,
-  "limite_total": 224000.0,
+  "pagamentos": -18005.85,
+  "saldo_atual": -11739.1,
+  "limite_total": null,
   "transacoes": [
     {
-      "data": "2024-07-30",
-      "descricao": "VINDI *ACCOUNTBANKTEC",
+      "data": "2025-07-30",
+      "descricao": "VINDI  *ACCOUNTBANKTEC",
       "valor": 390.0,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-02",
+      "data": "2025-08-02",
       "descricao": "AMAZON PRIME ALUGUEL",
       "valor": 7.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-02",
+      "data": "2025-08-02",
       "descricao": "APPLE.COM/BILL",
       "valor": 5.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-03",
+      "data": "2025-08-03",
       "descricao": "AMAZON PRIME ALUGUEL",
       "valor": 7.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-04",
-      "descricao": "DM *SPOTIFY",
+      "data": "2025-08-04",
+      "descricao": "DM          *SPOTIFY",
       "valor": 34.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-04",
+      "data": "2025-08-04",
       "descricao": "AMAZON PRIME ALUGUEL",
       "valor": 19.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-06",
+      "data": "2025-08-06",
       "descricao": "CLUBE LIVELO*CLUBE LIV",
       "valor": 44.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-11",
+      "data": "2025-08-11",
       "descricao": "MERCADOPAGO *BARATOPE",
       "valor": 57.89,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-12",
+      "data": "2025-08-12",
       "descricao": "AMAZON PRIME ALUGUEL",
       "valor": 19.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-13",
+      "data": "2025-08-13",
       "descricao": "WELLHUB GYMPASS BR GYM",
       "valor": 79.89,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-15",
+      "data": "2025-08-15",
       "descricao": "AMAZONPRIMEBR",
       "valor": 19.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-17",
+      "data": "2025-08-17",
       "descricao": "AMAZON PRIME ALUGUEL",
       "valor": 7.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-18",
-      "descricao": "SUNDRY SHOP KI",
+      "data": "2025-08-18",
+      "descricao": "SUNDRY SHOP            KI",
       "valor": 12.2,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
       "forex": {
@@ -96,28 +96,26 @@
       }
     },
     {
-      "data": "2024-08-18",
-      "descricao": "SUNDRY SHOP KI",
+      "data": "2025-08-18",
+      "descricao": "SUNDRY SHOP            KI",
       "valor": 0.43,
-      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-19",
+      "data": "2025-08-19",
       "descricao": "GLOBO*GLOBOPLAY",
       "valor": 22.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-21",
-      "descricao": "SUNDRY SHOP KI",
+      "data": "2025-08-21",
+      "descricao": "SUNDRY SHOP            KI",
       "valor": 1.41,
-      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-21",
-      "descricao": "SUNDRY SHOP KI",
+      "data": "2025-08-21",
+      "descricao": "SUNDRY SHOP            KI",
       "valor": 40.2,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT",
       "forex": {
@@ -127,14 +125,14 @@
       }
     },
     {
-      "data": "2024-08-24",
+      "data": "2025-08-24",
       "descricao": "MP *MELIMAIS",
       "valor": 24.9,
       "cartao": "C6 Carbon Final 5241 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-03",
-      "descricao": "WM SUPERCENTER #5214 KI",
+      "data": "2025-08-03",
+      "descricao": "WM SUPERCENTER #5214   KI",
       "valor": 226.92,
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
       "forex": {
@@ -144,21 +142,21 @@
       }
     },
     {
-      "data": "2024-08-03",
-      "descricao": "WM SUPERCENTER #5214 KI",
+      "data": "2025-08-03",
+      "descricao": "WM SUPERCENTER #5214   KI",
       "valor": 7.94,
-      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
-    },
-    {
-      "data": "2024-08-05",
-      "descricao": "Inclusao de Pagamento",
-      "valor": 17321.46,
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-12",
-      "descricao": "DOLLAR TREE OR",
+      "data": "2025-08-05",
+      "descricao": "Inclusao de Pagamento",
+      "valor": -17321.46,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "pagamento"
+    },
+    {
+      "data": "2025-08-12",
+      "descricao": "DOLLAR TREE            OR",
       "valor": 70.23,
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
       "forex": {
@@ -168,28 +166,29 @@
       }
     },
     {
-      "data": "2024-08-12",
-      "descricao": "DOLLAR TREE OR",
+      "data": "2025-08-12",
+      "descricao": "DOLLAR TREE            OR",
       "valor": 2.46,
-      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "tipo_lancamento": "iof"
-    },
-    {
-      "data": "2024-08-24",
-      "descricao": "Estorno Tarifa - Estorno",
-      "valor": 98.0,
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT"
     },
     {
-      "data": "2024-08-24",
+      "data": "2025-08-24",
+      "descricao": "Estorno Tarifa",
+      "valor": -98.0,
+      "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
+      "tipo_lancamento": "estorno"
+    },
+    {
+      "data": "2025-08-24",
       "descricao": "Anuidade Diferenciada",
       "valor": 98.0,
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "parcela": "9/12"
+      "parcela": "9/12",
+      "tipo_lancamento": "anuidade"
     },
     {
-      "data": "2024-08-02",
-      "descricao": "WM SUPERCENTER #5214 KI",
+      "data": "2025-08-02",
+      "descricao": "WM SUPERCENTER #5214   KI",
       "valor": 227.92,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
       "forex": {
@@ -199,15 +198,14 @@
       }
     },
     {
-      "data": "2024-08-02",
-      "descricao": "WM SUPERCENTER #5214 KI",
+      "data": "2025-08-02",
+      "descricao": "WM SUPERCENTER #5214   KI",
       "valor": 7.98,
-      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
     },
     {
-      "data": "2024-08-11",
-      "descricao": "WM SUPERCENTER #5214 KI",
+      "data": "2025-08-11",
+      "descricao": "WM SUPERCENTER #5214   KI",
       "valor": 234.15,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
       "forex": {
@@ -217,22 +215,20 @@
       }
     },
     {
-      "data": "2024-08-11",
-      "descricao": "WM SUPERCENTER #5214 KI",
+      "data": "2025-08-11",
+      "descricao": "WM SUPERCENTER #5214   KI",
       "valor": 8.2,
-      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
     },
     {
-      "data": "2024-08-13",
-      "descricao": "ROSS STORES #1301 KI",
+      "data": "2025-08-13",
+      "descricao": "ROSS STORES #1301      KI",
       "valor": 21.0,
-      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
     },
     {
-      "data": "2024-08-13",
-      "descricao": "ROSS STORES #1301 KI",
+      "data": "2025-08-13",
+      "descricao": "ROSS STORES #1301      KI",
       "valor": 600.06,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
       "forex": {
@@ -242,8 +238,8 @@
       }
     },
     {
-      "data": "2024-08-13",
-      "descricao": "ROSS STORES #1301 KI",
+      "data": "2025-08-13",
+      "descricao": "ROSS STORES #1301      KI",
       "valor": 427.42,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
       "forex": {
@@ -253,28 +249,26 @@
       }
     },
     {
-      "data": "2024-08-13",
-      "descricao": "ROSS STORES #1301 KI",
+      "data": "2025-08-13",
+      "descricao": "ROSS STORES #1301      KI",
       "valor": 14.96,
-      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
-      "tipo_lancamento": "iof"
-    },
-    {
-      "data": "2024-08-15",
-      "descricao": "WAL-MART #5214",
-      "valor": 569.29,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
     },
     {
-      "data": "2024-08-15",
-      "descricao": "WAL-MART #5214 KI",
-      "valor": 44.52,
-      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
-      "tipo_lancamento": "iof"
+      "data": "2025-08-15",
+      "descricao": "WAL-MART #5214",
+      "valor": -569.29,
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
     },
     {
-      "data": "2024-08-15",
-      "descricao": "WAL-MART #5214 KI",
+      "data": "2025-08-15",
+      "descricao": "WAL-MART #5214         KI",
+      "valor": 44.52,
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "WAL-MART #5214         KI",
       "valor": 1272.14,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
       "forex": {
@@ -284,8 +278,8 @@
       }
     },
     {
-      "data": "2024-08-15",
-      "descricao": "WM SUPERCENTER #5214 KI",
+      "data": "2025-08-15",
+      "descricao": "WM SUPERCENTER #5214   KI",
       "valor": 246.73,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
       "forex": {
@@ -295,15 +289,14 @@
       }
     },
     {
-      "data": "2024-08-15",
-      "descricao": "WM SUPERCENTER #5214 KI",
+      "data": "2025-08-15",
+      "descricao": "WM SUPERCENTER #5214   KI",
       "valor": 8.64,
-      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
     },
     {
-      "data": "2024-08-16",
-      "descricao": "WDW DROID DEPOT LA",
+      "data": "2025-08-16",
+      "descricao": "WDW DROID DEPOT        LA",
       "valor": 727.5,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
       "forex": {
@@ -313,15 +306,14 @@
       }
     },
     {
-      "data": "2024-08-16",
-      "descricao": "WDW DROID DEPOT LA",
+      "data": "2025-08-16",
+      "descricao": "WDW DROID DEPOT        LA",
       "valor": 25.46,
-      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
     },
     {
-      "data": "2024-08-16",
-      "descricao": "WM SUPERCENTER #5214 KI",
+      "data": "2025-08-16",
+      "descricao": "WM SUPERCENTER #5214   KI",
       "valor": 61.37,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
       "forex": {
@@ -331,28 +323,26 @@
       }
     },
     {
-      "data": "2024-08-16",
-      "descricao": "WM SUPERCENTER #5214 KI",
+      "data": "2025-08-16",
+      "descricao": "WM SUPERCENTER #5214   KI",
       "valor": 2.15,
-      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
-      "tipo_lancamento": "iof"
-    },
-    {
-      "data": "2024-08-19",
-      "descricao": "DESC MASTERCARDWALMART - Estorno",
-      "valor": 17.1,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
     },
     {
-      "data": "2024-08-20",
-      "descricao": "WAL-MART #5214 KI",
-      "valor": 31.65,
-      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
-      "tipo_lancamento": "iof"
+      "data": "2025-08-19",
+      "descricao": "DESC MASTERCARDWALMART",
+      "valor": -17.1,
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
     },
     {
-      "data": "2024-08-20",
-      "descricao": "WAL-MART #5214 KI",
+      "data": "2025-08-20",
+      "descricao": "WAL-MART #5214         KI",
+      "valor": 31.65,
+      "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS"
+    },
+    {
+      "data": "2025-08-20",
+      "descricao": "WAL-MART #5214         KI",
       "valor": 904.38,
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
       "forex": {
@@ -362,15 +352,14 @@
       }
     },
     {
-      "data": "2024-08-03",
-      "descricao": "MCDONALD'S M2188 OR",
+      "data": "2025-08-03",
+      "descricao": "MCDONALD'S M2188       OR",
       "valor": 6.1,
-      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS"
     },
     {
-      "data": "2024-08-03",
-      "descricao": "MCDONALD'S M2188 OR",
+      "data": "2025-08-03",
+      "descricao": "MCDONALD'S M2188       OR",
       "valor": 174.39,
       "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS",
       "forex": {
@@ -380,8 +369,8 @@
       }
     },
     {
-      "data": "2024-08-03",
-      "descricao": "MCDONALD'S M2188 OR",
+      "data": "2025-08-03",
+      "descricao": "MCDONALD'S M2188       OR",
       "valor": 15.03,
       "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS",
       "forex": {
@@ -391,11 +380,10 @@
       }
     },
     {
-      "data": "2024-08-03",
-      "descricao": "MCDONALD'S M2188 OR",
+      "data": "2025-08-03",
+      "descricao": "MCDONALD'S M2188       OR",
       "valor": 0.53,
-      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS",
-      "tipo_lancamento": "iof"
+      "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS"
     }
   ],
   "cartoes": [
@@ -405,11 +393,11 @@
     },
     {
       "cartao": "C6 Carbon Final 9612 - DAVID ROBERT",
-      "subtotal": 307.55
+      "subtotal": -17013.91
     },
     {
       "cartao": "C6 Carbon Final 3175 - MARIANA CAMPOS",
-      "subtotal": 4849.13
+      "subtotal": 4279.84
     },
     {
       "cartao": "C6 Carbon Final 3933 - RUBENS DE CAMPOS",

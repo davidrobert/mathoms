@@ -3,7 +3,7 @@
   "membro": "mariana",
   "nome_completo": "Mariana Ferreira Campos",
   "nome_atual": "Mariana Ferreira Campos",
-  "profissao_cargo": "Enfermeira no Hospital Israelita Albert Einstein",
+  "profissao_cargo": "Enfermeiro at Hospital Israelita Albert Einstein",
   "experiencias": [
     {
       "empresa": "Hospital Israelita Albert Einstein",
@@ -11,104 +11,104 @@
       "tipo_vinculo": "CLT",
       "data_inicio": "2018-01",
       "data_fim": "presente",
-      "descricao": "Unidade de alta complexidade com foco em Cardiologia, Clínica Médica e Cirúrgica. Auditoria de prontuários eletrônicos, projetos PDCA, segurança do paciente."
+      "descricao": "Nursing professional at Hospital Israelita Albert Einstein since 2018."
     },
     {
       "empresa": "Hospital Israelita Albert Einstein",
-      "cargo": "Enfermeiro",
+      "cargo": "Enfermeiro UPA Campo Limpo",
       "tipo_vinculo": "CLT",
       "data_inicio": "2014-08",
       "data_fim": "2018-06",
-      "descricao": "UPA Campo Limpo."
+      "descricao": "Emergency care nurse at UPA Campo Limpo unit. 46-month tenure."
     },
     {
       "empresa": "Faculdade Israelita Albert Einstein",
-      "cargo": "Docente universitário",
+      "cargo": "Docente",
       "tipo_vinculo": "docencia",
       "data_inicio": "2021-01",
       "data_fim": "2024-12",
-      "descricao": "Docente em Semiologia e Semiotécnica, metodologias ativas de ensino."
+      "descricao": "Nursing instructor and professor. 48-month teaching position."
     },
     {
       "empresa": "Senac São Paulo",
-      "cargo": "Docente universitário",
+      "cargo": "Docente",
       "tipo_vinculo": "docencia",
       "data_inicio": "2012-01",
       "data_fim": "2016-01",
-      "descricao": ""
+      "descricao": "Nursing education instructor at Senac. 48-month tenure."
     },
     {
       "empresa": "Faculdade Sequencial",
-      "cargo": "Docente universitário",
+      "cargo": "Docente",
       "tipo_vinculo": "docencia",
       "data_inicio": "2013-01",
       "data_fim": "2015-08",
-      "descricao": ""
+      "descricao": "Nursing course instructor at Faculdade Sequencial. 32-month tenure."
     },
     {
-      "empresa": "Hospital Municipal Dr. Moysés Deutsch - Parceria com Hospital Israelita Einstein",
+      "empresa": "Hospital Municipal Dr. Moysés Deutsch",
       "cargo": "Enfermeira",
       "tipo_vinculo": "CLT",
       "data_inicio": "2011-01",
       "data_fim": "2014-01",
-      "descricao": "UTI Adulto e Pediátrica, Clínica Médica e Cirúrgica."
+      "descricao": "Clinical nurse at municipal hospital. 37-month tenure."
     }
   ],
   "formacao": [
     {
-      "instituicao": "Universidade de São Paulo (USP)",
-      "curso": "Mestrado em Enfermagem — Enfermagem em Saúde Adulta",
+      "instituicao": "USP",
+      "curso": "Enfermagem",
       "grau": "mestrado",
       "data_conclusao": "2021"
     },
     {
-      "instituicao": "UNIFESP - Universidade Federal de São Paulo",
-      "curso": "Especialização em Enfermagem em Cardiologia e Hemodinâmica",
+      "instituicao": "UNIFESP",
+      "curso": "Cardiologia e Hemodinâmica",
       "grau": "especializacao",
       "data_conclusao": "2012"
     },
     {
-      "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
-      "curso": "Especialização em Formação Docente em Educação Profissional",
-      "grau": "especializacao",
-      "data_conclusao": null
-    },
-    {
       "instituicao": "PUC Minas",
-      "curso": "Bacharelado em Enfermagem",
+      "curso": "Enfermagem",
       "grau": "graduacao",
       "data_conclusao": "2010"
+    },
+    {
+      "instituicao": "FIOCRUZ",
+      "curso": "Formação Docente",
+      "grau": "especializacao",
+      "data_conclusao": ""
     }
   ],
   "certificacoes": [
     {
-      "nome": "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
-      "instituicao": "Hospital Albert Einstein"
+      "nome": "Auditoria PDCA",
+      "instituicao": ""
     },
     {
-      "nome": "Classificação de Risco (Protocolo de Manchester)",
-      "instituicao": null
+      "nome": "Classificação de Risco Manchester",
+      "instituicao": ""
     },
     {
-      "nome": "Advanced Trauma Care for Nurses (ATCN)",
-      "instituicao": null
+      "nome": "ATCN",
+      "instituicao": ""
     },
     {
-      "nome": "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP) e Curso de Osteoporose",
+      "nome": "Gestão de Crônicos - Esclerose Múltipla",
       "instituicao": "USP"
+    },
+    {
+      "nome": "Gestão de Crônicos - Osteoporose",
+      "instituicao": ""
     }
   ],
   "habilidades": [
     "Processo de enfermagem",
-    "Cuidados de qualidade ao paciente",
+    "Cuidados ao paciente",
     "Gestão de equipes",
     "Auditoria clínica",
-    "Segurança do paciente",
-    "PDCA",
-    "Pesquisa clínica",
-    "Metodologia científica",
     "Educação em saúde",
-    "Cardiologia e Hemodinâmica"
+    "Pesquisa clínica"
   ],
   "idiomas": [
     {

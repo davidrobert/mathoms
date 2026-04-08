@@ -1,6 +1,6 @@
 {
-  "consolidation_date": "2026-04-07T22:32:57.004188-03:00",
-  "periodo": "2025-01 a 2026-03",
+  "consolidation_date": "2026-04-07T23:11:42.637503-03:00",
+  "periodo": "2024-01 a 2026-03",
   "categorias": [
     "outras_receitas",
     "receita_aluguel",
@@ -8,20 +8,22 @@
     "receita_investimento",
     "receita_pj",
     "receita_resgate",
-    "receita_restituicao"
+    "receita_restituicao",
+    "receita_venda_ativo"
   ],
-  "total_categorias": 7,
-  "total_transacoes": 353,
+  "total_categorias": 8,
+  "total_transacoes": 446,
   "totais_por_categoria": {
     "receita_investimento": 13782.880000000001,
-    "receita_resgate": 7.919999999999999,
-    "receita_pj": 443875.16000000003,
-    "receita_clt": 354769.63,
+    "receita_resgate": 27416.699999999997,
+    "receita_clt": 357633.01,
     "receita_aluguel": 104216.13,
-    "outras_receitas": 10550.210000000005,
+    "outras_receitas": 60583.84,
+    "receita_venda_ativo": 49402.0,
+    "receita_pj": 979750.0400000002,
     "receita_restituicao": 16.99
   },
-  "total_geral": 927218.92,
+  "total_geral": 1592801.59,
   "dados": {
     "receita_investimento": [
       {
@@ -1864,6 +1866,28 @@
     ],
     "receita_resgate": [
       {
+        "data": "2024-01-22",
+        "descricao": "RESGATE DE CDB",
+        "valor": 25000.64,
+        "banco": "C6 Bank",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-28",
+        "descricao": "RESGATE DE CDB VENC",
+        "valor": 2408.14,
+        "banco": "C6 Bank",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
         "data": "2026-03-09",
         "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
         "valor": 0.73,
@@ -2029,206 +2053,6 @@
         "moeda": "BRL"
       }
     ],
-    "receita_pj": [
-      {
-        "data": "2025-03-09",
-        "descricao": "Pix recebido de ARBITRALIS S.A.",
-        "valor": 2000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arbitralis (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-03-12",
-        "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
-        "valor": 1750.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Learn To Fly (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-30",
-        "descricao": "Pix recebido de BRANDLOVRS LTDA.",
-        "valor": 7000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "BrandLovers (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-02",
-        "descricao": "Pix recebido de BARTE BRASIL LTDA.",
-        "valor": 10000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Barte (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-20",
-        "descricao": "Pix recebido de BRANDLOVRS LTDA.",
-        "valor": 10000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "BrandLovers (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-15",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA",
-        "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "CNRY (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-29",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA",
-        "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "CNRY (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-26",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA Pix enviado para RECEITA FEDERAL",
-        "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "CNRY (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-22",
-        "descricao": "Pix recebido de BARTE BRASIL LTDA.",
-        "valor": 30000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Barte (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
-        "descricao": "Pix recebido de BRANDLOVRS LTDA Pix recebido de ARVO SAUDE LTDA",
-        "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-30",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA",
-        "valor": 50000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-27",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA",
-        "valor": 8333.33,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-28",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA",
-        "valor": 46624.29,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-09",
-        "descricao": "Pix recebido de BRANDLOVERS LTDA",
-        "valor": 20000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "BrandLovers (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-27",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA",
-        "valor": 47208.77,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-09",
-        "descricao": "Pix recebido de ARBITRALIS S.A.",
-        "valor": 2000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arbitralis (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-12",
-        "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
-        "valor": 1750.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Learn To Fly (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-30",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA",
-        "valor": 47208.77,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": "david",
-        "moeda": "BRL"
-      }
-    ],
     "receita_clt": [
       {
         "data": "2025-05-02",
@@ -2254,13 +2078,24 @@
       },
       {
         "data": "2025-12-22",
+        "descricao": "Pix recebido de Kiwify Pagamentos, Tecnologia e Servicos Ltda",
+        "valor": 2863.38,
+        "banco": "C6 Bank",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-22",
         "descricao": "Pix recebido de Kiwify Pagamentos, Tecnologia e Servicos Ltda Pix enviado para INACIO JOSE MACEDO",
         "valor": 2863.38,
         "banco": "C6 Bank",
         "categoria": "receita_clt",
         "origem": "Kiwify (David - CLT)",
         "tipo_conta": "extratoconta",
-        "titular": "david",
+        "titular": null,
         "moeda": "BRL"
       }
     ],
@@ -2697,6 +2532,600 @@
     ],
     "outras_receitas": [
       {
+        "data": "2024-01-03",
+        "descricao": "Pix recebido de Marcus Vinícius Neves Silva — Muitas felicidades e realizações ao casal, espero poder encontra-los em breve! MV",
+        "valor": 500.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-04",
+        "descricao": "Pix estornado",
+        "valor": 0.1,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-20",
+        "descricao": "Pix recebido de Eduardo Sztokbant — Felicidades ao casal hoje e sempre!",
+        "valor": 1008.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-20",
+        "descricao": "Pix recebido de MOISES ELIAS DA SILVA — Muita felicidades ao casal. Curtam a lua de mel. Seu casamento doi Toooppp mano",
+        "valor": 400.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-20",
+        "descricao": "Pix recebido de ALLAN HENRIQUE MOREIRA RODRIGUES",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-20",
+        "descricao": "Pix recebido de MATEUS MOLINARO MOTTA",
+        "valor": 500.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de VITOR A QUEIROZ — Pix",
+        "valor": 50.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de RODRIGO MARINONI MANDELLI",
+        "valor": 300.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de RODRIGO MARINONI MANDELLI",
+        "valor": 50.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de CAIO AUGUSTO MARINS MARQUES DIAS",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido c6 de WOLF",
+        "valor": 250.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de Daisy Karolina Santos Aguiar",
+        "valor": 50.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de LUIS FELIPE B S B EMILIO",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de Tiago dos Santos Vasconcelos",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de RODOLFO LEAL",
+        "valor": 300.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de André Rocha de Lima",
+        "valor": 50.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de Luiz Felipe Souza Pinto",
+        "valor": 200.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de Fernando Approbato Salaroli",
+        "valor": 150.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de MARIANA SALOMAO DE SA",
+        "valor": 500.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de Cintia de souza santos",
+        "valor": 50.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de GEOVANA GONCALVES DA SILVA",
+        "valor": 50.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido c6 de Daniela Vieira — Felicidades",
+        "valor": 500.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de MYRIAM CARMEM SEDANE SOUBKOVSKY",
+        "valor": 50.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de MYRIAM CARMEM SEDANE SOUBKOVSKY",
+        "valor": 50.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de Izabela Malzone Rosa",
+        "valor": 50.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de JULIANA DO PRADO AMBROSIO",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de TATIANE DE SIQUEIRA CEZARINO",
+        "valor": 50.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de JULIANA DA SILVA PACHECO",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-21",
+        "descricao": "Pix recebido de BRUNA ESTEFANIA PIRES",
+        "valor": 50.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-22",
+        "descricao": "Pix recebido de Paulo Cesar Pereira Aleixos — felicidades ao casal (MônicaPaulo)",
+        "valor": 500.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-22",
+        "descricao": "Pix recebido de MEIRE CAETANO DE MELLO — Presente de Casamento Mariana e David",
+        "valor": 500.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-21",
+        "descricao": "Pix recebido de I.Casei Presentes E Intermediacao De Negocios Ltda.",
+        "valor": 25838.09,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-03-07",
+        "descricao": "Pix recebido de Arosti Iskandar Nahas",
+        "valor": 1.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-05-10",
+        "descricao": "Pix recebido de SUL AMERICA COMPANHIA DE SEGURO SAUDE",
+        "valor": 236.25,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-06-03",
+        "descricao": "Pix recebido de PRAX SERVICOS AUTOMOTIVOS LTDA",
+        "valor": 200.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-06-03",
+        "descricao": "Devol recebida pix de RUBENS DE CAMPOS — Devolucao pagamento",
+        "valor": 270.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-07-06",
+        "descricao": "Pix recebido de JAIR SOUZA FERREIRA",
+        "valor": 208.59,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-07-07",
+        "descricao": "Pix recebido de JAIR SOUZA FERREIRA",
+        "valor": 182.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-07-08",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 222.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-07-08",
+        "descricao": "Pix recebido de Willian Martinez de Camargo",
+        "valor": 111.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-08-03",
+        "descricao": "PIX RECEBIDO — MARCUS VINICIUS COSTA BERGER",
+        "valor": 82.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-08-03",
+        "descricao": "PIX RECEBIDO — CRISTIANO RAFAEL B AIRES",
+        "valor": 81.25,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-08-03",
+        "descricao": "PIX RECEBIDO — Douglas Camargo de Campos",
+        "valor": 81.25,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-08-03",
+        "descricao": "PIX RECEBIDO — Willian Martinez de Camargo",
+        "valor": 81.25,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-08-03",
+        "descricao": "PIX RECEBIDO — VINICIUS ANTONIO DO NASCIMENTO",
+        "valor": 81.25,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-09-05",
+        "descricao": "Pix recebido de Willian Martinez de Camargo",
+        "valor": 590.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-09-27",
+        "descricao": "Pix estornado",
+        "valor": 175.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-09-28",
+        "descricao": "Pix estornado",
+        "valor": 160.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-10-07",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 250.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-10-22",
+        "descricao": "Pix estornado",
+        "valor": 110.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-11-05",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 250.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-12-09",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 372.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-12-10",
+        "descricao": "Pix recebido de Willian Martinez de Camargo",
+        "valor": 9855.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-12-13",
+        "descricao": "Pix recebido de CARVALHOS VISTORIA AUTOMOTIVA LTDA - ME",
+        "valor": 620.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-01-20",
         "descricao": "Rent",
         "valor": 0.05,
@@ -2705,6 +3134,61 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-24",
+        "descricao": "C6TAG PEDAG ESTORNO — GDK6A27-RODOVIA RAPOSO TAVARES  SP 270 4",
+        "valor": 24.2,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-25",
+        "descricao": "C6TAG PEDAG ESTORNO — GDK6A27-CCR SPVIAS  SP 255 2403 SUL AVAR",
+        "valor": 20.4,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-26",
+        "descricao": "C6TAG PEDAG ESTORNO — GDK6A27-RODOVIA RAPOSO TAVARES  SP 270 5",
+        "valor": 26.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-26",
+        "descricao": "C6TAG PEDAG ESTORNO — GDK6A27-RODOVIA RAPOSO TAVARES  SP 270 5",
+        "valor": 19.8,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-26",
+        "descricao": "C6TAG PEDAG ESTORNO — GDK6A27-RODOVIA RAPOSO TAVARES  SP 270 5",
+        "valor": 19.8,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -2764,6 +3248,17 @@
       },
       {
         "data": "2025-03-07",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-03-07",
         "descricao": "Rent",
         "valor": 0.97,
         "banco": "Bradesco",
@@ -2815,6 +3310,17 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-03",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -2924,7 +3430,7 @@
         "categoria": "outras_receitas",
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
-        "titular": "david",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -3006,6 +3512,17 @@
       },
       {
         "data": "2025-06-03",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-03",
         "descricao": "Rent",
         "valor": 0.24,
         "banco": "Bradesco",
@@ -3083,6 +3600,17 @@
       },
       {
         "data": "2025-07-02",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-02",
         "descricao": "Rent",
         "valor": 0.09,
         "banco": "Bradesco",
@@ -3124,6 +3652,17 @@
         "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
+      },
+      {
+        "data": "2025-07-20",
+        "descricao": "C6TAG PEDAG ESTORNO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
+        "valor": 21.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
       },
       {
         "data": "2025-07-21",
@@ -3314,13 +3853,24 @@
       },
       {
         "data": "2025-09-19",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-19",
         "descricao": "Pix recebido de Douglas Camargo de Campos C6TAG PEDAGIO",
         "valor": 100.0,
         "banco": "C6 Bank",
         "categoria": "outras_receitas",
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
-        "titular": "david",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -3446,6 +3996,28 @@
       },
       {
         "data": "2025-09-30",
+        "descricao": "Pix estornado",
+        "valor": 251.65,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "Pix estornado",
+        "valor": 251.65,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
         "descricao": "Rent",
         "valor": 1.93,
         "banco": "Bradesco",
@@ -3457,13 +4029,24 @@
       },
       {
         "data": "2025-10-02",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-02",
         "descricao": "Pix recebido de Douglas Camargo de Campos Pix enviado para RUBENS DE CAMPOS",
         "valor": 100.0,
         "banco": "C6 Bank",
         "categoria": "outras_receitas",
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
-        "titular": "david",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -3567,13 +4150,24 @@
       },
       {
         "data": "2025-11-24",
+        "descricao": "C6TAG PEDAG ESTORNO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+        "valor": 8.1,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-24",
         "descricao": "C6TAG PEDAG ESTORNO C6TAG PEDAGIO",
         "valor": 8.1,
         "banco": "C6 Bank",
         "categoria": "outras_receitas",
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
-        "titular": "david",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -3654,6 +4248,28 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-12-08",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 975.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-09",
+        "descricao": "Pix recebido de EDUARDO FREITAS DE SOUZA",
+        "valor": 800.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-12-22",
         "descricao": "Rent",
         "valor": 0.05,
@@ -3694,7 +4310,18 @@
         "categoria": "outras_receitas",
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
-        "titular": "david",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-01",
+        "descricao": "Devol recebida pix de RAFAEL BARROSO DE CARVALHO",
+        "valor": 200.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -3771,7 +4398,7 @@
         "categoria": "outras_receitas",
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
-        "titular": "david",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -3804,7 +4431,7 @@
         "categoria": "outras_receitas",
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
-        "titular": "david",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -3904,6 +4531,406 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      }
+    ],
+    "receita_venda_ativo": [
+      {
+        "data": "2025-03-29",
+        "descricao": "Pix recebido de POMPEIA MOTOS MULTIMARCAS LTDA",
+        "valor": 49402.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_venda_ativo",
+        "origem": "Venda de Ativo",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      }
+    ],
+    "receita_pj": [
+      {
+        "data": "2025-03-09",
+        "descricao": "Pix recebido de ARBITRALIS S.A.",
+        "valor": 2000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arbitralis (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-03-12",
+        "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
+        "valor": 1750.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Learn To Fly (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-30",
+        "descricao": "Pix recebido de BRANDLOVRS LTDA.",
+        "valor": 7000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "BrandLovers (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-02",
+        "descricao": "Pix recebido de BARTE BRASIL LTDA.",
+        "valor": 10000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Barte (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-20",
+        "descricao": "Pix recebido de BRANDLOVRS LTDA.",
+        "valor": 10000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "BrandLovers (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-15",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NFS 25",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "CNRY (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-15",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "CNRY (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-29",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NF 26",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "CNRY (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-29",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "CNRY (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-26",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NFS 27",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "CNRY (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-26",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA Pix enviado para RECEITA FEDERAL",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "CNRY (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-22",
+        "descricao": "Pix recebido de BARTE BRASIL LTDA.",
+        "valor": 30000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Barte (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "Pix recebido de BRANDLOVRS LTDA",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "BrandLovers (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 38333.33,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "Pix recebido de BRANDLOVRS LTDA Pix recebido de ARVO SAUDE LTDA",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-30",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 50000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-30",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA",
+        "valor": 50000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-31",
+        "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
+        "valor": 500.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Learn To Fly (David - PJ)",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-27",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — 13 Salário",
+        "valor": 8333.33,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-27",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA",
+        "valor": 8333.33,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-28",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 46624.29,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-28",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA",
+        "valor": 46624.29,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-19",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — 13 Salário",
+        "valor": 8333.33,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-29",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 46624.29,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-09",
+        "descricao": "Pix recebido de BRANDLOVERS LTDA",
+        "valor": 20000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "BrandLovers (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-30",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 47208.77,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-05",
+        "descricao": "Pix recebido de ARBITRALIS S.A. — mentoria desenvolvimento Arbi",
+        "valor": 3500.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arbitralis (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-27",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA",
+        "valor": 47208.77,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-27",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 47208.77,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-09",
+        "descricao": "Pix recebido de ARBITRALIS S.A.",
+        "valor": 2000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arbitralis (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-09",
+        "descricao": "Pix recebido de ARBITRALIS S.A. — Total de mentorias realizadas: 4Valor unitário: R 500,00Total a pagar: R 2.000,00Período faturado: 25022026  05032026",
+        "valor": 2000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arbitralis (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-12",
+        "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
+        "valor": 1750.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Learn To Fly (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-20",
+        "descricao": "Pix recebido de BRANDLOVERS LTDA",
+        "valor": 30000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "BrandLovers (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-30",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA",
+        "valor": 47208.77,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-30",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 47208.77,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
         "moeda": "BRL"
       }
     ],

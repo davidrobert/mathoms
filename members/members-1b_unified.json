@@ -6,49 +6,144 @@
     {
       "id": "david",
       "nome_atual": "David Robert Camargo Ferreira Campos",
-      "nomes_alternativos": ["David Robert Camargo de Campos"],
+      "nomes_alternativos": [],
       "cpf": "287.766.948-36",
       "data_nascimento": "1981-09-05",
       "papel_familia": "Titular",
       "empregador_atual": "Arvo",
-      "cargo_atual": "Chief Technology Officer (CTO)",
+      "cargo_atual": "CTO",
       "tipo_vinculo": "PJ",
       "data_admissao": "2025-09-08",
-      "formacao_maxima": "Mestrado em Ciência da Computação — Inteligência Artificial (USP/IME, 2008)",
+      "formacao_maxima": "Mestrado em Ciência da Computação (IA) - USP/IME",
       "idiomas": [
-        {"idioma": "Português", "nivel": "nativo", "fonte": "inferido"},
-        {"idioma": "Inglês", "nivel": "fluente", "fonte": "documento"}
+        {
+          "idioma": "Português",
+          "nivel": "nativo",
+          "fonte": "inferido"
+        },
+        {
+          "idioma": "Inglês",
+          "nivel": "fluente",
+          "fonte": "CV em inglês, Duolingo test, cursos de universidades americanas"
+        }
       ],
       "experiencias": [
-        {"empresa": "Arvo", "cargo": "CTO", "tipo_vinculo": "PJ", "data_inicio": "2025-09", "data_fim": "presente"},
-        {"empresa": "Kiwify", "cargo": "CTO", "tipo_vinculo": "CLT", "data_inicio": "2024-06", "data_fim": "2025-05"},
-        {"empresa": "Loft", "cargo": "Software Engineering Consultant", "tipo_vinculo": "PJ", "data_inicio": "2022-12", "data_fim": "2024-06"},
-        {"empresa": "Loft", "cargo": "Director of Software Engineering", "tipo_vinculo": "PJ", "data_inicio": "2021-11", "data_fim": "2022-12"},
-        {"empresa": "Loft", "cargo": "Engineering Manager", "tipo_vinculo": "PJ", "data_inicio": "2019-06", "data_fim": "2021-10"},
-        {"empresa": "Elo7", "cargo": "CTO", "tipo_vinculo": "PJ", "data_inicio": "2013-08", "data_fim": "2020-07"},
-        {"empresa": "Abril", "cargo": "Solutions Architect I", "tipo_vinculo": "PJ", "data_inicio": "2012-03", "data_fim": "2013-08"},
-        {"empresa": "TOTVS", "cargo": "R&D Engineer IV", "tipo_vinculo": "CLT", "data_inicio": "2011-02", "data_fim": "2012-03"},
-        {"empresa": "NIC.br", "cargo": "Software Engineer", "tipo_vinculo": "CLT", "data_inicio": "2006-04", "data_fim": "2011-01"},
-        {"empresa": "Agência Estado", "cargo": "Jr System Analyst", "tipo_vinculo": "CLT", "data_inicio": "2004-01", "data_fim": "2006-03"},
-        {"empresa": "Agência Estado", "cargo": "Trainee", "tipo_vinculo": "CLT", "data_inicio": "2002-06", "data_fim": "2003-12"},
-        {"empresa": "Exército Brasileiro - 2ª Cia Com Bld", "cargo": "Estágio de Instrução", "tipo_vinculo": "freelance", "data_inicio": "2001-07", "data_fim": "2001-07"},
-        {"empresa": "Exército Brasileiro - CPOR/SP", "cargo": "Aspirante a Oficial de Comunicações", "tipo_vinculo": "freelance", "data_inicio": "2000-01", "data_fim": "2000-12"}
+        {
+          "empresa": "Arvo",
+          "cargo": "CTO",
+          "tipo_vinculo": "PJ",
+          "data_inicio": "2025-09",
+          "data_fim": "presente",
+          "descricao": "Chief Technology Officer at Arvo."
+        },
+        {
+          "empresa": "Kiwify",
+          "cargo": "CTO",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2024-06",
+          "data_fim": "2025-05",
+          "descricao": "Chief Technology Officer at Kiwify. 12-month tenure."
+        },
+        {
+          "empresa": "Loft",
+          "cargo": "Software Engineering Consultant",
+          "tipo_vinculo": "PJ",
+          "data_inicio": "2022-12",
+          "data_fim": "2024-06",
+          "descricao": "Consultant for software engineering initiatives at Loft. 18-month engagement."
+        },
+        {
+          "empresa": "Loft",
+          "cargo": "Director of Software Engineering",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2021-11",
+          "data_fim": "2022-12",
+          "descricao": "Led software engineering division at Loft. 14-month tenure."
+        },
+        {
+          "empresa": "Loft",
+          "cargo": "Engineering Manager",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2019-06",
+          "data_fim": "2021-10",
+          "descricao": "Managed engineering teams at Loft. 28-month tenure."
+        },
+        {
+          "empresa": "Elo7",
+          "cargo": "CTO",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2013-08",
+          "data_fim": "2020-07",
+          "descricao": "Chief Technology Officer at Elo7. 83-month tenure as core technology leader."
+        },
+        {
+          "empresa": "Abril",
+          "cargo": "Solutions Architect I",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2012-03",
+          "data_fim": "2013-08",
+          "descricao": "Solutions architect at Abril. 18-month tenure."
+        },
+        {
+          "empresa": "TOTVS",
+          "cargo": "R&D Engineer IV",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2011-02",
+          "data_fim": "2012-03",
+          "descricao": "Senior R&D Engineer at TOTVS. 14-month tenure."
+        },
+        {
+          "empresa": "NIC.br",
+          "cargo": "Software Engineer",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2006-04",
+          "data_fim": "2011-01",
+          "descricao": "Software engineer at NIC.br (Brazilian Internet Steering Committee). 57-month tenure."
+        },
+        {
+          "empresa": "Agência Estado",
+          "cargo": "Jr System Analyst",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2004-01",
+          "data_fim": "2006-03",
+          "descricao": "Junior systems analyst at Agência Estado. 27-month tenure."
+        },
+        {
+          "empresa": "Agência Estado",
+          "cargo": "Trainee",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2002-06",
+          "data_fim": "2003-12",
+          "descricao": "Trainee program at Agência Estado. 19-month tenure."
+        },
+        {
+          "empresa": "Brazilian Army",
+          "cargo": "Communications Officer Aspirant / Instruction Internship",
+          "tipo_vinculo": "docencia",
+          "data_inicio": "2000-01",
+          "data_fim": "2001-07",
+          "descricao": "Military training and communications instruction. 19-month tenure."
+        }
       ],
       "salario": {
         "bruto": null,
         "liquido": null,
         "periodo_referencia": null,
         "fonte": null,
-        "nota": "PJ — valor a confirmar via extratos bancários de C6 Bank PJ"
+        "nota": "PJ — valor a confirmar via extratos bancários C6 PJ"
       },
-      "documentos_disponiveis": ["curriculo"],
-      "status_fiscal": "BR+US",
-      "observacoes": "Dupla atuação: CTO da Arvo (PJ principal) + advisory/mentoria para BrandLovers, Arbitralis, LearnToFly. Encerrou Kiwify (CLT) em mai/2025. Experiência com Elo7 e Loft overlaps temporalmente — válido (consultoria paralela)."
+      "documentos_disponiveis": [
+        "curriculo"
+      ],
+      "status_fiscal": "BR",
+      "observacoes": null
     },
     {
       "id": "mariana",
       "nome_atual": "Mariana Ferreira Campos",
-      "nomes_alternativos": ["Mariana Teixeira Ferreira"],
+      "nomes_alternativos": [
+        "Mariana Teixeira Ferreira"
+      ],
       "cpf": "085.052.396-60",
       "data_nascimento": "1986-08-30",
       "papel_familia": "Cônjuge",
@@ -56,28 +151,77 @@
       "cargo_atual": "Enfermeiro Pl",
       "tipo_vinculo": "CLT",
       "data_admissao": "2014-07-21",
-      "formacao_maxima": "Mestrado em Enfermagem — Enfermagem em Saúde Adulta (USP, 2021)",
+      "formacao_maxima": "Mestrado em Enfermagem - USP",
       "idiomas": [
-        {"idioma": "Português", "nivel": "nativo", "fonte": "inferido"}
+        {
+          "idioma": "Português",
+          "nivel": "nativo",
+          "fonte": "inferido"
+        }
       ],
       "experiencias": [
-        {"empresa": "Hospital Israelita Albert Einstein", "cargo": "Enfermeiro", "tipo_vinculo": "CLT", "data_inicio": "2018-01", "data_fim": "presente"},
-        {"empresa": "Hospital Israelita Albert Einstein", "cargo": "Enfermeiro", "tipo_vinculo": "CLT", "data_inicio": "2014-08", "data_fim": "2018-06"},
-        {"empresa": "Faculdade Israelita Albert Einstein", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2021-01", "data_fim": "2024-12"},
-        {"empresa": "Senac São Paulo", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2012-01", "data_fim": "2016-01"},
-        {"empresa": "Faculdade Sequencial", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2013-01", "data_fim": "2015-08"},
-        {"empresa": "Hospital Municipal Dr. Moysés Deutsch", "cargo": "Enfermeira", "tipo_vinculo": "CLT", "data_inicio": "2011-01", "data_fim": "2014-01"}
+        {
+          "empresa": "Hospital Israelita Albert Einstein",
+          "cargo": "Enfermeiro",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2018-01",
+          "data_fim": "presente",
+          "descricao": "Nursing professional at Hospital Israelita Albert Einstein since 2018."
+        },
+        {
+          "empresa": "Hospital Israelita Albert Einstein",
+          "cargo": "Enfermeiro UPA Campo Limpo",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2014-08",
+          "data_fim": "2018-06",
+          "descricao": "Emergency care nurse at UPA Campo Limpo unit. 46-month tenure."
+        },
+        {
+          "empresa": "Faculdade Israelita Albert Einstein",
+          "cargo": "Docente",
+          "tipo_vinculo": "docencia",
+          "data_inicio": "2021-01",
+          "data_fim": "2024-12",
+          "descricao": "Nursing instructor and professor. 48-month teaching position."
+        },
+        {
+          "empresa": "Senac São Paulo",
+          "cargo": "Docente",
+          "tipo_vinculo": "docencia",
+          "data_inicio": "2012-01",
+          "data_fim": "2016-01",
+          "descricao": "Nursing education instructor at Senac. 48-month tenure."
+        },
+        {
+          "empresa": "Faculdade Sequencial",
+          "cargo": "Docente",
+          "tipo_vinculo": "docencia",
+          "data_inicio": "2013-01",
+          "data_fim": "2015-08",
+          "descricao": "Nursing course instructor at Faculdade Sequencial. 32-month tenure."
+        },
+        {
+          "empresa": "Hospital Municipal Dr. Moysés Deutsch",
+          "cargo": "Enfermeira",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2011-01",
+          "data_fim": "2014-01",
+          "descricao": "Clinical nurse at municipal hospital. 37-month tenure."
+        }
       ],
       "salario": {
         "bruto": 12086.06,
         "liquido": 3425.41,
         "periodo_referencia": "2026-02",
         "fonte": "holerite",
-        "nota": "Líquido atípico: inclui 5 dias de férias (MC03/MC04) e desconto de férias (R$2.529,63) + adiantamento (R$3.633,17). Salário base mensal: R$10.899,51."
+        "nota": "Líquido atípico - inclui desconto de férias e adiantamento"
       },
-      "documentos_disponiveis": ["curriculo", "holerite"],
+      "documentos_disponiveis": [
+        "curriculo",
+        "holerite"
+      ],
       "status_fiscal": "BR",
-      "observacoes": "Enfermeira PLeno no Einstein desde jul/2014 (11+ anos). Grade P4. Experiência de docência paralela ao emprego CLT (2012-2024) — overlap válido. Nome fiscal no holerite: Mariana Teixeira Ferreira (nome de solteira)."
+      "observacoes": null
     },
     {
       "id": "theo",
@@ -93,16 +237,10 @@
       "formacao_maxima": null,
       "idiomas": [],
       "experiencias": [],
-      "salario": {
-        "bruto": null,
-        "liquido": null,
-        "periodo_referencia": null,
-        "fonte": null,
-        "nota": null
-      },
+      "salario": null,
       "documentos_disponiveis": [],
       "status_fiscal": "BR+US",
-      "observacoes": "Nascido em Orlando, Flórida em 18/07/2025. Dupla cidadania brasileira e americana. Sem documentos processados neste ciclo."
+      "observacoes": "Dupla cidadania brasileira e americana. Nascido em Orlando, Flórida."
     }
   ]
 }
