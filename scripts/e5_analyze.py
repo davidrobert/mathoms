@@ -211,7 +211,11 @@ def linear_interpolate(val: float, min_val: float, max_val: float) -> float:
 # ============================================================================
 
 def _resolve_members(baseline: Dict[str, Any]) -> tuple:
-    """Resolve members from baseline, handling both dict and list formats."""
+    """Resolve members from baseline, handling both dict and list formats.
+    Also handles the consolidated format (v1.5) which uses top-level lists
+    (imoveis_consolidados, investimentos_consolidados, etc.) instead of
+    nested members dicts.
+    """
     members = baseline.get("members", baseline.get("membros", {}))
     if isinstance(members, list):
         david_data, mariana_data = {}, {}
@@ -224,7 +228,115 @@ def _resolve_members(baseline: Dict[str, Any]) -> tuple:
             elif "mariana" in nome:
                 mariana_data = m
         return david_data, mariana_data
-    return members.get("david", {}), members.get("mariana", {})
+    if members:
+        return members.get("david", {}), members.get("mariana", {})
+    # --- v1.5 consolidated format: no "members" key ---
+    # Build synthetic member dicts from top-level consolidated lists
+    return _build_members_from_consolidated(baseline)
+
+
+def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
+    """Build synthetic david/mariana member dicts from the v1.5 consolidated
+    baseline format (top-level lists keyed by imoveis_consolidados, etc.)."""
+    # Determine the most recent year available
+    pat_ano = baseline.get("patrimonio_por_ano", {})
+    anos = sorted(pat_ano.keys())
+    ano_ref = anos[-1] if anos else "2024"
+
+    # Totals from patrimonio_por_ano
+    ano_data = pat_ano.get(ano_ref, {})
+    total_bens = safe_float(ano_data.get("total_bens", 0))
+    total_dividas = safe_float(ano_data.get("total_dividas", 0))
+
+    # Split imoveis by proprietario
+    david_imoveis, mariana_imoveis = [], []
+    for im in baseline.get("imoveis_consolidados", []):
+        val = safe_float(im.get("valores_31_12", {}).get(ano_ref, 0))
+        entry = {
+            "descricao": im.get("descricao", ""),
+            "valor_31_12_ano_base": val,
+        }
+        if im.get("proprietario", "").lower() == "mariana":
+            mariana_imoveis.append(entry)
+        else:
+            david_imoveis.append(entry)
+
+    # Split investimentos by proprietario
+    david_inv, mariana_inv = [], []
+    for inv in baseline.get("investimentos_consolidados", []):
+        val = safe_float(inv.get("valores_31_12", {}).get(ano_ref, 0))
+        entry = {
+            "descricao": inv.get("descricao", ""),
+            "tipo": inv.get("tipo", ""),
+            "valor_31_12_ano_base": val,
+        }
+        if inv.get("proprietario", "").lower() == "mariana":
+            mariana_inv.append(entry)
+        else:
+            david_inv.append(entry)
+
+    # Veiculos
+    david_veiculos, mariana_veiculos = [], []
+    for v in baseline.get("veiculos_consolidados", []):
+        val = safe_float(v.get("valores_31_12", {}).get(ano_ref, 0))
+        entry = {"descricao": v.get("descricao", ""), "valor_31_12_ano_base": val}
+        if v.get("proprietario", "").lower() == "mariana":
+            mariana_veiculos.append(entry)
+        else:
+            david_veiculos.append(entry)
+
+    # Dividas — sum per proprietario
+    david_dividas, mariana_dividas = 0.0, 0.0
+    for dv in baseline.get("dividas", []):
+        val = safe_float(dv.get("saldo_31_12", {}).get(ano_ref, 0))
+        if dv.get("proprietario", "").lower() == "mariana":
+            mariana_dividas += val
+        else:
+            david_dividas += val
+
+    # Sum bens per member
+    david_bens_total = (
+        sum(safe_float(im.get("valor_31_12_ano_base", 0)) for im in david_imoveis)
+        + sum(safe_float(inv.get("valor_31_12_ano_base", 0)) for inv in david_inv)
+        + sum(safe_float(v.get("valor_31_12_ano_base", 0)) for v in david_veiculos)
+    )
+    mariana_bens_total = (
+        sum(safe_float(im.get("valor_31_12_ano_base", 0)) for im in mariana_imoveis)
+        + sum(safe_float(inv.get("valor_31_12_ano_base", 0)) for inv in mariana_inv)
+        + sum(safe_float(v.get("valor_31_12_ano_base", 0)) for v in mariana_veiculos)
+    )
+
+    david_data = {
+        "total_bens": david_bens_total,
+        "total_dividas": david_dividas,
+        "bens": {
+            "imoveis": david_imoveis,
+            "investimentos": david_inv,
+            "veiculos": david_veiculos,
+            "contas_bancarias": [],
+        },
+    }
+    mariana_data = {
+        "total_bens": mariana_bens_total,
+        "total_dividas": mariana_dividas,
+        "bens": {
+            "imoveis": mariana_imoveis,
+            "investimentos": mariana_inv,
+            "veiculos": mariana_veiculos,
+            "contas_bancarias": [],
+        },
+    }
+
+    # Sanity check: synthetic totals vs patrimonio_por_ano
+    synthetic_total = david_bens_total + mariana_bens_total
+    if abs(synthetic_total - total_bens) > 1.0:
+        print(f"  [INFO] Synthetic total_bens (R$ {synthetic_total:,.2f}) vs patrimonio_por_ano (R$ {total_bens:,.2f})")
+        print(f"  [INFO] Using patrimonio_por_ano total_bens as authoritative")
+        # Distribute the difference proportionally or assign to david
+        diff = total_bens - synthetic_total
+        david_data["total_bens"] += diff
+
+    return david_data, mariana_data
 
 
 def _get_bens(member: Dict[str, Any]) -> Dict[str, Any]:

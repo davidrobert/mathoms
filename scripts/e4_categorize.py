@@ -17,6 +17,7 @@ Date: 2026-04-05
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
@@ -60,7 +61,7 @@ CLT_SOURCE_MAPPING = _categorization["clt_source_mapping"]
 # recipients are now loaded from config/categorization.json and
 # config/family_members.json. See those files to add/edit keywords.
 def normalize_text(text: str) -> str:
-    """Normalize text for matching: uppercase, remove accents."""
+    """Normalize text for matching: uppercase, remove accents, collapse whitespace."""
     if not text:
         return ""
     import unicodedata
@@ -68,6 +69,8 @@ def normalize_text(text: str) -> str:
     # Remove accents (NFD decomposes, then strip combining marks)
     text = unicodedata.normalize('NFD', text)
     text = ''.join(c for c in text if unicodedata.category(c) != 'Mn')
+    # Collapse multiple whitespace into single space (fixes C6 Bank formatting)
+    text = re.sub(r'\s+', ' ', text)
     return text
 
 

@@ -17,8 +17,8 @@
     "c6bank_extratocontapj_202504_202604-2_extract.json",
     "c6bank_extratocontapj_202601_202604-2_extract.json"
   ],
-  "transacoes_total": 96,
-  "transacoes_duplicadas_removidas": 41,
+  "transacoes_total": 92,
+  "transacoes_duplicadas_removidas": 45,
   "transacoes": [
     {
       "data": "2025-03-05",
@@ -130,7 +130,7 @@
     },
     {
       "data": "2025-08-26",
-      "descricao": "Pix enviado para RECEITA FEDERAL — TRANSF ENVIADA PIX",
+      "descricao": "Pix enviado para RECEITA FEDERAL Pix enviado para RECEITA FEDERAL",
       "valor": -2217.06,
       "tipo_lancamento": "Saída PIX"
     },
@@ -145,12 +145,6 @@
       "descricao": "Pix recebido de CNRY MANAGEMENT LTDA Pix enviado para RECEITA FEDERAL",
       "valor": 40000.0,
       "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-08-26",
-      "descricao": "Pix enviado para RECEITA FEDERAL Pix enviado para RECEITA FEDERAL",
-      "valor": -2217.06,
-      "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2025-09-11",
@@ -202,7 +196,7 @@
     },
     {
       "data": "2025-09-30",
-      "descricao": "Pix recebido de BRANDLOVRS LTDA",
+      "descricao": "Pix recebido de BRANDLOVRS LTDA Pix recebido de ARVO SAUDE LTDA",
       "valor": 40000.0,
       "tipo_lancamento": "Entrada PIX"
     },
@@ -217,12 +211,6 @@
       "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS — TRANSF ENVIADA PIX C",
       "valor": -10000.0,
       "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-09-30",
-      "descricao": "Pix recebido de BRANDLOVRS LTDA Pix recebido de ARVO SAUDE LTDA",
-      "valor": 40000.0,
-      "tipo_lancamento": "Entrada PIX"
     },
     {
       "data": "2025-09-30",
@@ -418,12 +406,6 @@
     },
     {
       "data": "2026-01-12",
-      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS — TRANSF ENVIADA PIX",
-      "valor": -20000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-12",
       "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS — TRANSF ENVIADA PIX C",
       "valor": -5000.0,
       "tipo_lancamento": "Saída PIX"
@@ -474,12 +456,6 @@
       "data": "2026-02-06",
       "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS — TRANSF ENVIADA PIX",
       "valor": -4720.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-02-06",
-      "descricao": "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS — TRANSF ENVIADA PIX",
-      "valor": -5000.0,
       "tipo_lancamento": "Saída PIX"
     },
     {

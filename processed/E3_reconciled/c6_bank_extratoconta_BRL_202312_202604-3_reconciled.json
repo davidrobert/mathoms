@@ -18,8 +18,8 @@
     "c6bank_extratoconta_202504_202604-2_extract.json",
     "c6bank_extratoconta_202512_202604-2_extract.json"
   ],
-  "transacoes_total": 1654,
-  "transacoes_duplicadas_removidas": 245,
+  "transacoes_total": 1591,
+  "transacoes_duplicadas_removidas": 308,
   "transacoes": [
     {
       "data": "2023-12-31",
@@ -4684,20 +4684,8 @@
       "tipo_lancamento": "Entrada PIX"
     },
     {
-      "data": "2025-03-29",
-      "descricao": "Pix enviado para PARCELA EXPRESS SERVICOS DIGITAIS LTDA Pix recebido de POMPEIA MOTOS MULTIMARCAS LTDA",
-      "valor": -28.01,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-03-30",
       "descricao": "Pix enviado para ELAINE WENZEL — TRANSF ENVIADA PIX",
-      "valor": -10.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-03-30",
-      "descricao": "Pix enviado para ELAINE WENZEL Pix enviado para Maria Lúcia Marques Oliveira",
       "valor": -10.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -4766,12 +4754,6 @@
       "descricao": "JUROS CHEQUE ESP Câmbio",
       "valor": -104.39,
       "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-04-02",
-      "descricao": "Pix enviado para Maria Lúcia Marques Oliveira Pix enviado para ANA LUCIA SANTOS",
-      "valor": -750.0,
-      "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2025-04-02",
@@ -4943,12 +4925,6 @@
     },
     {
       "data": "2025-04-10",
-      "descricao": "Pix enviado para REGIANE DONIZETI BALBINO Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
-      "valor": -320.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-04-10",
       "descricao": "SEGURO CONTA C6 Pix enviado para REGIANE DONIZETI BALBINO",
       "valor": -20.0,
       "tipo_lancamento": "Outros gastos"
@@ -4999,12 +4975,6 @@
       "data": "2025-04-16",
       "descricao": "Pix enviado para RECEITA FEDERAL Boleto",
       "valor": -166.98,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-04-16",
-      "descricao": "Pix enviado para ELIBELTO JOSE DE LIMA Pix enviado para RECEITA FEDERAL",
-      "valor": -500.0,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -5291,12 +5261,6 @@
     },
     {
       "data": "2025-04-26",
-      "descricao": "Pix enviado para ELIBELTO JOSE DE LIMA Pix enviado para Mariana Dos Santos Almeida",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-04-26",
       "descricao": "C6TAG ESTACIONAMENTO RECEBIMENTO DE TED",
       "valor": -28.0,
       "tipo_lancamento": "Outros gastos"
@@ -5326,20 +5290,8 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-04-30",
-      "descricao": "Pix enviado para CLIMEFE CLINICA DE MEDICINA FETAL S S LT",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-05-01",
       "descricao": "Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
-      "valor": 26000.0,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-05-01",
-      "descricao": "Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS Pix enviado para José Martins Ferreira Prates",
       "valor": 26000.0,
       "tipo_lancamento": "Entrada PIX"
     },
@@ -5974,12 +5926,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-06-10",
-      "descricao": "Pix enviado para ********",
-      "valor": -55.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-06-11",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
       "valor": -2.8,
@@ -6418,12 +6364,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-07-27",
-      "descricao": "Pix enviado para BELT ACADEMY TREINAMENTO EM DESENVOLVIMENTO PROFISSIONAL\nLTDA",
-      "valor": -1950.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-08-01",
       "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
       "valor": 26000.0,
@@ -6438,18 +6378,6 @@
     {
       "data": "2025-08-01",
       "descricao": "Pix enviado para David Robert Camargo Ferreira Campos — TRANSF ENVIADA PIX",
-      "valor": -5100.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-08-01",
-      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA Pix enviado para RUBENS DE CAMPOS",
-      "valor": 26000.0,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-08-01",
-      "descricao": "Pix enviado para David Robert Camargo Ferreira Campos",
       "valor": -5100.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -6700,12 +6628,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-09-10",
-      "descricao": "Pix enviado para JULIANA ARGONDIZO DE ROSIS DINATO",
-      "valor": -500.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-09-11",
       "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
       "valor": 1000.0,
@@ -6724,18 +6646,6 @@
       "tipo_lancamento": "Entrada PIX"
     },
     {
-      "data": "2025-09-11",
-      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-      "valor": 1000.0,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-09-11",
-      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-      "valor": 1500.0,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
       "data": "2025-09-13",
       "descricao": "Pix enviado para Eliane Costa Goncalves — TRANSF ENVIADA PIX",
       "valor": -440.0,
@@ -6751,12 +6661,6 @@
       "data": "2025-09-13",
       "descricao": "Pix enviado para Vitória Maria Silva Moreira — TRANSF ENVIADA PIX",
       "valor": -195.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-09-13",
-      "descricao": "Pix enviado para Eliane Costa Goncalves",
-      "valor": -440.0,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -7078,12 +6982,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-09-22",
-      "descricao": "Pix enviado para SERGIO PALMEIRA DA SILVA",
-      "valor": -1080.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-09-23",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
       "valor": -3.1,
@@ -7306,12 +7204,6 @@
       "tipo_lancamento": "Pagamento"
     },
     {
-      "data": "2025-09-30",
-      "descricao": "Pix enviado para Carlos Augusto Silva Ribeiro Junior",
-      "valor": -200.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-10-01",
       "descricao": "RECEBIMENTO DE TED — 92693118000160-BRADESCO SAUDE S A",
       "valor": 500.0,
@@ -7358,12 +7250,6 @@
       "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
       "valor": -22.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-10-02",
-      "descricao": "Pix recebido de Douglas Camargo de Campos Pix enviado para RUBENS DE CAMPOS",
-      "valor": 100.0,
-      "tipo_lancamento": "Entrada PIX"
     },
     {
       "data": "2025-10-02",
@@ -7482,12 +7368,6 @@
     {
       "data": "2025-10-15",
       "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
-      "valor": -1334.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-10-15",
-      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
       "valor": -1334.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -7654,12 +7534,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-10-26",
-      "descricao": "Pix enviado para LUMMA ROBERTA DA SILVA Pix enviado para Carlos Augusto Silva Ribeiro Junior",
-      "valor": -3000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-10-27",
       "descricao": "Pix enviado para Carlos Augusto Silva Ribeiro Junior — TRANSF ENVIADA PIX",
       "valor": -80.0,
@@ -7780,12 +7654,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-11-04",
-      "descricao": "Pix enviado para STUDIO 19",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-11-05",
       "descricao": "PGTO FAT CARTAO C6 — Fatura de cartao",
       "valor": -16905.45,
@@ -7800,12 +7668,6 @@
     {
       "data": "2025-11-07",
       "descricao": "Pix enviado para RUBENS DE CAMPOS — TRANSF ENVIADA PIX",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-11-07",
-      "descricao": "Pix enviado para RUBENS DE CAMPOS",
       "valor": -1000.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -7898,18 +7760,6 @@
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
       "valor": -3.1,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-11-14",
-      "descricao": "Pix enviado para CLINICA DERMATOLOGICA DRA.ADRIANA AWADA LTDA Pix enviado para VESALTEC SERRALHERIA E COMERCIO LTDA",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-11-14",
-      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
-      "valor": 20000.0,
-      "tipo_lancamento": "Entrada PIX"
     },
     {
       "data": "2025-11-14",
@@ -8116,12 +7966,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-11-28",
-      "descricao": "Pix enviado para AMAZON.COM.BR",
-      "valor": -5345.73,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-11-29",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 240 SU",
       "valor": -9.1,
@@ -8162,12 +8006,6 @@
       "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
       "valor": 10000.0,
       "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-12-01",
-      "descricao": "Pix enviado para RUBENS DE CAMPOS Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2025-12-02",
@@ -8266,18 +8104,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-12-08",
-      "descricao": "Pix recebido de Douglas Camargo de Campos Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-      "valor": 975.0,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-12-08",
-      "descricao": "Pix enviado para GRUPO CASAS BAHIA S.A.",
-      "valor": -18233.19,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-12-09",
       "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO — TRANSF ENVIADA PIX",
       "valor": -1000.0,
@@ -8288,12 +8114,6 @@
       "descricao": "Pix recebido de EDUARDO FREITAS DE SOUZA",
       "valor": 800.0,
       "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-12-09",
-      "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO Pix recebido de EDUARDO FREITAS DE SOUZA",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2025-12-10",
@@ -8316,12 +8136,6 @@
     {
       "data": "2025-12-15",
       "descricao": "Pix enviado para HELEN SASAKE TAKAGI — TRANSF ENVIADA PIX",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-12-15",
-      "descricao": "Pix enviado para HELEN SASAKE TAKAGI",
       "valor": -1000.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -8356,12 +8170,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-12-19",
-      "descricao": "Pix enviado para ELIAS PAIVA",
-      "valor": -750.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-12-20",
       "descricao": "Pix enviado para DOUGLAS CAMARGO DE CAMPOS — TRANSF ENVIADA PIX",
       "valor": -466.49,
@@ -8377,12 +8185,6 @@
       "data": "2025-12-20",
       "descricao": "Pix enviado para Cleidiany Ribeiro Anacleto Kawamura — TRANSF ENVIADA PIX",
       "valor": -450.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-12-20",
-      "descricao": "Pix enviado para DOUGLAS CAMARGO DE CAMPOS Pix enviado para Anderson Sampaio de Vasconcelos",
-      "valor": -466.49,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -8417,12 +8219,6 @@
     },
     {
       "data": "2025-12-22",
-      "descricao": "Pix recebido de Kiwify Pagamentos, Tecnologia e Servicos Ltda Pix enviado para INACIO JOSE MACEDO",
-      "valor": 2863.38,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-12-22",
       "descricao": "Pix enviado para POUPA MEDI",
       "valor": -98.0,
       "tipo_lancamento": "Saída PIX"
@@ -8442,12 +8238,6 @@
     {
       "data": "2025-12-26",
       "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
-      "valor": -2243.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-12-26",
-      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
       "valor": -2243.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -8694,19 +8484,7 @@
     {
       "data": "2026-01-11",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -142.47,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -141.32,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -140.09,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -8718,19 +8496,7 @@
     {
       "data": "2026-01-11",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -137.51,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -136.25,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -134.93,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -8742,19 +8508,7 @@
     {
       "data": "2026-01-11",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -43.35,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -66.57,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -66.08,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -8766,31 +8520,13 @@
     {
       "data": "2026-01-11",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -64.98,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -64.43,
       "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2026-01-11",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -63.78,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -63.2,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -62.59,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -8820,12 +8556,6 @@
     {
       "data": "2026-01-12",
       "descricao": "Pix enviado para RECEITA FEDERAL — TRANSF ENVIADA PIX",
-      "valor": -142.62,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-12",
-      "descricao": "Pix enviado para RECEITA FEDERAL — TRANSF ENVIADA PIX",
       "valor": -1507.2,
       "tipo_lancamento": "Saída PIX"
     },
@@ -8846,12 +8576,6 @@
       "descricao": "RECEBIMENTO DE TED — 92693118000160-BRADESCO SAUDE S A",
       "valor": 1000.0,
       "tipo_lancamento": "Outros"
-    },
-    {
-      "data": "2026-01-16",
-      "descricao": "Pix enviado para RUBENS DE CAMPOS — TRANSF ENVIADA PIX",
-      "valor": -100.0,
-      "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2026-01-17",
@@ -8884,20 +8608,8 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2026-01-26",
-      "descricao": "Pix enviado para LUMMA ROBERTA DA SILVA — TRANSF ENVIADA PIX",
-      "valor": -2100.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2026-01-27",
       "descricao": "Pix enviado para HT SARAGIOTTO SERVICOS MEDICOS LTDA",
-      "valor": -680.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-27",
-      "descricao": "Pix enviado para HT SARAGIOTTO SERVICOS MEDICOS LTDA — TRANSF ENVIADA PIX",
       "valor": -680.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -8906,12 +8618,6 @@
       "descricao": "Belt Academy Pix enviado para RUBENS DE CAMPOS",
       "valor": -1950.0,
       "tipo_lancamento": "Pagamento"
-    },
-    {
-      "data": "2026-01-30",
-      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
-      "valor": 14000.0,
-      "tipo_lancamento": "Entrada PIX"
     },
     {
       "data": "2026-01-30",
@@ -8993,12 +8699,6 @@
     },
     {
       "data": "2026-02-03",
-      "descricao": "Pix enviado para AIR EUROPA LINEAS AEREAS SOCIEDAD ANONIMA — TRANSF ENVIADA PIX",
-      "valor": -1263.99,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-02-03",
       "descricao": "Pix enviado para HELEN SASAKE TAKAGI — TRANSF ENVIADA PIX",
       "valor": -1000.0,
       "tipo_lancamento": "Saída PIX"
@@ -9036,19 +8736,7 @@
     {
       "data": "2026-02-05",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -4871.34,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-02-05",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -1155.94,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-02-05",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -34.92,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -9058,20 +8746,8 @@
       "tipo_lancamento": "Entrada PIX"
     },
     {
-      "data": "2026-02-05",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-      "valor": -824.88,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2026-02-06",
       "descricao": "Pix enviado para SABESP",
-      "valor": -568.02,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-02-06",
-      "descricao": "Pix enviado para SABESP — TRANSF ENVIADA PIX",
       "valor": -568.02,
       "tipo_lancamento": "Saída PIX"
     },
@@ -9281,12 +8957,6 @@
     },
     {
       "data": "2026-02-13",
-      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-      "valor": 10000.0,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2026-02-13",
       "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
       "valor": -1000.0,
       "tipo_lancamento": "Saída PIX"
@@ -9342,12 +9012,6 @@
     {
       "data": "2026-02-20",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para Elias Paiva",
-      "valor": -482.59,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-02-20",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -482.59,
       "tipo_lancamento": "Saída PIX"
     },
@@ -9527,12 +9191,6 @@
     },
     {
       "data": "2026-03-04",
-      "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
-      "valor": -2000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-03-04",
       "descricao": "Pix enviado para RUBENS DE CAMPOS — TRANSF ENVIADA PIX",
       "valor": -1000.0,
       "tipo_lancamento": "Saída PIX"
@@ -9599,12 +9257,6 @@
     },
     {
       "data": "2026-03-09",
-      "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO — TRANSF ENVIADA PIX",
-      "valor": -760.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-03-09",
       "descricao": "Pix enviado para HELEN SASAKE TAKAGI — TRANSF ENVIADA PIX",
       "valor": -1000.0,
       "tipo_lancamento": "Saída PIX"
@@ -9631,12 +9283,6 @@
       "data": "2026-03-13",
       "descricao": "Pix enviado para ANDAIMES CUPECE — TRANSF ENVIADA PIX",
       "valor": -270.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-03-13",
-      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
-      "valor": -1000.0,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -9694,12 +9340,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2026-03-24",
-      "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO — TRANSF ENVIADA PIX",
-      "valor": -500.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2026-03-28",
       "descricao": "C6TAG ESTACIONAMENTO C6TAG PEDAGIO",
       "valor": -78.0,
@@ -9744,12 +9384,6 @@
     {
       "data": "2026-03-30",
       "descricao": "Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA — TRANSF ENVIADA PIX",
-      "valor": -380.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-03-30",
-      "descricao": "Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA — TRANSF ENVIADA PIX",
       "valor": -59.5,
       "tipo_lancamento": "Saída PIX"
     },
@@ -9774,19 +9408,7 @@
     {
       "data": "2026-03-31",
       "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
-      "valor": -2191.41,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-03-31",
-      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
       "valor": -300.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-03-31",
-      "descricao": "Pix enviado para David Robert Camargo Ferreira Campos — TRANSF ENVIADA PIX",
-      "valor": -500.0,
       "tipo_lancamento": "Saída PIX"
     },
     {

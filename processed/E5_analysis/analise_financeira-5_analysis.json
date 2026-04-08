@@ -1,67 +1,79 @@
 {
   "periodo_dados": "2024-01 a 2026-03",
-  "data_analise": "2026-04-07",
+  "data_analise": "2026-04-08",
   "patrimonio": {
-    "bruto": 0.0,
-    "dividas": 0.0,
-    "liquido": 0.0,
-    "residencia": 0.0,
-    "imoveis_investimento": 0.0,
-    "investimentos_david": 0.0,
-    "investimentos_mariana": 0.0,
-    "caixa_moeda_estrangeira": 0.0,
-    "investivel": 0,
-    "veiculos": 0.0,
+    "bruto": 3501275.44,
+    "dividas": 234792.61,
+    "liquido": 3266482.83,
+    "residencia": 996821.46,
+    "imoveis_investimento": 1442706.24,
+    "investimentos_david": 640897.34,
+    "investimentos_mariana": 188123.73,
+    "caixa_moeda_estrangeira": 5250.67,
+    "investivel": 2276977.98,
+    "veiculos": 227476.0,
     "composicao": [
       {
-        "categoria": "Residência",
-        "valor": 0.0
+        "categoria": "Imóveis Investimento",
+        "valor": 1442706.24,
+        "pct": 41.21
       },
       {
-        "categoria": "Imóveis Investimento",
-        "valor": 0.0
+        "categoria": "Residência",
+        "valor": 996821.46,
+        "pct": 28.47
       },
       {
         "categoria": "Investimentos David",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Investimentos Mariana",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 0.0
+        "valor": 640897.34,
+        "pct": 18.3
       },
       {
         "categoria": "Veículos",
-        "valor": 0.0
+        "valor": 227476.0,
+        "pct": 6.5
+      },
+      {
+        "categoria": "Investimentos Mariana",
+        "valor": 188123.72999999998,
+        "pct": 5.37
+      },
+      {
+        "categoria": "Caixa e Moeda Estrangeira",
+        "valor": 5250.670000000042,
+        "pct": 0.15
       }
     ],
     "tabela_categorias": [
       {
-        "categoria": "Residência",
-        "valor": 0.0
+        "categoria": "Imóveis Investimento",
+        "valor": 1442706.24,
+        "pct": 41.21
       },
       {
-        "categoria": "Imóveis Investimento",
-        "valor": 0.0
+        "categoria": "Residência",
+        "valor": 996821.46,
+        "pct": 28.47
       },
       {
         "categoria": "Investimentos David",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Investimentos Mariana",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 0.0
+        "valor": 640897.34,
+        "pct": 18.3
       },
       {
         "categoria": "Veículos",
-        "valor": 0.0
+        "valor": 227476.0,
+        "pct": 6.5
+      },
+      {
+        "categoria": "Investimentos Mariana",
+        "valor": 188123.72999999998,
+        "pct": 5.37
+      },
+      {
+        "categoria": "Caixa e Moeda Estrangeira",
+        "valor": 5250.670000000042,
+        "pct": 0.15
       }
     ]
   },
@@ -69,84 +81,84 @@
     "if_meta": 7200000.0,
     "if_trs": 5.0,
     "if_trs_monthly_value": 30000.0,
-    "if_pct": 0.0,
-    "if_gap": 7200000.0,
-    "prazo_anos_realista": 17.4,
-    "david_idade_if": 61,
-    "ano_if": 2043,
-    "renda_passiva_estimada_4pct": 0.0
+    "if_pct": 31.62,
+    "if_gap": 4923022.02,
+    "prazo_anos_realista": 9.8,
+    "david_idade_if": 53,
+    "ano_if": 2035,
+    "renda_passiva_estimada_4pct": 7589.93
   },
   "fluxo_caixa": {
-    "receita_total": 1592801.59,
-    "receita_recorrente": 1152511.23,
-    "receita_one_time": 440290.36,
-    "receita_recorrente_mensal": 36015.98,
-    "despesa_total": 1210235.83,
-    "despesa_mensal_media": 37819.87,
-    "fluxo_liquido": 382565.76,
+    "receita_total": 1549838.21,
+    "receita_recorrente": 1112411.23,
+    "receita_one_time": 437426.98,
+    "receita_recorrente_mensal": 34762.85,
+    "despesa_total": 1145377.8,
+    "despesa_mensal_media": 35793.06,
+    "fluxo_liquido": 404460.41,
     "por_fonte": {
       "receita_investimento": 13782.88,
       "receita_resgate": 27416.7,
-      "receita_clt": 357633.01,
+      "receita_clt": 354769.63,
       "receita_aluguel": 104216.13,
-      "outras_receitas": 60583.84,
+      "outras_receitas": 60483.84,
       "receita_venda_ativo": 49402.0,
-      "receita_pj": 979750.04,
+      "receita_pj": 939750.04,
       "receita_restituicao": 16.99
     },
     "despesas_por_categoria": {
-      "financeiro": 8652.81,
-      "suporte_familiar": 64535.75,
-      "moradia": 70945.61,
-      "nao_identificado": 449833.1,
-      "transporte": 52246.79,
-      "impostos": 86041.3,
-      "assinaturas": 19955.05,
-      "seguros": 6670.25,
-      "servicos_domesticos": 44930.79,
-      "lazer_viagens": 78795.84,
-      "saude": 110432.73,
-      "alimentacao": 79370.96,
-      "educacao": 40625.05,
-      "reserva_desejos": 68338.5,
-      "vestuario": 27510.98,
-      "melhoria_reforma": 1350.32
+      "financeiro": 14712.21,
+      "suporte_familiar": 59435.75,
+      "moradia": 70377.59,
+      "nao_identificado": 385980.27,
+      "transporte": 52360.75,
+      "impostos": 104049.91,
+      "assinaturas": 20554.25,
+      "seguros": 7319.17,
+      "servicos_domesticos": 37722.38,
+      "lazer_viagens": 77751.69,
+      "saude": 102652.73,
+      "alimentacao": 81300.56,
+      "educacao": 38675.05,
+      "melhoria_reforma": 14200.32,
+      "reserva_desejos": 50774.19,
+      "vestuario": 27510.98
     },
     "tabela_receitas": [
       {
         "categoria": "Receita Pj",
-        "valor": 979750.04,
-        "pct": 61.51
+        "valor": 939750.04,
+        "pct": 60.64
       },
       {
         "categoria": "Receita Clt",
-        "valor": 357633.01,
-        "pct": 22.45
+        "valor": 354769.63,
+        "pct": 22.89
       },
       {
         "categoria": "Receita Aluguel",
         "valor": 104216.13,
-        "pct": 6.54
+        "pct": 6.72
       },
       {
         "categoria": "Outras Receitas",
-        "valor": 60583.84,
-        "pct": 3.8
+        "valor": 60483.84,
+        "pct": 3.9
       },
       {
         "categoria": "Receita Venda Ativo",
         "valor": 49402.0,
-        "pct": 3.1
+        "pct": 3.19
       },
       {
         "categoria": "Receita Resgate",
         "valor": 27416.7,
-        "pct": 1.72
+        "pct": 1.77
       },
       {
         "categoria": "Receita Investimento",
         "valor": 13782.88,
-        "pct": 0.87
+        "pct": 0.89
       },
       {
         "categoria": "Receita Restituicao",
@@ -365,7 +377,7 @@
             10000.0,
             0.0,
             0.0,
-            40000.0,
+            0.0,
             0.0,
             0.0,
             0.0,
@@ -442,7 +454,7 @@
             0.0,
             0.0,
             0.0,
-            5726.76,
+            2863.38,
             0.0,
             0.0,
             0.0,
@@ -514,7 +526,7 @@
             281.08,
             102.41,
             1600.57,
-            347.46,
+            247.46,
             438.68,
             1775.6,
             2989.68,
@@ -695,18 +707,18 @@
             0.0,
             0.0,
             1333.85,
-            6842.01,
+            7197.9,
             3339.01,
             1490.86,
             1493.23,
             5046.37,
             5218.49,
-            4979.26,
-            10179.4,
-            7396.38,
-            5539.29,
+            5278.33,
+            10727.55,
+            8111.31,
+            5915.95,
             6819.29,
-            8915.19,
+            8550.09,
             395.0
           ]
         },
@@ -717,9 +729,9 @@
             0.0,
             0.0,
             1094.78,
-            14.9,
-            14.9,
-            90.9,
+            49.8,
+            49.8,
+            125.8,
             0.0,
             0.0,
             0.0,
@@ -732,18 +744,18 @@
             56.64,
             164.62,
             1104.03,
-            2146.73,
-            489.63,
-            2013.91,
+            2181.63,
+            524.53,
+            2048.81,
             1826.7,
-            1023.27,
-            2659.03,
-            1760.21,
-            919.24,
-            1444.61,
-            1282.72,
-            1032.03,
-            816.2,
+            1058.17,
+            2699.93,
+            1826.01,
+            985.04,
+            1505.41,
+            1323.62,
+            1051.93,
+            877.0,
             0.0
           ]
         },
@@ -772,7 +784,7 @@
             12094.18,
             3370.37,
             2025.0,
-            3900.0,
+            1950.0,
             1950.0,
             1950.0,
             1954.0,
@@ -789,10 +801,10 @@
           "data": [
             0.0,
             0.0,
-            0.0,
-            170.0,
-            279.81,
-            313.09,
+            349.0,
+            519.0,
+            645.16,
+            678.44,
             259.21,
             0.0,
             23.51,
@@ -805,18 +817,18 @@
             0.06,
             8.44,
             23.16,
-            216.16,
-            379.36,
-            305.41,
-            275.73,
-            317.98,
-            264.11,
-            106.91,
-            261.7,
-            343.34,
-            791.85,
-            1641.2,
-            1133.47,
+            581.51,
+            744.71,
+            695.41,
+            665.73,
+            707.98,
+            654.11,
+            496.91,
+            651.7,
+            733.34,
+            1181.85,
+            2031.2,
+            1523.47,
             1310.51,
             158.77
           ]
@@ -829,7 +841,7 @@
             0.0,
             0.0,
             0.0,
-            0.0,
+            1691.96,
             0.0,
             0.0,
             0.0,
@@ -840,20 +852,20 @@
             0.0,
             0.0,
             550.16,
-            2893.89,
+            8266.07,
+            4571.42,
             0.0,
-            0.0,
-            1410.08,
+            910.08,
             0.0,
             2294.07,
             2319.05,
-            17250.86,
+            15033.8,
             2374.47,
             36072.62,
             2431.26,
             16652.4,
-            1792.44,
-            0.0,
+            3547.8,
+            7334.75,
             0.0,
             0.0
           ]
@@ -882,7 +894,7 @@
             20.0,
             9552.49,
             16157.85,
-            3343.22,
+            3563.06,
             9052.61,
             1255.2,
             5727.6,
@@ -890,7 +902,7 @@
             10893.08,
             2743.38,
             88.0,
-            15587.07,
+            14323.08,
             307.0,
             0.0
           ]
@@ -916,7 +928,7 @@
             0.0,
             0.0,
             0.0,
-            0.0,
+            2000.0,
             171.2,
             0.0,
             0.0,
@@ -925,10 +937,10 @@
             0.0,
             110.5,
             700.0,
-            237.85,
+            987.85,
             0.0,
-            89.77,
-            41.0,
+            6689.77,
+            3541.0,
             0.0
           ]
         },
@@ -964,7 +976,7 @@
             5542.79,
             9924.72,
             1518.67,
-            7835.42,
+            7267.4,
             8911.6,
             0.0
           ]
@@ -974,35 +986,35 @@
           "data": [
             10000.0,
             8619.84,
-            3793.05,
-            22238.34,
-            55489.2,
-            36917.31,
-            21704.42,
-            3268.16,
-            34540.96,
-            11978.83,
-            39886.41,
-            5439.39,
-            3525.46,
-            5333.92,
-            1721.16,
-            11658.18,
-            11554.52,
-            10315.32,
-            6770.62,
-            11882.49,
-            17669.73,
-            1104.21,
-            4309.95,
-            4186.96,
-            18814.36,
-            4081.76,
-            21227.67,
-            18176.75,
-            11798.19,
-            21030.94,
-            7378.83,
+            3409.12,
+            21603.85,
+            54564.89,
+            34094.37,
+            21648.36,
+            3247.0,
+            34519.8,
+            11957.67,
+            39865.25,
+            5418.23,
+            3504.3,
+            5312.76,
+            1700.0,
+            11637.02,
+            6116.19,
+            5723.9,
+            6347.26,
+            8052.34,
+            16976.21,
+            251.2,
+            3879.95,
+            3742.06,
+            16445.71,
+            3005.78,
+            13821.12,
+            14024.53,
+            7942.8,
+            2609.46,
+            2523.13,
             3416.17
           ]
         },
@@ -1025,7 +1037,7 @@
             0.0,
             0.0,
             0.0,
-            0.0,
+            44.99,
             0.0,
             0.0,
             936.67,
@@ -1033,12 +1045,12 @@
             356.52,
             11498.83,
             1645.51,
-            12018.64,
-            686.8,
+            12156.39,
+            728.77,
             0.0,
-            37021.2,
-            829.26,
-            72.97,
+            18788.01,
+            1130.33,
+            216.07,
             0.0,
             0.0
           ]
@@ -1071,10 +1083,10 @@
             547.47,
             1711.15,
             121.42,
-            28729.31,
-            30864.4,
-            11028.4,
-            10960.61,
+            25729.31,
+            29864.4,
+            10028.4,
+            8180.61,
             4837.49,
             9922.61,
             0.0
@@ -1087,33 +1099,33 @@
             0.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            5337.9,
-            0.0,
-            0.0,
-            567.71,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            10.07,
-            10.07,
-            744.5,
+            20.0,
+            21.16,
+            21.16,
+            21.16,
+            21.16,
+            21.16,
+            21.16,
+            21.16,
+            21.16,
+            21.16,
+            21.16,
+            21.16,
+            21.16,
+            20.0,
+            20.0,
+            5377.9,
+            20.0,
+            33.0,
+            607.71,
+            20.0,
+            20.0,
+            40.0,
+            42.0,
+            20.0,
+            30.07,
+            30.07,
+            764.5,
             0.0
           ]
         },
@@ -1144,13 +1156,13 @@
             115.0,
             0.0,
             0.0,
-            1513.66,
-            8428.26,
+            1073.66,
+            7094.26,
             6111.39,
-            6992.75,
+            4749.75,
             3545.41,
             3761.41,
-            7132.82,
+            3941.41,
             3790.21
           ]
         },
@@ -1175,7 +1187,7 @@
             330.0,
             4645.0,
             2400.0,
-            4150.0,
+            2150.0,
             4059.9,
             2833.0,
             1850.0,
@@ -1183,11 +1195,11 @@
             3120.0,
             2500.0,
             2916.57,
-            3525.0,
+            2525.0,
             2500.0,
-            6750.0,
+            6650.0,
             2500.0,
-            4500.0,
+            2500.0,
             1000.0
           ]
         },
@@ -1196,10 +1208,10 @@
           "data": [
             0.0,
             0.0,
-            0.0,
-            832.96,
-            898.39,
-            956.63,
+            34.93,
+            1118.45,
+            1402.45,
+            1666.2,
             1020.59,
             430.64,
             210.9,
@@ -1213,17 +1225,17 @@
             515.2,
             388.43,
             428.73,
-            5602.35,
-            3741.09,
-            3233.86,
+            5886.36,
+            3989.71,
+            3354.13,
             1966.77,
             1230.03,
             3538.28,
-            1911.2,
-            2084.66,
+            2150.34,
+            2099.53,
             7196.84,
-            3330.3,
-            9139.03,
+            3303.3,
+            6839.03,
             1480.09,
             176.4
           ]
@@ -1291,10 +1303,10 @@
         27474.24,
         167802.33,
         89827.17,
-        157053.22,
-        108215.41,
+        117053.22,
+        108115.41,
         118023.9,
-        70670.95,
+        67807.57,
         79562.93,
         106217.45,
         146513.27,
@@ -1319,124 +1331,131 @@
         12819.1,
         19712.69,
         13381.53,
-        18279.87,
-        66315.0,
+        18241.86,
+        63065.0,
         57040.09,
-        22348.33,
-        47572.68,
-        44781.1,
-        68530.72,
-        101865.3,
-        96955.2,
-        133034.12,
-        51892.56,
-        78772.77,
-        53449.55,
+        22293.33,
+        45622.68,
+        42564.04,
+        66310.72,
+        97531.3,
+        88609.47,
+        109341.44,
+        48014.16,
+        70727.03,
+        46618.14,
         10886.55
       ]
     }
   },
   "ratios": {
-    "taxa_poupanca_recorrente_pct": -5.01,
-    "taxa_poupanca_total_pct": 24.02,
-    "taxa_endividamento_pct": 0.0,
-    "cobertura_despesas_meses": 0.0,
+    "taxa_poupanca_recorrente_pct": -2.96,
+    "taxa_poupanca_total_pct": 26.1,
+    "taxa_endividamento_pct": 6.71,
+    "cobertura_despesas_meses": 63.62,
     "rentabilidade_pct": "N/D",
     "aliquota_efetiva_ir_pct": "N/D"
   },
   "score": {
-    "valor": 1.9,
+    "valor": 5.8,
     "max": 10,
-    "classificacao": "Crítico",
+    "classificacao": "Regular",
     "componentes": [
       {
         "nome": "Taxa Poupança Recorrente",
-        "valor": -5.01,
+        "valor": -2.96,
         "peso": 2.0,
         "nota": 0.0
       },
       {
         "nome": "Cobertura Despesas (meses)",
-        "valor": 0.0,
-        "peso": 1.5,
-        "nota": 0.0
-      },
-      {
-        "nome": "Taxa Endividamento (inv)",
-        "valor": 0.0,
+        "valor": 63.62,
         "peso": 1.5,
         "nota": 10.0
       },
       {
+        "nome": "Taxa Endividamento (inv)",
+        "valor": 6.71,
+        "peso": 1.5,
+        "nota": 9.6
+      },
+      {
         "nome": "Progresso IF",
-        "valor": 0.0,
+        "valor": 31.62,
         "peso": 2.0,
-        "nota": 0.0
+        "nota": 3.5
       },
       {
         "nome": "Diversificação",
-        "valor": 0,
+        "valor": 6,
         "peso": 1.0,
-        "nota": 0.0
+        "nota": 10.0
       }
     ]
   },
   "orcamento_prospectivo": {
     "categorias": {
-      "financeiro": 270.4,
-      "suporte_familiar": 2016.74,
-      "moradia": 2217.05,
-      "nao_identificado": 14057.28,
-      "transporte": 1632.71,
-      "impostos": 2688.79,
-      "assinaturas": 623.6,
-      "seguros": 208.45,
-      "servicos_domesticos": 1404.09,
-      "lazer_viagens": 2462.37,
-      "saude": 3451.02,
-      "alimentacao": 2480.34,
-      "educacao": 1269.53,
-      "reserva_desejos": 2135.58,
-      "vestuario": 859.72,
-      "melhoria_reforma": 42.2
+      "financeiro": 459.76,
+      "suporte_familiar": 1857.37,
+      "moradia": 2199.3,
+      "nao_identificado": 12061.88,
+      "transporte": 1636.27,
+      "impostos": 3251.56,
+      "assinaturas": 642.32,
+      "seguros": 228.72,
+      "servicos_domesticos": 1178.82,
+      "lazer_viagens": 2429.74,
+      "saude": 3207.9,
+      "alimentacao": 2540.64,
+      "educacao": 1208.6,
+      "melhoria_reforma": 443.76,
+      "reserva_desejos": 1586.69,
+      "vestuario": 859.72
     },
-    "total": 37819.87,
-    "media_mensal": 37819.87,
+    "total": 35793.05,
+    "media_mensal": 35793.05,
     "legenda": "Orçamento prospectivo baseado na média dos últimos 15 meses. Recomenda-se revisar mensalmente e ajustar projeções."
   },
   "reserva_emergencia": {
-    "despesas_mensais": 37819.87,
-    "nivel_6_meses": 226919.22,
-    "nivel_12_meses": 453838.44,
+    "despesas_mensais": 35793.06,
+    "nivel_6_meses": 214758.36,
+    "nivel_12_meses": 429516.72,
     "composicao_liquida": {
-      "investimentos_david": 0.0,
-      "investimentos_mariana": 0.0,
-      "caixa_moeda_estrangeira": 0.0,
-      "total_liquido": 0.0,
-      "cobertura_meses": 0.0
+      "investimentos_david": 640897.34,
+      "investimentos_mariana": 188123.73,
+      "caixa_moeda_estrangeira": 5250.67,
+      "total_liquido": 834271.74,
+      "cobertura_meses": 23.3
     },
-    "total_liquida": 0.0,
-    "cobertura_meses": 0.0,
-    "avaliacao_liquidity": "Insuficiente",
+    "total_liquida": 834271.74,
+    "cobertura_meses": 23.3,
+    "avaliacao_liquidity": "Excelente",
     "niveis": [
       "6 meses",
       "12 meses"
     ]
   },
   "endividamento": {
-    "total_dividas": 0.0,
-    "percentual_patrimonio": 0,
-    "dividas": [],
+    "total_dividas": 234792.61,
+    "percentual_patrimonio": 6.71,
+    "dividas": [
+      {
+        "descricao": "Financiamento imobiliário (David)",
+        "saldo_devedor": 234792.61,
+        "parcela_mensal": 0,
+        "taxa_juros": "N/D"
+      }
+    ],
     "detalhe": "Financiamento imobiliário (Itaú)"
   },
   "previdencia_pgbl": {
     "status": "Calculado",
-    "nota": "Base: receita PJ anualizada R$ 367,406, lucro presumido 32%.",
-    "renda_tributavel_anual": 117570.0,
-    "limite_pgbl_anual": 14108.4,
-    "aporte_mensal": 1175.7,
+    "nota": "Base: receita PJ anualizada R$ 352,406, lucro presumido 32%.",
+    "renda_tributavel_anual": 112770.0,
+    "limite_pgbl_anual": 13532.4,
+    "aporte_mensal": 1127.7,
     "aliquota_marginal": 27.5,
-    "economia_ir_anual": 3879.81
+    "economia_ir_anual": 3721.41
   },
   "pontos_fortes": [
     {
@@ -1445,12 +1464,6 @@
     }
   ],
   "pontos_urgentes": [
-    {
-      "prioridade": "Alta",
-      "acao": "Reforçar reserva de emergência",
-      "impacto": "Cobertura atual de 0 meses — abaixo do mínimo de 6",
-      "prazo": "Imediato"
-    },
     {
       "prioridade": "Alta",
       "acao": "Contratar seguro de vida e invalidez",
@@ -1465,12 +1478,38 @@
     }
   ],
   "investimentos": {
-    "tabela_classes": [],
-    "total": 0.0
+    "tabela_classes": [
+      {
+        "categoria": "Imóveis Investimento",
+        "valor": 1442706.24,
+        "pct": 63.51
+      },
+      {
+        "categoria": "Renda Fixa",
+        "valor": 478955.94,
+        "pct": 21.08
+      },
+      {
+        "categoria": "Outros",
+        "valor": 228866.57,
+        "pct": 10.07
+      },
+      {
+        "categoria": "Ações",
+        "valor": 112651.61,
+        "pct": 4.96
+      },
+      {
+        "categoria": "Contas Bancárias",
+        "valor": 8546.95,
+        "pct": 0.38
+      }
+    ],
+    "total": 2271727.31
   },
   "equilibrio_cerbasi": {
-    "pct_presente": 90.3,
-    "pct_futuro": 9.7,
+    "pct_presente": 90.9,
+    "pct_futuro": 9.1,
     "classificacao": "Gastador",
     "presente": "Consolidação patrimonial",
     "futuro": "Independência Financeira"
@@ -1849,33 +1888,33 @@
     "40": "pendente"
   },
   "alertas": [
-    "Score financeiro: 1.9/10 (Crítico)",
+    "Score financeiro: 5.8/10 (Regular)",
     "Rentabilidade: N/D"
   ],
   "consumo_consciente": {
     "top_gastos": [
       {
         "categoria": "nao_identificado",
-        "valor": 449833.1
-      },
-      {
-        "categoria": "saude",
-        "valor": 110432.73
+        "valor": 385980.27
       },
       {
         "categoria": "impostos",
-        "valor": 86041.3
+        "valor": 104049.91
+      },
+      {
+        "categoria": "saude",
+        "valor": 102652.73
       },
       {
         "categoria": "alimentacao",
-        "valor": 79370.96
+        "valor": 81300.56
       },
       {
         "categoria": "lazer_viagens",
-        "valor": 78795.84
+        "valor": 77751.69
       }
     ],
-    "total_top_5": 804473.93
+    "total_top_5": 751735.16
   },
   "diagnostico_comportamental": [
     {

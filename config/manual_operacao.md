@@ -2190,6 +2190,92 @@ O E4 DEVE gerar a chave `orcamento_prospectivo.legenda` com o texto já montado 
 
 ---
 
+### STAGE E7 — Review & Refine (LLM — pós-relatório)
+
+**Objetivo:** Realizar uma revisão holística do relatório completo usando a persona e abordagem definidas em `config/methodology.md`. Retroalimenta as narrativas geradas pelo pipeline, detectando inconsistências entre seções e refinando textos, análises, cards, lista de tarefas e prioridades com base na visão completa do relatório.
+
+**Quando usar:**
+- Após qualquer execução completa do pipeline que inclua E5.N + E6
+- Quando narrativas individuais precisam ser revisadas no contexto do relatório inteiro
+- Quando suspeitar de contradições entre seções (ex: score vs. diagnóstico, fluxo vs. IF)
+- Quando a lista de tarefas precisa ser re-priorizada com base na análise holística
+
+**Quando NÃO usar:**
+- Narrativas ainda não foram geradas (E5.N não executado) — executar E5.N primeiro
+- Apenas template/CSS mudou — usar E6-regen
+- Dados subjacentes precisam ser corrigidos — corrigir E2→E5 antes
+
+**Pré-condição:** E5 JSON deve conter a chave `narrativas` (summaries + charts). E6 render deve ter gerado o HTML.
+
+**Procedimento (4 sub-passos):**
+
+**9a — Cross-validation determinística:**
+```bash
+python scripts/e7_review.py                # Roda 14 checks + gera template
+python scripts/e7_review.py --dry-run      # Preview (nenhuma mudança)
+```
+O script executa 14 verificações automáticas:
+
+| Check | Descrição |
+|---|---|
+| CV1 | Score formula: nota × peso = score reportado |
+| CV2 | Patrimônio: soma composição = bruto |
+| CV3 | Fluxo: receita − despesa = fluxo líquido |
+| CV4 | Taxa poupança recorrente vs dados |
+| CV5 | IF meta × TRS = renda mensal projetada |
+| CV6 | Progresso IF vs patrimônio investível |
+| CV7 | Taxa endividamento vs patrimônio bruto |
+| CV8 | Cobertura reserva emergência |
+| CV9 | Completude de summaries (s1-s10) |
+| CV10 | Completude de charts (context + conclusion) |
+| CV11 | Estrutura de tarefas |
+| CV12 | Diagnóstico comportamental presente |
+| CV13 | Classificação do score (label vs valor) |
+| CV14 | Formato monetário nas narrativas |
+
+Resultado: `processed/E5_analysis/e7_review_template.json` com findings + template para refinamentos.
+
+**9b — Review holístico (LLM):**
+A LLM lê:
+1. O review template gerado em 9a
+2. O relatório HTML completo em `output/`
+3. A persona e abordagem em `config/methodology.md`
+
+E preenche o review JSON com:
+- `refinements.summaries`: summaries refinados (apenas os que precisam de ajuste)
+- `refinements.charts`: chart context/conclusion refinados
+- `refinements.perfil_familia`: perfil atualizado (se necessário)
+- `refinements.tarefas_reorder.new_order`: nova ordem de prioridade (lista de números)
+- `refinements.strategic_insights.insights`: insights da visão holística
+- `refinements.inconsistencies_found.items`: inconsistências detectadas além dos CV checks
+
+**9c — Aplicar refinamentos:**
+```bash
+python scripts/e7_review.py --apply review.json --dry-run   # Preview
+python scripts/e7_review.py --apply review.json              # Aplicar
+```
+
+**9d — Re-render final:**
+```bash
+python scripts/e6_render.py
+```
+
+**Artefatos gerados:**
+- `processed/E5_analysis/e7_review_template.json` — template com cross-validation results
+- Chave `review_metadata` no E5 JSON — metadata do review aplicado
+- Chave `narrativas.strategic_insights` no E5 JSON — insights holísticos
+- `output/*.html` — relatório final refinado (após E6-final)
+
+**Limpeza:**
+```bash
+python scripts/e7_review.py --strip              # Remove dados de review do E5 JSON
+python scripts/e_reset.py --from E7              # Reset E7 + re-render E6
+```
+
+**Tempo estimado:** ~5 min (cross-validation ~2s + LLM review ~4 min + apply + render ~30s)
+
+---
+
 ### STAGE E-reset — Reprocessamento completo do zero
 
 **Objetivo:** Apagar todos os artefatos gerados pelo pipeline (E2→E6) e re-executar o processamento completo a partir dos arquivos originais já roteados em `data/`. Artefatos E1 (`members/*-1a_extract.json`, `members-1b_unified.json`, `members-1c_enriched.md`) são **preservados** porque E1 é LLM-driven e não pode ser regenerado automaticamente.
@@ -2262,7 +2348,7 @@ git commit -m "E-reset: reprocessamento completo [DATA]"
 
 **Sintaxe:** `python scripts/e_reset.py --from E[N]` onde N é a etapa inicial.
 
-**Valores válidos para `--from`:** E2-faturas, E3, E4, E5, E5.N, E6.
+**Valores válidos para `--from`:** E2-faturas, E3, E4, E5, E5.N, E6, E7.
 
 **Quando usar:**
 - Novo parser de fatura ou correção em parser existente → `--from E2-faturas`
@@ -2407,20 +2493,41 @@ python scripts/e_reset.py --from E3                 # Cascata E3→E4→E5→E6
 ```
 Os três scripts são 100% determinísticos. `e2_extract_extratos.py` possui validation gate integrada que rejeita extrações com 0 transações quando o PDF contém texto significativo. Tempo total: ~60s.
 
-**Passo 8 — Narrativas e render final:**
+**Passo 8 — Narrativas e render inicial:**
 
 | Ordem | Etapa | O que fazer | Artefatos gerados |
 |---|---|---|---|
 | 8a | **E5.N** | Narrativas analíticas | Chave `narrativas` nos JSONs E5 |
-| 8b | **E6 render** | `python scripts/e6_render.py` | `output/*.html` |
+| 8b | **E6 render** | `python scripts/e6_render.py` | `output/*.html` (versão pré-review) |
 
-**Passo 9 — Comitar resultado:**
+**Passo 9 — E7: Review holístico pós-relatório:**
+
+Após o primeiro render do relatório, a LLM realiza uma revisão holística usando a persona e abordagem definidas em `config/methodology.md`. Esta etapa retroalimenta as narrativas geradas, detectando inconsistências entre seções e refinando textos, análises, cards, lista de tarefas e prioridades.
+
+| Ordem | Etapa | O que fazer | Artefatos gerados |
+|---|---|---|---|
+| 9a | **E7 cross-validation** | `python scripts/e7_review.py` | `processed/E5_analysis/e7_review_template.json` |
+| 9b | **E7 review (LLM)** | LLM lê template + relatório HTML + methodology.md, preenche refinamentos | Review JSON (`review.json`) |
+| 9c | **E7 apply** | `python scripts/e7_review.py --apply review.json` | E5 JSON atualizado com refinamentos + metadata |
+| 9d | **E6-final render** | `python scripts/e6_render.py` | `output/*.html` (versão final refinada) |
+
+O sub-passo 9a executa 14 verificações determinísticas de consistência (score formula, patrimônio composition, fluxo aritmética, taxa poupança, IF coherence, etc.). Qualquer falha é reportada para a LLM corrigir durante o review.
+
+No sub-passo 9b, a LLM utiliza a persona de "Consultor financeiro especialista em independência financeira" para:
+- Detectar contradições entre seções (ex: fluxo de caixa diz "poupança saudável" mas IF diz "ritmo insuficiente")
+- Refinar narrativas com visão holística do relatório completo
+- Re-priorizar tarefas baseado em insights que emergem da visão completa
+- Gerar insights estratégicos que não ficaram claros nas análises individuais
+
+> **Nota:** O E7 é limitado a uma única passagem de review (sem recursão) para evitar loops. Se refinamentos significativos forem necessários, rodar `python scripts/e_reset.py --from E7` para repetir.
+
+**Passo 10 — Comitar resultado:**
 ```bash
 git add -A
-git commit -m "E-full-reset: reprocessamento completo E0→E6 [DATA]"
+git commit -m "E-full-reset: reprocessamento completo E0→E7 [DATA]"
 ```
 
-**Passo 10 — Validação final:**
+**Passo 11 — Validação final:**
 - Executar checklist V1–V19 do E6 (Seção 4, STAGE E6)
 - Comparar com relatório anterior via `git diff` para confirmar que não houve perda de dados
 - Verificar que `e0_audit.py` não reporta novos ERRORs:
@@ -2438,7 +2545,8 @@ python scripts/e0_audit.py
 | E1 + E1.5 | LLM | ~5–10 min |
 | E2-extratos-llm (investimentos, CDBs, IRPF) | LLM | ~3–5 min |
 | E2-faturas + E2-extratos + E3→E6 | Determinístico | ~60s |
-| E5.N + E6 render | LLM + Determinístico | ~5 min |
+| E5.N + E6 render (pré-review) | LLM + Determinístico | ~5 min |
+| E7 review + E6-final render | LLM + Determinístico | ~5 min |
 
 ---
 

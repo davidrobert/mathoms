@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-07T23:11:42.637503-03:00",
+  "consolidation_date": "2026-04-08T08:40:48.409800-03:00",
   "periodo": "2024-01 a 2026-03",
   "categorias": [
     "outras_receitas",
@@ -12,18 +12,18 @@
     "receita_venda_ativo"
   ],
   "total_categorias": 8,
-  "total_transacoes": 446,
+  "total_transacoes": 443,
   "totais_por_categoria": {
     "receita_investimento": 13782.880000000001,
     "receita_resgate": 27416.699999999997,
-    "receita_clt": 357633.01,
+    "receita_clt": 354769.63,
     "receita_aluguel": 104216.13,
-    "outras_receitas": 60583.84,
+    "outras_receitas": 60483.84,
     "receita_venda_ativo": 49402.0,
-    "receita_pj": 979750.0400000002,
+    "receita_pj": 939750.0400000002,
     "receita_restituicao": 16.99
   },
-  "total_geral": 1592801.59,
+  "total_geral": 1549838.21,
   "dados": {
     "receita_investimento": [
       {
@@ -2086,17 +2086,6 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-22",
-        "descricao": "Pix recebido de Kiwify Pagamentos, Tecnologia e Servicos Ltda Pix enviado para INACIO JOSE MACEDO",
-        "valor": 2863.38,
-        "banco": "C6 Bank",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
       }
     ],
     "receita_aluguel": [
@@ -4039,17 +4028,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-10-02",
-        "descricao": "Pix recebido de Douglas Camargo de Campos Pix enviado para RUBENS DE CAMPOS",
-        "valor": 100.0,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-10-06",
         "descricao": "Rent",
         "valor": 0.7,
@@ -4682,19 +4660,8 @@
       },
       {
         "data": "2025-09-30",
-        "descricao": "Pix recebido de BRANDLOVRS LTDA",
+        "descricao": "Pix recebido de BRANDLOVRS LTDA Pix recebido de ARVO SAUDE LTDA",
         "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "BrandLovers (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
-        "valor": 38333.33,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
         "origem": "Arvo (David - PJ)",
@@ -4704,8 +4671,8 @@
       },
       {
         "data": "2025-09-30",
-        "descricao": "Pix recebido de BRANDLOVRS LTDA Pix recebido de ARVO SAUDE LTDA",
-        "valor": 40000.0,
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 38333.33,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
         "origem": "Arvo (David - PJ)",

@@ -11,10 +11,10 @@ Usage:
   python scripts/e_reset.py --from E5 --dry-run
   python scripts/e_reset.py --move-to-inbox  # E-full-reset: data/+members/ → inbox/
 
-Valid --from values: E0, E1, E2-faturas, E3, E4, E5, E5.N, E6
+Valid --from values: E0, E1, E2-faturas, E3, E4, E5, E5.N, E6, E7
 
 Sequência completa (sem --from):
-  E0 Unlock → E0 Audit → E0 → E1 → E1.5 → E2 → E2-faturas → E3 → E4 → E5 → E5.N → E6
+  E0 Unlock → E0 Audit → E0 → E1 → E1.5 → E2 → E2-faturas → E3 → E4 → E5 → E5.N → E6 → E7 → E6-final
 
 Steps that have a deterministic script are run automatically.
 Steps that require LLM (E0, E1, E1.5, E2-extratos, E5.N) are SKIPPED with a
@@ -204,14 +204,15 @@ def artifacts_from(stage: str) -> list[Path]:
     files: list[Path] = []
 
     stages_cascade = {
-        "E0":         ["E2-all", "E3", "E4", "E5", "E6"],   # Limpa TODOS E2 (extratos + faturas)
-        "E1":         ["E2-all", "E3", "E4", "E5", "E6"],   # Limpa TODOS E2 (extratos + faturas)
-        "E2-faturas": ["E2-faturas", "E3", "E4", "E5", "E6"],
-        "E3":         ["E3", "E4", "E5", "E6"],
-        "E4":         ["E4", "E5", "E6"],
-        "E5":         ["E5", "E6"],
-        "E5.N":       ["E5.N", "E6"],
-        "E6":         ["E6"],
+        "E0":         ["E2-all", "E3", "E4", "E5", "E7", "E6"],   # Limpa TODOS E2 (extratos + faturas)
+        "E1":         ["E2-all", "E3", "E4", "E5", "E7", "E6"],   # Limpa TODOS E2 (extratos + faturas)
+        "E2-faturas": ["E2-faturas", "E3", "E4", "E5", "E7", "E6"],
+        "E3":         ["E3", "E4", "E5", "E7", "E6"],
+        "E4":         ["E4", "E5", "E7", "E6"],
+        "E5":         ["E5", "E7", "E6"],
+        "E5.N":       ["E5.N", "E7", "E6"],
+        "E6":         ["E7", "E6"],
+        "E7":         ["E7", "E6"],
     }
 
     cascade = stages_cascade[stage]
@@ -248,6 +249,10 @@ def artifacts_from(stage: str) -> list[Path]:
 
     # E5.N — narrativas are stripped via strip_narrativas_from_e5_files()
     # called in main() between cleanup and execution phases (Fix #3)
+
+    if "E7" in cascade:
+        # E7 review template
+        files += _glob("processed/E5_analysis/e7_review_template.json")
 
     if "E6" in cascade:
         files += _glob("output/relatorio_financeiro_ferreira_campos_*.html")
@@ -297,6 +302,46 @@ def check_dependencies(stages: list[str]) -> list[str]:
 # Narrativas cleanup (Fix #3)
 # =============================================================================
 
+def strip_review_from_e5_files(dry_run: bool = False) -> int:
+    """Remove 'review_metadata', 'strategic_insights', and 'inconsistencies_review'
+    from E5 analysis JSON files. Ensures stale E7 review data is not carried over.
+    Returns count of files modified."""
+    if not E5_ANALYSIS.exists():
+        return 0
+    count = 0
+    review_keys = ["review_metadata"]
+    narr_review_keys = ["strategic_insights", "inconsistencies_review"]
+    for fpath in E5_ANALYSIS.glob("*.json"):
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            modified = False
+            for k in review_keys:
+                if k in data:
+                    if dry_run:
+                        print(f"  [DRY-RUN] Removeria '{k}' de {fpath.name}")
+                    else:
+                        del data[k]
+                    modified = True
+            narr = data.get("narrativas", {})
+            for k in narr_review_keys:
+                if k in narr:
+                    if dry_run:
+                        print(f"  [DRY-RUN] Removeria 'narrativas.{k}' de {fpath.name}")
+                    else:
+                        del narr[k]
+                    modified = True
+            if modified and not dry_run:
+                with open(fpath, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+                print(f"  Removido dados E7 review de {fpath.name}")
+            if modified:
+                count += 1
+        except Exception as e:
+            print(f"  [AVISO] Falha ao processar {fpath.name}: {e}")
+    return count
+
+
 def strip_narrativas_from_e5_files(dry_run: bool = False) -> int:
     """Remove 'narrativas' key from all E5 analysis JSON files.
     Ensures stale narrativas are never carried over to E6 after an E5.N reset.
@@ -334,20 +379,22 @@ DETERMINISTIC_SCRIPTS = {
     "E4":          SCRIPTS_DIR / "e4_categorize.py",
     "E5":          SCRIPTS_DIR / "e5_analyze.py",
     "E6":          SCRIPTS_DIR / "e6_render.py",
+    "E6-final":    SCRIPTS_DIR / "e6_render.py",  # Re-render after E7 review refinements
 }
 
-LLM_STAGES = {"E0", "E1", "E1.5", "E2-llm", "E5.N"}
+LLM_STAGES = {"E0", "E1", "E1.5", "E2-llm", "E5.N", "E7"}
 
-EXECUTION_ORDER_FULL = ["E0", "E1", "E1.5", "E2-llm", "E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6"]
+EXECUTION_ORDER_FULL = ["E0", "E1", "E1.5", "E2-llm", "E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6", "E7", "E6-final"]
 EXECUTION_ORDER_FROM = {
-    "E0":          ["E0", "E1", "E1.5", "E2-llm", "E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6"],
-    "E1":          ["E1", "E1.5", "E2-llm", "E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6"],
-    "E2-faturas":  ["E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6"],
-    "E3":          ["E3", "E4", "E5", "E5.N", "E6"],
-    "E4":          ["E4", "E5", "E5.N", "E6"],
-    "E5":          ["E5", "E5.N", "E6"],
-    "E5.N":        ["E5.N", "E6"],
-    "E6":          ["E6"],
+    "E0":          ["E0", "E1", "E1.5", "E2-llm", "E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6", "E7", "E6-final"],
+    "E1":          ["E1", "E1.5", "E2-llm", "E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6", "E7", "E6-final"],
+    "E2-faturas":  ["E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6", "E7", "E6-final"],
+    "E3":          ["E3", "E4", "E5", "E5.N", "E6", "E7", "E6-final"],
+    "E4":          ["E4", "E5", "E5.N", "E6", "E7", "E6-final"],
+    "E5":          ["E5", "E5.N", "E6", "E7", "E6-final"],
+    "E5.N":        ["E5.N", "E6", "E7", "E6-final"],
+    "E6":          ["E6", "E7", "E6-final"],
+    "E7":          ["E7", "E6-final"],
 }
 
 
@@ -511,7 +558,7 @@ def validate(from_stage: str | None) -> list[str]:
 # Main
 # =============================================================================
 
-VALID_FROM_STAGES = ["E0", "E1", "E2-faturas", "E3", "E4", "E5", "E5.N", "E6"]
+VALID_FROM_STAGES = ["E0", "E1", "E2-faturas", "E3", "E4", "E5", "E5.N", "E6", "E7"]
 
 
 def main():
@@ -528,6 +575,7 @@ Exemplos:
 Sequência completa:
   E0 Unlock → E0 Audit → [E0] → [E1] → [E1.5] → [E2] → E2-fat → E3 → E4 → E5 → [E5.N] → E6
   Colchetes = etapa LLM (pulada com lembrete)
+  E6-final = re-render após E7 review (mesmo script E6)
 
 Estágios válidos para --from: {', '.join(VALID_FROM_STAGES)}
         """,
@@ -735,6 +783,15 @@ Estágios válidos para --from: {', '.join(VALID_FROM_STAGES)}
         else:
             print("  Nenhum arquivo E5 com narrativas encontrado.")
 
+    # --- Strip E7 review data when E7 is in cascade ---
+    if "E7" in stages:
+        print(f"\n--- Fase 1.6: Limpeza de review E7 ---")
+        stripped_r = strip_review_from_e5_files(dry_run)
+        if stripped_r:
+            print(f"  Total: {stripped_r} arquivo(s) com review {'identificados' if dry_run else 'limpos'}")
+        else:
+            print("  Nenhum dado de review E7 encontrado.")
+
     if args.clean_only:
         print("\n--clean-only: pulando re-execução do pipeline.")
         print("Concluído.")
@@ -747,6 +804,7 @@ Estágios válidos para --from: {', '.join(VALID_FROM_STAGES)}
         "E1.5": "Consolidação de membros → members-1b/1c",
         "E2":   "Extração de extratos bancários (conta corrente, investimentos)",
         "E5.N": "Geração de narrativas para o relatório",
+        "E7":   "Review holístico pós-relatório (cross-validation + refinamentos com persona)",
     }
 
     # --- Pre-flight: detect if LLM stages must run before deterministic ones ---

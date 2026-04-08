@@ -1,7 +1,7 @@
 # QA Log — E4 Categorização
-## Execução: 2026-04-07 23:11
+## Execução: 2026-04-08 08:40
 
-### Transações não identificadas: 1158
+### Transações não identificadas: 960
 
 | Data | Descrição | Valor | Banco | Fonte |
 |---|---|---|---|---|
@@ -15,12 +15,10 @@
 | 2023-11-06 | ASSIST CARD | R$294.22 | C6 Bank | faturacarbon |
 | 2023-11-12 | PLATAFORMA SERVICO DE | R$1,833.33 | C6 Bank | faturacarbon |
 | 2023-11-16 | PAG*CONVITEARTARTEPUB | R$301.35 | C6 Bank | faturacarbon |
-| 2023-11-28 | UBER   *UBER   *TRIP | R$34.93 | C6 Bank | faturacarbon |
 | 2023-11-28 | PADARIA NOVA GUARANY L | R$12.50 | C6 Bank | faturacarbon |
 | 2023-11-29 | MIDJOURNEY INC.        +1 | R$51.43 | C6 Bank | faturacarbon |
 | 2023-11-29 | MIDJOURNEY INC.        +1 | R$2.77 | C6 Bank | faturacarbon |
 | 2023-11-29 | PAG*MERCADINHOBONANZA | R$106.04 | C6 Bank | faturacarbon |
-| 2023-11-30 | VINDI  *ACCOUNTBANKTEC | R$349.00 | C6 Bank | faturacarbon |
 | 2023-11-30 | FIT HOUSE | R$22.00 | C6 Bank | faturacarbon |
 | 2023-11-30 | VFY COMERCIO LOCACAO E | R$20.98 | C6 Bank | faturacarbon |
 | 2023-12-01 | VFY COMERCIO LOCACAO E | R$7.48 | C6 Bank | faturacarbon |
@@ -62,7 +60,6 @@
 | 2023-12-13 | EBN*CANVA | R$69.80 | C6 Bank | faturacarbon |
 | 2023-12-13 | PAG*RENNER | R$107.90 | C6 Bank | faturacarbon |
 | 2023-12-13 | REI DO MATE SHOPPING P | R$6.00 | C6 Bank | faturacarbon |
-| 2023-12-14 | PUNTO  *PRIME AUTO PO | R$285.49 | C6 Bank | faturacarbon |
 | 2023-12-14 | MATERIAIS PARA CONSTRU | R$65.60 | C6 Bank | faturacarbon |
 | 2023-12-15 | PAG*PLAZAVITORIOSO | R$93.61 | C6 Bank | faturacarbon |
 | 2023-12-15 | RAPPI*RAPPI BRASIL | R$565.76 | C6 Bank | faturacarbon |
@@ -108,7 +105,6 @@
 | 2023-12-29 | TRANSPORT3542232470 | R$748.71 | C6 Bank | faturacarbon |
 | 2023-12-29 | ITALIA TR2935950485 | R$1,063.47 | C6 Bank | faturacarbon |
 | 2023-12-29 | ITALIA TR3542232471 | R$648.88 | C6 Bank | faturacarbon |
-| 2023-12-30 | VINDI  *ACCOUNTBANKTEC | R$349.00 | C6 Bank | faturacarbon |
 | 2023-12-30 | POSTO GUANABARA LTDA | R$186.55 | C6 Bank | faturacarbon |
 | 2023-12-30 | DROGARIA ARAUJO SA 281 | R$149.00 | C6 Bank | faturacarbon |
 | 2023-12-31 | Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX | R$700.00 | C6 Bank | extratoconta |
@@ -118,7 +114,6 @@
 | 2024-01-02 | DROGARIA NOVA POPULAR | R$39.99 | C6 Bank | faturacarbon |
 | 2024-01-03 | Pix enviado para 3D DIGITAL GRAPHIC LTDA EPP — TRANSF ENVIADA PIX | R$361.08 | C6 Bank | extratoconta |
 | 2024-01-04 | Pix recusado | R$0.10 | C6 Bank | extratoconta |
-| 2024-01-04 | EBN         *SPOTIFY | R$34.90 | C6 Bank | faturacarbon |
 | 2024-01-05 | RAPPI  *RAPPI * BRASI | R$115.66 | C6 Bank | faturacarbon |
 | 2024-01-05 | AGAXTUR AGENCIA DE VIA | R$336.35 | C6 Bank | faturacarbon |
 | 2024-01-05 | CHURRAS EXPRESS | R$37.48 | C6 Bank | faturacarbon |
@@ -130,7 +125,6 @@
 | 2024-01-07 | MERCADINHO BELIZE | R$19.30 | C6 Bank | faturacarbon |
 | 2024-01-08 | Pix enviado para Agf Cabines — TRANSF ENVIADA PIX | R$1,200.00 | C6 Bank | extratoconta |
 | 2024-01-08 | PLATAFORMA SERVICO DE | R$540.00 | C6 Bank | faturacarbon |
-| 2024-01-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
 | 2024-01-10 | PLATAFORMA S*PRODUCAO | R$250.00 | C6 Bank | faturacarbon |
 | 2024-01-10 | FLORICULTURA MOEMA GA | R$200.00 | C6 Bank | faturacarbon |
 | 2024-01-11 | Pix enviado para MARCELO LA PASTINA — TRANSF ENVIADA PIX | R$300.00 | C6 Bank | extratoconta |
@@ -163,7 +157,6 @@
 | 2024-01-17 | Pix enviado para ADILSON MESSIAS DE OLIVEIRA 29375362809 — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
 | 2024-01-17 | VFY COMERCIO LOCACAO E | R$22.91 | C6 Bank | faturacarbon |
 | 2024-01-18 | Pix enviado para CASSIO LEONARDO FARIA DA SILVA — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
-| 2024-01-18 | UBER   *UBER   *TRIP | R$57.86 | C6 Bank | faturacarbon |
 | 2024-01-18 | BIGLIETTERIAMUSEI.VATI | R$12.60 | C6 Bank | faturacarbon |
 | 2024-01-18 | BIGLIETTERIAMUSEI.VATI | R$287.71 | C6 Bank | faturacarbon |
 | 2024-01-18 | GETYOURGUIDE TICKETS | R$386.70 | C6 Bank | faturacarbon |
@@ -227,8 +220,6 @@
 | 2024-01-26 | INDIGO0770803 | R$6.51 | C6 Bank | faturacarbon |
 | 2024-01-26 | SNC SIRIUS | R$36.63 | C6 Bank | faturacarbon |
 | 2024-01-26 | SNC SIRIUS | R$836.37 | C6 Bank | faturacarbon |
-| 2024-01-27 | UBER   *TRIP | R$159.94 | C6 Bank | faturacarbon |
-| 2024-01-27 | UBER   *TRIP | R$7.01 | C6 Bank | faturacarbon |
 | 2024-01-27 | INDIGO0750701 | R$11.71 | C6 Bank | faturacarbon |
 | 2024-01-27 | INDIGO0750701 | R$267.44 | C6 Bank | faturacarbon |
 | 2024-01-27 | TOTAL MKT FR | R$164.65 | C6 Bank | faturacarbon |
@@ -239,8 +230,6 @@
 | 2024-01-28 | FREEPIK PREMIUM MONTHL | R$3.75 | C6 Bank | faturacarbon |
 | 2024-01-29 | MIDJOURNEY INC.        +1 | R$51.70 | C6 Bank | faturacarbon |
 | 2024-01-29 | MIDJOURNEY INC.        +1 | R$2.26 | C6 Bank | faturacarbon |
-| 2024-01-29 | UBER   *TRIP | R$4.95 | C6 Bank | faturacarbon |
-| 2024-01-29 | UBER   *TRIP | R$113.12 | C6 Bank | faturacarbon |
 | 2024-01-29 | PAYPAL *MWSHKLTD       40 | R$10.30 | C6 Bank | faturacarbon |
 | 2024-01-29 | PAYPAL *MWSHKLTD       40 | R$235.23 | C6 Bank | faturacarbon |
 | 2024-01-29 | RATP | R$24.56 | C6 Bank | faturacarbon |
@@ -253,10 +242,7 @@
 | 2024-01-29 | MONOPRIX | R$17.06 | C6 Bank | faturacarbon |
 | 2024-01-29 | DECATHLON              PA | R$523.65 | C6 Bank | faturacarbon |
 | 2024-01-29 | DECATHLON              PA | R$22.94 | C6 Bank | faturacarbon |
-| 2024-01-30 | VINDI  *ACCOUNTBANKTEC | R$365.35 | C6 Bank | faturacarbon |
 | 2024-01-30 | WIX*1098095259 | R$346.80 | C6 Bank | faturacarbon |
-| 2024-01-30 | UBER   *TRIP | R$154.42 | C6 Bank | faturacarbon |
-| 2024-01-30 | UBER   *TRIP | R$6.76 | C6 Bank | faturacarbon |
 | 2024-01-30 | RATP | R$49.06 | C6 Bank | faturacarbon |
 | 2024-01-30 | RATP | R$2.15 | C6 Bank | faturacarbon |
 | 2024-01-30 | SNCF | R$23.73 | C6 Bank | faturacarbon |
@@ -283,7 +269,6 @@
 | 2024-02-03 | SG COMPRA E VENDA | R$326.00 | C6 Bank | faturacarbon |
 | 2024-02-03 | SG COMPRA E VENDA | R$85.00 | C6 Bank | faturacarbon |
 | 2024-02-03 | DROGARIA NOVA POPULAR | R$74.85 | C6 Bank | faturacarbon |
-| 2024-02-04 | EBN         *SPOTIFY | R$34.90 | C6 Bank | faturacarbon |
 | 2024-02-04 | MASSENZIO AI FORI SRL | R$12.61 | C6 Bank | faturacarbon |
 | 2024-02-04 | MASSENZIO AI FORI SRL | R$287.93 | C6 Bank | faturacarbon |
 | 2024-02-04 | BOOKSHOP MERCATI DI TR | R$69.07 | C6 Bank | faturacarbon |
@@ -339,7 +324,6 @@
 | 2024-02-09 | DITTA ERMENEGILDO ROS. | R$1.38 | C6 Bank | faturacarbon |
 | 2024-02-09 | FELICE 2 | R$7.99 | C6 Bank | faturacarbon |
 | 2024-02-09 | FELICE 2 | R$182.39 | C6 Bank | faturacarbon |
-| 2024-02-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2024-02-10 | NON SOLO VETRO DI MAGA | R$149.22 | C6 Bank | faturacarbon |
 | 2024-02-10 | NON SOLO VETRO DI MAGA | R$6.54 | C6 Bank | faturacarbon |
 | 2024-02-10 | G.MARCATO SNC | R$1.49 | C6 Bank | faturacarbon |
@@ -368,8 +352,6 @@
 | 2024-02-11 | LA BOTTEGA DI GIOTTO | R$1.26 | C6 Bank | faturacarbon |
 | 2024-02-11 | GIUNTI EDITORE SPA | R$1.23 | C6 Bank | faturacarbon |
 | 2024-02-11 | GIUNTI EDITORE SPA | R$28.09 | C6 Bank | faturacarbon |
-| 2024-02-12 | UBER   *TRIP | R$12.92 | C6 Bank | faturacarbon |
-| 2024-02-12 | UBER   *TRIP | R$295.03 | C6 Bank | faturacarbon |
 | 2024-02-12 | FLORENCE LEATHER | R$86.06 | C6 Bank | faturacarbon |
 | 2024-02-12 | FLORENCE LEATHER | R$3.77 | C6 Bank | faturacarbon |
 | 2024-02-12 | MIAH SUMON | R$0.75 | C6 Bank | faturacarbon |
@@ -390,8 +372,6 @@
 | 2024-02-12 | MERCATO CENTRALE FIREN | R$165.99 | C6 Bank | faturacarbon |
 | 2024-02-12 | MERCATO CENTRALE FIREN | R$8.78 | C6 Bank | faturacarbon |
 | 2024-02-12 | MERCATO CENTRALE FIREN | R$200.37 | C6 Bank | faturacarbon |
-| 2024-02-13 | UBER   *TRIP | R$236.69 | C6 Bank | faturacarbon |
-| 2024-02-13 | UBER   *TRIP | R$10.37 | C6 Bank | faturacarbon |
 | 2024-02-13 | EBN         *CANVA | R$69.80 | C6 Bank | faturacarbon |
 | 2024-02-13 | HOTEL PERSEO | R$6.02 | C6 Bank | faturacarbon |
 | 2024-02-13 | HOTEL PERSEO | R$137.37 | C6 Bank | faturacarbon |
@@ -427,15 +407,10 @@
 | 2024-02-19 | TUTTO DI NAPOLI BAR E | R$68.14 | C6 Bank | faturacarbon |
 | 2024-02-19 | MULTIPLAN ADMINISTRADO | R$15.00 | C6 Bank | faturacarbon |
 | 2024-02-19 | PAG*PALACIOCOMERCIO | R$34.05 | C6 Bank | faturacarbon |
-| 2024-02-20 | UBER   *UBER   *TRIP | R$62.02 | C6 Bank | faturacarbon |
-| 2024-02-20 | UBER   *UBER   *TRIP | R$25.76 | C6 Bank | faturacarbon |
-| 2024-02-20 | UBER   *UBER   *TRIP | R$5.00 | C6 Bank | faturacarbon |
 | 2024-02-20 | EXPRESSO NUTRI | R$9.00 | C6 Bank | faturacarbon |
-| 2024-02-20 | UBER   *UBER   *TRIP | R$61.78 | C6 Bank | faturacarbon |
 | 2024-02-20 | RED'S LANCHES | R$19.50 | C6 Bank | faturacarbon |
 | 2024-02-20 | MAIS DISTRIB VEICULOS | R$1,533.34 | C6 Bank | faturacarbon |
 | 2024-02-20 | MAIS DISTRIB VEICULOS | R$1,533.33 | C6 Bank | faturacarbon |
-| 2024-02-21 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$704.18 | C6 Bank | extratoconta |
 | 2024-02-22 | EXPRESSO NUTRI | R$3.50 | C6 Bank | faturacarbon |
 | 2024-02-22 | RED'S LANCHES | R$21.00 | C6 Bank | faturacarbon |
 | 2024-02-22 | GOMES DA CRUZ | R$5.00 | C6 Bank | faturacarbon |
@@ -459,8 +434,6 @@
 | 2024-02-28 | LATAM SITE | R$1,653.72 | C6 Bank | faturacarbon |
 | 2024-02-28 | HOTELSCOM7205328452316 | R$592.72 | C6 Bank | faturacarbon |
 | 2024-02-28 | EXPRESSO NUTRI | R$3.60 | C6 Bank | faturacarbon |
-| 2024-02-29 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$987.78 | C6 Bank | extratoconta |
-| 2024-02-29 | VINDI  *ACCOUNTBANKTEC | R$365.35 | C6 Bank | faturacarbon |
 | 2024-02-29 | MOURA ACADEMIA | R$1,548.00 | C6 Bank | faturacarbon |
 | 2024-03-01 | AMZN MKTP US           AM | R$238.09 | C6 Bank | faturacarbon |
 | 2024-03-01 | AMZN MKTP US           AM | R$10.43 | C6 Bank | faturacarbon |
@@ -477,7 +450,6 @@
 | 2024-03-04 | AMZN MKTP US           AM | R$5,810.86 | C6 Bank | faturacarbon |
 | 2024-03-04 | AMZN MKTP US           AM | R$254.52 | C6 Bank | faturacarbon |
 | 2024-03-04 | PAG*4MS | R$95.00 | C6 Bank | faturacarbon |
-| 2024-03-04 | EBN         *SPOTIFY | R$34.90 | C6 Bank | faturacarbon |
 | 2024-03-04 | PAG*PALACIOCOMERCIO | R$33.64 | C6 Bank | faturacarbon |
 | 2024-03-04 | PADARIA NOVA GUARANY L | R$15.00 | C6 Bank | faturacarbon |
 | 2024-03-04 | ELMAR POSTO DE ABASTEC | R$150.00 | C6 Bank | faturacarbon |
@@ -487,7 +459,6 @@
 | 2024-03-05 | MOURA ACADEMIA | R$16.99 | C6 Bank | faturacarbon |
 | 2024-03-07 | VINDI  *PACEFIT | R$590.00 | C6 Bank | faturacarbon |
 | 2024-03-09 | CINEPOLIS IGUATEMI JK | R$82.00 | C6 Bank | faturacarbon |
-| 2024-03-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2024-03-11 | PAG*PALACIOCOMERCIO | R$34.97 | C6 Bank | faturacarbon |
 | 2024-03-11 | ELMAR POSTO DE ABASTE | R$253.25 | C6 Bank | faturacarbon |
 | 2024-03-12 | PANVEL FILIAL 503 | R$9.15 | C6 Bank | faturacarbon |
@@ -541,7 +512,6 @@
 | 2024-04-03 | Pix enviado para ANNE VITORIA RODRIGUES GALVAO — TRANSF ENVIADA PIX | R$20.00 | C6 Bank | extratoconta |
 | 2024-04-04 | Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX | R$1,200.00 | C6 Bank | extratoconta |
 | 2024-04-08 | Pix enviado para WEVERSON FERREIRA S BARBOSA — TRANSF ENVIADA PIX | R$800.00 | C6 Bank | extratoconta |
-| 2024-04-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2024-04-12 | Pix enviado para RAFAEL BARROSO DE CARVALHO — TRANSF ENVIADA PIX | R$720.00 | C6 Bank | extratoconta |
 | 2024-04-12 | Pix enviado para ULTRAFORMULAS — TRANSF ENVIADA PIX | R$77.00 | C6 Bank | extratoconta |
 | 2024-04-22 | Pix enviado para ULTRAFORMULAS — TRANSF ENVIADA PIX | R$10.00 | C6 Bank | extratoconta |
@@ -551,7 +521,6 @@
 | 2024-05-07 | Pix enviado para ROMULO COSTA TAVARES — TRANSF ENVIADA PIX | R$100.00 | C6 Bank | extratoconta |
 | 2024-05-07 | Boleto | R$16,828.22 | C6 Bank | extratoconta |
 | 2024-05-09 | Pix enviado para Morar EUA Conta 3 — TRANSF ENVIADA PIX | R$390.00 | C6 Bank | extratoconta |
-| 2024-05-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2024-05-21 | Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX | R$1,500.00 | C6 Bank | extratoconta |
 | 2024-05-29 | Boleto | R$1,190.03 | C6 Bank | extratoconta |
 | 2024-05-29 | Boleto | R$7,720.71 | C6 Bank | extratoconta |
@@ -559,7 +528,6 @@
 | 2024-05-31 | Boleto | R$4,670.30 | C6 Bank | extratoconta |
 | 2024-05-31 | Pix enviado para ELIANA LEANDRO DA SILVA — TRANSF ENVIADA PIX | R$341.00 | C6 Bank | extratoconta |
 | 2024-06-02 | Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX | R$1,500.00 | C6 Bank | extratoconta |
-| 2024-06-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2024-06-14 | Pix enviado para Manoel Messias Gaspar De Souza — TRANSF ENVIADA PIX | R$3,000.00 | C6 Bank | extratoconta |
 | 2024-06-18 | Pix enviado para SECRETARIA DO TESOURO NACIONAL — TRANSF ENVIADA PIX | R$257.25 | C6 Bank | extratoconta |
 | 2024-06-20 | Pix enviado para ARTHUR PORRUA DE ROCCO — TRANSF ENVIADA PIX | R$80.00 | C6 Bank | extratoconta |
@@ -576,7 +544,6 @@
 | 2024-07-08 | Pix enviado para GlobalPower Pagamentos Digitais LTDA — TRANSF ENVIADA PIX | R$282.30 | C6 Bank | extratoconta |
 | 2024-07-08 | Pix enviado para Mohamad Youssef Kandil — TRANSF ENVIADA PIX | R$1,410.00 | C6 Bank | extratoconta |
 | 2024-07-08 | Pix enviado para ILDA APARECIDA GOMES DE SOUZA — TRANSF ENVIADA PIX | R$70.00 | C6 Bank | extratoconta |
-| 2024-07-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2024-07-10 | Pix enviado para Manoel Messias Gaspar De Souza — TRANSF ENVIADA PIX | R$2,000.00 | C6 Bank | extratoconta |
 | 2024-07-12 | Boleto | R$198.72 | C6 Bank | extratoconta |
 | 2024-07-12 | Pix enviado para Manoel Messias Gaspar De Souza — TRANSF ENVIADA PIX | R$3,700.00 | C6 Bank | extratoconta |
@@ -590,11 +557,9 @@
 | 2024-08-03 | Pix enviado para Didier Cesar Ferreira — TRANSF ENVIADA PIX C | R$30.00 | C6 Bank | extratoconta |
 | 2024-08-03 | Pix enviado para RENATO LONGO TUBINO — TRANSF ENVIADA PIX | R$650.00 | C6 Bank | extratoconta |
 | 2024-08-06 | Pix enviado para CAMILA NAKAMURA MATTES — TRANSF ENVIADA PIX | R$300.00 | C6 Bank | extratoconta |
-| 2024-08-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2024-08-20 | Pix enviado para MINISTERIO DA FAZENDA — TRANSF ENVIADA PIX | R$155.32 | C6 Bank | extratoconta |
 | 2024-08-29 | Pix enviado para ERIC VINICIUS CAMARGO DE CAMPOS — TRANSF ENVIADA PIX | R$182.91 | C6 Bank | extratoconta |
 | 2024-09-01 | Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX | R$1,600.00 | C6 Bank | extratoconta |
-| 2024-09-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2024-09-10 | Pix enviado para M4 PRODUTOS E SERVIÇOS S.A — TRANSF ENVIADA PIX | R$30.00 | C6 Bank | extratoconta |
 | 2024-09-12 | Boleto | R$164.80 | C6 Bank | extratoconta |
 | 2024-09-27 | Pix recusado | R$175.00 | C6 Bank | extratoconta |
@@ -608,7 +573,6 @@
 | 2024-10-01 | Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX | R$1,800.00 | C6 Bank | extratoconta |
 | 2024-10-03 | EMISSAO ADIC. GLOBAL — RPA Cobrança de Emissão do Adicional Glo | R$25.00 | C6 Bank | extratoconta |
 | 2024-10-06 | Pix enviado para Erika Tavares de Almeida — TRANSF ENVIADA PIX | R$100.00 | C6 Bank | extratoconta |
-| 2024-10-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2024-10-21 | Pix enviado para Hermann Ronaldo Wecke — TRANSF ENVIADA PIX | R$900.00 | C6 Bank | extratoconta |
 | 2024-10-22 | Pix recusado | R$110.00 | C6 Bank | extratoconta |
 | 2024-10-22 | Pix enviado para RAFAEL BARROSO DE CARVALHO — TRANSF ENVIADA PIX | R$110.00 | C6 Bank | extratoconta |
@@ -616,11 +580,9 @@
 | 2024-10-28 | Pix enviado para Cleidiany Ribeiro Anacleto Kawamura — TRANSF ENVIADA PIX | R$150.00 | C6 Bank | extratoconta |
 | 2024-11-02 | Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX | R$1,600.00 | C6 Bank | extratoconta |
 | 2024-11-10 | Pix enviado para A A C D ASSOC ASSIST CRIANCA DEF — TRANSF ENVIADA PIX | R$50.00 | C6 Bank | extratoconta |
-| 2024-11-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2024-11-10 | Pix enviado para paroquia nossa senhora do brasil — TRANSF ENVIADA PIX | R$50.00 | C6 Bank | extratoconta |
 | 2024-12-02 | Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX | R$1,400.00 | C6 Bank | extratoconta |
 | 2024-12-03 | Pix enviado para HT SARAGIOTTO S — TRANSF ENVIADA PIX | R$300.00 | C6 Bank | extratoconta |
-| 2024-12-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2024-12-10 | Pix enviado para Tesouro Nacional — TRANSF ENVIADA PIX | R$3.51 | C6 Bank | extratoconta |
 | 2024-12-14 | Pix enviado para Cleidiany Ribeiro Anacleto Kawamura — TRANSF ENVIADA PIX | R$500.00 | C6 Bank | extratoconta |
 | 2024-12-16 | Pix enviado para JOAO DRAGO FILHO — TRANSF ENVIADA PIX | R$600.00 | C6 Bank | extratoconta |
@@ -632,11 +594,8 @@
 | 2024-12-24 | Pix enviado para Douglas Camargo de Campos — TRANSF ENVIADA PIX | R$13.00 | C6 Bank | extratoconta |
 | 2024-12-29 | Pix enviado para PAROQUIA NOSSA SENHORA DE FATIMA — TRANSF ENVIADA PIX | R$100.00 | C6 Bank | extratoconta |
 | 2024-12-31 | Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX | R$1,400.00 | C6 Bank | extratoconta |
-| 2025-01-02 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$5,372.18 | C6 Bank | extratoconta |
 | 2025-01-02 | Transfe Pix Des: Fabiana Borges da Sil 02/01 | R$100.00 | Bradesco | extratoconta |
 | 2025-01-02 | Transfe Pix Des: Marília Panarello Kos 02/01 | R$163.50 | Bradesco | extratoconta |
-| 2025-01-02 | Pix Qrcode Din Des: Shpp Brasil Instituic 02/01 | R$22.00 | Bradesco | extratoconta |
-| 2025-01-02 | Pix Qrcode Din Des: Shpp Brasil Instituic 02/01 | R$22.99 | Bradesco | extratoconta |
 | 2025-01-03 | Boleto | R$750.48 | C6 Bank | extratoconta |
 | 2025-01-03 | Boleto | R$728.63 | C6 Bank | extratoconta |
 | 2025-01-06 | Pix enviado para ALEX FERREIRA DOS SANTOS — TRANSF ENVIADA PIX | R$80.00 | C6 Bank | extratoconta |
@@ -646,7 +605,6 @@
 | 2025-01-07 | Pix enviado para Cleidiany Ribeiro Anacleto Kawamura — TRANSF ENVIADA PIX | R$150.00 | C6 Bank | extratoconta |
 | 2025-01-08 | Pix enviado para João Drago Filho — TRANSF ENVIADA PIX | R$500.00 | C6 Bank | extratoconta |
 | 2025-01-09 | Boleto | R$162.75 | C6 Bank | extratoconta |
-| 2025-01-10 | SEGURO CONTA C6 — Seguro Conta | R$21.16 | C6 Bank | extratoconta |
 | 2025-01-10 | Pix enviado para PRISCILLA DE ANGELO LIMA — TRANSF ENVIADA PIX | R$525.00 | C6 Bank | extratoconta |
 | 2025-01-10 | Des: Carla Mayara Marconde 1112126 | R$99.00 | Bradesco | extratoconta |
 | 2025-01-11 | Pix enviado para MARIA REGINA DOS SANTOS — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
@@ -662,8 +620,6 @@
 | 2025-02-04 | Des: Estacar Estacionament 1343186 | R$10.00 | Bradesco | extratoconta |
 | 2025-02-06 | Pix enviado para LARISSA MARTINS AZEVEDO DE OLIVEIRA — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-02-07 | Pix enviado para VINICIUS MATIELLO KELCIAUSKAS — TRANSF ENVIADA PIX | R$24.00 | C6 Bank | extratoconta |
-| 2025-02-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
-| 2025-02-13 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$4,571.42 | C6 Bank | extratoconta |
 | 2025-02-13 | Boleto | R$749.90 | C6 Bank | extratoconta |
 | 2025-02-15 | Pix enviado para LARISSA MARTINS AZEVEDO DE OLIVEIRA — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-02-21 | Pix enviado para FABIANA DA SILVA — TRANSF ENVIADA PIX | R$15.00 | C6 Bank | extratoconta |
@@ -677,7 +633,6 @@
 | 2025-03-07 | Transfe Pix Des: ******** 07/03 | R$60.00 | Bradesco | extratoconta |
 | 2025-03-07 | Transfe Pix Des: Claudia Felizola Reis 07/03 | R$190.00 | Bradesco | extratoconta |
 | 2025-03-09 | Pix enviado para MITRA DIOCESANA DE GUAXUPE — TRANSF ENVIADA PIX | R$50.00 | C6 Bank | extratoconta |
-| 2025-03-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
 | 2025-03-10 | Transfe Pix Des: Edilene Aparecida Fra 08/03 | R$50.00 | Bradesco | extratoconta |
 | 2025-03-10 | Transfe Pix Des: Gabriel Antonio Marti 08/03 | R$60.00 | Bradesco | extratoconta |
 | 2025-03-15 | Pix enviado para ARMANDO TIUJI SAITO — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
@@ -690,28 +645,18 @@
 | 2025-03-26 | Pix enviado para ITTALO DE SOUZA TEIXEIRA — TRANSF ENVIADA PIX | R$770.00 | C6 Bank | extratoconta |
 | 2025-03-27 | Transfe Pix Des: Jsrs f e Ltda 27/03 | R$90.00 | Bradesco | extratoconta |
 | 2025-03-29 | Pix enviado para PARCELA EXPRESS SERVICOS DIGITAIS LTDA — TRANSF ENVIADA PIX | R$28.01 | C6 Bank | extratoconta |
-| 2025-03-29 | Pix enviado para PARCELA EXPRESS SERVICOS DIGITAIS LTDA Pix recebido de POMPEIA MOTOS MULTIMARCAS LTDA | R$28.01 | C6 Bank | extratoconta |
 | 2025-03-29 | MULTIPLAN ADMINISTRADO | R$31.00 | C6 Bank | faturacarbon |
 | 2025-03-30 | Pix enviado para ELAINE WENZEL — TRANSF ENVIADA PIX | R$10.00 | C6 Bank | extratoconta |
-| 2025-03-30 | Pix enviado para ELAINE WENZEL Pix enviado para Maria Lúcia Marques Oliveira | R$10.00 | C6 Bank | extratoconta |
-| 2025-03-30 | VINDI  *ACCOUNTBANKTEC | R$365.35 | C6 Bank | faturacarbon |
 | 2025-03-31 | Pix enviado para Maria Lúcia Marques Oliveira — TRANSF ENVIADA PIX | R$200.00 | C6 Bank | extratoconta |
 | 2025-04-01 | Transfe Pix Des: Thiago Rodrigues de l 01/04 | R$50.00 | Bradesco | extratoconta |
 | 2025-04-02 | Pix enviado para Maria Lúcia Marques Oliveira — TRANSF ENVIADA PIX | R$750.00 | C6 Bank | extratoconta |
 | 2025-04-02 | Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX | R$1,200.00 | C6 Bank | extratoconta |
-| 2025-04-02 | Pix enviado para Maria Lúcia Marques Oliveira Pix enviado para ANA LUCIA SANTOS | R$750.00 | C6 Bank | extratoconta |
 | 2025-04-02 | Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO | R$1,000.00 | C6 Bank | extratoconta |
-| 2025-04-04 | RAPPI  *RAPPI RAPPI BR | R$53.34 | C6 Bank | faturacarbon |
-| 2025-04-04 | RAPPI  *RAPPI RAPPI BR | R$276.24 | C6 Bank | faturacarbon |
-| 2025-04-04 | DM          *SPOTIFY | R$34.90 | C6 Bank | faturacarbon |
-| 2025-04-04 | RAPPI  *RAPPI RAPPI BR | R$26.31 | C6 Bank | faturacarbon |
 | 2025-04-06 | Pix enviado para paroquia nossa senhora do brasil — TRANSF ENVIADA PIX | R$50.00 | C6 Bank | extratoconta |
 | 2025-04-09 | Pix Qrcode Din Des: Ateliê Algodão Doce 09/04 | R$361.00 | Bradesco | extratoconta |
 | 2025-04-09 | Pix Qrcode Din Des: Agora Sou Mae 09/04 | R$157.09 | Bradesco | extratoconta |
 | 2025-04-09 | Pix Qrcode Din Des: Zoop Tecnologia e Ins 09/04 | R$339.89 | Bradesco | extratoconta |
-| 2025-04-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
 | 2025-04-10 | Pix enviado para REGIANE DONIZETI BALBINO — TRANSF ENVIADA PIX | R$320.00 | C6 Bank | extratoconta |
-| 2025-04-10 | SEGURO CONTA C6 Pix enviado para REGIANE DONIZETI BALBINO | R$20.00 | C6 Bank | extratoconta |
 | 2025-04-10 | Pix Qrcode Din Des: Hanesbrands Brasil tê 10/04 | R$144.26 | Bradesco | extratoconta |
 | 2025-04-10 | Pix Qrcode Din Des: Zoop Tecnologia e Ins 10/04 | R$91.45 | Bradesco | extratoconta |
 | 2025-04-10 | ENG ARMANDO PEREIRA | R$113.80 | C6 Bank | faturacarbon |
@@ -727,15 +672,10 @@
 | 2025-04-23 | Transfe Pix Des: Iraci Conceicao Silva 23/04 | R$60.00 | Bradesco | extratoconta |
 | 2025-04-26 | Pix enviado para ELIBELTO JOSE DE LIMA — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-04-26 | Pix enviado para Mariana Dos Santos Almeida — TRANSF ENVIADA PIX | R$50.00 | C6 Bank | extratoconta |
-| 2025-04-26 | Pix enviado para ELIBELTO JOSE DE LIMA Pix enviado para Mariana Dos Santos Almeida | R$1,000.00 | C6 Bank | extratoconta |
-| 2025-04-29 | PUNTO  *PRIME AUTO PO | R$284.01 | C6 Bank | faturacarbon |
 | 2025-04-29 | JS TRAINING | R$59.00 | C6 Bank | faturacarbon |
 | 2025-04-30 | Pix enviado para CLIMEFE CLINICA DE MEDICINA FETAL S S LT — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
-| 2025-04-30 | Pix enviado para CLIMEFE CLINICA DE MEDICINA FETAL S S LT | R$1,000.00 | C6 Bank | extratoconta |
-| 2025-04-30 | VINDI  *ACCOUNTBANKTEC | R$365.35 | C6 Bank | faturacarbon |
 | 2025-05-02 | Pix enviado para José Martins Ferreira Prates — TRANSF ENVIADA PIX | R$8.00 | C6 Bank | extratoconta |
 | 2025-05-02 | Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX | R$1,800.00 | C6 Bank | extratoconta |
-| 2025-05-04 | DM          *SPOTIFY | R$34.90 | C6 Bank | faturacarbon |
 | 2025-05-07 | Hob Club Orlando\1490 E Buena Vista Dr\o
 Cartão 4845 | R$59.00 | C6 Bank | extratocontaglobalusd |
 | 2025-05-07 | Dd's Discount #5219 \7687 S Orange Blo Cartão
@@ -745,11 +685,8 @@ Cartão 4845 | R$59.00 | C6 Bank | extratocontaglobalusd |
 4845 | R$114.55 | C6 Bank | extratocontaglobalusd |
 | 2025-05-09 | Orlando Prem Outl-vin\8200 Vineland Ave
 Cartão 8884 | R$30.35 | C6 Bank | extratocontaglobalusd |
-| 2025-05-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
 | 2025-05-10 | The Childrens Place 44\8174 Vineland Ave
 Cartão 4845 | R$56.72 | C6 Bank | extratocontaglobalusd |
-| 2025-05-10 | SHELL                  PO | R$8.13 | C6 Bank | faturacarbon |
-| 2025-05-10 | SHELL                  PO | R$240.49 | C6 Bank | faturacarbon |
 | 2025-05-12 | Transfe Pix Des: Jair de Souza Ferreir 10/05 | R$140.00 | Bradesco | extratoconta |
 | 2025-05-13 | Shell Oil 10047712012 \mile Marker 145 Cartão
 4845 | R$12.10 | C6 Bank | extratocontaglobalusd |
@@ -800,23 +737,14 @@ Cartão 4845 | R$78.80 | C6 Bank | extratocontaglobalusd |
 Cartão 8884 | R$19.17 | C6 Bank | extratocontaglobalusd |
 | 2025-05-28 | Publix #1131\400 E Central Blvd\orlando Cartão
 4845 | R$7.97 | C6 Bank | extratocontaglobalusd |
-| 2025-05-30 | VINDI  *ACCOUNTBANKTEC | R$390.00 | C6 Bank | faturacarbon |
 | 2025-05-31 | Popshelf #24439\8035 W Irlo Bronson Memo
 Cartão 4845 | R$8.52 | C6 Bank | extratocontaglobalusd |
-| 2025-06-04 | DM          *SPOTIFY | R$34.90 | C6 Bank | faturacarbon |
-| 2025-06-07 | SHELL                  MI | R$4.51 | C6 Bank | faturacarbon |
-| 2025-06-07 | SHELL                  MI | R$128.76 | C6 Bank | faturacarbon |
-| 2025-06-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
 | 2025-06-10 | Pix enviado para ******** — TRANSF ENVIADA PIX | R$55.00 | C6 Bank | extratoconta |
-| 2025-06-10 | Pix enviado para ******** | R$55.00 | C6 Bank | extratoconta |
 | 2025-06-10 | Keylum Llc \1114 Duval St Cartão 4845 | R$10.75 | C6 Bank | extratocontaglobalusd |
 | 2025-06-10 | Py *kermit's Key West\335 Duval St Ste F Cartão
 4845 | R$7.47 | C6 Bank | extratocontaglobalusd |
-| 2025-06-15 | FAST POINT             MC | R$212.41 | C6 Bank | faturacarbon |
-| 2025-06-15 | FAST POINT             MC | R$7.43 | C6 Bank | faturacarbon |
 | 2025-06-16 | Pix Qrcode Est Des: Claro 16/06 | R$55.98 | Bradesco | extratoconta |
 | 2025-06-26 | Transfe Pix Des: Floricultura Sempre v 26/06 | R$122.00 | Bradesco | extratoconta |
-| 2025-06-30 | VINDI  *ACCOUNTBANKTEC | R$390.00 | C6 Bank | faturacarbon |
 | 2025-07-01 | ZS RES PREMI- JUL/25 | R$3,337.47 | Santander | faturaunique |
 | 2025-07-01 | Starbucks Store 25466\8200 Vineland Ave\
 Cartão 4845 | R$9.40 | C6 Bank | extratocontaglobalusd |
@@ -826,8 +754,6 @@ Cartão 4845 | R$23.27 | C6 Bank | extratocontaglobalusd |
 8884 | R$54.83 | C6 Bank | extratocontaglobalusd |
 | 2025-07-09 | Starbucks 21797\1680 E Buena Vista Drive
 Cartão 4845 | R$9.40 | C6 Bank | extratocontaglobalusd |
-| 2025-07-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
-| 2025-07-10 | SEGURO CONTA C6 | R$20.00 | C6 Bank | extratoconta |
 | 2025-07-12 | Armazem X\9310 Us Highway 192\clermont\3
 Cartão 4845 | R$15.57 | C6 Bank | extratocontaglobalusd |
 | 2025-07-13 | Py *twistee Treat - We\8900 W Irlo Brons
@@ -878,7 +804,6 @@ Cartão 4845 | R$24.26 | C6 Bank | extratocontaglobalusd |
 Cartão 4845 | R$15.65 | C6 Bank | extratocontaglobalusd |
 | 2025-07-28 | Walgreens #7074\7767 W Irlo Bronson Memo
 Cartão 4845 | R$10.18 | C6 Bank | extratocontaglobalusd |
-| 2025-07-30 | VINDI  *ACCOUNTBANKTEC | R$390.00 | C6 Bank | faturacarbon |
 | 2025-07-31 | Bass Pro Store Orlando\5156 Internationa
 Cartão 4845 | R$17.56 | C6 Bank | extratocontaglobalusd |
 | 2025-07-31 | Bass Pro Store Orlando\5156 Internationa
@@ -887,7 +812,6 @@ Cartão 4845 | R$121.18 | C6 Bank | extratocontaglobalusd |
 4845 | R$16.75 | C6 Bank | extratocontaglobalusd |
 | 2025-08-03 | Target 00023705\3200 Rolling Oaks Cartão
 4845 | R$8.60 | C6 Bank | extratocontaglobalusd |
-| 2025-08-04 | DM          *SPOTIFY | R$34.90 | C6 Bank | faturacarbon |
 | 2025-08-07 | Tez*palmer S Hospitals\5000 Legacy Dr 1\
 Cartão 4845 | R$8.00 | C6 Bank | extratocontaglobalusd |
 | 2025-08-08 | Starbucks 66716\florida Turnpike Mil\oco
@@ -902,7 +826,6 @@ Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
 Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
 | 2025-08-08 | Chevron 0200093\525 Commonwealth Ave Sw\
 Cartão 4845 | R$4.27 | C6 Bank | extratocontaglobalusd |
-| 2025-08-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
 | 2025-08-10 | The Ups Store 3017\7862 W Irlo Bronson H
 Cartão 4845 | R$2.57 | C6 Bank | extratocontaglobalusd |
 | 2025-08-10 | Avi Arnold Palmer Cof\92 W Miller St\orl Cartão
@@ -937,7 +860,6 @@ Cartão 4163 | R$38.34 | C6 Bank | extratocontaglobalusd |
 Cartão 8884 | R$1.60 | C6 Bank | extratocontaglobalusd |
 | 2025-08-28 | Consulado Geral Do Bra\3150 Sw 38th Ave
 Cartão 8884 | R$40.00 | C6 Bank | extratocontaglobalusd |
-| 2025-08-30 | VINDI  *ACCOUNTBANKTEC | R$390.00 | C6 Bank | faturacarbon |
 | 2025-08-31 | Levi's Outlet 420 \8200 Vineland Ave Cartão
 4163 | R$91.67 | C6 Bank | extratocontaglobalusd |
 | 2025-08-31 | Carter's #636\4967 International Dr Ste Cartão
@@ -948,7 +870,6 @@ Cartão 4163 | R$3.60 | C6 Bank | extratocontaglobalusd |
 Cartão 4163 | R$9.00 | C6 Bank | extratocontaglobalusd |
 | 2025-09-01 | Cheesecake Orlando Vin\11602 Regency Vil
 Cartão 4163 | R$106.01 | C6 Bank | extratocontaglobalusd |
-| 2025-09-04 | DM          *SPOTIFY | R$40.90 | C6 Bank | faturacarbon |
 | 2025-09-05 | Carter's #575\12801 W Sunrise Blvd Ste 8
 Cartão 4163 | R$137.88 | C6 Bank | extratocontaglobalusd |
 | 2025-09-05 | Tjmaxx #0098\sawgrass Mills 12801 W Sunr
@@ -975,9 +896,7 @@ Cartão 4163 | R$21.91 | C6 Bank | extratocontaglobalusd |
 Cartão 4163 | R$244.93 | C6 Bank | extratocontaglobalusd |
 | 2025-09-09 | Target 00023705\3200 Rolling Oaks Cartão
 4163 | R$17.98 | C6 Bank | extratocontaglobalusd |
-| 2025-09-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
 | 2025-09-10 | Pix enviado para JULIANA ARGONDIZO DE ROSIS DINATO — TRANSF ENVIADA PIX | R$500.00 | C6 Bank | extratoconta |
-| 2025-09-10 | Pix enviado para JULIANA ARGONDIZO DE ROSIS DINATO | R$500.00 | C6 Bank | extratoconta |
 | 2025-09-13 | Pix enviado para Vitória Maria Silva Moreira — TRANSF ENVIADA PIX | R$195.00 | C6 Bank | extratoconta |
 | 2025-09-13 | Avi Arnold Palmer Cof\92 W Miller St\orl Cartão
 4163 | R$2.97 | C6 Bank | extratocontaglobalusd |
@@ -1015,7 +934,6 @@ Cartão 4163 | R$339.42 | C6 Bank | extratocontaglobalusd |
 Cartão 4163 | R$5.00 | C6 Bank | extratocontaglobalusd |
 | 2025-09-19 | Pix enviado para JAIR DE SOUZA FERREIRA — TRANSF ENVIADA PIX | R$9,000.00 | C6 Bank | extratoconta |
 | 2025-09-22 | Pix enviado para SERGIO PALMEIRA DA SILVA — TRANSF ENVIADA PIX | R$1,080.00 | C6 Bank | extratoconta |
-| 2025-09-22 | Pix enviado para SERGIO PALMEIRA DA SILVA | R$1,080.00 | C6 Bank | extratoconta |
 | 2025-09-22 | Bass Pro Store Orlando\5156 Internationa
 Cartão 4163 | R$50.56 | C6 Bank | extratocontaglobalusd |
 | 2025-09-22 | Kipling #5506\4959 Intl Dr. Space #170\o
@@ -1045,26 +963,15 @@ Cartão 4163 | R$10.00 | C6 Bank | extratocontaglobalusd |
 | 2025-09-30 | Pix enviado para Carlos Augusto Silva Ribeiro Junior — TRANSF ENVIADA PIX | R$200.00 | C6 Bank | extratoconta |
 | 2025-09-30 | Pix recusado Pix estornado | R$251.65 | C6 Bank | extratoconta |
 | 2025-09-30 | Pix recusado Pix estornado | R$251.65 | C6 Bank | extratoconta |
-| 2025-09-30 | Pix enviado para Carlos Augusto Silva Ribeiro Junior | R$200.00 | C6 Bank | extratoconta |
-| 2025-09-30 | Pix Qrcode Din Des: Shpp Brasil Instituic 30/09 | R$137.75 | Bradesco | extratoconta |
-| 2025-09-30 | VINDI  *ACCOUNTBANKTEC | R$390.00 | C6 Bank | faturacarbon |
 | 2025-10-01 | Transf. Internacional | R$1,500.00 | C6 Bank | extratocontaglobalusd |
-| 2025-10-04 | DM          *SPOTIFY | R$40.90 | C6 Bank | faturacarbon |
 | 2025-10-05 | HENRIQUEDEJESUSSI | R$13.00 | C6 Bank | faturacarbon |
 | 2025-10-06 | APE SMART STUDIO | R$15.00 | C6 Bank | faturacarbon |
 | 2025-10-07 | Pix enviado para ROBERTO FERNANDO ALVES DE SOUZA — obrigado pela carteira | R$100.00 | C6 Bank | extratoconta |
 | 2025-10-07 | Pix enviado para ROBERTO FERNANDO ALVES DE SOUZA | R$100.00 | C6 Bank | extratoconta |
-| 2025-10-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
-| 2025-10-10 | BONANZA     0001     S | R$120.38 | C6 Bank | faturacarbon |
 | 2025-10-13 | Des: Vanessa Emiliano Dias 1747124 | R$216.00 | Bradesco | extratoconta |
 | 2025-10-14 | Transfe Pix Des: Neilton da Silva de o 14/10 | R$10.00 | Bradesco | extratoconta |
-| 2025-10-16 | BONANZA     0001     S | R$94.46 | C6 Bank | faturacarbon |
 | 2025-10-17 | Google *fi W5vclf\1600 Amphitheatre Pkwy
 Cartão 8884 | R$25.58 | C6 Bank | extratocontaglobalusd |
-| 2025-10-18 | UBER   *TRIP           SA | R$4.80 | C6 Bank | faturacarbon |
-| 2025-10-18 | UBER   *TRIP           SA | R$137.05 | C6 Bank | faturacarbon |
-| 2025-10-19 | UBER   *TRIP           SA | R$113.32 | C6 Bank | faturacarbon |
-| 2025-10-19 | UBER   *TRIP           SA | R$3.97 | C6 Bank | faturacarbon |
 | 2025-10-20 | Walgreens #13900\3717 Las Vegas Blvd S\l
 Cartão 4163 | R$62.85 | C6 Bank | extratocontaglobalusd |
 | 2025-10-22 | Transfe Pix Des: Edilene Aparecida Fra 22/10 | R$25.00 | Bradesco | extratoconta |
@@ -1072,7 +979,6 @@ Cartão 4163 | R$62.85 | C6 Bank | extratocontaglobalusd |
 | 2025-10-22 | Pix Qrcode Din Des: Natura &co Pay Servic 22/10 | R$199.40 | Bradesco | extratoconta |
 | 2025-10-22 | Tst* Rosa Mexicano - L\3663 Las Vegas Bl
 Cartão 4163 | R$61.62 | C6 Bank | extratocontaglobalusd |
-| 2025-10-23 | EC          *MELIMAIS | R$24.90 | C6 Bank | faturacarbon |
 | 2025-10-25 | 000000000211463\heart Attack Grill\las V
 Cartão 4163 | R$102.25 | C6 Bank | extratocontaglobalusd |
 | 2025-10-25 | 000000000211463\heart Attack Grill\las V
@@ -1080,64 +986,41 @@ Cartão 4163 | R$5.00 | C6 Bank | extratocontaglobalusd |
 | 2025-10-25 | Cosmopol-secret Pizza\3708 Las Vegas Blv
 Cartão 4163 | R$25.28 | C6 Bank | extratocontaglobalusd |
 | 2025-10-27 | Pix enviado para Carlos Augusto Silva Ribeiro Junior — TRANSF ENVIADA PIX | R$80.00 | C6 Bank | extratoconta |
-| 2025-10-28 | DL     *DLRAPPI BR | R$84.23 | C6 Bank | faturacarbon |
-| 2025-10-30 | VINDI  *ACCOUNTBANKTEC | R$390.00 | C6 Bank | faturacarbon |
 | 2025-10-30 | 2PPRODUTOS | R$25.80 | C6 Bank | faturacarbon |
-| 2025-10-31 | Pix Qrcode Din Des: Shpp Brasil Instituic 31/10 | R$41.97 | Bradesco | extratoconta |
 | 2025-10-31 | ALEX MARTINS DE MACEDO | R$39.00 | C6 Bank | faturacarbon |
-| 2025-11-01 | BONANZA     0001     S | R$103.73 | C6 Bank | faturacarbon |
 | 2025-11-02 | Pix enviado para Marcelo Silva Santos — TRANSF ENVIADA PIX | R$30.00 | C6 Bank | extratoconta |
 | 2025-11-04 | Pix enviado para STUDIO 19 — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
-| 2025-11-04 | Pix enviado para STUDIO 19 | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-11-04 | Transfe Pix Des: Maria Gizelia Dos San 04/11 | R$35.00 | Bradesco | extratoconta |
-| 2025-11-04 | BONANZA     0001     S | R$27.23 | C6 Bank | faturacarbon |
-| 2025-11-04 | EBN         *SPOTIFY | R$40.90 | C6 Bank | faturacarbon |
 | 2025-11-05 | Transfe Pix Des: Daniel Jesus do Rosar 05/11 | R$300.00 | Bradesco | extratoconta |
 | 2025-11-08 | Pix enviado para EDILBERTO RODRIGUES COUTINHO — TRANSF ENVIADA PIX | R$15.00 | C6 Bank | extratoconta |
 | 2025-11-09 | CARLOS FRANCA | R$11.00 | C6 Bank | faturacarbon |
 | 2025-11-09 | CARLOS FRANCA | R$11.00 | C6 Bank | faturacarbon |
-| 2025-11-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
 | 2025-11-11 | 1 CART REG PES NATURAI SAO PAULO BRA | R$312.28 | C6 Bank | extratoconta |
 | 2025-11-11 | GABRIELLYSANTOS | R$10.00 | C6 Bank | faturacarbon |
 | 2025-11-12 | Conta de Luz | R$37.07 | Bradesco | extratoconta |
-| 2025-11-13 | BONANZA     0001     S | R$93.63 | C6 Bank | faturacarbon |
 | 2025-11-14 | Pix enviado para VESALTEC SERRALHERIA E COMERCIO LTDA — TRANSF ENVIADA PIX | R$700.00 | C6 Bank | extratoconta |
 | 2025-11-14 | Pix enviado para DANIEL JESUS DO ROSARIO — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
 | 2025-11-15 | 4MS | R$65.00 | C6 Bank | faturacarbon |
 | 2025-11-17 | Transfe Pix Des: Maria Gizelia Dos San 17/11 | R$35.00 | Bradesco | extratoconta |
-| 2025-11-18 | BONANZA     0001     S | R$125.07 | C6 Bank | faturacarbon |
 | 2025-11-19 | BLOQUEIO PIX | R$333.00 | Itaú | extratoconta |
 | 2025-11-20 | Pix enviado para AMANTIKIR — TRANSF ENVIADA PIX | R$270.00 | C6 Bank | extratoconta |
 | 2025-11-21 | Pix enviado para Hermann Ronaldo Wecke — TRANSF ENVIADA PIX | R$150.00 | C6 Bank | extratoconta |
 | 2025-11-22 | Pix enviado para 50.340.497 LEVY VICARI DE OLIVEIRA — TRANSF ENVIADA PIX | R$20.00 | C6 Bank | extratoconta |
-| 2025-11-22 | EC          *MELIMAIS | R$24.90 | C6 Bank | faturacarbon |
 | 2025-11-22 | VINICIUS DE MARCO E PA | R$368.04 | C6 Bank | faturacarbon |
 | 2025-11-24 | Transf. Internacional | R$3,840.00 | C6 Bank | extratocontaglobalusd |
-| 2025-11-24 | PUNTO  *PRIME AUTO PO | R$36.87 | C6 Bank | faturacarbon |
 | 2025-11-25 | DEV PIX DAVID ROBER25/11 | R$333.00 | Itaú | extratoconta |
 | 2025-11-25 | Pix enviado para Cleidiany Ribeiro Anacleto Kawamura — TRANSF ENVIADA PIX | R$150.00 | C6 Bank | extratoconta |
 | 2025-11-25 | Transfe Pix Des: Maria Lireuda Bastos 25/11 | R$130.00 | Bradesco | extratoconta |
 | 2025-11-28 | Pix enviado para AMAZON.COM.BR — TRANSF ENVIADA PIX | R$5,345.73 | C6 Bank | extratoconta |
-| 2025-11-28 | Pix enviado para AMAZON.COM.BR | R$5,345.73 | C6 Bank | extratoconta |
 | 2025-11-28 | Transfe Pix Des: Maria Gizelia Dos San 28/11 | R$70.00 | Bradesco | extratoconta |
-| 2025-11-28 | DL     *DLRAPPIPROBR | R$34.90 | C6 Bank | faturacarbon |
-| 2025-11-28 | BONANZA     0001     S | R$103.10 | C6 Bank | faturacarbon |
-| 2025-11-28 | RAPPI  *DROGARIA SAO P | R$60.49 | C6 Bank | faturacarbon |
-| 2025-11-30 | VINDI  *ACCOUNTBANKTEC | R$390.00 | C6 Bank | faturacarbon |
 | 2025-12-01 | Pix Qrcode Din Des: Moda Mundial Brasil p 01/12 | R$37.56 | Bradesco | extratoconta |
-| 2025-12-04 | DM          *SPOTIFY | R$40.90 | C6 Bank | faturacarbon |
 | 2025-12-06 | COR | R$84.90 | C6 Bank | faturacarbon |
 | 2025-12-08 | Pix Qrcode Din Des: Magalupay 06/12 | R$404.16 | Bradesco | extratoconta |
 | 2025-12-08 | ALEX MARTINS DE MACEDO | R$39.00 | C6 Bank | faturacarbon |
 | 2025-12-09 | Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
-| 2025-12-09 | Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO Pix recebido de EDUARDO FREITAS DE SOUZA | R$1,000.00 | C6 Bank | extratoconta |
-| 2025-12-09 | BONANZA     0001     S | R$128.45 | C6 Bank | faturacarbon |
-| 2025-12-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
-| 2025-12-11 | BONANZA     0001     S | R$86.43 | C6 Bank | faturacarbon |
 | 2025-12-11 | FIBRA | R$60.00 | C6 Bank | faturacarbon |
 | 2025-12-11 | FIBRA | R$28.00 | C6 Bank | faturacarbon |
 | 2025-12-12 | Pix enviado para MIQUEIAS FERREIRA DA SILVA — TRANSF ENVIADA PIX C | R$20.00 | C6 Bank | extratoconta |
-| 2025-12-12 | BONANZA     0001     S | R$118.05 | C6 Bank | faturacarbon |
 | 2025-12-12 | BRUNOMARTINS | R$67.00 | C6 Bank | faturacarbon |
 | 2025-12-14 | SANDRA REGINA ORUE DA | R$115.50 | C6 Bank | faturacarbon |
 | 2025-12-15 | Transfe Pix Des: Maria Gizelia Dos San 15/12 | R$35.00 | Bradesco | extratoconta |
@@ -1147,68 +1030,22 @@ Cartão 4163 | R$25.28 | C6 Bank | extratocontaglobalusd |
 | 2025-12-17 | CICLOBRANDAO | R$120.00 | Santander | faturaunique |
 | 2025-12-18 | Transfe Pix Des: Hugo Dos Santos 18/12 | R$10.00 | Bradesco | extratoconta |
 | 2025-12-19 | Pix enviado para DOUGLAS CAMARGO DE CAMPOS — TRANSF ENVIADA PIX | R$848.49 | C6 Bank | extratoconta |
-| 2025-12-19 | Pix enviado para ELIAS PAIVA — TRANSF ENVIADA PIX | R$750.00 | C6 Bank | extratoconta |
-| 2025-12-19 | Pix enviado para ELIAS PAIVA | R$750.00 | C6 Bank | extratoconta |
 | 2025-12-20 | Pix enviado para DOUGLAS CAMARGO DE CAMPOS — TRANSF ENVIADA PIX | R$466.49 | C6 Bank | extratoconta |
 | 2025-12-20 | Pix enviado para Anderson Sampaio de Vasconcelos — TRANSF ENVIADA PIX | R$20.00 | C6 Bank | extratoconta |
 | 2025-12-20 | Pix enviado para Cleidiany Ribeiro Anacleto Kawamura — TRANSF ENVIADA PIX | R$450.00 | C6 Bank | extratoconta |
-| 2025-12-20 | Pix enviado para DOUGLAS CAMARGO DE CAMPOS Pix enviado para Anderson Sampaio de Vasconcelos | R$466.49 | C6 Bank | extratoconta |
-| 2025-12-20 | DL     *DLRAPPI BR | R$27.23 | C6 Bank | faturacarbon |
 | 2025-12-21 | ADMINISTRADORA | R$27.00 | C6 Bank | faturacarbon |
 | 2025-12-22 | Pix enviado para INACIO JOSE MACEDO — TRANSF ENVIADA PIX | R$9,400.00 | C6 Bank | extratoconta |
-| 2025-12-22 | EC          *MELIMAIS | R$19.90 | C6 Bank | faturacarbon |
 | 2025-12-23 | Transfe Pix Des: Maria Gizelia Dos San 23/12 | R$105.00 | Bradesco | extratoconta |
-| 2025-12-23 | BONANZA     0001     S | R$17.50 | C6 Bank | faturacarbon |
-| 2025-12-24 | BONANZA     0001     S | R$115.38 | C6 Bank | faturacarbon |
 | 2025-12-27 | MP *ASCFDISTRIBUI | R$51.60 | C6 Bank | faturacarbon |
 | 2025-12-27 | MP *ASCFDISTRIBUI | R$52.70 | C6 Bank | faturacarbon |
 | 2025-12-27 | SERGIO IROMITSU TABA | R$8.00 | C6 Bank | faturacarbon |
-| 2025-12-28 | GRAN  COFFEE | R$13.00 | C6 Bank | faturacarbon |
 | 2025-12-30 | Transfe Pix Des: Evelyn Maria Aparecid 30/12 | R$12.00 | Bradesco | extratoconta |
-| 2025-12-30 | BONANZA     0001     S | R$35.47 | C6 Bank | faturacarbon |
-| 2025-12-30 | VINDI  *ACCOUNTBANKTEC | R$390.00 | C6 Bank | faturacarbon |
-| 2025-12-31 | BONANZA     0001     S | R$173.42 | C6 Bank | faturacarbon |
 | 2026-01-01 | Pix enviado para RAFAEL BARROSO DE CARVALHO — TRANSF ENVIADA PIX | R$200.00 | C6 Bank | extratoconta |
 | 2026-01-02 | Transfe Pix Des: Danielle de Almeida j 02/01 | R$6.50 | Bradesco | extratoconta |
 | 2026-01-02 | ASAAS       *FOTOP | R$47.70 | C6 Bank | faturacarbon |
-| 2026-01-02 | BONANZA     0001     S | R$17.17 | C6 Bank | faturacarbon |
 | 2026-01-03 | VENDIFY | R$13.99 | C6 Bank | faturacarbon |
-| 2026-01-04 | DM          *SPOTIFY | R$40.90 | C6 Bank | faturacarbon |
-| 2026-01-06 | BONANZA     0001     S | R$71.87 | C6 Bank | faturacarbon |
-| 2026-01-07 | BONANZA     0001     S | R$16.59 | C6 Bank | faturacarbon |
-| 2026-01-08 | DL     *DLRAPPI BR | R$116.35 | C6 Bank | faturacarbon |
-| 2026-01-09 | BONANZA     0001     S | R$13.21 | C6 Bank | faturacarbon |
-| 2026-01-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
 | 2026-01-10 | CIDAIBIRA | R$36.00 | C6 Bank | faturacarbon |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA | R$142.47 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA | R$140.09 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA | R$137.51 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA | R$134.93 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA | R$43.35 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA | R$66.08 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA | R$64.98 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA | R$63.78 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA | R$62.59 | C6 Bank | extratoconta |
 | 2026-01-11 | VENDIFY SAO PAULO BRA | R$26.97 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$143.51 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$142.47 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$141.32 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$140.09 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$138.89 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$137.51 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$136.25 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$134.93 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$133.54 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$43.35 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$66.57 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$66.08 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$65.55 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$64.98 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$64.43 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$63.78 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$63.20 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$62.59 | C6 Bank | extratoconta |
-| 2026-01-11 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$61.94 | C6 Bank | extratoconta |
 | 2026-01-11 | BEYPAY*SAO PAULO | R$14.14 | C6 Bank | faturacarbon |
 | 2026-01-11 | TATUAPE GARDEM 2 | R$52.25 | C6 Bank | faturacarbon |
 | 2026-01-12 | PAG Multa de VeÃculo | R$682.06 | Itaú | extratoconta |
@@ -1216,10 +1053,8 @@ Cartão 4163 | R$25.28 | C6 Bank | extratocontaglobalusd |
 | 2026-01-12 | PAG Licenciamento de VeÃculo | R$174.08 | Itaú | extratoconta |
 | 2026-01-12 | PAGTO Multa de VeÃculo | R$142.27 | Itaú | extratoconta |
 | 2026-01-12 | PAGTO Licenciamento de VeÃculo | R$174.08 | Itaú | extratoconta |
-| 2026-01-12 | Pix Qrcode Din Des: Shpp Brasil Instituic 10/01 | R$16.99 | Bradesco | extratoconta |
 | 2026-01-14 | Conselho Regional de 0000219 | R$355.13 | Bradesco | extratoconta |
 | 2026-01-15 | Transfe Pix Des: Juliana Maria da Silv 15/01 | R$10.00 | Bradesco | extratoconta |
-| 2026-01-16 | BONANZA     0001     S | R$49.46 | C6 Bank | faturacarbon |
 | 2026-01-17 | Google *fi Xtt4tw\1600 Amphitheatre Pkwy
 Cartão 8884 | R$25.34 | C6 Bank | extratocontaglobalusd |
 | 2026-01-17 | 55656744FERNANDA | R$65.00 | C6 Bank | faturacarbon |
@@ -1229,7 +1064,6 @@ Cartão 8884 | R$25.34 | C6 Bank | extratocontaglobalusd |
 | 2026-01-18 | ADLERLUCENADASILV | R$13.00 | C6 Bank | faturacarbon |
 | 2026-01-18 | ANDERSONYONEMURA | R$13.00 | C6 Bank | faturacarbon |
 | 2026-01-18 | EDSONSHOITINAKATA | R$29.00 | C6 Bank | faturacarbon |
-| 2026-01-19 | BONANZA     0001     S | R$92.01 | C6 Bank | faturacarbon |
 | 2026-01-20 | Pix enviado para FULL FACE MEDIC — TRANSF ENVIADA PIX | R$1,095.00 | C6 Bank | extratoconta |
 | 2026-01-20 | Pix Qrcode Din Des: Concavo e Convexo 20/01 | R$767.00 | Bradesco | extratoconta |
 | 2026-01-21 | Pix Qrcode Din Des: Secretaria Municipal 21/01 | R$3,183.24 | Bradesco | extratoconta |
@@ -1238,54 +1072,24 @@ Cartão 8884 | R$25.34 | C6 Bank | extratocontaglobalusd |
 | 2026-01-27 | LUIS GUSTAVO TURINI | R$10.00 | C6 Bank | faturacarbon |
 | 2026-01-27 | LUIS GUSTAVO TURINI | R$18.00 | C6 Bank | faturacarbon |
 | 2026-01-28 | Pix Qrcode Din Des: Moda Mundial Brasil p 28/01 | R$194.96 | Bradesco | extratoconta |
-| 2026-01-28 | Pix Qrcode Din Des: Shpp Brasil Instituic 28/01 | R$69.99 | Bradesco | extratoconta |
-| 2026-01-28 | Pix Qrcode Din Des: Shpp Brasil Instituic 28/01 | R$21.90 | Bradesco | extratoconta |
-| 2026-01-28 | Pix Qrcode Din Des: Shpp Brasil Instituic 28/01 | R$69.54 | Bradesco | extratoconta |
-| 2026-01-29 | Pix Qrcode Din Des: Shpp Brasil Instituic 29/01 | R$56.76 | Bradesco | extratoconta |
-| 2026-01-29 | Pix Qrcode Din Des: Shpp Brasil Instituic 29/01 | R$29.90 | Bradesco | extratoconta |
-| 2026-01-30 | Pix Qrcode Din Des: Shpp Brasil Instituic 30/01 | R$35.99 | Bradesco | extratoconta |
-| 2026-01-30 | VINDI  *ACCOUNTBANKTEC | R$390.00 | C6 Bank | faturacarbon |
-| 2026-02-02 | Pix Qrcode Din Des: Shpp Brasil Instituic 01/02 Des: Shpp Brasil Instituic 01/02 2133123 - 69,99 | R$88.50 | Bradesco | extratoconta |
-| 2026-02-02 | Pix Qrcode Din Des: Shpp Brasil Instituic 01/02 | R$54.60 | Bradesco | extratoconta |
 | 2026-02-02 | MARIOLORIOMEDRANO | R$15.00 | C6 Bank | faturacarbon |
-| 2026-02-05 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA | R$4,871.34 | C6 Bank | extratoconta |
-| 2026-02-05 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA | R$824.88 | C6 Bank | extratoconta |
-| 2026-02-05 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$4,871.34 | C6 Bank | extratoconta |
-| 2026-02-05 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$1,155.94 | C6 Bank | extratoconta |
-| 2026-02-05 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$34.92 | C6 Bank | extratoconta |
-| 2026-02-05 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$824.88 | C6 Bank | extratoconta |
 | 2026-02-05 | Transf Autoriz | R$75.00 | Bradesco | extratoconta |
 | 2026-02-05 | Transfe Pix Des: Maria Gizelia Dos San 05/02 | R$70.00 | Bradesco | extratoconta |
 | 2026-02-06 | 50292594JOSIANE | R$62.90 | C6 Bank | faturacarbon |
-| 2026-02-10 | SEGURO CONTA C6 — Seguro Conta | R$20.00 | C6 Bank | extratoconta |
 | 2026-02-17 | Google *fi Vzhnp8\1600 Amphitheatre Pkwy
 Cartão 8884 | R$25.66 | C6 Bank | extratocontaglobalusd |
 | 2026-02-19 | RAPHAEL PERES ALLEMANY | R$10.90 | C6 Bank | faturacarbon |
-| 2026-02-20 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para Elias Paiva | R$482.59 | C6 Bank | extratoconta |
-| 2026-02-20 | Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX | R$482.59 | C6 Bank | extratoconta |
-| 2026-02-20 | Pix enviado para Elias Paiva — TRANSF ENVIADA PIX | R$800.00 | C6 Bank | extratoconta |
-| 2026-02-20 | EC          *MELIMAIS | R$19.90 | C6 Bank | faturacarbon |
 | 2026-02-25 | Pix enviado para Andressa Nunes Da SILVA — TRANSF ENVIADA PIX | R$2,300.00 | C6 Bank | extratoconta |
-| 2026-02-26 | Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX | R$1,200.00 | C6 Bank | extratoconta |
 | 2026-02-26 | MP *GOMESDECAVALH | R$40.00 | C6 Bank | faturacarbon |
-| 2026-02-27 | Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX | R$2,300.00 | C6 Bank | extratoconta |
 | 2026-02-28 | PRISCILAPEREIRA | R$10.00 | C6 Bank | faturacarbon |
-| 2026-02-28 | VINDI  *ACCOUNTBANKTEC | R$390.00 | C6 Bank | faturacarbon |
 | 2026-03-02 | Transfe Pix Des: Michele Aparecida da 01/03 | R$70.00 | Bradesco | extratoconta |
-| 2026-03-04 | Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX | R$2,000.00 | C6 Bank | extratoconta |
-| 2026-03-04 | DM          *SPOTIFY | R$40.90 | C6 Bank | faturacarbon |
 | 2026-03-05 | Transfe Pix Des: Patrycia Casetta 05/03 | R$20.00 | Bradesco | extratoconta |
 | 2026-03-05 | Transfe Pix Des: Danielle de Almeida j 05/03 | R$100.00 | Bradesco | extratoconta |
-| 2026-03-06 | Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX | R$1,500.00 | C6 Bank | extratoconta |
 | 2026-03-07 | 55656744FERNANDA | R$38.00 | C6 Bank | faturacarbon |
-| 2026-03-09 | Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO — TRANSF ENVIADA PIX | R$760.00 | C6 Bank | extratoconta |
 | 2026-03-09 | Pix Qrcode Din Des: Moda Mundial Brasil p 07/03 | R$32.00 | Bradesco | extratoconta |
-| 2026-03-10 | SEGURO CONTA C6 Março 26 — Seguro Conta Março 26 | R$20.00 | C6 Bank | extratoconta |
 | 2026-03-10 | MP *ASCFDISTRIBUI | R$53.59 | C6 Bank | faturacarbon |
 | 2026-03-12 | Transfe Pix Des: Danielle de Almeida j 12/03 | R$1,000.00 | Bradesco | extratoconta |
 | 2026-03-13 | Pix enviado para ANDAIMES CUPECE — TRANSF ENVIADA PIX | R$270.00 | C6 Bank | extratoconta |
-| 2026-03-13 | GRAN  COFFEE | R$8.00 | C6 Bank | faturacarbon |
-| 2026-03-13 | GRAN  COFFEE | R$6.90 | C6 Bank | faturacarbon |
 | 2026-03-15 | HELIO BELMONTE | R$12.00 | C6 Bank | faturacarbon |
 | 2026-03-15 | JACKELINE | R$17.50 | C6 Bank | faturacarbon |
 | 2026-03-15 | MP *SIRLEYROSAPIN | R$13.00 | C6 Bank | faturacarbon |
@@ -1296,15 +1100,13 @@ Cartão 8884 | R$25.66 | C6 Bank | extratocontaglobalusd |
 Cartão 8884 | R$25.34 | C6 Bank | extratocontaglobalusd |
 | 2026-03-19 | Transfe Pix Des: Danielle de Almeida j 19/03 | R$300.00 | Bradesco | extratoconta |
 | 2026-03-20 | Transfe Pix Des: Kate Costa Cristo de 20/03 | R$34.70 | Bradesco | extratoconta |
-| 2026-03-22 | EC          *MELIMAIS | R$19.90 | C6 Bank | faturacarbon |
 | 2026-03-24 | Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO | R$500.00 | C6 Bank | extratoconta |
-| 2026-03-24 | Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO — TRANSF ENVIADA PIX | R$500.00 | C6 Bank | extratoconta |
 | 2026-04-02 | Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2026-04-06 | GUIA DE EMPREGADO DOMÉSTICO — Boleto | R$1,086.74 | C6 Bank | extratoconta |
 | 2026-04-06 | GUIA DE EMPREGADO DOMÉSTICO — Boleto | R$1,153.73 | C6 Bank | extratoconta |
 | 2026-04-06 | GUIA DE EMPREGADO DOMÉSTICO — Boleto | R$175.70 | C6 Bank | extratoconta |
 
-### Taxa: 30.7% ⚠️ ACIMA DA META (<10%)
+### Taxa: 25.8% ⚠️ ACIMA DA META (<10%)
 
 ### Notas para investigação
 

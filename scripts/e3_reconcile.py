@@ -242,6 +242,43 @@ def _parse_date_for_sort(date_str: str) -> datetime:
 # Deduplication Logic (#3 — only between files, never within same file)
 # =============================================================================
 
+# Regex to strip bank-specific suffixes that vary between overlapping extracts
+# e.g., C6 Bank adds "— TRANSF ENVIADA PIX" or "— TRANSF RECEBIDA PIX" in some exports
+_DEDUP_SUFFIX_RE = re.compile(
+    r'\s*—\s*TRANSF\s+(?:ENVIADA|RECEBIDA)\s+PIX\s*$',
+    re.IGNORECASE
+)
+
+# Regex to truncate concatenated PIX descriptions at the second "Pix" occurrence.
+# C6 Bank sometimes merges consecutive PIX ops into one description in certain exports
+# (e.g., "Pix enviado para X Pix enviado para Y") while other exports list them separately.
+# For dedup, we keep only the first PIX segment.
+_DEDUP_PIX_CONCAT_RE = re.compile(
+    r'(Pix\s+(?:enviado|recebido)\s+.*?)\s+Pix\s+(?:enviado|recebido)\s+',
+    re.IGNORECASE
+)
+
+
+def _normalize_description_for_dedup(descricao: str) -> str:
+    """
+    Normalize a transaction description for deduplication purposes.
+    Handles C6 Bank-specific formatting differences between overlapping extracts:
+    1. Remove "— TRANSF ENVIADA/RECEBIDA PIX" suffix
+    2. Truncate concatenated PIX descriptions (keep only first segment)
+    3. Collapse multiple whitespace
+    4. Uppercase
+    """
+    # Step 1: Remove suffix
+    descricao = _DEDUP_SUFFIX_RE.sub('', descricao)
+    # Step 2: Truncate at second PIX operation
+    m = _DEDUP_PIX_CONCAT_RE.match(descricao)
+    if m:
+        descricao = m.group(1)
+    # Step 3: Collapse whitespace and uppercase
+    descricao = re.sub(r'\s+', ' ', descricao).strip().upper()
+    return descricao
+
+
 def transaction_signature(txn: Dict[str, Any]) -> Tuple:
     """
     Create a normalized signature for deduplication.
@@ -249,7 +286,7 @@ def transaction_signature(txn: Dict[str, Any]) -> Tuple:
     """
     data = txn.get('data', '').strip()
     valor = txn.get('valor', 0)
-    descricao = txn.get('descricao', '').strip().upper()
+    descricao = _normalize_description_for_dedup(txn.get('descricao', ''))
 
     return (data, valor, descricao)
 

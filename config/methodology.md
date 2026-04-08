@@ -120,6 +120,19 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 - **Outputs:** `output/relatorio_financeiro_ferreira_campos_[DATE].html` — 10 seções estratégicas + 5 apêndices + 19 gráficos Chart.js
 - **Método:** Renderização por substituição de placeholders. Mesmos inputs = mesmo output.
 
+### E7 — Review & Refine (LLM — pós-relatório)
+- **Objetivo:** Revisão holística pós-relatório usando a persona e abordagem desta methodology. Retroalimenta narrativas, summaries, chart descriptions, lista de tarefas e prioridades com base na visão completa do relatório renderizado.
+- **Comando:** `python scripts/e7_review.py` (cross-validation) → LLM review → `python scripts/e7_review.py --apply review.json` → `python scripts/e6_render.py` (re-render)
+- **Inputs:** `analise_financeira-5_analysis.json` (E5 JSON com narrativas), relatório HTML renderizado, `methodology.md` (persona)
+- **Outputs:** E5 JSON atualizado com refinamentos + `review_metadata` + `strategic_insights`, relatório HTML final re-renderizado
+- **Cross-validation:** 14 checks determinísticos verificam consistência entre score, patrimônio, fluxo, IF, endividamento, reserva, narrativas e tarefas
+- **Princípio:** Uma única passagem de review (sem recursão). Se refinamentos significativos forem necessários, re-executar com `python scripts/e_reset.py --from E7`
+
+### E6-final — Re-render (Determinístico)
+- **Objetivo:** Re-renderizar relatório HTML após E7 aplicar refinamentos ao E5 JSON.
+- **Comando:** `python scripts/e6_render.py` (mesmo script E6)
+- **Inputs/Outputs:** Idênticos ao E6, mas com E5 JSON já refinado pelo E7.
+
 ---
 
 ## SCORE FINANCEIRO — 5 CRITÉRIOS (v5.2)

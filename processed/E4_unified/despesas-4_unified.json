@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-07T23:11:42.638021-03:00",
+  "consolidation_date": "2026-04-08T08:40:48.410199-03:00",
   "periodo": "2023-09 a 2026-04",
   "categorias": [
     "alimentacao",
@@ -20,28 +20,38 @@
     "vestuario"
   ],
   "total_categorias": 16,
-  "total_transacoes": 3769,
+  "total_transacoes": 3719,
   "totais_por_categoria": {
-    "financeiro": 8652.810000000001,
-    "suporte_familiar": 64535.75,
-    "moradia": 70945.60999999999,
-    "nao_identificado": 449833.1000000004,
-    "transporte": 52246.79,
-    "impostos": 86041.29999999999,
-    "assinaturas": 19955.050000000014,
-    "seguros": 6670.25,
-    "servicos_domesticos": 44930.789999999986,
-    "lazer_viagens": 78795.84000000001,
-    "saude": 110432.73000000001,
-    "alimentacao": 79370.95999999996,
-    "educacao": 40625.05,
-    "reserva_desejos": 68338.49999999999,
-    "vestuario": 27510.98,
-    "melhoria_reforma": 1350.3199999999997
+    "financeiro": 14712.210000000001,
+    "suporte_familiar": 59435.75,
+    "moradia": 70377.59,
+    "nao_identificado": 385980.27000000014,
+    "transporte": 52360.750000000015,
+    "impostos": 104049.91000000002,
+    "assinaturas": 20554.25000000003,
+    "seguros": 7319.17,
+    "servicos_domesticos": 37722.37999999999,
+    "lazer_viagens": 77751.69,
+    "saude": 102652.73000000001,
+    "alimentacao": 81300.55999999992,
+    "educacao": 38675.05,
+    "melhoria_reforma": 14200.320000000002,
+    "reserva_desejos": 50774.19000000002,
+    "vestuario": 27510.98
   },
-  "total_geral": 1210235.83,
+  "total_geral": 1145377.8,
   "dados": {
     "financeiro": [
+      {
+        "data": "2023-11-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 349.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
       {
         "data": "2023-12-24",
         "descricao": "Estorno Tarifa",
@@ -56,6 +66,16 @@
         "data": "2023-12-24",
         "descricao": "Anuidade Diferenciada",
         "valor": 85.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 349.0,
         "banco": "C6 Bank",
         "categoria": "financeiro",
         "tipo_conta": "faturacarbon",
@@ -103,6 +123,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2024-01-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 365.35,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2024-02-02",
         "descricao": "IOF CHEQUE ESPECIAL",
         "valor": 25.37,
@@ -136,6 +166,16 @@
         "data": "2024-02-24",
         "descricao": "Anuidade Diferenciada",
         "valor": 98.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-29",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 365.35,
         "banco": "C6 Bank",
         "categoria": "financeiro",
         "tipo_conta": "faturacarbon",
@@ -343,6 +383,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-03-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 365.35,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-04-01",
         "descricao": "IOF CHEQUE ESPECIAL",
         "valor": 30.6,
@@ -420,6 +470,16 @@
         "categoria": "financeiro",
         "tipo_conta": "faturaunique",
         "titular": "DAVID ROBERT CAMARGO FERREIRA",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 365.35,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -510,6 +570,16 @@
         "categoria": "financeiro",
         "tipo_conta": "faturaunique",
         "titular": "DAVID ROBERT CAMARGO FERREIRA",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 390.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -610,6 +680,16 @@
         "categoria": "financeiro",
         "tipo_conta": "faturaunique",
         "titular": "DAVID ROBERT CAMARGO FERREIRA",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 390.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -733,6 +813,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-07-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 390.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-08-01",
         "descricao": "IOF DESPESA NO EXTERIOR",
         "valor": 4.15,
@@ -823,6 +913,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-08-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 390.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-09-02",
         "descricao": "IOF CHEQUE ESPECIAL",
         "valor": 0.96,
@@ -880,6 +980,16 @@
         "categoria": "financeiro",
         "tipo_conta": "faturaunique",
         "titular": "DAVID ROBERT CAMARGO FERREIRA",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 390.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -960,6 +1070,16 @@
         "categoria": "financeiro",
         "tipo_conta": "faturaunique",
         "titular": "DAVID ROBERT CAMARGO FERREIRA",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 390.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -1053,6 +1173,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-11-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 390.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-12-02",
         "descricao": "IOF CHEQUE ESPECIAL",
         "valor": 112.76,
@@ -1096,6 +1226,16 @@
         "data": "2025-12-23",
         "descricao": "Anuidade Diferenciada",
         "valor": 98.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 390.0,
         "banco": "C6 Bank",
         "categoria": "financeiro",
         "tipo_conta": "faturacarbon",
@@ -1223,6 +1363,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2026-01-30",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 390.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2026-02-02",
         "descricao": "IOF ADICIONAL - AUTOMATICO PERIODO: 01/01 A 31/01/26",
         "valor": 3.75,
@@ -1336,6 +1486,16 @@
         "data": "2026-02-27",
         "descricao": "PAYPAL *DOCUSIGNINC    40",
         "valor": 158.54,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-28",
+        "descricao": "VINDI  *ACCOUNTBANKTEC",
+        "valor": 390.0,
         "banco": "C6 Bank",
         "categoria": "financeiro",
         "tipo_conta": "faturacarbon",
@@ -1755,16 +1915,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-03-04",
-        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO Pix enviado para RUBENS DE CAMPOS",
-        "valor": 2000.0,
-        "banco": "C6 Bank",
-        "categoria": "suporte_familiar",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-03-05",
         "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
         "valor": 1500.0,
@@ -2015,16 +2165,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-11-07",
-        "descricao": "Pix enviado para RUBENS DE CAMPOS",
-        "valor": 1000.0,
-        "banco": "C6 Bank",
-        "categoria": "suporte_familiar",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-11-22",
         "descricao": "MAKOS LEMBRANCAS",
         "valor": 25.0,
@@ -2095,16 +2235,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-01-16",
-        "descricao": "Pix enviado para RUBENS DE CAMPOS — TRANSF ENVIADA PIX",
-        "valor": 100.0,
-        "banco": "C6 Bank",
-        "categoria": "suporte_familiar",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-01-30",
         "descricao": "Belt Academy Pix enviado para RUBENS DE CAMPOS",
         "valor": 1950.0,
@@ -2142,16 +2272,6 @@
         "categoria": "suporte_familiar",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-04",
-        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO Pix enviado para RUBENS DE CAMPOS",
-        "valor": 2000.0,
-        "banco": "C6 Bank",
-        "categoria": "suporte_familiar",
-        "tipo_conta": "extratoconta",
-        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -2807,16 +2927,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-02-06",
-        "descricao": "Pix enviado para SABESP — TRANSF ENVIADA PIX",
-        "valor": 568.02,
-        "banco": "C6 Bank",
-        "categoria": "moradia",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-02-10",
         "descricao": "FINANC IMOBILIARIO 049/120",
         "valor": 4281.54,
@@ -3090,16 +3200,6 @@
       },
       {
         "data": "2023-11-28",
-        "descricao": "UBER   *UBER   *TRIP",
-        "valor": 34.93,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-11-28",
         "descricao": "PADARIA NOVA GUARANY L",
         "valor": 12.5,
         "banco": "C6 Bank",
@@ -3132,16 +3232,6 @@
         "data": "2023-11-29",
         "descricao": "PAG*MERCADINHOBONANZA",
         "valor": 106.04,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-11-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 349.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -3552,16 +3642,6 @@
         "data": "2023-12-13",
         "descricao": "REI DO MATE SHOPPING P",
         "valor": 6.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-12-14",
-        "descricao": "PUNTO  *PRIME AUTO PO",
-        "valor": 285.49,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -4020,16 +4100,6 @@
       },
       {
         "data": "2023-12-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 349.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-12-30",
         "descricao": "POSTO GUANABARA LTDA",
         "valor": 186.55,
         "banco": "C6 Bank",
@@ -4116,16 +4186,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-04",
-        "descricao": "EBN         *SPOTIFY",
-        "valor": 34.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -4236,16 +4296,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -4566,16 +4616,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-18",
-        "descricao": "UBER   *UBER   *TRIP",
-        "valor": 57.86,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -5210,26 +5250,6 @@
       },
       {
         "data": "2024-01-27",
-        "descricao": "UBER   *TRIP",
-        "valor": 159.94,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-27",
-        "descricao": "UBER   *TRIP",
-        "valor": 7.01,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-27",
         "descricao": "INDIGO0750701",
         "valor": 11.71,
         "banco": "C6 Bank",
@@ -5322,26 +5342,6 @@
         "data": "2024-01-29",
         "descricao": "MIDJOURNEY INC.        +1",
         "valor": 2.26,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-29",
-        "descricao": "UBER   *TRIP",
-        "valor": 4.95,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-29",
-        "descricao": "UBER   *TRIP",
-        "valor": 113.12,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -5470,38 +5470,8 @@
       },
       {
         "data": "2024-01-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 365.35,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-30",
         "descricao": "WIX*1098095259",
         "valor": 346.8,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-30",
-        "descricao": "UBER   *TRIP",
-        "valor": 154.42,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-30",
-        "descricao": "UBER   *TRIP",
-        "valor": 6.76,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -5762,16 +5732,6 @@
         "data": "2024-02-03",
         "descricao": "DROGARIA NOVA POPULAR",
         "valor": 74.85,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-04",
-        "descricao": "EBN         *SPOTIFY",
-        "valor": 34.9,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -6330,16 +6290,6 @@
       },
       {
         "data": "2024-02-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-10",
         "descricao": "NON SOLO VETRO DI MAGA",
         "valor": 149.22,
         "banco": "C6 Bank",
@@ -6620,26 +6570,6 @@
       },
       {
         "data": "2024-02-12",
-        "descricao": "UBER   *TRIP",
-        "valor": 12.92,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-12",
-        "descricao": "UBER   *TRIP",
-        "valor": 295.03,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-12",
         "descricao": "FLORENCE LEATHER",
         "valor": 86.06,
         "banco": "C6 Bank",
@@ -6832,26 +6762,6 @@
         "data": "2024-02-12",
         "descricao": "MERCATO CENTRALE FIREN",
         "valor": 200.37,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-13",
-        "descricao": "UBER   *TRIP",
-        "valor": 236.69,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-13",
-        "descricao": "UBER   *TRIP",
-        "valor": 10.37,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -7210,48 +7120,8 @@
       },
       {
         "data": "2024-02-20",
-        "descricao": "UBER   *UBER   *TRIP",
-        "valor": 62.02,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-20",
-        "descricao": "UBER   *UBER   *TRIP",
-        "valor": 25.76,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-20",
-        "descricao": "UBER   *UBER   *TRIP",
-        "valor": 5.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-20",
         "descricao": "EXPRESSO NUTRI",
         "valor": 9.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-20",
-        "descricao": "UBER   *UBER   *TRIP",
-        "valor": 61.78,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -7286,16 +7156,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-21",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 704.18,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -7530,26 +7390,6 @@
       },
       {
         "data": "2024-02-29",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 987.78,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-29",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 365.35,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-29",
         "descricao": "MOURA ACADEMIA",
         "valor": 1548.0,
         "banco": "C6 Bank",
@@ -7710,16 +7550,6 @@
       },
       {
         "data": "2024-03-04",
-        "descricao": "EBN         *SPOTIFY",
-        "valor": 34.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-03-04",
         "descricao": "PAG*PALACIOCOMERCIO",
         "valor": 33.64,
         "banco": "C6 Bank",
@@ -7806,16 +7636,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-03-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -8349,16 +8169,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2024-04-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2024-04-12",
         "descricao": "Pix enviado para RAFAEL BARROSO DE CARVALHO — TRANSF ENVIADA PIX",
         "valor": 720.0,
@@ -8449,16 +8259,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2024-05-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2024-05-21",
         "descricao": "Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX",
         "valor": 1500.0,
@@ -8522,16 +8322,6 @@
         "data": "2024-06-02",
         "descricao": "Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX",
         "valor": 1500.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-06-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
@@ -8700,16 +8490,6 @@
       },
       {
         "data": "2024-07-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-07-10",
         "descricao": "Pix enviado para Manoel Messias Gaspar De Souza — TRANSF ENVIADA PIX",
         "valor": 2000.0,
         "banco": "C6 Bank",
@@ -8839,16 +8619,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2024-08-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2024-08-20",
         "descricao": "Pix enviado para MINISTERIO DA FAZENDA — TRANSF ENVIADA PIX",
         "valor": 155.32,
@@ -8872,16 +8642,6 @@
         "data": "2024-09-01",
         "descricao": "Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX",
         "valor": 1600.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-09-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
@@ -9019,16 +8779,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2024-10-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2024-10-21",
         "descricao": "Pix enviado para Hermann Ronaldo Wecke — TRANSF ENVIADA PIX",
         "valor": 900.0,
@@ -9100,16 +8850,6 @@
       },
       {
         "data": "2024-11-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-11-10",
         "descricao": "Pix enviado para paroquia nossa senhora do brasil — TRANSF ENVIADA PIX",
         "valor": 50.0,
         "banco": "C6 Bank",
@@ -9132,16 +8872,6 @@
         "data": "2024-12-03",
         "descricao": "Pix enviado para HT SARAGIOTTO S — TRANSF ENVIADA PIX",
         "valor": 300.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-12-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
@@ -9260,16 +8990,6 @@
       },
       {
         "data": "2025-01-02",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 5372.18,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-01-02",
         "descricao": "Transfe Pix Des: Fabiana Borges da Sil 02/01",
         "valor": 100.0,
         "banco": "Bradesco",
@@ -9282,26 +9002,6 @@
         "data": "2025-01-02",
         "descricao": "Transfe Pix Des: Marília Panarello Kos 02/01",
         "valor": 163.5,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-01-02",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 02/01",
-        "valor": 22.0,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-01-02",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 02/01",
-        "valor": 22.99,
         "banco": "Bradesco",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
@@ -9392,16 +9092,6 @@
         "data": "2025-01-09",
         "descricao": "Boleto",
         "valor": 162.75,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-01-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 21.16,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
@@ -9559,26 +9249,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-02-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-02-13",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 4571.42,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-02-13",
         "descricao": "Boleto",
         "valor": 749.9,
@@ -9710,16 +9380,6 @@
       },
       {
         "data": "2025-03-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-03-10",
         "descricao": "Transfe Pix Des: Edilene Aparecida Fra 08/03",
         "valor": 50.0,
         "banco": "Bradesco",
@@ -9840,16 +9500,6 @@
       },
       {
         "data": "2025-03-29",
-        "descricao": "Pix enviado para PARCELA EXPRESS SERVICOS DIGITAIS LTDA Pix recebido de POMPEIA MOTOS MULTIMARCAS LTDA",
-        "valor": 28.01,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-03-29",
         "descricao": "MULTIPLAN ADMINISTRADO",
         "valor": 31.0,
         "banco": "C6 Bank",
@@ -9866,26 +9516,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-03-30",
-        "descricao": "Pix enviado para ELAINE WENZEL Pix enviado para Maria Lúcia Marques Oliveira",
-        "valor": 10.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-03-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 365.35,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -9930,62 +9560,12 @@
       },
       {
         "data": "2025-04-02",
-        "descricao": "Pix enviado para Maria Lúcia Marques Oliveira Pix enviado para ANA LUCIA SANTOS",
-        "valor": 750.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-02",
         "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO",
         "valor": 1000.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-04",
-        "descricao": "RAPPI  *RAPPI RAPPI BR",
-        "valor": 53.34,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-04",
-        "descricao": "RAPPI  *RAPPI RAPPI BR",
-        "valor": 276.24,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-04",
-        "descricao": "DM          *SPOTIFY",
-        "valor": 34.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-04",
-        "descricao": "RAPPI  *RAPPI RAPPI BR",
-        "valor": 26.31,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -10030,28 +9610,8 @@
       },
       {
         "data": "2025-04-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-10",
         "descricao": "Pix enviado para REGIANE DONIZETI BALBINO — TRANSF ENVIADA PIX",
         "valor": 320.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-10",
-        "descricao": "SEGURO CONTA C6 Pix enviado para REGIANE DONIZETI BALBINO",
-        "valor": 20.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
@@ -10209,26 +9769,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-04-26",
-        "descricao": "Pix enviado para ELIBELTO JOSE DE LIMA Pix enviado para Mariana Dos Santos Almeida",
-        "valor": 1000.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-29",
-        "descricao": "PUNTO  *PRIME AUTO PO",
-        "valor": 284.01,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-04-29",
         "descricao": "JS TRAINING",
         "valor": 59.0,
@@ -10249,26 +9789,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-04-30",
-        "descricao": "Pix enviado para CLIMEFE CLINICA DE MEDICINA FETAL S S LT",
-        "valor": 1000.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 365.35,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-05-02",
         "descricao": "Pix enviado para José Martins Ferreira Prates — TRANSF ENVIADA PIX",
         "valor": 8.0,
@@ -10286,16 +9806,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-04",
-        "descricao": "DM          *SPOTIFY",
-        "valor": 34.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -10350,16 +9860,6 @@
       },
       {
         "data": "2025-05-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-10",
         "descricao": "The Childrens Place 44\\8174 Vineland Ave\nCartão 4845",
         "valor": 56.72,
         "banco": "C6 Bank",
@@ -10367,26 +9867,6 @@
         "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
-      },
-      {
-        "data": "2025-05-10",
-        "descricao": "SHELL                  PO",
-        "valor": 8.13,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-10",
-        "descricao": "SHELL                  PO",
-        "valor": 240.49,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
       },
       {
         "data": "2025-05-12",
@@ -10669,16 +10149,6 @@
         "moeda": "USD"
       },
       {
-        "data": "2025-05-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 390.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-05-31",
         "descricao": "Popshelf #24439\\8035 W Irlo Bronson Memo\nCartão 4845",
         "valor": 8.52,
@@ -10689,58 +10159,8 @@
         "moeda": "USD"
       },
       {
-        "data": "2025-06-04",
-        "descricao": "DM          *SPOTIFY",
-        "valor": 34.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-07",
-        "descricao": "SHELL                  MI",
-        "valor": 4.51,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-07",
-        "descricao": "SHELL                  MI",
-        "valor": 128.76,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-06-10",
         "descricao": "Pix enviado para ******** — TRANSF ENVIADA PIX",
-        "valor": 55.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-10",
-        "descricao": "Pix enviado para ********",
         "valor": 55.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
@@ -10769,26 +10189,6 @@
         "moeda": "USD"
       },
       {
-        "data": "2025-06-15",
-        "descricao": "FAST POINT             MC",
-        "valor": 212.41,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-15",
-        "descricao": "FAST POINT             MC",
-        "valor": 7.43,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-06-16",
         "descricao": "Pix Qrcode Est Des: Claro 16/06",
         "valor": 55.98,
@@ -10806,16 +10206,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 390.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -10867,26 +10257,6 @@
         "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
-      },
-      {
-        "data": "2025-07-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-10",
-        "descricao": "SEGURO CONTA C6",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
       },
       {
         "data": "2025-07-12",
@@ -11139,16 +10509,6 @@
         "moeda": "USD"
       },
       {
-        "data": "2025-07-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 390.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-07-31",
         "descricao": "Bass Pro Store Orlando\\5156 Internationa\nCartão 4845",
         "valor": 17.56,
@@ -11187,16 +10547,6 @@
         "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
-      },
-      {
-        "data": "2025-08-04",
-        "descricao": "DM          *SPOTIFY",
-        "valor": 34.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
       },
       {
         "data": "2025-08-07",
@@ -11267,16 +10617,6 @@
         "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
-      },
-      {
-        "data": "2025-08-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
       },
       {
         "data": "2025-08-10",
@@ -11459,16 +10799,6 @@
         "moeda": "USD"
       },
       {
-        "data": "2025-08-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 390.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-08-31",
         "descricao": "Levi's Outlet 420 \\8200 Vineland Ave Cartão\n4163",
         "valor": 91.67,
@@ -11517,16 +10847,6 @@
         "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
-      },
-      {
-        "data": "2025-09-04",
-        "descricao": "DM          *SPOTIFY",
-        "valor": 40.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
       },
       {
         "data": "2025-09-05",
@@ -11660,27 +10980,7 @@
       },
       {
         "data": "2025-09-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-10",
         "descricao": "Pix enviado para JULIANA ARGONDIZO DE ROSIS DINATO — TRANSF ENVIADA PIX",
-        "valor": 500.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-10",
-        "descricao": "Pix enviado para JULIANA ARGONDIZO DE ROSIS DINATO",
         "valor": 500.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
@@ -11890,16 +11190,6 @@
       },
       {
         "data": "2025-09-22",
-        "descricao": "Pix enviado para SERGIO PALMEIRA DA SILVA",
-        "valor": 1080.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-22",
         "descricao": "Bass Pro Store Orlando\\5156 Internationa\nCartão 4163",
         "valor": 50.56,
         "banco": "C6 Bank",
@@ -12079,36 +11369,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-09-30",
-        "descricao": "Pix enviado para Carlos Augusto Silva Ribeiro Junior",
-        "valor": 200.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 30/09",
-        "valor": 137.75,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 390.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-10-01",
         "descricao": "Transf. Internacional",
         "valor": 1500.0,
@@ -12117,16 +11377,6 @@
         "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
-      },
-      {
-        "data": "2025-10-04",
-        "descricao": "DM          *SPOTIFY",
-        "valor": 40.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
       },
       {
         "data": "2025-10-05",
@@ -12169,26 +11419,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-10-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-10",
-        "descricao": "BONANZA     0001     S",
-        "valor": 120.38,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-10-13",
         "descricao": "Des: Vanessa Emiliano Dias 1747124",
         "valor": 216.0,
@@ -12209,16 +11439,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-10-16",
-        "descricao": "BONANZA     0001     S",
-        "valor": 94.46,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-10-17",
         "descricao": "Google *fi W5vclf\\1600 Amphitheatre Pkwy\nCartão 8884",
         "valor": 25.58,
@@ -12227,46 +11447,6 @@
         "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
-      },
-      {
-        "data": "2025-10-18",
-        "descricao": "UBER   *TRIP           SA",
-        "valor": 4.8,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-18",
-        "descricao": "UBER   *TRIP           SA",
-        "valor": 137.05,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-19",
-        "descricao": "UBER   *TRIP           SA",
-        "valor": 113.32,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-19",
-        "descricao": "UBER   *TRIP           SA",
-        "valor": 3.97,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
       },
       {
         "data": "2025-10-20",
@@ -12319,16 +11499,6 @@
         "moeda": "USD"
       },
       {
-        "data": "2025-10-23",
-        "descricao": "EC          *MELIMAIS",
-        "valor": 24.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-10-25",
         "descricao": "000000000211463\\heart Attack Grill\\las V\nCartão 4163",
         "valor": 102.25,
@@ -12369,26 +11539,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-10-28",
-        "descricao": "DL     *DLRAPPI BR",
-        "valor": 84.23,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 390.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-10-30",
         "descricao": "2PPRODUTOS",
         "valor": 25.8,
@@ -12400,28 +11550,8 @@
       },
       {
         "data": "2025-10-31",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 31/10",
-        "valor": 41.97,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-31",
         "descricao": "ALEX MARTINS DE MACEDO",
         "valor": 39.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-01",
-        "descricao": "BONANZA     0001     S",
-        "valor": 103.73,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -12450,42 +11580,12 @@
       },
       {
         "data": "2025-11-04",
-        "descricao": "Pix enviado para STUDIO 19",
-        "valor": 1000.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-04",
         "descricao": "Transfe Pix Des: Maria Gizelia Dos San 04/11",
         "valor": 35.0,
         "banco": "Bradesco",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-04",
-        "descricao": "BONANZA     0001     S",
-        "valor": 27.23,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-04",
-        "descricao": "EBN         *SPOTIFY",
-        "valor": 40.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -12529,16 +11629,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-11-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-11-11",
         "descricao": "1 CART REG PES NATURAI SAO PAULO BRA",
         "valor": 312.28,
@@ -12566,16 +11656,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-13",
-        "descricao": "BONANZA     0001     S",
-        "valor": 93.63,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -12616,16 +11696,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-18",
-        "descricao": "BONANZA     0001     S",
-        "valor": 125.07,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -12670,16 +11740,6 @@
       },
       {
         "data": "2025-11-22",
-        "descricao": "EC          *MELIMAIS",
-        "valor": 24.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-22",
         "descricao": "VINICIUS DE MARCO E PA",
         "valor": 368.04,
         "banco": "C6 Bank",
@@ -12697,16 +11757,6 @@
         "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
-      },
-      {
-        "data": "2025-11-24",
-        "descricao": "PUNTO  *PRIME AUTO PO",
-        "valor": 36.87,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
       },
       {
         "data": "2025-11-25",
@@ -12750,62 +11800,12 @@
       },
       {
         "data": "2025-11-28",
-        "descricao": "Pix enviado para AMAZON.COM.BR",
-        "valor": 5345.73,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-28",
         "descricao": "Transfe Pix Des: Maria Gizelia Dos San 28/11",
         "valor": 70.0,
         "banco": "Bradesco",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-28",
-        "descricao": "DL     *DLRAPPIPROBR",
-        "valor": 34.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-28",
-        "descricao": "BONANZA     0001     S",
-        "valor": 103.1,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-28",
-        "descricao": "RAPPI  *DROGARIA SAO P",
-        "valor": 60.49,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 390.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -12816,16 +11816,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-04",
-        "descricao": "DM          *SPOTIFY",
-        "valor": 40.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -12869,46 +11859,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-12-09",
-        "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO Pix recebido de EDUARDO FREITAS DE SOUZA",
-        "valor": 1000.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-09",
-        "descricao": "BONANZA     0001     S",
-        "valor": 128.45,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-11",
-        "descricao": "BONANZA     0001     S",
-        "valor": 86.43,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-12-11",
         "descricao": "FIBRA",
         "valor": 60.0,
@@ -12936,16 +11886,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-12",
-        "descricao": "BONANZA     0001     S",
-        "valor": 118.05,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -13039,26 +11979,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-12-19",
-        "descricao": "Pix enviado para ELIAS PAIVA — TRANSF ENVIADA PIX",
-        "valor": 750.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-19",
-        "descricao": "Pix enviado para ELIAS PAIVA",
-        "valor": 750.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-12-20",
         "descricao": "Pix enviado para DOUGLAS CAMARGO DE CAMPOS — TRANSF ENVIADA PIX",
         "valor": 466.49,
@@ -13089,26 +12009,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-12-20",
-        "descricao": "Pix enviado para DOUGLAS CAMARGO DE CAMPOS Pix enviado para Anderson Sampaio de Vasconcelos",
-        "valor": 466.49,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-20",
-        "descricao": "DL     *DLRAPPI BR",
-        "valor": 27.23,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-12-21",
         "descricao": "ADMINISTRADORA",
         "valor": 27.0,
@@ -13129,16 +12029,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-12-22",
-        "descricao": "EC          *MELIMAIS",
-        "valor": 19.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-12-23",
         "descricao": "Transfe Pix Des: Maria Gizelia Dos San 23/12",
         "valor": 105.0,
@@ -13146,26 +12036,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-23",
-        "descricao": "BONANZA     0001     S",
-        "valor": 17.5,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-24",
-        "descricao": "BONANZA     0001     S",
-        "valor": 115.38,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -13199,16 +12069,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-12-28",
-        "descricao": "GRAN  COFFEE",
-        "valor": 13.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-12-30",
         "descricao": "Transfe Pix Des: Evelyn Maria Aparecid 30/12",
         "valor": 12.0,
@@ -13216,36 +12076,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-30",
-        "descricao": "BONANZA     0001     S",
-        "valor": 35.47,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 390.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-31",
-        "descricao": "BONANZA     0001     S",
-        "valor": 173.42,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -13279,16 +12109,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-01-02",
-        "descricao": "BONANZA     0001     S",
-        "valor": 17.17,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-01-03",
         "descricao": "VENDIFY",
         "valor": 13.99,
@@ -13296,66 +12116,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-04",
-        "descricao": "DM          *SPOTIFY",
-        "valor": 40.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-06",
-        "descricao": "BONANZA     0001     S",
-        "valor": 71.87,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-07",
-        "descricao": "BONANZA     0001     S",
-        "valor": 16.59,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-08",
-        "descricao": "DL     *DLRAPPI BR",
-        "valor": 116.35,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-09",
-        "descricao": "BONANZA     0001     S",
-        "valor": 13.21,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -13370,288 +12130,8 @@
       },
       {
         "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 142.47,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 140.09,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 137.51,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 134.93,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 43.35,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 66.08,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 64.98,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 63.78,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 62.59,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
         "descricao": "VENDIFY SAO PAULO BRA",
         "valor": 26.97,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 143.51,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 142.47,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 141.32,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 140.09,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 138.89,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 137.51,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 136.25,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 134.93,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 133.54,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 43.35,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 66.57,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 66.08,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 65.55,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 64.98,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 64.43,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 63.78,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 63.2,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 62.59,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-11",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 61.94,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
@@ -13729,16 +12209,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-01-12",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 10/01",
-        "valor": 16.99,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-01-14",
         "descricao": "Conselho Regional de 0000219",
         "valor": 355.13,
@@ -13756,16 +12226,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-16",
-        "descricao": "BONANZA     0001     S",
-        "valor": 49.46,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -13842,16 +12302,6 @@
         "data": "2026-01-18",
         "descricao": "EDSONSHOITINAKATA",
         "valor": 29.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-19",
-        "descricao": "BONANZA     0001     S",
-        "valor": 92.01,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -13939,96 +12389,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-01-28",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
-        "valor": 69.99,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-28",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
-        "valor": 21.9,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-28",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
-        "valor": 69.54,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-29",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 29/01",
-        "valor": 56.76,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-29",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 29/01",
-        "valor": 29.9,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-30",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 30/01",
-        "valor": 35.99,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-30",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 390.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-02",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 01/02 Des: Shpp Brasil Instituic 01/02 2133123 - 69,99",
-        "valor": 88.5,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-02",
-        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 01/02",
-        "valor": 54.6,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-02-02",
         "descricao": "MARIOLORIOMEDRANO",
         "valor": 15.0,
@@ -14036,66 +12396,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-05",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 4871.34,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-05",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 824.88,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-05",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 4871.34,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-05",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 1155.94,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-05",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 34.92,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-05",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 824.88,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -14129,16 +12429,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-02-10",
-        "descricao": "SEGURO CONTA C6 — Seguro Conta",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-02-17",
         "descricao": "Google *fi Vzhnp8\\1600 Amphitheatre Pkwy\nCartão 8884",
         "valor": 25.66,
@@ -14159,59 +12449,9 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-02-20",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para Elias Paiva",
-        "valor": 482.59,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-20",
-        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
-        "valor": 482.59,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-20",
-        "descricao": "Pix enviado para Elias Paiva — TRANSF ENVIADA PIX",
-        "valor": 800.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-20",
-        "descricao": "EC          *MELIMAIS",
-        "valor": 19.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-02-25",
         "descricao": "Pix enviado para Andressa Nunes Da SILVA — TRANSF ENVIADA PIX",
         "valor": 2300.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-26",
-        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
-        "valor": 1200.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
@@ -14229,29 +12469,9 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-02-27",
-        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
-        "valor": 2300.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-02-28",
         "descricao": "PRISCILAPEREIRA",
         "valor": 10.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-28",
-        "descricao": "VINDI  *ACCOUNTBANKTEC",
-        "valor": 390.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -14266,26 +12486,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-04",
-        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
-        "valor": 2000.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-04",
-        "descricao": "DM          *SPOTIFY",
-        "valor": 40.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -14309,16 +12509,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-03-06",
-        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
-        "valor": 1500.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-03-07",
         "descricao": "55656744FERNANDA",
         "valor": 38.0,
@@ -14330,32 +12520,12 @@
       },
       {
         "data": "2026-03-09",
-        "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO — TRANSF ENVIADA PIX",
-        "valor": 760.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-09",
         "descricao": "Pix Qrcode Din Des: Moda Mundial Brasil p 07/03",
         "valor": 32.0,
         "banco": "Bradesco",
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-10",
-        "descricao": "SEGURO CONTA C6 Março 26 — Seguro Conta Março 26",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -14386,26 +12556,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-13",
-        "descricao": "GRAN  COFFEE",
-        "valor": 8.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-13",
-        "descricao": "GRAN  COFFEE",
-        "valor": 6.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -14499,28 +12649,8 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-03-22",
-        "descricao": "EC          *MELIMAIS",
-        "valor": 19.9,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-03-24",
         "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO",
-        "valor": 500.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-24",
-        "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO — TRANSF ENVIADA PIX",
         "valor": 500.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
@@ -14570,6 +12700,16 @@
       }
     ],
     "transporte": [
+      {
+        "data": "2023-11-28",
+        "descricao": "UBER   *UBER   *TRIP",
+        "valor": 34.93,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
       {
         "data": "2023-12-04",
         "descricao": "SAO PAULO PARK ESTACIO",
@@ -14624,6 +12764,16 @@
         "data": "2023-12-13",
         "descricao": "PRIME AUTO POSTO LTDA",
         "valor": 36.22,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-14",
+        "descricao": "PUNTO  *PRIME AUTO PO",
+        "valor": 285.49,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "faturacarbon",
@@ -14822,6 +12972,16 @@
       },
       {
         "data": "2024-01-18",
+        "descricao": "UBER   *UBER   *TRIP",
+        "valor": 57.86,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-18",
         "descricao": "SAO PAULO PARK ESTACIO",
         "valor": 13.5,
         "banco": "C6 Bank",
@@ -14841,6 +13001,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2024-01-27",
+        "descricao": "UBER   *TRIP",
+        "valor": 159.94,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-27",
+        "descricao": "UBER   *TRIP",
+        "valor": 7.01,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2024-01-28",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-BLU SPH  AVENIDA HIGIENOPOLIS 69",
         "valor": 34.0,
@@ -14851,6 +13031,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2024-01-29",
+        "descricao": "UBER   *TRIP",
+        "valor": 4.95,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-29",
+        "descricao": "UBER   *TRIP",
+        "valor": 113.12,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2024-01-30",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-SHOPPING SP MARKET  AVENIDA DAS",
         "valor": 18.0,
@@ -14858,6 +13058,26 @@
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-30",
+        "descricao": "UBER   *TRIP",
+        "valor": 154.42,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-30",
+        "descricao": "UBER   *TRIP",
+        "valor": 6.76,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -15081,6 +13301,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2024-02-12",
+        "descricao": "UBER   *TRIP",
+        "valor": 12.92,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-12",
+        "descricao": "UBER   *TRIP",
+        "valor": 295.03,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2024-02-13",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 39047 NORTE",
         "valor": 12.4,
@@ -15151,6 +13391,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2024-02-13",
+        "descricao": "UBER   *TRIP",
+        "valor": 236.69,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-13",
+        "descricao": "UBER   *TRIP",
+        "valor": 10.37,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2024-02-17",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-MOOCA PLAZA SHOPPING  RUA CAP PA",
         "valor": 24.0,
@@ -15162,8 +13422,48 @@
       },
       {
         "data": "2024-02-20",
+        "descricao": "UBER   *UBER   *TRIP",
+        "valor": 62.02,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-20",
         "descricao": "UBER UBER *TRIP HELP.U",
         "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-20",
+        "descricao": "UBER   *UBER   *TRIP",
+        "valor": 25.76,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-20",
+        "descricao": "UBER   *UBER   *TRIP",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-20",
+        "descricao": "UBER   *UBER   *TRIP",
+        "valor": 61.78,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "faturacarbon",
@@ -18931,6 +17231,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-04-29",
+        "descricao": "PUNTO  *PRIME AUTO PO",
+        "valor": 284.01,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-04-30",
         "descricao": "ESTACIONAMENTO MODELO",
         "valor": 48.0,
@@ -19208,6 +17518,26 @@
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-10",
+        "descricao": "SHELL                  PO",
+        "valor": 8.13,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-10",
+        "descricao": "SHELL                  PO",
+        "valor": 240.49,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -19671,6 +18001,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-06-07",
+        "descricao": "SHELL                  MI",
+        "valor": 4.51,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-07",
+        "descricao": "SHELL                  MI",
+        "valor": 128.76,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-06-08",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 39047 NORTE F",
         "valor": 13.0,
@@ -19834,16 +18184,6 @@
         "data": "2025-06-08",
         "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
         "valor": 10.4,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-08",
-        "descricao": "C6TAG PEDAGIO SEGURO CONTA C6",
-        "valor": 13.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -21742,16 +20082,6 @@
       },
       {
         "data": "2025-10-10",
-        "descricao": "C6TAG ESTACIONAMENTO SEGURO CONTA C6",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-10",
         "descricao": "C6TAG ESTACIONAMENTO",
         "valor": 27.0,
         "banco": "C6 Bank",
@@ -21942,6 +20272,26 @@
       },
       {
         "data": "2025-10-18",
+        "descricao": "UBER   *TRIP           SA",
+        "valor": 4.8,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-18",
+        "descricao": "UBER   *TRIP           SA",
+        "valor": 137.05,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-18",
         "descricao": "PRIME AUTO POSTO LTDA",
         "valor": 188.79,
         "banco": "C6 Bank",
@@ -21954,6 +20304,26 @@
         "data": "2025-10-18",
         "descricao": "CORREA CONVENIENCIA LT",
         "valor": 16.9,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-19",
+        "descricao": "UBER   *TRIP           SA",
+        "valor": 113.32,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-19",
+        "descricao": "UBER   *TRIP           SA",
+        "valor": 3.97,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "faturacarbon",
@@ -22214,16 +20584,6 @@
         "data": "2025-11-09",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PARQUE IBIRAPUERA  AVENIDA PEDRO",
         "valor": 25.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-09",
-        "descricao": "C6TAG ESTACIONAMENTO SEGURO CONTA C6",
-        "valor": 22.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -22574,6 +20934,16 @@
         "data": "2025-11-24",
         "descricao": "PRIME AUTO POSTO LTDA",
         "valor": 14.0,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-24",
+        "descricao": "PUNTO  *PRIME AUTO PO",
+        "valor": 36.87,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "faturacarbon",
@@ -22958,16 +21328,6 @@
         "categoria": "transporte",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-10",
-        "descricao": "C6TAG ESTACIONAMENTO Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-        "valor": 27.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -23592,16 +21952,6 @@
       },
       {
         "data": "2026-02-27",
-        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO C6TAG PEDAGIO",
-        "valor": 2300.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-27",
         "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
         "valor": 13.6,
         "banco": "C6 Bank",
@@ -24133,9 +22483,39 @@
     ],
     "impostos": [
       {
+        "data": "2024-02-21",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 704.18,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-29",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 987.78,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
         "data": "2024-12-18",
         "descricao": "Pix enviado para RECEITA FEDERAL — TRANSF ENVIADA PIX",
         "valor": 550.16,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-02",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 5372.18,
         "banco": "C6 Bank",
         "categoria": "impostos",
         "tipo_conta": "extratoconta",
@@ -24153,6 +22533,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-02-13",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 4571.42,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-04-16",
         "descricao": "Pix enviado para RECEITA FEDERAL — TRANSF ENVIADA PIX",
         "valor": 166.98,
@@ -24166,16 +22556,6 @@
         "data": "2025-04-16",
         "descricao": "Pix enviado para RECEITA FEDERAL Boleto",
         "valor": 166.98,
-        "banco": "C6 Bank",
-        "categoria": "impostos",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-16",
-        "descricao": "Pix enviado para ELIBELTO JOSE DE LIMA Pix enviado para RECEITA FEDERAL",
-        "valor": 500.0,
         "banco": "C6 Bank",
         "categoria": "impostos",
         "tipo_conta": "extratoconta",
@@ -24224,7 +22604,7 @@
       },
       {
         "data": "2025-08-26",
-        "descricao": "Pix enviado para RECEITA FEDERAL — TRANSF ENVIADA PIX",
+        "descricao": "Pix enviado para RECEITA FEDERAL Pix enviado para RECEITA FEDERAL",
         "valor": 2217.06,
         "banco": "C6 Bank",
         "categoria": "impostos",
@@ -24236,16 +22616,6 @@
         "data": "2025-08-26",
         "descricao": "Pix enviado para RECEITA FEDERAL — TRANSF ENVIADA PIX",
         "valor": 3367.87,
-        "banco": "C6 Bank",
-        "categoria": "impostos",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-26",
-        "descricao": "Pix enviado para RECEITA FEDERAL Pix enviado para RECEITA FEDERAL",
-        "valor": 2217.06,
         "banco": "C6 Bank",
         "categoria": "impostos",
         "tipo_conta": "extratocontapj",
@@ -24403,6 +22773,206 @@
         "moeda": "BRL"
       },
       {
+        "data": "2026-01-10",
+        "descricao": "C6TAG ESTACIONAMENTO Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 27.0,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 142.47,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 140.09,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 137.51,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 134.93,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 43.35,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 66.08,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 64.98,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 63.78,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 62.59,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 143.51,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 141.32,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 138.89,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 136.25,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 133.54,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 66.57,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 65.55,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 64.43,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 63.2,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-11",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 61.94,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
         "data": "2026-01-12",
         "descricao": "Pix enviado para RECEITA FEDERAL Pix enviado para RECEITA FEDERAL",
         "valor": 142.62,
@@ -24415,7 +22985,7 @@
       {
         "data": "2026-01-12",
         "descricao": "Pix enviado para RECEITA FEDERAL — TRANSF ENVIADA PIX",
-        "valor": 142.62,
+        "valor": 1507.2,
         "banco": "C6 Bank",
         "categoria": "impostos",
         "tipo_conta": "extratoconta",
@@ -24423,9 +22993,39 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-01-12",
-        "descricao": "Pix enviado para RECEITA FEDERAL — TRANSF ENVIADA PIX",
-        "valor": 1507.2,
+        "data": "2026-02-05",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 4871.34,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-05",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
+        "valor": 824.88,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-05",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+        "valor": 1155.94,
+        "banco": "C6 Bank",
+        "categoria": "impostos",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-20",
+        "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para Elias Paiva",
+        "valor": 482.59,
         "banco": "C6 Bank",
         "categoria": "impostos",
         "tipo_conta": "extratoconta",
@@ -24455,6 +23055,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2024-01-04",
+        "descricao": "EBN         *SPOTIFY",
+        "valor": 34.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2024-01-15",
         "descricao": "AMAZONPRIMEBR",
         "valor": 14.9,
@@ -24465,9 +23075,29 @@
         "moeda": "BRL"
       },
       {
+        "data": "2024-02-04",
+        "descricao": "EBN         *SPOTIFY",
+        "valor": 34.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2024-02-15",
         "descricao": "AMAZONPRIMEBR",
         "valor": 14.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-03-04",
+        "descricao": "EBN         *SPOTIFY",
+        "valor": 34.9,
         "banco": "C6 Bank",
         "categoria": "assinaturas",
         "tipo_conta": "faturacarbon",
@@ -24615,6 +23245,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-04-04",
+        "descricao": "DM          *SPOTIFY",
+        "valor": 34.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-04-06",
         "descricao": "LIVELO S.A.*CLUBE LIVE",
         "valor": 44.9,
@@ -24755,6 +23395,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-04",
+        "descricao": "DM          *SPOTIFY",
+        "valor": 34.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-05-06",
         "descricao": "CLUBE LIVELO",
         "valor": 44.9,
@@ -24868,6 +23518,16 @@
         "data": "2025-06-02",
         "descricao": "APPLE.COM/BILL",
         "valor": 4.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-04",
+        "descricao": "DM          *SPOTIFY",
+        "valor": 34.9,
         "banco": "C6 Bank",
         "categoria": "assinaturas",
         "tipo_conta": "faturacarbon",
@@ -25226,6 +23886,16 @@
       },
       {
         "data": "2025-08-04",
+        "descricao": "DM          *SPOTIFY",
+        "valor": 34.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-04",
         "descricao": "AMAZON PRIME ALUGUEL",
         "valor": 19.9,
         "banco": "C6 Bank",
@@ -25368,6 +24038,16 @@
         "data": "2025-09-02",
         "descricao": "APPLE.COM/BILL",
         "valor": 5.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-04",
+        "descricao": "DM          *SPOTIFY",
+        "valor": 40.9,
         "banco": "C6 Bank",
         "categoria": "assinaturas",
         "tipo_conta": "faturacarbon",
@@ -25585,6 +24265,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-10-04",
+        "descricao": "DM          *SPOTIFY",
+        "valor": 40.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-10-06",
         "descricao": "CLUBE LIVELO*CLUBE LIV",
         "valor": 44.9,
@@ -25635,6 +24325,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-10-23",
+        "descricao": "EC          *MELIMAIS",
+        "valor": 24.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-10-24",
         "descricao": "GLOBO*GLOBOPLAY",
         "valor": 22.9,
@@ -25678,6 +24378,16 @@
         "data": "2025-11-02",
         "descricao": "APPLE.COM/BILL",
         "valor": 5.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-04",
+        "descricao": "EBN         *SPOTIFY",
+        "valor": 40.9,
         "banco": "C6 Bank",
         "categoria": "assinaturas",
         "tipo_conta": "faturacarbon",
@@ -25755,6 +24465,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-11-22",
+        "descricao": "EC          *MELIMAIS",
+        "valor": 24.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-11-29",
         "descricao": "AMAZON PRIME*CK1938XW3",
         "valor": 84.99,
@@ -25778,6 +24498,16 @@
         "data": "2025-12-02",
         "descricao": "APPLE.COM/BILL",
         "valor": 5.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-04",
+        "descricao": "DM          *SPOTIFY",
+        "valor": 40.9,
         "banco": "C6 Bank",
         "categoria": "assinaturas",
         "tipo_conta": "faturacarbon",
@@ -25855,6 +24585,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-12-22",
+        "descricao": "EC          *MELIMAIS",
+        "valor": 19.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-12-29",
         "descricao": "SCP BASICO- DEZ/25",
         "valor": 10.49,
@@ -25878,6 +24618,16 @@
         "data": "2026-01-02",
         "descricao": "APPLE.COM/BILL",
         "valor": 5.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-04",
+        "descricao": "DM          *SPOTIFY",
+        "valor": 40.9,
         "banco": "C6 Bank",
         "categoria": "assinaturas",
         "tipo_conta": "faturacarbon",
@@ -26115,9 +24865,29 @@
         "moeda": "BRL"
       },
       {
+        "data": "2026-02-20",
+        "descricao": "EC          *MELIMAIS",
+        "valor": 19.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2026-03-02",
         "descricao": "APPLECOMBILL",
         "valor": 5.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-04",
+        "descricao": "DM          *SPOTIFY",
+        "valor": 40.9,
         "banco": "C6 Bank",
         "categoria": "assinaturas",
         "tipo_conta": "faturacarbon",
@@ -26203,9 +24973,169 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-22",
+        "descricao": "EC          *MELIMAIS",
+        "valor": 19.9,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
       }
     ],
     "seguros": [
+      {
+        "data": "2024-01-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-03-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-04-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-05-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-06-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-07-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-08-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-09-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-10-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-11-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-12-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 21.16,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-02-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-03-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
       {
         "data": "2025-04-09",
         "descricao": "PORTO SEGURO SEGUROS",
@@ -26214,6 +25144,76 @@
         "categoria": "seguros",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-10",
+        "descricao": "SEGURO CONTA C6 Pix enviado para REGIANE DONIZETI BALBINO",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-08",
+        "descricao": "C6TAG PEDAGIO SEGURO CONTA C6",
+        "valor": 13.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-10",
+        "descricao": "SEGURO CONTA C6",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -26227,6 +25227,86 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-08-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-10",
+        "descricao": "C6TAG ESTACIONAMENTO SEGURO CONTA C6",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-09",
+        "descricao": "C6TAG ESTACIONAMENTO SEGURO CONTA C6",
+        "valor": 22.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
         "data": "2026-01-27",
         "descricao": "MENSALIDADE DE SEGURO Parc 007/012 AP",
         "valor": 10.07,
@@ -26237,6 +25317,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2026-02-10",
+        "descricao": "SEGURO CONTA C6 — Seguro Conta",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
         "data": "2026-02-27",
         "descricao": "MENSALIDADE DE SEGURO Parc 008/012 AP",
         "valor": 10.07,
@@ -26244,6 +25334,16 @@
         "categoria": "seguros",
         "tipo_conta": "extratoconta",
         "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-10",
+        "descricao": "SEGURO CONTA C6 Março 26 — Seguro Conta Março 26",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "seguros",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -26439,16 +25539,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-09-13",
-        "descricao": "Pix enviado para Eliane Costa Goncalves",
-        "valor": 440.0,
-        "banco": "C6 Bank",
-        "categoria": "servicos_domesticos",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-09-25",
         "descricao": "MP *33798933SAMUELABN",
         "valor": 103.0,
@@ -26501,16 +25591,6 @@
       {
         "data": "2025-10-15",
         "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
-        "valor": 1334.0,
-        "banco": "C6 Bank",
-        "categoria": "servicos_domesticos",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-15",
-        "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
         "valor": 1334.0,
         "banco": "C6 Bank",
         "categoria": "servicos_domesticos",
@@ -26729,16 +25809,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-12-26",
-        "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
-        "valor": 2243.0,
-        "banco": "C6 Bank",
-        "categoria": "servicos_domesticos",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-12-30",
         "descricao": "ELAINE APARECIDA BUZZ",
         "valor": 560.67,
@@ -26879,16 +25949,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-03-13",
-        "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
-        "valor": 1000.0,
-        "banco": "C6 Bank",
-        "categoria": "servicos_domesticos",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-03-25",
         "descricao": "Des: Eliane Costa Goncalve 0844186 Atendimento 24 horas, 7 dias por semana.",
         "valor": 230.0,
@@ -26901,16 +25961,6 @@
       {
         "data": "2026-03-31",
         "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
-        "valor": 2191.41,
-        "banco": "C6 Bank",
-        "categoria": "servicos_domesticos",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-31",
-        "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
         "valor": 2191.41,
         "banco": "C6 Bank",
         "categoria": "servicos_domesticos",
@@ -27434,6 +26484,26 @@
         "data": "2025-06-14",
         "descricao": "HOTELCOM73139275741253",
         "valor": 1031.7,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-15",
+        "descricao": "FAST POINT             MC",
+        "valor": 212.41,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-15",
+        "descricao": "FAST POINT             MC",
+        "valor": 7.43,
         "banco": "C6 Bank",
         "categoria": "lazer_viagens",
         "tipo_conta": "faturacarbon",
@@ -28328,16 +27398,6 @@
         "categoria": "lazer_viagens",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-03",
-        "descricao": "Pix enviado para AIR EUROPA LINEAS AEREAS SOCIEDAD ANONIMA — TRANSF ENVIADA PIX",
-        "valor": 1263.99,
-        "banco": "C6 Bank",
-        "categoria": "lazer_viagens",
-        "tipo_conta": "extratoconta",
-        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -29383,16 +28443,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-10-26",
-        "descricao": "Pix enviado para LUMMA ROBERTA DA SILVA Pix enviado para Carlos Augusto Silva Ribeiro Junior",
-        "valor": 3000.0,
-        "banco": "C6 Bank",
-        "categoria": "saude",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-10-30",
         "descricao": "INSTITUTO DR BARAKAT",
         "valor": 6000.0,
@@ -29465,16 +28515,6 @@
       {
         "data": "2025-11-14",
         "descricao": "Pix enviado para CLINICA DERMATOLOGICA DRA.ADRIANA AWADA LTDA — TRANSF ENVIADA PIX",
-        "valor": 1000.0,
-        "banco": "C6 Bank",
-        "categoria": "saude",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-14",
-        "descricao": "Pix enviado para CLINICA DERMATOLOGICA DRA.ADRIANA AWADA LTDA Pix enviado para VESALTEC SERRALHERIA E COMERCIO LTDA",
         "valor": 1000.0,
         "banco": "C6 Bank",
         "categoria": "saude",
@@ -29565,16 +28605,6 @@
       {
         "data": "2025-12-15",
         "descricao": "Pix enviado para HELEN SASAKE TAKAGI — TRANSF ENVIADA PIX",
-        "valor": 1000.0,
-        "banco": "C6 Bank",
-        "categoria": "saude",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-15",
-        "descricao": "Pix enviado para HELEN SASAKE TAKAGI",
         "valor": 1000.0,
         "banco": "C6 Bank",
         "categoria": "saude",
@@ -29693,28 +28723,8 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-01-26",
-        "descricao": "Pix enviado para LUMMA ROBERTA DA SILVA — TRANSF ENVIADA PIX",
-        "valor": 2100.0,
-        "banco": "C6 Bank",
-        "categoria": "saude",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-01-27",
         "descricao": "Pix enviado para HT SARAGIOTTO SERVICOS MEDICOS LTDA",
-        "valor": 680.0,
-        "banco": "C6 Bank",
-        "categoria": "saude",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-27",
-        "descricao": "Pix enviado para HT SARAGIOTTO SERVICOS MEDICOS LTDA — TRANSF ENVIADA PIX",
         "valor": 680.0,
         "banco": "C6 Bank",
         "categoria": "saude",
@@ -30658,6 +29668,36 @@
         "data": "2025-04-04",
         "descricao": "MERCADOLIVRE*JAPAVEND",
         "valor": 179.83,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-04",
+        "descricao": "RAPPI  *RAPPI RAPPI BR",
+        "valor": 53.34,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-04",
+        "descricao": "RAPPI  *RAPPI RAPPI BR",
+        "valor": 276.24,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-04",
+        "descricao": "RAPPI  *RAPPI RAPPI BR",
+        "valor": 26.31,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -32306,6 +31346,16 @@
       },
       {
         "data": "2025-10-10",
+        "descricao": "BONANZA     0001     S",
+        "valor": 120.38,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-10",
         "descricao": "MOMA MADALENA",
         "valor": 372.9,
         "banco": "C6 Bank",
@@ -32348,6 +31398,16 @@
         "data": "2025-10-13",
         "descricao": "A CASA DE ANTONIA",
         "valor": 62.15,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-16",
+        "descricao": "BONANZA     0001     S",
+        "valor": 94.46,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -32495,6 +31555,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-10-28",
+        "descricao": "DL     *DLRAPPI BR",
+        "valor": 84.23,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-10-29",
         "descricao": "REAL DA VILLA",
         "valor": 16.0,
@@ -32566,6 +31636,16 @@
       },
       {
         "data": "2025-11-01",
+        "descricao": "BONANZA     0001     S",
+        "valor": 103.73,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-01",
         "descricao": "PADARIA DANIELA",
         "valor": 8.6,
         "banco": "C6 Bank",
@@ -32608,6 +31688,16 @@
         "data": "2025-11-02",
         "descricao": "VAI DE PIZZAS",
         "valor": 134.3,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-04",
+        "descricao": "BONANZA     0001     S",
+        "valor": 27.23,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -32766,6 +31856,16 @@
       },
       {
         "data": "2025-11-13",
+        "descricao": "BONANZA     0001     S",
+        "valor": 93.63,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-13",
         "descricao": "MERCADOLIVRE*SERGIOCO",
         "valor": 42.83,
         "banco": "C6 Bank",
@@ -32868,6 +31968,16 @@
         "data": "2025-11-18",
         "descricao": "LAGOS DO SUL RESTAURA",
         "valor": 7.5,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-18",
+        "descricao": "BONANZA     0001     S",
+        "valor": 125.07,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -33096,6 +32206,36 @@
       },
       {
         "data": "2025-11-28",
+        "descricao": "DL     *DLRAPPIPROBR",
+        "valor": 34.9,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-28",
+        "descricao": "BONANZA     0001     S",
+        "valor": 103.1,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-28",
+        "descricao": "RAPPI  *DROGARIA SAO P",
+        "valor": 60.49,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-28",
         "descricao": "MERCADOLIVRE*MERCADOL",
         "valor": 474.5,
         "banco": "C6 Bank",
@@ -33296,6 +32436,16 @@
       },
       {
         "data": "2025-12-09",
+        "descricao": "BONANZA     0001     S",
+        "valor": 128.45,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-09",
         "descricao": "VAI DE PIZZAS",
         "valor": 137.8,
         "banco": "C6 Bank",
@@ -33308,6 +32458,16 @@
         "data": "2025-12-10",
         "descricao": "NATHALIACASADE",
         "valor": 269.53,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-11",
+        "descricao": "BONANZA     0001     S",
+        "valor": 86.43,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -33348,6 +32508,16 @@
         "data": "2025-12-12",
         "descricao": "SAKURAPAESEDOCES",
         "valor": 11.5,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-12",
+        "descricao": "BONANZA     0001     S",
+        "valor": 118.05,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -33555,6 +32725,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-12-20",
+        "descricao": "DL     *DLRAPPI BR",
+        "valor": 27.23,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-12-22",
         "descricao": "MINIMART  SILVA BRAZ",
         "valor": 14.99,
@@ -33578,6 +32758,16 @@
         "data": "2025-12-22",
         "descricao": "ERVA DOCE BAR",
         "valor": 65.4,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-23",
+        "descricao": "BONANZA     0001     S",
+        "valor": 17.5,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -33626,6 +32816,16 @@
       },
       {
         "data": "2025-12-24",
+        "descricao": "BONANZA     0001     S",
+        "valor": 115.38,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-24",
         "descricao": "SUPERMERCADO DANCAR",
         "valor": 31.98,
         "banco": "C6 Bank",
@@ -33666,6 +32866,16 @@
       },
       {
         "data": "2025-12-28",
+        "descricao": "GRAN  COFFEE",
+        "valor": 13.0,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-28",
         "descricao": "MERCADOLIVRE*MERCADOL",
         "valor": 19.72,
         "banco": "C6 Bank",
@@ -33686,6 +32896,16 @@
       },
       {
         "data": "2025-12-30",
+        "descricao": "BONANZA     0001     S",
+        "valor": 35.47,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-30",
         "descricao": "OXXO VILA GUARANI",
         "valor": 23.11,
         "banco": "C6 Bank",
@@ -33698,6 +32918,16 @@
         "data": "2025-12-30",
         "descricao": "SAMS CLUB JABAQUARA",
         "valor": 877.94,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-31",
+        "descricao": "BONANZA     0001     S",
+        "valor": 173.42,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -33728,6 +32958,16 @@
         "data": "2026-01-01",
         "descricao": "MERCADO QUEIROZ",
         "valor": 65.0,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-02",
+        "descricao": "BONANZA     0001     S",
+        "valor": 17.17,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -33796,6 +33036,16 @@
       },
       {
         "data": "2026-01-06",
+        "descricao": "BONANZA     0001     S",
+        "valor": 71.87,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-06",
         "descricao": "MERCADOLIVRE*POTENZAP",
         "valor": 379.15,
         "banco": "C6 Bank",
@@ -33806,8 +33056,38 @@
       },
       {
         "data": "2026-01-07",
+        "descricao": "BONANZA     0001     S",
+        "valor": 16.59,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-07",
         "descricao": "OXXO VILA GUARANI",
         "valor": 11.49,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-08",
+        "descricao": "DL     *DLRAPPI BR",
+        "valor": 116.35,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-09",
+        "descricao": "BONANZA     0001     S",
+        "valor": 13.21,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -33908,6 +33188,16 @@
         "data": "2026-01-15",
         "descricao": "NATHALIACASADE",
         "valor": 255.04,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-16",
+        "descricao": "BONANZA     0001     S",
+        "valor": 49.46,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -34028,6 +33318,16 @@
         "data": "2026-01-18",
         "descricao": "PAO DE ACUCAR-2336",
         "valor": 184.77,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-19",
+        "descricao": "BONANZA     0001     S",
+        "valor": 92.01,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -34995,6 +34295,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2026-03-13",
+        "descricao": "GRAN  COFFEE",
+        "valor": 8.0,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-13",
+        "descricao": "GRAN  COFFEE",
+        "valor": 6.9,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2026-03-14",
         "descricao": "BLMT COMERCIO DE ALIME",
         "valor": 78.8,
@@ -35247,16 +34567,6 @@
       {
         "data": "2026-03-30",
         "descricao": "Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA — TRANSF ENVIADA PIX",
-        "valor": 380.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-30",
-        "descricao": "Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA — TRANSF ENVIADA PIX",
         "valor": 59.5,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
@@ -35427,16 +34737,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-07-27",
-        "descricao": "Pix enviado para BELT ACADEMY TREINAMENTO EM DESENVOLVIMENTO PROFISSIONAL\nLTDA",
-        "valor": 1950.0,
-        "banco": "C6 Bank",
-        "categoria": "educacao",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-08-26",
         "descricao": "Pix enviado para BELT ACADEMY TREINAMENTO EM DESENVOLVIMENTO PROFISSIONAL LTDA — TRANSF ENVIADA PIX",
         "valor": 1950.0,
@@ -35587,6 +34887,208 @@
         "moeda": "BRL"
       }
     ],
+    "melhoria_reforma": [
+      {
+        "data": "2025-03-04",
+        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO Pix enviado para RUBENS DE CAMPOS",
+        "valor": 2000.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-06",
+        "descricao": "ELETTRICA COMERCIO DE",
+        "valor": 171.2,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-04",
+        "descricao": "DEPOSITO GUARANI",
+        "valor": 102.5,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-04",
+        "descricao": "DEPOSITO GUARANI",
+        "valor": 8.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-21",
+        "descricao": "FUTURA MADEIRAS",
+        "valor": 700.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-10",
+        "descricao": "JS MATERIAIS DE CONS",
+        "valor": 29.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-13",
+        "descricao": "ANDRA MATERIAIS ELETRI",
+        "valor": 149.85,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-13",
+        "descricao": "ROSSE COMERCIO DE MATE",
+        "valor": 59.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-19",
+        "descricao": "Pix enviado para ELIAS PAIVA — TRANSF ENVIADA PIX",
+        "valor": 750.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-09",
+        "descricao": "SILETRICA",
+        "valor": 1.37,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-09",
+        "descricao": "SILETRICA",
+        "valor": 39.05,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-20",
+        "descricao": "Pix enviado para Elias Paiva — TRANSF ENVIADA PIX",
+        "valor": 800.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-22",
+        "descricao": "CONILREM",
+        "valor": 49.35,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-26",
+        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
+        "valor": 1200.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-27",
+        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO C6TAG PEDAGIO",
+        "valor": 2300.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-27",
+        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
+        "valor": 2300.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-04",
+        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO Pix enviado para RUBENS DE CAMPOS",
+        "valor": 2000.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-06",
+        "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
+        "valor": 1500.0,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-09",
+        "descricao": "DEPOSITO CENTER",
+        "valor": 36.5,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-14",
+        "descricao": "DAISO BRASIL",
+        "valor": 4.5,
+        "banco": "C6 Bank",
+        "categoria": "melhoria_reforma",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      }
+    ],
     "reserva_desejos": [
       {
         "data": "2023-12-06",
@@ -35636,6 +35138,26 @@
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-02",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 02/01",
+        "valor": 22.0,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-02",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 02/01",
+        "valor": 22.99,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
         "moeda": "BRL"
       },
       {
@@ -36539,6 +36061,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-09-30",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 30/09",
+        "valor": 137.75,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-10-04",
         "descricao": "VIDESUL",
         "valor": 88.95,
@@ -36649,18 +36181,18 @@
         "moeda": "USD"
       },
       {
-        "data": "2025-12-08",
-        "descricao": "Pix enviado para GRUPO CASAS BAHIA S.A. — TRANSF ENVIADA PIX",
-        "valor": 18233.19,
-        "banco": "C6 Bank",
+        "data": "2025-10-31",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 31/10",
+        "valor": 41.97,
+        "banco": "Bradesco",
         "categoria": "reserva_desejos",
         "tipo_conta": "extratoconta",
-        "titular": null,
+        "titular": "mariana",
         "moeda": "BRL"
       },
       {
         "data": "2025-12-08",
-        "descricao": "Pix enviado para GRUPO CASAS BAHIA S.A.",
+        "descricao": "Pix enviado para GRUPO CASAS BAHIA S.A. — TRANSF ENVIADA PIX",
         "valor": 18233.19,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
@@ -36729,6 +36261,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2026-01-12",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 10/01",
+        "valor": 16.99,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
         "data": "2026-01-16",
         "descricao": "AMAZON BR",
         "valor": 229.56,
@@ -36739,13 +36281,53 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-01-29",
-        "descricao": "AMAZON BR",
-        "valor": 199.9,
-        "banco": "C6 Bank",
+        "data": "2026-01-28",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
+        "valor": 69.99,
+        "banco": "Bradesco",
         "categoria": "reserva_desejos",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-28",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
+        "valor": 21.9,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-28",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
+        "valor": 69.54,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-29",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 29/01",
+        "valor": 56.76,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-29",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 29/01",
+        "valor": 29.9,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
         "moeda": "BRL"
       },
       {
@@ -36766,6 +36348,46 @@
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-29",
+        "descricao": "AMAZON BR",
+        "valor": 199.9,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-30",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 30/01",
+        "valor": 35.99,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-02",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 01/02 Des: Shpp Brasil Instituic 01/02 2133123 - 69,99",
+        "valor": 88.5,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-02",
+        "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 01/02",
+        "valor": 54.6,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
         "moeda": "BRL"
       },
       {
@@ -37636,128 +37258,6 @@
         "valor": 114.2,
         "banco": "C6 Bank",
         "categoria": "vestuario",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      }
-    ],
-    "melhoria_reforma": [
-      {
-        "data": "2025-04-06",
-        "descricao": "ELETTRICA COMERCIO DE",
-        "valor": 171.2,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-04",
-        "descricao": "DEPOSITO GUARANI",
-        "valor": 102.5,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-04",
-        "descricao": "DEPOSITO GUARANI",
-        "valor": 8.0,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-21",
-        "descricao": "FUTURA MADEIRAS",
-        "valor": 700.0,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-10",
-        "descricao": "JS MATERIAIS DE CONS",
-        "valor": 29.0,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-13",
-        "descricao": "ANDRA MATERIAIS ELETRI",
-        "valor": 149.85,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-13",
-        "descricao": "ROSSE COMERCIO DE MATE",
-        "valor": 59.0,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-09",
-        "descricao": "SILETRICA",
-        "valor": 1.37,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-09",
-        "descricao": "SILETRICA",
-        "valor": 39.05,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-22",
-        "descricao": "CONILREM",
-        "valor": 49.35,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-09",
-        "descricao": "DEPOSITO CENTER",
-        "valor": 36.5,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-14",
-        "descricao": "DAISO BRASIL",
-        "valor": 4.5,
-        "banco": "C6 Bank",
-        "categoria": "melhoria_reforma",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
