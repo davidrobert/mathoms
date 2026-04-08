@@ -234,6 +234,7 @@ def _resolve_members(baseline: Dict[str, Any]) -> tuple:
             return david_data, mariana_data
         # Format 3: membros is list of strings + declarations exist
         if baseline.get("declarations"):
+            print("  [WARN] Baseline em formato E1.5 declarations — usando fallback. Considere regenerar E1.5 com schema consolidado.")
             return _build_members_from_declarations(baseline)
     if members and isinstance(members, dict):
         return members.get("david", {}), members.get("mariana", {})
@@ -481,17 +482,22 @@ def _investimento_valor(inv) -> float:
     return safe_float(inv)
 
 
-def analyze_patrimonio(baseline: Dict[str, Any]) -> Dict[str, Any]:
-    """Analyze patrimonio from baseline data."""
+def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str, Any] = None) -> Dict[str, Any]:
+    """Analyze patrimonio from baseline data, optionally enriched with current
+    investment positions from investimentos-4_unified.json.
+
+    Strategy:
+    - Imóveis and veículos: always from IRPF baseline (updated annually)
+    - Investimentos: prefer current positions (E2-llm extracts, monthly) over IRPF
+    - When current positions available: patrimonio_bruto is recalculated as
+      imóveis + veículos + investimentos_atuais + contas_bancárias
+    """
     print("[E5.1] Analyzing patrimonio...")
 
     david, mariana = _resolve_members(baseline)
 
-    total_bens = safe_float(david.get("total_bens", 0)) + safe_float(mariana.get("total_bens", 0))
+    total_bens_irpf = safe_float(david.get("total_bens", 0)) + safe_float(mariana.get("total_bens", 0))
     total_dividas = safe_float(david.get("total_dividas", david.get("dividas", 0))) + safe_float(mariana.get("total_dividas", mariana.get("dividas", 0)))
-
-    patrimonio_bruto = total_bens
-    patrimonio_liquido = patrimonio_bruto - total_dividas
 
     david_bens = _get_bens(david)
     mariana_bens = _get_bens(mariana)
@@ -516,32 +522,67 @@ def analyze_patrimonio(baseline: Dict[str, Any]) -> Dict[str, Any]:
     for veiculo in mariana_bens.get("veiculos", []):
         veiculos += _veiculo_valor(veiculo)
 
-    # Investment accounts
+    # Investment accounts — prefer current positions over IRPF
     investimentos_david = 0.0
     investimentos_mariana = 0.0
+    fonte_investimentos = "irpf"
 
-    for inv in david_bens.get("investimentos", []):
-        investimentos_david += _investimento_valor(inv)
-    contas_d = david_bens.get("contas_bancarias", [])
-    if isinstance(contas_d, list):
-        for inv in contas_d:
+    has_current_positions = (
+        investimentos_atuais
+        and isinstance(investimentos_atuais, dict)
+        and len(investimentos_atuais.get("dados", [])) > 0
+    )
+
+    if has_current_positions:
+        # Use current E2-llm position extracts (more recent than IRPF)
+        fonte_investimentos = "posicoes_atuais"
+        totais = investimentos_atuais.get("total_por_membro", {})
+        investimentos_david = safe_float(totais.get("david", 0))
+        investimentos_mariana = safe_float(totais.get("mariana", 0))
+        n_pos = investimentos_atuais.get("n_posicoes", 0)
+        data_ref = investimentos_atuais.get("data_consolidacao", "?")
+        print(f"  [INFO] Usando posições atuais ({n_pos} posições, ref: {data_ref})")
+        print(f"  [INFO] David: R$ {investimentos_david:,.2f}, Mariana: R$ {investimentos_mariana:,.2f}")
+    else:
+        # Fallback to IRPF baseline
+        for inv in david_bens.get("investimentos", []):
             investimentos_david += _investimento_valor(inv)
-    else:
-        investimentos_david += safe_float(contas_d)
-    # saldo_corretora + moeda_estrangeira + outros
-    for extra_key in ("saldo_corretora", "moeda_estrangeira", "outros"):
-        investimentos_david += safe_float(david_bens.get(extra_key, 0))
+        contas_d = david_bens.get("contas_bancarias", [])
+        if isinstance(contas_d, list):
+            for inv in contas_d:
+                investimentos_david += _investimento_valor(inv)
+        else:
+            investimentos_david += safe_float(contas_d)
+        for extra_key in ("saldo_corretora", "moeda_estrangeira", "outros"):
+            investimentos_david += safe_float(david_bens.get(extra_key, 0))
 
-    for inv in mariana_bens.get("investimentos", []):
-        investimentos_mariana += _investimento_valor(inv)
-    contas_m = mariana_bens.get("contas_bancarias", [])
-    if isinstance(contas_m, list):
-        for inv in contas_m:
+        for inv in mariana_bens.get("investimentos", []):
             investimentos_mariana += _investimento_valor(inv)
+        contas_m = mariana_bens.get("contas_bancarias", [])
+        if isinstance(contas_m, list):
+            for inv in contas_m:
+                investimentos_mariana += _investimento_valor(inv)
+        else:
+            investimentos_mariana += safe_float(contas_m)
+        for extra_key in ("outros",):
+            investimentos_mariana += safe_float(mariana_bens.get(extra_key, 0))
+        print(f"  [INFO] Usando investimentos do IRPF (fallback)")
+
+    # Compute patrimonio_bruto
+    if has_current_positions:
+        # Recalculate: imóveis + veículos from IRPF + investimentos from current positions
+        patrimonio_bruto = (
+            residencia
+            + imoveis_investimento
+            + veiculos
+            + investimentos_david
+            + investimentos_mariana
+        )
+        print(f"  [INFO] Patrimônio recalculado com fontes mistas: R$ {patrimonio_bruto:,.2f} (IRPF imóveis+veículos + posições atuais)")
     else:
-        investimentos_mariana += safe_float(contas_m)
-    for extra_key in ("outros",):
-        investimentos_mariana += safe_float(mariana_bens.get(extra_key, 0))
+        patrimonio_bruto = total_bens_irpf
+
+    patrimonio_liquido = patrimonio_bruto - total_dividas
 
     # Caixa e moeda estrangeira (RESIDUAL)
     caixa_moeda_estrangeira = (
@@ -590,6 +631,7 @@ def analyze_patrimonio(baseline: Dict[str, Any]) -> Dict[str, Any]:
         "veiculos": round(veiculos, 2),
         "composicao": composicao,
         "tabela_categorias": composicao,
+        "fonte_investimentos": fonte_investimentos,
     }
 
 
@@ -1456,7 +1498,7 @@ def main():
     # COMPUTE NUMERIC SECTIONS
     # ========================================================================
 
-    patrimonio = analyze_patrimonio(baseline)
+    patrimonio = analyze_patrimonio(baseline, investimentos_atuais=investimentos)
     investimentos_classes = analyze_investimentos_classes(baseline)
 
     # Determine period string

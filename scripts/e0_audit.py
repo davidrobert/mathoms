@@ -158,6 +158,15 @@ def check_filename_vs_content() -> list[dict[str, Any]]:
         fname_parts = parse_e2_filename(fpath.name)
         fname_banco = normalize(fname_parts["banco"])
 
+        # Skip 0-byte files (truncated by e-reset on FS without delete)
+        if fpath.stat().st_size == 0:
+            issues.append({
+                "file": fpath.name,
+                "issue": "Arquivo 0 bytes (truncado por e-reset) — skip",
+                "severity": "INFO",
+            })
+            continue
+
         try:
             with open(fpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -169,7 +178,17 @@ def check_filename_vs_content() -> list[dict[str, Any]]:
             })
             continue
 
-        # Skip tombstone files
+        # Skip non-dict E2 files (e.g., fatura arrays, tombstones, 0-byte)
+        if not isinstance(data, dict):
+            if isinstance(data, list) and len(data) == 0:
+                continue  # empty array from truncated file — silent skip
+            issues.append({
+                "file": fpath.name,
+                "issue": f"JSON é {type(data).__name__} (esperado dict) — skip",
+                "severity": "INFO",
+            })
+            continue
+
         if "_tombstone" in data:
             continue
 
@@ -387,6 +406,9 @@ def check_saldo_gaps() -> list[dict[str, Any]]:
             with open(fpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
         except Exception:
+            continue
+
+        if not isinstance(data, dict):
             continue
 
         if "_tombstone" in data:

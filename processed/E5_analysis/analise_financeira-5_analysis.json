@@ -2,45 +2,45 @@
   "periodo_dados": "2024-01 a 2026-03",
   "data_analise": "2026-04-08",
   "patrimonio": {
-    "bruto": 3501275.44,
+    "bruto": 3952107.74,
     "dividas": 0.0,
-    "liquido": 3501275.44,
+    "liquido": 3952107.74,
     "residencia": 996821.46,
     "imoveis_investimento": 1442706.24,
-    "investimentos_david": 646148.01,
-    "investimentos_mariana": 188123.73,
+    "investimentos_david": 909719.48,
+    "investimentos_mariana": 375384.56,
     "caixa_moeda_estrangeira": 0.0,
-    "investivel": 2276977.98,
+    "investivel": 2727810.28,
     "veiculos": 227476.0,
     "composicao": [
       {
         "categoria": "Imóveis Investimento",
         "valor": 1442706.24,
-        "pct": 41.21
+        "pct": 36.5
       },
       {
         "categoria": "Residência",
         "valor": 996821.46,
-        "pct": 28.47
+        "pct": 25.22
       },
       {
         "categoria": "Investimentos David",
-        "valor": 646148.01,
-        "pct": 18.45
+        "valor": 909719.48,
+        "pct": 23.02
+      },
+      {
+        "categoria": "Investimentos Mariana",
+        "valor": 375384.56,
+        "pct": 9.5
       },
       {
         "categoria": "Veículos",
         "valor": 227476.0,
-        "pct": 6.5
-      },
-      {
-        "categoria": "Investimentos Mariana",
-        "valor": 188123.72999999998,
-        "pct": 5.37
+        "pct": 5.76
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 0.0,
+        "valor": 2.9103830456733704e-10,
         "pct": 0.0
       }
     ],
@@ -48,45 +48,46 @@
       {
         "categoria": "Imóveis Investimento",
         "valor": 1442706.24,
-        "pct": 41.21
+        "pct": 36.5
       },
       {
         "categoria": "Residência",
         "valor": 996821.46,
-        "pct": 28.47
+        "pct": 25.22
       },
       {
         "categoria": "Investimentos David",
-        "valor": 646148.01,
-        "pct": 18.45
+        "valor": 909719.48,
+        "pct": 23.02
+      },
+      {
+        "categoria": "Investimentos Mariana",
+        "valor": 375384.56,
+        "pct": 9.5
       },
       {
         "categoria": "Veículos",
         "valor": 227476.0,
-        "pct": 6.5
-      },
-      {
-        "categoria": "Investimentos Mariana",
-        "valor": 188123.72999999998,
-        "pct": 5.37
+        "pct": 5.76
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 0.0,
+        "valor": 2.9103830456733704e-10,
         "pct": 0.0
       }
-    ]
+    ],
+    "fonte_investimentos": "posicoes_atuais"
   },
   "goals": {
     "if_meta": 7200000.0,
     "if_trs": 5.0,
     "if_trs_monthly_value": 30000.0,
-    "if_pct": 31.62,
-    "if_gap": 4923022.02,
-    "prazo_anos_realista": 9.8,
-    "david_idade_if": 53,
-    "ano_if": 2035,
-    "renda_passiva_estimada_4pct": 7589.93
+    "if_pct": 37.89,
+    "if_gap": 4472189.72,
+    "prazo_anos_realista": 8.6,
+    "david_idade_if": 52,
+    "ano_if": 2034,
+    "renda_passiva_estimada_4pct": 9092.7
   },
   "fluxo_caixa": {
     "receita_total": 1549838.21,
@@ -1352,14 +1353,14 @@
     "taxa_poupanca_recorrente_pct": -2.96,
     "taxa_poupanca_total_pct": 26.1,
     "taxa_endividamento_pct": 0.0,
-    "cobertura_despesas_meses": 63.62,
+    "cobertura_despesas_meses": 76.21,
     "rentabilidade_pct": "N/D",
     "aliquota_efetiva_ir_pct": "N/D"
   },
   "score": {
-    "valor": 5.6,
+    "valor": 6.1,
     "max": 10,
-    "classificacao": "Regular",
+    "classificacao": "Bom",
     "componentes": [
       {
         "nome": "Taxa Poupança Recorrente",
@@ -1369,7 +1370,7 @@
       },
       {
         "nome": "Cobertura Despesas (meses)",
-        "valor": 63.62,
+        "valor": 76.21,
         "peso": 1.5,
         "nota": 10.0
       },
@@ -1381,15 +1382,15 @@
       },
       {
         "nome": "Progresso IF",
-        "valor": 31.62,
+        "valor": 37.89,
         "peso": 2.0,
-        "nota": 3.5
+        "nota": 4.4
       },
       {
         "nome": "Diversificação",
-        "valor": 5,
+        "valor": 6,
         "peso": 1.0,
-        "nota": 8.0
+        "nota": 10.0
       }
     ]
   },
@@ -1421,14 +1422,14 @@
     "nivel_6_meses": 214758.36,
     "nivel_12_meses": 429516.72,
     "composicao_liquida": {
-      "investimentos_david": 646148.01,
-      "investimentos_mariana": 188123.73,
+      "investimentos_david": 909719.48,
+      "investimentos_mariana": 375384.56,
       "caixa_moeda_estrangeira": 0.0,
-      "total_liquido": 834271.74,
-      "cobertura_meses": 23.3
+      "total_liquido": 1285104.04,
+      "cobertura_meses": 35.9
     },
-    "total_liquida": 834271.74,
-    "cobertura_meses": 23.3,
+    "total_liquida": 1285104.04,
+    "cobertura_meses": 35.9,
     "avaliacao_liquidity": "Excelente",
     "niveis": [
       "6 meses",
@@ -1452,8 +1453,8 @@
   },
   "pontos_fortes": [
     {
-      "titulo": "Análise em Andamento",
-      "descricao": "Pontos fortes serão identificados após consolidação de dados."
+      "titulo": "Score Financeiro Positivo",
+      "descricao": "Classificação Bom indica solidez financeira."
     }
   ],
   "pontos_urgentes": [
@@ -1866,7 +1867,7 @@
     "40": "pendente"
   },
   "alertas": [
-    "Score financeiro: 5.6/10 (Regular)",
+    "Score financeiro: 6.1/10 (Bom)",
     "Rentabilidade: N/D"
   ],
   "consumo_consciente": {
@@ -1904,12 +1905,12 @@
   "narrativas": {
     "perfil_familia": {
       "left": "<p>David Robert Camargo Ferreira Campos, 44 anos, é o titular da família e atua como CTO da Arvo, healthtech especializada em auditoria de contas médicas com IA. Com mais de 23 anos de carreira em tecnologia, David acumula passagens por Elo7, Loft e Kiwify em posições de liderança executiva. Formado em Ciência da Computação PUC-SP, mestrado IA USP/IME, opera como PJ Simples Nacional (Anexo V) através da empresa David Robert Camargo de Campos Ltda..</p>\n<p>Mariana Ferreira Campos, 39 anos, é Enfermeira no Hospital Israelita Albert Einstein desde julho de 2014, com especialização em Enfermagem, especialização Cardiologia/Hemodinâmica UNIFESP, mestrado Enfermagem USP. Atualmente em regime CLT com salário-base de R$ 10,9k/mês, Mariana também acumula experiência docente na Faculdade Einstein e no Senac. Seu perfil é altamente competitivo para o mercado americano via NCLEX, com projeção de US$ 4k a US$ 7k/mês como RN de cardiologia nos EUA.</p>\n<p>Theo Ferreira Campos nasceu em Orlando, Flórida, e possui dupla cidadania brasileira e americana. Com menos de um ano, é o primeiro filho do casal e peça central no planejamento de vida internacional da família.</p>\n<p>A família conta ainda com 3 gatos — Zack, Fuzzy e Nix — que fazem parte do cotidiano na residência da Rua Tasso da Silveira, em Vila Guarani, São Paulo.</p>",
-      "right": "<p>O plano de vida da família tem como eixo central a mudança para os Estados Unidos via visto F1/F2 (Anderson University, Carolina do Sul), seguida de processo de Green Card por EB2-NIW. Durante a estadia, David manterá seus contratos PJ brasileiros trabalhando remotamente, enquanto Mariana se prepara para a licença de enfermagem americana via NCLEX. O custo projetado da fase F1/F2 é de R$ 32,4k/mês, com sobra estimada de R$ 38,2k/mês graças à renda PJ de David.</p>\n<p>A meta de independência financeira é de R$ 7,2M em patrimônio investível, correspondente a uma renda passiva de R$ 30k/mês com TRS de 5%. O patrimônio investível atual de R$ 2,3M representa 31,6% da meta. No cenário realista com aportes de R$ 20k/mês e retorno real de 6% ao ano, o prazo estimado é de 9 anos — David com 52 anos, em 2035. A renda passiva atual já atinge R$ 10k/mês (33,5% da meta) distribuída entre aluguéis, dividendos e rendimentos de renda fixa.</p>\n<p>O patrimônio bruto da família totaliza R$ 3,5M, composto por quatro imóveis (R$ 2,4M, sendo R$ 996,8k de residência própria e R$ 1,4M em investimento), carteiras de investimentos financeiros de David (R$ 646,1k) e Mariana (R$ 188,1k), e veículos (R$ 227,5k). O endividamento é baixo: R$ 0,00 em financiamento imobiliário no Itaú, representando 0% do patrimônio bruto — classificado como saudável.</p>"
+      "right": "<p>O plano de vida da família tem como eixo central a mudança para os Estados Unidos via visto F1/F2 (Anderson University, Carolina do Sul), seguida de processo de Green Card por EB2-NIW. Durante a estadia, David manterá seus contratos PJ brasileiros trabalhando remotamente, enquanto Mariana se prepara para a licença de enfermagem americana via NCLEX. O custo projetado da fase F1/F2 é de R$ 32,4k/mês, com sobra estimada de R$ 38,2k/mês graças à renda PJ de David.</p>\n<p>A meta de independência financeira é de R$ 7,2M em patrimônio investível, correspondente a uma renda passiva de R$ 30k/mês com TRS de 5%. O patrimônio investível atual de R$ 2,7M representa 37,9% da meta. No cenário realista com aportes de R$ 20k/mês e retorno real de 6% ao ano, o prazo estimado é de 9 anos — David com 52 anos, em 2034. A renda passiva atual já atinge R$ 10k/mês (33,5% da meta) distribuída entre aluguéis, dividendos e rendimentos de renda fixa.</p>\n<p>O patrimônio bruto da família totaliza R$ 4,0M, composto por quatro imóveis (R$ 2,4M, sendo R$ 996,8k de residência própria e R$ 1,4M em investimento), carteiras de investimentos financeiros de David (R$ 909,7k) e Mariana (R$ 375,4k), e veículos (R$ 227,5k). O endividamento é baixo: R$ 0,00 em financiamento imobiliário no Itaú, representando 0% do patrimônio bruto — classificado como saudável.</p>"
     },
     "summaries": {
-      "s1": "Patrimônio bruto de R$ 3,5M com 65% investível (R$ 2,3M). Imóveis representam 71% do total, com residência própria de R$ 996,8k e três imóveis de investimento somando R$ 1,4M. Endividamento saudável de 0% sobre o bruto.",
+      "s1": "Patrimônio bruto de R$ 4,0M com 65% investível (R$ 2,7M). Imóveis representam 71% do total, com residência própria de R$ 996,8k e três imóveis de investimento somando R$ 1,4M. Endividamento saudável de 0% sobre o bruto.",
       "s2": "Score financeiro de 5,6/10 (Regular). Pontos fortes: zero endividamento, cobertura de 23,3 meses de despesas e diversificação em 5 classes de ativos. Ponto de atenção: taxa de poupança recorrente de -3,0% indica que a renda recorrente (R$ 1,1M/ano) não cobre as despesas do período — o superávit de R$ 404k veio de receitas não-recorrentes (rescisão Kiwify, rendimentos eventuais).",
-      "s3": "Carteira diversificada entre 5 categorias de ativos. David mantém R$ 646,1k distribuídos entre CDBs Santander, fundos Rico, renda fixa Itaú e C6. Mariana possui {fmt_currency(METRICS['investimentos_mariana'])} concentrados em BTG Pactual (82% renda fixa). Rentabilidade BTG Mariana: 10,8% em 12 meses.",
+      "s3": "Carteira diversificada entre 6 categorias de ativos. David mantém R$ 909,7k distribuídos entre CDBs Santander, fundos Rico, renda fixa Itaú e C6. Mariana possui {fmt_currency(METRICS['investimentos_mariana'])} concentrados em BTG Pactual (82% renda fixa). Rentabilidade BTG Mariana: 10,8% em 12 meses.",
       "s4": "Quatro imóveis no portfólio: residência na Tasso da Silveira (R$ 996,8k), dois apartamentos alugados via QuintoAndar (renda R$ 111,3k/ano = R$ 8,7k/mês) e os apartamentos de Mariana via Living Wish (em consolidação). Yield bruto dos imóveis de investimento estimado em 3.2% (receita/valor total).",
       "s5": "Meta de independência financeira de R$ 7,2M projetada para 2035 (cenário realista). Gap atual de R$ 4,9M com patrimônio investível de R$ 2,3M (31,6% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., a família atingirá a IF quando David tiver 52 anos.",
       "s6": "Exposição cambial diversificada: US$ 4,7k em Wise, US$ 2,6k em Bank of America, US$ 92 em C6 Global e EUR 9 em C6 EUR. Meta pré-EUA de US$ 20k com gap de US$ 12,6k — ritmo de R$ 2k/mês na Wise alcança a meta em 37 meses.",
@@ -1924,11 +1925,11 @@
         "conclusion": "A classificação 'Regular' reflete um ponto fraco crítico: a taxa de poupança recorrente negativa (-3%). Sem as receitas não-recorrentes (rescisão Kiwify), a família operaria em déficit. A prioridade é estabilizar o fluxo recorrente com o aporte de R$ 20k/mês vindo da renda PJ."
       },
       "patrimonio_doughnut": {
-        "context": "Distribuição do patrimônio bruto de R$ 3,5M entre 6 categorias de ativos, mostrando concentração em imóveis e peso relativo dos investimentos financeiros e veículos.",
+        "context": "Distribuição do patrimônio bruto de R$ 4,0M entre 6 categorias de ativos, mostrando concentração em imóveis e peso relativo dos investimentos financeiros e veículos.",
         "conclusion": "Imóveis respondem por 71% do patrimônio — acima do ideal de 50%. A venda do Living Concept (em andamento) e aportes mensais de R$ 20k em ativos financeiros devem melhorar essa proporção ao longo de 2026."
       },
       "alocacao_atual": {
-        "context": "Atual distribuição dos ativos financeiros (R$ 834,3k) entre classes de investimento: renda fixa, ações, fundos multimercado e estruturados.",
+        "context": "Atual distribuição dos ativos financeiros (R$ 1,3M) entre classes de investimento: renda fixa, ações, fundos multimercado e estruturados.",
         "conclusion": "Carteira de David é mais diversificada (CDB, fundos, renda fixa em múltiplas instituições) enquanto Mariana concentra em renda fixa BTG. Recomendação: gradualmente adicionar alocação de ações (IVVB11, SCHP11) para atingir 20-25% de equity."
       },
       "alocacao_alvo": {
@@ -1953,22 +1954,22 @@
       },
       "projecao_3cenarios": {
         "context": "Projeção do patrimônio investível até atingir a meta de R$ 7,2M, considerando aportes mensais de R$ 20k e retorno real anual de 6%.",
-        "conclusion": "Meta será atingida em 2035, quando David terá 52 anos. Renda passiva estimada será R$ 7,6k/mês (com 4% TRS), atingindo a meta de R$ 30k/mês. Plano realista e alcançável com disciplina de aporte."
+        "conclusion": "Meta será atingida em 2034, quando David terá 52 anos. Renda passiva estimada será R$ 9,1k/mês (com 4% TRS), atingindo a meta de R$ 30k/mês. Plano realista e alcançável com disciplina de aporte."
       },
       "waterfall_if": {
-        "context": "Decomposição do gap de independência financeira (R$ 4,9M), mostrando componentes de patrimônio atual, aportes acumulados e rentabilidade esperada até 2035.",
-        "conclusion": "Gap total de R$ 4,9M será fechado por combinação de aportes disciplinados (R$ 20k/mês = R$ 4,92M em 20 anos) e rentabilidade real de 6% a.a. sobre patrimônio acumulado. Cenário é resiliente a pequenas variações de aporte."
+        "context": "Decomposição do gap de independência financeira (R$ 4,5M), mostrando componentes de patrimônio atual, aportes acumulados e rentabilidade esperada até 2034.",
+        "conclusion": "Gap total de R$ 4,5M será fechado por combinação de aportes disciplinados (R$ 20k/mês = R$ 4,92M em 20 anos) e rentabilidade real de 6% a.a. sobre patrimônio acumulado. Cenário é resiliente a pequenas variações de aporte."
       },
       "renda_passiva": {
         "context": "Renda passiva estimada em diferentes cenários de patrimônio investível, assumindo TRS de 5% (alvo) e 4% (conservador).",
-        "conclusion": "Cenário atual (R$ 2,3M): R$ 7,6k/mês (33,5% da meta). Cenário 2035 (R$ 7,2M): R$ 30k/mês, atendendo exatamente a meta de TRS 5%. Diversidade de fontes (aluguel, dividendos, renda fixa) reduz risco."
+        "conclusion": "Cenário atual (R$ 2,7M): R$ 9,1k/mês (33,5% da meta). Cenário 2035 (R$ 7,2M): R$ 30k/mês, atendendo exatamente a meta de TRS 5%. Diversidade de fontes (aluguel, dividendos, renda fixa) reduz risco."
       },
       "yield_imoveis": {
         "context": "Análise de yield bruto dos imóveis de investimento (valor total R$ 1,4M) versus aluguel recebido mensalizado.",
         "conclusion": "Yield atual de 3.2% (conservador) com potencial de 4-6% após venda do Living Concept e otimização de contratos. Imóveis funcionam como hedge inflacionário e fonte de renda complementar."
       },
       "top15_ativos": {
-        "context": "Ranking dos 15 maiores ativos financeiros individuais da família, totalizando R$ 2,3M em investimentos.",
+        "context": "Ranking dos 15 maiores ativos financeiros individuais da família, totalizando R$ 2,7M em investimentos.",
         "conclusion": "CDB Santander (R$ 300k de David) é o maior ativo individual, seguido por imóveis e fundos Rico. Concentração em poucos ativos reforça importância de aportes contínuos para diversificação."
       },
       "impostos_pj": {

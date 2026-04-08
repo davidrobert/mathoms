@@ -1,10 +1,21 @@
 # Manual de Operação — Pipeline Financeiro
 ## Família Ferreira Campos
-## Versão: 5.6 — abr/2026
+## Versão: 5.7 — abr/2026
 
 ---
 
-## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1 → v5.4 → v5.5 → v5.6
+## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1 → v5.4 → v5.5 → v5.6 → v5.7
+
+### v5.6 → v5.7
+
+| Mudança | Motivo |
+|---|---|
+| **Fix: e5_analyze.py suporta formato E1.5 declarations** | Baseline com `membros` como lista de strings + `declarations[]` agora é corretamente parseado via classificação por grupo IRPF (G01=imóveis, G02=veículos, G03/04/07=investimentos, G06=contas). Fallback defensivo com warning. |
+| **Fix: e0_audit.py robusto a JSONs não-dict e 0-byte** | Guard clause em `check_filename_vs_content()` e `check_saldo_gaps()` — skip quando E2/E3 JSON é lista, 0 bytes ou tombstone. Elimina crash `AttributeError: 'list' object has no attribute 'get'`. |
+| **Novo: E4 popula investimentos-4_unified.json** | `e4_categorize.py` agora consolida extratos de posição de investimentos do E2 (BTG, Rico, Itaú, C6, Santander). Antes era sempre placeholder vazio `{"dados": []}`. |
+| **Novo: E5 patrimônio com fontes mistas** | `analyze_patrimonio()` aceita `investimentos_atuais` (posições de mar/2026). Se disponível: patrimônio = imóveis/veículos IRPF + investimentos atuais. Campo `fonte_investimentos` no JSON indica a fonte usada. |
+| **Novo: JSON Schema para baseline E1.5** | `config/schemas/baseline_patrimonial.schema.json` valida o baseline na carga do E4 (best-effort, não bloqueia se jsonschema não instalado). |
+| **Novo: tests/test_e5_patrimonio_formats.py** | 6 testes para 4 formatos suportados por `_resolve_members()` + test de posições atuais + edge case baseline vazio. |
 
 ### v5.5 → v5.6
 
@@ -1533,7 +1544,7 @@ O script é 100% determinístico (zero LLM). Keywords hardcoded do `definitions.
 **Outputs:**
 - `processed/E4_unified/receitas-4_unified.json`
 - `processed/E4_unified/despesas-4_unified.json`
-- `processed/E4_unified/investimentos-4_unified.json`
+- `processed/E4_unified/investimentos-4_unified.json` ← **NOVO v5.7: consolidado de posições de investimento do E2 (antes era placeholder vazio)**
 - `processed/E4_unified/patrimonio-4_unified.json`
 - `processed/E4_unified/seguros-4_unified.json`
 - `processed/E4_unified/pontos_milhas-4_unified.json`

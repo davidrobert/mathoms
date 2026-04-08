@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Baseline Patrimonial E1.5",
+  "description": "Schema para o baseline_patrimonial-1.5_consolidated.json. Aceita dois formatos: (A) consolidado com patrimonio_por_ano e listas consolidadas, ou (B) declarations com bens_direitos por grupo IRPF.",
+  "type": "object",
+  "required": ["pipeline_stage", "data_processamento"],
+  "properties": {
+    "pipeline_stage": {
+      "type": "string",
+      "const": "E1.5_Baseline_Patrimonial"
+    },
+    "data_processamento": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}"
+    },
+    "membros": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {"type": "string", "minLength": 1},
+          {
+            "type": "object",
+            "required": ["nome"],
+            "properties": {
+              "nome": {"type": "string", "minLength": 1}
+            }
+          }
+        ]
+      }
+    },
+    "anos_base": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 2020, "maximum": 2030}
+    },
+    "declarations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["membro", "ano_base", "bens_direitos"],
+        "properties": {
+          "membro": {"type": "string", "minLength": 1},
+          "cpf": {"type": "string"},
+          "ano_base": {"type": "integer"},
+          "tipo_declaracao": {"type": "string"},
+          "bens_direitos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["grupo", "descricao"],
+              "properties": {
+                "grupo": {"type": ["string", "integer"]},
+                "codigo": {"type": ["string", "integer"]},
+                "descricao": {"type": "string"},
+                "valor_31_12_anterior": {"type": "number"},
+                "valor_31_12_atual": {"type": "number"}
+              }
+            }
+          },
+          "total_bens": {"type": "number", "minimum": 0}
+        }
+      }
+    },
+    "patrimonio_por_ano": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "total_bens": {"type": "number"},
+          "total_dividas": {"type": "number"}
+        }
+      }
+    },
+    "investimentos_consolidados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "descricao": {"type": "string"},
+          "tipo": {"type": "string"},
+          "proprietario": {"type": "string"},
+          "valores_31_12": {"type": "object"}
+        }
+      }
+    },
+    "imoveis_consolidados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "descricao": {"type": "string"},
+          "proprietario": {"type": "string"},
+          "valores_31_12": {"type": "object"}
+        }
+      }
+    },
+    "veiculos_consolidados": {
+      "type": "array"
+    },
+    "dividas": {
+      "type": "array"
+    },
+    "receipts": {
+      "type": "array"
+    },
+    "properties": {
+      "type": "array"
+    },
+    "summary": {
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "description": "Format A: Consolidated (patrimonio_por_ano + listas consolidadas)",
+      "required": ["patrimonio_por_ano"]
+    },
+    {
+      "description": "Format B: Declarations (bens_direitos por grupo IRPF)",
+      "required": ["declarations"]
+    }
+  ]
+}

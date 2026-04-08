@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "timestamp": "2026-04-08T09:39:32.809499",
+    "timestamp": "2026-04-08T10:01:59.074063",
     "e7_version": "1.0",
     "persona_summary": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada na metodologia \"Viver de "
   },
@@ -15,7 +15,7 @@
         "name": "Score formula consistency",
         "severity": "info",
         "passed": true,
-        "details": "Score reportado: 5.6, calculado: 5.6, diff: 0.0",
+        "details": "Score reportado: 6.1, calculado: 6.1, diff: 0.0",
         "sections": [
           "score"
         ]
@@ -25,7 +25,7 @@
         "name": "Patrimônio composição vs bruto",
         "severity": "info",
         "passed": true,
-        "details": "Soma composição: R$ 3,501,275, bruto: R$ 3,501,275, diff: 0.0%",
+        "details": "Soma composição: R$ 3,952,108, bruto: R$ 3,952,108, diff: 0.0%",
         "sections": [
           "patrimonio"
         ]
@@ -66,7 +66,7 @@
         "name": "Progresso IF vs patrimônio investível",
         "severity": "info",
         "passed": true,
-        "details": "Investível/Meta = 31.6%, reportado: 31.6%",
+        "details": "Investível/Meta = 37.9%, reportado: 37.9%",
         "sections": [
           "goals",
           "patrimonio"
@@ -88,7 +88,7 @@
         "name": "Cobertura reserva emergência",
         "severity": "info",
         "passed": true,
-        "details": "Líquida/Despesas = 23.3 meses, reportado: 23.3",
+        "details": "Líquida/Despesas = 35.9 meses, reportado: 35.9",
         "sections": [
           "reserva_emergencia"
         ]
@@ -138,7 +138,7 @@
         "name": "Score classification label",
         "severity": "info",
         "passed": true,
-        "details": "Score 5.6 → esperado: 'Regular', reportado: 'Regular'",
+        "details": "Score 6.1 → esperado: 'Bom', reportado: 'Bom'",
         "sections": [
           "score"
         ]
@@ -330,10 +330,10 @@
         "ref": "—"
       }
     ],
-    "score": 5.6,
-    "score_label": "Regular",
-    "patrimonio_bruto": 3501275.44,
-    "patrimonio_investivel": 2276977.98,
+    "score": 6.1,
+    "score_label": "Bom",
+    "patrimonio_bruto": 3952107.74,
+    "patrimonio_investivel": 2727810.28,
     "fluxo_liquido": 404460.41
   }
 }

@@ -233,12 +233,122 @@ def load_reconciled_files(input_dir: Path) -> List[Dict]:
     return reconciled_data
 
 
+def build_investimentos_unified(e2_dir: Path) -> Dict:
+    """Consolidate investment position extracts from E2 into a unified file.
+
+    Reads all *investimentosposicao*-2_extract.json, *carteira*-2_extract.json,
+    and *cdbresumo*-2_extract.json (but NOT *cdbdetalhes* which are individual
+    position details already covered by cdbresumo).
+
+    Returns a unified dict with all positions, totals per member, and metadata.
+    """
+    patterns = [
+        "*investimentosposicao*-2_extract.json",
+        "*carteira*-2_extract.json",
+        "*cdbresumo*-2_extract.json",
+    ]
+
+    all_positions = []
+    sources = []
+    totals_by_member: Dict[str, float] = {}
+
+    for pattern in patterns:
+        for fpath in sorted(e2_dir.glob(pattern)):
+            if fpath.stat().st_size == 0:
+                continue
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            except (json.JSONDecodeError, Exception):
+                continue
+
+            if not isinstance(data, dict):
+                continue
+
+            posicoes = data.get("posicoes", [])
+            if not posicoes:
+                continue
+
+            instituicao = data.get("instituicao", "")
+            membro = data.get("membro", "").lower()
+            data_ref = data.get("data_referencia", data.get("periodo", ""))
+            total_fonte = data.get("total", 0)
+
+            for pos in posicoes:
+                if not isinstance(pos, dict):
+                    continue
+                valor = pos.get("valor_total", 0)
+                try:
+                    valor = float(valor) if valor else 0.0
+                except (ValueError, TypeError):
+                    valor = 0.0
+
+                all_positions.append({
+                    "nome": pos.get("nome", ""),
+                    "tipo": pos.get("tipo", ""),
+                    "instituicao": instituicao,
+                    "membro": membro,
+                    "valor_atual": valor,
+                    "data_referencia": data_ref,
+                    "taxa": pos.get("taxa", ""),
+                    "vencimento": pos.get("vencimento", ""),
+                })
+
+            # Accumulate total by member
+            try:
+                total_f = float(total_fonte) if total_fonte else 0.0
+            except (ValueError, TypeError):
+                total_f = 0.0
+            totals_by_member[membro] = totals_by_member.get(membro, 0.0) + total_f
+            sources.append(fpath.name)
+
+    total_geral = sum(totals_by_member.values())
+
+    result = {
+        "dados": all_positions,
+        "total_por_membro": {k: round(v, 2) for k, v in sorted(totals_by_member.items())},
+        "total_geral": round(total_geral, 2),
+        "fontes": sources,
+        "data_consolidacao": datetime.now().strftime("%Y-%m-%d"),
+        "n_posicoes": len(all_positions),
+    }
+
+    return result
+
+
+def validate_baseline_schema(data: Dict, schema_path: Path) -> bool:
+    """Validate baseline data against JSON schema (best-effort).
+    Returns True if valid or if jsonschema is not installed.
+    Prints warnings on failure but does not abort.
+    """
+    if not schema_path.exists():
+        return True
+    try:
+        import jsonschema
+        with open(schema_path, 'r', encoding='utf-8') as f:
+            schema = json.load(f)
+        jsonschema.validate(data, schema)
+        print("[E4.0] ✓ Baseline schema validation passed")
+        return True
+    except ImportError:
+        # jsonschema not installed — skip validation
+        return True
+    except Exception as e:
+        print(f"[E4.0] WARNING: Baseline schema validation failed: {e}")
+        print("[E4.0] Continuing with unvalidated baseline data")
+        return False
+
+
 def load_patrimonio(baseline_path: Path) -> Dict:
     """Load baseline patrimonio consolidated file."""
     if baseline_path.exists():
         try:
             with open(baseline_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                data = json.load(f)
+            # Validate schema if available
+            schema_path = baseline_path.parent.parent.parent / "config" / "schemas" / "baseline_patrimonial.schema.json"
+            validate_baseline_schema(data, schema_path)
+            return data
         except Exception as e:
             print(f"[E4.0] WARNING: Failed to load patrimonio: {e}")
     return {}
@@ -642,8 +752,22 @@ def main():
         save_json(patrimonio_path, {"dados": []})
         print("[E4.4] Saved empty patrimonio placeholder (no baseline found)")
 
+    # Investimentos: consolidate from E2 position extracts
+    e2_dir = processed_dir / "E2_extracts"
+    investimentos = build_investimentos_unified(e2_dir)
+    inv_path = output_dir / "investimentos-4_unified.json"
+    save_json(inv_path, investimentos)
+    n_pos = investimentos.get("n_posicoes", 0)
+    total_inv = investimentos.get("total_geral", 0)
+    if n_pos > 0:
+        totais_m = investimentos.get("total_por_membro", {})
+        detail = ", ".join(f"{m}: R$ {v:,.2f}" for m, v in totais_m.items())
+        print(f"[E4.4] Saved investimentos-4_unified.json ({n_pos} posições, total R$ {total_inv:,.2f} — {detail})")
+    else:
+        print("[E4.4] Saved investimentos-4_unified.json (nenhum extrato de posição encontrado)")
+
     # Placeholder files: always regenerate (allows clean reprocessing via e-reset)
-    for placeholder_file in ["investimentos-4_unified.json", "seguros-4_unified.json", "pontos_milhas-4_unified.json"]:
+    for placeholder_file in ["seguros-4_unified.json", "pontos_milhas-4_unified.json"]:
         file_path = output_dir / placeholder_file
         save_json(file_path, {"dados": []})
         print(f"[E4.4] Created empty {placeholder_file} placeholder")
