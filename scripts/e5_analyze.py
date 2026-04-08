@@ -211,28 +211,130 @@ def linear_interpolate(val: float, min_val: float, max_val: float) -> float:
 # ============================================================================
 
 def _resolve_members(baseline: Dict[str, Any]) -> tuple:
-    """Resolve members from baseline, handling both dict and list formats.
-    Also handles the consolidated format (v1.5) which uses top-level lists
-    (imoveis_consolidados, investimentos_consolidados, etc.) instead of
-    nested members dicts.
+    """Resolve members from baseline, handling multiple formats:
+    1. Dict format: members/membros as dict with david/mariana sub-dicts
+    2. List-of-dicts format: membros as list of dicts with "nome" key
+    3. E1.5 declarations format: membros as list of strings + declarations[]
+    4. Consolidated format: top-level imoveis_consolidados, etc.
     """
     members = baseline.get("members", baseline.get("membros", {}))
     if isinstance(members, list):
-        david_data, mariana_data = {}, {}
-        for m in members:
-            if not isinstance(m, dict):
-                continue
-            nome = m.get("nome", "").lower()
-            if "david" in nome:
-                david_data = m
-            elif "mariana" in nome:
-                mariana_data = m
-        return david_data, mariana_data
-    if members:
+        # Check if list contains dicts (format 2) or strings (format 3)
+        has_dicts = any(isinstance(m, dict) for m in members)
+        if has_dicts:
+            david_data, mariana_data = {}, {}
+            for m in members:
+                if not isinstance(m, dict):
+                    continue
+                nome = m.get("nome", "").lower()
+                if "david" in nome:
+                    david_data = m
+                elif "mariana" in nome:
+                    mariana_data = m
+            return david_data, mariana_data
+        # Format 3: membros is list of strings + declarations exist
+        if baseline.get("declarations"):
+            return _build_members_from_declarations(baseline)
+    if members and isinstance(members, dict):
         return members.get("david", {}), members.get("mariana", {})
     # --- v1.5 consolidated format: no "members" key ---
     # Build synthetic member dicts from top-level consolidated lists
     return _build_members_from_consolidated(baseline)
+
+
+def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
+    """Build synthetic david/mariana member dicts from E1.5 declarations format.
+
+    The E1.5 baseline has declarations[] where each declaration contains
+    bens_direitos[] using IRPF grupo/codigo classification:
+      G01 = Imóveis, G02 = Veículos, G03 = Participações societárias (ações),
+      G04 = Aplicações renda fixa, G06 = Depósitos/contas/moeda estrangeira,
+      G07 = Fundos de investimento, G99 = Outros bens
+
+    Uses the most recent declaration per member (highest ano_base).
+    """
+    declarations = baseline.get("declarations", [])
+    if not declarations:
+        return {}, {}
+
+    # Group declarations by member, keep most recent ano_base
+    member_decls: Dict[str, Dict] = {}
+    for decl in declarations:
+        membro = decl.get("membro", "").lower()
+        ano = decl.get("ano_base", 0)
+        key = "david" if "david" in membro else "mariana" if "mariana" in membro else None
+        if key is None:
+            continue
+        if key not in member_decls or ano > member_decls[key].get("ano_base", 0):
+            member_decls[key] = decl
+
+    def _classify_bens(bens_direitos: list) -> dict:
+        """Classify bens_direitos by IRPF grupo into imoveis, veiculos, etc."""
+        imoveis = []
+        veiculos = []
+        investimentos = []
+        contas_bancarias = []
+
+        for bem in bens_direitos:
+            grupo = str(bem.get("grupo", "")).zfill(2)
+            valor = safe_float(bem.get("valor_31_12_atual", 0))
+            descricao = bem.get("descricao", "")
+            entry = {"descricao": descricao, "valor_31_12_ano_base": valor}
+
+            if grupo == "01":  # Imóveis
+                imoveis.append(entry)
+            elif grupo == "02":  # Veículos
+                veiculos.append(entry)
+            elif grupo in ("03", "04", "07", "99"):  # Ações, RF, Fundos, Outros
+                investimentos.append(entry)
+            elif grupo == "06":  # Depósitos, contas, moeda estrangeira
+                contas_bancarias.append(entry)
+            else:
+                investimentos.append(entry)
+
+        return {
+            "imoveis": imoveis,
+            "veiculos": veiculos,
+            "investimentos": investimentos,
+            "contas_bancarias": contas_bancarias,
+        }
+
+    results = {}
+    for key in ("david", "mariana"):
+        decl = member_decls.get(key)
+        if not decl:
+            results[key] = {}
+            continue
+
+        bens = _classify_bens(decl.get("bens_direitos", []))
+        total_bens = safe_float(decl.get("total_bens", 0))
+        # total_dividas not directly in declarations — compute from dívidas if present
+        total_dividas = 0.0
+        for dv in baseline.get("dividas", []):
+            if key == "david" and "david" in dv.get("proprietario", "").lower():
+                total_dividas += safe_float(dv.get("saldo_31_12", 0))
+            elif key == "mariana" and "mariana" in dv.get("proprietario", "").lower():
+                total_dividas += safe_float(dv.get("saldo_31_12", 0))
+
+        # Synthetic total from classified bens
+        synthetic_total = sum(
+            safe_float(b.get("valor_31_12_ano_base", 0))
+            for cat in bens.values()
+            for b in cat
+        )
+
+        # Use declaration total_bens as authoritative if available
+        if total_bens > 0 and abs(synthetic_total - total_bens) > 1.0:
+            print(f"  [INFO] {key}: synthetic bens (R$ {synthetic_total:,.2f}) vs declaration total_bens (R$ {total_bens:,.2f})")
+
+        results[key] = {
+            "total_bens": total_bens if total_bens > 0 else synthetic_total,
+            "total_dividas": total_dividas,
+            "bens": bens,
+        }
+
+    print(f"  [E5.1] Built members from declarations: David R$ {results.get('david', {}).get('total_bens', 0):,.2f}, Mariana R$ {results.get('mariana', {}).get('total_bens', 0):,.2f}")
+    return results.get("david", {}), results.get("mariana", {})
 
 
 def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:

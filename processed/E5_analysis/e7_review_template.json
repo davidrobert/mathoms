@@ -1,32 +1,21 @@
 {
   "metadata": {
-    "timestamp": "2026-04-08T09:06:33.769835",
+    "timestamp": "2026-04-08T09:39:32.809499",
     "e7_version": "1.0",
     "persona_summary": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada na metodologia \"Viver de "
   },
   "cross_validation": {
     "total_checks": 14,
-    "passed": 13,
-    "failed": 1,
-    "issues": [
-      {
-        "check_id": "CV10",
-        "name": "Charts completeness",
-        "severity": "error",
-        "passed": false,
-        "details": "Missing: ['fluxo_mensal'], Incomplete: nenhum",
-        "sections": [
-          "narrativas"
-        ]
-      }
-    ],
+    "passed": 14,
+    "failed": 0,
+    "issues": [],
     "all_results": [
       {
         "check_id": "CV1",
         "name": "Score formula consistency",
         "severity": "info",
         "passed": true,
-        "details": "Score reportado: 5.8, calculado: 5.8, diff: 0.0",
+        "details": "Score reportado: 5.6, calculado: 5.6, diff: 0.0",
         "sections": [
           "score"
         ]
@@ -88,7 +77,7 @@
         "name": "Taxa endividamento vs patrimônio",
         "severity": "info",
         "passed": true,
-        "details": "Dívidas/Bruto = 6.7%, reportado: 6.7%",
+        "details": "Dívidas/Bruto = 0.0%, reportado: 0.0%",
         "sections": [
           "endividamento",
           "patrimonio"
@@ -117,9 +106,9 @@
       {
         "check_id": "CV10",
         "name": "Charts completeness",
-        "severity": "error",
-        "passed": false,
-        "details": "Missing: ['fluxo_mensal'], Incomplete: nenhum",
+        "severity": "info",
+        "passed": true,
+        "details": "Missing: nenhum, Incomplete: nenhum",
         "sections": [
           "narrativas"
         ]
@@ -149,7 +138,7 @@
         "name": "Score classification label",
         "severity": "info",
         "passed": true,
-        "details": "Score 5.8 → esperado: 'Regular', reportado: 'Regular'",
+        "details": "Score 5.6 → esperado: 'Regular', reportado: 'Regular'",
         "sections": [
           "score"
         ]
@@ -205,25 +194,26 @@
       "s10"
     ],
     "chart_keys": [
-      "patrimonio_doughnut",
-      "waterfall_if",
-      "receita_bar",
-      "despesas_doughnut",
-      "receita_despesa_mensal",
       "score_gauge",
+      "patrimonio_doughnut",
       "alocacao_atual",
       "alocacao_alvo",
-      "top15_ativos",
-      "yield_imoveis",
-      "custos_f1f2",
-      "cenario_cambial",
-      "projecao_if",
+      "fluxo_mensal",
+      "receita_bar",
+      "receita_despesa_mensal",
+      "despesas_doughnut",
+      "projecao_3cenarios",
+      "waterfall_if",
       "renda_passiva",
+      "yield_imoveis",
+      "top15_ativos",
       "impostos_pj",
-      "riscos_bubble",
-      "decisoes",
-      "cenarios_mariana",
-      "viagens"
+      "mariana_cenarios",
+      "custos_f1f2",
+      "viagens",
+      "cenarios_cambiais",
+      "bubble_riscos",
+      "top5_decisoes"
     ],
     "total_tarefas": 41,
     "tarefas_alta_prioridade": [
@@ -340,7 +330,7 @@
         "ref": "—"
       }
     ],
-    "score": 5.8,
+    "score": 5.6,
     "score_label": "Regular",
     "patrimonio_bruto": 3501275.44,
     "patrimonio_investivel": 2276977.98,

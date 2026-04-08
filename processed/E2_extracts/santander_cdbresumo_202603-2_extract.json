@@ -1,48 +1,37 @@
 {
-  "tipo": "cdb_resumo",
+  "tipo": "cdbresumo",
   "instituicao": "santander",
-  "data_posicao": "2026-03-29",
-  "produtos": [
+  "membro": "david",
+  "periodo": "2026-03",
+  "data_referencia": "2026-03-29",
+  "posicoes": [
     {
-      "produto": "CDB DI SANTANDER",
-      "tipo_produto": "cdb",
-      "valor_aplicado": 137409.67,
-      "saldo_bruto": 137409.67,
-      "saldo_liquido": 132662.92,
-      "data_aplicacao": null,
-      "vencimento": null,
-      "taxa": "100% CDI",
-      "ir_provisao": null,
-      "iof_provisao": null,
-      "rentabilidade_bruta_pct": 100.0
+      "nome": "CDB DI SANTANDER",
+      "tipo": "CDB",
+      "quantidade": null,
+      "preco_unitario": null,
+      "valor_total": 137409.67,
+      "taxa": "DI",
+      "vencimento": null
     },
     {
-      "produto": "CDB DI SANTANDER",
-      "tipo_produto": "cdb",
-      "valor_aplicado": 101522.74,
-      "saldo_bruto": 101522.74,
-      "saldo_liquido": 98281.27,
-      "data_aplicacao": null,
-      "vencimento": null,
-      "taxa": "100% CDI",
-      "ir_provisao": null,
-      "iof_provisao": null,
-      "rentabilidade_bruta_pct": 100.0
+      "nome": "CDB DI SANTANDER",
+      "tipo": "CDB",
+      "quantidade": null,
+      "preco_unitario": null,
+      "valor_total": 101522.74,
+      "taxa": "DI",
+      "vencimento": null
     },
     {
-      "produto": "CDB PROG SANTANDER",
-      "tipo_produto": "cdb",
-      "valor_aplicado": 60545.52,
-      "saldo_bruto": 60545.52,
-      "saldo_liquido": 58700.06,
-      "data_aplicacao": null,
-      "vencimento": null,
-      "taxa": "95% CDI",
-      "ir_provisao": null,
-      "iof_provisao": null,
-      "rentabilidade_bruta_pct": 95.0
+      "nome": "CDB PROG SANTANDER",
+      "tipo": "CDB",
+      "quantidade": null,
+      "preco_unitario": null,
+      "valor_total": 60545.52,
+      "taxa": "PROG",
+      "vencimento": null
     }
   ],
-  "saldo_total_bruto": 299477.93000000005,
-  "saldo_total_liquido": 289644.25
+  "total": 299477.93
 }

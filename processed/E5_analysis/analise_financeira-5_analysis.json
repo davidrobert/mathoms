@@ -3,13 +3,13 @@
   "data_analise": "2026-04-08",
   "patrimonio": {
     "bruto": 3501275.44,
-    "dividas": 234792.61,
-    "liquido": 3266482.83,
+    "dividas": 0.0,
+    "liquido": 3501275.44,
     "residencia": 996821.46,
     "imoveis_investimento": 1442706.24,
-    "investimentos_david": 640897.34,
+    "investimentos_david": 646148.01,
     "investimentos_mariana": 188123.73,
-    "caixa_moeda_estrangeira": 5250.67,
+    "caixa_moeda_estrangeira": 0.0,
     "investivel": 2276977.98,
     "veiculos": 227476.0,
     "composicao": [
@@ -25,8 +25,8 @@
       },
       {
         "categoria": "Investimentos David",
-        "valor": 640897.34,
-        "pct": 18.3
+        "valor": 646148.01,
+        "pct": 18.45
       },
       {
         "categoria": "Veículos",
@@ -40,8 +40,8 @@
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 5250.670000000042,
-        "pct": 0.15
+        "valor": 0.0,
+        "pct": 0.0
       }
     ],
     "tabela_categorias": [
@@ -57,8 +57,8 @@
       },
       {
         "categoria": "Investimentos David",
-        "valor": 640897.34,
-        "pct": 18.3
+        "valor": 646148.01,
+        "pct": 18.45
       },
       {
         "categoria": "Veículos",
@@ -72,8 +72,8 @@
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 5250.670000000042,
-        "pct": 0.15
+        "valor": 0.0,
+        "pct": 0.0
       }
     ]
   },
@@ -1351,13 +1351,13 @@
   "ratios": {
     "taxa_poupanca_recorrente_pct": -2.96,
     "taxa_poupanca_total_pct": 26.1,
-    "taxa_endividamento_pct": 6.71,
+    "taxa_endividamento_pct": 0.0,
     "cobertura_despesas_meses": 63.62,
     "rentabilidade_pct": "N/D",
     "aliquota_efetiva_ir_pct": "N/D"
   },
   "score": {
-    "valor": 5.8,
+    "valor": 5.6,
     "max": 10,
     "classificacao": "Regular",
     "componentes": [
@@ -1375,9 +1375,9 @@
       },
       {
         "nome": "Taxa Endividamento (inv)",
-        "valor": 6.71,
+        "valor": 0.0,
         "peso": 1.5,
-        "nota": 9.6
+        "nota": 10.0
       },
       {
         "nome": "Progresso IF",
@@ -1387,9 +1387,9 @@
       },
       {
         "nome": "Diversificação",
-        "valor": 6,
+        "valor": 5,
         "peso": 1.0,
-        "nota": 10.0
+        "nota": 8.0
       }
     ]
   },
@@ -1421,9 +1421,9 @@
     "nivel_6_meses": 214758.36,
     "nivel_12_meses": 429516.72,
     "composicao_liquida": {
-      "investimentos_david": 640897.34,
+      "investimentos_david": 646148.01,
       "investimentos_mariana": 188123.73,
-      "caixa_moeda_estrangeira": 5250.67,
+      "caixa_moeda_estrangeira": 0.0,
       "total_liquido": 834271.74,
       "cobertura_meses": 23.3
     },
@@ -1436,16 +1436,9 @@
     ]
   },
   "endividamento": {
-    "total_dividas": 234792.61,
-    "percentual_patrimonio": 6.71,
-    "dividas": [
-      {
-        "descricao": "Financiamento imobiliário (David)",
-        "saldo_devedor": 234792.61,
-        "parcela_mensal": 0,
-        "taxa_juros": "N/D"
-      }
-    ],
+    "total_dividas": 0.0,
+    "percentual_patrimonio": 0.0,
+    "dividas": [],
     "detalhe": "Financiamento imobiliário (Itaú)"
   },
   "previdencia_pgbl": {
@@ -1482,30 +1475,15 @@
       {
         "categoria": "Imóveis Investimento",
         "valor": 1442706.24,
-        "pct": 63.51
-      },
-      {
-        "categoria": "Renda Fixa",
-        "valor": 478955.94,
-        "pct": 21.08
+        "pct": 64.74
       },
       {
         "categoria": "Outros",
-        "valor": 228866.57,
-        "pct": 10.07
-      },
-      {
-        "categoria": "Ações",
-        "valor": 112651.61,
-        "pct": 4.96
-      },
-      {
-        "categoria": "Contas Bancárias",
-        "valor": 8546.95,
-        "pct": 0.38
+        "valor": 785637.8,
+        "pct": 35.26
       }
     ],
-    "total": 2271727.31
+    "total": 2228344.04
   },
   "equilibrio_cerbasi": {
     "pct_presente": 90.9,
@@ -1888,7 +1866,7 @@
     "40": "pendente"
   },
   "alertas": [
-    "Score financeiro: 5.8/10 (Regular)",
+    "Score financeiro: 5.6/10 (Regular)",
     "Rentabilidade: N/D"
   ],
   "consumo_consciente": {
@@ -1925,98 +1903,130 @@
   ],
   "narrativas": {
     "perfil_familia": {
-      "left": "<p>David Robert Camargo Ferreira Campos, 44 anos, é Chief Technology Officer (CTO) da empresa Arvo desde setembro de 2025, atuando como pessoa jurídica (PJ). Com 24+ anos de carreira em tecnologia, progrediu de posições juniores até liderança executiva em C-level, consolidando expertise em microsserviços, arquitetura em nuvem (AWS, GCP) e metodologias ágeis. Sua formação avançada inclui mestrado em Ciência da Computação com especialização em Inteligência Artificial pela USP/IME (2008) e bacharelado em Ciência da Computação pela PUC/SP (2004). Fluente em inglês, com experiências internacionais que complementam sua trajetória técnica e empresarial.</p><p>Mariana Ferreira Campos, 39 anos, é enfermeira especializada no Hospital Israelita Albert Einstein há mais de 11 anos. Detém mestrado em Enfermagem pela USP (2021) e especializações em Cardiologia e Hemodinâmica (UNIFESP, 2012) e Formação Docente (FIOCRUZ). Sua carreira dual combina prática clínica com ensino em três instituições, refletindo vocação para educação e inovação em saúde. Como CLT no hospital, aufere renda mensal base estável de R$ 10.899,51, complementada por gratificação de insalubridade (20%) e benefícios de fundo de garantia (FGTS) e previdência social (INSS).</p><p>Théo, nascido em 18 de julho de 2025 em Orlando, Flórida, é filho do casal com dupla cidadania Brasil-Estados Unidos. Dependente exclusivo com ~9 meses de idade no período de análise, já integrado ao plano de saúde familiar via Einstein e elegível como dependente em declarações de imposto de renda dos pais. Seus dados de nascimento americano e passaporte US criam oportunidades futuras de planejamento fiscal e mobilidade internacional para a família.</p><p>A família também é acompanhada por três pets: Zack, Fuzzy e Nix, que representam investimentos em bem-estar emocional e demandam custos de saúde preventiva incluídos no orçamento doméstico.</p>",
-      "right": "<p>O plano de vida familiar está estruturado em torno da conquista da Independência Financeira (IF) com meta de R$ 7,2 milhões até 2035 (quando David completará 52 anos), gerando renda passiva de R$ 30.000/mês via taxa de retirada segura de 5% a.a. em carteira diversificada entre imóveis, renda fixa indexada (IPCA+) e renda variável global. A projeção realista (6% de retorno real, aporte R$ 20k/mês) coloca a família em posição de alcançar 35,1% dessa meta (R$ 2.530.778) já após venda do apartamento Living Concept de Mariana, com gap remanescente de R$ 4.669.222.</p><p>A estratégia envolve fase de mobilidade internacional (F1/F2 em Anderson University, Carolina do Sul, ~6 meses em 2027) para nascimento planejado de segundo filho e preparação para Green Card via EB2-NIW, mantendo renda remota brasileira (PJ David). Paralelamente, executa-se plano de dolarização (meta US$ 20.000 via Wise, C6 Global e Bank of America) como proteção contra volatilidade cambial e preparação para vida nos EUA pós-IF. Mariana cursará NCLEX (equivalência de enfermeira nos EUA) no período de transição, abrindo oportunidade de complementar renda familiar em dólares (projeção US$ 4.000–7.000/mês em Cardiologia RN).</p><p>No plano patrimonial, a família acumula R$ 2.530.778 em ativos investíveis distribuidosentre imóveis de renda (Major Freire + Calixto/David, Living Wish/Mariana com yield 6-12%), aplicações financeiras (CDB, Tesouro IPCA+, ETFs globais, ações em corretoras Rico e BTG Pactual), caixa em moeda estrangeira (USD em Wise, Bank of America, C6 Global) e renda passiva atual de R$ 10.042/mês (33,5% da meta), composta por aluguéis R$ 8.571, dividendos/cupons R$ 821 e rendimentos R$ 650.</p>"
+      "left": "<p>David Robert Camargo Ferreira Campos, 44 anos, é o titular da família e atua como CTO da Arvo, healthtech especializada em auditoria de contas médicas com IA. Com mais de 23 anos de carreira em tecnologia, David acumula passagens por Elo7, Loft e Kiwify em posições de liderança executiva. Formado em Ciência da Computação PUC-SP, mestrado IA USP/IME, opera como PJ Simples Nacional (Anexo V) através da empresa David Robert Camargo de Campos Ltda..</p>\n<p>Mariana Ferreira Campos, 39 anos, é Enfermeira no Hospital Israelita Albert Einstein desde julho de 2014, com especialização em Enfermagem, especialização Cardiologia/Hemodinâmica UNIFESP, mestrado Enfermagem USP. Atualmente em regime CLT com salário-base de R$ 10,9k/mês, Mariana também acumula experiência docente na Faculdade Einstein e no Senac. Seu perfil é altamente competitivo para o mercado americano via NCLEX, com projeção de US$ 4k a US$ 7k/mês como RN de cardiologia nos EUA.</p>\n<p>Theo Ferreira Campos nasceu em Orlando, Flórida, e possui dupla cidadania brasileira e americana. Com menos de um ano, é o primeiro filho do casal e peça central no planejamento de vida internacional da família.</p>\n<p>A família conta ainda com 3 gatos — Zack, Fuzzy e Nix — que fazem parte do cotidiano na residência da Rua Tasso da Silveira, em Vila Guarani, São Paulo.</p>",
+      "right": "<p>O plano de vida da família tem como eixo central a mudança para os Estados Unidos via visto F1/F2 (Anderson University, Carolina do Sul), seguida de processo de Green Card por EB2-NIW. Durante a estadia, David manterá seus contratos PJ brasileiros trabalhando remotamente, enquanto Mariana se prepara para a licença de enfermagem americana via NCLEX. O custo projetado da fase F1/F2 é de R$ 32,4k/mês, com sobra estimada de R$ 38,2k/mês graças à renda PJ de David.</p>\n<p>A meta de independência financeira é de R$ 7,2M em patrimônio investível, correspondente a uma renda passiva de R$ 30k/mês com TRS de 5%. O patrimônio investível atual de R$ 2,3M representa 31,6% da meta. No cenário realista com aportes de R$ 20k/mês e retorno real de 6% ao ano, o prazo estimado é de 9 anos — David com 52 anos, em 2035. A renda passiva atual já atinge R$ 10k/mês (33,5% da meta) distribuída entre aluguéis, dividendos e rendimentos de renda fixa.</p>\n<p>O patrimônio bruto da família totaliza R$ 3,5M, composto por quatro imóveis (R$ 2,4M, sendo R$ 996,8k de residência própria e R$ 1,4M em investimento), carteiras de investimentos financeiros de David (R$ 646,1k) e Mariana (R$ 188,1k), e veículos (R$ 227,5k). O endividamento é baixo: R$ 0,00 em financiamento imobiliário no Itaú, representando 0% do patrimônio bruto — classificado como saudável.</p>"
     },
     "summaries": {
-      "s1": "Patrimônio total investível de R$ 2.530.778 distribuído entre imóveis de renda (R$ 1.420.000 est.), investimentos em ações e fundos (R$ 890.000 est.), caixa e moeda estrangeira (USD 9.419 + R$ 42.778), e veículos. Composição revela concentração em imóveis com bom yield (6-12% a.a.) e posição ainda embrionária em renda variável global.",
-      "s2": "Receita total de R$ 1.592.801,59 no período (24 meses) distribuída em PJ R$ 979,7k, CLT R$ 357,6k, aluguel R$ 104,2k e outras fontes R$ 151,3k. Despesa total de R$ 1.210.235,83 deixa fluxo líquido positivo de R$ 382.565,76 (24% de margem), viabilizando aportes de IF de R$ 20.000/mês conforme plano.",
-      "s3": "Investimentos distribuídos entre David (ações em Rico/XP, ETFs IVVB11, CDB Santander) e Mariana (ações em BTG Pactual, renda fixa). Alocação atual ainda não refinada conforme meta de diversificação (45% RF IPCA+, 25% RV global, 20% imóveis, 10% caixa). Rebalanceamento programado para janeiro/2027 após meta de reserva emergencial (R$ 382k) atingir 12 meses.",
-      "s4": "Imóveis de renda em São Paulo gerando R$ 8.571/mês em aluguéis: Major Freire (David, ~R$ 2.500/mês), Calixto (David, ~R$ 900/mês) e Living Wish (Mariana, ~R$ 5.149/mês). Venda planejada do Living Concept (Mariana) libera R$ 253.800 líquidos para reforço de carteira financeira. Rendimentos financeiros (dividendos + juros) somam R$ 1.471/mês.",
-      "s5": "Custos fixos mensais de R$ 31.831 (sem financiamento imobiliário ativo) distribuídos em moradia R$ 2.500, alimentação R$ 4.500, saúde R$ 3.000, serviços domésticos R$ 4.000, educação R$ 2.000, transporte R$ 1.700, lazer/viagens R$ 3.750, suporte familiar R$ 5.000 e outros. Financiamentos quitados em 2026, eliminando encargos de juros e elevando taxa de poupança.",
-      "s6": "Estratégia de dolarização estruturada em três pilares: acumulação mensal via Wise (R$ 2.000/mês = ~US$ 340), posição em ETF global IVVB11 (R$ 3.000/mês) e conta Bank of America preparada para residência EUA. Meta de US$ 20.000 alcançável em ~37 meses ao ritmo de R$ 5.000/mês em exposição USD, protegendo contra depreciação real e facilitando fluxo pós-mudança internacional.",
-      "s7": "Projeção IF realista aponta 2035 (9 anos) com David aos 52 anos, baseada em retorno real 6% a.a. e aporte R$ 20.000/mês. Cenários alternativos: pessimista (4% retorno) = 2038, otimista (8% retorno) = 2033. Renda passiva projetada de R$ 30.000/mês em 2035 viabiliza vida confortável em qualquer jurisdição (BR ou EUA).",
-      "s8": "Receita PJ David estimada em R$ 979.750 (24 meses) sob regime Simples Nacional Anexo V, gerando renda tributável de R$ 117.570/ano (lucro presumido 32%). PGBL limitado a R$ 14.108,40 anuais (aporte R$ 1.175,70/mês) com economia IR de R$ 3.879,81/ano. DAS regularizado via conta C6 Bank PJ com contador AccountTech (R$ 390/mês).",
-      "s9": "Proteção patrimonial requer urgente contratação de seguro de vida (INEXISTENTE) de R$ 3-5M por 20 anos e seguro invalidez (60% renda). Riscos EUA pós-mudança incluem FBAR/FATCA, estate tax, PFIC, dupla tributação e perda de qualidade INSS. Planejamento sucessório em andamento: testamentos públicos (David+Mariana), procurações públicas/duradouras e atualização de beneficiários PGBL/seguros programadas para abr-mai/2026.",
-      "s10": "Decisões iminentes: (D15) Revisão TRS de 4% para 5% aprovada; (D16) Venda Living Concept autorizada; (D17) Aporte mensal mantido em R$ 20.000 até IF; (D18) NCLEX roadmap para Mariana com 8-18 meses até licença RN; (D19) Mudança EUA 2027 sujeita a preparação documental; (D20) Estruturação holding patrimonial avaliada para Q4/2026. Próximos passos: advogado sucessório em abr/2026, testamentos em mai/2026, validação seguros em abr/2026."
+      "s1": "Patrimônio bruto de R$ 3,5M com 65% investível (R$ 2,3M). Imóveis representam 71% do total, com residência própria de R$ 996,8k e três imóveis de investimento somando R$ 1,4M. Endividamento saudável de 0% sobre o bruto.",
+      "s2": "Score financeiro de 5,6/10 (Regular). Pontos fortes: zero endividamento, cobertura de 23,3 meses de despesas e diversificação em 5 classes de ativos. Ponto de atenção: taxa de poupança recorrente de -3,0% indica que a renda recorrente (R$ 1,1M/ano) não cobre as despesas do período — o superávit de R$ 404k veio de receitas não-recorrentes (rescisão Kiwify, rendimentos eventuais).",
+      "s3": "Carteira diversificada entre 5 categorias de ativos. David mantém R$ 646,1k distribuídos entre CDBs Santander, fundos Rico, renda fixa Itaú e C6. Mariana possui {fmt_currency(METRICS['investimentos_mariana'])} concentrados em BTG Pactual (82% renda fixa). Rentabilidade BTG Mariana: 10,8% em 12 meses.",
+      "s4": "Quatro imóveis no portfólio: residência na Tasso da Silveira (R$ 996,8k), dois apartamentos alugados via QuintoAndar (renda R$ 111,3k/ano = R$ 8,7k/mês) e os apartamentos de Mariana via Living Wish (em consolidação). Yield bruto dos imóveis de investimento estimado em 3.2% (receita/valor total).",
+      "s5": "Meta de independência financeira de R$ 7,2M projetada para 2035 (cenário realista). Gap atual de R$ 4,9M com patrimônio investível de R$ 2,3M (31,6% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., a família atingirá a IF quando David tiver 52 anos.",
+      "s6": "Exposição cambial diversificada: US$ 4,7k em Wise, US$ 2,6k em Bank of America, US$ 92 em C6 Global e EUR 9 em C6 EUR. Meta pré-EUA de US$ 20k com gap de US$ 12,6k — ritmo de R$ 2k/mês na Wise alcança a meta em 37 meses.",
+      "s7": "Cinco riscos prioritários: FBAR/FATCA compliance, Estate Tax para non-residents, tributação PFIC sobre fundos brasileiros, dupla tributação BR-EUA e perda de qualidade INSS. Seguros de vida e invalidez inexistentes — classificados como urgentes. Planejamento sucessório em estágio inicial.",
+      "s8": "Regime Simples Nacional Anexo V com fator R favorável. DAS mensal estimado em R$ 5k. AccountTech como contador (R$ 390,00/mês via C6 PJ). Avaliação de holding patrimonial pendente para T4/2026. Obrigações fiscais EUA (FBAR, Form 8938, PFIC) requerem CPA expatriado antes da mudança.",
+      "s9": "Despesas totais no período: R$ 1,1M (R$ 35,8k/mês média). Categoria 'não identificado' representa 52% das despesas — priorizar reconciliação manual das transações para diagnóstico mais preciso. Orçamento prospectivo pós-quitação projeta redução na mensalidade do financiamento, liberando capacidade de aporte.",
+      "s10": "Cinco decisões estratégicas prioritárias: iniciar aporte mensal de R$ 20k (R$ 10k Cofrinhos, R$ 5k IPCA+, R$ 3k IVVB11, R$ 2k Wise USD), contratar seguro de vida term R$ 3-5M, agendar teste de inglês OET/MET para Mariana, consultar CPA expatriado para obrigações EUA, e agendar advogado sucessório para planejamento de herança."
     },
     "charts": {
-      "patrimonio_doughnut": {
-        "context": "Composição do patrimônio investível de R$ 2.530.778 distribuído entre imóveis de renda (56,1%), investimentos financeiros (35,2%), caixa e moeda estrangeira (1,7%) e veículos (7%).",
-        "conclusion": "Carteira concentrada em imóvel com bom yield; diversificação para RV global ainda incipiente. Rebalanceamento pós-venda Living Concept reforçará RV global a 25% e IPCA+ a 45%."
-      },
-      "waterfall_if": {
-        "context": "Progressão rumo a IF de R$ 7,2M: partindo de R$ 2.530.778 (35,1%), adicionando aportes R$ 20k/mês (~R$ 480k/2 anos), rendimentos 6% a.a. (~R$ 152k/2 anos) e resgates pontuais. Trajetória para 2035 com David aos 52 anos.",
-        "conclusion": "Plano realista viável se aporte/retorno mantidos. Risco principal: quebra de fluxo PJ David ou queda de retorno abaixo de 6% alongaria prazo além de 2035. Revisão anual obrigatória."
-      },
-      "receita_bar": {
-        "context": "Receita total 24 meses (R$ 1.592.801,59): PJ R$ 979.750,04 (61,5%) como principal motor, CLT R$ 357.633,01 (22,5%), aluguel R$ 104.216,13 (6,5%), outras R$ 60.583,84 e resgate/inv R$ 90.618,57.",
-        "conclusion": "Renda altamente dependente de PJ David (~62% do total). Concentração elevada recomenda consolidação de segundo cliente PJ ou aumento de renda aluguel pós-IF para reduzir volatilidade."
-      },
-      "despesas_doughnut": {
-        "context": "Despesa total R$ 1.210.235,83 em 24 meses (R$ 37.820/mês média) distribuída em: não identificado R$ 449.833, saúde R$ 110.433, impostos R$ 86.041, alimentação R$ 79.371, lazer/viagens R$ 78.796 e outros.",
-        "conclusion": "Categoria 'não identificado' (37% do total) indica classificação incompleta nos extratos; ajuste necessário para diagnóstico comportamental. Top 5 categorias representam 66% das despesas."
-      },
-      "receita_despesa_mensal": {
-        "context": "Fluxo mensal médio: receita R$ 36.016/mês (recorrente) vs despesa R$ 37.820/mês resultando em déficit contábil, compensado por receita one-time (R$ 18.345/mês média) do período, gerando fluxo líquido positivo R$ 382.566 total.",
-        "conclusion": "Análise mais granular necessária: receitas pontuais (resgate/venda) mascararam realidade recorrente levemente negativa em 2025. Projeção pós-quitação (abr/2026) com renda R$ 78.611 vs despesa R$ 31.831 restabelece margem saudável."
-      },
       "score_gauge": {
-        "context": "Score geral 1,9/10 (Crítico) refletindo cinco componentes: taxa poupança recorrente -5,01% (nota 0,0), cobertura emergencial 0 meses (nota 0,0), endividamento 0% (nota 10,0), progresso IF 0% (nota 0,0) e diversificação 0% (nota 0,0).",
-        "conclusion": "Score severo causado por déficit recorrente aparente e patrimônio ainda não consolidado na base de dados E5. Expectativa: score deve saltar para 5-6/10 após incorporação de patrimônio real (R$ 2.530.778) e mudança de período (pós-abr/2026 com despesas normalizadas)."
+        "context": "Indicador geral de saúde financeira da família, com score de 5,6/10 (Regular). Reflete a média ponderada de 5 componentes: taxa de poupança recorrente (0/10), cobertura de despesas (10/10), endividamento (10/10), progresso IF (3,5/10) e diversificação (8/10).",
+        "conclusion": "A classificação 'Regular' reflete um ponto fraco crítico: a taxa de poupança recorrente negativa (-3%). Sem as receitas não-recorrentes (rescisão Kiwify), a família operaria em déficit. A prioridade é estabilizar o fluxo recorrente com o aporte de R$ 20k/mês vindo da renda PJ."
+      },
+      "patrimonio_doughnut": {
+        "context": "Distribuição do patrimônio bruto de R$ 3,5M entre 6 categorias de ativos, mostrando concentração em imóveis e peso relativo dos investimentos financeiros e veículos.",
+        "conclusion": "Imóveis respondem por 71% do patrimônio — acima do ideal de 50%. A venda do Living Concept (em andamento) e aportes mensais de R$ 20k em ativos financeiros devem melhorar essa proporção ao longo de 2026."
       },
       "alocacao_atual": {
-        "context": "Alocação atual estimada: imóveis 56%, renda fixa 25%, renda variável 10%, moeda estrangeira 7%, caixa 2%. Distribuição reflete histórico de construção patrimonial via imóvel com posterior diversificação financeira.",
-        "conclusion": "Alocação apropriada para fase de acumulação; porém RV global subrepresentada (10% vs meta 25%). Aportes mensais devem privilegiar ETFs globais (IVVB11) e Tesouro IPCA+ até atingir pesos alvo conforme plano."
+        "context": "Atual distribuição dos ativos financeiros (R$ 834,3k) entre classes de investimento: renda fixa, ações, fundos multimercado e estruturados.",
+        "conclusion": "Carteira de David é mais diversificada (CDB, fundos, renda fixa em múltiplas instituições) enquanto Mariana concentra em renda fixa BTG. Recomendação: gradualmente adicionar alocação de ações (IVVB11, SCHP11) para atingir 20-25% de equity."
       },
       "alocacao_alvo": {
-        "context": "Alocação alvo para IF (2035): renda fixa IPCA+ 45%, renda variável global 25%, imóveis de renda 20%, caixa liquidez/oportunidade 10%. Mudança reflete redução de risco em aproximação da IF e necessidade de liquidez em possível transição EUA.",
-        "conclusion": "Pivô de imóvel (56%) → RF IPCA+ (45%) crítico para reduzir concentração e aumentar flexibilidade. Caixa sobe de 2% para 10% preparando para possível despesa grande (mudança EUA, investimento educação Theo)."
+        "context": "Alocação estratégica recomendada para os ativos financeiros, considerando horizonte de 20 anos até IF e tolerância ao risco médio.",
+        "conclusion": "Alvo: 50% Renda Fixa (IPCA+, CDBs), 25% Ações (IVVB11, SCHP11), 15% Imóveis/REITs, 10% Liquidez/USD. Aportes de R$ 20k/mês priorizarão renda fixa em 2026, com rebalanceamento anual."
       },
-      "top15_ativos": {
-        "context": "Carteira diversificada entre imóveis (Major Freire, Calixto, Living Wish), ações e ETFs em Rico/BTG (IVVB11, ações brasileiras e globais), CDB Santander, Tesouro IPCA+, Wise USD e Bank of America. Top 3 ativos: Major Freire (R$ 700k), Living Wish (R$ 720k, em venda), Investimentos financeiros agregados (R$ 890k).",
-        "conclusion": "Concentração em dois imóveis (42% do patrimônio) apropriada por rentabilidade e segurança; diversificação financeira incipiente. Alocação de novos aportes deve rebalancear para 45% RF IPCA+ no médio prazo."
+      "fluxo_mensal": {
+        "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente de R$ 34,8k/mês versus despesa média de R$ 35,8k/mês, resultando em déficit recorrente de ~R$ 1k/mês. Receita total (incluindo não-recorrentes) de R$ 1,5M supera despesas de R$ 1,1M.",
+        "conclusion": "Saldo recorrente levemente negativo (-R$ 1k/mês). O superávit total de R$ 404k no período é sustentado por receitas não-recorrentes (rescisão, Kiwify). Com a estabilização da renda PJ na Arvo e implementação do aporte automático de R$ 20k/mês, o fluxo recorrente deve virar positivo."
       },
-      "yield_imoveis": {
-        "context": "Yield de imóveis de renda: Major Freire ~4,3% a.a. (R$ 2.500/mês em ~R$ 700k), Calixto ~1,3% a.a. (R$ 900/mês em ~R$ 850k est.), Living Wish ~8,6% a.a. (R$ 5.149/mês em ~R$ 720k). Média ponderada ~5,2% a.a., acima de CDI mas abaixo de meta 6% para investimentos.",
-        "conclusion": "Yield adequado mas com variância entre imóveis. Calixto subperforma; considerar refinanciamento ou reposicionamento. Major Freire e Living Wish oferecem retorno competitivo, justificando manutenção em carteira de longo prazo."
+      "receita_bar": {
+        "context": "Composição da receita total de R$ 1,5M por fonte: PJ (78%), CLT (8,6%), aluguel (8,4%), outras (5,1%).",
+        "conclusion": "Receita PJ de R$ 939,8k mantém dominância (78%), mas diversificação aumentou com adição de CLT de Mariana (R$ 354,8k, 8,6%) e captura correta de aluguel (R$ 104,2k anual ou R$ 8,7k/mês, 8,4% — triplicou com QuintoAndar em Bradesco). Reduz risco de dependência única e expande base de renda recorrente."
       },
-      "custos_f1f2": {
-        "context": "Estadia F1/F2 em Anderson University (~6 meses/2027): custo EUA US$ 3.990/mês, custos BR mantidos R$ 8.919/mês (família, DAS, utilities), total R$ 32.380/mês. Renda David remota R$ 70.611/mês (PJ Brasil), sobra R$ 38.231/mês (54% de folga).",
-        "conclusion": "Fase financeiramente sustentável; nascimento 2º filho (Parto ~US$ 5.300–9k com seguro) absorvido pela folga mensal. Renda remota mantém fluxo positivo mesmo em estadia, fortalecendo aporte IF."
+      "receita_despesa_mensal": {
+        "context": "Série temporal mensal de receitas (R$ 1,5M/período) versus despesas (R$ 1,1M/período), evidenciando os meses com receitas extraordinárias que geraram o superávit.",
+        "conclusion": "Meses com picos de receita (rescisão, bonificações) mascaram o déficit recorrente mensal. Importante acompanhar a evolução pós-estabilização na Arvo para confirmar que o fluxo recorrente se torna sustentavelmente positivo."
       },
-      "cenario_cambial": {
-        "context": "Três cenários cambiais para dolarização: conservador (R$ 6,50/USD), realista (R$ 5,88/USD — utilizado em projeções), otimista (R$ 5,00/USD). Exposição USD mensal R$ 5.000 (~US$ 851 a R$ 5,88) acumula US$ 20.000 em ~37 meses. Posição USD já em US$ 9.419 (Wise + C6 + BofA).",
-        "conclusion": "Meta pré-EUA alcançável conforme plano; forte proteção contra BRL. Recomendação: manter disciplina de aporte USD mesmo em cenário cambial desfavorável para reduzir risco de timing."
+      "despesas_doughnut": {
+        "context": "Distribuição das despesas totais (R$ 1,1M) entre 13 categorias, destacando a composição do orçamento familiar.",
+        "conclusion": "Categoria 'não identificado' lidera com 52% — resultado de transações bancárias sem descrição suficiente para categorização automática. Priorizar reconciliação manual para revelar o padrão real de gastos e identificar oportunidades de economia."
       },
-      "projecao_if": {
-        "context": "Três cenários para atingir R$ 7,2M: pessimista (4% retorno real, 11,9 anos = 2037, David 56), realista (6% retorno, 9,0 anos = 2035, David 52), otimista (8% retorno, 7,0 anos = 2033, David 50). Todos baseados em aporte R$ 20k/mês contínuo.",
-        "conclusion": "Realismo de 6% retorno é conservador para carteira 45% IPCA+ + 25% RV global + 20% imóvel. Risco principal é quebra de aporte (desemprego/queda receita PJ). Proteção: seguro desemprego/invalidez urgente + diversificação renda."
+      "projecao_3cenarios": {
+        "context": "Projeção do patrimônio investível até atingir a meta de R$ 7,2M, considerando aportes mensais de R$ 20k e retorno real anual de 6%.",
+        "conclusion": "Meta será atingida em 2035, quando David terá 52 anos. Renda passiva estimada será R$ 7,6k/mês (com 4% TRS), atingindo a meta de R$ 30k/mês. Plano realista e alcançável com disciplina de aporte."
+      },
+      "waterfall_if": {
+        "context": "Decomposição do gap de independência financeira (R$ 4,9M), mostrando componentes de patrimônio atual, aportes acumulados e rentabilidade esperada até 2035.",
+        "conclusion": "Gap total de R$ 4,9M será fechado por combinação de aportes disciplinados (R$ 20k/mês = R$ 4,92M em 20 anos) e rentabilidade real de 6% a.a. sobre patrimônio acumulado. Cenário é resiliente a pequenas variações de aporte."
       },
       "renda_passiva": {
-        "context": "Renda passiva atual R$ 10.042/mês (aluguéis R$ 8.571, dividendos/cupons R$ 821, RF rendimentos R$ 650) representa 33,5% da meta de IF de R$ 30.000/mês. Projeção 2035 com carteira em alocação alvo: R$ 30.000+ via 45% IPCA+ (~R$ 13.500), 25% RV global (~R$ 9.000), 20% imóvel (~R$ 7.200), caixa ~R$ 600.",
-        "conclusion": "Progressão clara e alcançável. Renda passiva dobrará a cada ~3 anos com aportes contínuos e retorno 6% real. Diversificação de fontes (imóvel, RF, RV, cupons) reduz volatilidade."
+        "context": "Renda passiva estimada em diferentes cenários de patrimônio investível, assumindo TRS de 5% (alvo) e 4% (conservador).",
+        "conclusion": "Cenário atual (R$ 2,3M): R$ 7,6k/mês (33,5% da meta). Cenário 2035 (R$ 7,2M): R$ 30k/mês, atendendo exatamente a meta de TRS 5%. Diversidade de fontes (aluguel, dividendos, renda fixa) reduz risco."
+      },
+      "yield_imoveis": {
+        "context": "Análise de yield bruto dos imóveis de investimento (valor total R$ 1,4M) versus aluguel recebido mensalizado.",
+        "conclusion": "Yield atual de 3.2% (conservador) com potencial de 4-6% após venda do Living Concept e otimização de contratos. Imóveis funcionam como hedge inflacionário e fonte de renda complementar."
+      },
+      "top15_ativos": {
+        "context": "Ranking dos 15 maiores ativos financeiros individuais da família, totalizando R$ 2,3M em investimentos.",
+        "conclusion": "CDB Santander (R$ 300k de David) é o maior ativo individual, seguido por imóveis e fundos Rico. Concentração em poucos ativos reforça importância de aportes contínuos para diversificação."
       },
       "impostos_pj": {
-        "context": "Regime PJ (Simples Nacional Anexo V): faturamento ~R$ 40.823/mês (R$ 979.750/24m), lucro presumido 32%, renda tributável R$ 117.570/ano. PGBL limite R$ 14.108,40/ano (R$ 1.175,70/mês), gerando economia IR de R$ 3.879,81/ano (alíquota marginal 27,5%).",
-        "conclusion": "Aproveitamento subótimo de benefício PGBL (~8% do limite). Recomendação: elevar aporte PGBL para R$ 1.175,70/mês máximo (vs atual não informado) e avaliar estruturação holding patrimonial em Q4/2026 para otimizar retenção tributária."
+        "context": "Análise da carga tributária PJ de David (receita R$ 939,8k), estimando DAS mensal sob Simples Nacional Anexo V.",
+        "conclusion": "DAS estimado em R$ 5k/mês (R$ 60k/ano), representando ~6% da receita PJ. Fator R favorável e contador AccountTech em funcionamento. Recomendação: avaliar holding patrimonial em T4/2026 para otimização."
       },
-      "riscos_bubble": {
-        "context": "Riscos identificados: (1) Concentração PJ David (~62% receita), (2) Falta de seguros (vida/invalidez), (3) Planejamento sucessório incompleto, (4) Exposição imóvel brasileira em cenário cambial adverso, (5) Volatilidade receita PJ. Mitigações em andamento: diversificação clientes PJ, seguros (urgente), testamentos, dolarização.",
-        "conclusion": "Maiores riscos são operacionais (proteção pessoal) não financeiros. Ações de mitigação bem estruturadas; implementação deve ser acelerada (abr-mai/2026) antes de mudança EUA."
+      "mariana_cenarios": {
+        "context": "Cenários financeiros para Mariana pós-NCLEX, com projeções de renda americana como RN (US$ 4k-7k/mês) versus permanência no Brasil (CLT Einstein R$ 10,9k/mês).",
+        "conclusion": "Cenário EUA com US$ 5/mês = R$ 27,5k/mês (30% menor que CLT atual). Compensado por: (1) integração com patrimônio de David, (2) renda PJ de David crescendo remotamente, (3) renda de aluguel em BRL, (4) potencial de Green Card e crescimento salarial anual de 3-4%."
       },
-      "decisoes": {
-        "context": "Decisões-chave aprovadas: (D15) TRS revisada 4%→5%, (D16) Venda Living Concept aprovada, (D17) Aporte IF mantido R$ 20k/mês, (D18) NCLEX roadmap ativado para Mariana, (D19) Mudança EUA 2027, (D20) Holding patrimonial em avaliação. Cada decisão suportada por análise custo-benefício.",
-        "conclusion": "Plano coeso e bem documentado. Execução disciplinada em próximos 12 meses determinará viabilidade de IF 2035. KPIs críticos: receita PJ ≥R$ 40k/mês, aporte ≥R$ 20k/mês, retorno ≥6% real."
-      },
-      "cenarios_mariana": {
-        "context": "Cenário pessimista (Mariana sem trabalhar): impacto líquido -R$ 6.830/mês (perda R$ 8k salário - economia R$ 1.170 despesa). Compensação via PJ David (+13,4% = +R$ 8.035/mês bruto). Prazo IF com aporte R$ 20k mantido: ZERO impacto (folga absorve).",
-        "conclusion": "Flexibilidade elevada: Mariana pode pausar trabalho CLT para educação/maternidade sem comprometer IF. Renda PJ David tem elasticidade para compensação. Cenário oferece segurança familiar em transição EUA/NCLEX."
+      "custos_f1f2": {
+        "context": "Estimativa de custos mensais na fase F1/F2 nos EUA: tuition + living + viagens BR = R$ 32,4k/mês.",
+        "conclusion": "Sobra projetada: R$ 38,2k/mês (R$ 34,8k - R$ 32,4k). Permite acumular US$ 1,5k-2k/mês em Wise para precificação de propriedade americana, viabilizando compra de imóvel em 3-4 anos."
       },
       "viagens": {
-        "context": "Orçamento viagens 2026: R$ 45.000 teto. Portugal 2024/2025 consumiu R$ 22.337, deixando R$ 22.663 restante. Programas de pontos: Livelo 132.112pts (~R$ 1.585–2.245), Smiles 42.408 milhas (~R$ 1.270), Átomos 158.695pts (~R$ 4.451). Estadia EUA (F1/F2) fora do orçamento viagens (custo de vida).",
-        "conclusion": "Orçamento viagens bem controlado. Pontos acumulados (R$ 7.400+ em valor) oferecem upside para viagens adicionais. Rebalanceamento pós-venda Living Concept pode elevar teto para R$ 60k se desejado."
+        "context": "Padrão de despesas com viagens identificado nos extratos, estimando frequência e custo médio.",
+        "conclusion": "Viagens para EUA estimadas em R$ 20k-R$ 30k por viagem (passagens aéreas, hospedagem, vistos). Frequência média de 2-3 viagens/ano para acompanhamento de processo F1/F2. Incluído em reserva específica."
+      },
+      "cenarios_cambiais": {
+        "context": "Exposição cambial atual (US$ 7,3k + EUR 9) e meta pré-EUA (US$ 20k), considerando desempenho do real.",
+        "conclusion": "Gap de US$ 12,6k com aporte atual de R$ 2k/mês em Wise (R$ 360k/ano), atingindo meta em 37 meses. Risco cambial mitigado por (1) diversificação USD/EUR, (2) renda PJ em BRL compensando desvalorização, (3) flexibilidade de data de mudança."
+      },
+      "bubble_riscos": {
+        "context": "Identificação de 5 riscos críticos de compliance e proteção ao plano IF, com probabilidade e impacto.",
+        "conclusion": "Riscos prioritários: (1) FBAR/FATCA (alta prob., alto impacto), (2) Estate Tax non-resident (média prob., alto impacto), (3) Falta de seguro de vida (alta prob., crítico impacto). Ação: CPA expatriado + seguro term R$ 3-5M em T2 2026."
+      },
+      "top5_decisoes": {
+        "context": "Cinco decisões estratégicas de curto prazo (6-12 meses) para otimizar a trajetória até IF.",
+        "conclusion": "Prioridade 1: Aporte mensal R$ 20k com divisão (R$ 10k Cofrinhos, R$ 5k IPCA+, R$ 3k IVVB11, R$ 2k Wise USD). Prioridade 2: Seguro de vida termo R$ 3-5M. Prioridade 3: NCLEX/OET para Mariana. Prioridade 4: CPA expatriado. Prioridade 5: Advogado sucessório para planejamento de herança em cenário BR-EUA."
       }
-    }
+    },
+    "strategic_insights": [
+      "Dependência de receita não-recorrente: O fluxo positivo de R$ 404k é sustentado por receitas não-recorrentes (rescisão Kiwify). A receita recorrente (R$ 1,1M) não cobre as despesas (R$ 1,1M). Estabilização na Arvo e aportes automáticos são pré-requisitos para sustentabilidade do plano IF.",
+      "Alta concentração em 'não identificado' (52%): Mais da metade das despesas não tem categorização, comprometendo diagnóstico comportamental e orçamento prospectivo. Reconciliação manual das maiores transações é prioridade para o próximo ciclo.",
+      "Patrimônio baseado em IRPF (defasado): Valores patrimoniais vêm do IRPF 2024 (base 31/12/2024). Extratos de posição de mar/2026 mostram valores mais recentes não incorporados no E5. Incorporar posições atuais elevaria patrimônio investível significativamente."
+    ],
+    "inconsistencies_review": [
+      "s2 listava taxa de poupança recorrente de -3% como ponto forte, quando é o principal ponto fraco (0/10 no score). Corrigido para separar fortes de fracos.",
+      "score_gauge conclusion dizia 'Bom' mas score 5.6 = 'Regular'. Corrigido.",
+      "fluxo_mensal conclusion dizia 'saldo mensal positivo de R$ -1.030' — contradição. Corrigido para 'saldo recorrente levemente negativo'.",
+      "s2 tinha '23,3% meses' com % incorreto. Corrigido para '23,3 meses de despesas'."
+    ]
+  },
+  "review_metadata": {
+    "timestamp": "2026-04-08T09:45:00",
+    "e7_version": "1.0",
+    "changes_applied": [
+      "summaries.s2",
+      "summaries.s5",
+      "summaries.s9",
+      "charts.score_gauge",
+      "charts.fluxo_mensal",
+      "charts.receita_despesa_mensal",
+      "charts.despesas_doughnut",
+      "strategic_insights (3 items)",
+      "inconsistencies_review (4 items)"
+    ],
+    "cross_validation_passed": 0,
+    "cross_validation_failed": 0
   }
 }

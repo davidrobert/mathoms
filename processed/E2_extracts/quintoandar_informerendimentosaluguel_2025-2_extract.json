@@ -1,83 +1,230 @@
 {
-  "tipo": "informe_rendimentos_aluguel",
+  "tipo": "informerendimentos",
+  "instituicao": "quintoandar",
   "membro": "david",
-  "ano_base": 2024,
-  "fonte": "QuintoAndar",
-  "rendimentos": [
-    {
-      "mes": "2025-01",
-      "bruto": 1489.65,
-      "desconto": 126.62,
-      "liquido": 1363.03
-    },
-    {
-      "mes": "2025-02",
-      "bruto": 1489.65,
-      "desconto": 126.62,
-      "liquido": 1363.03
-    },
-    {
-      "mes": "2025-03",
-      "bruto": 1806.09,
-      "desconto": 443.06,
-      "liquido": 1363.03
-    },
-    {
-      "mes": "2025-04",
-      "bruto": 3030.12,
-      "desconto": 1383.73,
-      "liquido": 1646.39
-    },
-    {
-      "mes": "2025-05",
-      "bruto": 3564.99,
-      "desconto": 319.02,
-      "liquido": 3245.97
-    },
-    {
-      "mes": "2025-06",
-      "bruto": 3564.99,
-      "desconto": 393.48,
-      "liquido": 3171.51
-    },
-    {
-      "mes": "2025-07",
-      "bruto": 3564.99,
-      "desconto": 356.25,
-      "liquido": 3208.74
-    },
-    {
-      "mes": "2025-08",
-      "bruto": 3564.99,
-      "desconto": 356.25,
-      "liquido": 3208.74
-    },
-    {
-      "mes": "2025-09",
-      "bruto": 3564.99,
-      "desconto": 356.25,
-      "liquido": 3208.74
-    },
-    {
-      "mes": "2025-10",
-      "bruto": 3564.99,
-      "desconto": 356.25,
-      "liquido": 3208.74
-    },
-    {
-      "mes": "2025-11",
-      "bruto": 3564.99,
-      "desconto": 356.25,
-      "liquido": 3208.74
-    },
-    {
-      "mes": "2025-12",
-      "bruto": 3564.99,
-      "desconto": 356.25,
-      "liquido": 3208.74
-    }
-  ],
-  "total_bruto": 36335.43,
+  "ano_base": "2025",
+  "total_alugueis_bruto": 36335.43,
   "total_descontos": 4930.03,
-  "total_liquido": 31405.4
+  "total_rendimento_liquido": 31405.4,
+  "beneficiario": "David Robert Camargo de Campos",
+  "cpf_beneficiario": "287.766.948-36",
+  "administradora": "GRPQA LTDA",
+  "imoveis": [
+    {
+      "endereco": "Rua Major Freire, 496 - ed gisele Ap 12",
+      "codigo": "893592092",
+      "total_alugueis": 18543.82,
+      "total_descontos": 1576.19,
+      "total_rendimento_liquido": 16967.63,
+      "inquilinos": [
+        {
+          "mes": "Janeiro",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1489.65,
+          "descontos": 126.62,
+          "rendimento_liquido": 1363.03
+        },
+        {
+          "mes": "Fevereiro",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1489.65,
+          "descontos": 126.62,
+          "rendimento_liquido": 1363.03
+        },
+        {
+          "mes": "Março",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1489.65,
+          "descontos": 126.62,
+          "rendimento_liquido": 1363.03
+        },
+        {
+          "mes": "Abril",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1554.95,
+          "descontos": 132.17,
+          "rendimento_liquido": 1422.78
+        },
+        {
+          "mes": "Maio",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1564.99,
+          "descontos": 133.02,
+          "rendimento_liquido": 1431.97
+        },
+        {
+          "mes": "Junho",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1564.99,
+          "descontos": 133.02,
+          "rendimento_liquido": 1431.97
+        },
+        {
+          "mes": "Julho",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1564.99,
+          "descontos": 133.02,
+          "rendimento_liquido": 1431.97
+        },
+        {
+          "mes": "Agosto",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1564.99,
+          "descontos": 133.02,
+          "rendimento_liquido": 1431.97
+        },
+        {
+          "mes": "Setembro",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1564.99,
+          "descontos": 133.02,
+          "rendimento_liquido": 1431.97
+        },
+        {
+          "mes": "Outubro",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1564.99,
+          "descontos": 133.02,
+          "rendimento_liquido": 1431.97
+        },
+        {
+          "mes": "Novembro",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1564.99,
+          "descontos": 133.02,
+          "rendimento_liquido": 1431.97
+        },
+        {
+          "mes": "Dezembro",
+          "nome": "Gabriel Ortega Mischi",
+          "cpf": "431.139.888-37",
+          "contrato": "",
+          "valor_aluguel": 1564.99,
+          "descontos": 133.02,
+          "rendimento_liquido": 1431.97
+        }
+      ]
+    },
+    {
+      "endereco": "Praça Benedito Calixto, 186 - 34",
+      "codigo": "893592095",
+      "total_alugueis": 17791.61,
+      "total_descontos": 3353.84,
+      "total_rendimento_liquido": 14437.77,
+      "inquilinos": [
+        {
+          "mes": "Março",
+          "nome": "Caroline Coimbra Cardoso",
+          "cpf": "064.852.206-74",
+          "contrato": "",
+          "valor_aluguel": 316.44,
+          "descontos": 316.44,
+          "rendimento_liquido": 0.0
+        },
+        {
+          "mes": "Abril",
+          "nome": "Caroline Coimbra Cardoso",
+          "cpf": "064.852.206-74",
+          "contrato": "",
+          "valor_aluguel": 1475.17,
+          "descontos": 1251.56,
+          "rendimento_liquido": 223.61
+        },
+        {
+          "mes": "Maio",
+          "nome": "Caroline Coimbra Cardoso",
+          "cpf": "064.852.206-74",
+          "contrato": "",
+          "valor_aluguel": 2000.0,
+          "descontos": 186.0,
+          "rendimento_liquido": 1814.0
+        },
+        {
+          "mes": "Junho",
+          "nome": "Caroline Coimbra Cardoso",
+          "cpf": "064.852.206-74",
+          "contrato": "",
+          "valor_aluguel": 2000.0,
+          "descontos": 260.46,
+          "rendimento_liquido": 1739.54
+        },
+        {
+          "mes": "Julho",
+          "nome": "Caroline Coimbra Cardoso",
+          "cpf": "064.852.206-74",
+          "contrato": "",
+          "valor_aluguel": 2000.0,
+          "descontos": 223.23,
+          "rendimento_liquido": 1776.77
+        },
+        {
+          "mes": "Agosto",
+          "nome": "Caroline Coimbra Cardoso",
+          "cpf": "064.852.206-74",
+          "contrato": "",
+          "valor_aluguel": 2000.0,
+          "descontos": 223.23,
+          "rendimento_liquido": 1776.77
+        },
+        {
+          "mes": "Setembro",
+          "nome": "Caroline Coimbra Cardoso",
+          "cpf": "064.852.206-74",
+          "contrato": "",
+          "valor_aluguel": 2000.0,
+          "descontos": 223.23,
+          "rendimento_liquido": 1776.77
+        },
+        {
+          "mes": "Outubro",
+          "nome": "Caroline Coimbra Cardoso",
+          "cpf": "064.852.206-74",
+          "contrato": "",
+          "valor_aluguel": 2000.0,
+          "descontos": 223.23,
+          "rendimento_liquido": 1776.77
+        },
+        {
+          "mes": "Novembro",
+          "nome": "Caroline Coimbra Cardoso",
+          "cpf": "064.852.206-74",
+          "contrato": "",
+          "valor_aluguel": 2000.0,
+          "descontos": 223.23,
+          "rendimento_liquido": 1776.77
+        },
+        {
+          "mes": "Dezembro",
+          "nome": "Caroline Coimbra Cardoso",
+          "cpf": "064.852.206-74",
+          "contrato": "",
+          "valor_aluguel": 2000.0,
+          "descontos": 223.23,
+          "rendimento_liquido": 1776.77
+        }
+      ]
+    }
+  ]
 }

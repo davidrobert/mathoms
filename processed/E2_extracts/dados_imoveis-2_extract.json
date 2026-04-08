@@ -1,65 +1,38 @@
-{
-  "tipo": "dados_imoveis",
-  "imoveis": [
-    {
-      "endereco": "Praça Benedito Calixto, 186/190, APT 34 \n- Pinheiros, São Paulo - SP, 05406-040",
-      "data_compra": "2021-11-16",
-      "valor_compra": 348000.0,
-      "vendedor": "Pagamento a vista",
-      "financiamento": {
-        "banco": null,
-        "juros": null,
-        "prazo": null,
-        "saldo_devedor": 0.0
-      },
-      "situacao": "proprio",
-      "proprietario": "ambos",
-      "observacoes": null
-    },
-    {
-      "endereco": "R. Major Freire, 496, APT 12 \n- São Paulo - SP, 04304-110",
-      "data_compra": null,
-      "valor_compra": 400000.0,
-      "vendedor": "Entrada R$ 40,000.00",
-      "financiamento": {
-        "banco": "Banco Itau",
-        "juros": null,
-        "prazo": null,
-        "saldo_devedor": 0.0
-      },
-      "situacao": "financiamento",
-      "proprietario": "ambos",
-      "observacoes": null
-    },
-    {
-      "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
-      "data_compra": "2022-08-29",
-      "valor_compra": 670000.0,
-      "vendedor": "Geraldo Costa Fernandes e Odete dos Santos Fernandes",
-      "financiamento": {
-        "banco": null,
-        "juros": null,
-        "prazo": null,
-        "saldo_devedor": 0.0
-      },
-      "situacao": "proprio",
-      "proprietario": "ambos",
-      "observacoes": null
-    },
-    {
-      "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
-      "data_compra": "2023-01-13",
-      "valor_compra": 80000.0,
-      "vendedor": "Nome da Vendedora: Leonilda de Souza",
-      "financiamento": {
-        "banco": null,
-        "juros": null,
-        "prazo": null,
-        "saldo_devedor": 0.0
-      },
-      "situacao": "proprio",
-      "proprietario": "ambos",
-      "observacoes": null
-    }
-  ]
-}
+[
+  {
+    "tipo_imovel": "Apartamento",
+    "endereco": "Praça Benedito Calixto, 186/190, APT 34 \n- Pinheiros, São Paulo - SP, 05406-040",
+    "data_aquisicao": "2021-11-16T00:00:00",
+    "valor_compra": 3480000.0,
+    "detalhes_compra": "Pagamento a vista",
+    "banco_financiamento": "---",
+    "status": "Ativo"
+  },
+  {
+    "tipo_imovel": "Apartamento",
+    "endereco": "R. Major Freire, 496, APT 12 \n- São Paulo - SP, 04304-110",
+    "data_aquisicao": "AINDA NÃO TEM",
+    "valor_compra": 4000000.0,
+    "detalhes_compra": "Entrada R$ 40,000.00\nFinanciamento R$ 360,000.00",
+    "banco_financiamento": "Banco Itau",
+    "status": "Ativo"
+  },
+  {
+    "tipo_imovel": "Casa",
+    "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
+    "data_aquisicao": "2022-08-29T00:00:00",
+    "valor_compra": 6700000.0,
+    "detalhes_compra": "Nome dos Vendedores: Geraldo Costa Fernandes e Odete dos Santos Fernandes\nImovel financiado pela CAIXA, Financiamento concluido",
+    "banco_financiamento": "---",
+    "status": "Ativo"
+  },
+  {
+    "tipo_imovel": "Casa",
+    "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
+    "data_aquisicao": "2023-01-13T00:00:00",
+    "valor_compra": 800000.0,
+    "detalhes_compra": "Nome da Vendedora: Leonilda de Souza",
+    "banco_financiamento": "---",
+    "status": "Ativo"
+  }
+]

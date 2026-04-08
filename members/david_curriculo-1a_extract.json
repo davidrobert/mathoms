@@ -3,165 +3,212 @@
   "membro": "david",
   "nome_completo": "David Robert Camargo Ferreira Campos",
   "nome_atual": "David Robert Camargo Ferreira Campos",
-  "profissao_cargo": "CTO at Arvo",
+  "profissao_cargo": "Chief Technology Officer (CTO)",
   "experiencias": [
     {
       "empresa": "Arvo",
-      "cargo": "CTO",
-      "tipo_vinculo": "PJ",
-      "data_inicio": "2025-09",
-      "data_fim": "presente",
-      "descricao": "Chief Technology Officer at Arvo."
+      "cargo": "Chief Technology Officer (CTO)",
+      "periodo_inicio": "2025-09",
+      "periodo_fim": "presente",
+      "descricao": "Chief Technology Officer at a fast-growing Brazilian healthtech company leveraging AI and Machine Learning for healthcare ecosystem optimization. Responsible for technology strategy, scalable architectures, cybersecurity frameworks (LGPD/HIPAA compliant), AI-First engineering vision, world-class engineering culture, and cross-functional collaboration."
     },
     {
       "empresa": "Kiwify",
-      "cargo": "CTO",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2024-06",
-      "data_fim": "2025-05",
-      "descricao": "Chief Technology Officer at Kiwify. 12-month tenure."
+      "cargo": "Chief Technology Officer (CTO)",
+      "periodo_inicio": "2024-06",
+      "periodo_fim": "2025-05",
+      "descricao": "Chief Technology Officer at a Brazilian technology platform for e-commerce and digital businesses. Established technology strategy, organized and led engineering teams in cross-functional squads, oversaw scalable software products design and delivery, adopted agile and DevOps methodologies, defined platform architecture and infrastructure, managed technology budget, strengthened security through audits, and created disaster recovery plan."
     },
     {
       "empresa": "Loft",
       "cargo": "Software Engineering Consultant",
-      "tipo_vinculo": "PJ",
-      "data_inicio": "2022-12",
-      "data_fim": "2024-06",
-      "descricao": "Consultant for software engineering initiatives at Loft. 18-month engagement."
+      "periodo_inicio": "2022-12",
+      "periodo_fim": "2024-06",
+      "descricao": "Software Engineering Consultant managing more than 60 software engineers. Defined Loft's technology strategy, adopted modern DevOps and CI/CD practices, created and optimized financial and marketplace solutions, controlled budget and resource allocation, supported development of technical and managerial leaders, structured organizational processes and culture, led technological integration of CrediHome and CredPago, and developed governance and monitoring framework."
     },
     {
       "empresa": "Loft",
       "cargo": "Director of Software Engineering",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2021-11",
-      "data_fim": "2022-12",
-      "descricao": "Led software engineering division at Loft. 14-month tenure."
+      "periodo_inicio": "2021-11",
+      "periodo_fim": "2022-12",
+      "descricao": "Director of Software Engineering leading recruitment and onboarding of more than 70 software engineers. Managed and scaled engineering team during Loft's growth from startup to unicorn. Defined and implemented migration of legacy systems to microservices architecture, developed and implemented agile practices, introduced observability tools, defined engineering vision and culture, and led internalization and modernization of 123i systems."
     },
     {
       "empresa": "Loft",
       "cargo": "Engineering Manager",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2019-06",
-      "data_fim": "2021-10",
-      "descricao": "Managed engineering teams at Loft. 28-month tenure."
+      "periodo_inicio": "2019-06",
+      "periodo_fim": "2021-10",
+      "descricao": "Engineering Manager leading cross-functional software engineering teams for real estate technology solutions. Defined and implemented technical architecture of scalable, secure and resilient platforms, promoted agile methodologies and DevOps practices, coordinated innovation initiatives, collaborated in strategic product definition, and mentored and developed engineers."
     },
     {
       "empresa": "Elo7",
-      "cargo": "CTO",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2013-08",
-      "data_fim": "2020-07",
-      "descricao": "Chief Technology Officer at Elo7. 83-month tenure as core technology leader."
+      "cargo": "Chief Technology Officer (CTO)",
+      "periodo_inicio": "2013-08",
+      "periodo_fim": "2020-07",
+      "descricao": "Chief Technology Officer at a Brazilian e-commerce platform for handmade products. Led and managed a team of 70 software engineers, defined Elo7's technological strategy, designed and developed scalable systems (APIs, web applications, mobile apps, data engineering, search engines), managed AWS cloud infrastructure, adopted DevOps and CI/CD practices, implemented software engineering practices including pair programming and code review, defined and executed technical roadmap, and managed security and regulatory compliance."
     },
     {
       "empresa": "Abril",
       "cargo": "Solutions Architect I",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2012-03",
-      "data_fim": "2013-08",
-      "descricao": "Solutions architect at Abril. 18-month tenure."
+      "periodo_inicio": "2012-03",
+      "periodo_fim": "2013-08",
+      "descricao": "Solutions Architect for media group. Developed and implemented distributed architecture of Alexandria platform for content storage and publishing on digital portals (Veja, Exame, Placar). Created scalable RESTful APIs using Java and Ruby, implemented distributed caching solutions, led adoption of semantic data organization techniques, adopted event-driven design principles, oversaw work as software architect across multiple teams, established software engineering standards and best practices, and mentored junior and senior developers."
     },
     {
       "empresa": "TOTVS",
-      "cargo": "R&D Engineer IV",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2011-02",
-      "data_fim": "2012-03",
-      "descricao": "Senior R&D Engineer at TOTVS. 14-month tenure."
+      "cargo": "Research and Development Engineer IV",
+      "periodo_inicio": "2011-02",
+      "periodo_fim": "2012-03",
+      "descricao": "Research and Development Engineer IV developing and maintaining TOTVS' proprietary virtual machine using C, C++ and Assembly. Designed and implemented compiler architecture, led evolution and optimization of memory management, analyzed and resolved performance bottlenecks, improved virtual machine design, performed testing and debugging, documented development processes, and provided technical mentorship to junior engineers."
     },
     {
       "empresa": "NIC.br",
       "cargo": "Software Engineer",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2006-04",
-      "data_fim": "2011-01",
-      "descricao": "Software engineer at NIC.br (Brazilian Internet Steering Committee). 57-month tenure."
+      "periodo_inicio": "2006-04",
+      "periodo_fim": "2011-01",
+      "descricao": "Software Engineer for entity managing Brazil's Internet infrastructure. Developed UNIX-based applications using Java, C/C++ and Python integrated with MySQL databases, participated in implementation of DNSSHIM open-source software for DNS operations, designed and implemented NIC.br's proprietary DNS server with DNSSEC extensions, automated processes using POSIX-shell and Perl, worked with multidisciplinary teams, performed testing and code optimization, prepared technical documentation, provided lectures on DNS/DNSSEC, and offered technical support for DNS infrastructure."
     },
     {
       "empresa": "Agência Estado",
       "cargo": "Jr System Analyst",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2004-01",
-      "data_fim": "2006-03",
-      "descricao": "Junior systems analyst at Agência Estado. 27-month tenure."
+      "periodo_inicio": "2004-01",
+      "periodo_fim": "2006-03",
+      "descricao": "Jr System Analyst for main financial news agency in Brazil. Developed innovative tools for Estadão portal using Perl and PHP, designed and implemented frontend structures for portal pages, created visualization systems for digital versions of newspapers, collaborated with multidisciplinary teams, performed system testing and debugging, optimized website performance, maintained and updated existing tools, developed intuitive interfaces, documented system architecture, and kept up with industry trends."
     },
     {
       "empresa": "Agência Estado",
       "cargo": "Trainee",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2002-06",
-      "data_fim": "2003-12",
-      "descricao": "Trainee program at Agência Estado. 19-month tenure."
+      "periodo_inicio": "2002-06",
+      "periodo_fim": "2003-12",
+      "descricao": "Trainee supporting development and maintenance of internal systems using Perl and PHP. Assisted in creation and updating of dynamic content for digital portal, participated in testing and debugging of applications, collaborated with senior developers on critical projects, and followed up on code documentation and processes."
     },
     {
-      "empresa": "Brazilian Army",
-      "cargo": "Communications Officer Aspirant / Instruction Internship",
-      "tipo_vinculo": "docencia",
-      "data_inicio": "2000-01",
-      "data_fim": "2001-07",
-      "descricao": "Military training and communications instruction. 19-month tenure."
+      "empresa": "2nd Armored Communications Company, Brazilian Army",
+      "cargo": "Instruction Internship",
+      "periodo_inicio": "2001-07",
+      "periodo_fim": "2001-07",
+      "descricao": "Instruction Internship commanding a platoon of Communications Arm Corporals. Trained and technically developed the platoon, supervised and coordinated technical military communication operations, performed physical and technical tests, and ensured military standards of discipline and performance."
+    },
+    {
+      "empresa": "Center for the Preparation of Reserve Officers of São Paulo (CPOR/SP), Brazilian Army",
+      "cargo": "Aspiring Communications Officer",
+      "periodo_inicio": "2000-01",
+      "periodo_fim": "2000-12",
+      "descricao": "Aspiring Communications Officer receiving technical and military training in Communications Branch. Operated and maintained military communication systems, led troops and coordinated operational exercises, deployed tactical communications infrastructure, planned and executed information security strategies, trained in military tactics and survival, and developed leadership and teamwork skills."
     }
   ],
   "formacao": [
     {
-      "instituicao": "USP/IME",
-      "curso": "Computer Science (AI)",
-      "grau": "mestrado",
-      "data_conclusao": "2008"
+      "instituicao": "University of São Paulo (USP), Institute of Mathematics and Statistics (IME)",
+      "curso": "Master in Computer Science - Artificial Intelligence",
+      "periodo_inicio": null,
+      "periodo_fim": "2008",
+      "grau": "Master"
     },
     {
-      "instituicao": "PUC/SP",
-      "curso": "Computer Science",
-      "grau": "graduacao",
-      "data_conclusao": "2004"
+      "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)",
+      "curso": "Bachelor of Computer Science",
+      "periodo_inicio": null,
+      "periodo_fim": "2004",
+      "grau": "Bachelor"
     }
   ],
   "certificacoes": [
     {
-      "nome": "Oracle Certified Professional Java SE 5",
-      "instituicao": ""
+      "nome": "Oracle Certified Professional, Java SE 5 Programmer",
+      "fonte": "Oracle"
     },
     {
       "nome": "Duolingo English Test",
-      "instituicao": ""
-    },
-    {
-      "nome": "Innovation Leadership",
-      "instituicao": "MIT"
-    },
-    {
-      "nome": "Business Strategy",
-      "instituicao": "Univ La Verne"
+      "fonte": "Duolingo",
+      "id_certificado": "do79ylsw7jbg92lq"
     }
   ],
   "habilidades": [
+    "Software Architecture",
+    "Platform Design",
+    "Domain-Driven Design (DDD)",
+    "Scalable and Resilient Architectures",
+    "Microservices",
+    "Robust APIs",
     "Java",
-    "C/C++",
+    "C++",
+    "C",
     "Python",
     "Go",
     "Kotlin",
     "JavaScript",
-    "microservices",
-    "DDD",
+    "Perl",
+    "PHP",
+    "Ruby",
+    "SQL",
+    "MySQL",
+    "Database Design",
+    "Machine Learning",
+    "Artificial Intelligence",
+    "Data Engineering",
+    "ETL Pipelines",
+    "Hadoop",
+    "Spark",
+    "Big Data",
+    "Cloud Computing Architecture",
     "AWS",
     "GCP",
     "Kubernetes",
     "Docker",
-    "DNSSEC",
+    "Advanced Monitoring",
+    "DevOps",
     "CI/CD",
+    "Infrastructure as Code",
+    "Terraform",
+    "Ansible",
+    "Observability Tools",
+    "Logging",
+    "Tracing",
+    "Metrics",
+    "Cybersecurity",
+    "DNSSEC",
+    "DNS Server Architecture",
+    "DDoS Protection",
+    "Cache Poisoning Mitigation",
+    "Spoofing Prevention",
+    "Security and Encryption Protocols",
+    "High Availability Systems",
+    "Continuous Integration",
+    "Continuous Delivery",
+    "Design Patterns",
+    "High-Transaction-Rate Web Services",
+    "Data-Driven Solutions",
+    "Data Lakes",
+    "REST APIs",
+    "Distributed Systems",
+    "Software Engineering Best Practices",
+    "Agile Methodologies",
     "Scrum",
-    "Kanban"
+    "Kanban",
+    "Team Leadership",
+    "Engineering Team Management",
+    "Technical Strategy",
+    "Product Roadmap Definition",
+    "Business Strategy",
+    "Talent Acquisition",
+    "Team Development",
+    "Code Review",
+    "Pair Programming",
+    "Technical Mentorship",
+    "Innovation Leadership",
+    "Business English"
   ],
   "idiomas": [
     {
       "idioma": "Português",
-      "nivel": "nativo",
-      "fonte": "inferido"
+      "nivel": "Nativo",
+      "fonte": "documento"
     },
     {
       "idioma": "Inglês",
-      "nivel": "fluente",
-      "fonte": "CV em inglês, Duolingo test, cursos de universidades americanas"
+      "nivel": "Fluente",
+      "fonte": "Duolingo English Test Certificate"
     }
   ]
 }

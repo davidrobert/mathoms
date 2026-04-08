@@ -1,120 +1,109 @@
 {
   "tipo": "curriculo",
   "membro": "mariana",
-  "nome_completo": "Mariana Ferreira Campos",
+  "nome_completo": "Mariana Teixeira Ferreira",
   "nome_atual": "Mariana Ferreira Campos",
-  "profissao_cargo": "Enfermeiro at Hospital Israelita Albert Einstein",
+  "profissao_cargo": "Enfermeira",
   "experiencias": [
     {
       "empresa": "Hospital Israelita Albert Einstein",
       "cargo": "Enfermeiro",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2018-01",
-      "data_fim": "presente",
-      "descricao": "Nursing professional at Hospital Israelita Albert Einstein since 2018."
+      "periodo_inicio": "2018-01",
+      "periodo_fim": "presente",
+      "descricao": "Atuação em unidade de alta complexidade com foco em Cardiologia, Clínica Médica e Cirúrgica. Auditoria e Qualidade: Atuação ativa em projetos de melhoria contínua e segurança do paciente, apresentando resultados em exposições de qualidade na categoria PDCA e Sustentabilidade. Responsável pela auditoria de prontuários eletrônicos focada em: preenchimento de alergias, risco de queda e sinais vitais, garantindo conformidade com acreditações internacionais. Desenvolvimento de estratégias para 'Redução de atrasos em procedimentos' e 'Otimização de recursos (Enxoval)', demonstrando visão de custos e eficiência operacional. Preceptoria e suporte à tomada de decisão clínica baseada em evidências."
     },
     {
-      "empresa": "Hospital Israelita Albert Einstein",
-      "cargo": "Enfermeiro UPA Campo Limpo",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2014-08",
-      "data_fim": "2018-06",
-      "descricao": "Emergency care nurse at UPA Campo Limpo unit. 46-month tenure."
+      "empresa": "UPA Campo Limpo",
+      "cargo": "Enfermeiro",
+      "periodo_inicio": "2014-08",
+      "periodo_fim": "2018-06",
+      "descricao": ""
     },
     {
       "empresa": "Faculdade Israelita Albert Einstein",
-      "cargo": "Docente",
-      "tipo_vinculo": "docencia",
-      "data_inicio": "2021-01",
-      "data_fim": "2024-12",
-      "descricao": "Nursing instructor and professor. 48-month teaching position."
+      "cargo": "Docente universitário",
+      "periodo_inicio": "2021-01",
+      "periodo_fim": "2024-12",
+      "descricao": "Docente em Semiologia e Semiotécnica, com desenvolvimento de conteúdo teórico-prático e avaliação de competências clínicas. Experiência em metodologias ativas de ensino e formação profissional."
     },
     {
       "empresa": "Senac São Paulo",
-      "cargo": "Docente",
-      "tipo_vinculo": "docencia",
-      "data_inicio": "2012-01",
-      "data_fim": "2016-01",
-      "descricao": "Nursing education instructor at Senac. 48-month tenure."
+      "cargo": "Docente universitário",
+      "periodo_inicio": "2012-01",
+      "periodo_fim": "2016-01",
+      "descricao": ""
     },
     {
       "empresa": "Faculdade Sequencial",
-      "cargo": "Docente",
-      "tipo_vinculo": "docencia",
-      "data_inicio": "2013-01",
-      "data_fim": "2015-08",
-      "descricao": "Nursing course instructor at Faculdade Sequencial. 32-month tenure."
+      "cargo": "Docente universitário",
+      "periodo_inicio": "2013-01",
+      "periodo_fim": "2015-08",
+      "descricao": ""
     },
     {
-      "empresa": "Hospital Municipal Dr. Moysés Deutsch",
+      "empresa": "Hospital Municipal Dr. Moysés Deutsch - Parceria com Hospital Israelita Einstein",
       "cargo": "Enfermeira",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2011-01",
-      "data_fim": "2014-01",
-      "descricao": "Clinical nurse at municipal hospital. 37-month tenure."
+      "periodo_inicio": "2011",
+      "periodo_fim": "2014",
+      "descricao": "Atuação assistencial em UTI Adulto e Pediátrica, desenvolvendo resiliência e capacidade de gestão de crises em ambiente de alta pressão. Atuação assistencial em Clínica Médica e Cirúrgica"
     }
   ],
   "formacao": [
     {
-      "instituicao": "USP",
-      "curso": "Enfermagem",
-      "grau": "mestrado",
-      "data_conclusao": "2021"
+      "instituicao": "Universidade de São Paulo",
+      "curso": "Mestrado em Enfermagem, Enfermagem em Saúde Adulta",
+      "periodo_inicio": "2019",
+      "periodo_fim": "2021-06",
+      "grau": "Mestrado"
     },
     {
-      "instituicao": "UNIFESP",
-      "curso": "Cardiologia e Hemodinâmica",
-      "grau": "especializacao",
-      "data_conclusao": "2012"
+      "instituicao": "Unifesp - Universidade Federal de São Paulo",
+      "curso": "Enfermagem em Cardiologia e Hemodinâmica",
+      "periodo_inicio": "2011",
+      "periodo_fim": "2012",
+      "grau": "Especialização (Lato Sensu)"
     },
     {
       "instituicao": "PUC Minas",
-      "curso": "Enfermagem",
-      "grau": "graduacao",
-      "data_conclusao": "2010"
+      "curso": "Bacharelado em Enfermagem",
+      "periodo_inicio": "2007",
+      "periodo_fim": "2010",
+      "grau": "Bacharelado"
     },
     {
-      "instituicao": "FIOCRUZ",
-      "curso": "Formação Docente",
-      "grau": "especializacao",
-      "data_conclusao": ""
+      "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
+      "curso": "Especialização em Formação Docente em Educação Profissional",
+      "periodo_inicio": null,
+      "periodo_fim": null,
+      "grau": "Especialização (Lato Sensu)"
     }
   ],
   "certificacoes": [
-    {
-      "nome": "Auditoria PDCA",
-      "instituicao": ""
-    },
-    {
-      "nome": "Classificação de Risco Manchester",
-      "instituicao": ""
-    },
-    {
-      "nome": "ATCN",
-      "instituicao": ""
-    },
-    {
-      "nome": "Gestão de Crônicos - Esclerose Múltipla",
-      "instituicao": "USP"
-    },
-    {
-      "nome": "Gestão de Crônicos - Osteoporose",
-      "instituicao": ""
-    }
+    "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
+    "Classificação de Risco (Protocolo de Manchester)",
+    "Advanced Trauma Care for Nurses (ATCN)",
+    "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP) e Curso de Osteoporose"
   ],
   "habilidades": [
     "Processo de enfermagem",
-    "Cuidados ao paciente",
+    "Cuidados de qualidade ao paciente",
     "Gestão de equipes",
-    "Auditoria clínica",
-    "Educação em saúde",
-    "Pesquisa clínica"
+    "Auditoria Clínica",
+    "Segurança do Paciente",
+    "Análise de prontuários eletrônicos",
+    "PDCA",
+    "Melhoria de indicadores de qualidade",
+    "Gestão de casos",
+    "Monitoramento de pacientes crônicos",
+    "Educação e Treinamento",
+    "Metodologia científica",
+    "Prática baseada em evidências"
   ],
   "idiomas": [
     {
       "idioma": "Português",
-      "nivel": "nativo",
-      "fonte": "inferido"
+      "nivel": "Nativo",
+      "fonte": "Documento em português brasileiro"
     }
   ]
 }

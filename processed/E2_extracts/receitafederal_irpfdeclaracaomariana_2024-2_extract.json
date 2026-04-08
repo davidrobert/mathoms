@@ -1,614 +1,300 @@
 {
-  "tipo": "irpf_declaracao",
-  "membro": "mariana",
-  "ano_exercicio": 2025,
+  "source": "receitafederal_irpfdeclaracaomariana_2024-0_original.pdf",
+  "membro": "MARIANA FERREIRA CAMPOS",
+  "cpf": "085.052.396-60",
   "ano_base": 2024,
-  "identificacao": {
-    "nome": "MARIANA FERREIRA CAMPOS",
-    "cpf": "085.052.396-60",
-    "data_nascimento": "30/08/1986",
-    "sexo": null,
-    "possui_conjuge": true,
-    "cpf_conjuge": "287.766.948-36",
-    "residente_exterior_2024": false,
-    "alteracao_dados_cadastrais": true,
-    "deficiencia_grave": false,
-    "endereco": {
-      "logradouro": "RUA TASSO DA SILVEIRA",
-      "numero": "61",
-      "complemento": null,
-      "bairro": "VILA GUARANI Z SUL",
-      "municipio": "SAO PAULO",
-      "uf": "SP",
-      "cep": "04316-080"
-    },
-    "contato": {
-      "ddd_telefone": "(11) 96073-3929",
-      "ddd_celular": "(11) 96073-3929",
-      "email": "MTF3008@GMAIL.COM"
-    },
-    "ocupacao": {
-      "natureza": "01 - Empregado de empresa do setor privado, exceto de instituições financeiras",
-      "ocupacao_principal": "227 - Enfermeiro de nível superior, nutricionista, farmacêutico e afins"
-    },
-    "tipo_declaracao": "Declaração de Ajuste Anual Original",
-    "recibo_ultima_declaracao_2024": "28.37.40.23.30-93"
-  },
-  "dependentes": [],
-  "alimentandos": [],
-  "rendimentos_tributaveis": {
-    "pessoa_juridica": {
-      "titular": [
-        {
-          "fonte_pagadora": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA HOSPITAL ALBERT E",
-          "cnpj": "60.765.823/0001-30",
-          "rendimentos_recebidos": 141842.7,
-          "contribuicao_previdenciaria_oficial": 10906.2,
-          "imposto_retido_fonte": 22575.99,
-          "decimo_terceiro_salario": 8301.32,
-          "irrf_sobre_13_salario": 1913.12
-        }
-      ],
-      "dependentes": []
-    },
-    "pessoa_fisica": {
-      "titular": {
-        "trabalho_nao_assalariado": [
-          {
-            "mes": "JAN",
-            "valor": 0.0
-          },
-          {
-            "mes": "FEV",
-            "valor": 0.0
-          },
-          {
-            "mes": "MAR",
-            "valor": 0.0
-          },
-          {
-            "mes": "ABR",
-            "valor": 0.0
-          },
-          {
-            "mes": "MAI",
-            "valor": 0.0
-          },
-          {
-            "mes": "JUN",
-            "valor": 0.0
-          },
-          {
-            "mes": "JUL",
-            "valor": 0.0
-          },
-          {
-            "mes": "AGO",
-            "valor": 0.0
-          },
-          {
-            "mes": "SET",
-            "valor": 0.0
-          },
-          {
-            "mes": "OUT",
-            "valor": 0.0
-          },
-          {
-            "mes": "NOV",
-            "valor": 0.0
-          },
-          {
-            "mes": "DEZ",
-            "valor": 0.0
-          }
-        ],
-        "alugueis": [
-          {
-            "mes": "JAN",
-            "valor": 1504.8
-          },
-          {
-            "mes": "FEV",
-            "valor": 4294.11
-          },
-          {
-            "mes": "MAR",
-            "valor": 1504.8
-          },
-          {
-            "mes": "ABR",
-            "valor": 3094.84
-          },
-          {
-            "mes": "MAI",
-            "valor": 6429.6
-          },
-          {
-            "mes": "JUN",
-            "valor": 6429.6
-          },
-          {
-            "mes": "JUL",
-            "valor": 6439.13
-          },
-          {
-            "mes": "AGO",
-            "valor": 6488.68
-          },
-          {
-            "mes": "SET",
-            "valor": 6488.68
-          },
-          {
-            "mes": "OUT",
-            "valor": 6488.68
-          },
-          {
-            "mes": "NOV",
-            "valor": 6488.68
-          },
-          {
-            "mes": "DEZ",
-            "valor": 6488.68
-          }
-        ],
-        "total_alugueis": 62140.28
-      },
-      "dependentes": []
-    },
-    "total_rendimentos_tributaveis": 203982.98
-  },
-  "rendimentos_isentos": {
-    "descricao": "Outros",
-    "itens": [
-      {
-        "beneficiario": "Titular",
-        "cpf": "085.052.396-60",
-        "cnpj_fonte": "60.765.823/0001-30",
-        "nome_fonte": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA HOSPITAL ALBERT E",
-        "descricao": "ABONO DE FERIAS PIS",
-        "valor": 1336.61
+  "tipo_declaracao": "Original",
+  "bens_direitos": [
+    {
+      "grupo": "01",
+      "codigo": "11",
+      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA 223.733,99 270.000,00",
+      "valor_31_12_anterior": 223733.99,
+      "valor_31_12_atual": 270000.0,
+      "detalhes": {
+        "Inscrição Municipal (IPTU)": "30105434946",
+        "Controle": "838216781775959 Página 4 de13 Data/Hora da Entrega: 30/05/2025 às 20:05:23",
+        "NOME": "MARIANA FERREIRA CAMPOS",
+        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
       }
-    ],
-    "total": 1336.61
-  },
-  "rendimentos_tributacao_exclusiva": {
-    "descricao": "Rendimentos sujeitos à tributação exclusiva/definitiva",
-    "itens": [
-      {
-        "codigo": "01",
-        "tipo": "13º salário",
-        "valor": 8301.32
-      },
-      {
-        "codigo": "06",
-        "tipo": "Rendimentos de aplicações financeiras",
-        "valor": 3319.56,
-        "fontes": [
-          {
-            "beneficiario": "Titular",
-            "cpf": "085.052.396-60",
-            "cnpj_fonte": "00.888.897/0001-31",
-            "nome_fonte": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO P",
-            "valor": 150.83
-          },
-          {
-            "beneficiario": "Titular",
-            "cpf": "085.052.396-60",
-            "cnpj_fonte": "11.952.873/0001-10",
-            "nome_fonte": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO",
-            "valor": 2350.78
-          },
-          {
-            "beneficiario": "Titular",
-            "cpf": "085.052.396-60",
-            "cnpj_fonte": "39.958.460/0001-62",
-            "nome_fonte": "M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI",
-            "valor": 479.38
-          },
-          {
-            "beneficiario": "Titular",
-            "cpf": "085.052.396-60",
-            "cnpj_fonte": "60.746.948/0001-12",
-            "nome_fonte": "BANCO BRADESCO S A",
-            "valor": 326.17
-          },
-          {
-            "beneficiario": "Titular",
-            "cpf": "085.052.396-60",
-            "cnpj_fonte": "30.680.829/0001-43",
-            "nome_fonte": "NU FINANCEIRA S.A. - SOCIEDADE DE CREDITO, FINANCIAMENTO E I",
-            "valor": 3.91
-          },
-          {
-            "beneficiario": "Titular",
-            "cpf": "085.052.396-60",
-            "cnpj_fonte": "30.306.294/0001-45",
-            "nome_fonte": "BANCO BTG PACTUAL S A",
-            "valor": 8.49
-          }
-        ]
-      }
-    ],
-    "total": 11620.88
-  },
-  "bens_direitos": {
-    "imoveis": [
-      {
-        "grupo": "01",
-        "codigo": "11",
-        "tipo": "Imóvel",
-        "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA PLANTA DA EMPRESA CYRELA MAGIKLZ CAMPINAS",
-        "cnpj_mf": "13.177.004/0001-91",
-        "localizacao": {
-          "logradouro": "AVENIDA ALBERTO AUGUSTO ALVES",
-          "numero": "320",
-          "complemento": "APTO 812",
-          "bairro": "SANTO AMARO",
-          "municipio": "SAO PAULO",
-          "uf": "SP",
-          "cep": "05724-030"
-        },
-        "area_total_m2": 25.7,
-        "data_aquisicao": "09/10/2023",
-        "registrado_cartorio": true,
-        "nome_cartorio": "11 CARTORIO DE REGISTRO DE IMOVEIS DA COMARCA DE SAO PAULO",
-        "matricula": "488435",
-        "iptu": "30105434946",
-        "valor_31_12_2023": 223733.99,
-        "valor_31_12_2024": 270000.0,
-        "valorizacao": 46266.01
-      },
-      {
-        "grupo": "01",
-        "codigo": "11",
-        "tipo": "Imóvel",
-        "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA MAGIKLZ CYRELA ASTURIAS EMPREENDIMENTOS IMOBILIARIOS LTDA",
-        "cnpj_mf": "17.102.653/0001-84",
-        "area_total_m2": 88.91,
-        "localizacao": {
-          "logradouro": "AVENIDA JOAO DIAS",
-          "numero": "2192",
-          "complemento": "TORRE 2 APT 163",
-          "bairro": "SANTO AMARO",
-          "municipio": "SAO PAULO",
-          "uf": "SP",
-          "cep": "04724-003"
-        },
-        "data_aquisicao": "09/04/2018",
-        "registrado_cartorio": true,
-        "nome_cartorio": "11 REGISTRO DE IMOVEIS DE SAO PAULO",
-        "matricula": "453.527",
-        "iptu": "087.006.0478-1",
-        "valor_31_12_2023": 477436.58,
-        "valor_31_12_2024": 530000.0,
-        "valorizacao": 52563.42
-      }
-    ],
-    "contas_bancarias": [
-      {
-        "grupo": "04",
-        "codigo": "01",
-        "tipo": "Conta bancária",
-        "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
-        "cnpj": "60.746.948/0001-12",
-        "banco": "237",
-        "agencia": "0504",
-        "conta": "77113-9",
-        "valor_31_12_2023": 25337.34,
-        "valor_31_12_2024": 0.0,
-        "movimento": -25337.34
-      },
-      {
-        "grupo": "06",
-        "codigo": "01",
-        "tipo": "Conta corrente",
-        "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 CONTA 6673-7",
-        "cnpj": "60.746.948/0001-12",
-        "banco": "237",
-        "agencia": "0504",
-        "conta": "77113-9",
-        "conta_pagamento": false,
-        "valor_31_12_2023": 1.0,
-        "valor_31_12_2024": 0.0,
-        "movimento": -1.0
-      }
-    ],
-    "aplicacoes_financeiras_cdb": [
-      {
-        "grupo": "04",
-        "codigo": "02",
-        "tipo": "CDB",
-        "descricao": "BTG - PRODUTO CDBB2353UR4",
-        "cnpj": "30.306.294/0001-45",
-        "valor_31_12_2023": 22000.0,
-        "valor_31_12_2024": 22000.0,
-        "movimento": 0.0
-      },
-      {
-        "grupo": "04",
-        "codigo": "02",
-        "tipo": "CDB",
-        "descricao": "BTG - CDB-SR - AGENCIA 0001",
-        "cnpj": "30.306.294/0001-45",
-        "valor_31_12_2023": 1826.51,
-        "valor_31_12_2024": 3429.16,
-        "movimento": 1602.65
-      },
-      {
-        "grupo": "04",
-        "codigo": "02",
-        "tipo": "CDB",
-        "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
-        "cnpj": "60.746.948/0001-12",
-        "valor_31_12_2023": 4365.03,
-        "valor_31_12_2024": 0.0,
-        "movimento": -4365.03
-      },
-      {
-        "grupo": "04",
-        "codigo": "02",
-        "tipo": "RDB",
-        "descricao": "SALDO RDB - NUBANK",
-        "cnpj": "30.680.829/0001-43",
-        "valor_31_12_2023": 58.23,
-        "valor_31_12_2024": 0.0,
-        "movimento": -58.23
-      },
-      {
-        "grupo": "04",
-        "codigo": "02",
-        "tipo": "CDB",
-        "descricao": "BTG - PRODUTO CDB524BFK2F",
-        "cnpj": "30.306.294/0001-45",
-        "valor_31_12_2023": 0.0,
-        "valor_31_12_2024": 10000.0,
-        "movimento": 10000.0
-      }
-    ],
-    "aplicacoes_financeiras_outros": [
-      {
-        "grupo": "04",
-        "codigo": "03",
-        "tipo": "Aplicação financeira",
-        "descricao": "BTG - PRODUTO 22J1410500",
-        "cnpj": "30.306.294/0001-45",
-        "valor_31_12_2023": 10349.69,
-        "valor_31_12_2024": 9349.69,
-        "movimento": -1000.0
-      },
-      {
-        "grupo": "04",
-        "codigo": "03",
-        "tipo": "Aplicação financeira",
-        "descricao": "BTG - PRODUTO 22K1692411",
-        "cnpj": "30.306.294/0001-45",
-        "valor_31_12_2023": 10324.25,
-        "valor_31_12_2024": 10324.25,
-        "movimento": 0.0
-      },
-      {
-        "grupo": "04",
-        "codigo": "03",
-        "tipo": "Aplicação financeira",
-        "descricao": "BTG - PRODUTO CRA02300MZU",
-        "cnpj": "30.306.294/0001-45",
-        "valor_31_12_2023": 0.0,
-        "valor_31_12_2024": 9115.01,
-        "movimento": 9115.01
-      },
-      {
-        "grupo": "04",
-        "codigo": "03",
-        "tipo": "Aplicação financeira",
-        "descricao": "BTG - PRODUTO CRA02300SPD",
-        "cnpj": "30.306.294/0001-45",
-        "valor_31_12_2023": 0.0,
-        "valor_31_12_2024": 9109.54,
-        "movimento": 9109.54
-      },
-      {
-        "grupo": "04",
-        "codigo": "03",
-        "tipo": "Aplicação financeira",
-        "descricao": "BTG - PRODUTO CRA024001Q9",
-        "cnpj": "30.306.294/0001-45",
-        "valor_31_12_2023": 0.0,
-        "valor_31_12_2024": 9248.83,
-        "movimento": 9248.83
-      },
-      {
-        "grupo": "04",
-        "codigo": "03",
-        "tipo": "Aplicação financeira",
-        "descricao": "BTG - PRODUTO 23J0138431",
-        "cnpj": "30.306.294/0001-45",
-        "valor_31_12_2023": 0.0,
-        "valor_31_12_2024": 9164.03,
-        "movimento": 9164.03
-      }
-    ],
-    "fundos_investimento": [
-      {
-        "grupo": "07",
-        "codigo": "01",
-        "tipo": "Fundo de investimento",
-        "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LO",
-        "cnpj_fundo": "11.952.873/0001-10",
-        "negociado_bolsa": false,
-        "valor_31_12_2023": 35868.62,
-        "valor_31_12_2024": 41408.87,
-        "movimento": 5540.25
-      },
-      {
-        "grupo": "07",
-        "codigo": "01",
-        "tipo": "Fundo de investimento",
-        "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI",
-        "cnpj_fundo": "00.888.897/0001-31",
-        "negociado_bolsa": false,
-        "valor_31_12_2023": 0.0,
-        "valor_31_12_2024": 4494.93,
-        "movimento": 4494.93
-      },
-      {
-        "grupo": "07",
-        "codigo": "07",
-        "tipo": "Fundo de investimento",
-        "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRIVADO LONGO PRAZO",
-        "cnpj_fundo": "39.958.460/0001-62",
-        "cnpj_informante": "59.281.253/0001-23",
-        "negociado_bolsa": false,
-        "valor_31_12_2023": 0.0,
-        "valor_31_12_2024": 25479.42,
-        "movimento": 25479.42
-      },
-      {
-        "grupo": "07",
-        "codigo": "10",
-        "tipo": "Fundo de investimento",
-        "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE INVESTIMENTO FINANCEIRO EM INFRAESTRUTURA RENDA FIXA",
-        "cnpj_fundo": "51.697.128/0001-97",
-        "cnpj_informante": "59.281.253/0001-23",
-        "negociado_bolsa": false,
-        "valor_31_12_2023": 0.0,
-        "valor_31_12_2024": 25000.0,
-        "movimento": 25000.0
-      }
-    ],
-    "total_31_12_2023": 811301.24,
-    "total_31_12_2024": 988123.73,
-    "valorizacao_total": 176822.49
-  },
-  "dividas": [],
-  "pagamentos_deducoes": {
-    "pagamentos": [
-      {
-        "codigo": "11",
-        "beneficiario": "LEIR MIRANDA ESTEVES",
-        "cpf_cnpj": "786.538.606-06",
-        "descricao": "ODONTOLOGO",
-        "valor_pago": 400.0,
-        "parcela_nao_dedutivel": 0.0
-      },
-      {
-        "codigo": "21",
-        "beneficiario": "BEEP SERVICOS MEDICOS LTDA",
-        "cpf_cnpj": "28.286.170/0001-01",
-        "descricao": null,
-        "valor_pago": 275.0,
-        "parcela_nao_dedutivel": 0.0
-      },
-      {
-        "codigo": "21",
-        "beneficiario": "HT SARAGIOTTO SERVICOS MEDICOS LTDA",
-        "cpf_cnpj": "47.078.968/0001-02",
-        "descricao": null,
-        "valor_pago": 600.0,
-        "parcela_nao_dedutivel": 0.0
-      },
-      {
-        "codigo": "26",
-        "beneficiario": "SUL AMERICA SERVICOS DE SAUDE",
-        "cpf_cnpj": "02.866.602/0001-51",
-        "descricao": null,
-        "valor_pago": 190.54,
-        "parcela_nao_dedutivel": 0.0
-      },
-      {
-        "codigo": "71",
-        "beneficiario": "GRPQA LTDA",
-        "cpf_cnpj": "16.788.643/0001-81",
-        "descricao": null,
-        "valor_pago": 13726.94,
-        "parcela_nao_dedutivel": 0.0
-      }
-    ],
-    "total_pagamentos": 15192.48,
-    "doacoes": []
-  },
-  "imposto": {
-    "imposto_complementar": 0.0,
-    "imposto_pago_exterior": 0.0,
-    "imposto_devido_com_rendimentos_exterior": 0.0,
-    "imposto_devido_sem_rendimentos_exterior": 0.0,
-    "diferenca_calculo_imposto": 0.0,
-    "imposto_fonte_lei_11033_2004": 0.0,
-    "imposto_retido_fonte_titular": 22575.99,
-    "imposto_retido_fonte_dependentes": 0.0,
-    "carne_leao_titular": 0.0,
-    "carne_leao_dependentes": 0.0,
-    "resumo_tributacao": {
-      "rendimentos_pessoa_juridica_titular": 141842.7,
-      "rendimentos_pessoa_juridica_dependentes": 0.0,
-      "rendimentos_pessoa_fisica_exterior_titular": 62140.28,
-      "rendimentos_pessoa_fisica_exterior_dependentes": 0.0,
-      "rendimentos_acumuladamente_titular": 0.0,
-      "rendimentos_acumuladamente_dependentes": 0.0,
-      "resultado_tributavel_atividade_rural": 0.0,
-      "total_rendimentos_tributaveis": 203982.98,
-      "desconto_simplificado": 16754.34,
-      "base_calculo_imposto": 187228.64,
-      "imposto_devido": 40746.89,
-      "imposto_devido_rra": 0.0,
-      "aliquota_efetiva_percentual": 19.97,
-      "total_imposto_devido": 40746.89
     },
-    "imposto_pago": {
-      "imposto_retido_fonte_titular": 22575.99,
-      "imposto_retido_fonte_dependentes": 0.0,
-      "carne_leao_titular": 0.0,
-      "carne_leao_dependentes": 0.0,
-      "imposto_complementar": 0.0,
-      "imposto_pago_exterior": 0.0,
-      "imposto_fonte_lei_11033_2004": 0.0,
-      "imposto_retido_rra": 0.0,
-      "total_imposto_pago": 22575.99
+    {
+      "grupo": "01",
+      "codigo": "11",
+      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA 477.436,58 530.000,00",
+      "valor_31_12_anterior": 477436.58,
+      "valor_31_12_atual": 530000.0,
+      "detalhes": {
+        "Inscrição Municipal (IPTU)": "087.006 .0478-1",
+        "Logradouro": "AVENIDA JOAO DIAS Nº: 2192",
+        "Comp.": "TORRE 2 APT 163 Bairro: SANTO AMARO",
+        "Município": "SAO PAULO UF: SP CEP: 04724-003",
+        "Área Total": "88,9 m² Data de Aquisição: 09/04/2018",
+        "Registrado no Cartório": "Sim Nome Cartório: 11 REGISTRO DE IMOVEIS DE",
+        "Matrícula": "453.527 SAO PAULO"
+      }
     },
-    "saldo": {
-      "imposto_restituir": 0.0,
-      "imposto_pagar": 18170.9
+    {
+      "grupo": "04",
+      "codigo": "01",
+      "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 25.337,34 0,00",
+      "valor_31_12_anterior": 25337.34,
+      "valor_31_12_atual": 0.0,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "60.746.948/0001-12",
+        "Banco": "237 Agência: 0504 Conta: 77113-9"
+      }
     },
-    "parcelamento": {
-      "valor_quota": 2271.36,
-      "numero_quotas": 8
+    {
+      "grupo": "04",
+      "codigo": "02",
+      "descricao": "BTG - PRODUTO CDBB2353UR4 22.000,00 22.000,00",
+      "valor_31_12_anterior": 22000.0,
+      "valor_31_12_atual": 22000.0,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "30.306.294/0001-45"
+      }
+    },
+    {
+      "grupo": "04",
+      "codigo": "02",
+      "descricao": "BTG - CDB-SR - AGENCIA 0001 1.826,51 3.429,16",
+      "valor_31_12_anterior": 1826.51,
+      "valor_31_12_atual": 3429.16,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "30.306.294/0001-45",
+        "Controle": "838216781775959 Página 5 de13 Data/Hora da Entrega: 30/05/2025 às 20:05:23",
+        "NOME": "MARIANA FERREIRA CAMPOS",
+        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
+      }
+    },
+    {
+      "grupo": "04",
+      "codigo": "02",
+      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO 4.365,03 0,00",
+      "valor_31_12_anterior": 4365.03,
+      "valor_31_12_atual": 0.0,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "60.746.948/0001-12"
+      }
+    },
+    {
+      "grupo": "04",
+      "codigo": "02",
+      "descricao": "SALDO RDB - NUBANK 58,23 0,00",
+      "valor_31_12_anterior": 58.23,
+      "valor_31_12_atual": 0.0,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "30.680.829/0001-43"
+      }
+    },
+    {
+      "grupo": "04",
+      "codigo": "02",
+      "descricao": "BTG - PRODUTO CDB524BFK2F 0,00 10.000,00",
+      "valor_31_12_anterior": 0.0,
+      "valor_31_12_atual": 10000.0,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "30.306.294/0001-45"
+      }
+    },
+    {
+      "grupo": "04",
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO 22J1410500 10.349,69 9.349,69",
+      "valor_31_12_anterior": 10349.69,
+      "valor_31_12_atual": 9349.69,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "30.306.294/0001-45"
+      }
+    },
+    {
+      "grupo": "04",
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO 22K1692411 10.324,25 10.324,25",
+      "valor_31_12_anterior": 10324.25,
+      "valor_31_12_atual": 10324.25,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "30.306.294/0001-45"
+      }
+    },
+    {
+      "grupo": "04",
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO CRA02300MZU 0,00 9.115,01",
+      "valor_31_12_anterior": 0.0,
+      "valor_31_12_atual": 9115.01,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "30.306.294/0001-45"
+      }
+    },
+    {
+      "grupo": "04",
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO CRA02300SPD 0,00 9.109,54",
+      "valor_31_12_anterior": 0.0,
+      "valor_31_12_atual": 9109.54,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "30.306.294/0001-45",
+        "Controle": "838216781775959 Página 6 de13 Data/Hora da Entrega: 30/05/2025 às 20:05:23",
+        "NOME": "MARIANA FERREIRA CAMPOS",
+        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
+      }
+    },
+    {
+      "grupo": "04",
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO CRA024001Q9 0,00 9.248,83",
+      "valor_31_12_anterior": 0.0,
+      "valor_31_12_atual": 9248.83,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "30.306.294/0001-45"
+      }
+    },
+    {
+      "grupo": "04",
+      "codigo": "03",
+      "descricao": "BTG - PRODUTO 23J0138431 0,00 9.164,03",
+      "valor_31_12_anterior": 0.0,
+      "valor_31_12_atual": 9164.03,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "30.306.294/0001-45"
+      }
+    },
+    {
+      "grupo": "06",
+      "codigo": "01",
+      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO 1,00 0,00",
+      "valor_31_12_anterior": 1.0,
+      "valor_31_12_atual": 0.0,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ": "60.746.948/0001-12",
+        "Banco": "237 Agência: 0504 Conta: 77113-9 Conta Pagamento? Não"
+      }
+    },
+    {
+      "grupo": "07",
+      "codigo": "01",
+      "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE 35.868,62 41.408,87",
+      "valor_31_12_anterior": 35868.62,
+      "valor_31_12_atual": 41408.87,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ do Fundo": "11.952.873/0001-10"
+      }
+    },
+    {
+      "grupo": "07",
+      "codigo": "01",
+      "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA 0,00 4.494,93",
+      "valor_31_12_anterior": 0.0,
+      "valor_31_12_atual": 4494.93,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ do Fundo": "00.888.897/0001-31"
+      }
+    },
+    {
+      "grupo": "07",
+      "codigo": "07",
+      "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA 0,00 25.479,42",
+      "valor_31_12_anterior": 0.0,
+      "valor_31_12_atual": 25479.42,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ do Fundo": "39.958.460/0001-62",
+        "Negociados em Bolsa": "Não",
+        "Controle": "838216781775959 Página 7 de13 Data/Hora da Entrega: 30/05/2025 às 20:05:23",
+        "NOME": "MARIANA FERREIRA CAMPOS",
+        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
+      }
+    },
+    {
+      "grupo": "07",
+      "codigo": "10",
+      "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE 0,00 25.000,00",
+      "valor_31_12_anterior": 0.0,
+      "valor_31_12_atual": 25000.0,
+      "detalhes": {
+        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
+        "CNPJ do Fundo": "51.697.128/0001-97",
+        "Negociados em Bolsa": "Não",
+        "Controle": "838216781775959 Página 13 de13 Data/Hora da Entrega: 30/05/2025 às 20:05:23",
+        "NOME": "MARIANA FERREIRA CAMPOS",
+        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA",
+        "Débito automático": "SIM"
+      }
     }
-  },
-  "informacoes_bancarias": {
-    "debito_automatico": true,
-    "banco": "237",
-    "agencia_sem_dv": "504",
-    "conta_debito": "0077113-9"
-  },
-  "evolucao_patrimonial": {
-    "bens_direitos_31_12_2023": 811301.24,
-    "bens_direitos_31_12_2024": 988123.73,
-    "dividas_31_12_2023": 0.0,
-    "dividas_31_12_2024": 0.0,
-    "valorizacao_patrimonio": 176822.49
-  },
-  "outras_informacoes": {
-    "rendimentos_isentos_nao_tributaveis": 1336.61,
-    "rendimentos_tributacao_exclusiva_definitiva": 11620.88,
-    "rendimentos_tributaveis_exigibilidade_suspensa": 0.0,
-    "depositos_judiciais_imposto": 0.0,
-    "imposto_ganhos_capital": 0.0,
-    "imposto_ganhos_capital_moeda_estrangeira": 0.0,
-    "imposto_retido_fonte_lei_11033_2004": 0.0,
-    "imposto_renda_variavel": 0.0,
-    "imposto_ganhos_capital_moeda_estrangeira_especie": 0.0,
-    "imposto_diferido_ganhos_capital": 0.0,
-    "imposto_devido_ganhos_capital": 0.0,
-    "imposto_ganhos_liquidos_renda_variavel": 0.0,
-    "imposto_ganhos_capital_moeda_estrangeira_aplicacoes": 0.0
-  },
-  "resumo": {
-    "data_entrega": "30/05/2025",
-    "hora_entrega": "20:05:23",
-    "controle": "838216781775959",
-    "paginas_total": 13,
-    "status_declaracao": "Entregue",
-    "observacoes": "Declaração de Ajuste Anual Original do exercício 2025 (ano-calendário 2024)"
-  }
+  ],
+  "total_bens": 988123.7300000001,
+  "rendimentos_pj": [
+    {
+      "tipo": "PJ/CLT",
+      "descricao": "SOCIEDADE BENEFICENTE ISRAELITA",
+      "rend_recebidos": 141842.7,
+      "contrib_previd": 10906.2,
+      "imposto_retido": 22575.99
+    },
+    {
+      "tipo": "PJ/CLT",
+      "descricao": "TOTAL",
+      "rend_recebidos": 141842.7,
+      "contrib_previd": 10906.2,
+      "imposto_retido": 22575.99
+    }
+  ],
+  "rendimentos_pf": [],
+  "rendimentos_isentos": [
+    {
+      "tipo": "Isento",
+      "total": 1336.61
+    }
+  ],
+  "rendimentos_aplicacoes": [
+    {
+      "tipo": "Aplicação Financeira",
+      "valor": 8301.32
+    },
+    {
+      "tipo": "Aplicação Financeira",
+      "valor": 3319.56
+    }
+  ],
+  "total_rendimentos": 283685.4,
+  "pagamentos_deductibles": [
+    {
+      "descricao": "11 LEIR MIRANDA ESTEVES 786.538.606-06 400,00 0,00",
+      "valor": 400.0
+    },
+    {
+      "descricao": "21 BEEP SERVICOS MEDICOS LTDA 28.286.170/0001-01 275,00 0,00",
+      "valor": 275.0
+    },
+    {
+      "descricao": "21 HT SARAGIOTTO SERVICOS MEDICOS 47.078.968/0001-02 600,00 0,00",
+      "valor": 600.0
+    },
+    {
+      "descricao": "26 SUL AMERICA SERVICOS DE SAUDE 02.866.602/0001-51 190,54 0,00",
+      "valor": 190.54
+    },
+    {
+      "descricao": "71 GRPQA LTDA 16.788.643/0001-81 13.726,94 0,00",
+      "valor": 13726.94
+    }
+  ],
+  "total_deducoes": 15192.48
 }

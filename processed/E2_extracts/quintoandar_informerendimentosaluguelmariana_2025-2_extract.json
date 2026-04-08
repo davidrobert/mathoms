@@ -1,83 +1,212 @@
 {
-  "tipo": "informe_rendimentos_aluguel",
+  "tipo": "informerendimentos",
+  "instituicao": "quintoandar",
   "membro": "mariana",
-  "ano_base": 2024,
-  "fonte": "QuintoAndar",
-  "rendimentos": [
-    {
-      "mes": "2025-01",
-      "bruto": 7114.78,
-      "desconto": 626.1,
-      "liquido": 6488.68
-    },
-    {
-      "mes": "2025-02",
-      "bruto": 7114.78,
-      "desconto": 626.1,
-      "liquido": 6488.68
-    },
-    {
-      "mes": "2025-03",
-      "bruto": 7218.04,
-      "desconto": 635.19,
-      "liquido": 6582.85
-    },
-    {
-      "mes": "2025-04",
-      "bruto": 6960.89,
-      "desconto": 627.08,
-      "liquido": 6333.81
-    },
-    {
-      "mes": "2025-05",
-      "bruto": 5646.23,
-      "desconto": 496.87,
-      "liquido": 5149.36
-    },
-    {
-      "mes": "2025-06",
-      "bruto": 5646.23,
-      "desconto": 496.87,
-      "liquido": 5149.36
-    },
-    {
-      "mes": "2025-07",
-      "bruto": 5646.23,
-      "desconto": 496.87,
-      "liquido": 5149.36
-    },
-    {
-      "mes": "2025-08",
-      "bruto": 5646.23,
-      "desconto": 496.87,
-      "liquido": 5149.36
-    },
-    {
-      "mes": "2025-09",
-      "bruto": 5646.23,
-      "desconto": 496.87,
-      "liquido": 5149.36
-    },
-    {
-      "mes": "2025-10",
-      "bruto": 5646.23,
-      "desconto": 496.87,
-      "liquido": 5149.36
-    },
-    {
-      "mes": "2025-11",
-      "bruto": 5646.23,
-      "desconto": 496.87,
-      "liquido": 5149.36
-    },
-    {
-      "mes": "2025-12",
-      "bruto": 6247.67,
-      "desconto": 1430.52,
-      "liquido": 4817.15
-    }
-  ],
-  "total_bruto": 74179.77,
+  "ano_base": "2025",
+  "total_alugueis_bruto": 74179.77,
   "total_descontos": 7423.08,
-  "total_liquido": 66756.69
+  "total_rendimento_liquido": 66756.69,
+  "beneficiario": "Mariana Teixeira Ferreira",
+  "cpf_beneficiario": "085.052.396-60",
+  "administradora": "GRPQA LTDA",
+  "imoveis": [
+    {
+      "endereco": "Avenida Alberto Augusto Alves, 320 - 812",
+      "codigo": "894064293",
+      "total_alugueis": 7424.71,
+      "total_descontos": 1548.62,
+      "total_rendimento_liquido": 5876.09,
+      "inquilinos": [
+        {
+          "mes": "Janeiro",
+          "nome": "Luana Pereira Da Silva",
+          "cpf": "444.334.888-36",
+          "contrato": "",
+          "valor_aluguel": 1714.78,
+          "descontos": 150.9,
+          "rendimento_liquido": 1563.88
+        },
+        {
+          "mes": "Fevereiro",
+          "nome": "Luana Pereira Da Silva",
+          "cpf": "444.334.888-36",
+          "contrato": "",
+          "valor_aluguel": 1714.78,
+          "descontos": 150.9,
+          "rendimento_liquido": 1563.88
+        },
+        {
+          "mes": "Março",
+          "nome": "Luana Pereira Da Silva",
+          "cpf": "444.334.888-36",
+          "contrato": "",
+          "valor_aluguel": 1714.78,
+          "descontos": 150.9,
+          "rendimento_liquido": 1563.88
+        },
+        {
+          "mes": "Abril",
+          "nome": "Luana Pereira Da Silva",
+          "cpf": "444.334.888-36",
+          "contrato": "",
+          "valor_aluguel": 1314.66,
+          "descontos": 130.21,
+          "rendimento_liquido": 1184.45
+        },
+        {
+          "mes": "Junho",
+          "nome": "Luana Pereira Da Silva",
+          "cpf": "444.334.888-36",
+          "contrato": "",
+          "valor_aluguel": 0.0,
+          "descontos": 0.0,
+          "rendimento_liquido": 0.0
+        },
+        {
+          "mes": "Julho",
+          "nome": "Luana Pereira Da Silva",
+          "cpf": "444.334.888-36",
+          "contrato": "",
+          "valor_aluguel": 0.0,
+          "descontos": 0.0,
+          "rendimento_liquido": 0.0
+        },
+        {
+          "mes": "Agosto",
+          "nome": "Luana Pereira Da Silva",
+          "cpf": "444.334.888-36",
+          "contrato": "",
+          "valor_aluguel": 0.0,
+          "descontos": 0.0,
+          "rendimento_liquido": 0.0
+        },
+        {
+          "mes": "Dezembro",
+          "nome": "Brenda Maraisa De Souza",
+          "cpf": "408.843.548-65",
+          "contrato": "",
+          "valor_aluguel": 965.71,
+          "descontos": 965.71,
+          "rendimento_liquido": 0.0
+        }
+      ]
+    },
+    {
+      "endereco": "Avenida João Dias, 2192 - 163 Torre 2",
+      "codigo": "894326656",
+      "total_alugueis": 66755.06,
+      "total_descontos": 5874.46,
+      "total_rendimento_liquido": 60880.6,
+      "inquilinos": [
+        {
+          "mes": "Janeiro",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5400.0,
+          "descontos": 475.2,
+          "rendimento_liquido": 4924.8
+        },
+        {
+          "mes": "Fevereiro",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5400.0,
+          "descontos": 475.2,
+          "rendimento_liquido": 4924.8
+        },
+        {
+          "mes": "Março",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5503.26,
+          "descontos": 484.29,
+          "rendimento_liquido": 5018.97
+        },
+        {
+          "mes": "Abril",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5646.23,
+          "descontos": 496.87,
+          "rendimento_liquido": 5149.36
+        },
+        {
+          "mes": "Maio",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5646.23,
+          "descontos": 496.87,
+          "rendimento_liquido": 5149.36
+        },
+        {
+          "mes": "Junho",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5646.23,
+          "descontos": 496.87,
+          "rendimento_liquido": 5149.36
+        },
+        {
+          "mes": "Julho",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5646.23,
+          "descontos": 496.87,
+          "rendimento_liquido": 5149.36
+        },
+        {
+          "mes": "Agosto",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5646.23,
+          "descontos": 496.87,
+          "rendimento_liquido": 5149.36
+        },
+        {
+          "mes": "Setembro",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5646.23,
+          "descontos": 496.87,
+          "rendimento_liquido": 5149.36
+        },
+        {
+          "mes": "Outubro",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5646.23,
+          "descontos": 496.87,
+          "rendimento_liquido": 5149.36
+        },
+        {
+          "mes": "Novembro",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5646.23,
+          "descontos": 496.87,
+          "rendimento_liquido": 5149.36
+        },
+        {
+          "mes": "Dezembro",
+          "nome": "",
+          "cpf": "351.146.508-74",
+          "contrato": "",
+          "valor_aluguel": 5281.96,
+          "descontos": 464.81,
+          "rendimento_liquido": 4817.15
+        }
+      ]
+    }
+  ]
 }

@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "timestamp": "2026-04-08T09:45:00",
+    "e7_version": "1.0",
+    "reviewer": "LLM holistic review"
+  },
+  "refinements": {
+    "summaries": {
+      "s2": "Score financeiro de 5,6/10 (Regular). Pontos fortes: zero endividamento, cobertura de 23,3 meses de despesas e diversificação em 5 classes de ativos. Ponto de atenção: taxa de poupança recorrente de -3,0% indica que a renda recorrente (R$ 1,1M/ano) não cobre as despesas do período — o superávit de R$ 404k veio de receitas não-recorrentes (rescisão Kiwify, rendimentos eventuais).",
+      "s5": "Meta de independência financeira de R$ 7,2M projetada para 2035 (cenário realista). Gap atual de R$ 4,9M com patrimônio investível de R$ 2,3M (31,6% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., a família atingirá a IF quando David tiver 52 anos.",
+      "s9": "Despesas totais no período: R$ 1,1M (R$ 35,8k/mês média). Categoria 'não identificado' representa 52% das despesas — priorizar reconciliação manual das transações para diagnóstico mais preciso. Orçamento prospectivo pós-quitação projeta redução na mensalidade do financiamento, liberando capacidade de aporte."
+    },
+    "charts": {
+      "score_gauge": {
+        "context": "Indicador geral de saúde financeira da família, com score de 5,6/10 (Regular). Reflete a média ponderada de 5 componentes: taxa de poupança recorrente (0/10), cobertura de despesas (10/10), endividamento (10/10), progresso IF (3,5/10) e diversificação (8/10).",
+        "conclusion": "A classificação 'Regular' reflete um ponto fraco crítico: a taxa de poupança recorrente negativa (-3%). Sem as receitas não-recorrentes (rescisão Kiwify), a família operaria em déficit. A prioridade é estabilizar o fluxo recorrente com o aporte de R$ 20k/mês vindo da renda PJ."
+      },
+      "fluxo_mensal": {
+        "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente de R$ 34,8k/mês versus despesa média de R$ 35,8k/mês, resultando em déficit recorrente de ~R$ 1k/mês. Receita total (incluindo não-recorrentes) de R$ 1,5M supera despesas de R$ 1,1M.",
+        "conclusion": "Saldo recorrente levemente negativo (-R$ 1k/mês). O superávit total de R$ 404k no período é sustentado por receitas não-recorrentes (rescisão, Kiwify). Com a estabilização da renda PJ na Arvo e implementação do aporte automático de R$ 20k/mês, o fluxo recorrente deve virar positivo."
+      },
+      "receita_despesa_mensal": {
+        "context": "Série temporal mensal de receitas (R$ 1,5M/período) versus despesas (R$ 1,1M/período), evidenciando os meses com receitas extraordinárias que geraram o superávit.",
+        "conclusion": "Meses com picos de receita (rescisão, bonificações) mascaram o déficit recorrente mensal. Importante acompanhar a evolução pós-estabilização na Arvo para confirmar que o fluxo recorrente se torna sustentavelmente positivo."
+      },
+      "despesas_doughnut": {
+        "context": "Distribuição das despesas totais (R$ 1,1M) entre 13 categorias, destacando a composição do orçamento familiar.",
+        "conclusion": "Categoria 'não identificado' lidera com 52% — resultado de transações bancárias sem descrição suficiente para categorização automática. Priorizar reconciliação manual para revelar o padrão real de gastos e identificar oportunidades de economia."
+      }
+    },
+    "perfil_familia": {},
+    "tarefas_reorder": {
+      "new_order": []
+    },
+    "strategic_insights": {
+      "insights": [
+        "Dependência de receita não-recorrente: O fluxo positivo de R$ 404k é sustentado por receitas não-recorrentes (rescisão Kiwify). A receita recorrente (R$ 1,1M) não cobre as despesas (R$ 1,1M). Estabilização na Arvo e aportes automáticos são pré-requisitos para sustentabilidade do plano IF.",
+        "Alta concentração em 'não identificado' (52%): Mais da metade das despesas não tem categorização, comprometendo diagnóstico comportamental e orçamento prospectivo. Reconciliação manual das maiores transações é prioridade para o próximo ciclo.",
+        "Patrimônio baseado em IRPF (defasado): Valores patrimoniais vêm do IRPF 2024 (base 31/12/2024). Extratos de posição de mar/2026 mostram valores mais recentes não incorporados no E5. Incorporar posições atuais elevaria patrimônio investível significativamente."
+      ]
+    },
+    "inconsistencies_found": {
+      "items": [
+        "s2 listava taxa de poupança recorrente de -3% como ponto forte, quando é o principal ponto fraco (0/10 no score). Corrigido para separar fortes de fracos.",
+        "score_gauge conclusion dizia 'Bom' mas score 5.6 = 'Regular'. Corrigido.",
+        "fluxo_mensal conclusion dizia 'saldo mensal positivo de R$ -1.030' — contradição. Corrigido para 'saldo recorrente levemente negativo'.",
+        "s2 tinha '23,3% meses' com % incorreto. Corrigido para '23,3 meses de despesas'."
+      ]
+    }
+  }
+}

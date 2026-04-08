@@ -1,246 +1,121 @@
 {
-  "tipo": "members_unified",
-  "data_geracao": "2026-04-07",
-  "fonte_definitions": true,
-  "membros": [
-    {
-      "id": "david",
+  "version": "5.3",
+  "data_geracao": "2026-04-08",
+  "membros": {
+    "david": {
       "nome_atual": "David Robert Camargo Ferreira Campos",
-      "nomes_alternativos": [],
-      "cpf": "287.766.948-36",
+      "nome_solteiro": "David Robert Camargo de Campos",
+      "nomes_alternativos": [
+        "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "DAVID ROBERT CAMARGO DE CAMPOS",
+        "DAVID ROBERT CAMARGO",
+        "DAVID ROBERT"
+      ],
       "data_nascimento": "1981-09-05",
-      "papel_familia": "Titular",
-      "empregador_atual": "Arvo",
-      "cargo_atual": "CTO",
-      "tipo_vinculo": "PJ",
-      "data_admissao": "2025-09-08",
-      "formacao_maxima": "Mestrado em Ciência da Computação (IA) - USP/IME",
+      "idade": 44,
+      "papel": "titular",
+      "cargo_atual": "Chief Technology Officer (CTO)",
+      "empresa_atual": "Arvo",
+      "vinculo": "PJ",
+      "salario": null,
+      "nota_salario": "PJ — valor a confirmar via extratos bancários de C6 Bank PJ",
+      "formacao": [
+        {
+          "instituicao": "University of São Paulo (USP), Institute of Mathematics and Statistics (IME)",
+          "curso": "Master in Computer Science - Artificial Intelligence",
+          "periodo_fim": "2008",
+          "grau": "Master"
+        },
+        {
+          "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)",
+          "curso": "Bachelor of Computer Science",
+          "periodo_fim": "2004",
+          "grau": "Bachelor"
+        }
+      ],
       "idiomas": [
         {
           "idioma": "Português",
-          "nivel": "nativo",
-          "fonte": "inferido"
+          "nivel": "Nativo"
         },
         {
           "idioma": "Inglês",
-          "nivel": "fluente",
-          "fonte": "CV em inglês, Duolingo test, cursos de universidades americanas"
+          "nivel": "Fluente"
         }
       ],
-      "experiencias": [
-        {
-          "empresa": "Arvo",
-          "cargo": "CTO",
-          "tipo_vinculo": "PJ",
-          "data_inicio": "2025-09",
-          "data_fim": "presente",
-          "descricao": "Chief Technology Officer at Arvo."
-        },
-        {
-          "empresa": "Kiwify",
-          "cargo": "CTO",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2024-06",
-          "data_fim": "2025-05",
-          "descricao": "Chief Technology Officer at Kiwify. 12-month tenure."
-        },
-        {
-          "empresa": "Loft",
-          "cargo": "Software Engineering Consultant",
-          "tipo_vinculo": "PJ",
-          "data_inicio": "2022-12",
-          "data_fim": "2024-06",
-          "descricao": "Consultant for software engineering initiatives at Loft. 18-month engagement."
-        },
-        {
-          "empresa": "Loft",
-          "cargo": "Director of Software Engineering",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2021-11",
-          "data_fim": "2022-12",
-          "descricao": "Led software engineering division at Loft. 14-month tenure."
-        },
-        {
-          "empresa": "Loft",
-          "cargo": "Engineering Manager",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2019-06",
-          "data_fim": "2021-10",
-          "descricao": "Managed engineering teams at Loft. 28-month tenure."
-        },
-        {
-          "empresa": "Elo7",
-          "cargo": "CTO",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2013-08",
-          "data_fim": "2020-07",
-          "descricao": "Chief Technology Officer at Elo7. 83-month tenure as core technology leader."
-        },
-        {
-          "empresa": "Abril",
-          "cargo": "Solutions Architect I",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2012-03",
-          "data_fim": "2013-08",
-          "descricao": "Solutions architect at Abril. 18-month tenure."
-        },
-        {
-          "empresa": "TOTVS",
-          "cargo": "R&D Engineer IV",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2011-02",
-          "data_fim": "2012-03",
-          "descricao": "Senior R&D Engineer at TOTVS. 14-month tenure."
-        },
-        {
-          "empresa": "NIC.br",
-          "cargo": "Software Engineer",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2006-04",
-          "data_fim": "2011-01",
-          "descricao": "Software engineer at NIC.br (Brazilian Internet Steering Committee). 57-month tenure."
-        },
-        {
-          "empresa": "Agência Estado",
-          "cargo": "Jr System Analyst",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2004-01",
-          "data_fim": "2006-03",
-          "descricao": "Junior systems analyst at Agência Estado. 27-month tenure."
-        },
-        {
-          "empresa": "Agência Estado",
-          "cargo": "Trainee",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2002-06",
-          "data_fim": "2003-12",
-          "descricao": "Trainee program at Agência Estado. 19-month tenure."
-        },
-        {
-          "empresa": "Brazilian Army",
-          "cargo": "Communications Officer Aspirant / Instruction Internship",
-          "tipo_vinculo": "docencia",
-          "data_inicio": "2000-01",
-          "data_fim": "2001-07",
-          "descricao": "Military training and communications instruction. 19-month tenure."
-        }
-      ],
-      "salario": {
-        "bruto": null,
-        "liquido": null,
-        "periodo_referencia": null,
-        "fonte": null,
-        "nota": "PJ — valor a confirmar via extratos bancários C6 PJ"
-      },
-      "documentos_disponiveis": [
-        "curriculo"
-      ],
-      "status_fiscal": "BR",
-      "observacoes": null
+      "documentos_disponiveis": ["curriculo"]
     },
-    {
-      "id": "mariana",
+    "mariana": {
       "nome_atual": "Mariana Ferreira Campos",
+      "nome_solteira": "Mariana Teixeira Ferreira",
       "nomes_alternativos": [
-        "Mariana Teixeira Ferreira"
+        "MARIANA FERREIRA CAMPOS",
+        "MARIANA TEIXEIRA FERREIRA",
+        "MARIANA TEIXEIRA"
       ],
-      "cpf": "085.052.396-60",
       "data_nascimento": "1986-08-30",
-      "papel_familia": "Cônjuge",
-      "empregador_atual": "Hospital Israelita Albert Einstein",
+      "idade": 39,
+      "papel": "conjuge",
       "cargo_atual": "Enfermeiro Pl",
-      "tipo_vinculo": "CLT",
-      "data_admissao": "2014-07-21",
-      "formacao_maxima": "Mestrado em Enfermagem - USP",
+      "empresa_atual": "Hospital Israelita Albert Einstein",
+      "vinculo": "CLT",
+      "salario": {
+        "salario_base_mensal": 10899.51,
+        "salario_bruto": 12086.06,
+        "salario_liquido": 3425.41,
+        "periodo": "2026-02",
+        "data_credito": "2026-02-27"
+      },
+      "formacao": [
+        {
+          "instituicao": "Universidade de São Paulo",
+          "curso": "Mestrado em Enfermagem, Enfermagem em Saúde Adulta",
+          "periodo_inicio": "2019",
+          "periodo_fim": "2021-06",
+          "grau": "Mestrado"
+        },
+        {
+          "instituicao": "Unifesp - Universidade Federal de São Paulo",
+          "curso": "Enfermagem em Cardiologia e Hemodinâmica",
+          "periodo_inicio": "2011",
+          "periodo_fim": "2012",
+          "grau": "Especialização (Lato Sensu)"
+        },
+        {
+          "instituicao": "PUC Minas",
+          "curso": "Bacharelado em Enfermagem",
+          "periodo_inicio": "2007",
+          "periodo_fim": "2010",
+          "grau": "Bacharelado"
+        },
+        {
+          "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
+          "curso": "Especialização em Formação Docente em Educação Profissional",
+          "grau": "Especialização (Lato Sensu)"
+        }
+      ],
       "idiomas": [
         {
           "idioma": "Português",
-          "nivel": "nativo",
-          "fonte": "inferido"
+          "nivel": "Nativo"
         }
       ],
-      "experiencias": [
-        {
-          "empresa": "Hospital Israelita Albert Einstein",
-          "cargo": "Enfermeiro",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2018-01",
-          "data_fim": "presente",
-          "descricao": "Nursing professional at Hospital Israelita Albert Einstein since 2018."
-        },
-        {
-          "empresa": "Hospital Israelita Albert Einstein",
-          "cargo": "Enfermeiro UPA Campo Limpo",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2014-08",
-          "data_fim": "2018-06",
-          "descricao": "Emergency care nurse at UPA Campo Limpo unit. 46-month tenure."
-        },
-        {
-          "empresa": "Faculdade Israelita Albert Einstein",
-          "cargo": "Docente",
-          "tipo_vinculo": "docencia",
-          "data_inicio": "2021-01",
-          "data_fim": "2024-12",
-          "descricao": "Nursing instructor and professor. 48-month teaching position."
-        },
-        {
-          "empresa": "Senac São Paulo",
-          "cargo": "Docente",
-          "tipo_vinculo": "docencia",
-          "data_inicio": "2012-01",
-          "data_fim": "2016-01",
-          "descricao": "Nursing education instructor at Senac. 48-month tenure."
-        },
-        {
-          "empresa": "Faculdade Sequencial",
-          "cargo": "Docente",
-          "tipo_vinculo": "docencia",
-          "data_inicio": "2013-01",
-          "data_fim": "2015-08",
-          "descricao": "Nursing course instructor at Faculdade Sequencial. 32-month tenure."
-        },
-        {
-          "empresa": "Hospital Municipal Dr. Moysés Deutsch",
-          "cargo": "Enfermeira",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2011-01",
-          "data_fim": "2014-01",
-          "descricao": "Clinical nurse at municipal hospital. 37-month tenure."
-        }
-      ],
-      "salario": {
-        "bruto": 12086.06,
-        "liquido": 3425.41,
-        "periodo_referencia": "2026-02",
-        "fonte": "holerite",
-        "nota": "Líquido atípico - inclui desconto de férias e adiantamento"
-      },
       "documentos_disponiveis": [
         "curriculo",
-        "holerite"
-      ],
-      "status_fiscal": "BR",
-      "observacoes": null
+        "holerite_202602"
+      ]
     },
-    {
-      "id": "theo",
+    "theo": {
       "nome_atual": "Theo Ferreira Campos",
-      "nomes_alternativos": [],
-      "cpf": null,
       "data_nascimento": "2025-07-18",
-      "papel_familia": "Filho",
-      "empregador_atual": null,
-      "cargo_atual": null,
-      "tipo_vinculo": null,
-      "data_admissao": null,
-      "formacao_maxima": null,
-      "idiomas": [],
-      "experiencias": [],
-      "salario": null,
-      "documentos_disponiveis": [],
-      "status_fiscal": "BR+US",
-      "observacoes": "Dupla cidadania brasileira e americana. Nascido em Orlando, Flórida."
+      "idade": 0,
+      "papel": "filho",
+      "cidadania": [
+        "brasileira",
+        "americana"
+      ],
+      "local_nascimento": "Orlando, Flórida",
+      "documentos_disponiveis": []
     }
-  ]
+  }
 }

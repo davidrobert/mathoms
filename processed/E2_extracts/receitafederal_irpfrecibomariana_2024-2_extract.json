@@ -1,11 +1,11 @@
 {
-  "tipo": "irpf_recibo",
-  "membro": "mariana",
-  "ano_exercicio": 2025,
-  "ano_base": 2024,
+  "source": "receitafederal_irpfrecibomariana_2024-0_original.pdf",
+  "membro": "MARIANA FERREIRA CAMPOS",
+  "cpf": "085.052.396-60",
   "imposto_total": 18170.9,
-  "data_entrega": "2025-05-30",
-  "situacao": "aceita",
+  "imposto_devido": 0.0,
+  "data_envio": "2025-05-30",
+  "status": "Aceita",
   "numero_recibo": "14.54.94.96.65 - 76",
-  "hash_recibo": "14.54.94.96.65 - 76"
+  "total_rendimentos": 203982.98
 }
