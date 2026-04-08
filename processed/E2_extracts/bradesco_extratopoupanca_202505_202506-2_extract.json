@@ -18,7 +18,7 @@
     },
     {
       "data": "2025-05-02",
-      "descricao": "bx Aut Cta Cor*",
+      "descricao": "bx Aut Cta Cor* 0077113",
       "valor": -1500.0
     },
     {
@@ -55,21 +55,6 @@
       "data": "2025-06-30",
       "descricao": "tr Sal p/poup",
       "valor": 2997.28
-    },
-    {
-      "data": "2025-06-30",
-      "descricao": "Total 18.021,88",
-      "valor": -1500.0
-    },
-    {
-      "data": "2025-06-30",
-      "descricao": "0800 570 0022 0800",
-      "valor": 704.0
-    },
-    {
-      "data": "2025-06-30",
-      "descricao": "0800",
-      "valor": 722.0
     }
   ],
   "notas": []

@@ -196,6 +196,16 @@ def chart_html(chart_key: str, title: str, narrativas_charts: dict, extra_attrs:
     # Special handling for score gauge
     if chart_key == "score_gauge":
         parts.append(f'  <canvas id="{canvas_id}" data-type="gauge" {extra_attrs}></canvas>')
+    elif chart_key == "receita_despesa_mensal":
+        # Navigation bar + canvas + dots + legend (no generic canvas)
+        parts.append('  <div id="rdm-nav" class="chart-nav">')
+        parts.append('    <button id="rdm-prev" class="chart-nav-btn" title="Meses anteriores">&#8249;</button>')
+        parts.append('    <span id="rdm-period" class="chart-nav-period"></span>')
+        parts.append('    <button id="rdm-next" class="chart-nav-btn" title="Meses seguintes">&#8250;</button>')
+        parts.append('  </div>')
+        parts.append(f'  <canvas id="{canvas_id}"></canvas>')
+        parts.append('  <div id="rdm-dots" class="chart-nav-dots"></div>')
+        parts.append('  <div id="legend-receita-despesa" class="chart-legend-grouped"></div>')
     else:
         parts.append(f'  <canvas id="{canvas_id}"></canvas>')
     if conclusion:
@@ -351,37 +361,38 @@ def build_perfil_section(e4: dict) -> dict:
 # ============================================================================
 
 # Color palettes for stacked bar chart origins
+# Receita: paleta azul → verde (saturação média-alta, bom contraste light/dark)
 RECEITA_PALETTE = [
-    "#1A3A5C",  # Arvo
-    "#1E6E8F",  # BrandLovers
-    "#2A9D8F",  # Arbitralis
-    "#457B9D",  # Learn To Fly
-    "#15803D",  # Einstein (CLT)
-    "#F4A261",  # Aluguéis
-    "#8ECAE6",  # Rendimentos Financeiros
-    "#A8DADC",  # Outras Receitas
-    "#6D597A",  # Kiwify
-    "#B56576",  # CNRY
-    "#355070",  # Barte
-    "#E56B6F",  # Resgates
-    "#EAAC8B",  # Restituições
+    "#2563EB",  # azul royal — âncora principal
+    "#0EA5E9",  # sky blue
+    "#0891B2",  # cyan escuro
+    "#0D9488",  # teal
+    "#059669",  # esmeralda
+    "#16A34A",  # verde vivo
+    "#3B82F6",  # azul médio
+    "#06B6D4",  # cyan claro
+    "#14B8A6",  # teal claro
+    "#22C55E",  # verde claro
+    "#4F46E5",  # indigo (fallback)
+    "#10B981",  # verde menta (fallback)
+    "#6366F1",  # violeta-azul (fallback)
 ]
 
+# Despesa: paleta laranja → vermelho (saturação média-alta, bom contraste light/dark)
 DESPESA_PALETTE = [
-    "#B91C1C",  # moradia
-    "#E63946",  # saúde
-    "#E76F51",  # alimentação
-    "#F4A460",  # educação
-    "#FFB703",  # transporte
-    "#D62828",  # lazer
-    "#9B2226",  # impostos/PJ
-    "#AE2012",  # seguros
-    "#CA6702",  # outros
-    "#BB3E03",  # extra1
-    "#EE9B00",  # extra2
-    "#94D2BD",  # extra3
-    "#0A9396",  # extra4
-    "#005F73",  # extra5
+    "#DC2626",  # vermelho vivo — âncora principal
+    "#E11D48",  # rosa-vermelho
+    "#EA580C",  # laranja queimado
+    "#D97706",  # âmbar escuro
+    "#F59E0B",  # amarelo-laranja
+    "#EF4444",  # vermelho médio
+    "#F97316",  # laranja vivo
+    "#B91C1C",  # vermelho escuro
+    "#C2410C",  # terracota
+    "#CA8A04",  # dourado escuro
+    "#DB2777",  # magenta (fallback)
+    "#BE185D",  # rosa escuro (fallback)
+    "#9F1239",  # bordô (fallback)
 ]
 
 
@@ -417,8 +428,25 @@ def build_receita_despesa_mensal(f: dict, e4: dict) -> dict:
                 "borderRadius": 4
             })
 
+        # Convert labels from "24/03" → "mar/24"
+        MESES_PT = {
+            "01": "jan", "02": "fev", "03": "mar", "04": "abr",
+            "05": "mai", "06": "jun", "07": "jul", "08": "ago",
+            "09": "set", "10": "out", "11": "nov", "12": "dez"
+        }
+        raw_labels = detalhado["labels"]
+        formatted_labels = []
+        for lbl in raw_labels:
+            parts = lbl.split("/")
+            if len(parts) == 2 and len(parts[0]) == 2 and len(parts[1]) == 2:
+                # Format: "YY/MM" → "mmm/YY"
+                yy, mm = parts[0], parts[1]
+                formatted_labels.append(MESES_PT.get(mm, mm) + "/" + yy)
+            else:
+                formatted_labels.append(lbl)
+
         return {
-            "labels": detalhado["labels"],
+            "labels": formatted_labels,
             "datasets": datasets,
             "totais_receita": detalhado.get("totais_receita", []),
             "totais_despesa": detalhado.get("totais_despesa", [])

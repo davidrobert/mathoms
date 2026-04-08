@@ -30,6 +30,19 @@ from typing import Dict, List, Tuple, Optional, Any
 # Configuration & Types
 # =============================================================================
 
+# Load account type equivalences from config (for cross-type deduplication)
+def _load_account_type_equivalences() -> Dict[str, str]:
+    """Load account type alias mappings from family_members.json."""
+    config_path = Path(__file__).resolve().parent.parent / 'config' / 'family_members.json'
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data.get('account_type_equivalences', {})
+    except Exception:
+        return {}
+
+ACCOUNT_TYPE_EQUIVALENCES = _load_account_type_equivalences()
+
 # File types that should be skipped (not transaction-bearing accounts)
 SKIP_TYPES = {
     'investimentosposicao',
@@ -179,6 +192,10 @@ def get_account_key(data: Dict[str, Any]) -> Optional[Tuple]:
 
     For conta statements: (banco, tipo, moeda)
     For faturas: (banco, tipo)
+
+    Uses ACCOUNT_TYPE_EQUIVALENCES from config to normalize alias types
+    (e.g., extratocontapersonnalite → extratoconta) so that overlapping
+    extracts from the same bank account are grouped and deduplicated.
     """
     banco = data.get('banco', data.get('instituicao', '')).strip()
     tipo = data.get('tipo', '').strip()
@@ -186,9 +203,12 @@ def get_account_key(data: Dict[str, Any]) -> Optional[Tuple]:
     if not banco or not tipo:
         return None
 
+    # Normalize tipo using config-driven equivalences
+    tipo_normalized = ACCOUNT_TYPE_EQUIVALENCES.get(tipo, tipo)
+
     # Fatura types group by (banco, tipo) only
-    if tipo.startswith('fatura'):
-        return (banco, tipo)
+    if tipo_normalized.startswith('fatura'):
+        return (banco, tipo_normalized)
 
     # Conta types group by (banco, tipo, moeda)
     moeda = data.get('moeda', '').strip()
@@ -199,7 +219,7 @@ def get_account_key(data: Dict[str, Any]) -> Optional[Tuple]:
             moeda = conta.get('moeda', 'BRL').strip()
         else:
             moeda = 'BRL'
-    return (banco, tipo, moeda)
+    return (banco, tipo_normalized, moeda)
 
 
 # =============================================================================
@@ -647,6 +667,8 @@ def reconcile_account(
     first_path, first_data = sorted_group[0]
     banco = first_data.get('banco', first_data.get('instituicao', '')).strip()
     tipo = first_data.get('tipo', '').strip()
+    # Normalize tipo using config equivalences (same as get_account_key)
+    tipo = ACCOUNT_TYPE_EQUIVALENCES.get(tipo, tipo)
     # v2.1: Use same moeda resolution as get_account_key() — check conta.moeda fallback
     moeda = first_data.get('moeda', '').strip()
     if not moeda:

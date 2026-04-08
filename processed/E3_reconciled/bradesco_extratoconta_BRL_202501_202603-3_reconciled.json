@@ -15,8 +15,8 @@
     "bradesco_extratoconta_202501_202512-2_extract.json",
     "bradesco_extratoconta_202601_202603-2_extract.json"
   ],
-  "transacoes_total": 268,
-  "transacoes_duplicadas_removidas": 2,
+  "transacoes_total": 399,
+  "transacoes_duplicadas_removidas": 0,
   "transacoes": [
     {
       "data": "2025-01-02",
@@ -25,7 +25,27 @@
     },
     {
       "data": "2025-01-02",
-      "descricao": "2230217",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "Transfe Pix Des: Fabiana Borges da Sil 02/01",
+      "valor": -100.0
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "Transfe Pix Des: Marília Panarello Kos 02/01",
+      "valor": -163.5
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 02/01",
+      "valor": -22.0
+    },
+    {
+      "data": "2025-01-02",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 02/01",
       "valor": -22.99
     },
     {
@@ -35,17 +55,22 @@
     },
     {
       "data": "2025-01-06",
-      "descricao": "1245066",
+      "descricao": "Transfe Pix Des: Ksv Collection Confec 04/01",
       "valor": -266.0
     },
     {
       "data": "2025-01-09",
-      "descricao": "0903221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 1629.4
     },
     {
       "data": "2025-01-09",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
+      "valor": 5091.8
+    },
+    {
+      "data": "2025-01-09",
+      "descricao": "Apl.invest Fac 2235773",
       "valor": -6721.2
     },
     {
@@ -55,17 +80,17 @@
     },
     {
       "data": "2025-01-10",
-      "descricao": "Des: Carla Mayara Marconde",
+      "descricao": "Des: Carla Mayara Marconde 1112126",
       "valor": -99.0
     },
     {
       "data": "2025-01-13",
-      "descricao": "Resgate Inv Fac",
+      "descricao": "Resgate Inv Fac Des: Adriana de Moraes Mot 1508366 - 200,00",
       "valor": 363.5
     },
     {
       "data": "2025-01-13",
-      "descricao": "2348173",
+      "descricao": "Transfe Pix Des: Marília Panarello Kos 11/01",
       "valor": -163.5
     },
     {
@@ -75,7 +100,7 @@
     },
     {
       "data": "2025-01-15",
-      "descricao": "6898270",
+      "descricao": "Conta Telefone",
       "valor": -56.64
     },
     {
@@ -85,7 +110,12 @@
     },
     {
       "data": "2025-01-20",
-      "descricao": "Gasto c Credito",
+      "descricao": "Rent",
+      "valor": 0.05
+    },
+    {
+      "data": "2025-01-20",
+      "descricao": "Gasto c Credito 3990020",
       "valor": -1102.01
     },
     {
@@ -95,7 +125,7 @@
     },
     {
       "data": "2025-01-22",
-      "descricao": "Des: Patrycia Casetta Rosa 22/01",
+      "descricao": "Des: Patrycia Casetta Rosa 22/01 2037272",
       "valor": -52.33
     },
     {
@@ -105,7 +135,12 @@
     },
     {
       "data": "2025-01-28",
-      "descricao": "2008592",
+      "descricao": "Rent",
+      "valor": 0.09
+    },
+    {
+      "data": "2025-01-28",
+      "descricao": "Transfe Pix Des: ht Saragiotto s 28/01",
       "valor": -600.0
     },
     {
@@ -115,7 +150,22 @@
     },
     {
       "data": "2025-01-31",
-      "descricao": "Des: Antonia Gecileuda Roc",
+      "descricao": "Rent",
+      "valor": 0.63
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "Pgto Elet Trib",
+      "valor": -2893.89
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "Transfe Pix Des: Leticia Aparecida de 31/01",
+      "valor": -40.0
+    },
+    {
+      "data": "2025-01-31",
+      "descricao": "Des: Antonia Gecileuda Roc 0937271",
       "valor": -75.0
     },
     {
@@ -125,7 +175,17 @@
     },
     {
       "data": "2025-02-03",
-      "descricao": "3879513",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1439.6
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "Rent",
+      "valor": 0.38
+    },
+    {
+      "data": "2025-02-03",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
       "valor": -1500.0
     },
     {
@@ -135,17 +195,22 @@
     },
     {
       "data": "2025-02-04",
-      "descricao": "Des: Estacar Estacionament",
+      "descricao": "Des: Estacar Estacionament 1343186",
       "valor": -10.0
     },
     {
       "data": "2025-02-11",
-      "descricao": "1103221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 1629.4
     },
     {
       "data": "2025-02-11",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
+      "valor": 5091.8
+    },
+    {
+      "data": "2025-02-11",
+      "descricao": "Apl.invest Fac 4973435",
       "valor": -6721.2
     },
     {
@@ -155,7 +220,7 @@
     },
     {
       "data": "2025-02-17",
-      "descricao": "6898270",
+      "descricao": "Conta Telefone",
       "valor": -56.64
     },
     {
@@ -165,7 +230,12 @@
     },
     {
       "data": "2025-02-20",
-      "descricao": "Gasto c Credito",
+      "descricao": "Rent",
+      "valor": 0.05
+    },
+    {
+      "data": "2025-02-20",
+      "descricao": "Gasto c Credito 3990051",
       "valor": -1105.49
     },
     {
@@ -175,7 +245,7 @@
     },
     {
       "data": "2025-02-27",
-      "descricao": "1357061",
+      "descricao": "Transfe Pix Des: Edilene Aparecida Fra 27/02",
       "valor": -25.0
     },
     {
@@ -185,12 +255,42 @@
     },
     {
       "data": "2025-03-05",
-      "descricao": "1656168",
+      "descricao": "Rent",
+      "valor": 0.3
+    },
+    {
+      "data": "2025-03-05",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-03-05",
+      "descricao": "Transfe Pix Des: Claudia Felizola Reis 05/03",
       "valor": -48.0
     },
     {
       "data": "2025-03-07",
-      "descricao": "1931554",
+      "descricao": "Resgate Inv Fac",
+      "valor": 3986.42
+    },
+    {
+      "data": "2025-03-07",
+      "descricao": "Rent",
+      "valor": 0.97
+    },
+    {
+      "data": "2025-03-07",
+      "descricao": "Ted d Hbank* Dest. Mariana Teixeira Fer",
+      "valor": -40000.0
+    },
+    {
+      "data": "2025-03-07",
+      "descricao": "Transfe Pix Des: ******** 07/03",
+      "valor": -60.0
+    },
+    {
+      "data": "2025-03-07",
+      "descricao": "Transfe Pix Des: Claudia Felizola Reis 07/03",
       "valor": -190.0
     },
     {
@@ -200,17 +300,27 @@
     },
     {
       "data": "2025-03-10",
-      "descricao": "1914222",
+      "descricao": "Transfe Pix Des: Edilene Aparecida Fra 08/03",
+      "valor": -50.0
+    },
+    {
+      "data": "2025-03-10",
+      "descricao": "Transfe Pix Des: Gabriel Antonio Marti 08/03",
       "valor": -60.0
     },
     {
       "data": "2025-03-11",
-      "descricao": "1103221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 1629.4
     },
     {
       "data": "2025-03-11",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
+      "valor": 5091.8
+    },
+    {
+      "data": "2025-03-11",
+      "descricao": "Apl.invest Fac 8673534",
       "valor": -6721.2
     },
     {
@@ -220,7 +330,7 @@
     },
     {
       "data": "2025-03-17",
-      "descricao": "6898270",
+      "descricao": "Conta Telefone",
       "valor": -56.64
     },
     {
@@ -230,7 +340,7 @@
     },
     {
       "data": "2025-03-18",
-      "descricao": "1618231",
+      "descricao": "Pix Qrcode Din Des: Prodata Mobility Bras 18/03",
       "valor": -10.0
     },
     {
@@ -240,7 +350,12 @@
     },
     {
       "data": "2025-03-20",
-      "descricao": "Gasto c Credito",
+      "descricao": "Rent",
+      "valor": 0.05
+    },
+    {
+      "data": "2025-03-20",
+      "descricao": "Gasto c Credito 3990079",
       "valor": -1192.8
     },
     {
@@ -250,7 +365,12 @@
     },
     {
       "data": "2025-03-25",
-      "descricao": "1911467",
+      "descricao": "Rent",
+      "valor": 0.05
+    },
+    {
+      "data": "2025-03-25",
+      "descricao": "Transfe Pix Des: ht Saragiotto s 25/03",
       "valor": -600.0
     },
     {
@@ -260,7 +380,12 @@
     },
     {
       "data": "2025-03-27",
-      "descricao": "1454308",
+      "descricao": "Rent",
+      "valor": 0.01
+    },
+    {
+      "data": "2025-03-27",
+      "descricao": "Transfe Pix Des: Jsrs f e Ltda 27/03",
       "valor": -90.0
     },
     {
@@ -270,7 +395,17 @@
     },
     {
       "data": "2025-04-01",
-      "descricao": "1019482",
+      "descricao": "Rent",
+      "valor": 0.32
+    },
+    {
+      "data": "2025-04-01",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-04-01",
+      "descricao": "Transfe Pix Des: Thiago Rodrigues de l 01/04",
       "valor": -50.0
     },
     {
@@ -280,7 +415,12 @@
     },
     {
       "data": "2025-04-08",
-      "descricao": "1340441",
+      "descricao": "Rent",
+      "valor": 0.13
+    },
+    {
+      "data": "2025-04-08",
+      "descricao": "Transfe Pix Des: Warwick Parker 08/04",
       "valor": -350.0
     },
     {
@@ -290,17 +430,42 @@
     },
     {
       "data": "2025-04-09",
-      "descricao": "2218413",
+      "descricao": "Rent Des: Karine Noroes Moura d 2334284 - 80,00",
+      "valor": 0.38
+    },
+    {
+      "data": "2025-04-09",
+      "descricao": "Pix Qrcode Din Des: Ateliê Algodão Doce 09/04",
+      "valor": -361.0
+    },
+    {
+      "data": "2025-04-09",
+      "descricao": "Pix Qrcode Din Des: Agora Sou Mae 09/04",
+      "valor": -157.09
+    },
+    {
+      "data": "2025-04-09",
+      "descricao": "Pix Qrcode Din Des: Zoop Tecnologia e Ins 09/04",
       "valor": -339.89
     },
     {
       "data": "2025-04-10",
-      "descricao": "1003221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 1629.4
     },
     {
       "data": "2025-04-10",
-      "descricao": "2114024",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
+      "valor": 5185.97
+    },
+    {
+      "data": "2025-04-10",
+      "descricao": "Pix Qrcode Din Des: Hanesbrands Brasil tê 10/04",
+      "valor": -144.26
+    },
+    {
+      "data": "2025-04-10",
+      "descricao": "Pix Qrcode Din Des: Zoop Tecnologia e Ins 10/04",
       "valor": -91.45
     },
     {
@@ -310,7 +475,12 @@
     },
     {
       "data": "2025-04-14",
-      "descricao": "1527294",
+      "descricao": "Rent",
+      "valor": 0.04
+    },
+    {
+      "data": "2025-04-14",
+      "descricao": "Pix Qrcode Din Des: Zoop Tecnologia e Ins 12/04",
       "valor": -78.07
     },
     {
@@ -320,7 +490,12 @@
     },
     {
       "data": "2025-04-15",
-      "descricao": "6898270",
+      "descricao": "Rent",
+      "valor": 0.03
+    },
+    {
+      "data": "2025-04-15",
+      "descricao": "Conta Telefone",
       "valor": -56.64
     },
     {
@@ -330,7 +505,12 @@
     },
     {
       "data": "2025-04-16",
-      "descricao": "1118343",
+      "descricao": "Rent",
+      "valor": 0.52
+    },
+    {
+      "data": "2025-04-16",
+      "descricao": "Pix Qrcode Est Des: Warwick Parker 16/04",
       "valor": -1000.0
     },
     {
@@ -340,7 +520,22 @@
     },
     {
       "data": "2025-04-22",
-      "descricao": "Gasto c Credito",
+      "descricao": "Resgate Inv Fac",
+      "valor": 800.6
+    },
+    {
+      "data": "2025-04-22",
+      "descricao": "Rent",
+      "valor": 0.03
+    },
+    {
+      "data": "2025-04-22",
+      "descricao": "Rent",
+      "valor": 0.45
+    },
+    {
+      "data": "2025-04-22",
+      "descricao": "Gasto c Credito 3990112",
       "valor": -1423.36
     },
     {
@@ -350,12 +545,37 @@
     },
     {
       "data": "2025-04-23",
-      "descricao": "1500508",
+      "descricao": "Rent",
+      "valor": 0.01
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Transfe Pix Des: Edilene Aparecida Fra 23/04",
+      "valor": -25.0
+    },
+    {
+      "data": "2025-04-23",
+      "descricao": "Transfe Pix Des: Iraci Conceicao Silva 23/04",
       "valor": -60.0
     },
     {
       "data": "2025-04-24",
-      "descricao": "1537210",
+      "descricao": "Resgate Inv Fac",
+      "valor": 5872.39
+    },
+    {
+      "data": "2025-04-24",
+      "descricao": "Rent",
+      "valor": 0.45
+    },
+    {
+      "data": "2025-04-24",
+      "descricao": "Ted d Hbank* Dest. Mariana Teixeira Fer",
+      "valor": -20000.0
+    },
+    {
+      "data": "2025-04-24",
+      "descricao": "Transfe Pix Des: Warwick Parker 24/04",
       "valor": -535.5
     },
     {
@@ -365,17 +585,22 @@
     },
     {
       "data": "2025-05-02",
-      "descricao": "1298446",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
       "valor": -1500.0
     },
     {
       "data": "2025-05-09",
-      "descricao": "0903221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 1146.25
     },
     {
       "data": "2025-05-09",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
+      "valor": 5316.36
+    },
+    {
+      "data": "2025-05-09",
+      "descricao": "Apl.invest Fac 9515210",
       "valor": -6462.61
     },
     {
@@ -385,7 +610,7 @@
     },
     {
       "data": "2025-05-12",
-      "descricao": "0840186",
+      "descricao": "Transfe Pix Des: Jair de Souza Ferreir 10/05",
       "valor": -140.0
     },
     {
@@ -395,7 +620,7 @@
     },
     {
       "data": "2025-05-15",
-      "descricao": "6898270",
+      "descricao": "Conta Telefone",
       "valor": -56.64
     },
     {
@@ -405,7 +630,17 @@
     },
     {
       "data": "2025-05-19",
-      "descricao": "1046223",
+      "descricao": "Rent",
+      "valor": 0.03
+    },
+    {
+      "data": "2025-05-19",
+      "descricao": "Pagto Cobranca",
+      "valor": -446.0
+    },
+    {
+      "data": "2025-05-19",
+      "descricao": "Transfe Pix Des: Jair de Souza Ferreir 19/05",
       "valor": -140.0
     },
     {
@@ -415,17 +650,27 @@
     },
     {
       "data": "2025-05-20",
-      "descricao": "Gasto c Credito",
+      "descricao": "Rent",
+      "valor": 0.13
+    },
+    {
+      "data": "2025-05-20",
+      "descricao": "Gasto c Credito 3990140",
       "valor": -2462.47
     },
     {
       "data": "2025-05-21",
-      "descricao": "2103221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 154.8
     },
     {
       "data": "2025-05-21",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
+      "valor": 316.2
+    },
+    {
+      "data": "2025-05-21",
+      "descricao": "Apl.invest Fac 8211606",
       "valor": -471.0
     },
     {
@@ -435,7 +680,12 @@
     },
     {
       "data": "2025-06-02",
-      "descricao": "9652927",
+      "descricao": "Rent",
+      "valor": 0.54
+    },
+    {
+      "data": "2025-06-02",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
       "valor": -1500.0
     },
     {
@@ -445,17 +695,27 @@
     },
     {
       "data": "2025-06-03",
-      "descricao": "Oma Condominio Locacao e",
+      "descricao": "Rent",
+      "valor": 0.24
+    },
+    {
+      "data": "2025-06-03",
+      "descricao": "Pagto Cobranca",
+      "valor": -342.26
+    },
+    {
+      "data": "2025-06-03",
+      "descricao": "Oma Condominio Locacao e 0000209",
       "valor": -443.45
     },
     {
       "data": "2025-06-11",
-      "descricao": "1103221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 5316.36
     },
     {
       "data": "2025-06-11",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Apl.invest Fac 9573170",
       "valor": -5316.36
     },
     {
@@ -465,7 +725,17 @@
     },
     {
       "data": "2025-06-16",
-      "descricao": "6898270",
+      "descricao": "Rent",
+      "valor": 0.06
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "Pix Qrcode Est Des: Claro 16/06",
+      "valor": -55.98
+    },
+    {
+      "data": "2025-06-16",
+      "descricao": "Conta Telefone",
       "valor": -55.98
     },
     {
@@ -475,7 +745,12 @@
     },
     {
       "data": "2025-06-26",
-      "descricao": "1322154",
+      "descricao": "Rent",
+      "valor": 0.09
+    },
+    {
+      "data": "2025-06-26",
+      "descricao": "Transfe Pix Des: Floricultura Sempre v 26/06",
       "valor": -122.0
     },
     {
@@ -485,7 +760,32 @@
     },
     {
       "data": "2025-06-30",
-      "descricao": "2020181",
+      "descricao": "Resgate Inv Fac",
+      "valor": 215.96
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1606.42
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Rent",
+      "valor": 0.27
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Rent",
+      "valor": 0.16
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Rent",
+      "valor": 0.26
+    },
+    {
+      "data": "2025-06-30",
+      "descricao": "Parcelam Darf",
       "valor": -2294.07
     },
     {
@@ -495,7 +795,12 @@
     },
     {
       "data": "2025-07-01",
-      "descricao": "8643102",
+      "descricao": "Rent",
+      "valor": 0.28
+    },
+    {
+      "data": "2025-07-01",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
       "valor": -1500.0
     },
     {
@@ -505,7 +810,12 @@
     },
     {
       "data": "2025-07-02",
-      "descricao": "Oma Condominio Locacao e",
+      "descricao": "Rent",
+      "valor": 0.09
+    },
+    {
+      "data": "2025-07-02",
+      "descricao": "Oma Condominio Locacao e 0000210",
       "valor": -439.98
     },
     {
@@ -515,17 +825,22 @@
     },
     {
       "data": "2025-07-03",
-      "descricao": "0000211",
+      "descricao": "Rent",
+      "valor": 0.08
+    },
+    {
+      "data": "2025-07-03",
+      "descricao": "Pagto Cobranca",
       "valor": -342.26
     },
     {
       "data": "2025-07-10",
-      "descricao": "1003221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 5316.36
     },
     {
       "data": "2025-07-10",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Apl.invest Fac 6442905",
       "valor": -5316.36
     },
     {
@@ -535,7 +850,12 @@
     },
     {
       "data": "2025-07-21",
-      "descricao": "Gasto c Credito",
+      "descricao": "Rent",
+      "valor": 0.03
+    },
+    {
+      "data": "2025-07-21",
+      "descricao": "Gasto c Credito 3990202",
       "valor": -45.89
     },
     {
@@ -545,7 +865,12 @@
     },
     {
       "data": "2025-07-30",
-      "descricao": "2313549",
+      "descricao": "Rent",
+      "valor": 0.09
+    },
+    {
+      "data": "2025-07-30",
+      "descricao": "Pix Qrcode Din Des: Drogaria Sao Paulo 30/07",
       "valor": -117.74
     },
     {
@@ -555,7 +880,22 @@
     },
     {
       "data": "2025-07-31",
-      "descricao": "2020212",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1264.64
+    },
+    {
+      "data": "2025-07-31",
+      "descricao": "Rent",
+      "valor": 0.24
+    },
+    {
+      "data": "2025-07-31",
+      "descricao": "Rent",
+      "valor": 0.94
+    },
+    {
+      "data": "2025-07-31",
+      "descricao": "Parcelam Darf",
       "valor": -2319.05
     },
     {
@@ -565,7 +905,12 @@
     },
     {
       "data": "2025-08-01",
-      "descricao": "8671058",
+      "descricao": "Rent",
+      "valor": 0.38
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
       "valor": -1500.0
     },
     {
@@ -575,17 +920,22 @@
     },
     {
       "data": "2025-08-05",
-      "descricao": "0000212",
+      "descricao": "Rent",
+      "valor": 0.12
+    },
+    {
+      "data": "2025-08-05",
+      "descricao": "Pagto Cobranca",
       "valor": -342.27
     },
     {
       "data": "2025-08-11",
-      "descricao": "1103221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 5316.36
     },
     {
       "data": "2025-08-11",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Apl.invest Fac 5343865",
       "valor": -5316.36
     },
     {
@@ -595,7 +945,12 @@
     },
     {
       "data": "2025-08-15",
-      "descricao": "6898270",
+      "descricao": "Rent",
+      "valor": 0.03
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "Conta Telefone",
       "valor": -55.98
     },
     {
@@ -605,7 +960,12 @@
     },
     {
       "data": "2025-08-27",
-      "descricao": "Oma Condominio Locacao e",
+      "descricao": "Rent",
+      "valor": 0.33
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "Oma Condominio Locacao e 0000213",
       "valor": -452.05
     },
     {
@@ -615,7 +975,22 @@
     },
     {
       "data": "2025-08-29",
-      "descricao": "2020241",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1913.69
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "Rent",
+      "valor": 0.08
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "Rent",
+      "valor": 1.47
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "Parcelam Darf",
       "valor": -2348.13
     },
     {
@@ -625,17 +1000,22 @@
     },
     {
       "data": "2025-09-04",
-      "descricao": "1365630",
+      "descricao": "Rent",
+      "valor": 0.46
+    },
+    {
+      "data": "2025-09-04",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
       "valor": -1500.0
     },
     {
       "data": "2025-09-11",
-      "descricao": "1103221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 5316.36
     },
     {
       "data": "2025-09-11",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Apl.invest Fac 6133520",
       "valor": -5316.36
     },
     {
@@ -645,7 +1025,12 @@
     },
     {
       "data": "2025-09-15",
-      "descricao": "6898270",
+      "descricao": "Rent",
+      "valor": 0.03
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "Conta Telefone",
       "valor": -55.98
     },
     {
@@ -655,7 +1040,17 @@
     },
     {
       "data": "2025-09-30",
-      "descricao": "2020273",
+      "descricao": "Rent",
+      "valor": 1.93
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 30/09",
+      "valor": -137.75
+    },
+    {
+      "data": "2025-09-30",
+      "descricao": "Parcelam Darf",
       "valor": -2374.47
     },
     {
@@ -665,22 +1060,62 @@
     },
     {
       "data": "2025-10-06",
-      "descricao": "1532769",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1188.1
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "Rent",
+      "valor": 0.7
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "Rent",
+      "valor": 0.36
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
       "valor": -1500.0
     },
     {
       "data": "2025-10-09",
-      "descricao": "0903221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 5316.36
     },
     {
       "data": "2025-10-09",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Apl.invest Fac 5555709",
       "valor": -5316.36
     },
     {
       "data": "2025-10-13",
-      "descricao": "Des: Vanessa Emiliano Dias",
+      "descricao": "Resgate Inv Fac",
+      "valor": 5316.36
+    },
+    {
+      "data": "2025-10-13",
+      "descricao": "Resgate Inv Fac",
+      "valor": 4128.26
+    },
+    {
+      "data": "2025-10-13",
+      "descricao": "Rent",
+      "valor": 0.04
+    },
+    {
+      "data": "2025-10-13",
+      "descricao": "Rent",
+      "valor": 1.94
+    },
+    {
+      "data": "2025-10-13",
+      "descricao": "Ted d Hbank* Dest. Mariana Teixeira Fer",
+      "valor": -55000.0
+    },
+    {
+      "data": "2025-10-13",
+      "descricao": "Des: Vanessa Emiliano Dias 1747124",
       "valor": -216.0
     },
     {
@@ -690,7 +1125,12 @@
     },
     {
       "data": "2025-10-14",
-      "descricao": "Des: Eliane Costa Goncalve",
+      "descricao": "Transfe Pix Des: Neilton da Silva de o 14/10",
+      "valor": -10.0
+    },
+    {
+      "data": "2025-10-14",
+      "descricao": "Des: Eliane Costa Goncalve 1819330",
       "valor": -220.0
     },
     {
@@ -700,7 +1140,7 @@
     },
     {
       "data": "2025-10-15",
-      "descricao": "6898270",
+      "descricao": "Conta Telefone",
       "valor": -55.98
     },
     {
@@ -710,7 +1150,7 @@
     },
     {
       "data": "2025-10-20",
-      "descricao": "Gasto c Credito",
+      "descricao": "Gasto c Credito 3990293",
       "valor": -1683.86
     },
     {
@@ -720,7 +1160,17 @@
     },
     {
       "data": "2025-10-22",
-      "descricao": "1624308",
+      "descricao": "Transfe Pix Des: Edilene Aparecida Fra 22/10",
+      "valor": -25.0
+    },
+    {
+      "data": "2025-10-22",
+      "descricao": "Transfe Pix Des: Jair de Souza Ferreir 22/10",
+      "valor": -400.0
+    },
+    {
+      "data": "2025-10-22",
+      "descricao": "Pix Qrcode Din Des: Natura &co Pay Servic 22/10",
       "valor": -199.4
     },
     {
@@ -730,7 +1180,12 @@
     },
     {
       "data": "2025-10-28",
-      "descricao": "Des: Eliane Costa Goncalve",
+      "descricao": "Transfe Pix Des: Suecia Pereira de Oli 28/10",
+      "valor": -28.0
+    },
+    {
+      "data": "2025-10-28",
+      "descricao": "Des: Eliane Costa Goncalve 1723082",
       "valor": -220.0
     },
     {
@@ -740,7 +1195,12 @@
     },
     {
       "data": "2025-10-31",
-      "descricao": "2020304",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 31/10",
+      "valor": -41.97
+    },
+    {
+      "data": "2025-10-31",
+      "descricao": "Parcelam Darf",
       "valor": -2402.19
     },
     {
@@ -750,7 +1210,12 @@
     },
     {
       "data": "2025-11-04",
-      "descricao": "1452386",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
+      "valor": -1500.0
+    },
+    {
+      "data": "2025-11-04",
+      "descricao": "Transfe Pix Des: Maria Gizelia Dos San 04/11",
       "valor": -35.0
     },
     {
@@ -760,17 +1225,17 @@
     },
     {
       "data": "2025-11-05",
-      "descricao": "1532107",
+      "descricao": "Transfe Pix Des: Daniel Jesus do Rosar 05/11",
       "valor": -300.0
     },
     {
       "data": "2025-11-11",
-      "descricao": "1103221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 5316.36
     },
     {
       "data": "2025-11-11",
-      "descricao": "Des: Eliane Costa Goncalve",
+      "descricao": "Des: Eliane Costa Goncalve 1830573",
       "valor": -220.0
     },
     {
@@ -780,7 +1245,7 @@
     },
     {
       "data": "2025-11-12",
-      "descricao": "6972091",
+      "descricao": "Conta de Luz",
       "valor": -37.07
     },
     {
@@ -790,7 +1255,12 @@
     },
     {
       "data": "2025-11-17",
-      "descricao": "6898270",
+      "descricao": "Transfe Pix Des: Maria Gizelia Dos San 17/11",
+      "valor": -35.0
+    },
+    {
+      "data": "2025-11-17",
+      "descricao": "Conta Telefone",
       "valor": -55.98
     },
     {
@@ -800,7 +1270,12 @@
     },
     {
       "data": "2025-11-21",
-      "descricao": "Gasto c Credito",
+      "descricao": "Rent",
+      "valor": 0.04
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Gasto c Credito 3990325",
       "valor": -692.64
     },
     {
@@ -810,7 +1285,27 @@
     },
     {
       "data": "2025-11-24",
-      "descricao": "1024454",
+      "descricao": "Rent",
+      "valor": 0.01
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Pix Qrcode Est Des: Enel Distribuicao Sao 24/11",
+      "valor": -41.77
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Pix Qrcode Est Des: Enel Distribuicao Sao 24/11",
+      "valor": -43.25
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Pix Qrcode Est Des: Enel Distribuicao Sao 24/11",
+      "valor": -43.38
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Pix Qrcode Est Des: Enel Distribuicao Sao 24/11",
       "valor": -41.75
     },
     {
@@ -820,7 +1315,12 @@
     },
     {
       "data": "2025-11-25",
-      "descricao": "2249073",
+      "descricao": "Rent Des: Eliane Costa Goncalve 1900316 - 220,00",
+      "valor": 0.03
+    },
+    {
+      "data": "2025-11-25",
+      "descricao": "Transfe Pix Des: Maria Lireuda Bastos 25/11",
       "valor": -130.0
     },
     {
@@ -830,7 +1330,12 @@
     },
     {
       "data": "2025-11-26",
-      "descricao": "1243004",
+      "descricao": "Rent",
+      "valor": 0.03
+    },
+    {
+      "data": "2025-11-26",
+      "descricao": "Pix Qrcode Din Des: Sabesp 26/11",
       "valor": -307.05
     },
     {
@@ -840,7 +1345,17 @@
     },
     {
       "data": "2025-11-28",
-      "descricao": "2020332",
+      "descricao": "Rent",
+      "valor": 0.37
+    },
+    {
+      "data": "2025-11-28",
+      "descricao": "Transfe Pix Des: Maria Gizelia Dos San 28/11",
+      "valor": -70.0
+    },
+    {
+      "data": "2025-11-28",
+      "descricao": "Parcelam Darf",
       "valor": -2431.26
     },
     {
@@ -850,7 +1365,12 @@
     },
     {
       "data": "2025-12-01",
-      "descricao": "0921250",
+      "descricao": "Rent",
+      "valor": 0.01
+    },
+    {
+      "data": "2025-12-01",
+      "descricao": "Pix Qrcode Din Des: Moda Mundial Brasil p 01/12",
       "valor": -37.56
     },
     {
@@ -860,7 +1380,17 @@
     },
     {
       "data": "2025-12-04",
-      "descricao": "9124354",
+      "descricao": "Resgate Inv Fac",
+      "valor": 427.08
+    },
+    {
+      "data": "2025-12-04",
+      "descricao": "Rent",
+      "valor": 0.11
+    },
+    {
+      "data": "2025-12-04",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
       "valor": -1500.0
     },
     {
@@ -870,7 +1400,7 @@
     },
     {
       "data": "2025-12-08",
-      "descricao": "2153289",
+      "descricao": "Pix Qrcode Din Des: Magalupay 06/12",
       "valor": -404.16
     },
     {
@@ -880,17 +1410,17 @@
     },
     {
       "data": "2025-12-10",
-      "descricao": "Des: Eliane Costa Goncalve",
+      "descricao": "Des: Eliane Costa Goncalve 2244347",
       "valor": -220.0
     },
     {
       "data": "2025-12-11",
-      "descricao": "1103221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 5316.36
     },
     {
       "data": "2025-12-11",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Apl.invest Fac 3901570",
       "valor": -5316.36
     },
     {
@@ -900,7 +1430,12 @@
     },
     {
       "data": "2025-12-15",
-      "descricao": "6898270",
+      "descricao": "Transfe Pix Des: Maria Gizelia Dos San 15/12",
+      "valor": -35.0
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "Conta Telefone",
       "valor": -55.98
     },
     {
@@ -910,7 +1445,7 @@
     },
     {
       "data": "2025-12-16",
-      "descricao": "2124546",
+      "descricao": "Transfe Pix Des: Aline Lopes Oliveira 16/12",
       "valor": -42.13
     },
     {
@@ -920,7 +1455,7 @@
     },
     {
       "data": "2025-12-18",
-      "descricao": "0924300",
+      "descricao": "Transfe Pix Des: Hugo Dos Santos 18/12",
       "valor": -10.0
     },
     {
@@ -930,7 +1465,12 @@
     },
     {
       "data": "2025-12-22",
-      "descricao": "Gasto c Credito",
+      "descricao": "Rent",
+      "valor": 0.05
+    },
+    {
+      "data": "2025-12-22",
+      "descricao": "Gasto c Credito 3990356",
       "valor": -890.04
     },
     {
@@ -940,7 +1480,17 @@
     },
     {
       "data": "2025-12-23",
-      "descricao": "Des: Eliane Costa Goncalve",
+      "descricao": "Rent",
+      "valor": 0.02
+    },
+    {
+      "data": "2025-12-23",
+      "descricao": "Transfe Pix Des: Maria Gizelia Dos San 23/12",
+      "valor": -105.0
+    },
+    {
+      "data": "2025-12-23",
+      "descricao": "Des: Eliane Costa Goncalve 1952162",
       "valor": -220.0
     },
     {
@@ -950,38 +1500,18 @@
     },
     {
       "data": "2025-12-30",
-      "descricao": "2020364",
-      "valor": -2455.11
+      "descricao": "Rent",
+      "valor": 0.41
     },
     {
       "data": "2025-12-30",
-      "descricao": "Total 249.535,80",
-      "valor": -249535.8
+      "descricao": "Transfe Pix Des: Evelyn Maria Aparecid 30/12",
+      "valor": -12.0
     },
     {
-      "data": "2025-12-31",
-      "descricao": "Se preferir, fale com a BIA pelo WhatsApp (11)",
-      "valor": 3335.0
-    },
-    {
-      "data": "2025-12-31",
-      "descricao": "Se preferir, fale com a BIA pelo WhatsApp (11)",
-      "valor": 3335.0
-    },
-    {
-      "data": "2025-12-31",
-      "descricao": "0800",
-      "valor": 722.0
-    },
-    {
-      "data": "2025-12-31",
-      "descricao": "0800",
-      "valor": 727.0
-    },
-    {
-      "data": "2025-12-31",
-      "descricao": "Se Preferir, fale com a BIA pelo (11)",
-      "valor": 3335.0
+      "data": "2025-12-30",
+      "descricao": "Parcelam Darf Atendimento 24 horas, 7 dias por semana.",
+      "valor": -2455.11
     },
     {
       "data": "2026-01-02",
@@ -990,7 +1520,7 @@
     },
     {
       "data": "2026-01-02",
-      "descricao": "1412261",
+      "descricao": "Transfe Pix Des: Danielle de Almeida j 02/01",
       "valor": -6.5
     },
     {
@@ -1000,7 +1530,22 @@
     },
     {
       "data": "2026-01-05",
-      "descricao": "6749522",
+      "descricao": "Resgate Inv Fac",
+      "valor": 1481.58
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Rent",
+      "valor": 0.41
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Pagto Cobranca",
+      "valor": -1126.71
+    },
+    {
+      "data": "2026-01-05",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
       "valor": -1500.0
     },
     {
@@ -1010,17 +1555,22 @@
     },
     {
       "data": "2026-01-06",
-      "descricao": "Des: Eliane Costa Goncalve",
+      "descricao": "Des: Eliane Costa Goncalve 1905018",
       "valor": -220.0
     },
     {
       "data": "2026-01-09",
-      "descricao": "0903221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 315.81
     },
     {
       "data": "2026-01-09",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
+      "valor": 4908.86
+    },
+    {
+      "data": "2026-01-09",
+      "descricao": "Apl.invest Fac 7294544",
       "valor": -5224.67
     },
     {
@@ -1030,7 +1580,7 @@
     },
     {
       "data": "2026-01-12",
-      "descricao": "2053308",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 10/01",
       "valor": -16.99
     },
     {
@@ -1040,7 +1590,7 @@
     },
     {
       "data": "2026-01-14",
-      "descricao": "Conselho Regional de",
+      "descricao": "Conselho Regional de 0000219",
       "valor": -355.13
     },
     {
@@ -1050,7 +1600,17 @@
     },
     {
       "data": "2026-01-15",
-      "descricao": "6898270",
+      "descricao": "Devolucao Pix",
+      "valor": 16.99
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Transfe Pix Des: Juliana Maria da Silv 15/01",
+      "valor": -10.0
+    },
+    {
+      "data": "2026-01-15",
+      "descricao": "Conta Telefone",
       "valor": -55.98
     },
     {
@@ -1060,7 +1620,17 @@
     },
     {
       "data": "2026-01-20",
-      "descricao": "2202021",
+      "descricao": "Resgate Inv Fac",
+      "valor": 4803.56
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "Rent Des: Eliane Costa Goncalve 1934487 - 220,00",
+      "valor": 0.28
+    },
+    {
+      "data": "2026-01-20",
+      "descricao": "Pix Qrcode Din Des: Concavo e Convexo 20/01",
       "valor": -767.0
     },
     {
@@ -1070,7 +1640,7 @@
     },
     {
       "data": "2026-01-21",
-      "descricao": "0605509",
+      "descricao": "Pix Qrcode Din Des: Secretaria Municipal 21/01",
       "valor": -3183.24
     },
     {
@@ -1080,7 +1650,7 @@
     },
     {
       "data": "2026-01-23",
-      "descricao": "Des: Amanda Santos Santana",
+      "descricao": "Des: Amanda Santos Santana 0730273",
       "valor": -28.03
     },
     {
@@ -1090,7 +1660,7 @@
     },
     {
       "data": "2026-01-26",
-      "descricao": "1736125",
+      "descricao": "Transfe Pix Des: Maria Engracia Alves 25/01",
       "valor": -100.0
     },
     {
@@ -1100,7 +1670,22 @@
     },
     {
       "data": "2026-01-28",
-      "descricao": "2206138",
+      "descricao": "Pix Qrcode Din Des: Moda Mundial Brasil p 28/01",
+      "valor": -194.96
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
+      "valor": -69.99
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
+      "valor": -21.9
+    },
+    {
+      "data": "2026-01-28",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 28/01",
       "valor": -69.54
     },
     {
@@ -1110,7 +1695,12 @@
     },
     {
       "data": "2026-01-29",
-      "descricao": "2216129",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 29/01",
+      "valor": -56.76
+    },
+    {
+      "data": "2026-01-29",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 29/01",
       "valor": -29.9
     },
     {
@@ -1120,7 +1710,12 @@
     },
     {
       "data": "2026-01-30",
-      "descricao": "2154047",
+      "descricao": "Transfe Pix Des: Suecia Pereira de Oli 30/01",
+      "valor": -1000.0
+    },
+    {
+      "data": "2026-01-30",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 30/01",
       "valor": -35.99
     },
     {
@@ -1130,7 +1725,22 @@
     },
     {
       "data": "2026-02-02",
-      "descricao": "2147085",
+      "descricao": "Rent Des: Eliane Costa Goncalve 2127119 - 220,00",
+      "valor": 0.01
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Pix Qrcode Din Des: Iguasport Ltda 02/02",
+      "valor": -427.5
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 01/02 Des: Shpp Brasil Instituic 01/02 2133123 - 69,99",
+      "valor": -88.5
+    },
+    {
+      "data": "2026-02-02",
+      "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 01/02",
       "valor": -54.6
     },
     {
@@ -1140,7 +1750,17 @@
     },
     {
       "data": "2026-02-04",
-      "descricao": "9475284",
+      "descricao": "Resgate Inv Fac",
+      "valor": 692.42
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "Rent",
+      "valor": 0.01
+    },
+    {
+      "data": "2026-02-04",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
       "valor": -1500.0
     },
     {
@@ -1150,17 +1770,27 @@
     },
     {
       "data": "2026-02-05",
-      "descricao": "1832115",
+      "descricao": "Transf Autoriz",
+      "valor": -75.0
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "Transfe Pix Des: Maria Gizelia Dos San 05/02",
       "valor": -70.0
     },
     {
       "data": "2026-02-11",
-      "descricao": "1103221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 507.0
     },
     {
       "data": "2026-02-11",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
+      "valor": 1002.15
+    },
+    {
+      "data": "2026-02-11",
+      "descricao": "Apl.invest Fac 1332577",
       "valor": -1509.15
     },
     {
@@ -1170,7 +1800,7 @@
     },
     {
       "data": "2026-02-18",
-      "descricao": "6898270",
+      "descricao": "Conta Telefone",
       "valor": -55.98
     },
     {
@@ -1180,7 +1810,12 @@
     },
     {
       "data": "2026-02-20",
-      "descricao": "Gasto c Credito",
+      "descricao": "Rent",
+      "valor": 0.03
+    },
+    {
+      "data": "2026-02-20",
+      "descricao": "Gasto c Credito 3990051",
       "valor": -779.77
     },
     {
@@ -1190,7 +1825,12 @@
     },
     {
       "data": "2026-02-24",
-      "descricao": "Des: Eliane Costa Goncalve",
+      "descricao": "Rent",
+      "valor": 0.02
+    },
+    {
+      "data": "2026-02-24",
+      "descricao": "Des: Eliane Costa Goncalve 2047410",
       "valor": -220.0
     },
     {
@@ -1200,7 +1840,12 @@
     },
     {
       "data": "2026-03-02",
-      "descricao": "1147429",
+      "descricao": "Rent",
+      "valor": 0.01
+    },
+    {
+      "data": "2026-03-02",
+      "descricao": "Transfe Pix Des: Michele Aparecida da 01/03",
       "valor": -70.0
     },
     {
@@ -1210,7 +1855,17 @@
     },
     {
       "data": "2026-03-04",
-      "descricao": "7244026",
+      "descricao": "Resgate Inv Fac",
+      "valor": 383.46
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "Rent",
+      "valor": 0.08
+    },
+    {
+      "data": "2026-03-04",
+      "descricao": "Ted Dif.titul Dest. Neusa Cimar Teixeira",
       "valor": -1500.0
     },
     {
@@ -1220,7 +1875,12 @@
     },
     {
       "data": "2026-03-05",
-      "descricao": "1557442",
+      "descricao": "Transfe Pix Des: Patrycia Casetta 05/03",
+      "valor": -20.0
+    },
+    {
+      "data": "2026-03-05",
+      "descricao": "Transfe Pix Des: Danielle de Almeida j 05/03",
       "valor": -100.0
     },
     {
@@ -1230,7 +1890,7 @@
     },
     {
       "data": "2026-03-09",
-      "descricao": "2307396",
+      "descricao": "Pix Qrcode Din Des: Moda Mundial Brasil p 07/03",
       "valor": -32.0
     },
     {
@@ -1240,17 +1900,22 @@
     },
     {
       "data": "2026-03-10",
-      "descricao": "Des: Eliane Costa Goncalve",
+      "descricao": "Des: Eliane Costa Goncalve 2029586",
       "valor": -220.0
     },
     {
       "data": "2026-03-11",
-      "descricao": "1103221",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
       "valor": 1607.9
     },
     {
       "data": "2026-03-11",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Receb Pagfor Grpqa Ltda.",
+      "valor": 1789.45
+    },
+    {
+      "data": "2026-03-11",
+      "descricao": "Apl.invest Fac 1131620",
       "valor": -3397.35
     },
     {
@@ -1260,17 +1925,22 @@
     },
     {
       "data": "2026-03-12",
-      "descricao": "0945283",
+      "descricao": "Transfe Pix",
+      "valor": 4.89
+    },
+    {
+      "data": "2026-03-12",
+      "descricao": "Transfe Pix Des: Danielle de Almeida j 12/03",
       "valor": -1000.0
     },
     {
       "data": "2026-03-13",
-      "descricao": "0724175",
+      "descricao": "Transfe Pix",
       "valor": 1000.0
     },
     {
       "data": "2026-03-13",
-      "descricao": "Apl.invest Fac",
+      "descricao": "Apl.invest Fac 3783439",
       "valor": -1000.0
     },
     {
@@ -1280,7 +1950,7 @@
     },
     {
       "data": "2026-03-16",
-      "descricao": "6898270",
+      "descricao": "Conta Telefone",
       "valor": -55.98
     },
     {
@@ -1290,7 +1960,12 @@
     },
     {
       "data": "2026-03-19",
-      "descricao": "1540571",
+      "descricao": "Rent",
+      "valor": 0.01
+    },
+    {
+      "data": "2026-03-19",
+      "descricao": "Transfe Pix Des: Danielle de Almeida j 19/03",
       "valor": -300.0
     },
     {
@@ -1300,38 +1975,28 @@
     },
     {
       "data": "2026-03-20",
-      "descricao": "1755047",
+      "descricao": "Rent",
+      "valor": 0.02
+    },
+    {
+      "data": "2026-03-20",
+      "descricao": "Transfe Pix Des: Kate Costa Cristo de 20/03",
       "valor": -34.7
     },
     {
       "data": "2026-03-24",
-      "descricao": "9084842",
+      "descricao": "Resgate Inv Fac",
+      "valor": 2694.92
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "Rent",
+      "valor": 0.18
+    },
+    {
+      "data": "2026-03-24",
+      "descricao": "Ted d Hbank* Dest. Mariana Teixeira Fer",
       "valor": -40000.0
-    },
-    {
-      "data": "2026-03-24",
-      "descricao": "Se preferir, fale com a BIA pelo WhatsApp (11)",
-      "valor": 3335.0
-    },
-    {
-      "data": "2026-03-24",
-      "descricao": "Se preferir, fale com a BIA pelo WhatsApp (11)",
-      "valor": 3335.0
-    },
-    {
-      "data": "2026-03-24",
-      "descricao": "0800",
-      "valor": 722.0
-    },
-    {
-      "data": "2026-03-24",
-      "descricao": "0800",
-      "valor": 727.0
-    },
-    {
-      "data": "2026-03-24",
-      "descricao": "Se Preferir, fale com a BIA pelo (11)",
-      "valor": 3335.0
     },
     {
       "data": "2026-03-25",
@@ -1340,23 +2005,13 @@
     },
     {
       "data": "2026-03-25",
-      "descricao": "Des: Eliane Costa Goncalve",
-      "valor": -230.0
-    },
-    {
-      "data": "2026-03-25",
-      "descricao": "Total 75.324,78",
-      "valor": -75324.78
-    },
-    {
-      "data": "2026-03-27",
-      "descricao": "1238361",
+      "descricao": "Transfe Pix",
       "valor": 20.0
     },
     {
-      "data": "2026-03-27",
-      "descricao": "Total 20,00",
-      "valor": 0.0
+      "data": "2026-03-25",
+      "descricao": "Des: Eliane Costa Goncalve 0844186 Atendimento 24 horas, 7 dias por semana.",
+      "valor": -230.0
     }
   ]
 }

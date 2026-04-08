@@ -1,11 +1,11 @@
 # E3 Reconciliation Summary
-Generated: 2026-04-07T14:40:18.613225
+Generated: 2026-04-07T22:31:10.820078
 
 ## Statistics
-- Accounts processed: 18
-- Total transactions reconciled: 2758
-- Total duplicates removed: 274
-- Files written: 18
+- Accounts processed: 17
+- Total transactions reconciled: 2843
+- Total duplicates removed: 302
+- Files written: 17
 
 ## Saldo Continuity & Temporal Warnings
 - ('C6 Bank', 'extratoconta', 'BRL'): Saldo gap: c6bank_extratoconta_202504_202604-2_extract.json (prev_final=-1990.24, next_initial=-3712.06, gap=1721.82)
@@ -24,23 +24,25 @@ Generated: 2026-04-07T14:40:18.613225
 - ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202601-2_extract.json (prev_final=913.72, next_initial=-10044.05, gap=10957.77)
 - ('Itaú', 'extratoconta', 'BRL'): Temporal gap: 154 days before itau_extratoconta_202601-2_extract.json (2025-07-31 -> 2026-01-01)
 - ('Itaú', 'faturapaoacucar'): Saldo gap: itau_faturapaoacucar_202511-2_extract.json (prev_final=59.0, next_initial=697.45, gap=638.45)
+- ('Itaú', 'faturapaoacucar'): Saldo gap: itau_faturapaoacucar_202509-2_extract.json (prev_final=257.54, next_initial=59.0, gap=198.54)
 - ('Itaú', 'faturapaoacucar'): Saldo gap: itau_faturapaoacucar_202601-2_extract.json (prev_final=697.45, next_initial=59.0, gap=638.45)
 - ('Itaú', 'faturapaoacucar'): Temporal gap: 62 days before itau_faturapaoacucar_202601-2_extract.json (2025-10-06 -> 2025-12-07)
+- ('Itaú', 'faturapaoacucar'): Saldo gap: itau_faturapaoacucar_202603-2_extract.json (prev_final=59.0, next_initial=257.54, gap=198.54)
+- ('Itaú', 'faturapaoacucar'): Temporal gap: 29 days before itau_faturapaoacucar_202603-2_extract.json (2026-01-06 -> 2026-02-04)
 - ('Santander', 'faturaunique'): Saldo gap: santander_faturaunique_202504-2_extract.json (prev_final=382.82, next_initial=7.3, gap=375.52)
 
 ## Reconciled Accounts
 - BTG Pactual | extratoconta | BRL | 2026-02-27 to 2026-03-29 | 37 txns
 - Bank of America | extratoconta | USD | 2026-02-25 to 2026-03-26 | 0 txns
-- Bradesco | extratoconta | BRL | 2025-01-01 to 2026-03-29 | 268 txns
-- Bradesco | extratopoupanca | BRL | 2025-01-01 to 2026-03-31 | 142 txns
+- Bradesco | extratoconta | BRL | 2025-01-01 to 2026-03-29 | 399 txns
+- Bradesco | extratopoupanca | BRL | 2025-01-01 to 2026-03-31 | 126 txns
 - C6 Bank | extratoconta | BRL | 2025-03-29 to 2026-04-05 | 338 txns
 - C6 Bank | extratocontaglobaleur | EUR | 2025-11-01 to 2026-04-05 | 0 txns
 - C6 Bank | extratocontaglobalusd | USD | 2025-05-01 to 2026-04-05 | 368 txns
 - C6 Bank | extratocontapj | BRL | 2025-03-29 to 2026-04-05 | 46 txns
 - C6 Bank | faturacarbon | BRL | 2024-03-28 to 2026-01-05 | 1148 txns
-- Itaú | extratoconta | BRL | 2025-07-01 to 2026-01-31 | 53 txns
-- Itaú | extratocontapersonnalite | BRL | 2025-05-01 to 2026-03-31 | 85 txns
-- Itaú | faturapaoacucar | BRL | 2025-04-06 to 2026-03-06 | 22 txns
+- Itaú | extratoconta | BRL | 2025-05-01 to 2026-01-31 | 109 txns
+- Itaú | faturapaoacucar | BRL | 2025-04-06 to 2026-03-06 | 21 txns
 - PicPay | extratoconta | BRL | 2025-12-29 to 2026-03-28 | 62 txns
 - Rico | extratoconta | BRL | 2025-09-30 to 2026-03-29 | 14 txns
 - Santander | extratoconta | BRL | 2025-11-01 to 2026-03-29 | 19 txns

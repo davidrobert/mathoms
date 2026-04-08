@@ -73,7 +73,7 @@
     },
     {
       "data": "2026-01-28",
-      "descricao": "bx Aut Cta Cor*",
+      "descricao": "bx Aut Cta Cor* 0077113",
       "valor": -356.39
     },
     {
@@ -103,7 +103,7 @@
     },
     {
       "data": "2026-02-05",
-      "descricao": "bx Aut Cta Cor*",
+      "descricao": "bx Aut Cta Cor* 0077113",
       "valor": -145.0
     },
     {
@@ -153,7 +153,7 @@
     },
     {
       "data": "2026-03-05",
-      "descricao": "bx Aut Cta Cor*",
+      "descricao": "bx Aut Cta Cor* 0077113",
       "valor": -120.0
     },
     {
@@ -200,21 +200,6 @@
       "data": "2026-03-27",
       "descricao": "Rendimentos",
       "valor": 29.03
-    },
-    {
-      "data": "2026-03-27",
-      "descricao": "Total 22.520,57",
-      "valor": -47385.93
-    },
-    {
-      "data": "2026-03-27",
-      "descricao": "0800 570 0022 0800",
-      "valor": 704.0
-    },
-    {
-      "data": "2026-03-27",
-      "descricao": "0800",
-      "valor": 722.0
     }
   ],
   "notas": []

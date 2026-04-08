@@ -29,6 +29,11 @@
     {
       "data": "2025-09-15",
       "descricao": "Rendimentos",
+      "valor": 18.94
+    },
+    {
+      "data": "2025-09-15",
+      "descricao": "Rendimentos",
       "valor": 84.16
     },
     {
@@ -53,7 +58,7 @@
     },
     {
       "data": "2025-10-13",
-      "descricao": "bx Aut Cta Cor*",
+      "descricao": "bx Aut Cta Cor* 0077113",
       "valor": -46196.38
     },
     {
@@ -68,7 +73,12 @@
     },
     {
       "data": "2025-10-15",
-      "descricao": "bx Aut Cta Cor*",
+      "descricao": "Rendimentos",
+      "valor": 5.97
+    },
+    {
+      "data": "2025-10-15",
+      "descricao": "bx Aut Cta Cor* 0077113",
       "valor": -55.98
     },
     {
@@ -93,23 +103,8 @@
     },
     {
       "data": "2025-10-31",
-      "descricao": "bx Aut Cta Cor*",
+      "descricao": "bx Aut Cta Cor* 0077113",
       "valor": -2444.16
-    },
-    {
-      "data": "2025-10-31",
-      "descricao": "Total 18.281,67",
-      "valor": -51484.33
-    },
-    {
-      "data": "2025-10-31",
-      "descricao": "0800 570 0022 0800",
-      "valor": 704.0
-    },
-    {
-      "data": "2025-10-31",
-      "descricao": "0800",
-      "valor": 722.0
     }
   ],
   "notas": []

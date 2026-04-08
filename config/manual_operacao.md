@@ -1,10 +1,30 @@
 # Manual de Operação — Pipeline Financeiro
 ## Família Ferreira Campos
-## Versão: 5.4 — abr/2026
+## Versão: 5.6 — abr/2026
 
 ---
 
-## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1 → v5.4
+## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1 → v5.4 → v5.5 → v5.6
+
+### v5.5 → v5.6
+
+| Mudança | Motivo |
+|---|---|
+| **E0-unlock: suporte a ZIP com senha** | C6 Bank entrega extratos CSV em ZIPs protegidos por senha. Antes, a descompactação era manual. Agora `e0_unlock.py` detecta e descompacta ZIPs (com ou sem senha) automaticamente no inbox, usando as mesmas senhas de `config/passwords.txt`. Após extração, o `.zip` é movido para `inbox_processed/`. |
+| **E0-unlock: `--file X.zip` suportado** | Flag `--file` agora aceita arquivos `.zip` além de `.pdf`. |
+| **E0-unlock: resumo unificado PDF+ZIP** | Saída do script agora mostra contagem separada de ZIPs e PDFs processados, com resumo de falhas unificado. |
+
+### v5.4 → v5.5
+
+| Mudança | Motivo |
+|---|---|
+| **Fix: deduplicação cross-tipo Itaú (E3)** | `extratocontapersonnalite` e `extratoconta` do Itaú são a mesma conta bancária exportada por portais diferentes. E3 tratava como contas distintas, causando duplicação de transações (ex: FINANC IMOBILIARIO duplicado jul/25–dez/25, ~R$ 4.300/mês cada). Novo config `account_type_equivalences` em `family_members.json` normaliza tipos equivalentes para agrupamento e deduplicação. |
+| **Novo config: `account_type_equivalences`** | Seção em `family_members.json` que mapeia tipos de conta que são aliases da mesma conta bancária. Atual: `extratocontapersonnalite` → `extratoconta`. E3 usa esse mapeamento em `get_account_key()` para agrupar e deduplicar corretamente. |
+| **Novo keyword: LUMMA ROBERTA (saude)** | Personal trainer do David. Adicionado em `categorization.json` → `expense_keywords.saude`. |
+| **Novo keyword: BELT ACADEMY (educacao)** | Aula de inglês do David. Adicionado em `categorization.json` → `expense_keywords.educacao`. |
+| **Novo keyword: HELEN SASAKE TAKAGI (saude)** | Pediatra do Theo. Adicionado em `categorization.json` → `expense_keywords.saude`. |
+| **Novo keyword: NEUSA CIMAR TEIXEIRA (suporte_familiar)** | TED mensal de R$ 1.500 para Neusa (sogra). Adicionado em `categorization.json` → `expense_keywords.suporte_familiar` com variantes `NEUSA CIMAR TEIXEIRA` e `NEUSA CIMAR`. |
+| **Nota: TV Samsung dez/25 (R$ 18.788)** | Compra de TV nova classificada como `reserva_desejos` (Amazon). Classificação correta — sem alteração necessária. |
 
 ### v5.3.1 → v5.4
 
@@ -847,17 +867,23 @@ Se tamanho == 0 bytes (ou < 1KB para PDFs):
 - **NÃO mover** para o destino
 - Manter no inbox para investigação manual
 
-**8b. Verificar encriptação (PDFs):**
-Para cada PDF, verificar se está protegido por senha **antes** de rotear:
+**8b. Verificar encriptação (PDFs) e descompactar ZIPs:**
+Desbloquear PDFs protegidos e extrair ZIPs com senha **antes** de rotear:
 ```bash
-python scripts/e0_unlock.py          # Desbloqueia PDFs no inbox
-python scripts/e0_unlock.py --dry-run # Apenas lista status
+python scripts/e0_unlock.py          # Desbloqueia PDFs + extrai ZIPs no inbox
+python scripts/e0_unlock.py --dry-run # Apenas lista status, sem alterar
+python scripts/e0_unlock.py --file X.zip  # Processa um ZIP específico
 ```
-Se o PDF estiver encriptado:
+Para PDFs encriptados:
 - Tentar desbloquear com senhas de `config/passwords.txt`
 - Se desbloqueado: substituir o original pela versão sem senha e prosseguir roteamento
 - Se nenhuma senha funcionar: registrar em `qa_log.md` e mover para `nao_identificados/`
 - **NUNCA rotear um PDF encriptado para os diretórios de destino** — E2 falhará na extração
+
+Para ZIPs protegidos (ex: CSVs do C6 Bank):
+- Tentar descompactar com senhas de `config/passwords.txt`
+- Se extraído: conteúdo fica no inbox/ para roteamento normal; `.zip` vai para `inbox_processed/`
+- Se nenhuma senha funcionar: registrar em `qa_log.md`; ZIP permanece no inbox para investigação
 
 **Validação pós-roteamento (recomendado):**
 ```bash
@@ -1180,19 +1206,22 @@ V5 — **Documentos corrompidos ou vazios:**
 python scripts/e2_extract_extratos.py
 ```
 O script é 100% determinístico (zero LLM) para bancos conhecidos. Usa pdfplumber para extração
-de texto e tabelas. Tempo de execução: ~50s para ~32 extratos. Mesmos inputs = mesmos outputs.
+de texto e tabelas de PDFs, e parser CSV nativo para formatos exportados do internet banking.
+Tempo de execução: ~50s para ~32 extratos. Mesmos inputs = mesmos outputs.
 
 **Opções CLI:**
 - `--dry-run` — mostra o que seria processado sem gravar arquivos
-- `--file <caminho>` — processa apenas um extrato específico
+- `--file <caminho>` — processa apenas um extrato específico (PDF ou CSV)
 - `--output-dir <caminho>` — diretório de saída (padrão: `processed/E2_extracts/`)
 
 **Parsers disponíveis (v5.5):**
 
 | Banco | Tipo | Método | Obs |
 |-------|------|--------|-----|
-| C6 Bank | `extratoconta` | TABLE | Multi-página, ~670 rows/tabela |
-| C6 Bank | `extratocontapj` | TABLE | Mesmo formato de C6 Conta |
+| C6 Bank | `extratoconta` | CSV | ZIP-protected, BOM UTF-8, 7 colunas |
+| C6 Bank | `extratocontapj` | CSV | Mesmo formato de C6 Conta CSV |
+| C6 Bank | `extratoconta` | TABLE | Multi-página, ~670 rows/tabela (PDF) |
+| C6 Bank | `extratocontapj` | TABLE | Mesmo formato de C6 Conta (PDF) |
 | C6 Bank | `extratocontaglobalusd` | TABLE | Valor com prefixo moeda (US$) |
 | C6 Bank | `extratocontaglobaleur` | TABLE | Valor com prefixo moeda (€) |
 | Itaú | `extratoconta` | TABLE | Muitas mini-tabelas (1 row cada) |
@@ -1207,18 +1236,32 @@ de texto e tabelas. Tempo de execução: ~50s para ~32 extratos. Mesmos inputs =
 | Wise | `extratocontabrl` | REGEX | Mesmo formato Wise USD |
 | Bank of America | `extratoconta` | REGEX | Formato US (MM/DD/YY), USD |
 
+**Suporte a CSV (C6 Bank):**
+O C6 Bank permite exportar extratos em CSV via internet banking. Os arquivos são entregues em ZIP
+protegido por senha (senhas em `config/passwords.txt`). Após descompactação e renomeação no E0,
+o CSV segue o mesmo pipeline dos PDFs. O formato CSV tem vantagens sobre PDF: parsing mais preciso
+(sem ambiguidade de tabelas OCR), valores decimais exatos, e menor tempo de processamento.
+
+Estrutura do CSV C6:
+- Header: nome do banco, agência/conta, data de geração, período
+- Colunas: Data Lançamento, Data Contábil, Título, Descrição, Entrada(R$), Saída(R$), Saldo do Dia(R$)
+- Encoding: UTF-8 com BOM
+- Separador decimal: ponto (formato US)
+- Naming: `c6bank_extratoconta[pj]_YYYYMM_YYYYMM-0_original.csv`
+
 **Validation gate integrada:**
 O script inclui validação automática pós-extração:
-- Rejeita (ERROR) JSONs com 0 transações quando o PDF tem >500 chars de texto
-  (exceto contas explicitamente sem movimentação)
+- Rejeita (ERROR) JSONs com 0 transações quando o arquivo fonte tem conteúdo significativo
+  (>500 chars/bytes para PDF/CSV, exceto contas explicitamente sem movimentação)
 - Detecta transações com valor None
 - Detecta possíveis duplicatas intra-arquivo
 - Registra notas em cada JSON para auditoria
 
 **Lógica de roteamento:**
-1. Identifica banco e tipo pelo nome do arquivo (padrão: `[banco]_extrato*_[período]-0_original.pdf`)
-2. Despacha para o parser determinístico correspondente (TABLE ou REGEX)
-3. Se banco desconhecido → gera JSON com `"requires_llm_fallback": true`
+1. Identifica banco e tipo pelo nome do arquivo (padrão: `[banco]_extrato*_[período]-0_original.{pdf,csv}`)
+2. CSV tem prioridade sobre PDF quando ambos existem para o mesmo banco/tipo
+3. Despacha para o parser determinístico correspondente (CSV, TABLE ou REGEX)
+4. Se banco desconhecido → gera JSON com `"requires_llm_fallback": true`
 
 #### E2-extratos-llm (LLM fallback — apenas bancos sem parser)
 
@@ -1249,30 +1292,45 @@ Para bancos sem parser determinístico ou arquivos marcados com `requires_llm_fa
 ```bash
 python scripts/e2_extract_faturas.py
 ```
-O script é 100% determinístico (zero LLM) para bancos conhecidos. Usa pdfplumber para extração de texto.
+O script é 100% determinístico (zero LLM) para bancos conhecidos. Usa pdfplumber para extração de texto
+de PDFs e parser CSV nativo para formatos exportados do internet banking.
 Tempo de execução: proporcional ao número de faturas (~0,2s por fatura). Mesmos inputs = mesmos outputs.
 
 **Opções CLI:**
 - `--dry-run` — mostra o que seria processado sem gravar arquivos
-- `--file <caminho>` — processa apenas uma fatura específica
+- `--file <caminho>` — processa apenas uma fatura específica (PDF ou CSV)
 - `--output-dir <caminho>` — diretório de saída (padrão: `processed/E2_extracts/`)
 
-**Parsers disponíveis (v4.7):**
+**Parsers disponíveis (v5.5):**
 
 | Banco | Tipo | Função | Obs |
 |-------|------|--------|-----|
-| C6 Bank | `faturacarbon` | `parse_c6_carbon()` | Multi-página, multi-cartão (David/Sonia) |
+| C6 Bank | `faturacarbon` | `parse_c6_carbon_csv()` | CSV: separador `;`, 9 colunas, multi-cartão, forex USD |
+| C6 Bank | `faturacarbon` | `parse_c6_carbon()` | PDF: multi-página, multi-cartão (David/Sonia) |
 | Santander | `faturaunique` | `parse_santander_unique()` | Multi-titular (David/Rubens/Sonia), forex USD |
 | Itaú | `faturapaoacucar` | `parse_itau_paoacucar()` | Layout duas colunas (pdfplumber merge), parceladas futuras |
 | QuintoAndar | `faturaaluguel` | `parse_quintoandar()` | Aluguel com itens discriminados |
 
+**Suporte a CSV (C6 Faturas):**
+O C6 Bank permite exportar faturas em CSV via internet banking. Os arquivos são entregues em ZIP
+protegido por senha. O formato CSV tem vantagens sobre PDF: parsing mais preciso,
+categoria de compra já classificada pelo banco, e identificação explícita de cartão/titular.
+
+Estrutura do CSV de fatura C6:
+- Separador: ponto-e-vírgula (;)
+- Colunas: Data de Compra, Nome no Cartão, Final do Cartão, Categoria, Descrição, Parcela, Valor (em US$), Cotação (em R$), Valor (em R$)
+- Compras internacionais: US$ e cotação preenchidos
+- Pagamentos: valor negativo em R$
+- Naming: `c6bank_faturacarbon_YYYYMM-0_original.csv`
+
 **Lógica de roteamento:**
-1. Identifica banco e tipo pelo nome do arquivo (padrão: `[banco]_fatura*_[período]-0_original.pdf`)
-2. Despacha para o parser determinístico correspondente
-3. Se banco desconhecido → gera JSON com `"requires_llm_fallback": true` e preview do texto extraído para processamento manual/LLM posterior
+1. Identifica banco e tipo pelo nome do arquivo (padrão: `[banco]_fatura*_[período]-0_original.{pdf,csv}`)
+2. CSV tem prioridade sobre PDF quando ambos existem para o mesmo banco/tipo
+3. Despacha para o parser determinístico correspondente
+4. Se banco desconhecido → gera JSON com `"requires_llm_fallback": true` e preview do texto extraído para processamento manual/LLM posterior
 
 **Para cada fatura de cartão (parsers determinísticos):**
-   - Extrair via pdfplumber: saldo anterior, compras, pagamentos, saldo atual, data de vencimento
+   - Extrair: saldo anterior, compras, pagamentos, saldo atual, data de vencimento
    - Extrair TODAS as transações: data, descrição, valor, cartão (identificação do titular)
    - Para transações em moeda estrangeira: extrair `forex.moeda_original` e `forex.valor_original`
    - Para IOF: marcar `tipo_lancamento: "iof"`
@@ -1332,6 +1390,7 @@ O script é 100% determinístico (zero LLM). Mesmos inputs = mesmos outputs. Tem
 1. **Para cada conta identificada (e.g., "Itaú Personnalité PF", "C6 Bank USD"):**
    - Agrupar todos os extratos dessa conta em ordem cronológica
    - Chave de agrupamento: `(banco, tipo, moeda)` para contas correntes; `(banco, tipo)` para faturas
+   - **Normalização de tipo:** Antes de agrupar, o tipo é normalizado via `account_type_equivalences` de `config/family_members.json`. Atualmente: `extratocontapersonnalite` → `extratoconta`, pois ambos são extratos da mesma conta Itaú exportados por portais diferentes (Personnalité vs. regular). Sem essa normalização, transações como FINANC IMOBILIARIO apareciam duplicadas.
    - Para faturas sem campo `periodo`: sintetizar a partir de `data_vencimento` (1º dia do mês anterior até vencimento), ajustando `periodo.inicio` para a data da transação mais antiga se esta for anterior ao valor sintetizado
    - Faturas com `data_vencimento` vazio e sem transações: skip com log explícito. Com transações: derivar periodo das datas reais
    - Para períodos sobrepostos (detectar por datas):
@@ -2299,12 +2358,13 @@ python scripts/e_reset.py --move-to-inbox --clean-only # Executar: mover + limpa
 ```
 O script move todos os arquivos de `data/` (financial_statements, income_tax_br, etc.) e os originais de `members/` (`*-0_original.*`) de volta para `inbox/`. Artefatos E1 em `members/` (extract, unified, enriched) são removidos. A estrutura de diretórios em `data/` é preservada (vazia).
 
-**Passo 3 — E0-unlock: Verificar e desbloquear PDFs encriptados:**
+**Passo 3 — E0-unlock: Verificar e desbloquear PDFs encriptados + descompactar ZIPs:**
 ```bash
-python scripts/e0_unlock.py --dry-run          # Preview: listar status de todos os PDFs
-python scripts/e0_unlock.py                     # Executar: desbloquear PDFs no inbox
+python scripts/e0_unlock.py --dry-run          # Preview: listar status de todos os PDFs e ZIPs
+python scripts/e0_unlock.py                     # Executar: desbloquear PDFs + extrair ZIPs no inbox
 ```
 Se PDFs encriptados forem encontrados sem senha válida, registra em `qa_log.md` e move para `nao_identificados/`.
+ZIPs extraídos com sucesso são movidos para `inbox_processed/`; conteúdo extraído fica no inbox para roteamento.
 
 **Passo 4 — E0-audit: Auditoria de integridade:**
 ```bash

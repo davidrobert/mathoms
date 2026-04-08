@@ -60,6 +60,10 @@
     "bairro": "Vila Guarani",
     "cidade": "São Paulo"
   },
+  "account_type_equivalences": {
+    "_comment": "Tipos de conta que são aliases da mesma conta bancária para deduplicação no E3",
+    "extratocontapersonnalite": "extratoconta"
+  },
   "transferencias_internas": {
     "patterns_pix": [
       "PIX TRANSF DAVID",
@@ -68,6 +72,7 @@
       "PIX ENVIADA - MARIANA"
     ],
     "recipients": [
+      "DAVID ROBERT CAMARGO",
       "DAVID ROBERT CAMARGO DE CAMPOS",
       "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
       "MARIANA TEIXEIRA FERREIRA",

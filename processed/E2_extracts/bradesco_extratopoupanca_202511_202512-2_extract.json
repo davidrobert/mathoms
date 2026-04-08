@@ -69,6 +69,11 @@
     {
       "data": "2025-12-15",
       "descricao": "Rendimentos",
+      "valor": 29.26
+    },
+    {
+      "data": "2025-12-15",
+      "descricao": "Rendimentos",
       "valor": 16.12
     },
     {
@@ -84,22 +89,12 @@
     {
       "data": "2025-12-29",
       "descricao": "Rendimentos",
+      "valor": 38.84
+    },
+    {
+      "data": "2025-12-29",
+      "descricao": "Rendimentos",
       "valor": 58.79
-    },
-    {
-      "data": "2025-12-29",
-      "descricao": "Total 27.596,97",
-      "valor": -3531.97
-    },
-    {
-      "data": "2025-12-29",
-      "descricao": "0800 570 0022 0800",
-      "valor": 704.0
-    },
-    {
-      "data": "2025-12-29",
-      "descricao": "0800",
-      "valor": 722.0
     }
   ],
   "notas": []

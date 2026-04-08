@@ -49,7 +49,10 @@
       "EJM RESTAURANTE JAPONE", "PAYGO*LG ESPETOS",
       "POINTJABAQUARA",
       "M L MATOS CONVENIENCIA", "EMPORIOMATTERLTDA",
-      "SAMS CLUB", "SAM'S CLUB", "SAMS*"
+      "SAMS CLUB", "SAM'S CLUB", "SAMS*",
+      "FIVE GUYS", "TEXAS ROADHOUSE", "GHIRARDELLI",
+      "BEN JERRY", "HAAGEN-DAZS", "WICKED LICK",
+      "PARMUKH CORNER"
     ],
     "transporte": [
       "PARK", "AUTOPOSTO", "AUTOPOSTOKANTAN", "ULTRAGAS", "CONCESSIONARIA SPMAR",
@@ -60,7 +63,10 @@
       "LICENCIAMENTO DE VEICULO", "LICENCIAMENTO VEICULO",
       "PRIME AUTO POSTO", "AUTO POSTO", "MINUTO PA", "SHELL PO", "SHELL MI",
       "POSTO SHELL", "POSTO LIDER", "ML20 IMIGRANTES AUTO",
-      "RACETRAC", "WAWA", "EXXON", "ARCO #",
+      "RACETRAC", "WAWA", "EXXON", "ARCO #", "CIRCLE K", "SUNOCO",
+      "C6TAG PEDAGIO", "C6TAG",
+      "TAPECAR",
+      "TURO INC",
       "UBER *TRIP", "UBER UBER *TRIP", "LYFT",
       "CAMPEAO 28 POSTOS", "POSTO ACACIAS", "POSTO CARIJO", "POSTO PAIN",
       "TURISMOIIPOSTODE", "A POSTO PLATINO", "AUTO POSTO GALENA",
@@ -68,6 +74,7 @@
       "AUTO POSTO SONIMAR", "AUTO POSTO ROTA",
       "ESTACIONAMENTO MODELO", "AN ESTACIONAMENTO", "MMW ESTACIONAMENTOS",
       "ESTAC T*ESTACIONAMENT", "LTL ESTACIONAMENTO", "MP *ESTACIONAMENT",
+      "CITY OF CLEARWATER PAR", "CITY OF ORLANDO PKG",
       "F.M ESTETICA AUTOMOTIV",
       "MAIS DISTR VEICULOS", "PROPIG *FPS BATERIAS"
     ],
@@ -85,7 +92,7 @@
       "SMILES CLUB", "ESFERA",
       "1PASSWORD*", "LINKEDIN", "WIX.COM",
       "GOOGLE *TELEGRAM", "GOOGLE *GOOGLE NEST",
-      "SQSP* DOMAIN",
+      "SQSP*",
       "SCP COMPLETO", "SCP BASICO",
       "BRASILP*BRASILPARA", "BRASIL PARAL*BRAS",
       "GOOGLE FI"
@@ -104,7 +111,11 @@
       "RAIA", "MARCONI BASSO",
       "DROGARIA X FARMACIA", "PG *LIVANCE",
       "ESPACO GIRAS",
-      "IU65 PREMIUM"
+      "IU65 PREMIUM",
+      "CVS/PHARMACY", "PT *ORL HLTH PYMT",
+      "HT SARAGIOTTO SERVICOS MEDICOS",
+      "LUMMA ROBERTA",
+      "HELEN SASAKE TAKAGI"
     ],
     "seguros": [
       "SUL AMERICA SEG",
@@ -116,7 +127,10 @@
       "KIKO MILANO", "PITICAS", "BAYARD ESPORTES", "EMY PERFUMARIA", "SONEDA PERFUMARIA",
       "ITRCCABELEIREIROS", "LOJA OFICIAL", "TATIANA GIORDANO",
       "VIVARA", "CHILLI BEANS", "THENORTHFACE",
-      "ROSS STORES", "OTICAS RB1", "IGUASPORT",
+      "ROSS STORES", "OTICAS RB1", "IGUASPORT", "GREAT CLIPS",
+      "T J MAXX", "UNDER ARMOUR", "SEPHORA", "COLUMBIA 452",
+      "VICTORIA'S SECRET", "BURLINGTON STORES", "GAP OUTLET",
+      "MICHAEL KORS", "TNF ",
       "HNA*OBOTICARIO", "LUSH"
     ],
     "lazer_viagens": [
@@ -140,7 +154,8 @@
       "TARGET T-", "LOJAS AMERICANAS",
       "PLAZA SUL", "ALIANSCE", "SHOPPING CENTER IBIRAP",
       "PARQUE RIBEIRA",
-      "BOFT BRASIL"
+      "BOFT BRASIL",
+      "FURY ADVENTURES", "UNIVERSAL STORE"
     ],
     "melhoria_reforma": [
       "JS MATERIAIS DE CONS", "ANDRA MATERIAIS", "FUTURA MADEIRAS", "DEPOSITO CENTER",
@@ -152,7 +167,9 @@
       "PRIMO RICO",
       "FUNDACAO SAO PAULO",
       "IN *CA TRANSLATION SER",
-      "ANDERSON UNIVERS"
+      "ANDERSON UNIVERS",
+      "HARVARD BUS", "PERUSALL",
+      "BELT ACADEMY"
     ],
     "servicos_domesticos": [
       "SUECIA", "ELIANE", "ANDREA S LAVANDERIA", "PET DOGSTORE",
@@ -181,7 +198,8 @@
     ],
     "suporte_familiar": [
       "ALO BEBE", "ICA*ICASEI", "MAKOS LEMBRANCAS", "RUBENS DE CAMPOS",
-      "PIX TRANSF RUBENS"
+      "PIX TRANSF RUBENS",
+      "NEUSA CIMAR TEIXEIRA", "NEUSA CIMAR"
     ],
     "reserva_desejos": [
       "AMAZON MKTPLACE", "AMAZON RETA", "AMAZONMKTPLC", "MP *VICTORELETRONICOS",
@@ -195,7 +213,7 @@
   },
   "income_keywords": {
     "receita_pj": [
-      "ARVO", "DAVID ROBERT CAMARGO", "BRANDLOVERS", "BRAND LOVERS",
+      "ARVO", "BRANDLOVERS", "BRAND LOVERS",
       "BRANDLOVRS",
       "ARBITRALIS", "LEARNTOFLY", "LEARN TO FLY", "CNRY", "CANARY", "BARTE",
       "LEARNTOEIV"
@@ -204,7 +222,8 @@
       "SOCIEDADE BENEFICENTE ISRAELITA",
       "KIWIFY",
       "SALÁRIO DEPOSITO",
-      "SALARIO DEPOSITO"
+      "SALARIO DEPOSITO",
+      "*3221"
     ],
     "receita_aluguel": [
       "GRPQA", "SISPAG GRPQA", "RECEB PAGFOR GRPQA", "ALUGUEL", "LOCACAO"
@@ -238,6 +257,7 @@
   "internal_transfer_patterns": [
     "bx Aut Poupanca",
     "Transf p/ Poupanca",
+    "tr Sal p/poup",
     "Apl.invest Fac",
     "Apl.invest",
     "Aplicacao CDB",
@@ -274,11 +294,12 @@
     "SALDO DO DIA",
     "TRANSFERENCIA INTERNACIONAL",
     "TRANSFERENCIA PESSOAL",
-    "Total - Os dados aci"
+    "Total - Os dados aci",
+    "PIX QRS WISE",
+    "WISE BRASIL"
   ],
   "pj_source_mapping": {
     "ARVO": "Arvo (David - PJ)",
-    "DAVID ROBERT CAMARGO": "Arvo (David - PJ)",
     "BRANDLOVERS": "BrandLovers (David - PJ)",
     "BRAND LOVERS": "BrandLovers (David - PJ)",
     "BRANDLOVRS": "BrandLovers (David - PJ)",
@@ -292,7 +313,8 @@
   },
   "clt_source_mapping": {
     "KIWIFY": "Kiwify (David - CLT)",
-    "SOCIEDADE BENEFICENTE ISRAELITA": "Einstein (Mariana - CLT)"
+    "SOCIEDADE BENEFICENTE ISRAELITA": "Einstein (Mariana - CLT)",
+    "3221": "Einstein (Mariana - CLT)"
   },
   "one_time_income_keywords": ["kiwify", "fgts", "restituicao", "bolsa", "bonus", "pompeia", "venda"],
   "one_time_income_categories": ["receita_venda_ativo", "receita_resgate", "receita_fgts", "receita_restituicao"]

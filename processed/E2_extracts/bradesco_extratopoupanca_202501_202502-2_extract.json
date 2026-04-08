@@ -18,7 +18,7 @@
     },
     {
       "data": "2025-01-02",
-      "descricao": "bx Aut Cta Cor*",
+      "descricao": "bx Aut Cta Cor* 0077113",
       "valor": -1808.49
     },
     {
@@ -68,7 +68,7 @@
     },
     {
       "data": "2025-02-03",
-      "descricao": "bx Aut Cta Cor*",
+      "descricao": "bx Aut Cta Cor* 0077113",
       "valor": -60.02
     },
     {
@@ -108,23 +108,8 @@
     },
     {
       "data": "2025-02-28",
-      "descricao": "tr Sal p/poup",
+      "descricao": "tr Sal p/poup Faça recargas em seu celular pré-pago.",
       "valor": 3483.62
-    },
-    {
-      "data": "2025-02-28",
-      "descricao": "Total 15.597,17",
-      "valor": -2144.51
-    },
-    {
-      "data": "2025-02-28",
-      "descricao": "0800 570 0022 0800",
-      "valor": 704.0
-    },
-    {
-      "data": "2025-02-28",
-      "descricao": "0800",
-      "valor": 722.0
     }
   ],
   "notas": []

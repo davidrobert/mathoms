@@ -7,6 +7,9 @@ Parsers determinísticos para extratos bancários. Segue a mesma arquitetura
 do e2_extract_faturas.py — um parser por banco, roteamento por filename,
 fallback LLM para bancos desconhecidos.
 
+Bancos suportados (CSV — deterministic CSV parser):
+  - C6 Bank: extratoconta, extratocontapj (ZIP-protected CSV from internet banking)
+
 Bancos suportados (TABLE_READY — pdfplumber tables):
   - C6 Bank: extratoconta, extratocontapj, extratocontaglobalusd, extratocontaglobaleur
   - Itaú: extratoconta, extratocontapersonnalite
@@ -21,7 +24,7 @@ Bancos suportados (TEXT_REGEX — regex sobre texto extraído):
   - Bank of America: extratoconta
 
 Usage:
-    python scripts/e2_extract_extratos.py [--dry-run] [--file ARQUIVO.pdf]
+    python scripts/e2_extract_extratos.py [--dry-run] [--file ARQUIVO.pdf|ARQUIVO.csv]
 
 Author: Claude Opus 4.6
 """
@@ -227,6 +230,229 @@ def resolve_year_from_period(dd: int, mm: int, periodo_inicio: str, periodo_fim:
     if mm >= start_month:
         return start_year
     return end_year
+
+
+# =============================================================================
+# Parser: C6 Bank CSV (extratoconta, extratocontapj)
+# CSV export from C6 Bank internet banking — ZIP-protected, BOM-prefixed
+# Columns: Data Lançamento, Data Contábil, Título, Descrição, Entrada(R$), Saída(R$), Saldo do Dia(R$)
+# =============================================================================
+
+def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
+    """Parse C6 Bank CSV statement (conta or contapj).
+
+    CSV structure:
+      - BOM (UTF-8) header
+      - Lines 1-2: "EXTRATO DE CONTA CORRENTE C6 BANK" + blank
+      - Line 3: "Agência: X / Conta: NNNNNNNNN"
+      - Line 4: "Extrato gerado em DD/MM/YYYY - as HH:MM:SS"
+      - Line 5: blank
+      - Line 6: "Extrato de DD/MM/YYYY a DD/MM/YYYY"
+      - Line 7: blank
+      - Line 8: header row (comma-separated)
+      - Lines 9+: transaction data
+    """
+    import csv as csv_mod
+
+    is_pj = "extratocontapj" in filename
+    tipo = "extratocontapj" if is_pj else "extratoconta"
+    moeda = "BRL"
+
+    log("INFO", f"Parsing C6 Bank CSV ({tipo}): {filename}")
+    result = make_result_template("C6 Bank", tipo, moeda)
+
+    # Read file with BOM handling
+    raw_text = csv_path.read_text(encoding="utf-8-sig")
+    lines = raw_text.splitlines()
+
+    # --- Parse header metadata ---
+    # Account number: "Agência: 1 / Conta: 130952222"
+    for line in lines[:6]:
+        conta_m = re.search(r'Conta:\s*(\d+)', line)
+        if conta_m:
+            result["numero_conta"] = conta_m.group(1)
+            break
+
+    # Periodo: "Extrato de DD/MM/YYYY a DD/MM/YYYY"
+    for line in lines[:10]:
+        periodo_m = re.search(
+            r'Extrato de\s+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', line
+        )
+        if periodo_m:
+            d1 = datetime.strptime(periodo_m.group(1), "%d/%m/%Y")
+            d2 = datetime.strptime(periodo_m.group(2), "%d/%m/%Y")
+            result["periodo"]["inicio"] = d1.strftime("%Y-%m-%d")
+            result["periodo"]["fim"] = d2.strftime("%Y-%m-%d")
+            break
+
+    # If periodo not found in header, try to infer from filename
+    if not result["periodo"]["inicio"]:
+        p_ini, p_fim = infer_periodo_from_filename(filename)
+        result["periodo"]["inicio"] = p_ini
+        result["periodo"]["fim"] = p_fim
+
+    # Detect member from header text (first 6 lines)
+    header_text = "\n".join(lines[:6])
+    result["titular"] = detect_member_from_text(header_text)
+
+    # --- Find the CSV header row and parse transactions ---
+    csv_header_idx = None
+    for i, line in enumerate(lines):
+        if line.strip().startswith("Data Lançamento,") or line.strip().startswith("Data Lancamento,"):
+            csv_header_idx = i
+            break
+
+    if csv_header_idx is None:
+        result["notas"].append("WARN: Header CSV 'Data Lançamento,...' não encontrado")
+        # File might be empty (header-only, no transactions)
+        return result
+
+    # Parse CSV data from header row onwards
+    csv_text = "\n".join(lines[csv_header_idx:])
+    reader = csv_mod.reader(csv_text.splitlines())
+    header = next(reader, None)  # consume header row
+
+    if not header:
+        result["notas"].append("WARN: Header CSV vazio")
+        return result
+
+    # Normalize header names for robustness
+    header_clean = [h.strip().lower() for h in header]
+    # Expected: ['data lançamento', 'data contábil', 'título', 'descrição', 'entrada(r$)', 'saída(r$)', 'saldo do dia(r$)']
+
+    saldo_first = None
+    saldo_last = None
+
+    for row in reader:
+        if len(row) < 6:
+            continue  # skip malformed rows
+
+        # Pad to 7 columns if saldo column is missing
+        while len(row) < 7:
+            row.append("")
+
+        data_lanc_str = row[0].strip()
+        data_contabil_str = row[1].strip()
+        titulo = row[2].strip()
+        descricao = row[3].strip()
+        entrada_str = row[4].strip()
+        saida_str = row[5].strip()
+        saldo_str = row[6].strip()
+
+        # Validate date format DD/MM/YYYY
+        if not re.match(r'\d{2}/\d{2}/\d{4}$', data_lanc_str):
+            continue  # skip non-transaction rows
+
+        # Parse date
+        try:
+            dt = datetime.strptime(data_lanc_str, "%d/%m/%Y")
+            data_iso = dt.strftime("%Y-%m-%d")
+        except ValueError:
+            log("WARN", f"  Data inválida: {data_lanc_str}")
+            continue
+
+        # Parse values — CSV uses "0.00" format (dot as decimal separator)
+        entrada = _parse_csv_number(entrada_str)
+        saida = _parse_csv_number(saida_str)
+
+        # Calculate valor: positive for entrada, negative for saida
+        if entrada and entrada > 0:
+            valor = entrada
+        elif saida and saida > 0:
+            valor = -saida
+        else:
+            valor = 0.0
+
+        # Build description: prefer 'titulo' but append 'descricao' if different
+        if descricao and descricao != titulo:
+            desc_full = f"{titulo} — {descricao}" if titulo else descricao
+        else:
+            desc_full = titulo or descricao or ""
+
+        # Determine tipo_lancamento from titulo/descricao
+        tipo_lanc = _classify_c6_csv_lancamento(titulo, descricao)
+
+        tx = {
+            "data": data_iso,
+            "descricao": desc_full,
+            "valor": valor,
+            "tipo_lancamento": tipo_lanc,
+        }
+
+        result["transacoes"].append(tx)
+
+        # Track saldo
+        saldo_val = _parse_csv_number(saldo_str)
+        if saldo_val is not None:
+            if saldo_first is None:
+                saldo_first = saldo_val
+            saldo_last = saldo_val
+
+    # Set saldo_inicial and saldo_final
+    result["saldo_final"] = saldo_last
+
+    # Saldo_inicial: the saldo of the first transaction represents the balance
+    # AFTER that transaction. To get saldo_inicial, we need first_saldo - first_valor.
+    if saldo_first is not None and result["transacoes"]:
+        first_valor = result["transacoes"][0].get("valor", 0) or 0
+        result["saldo_inicial"] = round(saldo_first - first_valor, 2)
+    else:
+        result["saldo_inicial"] = saldo_first
+
+    n_tx = len(result["transacoes"])
+    log("INFO", f"  Extraídas {n_tx} transações do CSV")
+    if result["saldo_inicial"] is not None:
+        log("INFO", f"  Saldo inicial: {result['saldo_inicial']:.2f}")
+    if result["saldo_final"] is not None:
+        log("INFO", f"  Saldo final: {result['saldo_final']:.2f}")
+
+    return result
+
+
+def _parse_csv_number(text: str) -> Optional[float]:
+    """Parse a number from C6 CSV format. Handles '1234.56', '-1234.56', empty strings."""
+    if not text or not text.strip():
+        return None
+    text = text.strip().replace(",", "")  # in case of thousands separators
+    try:
+        return float(text)
+    except ValueError:
+        # Try Brazilian format as fallback (1.234,56)
+        return parse_brl(text)
+
+
+def _classify_c6_csv_lancamento(titulo: str, descricao: str) -> str:
+    """Classify a C6 CSV transaction into tipo_lancamento based on titulo/descricao."""
+    combined = f"{titulo} {descricao}".lower()
+
+    if "pix enviado" in combined:
+        return "Saída PIX"
+    elif "pix recebido" in combined:
+        return "Entrada PIX"
+    elif "devol recebida pix" in combined or "devol enviada pix" in combined:
+        return "Devolução PIX"
+    elif "ted enviada" in combined or "transf enviada" in combined:
+        return "Saída TED/Transferência"
+    elif "ted recebida" in combined or "transf recebida" in combined:
+        return "Entrada TED/Transferência"
+    elif "c6tag" in combined:
+        return "C6 Tag (Pedágio/Estacionamento)"
+    elif "boleto" in combined or "guia" in combined:
+        return "Pagamento Boleto"
+    elif "juros" in combined or "iof" in combined:
+        return "Encargos Bancários"
+    elif "rendimento" in combined or "aplicação" in combined or "aplicacao" in combined:
+        return "Investimento/Rendimento"
+    elif "resgate" in combined:
+        return "Resgate Investimento"
+    elif "salário" in combined or "salario" in combined:
+        return "Salário"
+    elif "13" in titulo and "salário" in combined.replace("á", "a"):
+        return "13º Salário"
+    elif "compra" in combined or "débito" in combined or "debito" in combined:
+        return "Compra/Débito"
+    else:
+        return "Outros"
 
 
 # =============================================================================
@@ -705,6 +931,30 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
             saldo_anterior = None
             current_date = None
 
+            # Bradesco PDF footer/boilerplate patterns to skip
+            _bradesco_skip = re.compile(
+                r'(?i)'
+                r'(?:Fone\s+F[áa]cil|Capitais\s+e\s+Regi|Demais\s+Regi|'
+                r'SAC\s+-|Ouvidoria|Se\s+[Pp]referir|BIA\s+pelo|'
+                r'Atendimento\s+(?:24h|dispon|eletr|de\s+segunda|personal)|'
+                r'fale\s+com\s+a\s+BIA|WhatsApp|Fale\s+Conosco|'
+                r'Cancelamento.*reclama|sugest[ãa]o\s+e\s+elogio|'
+                r'N[ãa]o\s+h[áa]\s+lan[çc]amentos|Os\s+dados\s+acima|'
+                r'Domingos\s+e\s+feriados|Demais\s+telefones|'
+                r'Saldo\s+Invest\s+F[áa]cil|'
+                r'^\s*0800\s|'
+                r'desenho\s+do\s+cadeado|Consulta\s+de\s+saldo|'
+                r'Para\s+consultas\s+de\s+um\s+per[íi]odo|'
+                r'transa[çc][õo]es\s+financeiras|'
+                r'Bradesco\s+Internet\s+Banking|'
+                r'Nome:\s+|Extrato\s+de:\s+Ag:|'
+                r'^\s*metropolitanas\s*$|^\s*aparecer\s|^\s*Seguran[çc]a\s*$|'
+                r'^\s*4002\s+0022\s*$|^\s*elogio\b)'
+            )
+
+            # Also track when we hit "Total" line — everything after is boilerplate
+            _bradesco_end_marker = re.compile(r'^Total\s+[\d.,]+')
+
             # Find SALDO ANTERIOR
             for line in lines:
                 m = re.match(r'(\d{2}/\d{2}/\d{2})\s+SALDO ANTERIOR\s+([\d.,]+)', line)
@@ -729,9 +979,38 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
             )
 
             # Parse transaction blocks
+            # Bradesco multi-line format:
+            #   DD/MM/YY desc DOCTO [CREDIT] [- DEBIT] [SALDO]   ← date line
+            #   Transfe Pix                                        ← description line
+            #   DOCTO - DEBIT_VALUE [SALDO]                        ← amount line
+            #   Des: Name DD/MM                                    ← detail line
+            #
+            # Key: description comes BEFORE the amount line, so we
+            # track a 'pending_desc' to carry it forward.
+
             i = 0
+            pending_desc = ""  # accumulates description text for next amount line
+            past_end = False  # set True after "Total ..." line
+
             while i < len(lines):
                 line = lines[i].strip()
+
+                # After "Total" summary line, everything is boilerplate
+                if _bradesco_end_marker.match(line):
+                    past_end = True
+                if past_end:
+                    # Reset if we hit a new "Extrato de:" header (multi-account PDF)
+                    if re.search(r'Entre\s+\d{2}/\d{2}/\d{4}\s+e\s+\d{2}/\d{2}/\d{4}', line):
+                        past_end = False
+                    else:
+                        i += 1
+                        continue
+
+                # Skip Bradesco PDF footer/boilerplate lines
+                if _bradesco_skip.search(line):
+                    i += 1
+                    continue
+
                 dm = tx_date_pattern.match(line)
 
                 if dm:
@@ -741,15 +1020,11 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     yy_full = 2000 + int(yy) if int(yy) < 50 else 1900 + int(yy)
                     current_date = safe_date(yy_full, int(mm), int(dd))
 
-                    # Skip SALDO ANTERIOR line
-                    if "SALDO ANTERIOR" in rest:
+                    # Skip non-transaction lines (subtotals, saldo lines)
+                    if "SALDO ANTERIOR" in rest or re.match(r'^Total\s', rest):
+                        pending_desc = ""
                         i += 1
                         continue
-
-                    # Extract all values from the line
-                    # Pattern: text followed by number sequences
-                    # Look for credit (positive), debit (with -), and saldo
-                    values_in_line = re.findall(r'(-?\s*[\d.,]+)', rest)
 
                     # The historico is everything before the first number
                     hist_match = re.match(r'(.+?)\s+(-?\s*\d[\d.,]*)', rest)
@@ -758,14 +1033,18 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     else:
                         historico = rest.strip()
 
+                    # If historico is just a docto number (5-8 digits), use
+                    # pending_desc from the previous continuation line
+                    # (Bradesco puts "Receb Pagfor" BEFORE the date line)
+                    if re.match(r'^\d{5,8}$', historico) and pending_desc:
+                        historico = pending_desc
+                    pending_desc = ""  # reset after use
+
                     # Determine if this line has a complete transaction
-                    # Bradesco: debit marked with "- VALUE", credit is just "VALUE"
-                    # Saldo is always last number on line with amount
                     debit_match = re.search(r'-\s+([\d.,]+)\s+([\d.,]+)\s*$', rest)
                     credit_match = re.search(r'(\d[\d.,]*)\s+([\d.,]+)\s*$', rest)
 
                     if debit_match:
-                        # "- DEBIT SALDO" at end
                         valor = -parse_brl(debit_match.group(1))
                         if valor is not None:
                             transactions.append({
@@ -774,14 +1053,10 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
                                 "valor": valor,
                             })
                     elif credit_match:
-                        # Need to distinguish credit from docto number
-                        # If there are >= 2 number-like values, first might be docto
                         nums = re.findall(r'[\d.,]+', rest)
                         if len(nums) >= 2:
-                            # Last is saldo, second-to-last might be value
                             possible_val = parse_brl(nums[-2])
                             possible_saldo = parse_brl(nums[-1])
-                            # Check if the number appears after "- " (debit)
                             if re.search(r'-\s+' + re.escape(nums[-2]), rest):
                                 if possible_val is not None:
                                     transactions.append({
@@ -790,10 +1065,8 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
                                         "valor": -possible_val,
                                     })
                             elif possible_val is not None and possible_val != possible_saldo:
-                                # Credit: value appears before saldo without "-"
-                                # But need to avoid docto numbers (7-digit)
                                 raw = nums[-2].replace(".", "").replace(",", "")
-                                if len(raw) <= 6:  # likely a monetary value, not docto
+                                if len(raw) <= 6:
                                     transactions.append({
                                         "data": current_date,
                                         "descricao": historico,
@@ -801,24 +1074,50 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
                                     })
 
                 elif current_date:
-                    # Continuation line (no date) — may contain a sub-transaction
-                    # Pattern: "Historico DOCTO - VALUE SALDO"
-                    if line and not line.startswith("Data ") and not line.startswith("Bradesco"):
-                        debit_m = re.search(r'-\s+([\d.,]+)\s+([\d.,]+)\s*$', line)
-                        credit_m = re.search(r'(\d[\d.,]+)\s+([\d.,]+)\s*$', line)
+                    # Continuation line (no date prefix)
+                    if line and not line.startswith("Data ") and not line.startswith("Bradesco") and not re.match(r'^Total\s', line):
 
-                        if debit_m:
+                        # Pattern A: debit with saldo  "TEXT DOCTO - VALUE SALDO"
+                        debit_m = re.search(r'-\s+([\d.,]+)\s+([\d.,]+)\s*$', line)
+                        # Pattern B: debit WITHOUT saldo "DOCTO - VALUE" (end of line)
+                        debit_no_saldo = None
+                        if not debit_m:
+                            debit_no_saldo = re.match(r'^(\d{5,8})\s+-\s+([\d.,]+)\s*$', line)
+                        # Pattern C: credit "DOCTO VALUE [SALDO]"
+                        credit_m = None
+                        if not debit_m and not debit_no_saldo:
+                            credit_m = re.search(r'(\d[\d.,]+)\s+([\d.,]+)\s*$', line)
+                        # Pattern D: credit without saldo "DOCTO VALUE"
+                        credit_no_saldo = None
+                        if not debit_m and not debit_no_saldo and not credit_m:
+                            credit_no_saldo = re.match(r'^(\d{5,8})\s+([\d.,]+)\s*$', line)
+
+                        if debit_m or debit_no_saldo:
+                            # Extract description from the line itself
                             hist = re.match(r'(.+?)\s+-\s+[\d.,]+', line)
-                            desc = hist.group(1).strip() if hist else line.strip()
-                            # Clean docto from description
-                            desc = re.sub(r'\s+\d{7}\s*$', '', desc).strip()
-                            valor = -parse_brl(debit_m.group(1))
+                            line_desc = hist.group(1).strip() if hist else ""
+                            line_desc = re.sub(r'^\d{5,8}$', '', line_desc).strip()
+                            # Use line's own desc if it has text; otherwise use pending_desc
+                            if line_desc and not re.match(r'^\d+$', line_desc):
+                                desc = line_desc
+                            elif pending_desc:
+                                desc = pending_desc
+                            else:
+                                desc = line_desc if line_desc else line.strip()
+
+                            if debit_m:
+                                valor = -parse_brl(debit_m.group(1))
+                            else:
+                                valor = -parse_brl(debit_no_saldo.group(2))
+
                             if valor is not None and abs(valor) > 0.001:
                                 transactions.append({
                                     "data": current_date,
-                                    "descricao": desc,
+                                    "descricao": desc if desc else line.strip(),
                                     "valor": valor,
                                 })
+                            pending_desc = ""
+
                         elif credit_m:
                             nums = re.findall(r'[\d.,]+', line)
                             if len(nums) >= 2:
@@ -828,14 +1127,87 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
                                         and possible_val != possible_saldo):
                                     raw = nums[-2].replace(".", "").replace(",", "")
                                     if len(raw) <= 6:
-                                        hist = line[:line.rfind(nums[-2])].strip()
-                                        hist = re.sub(r'\s+\d{7}\s*$', '', hist).strip()
-                                        if hist:
+                                        # Line has text desc + value + saldo
+                                        line_desc = line[:line.rfind(nums[-2])].strip()
+                                        line_desc = re.sub(r'\s*\d{5,8}\s*$', '', line_desc).strip()
+                                        if line_desc and not re.match(r'^\d+$', line_desc):
+                                            desc = line_desc
+                                        elif pending_desc:
+                                            desc = pending_desc
+                                        else:
+                                            desc = line_desc
+                                        if desc:
                                             transactions.append({
                                                 "data": current_date,
-                                                "descricao": hist,
+                                                "descricao": desc,
                                                 "valor": possible_val,
                                             })
+                                        pending_desc = ""
+                                    elif raw.isdigit() and len(raw) >= 5:
+                                        # First number is docto (5-8 digits), second
+                                        # could be credit WITHOUT saldo (intermediate tx)
+                                        credit_val = parse_brl(nums[-1])
+                                        if credit_val is not None and credit_val > 0:
+                                            # Extract text before first number as desc
+                                            first_num = nums[0] if nums else ""
+                                            idx = line.find(first_num) if first_num else -1
+                                            line_text = line[:idx].strip() if idx > 0 else ""
+                                            # Use line text if available, else pending
+                                            if line_text and not re.match(r'^\d+$', line_text):
+                                                desc = line_text
+                                            elif pending_desc:
+                                                desc = pending_desc
+                                            else:
+                                                desc = line_text if line_text else line.strip()
+                                            transactions.append({
+                                                "data": current_date,
+                                                "descricao": desc,
+                                                "valor": credit_val,
+                                            })
+                                            pending_desc = ""
+                                else:
+                                    # Values are equal (rare) or not a value line
+                                    if not re.match(r'^Des:', line) and not re.match(r'^Dest\.', line):
+                                        text_part = re.sub(r'\s+\d{5,8}$', '', line).strip()
+                                        if text_part and not re.match(r'^\d+$', text_part):
+                                            pending_desc = text_part
+                            else:
+                                # Single number or pure text — description line
+                                if not re.match(r'^Des:', line) and not re.match(r'^Dest\.', line) and not re.match(r'^\d{5,8}$', line):
+                                    pending_desc = line
+
+                        elif credit_no_saldo:
+                            # "DOCTO VALUE" — credit without saldo
+                            credit_val = parse_brl(credit_no_saldo.group(2))
+                            if credit_val is not None and credit_val > 0:
+                                desc = pending_desc if pending_desc else ""
+                                if desc:
+                                    transactions.append({
+                                        "data": current_date,
+                                        "descricao": desc,
+                                        "valor": credit_val,
+                                    })
+                                pending_desc = ""
+                        else:
+                            # No number patterns — pure description line
+                            # (e.g., "Ted Dif.titul", "Transfe Pix", "Receb Pagfor")
+                            if re.match(r'^Des:', line) or re.match(r'^Dest\.', line):
+                                # Detail line (PIX/TED recipient) — append to
+                                # last transaction for richer description
+                                if transactions:
+                                    last = transactions[-1]
+                                    if last["data"] == current_date:
+                                        last["descricao"] += " " + line
+                            elif re.match(r'^[A-Z][a-z].*\.$', line):
+                                # Company name like "Grpqa Ltda.", "Bradesco C-pmsp sp"
+                                # Append to last transaction description so keywords
+                                # like "GRPQA" are present for categorization.
+                                if transactions:
+                                    last = transactions[-1]
+                                    if last["data"] == current_date:
+                                        last["descricao"] += " " + line
+                            else:
+                                pending_desc = line
 
                 i += 1
 
@@ -1432,7 +1804,10 @@ def parse_bankofamerica(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
 # Order matters: more specific patterns first
 PARSER_REGISTRY: List[Tuple[re.Pattern, callable]] = [
-    # C6 Bank variants
+    # C6 Bank CSV variants (matched first — CSV takes priority when available)
+    (re.compile(r'^c6bank_extratocontapj_.*\.csv$'), parse_c6bank_csv),
+    (re.compile(r'^c6bank_extratoconta_.*\.csv$'), parse_c6bank_csv),
+    # C6 Bank PDF variants
     (re.compile(r'^c6bank_extratocontaglobalusd_'), parse_c6bank),
     (re.compile(r'^c6bank_extratocontaglobaleur_'), parse_c6bank),
     (re.compile(r'^c6bank_extratocontapj_'), parse_c6bank),
@@ -1481,7 +1856,7 @@ def route_to_parser(filename: str) -> Optional[callable]:
 # Validation gate
 # =============================================================================
 
-def validate_result(result: Dict[str, Any], pdf_path: Path) -> List[str]:
+def validate_result(result: Dict[str, Any], file_path: Path, is_csv: bool = False) -> List[str]:
     """Validate extraction result. Returns list of warnings/errors."""
     issues = []
 
@@ -1494,25 +1869,39 @@ def validate_result(result: Dict[str, Any], pdf_path: Path) -> List[str]:
     if not periodo.get("fim"):
         issues.append("WARN: periodo.fim ausente")
 
-    # Check transactions vs PDF size
-    try:
-        with pdfplumber.open(pdf_path) as pdf:
-            total_chars = sum(len(p.extract_text() or "") for p in pdf.pages)
-            n_pages = len(pdf.pages)
-    except Exception:
-        total_chars = 0
-        n_pages = 0
+    # Check transactions vs file size
+    if is_csv:
+        # For CSV: check line count instead of PDF pages
+        try:
+            total_chars = file_path.stat().st_size
+        except Exception:
+            total_chars = 0
+        if n_tx == 0 and total_chars > 500:
+            is_empty_period = any("sem lançamentos" in n.lower() for n in result.get("notas", []))
+            if not is_empty_period:
+                issues.append(
+                    f"ERROR: 0 transações extraídas de CSV com {total_chars} bytes "
+                    f"— provável falha de parsing"
+                )
+    else:
+        try:
+            with pdfplumber.open(file_path) as pdf:
+                total_chars = sum(len(p.extract_text() or "") for p in pdf.pages)
+                n_pages = len(pdf.pages)
+        except Exception:
+            total_chars = 0
+            n_pages = 0
 
-    # Heuristic: if PDF has significant text content but 0 transactions,
-    # it's likely a parsing failure unless explicitly noted
-    if n_tx == 0 and total_chars > 500 and n_pages > 0:
-        is_dormant = any("sem movimentação" in n.lower() for n in result.get("notas", []))
-        is_empty_period = any("sem lançamentos" in n.lower() for n in result.get("notas", []))
-        if not is_dormant and not is_empty_period:
-            issues.append(
-                f"ERROR: 0 transações extraídas de PDF com {total_chars} chars / "
-                f"{n_pages} páginas — provável falha de parsing"
-            )
+        # Heuristic: if PDF has significant text content but 0 transactions,
+        # it's likely a parsing failure unless explicitly noted
+        if n_tx == 0 and total_chars > 500 and n_pages > 0:
+            is_dormant = any("sem movimentação" in n.lower() for n in result.get("notas", []))
+            is_empty_period = any("sem lançamentos" in n.lower() for n in result.get("notas", []))
+            if not is_dormant and not is_empty_period:
+                issues.append(
+                    f"ERROR: 0 transações extraídas de PDF com {total_chars} chars / "
+                    f"{n_pages} páginas — provável falha de parsing"
+                )
 
     # Check for transactions with None values
     none_vals = sum(1 for t in result.get("transacoes", []) if t.get("valor") is None)
@@ -1538,16 +1927,18 @@ def validate_result(result: Dict[str, Any], pdf_path: Path) -> List[str]:
 # =============================================================================
 
 def find_extrato_files() -> List[Path]:
-    """Find all bank statement PDFs in data/financial_statements/."""
+    """Find all bank statement PDFs and CSVs in data/financial_statements/."""
     if not DATA_DIR.is_dir():
         log("WARN", f"Diretório não encontrado: {DATA_DIR}")
         return []
+
+    VALID_EXTENSIONS = ("-0_original.pdf", "-0_original.csv")
 
     files = []
     for f in sorted(DATA_DIR.iterdir()):
         if not f.is_file():
             continue
-        if not f.name.endswith("-0_original.pdf"):
+        if not any(f.name.endswith(ext) for ext in VALID_EXTENSIONS):
             continue
         # Check if this is a statement type (not fatura, investment, etc.)
         if NON_STATEMENT_TYPES.search(f.name):
@@ -1560,9 +1951,9 @@ def find_extrato_files() -> List[Path]:
     return files
 
 
-def process_file(pdf_path: Path, dry_run: bool = False) -> Optional[Dict[str, Any]]:
-    """Process a single PDF file through the appropriate parser."""
-    filename = pdf_path.name
+def process_file(file_path: Path, dry_run: bool = False) -> Optional[Dict[str, Any]]:
+    """Process a single PDF or CSV file through the appropriate parser."""
+    filename = file_path.name
 
     parser_fn = route_to_parser(filename)
     if parser_fn is None:
@@ -1577,10 +1968,11 @@ def process_file(pdf_path: Path, dry_run: bool = False) -> Optional[Dict[str, An
         log("INFO", f"[DRY-RUN] Processaria: {filename} → {parser_fn.__name__}")
         return None
 
-    result = parser_fn(pdf_path, filename)
+    result = parser_fn(file_path, filename)
 
-    # Run validation
-    issues = validate_result(result, pdf_path)
+    # Run validation (skip pdfplumber-based checks for CSV files)
+    is_csv = filename.endswith(".csv")
+    issues = validate_result(result, file_path, is_csv=is_csv)
     for issue in issues:
         level = issue.split(":")[0]
         log(level, f"  {filename}: {issue}")
@@ -1593,8 +1985,9 @@ def save_result(result: Dict[str, Any], filename: str) -> Path:
     """Save extraction result to E2_extracts directory."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Output filename: replace -0_original.pdf with -2_extract.json
+    # Output filename: replace -0_original.{pdf,csv} with -2_extract.json
     out_name = filename.replace("-0_original.pdf", "-2_extract.json")
+    out_name = out_name.replace("-0_original.csv", "-2_extract.json")
     out_path = OUTPUT_DIR / out_name
 
     with open(out_path, "w", encoding="utf-8") as f:
@@ -1612,7 +2005,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be processed without writing files")
     parser.add_argument("--file", type=str, default=None,
-                        help="Process a specific PDF file")
+                        help="Process a specific PDF or CSV file")
     parser.add_argument("--output-dir", type=str, default=None,
                         help="Output directory (default: processed/E2_extracts/)")
     parser.add_argument("--quiet", action="store_true",

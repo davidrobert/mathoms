@@ -18,14 +18,14 @@
     "itau_faturapaoacucar_202508-2_extract.json",
     "itau_faturapaoacucar_202511-2_extract.json",
     "itau_faturapaoacucar_202512-2_extract.json",
+    "itau_faturapaoacucar_202602-2_extract.json",
     "itau_faturapaoacucar_202509-2_extract.json",
     "itau_faturapaoacucar_202510-2_extract.json",
     "itau_faturapaoacucar_202601-2_extract.json",
-    "itau_faturapaoacucar_202602-2_extract.json",
     "itau_faturapaoacucar_202603-2_extract.json"
   ],
-  "transacoes_total": 22,
-  "transacoes_duplicadas_removidas": 0,
+  "transacoes_total": 21,
+  "transacoes_duplicadas_removidas": 1,
   "transacoes": [
     {
       "data": "2025-06-07",
@@ -36,9 +36,9 @@
     },
     {
       "data": "2025-06-08",
-      "descricao": "BRASIL PARAL*Bras 01/12",
-      "valor": 82800.0,
-      "cartao": "Pão de Açúcar",
+      "descricao": "BRASIL PARAL*Bras",
+      "valor": 59.0,
+      "cartao": "DAVID R C DE CAMPOS (final 4984)",
       "parcela": "01/12"
     },
     {
@@ -66,8 +66,7 @@
       "data": "2025-06-19",
       "descricao": "SQSP* INV186737595",
       "valor": 92.32,
-      "cartao": "Pão de Açúcar",
-      "parcela": null
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
     },
     {
       "data": "2025-08-07",
@@ -157,20 +156,12 @@
       "data": "2026-01-15",
       "descricao": "SQSP* DOMAIN#218016570",
       "valor": 191.8,
-      "cartao": "Pão de Açúcar",
-      "parcela": null
+      "cartao": "DAVID R C DE CAMPOS (final 4984)"
     },
     {
       "data": "2026-06-08",
       "descricao": "BRASIL PARAL*Bras 08/12",
       "valor": 59.0,
-      "cartao": "Pão de Açúcar",
-      "parcela": "08/12"
-    },
-    {
-      "data": "2026-06-08",
-      "descricao": "BRASIL PARAL*Bras 08/12",
-      "valor": 95220.0,
       "cartao": "Pão de Açúcar",
       "parcela": "08/12"
     },

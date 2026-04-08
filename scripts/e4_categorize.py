@@ -159,25 +159,9 @@ def categorize_income(description: str, account_type: str = "",
     norm_titular = normalize_text(titular)
     norm_banco = normalize_text(banco)
 
-    # Special case: RECEB PAGFOR GRPQA = aluguel (QuintoAndar), not another category
-    if "RECEB PAGFOR GRPQA" in norm_desc:
-        return "receita_aluguel"
-    if "GRPQA" in norm_desc:
-        return "receita_aluguel"
-
-    # v5.2: RECEB PAGFOR (sem GRPQA) no Bradesco da Mariana = salário Einstein (CLT)
-    # Padrão: depósito via folha de pagamento, sempre dia ~9-11, valores consistentes
-    # com salário líquido + benefícios. Não confundir com RECEB PAGFOR GRPQA (aluguel).
-    if ("RECEB PAGFOR" in norm_desc
-            and "GRPQA" not in norm_desc
-            and "BRADESCO" in norm_banco
-            and ("MARIANA" in norm_titular)):
-        return "receita_clt"
-
-    # Einstein salary via SOCIEDADE BENEFICENTE ISRAELITA (any Bradesco account)
-    if "SOCIEDADE BENEFICENTE ISRAELITA" in norm_desc and "BRADESCO" in norm_banco:
-        return "receita_clt"
-
+    # All income categorization is driven by config keywords in categorization.json
+    # (income_keywords.receita_aluguel has GRPQA, RECEB PAGFOR GRPQA, etc.)
+    # (income_keywords.receita_clt has SOCIEDADE BENEFICENTE ISRAELITA, *3221, etc.)
     category, _ = find_longest_matching_keyword(description, INCOME_KEYWORDS)
     return category
 

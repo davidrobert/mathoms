@@ -4,7 +4,8 @@
 E2 Fatura Extraction - Deterministic parsers for credit card invoices.
 
 Parsers determinísticos para faturas de cartão de crédito:
-  - C6 Bank Carbon (faturacarbon)
+  - C6 Bank Carbon CSV (faturacarbon — export CSV do internet banking)
+  - C6 Bank Carbon PDF (faturacarbon)
   - Santander Unique (faturaunique)
   - Itaú Pão de Açúcar (faturapaoacucar)
   - QuintoAndar Aluguel (faturaaluguel)
@@ -13,7 +14,7 @@ Para bancos desconhecidos, gera um JSON com flag "requires_llm_fallback": true,
 para que o operador humano/LLM possa processar manualmente.
 
 Usage:
-    python scripts/e2_extract_faturas.py [--dry-run] [--file ARQUIVO.pdf]
+    python scripts/e2_extract_faturas.py [--dry-run] [--file ARQUIVO.pdf|ARQUIVO.csv]
 """
 
 import json
@@ -171,7 +172,206 @@ def resolve_date_ddmm(dd: int, mm: int, ref_year: int, ref_month: int) -> str:
 
 
 # =============================================================================
-# C6 Bank Carbon Parser
+# C6 Bank Carbon CSV Parser
+# CSV export from C6 Bank internet banking — ZIP-protected
+# Separator: semicolon (;)
+# Columns: Data de Compra;Nome no Cartão;Final do Cartão;Categoria;Descrição;Parcela;Valor (em US$);Cotação (em R$);Valor (em R$)
+# =============================================================================
+
+def parse_c6_carbon_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
+    """Parse C6 Bank Carbon credit card invoice from CSV export.
+
+    CSV structure:
+      - No header metadata (unlike extrato CSV) — goes straight to column headers
+      - Separator: semicolon (;)
+      - 9 columns: Data de Compra, Nome no Cartão, Final do Cartão, Categoria,
+                    Descrição, Parcela, Valor (em US$), Cotação (em R$), Valor (em R$)
+      - International purchases have non-zero USD value and cotação
+      - Domestic purchases have US$=0, Cotação=0
+      - Payments (Inclusao de Pagamento) have negative Valor (em R$)
+      - Multiple cardholders in same invoice (DAVID ROBERT, MARIANA CAMPOS, etc.)
+      - Multiple card finals (5241, 9612, 3175, 3933, 1619)
+    """
+    import csv as csv_mod
+
+    log("INFO", f"Parsing C6 Carbon CSV: {filename}")
+
+    result = {
+        "banco": "C6 Bank",
+        "tipo": "faturacarbon",
+        "cartao": "Carbon",
+        "titular": None,
+        "moeda": "BRL",
+        "data_vencimento": None,
+        "saldo_anterior": None,
+        "total_compras_nacionais": None,
+        "total_compras_internacionais": None,
+        "pagamentos": None,
+        "saldo_atual": None,
+        "limite_total": None,
+        "transacoes": [],
+        "cartoes": [],  # sub-cards breakdown
+    }
+
+    # Infer vencimento from filename: c6bank_faturacarbon_YYYYMM-0_original.csv
+    ref_year = infer_year_from_filename(filename)
+    ref_month = None
+    m = re.search(r'(\d{4})(\d{2})', filename)
+    if m:
+        ref_year = int(m.group(1))
+        ref_month = int(m.group(2))
+        # C6 Carbon vencimento is always day 05 of the fatura month
+        result["data_vencimento"] = safe_date(ref_year, ref_month, 5)
+
+    # Read CSV
+    raw_text = csv_path.read_text(encoding="utf-8-sig")
+    reader = csv_mod.reader(raw_text.splitlines(), delimiter=";")
+
+    # Consume header
+    header = next(reader, None)
+    if not header or "Data de Compra" not in header[0]:
+        log("WARN", f"  Header CSV inesperado: {header}")
+        return result
+
+    total_nacionais = 0.0
+    total_internacionais = 0.0
+    total_pagamentos = 0.0
+    cards_seen = {}  # "Final XXXX - NOME" → subtotal
+
+    for row in reader:
+        if len(row) < 9:
+            continue
+
+        data_str = row[0].strip()
+        nome_cartao = row[1].strip()
+        final_cartao = row[2].strip()
+        categoria = row[3].strip()
+        descricao_raw = row[4].strip().strip('"').strip()
+        parcela_str = row[5].strip()
+        usd_str = row[6].strip()
+        cotacao_str = row[7].strip()
+        valor_brl_str = row[8].strip()
+
+        # Validate date
+        if not re.match(r'\d{2}/\d{2}/\d{4}$', data_str):
+            continue
+
+        try:
+            dt = datetime.strptime(data_str, "%d/%m/%Y")
+            data_iso = dt.strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+
+        # Parse valor BRL
+        valor_brl = _parse_fatura_csv_number(valor_brl_str)
+        if valor_brl is None:
+            continue
+
+        # Build card identifier (matches PDF parser format)
+        card_key = f"C6 Carbon Final {final_cartao} - {nome_cartao}"
+
+        # Track card subtotals
+        if card_key not in cards_seen:
+            cards_seen[card_key] = 0.0
+        cards_seen[card_key] += valor_brl
+
+        # Detect titular from first DAVID ROBERT entry
+        if result["titular"] is None and nome_cartao:
+            detected = _detect_member_from_card_name(nome_cartao)
+            if detected:
+                result["titular"] = detected
+
+        # Build transaction
+        tx = {
+            "data": data_iso,
+            "descricao": descricao_raw,
+            "valor": valor_brl,
+            "cartao": card_key,
+        }
+
+        # Parcela
+        if parcela_str and parcela_str != "Única":
+            tx["parcela"] = parcela_str
+
+        # Forex info for international purchases
+        usd_val = _parse_fatura_csv_number(usd_str)
+        cotacao_val = _parse_fatura_csv_number(cotacao_str)
+        if usd_val and usd_val > 0:
+            tx["forex"] = {
+                "moeda_original": "USD",
+                "valor_original": usd_val,
+                "cotacao": cotacao_val,
+            }
+            total_internacionais += valor_brl
+        elif valor_brl < 0:
+            # Negative values = payments/credits
+            total_pagamentos += valor_brl
+        else:
+            total_nacionais += valor_brl
+
+        # Classify special transactions
+        desc_lower = descricao_raw.lower()
+        if "inclusao de pagamento" in desc_lower:
+            tx["tipo_lancamento"] = "pagamento"
+        elif "anuidade" in desc_lower:
+            tx["tipo_lancamento"] = "anuidade"
+        elif "estorno" in desc_lower:
+            tx["tipo_lancamento"] = "estorno"
+        elif "iof" in desc_lower:
+            tx["tipo_lancamento"] = "iof"
+
+        result["transacoes"].append(tx)
+
+    # Populate summary fields
+    result["total_compras_nacionais"] = round(total_nacionais, 2) if total_nacionais else None
+    result["total_compras_internacionais"] = round(total_internacionais, 2) if total_internacionais else None
+    result["pagamentos"] = round(total_pagamentos, 2) if total_pagamentos else None
+
+    # saldo_atual = sum of all transactions
+    if result["transacoes"]:
+        result["saldo_atual"] = round(sum(t["valor"] for t in result["transacoes"]), 2)
+
+    # Cards summary
+    for card_name, subtotal in cards_seen.items():
+        result["cartoes"].append({
+            "cartao": card_name,
+            "subtotal": round(subtotal, 2),
+        })
+
+    log("INFO", f"  → {len(result['transacoes'])} transações extraídas do CSV")
+    if result["saldo_atual"] is not None:
+        log("INFO", f"  → Saldo atual: R$ {result['saldo_atual']:.2f}")
+    log("INFO", f"  → Cartões: {len(cards_seen)}")
+
+    return result
+
+
+def _parse_fatura_csv_number(text: str) -> Optional[float]:
+    """Parse number from C6 fatura CSV. Handles '1234.56', '-1234.56', '0'."""
+    if not text or not text.strip():
+        return None
+    text = text.strip()
+    try:
+        val = float(text)
+        return val
+    except ValueError:
+        # Fallback to BRL format
+        return parse_brl(text)
+
+
+def _detect_member_from_card_name(nome_cartao: str) -> Optional[str]:
+    """Match card holder name to family member using config data."""
+    nome_upper = nome_cartao.upper()
+    for mid, mdata in _FAMILY.get("membros", {}).items():
+        for variant in mdata.get("variantes_nome", []):
+            # Check if the card name is a prefix/substring of a known variant
+            if nome_upper in variant.upper() or variant.upper().startswith(nome_upper):
+                return mdata.get("variantes_nome", [variant])[0]
+    return None
+
+
+# =============================================================================
+# C6 Bank Carbon Parser (PDF)
 # =============================================================================
 
 def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
@@ -608,10 +808,10 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
     try:
         with pdfplumber.open(pdf_path) as pdf:
             all_text = []
-        for page in pdf.pages:
-            text = page.extract_text()
-            if text:
-                all_text.append(text)
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    all_text.append(text)
 
         full_text = "\n".join(all_text)
 
@@ -808,8 +1008,8 @@ def parse_quintoandar(pdf_path: Path, filename: str) -> Dict[str, Any]:
             all_text = []
             for page in pdf.pages:
                 text = page.extract_text()
-            if text:
-                all_text.append(text)
+                if text:
+                    all_text.append(text)
 
         full_text = "\n".join(all_text)
 
@@ -919,28 +1119,41 @@ def validate_parse_result(result: Dict[str, Any], filename: str) -> Dict[str, An
 # Router: identifies fatura type and dispatches to parser
 # =============================================================================
 
-def identify_and_parse(pdf_path: Path) -> Optional[Dict[str, Any]]:
+def identify_and_parse(file_path: Path) -> Optional[Dict[str, Any]]:
     """Identify fatura type from filename and dispatch to appropriate parser."""
-    filename = pdf_path.name
+    filename = file_path.name
 
-    # C6 Carbon
+    # C6 Carbon CSV (priority over PDF)
+    if re.search(r'c6bank_faturacarbon.*\.csv$', filename, re.IGNORECASE):
+        return parse_c6_carbon_csv(file_path, filename)
+
+    # C6 Carbon PDF
     if re.search(r'c6bank_faturacarbon', filename, re.IGNORECASE):
-        return parse_c6_carbon(pdf_path, filename)
+        return parse_c6_carbon(file_path, filename)
 
     # Santander Unique
     if re.search(r'santander_faturaunique', filename, re.IGNORECASE):
-        return parse_santander_unique(pdf_path, filename)
+        return parse_santander_unique(file_path, filename)
 
     # Itaú Pão de Açúcar
     if re.search(r'itau_faturapaoacucar', filename, re.IGNORECASE):
-        return parse_itau_paoacucar(pdf_path, filename)
+        return parse_itau_paoacucar(file_path, filename)
 
     # QuintoAndar Aluguel
     if re.search(r'quintoandar_faturaaluguel', filename, re.IGNORECASE):
-        return parse_quintoandar(pdf_path, filename)
+        return parse_quintoandar(file_path, filename)
 
-    # Unknown → LLM fallback
-    return generate_llm_fallback(pdf_path, filename)
+    # Unknown → LLM fallback (only for PDFs)
+    if filename.endswith(".csv"):
+        log("WARN", f"CSV não reconhecido: {filename}")
+        return {
+            "tipo": "fatura_desconhecida",
+            "arquivo_origem": filename,
+            "requires_llm_fallback": True,
+            "transacoes": [],
+            "nota": "Formato CSV não reconhecido. Requer análise manual.",
+        }
+    return generate_llm_fallback(file_path, filename)
 
 
 # =============================================================================
@@ -951,25 +1164,26 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="E2 Fatura Extraction - Deterministic Parsers")
     parser.add_argument("--dry-run", action="store_true", help="Preview sem salvar")
-    parser.add_argument("--file", type=str, help="Processar apenas um arquivo específico")
+    parser.add_argument("--file", type=str, help="Processar apenas um arquivo específico (PDF ou CSV)")
     parser.add_argument("--output-dir", type=str, default=str(OUTPUT_DIR), help="Diretório de saída")
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Collect fatura PDFs
+    # Collect fatura PDFs and CSVs
     if args.file:
         files = [Path(args.file)]
     else:
-        # Find all fatura PDFs in inbox (both naming conventions)
+        # Find all fatura files in inbox (PDF and CSV)
         files = []
-        for p in sorted(INBOX_DIR.glob("*fatura*-0_original.pdf")):
-            files.append(p)
+        for ext in ("pdf", "csv"):
+            for p in sorted(INBOX_DIR.glob(f"*fatura*-0_original.{ext}")):
+                files.append(p)
         # Warn about non-renamed files (missing -0_original suffix)
         non_standard = []
-        for p in sorted(INBOX_DIR.glob("*fatura*.pdf")):
-            if "-0_original" not in p.name:
+        for p in sorted(INBOX_DIR.glob("*fatura*.*")):
+            if "-0_original" not in p.name and p.suffix.lower() in (".pdf", ".csv"):
                 non_standard.append(p.name)
         if non_standard:
             log("WARN", f"{len(non_standard)} arquivo(s) fatura sem sufixo -0_original (ignorados):")
@@ -1010,9 +1224,9 @@ def main():
                 stats["sucesso"] += 1
 
             # Generate output filename
-            # e.g., c6bank_faturacarbon_202603-0_original.pdf → c6bank_faturacarbon_202603-2_extract.json
-            # Robusto: remove qualquer variação de -0_original antes de .pdf
-            out_name = re.sub(r'(-0_original)?\.pdf$', '-2_extract.json', filename, flags=re.IGNORECASE)
+            # e.g., c6bank_faturacarbon_202603-0_original.{pdf,csv} → c6bank_faturacarbon_202603-2_extract.json
+            # Robusto: remove qualquer variação de -0_original antes de .pdf ou .csv
+            out_name = re.sub(r'(-0_original)?\.(pdf|csv)$', '-2_extract.json', filename, flags=re.IGNORECASE)
 
             out_path = output_dir / out_name
 
