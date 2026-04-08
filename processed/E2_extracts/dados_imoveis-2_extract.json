@@ -1,38 +1,217 @@
-[
-  {
-    "tipo_imovel": "Apartamento",
-    "endereco": "Praça Benedito Calixto, 186/190, APT 34 \n- Pinheiros, São Paulo - SP, 05406-040",
-    "data_aquisicao": "2021-11-16T00:00:00",
-    "valor_compra": 3480000.0,
-    "detalhes_compra": "Pagamento a vista",
-    "banco_financiamento": "---",
-    "status": "Ativo"
-  },
-  {
-    "tipo_imovel": "Apartamento",
-    "endereco": "R. Major Freire, 496, APT 12 \n- São Paulo - SP, 04304-110",
-    "data_aquisicao": "AINDA NÃO TEM",
-    "valor_compra": 4000000.0,
-    "detalhes_compra": "Entrada R$ 40,000.00\nFinanciamento R$ 360,000.00",
-    "banco_financiamento": "Banco Itau",
-    "status": "Ativo"
-  },
-  {
-    "tipo_imovel": "Casa",
-    "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
-    "data_aquisicao": "2022-08-29T00:00:00",
-    "valor_compra": 6700000.0,
-    "detalhes_compra": "Nome dos Vendedores: Geraldo Costa Fernandes e Odete dos Santos Fernandes\nImovel financiado pela CAIXA, Financiamento concluido",
-    "banco_financiamento": "---",
-    "status": "Ativo"
-  },
-  {
-    "tipo_imovel": "Casa",
-    "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
-    "data_aquisicao": "2023-01-13T00:00:00",
-    "valor_compra": 800000.0,
-    "detalhes_compra": "Nome da Vendedora: Leonilda de Souza",
-    "banco_financiamento": "---",
-    "status": "Ativo"
-  }
-]
+{
+  "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/real_estate/dados_imoveis-0_original.xlsx",
+  "extraction_type": "real_estate",
+  "properties": [
+    {
+      "coluna 1": "Tipo",
+      "apartamento praça benedito calixto": "Apartamento",
+      "apartamento \nrua major freire": "Apartamento",
+      "casa\ntasso da silveira": "Casa",
+      "casa\nleonardo da vinci": "Casa"
+    },
+    {
+      "coluna 1": "No de Contribuinte (SQL) - imóvel",
+      "apartamento praça benedito calixto": "013.036.0155-9",
+      "apartamento \nrua major freire": "047.176.0274-9",
+      "casa\ntasso da silveira": "310.050.0118-6",
+      "casa\nleonardo da vinci": "310.045.0146-01"
+    },
+    {
+      "coluna 1": "No de Contribuinte (SQL) - garagem",
+      "apartamento praça benedito calixto": "---",
+      "apartamento \nrua major freire": "047.176.0879-8",
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Matrícula - Imóvel",
+      "apartamento praça benedito calixto": "3421",
+      "apartamento \nrua major freire": "74.782",
+      "casa\ntasso da silveira": "12.644",
+      "casa\nleonardo da vinci": "20.462"
+    },
+    {
+      "coluna 1": "Matrícula - Vaga de Garagem",
+      "apartamento praça benedito calixto": "---",
+      "apartamento \nrua major freire": "74.826",
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Área construída (m²)",
+      "apartamento praça benedito calixto": "40,7631m2",
+      "apartamento \nrua major freire": "68,89 m²",
+      "casa\ntasso da silveira": "171 m² (antes das reformas)\n218 m² (considerado no IPTU)",
+      "casa\nleonardo da vinci": "73 m² (considerado no IPTU)"
+    },
+    {
+      "coluna 1": "Endereço",
+      "apartamento praça benedito calixto": "Praça Benedito Calixto, 186/190 \n- Pinheiros, São Paulo - SP, 05406-040\nApartamento 34",
+      "apartamento \nrua major freire": "R. Major Freire, 496 \n- São Paulo - SP, 04304-110\nApartamento 12",
+      "casa\ntasso da silveira": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
+      "casa\nleonardo da vinci": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002"
+    },
+    {
+      "coluna 1": "Valor do IPTU",
+      "apartamento praça benedito calixto": "        R$1.083,40 (2025)",
+      "apartamento \nrua major freire": "R$ 452 + R$ 32,73",
+      "casa\ntasso da silveira": "R$ 4.565,40 (2025)",
+      "casa\nleonardo da vinci": "R$ 773,10 (2025)"
+    },
+    {
+      "coluna 1": "SABESP - Número Fornecimento",
+      "apartamento praça benedito calixto": "responsabilidade do inquilino",
+      "apartamento \nrua major freire": "responsabilidade do inquilino",
+      "casa\ntasso da silveira": 86040713644133.0,
+      "casa\nleonardo da vinci": "responsabilidade do morador"
+    },
+    {
+      "coluna 1": "ENEL - Instalação",
+      "apartamento praça benedito calixto": 49338323.0,
+      "apartamento \nrua major freire": "0052298680",
+      "casa\ntasso da silveira": "0054995434",
+      "casa\nleonardo da vinci": "???"
+    },
+    {
+      "coluna 1": "ENEL - Debito Automatico",
+      "apartamento praça benedito calixto": "NÃO",
+      "apartamento \nrua major freire": "NÃO",
+      "casa\ntasso da silveira": "SIM",
+      "casa\nleonardo da vinci": "NÃO"
+    },
+    {
+      "coluna 1": "Comgás",
+      "apartamento praça benedito calixto": "???",
+      "apartamento \nrua major freire": "???",
+      "casa\ntasso da silveira": "não tem",
+      "casa\nleonardo da vinci": "não tem"
+    },
+    {
+      "coluna 1": "Nome do Condominio",
+      "apartamento praça benedito calixto": "Barão de Capanema",
+      "apartamento \nrua major freire": "Edificio Gisele",
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Valor do Condomino ",
+      "apartamento praça benedito calixto": 668.87,
+      "apartamento \nrua major freire": 599.51,
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "No Apto",
+      "apartamento praça benedito calixto": 34.0,
+      "apartamento \nrua major freire": 12.0,
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Contato Zelador",
+      "apartamento praça benedito calixto": "???",
+      "apartamento \nrua major freire": "Sérgio Moreira: +55 11 96378-5696",
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Contato Portaria",
+      "apartamento praça benedito calixto": "???",
+      "apartamento \nrua major freire": "Portaria Virtual: Delta Omega\ncentral.relacionamento@deltaomega.com.br\n+55 11 3777 9132",
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Administradora - Nome",
+      "apartamento praça benedito calixto": "Graiche Construtora e Imobiliária Ltda",
+      "apartamento \nrua major freire": "Tecnad Administradora de Imóveis",
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Administradora - Link",
+      "apartamento praça benedito calixto": "https://graiche.com.br/",
+      "apartamento \nrua major freire": "http://www.tecnad.com.br/",
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Data de assinatura do CCV",
+      "apartamento praça benedito calixto": "2021-10-21T00:00:00",
+      "apartamento \nrua major freire": "2021-10-21T00:00:00",
+      "casa\ntasso da silveira": "2013-12-26T00:00:00",
+      "casa\nleonardo da vinci": "2023-12-01T00:00:00"
+    },
+    {
+      "coluna 1": "Data de assinatura do registro \n(data de aquisição)",
+      "apartamento praça benedito calixto": "2021-11-16T00:00:00",
+      "apartamento \nrua major freire": "AINDA NÃO TEM",
+      "casa\ntasso da silveira": "2022-08-29T00:00:00",
+      "casa\nleonardo da vinci": "2023-01-13T00:00:00"
+    },
+    {
+      "coluna 1": "Data de recebimento das chaves",
+      "apartamento praça benedito calixto": "2021-11-17T00:00:00",
+      "apartamento \nrua major freire": "2022-02-02T00:00:00",
+      "casa\ntasso da silveira": "???",
+      "casa\nleonardo da vinci": "NÃO RECEBIDO"
+    },
+    {
+      "coluna 1": "Valor do imóvel anunciado na Loft",
+      "apartamento praça benedito calixto": "???",
+      "apartamento \nrua major freire": 480000.0,
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Valor de Compra",
+      "apartamento praça benedito calixto": 348000.0,
+      "apartamento \nrua major freire": 400000.0,
+      "casa\ntasso da silveira": "R$ 670.000,00",
+      "casa\nleonardo da vinci": "R$ 80.000,00"
+    },
+    {
+      "coluna 1": "Detalhes da Compra",
+      "apartamento praça benedito calixto": "Pagamento a vista",
+      "apartamento \nrua major freire": "Entrada R$ 40,000.00\nFinanciamento R$ 360,000.00",
+      "casa\ntasso da silveira": "Nome dos Vendedores: Geraldo Costa Fernandes e Odete dos Santos Fernandes\n\nImovel financiado pela CAIXA\nFinanciamento concluido",
+      "casa\nleonardo da vinci": "Nome da Vendedora: Leonilda de Souza"
+    },
+    {
+      "coluna 1": "Banco Financiamento",
+      "apartamento praça benedito calixto": "---",
+      "apartamento \nrua major freire": "Banco Itau",
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Debito Automatico Financiamento",
+      "apartamento praça benedito calixto": "---",
+      "apartamento \nrua major freire": "SIM",
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Valor da parcela do financialmento",
+      "apartamento praça benedito calixto": "---",
+      "apartamento \nrua major freire": "R$ 4294,00 \n(parcela de Janeiro/2026)",
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    },
+    {
+      "coluna 1": "Link do Album de Fotos",
+      "apartamento praça benedito calixto": "???",
+      "apartamento \nrua major freire": "???",
+      "casa\ntasso da silveira": "???",
+      "casa\nleonardo da vinci": "???"
+    },
+    {
+      "coluna 1": "Notas",
+      "apartamento praça benedito calixto": "---",
+      "apartamento \nrua major freire": "---",
+      "casa\ntasso da silveira": "---",
+      "casa\nleonardo da vinci": "---"
+    }
+  ],
+  "extraction_date": "2026-04-08T10:11:59.646149"
+}

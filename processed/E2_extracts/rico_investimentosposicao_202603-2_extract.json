@@ -1,100 +1,124 @@
 {
   "tipo": "investimentosposicao",
-  "instituicao": "rico",
+  "instituicao": "Rico",
   "membro": "david",
-  "periodo": "2026-03",
-  "data_referencia": "2026-03-29",
-  "posicoes": [
+  "data_posicao": "2026-03-29",
+  "moeda": "BRL",
+  "total_aplicado": 261730.24,
+  "saldo_atual": 278916.64,
+  "rentabilidade": {
+    "valor": 17186.40,
+    "percentual": 6.57
+  },
+  "composicao": [
     {
+      "tipo_produto": "fundo",
       "nome": "Alaska Black FIC de FIA - BDR NÍVEL I",
-      "tipo": "FUNDO",
       "quantidade": null,
-      "preco_unitario": null,
+      "valor_unitario": null,
       "valor_total": 52443.66,
-      "taxa": "-13,24%",
-      "vencimento": null
+      "percentual_carteira": 18.8,
+      "rentabilidade_instrumento": -13.24,
+      "valor_aplicado": 60000.00,
+      "rentabilidade_bruta": -12.59
     },
     {
+      "tipo_produto": "fundo",
       "nome": "Alaska Institucional Long Only FIF em Ações RL",
-      "tipo": "FUNDO",
       "quantidade": null,
-      "preco_unitario": null,
-      "valor_total": 52294.2,
-      "taxa": "49,41%",
-      "vencimento": null
+      "valor_unitario": null,
+      "valor_total": 52294.20,
+      "percentual_carteira": 18.75,
+      "rentabilidade_instrumento": 42.0,
+      "valor_aplicado": 35000.00,
+      "rentabilidade_bruta": 49.41
     },
     {
+      "tipo_produto": "fundo",
       "nome": "Safari 30 FIF em Cotas de FIM II",
-      "tipo": "FUNDO",
       "quantidade": null,
-      "preco_unitario": null,
-      "valor_total": 16613.5,
-      "taxa": "-34,17%",
-      "vencimento": null
+      "valor_unitario": null,
+      "valor_total": 16613.50,
+      "percentual_carteira": 5.96,
+      "rentabilidade_instrumento": -34.17,
+      "valor_aplicado": 25238.59,
+      "rentabilidade_bruta": -34.17
     },
     {
+      "tipo_produto": "fundo",
       "nome": "Constellation Institucional Advisory FIC de Ações RL",
-      "tipo": "FUNDO",
       "quantidade": null,
-      "preco_unitario": null,
+      "valor_unitario": null,
       "valor_total": 12585.32,
-      "taxa": "25,85%",
-      "vencimento": null
+      "percentual_carteira": 4.51,
+      "rentabilidade_instrumento": 24.09,
+      "valor_aplicado": 10000.00,
+      "rentabilidade_bruta": 25.85
     },
     {
+      "tipo_produto": "fundo",
       "nome": "Western Asset BDR FIF",
-      "tipo": "FUNDO",
       "quantidade": null,
-      "preco_unitario": null,
+      "valor_unitario": null,
       "valor_total": 25913.09,
-      "taxa": "46,8%",
-      "vencimento": null
+      "percentual_carteira": 9.29,
+      "rentabilidade_instrumento": 39.78,
+      "valor_aplicado": 17651.61,
+      "rentabilidade_bruta": 46.8
     },
     {
+      "tipo_produto": "fundo",
       "nome": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
-      "tipo": "FUNDO",
       "quantidade": null,
-      "preco_unitario": null,
+      "valor_unitario": null,
       "valor_total": 3264.13,
-      "taxa": "62,54%",
-      "vencimento": null
+      "percentual_carteira": 1.17,
+      "rentabilidade_instrumento": 62.54,
+      "valor_aplicado": 2008.21,
+      "rentabilidade_bruta": 62.54
     },
     {
+      "tipo_produto": "fundo",
       "nome": "XP Alocação Sofisticada FIM CP RL",
-      "tipo": "FUNDO",
       "quantidade": null,
-      "preco_unitario": null,
+      "valor_unitario": null,
       "valor_total": 1576.08,
-      "taxa": "16,18%",
-      "vencimento": null
+      "percentual_carteira": 0.57,
+      "rentabilidade_instrumento": 16.18,
+      "valor_aplicado": 1356.59,
+      "rentabilidade_bruta": 16.18
     },
     {
+      "tipo_produto": "ação",
       "nome": "PETR4",
-      "tipo": "AÇÃO",
       "quantidade": 1700,
-      "preco_unitario": 49.38,
-      "valor_total": 83946.0,
-      "taxa": null,
-      "vencimento": null
+      "valor_unitario": 49.38,
+      "valor_total": 83946.00,
+      "percentual_carteira": 30.1,
+      "rentabilidade_instrumento": null,
+      "pm_note": "Rentabilidade indefinida na posição Rico"
     },
     {
+      "tipo_produto": "ação",
       "nome": "ITSA4",
-      "tipo": "AÇÃO",
-      "quantidade": 780,
-      "preco_unitario": 13.22,
+      "quantidade": 778,
+      "valor_unitario": 13.22,
       "valor_total": 10285.16,
-      "taxa": null,
-      "vencimento": null
+      "percentual_carteira": 3.69,
+      "rentabilidade_instrumento": null,
+      "pm_note": "Rentabilidade indefinida na posição Rico"
     },
     {
+      "tipo_produto": "ação",
       "nome": "BRKM5",
-      "tipo": "AÇÃO",
       "quantidade": 300,
-      "preco_unitario": 9.0,
-      "valor_total": 2700.0,
-      "taxa": null,
-      "vencimento": null
+      "valor_unitario": 9.00,
+      "valor_total": 2700.00,
+      "percentual_carteira": 0.97,
+      "rentabilidade_instrumento": null,
+      "pm_note": "Rentabilidade indefinida na posição Rico"
     }
   ],
-  "total": 261730.24
+  "source_file": "rico_investimentosposicao_202603-0_original.pdf",
+  "extraction_date": "2026-04-08"
 }

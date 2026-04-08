@@ -1,11 +1,9 @@
 {
-  "source": "receitafederal_irpfrecibomariana_2024-0_original.pdf",
-  "membro": "MARIANA FERREIRA CAMPOS",
-  "cpf": "085.052.396-60",
-  "imposto_total": 18170.9,
-  "imposto_devido": 0.0,
-  "data_envio": "2025-05-30",
-  "status": "Aceita",
-  "numero_recibo": "14.54.94.96.65 - 76",
-  "total_rendimentos": 203982.98
+  "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfrecibomariana_2024-0_original.pdf",
+  "extraction_type": "irpf_recibo",
+  "numero_recibo": null,
+  "data_processamento": null,
+  "imposto_total": null,
+  "imposto_devido": 18170.9,
+  "extraction_date": "2026-04-08T10:11:58.302820"
 }

@@ -1,109 +1,57 @@
 {
   "tipo": "curriculo",
   "membro": "mariana",
-  "nome_completo": "Mariana Teixeira Ferreira",
+  "nome_completo": "Mariana Ferreira Campos",
   "nome_atual": "Mariana Ferreira Campos",
-  "profissao_cargo": "Enfermeira",
+  "nome_solteira": "Mariana Teixeira Ferreira",
+  "nome_fiscal": "Mariana Teixeira Ferreira",
+  "profissao_cargo": "Enfermeira no Hospital Israelita Albert Einstein",
+  "data_nascimento": "1986-08-30",
+  "cpf": "085.052.396-60",
   "experiencias": [
     {
       "empresa": "Hospital Israelita Albert Einstein",
-      "cargo": "Enfermeiro",
-      "periodo_inicio": "2018-01",
-      "periodo_fim": "presente",
-      "descricao": "Atuação em unidade de alta complexidade com foco em Cardiologia, Clínica Médica e Cirúrgica. Auditoria e Qualidade: Atuação ativa em projetos de melhoria contínua e segurança do paciente, apresentando resultados em exposições de qualidade na categoria PDCA e Sustentabilidade. Responsável pela auditoria de prontuários eletrônicos focada em: preenchimento de alergias, risco de queda e sinais vitais, garantindo conformidade com acreditações internacionais. Desenvolvimento de estratégias para 'Redução de atrasos em procedimentos' e 'Otimização de recursos (Enxoval)', demonstrando visão de custos e eficiência operacional. Preceptoria e suporte à tomada de decisão clínica baseada em evidências."
-    },
-    {
-      "empresa": "UPA Campo Limpo",
-      "cargo": "Enfermeiro",
-      "periodo_inicio": "2014-08",
-      "periodo_fim": "2018-06",
-      "descricao": ""
-    },
-    {
-      "empresa": "Faculdade Israelita Albert Einstein",
-      "cargo": "Docente universitário",
-      "periodo_inicio": "2021-01",
-      "periodo_fim": "2024-12",
-      "descricao": "Docente em Semiologia e Semiotécnica, com desenvolvimento de conteúdo teórico-prático e avaliação de competências clínicas. Experiência em metodologias ativas de ensino e formação profissional."
-    },
-    {
-      "empresa": "Senac São Paulo",
-      "cargo": "Docente universitário",
-      "periodo_inicio": "2012-01",
-      "periodo_fim": "2016-01",
-      "descricao": ""
-    },
-    {
-      "empresa": "Faculdade Sequencial",
-      "cargo": "Docente universitário",
-      "periodo_inicio": "2013-01",
-      "periodo_fim": "2015-08",
-      "descricao": ""
-    },
-    {
-      "empresa": "Hospital Municipal Dr. Moysés Deutsch - Parceria com Hospital Israelita Einstein",
-      "cargo": "Enfermeira",
-      "periodo_inicio": "2011",
-      "periodo_fim": "2014",
-      "descricao": "Atuação assistencial em UTI Adulto e Pediátrica, desenvolvendo resiliência e capacidade de gestão de crises em ambiente de alta pressão. Atuação assistencial em Clínica Médica e Cirúrgica"
+      "cargo": "Enfermeira Especialista em Cardiologia e Hemodinâmica",
+      "periodo": "2014-presente",
+      "descricao": "Assistência em cardiologia, auditoria clínica, segurança do paciente, gestão de projetos PDCA"
     }
   ],
   "formacao": [
     {
-      "instituicao": "Universidade de São Paulo",
-      "curso": "Mestrado em Enfermagem, Enfermagem em Saúde Adulta",
-      "periodo_inicio": "2019",
-      "periodo_fim": "2021-06",
-      "grau": "Mestrado"
+      "descricao": "Mestrado em Enfermagem na Saúde do Adulto",
+      "instituicao": "Universidade de São Paulo (USP)",
+      "ano": 2022
     },
     {
-      "instituicao": "Unifesp - Universidade Federal de São Paulo",
-      "curso": "Enfermagem em Cardiologia e Hemodinâmica",
-      "periodo_inicio": "2011",
-      "periodo_fim": "2012",
-      "grau": "Especialização (Lato Sensu)"
+      "descricao": "Especialização em Cardiologia e Hemodinâmica",
+      "instituicao": "Universidade Federal de São Paulo (UNIFESP)"
     },
     {
-      "instituicao": "PUC Minas",
-      "curso": "Bacharelado em Enfermagem",
-      "periodo_inicio": "2007",
-      "periodo_fim": "2010",
-      "grau": "Bacharelado"
-    },
-    {
-      "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
-      "curso": "Especialização em Formação Docente em Educação Profissional",
-      "periodo_inicio": null,
-      "periodo_fim": null,
-      "grau": "Especialização (Lato Sensu)"
+      "descricao": "Graduação em Enfermagem",
+      "instituicao": "Não especificada no CV"
     }
   ],
   "certificacoes": [
-    "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
+    "Auditoria e Qualidade: PDCA e Auditoria de Prontuário Eletrônico",
     "Classificação de Risco (Protocolo de Manchester)",
     "Advanced Trauma Care for Nurses (ATCN)",
-    "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP) e Curso de Osteoporose"
+    "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP)",
+    "Osteoporose - Auditoria e Qualidade"
   ],
   "habilidades": [
     "Processo de enfermagem",
     "Cuidados de qualidade ao paciente",
     "Gestão de equipes",
-    "Auditoria Clínica",
-    "Segurança do Paciente",
+    "Auditoria clínica",
+    "Segurança do paciente",
     "Análise de prontuários eletrônicos",
-    "PDCA",
-    "Melhoria de indicadores de qualidade",
-    "Gestão de casos",
-    "Monitoramento de pacientes crônicos",
-    "Educação e Treinamento",
-    "Metodologia científica",
-    "Prática baseada em evidências"
+    "Gestão de casos de crônicos",
+    "Educação e treinamento",
+    "Pesquisa clínica",
+    "Metodologia científica"
   ],
   "idiomas": [
-    {
-      "idioma": "Português",
-      "nivel": "Nativo",
-      "fonte": "Documento em português brasileiro"
-    }
+    "Português (nativo)",
+    "Inglês (intermediário)"
   ]
 }

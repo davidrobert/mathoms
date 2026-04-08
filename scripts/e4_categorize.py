@@ -265,19 +265,22 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
             if not isinstance(data, dict):
                 continue
 
-            posicoes = data.get("posicoes", [])
+            # Support both "posicoes" (old format) and "composicao" (E2 schema)
+            posicoes = data.get("posicoes", data.get("composicao", []))
             if not posicoes:
                 continue
 
             instituicao = data.get("instituicao", "")
             membro = data.get("membro", "").lower()
-            data_ref = data.get("data_referencia", data.get("periodo", ""))
-            total_fonte = data.get("total", 0)
+            data_ref = data.get("data_referencia", data.get("data_posicao", data.get("periodo", "")))
+            # Support both "total" (old) and "saldo_atual" (E2 schema)
+            total_fonte = data.get("total", data.get("saldo_atual", 0))
 
             for pos in posicoes:
                 if not isinstance(pos, dict):
                     continue
-                valor = pos.get("valor_total", 0)
+                # Support both "valor_total" and "valor_atual" (CDB resumo format)
+                valor = pos.get("valor_total", pos.get("valor_atual", 0))
                 try:
                     valor = float(valor) if valor else 0.0
                 except (ValueError, TypeError):
@@ -285,7 +288,7 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
 
                 all_positions.append({
                     "nome": pos.get("nome", ""),
-                    "tipo": pos.get("tipo", ""),
+                    "tipo": pos.get("tipo", pos.get("tipo_produto", "")),
                     "instituicao": instituicao,
                     "membro": membro,
                     "valor_atual": valor,

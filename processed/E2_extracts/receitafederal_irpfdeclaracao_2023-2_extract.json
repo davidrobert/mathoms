@@ -1,212 +1,100 @@
 {
-  "source": "receitafederal_irpfdeclaracao_2023-0_original.pdf",
-  "membro": "MARIANA TEIXEIRA FERREIRA",
-  "cpf": "085.052.396-60",
-  "ano_base": 2023,
-  "tipo_declaracao": "Original",
+  "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfdeclaracao_2023-0_original.pdf",
+  "extraction_type": "irpf_declaracao",
   "bens_direitos": [
     {
       "grupo": "01",
       "codigo": "11",
-      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA 116.839,26 223.733,99",
+      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA",
       "valor_31_12_anterior": 116839.26,
-      "valor_31_12_atual": 223733.99,
-      "detalhes": {
-        "Inscrição Municipal (IPTU)": "30105434946",
-        "Logradouro": "AVENIDA ALBERTO AUGUSTO ALVES Nº: 320",
-        "Comp.": "APTO 812 Bairro: SANTO AMARO",
-        "Município": "SÃO PAULO UF: SP CEP: 05724-030",
-        "Área Total": "25,7 m² Data de Aquisição: 09/10/2023",
-        "Registrado no Cartório": "Sim Nome Cartório: 11 CARTORIO DE REGISTRO",
-        "Matrícula": "488435 DE IMOVEIS DA COMARCA DE SAO PAULO"
-      }
+      "valor_31_12_atual": 223733.99
     },
     {
       "grupo": "01",
       "codigo": "11",
-      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA 477.436,58 477.436,58",
+      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA",
       "valor_31_12_anterior": 477436.58,
-      "valor_31_12_atual": 477436.58,
-      "detalhes": {
-        "NUMERO 17.102.653/0001-84 COM 88,91 M2. VALOR PAGO": "R$",
-        "Inscrição Municipal (IPTU)": "087.006 .0478-1",
-        "Logradouro": "AVENIDA JOAO DIAS Nº: 2192",
-        "Comp.": "TORRE 2 APT 163 Bairro: SANTO AMARO",
-        "Município": "SÃO PAULO UF: SP CEP: 04724-003",
-        "Área Total": "88,9 m² Data de Aquisição: 09/04/2018",
-        "Registrado no Cartório": "Sim Nome Cartório: 11 REGISTRO DE IMOVEIS DE",
-        "Matrícula": "453.527 SAO PAULO"
-      }
+      "valor_31_12_atual": 477436.58
     },
     {
       "grupo": "04",
       "codigo": "01",
-      "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543 36.692,14 25.337,34",
+      "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543",
       "valor_31_12_anterior": 36692.14,
-      "valor_31_12_atual": 25337.34,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "60.746.948/0001-12",
-        "Banco": "237 Agência: 0504 Conta: 77113-9",
-        "NOME": "MARIANA TEIXEIRA FERREIRA",
-        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 25337.34
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "CERTIFICADO DE DEPOSITO BANCARIO - BTG 168.055,76 22.000,00",
+      "descricao": "CERTIFICADO DE DEPOSITO BANCARIO - BTG",
       "valor_31_12_anterior": 168055.76,
-      "valor_31_12_atual": 22000.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.306.294/0001-45"
-      }
+      "valor_31_12_atual": 22000.0
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "CDB - BTG 122,79 1.826,51",
+      "descricao": "CDB - BTG",
       "valor_31_12_anterior": 122.79,
-      "valor_31_12_atual": 1826.51,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.306.294/0001-45"
-      }
+      "valor_31_12_atual": 1826.51
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO 0,00 4.365,03",
+      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 4365.03,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "60.746.948/0001-12"
-      }
+      "valor_31_12_atual": 4365.03
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "SALDO RDB - NUBANK 0,00 58,23",
+      "descricao": "SALDO RDB - NUBANK",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 58.23,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.680.829/0001-43"
-      }
+      "valor_31_12_atual": 58.23
     },
     {
       "grupo": "04",
       "codigo": "03",
-      "descricao": "LCI - OPEA SECURITIZADORA S.A. - BTG 0,00 10.349,69",
+      "descricao": "LCI - OPEA SECURITIZADORA S.A. - BTG",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 10349.69,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "02.773.542/0001-22",
-        "NOME": "MARIANA TEIXEIRA FERREIRA",
-        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 10349.69
     },
     {
       "grupo": "04",
       "codigo": "03",
-      "descricao": "LCI - TRUE SECURITIZADORA S.A. - BTG 0,00 10.324,25",
+      "descricao": "LCI - TRUE SECURITIZADORA S.A. - BTG",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 10324.25,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "12.130.744/0001-00"
-      }
+      "valor_31_12_atual": 10324.25
     },
     {
       "grupo": "06",
       "codigo": "01",
-      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO 1,00 1,00",
+      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO",
       "valor_31_12_anterior": 1.0,
-      "valor_31_12_atual": 1.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "60.746.948/0001-12",
-        "Banco": "237 Agência: 0504 Conta: 77113-9"
-      }
+      "valor_31_12_atual": 1.0
     },
     {
       "grupo": "07",
       "codigo": "01",
-      "descricao": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE 0,00 35.868,62",
+      "descricao": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 35868.62,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ do Fundo": "11.952.873/0001-10",
-        "NOME": "MARIANA TEIXEIRA FERREIRA",
-        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA",
-        "Débito automático": "NÃO"
-      }
+      "valor_31_12_atual": 35868.62
     }
   ],
   "total_bens": 811301.24,
-  "rendimentos_pj": [
-    {
-      "tipo": "PJ/CLT",
-      "descricao": "SOCIEDADE BENEF ISRAELITA BRAS",
-      "rend_recebidos": 146176.12,
-      "contrib_previd": 9940.56,
-      "imposto_retido": 26255.09
-    },
-    {
-      "tipo": "PJ/CLT",
-      "descricao": "TOTAL",
-      "rend_recebidos": 146176.12,
-      "contrib_previd": 9940.56,
-      "imposto_retido": 26255.09
-    }
-  ],
-  "rendimentos_pf": [],
-  "rendimentos_isentos": [
-    {
-      "tipo": "Isento",
-      "total": 9365.4
-    }
-  ],
-  "rendimentos_aplicacoes": [
-    {
-      "tipo": "Aplicação Financeira",
-      "valor": 9228.14
-    },
-    {
-      "tipo": "Aplicação Financeira",
-      "valor": 12584.21
-    }
-  ],
-  "total_rendimentos": 292352.24,
-  "pagamentos_deductibles": [
-    {
-      "descricao": "11 LEIR MIRANDA ESTEVES 786.538.606-06 1.500,00 0,00",
-      "valor": 1500.0
-    },
-    {
-      "descricao": "21 TERZIAN - SOCIEDADE DE MEDICOS 22.855.820/0001-06 250,00 118,92",
-      "valor": 250.0
-    },
-    {
-      "descricao": "21 CLINICA TAKATA LTDA 71.531.826/0001-25 300,00 0,00",
-      "valor": 300.0
-    },
-    {
-      "descricao": "21 LF SAO PAULO SERVICOS MEDICOS 71.715.478/0001-46 1.300,00 0,00",
-      "valor": 1300.0
-    },
-    {
-      "descricao": "21 SOMPO SAUDE SEGUROS S.A. 47.184.510/0001-20 302,74 0,00",
-      "valor": 302.74
-    },
-    {
-      "descricao": "71 GRPQA LTDA 16.788.643/0001-81 2.607,00 0,00",
-      "valor": 2607.0
-    }
-  ],
-  "total_deducoes": 6259.74
+  "rendimentos": {
+    "pj_salario": null,
+    "pj_total": null,
+    "alugueis": 0.0,
+    "financeiros": null,
+    "outros": null
+  },
+  "deductions": {
+    "contribuicao_previdenciaria": null,
+    "pagamentos_deductiveis": null
+  },
+  "extraction_date": "2026-04-08T10:11:56.481793",
+  "declarante": {
+    "nome": "MARIANA TEIXEIRA FERREIRA",
+    "cpf": "085.052.396-60"
+  }
 }

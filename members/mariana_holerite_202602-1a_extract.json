@@ -7,11 +7,9 @@
   "estabelecimento": "AEMO Unidade Morumbi",
   "cargo": "Enfermeiro Pl",
   "categoria": "Enfermagem P",
-  "grade": "P4",
-  "matricula": "36108",
-  "data_admissao": "21.07.2014",
-  "salario_base_mensal": 10899.51,
-  "salario_bruto": 12086.06,
+  "admissao": "2014-07-21",
+  "carga_horaria_mensal": 200.0,
+  "salario_mensal": 10899.51,
   "proventos_adicionais": [
     {
       "descricao": "Salário mensal",
@@ -35,7 +33,7 @@
     },
     {
       "descricao": "Médias férias no mês",
-      "valor": 26.60
+      "valor": 26.6
     },
     {
       "descricao": "Médias férias 1/3 no mês",
@@ -60,22 +58,22 @@
       "valor": 27.41
     },
     {
-      "descricao": "Refeicao",
-      "valor": 34.80
+      "descricao": "Refeição",
+      "valor": 34.8
     },
     {
       "descricao": "Desconto de Férias",
       "valor": 2529.63
     }
   ],
+  "total_proventos": 12086.06,
   "total_descontos": 8660.65,
   "salario_liquido": 3425.41,
-  "data_credito": "27.02.2026",
-  "fgts": {
-    "base": 11882.72,
-    "deposito_mensal": 950.62
-  },
-  "inss_base": 11882.72,
-  "dependentes_ir": 0,
-  "observacoes": "Período de referência Fevereiro 2026. Carga horária mensal 200,00h. Banco 237, Agência 6543, Conta 6673."
+  "data_credito": "2026-02-27",
+  "fgts": 950.62,
+  "base_inss": 11882.72,
+  "base_ir": 0.0,
+  "inss_desconto": 988.07,
+  "ir_desconto": 1447.57,
+  "dependentes_ir": 0
 }

@@ -261,8 +261,22 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
     # Group declarations by member, keep most recent ano_base
     member_decls: Dict[str, Dict] = {}
     for decl in declarations:
-        membro = decl.get("membro", "").lower()
+        # Support both "membro" (E1.5 format) and "declarante.nome" (IRPF extract format)
+        membro = decl.get("membro", "")
+        if not membro:
+            declarante = decl.get("declarante", {})
+            if isinstance(declarante, dict):
+                membro = declarante.get("nome", "")
+        membro = membro.lower()
         ano = decl.get("ano_base", 0)
+        # If ano_base missing, try to infer from source_file name
+        if not ano:
+            import re as _re
+            src = decl.get("source_file", "")
+            if isinstance(src, str):
+                _m = _re.search(r'(\d{4})', src.split("/")[-1] if "/" in src else src)
+                if _m:
+                    ano = int(_m.group(1))
         key = "david" if "david" in membro else "mariana" if "mariana" in membro else None
         if key is None:
             continue

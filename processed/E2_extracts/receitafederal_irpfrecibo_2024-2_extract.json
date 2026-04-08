@@ -1,11 +1,9 @@
 {
-  "source": "receitafederal_irpfrecibo_2024-0_original.pdf",
-  "membro": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-  "cpf": "287.766.948-36",
-  "imposto_total": 9010.82,
-  "imposto_devido": 0.0,
-  "data_envio": "2025-05-28",
-  "status": "Aceita",
-  "numero_recibo": "41.12.98.65.44 - 47",
-  "total_rendimentos": 651374.65
+  "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfrecibo_2024-0_original.pdf",
+  "extraction_type": "irpf_recibo",
+  "numero_recibo": null,
+  "data_processamento": null,
+  "imposto_total": null,
+  "imposto_devido": 9010.82,
+  "extraction_date": "2026-04-08T10:11:58.223785"
 }

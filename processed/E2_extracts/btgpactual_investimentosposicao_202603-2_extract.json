@@ -1,163 +1,215 @@
 {
   "tipo": "investimentosposicao",
-  "instituicao": "btgpactual",
+  "instituicao": "BTG Pactual",
   "membro": "mariana",
-  "periodo": "2026-03",
-  "data_referencia": "2026-03-31",
-  "posicoes": [
+  "data_posicao": "2026-03-31",
+  "moeda": "BRL",
+  "total_aplicado": 362373.34,
+  "saldo_atual": 375384.56,
+  "rentabilidade": {
+    "valor": 27743.47,
+    "percentual": 10.84
+  },
+  "composicao": [
     {
-      "nome": "BANCO AGIBANK S.A",
-      "tipo": "CDB",
+      "tipo_produto": "CDB",
+      "nome": "BANCO AGIBANK S.A - Pós-fixado",
       "quantidade": 22,
-      "preco_unitario": 1393.2295,
+      "valor_unitario": 1393.2295,
       "valor_total": 29353.39,
-      "taxa": "116,65% do CDI",
-      "vencimento": "2026-11-10"
+      "percentual_carteira": 7.82,
+      "rentabilidade_instrumento": null
     },
     {
-      "nome": "PICPAY BANK - BANCO MULTI",
-      "tipo": "CDB",
+      "tipo_produto": "CDB",
+      "nome": "PICPAY BANK - BANCO MULTI - Pré-fixado (25/03/2030)",
       "quantidade": 27,
-      "preco_unitario": 1154.5504,
-      "valor_total": 30442.6,
-      "taxa": "15,26% a.a.",
-      "vencimento": "2030-03-25"
+      "valor_unitario": 1154.5504,
+      "valor_total": 30442.60,
+      "percentual_carteira": 8.11,
+      "rentabilidade_instrumento": null
     },
     {
-      "nome": "BANCO DIGIMAIS S.A.",
-      "tipo": "CDB",
+      "tipo_produto": "CDB",
+      "nome": "BANCO DIGIMAIS S.A - Pós-fixado",
       "quantidade": 10,
-      "preco_unitario": 1318.9084,
-      "valor_total": 12631.0,
-      "taxa": "121,00% do CDI",
-      "vencimento": "2030-05-21"
+      "valor_unitario": 1318.9084,
+      "valor_total": 12631.00,
+      "percentual_carteira": 3.36,
+      "rentabilidade_instrumento": null
     },
     {
-      "nome": "PICPAY BANK - BANCO MULTI",
-      "tipo": "CDB",
+      "tipo_produto": "CDB",
+      "nome": "PICPAY BANK - BANCO MULTI - Pré-fixado (24/03/2032)",
       "quantidade": 20,
-      "preco_unitario": 1155.3613,
+      "valor_unitario": 1155.3613,
       "valor_total": 22563.46,
-      "taxa": "15,34% a.a.",
-      "vencimento": "2032-03-24"
+      "percentual_carteira": 6.01,
+      "rentabilidade_instrumento": null
     },
     {
+      "tipo_produto": "CRI",
       "nome": "CRI - TEX COURIER",
-      "tipo": "CRI",
       "quantidade": 10,
-      "preco_unitario": 800.2304,
-      "valor_total": 8002.3,
-      "taxa": "CDI + 2,90%",
-      "vencimento": "2028-11-16"
+      "valor_unitario": 800.2304,
+      "valor_total": 8002.30,
+      "percentual_carteira": 2.13,
+      "rentabilidade_instrumento": null
     },
     {
+      "tipo_produto": "CRI",
       "nome": "CRI - ONCOCLINICAS II",
-      "tipo": "CRI",
       "quantidade": 9,
-      "preco_unitario": 780.0777,
+      "valor_unitario": 780.0777,
       "valor_total": 7020.69,
-      "taxa": "12,16% a.a.",
-      "vencimento": "2030-10-15"
+      "percentual_carteira": 1.87,
+      "rentabilidade_instrumento": null
     },
     {
+      "tipo_produto": "CRA",
       "nome": "CRA - Zamp",
-      "tipo": "CRA",
       "quantidade": 9,
-      "preco_unitario": 956.5322,
+      "valor_unitario": 956.5322,
       "valor_total": 8608.78,
-      "taxa": "12,17% a.a.",
-      "vencimento": "2029-02-15"
+      "percentual_carteira": 2.29,
+      "rentabilidade_instrumento": null
     },
     {
+      "tipo_produto": "CRA",
       "nome": "CRA - MADERO",
-      "tipo": "CRA",
       "quantidade": 9,
-      "preco_unitario": 864.2747,
+      "valor_unitario": 864.2747,
       "valor_total": 7778.47,
-      "taxa": "12,98% a.a.",
-      "vencimento": "2029-10-29"
+      "percentual_carteira": 2.07,
+      "rentabilidade_instrumento": null
     },
     {
+      "tipo_produto": "CRA",
       "nome": "CRA - FS AGRISOLUTIONS",
-      "tipo": "CRA",
       "quantidade": 9,
-      "preco_unitario": 808.4966,
+      "valor_unitario": 808.4966,
       "valor_total": 7276.46,
-      "taxa": "12,88% a.a.",
-      "vencimento": "2030-06-17"
+      "percentual_carteira": 1.94,
+      "rentabilidade_instrumento": null
     },
     {
+      "tipo_produto": "CRA",
       "nome": "CRA - CEREAL",
-      "tipo": "CRA",
       "quantidade": 9,
-      "preco_unitario": 977.2959,
+      "valor_unitario": 977.2959,
       "valor_total": 8795.66,
-      "taxa": "14,28% a.a.",
-      "vencimento": "2032-09-15"
+      "percentual_carteira": 2.34,
+      "rentabilidade_instrumento": null
     },
     {
+      "tipo_produto": "CRA",
       "nome": "CRA - Caramuru",
-      "tipo": "CRA",
       "quantidade": 21,
-      "preco_unitario": 967.5611,
+      "valor_unitario": 967.5611,
       "valor_total": 20318.78,
-      "taxa": "15,29% a.a.",
-      "vencimento": "2033-02-15"
+      "percentual_carteira": 5.41,
+      "rentabilidade_instrumento": null
     },
     {
+      "tipo_produto": "CRA",
       "nome": "CRA - MINERVA",
-      "tipo": "CRA",
       "quantidade": 27,
-      "preco_unitario": 987.5304,
+      "valor_unitario": 987.5304,
       "valor_total": 26663.31,
-      "taxa": "13,66% a.a.",
-      "vencimento": "2035-07-16"
+      "percentual_carteira": 7.10,
+      "rentabilidade_instrumento": null
     },
     {
+      "tipo_produto": "CRA",
       "nome": "CRA - ELDORADO",
-      "tipo": "CRA",
       "quantidade": 29,
-      "preco_unitario": 983.3777,
+      "valor_unitario": 983.3777,
       "valor_total": 28517.95,
-      "taxa": "IPCA + 7,20%",
-      "vencimento": "2040-09-17"
+      "percentual_carteira": 7.59,
+      "rentabilidade_instrumento": null
     },
     {
-      "nome": "LOCALIZA RENT A CAR SA",
-      "tipo": "DEBÊNTURE",
+      "tipo_produto": "título",
+      "nome": "DEBÊNTURE LOCALIZA RENT A CAR SA",
       "quantidade": 26,
-      "preco_unitario": 1134.9326,
+      "valor_unitario": 1134.9326,
       "valor_total": 29205.27,
-      "taxa": "IPCA + 8,50%",
-      "vencimento": "2031-12-15"
+      "percentual_carteira": 7.78,
+      "rentabilidade_instrumento": null
     },
     {
-      "nome": "CSN MINERACAO S.A.",
-      "tipo": "DEBÊNTURE",
+      "tipo_produto": "título",
+      "nome": "DEBÊNTURE CSN MINERACAO S.A.",
       "quantidade": 9,
-      "preco_unitario": 777.0693,
+      "valor_unitario": 777.0693,
       "valor_total": 6993.62,
-      "taxa": "IPCA + 7,93%",
-      "vencimento": "2036-07-15"
+      "percentual_carteira": 1.86,
+      "rentabilidade_instrumento": null
     },
     {
-      "nome": "3R - Cupom Semestral",
-      "tipo": "COE",
-      "quantidade": null,
-      "preco_unitario": null,
-      "valor_total": 20449.45,
-      "taxa": null,
-      "vencimento": "2031-02-07"
+      "tipo_produto": "título",
+      "nome": "Tesouro IPCA+ com Juros Semestrais (15/08/2030)",
+      "quantidade": 10,
+      "valor_unitario": 4354.6370,
+      "valor_total": 43348.99,
+      "percentual_carteira": 11.55,
+      "rentabilidade_instrumento": null
     },
     {
-      "nome": "BTG HEDGE INCENTIVADO I",
-      "tipo": "FUNDO",
+      "tipo_produto": "título",
+      "nome": "Tesouro IPCA+ com Juros Semestrais (15/05/2033)",
+      "quantidade": 2,
+      "valor_unitario": 4292.7495,
+      "valor_total": 8585.49,
+      "percentual_carteira": 2.29,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "fundo",
+      "nome": "BTG HEDGE FIRF CRPR SUB - Renda Fixa",
       "quantidade": null,
-      "preco_unitario": null,
+      "valor_unitario": null,
+      "valor_total": 2544.45,
+      "percentual_carteira": 0.68,
+      "rentabilidade_instrumento": 13.73
+    },
+    {
+      "tipo_produto": "fundo",
+      "nome": "BTG HEDGE INCENTIVADO I - Renda Fixa",
+      "quantidade": null,
+      "valor_unitario": null,
       "valor_total": 30091.92,
-      "taxa": null,
-      "vencimento": null
+      "percentual_carteira": 8.02,
+      "rentabilidade_instrumento": 14.15
+    },
+    {
+      "tipo_produto": "COE",
+      "nome": "3R - Cupom Semestral BANCO BTG PACTUAL S A",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 20449.45,
+      "percentual_carteira": 5.45,
+      "rentabilidade_instrumento": 15.56
+    },
+    {
+      "tipo_produto": "outro",
+      "nome": "Conta Investimento",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": 13011.22,
+      "percentual_carteira": 3.47,
+      "rentabilidade_instrumento": null
+    },
+    {
+      "tipo_produto": "outro",
+      "nome": "Swap (Derivativo)",
+      "quantidade": null,
+      "valor_unitario": null,
+      "valor_total": -448.78,
+      "percentual_carteira": -0.12,
+      "rentabilidade_instrumento": null
     }
   ],
-  "total": 375384.56
+  "source_file": "btgpactual_investimentosposicao_202603-0_original.pdf",
+  "extraction_date": "2026-04-08"
 }

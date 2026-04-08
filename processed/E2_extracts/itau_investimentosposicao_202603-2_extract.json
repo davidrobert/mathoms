@@ -1,37 +1,44 @@
 {
   "tipo": "investimentosposicao",
-  "instituicao": "itau",
+  "instituicao": "Itaú",
   "membro": "david",
-  "periodo": "2026-03",
-  "data_referencia": "2026-03-29",
-  "posicoes": [
+  "data_posicao": "2026-03-26",
+  "moeda": "BRL",
+  "total_aplicado": 341581.20,
+  "saldo_atual": 341581.20,
+  "rentabilidade": {
+    "valor": 3159.59,
+    "percentual": 0.91
+  },
+  "composicao": [
     {
+      "tipo_produto": "CDB",
       "nome": "CDB-DI",
-      "tipo": "CDB",
-      "quantidade": null,
-      "preco_unitario": null,
+      "quantidade": 1,
+      "valor_unitario": 116374.26,
       "valor_total": 116374.26,
-      "taxa": null,
-      "vencimento": null
+      "percentual_carteira": 34.07,
+      "rentabilidade_instrumento": 0.00
     },
     {
-      "nome": "Itau Prev Corp Platinum RV49 MM PGBL",
-      "tipo": "PREVIDÊNCIA",
-      "quantidade": null,
-      "preco_unitario": null,
+      "tipo_produto": "título",
+      "nome": "Itau Prev Corp Platinum Rv49 Mm Pgbl",
+      "quantidade": 1,
+      "valor_unitario": 18715.24,
       "valor_total": 18715.24,
-      "taxa": null,
-      "vencimento": null
+      "percentual_carteira": 5.48,
+      "rentabilidade_instrumento": -1.4
     },
     {
+      "tipo_produto": "outro",
       "nome": "Cofrinhos",
-      "tipo": "POUPANÇA",
-      "quantidade": null,
-      "preco_unitario": null,
-      "valor_total": 206491.7,
-      "taxa": null,
-      "vencimento": null
+      "quantidade": 1,
+      "valor_unitario": 206491.70,
+      "valor_total": 206491.70,
+      "percentual_carteira": 60.45,
+      "rentabilidade_instrumento": 0.00
     }
   ],
-  "total": 341581.2
+  "source_file": "itau_investimentosposicao_202603-0_original.pdf",
+  "extraction_date": "2026-04-08"
 }

@@ -1,45 +1,115 @@
-## David Robert Camargo Ferreira Campos (David Robert Camargo de Campos)
+# Perfis dos Membros da Família
 
-**Perfil:** Nacionalidade brasileira, 44 anos (nasc. 05/09/1981). Português (nativo), Inglês (fluente).
+_Extraído em 08/04/2026 às 10:08._
 
-**Histórico profissional:** 24 anos de carreira em engenharia de software e arquitetura de sistemas, com progressão de engenheiro jr. a Chief Technology Officer. Experiência em startups de alto crescimento (Elo7, Loft, Kiwify) e atualmente em healthtech (Arvo), com foco em estratégia tecnológica, arquitetura escalável, e liderança de times de engenharia.
+## David Robert Camargo Ferreira Campos
 
-**Cargo atual:** Chief Technology Officer (CTO) na Arvo (PJ). Desde 09/2025.
+**Data de Nascimento:** 1981-09-05
+**CPF:** 287.766.948-36
+**Profissão/Cargo:** CTO da Arvo
 
-**Salário atual (PJ — valor a confirmar via extratos bancários de C6 Bank PJ):**
-- Regime: PJ Simples Nacional (Anexo V)
-- Nota: Valor a confirmar via extratos bancários
+### Experiências Profissionais
 
-**Documentação disponível:** Currículo.
+- **CTO da Arvo na Arvo** (2014-presente)
 
-**Status fiscal:** BR.
+### Formação Acadêmica
 
----
+- Master in Computer Science – Artificial Intelligence – University of São Paulo (USP), Institute of Mathematics and Statistics (IME) – 2008
+  _Instituição: PUC-SP / USP_
+- Bachelor of Computer Science – Pontifical Catholic University of São Paulo (PUC/SP) – 2004
+  _Instituição: PUC-SP / USP_
+- Spearhead an "AI-First" engineering vision by establishing comprehensive AI governance and integrating native artificial intelligence capabilities directly into the Software Development Life Cycle (SDLC).
+  _Instituição: PUC-SP / USP_
+- Successfully integrated AI tooling across multiple stages of the SDLC, driving operational efficiency and reducing Pull Request (PR) review times by 20% without compromising rigorous code quality standards.
+  _Instituição: PUC-SP / USP_
+- Introduction to Scientific Computing - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004
+  _Instituição: PUC-SP / USP_
+- Artificial Intelligence Laboratory - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004
+  _Instituição: PUC-SP / USP_
+- Topics in Software Engineering - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004
+  _Instituição: PUC-SP / USP_
+- Algorithm Analysis - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004
+  _Instituição: PUC-SP / USP_
+- Programming Topics - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2003
+  _Instituição: PUC-SP / USP_
 
-## Mariana Ferreira Campos (Mariana Teixeira Ferreira)
+### Competências Técnicas
 
-**Perfil:** Nacionalidade brasileira, 39 anos (nasc. 30/08/1986). Português (nativo).
+- Oracle Certified Professional, Java SE 5 Programmer
 
-**Histórico profissional:** 15 anos em enfermagem clínica e hospitalar, com experiência em UTI (adulto/pediátrica), cardiologia e clínica médica. Paralelamente atuou como docente universitária (2012-2024) em metodologias ativas. Atualmente focada em auditoria clínica, qualidade e segurança do paciente no Hospital Israelita Albert Einstein.
+### Idiomas
 
-**Cargo atual:** Enfermeiro Pl na Hospital Israelita Albert Einstein (CLT). Desde 01/2018 (admissão original: 21/07/2014).
+- Business English - ELS Language Centers - 2018
 
-**Salário atual (holerite fevereiro 2026):**
-- Base mensal: R$ 10.899,51
-- Bruto: R$ 12.086,06
-- Líquido: R$ 3.425,41
-- Data de crédito: 27/02/2026
+## Mariana Ferreira Campos
 
-**Documentação disponível:** Currículo, holerite fevereiro 2026.
+**Nome de Solteira:** Mariana Teixeira Ferreira
+**Data de Nascimento:** 1986-08-30
+**CPF:** 085.052.396-60
+**Profissão/Cargo:** Enfermeira no Hospital Israelita Albert Einstein
 
-**Status fiscal:** BR.
+### Experiências Profissionais
 
----
+- **Enfermeira Especialista em Cardiologia e Hemodinâmica** na Hospital Israelita Albert Einstein
+  _Período: 2014-presente_
+  Assistência em cardiologia, auditoria clínica, segurança do paciente, gestão de projetos PDCA
 
-## Theo Ferreira Campos
+### Formação Acadêmica
 
-**Perfil:** Nascido em Orlando, Flórida, 0 anos (nasc. 18/07/2025). Cidadanias: brasileira, americana.
+- **Mestrado em Enfermagem na Saúde do Adulto**
+  _Instituição: Universidade de São Paulo (USP)_
+- **Especialização em Cardiologia e Hemodinâmica**
+  _Instituição: Universidade Federal de São Paulo (UNIFESP)_
+- **Graduação em Enfermagem**
+  _Instituição: Não especificada no CV_
 
-**Documentação disponível:** Sem documentos processados neste ciclo.
+### Certificações
 
-**Status fiscal:** BR+US.
+- Auditoria e Qualidade: PDCA e Auditoria de Prontuário Eletrônico
+- Classificação de Risco (Protocolo de Manchester)
+- Advanced Trauma Care for Nurses (ATCN)
+- Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP)
+- Osteoporose - Auditoria e Qualidade
+
+### Competências Profissionais
+
+- Processo de enfermagem
+- Cuidados de qualidade ao paciente
+- Gestão de equipes
+- Auditoria clínica
+- Segurança do paciente
+- Análise de prontuários eletrônicos
+- Gestão de casos de crônicos
+- Educação e treinamento
+- Pesquisa clínica
+- Metodologia científica
+
+### Idiomas
+
+- Português (nativo)
+- Inglês (intermediário)
+
+## Contracheque - Mariana (Fevereiro 2026)
+
+**Período:** 2026-02
+**Empresa:** AE00 SBIBHAE - Albert Einstein
+**Estabelecimento:** AEMO Unidade Morumbi
+**Cargo:** Enfermeiro Pl
+**Admissão:** 2014-07-21
+**Carga Horária Mensal:** 200.0 horas
+
+### Valores
+
+- **Salário Mensal Nominal:** R$ 10,899.51
+- **Total Proventos:** R$ 12,086.06
+- **Total Descontos:** R$ 8,660.65
+- **Salário Líquido:** R$ 3,425.41
+- **Data de Crédito:** 2026-02-27
+
+### Descontos
+
+- **INSS (Base):** R$ 11,882.72
+- **Desconto INSS:** R$ 988.07
+- **Desconto IRRF:** R$ 1,447.57
+- **FGTS Depositado:** R$ 950.62
+- **Dependentes para IR:** 0

@@ -1,459 +1,240 @@
 {
-  "source": "receitafederal_irpfdeclaracao_2024-0_original.pdf",
-  "membro": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-  "cpf": "287.766.948-36",
-  "ano_base": 2024,
-  "tipo_declaracao": "Original",
+  "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfdeclaracao_2024-0_original.pdf",
+  "extraction_type": "irpf_declaracao",
   "bens_direitos": [
     {
       "grupo": "01",
       "codigo": "11",
-      "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 350.000,00 350.000,00",
+      "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO",
       "valor_31_12_anterior": 350000.0,
-      "valor_31_12_atual": 350000.0,
-      "detalhes": {
-        "Inscrição Municipal (IPTU)": "013.036.0155-9",
-        "Logradouro": "PRACA BENEDITO CALIXTO Nº: 190",
-        "Comp.": "APTO 34 Bairro: PINHEIROS",
-        "Município": "SAO PAULO UF: SP CEP: 05406-040",
-        "Área Total": "40,7 m² Data de Aquisição: 10/12/2021",
-        "Registrado no Cartório": "Sim Nome Cartório: 13O CARTORIO DE REGISTRO",
-        "Matrícula": "3421 DE IMOVEIS DE SAO PAULO",
-        "Controle": "837638517565215 Página 4 de15 Data/Hora da Entrega: 28/05/2025 às 15:05:47",
-        "NOME": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "CPF": "287.766.948-36 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 350000.0
     },
     {
       "grupo": "01",
       "codigo": "11",
-      "descricao": "APARTAMENTO - EDIFICIOO GISELE - APTO 12 COM UMA 212.706,24 212.706,24",
+      "descricao": "APARTAMENTO - EDIFICIOO GISELE - APTO 12 COM UMA",
       "valor_31_12_anterior": 212706.24,
-      "valor_31_12_atual": 212706.24,
-      "detalhes": {
-        "Inscrição Municipal (IPTU)": "",
-        "Logradouro": "RUA MAJOR FREIRE Nº: 496",
-        "Comp.": "APTO 12 Bairro: VILA MONTE ALEGRE",
-        "Município": "SAO PAULO UF: SP CEP: 04304-110",
-        "Área Total": "68,8 m² Data de Aquisição: 02/02/2022",
-        "Registrado no Cartório": "Sim Nome Cartório: 8 CARTORIO DE REGISTRO",
-        "Matrícula": "74782 DE IMOVEIS"
-      }
+      "valor_31_12_atual": 212706.24
     },
     {
       "grupo": "01",
       "codigo": "12",
-      "descricao": "COMPRA E VENDA DE CASA - ADQUIRIDO DE CPF 135.542.328- 80.000,00 80.000,00",
+      "descricao": "COMPRA E VENDA DE CASA - ADQUIRIDO DE CPF 135.542.328-",
       "valor_31_12_anterior": 80000.0,
-      "valor_31_12_atual": 80000.0,
-      "detalhes": {
-        "74 EM 12/01/2023 - VALOR": "R$ 80.000,00 - PARTICIPACAO:",
-        "Inscrição Municipal (IPTU)": "31004501460",
-        "Logradouro": "LEONARDO DA VINCI Nº: 2707",
-        "Comp.": "QUADRA 33 LOTE 27 Bairro: JABAQUARA",
-        "Município": "SAO PAULO UF: SP CEP: 14000-000",
-        "Área Total": "0,0 Data de Aquisição: 12/01/2023",
-        "Registrado no Cartório": "Sim Nome Cartório:",
-        "Matrícula": "20462"
-      }
+      "valor_31_12_atual": 80000.0
     },
     {
       "grupo": "01",
       "codigo": "12",
-      "descricao": "CASA - RUA TASSO DA SILVEIRA, 61 - SAO PAULO - SP - 996.821,46 996.821,46",
+      "descricao": "CASA - RUA TASSO DA SILVEIRA, 61 - SAO PAULO - SP -",
       "valor_31_12_anterior": 996821.46,
-      "valor_31_12_atual": 996821.46,
-      "detalhes": {
-        "FINANCIAMENTO QUITADO NA CAIXA CONTRATO": "",
-        "1.4444.0514.760-3 - VENDEDOR": "GERALDO COSTA",
-        "FERNANDES - CPF": "570.499.478-49 - DATA DA COMPRA",
-        "Inscrição Municipal (IPTU)": "31005001186",
-        "Logradouro": "RUA TASSO DA SILVEIRA Nº: 61",
-        "Comp.": "Bairro: VILA GUARANI",
-        "Município": "SAO PAULO UF: SP CEP: 04316-080",
-        "Área Total": "171,0 m² Data de Aquisição: 04/02/2014",
-        "Registrado no Cartório": "Sim Nome Cartório: OITAVO CARTORIO DE",
-        "Matrícula": "12.644.- REGISTRO DE IMOVEIS",
-        "Controle": "837638517565215 Página 5 de15 Data/Hora da Entrega: 28/05/2025 às 15:05:47",
-        "NOME": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "CPF": "287.766.948-36 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 996821.46
     },
     {
       "grupo": "02",
       "codigo": "01",
-      "descricao": "VEICULO - MOTOCICLETA YAMAHA NMAX - PRETA - PLACA 15.093,00 15.093,00",
+      "descricao": "VEICULO - MOTOCICLETA YAMAHA NMAX - PRETA - PLACA",
       "valor_31_12_anterior": 15093.0,
-      "valor_31_12_atual": 15093.0,
-      "detalhes": {
-        "RENAVAM": "01143226094"
-      }
+      "valor_31_12_atual": 15093.0
     },
     {
       "grupo": "02",
       "codigo": "01",
-      "descricao": "VEICULO - MOTOCICLETA YAMAHA MT 09 TRACER - AZUL - 51.722,00 0,00",
+      "descricao": "VEICULO - MOTOCICLETA YAMAHA MT 09 TRACER - AZUL -",
       "valor_31_12_anterior": 51722.0,
-      "valor_31_12_atual": 0.0,
-      "detalhes": {
-        "RENAVAM": "01165524977"
-      }
+      "valor_31_12_atual": 0.0
     },
     {
       "grupo": "02",
       "codigo": "01",
-      "descricao": "VEICULO - CARRO FIAT TORO ULTRA - COR AZUL - PLACA 191.354,00 191.354,00",
+      "descricao": "VEICULO - CARRO FIAT TORO ULTRA - COR AZUL - PLACA",
       "valor_31_12_anterior": 191354.0,
-      "valor_31_12_atual": 191354.0,
-      "detalhes": {
-        "RENAVAM": "01294108287"
-      }
+      "valor_31_12_atual": 191354.0
     },
     {
       "grupo": "02",
       "codigo": "01",
-      "descricao": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA 0,00 21.029,00",
+      "descricao": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 21029.0,
-      "detalhes": {
-        "RENAVAM": "01388189191"
-      }
+      "valor_31_12_atual": 21029.0
     },
     {
       "grupo": "03",
       "codigo": "01",
-      "descricao": "ACOES - ITSA4 - QUANTIDADE 693 5.821,20 0,00",
+      "descricao": "ACOES - ITSA4 - QUANTIDADE 693",
       "valor_31_12_anterior": 5821.2,
-      "valor_31_12_atual": 0.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "61.532.644/0001-15",
-        "Negociados em Bolsa": "Não"
-      }
+      "valor_31_12_atual": 0.0
     },
     {
       "grupo": "03",
       "codigo": "01",
-      "descricao": "ACOES - BRKM5 - QUANTIDADE 300 6.267,00 0,00",
+      "descricao": "ACOES - BRKM5 - QUANTIDADE 300",
       "valor_31_12_anterior": 6267.0,
-      "valor_31_12_atual": 0.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "42.150.391/0001-70",
-        "Negociados em Bolsa": "Não"
-      }
+      "valor_31_12_atual": 0.0
     },
     {
       "grupo": "03",
       "codigo": "01",
-      "descricao": "ACOES - PETR4 - QUANTIDADE 300 38.883,00 0,00",
+      "descricao": "ACOES - PETR4 - QUANTIDADE 300",
       "valor_31_12_anterior": 38883.0,
-      "valor_31_12_atual": 0.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "33.000.167/0001-01",
-        "Negociados em Bolsa": "Sim Código de Negociação: PETR4",
-        "Controle": "837638517565215 Página 6 de15 Data/Hora da Entrega: 28/05/2025 às 15:05:47",
-        "NOME": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "CPF": "287.766.948-36 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 0.0
     },
     {
       "grupo": "04",
       "codigo": "01",
-      "descricao": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL 61.507,20 0,00",
+      "descricao": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL",
       "valor_31_12_anterior": 61507.2,
-      "valor_31_12_atual": 0.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "00.360.305/0001-04",
-        "Banco": "104 Agência: Conta:"
-      }
+      "valor_31_12_atual": 0.0
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP - 277.658,86 151.602,49",
+      "descricao": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP -",
       "valor_31_12_anterior": 277658.86,
-      "valor_31_12_atual": 151602.49,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "60.701.190/0001-04"
-      }
+      "valor_31_12_atual": 151602.49
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "BANCO PICPAY BANK BANCO MULTIPLO S.A. - AGENCIA: 0001 73.587,74 46.684,62",
+      "descricao": "BANCO PICPAY BANK BANCO MULTIPLO S.A. - AGENCIA: 0001",
       "valor_31_12_anterior": 73587.74,
-      "valor_31_12_atual": 46684.62,
-      "detalhes": {
-        "CONTA": "438329-0 INSTITUICAO: 380",
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "09.516.419/0001-75"
-      }
+      "valor_31_12_atual": 46684.62
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB) - 1.886,46 243.285,37",
+      "descricao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB) -",
       "valor_31_12_anterior": 1886.46,
-      "valor_31_12_atual": 243285.37,
-      "detalhes": {
-        "AGENCIA": "1652 - CONTA: 010013416",
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "90.400.888/0001-42"
-      }
+      "valor_31_12_atual": 243285.37
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "BANCO C6 - APLICACAO EM RENDA FIXA 23.439,00 1.765,00",
+      "descricao": "BANCO C6 - APLICACAO EM RENDA FIXA",
       "valor_31_12_anterior": 23439.0,
-      "valor_31_12_atual": 1765.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "31.872.495/0001-72"
-      }
+      "valor_31_12_atual": 1765.0
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "SALDO EM RDB NO NUBANK 5,98 189,30",
+      "descricao": "SALDO EM RDB NO NUBANK",
       "valor_31_12_anterior": 5.98,
-      "valor_31_12_atual": 189.3,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "30.680.829/0001-43"
-      }
+      "valor_31_12_atual": 189.3
     },
     {
       "grupo": "06",
       "codigo": "01",
-      "descricao": "BANCO CAIXA - CONTA CORRENTE - AG 1218 CONTA 22539-4 - 275,29 230,53",
+      "descricao": "BANCO CAIXA - CONTA CORRENTE - AG 1218 CONTA 22539-4 -",
       "valor_31_12_anterior": 275.29,
-      "valor_31_12_atual": 230.53,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "00.360.305/0001-04",
-        "Controle": "837638517565215 Página 7 de15 Data/Hora da Entrega: 28/05/2025 às 15:05:47",
-        "NOME": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "CPF": "287.766.948-36 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 230.53
     },
     {
       "grupo": "06",
       "codigo": "01",
-      "descricao": "BANCO ITAU - CONTA CORRENTE 10,00 1,01",
+      "descricao": "BANCO ITAU - CONTA CORRENTE",
       "valor_31_12_anterior": 10.0,
-      "valor_31_12_atual": 1.01,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "60.701.190/0001-04",
-        "Banco": "341 Agência: 9652 Conta: 4397-8 Conta Pagamento? Não"
-      }
+      "valor_31_12_atual": 1.01
     },
     {
       "grupo": "06",
       "codigo": "01",
-      "descricao": "DEPOSITO EM CONTA CORRENTE DE DEPOSITO A VISTA OU 0,00 4.936,98",
+      "descricao": "DEPOSITO EM CONTA CORRENTE DE DEPOSITO A VISTA OU",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 4936.98,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "32.345.784/0001-86",
-        "Banco": "336 Agência: 0001 Conta: 13095222-2 Conta Pagamento? Não"
-      }
+      "valor_31_12_atual": 4936.98
     },
     {
       "grupo": "06",
       "codigo": "11",
-      "descricao": "U$ 6524,00 34.433,67 34.433,67",
+      "descricao": "U$ 6524,00",
       "valor_31_12_anterior": 34433.67,
-      "valor_31_12_atual": 34433.67,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36"
-      }
+      "valor_31_12_atual": 34433.67
     },
     {
       "grupo": "06",
       "codigo": "99",
-      "descricao": "RICO - SALDO EM CONTA - XP INVESTIMENTOS CCTVM S/A 15.717,49 8.546,95",
+      "descricao": "RICO - SALDO EM CONTA - XP INVESTIMENTOS CCTVM S/A",
       "valor_31_12_anterior": 15717.49,
-      "valor_31_12_atual": 8546.95,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ": "02.332.886/0001-04"
-      }
+      "valor_31_12_atual": 8546.95
     },
     {
       "grupo": "06",
       "codigo": "99",
-      "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS 768,94 484,80",
+      "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS",
       "valor_31_12_anterior": 768.94,
-      "valor_31_12_atual": 484.8,
-      "detalhes": {
-        "CAYMAN) AG": "0001/CC: 100348783-7",
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "Lucro ou Prejuízo": "0,00",
-        "Imposto Pago no Exterior": "0,00"
-      }
+      "valor_31_12_atual": 484.8
     },
     {
       "grupo": "07",
       "codigo": "01",
-      "descricao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F 2.457,74 3.189,68",
+      "descricao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F",
       "valor_31_12_anterior": 2457.74,
-      "valor_31_12_atual": 3189.68,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ do Fundo": "33.736.873/0001-16",
-        "Controle": "837638517565215 Página 8 de15 Data/Hora da Entrega: 28/05/2025 às 15:05:47",
-        "NOME": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "CPF": "287.766.948-36 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 3189.68
     },
     {
       "grupo": "07",
       "codigo": "01",
-      "descricao": "RICO - DNA ENERGY FIC FIM CP 1.387,66 1.416,09",
+      "descricao": "RICO - DNA ENERGY FIC FIM CP",
       "valor_31_12_anterior": 1387.66,
-      "valor_31_12_atual": 1416.09,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ do Fundo": "35.956.056/0001-07"
-      }
+      "valor_31_12_atual": 1416.09
     },
     {
       "grupo": "07",
       "codigo": "04",
-      "descricao": "RICO - CONSTELLATION INSTITUCIONAL ADVI 34.462.109/0001- 10.000,00 11.409,17",
+      "descricao": "RICO - CONSTELLATION INSTITUCIONAL ADVI 34.462.109/0001-",
       "valor_31_12_anterior": 10000.0,
-      "valor_31_12_atual": 11409.17,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ do Fundo": "34.462.109/0001-62",
-        "Negociados em Bolsa": "Não"
-      }
+      "valor_31_12_atual": 11409.17
     },
     {
       "grupo": "07",
       "codigo": "04",
-      "descricao": "RICO - WESTERN ASSET FIA BDR NIVEL I 19.831.126/0001-36 17.651,61 17.651,61",
+      "descricao": "RICO - WESTERN ASSET FIA BDR NIVEL I 19.831.126/0001-36",
       "valor_31_12_anterior": 17651.61,
-      "valor_31_12_atual": 17651.61,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ do Fundo": "19.831.126/0001-36",
-        "Negociados em Bolsa": "Não"
-      }
+      "valor_31_12_atual": 17651.61
     },
     {
       "grupo": "07",
       "codigo": "04",
-      "descricao": "RICO - ALASKA BLACK FIC FIA - BDR 12.987.743/0001-86 60.000,00 60.000,00",
+      "descricao": "RICO - ALASKA BLACK FIC FIA - BDR 12.987.743/0001-86",
       "valor_31_12_anterior": 60000.0,
-      "valor_31_12_atual": 60000.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ do Fundo": "12.987.743/0001-86",
-        "Negociados em Bolsa": "Não"
-      }
+      "valor_31_12_atual": 60000.0
     },
     {
       "grupo": "07",
       "codigo": "04",
-      "descricao": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR 35.000,00 35.000,00",
+      "descricao": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR",
       "valor_31_12_anterior": 35000.0,
-      "valor_31_12_atual": 35000.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ do Fundo": "26.673.556/0001-32",
-        "Negociados em Bolsa": "Não"
-      }
+      "valor_31_12_atual": 35000.0
     },
     {
       "grupo": "07",
       "codigo": "04",
-      "descricao": "RICO - SAFARI 30 FIC FIM II 25.238,59 25.238,59",
+      "descricao": "RICO - SAFARI 30 FIC FIM II",
       "valor_31_12_anterior": 25238.59,
-      "valor_31_12_atual": 25238.59,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:287.766.948-36",
-        "CNPJ do Fundo": "23.960.625/0001-09",
-        "Negociados em Bolsa": "Não",
-        "Controle": "837638517565215 Página 9 de15 Data/Hora da Entrega: 28/05/2025 às 15:05:47",
-        "NOME": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "CPF": "287.766.948-36 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 25238.59
     },
     {
       "grupo": "99",
       "codigo": "07",
-      "descricao": "ITAUSA S.A - POSICAO ACIONARIA - JUROS SOBRE CAPITAL 192,96 82,15",
+      "descricao": "ITAUSA S.A - POSICAO ACIONARIA - JUROS SOBRE CAPITAL",
       "valor_31_12_anterior": 192.96,
-      "valor_31_12_atual": 82.15,
-      "detalhes": {
-        "CNPJ": "61.532.644/0001-15",
-        "11 CREDITO IMOBILIARIO - CREDOR": "ITAU UNIBANCO S.A. - 265.420,59 234.642,79 54.416,00",
-        "Controle": "837638517565215 Página 15 de15 Data/Hora da Entrega: 28/05/2025 às 15:05:47",
-        "NOME": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "CPF": "287.766.948-36 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA",
-        "Débito automático": "NÃO"
-      }
+      "valor_31_12_atual": 82.15
     }
   ],
   "total_bens": 2513151.709999999,
-  "rendimentos_pj": [
-    {
-      "tipo": "PJ/CLT",
-      "descricao": "DAVID ROBERT CAMARGO DE",
-      "rend_recebidos": 153938.74,
-      "contrib_previd": 6070.68,
-      "imposto_retido": 33225.23
-    },
-    {
-      "tipo": "PJ/CLT",
-      "descricao": "KIWIFY PAGAMENTOS TECNOLOGIA E",
-      "rend_recebidos": 466978.67,
-      "contrib_previd": 5453.1,
-      "imposto_retido": 121543.55
-    },
-    {
-      "tipo": "PJ/CLT",
-      "descricao": "TOTAL",
-      "rend_recebidos": 620917.41,
-      "contrib_previd": 11523.78,
-      "imposto_retido": 154768.78
-    }
-  ],
-  "rendimentos_pf": [],
-  "rendimentos_isentos": [
-    {
-      "tipo": "Isento",
-      "total": 301277.39
-    }
-  ],
-  "rendimentos_aplicacoes": [
-    {
-      "tipo": "Aplicação Financeira",
-      "valor": 31259.11
-    },
-    {
-      "tipo": "Aplicação Financeira",
-      "valor": 55445.46
-    }
-  ],
-  "total_rendimentos": 1241834.8199999998,
-  "pagamentos_deductibles": [
-    {
-      "descricao": "21 FLEURY S/A 60.840.055/0001-31 136,00 0,00",
-      "valor": 136.0
-    },
-    {
-      "descricao": "71 GRPQA LTDA 16.788.643/0001-81 2.829,36 0,00",
-      "valor": 2829.36
-    }
-  ],
-  "total_deducoes": 2965.36
+  "rendimentos": {
+    "pj_salario": null,
+    "pj_total": null,
+    "alugueis": 0.0,
+    "financeiros": null,
+    "outros": null
+  },
+  "deductions": {
+    "contribuicao_previdenciaria": null,
+    "pagamentos_deductiveis": null
+  },
+  "extraction_date": "2026-04-08T10:11:56.922784",
+  "declarante": {
+    "nome": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+    "cpf": "287.766.948-36"
+  }
 }

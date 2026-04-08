@@ -1,13 +1,20 @@
 {
   "tipo": "cdbdetalhes",
-  "instituicao": "santander",
+  "instituicao": "Santander",
   "membro": "david",
-  "periodo": "202603",
-  "operacao": "00331652260006541929",
-  "data_contratacao": "2024-08-30",
-  "data_vencimento": "2028-08-09",
-  "prazo_dias": 1440,
-  "rentabilidade": 100.0,
-  "valor_aplicacao": null,
-  "valor_atual": null
+  "nome_cdb": "CDB DI SANTANDER",
+  "tipo_cdb": "DI",
+  "data_aplicacao": "2024-06-26",
+  "valor_aplicado": 137409.67,
+  "taxa": "100% CDI",
+  "vencimento": "2028-06-05",
+  "valor_bruto_atual": 137409.67,
+  "ir_retido": 0.00,
+  "valor_liquido_atual": 137409.67,
+  "rentabilidade": {
+    "bruta_percentual": 0.00,
+    "liquida_percentual": 0.00
+  },
+  "source_file": "santander_cdbdetalhesdi1_202603-0_original.pdf",
+  "extraction_date": "2026-04-08"
 }

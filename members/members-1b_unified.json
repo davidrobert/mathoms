@@ -1,121 +1,205 @@
 {
-  "version": "5.3",
-  "data_geracao": "2026-04-08",
+  "data_extracao": "2026-04-08T10:08:11.930521",
+  "versao_pipeline": "E1",
   "membros": {
     "david": {
+      "tipo": "curriculo",
+      "membro": "david",
+      "nome_completo": "David Robert Camargo Ferreira Campos",
       "nome_atual": "David Robert Camargo Ferreira Campos",
       "nome_solteiro": "David Robert Camargo de Campos",
-      "nomes_alternativos": [
-        "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "DAVID ROBERT CAMARGO DE CAMPOS",
-        "DAVID ROBERT CAMARGO",
-        "DAVID ROBERT"
-      ],
+      "profissao_cargo": "CTO da Arvo",
       "data_nascimento": "1981-09-05",
-      "idade": 44,
-      "papel": "titular",
-      "cargo_atual": "Chief Technology Officer (CTO)",
-      "empresa_atual": "Arvo",
-      "vinculo": "PJ",
-      "salario": null,
-      "nota_salario": "PJ — valor a confirmar via extratos bancários de C6 Bank PJ",
+      "cpf": "287.766.948-36",
+      "experiencias": [
+        {
+          "descricao": "CTO da Arvo na Arvo",
+          "periodo": "2014-presente"
+        }
+      ],
       "formacao": [
         {
-          "instituicao": "University of São Paulo (USP), Institute of Mathematics and Statistics (IME)",
-          "curso": "Master in Computer Science - Artificial Intelligence",
-          "periodo_fim": "2008",
-          "grau": "Master"
+          "descricao": "Master in Computer Science – Artificial Intelligence – University of São Paulo (USP), Institute of Mathematics and Statistics (IME) – 2008",
+          "instituicao": "PUC-SP / USP"
         },
         {
-          "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)",
-          "curso": "Bachelor of Computer Science",
-          "periodo_fim": "2004",
-          "grau": "Bachelor"
+          "descricao": "Bachelor of Computer Science – Pontifical Catholic University of São Paulo (PUC/SP) – 2004",
+          "instituicao": "PUC-SP / USP"
+        },
+        {
+          "descricao": "Spearhead an \"AI-First\" engineering vision by establishing comprehensive AI governance and integrating native artificial intelligence capabilities directly into the Software Development Life Cycle (SDLC).",
+          "instituicao": "PUC-SP / USP"
+        },
+        {
+          "descricao": "Successfully integrated AI tooling across multiple stages of the SDLC, driving operational efficiency and reducing Pull Request (PR) review times by 20% without compromising rigorous code quality standards.",
+          "instituicao": "PUC-SP / USP"
+        },
+        {
+          "descricao": "Introduction to Scientific Computing - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
+          "instituicao": "PUC-SP / USP"
+        },
+        {
+          "descricao": "Artificial Intelligence Laboratory - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
+          "instituicao": "PUC-SP / USP"
+        },
+        {
+          "descricao": "Topics in Software Engineering - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
+          "instituicao": "PUC-SP / USP"
+        },
+        {
+          "descricao": "Algorithm Analysis - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
+          "instituicao": "PUC-SP / USP"
+        },
+        {
+          "descricao": "Programming Topics - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2003",
+          "instituicao": "PUC-SP / USP"
         }
+      ],
+      "certificacoes": [],
+      "habilidades": [
+        "Oracle Certified Professional, Java SE 5 Programmer"
       ],
       "idiomas": [
-        {
-          "idioma": "Português",
-          "nivel": "Nativo"
-        },
-        {
-          "idioma": "Inglês",
-          "nivel": "Fluente"
-        }
-      ],
-      "documentos_disponiveis": ["curriculo"]
-    },
-    "mariana": {
-      "nome_atual": "Mariana Ferreira Campos",
-      "nome_solteira": "Mariana Teixeira Ferreira",
-      "nomes_alternativos": [
-        "MARIANA FERREIRA CAMPOS",
-        "MARIANA TEIXEIRA FERREIRA",
-        "MARIANA TEIXEIRA"
-      ],
-      "data_nascimento": "1986-08-30",
-      "idade": 39,
-      "papel": "conjuge",
-      "cargo_atual": "Enfermeiro Pl",
-      "empresa_atual": "Hospital Israelita Albert Einstein",
-      "vinculo": "CLT",
-      "salario": {
-        "salario_base_mensal": 10899.51,
-        "salario_bruto": 12086.06,
-        "salario_liquido": 3425.41,
-        "periodo": "2026-02",
-        "data_credito": "2026-02-27"
-      },
-      "formacao": [
-        {
-          "instituicao": "Universidade de São Paulo",
-          "curso": "Mestrado em Enfermagem, Enfermagem em Saúde Adulta",
-          "periodo_inicio": "2019",
-          "periodo_fim": "2021-06",
-          "grau": "Mestrado"
-        },
-        {
-          "instituicao": "Unifesp - Universidade Federal de São Paulo",
-          "curso": "Enfermagem em Cardiologia e Hemodinâmica",
-          "periodo_inicio": "2011",
-          "periodo_fim": "2012",
-          "grau": "Especialização (Lato Sensu)"
-        },
-        {
-          "instituicao": "PUC Minas",
-          "curso": "Bacharelado em Enfermagem",
-          "periodo_inicio": "2007",
-          "periodo_fim": "2010",
-          "grau": "Bacharelado"
-        },
-        {
-          "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
-          "curso": "Especialização em Formação Docente em Educação Profissional",
-          "grau": "Especialização (Lato Sensu)"
-        }
-      ],
-      "idiomas": [
-        {
-          "idioma": "Português",
-          "nivel": "Nativo"
-        }
-      ],
-      "documentos_disponiveis": [
-        "curriculo",
-        "holerite_202602"
+        "Business English - ELS Language Centers - 2018"
       ]
     },
-    "theo": {
-      "nome_atual": "Theo Ferreira Campos",
-      "data_nascimento": "2025-07-18",
-      "idade": 0,
-      "papel": "filho",
-      "cidadania": [
-        "brasileira",
-        "americana"
+    "mariana": {
+      "tipo": "curriculo",
+      "membro": "mariana",
+      "nome_completo": "Mariana Ferreira Campos",
+      "nome_atual": "Mariana Ferreira Campos",
+      "nome_solteira": "Mariana Teixeira Ferreira",
+      "nome_fiscal": "Mariana Teixeira Ferreira",
+      "profissao_cargo": "Enfermeira no Hospital Israelita Albert Einstein",
+      "data_nascimento": "1986-08-30",
+      "cpf": "085.052.396-60",
+      "experiencias": [
+        {
+          "empresa": "Hospital Israelita Albert Einstein",
+          "cargo": "Enfermeira Especialista em Cardiologia e Hemodinâmica",
+          "periodo": "2014-presente",
+          "descricao": "Assistência em cardiologia, auditoria clínica, segurança do paciente, gestão de projetos PDCA"
+        }
       ],
-      "local_nascimento": "Orlando, Flórida",
-      "documentos_disponiveis": []
+      "formacao": [
+        {
+          "descricao": "Mestrado em Enfermagem na Saúde do Adulto",
+          "instituicao": "Universidade de São Paulo (USP)",
+          "ano": 2022
+        },
+        {
+          "descricao": "Especialização em Cardiologia e Hemodinâmica",
+          "instituicao": "Universidade Federal de São Paulo (UNIFESP)"
+        },
+        {
+          "descricao": "Graduação em Enfermagem",
+          "instituicao": "Não especificada no CV"
+        }
+      ],
+      "certificacoes": [
+        "Auditoria e Qualidade: PDCA e Auditoria de Prontuário Eletrônico",
+        "Classificação de Risco (Protocolo de Manchester)",
+        "Advanced Trauma Care for Nurses (ATCN)",
+        "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP)",
+        "Osteoporose - Auditoria e Qualidade"
+      ],
+      "habilidades": [
+        "Processo de enfermagem",
+        "Cuidados de qualidade ao paciente",
+        "Gestão de equipes",
+        "Auditoria clínica",
+        "Segurança do paciente",
+        "Análise de prontuários eletrônicos",
+        "Gestão de casos de crônicos",
+        "Educação e treinamento",
+        "Pesquisa clínica",
+        "Metodologia científica"
+      ],
+      "idiomas": [
+        "Português (nativo)",
+        "Inglês (intermediário)"
+      ]
+    }
+  },
+  "holerites": {
+    "mariana_202602": {
+      "tipo": "holerite",
+      "membro": "mariana",
+      "nome_no_documento": "Mariana Teixeira Ferreira",
+      "periodo": "2026-02",
+      "empresa": "AE00 SBIBHAE - Albert Einstein",
+      "estabelecimento": "AEMO Unidade Morumbi",
+      "cargo": "Enfermeiro Pl",
+      "categoria": "Enfermagem P",
+      "admissao": "2014-07-21",
+      "carga_horaria_mensal": 200.0,
+      "salario_mensal": 10899.51,
+      "proventos_adicionais": [
+        {
+          "descricao": "Salário mensal",
+          "valor": 9082.92
+        },
+        {
+          "descricao": "Adic. de insalubrid. 20%",
+          "valor": 270.17
+        },
+        {
+          "descricao": "Provisão Contr. INSS rec.",
+          "valor": 203.34
+        },
+        {
+          "descricao": "Férias no mês",
+          "valor": 1870.62
+        },
+        {
+          "descricao": "Férias 1/3 no mês",
+          "valor": 623.54
+        },
+        {
+          "descricao": "Médias férias no mês",
+          "valor": 26.6
+        },
+        {
+          "descricao": "Médias férias 1/3 no mês",
+          "valor": 8.87
+        }
+      ],
+      "descontos": [
+        {
+          "descricao": "Contr. INSS Remuneração",
+          "valor": 988.07
+        },
+        {
+          "descricao": "Tributo IRRF",
+          "valor": 1447.57
+        },
+        {
+          "descricao": "Adiantamento pago",
+          "valor": 3633.17
+        },
+        {
+          "descricao": "Seguro de Vida",
+          "valor": 27.41
+        },
+        {
+          "descricao": "Refeição",
+          "valor": 34.8
+        },
+        {
+          "descricao": "Desconto de Férias",
+          "valor": 2529.63
+        }
+      ],
+      "total_proventos": 12086.06,
+      "total_descontos": 8660.65,
+      "salario_liquido": 3425.41,
+      "data_credito": "2026-02-27",
+      "fgts": 950.62,
+      "base_inss": 11882.72,
+      "base_ir": 0.0,
+      "inss_desconto": 988.07,
+      "ir_desconto": 1447.57,
+      "dependentes_ir": 0
     }
   }
 }

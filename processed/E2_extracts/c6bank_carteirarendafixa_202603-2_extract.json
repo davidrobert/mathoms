@@ -1,46 +1,54 @@
 {
   "tipo": "carteirarendafixa",
-  "instituicao": "c6bank",
+  "instituicao": "C6 Bank",
   "membro": "david",
-  "periodo": "2026-03",
-  "data_referencia": "2026-03-31",
-  "posicoes": [
+  "data_posicao": "2026-03-29",
+  "moeda": "BRL",
+  "total_aplicado": 6930.11,
+  "saldo_atual": 6930.11,
+  "rentabilidade": {
+    "valor": 0.00,
+    "percentual": 0.00
+  },
+  "composicao": [
     {
-      "nome": "CDB C6 Pós-fixado Liquidez Diária",
-      "tipo": "CDB",
-      "quantidade": null,
-      "preco_unitario": null,
-      "valor_total": 6930.11,
-      "taxa": "102% do CDI",
-      "vencimento": null
+      "tipo_produto": "CDB",
+      "nome": "CDB C6 Pós-fixado Liq. Diária",
+      "valor_aplicado": null,
+      "data_aplicacao": null,
+      "taxa": "102% CDI",
+      "vencimento": null,
+      "valor_atual": null
     },
     {
+      "tipo_produto": "CDB",
       "nome": "CDB C6 Limite Garantido",
-      "tipo": "CDB",
-      "quantidade": null,
-      "preco_unitario": null,
-      "valor_total": 6930.11,
-      "taxa": "102% do CDI",
-      "vencimento": null
+      "valor_aplicado": null,
+      "data_aplicacao": null,
+      "taxa": "102% CDI",
+      "vencimento": null,
+      "valor_atual": null
     },
     {
+      "tipo_produto": "CDB",
       "nome": "CDB C6 Pós-fixado 3 meses",
-      "tipo": "CDB",
-      "quantidade": null,
-      "preco_unitario": null,
-      "valor_total": null,
-      "taxa": "103% do CDI",
-      "vencimento": null
+      "valor_aplicado": null,
+      "data_aplicacao": null,
+      "taxa": "102% CDI",
+      "vencimento": null,
+      "valor_atual": null
     },
     {
+      "tipo_produto": "CDB",
       "nome": "CDB C6 Pós-fixado 6 meses",
-      "tipo": "CDB",
-      "quantidade": null,
-      "preco_unitario": null,
-      "valor_total": null,
-      "taxa": "102% do CDI",
-      "vencimento": null
+      "valor_aplicado": null,
+      "data_aplicacao": null,
+      "taxa": "103% CDI",
+      "vencimento": null,
+      "valor_atual": null
     }
   ],
-  "total": 6930.11
+  "source_file": "c6bank_carteirarendafixa_202603-0_original.pdf",
+  "extraction_date": "2026-04-08",
+  "extraction_notes": "PDF contains only overview screenshot from C6 Bank mobile app. Individual position details (application dates, maturity dates, per-product amounts) are not visible in the document. Total portfolio value: R$ 6.930,11 as of 2026-03-29."
 }

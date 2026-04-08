@@ -1,300 +1,156 @@
 {
-  "source": "receitafederal_irpfdeclaracaomariana_2024-0_original.pdf",
-  "membro": "MARIANA FERREIRA CAMPOS",
-  "cpf": "085.052.396-60",
-  "ano_base": 2024,
-  "tipo_declaracao": "Original",
+  "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfdeclaracaomariana_2024-0_original.pdf",
+  "extraction_type": "irpf_declaracao",
   "bens_direitos": [
     {
       "grupo": "01",
       "codigo": "11",
-      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA 223.733,99 270.000,00",
+      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA",
       "valor_31_12_anterior": 223733.99,
-      "valor_31_12_atual": 270000.0,
-      "detalhes": {
-        "Inscrição Municipal (IPTU)": "30105434946",
-        "Controle": "838216781775959 Página 4 de13 Data/Hora da Entrega: 30/05/2025 às 20:05:23",
-        "NOME": "MARIANA FERREIRA CAMPOS",
-        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 270000.0
     },
     {
       "grupo": "01",
       "codigo": "11",
-      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA 477.436,58 530.000,00",
+      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA",
       "valor_31_12_anterior": 477436.58,
-      "valor_31_12_atual": 530000.0,
-      "detalhes": {
-        "Inscrição Municipal (IPTU)": "087.006 .0478-1",
-        "Logradouro": "AVENIDA JOAO DIAS Nº: 2192",
-        "Comp.": "TORRE 2 APT 163 Bairro: SANTO AMARO",
-        "Município": "SAO PAULO UF: SP CEP: 04724-003",
-        "Área Total": "88,9 m² Data de Aquisição: 09/04/2018",
-        "Registrado no Cartório": "Sim Nome Cartório: 11 REGISTRO DE IMOVEIS DE",
-        "Matrícula": "453.527 SAO PAULO"
-      }
+      "valor_31_12_atual": 530000.0
     },
     {
       "grupo": "04",
       "codigo": "01",
-      "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 25.337,34 0,00",
+      "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA",
       "valor_31_12_anterior": 25337.34,
-      "valor_31_12_atual": 0.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "60.746.948/0001-12",
-        "Banco": "237 Agência: 0504 Conta: 77113-9"
-      }
+      "valor_31_12_atual": 0.0
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "BTG - PRODUTO CDBB2353UR4 22.000,00 22.000,00",
+      "descricao": "BTG - PRODUTO CDBB2353UR4",
       "valor_31_12_anterior": 22000.0,
-      "valor_31_12_atual": 22000.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.306.294/0001-45"
-      }
+      "valor_31_12_atual": 22000.0
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "BTG - CDB-SR - AGENCIA 0001 1.826,51 3.429,16",
+      "descricao": "BTG - CDB-SR - AGENCIA 0001",
       "valor_31_12_anterior": 1826.51,
-      "valor_31_12_atual": 3429.16,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.306.294/0001-45",
-        "Controle": "838216781775959 Página 5 de13 Data/Hora da Entrega: 30/05/2025 às 20:05:23",
-        "NOME": "MARIANA FERREIRA CAMPOS",
-        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 3429.16
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO 4.365,03 0,00",
+      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
       "valor_31_12_anterior": 4365.03,
-      "valor_31_12_atual": 0.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "60.746.948/0001-12"
-      }
+      "valor_31_12_atual": 0.0
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "SALDO RDB - NUBANK 58,23 0,00",
+      "descricao": "SALDO RDB - NUBANK",
       "valor_31_12_anterior": 58.23,
-      "valor_31_12_atual": 0.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.680.829/0001-43"
-      }
+      "valor_31_12_atual": 0.0
     },
     {
       "grupo": "04",
       "codigo": "02",
-      "descricao": "BTG - PRODUTO CDB524BFK2F 0,00 10.000,00",
+      "descricao": "BTG - PRODUTO CDB524BFK2F",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 10000.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.306.294/0001-45"
-      }
+      "valor_31_12_atual": 10000.0
     },
     {
       "grupo": "04",
       "codigo": "03",
-      "descricao": "BTG - PRODUTO 22J1410500 10.349,69 9.349,69",
+      "descricao": "BTG - PRODUTO 22J1410500",
       "valor_31_12_anterior": 10349.69,
-      "valor_31_12_atual": 9349.69,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.306.294/0001-45"
-      }
+      "valor_31_12_atual": 9349.69
     },
     {
       "grupo": "04",
       "codigo": "03",
-      "descricao": "BTG - PRODUTO 22K1692411 10.324,25 10.324,25",
+      "descricao": "BTG - PRODUTO 22K1692411",
       "valor_31_12_anterior": 10324.25,
-      "valor_31_12_atual": 10324.25,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.306.294/0001-45"
-      }
+      "valor_31_12_atual": 10324.25
     },
     {
       "grupo": "04",
       "codigo": "03",
-      "descricao": "BTG - PRODUTO CRA02300MZU 0,00 9.115,01",
+      "descricao": "BTG - PRODUTO CRA02300MZU",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 9115.01,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.306.294/0001-45"
-      }
+      "valor_31_12_atual": 9115.01
     },
     {
       "grupo": "04",
       "codigo": "03",
-      "descricao": "BTG - PRODUTO CRA02300SPD 0,00 9.109,54",
+      "descricao": "BTG - PRODUTO CRA02300SPD",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 9109.54,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.306.294/0001-45",
-        "Controle": "838216781775959 Página 6 de13 Data/Hora da Entrega: 30/05/2025 às 20:05:23",
-        "NOME": "MARIANA FERREIRA CAMPOS",
-        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 9109.54
     },
     {
       "grupo": "04",
       "codigo": "03",
-      "descricao": "BTG - PRODUTO CRA024001Q9 0,00 9.248,83",
+      "descricao": "BTG - PRODUTO CRA024001Q9",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 9248.83,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.306.294/0001-45"
-      }
+      "valor_31_12_atual": 9248.83
     },
     {
       "grupo": "04",
       "codigo": "03",
-      "descricao": "BTG - PRODUTO 23J0138431 0,00 9.164,03",
+      "descricao": "BTG - PRODUTO 23J0138431",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 9164.03,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "30.306.294/0001-45"
-      }
+      "valor_31_12_atual": 9164.03
     },
     {
       "grupo": "06",
       "codigo": "01",
-      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO 1,00 0,00",
+      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO",
       "valor_31_12_anterior": 1.0,
-      "valor_31_12_atual": 0.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ": "60.746.948/0001-12",
-        "Banco": "237 Agência: 0504 Conta: 77113-9 Conta Pagamento? Não"
-      }
+      "valor_31_12_atual": 0.0
     },
     {
       "grupo": "07",
       "codigo": "01",
-      "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE 35.868,62 41.408,87",
+      "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE",
       "valor_31_12_anterior": 35868.62,
-      "valor_31_12_atual": 41408.87,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ do Fundo": "11.952.873/0001-10"
-      }
+      "valor_31_12_atual": 41408.87
     },
     {
       "grupo": "07",
       "codigo": "01",
-      "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA 0,00 4.494,93",
+      "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 4494.93,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ do Fundo": "00.888.897/0001-31"
-      }
+      "valor_31_12_atual": 4494.93
     },
     {
       "grupo": "07",
       "codigo": "07",
-      "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA 0,00 25.479,42",
+      "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 25479.42,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ do Fundo": "39.958.460/0001-62",
-        "Negociados em Bolsa": "Não",
-        "Controle": "838216781775959 Página 7 de13 Data/Hora da Entrega: 30/05/2025 às 20:05:23",
-        "NOME": "MARIANA FERREIRA CAMPOS",
-        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA"
-      }
+      "valor_31_12_atual": 25479.42
     },
     {
       "grupo": "07",
       "codigo": "10",
-      "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE 0,00 25.000,00",
+      "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE",
       "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 25000.0,
-      "detalhes": {
-        "Bem ou direito pertencente ao": "Titular CPF:085.052.396-60",
-        "CNPJ do Fundo": "51.697.128/0001-97",
-        "Negociados em Bolsa": "Não",
-        "Controle": "838216781775959 Página 13 de13 Data/Hora da Entrega: 30/05/2025 às 20:05:23",
-        "NOME": "MARIANA FERREIRA CAMPOS",
-        "CPF": "085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA",
-        "Débito automático": "SIM"
-      }
+      "valor_31_12_atual": 25000.0
     }
   ],
   "total_bens": 988123.7300000001,
-  "rendimentos_pj": [
-    {
-      "tipo": "PJ/CLT",
-      "descricao": "SOCIEDADE BENEFICENTE ISRAELITA",
-      "rend_recebidos": 141842.7,
-      "contrib_previd": 10906.2,
-      "imposto_retido": 22575.99
-    },
-    {
-      "tipo": "PJ/CLT",
-      "descricao": "TOTAL",
-      "rend_recebidos": 141842.7,
-      "contrib_previd": 10906.2,
-      "imposto_retido": 22575.99
-    }
-  ],
-  "rendimentos_pf": [],
-  "rendimentos_isentos": [
-    {
-      "tipo": "Isento",
-      "total": 1336.61
-    }
-  ],
-  "rendimentos_aplicacoes": [
-    {
-      "tipo": "Aplicação Financeira",
-      "valor": 8301.32
-    },
-    {
-      "tipo": "Aplicação Financeira",
-      "valor": 3319.56
-    }
-  ],
-  "total_rendimentos": 283685.4,
-  "pagamentos_deductibles": [
-    {
-      "descricao": "11 LEIR MIRANDA ESTEVES 786.538.606-06 400,00 0,00",
-      "valor": 400.0
-    },
-    {
-      "descricao": "21 BEEP SERVICOS MEDICOS LTDA 28.286.170/0001-01 275,00 0,00",
-      "valor": 275.0
-    },
-    {
-      "descricao": "21 HT SARAGIOTTO SERVICOS MEDICOS 47.078.968/0001-02 600,00 0,00",
-      "valor": 600.0
-    },
-    {
-      "descricao": "26 SUL AMERICA SERVICOS DE SAUDE 02.866.602/0001-51 190,54 0,00",
-      "valor": 190.54
-    },
-    {
-      "descricao": "71 GRPQA LTDA 16.788.643/0001-81 13.726,94 0,00",
-      "valor": 13726.94
-    }
-  ],
-  "total_deducoes": 15192.48
+  "rendimentos": {
+    "pj_salario": null,
+    "pj_total": null,
+    "alugueis": 0.0,
+    "financeiros": null,
+    "outros": null
+  },
+  "deductions": {
+    "contribuicao_previdenciaria": null,
+    "pagamentos_deductiveis": null
+  },
+  "extraction_date": "2026-04-08T10:11:57.703264",
+  "declarante": {
+    "nome": "MARIANA FERREIRA CAMPOS",
+    "cpf": "085.052.396-60"
+  }
 }
