@@ -2550,16 +2550,25 @@ def validate_result(result: Dict[str, Any], file_path: Path, is_csv: bool = Fals
 
     # Check transactions vs file size
     if is_csv:
-        # For CSV: check line count instead of PDF pages
+        # For CSV/XLS: check file size heuristic
         try:
             total_chars = file_path.stat().st_size
         except Exception:
             total_chars = 0
-        if n_tx == 0 and total_chars > 500:
-            is_empty_period = any("sem lançamentos" in n.lower() for n in result.get("notas", []))
+
+        # XLS binary format has ~36KB overhead even for empty files — raise threshold
+        is_xls = str(file_path).endswith(".xls")
+        size_threshold = 40000 if is_xls else 500  # 40KB for XLS, 500B for CSV
+
+        if n_tx == 0 and total_chars > size_threshold:
+            notas_lower = [n.lower() for n in result.get("notas", [])]
+            is_empty_period = any(
+                "sem lançamentos" in n or "sem movimentação" in n
+                for n in notas_lower
+            )
             if not is_empty_period:
                 issues.append(
-                    f"ERROR: 0 transações extraídas de CSV com {total_chars} bytes "
+                    f"ERROR: 0 transações extraídas de {'XLS' if is_xls else 'CSV'} com {total_chars} bytes "
                     f"— provável falha de parsing"
                 )
     else:
@@ -2574,9 +2583,12 @@ def validate_result(result: Dict[str, Any], file_path: Path, is_csv: bool = Fals
         # Heuristic: if PDF has significant text content but 0 transactions,
         # it's likely a parsing failure unless explicitly noted
         if n_tx == 0 and total_chars > 500 and n_pages > 0:
-            is_dormant = any("sem movimentação" in n.lower() for n in result.get("notas", []))
-            is_empty_period = any("sem lançamentos" in n.lower() for n in result.get("notas", []))
-            if not is_dormant and not is_empty_period:
+            notas_lower = [n.lower() for n in result.get("notas", [])]
+            is_dormant = any(
+                "sem movimentação" in n or "sem lançamentos" in n
+                for n in notas_lower
+            )
+            if not is_dormant:
                 issues.append(
                     f"ERROR: 0 transações extraídas de PDF com {total_chars} chars / "
                     f"{n_pages} páginas — provável falha de parsing"

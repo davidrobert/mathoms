@@ -2353,15 +2353,5 @@
         "conclusion": "Fluxo mensal oscila entre déficit (–R$ 29k em dez/2025) e superávit (R$ 55k em mar/2026), com média de +R$ 15k/mês. Variações refletem aluguéis (sazonalidade e revisões de contratos), receita PJ (Arvo + BrandLovers com ciclos irregulares) e despesas concentradas em períodos de férias/viagens. Estratégia: automatizar aporte mínimo de R$ 20k/mês via TED programada no dia 5, usando superávits para resgate de oportunidades ou reforço em meses de déficit."
       }
     }
-  },
-  "review_metadata": {
-    "strategic_insights": [
-      "Família possui fluxo de caixa volátil (oscila entre –R$ 29k e +R$ 55k) devido a receita PJ irregular e sazonalidade de aluguéis, mas sustenta aporte de R$ 20k/mês via TED automatizada sem afetar liquidez de emergência.",
-      "Concentração em imóveis (71,4%) reduz risco de mercado de capitais, mas limita flexibilidade em cenários de desaceleração imobiliária. Recomendação: diversificar 5-10pp para infraestrutura (IFIX) ou juros reais (IPCA+) em próxima rebalanceamento.",
-      "Custos EUA (US$ 3,9k/mês + R$ 8,9k BR) competem com meta IF em 2035 — decisão sobre timing (2026 vs 2027) impacta 1-2 anos de prazo. Recomendação: cenário split (1-2 anos learning com F1/F2, depois permanência) reduz risco operacional e mantém flexibilidade.",
-      "Taxa de poupança negativa (–37,4% recorrente) é artificialmente deprimida por one-time Kiwify (R$ 462k) — recorrente real é +23,1%. Mensagem: fluxo é saudável, mas comunicar claramente nos checkpoints trimestrais para evitar ansiedade."
-    ],
-    "e7_timestamp": "2026-04-08T18:05:30.951640",
-    "e7_version": "1.0"
   }
 }
