@@ -262,23 +262,80 @@ _DEDUP_PIX_CONCAT_RE = re.compile(
     re.IGNORECASE
 )
 
+# v5.7.2: C6 Bank CSV concatenation — the CSV export sometimes merges the description
+# of the NEXT transaction onto the current one (no separator). Common patterns:
+#   "Pix enviado para RUBENS DE CAMPOS C6TAG ESTACIONAMENTO"
+#   "JUROS CHEQUE ESP C6TAG ESTACIONAMENTO"
+#   "C6TAG ESTACIONAMENTO C6TAG PEDAGIO"
+#   "Pix enviado para X Belt Academy"
+#   "Pix enviado para X SEGURO CONTA C6"
+#   "Pix enviado para X IOF CHEQUE ESPECIAL"
+#   "Pix enviado para X Boleto"
+#   "Pix enviado para X Pix estornado"
+# We detect known "next-transaction start" markers and truncate there.
+_DEDUP_CSV_CONCAT_MARKERS = [
+    'C6TAG',
+    'Pix enviado',
+    'Pix recebido',
+    'Belt Academy',
+    'SEGURO CONTA C6',
+    'IOF CHEQUE ESPECIAL',
+    'IOF DESPESA',
+    'Boleto',
+    'Pix estornado',
+    'Pix recusado',
+    'Anuidade Diferenciada',
+]
+
 
 def _normalize_description_for_dedup(descricao: str) -> str:
     """
     Normalize a transaction description for deduplication purposes.
     Handles C6 Bank-specific formatting differences between overlapping extracts:
-    1. Remove "— TRANSF ENVIADA/RECEBIDA PIX" suffix
+    1. Remove "—" suffix (PDF format annotations)
     2. Truncate concatenated PIX descriptions (keep only first segment)
-    3. Collapse multiple whitespace
-    4. Uppercase
+    3. Strip concatenated next-transaction markers from CSV (C6TAG, Boleto, etc.)
+    4. Normalize Unicode (fix Itaú mojibake: "VeÃculo" → "VEICULO")
+    5. Collapse multiple whitespace and uppercase
     """
-    # Step 1: Remove suffix
+    # Step 1: Remove "—" suffix (PDF export annotations)
     descricao = _DEDUP_SUFFIX_RE.sub('', descricao)
-    # Step 2: Truncate at second PIX operation
+
+    # Step 2: Truncate at second PIX operation (CSV merges consecutive PIX)
     m = _DEDUP_PIX_CONCAT_RE.match(descricao)
     if m:
         descricao = m.group(1)
-    # Step 3: Collapse whitespace and uppercase
+
+    # Step 3: Strip concatenated next-transaction markers from CSV.
+    # For each marker, if it appears INSIDE the description (not at the very start),
+    # truncate everything from the marker onwards.
+    # For markers at the start (e.g. "C6TAG ESTACIONAMENTO C6TAG PEDAGIO"),
+    # find the SECOND occurrence and truncate there.
+    desc_upper = descricao.upper()
+    for marker in _DEDUP_CSV_CONCAT_MARKERS:
+        marker_upper = marker.upper()
+        first_pos = desc_upper.find(marker_upper)
+        if first_pos < 0:
+            continue
+        if first_pos > 0:
+            # Marker is not at the start — truncate everything from marker
+            descricao = descricao[:first_pos].rstrip()
+            desc_upper = descricao.upper()
+        else:
+            # Marker IS at the start — look for second occurrence
+            second_pos = desc_upper.find(marker_upper, first_pos + len(marker_upper))
+            if second_pos > 0:
+                descricao = descricao[:second_pos].rstrip()
+                desc_upper = descricao.upper()
+
+    # Step 4: Normalize Unicode to ASCII (fixes Itaú mojibake: "VeÃculo" → "VECULO")
+    # Drop ALL non-ASCII characters. This handles both:
+    #   - Real accents: "í" → dropped, "ã" → dropped (acceptable for dedup)
+    #   - Mojibake artifacts: "Ã" (from broken UTF-8) → dropped
+    # Since both sides of a duplicate lose the same accent chars, signatures still match.
+    descricao = descricao.encode('ascii', 'ignore').decode('ascii')
+
+    # Step 5: Collapse whitespace and uppercase
     descricao = re.sub(r'\s+', ' ', descricao).strip().upper()
     return descricao
 

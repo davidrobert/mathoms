@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "timestamp": "2026-04-08T10:36:49.666126",
+    "timestamp": "2026-04-08T12:03:32.509195",
     "e7_version": "1.0",
     "persona_summary": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada na metodologia \"Viver de "
   },
@@ -35,7 +35,7 @@
         "name": "Fluxo de caixa aritmética",
         "severity": "info",
         "passed": true,
-        "details": "Receita (1,228,463) - Despesa (1,141,714) = 86,749, reportado: 86,749",
+        "details": "Receita (1,363,779) - Despesa (1,141,714) = 222,064, reportado: 222,064",
         "sections": [
           "fluxo_caixa"
         ]
@@ -45,7 +45,7 @@
         "name": "Taxa poupança recorrente",
         "severity": "info",
         "passed": true,
-        "details": "Calculada: -44.3%, reportada: -44.3%, diff: 0.0pp",
+        "details": "Calculada: -23.2%, reportada: -23.2%, diff: 0.0pp",
         "sections": [
           "ratios",
           "fluxo_caixa"
@@ -334,6 +334,6 @@
     "score_label": "Bom",
     "patrimonio_bruto": 3969294.14,
     "patrimonio_investivel": 2744996.68,
-    "fluxo_liquido": 86748.56
+    "fluxo_liquido": 222064.49
   }
 }

@@ -16,8 +16,8 @@
     "itau_extratoconta_202507-2_extract.json",
     "itau_extratoconta_202601-2_extract.json"
   ],
-  "transacoes_total": 109,
-  "transacoes_duplicadas_removidas": 29,
+  "transacoes_total": 104,
+  "transacoes_duplicadas_removidas": 34,
   "transacoes": [
     {
       "data": "2025-05-02",
@@ -406,36 +406,6 @@
     },
     {
       "data": "2026-01-12",
-      "descricao": "PAG Multa de VeÃculo",
-      "valor": -682.06
-    },
-    {
-      "data": "2026-01-12",
-      "descricao": "PAG Multa de VeÃculo Renainf",
-      "valor": -317.56
-    },
-    {
-      "data": "2026-01-12",
-      "descricao": "PAG Licenciamento de VeÃculo",
-      "valor": -174.08
-    },
-    {
-      "data": "2026-01-12",
-      "descricao": "PAGTO Multa de VeÃculo",
-      "valor": -142.27
-    },
-    {
-      "data": "2026-01-12",
-      "descricao": "PAGTO Licenciamento de VeÃculo",
-      "valor": -174.08
-    },
-    {
-      "data": "2026-01-12",
-      "descricao": "JUROS LIMITE DA CONTA",
-      "valor": -374.73
-    },
-    {
-      "data": "2026-01-12",
       "descricao": "PAG Multa de Veículo",
       "valor": -682.06
     },
@@ -458,6 +428,11 @@
       "data": "2026-01-12",
       "descricao": "PAGTO Licenciamento de Veículo",
       "valor": -174.08
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "JUROS LIMITE DA CONTA",
+      "valor": -374.73
     },
     {
       "data": "2026-01-27",

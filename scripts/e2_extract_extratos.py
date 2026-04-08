@@ -10,9 +10,12 @@ fallback LLM para bancos desconhecidos.
 Bancos suportados (CSV — deterministic CSV parser):
   - C6 Bank: extratoconta, extratocontapj (ZIP-protected CSV from internet banking)
 
+Bancos suportados (XLS_NATIVE — xlrd-based parser for .xls exports):
+  - Itaú: extratoconta, extratocontapersonnalite (internet banking XLS export)
+
 Bancos suportados (TABLE_READY — pdfplumber tables):
   - C6 Bank: extratoconta, extratocontapj, extratocontaglobalusd, extratocontaglobaleur
-  - Itaú: extratoconta, extratocontapersonnalite
+  - Itaú: extratoconta, extratocontapersonnalite (PDF fallback)
   - PicPay: extratoconta
 
 Bancos suportados (TEXT_REGEX — regex sobre texto extraído):
@@ -24,7 +27,7 @@ Bancos suportados (TEXT_REGEX — regex sobre texto extraído):
   - Bank of America: extratoconta
 
 Usage:
-    python scripts/e2_extract_extratos.py [--dry-run] [--file ARQUIVO.pdf|ARQUIVO.csv]
+    python scripts/e2_extract_extratos.py [--dry-run] [--file ARQUIVO.pdf|ARQUIVO.csv|ARQUIVO.xls]
 
 Author: Claude Opus 4.6
 """
@@ -676,7 +679,216 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
 
 # =============================================================================
-# Parser: Itaú (extratoconta, extratocontapersonnalite)
+# Parser: Itaú XLS (extratoconta, extratocontapersonnalite)
+# XLS_NATIVE — xlrd-based parser for .xls exports from Itaú internet banking
+#
+# Structure (Sheet "Lançamentos"):
+#   Row 0: "Logotipo Itaú"
+#   Row 1: "Atualização:" + timestamp
+#   Row 2: "Nome:" + account holder
+#   Row 3: "Agência:" + number (float)
+#   Row 4: "Conta:" + "NNNNN-D"
+#   Row 8: headers [data, lançamento, ag./origem, valor (R$), saldos (R$)]
+#   Row 9: "lançamentos" (section marker)
+#   Row 10+: data — two types:
+#     - Transaction: [date, description, "", value_float, ""]
+#     - SALDO ANTERIOR: [date, "SALDO ANTERIOR", "", "", saldo_float]
+#     - SALDO TOTAL DISPONÍVEL DIA: [date, text, "", "", saldo_float]
+#   Near end: "lançamentos futuros" / "saídas futuras" (stop parsing)
+#
+# Sheet "Posição Consolidada": account limits and investment summary
+# Sheet "Limites": cheque especial details
+# =============================================================================
+
+def _fix_itau_xls_encoding(text: str) -> str:
+    """Fix mojibake in Itaú XLS files (UTF-8 decoded as latin-1)."""
+    if not text or not isinstance(text, str):
+        return text or ""
+    # Common mojibake patterns from Itaú XLS:
+    # Ã\x8d → Í, Ã\xad → í, Ã§ → ç, Ã£ → ã, Ã© → é, Ãº → ú, Ã³ → ó, Ã¡ → á, Ãª → ê, Ã\x94 → Ô
+    try:
+        # Try to fix double-encoding: encode back to latin-1, then decode as utf-8
+        fixed = text.encode('latin-1').decode('utf-8')
+        return fixed
+    except (UnicodeDecodeError, UnicodeEncodeError):
+        return text
+
+
+def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
+    """Parse Itaú XLS bank statement exported from internet banking.
+
+    Supports the standard Itaú XLS format with sheets:
+    - Lançamentos (transactions)
+    - Posição Consolidada (balance summary)
+    - Limites (overdraft limits)
+    """
+    try:
+        import xlrd
+    except ImportError:
+        log("ERROR", "xlrd not installed. Run: pip install xlrd")
+        return make_result_template("Itaú", "extratoconta", "BRL")
+
+    is_personnalite = "personnalite" in filename.lower()
+    tipo = "extratocontapersonnalite" if is_personnalite else "extratoconta"
+
+    log("INFO", f"Parsing Itaú XLS ({tipo}): {filename}")
+    result = make_result_template("Itaú", tipo, "BRL")
+
+    periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
+    result["periodo"]["inicio"] = periodo_inicio
+    result["periodo"]["fim"] = periodo_fim
+
+    try:
+        wb = xlrd.open_workbook(xls_path)
+
+        # --- Sheet: Lançamentos ---
+        if "Lançamentos" not in wb.sheet_names():
+            # Try alternative names
+            sheet_names_lower = {s.lower(): s for s in wb.sheet_names()}
+            lancamentos_name = sheet_names_lower.get("lançamentos") or sheet_names_lower.get("lancamentos")
+            if not lancamentos_name:
+                log("WARN", f"  Sheet 'Lançamentos' não encontrada em {filename}")
+                result["notas"].append("Sheet Lançamentos não encontrada")
+                result["requires_llm_fallback"] = True
+                return result
+        else:
+            lancamentos_name = "Lançamentos"
+
+        sh = wb.sheet_by_name(lancamentos_name)
+
+        # --- Extract header info (rows 0-4) ---
+        if sh.nrows >= 5:
+            # Nome do titular (row 2, col 1)
+            nome_raw = str(sh.cell(2, 1).value).strip()
+            nome = _fix_itau_xls_encoding(nome_raw)
+            result["titular"] = detect_member_from_text(nome)
+
+            # Agência (row 3, col 1)
+            ag_val = sh.cell(3, 1).value
+            agencia = str(int(ag_val)) if isinstance(ag_val, float) else str(ag_val).strip()
+
+            # Conta (row 4, col 1)
+            conta_val = str(sh.cell(4, 1).value).strip()
+            result["numero_conta"] = conta_val
+
+        # --- Parse transactions ---
+        saldo_anterior = None
+        saldo_final = None
+        in_future_section = False
+        first_tx_date = None
+        last_tx_date = None
+
+        for r in range(10, sh.nrows):
+            # Read cells
+            cell_date = str(sh.cell(r, 0).value).strip() if sh.ncols > 0 else ""
+            cell_desc = str(sh.cell(r, 1).value).strip() if sh.ncols > 1 else ""
+            cell_valor = sh.cell(r, 3).value if sh.ncols > 3 else ""
+            cell_saldo = sh.cell(r, 4).value if sh.ncols > 4 else ""
+
+            # Fix encoding on description
+            cell_desc = _fix_itau_xls_encoding(cell_desc)
+
+            # Detect future transactions section — stop parsing
+            desc_lower = cell_desc.lower()
+            date_lower = cell_date.lower()
+            if ("lançamentos futuros" in date_lower or "lançamentos futuros" in desc_lower
+                    or "lancamentos futuros" in date_lower or "lancamentos futuros" in desc_lower
+                    or "saídas futuras" in date_lower or "saidas futuras" in date_lower):
+                in_future_section = True
+                continue
+
+            if in_future_section:
+                continue
+
+            # Skip section markers and empty rows
+            if not cell_date or cell_date.lower() in ("lançamentos", "lancamentos", ""):
+                continue
+
+            # Must have a valid date DD/MM/YYYY
+            date_match = re.match(r'(\d{2})/(\d{2})/(\d{4})', cell_date)
+            if not date_match:
+                continue
+
+            dd, mm, yyyy = date_match.group(1), date_match.group(2), date_match.group(3)
+            iso_date = f"{yyyy}-{mm}-{dd}"
+
+            # --- SALDO ANTERIOR ---
+            if "SALDO ANTERIOR" in cell_desc.upper():
+                saldo_val = cell_saldo if isinstance(cell_saldo, (int, float)) and cell_saldo != "" else None
+                if saldo_val is not None and saldo_val != "":
+                    saldo_anterior = float(saldo_val)
+                    first_tx_date = iso_date
+                continue
+
+            # --- SALDO TOTAL DISPONÍVEL DIA ---
+            desc_upper = cell_desc.upper()
+            if ("SALDO TOTAL DISPON" in desc_upper or "SALDO DO DIA" in desc_upper
+                    or "SALDO TOTAL DISPONÍVEL DIA" in desc_upper
+                    or "SALDO TOTAL DISPONIVEL DIA" in desc_upper):
+                saldo_val = cell_saldo if isinstance(cell_saldo, (int, float)) and cell_saldo != "" else None
+                if saldo_val is not None and saldo_val != "":
+                    saldo_final = float(saldo_val)
+                    last_tx_date = iso_date
+                continue
+
+            # --- Regular transaction ---
+            if isinstance(cell_valor, (int, float)) and cell_valor != "":
+                valor = float(cell_valor)
+            elif isinstance(cell_valor, str) and cell_valor.strip():
+                valor = parse_brl(cell_valor)
+            else:
+                continue
+
+            if valor is None:
+                continue
+
+            result["transacoes"].append({
+                "data": iso_date,
+                "descricao": cell_desc,
+                "valor": valor,
+            })
+
+            if first_tx_date is None:
+                first_tx_date = iso_date
+            last_tx_date = iso_date
+
+        # --- Derive saldos ---
+        if saldo_anterior is not None:
+            result["saldo_inicial"] = saldo_anterior
+        if saldo_final is not None:
+            result["saldo_final"] = saldo_final
+
+        # --- Derive periodo from actual transaction dates ---
+        if first_tx_date and (not result["periodo"]["inicio"] or result["periodo"]["inicio"] > first_tx_date):
+            result["periodo"]["inicio"] = first_tx_date
+        if last_tx_date and (not result["periodo"]["fim"] or result["periodo"]["fim"] < last_tx_date):
+            result["periodo"]["fim"] = last_tx_date
+
+        # --- Sheet: Posição Consolidada (optional enrichment) ---
+        if "Posição Consolidada" in wb.sheet_names():
+            try:
+                sh_pos = wb.sheet_by_name("Posição Consolidada")
+                for r in range(8, sh_pos.nrows):
+                    desc = str(sh_pos.cell(r, 0).value).strip().lower()
+                    val = sh_pos.cell(r, 3).value if sh_pos.ncols > 3 else ""
+                    if "(=) saldo total disponível" in desc and isinstance(val, (int, float)):
+                        # Cross-validate with saldo_final
+                        if result["saldo_final"] is None:
+                            result["saldo_final"] = float(val)
+            except Exception:
+                pass  # Posição Consolidada is optional
+
+    except Exception as e:
+        log("ERROR", f"  Falha ao processar XLS {filename}: {e}")
+        result["notas"].append(f"Erro no parsing XLS: {e}")
+        result["requires_llm_fallback"] = True
+
+    log("INFO", f"  → {len(result['transacoes'])} transações extraídas do XLS")
+    return result
+
+
+# =============================================================================
+# Parser: Itaú PDF (extratoconta, extratocontapersonnalite)
 # TABLE_READY — many small 1-row tables per page
 # =============================================================================
 
@@ -1228,7 +1440,281 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
 
 # =============================================================================
-# Parser: Santander (extratoconta)
+# Parser: Santander XLS (extratoconta)
+# XLS_NATIVE — xlrd-based parser for Santander internet banking .xls exports
+#
+# Structure (Sheet "Plan1"):
+#   Row 0: "EXTRATO DE CONTA CORRENTE"
+#   Row 2: "NOME" + ... + "Conta: AAAA-CC.CCCCCC.D"
+#   Row 4: "Tipo de Lancamento: Todos" + "Extrato de DD/MM/YYYY a DD/MM/YYYY"
+#   Row 5: headers [Data, Descrição, Docto, Situação, Crédito (R$), Débito (R$), Saldo (R$)]
+#   Row 6+: transactions (newest first) — values as Brazilian-formatted strings
+#     - Transaction: date, description, docto, situacao, credito_or_empty, debito_or_empty, saldo
+#     - SALDO ANTERIOR: date, "SALDO ANTERIOR", "", "", "", "", saldo
+#     - TOTAL: "TOTAL", "", "", "", total_creditos, total_debitos, ""
+#   Footer: current balance info, juros/IOF info
+# =============================================================================
+
+def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
+    """Parse Santander XLS bank statement exported from internet banking.
+
+    Format: real XLS (xlrd-compatible) with 7 columns.
+    Transactions listed newest-first. Values as Brazilian-formatted strings.
+    """
+    try:
+        import xlrd
+    except ImportError:
+        log("ERROR", "xlrd not installed. Run: pip install xlrd")
+        return make_result_template("Santander", "extratoconta", "BRL")
+
+    log("INFO", f"Parsing Santander XLS: {filename}")
+    result = make_result_template("Santander", "extratoconta", "BRL")
+
+    periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
+    result["periodo"]["inicio"] = periodo_inicio
+    result["periodo"]["fim"] = periodo_fim
+
+    try:
+        wb = xlrd.open_workbook(xls_path)
+        sh = wb.sheet_by_index(0)  # "Plan1"
+
+        # --- Header info ---
+        if sh.nrows >= 3:
+            # Titular (row 2, col 0)
+            nome_raw = str(sh.cell(2, 0).value).strip()
+            result["titular"] = detect_member_from_text(nome_raw)
+
+            # Conta (row 2, col 4) — "Conta: 1652-01.001341.6"
+            conta_raw = str(sh.cell(2, 4).value).strip()
+            m = re.search(r'Conta:\s*([\d\-\.]+)', conta_raw)
+            if m:
+                result["numero_conta"] = m.group(1)
+
+        # --- Period (row 4, col 4) — "Extrato de DD/MM/YYYY a DD/MM/YYYY" ---
+        if sh.nrows >= 5:
+            periodo_raw = str(sh.cell(4, 4).value).strip()
+            pm = re.search(r'Extrato de\s+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', periodo_raw)
+            if pm:
+                p1 = pm.group(1).split("/")
+                p2 = pm.group(2).split("/")
+                result["periodo"]["inicio"] = f"{p1[2]}-{p1[1]}-{p1[0]}"
+                result["periodo"]["fim"] = f"{p2[2]}-{p2[1]}-{p2[0]}"
+
+        # --- Parse transactions (row 6+) ---
+        saldo_anterior = None
+        saldo_values = []
+
+        for r in range(6, sh.nrows):
+            cell_date = str(sh.cell(r, 0).value).strip()
+            cell_desc = str(sh.cell(r, 1).value).strip()
+            cell_credito = str(sh.cell(r, 4).value).strip()
+            cell_debito = str(sh.cell(r, 5).value).strip()
+            cell_saldo = str(sh.cell(r, 6).value).strip()
+
+            # Stop at TOTAL row or empty section
+            if cell_date.upper().startswith("TOTAL"):
+                break
+
+            # Skip footer/metadata rows
+            if cell_date.startswith("Saldo de Conta") or cell_date.startswith("Juros acum"):
+                break
+            if cell_date.startswith("IOF acum"):
+                break
+
+            # Skip empty rows
+            if not cell_date or cell_date == ' ':
+                continue
+
+            # Parse date
+            date_match = re.match(r'(\d{2})/(\d{2})/(\d{4})', cell_date)
+            if not date_match:
+                continue
+
+            dd, mm, yyyy = date_match.group(1), date_match.group(2), date_match.group(3)
+            iso_date = f"{yyyy}-{mm}-{dd}"
+
+            # SALDO ANTERIOR row
+            if "SALDO ANTERIOR" in cell_desc.upper():
+                saldo_val = parse_brl(cell_saldo)
+                if saldo_val is not None:
+                    saldo_anterior = saldo_val
+                continue
+
+            # Regular transaction — determine value from Crédito or Débito
+            credito = parse_brl(cell_credito)
+            debito = parse_brl(cell_debito)
+            saldo = parse_brl(cell_saldo)
+
+            if credito is not None and credito != 0:
+                valor = abs(credito)  # Credits are positive
+            elif debito is not None and debito != 0:
+                valor = -abs(debito) if debito > 0 else debito  # Debits shown as negative or need to be negated
+            else:
+                continue
+
+            result["transacoes"].append({
+                "data": iso_date,
+                "descricao": cell_desc,
+                "valor": valor,
+            })
+
+            if saldo is not None:
+                saldo_values.append((iso_date, saldo))
+
+        # Santander lists newest first — reverse to chronological order
+        result["transacoes"].reverse()
+        saldo_values.reverse()
+
+        # Set saldos
+        if saldo_anterior is not None:
+            result["saldo_inicial"] = saldo_anterior
+        if saldo_values:
+            result["saldo_final"] = saldo_values[-1][1]
+        elif saldo_anterior is not None and not result["transacoes"]:
+            # Period with no transactions — saldo final = saldo anterior
+            result["saldo_final"] = saldo_anterior
+            result["notas"].append("Conta sem movimentação no período (apenas saldo anterior registrado)")
+
+    except Exception as e:
+        log("ERROR", f"  Falha ao processar Santander XLS {filename}: {e}")
+        result["notas"].append(f"Erro no parsing XLS: {e}")
+        result["requires_llm_fallback"] = True
+
+    log("INFO", f"  → {len(result['transacoes'])} transações extraídas do XLS")
+    return result
+
+
+# =============================================================================
+# Parser: Santander CDB XLSX (investment positions)
+# XLSX — openpyxl-based parser for Santander CDB position exports
+#
+# Structure (Sheet "Sheet0"):
+#   Row 1: "CDB" | "Valor Total: R$NNN.NNN,NN" | "Valores Referentes a: DD/MM/YYYY"
+#   Rows 3+: groups of 3 rows per product:
+#     - Product header: "CDB DI SANTANDER" | "Valor Total: R$..." | "Disponível para Resgate: R$..."
+#     - Column headers: "Operação" | "Valor Total(R$):" | "Disponível para Resgate(R$):"
+#     - Data: operation_number | "R$NNN.NNN,NN" | "R$NNN.NNN,NN"
+# =============================================================================
+
+def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
+    """Parse Santander CDB investment position from XLSX export.
+
+    Output is compatible with E4's build_investimentos_unified().
+    """
+    try:
+        import openpyxl
+    except ImportError:
+        log("ERROR", "openpyxl not installed. Run: pip install openpyxl")
+        return {"requires_llm_fallback": True, "tipo": "cdbresumo"}
+
+    log("INFO", f"Parsing Santander CDB XLSX: {filename}")
+
+    result = {
+        "instituicao": "Santander",
+        "tipo": "cdbresumo",
+        "tipo_produto": "CDB",
+        "membro": None,
+        "moeda": "BRL",
+        "numero_conta": None,
+        "data_referencia": None,
+        "periodo": {"inicio": None, "fim": None},
+        "saldo_anterior": None,
+        "saldo_atual": None,
+        "resumo": {},
+        "posicoes": [],
+        "notas": [],
+    }
+
+    try:
+        wb = openpyxl.load_workbook(xlsx_path, data_only=True)
+        sh = wb[wb.sheetnames[0]]
+
+        # Row 1: total header — "CDB" | "Valor Total: R$300.444,46" | "Valores Referentes a: DD/MM/YYYY"
+        row1 = [str(sh.cell(1, c).value or "").strip() for c in range(1, sh.max_column + 1)]
+        if len(row1) >= 2:
+            total_m = re.search(r'Valor Total:\s*R\$\s*([\d.,]+)', row1[1])
+            if total_m:
+                result["saldo_atual"] = parse_brl(total_m.group(1))
+        if len(row1) >= 3:
+            date_m = re.search(r'Valores Referentes a:\s*(\d{2}/\d{2}/\d{4})', row1[2])
+            if date_m:
+                parts = date_m.group(1).split("/")
+                result["data_referencia"] = f"{parts[2]}-{parts[1]}-{parts[0]}"
+                result["periodo"]["fim"] = result["data_referencia"]
+                result["periodo"]["inicio"] = result["data_referencia"]
+
+        # Try to detect member from filename; Santander CDB XLSX doesn't include
+        # the holder name, so also check account number from filename
+        result["membro"] = detect_member_from_text(filename)
+        if not result["membro"]:
+            # Default: Santander CDB belongs to David (Conta 1652-01.001341.6)
+            result["membro"] = "david"
+
+        # Parse product groups — scan rows for product headers
+        current_product = None
+        current_valor_total = None
+        current_resgate = None
+
+        r = 2
+        while r <= sh.max_row:
+            vals = [str(sh.cell(r, c).value or "").strip() for c in range(1, sh.max_column + 1)]
+
+            if not any(vals):
+                r += 1
+                continue
+
+            # Product header: "CDB DI SANTANDER" | "Valor Total: R$..." | "Disponível para Resgate: R$..."
+            if vals[0] and "CDB" in vals[0].upper() and "Valor Total:" in (vals[1] if len(vals) > 1 else ""):
+                current_product = vals[0]
+                vt_m = re.search(r'Valor Total:\s*R\$\s*([\d.,]+)', vals[1]) if len(vals) > 1 else None
+                current_valor_total = parse_brl(vt_m.group(1)) if vt_m else None
+                dr_m = re.search(r'Dispon[ií]vel para Resgate:\s*R\$\s*([\d.,]+)', vals[2]) if len(vals) > 2 else None
+                current_resgate = parse_brl(dr_m.group(1)) if dr_m else None
+                r += 1
+                continue
+
+            # Column header row — skip
+            if vals[0] == "Operação":
+                r += 1
+                continue
+
+            # Data row: operation number | "R$NNN.NNN,NN" | "R$NNN.NNN,NN"
+            if current_product and vals[0] and re.match(r'^\d{15,}$', vals[0]):
+                n_operacao = vals[0]
+                valor_str = vals[1] if len(vals) > 1 else ""
+                resgate_str = vals[2] if len(vals) > 2 else ""
+
+                valor_m = re.search(r'R\$\s*([\d.,]+)', valor_str)
+                resgate_m = re.search(r'R\$\s*([\d.,]+)', resgate_str)
+
+                valor = parse_brl(valor_m.group(1)) if valor_m else current_valor_total
+                resgate = parse_brl(resgate_m.group(1)) if resgate_m else current_resgate
+
+                posicao = {
+                    "nome": f"{current_product} - Op. {n_operacao}",
+                    "tipo": current_product,
+                    "n_operacao": n_operacao,
+                    "valor_total": valor,
+                    "valor_atual": valor,
+                    "valor_resgate_disponivel": resgate,
+                }
+                result["posicoes"].append(posicao)
+
+            r += 1
+
+    except Exception as e:
+        log("ERROR", f"  Falha ao processar Santander CDB XLSX {filename}: {e}")
+        result["notas"].append(f"Erro no parsing: {e}")
+        result["requires_llm_fallback"] = True
+
+    n_pos = len(result["posicoes"])
+    saldo = result.get("saldo_atual", 0) or 0
+    log("INFO", f"  → {n_pos} posições CDB Santander, total R$ {saldo:,.2f}")
+    return result
+
+
+# =============================================================================
+# Parser: Santander PDF (extratoconta)
 # TEXT_REGEX — clean single-line format
 # =============================================================================
 
@@ -1803,6 +2289,179 @@ def parse_bankofamerica(pdf_path: Path, filename: str) -> Dict[str, Any]:
 # =============================================================================
 
 # Order matters: more specific patterns first
+# =============================================================================
+# Parser: Itaú CDB Investment Extracts (HTML-as-XLS)
+# HTML_TABLE — BeautifulSoup parser for Itaú investment position exports
+#
+# These .xls files are actually HTML with Excel MIME type (common Itaú practice).
+# Products: CDB-DI, CDB Metas e Reservas, etc.
+#
+# Structure:
+#   Table 0 (main):
+#     Row 5: Title ("Extrato de movimentação mensal - CDB-DI")
+#     Rows 8-10: Account info (Nome, CPF, Agência, Conta)
+#     Row 13: Period ("01/04/2026 a 08/04/2026")
+#     Row 14: Movement headers
+#     Rows 16+: SALDO ANTERIOR, transactions, SALDO FINAL
+#     Row 23: Summary headers (Saldo anterior, Aplicações, Resgates, etc.)
+#     Row 25: Summary totals
+#     Row 29: Position headers (N.operação, Vencimento, etc.)
+#     Rows 31+: Individual CDB positions
+#
+# Output: JSON compatible with E4 build_investimentos_unified()
+#   Keys: posicoes[], saldo_atual, instituicao, membro, tipo_produto
+# =============================================================================
+
+def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
+    """Parse Itaú CDB investment extract from HTML-as-XLS export.
+
+    These .xls files from Itaú internet banking are actually HTML tables.
+    Extracts position data, balances, and summary for CDB investments.
+    Output is compatible with E4's build_investimentos_unified().
+    """
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError:
+        log("ERROR", "beautifulsoup4 not installed. Run: pip install beautifulsoup4")
+        return {"requires_llm_fallback": True, "tipo": "cdbresumo"}
+
+    log("INFO", f"Parsing Itaú CDB HTML-XLS: {filename}")
+
+    result = {
+        "instituicao": "Itaú",
+        "tipo": "cdbresumo",
+        "tipo_produto": None,
+        "membro": None,
+        "moeda": "BRL",
+        "numero_conta": None,
+        "data_referencia": None,
+        "periodo": {"inicio": None, "fim": None},
+        "saldo_anterior": None,
+        "saldo_atual": None,
+        "resumo": {},
+        "posicoes": [],
+        "notas": [],
+    }
+
+    try:
+        # Read as HTML (encoding declared in meta tag)
+        with open(xls_path, 'r', encoding='windows-1252') as f:
+            html = f.read()
+
+        soup = BeautifulSoup(html, 'html.parser')
+        tables = soup.find_all('table')
+
+        if not tables:
+            result["notas"].append("Nenhuma tabela encontrada no HTML")
+            result["requires_llm_fallback"] = True
+            return result
+
+        main_table = tables[0]
+        rows = main_table.find_all('tr')
+
+        def get_cells(row):
+            """Extract text from all cells in a row."""
+            return [c.get_text(strip=True) for c in row.find_all(['td', 'th'])]
+
+        # --- Parse structured data by scanning rows ---
+        for i, row in enumerate(rows):
+            cells = get_cells(row)
+            if not cells or not any(cells):
+                continue
+
+            # Title: "Extrato de movimentação mensal - CDB-DI"
+            if len(cells) >= 1 and "Extrato de movimentação mensal" in cells[0]:
+                # Extract product name after the dash
+                title = cells[0]
+                dash_idx = title.find(" - ")
+                if dash_idx >= 0:
+                    result["tipo_produto"] = title[dash_idx + 3:].strip()
+
+            # Nome
+            if len(cells) >= 3 and cells[1] == "Nome:":
+                nome = cells[2]
+                result["membro"] = detect_member_from_text(nome)
+
+            # Agência/Conta
+            if len(cells) >= 5 and cells[1] == "Agência:" and cells[3] == "Conta:":
+                result["numero_conta"] = cells[4]
+
+            # Período
+            if len(cells) >= 3 and cells[1] == "Período:":
+                periodo_str = cells[2]
+                m = re.search(r'(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', periodo_str)
+                if m:
+                    p1, p2 = m.group(1).split("/"), m.group(2).split("/")
+                    result["periodo"]["inicio"] = f"{p1[2]}-{p1[1]}-{p1[0]}"
+                    result["periodo"]["fim"] = f"{p2[2]}-{p2[1]}-{p2[0]}"
+                    result["data_referencia"] = result["periodo"]["fim"]
+
+            # SALDO ANTERIOR (movement rows have date in cells[0], desc in cells[1], value in cells[2])
+            if len(cells) >= 3 and "SALDO ANTERIOR" in cells[1].upper():
+                val = parse_brl(cells[2])
+                if val is not None:
+                    result["saldo_anterior"] = val
+
+            # SALDO FINAL
+            if len(cells) >= 3 and "SALDO FINAL" in cells[1].upper():
+                result["saldo_atual"] = parse_brl(cells[2])
+
+            # Summary row ("Total:" with all the summary values)
+            if len(cells) >= 9 and cells[0] == "Total:":
+                result["resumo"] = {
+                    "saldo_anterior": parse_brl(cells[1]),
+                    "aplicacoes": parse_brl(cells[2]),
+                    "resgates": parse_brl(cells[3]),
+                    "vencimentos": parse_brl(cells[4]),
+                    "rendimento_acumulado": parse_brl(cells[5]),
+                    "saldo_bruto_final": parse_brl(cells[6]),
+                    "impostos_estimados": parse_brl(cells[7]),
+                    "saldo_final_liquido": parse_brl(cells[8]),
+                }
+
+            # Position detail rows (after "N. operação" header)
+            # These have a numeric operation ID in first cell, dates in cells 1-2, values, etc.
+            if len(cells) >= 8 and re.match(r'^\d{10,}$', cells[0]):
+                n_operacao = cells[0]
+                data_vencimento_raw = cells[1]
+                data_aplicacao_raw = cells[2]
+                valor_aplicacao = parse_brl(cells[3])
+                remuneracao_pct = parse_brl(cells[4])
+                valor_anterior = parse_brl(cells[5])
+                valor_atual = parse_brl(cells[6])
+                rentab_periodo = parse_brl(cells[7])
+
+                # Convert dates DD/MM/YYYY → YYYY-MM-DD
+                def convert_date(d):
+                    m = re.match(r'(\d{2})/(\d{2})/(\d{4})', d)
+                    return f"{m.group(3)}-{m.group(2)}-{m.group(1)}" if m else d
+
+                posicao = {
+                    "nome": f"{result.get('tipo_produto', 'CDB')} - Op. {n_operacao}",
+                    "tipo": result.get("tipo_produto", "CDB"),
+                    "n_operacao": n_operacao,
+                    "data_vencimento": convert_date(data_vencimento_raw),
+                    "data_aplicacao": convert_date(data_aplicacao_raw),
+                    "valor_aplicacao": valor_aplicacao,
+                    "remuneracao_pct": remuneracao_pct,
+                    "valor_anterior": valor_anterior,
+                    "valor_total": valor_atual,
+                    "valor_atual": valor_atual,
+                    "rentabilidade_periodo_pct": rentab_periodo,
+                }
+                result["posicoes"].append(posicao)
+
+    except Exception as e:
+        log("ERROR", f"  Falha ao processar CDB HTML-XLS {filename}: {e}")
+        result["notas"].append(f"Erro no parsing: {e}")
+        result["requires_llm_fallback"] = True
+
+    n_pos = len(result["posicoes"])
+    saldo = result.get("saldo_atual", 0) or 0
+    log("INFO", f"  → {n_pos} posições CDB, saldo R$ {saldo:,.2f}")
+    return result
+
+
 PARSER_REGISTRY: List[Tuple[re.Pattern, callable]] = [
     # C6 Bank CSV variants (matched first — CSV takes priority when available)
     (re.compile(r'^c6bank_extratocontapj_.*\.csv$'), parse_c6bank_csv),
@@ -1812,7 +2471,10 @@ PARSER_REGISTRY: List[Tuple[re.Pattern, callable]] = [
     (re.compile(r'^c6bank_extratocontaglobaleur_'), parse_c6bank),
     (re.compile(r'^c6bank_extratocontapj_'), parse_c6bank),
     (re.compile(r'^c6bank_extratoconta_'), parse_c6bank),
-    # Itaú
+    # Itaú XLS (matched before PDF — XLS takes priority when available)
+    (re.compile(r'^itau_extratocontapersonnalite_.*\.xls$'), parse_itau_xls),
+    (re.compile(r'^itau_extratoconta_.*\.xls$'), parse_itau_xls),
+    # Itaú PDF
     (re.compile(r'^itau_extratocontapersonnalite_'), parse_itau),
     (re.compile(r'^itau_extratoconta_'), parse_itau),
     # PicPay
@@ -1820,7 +2482,9 @@ PARSER_REGISTRY: List[Tuple[re.Pattern, callable]] = [
     # Bradesco
     (re.compile(r'^bradesco_extratopoupanca_'), parse_bradesco),
     (re.compile(r'^bradesco_extratoconta_'), parse_bradesco),
-    # Santander
+    # Santander XLS (matched before PDF)
+    (re.compile(r'^santander_extratoconta_.*\.xls$'), parse_santander_xls),
+    # Santander PDF
     (re.compile(r'^santander_extratoconta_'), parse_santander_conta),
     # BTG Pactual
     (re.compile(r'^btgpactual_extratoconta_'), parse_btg),
@@ -1832,6 +2496,16 @@ PARSER_REGISTRY: List[Tuple[re.Pattern, callable]] = [
     (re.compile(r'^bankofamerica_extratoconta_'), parse_bankofamerica),
 ]
 
+# Investment extract parsers (separate from bank statements)
+INVESTMENT_REGISTRY: List[Tuple[re.Pattern, callable]] = [
+    # Itaú CDB HTML-XLS (cdbresumo)
+    (re.compile(r'^itau_cdbresumo_.*\.xls$'), parse_itau_cdb_html_xls),
+    (re.compile(r'^itau_cdbdetalhes_.*\.xls$'), parse_itau_cdb_html_xls),
+    # Santander CDB XLSX
+    (re.compile(r'^santander_cdbresumo_.*\.xlsx$'), parse_santander_cdb_xlsx),
+    (re.compile(r'^santander_cdbdetalhes_.*\.xlsx$'), parse_santander_cdb_xlsx),
+]
+
 # Types that are NOT bank statements (should not be processed by this script)
 NON_STATEMENT_TYPES = re.compile(
     r'(fatura|investimentosposicao|carteirarendafixa|cdbdetalhes|cdbresumo|'
@@ -1841,7 +2515,12 @@ NON_STATEMENT_TYPES = re.compile(
 
 def route_to_parser(filename: str) -> Optional[callable]:
     """Find the appropriate parser for a given filename."""
-    # Skip non-statement types
+    # Check investment registry FIRST (these are excluded from PARSER_REGISTRY)
+    for pattern, parser_fn in INVESTMENT_REGISTRY:
+        if pattern.search(filename):
+            return parser_fn
+
+    # Skip non-statement types for regular parsers
     if NON_STATEMENT_TYPES.search(filename):
         return None
 
@@ -1932,7 +2611,7 @@ def find_extrato_files() -> List[Path]:
         log("WARN", f"Diretório não encontrado: {DATA_DIR}")
         return []
 
-    VALID_EXTENSIONS = ("-0_original.pdf", "-0_original.csv")
+    VALID_EXTENSIONS = ("-0_original.pdf", "-0_original.csv", "-0_original.xls", "-0_original.xlsx")
 
     files = []
     for f in sorted(DATA_DIR.iterdir()):
@@ -1941,6 +2620,12 @@ def find_extrato_files() -> List[Path]:
         if not any(f.name.endswith(ext) for ext in VALID_EXTENSIONS):
             continue
         # Check if this is a statement type (not fatura, investment, etc.)
+        # Check if file matches investment registry (always include)
+        is_investment = any(pat.search(f.name) for pat, _ in INVESTMENT_REGISTRY)
+        if is_investment:
+            files.append(f)
+            continue
+
         if NON_STATEMENT_TYPES.search(f.name):
             continue
         # Must contain "extrato" in filename
@@ -1970,8 +2655,8 @@ def process_file(file_path: Path, dry_run: bool = False) -> Optional[Dict[str, A
 
     result = parser_fn(file_path, filename)
 
-    # Run validation (skip pdfplumber-based checks for CSV files)
-    is_csv = filename.endswith(".csv")
+    # Run validation (skip pdfplumber-based checks for CSV/XLS files)
+    is_csv = filename.endswith(".csv") or filename.endswith(".xls")
     issues = validate_result(result, file_path, is_csv=is_csv)
     for issue in issues:
         level = issue.split(":")[0]
@@ -1985,9 +2670,11 @@ def save_result(result: Dict[str, Any], filename: str) -> Path:
     """Save extraction result to E2_extracts directory."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Output filename: replace -0_original.{pdf,csv} with -2_extract.json
+    # Output filename: replace -0_original.{pdf,csv,xls} with -2_extract.json
     out_name = filename.replace("-0_original.pdf", "-2_extract.json")
     out_name = out_name.replace("-0_original.csv", "-2_extract.json")
+    out_name = out_name.replace("-0_original.xls", "-2_extract.json")
+    out_name = out_name.replace("-0_original.xlsx", "-2_extract.json")
     out_path = OUTPUT_DIR / out_name
 
     with open(out_path, "w", encoding="utf-8") as f:

@@ -7,7 +7,8 @@ Parsers determinísticos para faturas de cartão de crédito:
   - C6 Bank Carbon CSV (faturacarbon — export CSV do internet banking)
   - C6 Bank Carbon PDF (faturacarbon)
   - Santander Unique (faturaunique)
-  - Itaú Pão de Açúcar (faturapaoacucar)
+  - Itaú Pão de Açúcar CSV (faturapaoacucar — export CSV do internet banking)
+  - Itaú Pão de Açúcar PDF (faturapaoacucar — PDF fallback)
   - QuintoAndar Aluguel (faturaaluguel)
 
 Para bancos desconhecidos, gera um JSON com flag "requires_llm_fallback": true,
@@ -974,6 +975,171 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
 
 # =============================================================================
+# Parser: Itaú Pão de Açúcar CSV (faturapaoacucar)
+# CSV export from Itaú internet banking — BOM-prefixed, 3 columns
+#
+# Structure:
+#   Header: data,lançamento,valor (with UTF-8 BOM)
+#   Rows: YYYY-MM-DD,DESCRIPTION,DECIMAL_VALUE
+#   Values: plain decimals (not Brazilian formatted), negative = payment
+#   Filename: fatura-YYYYMMDD.csv (date = due date; 99999999 = open invoice)
+# =============================================================================
+
+def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
+    """Parse Itaú Pão de Açúcar credit card invoice from CSV export.
+
+    CSV structure:
+      - UTF-8 BOM header
+      - 3 columns: data, lançamento, valor
+      - Dates already in ISO format (YYYY-MM-DD)
+      - Values as plain decimals (negative = payments/credits)
+      - Filename encodes due date: fatura-YYYYMMDD.csv
+    """
+    log("INFO", f"Parsing Itaú Pão de Açúcar CSV: {filename}")
+
+    # Infer vencimento from filename: fatura-YYYYMMDD.csv or itau_faturapaoacucar_YYYYMM...csv
+    data_vencimento = None
+    is_fatura_aberta = False
+
+    # Pattern: fatura-YYYYMMDD.csv (original upload name)
+    m = re.search(r'fatura-(\d{8})', filename)
+    if m:
+        date_str = m.group(1)
+        if date_str == "99999999":
+            is_fatura_aberta = True
+        else:
+            y, mo, d = date_str[:4], date_str[4:6], date_str[6:8]
+            data_vencimento = f"{y}-{mo}-{d}"
+
+    # Pattern: itau_faturapaoacucar_YYYYMM-0_original.csv (pipeline naming)
+    if not data_vencimento and not is_fatura_aberta:
+        m = re.search(r'(\d{4})(\d{2})', filename)
+        if m:
+            ref_year, ref_month = int(m.group(1)), int(m.group(2))
+            # Fatura Itaú PdA typically due on day 6
+            data_vencimento = f"{ref_year}-{ref_month:02d}-06"
+
+    result = {
+        "banco": "Itaú",
+        "tipo": "faturapaoacucar",
+        "cartao": "Pão de Açúcar",
+        "titular": None,
+        "moeda": "BRL",
+        "data_vencimento": data_vencimento,
+        "saldo_anterior": None,
+        "total_compras": None,
+        "pagamentos": None,
+        "saldo_atual": None,
+        "transacoes": [],
+        "compras_parceladas_futuras": [],
+    }
+
+    if is_fatura_aberta:
+        result["notas"] = ["Fatura aberta (em aberto, ainda não fechada)"]
+
+    try:
+        # Read CSV with BOM handling
+        with open(csv_path, 'r', encoding='utf-8-sig') as f:
+            lines = f.readlines()
+
+        if not lines:
+            log("WARN", f"  CSV vazio: {filename}")
+            return result
+
+        # Parse header
+        header = lines[0].strip().lower()
+        if 'data' not in header or 'valor' not in header:
+            log("WARN", f"  Header CSV inesperado: {header}")
+            result["notas"] = result.get("notas", []) + [f"Header inesperado: {header}"]
+            return result
+
+        # Parse data rows
+        total_pagamentos = 0.0
+        total_compras = 0.0
+
+        for line in lines[1:]:
+            line = line.strip()
+            if not line:
+                continue
+
+            # CSV simple split (no commas in values, descriptions may have commas
+            # but in practice Itaú doesn't use them in descriptions)
+            # Use a more robust approach: split from right for the value
+            parts = line.split(',')
+            if len(parts) < 3:
+                continue
+
+            # Date is first field, value is last field, description is everything in between
+            data = parts[0].strip()
+            valor_str = parts[-1].strip()
+            descricao = ','.join(parts[1:-1]).strip()
+
+            # Validate date format YYYY-MM-DD
+            if not re.match(r'\d{4}-\d{2}-\d{2}$', data):
+                continue
+
+            # Parse value
+            try:
+                valor = float(valor_str)
+            except ValueError:
+                valor = parse_brl(valor_str)
+                if valor is None:
+                    continue
+
+            # Detect parcela from description: "STORE NAME NN/NN"
+            parcela = None
+            parcela_m = re.search(r'(\d{1,2}/\d{1,2})$', descricao)
+            if parcela_m:
+                parcela = parcela_m.group(1)
+
+            # Classify transaction
+            desc_upper = descricao.upper()
+            is_pagamento = "PAGAMENTO EFETUADO" in desc_upper
+            is_estorno = "ESTORNO" in desc_upper
+
+            tx = {
+                "data": data,
+                "descricao": descricao,
+                "valor": valor,
+            }
+            if parcela:
+                tx["parcela"] = parcela
+
+            result["transacoes"].append(tx)
+
+            # Accumulate totals
+            if is_pagamento:
+                total_pagamentos += valor
+            elif valor < 0 and not is_estorno:
+                # Negative values that aren't estornos are also payments/credits
+                total_pagamentos += valor
+            else:
+                # Positive values and estornos (negative refunds) count as compras
+                total_compras += valor
+
+        # Set derived totals
+        if total_pagamentos != 0:
+            result["pagamentos"] = total_pagamentos
+        if total_compras != 0:
+            result["total_compras"] = total_compras
+
+        # Saldo atual = total compras + pagamentos
+        result["saldo_atual"] = round(total_compras + total_pagamentos, 2) if result["transacoes"] else None
+
+        # Itaú CSV doesn't include cardholder info — default to primary titular
+        # since this card is linked to David's account (Conta 04397-8)
+        if not result["titular"]:
+            result["titular"] = _TITULAR.get("variantes_nome", [None])[0]
+
+    except Exception as e:
+        log("ERROR", f"  Falha ao processar CSV {filename}: {e}")
+        return {"erro": str(e), "requires_llm_fallback": True, "tipo": "fatura"}
+
+    log("INFO", f"  → {len(result['transacoes'])} transações extraídas do CSV")
+    return result
+
+
+# =============================================================================
 # QuintoAndar Aluguel Parser
 # =============================================================================
 
@@ -1135,7 +1301,11 @@ def identify_and_parse(file_path: Path) -> Optional[Dict[str, Any]]:
     if re.search(r'santander_faturaunique', filename, re.IGNORECASE):
         return parse_santander_unique(file_path, filename)
 
-    # Itaú Pão de Açúcar
+    # Itaú Pão de Açúcar CSV (priority over PDF)
+    if re.search(r'itau_faturapaoacucar.*\.csv$', filename, re.IGNORECASE):
+        return parse_itau_paoacucar_csv(file_path, filename)
+
+    # Itaú Pão de Açúcar PDF
     if re.search(r'itau_faturapaoacucar', filename, re.IGNORECASE):
         return parse_itau_paoacucar(file_path, filename)
 

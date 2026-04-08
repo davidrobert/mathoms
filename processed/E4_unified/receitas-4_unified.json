@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-08T10:35:27.236267-03:00",
+  "consolidation_date": "2026-04-08T14:34:51.188347-03:00",
   "periodo": "2024-01 a 2026-03",
   "categorias": [
     "outras_receitas",
@@ -12,18 +12,18 @@
     "receita_venda_ativo"
   ],
   "total_categorias": 8,
-  "total_transacoes": 434,
+  "total_transacoes": 464,
   "totais_por_categoria": {
     "receita_investimento": 13782.880000000001,
     "receita_resgate": 27416.699999999997,
-    "receita_clt": 354769.63,
+    "receita_clt": 490085.56,
     "receita_aluguel": 104216.13,
-    "outras_receitas": 60483.84,
+    "outras_receitas": 60175.74,
     "receita_venda_ativo": 49402.0,
     "receita_pj": 618374.88,
     "receita_restituicao": 16.99
   },
-  "total_geral": 1228463.05,
+  "total_geral": 1363470.88,
   "dados": {
     "receita_investimento": [
       {
@@ -2055,6 +2055,94 @@
     ],
     "receita_clt": [
       {
+        "data": "2025-01-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-31",
+        "descricao": "tr Sal p/poup",
+        "valor": 3535.83,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-02-14",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-02-28",
+        "descricao": "tr Sal p/poup Faça recargas em seu celular pré-pago.",
+        "valor": 3483.62,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-03-14",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-03-31",
+        "descricao": "tr Sal p/poup",
+        "valor": 6598.53,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-30",
+        "descricao": "tr Sal p/poup",
+        "valor": 3574.83,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-05-02",
         "descricao": "PIX TRANSF KIWIFY 02/05",
         "valor": 62131.86,
@@ -2077,6 +2165,204 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-30",
+        "descricao": "tr Sal p/poup",
+        "valor": 3778.33,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-05",
+        "descricao": "tr Sal p/poup",
+        "valor": 4282.7,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-13",
+        "descricao": "tr Sal p/poup",
+        "valor": 2759.72,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-30",
+        "descricao": "tr Sal p/poup",
+        "valor": 2997.28,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-31",
+        "descricao": "tr Sal p/poup",
+        "valor": 3777.75,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-29",
+        "descricao": "tr Sal p/poup",
+        "valor": 4241.08,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4359.8,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "tr Sal p/poup",
+        "valor": 3954.66,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4359.8,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-31",
+        "descricao": "tr Sal p/poup",
+        "valor": 5196.53,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-14",
+        "descricao": "tr Sal p/poup",
+        "valor": 4359.8,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-27",
+        "descricao": "tr Sal p/poup",
+        "valor": 5769.9,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-28",
+        "descricao": "tr Sal p/poup",
+        "valor": 9532.78,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 2179.9,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-19",
+        "descricao": "tr Sal p/poup",
+        "valor": 2741.19,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-12-22",
         "descricao": "Pix recebido de Kiwify Pagamentos, Tecnologia e Servicos Ltda",
         "valor": 2863.38,
@@ -2084,6 +2370,83 @@
         "categoria": "receita_clt",
         "origem": "Kiwify (David - CLT)",
         "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-29",
+        "descricao": "tr Sal p/poup",
+        "valor": 2848.01,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4359.8,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-30",
+        "descricao": "tr Sal p/poup",
+        "valor": 3902.36,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-05",
+        "descricao": "tr Sal p/poup",
+        "valor": 2326.29,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-13",
+        "descricao": "tr Sal p/poup",
+        "valor": 3633.17,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-27",
+        "descricao": "tr Sal p/poup",
+        "valor": 3425.41,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-13",
+        "descricao": "tr Sal p/poup",
+        "valor": 4359.8,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
         "titular": null,
         "moeda": "BRL"
       }
@@ -3852,17 +4215,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-09-19",
-        "descricao": "Pix recebido de Douglas Camargo de Campos C6TAG PEDAGIO",
-        "valor": 100.0,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-09-20",
         "descricao": "Outros",
         "valor": 331.26,
@@ -4139,17 +4491,6 @@
       },
       {
         "data": "2025-11-24",
-        "descricao": "C6TAG PEDAG ESTORNO C6TAG PEDAGIO",
-        "valor": 8.1,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-24",
         "descricao": "Rent",
         "valor": 0.01,
         "banco": "Bradesco",
@@ -4283,17 +4624,6 @@
       {
         "data": "2026-01-01",
         "descricao": "Devol recebida pix de RAFAEL BARROSO DE CARVALHO IOF CHEQUE ESPECIAL",
-        "valor": 200.0,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-01",
-        "descricao": "Devol recebida pix de RAFAEL BARROSO DE CARVALHO",
         "valor": 200.0,
         "banco": "C6 Bank",
         "categoria": "outras_receitas",
