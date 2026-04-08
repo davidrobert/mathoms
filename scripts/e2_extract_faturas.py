@@ -6,7 +6,8 @@ E2 Fatura Extraction - Deterministic parsers for credit card invoices.
 Parsers determinísticos para faturas de cartão de crédito:
   - C6 Bank Carbon CSV (faturacarbon — export CSV do internet banking)
   - C6 Bank Carbon PDF (faturacarbon)
-  - Santander Unique (faturaunique)
+  - Santander Unique PDF (faturaunique)
+  - Santander Unique CSV (faturaunique — export CSV do internet banking)
   - Itaú Pão de Açúcar CSV (faturapaoacucar — export CSV do internet banking)
   - Itaú Pão de Açúcar PDF (faturapaoacucar — PDF fallback)
   - QuintoAndar Aluguel (faturaaluguel)
@@ -369,6 +370,149 @@ def _detect_member_from_card_name(nome_cartao: str) -> Optional[str]:
             if nome_upper in variant.upper() or variant.upper().startswith(nome_upper):
                 return mdata.get("variantes_nome", [variant])[0]
     return None
+
+
+# =============================================================================
+# Santander Unique CSV Parser
+# CSV export from Santander internet banking
+# Separator: comma (,)
+# Columns: data,lançamento,valor
+# Date format: YYYY-MM-DD
+# Valor: decimal point, negative for payments/credits
+# File has UTF-8 BOM
+# =============================================================================
+
+def parse_santander_fatura_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
+    """Parse Santander Unique credit card invoice from CSV export.
+
+    CSV structure:
+      - UTF-8 BOM header
+      - Separator: comma (,)
+      - 3 columns: data, lançamento, valor
+      - Date format: YYYY-MM-DD
+      - Valor: float with dot as decimal separator
+      - Negative values = payments (PAGAMENTO EFETUADO) or credits (ESTORNO)
+      - Positive values = purchases/charges
+    """
+    import csv as csv_mod
+
+    log("INFO", f"Parsing Santander Unique CSV: {filename}")
+
+    result = {
+        "banco": "Santander",
+        "tipo": "faturaunique",
+        "cartao": "Unique",
+        "titular": None,
+        "moeda": "BRL",
+        "data_vencimento": None,
+        "saldo_anterior": None,
+        "total_compras": None,
+        "pagamentos": None,
+        "saldo_atual": None,
+        "transacoes": [],
+        "cartoes": [],
+    }
+
+    # Infer vencimento from filename: santander_faturaunique_YYYYMM-0_original.csv
+    ref_year = infer_year_from_filename(filename)
+    ref_month = None
+    m = re.search(r'(\d{4})(\d{2})', filename)
+    if m:
+        ref_year = int(m.group(1))
+        ref_month = int(m.group(2))
+        # Santander Unique vencimento is typically day 06 of the fatura month
+        result["data_vencimento"] = safe_date(ref_year, ref_month, 6)
+
+    # Read CSV (handle BOM)
+    raw_text = csv_path.read_text(encoding="utf-8-sig")
+    reader = csv_mod.reader(raw_text.splitlines(), delimiter=",")
+
+    # Consume header
+    header = next(reader, None)
+    if not header or "data" not in header[0].lower():
+        log("WARN", f"  Header CSV inesperado: {header}")
+        return result
+
+    total_compras = 0.0
+    total_pagamentos = 0.0
+
+    for row in reader:
+        if len(row) < 3:
+            continue
+
+        data_str = row[0].strip()
+        descricao = row[1].strip()
+        valor_str = row[2].strip()
+
+        if not data_str or not valor_str:
+            continue
+
+        # Parse date (YYYY-MM-DD format)
+        date_match = re.match(r'(\d{4})-(\d{2})-(\d{2})', data_str)
+        if not date_match:
+            # Try DD/MM/YYYY fallback
+            date_match2 = re.match(r'(\d{2})/(\d{2})/(\d{4})', data_str)
+            if date_match2:
+                iso_date = f"{date_match2.group(3)}-{date_match2.group(2)}-{date_match2.group(1)}"
+            else:
+                log("WARN", f"  Data não reconhecida: {data_str}")
+                continue
+        else:
+            iso_date = data_str
+
+        # Parse valor (dot as decimal separator in CSV)
+        try:
+            valor = float(valor_str)
+        except ValueError:
+            # Try Brazilian format (1.234,56)
+            val = parse_brl(valor_str)
+            if val is not None:
+                valor = val
+            else:
+                log("WARN", f"  Valor não reconhecido: {valor_str}")
+                continue
+
+        # Classify: negative = payment/credit, positive = purchase/debit
+        if valor < 0:
+            total_pagamentos += valor
+            tipo_txn = "pagamento" if "PAGAMENTO" in descricao.upper() else "estorno"
+        else:
+            total_compras += valor
+            tipo_txn = "compra"
+
+        # Detect IOF
+        if "IOF" in descricao.upper():
+            tipo_txn = "iof"
+
+        txn = {
+            "data": iso_date,
+            "descricao": descricao,
+            "valor": round(abs(valor), 2),
+            "tipo": tipo_txn,
+        }
+        # Keep sign convention: purchases positive, payments negative
+        if valor < 0:
+            txn["valor"] = -round(abs(valor), 2)
+
+        result["transacoes"].append(txn)
+
+    # Summary
+    result["total_compras"] = round(total_compras, 2) if total_compras else None
+    result["pagamentos"] = round(total_pagamentos, 2) if total_pagamentos else None
+    saldo = total_compras + total_pagamentos
+    result["saldo_atual"] = round(saldo, 2)
+
+    n_txns = len(result["transacoes"])
+    log("INFO", f"  → {n_txns} transações, saldo R$ {saldo:,.2f}")
+
+    # Parse quality
+    if n_txns > 0:
+        result["parse_quality"] = "ok"
+    else:
+        result["parse_quality"] = "empty_csv"
+        log("WARN", f"  CSV vazio (0 transações): {filename}")
+
+    return result
 
 
 # =============================================================================
@@ -1297,7 +1441,11 @@ def identify_and_parse(file_path: Path) -> Optional[Dict[str, Any]]:
     if re.search(r'c6bank_faturacarbon', filename, re.IGNORECASE):
         return parse_c6_carbon(file_path, filename)
 
-    # Santander Unique
+    # Santander Unique CSV (priority over PDF)
+    if re.search(r'santander_faturaunique.*\.csv$', filename, re.IGNORECASE):
+        return parse_santander_fatura_csv(file_path, filename)
+
+    # Santander Unique PDF
     if re.search(r'santander_faturaunique', filename, re.IGNORECASE):
         return parse_santander_unique(file_path, filename)
 
@@ -1410,6 +1558,20 @@ def main():
                     print(sample)
                 print()
             else:
+                # Overwrite protection: don't replace a JSON with transactions
+                # with a new result that has 0 transactions
+                if txn_count == 0 and out_path.exists():
+                    try:
+                        existing = json.loads(out_path.read_text(encoding='utf-8'))
+                        existing_txns = len(existing.get("transacoes", []))
+                        if existing_txns > 0:
+                            log("WARN", f"  SKIP: {out_path.name} já tem {existing_txns} txns; "
+                                f"não sobrescrever com resultado de 0 txns")
+                            stats["sucesso"] += 0  # don't count as success
+                            continue
+                    except (json.JSONDecodeError, IOError):
+                        pass  # existing file is corrupt/empty, OK to overwrite
+
                 with open(out_path, 'w', encoding='utf-8') as f:
                     json.dump(result, f, ensure_ascii=False, indent=2)
                 log("OK", f"  Saved: {out_path.name} ({txn_count} txns)")

@@ -354,64 +354,168 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
 
 def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
     """Build synthetic david/mariana member dicts from the v1.5 consolidated
-    baseline format (top-level lists keyed by imoveis_consolidados, etc.)."""
-    # Determine the most recent year available
+    baseline format (top-level lists keyed by imoveis_consolidados, etc.).
+
+    Handles TWO key naming conventions from E1.5:
+      - Original: imoveis_consolidados, investimentos_consolidados, dividas, patrimonio_por_ano
+      - E1.5 v2: bens_imoveis_consolidados, investimentos_financeiros_consolidados,
+                  dividas_consolidadas, resumo_patrimonial, cálculo_patrimonio_liquido
+
+    Value field resolution (tries multiple names):
+      - valores_31_12.{ano_ref}  (original format)
+      - valor_{ano_ref}          (E1.5 v2 format: valor_2024)
+      - valor                    (fallback)
+
+    Proprietário field resolution:
+      - proprietario (string)
+      - proprietarios (list) — assigns to David unless Mariana listed exclusively
+    """
+    # --- Determine ano_ref and totals ---
+    # Try original format first, then E1.5 v2
     pat_ano = baseline.get("patrimonio_por_ano", {})
-    anos = sorted(pat_ano.keys())
-    ano_ref = anos[-1] if anos else "2024"
+    if pat_ano:
+        anos = sorted(pat_ano.keys())
+        ano_ref = anos[-1] if anos else "2024"
+        ano_data = pat_ano.get(ano_ref, {})
+        total_bens = safe_float(ano_data.get("total_bens", 0))
+        total_dividas = safe_float(ano_data.get("total_dividas", 0))
+    else:
+        # E1.5 v2: use resumo_patrimonial and cálculo_patrimonio_liquido
+        resumo = baseline.get("resumo_patrimonial", {})
+        calculo = baseline.get("cálculo_patrimonio_liquido", baseline.get("calculo_patrimonio_liquido", {}))
 
-    # Totals from patrimonio_por_ano
-    ano_data = pat_ano.get(ano_ref, {})
-    total_bens = safe_float(ano_data.get("total_bens", 0))
-    total_dividas = safe_float(ano_data.get("total_dividas", 0))
+        # Find most recent year in resumo (keys like "31_12_2024")
+        ano_ref = "2024"
+        for key in sorted(resumo.keys()):
+            m = re.search(r'(\d{4})$', key)
+            if m and key != "variacao_2024":
+                ano_ref = m.group(1)
 
-    # Split imoveis by proprietario
+        # Get totals from resumo or calculo
+        resumo_key = f"31_12_{ano_ref}"
+        total_bens = safe_float(resumo.get(resumo_key, {}).get("total", 0))
+        if not total_bens and calculo:
+            total_bens = safe_float(calculo.get(ano_ref, {}).get("ativo_total", 0))
+        total_dividas = safe_float(calculo.get(ano_ref, {}).get("passivo_total", 0))
+
+    print(f"  [E5.1] ano_ref={ano_ref}, total_bens from summary=R$ {total_bens:,.2f}, total_dividas=R$ {total_dividas:,.2f}")
+
+    def _resolve_valor(item: dict, ano: str) -> float:
+        """Resolve value from item, trying multiple field names."""
+        # Try: valores_31_12.{ano} → valor_{ano} → valor
+        vals_dict = item.get("valores_31_12", {})
+        if isinstance(vals_dict, dict):
+            v = vals_dict.get(ano, vals_dict.get(f"31_12_{ano}"))
+            if v is not None:
+                return safe_float(v)
+        # E1.5 v2: valor_YYYY
+        v = item.get(f"valor_{ano}")
+        if v is not None:
+            return safe_float(v)
+        # Fallback
+        return safe_float(item.get("valor", 0))
+
+    def _is_mariana_exclusive(item: dict) -> bool:
+        """Check if item belongs exclusively to Mariana."""
+        # Check single proprietario field
+        prop = item.get("proprietario", "")
+        if isinstance(prop, str) and prop.lower() == "mariana":
+            return True
+        # Check proprietarios list — Mariana only if she's the sole owner
+        props = item.get("proprietarios", [])
+        if isinstance(props, list):
+            names_lower = [p.lower() for p in props]
+            if "mariana" in names_lower and "david" not in names_lower:
+                return True
+        return False
+
+    # --- Split imoveis by proprietario ---
+    # Accept both key names
+    imoveis_list = baseline.get("imoveis_consolidados", baseline.get("bens_imoveis_consolidados", []))
     david_imoveis, mariana_imoveis = [], []
-    for im in baseline.get("imoveis_consolidados", []):
-        val = safe_float(im.get("valores_31_12", {}).get(ano_ref, 0))
+    for im in imoveis_list:
+        val = _resolve_valor(im, ano_ref)
         entry = {
             "descricao": im.get("descricao", ""),
             "valor_31_12_ano_base": val,
         }
-        if im.get("proprietario", "").lower() == "mariana":
+        if _is_mariana_exclusive(im):
             mariana_imoveis.append(entry)
         else:
             david_imoveis.append(entry)
 
-    # Split investimentos by proprietario
-    david_inv, mariana_inv = [], []
-    for inv in baseline.get("investimentos_consolidados", []):
-        val = safe_float(inv.get("valores_31_12", {}).get(ano_ref, 0))
-        entry = {
-            "descricao": inv.get("descricao", ""),
-            "tipo": inv.get("tipo", ""),
-            "valor_31_12_ano_base": val,
-        }
-        if inv.get("proprietario", "").lower() == "mariana":
-            mariana_inv.append(entry)
-        else:
-            david_inv.append(entry)
+    # --- Split investimentos by proprietario ---
+    # Handle both formats:
+    #   Original: list of {proprietario, descricao, valores_31_12}
+    #   E1.5 v2: dict {david_YYYY: {category: value}, mariana_YYYY: {category: value}}
+    inv_raw = baseline.get("investimentos_consolidados",
+                           baseline.get("investimentos_financeiros_consolidados", {}))
 
-    # Veiculos
+    david_inv, mariana_inv = [], []
+    if isinstance(inv_raw, list):
+        # Original format: list of individual investments
+        for inv in inv_raw:
+            val = _resolve_valor(inv, ano_ref)
+            entry = {
+                "descricao": inv.get("descricao", ""),
+                "tipo": inv.get("tipo", ""),
+                "valor_31_12_ano_base": val,
+            }
+            if _is_mariana_exclusive(inv):
+                mariana_inv.append(entry)
+            else:
+                david_inv.append(entry)
+    elif isinstance(inv_raw, dict):
+        # E1.5 v2: dict with member keys like "david_2024", "mariana_2024"
+        for member_key, categories in inv_raw.items():
+            member_lower = member_key.lower()
+            if not isinstance(categories, dict):
+                continue
+            is_mariana = "mariana" in member_lower
+            for cat_name, cat_value in categories.items():
+                if cat_name in ("total",):
+                    continue  # Skip summary key
+                val = safe_float(cat_value)
+                if val == 0:
+                    continue
+                entry = {
+                    "descricao": cat_name.replace("_", " ").title(),
+                    "tipo": cat_name,
+                    "valor_31_12_ano_base": val,
+                }
+                if is_mariana:
+                    mariana_inv.append(entry)
+                else:
+                    david_inv.append(entry)
+
+    # --- Veiculos ---
     david_veiculos, mariana_veiculos = [], []
     for v in baseline.get("veiculos_consolidados", []):
-        val = safe_float(v.get("valores_31_12", {}).get(ano_ref, 0))
+        val = _resolve_valor(v, ano_ref)
         entry = {"descricao": v.get("descricao", ""), "valor_31_12_ano_base": val}
-        if v.get("proprietario", "").lower() == "mariana":
+        if _is_mariana_exclusive(v):
             mariana_veiculos.append(entry)
         else:
             david_veiculos.append(entry)
 
-    # Dividas — sum per proprietario
+    # --- Dividas — sum per proprietario ---
+    # Accept both key names
+    dividas_list = baseline.get("dividas", baseline.get("dividas_consolidadas", []))
     david_dividas, mariana_dividas = 0.0, 0.0
-    for dv in baseline.get("dividas", []):
-        val = safe_float(dv.get("saldo_31_12", {}).get(ano_ref, 0))
-        if dv.get("proprietario", "").lower() == "mariana":
+    for dv in dividas_list:
+        # Try: saldo_31_12.{ano} → valor_{ano} → valor
+        saldo = dv.get("saldo_31_12", {})
+        if isinstance(saldo, dict):
+            val = safe_float(saldo.get(ano_ref, 0))
+        else:
+            val = _resolve_valor(dv, ano_ref)
+        prop = dv.get("proprietario", "").lower()
+        if "mariana" in prop and "david" not in prop:
             mariana_dividas += val
         else:
-            david_dividas += val
+            david_dividas += val  # Shared debts assigned to david for totaling
 
-    # Sum bens per member
+    # --- Sum bens per member ---
     david_bens_total = (
         sum(safe_float(im.get("valor_31_12_ano_base", 0)) for im in david_imoveis)
         + sum(safe_float(inv.get("valor_31_12_ano_base", 0)) for inv in david_inv)
@@ -444,11 +548,13 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
         },
     }
 
-    # Sanity check: synthetic totals vs patrimonio_por_ano
+    # Sanity check: synthetic totals vs summary totals
     synthetic_total = david_bens_total + mariana_bens_total
-    if abs(synthetic_total - total_bens) > 1.0:
-        print(f"  [INFO] Synthetic total_bens (R$ {synthetic_total:,.2f}) vs patrimonio_por_ano (R$ {total_bens:,.2f})")
-        print(f"  [INFO] Using patrimonio_por_ano total_bens as authoritative")
+    print(f"  [E5.1] Synthetic total_bens: R$ {synthetic_total:,.2f} (David: R$ {david_bens_total:,.2f}, Mariana: R$ {mariana_bens_total:,.2f})")
+
+    if total_bens > 0 and abs(synthetic_total - total_bens) > 1.0:
+        print(f"  [INFO] Synthetic total_bens (R$ {synthetic_total:,.2f}) vs resumo_patrimonial (R$ {total_bens:,.2f})")
+        print(f"  [INFO] Using resumo_patrimonial total_bens as authoritative")
         # Distribute the difference proportionally or assign to david
         diff = total_bens - synthetic_total
         david_data["total_bens"] += diff

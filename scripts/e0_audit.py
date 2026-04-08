@@ -8,6 +8,10 @@ Detecta problemas de roteamento (E0) que se propagariam pelo pipeline:
   2. Arquivos órfãos (em data/ sem JSON correspondente, ou vice-versa)
   3. Possíveis duplicatas em data/ (mesmo banco+tipo+período)
   4. Cruzamento com inbox_log.md para renames suspeitos
+  5. Gaps de saldo no E3
+  6. Duplicatas por hash (conteúdo idêntico)
+  7. Colisão de nomes no inbox/
+  8. HTML disfarçado de XLS (detecção de formato)
 
 Não altera nenhum arquivo — apenas imprime um relatório.
 
@@ -609,6 +613,67 @@ def check_name_collisions() -> list[dict[str, Any]]:
 
 
 # =============================================================================
+# Check 8: HTML-disguised-as-XLS detection
+# =============================================================================
+
+def check_html_as_xls() -> list[dict[str, Any]]:
+    """Detect .xls files that are actually HTML (exported by Santander/Itaú internet banking).
+
+    Some banks export files with .xls extension that are actually HTML tables.
+    xlrd cannot read these, causing parsing failures. This check identifies them
+    so they can be handled by an HTML parser or converted before processing.
+    """
+    issues = []
+
+    # Scan all .xls files in data/ and inbox/
+    scan_dirs = [
+        DATA_DIR / "financial_statements",
+        PROJECT_DIR / "inbox",
+    ]
+
+    html_signatures = [b'<html', b'<!doctype', b'<!DOCTYPE', b'<HTML', b'<?xml']
+
+    for scan_dir in scan_dirs:
+        if not scan_dir.is_dir():
+            continue
+        for f in sorted(scan_dir.iterdir()):
+            if not f.is_file() or not f.name.lower().endswith('.xls'):
+                continue
+            if f.stat().st_size == 0:
+                continue
+
+            try:
+                # Read first 256 bytes to check file signature
+                header = f.read_bytes()[:256]
+
+                is_html = any(sig in header for sig in html_signatures)
+                if is_html:
+                    # Determine relative path for display
+                    try:
+                        rel = f.relative_to(PROJECT_DIR)
+                    except ValueError:
+                        rel = f.name
+
+                    issues.append({
+                        "file": str(rel),
+                        "issue": (
+                            f"HTML disfarçado de XLS: '{f.name}' tem extensão .xls mas é "
+                            f"na verdade um arquivo HTML. xlrd não consegue ler este formato. "
+                            f"Necessário converter via BeautifulSoup ou usar parser HTML dedicado."
+                        ),
+                        "severity": "WARNING",
+                    })
+            except Exception as e:
+                issues.append({
+                    "file": f.name,
+                    "issue": f"Erro ao verificar formato de '{f.name}': {e}",
+                    "severity": "INFO",
+                })
+
+    return issues
+
+
+# =============================================================================
 # Main
 # =============================================================================
 
@@ -620,6 +685,7 @@ ALL_CHECKS = {
     5: ("Gaps de saldo no E3", check_saldo_gaps),
     6: ("Duplicatas por hash (conteúdo idêntico)", check_hash_duplicates),
     7: ("Colisão de nomes no inbox/ (conteúdo diferente, mesmo destino)", check_name_collisions),
+    8: ("HTML disfarçado de XLS (detecção de formato)", check_html_as_xls),
 }
 
 
@@ -636,6 +702,7 @@ Checagens disponíveis:
   5 — Gaps de saldo no E3 (descontinuidade entre períodos)
   6 — Duplicatas por hash SHA-256 (conteúdo idêntico em data/ e inbox/)
   7 — Colisão de nomes no inbox/ (conteúdo diferente, mesmo nome destino)
+  8 — HTML disfarçado de XLS (detecção de formato incorreto)
 
 Exemplos:
   python scripts/e0_audit.py              # Todas as checagens

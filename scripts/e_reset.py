@@ -130,7 +130,11 @@ def move_data_and_members_to_inbox(dry_run: bool = False) -> int:
                         # Fallback: copy + truncate (mounted FS may not support move)
                         try:
                             shutil.copy2(str(child), str(dest))
-                            child.write_bytes(b"")
+                            # Write valid empty JSON instead of empty bytes to prevent parsing errors
+                            if child.suffix.lower() == '.json':
+                                child.write_text("{}")
+                            else:
+                                child.write_bytes(b"")
                             child.unlink()
                             print(f"  Movido (copy+del): data/{child.relative_to(DATA_DIR)} → inbox/{dest.name}")
                         except Exception as e2:
@@ -449,10 +453,14 @@ def delete_artifacts(files: list[Path], dry_run: bool) -> int:
                     print(f"  Removido dir: {f.relative_to(PROJECT_DIR)}")
                 except PermissionError:
                     # Truncate all files inside directory instead
+                    # Use valid empty JSON for .json files to prevent parsing errors
                     for child in f.rglob("*"):
                         if child.is_file():
                             try:
-                                child.write_text("")
+                                if child.suffix.lower() == '.json':
+                                    child.write_text("{}")
+                                else:
+                                    child.write_text("")
                             except Exception:
                                 pass
                     print(f"  Truncado conteúdo dir (sem permissão p/ deletar): {f.relative_to(PROJECT_DIR)}")
@@ -466,8 +474,12 @@ def delete_artifacts(files: list[Path], dry_run: bool) -> int:
                     print(f"  Removido: {f.relative_to(PROJECT_DIR)}")
                 except PermissionError:
                     # Fallback: truncate file when delete is not permitted (mounted FS)
+                    # Use valid empty JSON for .json files to prevent parsing errors
                     try:
-                        f.write_text("")
+                        if f.suffix.lower() == '.json':
+                            f.write_text("{}")
+                        else:
+                            f.write_text("")
                         print(f"  Truncado (sem permissão p/ deletar): {f.relative_to(PROJECT_DIR)}")
                     except Exception as e2:
                         print(f"  [AVISO] Não foi possível remover/truncar: {f.relative_to(PROJECT_DIR)} ({e2})")

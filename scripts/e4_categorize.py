@@ -270,38 +270,47 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
             if not posicoes:
                 continue
 
-            instituicao = data.get("instituicao", "")
+            instituicao = data.get("instituicao", data.get("banco", ""))
             membro = data.get("membro", "").lower()
             data_ref = data.get("data_referencia", data.get("data_posicao", data.get("periodo", "")))
-            # Support both "total" (old) and "saldo_atual" (E2 schema)
-            total_fonte = data.get("total", data.get("saldo_atual", 0))
+            # Support multiple field names for totals:
+            #   "total" (old), "saldo_atual" (E2 schema), "saldo_total" (E2-LLM output)
+            total_fonte = data.get("total", data.get("saldo_atual", data.get("saldo_total", 0)))
 
             for pos in posicoes:
                 if not isinstance(pos, dict):
                     continue
-                # Support both "valor_total" and "valor_atual" (CDB resumo format)
-                valor = pos.get("valor_total", pos.get("valor_atual", 0))
+                # Support multiple field names for position value:
+                #   "valor_total", "valor_atual" (CDB resumo), "current_value" (E2-LLM output)
+                valor = pos.get("valor_total", pos.get("valor_atual", pos.get("current_value", 0)))
                 try:
                     valor = float(valor) if valor else 0.0
                 except (ValueError, TypeError):
                     valor = 0.0
 
                 all_positions.append({
-                    "nome": pos.get("nome", ""),
-                    "tipo": pos.get("tipo", pos.get("tipo_produto", "")),
+                    "nome": pos.get("nome", pos.get("name", "")),
+                    "tipo": pos.get("tipo", pos.get("tipo_produto", pos.get("product_type", ""))),
                     "instituicao": instituicao,
                     "membro": membro,
                     "valor_atual": valor,
                     "data_referencia": data_ref,
-                    "taxa": pos.get("taxa", ""),
+                    "taxa": pos.get("taxa", pos.get("rentabilidade", "")),
                     "vencimento": pos.get("vencimento", ""),
                 })
 
             # Accumulate total by member
+            # Prefer source-level total; fallback to sum of position values
             try:
                 total_f = float(total_fonte) if total_fonte else 0.0
             except (ValueError, TypeError):
                 total_f = 0.0
+            if total_f == 0 and posicoes:
+                # Compute from individual positions as fallback
+                total_f = sum(
+                    float(p.get("valor_total", p.get("valor_atual", p.get("current_value", 0))) or 0)
+                    for p in posicoes if isinstance(p, dict)
+                )
             totals_by_member[membro] = totals_by_member.get(membro, 0.0) + total_f
             sources.append(fpath.name)
 

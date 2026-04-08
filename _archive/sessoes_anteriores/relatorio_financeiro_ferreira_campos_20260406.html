@@ -78,6 +78,15 @@
   /* Shadows */
   --shadow-card: 0 1px 3px rgba(0,0,0,0.06);
   --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.1);
+  /* Alert tokens (light) */
+  --alert-danger-bg: #FEF2F2;
+  --alert-danger-text: #991B1B;
+  --alert-warning-bg: #FFFBEB;
+  --alert-warning-text: var(--color-warning-text);
+  --alert-success-bg: #F0FDF4;
+  --alert-success-text: var(--color-accent);
+  --alert-info-bg: #EFF6FF;
+  --alert-info-text: #1E40AF;
   /* Badge tokens (light) */
   --badge-green-bg: #DCFCE7;
   --badge-green-text: var(--color-accent);
@@ -271,55 +280,6 @@ tr.total-row td { border-bottom: 2px solid var(--color-border); }
 .chart-context { font-size:var(--font-base); color:var(--color-text-muted); margin:var(--space-sm) 0 var(--space-xs); line-height:1.5; }
 .chart-conclusion { font-size:var(--font-base); color:var(--color-text); margin:var(--space-xs) 0 0; line-height:1.5;
   padding:10px 14px; background:var(--color-conclusion-bg); border-radius:var(--radius-md); border-left:3px solid var(--color-secondary); }
-
-/* Grouped chart legend (receita vs despesa) */
-/* Chart time-window navigation bar */
-.chart-nav {
-  display: flex; align-items: center; justify-content: center;
-  gap: 12px; margin-bottom: 10px; user-select: none;
-}
-.chart-nav-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border-radius: 50%;
-  border: 1.5px solid var(--color-border);
-  background: var(--color-bg); color: var(--color-text);
-  cursor: pointer; font-size: 16px; font-weight: 700;
-  transition: background 0.15s, opacity 0.15s, border-color 0.15s;
-}
-.chart-nav-btn:hover:not(:disabled) {
-  background: var(--color-accent); color: #fff; border-color: var(--color-accent);
-}
-.chart-nav-btn:disabled {
-  opacity: 0.25; cursor: default;
-}
-.chart-nav-period {
-  font-size: var(--font-sm); font-weight: 600;
-  color: var(--color-text); min-width: 140px; text-align: center;
-}
-.chart-nav-dots {
-  display: flex; gap: 5px; justify-content: center; margin-top: 8px;
-}
-.chart-nav-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--color-border); transition: background 0.2s;
-}
-.chart-nav-dot.active { background: var(--color-accent); }
-
-.chart-legend-grouped { margin-top: var(--space-sm); }
-.chart-legend-grouped .legend-group { margin-bottom: var(--space-xs); }
-.chart-legend-grouped .legend-group-title {
-  font-size: var(--font-sm); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-  color: var(--color-text-muted); margin-bottom: 4px; padding-left: 2px;
-}
-.chart-legend-grouped .legend-items { display: flex; flex-wrap: wrap; gap: 6px 14px; }
-.chart-legend-grouped .legend-item {
-  display: flex; align-items: center; gap: 5px;
-  font-size: var(--font-sm); color: var(--color-text); cursor: pointer; opacity: 1; transition: opacity 0.2s;
-}
-.chart-legend-grouped .legend-item.strikethrough { opacity: 0.35; text-decoration: line-through; }
-.chart-legend-grouped .legend-swatch {
-  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-}
 
 /* Alert boxes */
 .alert { padding:14px 18px; border-radius:var(--radius-lg); margin:var(--space-md) 0; font-size:var(--font-base); }
@@ -912,15 +872,15 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       </div>
       <div class="cover-meta-card">
         <div class="cover-meta-label">Período de Referência</div>
-        <div class="cover-meta-value">2023-01 a 2026-04</div>
+        <div class="cover-meta-value">2025-01 a 2026-03</div>
       </div>
       <div class="cover-meta-card">
         <div class="cover-meta-label">Data e Hora de Geração</div>
-        <div class="cover-meta-value">8 abr 2026, 16h51</div>
+        <div class="cover-meta-value">6 abr 2026, 11h54</div>
       </div>
       <div class="cover-meta-card">
         <div class="cover-meta-label">Versão Manual Operações</div>
-        <div class="cover-meta-value">5.7.1</div>
+        <div class="cover-meta-value">5.3</div>
       </div>
     </div>
   </div>
@@ -979,43 +939,43 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="kpi-grid">
   <div class="kpi-card">
     <div class="kpi-label">Patrimônio Bruto</div>
-    <div data-prompt="PATRIMONIO_BRUTO" class="kpi-value">R$ 2.782.886</div>
-    <div class="kpi-sub">Líquido: R$ 2.782.886</div>
+    <div data-prompt="PATRIMONIO_BRUTO" class="kpi-value">R$ 3.501.275</div>
+    <div class="kpi-sub">Líquido: R$ 3.266.482</div>
   </div>
   <div class="kpi-card kpi-hero">
     <div class="kpi-label">Patrimônio Investível</div>
-    <div data-prompt="PATRIMONIO_INVESTIVEL" class="kpi-value blue">R$ 1.558.588</div>
-    <div class="kpi-sub">56,0% do bruto</div>
+    <div data-prompt="PATRIMONIO_INVESTIVEL" class="kpi-value blue">R$ 2.276.977</div>
+    <div class="kpi-sub">65,0% do bruto</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-label">Renda Mensal</div>
-    <div data-prompt="RENDA_MENSAL" class="kpi-value green">R$ 35.008</div>
+    <div data-prompt="RENDA_MENSAL" class="kpi-value green">R$ 56.647</div>
     <div class="kpi-sub">Recorrente (exclui one-time)</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-label">Taxa de Poupança</div>
-    <div data-prompt="TAXA_POUPANCA" class="kpi-value">-41,9%</div>
-    <div class="kpi-sub">Meta projetada: 20,9%</div>
+    <div data-prompt="TAXA_POUPANCA" class="kpi-value">29,5%</div>
+    <div class="kpi-sub">Meta projetada: 51,5%</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-label">Meta Indep. Financeira</div>
     <div data-prompt="META_IF" class="kpi-value">R$ 7,2M</div>
-    <div class="kpi-sub">TRS 5% · 21% atingido</div>
+    <div class="kpi-sub">TRS 5% · 31% atingido</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-label">Gap Indep. Financeira</div>
-    <div data-prompt="GAP_IF" class="kpi-value red">R$ 5,6M</div>
+    <div data-prompt="GAP_IF" class="kpi-value red">R$ 4,9M</div>
     <div class="kpi-sub">Faltam para a meta</div>
   </div>
   <div class="kpi-card kpi-hero">
     <div class="kpi-label">Prazo Indep. Financeira</div>
-    <div data-prompt="PRAZO_IF" class="kpi-value blue">11.9 anos</div>
-    <div class="kpi-sub">David com 55 em 2037</div>
+    <div data-prompt="PRAZO_IF" class="kpi-value blue">9.8 anos</div>
+    <div class="kpi-sub">David com 53 em 2035</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-label">Score Financeiro</div>
-    <div data-prompt="SCORE" class="kpi-value">5,5 / 10</div>
-    <div class="kpi-sub">Regular</div>
+    <div data-prompt="SCORE" class="kpi-value">7,3 / 10</div>
+    <div class="kpi-sub">Bom</div>
   </div>
 
 <!-- TACTICAL KPI ROW -->
@@ -1037,10 +997,10 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   <div class="card-title card-title-lg">👨‍👩‍👦 A Família Ferreira Campos</div>
   <div class="perfil-grid">
     <div class="perfil-col">
-      <p>David Robert Camargo de Campos, 44 anos, é Chief Technology Officer na Arvo, healthtech especializada em auditoria de claims médicos. Com mais de 20 anos de experiência em tecnologia, liderou equipes de 70+ engenheiros em empresas de alto crescimento (Arvo, Kiwify, Elo7) e domina arquitetura de software escalável, infraestrutura em nuvem (AWS/GCP) e práticas DevOps. Dual citizen Brasil/EUA, proficiente em português e inglês.</p><p>Mariana Teixeira Ferreira de Campos, 39 anos, é enfermeira especialista no Hospital Israelita Albert Einstein desde 2018. Mestre em Enfermagem pela USP com especialização em Cardiologia e Hemodinâmica pela UNIFESP, possui 11+ anos de experiência em instituições de alta complexidade. Expertise em auditoria clínica, segurança do paciente e análise de prontuários eletrônicos, com docência em instituições técnicas e superiores.</p><p>Theo, 8 meses, nascido em julho/2025 em Orlando (EUA), é filho de David e Mariana com dupla cidadania Brasil/EUA. A família mantém residência em São Paulo (Morumbi) e planeja uma estadia de 6 meses nos EUA em 2027 para David completar master na Anderson University (SC) com visto F1, durante o qual Mariana iniciará processo de certificação NCLEX para exercer enfermagem nos EUA.</p><p>A família não possui animais de estimação documentados no patrimônio. O foco é consolidação patrimonial, proteção familiar e preparação para plano de vida internacional.</p>
+      <p>Dados pendentes</p>
     </div>
     <div class="perfil-col" style="border-left:none;">
-      <p>O plano de vida da família é bifásico: (1) Consolidação Financeira 2026–2027: conclusão de quitação de imóvel, estruturação de aporte mensal R$20k e proteção patrimonial via seguros; (2) Internacionalização 2027–2032: estadia F1/F2 nos EUA (~6 meses), obtenção de Green Card via EB2-NIW e certificação de Mariana como RN. Paralelo: atingir Independência Financeira (IF) com renda passiva de R$ 30k/mês via carteira diversificada.</p><p>Meta de Independência Financeira: patrimônio de R$ 7,2M com TRS 5% a.a. (carteira imóveis + RF IPCA+ + RV global + renda ativa parcial). Cenário realista: IF em 2035 (David aos 52 anos) com retorno real 6% a.a. e aporte consistente R$20k/mês. Fase pessimista (4% retorno): 2038. Fase otimista (8% retorno): 2033. Atualmente em 35,1% do objetivo, gap de R$ 4,7M.</p><p>Patrimônio consolidado: 7 imóveis (2 de David em Consolação/Calixto; 2 de Mariana; 3 em investigação). Investimentos diversificados em RF (CDB, Tesouro IPCA+, PGBL), RV (IVVB11, FIIs, ações), crypto (BTC/ETH 0,5% carteira) e caixa em USD (Wise, Bank of America). Estratégia: 25% do aporte em dolarização (IVVB11 + Wise USD) para preparar residência nos EUA. Liquidez: 0 meses vs meta 12 meses (R$ 596k).</p>
+      <p>Dados pendentes</p>
     </div>
   </div>
 </div>
@@ -1198,18 +1158,14 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>1. Visão Geral Patrimonial</h1>
 </div>
-<div class="section-summary">O patrimônio bruto consolidado é de magnitude significativa (dados em consolidação). Patrimônio investível atual de ~R$ 2,5M pós-venda Living Concept (Mariana), com composição diversificada: imóveis de aluguel via QuintoAndar (aluguéis David R$ 3,4k/mês + Mariana R$ 5,1k/mês = R$ 8,6k), investimentos financeiros em RF (CDB Cofrinhos, Tesouro IPCA+, PGBL) e RV (IVVB11 ETF global, FIIs, ações Brasil), caixa em moeda estrangeira (Wise US$ 4,7k + BoA US$ 2,6k) e veículos (Toro, NMax). Dívidas: financiamento imobiliário Itaú em quitação (Ed. Gisele ~R$ 117k pendente). Distribuição: imóveis representam ~68% do patrimônio (concentração moderada), investimentos financeiros ~22%, caixa ~5%, veículos ~5%.</div>
+<div class="section-summary">Seção 1 — dados pendentes</div>
 <div class="chart-container">
   <div class="card-title">Composição Patrimonial</div>
-  <p class="chart-context">Composição do patrimônio consolidado por categoria. Distribuição esperada: imóveis de investimento (~68%), investimentos financeiros (~22%), caixa/moeda estrangeira (~5%), veículos (~5%). Dados de residência em consolidação.</p>
   <canvas id="chart-patrimonio-doughnut"></canvas>
-  <p class="chart-conclusion">Patrimônio significativamente concentrado em imóveis. Recomendação: aumentar exposição RV e RF para atingir alvo CERBASI (conservador 48%, equilibrado 35%, agressivo 18%) e diversificar liquidez.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Caminho para Independência Financeira</div>
-  <p class="chart-context">Projeção da trajetória para Independência Financeira até 2035 (David 52 anos). Ponto de partida: R$ 2,53M (35,1% meta). Aporte mensal: R$ 20k. Retorno real: 6% a.a. Ganho anual esperado: ~R$ 362k (aporte R$ 240k + retorno R$ 122k).</p>
   <canvas id="chart-waterfall-if"></canvas>
-  <p class="chart-conclusion">IF atingível em 9 anos (cenário realista). Folga para absorver receita recorrente negativa (-41,9% mensal) e contingências. Pessimista (4%): +3 anos. Otimista (8%): -2 anos. Crítico: manter consistência do aporte R$ 20k/mês; desvios acima 15% podem impactar prazo em ±1 ano.</p>
 </div>
 <div class="card card-feature">
   <div class="card-title">Patrimônio por Categoria</div>
@@ -1218,15 +1174,15 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>
     </thead>
     <tbody>
-      <tr><td>Residência</td><td>R$ 996.821</td><td>35,8%</td></tr>
-      <tr><td>Investimentos David</td><td>R$ 620.497</td><td>22,3%</td></tr>
-      <tr><td>Imóveis Investimento</td><td>R$ 562.706</td><td>20,2%</td></tr>
-      <tr><td>Investimentos Mariana</td><td>R$ 375.384</td><td>13,5%</td></tr>
-      <tr><td>Veículos</td><td>R$ 227.476</td><td>8,2%</td></tr>
+      <tr><td>Imóveis Investimento</td><td>R$ 1.503.000</td><td>42,9%</td></tr>
+      <tr><td>Residência</td><td>R$ 996.821</td><td>28,4%</td></tr>
+      <tr><td>Investimentos David</td><td>R$ 642.958</td><td>18,3%</td></tr>
+      <tr><td>Veículos</td><td>R$ 227.476</td><td>6,5%</td></tr>
+      <tr><td>Investimentos Mariana</td><td>R$ 135.865</td><td>3,9%</td></tr>
       <tr><td>Caixa e Moeda Estrangeira</td><td>R$ 0</td><td>0,0%</td></tr>
-    <tr class="total-row"><td><strong>PATRIMÔNIO BRUTO</strong></td><td><strong>R$ 2.782.886</strong></td><td><strong>100%</strong></td></tr>
-    <tr><td>(-) Dívidas</td><td>R$ 0</td><td>—</td></tr>
-    <tr class="total-row"><td><strong>PATRIMÔNIO INVESTÍVEL (excl. residência + veículos)</strong></td><td><strong>R$ 1.558.588</strong></td><td>—</td></tr>
+    <tr class="total-row"><td><strong>PATRIMÔNIO BRUTO</strong></td><td><strong>R$ 3.501.275</strong></td><td><strong>100%</strong></td></tr>
+    <tr><td>(-) Dívidas</td><td>R$ 234.792</td><td>—</td></tr>
+    <tr class="total-row"><td><strong>PATRIMÔNIO INVESTÍVEL (excl. residência + veículos)</strong></td><td><strong>R$ 2.276.977</strong></td><td>—</td></tr>
     </tbody>
   </table>
 </div>
@@ -1237,29 +1193,28 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>
     </thead>
     <tbody>
-      <tr><td>Receita Clt</td><td>R$ 1.165.140</td><td>46,4%</td></tr>
-      <tr><td>Receita Pj</td><td>R$ 618.374</td><td>24,6%</td></tr>
-      <tr><td>Outras Receitas</td><td>R$ 464.243</td><td>18,5%</td></tr>
-      <tr><td>Receita Aluguel</td><td>R$ 173.662</td><td>6,9%</td></tr>
-      <tr><td>Receita Venda Ativo</td><td>R$ 49.402</td><td>2,0%</td></tr>
-      <tr><td>Receita Resgate</td><td>R$ 27.416</td><td>1,1%</td></tr>
-      <tr><td>Receita Investimento</td><td>R$ 14.565</td><td>0,6%</td></tr>
-      <tr><td>Receita Restituicao</td><td>R$ 16</td><td>0,0%</td></tr>
-    <tr class="total-row"><td><strong>Total</strong></td><td><strong>R$ 2.512.823</strong></td><td><strong>100,0%</strong></td></tr>
+      <tr><td>Receita Pj</td><td>R$ 1.030.845</td><td>78,1%</td></tr>
+      <tr><td>Receita Clt</td><td>R$ 113.309</td><td>8,6%</td></tr>
+      <tr><td>Receita Aluguel</td><td>R$ 111.342</td><td>8,4%</td></tr>
+      <tr><td>Outras Receitas</td><td>R$ 57.121</td><td>4,3%</td></tr>
+      <tr><td>Receita Investimento</td><td>R$ 3.956</td><td>0,3%</td></tr>
+      <tr><td>Receita Resgate</td><td>R$ 2.409</td><td>0,2%</td></tr>
+      <tr><td>Receita Restituicao</td><td>R$ 216</td><td>0,0%</td></tr>
+    <tr class="total-row"><td><strong>Total</strong></td><td><strong>R$ 1.319.200</strong></td><td><strong>100,0%</strong></td></tr>
     </tbody>
   </table>
 </div>
 <div class="card card-feature">
   <div class="card-title">Reserva de Emergência — 3 Critérios</div>
-  <p>Baseado na despesa mensal média de <strong>R$ 49.675</strong>:</p>
+  <p>Baseado na despesa mensal média de <strong>R$ 39.951</strong>:</p>
   <table>
     <thead>
       <tr><th>Critério</th><th>Meses</th><th>Valor Necessário</th><th>Liquidez Atual</th><th>Status</th></tr>
     </thead>
     <tbody>
-      <tr><td>Mínimo (Perini)</td><td>6</td><td>R$ 298.053</td><td rowspan="3">R$ 995.882<br><small>(20.0 meses)</small></td><td>✅</td></tr>
-      <tr><td>Conforto</td><td>9</td><td>R$ 447.079</td><td>✅</td></tr>
-      <tr><td>Conservador (Cerbasi)</td><td>12</td><td>R$ 596.106</td><td>✅</td></tr>
+      <tr><td>Mínimo (Perini)</td><td>6</td><td>R$ 239.708</td><td rowspan="3">R$ 778.823<br><small>(19.5 meses)</small></td><td>✅</td></tr>
+      <tr><td>Conforto</td><td>9</td><td>R$ 359.563</td><td>✅</td></tr>
+      <tr><td>Conservador (Cerbasi)</td><td>12</td><td>R$ 479.417</td><td>✅</td></tr>
     </tbody>
   </table>
   <p style="margin-top:1em;"><strong>Composição da Liquidez Imediata:</strong></p>
@@ -1268,9 +1223,9 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Componente</th><th>Valor (R$)</th><th>% do Total</th></tr>
     </thead>
     <tbody>
-      <tr><td>Investimentos David</td><td>R$ 620.497 (62%)</td><td>62,3%</td></tr>
-      <tr><td>Investimentos Mariana</td><td>R$ 375.384 (38%)</td><td>37,7%</td></tr>
-      <tr style="font-weight:bold;"><td>Total</td><td>R$ 995.882</td><td>—</td></tr>
+      <tr><td>Investimentos David</td><td>R$ 642.958 (83%)</td><td>82,6%</td></tr>
+      <tr><td>Investimentos Mariana</td><td>R$ 135.865 (17%)</td><td>17,4%</td></tr>
+      <tr style="font-weight:bold;"><td>Total</td><td>R$ 778.823</td><td>—</td></tr>
     </tbody>
   </table>
   <p style="margin-top:0.8em; font-size:0.85em; color:#666;">
@@ -1286,7 +1241,8 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Descrição</th><th>Saldo Devedor</th><th>Parcela Mensal</th><th>Taxa</th></tr>
     </thead>
     <tbody>
-    <tr class="total-row"><td><strong>Total</strong></td><td><strong>R$ 0</strong></td><td></td><td></td></tr>
+      <tr><td>Financiamento imobiliário (David)</td><td>R$ 234.792</td><td>R$ 0</td><td>N/D</td></tr>
+    <tr class="total-row"><td><strong>Total</strong></td><td><strong>R$ 234.792</strong></td><td></td><td></td></tr>
     </tbody>
   </table>
 </div>
@@ -1297,41 +1253,22 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>2. Fluxo de Caixa e Orçamento</h1>
 </div>
-<div class="section-summary">Receita total 2023-04/2026: R$ 2,51M. Receita recorrente estrutural (CLT + PJ + Aluguéis) = ~R$ 34,6k/mes vs despesa R$ 49,7k = deficit recorrente de -R$ 15,1k/mes até quitacao Ed. Gisele. Fluxo total positivo (R$ 526k) sustentado por receitas nao-recorrentes (resgates, FGTS, bonus). Nao é sustentável em IF-mode.</div>
-<div class="chart-container">
-  <div class="card-title">Fluxo de Caixa Mensal</div>
-  <canvas id="chart-fluxo-mensal"></canvas>
-</div>
+<div class="section-summary">Seção 2 — dados pendentes</div>
 <div class="chart-container">
   <div class="card-title">Receita por Fonte</div>
-  <p class="chart-context">Receita por fonte (período 2023-04/2026). CLT Einstein (Mariana): R$ 1,17M. PJ David (Arvo+BrandLovers+Arbitralis+outros): R$ 618k. Aluguéis QuintoAndar: R$ 174k. Outras receitas: R$ 464k. Venda ativo + investimento + resgate + restituição: ~R$ 91k.</p>
   <canvas id="chart-receita-bar"></canvas>
-  <p class="chart-conclusion">Receita concentrada em CLT (46%) e PJ (25%). Aluguéis representam apenas 7% apesar de meta de R$ 30k/mês passiva. Necessário acelerar acúmulo patrimonial para atingir renda passiva alvo. Receita não-recorrente (18-2%) deve ser alocada 100% para IF, não para consumo.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Despesas por Categoria</div>
-  <p class="chart-context">Top 5 despesas: Não-identificado R$ 868k (44%—requer investigação), Financiamentos R$ 176k (9%), Lazer/Viagens R$ 165k (8%), Impostos R$ 141k (7%), Saúde R$ 106k (5%). Total R$ 1,99M.</p>
   <canvas id="chart-despesas-doughnut"></canvas>
-  <p class="chart-conclusion">Categoria 'Não-identificado' (44%) representa grave falta de rastreamento. Prioridade: reclassificar esses gastos para conseguir controle real. Lazer/viagens (8%) bem acima do orçado (teto R$ 45k/ano = R$ 3,75k/mês)—reduzir para R$ 3,75k ou aumentar meta. Pós-quitação Ed. Gisele, despesa reduz para ~R$ 45k/mês.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Receita vs Despesa — Mês a Mês</div>
-  <p class="chart-context">Evolução mensal receita vs despesa (40 meses). Receita recorrente média R$ 35k/mês, despesa R$ 49,7k/mês. Cobertura negativa mensal (-R$ 14,7k) compesada por receitas pontuais (resgate, FGTS, bônus). Variabilidade alta em ambas as séries.</p>
-  <div id="rdm-nav" class="chart-nav">
-    <button id="rdm-prev" class="chart-nav-btn" title="Meses anteriores">&#8249;</button>
-    <span id="rdm-period" class="chart-nav-period"></span>
-    <button id="rdm-next" class="chart-nav-btn" title="Meses seguintes">&#8250;</button>
-  </div>
   <canvas id="chart-receita-despesa-mensal"></canvas>
-  <div id="rdm-dots" class="chart-nav-dots"></div>
-  <div id="legend-receita-despesa" class="chart-legend-grouped"></div>
-  <p class="chart-conclusion">Padrão insustentável sem receitas não-recorrentes. Ação necessária: aumentar receita PJ (meta +R$ 15k/mês) OU reduzir despesa em R$ 15k/mês OU aumentar aporte Mariana (negociar bônus/décimo). Recomendação preferida: PJ+despesa combinado (PJ +R$ 10k + redução R$ 5k). Folga mensal pós-quitação Ed. Gisele absorve essa lacuna.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Score Financeiro</div>
-  <p class="chart-context">Score financeiro atual: 1.9/10 (Crítico). Componentes: poupança recorrente -41,9% (peso 2.0), cobertura despesas 0 meses (peso 1.5), endividamento 0% (peso 1.5, nota 10), progresso IF 0% (peso 2.0), diversificação 0 (peso 1.0).</p>
-  <canvas id="chart-score-gauge" data-type="gauge" data-score="5.5"></canvas>
-  <p class="chart-conclusion">Score reflete falta de liquidez e dependência de receitas pontuais. Meta T2/2026: >5/10. Ações: (1) atingir 6 meses cobertura (R$ 298k) → +1.5 pontos; (2) taxa poupança recorrente >10% → +2 pontos; (3) diversificação 3+ classes → +1 ponto. Score 5+ alcançável em 12 meses com execução.</p>
+  <canvas id="chart-score-gauge" data-type="gauge" data-score="7.3"></canvas>
 </div>
 <div class="card card-feature">
   <div class="card-title">Orçamento Prospectivo (14 Categorias)</div>
@@ -1340,24 +1277,20 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>
     </thead>
     <tbody>
-      <tr><td>Financeiro</td><td>R$ 17.281</td><td>0,9%</td></tr>
-      <tr><td>Assinaturas</td><td>R$ 22.006</td><td>1,1%</td></tr>
-      <tr><td>Seguros</td><td>R$ 7.224</td><td>0,4%</td></tr>
-      <tr><td>Nao Identificado</td><td>R$ 867.976</td><td>43,7%</td></tr>
-      <tr><td>Financiamentos</td><td>R$ 176.146</td><td>8,9%</td></tr>
-      <tr><td>Moradia</td><td>R$ 37.818</td><td>1,9%</td></tr>
-      <tr><td>Impostos</td><td>R$ 140.868</td><td>7,1%</td></tr>
-      <tr><td>Suporte Familiar</td><td>R$ 82.053</td><td>4,1%</td></tr>
-      <tr><td>Transporte</td><td>R$ 55.439</td><td>2,8%</td></tr>
-      <tr><td>Servicos Domesticos</td><td>R$ 61.975</td><td>3,1%</td></tr>
-      <tr><td>Lazer Viagens</td><td>R$ 164.760</td><td>8,3%</td></tr>
-      <tr><td>Melhoria Reforma</td><td>R$ 47.879</td><td>2,4%</td></tr>
-      <tr><td>Saude</td><td>R$ 106.082</td><td>5,3%</td></tr>
-      <tr><td>Alimentacao</td><td>R$ 81.300</td><td>4,1%</td></tr>
-      <tr><td>Educacao</td><td>R$ 37.042</td><td>1,9%</td></tr>
-      <tr><td>Reserva Desejos</td><td>R$ 53.672</td><td>2,7%</td></tr>
-      <tr><td>Vestuario</td><td>R$ 27.491</td><td>1,4%</td></tr>
-    <tr class="total-row"><td><strong>Total</strong></td><td><strong>R$ 1.987.021</strong></td><td><strong>100,0%</strong></td></tr>
+      <tr><td>Suporte Familiar</td><td>R$ 12.983</td><td>2,0%</td></tr>
+      <tr><td>Financeiro</td><td>R$ 3.343</td><td>0,5%</td></tr>
+      <tr><td>Moradia</td><td>R$ 56.679</td><td>8,9%</td></tr>
+      <tr><td>Nao Identificado</td><td>R$ 411.834</td><td>64,4%</td></tr>
+      <tr><td>Impostos</td><td>R$ 82.340</td><td>12,9%</td></tr>
+      <tr><td>Transporte</td><td>R$ 4.734</td><td>0,7%</td></tr>
+      <tr><td>Assinaturas</td><td>R$ 10.107</td><td>1,6%</td></tr>
+      <tr><td>Seguros</td><td>R$ 597</td><td>0,1%</td></tr>
+      <tr><td>Servicos Domesticos</td><td>R$ 29.393</td><td>4,6%</td></tr>
+      <tr><td>Lazer Viagens</td><td>R$ 4.861</td><td>0,8%</td></tr>
+      <tr><td>Saude</td><td>R$ 1.495</td><td>0,2%</td></tr>
+      <tr><td>Reserva Desejos</td><td>R$ 19.726</td><td>3,1%</td></tr>
+      <tr><td>Alimentacao</td><td>R$ 1.126</td><td>0,2%</td></tr>
+    <tr class="total-row"><td><strong>Total</strong></td><td><strong>R$ 639.223</strong></td><td><strong>100,0%</strong></td></tr>
     </tbody>
   </table>
 </div>
@@ -1372,7 +1305,8 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Padrão</th><th>Evidência</th><th>Mudança Sugerida</th></tr>
     </thead>
     <tbody>
-      <tr><td>Alta dependência de receita pontual</td><td>44% da receita é não-recorrente (resgates, vendas)</td><td>Não contar com receita pontual para orçamento; alocar direto para investimentos</td></tr>
+      <tr><td>Disciplina de poupança</td><td>Taxa de poupança recorrente de 29.5% — acima da referência de 25%</td><td>Manter e automatizar aportes mensais</td></tr>
+      <tr><td>Alta dependência de receita pontual</td><td>31% da receita é não-recorrente (resgates, vendas)</td><td>Não contar com receita pontual para orçamento; alocar direto para investimentos</td></tr>
     </tbody>
   </table>
 </div>
@@ -1387,24 +1321,18 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>3. Investimentos e Rendimentos</h1>
 </div>
-<div class="section-summary">Investimentos em consolidação — dados parciais. Alocação alvo CERBASI: 47,6% conservador (imóveis + RF IPCA+ + PGBL) | 34,6% equilibrado (RV Brasil via FIIs/ações + ETF IVVB11) | 17,8% agressivo (crypto 0,5%, especulação 2–3%). Alocação presente mais defensiva (94,6% consumo presente, 5,4% futuro IF). Performance: não consolidada. Principais ativos em monitoramento: IVVB11 (acompanhamento exposição USD), PGBL Itaú (taxa real em avaliação), Alaska Black FIA BDR (-13,24% em 2025—possível resgate). Top 15: dados em processamento. Recomendações: (a) consolidar posições PicPay+C6 para Cofrinhos Itaú; (b) resgatar Safari 30 na Rico (~R$ 16,6k) para realocar em IVVB11; (c) iniciar aporte PGBL R$ 1,8k/mês (economia IRPF R$ 5,9k/ano); (d) avaliar PFIC antes de mudar para EUA (risco de tributação punitiva); (e) travar Tesouro IPCA+ 2035/2040 após atingir reserva emergência 12 meses.</div>
+<div class="section-summary">Seção 3 — dados pendentes</div>
 <div class="chart-container">
   <div class="card-title">Alocação Atual</div>
-  <p class="chart-context">Alocação atual CERBASI (carteira consolidada): Conservador ~47% (imóveis + RF), Equilibrado ~35% (RV Brasil FIIs/ações), Agressivo ~18% (cripto, especulação). Concentração presente em consumo: 94,6% (gastos correntes), 5,4% (IF investimentos).</p>
   <canvas id="chart-alocacao-atual"></canvas>
-  <p class="chart-conclusion">Alocação atual excessivamente defensiva no CERBASI. Recomendação: aumentar agressivo para 20% via IVVB11 (RV global)—menor concentração Brasil. Concentração temporal (94.6% presente): alinhada com ciclo de vida David+Mariana (com filho pequeno); pós-IF, incrementar investimentos para renda passiva.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Alocação Alvo</div>
-  <p class="chart-context">Alocação alvo para IF 2035 (David 52). Carteira para sustentar renda passiva R$ 30k/mês: Conservador 48% (imóveis R$ 12k + RF IPCA+ R$ 4k + PGBL R$ 1k), Equilibrado 35% (RV Brasil FIIs R$ 6k + ações R$ 2,5k), Agressivo 18% (ETF global R$ 3,5k + cripto R$ 1k). Temporal: equilibrado entre presente (moradia + contingência) e futuro (renda passiva).</p>
   <canvas id="chart-alocacao-alvo"></canvas>
-  <p class="chart-conclusion">Alvo requer aumentar diversificação global (IVVB11) de 3% para ~10% carteira. FIIs foco em renda (9% yield nominal). Ações + ETF global para crescimento. Cripto 1% não-volatilidade (BTC/ETH acúmulo longo prazo). Estrutura proporciona renda passiva diversificada e resiliência a choques cambiais (USD).</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Top 15 Ativos Financeiros</div>
-  <p class="chart-context">Top 15 ativos em consolidação. Esperado: imóveis (Major Freire, Calixto, Living Wish, Living Concept, Ed. Gisele), IVVB11, PGBL Itaú, Tesouro IPCA+, CDB Cofrinhos Itaú, Wise USD, FIIs, ações (BRDT, GGBR, etc.), BTG Pactual, Alaska Black FIA.</p>
   <canvas id="chart-top15-ativos"></canvas>
-  <p class="chart-conclusion">Após consolidação, verificar: (1) se concentração em um ativo >15% (risco)—rebalancear; (2) performance de assets negativos (Alaska -13,24%)—avaliar resgate; (3) liquidez de cada ativo vs reserva emergência; (4) tax efficiency (PGBL, FII, fundos).</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Cenários IF — Mariana</div>
@@ -1412,9 +1340,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 </div>
 <div class="chart-container">
   <div class="card-title">Orçamento de Viagens</div>
-  <p class="chart-context">Orçamento viagens 2026: teto R$ 45k (R$ 3,75k/mês). Despesa ano-to-date: Portugal R$ 22,3k (jan/2026). Restante: R$ 22,7k disponível (abr–dez/2026). Programa pontos: Livelo 132k pts (~R$ 1,6–2,2k), Smiles 42k pts (~R$ 1,3k), Átomos C6 158k pts (~R$ 4,5k), Esfera 6k pts (~R$ 90). Resgate estimado: ~R$ 7,5k em passagens + hospedagem com pontos.</p>
   <canvas id="chart-viagens"></canvas>
-  <p class="chart-conclusion">Orçamento viagens bem controlado (abaixo de renda recorrente). Recomendação: usar pontos para reduzir cash (Átomos + Livelo = ~R$ 5,5k) em próximas 2–3 viagens (mai–set/26). Destino 2027: EUA (F1/F2 não conta como viagem recreativa—é custo vida). Post-IF (2035+): viagens executivas/consulting podem ser deductíveis PJ. Pontos programa: foco em Livelo (transferência Smiles 1:0.8, bom para aéreas nacionais).</p>
 </div>
 <div class="card card-feature">
   <div class="card-title">Investimentos por Classe de Ativo</div>
@@ -1423,11 +1349,12 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>
     </thead>
     <tbody>
-      <tr><td>Outros</td><td>R$ 794.715</td><td>58,1%</td></tr>
-      <tr><td>Imóveis Investimento</td><td>R$ 562.706</td><td>41,2%</td></tr>
-      <tr><td>Contas Bancárias</td><td>R$ 5.168</td><td>0,4%</td></tr>
-      <tr><td>Cripto</td><td>R$ 4.605</td><td>0,3%</td></tr>
-    <tr class="total-row"><td><strong>Total</strong></td><td><strong>R$ 1.367.195</strong></td><td><strong>100,0%</strong></td></tr>
+      <tr><td>Imóveis Investimento</td><td>R$ 1.503.000</td><td>65,8%</td></tr>
+      <tr><td>Renda Fixa</td><td>R$ 481.054</td><td>21,1%</td></tr>
+      <tr><td>Outros</td><td>R$ 150.797</td><td>6,6%</td></tr>
+      <tr><td>Contas Bancárias</td><td>R$ 146.971</td><td>6,4%</td></tr>
+      <tr><td>Cripto</td><td>R$ 3.189</td><td>0,1%</td></tr>
+    <tr class="total-row"><td><strong>Total</strong></td><td><strong>R$ 2.285.013</strong></td><td><strong>100,0%</strong></td></tr>
     </tbody>
   </table>
 </div>
@@ -1513,13 +1440,11 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>4. Imóveis e Bens</h1>
 </div>
-<div class="section-summary">Imóveis: 7 unidades identificadas. David: Consolação (Major Freire, aluguel R$ 1,7k/mês) + Calixto (Pça Calixto, avaliação R$ 900k–1,1M, aluguel R$ 1,7k/mês). Mariana: Ed. Gisele (Morumbi, residência + aluguel partes ~R$ 2,5k/mês), Living Wish (aluguel R$ 5,1k/mês = highest yielder 6–12% a.a.), Living Concept (yield 3,2% vs CDI 13,15%—candidato a venda 2027). Rentabilidade média: 6–12% a.a. em imóveis de aluguel via QuintoAndar. Yield imóvel investimento é superior a renda fixa (IPCA+6–7% vs CDI 13%+ em CDB). Tarefas prioritárias: (a) regularizar matrícula Ed. Gisele (cartório); (b) avaliar Barão Capanema (Pça Calixto) com corretora local; (c) configurar débito automático IPTU/condomínio para 7 imóveis; (d) considerar venda Living Concept em 2027 (realocar em ativos financeiros). Estratégia pós-IF: manter imóveis para renda passiva, não vender.</div>
+<div class="section-summary">Seção 4 — dados pendentes</div>
 <div class="chart-container">
   <div class="card-title">Rentabilidade dos Imóveis (Yield) vs CDI</div>
   <p class="chart-context" style="font-style:italic;opacity:0.85;"><strong>O que é yield?</strong> Yield (rentabilidade) é o retorno anual que o imóvel gera em aluguéis, expresso como percentual do valor estimado do bem. Fórmula: (aluguel anual ÷ valor estimado) × 100. Comparar com o CDI ajuda a avaliar se o capital imobilizado rende mais ou menos que uma aplicação financeira de baixo risco.</p>
-  <p class="chart-context">Rendimento médio imóveis aluguel: Major Freire R$ 1,7k/mês (yield ~6–7%), Calixto R$ 1,7k (yield ~6–7%), Living Wish R$ 5,1k (yield 9–12%), Living Concept R$ ~2,5k (yield 3,2%). Média ponderada: ~7–8% a.a. (superior a CDI 13% e IPCA+6–7%).</p>
   <canvas id="chart-yield-imoveis"></canvas>
-  <p class="chart-conclusion">Yield imóveis competitivo. Living Wish top performer. Living Concept underperformer—candidato a venda 2027 (realocar em ativos financeiros de maior yield). Major Freire e Calixto estáveis. Pós-IF, manter imóveis para renda passiva (maior componente projetado = R$ 12–15k/mês).</p>
 </div>
 </div>
 
@@ -1528,12 +1453,10 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>5. F1/F2 EUA</h1>
 </div>
-<div class="section-summary">Custos R$ 49,7k/mes. Poupanca total 20,9% MAS poupanca recorrente é NEGATIVA (-41,9%). Folga positiva é sustentada por resgates e bonus. Pos-quitacao Ed. Gisele (abr/2026): folga R$ 25,3k/mes torna aporte R$ 20k/mes sustentavel. Sem quitacao, aporte nao é viável alem de 12 meses.</div>
+<div class="section-summary">Seção 5 — dados pendentes</div>
 <div class="chart-container">
   <div class="card-title">Custos Mensais F1/F2</div>
-  <p class="chart-context">Estadia F1/F2 Anderson University (6 meses, 2027). Custo base EUA: US$ 3,99k/mês (~R$ 23,5k, câmbio R$ 5,88). Custos BR mantidos: R$ 8,9k/mês (suporte familiar R$ 2,8k + DAS R$ 5k + assinaturas/seguros/utilities R$ 1,1k). Total: R$ 32,4k/mês. Renda David (remota): R$ 70,6k/mês. Sobra: R$ 38,2k/mês (54%).</p>
   <canvas id="chart-custos-f1f2"></canvas>
-  <p class="chart-conclusion">Estadia F1/F2 sustentável. Fundo para parto (~US$ 5–9k com seguro IU65) e contingências inclusos na sobra. Validação: dados reais 2025 (Orlando/Kissimmee 5 meses, custo US$ 3,9k/mês + parto US$ 1,7k com seguro). Mariana: trabalho remoto ou voluntário durante F1 (não pode trabalhar em campus sem OPT). Pós-F1: buscar emprego RN (US$ 4–7k/mês) para reforçar renda.</p>
 </div>
 </div>
 
@@ -1542,7 +1465,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>6. Green Card</h1>
 </div>
-<div class="section-summary">Cenário Cambial & Internacional: (1) Acumulação USD estratégica via Wise (US$ 4,7k atual, meta pré-EUA US$ 20k = gap US$ 12,6k ~ 37 meses a R$ 2k/mês). Aporte mensal: R$ 2k Wise + R$ 3k IVVB11 (25% do aporte R$ 20k). (2) F1/F2 Anderson 2027: custo base US$ 3,99k/mês = R$ 23,5k (câmbio R$ 5,88), + custos BR mantidos R$ 8,9k = total R$ 32,4k. Renda David remota: R$ 70,6k/mês → sobra R$ 38,2k (54%). (3) Green Card phase: custo vida família 4 US$ 6,05k/mês, renda David ~US$ 12k + Mariana (pós-NCLEX) US$ 4–7k = sobra US$ 9,5k (+65%). Proteção FATCA/FBAR: pendente consultar CPA expatriado. Risco PFIC: avaliar resgate fundos Brasil (Alaska, Constellation, Western Asset, BTG) antes de virar US tax resident.</div>
+<div class="section-summary">Seção 6 — dados pendentes</div>
 <div class="chart-container">
   <div class="card-title">Cenários Cambiais</div>
   <canvas id="chart-cenarios-cambiais"></canvas>
@@ -1554,16 +1477,14 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>7. Independência Financeira</h1>
 </div>
-<div class="section-summary">IF meta R$ 7,2M. Status: patrimonio investível em consolidacao (E4 indica ~R$ 2,5M, campo = 0 - reconciliacao necessária). Timeline (6% retorno, R$ 20k/mes): IF em 2035 se aporte consistente. Sem quitacao, aporte cessa e IF timeline expande para 2038+.</div>
+<div class="section-summary">Seção 7 — dados pendentes</div>
 <div class="chart-container">
   <div class="card-title">Projeção Patrimonial — 3 Cenários</div>
   <canvas id="chart-projecao-3cenarios"></canvas>
 </div>
 <div class="chart-container">
   <div class="card-title">Renda Passiva vs Meta</div>
-  <p class="chart-context">Renda passiva atual: R$ 10k/mês (aluguéis R$ 8,6k + rendimentos financeiros R$ 1,4k = 33,5% meta R$ 30k). Fonte por tipo: imóvel aluguel (86%) vs financeiro (14%). Projeção 2035 (meta R$ 30k): aluguéis R$ 12–15k (revalorização imóvel), FIIs R$ 6–8k (carteira R$ 80–100k), ações/ETF R$ 4–5k, RF IPCA+ R$ 4k, cripto R$ 1–2k, renda ativa parcial (David consultor) R$ 1–2k, Mariana (se retorno EUA part-time) R$ 1–2k.</p>
   <canvas id="chart-renda-passiva"></canvas>
-  <p class="chart-conclusion">Foco: triplicar renda passiva (R$ 10k→R$ 30k) via diversificação—não apenas aluguéis. Imóveis fornecem base estável 50% (revalorização + aluguel). RV (ações+FII+ETF) fornece 35% com crescimento. RF + cripto fornecem 15% com volatilidade reduzida. Mariana NCLEX permite renda passiva dual-moeda (BRL/USD) pós-EUA—incrementa segurança cambial.</p>
 </div>
 <div class="card card-feature">
   <div class="card-title">Previdência PGBL</div>
@@ -1572,11 +1493,11 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Métrica</th><th>Valor</th></tr>
     </thead>
     <tbody>
-    <tr><td>Renda Tributável Anual</td><td>R$ 59.363</td></tr>
-    <tr><td>Limite PGBL Anual</td><td>R$ 7.123</td></tr>
-    <tr><td>Aporte Mensal</td><td>R$ 593</td></tr>
+    <tr><td>Renda Tributável Anual</td><td>R$ 247.402</td></tr>
+    <tr><td>Limite PGBL Anual</td><td>R$ 29.688</td></tr>
+    <tr><td>Aporte Mensal</td><td>R$ 2.474</td></tr>
     <tr><td>Alíquota Marginal</td><td>27,5%</td></tr>
-    <tr><td>Economia IR Anual</td><td>R$ 1.959</td></tr>
+    <tr><td>Economia IR Anual</td><td>R$ 8.164</td></tr>
     </tbody>
   </table>
 </div>
@@ -1587,12 +1508,10 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>8. Tributário</h1>
 </div>
-<div class="section-summary">Tributário: situação complexa em regularização. (1) Carnê-Leão 2025 David+Mariana: pendente regularizar via AccountTech (contador, R$ 390/mês via C6 PJ). (2) DAS mensal David (Simples Nacional Anexo V—TI): ~R$ 5k/mês, configurar débito automático dia 20 C6 PJ. (3) IRPF 2026: entrega mai/2026 com carnê-leão prévio ajustado. (4) PGBL Itaú: limite anual R$ 7,1k (economia IR R$ 1,96k/ano). Recomendação: iniciar aporte R$ 1,8k/mês PGBL. (5) Aliquota efetiva IR: N/D (dados incompletos). Reunião AccountTech abr/26: pauta = regularizar carnê-leão, confirmar risco multa 2024, configurar DAS automático, segregar impostos PJ vs pessoais, avaliar Simples vs Lucro Real. Riscos pós-EUA: FBAR (declarar contas >US$ 10k), Form 8938, Form 1040, dupla tributação (tratar BR-US), PFIC (fundos Brasil).</div>
+<div class="section-summary">Seção 8 — dados pendentes</div>
 <div class="chart-container">
   <div class="card-title">DAS PJ — Mês a Mês</div>
-  <p class="chart-context">PJ David (Simples Nacional Anexo V—TI/Consultoria). Receita anualizada: ~R$ 185,5k (projétil 2026: R$ 18–20k/mês). DAS mensal: ~R$ 5k. Carnê-Leão: aluguéis David (R$ 3,4k/mês) + Mariana (R$ 5,1k/mês) = R$ 8,5k/mês aluguel (20% aliquota = R$ 1,7k/mês carnê-leão). IRPF 2026: pendente com carnê-leão regularizado 2025. PGBL: limite R$ 7,1k/ano, economia IR R$ 1,96k/ano.</p>
   <canvas id="chart-impostos-pj"></canvas>
-  <p class="chart-conclusion">Tributação moderada em Simples Nacional. Risco: isolamento 2024 (confirmação accountTech). Ação: regularizar carnê-leão mensal (DARF automático dia 30 mês seguinte). PGBL ainda subaproveitado (limite R$ 7,1k vs capacidade R$ 15k estimada—oportunidade R$ 8k economia adicional se houver receita extra). Reunião AccountTech abr/26 essencial para consolidar estratégia Simples vs Lucro Real pós-2027 (quando receita PJ pode crescer >180k).</p>
 </div>
 </div>
 
@@ -1601,7 +1520,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>9. Riscos e Proteção</h1>
 </div>
-<div class="section-summary">Riscos: (1) CRITICO - Liquidez 0 meses vs meta 12 (R$ 596k). (2) ALTA - Seguros vida+invalidez faltando (David 44, Mariana 39, Theo). (3) MEDIA - Cambial: cenario pessimista (BRL R$ 7,50) reduz patrimonio USD 25%.</div>
+<div class="section-summary">Seção 9 — dados pendentes</div>
 <div class="chart-container">
   <div class="card-title">Mapa de Riscos</div>
   <canvas id="chart-bubble-riscos"></canvas>
@@ -1613,7 +1532,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>10. Conclusão e Roadmap</h1>
 </div>
-<div class="section-summary">Decisões & Próximos Passos: (1) Curto prazo (abr/2026): quitação Ed. Gisele R$ 117,4k (prioridade #1), cancelar Santander seguros R$ 10/mês, configurar aporte R$ 20k/mês, reunião AccountTech, cotar seguros (vida+invalidez), confirmar FGTS Kiwify, regularizar Ed. Gisele cartório, criar transf. automática C6 PJ→PF. (2) Médio prazo (abr–jun/26): regularizar carnê-leão 2025, entregar IRPF 2026, configurar carnê-leão automático mensal, cotar seguro residencial Tasso (economia 20–40%), iniciar PGBL R$ 1,8k/mês, avaliar venda BRKM5 (prejuízo compensável), consolidar corretoras (PicPay→Cofrinhos), confirmar taxa PGBL. (3) Longo prazo (T3-T4/26): definir timeline F1/F2 Anderson University, iniciar CGFNS+TOEFL Mariana, consultar CPAs expatriados (FBAR/PFIC), contratar advogado sucessório, criar testamento+procurações, avaliar holding patrimonial, atualizar beneficiários seguros. (4) IF milestones: jan/27 rebalanceamento aporte (R$ 10k Cofrinhos→oportunidade), 2027 avaliar venda Living Concept, 2027 IF 36%, 2035 atingir meta IF R$ 7,2M (David 52). Monitoramento: score financeiro (meta >5/10 em T2/26), poupança recorrente (meta >10%), liquidez (meta 12 meses em T1/27).</div>
+<div class="section-summary">Seção 10 — dados pendentes</div>
 <div class="chart-container">
   <div class="card-title">Top 5 Decisões de Impacto</div>
   <canvas id="chart-top5-decisoes"></canvas>
@@ -1621,7 +1540,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="card card-feature">
   <div class="card-title">Pontos Fortes</div>
   <ol>
-    <li><strong>Análise em Andamento</strong>: Pontos fortes serão identificados após consolidação de dados.</li>
+    <li><strong>Score Financeiro Positivo</strong>: Classificação Bom indica solidez financeira.</li>
   </ol>
 </div>
 <div class="card card-feature">
@@ -1643,8 +1562,8 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Métrica</th><th>Valor</th></tr>
     </thead>
     <tbody>
-    <tr><td>% Presente (Despesas)</td><td>94,6%</td></tr>
-    <tr><td>% Futuro (Aportes)</td><td>5,4%</td></tr>
+    <tr><td>% Presente (Despesas)</td><td>96,4%</td></tr>
+    <tr><td>% Futuro (Aportes)</td><td>3,6%</td></tr>
     <tr><td>Classificação</td><td>Gastador</td></tr>
     </tbody>
   </table>
@@ -1656,79 +1575,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>Apêndice A — Definições e Siglas</h1>
 </div>
-<div class="card">
-  <div class="card-title">Glossário de Termos Financeiros</div>
-  <table>
-    <thead><tr><th>Sigla / Termo</th><th>Definição</th></tr></thead>
-    <tbody>
-      <tr><td><strong>IF</strong></td><td>Independência Financeira — patrimônio suficiente para gerar renda passiva que cubra todas as despesas da família sem depender de trabalho ativo.</td></tr>
-      <tr><td><strong>TRS</strong></td><td>Taxa de Retirada Segura — percentual anual que pode ser sacado do patrimônio investido sem exauri-lo ao longo do tempo. Referência: 4-5% a.a. para carteira diversificada.</td></tr>
-      <tr><td><strong>CDI</strong></td><td>Certificado de Depósito Interbancário — taxa de referência para investimentos de renda fixa no Brasil. Acompanha de perto a taxa Selic.</td></tr>
-      <tr><td><strong>Selic</strong></td><td>Taxa básica de juros da economia brasileira, definida pelo COPOM (Comitê de Política Monetária do Banco Central).</td></tr>
-      <tr><td><strong>IPCA</strong></td><td>Índice Nacional de Preços ao Consumidor Amplo — indicador oficial de inflação no Brasil, medido pelo IBGE.</td></tr>
-      <tr><td><strong>IPCA+</strong></td><td>Título público (Tesouro Direto) ou indexador que paga inflação IPCA mais um juro real prefixado.</td></tr>
-      <tr><td><strong>IGPM</strong></td><td>Índice Geral de Preços — Mercado. Índice de inflação medido pela FGV, frequentemente usado em contratos de aluguel.</td></tr>
-      <tr><td><strong>DAS</strong></td><td>Documento de Arrecadação do Simples Nacional — guia mensal de impostos para empresas optantes pelo Simples Nacional.</td></tr>
-      <tr><td><strong>Simples Nacional</strong></td><td>Regime tributário simplificado para micro e pequenas empresas com faturamento até R$4,8M/ano. Unifica diversos impostos em uma guia (DAS).</td></tr>
-      <tr><td><strong>Lucro Presumido</strong></td><td>Regime tributário alternativo ao Simples onde a base de cálculo do IR é um percentual presumido do faturamento (32% para serviços).</td></tr>
-      <tr><td><strong>PGBL</strong></td><td>Plano Gerador de Benefício Livre — modalidade de previdência privada que permite deduzir até 12% da renda bruta tributável no IRPF.</td></tr>
-      <tr><td><strong>VGBL</strong></td><td>Vida Gerador de Benefício Livre — previdência privada sem dedução fiscal, tributada apenas sobre os rendimentos no resgate.</td></tr>
-      <tr><td><strong>CDB</strong></td><td>Certificado de Depósito Bancário — título de renda fixa emitido por bancos. Pode ser prefixado, pós-fixado (CDI) ou indexado (IPCA+).</td></tr>
-      <tr><td><strong>LCI / LCA</strong></td><td>Letras de Crédito Imobiliário / Agrícola — títulos de renda fixa isentos de IR para pessoa física.</td></tr>
-      <tr><td><strong>FII</strong></td><td>Fundo de Investimento Imobiliário — fundo negociado em bolsa que investe em imóveis ou ativos imobiliários, distribuindo rendimentos mensais.</td></tr>
-      <tr><td><strong>ETF</strong></td><td>Exchange Traded Fund — fundo de índice negociado em bolsa. Ex: IVVB11 (replica S&P 500 em BRL).</td></tr>
-      <tr><td><strong>IVVB11</strong></td><td>ETF listado na B3 que replica o índice S&P 500, proporcionando exposição ao mercado americano em reais.</td></tr>
-      <tr><td><strong>DY</strong></td><td>Dividend Yield — rendimento de dividendos/rendimentos de um ativo, expresso como percentual anual sobre o preço.</td></tr>
-      <tr><td><strong>P/L</strong></td><td>Preço/Lucro — múltiplo que relaciona o preço de uma ação ao lucro por ação. Indica quantos anos de lucro o mercado está pagando.</td></tr>
-      <tr><td><strong>PM</strong></td><td>Preço Médio — custo médio de aquisição de um ativo, usado para cálculo de IR sobre ganho de capital.</td></tr>
-      <tr><td><strong>Contrafluxo</strong></td><td>Estratégia de investimento da metodologia AUVP: comprar ativos atrelados ao indexador que está em baixa (ex: IPCA+ quando Selic está alta).</td></tr>
-      <tr><td><strong>FBAR</strong></td><td>Foreign Bank Account Report — declaração obrigatória nos EUA para contas estrangeiras com saldo agregado acima de US$10.000.</td></tr>
-      <tr><td><strong>FATCA</strong></td><td>Foreign Account Tax Compliance Act — lei americana que exige que instituições financeiras estrangeiras reportem contas de cidadãos/residentes dos EUA.</td></tr>
-      <tr><td><strong>PFIC</strong></td><td>Passive Foreign Investment Company — classificação tributária americana que torna fundos brasileiros sujeitos a tributação punitiva nos EUA.</td></tr>
-      <tr><td><strong>EB2-NIW</strong></td><td>Employment-Based Second Preference, National Interest Waiver — categoria de Green Card que dispensa oferta de emprego se o candidato demonstrar interesse nacional.</td></tr>
-      <tr><td><strong>NCLEX-RN</strong></td><td>National Council Licensure Examination for Registered Nurses — exame de licenciamento para enfermeiros nos EUA.</td></tr>
-      <tr><td><strong>IRPF</strong></td><td>Imposto de Renda Pessoa Física — imposto federal sobre a renda de pessoas físicas no Brasil.</td></tr>
-      <tr><td><strong>IR</strong></td><td>Imposto de Renda — termo genérico para IRPF ou IRPJ.</td></tr>
-      <tr><td><strong>IOF</strong></td><td>Imposto sobre Operações Financeiras — imposto federal sobre câmbio, crédito, seguros e títulos.</td></tr>
-      <tr><td><strong>Carnê-Leão</strong></td><td>Recolhimento mensal obrigatório de IR sobre rendimentos recebidos de pessoas físicas ou do exterior, via DARF.</td></tr>
-    </tbody>
-  </table>
-</div>
-<div class="card">
-  <div class="card-title">Instituições e Corretoras</div>
-  <table>
-    <thead><tr><th>Código</th><th>Instituição</th><th>Uso</th></tr></thead>
-    <tbody>
-      <tr><td><strong>C6 Bank</strong></td><td>Banco digital</td><td>Conta PJ (receita) + conta PF + cartão Carbon + conta global USD/EUR</td></tr>
-      <tr><td><strong>Itaú Personnalité</strong></td><td>Banco</td><td>Conta PF David — investimentos RF + recebimento aluguéis</td></tr>
-      <tr><td><strong>Santander</strong></td><td>Banco</td><td>Conta PF David — CDBs</td></tr>
-      <tr><td><strong>Rico / XP</strong></td><td>Corretora</td><td>David — fundos, ações, FIIs</td></tr>
-      <tr><td><strong>BTG Pactual</strong></td><td>Corretora</td><td>Mariana — investimentos RF e RV</td></tr>
-      <tr><td><strong>Bradesco</strong></td><td>Banco</td><td>Mariana — CC + poupança (salário Einstein)</td></tr>
-      <tr><td><strong>PicPay</strong></td><td>Conta digital</td><td>David — RDB liquidez</td></tr>
-      <tr><td><strong>Wise</strong></td><td>Conta internacional</td><td>Acumulação USD (spread 0,5-1%)</td></tr>
-      <tr><td><strong>Bank of America</strong></td><td>Banco EUA</td><td>Conta dormida — futura residência</td></tr>
-      <tr><td><strong>Binance</strong></td><td>Exchange crypto</td><td>Criptomoedas</td></tr>
-      <tr><td><strong>QuintoAndar</strong></td><td>Gestora de aluguéis</td><td>Gestão e recebimento dos aluguéis dos imóveis</td></tr>
-    </tbody>
-  </table>
-</div>
-<div class="card">
-  <div class="card-title">Categorias Patrimoniais</div>
-  <table>
-    <thead><tr><th>Categoria</th><th>O que inclui</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Patrimônio Bruto</strong></td><td>Soma de todos os ativos: imóveis, veículos, investimentos, criptos, contas bancárias, empresas.</td></tr>
-      <tr><td><strong>Patrimônio Investível</strong></td><td>Patrimônio Bruto − imóvel de residência − veículos. São os ativos que geram ou podem gerar renda passiva.</td></tr>
-      <tr><td><strong>Renda Fixa</strong></td><td>CDBs, Tesouro Direto, LCIs, LCAs, debêntures, fundos RF, poupança.</td></tr>
-      <tr><td><strong>Renda Variável</strong></td><td>Ações, FIIs, ETFs, fundos multimercado, BDRs.</td></tr>
-      <tr><td><strong>Imóveis (investimento)</strong></td><td>Imóveis não-residenciais que geram aluguel ou valorização.</td></tr>
-      <tr><td><strong>Criptomoedas</strong></td><td>Bitcoin, Ethereum e demais ativos digitais.</td></tr>
-      <tr><td><strong>Contas Bancárias</strong></td><td>Saldos em contas correntes, poupança e contas digitais.</td></tr>
-      <tr><td><strong>Reserva de Emergência</strong></td><td>Parcela líquida (resgate D+0 a D+2) destinada a cobrir 6-12 meses de despesas.</td></tr>
-    </tbody>
-  </table>
-</div>
+<div id="appendix-A"><h2>Apêndice A — Definições</h2><p>Glossário de termos técnicos e financeiros usados no relatório.</p></div>
 </div>
 
 <!-- APÊNDICE B -->
@@ -1736,76 +1583,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>Apêndice B — Premissas e Metodologia</h1>
 </div>
-<div class="card">
-  <div class="card-title">Premissas Econômicas</div>
-  <p>Os cenários abaixo fundamentam todas as projeções deste relatório. Fonte: BCB, IBGE, consenso de mercado (mar/2026).</p>
-  <table>
-    <thead><tr><th>Variável</th><th>Pessimista</th><th>Realista (base)</th><th>Otimista</th><th>Atual (mar/2026)</th></tr></thead>
-    <tbody>
-      <tr><td>Inflação (IPCA)</td><td>6,0%</td><td><strong>4,5%</strong></td><td>3,5%</td><td>~5%</td></tr>
-      <tr><td>Retorno real carteira</td><td>4,0%</td><td><strong>6,0%</strong></td><td>8,0%</td><td>~6,0%</td></tr>
-      <tr><td>CDI / Selic</td><td>11,0%</td><td><strong>12,0%</strong></td><td>13,5%</td><td>13,75%</td></tr>
-      <tr><td>Câmbio BRL/USD</td><td>R$ 7,50</td><td><strong>R$ 5,88</strong></td><td>R$ 4,50</td><td>R$ 5,88</td></tr>
-      <tr><td>Valorização imóveis SP</td><td>3%</td><td><strong>5%</strong></td><td>8%</td><td>—</td></tr>
-      <tr><td>TRS</td><td>3,5%</td><td><strong>4,0%</strong></td><td>5,0%</td><td>—</td></tr>
-    </tbody>
-  </table>
-</div>
-<div class="card">
-  <div class="card-title">Metodologias Utilizadas</div>
-  <h3>Bruno Perini — "Viver de Renda"</h3>
-  <p>Cálculo do "Número da Independência Financeira": patrimônio necessário = despesa anual desejada ÷ TRS. 
-  Exemplo: R$30.000/mês × 12 ÷ 5% = R$7.200.000. A projeção de prazo usa taxa de retorno real (acima da inflação) 
-  e aporte mensal constante com juros compostos.</p>
-  <h3>Gustavo Cerbasi — Equilíbrio Presente × Futuro</h3>
-  <p>Análise comportamental que classifica os gastos em "presente" (consumo, moradia, lazer) e "futuro" 
-  (investimentos, previdência, aportes). A proporção ideal é ~70% presente / 30% futuro. 
-  Classificações: <strong>Gastador</strong> (&lt;10% futuro), <strong>Equilibrado</strong> (20-40%), 
-  <strong>Poupador</strong> (&gt;40%). Referência: <em>Casais Inteligentes Enriquecem Juntos</em>.</p>
-  <h3>Raul Sena / AUVP — Contrafluxo e Análise Fundamentalista</h3>
-  <p>Estratégia de contrafluxo: investir no indexador que está "fora de moda". Quando a Selic está alta, 
-  prefixados e IPCA+ oferecem melhor relação risco/retorno. Quando a Selic está baixa, pós-fixados CDI protegem. 
-  A análise fundamentalista avalia ações por P/L, ROE, dívida/patrimônio e dividend yield histórico. 
-  FIIs são avaliados por DY, vacância, P/VP e qualidade dos inquilinos.</p>
-  <h3>Score Financeiro — Metodologia Própria</h3>
-  <p>Média ponderada de 5 componentes (0-10), com interpolação linear entre extremos:</p>
-  <table>
-    <thead><tr><th>Componente</th><th>Peso</th><th>Nota 10</th><th>Nota 0</th></tr></thead>
-    <tbody>
-      <tr><td>Taxa de poupança recorrente</td><td>2,0</td><td>≥ 50%</td><td>≤ 0%</td></tr>
-      <tr><td>Cobertura de despesas (meses)</td><td>1,5</td><td>≥ 24 meses</td><td>≤ 3 meses</td></tr>
-      <tr><td>Taxa de endividamento</td><td>1,5</td><td>≤ 5%</td><td>≥ 50%</td></tr>
-      <tr><td>Progresso IF (% da meta)</td><td>2,0</td><td>≥ 80%</td><td>≤ 5%</td></tr>
-      <tr><td>Diversificação (categorias ≥ 5%)</td><td>1,0</td><td>≥ 5 categorias</td><td>≤ 1 categoria</td></tr>
-    </tbody>
-  </table>
-  <p><em>Fórmula: Score = Σ(nota × peso) / Σ(peso), arredondado a 1 decimal.</em></p>
-</div>
-<div class="card">
-  <div class="card-title">Fontes de Dados</div>
-  <table>
-    <thead><tr><th>Dado</th><th>Fonte</th><th>Período</th></tr></thead>
-    <tbody>
-      <tr><td>Receitas e despesas</td><td>Extratos bancários e faturas de cartão (PDFs originais)</td><td>Mai/2025 – Mar/2026</td></tr>
-      <tr><td>Patrimônio (imóveis, veículos)</td><td>Declaração IRPF 2025 + planilhas XLSX atualizadas</td><td>Posição mar/2026</td></tr>
-      <tr><td>Investimentos</td><td>Posições de corretoras (Rico, BTG, Itaú, Santander, PicPay)</td><td>Posição mar/2026</td></tr>
-      <tr><td>Câmbio</td><td>BCB/PTAX (R$5,88 em mar/2026)</td><td>Spot</td></tr>
-      <tr><td>Selic/CDI</td><td>BCB — 13,75% a.a. (mar/2026)</td><td>Vigente</td></tr>
-      <tr><td>IPCA</td><td>IBGE — acumulado 12 meses ~5%</td><td>Mar/2026</td></tr>
-    </tbody>
-  </table>
-</div>
-<div class="card card-warning">
-  <div class="card-title">Disclaimers</div>
-  <ul>
-    <li>Projeções de renda passiva 2035 usam premissas de IGPM 4%/ano, DY ações 5-8%, DY FIIs 9%, retorno real 6%. Revisar anualmente.</li>
-    <li>Tabela fundamentalista de ações — valores estimados, confirmar antes de agir.</li>
-    <li>DY de FIIs de referência — DY passado não garante DY futuro.</li>
-    <li>Taxa PGBL — confirmar taxa real de administração antes de portabilidade.</li>
-    <li>Benchmark de fundos — períodos variam por fundo (retorno acumulado desde aporte, não "últimos 12 meses").</li>
-    <li>Para questões tributárias EUA, consultar CPA especializado em expatriados.</li>
-  </ul>
-</div>
+<div id="appendix-B"><h2>Apêndice B — Metodologia</h2><p>Detalhamento dos cálculos e fontes de dados utilizadas.</p></div>
 </div>
 
 <!-- APÊNDICE C -->
@@ -1813,68 +1591,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>Apêndice C — Cenários de Sensibilidade</h1>
 </div>
-<div class="card">
-  <div class="card-title">Cenários — Independência Financeira</div>
-  <p>Projeção de prazo para atingir a meta de R$7.200.000 com aporte de R$20.000/mês, variando a taxa de retorno real.</p>
-  <table>
-    <thead><tr><th>Cenário</th><th>Retorno real a.a.</th><th>Aporte/mês</th><th>Prazo</th><th>David com</th></tr></thead>
-    <tbody>
-      <tr><td>Pessimista</td><td>4,0%</td><td>R$ 20.000</td><td>~11,9 anos</td><td>55 (2038)</td></tr>
-      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>6,0%</strong></td><td><strong>R$ 20.000</strong></td><td><strong>~9,0 anos</strong></td><td><strong>52 (2035)</strong></td></tr>
-      <tr><td>Otimista</td><td>8,0%</td><td>R$ 20.000</td><td>~7,0 anos</td><td>50 (2033)</td></tr>
-    </tbody>
-  </table>
-  <p><strong>Progresso atual:</strong> R$ 1,558,589 de R$ 7,200,000 (21.6% atingido).</p>
-</div>
-<div class="card">
-  <div class="card-title">Cenários — Câmbio BRL/USD</div>
-  <p>Impacto do câmbio nos custos da fase EUA (F1/F2) e na meta de dolarização.</p>
-  <table>
-    <thead><tr><th>Cenário</th><th>Câmbio</th><th>Custo F1/F2 mensal (BRL)</th><th>Meta USD (R$20k em BRL)</th><th>Impacto</th></tr></thead>
-    <tbody>
-      <tr><td>Pessimista (desvalorização)</td><td>R$ 7,50</td><td>R$ 29.925</td><td>R$ 150.000</td><td>Custos +28%, aporte USD rende menos</td></tr>
-      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>R$ 5,88</strong></td><td><strong>R$ 23.461</strong></td><td><strong>R$ 117.600</strong></td><td><strong>Base do planejamento</strong></td></tr>
-      <tr><td>Otimista (valorização)</td><td>R$ 4,50</td><td>R$ 17.955</td><td>R$ 90.000</td><td>Custos -24%, folga para aportes maiores</td></tr>
-    </tbody>
-  </table>
-</div>
-<div class="card">
-  <div class="card-title">Cenários — Selic e Renda Fixa</div>
-  <p>Sensibilidade da carteira de renda fixa a mudanças na Selic.</p>
-  <table>
-    <thead><tr><th>Cenário</th><th>Selic</th><th>CDI estimado</th><th>Impacto na carteira RF</th><th>Ação recomendada</th></tr></thead>
-    <tbody>
-      <tr><td>Queda acentuada</td><td>8,0%</td><td>~7,9%</td><td>CDBs pós-fixados rendem menos; IPCA+ valoriza (marcação a mercado)</td><td>Manter IPCA+ até vencimento; aumentar prefixados longos</td></tr>
-      <tr class="total-row"><td><strong>Estabilidade</strong></td><td><strong>12,0%</strong></td><td><strong>~11,9%</strong></td><td><strong>CDBs pós rendem bem; IPCA+ em carrego</strong></td><td><strong>Manter estratégia atual (contrafluxo IPCA+)</strong></td></tr>
-      <tr><td>Alta adicional</td><td>15,0%</td><td>~14,9%</td><td>CDBs pós rendem mais; IPCA+ desvaloriza na marcação</td><td>Aumentar CDBs pós-fixados curtos; evitar IPCA+ longo novo</td></tr>
-    </tbody>
-  </table>
-</div>
-<div class="card">
-  <div class="card-title">Cenários — Mercado Imobiliário SP</div>
-  <p>Impacto da valorização (ou desvalorização) dos imóveis no patrimônio e no yield.</p>
-  <table>
-    <thead><tr><th>Cenário</th><th>Valorização anual</th><th>Impacto em 5 anos</th><th>Efeito no yield</th></tr></thead>
-    <tbody>
-      <tr><td>Pessimista (estagnação)</td><td>0-2%</td><td>Patrimônio imobiliário estável, perda real</td><td>Yield se mantém ou sobe (valor do imóvel cai)</td></tr>
-      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>5%</strong></td><td><strong>Valorização ~28% em 5 anos</strong></td><td><strong>Yield estável (aluguel acompanha valorização)</strong></td></tr>
-      <tr><td>Otimista (boom)</td><td>8-10%</td><td>Valorização ~47-61% em 5 anos</td><td>Yield pode comprimir (valor sobe mais que aluguel)</td></tr>
-    </tbody>
-  </table>
-</div>
-<div class="card card-warning">
-  <div class="card-title">Stress Tests — Perguntas-Chave</div>
-  <table>
-    <thead><tr><th>Pergunta</th><th>Resposta / Mitigação</th></tr></thead>
-    <tbody>
-      <tr><td><strong>E se a Selic cair a 8%?</strong></td><td>CDBs pós rendem menos (~R$1.500/mês a menos em RF). Ação: contrafluxo — já ter IPCA+ longos na carteira captura a valorização. Manter Tesouro IPCA+ 2035/2040.</td></tr>
-      <tr><td><strong>E se o USD chegar a R$7,50?</strong></td><td>Custos F1/F2 sobem ~28%. A sobra mensal cai de R$38k para ~R$32k — ainda viável. Dolarização via Wise fica mais cara mas protege o patrimônio.</td></tr>
-      <tr><td><strong>E se Mariana não conseguir o NCLEX?</strong></td><td>A simulação 'Mariana sem trabalhar' mostra IF em 11,4 anos (vs 9,0). David absorve com aporte reduzido de R$13.200/mês.</td></tr>
-      <tr><td><strong>E se David perder o contrato Arvo?</strong></td><td>Renda cai ~60%. Reserva de emergência cobre 19,5 meses. Ações: (1) buscar contratos substitutos, (2) reduzir aporte IF, (3) Mariana mantém renda CLT.</td></tr>
-      <tr><td><strong>E se os imóveis desvalorizarem 20%?</strong></td><td>Patrimônio bruto cai ~R$245k, mas o patrimônio investível não muda (imóvel residência já excluído). Yield dos imóveis de investimento sobe proporcionalmente.</td></tr>
-    </tbody>
-  </table>
-</div>
+<div id="appendix-C"><h2>Apêndice C — Cenários</h2><p>Projeções sob cenários pessimista, realista e otimista.</p></div>
 </div>
 
 <!-- APÊNDICE D -->
@@ -1882,50 +1599,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>Apêndice D — Referências e Recursos</h1>
 </div>
-<div class="card">
-  <div class="card-title">Livros Recomendados</div>
-  <table>
-    <thead><tr><th>Livro</th><th>Autor</th><th>Tema</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Viver de Renda</strong></td><td>Bruno Perini</td><td>Independência financeira, cálculo da IF, montagem de carteira de renda passiva</td></tr>
-      <tr><td><strong>Casais Inteligentes Enriquecem Juntos</strong></td><td>Gustavo Cerbasi</td><td>Finanças do casal, equilíbrio presente vs futuro, comportamento financeiro</td></tr>
-      <tr><td><strong>Investimentos Inteligentes</strong></td><td>Gustavo Cerbasi</td><td>Fundamentos de investimento para famílias brasileiras</td></tr>
-      <tr><td><strong>Do Mil ao Milhão</strong></td><td>Thiago Nigro</td><td>Gastar bem, investir melhor, ganhar mais — mentalidade financeira</td></tr>
-      <tr><td><strong>O Homem Mais Rico da Babilônia</strong></td><td>George S. Clason</td><td>Princípios atemporais de poupança e acumulação de riqueza</td></tr>
-      <tr><td><strong>Pai Rico, Pai Pobre</strong></td><td>Robert Kiyosaki</td><td>Ativos vs passivos, mentalidade de riqueza, renda passiva</td></tr>
-    </tbody>
-  </table>
-</div>
-<div class="card">
-  <div class="card-title">Ferramentas e Plataformas</div>
-  <table>
-    <thead><tr><th>Ferramenta</th><th>Uso</th><th>Link</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Tesouro Direto</strong></td><td>Compra de títulos públicos (IPCA+, Selic, Prefixado)</td><td>tesourodireto.com.br</td></tr>
-      <tr><td><strong>Status Invest</strong></td><td>Análise fundamentalista de ações, FIIs, ETFs</td><td>statusinvest.com.br</td></tr>
-      <tr><td><strong>Fundamentus</strong></td><td>Dados fundamentalistas de empresas listadas na B3</td><td>fundamentus.com.br</td></tr>
-      <tr><td><strong>Investidor 10</strong></td><td>Comparação de FIIs, ações, rankings por DY</td><td>investidor10.com.br</td></tr>
-      <tr><td><strong>AUVP Analítica</strong></td><td>Plataforma educacional + análise de investimentos (Raul Sena)</td><td>auvp.com.br</td></tr>
-      <tr><td><strong>Simulador BCB — Cidadão</strong></td><td>Simulação de investimentos, consórcio, financiamento</td><td>bcb.gov.br/cidadaniafinanceira</td></tr>
-      <tr><td><strong>Calculadora CDB / Tesouro</strong></td><td>Comparativo CDB vs Tesouro vs LCI/LCA com IR</td><td>calculadoradoinvestidor.com.br</td></tr>
-      <tr><td><strong>Wise</strong></td><td>Transferências internacionais e conta multi-moeda</td><td>wise.com</td></tr>
-      <tr><td><strong>Gov.br</strong></td><td>IRPF, consulta restituição, e-CAC, DAS</td><td>gov.br</td></tr>
-    </tbody>
-  </table>
-</div>
-<div class="card">
-  <div class="card-title">Contatos Profissionais Recomendados</div>
-  <table>
-    <thead><tr><th>Profissional</th><th>Área</th><th>Quando acionar</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Contador (AccountTech)</strong></td><td>Contabilidade PJ, DAS, Simples Nacional</td><td>Mensal (DAS) + IRPF anual + mudança de regime</td></tr>
-      <tr><td><strong>Advogado Sucessório / Tributarista SP</strong></td><td>Testamentos, procurações, holding</td><td>Antes da mudança para EUA — planejamento sucessório</td></tr>
-      <tr><td><strong>CPA Expatriado (EUA)</strong></td><td>FBAR, FATCA, Form 1040, PFIC</td><td>Antes de se tornar US tax resident — essencial</td></tr>
-      <tr><td><strong>Advogado Imigração (EUA)</strong></td><td>EB2-NIW, F1/F2, Green Card</td><td>Acompanhamento do processo de Green Card</td></tr>
-      <tr><td><strong>Corretor de Seguros</strong></td><td>Vida, invalidez (DIT), residencial</td><td>Urgente — cotar term life R$3-5M + DIT 60% da renda</td></tr>
-    </tbody>
-  </table>
-</div>
+<div id="appendix-D"><h2>Apêndice D — Contatos</h2><p>Contatos de consultores, instituições e fornecedores.</p></div>
 </div>
 
 <!-- APÊNDICE E -->
@@ -1933,126 +1607,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>Apêndice E — Próximos Ciclos e Roadmap</h1>
 </div>
-<div class="card">
-  <div class="card-title">Lista de Tarefas</div>
-  <table>
-    <thead><tr><th>#</th><th>TAREFA</th><th>CATEGORIA</th><th>PRAZO</th><th>ESS.</th></tr></thead>
-    <tbody>
-      <tr><td>1</td><td>Quitar financiamento Ed. Gisele: C6 PJ R$117.430 + CDB-DI Itaú R$117.213</td><td>Invest.</td><td>Hoje</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>2</td><td><s>Zerar cheque especial Santander (R$291)</s> ✅</td><td>Orçamento</td><td>Hoje</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>3</td><td>Solicitar resgate Safari 30 na Rico (~R$16.614, prazo D+60 para liquidação)</td><td>Invest.</td><td>Semana</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>4</td><td>Cancelar seguro de conta Santander (R$10/mês). Manter seguro de conta C6 (R$20/mês).</td><td>Orçamento</td><td>Semana</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>5</td><td>Configurar aporte R$20k/mês (dia 5): R$10k Cofrinhos Itaú + R$5k Tesouro IPCA+ + R$3k IVVB11 + R$2k Wise USD (ver Seção 3)</td><td>Invest.</td><td>05/04</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>6</td><td>Reunião AccountTech (pauta completa): (a) regularizar carnê-leão David + Mariana 2025, (b) confirmar risco multa isolada 2024, (c) DAS mensal automático dia 20 via C6 PJ, (d) parar impostos PJ por contas pessoais, (e) Simples vs LP, (f) Carnê-Leão mensal para ambos</td><td>Tributário</td><td>Abr/2026</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>7</td><td>Cotar seguro de vida Term Life R$3-5M, 20 anos (SulAmérica, Porto Seguro, Prudential)</td><td>Seguros</td><td>Abr/2026</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>8</td><td>Cotar seguro de invalidez (60% da renda, ~R$100-200/mês)</td><td>Seguros</td><td>Abr/2026</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>9</td><td>CAIXA: confirmar valor do FGTS Kiwify + solicitar saque na mesma visita. Levar: RG, CPF, CTPS digital, termo de rescisão. Incluir valor no patrimônio investível.</td><td>Financeiro</td><td>Abr/2026</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>10</td><td>Regularizar registro do Ed. Gisele no cartório (matrícula ainda no nome do antigo dono)</td><td>Imóveis</td><td>Abr/2026</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>11</td><td>Configurar transferência automática R$5k C6 PJ → C6 PF no dia 1 de cada mês (eliminar cheque especial)</td><td>Orçamento</td><td>Abr/2026</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>12</td><td><s>Criar login Gov.br nível Prata ou Ouro para David + Mariana (pré-requisito para Carnê-Leão Web no e-CAC)</s> ✅</td><td>Tributário</td><td>Abr/2026</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>13</td><td>Entregar IRPF 2026 David + Mariana (com carnê-leão de ambos regularizado antes da entrega)</td><td>Tributário</td><td>Mai/2026</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>14</td><td>Configurar carnê-leão automático mensal David + Mariana (lançar aluguéis no Carnê-Leão Web e pagar DARF até último dia útil do mês seguinte)</td><td>Tributário</td><td>Jun/2026</td><td><span class="priority-badge priority-alta">S</span></td></tr>
-      <tr><td>15</td><td>Vender BRKM5 (300 ações, prejuízo R$3.516). Compensar prejuízo com lucros futuros para IR.</td><td>Invest.</td><td>Abr/2026</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>16</td><td>Crypto: vender ADA e AXS. Iniciar DCA R$500/mês (R$400 BTC + R$100 ETH) até 1% da carteira (~R$12.845). Fonte: folga mensal.</td><td>Invest.</td><td>Abr/2026</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>17</td><td>Consolidar corretoras — fase 1: transferir PicPay R$53k para Cofrinhos Itaú + resgatar C6 investimentos R$2k</td><td>Invest.</td><td>Abr/2026</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>18</td><td>Confirmar taxa real PGBL Itaú (app ou central 4004-4828). Se >1% a.a., solicitar portabilidade para BTG ou XP.</td><td>Invest.</td><td>Abr/2026</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>19</td><td>Iniciar aportes PGBL R$1.800/mês (economia IRPF R$5.940/ano). Quanto antes, melhor.</td><td>Tributário</td><td>Abr/2026</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>20</td><td>Solicitar avaliação do Barão de Capanema (Pça Calixto) com corretora local — pode valer R$900k-1,1M</td><td>Imóveis</td><td>Abr/2026</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>21</td><td>Reinvestir resgate Safari 30 (~R$16.614) em IVVB11 ou ETF global (após D+60 da tarefa 3)</td><td>Invest.</td><td>Mai/2026</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>22</td><td>Consultar 2-3 CPAs especialistas em expatriados (BR-US) para FBAR, Form 8938, Form 1040, PFIC</td><td>Trib./EUA</td><td>T3/26</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>23</td><td>Avaliar resgate dos fundos brasileiros classificáveis como PFIC (Alaska, Constellation, Western Asset, BTG) ANTES de se tornar US tax resident — tributação punitiva nos EUA</td><td>Invest./EUA</td><td>T3/26</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>24</td><td>Avaliar desempenho Alaska Black FIA BDR (-13,24%). Se persistir negativo, resgatar e realocar em IVVB11.</td><td>Invest.</td><td>Set/2026</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>25</td><td>Iniciar CGFNS + TOEFL para Mariana (NCLEX). Pode ser feito do Brasil — reduz gap de renda nos EUA em 3-9 meses.</td><td>Plan. EUA</td><td>T4/26</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>26</td><td>Definir timeline F1/F2 Anderson University (semestre de início, duração, logistics)</td><td>Plan. EUA</td><td>T4/26</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>27</td><td>Iniciar processo matrícula e visto F1 (se timeline definir início em 2027)</td><td>Plan. EUA</td><td>T4/26</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>28</td><td>Procurações em cartório (mesma visita): (a) procuração pública para Rubens administrar imóveis e contas, (b) procuração duradoura David → Mariana + Rubens para emergências/incapacidade</td><td>Jurídico</td><td>Antes EUA</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>29</td><td>Configurar débito automático IPTU e condomínio de todos os 7 imóveis</td><td>Imóveis</td><td>Antes EUA</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>30</td><td>Separar R$3k/mês como "reserva de desejos" da folga mensal (para compras planejadas acima de R$2k — ver Orçamento Prospectivo)</td><td>Orçamento</td><td>Abr/2026</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>31</td><td>Revisar assinaturas: Gympass R$80 (usa?), Livelo Clube R$45, MeliMais R$20. Economia potencial: ~R$145/mês.</td><td>Orçamento</td><td>Abr/2026</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>32</td><td>Seguro residencial Tasso: cotar Porto Seguro, SulAmérica, Tokio Marine (economia 20-40% vs Santander atual)</td><td>Seguros</td><td>T3/26</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>33</td><td>Verificar vigência dos seguros veiculares (Toro + NMax) e agendar renovação antes de viajar</td><td>Seguros</td><td>Antes EUA</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>34</td><td>Após reserva emergência atingir 12 meses (R$382k), realocar os R$10k dos Cofrinhos: R$5k → reserva de oportunidade (CDB liquidez, meta R$50-80k) + R$5k → Tesouro IPCA+ 2035/2040 (contrafluxo, travar IPCA+7%)</td><td>Invest.</td><td>Jan/27</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>35</td><td>Avaliar venda Living Concept (yield 3,2% vs CDI 13,15%). Imóvel ficou vago 7 meses em 2025.</td><td>Imóveis</td><td>2027</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>41</td><td>Atualizar cadastro e pagar anuidade do Clube de Tiro Águia de Haia</td><td>Financeiro</td><td>Abr/2026</td><td><span class="priority-badge priority-media">R</span></td></tr>
-      <tr><td>36</td><td>Advogado sucessório/tributarista SP — contratar para testamento + holding</td><td>Sucessório</td><td>Abr/2026</td><td><span class="priority-badge priority-baixa">O</span></td></tr>
-      <tr><td>37</td><td>Testamento público David + Mariana (cartório BR). Depende de advogado (tarefa 36)</td><td>Sucessório</td><td>Mai/2026</td><td><span class="priority-badge priority-baixa">O</span></td></tr>
-      <tr><td>38</td><td>Atualizar beneficiários PGBL e seguro de vida</td><td>Sucessório</td><td>Abr/2026</td><td><span class="priority-badge priority-baixa">O</span></td></tr>
-      <tr><td>39</td><td>Avaliar holding patrimonial com tributarista</td><td>Sucessório</td><td>T4/2026</td><td><span class="priority-badge priority-baixa">O</span></td></tr>
-      <tr><td>40</td><td>Testamento americano (BR assets) + Standby Guardianship para Theo</td><td>Sucessório</td><td>Após mudança EUA</td><td><span class="priority-badge priority-baixa">O</span></td></tr>
-    </tbody>
-  </table>
-  <p style="margin-top:12px;font-size:13px;"><span class="priority-badge priority-alta">S</span> = Essencial (S) — 14 tarefas &nbsp; 
-  <span class="priority-badge priority-media">R</span> = Recomendada (R) — 22 tarefas &nbsp; 
-  <span class="priority-badge priority-baixa">O</span> = Opcional (O) — 5 tarefas</p>
-  <p style="font-size:13px;">✅ 2 tarefa(s) concluída(s) neste ciclo.</p>
-  <h3>Alertas</h3>
-  <ul>
-    <li>⚠️ Score financeiro: 5.5/10 (Regular)</li>
-    <li>⚠️ Rentabilidade: N/D</li>
-  </ul>
-</div>
-<div class="card">
-  <div class="card-title">Viagens e Milhas — Orçamento 2026</div>
-  <table>
-    <thead><tr><th>Item</th><th>Valor</th></tr></thead>
-    <tbody>
-      <tr><td>Teto anual de viagens</td><td><strong>R$ 45.000</strong></td></tr>
-      <tr><td>Portugal (realizado)</td><td>R$ 22.337</td></tr>
-      <tr><td>Saldo disponível</td><td><strong>R$ 22.663</strong></td></tr>
-    </tbody>
-  </table>
-  <p><em>Nota: Custos da estadia EUA (F1/F2) NÃO entram no orçamento de viagens — são custo de vida.</em></p>
-</div>
-<div class="card">
-  <div class="card-title">NCLEX Roadmap — Mariana</div>
-  <p>Caminho para licenciamento como Registered Nurse nos EUA (estimativa 8-18 meses).</p>
-  <table>
-    <thead><tr><th>Etapa</th><th>Descrição</th><th>Custo</th><th>Duração</th></tr></thead>
-    <tbody>
-      <tr><td>1</td><td>CGFNS Credentials Evaluation</td><td>US$ 350</td><td>4-8 semanas</td></tr>
-      <tr><td>2</td><td>Teste de Inglês (MET ou OET recomendados)</td><td>US$ 235–455</td><td>Prep 2-3 meses</td></tr>
-      <tr><td>3</td><td>CGFNS VisaScreen Certificate</td><td>US$ 540</td><td>8-12 semanas</td></tr>
-      <tr><td>4</td><td>State Board Application (SC)</td><td>US$ 200</td><td>2-4 semanas</td></tr>
-      <tr><td>5</td><td>ATT (Authorization to Test)</td><td>—</td><td>2-4 semanas</td></tr>
-      <tr><td>6</td><td>NCLEX-RN Exam</td><td>US$ 200</td><td>Agendar Pearson VUE</td></tr>
-      <tr><td>7</td><td>License Issued</td><td>—</td><td>2-4 semanas</td></tr>
-    </tbody>
-  </table>
-  <p><strong>Custo total estimado:</strong> US$ 1.515–2.440 | <strong>Perfil competitivo Mariana:</strong> Especialização Cardiologia + Mestrado USP + 11+ anos Einstein + UTI.</p>
-  <p><strong>Projeção EUA:</strong> Cardiologia RN US$45–80/hora → US$4.000–7.000/mês líquido.</p>
-</div>
-<div class="card">
-  <div class="card-title">Simulação — Mariana Sem Trabalhar</div>
-  <table>
-    <thead><tr><th>Métrica</th><th>Valor</th></tr></thead>
-    <tbody>
-      <tr><td>Impacto líquido mensal</td><td>-R$ 6.830 (R$8.000 perdido − R$1.170 economizado)</td></tr>
-      <tr><td>Faturamento PJ adicional necessário</td><td>R$ 8.035/mês bruto (+13,4%)</td></tr>
-      <tr><td>IF com aporte R$20k mantido</td><td><strong>9,0 anos</strong> (folga absorve a perda)</td></tr>
-      <tr><td>IF com aporte reduzido R$13,2k</td><td>11,4 anos (+2,4 anos)</td></tr>
-    </tbody>
-  </table>
-</div>
-<div class="card">
-  <div class="card-title">Calendário — Próximo Ciclo</div>
-  <table>
-    <thead><tr><th>Data</th><th>Item</th><th>Tipo</th></tr></thead>
-    <tbody>
-      <tr><td>05/Abr/2026</td><td>Primeiro aporte R$20.000 (plano IF)</td><td>Financeiro</td></tr>
-      <tr><td>Abr/2026</td><td>Contratar seguro de vida term life R$3-5M</td><td>Proteção</td></tr>
-      <tr><td>Abr/2026</td><td>Contratar seguro invalidez (DIT) 60% da renda</td><td>Proteção</td></tr>
-      <tr><td>Abr/2026</td><td>Consultar advogado sucessório/tributarista SP</td><td>Sucessório</td></tr>
-      <tr><td>Abr/2026</td><td>Atualizar beneficiários PGBL e seguro de vida</td><td>Proteção</td></tr>
-      <tr><td>Mai/2026</td><td>Testamento público David + Mariana (cartório BR)</td><td>Sucessório</td></tr>
-      <tr><td>Mai/2026</td><td>Início prep teste inglês Mariana (MET ou OET)</td><td>NCLEX</td></tr>
-      <tr><td>Jun/2026</td><td>Revisão tática quinzenal — despesas vs tetos</td><td>Pipeline</td></tr>
-      <tr><td>Jul/2026</td><td>Análise completa trimestral (pipeline E0-E6)</td><td>Pipeline</td></tr>
-      <tr><td>T4/2026</td><td>Avaliar holding patrimonial</td><td>Sucessório</td></tr>
-      <tr><td>Antes EUA</td><td>Contratar CPA expatriado</td><td>Tributário</td></tr>
-      <tr><td>Antes EUA</td><td>Procuração pública para Rubens (pai David)</td><td>Sucessório</td></tr>
-    </tbody>
-  </table>
-</div>
+<div id="appendix-E"><h2>Apêndice E — Histórico</h2><p>Changelog de versões anteriores do relatório.</p></div>
 </div>
 
 </div><!-- END .container wrapper -->
@@ -2069,9 +1624,9 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 
 <footer class="footer">
 <div class="footer-content">
-        <p><strong>Relatório gerado em:</strong> 8 abr 2026, 16h51</p>
-        <p><strong>Período dos dados:</strong> 2023-01 a 2026-04</p>
-        <p><strong>Versão Manual Operações:</strong> 5.7.1</p>
+        <p><strong>Relatório gerado em:</strong> 6 abr 2026, 11h54</p>
+        <p><strong>Período dos dados:</strong> 2025-01 a 2026-03</p>
+        <p><strong>Versão Manual Operações:</strong> 5.3</p>
         <p class="footer-disclaimer">
             Este relatório contém informações financeiras sensíveis. Distribuição restrita ao círculo familiar.
             Recomenda-se revisão anual ou após eventos patrimoniais relevantes.
@@ -2083,119 +1638,118 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   "meta": {
     "modo_padrao": "strategic",
     "familia": "Ferreira Campos",
-    "periodo": "2023-01 a 2026-04",
-    "data_geracao": "2026-04-08T16:51:08.861558",
-    "versao": "5.7.1"
+    "periodo": "2025-01 a 2026-03",
+    "data_geracao": "2026-04-06T11:54:24.168268",
+    "versao": "5.3"
   },
   "kpis": {
-    "patrimonio_bruto": 2782886.1,
-    "patrimonio_liquido": 2782886.1,
-    "patrimonio_investivel": 1558588.64,
-    "receita_recorrente_mensal": 35008.52,
-    "taxa_poupanca": -41.9,
+    "patrimonio_bruto": 3501275.44,
+    "patrimonio_liquido": 3266482.83,
+    "patrimonio_investivel": 2276977.98,
+    "receita_recorrente_mensal": 56647.14,
+    "taxa_poupanca": 29.47,
     "if_meta": 7200000.0,
-    "if_gap": 5641411.36,
-    "if_pct": 21.65,
-    "score": 5.5,
-    "renda_passiva_mensal": 5195.3,
+    "if_gap": 4923022.02,
+    "if_pct": 31.62,
+    "score": 7.3,
+    "renda_passiva_mensal": 7589.93,
     "renda_passiva_meta": 30000.0
   },
   "patrimonio": {
-    "bruto": 2782886.1,
-    "dividas": 0.0,
-    "liquido": 2782886.1,
+    "bruto": 3501275.44,
+    "dividas": 234792.61,
+    "liquido": 3266482.83,
     "residencia": 996821.46,
-    "imoveis_investimento": 562706.24,
-    "investimentos_david": 620497.84,
-    "investimentos_mariana": 375384.56,
+    "imoveis_investimento": 1503000.42,
+    "investimentos_david": 642958.33,
+    "investimentos_mariana": 135865.55,
     "caixa_moeda_estrangeira": 0.0,
-    "investivel": 1558588.64,
+    "investivel": 2276977.98,
     "veiculos": 227476.0,
     "composicao": [
       {
+        "categoria": "Imóveis Investimento",
+        "valor": 1503000.42,
+        "pct": 42.87
+      },
+      {
         "categoria": "Residência",
         "valor": 996821.46,
-        "pct": 35.82
+        "pct": 28.43
       },
       {
         "categoria": "Investimentos David",
-        "valor": 620497.84,
-        "pct": 22.3
-      },
-      {
-        "categoria": "Imóveis Investimento",
-        "valor": 562706.24,
-        "pct": 20.22
-      },
-      {
-        "categoria": "Investimentos Mariana",
-        "valor": 375384.56,
-        "pct": 13.49
+        "valor": 642958.3299999998,
+        "pct": 18.34
       },
       {
         "categoria": "Veículos",
         "valor": 227476.0,
-        "pct": 8.17
+        "pct": 6.49
+      },
+      {
+        "categoria": "Investimentos Mariana",
+        "valor": 135865.55,
+        "pct": 3.88
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 1.7462298274040222e-10,
+        "valor": 0.0,
         "pct": 0.0
       }
     ],
     "tabela_categorias": [
       {
+        "categoria": "Imóveis Investimento",
+        "valor": 1503000.42,
+        "pct": 42.87
+      },
+      {
         "categoria": "Residência",
         "valor": 996821.46,
-        "pct": 35.82
+        "pct": 28.43
       },
       {
         "categoria": "Investimentos David",
-        "valor": 620497.84,
-        "pct": 22.3
-      },
-      {
-        "categoria": "Imóveis Investimento",
-        "valor": 562706.24,
-        "pct": 20.22
-      },
-      {
-        "categoria": "Investimentos Mariana",
-        "valor": 375384.56,
-        "pct": 13.49
+        "valor": 642958.3299999998,
+        "pct": 18.34
       },
       {
         "categoria": "Veículos",
         "valor": 227476.0,
-        "pct": 8.17
+        "pct": 6.49
+      },
+      {
+        "categoria": "Investimentos Mariana",
+        "valor": 135865.55,
+        "pct": 3.88
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 1.7462298274040222e-10,
+        "valor": 0.0,
         "pct": 0.0
       }
-    ],
-    "fonte_investimentos": "posicoes_atuais"
+    ]
   },
   "charts": {
     "patrimonio_doughnut": {
       "labels": [
+        "Imóveis Investimento",
         "Residência",
         "Investimentos David",
-        "Imóveis Investimento",
-        "Investimentos Mariana",
         "Veículos",
+        "Investimentos Mariana",
         "Caixa e Moeda Estrangeira"
       ],
       "datasets": [
         {
           "data": [
+            1503000.42,
             996821.46,
-            620497.84,
-            562706.24,
-            375384.56,
+            642958.3299999998,
             227476.0,
-            1.7462298274040222e-10
+            135865.55,
+            0.0
           ],
           "backgroundColor": [
             "#1A3A5C",
@@ -2215,151 +1769,74 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
         "Meta IF"
       ],
       "data": [
-        1558588.64,
-        5641411.36,
+        2276977.98,
+        4923022.02,
         7200000.0
       ]
     },
     "receita_bar": {
       "labels": [
-        "outras_receitas",
         "receita_investimento",
         "receita_resgate",
-        "receita_aluguel",
-        "receita_clt",
-        "receita_venda_ativo",
         "receita_pj",
+        "receita_aluguel",
+        "outras_receitas",
+        "receita_clt",
         "receita_restituicao"
       ],
       "datasets": [
         {
           "data": [
-            464243.63,
-            14565.17,
-            27416.7,
-            173662.93,
-            1165140.92,
-            49402.0,
-            618374.88,
-            16.99
+            3956.0,
+            2409.03,
+            1030845.22,
+            111342.66,
+            57121.56,
+            113309.1,
+            216.99
           ],
-          "backgroundColor": [
-            "#1A3A5C",
-            "#1E6E8F",
-            "#15803D",
-            "#F4A261",
-            "#B91C1C",
-            "#457B9D",
-            "#E63946",
-            "#A8DADC"
-          ]
+          "backgroundColor": "#1A3A5C"
         }
       ]
     },
     "fluxo_mensal": {
-      "labels": [
-        "Receita Mensal",
-        "Despesa Mensal",
-        "Saldo"
-      ],
-      "datasets": [
-        {
-          "label": "Fluxo de Caixa (R$)",
-          "data": [
-            35008.52,
-            49675.54,
-            -14667.02
-          ],
-          "backgroundColor": [
-            "#15803D",
-            "#B91C1C",
-            "#F4A261"
-          ],
-          "borderRadius": 4
-        }
-      ]
+      "receita": 56647.14,
+      "despesa": 39951.49,
+      "saldo": 16695.65
     },
     "receita_despesa_mensal": {
       "labels": [
-        "jan/23",
-        "fev/23",
-        "mar/23",
-        "abr/23",
-        "mai/23",
-        "jun/23",
-        "jul/23",
-        "ago/23",
-        "set/23",
-        "out/23",
-        "nov/23",
-        "dez/23",
-        "jan/24",
-        "fev/24",
-        "mar/24",
-        "abr/24",
-        "mai/24",
-        "jun/24",
-        "jul/24",
-        "ago/24",
-        "set/24",
-        "out/24",
-        "nov/24",
-        "dez/24",
-        "jan/25",
-        "fev/25",
-        "mar/25",
-        "abr/25",
-        "mai/25",
-        "jun/25",
-        "jul/25",
-        "ago/25",
-        "set/25",
-        "out/25",
-        "nov/25",
-        "dez/25",
-        "jan/26",
-        "fev/26",
-        "mar/26",
-        "abr/26"
+        "25/01",
+        "25/02",
+        "25/03",
+        "25/04",
+        "25/05",
+        "25/06",
+        "25/07",
+        "25/08",
+        "25/09",
+        "25/10",
+        "25/11",
+        "25/12",
+        "26/01",
+        "26/02",
+        "26/03",
+        "26/04"
       ],
       "datasets": [
         {
           "label": "Aluguéis",
           "data": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            2705.9,
-            2705.9,
-            2705.9,
-            2705.9,
-            2705.9,
-            2705.9,
-            2705.9,
-            2705.9,
-            2705.9,
-            2705.9,
-            2730.14,
-            2777.02,
-            2833.67,
-            2833.67,
-            2833.67,
-            2833.67,
-            2833.67,
-            2833.67,
-            1934.03,
-            8054.23,
-            8054.23,
-            8054.23,
-            8317.98,
+            6721.200000000001,
+            6721.200000000001,
+            6721.200000000001,
+            6815.370000000001,
             8632.0,
             8614.33,
-            8539.87,
+            8539.869999999999,
             8542.54,
             8738.46,
-            8738.46,
+            3422.1000000000004,
             8738.46,
             8738.46,
             8646.77,
@@ -2367,7 +1844,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             6819.45,
             0.0
           ],
-          "backgroundColor": "#2563EB",
+          "backgroundColor": "#1A3A5C",
           "stack": "receita",
           "borderRadius": 4
         },
@@ -2387,35 +1864,11 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            2000.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
             3500.0,
             2000.0,
             0.0
           ],
-          "backgroundColor": "#0EA5E9",
+          "backgroundColor": "#1E6E8F",
           "stack": "receita",
           "borderRadius": 4
         },
@@ -2430,40 +1883,16 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            78333.33,
+            38333.33,
             50000.0,
             54957.62,
             54957.62,
             47208.77,
-            47208.77,
-            47208.77,
+            52208.77,
+            48208.77,
             0.0
           ],
-          "backgroundColor": "#0891B2",
+          "backgroundColor": "#2A9D8F",
           "stack": "receita",
           "borderRadius": 4
         },
@@ -2475,30 +1904,6 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
             10000.0,
             0.0,
             0.0,
@@ -2511,7 +1916,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0
           ],
-          "backgroundColor": "#0D9488",
+          "backgroundColor": "#457B9D",
           "stack": "receita",
           "borderRadius": 4
         },
@@ -2522,35 +1927,11 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
             7000.0,
             10000.0,
             0.0,
             0.0,
-            0.0,
+            40000.0,
             0.0,
             0.0,
             0.0,
@@ -2559,37 +1940,13 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             30000.0,
             0.0
           ],
-          "backgroundColor": "#059669",
+          "backgroundColor": "#15803D",
           "stack": "receita",
           "borderRadius": 4
         },
         {
           "label": "CNRY (David - PJ)",
           "data": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
             0.0,
             0.0,
             0.0,
@@ -2607,37 +1964,13 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0
           ],
-          "backgroundColor": "#16A34A",
+          "backgroundColor": "#F4A261",
           "stack": "receita",
           "borderRadius": 4
         },
         {
           "label": "Einstein (Mariana - CLT)",
           "data": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
             7675.41,
             7623.2,
             10738.11,
@@ -2648,48 +1981,24 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             8380.66,
             8314.46,
             9556.33,
-            19662.48,
+            19662.480000000003,
             7769.1,
-            8262.16,
-            9384.87,
-            4359.8,
+            0.0,
+            0.0,
+            0.0,
             0.0
           ],
-          "backgroundColor": "#3B82F6",
+          "backgroundColor": "#8ECAE6",
           "stack": "receita",
           "borderRadius": 4
         },
         {
-          "label": "Kiwify (David - CLT)",
+          "label": "Kiwify (David - PJ)",
           "data": [
             0.0,
             0.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            28994.42,
-            61861.08,
-            61861.08,
-            61861.08,
-            84512.73,
-            72010.74,
-            62146.13,
-            62119.13,
-            62119.13,
-            62119.13,
             351906.25,
             55450.71,
             0.0,
@@ -2703,7 +2012,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0
           ],
-          "backgroundColor": "#06B6D4",
+          "backgroundColor": "#A8DADC",
           "stack": "receita",
           "borderRadius": 4
         },
@@ -2719,30 +2028,6 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1750.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
             500.0,
             0.0,
             0.0,
@@ -2751,133 +2036,61 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             1750.0,
             0.0
           ],
-          "backgroundColor": "#14B8A6",
+          "backgroundColor": "#1A3A5C",
           "stack": "receita",
           "borderRadius": 4
         },
         {
           "label": "Outras Receitas",
           "data": [
-            2734.82,
-            2734.82,
-            367293.91,
-            2564.82,
-            4582.84,
-            1831.84,
             0.0,
             0.0,
             0.0,
-            90.39,
-            122.4,
-            10000.0,
-            6758.1,
-            32708.29,
-            919.61,
             0.0,
-            341.79,
-            470.0,
-            783.59,
-            4207.0,
-            925.0,
-            443.9,
-            333.9,
-            10847.0,
-            110.97,
-            0.43,
-            101.38,
-            102.36,
-            2610.31,
-            101.62,
-            281.08,
-            102.41,
-            1500.57,
-            247.46,
-            430.58,
-            1775.6,
-            2789.68,
-            2169.97,
-            1125.19,
-            100.0
+            4120.15,
+            3238.89,
+            158.32999999999998,
+            100.0,
+            1498.1500000000003,
+            4844.94,
+            2246.39,
+            1924.1,
+            10851.15,
+            12554.77,
+            15584.69,
+            0.0
           ],
-          "backgroundColor": "#22C55E",
+          "backgroundColor": "#1E6E8F",
           "stack": "receita",
           "borderRadius": 4
         },
         {
           "label": "Rendimentos Financeiros",
           "data": [
-            127.91,
-            0.0,
-            3.61,
-            308.69,
-            2.38,
-            0.28,
-            1.01,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.29,
-            0.01,
-            0.21,
-            0.01,
-            0.0,
-            0.0,
-            0.73,
-            5.77,
-            0.19,
-            51.61,
-            44.92,
-            0.78,
-            161.94,
-            243.31,
-            91.62,
-            38.94,
-            38.58,
-            164.06,
-            383.67,
-            178.34,
-            246.47,
-            237.42,
-            523.17,
-            1326.72,
-            700.72,
-            1288.59,
-            8393.21,
-            0.01
+            121.77999999999999,
+            177.98,
+            74.72,
+            39.640000000000015,
+            38.74,
+            165.68,
+            385.4199999999999,
+            180.75000000000003,
+            248.91,
+            222.16,
+            21.890000000000004,
+            49.93,
+            686.1499999999999,
+            591.6399999999998,
+            950.61,
+            0.0
           ],
-          "backgroundColor": "#4F46E5",
+          "backgroundColor": "#2A9D8F",
           "stack": "receita",
           "borderRadius": 4
         },
         {
           "label": "Resgates",
           "data": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            25000.64,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
             0.0,
             0.0,
             0.0,
@@ -2892,10 +2105,10 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0,
             0.0,
-            7.92,
+            0.89,
             0.0
           ],
-          "backgroundColor": "#10B981",
+          "backgroundColor": "#457B9D",
           "stack": "receita",
           "borderRadius": 4
         },
@@ -2914,41 +2127,17 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            16.99,
+            216.99,
             0.0,
             0.0,
             0.0
           ],
-          "backgroundColor": "#6366F1",
+          "backgroundColor": "#15803D",
           "stack": "receita",
           "borderRadius": 4
         },
         {
-          "label": "Venda de Ativo",
+          "label": "alimentacao",
           "data": [
             0.0,
             0.0,
@@ -2964,567 +2153,207 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            49402.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0
-          ],
-          "backgroundColor": "#2563EB",
-          "stack": "receita",
-          "borderRadius": 4
-        },
-        {
-          "label": "Alimentacao",
-          "data": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            216.5,
-            211.63,
-            1636.15,
-            3683.48,
-            1924.37,
-            2371.2,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            340.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1333.85,
-            7197.9,
-            3339.01,
-            1490.86,
-            1493.23,
-            5046.37,
-            5218.49,
-            5278.33,
-            10727.55,
-            8111.31,
-            5915.95,
-            6819.29,
-            8550.09,
+            731.5,
             395.0
-          ],
-          "backgroundColor": "#DC2626",
-          "stack": "despesa",
-          "borderRadius": 4
-        },
-        {
-          "label": "Assinaturas",
-          "data": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            54.2,
-            1308.5,
-            609.8,
-            119.6,
-            125.8,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            56.64,
-            164.62,
-            1104.03,
-            2181.63,
-            524.53,
-            2048.81,
-            1826.7,
-            1134.84,
-            2738.36,
-            1851.59,
-            985.04,
-            1505.41,
-            1348.96,
-            1077.59,
-            902.34,
-            338.0
-          ],
-          "backgroundColor": "#E11D48",
-          "stack": "despesa",
-          "borderRadius": 4
-        },
-        {
-          "label": "Educacao",
-          "data": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            129.9,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            39.0,
-            0.0,
-            8.7,
-            12094.18,
-            3370.37,
-            2025.0,
-            1950.0,
-            1950.0,
-            1950.0,
-            1954.0,
-            0.0,
-            3950.0,
-            415.03,
-            3266.8,
-            1989.2,
-            1950.0
-          ],
-          "backgroundColor": "#EA580C",
-          "stack": "despesa",
-          "borderRadius": 4
-        },
-        {
-          "label": "Financeiro",
-          "data": [
-            0.0,
-            33.85,
-            90.14,
-            0.0,
-            0.0,
-            19.82,
-            0.0,
-            166.16,
-            214.28,
-            198.37,
-            454.51,
-            712.43,
-            753.72,
-            678.46,
-            266.7,
-            87.84,
-            429.32,
-            94.55,
-            203.8,
-            13.36,
-            90.9,
-            0.0,
-            86.8,
-            43.46,
-            51.84,
-            66.56,
-            624.91,
-            789.61,
-            1294.64,
-            665.64,
-            707.98,
-            654.11,
-            495.95,
-            651.7,
-            703.34,
-            1181.85,
-            1704.73,
-            1543.72,
-            1312.34,
-            194.39
-          ],
-          "backgroundColor": "#D97706",
-          "stack": "despesa",
-          "borderRadius": 4
-        },
-        {
-          "label": "Financiamentos",
-          "data": [
-            4767.09,
-            4759.56,
-            4744.69,
-            4732.85,
-            4720.99,
-            4711.81,
-            4699.77,
-            4690.99,
-            4678.39,
-            4665.43,
-            4651.4,
-            4635.81,
-            4619.28,
-            4605.98,
-            4586.92,
-            4571.52,
-            4556.23,
-            4539.35,
-            4524.38,
-            4508.62,
-            4499.82,
-            4483.83,
-            4468.2,
-            4451.87,
-            4437.33,
-            4424.57,
-            4408.49,
-            4396.72,
-            4383.63,
-            4371.68,
-            4359.7,
-            4347.76,
-            4343.12,
-            4330.99,
-            4318.7,
-            4306.37,
-            4294.0,
-            4281.54,
-            4266.94,
-            0.0
-          ],
-          "backgroundColor": "#F59E0B",
-          "stack": "despesa",
-          "borderRadius": 4
-        },
-        {
-          "label": "Impostos",
-          "data": [
-            8520.79,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1691.96,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            11956.88,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            550.16,
-            8266.07,
-            4571.42,
-            0.0,
-            743.1,
-            11282.18,
-            2294.07,
-            2319.05,
-            15033.8,
-            2374.47,
-            36072.62,
-            2431.26,
-            16652.4,
-            8773.73,
-            7334.75,
-            0.0,
-            0.0
-          ],
-          "backgroundColor": "#EF4444",
-          "stack": "despesa",
-          "borderRadius": 4
-        },
-        {
-          "label": "Lazer Viagens",
-          "data": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            10000.0,
-            7239.85,
-            0.0,
-            1063.5,
-            26980.96,
-            15071.93,
-            0.0,
-            0.0,
-            0.0,
-            54.0,
-            23000.0,
-            0.0,
-            18.0,
-            174.0,
-            60.0,
-            563.0,
-            950.0,
-            0.0,
-            20.0,
-            9552.49,
-            17393.27,
-            3582.23,
-            9128.12,
-            1424.54,
-            6244.57,
-            3395.07,
-            11043.08,
-            3149.38,
-            44.0,
-            14323.08,
-            285.0,
-            0.0
-          ],
-          "backgroundColor": "#F97316",
-          "stack": "despesa",
-          "borderRadius": 4
-        },
-        {
-          "label": "Melhoria Reforma",
-          "data": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            63.8,
-            167.67,
-            0.0,
-            475.53,
-            0.0,
-            0.0,
-            5000.0,
-            5700.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            3260.0,
-            1243.77,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1585.59,
-            728.9,
-            14392.68,
-            273.2,
-            5539.1,
-            8449.36,
-            1000.0
           ],
           "backgroundColor": "#B91C1C",
           "stack": "despesa",
           "borderRadius": 4
         },
         {
-          "label": "Moradia",
+          "label": "assinaturas",
           "data": [
-            528.24,
-            270.0,
-            0.0,
-            397.9,
-            367.63,
-            357.61,
-            357.19,
-            388.73,
-            494.83,
-            348.11,
-            369.02,
-            369.96,
-            21.57,
-            21.44,
-            0.0,
-            1105.44,
-            486.49,
-            298.42,
-            997.16,
-            599.58,
-            461.67,
-            674.55,
-            666.77,
-            623.46,
-            382.46,
-            547.01,
-            401.97,
-            1627.95,
-            857.13,
-            3179.13,
-            2635.87,
-            735.74,
-            5098.02,
-            593.08,
-            1331.89,
-            2961.17,
-            4428.71,
-            1836.53,
-            996.3,
+            56.64,
+            164.62,
+            1104.03,
+            303.71999999999997,
+            312.22999999999996,
+            1734.1000000000001,
+            1402.9900000000002,
+            761.38,
+            236.62,
+            1586.72,
+            745.75,
+            191.24,
+            705.3299999999999,
+            393.98,
+            407.91,
             0.0
           ],
-          "backgroundColor": "#C2410C",
+          "backgroundColor": "#E63946",
           "stack": "despesa",
           "borderRadius": 4
         },
         {
-          "label": "Nao Identificado",
+          "label": "financeiro",
           "data": [
-            88814.37,
             0.0,
-            66449.69,
+            0.0,
+            2.86,
+            21.81,
+            92.17999999999999,
+            75.64999999999999,
+            115.43999999999998,
+            183.8,
+            29.229999999999997,
+            90.67999999999999,
+            117.36000000000001,
+            598.8199999999999,
+            1121.71,
+            675.21,
+            66.97,
+            151.35
+          ],
+          "backgroundColor": "#E76F51",
+          "stack": "despesa",
+          "borderRadius": 4
+        },
+        {
+          "label": "impostos",
+          "data": [
+            2893.89,
+            0.0,
+            0.0,
+            743.1,
+            11282.18,
+            2294.07,
+            2319.05,
+            15033.8,
+            0.0,
+            21815.019999999997,
+            2431.26,
+            16652.4,
+            6875.75,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "backgroundColor": "#F4A460",
+          "stack": "despesa",
+          "borderRadius": 4
+        },
+        {
+          "label": "lazer_viagens",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3597.8799999999997,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1263.99,
+            0.0,
+            0.0
+          ],
+          "backgroundColor": "#FFB703",
+          "stack": "despesa",
+          "borderRadius": 4
+        },
+        {
+          "label": "moradia",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            5240.76,
+            4676.910000000001,
+            4562.88,
+            4631.450000000001,
+            4590.34,
+            4924.07,
+            5687.66,
+            5444.15,
+            5539.47,
+            6118.07,
+            5263.24,
+            0.0
+          ],
+          "backgroundColor": "#D62828",
+          "stack": "despesa",
+          "borderRadius": 4
+        },
+        {
+          "label": "nao_identificado",
+          "data": [
+            5378.8099999999995,
+            1605.02,
+            38980.61,
+            21079.049999999996,
+            41804.080000000016,
+            75695.02000000003,
+            7166.670000000003,
+            6527.149999999999,
+            16470.09,
+            60535.35999999999,
+            16584.43,
+            24048.9,
+            22600.78,
+            18648.949999999997,
+            51583.079999999994,
+            3126.3999999999996
+          ],
+          "backgroundColor": "#9B2226",
+          "stack": "despesa",
+          "borderRadius": 4
+        },
+        {
+          "label": "reserva_desejos",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1493.61,
+            0.0,
+            0.0,
+            0.0,
+            18233.19,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "backgroundColor": "#AE2012",
+          "stack": "despesa",
+          "borderRadius": 4
+        },
+        {
+          "label": "saude",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            280.0,
+            0.0,
+            0.0,
+            117.74,
+            0.0,
+            0.0,
+            0.0,
             1000.0,
-            46640.23,
-            14456.45,
-            1704.08,
-            210.52,
-            86.46,
-            903.72,
-            3376.09,
-            19563.24,
-            12155.51,
-            8541.33,
-            26871.59,
-            2783.35,
-            31576.39,
-            12743.9,
-            10814.07,
-            7612.16,
-            1988.2,
-            395408.36,
-            267.8,
-            7110.24,
-            13236.0,
-            4258.42,
-            11997.26,
-            5852.34,
-            22325.91,
-            251.2,
-            3804.44,
-            3503.39,
-            15324.17,
-            2817.35,
-            13671.12,
-            1859.55,
-            1000.07,
-            2583.8,
-            1997.79,
-            2416.17
-          ],
-          "backgroundColor": "#CA8A04",
-          "stack": "despesa",
-          "borderRadius": 4
-        },
-        {
-          "label": "Reserva Desejos",
-          "data": [
+            98.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            13.2,
-            131.84,
-            0.0,
-            53.27,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            44.99,
-            0.0,
-            0.0,
-            936.67,
-            5909.67,
-            356.52,
-            11498.83,
-            1645.51,
-            12219.23,
-            728.77,
-            0.0,
-            18788.01,
-            1130.33,
-            216.07,
             0.0,
             0.0
           ],
-          "backgroundColor": "#DB2777",
+          "backgroundColor": "#CA6702",
           "stack": "despesa",
           "borderRadius": 4
         },
         {
-          "label": "Saude",
+          "label": "seguros",
           "data": [
             0.0,
             0.0,
@@ -3532,193 +2361,77 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0,
             0.0,
+            567.71,
             0.0,
             0.0,
             0.0,
             0.0,
             0.0,
-            2189.4,
-            2739.41,
-            4007.1,
-            618.97,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1240.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            2237.78,
-            2673.99,
-            129.15,
-            728.03,
-            547.47,
-            1711.15,
-            121.42,
-            25229.22,
-            29864.4,
-            7980.4,
-            10064.61,
-            4837.49,
-            9162.61,
+            10.07,
+            10.07,
+            10.07,
             0.0
           ],
-          "backgroundColor": "#BE185D",
+          "backgroundColor": "#BB3E03",
           "stack": "despesa",
           "borderRadius": 4
         },
         {
-          "label": "Seguros",
+          "label": "servicos_domesticos",
           "data": [
             0.0,
+            90.0,
             0.0,
             0.0,
             0.0,
             0.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            20.0,
-            21.16,
-            21.16,
-            21.16,
-            21.16,
-            21.16,
-            21.16,
-            21.16,
-            21.16,
-            21.16,
-            21.16,
-            21.16,
-            21.16,
-            20.0,
-            20.0,
-            5357.9,
-            20.0,
-            20.0,
-            587.71,
-            20.0,
-            20.0,
-            20.0,
-            20.0,
-            20.0,
-            30.07,
-            30.07,
-            764.5,
-            0.0
-          ],
-          "backgroundColor": "#9F1239",
-          "stack": "despesa",
-          "borderRadius": 4
-        },
-        {
-          "label": "Servicos Domesticos",
-          "data": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1491.65,
-            300.97,
-            2131.63,
-            1200.0,
-            1200.0,
-            2900.0,
-            1500.0,
-            600.0,
-            1600.0,
-            1600.0,
-            1800.0,
-            1600.0,
-            4200.0,
-            0.0,
-            1890.0,
-            2650.0,
-            1685.63,
-            1890.0,
-            115.0,
-            0.0,
-            0.0,
-            1073.66,
-            4647.43,
-            6111.39,
-            4749.75,
-            3545.41,
-            3761.41,
+            740.0,
+            4248.83,
+            5336.83,
+            3683.0,
+            3631.41,
+            3931.41,
             3941.41,
             3790.21
           ],
-          "backgroundColor": "#DC2626",
+          "backgroundColor": "#EE9B00",
           "stack": "despesa",
           "borderRadius": 4
         },
         {
-          "label": "Suporte Familiar",
+          "label": "suporte_familiar",
           "data": [
             0.0,
             0.0,
             0.0,
-            0.0,
-            5000.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            12560.0,
-            6143.04,
-            334.0,
-            1833.33,
-            1450.21,
-            2430.0,
-            1030.0,
-            682.91,
+            500.0,
+            1333.0,
+            350.0,
+            1000.0,
             1600.0,
-            2172.28,
-            0.0,
-            343.0,
-            4645.0,
-            2400.0,
-            2150.0,
-            3589.9,
-            2833.0,
-            1850.0,
-            2500.0,
-            3100.0,
-            2500.0,
-            2916.57,
-            2525.0,
-            3814.98,
-            5650.0,
-            2500.0,
-            2500.0,
-            1000.0
+            1000.0,
+            1000.0,
+            1000.0,
+            1000.0,
+            2200.0,
+            1000.0,
+            1000.0,
+            0.0
           ],
-          "backgroundColor": "#E11D48",
+          "backgroundColor": "#94D2BD",
           "stack": "despesa",
           "borderRadius": 4
         },
         {
-          "label": "Transporte",
+          "label": "transporte",
           "data": [
             0.0,
+            171.13,
+            0.0,
+            2314.3,
+            512.8,
             0.0,
             0.0,
             0.0,
@@ -3726,217 +2439,85 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             0.0,
             0.0,
             0.0,
+            1736.4399999999996,
             0.0,
-            566.66,
-            34.93,
-            1118.45,
-            4931.4,
-            4565.13,
-            1020.59,
-            430.64,
-            210.9,
-            244.0,
-            18.0,
-            536.16,
-            250.3,
-            521.26,
-            146.0,
-            217.7,
-            515.2,
-            388.43,
-            428.73,
-            4842.61,
-            3709.01,
-            3286.73,
-            1763.17,
-            1139.89,
-            2598.84,
-            1818.04,
-            1773.83,
-            6702.84,
-            3478.69,
-            6638.64,
-            1366.54,
-            176.4
-          ],
-          "backgroundColor": "#EA580C",
-          "stack": "despesa",
-          "borderRadius": 4
-        },
-        {
-          "label": "Vestuario",
-          "data": [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            7053.25,
-            1180.67,
-            162.03,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1672.35,
-            1070.17,
-            424.95,
-            276.81,
-            1090.44,
-            2793.94,
-            241.73,
-            2132.97,
-            6938.99,
-            796.5,
-            1657.01,
             0.0,
             0.0
           ],
-          "backgroundColor": "#D97706",
+          "backgroundColor": "#0A9396",
           "stack": "despesa",
           "borderRadius": 4
         }
       ],
       "totais_receita": [
-        2862.73,
-        2734.82,
-        367297.52,
-        2873.51,
-        4585.22,
-        4538.02,
-        2706.91,
-        2705.9,
-        2705.9,
-        2796.29,
-        2828.3,
-        12705.9,
-        34464.93,
-        35414.2,
-        3625.72,
-        2730.15,
-        3118.81,
-        3303.67,
-        32612.41,
-        68907.52,
-        65619.94,
-        65190.26,
-        87725.22,
-        84792.55,
-        78148.68,
-        78040.3,
-        134256.47,
-        78292.82,
-        378105.05,
-        94370.42,
-        97121.95,
+        14518.39,
+        14522.38,
+        17534.03,
+        14569.42,
+        379615.05,
+        97509.31,
+        97000.95,
         59612.09,
-        127133.29,
-        69279.67,
-        84312.31,
-        77430.88,
-        87625.09,
-        68483.45,
-        101664.34,
-        100.01
+        127133.31,
+        68545.53,
+        85626.84,
+        76302.59,
+        87609.83,
+        73786.43,
+        105314.41,
+        0.0
       ],
       "totais_despesa": [
-        102630.49,
-        5063.41,
-        71284.52,
-        6130.75,
-        56728.85,
-        19545.69,
-        6761.04,
-        5456.4,
-        15473.96,
-        14138.64,
-        9151.78,
-        41219.34,
-        70986.18,
-        49685.16,
-        37945.73,
-        12033.28,
-        41630.7,
-        26925.38,
-        58865.45,
-        15573.95,
-        10870.05,
-        406495.44,
-        7316.73,
-        18124.05,
-        32645.69,
-        18731.03,
-        30645.72,
-        66438.74,
-        80331.67,
-        26689.85,
-        45399.08,
-        42537.54,
-        65114.24,
-        94132.08,
-        88368.47,
-        107065.09,
-        52893.99,
-        68246.89,
-        46484.42,
-        11260.17
+        8329.34,
+        2030.77,
+        40087.5,
+        25241.98,
+        60577.23,
+        84825.75,
+        20850.36,
+        30231.19,
+        23066.28,
+        94200.68,
+        32903.29,
+        69949.7,
+        44420.96,
+        32041.68,
+        63004.18,
+        7462.96
       ]
     },
     "despesas_doughnut": {
       "labels": [
+        "suporte_familiar",
         "financeiro",
+        "moradia",
+        "nao_identificado",
+        "impostos",
+        "transporte",
         "assinaturas",
         "seguros",
-        "nao_identificado",
-        "financiamentos",
-        "moradia",
-        "impostos",
-        "suporte_familiar",
-        "transporte",
         "servicos_domesticos",
         "lazer_viagens",
-        "melhoria_reforma",
         "saude",
-        "alimentacao",
-        "educacao",
         "reserva_desejos",
-        "vestuario"
+        "alimentacao"
       ],
       "datasets": [
         {
           "data": [
-            17281.78,
-            22006.99,
-            7224.17,
-            867976.73,
-            176146.32,
-            37818.73,
-            140868.71,
-            82053.22,
-            55439.71,
-            61975.55,
-            164760.07,
-            47879.6,
-            106082.6,
-            81300.56,
-            37042.18,
-            53672.91,
-            27491.81
+            12983.0,
+            3343.07,
+            56679.0,
+            411834.4,
+            82340.52,
+            4734.67,
+            10107.26,
+            597.92,
+            29393.1,
+            4861.87,
+            1495.74,
+            19726.8,
+            1126.5
           ],
           "backgroundColor": [
             "#1A3A5C",
@@ -3951,9 +2532,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             "#2A9D8F",
             "#E76F51",
             "#F4A460",
-            "#FFB703",
-            "#8ECAE6",
-            "#219EBC"
+            "#FFB703"
           ]
         }
       ]
@@ -3980,31 +2559,23 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
         "#15803D",
         "#1E6E8F"
       ],
-      "value": 5.5,
+      "value": 7.3,
       "max": 10
     },
     "alocacao_atual": {
       "labels": [
-        "Outros",
         "Imóveis Investimento",
+        "Renda Fixa",
+        "Outros",
         "Contas Bancárias",
         "Cripto"
       ],
-      "datasets": [
-        {
-          "data": [
-            58.13,
-            41.16,
-            0.38,
-            0.34
-          ],
-          "backgroundColor": [
-            "#1A3A5C",
-            "#1E6E8F",
-            "#15803D",
-            "#F4A261"
-          ]
-        }
+      "data": [
+        65.78,
+        21.05,
+        6.6,
+        6.43,
+        0.14
       ]
     },
     "alocacao_alvo": {
@@ -4014,21 +2585,11 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
         "Real Estate",
         "Moeda Estrangeira"
       ],
-      "datasets": [
-        {
-          "data": [
-            60,
-            25,
-            10,
-            5
-          ],
-          "backgroundColor": [
-            "#1A3A5C",
-            "#1E6E8F",
-            "#15803D",
-            "#F4A261"
-          ]
-        }
+      "data": [
+        60,
+        25,
+        10,
+        5
       ]
     },
     "top15_ativos": {
@@ -4036,398 +2597,224 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       "data": []
     },
     "yield_imoveis": {
-      "labels": [
-        "Imóveis",
-        "CDI (referência)"
-      ],
-      "datasets": [
-        {
-          "data": [
-            9.3,
-            14.15
-          ],
-          "backgroundColor": [
-            "#2E86AB",
-            "#E63946"
-          ]
-        }
-      ]
+      "renda_aluguel_mensal": 6958.92,
+      "valor_investido": 1503000.42,
+      "yield_anual_pct": 5.6
     },
     "custos_f1f2": {
-      "labels": [
-        "Tuition",
-        "Room & Board",
-        "TOTAL",
-        "Renda David",
-        "Sobra"
-      ],
-      "datasets": [
-        {
-          "data": [
-            13292,
-            7975,
-            21267,
-            35009,
-            13742
-          ],
-          "backgroundColor": [
-            "#E63946",
-            "#F4A261",
-            "#1A3A5C",
-            "#2DC653",
-            "#2E86AB"
-          ]
-        }
-      ]
+      "tuition_anual_usd": 27500,
+      "room_board_usd": 16500,
+      "total_anual_usd": 44000,
+      "em_brl_aprox": 220000
     },
-    "cenarios_cambiais": {
-      "labels": [
-        [
-          "Pessimista",
-          "R$ 5.50/USD"
-        ],
-        [
-          "Realista",
-          "R$ 5.80/USD"
-        ],
-        [
-          "Otimista",
-          "R$ 4.50/USD"
-        ]
-      ],
-      "datasets": [
-        {
-          "label": "Sem Mariana",
-          "data": [
-            14842,
-            13742,
-            18509
-          ],
-          "backgroundColor": "#F4A261"
+    "cenario_cambial": {
+      "exposicao_usd": 0.0,
+      "cambio_atual": 5.0,
+      "cenarios": {
+        "pessimista": 5.5,
+        "base": 5.0,
+        "otimista": 4.5
+      }
+    },
+    "projecao_if": {
+      "patrimonio_inicial": 2276977.98,
+      "cenarios": {
+        "pessimista": {
+          "retorno": 4
         },
-        {
-          "label": "Com Mariana (NCLEX)",
-          "data": [
-            36842,
-            36942,
-            36509
-          ],
-          "backgroundColor": "#2DC653"
+        "realista": {
+          "retorno": 5
+        },
+        "otimista": {
+          "retorno": 8
         }
-      ]
-    },
-    "projecao_3cenarios": {
-      "meta_if": 7200000.0,
-      "investivel": 1558588.64,
-      "imoveis": 562706.24,
+      },
       "aporte_mensal": 20000,
-      "anos": 20,
-      "taxa_imoveis": 0.02,
-      "taxa_pessimista": 0.04,
-      "taxa_realista": 0.06,
-      "taxa_otimista": 0.08
+      "anos": 20
     },
     "renda_passiva": {
-      "labels": [
-        "Aluguéis",
+      "fonte": [
+        "Aluguel",
         "Dividendos",
-        "RF/Cupons",
-        "FIIs",
-        "PGBL",
-        "GAP"
+        "Juros"
       ],
-      "datasets": [
-        {
-          "label": "Atual",
-          "data": [
-            4341.57,
-            364.13,
-            0.0,
-            0,
-            0,
-            0
-          ],
-          "backgroundColor": "#2E86AB"
-        },
-        {
-          "label": "Meta",
-          "data": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            25294
-          ],
-          "backgroundColor": "#E63946"
-        }
-      ]
+      "valor_mensal": [
+        6958.92,
+        247.25,
+        0.0
+      ],
+      "meta_mensal": 30000.0
     },
     "impostos_pj": {
-      "labels": [
-        "Receita PJ (anual)",
-        "Lucro Presumido (32%)",
-        "DAS Estimado (anual)",
-        "Limite PGBL (12%)",
-        "Economia IR c/ PGBL"
-      ],
-      "datasets": [
+      "renda_tributavel_anual": 247402.85,
+      "aliquota_efetiva": 27.5,
+      "limite_pgbl": 29688.34,
+      "economia_ir": 8164.29
+    },
+    "riscos_bubble": {
+      "riscos": [
         {
-          "label": "Valores (R$)",
-          "data": [
-            185512,
-            59364,
-            11131,
-            7124,
-            1959
-          ],
-          "backgroundColor": [
-            "#1A3A5C",
-            "#1E6E8F",
-            "#E63946",
-            "#F4A261",
-            "#2DC653"
-          ]
+          "titulo": "Seguro de vida",
+          "severity": "critico"
+        },
+        {
+          "titulo": "Seguro de invalidez",
+          "severity": "critico"
+        },
+        {
+          "titulo": "PFIC exposure EUA",
+          "severity": "alto"
+        },
+        {
+          "titulo": "Concentração PJ",
+          "severity": "alto"
+        },
+        {
+          "titulo": "Volatilidade cambial",
+          "severity": "medio"
         }
       ]
     },
-    "bubble_riscos": {
-      "datasets": [
-        {
-          "label": "Seguro de vida",
-          "data": [
-            {
-              "x": 2,
-              "y": 5,
-              "r": 20
-            }
-          ],
-          "backgroundColor": "rgba(230,57,70,0.7)"
-        },
-        {
-          "label": "Seguro de invalidez",
-          "data": [
-            {
-              "x": 2,
-              "y": 4,
-              "r": 16
-            }
-          ],
-          "backgroundColor": "rgba(230,57,70,0.7)"
-        },
-        {
-          "label": "PFIC exposure EUA",
-          "data": [
-            {
-              "x": 3,
-              "y": 3,
-              "r": 18
-            }
-          ],
-          "backgroundColor": "rgba(244,162,97,0.7)"
-        },
-        {
-          "label": "Concentração PJ",
-          "data": [
-            {
-              "x": 2,
-              "y": 4,
-              "r": 16
-            }
-          ],
-          "backgroundColor": "rgba(244,162,97,0.7)"
-        },
-        {
-          "label": "Volatilidade cambial",
-          "data": [
-            {
-              "x": 3,
-              "y": 2,
-              "r": 12
-            }
-          ],
-          "backgroundColor": "rgba(46,134,171,0.5)"
-        }
-      ]
+    "decisoes": {
+      "tarefas_total": 2,
+      "tarefas_pendentes": 2,
+      "deadline_critica": "Abr/2026"
     },
-    "top5_decisoes": {
-      "labels": [
-        "Aportes mensais"
-      ],
-      "datasets": [
-        {
-          "label": "Impacto 1 ano",
-          "data": [
-            0
-          ],
-          "backgroundColor": "#2E86AB"
-        },
-        {
-          "label": "Impacto 10 anos",
-          "data": [
-            0
-          ],
-          "backgroundColor": "#2DC653"
-        }
-      ]
-    },
-    "mariana_cenarios": {
+    "cenarios_mariana": {
       "labels": [
         "Sem Trabalhar",
         "Com NCLEX",
         "Com NCLEX + Green Card"
       ],
-      "datasets": [
-        {
-          "label": "Aporte mensal",
-          "data": [
-            0,
-            4000,
-            7000
-          ],
-          "backgroundColor": "#2E86AB"
-        },
-        {
-          "label": "Prazo IF (anos)",
-          "data": [
-            0,
-            0,
-            0
-          ],
-          "backgroundColor": "#2DC653",
-          "yAxisID": "y1"
-        }
+      "data": [
+        0,
+        4000,
+        7000
       ]
     },
     "viagens": {
-      "labels": [
-        "Orçamento 2026"
-      ],
-      "datasets": [
-        {
-          "label": "Gasto",
-          "data": [
-            0
-          ],
-          "backgroundColor": "#E63946"
-        },
-        {
-          "label": "Disponível",
-          "data": [
-            45000
-          ],
-          "backgroundColor": "#2DC653"
-        }
-      ]
+      "teto_anual": 45000,
+      "gasto_portugal": 22337
     }
   },
   "orcamento_prospectivo": {
     "categorias": {
-      "financeiro": 17281.78,
-      "assinaturas": 22006.99,
-      "seguros": 7224.17,
-      "nao_identificado": 867976.73,
-      "financiamentos": 176146.32,
-      "moradia": 37818.73,
-      "impostos": 140868.71,
-      "suporte_familiar": 82053.22,
-      "transporte": 55439.71,
-      "servicos_domesticos": 61975.55,
-      "lazer_viagens": 164760.07,
-      "melhoria_reforma": 47879.6,
-      "saude": 106082.6,
-      "alimentacao": 81300.56,
-      "educacao": 37042.18,
-      "reserva_desejos": 53672.91,
-      "vestuario": 27491.81
+      "suporte_familiar": 12983.0,
+      "financeiro": 3343.07,
+      "moradia": 56679.0,
+      "nao_identificado": 411834.4,
+      "impostos": 82340.52,
+      "transporte": 4734.67,
+      "assinaturas": 10107.26,
+      "seguros": 597.92,
+      "servicos_domesticos": 29393.1,
+      "lazer_viagens": 4861.87,
+      "saude": 1495.74,
+      "reserva_desejos": 19726.8,
+      "alimentacao": 1126.5
     },
-    "total": 1987021.6400000001,
-    "media_mensal": 49675.54,
-    "variacao_pct": 128.8
+    "total": 639223.8500000001,
+    "media_mensal": 39951.49,
+    "variacao_pct": 66.8
   },
   "consumo_consciente": {
     "top_gastos": [
       {
         "categoria": "nao_identificado",
-        "valor": 867976.73
-      },
-      {
-        "categoria": "financiamentos",
-        "valor": 176146.32
-      },
-      {
-        "categoria": "lazer_viagens",
-        "valor": 164760.07
+        "valor": 411834.4
       },
       {
         "categoria": "impostos",
-        "valor": 140868.71
+        "valor": 82340.52
       },
       {
-        "categoria": "saude",
-        "valor": 106082.6
+        "categoria": "moradia",
+        "valor": 56679.0
+      },
+      {
+        "categoria": "servicos_domesticos",
+        "valor": 29393.1
+      },
+      {
+        "categoria": "reserva_desejos",
+        "valor": 19726.8
       }
     ],
-    "total_top_5": 1455834.43
+    "total_top_5": 599973.82
   },
   "diagnostico_comportamental": [
     {
+      "padrao": "Disciplina de poupança",
+      "evidencia": "Taxa de poupança recorrente de 29.5% — acima da referência de 25%",
+      "mudanca_sugerida": "Manter e automatizar aportes mensais"
+    },
+    {
       "padrao": "Alta dependência de receita pontual",
-      "evidencia": "44% da receita é não-recorrente (resgates, vendas)",
+      "evidencia": "31% da receita é não-recorrente (resgates, vendas)",
       "mudanca_sugerida": "Não contar com receita pontual para orçamento; alocar direto para investimentos"
     }
   ],
   "investimentos": {
-    "david_valor": 620497.84,
-    "mariana_valor": 375384.56,
-    "total": 1367195.85,
+    "david_valor": 642958.33,
+    "mariana_valor": 135865.55,
+    "total": 2285013.98,
     "kpis": {
       "yield_medio_pct": "N/D",
       "volatilidade_pct": "N/D"
     },
     "blocos": [
       {
-        "nome": "Outros",
-        "valor": 794715.32,
-        "pct": 58.13
+        "nome": "Imóveis Investimento",
+        "valor": 1503000.42,
+        "pct": 65.78
       },
       {
-        "nome": "Imóveis Investimento",
-        "valor": 562706.24,
-        "pct": 41.16
+        "nome": "Renda Fixa",
+        "valor": 481054.38,
+        "pct": 21.05
+      },
+      {
+        "nome": "Outros",
+        "valor": 150797.61,
+        "pct": 6.6
       },
       {
         "nome": "Contas Bancárias",
-        "valor": 5168.52,
-        "pct": 0.38
+        "valor": 146971.89,
+        "pct": 6.43
       },
       {
         "nome": "Cripto",
-        "valor": 4605.77,
-        "pct": 0.34
+        "valor": 3189.68,
+        "pct": 0.14
       }
     ],
-    "cdi_anual": 14.15,
+    "cdi_anual": 11.5,
     "tabela_classes": [
       {
-        "categoria": "Outros",
-        "valor": 794715.32,
-        "pct": 58.13
+        "categoria": "Imóveis Investimento",
+        "valor": 1503000.42,
+        "pct": 65.78
       },
       {
-        "categoria": "Imóveis Investimento",
-        "valor": 562706.24,
-        "pct": 41.16
+        "categoria": "Renda Fixa",
+        "valor": 481054.38,
+        "pct": 21.05
+      },
+      {
+        "categoria": "Outros",
+        "valor": 150797.61,
+        "pct": 6.6
       },
       {
         "categoria": "Contas Bancárias",
-        "valor": 5168.52,
-        "pct": 0.38
+        "valor": 146971.89,
+        "pct": 6.43
       },
       {
         "categoria": "Cripto",
-        "valor": 4605.77,
-        "pct": 0.34
+        "valor": 3189.68,
+        "pct": 0.14
       }
     ]
   },
@@ -4477,15 +2864,15 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
     "resumo_usd": "Exposição total ao dólar = R$ 5.000/mês. Wise gera ~US$ 340/mês. Meta pré-EUA: US$ 20.000 (~37 meses)."
   },
   "contrafluxo": {
-    "selic_atual": 14.25,
+    "selic_atual": 11.5,
     "cenarios": {
       "pessimista": {
         "selic": 10.5,
         "cdi": 10.3
       },
       "base": {
-        "selic": 14.25,
-        "cdi": 14.15
+        "selic": 11.5,
+        "cdi": 11.5
       },
       "otimista": {
         "selic": 12.5,
@@ -4495,26 +2882,32 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   },
   "tactical": {
     "cash_position": 0.0,
-    "monthly_pnl": 13145.04,
+    "monthly_pnl": 42498.54,
     "next_30_days": [],
     "alerts": [
-      "Score financeiro: 5.5/10 (Regular)",
-      "Rentabilidade: N/D"
+      {
+        "tipo": "info",
+        "msg": "Score financeiro: 7.3/10 (Bom)"
+      },
+      {
+        "tipo": "atencao",
+        "msg": "Rentabilidade: N/D"
+      }
     ]
   },
   "reserva_emergencia": {
-    "despesas_mensais": 49675.54,
-    "nivel_6_meses": 298053.24,
-    "nivel_12_meses": 596106.48,
+    "despesas_mensais": 39951.49,
+    "nivel_6_meses": 239708.94,
+    "nivel_12_meses": 479417.88,
     "composicao_liquida": {
-      "investimentos_david": 620497.84,
-      "investimentos_mariana": 375384.56,
+      "investimentos_david": 642958.33,
+      "investimentos_mariana": 135865.55,
       "caixa_moeda_estrangeira": 0.0,
-      "total_liquido": 995882.4,
-      "cobertura_meses": 20.0
+      "total_liquido": 778823.88,
+      "cobertura_meses": 19.5
     },
-    "total_liquida": 995882.4,
-    "cobertura_meses": 20.0,
+    "total_liquida": 778823.88,
+    "cobertura_meses": 19.5,
     "avaliacao_liquidity": "Excelente",
     "niveis": [
       "6 meses",
@@ -4522,24 +2915,31 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
     ]
   },
   "endividamento": {
-    "total_dividas": 0.0,
-    "percentual_patrimonio": 0.0,
-    "dividas": [],
+    "total_dividas": 234792.61,
+    "percentual_patrimonio": 6.71,
+    "dividas": [
+      {
+        "descricao": "Financiamento imobiliário (David)",
+        "saldo_devedor": 234792.61,
+        "parcela_mensal": 0,
+        "taxa_juros": "N/D"
+      }
+    ],
     "detalhe": "Financiamento imobiliário (Itaú)"
   },
   "previdencia_pgbl": {
     "status": "Calculado",
-    "nota": "Base: receita PJ anualizada R$ 185,512, lucro presumido 32%.",
-    "renda_tributavel_anual": 59363.99,
-    "limite_pgbl_anual": 7123.68,
-    "aporte_mensal": 593.64,
+    "nota": "Base: receita PJ anualizada R$ 773,134, lucro presumido 32%.",
+    "renda_tributavel_anual": 247402.85,
+    "limite_pgbl_anual": 29688.34,
+    "aporte_mensal": 2474.03,
     "aliquota_marginal": 27.5,
-    "economia_ir_anual": 1959.01
+    "economia_ir_anual": 8164.29
   },
   "pontos_fortes": [
     {
-      "titulo": "Análise em Andamento",
-      "descricao": "Pontos fortes serão identificados após consolidação de dados."
+      "titulo": "Score Financeiro Positivo",
+      "descricao": "Classificação Bom indica solidez financeira."
     }
   ],
   "pontos_urgentes": [
@@ -4557,417 +2957,62 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
     }
   ],
   "equilibrio_cerbasi": {
-    "pct_presente": 94.6,
-    "pct_futuro": 5.4,
+    "pct_presente": 96.4,
+    "pct_futuro": 3.6,
     "classificacao": "Gastador",
     "presente": "Consolidação patrimonial",
     "futuro": "Independência Financeira"
   },
   "tarefas": [
     {
-      "n": 1,
-      "t": "Quitar financiamento Ed. Gisele: C6 PJ R$117.430 + CDB-DI Itaú R$117.213",
-      "p": "alta",
-      "e": "Hoje",
-      "categoria": "Invest.",
-      "ref": "D01"
+      "prioridade": "Alta",
+      "acao": "Contratar seguro de vida e invalidez",
+      "impacto": "Proteção patrimonial da família — nenhuma apólice identificada",
+      "prazo": "Abr/2026"
     },
     {
-      "n": 2,
-      "t": "Zerar cheque especial Santander (R$291)",
-      "p": "alta",
-      "e": "Hoje",
-      "categoria": "Orçamento",
-      "ref": "—"
-    },
-    {
-      "n": 3,
-      "t": "Solicitar resgate Safari 30 na Rico (~R$16.614, prazo D+60 para liquidação)",
-      "p": "alta",
-      "e": "Semana",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 4,
-      "t": "Cancelar seguro de conta Santander (R$10/mês). Manter seguro de conta C6 (R$20/mês).",
-      "p": "alta",
-      "e": "Semana",
-      "categoria": "Orçamento",
-      "ref": "D08"
-    },
-    {
-      "n": 5,
-      "t": "Configurar aporte R$20k/mês (dia 5): R$10k Cofrinhos Itaú + R$5k Tesouro IPCA+ + R$3k IVVB11 + R$2k Wise USD (ver Seção 3)",
-      "p": "alta",
-      "e": "05/04",
-      "categoria": "Invest.",
-      "ref": "D02"
-    },
-    {
-      "n": 6,
-      "t": "Reunião AccountTech (pauta completa): (a) regularizar carnê-leão David + Mariana 2025, (b) confirmar risco multa isolada 2024, (c) DAS mensal automático dia 20 via C6 PJ, (d) parar impostos PJ por contas pessoais, (e) Simples vs LP, (f) Carnê-Leão mensal para ambos",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 7,
-      "t": "Cotar seguro de vida Term Life R$3-5M, 20 anos (SulAmérica, Porto Seguro, Prudential)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Seguros",
-      "ref": "—"
-    },
-    {
-      "n": 8,
-      "t": "Cotar seguro de invalidez (60% da renda, ~R$100-200/mês)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Seguros",
-      "ref": "—"
-    },
-    {
-      "n": 9,
-      "t": "CAIXA: confirmar valor do FGTS Kiwify + solicitar saque na mesma visita. Levar: RG, CPF, CTPS digital, termo de rescisão. Incluir valor no patrimônio investível.",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Financeiro",
-      "ref": "—"
-    },
-    {
-      "n": 10,
-      "t": "Regularizar registro do Ed. Gisele no cartório (matrícula ainda no nome do antigo dono)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Imóveis",
-      "ref": "—"
-    },
-    {
-      "n": 11,
-      "t": "Configurar transferência automática R$5k C6 PJ → C6 PF no dia 1 de cada mês (eliminar cheque especial)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Orçamento",
-      "ref": "D14"
-    },
-    {
-      "n": 12,
-      "t": "Criar login Gov.br nível Prata ou Ouro para David + Mariana (pré-requisito para Carnê-Leão Web no e-CAC)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 13,
-      "t": "Entregar IRPF 2026 David + Mariana (com carnê-leão de ambos regularizado antes da entrega)",
-      "p": "alta",
-      "e": "Mai/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 14,
-      "t": "Configurar carnê-leão automático mensal David + Mariana (lançar aluguéis no Carnê-Leão Web e pagar DARF até último dia útil do mês seguinte)",
-      "p": "alta",
-      "e": "Jun/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 15,
-      "t": "Vender BRKM5 (300 ações, prejuízo R$3.516). Compensar prejuízo com lucros futuros para IR.",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 16,
-      "t": "Crypto: vender ADA e AXS. Iniciar DCA R$500/mês (R$400 BTC + R$100 ETH) até 1% da carteira (~R$12.845). Fonte: folga mensal.",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Invest.",
-      "ref": "D04"
-    },
-    {
-      "n": 17,
-      "t": "Consolidar corretoras — fase 1: transferir PicPay R$53k para Cofrinhos Itaú + resgatar C6 investimentos R$2k",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 18,
-      "t": "Confirmar taxa real PGBL Itaú (app ou central 4004-4828). Se >1% a.a., solicitar portabilidade para BTG ou XP.",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 19,
-      "t": "Iniciar aportes PGBL R$1.800/mês (economia IRPF R$5.940/ano). Quanto antes, melhor.",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 20,
-      "t": "Solicitar avaliação do Barão de Capanema (Pça Calixto) com corretora local — pode valer R$900k-1,1M",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Imóveis",
-      "ref": "—"
-    },
-    {
-      "n": 21,
-      "t": "Reinvestir resgate Safari 30 (~R$16.614) em IVVB11 ou ETF global (após D+60 da tarefa 3)",
-      "p": "media",
-      "e": "Mai/2026",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 22,
-      "t": "Consultar 2-3 CPAs especialistas em expatriados (BR-US) para FBAR, Form 8938, Form 1040, PFIC",
-      "p": "media",
-      "e": "T3/26",
-      "categoria": "Trib./EUA",
-      "ref": "—"
-    },
-    {
-      "n": 23,
-      "t": "Avaliar resgate dos fundos brasileiros classificáveis como PFIC (Alaska, Constellation, Western Asset, BTG) ANTES de se tornar US tax resident — tributação punitiva nos EUA",
-      "p": "media",
-      "e": "T3/26",
-      "categoria": "Invest./EUA",
-      "ref": "—"
-    },
-    {
-      "n": 24,
-      "t": "Avaliar desempenho Alaska Black FIA BDR (-13,24%). Se persistir negativo, resgatar e realocar em IVVB11.",
-      "p": "media",
-      "e": "Set/2026",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 25,
-      "t": "Iniciar CGFNS + TOEFL para Mariana (NCLEX). Pode ser feito do Brasil — reduz gap de renda nos EUA em 3-9 meses.",
-      "p": "media",
-      "e": "T4/26",
-      "categoria": "Plan. EUA",
-      "ref": "life_plan"
-    },
-    {
-      "n": 26,
-      "t": "Definir timeline F1/F2 Anderson University (semestre de início, duração, logistics)",
-      "p": "media",
-      "e": "T4/26",
-      "categoria": "Plan. EUA",
-      "ref": "life_plan"
-    },
-    {
-      "n": 27,
-      "t": "Iniciar processo matrícula e visto F1 (se timeline definir início em 2027)",
-      "p": "media",
-      "e": "T4/26",
-      "categoria": "Plan. EUA",
-      "ref": "life_plan"
-    },
-    {
-      "n": 28,
-      "t": "Procurações em cartório (mesma visita): (a) procuração pública para Rubens administrar imóveis e contas, (b) procuração duradoura David → Mariana + Rubens para emergências/incapacidade",
-      "p": "media",
-      "e": "Antes EUA",
-      "categoria": "Jurídico",
-      "ref": "life_plan"
-    },
-    {
-      "n": 29,
-      "t": "Configurar débito automático IPTU e condomínio de todos os 7 imóveis",
-      "p": "media",
-      "e": "Antes EUA",
-      "categoria": "Imóveis",
-      "ref": "—"
-    },
-    {
-      "n": 30,
-      "t": "Separar R$3k/mês como \"reserva de desejos\" da folga mensal (para compras planejadas acima de R$2k — ver Orçamento Prospectivo)",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Orçamento",
-      "ref": "D13"
-    },
-    {
-      "n": 31,
-      "t": "Revisar assinaturas: Gympass R$80 (usa?), Livelo Clube R$45, MeliMais R$20. Economia potencial: ~R$145/mês.",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Orçamento",
-      "ref": "—"
-    },
-    {
-      "n": 32,
-      "t": "Seguro residencial Tasso: cotar Porto Seguro, SulAmérica, Tokio Marine (economia 20-40% vs Santander atual)",
-      "p": "media",
-      "e": "T3/26",
-      "categoria": "Seguros",
-      "ref": "—"
-    },
-    {
-      "n": 33,
-      "t": "Verificar vigência dos seguros veiculares (Toro + NMax) e agendar renovação antes de viajar",
-      "p": "media",
-      "e": "Antes EUA",
-      "categoria": "Seguros",
-      "ref": "—"
-    },
-    {
-      "n": 34,
-      "t": "Após reserva emergência atingir 12 meses (R$382k), realocar os R$10k dos Cofrinhos: R$5k → reserva de oportunidade (CDB liquidez, meta R$50-80k) + R$5k → Tesouro IPCA+ 2035/2040 (contrafluxo, travar IPCA+7%)",
-      "p": "media",
-      "e": "Jan/27",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 35,
-      "t": "Avaliar venda Living Concept (yield 3,2% vs CDI 13,15%). Imóvel ficou vago 7 meses em 2025.",
-      "p": "media",
-      "e": "2027",
-      "categoria": "Imóveis",
-      "ref": "D15"
-    },
-    {
-      "n": 41,
-      "t": "Atualizar cadastro e pagar anuidade do Clube de Tiro Águia de Haia",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Financeiro",
-      "ref": "—"
-    },
-    {
-      "n": 36,
-      "t": "Advogado sucessório/tributarista SP — contratar para testamento + holding",
-      "p": "baixa",
-      "e": "Abr/2026",
-      "categoria": "Sucessório",
-      "ref": "life_plan"
-    },
-    {
-      "n": 37,
-      "t": "Testamento público David + Mariana (cartório BR). Depende de advogado (tarefa 36)",
-      "p": "baixa",
-      "e": "Mai/2026",
-      "categoria": "Sucessório",
-      "ref": "life_plan"
-    },
-    {
-      "n": 38,
-      "t": "Atualizar beneficiários PGBL e seguro de vida",
-      "p": "baixa",
-      "e": "Abr/2026",
-      "categoria": "Sucessório",
-      "ref": "life_plan"
-    },
-    {
-      "n": 39,
-      "t": "Avaliar holding patrimonial com tributarista",
-      "p": "baixa",
-      "e": "T4/2026",
-      "categoria": "Sucessório",
-      "ref": "life_plan"
-    },
-    {
-      "n": 40,
-      "t": "Testamento americano (BR assets) + Standby Guardianship para Theo",
-      "p": "baixa",
-      "e": "Após mudança EUA",
-      "categoria": "Sucessório",
-      "ref": "life_plan"
+      "prioridade": "Média",
+      "acao": "Consolidar dados de rentabilidade dos investimentos",
+      "impacto": "Sem dados de performance, impossível otimizar alocação",
+      "prazo": "T2/2026"
     }
   ],
   "tarefas_status": {
-    "1": "pendente",
-    "2": "feito",
-    "3": "pendente",
-    "4": "pendente",
-    "5": "pendente",
-    "6": "pendente",
-    "7": "pendente",
-    "8": "pendente",
-    "9": "pendente",
-    "10": "pendente",
-    "11": "pendente",
-    "12": "feito",
-    "13": "pendente",
-    "14": "pendente",
-    "15": "pendente",
-    "16": "pendente",
-    "17": "pendente",
-    "18": "pendente",
-    "19": "pendente",
-    "20": "pendente",
-    "21": "pendente",
-    "22": "pendente",
-    "23": "pendente",
-    "24": "pendente",
-    "25": "pendente",
-    "26": "pendente",
-    "27": "pendente",
-    "28": "pendente",
-    "29": "pendente",
-    "30": "pendente",
-    "31": "pendente",
-    "32": "pendente",
-    "33": "pendente",
-    "34": "pendente",
-    "35": "pendente",
-    "41": "pendente",
-    "36": "pendente",
-    "37": "pendente",
-    "38": "pendente",
-    "39": "pendente",
-    "40": "pendente"
+    "t0": "pendente",
+    "t1": "pendente"
   },
   "score": {
-    "valor": 5.5,
+    "valor": 7.3,
     "max": 10,
-    "classificacao": "Regular",
+    "classificacao": "Bom",
     "componentes": [
       {
         "nome": "Taxa Poupança Recorrente",
-        "valor": -41.9,
+        "valor": 29.47,
         "peso": 2.0,
-        "nota": 0.0
+        "nota": 5.9
       },
       {
         "nome": "Cobertura Despesas (meses)",
-        "valor": 31.38,
+        "valor": 56.99,
         "peso": 1.5,
         "nota": 10.0
       },
       {
         "nome": "Taxa Endividamento (inv)",
-        "valor": 0.0,
+        "valor": 6.71,
         "peso": 1.5,
-        "nota": 10.0
+        "nota": 9.6
       },
       {
         "nome": "Progresso IF",
-        "valor": 21.65,
+        "valor": 31.62,
         "peso": 2.0,
-        "nota": 2.2
+        "nota": 3.5
       },
       {
         "nome": "Diversificação",
-        "valor": 6,
+        "valor": 5,
         "peso": 1.0,
         "nota": 10.0
       }
@@ -5194,48 +3239,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   })();
 
-  // ========== CHART 2B: Fluxo de Caixa Mensal (dinâmico via DATA) ==========
-  var fmData = DATA.charts.fluxo_mensal || {labels:[], datasets:[{data:[]}]};
-  safeChart('chart-fluxo-mensal', {
-    type: 'bar',
-    data: {
-      labels: fmData.labels,
-      datasets: [{
-        label: fmData.datasets[0].label || 'Fluxo de Caixa (R$)',
-        data: fmData.datasets[0].data,
-        backgroundColor: fmData.datasets[0].backgroundColor || ['#15803D', '#B91C1C', '#2E86AB'],
-        borderRadius: fmData.datasets[0].borderRadius || 4
-      }]
-    },
-    options: {
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: function(c) { return c.label + ': ' + fmt(c.raw); } } },
-        datalabels: {
-          anchor: 'end', align: 'top', color: 'var(--text-primary)',
-          font: { weight: 'bold', size: 12 },
-          formatter: function(v) { return fmt(v); }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { callback: function(v) { return v >= 1000 ? 'R$ ' + (v/1000).toFixed(0) + 'k' : 'R$ ' + v; } }
-        }
-      }
-    }
-  });
-
-  // ========== CHART 3: Receita por fonte (dinâmico via DATA) ==========
-  var rbData = DATA.charts.receita_bar || {labels:[], datasets:[{data:[]}]};
+  // ========== CHART 3: Receita por fonte ==========
   safeChart('chart-receita-bar', {
     type: 'bar',
     data: {
-      labels: rbData.labels,
+      labels: ['Arvo PJ','BrandLovers','Arbitralis','LearnToFly','CLT Mariana','Alug. David','Alug. Mariana'],
       datasets: [{
         label: 'R$/mês',
-        data: rbData.datasets[0].data,
-        backgroundColor: rbData.datasets[0].backgroundColor || palette.slice(0, rbData.labels.length),
+        data: [47209, 10000, 3000, 1750, 8000, 3422, 6030],
+        backgroundColor: palette.slice(0,7),
         borderRadius: 4
       }]
     },
@@ -5249,199 +3261,61 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 3B: Receita vs Despesa — Mês a Mês (windowed) ==========
-  (function() {
-    var FULL = DATA.charts.receita_despesa_mensal;
-    var allLabels = FULL.labels;
-    var allDatasets = FULL.datasets;
-    var WINDOW = 12; // months visible at once
-    var totalMonths = allLabels.length;
-    // Start at the latest window (most recent months)
-    var offset = Math.max(0, totalMonths - WINDOW);
-
-    // Slice datasets for current window
-    function sliceData(start) {
-      var end = Math.min(start + WINDOW, totalMonths);
-      return {
-        labels: allLabels.slice(start, end),
-        datasets: allDatasets.map(function(ds) {
-          return {
-            label: ds.label,
-            data: ds.data.slice(start, end),
-            backgroundColor: ds.backgroundColor,
-            stack: ds.stack,
-            borderRadius: ds.borderRadius || 0,
-            borderColor: ds.borderColor || undefined,
-            borderWidth: ds.borderWidth || 0
-          };
-        })
-      };
-    }
-
-    // Create chart with initial window
-    var win = sliceData(offset);
-    var rdmChart = safeChart('chart-receita-despesa-mensal', {
-      type: 'bar',
-      data: { labels: win.labels, datasets: win.datasets },
-      options: {
-        responsive: true,
-        animation: { duration: 400, easing: 'easeInOutQuart' },
-        interaction: { mode: 'nearest', intersect: true },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              title: function(items) {
-                if (!items.length) return '';
-                var stack = items[0].dataset.stack;
-                return items[0].label + (stack === 'receita' ? ' — Receitas' : ' — Despesas');
-              },
-              beforeBody: function(items) {
-                if (!items.length) return [];
-                var hoveredStack = items[0].dataset.stack;
-                var idx = items[0].dataIndex;
-                var chart = items[0].chart;
-                var lines = [];
-                chart.data.datasets.forEach(function(ds) {
-                  if (ds.stack === hoveredStack && ds.data[idx] > 0) {
-                    lines.push(ds.label + ': ' + fmt(ds.data[idx]));
-                  }
-                });
-                return lines;
-              },
-              label: function() { return null; },
-              footer: function(items) {
-                if (!items.length) return '';
-                var hoveredStack = items[0].dataset.stack;
-                var idx = items[0].dataIndex;
-                var chart = items[0].chart;
-                var total = 0;
-                chart.data.datasets.forEach(function(ds) {
-                  if (ds.stack === hoveredStack) total += (ds.data[idx] || 0);
-                });
-                return 'Total: ' + fmt(total);
-              }
+  // ========== CHART 3B: Receita vs Despesa — Mês a Mês ==========
+  safeChart('chart-receita-despesa-mensal', {
+    type: 'bar',
+    data: {
+      labels: DATA.charts.receita_despesa_mensal.labels,
+      datasets: DATA.charts.receita_despesa_mensal.datasets.map(function(ds) {
+        return {
+          label: ds.label,
+          data: ds.data,
+          backgroundColor: ds.backgroundColor,
+          stack: ds.stack,
+          borderRadius: ds.borderRadius || 0,
+          borderColor: ds.borderColor || undefined,
+          borderWidth: ds.borderWidth || 0
+        };
+      })
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: function(c) { return c.dataset.label + ': ' + fmt(c.raw); },
+            footer: function(items) {
+              var rec = 0, desp = 0;
+              items.forEach(function(i) {
+                if (i.dataset.stack === 'receita') rec += i.raw;
+                else desp += i.raw;
+              });
+              return 'Saldo: ' + fmt(rec - desp);
             }
-          },
-          datalabels: { display: false }
-        },
-        scales: {
-          x: { stacked: true },
-          y: {
-            stacked: true,
-            ticks: { callback: function(v) { return v >= 1000 ? 'R$ ' + (v/1000).toFixed(0) + 'k' : 'R$ ' + Math.round(v); } }
           }
+        },
+        datalabels: { display: false }
+      },
+      scales: {
+        x: { stacked: true },
+        y: {
+          stacked: true,
+          ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } }
         }
       }
-    });
-
-    // Navigation controls
-    var btnPrev = document.getElementById('rdm-prev');
-    var btnNext = document.getElementById('rdm-next');
-    var periodEl = document.getElementById('rdm-period');
-    var dotsEl  = document.getElementById('rdm-dots');
-    if (!rdmChart || !btnPrev) return;
-
-    var maxOffset = Math.max(0, totalMonths - WINDOW);
-    var totalPages = maxOffset + 1;
-
-    // Build dots
-    for (var d = 0; d < totalPages; d++) {
-      var dot = document.createElement('span');
-      dot.className = 'chart-nav-dot';
-      dotsEl.appendChild(dot);
     }
+  });
 
-    function updateView() {
-      var win = sliceData(offset);
-      // Update labels
-      rdmChart.data.labels = win.labels;
-      // Update each dataset's data slice
-      for (var i = 0; i < win.datasets.length; i++) {
-        rdmChart.data.datasets[i].data = win.datasets[i].data;
-      }
-      rdmChart.update();
-
-      // Update period label
-      var first = win.labels[0] || '';
-      var last  = win.labels[win.labels.length - 1] || '';
-      periodEl.textContent = first + '  —  ' + last;
-
-      // Update buttons
-      btnPrev.disabled = (offset <= 0);
-      btnNext.disabled = (offset >= maxOffset);
-
-      // Update dots
-      var dots = dotsEl.children;
-      for (var j = 0; j < dots.length; j++) {
-        dots[j].classList.toggle('active', j === offset);
-      }
-    }
-
-    btnPrev.addEventListener('click', function() {
-      if (offset > 0) { offset--; updateView(); }
-    });
-    btnNext.addEventListener('click', function() {
-      if (offset < maxOffset) { offset++; updateView(); }
-    });
-
-    // Initial state
-    updateView();
-
-    // Hide nav if all months fit in one window
-    if (totalMonths <= WINDOW) {
-      document.getElementById('rdm-nav').style.display = 'none';
-      dotsEl.style.display = 'none';
-    }
-
-    // ---- Grouped legend ----
-    var container = document.getElementById('legend-receita-despesa');
-    if (!container) return;
-    var datasets = rdmChart.data.datasets;
-    var groups = { receita: [], despesa: [] };
-    allDatasets.forEach(function(ds, i) {
-      var key = ds.stack === 'receita' ? 'receita' : 'despesa';
-      groups[key].push({ index: i, label: ds.label, color: ds.backgroundColor });
-    });
-
-    function buildGroup(title, items) {
-      var group = document.createElement('div');
-      group.className = 'legend-group';
-      var heading = document.createElement('div');
-      heading.className = 'legend-group-title';
-      heading.textContent = title;
-      group.appendChild(heading);
-      var row = document.createElement('div');
-      row.className = 'legend-items';
-      items.forEach(function(item) {
-        var el = document.createElement('span');
-        el.className = 'legend-item';
-        el.innerHTML = '<span class="legend-swatch" style="background:' + item.color + '"></span>' + item.label;
-        el.addEventListener('click', function() {
-          var meta = rdmChart.getDatasetMeta(item.index);
-          meta.hidden = !meta.hidden;
-          el.classList.toggle('strikethrough', meta.hidden);
-          rdmChart.update();
-        });
-        row.appendChild(el);
-      });
-      group.appendChild(row);
-      return group;
-    }
-
-    container.appendChild(buildGroup('Receitas', groups.receita));
-    container.appendChild(buildGroup('Despesas', groups.despesa));
-  })();
-
-  // ========== CHART 4: Despesas Doughnut (dinâmico via DATA) ==========
-  var ddData = DATA.charts.despesas_doughnut || {labels:[], datasets:[{data:[]}]};
+  // ========== CHART 4: Despesas Doughnut ==========
   safeChart('chart-despesas-doughnut', {
     type: 'doughnut',
     data: {
-      labels: ddData.labels,
+      labels: ['Alimentação','Lazer/Viagens','Financeiro','Saúde','Melhoria/Reforma','Transporte','Seguros','Suporte Familiar','Assinaturas','Vestuário','Educação','Moradia'],
       datasets: [{
-        data: ddData.datasets[0].data,
-        backgroundColor: ddData.datasets[0].backgroundColor || [...palette, '#CBD5E1', '#94A3B8', '#818CF8', '#F472B6'],
+        data: [52739, 34508, 28815, 24071, 12368, 8726, 5338, 3683, 3610, 796, 687, 465],
+        backgroundColor: [...palette, '#CBD5E1', '#94A3B8', '#818CF8', '#F472B6'],
         borderWidth: 2, borderColor: '#fff'
       }]
     },
@@ -5592,12 +3466,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Caso contrário, dados são R$ reais → exibir "R$ Xk"
     return 'R$ ' + (value/1000).toFixed(0) + 'k';
   }
-  var aaData = DATA.charts.alocacao_atual || {labels:[], datasets:[{data:[]}]};
   safeChart('chart-alocacao-atual', {
     type: 'doughnut',
     data: {
-      labels: aaData.labels,
-      datasets: [{ data: aaData.datasets[0].data, backgroundColor: aaData.datasets[0].backgroundColor || palette, borderWidth: 2, borderColor: '#fff' }]
+      labels: ['Renda Fixa 54,2%','Fundos RV 12%','Ações 7,1%','Caixa 10,1%','Previdência 1,4%','Crypto 0,1%','Internacional 0%'],
+      datasets: [{ data: [54.2,12,7.1,10.1,1.4,0.1,0], backgroundColor: palette, borderWidth: 2, borderColor: '#fff' }]
     },
     options: {
       cutout: '55%',
@@ -5616,13 +3489,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 7: Alocação Alvo (dinâmico via DATA) ==========
-  var alvData = DATA.charts.alocacao_alvo || {labels:[], datasets:[{data:[]}]};
+  // ========== CHART 7: Alocação Alvo ==========
   safeChart('chart-alocacao-alvo', {
     type: 'doughnut',
     data: {
-      labels: alvData.labels,
-      datasets: [{ data: alvData.datasets[0].data, backgroundColor: alvData.datasets[0].backgroundColor || palette, borderWidth: 2, borderColor: '#fff' }]
+      labels: ['Renda Fixa 50%','Fundos RV 10%','Ações 10%','Caixa 4%','Previdência 5%','Crypto 1%','Internacional 10%'],
+      datasets: [{ data: [50,10,10,4,5,1,10], backgroundColor: palette, borderWidth: 2, borderColor: '#fff' }]
     },
     options: {
       cutout: '55%',
@@ -5665,16 +3537,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 9: Yield imóveis vs CDI (dinâmico via DATA) ==========
-  var yiData = DATA.charts.yield_imoveis || {labels:[], datasets:[{data:[], backgroundColor:[]}]};
+  // ========== CHART 9: Yield imóveis vs CDI ==========
   safeChart('chart-yield-imoveis', {
     type: 'bar',
     data: {
-      labels: yiData.labels,
+      labels: ['Calixto (David)', 'Major Freire (David)', 'Living Wish (Mari)', 'Living Concept (Mari)', 'CDI (referência)'],
       datasets: [{
         label: 'Yield % a.a.',
-        data: yiData.datasets[0].data,
-        backgroundColor: yiData.datasets[0].backgroundColor || ['#2E86AB','#2E86AB','#457B9D','#457B9D','#E63946'],
+        data: [6.3, 4.7, 11.7, 3.9, 13.75],
+        backgroundColor: ['#2E86AB','#2E86AB','#457B9D','#457B9D','#E63946'],
         borderRadius: 4
       }]
     },
@@ -5688,15 +3559,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 10: Custos F1/F2 (dinâmico via DATA) ==========
-  var cfData = DATA.charts.custos_f1f2 || {labels:[], datasets:[{data:[], backgroundColor:[]}]};
+  // ========== CHART 10: Custos F1/F2 ==========
   safeChart('chart-custos-f1f2', {
     type: 'bar',
     data: {
-      labels: cfData.labels,
+      labels: ['Custos EUA', 'Custos BR Mantidos', 'TOTAL', 'Renda David', 'Sobra'],
       datasets: [{
-        data: cfData.datasets[0].data,
-        backgroundColor: cfData.datasets[0].backgroundColor || ['#E63946','#F4A261','#1A3A5C','#2DC653','#2E86AB'],
+        data: [23461, 8919, 32380, 70611, 38231],
+        backgroundColor: ['#E63946','#F4A261','#1A3A5C','#2DC653','#2E86AB'],
         borderRadius: 4
       }]
     },
@@ -5710,15 +3580,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 11: Cenários cambiais Green Card (dinâmico via DATA) ==========
-  var ccData = DATA.charts.cenarios_cambiais || {labels:[], datasets:[]};
+  // ========== CHART 11: Cenários cambiais Green Card ==========
   safeChart('chart-cenarios-cambiais', {
     type: 'bar',
     data: {
-      labels: ccData.labels,
-      datasets: (ccData.datasets || []).map(function(ds) {
-        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4 };
-      })
+      labels: [['Pessimista','R$ 7,50/USD'], ['Realista','R$ 5,88/USD'], ['Otimista','R$ 4,50/USD']],
+      datasets: [
+        { label: 'Sem Mariana', data: [8500, 22000, 35000], backgroundColor: '#F4A261', borderRadius: 4 },
+        { label: 'Com Mariana (NCLEX)', data: [38000, 55000, 72000], backgroundColor: '#2DC653', borderRadius: 4 }
+      ]
     },
     options: {
       plugins: {
@@ -5730,12 +3600,11 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // ========== CHART 12: Projeção 3 cenários IF ==========
-  var projData = DATA.charts.projecao_3cenarios || {};
-  var META_IF = projData.meta_if || DATA.kpis.meta_if || 0;
-  var investivel = projData.investivel || DATA.kpis.patrimonio_investivel || 0;
-  var imoveis = projData.imoveis || 0;
-  var monthlyAporte = projData.aporte_mensal || 0;
-  var nYears = projData.anos || 13;
+  var META_IF = 9000000;
+  var investivel = 1369452;
+  var imoveis = 4147480;
+  var monthlyAporte = 20000;
+  var nYears = 13;
   var yearsProj = [];
   for (var yi = 0; yi < nYears; yi++) yearsProj.push((2026 + yi).toString());
 
@@ -5765,13 +3634,10 @@ document.addEventListener('DOMContentLoaded', function() {
     return -1;
   }
 
-  var imovRate = projData.taxa_imoveis || 0.02;
-  var taxaPess = projData.taxa_pessimista || 0.04;
-  var taxaReal = projData.taxa_realista || 0.06;
-  var taxaOtim = projData.taxa_otimista || 0.08;
-  var dataPess = projTotal(investivel, taxaPess, monthlyAporte, imoveis, imovRate, nYears);
-  var dataReal = projTotal(investivel, taxaReal, monthlyAporte, imoveis, imovRate, nYears);
-  var dataOtim = projTotal(investivel, taxaOtim, monthlyAporte, imoveis, imovRate, nYears);
+  var imovRate = 0.02;
+  var dataPess = projTotal(investivel, 0.04, monthlyAporte, imoveis, imovRate, nYears);
+  var dataReal = projTotal(investivel, 0.06, monthlyAporte, imoveis, imovRate, nYears);
+  var dataOtim = projTotal(investivel, 0.08, monthlyAporte, imoveis, imovRate, nYears);
   var metaLine = new Array(nYears).fill(META_IF);
 
   var crossPess = findCrossYear(dataPess, META_IF);
@@ -5791,7 +3657,7 @@ document.addEventListener('DOMContentLoaded', function() {
       labels: yearsProj,
       datasets: [
         {
-          label: 'Meta IF — ' + fmtK(META_IF),
+          label: 'Meta IF — R$ 9,0M',
           data: metaLine,
           borderColor: '#1A3A5C',
           borderDash: [8, 4],
@@ -5801,7 +3667,7 @@ document.addEventListener('DOMContentLoaded', function() {
           order: 4
         },
         {
-          label: 'Pessimista (' + (taxaPess*100).toFixed(0) + '%)',
+          label: 'Pessimista (4%)',
           data: dataPess,
           borderColor: '#E63946',
           backgroundColor: 'rgba(230,57,70,0.08)',
@@ -5812,7 +3678,7 @@ document.addEventListener('DOMContentLoaded', function() {
           order: 3
         },
         {
-          label: 'Realista (' + (taxaReal*100).toFixed(0) + '%)',
+          label: 'Realista (6%)',
           data: dataReal,
           borderColor: '#2E86AB',
           backgroundColor: 'rgba(46,134,171,0.08)',
@@ -5824,7 +3690,7 @@ document.addEventListener('DOMContentLoaded', function() {
           order: 2
         },
         {
-          label: 'Otimista (' + (taxaOtim*100).toFixed(0) + '%)',
+          label: 'Otimista (8%)',
           data: dataOtim,
           borderColor: '#2DC653',
           backgroundColor: 'rgba(45,198,83,0.08)',
@@ -5940,22 +3806,23 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.font = 'bold 12px "Plus Jakarta Sans"';
         ctx.fillStyle = '#1A3A5C';
         ctx.textAlign = 'left';
-        ctx.fillText('Meta IF = ' + fmtK(META_IF), xScale.left + 8, metaY - 8);
+        ctx.fillText('Meta IF = R$ 9,0M', xScale.left + 8, metaY - 8);
 
         ctx.restore();
       }
     }]
   });
 
-  // ========== CHART 13: Renda passiva (dinâmico via DATA) ==========
-  var rpData = DATA.charts.renda_passiva || {labels:[], datasets:[]};
+  // ========== CHART 13: Renda passiva ==========
   safeChart('chart-renda-passiva', {
     type: 'bar',
     data: {
-      labels: rpData.labels,
-      datasets: (rpData.datasets || []).map(function(ds) {
-        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4 };
-      })
+      labels: ['Aluguéis\nDavid', 'Aluguéis\nMariana', 'Dividendos', 'RF/Cupons', 'FIIs', 'PGBL', 'EUA\nMariana', 'GAP'],
+      datasets: [
+        { label: 'Atual', data: [3422, 6030, 521, 950, 0, 0, 0, 0], backgroundColor: '#2E86AB', borderRadius: 4 },
+        { label: 'Meta 2035', data: [5068, 8930, 3500, 4500, 4500, 2000, 5000, 0], backgroundColor: '#2DC653', borderRadius: 4 },
+        { label: 'Gap', data: [0, 0, 0, 0, 0, 0, 0, 19077], backgroundColor: '#E63946', borderRadius: 4 }
+      ]
     },
     options: {
       plugins: {
@@ -5966,44 +3833,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 14: Impostos PJ (dinâmico via DATA) ==========
-  var ipData = DATA.charts.impostos_pj || {labels:[], datasets:[{data:[]}]};
-  safeChart('chart-impostos-pj', {
-    type: 'bar',
-    data: {
-      labels: ipData.labels,
-      datasets: [{
-        label: ipData.datasets[0].label || 'Valores (R$)',
-        data: ipData.datasets[0].data,
-        backgroundColor: ipData.datasets[0].backgroundColor || palette.slice(0, ipData.labels.length),
-        borderRadius: 4
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      plugins: {
-        legend: { display: false },
-        datalabels: {
-          anchor: 'end', align: 'right', color: 'var(--text-primary)',
-          font: { weight: 'bold', size: 11 },
-          formatter: function(v) { return v >= 1000 ? 'R$ ' + (v/1000).toFixed(0) + 'k' : 'R$ ' + v.toLocaleString('pt-BR'); }
-        }
-      },
-      scales: {
-        x: { ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } },
-        y: { ticks: { font: { size: 11 } } }
-      }
-    }
-  });
-
-  // ========== CHART 15: Bubble Riscos (dinâmico via DATA) ==========
-  var brData = DATA.charts.bubble_riscos || {datasets:[]};
+  // ========== CHART 15: Bubble Riscos ==========
   safeChart('chart-bubble-riscos', {
     type: 'bubble',
     data: {
-      datasets: (brData.datasets || []).map(function(ds) {
-        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor };
-      })
+      datasets: [
+        { label: 'Morte/Invalidez David', data: [{ x: 2, y: 5, r: 20 }], backgroundColor: 'rgba(230,57,70,0.7)' },
+        { label: 'Perda Arvo', data: [{ x: 2, y: 4, r: 16 }], backgroundColor: 'rgba(244,162,97,0.7)' },
+        { label: 'Carnê-leão multas', data: [{ x: 4, y: 2, r: 16 }], backgroundColor: 'rgba(244,162,97,0.7)' },
+        { label: 'PFIC EUA', data: [{ x: 3, y: 3, r: 18 }], backgroundColor: 'rgba(230,57,70,0.5)' },
+        { label: 'Ed. Gisele s/ registro', data: [{ x: 2, y: 4, r: 18 }], backgroundColor: 'rgba(230,57,70,0.5)' },
+        { label: 'Emergência médica', data: [{ x: 2, y: 3, r: 12 }], backgroundColor: 'rgba(46,134,171,0.5)' },
+        { label: 'Concentração imob.', data: [{ x: 3, y: 2, r: 12 }], backgroundColor: 'rgba(69,123,157,0.5)' },
+        { label: 'Câmbio BRL/USD', data: [{ x: 3, y: 2, r: 12 }], backgroundColor: 'rgba(69,123,157,0.5)' },
+        { label: 'Cybersecurity', data: [{ x: 2, y: 2, r: 8 }], backgroundColor: 'rgba(168,218,220,0.5)' },
+        { label: 'Inflação', data: [{ x: 2, y: 2, r: 8 }], backgroundColor: 'rgba(168,218,220,0.5)' }
+      ]
     },
     options: {
       scales: {
@@ -6017,15 +3862,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 16: Top 5 decisões (dinâmico via DATA) ==========
-  var t5Data = DATA.charts.top5_decisoes || {labels:[], datasets:[]};
+  // ========== CHART 16: Top 5 decisões ==========
   safeChart('chart-top5-decisoes', {
     type: 'bar',
     data: {
-      labels: t5Data.labels,
-      datasets: (t5Data.datasets || []).map(function(ds) {
-        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4 };
-      })
+      labels: ['Aportes R$20k/mês','Quitação Ed. Gisele','PGBL R$1.800/mês','Seguro vida','Resgate Safari+PFIC'],
+      datasets: [
+        { label: 'Impacto 1 ano', data: [240000, 51500, 5940, 6000, 16614], backgroundColor: '#2E86AB', borderRadius: 4 },
+        { label: 'Impacto 10 anos', data: [3930000, 92000, 125000, 60000, 181304], backgroundColor: '#2DC653', borderRadius: 4 }
+      ]
     },
     options: {
       indexAxis: 'y',
@@ -6037,15 +3882,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 17: Mariana cenários (dinâmico via DATA) ==========
-  var mcData = DATA.charts.mariana_cenarios || {labels:[], datasets:[]};
+  // ========== CHART 17: Mariana cenários ==========
   safeChart('chart-mariana-cenarios', {
     type: 'bar',
     data: {
-      labels: mcData.labels,
-      datasets: (mcData.datasets || []).map(function(ds) {
-        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4, yAxisID: ds.yAxisID || undefined };
-      })
+      labels: ['Com CLT\n(R$20k aporte)', 'Sem CLT\n(R$20k mantido)', 'Sem CLT\n(R$13.2k aporte)'],
+      datasets: [
+        { label: 'Aporte mensal', data: [20000, 20000, 13200], backgroundColor: '#2E86AB', borderRadius: 4 },
+        { label: 'Prazo IF (anos)', data: [9.0, 9.0, 10.5], backgroundColor: '#2DC653', borderRadius: 4, yAxisID: 'y1' }
+      ]
     },
     options: {
       plugins: { datalabels: { display: false } },
@@ -6056,15 +3901,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 18: Viagens (dinâmico via DATA) ==========
-  var vgData = DATA.charts.viagens || {labels:[], datasets:[]};
+  // ========== CHART 18: Viagens ==========
   safeChart('chart-viagens', {
     type: 'bar',
     data: {
-      labels: vgData.labels,
-      datasets: (vgData.datasets || []).map(function(ds) {
-        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4 };
-      })
+      labels: ['Orçamento 2026'],
+      datasets: [
+        { label: 'Portugal (gasto)', data: [22337], backgroundColor: '#E63946', borderRadius: 4 },
+        { label: 'Disponível', data: [22663], backgroundColor: '#2DC653', borderRadius: 4 }
+      ]
     },
     options: {
       indexAxis: 'y',
@@ -6076,8 +3921,104 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // NOTE: setMode, setTheme, initializeTheme, buildDashboard são definidas
-  // no bloco <script> global abaixo. Não duplicar aqui.
+  // ========== MODE TOGGLE ==========
+  window.setMode = function(mode) {
+    document.body.className = 'mode-' + mode;
+    document.querySelectorAll('.mode-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.target === mode);
+    });
+    var stratNav = document.querySelector('.nav-strategic');
+    var tacNav = document.querySelector('.nav-tactical');
+    if (stratNav) stratNav.style.display = mode === 'strategic' ? 'flex' : 'none';
+    if (tacNav) tacNav.style.display = mode === 'tactical' ? 'flex' : 'none';
+  };
+
+  // ========== DARK MODE THEME ==========
+  window.setTheme = function(theme) {
+    const html = document.documentElement;
+    const themeButtons = document.querySelectorAll('.theme-btn');
+
+    if (theme === 'system') {
+      localStorage.removeItem('theme');
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    } else {
+      localStorage.setItem('theme', theme);
+      html.setAttribute('data-theme', theme);
+    }
+
+    themeButtons.forEach(function(b) {
+      b.classList.toggle('active', b.dataset.theme === theme || (theme === 'system' && b.dataset.theme === 'system'));
+    });
+
+    if (typeof window.updateChartsForTheme === 'function') window.updateChartsForTheme();
+  };
+
+  // Initialize theme on load
+  function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      window.setTheme(savedTheme);
+    } else {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+      if (!localStorage.getItem('theme')) {
+        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        if (typeof window.updateChartsForTheme === 'function') window.updateChartsForTheme();
+      }
+    });
+  }
+  initializeTheme();
+
+  // ========== DASHBOARD CATEGORY BARS ==========
+  function buildDashboard() {
+    var D = DATA.dashboard;
+    if (!D) return;
+    var catContainer = document.getElementById('dash-categorias-container');
+    if (catContainer) {
+      var cats = D.despesas_por_categoria;
+      cats.forEach(function(c) {
+        var pct = Math.min((c.gasto / c.teto) * 100, 100);
+        var over = c.gasto > c.teto;
+        var color = over ? 'var(--color-danger)' : 'var(--color-accent)';
+        var badge = over ? '<span class="badge badge-danger">ACIMA</span>' : '<span class="badge badge-success">OK</span>';
+        catContainer.innerHTML += '<div class="dash-cat-row">' +
+          '<div class="dash-cat-label">' + c.cat + '</div>' +
+          '<div class="dash-cat-bar"><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + color + ';"></div></div></div>' +
+          '<div class="dash-cat-values">' + fmt(c.gasto) + ' / ' + fmt(c.teto) + ' ' + badge + '</div></div>';
+      });
+    }
+  }
+
+  // ========== BACK TO TOP + FLOATING BUTTONS ==========
+  var backBtn = document.querySelector('.back-to-top');
+  var floatBtns = document.querySelector('.float-buttons');
+  window.addEventListener('scroll', function() {
+    var show = window.scrollY > 600;
+    if (backBtn) backBtn.style.display = show ? 'block' : 'none';
+    if (floatBtns) floatBtns.style.display = show ? 'flex' : 'none';
+  });
+
+  // ========== EXPORT MARKDOWN ==========
+  window.exportMd = function() {
+    if (typeof TurndownService === 'undefined') { alert('Turndown não carregado'); return; }
+    var td = new TurndownService({ headingStyle: 'atx' });
+    var mode = document.body.className.replace('mode-', '');
+    var content = '';
+    document.querySelectorAll('[data-mode="' + mode + '"], [data-mode="both"]').forEach(function(el) {
+      content += el.outerHTML;
+    });
+    var md = td.turndown(content);
+    var blob = new Blob([md], { type: 'text/markdown' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'relatorio_ferreira_campos_' + mode + '.md'; a.click();
+  };
+
+  // Build dashboard on initial load and when mode changes
+  buildDashboard();
 });
 </script>
 
@@ -6370,7 +4311,7 @@ function exportMarkdown() {
 
     // Skip sections from the INACTIVE mode
     const activeMode = document.body.className.replace('mode-', '');
-    const inactiveMode = activeMode === 'strategic' ? 'tactical' : 'strategic';
+    const inactiveMode = activeMode === 'strategic' ? 'dashboard' : 'strategic';
     td.addRule('hiddenMode', {
       filter: function(node) {
         return node.getAttribute && node.getAttribute('data-mode') === inactiveMode;

@@ -2,66 +2,78 @@
   "periodo_dados": "2023-01 a 2026-04",
   "data_analise": "2026-04-08",
   "patrimonio": {
-    "bruto": 0.0,
+    "bruto": 2782886.1,
     "dividas": 0.0,
-    "liquido": 0.0,
-    "residencia": 0.0,
-    "imoveis_investimento": 0.0,
-    "investimentos_david": 0.0,
-    "investimentos_mariana": 0.0,
+    "liquido": 2782886.1,
+    "residencia": 996821.46,
+    "imoveis_investimento": 562706.24,
+    "investimentos_david": 620497.84,
+    "investimentos_mariana": 375384.56,
     "caixa_moeda_estrangeira": 0.0,
-    "investivel": 0,
-    "veiculos": 0.0,
+    "investivel": 1558588.64,
+    "veiculos": 227476.0,
     "composicao": [
       {
         "categoria": "Residência",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Imóveis Investimento",
-        "valor": 0.0
+        "valor": 996821.46,
+        "pct": 35.82
       },
       {
         "categoria": "Investimentos David",
-        "valor": 0.0
+        "valor": 620497.84,
+        "pct": 22.3
+      },
+      {
+        "categoria": "Imóveis Investimento",
+        "valor": 562706.24,
+        "pct": 20.22
       },
       {
         "categoria": "Investimentos Mariana",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 0.0
+        "valor": 375384.56,
+        "pct": 13.49
       },
       {
         "categoria": "Veículos",
-        "valor": 0.0
+        "valor": 227476.0,
+        "pct": 8.17
+      },
+      {
+        "categoria": "Caixa e Moeda Estrangeira",
+        "valor": 1.7462298274040222e-10,
+        "pct": 0.0
       }
     ],
     "tabela_categorias": [
       {
         "categoria": "Residência",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Imóveis Investimento",
-        "valor": 0.0
+        "valor": 996821.46,
+        "pct": 35.82
       },
       {
         "categoria": "Investimentos David",
-        "valor": 0.0
+        "valor": 620497.84,
+        "pct": 22.3
+      },
+      {
+        "categoria": "Imóveis Investimento",
+        "valor": 562706.24,
+        "pct": 20.22
       },
       {
         "categoria": "Investimentos Mariana",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 0.0
+        "valor": 375384.56,
+        "pct": 13.49
       },
       {
         "categoria": "Veículos",
-        "valor": 0.0
+        "valor": 227476.0,
+        "pct": 8.17
+      },
+      {
+        "categoria": "Caixa e Moeda Estrangeira",
+        "valor": 1.7462298274040222e-10,
+        "pct": 0.0
       }
     ],
     "fonte_investimentos": "posicoes_atuais"
@@ -70,12 +82,12 @@
     "if_meta": 7200000.0,
     "if_trs": 5.0,
     "if_trs_monthly_value": 30000.0,
-    "if_pct": 0.0,
-    "if_gap": 7200000.0,
-    "prazo_anos_realista": 17.4,
-    "david_idade_if": 61,
-    "ano_if": 2043,
-    "renda_passiva_estimada_4pct": 0.0
+    "if_pct": 21.65,
+    "if_gap": 5641411.36,
+    "prazo_anos_realista": 11.9,
+    "david_idade_if": 55,
+    "ano_if": 2037,
+    "renda_passiva_estimada_4pct": 5195.3
   },
   "fluxo_caixa": {
     "receita_total": 2512823.22,
@@ -1688,14 +1700,14 @@
     "taxa_poupanca_recorrente_pct": -41.9,
     "taxa_poupanca_total_pct": 20.92,
     "taxa_endividamento_pct": 0.0,
-    "cobertura_despesas_meses": 0.0,
+    "cobertura_despesas_meses": 31.38,
     "rentabilidade_pct": "N/D",
     "aliquota_efetiva_ir_pct": "N/D"
   },
   "score": {
-    "valor": 1.9,
+    "valor": 5.5,
     "max": 10,
-    "classificacao": "Crítico",
+    "classificacao": "Regular",
     "componentes": [
       {
         "nome": "Taxa Poupança Recorrente",
@@ -1705,9 +1717,9 @@
       },
       {
         "nome": "Cobertura Despesas (meses)",
-        "valor": 0.0,
+        "valor": 31.38,
         "peso": 1.5,
-        "nota": 0.0
+        "nota": 10.0
       },
       {
         "nome": "Taxa Endividamento (inv)",
@@ -1717,15 +1729,15 @@
       },
       {
         "nome": "Progresso IF",
-        "valor": 0.0,
+        "valor": 21.65,
         "peso": 2.0,
-        "nota": 0.0
+        "nota": 2.2
       },
       {
         "nome": "Diversificação",
-        "valor": 0,
+        "valor": 6,
         "peso": 1.0,
-        "nota": 0.0
+        "nota": 10.0
       }
     ]
   },
@@ -1758,15 +1770,15 @@
     "nivel_6_meses": 298053.24,
     "nivel_12_meses": 596106.48,
     "composicao_liquida": {
-      "investimentos_david": 0.0,
-      "investimentos_mariana": 0.0,
+      "investimentos_david": 620497.84,
+      "investimentos_mariana": 375384.56,
       "caixa_moeda_estrangeira": 0.0,
-      "total_liquido": 0.0,
-      "cobertura_meses": 0.0
+      "total_liquido": 995882.4,
+      "cobertura_meses": 20.0
     },
-    "total_liquida": 0.0,
-    "cobertura_meses": 0.0,
-    "avaliacao_liquidity": "Insuficiente",
+    "total_liquida": 995882.4,
+    "cobertura_meses": 20.0,
+    "avaliacao_liquidity": "Excelente",
     "niveis": [
       "6 meses",
       "12 meses"
@@ -1774,7 +1786,7 @@
   },
   "endividamento": {
     "total_dividas": 0.0,
-    "percentual_patrimonio": 0,
+    "percentual_patrimonio": 0.0,
     "dividas": [],
     "detalhe": "Financiamento imobiliário (Itaú)"
   },
@@ -1796,12 +1808,6 @@
   "pontos_urgentes": [
     {
       "prioridade": "Alta",
-      "acao": "Reforçar reserva de emergência",
-      "impacto": "Cobertura atual de 0 meses — abaixo do mínimo de 6",
-      "prazo": "Imediato"
-    },
-    {
-      "prioridade": "Alta",
       "acao": "Contratar seguro de vida e invalidez",
       "impacto": "Proteção patrimonial da família — nenhuma apólice identificada",
       "prazo": "Abr/2026"
@@ -1814,8 +1820,29 @@
     }
   ],
   "investimentos": {
-    "tabela_classes": [],
-    "total": 0.0
+    "tabela_classes": [
+      {
+        "categoria": "Outros",
+        "valor": 794715.32,
+        "pct": 58.13
+      },
+      {
+        "categoria": "Imóveis Investimento",
+        "valor": 562706.24,
+        "pct": 41.16
+      },
+      {
+        "categoria": "Contas Bancárias",
+        "valor": 5168.52,
+        "pct": 0.38
+      },
+      {
+        "categoria": "Cripto",
+        "valor": 4605.77,
+        "pct": 0.34
+      }
+    ],
+    "total": 1367195.85
   },
   "equilibrio_cerbasi": {
     "pct_presente": 94.6,
@@ -1843,54 +1870,6 @@
     },
     {
       "n": 3,
-      "t": "Configurar transferência automática R$5k C6 PJ → C6 PF no dia 1 de cada mês (eliminar cheque especial)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Orçamento",
-      "ref": "D14"
-    },
-    {
-      "n": 4,
-      "t": "Configurar aporte R$20k/mês (dia 5): R$10k Cofrinhos Itaú + R$5k Tesouro IPCA+ + R$3k IVVB11 + R$2k Wise USD (ver Seção 3)",
-      "p": "alta",
-      "e": "05/04",
-      "categoria": "Invest.",
-      "ref": "D02"
-    },
-    {
-      "n": 5,
-      "t": "Reunião AccountTech (pauta completa): (a) regularizar carnê-leão David + Mariana 2025, (b) confirmar risco multa isolada 2024, (c) DAS mensal automático dia 20 via C6 PJ, (d) parar impostos PJ por contas pessoais, (e) Simples vs LP, (f) Carnê-Leão mensal para ambos",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 6,
-      "t": "Criar login Gov.br nível Prata ou Ouro para David + Mariana (pré-requisito para Carnê-Leão Web no e-CAC)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 7,
-      "t": "Entregar IRPF 2026 David + Mariana (com carnê-leão de ambos regularizado antes da entrega)",
-      "p": "alta",
-      "e": "Mai/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 8,
-      "t": "Configurar carnê-leão automático mensal David + Mariana (lançar aluguéis no Carnê-Leão Web e pagar DARF até último dia útil do mês seguinte)",
-      "p": "alta",
-      "e": "Jun/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 9,
       "t": "Solicitar resgate Safari 30 na Rico (~R$16.614, prazo D+60 para liquidação)",
       "p": "alta",
       "e": "Semana",
@@ -1898,7 +1877,7 @@
       "ref": "—"
     },
     {
-      "n": 10,
+      "n": 4,
       "t": "Cancelar seguro de conta Santander (R$10/mês). Manter seguro de conta C6 (R$20/mês).",
       "p": "alta",
       "e": "Semana",
@@ -1906,7 +1885,23 @@
       "ref": "D08"
     },
     {
-      "n": 11,
+      "n": 5,
+      "t": "Configurar aporte R$20k/mês (dia 5): R$10k Cofrinhos Itaú + R$5k Tesouro IPCA+ + R$3k IVVB11 + R$2k Wise USD (ver Seção 3)",
+      "p": "alta",
+      "e": "05/04",
+      "categoria": "Invest.",
+      "ref": "D02"
+    },
+    {
+      "n": 6,
+      "t": "Reunião AccountTech (pauta completa): (a) regularizar carnê-leão David + Mariana 2025, (b) confirmar risco multa isolada 2024, (c) DAS mensal automático dia 20 via C6 PJ, (d) parar impostos PJ por contas pessoais, (e) Simples vs LP, (f) Carnê-Leão mensal para ambos",
+      "p": "alta",
+      "e": "Abr/2026",
+      "categoria": "Tributário",
+      "ref": "—"
+    },
+    {
+      "n": 7,
       "t": "Cotar seguro de vida Term Life R$3-5M, 20 anos (SulAmérica, Porto Seguro, Prudential)",
       "p": "alta",
       "e": "Abr/2026",
@@ -1914,7 +1909,7 @@
       "ref": "—"
     },
     {
-      "n": 12,
+      "n": 8,
       "t": "Cotar seguro de invalidez (60% da renda, ~R$100-200/mês)",
       "p": "alta",
       "e": "Abr/2026",
@@ -1922,7 +1917,7 @@
       "ref": "—"
     },
     {
-      "n": 13,
+      "n": 9,
       "t": "CAIXA: confirmar valor do FGTS Kiwify + solicitar saque na mesma visita. Levar: RG, CPF, CTPS digital, termo de rescisão. Incluir valor no patrimônio investível.",
       "p": "alta",
       "e": "Abr/2026",
@@ -1930,11 +1925,43 @@
       "ref": "—"
     },
     {
-      "n": 14,
+      "n": 10,
       "t": "Regularizar registro do Ed. Gisele no cartório (matrícula ainda no nome do antigo dono)",
       "p": "alta",
       "e": "Abr/2026",
       "categoria": "Imóveis",
+      "ref": "—"
+    },
+    {
+      "n": 11,
+      "t": "Configurar transferência automática R$5k C6 PJ → C6 PF no dia 1 de cada mês (eliminar cheque especial)",
+      "p": "alta",
+      "e": "Abr/2026",
+      "categoria": "Orçamento",
+      "ref": "D14"
+    },
+    {
+      "n": 12,
+      "t": "Criar login Gov.br nível Prata ou Ouro para David + Mariana (pré-requisito para Carnê-Leão Web no e-CAC)",
+      "p": "alta",
+      "e": "Abr/2026",
+      "categoria": "Tributário",
+      "ref": "—"
+    },
+    {
+      "n": 13,
+      "t": "Entregar IRPF 2026 David + Mariana (com carnê-leão de ambos regularizado antes da entrega)",
+      "p": "alta",
+      "e": "Mai/2026",
+      "categoria": "Tributário",
+      "ref": "—"
+    },
+    {
+      "n": 14,
+      "t": "Configurar carnê-leão automático mensal David + Mariana (lançar aluguéis no Carnê-Leão Web e pagar DARF até último dia útil do mês seguinte)",
+      "p": "alta",
+      "e": "Jun/2026",
+      "categoria": "Tributário",
       "ref": "—"
     },
     {
@@ -2106,6 +2133,14 @@
       "ref": "D15"
     },
     {
+      "n": 41,
+      "t": "Atualizar cadastro e pagar anuidade do Clube de Tiro Águia de Haia",
+      "p": "media",
+      "e": "Abr/2026",
+      "categoria": "Financeiro",
+      "ref": "—"
+    },
+    {
       "n": 36,
       "t": "Advogado sucessório/tributarista SP — contratar para testamento + holding",
       "p": "baixa",
@@ -2144,14 +2179,6 @@
       "e": "Após mudança EUA",
       "categoria": "Sucessório",
       "ref": "life_plan"
-    },
-    {
-      "n": 41,
-      "t": "Atualizar cadastro e pagar anuidade do Clube de Tiro Águia de Haia",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Financeiro",
-      "ref": "—"
     }
   ],
   "tarefas_status": {
@@ -2198,7 +2225,7 @@
     "40": "pendente"
   },
   "alertas": [
-    "Score financeiro: 1.9/10 (Crítico)",
+    "Score financeiro: 5.5/10 (Regular)",
     "Rentabilidade: N/D"
   ],
   "consumo_consciente": {
@@ -2338,20 +2365,5 @@
       "s2/s5 discutem taxa poupanca (20,9% total) sem separar de recorrente (-41,9%). Adicionar clarificacao em s5.",
       "s9 'CRITICO Liquidez' nao explicita link com quitacao (task #1) como prioridade integrada."
     ]
-  },
-  "review_metadata": {
-    "timestamp": "2026-04-08T15:55:27.965881",
-    "e7_version": "1.0",
-    "changes_applied": [
-      "summaries.s2",
-      "summaries.s5",
-      "summaries.s7",
-      "summaries.s9",
-      "tarefas (reordered 41 items)",
-      "strategic_insights (3 items)",
-      "inconsistencies_review (3 items)"
-    ],
-    "cross_validation_passed": 0,
-    "cross_validation_failed": 0
   }
 }
