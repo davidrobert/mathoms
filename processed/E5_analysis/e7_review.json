@@ -2,53 +2,61 @@
   "metadata": {
     "reviewer": "LLM-E7",
     "date": "2026-04-08",
-    "version": "5.7",
-    "pipeline_run": "E-full-reset"
+    "version": "5.7.1",
+    "pipeline_run": "E-full-reset (pós-fix dedup E3)"
   },
   "refinements": {
     "summaries": {
-      "s2": "Score financeiro de 6.1/10 (Bom). Ponto de atenção: taxa de poupança recorrente de -3,0% (negativa no período). Pontos fortes: cobertura de 36,4 meses de despesas e endividamento zero. Receita total no período de R$ 1,5M com 78% proveniente de PJ, 9% de aluguel (QuintoAndar + imóveis), 8,6% de CLT (Mariana/Einstein) e 4,3% de outras fontes.",
-      "s9": "Despesas totais no período: R$ 1,1M (R$ 35,8k/mês média). Aumento de 51% em relação ao período anterior, influenciado por poupança direcionada e transferências para investimento. Maior categoria 'não identificado' com R$ 386,0k (34% do total). Impostos (R$ 104,0k), moradia (R$ 70,4k) e serviços domésticos (R$ 37,7k) completam o perfil de gastos."
+      "s2": "Score financeiro de 6.1/10 (Bom). Ponto crítico: taxa de poupança recorrente de -44,3% — a família gasta mais do que a receita recorrente mensal. Pontos fortes: cobertura de 36,5 meses de despesas e endividamento zero. Receita total no período de R$ 1,2M com 50% proveniente de PJ, 29% de CLT (Mariana/Einstein), 8,5% de aluguel (QuintoAndar + imóveis) e 12,5% de outras fontes.",
+      "s9": "Despesas totais no período: R$ 1,1M (R$ 35,7k/mês média). Maior categoria 'não identificado' com R$ 385,9k (34% do total), seguida de impostos (R$ 104,0k), saúde (R$ 102,6k) e alimentação (R$ 81,3k). A taxa de poupança negativa reflete despesas mensais (R$ 35,7k) superiores à receita recorrente mensal (R$ 24,7k)."
     },
     "charts": {
       "score_gauge": {
-        "context": "Indicador geral de saúde financeira da família, com score de 6.1/10 (Bom). O score é sustentado por cobertura de emergência excelente (36,4 meses) e endividamento zero, mas penalizado pela taxa de poupança negativa (-3,0%) e progresso IF de 38%. Posição patrimonial sólida com R$ 4,0M brutos e R$ 2,7M investíveis."
+        "context": "Indicador geral de saúde financeira da família, com score de 6.1/10 (Bom). Sustentado por cobertura de emergência excelente (36,5 meses) e endividamento zero, mas penalizado severamente pela taxa de poupança negativa (-44,3%) e progresso IF de 38%. Posição patrimonial sólida com R$ 4,0M brutos e R$ 2,7M investíveis compensa parcialmente o fluxo de caixa deficitário."
       },
       "fluxo_mensal": {
-        "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente média de R$ 34,8k/mês versus despesas de R$ 35,8k/mês, resultando em saldo operacional negativo de R$ -1,0k/mês no período analisado. A poupança negativa reflete aumento de despesas e transferências para investimento que não são capturadas como poupança recorrente."
+        "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente média de R$ 24,7k/mês versus despesas de R$ 35,7k/mês, resultando em déficit operacional de R$ -11,0k/mês. O déficit é coberto por receitas não-recorrentes (Kiwify, BrandLovers, venda de ativo). A família depende de projetos pontuais para equilibrar o fluxo."
       },
       "receita_despesa_mensal": {
-        "context": "Série temporal mensal de receitas versus despesas. Demonstra meses de superávit intercalados com meses deficitários, com tendência de despesas próxima à receita. A sazonalidade é influenciada por pagamentos de IRPJ/DAS, décimo terceiro e despesas extraordinárias (viagens, eletrônicos)."
+        "context": "Série temporal mensal de receitas versus despesas. Meses com receitas PJ pontuais (jul-set/25) mostram superávit, enquanto meses com apenas receita recorrente tendem a déficit. A variabilidade da receita PJ de David torna o planejamento financeiro desafiador."
+      },
+      "receita_bar": {
+        "context": "Composição da receita total de R$ 1,2M por fonte: PJ (50%), CLT (29%), aluguel (8,5%), outras receitas (4,9%), venda de ativo (4%), resgates (2,2%), rendimentos (1,1%) e restituições (0,01%). A concentração em PJ de David é o principal risco: receita variável sem previsibilidade."
       }
     },
     "strategic_insights": {
       "insights": [
-        "Taxa de poupança recorrente negativa (-3,0%) é o principal fator limitante do score. Apesar da cobertura de emergência excelente (36,4 meses), a família consome mais do que ganha mensalmente. Recomendação: estabelecer meta de poupança de 20% da receita (R$ 7k/mês) com aporte automático para investimentos.",
-        "Concentração imobiliária de 71% no patrimônio bruto cria risco de liquidez. Os R$ 1,4M em imóveis de investimento geram yield bruto de ~6% (aluguel), mas demandam gestão ativa. Avaliação: rebalancear gradualmente para 60% imóveis / 40% financeiro, aumentando exposição a IPCA+ e ações.",
-        "Categoria 'não identificado' representa 34% das despesas (R$ 386k). Prioridade imediata: classificar as 10 maiores transações não identificadas para obter visibilidade real do orçamento e identificar oportunidades de economia."
+        "Déficit operacional mensal de R$ 11k é o alerta principal. A receita recorrente (PJ + CLT + aluguel) de R$ 24,7k/mês não cobre as despesas de R$ 35,7k/mês. Ação imediata: reduzir despesas não essenciais e classificar os R$ 386k em 'não identificado' para identificar onde cortar.",
+        "Concentração imobiliária de 71% no patrimônio bruto limita a liquidez. Os R$ 1,4M em imóveis de investimento geram yield bruto de ~6%, mas R$ 2,7M investíveis compensam com diversificação em CDB, fundos e ações.",
+        "Categoria 'não identificado' representa 34% das despesas (R$ 386k). Classificar as 20 maiores transações daria visibilidade real ao orçamento e possivelmente revelaria oportunidades de economia de R$ 5-10k/mês."
       ]
     },
     "inconsistencies_found": {
       "items": [
         {
           "location": "s2",
-          "issue": "Taxa de poupança negativa (-3,0%) listada como 'Ponto forte' quando deveria ser 'Ponto de atenção'",
-          "correction": "Reclassificada como ponto de atenção"
+          "issue": "Taxa de poupança negativa (-44,3%) listada como 'Ponto forte'",
+          "correction": "Reclassificada como 'Ponto crítico'"
         },
         {
           "location": "s2",
-          "issue": "Cobertura escrita como '36,4% meses' com % incorreto",
-          "correction": "Corrigido para '36,4 meses'"
+          "issue": "Cobertura escrita como '36,5% meses' com % incorreto",
+          "correction": "Corrigido para '36,5 meses'"
+        },
+        {
+          "location": "s2",
+          "issue": "PJ listada como 78% da receita — valor pré-fix dedup era incorreto",
+          "correction": "Corrigido para 50% conforme dados pós-dedup"
         },
         {
           "location": "s9",
           "issue": "Texto com mistura de inglês/português: 'due to poupança direcionada'",
-          "correction": "Traduzido para 'influenciado por poupança direcionada'"
+          "correction": "Reescrito integralmente em português"
         },
         {
           "location": "fluxo_mensal",
-          "issue": "Narrativa não mencionava que o saldo operacional é negativo",
-          "correction": "Adicionada menção explícita ao saldo negativo de R$ -1,0k/mês"
+          "issue": "Narrativa não mencionava déficit operacional de R$ 11k/mês",
+          "correction": "Adicionada menção explícita ao déficit e dependência de receitas pontuais"
         }
       ]
     }

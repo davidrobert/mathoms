@@ -242,10 +242,14 @@ def _parse_date_for_sort(date_str: str) -> datetime:
 # Deduplication Logic (#3 — only between files, never within same file)
 # =============================================================================
 
-# Regex to strip bank-specific suffixes that vary between overlapping extracts
-# e.g., C6 Bank adds "— TRANSF ENVIADA PIX" or "— TRANSF RECEBIDA PIX" in some exports
+# Regex to strip bank-specific suffixes that vary between overlapping extracts.
+# C6 Bank adds various suffixes after "—" depending on export format:
+#   PDF: "— TRANSF ENVIADA PIX", "— TRANSF RECEBIDA PIX", "— TRANSF ENVIADA PIX C"
+#   CSV: "— 13 Salário", "— Salários PJ", "— NF 26", "— NFS 25", etc.
+# These are annotations that differ between CSV and PDF exports of the SAME transaction.
+# Stripping everything after "—" makes signatures match across formats.
 _DEDUP_SUFFIX_RE = re.compile(
-    r'\s*—\s*TRANSF\s+(?:ENVIADA|RECEBIDA)\s+PIX\s*$',
+    r'\s*—\s*.*$',
     re.IGNORECASE
 )
 

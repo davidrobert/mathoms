@@ -1,10 +1,10 @@
 # E3 Reconciliation Summary
-Generated: 2026-04-08T10:19:00.953027
+Generated: 2026-04-08T10:35:22.609294
 
 ## Statistics
 - Accounts processed: 17
-- Total transactions reconciled: 4791
-- Total duplicates removed: 442
+- Total transactions reconciled: 4706
+- Total duplicates removed: 527
 - Files written: 17
 
 ## Saldo Continuity & Temporal Warnings
@@ -40,10 +40,10 @@ Generated: 2026-04-08T10:19:00.953027
 - Bank of America | extratoconta | USD | 2026-02-25 to 2026-03-26 | 0 txns
 - Bradesco | extratoconta | BRL | 2025-01-01 to 2026-03-29 | 399 txns
 - Bradesco | extratopoupanca | BRL | 2025-01-01 to 2026-03-31 | 126 txns
-- C6 Bank | extratoconta | BRL | 2023-12-31 to 2026-04-06 | 1591 txns
+- C6 Bank | extratoconta | BRL | 2023-12-31 to 2026-04-06 | 1537 txns
 - C6 Bank | extratocontaglobaleur | EUR | 2025-11-01 to 2026-04-05 | 0 txns
 - C6 Bank | extratocontaglobalusd | USD | 2025-05-01 to 2026-04-05 | 368 txns
-- C6 Bank | extratocontapj | BRL | 2024-12-30 to 2026-04-06 | 92 txns
+- C6 Bank | extratocontapj | BRL | 2024-12-30 to 2026-04-06 | 61 txns
 - C6 Bank | faturacarbon | BRL | 2023-09-30 to 2026-04-05 | 1806 txns
 - Itaú | extratoconta | BRL | 2025-05-01 to 2026-01-31 | 109 txns
 - Itaú | faturapaoacucar | BRL | 2025-04-06 to 2026-03-06 | 12 txns

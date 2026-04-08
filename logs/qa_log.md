@@ -1,7 +1,7 @@
 # QA Log — E4 Categorização
-## Execução: 2026-04-08 10:21
+## Execução: 2026-04-08 10:35
 
-### Transações não identificadas: 960
+### Transações não identificadas: 959
 
 | Data | Descrição | Valor | Banco | Fonte |
 |---|---|---|---|---|
@@ -967,7 +967,6 @@ Cartão 4163 | R$10.00 | C6 Bank | extratocontaglobalusd |
 | 2025-10-05 | HENRIQUEDEJESUSSI | R$13.00 | C6 Bank | faturacarbon |
 | 2025-10-06 | APE SMART STUDIO | R$15.00 | C6 Bank | faturacarbon |
 | 2025-10-07 | Pix enviado para ROBERTO FERNANDO ALVES DE SOUZA — obrigado pela carteira | R$100.00 | C6 Bank | extratoconta |
-| 2025-10-07 | Pix enviado para ROBERTO FERNANDO ALVES DE SOUZA | R$100.00 | C6 Bank | extratoconta |
 | 2025-10-13 | Des: Vanessa Emiliano Dias 1747124 | R$216.00 | Bradesco | extratoconta |
 | 2025-10-14 | Transfe Pix Des: Neilton da Silva de o 14/10 | R$10.00 | Bradesco | extratoconta |
 | 2025-10-17 | Google *fi W5vclf\1600 Amphitheatre Pkwy
@@ -1106,7 +1105,7 @@ Cartão 8884 | R$25.34 | C6 Bank | extratocontaglobalusd |
 | 2026-04-06 | GUIA DE EMPREGADO DOMÉSTICO — Boleto | R$1,153.73 | C6 Bank | extratoconta |
 | 2026-04-06 | GUIA DE EMPREGADO DOMÉSTICO — Boleto | R$175.70 | C6 Bank | extratoconta |
 
-### Taxa: 25.8% ⚠️ ACIMA DA META (<10%)
+### Taxa: 26.1% ⚠️ ACIMA DA META (<10%)
 
 ### Notas para investigação
 

@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-08T10:21:33.616902-03:00",
+  "consolidation_date": "2026-04-08T10:35:27.236267-03:00",
   "periodo": "2024-01 a 2026-03",
   "categorias": [
     "outras_receitas",
@@ -12,7 +12,7 @@
     "receita_venda_ativo"
   ],
   "total_categorias": 8,
-  "total_transacoes": 443,
+  "total_transacoes": 434,
   "totais_por_categoria": {
     "receita_investimento": 13782.880000000001,
     "receita_resgate": 27416.699999999997,
@@ -20,10 +20,10 @@
     "receita_aluguel": 104216.13,
     "outras_receitas": 60483.84,
     "receita_venda_ativo": 49402.0,
-    "receita_pj": 939750.0400000002,
+    "receita_pj": 618374.88,
     "receita_restituicao": 16.99
   },
-  "total_geral": 1549838.21,
+  "total_geral": 1228463.05,
   "dados": {
     "receita_investimento": [
       {
@@ -4583,17 +4583,6 @@
       },
       {
         "data": "2025-07-15",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NFS 25",
-        "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "CNRY (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-15",
         "descricao": "Pix recebido de CNRY MANAGEMENT LTDA",
         "valor": 40000.0,
         "banco": "C6 Bank",
@@ -4605,29 +4594,7 @@
       },
       {
         "data": "2025-07-29",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NF 26",
-        "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "CNRY (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-29",
         "descricao": "Pix recebido de CNRY MANAGEMENT LTDA",
-        "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "CNRY (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-26",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NFS 27",
         "valor": 40000.0,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
@@ -4682,17 +4649,6 @@
       },
       {
         "data": "2025-10-30",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
-        "valor": 50000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-30",
         "descricao": "Pix recebido de ARVO SAUDE LTDA",
         "valor": 50000.0,
         "banco": "C6 Bank",
@@ -4715,30 +4671,8 @@
       },
       {
         "data": "2025-11-27",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — 13 Salário",
-        "valor": 8333.33,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-27",
         "descricao": "Pix recebido de ARVO SAUDE LTDA",
         "valor": 8333.33,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-28",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
-        "valor": 46624.29,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
         "origem": "Arvo (David - PJ)",
@@ -4824,30 +4758,8 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-02-27",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
-        "valor": 47208.77,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-03-09",
         "descricao": "Pix recebido de ARBITRALIS S.A.",
-        "valor": 2000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arbitralis (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-09",
-        "descricao": "Pix recebido de ARBITRALIS S.A. — Total de mentorias realizadas: 4Valor unitário: R 500,00Total a pagar: R 2.000,00Período faturado: 25022026  05032026",
         "valor": 2000.0,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
@@ -4881,17 +4793,6 @@
       {
         "data": "2026-03-30",
         "descricao": "Pix recebido de ARVO SAUDE LTDA",
-        "valor": 47208.77,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-30",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
         "valor": 47208.77,
         "banco": "C6 Bank",
         "categoria": "receita_pj",

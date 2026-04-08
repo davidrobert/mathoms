@@ -1,10 +1,18 @@
 # Manual de Operação — Pipeline Financeiro
 ## Família Ferreira Campos
-## Versão: 5.7 — abr/2026
+## Versão: 5.7.1 — abr/2026
 
 ---
 
-## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1 → v5.4 → v5.5 → v5.6 → v5.7
+## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1 → v5.4 → v5.5 → v5.6 → v5.7 → v5.7.1
+
+### v5.7 → v5.7.1
+
+| Mudança | Motivo |
+|---|---|
+| **Fix: E3 dedup generalizada para sufixos após "—"** | C6 Bank PJ: CSV adiciona sufixos descritivos após "—" (ex: "— 13 Salário", "— Salários PJ", "— NF 26") que não existem no PDF. Antes, `_normalize_description_for_dedup()` só removia "— TRANSF ENVIADA/RECEBIDA PIX". Agora remove qualquer sufixo após "—", permitindo dedup correta entre CSV e PDF sobrepostos. Corrige inflação de receita PJ (~100% duplicada). |
+| **Fix: e4_categorize.py lê chaves E2 schema** | `build_investimentos_unified()` agora aceita tanto `composicao`/`saldo_atual` (schema E2) quanto `posicoes`/`total` (formato legado). Aceita também `valor_atual` (CDB resumo) além de `valor_total`. |
+| **Fix: e5_analyze.py lê declarante.nome** | `_build_members_from_declarations()` agora lê `declarante.nome` quando `membro` está vazio (formato IRPF extract). Também infere `ano_base` do nome do source_file quando ausente, garantindo que a declaração mais recente é usada por membro. |
 
 ### v5.6 → v5.7
 

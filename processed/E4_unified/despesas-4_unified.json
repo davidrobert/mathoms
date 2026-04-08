@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-08T10:21:33.617717-03:00",
+  "consolidation_date": "2026-04-08T10:35:27.236720-03:00",
   "periodo": "2023-09 a 2026-04",
   "categorias": [
     "alimentacao",
@@ -20,26 +20,26 @@
     "vestuario"
   ],
   "total_categorias": 16,
-  "total_transacoes": 3719,
+  "total_transacoes": 3679,
   "totais_por_categoria": {
     "financeiro": 14712.210000000001,
     "suporte_familiar": 59435.75,
     "moradia": 70377.59,
-    "nao_identificado": 385980.27000000014,
-    "transporte": 52360.750000000015,
+    "nao_identificado": 385880.27000000014,
+    "transporte": 51406.27000000002,
     "impostos": 104049.91000000002,
     "assinaturas": 20554.25000000003,
-    "seguros": 7319.17,
-    "servicos_domesticos": 37722.37999999999,
-    "lazer_viagens": 77751.69,
-    "saude": 102652.73000000001,
+    "seguros": 7299.17,
+    "servicos_domesticos": 35275.549999999996,
+    "lazer_viagens": 77707.69,
+    "saude": 102554.73000000001,
     "alimentacao": 81300.55999999992,
     "educacao": 38675.05,
     "melhoria_reforma": 14200.320000000002,
     "reserva_desejos": 50774.19000000002,
     "vestuario": 27510.98
   },
-  "total_geral": 1145377.8,
+  "total_geral": 1141714.49,
   "dados": {
     "financeiro": [
       {
@@ -11409,16 +11409,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-10-07",
-        "descricao": "Pix enviado para ROBERTO FERNANDO ALVES DE SOUZA",
-        "valor": 100.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-10-13",
         "descricao": "Des: Vanessa Emiliano Dias 1747124",
         "valor": 216.0,
@@ -13232,6 +13222,16 @@
       },
       {
         "data": "2024-02-10",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
+        "valor": 12.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-10",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 820 NORTE VA",
         "valor": 12.2,
         "banco": "C6 Bank",
@@ -13254,16 +13254,6 @@
         "data": "2024-02-10",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-OUTLET PREMIUM SAO PAULO  ESTRAD",
         "valor": 22.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-10",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
-        "valor": 12.4,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -13332,7 +13322,27 @@
       },
       {
         "data": "2024-02-13",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
+        "valor": 12.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-13",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 820 NORTE VA",
+        "valor": 12.2,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-13",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 810 SUL VALI",
         "valor": 12.2,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -13354,26 +13364,6 @@
         "data": "2024-02-13",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 340 1235 SUL CA",
         "valor": 15.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-13",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 810 SUL VALI",
-        "valor": 12.2,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-13",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
-        "valor": 12.4,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -13952,6 +13942,16 @@
       },
       {
         "data": "2024-04-07",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR VIAOESTE  SP 280 230 LESTE B",
+        "valor": 5.6,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-04-07",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 344 2190 OESTE",
         "valor": 6.0,
         "banco": "C6 Bank",
@@ -14004,16 +14004,6 @@
         "data": "2024-04-07",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RODOANEL OESTE  SP 021 1429",
         "valor": 3.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-04-07",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR VIAOESTE  SP 280 230 LESTE B",
-        "valor": 5.6,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -14162,6 +14152,16 @@
       },
       {
         "data": "2024-04-27",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
+        "valor": 12.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-04-27",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 7743 NORTE I",
         "valor": 12.2,
         "banco": "C6 Bank",
@@ -14181,9 +14181,9 @@
         "moeda": "BRL"
       },
       {
-        "data": "2024-04-27",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
-        "valor": 12.4,
+        "data": "2024-04-28",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 7743 NORTE I",
+        "valor": 12.2,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -14192,7 +14192,7 @@
       },
       {
         "data": "2024-04-28",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 7743 NORTE I",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 810 SUL VALI",
         "valor": 12.2,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -14212,8 +14212,8 @@
       },
       {
         "data": "2024-04-28",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 342 19189 LESTE",
-        "valor": 11.8,
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 340 1235 SUL CA",
+        "valor": 15.8,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -14222,8 +14222,8 @@
       },
       {
         "data": "2024-04-28",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 39047 NORTE",
-        "valor": 12.4,
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 342 19189 LESTE",
+        "valor": 11.8,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -14242,18 +14242,8 @@
       },
       {
         "data": "2024-04-28",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 340 1235 SUL CA",
-        "valor": 15.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-04-28",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 810 SUL VALI",
-        "valor": 12.2,
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 39047 NORTE",
+        "valor": 12.4,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -14422,28 +14412,28 @@
       },
       {
         "data": "2024-05-02",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR 116  MOREIRA CESAR",
-        "valor": 14.92,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-05-02",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR 116  MOREIRA CESAR",
-        "valor": 14.92,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-05-02",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR 116  ITATIAIA SUL",
         "valor": 12.83,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-05-02",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR 116  MOREIRA CESAR",
+        "valor": 14.92,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-05-02",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR 116  MOREIRA CESAR",
+        "valor": 14.92,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -14742,6 +14732,16 @@
       },
       {
         "data": "2024-08-03",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP 021  RODOANEL MARIO CO",
+        "valor": 5.1,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-08-03",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
         "valor": 5.2,
         "banco": "C6 Bank",
@@ -14764,16 +14764,6 @@
         "data": "2024-08-03",
         "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP 021  RODOANEL MARIO CO",
         "valor": 3.9,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-08-03",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP 021  RODOANEL MARIO CO",
-        "valor": 5.1,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -15553,7 +15543,7 @@
       {
         "data": "2024-10-26",
         "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP 021  RODOANEL MARIO CO",
-        "valor": 3.9,
+        "valor": 5.1,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -15563,7 +15553,7 @@
       {
         "data": "2024-10-26",
         "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP 021  RODOANEL MARIO CO",
-        "valor": 5.1,
+        "valor": 3.9,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -15832,6 +15822,16 @@
       },
       {
         "data": "2025-01-24",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-RODOVIA RAPOSO TAVARES  SP 270 5",
+        "valor": 13.0,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-24",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 7743 NORTE I",
         "valor": 12.8,
         "banco": "C6 Bank",
@@ -15934,16 +15934,6 @@
         "data": "2025-01-24",
         "descricao": "C6TAG PEDAGIO — GDK6A27-RODOVIA RAPOSO TAVARES  SP 270 5",
         "valor": 9.9,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-01-24",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-RODOVIA RAPOSO TAVARES  SP 270 5",
-        "valor": 13.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -16812,16 +16802,6 @@
       },
       {
         "data": "2025-04-16",
-        "descricao": "Pix enviado para WARWICK PARKER Pix enviado para ELIBELTO JOSE DE LIMA",
-        "valor": 428.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-16",
         "descricao": "Pix Qrcode Est Des: Warwick Parker 16/04",
         "valor": 1000.0,
         "banco": "Bradesco",
@@ -17031,16 +17011,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-04-22",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 5.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-04-23",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 342 24034 OESTE",
         "valor": 5.8,
@@ -17124,16 +17094,6 @@
         "data": "2025-04-23",
         "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
         "valor": 16.5,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-23",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 13.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -17344,16 +17304,6 @@
         "data": "2025-05-03",
         "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
         "valor": 12.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-03",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 8.7,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -17652,16 +17602,6 @@
       },
       {
         "data": "2025-05-20",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 3.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-20",
         "descricao": "Turo Inc.* Trip May 18\\111 Sutter St Sui Cartão\n8884",
         "valor": 1009.8,
         "banco": "C6 Bank",
@@ -17692,6 +17632,16 @@
       },
       {
         "data": "2025-05-24",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
+        "valor": 13.0,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-24",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 820 NORTE VAL",
         "valor": 12.8,
         "banco": "C6 Bank",
@@ -17702,7 +17652,27 @@
       },
       {
         "data": "2025-05-24",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 810 SUL VALIN",
+        "valor": 12.8,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-24",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 NORTE C",
+        "valor": 16.5,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-24",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
         "valor": 16.5,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -17732,36 +17702,6 @@
       },
       {
         "data": "2025-05-24",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
-        "valor": 16.5,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-24",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 810 SUL VALIN",
-        "valor": 12.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-24",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
-        "valor": 13.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-24",
         "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
         "valor": 13.0,
         "banco": "C6 Bank",
@@ -17812,16 +17752,6 @@
       },
       {
         "data": "2025-05-26",
-        "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-ED COM EVOLUTION CORPORATE  Alam",
-        "valor": 28.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-26",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS RAPOSO CASTELLO  SP280 2",
         "valor": 3.8,
         "banco": "C6 Bank",
@@ -17832,8 +17762,8 @@
       },
       {
         "data": "2025-05-26",
-        "descricao": "C6TAG PEDAGIO C6TAG ESTACIONAMENTO",
-        "valor": 3.8,
+        "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-ED COM EVOLUTION CORPORATE  Alam",
+        "valor": 28.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -17842,7 +17772,7 @@
       },
       {
         "data": "2025-05-26",
-        "descricao": "C6TAG PEDAGIO",
+        "descricao": "C6TAG PEDAGIO C6TAG ESTACIONAMENTO",
         "valor": 3.8,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -17862,8 +17792,8 @@
       },
       {
         "data": "2025-05-28",
-        "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-ED COM EVOLUTION CORPORATE  Alam",
-        "valor": 28.0,
+        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS RAPOSO CASTELLO  SP280 2",
+        "valor": 3.8,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -17872,8 +17802,8 @@
       },
       {
         "data": "2025-05-28",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS RAPOSO CASTELLO  SP280 2",
-        "valor": 3.8,
+        "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-ED COM EVOLUTION CORPORATE  Alam",
+        "valor": 28.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -17944,16 +17874,6 @@
         "data": "2025-05-29",
         "descricao": "C6TAG ESTACIONAMENTO C6TAG PEDAGIO",
         "valor": 28.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-29",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 5.1,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -18032,6 +17952,16 @@
       },
       {
         "data": "2025-06-08",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
+        "valor": 13.0,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-08",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 7743 NORTE IT",
         "valor": 12.8,
         "banco": "C6 Bank",
@@ -18062,7 +17992,27 @@
       },
       {
         "data": "2025-06-08",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
+        "valor": 9.8,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-08",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 LESTE S",
+        "valor": 6.2,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-08",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
         "valor": 6.2,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -18092,36 +18042,6 @@
       },
       {
         "data": "2025-06-08",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
-        "valor": 6.2,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-08",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
-        "valor": 9.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-08",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-ARTERIS INTERVIAS  SP147 520 LES",
-        "valor": 10.4,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-08",
         "descricao": "C6TAG PEDAGIO — GDK6A27-RODOVIA ROTA DAS BANDEIRAS  SP36",
         "valor": 5.8,
         "banco": "C6 Bank",
@@ -18132,8 +18052,8 @@
       },
       {
         "data": "2025-06-08",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
-        "valor": 13.0,
+        "descricao": "C6TAG PEDAGIO — GDK6A27-ARTERIS INTERVIAS  SP147 520 LES",
+        "valor": 10.4,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -18231,28 +18151,8 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-06-11",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 2.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-06-12",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
-        "valor": 2.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-12",
-        "descricao": "C6TAG PEDAGIO",
         "valor": 2.8,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -18341,28 +18241,8 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-06-23",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 2.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-06-24",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
-        "valor": 2.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-24",
-        "descricao": "C6TAG PEDAGIO",
         "valor": 2.8,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -18381,28 +18261,8 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-06-25",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 2.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-06-26",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
-        "valor": 2.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-26",
-        "descricao": "C6TAG PEDAGIO",
         "valor": 2.8,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -18441,16 +18301,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-06-30",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 2.8,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-07-02",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
         "valor": 3.1,
@@ -18474,16 +18324,6 @@
         "data": "2025-07-02",
         "descricao": "C6TAG PEDAGIO Pix recebido de Douglas Camargo de Campos",
         "valor": 3.1,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-02",
-        "descricao": "C6TAG ESTACIONAMENTO",
-        "valor": 38.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -18571,16 +18411,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-07-16",
-        "descricao": "C6TAG ESTACIONAMENTO",
-        "valor": 36.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-07-17",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 200 SU",
         "valor": 5.7,
@@ -18651,19 +18481,9 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-07-17",
-        "descricao": "C6TAG ESTACIONAMENTO",
-        "valor": 3.1,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-17",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 5.7,
+        "data": "2025-07-20",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 820 NORTE VAL",
+        "valor": 13.6,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -18672,7 +18492,7 @@
       },
       {
         "data": "2025-07-20",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 820 NORTE VAL",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 810 SUL VALIN",
         "valor": 13.6,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -18692,6 +18512,16 @@
       },
       {
         "data": "2025-07-20",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
+        "valor": 17.6,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-20",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 NORTE",
         "valor": 10.5,
         "banco": "C6 Bank",
@@ -18702,7 +18532,27 @@
       },
       {
         "data": "2025-07-20",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
+        "valor": 10.5,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-20",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 LESTE S",
+        "valor": 6.6,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-20",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
         "valor": 6.6,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -18732,48 +18582,8 @@
       },
       {
         "data": "2025-07-20",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
-        "valor": 6.6,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-20",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
         "valor": 21.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-20",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
-        "valor": 10.5,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-20",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
-        "valor": 17.6,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-20",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 810 SUL VALIN",
-        "valor": 13.6,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -18891,16 +18701,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-07-21",
-        "descricao": "C6TAG ESTACIONAMENTO",
-        "valor": 26.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-08-11",
         "descricao": "Turo Inc.* Trip May 18\\111 Sutter St Sui Cartão\n8884",
         "valor": 1009.8,
@@ -18931,16 +18731,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-08-29",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 3.1,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-08-30",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 2045 NORTE ARUJ",
         "valor": 4.18,
@@ -18963,6 +18753,16 @@
       {
         "data": "2025-08-30",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 3189 NORTE ITAT",
+        "valor": 13.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-30",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 3189 SUL ITATIA",
         "valor": 13.4,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -19012,46 +18812,6 @@
       },
       {
         "data": "2025-08-30",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 3189 SUL ITATIA",
-        "valor": 13.4,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-30",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-        "valor": 5.5,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-30",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-        "valor": 5.4,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-30",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-        "valor": 5.4,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-30",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 8695 SUL PINDAM",
         "valor": 15.58,
         "banco": "C6 Bank",
@@ -19063,6 +18823,36 @@
       {
         "data": "2025-08-30",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+        "valor": 5.5,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-30",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+        "valor": 5.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-30",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+        "valor": 5.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-30",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
         "valor": 5.7,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -19124,26 +18914,6 @@
         "data": "2025-08-30",
         "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
         "valor": 5.5,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-30",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 5.7,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-30",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 4.18,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -19212,7 +18982,27 @@
       },
       {
         "data": "2025-09-14",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
+        "valor": 13.7,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-14",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 820 NORTE VAL",
+        "valor": 13.6,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-14",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 7743 SUL ITUP",
         "valor": 13.6,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -19232,6 +19022,16 @@
       },
       {
         "data": "2025-09-14",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
+        "valor": 17.6,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-14",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 NORTE",
         "valor": 10.5,
         "banco": "C6 Bank",
@@ -19242,7 +19042,27 @@
       },
       {
         "data": "2025-09-14",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
+        "valor": 10.5,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-14",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 LESTE S",
+        "valor": 6.6,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-14",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
         "valor": 6.6,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -19264,56 +19084,6 @@
         "data": "2025-09-14",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP342 24034 OESTE",
         "valor": 6.3,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-14",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
-        "valor": 6.6,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-14",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
-        "valor": 10.5,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-14",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
-        "valor": 17.6,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-14",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 7743 SUL ITUP",
-        "valor": 13.6,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-14",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
-        "valor": 13.7,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -19432,28 +19202,28 @@
       },
       {
         "data": "2025-09-19",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+        "valor": 5.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-19",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+        "valor": 5.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-19",
         "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP021 12474 LESTE ITAQUAQ",
         "valor": 4.1,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-19",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-        "valor": 5.4,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-19",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-        "valor": 5.4,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -19682,16 +19452,6 @@
       },
       {
         "data": "2025-09-23",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 3.1,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-23",
         "descricao": "FELTRIN MOTOS",
         "valor": 682.5,
         "banco": "C6 Bank",
@@ -19703,16 +19463,6 @@
       {
         "data": "2025-09-25",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
-        "valor": 104.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-25",
-        "descricao": "C6TAG ESTACIONAMENTO",
         "valor": 104.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -19782,6 +19532,16 @@
       },
       {
         "data": "2025-09-27",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP021 714 OESTE SAO BERNA",
+        "valor": 5.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-27",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
         "valor": 5.5,
         "banco": "C6 Bank",
@@ -19832,28 +19592,8 @@
       },
       {
         "data": "2025-09-27",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP021 714 OESTE SAO BERNA",
-        "valor": 5.4,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-27",
         "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
         "valor": 5.7,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-27",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 5.4,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -20042,16 +19782,6 @@
       },
       {
         "data": "2025-10-08",
-        "descricao": "C6TAG ESTACIONAMENTO",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-08",
         "descricao": "SID PARK ESTACIONAMENT",
         "valor": 30.0,
         "banco": "C6 Bank",
@@ -20073,16 +19803,6 @@
       {
         "data": "2025-10-10",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-GARAGEM TERMINAL RODOVIARIO DO T",
-        "valor": 27.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-10",
-        "descricao": "C6TAG ESTACIONAMENTO",
         "valor": 27.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -20153,16 +19873,6 @@
       {
         "data": "2025-10-17",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
-        "valor": 77.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-17",
-        "descricao": "C6TAG ESTACIONAMENTO",
         "valor": 77.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -20412,16 +20122,6 @@
       },
       {
         "data": "2025-10-23",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 13.7,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-23",
         "descricao": "AUTOPOSTOSPMGLTDA",
         "valor": 160.0,
         "banco": "C6 Bank",
@@ -20433,16 +20133,6 @@
       {
         "data": "2025-10-24",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
-        "valor": 36.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-24",
-        "descricao": "C6TAG ESTACIONAMENTO",
         "valor": 36.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -20493,16 +20183,6 @@
       {
         "data": "2025-10-25",
         "descricao": "C6TAG ESTACIONAMENTO C6TAG ESTACIONAMENTO",
-        "valor": 27.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-25",
-        "descricao": "C6TAG ESTACIONAMENTO",
         "valor": 27.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -20672,28 +20352,28 @@
       },
       {
         "data": "2025-11-19",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+        "valor": 5.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-19",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+        "valor": 5.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-19",
         "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP021 12474 LESTE ITAQUAQ",
         "valor": 4.1,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-19",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-        "valor": 5.4,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-19",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-        "valor": 5.4,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -20734,16 +20414,6 @@
         "data": "2025-11-19",
         "descricao": "C6TAG PEDAGIO C6TAG ESTACIONAMENTO",
         "valor": 5.5,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-19",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 5.4,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -21011,16 +20681,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-11-29",
-        "descricao": "C6TAG PEDAGIO",
-        "valor": 3.5,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-12-06",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-SHOPPING IBIRAPUERA  AVENIDA IBI",
         "valor": 32.0,
@@ -21173,16 +20833,6 @@
       {
         "data": "2025-12-24",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PARQUE IBIRAPUERA  AVENIDA PEDRO",
-        "valor": 22.0,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-24",
-        "descricao": "C6TAG ESTACIONAMENTO",
         "valor": 22.0,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -21702,7 +21352,27 @@
       },
       {
         "data": "2026-02-08",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 3189 SUL ITATIA",
+        "valor": 13.78,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-08",
         "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 8695 NORTE PIND",
+        "valor": 16.06,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-08",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 8695 SUL PINDAM",
         "valor": 16.06,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -21732,28 +21402,8 @@
       },
       {
         "data": "2026-02-08",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 3189 SUL ITATIA",
-        "valor": 13.78,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-08",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
         "valor": 5.5,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-08",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 8695 SUL PINDAM",
-        "valor": 16.06,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -21773,6 +21423,16 @@
       {
         "data": "2026-02-08",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+        "valor": 5.4,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-08",
+        "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  RODOANEL SUL  SP021 714 O",
         "valor": 5.4,
         "banco": "C6 Bank",
         "categoria": "transporte",
@@ -21784,16 +21444,6 @@
         "data": "2026-02-08",
         "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  RODOANEL SUL  SP021 8794",
         "valor": 4.1,
-        "banco": "C6 Bank",
-        "categoria": "transporte",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-08",
-        "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  RODOANEL SUL  SP021 714 O",
-        "valor": 5.4,
         "banco": "C6 Bank",
         "categoria": "transporte",
         "tipo_conta": "extratoconta",
@@ -25207,16 +24857,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-07-10",
-        "descricao": "SEGURO CONTA C6",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "seguros",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-07-17",
         "descricao": "SUL AMERICA SEG VIDA",
         "valor": 567.71,
@@ -25641,16 +25281,6 @@
       {
         "data": "2025-10-31",
         "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — salario e vale transporte referente a o",
-        "valor": 2446.83,
-        "banco": "C6 Bank",
-        "categoria": "servicos_domesticos",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-31",
-        "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
         "valor": 2446.83,
         "banco": "C6 Bank",
         "categoria": "servicos_domesticos",
@@ -27222,16 +26852,6 @@
       },
       {
         "data": "2025-12-30",
-        "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
-        "valor": 22.0,
-        "banco": "C6 Bank",
-        "categoria": "lazer_viagens",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-30",
         "descricao": "PLAZA SUL",
         "valor": 22.9,
         "banco": "C6 Bank",
@@ -27282,16 +26902,6 @@
       },
       {
         "data": "2026-01-24",
-        "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
-        "valor": 22.0,
-        "banco": "C6 Bank",
-        "categoria": "lazer_viagens",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-31",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
         "valor": 22.0,
         "banco": "C6 Bank",
@@ -28615,16 +28225,6 @@
       {
         "data": "2025-12-22",
         "descricao": "Pix enviado para POUPA MEDI — TRANSF ENVIADA PIX C",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "saude",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-22",
-        "descricao": "Pix enviado para POUPA MEDI",
         "valor": 98.0,
         "banco": "C6 Bank",
         "categoria": "saude",

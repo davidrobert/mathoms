@@ -18,8 +18,8 @@
     "c6bank_extratoconta_202504_202604-2_extract.json",
     "c6bank_extratoconta_202512_202604-2_extract.json"
   ],
-  "transacoes_total": 1591,
-  "transacoes_duplicadas_removidas": 308,
+  "transacoes_total": 1537,
+  "transacoes_duplicadas_removidas": 362,
   "transacoes": [
     {
       "data": "2023-12-31",
@@ -593,6 +593,12 @@
     },
     {
       "data": "2024-02-10",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
+      "valor": -12.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2024-02-10",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 820 NORTE VA",
       "valor": -12.2,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
@@ -610,12 +616,6 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2024-02-10",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
-      "valor": -12.4,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
       "data": "2024-02-12",
       "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-MORUMBI SHOPPING  AVENIDA ROQUE",
       "valor": -36.0,
@@ -629,7 +629,19 @@
     },
     {
       "data": "2024-02-13",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
+      "valor": -12.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2024-02-13",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 820 NORTE VA",
+      "valor": -12.2,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2024-02-13",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 810 SUL VALI",
       "valor": -12.2,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -643,18 +655,6 @@
       "data": "2024-02-13",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 340 1235 SUL CA",
       "valor": -15.8,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2024-02-13",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 810 SUL VALI",
-      "valor": -12.2,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2024-02-13",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
-      "valor": -12.4,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -1073,6 +1073,12 @@
     },
     {
       "data": "2024-04-07",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR VIAOESTE  SP 280 230 LESTE B",
+      "valor": -5.6,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2024-04-07",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 344 2190 OESTE",
       "valor": -6.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
@@ -1105,12 +1111,6 @@
       "data": "2024-04-07",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RODOANEL OESTE  SP 021 1429",
       "valor": -3.0,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2024-04-07",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR VIAOESTE  SP 280 230 LESTE B",
-      "valor": -5.6,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -1265,6 +1265,12 @@
     },
     {
       "data": "2024-04-27",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
+      "valor": -12.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2024-04-27",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 7743 NORTE I",
       "valor": -12.2,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
@@ -1276,14 +1282,14 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2024-04-27",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 362 SUL CAIE",
-      "valor": -12.4,
+      "data": "2024-04-28",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 7743 NORTE I",
+      "valor": -12.2,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2024-04-28",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 7743 NORTE I",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 810 SUL VALI",
       "valor": -12.2,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -1295,14 +1301,14 @@
     },
     {
       "data": "2024-04-28",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 342 19189 LESTE",
-      "valor": -11.8,
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 340 1235 SUL CA",
+      "valor": -15.8,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2024-04-28",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 39047 NORTE",
-      "valor": -12.4,
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 342 19189 LESTE",
+      "valor": -11.8,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -1313,14 +1319,8 @@
     },
     {
       "data": "2024-04-28",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP 340 1235 SUL CA",
-      "valor": -15.8,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2024-04-28",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 330 810 SUL VALI",
-      "valor": -12.2,
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 39047 NORTE",
+      "valor": -12.4,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -1427,20 +1427,20 @@
     },
     {
       "data": "2024-05-02",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR 116  MOREIRA CESAR",
-      "valor": -14.92,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2024-05-02",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR 116  MOREIRA CESAR",
-      "valor": -14.92,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2024-05-02",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR 116  ITATIAIA SUL",
       "valor": -12.83,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2024-05-02",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR 116  MOREIRA CESAR",
+      "valor": -14.92,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2024-05-02",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR 116  MOREIRA CESAR",
+      "valor": -14.92,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -2195,6 +2195,12 @@
     },
     {
       "data": "2024-08-03",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP 021  RODOANEL MARIO CO",
+      "valor": -5.1,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2024-08-03",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
       "valor": -5.2,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
@@ -2251,12 +2257,6 @@
       "data": "2024-08-03",
       "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP 021  RODOANEL MARIO CO",
       "valor": -3.9,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2024-08-03",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP 021  RODOANEL MARIO CO",
-      "valor": -5.1,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -3054,13 +3054,13 @@
     {
       "data": "2024-10-26",
       "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP 021  RODOANEL MARIO CO",
-      "valor": -3.9,
+      "valor": -5.1,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2024-10-26",
       "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP 021  RODOANEL MARIO CO",
-      "valor": -5.1,
+      "valor": -3.9,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -3761,6 +3761,12 @@
     },
     {
       "data": "2025-01-24",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-RODOVIA RAPOSO TAVARES  SP 270 5",
+      "valor": -13.0,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-01-24",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP 348 7743 NORTE I",
       "valor": -12.8,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
@@ -3829,12 +3835,6 @@
       "data": "2025-01-24",
       "descricao": "C6TAG PEDAGIO — GDK6A27-RODOVIA RAPOSO TAVARES  SP 270 5",
       "valor": -9.9,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-01-24",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-RODOVIA RAPOSO TAVARES  SP 270 5",
-      "valor": -13.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -4900,12 +4900,6 @@
       "tipo_lancamento": "Entradas"
     },
     {
-      "data": "2025-04-07",
-      "descricao": "PGTO FAT CARTAO C6",
-      "valor": -15967.78,
-      "tipo_lancamento": "Pagamento"
-    },
-    {
       "data": "2025-04-10",
       "descricao": "SEGURO CONTA C6 — Seguro Conta",
       "valor": -20.0,
@@ -4964,12 +4958,6 @@
       "descricao": "Boleto",
       "valor": -226.68,
       "tipo_lancamento": "Pagamento Boleto"
-    },
-    {
-      "data": "2025-04-16",
-      "descricao": "Pix enviado para WARWICK PARKER Pix enviado para ELIBELTO JOSE DE LIMA",
-      "valor": -428.8,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-04-16",
@@ -5074,12 +5062,6 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-04-22",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -5.8,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-04-23",
       "descricao": "Pix enviado para ANA MARIA DE OLIVEIRA — TRANSF ENVIADA PIX",
       "valor": -80.0,
@@ -5159,12 +5141,6 @@
     },
     {
       "data": "2025-04-23",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -13.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-04-23",
       "descricao": "RECEBIMENTO DE TED Pix enviado para Poupa Medi",
       "valor": 1080.0,
       "tipo_lancamento": "Entradas"
@@ -5236,12 +5212,6 @@
       "tipo_lancamento": "Entrada PIX"
     },
     {
-      "data": "2025-04-25",
-      "descricao": "Câmbio",
-      "valor": -2337.93,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-04-26",
       "descricao": "Pix enviado para ELIBELTO JOSE DE LIMA — TRANSF ENVIADA PIX",
       "valor": -1000.0,
@@ -5276,12 +5246,6 @@
       "descricao": "RECEBIMENTO DE TED — 92693118000160-BRADESCO SAUDE S A",
       "valor": 560.0,
       "tipo_lancamento": "Outros"
-    },
-    {
-      "data": "2025-04-29",
-      "descricao": "RECEBIMENTO DE TED",
-      "valor": 560.0,
-      "tipo_lancamento": "Entradas"
     },
     {
       "data": "2025-04-30",
@@ -5383,12 +5347,6 @@
       "data": "2025-05-03",
       "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
       "valor": -12.8,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-05-03",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -8.7,
       "tipo_lancamento": "Outros gastos"
     },
     {
@@ -5506,12 +5464,6 @@
       "tipo_lancamento": "Outros"
     },
     {
-      "data": "2025-05-06",
-      "descricao": "RECEBIMENTO DE TED",
-      "valor": 280.0,
-      "tipo_lancamento": "Entradas"
-    },
-    {
       "data": "2025-05-07",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP 160  RODO",
       "valor": -2.8,
@@ -5578,14 +5530,14 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-05-20",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -3.8,
-      "tipo_lancamento": "Outros gastos"
+      "data": "2025-05-24",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 39047 NORTE F",
+      "valor": -13.0,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2025-05-24",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 39047 NORTE F",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
       "valor": -13.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -5597,7 +5549,19 @@
     },
     {
       "data": "2025-05-24",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 810 SUL VALIN",
+      "valor": -12.8,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-05-24",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 NORTE C",
+      "valor": -16.5,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-05-24",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
       "valor": -16.5,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -5615,24 +5579,6 @@
     },
     {
       "data": "2025-05-24",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
-      "valor": -16.5,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-05-24",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 810 SUL VALIN",
-      "valor": -12.8,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-05-24",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
-      "valor": -13.0,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-05-24",
       "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
       "valor": -13.0,
       "tipo_lancamento": "Outros gastos"
@@ -5663,25 +5609,19 @@
     },
     {
       "data": "2025-05-26",
-      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-ED COM EVOLUTION CORPORATE  Alam",
-      "valor": -28.0,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-05-26",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS RAPOSO CASTELLO  SP280 2",
       "valor": -3.8,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2025-05-26",
-      "descricao": "C6TAG PEDAGIO C6TAG ESTACIONAMENTO",
-      "valor": -3.8,
-      "tipo_lancamento": "Outros gastos"
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-ED COM EVOLUTION CORPORATE  Alam",
+      "valor": -28.0,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2025-05-26",
-      "descricao": "C6TAG PEDAGIO",
+      "descricao": "C6TAG PEDAGIO C6TAG ESTACIONAMENTO",
       "valor": -3.8,
       "tipo_lancamento": "Outros gastos"
     },
@@ -5693,14 +5633,14 @@
     },
     {
       "data": "2025-05-28",
-      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-ED COM EVOLUTION CORPORATE  Alam",
-      "valor": -28.0,
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS RAPOSO CASTELLO  SP280 2",
+      "valor": -3.8,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2025-05-28",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS RAPOSO CASTELLO  SP280 2",
-      "valor": -3.8,
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-ED COM EVOLUTION CORPORATE  Alam",
+      "valor": -28.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -5752,12 +5692,6 @@
       "tipo_lancamento": "Outros gastos"
     },
     {
-      "data": "2025-05-29",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -5.1,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-06-03",
       "descricao": "IOF CHEQUE ESPECIAL",
       "valor": -0.09,
@@ -5788,12 +5722,6 @@
       "tipo_lancamento": "Outros"
     },
     {
-      "data": "2025-06-05",
-      "descricao": "PGTO FAT CARTAO C6",
-      "valor": -23150.98,
-      "tipo_lancamento": "Pagamento"
-    },
-    {
       "data": "2025-06-07",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
       "valor": -2.8,
@@ -5808,6 +5736,12 @@
     {
       "data": "2025-06-08",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 39047 NORTE F",
+      "valor": -13.0,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
       "valor": -13.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -5831,7 +5765,19 @@
     },
     {
       "data": "2025-06-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
+      "valor": -9.8,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-06-08",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 LESTE S",
+      "valor": -6.2,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
       "valor": -6.2,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -5849,32 +5795,14 @@
     },
     {
       "data": "2025-06-08",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
-      "valor": -6.2,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-06-08",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
-      "valor": -9.8,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-06-08",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-ARTERIS INTERVIAS  SP147 520 LES",
-      "valor": -10.4,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-06-08",
       "descricao": "C6TAG PEDAGIO — GDK6A27-RODOVIA ROTA DAS BANDEIRAS  SP36",
       "valor": -5.8,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2025-06-08",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
-      "valor": -13.0,
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ARTERIS INTERVIAS  SP147 520 LES",
+      "valor": -10.4,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -5932,22 +5860,10 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-06-11",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -2.8,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-06-12",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
       "valor": -2.8,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-06-12",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -2.8,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-06-16",
@@ -5980,22 +5896,10 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-06-23",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -2.8,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-06-24",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
       "valor": -2.8,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-06-24",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -2.8,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-06-25",
@@ -6004,22 +5908,10 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-06-25",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -2.8,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-06-26",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
       "valor": -2.8,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-06-26",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -2.8,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-06-27",
@@ -6052,12 +5944,6 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-06-30",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -2.8,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-07-01",
       "descricao": "IOF CHEQUE ESPECIAL",
       "valor": -7.74,
@@ -6088,22 +5974,10 @@
       "tipo_lancamento": "Outros gastos"
     },
     {
-      "data": "2025-07-02",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -38.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-07-03",
       "descricao": "RECEBIMENTO DE TED — 92693118000160-BRADESCO SAUDE S A",
       "valor": 600.0,
       "tipo_lancamento": "Outros"
-    },
-    {
-      "data": "2025-07-03",
-      "descricao": "RECEBIMENTO DE TED",
-      "valor": 600.0,
-      "tipo_lancamento": "Entradas"
     },
     {
       "data": "2025-07-04",
@@ -6136,34 +6010,16 @@
       "tipo_lancamento": "Outros"
     },
     {
-      "data": "2025-07-07",
-      "descricao": "PGTO FAT CARTAO C6",
-      "valor": -5677.76,
-      "tipo_lancamento": "Pagamento"
-    },
-    {
       "data": "2025-07-10",
       "descricao": "SEGURO CONTA C6 — Seguro Conta",
       "valor": -20.0,
       "tipo_lancamento": "Outros"
     },
     {
-      "data": "2025-07-10",
-      "descricao": "SEGURO CONTA C6",
-      "valor": -20.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-07-16",
       "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
       "valor": -36.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-07-16",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -36.0,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-07-17",
@@ -6208,20 +6064,14 @@
       "tipo_lancamento": "Outros gastos"
     },
     {
-      "data": "2025-07-17",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -3.1,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-07-17",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -5.7,
-      "tipo_lancamento": "Outros gastos"
+      "data": "2025-07-20",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 820 NORTE VAL",
+      "valor": -13.6,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2025-07-20",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 820 NORTE VAL",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 810 SUL VALIN",
       "valor": -13.6,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -6233,13 +6083,31 @@
     },
     {
       "data": "2025-07-20",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
+      "valor": -17.6,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-07-20",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 NORTE",
       "valor": -10.5,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2025-07-20",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
+      "valor": -10.5,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-07-20",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 LESTE S",
+      "valor": -6.6,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-07-20",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
       "valor": -6.6,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -6257,38 +6125,14 @@
     },
     {
       "data": "2025-07-20",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
-      "valor": -6.6,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-07-20",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
       "valor": -21.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2025-07-20",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
-      "valor": -10.5,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-07-20",
       "descricao": "C6TAG PEDAG ESTORNO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
       "valor": 21.0,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-07-20",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
-      "valor": -17.6,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-07-20",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 810 SUL VALIN",
-      "valor": -13.6,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -6352,12 +6196,6 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-07-21",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -26.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-07-27",
       "descricao": "Pix enviado para BELT ACADEMY TREINAMENTO EM DESENVOLVIMENTO PROFISSIONAL LTDA — TRANSF ENVIADA PIX",
       "valor": -1950.0,
@@ -6404,12 +6242,6 @@
       "descricao": "PGTO FAT CARTAO C6 — Fatura de cartao",
       "valor": -17321.46,
       "tipo_lancamento": "Outros"
-    },
-    {
-      "data": "2025-08-05",
-      "descricao": "PGTO FAT CARTAO C6",
-      "valor": -17321.46,
-      "tipo_lancamento": "Pagamento"
     },
     {
       "data": "2025-08-10",
@@ -6460,12 +6292,6 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-08-29",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -3.1,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-08-30",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 2045 NORTE ARUJ",
       "valor": -4.18,
@@ -6480,6 +6306,12 @@
     {
       "data": "2025-08-30",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 3189 NORTE ITAT",
+      "valor": -13.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 3189 SUL ITATIA",
       "valor": -13.4,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -6509,30 +6341,6 @@
     },
     {
       "data": "2025-08-30",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 3189 SUL ITATIA",
-      "valor": -13.4,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-08-30",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-      "valor": -5.5,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-08-30",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-      "valor": -5.4,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-08-30",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-      "valor": -5.4,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-08-30",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 8695 SUL PINDAM",
       "valor": -15.58,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
@@ -6540,6 +6348,24 @@
     {
       "data": "2025-08-30",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.5,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-08-30",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
       "valor": -5.7,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -6577,18 +6403,6 @@
       "data": "2025-08-30",
       "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
       "valor": -5.5,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-08-30",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -5.7,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-08-30",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -4.18,
       "tipo_lancamento": "Outros gastos"
     },
     {
@@ -6683,7 +6497,19 @@
     },
     {
       "data": "2025-09-14",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
+      "valor": -13.7,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-09-14",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP330 820 NORTE VAL",
+      "valor": -13.6,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 7743 SUL ITUP",
       "valor": -13.6,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -6695,13 +6521,31 @@
     },
     {
       "data": "2025-09-14",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
+      "valor": -17.6,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-09-14",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 NORTE",
       "valor": -10.5,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2025-09-14",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
+      "valor": -10.5,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-09-14",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 LESTE S",
+      "valor": -6.6,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
       "valor": -6.6,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -6715,36 +6559,6 @@
       "data": "2025-09-14",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP342 24034 OESTE",
       "valor": -6.3,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-09-14",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
-      "valor": -6.6,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-09-14",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
-      "valor": -10.5,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-09-14",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 SUL CAM",
-      "valor": -17.6,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-09-14",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 7743 SUL ITUP",
-      "valor": -13.6,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-09-14",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
-      "valor": -13.7,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -6815,6 +6629,18 @@
     },
     {
       "data": "2025-09-19",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-09-19",
       "descricao": "Pix enviado para JAIR DE SOUZA FERREIRA — TRANSF ENVIADA PIX",
       "valor": -9000.0,
       "tipo_lancamento": "Saída PIX"
@@ -6823,18 +6649,6 @@
       "data": "2025-09-19",
       "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP021 12474 LESTE ITAQUAQ",
       "valor": -4.1,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-09-19",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-      "valor": -5.4,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-09-19",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-      "valor": -5.4,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -6988,22 +6802,10 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-09-23",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -3.1,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-09-25",
       "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
       "valor": -104.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-09-25",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -104.0,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-09-27",
@@ -7032,6 +6834,12 @@
     {
       "data": "2025-09-27",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-09-27",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP021 714 OESTE SAO BERNA",
       "valor": -5.4,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -7073,20 +6881,8 @@
     },
     {
       "data": "2025-09-27",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP021 714 OESTE SAO BERNA",
-      "valor": -5.4,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-09-27",
       "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
       "valor": -5.7,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-09-27",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -5.4,
       "tipo_lancamento": "Outros gastos"
     },
     {
@@ -7288,20 +7084,8 @@
       "tipo_lancamento": "Outros"
     },
     {
-      "data": "2025-10-06",
-      "descricao": "PGTO FAT CARTAO C6",
-      "valor": -22298.73,
-      "tipo_lancamento": "Pagamento"
-    },
-    {
       "data": "2025-10-07",
       "descricao": "Pix enviado para ROBERTO FERNANDO ALVES DE SOUZA — obrigado pela carteira",
-      "valor": -100.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-10-07",
-      "descricao": "Pix enviado para ROBERTO FERNANDO ALVES DE SOUZA",
       "valor": -100.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -7310,12 +7094,6 @@
       "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PARQUE IBIRAPUERA  AVENIDA PEDRO",
       "valor": -20.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-10-08",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -20.0,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-10-10",
@@ -7339,12 +7117,6 @@
       "data": "2025-10-10",
       "descricao": "C6TAG ESTACIONAMENTO SEGURO CONTA C6",
       "valor": -20.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-10-10",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -27.0,
       "tipo_lancamento": "Outros gastos"
     },
     {
@@ -7382,12 +7154,6 @@
       "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
       "valor": -77.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-10-17",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -77.0,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-10-18",
@@ -7486,22 +7252,10 @@
       "tipo_lancamento": "Outros gastos"
     },
     {
-      "data": "2025-10-23",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -13.7,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-10-24",
       "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
       "valor": -36.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-10-24",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -36.0,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-10-25",
@@ -7518,12 +7272,6 @@
     {
       "data": "2025-10-25",
       "descricao": "C6TAG ESTACIONAMENTO C6TAG ESTACIONAMENTO",
-      "valor": -27.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-10-25",
-      "descricao": "C6TAG ESTACIONAMENTO",
       "valor": -27.0,
       "tipo_lancamento": "Outros gastos"
     },
@@ -7588,12 +7336,6 @@
       "tipo_lancamento": "Outros"
     },
     {
-      "data": "2025-10-29",
-      "descricao": "RECEBIMENTO DE TED",
-      "valor": 1000.0,
-      "tipo_lancamento": "Entradas"
-    },
-    {
       "data": "2025-10-31",
       "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — salario e vale transporte referente a o",
       "valor": -2446.83,
@@ -7616,12 +7358,6 @@
       "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
       "valor": 4000.0,
       "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-10-31",
-      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
-      "valor": -2446.83,
-      "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2025-10-31",
@@ -7658,12 +7394,6 @@
       "descricao": "PGTO FAT CARTAO C6 — Fatura de cartao",
       "valor": -16905.45,
       "tipo_lancamento": "Outros"
-    },
-    {
-      "data": "2025-11-05",
-      "descricao": "PGTO FAT CARTAO C6",
-      "valor": -16905.45,
-      "tipo_lancamento": "Pagamento"
     },
     {
       "data": "2025-11-07",
@@ -7793,20 +7523,20 @@
     },
     {
       "data": "2025-11-19",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-11-19",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-11-19",
       "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  SP021 12474 LESTE ITAQUAQ",
       "valor": -4.1,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-11-19",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-      "valor": -5.4,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-11-19",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-      "valor": -5.4,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -7837,12 +7567,6 @@
       "data": "2025-11-19",
       "descricao": "C6TAG PEDAGIO C6TAG ESTACIONAMENTO",
       "valor": -5.5,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-11-19",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -5.4,
       "tipo_lancamento": "Outros gastos"
     },
     {
@@ -7990,12 +7714,6 @@
       "tipo_lancamento": "Outros gastos"
     },
     {
-      "data": "2025-11-29",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -3.5,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-12-01",
       "descricao": "Pix enviado para RUBENS DE CAMPOS — TRANSF ENVIADA PIX",
       "valor": -1000.0,
@@ -8042,12 +7760,6 @@
       "descricao": "PGTO FAT CARTAO C6 — Fatura de cartao",
       "valor": -61553.26,
       "tipo_lancamento": "Outros"
-    },
-    {
-      "data": "2025-12-05",
-      "descricao": "PGTO FAT CARTAO C6",
-      "valor": -61553.26,
-      "tipo_lancamento": "Pagamento"
     },
     {
       "data": "2025-12-06",
@@ -8218,22 +7930,10 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-12-22",
-      "descricao": "Pix enviado para POUPA MEDI",
-      "valor": -98.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-12-24",
       "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PARQUE IBIRAPUERA  AVENIDA PEDRO",
       "valor": -22.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-12-24",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -22.0,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-12-26",
@@ -8264,12 +7964,6 @@
       "descricao": "Belt Academy",
       "valor": -1950.0,
       "tipo_lancamento": "Outros"
-    },
-    {
-      "data": "2025-12-30",
-      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
-      "valor": -22.0,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2025-12-31",
@@ -8656,22 +8350,10 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2026-01-31",
-      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
-      "valor": -22.0,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
       "data": "2026-02-02",
       "descricao": "RECEBIMENTO DE TED",
       "valor": 680.0,
       "tipo_lancamento": "Entradas"
-    },
-    {
-      "data": "2026-02-02",
-      "descricao": "RECEBIMENTO DE TED — 92693118000160-BRADESCO SAUDE S A",
-      "valor": 680.0,
-      "tipo_lancamento": "Outros"
     },
     {
       "data": "2026-02-03",
@@ -8753,9 +8435,9 @@
     },
     {
       "data": "2026-02-07",
-      "descricao": "Câmbio",
+      "descricao": "Câmbio — Transferência para C6 Conta Global",
       "valor": -3219.62,
-      "tipo_lancamento": "Outros gastos"
+      "tipo_lancamento": "Outros"
     },
     {
       "data": "2026-02-07",
@@ -8768,12 +8450,6 @@
       "descricao": "Câmbio C6TAG ESTACIONAMENTO",
       "valor": -3219.62,
       "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-02-07",
-      "descricao": "Câmbio — Transferência para C6 Conta Global",
-      "valor": -3219.62,
-      "tipo_lancamento": "Outros"
     },
     {
       "data": "2026-02-07",
@@ -8861,7 +8537,19 @@
     },
     {
       "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 3189 SUL ITATIA",
+      "valor": -13.78,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 8695 NORTE PIND",
+      "valor": -16.06,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 8695 SUL PINDAM",
       "valor": -16.06,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -8879,20 +8567,8 @@
     },
     {
       "data": "2026-02-08",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 3189 SUL ITATIA",
-      "valor": -13.78,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2026-02-08",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
       "valor": -5.5,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2026-02-08",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 8695 SUL PINDAM",
-      "valor": -16.06,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -8904,6 +8580,12 @@
     {
       "data": "2026-02-08",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  RODOANEL SUL  SP021 714 O",
       "valor": -5.4,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
@@ -8911,12 +8593,6 @@
       "data": "2026-02-08",
       "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  RODOANEL SUL  SP021 8794",
       "valor": -4.1,
-      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2026-02-08",
-      "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  RODOANEL SUL  SP021 714 O",
-      "valor": -5.4,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
