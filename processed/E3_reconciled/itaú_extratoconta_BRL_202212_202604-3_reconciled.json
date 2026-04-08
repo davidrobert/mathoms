@@ -24,15 +24,12 @@
     "itau_extratoconta_202410_202604-2_extract.json",
     "itau_extratoconta_202501_202604-2_extract.json",
     "itau_extratoconta_202504_202604-2_extract.json",
-    "itau_extratocontapersonnalite_202505_202603-2_extract.json",
-    "itau_extratoconta_202507-2_extract.json",
     "itau_extratoconta_202507_202604-2_extract.json",
     "itau_extratoconta_202510_202604-2_extract.json",
-    "itau_extratoconta_202601-2_extract.json",
     "itau_extratoconta_202601_202604-2_extract.json"
   ],
   "transacoes_total": 564,
-  "transacoes_duplicadas_removidas": 188,
+  "transacoes_duplicadas_removidas": 50,
   "transacoes": [
     {
       "data": "2023-01-05",
@@ -2341,13 +2338,13 @@
     },
     {
       "data": "2025-07-28",
-      "descricao": "DA ELETROPAULO 31237205",
-      "valor": -126.88
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.14
     },
     {
       "data": "2025-07-28",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 0.14
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -126.88
     },
     {
       "data": "2025-08-05",
@@ -2361,13 +2358,13 @@
     },
     {
       "data": "2025-08-06",
-      "descricao": "ITAU VISA ITAUCARD",
-      "valor": -59.0
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.09
     },
     {
       "data": "2025-08-06",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 0.09
+      "descricao": "ITAU VISA      ITAUCARD",
+      "valor": -59.0
     },
     {
       "data": "2025-08-11",
@@ -2376,13 +2373,13 @@
     },
     {
       "data": "2025-08-11",
-      "descricao": "FINANC IMOBILIARIO 000043",
-      "valor": -4347.76
+      "descricao": "SISPAG GRPQA LTDA",
+      "valor": 1401.97
     },
     {
       "data": "2025-08-11",
-      "descricao": "SISPAG GRPQA LTDA",
-      "valor": 1401.97
+      "descricao": "FINANC IMOBILIARIO 000043",
+      "valor": -4347.76
     },
     {
       "data": "2025-08-11",
@@ -2391,13 +2388,13 @@
     },
     {
       "data": "2025-08-27",
-      "descricao": "DA ELETROPAULO 31237205",
-      "valor": -207.39
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.43
     },
     {
       "data": "2025-08-27",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 0.43
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -207.39
     },
     {
       "data": "2025-09-05",
@@ -2411,13 +2408,13 @@
     },
     {
       "data": "2025-09-08",
-      "descricao": "ITAU VISA ITAUCARD",
-      "valor": -1872.43
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 4.55
     },
     {
       "data": "2025-09-08",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 4.55
+      "descricao": "ITAU VISA      ITAUCARD",
+      "valor": -1872.43
     },
     {
       "data": "2025-09-10",
@@ -2432,12 +2429,12 @@
     {
       "data": "2025-09-11",
       "descricao": "SISPAG GRPQA LTDA",
-      "valor": 1571.97
+      "valor": 1850.13
     },
     {
       "data": "2025-09-11",
       "descricao": "SISPAG GRPQA LTDA",
-      "valor": 1850.13
+      "valor": 1571.97
     },
     {
       "data": "2025-09-29",
@@ -2451,28 +2448,28 @@
     },
     {
       "data": "2025-10-06",
-      "descricao": "ITAU VISA      ITAUCARD",
-      "valor": -697.45
-    },
-    {
-      "data": "2025-10-06",
       "descricao": "REND PAGO APLIC AUT MAIS",
       "valor": 5.08
     },
     {
       "data": "2025-10-06",
-      "descricao": "SABESP 3334280219",
+      "descricao": "ITAU VISA      ITAUCARD",
+      "valor": -697.45
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "SABESP      3334280219",
       "valor": -76.3
     },
     {
       "data": "2025-10-09",
       "descricao": "SISPAG GRPQA LTDA",
-      "valor": 1850.13
+      "valor": 1571.97
     },
     {
       "data": "2025-10-09",
       "descricao": "SISPAG GRPQA LTDA",
-      "valor": 1571.97
+      "valor": 1850.13
     },
     {
       "data": "2025-10-10",
@@ -2486,13 +2483,13 @@
     },
     {
       "data": "2025-10-27",
-      "descricao": "DA ELETROPAULO 31237205",
-      "valor": -516.78
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 6.06
     },
     {
       "data": "2025-10-27",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 6.06
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -516.78
     },
     {
       "data": "2025-11-05",
@@ -2506,17 +2503,17 @@
     },
     {
       "data": "2025-11-06",
-      "descricao": "ITAU VISA ITAUCARD",
-      "valor": -59.0
-    },
-    {
-      "data": "2025-11-06",
       "descricao": "REND PAGO APLIC AUT MAIS",
       "valor": 0.76
     },
     {
+      "data": "2025-11-06",
+      "descricao": "ITAU VISA      ITAUCARD",
+      "valor": -59.0
+    },
+    {
       "data": "2025-11-10",
-      "descricao": "FINANC IMOBILIARIO 046",
+      "descricao": "FINANC IMOBILIARIO   046",
       "valor": -4318.7
     },
     {
@@ -2526,13 +2523,13 @@
     },
     {
       "data": "2025-11-11",
-      "descricao": "SISPAG GRPQA LTDA",
-      "valor": 1850.13
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1571.97
     },
     {
       "data": "2025-11-11",
       "descricao": "SISPAG  GRPQA LTDA",
-      "valor": 1571.97
+      "valor": 1850.13
     },
     {
       "data": "2025-11-19",
@@ -2541,13 +2538,13 @@
     },
     {
       "data": "2025-11-19",
-      "descricao": "DESBLOQUEIO PIX",
-      "valor": 333.0
+      "descricao": "BLOQUEIO PIX",
+      "valor": -333.0
     },
     {
       "data": "2025-11-19",
-      "descricao": "BLOQUEIO PIX",
-      "valor": -333.0
+      "descricao": "DESBLOQUEIO PIX",
+      "valor": 333.0
     },
     {
       "data": "2025-11-25",
@@ -2561,13 +2558,13 @@
     },
     {
       "data": "2025-11-27",
-      "descricao": "DA ELETROPAULO 31237205",
-      "valor": -717.99
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 1.04
     },
     {
       "data": "2025-11-27",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 1.04
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -717.99
     },
     {
       "data": "2025-12-05",
@@ -2581,13 +2578,13 @@
     },
     {
       "data": "2025-12-08",
-      "descricao": "ITAU VISA ITAUCARD",
-      "valor": -59.0
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.11
     },
     {
       "data": "2025-12-08",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 0.11
+      "descricao": "ITAU VISA      ITAUCARD",
+      "valor": -59.0
     },
     {
       "data": "2025-12-10",
@@ -2602,12 +2599,12 @@
     {
       "data": "2025-12-11",
       "descricao": "SISPAG GRPQA LTDA",
-      "valor": 1571.97
+      "valor": 1850.13
     },
     {
       "data": "2025-12-11",
       "descricao": "SISPAG GRPQA LTDA",
-      "valor": 1850.13
+      "valor": 1571.97
     },
     {
       "data": "2025-12-26",
@@ -2616,23 +2613,23 @@
     },
     {
       "data": "2025-12-26",
-      "descricao": "INT /DARF 16253603928123",
-      "valor": -2728.37
-    },
-    {
-      "data": "2025-12-26",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 1.91
-    },
-    {
-      "data": "2025-12-26",
       "descricao": "INT /SIMPLES NACIONA 072",
       "valor": -3845.09
     },
     {
       "data": "2025-12-26",
+      "descricao": "INT /DARF 16253603928123",
+      "valor": -2728.37
+    },
+    {
+      "data": "2025-12-26",
       "descricao": "INT /DARF 16253603942806",
       "valor": -3366.66
+    },
+    {
+      "data": "2025-12-26",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 1.91
     },
     {
       "data": "2025-12-29",
@@ -2657,12 +2654,12 @@
     {
       "data": "2026-01-09",
       "descricao": "SISPAG GRPQA LTDA",
-      "valor": 1571.97
+      "valor": 1850.13
     },
     {
       "data": "2026-01-09",
       "descricao": "SISPAG GRPQA LTDA",
-      "valor": 1850.13
+      "valor": 1571.97
     },
     {
       "data": "2026-01-12",
@@ -2672,37 +2669,22 @@
     {
       "data": "2026-01-12",
       "descricao": "PAG Multa de Veículo Renainf",
-      "valor": -317.56
-    },
-    {
-      "data": "2026-01-12",
-      "descricao": "PAG Licenciamento de Veículo",
-      "valor": -174.08
-    },
-    {
-      "data": "2026-01-12",
-      "descricao": "PAGTO Multa de Veículo",
       "valor": -142.27
-    },
-    {
-      "data": "2026-01-12",
-      "descricao": "PAGTO Licenciamento de Veículo",
-      "valor": -174.08
-    },
-    {
-      "data": "2026-01-12",
-      "descricao": "JUROS LIMITE DA CONTA",
-      "valor": -374.73
     },
     {
       "data": "2026-01-12",
       "descricao": "PAG Multa de Veículo Renainf",
-      "valor": -142.27
+      "valor": -317.56
     },
     {
       "data": "2026-01-12",
       "descricao": "PAG IPVA 2026",
       "valor": -5225.93
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAG Licenciamento de Veículo",
+      "valor": -174.08
     },
     {
       "data": "2026-01-12",
@@ -2712,12 +2694,27 @@
     {
       "data": "2026-01-12",
       "descricao": "PAGTO Multa de Veículo",
+      "valor": -142.27
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAGTO Multa de Veículo",
       "valor": -104.12
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "PAGTO Licenciamento de Veículo",
+      "valor": -174.08
     },
     {
       "data": "2026-01-12",
       "descricao": "PIX TRANSF DAVID R12/01",
       "valor": 20000.0
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "JUROS LIMITE DA CONTA",
+      "valor": -374.73
     },
     {
       "data": "2026-01-27",
@@ -2726,7 +2723,7 @@
     },
     {
       "data": "2026-01-27",
-      "descricao": "DA ELETROPAULO 31237205",
+      "descricao": "DA  ELETROPAULO 31237205",
       "valor": -927.93
     },
     {
@@ -2736,13 +2733,13 @@
     },
     {
       "data": "2026-02-05",
-      "descricao": "SABESP      3334280219",
-      "valor": -568.02
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.05
     },
     {
       "data": "2026-02-05",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 0.05
+      "descricao": "SABESP      3334280219",
+      "valor": -568.02
     },
     {
       "data": "2026-02-06",
@@ -2751,18 +2748,18 @@
     },
     {
       "data": "2026-02-06",
-      "descricao": "ITAU VISA ITAUCARD",
+      "descricao": "ITAU VISA      ITAUCARD",
       "valor": -257.54
-    },
-    {
-      "data": "2026-02-10",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 0.03
     },
     {
       "data": "2026-02-10",
       "descricao": "FINANC IMOBILIARIO 049/120",
       "valor": -4281.54
+    },
+    {
+      "data": "2026-02-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.03
     },
     {
       "data": "2026-02-11",
@@ -2781,13 +2778,13 @@
     },
     {
       "data": "2026-02-27",
-      "descricao": "DA  ELETROPAULO 31237205",
-      "valor": -700.49
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.04
     },
     {
       "data": "2026-02-27",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 0.04
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -700.49
     },
     {
       "data": "2026-03-03",
@@ -2801,7 +2798,7 @@
     },
     {
       "data": "2026-03-05",
-      "descricao": "SABESP 3334280219",
+      "descricao": "SABESP      3334280219",
       "valor": -402.23
     },
     {
@@ -2811,13 +2808,13 @@
     },
     {
       "data": "2026-03-10",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 0.31
+      "descricao": "FINANC IMOBILIARIO 050/120",
+      "valor": -4266.94
     },
     {
       "data": "2026-03-10",
-      "descricao": "FINANC IMOBILIARIO 050/120",
-      "valor": -4266.94
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.31
     },
     {
       "data": "2026-03-11",
@@ -2831,13 +2828,13 @@
     },
     {
       "data": "2026-03-27",
-      "descricao": "DA ELETROPAULO 31237205",
-      "valor": -594.07
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.04
     },
     {
       "data": "2026-03-27",
-      "descricao": "REND PAGO APLIC AUT MAIS",
-      "valor": 0.04
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -594.07
     },
     {
       "data": "2026-04-02",

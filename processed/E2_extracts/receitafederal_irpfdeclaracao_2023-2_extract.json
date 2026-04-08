@@ -1,113 +1,53 @@
 {
-  "tipo": "irpfdeclaracao",
-  "membro": "mariana",
-  "ano_base": 2023,
-  "bens_direitos": [
-    {
-      "codigo": "01.11",
-      "descricao": "Apartamento no condomínio Living Concept, Avenida Alberto Augusto Alves, São Paulo - Apto 320",
-      "valor_31_12_anterior": 116839.26,
-      "valor_31_12": 223733.99,
-      "data_aquisicao": "09/10/2023"
-    },
-    {
-      "codigo": "01.11",
-      "descricao": "Apartamento no condomínio Living Wish, Avenida João Dias, São Paulo - Apto 2192",
-      "valor_31_12_anterior": 477436.58,
-      "valor_31_12": 477436.58,
-      "data_aquisicao": "09/04/2018"
-    },
-    {
-      "codigo": "04.01",
-      "descricao": "Conta Bradesco Agência 6543 Conta 6673-7",
-      "valor_31_12_anterior": 36692.14,
-      "valor_31_12": 25337.34
-    },
-    {
-      "codigo": "04.02",
-      "descricao": "Certificado de Depósito Bancário - BTG",
-      "valor_31_12_anterior": 168055.76,
-      "valor_31_12": 22000.00
-    },
-    {
-      "codigo": "04.02",
-      "descricao": "CDB - BTG",
-      "valor_31_12_anterior": 122.79,
-      "valor_31_12": 1826.51
-    },
-    {
-      "codigo": "04.02",
-      "descricao": "Aplicação de Renda Fixa (CDB) - Bradesco",
-      "valor_31_12_anterior": 0.00,
-      "valor_31_12": 4365.03
-    },
-    {
-      "codigo": "04.02",
-      "descricao": "Saldo RDB - NuBank",
-      "valor_31_12_anterior": 0.00,
-      "valor_31_12": 58.23
-    },
-    {
-      "codigo": "04.03",
-      "descricao": "LCI - Opea Securitizadora S.A. - BTG",
-      "valor_31_12_anterior": 0.00,
-      "valor_31_12": 10349.69
-    },
-    {
-      "codigo": "04.03",
-      "descricao": "LCI - True Securitizadora S.A. - BTG",
-      "valor_31_12_anterior": 0.00,
-      "valor_31_12": 10324.25
-    },
-    {
-      "codigo": "06.01",
-      "descricao": "Conta Corrente Banco Bradesco",
-      "valor_31_12_anterior": 1.00,
-      "valor_31_12": 1.00
-    },
-    {
-      "codigo": "07.01",
-      "descricao": "BTG Pactual Explorer Renda Fixa Ativa Fundo de Investimento Longo Prazo",
-      "valor_31_12_anterior": 0.00,
-      "valor_31_12": 35868.62
-    }
-  ],
+  "arquivo": "receitafederal_irpfdeclaracao_2023-0_original.pdf",
+  "ano_exercicio": 2024,
+  "ano_calendario": 2023,
+  "declarante": "MARIANA TEIXEIRA FERREIRA",
+  "cpf": "085.052.396-60",
+  "conjuge_cpf": null,
+  "endereco": "RUA TASSO DA SILVEIRA N\u00famero: 61",
+  "ocupacao": "227 - ENFERMEIRO DE N\u00cdVEL SUPERIOR, NUTRICIONISTA, FARMAC\u00caUTICO E AFINS",
+  "bens_direitos": {
+    "imoveis": [],
+    "investimentos": [],
+    "veiculos": [],
+    "outros": []
+  },
   "rendimentos": {
     "pj": [
       {
-        "fonte": "Sociedade Beneficente Israelita Bras Hospital Albert Einstein",
-        "cnpj": "60.765.823/0001-30",
-        "rendimentos_brutos": 146176.12,
-        "contribuicoes": 9940.56,
-        "imposto_retido": 26255.09,
-        "decimo_terceiro": 9228.14,
-        "irrf_decimo_terceiro": 2301.21
+        "nome": "SOCIEDADE BENEF ISRAELITA BRAS 146.176,12 9.940,56 26.255,09 9.228,14 2.301,21"
+      },
+      {
+        "nome": "CNPJ/CPF: 60.765.823/0001-30"
       }
     ],
+    "clt": [],
     "alugueis": [],
     "financeiros": [
-      {"descricao": "Rendimentos de aplicações financeiras", "valor": 12584.21}
+      {
+        "descricao": "Titular 085.052.396-60 30.680.829/0001-43 NU FINANCEIRA SA - SOCIEDADE DE 58,23"
+      },
+      {
+        "descricao": "Titular 085.052.396-60 30.306.294/0001-45 BANCO BTG PACTUAL S A 10.836,52"
+      },
+      {
+        "descricao": "Titular 085.052.396-60 60.746.948/0001-12 BANCO BRADESCO S A 1.220,84"
+      },
+      {
+        "descricao": "Titular 085.052.396-60 11.952.873/0001-10 BTG PACTUAL EXPLORER FI MM 468,62"
+      },
+      {
+        "descricao": "TOTAL 21.812,35"
+      }
     ],
     "outros": []
   },
-  "dividas": [
-    {
-      "codigo": "11",
-      "descricao": "Crédito Imobiliário - Itau Unibanco S.A.",
-      "valor_inicial": 265420.59,
-      "valor_final": 234642.79,
-      "valor_pago_em_2023": 54416.00
-    }
-  ],
-  "pagamentos_dedutiveis": [
-    {"codigo": "11", "descricao": "Leir Miranda Esteves", "valor": 1500.00},
-    {"codigo": "21", "descricao": "Terzian - Sociedade de Médicos Ltda", "valor": 250.00},
-    {"codigo": "21", "descricao": "Clínica Takata Ltda", "valor": 300.00},
-    {"codigo": "21", "descricao": "LF São Paulo Serviços Médicos Ltda", "valor": 1300.00},
-    {"codigo": "21", "descricao": "Sompo Saúde Seguros S.A.", "valor": 302.74},
-    {"codigo": "71", "descricao": "GRPQA Ltda", "valor": 2607.00}
-  ],
-  "total_bens_anterior": 799147.53,
-  "total_bens": 811301.24,
-  "imposto_devido": 26715.95
+  "dividas": [],
+  "deducoes": {
+    "previdencia": 0,
+    "contribuicoes": 0,
+    "despesas": []
+  },
+  "extraction_date": "2026-04-08T17:54:48.244914"
 }

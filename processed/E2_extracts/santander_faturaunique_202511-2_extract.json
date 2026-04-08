@@ -2,88 +2,25 @@
   "banco": "Santander",
   "tipo": "faturaunique",
   "cartao": "Unique",
-  "titular": "DAVID ROBERT CAMARGO FERREIRA",
+  "titular": null,
   "moeda": "BRL",
-  "data_vencimento": "2025-11-15",
-  "saldo_anterior": 858.39,
-  "total_compras": 59.97,
-  "pagamentos": -858.39,
-  "saldo_atual": 723.72,
+  "data_vencimento": "2025-11-06",
+  "saldo_anterior": null,
+  "total_compras": 59.0,
+  "pagamentos": -697.45,
+  "saldo_atual": -638.45,
   "transacoes": [
     {
-      "data": "2025-11-15",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 19.96,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
-      "tipo_lancamento": "iof"
+      "data": "2025-10-06",
+      "descricao": "PAGAMENTO EFETUADO",
+      "valor": -697.45,
+      "tipo": "pagamento"
     },
     {
-      "data": "2025-10-15",
-      "descricao": "DEB AUTOM DE FATURA EM C/",
-      "valor": -858.39,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
-    },
-    {
-      "data": "2025-10-20",
-      "descricao": "SCP COMPLETO- OUT/25",
-      "valor": 26.34,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
-    },
-    {
-      "data": "2025-11-10",
-      "descricao": "ANUIDADE DIFERENCIADA 03/12",
-      "valor": 0.0,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
-    },
-    {
-      "data": "2025-10-29",
-      "descricao": "SCP BASICO- OUT/25",
-      "valor": 10.39,
-      "cartao": "SONIA C C DE CAMPOS - 5228 XXXX XXXX 6006"
-    },
-    {
-      "data": "2025-10-29",
-      "descricao": "AMAZON PRIME*PV6085C43",
-      "valor": 85.31,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "forex": {
-        "moeda_original": "USD",
-        "valor_original": 14.99
-      }
-    },
-    {
-      "data": "2025-10-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 2.99,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
-      "data": "2025-11-01",
-      "descricao": "GOOGLE *GOOGLE ONE",
-      "valor": 8.28,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "forex": {
-        "moeda_original": "USD",
-        "valor_original": 1.45
-      }
-    },
-    {
-      "data": "2025-11-01",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 0.29,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
-      "data": "2025-11-06",
-      "descricao": "GOOGLE *GOOGLE ONE",
-      "valor": 570.16,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "forex": {
-        "moeda_original": "USD",
-        "valor_original": 99.99
-      }
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras 05/12",
+      "valor": 59.0,
+      "tipo": "compra"
     }
   ],
   "cartoes": [],

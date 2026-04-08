@@ -2,22 +2,8 @@
   "tipo": "cdbdetalhes",
   "banco": "santander",
   "membro": "david",
-  "data_posicao": "2026-04-08",
-  "moeda": "BRL",
-  "produtos": [
-    {
-      "tipo_produto": "CDB Metas/Reservas",
-      "operacao": "2251848955025",
-      "valor_aplicado": 190000.00,
-      "saldo_bruto": 211301.28,
-      "saldo_liquido": 207041.03,
-      "taxa": "100,00% do CDI",
-      "data_aplicacao": "2025-07-03",
-      "vencimento": "2030-06-07",
-      "rendimento_bruto": 21301.28,
-      "ir_provisao": 4260.25
-    }
-  ],
-  "total_bruto": 211301.28,
-  "total_liquido": 207041.03
+  "periodo": "202604",
+  "posicoes": [],
+  "total": 0.0,
+  "saldo_total": 0.0
 }

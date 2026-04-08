@@ -2,54 +2,37 @@
   "banco": "Santander",
   "tipo": "faturaunique",
   "cartao": "Unique",
-  "titular": "DAVID ROBERT CAMARGO FERREIRA",
+  "titular": null,
   "moeda": "BRL",
-  "data_vencimento": "2026-02-15",
-  "saldo_anterior": 372.85,
-  "total_compras": 40.07,
-  "pagamentos": -372.85,
-  "saldo_atual": 122.43,
+  "data_vencimento": "2026-02-06",
+  "saldo_anterior": null,
+  "total_compras": 257.54,
+  "pagamentos": -59.0,
+  "saldo_atual": 198.54,
   "transacoes": [
     {
+      "data": "2026-01-16",
+      "descricao": "IOF COMPRA INTERNACIONA",
+      "valor": 6.74,
+      "tipo": "iof"
+    },
+    {
       "data": "2026-01-15",
-      "descricao": "DEB AUTOM DE FATURA EM C/",
-      "valor": -372.85,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+      "descricao": "SQSP* DOMAIN#218016570",
+      "valor": 191.8,
+      "tipo": "compra"
     },
     {
-      "data": "2026-01-19",
-      "descricao": "SCP COMPLETO- JAN/26",
-      "valor": 26.34,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+      "data": "2026-01-06",
+      "descricao": "PAGAMENTO EFETUADO",
+      "valor": -59.0,
+      "tipo": "pagamento"
     },
     {
-      "data": "2026-02-09",
-      "descricao": "ANUIDADE DIFERENCIADA",
-      "valor": 0.0,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
-    },
-    {
-      "data": "2026-01-29",
-      "descricao": "SCP BASICO- JAN/26",
-      "valor": 10.85,
-      "cartao": "SONIA C C DE CAMPOS - 5228 XXXX XXXX 6006"
-    },
-    {
-      "data": "2026-01-29",
-      "descricao": "AMAZON PRIME*9L6JN0GQ3",
-      "valor": 82.36,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "forex": {
-        "moeda_original": "USD",
-        "valor_original": 14.99
-      }
-    },
-    {
-      "data": "2026-01-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 2.88,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras 08/12",
+      "valor": 59.0,
+      "tipo": "compra"
     }
   ],
   "cartoes": [],

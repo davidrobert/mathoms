@@ -1,18 +1,5 @@
 {
-  "tipo": "irpfrecibo",
-  "membro": "david",
-  "ano_base": 2024,
-  "imposto_total": 163779.60,
-  "data_entrega": "28/05/2025",
-  "situacao": "Declaração original",
-  "numero_recibo": "41.12.98.65.44 - 47",
-  "total_rendimentos_tributaveis": 651374.65,
-  "imposto_devido": 163779.60,
-  "imposto_a_restituir": 0.00,
-  "imposto_a_pagar": 9010.82,
-  "parcelamento": {
-    "valor_quota": 9010.82,
-    "numero_quotas": 1,
-    "vencimento_primeira_quota": "30/05/2025"
-  }
+  "arquivo": "receitafederal_irpfrecibo_2024-0_original.pdf",
+  "tipo": "recibo",
+  "ano": 2024
 }

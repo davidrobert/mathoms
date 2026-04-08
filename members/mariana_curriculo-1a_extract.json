@@ -1,116 +1,84 @@
 {
-  "tipo": "curriculo",
+  "tipo": "curriculum_vitae",
   "membro": "mariana",
   "nome_completo": "Mariana Ferreira Campos",
-  "nome_atual": "Mariana Teixeira Ferreira de Campos",
-  "profissao_cargo": "Enfermeira (Nurse)",
+  "nome_atual": "Mariana Ferreira Campos",
+  "nome_solteira": "Mariana Teixeira Ferreira",
+  "profissao_cargo": "Enfermeira",
+  "contatos": {
+    "telefone": "+55 11 96073-3929",
+    "email": "mtf3008@gmail.com",
+    "linkedin": "www.linkedin.com/in/mariana-ferreira-campos",
+    "localizacao": "São Paulo, Brasil"
+  },
+  "resumo": "Enfermeira com mais de 10 anos de carreira sólida em instituições de alta complexidade, combinando excelência assistencial, rigor acadêmico e gestão da qualidade. Mestre em Ciências pela USP (Enfermagem na Saúde do Adulto) e Especialista em Cardiologia pela UNIFESP.",
+  "competencias": [
+    "Processo de enfermagem",
+    "Cuidados de qualidade ao paciente",
+    "Gestão de equipes",
+    "Auditoria e Qualidade",
+    "Projetos PDCA e Auditoria de Prontuário Eletrônico",
+    "Classificação de Risco (Protocolo de Manchester)",
+    "Advanced Trauma Care for Nurses (ATCN)",
+    "Gestão de Crônicos",
+    "Preceptoria em Esclerose Múltipla",
+    "Osteoporose"
+  ],
   "experiencias": [
     {
+      "cargo": "Enfermeiro",
       "empresa": "Hospital Israelita Albert Einstein",
-      "cargo": "Enfermeiro (Nurse)",
-      "periodo_inicio": "2018-01",
-      "periodo_fim": "presente",
-      "descricao": "High complexity unit focused on Cardiology, Internal Medicine and Surgery. Active role in continuous improvement and patient safety projects, auditing electronic medical records for allergy compliance, fall risk and vital signs. Responsible for quality reduction strategies and resource optimization."
+      "localizacao": "São Paulo, Brasil",
+      "data_inicio": "2018-01",
+      "data_fim": null,
+      "atual": true,
+      "duracao": "8 anos 3 meses (até presente)",
+      "descricao": "Atuação em unidade de alta complexidade com foco em Cardiologia, Clínica Médica e Cirúrgica. Auditoria e Qualidade, Preceptoria."
     },
     {
-      "empresa": "Hospital Israelita Albert Einstein",
-      "cargo": "Enfermeiro (Nurse)",
-      "periodo_inicio": "2014-08",
-      "periodo_fim": "2018-06",
-      "descricao": "UPA Campo Limpo facility. Emergency care nursing."
-    },
-    {
-      "empresa": "Faculdade Israelita Albert Einstein",
-      "cargo": "Docente universitário (University Instructor)",
-      "periodo_inicio": "2021-01",
-      "periodo_fim": "2024-12",
-      "descricao": "Instructor in Semiology and Semiotechnics with development of theoretical-practical content and clinical competency assessment. Experience with active teaching methodologies and professional training."
-    },
-    {
-      "empresa": "Senac São Paulo",
-      "cargo": "Docente universitário (University Instructor)",
-      "periodo_inicio": "2012-01",
-      "periodo_fim": "2016-01",
-      "descricao": "Technical nursing education."
-    },
-    {
-      "empresa": "Faculdade Sequencial",
-      "cargo": "Docente universitário (University Instructor)",
-      "periodo_inicio": "2013-01",
-      "periodo_fim": "2015-08",
-      "descricao": "Nursing instruction."
-    },
-    {
-      "empresa": "Hospital Municipal Dr. Moysés Deutsch (Partnership with Hospital Israelita Einstein)",
-      "cargo": "Enfermeira (Nurse)",
-      "periodo_inicio": "2011-01",
-      "periodo_fim": "2014-12",
-      "descricao": "Clinical nursing in Adult and Pediatric ICU, Medical and Surgical Clinic. Developed resilience and crisis management capability in high-pressure environment."
+      "cargo": "Enfermeiro",
+      "empresa": "UPA Campo Limpo",
+      "localizacao": "São Paulo, Brasil",
+      "data_inicio": "2014-08",
+      "data_fim": "2018-06",
+      "atual": false,
+      "duracao": "3 anos 11 meses",
+      "descricao": "Unidade de Pronto Atendimento"
     }
   ],
   "formacao": [
     {
-      "instituicao": "Universidade de São Paulo (USP)",
-      "curso": "Mestrado em Enfermagem - Enfermagem em Saúde Adulta",
-      "grau": "Mestrado",
-      "periodo_inicio": "2019",
-      "periodo_fim": "2021"
+      "tipo": "mestrado",
+      "area": "Ciências - Enfermagem na Saúde do Adulto",
+      "instituicao": "University of São Paulo (USP)",
+      "ano": null
     },
     {
-      "instituicao": "Unifesp - Universidade Federal de São Paulo",
-      "curso": "Pós-graduação Lato Sensu - Especialização em Enfermagem em Cardiologia e Hemodinâmica",
-      "grau": "Especialização",
-      "periodo_inicio": "2011",
-      "periodo_fim": "2012"
+      "tipo": "especialização",
+      "area": "Cardiologia e Hemodinâmica",
+      "instituicao": "Federal University of São Paulo (UNIFESP)",
+      "ano": null
     },
     {
-      "instituicao": "PUC Minas",
-      "curso": "Bacharelado em Enfermagem",
-      "grau": "Bacharelado",
-      "periodo_inicio": "2007",
-      "periodo_fim": "2010"
-    },
-    {
-      "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
-      "curso": "Pós-graduação Lato Sensu - Especialização em Formação Docente em Educação Profissional",
-      "grau": "Especialização",
-      "periodo_inicio": "2013",
-      "periodo_fim": "2014"
+      "tipo": "graduacao",
+      "area": "Enfermagem",
+      "instituicao": null,
+      "ano": null
     }
   ],
   "certificacoes": [
     "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
     "Classificação de Risco (Protocolo de Manchester)",
-    "Advanced Trauma Care for Nurses (ATCN)",
-    "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP)",
-    "Curso de Osteoporose"
-  ],
-  "habilidades": [
-    "Processo de enfermagem",
-    "Cuidados de qualidade ao paciente",
-    "Auditoria Clínica",
-    "Segurança do Paciente",
-    "Gestão de equipes",
-    "Análise de prontuários eletrônicos",
-    "Metodologia científica",
-    "Prática baseada em evidências",
-    "Educação continuada",
-    "Treinamento e desenvolvimento (T&D)",
-    "Gestão de casos",
-    "Cardiologia e Hemodinâmica",
-    "UTI Adulto e Pediátrica",
-    "Clínica Médica e Cirúrgica"
+    "Advanced Trauma Care for Nurses (ATCN)"
   ],
   "idiomas": [
     {
-      "idioma": "Português",
-      "nivel": "Nativo",
-      "fonte": "documento"
+      "idioma": "Portuguese",
+      "nivel": "Native"
     },
     {
-      "idioma": "Inglês",
-      "nivel": "Intermediário",
-      "fonte": "inferido"
+      "idioma": "English",
+      "nivel": "Basic/Intermediate"
     }
   ]
 }

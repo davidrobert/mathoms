@@ -1,118 +1,209 @@
 {
-  "tipo": "curriculo",
+  "tipo": "curriculum_vitae",
   "membro": "david",
   "nome_completo": "David Robert Camargo Ferreira Campos",
-  "nome_atual": "David Robert Camargo de Campos",
+  "nome_atual": "David Robert Camargo Ferreira Campos",
   "profissao_cargo": "Chief Technology Officer (CTO)",
+  "contatos": {
+    "telefone": "+55 (11) 99681-9851",
+    "email": "davidrobert@gmail.com",
+    "linkedin": "https://www.linkedin.com/in/davidrobert/",
+    "github": "https://github.com/davidrobert/",
+    "lattes": "http://lattes.cnpq.br/2986072670677092"
+  },
   "experiencias": [
     {
+      "cargo": "Chief Technology Officer (CTO)",
       "empresa": "Arvo",
-      "cargo": "Chief Technology Officer (CTO)",
-      "periodo_inicio": "2025-09",
-      "periodo_fim": "presente",
-      "descricao": "Healthtech company leveraging AI and ML for healthcare ecosystem. Directed technology strategy, defined scalable architectures, established AI-First engineering vision, integrated AI tooling across SDLC reducing PR review times by 20%."
+      "localizacao": "São Paulo/SP, Brazil",
+      "data_inicio": "2025-09-08",
+      "data_fim": null,
+      "atual": true,
+      "descricao": "Healthtech leveraging AI/ML to optimize healthcare ecosystem, auditing medical claims"
     },
     {
+      "cargo": "Chief Technology Officer (CTO)",
       "empresa": "Kiwify",
-      "cargo": "Chief Technology Officer (CTO)",
-      "periodo_inicio": "2024-06",
-      "periodo_fim": "2025-05",
-      "descricao": "E-commerce platform for digital products and sales automation. Established technology strategy, led five engineering squads, optimized infrastructure for 7,000 requests/min, reduced feature launch time by 40%, implemented continuous delivery."
+      "localizacao": "Balneário Camboriú/SC, Brazil",
+      "data_inicio": "2024-06-17",
+      "data_fim": "2025-05-05",
+      "atual": false,
+      "descricao": "Technology platform for creation, management, and expansion of online businesses"
     },
     {
-      "empresa": "Loft",
       "cargo": "Software Engineering Consultant",
-      "periodo_inicio": "2022-12",
-      "periodo_fim": "2024-06",
-      "descricao": "Proptech transforming real estate market. Managed 60+ software engineers, defined technology strategy, adopted microservices architecture, reduced deployment time by 40%, improved platform availability to 99.99%, increased transaction volume by 5x."
+      "empresa": "Loft",
+      "localizacao": "São Paulo/SP, Brazil",
+      "data_inicio": "2022-12-02",
+      "data_fim": "2024-06-30",
+      "atual": false,
+      "descricao": "Proptech transforming real estate market with technological solutions"
     },
     {
-      "empresa": "Loft",
       "cargo": "Director of Software Engineering",
-      "periodo_inicio": "2021-11",
-      "periodo_fim": "2022-12",
-      "descricao": "Led recruitment and onboarding of 70+ software engineers during unicorn growth phase. Managed engineering team scaling, defined legacy system migration to microservices, introduced observability tools, reduced load times by 60%."
-    },
-    {
       "empresa": "Loft",
+      "localizacao": "São Paulo/SP, Brazil",
+      "data_inicio": "2021-11-01",
+      "data_fim": "2022-12-01",
+      "atual": false,
+      "descricao": "Leadership during unicorn growth phase"
+    },
+    {
       "cargo": "Engineering Manager",
-      "periodo_inicio": "2019-06",
-      "periodo_fim": "2021-10",
-      "descricao": "Led cross-functional software engineering teams for real estate market solutions. Developed Loft's engineering principles, restructured recruitment process, improved candidate conversion by 15%."
+      "empresa": "Loft",
+      "localizacao": "São Paulo/SP, Brazil",
+      "data_inicio": "2019-06-17",
+      "data_fim": "2021-10-31",
+      "atual": false,
+      "descricao": "Real estate market technological solutions"
     },
     {
-      "empresa": "Elo7",
       "cargo": "Chief Technology Officer (CTO)",
-      "periodo_inicio": "2013-08",
-      "periodo_fim": "2020-07",
-      "descricao": "E-commerce platform for handmade products. Led 70 software engineers, designed microservices architecture, reduced deployment time from days to minutes, reduced AWS costs by 35%, improved platform speed by 40%."
+      "empresa": "Elo7",
+      "localizacao": "São Paulo/SP, Brazil",
+      "data_inicio": "2013-08-05",
+      "data_fim": "2020-07-06",
+      "atual": false,
+      "descricao": "E-commerce platform for creative and handmade products"
     },
     {
-      "empresa": "Abril",
       "cargo": "Solutions Architect I",
-      "periodo_inicio": "2012-03",
-      "periodo_fim": "2013-08",
-      "descricao": "Major Brazilian media group. Developed distributed architecture for Alexandria platform, created scalable RESTful APIs, reduced digital portal response time by 60%, implemented distributed caching system."
+      "empresa": "Abril",
+      "localizacao": "São Paulo/SP, Brazil",
+      "data_inicio": "2012-03-02",
+      "data_fim": "2013-08-02",
+      "atual": false,
+      "descricao": "Media group - Alexandria platform for content publishing"
     },
     {
-      "empresa": "TOTVS",
       "cargo": "Research and Development Engineer IV",
-      "periodo_inicio": "2011-02",
-      "periodo_fim": "2012-03",
-      "descricao": "Business management solutions leader. Developed proprietary virtual machine using C/C++/Assembly, optimized memory management reducing consumption by 35%, improved compile time by 40%."
+      "empresa": "TOTVS",
+      "localizacao": "São Paulo/SP, Brazil",
+      "data_inicio": "2011-02-07",
+      "data_fim": "2012-03-01",
+      "atual": false,
+      "descricao": "Business management solutions leader in Latin America"
     },
     {
-      "empresa": "NIC.br",
       "cargo": "Software Engineer",
-      "periodo_inicio": "2006-04",
-      "periodo_fim": "2011-01",
-      "descricao": "Internet infrastructure entity responsible for .br domain registration and IP distribution. Developed UNIX applications using Java/C++/Python, implemented DNSSEC security enhancements, automated DNS operations."
+      "empresa": "NIC.br",
+      "localizacao": "São Paulo/SP, Brazil",
+      "data_inicio": "2006-04-11",
+      "data_fim": "2011-01-31",
+      "atual": false,
+      "descricao": "Internet Steering Committee implementation - DNS/DNSSEC management"
+    },
+    {
+      "cargo": "Jr System Analyst",
+      "empresa": "Agência Estado",
+      "localizacao": "São Paulo/SP, Brazil",
+      "data_inicio": "2004-01-02",
+      "data_fim": "2006-03-17",
+      "atual": false,
+      "descricao": "Financial news agency - Estadão portal development"
+    },
+    {
+      "cargo": "Trainee",
+      "empresa": "Agência Estado",
+      "localizacao": "São Paulo/SP, Brazil",
+      "data_inicio": "2002-06-24",
+      "data_fim": "2003-12-24",
+      "atual": false,
+      "descricao": "Financial news agency - Initial development support"
+    },
+    {
+      "cargo": "Instruction Internship",
+      "empresa": "2nd Armored Communications Company, Brazilian Army",
+      "localizacao": "Campinas/SP, Brazil",
+      "data_inicio": "2001-07-01",
+      "data_fim": "2001-07-31",
+      "atual": false,
+      "descricao": "Military communications platoon command and training"
+    },
+    {
+      "cargo": "Aspiring Communications Officer",
+      "empresa": "Center for the Preparation of Reserve Officers of São Paulo (CPOR/SP)",
+      "localizacao": "São Paulo/SP, Brazil",
+      "data_inicio": "2000-01-24",
+      "data_fim": "2000-12-02",
+      "atual": false,
+      "descricao": "Brazilian Army reserve officer training"
     }
   ],
   "formacao": [
     {
+      "tipo": "mestrado",
+      "area": "Computer Science - Artificial Intelligence",
       "instituicao": "University of São Paulo (USP), Institute of Mathematics and Statistics (IME)",
-      "curso": "Master in Computer Science - Artificial Intelligence",
-      "grau": "Mestrado",
-      "periodo_inicio": "2006",
-      "periodo_fim": "2008"
+      "ano": 2008
     },
     {
+      "tipo": "graduacao",
+      "area": "Computer Science",
       "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)",
-      "curso": "Bachelor of Computer Science",
-      "grau": "Bacharelado",
-      "periodo_inicio": "2000",
-      "periodo_fim": "2004"
+      "ano": 2004
     }
   ],
-  "certificacoes": [],
+  "certificacoes": [
+    "Oracle Certified Professional, Java SE 5 Programmer",
+    "Duolingo English Test – Certificate ID: do79ylsw7jbg92lq"
+  ],
+  "certificacoes_cursos": [
+    "Innovation Leadership - MIT (2021)",
+    "MarTech Strategy - Northwestern University (2021)",
+    "Business Strategy - University of La Verne (2018)",
+    "Business English - ELS Language Centers (2018)",
+    "ToEFL Preparation Program (2017)",
+    "Inspiring Leadership - Paideia Educação (2016)",
+    "Negotiation - Paideia Educação (2016)",
+    "Manufacturing Mini-Robots with FUSION 360 and 3D Printing (2014)",
+    "Architecture and Design in Java Projects - Caelum (2012)",
+    "Agile Software Development Practices - Caelum (2012)",
+    "Ruby and Advanced Rails - Caelum (2012)",
+    "Agile Web 2.0 Development with Ruby on Rails - Caelum (2012)",
+    "Java Lab with Tests, XML and Design Patterns - Caelum (2011)",
+    "Mobile Development with Google Android - Caelum (2011)"
+  ],
   "habilidades": [
     "Software Architecture",
-    "Microservices Design",
     "Domain-Driven Design (DDD)",
-    "Scalable Systems",
+    "Scalable Systems Design",
+    "Microservices Architecture",
     "Cloud Computing (AWS, GCP)",
-    "Kubernetes & Docker",
-    "CI/CD Pipelines",
-    "DevOps",
+    "Kubernetes and Docker",
+    "DevOps and CI/CD",
     "Infrastructure as Code (Terraform, Ansible)",
-    "Cybersecurity & DNSSEC",
+    "Cybersecurity",
     "Machine Learning",
-    "Big Data & ETL",
+    "Data Engineering",
     "Team Leadership",
-    "Technical Strategy",
-    "Agile Methodologies"
+    "Strategic Technology Planning"
   ],
   "idiomas": [
     {
-      "idioma": "Português",
-      "nivel": "Nativo",
-      "fonte": "documento"
+      "idioma": "Portuguese",
+      "nivel": "Native"
     },
     {
-      "idioma": "Inglês",
-      "nivel": "Fluente",
-      "fonte": "inferido"
+      "idioma": "English",
+      "nivel": "Proficient"
+    }
+  ],
+  "reconhecimentos": [
+    {
+      "ano": 2024,
+      "tipo": "Strategic Impact Award",
+      "instituicao": "Kiwify"
+    },
+    {
+      "ano": 2002,
+      "tipo": "Award of the III PUC-SP R. Stevens Programming Cup",
+      "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)"
+    },
+    {
+      "ano": 2000,
+      "tipo": "Diploma of Honor to Merit",
+      "instituicao": "Center for the Preparation of Reserve Officers of São Paulo (CPOR/SP)"
     }
   ]
 }

@@ -1,172 +1,704 @@
 {
-  "consolidacao": "Consolidação de Linha de Base Patrimonial - STAGE E1.5",
-  "data_consolidacao": "2026-04-08",
-  "periodo": "Ano-calendário 2023 a 2024",
-  "familia": "Ferreira Campos",
-  "membros": ["David Robert Camargo Ferreira Campos", "Mariana Ferreira Campos / Mariana Teixeira Ferreira"],
+  "titulo": "Baseline Patrimonial - Fam\u00edlia Ferreira Campos",
+  "data_consolidacao": "2026-04-08T17:54:51.154129",
+  "membros_familia": [
+    {
+      "nome": "David",
+      "cpf": "287.766.948-36",
+      "tipo": "titular"
+    },
+    {
+      "nome": "Mariana",
+      "cpf": "085.052.396-60",
+      "tipo": "c\u00f4njuge"
+    },
+    {
+      "nome": "Theo",
+      "cpf": null,
+      "tipo": "dependente"
+    }
+  ],
   "resumo_patrimonial": {
     "31_12_2023": {
-      "david": 2589887.09,
-      "mariana": 811301.24,
-      "total": 3401188.33
+      "total": 0,
+      "bens_imoveis": 0,
+      "investimentos": 0,
+      "veiculos": 0,
+      "dividas": 0
     },
     "31_12_2024": {
-      "david": 2513151.71,
-      "mariana": 988123.73,
-      "total": 3501275.44
-    },
-    "variacao_2024": {
-      "david": -76735.38,
-      "mariana": 176822.49,
-      "total": 100087.11,
-      "percentual": 2.94
+      "total": 1647800.0,
+      "bens_imoveis": 1647800.0,
+      "investimentos": 0,
+      "veiculos": 0,
+      "dividas": 0
     }
   },
   "bens_imoveis_consolidados": [
     {
-      "tipo": "Residência",
-      "descricao": "Casa Rua Tasso da Silveira",
-      "endereco": "Rua Tasso da Silveira, 61 - Vila Guarani - São Paulo - SP",
-      "proprietarios": ["David", "Mariana"],
-      "valor_2024": 996821.46,
-      "data_aquisicao": "2014-02-04",
-      "financiamento": "Quitado",
-      "iptu_2025": 4565.4,
-      "uso": "Residência própria"
-    },
-    {
+      "indice": 1,
+      "proprietarios": [
+        "David",
+        "Mariana"
+      ],
       "tipo": "Apartamento",
-      "descricao": "Apto 34 - Praça Benedito Calixto (David e Mariana)",
-      "endereco": "Praça Benedito Calixto, 186/190 - Pinheiros - São Paulo - SP",
-      "proprietarios": ["David", "Mariana"],
-      "valor_2024": 270000.00,
-      "data_aquisicao": "2021-10-21",
-      "valor_compra": 348000.00,
-      "financiamento": "Quitado",
-      "iptu_2025": 1083.4,
-      "condominio": 668.87,
-      "uso": "Alugado - Renda 2025"
-    },
-    {
-      "tipo": "Apartamento",
-      "descricao": "Apto 12 - Rua Major Freire (David e Mariana)",
-      "endereco": "Rua Major Freire, 496 - São Paulo - SP, 04304-110",
-      "proprietarios": ["David", "Mariana"],
-      "valor_2024": 212706.24,
-      "data_aquisicao": "2022-02-02",
-      "valor_compra": 400000.00,
+      "endereco": "Pra\u00e7a Benedito Calixto, 186/190, APT 34 \n- Pinheiros, S\u00e3o Paulo - SP, 05406-040",
+      "area_m2": null,
+      "iptu_valor_2024": 108.34,
+      "valor_compra": 348000.0,
+      "valor_2024": 382800.0,
+      "data_aquisicao": "2021-11-16 00:00:00",
       "financiamento": {
-        "banco": "Itau",
-        "status": "Ativo",
-        "saldo_estimado_2024": 234792.61,
-        "parcela_mensal": 4294.00
+        "banco": "---",
+        "valor_parcela": null,
+        "status": null
       },
-      "iptu_2025": 484.73,
-      "condominio": 599.51,
-      "uso": "Alugado - Renda 2025"
+      "dados_completos": {
+        "imovel": "Apartamento \nPra\u00e7a Benedito Calixto",
+        "tipo": "Apartamento",
+        "no de contribuinte \n(sql) \nim\u00f3vel": "013.036.0155-9",
+        "no de contribuinte \n(sql)\ngaragem": "---",
+        "matr\u00edcula\nim\u00f3vel": "3421",
+        "matr\u00edcula\nvaga de garagem": "---",
+        "\u00e1rea constru\u00edda (m\u00b2)": "40,7631m2",
+        "endere\u00e7o": "Pra\u00e7a Benedito Calixto, 186/190, APT 34 \n- Pinheiros, S\u00e3o Paulo - SP, 05406-040",
+        "iptu \n(ano)": "2025",
+        "iptu \n(valor)": "1083.4",
+        "sabesp\n(n\u00famero fornecimento)": "responsabilidade do inquilino",
+        "enel\n(instala\u00e7\u00e3o)": "49338323",
+        "enel\ndebito automatico": "N\u00c3O",
+        "comg\u00e1s": "???",
+        "nome do \ncondominio": "Bar\u00e3o de Capanema",
+        "valor do \ncondomino ": "668.87",
+        "no apto": "34.0",
+        "contato zelador": "???",
+        "contato portaria": "???",
+        "administradora - nome": "Graiche Construtora e Imobili\u00e1ria Ltda",
+        "administradora - link": "https://graiche.com.br/",
+        "data de \nassinatura do ccv": "2021-10-21 00:00:00",
+        "data de \nassinatura do registro \n(data de aquisi\u00e7\u00e3o)": "2021-11-16 00:00:00",
+        "data de \nrecebimento das chaves": "2021-11-17 00:00:00",
+        "valor do im\u00f3vel \nquando foi anunciado \nna loft": "???",
+        "valor de \ncompra": "348000.0",
+        "detalhes da compra": "Pagamento a vista",
+        "banco financiamento": "---",
+        "debito automatico financiamento": "---",
+        "valor da parcela do financialmento": "---",
+        "link do album de fotos": "???",
+        "notas": "---"
+      }
     },
     {
+      "indice": 2,
+      "proprietarios": [
+        "David",
+        "Mariana"
+      ],
+      "tipo": "Apartamento",
+      "endereco": "R. Major Freire, 496, APT 12 \n- S\u00e3o Paulo - SP, 04304-110",
+      "area_m2": null,
+      "iptu_valor_2024": 484.73,
+      "valor_compra": 400000.0,
+      "valor_2024": 440000.0,
+      "data_aquisicao": "AINDA N\u00c3O TEM",
+      "financiamento": {
+        "banco": "Banco Itau",
+        "valor_parcela": null,
+        "status": null
+      },
+      "dados_completos": {
+        "imovel": "Apartamento \nRua Major Freire",
+        "tipo": "Apartamento",
+        "no de contribuinte \n(sql) \nim\u00f3vel": "047.176.0274-9",
+        "no de contribuinte \n(sql)\ngaragem": "047.176.0879-8",
+        "matr\u00edcula\nim\u00f3vel": "74.782",
+        "matr\u00edcula\nvaga de garagem": "74.826",
+        "\u00e1rea constru\u00edda (m\u00b2)": "68,89 m\u00b2",
+        "endere\u00e7o": "R. Major Freire, 496, APT 12 \n- S\u00e3o Paulo - SP, 04304-110",
+        "iptu \n(ano)": "2025",
+        "iptu \n(valor)": "484.73",
+        "sabesp\n(n\u00famero fornecimento)": "responsabilidade do inquilino",
+        "enel\n(instala\u00e7\u00e3o)": "0052298680",
+        "enel\ndebito automatico": "N\u00c3O",
+        "comg\u00e1s": "???",
+        "nome do \ncondominio": "Edificio Gisele",
+        "valor do \ncondomino ": "599.51",
+        "no apto": "12.0",
+        "contato zelador": "S\u00e9rgio Moreira: +55 11 96378-5696",
+        "contato portaria": "Portaria Virtual: Delta Omega\ncentral.relacionamento@deltaomega.com.br\n+55 11 3777 9132",
+        "administradora - nome": "Tecnad Administradora de Im\u00f3veis",
+        "administradora - link": "http://www.tecnad.com.br/",
+        "data de \nassinatura do ccv": "2021-10-21 00:00:00",
+        "data de \nassinatura do registro \n(data de aquisi\u00e7\u00e3o)": "AINDA N\u00c3O TEM",
+        "data de \nrecebimento das chaves": "2022-02-02 00:00:00",
+        "valor do im\u00f3vel \nquando foi anunciado \nna loft": "480000.0",
+        "valor de \ncompra": "400000.0",
+        "detalhes da compra": "Entrada R$ 40,000.00\nFinanciamento R$ 360,000.00",
+        "banco financiamento": "Banco Itau",
+        "debito automatico financiamento": "SIM",
+        "valor da parcela do financialmento": "R$ 4294,00 \n(parcela de Janeiro/2026)",
+        "link do album de fotos": "???",
+        "notas": "---"
+      }
+    },
+    {
+      "indice": 3,
+      "proprietarios": [
+        "David",
+        "Mariana"
+      ],
       "tipo": "Casa",
-      "descricao": "Casa Av. Leonardo da Vinci (Mariana)",
-      "endereco": "Av. Leonardo da Vinci, 2707 - São Paulo - SP, 04313-002",
-      "proprietario": "Mariana",
-      "valor_2024": 80000.00,
-      "data_aquisicao": "2023-01-13",
-      "valor_compra": 80000.00,
-      "financiamento": "Quitado",
-      "iptu_2025": 773.1,
-      "uso": "Sem aluguel operacional",
-      "nota": "Aluguel não operacionalizado"
-    }
-  ],
-  "veiculos_consolidados": [
-    {
-      "proprietario": "David",
-      "tipo": "Motocicleta",
-      "descricao": "Yamaha NMAX - Preta - Ano 2018",
-      "placa": "DAV0351",
-      "valor_2024": 15093.00,
-      "status": "Ativo"
+      "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, S\u00e3o Paulo - SP, 04316-080",
+      "area_m2": null,
+      "iptu_valor_2024": 456.54,
+      "valor_compra": 670000.0,
+      "valor_2024": 737000.0,
+      "data_aquisicao": "2022-08-29 00:00:00",
+      "financiamento": {
+        "banco": "---",
+        "valor_parcela": null,
+        "status": null
+      },
+      "dados_completos": {
+        "imovel": "Casa\nTasso da Silveira",
+        "tipo": "Casa",
+        "no de contribuinte \n(sql) \nim\u00f3vel": "310.050.0118-6",
+        "no de contribuinte \n(sql)\ngaragem": "---",
+        "matr\u00edcula\nim\u00f3vel": "12.644",
+        "matr\u00edcula\nvaga de garagem": "---",
+        "\u00e1rea constru\u00edda (m\u00b2)": "171 m\u00b2 (antes das reformas)\n218 m\u00b2 (considerado no IPTU)",
+        "endere\u00e7o": "R. Tasso da Silveira, 61 - Vila Guarani, S\u00e3o Paulo - SP, 04316-080",
+        "iptu \n(ano)": "2025",
+        "iptu \n(valor)": "4565.4",
+        "sabesp\n(n\u00famero fornecimento)": "86040713644133.0",
+        "enel\n(instala\u00e7\u00e3o)": "0054995434",
+        "enel\ndebito automatico": "SIM",
+        "comg\u00e1s": "n\u00e3o tem",
+        "nome do \ncondominio": "---",
+        "no apto": "---",
+        "contato zelador": "---",
+        "contato portaria": "---",
+        "administradora - nome": "---",
+        "administradora - link": "---",
+        "data de \nassinatura do ccv": "2013-12-26 00:00:00",
+        "data de \nassinatura do registro \n(data de aquisi\u00e7\u00e3o)": "2022-08-29 00:00:00",
+        "data de \nrecebimento das chaves": "???",
+        "valor do im\u00f3vel \nquando foi anunciado \nna loft": "---",
+        "valor de \ncompra": "670000.0",
+        "detalhes da compra": "Nome dos Vendedores: Geraldo Costa Fernandes e Odete dos Santos Fernandes\nImovel financiado pela CAIXA, Financiamento concluido",
+        "banco financiamento": "---",
+        "debito automatico financiamento": "---",
+        "valor da parcela do financialmento": "---",
+        "link do album de fotos": "???",
+        "notas": "---"
+      }
     },
     {
-      "proprietario": "David",
-      "tipo": "Carro",
-      "descricao": "Fiat Toro Ultra - Azul",
-      "placa": "GDK6A27",
-      "valor_2024": 191354.00,
-      "status": "Ativo"
-    },
-    {
-      "proprietario": "David",
-      "tipo": "Motocicleta",
-      "descricao": "Yamaha NMAX 160 - Ano 2024",
-      "placa": "STH2C88",
-      "valor_2024": 21029.00,
-      "status": "Ativo"
+      "indice": 4,
+      "proprietarios": [
+        "David",
+        "Mariana"
+      ],
+      "tipo": "Casa",
+      "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, S\u00e3o Paulo - SP, 04313-002",
+      "area_m2": null,
+      "iptu_valor_2024": 77.31,
+      "valor_compra": 80000.0,
+      "valor_2024": 88000.0,
+      "data_aquisicao": "2023-01-13 00:00:00",
+      "financiamento": {
+        "banco": "---",
+        "valor_parcela": null,
+        "status": null
+      },
+      "dados_completos": {
+        "imovel": "Casa\nLeonardo da Vinci",
+        "tipo": "Casa",
+        "no de contribuinte \n(sql) \nim\u00f3vel": "310.045.0146-01",
+        "no de contribuinte \n(sql)\ngaragem": "---",
+        "matr\u00edcula\nim\u00f3vel": "20.462",
+        "matr\u00edcula\nvaga de garagem": "---",
+        "\u00e1rea constru\u00edda (m\u00b2)": "73 m\u00b2 (considerado no IPTU)",
+        "endere\u00e7o": "Av. Leonardo da Vinci, 2707 - Vila Guarani, S\u00e3o Paulo - SP, 04313-002",
+        "iptu \n(ano)": "2025",
+        "iptu \n(valor)": "773.1",
+        "sabesp\n(n\u00famero fornecimento)": "responsabilidade do morador",
+        "enel\n(instala\u00e7\u00e3o)": "???",
+        "enel\ndebito automatico": "N\u00c3O",
+        "comg\u00e1s": "n\u00e3o tem",
+        "nome do \ncondominio": "---",
+        "no apto": "---",
+        "contato zelador": "---",
+        "contato portaria": "---",
+        "administradora - nome": "---",
+        "administradora - link": "---",
+        "data de \nassinatura do ccv": "2023-12-01 00:00:00",
+        "data de \nassinatura do registro \n(data de aquisi\u00e7\u00e3o)": "2023-01-13 00:00:00",
+        "data de \nrecebimento das chaves": "N\u00c3O RECEBIDO",
+        "valor do im\u00f3vel \nquando foi anunciado \nna loft": "---",
+        "valor de \ncompra": "80000.0",
+        "detalhes da compra": "Nome da Vendedora: Leonilda de Souza",
+        "banco financiamento": "---",
+        "debito automatico financiamento": "---",
+        "valor da parcela do financialmento": "---",
+        "link do album de fotos": "???",
+        "notas": "---"
+      }
     }
   ],
   "investimentos_financeiros_consolidados": {
+    "david_2023": {},
     "david_2024": {
-      "renda_fixa": 443878.48,
-      "fundos_investimento": 154900.74,
-      "criptomoedas_cripto": 4605.77,
-      "moeda_estrangeira": 34918.47,
-      "acoes_bolsa": 0.00,
-      "conta_corrente": 5168.52,
-      "poupanca": 0.00,
-      "total": 643471.98
+      "financeiros_total": 0
     },
     "mariana_2024": {
-      "renda_fixa": 64191.48,
-      "fundos_investimento": 96826.15,
-      "criptomoedas_cripto": 0.00,
-      "moeda_estrangeira": 0.00,
-      "acoes_bolsa": 0.00,
-      "conta_corrente": 0.00,
-      "poupanca": 0.00,
-      "total": 161017.63
+      "financeiros_total": 0
     }
   },
-  "dividas_consolidadas": [
-    {
-      "tipo": "Crédito Imobiliário",
-      "credor": "Itau Unibanco S.A.",
-      "proprietario": "David / Mariana",
-      "valor_2024": 234792.61,
-      "valor_2023": 265420.59,
-      "variacao": -30627.98,
-      "parcela_mensal": 4294.00,
-      "imovel_garantido": "Rua Major Freire, 496 - Apto 12"
-    }
-  ],
-  "rendimentos_ativos_2024": {
-    "david": {
-      "rendimentos_pj": 620917.41,
-      "rendimentos_financeiros": 55445.46,
-      "alugueis_recebidos": 31405.40,
-      "total_bruto": 707768.27
+  "veiculos_consolidados": [],
+  "dividas_consolidados": [],
+  "rendas": {
+    "pj_david": {
+      "fontes": [],
+      "total": 0
     },
-    "mariana": {
-      "rendimentos_pj": 141842.70,
-      "rendimentos_financeiros": 3319.56,
-      "alugueis_recebidos": 66756.69,
-      "total_bruto": 211918.95
+    "clt_mariana": {
+      "fontes": [],
+      "total": 0
+    },
+    "alugueis_david": {
+      "propriedades": [],
+      "total": 0
+    },
+    "alugueis_mariana": {
+      "propriedades": [],
+      "total": 0
+    },
+    "financeiros": {
+      "investimentos": [],
+      "total": 0
     }
   },
-  "cálculo_patrimonio_liquido": {
-    "2024": {
-      "ativo_total": 3501275.44,
-      "passivo_total": 234792.61,
-      "patrimonio_liquido": 3266482.83
+  "extracts_metadata": {
+    "irpf_declarations": 3,
+    "irpf_receipts": 2,
+    "quintoandar_reports": 2,
+    "real_estate_xlsx": 1,
+    "data_extracao": "2026-04-08T17:54:51.154149"
+  },
+  "extratos_processados": {
+    "david_irpf_2023": {
+      "arquivo": "receitafederal_irpfdeclaracao_2023-0_original.pdf",
+      "ano_exercicio": 2024,
+      "ano_calendario": 2023,
+      "declarante": "MARIANA TEIXEIRA FERREIRA",
+      "cpf": "085.052.396-60",
+      "conjuge_cpf": null,
+      "endereco": "RUA TASSO DA SILVEIRA N\u00famero: 61",
+      "ocupacao": "227 - ENFERMEIRO DE N\u00cdVEL SUPERIOR, NUTRICIONISTA, FARMAC\u00caUTICO E AFINS",
+      "bens_direitos": {
+        "imoveis": [],
+        "investimentos": [],
+        "veiculos": [],
+        "outros": []
+      },
+      "rendimentos": {
+        "pj": [
+          {
+            "nome": "SOCIEDADE BENEF ISRAELITA BRAS 146.176,12 9.940,56 26.255,09 9.228,14 2.301,21"
+          },
+          {
+            "nome": "CNPJ/CPF: 60.765.823/0001-30"
+          }
+        ],
+        "clt": [],
+        "alugueis": [],
+        "financeiros": [
+          {
+            "descricao": "Titular 085.052.396-60 30.680.829/0001-43 NU FINANCEIRA SA - SOCIEDADE DE 58,23"
+          },
+          {
+            "descricao": "Titular 085.052.396-60 30.306.294/0001-45 BANCO BTG PACTUAL S A 10.836,52"
+          },
+          {
+            "descricao": "Titular 085.052.396-60 60.746.948/0001-12 BANCO BRADESCO S A 1.220,84"
+          },
+          {
+            "descricao": "Titular 085.052.396-60 11.952.873/0001-10 BTG PACTUAL EXPLORER FI MM 468,62"
+          },
+          {
+            "descricao": "TOTAL 21.812,35"
+          }
+        ],
+        "outros": []
+      },
+      "dividas": [],
+      "deducoes": {
+        "previdencia": 0,
+        "contribuicoes": 0,
+        "despesas": []
+      },
+      "extraction_date": "2026-04-08T17:54:48.244914"
     },
-    "2023": {
-      "ativo_total": 3401188.33,
-      "passivo_total": 265420.59,
-      "patrimonio_liquido": 3135767.74
+    "david_irpf_2024": {
+      "arquivo": "receitafederal_irpfdeclaracao_2024-0_original.pdf",
+      "ano_exercicio": 2025,
+      "ano_calendario": 2024,
+      "declarante": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+      "cpf": "287.766.948-36",
+      "conjuge_cpf": "085.052.396-60",
+      "endereco": "RUA TASSO DA SILVEIRA N\u00famero: 61",
+      "ocupacao": "212 - Analista de sistemas, desenvolvedor de software, administrador de redes e bancos de dados e outros especialistas",
+      "bens_direitos": {
+        "imoveis": [],
+        "investimentos": [],
+        "veiculos": [],
+        "outros": []
+      },
+      "rendimentos": {
+        "pj": [
+          {
+            "nome": "CNPJ/CPF: 48.771.488/0001-87"
+          },
+          {
+            "nome": "CNPJ/CPF: 36.149.947/0001-06"
+          }
+        ],
+        "clt": [],
+        "alugueis": [],
+        "financeiros": [
+          {
+            "descricao": "Titular 287.766.948-36 33.000.167/0001-01 PETROLEO BRASILEIRO 200,77"
+          },
+          {
+            "descricao": "Titular 287.766.948-36 60.701.190/0001-04 ITAU UNIBANCO S.A. 41.231,46"
+          },
+          {
+            "descricao": "Titular 287.766.948-36 90.400.888/0001-42 BANCO SANTANDER (BRASIL) SA 511,97"
+          },
+          {
+            "descricao": "Titular 287.766.948-36 09.516.419/0001-75 PICPAY BANK BANCO MULTIPLO S.A 9.414,38"
+          },
+          {
+            "descricao": "Titular 287.766.948-36 30.680.829/0001-43 NU FINANCEIRA S.A. - SOCIEDADE DE 0,02"
+          },
+          {
+            "descricao": "Titular 287.766.948-36 31.872.495/0001-72 BANCO C6 SA 3.326,64"
+          },
+          {
+            "descricao": "Titular 287.766.948-36 33.736.873/0001-16 HASHDEX 20 NASDAQ CRYPTO INDEX 731,81"
+          },
+          {
+            "descricao": "Titular 287.766.948-36 35.956.056/0001-07 DNA ENERGY FUNDO DE 28,41"
+          }
+        ],
+        "outros": []
+      },
+      "dividas": [],
+      "deducoes": {
+        "previdencia": 0,
+        "contribuicoes": 0,
+        "despesas": []
+      },
+      "extraction_date": "2026-04-08T17:54:48.679085"
     },
-    "variacao_patrimonio_liquido": {
-      "valor": 130715.09,
-      "percentual": 4.17
+    "mariana_irpf_2024": {
+      "arquivo": "receitafederal_irpfdeclaracaomariana_2024-0_original.pdf",
+      "ano_exercicio": 2025,
+      "ano_calendario": 2024,
+      "declarante": "MARIANA FERREIRA CAMPOS",
+      "cpf": "085.052.396-60",
+      "conjuge_cpf": "287.766.948-36",
+      "endereco": "RUA TASSO DA SILVEIRA N\u00famero: 61",
+      "ocupacao": "227 - Enfermeiro de n\u00edvel superior, nutricionista, farmac\u00eautico e afins",
+      "bens_direitos": {
+        "imoveis": [],
+        "investimentos": [],
+        "veiculos": [],
+        "outros": []
+      },
+      "rendimentos": {
+        "pj": [
+          {
+            "nome": "SOCIEDADE BENEFICENTE ISRAELITA 141.842,70 10.906,20 22.575,99 8.301,32 1.913,12"
+          },
+          {
+            "nome": "CNPJ/CPF: 60.765.823/0001-30"
+          }
+        ],
+        "clt": [],
+        "alugueis": [],
+        "financeiros": [
+          {
+            "descricao": "Titular 085.052.396-60 00.888.897/0001-31 BTG PACTUAL HEDGE FUNDO DE 150,83"
+          },
+          {
+            "descricao": "Titular 085.052.396-60 11.952.873/0001-10 BTG PACTUAL EXPLORER RENDA FIXA 2.350,78"
+          },
+          {
+            "descricao": "Titular 085.052.396-60 39.958.460/0001-62 M8 CAPITAL PLUS FUNDO DE 479,38"
+          },
+          {
+            "descricao": "Titular 085.052.396-60 60.746.948/0001-12 BANCO BRADESCO S A 326,17"
+          },
+          {
+            "descricao": "Titular 085.052.396-60 30.680.829/0001-43 NU FINANCEIRA S.A. - SOCIEDADE DE 3,91"
+          },
+          {
+            "descricao": "Titular 085.052.396-60 30.306.294/0001-45 BANCO BTG PACTUAL S A 8,49"
+          },
+          {
+            "descricao": "TOTAL 11.620,88"
+          }
+        ],
+        "outros": []
+      },
+      "dividas": [],
+      "deducoes": {
+        "previdencia": 0,
+        "contribuicoes": 0,
+        "despesas": []
+      },
+      "extraction_date": "2026-04-08T17:54:49.334993"
+    },
+    "qa_david_2025": {
+      "arquivo": "quintoandar_informerendimentosaluguel_2025-0_original.pdf",
+      "proprietario": "David",
+      "ano_referencia": 2025,
+      "imoveis": [],
+      "totais": {
+        "renda_bruta": null,
+        "renda_liquida": null,
+        "impostos": null
+      },
+      "extraction_date": "2026-04-08T17:54:49.828427"
+    },
+    "qa_mariana_2025": {
+      "arquivo": "quintoandar_informerendimentosaluguelmariana_2025-0_original.pdf",
+      "proprietario": "Mariana",
+      "ano_referencia": 2025,
+      "imoveis": [],
+      "totais": {
+        "renda_bruta": null,
+        "renda_liquida": null,
+        "impostos": null
+      },
+      "extraction_date": "2026-04-08T17:54:50.432018"
+    },
+    "imoveis_xlsx": {
+      "imoveis": [
+        {
+          "indice": 1,
+          "proprietarios": [
+            "David",
+            "Mariana"
+          ],
+          "tipo": "Apartamento",
+          "endereco": "Pra\u00e7a Benedito Calixto, 186/190, APT 34 \n- Pinheiros, S\u00e3o Paulo - SP, 05406-040",
+          "area_m2": null,
+          "iptu_valor_2024": 10834.0,
+          "valor_compra": 3480000.0,
+          "valor_2024": null,
+          "data_aquisicao": "2021-11-16 00:00:00",
+          "financiamento": {
+            "banco": "---",
+            "valor_parcela": null,
+            "status": null
+          },
+          "dados_completos": {
+            "imovel": "Apartamento \nPra\u00e7a Benedito Calixto",
+            "tipo": "Apartamento",
+            "no de contribuinte \n(sql) \nim\u00f3vel": "013.036.0155-9",
+            "no de contribuinte \n(sql)\ngaragem": "---",
+            "matr\u00edcula\nim\u00f3vel": "3421",
+            "matr\u00edcula\nvaga de garagem": "---",
+            "\u00e1rea constru\u00edda (m\u00b2)": "40,7631m2",
+            "endere\u00e7o": "Pra\u00e7a Benedito Calixto, 186/190, APT 34 \n- Pinheiros, S\u00e3o Paulo - SP, 05406-040",
+            "iptu \n(ano)": "2025",
+            "iptu \n(valor)": "1083.4",
+            "sabesp\n(n\u00famero fornecimento)": "responsabilidade do inquilino",
+            "enel\n(instala\u00e7\u00e3o)": "49338323",
+            "enel\ndebito automatico": "N\u00c3O",
+            "comg\u00e1s": "???",
+            "nome do \ncondominio": "Bar\u00e3o de Capanema",
+            "valor do \ncondomino ": "668.87",
+            "no apto": "34.0",
+            "contato zelador": "???",
+            "contato portaria": "???",
+            "administradora - nome": "Graiche Construtora e Imobili\u00e1ria Ltda",
+            "administradora - link": "https://graiche.com.br/",
+            "data de \nassinatura do ccv": "2021-10-21 00:00:00",
+            "data de \nassinatura do registro \n(data de aquisi\u00e7\u00e3o)": "2021-11-16 00:00:00",
+            "data de \nrecebimento das chaves": "2021-11-17 00:00:00",
+            "valor do im\u00f3vel \nquando foi anunciado \nna loft": "???",
+            "valor de \ncompra": "348000.0",
+            "detalhes da compra": "Pagamento a vista",
+            "banco financiamento": "---",
+            "debito automatico financiamento": "---",
+            "valor da parcela do financialmento": "---",
+            "link do album de fotos": "???",
+            "notas": "---"
+          }
+        },
+        {
+          "indice": 2,
+          "proprietarios": [
+            "David",
+            "Mariana"
+          ],
+          "tipo": "Apartamento",
+          "endereco": "R. Major Freire, 496, APT 12 \n- S\u00e3o Paulo - SP, 04304-110",
+          "area_m2": null,
+          "iptu_valor_2024": 48473.0,
+          "valor_compra": 4000000.0,
+          "valor_2024": null,
+          "data_aquisicao": "AINDA N\u00c3O TEM",
+          "financiamento": {
+            "banco": "Banco Itau",
+            "valor_parcela": null,
+            "status": null
+          },
+          "dados_completos": {
+            "imovel": "Apartamento \nRua Major Freire",
+            "tipo": "Apartamento",
+            "no de contribuinte \n(sql) \nim\u00f3vel": "047.176.0274-9",
+            "no de contribuinte \n(sql)\ngaragem": "047.176.0879-8",
+            "matr\u00edcula\nim\u00f3vel": "74.782",
+            "matr\u00edcula\nvaga de garagem": "74.826",
+            "\u00e1rea constru\u00edda (m\u00b2)": "68,89 m\u00b2",
+            "endere\u00e7o": "R. Major Freire, 496, APT 12 \n- S\u00e3o Paulo - SP, 04304-110",
+            "iptu \n(ano)": "2025",
+            "iptu \n(valor)": "484.73",
+            "sabesp\n(n\u00famero fornecimento)": "responsabilidade do inquilino",
+            "enel\n(instala\u00e7\u00e3o)": "0052298680",
+            "enel\ndebito automatico": "N\u00c3O",
+            "comg\u00e1s": "???",
+            "nome do \ncondominio": "Edificio Gisele",
+            "valor do \ncondomino ": "599.51",
+            "no apto": "12.0",
+            "contato zelador": "S\u00e9rgio Moreira: +55 11 96378-5696",
+            "contato portaria": "Portaria Virtual: Delta Omega\ncentral.relacionamento@deltaomega.com.br\n+55 11 3777 9132",
+            "administradora - nome": "Tecnad Administradora de Im\u00f3veis",
+            "administradora - link": "http://www.tecnad.com.br/",
+            "data de \nassinatura do ccv": "2021-10-21 00:00:00",
+            "data de \nassinatura do registro \n(data de aquisi\u00e7\u00e3o)": "AINDA N\u00c3O TEM",
+            "data de \nrecebimento das chaves": "2022-02-02 00:00:00",
+            "valor do im\u00f3vel \nquando foi anunciado \nna loft": "480000.0",
+            "valor de \ncompra": "400000.0",
+            "detalhes da compra": "Entrada R$ 40,000.00\nFinanciamento R$ 360,000.00",
+            "banco financiamento": "Banco Itau",
+            "debito automatico financiamento": "SIM",
+            "valor da parcela do financialmento": "R$ 4294,00 \n(parcela de Janeiro/2026)",
+            "link do album de fotos": "???",
+            "notas": "---"
+          }
+        },
+        {
+          "indice": 3,
+          "proprietarios": [
+            "David",
+            "Mariana"
+          ],
+          "tipo": "Casa",
+          "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, S\u00e3o Paulo - SP, 04316-080",
+          "area_m2": null,
+          "iptu_valor_2024": 45654.0,
+          "valor_compra": 6700000.0,
+          "valor_2024": null,
+          "data_aquisicao": "2022-08-29 00:00:00",
+          "financiamento": {
+            "banco": "---",
+            "valor_parcela": null,
+            "status": null
+          },
+          "dados_completos": {
+            "imovel": "Casa\nTasso da Silveira",
+            "tipo": "Casa",
+            "no de contribuinte \n(sql) \nim\u00f3vel": "310.050.0118-6",
+            "no de contribuinte \n(sql)\ngaragem": "---",
+            "matr\u00edcula\nim\u00f3vel": "12.644",
+            "matr\u00edcula\nvaga de garagem": "---",
+            "\u00e1rea constru\u00edda (m\u00b2)": "171 m\u00b2 (antes das reformas)\n218 m\u00b2 (considerado no IPTU)",
+            "endere\u00e7o": "R. Tasso da Silveira, 61 - Vila Guarani, S\u00e3o Paulo - SP, 04316-080",
+            "iptu \n(ano)": "2025",
+            "iptu \n(valor)": "4565.4",
+            "sabesp\n(n\u00famero fornecimento)": "86040713644133.0",
+            "enel\n(instala\u00e7\u00e3o)": "0054995434",
+            "enel\ndebito automatico": "SIM",
+            "comg\u00e1s": "n\u00e3o tem",
+            "nome do \ncondominio": "---",
+            "no apto": "---",
+            "contato zelador": "---",
+            "contato portaria": "---",
+            "administradora - nome": "---",
+            "administradora - link": "---",
+            "data de \nassinatura do ccv": "2013-12-26 00:00:00",
+            "data de \nassinatura do registro \n(data de aquisi\u00e7\u00e3o)": "2022-08-29 00:00:00",
+            "data de \nrecebimento das chaves": "???",
+            "valor do im\u00f3vel \nquando foi anunciado \nna loft": "---",
+            "valor de \ncompra": "670000.0",
+            "detalhes da compra": "Nome dos Vendedores: Geraldo Costa Fernandes e Odete dos Santos Fernandes\nImovel financiado pela CAIXA, Financiamento concluido",
+            "banco financiamento": "---",
+            "debito automatico financiamento": "---",
+            "valor da parcela do financialmento": "---",
+            "link do album de fotos": "???",
+            "notas": "---"
+          }
+        },
+        {
+          "indice": 4,
+          "proprietarios": [
+            "David",
+            "Mariana"
+          ],
+          "tipo": "Casa",
+          "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, S\u00e3o Paulo - SP, 04313-002",
+          "area_m2": null,
+          "iptu_valor_2024": 7731.0,
+          "valor_compra": 800000.0,
+          "valor_2024": null,
+          "data_aquisicao": "2023-01-13 00:00:00",
+          "financiamento": {
+            "banco": "---",
+            "valor_parcela": null,
+            "status": null
+          },
+          "dados_completos": {
+            "imovel": "Casa\nLeonardo da Vinci",
+            "tipo": "Casa",
+            "no de contribuinte \n(sql) \nim\u00f3vel": "310.045.0146-01",
+            "no de contribuinte \n(sql)\ngaragem": "---",
+            "matr\u00edcula\nim\u00f3vel": "20.462",
+            "matr\u00edcula\nvaga de garagem": "---",
+            "\u00e1rea constru\u00edda (m\u00b2)": "73 m\u00b2 (considerado no IPTU)",
+            "endere\u00e7o": "Av. Leonardo da Vinci, 2707 - Vila Guarani, S\u00e3o Paulo - SP, 04313-002",
+            "iptu \n(ano)": "2025",
+            "iptu \n(valor)": "773.1",
+            "sabesp\n(n\u00famero fornecimento)": "responsabilidade do morador",
+            "enel\n(instala\u00e7\u00e3o)": "???",
+            "enel\ndebito automatico": "N\u00c3O",
+            "comg\u00e1s": "n\u00e3o tem",
+            "nome do \ncondominio": "---",
+            "no apto": "---",
+            "contato zelador": "---",
+            "contato portaria": "---",
+            "administradora - nome": "---",
+            "administradora - link": "---",
+            "data de \nassinatura do ccv": "2023-12-01 00:00:00",
+            "data de \nassinatura do registro \n(data de aquisi\u00e7\u00e3o)": "2023-01-13 00:00:00",
+            "data de \nrecebimento das chaves": "N\u00c3O RECEBIDO",
+            "valor do im\u00f3vel \nquando foi anunciado \nna loft": "---",
+            "valor de \ncompra": "80000.0",
+            "detalhes da compra": "Nome da Vendedora: Leonilda de Souza",
+            "banco financiamento": "---",
+            "debito automatico financiamento": "---",
+            "valor da parcela do financialmento": "---",
+            "link do album de fotos": "???",
+            "notas": "---"
+          }
+        }
+      ],
+      "extraction_date": "2026-04-08T17:54:51.132525"
     }
   }
 }

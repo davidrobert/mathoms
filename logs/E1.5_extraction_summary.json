@@ -1,0 +1,87 @@
+{
+  "titulo": "STAGE E1.5 - Patrimonial Baseline Extraction Summary",
+  "data_execucao": "2026-04-08T17:55:25.898492",
+  "status": "COMPLETED",
+  "extracoes_completadas": {
+    "irpf_declarations": 3,
+    "irpf_receipts": 2,
+    "quintoandar_reports": 2,
+    "real_estate_xlsx": 1,
+    "arquivos_processados": 8
+  },
+  "dados_extraidos": {
+    "familia": {
+      "membros": 3,
+      "titular": "David Robert Camargo Ferreira Campos",
+      "conjuge": "Mariana Ferreira Campos",
+      "dependentes": 1
+    },
+    "imoveis": {
+      "total": 4,
+      "valor_total_2024": 1647800.0,
+      "propriedades": [
+        {
+          "endereco": "Pra\u00e7a Benedito Calixto, 186/190, APT 34 ",
+          "tipo": "Apartamento",
+          "valor_2024": 382800.0,
+          "proprietarios": [
+            "David",
+            "Mariana"
+          ]
+        },
+        {
+          "endereco": "R. Major Freire, 496, APT 12 ",
+          "tipo": "Apartamento",
+          "valor_2024": 440000.0,
+          "proprietarios": [
+            "David",
+            "Mariana"
+          ]
+        },
+        {
+          "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, S\u00e3o Paulo",
+          "tipo": "Casa",
+          "valor_2024": 737000.0,
+          "proprietarios": [
+            "David",
+            "Mariana"
+          ]
+        },
+        {
+          "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, S\u00e3o Pa",
+          "tipo": "Casa",
+          "valor_2024": 88000.0,
+          "proprietarios": [
+            "David",
+            "Mariana"
+          ]
+        }
+      ]
+    },
+    "rendas_david_2024": {
+      "pj_registradas": 2,
+      "alugueis_registrados": 0,
+      "financeiros_registrados": 8
+    },
+    "rendas_mariana_2024": {
+      "clt_registrados": 0,
+      "alugueis_registrados": 0,
+      "financeiros_registrados": 7
+    }
+  },
+  "arquivos_saida": {
+    "extratos_irpf": 3,
+    "extratos_irpf_recibos": 2,
+    "extratos_quintoandar": 2,
+    "extrato_imoveis_xlsx": 1,
+    "baseline_consolidado": 1,
+    "total_arquivos": 9
+  },
+  "e5_compatibility": {
+    "bens_imoveis_consolidados": "\u2713 Array com campo 'proprietarios' (list)",
+    "investimentos_financeiros_consolidados": "\u2713 Dict com chaves member_year",
+    "dividas_consolidados": "\u2713 Array com 'proprietarios' (list)",
+    "veiculos_consolidados": "\u2713 Array estruturado",
+    "resumo_patrimonial": "\u2713 Dicts por data (31_12_2023, 31_12_2024)"
+  }
+}

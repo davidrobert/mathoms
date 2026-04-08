@@ -1,52 +1,62 @@
 {
-  "tipo": "irpfdeclaracao",
-  "membro": "david",
-  "ano_base": 2024,
-  "bens_direitos": [
-    {"codigo": "01.11", "descricao": "Apartamento Barao de Capanema - Apto 34", "valor_31_12_anterior": 350000.00, "valor_31_12": 350000.00},
-    {"codigo": "01.11", "descricao": "Apartamento Edifício Gisele - Apto 12", "valor_31_12_anterior": 212706.24, "valor_31_12": 212706.24},
-    {"codigo": "01.12", "descricao": "Casa - Compra 12/01/2023", "valor_31_12_anterior": 80000.00, "valor_31_12": 80000.00},
-    {"codigo": "01.12", "descricao": "Casa Rua Tasso da Silveira", "valor_31_12_anterior": 996821.46, "valor_31_12": 996821.46},
-    {"codigo": "02.01", "descricao": "Moto Yamaha NMAX", "valor_31_12_anterior": 15093.00, "valor_31_12": 15093.00},
-    {"codigo": "02.01", "descricao": "Carro Fiat Toro Ultra", "valor_31_12_anterior": 191354.00, "valor_31_12": 191354.00},
-    {"codigo": "02.01", "descricao": "Moto Yamaha NMAX 2024", "valor_31_12_anterior": 0.00, "valor_31_12": 21029.00},
-    {"codigo": "04.02", "descricao": "Banco Itau - RDB/CDP", "valor_31_12_anterior": 277658.86, "valor_31_12": 151602.49},
-    {"codigo": "04.02", "descricao": "Banco Picpay", "valor_31_12_anterior": 73587.74, "valor_31_12": 46684.62},
-    {"codigo": "04.02", "descricao": "Banco Santander - CDB", "valor_31_12_anterior": 1886.46, "valor_31_12": 243285.37},
-    {"codigo": "04.02", "descricao": "Banco C6", "valor_31_12_anterior": 23439.00, "valor_31_12": 1765.00},
-    {"codigo": "04.02", "descricao": "RDB NuBank", "valor_31_12_anterior": 5.98, "valor_31_12": 189.30},
-    {"codigo": "06.01", "descricao": "Banco Caixa Conta Corrente", "valor_31_12_anterior": 275.29, "valor_31_12": 230.53},
-    {"codigo": "06.01", "descricao": "Banco Itau Conta Corrente", "valor_31_12_anterior": 10.00, "valor_31_12": 1.01},
-    {"codigo": "06.01", "descricao": "Depósito conta corrente investimento", "valor_31_12_anterior": 0.00, "valor_31_12": 4936.98},
-    {"codigo": "06.11", "descricao": "US$ 6524.00", "valor_31_12_anterior": 34433.67, "valor_31_12": 34433.67},
-    {"codigo": "06.99", "descricao": "RICO - XP Investimentos", "valor_31_12_anterior": 15717.49, "valor_31_12": 8546.95},
-    {"codigo": "06.99", "descricao": "Depósito moeda estrangeira Dólar", "valor_31_12_anterior": 768.94, "valor_31_12": 484.80},
-    {"codigo": "07.01", "descricao": "RICO Hashdex Crypto Index", "valor_31_12_anterior": 2457.74, "valor_31_12": 3189.68},
-    {"codigo": "07.01", "descricao": "RICO DNA Energy FIC", "valor_31_12_anterior": 1387.66, "valor_31_12": 1416.09},
-    {"codigo": "07.04", "descricao": "RICO Constellation Institutional", "valor_31_12_anterior": 10000.00, "valor_31_12": 11409.17},
-    {"codigo": "07.04", "descricao": "RICO Western Asset FIA BDR", "valor_31_12_anterior": 17651.61, "valor_31_12": 17651.61},
-    {"codigo": "07.04", "descricao": "RICO Alaska Black FIC FIA", "valor_31_12_anterior": 60000.00, "valor_31_12": 60000.00},
-    {"codigo": "07.04", "descricao": "RICO Alaska Black Institutional", "valor_31_12_anterior": 35000.00, "valor_31_12": 35000.00},
-    {"codigo": "07.04", "descricao": "RICO Safari 30 FIC FIM II", "valor_31_12_anterior": 25238.59, "valor_31_12": 25238.59},
-    {"codigo": "99.07", "descricao": "Itaúsa Posição Acionária", "valor_31_12_anterior": 192.96, "valor_31_12": 82.15}
-  ],
+  "arquivo": "receitafederal_irpfdeclaracao_2024-0_original.pdf",
+  "ano_exercicio": 2025,
+  "ano_calendario": 2024,
+  "declarante": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+  "cpf": "287.766.948-36",
+  "conjuge_cpf": "085.052.396-60",
+  "endereco": "RUA TASSO DA SILVEIRA N\u00famero: 61",
+  "ocupacao": "212 - Analista de sistemas, desenvolvedor de software, administrador de redes e bancos de dados e outros especialistas",
+  "bens_direitos": {
+    "imoveis": [],
+    "investimentos": [],
+    "veiculos": [],
+    "outros": []
+  },
   "rendimentos": {
     "pj": [
-      {"fonte": "David Robert Camargo de Campos LTDA", "cnpj": "48.771.488/0001-87", "rendimentos_brutos": 153938.74, "imposto_retido": 33225.23},
-      {"fonte": "Kiwify Pagamentos Tecnologia", "cnpj": "36.149.947/0001-06", "rendimentos_brutos": 466978.67, "imposto_retido": 121543.55}
+      {
+        "nome": "CNPJ/CPF: 48.771.488/0001-87"
+      },
+      {
+        "nome": "CNPJ/CPF: 36.149.947/0001-06"
+      }
     ],
+    "clt": [],
     "alugueis": [],
-    "financeiros": [{"descricao": "Rendimentos de aplicações financeiras", "valor": 55445.46}],
-    "outros": [{"descricao": "Rendimento de sócio microempresa", "valor": 301277.39}]
+    "financeiros": [
+      {
+        "descricao": "Titular 287.766.948-36 33.000.167/0001-01 PETROLEO BRASILEIRO 200,77"
+      },
+      {
+        "descricao": "Titular 287.766.948-36 60.701.190/0001-04 ITAU UNIBANCO S.A. 41.231,46"
+      },
+      {
+        "descricao": "Titular 287.766.948-36 90.400.888/0001-42 BANCO SANTANDER (BRASIL) SA 511,97"
+      },
+      {
+        "descricao": "Titular 287.766.948-36 09.516.419/0001-75 PICPAY BANK BANCO MULTIPLO S.A 9.414,38"
+      },
+      {
+        "descricao": "Titular 287.766.948-36 30.680.829/0001-43 NU FINANCEIRA S.A. - SOCIEDADE DE 0,02"
+      },
+      {
+        "descricao": "Titular 287.766.948-36 31.872.495/0001-72 BANCO C6 SA 3.326,64"
+      },
+      {
+        "descricao": "Titular 287.766.948-36 33.736.873/0001-16 HASHDEX 20 NASDAQ CRYPTO INDEX 731,81"
+      },
+      {
+        "descricao": "Titular 287.766.948-36 35.956.056/0001-07 DNA ENERGY FUNDO DE 28,41"
+      }
+    ],
+    "outros": []
   },
-  "dividas": [
-    {"codigo": "11", "descricao": "Crédito Imobiliário Itau", "valor_inicial": 265420.59, "valor_final": 234792.61}
-  ],
-  "pagamentos_dedutiveis": [
-    {"codigo": "21", "descricao": "Fleury S/A", "valor": 136.00},
-    {"codigo": "71", "descricao": "GRPQA Ltda", "valor": 2829.36}
-  ],
-  "total_bens_anterior": 2589887.09,
-  "total_bens": 2513151.71,
-  "imposto_devido": 163779.60
+  "dividas": [],
+  "deducoes": {
+    "previdencia": 0,
+    "contribuicoes": 0,
+    "despesas": []
+  },
+  "extraction_date": "2026-04-08T17:54:48.679085"
 }

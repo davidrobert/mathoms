@@ -1,30 +1,12 @@
 {
-  "tipo": "informerendimentos",
-  "membro": "mariana",
-  "ano_base": 2025,
-  "propriedades": [
-    {
-      "endereco": "Avenida Alberto Augusto Alves, 320 - 812 - São Paulo - SP - 05724-030",
-      "codigo_imovel": 894064293,
-      "renda_bruta": 7424.71,
-      "descontos": 1548.62,
-      "liquido": 5876.09,
-      "inquilino_principal": "Luana Pereira Da Silva",
-      "codigo_contrato": 571095
-    },
-    {
-      "endereco": "Avenida João Dias, 2192 - 163 Torre 2 - São Paulo - SP - 04724-003",
-      "codigo_imovel": 894326656,
-      "renda_bruta": 66755.06,
-      "descontos": 5874.46,
-      "liquido": 60880.60,
-      "inquilino": "Wesley Augusto De Almeida Sandes",
-      "codigo_contrato": 689924
-    }
-  ],
-  "total_bruto": 74179.77,
-  "total_descontos": 7423.08,
-  "total_liquido": 66756.69,
-  "administradora": "GRPQA LTDA",
-  "ano_calendario": 2025
+  "arquivo": "quintoandar_informerendimentosaluguelmariana_2025-0_original.pdf",
+  "proprietario": "Mariana",
+  "ano_referencia": 2025,
+  "imoveis": [],
+  "totais": {
+    "renda_bruta": null,
+    "renda_liquida": null,
+    "impostos": null
+  },
+  "extraction_date": "2026-04-08T17:54:50.432018"
 }

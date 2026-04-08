@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-08T16:50:48.929142-03:00",
+  "consolidation_date": "2026-04-08T18:00:23.430230-03:00",
   "periodo": "2023-01 a 2026-04",
   "categorias": [
     "outras_receitas",
@@ -12,18 +12,18 @@
     "receita_venda_ativo"
   ],
   "total_categorias": 8,
-  "total_transacoes": 653,
+  "total_transacoes": 630,
   "totais_por_categoria": {
-    "outras_receitas": 464243.6300000005,
+    "outras_receitas": 462099.30000000057,
     "receita_investimento": 14565.170000000011,
     "receita_resgate": 27416.699999999997,
     "receita_aluguel": 173662.92999999993,
     "receita_clt": 1165140.9200000002,
+    "receita_pj": 614624.88,
     "receita_venda_ativo": 49402.0,
-    "receita_pj": 618374.88,
     "receita_restituicao": 16.99
   },
-  "total_geral": 2512823.22,
+  "total_geral": 2506928.89,
   "dados": {
     "outras_receitas": [
       {
@@ -1237,28 +1237,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-05-20",
-        "descricao": "Outros",
-        "valor": 17.55,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-05-22",
-        "descricao": "Outros",
-        "valor": 1002.6,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
         "data": "2025-06-02",
         "descricao": "Rent",
         "valor": 0.54,
@@ -1389,28 +1367,6 @@
         "tipo_conta": "extratoconta",
         "titular": "mariana",
         "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-04",
-        "descricao": "Outros",
-        "valor": 26.6,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-07-15",
-        "descricao": "Outros",
-        "valor": 10.73,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
       },
       {
         "data": "2025-07-20",
@@ -1545,17 +1501,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-08-29",
-        "descricao": "Outros",
-        "valor": 100.0,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
         "data": "2025-09-04",
         "descricao": "Rent",
         "valor": 0.46,
@@ -1565,39 +1510,6 @@
         "tipo_conta": "extratoconta",
         "titular": "mariana",
         "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-05",
-        "descricao": "Outros",
-        "valor": 19.31,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-05",
-        "descricao": "Outros",
-        "valor": 19.31,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-09",
-        "descricao": "Outros",
-        "valor": 20.26,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
       },
       {
         "data": "2025-09-15",
@@ -1620,127 +1532,6 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-20",
-        "descricao": "Outros",
-        "valor": 331.26,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-20",
-        "descricao": "Outros",
-        "valor": 81.65,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-22",
-        "descricao": "Outros",
-        "valor": 65.19,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-23",
-        "descricao": "Outros",
-        "valor": 192.43,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-23",
-        "descricao": "Outros",
-        "valor": 85.99,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-23",
-        "descricao": "Outros",
-        "valor": 17.99,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-23",
-        "descricao": "Outros",
-        "valor": 5.36,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-23",
-        "descricao": "Outros",
-        "valor": 26.85,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-24",
-        "descricao": "Outros",
-        "valor": 8.58,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-24",
-        "descricao": "Outros",
-        "valor": 8.58,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-09-24",
-        "descricao": "Outros",
-        "valor": 12.09,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
       },
       {
         "data": "2025-09-30",
@@ -1853,17 +1644,6 @@
         "moeda": "USD"
       },
       {
-        "data": "2025-10-23",
-        "descricao": "Cashback Compra Cartão",
-        "valor": 3.0,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
         "data": "2025-11-19",
         "descricao": "DESBLOQUEIO PIX",
         "valor": 333.0,
@@ -1906,17 +1686,6 @@
         "tipo_conta": "extratoconta",
         "titular": "mariana",
         "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-24",
-        "descricao": "Outros",
-        "valor": 89.0,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
       },
       {
         "data": "2025-11-25",
@@ -2030,7 +1799,7 @@
       },
       {
         "data": "2026-01-01",
-        "descricao": "Devol recebida pix de RAFAEL BARROSO DE CARVALHO IOF CHEQUE ESPECIAL",
+        "descricao": "Devol recebida pix de RAFAEL BARROSO DE CARVALHO",
         "valor": 200.0,
         "banco": "C6 Bank",
         "categoria": "outras_receitas",
@@ -2085,7 +1854,7 @@
       },
       {
         "data": "2026-02-04",
-        "descricao": "PIX RECEBIDO DOUGLAS CAMARGO DE CAMPOS",
+        "descricao": "PIX RECEBIDO                       DOUGLAS CAMARGO DE CAMPOS",
         "valor": 100.0,
         "banco": "Santander",
         "categoria": "outras_receitas",
@@ -2173,7 +1942,7 @@
       },
       {
         "data": "2026-03-04",
-        "descricao": "PIX RECEBIDO DOUGLAS CAMARGO DE CAMPOS",
+        "descricao": "PIX RECEBIDO                       DOUGLAS CAMARGO DE CAMPOS",
         "valor": 100.0,
         "banco": "Santander",
         "categoria": "outras_receitas",
@@ -6118,7 +5887,7 @@
       {
         "data": "2025-09-11",
         "descricao": "SISPAG GRPQA LTDA",
-        "valor": 1571.97,
+        "valor": 1850.13,
         "banco": "Itaú",
         "categoria": "receita_aluguel",
         "origem": "Aluguéis",
@@ -6129,7 +5898,7 @@
       {
         "data": "2025-09-11",
         "descricao": "SISPAG GRPQA LTDA",
-        "valor": 1850.13,
+        "valor": 1571.97,
         "banco": "Itaú",
         "categoria": "receita_aluguel",
         "origem": "Aluguéis",
@@ -6151,7 +5920,7 @@
       {
         "data": "2025-10-09",
         "descricao": "SISPAG GRPQA LTDA",
-        "valor": 1850.13,
+        "valor": 1571.97,
         "banco": "Itaú",
         "categoria": "receita_aluguel",
         "origem": "Aluguéis",
@@ -6162,7 +5931,7 @@
       {
         "data": "2025-10-09",
         "descricao": "SISPAG GRPQA LTDA",
-        "valor": 1571.97,
+        "valor": 1850.13,
         "banco": "Itaú",
         "categoria": "receita_aluguel",
         "origem": "Aluguéis",
@@ -6179,17 +5948,6 @@
         "origem": "Aluguéis",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-11",
-        "descricao": "SISPAG GRPQA LTDA",
-        "valor": 1850.13,
-        "banco": "Itaú",
-        "categoria": "receita_aluguel",
-        "origem": "Aluguéis",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
         "moeda": "BRL"
       },
       {
@@ -6205,6 +5963,17 @@
       },
       {
         "data": "2025-11-11",
+        "descricao": "SISPAG  GRPQA LTDA",
+        "valor": 1850.13,
+        "banco": "Itaú",
+        "categoria": "receita_aluguel",
+        "origem": "Aluguéis",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-11",
         "descricao": "Receb Pagfor Grpqa Ltda.",
         "valor": 5316.36,
         "banco": "Bradesco",
@@ -6217,7 +5986,7 @@
       {
         "data": "2025-12-11",
         "descricao": "SISPAG GRPQA LTDA",
-        "valor": 1571.97,
+        "valor": 1850.13,
         "banco": "Itaú",
         "categoria": "receita_aluguel",
         "origem": "Aluguéis",
@@ -6228,7 +5997,7 @@
       {
         "data": "2025-12-11",
         "descricao": "SISPAG GRPQA LTDA",
-        "valor": 1850.13,
+        "valor": 1571.97,
         "banco": "Itaú",
         "categoria": "receita_aluguel",
         "origem": "Aluguéis",
@@ -6250,7 +6019,7 @@
       {
         "data": "2026-01-09",
         "descricao": "SISPAG GRPQA LTDA",
-        "valor": 1571.97,
+        "valor": 1850.13,
         "banco": "Itaú",
         "categoria": "receita_aluguel",
         "origem": "Aluguéis",
@@ -6261,7 +6030,7 @@
       {
         "data": "2026-01-09",
         "descricao": "SISPAG GRPQA LTDA",
-        "valor": 1850.13,
+        "valor": 1571.97,
         "banco": "Itaú",
         "categoria": "receita_aluguel",
         "origem": "Aluguéis",
@@ -6921,42 +6690,7 @@
         "moeda": "BRL"
       }
     ],
-    "receita_venda_ativo": [
-      {
-        "data": "2025-03-29",
-        "descricao": "Pix recebido de POMPEIA MOTOS MULTIMARCAS LTDA",
-        "valor": 49402.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_venda_ativo",
-        "origem": "Venda de Ativo",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      }
-    ],
     "receita_pj": [
-      {
-        "data": "2025-03-09",
-        "descricao": "Pix recebido de ARBITRALIS S.A.",
-        "valor": 2000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arbitralis (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-03-12",
-        "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
-        "valor": 1750.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Learn To Fly (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
       {
         "data": "2025-05-30",
         "descricao": "Pix recebido de BRANDLOVRS LTDA.",
@@ -6992,7 +6726,7 @@
       },
       {
         "data": "2025-07-15",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NFS 25",
         "valor": 40000.0,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
@@ -7003,7 +6737,7 @@
       },
       {
         "data": "2025-07-29",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NF 26",
         "valor": 40000.0,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
@@ -7014,7 +6748,7 @@
       },
       {
         "data": "2025-08-26",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA Pix enviado para RECEITA FEDERAL",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NFS 27",
         "valor": 40000.0,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
@@ -7036,11 +6770,11 @@
       },
       {
         "data": "2025-09-30",
-        "descricao": "Pix recebido de BRANDLOVRS LTDA Pix recebido de ARVO SAUDE LTDA",
+        "descricao": "Pix recebido de BRANDLOVRS LTDA",
         "valor": 40000.0,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
+        "origem": "BrandLovers (David - PJ)",
         "tipo_conta": "extratocontapj",
         "titular": null,
         "moeda": "BRL"
@@ -7058,7 +6792,7 @@
       },
       {
         "data": "2025-10-30",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
         "valor": 50000.0,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
@@ -7080,7 +6814,7 @@
       },
       {
         "data": "2025-11-27",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — 13 Salário",
         "valor": 8333.33,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
@@ -7091,7 +6825,7 @@
       },
       {
         "data": "2025-11-28",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
         "valor": 46624.29,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
@@ -7157,7 +6891,7 @@
       },
       {
         "data": "2026-02-27",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
         "valor": 47208.77,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
@@ -7168,7 +6902,7 @@
       },
       {
         "data": "2026-03-09",
-        "descricao": "Pix recebido de ARBITRALIS S.A.",
+        "descricao": "Pix recebido de ARBITRALIS S.A. — Total de mentorias realizadas: 4Valor unitário: R 500,00Total a pagar: R 2.000,00Período faturado: 25022026  05032026",
         "valor": 2000.0,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
@@ -7201,12 +6935,25 @@
       },
       {
         "data": "2026-03-30",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
         "valor": 47208.77,
         "banco": "C6 Bank",
         "categoria": "receita_pj",
         "origem": "Arvo (David - PJ)",
         "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      }
+    ],
+    "receita_venda_ativo": [
+      {
+        "data": "2025-03-29",
+        "descricao": "Pix recebido de POMPEIA MOTOS MULTIMARCAS LTDA",
+        "valor": 49402.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_venda_ativo",
+        "origem": "Venda de Ativo",
+        "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
       }

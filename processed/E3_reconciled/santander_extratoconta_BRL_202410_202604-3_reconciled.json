@@ -17,23 +17,11 @@
     "santander_extratoconta_202504_202507-2_extract.json",
     "santander_extratoconta_202507_202510-2_extract.json",
     "santander_extratoconta_202510_202601-2_extract.json",
-    "santander_extratoconta_202511_202512-2_extract.json",
-    "santander_extratoconta_202601_202603-2_extract.json",
     "santander_extratoconta_202601_202604-2_extract.json"
   ],
-  "transacoes_total": 27,
-  "transacoes_duplicadas_removidas": 17,
+  "transacoes_total": 25,
+  "transacoes_duplicadas_removidas": 0,
   "transacoes": [
-    {
-      "data": "2026-01-02",
-      "descricao": "IOF ADICIONAL - AUTOMATICO PERIODO: 01/12 A 31/12/25",
-      "valor": -2.13
-    },
-    {
-      "data": "2026-01-05",
-      "descricao": "JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/12 A 02/01/26",
-      "valor": -263.75
-    },
     {
       "data": "2026-01-06",
       "descricao": "DEBITO AUT. TELEFONE CELULAR       VIVO MOVEL-SP",
@@ -46,13 +34,8 @@
     },
     {
       "data": "2026-01-27",
-      "descricao": "MENSALIDADE DE SEGURO Parc 007/012 AP",
+      "descricao": "MENSALIDADE DE SEGURO              Parc 007/012 AP",
       "valor": -10.07
-    },
-    {
-      "data": "2026-02-02",
-      "descricao": "IOF ADICIONAL - AUTOMATICO PERIODO: 01/01 A 31/01/26",
-      "valor": -3.75
     },
     {
       "data": "2026-02-02",
@@ -60,23 +43,28 @@
       "valor": -10.22
     },
     {
+      "data": "2026-02-02",
+      "descricao": "IOF ADICIONAL - AUTOMATICO         PERIODO: 01/01 A 31/01/26",
+      "valor": -3.75
+    },
+    {
       "data": "2026-02-03",
-      "descricao": "JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/01 A 02/02/26",
+      "descricao": "JUROS SALDO UTILIZ ATE LIMITE      PERIODO: 03/01 A 02/02/26",
       "valor": -340.89
     },
     {
       "data": "2026-02-04",
-      "descricao": "PIX RECEBIDO DOUGLAS CAMARGO DE CAMPOS",
+      "descricao": "PIX RECEBIDO                       DOUGLAS CAMARGO DE CAMPOS",
       "valor": 100.0
     },
     {
       "data": "2026-02-06",
-      "descricao": "DEBITO AUT. TELEFONE CELULAR VIVO MOVEL-SP",
+      "descricao": "DEBITO AUT. TELEFONE CELULAR       VIVO MOVEL-SP",
       "valor": -338.0
     },
     {
       "data": "2026-02-06",
-      "descricao": "PIX RECEBIDO DAVID ROBERT CAMARGO DE C",
+      "descricao": "PIX RECEBIDO                       DAVID ROBERT CAMARGO DE C",
       "valor": 5000.0
     },
     {
@@ -86,13 +74,8 @@
     },
     {
       "data": "2026-02-27",
-      "descricao": "MENSALIDADE DE SEGURO Parc 008/012 AP",
+      "descricao": "MENSALIDADE DE SEGURO              Parc 008/012 AP",
       "valor": -10.07
-    },
-    {
-      "data": "2026-03-02",
-      "descricao": "IOF ADICIONAL - AUTOMATICO PERIODO: 01/02 A 28/02/26",
-      "valor": -1.38
     },
     {
       "data": "2026-03-02",
@@ -100,18 +83,23 @@
       "valor": -1.83
     },
     {
+      "data": "2026-03-02",
+      "descricao": "IOF ADICIONAL - AUTOMATICO         PERIODO: 01/02 A 28/02/26",
+      "valor": -1.38
+    },
+    {
       "data": "2026-03-03",
-      "descricao": "JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/02 A 02/03/26",
+      "descricao": "JUROS SALDO UTILIZ ATE LIMITE      PERIODO: 03/02 A 02/03/26",
       "valor": -57.21
     },
     {
       "data": "2026-03-04",
-      "descricao": "PIX RECEBIDO DOUGLAS CAMARGO DE CAMPOS",
+      "descricao": "PIX RECEBIDO                       DOUGLAS CAMARGO DE CAMPOS",
       "valor": 100.0
     },
     {
       "data": "2026-03-09",
-      "descricao": "DEBITO AUT. TELEFONE CELULAR VIVO MOVEL-SP",
+      "descricao": "DEBITO AUT. TELEFONE CELULAR       VIVO MOVEL-SP",
       "valor": -351.93
     },
     {
@@ -121,12 +109,12 @@
     },
     {
       "data": "2026-03-27",
-      "descricao": "MENSALIDADE DE SEGURO Parc 009/012 AP",
+      "descricao": "MENSALIDADE DE SEGURO              Parc 009/012 AP",
       "valor": -10.07
     },
     {
       "data": "2026-03-30",
-      "descricao": "PIX RECEBIDO DAVID ROBERT CAMARGO FERR",
+      "descricao": "PIX RECEBIDO                       DAVID ROBERT CAMARGO FERR",
       "valor": 1000.0
     },
     {

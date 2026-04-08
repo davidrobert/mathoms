@@ -1,20 +1,15 @@
 # E3 Reconciliation Summary
-Generated: 2026-04-08T15:45:50.391889
+Generated: 2026-04-08T18:00:12.754408
 
 ## Statistics
-- Accounts processed: 17
-- Total transactions reconciled: 5003
-- Total duplicates removed: 869
-- Files written: 17
+- Accounts processed: 14
+- Total transactions reconciled: 4508
+- Total duplicates removed: 99
+- Files written: 14
 
 ## Saldo Continuity & Temporal Warnings
 - ('C6 Bank', 'extratoconta', 'BRL'): Saldo gap: c6bank_extratoconta_202412_202512-2_extract.json (prev_final=6461.98, next_initial=6336.98, gap=125.00)
-- ('C6 Bank', 'extratoconta', 'BRL'): Saldo gap: c6bank_extratoconta_202603-2_extract.json (prev_final=-9723.19, next_initial=47995.17, gap=57718.36)
-- ('C6 Bank', 'extratoconta', 'BRL'): Saldo gap: c6bank_extratoconta_202504_202604-2_extract.json (prev_final=-1990.24, next_initial=-3712.06, gap=1721.82)
-- ('C6 Bank', 'extratoconta', 'BRL'): Saldo gap: c6bank_extratoconta_202512_202604-2_extract.json (prev_final=-334.05, next_initial=-9745.19, gap=9411.14)
-- ('C6 Bank', 'extratocontapj', 'BRL'): Saldo gap: c6bank_extratocontapj_202503_202603-2_extract.json (prev_final=174282.9, next_initial=7000.0, gap=167282.90)
-- ('C6 Bank', 'extratocontapj', 'BRL'): Saldo gap: c6bank_extratocontapj_202504_202604-2_extract.json (prev_final=127430.44, next_initial=7000.0, gap=120430.44)
-- ('C6 Bank', 'extratocontapj', 'BRL'): Saldo gap: c6bank_extratocontapj_202601_202604-2_extract.json (prev_final=164639.21, next_initial=174282.9, gap=9643.69)
+- ('C6 Bank', 'extratoconta', 'BRL'): Saldo gap: c6bank_extratoconta_202512_202604-2_extract.json (prev_final=-9723.19, next_initial=-9745.19, gap=22.00)
 - ('C6 Bank', 'faturacarbon'): Saldo gap: c6bank_faturacarbon_202402-2_extract.json (prev_final=757.32, next_initial=0, gap=757.32)
 - ('C6 Bank', 'faturacarbon'): Saldo gap: c6bank_faturacarbon_202403-2_extract.json (prev_final=-16581.2, next_initial=0, gap=16581.20)
 - ('C6 Bank', 'faturacarbon'): Saldo gap: c6bank_faturacarbon_202404-2_extract.json (prev_final=23399.16, next_initial=0, gap=23399.16)
@@ -34,29 +29,27 @@ Generated: 2026-04-08T15:45:50.391889
 - ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202401_202604-2_extract.json (prev_final=14.71, next_initial=5053.98, gap=5039.27)
 - ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202404_202604-2_extract.json (prev_final=22120.66, next_initial=279.8, gap=21840.86)
 - ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202407_202604-2_extract.json (prev_final=22120.66, next_initial=22060.6, gap=60.06)
-- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202507_202604-2_extract.json (prev_final=913.72, next_initial=14662.65, gap=13748.93)
-- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202601-2_extract.json (prev_final=-10463.52, next_initial=-10044.05, gap=419.47)
-- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202601_202604-2_extract.json (prev_final=913.72, next_initial=-10463.52, gap=11377.24)
 - ('Santander', 'extratoconta', 'BRL'): Saldo gap: santander_extratoconta_202510_202601-2_extract.json (prev_final=0.0, next_initial=-3567.88, gap=3567.88)
-- ('Santander', 'extratoconta', 'BRL'): Saldo gap: santander_extratoconta_202511_202512-2_extract.json (prev_final=-3905.88, next_initial=0.0, gap=3905.88)
-- ('Santander', 'extratoconta', 'BRL'): Saldo gap: santander_extratoconta_202601_202604-2_extract.json (prev_final=280.6, next_initial=-3905.88, gap=4186.48)
-- ('Santander', 'faturaunique'): Saldo gap: santander_faturaunique_202504-2_extract.json (prev_final=382.82, next_initial=7.3, gap=375.52)
+- ('Santander', 'faturaunique'): Saldo gap: santander_faturaunique_202508-2_extract.json (prev_final=95.57, next_initial=0, gap=95.57)
+- ('Santander', 'faturaunique'): Saldo gap: santander_faturaunique_202509-2_extract.json (prev_final=-95.57, next_initial=0, gap=95.57)
+- ('Santander', 'faturaunique'): Saldo gap: santander_faturaunique_202510-2_extract.json (prev_final=1813.43, next_initial=0, gap=1813.43)
+- ('Santander', 'faturaunique'): Saldo gap: santander_faturaunique_202511-2_extract.json (prev_final=-1174.98, next_initial=0, gap=1174.98)
+- ('Santander', 'faturaunique'): Saldo gap: santander_faturaunique_202512-2_extract.json (prev_final=-638.45, next_initial=0, gap=638.45)
+- ('Santander', 'faturaunique'): Saldo gap: santander_faturaunique_202603-2_extract.json (prev_final=198.54, next_initial=0, gap=198.54)
+- ('Santander', 'faturaunique'): Saldo gap: santander_faturaunique_202604-2_extract.json (prev_final=-198.54, next_initial=0, gap=198.54)
 
 ## Reconciled Accounts
 - BTG Pactual | extratoconta | BRL | 2026-02-27 to 2026-03-29 | 37 txns
 - Bank of America | extratoconta | USD | 2026-02-25 to 2026-03-26 | 0 txns
 - Bradesco | extratoconta | BRL | 2025-01-01 to 2026-03-29 | 399 txns
 - Bradesco | extratopoupanca | BRL | 2025-01-01 to 2026-03-31 | 126 txns
-- C6 Bank | extratoconta | BRL | 2023-12-31 to 2026-04-06 | 1371 txns
-- C6 Bank | extratocontaglobaleur | EUR | 2025-11-01 to 2026-04-05 | 0 txns
-- C6 Bank | extratocontaglobalusd | USD | 2025-05-01 to 2026-04-05 | 368 txns
-- C6 Bank | extratocontapj | BRL | 2024-12-30 to 2026-04-06 | 61 txns
+- C6 Bank | extratoconta | BRL | 2023-12-31 to 2026-04-06 | 1333 txns
+- C6 Bank | extratocontapj | BRL | 2023-12-31 to 2026-04-06 | 56 txns
 - C6 Bank | faturacarbon | BRL | 2023-09-30 to 2026-04-05 | 1806 txns
 - Itaú | extratoconta | BRL | 2022-12-01 to 2026-04-30 | 564 txns
-- Itaú | faturapaoacucar | BRL | 2025-04-06 to 2026-03-06 | 12 txns
 - PicPay | extratoconta | BRL | 2025-12-29 to 2026-03-28 | 62 txns
 - Rico | extratoconta | BRL | 2025-09-30 to 2026-03-29 | 14 txns
-- Santander | extratoconta | BRL | 2024-10-15 to 2026-04-08 | 27 txns
-- Santander | faturaunique | BRL | 2025-02-13 to 2026-02-15 | 125 txns
+- Santander | extratoconta | BRL | 2024-10-15 to 2026-04-08 | 25 txns
+- Santander | faturaunique | BRL | 2024-06-07 to 2100-01-06 | 55 txns
 - Wise | extratocontabrl | BRL | 2025-01-01 to 2026-03-29 | 0 txns
 - Wise | extratocontausd | USD | 2025-01-01 to 2026-03-29 | 31 txns

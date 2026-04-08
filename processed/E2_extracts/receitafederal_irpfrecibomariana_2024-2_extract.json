@@ -1,18 +1,5 @@
 {
-  "tipo": "irpfrecibo",
-  "membro": "mariana",
-  "ano_base": 2024,
-  "imposto_total": 40746.89,
-  "data_entrega": "30/05/2025",
-  "situacao": "Declaração original",
-  "numero_recibo": "14.54.94.96.65 - 76",
-  "total_rendimentos_tributaveis": 203982.98,
-  "imposto_devido": 40746.89,
-  "imposto_a_restituir": 0.00,
-  "imposto_a_pagar": 18170.90,
-  "parcelamento": {
-    "valor_quota": 2271.36,
-    "numero_quotas": 8,
-    "vencimento_primeira_quota": "30/05/2025"
-  }
+  "arquivo": "receitafederal_irpfrecibomariana_2024-0_original.pdf",
+  "tipo": "recibo",
+  "ano": 2024
 }

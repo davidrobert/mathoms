@@ -1,26 +1,40 @@
 {
-  "tipo": "cdbresumo",
+  "tipo": "cdbdetalhes",
   "banco": "santander",
   "membro": "david",
-  "data_posicao": "2026-04-08",
-  "moeda": "BRL",
-  "total_bruto": 300444.46,
-  "total_resgatavel": 290441.63,
-  "detalhamento": [
+  "periodo": "202604",
+  "posicoes": [
     {
-      "tipo": "CDB DI",
-      "valor_total": 137857.68,
-      "disponivel_resgate": 133032.53
+      "nome": "CDB DI SANTANDER",
+      "tipo_produto": "CDB",
+      "taxa": "100% CDI",
+      "valor_aplicado": 137857.68,
+      "valor_atual": 133032.53,
+      "data_aplicacao": null,
+      "vencimento": null,
+      "instituicao": "Santander"
     },
     {
-      "tipo": "CDB DI",
-      "valor_total": 101853.74,
-      "disponivel_resgate": 98554.34
+      "nome": "CDB DI SANTANDER",
+      "tipo_produto": "CDB",
+      "taxa": "100% CDI",
+      "valor_aplicado": 101853.74,
+      "valor_atual": 98554.34,
+      "data_aplicacao": null,
+      "vencimento": null,
+      "instituicao": "Santander"
     },
     {
-      "tipo": "CDB Progressivo",
-      "valor_total": 60733.04,
-      "disponivel_resgate": 58854.76
+      "nome": "CDB PROG SANTANDER",
+      "tipo_produto": "CDB",
+      "taxa": "PROG",
+      "valor_aplicado": 60733.04,
+      "valor_atual": 58854.76,
+      "data_aplicacao": null,
+      "vencimento": null,
+      "instituicao": "Santander"
     }
-  ]
+  ],
+  "total": 290441.63,
+  "saldo_total": 290441.63
 }

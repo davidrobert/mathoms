@@ -1,41 +1,59 @@
 {
-  "tipo": "irpfdeclaracao",
-  "membro": "mariana",
-  "ano_base": 2024,
-  "bens_direitos": [
-    {"codigo": "01.11", "descricao": "Apartamento Living Concept - Apto 320", "valor_31_12_anterior": 223733.99, "valor_31_12": 270000.00},
-    {"codigo": "01.11", "descricao": "Apartamento Living Wish - Apto 2192", "valor_31_12_anterior": 477436.58, "valor_31_12": 530000.00},
-    {"codigo": "04.02", "descricao": "BTG Produto CDBB2353UR4", "valor_31_12_anterior": 22000.00, "valor_31_12": 22000.00},
-    {"codigo": "04.02", "descricao": "BTG CDB-SR", "valor_31_12_anterior": 1826.51, "valor_31_12": 3429.16},
-    {"codigo": "04.02", "descricao": "BTG CDB524BFK2F", "valor_31_12_anterior": 0.00, "valor_31_12": 10000.00},
-    {"codigo": "04.03", "descricao": "LCI BTG 22J1410500", "valor_31_12_anterior": 10349.69, "valor_31_12": 9349.69},
-    {"codigo": "04.03", "descricao": "LCI BTG 22K1692411", "valor_31_12_anterior": 10324.25, "valor_31_12": 10324.25},
-    {"codigo": "04.03", "descricao": "BTG CRA02300MZU", "valor_31_12_anterior": 0.00, "valor_31_12": 9115.01},
-    {"codigo": "04.03", "descricao": "BTG GRA02300SPD", "valor_31_12_anterior": 0.00, "valor_31_12": 9109.54},
-    {"codigo": "04.03", "descricao": "BTG CRA02400109", "valor_31_12_anterior": 0.00, "valor_31_12": 9248.83},
-    {"codigo": "04.03", "descricao": "BTG 23J0138431", "valor_31_12_anterior": 0.00, "valor_31_12": 9164.03},
-    {"codigo": "07.01", "descricao": "BTG Pactual Explorer Renda Fixa", "valor_31_12_anterior": 35868.62, "valor_31_12": 41408.87},
-    {"codigo": "07.01", "descricao": "BTG Pactual Hedge Renda Fixa Crédito", "valor_31_12_anterior": 0.00, "valor_31_12": 4494.93},
-    {"codigo": "07.07", "descricao": "M8 Capital Plus Renda Fixa Crédito", "valor_31_12_anterior": 0.00, "valor_31_12": 25479.42},
-    {"codigo": "07.10", "descricao": "BTG Pactual Hedge Fundo Infraestrutura", "valor_31_12_anterior": 0.00, "valor_31_12": 25000.00}
-  ],
+  "arquivo": "receitafederal_irpfdeclaracaomariana_2024-0_original.pdf",
+  "ano_exercicio": 2025,
+  "ano_calendario": 2024,
+  "declarante": "MARIANA FERREIRA CAMPOS",
+  "cpf": "085.052.396-60",
+  "conjuge_cpf": "287.766.948-36",
+  "endereco": "RUA TASSO DA SILVEIRA N\u00famero: 61",
+  "ocupacao": "227 - Enfermeiro de n\u00edvel superior, nutricionista, farmac\u00eautico e afins",
+  "bens_direitos": {
+    "imoveis": [],
+    "investimentos": [],
+    "veiculos": [],
+    "outros": []
+  },
   "rendimentos": {
     "pj": [
-      {"fonte": "Sociedade Beneficente Israelita Brasileira", "cnpj": "60.765.823/0001-30", "rendimentos_brutos": 141842.70, "imposto_retido": 22575.99}
+      {
+        "nome": "SOCIEDADE BENEFICENTE ISRAELITA 141.842,70 10.906,20 22.575,99 8.301,32 1.913,12"
+      },
+      {
+        "nome": "CNPJ/CPF: 60.765.823/0001-30"
+      }
     ],
+    "clt": [],
     "alugueis": [],
-    "financeiros": [{"descricao": "Rendimentos de aplicações financeiras", "valor": 3319.56}],
-    "outros": [{"descricao": "Abono de férias PIS", "valor": 1336.61}]
+    "financeiros": [
+      {
+        "descricao": "Titular 085.052.396-60 00.888.897/0001-31 BTG PACTUAL HEDGE FUNDO DE 150,83"
+      },
+      {
+        "descricao": "Titular 085.052.396-60 11.952.873/0001-10 BTG PACTUAL EXPLORER RENDA FIXA 2.350,78"
+      },
+      {
+        "descricao": "Titular 085.052.396-60 39.958.460/0001-62 M8 CAPITAL PLUS FUNDO DE 479,38"
+      },
+      {
+        "descricao": "Titular 085.052.396-60 60.746.948/0001-12 BANCO BRADESCO S A 326,17"
+      },
+      {
+        "descricao": "Titular 085.052.396-60 30.680.829/0001-43 NU FINANCEIRA S.A. - SOCIEDADE DE 3,91"
+      },
+      {
+        "descricao": "Titular 085.052.396-60 30.306.294/0001-45 BANCO BTG PACTUAL S A 8,49"
+      },
+      {
+        "descricao": "TOTAL 11.620,88"
+      }
+    ],
+    "outros": []
   },
   "dividas": [],
-  "pagamentos_dedutiveis": [
-    {"codigo": "11", "descricao": "Leir Miranda Esteves", "valor": 400.00},
-    {"codigo": "21", "descricao": "Beep Serviços Médicos", "valor": 275.00},
-    {"codigo": "21", "descricao": "HT Saragiotto Serviços Médicos", "valor": 600.00},
-    {"codigo": "26", "descricao": "Sul America Serviços de Saúde", "valor": 190.54},
-    {"codigo": "71", "descricao": "GRPQA Ltda", "valor": 13726.94}
-  ],
-  "total_bens_anterior": 811301.24,
-  "total_bens": 988123.73,
-  "imposto_devido": 40746.89
+  "deducoes": {
+    "previdencia": 0,
+    "contribuicoes": 0,
+    "despesas": []
+  },
+  "extraction_date": "2026-04-08T17:54:49.334993"
 }

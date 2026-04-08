@@ -1,199 +1,81 @@
 {
-  "membros": [
-    {
-      "id": "david",
-      "nome_atual": "David Robert Camargo de Campos",
-      "nomes_alternativos": ["David Robert Camargo Ferreira Campos"],
+  "familia": "Ferreira Campos",
+  "data_atualizacao": "2026-04-08",
+  "membros": {
+    "david": {
+      "tipo": "titular",
+      "nome_completo": "David Robert Camargo Ferreira Campos",
+      "nome_curto": "David",
+      "nome_solteiro": "David Robert Camargo de Campos",
       "cpf": "287.766.948-36",
-      "data_nascimento": "05/09/1981",
-      "papel": "Titular, CTO PJ",
-      "profissao_cargo": "Chief Technology Officer (CTO)",
-      "cargo_atual": "Chief Technology Officer (CTO) na Arvo",
-      "empresa_atual": "Arvo (Healthtech)",
-      "salario": null,
-      "nota": "PJ — valor a confirmar via extratos bancários de C6 Bank. Empresa: DAVID ROBERT CAMARGO DE CAMPOS LTDA, CNPJ 48.771.488/0001-87",
-      "formacao": [
-        {
-          "instituicao": "USP - Institute of Mathematics and Statistics (IME)",
-          "curso": "Master in Computer Science - Artificial Intelligence",
-          "grau": "Mestrado",
-          "periodo": "2006-2008"
-        },
-        {
-          "instituicao": "PUC/SP",
-          "curso": "Bachelor of Computer Science",
-          "grau": "Bacharelado",
-          "periodo": "2000-2004"
-        }
-      ],
-      "experiencias": [
-        {
-          "empresa": "Arvo",
-          "cargo": "Chief Technology Officer (CTO)",
-          "periodo": "2025-09 a presente"
-        },
-        {
-          "empresa": "Kiwify",
-          "cargo": "Chief Technology Officer (CTO)",
-          "periodo": "2024-06 a 2025-05"
-        },
-        {
-          "empresa": "Loft",
-          "cargo": "Software Engineering Consultant / Director / Engineering Manager",
-          "periodo": "2019-06 a 2024-06"
-        },
-        {
-          "empresa": "Elo7",
-          "cargo": "Chief Technology Officer (CTO)",
-          "periodo": "2013-08 a 2020-07"
-        },
-        {
-          "empresa": "Abril",
-          "cargo": "Solutions Architect I",
-          "periodo": "2012-03 a 2013-08"
-        },
-        {
-          "empresa": "TOTVS",
-          "cargo": "Research and Development Engineer IV",
-          "periodo": "2011-02 a 2012-03"
-        },
-        {
-          "empresa": "NIC.br",
-          "cargo": "Software Engineer",
-          "periodo": "2006-04 a 2011-01"
-        }
-      ],
-      "habilidades": [
-        "Software Architecture",
-        "Microservices Design",
-        "Domain-Driven Design (DDD)",
-        "Cloud Computing (AWS, GCP)",
-        "Kubernetes & Docker",
-        "CI/CD Pipelines",
-        "DevOps",
-        "Cybersecurity & DNSSEC",
-        "Team Leadership",
-        "Technical Strategy"
-      ],
-      "idiomas": [
-        {
-          "idioma": "Português",
-          "nivel": "Nativo"
-        },
-        {
-          "idioma": "Inglês",
-          "nivel": "Fluente"
-        }
-      ],
-      "documentos_disponiveis": ["curriculo"]
-    },
-    {
-      "id": "mariana",
-      "nome_atual": "Mariana Teixeira Ferreira de Campos",
-      "nomes_alternativos": ["Mariana Ferreira Campos"],
-      "cpf": "085.052.396-60",
-      "data_nascimento": "30/08/1986",
-      "papel": "Cônjuge, enfermeira CLT",
-      "profissao_cargo": "Enfermeira Mestre (MSc Nurse)",
-      "cargo_atual": "Enfermeiro Pl (Nurse) no Hospital Israelita Albert Einstein",
-      "empresa_atual": "Hospital Israelita Albert Einstein - Unidade Morumbi",
-      "salario": {
-        "base_mensal": 9082.92,
-        "bruto": 12086.06,
-        "liquido": 3425.41
+      "data_nascimento": "1981-09-05",
+      "idade": 44,
+      "profissao": "Chief Technology Officer (CTO) da Arvo",
+      "regime": "PJ Simples Nacional (Anexo V)",
+      "formacao_principal": "Mestrado em Ciência da Computação (Inteligência Artificial) - USP/IME; Graduação em Ciência da Computação - PUC/SP",
+      "empresa_atual": "Arvo",
+      "cargo_atual": "Chief Technology Officer (CTO)",
+      "data_inicio_arvo": "2025-09-08",
+      "contatos": {
+        "telefone": "+55 (11) 99681-9851",
+        "email": "davidrobert@gmail.com",
+        "linkedin": "https://www.linkedin.com/in/davidrobert/",
+        "github": "https://github.com/davidrobert/"
       },
-      "nota": "CLT — Matrícula 36108, admissão em 21/07/2014. Conta Itaú (237/6543/6673). Periódico com férias em fevereiro.",
-      "formacao": [
-        {
-          "instituicao": "USP",
-          "curso": "Mestrado em Enfermagem - Enfermagem em Saúde Adulta",
-          "grau": "Mestrado",
-          "periodo": "2019-2021"
-        },
-        {
-          "instituicao": "UNIFESP",
-          "curso": "Especialização em Enfermagem em Cardiologia e Hemodinâmica",
-          "grau": "Especialização",
-          "periodo": "2011-2012"
-        },
-        {
-          "instituicao": "PUC Minas",
-          "curso": "Bacharelado em Enfermagem",
-          "grau": "Bacharelado",
-          "periodo": "2007-2010"
-        },
-        {
-          "instituicao": "FIOCRUZ",
-          "curso": "Especialização em Formação Docente em Educação Profissional",
-          "grau": "Especialização",
-          "periodo": "2013-2014"
-        }
-      ],
-      "experiencias": [
-        {
-          "empresa": "Hospital Israelita Albert Einstein",
-          "cargo": "Enfermeiro (High Complexity Unit)",
-          "periodo": "2018-01 a presente"
-        },
-        {
-          "empresa": "Faculdade Israelita Albert Einstein",
-          "cargo": "Docente (University Instructor)",
-          "periodo": "2021-01 a 2024-12"
-        },
-        {
-          "empresa": "Hospital Israelita Albert Einstein",
-          "cargo": "Enfermeiro (UPA Campo Limpo)",
-          "periodo": "2014-08 a 2018-06"
-        },
-        {
-          "empresa": "Senac São Paulo",
-          "cargo": "Docente (University Instructor)",
-          "periodo": "2012-01 a 2016-01"
-        },
-        {
-          "empresa": "Hospital Municipal Dr. Moysés Deutsch",
-          "cargo": "Enfermeira (ICU)",
-          "periodo": "2011-01 a 2014-12"
-        }
-      ],
-      "habilidades": [
-        "Processo de enfermagem",
-        "Auditoria Clínica",
-        "Segurança do Paciente",
-        "Gestão de equipes",
-        "Cardiologia e Hemodinâmica",
-        "Metodologia científica",
-        "Educação continuada"
-      ],
-      "idiomas": [
-        {
-          "idioma": "Português",
-          "nivel": "Nativo"
-        },
-        {
-          "idioma": "Inglês",
-          "nivel": "Intermediário"
-        }
-      ],
-      "documentos_disponiveis": ["curriculo", "holerite_202602"]
+      "documentos": {
+        "curriculo": "david_curriculo-0_original.docx",
+        "curriculo_extract": "david_curriculo-1a_extract.json"
+      },
+      "experiencia_anos": 24
     },
-    {
-      "id": "theo",
-      "nome_atual": "Theo",
-      "nomes_alternativos": [],
-      "cpf": null,
-      "data_nascimento": "18/07/2025",
-      "papel": "Filho, dupla cidadania BR/US",
-      "profissao_cargo": null,
-      "cargo_atual": null,
-      "empresa_atual": null,
-      "salario": null,
-      "nota": "Infant, 8 months old. Dupla cidadania Brasil/Estados Unidos. Sem documentos disponíveis.",
-      "formacao": [],
-      "experiencias": [],
-      "habilidades": [],
-      "idiomas": [],
-      "documentos_disponiveis": []
+    "mariana": {
+      "tipo": "conjuge",
+      "nome_completo": "Mariana Ferreira Campos",
+      "nome_curto": "Mariana",
+      "nome_solteira": "Mariana Teixeira Ferreira",
+      "nome_fiscal": "Mariana Teixeira Ferreira",
+      "cpf": "085.052.396-60",
+      "data_nascimento": "1986-08-30",
+      "idade": 39,
+      "profissao": "Enfermeira no Hospital Israelita Albert Einstein",
+      "regime": "CLT",
+      "formacao_principal": "Mestrado em Enfermagem (Saúde do Adulto) - USP; Especialização em Cardiologia e Hemodinâmica - UNIFESP; Graduação em Enfermagem",
+      "empresa_atual": "Hospital Israelita Albert Einstein",
+      "estabelecimento": "AEMO Unidade Morumbi",
+      "cargo_atual": "Enfermeiro Pl (Grade P4)",
+      "categoria": "Enfermagem P",
+      "data_admissao": "2014-07-21",
+      "contatos": {
+        "telefone": "+55 11 96073-3929",
+        "email": "mtf3008@gmail.com",
+        "linkedin": "www.linkedin.com/in/mariana-ferreira-campos"
+      },
+      "documentos": {
+        "curriculo": "mariana_curriculo-0_original.pdf",
+        "curriculo_extract": "mariana_curriculo-1a_extract.json",
+        "holerite_202602": "mariana_holerite_202602-0_original.pdf",
+        "holerite_202602_extract": "mariana_holerite_202602-1a_extract.json"
+      },
+      "experiencia_anos": 12,
+      "remuneracao_clt": {
+        "salario_base_mensal": 10899.51,
+        "salario_bruto_fevereiro_2026": 12086.06,
+        "salario_liquido_fevereiro_2026": 3425.41,
+        "periodo_holerite": "Fevereiro 2026"
+      }
+    },
+    "theo": {
+      "tipo": "filho",
+      "nome_completo": "Theo Ferreira Campos",
+      "nome_curto": "Theo",
+      "data_nascimento": "2025-07-18",
+      "idade": 0,
+      "cidadania": [
+        "brasileira",
+        "americana"
+      ],
+      "local_nascimento": "Orlando, Flórida",
+      "documentos": {}
     }
-  ]
+  }
 }

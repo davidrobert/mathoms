@@ -14,12 +14,10 @@
   "fontes": [
     "c6bank_extratoconta_202312_202412-2_extract.json",
     "c6bank_extratoconta_202412_202512-2_extract.json",
-    "c6bank_extratoconta_202603-2_extract.json",
-    "c6bank_extratoconta_202504_202604-2_extract.json",
     "c6bank_extratoconta_202512_202604-2_extract.json"
   ],
-  "transacoes_total": 1371,
-  "transacoes_duplicadas_removidas": 528,
+  "transacoes_total": 1333,
+  "transacoes_duplicadas_removidas": 0,
   "transacoes": [
     {
       "data": "2023-12-31",
@@ -4288,30 +4286,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-03-01",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -6.3,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-03-01",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -10.5,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-03-01",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -13.6,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-03-01",
-      "descricao": "C6TAG PEDAGIO IOF CHEQUE ESPECIAL",
-      "valor": -3.5,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-03-02",
       "descricao": "Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX",
       "valor": -400.0,
@@ -4339,12 +4313,6 @@
       "data": "2025-03-04",
       "descricao": "Pix enviado para BIANCA CRISTINA BENEDITO — TRANSF ENVIADA PIX",
       "valor": -3.5,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-03-04",
-      "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO Pix enviado para RUBENS DE CAMPOS",
-      "valor": -2000.0,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -4378,22 +4346,10 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-03-06",
-      "descricao": "PGTO FAT CARTAO C6 Pix enviado para REINALDO MARTINS DE ARAUJO",
-      "valor": -41406.31,
-      "tipo_lancamento": "Pagamento"
-    },
-    {
       "data": "2025-03-07",
       "descricao": "Pix recebido de Douglas Camargo de Campos",
       "valor": 100.0,
       "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-03-07",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -1.65,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-03-09",
@@ -4438,12 +4394,6 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-03-09",
-      "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO Pix enviado para HELEN SASAKE TAKAGI",
-      "valor": -760.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-03-10",
       "descricao": "SEGURO CONTA C6 — Seguro Conta",
       "valor": -20.0,
@@ -4468,18 +4418,6 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-03-13",
-      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-03-14",
-      "descricao": "C6TAG ESTACIONAMENTO Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-      "valor": -22.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-03-15",
       "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP 160  RODO",
       "valor": -5.2,
@@ -4496,12 +4434,6 @@
       "descricao": "Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
       "valor": 4000.0,
       "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-03-15",
-      "descricao": "Câmbio Pix enviado para BELT ACADEMY TREINAMENTO EM DESENVOLVIMENTO PROFISSIONAL\nLTDA",
-      "valor": -556.64,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-03-16",
@@ -4636,12 +4568,6 @@
       "tipo_lancamento": "Compra/Débito"
     },
     {
-      "data": "2025-03-24",
-      "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO",
-      "valor": -500.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-03-25",
       "descricao": "Pix enviado para VESALTEC SERRALHERIA E COMERCIO LTDA — TRANSF ENVIADA PIX",
       "valor": -380.0,
@@ -4657,18 +4583,6 @@
       "data": "2025-03-27",
       "descricao": "Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS",
       "valor": 4300.0,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-03-28",
-      "descricao": "C6TAG ESTACIONAMENTO C6TAG PEDAGIO",
-      "valor": -78.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-03-28",
-      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-      "valor": 10000.0,
       "tipo_lancamento": "Entrada PIX"
     },
     {
@@ -4714,12 +4628,6 @@
       "tipo_lancamento": "Encargos Bancários"
     },
     {
-      "data": "2025-04-01",
-      "descricao": "Belt Academy",
-      "valor": -1950.0,
-      "tipo_lancamento": "Pagamento"
-    },
-    {
       "data": "2025-04-02",
       "descricao": "JUROS CHEQUE ESP",
       "valor": -104.39,
@@ -4744,30 +4652,6 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2025-04-02",
-      "descricao": "JUROS CHEQUE ESP Câmbio",
-      "valor": -104.39,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-04-02",
-      "descricao": "IOF CHEQUE ESPECIAL JUROS CHEQUE ESP",
-      "valor": -41.22,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-04-02",
-      "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-04-02",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -13.7,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-04-03",
       "descricao": "Câmbio — Transferência para C6 Conta Global",
       "valor": -15000.0,
@@ -4784,30 +4668,6 @@
       "descricao": "Pix recebido de Douglas Camargo de Campos",
       "valor": 100.0,
       "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-04-03",
-      "descricao": "SID PARK ESTACIONAMENT SAO PAULO BRA Pix recebido de Douglas Camargo de Campos",
-      "valor": -30.0,
-      "tipo_lancamento": "Débito de Cartão"
-    },
-    {
-      "data": "2025-04-03",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -13.6,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-04-03",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -10.5,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-04-03",
-      "descricao": "C6TAG PEDAGIO Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
-      "valor": -6.3,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-04-04",
@@ -4828,38 +4688,8 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-04-05",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -6.3,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-04-05",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -10.5,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-04-05",
-      "descricao": "C6TAG PEDAGIO C6TAG ESTACIONAMENTO",
-      "valor": -8.4,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-04-05",
-      "descricao": "C6TAG PEDAGIO",
-      "valor": -13.7,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-04-06",
       "descricao": "Pix enviado para paroquia nossa senhora do brasil — TRANSF ENVIADA PIX",
-      "valor": -50.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2025-04-06",
-      "descricao": "Pix enviado para paroquia nossa senhora do brasil RECEBIMENTO DE TED",
       "valor": -50.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -4874,12 +4704,6 @@
       "descricao": "PGTO FAT CARTAO C6 — Fatura de cartao",
       "valor": -15967.78,
       "tipo_lancamento": "Outros"
-    },
-    {
-      "data": "2025-04-07",
-      "descricao": "RECEBIMENTO DE TED PGTO FAT CARTAO C6",
-      "valor": 300.0,
-      "tipo_lancamento": "Entradas"
     },
     {
       "data": "2025-04-10",
@@ -5038,12 +4862,6 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-04-23",
-      "descricao": "Pix enviado para ANA MARIA DE OLIVEIRA RECEBIMENTO DE TED",
-      "valor": -80.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-04-25",
       "descricao": "Câmbio — Transferência para C6 Conta Global",
       "valor": -5798.53,
@@ -5074,18 +4892,6 @@
       "tipo_lancamento": "Entrada PIX"
     },
     {
-      "data": "2025-04-25",
-      "descricao": "Câmbio Câmbio",
-      "valor": -12000.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-04-25",
-      "descricao": "Pix recebido de DAVID ROBERT CAMARGO DE CAMPOS Câmbio",
-      "valor": 14000.0,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
       "data": "2025-04-26",
       "descricao": "Pix enviado para ELIBELTO JOSE DE LIMA — TRANSF ENVIADA PIX",
       "valor": -1000.0,
@@ -5102,12 +4908,6 @@
       "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-SHOPPING IBIRAPUERA  AVENIDA IBI",
       "valor": -28.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2025-04-26",
-      "descricao": "C6TAG ESTACIONAMENTO RECEBIMENTO DE TED",
-      "valor": -28.0,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-04-29",
@@ -5264,12 +5064,6 @@
       "descricao": "Pix recebido de Douglas Camargo de Campos",
       "valor": 100.0,
       "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2025-05-05",
-      "descricao": "RECEBIMENTO DE TED PGTO FAT CARTAO C6",
-      "valor": 1000.0,
-      "tipo_lancamento": "Entradas"
     },
     {
       "data": "2025-05-06",
@@ -5578,12 +5372,6 @@
       "tipo_lancamento": "Outros"
     },
     {
-      "data": "2025-06-16",
-      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA Câmbio",
-      "valor": 17000.0,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
       "data": "2025-06-19",
       "descricao": "Pix enviado para BELT ACADEMY — TRANSF ENVIADA PIX",
       "valor": -1950.0,
@@ -5858,12 +5646,6 @@
       "descricao": "JUROS CHEQUE ESP",
       "valor": -26.53,
       "tipo_lancamento": "Encargos Bancários"
-    },
-    {
-      "data": "2025-08-02",
-      "descricao": "IOF CHEQUE ESPECIAL JUROS CHEQUE ESP",
-      "valor": -9.09,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2025-08-05",
@@ -6358,12 +6140,6 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
-      "data": "2025-09-27",
-      "descricao": "LOJA SAO BENTO APARECIDA BRA C6TAG PEDAGIO",
-      "valor": -90.0,
-      "tipo_lancamento": "Débito de Cartão"
-    },
-    {
       "data": "2025-09-29",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 8695 SUL PINDAM",
       "valor": -14.23,
@@ -6676,18 +6452,6 @@
       "tipo_lancamento": "Entrada PIX"
     },
     {
-      "data": "2025-10-27",
-      "descricao": "TRIBUTOS FEDERAIS DARF NUMERADO SIMPLES NACIONAL",
-      "valor": -7607.45,
-      "tipo_lancamento": "Pagamento"
-    },
-    {
-      "data": "2025-10-27",
-      "descricao": "Pix enviado para RECEITA FEDERAL TRIBUTOS FEDERAIS DARF NUMERADO",
-      "valor": -6650.15,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
       "data": "2025-10-29",
       "descricao": "RECEBIMENTO DE TED — 92693118000160-BRADESCO SAUDE S A",
       "valor": 1000.0,
@@ -6782,12 +6546,6 @@
       "descricao": "DEBITO DE CARTAO — 1 CART REG PES NATURAI SAO PAULO     BRA",
       "valor": -312.28,
       "tipo_lancamento": "Compra/Débito"
-    },
-    {
-      "data": "2025-11-11",
-      "descricao": "1 CART REG PES NATURAI SAO PAULO BRA",
-      "valor": -312.28,
-      "tipo_lancamento": "Débito de Cartão"
     },
     {
       "data": "2025-11-14",
@@ -7018,12 +6776,6 @@
       "tipo_lancamento": "Outros"
     },
     {
-      "data": "2025-12-02",
-      "descricao": "JUROS CHEQUE ESP RECEBIMENTO DE TED",
-      "valor": -483.09,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
       "data": "2025-12-05",
       "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
       "valor": 50000.0,
@@ -7199,33 +6951,33 @@
     },
     {
       "data": "2025-12-30",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -22.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2025-12-30",
       "descricao": "Belt Academy",
       "valor": -1950.0,
       "tipo_lancamento": "Outros"
     },
     {
+      "data": "2025-12-30",
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
+      "valor": -22.0,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
       "data": "2025-12-31",
-      "descricao": "C6TAG ESTACIONAMENTO C6TAG ESTACIONAMENTO",
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PARQUE IBIRAPUERA  AVENIDA PEDRO",
       "valor": -22.0,
-      "tipo_lancamento": "Outros gastos"
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2025-12-31",
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
+      "valor": -22.0,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-01-01",
-      "descricao": "C6TAG ESTACIONAMENTO Pix enviado para RAFAEL BARROSO DE CARVALHO",
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PARQUE IBIRAPUERA  AVENIDA PEDRO",
       "valor": -22.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-01-01",
-      "descricao": "Devol recebida pix de RAFAEL BARROSO DE CARVALHO IOF CHEQUE ESPECIAL",
-      "valor": 200.0,
-      "tipo_lancamento": "Devolução PIX"
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-01-01",
@@ -7234,10 +6986,10 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2026-01-03",
-      "descricao": "JUROS CHEQUE ESP C6TAG ESTACIONAMENTO",
-      "valor": -326.47,
-      "tipo_lancamento": "Outros gastos"
+      "data": "2026-01-01",
+      "descricao": "Devol recebida pix de RAFAEL BARROSO DE CARVALHO",
+      "valor": 200.0,
+      "tipo_lancamento": "Devolução PIX"
     },
     {
       "data": "2026-01-03",
@@ -7247,15 +6999,15 @@
     },
     {
       "data": "2026-01-03",
+      "descricao": "JUROS CHEQUE ESP",
+      "valor": -326.47,
+      "tipo_lancamento": "Encargos Bancários"
+    },
+    {
+      "data": "2026-01-03",
       "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PARQUE IBIRAPUERA  AVENIDA PEDRO",
       "valor": -27.0,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
-    },
-    {
-      "data": "2026-01-05",
-      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA PGTO FAT CARTAO C6",
-      "valor": 50000.0,
-      "tipo_lancamento": "Entrada PIX"
     },
     {
       "data": "2026-01-05",
@@ -7271,15 +7023,15 @@
     },
     {
       "data": "2026-01-06",
-      "descricao": "Pix enviado para RUBENS DE CAMPOS C6TAG ESTACIONAMENTO",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-06",
       "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
       "valor": 8800.0,
       "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2026-01-06",
+      "descricao": "Pix enviado para RUBENS DE CAMPOS — TRANSF ENVIADA PIX",
+      "valor": -1000.0,
+      "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2026-01-06",
@@ -7295,80 +7047,26 @@
     },
     {
       "data": "2026-01-10",
-      "descricao": "C6TAG ESTACIONAMENTO Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -27.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-01-10",
       "descricao": "SEGURO CONTA C6 — Seguro Conta",
       "valor": -20.0,
       "tipo_lancamento": "Outros"
     },
     {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -142.47,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -140.09,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -137.51,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -134.93,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -43.35,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -66.08,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -64.98,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -63.78,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -62.59,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-11",
-      "descricao": "VENDIFY SAO PAULO BRA Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-      "valor": -26.97,
-      "tipo_lancamento": "Débito de Cartão"
+      "data": "2026-01-10",
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PARQUE IBIRAPUERA  AVENIDA PEDRO",
+      "valor": -27.0,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-01-11",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -143.51,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -142.47,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -7380,7 +7078,19 @@
     {
       "data": "2026-01-11",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -140.09,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -138.89,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -137.51,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -7392,7 +7102,19 @@
     {
       "data": "2026-01-11",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -134.93,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -133.54,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -43.35,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -7404,7 +7126,19 @@
     {
       "data": "2026-01-11",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -66.08,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -65.55,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -64.98,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -7416,7 +7150,19 @@
     {
       "data": "2026-01-11",
       "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -63.78,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -63.2,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-01-11",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -62.59,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -7433,15 +7179,15 @@
     },
     {
       "data": "2026-01-12",
-      "descricao": "Pix enviado para RECEITA FEDERAL Pix enviado para RECEITA FEDERAL",
-      "valor": -142.62,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-12",
       "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
       "valor": 5000.0,
       "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2026-01-12",
+      "descricao": "Pix enviado para RECEITA FEDERAL — TRANSF ENVIADA PIX",
+      "valor": -142.62,
+      "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2026-01-12",
@@ -7457,21 +7203,21 @@
     },
     {
       "data": "2026-01-16",
-      "descricao": "Pix enviado para RUBENS DE CAMPOS",
-      "valor": -100.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-16",
       "descricao": "RECEBIMENTO DE TED — 92693118000160-BRADESCO SAUDE S A",
       "valor": 1000.0,
       "tipo_lancamento": "Outros"
     },
     {
+      "data": "2026-01-16",
+      "descricao": "Pix enviado para RUBENS DE CAMPOS — TRANSF ENVIADA PIX",
+      "valor": -100.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
       "data": "2026-01-17",
-      "descricao": "C6TAG ESTACIONAMENTO Pix enviado para FULL FACE MEDIC",
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
       "valor": -22.0,
-      "tipo_lancamento": "Outros gastos"
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-01-20",
@@ -7487,27 +7233,21 @@
     },
     {
       "data": "2026-01-26",
-      "descricao": "Pix enviado para LUMMA ROBERTA DA SILVA",
+      "descricao": "Pix enviado para LUMMA ROBERTA DA SILVA — TRANSF ENVIADA PIX",
       "valor": -2100.0,
       "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2026-01-27",
-      "descricao": "Pix enviado para HT SARAGIOTTO SERVICOS MEDICOS LTDA",
+      "descricao": "Pix enviado para HT SARAGIOTTO SERVICOS MEDICOS LTDA — TRANSF ENVIADA PIX",
       "valor": -680.0,
       "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2026-01-30",
-      "descricao": "Belt Academy Pix enviado para RUBENS DE CAMPOS",
+      "descricao": "Belt Academy — Boleto",
       "valor": -1950.0,
-      "tipo_lancamento": "Pagamento"
-    },
-    {
-      "data": "2026-01-30",
-      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-      "valor": 14000.0,
-      "tipo_lancamento": "Entrada PIX"
+      "tipo_lancamento": "Pagamento Boleto"
     },
     {
       "data": "2026-01-30",
@@ -7517,15 +7257,15 @@
     },
     {
       "data": "2026-01-30",
+      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 14000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2026-01-30",
       "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
       "valor": -1000.0,
       "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-01-31",
-      "descricao": "C6TAG ESTACIONAMENTO",
-      "valor": -22.0,
-      "tipo_lancamento": "Outros gastos"
     },
     {
       "data": "2026-01-31",
@@ -7534,22 +7274,16 @@
       "tipo_lancamento": "Saída PIX"
     },
     {
+      "data": "2026-01-31",
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
+      "valor": -22.0,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
       "data": "2026-02-02",
-      "descricao": "RECEBIMENTO DE TED",
+      "descricao": "RECEBIMENTO DE TED — 92693118000160-BRADESCO SAUDE S A",
       "valor": 680.0,
-      "tipo_lancamento": "Entradas"
-    },
-    {
-      "data": "2026-02-03",
-      "descricao": "IOF CHEQUE ESPECIAL JUROS CHEQUE ESP",
-      "valor": -32.47,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-02-03",
-      "descricao": "Pix enviado para AIR EUROPA LINEAS AEREAS SOCIEDAD ANONIMA Pix enviado para HELEN SASAKE TAKAGI",
-      "valor": -1263.99,
-      "tipo_lancamento": "Saída PIX"
+      "tipo_lancamento": "Outros"
     },
     {
       "data": "2026-02-03",
@@ -7565,6 +7299,12 @@
     },
     {
       "data": "2026-02-03",
+      "descricao": "Pix enviado para AIR EUROPA LINEAS AEREAS SOCIEDAD ANONIMA — TRANSF ENVIADA PIX",
+      "valor": -1263.99,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-02-03",
       "descricao": "Pix enviado para HELEN SASAKE TAKAGI — TRANSF ENVIADA PIX",
       "valor": -1000.0,
       "tipo_lancamento": "Saída PIX"
@@ -7577,27 +7317,15 @@
     },
     {
       "data": "2026-02-05",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -4871.34,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-02-05",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-      "valor": -34.92,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-02-05",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA",
-      "valor": -824.88,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-02-05",
       "descricao": "PGTO FAT CARTAO C6 — Fatura de cartao",
       "valor": -20841.19,
       "tipo_lancamento": "Outros"
+    },
+    {
+      "data": "2026-02-05",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -4871.34,
+      "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2026-02-05",
@@ -7607,32 +7335,44 @@
     },
     {
       "data": "2026-02-05",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -34.92,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-02-05",
       "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
       "valor": 30000.0,
       "tipo_lancamento": "Entrada PIX"
     },
     {
+      "data": "2026-02-05",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
+      "valor": -824.88,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
       "data": "2026-02-06",
-      "descricao": "Pix enviado para SABESP",
+      "descricao": "Pix enviado para SABESP — TRANSF ENVIADA PIX",
       "valor": -568.02,
       "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2026-02-07",
-      "descricao": "Câmbio C6TAG ESTACIONAMENTO",
+      "descricao": "Câmbio — Transferência para C6 Conta Global",
       "valor": -3219.62,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-02-07",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -1.65,
-      "tipo_lancamento": "Outros gastos"
+      "tipo_lancamento": "Outros"
     },
     {
       "data": "2026-02-07",
       "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
       "valor": -54.0,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-07",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116  FREE FLOW  MAR",
+      "valor": -1.65,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -7643,45 +7383,21 @@
     },
     {
       "data": "2026-02-08",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 2045 NORTE ARUJ",
       "valor": -4.28,
-      "tipo_lancamento": "Outros gastos"
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-02-08",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 1823 NORTE SANT",
+      "valor": -4.28,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 1652 NORTE JACA",
       "valor": -7.7,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-02-08",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -16.06,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-02-08",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -15.58,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-02-08",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -5.5,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-02-08",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -5.4,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-02-08",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -4.1,
-      "tipo_lancamento": "Outros gastos"
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-02-08",
@@ -7696,10 +7412,70 @@
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 8695 NORTE PIND",
+      "valor": -16.06,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116 8695 SUL PINDAM",
+      "valor": -16.06,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECORIOMINAS  BR116 2071 NORTE SE",
+      "valor": -15.58,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECORIOMINAS  BR116 2071 SUL SERO",
+      "valor": -15.58,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.5,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+      "valor": -5.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  RODOANEL SUL  SP021 714 O",
+      "valor": -5.4,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-08",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-SPMAR  RODOANEL SUL  SP021 8794",
+      "valor": -4.1,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
       "data": "2026-02-09",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
       "valor": -3.1,
-      "tipo_lancamento": "Outros gastos"
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-09",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
+      "valor": -3.1,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-02-10",
@@ -7709,15 +7485,15 @@
     },
     {
       "data": "2026-02-13",
-      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
-      "valor": 10000.0,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2026-02-13",
       "descricao": "Câmbio — Transferência para C6 Conta Global",
       "valor": -2260.94,
       "tipo_lancamento": "Outros"
+    },
+    {
+      "data": "2026-02-13",
+      "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "valor": 10000.0,
+      "tipo_lancamento": "Entrada PIX"
     },
     {
       "data": "2026-02-13",
@@ -7733,9 +7509,9 @@
     },
     {
       "data": "2026-02-16",
-      "descricao": "C6TAG PEDAGIO C6TAG ESTACIONAMENTO",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 240 SU",
       "valor": -9.1,
-      "tipo_lancamento": "Outros gastos"
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-02-16",
@@ -7745,9 +7521,9 @@
     },
     {
       "data": "2026-02-17",
-      "descricao": "C6TAG ESTACIONAMENTO C6TAG PEDAGIO",
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
       "valor": -54.0,
-      "tipo_lancamento": "Outros gastos"
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-02-17",
@@ -7763,7 +7539,7 @@
     },
     {
       "data": "2026-02-20",
-      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA Pix enviado para Elias Paiva",
+      "descricao": "Pix enviado para SECRETARIA MUNICIPAL DA FAZENDA — TRANSF ENVIADA PIX",
       "valor": -482.59,
       "tipo_lancamento": "Saída PIX"
     },
@@ -7793,26 +7569,14 @@
     },
     {
       "data": "2026-02-27",
-      "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO C6TAG PEDAGIO",
-      "valor": -2300.0,
+      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
+      "valor": -2491.41,
       "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2026-02-27",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -13.6,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-02-27",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -10.5,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-02-27",
-      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
-      "valor": -2491.41,
+      "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
+      "valor": -2300.0,
       "tipo_lancamento": "Saída PIX"
     },
     {
@@ -7823,8 +7587,20 @@
     },
     {
       "data": "2026-02-27",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 7743 NORTE IT",
+      "valor": -13.6,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-27",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 1235 NORTE C",
       "valor": -17.6,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-02-27",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 NORTE",
+      "valor": -10.5,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -7835,44 +7611,32 @@
     },
     {
       "data": "2026-02-28",
-      "descricao": "Pix recebido de REINALDO MARTINS DE ARAUJO",
-      "valor": 1000.0,
-      "tipo_lancamento": "Entrada PIX"
-    },
-    {
-      "data": "2026-02-28",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP342 24034 LESTE",
       "valor": -6.3,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
+      "data": "2026-02-28",
+      "descricao": "Pix recebido de REINALDO MARTINS DE ARAUJO",
+      "valor": 1000.0,
+      "tipo_lancamento": "Entrada PIX"
+    },
+    {
       "data": "2026-03-01",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP342 24034 OESTE",
       "valor": -6.3,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-03-01",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -10.5,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-03-01",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -13.6,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-03-01",
-      "descricao": "C6TAG PEDAGIO IOF CHEQUE ESPECIAL",
-      "valor": -3.5,
-      "tipo_lancamento": "Outros gastos"
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-03-01",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP344 2190 OESTE S",
       "valor": -6.6,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-03-01",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RENOVIAS  SP340 19284 SUL MO",
+      "valor": -10.5,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -7883,8 +7647,20 @@
     },
     {
       "data": "2026-03-01",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 7743 SUL ITUP",
+      "valor": -13.6,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-03-01",
       "descricao": "C6TAG PEDAGIO — GDK6A27-CCR AUTOBAN  SP348 362 SUL CAIEI",
       "valor": -13.7,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
+    },
+    {
+      "data": "2026-03-01",
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RODOANEL OESTE  SP021 621 NO",
+      "valor": -3.5,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -7895,7 +7671,7 @@
     },
     {
       "data": "2026-03-04",
-      "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO Pix enviado para RUBENS DE CAMPOS",
+      "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
       "valor": -2000.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -7913,15 +7689,15 @@
     },
     {
       "data": "2026-03-06",
-      "descricao": "PGTO FAT CARTAO C6 Pix enviado para REINALDO MARTINS DE ARAUJO",
-      "valor": -41406.31,
-      "tipo_lancamento": "Pagamento"
-    },
-    {
-      "data": "2026-03-06",
       "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
       "valor": 41000.0,
       "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2026-03-06",
+      "descricao": "PGTO FAT CARTAO C6 — Fatura de cartão",
+      "valor": -41406.31,
+      "tipo_lancamento": "Outros"
     },
     {
       "data": "2026-03-06",
@@ -7931,14 +7707,14 @@
     },
     {
       "data": "2026-03-07",
-      "descricao": "C6TAG PEDAGIO C6TAG PEDAGIO",
-      "valor": -1.65,
-      "tipo_lancamento": "Outros gastos"
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
+      "valor": -67.0,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-03-07",
-      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
-      "valor": -67.0,
+      "descricao": "C6TAG PEDAGIO — GDK6A27-CCR RIOSP  BR116  FREE FLOW  MAR",
+      "valor": -1.65,
       "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
@@ -7949,7 +7725,7 @@
     },
     {
       "data": "2026-03-09",
-      "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO Pix enviado para HELEN SASAKE TAKAGI",
+      "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO — TRANSF ENVIADA PIX",
       "valor": -760.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -7973,33 +7749,33 @@
     },
     {
       "data": "2026-03-13",
-      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
-      "valor": -1000.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-03-13",
       "descricao": "Pix enviado para ANDAIMES CUPECE — TRANSF ENVIADA PIX",
       "valor": -270.0,
       "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2026-03-14",
-      "descricao": "C6TAG ESTACIONAMENTO Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-      "valor": -22.0,
-      "tipo_lancamento": "Outros gastos"
+      "data": "2026-03-13",
+      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
+      "valor": -1000.0,
+      "tipo_lancamento": "Saída PIX"
     },
     {
-      "data": "2026-03-15",
-      "descricao": "Câmbio Pix enviado para BELT ACADEMY TREINAMENTO EM DESENVOLVIMENTO PROFISSIONAL\nLTDA",
-      "valor": -556.64,
-      "tipo_lancamento": "Outros gastos"
+      "data": "2026-03-14",
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
+      "valor": -22.0,
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-03-15",
       "descricao": "Pix recebido c6 de DAVID ROBERT CAMARGO DE CAMPOS LTDA",
       "valor": 5000.0,
       "tipo_lancamento": "Entrada PIX"
+    },
+    {
+      "data": "2026-03-15",
+      "descricao": "Câmbio — Transferência para C6 Conta Global",
+      "valor": -556.64,
+      "tipo_lancamento": "Outros"
     },
     {
       "data": "2026-03-16",
@@ -8021,21 +7797,15 @@
     },
     {
       "data": "2026-03-24",
-      "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO",
+      "descricao": "Pix enviado para 54.917.181 MATEUS SOUZA ARCANJO — TRANSF ENVIADA PIX",
       "valor": -500.0,
       "tipo_lancamento": "Saída PIX"
     },
     {
       "data": "2026-03-28",
-      "descricao": "C6TAG ESTACIONAMENTO C6TAG PEDAGIO",
+      "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS  GRU  ROD",
       "valor": -78.0,
-      "tipo_lancamento": "Outros gastos"
-    },
-    {
-      "data": "2026-03-28",
-      "descricao": "PIX RECEBIDO C6 Pix enviado para David Robert Camargo Ferreira Campos",
-      "valor": 10000.0,
-      "tipo_lancamento": "Entrada PIX"
+      "tipo_lancamento": "C6 Tag (Pedágio/Estacionamento)"
     },
     {
       "data": "2026-03-28",
@@ -8057,7 +7827,7 @@
     },
     {
       "data": "2026-03-30",
-      "descricao": "Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA",
+      "descricao": "Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA — TRANSF ENVIADA PIX",
       "valor": -380.0,
       "tipo_lancamento": "Saída PIX"
     },
@@ -8069,18 +7839,6 @@
     },
     {
       "data": "2026-03-31",
-      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA Pix enviado para SUECIA PEREIRA DE OLIVEIRA",
-      "valor": -2191.41,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-03-31",
-      "descricao": "Pix enviado para David Robert Camargo Ferreira Campos",
-      "valor": -500.0,
-      "tipo_lancamento": "Saída PIX"
-    },
-    {
-      "data": "2026-03-31",
       "descricao": "Pix enviado para TORRALTA COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA — TRANSF ENVIADA PIX",
       "valor": -292.0,
       "tipo_lancamento": "Saída PIX"
@@ -8088,7 +7846,19 @@
     {
       "data": "2026-03-31",
       "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
+      "valor": -2191.41,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-03-31",
+      "descricao": "Pix enviado para SUECIA PEREIRA DE OLIVEIRA — TRANSF ENVIADA PIX",
       "valor": -300.0,
+      "tipo_lancamento": "Saída PIX"
+    },
+    {
+      "data": "2026-03-31",
+      "descricao": "Pix enviado para David Robert Camargo Ferreira Campos — TRANSF ENVIADA PIX",
+      "valor": -500.0,
       "tipo_lancamento": "Saída PIX"
     },
     {

@@ -2,111 +2,85 @@
   "banco": "Santander",
   "tipo": "faturaunique",
   "cartao": "Unique",
-  "titular": "DAVID ROBERT CAMARGO FERREIRA",
+  "titular": null,
   "moeda": "BRL",
-  "data_vencimento": "2025-10-15",
-  "saldo_anterior": 724.94,
-  "total_compras": 85.03,
-  "pagamentos": -724.94,
-  "saldo_atual": 858.39,
+  "data_vencimento": "2025-10-06",
+  "saldo_anterior": null,
+  "total_compras": 1201.47,
+  "pagamentos": -2376.45,
+  "saldo_atual": -1174.98,
   "transacoes": [
     {
-      "data": "2025-10-15",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 1.91,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506",
-      "tipo_lancamento": "iof"
+      "data": "2025-09-23",
+      "descricao": "ESTORNO CUSTO DE IOF",
+      "valor": -13.89,
+      "tipo": "iof"
     },
     {
-      "data": "2025-09-15",
-      "descricao": "DEB AUTOM DE FATURA EM C/",
-      "valor": -724.94,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+      "data": "2025-09-22",
+      "descricao": "AMAZON MKTPLACE PMTS",
+      "valor": -396.11,
+      "tipo": "estorno"
     },
     {
-      "data": "2025-09-19",
-      "descricao": "SCP COMPLETO- SET/25",
-      "valor": 26.34,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+      "data": "2025-09-21",
+      "descricao": "ESTORNO CUSTO DE IOF",
+      "valor": -3.16,
+      "tipo": "iof"
     },
     {
-      "data": "2025-10-08",
-      "descricao": "ANUIDADE DIFERENCIADA 02/12",
-      "valor": 0.0,
-      "cartao": "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+      "data": "2025-09-20",
+      "descricao": "AMAZON MKTPLACE PMTS",
+      "valor": -90.86,
+      "tipo": "estorno"
     },
     {
-      "data": "2025-09-29",
-      "descricao": "SCP BASICO- SET/25",
-      "valor": 10.39,
-      "cartao": "SONIA C C DE CAMPOS - 5228 XXXX XXXX 6006"
+      "data": "2025-09-08",
+      "descricao": "PAGAMENTO EFETUADO",
+      "valor": -1872.43,
+      "tipo": "pagamento"
     },
     {
-      "data": "2025-10-02",
-      "descricao": "GOOGLE *GOOGLE NEST -606,61",
-      "valor": -113.65,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871"
+      "data": "2025-09-07",
+      "descricao": "IOF COMPRA INTERNACIONA",
+      "valor": 3.37,
+      "tipo": "iof"
     },
     {
-      "data": "2025-09-29",
-      "descricao": "AMAZON PRIME*NJ3AU9XV1",
-      "valor": 84.92,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "forex": {
-        "moeda_original": "USD",
-        "valor_original": 14.99
-      }
+      "data": "2025-09-07",
+      "descricao": "IOF COMPRA INTERNACIONA",
+      "valor": 31.35,
+      "tipo": "iof"
     },
     {
-      "data": "2025-09-29",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 2.97,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
+      "data": "2025-09-06",
+      "descricao": "AMAZON MKTPL*BJ8I19AQ3",
+      "valor": 96.04,
+      "tipo": "compra"
     },
     {
-      "data": "2025-10-01",
-      "descricao": "GOOGLE *GOOGLE ONE",
-      "valor": 112.69,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "forex": {
-        "moeda_original": "USD",
-        "valor_original": 19.99
-      }
+      "data": "2025-09-06",
+      "descricao": "AMAZON MKTPL*A510Y5UY3",
+      "valor": 894.84,
+      "tipo": "compra"
     },
     {
-      "data": "2025-10-01",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 3.94,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
+      "data": "2025-08-31",
+      "descricao": "IOF COMPRA INTERNACIONA",
+      "valor": 3.96,
+      "tipo": "iof"
     },
     {
-      "data": "2025-10-02",
-      "descricao": "GOOGLE *GOOGLE ONE",
-      "valor": 1127.88,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "forex": {
-        "moeda_original": "USD",
-        "valor_original": 199.99
-      }
+      "data": "2025-08-30",
+      "descricao": "AMAZON RETA* RK4N12ZW3",
+      "valor": 112.91,
+      "tipo": "compra"
     },
     {
-      "data": "2025-10-02",
-      "descricao": "IOF DESPESA NO EXTERIOR",
-      "valor": 39.48,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "tipo_lancamento": "iof"
-    },
-    {
-      "data": "2025-10-02",
-      "descricao": "GOOGLE *GOOGLE ONE",
-      "valor": 54.48,
-      "cartao": "DAVID R C DE CAMPO - 5228 XXXX XXXX 2871",
-      "forex": {
-        "moeda_original": "USD",
-        "valor_original": 9.66
-      }
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras 04/12",
+      "valor": 59.0,
+      "tipo": "compra"
     }
   ],
   "cartoes": [],

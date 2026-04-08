@@ -1,5 +1,28 @@
 {
-  "erro": "No /Root object! - Is this really a PDF?",
-  "requires_llm_fallback": true,
-  "tipo": "fatura"
+  "banco": "Santander",
+  "tipo": "faturaunique",
+  "cartao": "Unique",
+  "titular": null,
+  "moeda": "BRL",
+  "data_vencimento": "2026-04-06",
+  "saldo_anterior": null,
+  "total_compras": 59.0,
+  "pagamentos": -59.0,
+  "saldo_atual": 0.0,
+  "transacoes": [
+    {
+      "data": "2026-03-06",
+      "descricao": "PAGAMENTO EFETUADO",
+      "valor": -59.0,
+      "tipo": "pagamento"
+    },
+    {
+      "data": "2025-06-08",
+      "descricao": "BRASIL PARAL*Bras 10/12",
+      "valor": 59.0,
+      "tipo": "compra"
+    }
+  ],
+  "cartoes": [],
+  "parse_quality": "ok"
 }
