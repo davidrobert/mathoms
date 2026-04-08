@@ -2,60 +2,117 @@
   "tipo": "curriculo",
   "membro": "david",
   "nome_completo": "David Robert Camargo Ferreira Campos",
-  "nome_atual": "David Robert Camargo Ferreira Campos",
-  "nome_solteiro": "David Robert Camargo de Campos",
-  "profissao_cargo": "CTO da Arvo",
-  "data_nascimento": "1981-09-05",
-  "cpf": "287.766.948-36",
+  "nome_atual": "David Robert Camargo de Campos",
+  "profissao_cargo": "Chief Technology Officer (CTO)",
   "experiencias": [
     {
-      "descricao": "CTO da Arvo na Arvo",
-      "periodo": "2014-presente"
+      "empresa": "Arvo",
+      "cargo": "Chief Technology Officer (CTO)",
+      "periodo_inicio": "2025-09",
+      "periodo_fim": "presente",
+      "descricao": "Healthtech company leveraging AI and ML for healthcare ecosystem. Directed technology strategy, defined scalable architectures, established AI-First engineering vision, integrated AI tooling across SDLC reducing PR review times by 20%."
+    },
+    {
+      "empresa": "Kiwify",
+      "cargo": "Chief Technology Officer (CTO)",
+      "periodo_inicio": "2024-06",
+      "periodo_fim": "2025-05",
+      "descricao": "E-commerce platform for digital products and sales automation. Established technology strategy, led five engineering squads, optimized infrastructure for 7,000 requests/min, reduced feature launch time by 40%, implemented continuous delivery."
+    },
+    {
+      "empresa": "Loft",
+      "cargo": "Software Engineering Consultant",
+      "periodo_inicio": "2022-12",
+      "periodo_fim": "2024-06",
+      "descricao": "Proptech transforming real estate market. Managed 60+ software engineers, defined technology strategy, adopted microservices architecture, reduced deployment time by 40%, improved platform availability to 99.99%, increased transaction volume by 5x."
+    },
+    {
+      "empresa": "Loft",
+      "cargo": "Director of Software Engineering",
+      "periodo_inicio": "2021-11",
+      "periodo_fim": "2022-12",
+      "descricao": "Led recruitment and onboarding of 70+ software engineers during unicorn growth phase. Managed engineering team scaling, defined legacy system migration to microservices, introduced observability tools, reduced load times by 60%."
+    },
+    {
+      "empresa": "Loft",
+      "cargo": "Engineering Manager",
+      "periodo_inicio": "2019-06",
+      "periodo_fim": "2021-10",
+      "descricao": "Led cross-functional software engineering teams for real estate market solutions. Developed Loft's engineering principles, restructured recruitment process, improved candidate conversion by 15%."
+    },
+    {
+      "empresa": "Elo7",
+      "cargo": "Chief Technology Officer (CTO)",
+      "periodo_inicio": "2013-08",
+      "periodo_fim": "2020-07",
+      "descricao": "E-commerce platform for handmade products. Led 70 software engineers, designed microservices architecture, reduced deployment time from days to minutes, reduced AWS costs by 35%, improved platform speed by 40%."
+    },
+    {
+      "empresa": "Abril",
+      "cargo": "Solutions Architect I",
+      "periodo_inicio": "2012-03",
+      "periodo_fim": "2013-08",
+      "descricao": "Major Brazilian media group. Developed distributed architecture for Alexandria platform, created scalable RESTful APIs, reduced digital portal response time by 60%, implemented distributed caching system."
+    },
+    {
+      "empresa": "TOTVS",
+      "cargo": "Research and Development Engineer IV",
+      "periodo_inicio": "2011-02",
+      "periodo_fim": "2012-03",
+      "descricao": "Business management solutions leader. Developed proprietary virtual machine using C/C++/Assembly, optimized memory management reducing consumption by 35%, improved compile time by 40%."
+    },
+    {
+      "empresa": "NIC.br",
+      "cargo": "Software Engineer",
+      "periodo_inicio": "2006-04",
+      "periodo_fim": "2011-01",
+      "descricao": "Internet infrastructure entity responsible for .br domain registration and IP distribution. Developed UNIX applications using Java/C++/Python, implemented DNSSEC security enhancements, automated DNS operations."
     }
   ],
   "formacao": [
     {
-      "descricao": "Master in Computer Science – Artificial Intelligence – University of São Paulo (USP), Institute of Mathematics and Statistics (IME) – 2008",
-      "instituicao": "PUC-SP / USP"
+      "instituicao": "University of São Paulo (USP), Institute of Mathematics and Statistics (IME)",
+      "curso": "Master in Computer Science - Artificial Intelligence",
+      "grau": "Mestrado",
+      "periodo_inicio": "2006",
+      "periodo_fim": "2008"
     },
     {
-      "descricao": "Bachelor of Computer Science – Pontifical Catholic University of São Paulo (PUC/SP) – 2004",
-      "instituicao": "PUC-SP / USP"
-    },
-    {
-      "descricao": "Spearhead an \"AI-First\" engineering vision by establishing comprehensive AI governance and integrating native artificial intelligence capabilities directly into the Software Development Life Cycle (SDLC).",
-      "instituicao": "PUC-SP / USP"
-    },
-    {
-      "descricao": "Successfully integrated AI tooling across multiple stages of the SDLC, driving operational efficiency and reducing Pull Request (PR) review times by 20% without compromising rigorous code quality standards.",
-      "instituicao": "PUC-SP / USP"
-    },
-    {
-      "descricao": "Introduction to Scientific Computing - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
-      "instituicao": "PUC-SP / USP"
-    },
-    {
-      "descricao": "Artificial Intelligence Laboratory - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
-      "instituicao": "PUC-SP / USP"
-    },
-    {
-      "descricao": "Topics in Software Engineering - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
-      "instituicao": "PUC-SP / USP"
-    },
-    {
-      "descricao": "Algorithm Analysis - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
-      "instituicao": "PUC-SP / USP"
-    },
-    {
-      "descricao": "Programming Topics - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2003",
-      "instituicao": "PUC-SP / USP"
+      "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)",
+      "curso": "Bachelor of Computer Science",
+      "grau": "Bacharelado",
+      "periodo_inicio": "2000",
+      "periodo_fim": "2004"
     }
   ],
   "certificacoes": [],
   "habilidades": [
-    "Oracle Certified Professional, Java SE 5 Programmer"
+    "Software Architecture",
+    "Microservices Design",
+    "Domain-Driven Design (DDD)",
+    "Scalable Systems",
+    "Cloud Computing (AWS, GCP)",
+    "Kubernetes & Docker",
+    "CI/CD Pipelines",
+    "DevOps",
+    "Infrastructure as Code (Terraform, Ansible)",
+    "Cybersecurity & DNSSEC",
+    "Machine Learning",
+    "Big Data & ETL",
+    "Team Leadership",
+    "Technical Strategy",
+    "Agile Methodologies"
   ],
   "idiomas": [
-    "Business English - ELS Language Centers - 2018"
+    {
+      "idioma": "Português",
+      "nivel": "Nativo",
+      "fonte": "documento"
+    },
+    {
+      "idioma": "Inglês",
+      "nivel": "Fluente",
+      "fonte": "inferido"
+    }
   ]
 }

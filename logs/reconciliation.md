@@ -1,10 +1,10 @@
 # E3 Reconciliation Summary
-Generated: 2026-04-08T14:34:33.522366
+Generated: 2026-04-08T15:45:50.391889
 
 ## Statistics
 - Accounts processed: 17
-- Total transactions reconciled: 4535
-- Total duplicates removed: 698
+- Total transactions reconciled: 5003
+- Total duplicates removed: 869
 - Files written: 17
 
 ## Saldo Continuity & Temporal Warnings
@@ -31,8 +31,15 @@ Generated: 2026-04-08T14:34:33.522366
 - ('C6 Bank', 'faturacarbon'): Saldo gap: c6bank_faturacarbon_202602-2_extract.json (prev_final=-14990.8, next_initial=0, gap=14990.80)
 - ('C6 Bank', 'faturacarbon'): Saldo gap: c6bank_faturacarbon_202603-2_extract.json (prev_final=-25721.27, next_initial=0, gap=25721.27)
 - ('C6 Bank', 'faturacarbon'): Saldo gap: c6bank_faturacarbon_202604-2_extract.json (prev_final=20565.12, next_initial=0, gap=20565.12)
-- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202601-2_extract.json (prev_final=913.72, next_initial=-10044.05, gap=10957.77)
-- ('Itaú', 'extratoconta', 'BRL'): Temporal gap: 154 days before itau_extratoconta_202601-2_extract.json (2025-07-31 -> 2026-01-01)
+- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202401_202604-2_extract.json (prev_final=14.71, next_initial=5053.98, gap=5039.27)
+- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202404_202604-2_extract.json (prev_final=22120.66, next_initial=279.8, gap=21840.86)
+- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202407_202604-2_extract.json (prev_final=22120.66, next_initial=22060.6, gap=60.06)
+- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202507_202604-2_extract.json (prev_final=913.72, next_initial=14662.65, gap=13748.93)
+- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202601-2_extract.json (prev_final=-10463.52, next_initial=-10044.05, gap=419.47)
+- ('Itaú', 'extratoconta', 'BRL'): Saldo gap: itau_extratoconta_202601_202604-2_extract.json (prev_final=913.72, next_initial=-10463.52, gap=11377.24)
+- ('Santander', 'extratoconta', 'BRL'): Saldo gap: santander_extratoconta_202510_202601-2_extract.json (prev_final=0.0, next_initial=-3567.88, gap=3567.88)
+- ('Santander', 'extratoconta', 'BRL'): Saldo gap: santander_extratoconta_202511_202512-2_extract.json (prev_final=-3905.88, next_initial=0.0, gap=3905.88)
+- ('Santander', 'extratoconta', 'BRL'): Saldo gap: santander_extratoconta_202601_202604-2_extract.json (prev_final=280.6, next_initial=-3905.88, gap=4186.48)
 - ('Santander', 'faturaunique'): Saldo gap: santander_faturaunique_202504-2_extract.json (prev_final=382.82, next_initial=7.3, gap=375.52)
 
 ## Reconciled Accounts
@@ -45,11 +52,11 @@ Generated: 2026-04-08T14:34:33.522366
 - C6 Bank | extratocontaglobalusd | USD | 2025-05-01 to 2026-04-05 | 368 txns
 - C6 Bank | extratocontapj | BRL | 2024-12-30 to 2026-04-06 | 61 txns
 - C6 Bank | faturacarbon | BRL | 2023-09-30 to 2026-04-05 | 1806 txns
-- Itaú | extratoconta | BRL | 2025-05-01 to 2026-01-31 | 104 txns
+- Itaú | extratoconta | BRL | 2022-12-01 to 2026-04-30 | 564 txns
 - Itaú | faturapaoacucar | BRL | 2025-04-06 to 2026-03-06 | 12 txns
 - PicPay | extratoconta | BRL | 2025-12-29 to 2026-03-28 | 62 txns
 - Rico | extratoconta | BRL | 2025-09-30 to 2026-03-29 | 14 txns
-- Santander | extratoconta | BRL | 2025-11-01 to 2026-03-29 | 19 txns
+- Santander | extratoconta | BRL | 2024-10-15 to 2026-04-08 | 27 txns
 - Santander | faturaunique | BRL | 2025-02-13 to 2026-02-15 | 125 txns
 - Wise | extratocontabrl | BRL | 2025-01-01 to 2026-03-29 | 0 txns
 - Wise | extratocontausd | USD | 2025-01-01 to 2026-03-29 | 31 txns

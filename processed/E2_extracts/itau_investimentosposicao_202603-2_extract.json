@@ -1,44 +1,49 @@
 {
   "tipo": "investimentosposicao",
-  "instituicao": "Itaú",
+  "banco": "itau",
   "membro": "david",
-  "data_posicao": "2026-03-26",
+  "data_posicao": "2026-03-29",
   "moeda": "BRL",
-  "total_aplicado": 341581.20,
-  "saldo_atual": 341581.20,
-  "rentabilidade": {
-    "valor": 3159.59,
-    "percentual": 0.91
-  },
+  "saldo_total": 341581.20,
   "composicao": [
     {
-      "tipo_produto": "CDB",
-      "nome": "CDB-DI",
-      "quantidade": 1,
-      "valor_unitario": 116374.26,
-      "valor_total": 116374.26,
-      "percentual_carteira": 34.07,
-      "rentabilidade_instrumento": 0.00
+      "product_type": "CDB",
+      "name": "CDB-DI",
+      "issuer": "Itaú",
+      "applied_value": 116374.26,
+      "current_value": 116374.26,
+      "quantity": null,
+      "unit_price": null,
+      "rentabilidade_acumulada": null,
+      "data_aquisicao": null,
+      "vencimento": null,
+      "pm_note": "Rendimento 2026: R$ 3.761,50"
     },
     {
-      "tipo_produto": "título",
-      "nome": "Itau Prev Corp Platinum Rv49 Mm Pgbl",
-      "quantidade": 1,
-      "valor_unitario": 18715.24,
-      "valor_total": 18715.24,
-      "percentual_carteira": 5.48,
-      "rentabilidade_instrumento": -1.4
+      "product_type": "Previdência",
+      "name": "Itau Prev Corp Platinum Rv49 Mm Pgbl",
+      "issuer": "Itaú Previdência",
+      "applied_value": 18715.24,
+      "current_value": 18715.24,
+      "quantity": null,
+      "unit_price": null,
+      "rentabilidade_acumulada": 65.27,
+      "data_aquisicao": "2021-12-02",
+      "vencimento": null,
+      "pm_note": "Rentabilidade 2026: R$ 1.288,35"
     },
     {
-      "tipo_produto": "outro",
-      "nome": "Cofrinhos",
-      "quantidade": 1,
-      "valor_unitario": 206491.70,
-      "valor_total": 206491.70,
-      "percentual_carteira": 60.45,
-      "rentabilidade_instrumento": 0.00
+      "product_type": "Cofrinhos",
+      "name": "Cofrinhos",
+      "issuer": "Itaú",
+      "applied_value": 206491.70,
+      "current_value": 206491.70,
+      "quantity": null,
+      "unit_price": null,
+      "rentabilidade_acumulada": 60.45,
+      "data_aquisicao": null,
+      "vencimento": null,
+      "pm_note": "Rendimento 2026: R$ 6.610,29"
     }
-  ],
-  "source_file": "itau_investimentosposicao_202603-0_original.pdf",
-  "extraction_date": "2026-04-08"
+  ]
 }

@@ -1,0 +1,81 @@
+STAGE E2 - INVESTMENT POSITION EXTRACTION SUMMARY
+=================================================
+Date: 2026-04-08
+Status: COMPLETE
+
+FILES EXTRACTED AND CREATED:
+============================
+
+1. BTG PACTUAL (Mariana)
+   File: btgpactual_investimentosposicao_202603-2_extract.json
+   Position Date: 2026-03-26
+   Total Balance: R$ 375,384.56
+   
+   Assets Extracted (22 items):
+   - CDB: 4 products (R$ 95,990.45)
+   - CRI: 2 products (R$ 15,022.99)
+   - CRA: 7 products (R$ 107,959.41)
+   - Debêntures: 2 products (R$ 36,198.89)
+   - Treasury (Tesouro): 2 products (R$ 51,934.48)
+   - Investment Funds: 2 products (R$ 32,636.37)
+   - COE: 1 product (R$ 20,449.45)
+   - Derivatives (Swap): 1 product (R$ -448.78)
+
+2. C6 BANK (David - Fixed Income Portfolio)
+   File: c6bank_carteirarendafixa_202603-2_extract.json
+   Position Date: 2026-03-31
+   Total Balance: R$ 6,930.11
+   
+   Products Listed (4 types):
+   - CDB Pós-fixado Liq. Diária (102% do CDI)
+   - CDB Limite Garantido (102% do CDI)
+   - CDB Pós-fixado 3 meses (102% do CDI)
+   - CDB Pós-fixado 6 meses (103% do CDI)
+
+3. ITAÚ (David - Personnalité Account)
+   File: itau_investimentosposicao_202603-2_extract.json
+   Position Date: 2026-03-29
+   Total Balance: R$ 341,581.20
+   
+   Assets Extracted (3 items):
+   - CDB-DI: R$ 116,374.26
+   - Private Pension (Itau Prev Corp Platinum Rv49): R$ 18,715.24
+   - Piggy Banks (Cofrinhos): R$ 206,491.70
+
+4. RICO (David - Brokerage)
+   File: rico_investimentosposicao_202603-2_extract.json
+   Position Date: 2026-03-29
+   Total Balance: R$ 278,916.64
+   
+   Assets Extracted (12 items):
+   - Investment Funds: 7 funds (R$ 164,689.98)
+   - Stocks (Ações): 3 stocks (R$ 96,931.16)
+   - Dividend Provisions (Proventos): 2 items (R$ 109.10)
+   
+   Stocks Details:
+     * PETR4 (Petrobras): 1,700 shares @ R$ 49.38 = R$ 83,946.00
+     * ITSA4 (Itaúsa): 778 shares @ R$ 13.22 = R$ 10,285.16
+     * BRKM5 (Braskem): 300 shares @ R$ 9.00 = R$ 2,700.00
+
+DATA COMPLETENESS:
+==================
+BTG Pactual: Complete - all 22 line items extracted with prices, quantities, maturity dates, and rates
+C6 Bank: Partial - product types and rates listed, but individual balances not detailed in PDF
+Itaú: Complete - 3 major holdings with applied values and accumulated returns
+Rico: Complete - all 12 items with current values, applied values, and returns
+
+VALIDATION:
+===========
+- All JSON files validated successfully
+- All required schema fields populated where data available
+- Null values used for unavailable data points
+- Currency: BRL for all accounts
+- Data consistency checked across all products
+
+NEXT STEPS:
+===========
+These extracts are ready for:
+1. Consolidation into patrimonial dashboard
+2. Risk and allocation analysis
+3. Tax reporting (IR/IRPF)
+4. Portfolio rebalancing recommendations

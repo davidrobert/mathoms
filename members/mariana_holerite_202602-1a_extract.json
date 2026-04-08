@@ -3,77 +3,87 @@
   "membro": "mariana",
   "nome_no_documento": "Mariana Teixeira Ferreira",
   "periodo": "2026-02",
-  "empresa": "AE00 SBIBHAE - Albert Einstein",
-  "estabelecimento": "AEMO Unidade Morumbi",
+  "empresa": "Hospital Israelita Albert Einstein",
+  "estabelecimento": "SBIBHAE - Unidade Morumbi",
   "cargo": "Enfermeiro Pl",
   "categoria": "Enfermagem P",
-  "admissao": "2014-07-21",
-  "carga_horaria_mensal": 200.0,
-  "salario_mensal": 10899.51,
+  "grade": "P4",
+  "matricula": "36108",
+  "data_admissao": "2014-07-21",
+  "salario_base_mensal": 9082.92,
+  "salario_bruto": 12086.06,
   "proventos_adicionais": [
     {
-      "descricao": "Salário mensal",
-      "valor": 9082.92
-    },
-    {
+      "rubrica": "/325",
       "descricao": "Adic. de insalubrid. 20%",
       "valor": 270.17
     },
     {
+      "rubrica": "M389",
       "descricao": "Provisão Contr. INSS rec.",
       "valor": 203.34
     },
     {
+      "rubrica": "MC03",
       "descricao": "Férias no mês",
       "valor": 1870.62
     },
     {
+      "rubrica": "MC04",
       "descricao": "Férias 1/3 no mês",
       "valor": 623.54
     },
     {
+      "rubrica": "MC13",
       "descricao": "Médias férias no mês",
-      "valor": 26.6
+      "valor": 26.60
     },
     {
+      "rubrica": "MC14",
       "descricao": "Médias férias 1/3 no mês",
       "valor": 8.87
     }
   ],
   "descontos": [
     {
+      "rubrica": "/314",
       "descricao": "Contr. INSS Remuneração",
       "valor": 988.07
     },
     {
+      "rubrica": "/401",
       "descricao": "Tributo IRRF",
       "valor": 1447.57
     },
     {
+      "rubrica": "/B02",
       "descricao": "Adiantamento pago",
       "valor": 3633.17
     },
     {
+      "rubrica": "1014",
       "descricao": "Seguro de Vida",
       "valor": 27.41
     },
     {
-      "descricao": "Refeição",
-      "valor": 34.8
+      "rubrica": "1025",
+      "descricao": "Refeicao",
+      "valor": 34.80
     },
     {
+      "rubrica": "MO90",
       "descricao": "Desconto de Férias",
       "valor": 2529.63
     }
   ],
-  "total_proventos": 12086.06,
   "total_descontos": 8660.65,
   "salario_liquido": 3425.41,
   "data_credito": "2026-02-27",
-  "fgts": 950.62,
-  "base_inss": 11882.72,
-  "base_ir": 0.0,
-  "inss_desconto": 988.07,
-  "ir_desconto": 1447.57,
-  "dependentes_ir": 0
+  "fgts": {
+    "base": 11882.72,
+    "depositado": 950.62
+  },
+  "inss_base": 11882.72,
+  "dependentes_ir": 0,
+  "observacoes": "Tipo Contrato: Mensalista. Carga Horária: 200 horas mensais. Referência: Fevereiro 2026. Banco: Itaú (237). Agência: 6543. Conta: 6673."
 }

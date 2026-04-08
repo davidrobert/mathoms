@@ -1,156 +1,41 @@
 {
-  "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfdeclaracaomariana_2024-0_original.pdf",
-  "extraction_type": "irpf_declaracao",
+  "tipo": "irpfdeclaracao",
+  "membro": "mariana",
+  "ano_base": 2024,
   "bens_direitos": [
-    {
-      "grupo": "01",
-      "codigo": "11",
-      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA",
-      "valor_31_12_anterior": 223733.99,
-      "valor_31_12_atual": 270000.0
-    },
-    {
-      "grupo": "01",
-      "codigo": "11",
-      "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA",
-      "valor_31_12_anterior": 477436.58,
-      "valor_31_12_atual": 530000.0
-    },
-    {
-      "grupo": "04",
-      "codigo": "01",
-      "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA",
-      "valor_31_12_anterior": 25337.34,
-      "valor_31_12_atual": 0.0
-    },
-    {
-      "grupo": "04",
-      "codigo": "02",
-      "descricao": "BTG - PRODUTO CDBB2353UR4",
-      "valor_31_12_anterior": 22000.0,
-      "valor_31_12_atual": 22000.0
-    },
-    {
-      "grupo": "04",
-      "codigo": "02",
-      "descricao": "BTG - CDB-SR - AGENCIA 0001",
-      "valor_31_12_anterior": 1826.51,
-      "valor_31_12_atual": 3429.16
-    },
-    {
-      "grupo": "04",
-      "codigo": "02",
-      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
-      "valor_31_12_anterior": 4365.03,
-      "valor_31_12_atual": 0.0
-    },
-    {
-      "grupo": "04",
-      "codigo": "02",
-      "descricao": "SALDO RDB - NUBANK",
-      "valor_31_12_anterior": 58.23,
-      "valor_31_12_atual": 0.0
-    },
-    {
-      "grupo": "04",
-      "codigo": "02",
-      "descricao": "BTG - PRODUTO CDB524BFK2F",
-      "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 10000.0
-    },
-    {
-      "grupo": "04",
-      "codigo": "03",
-      "descricao": "BTG - PRODUTO 22J1410500",
-      "valor_31_12_anterior": 10349.69,
-      "valor_31_12_atual": 9349.69
-    },
-    {
-      "grupo": "04",
-      "codigo": "03",
-      "descricao": "BTG - PRODUTO 22K1692411",
-      "valor_31_12_anterior": 10324.25,
-      "valor_31_12_atual": 10324.25
-    },
-    {
-      "grupo": "04",
-      "codigo": "03",
-      "descricao": "BTG - PRODUTO CRA02300MZU",
-      "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 9115.01
-    },
-    {
-      "grupo": "04",
-      "codigo": "03",
-      "descricao": "BTG - PRODUTO CRA02300SPD",
-      "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 9109.54
-    },
-    {
-      "grupo": "04",
-      "codigo": "03",
-      "descricao": "BTG - PRODUTO CRA024001Q9",
-      "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 9248.83
-    },
-    {
-      "grupo": "04",
-      "codigo": "03",
-      "descricao": "BTG - PRODUTO 23J0138431",
-      "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 9164.03
-    },
-    {
-      "grupo": "06",
-      "codigo": "01",
-      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO",
-      "valor_31_12_anterior": 1.0,
-      "valor_31_12_atual": 0.0
-    },
-    {
-      "grupo": "07",
-      "codigo": "01",
-      "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE",
-      "valor_31_12_anterior": 35868.62,
-      "valor_31_12_atual": 41408.87
-    },
-    {
-      "grupo": "07",
-      "codigo": "01",
-      "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA",
-      "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 4494.93
-    },
-    {
-      "grupo": "07",
-      "codigo": "07",
-      "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA",
-      "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 25479.42
-    },
-    {
-      "grupo": "07",
-      "codigo": "10",
-      "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE",
-      "valor_31_12_anterior": 0.0,
-      "valor_31_12_atual": 25000.0
-    }
+    {"codigo": "01.11", "descricao": "Apartamento Living Concept - Apto 320", "valor_31_12_anterior": 223733.99, "valor_31_12": 270000.00},
+    {"codigo": "01.11", "descricao": "Apartamento Living Wish - Apto 2192", "valor_31_12_anterior": 477436.58, "valor_31_12": 530000.00},
+    {"codigo": "04.02", "descricao": "BTG Produto CDBB2353UR4", "valor_31_12_anterior": 22000.00, "valor_31_12": 22000.00},
+    {"codigo": "04.02", "descricao": "BTG CDB-SR", "valor_31_12_anterior": 1826.51, "valor_31_12": 3429.16},
+    {"codigo": "04.02", "descricao": "BTG CDB524BFK2F", "valor_31_12_anterior": 0.00, "valor_31_12": 10000.00},
+    {"codigo": "04.03", "descricao": "LCI BTG 22J1410500", "valor_31_12_anterior": 10349.69, "valor_31_12": 9349.69},
+    {"codigo": "04.03", "descricao": "LCI BTG 22K1692411", "valor_31_12_anterior": 10324.25, "valor_31_12": 10324.25},
+    {"codigo": "04.03", "descricao": "BTG CRA02300MZU", "valor_31_12_anterior": 0.00, "valor_31_12": 9115.01},
+    {"codigo": "04.03", "descricao": "BTG GRA02300SPD", "valor_31_12_anterior": 0.00, "valor_31_12": 9109.54},
+    {"codigo": "04.03", "descricao": "BTG CRA02400109", "valor_31_12_anterior": 0.00, "valor_31_12": 9248.83},
+    {"codigo": "04.03", "descricao": "BTG 23J0138431", "valor_31_12_anterior": 0.00, "valor_31_12": 9164.03},
+    {"codigo": "07.01", "descricao": "BTG Pactual Explorer Renda Fixa", "valor_31_12_anterior": 35868.62, "valor_31_12": 41408.87},
+    {"codigo": "07.01", "descricao": "BTG Pactual Hedge Renda Fixa Crédito", "valor_31_12_anterior": 0.00, "valor_31_12": 4494.93},
+    {"codigo": "07.07", "descricao": "M8 Capital Plus Renda Fixa Crédito", "valor_31_12_anterior": 0.00, "valor_31_12": 25479.42},
+    {"codigo": "07.10", "descricao": "BTG Pactual Hedge Fundo Infraestrutura", "valor_31_12_anterior": 0.00, "valor_31_12": 25000.00}
   ],
-  "total_bens": 988123.7300000001,
   "rendimentos": {
-    "pj_salario": null,
-    "pj_total": null,
-    "alugueis": 0.0,
-    "financeiros": null,
-    "outros": null
+    "pj": [
+      {"fonte": "Sociedade Beneficente Israelita Brasileira", "cnpj": "60.765.823/0001-30", "rendimentos_brutos": 141842.70, "imposto_retido": 22575.99}
+    ],
+    "alugueis": [],
+    "financeiros": [{"descricao": "Rendimentos de aplicações financeiras", "valor": 3319.56}],
+    "outros": [{"descricao": "Abono de férias PIS", "valor": 1336.61}]
   },
-  "deductions": {
-    "contribuicao_previdenciaria": null,
-    "pagamentos_deductiveis": null
-  },
-  "extraction_date": "2026-04-08T10:11:57.703264",
-  "declarante": {
-    "nome": "MARIANA FERREIRA CAMPOS",
-    "cpf": "085.052.396-60"
-  }
+  "dividas": [],
+  "pagamentos_dedutiveis": [
+    {"codigo": "11", "descricao": "Leir Miranda Esteves", "valor": 400.00},
+    {"codigo": "21", "descricao": "Beep Serviços Médicos", "valor": 275.00},
+    {"codigo": "21", "descricao": "HT Saragiotto Serviços Médicos", "valor": 600.00},
+    {"codigo": "26", "descricao": "Sul America Serviços de Saúde", "valor": 190.54},
+    {"codigo": "71", "descricao": "GRPQA Ltda", "valor": 13726.94}
+  ],
+  "total_bens_anterior": 811301.24,
+  "total_bens": 988123.73,
+  "imposto_devido": 40746.89
 }

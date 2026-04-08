@@ -1,0 +1,141 @@
+{
+  "banco": "Itaú",
+  "tipo": "extratoconta",
+  "moeda": "BRL",
+  "numero_conta": "04397-8",
+  "titular": "david",
+  "periodo": {
+    "inicio": "2025-07-01",
+    "fim": "2026-04-30"
+  },
+  "saldo_inicial": 14662.65,
+  "saldo_final": 9281.4,
+  "transacoes": [
+    {
+      "data": "2025-07-28",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.14
+    },
+    {
+      "data": "2025-07-28",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -126.88
+    },
+    {
+      "data": "2025-08-05",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.1
+    },
+    {
+      "data": "2025-08-05",
+      "descricao": "SABESP      3334280219",
+      "valor": -76.3
+    },
+    {
+      "data": "2025-08-06",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.09
+    },
+    {
+      "data": "2025-08-06",
+      "descricao": "ITAU VISA      ITAUCARD",
+      "valor": -59.0
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "valor": 1824.21
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "valor": 1401.97
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "FINANC IMOBILIARIO 000043",
+      "valor": -4347.76
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 1.77
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.43
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -207.39
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.18
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "SABESP      3334280219",
+      "valor": -76.3
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 4.55
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "ITAU VISA      ITAUCARD",
+      "valor": -1872.43
+    },
+    {
+      "data": "2025-09-10",
+      "descricao": "FINANC IMOBILIARIO 000044",
+      "valor": -4343.12
+    },
+    {
+      "data": "2025-09-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 10.93
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "valor": 1850.13
+    },
+    {
+      "data": "2025-09-11",
+      "descricao": "SISPAG GRPQA LTDA",
+      "valor": 1571.97
+    },
+    {
+      "data": "2025-09-29",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 1.05
+    },
+    {
+      "data": "2025-09-29",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -170.92
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 5.08
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "ITAU VISA      ITAUCARD",
+      "valor": -697.45
+    },
+    {
+      "data": "2025-10-06",
+      "descricao": "SABESP      3334280219",
+      "valor": -76.3
+    }
+  ],
+  "notas": []
+}

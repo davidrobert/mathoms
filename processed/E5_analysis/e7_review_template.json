@@ -1,33 +1,44 @@
 {
   "metadata": {
-    "timestamp": "2026-04-08T12:03:32.509195",
+    "timestamp": "2026-04-08T15:55:27.965881",
     "e7_version": "1.0",
     "persona_summary": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada na metodologia \"Viver de "
   },
   "cross_validation": {
-    "total_checks": 14,
-    "passed": 14,
-    "failed": 0,
-    "issues": [],
+    "total_checks": 12,
+    "passed": 10,
+    "failed": 2,
+    "issues": [
+      {
+        "check_id": "CV10",
+        "name": "Charts completeness",
+        "severity": "error",
+        "passed": false,
+        "details": "Missing: ['fluxo_mensal'], Incomplete: nenhum",
+        "sections": [
+          "narrativas"
+        ]
+      },
+      {
+        "check_id": "CV14",
+        "name": "Monetary format in narrativas",
+        "severity": "warning",
+        "passed": false,
+        "details": "1 issue(s): ['summaries.s5: espaço entre valor e sufixo k/M']",
+        "sections": [
+          "narrativas"
+        ]
+      }
+    ],
     "all_results": [
       {
         "check_id": "CV1",
         "name": "Score formula consistency",
         "severity": "info",
         "passed": true,
-        "details": "Score reportado: 6.1, calculado: 6.1, diff: 0.0",
+        "details": "Score reportado: 1.9, calculado: 1.9, diff: 0.0",
         "sections": [
           "score"
-        ]
-      },
-      {
-        "check_id": "CV2",
-        "name": "Patrimônio composição vs bruto",
-        "severity": "info",
-        "passed": true,
-        "details": "Soma composição: R$ 3,969,294, bruto: R$ 3,969,294, diff: 0.0%",
-        "sections": [
-          "patrimonio"
         ]
       },
       {
@@ -35,7 +46,7 @@
         "name": "Fluxo de caixa aritmética",
         "severity": "info",
         "passed": true,
-        "details": "Receita (1,363,779) - Despesa (1,141,714) = 222,064, reportado: 222,064",
+        "details": "Receita (2,512,823) - Despesa (1,987,022) = 525,802, reportado: 525,802",
         "sections": [
           "fluxo_caixa"
         ]
@@ -45,7 +56,7 @@
         "name": "Taxa poupança recorrente",
         "severity": "info",
         "passed": true,
-        "details": "Calculada: -23.2%, reportada: -23.2%, diff: 0.0pp",
+        "details": "Calculada: -41.9%, reportada: -41.9%, diff: 0.0pp",
         "sections": [
           "ratios",
           "fluxo_caixa"
@@ -66,20 +77,9 @@
         "name": "Progresso IF vs patrimônio investível",
         "severity": "info",
         "passed": true,
-        "details": "Investível/Meta = 38.1%, reportado: 38.1%",
+        "details": "Investível/Meta = 0.0%, reportado: 0.0%",
         "sections": [
           "goals",
-          "patrimonio"
-        ]
-      },
-      {
-        "check_id": "CV7",
-        "name": "Taxa endividamento vs patrimônio",
-        "severity": "info",
-        "passed": true,
-        "details": "Dívidas/Bruto = 0.0%, reportado: 0.0%",
-        "sections": [
-          "endividamento",
           "patrimonio"
         ]
       },
@@ -88,7 +88,7 @@
         "name": "Cobertura reserva emergência",
         "severity": "info",
         "passed": true,
-        "details": "Líquida/Despesas = 36.5 meses, reportado: 36.5",
+        "details": "Líquida/Despesas = 0.0 meses, reportado: 0.0",
         "sections": [
           "reserva_emergencia"
         ]
@@ -106,9 +106,9 @@
       {
         "check_id": "CV10",
         "name": "Charts completeness",
-        "severity": "info",
-        "passed": true,
-        "details": "Missing: nenhum, Incomplete: nenhum",
+        "severity": "error",
+        "passed": false,
+        "details": "Missing: ['fluxo_mensal'], Incomplete: nenhum",
         "sections": [
           "narrativas"
         ]
@@ -138,7 +138,7 @@
         "name": "Score classification label",
         "severity": "info",
         "passed": true,
-        "details": "Score 6.1 → esperado: 'Bom', reportado: 'Bom'",
+        "details": "Score 1.9 → esperado: 'Crítico', reportado: 'Crítico'",
         "sections": [
           "score"
         ]
@@ -146,9 +146,9 @@
       {
         "check_id": "CV14",
         "name": "Monetary format in narrativas",
-        "severity": "info",
-        "passed": true,
-        "details": "Formato OK",
+        "severity": "warning",
+        "passed": false,
+        "details": "1 issue(s): ['summaries.s5: espaço entre valor e sufixo k/M']",
         "sections": [
           "narrativas"
         ]
@@ -194,26 +194,25 @@
       "s10"
     ],
     "chart_keys": [
-      "score_gauge",
       "patrimonio_doughnut",
+      "waterfall_if",
+      "receita_bar",
+      "despesas_doughnut",
+      "receita_despesa_mensal",
+      "score_gauge",
       "alocacao_atual",
       "alocacao_alvo",
-      "fluxo_mensal",
-      "receita_bar",
-      "receita_despesa_mensal",
-      "despesas_doughnut",
-      "projecao_3cenarios",
-      "waterfall_if",
-      "renda_passiva",
-      "yield_imoveis",
       "top15_ativos",
-      "impostos_pj",
-      "mariana_cenarios",
+      "yield_imoveis",
       "custos_f1f2",
-      "viagens",
-      "cenarios_cambiais",
-      "bubble_riscos",
-      "top5_decisoes"
+      "cenario_cambial",
+      "projecao_if",
+      "renda_passiva",
+      "impostos_pj",
+      "riscos_bubble",
+      "decisoes",
+      "cenarios_mariana",
+      "viagens"
     ],
     "total_tarefas": 41,
     "tarefas_alta_prioridade": [
@@ -330,10 +329,10 @@
         "ref": "—"
       }
     ],
-    "score": 6.1,
-    "score_label": "Bom",
-    "patrimonio_bruto": 3969294.14,
-    "patrimonio_investivel": 2744996.68,
-    "fluxo_liquido": 222064.49
+    "score": 1.9,
+    "score_label": "Crítico",
+    "patrimonio_bruto": 0.0,
+    "patrimonio_investivel": 0,
+    "fluxo_liquido": 525801.58
   }
 }

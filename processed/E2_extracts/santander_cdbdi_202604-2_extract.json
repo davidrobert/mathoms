@@ -1,0 +1,23 @@
+{
+  "tipo": "cdbdetalhes",
+  "banco": "santander",
+  "membro": "david",
+  "data_posicao": "2026-04-08",
+  "moeda": "BRL",
+  "produtos": [
+    {
+      "tipo_produto": "CDB DI",
+      "operacao": "2024316430836",
+      "valor_aplicado": 100000.00,
+      "saldo_bruto": 120238.33,
+      "saldo_liquido": 116696.63,
+      "taxa": "100,00% do CDI",
+      "data_aplicacao": "2024-11-11",
+      "vencimento": "2029-10-16",
+      "rendimento_bruto": 20238.33,
+      "ir_provisao": 3541.70
+    }
+  ],
+  "total_bruto": 120238.33,
+  "total_liquido": 116696.63
+}

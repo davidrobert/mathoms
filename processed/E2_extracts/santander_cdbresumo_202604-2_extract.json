@@ -1,0 +1,26 @@
+{
+  "tipo": "cdbresumo",
+  "banco": "santander",
+  "membro": "david",
+  "data_posicao": "2026-04-08",
+  "moeda": "BRL",
+  "total_bruto": 300444.46,
+  "total_resgatavel": 290441.63,
+  "detalhamento": [
+    {
+      "tipo": "CDB DI",
+      "valor_total": 137857.68,
+      "disponivel_resgate": 133032.53
+    },
+    {
+      "tipo": "CDB DI",
+      "valor_total": 101853.74,
+      "disponivel_resgate": 98554.34
+    },
+    {
+      "tipo": "CDB Progressivo",
+      "valor_total": 60733.04,
+      "disponivel_resgate": 58854.76
+    }
+  ]
+}

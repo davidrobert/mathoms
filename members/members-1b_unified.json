@@ -1,205 +1,199 @@
 {
-  "data_extracao": "2026-04-08T10:08:11.930521",
-  "versao_pipeline": "E1",
-  "membros": {
-    "david": {
-      "tipo": "curriculo",
-      "membro": "david",
-      "nome_completo": "David Robert Camargo Ferreira Campos",
-      "nome_atual": "David Robert Camargo Ferreira Campos",
-      "nome_solteiro": "David Robert Camargo de Campos",
-      "profissao_cargo": "CTO da Arvo",
-      "data_nascimento": "1981-09-05",
+  "membros": [
+    {
+      "id": "david",
+      "nome_atual": "David Robert Camargo de Campos",
+      "nomes_alternativos": ["David Robert Camargo Ferreira Campos"],
       "cpf": "287.766.948-36",
-      "experiencias": [
-        {
-          "descricao": "CTO da Arvo na Arvo",
-          "periodo": "2014-presente"
-        }
-      ],
+      "data_nascimento": "05/09/1981",
+      "papel": "Titular, CTO PJ",
+      "profissao_cargo": "Chief Technology Officer (CTO)",
+      "cargo_atual": "Chief Technology Officer (CTO) na Arvo",
+      "empresa_atual": "Arvo (Healthtech)",
+      "salario": null,
+      "nota": "PJ — valor a confirmar via extratos bancários de C6 Bank. Empresa: DAVID ROBERT CAMARGO DE CAMPOS LTDA, CNPJ 48.771.488/0001-87",
       "formacao": [
         {
-          "descricao": "Master in Computer Science – Artificial Intelligence – University of São Paulo (USP), Institute of Mathematics and Statistics (IME) – 2008",
-          "instituicao": "PUC-SP / USP"
+          "instituicao": "USP - Institute of Mathematics and Statistics (IME)",
+          "curso": "Master in Computer Science - Artificial Intelligence",
+          "grau": "Mestrado",
+          "periodo": "2006-2008"
         },
         {
-          "descricao": "Bachelor of Computer Science – Pontifical Catholic University of São Paulo (PUC/SP) – 2004",
-          "instituicao": "PUC-SP / USP"
-        },
-        {
-          "descricao": "Spearhead an \"AI-First\" engineering vision by establishing comprehensive AI governance and integrating native artificial intelligence capabilities directly into the Software Development Life Cycle (SDLC).",
-          "instituicao": "PUC-SP / USP"
-        },
-        {
-          "descricao": "Successfully integrated AI tooling across multiple stages of the SDLC, driving operational efficiency and reducing Pull Request (PR) review times by 20% without compromising rigorous code quality standards.",
-          "instituicao": "PUC-SP / USP"
-        },
-        {
-          "descricao": "Introduction to Scientific Computing - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
-          "instituicao": "PUC-SP / USP"
-        },
-        {
-          "descricao": "Artificial Intelligence Laboratory - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
-          "instituicao": "PUC-SP / USP"
-        },
-        {
-          "descricao": "Topics in Software Engineering - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
-          "instituicao": "PUC-SP / USP"
-        },
-        {
-          "descricao": "Algorithm Analysis - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2004",
-          "instituicao": "PUC-SP / USP"
-        },
-        {
-          "descricao": "Programming Topics - University of São Paulo (USP), Institute of Mathematics and Statistics (IME) - 2003",
-          "instituicao": "PUC-SP / USP"
+          "instituicao": "PUC/SP",
+          "curso": "Bachelor of Computer Science",
+          "grau": "Bacharelado",
+          "periodo": "2000-2004"
         }
       ],
-      "certificacoes": [],
+      "experiencias": [
+        {
+          "empresa": "Arvo",
+          "cargo": "Chief Technology Officer (CTO)",
+          "periodo": "2025-09 a presente"
+        },
+        {
+          "empresa": "Kiwify",
+          "cargo": "Chief Technology Officer (CTO)",
+          "periodo": "2024-06 a 2025-05"
+        },
+        {
+          "empresa": "Loft",
+          "cargo": "Software Engineering Consultant / Director / Engineering Manager",
+          "periodo": "2019-06 a 2024-06"
+        },
+        {
+          "empresa": "Elo7",
+          "cargo": "Chief Technology Officer (CTO)",
+          "periodo": "2013-08 a 2020-07"
+        },
+        {
+          "empresa": "Abril",
+          "cargo": "Solutions Architect I",
+          "periodo": "2012-03 a 2013-08"
+        },
+        {
+          "empresa": "TOTVS",
+          "cargo": "Research and Development Engineer IV",
+          "periodo": "2011-02 a 2012-03"
+        },
+        {
+          "empresa": "NIC.br",
+          "cargo": "Software Engineer",
+          "periodo": "2006-04 a 2011-01"
+        }
+      ],
       "habilidades": [
-        "Oracle Certified Professional, Java SE 5 Programmer"
+        "Software Architecture",
+        "Microservices Design",
+        "Domain-Driven Design (DDD)",
+        "Cloud Computing (AWS, GCP)",
+        "Kubernetes & Docker",
+        "CI/CD Pipelines",
+        "DevOps",
+        "Cybersecurity & DNSSEC",
+        "Team Leadership",
+        "Technical Strategy"
       ],
       "idiomas": [
-        "Business English - ELS Language Centers - 2018"
-      ]
+        {
+          "idioma": "Português",
+          "nivel": "Nativo"
+        },
+        {
+          "idioma": "Inglês",
+          "nivel": "Fluente"
+        }
+      ],
+      "documentos_disponiveis": ["curriculo"]
     },
-    "mariana": {
-      "tipo": "curriculo",
-      "membro": "mariana",
-      "nome_completo": "Mariana Ferreira Campos",
-      "nome_atual": "Mariana Ferreira Campos",
-      "nome_solteira": "Mariana Teixeira Ferreira",
-      "nome_fiscal": "Mariana Teixeira Ferreira",
-      "profissao_cargo": "Enfermeira no Hospital Israelita Albert Einstein",
-      "data_nascimento": "1986-08-30",
+    {
+      "id": "mariana",
+      "nome_atual": "Mariana Teixeira Ferreira de Campos",
+      "nomes_alternativos": ["Mariana Ferreira Campos"],
       "cpf": "085.052.396-60",
+      "data_nascimento": "30/08/1986",
+      "papel": "Cônjuge, enfermeira CLT",
+      "profissao_cargo": "Enfermeira Mestre (MSc Nurse)",
+      "cargo_atual": "Enfermeiro Pl (Nurse) no Hospital Israelita Albert Einstein",
+      "empresa_atual": "Hospital Israelita Albert Einstein - Unidade Morumbi",
+      "salario": {
+        "base_mensal": 9082.92,
+        "bruto": 12086.06,
+        "liquido": 3425.41
+      },
+      "nota": "CLT — Matrícula 36108, admissão em 21/07/2014. Conta Itaú (237/6543/6673). Periódico com férias em fevereiro.",
+      "formacao": [
+        {
+          "instituicao": "USP",
+          "curso": "Mestrado em Enfermagem - Enfermagem em Saúde Adulta",
+          "grau": "Mestrado",
+          "periodo": "2019-2021"
+        },
+        {
+          "instituicao": "UNIFESP",
+          "curso": "Especialização em Enfermagem em Cardiologia e Hemodinâmica",
+          "grau": "Especialização",
+          "periodo": "2011-2012"
+        },
+        {
+          "instituicao": "PUC Minas",
+          "curso": "Bacharelado em Enfermagem",
+          "grau": "Bacharelado",
+          "periodo": "2007-2010"
+        },
+        {
+          "instituicao": "FIOCRUZ",
+          "curso": "Especialização em Formação Docente em Educação Profissional",
+          "grau": "Especialização",
+          "periodo": "2013-2014"
+        }
+      ],
       "experiencias": [
         {
           "empresa": "Hospital Israelita Albert Einstein",
-          "cargo": "Enfermeira Especialista em Cardiologia e Hemodinâmica",
-          "periodo": "2014-presente",
-          "descricao": "Assistência em cardiologia, auditoria clínica, segurança do paciente, gestão de projetos PDCA"
-        }
-      ],
-      "formacao": [
-        {
-          "descricao": "Mestrado em Enfermagem na Saúde do Adulto",
-          "instituicao": "Universidade de São Paulo (USP)",
-          "ano": 2022
+          "cargo": "Enfermeiro (High Complexity Unit)",
+          "periodo": "2018-01 a presente"
         },
         {
-          "descricao": "Especialização em Cardiologia e Hemodinâmica",
-          "instituicao": "Universidade Federal de São Paulo (UNIFESP)"
+          "empresa": "Faculdade Israelita Albert Einstein",
+          "cargo": "Docente (University Instructor)",
+          "periodo": "2021-01 a 2024-12"
         },
         {
-          "descricao": "Graduação em Enfermagem",
-          "instituicao": "Não especificada no CV"
+          "empresa": "Hospital Israelita Albert Einstein",
+          "cargo": "Enfermeiro (UPA Campo Limpo)",
+          "periodo": "2014-08 a 2018-06"
+        },
+        {
+          "empresa": "Senac São Paulo",
+          "cargo": "Docente (University Instructor)",
+          "periodo": "2012-01 a 2016-01"
+        },
+        {
+          "empresa": "Hospital Municipal Dr. Moysés Deutsch",
+          "cargo": "Enfermeira (ICU)",
+          "periodo": "2011-01 a 2014-12"
         }
-      ],
-      "certificacoes": [
-        "Auditoria e Qualidade: PDCA e Auditoria de Prontuário Eletrônico",
-        "Classificação de Risco (Protocolo de Manchester)",
-        "Advanced Trauma Care for Nurses (ATCN)",
-        "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP)",
-        "Osteoporose - Auditoria e Qualidade"
       ],
       "habilidades": [
         "Processo de enfermagem",
-        "Cuidados de qualidade ao paciente",
+        "Auditoria Clínica",
+        "Segurança do Paciente",
         "Gestão de equipes",
-        "Auditoria clínica",
-        "Segurança do paciente",
-        "Análise de prontuários eletrônicos",
-        "Gestão de casos de crônicos",
-        "Educação e treinamento",
-        "Pesquisa clínica",
-        "Metodologia científica"
+        "Cardiologia e Hemodinâmica",
+        "Metodologia científica",
+        "Educação continuada"
       ],
       "idiomas": [
-        "Português (nativo)",
-        "Inglês (intermediário)"
-      ]
-    }
-  },
-  "holerites": {
-    "mariana_202602": {
-      "tipo": "holerite",
-      "membro": "mariana",
-      "nome_no_documento": "Mariana Teixeira Ferreira",
-      "periodo": "2026-02",
-      "empresa": "AE00 SBIBHAE - Albert Einstein",
-      "estabelecimento": "AEMO Unidade Morumbi",
-      "cargo": "Enfermeiro Pl",
-      "categoria": "Enfermagem P",
-      "admissao": "2014-07-21",
-      "carga_horaria_mensal": 200.0,
-      "salario_mensal": 10899.51,
-      "proventos_adicionais": [
         {
-          "descricao": "Salário mensal",
-          "valor": 9082.92
+          "idioma": "Português",
+          "nivel": "Nativo"
         },
         {
-          "descricao": "Adic. de insalubrid. 20%",
-          "valor": 270.17
-        },
-        {
-          "descricao": "Provisão Contr. INSS rec.",
-          "valor": 203.34
-        },
-        {
-          "descricao": "Férias no mês",
-          "valor": 1870.62
-        },
-        {
-          "descricao": "Férias 1/3 no mês",
-          "valor": 623.54
-        },
-        {
-          "descricao": "Médias férias no mês",
-          "valor": 26.6
-        },
-        {
-          "descricao": "Médias férias 1/3 no mês",
-          "valor": 8.87
+          "idioma": "Inglês",
+          "nivel": "Intermediário"
         }
       ],
-      "descontos": [
-        {
-          "descricao": "Contr. INSS Remuneração",
-          "valor": 988.07
-        },
-        {
-          "descricao": "Tributo IRRF",
-          "valor": 1447.57
-        },
-        {
-          "descricao": "Adiantamento pago",
-          "valor": 3633.17
-        },
-        {
-          "descricao": "Seguro de Vida",
-          "valor": 27.41
-        },
-        {
-          "descricao": "Refeição",
-          "valor": 34.8
-        },
-        {
-          "descricao": "Desconto de Férias",
-          "valor": 2529.63
-        }
-      ],
-      "total_proventos": 12086.06,
-      "total_descontos": 8660.65,
-      "salario_liquido": 3425.41,
-      "data_credito": "2026-02-27",
-      "fgts": 950.62,
-      "base_inss": 11882.72,
-      "base_ir": 0.0,
-      "inss_desconto": 988.07,
-      "ir_desconto": 1447.57,
-      "dependentes_ir": 0
+      "documentos_disponiveis": ["curriculo", "holerite_202602"]
+    },
+    {
+      "id": "theo",
+      "nome_atual": "Theo",
+      "nomes_alternativos": [],
+      "cpf": null,
+      "data_nascimento": "18/07/2025",
+      "papel": "Filho, dupla cidadania BR/US",
+      "profissao_cargo": null,
+      "cargo_atual": null,
+      "empresa_atual": null,
+      "salario": null,
+      "nota": "Infant, 8 months old. Dupla cidadania Brasil/Estados Unidos. Sem documentos disponíveis.",
+      "formacao": [],
+      "experiencias": [],
+      "habilidades": [],
+      "idiomas": [],
+      "documentos_disponiveis": []
     }
-  }
+  ]
 }

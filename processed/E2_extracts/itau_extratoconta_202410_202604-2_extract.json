@@ -1,0 +1,288 @@
+{
+  "banco": "Itaú",
+  "tipo": "extratoconta",
+  "moeda": "BRL",
+  "numero_conta": "04397-8",
+  "titular": "david",
+  "periodo": {
+    "inicio": "2024-10-01",
+    "fim": "2026-04-30"
+  },
+  "saldo_inicial": 149551.72,
+  "saldo_final": 80629.65,
+  "transacoes": [
+    {
+      "data": "2024-10-15",
+      "descricao": "PIX TRANSF  DAVID R15/10",
+      "valor": -1000.0
+    },
+    {
+      "data": "2024-10-15",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.01
+    },
+    {
+      "data": "2024-10-21",
+      "descricao": "PIX TRANSF HERMANN21/10",
+      "valor": -1000.0
+    },
+    {
+      "data": "2024-10-21",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.03
+    },
+    {
+      "data": "2024-10-23",
+      "descricao": "INT ITAU VISA",
+      "valor": -83.9
+    },
+    {
+      "data": "2024-10-24",
+      "descricao": "CREDITO CARTAO",
+      "valor": 83.9
+    },
+    {
+      "data": "2024-10-28",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.04
+    },
+    {
+      "data": "2024-10-28",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -674.55
+    },
+    {
+      "data": "2024-11-01",
+      "descricao": "PIX TRANSF Kiwify 01/11",
+      "valor": 63118.23
+    },
+    {
+      "data": "2024-11-04",
+      "descricao": "PIX TRANSF David R04/11",
+      "valor": -50000.0
+    },
+    {
+      "data": "2024-11-04",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 4.88
+    },
+    {
+      "data": "2024-11-04",
+      "descricao": "TAR PACOTE ITAU   OUT/24",
+      "valor": -86.8
+    },
+    {
+      "data": "2024-11-05",
+      "descricao": "PIX TRANSF  DAVID R05/11",
+      "valor": -50000.0
+    },
+    {
+      "data": "2024-11-05",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 5.32
+    },
+    {
+      "data": "2024-11-11",
+      "descricao": "INT ITAU VISA",
+      "valor": -83.9
+    },
+    {
+      "data": "2024-11-11",
+      "descricao": "FINANC IMOBILIARIO 000034",
+      "valor": -4468.2
+    },
+    {
+      "data": "2024-11-11",
+      "descricao": "PIX TRANSF David R11/11",
+      "valor": -1000.0
+    },
+    {
+      "data": "2024-11-11",
+      "descricao": "INT ITAU VISA",
+      "valor": -83.9
+    },
+    {
+      "data": "2024-11-11",
+      "descricao": "APLICACAO CDB DI",
+      "valor": -100000.0
+    },
+    {
+      "data": "2024-11-11",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 34.27
+    },
+    {
+      "data": "2024-11-11",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1333.03
+    },
+    {
+      "data": "2024-11-11",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1500.64
+    },
+    {
+      "data": "2024-11-19",
+      "descricao": "PIX TRANSF Kiwify 19/11",
+      "valor": 21394.5
+    },
+    {
+      "data": "2024-11-21",
+      "descricao": "PIX TRANSF David R21/11",
+      "valor": -6000.0
+    },
+    {
+      "data": "2024-11-21",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.32
+    },
+    {
+      "data": "2024-11-25",
+      "descricao": "PIX TRANSF David R23/11",
+      "valor": -6000.0
+    },
+    {
+      "data": "2024-11-25",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.12
+    },
+    {
+      "data": "2024-11-27",
+      "descricao": "CREDITO CARTAO",
+      "valor": 83.9
+    },
+    {
+      "data": "2024-11-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.01
+    },
+    {
+      "data": "2024-11-27",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -666.77
+    },
+    {
+      "data": "2024-12-03",
+      "descricao": "PIX TRANSF Kiwify 03/12",
+      "valor": 62146.13
+    },
+    {
+      "data": "2024-12-03",
+      "descricao": "TAR PACOTE ITAU   NOV/24",
+      "valor": -43.4
+    },
+    {
+      "data": "2024-12-05",
+      "descricao": "PIX TRANSF David R05/12",
+      "valor": -30000.0
+    },
+    {
+      "data": "2024-12-05",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.64
+    },
+    {
+      "data": "2024-12-06",
+      "descricao": "PIX TRANSF David R06/12",
+      "valor": -3000.0
+    },
+    {
+      "data": "2024-12-06",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.01
+    },
+    {
+      "data": "2024-12-09",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 601.0
+    },
+    {
+      "data": "2024-12-10",
+      "descricao": "FINANC IMOBILIARIO 000035",
+      "valor": -4451.87
+    },
+    {
+      "data": "2024-12-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.05
+    },
+    {
+      "data": "2024-12-11",
+      "descricao": "PIX TRANSF Kiwify 11/12",
+      "valor": 9864.61
+    },
+    {
+      "data": "2024-12-11",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1333.03
+    },
+    {
+      "data": "2024-12-16",
+      "descricao": "INT ITAU VISA",
+      "valor": -88.64
+    },
+    {
+      "data": "2024-12-16",
+      "descricao": "INT ITAU VISA",
+      "valor": -88.64
+    },
+    {
+      "data": "2024-12-16",
+      "descricao": "PGTO MIN-PAOACUCAR-5739",
+      "valor": -8.94
+    },
+    {
+      "data": "2024-12-16",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.01
+    },
+    {
+      "data": "2024-12-27",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.07
+    },
+    {
+      "data": "2024-12-27",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -623.46
+    },
+    {
+      "data": "2025-01-03",
+      "descricao": "PIX TRANSF  KIWIFY 03/01",
+      "valor": 62146.13
+    },
+    {
+      "data": "2025-01-03",
+      "descricao": "TAR PACOTE ITAU   DEZ/24",
+      "valor": -43.4
+    },
+    {
+      "data": "2025-01-07",
+      "descricao": "PIX TRANSF  DAVID R07/01",
+      "valor": -30000.0
+    },
+    {
+      "data": "2025-01-07",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 23.74
+    },
+    {
+      "data": "2025-01-09",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1333.03
+    },
+    {
+      "data": "2025-01-10",
+      "descricao": "FINANC IMOBILIARIO   036",
+      "valor": -4437.33
+    },
+    {
+      "data": "2025-01-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 3.98
+    }
+  ],
+  "notas": [
+    "INFO: 2 possíveis duplicatas intra-arquivo"
+  ]
+}

@@ -1,46 +1,26 @@
 {
   "tipo": "cdbresumo",
-  "instituicao": "Santander",
+  "banco": "santander",
   "membro": "david",
   "data_posicao": "2026-03-29",
   "moeda": "BRL",
-  "total_aplicado": 299477.93,
-  "saldo_atual": 299477.93,
-  "composicao": [
+  "total_bruto": 299477.93,
+  "total_resgatavel": 289644.25,
+  "detalhamento": [
     {
-      "tipo_produto": "CDB DI SANTANDER",
-      "nome": "CDB DI SANTANDER",
-      "valor_aplicado": 137409.67,
-      "data_aplicacao": "2024-06-26",
-      "taxa": "100% CDI",
-      "vencimento": "2028-06-05",
-      "valor_atual": 137409.67,
-      "rentabilidade_bruta": 0.00,
-      "ir_retido": 0.00
+      "tipo": "CDB DI",
+      "valor_total": 137409.67,
+      "disponivel_resgate": 132662.92
     },
     {
-      "tipo_produto": "CDB DI SANTANDER",
-      "nome": "CDB DI SANTANDER",
-      "valor_aplicado": 101522.74,
-      "data_aplicacao": "2024-08-30",
-      "taxa": "100% CDI",
-      "vencimento": "2028-08-09",
-      "valor_atual": 101522.74,
-      "rentabilidade_bruta": 0.00,
-      "ir_retido": 0.00
+      "tipo": "CDB DI",
+      "valor_total": 101522.74,
+      "disponivel_resgate": 98281.27
     },
     {
-      "tipo_produto": "CDB PROG SANTANDER",
-      "nome": "CDB PROG SANTANDER",
-      "valor_aplicado": 60545.52,
-      "data_aplicacao": "2024-08-30",
-      "taxa": "95% CDI",
-      "vencimento": "2028-08-09",
-      "valor_atual": 60545.52,
-      "rentabilidade_bruta": 0.00,
-      "ir_retido": 0.00
+      "tipo": "CDB Progressivo",
+      "valor_total": 60545.52,
+      "disponivel_resgate": 58700.06
     }
-  ],
-  "source_file": "santander_cdbresumo_202603-0_original.pdf",
-  "extraction_date": "2026-04-08"
+  ]
 }

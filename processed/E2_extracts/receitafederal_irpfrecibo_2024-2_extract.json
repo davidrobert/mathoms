@@ -1,9 +1,18 @@
 {
-  "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfrecibo_2024-0_original.pdf",
-  "extraction_type": "irpf_recibo",
-  "numero_recibo": null,
-  "data_processamento": null,
-  "imposto_total": null,
-  "imposto_devido": 9010.82,
-  "extraction_date": "2026-04-08T10:11:58.223785"
+  "tipo": "irpfrecibo",
+  "membro": "david",
+  "ano_base": 2024,
+  "imposto_total": 163779.60,
+  "data_entrega": "28/05/2025",
+  "situacao": "Declaração original",
+  "numero_recibo": "41.12.98.65.44 - 47",
+  "total_rendimentos_tributaveis": 651374.65,
+  "imposto_devido": 163779.60,
+  "imposto_a_restituir": 0.00,
+  "imposto_a_pagar": 9010.82,
+  "parcelamento": {
+    "valor_quota": 9010.82,
+    "numero_quotas": 1,
+    "vencimento_primeira_quota": "30/05/2025"
+  }
 }

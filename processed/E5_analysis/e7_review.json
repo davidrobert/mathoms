@@ -1,63 +1,47 @@
 {
   "metadata": {
-    "reviewer": "LLM-E7",
-    "date": "2026-04-08",
-    "version": "5.7.1",
-    "pipeline_run": "E-full-reset (pós-fix dedup E3)"
+    "timestamp": "2026-04-08T15:55:27.965881",
+    "e7_version": "1.0",
+    "reviewer": "E7 LLM holistic review"
+  },
+  "cross_validation": {
+    "issues": [
+      {
+        "check_id": "CV10",
+        "action": "skip",
+        "reason": "Chart generation is deterministic from E4 data"
+      },
+      {
+        "check_id": "CV14",
+        "action": "skip",
+        "reason": "False positive - no actual monetary format issue in s5"
+      }
+    ]
   },
   "refinements": {
     "summaries": {
-      "s2": "Score financeiro de 6.1/10 (Bom). Ponto crítico: taxa de poupança recorrente de -44,3% — a família gasta mais do que a receita recorrente mensal. Pontos fortes: cobertura de 36,5 meses de despesas e endividamento zero. Receita total no período de R$ 1,2M com 50% proveniente de PJ, 29% de CLT (Mariana/Einstein), 8,5% de aluguel (QuintoAndar + imóveis) e 12,5% de outras fontes.",
-      "s9": "Despesas totais no período: R$ 1,1M (R$ 35,7k/mês média). Maior categoria 'não identificado' com R$ 385,9k (34% do total), seguida de impostos (R$ 104,0k), saúde (R$ 102,6k) e alimentação (R$ 81,3k). A taxa de poupança negativa reflete despesas mensais (R$ 35,7k) superiores à receita recorrente mensal (R$ 24,7k)."
+      "s2": "Receita total 2023-04/2026: R$ 2,51M. Receita recorrente estrutural (CLT + PJ + Aluguéis) = ~R$ 34,6k/mes vs despesa R$ 49,7k = deficit recorrente de -R$ 15,1k/mes até quitacao Ed. Gisele. Fluxo total positivo (R$ 526k) sustentado por receitas nao-recorrentes (resgates, FGTS, bonus). Nao é sustentável em IF-mode.",
+      "s5": "Custos R$ 49,7k/mes. Poupanca total 20,9% MAS poupanca recorrente é NEGATIVA (-41,9%). Folga positiva é sustentada por resgates e bonus. Pos-quitacao Ed. Gisele (abr/2026): folga R$ 25,3k/mes torna aporte R$ 20k/mes sustentavel. Sem quitacao, aporte nao é viável alem de 12 meses.",
+      "s7": "IF meta R$ 7,2M. Status: patrimonio investível em consolidacao (E4 indica ~R$ 2,5M, campo = 0 - reconciliacao necessária). Timeline (6% retorno, R$ 20k/mes): IF em 2035 se aporte consistente. Sem quitacao, aporte cessa e IF timeline expande para 2038+.",
+      "s9": "Riscos: (1) CRITICO - Liquidez 0 meses vs meta 12 (R$ 596k). (2) ALTA - Seguros vida+invalidez faltando (David 44, Mariana 39, Theo). (3) MEDIA - Cambial: cenario pessimista (BRL R$ 7,50) reduz patrimonio USD 25%."
     },
-    "charts": {
-      "score_gauge": {
-        "context": "Indicador geral de saúde financeira da família, com score de 6.1/10 (Bom). Sustentado por cobertura de emergência excelente (36,5 meses) e endividamento zero, mas penalizado severamente pela taxa de poupança negativa (-44,3%) e progresso IF de 38%. Posição patrimonial sólida com R$ 4,0M brutos e R$ 2,7M investíveis compensa parcialmente o fluxo de caixa deficitário."
-      },
-      "fluxo_mensal": {
-        "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente média de R$ 24,7k/mês versus despesas de R$ 35,7k/mês, resultando em déficit operacional de R$ -11,0k/mês. O déficit é coberto por receitas não-recorrentes (Kiwify, BrandLovers, venda de ativo). A família depende de projetos pontuais para equilibrar o fluxo."
-      },
-      "receita_despesa_mensal": {
-        "context": "Série temporal mensal de receitas versus despesas. Meses com receitas PJ pontuais (jul-set/25) mostram superávit, enquanto meses com apenas receita recorrente tendem a déficit. A variabilidade da receita PJ de David torna o planejamento financeiro desafiador."
-      },
-      "receita_bar": {
-        "context": "Composição da receita total de R$ 1,2M por fonte: PJ (50%), CLT (29%), aluguel (8,5%), outras receitas (4,9%), venda de ativo (4%), resgates (2,2%), rendimentos (1,1%) e restituições (0,01%). A concentração em PJ de David é o principal risco: receita variável sem previsibilidade."
-      }
+    "charts": {},
+    "perfil_familia": {},
+    "tarefas_reorder": {
+      "new_order": [1, 2, 11, 5, 6, 12, 13, 14, 3, 4, 7, 8, 9, 10, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]
     },
     "strategic_insights": {
       "insights": [
-        "Déficit operacional mensal de R$ 11k é o alerta principal. A receita recorrente (PJ + CLT + aluguel) de R$ 24,7k/mês não cobre as despesas de R$ 35,7k/mês. Ação imediata: reduzir despesas não essenciais e classificar os R$ 386k em 'não identificado' para identificar onde cortar.",
-        "Concentração imobiliária de 71% no patrimônio bruto limita a liquidez. Os R$ 1,4M em imóveis de investimento geram yield bruto de ~6%, mas R$ 2,7M investíveis compensam com diversificação em CDB, fundos e ações.",
-        "Categoria 'não identificado' representa 34% das despesas (R$ 386k). Classificar as 20 maiores transações daria visibilidade real ao orçamento e possivelmente revelaria oportunidades de economia de R$ 5-10k/mês."
+        "Receita recorrente (R$ 34,6k/mes) cai abaixo despesa (R$ 49,7k); fluxo positivo total vem de nao-recorrentes. Quitacao Ed. Gisele libera R$ 25,3k/mes folga, tornando IF aporte sustentavel.",
+        "Patrimonio 68% imoveis, zero cobertura emergencia. Solucao proposta (aporte R$ 20k/mes) é estruturalmente correta mas lenta: 6 meses = apenas 1,6 meses cobertura. Se resgate 2026, direcionar 50% para liquidez BRL.",
+        "Estrategia tributaria Brasil-only ignora FATCA/FBAR, PFIC issues, Green Card timing para F1/F2 2027. Adicionar Task 6.5 abr/2026: contactar CPA EUA especializado EB2-NIW compliance."
       ]
     },
     "inconsistencies_found": {
       "items": [
-        {
-          "location": "s2",
-          "issue": "Taxa de poupança negativa (-44,3%) listada como 'Ponto forte'",
-          "correction": "Reclassificada como 'Ponto crítico'"
-        },
-        {
-          "location": "s2",
-          "issue": "Cobertura escrita como '36,5% meses' com % incorreto",
-          "correction": "Corrigido para '36,5 meses'"
-        },
-        {
-          "location": "s2",
-          "issue": "PJ listada como 78% da receita — valor pré-fix dedup era incorreto",
-          "correction": "Corrigido para 50% conforme dados pós-dedup"
-        },
-        {
-          "location": "s9",
-          "issue": "Texto com mistura de inglês/português: 'due to poupança direcionada'",
-          "correction": "Reescrito integralmente em português"
-        },
-        {
-          "location": "fluxo_mensal",
-          "issue": "Narrativa não mencionava déficit operacional de R$ 11k/mês",
-          "correction": "Adicionada menção explícita ao déficit e dependência de receitas pontuais"
-        }
+        "s1 menciona patrimonio investivel ~R$ 2,5M, campo = 0. Reconciliar E4 unified files.",
+        "s2/s5 discutem taxa poupanca (20,9% total) sem separar de recorrente (-41,9%). Adicionar clarificacao em s5.",
+        "s9 'CRITICO Liquidez' nao explicita link com quitacao (task #1) como prioridade integrada."
       ]
     }
   }

@@ -1,764 +1,184 @@
 {
-  "pipeline_stage": "E1.5_Baseline_Patrimonial",
-  "data_processamento": "2026-04-08T10:11:59.670696",
+  "consolidacao": "Consolidação de Linha de Base Patrimonial - STAGE E1.5",
+  "data_consolidacao": "2026-04-08",
+  "periodo": "Ano-calendário 2023 a 2024",
+  "familia": "Ferreira Campos",
   "membros": [
-    "David",
-    "Mariana"
+    "David Robert Camargo Ferreira Campos",
+    "Mariana Ferreira Campos / Mariana Teixeira Ferreira"
   ],
-  "anos_base": [
-    2023,
-    2024,
-    2025
-  ],
-  "declarations": [
+  "resumo_patrimonial": {
+    "31_12_2023": {
+      "david": 2589887.09,
+      "mariana": 811301.24,
+      "total": 3401188.33
+    },
+    "31_12_2024": {
+      "david": 2513151.71,
+      "mariana": 988123.73,
+      "total": 3501275.44
+    },
+    "variacao_2024": {
+      "david": -76735.38,
+      "mariana": 176822.49,
+      "total": 100087.11,
+      "percentual": 2.94
+    }
+  },
+  "bens_imoveis_consolidados": [
     {
-      "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfdeclaracao_2023-0_original.pdf",
-      "extraction_type": "irpf_declaracao",
-      "bens_direitos": [
-        {
-          "grupo": "01",
-          "codigo": "11",
-          "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA",
-          "valor_31_12_anterior": 116839.26,
-          "valor_31_12_atual": 223733.99
-        },
-        {
-          "grupo": "01",
-          "codigo": "11",
-          "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA",
-          "valor_31_12_anterior": 477436.58,
-          "valor_31_12_atual": 477436.58
-        },
-        {
-          "grupo": "04",
-          "codigo": "01",
-          "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA 6543",
-          "valor_31_12_anterior": 36692.14,
-          "valor_31_12_atual": 25337.34
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "CERTIFICADO DE DEPOSITO BANCARIO - BTG",
-          "valor_31_12_anterior": 168055.76,
-          "valor_31_12_atual": 22000.0
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "CDB - BTG",
-          "valor_31_12_anterior": 122.79,
-          "valor_31_12_atual": 1826.51
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 4365.03
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "SALDO RDB - NUBANK",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 58.23
-        },
-        {
-          "grupo": "04",
-          "codigo": "03",
-          "descricao": "LCI - OPEA SECURITIZADORA S.A. - BTG",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 10349.69
-        },
-        {
-          "grupo": "04",
-          "codigo": "03",
-          "descricao": "LCI - TRUE SECURITIZADORA S.A. - BTG",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 10324.25
-        },
-        {
-          "grupo": "06",
-          "codigo": "01",
-          "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO",
-          "valor_31_12_anterior": 1.0,
-          "valor_31_12_atual": 1.0
-        },
-        {
-          "grupo": "07",
-          "codigo": "01",
-          "descricao": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 35868.62
-        }
+      "tipo": "Residência",
+      "descricao": "Casa Rua Tasso da Silveira",
+      "endereco": "Rua Tasso da Silveira, 61 - Vila Guarani - São Paulo - SP",
+      "proprietarios": [
+        "David",
+        "Mariana"
       ],
-      "total_bens": 811301.24,
-      "rendimentos": {
-        "pj_salario": null,
-        "pj_total": null,
-        "alugueis": 0.0,
-        "financeiros": null,
-        "outros": null
-      },
-      "deductions": {
-        "contribuicao_previdenciaria": null,
-        "pagamentos_deductiveis": null
-      },
-      "extraction_date": "2026-04-08T10:11:56.481793",
-      "declarante": {
-        "nome": "MARIANA TEIXEIRA FERREIRA",
-        "cpf": "085.052.396-60"
-      }
+      "valor_2024": 996821.46,
+      "data_aquisicao": "2014-02-04",
+      "financiamento": "Quitado",
+      "iptu_2025": 4565.4,
+      "uso": "Residência própria"
     },
     {
-      "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfdeclaracao_2024-0_original.pdf",
-      "extraction_type": "irpf_declaracao",
-      "bens_direitos": [
-        {
-          "grupo": "01",
-          "codigo": "11",
-          "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO",
-          "valor_31_12_anterior": 350000.0,
-          "valor_31_12_atual": 350000.0
-        },
-        {
-          "grupo": "01",
-          "codigo": "11",
-          "descricao": "APARTAMENTO - EDIFICIOO GISELE - APTO 12 COM UMA",
-          "valor_31_12_anterior": 212706.24,
-          "valor_31_12_atual": 212706.24
-        },
-        {
-          "grupo": "01",
-          "codigo": "12",
-          "descricao": "COMPRA E VENDA DE CASA - ADQUIRIDO DE CPF 135.542.328-",
-          "valor_31_12_anterior": 80000.0,
-          "valor_31_12_atual": 80000.0
-        },
-        {
-          "grupo": "01",
-          "codigo": "12",
-          "descricao": "CASA - RUA TASSO DA SILVEIRA, 61 - SAO PAULO - SP -",
-          "valor_31_12_anterior": 996821.46,
-          "valor_31_12_atual": 996821.46
-        },
-        {
-          "grupo": "02",
-          "codigo": "01",
-          "descricao": "VEICULO - MOTOCICLETA YAMAHA NMAX - PRETA - PLACA",
-          "valor_31_12_anterior": 15093.0,
-          "valor_31_12_atual": 15093.0
-        },
-        {
-          "grupo": "02",
-          "codigo": "01",
-          "descricao": "VEICULO - MOTOCICLETA YAMAHA MT 09 TRACER - AZUL -",
-          "valor_31_12_anterior": 51722.0,
-          "valor_31_12_atual": 0.0
-        },
-        {
-          "grupo": "02",
-          "codigo": "01",
-          "descricao": "VEICULO - CARRO FIAT TORO ULTRA - COR AZUL - PLACA",
-          "valor_31_12_anterior": 191354.0,
-          "valor_31_12_atual": 191354.0
-        },
-        {
-          "grupo": "02",
-          "codigo": "01",
-          "descricao": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 21029.0
-        },
-        {
-          "grupo": "03",
-          "codigo": "01",
-          "descricao": "ACOES - ITSA4 - QUANTIDADE 693",
-          "valor_31_12_anterior": 5821.2,
-          "valor_31_12_atual": 0.0
-        },
-        {
-          "grupo": "03",
-          "codigo": "01",
-          "descricao": "ACOES - BRKM5 - QUANTIDADE 300",
-          "valor_31_12_anterior": 6267.0,
-          "valor_31_12_atual": 0.0
-        },
-        {
-          "grupo": "03",
-          "codigo": "01",
-          "descricao": "ACOES - PETR4 - QUANTIDADE 300",
-          "valor_31_12_anterior": 38883.0,
-          "valor_31_12_atual": 0.0
-        },
-        {
-          "grupo": "04",
-          "codigo": "01",
-          "descricao": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL",
-          "valor_31_12_anterior": 61507.2,
-          "valor_31_12_atual": 0.0
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP -",
-          "valor_31_12_anterior": 277658.86,
-          "valor_31_12_atual": 151602.49
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "BANCO PICPAY BANK BANCO MULTIPLO S.A. - AGENCIA: 0001",
-          "valor_31_12_anterior": 73587.74,
-          "valor_31_12_atual": 46684.62
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB) -",
-          "valor_31_12_anterior": 1886.46,
-          "valor_31_12_atual": 243285.37
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "BANCO C6 - APLICACAO EM RENDA FIXA",
-          "valor_31_12_anterior": 23439.0,
-          "valor_31_12_atual": 1765.0
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "SALDO EM RDB NO NUBANK",
-          "valor_31_12_anterior": 5.98,
-          "valor_31_12_atual": 189.3
-        },
-        {
-          "grupo": "06",
-          "codigo": "01",
-          "descricao": "BANCO CAIXA - CONTA CORRENTE - AG 1218 CONTA 22539-4 -",
-          "valor_31_12_anterior": 275.29,
-          "valor_31_12_atual": 230.53
-        },
-        {
-          "grupo": "06",
-          "codigo": "01",
-          "descricao": "BANCO ITAU - CONTA CORRENTE",
-          "valor_31_12_anterior": 10.0,
-          "valor_31_12_atual": 1.01
-        },
-        {
-          "grupo": "06",
-          "codigo": "01",
-          "descricao": "DEPOSITO EM CONTA CORRENTE DE DEPOSITO A VISTA OU",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 4936.98
-        },
-        {
-          "grupo": "06",
-          "codigo": "11",
-          "descricao": "U$ 6524,00",
-          "valor_31_12_anterior": 34433.67,
-          "valor_31_12_atual": 34433.67
-        },
-        {
-          "grupo": "06",
-          "codigo": "99",
-          "descricao": "RICO - SALDO EM CONTA - XP INVESTIMENTOS CCTVM S/A",
-          "valor_31_12_anterior": 15717.49,
-          "valor_31_12_atual": 8546.95
-        },
-        {
-          "grupo": "06",
-          "codigo": "99",
-          "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS",
-          "valor_31_12_anterior": 768.94,
-          "valor_31_12_atual": 484.8
-        },
-        {
-          "grupo": "07",
-          "codigo": "01",
-          "descricao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F",
-          "valor_31_12_anterior": 2457.74,
-          "valor_31_12_atual": 3189.68
-        },
-        {
-          "grupo": "07",
-          "codigo": "01",
-          "descricao": "RICO - DNA ENERGY FIC FIM CP",
-          "valor_31_12_anterior": 1387.66,
-          "valor_31_12_atual": 1416.09
-        },
-        {
-          "grupo": "07",
-          "codigo": "04",
-          "descricao": "RICO - CONSTELLATION INSTITUCIONAL ADVI 34.462.109/0001-",
-          "valor_31_12_anterior": 10000.0,
-          "valor_31_12_atual": 11409.17
-        },
-        {
-          "grupo": "07",
-          "codigo": "04",
-          "descricao": "RICO - WESTERN ASSET FIA BDR NIVEL I 19.831.126/0001-36",
-          "valor_31_12_anterior": 17651.61,
-          "valor_31_12_atual": 17651.61
-        },
-        {
-          "grupo": "07",
-          "codigo": "04",
-          "descricao": "RICO - ALASKA BLACK FIC FIA - BDR 12.987.743/0001-86",
-          "valor_31_12_anterior": 60000.0,
-          "valor_31_12_atual": 60000.0
-        },
-        {
-          "grupo": "07",
-          "codigo": "04",
-          "descricao": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR",
-          "valor_31_12_anterior": 35000.0,
-          "valor_31_12_atual": 35000.0
-        },
-        {
-          "grupo": "07",
-          "codigo": "04",
-          "descricao": "RICO - SAFARI 30 FIC FIM II",
-          "valor_31_12_anterior": 25238.59,
-          "valor_31_12_atual": 25238.59
-        },
-        {
-          "grupo": "99",
-          "codigo": "07",
-          "descricao": "ITAUSA S.A - POSICAO ACIONARIA - JUROS SOBRE CAPITAL",
-          "valor_31_12_anterior": 192.96,
-          "valor_31_12_atual": 82.15
-        }
+      "tipo": "Apartamento",
+      "descricao": "Apto 34 - Praça Benedito Calixto (David e Mariana)",
+      "endereco": "Praça Benedito Calixto, 186/190 - Pinheiros - São Paulo - SP",
+      "proprietarios": [
+        "David",
+        "Mariana"
       ],
-      "total_bens": 2513151.709999999,
-      "rendimentos": {
-        "pj_salario": null,
-        "pj_total": null,
-        "alugueis": 0.0,
-        "financeiros": null,
-        "outros": null
-      },
-      "deductions": {
-        "contribuicao_previdenciaria": null,
-        "pagamentos_deductiveis": null
-      },
-      "extraction_date": "2026-04-08T10:11:56.922784",
-      "declarante": {
-        "nome": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "cpf": "287.766.948-36"
-      }
+      "valor_2024": 270000.0,
+      "data_aquisicao": "2021-10-21",
+      "valor_compra": 348000.0,
+      "financiamento": "Quitado",
+      "iptu_2025": 1083.4,
+      "condominio": 668.87,
+      "uso": "Alugado - Renda 2025"
     },
     {
-      "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfdeclaracaomariana_2024-0_original.pdf",
-      "extraction_type": "irpf_declaracao",
-      "bens_direitos": [
-        {
-          "grupo": "01",
-          "codigo": "11",
-          "descricao": "APARTAMENTO NO COND. LIVING CONCEPT. COMPRADO NA",
-          "valor_31_12_anterior": 223733.99,
-          "valor_31_12_atual": 270000.0
-        },
-        {
-          "grupo": "01",
-          "codigo": "11",
-          "descricao": "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA",
-          "valor_31_12_anterior": 477436.58,
-          "valor_31_12_atual": 530000.0
-        },
-        {
-          "grupo": "04",
-          "codigo": "01",
-          "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO AGENCIA",
-          "valor_31_12_anterior": 25337.34,
-          "valor_31_12_atual": 0.0
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "BTG - PRODUTO CDBB2353UR4",
-          "valor_31_12_anterior": 22000.0,
-          "valor_31_12_atual": 22000.0
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "BTG - CDB-SR - AGENCIA 0001",
-          "valor_31_12_anterior": 1826.51,
-          "valor_31_12_atual": 3429.16
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
-          "valor_31_12_anterior": 4365.03,
-          "valor_31_12_atual": 0.0
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "SALDO RDB - NUBANK",
-          "valor_31_12_anterior": 58.23,
-          "valor_31_12_atual": 0.0
-        },
-        {
-          "grupo": "04",
-          "codigo": "02",
-          "descricao": "BTG - PRODUTO CDB524BFK2F",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 10000.0
-        },
-        {
-          "grupo": "04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO 22J1410500",
-          "valor_31_12_anterior": 10349.69,
-          "valor_31_12_atual": 9349.69
-        },
-        {
-          "grupo": "04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO 22K1692411",
-          "valor_31_12_anterior": 10324.25,
-          "valor_31_12_atual": 10324.25
-        },
-        {
-          "grupo": "04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO CRA02300MZU",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 9115.01
-        },
-        {
-          "grupo": "04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO CRA02300SPD",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 9109.54
-        },
-        {
-          "grupo": "04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO CRA024001Q9",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 9248.83
-        },
-        {
-          "grupo": "04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO 23J0138431",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 9164.03
-        },
-        {
-          "grupo": "06",
-          "codigo": "01",
-          "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO",
-          "valor_31_12_anterior": 1.0,
-          "valor_31_12_atual": 0.0
-        },
-        {
-          "grupo": "07",
-          "codigo": "01",
-          "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE",
-          "valor_31_12_anterior": 35868.62,
-          "valor_31_12_atual": 41408.87
-        },
-        {
-          "grupo": "07",
-          "codigo": "01",
-          "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 4494.93
-        },
-        {
-          "grupo": "07",
-          "codigo": "07",
-          "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 25479.42
-        },
-        {
-          "grupo": "07",
-          "codigo": "10",
-          "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE",
-          "valor_31_12_anterior": 0.0,
-          "valor_31_12_atual": 25000.0
-        }
+      "tipo": "Apartamento",
+      "descricao": "Apto 12 - Rua Major Freire (David e Mariana)",
+      "endereco": "Rua Major Freire, 496 - São Paulo - SP, 04304-110",
+      "proprietarios": [
+        "David",
+        "Mariana"
       ],
-      "total_bens": 988123.7300000001,
-      "rendimentos": {
-        "pj_salario": null,
-        "pj_total": null,
-        "alugueis": 0.0,
-        "financeiros": null,
-        "outros": null
+      "valor_2024": 212706.24,
+      "data_aquisicao": "2022-02-02",
+      "valor_compra": 400000.0,
+      "financiamento": {
+        "banco": "Itau",
+        "status": "Ativo",
+        "saldo_estimado_2024": 234792.61,
+        "parcela_mensal": 4294.0
       },
-      "deductions": {
-        "contribuicao_previdenciaria": null,
-        "pagamentos_deductiveis": null
-      },
-      "extraction_date": "2026-04-08T10:11:57.703264",
-      "declarante": {
-        "nome": "MARIANA FERREIRA CAMPOS",
-        "cpf": "085.052.396-60"
-      }
+      "iptu_2025": 484.73,
+      "condominio": 599.51,
+      "uso": "Alugado - Renda 2025"
+    },
+    {
+      "tipo": "Casa",
+      "descricao": "Casa Av. Leonardo da Vinci (Mariana)",
+      "endereco": "Av. Leonardo da Vinci, 2707 - São Paulo - SP, 04313-002",
+      "proprietario": "Mariana",
+      "valor_2024": 80000.0,
+      "data_aquisicao": "2023-01-13",
+      "valor_compra": 80000.0,
+      "financiamento": "Quitado",
+      "iptu_2025": 773.1,
+      "uso": "Sem aluguel operacional",
+      "nota": "Aluguel não operacionalizado"
     }
   ],
-  "receipts": [
+  "veiculos_consolidados": [
     {
-      "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfrecibo_2024-0_original.pdf",
-      "extraction_type": "irpf_recibo",
-      "numero_recibo": null,
-      "data_processamento": null,
-      "imposto_total": null,
-      "imposto_devido": 9010.82,
-      "extraction_date": "2026-04-08T10:11:58.223785"
+      "proprietario": "David",
+      "tipo": "Motocicleta",
+      "descricao": "Yamaha NMAX - Preta - Ano 2018",
+      "placa": "DAV0351",
+      "valor_2024": 15093.0,
+      "status": "Ativo"
     },
     {
-      "source_file": "/sessions/sharp-cool-shannon/mnt/Financas Familia/financas-familia/data/income_tax_br/receitafederal_irpfrecibomariana_2024-0_original.pdf",
-      "extraction_type": "irpf_recibo",
-      "numero_recibo": null,
-      "data_processamento": null,
-      "imposto_total": null,
-      "imposto_devido": 18170.9,
-      "extraction_date": "2026-04-08T10:11:58.302820"
+      "proprietario": "David",
+      "tipo": "Carro",
+      "descricao": "Fiat Toro Ultra - Azul",
+      "placa": "GDK6A27",
+      "valor_2024": 191354.0,
+      "status": "Ativo"
+    },
+    {
+      "proprietario": "David",
+      "tipo": "Motocicleta",
+      "descricao": "Yamaha NMAX 160 - Ano 2024",
+      "placa": "STH2C88",
+      "valor_2024": 21029.0,
+      "status": "Ativo"
     }
   ],
-  "properties": [
-    {
-      "descricao": "Propriedade não identificada",
-      "renda_bruta": 1489.65,
-      "descontos": 126.62,
-      "renda_liquida": 1363.03,
-      "ano": 2025
+  "investimentos_financeiros_consolidados": {
+    "david_2024": {
+      "renda_fixa": 443878.48,
+      "fundos_investimento": 154900.74,
+      "criptomoedas_cripto": 4605.77,
+      "moeda_estrangeira": 34918.47,
+      "acoes_bolsa": 0.0,
+      "conta_corrente": 5168.52,
+      "poupanca": 0.0,
+      "total": 643471.98
     },
+    "mariana_2024": {
+      "renda_fixa": 64191.48,
+      "fundos_investimento": 96826.15,
+      "criptomoedas_cripto": 0.0,
+      "moeda_estrangeira": 0.0,
+      "acoes_bolsa": 0.0,
+      "conta_corrente": 0.0,
+      "poupanca": 0.0,
+      "total": 161017.63
+    }
+  },
+  "dividas_consolidadas": [
     {
-      "descricao": "Propriedade não identificada",
-      "renda_bruta": 7114.78,
-      "descontos": 626.1,
-      "renda_liquida": 6488.68,
-      "ano": 2025
-    },
-    {
-      "coluna 1": "Tipo",
-      "apartamento praça benedito calixto": "Apartamento",
-      "apartamento \nrua major freire": "Apartamento",
-      "casa\ntasso da silveira": "Casa",
-      "casa\nleonardo da vinci": "Casa"
-    },
-    {
-      "coluna 1": "No de Contribuinte (SQL) - imóvel",
-      "apartamento praça benedito calixto": "013.036.0155-9",
-      "apartamento \nrua major freire": "047.176.0274-9",
-      "casa\ntasso da silveira": "310.050.0118-6",
-      "casa\nleonardo da vinci": "310.045.0146-01"
-    },
-    {
-      "coluna 1": "No de Contribuinte (SQL) - garagem",
-      "apartamento praça benedito calixto": "---",
-      "apartamento \nrua major freire": "047.176.0879-8",
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Matrícula - Imóvel",
-      "apartamento praça benedito calixto": "3421",
-      "apartamento \nrua major freire": "74.782",
-      "casa\ntasso da silveira": "12.644",
-      "casa\nleonardo da vinci": "20.462"
-    },
-    {
-      "coluna 1": "Matrícula - Vaga de Garagem",
-      "apartamento praça benedito calixto": "---",
-      "apartamento \nrua major freire": "74.826",
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Área construída (m²)",
-      "apartamento praça benedito calixto": "40,7631m2",
-      "apartamento \nrua major freire": "68,89 m²",
-      "casa\ntasso da silveira": "171 m² (antes das reformas)\n218 m² (considerado no IPTU)",
-      "casa\nleonardo da vinci": "73 m² (considerado no IPTU)"
-    },
-    {
-      "coluna 1": "Endereço",
-      "apartamento praça benedito calixto": "Praça Benedito Calixto, 186/190 \n- Pinheiros, São Paulo - SP, 05406-040\nApartamento 34",
-      "apartamento \nrua major freire": "R. Major Freire, 496 \n- São Paulo - SP, 04304-110\nApartamento 12",
-      "casa\ntasso da silveira": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
-      "casa\nleonardo da vinci": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002"
-    },
-    {
-      "coluna 1": "Valor do IPTU",
-      "apartamento praça benedito calixto": "        R$1.083,40 (2025)",
-      "apartamento \nrua major freire": "R$ 452 + R$ 32,73",
-      "casa\ntasso da silveira": "R$ 4.565,40 (2025)",
-      "casa\nleonardo da vinci": "R$ 773,10 (2025)"
-    },
-    {
-      "coluna 1": "SABESP - Número Fornecimento",
-      "apartamento praça benedito calixto": "responsabilidade do inquilino",
-      "apartamento \nrua major freire": "responsabilidade do inquilino",
-      "casa\ntasso da silveira": 86040713644133.0,
-      "casa\nleonardo da vinci": "responsabilidade do morador"
-    },
-    {
-      "coluna 1": "ENEL - Instalação",
-      "apartamento praça benedito calixto": 49338323.0,
-      "apartamento \nrua major freire": "0052298680",
-      "casa\ntasso da silveira": "0054995434",
-      "casa\nleonardo da vinci": "???"
-    },
-    {
-      "coluna 1": "ENEL - Debito Automatico",
-      "apartamento praça benedito calixto": "NÃO",
-      "apartamento \nrua major freire": "NÃO",
-      "casa\ntasso da silveira": "SIM",
-      "casa\nleonardo da vinci": "NÃO"
-    },
-    {
-      "coluna 1": "Comgás",
-      "apartamento praça benedito calixto": "???",
-      "apartamento \nrua major freire": "???",
-      "casa\ntasso da silveira": "não tem",
-      "casa\nleonardo da vinci": "não tem"
-    },
-    {
-      "coluna 1": "Nome do Condominio",
-      "apartamento praça benedito calixto": "Barão de Capanema",
-      "apartamento \nrua major freire": "Edificio Gisele",
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Valor do Condomino ",
-      "apartamento praça benedito calixto": 668.87,
-      "apartamento \nrua major freire": 599.51,
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "No Apto",
-      "apartamento praça benedito calixto": 34.0,
-      "apartamento \nrua major freire": 12.0,
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Contato Zelador",
-      "apartamento praça benedito calixto": "???",
-      "apartamento \nrua major freire": "Sérgio Moreira: +55 11 96378-5696",
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Contato Portaria",
-      "apartamento praça benedito calixto": "???",
-      "apartamento \nrua major freire": "Portaria Virtual: Delta Omega\ncentral.relacionamento@deltaomega.com.br\n+55 11 3777 9132",
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Administradora - Nome",
-      "apartamento praça benedito calixto": "Graiche Construtora e Imobiliária Ltda",
-      "apartamento \nrua major freire": "Tecnad Administradora de Imóveis",
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Administradora - Link",
-      "apartamento praça benedito calixto": "https://graiche.com.br/",
-      "apartamento \nrua major freire": "http://www.tecnad.com.br/",
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Data de assinatura do CCV",
-      "apartamento praça benedito calixto": "2021-10-21T00:00:00",
-      "apartamento \nrua major freire": "2021-10-21T00:00:00",
-      "casa\ntasso da silveira": "2013-12-26T00:00:00",
-      "casa\nleonardo da vinci": "2023-12-01T00:00:00"
-    },
-    {
-      "coluna 1": "Data de assinatura do registro \n(data de aquisição)",
-      "apartamento praça benedito calixto": "2021-11-16T00:00:00",
-      "apartamento \nrua major freire": "AINDA NÃO TEM",
-      "casa\ntasso da silveira": "2022-08-29T00:00:00",
-      "casa\nleonardo da vinci": "2023-01-13T00:00:00"
-    },
-    {
-      "coluna 1": "Data de recebimento das chaves",
-      "apartamento praça benedito calixto": "2021-11-17T00:00:00",
-      "apartamento \nrua major freire": "2022-02-02T00:00:00",
-      "casa\ntasso da silveira": "???",
-      "casa\nleonardo da vinci": "NÃO RECEBIDO"
-    },
-    {
-      "coluna 1": "Valor do imóvel anunciado na Loft",
-      "apartamento praça benedito calixto": "???",
-      "apartamento \nrua major freire": 480000.0,
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Valor de Compra",
-      "apartamento praça benedito calixto": 348000.0,
-      "apartamento \nrua major freire": 400000.0,
-      "casa\ntasso da silveira": "R$ 670.000,00",
-      "casa\nleonardo da vinci": "R$ 80.000,00"
-    },
-    {
-      "coluna 1": "Detalhes da Compra",
-      "apartamento praça benedito calixto": "Pagamento a vista",
-      "apartamento \nrua major freire": "Entrada R$ 40,000.00\nFinanciamento R$ 360,000.00",
-      "casa\ntasso da silveira": "Nome dos Vendedores: Geraldo Costa Fernandes e Odete dos Santos Fernandes\n\nImovel financiado pela CAIXA\nFinanciamento concluido",
-      "casa\nleonardo da vinci": "Nome da Vendedora: Leonilda de Souza"
-    },
-    {
-      "coluna 1": "Banco Financiamento",
-      "apartamento praça benedito calixto": "---",
-      "apartamento \nrua major freire": "Banco Itau",
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Debito Automatico Financiamento",
-      "apartamento praça benedito calixto": "---",
-      "apartamento \nrua major freire": "SIM",
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Valor da parcela do financialmento",
-      "apartamento praça benedito calixto": "---",
-      "apartamento \nrua major freire": "R$ 4294,00 \n(parcela de Janeiro/2026)",
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
-    },
-    {
-      "coluna 1": "Link do Album de Fotos",
-      "apartamento praça benedito calixto": "???",
-      "apartamento \nrua major freire": "???",
-      "casa\ntasso da silveira": "???",
-      "casa\nleonardo da vinci": "???"
-    },
-    {
-      "coluna 1": "Notas",
-      "apartamento praça benedito calixto": "---",
-      "apartamento \nrua major freire": "---",
-      "casa\ntasso da silveira": "---",
-      "casa\nleonardo da vinci": "---"
+      "tipo": "Crédito Imobiliário",
+      "credor": "Itau Unibanco S.A.",
+      "proprietario": "David / Mariana",
+      "valor_2024": 234792.61,
+      "valor_2023": 265420.59,
+      "variacao": -30627.98,
+      "parcela_mensal": 4294.0,
+      "imovel_garantido": "Rua Major Freire, 496 - Apto 12"
     }
   ],
-  "summary": {
-    "total_declarations": 3,
-    "total_receipts": 2,
-    "total_properties": 32,
-    "bens_direitos_count": 61,
-    "total_bens_value": 4312576.68
+  "rendimentos_ativos_2024": {
+    "david": {
+      "rendimentos_pj": 620917.41,
+      "rendimentos_financeiros": 55445.46,
+      "alugueis_recebidos": 31405.4,
+      "total_bruto": 707768.27
+    },
+    "mariana": {
+      "rendimentos_pj": 141842.7,
+      "rendimentos_financeiros": 3319.56,
+      "alugueis_recebidos": 66756.69,
+      "total_bruto": 211918.95
+    }
+  },
+  "cálculo_patrimonio_liquido": {
+    "2024": {
+      "ativo_total": 3501275.44,
+      "passivo_total": 234792.61,
+      "patrimonio_liquido": 3266482.83
+    },
+    "2023": {
+      "ativo_total": 3401188.33,
+      "passivo_total": 265420.59,
+      "patrimonio_liquido": 3135767.74
+    },
+    "variacao_patrimonio_liquido": {
+      "valor": 130715.09,
+      "percentual": 4.17
+    }
   }
 }

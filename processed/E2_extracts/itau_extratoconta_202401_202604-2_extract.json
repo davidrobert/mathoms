@@ -1,0 +1,373 @@
+{
+  "banco": "Itaú",
+  "tipo": "extratoconta",
+  "moeda": "BRL",
+  "numero_conta": "04397-8",
+  "titular": "david",
+  "periodo": {
+    "inicio": "2024-01-01",
+    "fim": "2026-04-30"
+  },
+  "saldo_inicial": 5053.98,
+  "saldo_final": 22120.66,
+  "transacoes": [
+    {
+      "data": "2024-01-18",
+      "descricao": "PIX TRANSF DAVID R18/01",
+      "valor": -4950.0
+    },
+    {
+      "data": "2024-01-18",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.18
+    },
+    {
+      "data": "2024-01-18",
+      "descricao": "INT ITAU VISA",
+      "valor": -89.45
+    },
+    {
+      "data": "2024-01-30",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -21.57
+    },
+    {
+      "data": "2024-02-02",
+      "descricao": "IOF",
+      "valor": -0.02
+    },
+    {
+      "data": "2024-02-06",
+      "descricao": "PIX TRANSF David R06/02",
+      "valor": 3380.0
+    },
+    {
+      "data": "2024-02-06",
+      "descricao": "INT ITAU VISA",
+      "valor": -3364.55
+    },
+    {
+      "data": "2024-02-09",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1274.38
+    },
+    {
+      "data": "2024-02-09",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1431.52
+    },
+    {
+      "data": "2024-02-14",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.01
+    },
+    {
+      "data": "2024-02-14",
+      "descricao": "FINANC IMOBILIARIO   025",
+      "valor": -4605.98
+    },
+    {
+      "data": "2024-02-16",
+      "descricao": "PIX TRANSF David R16/02",
+      "valor": 2000.0
+    },
+    {
+      "data": "2024-02-28",
+      "descricao": "SISPAG  LOFT TECNOLOGIA",
+      "valor": 6870.2
+    },
+    {
+      "data": "2024-02-29",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -21.44
+    },
+    {
+      "data": "2024-03-04",
+      "descricao": "IOF",
+      "valor": -7.49
+    },
+    {
+      "data": "2024-03-11",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.1
+    },
+    {
+      "data": "2024-03-11",
+      "descricao": "FINANC IMOBILIARIO   026",
+      "valor": -4586.92
+    },
+    {
+      "data": "2024-03-12",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1274.38
+    },
+    {
+      "data": "2024-03-12",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1431.52
+    },
+    {
+      "data": "2024-03-15",
+      "descricao": "PGTO MIN-PAOACUCAR-5739",
+      "valor": -918.61
+    },
+    {
+      "data": "2024-03-15",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.11
+    },
+    {
+      "data": "2024-03-15",
+      "descricao": "INT ITAU VISA",
+      "valor": -6123.59
+    },
+    {
+      "data": "2024-03-21",
+      "descricao": "CREDITO CARTAO",
+      "valor": 918.61
+    },
+    {
+      "data": "2024-04-02",
+      "descricao": "IOF",
+      "valor": -9.41
+    },
+    {
+      "data": "2024-04-09",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1274.38
+    },
+    {
+      "data": "2024-04-09",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1455.76
+    },
+    {
+      "data": "2024-04-10",
+      "descricao": "JUROS LIMITE DA CONTA",
+      "valor": -78.43
+    },
+    {
+      "data": "2024-04-10",
+      "descricao": "FINANC IMOBILIARIO   027",
+      "valor": -4571.52
+    },
+    {
+      "data": "2024-04-12",
+      "descricao": "PIX TRANSF  DAVID R12/04",
+      "valor": 4000.0
+    },
+    {
+      "data": "2024-04-12",
+      "descricao": "INT ITAU VISA",
+      "valor": -736.35
+    },
+    {
+      "data": "2024-04-29",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.01
+    },
+    {
+      "data": "2024-04-29",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -550.64
+    },
+    {
+      "data": "2024-04-29",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -554.8
+    },
+    {
+      "data": "2024-05-03",
+      "descricao": "IOF",
+      "valor": -15.81
+    },
+    {
+      "data": "2024-05-06",
+      "descricao": "PIX TRANSF David R05/05",
+      "valor": 1130.0
+    },
+    {
+      "data": "2024-05-10",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1451.81
+    },
+    {
+      "data": "2024-05-10",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1325.21
+    },
+    {
+      "data": "2024-05-10",
+      "descricao": "FINANC IMOBILIARIO   028",
+      "valor": -4556.23
+    },
+    {
+      "data": "2024-05-14",
+      "descricao": "PIX TRANSF David R14/05",
+      "valor": 1800.0
+    },
+    {
+      "data": "2024-05-14",
+      "descricao": "INT ITAU VISA",
+      "valor": -284.59
+    },
+    {
+      "data": "2024-05-15",
+      "descricao": "PGTO MIN-PAOACUCAR-5739",
+      "valor": -105.54
+    },
+    {
+      "data": "2024-05-20",
+      "descricao": "CREDITO CARTAO",
+      "valor": 105.54
+    },
+    {
+      "data": "2024-05-27",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -486.49
+    },
+    {
+      "data": "2024-06-04",
+      "descricao": "IOF",
+      "valor": -8.83
+    },
+    {
+      "data": "2024-06-10",
+      "descricao": "JUROS LIMITE DA CONTA",
+      "valor": -29.65
+    },
+    {
+      "data": "2024-06-10",
+      "descricao": "FINANC IMOBILIARIO   029",
+      "valor": -4539.35
+    },
+    {
+      "data": "2024-06-12",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1500.64
+    },
+    {
+      "data": "2024-06-12",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1333.03
+    },
+    {
+      "data": "2024-06-14",
+      "descricao": "PIX TRANSF  DAVID R14/06",
+      "valor": 2400.0
+    },
+    {
+      "data": "2024-06-14",
+      "descricao": "INT ITAU VISA",
+      "valor": -107.97
+    },
+    {
+      "data": "2024-06-19",
+      "descricao": "PIX TRANSF Poupa M19/06",
+      "valor": -2480.0
+    },
+    {
+      "data": "2024-06-19",
+      "descricao": "PIX TRANSF David R19/06",
+      "valor": 2500.0
+    },
+    {
+      "data": "2024-06-24",
+      "descricao": "INT /PM SAO PAU 17300039",
+      "valor": -455.81
+    },
+    {
+      "data": "2024-06-24",
+      "descricao": "INT /PM SAO PAU 91590049",
+      "valor": -3988.59
+    },
+    {
+      "data": "2024-06-24",
+      "descricao": "INT /PM SAO PAU 88040039",
+      "valor": -37.63
+    },
+    {
+      "data": "2024-06-24",
+      "descricao": "INT /PM SAO PAU 92740029",
+      "valor": -216.23
+    },
+    {
+      "data": "2024-06-27",
+      "descricao": "DA  ELETROPAULO 31237205",
+      "valor": -298.42
+    },
+    {
+      "data": "2024-07-02",
+      "descricao": "PIX TRANSF Kiwify 02/07",
+      "valor": 28994.42
+    },
+    {
+      "data": "2024-07-02",
+      "descricao": "IOF",
+      "valor": -40.23
+    },
+    {
+      "data": "2024-07-10",
+      "descricao": "REND PAGO APLIC AUT MAIS",
+      "valor": 0.05
+    },
+    {
+      "data": "2024-07-10",
+      "descricao": "JUROS LIMITE DA CONTA",
+      "valor": -163.57
+    },
+    {
+      "data": "2024-07-10",
+      "descricao": "FINANC IMOBILIARIO   030",
+      "valor": -4524.38
+    },
+    {
+      "data": "2024-07-11",
+      "descricao": "INT ITAU VISA",
+      "valor": -148.82
+    },
+    {
+      "data": "2024-07-11",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1333.03
+    },
+    {
+      "data": "2024-07-11",
+      "descricao": "SISPAG  GRPQA LTDA",
+      "valor": 1500.64
+    },
+    {
+      "data": "2024-07-16",
+      "descricao": "PIX TRANSF PLAYFLO16/07",
+      "valor": 60.0
+    },
+    {
+      "data": "2024-07-16",
+      "descricao": "PIX TRANSF DAVID R16/07",
+      "valor": 0.01
+    },
+    {
+      "data": "2024-07-16",
+      "descricao": "PIX TRANSF DAVID R16/07",
+      "valor": 0.01
+    },
+    {
+      "data": "2024-07-16",
+      "descricao": "PIX TRANSF DAVID R16/07",
+      "valor": 0.02
+    },
+    {
+      "data": "2024-07-16",
+      "descricao": "PIX TRANSF DAVID R16/07",
+      "valor": 0.01
+    },
+    {
+      "data": "2024-07-16",
+      "descricao": "PIX TRANSF DAVID R16/07",
+      "valor": 0.01
+    }
+  ],
+  "notas": [
+    "INFO: 3 possíveis duplicatas intra-arquivo"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "banco": "Santander",
+  "tipo": "extratoconta",
+  "moeda": "BRL",
+  "numero_conta": "1652-01.001341.6",
+  "titular": "david",
+  "periodo": {
+    "inicio": "2025-10-10",
+    "fim": "2026-01-07"
+  },
+  "saldo_inicial": -3567.88,
+  "saldo_final": -3905.88,
+  "transacoes": [
+    {
+      "data": "2026-01-06",
+      "descricao": "DEBITO AUT. TELEFONE CELULAR       VIVO MOVEL-SP",
+      "valor": -338.0
+    }
+  ],
+  "notas": []
+}

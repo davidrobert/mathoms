@@ -1,14 +1,47 @@
 # QA Log — E4 Categorização
-## Execução: 2026-04-08 14:34
+## Execução: 2026-04-08 15:45
 
-### Transações não identificadas: 607
+### Transações não identificadas: 678
 
 | Data | Descrição | Valor | Banco | Fonte |
 |---|---|---|---|---|
+| 2023-01-05 | DA  VIVO FIXO 9373297637 | R$79.80 | Itaú | extratoconta |
+| 2023-01-05 | INT ITAU VISA | R$15,543.18 | Itaú | extratoconta |
+| 2023-01-09 | INT LICENC SP 94108287 | R$7,751.95 | Itaú | extratoconta |
+| 2023-01-09 | INT LICENC SP 65524977 | R$1,359.78 | Itaú | extratoconta |
+| 2023-01-11 | PIX TRANSF  RENATO 11/01 | R$2,100.00 | Itaú | extratoconta |
+| 2023-01-12 | PIX TRANSF  2 TABEL12/01 | R$4,480.02 | Itaú | extratoconta |
+| 2023-01-12 | PIX TRANSF  LUCIENE12/01 | R$5,187.14 | Itaú | extratoconta |
+| 2023-01-13 | INT TED  2A8686AC | R$50,000.00 | Itaú | extratoconta |
+| 2023-01-16 | PIX TRANSF  LUMMA R14/01 | R$1,650.00 | Itaú | extratoconta |
+| 2023-01-27 | PIX TRANSF  VESALTE27/01 | R$662.50 | Itaú | extratoconta |
+| 2023-03-14 | INT ITAU VISA | R$16,444.31 | Itaú | extratoconta |
+| 2023-03-14 | PGTO MIN-PAOACUCAR-5739 | R$2,466.65 | Itaú | extratoconta |
+| 2023-03-24 | PIX TRANSF  HERMANN24/03 | R$2,200.00 | Itaú | extratoconta |
+| 2023-03-27 | PIX TRANSF  FELTRIN27/03 | R$30,820.00 | Itaú | extratoconta |
+| 2023-03-30 | INT ITAU VISA | R$14,518.73 | Itaú | extratoconta |
+| 2023-04-24 | PIX TRANSF  DOUGLAS24/04 | R$1,000.00 | Itaú | extratoconta |
+| 2023-05-02 | PIX TRANSF  SUELEN 02/05 | R$27,191.08 | Itaú | extratoconta |
+| 2023-05-04 | PIX TRANSF  DOUGLAS04/05 | R$292.77 | Itaú | extratoconta |
+| 2023-05-09 | PIX TRANSF  DOUGLAS09/05 | R$400.00 | Itaú | extratoconta |
+| 2023-05-15 | PIX TRANSF  ALESSAN15/05 | R$18.00 | Itaú | extratoconta |
+| 2023-05-16 | PIX TRANSF  SARITA 16/05 | R$4,000.00 | Itaú | extratoconta |
+| 2023-05-16 | PIX TRANSF  SARITA 16/05 | R$251.68 | Itaú | extratoconta |
+| 2023-05-16 | PGTO MIN-PAOACUCAR-5739 | R$1,943.72 | Itaú | extratoconta |
+| 2023-05-17 | INT PAG TIT 175181821942 | R$12,542.98 | Itaú | extratoconta |
+| 2023-06-05 | PIX TRANSF  SER MED05/06 | R$1,831.84 | Itaú | extratoconta |
+| 2023-06-05 | INT ITAU VISA | R$10,673.49 | Itaú | extratoconta |
+| 2023-06-30 | DA  REC FED 28776694836 | R$1,951.12 | Itaú | extratoconta |
+| 2023-07-10 | INT ITAU VISA | R$1,604.08 | Itaú | extratoconta |
+| 2023-07-21 | PIX TRANSF  HERMANN21/07 | R$100.00 | Itaú | extratoconta |
+| 2023-08-02 | INT ITAU VISA | R$210.52 | Itaú | extratoconta |
+| 2023-09-14 | INT ITAU VISA | R$86.46 | Itaú | extratoconta |
 | 2023-10-13 | PAULO HENRIQUE RODRIGU | R$813.33 | C6 Bank | faturacarbon |
+| 2023-10-17 | INT ITAU VISA | R$90.39 | Itaú | extratoconta |
 | 2023-11-01 | PG *TON BIANCH | R$764.50 | C6 Bank | faturacarbon |
 | 2023-11-06 | ASSIST CARD | R$294.22 | C6 Bank | faturacarbon |
 | 2023-11-12 | PLATAFORMA SERVICO DE | R$1,833.33 | C6 Bank | faturacarbon |
+| 2023-11-14 | PGTO MIN-PAOACUCAR-5739 | R$21.17 | Itaú | extratoconta |
 | 2023-11-16 | PAG*CONVITEARTARTEPUB | R$301.35 | C6 Bank | faturacarbon |
 | 2023-11-28 | PADARIA NOVA GUARANY L | R$12.50 | C6 Bank | faturacarbon |
 | 2023-11-29 | PAG*MERCADINHOBONANZA | R$106.04 | C6 Bank | faturacarbon |
@@ -25,6 +58,7 @@
 | 2023-12-05 | RAPPI  *RAPPI * BRASI | R$362.35 | C6 Bank | faturacarbon |
 | 2023-12-05 | RAPPI  *RAPPI * BRASI | R$17.58 | C6 Bank | faturacarbon |
 | 2023-12-06 | PAG*GESSICAMARIAFEITO | R$21.00 | C6 Bank | faturacarbon |
+| 2023-12-07 | MOBILEPAG TIT 4700148270 | R$171.42 | Itaú | extratoconta |
 | 2023-12-07 | ARMAZEN 72 | R$59.00 | C6 Bank | faturacarbon |
 | 2023-12-07 | PAYPAL *PATREONIREL  M 35 | R$121.15 | C6 Bank | faturacarbon |
 | 2023-12-07 | PAYPAL *PATREONIREL  M 35 | R$6.52 | C6 Bank | faturacarbon |
@@ -95,6 +129,7 @@
 | 2024-01-02 | PADARIA NOVA GUARANY L | R$9.50 | C6 Bank | faturacarbon |
 | 2024-01-02 | BAZAR MACK LTDA ME | R$12.25 | C6 Bank | faturacarbon |
 | 2024-01-02 | DROGARIA NOVA POPULAR | R$39.99 | C6 Bank | faturacarbon |
+| 2024-01-03 | MOBILE PAG TIT 843023132000 | R$593.05 | Itaú | extratoconta |
 | 2024-01-03 | Pix enviado para 3D DIGITAL GRAPHIC LTDA EPP — TRANSF ENVIADA PIX | R$361.08 | C6 Bank | extratoconta |
 | 2024-01-04 | Pix recusado | R$0.10 | C6 Bank | extratoconta |
 | 2024-01-05 | RAPPI  *RAPPI * BRASI | R$115.66 | C6 Bank | faturacarbon |
@@ -120,6 +155,7 @@
 | 2024-01-16 | DL          *RAPPI | R$34.90 | C6 Bank | faturacarbon |
 | 2024-01-17 | Pix enviado para ADILSON MESSIAS DE OLIVEIRA 29375362809 — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
 | 2024-01-17 | VFY COMERCIO LOCACAO E | R$22.91 | C6 Bank | faturacarbon |
+| 2024-01-18 | INT ITAU VISA | R$89.45 | Itaú | extratoconta |
 | 2024-01-18 | Pix enviado para CASSIO LEONARDO FARIA DA SILVA — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
 | 2024-01-18 | EMPORIO CAFE | R$21.96 | C6 Bank | faturacarbon |
 | 2024-01-19 | RAPPI*RAPPI BRASIL | R$205.64 | C6 Bank | faturacarbon |
@@ -148,6 +184,7 @@
 | 2024-02-03 | DROGARIA NOVA POPULAR | R$74.85 | C6 Bank | faturacarbon |
 | 2024-02-05 | 210004            - | R$1.01 | C6 Bank | faturacarbon |
 | 2024-02-05 | 210004            - | R$23.06 | C6 Bank | faturacarbon |
+| 2024-02-06 | INT ITAU VISA | R$3,364.55 | Itaú | extratoconta |
 | 2024-02-06 | 20017             - | R$1.62 | C6 Bank | faturacarbon |
 | 2024-02-06 | 20017             - | R$36.92 | C6 Bank | faturacarbon |
 | 2024-02-06 | CRF EXP GRE4863 | R$1.14 | C6 Bank | faturacarbon |
@@ -233,6 +270,8 @@
 | 2024-03-14 | ZHEN GIAN SIAN ME | R$47.75 | C6 Bank | faturacarbon |
 | 2024-03-14 | PAG*DOLCISSIMO | R$10.00 | C6 Bank | faturacarbon |
 | 2024-03-14 | AEROMIX | R$21.00 | C6 Bank | faturacarbon |
+| 2024-03-15 | PGTO MIN-PAOACUCAR-5739 | R$918.61 | Itaú | extratoconta |
+| 2024-03-15 | INT ITAU VISA | R$6,123.59 | Itaú | extratoconta |
 | 2024-03-15 | EXPRESSO NUTRI | R$25.20 | C6 Bank | faturacarbon |
 | 2024-03-16 | RAPPI  *RAPPI * BRASI | R$34.90 | C6 Bank | faturacarbon |
 | 2024-03-16 | CHATGPT SUBSCRIPTION   +1 | R$4.59 | C6 Bank | faturacarbon |
@@ -265,22 +304,31 @@
 | 2024-04-01 | Pix enviado para Maria Cilda da Silva — TRANSF ENVIADA PIX | R$20.00 | C6 Bank | extratoconta |
 | 2024-04-03 | Pix enviado para ANNE VITORIA RODRIGUES GALVAO — TRANSF ENVIADA PIX | R$20.00 | C6 Bank | extratoconta |
 | 2024-04-08 | Pix enviado para WEVERSON FERREIRA S BARBOSA — TRANSF ENVIADA PIX | R$800.00 | C6 Bank | extratoconta |
+| 2024-04-12 | INT ITAU VISA | R$736.35 | Itaú | extratoconta |
 | 2024-04-12 | Pix enviado para RAFAEL BARROSO DE CARVALHO — TRANSF ENVIADA PIX | R$720.00 | C6 Bank | extratoconta |
 | 2024-04-12 | Pix enviado para ULTRAFORMULAS — TRANSF ENVIADA PIX | R$77.00 | C6 Bank | extratoconta |
 | 2024-04-22 | Pix enviado para ULTRAFORMULAS — TRANSF ENVIADA PIX | R$10.00 | C6 Bank | extratoconta |
 | 2024-04-23 | Pix enviado para MONASA SERVICOS MEDICOS LTDA   ME — TRANSF ENVIADA PIX | R$400.00 | C6 Bank | extratoconta |
 | 2024-05-07 | Pix enviado para ROMULO COSTA TAVARES — TRANSF ENVIADA PIX | R$100.00 | C6 Bank | extratoconta |
 | 2024-05-07 | Boleto | R$16,828.22 | C6 Bank | extratoconta |
+| 2024-05-14 | INT ITAU VISA | R$284.59 | Itaú | extratoconta |
+| 2024-05-15 | PGTO MIN-PAOACUCAR-5739 | R$105.54 | Itaú | extratoconta |
 | 2024-05-29 | Boleto | R$1,190.03 | C6 Bank | extratoconta |
 | 2024-05-29 | Boleto | R$7,720.71 | C6 Bank | extratoconta |
 | 2024-05-31 | Boleto | R$336.00 | C6 Bank | extratoconta |
 | 2024-05-31 | Boleto | R$4,670.30 | C6 Bank | extratoconta |
 | 2024-05-31 | Pix enviado para ELIANA LEANDRO DA SILVA — TRANSF ENVIADA PIX | R$341.00 | C6 Bank | extratoconta |
+| 2024-06-14 | INT ITAU VISA | R$107.97 | Itaú | extratoconta |
 | 2024-06-18 | Pix enviado para SECRETARIA DO TESOURO NACIONAL — TRANSF ENVIADA PIX | R$257.25 | C6 Bank | extratoconta |
+| 2024-06-19 | PIX TRANSF Poupa M19/06 | R$2,480.00 | Itaú | extratoconta |
 | 2024-06-20 | Pix enviado para ARTHUR PORRUA DE ROCCO — TRANSF ENVIADA PIX | R$80.00 | C6 Bank | extratoconta |
 | 2024-06-20 | Pix enviado para DANIEL PEREIRA DOS SANTOS — TRANSF ENVIADA PIX | R$5.00 | C6 Bank | extratoconta |
 | 2024-06-21 | Pix enviado para CLAUDIA DANTAS TINOCO — TRANSF ENVIADA PIX | R$4,765.42 | C6 Bank | extratoconta |
 | 2024-06-21 | Pix enviado para VESALTEC SERRALHERIA E COMERCIO LTDA — TRANSF ENVIADA PIX | R$350.00 | C6 Bank | extratoconta |
+| 2024-06-24 | INT /PM SAO PAU 17300039 | R$455.81 | Itaú | extratoconta |
+| 2024-06-24 | INT /PM SAO PAU 91590049 | R$3,988.59 | Itaú | extratoconta |
+| 2024-06-24 | INT /PM SAO PAU 88040039 | R$37.63 | Itaú | extratoconta |
+| 2024-06-24 | INT /PM SAO PAU 92740029 | R$216.23 | Itaú | extratoconta |
 | 2024-07-06 | Pix enviado para Martina Florentim Gehlen — TRANSF ENVIADA PIX | R$1,044.00 | C6 Bank | extratoconta |
 | 2024-07-06 | Pix enviado para GlobalPower Pagamentos Digitais LTDA — TRANSF ENVIADA PIX | R$2,517.05 | C6 Bank | extratoconta |
 | 2024-07-06 | Pix enviado para RENDIMENTOPAY INSTITUICAO DE PAGAME — TRANSF ENVIADA PIX | R$3,061.53 | C6 Bank | extratoconta |
@@ -288,16 +336,22 @@
 | 2024-07-08 | Pix enviado para GlobalPower Pagamentos Digitais LTDA — TRANSF ENVIADA PIX | R$282.30 | C6 Bank | extratoconta |
 | 2024-07-08 | Pix enviado para Mohamad Youssef Kandil — TRANSF ENVIADA PIX | R$1,410.00 | C6 Bank | extratoconta |
 | 2024-07-08 | Pix enviado para ILDA APARECIDA GOMES DE SOUZA — TRANSF ENVIADA PIX | R$70.00 | C6 Bank | extratoconta |
+| 2024-07-11 | INT ITAU VISA | R$148.82 | Itaú | extratoconta |
 | 2024-07-12 | Boleto | R$198.72 | C6 Bank | extratoconta |
+| 2024-07-23 | PIX TRANSF OTICA C23/07 | R$600.00 | Itaú | extratoconta |
 | 2024-07-23 | Boleto | R$137.47 | C6 Bank | extratoconta |
 | 2024-07-24 | Pix enviado para RAFAEL BARROSO DE CARVALHO — TRANSF ENVIADA PIX | R$210.00 | C6 Bank | extratoconta |
 | 2024-07-25 | Pix enviado para Kiwify Pagamentos, Tecnologia e Servicos Ltda — TRANSF ENVIADA PIX | R$5.00 | C6 Bank | extratoconta |
+| 2024-08-01 | PIX TRANSF Poupa M01/08 | R$3,800.00 | Itaú | extratoconta |
+| 2024-08-01 | INT ITAU VISA | R$92.47 | Itaú | extratoconta |
 | 2024-08-01 | Pix enviado para Hermann Ronaldo Wecke — TRANSF ENVIADA PIX | R$2,000.00 | C6 Bank | extratoconta |
 | 2024-08-02 | Pix enviado para LUIZ FELIPE SOUZA PINTO — Presente de casamento do David e Mariana | R$500.00 | C6 Bank | extratoconta |
 | 2024-08-03 | Pix enviado para Didier Cesar Ferreira — TRANSF ENVIADA PIX C | R$30.00 | C6 Bank | extratoconta |
 | 2024-08-03 | Pix enviado para RENATO LONGO TUBINO — TRANSF ENVIADA PIX | R$650.00 | C6 Bank | extratoconta |
 | 2024-08-06 | Pix enviado para CAMILA NAKAMURA MATTES — TRANSF ENVIADA PIX | R$300.00 | C6 Bank | extratoconta |
+| 2024-08-09 | INT ITAU VISA | R$59.47 | Itaú | extratoconta |
 | 2024-08-20 | Pix enviado para MINISTERIO DA FAZENDA — TRANSF ENVIADA PIX | R$155.32 | C6 Bank | extratoconta |
+| 2024-08-30 | INT ITAU VISA | R$24.90 | Itaú | extratoconta |
 | 2024-09-10 | Pix enviado para M4 PRODUTOS E SERVIÇOS S.A — TRANSF ENVIADA PIX | R$30.00 | C6 Bank | extratoconta |
 | 2024-09-12 | Boleto | R$164.80 | C6 Bank | extratoconta |
 | 2024-09-27 | Pix recusado | R$175.00 | C6 Bank | extratoconta |
@@ -306,18 +360,28 @@
 | 2024-09-28 | Pix enviado para RAFAEL BARROSO DE CARVALHO — TRANSF ENVIADA PIX | R$160.00 | C6 Bank | extratoconta |
 | 2024-09-29 | Pix enviado para SECRETARIA DO TESOURO NACIONAL — TRANSF ENVIADA PIX | R$257.25 | C6 Bank | extratoconta |
 | 2024-09-29 | Pix enviado para SECRETARIA DO TESOURO NACIONAL — TRANSF ENVIADA PIX | R$257.25 | C6 Bank | extratoconta |
+| 2024-09-30 | INT ITAU VISA | R$83.90 | Itaú | extratoconta |
 | 2024-10-01 | Pix enviado para SECRETARIA DO TESOURO NACIONAL — TRANSF ENVIADA PIX | R$257.25 | C6 Bank | extratoconta |
 | 2024-10-01 | Pix enviado para MINISTERIO DA FAZENDA — TRANSF ENVIADA PIX | R$1,480.51 | C6 Bank | extratoconta |
 | 2024-10-03 | EMISSAO ADIC. GLOBAL — RPA Cobrança de Emissão do Adicional Glo | R$25.00 | C6 Bank | extratoconta |
 | 2024-10-06 | Pix enviado para Erika Tavares de Almeida — TRANSF ENVIADA PIX | R$100.00 | C6 Bank | extratoconta |
+| 2024-10-10 | 01-FIN VENDA  3024716273 | R$101,386.12 | Itaú | extratoconta |
+| 2024-10-10 | 01-FIN VENDA  3024717066 | R$289,575.58 | Itaú | extratoconta |
+| 2024-10-21 | PIX TRANSF HERMANN21/10 | R$1,000.00 | Itaú | extratoconta |
 | 2024-10-21 | Pix enviado para Hermann Ronaldo Wecke — TRANSF ENVIADA PIX | R$900.00 | C6 Bank | extratoconta |
 | 2024-10-22 | Pix recusado | R$110.00 | C6 Bank | extratoconta |
 | 2024-10-22 | Pix enviado para RAFAEL BARROSO DE CARVALHO — TRANSF ENVIADA PIX | R$110.00 | C6 Bank | extratoconta |
 | 2024-10-22 | Pix enviado para VESALTEC SERRALHERIA E COMERCIO LTDA — TRANSF ENVIADA PIX | R$380.00 | C6 Bank | extratoconta |
+| 2024-10-23 | INT ITAU VISA | R$83.90 | Itaú | extratoconta |
 | 2024-11-10 | Pix enviado para A A C D ASSOC ASSIST CRIANCA DEF — TRANSF ENVIADA PIX | R$50.00 | C6 Bank | extratoconta |
 | 2024-11-10 | Pix enviado para paroquia nossa senhora do brasil — TRANSF ENVIADA PIX | R$50.00 | C6 Bank | extratoconta |
+| 2024-11-11 | INT ITAU VISA | R$83.90 | Itaú | extratoconta |
+| 2024-11-11 | INT ITAU VISA | R$83.90 | Itaú | extratoconta |
 | 2024-12-03 | Pix enviado para HT SARAGIOTTO S — TRANSF ENVIADA PIX | R$300.00 | C6 Bank | extratoconta |
 | 2024-12-10 | Pix enviado para Tesouro Nacional — TRANSF ENVIADA PIX | R$3.51 | C6 Bank | extratoconta |
+| 2024-12-16 | INT ITAU VISA | R$88.64 | Itaú | extratoconta |
+| 2024-12-16 | INT ITAU VISA | R$88.64 | Itaú | extratoconta |
+| 2024-12-16 | PGTO MIN-PAOACUCAR-5739 | R$8.94 | Itaú | extratoconta |
 | 2024-12-16 | Pix enviado para JOAO DRAGO FILHO — TRANSF ENVIADA PIX | R$600.00 | C6 Bank | extratoconta |
 | 2024-12-18 | Boleto | R$155.32 | C6 Bank | extratoconta |
 | 2024-12-20 | Pix enviado para Milton Augusto de Camargo Filho — TRANSF ENVIADA PIX | R$3,000.00 | C6 Bank | extratoconta |
@@ -338,11 +402,16 @@
 | 2025-01-10 | Des: Carla Mayara Marconde 1112126 | R$99.00 | Bradesco | extratoconta |
 | 2025-01-11 | Pix enviado para MARIA REGINA DOS SANTOS — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
 | 2025-01-13 | Transfe Pix Des: Marília Panarello Kos 11/01 | R$163.50 | Bradesco | extratoconta |
+| 2025-01-14 | INT MULTA REN28776694836 | R$131.46 | Itaú | extratoconta |
+| 2025-01-14 | INT LICENC SP 94108287 | R$5,928.18 | Itaú | extratoconta |
+| 2025-01-14 | INT LICENC SP 36290029 | R$1,436.37 | Itaú | extratoconta |
+| 2025-01-14 | INT LICENC SP 88189191 | R$573.80 | Itaú | extratoconta |
 | 2025-01-22 | Des: Patrycia Casetta Rosa 22/01 2037272 | R$52.33 | Bradesco | extratoconta |
 | 2025-01-25 | Pix enviado para Felipe Alberto Orozco Ospina — TRANSF ENVIADA PIX | R$30.00 | C6 Bank | extratoconta |
 | 2025-01-28 | Transfe Pix Des: ht Saragiotto s 28/01 | R$600.00 | Bradesco | extratoconta |
 | 2025-01-31 | Transfe Pix Des: Leticia Aparecida de 31/01 | R$40.00 | Bradesco | extratoconta |
 | 2025-01-31 | Des: Antonia Gecileuda Roc 0937271 | R$75.00 | Bradesco | extratoconta |
+| 2025-02-03 | PIX QRS CIA DE SANE03/02 | R$334.52 | Itaú | extratoconta |
 | 2025-02-04 | Pix enviado para LARISSA MARTINS AZEVEDO DE OLIVEIRA — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-02-04 | Des: Estacar Estacionament 1343186 | R$10.00 | Bradesco | extratoconta |
 | 2025-02-06 | Pix enviado para LARISSA MARTINS AZEVEDO DE OLIVEIRA — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
@@ -361,6 +430,7 @@
 | 2025-03-10 | Transfe Pix Des: Edilene Aparecida Fra 08/03 | R$50.00 | Bradesco | extratoconta |
 | 2025-03-10 | Transfe Pix Des: Gabriel Antonio Marti 08/03 | R$60.00 | Bradesco | extratoconta |
 | 2025-03-15 | Pix enviado para ARMANDO TIUJI SAITO — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
+| 2025-03-17 | PIX TRANSF  ARMANDO15/03 | R$7,550.00 | Itaú | extratoconta |
 | 2025-03-18 | Boleto | R$745.84 | C6 Bank | extratoconta |
 | 2025-03-18 | Boleto | R$115.91 | C6 Bank | extratoconta |
 | 2025-03-18 | Pix Qrcode Din Des: Prodata Mobility Bras 18/03 | R$10.00 | Bradesco | extratoconta |
@@ -401,6 +471,7 @@
 | 2025-05-19 | Transfe Pix Des: Jair de Souza Ferreir 19/05 | R$140.00 | Bradesco | extratoconta |
 | 2025-05-20 | Target 00017954\1771 Dunlawton Av Cartão
 8884 | R$20.91 | C6 Bank | extratocontaglobalusd |
+| 2025-05-22 | PIX TRANSF SUELI D22/05 | R$11,820.00 | Itaú | extratoconta |
 | 2025-05-22 | PIX TRANSF EDSON J22/05 | R$10,047.00 | Itaú | extratoconta |
 | 2025-05-22 | Transf. Internacional | R$150.00 | C6 Bank | extratocontaglobalusd |
 | 2025-06-10 | Pix enviado para ******** — TRANSF ENVIADA PIX | R$55.00 | C6 Bank | extratoconta |
@@ -703,7 +774,7 @@ Cartão 4163 | R$25.28 | C6 Bank | extratocontaglobalusd |
 | 2026-04-06 | GUIA DE EMPREGADO DOMÉSTICO — Boleto | R$1,153.73 | C6 Bank | extratoconta |
 | 2026-04-06 | GUIA DE EMPREGADO DOMÉSTICO — Boleto | R$175.70 | C6 Bank | extratoconta |
 
-### Taxa: 17.2% ⚠️ ACIMA DA META (<10%)
+### Taxa: 18.2% ⚠️ ACIMA DA META (<10%)
 
 ### Notas para investigação
 
