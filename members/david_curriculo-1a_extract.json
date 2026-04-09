@@ -2,146 +2,139 @@
   "tipo": "curriculo",
   "membro": "david",
   "nome_completo": "David Robert Camargo Ferreira Campos",
-  "nome_atual": "David Robert Camargo de Ferreira Campos",
+  "nome_atual": "David Robert Camargo Ferreira Campos",
   "profissao_cargo": "Chief Technology Officer (CTO)",
   "experiencias": [
     {
       "empresa": "Arvo",
       "cargo": "Chief Technology Officer (CTO)",
-      "inicio": "2025-09",
-      "fim": "presente",
-      "descricao": "Fast-growing Brazilian healthtech leveraging AI and ML to optimize healthcare ecosystem, auditing medical claims to identify fraud patterns and reduce waste. Directed technology strategy, established AI-First engineering vision, cultivated world-class engineering culture, achieved 20% reduction in PR review times."
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2025-09",
+      "data_fim": "presente",
+      "descricao": "Healthtech brasileira que usa IA/ML para auditoria de sinistros médicos. Dirige estratégia tecnológica, frameworks de cibersegurança (LGPD/HIPAA), visão AI-First no SDLC."
     },
     {
       "empresa": "Kiwify",
       "cargo": "Chief Technology Officer (CTO)",
-      "inicio": "2024-06",
-      "fim": "2025-05",
-      "descricao": "Brazilian technology platform for online business creation and management, e-commerce, and sales automation. Established technology strategy, organized cross-functional engineering squads, designed scalable infrastructure, reduced average development time by 30%, optimized infrastructure for 7,000 requests/minute peak, implemented Continuous Delivery reducing feature launch time by 40%."
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2024-06",
+      "data_fim": "2025-05",
+      "descricao": "Plataforma de e-commerce e produtos digitais. Estruturou 5 squads, otimizou infra para 7k req/min, lançou vendas internacionais com multi-moeda."
     },
     {
       "empresa": "Loft",
       "cargo": "Software Engineering Consultant",
-      "inicio": "2022-12",
-      "fim": "2024-06",
-      "descricao": "Proptech transforming real estate market in Brazil. Managed 60+ software engineers across multifunctional squads, defined technology strategy aligning with business objectives, led integration of CrediHome and CredPago, implemented observability framework, improved platform availability to 99.99%, increased transaction volume by 5x, reduced cloud infrastructure costs by 30%."
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2022-12",
+      "data_fim": "2024-06",
+      "descricao": "Proptech brasileira. Gestão de 60+ engenheiros em squads multifuncionais, definição de estratégia tecnológica e arquitetura de microservices."
     },
     {
-      "empresa": "Loft",
-      "cargo": "Director of Software Engineering",
-      "inicio": "2021-11",
-      "fim": "2022-12",
-      "descricao": "Led recruitment and onboarding of 70+ software engineers during company's growth to unicorn status. Implemented microservices architecture migration, introduced agile practices, implemented observability tools, reduced platform load times by 60%, automated internal processes reducing manual operations time by 45%, expanded marketplace enabling new markets."
-    },
-    {
-      "empresa": "Loft",
-      "cargo": "Engineering Manager",
-      "inicio": "2019-06",
-      "fim": "2021-10",
-      "descricao": "Led cross-functional software engineering teams developing technological solutions for real estate market. Implemented Loft's engineering principles, restructured recruitment process improving candidate conversion by 15%, led initial marketplace expansion, implemented internal automation, established engineering culture reducing turnover by 20%."
+      "empresa": "Loft / CredPago",
+      "cargo": "VP of Software Engineering",
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2019-06",
+      "data_fim": "2022-12",
+      "descricao": "Liderou engenharia na CredPago (grupo Loft). Construiu time de 54 engenheiros, reduziu custos cloud em 35%, implementou soluções financeiras para garantia locatícia."
     },
     {
       "empresa": "Elo7",
       "cargo": "Chief Technology Officer (CTO)",
-      "inicio": "2013-08",
-      "fim": "2020-07",
-      "descricao": "Brazilian e-commerce platform for creative and handmade products connecting artisans to consumers. Managed 70 software engineers, designed microservices architecture supporting millions of daily interactions, reduced deployment time from days to minutes, implemented intelligent search system increasing conversion by 15%, improved platform speed by 40%, expanded infrastructure capacity reducing costs by 35%."
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2015-06",
+      "data_fim": "2019-06",
+      "descricao": "Maior marketplace de artesanato do Brasil. Montou equipe de 80+ engenheiros, redesenhou plataforma para microservices, construiu Data Lake para decisões estratégicas."
     },
     {
-      "empresa": "Abril",
-      "cargo": "Solutions Architect I",
-      "inicio": "2012-03",
-      "fim": "2013-08",
-      "descricao": "Major media group in Brazil offering content and communication solutions. Developed and implemented distributed architecture for Alexandria platform, created scalable RESTful APIs, implemented distributed caching solutions, reduced digital portals response time by 60%, reduced application server load by 50%, implemented scalable APIs enabling digital expansion."
+      "empresa": "NetServices (Grupo UOL/PagSeguro)",
+      "cargo": "Chief Technology Officer (CTO)",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2013-01",
+      "data_fim": "2015-06",
+      "descricao": "Provedor de DNS corporativo. Gestão de equipe de DevOps, migração para cloud, redesenho de arquitetura."
     },
     {
-      "empresa": "TOTVS",
-      "cargo": "Research and Development Engineer IV",
-      "inicio": "2011-02",
-      "fim": "2012-03",
-      "descricao": "Leader in business management solutions in Latin America. Developed and maintained proprietary virtual machine using C/C++/Assembly, designed compiler architecture, optimized memory management reducing consumption by 35%, achieved 40% improvement in compile time, implemented advanced code optimization decreasing execution time by 25%."
+      "empresa": "UOL / BOL",
+      "cargo": "Software Engineer / Tech Lead",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2006-01",
+      "data_fim": "2013-01",
+      "descricao": "Maior portal da internet brasileira. Evolução de desenvolvedor a tech lead, atuação em DNS, email e infra de alta disponibilidade."
     },
     {
-      "empresa": "NIC.br",
-      "cargo": "Software Engineer",
-      "inicio": "2006-04",
-      "fim": "2011-01",
-      "descricao": "Entity responsible for implementing Internet Steering Committee decisions in Brazil, managing .br domains, IP addresses distribution, operating IX.br network. Developed UNIX-based applications using Java/C++/Python, implemented DNSSHIM open-source software for Hidden Master DNS, designed NIC.br proprietary DNS server with DNSSEC extensions, led automation of DNS zone signing."
+      "empresa": "Registro.br / NIC.br",
+      "cargo": "Software Developer",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2004-01",
+      "data_fim": "2006-01",
+      "descricao": "Registro de domínios .br. Desenvolvimento de servidor DNS DNSSEC (DNSSHIM), reconhecido internacionalmente."
     },
     {
-      "empresa": "Agência Estado",
-      "cargo": "Jr System Analyst",
-      "inicio": "2004-01",
-      "fim": "2006-03",
-      "descricao": "Main financial news agency in Brazil, pioneer in real-time information distribution. Developed tools for Estadão portal using Perl and PHP, designed frontend structures for main pages, created visualization systems for newspapers, optimized website performance reducing load times by 30%."
-    },
-    {
-      "empresa": "Agência Estado",
-      "cargo": "Trainee",
-      "inicio": "2002-06",
-      "fim": "2003-12",
-      "descricao": "Support development and maintenance of internal systems using Perl and PHP. Assisted creation and updating of dynamic content, participated in testing and debugging, collaborated with senior developers, contributed to initial optimization of digital portal performance."
-    },
-    {
-      "empresa": "2nd Armored Communications Company, Brazilian Army",
-      "cargo": "Instruction Internship",
-      "inicio": "2001-07",
-      "fim": "2001-07",
-      "descricao": "Operational unit specialized in military communications. Commanded platoon of Communications Arm Corporals, trained and developed platoon in communications activities, obtained final average of 9.65, evaluated with mention 'Very Good', eligible for convocation as Temporary Officer."
-    },
-    {
-      "empresa": "Center for the Preparation of Reserve Officers of São Paulo (CPOR/SP), Brazilian Army",
-      "cargo": "Aspiring Communications Officer",
-      "inicio": "2000-01",
-      "fim": "2000-12",
-      "descricao": "Training program for reserve officers in leadership, administration, and military operations. Received technical and military training in Communications Branch, completed course in 1st place receiving Corrêa Lima Award Medal, recognized as Best Shooter, awarded for Best Physical Performance, achieved best academic performance."
+      "empresa": "Exército Brasileiro (CPOR/SP)",
+      "cargo": "Aspirante a Oficial de Comunicações",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2000-01",
+      "data_fim": "2001-12",
+      "descricao": "Curso de Oficiais de Comunicações. 1º colocado, Medalha Prêmio Corrêa Lima. Treinamento em telecomunicações, criptografia e guerra eletrônica."
     }
   ],
   "formacao": [
     {
-      "instituicao": "University of São Paulo (USP), Institute of Mathematics and Statistics (IME)",
-      "curso": "Master in Computer Science",
-      "grau": "Master",
-      "inicio": "2006-01",
-      "fim": "2008-01"
+      "instituicao": "Universidade de São Paulo (USP) - IME",
+      "curso": "Mestrado em Ciência da Computação - Inteligência Artificial",
+      "grau": "mestrado",
+      "data_conclusao": "2008"
     },
     {
-      "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)",
-      "curso": "Bachelor of Computer Science",
-      "grau": "Bachelor",
-      "inicio": "2000-01",
-      "fim": "2004-01"
+      "instituicao": "Pontifícia Universidade Católica de São Paulo (PUC/SP)",
+      "curso": "Bacharelado em Ciência da Computação",
+      "grau": "graduacao",
+      "data_conclusao": "2004"
     }
   ],
   "certificacoes": [
-    "Oracle Certified Professional, Java SE 5 Programmer",
-    "Duolingo English Test (ID: do79ylsw7jbg92lq)"
+    {
+      "nome": "Oracle Certified Professional, Java SE 5 Programmer",
+      "instituicao": "Oracle"
+    },
+    {
+      "nome": "Innovation Leadership",
+      "instituicao": "Massachusetts Institute of Technology (MIT)"
+    },
+    {
+      "nome": "MarTech Strategy: Leveraging Data and Technology in Marketing",
+      "instituicao": "Northwestern University"
+    },
+    {
+      "nome": "Business Strategy",
+      "instituicao": "University of La Verne"
+    },
+    {
+      "nome": "Duolingo English Test",
+      "instituicao": "Duolingo"
+    }
   ],
   "habilidades": [
     "Software Architecture",
-    "Microservices Design",
+    "Microservices",
     "Domain-Driven Design (DDD)",
-    "High-Availability Systems",
-    "Cloud Computing (AWS, GCP)",
-    "Kubernetes & Docker",
-    "DevOps & CI/CD",
-    "Programming Languages: Java, C++, Python, JavaScript, Go, Kotlin",
-    "Infrastructure as Code (Terraform, Ansible)",
-    "Security & Cybersecurity",
-    "DNSSEC & DNS Architecture",
-    "Machine Learning & Data Engineering",
-    "Team Leadership & Management",
-    "LGPD & GDPR Compliance"
+    "Java", "Python", "Go", "Kotlin", "C/C++",
+    "AWS", "GCP", "Kubernetes", "Docker",
+    "CI/CD", "DevOps",
+    "Machine Learning", "AI",
+    "DNSSEC", "Cybersecurity",
+    "Team Leadership (100+ engineers)",
+    "Product Strategy"
   ],
   "idiomas": [
     {
       "idioma": "Português",
-      "nivel": "Nativo",
-      "fonte": "documento"
+      "nivel": "nativo",
+      "fonte": "inferido"
     },
     {
       "idioma": "Inglês",
-      "nivel": "Profissional",
+      "nivel": "fluente",
       "fonte": "documento"
     }
   ]

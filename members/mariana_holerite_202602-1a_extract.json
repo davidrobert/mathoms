@@ -3,63 +3,80 @@
   "membro": "mariana",
   "nome_no_documento": "Mariana Teixeira Ferreira",
   "periodo": "2026-02",
-  "empresa": "AE00 SBIBHAE - Albert Einstein",
+  "empresa": "SBIBHAE - Albert Einstein",
   "estabelecimento": "AEMO Unidade Morumbi",
   "cargo": "Enfermeiro Pl",
   "categoria": "Enfermagem P",
   "grade": "P4",
   "matricula": "36108",
   "data_admissao": "2014-07-21",
-  "salario_base_mensal": 9082.92,
+  "salario_base_mensal": 10899.51,
   "salario_bruto": 12086.06,
   "proventos_adicionais": [
     {
-      "descricao": "Adic. de insalubrid. 20%",
+      "codigo": "0001",
+      "descricao": "Salário mensal",
+      "valor": 9082.92
+    },
+    {
+      "codigo": "/325",
+      "descricao": "Adicional de insalubridade 20%",
       "valor": 270.17
     },
     {
+      "codigo": "M389",
       "descricao": "Provisão Contr. INSS rec.",
       "valor": 203.34
     },
     {
+      "codigo": "MC03",
       "descricao": "Férias no mês",
       "valor": 1870.62
     },
     {
+      "codigo": "MC04",
       "descricao": "Férias 1/3 no mês",
       "valor": 623.54
     },
     {
+      "codigo": "MC13",
       "descricao": "Médias férias no mês",
-      "valor": 26.6
+      "valor": 26.60
     },
     {
+      "codigo": "MC14",
       "descricao": "Médias férias 1/3 no mês",
       "valor": 8.87
     }
   ],
   "descontos": [
     {
-      "descricao": "Contr. INSS Remuneração",
+      "codigo": "/314",
+      "descricao": "INSS",
       "valor": 988.07
     },
     {
-      "descricao": "Tributo IRRF",
+      "codigo": "/401",
+      "descricao": "IRRF",
       "valor": 1447.57
     },
     {
+      "codigo": "/B02",
       "descricao": "Adiantamento pago",
       "valor": 3633.17
     },
     {
+      "codigo": "1014",
       "descricao": "Seguro de Vida",
       "valor": 27.41
     },
     {
-      "descricao": "Refeicao",
-      "valor": 34.8
+      "codigo": "1025",
+      "descricao": "Refeição",
+      "valor": 34.80
     },
     {
+      "codigo": "MO90",
       "descricao": "Desconto de Férias",
       "valor": 2529.63
     }
@@ -69,9 +86,9 @@
   "data_credito": "2026-02-27",
   "fgts": {
     "base": 11882.72,
-    "valor": 950.62
+    "depositado": 950.62
   },
   "inss_base": 11882.72,
   "dependentes_ir": 0,
-  "observacoes": "Payslip inclui férias no mês (1.870,62) e férias 1/3 no mês (623,54). Valor total de férias em processamento (2.529,63) foi descontado. Adiantamento de 3.633,17 foi pago. Insalubridade 20% de 270,17. Referência de pagamento: Fevereiro 2026. Carga horária mensal: 200 horas."
+  "observacoes": "Holerite de fevereiro/2026 inclui férias parciais no período (5 dias). Rubricas MC03/MC04 (férias + 1/3) e MO90 (desconto de férias) indicam gozo parcial de férias. Salário base mensal R$ 10.899,51 com referência de 25 dias úteis. Bruto atípico pelo componente de férias."
 }

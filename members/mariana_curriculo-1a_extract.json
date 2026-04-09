@@ -2,112 +2,118 @@
   "tipo": "curriculo",
   "membro": "mariana",
   "nome_completo": "Mariana Ferreira Campos",
-  "nome_atual": "Mariana Teixeira Ferreira Campos",
-  "profissao_cargo": "Enfermeira Mestre (USP) | Especialista em Cardiologia e Hemodinâmica | Educação em Saúde",
+  "nome_atual": "Mariana Ferreira Campos",
+  "profissao_cargo": "Enfermeira Mestre (USP) / Especialista em Cardiologia e Hemodinâmica",
   "experiencias": [
     {
       "empresa": "Hospital Israelita Albert Einstein",
-      "cargo": "Enfermeiro",
-      "inicio": "2018-01",
-      "fim": "presente",
-      "descricao": "Atuação em unidade de alta complexidade com foco em Cardiologia, Clínica Médica e Cirúrgica. Auditoria e Qualidade com projetos de melhoria contínua e segurança do paciente. Responsável pela auditoria de prontuários eletrônicos. Desenvolvimento de estratégias para redução de atrasos em procedimentos e otimização de recursos. Preceptoria e suporte à tomada de decisão clínica baseada em evidências."
+      "cargo": "Enfermeiro Pl",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2018-01",
+      "data_fim": "presente",
+      "descricao": "Unidade de alta complexidade. Auditoria e qualidade, segurança do paciente, PDCA, auditoria de prontuários eletrônicos, preceptoria baseada em evidências."
     },
     {
-      "empresa": "UPA Campo Limpo",
+      "empresa": "Hospital Israelita Albert Einstein - UPA Campo Limpo",
       "cargo": "Enfermeiro",
-      "inicio": "2014-08",
-      "fim": "2018-06",
-      "descricao": "Atuação em unidade de pronto atendimento."
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2014-08",
+      "data_fim": "2018-06",
+      "descricao": "Atuação assistencial na UPA Campo Limpo, unidade administrada pelo Einstein."
     },
     {
       "empresa": "Faculdade Israelita Albert Einstein",
       "cargo": "Docente universitário",
-      "inicio": "2021-01",
-      "fim": "2024-12",
-      "descricao": "Docente em Semiologia e Semiotécnica, com desenvolvimento de conteúdo teórico-prático e avaliação de competências clínicas. Experiência em metodologias ativas de ensino e formação profissional."
+      "tipo_vinculo": "docencia",
+      "data_inicio": "2021-01",
+      "data_fim": "2024-12",
+      "descricao": "Docente em Semiologia e Semiotécnica, metodologias ativas de ensino e formação profissional."
     },
     {
       "empresa": "Senac São Paulo",
       "cargo": "Docente universitário",
-      "inicio": "2012-01",
-      "fim": "2016-01",
-      "descricao": "Docência no ensino técnico e superior."
+      "tipo_vinculo": "docencia",
+      "data_inicio": "2012-01",
+      "data_fim": "2016-01",
+      "descricao": "Ensino técnico e superior em enfermagem."
     },
     {
       "empresa": "Faculdade Sequencial",
       "cargo": "Docente universitário",
-      "inicio": "2013-01",
-      "fim": "2015-08",
-      "descricao": "Docência no ensino superior."
+      "tipo_vinculo": "docencia",
+      "data_inicio": "2013-01",
+      "data_fim": "2015-08",
+      "descricao": "Ensino superior em enfermagem."
     },
     {
-      "empresa": "Hospital Municipal Dr. Moysés Deutsch - Parceria com Hospital Israelita Einstein",
+      "empresa": "Hospital Municipal Dr. Moysés Deutsch (Parceria Einstein)",
       "cargo": "Enfermeira",
-      "inicio": "2011-01",
-      "fim": "2014-12",
-      "descricao": "Atuação assistencial em UTI Adulto e Pediátrica, desenvolvendo resiliência e capacidade de gestão de crises em ambiente de alta pressão. Atuação assistencial em Clínica Médica e Cirúrgica."
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2011-01",
+      "data_fim": "2014-12",
+      "descricao": "UTI Adulto e Pediátrica, Clínica Médica e Cirúrgica. Gestão de crises em ambiente de alta pressão."
     }
   ],
   "formacao": [
     {
-      "instituicao": "Universidade de São Paulo",
-      "curso": "Mestrado em Enfermagem",
-      "grau": "Mestrado",
-      "inicio": "2019-01",
-      "fim": "2021-06"
+      "instituicao": "Universidade de São Paulo (USP)",
+      "curso": "Mestrado em Enfermagem - Enfermagem em Saúde Adulta",
+      "grau": "mestrado",
+      "data_conclusao": "2021"
     },
     {
-      "instituicao": "Unifesp - Universidade Federal de São Paulo",
-      "curso": "Pós-graduação Lato Sensu - Especialização em Enfermagem em Cardiologia e Hemodinâmica",
-      "grau": "Especialização",
-      "inicio": "2011-01",
-      "fim": "2012-12"
+      "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
+      "curso": "Especialização em Formação Docente em Educação Profissional",
+      "grau": "especializacao",
+      "data_conclusao": "2016"
+    },
+    {
+      "instituicao": "UNIFESP - Universidade Federal de São Paulo",
+      "curso": "Especialização em Enfermagem em Cardiologia e Hemodinâmica",
+      "grau": "especializacao",
+      "data_conclusao": "2012"
     },
     {
       "instituicao": "PUC Minas",
       "curso": "Bacharelado em Enfermagem",
-      "grau": "Bacharelado",
-      "inicio": "2007-01",
-      "fim": "2010-12"
-    },
-    {
-      "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
-      "curso": "Pós-graduação Lato Sensu - Especialização em Formação Docente em Educação Profissional",
-      "grau": "Especialização",
-      "inicio": null,
-      "fim": null
+      "grau": "graduacao",
+      "data_conclusao": "2010"
     }
   ],
   "certificacoes": [
-    "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
-    "Classificação de Risco (Protocolo de Manchester)",
-    "Advanced Trauma Care for Nurses (ATCN)",
-    "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP)",
-    "Curso de Osteoporose"
+    {
+      "nome": "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
+      "instituicao": "Hospital Albert Einstein"
+    },
+    {
+      "nome": "Classificação de Risco (Protocolo de Manchester)",
+      "instituicao": "Hospital Albert Einstein"
+    },
+    {
+      "nome": "Advanced Trauma Care for Nurses (ATCN)",
+      "instituicao": null
+    },
+    {
+      "nome": "Gestão de Crônicos: Preceptoria em Esclerose Múltipla e Osteoporose",
+      "instituicao": "USP"
+    }
   ],
   "habilidades": [
     "Processo de enfermagem",
     "Cuidados de qualidade ao paciente",
     "Gestão de equipes",
-    "Auditoria Clínica",
-    "Segurança do Paciente",
-    "Análise de prontuários eletrônicos",
-    "Ciclo PDCA",
-    "Gestão de Crônicos",
-    "Acompanhamento de pacientes com Osteoporose e Esclerose Múltipla",
-    "Educação e Treinamento",
-    "Pesquisa Clínica",
-    "Metodologia científica",
-    "Prática baseada em evidências",
-    "Cardiologia",
-    "UTI Adulto e Pediátrica",
-    "Docência (Ensino Técnico e Superior)"
+    "Auditoria clínica",
+    "Segurança do paciente",
+    "PDCA",
+    "Pesquisa clínica",
+    "Educação em saúde",
+    "Metodologias ativas de ensino"
   ],
   "idiomas": [
     {
       "idioma": "Português",
-      "nivel": "Nativo",
-      "fonte": "documento"
+      "nivel": "nativo",
+      "fonte": "inferido"
     }
   ]
 }

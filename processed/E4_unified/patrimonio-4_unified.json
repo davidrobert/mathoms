@@ -563,5 +563,505 @@
       "situacao_atual_irpf": 530000.0,
       "observacao": "Propriedade de Mariana não aparece no arquivo XLSX de imóveis."
     }
-  ]
+  ],
+  "imoveis_consolidados": [
+    {
+      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT - CAMPINAS",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 270000.0,
+        "2023": 223733.99
+      },
+      "tipo": "imovel",
+      "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
+      "dados_completos": {
+        "imovel": "Apartamento Praça Benedito Calixto",
+        "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
+        "data_compra": "2021-11-16",
+        "valor_compra": 348000.0,
+        "situacao": "proprio",
+        "financiamento": null
+      }
+    },
+    {
+      "descricao": "APARTAMENTO NO COND. LIVING WISH - SÃO PAULO",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 530000.0,
+        "2023": 477436.58
+      },
+      "tipo": "imovel",
+      "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
+      "dados_completos": {
+        "imovel": "Apartamento Praça Benedito Calixto",
+        "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
+        "data_compra": "2021-11-16",
+        "valor_compra": 348000.0,
+        "situacao": "proprio",
+        "financiamento": null
+      }
+    },
+    {
+      "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 350000.0,
+        "2023": 350000.0
+      },
+      "tipo": "imovel",
+      "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
+      "dados_completos": {
+        "imovel": "Apartamento Praça Benedito Calixto",
+        "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
+        "data_compra": "2021-11-16",
+        "valor_compra": 348000.0,
+        "situacao": "proprio",
+        "financiamento": null
+      }
+    },
+    {
+      "descricao": "APARTAMENTO - EDIFICICIO GISELE - APTO 12",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 212706.24,
+        "2023": 212706.24
+      },
+      "tipo": "imovel",
+      "endereco": "R. Major Freire, 496, APT 12 - São Paulo - SP, 04304-110",
+      "dados_completos": {
+        "imovel": "Apartamento Rua Major Freire",
+        "endereco": "R. Major Freire, 496, APT 12 - São Paulo - SP, 04304-110",
+        "data_compra": null,
+        "valor_compra": 400000.0,
+        "situacao": "financiado",
+        "financiamento": {
+          "banco": "Banco Itau",
+          "saldo_devedor": 0.0,
+          "parcela_mensal": 4294.0
+        }
+      }
+    },
+    {
+      "descricao": "COMPRA E VENDA DE CASA - ADQUIRIDO EM 12/01/2023",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 80000.0,
+        "2023": 80000.0
+      },
+      "tipo": "imovel",
+      "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
+      "dados_completos": {
+        "imovel": "Casa Leonardo da Vinci",
+        "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
+        "data_compra": "2023-01-13",
+        "valor_compra": 80000.0,
+        "situacao": "proprio",
+        "financiamento": null
+      }
+    },
+    {
+      "descricao": "CASA - RUA TASSO DA SILVEIRA - FINANCIAMENTO QUITADO",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 996821.46,
+        "2023": 996821.46
+      },
+      "tipo": "imovel",
+      "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
+      "dados_completos": {
+        "imovel": "Casa Tasso da Silveira",
+        "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
+        "data_compra": "2022-08-29",
+        "valor_compra": 670000.0,
+        "situacao": "financiado",
+        "financiamento": null
+      }
+    }
+  ],
+  "veiculos_consolidados": [
+    {
+      "descricao": "VEICULO - MOTOCICLETA YAMAHA NMAX - PLACA DAV0351",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 15093.0,
+        "2023": 15093.0
+      },
+      "tipo": "veiculo"
+    },
+    {
+      "descricao": "VEICULO - MOTOCICLETA YAMAHA MT 09 TRACER - PLACA DAV 0342",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 51722.0
+      },
+      "tipo": "veiculo"
+    },
+    {
+      "descricao": "VEICULO - CARRO FIAT TORO ULTRA - PLACA GDK6A27",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 191354.0,
+        "2023": 191354.0
+      },
+      "tipo": "veiculo"
+    },
+    {
+      "descricao": "MOTONET A YAMAHA/NMAX 160 MODELO 2024",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 21029.0
+      },
+      "tipo": "veiculo"
+    }
+  ],
+  "investimentos_consolidados": [
+    {
+      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 4365.03
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "SALDO RDB - NUBANK",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 58.23
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO CDBB2353UR4",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 10000.0
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO 22J1410500",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 9349.69,
+        "2023": 10349.69
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO 22K1692411",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 10324.25,
+        "2023": 10324.25
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO CRA0233OUZ1",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 9115.01
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO GRA023005PD",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 9109.54
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO CRA0240001Q9",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 9248.83
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO 23J0138431",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 9164.03
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 1.0
+      },
+      "tipo": "conta_bancaria"
+    },
+    {
+      "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO LO",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 41408.87,
+        "2023": 35868.62
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 4494.93
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 25479.42
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO INVESTIMENTO FINANCEIRO",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 25000.0
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "ACOES - ITSA4 - QUANTIDADE 693",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 5821.2
+      },
+      "tipo": "acao"
+    },
+    {
+      "descricao": "ACOES - BRKM5 - QUANTIDADE 300",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 6267.0
+      },
+      "tipo": "acao"
+    },
+    {
+      "descricao": "ACOES - PETR4 - QUANTIDADE 300",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 38883.0
+      },
+      "tipo": "acao"
+    },
+    {
+      "descricao": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 61507.2
+      },
+      "tipo": "poupanca"
+    },
+    {
+      "descricao": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 151602.49,
+        "2023": 277658.86
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BANCO PICPAY BANK BANCO MULTIPLO S.A.",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 46684.62,
+        "2023": 73587.74
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB)",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 243285.37,
+        "2023": 1886.46
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BANCO C6 - APLICACAO EM RENDA FIXA",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 1765.0,
+        "2023": 23439.0
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "SALDO EM RDB NO NUBANK",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 189.3,
+        "2023": 5.98
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BANCO CAIXA - CONTA CORRENTE - AG 1218",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 230.53,
+        "2023": 275.29
+      },
+      "tipo": "conta_bancaria"
+    },
+    {
+      "descricao": "BANCO ITAU - CONTA CORRENTE",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 1.01,
+        "2023": 10.0
+      },
+      "tipo": "conta_bancaria"
+    },
+    {
+      "descricao": "DEPOSITO EM CONTA CORRENTE DE DEPOSITO A VISTA",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 4936.98
+      },
+      "tipo": "conta_bancaria"
+    },
+    {
+      "descricao": "US 6524.00",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 34433.67,
+        "2023": 34433.67
+      },
+      "tipo": "conta_bancaria"
+    },
+    {
+      "descricao": "RICO - SALDO EM CONTA - XP INVESTIMENTOS CCTVM S/A",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 8546.95,
+        "2023": 15717.49
+      },
+      "tipo": "conta_bancaria"
+    },
+    {
+      "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS CAYMAN)",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 484.8,
+        "2023": 768.94
+      },
+      "tipo": "conta_bancaria"
+    },
+    {
+      "descricao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 3189.68,
+        "2023": 2457.74
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "RICO - DNA ENERGY FIC FIM CP",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 1416.09,
+        "2023": 1387.66
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "RICO - CONSTELLATION INSTITUTIONAL ADVI",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 11409.17,
+        "2023": 10000.0
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "RICO - WESTERN ASSET FIA BDR NIVEL I",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 17651.61,
+        "2023": 17651.61
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "RICO - ALASKA BLACK FIC FIA - BDR",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 60000.0,
+        "2023": 60000.0
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "RICO - ALASKA BLACK INSTITUTIONAL FIA BDR",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 35000.0,
+        "2023": 35000.0
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "RICO - SAFARI 30 FIC FIM II",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 25238.59,
+        "2023": 25238.59
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "ITAUSA S.A. - POSICAO ACIONARIA",
+      "proprietario": "david",
+      "valores_31_12": {
+        "2024": 82.15,
+        "2023": 192.96
+      },
+      "tipo": "outros"
+    }
+  ],
+  "dividas": [
+    {
+      "descricao": "CREDITO IMOBILIARIO - CREDOR: ITAU UNIBANCO S.A.",
+      "proprietario": "david",
+      "saldo_31_12": {
+        "2024": 234642.79,
+        "2023": 265420.59
+      }
+    },
+    {
+      "descricao": "CHEQUE ESPECIAL BANCO SANTANDER",
+      "proprietario": "david",
+      "saldo_31_12": {
+        "2024": 149.82
+      }
+    }
+  ],
+  "patrimonio_por_ano": {
+    "2024": {
+      "total_bens": 3475846.28,
+      "total_dividas": 234792.61
+    }
+  }
 }

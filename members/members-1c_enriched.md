@@ -1,45 +1,49 @@
-# Membros da Familia Ferreira Campos
-
-## David Robert Camargo Ferreira Campos
-
-**Perfil:** Brasileiro, 44 anos (nasc. 05/09/1981). Portugues (nativo), Ingles (profissional).
-
-**Historico profissional:** Mais de 25 anos de carreira em tecnologia, com trajetoria desde desenvolvimento de software ate lideranca executiva como CTO. Atuou em empresas como NIC.br, Abril, TOTVS, Elo7, Loft, Kiwify e atualmente Arvo. Mestrado em Ciencia da Computacao pela USP.
-
-**Cargo atual:** CTO na Arvo (healthtech). Desde 09/2025. Vinculo PJ.
-
-**Salario atual:**
-- PJ — valor a confirmar via extratos bancarios de C6 Bank (conta PJ: DAVID ROBERT CAMARGO DE CAMPOS LTDA, CNPJ 48.771.488/0001-87)
-
-**Documentacao disponivel:** Curriculo (DOCX).
-
-**Status fiscal:** BR. Regime Simples Nacional (Anexo V).
+# Members — Perfil Enriquecido
+## Gerado em: 2026-04-09
 
 ---
 
-## Mariana Teixeira Ferreira Campos (Mariana Ferreira Campos, Mariana Teixeira Ferreira)
+## David Robert Camargo Ferreira Campos (David Robert Camargo de Campos)
 
-**Perfil:** Brasileira, 39 anos (nasc. 30/08/1986). Portugues (nativo).
+**Perfil:** Brasileiro, 44 anos (nasc. 05/09/1981). Português (nativo), Inglês (fluente).
 
-**Historico profissional:** 15 anos de carreira em enfermagem, com especializacao em cardiologia e hemodinamica (UNIFESP) e mestrado em enfermagem (USP). Atua no Hospital Albert Einstein desde 2018, com experiencia paralela em docencia universitaria na Faculdade Einstein, Senac e Faculdade Sequencial.
+**Histórico profissional:** Mais de 20 anos de carreira em tecnologia e desenvolvimento de software. Construiu trajetória sólida em posições de liderança (CTO/VP), com expertise em arquitetura de software, microservices, IA e cibersegurança. Atuou em empresas de destaque como Elo7, Loft (unicórnio), Kiwify e Registro.br/NIC.br, além de formação militar como Oficial de Comunicações do Exército Brasileiro.
 
-**Cargo atual:** Enfermeiro Pl no Hospital Israelita Albert Einstein, Unidade Morumbi (CLT). Desde 07/2014. Categoria: Enfermagem P, Grade P4.
+**Cargo atual:** Chief Technology Officer (CTO) na Arvo (PJ). Desde setembro/2025.
 
-**Salario atual (holerite, 02/2026):**
-- Base mensal: R$ 9.082,92
-- Bruto no periodo: R$ 12.086,06 (inclui ferias R$ 2.494,16 + insalubridade R$ 270,17)
-- Descontos principais: INSS R$ 988,07 | IRRF R$ 1.447,57 | Adiantamento R$ 3.633,17
-- FGTS mensal: R$ 950,62 (base R$ 11.882,72)
-- Liquido: R$ 3.425,41 (reduzido por adiantamento e desconto de ferias)
+**Salário atual:** PJ — valor a confirmar via extratos bancários da C6 Bank PJ.
 
-**Documentacao disponivel:** Curriculo (PDF), Holerite 02/2026 (PDF).
+**Documentação disponível:** Currículo (DOCX).
 
-**Status fiscal:** BR.
+**Status fiscal:** BR. PJ via Simples Nacional (Anexo V — serviços de TI/consultoria). CNPJ: 48.771.488/0001-87.
+
+---
+
+## Mariana Ferreira Campos (Mariana Teixeira Ferreira)
+
+**Perfil:** Brasileira, 39 anos (nasc. 30/08/1986). Português (nativo).
+
+**Histórico profissional:** Mais de 14 anos de carreira em enfermagem, com atuação sólida em instituições de alta complexidade. Combina excelência assistencial, rigor acadêmico (Mestre em Enfermagem pela USP) e expertise em auditoria clínica e segurança do paciente. Também atuou como docente universitária na Faculdade Einstein e Senac.
+
+**Cargo atual:** Enfermeiro Pl no Hospital Israelita Albert Einstein (CLT). Desde julho/2014 (11+ anos).
+
+**Salário atual (holerite, 2026-02):**
+- Base mensal: R$ 10.899,51
+- Bruto no período: R$ 12.086,06 (inclui férias parciais — 5 dias)
+- Descontos principais: INSS R$ 988,07 | IRRF R$ 1.447,57
+- FGTS depositado: R$ 950,62
+- Nota: Líquido atípico R$ 3.425,41 devido a adiantamento (R$ 3.633,17) e desconto de férias (R$ 2.529,63)
+
+**Documentação disponível:** Currículo (PDF), holerite fev/2026 (PDF).
+
+**Status fiscal:** BR. CLT.
 
 ---
 
 ## Theo Ferreira Campos
 
-**Perfil:** Brasileiro/Americano (dupla cidadania BR/US), 0 anos (nasc. 18/07/2025).
+**Perfil:** Brasileiro e americano (dupla cidadania), 0 anos (nasc. 18/07/2025). Nascido em Orlando, Flórida, EUA.
 
-**Documentacao disponivel:** Sem documentos processados neste ciclo.
+**Sem documentos processados neste ciclo.**
+
+**Status fiscal:** BR+US (dupla cidadania).

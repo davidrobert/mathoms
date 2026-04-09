@@ -12,6 +12,7 @@
   "saldo_final": 0,
   "saldo_final_unknown": true,
   "fontes": [
+    "binance_extratoconta_202603-2_extract.json",
     "binance_extratoconta_202603a-2_extract.json",
     "binance_extratoconta_202603b-2_extract.json",
     "binance_extratoconta_202603c-2_extract.json"
