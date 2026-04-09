@@ -283,8 +283,10 @@ def check_dependencies(stages: list[str]) -> list[str]:
     Returns list of missing packages (empty = all OK)."""
     # Map stages to their required non-stdlib packages
     stage_deps: dict[str, list[tuple[str, str]]] = {
-        "E2-faturas": [("pdfplumber", "pip install pdfplumber")],
-        "E6":         [("pytz", "pip install pytz")],
+        "E2-faturas":  [("pdfplumber", "pip install pdfplumber")],
+        "E2-extratos": [("pdfplumber", "pip install pdfplumber"),
+                        ("xlrd", "pip install xlrd")],
+        "E6":          [("pytz", "pip install pytz")],
     }
 
     missing = []
@@ -617,6 +619,10 @@ Estágios válidos para --from: {', '.join(VALID_FROM_STAGES)}
         help="Pular desbloqueio de PDFs protegidos por senha (e0_unlock) antes do reset.",
     )
     parser.add_argument(
+        "--no-route", action="store_true",
+        help="Pular roteamento automático do inbox (e0_route) antes do reset.",
+    )
+    parser.add_argument(
         "--move-to-inbox", action="store_true",
         help="Mover TODOS os arquivos de data/ e originais de members/ de volta para inbox/ "
              "antes do reset, permitindo re-roteamento completo (usado por E-full-reset).",
@@ -759,6 +765,25 @@ Estágios válidos para --from: {', '.join(VALID_FROM_STAGES)}
                     print("  [AVISO] Não foi possível parsear saída do e0_audit. Prosseguindo.")
             else:
                 print(f"  [AVISO] e0_audit falhou (exit {result.returncode}). Prosseguindo.")
+
+    # --- Phase 0.5: Auto-route inbox files (e0_route) ---
+    route_script = SCRIPTS_DIR / "e0_route.py"
+    if not args.no_route and route_script.exists() and inbox_dir.exists():
+        inbox_files = [f for f in inbox_dir.iterdir() if f.is_file() and not f.name.startswith(".")]
+        if inbox_files:
+            print(f"\n--- Fase 0.5: Roteamento automático do inbox ({len(inbox_files)} arquivos) ---")
+            try:
+                from e0_route import route_all as e0_route_all
+                route_stats = e0_route_all(base=PROJECT_DIR, dry_run=dry_run, use_llm=True)
+                routed = route_stats.get("routed", 0)
+                unid = route_stats.get("unidentified", 0)
+                print(f"  Roteados: {routed} | Não identificados: {unid} | Duplicatas: {route_stats.get('duplicates', 0)}")
+                if unid > 0:
+                    print(f"  [AVISO] {unid} arquivo(s) não identificado(s) — verificar nao_identificados/")
+            except Exception as e:
+                print(f"  [AVISO] e0_route falhou: {e}. Prosseguindo.")
+        else:
+            print(f"\n--- Fase 0.5: Inbox vazio, pulando roteamento ---")
 
     # --- Fix #5: Pre-check dependencies before any destructive action ---
     if from_stage:

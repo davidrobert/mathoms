@@ -929,6 +929,37 @@ Se não conseguir identificar depois de analisar nome + conteúdo:
 - Mover para `financas-familia/inbox_processed/[DATA]/nao_identificados/[nome_original]`
 - Informar o usuário
 
+### 3.1.1 — Script automatizado: `e0_route.py`
+
+O roteamento descrito nos Passos 1-10 acima é implementado pelo script `scripts/e0_route.py`, que pode ser executado de forma standalone ou integrado ao `e_reset.py`.
+
+**Arquitetura de duas camadas:**
+- **Camada 1 (determinística):** Classificação por regex sobre o nome do arquivo. Cobre ~95% dos casos usando as tabelas de instituição (Passo 2) e tipo de documento (Passo 3) compiladas em `INSTITUTION_PATTERNS` e `DOC_TYPE_PATTERNS`.
+- **Camada 2 (LLM fallback):** Para arquivos que a Camada 1 não consegue classificar, o script extrai ~2000 caracteres do conteúdo e consulta Claude (via API Anthropic) para classificação. Se a confiança for >= 70%, o arquivo é roteado automaticamente. Caso contrário, vai para `nao_identificados/`.
+
+**Uso standalone:**
+```bash
+python scripts/e0_route.py                  # Roteia tudo (regex + LLM)
+python scripts/e0_route.py --dry-run        # Apenas mostra o que faria
+python scripts/e0_route.py --no-llm         # Apenas regex, sem fallback LLM
+python scripts/e0_route.py --file X.pdf     # Roteia um arquivo específico
+```
+
+**Integração com e_reset.py:**
+O `e_reset.py` executa `e0_route.route_all()` automaticamente como **Fase 0.5** (após unlock e auditoria, antes da limpeza de artefatos). Para pular: `--no-route`.
+
+**Dependências:**
+- `pdfplumber` — para extrair texto de PDFs (Camada 2)
+- `xlrd` — para ler XLS do Itaú e Santander (Camada 2)
+- `openpyxl` — para ler XLSX (Camada 2)
+- `anthropic` — SDK Python para chamadas à API Claude (Camada 2, opcional)
+- `ANTHROPIC_API_KEY` — variável de ambiente necessária para Camada 2
+
+**Exit codes:**
+- `0` — sucesso total
+- `1` — erro fatal (inbox não encontrado, arquivo não encontrado)
+- `2` — sucesso parcial (há arquivos não identificados)
+
 ---
 
 ### 3.2 — Determinação do ciclo necessário
@@ -2286,6 +2317,163 @@ python scripts/e6_render.py
 - Chave `review_metadata` no E5 JSON — metadata do review aplicado
 - Chave `narrativas.strategic_insights` no E5 JSON — insights holísticos
 - `output/*.html` — relatório final refinado (após E6-final)
+
+#### Schema: Review Template (output de `e7_review.py`)
+
+O template gerado pelo passo 9a tem a seguinte estrutura. Chaves prefixadas com `_` são instruções para a LLM e são ignoradas pelo script.
+
+```jsonc
+{
+  "metadata": {
+    "timestamp": "ISO-8601",              // string — gerado automaticamente
+    "e7_version": "1.0",                  // string — versão do schema
+    "persona_summary": "..."              // string — primeiros 200 chars da persona (methodology.md)
+  },
+  "cross_validation": {
+    "total_checks": 14,                   // int — total de CVs executados
+    "passed": 12,                         // int — quantos passaram
+    "failed": 2,                          // int — quantos falharam
+    "issues": [                           // array — apenas os que falharam
+      {
+        "check_id": "CV4",                // string — identificador (CV1-CV14)
+        "name": "Taxa poupança recorrente vs dados",  // string
+        "severity": "error",              // "error" | "warning" | "info"
+        "passed": false,                  // bool
+        "details": "Calculada: -37.4%, reportada: 19.8%",  // string
+        "sections": ["fluxo_caixa"]       // string[] — seções afetadas
+      }
+    ],
+    "all_results": [/* mesma estrutura, todos os 14 */]
+  },
+  "refinements": {
+    "_instructions": "...",               // string — ignorada pelo script
+    "summaries": {
+      "_instructions": "...",             // string — ignorada
+      // LLM preenche: "s1": "texto refinado", "s3": "texto refinado", ...
+    },
+    "charts": {
+      "_instructions": "...",             // string — ignorada
+      // LLM preenche: "chart_key": {"context": "...", "conclusion": "..."}, ...
+    },
+    "perfil_familia": {
+      "_instructions": "...",             // string — ignorada
+      // LLM preenche: "left": "...", "right": "..."
+    },
+    "tarefas_reorder": {
+      "_instructions": "...",             // string — ignorada
+      "new_order": []                     // int[] — LLM preenche com números de tarefas
+    },
+    "strategic_insights": {
+      "_instructions": "...",             // string — ignorada
+      "insights": []                      // string[] — LLM preenche
+    },
+    "inconsistencies_found": {
+      "_instructions": "...",             // string — ignorada
+      "items": []                         // object[] — LLM preenche (formato livre)
+    }
+  },
+  "current_state": {
+    "_note": "...",                        // string — read-only snapshot
+    "summary_keys": ["s1", "s2", ...],    // string[] — chaves existentes
+    "chart_keys": ["chart1", ...],        // string[] — chaves existentes
+    "total_tarefas": 15,                  // int
+    "tarefas_alta_prioridade": [...],     // object[] — tarefas com p="alta"
+    "score": 2.9,                         // float | null
+    "score_label": "Atenção",             // string | null
+    "patrimonio_bruto": 0,               // float | null
+    "patrimonio_investivel": 0,           // float | null
+    "fluxo_liquido": 591400              // float | null
+  }
+}
+```
+
+#### Schema: Review JSON (input de `--apply`)
+
+O JSON que a LLM produz e que é validado por `validate_review()` antes da aplicação. Apenas os campos preenchidos serão aplicados; campos ausentes ou com `_instructions` são ignorados.
+
+```jsonc
+{
+  "metadata": {                           // opcional — propagado para review_metadata no E5
+    "timestamp": "ISO-8601",              // string
+    "e7_version": "1.0",                  // string
+    "persona": "...",                     // string — campo livre
+    "reviewer_note": "..."                // string — campo livre
+  },
+  "refinements": {                        // OBRIGATÓRIO — validação falha sem esta chave
+    "summaries": {                        // opcional — apenas summaries a alterar
+      // "s1": string,                    // DEVE ser string não-vazia
+      // "s2_fluxo_caixa": string,        // chave = nome do summary no E5
+      // ...                              // chaves com "_" são ignoradas
+    },
+    "charts": {                           // opcional — apenas charts a alterar
+      // "chart_key": {                   // DEVE ser dict
+      //   "context": string,             // opcional — string não-vazia
+      //   "conclusion": string           // opcional — string não-vazia
+      // }
+      // chaves com "_" são ignoradas
+    },
+    "perfil_familia": {                   // opcional
+      // "left": string,                  // texto coluna esquerda do perfil
+      // "right": string                  // texto coluna direita do perfil
+    },
+    "tarefas_reorder": {                  // opcional
+      "new_order": [3, 1, 5, 2, 4]       // int[] — números das tarefas na nova ordem
+                                          // tarefas omitidas são adicionadas ao final
+    },
+    "strategic_insights": {               // opcional
+      "insights": [                       // string[] — DEVE ser lista de strings
+        "Insight 1...",
+        "Insight 2..."
+      ]
+    },
+    "inconsistencies_found": {            // opcional
+      "items": [                          // object[] — formato livre
+        {
+          "tipo": "Narrativa vs Dados",   // sugerido mas não validado
+          "localizacao": "Seção 2",       // sugerido mas não validado
+          "descricao": "...",             // sugerido mas não validado
+          "correcao": "..."               // sugerido mas não validado
+        }
+      ]
+    }
+  },
+  // Campos extras (não processados por --apply, mas úteis para auditoria):
+  "cross_validation_fixes": { ... },      // opcional — notas sobre fixes de CV
+  "task_reprioritization": { ... }        // opcional — justificativa de reordenação
+}
+```
+
+#### Regras de validação (`validate_review()`)
+
+| Campo | Regra | Erro se violada |
+|---|---|---|
+| `refinements` | DEVE existir como chave top-level | `Missing 'refinements' key` |
+| `refinements.summaries.*` | Cada valor DEVE ser `string` não-vazia | `summaries.{k} must be a string` / `is empty` |
+| `refinements.charts.*` | Cada valor DEVE ser `dict` com `context` e/ou `conclusion` como `string` | `charts.{k} must be a dict` / `.context must be a string` |
+| `refinements.perfil_familia.left\|right` | Se presente, DEVE ser `string` | `perfil_familia.{side} must be a string` |
+| `refinements.tarefas_reorder.new_order` | Se presente, DEVE ser `list[int]` | `must be a list of integers` |
+| `refinements.strategic_insights.insights` | Se presente, DEVE ser `list[str]` | `must be a list of strings` |
+
+**Atenção — armadilhas conhecidas:**
+- **summaries como dict:** Se a LLM retornar summaries com estrutura aninhada (ex: `{"current_issue": "...", "refined_text": "..."}` em vez de `string`), a validação falha. Normalizar antes de aplicar.
+- **strategic_insights como dict:** Se a LLM retornar insights como `[{"titulo": "...", "descricao": "..."}]` em vez de `["string"]`, a validação falha. Extrair `descricao` ou concatenar antes de aplicar.
+- **Chaves com underscore:** Chaves prefixadas com `_` (ex: `_instructions`) são silenciosamente ignoradas tanto na validação quanto na aplicação.
+
+#### Efeitos do `--apply` no E5 JSON
+
+Após `e7_review.py --apply review.json`, o E5 JSON é modificado in-place:
+
+| Operação | Destino no E5 JSON |
+|---|---|
+| Summaries refinados | `narrativas.summaries.{key}` — substitui texto anterior |
+| Charts refinados | `narrativas.charts.{key}.context` e/ou `.conclusion` |
+| Perfil família | `narrativas.perfil_familia.left` e/ou `.right` |
+| Reordenação de tarefas | `tarefas[]` — re-indexado com `n` sequencial |
+| Strategic insights | `narrativas.strategic_insights` — array de strings |
+| Inconsistências | `narrativas.inconsistencies_review` — array de objects |
+| Review metadata | `review_metadata` — timestamp, versão, changes aplicadas |
+
+O `--strip` remove: `review_metadata`, `narrativas.strategic_insights`, `narrativas.inconsistencies_review`. Summaries e charts refinados **não** são revertidos (já substituíram os originais).
 
 **Limpeza:**
 ```bash

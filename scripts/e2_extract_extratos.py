@@ -760,7 +760,7 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
         import xlrd
     except ImportError:
         log("ERROR", "xlrd not installed. Run: pip install xlrd")
-        return make_result_template("Itaú", "extratoconta", "BRL")
+        raise SystemExit("FATAL: xlrd is required for Itaú XLS extraction. Install with: pip install xlrd")
 
     is_personnalite = "personnalite" in filename.lower()
     tipo = "extratocontapersonnalite" if is_personnalite else "extratoconta"
@@ -1499,7 +1499,7 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
         import xlrd
     except ImportError:
         log("ERROR", "xlrd not installed. Run: pip install xlrd")
-        return make_result_template("Santander", "extratoconta", "BRL")
+        raise SystemExit("FATAL: xlrd is required for Santander XLS extraction. Install with: pip install xlrd")
 
     log("INFO", f"Parsing Santander XLS: {filename}")
     result = make_result_template("Santander", "extratoconta", "BRL")
