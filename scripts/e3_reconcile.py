@@ -190,6 +190,12 @@ def should_skip_extract(data: Dict[str, Any]) -> bool:
     if tipo in SKIP_TYPES:
         return True
 
+    # Check normalized tipo via equivalences (e.g. a file with
+    # tipo='extratocontapersonnalite' whose equivalent is an investment type)
+    tipo_equiv = ACCOUNT_TYPE_EQUIVALENCES.get(tipo, tipo)
+    if tipo_equiv in SKIP_TYPES:
+        return True
+
     # Check if tipo is a fatura that starts with "fatura"
     if tipo.startswith('fatura') and tipo not in {
         'faturacarbon', 'faturaunique', 'faturapaoacucar'
@@ -734,6 +740,31 @@ def load_and_group_e2_extracts(e2_dir: Path) -> Tuple[Dict, List[Tuple]]:
         if 'periodo' not in data:
             log_progress("E3.1", f"Skipping {fpath.name} (no periodo field)")
             continue
+
+        # Guard: warn and drop transactions whose dates are >6 months
+        # before the extract's periodo.inicio (likely misclassified data,
+        # e.g. investment position screenshots mistakenly typed as extracts)
+        periodo_inicio = data.get('periodo', {}).get('inicio', '')
+        if periodo_inicio:
+            try:
+                dt_inicio = datetime.strptime(periodo_inicio[:10], '%Y-%m-%d')
+                cutoff = dt_inicio - timedelta(days=180)
+                txns = data.get('transacoes', [])
+                anachronic = [
+                    t for t in txns
+                    if t.get('data', '') and t['data'][:10] < cutoff.strftime('%Y-%m-%d')
+                ]
+                if anachronic:
+                    log_progress(
+                        "E3.1",
+                        f"WARNING: {fpath.name} has {len(anachronic)} transaction(s) "
+                        f">6 months before periodo.inicio ({periodo_inicio}). "
+                        f"Dropping anachronic transactions (likely duplicate/misclassified)."
+                    )
+                    kept = [t for t in txns if t not in anachronic]
+                    data['transacoes'] = kept
+            except (ValueError, TypeError):
+                pass
 
         key = get_account_key(data)
         if key is None:

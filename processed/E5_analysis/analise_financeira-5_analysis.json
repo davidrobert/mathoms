@@ -90,15 +90,15 @@
     "renda_passiva_estimada_4pct": 10151.47
   },
   "fluxo_caixa": {
-    "receita_total": 2656928.89,
-    "receita_recorrente": 1544446.55,
+    "receita_total": 2506928.89,
+    "receita_recorrente": 1394446.55,
     "receita_one_time": 1112482.34,
-    "receita_recorrente_mensal": 38611.16,
+    "receita_recorrente_mensal": 34861.16,
     "despesa_total": 1915507.7,
     "despesa_mensal_media": 47887.69,
-    "fluxo_liquido": 741421.19,
+    "fluxo_liquido": 591421.19,
     "por_fonte": {
-      "outras_receitas": 612099.3,
+      "outras_receitas": 462099.3,
       "receita_investimento": 14565.17,
       "receita_resgate": 27416.7,
       "receita_aluguel": 173662.93,
@@ -130,37 +130,37 @@
       {
         "categoria": "Receita Clt",
         "valor": 1165140.92,
-        "pct": 43.85
+        "pct": 46.48
       },
       {
         "categoria": "Receita Pj",
         "valor": 614624.88,
-        "pct": 23.13
+        "pct": 24.52
       },
       {
         "categoria": "Outras Receitas",
-        "valor": 612099.3,
-        "pct": 23.04
+        "valor": 462099.3,
+        "pct": 18.43
       },
       {
         "categoria": "Receita Aluguel",
         "valor": 173662.93,
-        "pct": 6.54
+        "pct": 6.93
       },
       {
         "categoria": "Receita Venda Ativo",
         "valor": 49402.0,
-        "pct": 1.86
+        "pct": 1.97
       },
       {
         "categoria": "Receita Resgate",
         "valor": 27416.7,
-        "pct": 1.03
+        "pct": 1.09
       },
       {
         "categoria": "Receita Investimento",
         "valor": 14565.17,
-        "pct": 0.55
+        "pct": 0.58
       },
       {
         "categoria": "Receita Restituicao",
@@ -650,7 +650,7 @@
             102.36,
             1590.16,
             101.62,
-            150243.75,
+            243.75,
             2.41,
             605.72,
             244.46,
@@ -1641,7 +1641,7 @@
         78292.82,
         377084.9,
         94370.42,
-        247084.62,
+        97084.62,
         59512.09,
         126238.44,
         69276.67,
@@ -1698,20 +1698,20 @@
     "janela_12m": {
       "periodo": "2025-05 a 2026-04",
       "n_meses": 12,
-      "receita_total": 1393094.22,
-      "receita_recorrente": 980440.83,
+      "receita_total": 1243094.22,
+      "receita_recorrente": 830440.83,
       "receita_one_time": 412653.39,
-      "receita_recorrente_mensal": 81703.4,
+      "receita_recorrente_mensal": 69203.4,
       "despesa_total": 665883.61,
       "despesa_mensal_media": 55490.3,
-      "fluxo_liquido": 727210.61,
-      "taxa_poupanca_recorrente": 32.08,
-      "taxa_poupanca_total": 52.2
+      "fluxo_liquido": 577210.61,
+      "taxa_poupanca_recorrente": 19.82,
+      "taxa_poupanca_total": 46.43
     }
   },
   "ratios": {
-    "taxa_poupanca_recorrente_pct": 32.08,
-    "taxa_poupanca_total_pct": 52.2,
+    "taxa_poupanca_recorrente_pct": 19.82,
+    "taxa_poupanca_total_pct": 46.43,
     "taxa_endividamento_pct": 5.5,
     "cobertura_despesas_meses": 54.88,
     "rentabilidade_pct": "N/D",
@@ -1720,15 +1720,15 @@
     "janela_n_meses": 12
   },
   "score": {
-    "valor": 7.6,
+    "valor": 7.0,
     "max": 10,
     "classificacao": "Bom",
     "componentes": [
       {
         "nome": "Taxa Poupança Recorrente",
-        "valor": 32.08,
+        "valor": 19.82,
         "peso": 2.0,
-        "nota": 6.4
+        "nota": 4.0
       },
       {
         "nome": "Cobertura Despesas (meses)",
@@ -1822,10 +1822,6 @@
     "economia_ir_anual": 1947.13
   },
   "pontos_fortes": [
-    {
-      "titulo": "Taxa de Poupança Saudável",
-      "descricao": "Taxa de poupança recorrente de 32.1% demonstra controle de gastos e aporte consistente."
-    },
     {
       "titulo": "Score Financeiro Positivo",
       "descricao": "Classificação Bom indica solidez financeira."
@@ -2246,7 +2242,7 @@
     "40": "pendente"
   },
   "alertas": [
-    "Score financeiro: 7.6/10 (Bom)",
+    "Score financeiro: 7.0/10 (Bom)",
     "Rentabilidade: N/D"
   ],
   "consumo_consciente": {
@@ -2276,24 +2272,24 @@
   },
   "diagnostico_comportamental": [
     {
-      "padrao": "Disciplina de poupança",
-      "evidencia": "Taxa de poupança recorrente de 32.1% — acima da referência de 25%",
-      "mudanca_sugerida": "Manter e automatizar aportes mensais"
+      "padrao": "Poupança abaixo do ideal",
+      "evidencia": "Taxa de 19.8% — referência mínima: 25%",
+      "mudanca_sugerida": "Revisar despesas variáveis e aumentar aporte"
     },
     {
       "padrao": "Alta dependência de receita pontual",
-      "evidencia": "42% da receita é não-recorrente (resgates, vendas)",
+      "evidencia": "44% da receita é não-recorrente (resgates, vendas)",
       "mudanca_sugerida": "Não contar com receita pontual para orçamento; alocar direto para investimentos"
     }
   ],
   "narrativas": {
     "perfil_familia": {
       "left": "<p>David Robert Camargo Ferreira Campos, 44 anos, é CTO da Arvo (healthtech de auditoria médica com IA). Mais de 24 anos em tecnologia, com passagens por Elo7, Loft, Kiwify. Formado em Ciência da Computação PUC-SP, mestrado IA USP/IME. Opera como PJ Simples Nacional (Anexo V).</p>\n<p>Mariana Ferreira Campos, 39 anos, é Enfermeira no Hospital Israelita Albert Einstein desde julho de 2014. Especialista em Cardiologia e Hemodinâmica (UNIFESP), mestre em Enfermagem (USP). CLT com salário-base de R$ 8,3k/mês. Perfil competitivo para NCLEX nos EUA.</p>\n<p>Theo Ferreira Campos nasceu em Orlando, Flórida e possui dupla cidadania brasileira e americana. Primeiro filho do casal, é peça central no planejamento internacional da família.</p>\n<p>A família conta com 3 gatos — Zack, Fuzzy e Nix — na residência da Rua Tasso da Silveira, Vila Guarani, São Paulo.</p>",
-      "right": "<p>Plano de vida centrado na mudança para os EUA via visto F1/F2 (Anderson University, SC), seguido de Green Card por EB2-NIW. David manterá contratos PJ brasileiros remotamente; Mariana se prepara para NCLEX. Custo projetado: R$ 32,4k/mês, com sobra de R$ 6,2k/mês.</p>\n<p>Meta IF: R$ 7,2M (TRS 5%, renda passiva de R$ 30k/mês). Patrimônio investível atual de R$ 3,0M (42,3% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo de 8 anos (David 51 anos, 2033).</p>\n<p>Patrimônio bruto de R$ 4,3M: 6 imóveis (R$ 996,8k residência + R$ 1,4M investimento), carteiras David (R$ 1,2M) e Mariana (R$ 375,4k). Endividamento de 5,5% — saudável.</p>"
+      "right": "<p>Plano de vida centrado na mudança para os EUA via visto F1/F2 (Anderson University, SC), seguido de Green Card por EB2-NIW. David manterá contratos PJ brasileiros remotamente; Mariana se prepara para NCLEX. Custo projetado: R$ 32,4k/mês, com sobra de R$ 2,5k/mês.</p>\n<p>Meta IF: R$ 7,2M (TRS 5%, renda passiva de R$ 30k/mês). Patrimônio investível atual de R$ 3,0M (42,3% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo de 8 anos (David 51 anos, 2033).</p>\n<p>Patrimônio bruto de R$ 4,3M: 6 imóveis (R$ 996,8k residência + R$ 1,4M investimento), carteiras David (R$ 1,2M) e Mariana (R$ 375,4k). Endividamento de 5,5% — saudável.</p>"
     },
     "summaries": {
       "s1": "Patrimônio bruto de R$ 4,3M com 71,3% investível (R$ 3,0M). Imóveis representam 57,1% do total, com residência própria de R$ 996,8k e imóveis de investimento somando R$ 1,4M. Endividamento de 5,5% sobre o bruto.",
-      "s2": "Score financeiro de 7.6/10 (Bom). Pontos fortes: taxa de poupança recorrente de 32,1%, cobertura de 33.5 meses de despesas e endividamento controlado. Receita total no período de R$ 2,7M com 23,1% proveniente de PJ, 6,5% de aluguel, 43,9% de CLT e 26,5% de outras fontes.",
+      "s2": "Score financeiro de 7.0/10 (Bom). Pontos fortes: taxa de poupança recorrente de 19,8%, cobertura de 33.5 meses de despesas e endividamento controlado. Receita total no período de R$ 2,5M com 24,5% proveniente de PJ, 6,9% de aluguel, 46,5% de CLT e 22,1% de outras fontes.",
       "s3": "Carteira diversificada entre 5 categorias de ativos. David mantém R$ 1,2M distribuídos entre C6bank, Itau, Rico, Santander. Mariana possui R$ 375,4k concentrados em Btgpactual.",
       "s4": "6 imóveis no portfólio: residência na Rua Tasso da Silveira (R$ 996,8k), apartamentos alugados com renda de R$ 52,1k/ano (R$ 4,3k/mês). Yield bruto dos imóveis de investimento estimado em 3.6% (receita/valor total).",
       "s5": "Meta de independência financeira de R$ 7,2M em 2033. Gap atual de R$ 4,2M com prazo realista de 7.9 anos à taxa de aporte R$ 20k/mês e retorno real 6% a.a. Renda passiva estimada (5% TRS): R$ 10,2k/mês.",
@@ -2305,7 +2301,7 @@
     },
     "charts": {
       "score_gauge": {
-        "context": "Indicador geral de saúde financeira da família, com score de 7.6/10 (Bom). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
+        "context": "Indicador geral de saúde financeira da família, com score de 7.0/10 (Bom). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
         "conclusion": "A classificação 'Bom' reflete melhora na taxa de poupança recorrente e redução da razão endividamento/patrimônio."
       },
       "patrimonio_doughnut": {
@@ -2321,16 +2317,16 @@
         "conclusion": "Alvo: 50% Renda Fixa (IPCA+, CDBs), 25% Ações (IVVB11, SCHP11), 15% Imóveis/REITs, 10% Liquidez/USD. Aportes de R$ 20k/mês priorizarão renda fixa, com rebalanceamento anual."
       },
       "fluxo_mensal": {
-        "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente de R$ 38,6k/mês versus despesa média de R$ 47,9k/mês.",
-        "conclusion": "Saldo mensal de R$ -9.276,53/mês. Taxa de poupança de 32,1% garante capacidade de aporte consistente. Sustenta a meta de aportes mensais de R$ 20k para o plano IF."
+        "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente de R$ 34,9k/mês versus despesa média de R$ 47,9k/mês.",
+        "conclusion": "Saldo mensal de R$ -13.026,53/mês. Taxa de poupança de 19,8% garante capacidade de aporte consistente. Sustenta a meta de aportes mensais de R$ 20k para o plano IF."
       },
       "receita_bar": {
-        "context": "Composição da receita total de R$ 2,7M por fonte: PJ (23,1%), CLT (43,9%), aluguel (6,5%), outras (26,5%).",
-        "conclusion": "Receita PJ de R$ 614,6k mantém dominância (23,1%), com CLT (R$ 1,2M, 43,9%) e aluguel (R$ 173,7k, 6,5%). Diversificação reduz risco de dependência única."
+        "context": "Composição da receita total de R$ 2,5M por fonte: PJ (24,5%), CLT (46,5%), aluguel (6,9%), outras (22,1%).",
+        "conclusion": "Receita PJ de R$ 614,6k mantém dominância (24,5%), com CLT (R$ 1,2M, 46,5%) e aluguel (R$ 173,7k, 6,9%). Diversificação reduz risco de dependência única."
       },
       "receita_despesa_mensal": {
-        "context": "Série temporal mensal de receitas (R$ 2,7M/período) versus despesas (R$ 1,9M/período), resultando em fluxo líquido de R$ 741,4k.",
-        "conclusion": "Receita recorrente de R$ 38,6k/mês e despesa média de R$ 47,9k/mês. Taxa de poupança recorrente de 32,1% valida a sustentabilidade do plano IF."
+        "context": "Série temporal mensal de receitas (R$ 2,5M/período) versus despesas (R$ 1,9M/período), resultando em fluxo líquido de R$ 591,4k.",
+        "conclusion": "Receita recorrente de R$ 34,9k/mês e despesa média de R$ 47,9k/mês. Taxa de poupança recorrente de 19,8% valida a sustentabilidade do plano IF."
       },
       "despesas_doughnut": {
         "context": "Distribuição das despesas totais (R$ 1,9M) entre 17 categorias, destacando a composição de gastos e oportunidades de otimização.",
@@ -2366,7 +2362,7 @@
       },
       "custos_f1f2": {
         "context": "Estimativa de custos mensais na fase F1/F2 nos EUA: tuition + living + viagens BR = R$ 32,4k/mês.",
-        "conclusion": "Sobra projetada: R$ 6,2k/mês (R$ 38,6k - R$ 32,4k)."
+        "conclusion": "Sobra projetada: R$ 2,5k/mês (R$ 34,9k - R$ 32,4k)."
       },
       "viagens": {
         "context": "Padrão de despesas com viagens identificado nos extratos, estimando frequência e custo médio.",

@@ -1667,13 +1667,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 var hoveredStack = items[0].dataset.stack;
                 var idx = items[0].dataIndex;
                 var chart = items[0].chart;
-                var lines = [];
+                var entries = [];
                 chart.data.datasets.forEach(function(ds) {
                   if (ds.stack === hoveredStack && ds.data[idx] > 0) {
-                    lines.push(ds.label + ': ' + fmt(ds.data[idx]));
+                    entries.push({ label: ds.label, value: ds.data[idx] });
                   }
                 });
-                return lines;
+                entries.sort(function(a, b) { return b.value - a.value; });
+                return entries.map(function(e) { return e.label + ': ' + fmt(e.value); });
               },
               label: function() { return null; },
               footer: function(items) {

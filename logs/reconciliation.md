@@ -1,11 +1,11 @@
 # E3 Reconciliation Summary
-Generated: 2026-04-09T17:21:26.087252
+Generated: 2026-04-09T18:00:03.665319
 
 ## Statistics
-- Accounts processed: 16
-- Total transactions reconciled: 4509
+- Accounts processed: 15
+- Total transactions reconciled: 4508
 - Total duplicates removed: 99
-- Files written: 16
+- Files written: 15
 
 ## Saldo Continuity & Temporal Warnings
 - ('C6 Bank', 'extratoconta', 'BRL'): Saldo gap: c6bank_extratoconta_202412_202512-2_extract.json (prev_final=6461.98, next_initial=6336.98, gap=125.00)
@@ -54,4 +54,3 @@ Generated: 2026-04-09T17:21:26.087252
 - Wise | extratocontabrl | BRL | 2025-01-01 to 2026-03-29 | 0 txns
 - Wise | extratocontausd | USD | 2025-01-01 to 2026-03-29 | 31 txns
 - binance | extratoconta | BRL | 2026-03-01 to 2026-03-31 | 0 txns
-- itau | extratoconta | BRL | 2026-03-01 to 2026-03-31 | 1 txns

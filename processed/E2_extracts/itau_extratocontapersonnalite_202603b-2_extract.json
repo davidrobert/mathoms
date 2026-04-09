@@ -1,5 +1,5 @@
 {
-  "tipo": "extratocontapersonnalite",
+  "tipo": "investimentosposicao",
   "banco": "itau",
   "membro": "david",
   "periodo": {
@@ -7,15 +7,7 @@
     "fim": "2026-03-31"
   },
   "moeda": "BRL",
-  "saldo_inicial": 206491.70,
-  "saldo_final": 206491.70,
+  "posicoes": [],
   "transacoes": [],
-  "rendimento": {
-    "rendimento_bruto": 20614.62,
-    "rendimento_100_cdi": 20614.62,
-    "iof": 0.00,
-    "imposto_renda": 4122.02,
-    "rendimento_liquido": 16491.70
-  },
-  "notas": "Itaú Personnalité yield breakdown showing daily updated yield (100% CDI). Total savings R$ 206,491.70"
+  "notas": "Screenshot do app Itaú Personnalité mostrando detalhamento de rendimento do CDB Cofrinhos. Rendendo 100% CDI, rendimento bruto R$ 20.614,62, IR R$ 4.122,92, rendimento líquido R$ 16.491,70, total guardado R$ 206.491,70. Dados complementares ao screenshot 'a'. Não deve gerar transações no E3."
 }

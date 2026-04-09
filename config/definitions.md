@@ -151,6 +151,21 @@
 
 ---
 
+## REGRAS DE CLASSIFICAÇÃO PARA SCREENSHOTS DE APP
+
+> Screenshots do app de bancos (JPG/PNG) frequentemente mostram **posições de investimento**, não extratos bancários.
+> A classificação correta é essencial para evitar receitas fantasma.
+
+| Conteúdo do screenshot | Tipo correto | Observação |
+|---|---|---|
+| Itaú Cofrinhos / Reserva (valor guardado, rendimento, depósitos) | `investimentosposicao` | O "Depósito" exibido no histórico é uma **aplicação interna** (CC→CDB), já capturada pelo XLS como `APLICACAO CDB COFRINHOS`. **NÃO** gerar transação — apenas posição de investimento. |
+| Itaú posição de investimentos | `investimentosposicao` | — |
+| Binance saldo em crypto | `extratoconta` | Extrair como saldo + transações normais |
+
+**Regra geral:** Se o screenshot mostra um saldo de investimento/poupança com rendimento, classificar como `investimentosposicao`. Se mostra transações de débito/crédito em conta corrente, classificar como `extratoconta`.
+
+---
+
 ## IDENTIFICADORES NOS EXTRATOS
 
 | Campo no extrato                                                                     | Significado real                              | Conta             | Cuidado           |

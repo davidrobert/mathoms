@@ -1,5 +1,5 @@
 {
-  "tipo": "extratocontapersonnalite",
+  "tipo": "investimentosposicao",
   "banco": "itau",
   "membro": "david",
   "periodo": {
@@ -7,21 +7,23 @@
     "fim": "2026-03-31"
   },
   "moeda": "BRL",
-  "saldo_inicial": 150000.00,
-  "saldo_final": 206491.70,
-  "transacoes": [
+  "posicoes": [
     {
-      "data": "2025-07-01",
-      "descricao": "Depósito",
-      "valor": 150000.00,
-      "tipo": "credito"
+      "nome": "CDB Cofrinhos Itaú (Reserva)",
+      "tipo_ativo": "CDB",
+      "indexador": "100% CDI",
+      "instituicao": "itau",
+      "membro": "david",
+      "valor_aplicado": 190000.00,
+      "valor_atual": 206491.70,
+      "rendimento_bruto": 20614.62,
+      "iof": 0.00,
+      "imposto_renda": 4122.92,
+      "rendimento_liquido": 16491.70,
+      "data_aplicacao": "2025-07-03",
+      "data_referencia": "2026-03-29"
     }
   ],
-  "rendimento": {
-    "rendimento_bruto": 20614.62,
-    "iof": 0.00,
-    "imposto_renda": 4122.02,
-    "rendimento_liquido": 16491.70
-  },
-  "notas": "Itaú Personnalité Reserve account showing savings accumulated from deposit on 2025-07-01. Total saved: R$ 206,491.70 with 100% CDI yield"
+  "transacoes": [],
+  "notas": "Screenshot do app Itaú Personnalité mostrando posição do CDB Cofrinhos (Reserva). Depósito original R$ 190.000 em 03/jul/2025 já registrado no XLS como 'APLICACAO CDB COFRINHOS'. Não deve gerar transações no E3 — apenas posição de investimento."
 }
