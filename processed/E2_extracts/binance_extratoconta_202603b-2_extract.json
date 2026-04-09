@@ -1,0 +1,14 @@
+{
+  "tipo": "extratoconta",
+  "banco": "binance",
+  "conta": null,
+  "periodo": {
+    "inicio": null,
+    "fim": null
+  },
+  "moeda": "BRL",
+  "saldo_inicial": 0.0,
+  "saldo_final": 0.0,
+  "transacoes": [],
+  "_note": "Image requires OCR/vision processing"
+}

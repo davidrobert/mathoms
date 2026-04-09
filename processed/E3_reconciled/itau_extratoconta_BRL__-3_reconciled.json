@@ -1,0 +1,21 @@
+{
+  "banco": "itau",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "",
+    "fim": ""
+  },
+  "saldo_inicial": 0.0,
+  "saldo_inicial_unknown": false,
+  "saldo_final": 0.0,
+  "saldo_final_unknown": false,
+  "fontes": [
+    "itau_extratocontapersonnalite_202603a-2_extract.json",
+    "itau_extratocontapersonnalite_202603b-2_extract.json"
+  ],
+  "transacoes_total": 0,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": []
+}

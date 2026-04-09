@@ -1,0 +1,13 @@
+{
+  "tipo": "informerendimentos",
+  "membro": "mariana",
+  "ano_base": 2025,
+  "cpf": "085.052.396-60",
+  "locador": "N/A",
+  "fonte": "QuintoAndar",
+  "tipo_rendimento": "Aluguéis",
+  "rendimentos_brutos": 74179.77,
+  "deducoes": 7423.08,
+  "rendimentos_liquidos": 66756.69,
+  "desconto_percentual": 10.006879234055322
+}

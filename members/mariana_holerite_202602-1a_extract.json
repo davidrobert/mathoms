@@ -2,121 +2,88 @@
   "tipo": "holerite",
   "membro": "mariana",
   "nome_no_documento": "Mariana Teixeira Ferreira",
-  "nome_registrado_sistema": "Mariana Teixeira Ferreira",
-  "cpf": "085.052.396-60",
-  "periodo": "202602",
-  "mes_ano": "Fevereiro 2026",
-  "empresa": "AE00 SBIBHAE - Albert Einstein",
+  "periodo": "2026-02",
+  "empresa": "SBIBHAE - Albert Einstein",
   "estabelecimento": "AEMO Unidade Morumbi",
-  "categoria": "Enfermagem P",
   "cargo": "Enfermeiro Pl",
-  "carga_horaria_mensal": 200.0,
-  "subarea_rh": "0028",
-  "unidade_organizacional": "Enfermagem Consultórios",
-  "centro_custo": "CHCO",
-  "banco": "237",
-  "agencia": "6543",
-  "conta": "6673",
-  "contrato_tipo": "Mensalista",
+  "categoria": "Enfermagem P",
   "grade": "P4",
-  "admissao": "2014-07-21",
-  "dias_trabalhados": 25,
-  "dependentes_ir": 0,
-  "salario_base_mensal": 10899.51,
-  "proventos": [
+  "matricula": "36108",
+  "data_admissao": "2014-07-21",
+  "salario_base_mensal": 9082.92,
+  "salario_bruto": 12086.06,
+  "proventos_adicionais": [
     {
-      "rubrica": "0001",
-      "descricao": "Salário mensal",
-      "quantidade": 25.0,
-      "valor": 9082.92
-    },
-    {
-      "rubrica": "/325",
-      "descricao": "Adic. de insalubrid. 20%",
-      "quantidade": 25.0,
+      "codigo": "/325",
+      "descricao": "Adicional de insalubridade 20%",
       "valor": 270.17
     },
     {
-      "rubrica": "M389",
-      "descricao": "Provisão Contr. INSS rec.",
-      "quantidade": 0.0,
+      "codigo": "M389",
+      "descricao": "Provisão Contribuição INSS recebida",
       "valor": 203.34
     },
     {
-      "rubrica": "MC03",
+      "codigo": "MC03",
       "descricao": "Férias no mês",
-      "quantidade": 5.0,
       "valor": 1870.62
     },
     {
-      "rubrica": "MC04",
+      "codigo": "MC04",
       "descricao": "Férias 1/3 no mês",
-      "quantidade": 5.0,
       "valor": 623.54
     },
     {
-      "rubrica": "MC13",
+      "codigo": "MC13",
       "descricao": "Médias férias no mês",
-      "quantidade": 0.0,
-      "valor": 26.6
+      "valor": 26.60
     },
     {
-      "rubrica": "MC14",
+      "codigo": "MC14",
       "descricao": "Médias férias 1/3 no mês",
-      "quantidade": 0.0,
       "valor": 8.87
     }
   ],
-  "salario_bruto": 12086.06,
   "descontos": [
     {
-      "rubrica": "/314",
-      "descricao": "Contr. INSS Remuneração",
-      "quantidade": 14.0,
+      "codigo": "/314",
+      "descricao": "Contribuição INSS Remuneração",
       "valor": 988.07
     },
     {
-      "rubrica": "/401",
+      "codigo": "/401",
       "descricao": "Tributo IRRF",
-      "quantidade": 27.5,
       "valor": 1447.57
     },
     {
-      "rubrica": "/B02",
+      "codigo": "/B02",
       "descricao": "Adiantamento pago",
-      "quantidade": 0.0,
       "valor": 3633.17
     },
     {
-      "rubrica": "1014",
+      "codigo": "1014",
       "descricao": "Seguro de Vida",
-      "quantidade": 0.0,
       "valor": 27.41
     },
     {
-      "rubrica": "1025",
+      "codigo": "1025",
       "descricao": "Refeição",
-      "quantidade": 10.0,
-      "valor": 34.8
+      "valor": 34.80
     },
     {
-      "rubrica": "MO90",
+      "codigo": "MO90",
       "descricao": "Desconto de Férias",
-      "quantidade": 0.0,
       "valor": 2529.63
     }
   ],
   "total_descontos": 8660.65,
   "salario_liquido": 3425.41,
   "data_credito": "2026-02-27",
-  "saldo_devedor": null,
-  "valor_depositado": 3425.41,
-  "bases": {
-    "inss": 11882.72,
-    "ir": 0.0,
-    "ir_13": 0.0,
-    "fgts": 11882.72
+  "fgts": {
+    "base": 11882.72,
+    "depositado": 950.62
   },
-  "fgts_depositado": 950.62,
-  "observacoes": "Payslip para fevereiro de 2026. Inclui férias acumuladas, adiantamento salarial e desconto de férias. Nome no documento: Mariana Teixeira Ferreira (nome de solteira/fiscal)."
+  "inss_base": 11882.72,
+  "dependentes_ir": 0,
+  "observacoes": "Holerite com férias no período (5 dias úteis de férias + 1/3, totalizando R$ 2.529,06 em proventos de férias). Desconto de férias de R$ 2.529,63. Adiantamento pago de R$ 3.633,17. Salário líquido atípico devido aos descontos concentrados neste período. Base INSS: R$ 11.882,72. IRRF com base zero (IR retido)."
 }

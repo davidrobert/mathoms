@@ -2,78 +2,66 @@
   "periodo_dados": "2023-01 a 2026-04",
   "data_analise": "2026-04-08",
   "patrimonio": {
-    "bruto": 2307762.2,
+    "bruto": 0.0,
     "dividas": 0.0,
-    "liquido": 2307762.2,
-    "residencia": 737000.0,
-    "imoveis_investimento": 910800.0,
-    "investimentos_david": 552062.77,
-    "investimentos_mariana": 107899.43,
+    "liquido": 0.0,
+    "residencia": 0.0,
+    "imoveis_investimento": 0.0,
+    "investimentos_david": 0.0,
+    "investimentos_mariana": 0.0,
     "caixa_moeda_estrangeira": 0.0,
-    "investivel": 1570762.2,
+    "investivel": 0,
     "veiculos": 0.0,
     "composicao": [
       {
-        "categoria": "Imóveis Investimento",
-        "valor": 910800.0,
-        "pct": 39.47
+        "categoria": "Residência",
+        "valor": 0.0
       },
       {
-        "categoria": "Residência",
-        "valor": 737000.0,
-        "pct": 31.94
+        "categoria": "Imóveis Investimento",
+        "valor": 0.0
       },
       {
         "categoria": "Investimentos David",
-        "valor": 552062.77,
-        "pct": 23.92
+        "valor": 0.0
       },
       {
         "categoria": "Investimentos Mariana",
-        "valor": 107899.43,
-        "pct": 4.68
+        "valor": 0.0
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 1.7462298274040222e-10,
-        "pct": 0.0
+        "valor": 0.0
       },
       {
         "categoria": "Veículos",
-        "valor": 0.0,
-        "pct": 0.0
+        "valor": 0.0
       }
     ],
     "tabela_categorias": [
       {
-        "categoria": "Imóveis Investimento",
-        "valor": 910800.0,
-        "pct": 39.47
+        "categoria": "Residência",
+        "valor": 0.0
       },
       {
-        "categoria": "Residência",
-        "valor": 737000.0,
-        "pct": 31.94
+        "categoria": "Imóveis Investimento",
+        "valor": 0.0
       },
       {
         "categoria": "Investimentos David",
-        "valor": 552062.77,
-        "pct": 23.92
+        "valor": 0.0
       },
       {
         "categoria": "Investimentos Mariana",
-        "valor": 107899.43,
-        "pct": 4.68
+        "valor": 0.0
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 1.7462298274040222e-10,
-        "pct": 0.0
+        "valor": 0.0
       },
       {
         "categoria": "Veículos",
-        "valor": 0.0,
-        "pct": 0.0
+        "valor": 0.0
       }
     ],
     "fonte_investimentos": "posicoes_atuais"
@@ -82,12 +70,12 @@
     "if_meta": 7200000.0,
     "if_trs": 5.0,
     "if_trs_monthly_value": 30000.0,
-    "if_pct": 21.82,
-    "if_gap": 5629237.8,
-    "prazo_anos_realista": 11.8,
-    "david_idade_if": 55,
-    "ano_if": 2037,
-    "renda_passiva_estimada_4pct": 5235.87
+    "if_pct": 0.0,
+    "if_gap": 7200000.0,
+    "prazo_anos_realista": 17.4,
+    "david_idade_if": 61,
+    "ano_if": 2043,
+    "renda_passiva_estimada_4pct": 0.0
   },
   "fluxo_caixa": {
     "receita_total": 2506928.89,
@@ -1711,16 +1699,16 @@
     "taxa_poupanca_recorrente_pct": 19.82,
     "taxa_poupanca_total_pct": 46.43,
     "taxa_endividamento_pct": 0.0,
-    "cobertura_despesas_meses": 28.31,
+    "cobertura_despesas_meses": 0.0,
     "rentabilidade_pct": "N/D",
     "aliquota_efetiva_ir_pct": "N/D",
     "janela_referencia": "2025-05 a 2026-04",
     "janela_n_meses": 12
   },
   "score": {
-    "valor": 6.3,
+    "valor": 2.9,
     "max": 10,
-    "classificacao": "Bom",
+    "classificacao": "Atenção",
     "componentes": [
       {
         "nome": "Taxa Poupança Recorrente",
@@ -1730,9 +1718,9 @@
       },
       {
         "nome": "Cobertura Despesas (meses)",
-        "valor": 28.31,
+        "valor": 0.0,
         "peso": 1.5,
-        "nota": 10.0
+        "nota": 0.0
       },
       {
         "nome": "Taxa Endividamento (inv)",
@@ -1742,15 +1730,15 @@
       },
       {
         "nome": "Progresso IF",
-        "valor": 21.82,
+        "valor": 0.0,
         "peso": 2.0,
-        "nota": 2.2
+        "nota": 0.0
       },
       {
         "nome": "Diversificação",
-        "valor": 5,
+        "valor": 0,
         "peso": 1.0,
-        "nota": 8.0
+        "nota": 0.0
       }
     ]
   },
@@ -1783,15 +1771,15 @@
     "nivel_6_meses": 287326.14,
     "nivel_12_meses": 574652.28,
     "composicao_liquida": {
-      "investimentos_david": 552062.77,
-      "investimentos_mariana": 107899.43,
+      "investimentos_david": 0.0,
+      "investimentos_mariana": 0.0,
       "caixa_moeda_estrangeira": 0.0,
-      "total_liquido": 659962.2,
-      "cobertura_meses": 13.8
+      "total_liquido": 0.0,
+      "cobertura_meses": 0.0
     },
-    "total_liquida": 659962.2,
-    "cobertura_meses": 13.8,
-    "avaliacao_liquidity": "Excelente",
+    "total_liquida": 0.0,
+    "cobertura_meses": 0.0,
+    "avaliacao_liquidity": "Insuficiente",
     "niveis": [
       "6 meses",
       "12 meses"
@@ -1799,7 +1787,7 @@
   },
   "endividamento": {
     "total_dividas": 0.0,
-    "percentual_patrimonio": 0.0,
+    "percentual_patrimonio": 0,
     "dividas": [],
     "detalhe": "Financiamento imobiliário (Itaú)"
   },
@@ -1814,11 +1802,17 @@
   },
   "pontos_fortes": [
     {
-      "titulo": "Score Financeiro Positivo",
-      "descricao": "Classificação Bom indica solidez financeira."
+      "titulo": "Análise em Andamento",
+      "descricao": "Pontos fortes serão identificados após consolidação de dados."
     }
   ],
   "pontos_urgentes": [
+    {
+      "prioridade": "Alta",
+      "acao": "Reforçar reserva de emergência",
+      "impacto": "Cobertura atual de 0 meses — abaixo do mínimo de 6",
+      "prazo": "Imediato"
+    },
     {
       "prioridade": "Alta",
       "acao": "Contratar seguro de vida e invalidez",
@@ -1833,14 +1827,8 @@
     }
   ],
   "investimentos": {
-    "tabela_classes": [
-      {
-        "categoria": "Imóveis Investimento",
-        "valor": 910800.0,
-        "pct": 100.0
-      }
-    ],
-    "total": 910800.0
+    "tabela_classes": [],
+    "total": 0.0
   },
   "equilibrio_cerbasi": {
     "pct_presente": 94.6,
@@ -2223,7 +2211,7 @@
     "40": "pendente"
   },
   "alertas": [
-    "Score financeiro: 6.3/10 (Bom)",
+    "Score financeiro: 2.9/10 (Atenção)",
     "Rentabilidade: N/D"
   ],
   "consumo_consciente": {
@@ -2266,40 +2254,41 @@
   "narrativas": {
     "perfil_familia": {
       "left": "<p>David Robert Camargo Ferreira Campos, 44 anos, é CTO da Arvo (healthtech de auditoria médica com IA). Mais de 24 anos em tecnologia, com passagens por Elo7, Loft, Kiwify. Formado em Ciência da Computação PUC-SP, mestrado IA USP/IME. Opera como PJ Simples Nacional (Anexo V).</p>\n<p>Mariana Ferreira Campos, 39 anos, é Enfermeira no Hospital Israelita Albert Einstein desde julho de 2014. Especialista em Cardiologia e Hemodinâmica (UNIFESP), mestre em Enfermagem (USP). CLT com salário-base de R$ 8,3k/mês. Perfil competitivo para NCLEX nos EUA.</p>\n<p>Theo Ferreira Campos nasceu em Orlando, Flórida e possui dupla cidadania brasileira e americana. Primeiro filho do casal, é peça central no planejamento internacional da família.</p>\n<p>A família conta com 3 gatos — Zack, Fuzzy e Nix — na residência da Rua Tasso da Silveira, Vila Guarani, São Paulo.</p>",
-      "right": "<p>Plano de vida centrado na mudança para os EUA via visto F1/F2 (Anderson University, SC), seguido de Green Card por EB2-NIW. David manterá contratos PJ brasileiros remotamente; Mariana se prepara para NCLEX. Custo projetado: R$ 32,4k/mês, com sobra de R$ 2,5k/mês.</p>\n<p>Meta IF: R$ 7,2M (TRS 5%, renda passiva de R$ 30k/mês). Patrimônio investível atual de R$ 2,3M (32,0% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo de 10 anos (David 53 anos, 2035).</p>\n<p>Patrimônio bruto de R$ 2,3M: 4 imóveis (R$ 0,00 residência + R$ 1,6M investimento), carteiras David (R$ 552,1k) e Mariana (R$ 107,9k). Endividamento de 0% — saudável.</p>"
+      "right": "<p>Plano de vida centrado na mudança para os EUA via visto F1/F2 (Anderson University, SC), seguido de Green Card por EB2-NIW. David manterá contratos PJ brasileiros remotamente; Mariana se prepara para NCLEX. Custo projetado: R$ 32,4k/mês, com sobra de R$ 2,5k/mês.</p>\n<p>Meta IF: R$ 7,2M (TRS 5%, renda passiva de R$ 30k/mês). Patrimônio investível atual de R$ 0,00 (0% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo de 17 anos (David 61 anos, 2043).</p>\n<p>Patrimônio bruto de R$ 0,00: 0 imóveis (R$ 0,00 residência + R$ 0,00 investimento), carteiras David (R$ 0,00) e Mariana (R$ 0,00). Endividamento de 0% — saudável.</p>"
     },
     "summaries": {
-      "s1": "Patrimônio bruto de R$ 2,3M com 100% investível (R$ 2,3M). Imóveis representam 71,4% do total, com residência própria de R$ 0,00 e imóveis de investimento somando R$ 1,6M. Endividamento de 0% sobre o bruto.",
-      "s2": "Score financeiro de 5.4/10 (Regular). Pontos fortes: taxa de poupança recorrente de -37,4%, cobertura de 13.8 meses de despesas e endividamento controlado. Receita total no período de R$ 2,5M com 24,5% proveniente de PJ, 6,9% de aluguel, 46,5% de CLT e 22,1% de outras fontes.",
-      "s3": "Carteira diversificada entre 4 categorias de ativos. David mantém R$ 552,1k distribuídos entre Rico, Santander. Mariana possui R$ 107,9k concentrados em Btgpactual.",
-      "s4": "4 imóveis no portfólio: residência na Rua Tasso da Silveira (R$ 0,00), apartamentos alugados com renda de R$ 52,1k/ano (R$ 4,3k/mês). Yield bruto dos imóveis de investimento estimado em 3.2% (receita/valor total).",
-      "s5": "Meta de independência financeira de R$ 7,2M em 2035. Gap atual de R$ 4,9M com prazo realista de 9.7 anos à taxa de aporte R$ 20k/mês e retorno real 6% a.a. Renda passiva estimada (5% TRS): R$ 7,7k/mês.",
-      "s6": "Exposição cambial: US$ 4,7k em Wise, US$ 2 em Bank of America. Total US$ 4,7k. Meta pré-EUA de US$ 20k com gap de US$ 15,3k — ritmo de R$ 2k/mês na Wise alcança a meta em 44 meses.",
+      "s1": "Patrimônio bruto de R$ 0,00 com 0% investível (R$ 0,00). Imóveis representam 0% do total, com residência própria de R$ 0,00 e imóveis de investimento somando R$ 0,00. Endividamento de 0% sobre o bruto.",
+      "s2": "Score financeiro de 2.9/10 (Atenção). Pontos fortes: taxa de poupança recorrente de 19,8%, cobertura de 0.0 meses de despesas e endividamento controlado. Receita total no período de R$ 2,5M com 24,5% proveniente de PJ, 6,9% de aluguel, 46,5% de CLT e 22,1% de outras fontes.",
+      "s3": "Carteira diversificada entre 5 categorias de ativos. David mantém R$ 0,00 distribuídos entre múltiplas instituições. Mariana possui R$ 0,00 concentrados em BTG Pactual.",
+      "s4": "0 imóveis no portfólio: residência na Rua Tasso da Silveira (R$ 0,00), apartamentos alugados com renda de R$ 52,1k/ano (R$ 4,3k/mês). Yield bruto dos imóveis de investimento estimado em 0% (receita/valor total).",
+      "s5": "Meta de independência financeira de R$ 7,2M em 2043. Gap atual de R$ 7,2M com prazo realista de 17.4 anos à taxa de aporte R$ 20k/mês e retorno real 6% a.a. Renda passiva estimada (5% TRS): R$ 0,00/mês.",
+      "s6": "Exposição cambial: US$ 4,7k em Wise, US$ 2,6k em Bank of America. Total US$ 7,3k. Meta pré-EUA de US$ 20k com gap de US$ 12,7k — ritmo de R$ 2k/mês na Wise alcança a meta em 36 meses.",
       "s7": "5 riscos prioritários: FBAR/FATCA compliance, Estate Tax non-resident, Falta de seguro de vida. Seguros de vida e invalidez inexistentes — classificados como urgentes. Planejamento sucessório em estágio inicial.",
       "s8": "Simples Nacional Anexo V com fator R favorável. DAS mensal estimado em R$ 5k. AccountTech como contador (R$ 390,00/mês via C6 PJ). Avaliação de holding patrimonial pendente para T4/2026. Obrigações fiscais EUA (FBAR, Form 8938, PFIC) requerem CPA expatriado antes da mudança.",
       "s9": "Despesas totais no período (40 meses): R$ 1,9M (R$ 47,9k/mês média). Maior categoria 'não identificado' com R$ 856,9k (44,7% do total). Impostos (R$ 126,6k), moradia (R$ 37,8k) e serviços domésticos (R$ 60,9k) completam o perfil de gastos.",
-      "s10": "5 decisões estratégicas prioritárias: iniciar aporte mensal de R$ 20k (R$ 10k Cofrinhos, R$ 5k IPCA+, R$ 3k IVVB11, R$ 2k Wise USD), Contratar seguro de vida term, NCLEX/OET para Mariana, Consultar CPA expatriado para obrigações EUA."
+      "s10": "5 decisões estratégicas prioritárias: iniciar aporte mensal de R$ 20k (R$ 10k Cofrinhos, R$ 5k IPCA+, R$ 3k IVVB11, R$ 2k Wise USD), Contratar seguro de vida term, NCLEX/OET para Mariana, Consultar CPA expatriado para obrigações EUA.",
+      "s2_fluxo_caixa": "Provável redação que romantiza fluxo positivo sem chamar atenção para déficit recorrente. Fluxo anual positivo de R$ 591,4k é integralmente oriundo de receitas não-recorrentes (resgate Kiwify R$ 462k, rescisão, vendas). Base recorrente (CLT + PJ + aluguel vs despesas) está em déficit de R$ 156,3k/ano (-37.4%). Urgência: otimizar despesas em R$ 13k+/mês (ex: reduzir não_identificado) ou aumentar receita recorrente para atingir 20%+ poupança sustentável. Factual, não-alarmista, actionable"
     },
     "charts": {
       "score_gauge": {
-        "context": "Indicador geral de saúde financeira da família, com score de 5.4/10 (Regular). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
-        "conclusion": "A classificação 'Regular' reflete melhora na taxa de poupança recorrente e redução da razão endividamento/patrimônio."
+        "context": "Indicador geral de saúde financeira da família, com score de 2.9/10 (Atenção). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
+        "conclusion": "A classificação 'Atenção' reflete melhora na taxa de poupança recorrente e redução da razão endividamento/patrimônio."
       },
       "patrimonio_doughnut": {
-        "context": "Distribuição do patrimônio bruto de R$ 2,3M entre 4 categorias de ativos, mostrando concentração em imóveis e peso relativo dos investimentos financeiros.",
-        "conclusion": "Imóveis respondem por 71,4% do patrimônio — acima do ideal de 50%. Aportes mensais de R$ 20k em ativos financeiros devem melhorar essa proporção."
+        "context": "Distribuição do patrimônio bruto de R$ 0,00 entre 5 categorias de ativos, mostrando concentração em imóveis e peso relativo dos investimentos financeiros.",
+        "conclusion": "Imóveis respondem por 0% do patrimônio. Aportes mensais de R$ 20k em ativos financeiros devem melhorar essa proporção."
       },
       "alocacao_atual": {
-        "context": "Atual distribuição dos ativos financeiros (R$ 660,0k) entre classes de investimento: renda fixa, ações, fundos multimercado e estruturados.",
-        "conclusion": "David diversificado em Rico, Santander; Mariana concentra em Btgpactual. Recomendação: gradualmente adicionar alocação de ações (IVVB11, SCHP11) para atingir 20-25% de equity."
+        "context": "Atual distribuição dos ativos financeiros (R$ 0,00) entre classes de investimento: renda fixa, ações, fundos multimercado e estruturados.",
+        "conclusion": "David diversificado em múltiplas instituições; Mariana concentra em BTG Pactual. Recomendação: gradualmente adicionar alocação de ações (IVVB11, SCHP11) para atingir 20-25% de equity."
       },
       "alocacao_alvo": {
-        "context": "Alocação estratégica recomendada para os ativos financeiros, considerando horizonte de 10 anos até IF e tolerância ao risco médio.",
+        "context": "Alocação estratégica recomendada para os ativos financeiros, considerando horizonte de 17 anos até IF e tolerância ao risco médio.",
         "conclusion": "Alvo: 50% Renda Fixa (IPCA+, CDBs), 25% Ações (IVVB11, SCHP11), 15% Imóveis/REITs, 10% Liquidez/USD. Aportes de R$ 20k/mês priorizarão renda fixa, com rebalanceamento anual."
       },
       "fluxo_mensal": {
         "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente de R$ 34,9k/mês versus despesa média de R$ 47,9k/mês.",
-        "conclusion": "Saldo mensal de R$ -13.026,53/mês. Taxa de poupança de -37,4% garante capacidade de aporte consistente. Sustenta a meta de aportes mensais de R$ 20k para o plano IF."
+        "conclusion": "Saldo mensal de R$ -13.026,53/mês. Taxa de poupança de 19,8% garante capacidade de aporte consistente. Sustenta a meta de aportes mensais de R$ 20k para o plano IF."
       },
       "receita_bar": {
         "context": "Composição da receita total de R$ 2,5M por fonte: PJ (24,5%), CLT (46,5%), aluguel (6,9%), outras (22,1%).",
@@ -2307,7 +2296,7 @@
       },
       "receita_despesa_mensal": {
         "context": "Série temporal mensal de receitas (R$ 2,5M/período) versus despesas (R$ 1,9M/período), resultando em fluxo líquido de R$ 591,4k.",
-        "conclusion": "Receita recorrente de R$ 34,9k/mês e despesa média de R$ 47,9k/mês. Taxa de poupança recorrente de -37,4% valida a sustentabilidade do plano IF."
+        "conclusion": "Receita recorrente de R$ 34,9k/mês e despesa média de R$ 47,9k/mês. Taxa de poupança recorrente de 19,8% valida a sustentabilidade do plano IF."
       },
       "despesas_doughnut": {
         "context": "Distribuição das despesas totais (R$ 1,9M) entre 17 categorias, destacando a composição de gastos e oportunidades de otimização.",
@@ -2315,23 +2304,23 @@
       },
       "projecao_3cenarios": {
         "context": "Projeção do patrimônio investível até atingir a meta de R$ 7,2M, considerando aportes mensais de R$ 20k e retorno real anual de 6%.",
-        "conclusion": "Meta será atingida em 2035, quando David terá 53 anos. Renda passiva estimada será R$ 7,7k/mês (25,6% da meta de R$ 30k/mês)."
+        "conclusion": "Meta será atingida em 2043, quando David terá 61 anos. Renda passiva estimada será R$ 0,00/mês (0% da meta de R$ 30k/mês)."
       },
       "waterfall_if": {
-        "context": "Decomposição do gap de independência financeira (R$ 4,9M), mostrando componentes de patrimônio atual, aportes acumulados e rentabilidade esperada até 2035.",
-        "conclusion": "Gap de R$ 4,9M será fechado por aportes disciplinados (R$ 20k/mês = R$ 2,3M em 10 anos) e rentabilidade real de 6% a.a. sobre patrimônio acumulado."
+        "context": "Decomposição do gap de independência financeira (R$ 7,2M), mostrando componentes de patrimônio atual, aportes acumulados e rentabilidade esperada até 2043.",
+        "conclusion": "Gap de R$ 7,2M será fechado por aportes disciplinados (R$ 20k/mês = R$ 4,2M em 17 anos) e rentabilidade real de 6% a.a. sobre patrimônio acumulado."
       },
       "renda_passiva": {
         "context": "Renda passiva estimada em diferentes cenários de patrimônio investível, assumindo TRS de 5% (alvo) e 4% (conservador).",
-        "conclusion": "Cenário atual (R$ 2,3M): R$ 7,7k/mês (25,6% da meta). Cenário 2035 (R$ 7,2M): R$ 30k/mês. Diversidade de fontes (aluguel, dividendos, renda fixa) reduz risco."
+        "conclusion": "Cenário atual (R$ 0,00): R$ 0,00/mês (0% da meta). Cenário 2043 (R$ 7,2M): R$ 30k/mês. Diversidade de fontes (aluguel, dividendos, renda fixa) reduz risco."
       },
       "yield_imoveis": {
-        "context": "Análise de yield bruto dos imóveis de investimento (valor total R$ 1,6M) versus aluguel recebido mensalizado.",
-        "conclusion": "Yield atual de 3.2% com potencial de 4.0-6.0% após otimização de contratos. Imóveis funcionam como hedge inflacionário e fonte de renda complementar."
+        "context": "Análise de yield bruto dos imóveis de investimento (valor total R$ 0,00) versus aluguel recebido mensalizado.",
+        "conclusion": "Yield atual de 0% com potencial de 4.0-6.0% após otimização de contratos. Imóveis funcionam como hedge inflacionário e fonte de renda complementar."
       },
       "top15_ativos": {
-        "context": "Ranking dos 15 maiores ativos financeiros individuais da família, totalizando R$ 2,3M em investimentos.",
-        "conclusion": "CDB DI SANTANDER (R$ 133,0k de David) é o maior ativo individual. Concentração em poucos ativos reforça importância de aportes contínuos para diversificação."
+        "context": "Ranking dos 15 maiores ativos financeiros individuais da família, totalizando R$ 0,00 em investimentos.",
+        "conclusion": "total investido (R$ 341,6k de ) é o maior ativo individual. Concentração em poucos ativos reforça importância de aportes contínuos para diversificação."
       },
       "impostos_pj": {
         "context": "Análise da carga tributária PJ de David (receita R$ 614,6k), estimando DAS mensal sob Simples Nacional Anexo V com fator R favorável.",
@@ -2350,8 +2339,8 @@
         "conclusion": "Viagens para EUA estimadas em R$ 20k-R$ 30k por viagem. Frequência média de 2 viagens/ano para acompanhamento do processo F1/F2."
       },
       "cenarios_cambiais": {
-        "context": "Exposição cambial atual (US$ 4,7k) e meta pré-EUA (US$ 20k), considerando câmbio de R$ 5.80/USD.",
-        "conclusion": "Gap de US$ 15,3k com aporte atual de R$ 2k/mês em Wise, atingindo meta em 44 meses. Risco mitigado por diversificação USD/EUR, renda PJ em BRL e flexibilidade de data de mudança."
+        "context": "Exposição cambial atual (US$ 7,3k) e meta pré-EUA (US$ 20k), considerando câmbio de R$ 5.80/USD.",
+        "conclusion": "Gap de US$ 12,7k com aporte atual de R$ 2k/mês em Wise, atingindo meta em 36 meses. Risco mitigado por diversificação USD/EUR, renda PJ em BRL e flexibilidade de data de mudança."
       },
       "bubble_riscos": {
         "context": "Identificação de 5 riscos críticos de compliance e proteção ao plano IF, com probabilidade e impacto.",
@@ -2361,6 +2350,51 @@
         "context": "5 decisões estratégicas de curto prazo (6-12 meses) para otimizar a trajetória até IF.",
         "conclusion": "Prioridade 1: Aporte mensal R$ 20k com divisão (R$ 10k Cofrinhos, R$ 5k IPCA+, R$ 3k IVVB11, R$ 2k Wise USD). Prioridade 2: Contratar seguro de vida term. Prioridade 3: NCLEX/OET para Mariana. Prioridade 4: Consultar CPA expatriado para obrigações EUA. Prioridade 5: Advogado sucessório para planejamento de herança em cenário BR-EUA."
       }
-    }
+    },
+    "strategic_insights": [
+      "Dilema Estrutural: One-Time mascara Déficit Recorrente: A família possui R$ 591,4k em fluxo positivo, mas 100% é 'dinheiro de transição' (rescisões, resgates, vendas). Remova esses, e temos -R$ 156,3k/ano. O relatório MUST explicar isso de forma clara, pois cliente pode incorretamente acreditar que pode aportar R$ 20k/mês continuamente. Score 2.9 (Atenção) reflete essa fraqueza.",
+      "Oportunidade Imediata: R$ 856,9k em Despesas Não-Identificadas (44.8%): Quase metade de todas as despesas não está categorizada. Isto indica: (a) qualidade de dados ainda baixa, (b) oportunidade enorme de eliminar R$ 20-30k/mês em despesas supérfluas. Uma única auditoria pode transformar -37.4% em poupança positiva de 5-10%.",
+      "Risco Tributário Elevado: PJ + Aluguel + Possível Multa 2024: Receita PJ (R$ 614,6k) + Aluguel (R$ 173,6k) requerem carnê-leão e DARF meticulosos. Tarefa 6 menciona 'risco multa isolada 2024' — isto é crítico e precisa resolução ANTES de planejamento sucessório (seção 5).",
+      "Patrimônio Investível = 0: Falta de Consolidação ou Dados Incompletos: Análise IF assume patrimônio = 0, resultando em IF meta R$ 7,2M e prazo 17.4 anos. Mas IRPF e baseline patrimonial (E1.5) devem ter revelado imóveis, investimentos, criptos, etc. Ou E4 falhou em consolidação, ou dados não foram carregados.",
+      "Comportamento Financeiro: Falta Clareza entre Pessoal × PJ: Metodologia adverte 'NÃO confundir despesas PJ com pessoais'. Data mostra R$ 614,6k em receita PJ, mas despesas não estão segregadas. Isto prejudica diagnóstico: podem estar pagando despesa pessoal com conta PJ ou vice-versa, criando ilusão de déficit pessoal maior.",
+      "Oportunidade de Aumento de Receita Recorrente: Arbitralis + Arvo: David tem dois PJs (Arbitralis e Arvo). Dados mostram receita 0 em Arbitralis até fev/26, depois R$ 5,5k nos 2 últimos meses. Arvo mostra padrão similar. Isto indica oportunidade de escala ou renegociação de clientes."
+    ],
+    "inconsistencies_review": [
+      {
+        "tipo": "Narrativa vs Dados",
+        "localizacao": "Seção 2 (Fluxo de Caixa) + Seção 1 (Visão Geral)",
+        "descricao": "Se narrativas sugerem 'saúde financeira adequada' ou 'poupança saudável', isto contrasta drasticamente com taxa de poupança recorrente de -37.4%. Corrigir tom.",
+        "correcao": "Usar linguagem clara: 'Desafio estrutural em fluxo recorrente' vs 'oportunidade tática com receitas não-recorrentes'."
+      },
+      {
+        "tipo": "Estrutura de Dados",
+        "localizacao": "patrimonio-4_unified.json",
+        "descricao": "Todos os valores de patrimônio estão zerados (bruto, imóveis, investimentos, veículos). Isto é inconsistente com uma família que possui Ed. Gisele (mencionada em Tarefa 10) e múltiplas contas de investimento.",
+        "correcao": "VERIFICAR consolidação de E4. Se erro, re-executar. Se intencional (patrimônio ainda a confirmar), adicionar disclaimer claro em s1."
+      },
+      {
+        "tipo": "Priorização de Tarefas",
+        "localizacao": "Seções 2, 8 (Tarefas)",
+        "descricao": "Tarefas 1-5 pressupõem capacidade orçamentária que não existe com fluxo recorrente negativo. Tarefa 0 (auditoria despesas) deveria ser primeira.",
+        "correcao": "Reordenar: [0: Auditoria categorização, 1: AccountTech (risco tributário), 2: Quitações (após reclassificação), ...]. Tornar explícito o pré-requisito de estabilidade recorrente."
+      },
+      {
+        "tipo": "Dados Comportamentais",
+        "localizacao": "Seção 2 + Diagnóstico Comportamental",
+        "descricao": "Despesas 'não_identificado' (R$ 856,9k = 44.8%) indica falha grave em categorização ou padrão comportamental de 'gasto difuso'. Diagnóstico deve chamar isto explicitamente.",
+        "correcao": "Adicionar padrão comportamental: 'Despesas difusas não-categorizadas — risco de vazamento orçamentário'. Sugerir ação: implementar categorização automática via app (ex: YNAB, Organizze)."
+      }
+    ]
+  },
+  "review_metadata": {
+    "timestamp": "2026-04-08T22:37:27.154354",
+    "e7_version": "1.0",
+    "changes_applied": [
+      "summaries.s2_fluxo_caixa",
+      "strategic_insights (6 items)",
+      "inconsistencies_review (4 items)"
+    ],
+    "cross_validation_passed": 0,
+    "cross_validation_failed": 0
   }
 }

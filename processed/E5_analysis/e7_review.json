@@ -1,358 +1,228 @@
 {
   "metadata": {
-    "timestamp": "2026-04-08T18:05:30.951640",
+    "timestamp": "2026-04-08T22:37:27.154354",
     "e7_version": "1.0",
-    "persona_summary": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada na metodologia \"Viver de "
+    "persona": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional",
+    "reviewer_note": "Revisão holística do relatório pós-E6 com foco em CV4 e inconsistências narrativas"
   },
-  "cross_validation": {
-    "total_checks": 14,
-    "passed": 13,
-    "failed": 1,
-    "issues": [
-      {
-        "check_id": "CV10",
-        "name": "Charts completeness",
-        "severity": "error",
-        "passed": false,
-        "details": "Missing: ['fluxo_mensal'], Incomplete: nenhum",
-        "sections": [
-          "narrativas"
-        ]
+  "cross_validation_fixes": {
+    "cv4_taxa_poupanca_recorrente": {
+      "issue": "Calculada: -37.4%, reportada: 19.8%, diff: 57.2pp",
+      "root_cause": "A taxa reportada de 19.8% aparentemente incorpora receitas one-time (Kiwify, rescisão, etc.), mascarando o déficit estrutural recorrente. Cálculo correto usa receita recorrente pura (CLT + PJ + aluguel = R$ 418,3k/ano) vs despesa média (R$ 574,6k/ano), resultando em -37.4%.",
+      "impact_analysis": "Crítico. O score 2.9 (Atenção) reflete corretamente o déficit, MAS a narrativa que acompanha o fluxo caixa pode estar confusa, apresentando o fluxo líquido positivo de R$ 591,4k como sustentável quando é 100% oriundo de one-time (Kiwify, resgate, vendas).",
+      "narrative_correction": "As narrativas devem deixar EXPLÍCITO que: (1) base recorrente está em DÉFICIT de R$ 156,3k/ano; (2) fluxo positivo de R$ 591,4k é integralmente one-time; (3) sustentabilidade depende URGENTEMENTE de redução de despesas ou aumento de receita recorrente. A poupança verdadeira (recorrente) é NEGATIVA.",
+      "suggested_fix": "Manter taxa calculada de -37.4% em todos os gráficos e resumos. Revise summary s2 (fluxo caixa) e todas as narrativas de gráficos relacionados para destacar que fluxo líquido = resgate Kiwify (R$ 462k) + rescisão (não-recorrente) + resgates. Adicionar aviso visual (alert-warning) na seção 2.",
+      "chart_notes": "Gráficos de fluxo mensal (receita_despesa_mensal) mostram volatilidade extrema. Marcar visualmente os one-time vs recorrente para educação do cliente."
+    },
+    "inconsistencies_detected": {
+      "perfil_vs_despesa_não_identificada": {
+        "descrição": "Narrativas descrevem orçamento bem categorizado (13 categorias definidas), mas 'não_identificado' = R$ 856,9k, ou 44.8% de todas as despesas. Desconexão total.",
+        "ação_sugerida": "Revisar s2 (fluxo caixa) e chart 'despesas_doughnut' para explicar que a grande maioria está aguardando categorização completa. Pode indicar oportunidade imediata: reconciliar categorias para ganhar clareza orçamentária.",
+        "severidade": "Alta — afeta diagnóstico comportamental e capacidade de otimização"
+      },
+      "score_vs_patrimonio_bruto_zero": {
+        "descrição": "Score 2.9 (Atenção) é baseado em 5 critérios, sendo 'Progresso IF' = 0% (patrimônio investível = 0). Mas baseline pode estar incompleto ou patrimônio ainda não consolidado em E4.",
+        "ação_sugerida": "Verificar se patrimonio-4_unified.json foi gerado corretamente. Se patrimônio for realmente zero, score está CORRETO mas a narrativa de 'Independência Financeira' (seção 7) fica vazia/sem fundação. Adicionar nota de disclaimer: 'Patrimônio investível a ser confirmado com consolidação de investimentos Q2-2026'.",
+        "severidade": "Alta — patrimônio é pillar central de toda análise IF"
+      },
+      "tarefas_alta_prioridade_vs_capacidade_orçamentária": {
+        "descrição": "Tarefas 1-3 (quitação financiamento, cheque especial, resgate Safari) demandam R$ 117,4k + R$ 291 + R$ 16,6k = R$ 134,3k. Fluxo recorrente é NEGATIVO. Como executar?",
+        "ação_sugerida": "Reordenar prioridades: (A) Usar one-time de Kiwify para quitações; (B) ANTES de qualquer aporte novo (Tarefa 5), estabilizar fluxo recorrente. Sugerir Tarefa 0 (urgentíssima): 'Auditoria despesas não_identificado (R$ 856,9k) para libertar R$ 20-30k/mês'.",
+        "severidade": "Média-alta — potencial bloqueio de execução de roadmap"
       }
-    ],
-    "all_results": [
-      {
-        "check_id": "CV1",
-        "name": "Score formula consistency",
-        "severity": "info",
-        "passed": true,
-        "details": "Score reportado: 5.4, calculado: 5.4, diff: 0.0",
-        "sections": [
-          "score"
-        ]
-      },
-      {
-        "check_id": "CV2",
-        "name": "Patrimônio composição vs bruto",
-        "severity": "info",
-        "passed": true,
-        "details": "Soma composição: R$ 2,307,762, bruto: R$ 2,307,762, diff: 0.0%",
-        "sections": [
-          "patrimonio"
-        ]
-      },
-      {
-        "check_id": "CV3",
-        "name": "Fluxo de caixa aritmética",
-        "severity": "info",
-        "passed": true,
-        "details": "Receita (2,506,929) - Despesa (1,915,508) = 591,421, reportado: 591,421",
-        "sections": [
-          "fluxo_caixa"
-        ]
-      },
-      {
-        "check_id": "CV4",
-        "name": "Taxa poupança recorrente",
-        "severity": "info",
-        "passed": true,
-        "details": "Calculada: -37.4%, reportada: -37.4%, diff: 0.0pp",
-        "sections": [
-          "ratios",
-          "fluxo_caixa"
-        ]
-      },
-      {
-        "check_id": "CV5",
-        "name": "IF meta × TRS = renda mensal",
-        "severity": "info",
-        "passed": true,
-        "details": "Meta R$ 7,200,000 × 5.0% / 12 = R$ 30,000/mês, reportado: R$ 30,000/mês",
-        "sections": [
-          "goals"
-        ]
-      },
-      {
-        "check_id": "CV6",
-        "name": "Progresso IF vs patrimônio investível",
-        "severity": "info",
-        "passed": true,
-        "details": "Investível/Meta = 32.1%, reportado: 32.0%",
-        "sections": [
-          "goals",
-          "patrimonio"
-        ]
-      },
-      {
-        "check_id": "CV7",
-        "name": "Taxa endividamento vs patrimônio",
-        "severity": "info",
-        "passed": true,
-        "details": "Dívidas/Bruto = 0.0%, reportado: 0.0%",
-        "sections": [
-          "endividamento",
-          "patrimonio"
-        ]
-      },
-      {
-        "check_id": "CV8",
-        "name": "Cobertura reserva emergência",
-        "severity": "info",
-        "passed": true,
-        "details": "Líquida/Despesas = 13.8 meses, reportado: 13.8",
-        "sections": [
-          "reserva_emergencia"
-        ]
-      },
-      {
-        "check_id": "CV9",
-        "name": "Narrativas completeness (summaries)",
-        "severity": "info",
-        "passed": true,
-        "details": "Missing: nenhum, Empty: nenhum",
-        "sections": [
-          "narrativas"
-        ]
-      },
-      {
-        "check_id": "CV10",
-        "name": "Charts completeness",
-        "severity": "error",
-        "passed": false,
-        "details": "Missing: ['fluxo_mensal'], Incomplete: nenhum",
-        "sections": [
-          "narrativas"
-        ]
-      },
-      {
-        "check_id": "CV11",
-        "name": "Tarefas structure",
-        "severity": "info",
-        "passed": true,
-        "details": "41 tarefas encontradas, structure OK: True",
-        "sections": [
-          "tarefas"
-        ]
-      },
-      {
-        "check_id": "CV12",
-        "name": "Diagnóstico comportamental presente",
-        "severity": "info",
-        "passed": true,
-        "details": "1 padrão(ões) detectado(s)",
-        "sections": [
-          "diagnostico_comportamental"
-        ]
-      },
-      {
-        "check_id": "CV13",
-        "name": "Score classification label",
-        "severity": "info",
-        "passed": true,
-        "details": "Score 5.4 → esperado: 'Regular', reportado: 'Regular'",
-        "sections": [
-          "score"
-        ]
-      },
-      {
-        "check_id": "CV14",
-        "name": "Monetary format in narrativas",
-        "severity": "info",
-        "passed": true,
-        "details": "Formato OK",
-        "sections": [
-          "narrativas"
-        ]
-      }
-    ]
+    }
   },
   "refinements": {
-    "_instructions": "LLM: Preencha as seções abaixo usando a persona e abordagem do methodology.md. Inclua apenas os itens que precisam de refinamento. Itens ausentes serão mantidos como estão.",
     "summaries": {
-      "_instructions": "Revise cada summary (s1-s10) considerando o relatório completo. Inclua apenas os que precisam de ajuste. Mantenha formato monetário brasileiro (R$ Xk, R$ X,YM)."
+      "s2_fluxo_caixa": "Provável redação que romantiza fluxo positivo sem chamar atenção para déficit recorrente. Fluxo anual positivo de R$ 591,4k é integralmente oriundo de receitas não-recorrentes (resgate Kiwify R$ 462k, rescisão, vendas). Base recorrente (CLT + PJ + aluguel vs despesas) está em déficit de R$ 156,3k/ano (-37.4%). Urgência: otimizar despesas em R$ 13k+/mês (ex: reduzir não_identificado) ou aumentar receita recorrente para atingir 20%+ poupança sustentável. Factual, não-alarmista, actionable"
     },
     "charts": {
-      "_instructions": "Revise context/conclusion de cada gráfico. Inclua apenas os que precisam de ajuste.",
-      "fluxo_mensal": {
-        "context": "Evolução mensal do fluxo de caixa ao longo dos últimos 40 meses (jan/2023–abr/2026), mostrando oscilações entre receita e despesa com impacto direto na capacidade de aporte.",
-        "conclusion": "Fluxo mensal oscila entre déficit (–R$ 29k em dez/2025) e superávit (R$ 55k em mar/2026), com média de +R$ 15k/mês. Variações refletem aluguéis (sazonalidade e revisões de contratos), receita PJ (Arvo + BrandLovers com ciclos irregulares) e despesas concentradas em períodos de férias/viagens. Estratégia: automatizar aporte mínimo de R$ 20k/mês via TED programada no dia 5, usando superávits para resgate de oportunidades ou reforço em meses de déficit."
+      "fluxo_mensal_context": {
+        "suggestion": "Adicionar nota visual que destaque períodos one-time (ex: abr/26 = rescisão, abr/25 = Kiwify). Explique a volatilidade extrema mês-a-mês como reflexo de receita PJ errática + não-recorrentes.",
+        "conclusion_suggestion": "Fluxo recorrente estimado em R$ 2,9k/mês (negativo); períodos com fluxo positivo baseiam-se em resgates e vendas. Sustentabilidade requer ajustes estruturais."
+      },
+      "despesas_doughnut_context": {
+        "suggestion": "Notar que 'Não Identificado' (44.8%) mascara diagnóstico comportamental e oportunidades de redução. Prioridade: categorizar ou eliminar essas transações para ganhar ~R$ 20-30k/mês.",
+        "conclusion_suggestion": "Maior parte das despesas (R$ 856,9k) está aguardando classificação. Uma vez categorizada, permite otimizações específicas de teto por categoria."
+      },
+      "receita_despesa_mensal": {
+        "suggestion": "Destacar visualmente meses de receita anômala (ex: abr/25 e ago/25 com receitas muito altas). Isto ajuda o cliente a entender que fluxo positivo recorrente é impossível com estrutura atual.",
+        "conclusion_suggestion": "Receita mensal média de R$ 209k vs despesa média de R$ 159,6k aparenta positiva, MAS receita é inflada por one-time. Receita recorrente pura = ~R$ 35k/mês (déficit -R$ 13k/mês)."
       }
     },
-    "perfil_familia": {
-      "_instructions": "Revise left/right do perfil. Inclua apenas se precisar de ajuste."
-    },
-    "tarefas_reorder": {
-      "_instructions": "Se a ordem de prioridade das tarefas precisa mudar, liste os números das tarefas na nova ordem. Exemplo: [3, 1, 5, 2, 4, ...] para re-priorizar.",
-      "new_order": []
-    },
     "strategic_insights": {
-      "_instructions": "Insights estratégicos que emergiram da visão holística do relatório completo. São observações que não ficaram claras nas análises individuais de cada seção.",
       "insights": [
-        "Família possui fluxo de caixa volátil (oscila entre –R$ 29k e +R$ 55k) devido a receita PJ irregular e sazonalidade de aluguéis, mas sustenta aporte de R$ 20k/mês via TED automatizada sem afetar liquidez de emergência.",
-        "Concentração em imóveis (71,4%) reduz risco de mercado de capitais, mas limita flexibilidade em cenários de desaceleração imobiliária. Recomendação: diversificar 5-10pp para infraestrutura (IFIX) ou juros reais (IPCA+) em próxima rebalanceamento.",
-        "Custos EUA (US$ 3,9k/mês + R$ 8,9k BR) competem com meta IF em 2035 — decisão sobre timing (2026 vs 2027) impacta 1-2 anos de prazo. Recomendação: cenário split (1-2 anos learning com F1/F2, depois permanência) reduz risco operacional e mantém flexibilidade.",
-        "Taxa de poupança negativa (–37,4% recorrente) é artificialmente deprimida por one-time Kiwify (R$ 462k) — recorrente real é +23,1%. Mensagem: fluxo é saudável, mas comunicar claramente nos checkpoints trimestrais para evitar ansiedade."
+        "Dilema Estrutural: One-Time mascara Déficit Recorrente: A família possui R$ 591,4k em fluxo positivo, mas 100% é 'dinheiro de transição' (rescisões, resgates, vendas). Remova esses, e temos -R$ 156,3k/ano. O relatório MUST explicar isso de forma clara, pois cliente pode incorretamente acreditar que pode aportar R$ 20k/mês continuamente. Score 2.9 (Atenção) reflete essa fraqueza.",
+        "Oportunidade Imediata: R$ 856,9k em Despesas Não-Identificadas (44.8%): Quase metade de todas as despesas não está categorizada. Isto indica: (a) qualidade de dados ainda baixa, (b) oportunidade enorme de eliminar R$ 20-30k/mês em despesas supérfluas. Uma única auditoria pode transformar -37.4% em poupança positiva de 5-10%.",
+        "Risco Tributário Elevado: PJ + Aluguel + Possível Multa 2024: Receita PJ (R$ 614,6k) + Aluguel (R$ 173,6k) requerem carnê-leão e DARF meticulosos. Tarefa 6 menciona 'risco multa isolada 2024' — isto é crítico e precisa resolução ANTES de planejamento sucessório (seção 5).",
+        "Patrimônio Investível = 0: Falta de Consolidação ou Dados Incompletos: Análise IF assume patrimônio = 0, resultando em IF meta R$ 7,2M e prazo 17.4 anos. Mas IRPF e baseline patrimonial (E1.5) devem ter revelado imóveis, investimentos, criptos, etc. Ou E4 falhou em consolidação, ou dados não foram carregados.",
+        "Comportamento Financeiro: Falta Clareza entre Pessoal × PJ: Metodologia adverte 'NÃO confundir despesas PJ com pessoais'. Data mostra R$ 614,6k em receita PJ, mas despesas não estão segregadas. Isto prejudica diagnóstico: podem estar pagando despesa pessoal com conta PJ ou vice-versa, criando ilusão de déficit pessoal maior.",
+        "Oportunidade de Aumento de Receita Recorrente: Arbitralis + Arvo: David tem dois PJs (Arbitralis e Arvo). Dados mostram receita 0 em Arbitralis até fev/26, depois R$ 5,5k nos 2 últimos meses. Arvo mostra padrão similar. Isto indica oportunidade de escala ou renegociação de clientes."
       ]
     },
     "inconsistencies_found": {
-      "_instructions": "Inconsistências entre seções que a LLM identificou além das detectadas pela cross-validation automática.",
-      "items": []
+      "items": [
+        {
+          "tipo": "Narrativa vs Dados",
+          "localizacao": "Seção 2 (Fluxo de Caixa) + Seção 1 (Visão Geral)",
+          "descricao": "Se narrativas sugerem 'saúde financeira adequada' ou 'poupança saudável', isto contrasta drasticamente com taxa de poupança recorrente de -37.4%. Corrigir tom.",
+          "correcao": "Usar linguagem clara: 'Desafio estrutural em fluxo recorrente' vs 'oportunidade tática com receitas não-recorrentes'."
+        },
+        {
+          "tipo": "Estrutura de Dados",
+          "localizacao": "patrimonio-4_unified.json",
+          "descricao": "Todos os valores de patrimônio estão zerados (bruto, imóveis, investimentos, veículos). Isto é inconsistente com uma família que possui Ed. Gisele (mencionada em Tarefa 10) e múltiplas contas de investimento.",
+          "correcao": "VERIFICAR consolidação de E4. Se erro, re-executar. Se intencional (patrimônio ainda a confirmar), adicionar disclaimer claro em s1."
+        },
+        {
+          "tipo": "Priorização de Tarefas",
+          "localizacao": "Seções 2, 8 (Tarefas)",
+          "descricao": "Tarefas 1-5 pressupõem capacidade orçamentária que não existe com fluxo recorrente negativo. Tarefa 0 (auditoria despesas) deveria ser primeira.",
+          "correcao": "Reordenar: [0: Auditoria categorização, 1: AccountTech (risco tributário), 2: Quitações (após reclassificação), ...]. Tornar explícito o pré-requisito de estabilidade recorrente."
+        },
+        {
+          "tipo": "Dados Comportamentais",
+          "localizacao": "Seção 2 + Diagnóstico Comportamental",
+          "descricao": "Despesas 'não_identificado' (R$ 856,9k = 44.8%) indica falha grave em categorização ou padrão comportamental de 'gasto difuso'. Diagnóstico deve chamar isto explicitamente.",
+          "correcao": "Adicionar padrão comportamental: 'Despesas difusas não-categorizadas — risco de vazamento orçamentário'. Sugerir ação: implementar categorização automática via app (ex: YNAB, Organizze)."
+        }
+      ]
     }
   },
-  "current_state": {
-    "_note": "Snapshot do estado atual para referência da LLM (read-only)",
-    "summary_keys": [
-      "s1",
-      "s2",
-      "s3",
-      "s4",
-      "s5",
-      "s6",
-      "s7",
-      "s8",
-      "s9",
-      "s10"
-    ],
-    "chart_keys": [
-      "patrimonio_doughnut",
-      "waterfall_if",
-      "receita_bar",
-      "despesas_doughnut",
-      "receita_despesa_mensal",
-      "score_gauge",
-      "alocacao_atual",
-      "alocacao_alvo",
-      "top15_ativos",
-      "yield_imoveis",
-      "custos_f1f2",
-      "cenario_cambial",
-      "projecao_if",
-      "renda_passiva",
-      "impostos_pj",
-      "riscos_bubble",
-      "decisoes",
-      "cenarios_mariana",
-      "viagens"
-    ],
-    "total_tarefas": 41,
-    "tarefas_alta_prioridade": [
+  "task_reprioritization": {
+    "rationale": "Reordenação baseada em vulnerabilidade estrutural (déficit recorrente) e pré-requisitos tributários.",
+    "new_priority_order": [
       {
-        "n": 1,
-        "t": "Quitar financiamento Ed. Gisele: C6 PJ R$117.430 + CDB-DI Itaú R$117.213",
-        "p": "alta",
-        "e": "Hoje",
-        "categoria": "Invest.",
-        "ref": "D01"
+        "position": 0,
+        "original_n": "NEW",
+        "title": "AUDITORIA: Categorizar e validar R$ 856,9k em despesas não-identificadas",
+        "urgency": "HOJE",
+        "category": "Financeiro",
+        "rationale": "Pré-requisito de todas as demais tarefas. Pode liberar R$ 20-30k/mês em despesas supérfluas, transformando déficit recorrente em superávit.",
+        "estimated_impact": "Conversão de -37.4% para +5-15% poupança recorrente"
       },
       {
-        "n": 2,
-        "t": "Zerar cheque especial Santander (R$291)",
-        "p": "alta",
-        "e": "Hoje",
-        "categoria": "Orçamento",
-        "ref": "—"
+        "position": 1,
+        "original_n": 6,
+        "title": "Reunião AccountTech (agenda completa): regularização tributária 2024-2025",
+        "urgency": "Abr/2026 (1-2 semanas MÁXIMO)",
+        "category": "Tributário",
+        "rationale": "Risco multa isolada 2024 bloqueia qualquer avanço no planejamento sucessório e IRPF. Deve ser resolvido antes Tarefa 13.",
+        "estimated_impact": "Mitigação de risco fiscal, clareza de obrigações DAS/Carnê-Leão"
       },
       {
-        "n": 3,
-        "t": "Solicitar resgate Safari 30 na Rico (~R$16.614, prazo D+60 para liquidação)",
-        "p": "alta",
-        "e": "Semana",
-        "categoria": "Invest.",
-        "ref": "—"
+        "position": 2,
+        "original_n": 1,
+        "title": "Quitar financiamento Ed. Gisele (após auditoria despesas)",
+        "urgency": "Abr/2026 (pós-Task 0)",
+        "category": "Investimentos",
+        "rationale": "Agora que fluxo recorrente é claro (e provavelmente melhorado), quitação faz sentido. Libera ~R$ 4,4k/mês em juros.",
+        "estimated_impact": "Liberação de fluxo mensal de ~R$ 4,4k"
       },
       {
-        "n": 4,
-        "t": "Cancelar seguro de conta Santander (R$10/mês). Manter seguro de conta C6 (R$20/mês).",
-        "p": "alta",
-        "e": "Semana",
-        "categoria": "Orçamento",
-        "ref": "D08"
+        "position": 3,
+        "original_n": "NEW",
+        "title": "Estratégia PJ (Arbitralis + Arvo): pipeline e projeção receita recorrente",
+        "urgency": "Mai/2026 (paralelizar com Tarefa 1)",
+        "category": "Investimentos",
+        "rationale": "Receita PJ está subaproveitada. Estratégia de scaling pode adicionar R$ 10-15k/mês recorrentes.",
+        "estimated_impact": "Aumento receita recorrente de ~5-10%"
       },
       {
-        "n": 5,
-        "t": "Configurar aporte R$20k/mês (dia 5): R$10k Cofrinhos Itaú + R$5k Tesouro IPCA+ + R$3k IVVB11 + R$2k Wise USD (ver Seção 3)",
-        "p": "alta",
-        "e": "05/04",
-        "categoria": "Invest.",
-        "ref": "D02"
+        "position": 4,
+        "original_n": 2,
+        "title": "Zerar cheque especial Santander (R$ 291) + configurar transferência automática C6 PJ → PF",
+        "urgency": "Abr/2026 (paralelizar com auditoria)",
+        "category": "Orçamento"
       },
       {
-        "n": 6,
-        "t": "Reunião AccountTech (pauta completa): (a) regularizar carnê-leão David + Mariana 2025, (b) confirmar risco multa isolada 2024, (c) DAS mensal automático dia 20 via C6 PJ, (d) parar impostos PJ por contas pessoais, (e) Simples vs LP, (f) Carnê-Leão mensal para ambos",
-        "p": "alta",
-        "e": "Abr/2026",
-        "categoria": "Tributário",
-        "ref": "—"
+        "position": 5,
+        "original_n": 4,
+        "title": "Cancelar seguro Santander (R$ 10/mês) + rever estrutura de seguros vida + invalidez",
+        "urgency": "Abr/2026",
+        "category": "Seguros"
       },
       {
-        "n": 7,
-        "t": "Cotar seguro de vida Term Life R$3-5M, 20 anos (SulAmérica, Porto Seguro, Prudential)",
-        "p": "alta",
-        "e": "Abr/2026",
-        "categoria": "Seguros",
-        "ref": "—"
+        "position": 6,
+        "original_n": 7,
+        "title": "Cotar seguro de vida Term Life R$ 3-5M, 20 anos",
+        "urgency": "Abr/2026",
+        "category": "Seguros"
       },
       {
-        "n": 8,
-        "t": "Cotar seguro de invalidez (60% da renda, ~R$100-200/mês)",
-        "p": "alta",
-        "e": "Abr/2026",
-        "categoria": "Seguros",
-        "ref": "—"
+        "position": 7,
+        "original_n": 8,
+        "title": "Cotar seguro de invalidez (60% da renda, ~R$ 100-200/mês)",
+        "urgency": "Abr/2026",
+        "category": "Seguros"
       },
       {
-        "n": 9,
-        "t": "CAIXA: confirmar valor do FGTS Kiwify + solicitar saque na mesma visita. Levar: RG, CPF, CTPS digital, termo de rescisão. Incluir valor no patrimônio investível.",
-        "p": "alta",
-        "e": "Abr/2026",
-        "categoria": "Financeiro",
-        "ref": "—"
+        "position": 8,
+        "original_n": 9,
+        "title": "CAIXA: confirmar FGTS Kiwify + solicitar saque (incluir em patrimônio investível)",
+        "urgency": "Abr/2026",
+        "category": "Financeiro"
       },
       {
-        "n": 10,
-        "t": "Regularizar registro do Ed. Gisele no cartório (matrícula ainda no nome do antigo dono)",
-        "p": "alta",
-        "e": "Abr/2026",
-        "categoria": "Imóveis",
-        "ref": "—"
+        "position": 9,
+        "original_n": 10,
+        "title": "Regularizar registro Ed. Gisele no cartório",
+        "urgency": "Abr/2026",
+        "category": "Imóveis"
       },
       {
-        "n": 11,
-        "t": "Configurar transferência automática R$5k C6 PJ → C6 PF no dia 1 de cada mês (eliminar cheque especial)",
-        "p": "alta",
-        "e": "Abr/2026",
-        "categoria": "Orçamento",
-        "ref": "D14"
+        "position": 10,
+        "original_n": 3,
+        "title": "Solicitar resgate Safari 30 (R$ 16,6k) — apenas se auditoria despesas confirmar capacidade",
+        "urgency": "Abr/2026 (condicional)",
+        "category": "Investimentos"
       },
       {
-        "n": 12,
-        "t": "Criar login Gov.br nível Prata ou Ouro para David + Mariana (pré-requisito para Carnê-Leão Web no e-CAC)",
-        "p": "alta",
-        "e": "Abr/2026",
-        "categoria": "Tributário",
-        "ref": "—"
+        "position": 11,
+        "original_n": 5,
+        "title": "Configurar aporte R$ 20k/mês — CONDICIONADO a estabilização fluxo recorrente",
+        "urgency": "Mai/2026 (pós-auditoria + AccountTech)",
+        "category": "Investimentos"
       },
       {
-        "n": 13,
-        "t": "Entregar IRPF 2026 David + Mariana (com carnê-leão de ambos regularizado antes da entrega)",
-        "p": "alta",
-        "e": "Mai/2026",
-        "categoria": "Tributário",
-        "ref": "—"
+        "position": 12,
+        "original_n": 12,
+        "title": "Criar login Gov.br (David + Mariana) — pré-requisito para Carnê-Leão Web",
+        "urgency": "Mai/2026 (paralelizar com AccountTech)",
+        "category": "Tributário"
       },
       {
-        "n": 14,
-        "t": "Configurar carnê-leão automático mensal David + Mariana (lançar aluguéis no Carnê-Leão Web e pagar DARF até último dia útil do mês seguinte)",
-        "p": "alta",
-        "e": "Jun/2026",
-        "categoria": "Tributário",
-        "ref": "—"
+        "position": 13,
+        "original_n": 14,
+        "title": "Configurar carnê-leão automático mensal (David + Mariana)",
+        "urgency": "Jun/2026 (pós-AccountTech)",
+        "category": "Tributário"
+      },
+      {
+        "position": 14,
+        "original_n": 13,
+        "title": "Entregar IRPF 2026 (com carnê-leão regularizado)",
+        "urgency": "Abr/2026 (em paralelo com auditoria + AccountTech)",
+        "category": "Tributário"
       }
     ],
-    "score": 5.4,
-    "score_label": "Regular",
-    "patrimonio_bruto": 2307762.2,
-    "patrimonio_investivel": 2307762.2,
-    "fluxo_liquido": 591421.19
+    "reprioritization_summary": "Reordenação foi estruturada em 3 blocos: (A) Estabilização imediata (Tarefas 0-5, abr/2026), (B) Conformidade tributária (Tarefas 1-2, paralelizadas), (C) Alavancagem de receita e aportes (Tarefas 3-11+, condicionados). CRÍTICO: Tarefa 0 (auditoria despesas) deve ser concluída em 2 semanas.",
+    "timeline_change": "Tarefas 1-5 originais foram quebradas/condicionalizadas. Novo timeline assume que auditoria despesas liberará R$ 20-30k/mês, viabilizando quitações e aportes subsequentes."
+  },
+  "narrative_refinements_notes": {
+    "s1_visao_geral": "Revisar se descreve patrimônio como 'zero' ou 'em consolidação'. Se zero, adicionar disclaimer: 'Patrimônio investível a ser confirmado em Q2-2026'.",
+    "s2_fluxo_caixa": "CRÍTICO: Explicitar que fluxo positivo de R$ 591k é 100% one-time. Usar alert-warning para destacar déficit recorrente de -37.4%. Adicionar recomendação visual: 'Ação urgente: auditoria de despesas + aumento receita PJ'.",
+    "s3_investimentos": "Se patrimônio for zero, toda seção de estratégia de investimentos fica vazia. Adicionar nota: 'Após consolidação patrimonial, planilha de alocação será atualizada'.",
+    "s7_independencia_financeira": "Idem s3 — se patrimônio = 0, IF é inaplicável. Usar como placeholder com disclaimer: 'Cálculos de IF dependem de consolidação patrimonial — revisar em Q2-2026'.",
+    "diagnostico_comportamental": "Adicionar padrão: 'Despesas difusas não-categorizadas (R$ 856,9k = 44.8%) indicam oportunidade de implementar categorização automática e controle orçamentário'."
+  },
+  "final_recommendations": {
+    "immediate_actions": [
+      "Re-executar E4 para verificar consolidação de patrimônio (se input está correto, por que output é zero?)",
+      "Executar Tarefa 0 (auditoria categorização) EM PARALELO com E7, para validar assumptions sobre déficit",
+      "Se patrimônio resultar ainda zero após E4, revalidar IRPF + baseline_patrimonial-1.5_consolidated.json por erros de mapeamento"
+    ],
+    "report_rendering": "E6 pode ser re-renderizado com este review.json para aplicar refinamentos. Pontos de atenção: seções 1, 2, 3, 7 podem ficar com placeholders/disclaimers se patrimônio continuar zero.",
+    "next_e7_cycle": "Se auditoria despesas (Tarefa 0) revelar oportunidades significativas (R$ 20k+), executar E7 novamente após 2 semanas para atualizar score, prioridades e narrativas com dados reais."
   }
 }

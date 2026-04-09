@@ -1,84 +1,132 @@
 {
-  "tipo": "curriculum_vitae",
+  "tipo": "curriculo",
   "membro": "mariana",
   "nome_completo": "Mariana Ferreira Campos",
   "nome_atual": "Mariana Ferreira Campos",
-  "nome_solteira": "Mariana Teixeira Ferreira",
-  "profissao_cargo": "Enfermeira",
-  "contatos": {
-    "telefone": "+55 11 96073-3929",
-    "email": "mtf3008@gmail.com",
-    "linkedin": "www.linkedin.com/in/mariana-ferreira-campos",
-    "localizacao": "São Paulo, Brasil"
-  },
-  "resumo": "Enfermeira com mais de 10 anos de carreira sólida em instituições de alta complexidade, combinando excelência assistencial, rigor acadêmico e gestão da qualidade. Mestre em Ciências pela USP (Enfermagem na Saúde do Adulto) e Especialista em Cardiologia pela UNIFESP.",
-  "competencias": [
-    "Processo de enfermagem",
-    "Cuidados de qualidade ao paciente",
-    "Gestão de equipes",
-    "Auditoria e Qualidade",
-    "Projetos PDCA e Auditoria de Prontuário Eletrônico",
-    "Classificação de Risco (Protocolo de Manchester)",
-    "Advanced Trauma Care for Nurses (ATCN)",
-    "Gestão de Crônicos",
-    "Preceptoria em Esclerose Múltipla",
-    "Osteoporose"
-  ],
+  "profissao_cargo": "Enfermeira Mestre (USP) — Hospital Israelita Albert Einstein",
   "experiencias": [
     {
-      "cargo": "Enfermeiro",
       "empresa": "Hospital Israelita Albert Einstein",
-      "localizacao": "São Paulo, Brasil",
+      "cargo": "Enfermeiro",
+      "tipo_vinculo": "CLT",
       "data_inicio": "2018-01",
-      "data_fim": null,
-      "atual": true,
-      "duracao": "8 anos 3 meses (até presente)",
-      "descricao": "Atuação em unidade de alta complexidade com foco em Cardiologia, Clínica Médica e Cirúrgica. Auditoria e Qualidade, Preceptoria."
+      "data_fim": "presente",
+      "descricao": "Atuação em unidade de alta complexidade em Cardiologia, Clínica Médica e Cirúrgica. Auditoria de prontuários eletrônicos, projetos de melhoria contínua, segurança do paciente e preceptoria."
     },
     {
+      "empresa": "Faculdade Israelita Albert Einstein",
+      "cargo": "Docente universitário",
+      "tipo_vinculo": "docencia",
+      "data_inicio": "2021-01",
+      "data_fim": "2024-12",
+      "descricao": "Docência em Semiologia e Semiotécnica com desenvolvimento de conteúdo teórico-prático e avaliação de competências clínicas."
+    },
+    {
+      "empresa": "Senac São Paulo",
+      "cargo": "Docente universitário",
+      "tipo_vinculo": "docencia",
+      "data_inicio": "2012-01",
+      "data_fim": "2016-01",
+      "descricao": "Docência em formação profissional de enfermagem."
+    },
+    {
+      "empresa": "Faculdade Sequencial",
+      "cargo": "Docente universitário",
+      "tipo_vinculo": "docencia",
+      "data_inicio": "2013-01",
+      "data_fim": "2015-08",
+      "descricao": "Docência em enfermagem com metodologias ativas."
+    },
+    {
+      "empresa": "Hospital Israelita Albert Einstein / Hospital Municipal Dr. Moysés Deutsch",
       "cargo": "Enfermeiro",
-      "empresa": "UPA Campo Limpo",
-      "localizacao": "São Paulo, Brasil",
+      "tipo_vinculo": "CLT",
       "data_inicio": "2014-08",
       "data_fim": "2018-06",
-      "atual": false,
-      "duracao": "3 anos 11 meses",
-      "descricao": "Unidade de Pronto Atendimento"
+      "descricao": "Atuação assistencial em UTI Adulto e Pediátrica, Clínica Médica e Cirúrgica. Gestão de crises e resiliência."
+    },
+    {
+      "empresa": "Hospital Municipal Dr. Moysés Deutsch",
+      "cargo": "Enfermeiro",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2011-01",
+      "data_fim": "2014-12",
+      "descricao": "Atuação assistencial em UTI e Clínica Médica/Cirúrgica."
     }
   ],
   "formacao": [
     {
-      "tipo": "mestrado",
-      "area": "Ciências - Enfermagem na Saúde do Adulto",
-      "instituicao": "University of São Paulo (USP)",
-      "ano": null
+      "instituicao": "Universidade de São Paulo (USP)",
+      "curso": "Mestrado em Enfermagem — Enfermagem na Saúde do Adulto",
+      "grau": "mestrado",
+      "data_conclusao": 2021
     },
     {
-      "tipo": "especialização",
-      "area": "Cardiologia e Hemodinâmica",
-      "instituicao": "Federal University of São Paulo (UNIFESP)",
-      "ano": null
+      "instituicao": "Universidade Federal de São Paulo (UNIFESP)",
+      "curso": "Especialização em Enfermagem em Cardiologia e Hemodinâmica",
+      "grau": "especializacao",
+      "data_conclusao": 2012
     },
     {
-      "tipo": "graduacao",
-      "area": "Enfermagem",
-      "instituicao": null,
-      "ano": null
+      "instituicao": "Fundação Oswaldo Cruz (FIOCRUZ)",
+      "curso": "Especialização em Formação Docente em Educação Profissional",
+      "grau": "especializacao",
+      "data_conclusao": null
+    },
+    {
+      "instituicao": "PUC Minas",
+      "curso": "Bacharelado em Enfermagem",
+      "grau": "graduacao",
+      "data_conclusao": 2010
     }
   ],
   "certificacoes": [
-    "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
-    "Classificação de Risco (Protocolo de Manchester)",
-    "Advanced Trauma Care for Nurses (ATCN)"
+    {
+      "nome": "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
+      "instituicao": "Hospital Israelita Albert Einstein"
+    },
+    {
+      "nome": "Classificação de Risco (Protocolo de Manchester)",
+      "instituicao": null
+    },
+    {
+      "nome": "Advanced Trauma Care for Nurses (ATCN)",
+      "instituicao": null
+    },
+    {
+      "nome": "Gestão de Crônicos: Preceptoria em Esclerose Múltipla",
+      "instituicao": "USP"
+    },
+    {
+      "nome": "Gestão de Crônicos: Osteoporose",
+      "instituicao": null
+    }
+  ],
+  "habilidades": [
+    "Processo de enfermagem",
+    "Cuidados de qualidade ao paciente",
+    "Gestão de equipes",
+    "Auditoria clínica",
+    "Segurança do paciente",
+    "Análise de prontuários eletrônicos",
+    "Cardiologia e Hemodinâmica",
+    "UTI e alta complexidade",
+    "Preceptoria e educação",
+    "Metodologias ativas de ensino",
+    "Pesquisa clínica",
+    "Análise de dados",
+    "Prática baseada em evidências"
   ],
   "idiomas": [
     {
-      "idioma": "Portuguese",
-      "nivel": "Native"
+      "idioma": "Português",
+      "nivel": "nativo",
+      "fonte": "documento"
     },
     {
-      "idioma": "English",
-      "nivel": "Basic/Intermediate"
+      "idioma": "Inglês",
+      "nivel": "basico",
+      "fonte": "inferido"
     }
   ]
 }

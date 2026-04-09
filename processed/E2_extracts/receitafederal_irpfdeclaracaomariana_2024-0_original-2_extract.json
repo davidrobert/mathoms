@@ -1,0 +1,18 @@
+{
+  "tipo": "irpfdeclaracao",
+  "membro": "mariana",
+  "ano_base": 2024,
+  "cpf": "085.052.396-60",
+  "nome": "MARIANA FERREIRA CAMPOS",
+  "bens_direitos": [],
+  "rendimentos_tributaveis": [],
+  "rendimentos_isentos": [
+    {
+      "descricao": "Rendimentos Isentos (Total)",
+      "valor": 1336.61
+    }
+  ],
+  "dividas": [],
+  "pagamentos_dedutiveis": [],
+  "raw_text_excerpt": "NOME: MARIANA FERREIRA CAMPOS\nCPF: 085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA\nDECLARAÇÃO DE AJUSTE ANUAL EXERCÍCIO 2025 ANO-CALENDÁRIO 2024\nIDENTIFICAÇÃO DO CONTRIBUINTE\nNome: MARIANA FERREIRA CAMPOS CPF: 085.052.396-60\nData de Nascimento: 30/08/1986\nPossui cônjuge ou companheiro(a)? Sim CPF do cônjuge ou companheiro(a): 287.766.948-36\nEra residente no exterior e passou a ser residente no Brasil em 2024? Não\nHouve alteração de dados cadastrais?Sim\nUm dos declarantes é pessoa com doença"
+}

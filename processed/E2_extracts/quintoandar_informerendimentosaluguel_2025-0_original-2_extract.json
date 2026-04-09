@@ -1,0 +1,13 @@
+{
+  "tipo": "informerendimentos",
+  "membro": "david",
+  "ano_base": 2025,
+  "cpf": "287.766.948-36",
+  "locador": "N/A",
+  "fonte": "QuintoAndar",
+  "tipo_rendimento": "Aluguéis",
+  "rendimentos_brutos": 36335.43,
+  "deducoes": 4930.03,
+  "rendimentos_liquidos": 31405.4,
+  "desconto_percentual": 13.568106941351733
+}

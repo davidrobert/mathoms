@@ -1,0 +1,18 @@
+{
+  "tipo": "irpfdeclaracao",
+  "membro": "david",
+  "ano_base": 2023,
+  "cpf": "085.052.396-60",
+  "nome": "MARIANA TEIXEIRA FERREIRA",
+  "bens_direitos": [],
+  "rendimentos_tributaveis": [],
+  "rendimentos_isentos": [
+    {
+      "descricao": "Rendimentos Isentos (Total)",
+      "valor": 9365.4
+    }
+  ],
+  "dividas": [],
+  "pagamentos_dedutiveis": [],
+  "raw_text_excerpt": "NOME: MARIANA TEIXEIRA FERREIRA\nCPF: 085.052.396-60 IMPOSTO SOBRE A RENDA - PESSOA FÍSICA\nDECLARAÇÃO DE AJUSTE ANUAL EXERCÍCIO 2024 ANO-CALENDÁRIO 2023\nIDENTIFICAÇÃO DO CONTRIBUINTE\nNome: MARIANA TEIXEIRA FERREIRA CPF: 085.052.396-60\nData de Nascimento: 30/08/1986 Título Eleitoral: 159408390230\nPossui cônjuge ou companheiro(a)? Não\nEra residente no exterior e passou a ser residente no Brasil em 2023? Não\nHouve alteração de dados cadastrais?Sim\nUm dos declarantes é pessoa com doença grave ou port"
+}

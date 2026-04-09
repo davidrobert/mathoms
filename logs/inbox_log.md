@@ -167,3 +167,14 @@
 | 152 | ExtratoMensal-CDB METAS E RSERVAS.xls | santander_cdbmetaservas_202604-0_original.xls | data/financial_statements | ✅ OK |
 | 153 | ExtratoMensal-CDB-DI.xls | santander_cdbdi_202604-0_original.xls | data/financial_statements | ✅ OK |
 | 154 | pdi-consulta-detalhes.xlsx | santander_cdbresumo_202604-0_original.xlsx | data/financial_statements | ✅ OK |
+
+## 2026-04-08 22:21 — E-full-reset roteamento completo
+
+**Total:** 192 arquivos roteados
+- financial_statements: 181
+- income_tax_br: 7
+- real_estate: 1
+- members: 3
+
+**Backup:** inbox_processed/20260408/
+**Motivo:** E-full-reset — reprocessamento completo E0→E7

@@ -1,11 +1,11 @@
 # E3 Reconciliation Summary
-Generated: 2026-04-08T18:15:55.141646
+Generated: 2026-04-08T22:35:33.523920
 
 ## Statistics
-- Accounts processed: 14
+- Accounts processed: 16
 - Total transactions reconciled: 4508
 - Total duplicates removed: 99
-- Files written: 14
+- Files written: 16
 
 ## Saldo Continuity & Temporal Warnings
 - ('C6 Bank', 'extratoconta', 'BRL'): Saldo gap: c6bank_extratoconta_202412_202512-2_extract.json (prev_final=6461.98, next_initial=6336.98, gap=125.00)
@@ -53,3 +53,5 @@ Generated: 2026-04-08T18:15:55.141646
 - Santander | faturaunique | BRL | 2024-06-07 to 2100-01-06 | 55 txns
 - Wise | extratocontabrl | BRL | 2025-01-01 to 2026-03-29 | 0 txns
 - Wise | extratocontausd | USD | 2025-01-01 to 2026-03-29 | 31 txns
+- binance | extratoconta | BRL |  to  | 0 txns
+- itau | extratoconta | BRL |  to  | 0 txns

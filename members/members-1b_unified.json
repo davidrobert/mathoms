@@ -1,81 +1,203 @@
 {
-  "familia": "Ferreira Campos",
-  "data_atualizacao": "2026-04-08",
-  "membros": {
-    "david": {
-      "tipo": "titular",
-      "nome_completo": "David Robert Camargo Ferreira Campos",
-      "nome_curto": "David",
-      "nome_solteiro": "David Robert Camargo de Campos",
+  "tipo": "members_unified",
+  "data_geracao": "2026-04-08",
+  "fonte_definitions": true,
+  "membros": [
+    {
+      "id": "david",
+      "nome_atual": "David Robert Camargo Ferreira Campos",
+      "nomes_alternativos": [
+        "David Robert Camargo de Campos",
+        "David Robert Camargo",
+        "DAVID ROBERT CAMARGO FERREIRA CAMPOS"
+      ],
       "cpf": "287.766.948-36",
       "data_nascimento": "1981-09-05",
-      "idade": 44,
-      "profissao": "Chief Technology Officer (CTO) da Arvo",
-      "regime": "PJ Simples Nacional (Anexo V)",
-      "formacao_principal": "Mestrado em Ciência da Computação (Inteligência Artificial) - USP/IME; Graduação em Ciência da Computação - PUC/SP",
-      "empresa_atual": "Arvo",
+      "idade_atual": 44,
+      "papel_familia": "Titular",
+      "empregador_atual": "Arvo",
       "cargo_atual": "Chief Technology Officer (CTO)",
-      "data_inicio_arvo": "2025-09-08",
-      "contatos": {
-        "telefone": "+55 (11) 99681-9851",
-        "email": "davidrobert@gmail.com",
-        "linkedin": "https://www.linkedin.com/in/davidrobert/",
-        "github": "https://github.com/davidrobert/"
+      "tipo_vinculo": "PJ",
+      "data_admissao": "2025-09-08",
+      "formacao_maxima": "Mestrado em Ciência da Computação — Inteligência Artificial (USP, 2008)",
+      "idiomas": [
+        {
+          "idioma": "Português",
+          "nivel": "nativo",
+          "fonte": "documento"
+        },
+        {
+          "idioma": "Inglês",
+          "nivel": "fluente",
+          "fonte": "inferido"
+        }
+      ],
+      "experiencias": [
+        {
+          "empresa": "Arvo",
+          "cargo": "Chief Technology Officer (CTO)",
+          "tipo_vinculo": "PJ",
+          "data_inicio": "2025-09",
+          "data_fim": "presente"
+        },
+        {
+          "empresa": "Kiwify",
+          "cargo": "Chief Technology Officer (CTO)",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2019-03",
+          "data_fim": "2025-08"
+        },
+        {
+          "empresa": "Loft Group (CredPago)",
+          "cargo": "VP of Software Engineering",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2017-06",
+          "data_fim": "2019-02"
+        },
+        {
+          "empresa": "Elo7",
+          "cargo": "Engenheiro de Software / Arquiteto",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2013-01",
+          "data_fim": "2017-05"
+        },
+        {
+          "empresa": "Telefonica/UOL",
+          "cargo": "Engenheiro de Software",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2007-01",
+          "data_fim": "2012-12"
+        }
+      ],
+      "salario": {
+        "bruto": null,
+        "liquido": null,
+        "periodo_referencia": null,
+        "fonte": "PJ — valor a confirmar via extratos bancários C6",
+        "nota": "David opera como PJ. Renda estimada via extratos de C6 Bank PJ (Ag. 1, Conta 384366937)."
       },
-      "documentos": {
-        "curriculo": "david_curriculo-0_original.docx",
-        "curriculo_extract": "david_curriculo-1a_extract.json"
-      },
-      "experiencia_anos": 24
+      "documentos_disponiveis": [
+        "curriculo"
+      ],
+      "status_fiscal": "BR",
+      "observacoes": "Titular da família. CTO em healthtech com IA. Carreira iniciada em 2002 com 20+ anos de experiência. Experiência em startups de scale-up (Elo7, Loft). Formação sólida em IA e ciência da computação."
     },
-    "mariana": {
-      "tipo": "conjuge",
-      "nome_completo": "Mariana Ferreira Campos",
-      "nome_curto": "Mariana",
-      "nome_solteira": "Mariana Teixeira Ferreira",
-      "nome_fiscal": "Mariana Teixeira Ferreira",
+    {
+      "id": "mariana",
+      "nome_atual": "Mariana Ferreira Campos",
+      "nomes_alternativos": [
+        "Mariana Teixeira Ferreira",
+        "Mariana Teixeira",
+        "MARIANA FERREIRA CAMPOS"
+      ],
       "cpf": "085.052.396-60",
       "data_nascimento": "1986-08-30",
-      "idade": 39,
-      "profissao": "Enfermeira no Hospital Israelita Albert Einstein",
-      "regime": "CLT",
-      "formacao_principal": "Mestrado em Enfermagem (Saúde do Adulto) - USP; Especialização em Cardiologia e Hemodinâmica - UNIFESP; Graduação em Enfermagem",
-      "empresa_atual": "Hospital Israelita Albert Einstein",
-      "estabelecimento": "AEMO Unidade Morumbi",
-      "cargo_atual": "Enfermeiro Pl (Grade P4)",
-      "categoria": "Enfermagem P",
+      "idade_atual": 39,
+      "papel_familia": "Cônjuge",
+      "empregador_atual": "Hospital Israelita Albert Einstein",
+      "cargo_atual": "Enfermeiro (Pl)",
+      "tipo_vinculo": "CLT",
       "data_admissao": "2014-07-21",
-      "contatos": {
-        "telefone": "+55 11 96073-3929",
-        "email": "mtf3008@gmail.com",
-        "linkedin": "www.linkedin.com/in/mariana-ferreira-campos"
-      },
-      "documentos": {
-        "curriculo": "mariana_curriculo-0_original.pdf",
-        "curriculo_extract": "mariana_curriculo-1a_extract.json",
-        "holerite_202602": "mariana_holerite_202602-0_original.pdf",
-        "holerite_202602_extract": "mariana_holerite_202602-1a_extract.json"
-      },
-      "experiencia_anos": 12,
-      "remuneracao_clt": {
-        "salario_base_mensal": 10899.51,
-        "salario_bruto_fevereiro_2026": 12086.06,
-        "salario_liquido_fevereiro_2026": 3425.41,
-        "periodo_holerite": "Fevereiro 2026"
-      }
-    },
-    "theo": {
-      "tipo": "filho",
-      "nome_completo": "Theo Ferreira Campos",
-      "nome_curto": "Theo",
-      "data_nascimento": "2025-07-18",
-      "idade": 0,
-      "cidadania": [
-        "brasileira",
-        "americana"
+      "formacao_maxima": "Mestrado em Enfermagem — Enfermagem na Saúde do Adulto (USP, 2021)",
+      "idiomas": [
+        {
+          "idioma": "Português",
+          "nivel": "nativo",
+          "fonte": "documento"
+        },
+        {
+          "idioma": "Inglês",
+          "nivel": "basico",
+          "fonte": "inferido"
+        }
       ],
-      "local_nascimento": "Orlando, Flórida",
-      "documentos": {}
+      "experiencias": [
+        {
+          "empresa": "Hospital Israelita Albert Einstein",
+          "cargo": "Enfermeiro",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2018-01",
+          "data_fim": "presente"
+        },
+        {
+          "empresa": "Faculdade Israelita Albert Einstein",
+          "cargo": "Docente universitário",
+          "tipo_vinculo": "docencia",
+          "data_inicio": "2021-01",
+          "data_fim": "2024-12"
+        },
+        {
+          "empresa": "Senac São Paulo",
+          "cargo": "Docente universitário",
+          "tipo_vinculo": "docencia",
+          "data_inicio": "2012-01",
+          "data_fim": "2016-01"
+        },
+        {
+          "empresa": "Faculdade Sequencial",
+          "cargo": "Docente universitário",
+          "tipo_vinculo": "docencia",
+          "data_inicio": "2013-01",
+          "data_fim": "2015-08"
+        },
+        {
+          "empresa": "Hospital Municipal Dr. Moysés Deutsch / Hospital Israelita Albert Einstein",
+          "cargo": "Enfermeiro",
+          "tipo_vinculo": "CLT",
+          "data_inicio": "2011-01",
+          "data_fim": "2018-06"
+        }
+      ],
+      "salario": {
+        "bruto": 12086.06,
+        "liquido": 3425.41,
+        "periodo_referencia": "2026-02",
+        "fonte": "holerite",
+        "nota": "Salário líquido atípico em fevereiro/2026 devido a férias (R$ 2.529,06 em proventos) e desconto de férias (R$ 2.529,63) e adiantamento (R$ 3.633,17). Salário base mensal aproximado: R$ 9.082,92. Adicional de insalubridade 20% incluído na remuneração."
+      },
+      "documentos_disponiveis": [
+        "curriculo",
+        "holerite"
+      ],
+      "status_fiscal": "BR",
+      "observacoes": "Cônjuge de David. Enfermeira Mestre pela USP com especialização em Cardiologia/Hemodinâmica. Mais de 10 anos de carreira em hospital de alta complexidade. Expertise em auditoria clínica e segurança do paciente. Docência ativa 2021-2024. Perfil competitivo para NCLEX nos EUA."
+    },
+    {
+      "id": "theo",
+      "nome_atual": "Theo Ferreira Campos",
+      "nomes_alternativos": [],
+      "cpf": null,
+      "data_nascimento": "2025-07-18",
+      "idade_atual": 0,
+      "papel_familia": "Filho",
+      "empregador_atual": null,
+      "cargo_atual": null,
+      "tipo_vinculo": null,
+      "data_admissao": null,
+      "formacao_maxima": null,
+      "idiomas": [
+        {
+          "idioma": "Português",
+          "nivel": "nativo",
+          "fonte": "inferido"
+        },
+        {
+          "idioma": "Inglês",
+          "nivel": "nativo",
+          "fonte": "inferido"
+        }
+      ],
+      "experiencias": [],
+      "salario": {
+        "bruto": null,
+        "liquido": null,
+        "periodo_referencia": null,
+        "fonte": null,
+        "nota": null
+      },
+      "documentos_disponiveis": [],
+      "status_fiscal": "BR+US",
+      "observacoes": "Filho recém-nascido (julho/2025). Dupla cidadania brasileira e americana (nascido em Orlando, Flórida). Sem documentação financeira no escopo atual."
     }
-  }
+  ]
 }

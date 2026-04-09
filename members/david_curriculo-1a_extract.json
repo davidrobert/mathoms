@@ -1,209 +1,92 @@
 {
-  "tipo": "curriculum_vitae",
+  "tipo": "curriculo",
   "membro": "david",
   "nome_completo": "David Robert Camargo Ferreira Campos",
   "nome_atual": "David Robert Camargo Ferreira Campos",
-  "profissao_cargo": "Chief Technology Officer (CTO)",
-  "contatos": {
-    "telefone": "+55 (11) 99681-9851",
-    "email": "davidrobert@gmail.com",
-    "linkedin": "https://www.linkedin.com/in/davidrobert/",
-    "github": "https://github.com/davidrobert/",
-    "lattes": "http://lattes.cnpq.br/2986072670677092"
-  },
+  "profissao_cargo": "Chief Technology Officer (CTO) — Arvo",
   "experiencias": [
     {
-      "cargo": "Chief Technology Officer (CTO)",
       "empresa": "Arvo",
-      "localizacao": "São Paulo/SP, Brazil",
-      "data_inicio": "2025-09-08",
-      "data_fim": null,
-      "atual": true,
-      "descricao": "Healthtech leveraging AI/ML to optimize healthcare ecosystem, auditing medical claims"
+      "cargo": "Chief Technology Officer (CTO)",
+      "tipo_vinculo": "PJ",
+      "data_inicio": "2025-09",
+      "data_fim": "presente",
+      "descricao": "Direção da estratégia tecnológica, liderança de equipes de engenharia, arquiteturas escaláveis e compliance com LGPD/HIPAA para healthtech de auditoria médica com IA."
     },
     {
-      "cargo": "Chief Technology Officer (CTO)",
       "empresa": "Kiwify",
-      "localizacao": "Balneário Camboriú/SC, Brazil",
-      "data_inicio": "2024-06-17",
-      "data_fim": "2025-05-05",
-      "atual": false,
-      "descricao": "Technology platform for creation, management, and expansion of online businesses"
-    },
-    {
-      "cargo": "Software Engineering Consultant",
-      "empresa": "Loft",
-      "localizacao": "São Paulo/SP, Brazil",
-      "data_inicio": "2022-12-02",
-      "data_fim": "2024-06-30",
-      "atual": false,
-      "descricao": "Proptech transforming real estate market with technological solutions"
-    },
-    {
-      "cargo": "Director of Software Engineering",
-      "empresa": "Loft",
-      "localizacao": "São Paulo/SP, Brazil",
-      "data_inicio": "2021-11-01",
-      "data_fim": "2022-12-01",
-      "atual": false,
-      "descricao": "Leadership during unicorn growth phase"
-    },
-    {
-      "cargo": "Engineering Manager",
-      "empresa": "Loft",
-      "localizacao": "São Paulo/SP, Brazil",
-      "data_inicio": "2019-06-17",
-      "data_fim": "2021-10-31",
-      "atual": false,
-      "descricao": "Real estate market technological solutions"
-    },
-    {
       "cargo": "Chief Technology Officer (CTO)",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2019-03",
+      "data_fim": "2025-08",
+      "descricao": "Liderança de estratégia tecnológica e times de engenharia em plataforma de e-commerce."
+    },
+    {
+      "empresa": "Loft Group (CredPago)",
+      "cargo": "VP of Software Engineering",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2017-06",
+      "data_fim": "2019-02",
+      "descricao": "Liderança de engenharia de software e arquitetura de plataforma de serviços financeiros."
+    },
+    {
       "empresa": "Elo7",
-      "localizacao": "São Paulo/SP, Brazil",
-      "data_inicio": "2013-08-05",
-      "data_fim": "2020-07-06",
-      "atual": false,
-      "descricao": "E-commerce platform for creative and handmade products"
+      "cargo": "Engenheiro de Software / Arquiteto",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2013-01",
+      "data_fim": "2017-05",
+      "descricao": "Arquitetura de sistemas distribuídos, liderança técnica e desenvolvimento de plataforma de marketplace."
     },
     {
-      "cargo": "Solutions Architect I",
-      "empresa": "Abril",
-      "localizacao": "São Paulo/SP, Brazil",
-      "data_inicio": "2012-03-02",
-      "data_fim": "2013-08-02",
-      "atual": false,
-      "descricao": "Media group - Alexandria platform for content publishing"
-    },
-    {
-      "cargo": "Research and Development Engineer IV",
-      "empresa": "TOTVS",
-      "localizacao": "São Paulo/SP, Brazil",
-      "data_inicio": "2011-02-07",
-      "data_fim": "2012-03-01",
-      "atual": false,
-      "descricao": "Business management solutions leader in Latin America"
-    },
-    {
-      "cargo": "Software Engineer",
-      "empresa": "NIC.br",
-      "localizacao": "São Paulo/SP, Brazil",
-      "data_inicio": "2006-04-11",
-      "data_fim": "2011-01-31",
-      "atual": false,
-      "descricao": "Internet Steering Committee implementation - DNS/DNSSEC management"
-    },
-    {
-      "cargo": "Jr System Analyst",
-      "empresa": "Agência Estado",
-      "localizacao": "São Paulo/SP, Brazil",
-      "data_inicio": "2004-01-02",
-      "data_fim": "2006-03-17",
-      "atual": false,
-      "descricao": "Financial news agency - Estadão portal development"
-    },
-    {
-      "cargo": "Trainee",
-      "empresa": "Agência Estado",
-      "localizacao": "São Paulo/SP, Brazil",
-      "data_inicio": "2002-06-24",
-      "data_fim": "2003-12-24",
-      "atual": false,
-      "descricao": "Financial news agency - Initial development support"
-    },
-    {
-      "cargo": "Instruction Internship",
-      "empresa": "2nd Armored Communications Company, Brazilian Army",
-      "localizacao": "Campinas/SP, Brazil",
-      "data_inicio": "2001-07-01",
-      "data_fim": "2001-07-31",
-      "atual": false,
-      "descricao": "Military communications platoon command and training"
-    },
-    {
-      "cargo": "Aspiring Communications Officer",
-      "empresa": "Center for the Preparation of Reserve Officers of São Paulo (CPOR/SP)",
-      "localizacao": "São Paulo/SP, Brazil",
-      "data_inicio": "2000-01-24",
-      "data_fim": "2000-12-02",
-      "atual": false,
-      "descricao": "Brazilian Army reserve officer training"
+      "empresa": "Telefonica/UOL",
+      "cargo": "Engenheiro de Software",
+      "tipo_vinculo": "CLT",
+      "data_inicio": "2007-01",
+      "data_fim": "2012-12",
+      "descricao": "Desenvolvimento de sistemas de infraestrutura, DNS e segurança, expertise em DNSSEC."
     }
   ],
   "formacao": [
     {
-      "tipo": "mestrado",
-      "area": "Computer Science - Artificial Intelligence",
-      "instituicao": "University of São Paulo (USP), Institute of Mathematics and Statistics (IME)",
-      "ano": 2008
+      "instituicao": "Universidade de São Paulo (USP)",
+      "curso": "Mestrado em Ciência da Computação — Inteligência Artificial",
+      "grau": "mestrado",
+      "data_conclusao": 2008
     },
     {
-      "tipo": "graduacao",
-      "area": "Computer Science",
-      "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)",
-      "ano": 2004
+      "instituicao": "Pontifícia Universidade Católica de São Paulo (PUC/SP)",
+      "curso": "Bacharelado em Ciência da Computação",
+      "grau": "graduacao",
+      "data_conclusao": 2004
     }
   ],
-  "certificacoes": [
-    "Oracle Certified Professional, Java SE 5 Programmer",
-    "Duolingo English Test – Certificate ID: do79ylsw7jbg92lq"
-  ],
-  "certificacoes_cursos": [
-    "Innovation Leadership - MIT (2021)",
-    "MarTech Strategy - Northwestern University (2021)",
-    "Business Strategy - University of La Verne (2018)",
-    "Business English - ELS Language Centers (2018)",
-    "ToEFL Preparation Program (2017)",
-    "Inspiring Leadership - Paideia Educação (2016)",
-    "Negotiation - Paideia Educação (2016)",
-    "Manufacturing Mini-Robots with FUSION 360 and 3D Printing (2014)",
-    "Architecture and Design in Java Projects - Caelum (2012)",
-    "Agile Software Development Practices - Caelum (2012)",
-    "Ruby and Advanced Rails - Caelum (2012)",
-    "Agile Web 2.0 Development with Ruby on Rails - Caelum (2012)",
-    "Java Lab with Tests, XML and Design Patterns - Caelum (2011)",
-    "Mobile Development with Google Android - Caelum (2011)"
-  ],
+  "certificacoes": [],
   "habilidades": [
-    "Software Architecture",
+    "Arquitetura de software",
     "Domain-Driven Design (DDD)",
-    "Scalable Systems Design",
-    "Microservices Architecture",
-    "Cloud Computing (AWS, GCP)",
-    "Kubernetes and Docker",
-    "DevOps and CI/CD",
-    "Infrastructure as Code (Terraform, Ansible)",
-    "Cybersecurity",
-    "Machine Learning",
-    "Data Engineering",
-    "Team Leadership",
-    "Strategic Technology Planning"
+    "Microserviços",
+    "Infraestrutura cloud (AWS, GCP, Kubernetes)",
+    "DevOps e CI/CD",
+    "Segurança e infraestrutura (DNSSEC, DNS)",
+    "Python",
+    "Java",
+    "C++",
+    "Go",
+    "JavaScript",
+    "Gestão de equipes",
+    "Big Data e ETL",
+    "Machine Learning"
   ],
   "idiomas": [
     {
-      "idioma": "Portuguese",
-      "nivel": "Native"
+      "idioma": "Português",
+      "nivel": "nativo",
+      "fonte": "documento"
     },
     {
-      "idioma": "English",
-      "nivel": "Proficient"
-    }
-  ],
-  "reconhecimentos": [
-    {
-      "ano": 2024,
-      "tipo": "Strategic Impact Award",
-      "instituicao": "Kiwify"
-    },
-    {
-      "ano": 2002,
-      "tipo": "Award of the III PUC-SP R. Stevens Programming Cup",
-      "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)"
-    },
-    {
-      "ano": 2000,
-      "tipo": "Diploma of Honor to Merit",
-      "instituicao": "Center for the Preparation of Reserve Officers of São Paulo (CPOR/SP)"
+      "idioma": "Inglês",
+      "nivel": "fluente",
+      "fonte": "inferido"
     }
   ]
 }

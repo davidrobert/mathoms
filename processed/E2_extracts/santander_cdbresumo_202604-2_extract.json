@@ -1,40 +1,100 @@
 {
   "tipo": "cdbdetalhes",
   "banco": "santander",
-  "membro": "david",
-  "periodo": "202604",
-  "posicoes": [
+  "data_posicao": null,
+  "moeda": "BRL",
+  "produtos": [
     {
       "nome": "CDB DI SANTANDER",
-      "tipo_produto": "CDB",
-      "taxa": "100% CDI",
-      "valor_aplicado": 137857.68,
-      "valor_atual": 133032.53,
+      "valor_aplicado": 0.0,
       "data_aplicacao": null,
+      "taxa": "Disponível para Resgate: R$133.032,53",
       "vencimento": null,
-      "instituicao": "Santander"
+      "saldo_bruto": 0.0,
+      "saldo_liquido": 0.0,
+      "ir_provisao": 0.0
+    },
+    {
+      "nome": "Operação",
+      "valor_aplicado": 0.0,
+      "data_aplicacao": null,
+      "taxa": "Disponível para Resgate(R$):",
+      "vencimento": null,
+      "saldo_bruto": 0.0,
+      "saldo_liquido": 0.0,
+      "ir_provisao": 0.0
+    },
+    {
+      "nome": "00331652260006380267",
+      "valor_aplicado": 137857.68,
+      "data_aplicacao": null,
+      "taxa": "R$133.032,53",
+      "vencimento": null,
+      "saldo_bruto": 0.0,
+      "saldo_liquido": 0.0,
+      "ir_provisao": 0.0
     },
     {
       "nome": "CDB DI SANTANDER",
-      "tipo_produto": "CDB",
-      "taxa": "100% CDI",
-      "valor_aplicado": 101853.74,
-      "valor_atual": 98554.34,
+      "valor_aplicado": 0.0,
       "data_aplicacao": null,
+      "taxa": "Disponível para Resgate: R$98.554,34",
       "vencimento": null,
-      "instituicao": "Santander"
+      "saldo_bruto": 0.0,
+      "saldo_liquido": 0.0,
+      "ir_provisao": 0.0
+    },
+    {
+      "nome": "Operação",
+      "valor_aplicado": 0.0,
+      "data_aplicacao": null,
+      "taxa": "Disponível para Resgate(R$):",
+      "vencimento": null,
+      "saldo_bruto": 0.0,
+      "saldo_liquido": 0.0,
+      "ir_provisao": 0.0
+    },
+    {
+      "nome": "00331652260006541929",
+      "valor_aplicado": 101853.74,
+      "data_aplicacao": null,
+      "taxa": "R$98.554,34",
+      "vencimento": null,
+      "saldo_bruto": 0.0,
+      "saldo_liquido": 0.0,
+      "ir_provisao": 0.0
     },
     {
       "nome": "CDB PROG SANTANDER",
-      "tipo_produto": "CDB",
-      "taxa": "PROG",
-      "valor_aplicado": 60733.04,
-      "valor_atual": 58854.76,
+      "valor_aplicado": 0.0,
       "data_aplicacao": null,
+      "taxa": "Disponível para Resgate: R$58.854,76",
       "vencimento": null,
-      "instituicao": "Santander"
+      "saldo_bruto": 0.0,
+      "saldo_liquido": 0.0,
+      "ir_provisao": 0.0
+    },
+    {
+      "nome": "Operação",
+      "valor_aplicado": 0.0,
+      "data_aplicacao": null,
+      "taxa": "Disponível para Resgate(R$):",
+      "vencimento": null,
+      "saldo_bruto": 0.0,
+      "saldo_liquido": 0.0,
+      "ir_provisao": 0.0
+    },
+    {
+      "nome": "00331652260006541912",
+      "valor_aplicado": 60733.04,
+      "data_aplicacao": null,
+      "taxa": "R$58.854,76",
+      "vencimento": null,
+      "saldo_bruto": 0.0,
+      "saldo_liquido": 0.0,
+      "ir_provisao": 0.0
     }
   ],
-  "total": 290441.63,
-  "saldo_total": 290441.63
+  "total_bruto": 0.0,
+  "total_liquido": 0.0
 }

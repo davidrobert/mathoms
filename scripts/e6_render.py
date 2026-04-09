@@ -1507,7 +1507,9 @@ def build_appendix_a() -> str:
     return '\n'.join(h)
 
 
-def build_appendix_b() -> str:
+def build_appendix_b(e4: dict = None) -> str:
+    if e4 is None:
+        e4 = {}
     """Apêndice B — Premissas e Metodologia."""
     h = []
 
@@ -2031,7 +2033,7 @@ def build_sections(e4: dict) -> dict:
     # Build appendices (full content)
     print("[E6.4] Building appendices A-E...")
     replacements["{{CONTENT_APP_A}}"] = build_appendix_a()
-    replacements["{{CONTENT_APP_B}}"] = build_appendix_b()
+    replacements["{{CONTENT_APP_B}}"] = build_appendix_b(e4)
     replacements["{{CONTENT_APP_C}}"] = build_appendix_c(e4)
     replacements["{{CONTENT_APP_D}}"] = build_appendix_d()
     replacements["{{CONTENT_APP_E}}"] = build_appendix_e(e4)

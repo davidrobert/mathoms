@@ -1,33 +1,35 @@
 {
   "metadata": {
-    "timestamp": "2026-04-08T18:05:53.005605",
+    "timestamp": "2026-04-08T22:37:27.154354",
     "e7_version": "1.0",
     "persona_summary": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada na metodologia \"Viver de "
   },
   "cross_validation": {
-    "total_checks": 14,
-    "passed": 14,
-    "failed": 0,
-    "issues": [],
+    "total_checks": 12,
+    "passed": 11,
+    "failed": 1,
+    "issues": [
+      {
+        "check_id": "CV4",
+        "name": "Taxa poupança recorrente",
+        "severity": "warning",
+        "passed": false,
+        "details": "Calculada: -37.4%, reportada: 19.8%, diff: 57.2pp",
+        "sections": [
+          "ratios",
+          "fluxo_caixa"
+        ]
+      }
+    ],
     "all_results": [
       {
         "check_id": "CV1",
         "name": "Score formula consistency",
         "severity": "info",
         "passed": true,
-        "details": "Score reportado: 5.4, calculado: 5.4, diff: 0.0",
+        "details": "Score reportado: 2.9, calculado: 2.9, diff: 0.0",
         "sections": [
           "score"
-        ]
-      },
-      {
-        "check_id": "CV2",
-        "name": "Patrimônio composição vs bruto",
-        "severity": "info",
-        "passed": true,
-        "details": "Soma composição: R$ 2,307,762, bruto: R$ 2,307,762, diff: 0.0%",
-        "sections": [
-          "patrimonio"
         ]
       },
       {
@@ -43,9 +45,9 @@
       {
         "check_id": "CV4",
         "name": "Taxa poupança recorrente",
-        "severity": "info",
-        "passed": true,
-        "details": "Calculada: -37.4%, reportada: -37.4%, diff: 0.0pp",
+        "severity": "warning",
+        "passed": false,
+        "details": "Calculada: -37.4%, reportada: 19.8%, diff: 57.2pp",
         "sections": [
           "ratios",
           "fluxo_caixa"
@@ -66,20 +68,9 @@
         "name": "Progresso IF vs patrimônio investível",
         "severity": "info",
         "passed": true,
-        "details": "Investível/Meta = 32.1%, reportado: 32.0%",
+        "details": "Investível/Meta = 0.0%, reportado: 0.0%",
         "sections": [
           "goals",
-          "patrimonio"
-        ]
-      },
-      {
-        "check_id": "CV7",
-        "name": "Taxa endividamento vs patrimônio",
-        "severity": "info",
-        "passed": true,
-        "details": "Dívidas/Bruto = 0.0%, reportado: 0.0%",
-        "sections": [
-          "endividamento",
           "patrimonio"
         ]
       },
@@ -88,7 +79,7 @@
         "name": "Cobertura reserva emergência",
         "severity": "info",
         "passed": true,
-        "details": "Líquida/Despesas = 13.8 meses, reportado: 13.8",
+        "details": "Líquida/Despesas = 0.0 meses, reportado: 0.0",
         "sections": [
           "reserva_emergencia"
         ]
@@ -128,7 +119,7 @@
         "name": "Diagnóstico comportamental presente",
         "severity": "info",
         "passed": true,
-        "details": "1 padrão(ões) detectado(s)",
+        "details": "2 padrão(ões) detectado(s)",
         "sections": [
           "diagnostico_comportamental"
         ]
@@ -138,7 +129,7 @@
         "name": "Score classification label",
         "severity": "info",
         "passed": true,
-        "details": "Score 5.4 → esperado: 'Regular', reportado: 'Regular'",
+        "details": "Score 2.9 → esperado: 'Atenção', reportado: 'Atenção'",
         "sections": [
           "score"
         ]
@@ -194,26 +185,26 @@
       "s10"
     ],
     "chart_keys": [
-      "patrimonio_doughnut",
-      "waterfall_if",
-      "receita_bar",
-      "despesas_doughnut",
-      "receita_despesa_mensal",
       "score_gauge",
+      "patrimonio_doughnut",
       "alocacao_atual",
       "alocacao_alvo",
-      "top15_ativos",
-      "yield_imoveis",
-      "custos_f1f2",
-      "cenario_cambial",
-      "projecao_if",
+      "fluxo_mensal",
+      "receita_bar",
+      "receita_despesa_mensal",
+      "despesas_doughnut",
+      "projecao_3cenarios",
+      "waterfall_if",
       "renda_passiva",
+      "yield_imoveis",
+      "top15_ativos",
       "impostos_pj",
-      "riscos_bubble",
-      "decisoes",
-      "cenarios_mariana",
+      "mariana_cenarios",
+      "custos_f1f2",
       "viagens",
-      "fluxo_mensal"
+      "cenarios_cambiais",
+      "bubble_riscos",
+      "top5_decisoes"
     ],
     "total_tarefas": 41,
     "tarefas_alta_prioridade": [
@@ -330,10 +321,10 @@
         "ref": "—"
       }
     ],
-    "score": 5.4,
-    "score_label": "Regular",
-    "patrimonio_bruto": 2307762.2,
-    "patrimonio_investivel": 2307762.2,
+    "score": 2.9,
+    "score_label": "Atenção",
+    "patrimonio_bruto": 0.0,
+    "patrimonio_investivel": 0,
     "fluxo_liquido": 591421.19
   }
 }

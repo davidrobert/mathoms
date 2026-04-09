@@ -449,7 +449,7 @@ def validate_saldo_and_gaps(
         # Sort by period start date
         sorted_group = sorted(
             group,
-            key=lambda x: x[1].get('periodo', {}).get('inicio', '')
+            key=lambda x: x[1].get('periodo', {}).get('inicio') or ''
         )
 
         prev_final_saldo = None
@@ -758,7 +758,7 @@ def reconcile_account(
     # Sort by period start
     sorted_group = sorted(
         file_group,
-        key=lambda x: x[1].get('periodo', {}).get('inicio', '')
+        key=lambda x: x[1].get('periodo', {}).get('inicio') or ''
     )
 
     # Collect metadata from first file
@@ -798,7 +798,7 @@ def reconcile_account(
     dedup_txns, dup_count = deduplicate_transactions(all_transactions_with_sources)
 
     # Sort chronologically with proper date parsing
-    dedup_txns.sort(key=lambda x: _parse_date_for_sort(x.get('data', '')))
+    dedup_txns.sort(key=lambda x: _parse_date_for_sort(x.get('data') or ''))
 
     # Determine period coverage (v2.1: also try data_inicio/data_fim keys from E2)
     periodo_obj_first = sorted_group[0][1].get('periodo', {})
