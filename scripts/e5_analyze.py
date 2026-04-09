@@ -734,6 +734,11 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
         totais = investimentos_atuais.get("total_por_membro", {})
         investimentos_david = safe_float(totais.get("david", 0))
         investimentos_mariana = safe_float(totais.get("mariana", 0))
+        # Positions without member attribution (membro="") are assigned to titular (david)
+        unattributed = safe_float(totais.get("", 0))
+        if unattributed > 0:
+            investimentos_david += unattributed
+            print(f"  [INFO] R$ {unattributed:,.2f} sem membro atribuído → alocado ao titular (david)")
         n_pos = investimentos_atuais.get("n_posicoes", 0)
         data_ref = investimentos_atuais.get("data_consolidacao", "?")
         print(f"  [INFO] Usando posições atuais ({n_pos} posições, ref: {data_ref})")

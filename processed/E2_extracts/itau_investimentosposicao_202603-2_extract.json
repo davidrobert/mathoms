@@ -1,57 +1,54 @@
 {
+  "banco": "Itau",
   "tipo": "investimentosposicao",
-  "banco": "itau",
-  "data_posicao": "2026-03-02",
-  "moeda": "BRL",
-  "posicoes": [
+  "periodo": {
+    "inicio": null,
+    "fim": "2026-03-31"
+  },
+  "data_posicao": "2026-03-29",
+  "composicao": [
     {
-      "product_type": "FundoInvestimento",
-      "name": "CDB-DI\nCDB-DI",
+      "product_type": "CDB",
+      "name": "CDB-DI",
+      "issuer": "Itau",
+      "quantity": null,
+      "unit_price": null,
       "applied_value": 116374.26,
       "current_value": 116374.26,
-      "quantity": null,
-      "unit_price": null,
-      "issuer": null,
-      "rate": null,
-      "maturity": null,
-      "rentabilidade_pct": null
+      "return_pct": null,
+      "maturity_date": null,
+      "rate": "DI",
+      "pm_note": "CDB posição em 26/03/2026"
     },
     {
-      "product_type": "FundoInvestimento",
-      "name": "Itau Prev Corp\nPlatinum Rv49\nMm Pgbl\nItau Prev Corp\nPlatinum Rv49\nMm Pgbl",
-      "applied_value": 18715.24,
+      "product_type": "Previdência",
+      "name": "Itau Prev Corp Platinum Rv49 Mm Pgbl",
+      "issuer": "Itau",
+      "quantity": null,
+      "unit_price": null,
+      "applied_value": null,
       "current_value": 18715.24,
-      "quantity": null,
-      "unit_price": null,
-      "issuer": null,
+      "return_pct": 23.44,
+      "maturity_date": null,
       "rate": null,
-      "maturity": null,
-      "rentabilidade_pct": null
+      "pm_note": "PGBL desde 02/12/2021. Rentabilidade acumulada 65.27%"
     },
     {
-      "product_type": "FundoInvestimento",
-      "name": "total investido",
-      "applied_value": 341581.2,
-      "current_value": 341581.2,
+      "product_type": "Cofrinhos",
+      "name": "Cofrinhos",
+      "issuer": "Itau",
       "quantity": null,
       "unit_price": null,
-      "issuer": null,
+      "applied_value": null,
+      "current_value": 206491.7,
+      "return_pct": null,
+      "maturity_date": null,
       "rate": null,
-      "maturity": null,
-      "rentabilidade_pct": null
-    },
-    {
-      "product_type": "FundoInvestimento",
-      "name": "total investido",
-      "applied_value": 341581.2,
-      "current_value": 341581.2,
-      "quantity": null,
-      "unit_price": null,
-      "issuer": null,
-      "rate": null,
-      "maturity": null,
-      "rentabilidade_pct": null
+      "pm_note": "Saldo de cofrinhos"
     }
   ],
-  "total": 818251.9
+  "saldo_atual": 341581.2,
+  "moeda": "BRL",
+  "source_file": "itau_investimentosposicao_202603-0_original.pdf",
+  "note": "Período de análise: 02/03/2026 a 26/03/2026. Rentabilidade carteira: 0.91% em R$"
 }

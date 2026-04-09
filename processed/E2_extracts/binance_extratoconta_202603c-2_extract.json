@@ -1,14 +1,15 @@
 {
+  "banco": "Binance",
   "tipo": "extratoconta",
-  "banco": "binance",
-  "conta": null,
   "periodo": {
-    "inicio": null,
-    "fim": null
+    "inicio": "2026-03-01",
+    "fim": "2026-03-31"
   },
+  "saldo_inicial": null,
+  "saldo_final": null,
   "moeda": "BRL",
-  "saldo_inicial": 0.0,
-  "saldo_final": 0.0,
   "transacoes": [],
-  "_note": "Image requires OCR/vision processing"
+  "source_file": "binance_extratoconta_202603c-0_original.jpg",
+  "requires_llm_fallback": true,
+  "note": "JPG screenshot requires OCR processing"
 }

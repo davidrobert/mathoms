@@ -3,90 +3,83 @@
   "membro": "david",
   "nome_completo": "David Robert Camargo Ferreira Campos",
   "nome_atual": "David Robert Camargo Ferreira Campos",
-  "profissao_cargo": "Chief Technology Officer (CTO) — Arvo",
+  "profissao_cargo": "Chief Technology Officer (CTO)",
   "experiencias": [
     {
       "empresa": "Arvo",
       "cargo": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "PJ",
-      "data_inicio": "2025-09",
+      "data_inicio": "2025-09-08",
       "data_fim": "presente",
-      "descricao": "Direção da estratégia tecnológica, liderança de equipes de engenharia, arquiteturas escaláveis e compliance com LGPD/HIPAA para healthtech de auditoria médica com IA."
+      "descricao": "Fast-growing Brazilian healthtech company leveraging AI/ML for healthcare ecosystem optimization. Direct technology strategy, spearhead AI-First engineering vision, and establish robust cybersecurity frameworks."
     },
     {
       "empresa": "Kiwify",
       "cargo": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2019-03",
-      "data_fim": "2025-08",
-      "descricao": "Liderança de estratégia tecnológica e times de engenharia em plataforma de e-commerce."
+      "data_inicio": null,
+      "data_fim": null,
+      "descricao": "E-commerce and marketplace platform"
     },
     {
-      "empresa": "Loft Group (CredPago)",
+      "empresa": "CredPago (Loft Group)",
       "cargo": "VP of Software Engineering",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2017-06",
-      "data_fim": "2019-02",
-      "descricao": "Liderança de engenharia de software e arquitetura de plataforma de serviços financeiros."
+      "data_inicio": null,
+      "data_fim": null,
+      "descricao": "Proptech platform, contributed to Loft's growth to unicorn status"
+    },
+    {
+      "empresa": "Loft",
+      "cargo": null,
+      "data_inicio": null,
+      "data_fim": null,
+      "descricao": "Proptech platform - played key role in growth to unicorn status"
     },
     {
       "empresa": "Elo7",
-      "cargo": "Engenheiro de Software / Arquiteto",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2013-01",
-      "data_fim": "2017-05",
-      "descricao": "Arquitetura de sistemas distribuídos, liderança técnica e desenvolvimento de plataforma de marketplace."
-    },
-    {
-      "empresa": "Telefonica/UOL",
-      "cargo": "Engenheiro de Software",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2007-01",
-      "data_fim": "2012-12",
-      "descricao": "Desenvolvimento de sistemas de infraestrutura, DNS e segurança, expertise em DNSSEC."
+      "cargo": null,
+      "data_inicio": null,
+      "data_fim": null,
+      "descricao": "E-commerce marketplace"
     }
   ],
   "formacao": [
     {
-      "instituicao": "Universidade de São Paulo (USP)",
-      "curso": "Mestrado em Ciência da Computação — Inteligência Artificial",
-      "grau": "mestrado",
-      "data_conclusao": 2008
+      "grau": "Mestrado",
+      "area": "Ciência da Computação - Inteligência Artificial",
+      "instituicao": "Universidade de São Paulo (USP), Instituto de Matemática e Estatística (IME)",
+      "ano_conclusao": 2008
     },
     {
-      "instituicao": "Pontifícia Universidade Católica de São Paulo (PUC/SP)",
-      "curso": "Bacharelado em Ciência da Computação",
-      "grau": "graduacao",
-      "data_conclusao": 2004
+      "grau": "Bacharelado",
+      "area": "Ciência da Computação",
+      "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)",
+      "ano_conclusao": 2004
     }
   ],
   "certificacoes": [],
   "habilidades": [
-    "Arquitetura de software",
+    "Software Architecture",
+    "Microservices",
     "Domain-Driven Design (DDD)",
-    "Microserviços",
-    "Infraestrutura cloud (AWS, GCP, Kubernetes)",
-    "DevOps e CI/CD",
-    "Segurança e infraestrutura (DNSSEC, DNS)",
-    "Python",
-    "Java",
-    "C++",
-    "Go",
-    "JavaScript",
-    "Gestão de equipes",
-    "Big Data e ETL",
-    "Machine Learning"
+    "Cloud Computing (AWS, GCP)",
+    "Kubernetes",
+    "Docker",
+    "DevOps",
+    "Infrastructure as Code (Terraform, Ansible)",
+    "Cybersecurity",
+    "DNSSEC",
+    "CI/CD",
+    "Data Engineering",
+    "Machine Learning",
+    "Big Data (Hadoop, Spark)"
   ],
   "idiomas": [
     {
       "idioma": "Português",
-      "nivel": "nativo",
-      "fonte": "documento"
+      "nivel": "nativo"
     },
     {
       "idioma": "Inglês",
-      "nivel": "fluente",
-      "fonte": "inferido"
+      "nivel": "fluente"
     }
   ]
 }

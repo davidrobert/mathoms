@@ -3,12 +3,12 @@
   "tipo": "cdbdetalhes",
   "periodo": {
     "inicio": null,
-    "fim": "2026-03-31"
+    "fim": "2026-04-30"
   },
   "composicao": [],
   "saldo_atual": null,
   "moeda": "BRL",
-  "source_file": "santander_cdbdetalhesdi2_202603-0_original.pdf",
+  "source_file": "santander_cdbdi_202604-0_original.xls",
   "requires_llm_fallback": true,
-  "note": "PDF content requires detailed parsing"
+  "note": "XLS file - may be HTML disguised as XLS"
 }

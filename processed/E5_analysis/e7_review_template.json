@@ -1,12 +1,12 @@
 {
   "metadata": {
-    "timestamp": "2026-04-08T22:37:27.154354",
+    "timestamp": "2026-04-09T09:08:16.015052",
     "e7_version": "1.0",
     "persona_summary": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada na metodologia \"Viver de "
   },
   "cross_validation": {
-    "total_checks": 12,
-    "passed": 11,
+    "total_checks": 14,
+    "passed": 13,
     "failed": 1,
     "issues": [
       {
@@ -14,7 +14,7 @@
         "name": "Taxa poupança recorrente",
         "severity": "warning",
         "passed": false,
-        "details": "Calculada: -37.4%, reportada: 19.8%, diff: 57.2pp",
+        "details": "Calculada: -24.0%, reportada: 37.6%, diff: 61.6pp",
         "sections": [
           "ratios",
           "fluxo_caixa"
@@ -27,9 +27,19 @@
         "name": "Score formula consistency",
         "severity": "info",
         "passed": true,
-        "details": "Score reportado: 2.9, calculado: 2.9, diff: 0.0",
+        "details": "Score reportado: 5.6, calculado: 5.6, diff: 0.0",
         "sections": [
           "score"
+        ]
+      },
+      {
+        "check_id": "CV2",
+        "name": "Patrimônio composição vs bruto",
+        "severity": "info",
+        "passed": true,
+        "details": "Soma composição: R$ 1,002,813, bruto: R$ 1,002,813, diff: 0.0%",
+        "sections": [
+          "patrimonio"
         ]
       },
       {
@@ -37,7 +47,7 @@
         "name": "Fluxo de caixa aritmética",
         "severity": "info",
         "passed": true,
-        "details": "Receita (2,506,929) - Despesa (1,915,508) = 591,421, reportado: 591,421",
+        "details": "Receita (2,656,938) - Despesa (1,915,508) = 741,431, reportado: 741,431",
         "sections": [
           "fluxo_caixa"
         ]
@@ -47,7 +57,7 @@
         "name": "Taxa poupança recorrente",
         "severity": "warning",
         "passed": false,
-        "details": "Calculada: -37.4%, reportada: 19.8%, diff: 57.2pp",
+        "details": "Calculada: -24.0%, reportada: 37.6%, diff: 61.6pp",
         "sections": [
           "ratios",
           "fluxo_caixa"
@@ -68,9 +78,20 @@
         "name": "Progresso IF vs patrimônio investível",
         "severity": "info",
         "passed": true,
-        "details": "Investível/Meta = 0.0%, reportado: 0.0%",
+        "details": "Investível/Meta = 13.9%, reportado: 13.9%",
         "sections": [
           "goals",
+          "patrimonio"
+        ]
+      },
+      {
+        "check_id": "CV7",
+        "name": "Taxa endividamento vs patrimônio",
+        "severity": "info",
+        "passed": true,
+        "details": "Dívidas/Bruto = 0.0%, reportado: 0.0%",
+        "sections": [
+          "endividamento",
           "patrimonio"
         ]
       },
@@ -79,7 +100,7 @@
         "name": "Cobertura reserva emergência",
         "severity": "info",
         "passed": true,
-        "details": "Líquida/Despesas = 0.0 meses, reportado: 0.0",
+        "details": "Líquida/Despesas = 21.5 meses, reportado: 21.5",
         "sections": [
           "reserva_emergencia"
         ]
@@ -129,7 +150,7 @@
         "name": "Score classification label",
         "severity": "info",
         "passed": true,
-        "details": "Score 2.9 → esperado: 'Atenção', reportado: 'Atenção'",
+        "details": "Score 5.6 → esperado: 'Regular', reportado: 'Regular'",
         "sections": [
           "score"
         ]
@@ -321,10 +342,10 @@
         "ref": "—"
       }
     ],
-    "score": 2.9,
-    "score_label": "Atenção",
-    "patrimonio_bruto": 0.0,
-    "patrimonio_investivel": 0,
-    "fluxo_liquido": 591421.19
+    "score": 5.6,
+    "score_label": "Regular",
+    "patrimonio_bruto": 1002812.51,
+    "patrimonio_investivel": 1002812.51,
+    "fluxo_liquido": 741430.54
   }
 }

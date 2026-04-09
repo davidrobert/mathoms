@@ -1,79 +1,249 @@
 {
   "dados": [
     {
-      "nome": "CDB-DI\nCDB-DI",
+      "nome": "BANCO AGIBANK S.A",
+      "tipo": "CDB",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 29353.39,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "PICPAY BANK - BANCO MULTI (25/03/2030)",
+      "tipo": "CDB",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 30442.6,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "BANCO DIGIMAIS S.A",
+      "tipo": "CDB",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 12631.0,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "PICPAY BANK - BANCO MULTI (24/03/2032)",
+      "tipo": "CDB",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 22563.46,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CRI - TEX COURIER",
+      "tipo": "CRI",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 8002.3,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CRI - ONCOCLINICAS II",
+      "tipo": "CRI",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 7020.69,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CRA - Zamp",
+      "tipo": "CRA",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 8608.78,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CRA - MADERO",
+      "tipo": "CRA",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 7778.47,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CRA - FS AGRISOLUTIONS",
+      "tipo": "CRA",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 7276.46,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CRA - CEREAL",
+      "tipo": "CRA",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 8795.66,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CRA - Caramuru",
+      "tipo": "CRA",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 20318.78,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CRA - MINERVA",
+      "tipo": "CRA",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 26663.31,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CRA - ELDORADO",
+      "tipo": "CRA",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 28517.95,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "LOCALIZA RENT A CAR SA",
+      "tipo": "Debênture",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 29205.27,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CSN MINERACAO S.A",
+      "tipo": "Debênture",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 6993.62,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "Tesouro IPCA+ com Juros Semestrais (15/08/2030)",
+      "tipo": "Tesouro",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 43348.99,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "Tesouro IPCA+ com Juros Semestrais (15/05/2033)",
+      "tipo": "Tesouro",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 8585.49,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "BTG HEDGE FIRF CRPR SUB",
       "tipo": "FundoInvestimento",
-      "instituicao": "itau",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 2544.45,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "BTG HEDGE INCENTIVADO I",
+      "tipo": "FundoInvestimento",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 30091.92,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "3R - Cupom Semestral BANCO BTG PACTUAL",
+      "tipo": "COE",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": 20449.45,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "Swap Principal R$50.000",
+      "tipo": "Swap",
+      "instituicao": "BTG Pactual",
+      "membro": "",
+      "valor_atual": -448.78,
+      "data_referencia": "2026-03-31",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CDB-DI",
+      "tipo": "CDB",
+      "instituicao": "Itau",
       "membro": "",
       "valor_atual": 116374.26,
-      "data_referencia": "2026-03-02",
+      "data_referencia": "2026-03-29",
       "taxa": "",
       "vencimento": ""
     },
     {
-      "nome": "Itau Prev Corp\nPlatinum Rv49\nMm Pgbl\nItau Prev Corp\nPlatinum Rv49\nMm Pgbl",
-      "tipo": "FundoInvestimento",
-      "instituicao": "itau",
+      "nome": "Itau Prev Corp Platinum Rv49 Mm Pgbl",
+      "tipo": "Previdência",
+      "instituicao": "Itau",
       "membro": "",
       "valor_atual": 18715.24,
-      "data_referencia": "2026-03-02",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "total investido",
-      "tipo": "FundoInvestimento",
-      "instituicao": "itau",
-      "membro": "",
-      "valor_atual": 341581.2,
-      "data_referencia": "2026-03-02",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "total investido",
-      "tipo": "FundoInvestimento",
-      "instituicao": "itau",
-      "membro": "",
-      "valor_atual": 341581.2,
-      "data_referencia": "2026-03-02",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "64",
-      "tipo": "FundoInvestimento",
-      "instituicao": "rico",
-      "membro": "",
-      "valor_atual": 17186.4,
       "data_referencia": "2026-03-29",
       "taxa": "",
       "vencimento": ""
     },
     {
-      "nome": "24",
-      "tipo": "FundoInvestimento",
-      "instituicao": "rico",
+      "nome": "Cofrinhos",
+      "tipo": "Cofrinhos",
+      "instituicao": "Itau",
       "membro": "",
-      "valor_atual": 17186.4,
+      "valor_atual": 206491.7,
       "data_referencia": "2026-03-29",
       "taxa": "",
       "vencimento": ""
     },
     {
-      "nome": "Fundos de Investimentos",
+      "nome": "Alaska Black FIC de FIA - BDR NÍVEL I",
       "tipo": "FundoInvestimento",
-      "instituicao": "rico",
-      "membro": "",
-      "valor_atual": 164689.98,
-      "data_referencia": "2026-03-29",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "VEL I",
-      "tipo": "FundoInvestimento",
-      "instituicao": "rico",
+      "instituicao": "Rico",
       "membro": "",
       "valor_atual": 52443.66,
       "data_referencia": "2026-03-29",
@@ -81,9 +251,9 @@
       "vencimento": ""
     },
     {
-      "nome": "00 R\nAlaska Institucional Long Only FIF em\n28",
+      "nome": "Alaska Institucional Long Only FIF em Ações RL",
       "tipo": "FundoInvestimento",
-      "instituicao": "rico",
+      "instituicao": "Rico",
       "membro": "",
       "valor_atual": 52294.2,
       "data_referencia": "2026-03-29",
@@ -91,9 +261,9 @@
       "vencimento": ""
     },
     {
-      "nome": "es RL\n48 Safari 30 FIF em Cotas de FIM II",
+      "nome": "Safari 30 FIF em Cotas de FIM II",
       "tipo": "FundoInvestimento",
-      "instituicao": "rico",
+      "instituicao": "Rico",
       "membro": "",
       "valor_atual": 16613.5,
       "data_referencia": "2026-03-29",
@@ -101,9 +271,9 @@
       "vencimento": ""
     },
     {
-      "nome": "59 R\nConstellation Institucional Advisory FIC\n40",
+      "nome": "Constellation Institucional Advisory FIC de Ações RL",
       "tipo": "FundoInvestimento",
-      "instituicao": "rico",
+      "instituicao": "Rico",
       "membro": "",
       "valor_atual": 12585.32,
       "data_referencia": "2026-03-29",
@@ -111,9 +281,9 @@
       "vencimento": ""
     },
     {
-      "nome": "quida Bruta aplicado\n35 Western Asset BDR FIF",
+      "nome": "Western Asset BDR FIF",
       "tipo": "FundoInvestimento",
-      "instituicao": "rico",
+      "instituicao": "Rico",
       "membro": "",
       "valor_atual": 25913.09,
       "data_referencia": "2026-03-29",
@@ -121,9 +291,9 @@
       "vencimento": ""
     },
     {
-      "nome": "quida Bruta aplicado\nHashdex 20 Nasdaq Crypto Index FIF\n15",
+      "nome": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
       "tipo": "FundoInvestimento",
-      "instituicao": "rico",
+      "instituicao": "Rico",
       "membro": "",
       "valor_atual": 3264.13,
       "data_referencia": "2026-03-29",
@@ -131,9 +301,9 @@
       "vencimento": ""
     },
     {
-      "nome": "o Sofisticada FIM CP RL",
+      "nome": "XP Alocação Sofisticada FIM CP RL",
       "tipo": "FundoInvestimento",
-      "instituicao": "rico",
+      "instituicao": "Rico",
       "membro": "",
       "valor_atual": 1576.08,
       "data_referencia": "2026-03-29",
@@ -141,19 +311,9 @@
       "vencimento": ""
     },
     {
-      "nome": "es",
-      "tipo": "FundoInvestimento",
-      "instituicao": "rico",
-      "membro": "",
-      "valor_atual": 96931.16,
-      "data_referencia": "2026-03-29",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "28 PETR4",
-      "tipo": "FundoInvestimento",
-      "instituicao": "rico",
+      "nome": "PETR4",
+      "tipo": "Acao",
+      "instituicao": "Rico",
       "membro": "",
       "valor_atual": 83946.0,
       "data_referencia": "2026-03-29",
@@ -161,9 +321,9 @@
       "vencimento": ""
     },
     {
-      "nome": "1\n37 ITSA4",
-      "tipo": "FundoInvestimento",
-      "instituicao": "rico",
+      "nome": "ITSA4",
+      "tipo": "Acao",
+      "instituicao": "Rico",
       "membro": "",
       "valor_atual": 10285.16,
       "data_referencia": "2026-03-29",
@@ -171,24 +331,78 @@
       "vencimento": ""
     },
     {
-      "nome": "7\n28 BRKM5",
-      "tipo": "FundoInvestimento",
-      "instituicao": "rico",
+      "nome": "BRKM5",
+      "tipo": "Acao",
+      "instituicao": "Rico",
       "membro": "",
       "valor_atual": 2700.0,
       "data_referencia": "2026-03-29",
       "taxa": "",
       "vencimento": ""
+    },
+    {
+      "nome": "CDB C6 Pós-fixado Liquidez Diária",
+      "tipo": "CDB",
+      "instituicao": "C6 Bank",
+      "membro": "",
+      "valor_atual": 0.0,
+      "data_referencia": {
+        "inicio": null,
+        "fim": "2026-03-31"
+      },
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CDB C6 Limite Garantido",
+      "tipo": "CDB",
+      "instituicao": "C6 Bank",
+      "membro": "",
+      "valor_atual": 0.0,
+      "data_referencia": {
+        "inicio": null,
+        "fim": "2026-03-31"
+      },
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CDB C6 Pós-fixado 3 meses",
+      "tipo": "CDB",
+      "instituicao": "C6 Bank",
+      "membro": "",
+      "valor_atual": 0.0,
+      "data_referencia": {
+        "inicio": null,
+        "fim": "2026-03-31"
+      },
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CDB C6 Pós-fixado 6 meses",
+      "tipo": "CDB",
+      "instituicao": "C6 Bank",
+      "membro": "",
+      "valor_atual": 0.0,
+      "data_referencia": {
+        "inicio": null,
+        "fim": "2026-03-31"
+      },
+      "taxa": "",
+      "vencimento": ""
     }
   ],
   "total_por_membro": {
-    "": 1375866.98
+    "": 1002812.51
   },
-  "total_geral": 1375866.98,
+  "total_geral": 1002812.51,
   "fontes": [
+    "btgpactual_investimentosposicao_202603-2_extract.json",
     "itau_investimentosposicao_202603-2_extract.json",
-    "rico_investimentosposicao_202603-2_extract.json"
+    "rico_investimentosposicao_202603-2_extract.json",
+    "c6bank_carteirarendafixa_202603-2_extract.json"
   ],
-  "data_consolidacao": "2026-04-08",
-  "n_posicoes": 18
+  "data_consolidacao": "2026-04-09",
+  "n_posicoes": 38
 }

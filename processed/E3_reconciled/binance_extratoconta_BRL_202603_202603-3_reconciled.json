@@ -1,13 +1,23 @@
 {
   "banco": "Binance",
-  "tipo": "extratoconta",
-  "periodo": {
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
     "inicio": "2026-03-01",
     "fim": "2026-03-31"
   },
-  "saldo_inicial": null,
-  "saldo_final": 1257.19,
-  "moeda": "BRL",
+  "saldo_inicial": 0,
+  "saldo_inicial_unknown": true,
+  "saldo_final": 0,
+  "saldo_final_unknown": true,
+  "fontes": [
+    "binance_extratoconta_202603a-2_extract.json",
+    "binance_extratoconta_202603b-2_extract.json",
+    "binance_extratoconta_202603c-2_extract.json"
+  ],
+  "transacoes_total": 4,
+  "transacoes_duplicadas_removidas": 0,
   "transacoes": [
     {
       "data": "2026-03-29",
@@ -33,7 +43,5 @@
       "valor": 1.54143134,
       "saldo_apos": null
     }
-  ],
-  "source_file": "binance_extratoconta_202603a-0_original.jpg",
-  "note": "Crypto holdings extract from mobile app screenshot"
+  ]
 }

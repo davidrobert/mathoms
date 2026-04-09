@@ -1,9 +1,9 @@
 # E3 Reconciliation Summary
-Generated: 2026-04-08T22:35:33.523920
+Generated: 2026-04-09T09:03:52.192235
 
 ## Statistics
 - Accounts processed: 16
-- Total transactions reconciled: 4508
+- Total transactions reconciled: 4513
 - Total duplicates removed: 99
 - Files written: 16
 
@@ -41,11 +41,13 @@ Generated: 2026-04-08T22:35:33.523920
 ## Reconciled Accounts
 - BTG Pactual | extratoconta | BRL | 2026-02-27 to 2026-03-29 | 37 txns
 - Bank of America | extratoconta | USD | 2026-02-25 to 2026-03-26 | 0 txns
+- Binance | extratoconta | BRL | 2026-03-01 to 2026-03-31 | 4 txns
 - Bradesco | extratoconta | BRL | 2025-01-01 to 2026-03-29 | 399 txns
 - Bradesco | extratopoupanca | BRL | 2025-01-01 to 2026-03-31 | 126 txns
 - C6 Bank | extratoconta | BRL | 2023-12-31 to 2026-04-06 | 1333 txns
 - C6 Bank | extratocontapj | BRL | 2023-12-31 to 2026-04-06 | 56 txns
 - C6 Bank | faturacarbon | BRL | 2023-09-30 to 2026-04-05 | 1806 txns
+- Itau | extratoconta | BRL | 2026-03-01 to 2026-03-29 | 1 txns
 - Itaú | extratoconta | BRL | 2022-12-01 to 2026-04-30 | 564 txns
 - PicPay | extratoconta | BRL | 2025-12-29 to 2026-03-28 | 62 txns
 - Rico | extratoconta | BRL | 2025-09-30 to 2026-03-29 | 14 txns
@@ -53,5 +55,3 @@ Generated: 2026-04-08T22:35:33.523920
 - Santander | faturaunique | BRL | 2024-06-07 to 2100-01-06 | 55 txns
 - Wise | extratocontabrl | BRL | 2025-01-01 to 2026-03-29 | 0 txns
 - Wise | extratocontausd | USD | 2025-01-01 to 2026-03-29 | 31 txns
-- binance | extratoconta | BRL |  to  | 0 txns
-- itau | extratoconta | BRL |  to  | 0 txns

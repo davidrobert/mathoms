@@ -1,9 +1,14 @@
 {
-  "tipo": "cdbdetalhes",
-  "banco": "santander",
-  "data_posicao": "2026-03-29",
+  "banco": "Santander",
+  "tipo": "cdbresumo",
+  "periodo": {
+    "inicio": null,
+    "fim": "2026-03-31"
+  },
+  "composicao": [],
+  "saldo_atual": null,
   "moeda": "BRL",
-  "produtos": [],
-  "total_bruto": 0.0,
-  "total_liquido": 0.0
+  "source_file": "santander_cdbresumo_202603-0_original.pdf",
+  "requires_llm_fallback": true,
+  "note": "PDF requires detailed inspection"
 }

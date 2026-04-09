@@ -1,9 +1,14 @@
 {
+  "banco": "Santander",
   "tipo": "cdbdetalhes",
-  "banco": "santander",
-  "data_posicao": "2024-08-30",
+  "periodo": {
+    "inicio": null,
+    "fim": "2026-03-31"
+  },
+  "composicao": [],
+  "saldo_atual": null,
   "moeda": "BRL",
-  "produtos": [],
-  "total_bruto": 0.0,
-  "total_liquido": 0.0
+  "source_file": "santander_cdbdetalhesprog_202603-0_original.pdf",
+  "requires_llm_fallback": true,
+  "note": "PDF content requires detailed parsing"
 }

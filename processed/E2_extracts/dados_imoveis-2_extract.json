@@ -1,1 +1,49 @@
-{}
+{
+  "arquivo": "dados_imoveis-0_original.xlsx",
+  "imoveis": [
+    {
+      "endereco": "Praça Benedito Calixto, 186/190, APT 34 \n- Pinheiros, São Paulo - SP, 05406-040",
+      "data_aquisicao": "Pagamento a vista",
+      "valor_aquisicao": null,
+      "vendedor": null,
+      "banco": "---",
+      "taxa": null,
+      "prazo_meses": null,
+      "situacao": null
+    },
+    {
+      "endereco": "R. Major Freire, 496, APT 12 \n- São Paulo - SP, 04304-110",
+      "data_aquisicao": "Entrada R$ 40,000.00\nFinanciamento R$ 360,000.00",
+      "valor_aquisicao": null,
+      "vendedor": null,
+      "banco": "Banco Itau",
+      "taxa": null,
+      "prazo_meses": null,
+      "situacao": null
+    },
+    {
+      "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
+      "data_aquisicao": "Nome dos Vendedores: Geraldo Costa Fernandes e Odete dos Santos Fernandes\nImovel financiado pela CAIXA, Financiamento concluido",
+      "valor_aquisicao": null,
+      "vendedor": null,
+      "banco": "---",
+      "taxa": null,
+      "prazo_meses": null,
+      "situacao": null
+    },
+    {
+      "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
+      "data_aquisicao": "Nome da Vendedora: Leonilda de Souza",
+      "valor_aquisicao": null,
+      "vendedor": null,
+      "banco": "---",
+      "taxa": null,
+      "prazo_meses": null,
+      "situacao": null
+    }
+  ],
+  "resumo": {
+    "total_imoveis": 4,
+    "valor_total_aquisicao": 0
+  }
+}

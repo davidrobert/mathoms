@@ -1,203 +1,231 @@
-{
-  "tipo": "members_unified",
-  "data_geracao": "2026-04-08",
-  "fonte_definitions": true,
-  "membros": [
-    {
-      "id": "david",
-      "nome_atual": "David Robert Camargo Ferreira Campos",
-      "nomes_alternativos": [
-        "David Robert Camargo de Campos",
-        "David Robert Camargo",
-        "DAVID ROBERT CAMARGO FERREIRA CAMPOS"
-      ],
-      "cpf": "287.766.948-36",
-      "data_nascimento": "1981-09-05",
-      "idade_atual": 44,
-      "papel_familia": "Titular",
-      "empregador_atual": "Arvo",
-      "cargo_atual": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "PJ",
-      "data_admissao": "2025-09-08",
-      "formacao_maxima": "Mestrado em Ciência da Computação — Inteligência Artificial (USP, 2008)",
-      "idiomas": [
-        {
-          "idioma": "Português",
-          "nivel": "nativo",
-          "fonte": "documento"
-        },
-        {
-          "idioma": "Inglês",
-          "nivel": "fluente",
-          "fonte": "inferido"
-        }
-      ],
-      "experiencias": [
-        {
-          "empresa": "Arvo",
-          "cargo": "Chief Technology Officer (CTO)",
-          "tipo_vinculo": "PJ",
-          "data_inicio": "2025-09",
-          "data_fim": "presente"
-        },
-        {
-          "empresa": "Kiwify",
-          "cargo": "Chief Technology Officer (CTO)",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2019-03",
-          "data_fim": "2025-08"
-        },
-        {
-          "empresa": "Loft Group (CredPago)",
-          "cargo": "VP of Software Engineering",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2017-06",
-          "data_fim": "2019-02"
-        },
-        {
-          "empresa": "Elo7",
-          "cargo": "Engenheiro de Software / Arquiteto",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2013-01",
-          "data_fim": "2017-05"
-        },
-        {
-          "empresa": "Telefonica/UOL",
-          "cargo": "Engenheiro de Software",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2007-01",
-          "data_fim": "2012-12"
-        }
-      ],
-      "salario": {
-        "bruto": null,
-        "liquido": null,
-        "periodo_referencia": null,
-        "fonte": "PJ — valor a confirmar via extratos bancários C6",
-        "nota": "David opera como PJ. Renda estimada via extratos de C6 Bank PJ (Ag. 1, Conta 384366937)."
+[
+  {
+    "id": "david",
+    "nome_completo": "David Robert Camargo Ferreira Campos",
+    "nomes_alternativos": [
+      "DAVID ROBERT CAMARGO DE CAMPOS",
+      "DAVID ROBERT CAMARGO",
+      "DAVID ROBERT"
+    ],
+    "cpf": "287.766.948-36",
+    "data_nascimento": "1981-09-05",
+    "papel": "titular",
+    "profissao_cargo": "Chief Technology Officer (CTO)",
+    "experiencias": [
+      {
+        "empresa": "Arvo",
+        "cargo": "Chief Technology Officer (CTO)",
+        "data_inicio": "2025-09-08",
+        "data_fim": "presente",
+        "descricao": "Fast-growing Brazilian healthtech company leveraging AI/ML for healthcare ecosystem optimization. Direct technology strategy, spearhead AI-First engineering vision, and establish robust cybersecurity frameworks."
       },
-      "documentos_disponiveis": [
-        "curriculo"
-      ],
-      "status_fiscal": "BR",
-      "observacoes": "Titular da família. CTO em healthtech com IA. Carreira iniciada em 2002 com 20+ anos de experiência. Experiência em startups de scale-up (Elo7, Loft). Formação sólida em IA e ciência da computação."
-    },
-    {
-      "id": "mariana",
-      "nome_atual": "Mariana Ferreira Campos",
-      "nomes_alternativos": [
-        "Mariana Teixeira Ferreira",
-        "Mariana Teixeira",
-        "MARIANA FERREIRA CAMPOS"
-      ],
-      "cpf": "085.052.396-60",
-      "data_nascimento": "1986-08-30",
-      "idade_atual": 39,
-      "papel_familia": "Cônjuge",
-      "empregador_atual": "Hospital Israelita Albert Einstein",
-      "cargo_atual": "Enfermeiro (Pl)",
-      "tipo_vinculo": "CLT",
+      {
+        "empresa": "Kiwify",
+        "cargo": "Chief Technology Officer (CTO)",
+        "data_inicio": null,
+        "data_fim": null,
+        "descricao": "E-commerce and marketplace platform"
+      },
+      {
+        "empresa": "CredPago (Loft Group)",
+        "cargo": "VP of Software Engineering",
+        "data_inicio": null,
+        "data_fim": null,
+        "descricao": "Proptech platform, contributed to Loft's growth to unicorn status"
+      },
+      {
+        "empresa": "Loft",
+        "cargo": null,
+        "data_inicio": null,
+        "data_fim": null,
+        "descricao": "Proptech platform - played key role in growth to unicorn status"
+      },
+      {
+        "empresa": "Elo7",
+        "cargo": null,
+        "data_inicio": null,
+        "data_fim": null,
+        "descricao": "E-commerce marketplace"
+      }
+    ],
+    "formacao": [
+      {
+        "grau": "Mestrado",
+        "area": "Ciência da Computação - Inteligência Artificial",
+        "instituicao": "Universidade de São Paulo (USP), Instituto de Matemática e Estatística (IME)",
+        "ano_conclusao": 2008
+      },
+      {
+        "grau": "Bacharelado",
+        "area": "Ciência da Computação",
+        "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)",
+        "ano_conclusao": 2004
+      }
+    ],
+    "certificacoes": [],
+    "habilidades": [
+      "Software Architecture",
+      "Microservices",
+      "Domain-Driven Design (DDD)",
+      "Cloud Computing (AWS, GCP)",
+      "Kubernetes",
+      "Docker",
+      "DevOps",
+      "Infrastructure as Code (Terraform, Ansible)",
+      "Cybersecurity",
+      "DNSSEC",
+      "CI/CD",
+      "Data Engineering",
+      "Machine Learning",
+      "Big Data (Hadoop, Spark)"
+    ],
+    "idiomas": [
+      {
+        "idioma": "Português",
+        "nivel": "nativo"
+      },
+      {
+        "idioma": "Inglês",
+        "nivel": "fluente"
+      }
+    ],
+    "salario": null,
+    "documentos_disponiveis": [
+      "curriculo"
+    ]
+  },
+  {
+    "id": "mariana",
+    "nome_completo": "Mariana Ferreira Campos",
+    "nome_fiscal": "Mariana Teixeira Ferreira",
+    "nomes_alternativos": [
+      "MARIANA TEIXEIRA FERREIRA",
+      "MARIANA TEIXEIRA"
+    ],
+    "cpf": "085.052.396-60",
+    "data_nascimento": "1986-08-30",
+    "papel": "conjuge",
+    "profissao_cargo": "Enfermeira",
+    "experiencias": [
+      {
+        "empresa": "Hospital Israelita Albert Einstein",
+        "cargo": "Enfermeiro",
+        "data_inicio": "2018-01",
+        "data_fim": "presente",
+        "descricao": "Atuação em unidade de alta complexidade com foco em Cardiologia, Clínica Médica e Cirúrgica. Auditoria e Qualidade. Atuação ativa em projetos de melhoria contínua e segurança do paciente. Responsável pela auditoria de prontuários eletrônicos focada em preenchimento de alergias, risco de queda e sinais vitais."
+      },
+      {
+        "empresa": "Hospital Israelita Albert Einstein",
+        "cargo": "Enfermeiro",
+        "data_inicio": "2014-08",
+        "data_fim": "2018-06",
+        "descricao": "UPA Campo Limpo"
+      },
+      {
+        "empresa": "Faculdade Israelita Albert Einstein",
+        "cargo": "Docente universitário",
+        "data_inicio": "2021-01",
+        "data_fim": "2024-12",
+        "descricao": "Docente em Semiologia e Semiotécnica, com desenvolvimento de conteúdo teórico-prático e avaliação de competências clínicas."
+      },
+      {
+        "empresa": "Senac São Paulo",
+        "cargo": "Docente universitário",
+        "data_inicio": "2012-01",
+        "data_fim": "2016-01",
+        "descricao": null
+      },
+      {
+        "empresa": "Faculdade Sequencial",
+        "cargo": "Docente universitário",
+        "data_inicio": "2013-01",
+        "data_fim": "2015-08",
+        "descricao": null
+      },
+      {
+        "empresa": "Hospital Municipal Dr. Moysés Deutsch (Parceria com Hospital Israelita Einstein)",
+        "cargo": "Enfermeira",
+        "data_inicio": "2011",
+        "data_fim": "2014",
+        "descricao": "Atuação assistencial em UTI Adulto e Pediátrica. Atuação assistencial em Clínica Médica e Cirúrgica"
+      }
+    ],
+    "formacao": [
+      {
+        "grau": "Mestrado",
+        "area": "Enfermagem - Enfermagem em Saúde Adulta",
+        "instituicao": "Universidade de São Paulo (USP)",
+        "ano_conclusao": 2021
+      },
+      {
+        "grau": "Pós-graduação Lato Sensu (Especialização)",
+        "area": "Enfermagem em Cardiologia e Hemodinâmica",
+        "instituicao": "Unifesp - Universidade Federal de São Paulo",
+        "ano_conclusao": 2012
+      },
+      {
+        "grau": "Bacharelado",
+        "area": "Enfermagem",
+        "instituicao": "PUC Minas",
+        "ano_conclusao": 2010
+      },
+      {
+        "grau": "Pós-graduação Lato Sensu (Especialização)",
+        "area": "Especialização em Formação Docente em Educação Profissional",
+        "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
+        "ano_conclusao": null
+      }
+    ],
+    "certificacoes": [
+      "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
+      "Classificação de Risco (Protocolo de Manchester)",
+      "Advanced Trauma Care for Nurses (ATCN)",
+      "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP) e Curso de Osteoporose"
+    ],
+    "habilidades": [
+      "Processo de enfermagem",
+      "Cuidados de qualidade ao paciente",
+      "Auditoria e Qualidade",
+      "Segurança do Paciente",
+      "Gestão de equipes",
+      "Análise de prontuários eletrônicos",
+      "PDCA",
+      "Educação em Saúde"
+    ],
+    "idiomas": [
+      {
+        "idioma": "Português",
+        "nivel": "nativo"
+      }
+    ],
+    "salario": {
+      "salario_base_mensal": 9082.92,
+      "salario_bruto": 12086.06,
+      "salario_liquido": 3425.41,
+      "fonte": "holerite",
+      "periodo": "2026-02",
+      "empresa": "Hospital Israelita Albert Einstein",
+      "estabelecimento": "Unidade Morumbi",
+      "cargo_holerite": "Enfermeiro Pl",
       "data_admissao": "2014-07-21",
-      "formacao_maxima": "Mestrado em Enfermagem — Enfermagem na Saúde do Adulto (USP, 2021)",
-      "idiomas": [
-        {
-          "idioma": "Português",
-          "nivel": "nativo",
-          "fonte": "documento"
-        },
-        {
-          "idioma": "Inglês",
-          "nivel": "basico",
-          "fonte": "inferido"
-        }
-      ],
-      "experiencias": [
-        {
-          "empresa": "Hospital Israelita Albert Einstein",
-          "cargo": "Enfermeiro",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2018-01",
-          "data_fim": "presente"
-        },
-        {
-          "empresa": "Faculdade Israelita Albert Einstein",
-          "cargo": "Docente universitário",
-          "tipo_vinculo": "docencia",
-          "data_inicio": "2021-01",
-          "data_fim": "2024-12"
-        },
-        {
-          "empresa": "Senac São Paulo",
-          "cargo": "Docente universitário",
-          "tipo_vinculo": "docencia",
-          "data_inicio": "2012-01",
-          "data_fim": "2016-01"
-        },
-        {
-          "empresa": "Faculdade Sequencial",
-          "cargo": "Docente universitário",
-          "tipo_vinculo": "docencia",
-          "data_inicio": "2013-01",
-          "data_fim": "2015-08"
-        },
-        {
-          "empresa": "Hospital Municipal Dr. Moysés Deutsch / Hospital Israelita Albert Einstein",
-          "cargo": "Enfermeiro",
-          "tipo_vinculo": "CLT",
-          "data_inicio": "2011-01",
-          "data_fim": "2018-06"
-        }
-      ],
-      "salario": {
-        "bruto": 12086.06,
-        "liquido": 3425.41,
-        "periodo_referencia": "2026-02",
-        "fonte": "holerite",
-        "nota": "Salário líquido atípico em fevereiro/2026 devido a férias (R$ 2.529,06 em proventos) e desconto de férias (R$ 2.529,63) e adiantamento (R$ 3.633,17). Salário base mensal aproximado: R$ 9.082,92. Adicional de insalubridade 20% incluído na remuneração."
-      },
-      "documentos_disponiveis": [
-        "curriculo",
-        "holerite"
-      ],
-      "status_fiscal": "BR",
-      "observacoes": "Cônjuge de David. Enfermeira Mestre pela USP com especialização em Cardiologia/Hemodinâmica. Mais de 10 anos de carreira em hospital de alta complexidade. Expertise em auditoria clínica e segurança do paciente. Docência ativa 2021-2024. Perfil competitivo para NCLEX nos EUA."
+      "nota": "Dados do holerite de fevereiro de 2026"
     },
-    {
-      "id": "theo",
-      "nome_atual": "Theo Ferreira Campos",
-      "nomes_alternativos": [],
-      "cpf": null,
-      "data_nascimento": "2025-07-18",
-      "idade_atual": 0,
-      "papel_familia": "Filho",
-      "empregador_atual": null,
-      "cargo_atual": null,
-      "tipo_vinculo": null,
-      "data_admissao": null,
-      "formacao_maxima": null,
-      "idiomas": [
-        {
-          "idioma": "Português",
-          "nivel": "nativo",
-          "fonte": "inferido"
-        },
-        {
-          "idioma": "Inglês",
-          "nivel": "nativo",
-          "fonte": "inferido"
-        }
-      ],
-      "experiencias": [],
-      "salario": {
-        "bruto": null,
-        "liquido": null,
-        "periodo_referencia": null,
-        "fonte": null,
-        "nota": null
-      },
-      "documentos_disponiveis": [],
-      "status_fiscal": "BR+US",
-      "observacoes": "Filho recém-nascido (julho/2025). Dupla cidadania brasileira e americana (nascido em Orlando, Flórida). Sem documentação financeira no escopo atual."
-    }
-  ]
-}
+    "documentos_disponiveis": [
+      "curriculo",
+      "holerite"
+    ]
+  },
+  {
+    "id": "theo",
+    "nome_completo": "Theo Ferreira Campos",
+    "nomes_alternativos": [],
+    "data_nascimento": "2025-07-18",
+    "papel": "filho",
+    "cidadania": [
+      "brasileira",
+      "americana"
+    ],
+    "local_nascimento": "Orlando, Flórida",
+    "documentos_disponiveis": []
+  }
+]

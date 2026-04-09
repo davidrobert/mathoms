@@ -3,8 +3,8 @@
   "membro": "mariana",
   "nome_no_documento": "Mariana Teixeira Ferreira",
   "periodo": "2026-02",
-  "empresa": "SBIBHAE - Albert Einstein",
-  "estabelecimento": "AEMO Unidade Morumbi",
+  "empresa": "Hospital Israelita Albert Einstein",
+  "estabelecimento": "Unidade Morumbi",
   "cargo": "Enfermeiro Pl",
   "categoria": "Enfermagem P",
   "grade": "P4",
@@ -14,64 +14,52 @@
   "salario_bruto": 12086.06,
   "proventos_adicionais": [
     {
-      "codigo": "/325",
-      "descricao": "Adicional de insalubridade 20%",
+      "descricao": "Adic. de insalubrid. 20%",
       "valor": 270.17
     },
     {
-      "codigo": "M389",
-      "descricao": "Provisão Contribuição INSS recebida",
+      "descricao": "Provisão Contr. INSS rec.",
       "valor": 203.34
     },
     {
-      "codigo": "MC03",
       "descricao": "Férias no mês",
       "valor": 1870.62
     },
     {
-      "codigo": "MC04",
       "descricao": "Férias 1/3 no mês",
       "valor": 623.54
     },
     {
-      "codigo": "MC13",
       "descricao": "Médias férias no mês",
       "valor": 26.60
     },
     {
-      "codigo": "MC14",
       "descricao": "Médias férias 1/3 no mês",
       "valor": 8.87
     }
   ],
   "descontos": [
     {
-      "codigo": "/314",
-      "descricao": "Contribuição INSS Remuneração",
+      "descricao": "Contr. INSS Remuneração",
       "valor": 988.07
     },
     {
-      "codigo": "/401",
       "descricao": "Tributo IRRF",
       "valor": 1447.57
     },
     {
-      "codigo": "/B02",
       "descricao": "Adiantamento pago",
       "valor": 3633.17
     },
     {
-      "codigo": "1014",
       "descricao": "Seguro de Vida",
       "valor": 27.41
     },
     {
-      "codigo": "1025",
-      "descricao": "Refeição",
+      "descricao": "Refeicao",
       "valor": 34.80
     },
     {
-      "codigo": "MO90",
       "descricao": "Desconto de Férias",
       "valor": 2529.63
     }
@@ -85,5 +73,5 @@
   },
   "inss_base": 11882.72,
   "dependentes_ir": 0,
-  "observacoes": "Holerite com férias no período (5 dias úteis de férias + 1/3, totalizando R$ 2.529,06 em proventos de férias). Desconto de férias de R$ 2.529,63. Adiantamento pago de R$ 3.633,17. Salário líquido atípico devido aos descontos concentrados neste período. Base INSS: R$ 11.882,72. IRRF com base zero (IR retido)."
+  "observacoes": "Referência: Fevereiro 2026. Banco 237, Agência 6543, Conta 6673"
 }
