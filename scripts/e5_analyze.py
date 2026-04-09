@@ -1094,6 +1094,14 @@ def analyze_fluxo_caixa(
             "despesa_total": round(despesa_12m_total, 2),
             "despesa_mensal_media": round(despesa_12m_mensal_media, 2),
             "fluxo_liquido": round(fluxo_12m_liquido, 2),
+            "taxa_poupanca_recorrente": round(
+                ((receita_12m_recorrente - despesa_12m_total) / receita_12m_recorrente * 100)
+                if receita_12m_recorrente > 0 else 0.0, 2
+            ),
+            "taxa_poupanca_total": round(
+                ((receita_12m_total - despesa_12m_total) / receita_12m_total * 100)
+                if receita_12m_total > 0 else 0.0, 2
+            ),
         },
     }
 

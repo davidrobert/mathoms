@@ -1704,7 +1704,9 @@
       "receita_recorrente_mensal": 81703.4,
       "despesa_total": 665883.61,
       "despesa_mensal_media": 55490.3,
-      "fluxo_liquido": 727210.61
+      "fluxo_liquido": 727210.61,
+      "taxa_poupanca_recorrente": 32.08,
+      "taxa_poupanca_total": 52.2
     }
   },
   "ratios": {
@@ -2445,16 +2447,5 @@
         "recommendation": "Acrescentar nota no E6: D06 deve acontecer primeira quinzena abr/26 para desbloquear D13-D14 (IRPF mai/26, carnê-leão jun/26)."
       }
     ]
-  },
-  "review_metadata": {
-    "timestamp": "2026-04-09T15:16:10.690339",
-    "e7_version": "1.0",
-    "changes_applied": [
-      "charts.fluxo_mensal",
-      "strategic_insights (6 items)",
-      "inconsistencies_review (2 items)"
-    ],
-    "cross_validation_passed": 12,
-    "cross_validation_failed": 2
   }
 }

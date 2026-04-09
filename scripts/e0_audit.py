@@ -12,8 +12,10 @@ Detecta problemas de roteamento (E0) que se propagariam pelo pipeline:
   6. Duplicatas por hash (conteúdo idêntico)
   7. Colisão de nomes no inbox/
   8. HTML disfarçado de XLS (detecção de formato)
+  9. Nomes incorretos de extracts E2 (sufixo errado, zero duplicado)
 
 Não altera nenhum arquivo — apenas imprime um relatório.
+Use --fix-names para auto-corrigir nomes de extracts da checagem 9.
 
 Usage:
   python scripts/e0_audit.py              # Relatório completo
@@ -673,6 +675,116 @@ def check_html_as_xls() -> list[dict[str, Any]]:
     return issues
 
 
+def check_extract_naming() -> list[dict[str, Any]]:
+    """Check 9: Detect E2 extract files with incorrect naming conventions.
+
+    Valid patterns:
+      - *-2_extract.json  (standard E2 extract)
+      - *-1.5_consolidated.json  (E1.5 baseline)
+      - *-0_original-2_extract.json  (extract from backup original)
+
+    Invalid patterns (common LLM agent mistakes):
+      - *-0_extract.json  (wrong suffix — should be -2_extract)
+      - *-0-0_original-2_extract.json  (double zero — LLM naming bug)
+    """
+    issues = []
+    if not E2_DIR.exists():
+        return issues
+
+    for f in sorted(E2_DIR.glob("*.json")):
+        name = f.name
+
+        # Skip valid patterns
+        if name.endswith("-2_extract.json"):
+            continue
+        if name.endswith("-1.5_consolidated.json"):
+            continue
+
+        # Detect -0_extract (should be -2_extract)
+        if re.search(r"-0_extract\.json$", name):
+            correct_name = re.sub(r"-0_extract\.json$", "-2_extract.json", name)
+            correct_path = E2_DIR / correct_name
+            if correct_path.exists() and correct_path.stat().st_size > 10:
+                issues.append({
+                    "file": name,
+                    "issue": (
+                        f"Nome incorreto: '{name}' usa sufixo '-0_extract' em vez de '-2_extract'. "
+                        f"Arquivo correto '{correct_name}' já existe — este pode ser removido."
+                    ),
+                    "severity": "WARNING",
+                })
+            else:
+                issues.append({
+                    "file": name,
+                    "issue": (
+                        f"Nome incorreto: '{name}' usa sufixo '-0_extract' em vez de '-2_extract'. "
+                        f"Renomear para '{correct_name}'."
+                    ),
+                    "severity": "ERROR",
+                    "auto_fix": {"action": "rename", "from": name, "to": correct_name},
+                })
+
+        # Detect -0-0_original (double zero — LLM naming bug)
+        if "-0-0_original-" in name:
+            correct_name = name.replace("-0-0_original-", "-0_original-")
+            correct_path = E2_DIR / correct_name
+            if correct_path.exists() and correct_path.stat().st_size > 10:
+                issues.append({
+                    "file": name,
+                    "issue": (
+                        f"Nome duplicado: '{name}' tem '-0-0_original' (zero duplicado). "
+                        f"Arquivo correto '{correct_name}' já existe — este pode ser removido."
+                    ),
+                    "severity": "WARNING",
+                })
+            else:
+                issues.append({
+                    "file": name,
+                    "issue": (
+                        f"Nome duplicado: '{name}' tem '-0-0_original' (zero duplicado). "
+                        f"Renomear para '{correct_name}'."
+                    ),
+                    "severity": "ERROR",
+                    "auto_fix": {"action": "rename", "from": name, "to": correct_name},
+                })
+
+    return issues
+
+
+def fix_extract_naming(dry_run: bool = False) -> int:
+    """Auto-fix E2 extract files with incorrect naming.
+
+    Returns number of files fixed.
+    """
+    issues = check_extract_naming()
+    fixed = 0
+    for issue in issues:
+        fix = issue.get("auto_fix")
+        if not fix or fix["action"] != "rename":
+            continue
+        src = E2_DIR / fix["from"]
+        dst = E2_DIR / fix["to"]
+        if dry_run:
+            print(f"  [DRY-RUN] Renomearia: {fix['from']} → {fix['to']}")
+        else:
+            src.rename(dst)
+            print(f"  [FIX] Renomeado: {fix['from']} → {fix['to']}")
+        fixed += 1
+
+    # Clean up duplicates with correct version already existing
+    for issue in issues:
+        if "pode ser removido" in issue["issue"]:
+            f = E2_DIR / issue["file"]
+            if dry_run:
+                print(f"  [DRY-RUN] Removeria duplicata: {issue['file']}")
+            elif f.exists():
+                f.unlink()
+                print(f"  [FIX] Removida duplicata: {issue['file']}")
+                fixed += 1
+
+    return fixed
+
+
 # =============================================================================
 # Main
 # =============================================================================
@@ -686,6 +798,7 @@ ALL_CHECKS = {
     6: ("Duplicatas por hash (conteúdo idêntico)", check_hash_duplicates),
     7: ("Colisão de nomes no inbox/ (conteúdo diferente, mesmo destino)", check_name_collisions),
     8: ("HTML disfarçado de XLS (detecção de formato)", check_html_as_xls),
+    9: ("Nomes incorretos de extracts E2 (sufixo errado, zero duplicado)", check_extract_naming),
 }
 
 
@@ -703,6 +816,7 @@ Checagens disponíveis:
   6 — Duplicatas por hash SHA-256 (conteúdo idêntico em data/ e inbox/)
   7 — Colisão de nomes no inbox/ (conteúdo diferente, mesmo nome destino)
   8 — HTML disfarçado de XLS (detecção de formato incorreto)
+  9 — Nomes incorretos de extracts E2 (sufixo -0_extract, zero duplicado)
 
 Exemplos:
   python scripts/e0_audit.py              # Todas as checagens
@@ -718,8 +832,31 @@ Exemplos:
         "--json", action="store_true",
         help="Saída em formato JSON (para processamento automático).",
     )
+    parser.add_argument(
+        "--fix-names", action="store_true",
+        help="Corrige automaticamente nomes incorretos de extracts E2 (check 9).",
+    )
 
     args = parser.parse_args()
+
+    # --fix-names: run check 9 + auto-fix
+    if args.fix_names:
+        print("=" * 60)
+        print("  E0-audit — fix-names (correção automática de nomes E2)")
+        print("=" * 60)
+        issues = check_extract_naming()
+        if not issues:
+            print("  [OK] Nenhum problema de nomes encontrado.")
+        else:
+            for iss in issues:
+                sev = iss["severity"]
+                icon = {"ERROR": "!!!", "WARNING": " ! ", "INFO": " i "}.get(sev, " ? ")
+                print(f"  [{icon}] {iss['file']}")
+                print(f"        {iss['issue']}")
+            fixed = fix_extract_naming(dry_run=False)
+            print(f"\n  Corrigidos: {fixed} arquivo(s)")
+        print("=" * 60)
+        return
 
     # Determine which checks to run
     if args.check:
