@@ -1,1 +1,22 @@
-{"_tombstone": true}
+{
+  "banco": "binance",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2026-03-01",
+    "fim": "2026-03-31"
+  },
+  "saldo_inicial": 0,
+  "saldo_inicial_unknown": true,
+  "saldo_final": 0,
+  "saldo_final_unknown": true,
+  "fontes": [
+    "binance_extratoconta_202603a-2_extract.json",
+    "binance_extratoconta_202603b-2_extract.json",
+    "binance_extratoconta_202603c-2_extract.json"
+  ],
+  "transacoes_total": 0,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": []
+}

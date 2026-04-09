@@ -1,1 +1,102 @@
-{}
+{
+  "tipo": "investimentosposicao",
+  "banco": "rico",
+  "membro": "david",
+  "data_posicao": "2026-03",
+  "moeda": "BRL",
+  "composicao": [
+    {
+      "product_type": "Fundo",
+      "name": "Alaska Block FIC de FIA - BDR NIVEL I",
+      "issuer": "Alaska",
+      "applied_value": 60000.0,
+      "current_value": 52443.66,
+      "quantity": null,
+      "rate": "Renda Variável Brasil"
+    },
+    {
+      "product_type": "Fundo",
+      "name": "Alaska Institucional Long Only FIF em Ações RL",
+      "issuer": "Alaska",
+      "applied_value": 35000.0,
+      "current_value": 52294.2,
+      "rate": "Renda Variável Brasil"
+    },
+    {
+      "product_type": "Fundo",
+      "name": "Safari 30 FIF em Cotas de FIM II",
+      "issuer": "Safari",
+      "applied_value": 25238.59,
+      "current_value": 16613.5,
+      "rate": "Renda Variável Brasil"
+    },
+    {
+      "product_type": "Fundo",
+      "name": "Constellation Institucional Advisory FIC de Ações RL",
+      "issuer": "Constellation",
+      "applied_value": 10000.0,
+      "current_value": 12585.32,
+      "rate": "Renda Variável Brasil"
+    },
+    {
+      "product_type": "Fundo",
+      "name": "Western Asset BDR FIF",
+      "issuer": "Western Asset",
+      "applied_value": 17651.61,
+      "current_value": 25913.09,
+      "rate": "Renda Variável Global"
+    },
+    {
+      "product_type": "Fundo",
+      "name": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
+      "issuer": "Hashdex",
+      "applied_value": 2008.21,
+      "current_value": 3264.13,
+      "rate": "Alternativos"
+    },
+    {
+      "product_type": "Fundo",
+      "name": "XP Alocação Sofisticado FIM CP RL",
+      "issuer": "XP",
+      "applied_value": 1356.59,
+      "current_value": 1576.08,
+      "rate": "Multimercado"
+    },
+    {
+      "product_type": "Acao",
+      "name": "PETR4",
+      "issuer": "Petrobrás",
+      "quantity": null,
+      "unit_price": 49.38,
+      "current_value": 43946.0,
+      "pm_note": "Applied value not provided in source"
+    },
+    {
+      "product_type": "Acao",
+      "name": "ITSA4",
+      "issuer": "Itaúsa",
+      "quantity": null,
+      "unit_price": 13.22,
+      "current_value": 10285.16,
+      "pm_note": "Applied value not provided in source"
+    },
+    {
+      "product_type": "Acao",
+      "name": "BBKM5",
+      "issuer": "Brookfield Incorporadora",
+      "quantity": null,
+      "unit_price": 9.0,
+      "current_value": 2700.0,
+      "pm_note": "Applied value not provided in source"
+    },
+    {
+      "product_type": "Dividendos",
+      "name": "ITSA4 Dividendos",
+      "issuer": "Itaúsa",
+      "current_value": 109.1,
+      "pm_note": "Cash dividends from shares"
+    }
+  ],
+  "saldo_atual": 278916.64,
+  "rentabilidade_acumulada": null
+}

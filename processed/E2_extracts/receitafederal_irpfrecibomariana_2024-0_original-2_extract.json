@@ -1,1 +1,16 @@
-{}
+{
+  "tipo": "irpfrecibo",
+  "membro": "mariana",
+  "ano_base": 2024,
+  "declarante": {
+    "nome": "MARIANA FERREIRA CAMPOS",
+    "cpf": "085.052.396-60"
+  },
+  "imposto_total": 40746.89,
+  "data_entrega": "2025-05-30",
+  "situacao": "aceita",
+  "total_rendimentos_tributaveis": 203982.98,
+  "imposto_a_restituir": 0.00,
+  "saldo_imposto_a_pagar": 18170.90,
+  "numero_recibo": "14.54.94.96.65 - 76"
+}

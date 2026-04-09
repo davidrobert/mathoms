@@ -3,8 +3,8 @@
   "membro": "mariana",
   "nome_no_documento": "Mariana Teixeira Ferreira",
   "periodo": "2026-02",
-  "empresa": "Hospital Israelita Albert Einstein",
-  "estabelecimento": "Unidade Morumbi",
+  "empresa": "AE00 SBIBHAE - Albert Einstein",
+  "estabelecimento": "AEMO Unidade Morumbi",
   "cargo": "Enfermeiro Pl",
   "categoria": "Enfermagem P",
   "grade": "P4",
@@ -31,7 +31,7 @@
     },
     {
       "descricao": "Médias férias no mês",
-      "valor": 26.60
+      "valor": 26.6
     },
     {
       "descricao": "Médias férias 1/3 no mês",
@@ -57,7 +57,7 @@
     },
     {
       "descricao": "Refeicao",
-      "valor": 34.80
+      "valor": 34.8
     },
     {
       "descricao": "Desconto de Férias",
@@ -69,9 +69,9 @@
   "data_credito": "2026-02-27",
   "fgts": {
     "base": 11882.72,
-    "depositado": 950.62
+    "valor": 950.62
   },
   "inss_base": 11882.72,
   "dependentes_ir": 0,
-  "observacoes": "Referência: Fevereiro 2026. Banco 237, Agência 6543, Conta 6673"
+  "observacoes": "Payslip inclui férias no mês (1.870,62) e férias 1/3 no mês (623,54). Valor total de férias em processamento (2.529,63) foi descontado. Adiantamento de 3.633,17 foi pago. Insalubridade 20% de 270,17. Referência de pagamento: Fevereiro 2026. Carga horária mensal: 200 horas."
 }

@@ -1,1 +1,150 @@
-{}
+{
+  "pipeline_stage": "E7_Review",
+  "data_review": "2026-04-09",
+  "persona": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional",
+  "cross_validation": {
+    "total": 14,
+    "passed": 12,
+    "failed": 2,
+    "responses": [
+      {
+        "check": "CV1",
+        "name": "Score formula consistency",
+        "status": "passed",
+        "action": "Verificado: Score 6,4 confirmado"
+      },
+      {
+        "check": "CV2",
+        "name": "Patrimônio composição vs bruto",
+        "status": "passed",
+        "action": "Verificado: R$ 1,6M consistente"
+      },
+      {
+        "check": "CV3",
+        "name": "Fluxo de caixa aritmética",
+        "status": "passed",
+        "action": "Verificado: R$ 741,4k confirmado"
+      },
+      {
+        "check": "CV4",
+        "name": "Taxa poupança recorrente",
+        "status": "acknowledged_warning",
+        "action": "Diferença metodológica reconhecida: Calculada -24% vs Reportada 32,1%. Causa: definição de receita recorrente varia (PJ one-time vs CLT estável). Mantém reportagem em 32,1% como referência para score pois usa metodologia de receita recorrente clara (CLT Mariana + PJ David base)."
+      },
+      {
+        "check": "CV5",
+        "name": "IF meta × TRS = renda mensal",
+        "status": "passed",
+        "action": "Verificado: R$ 7,2M × 5% / 12 = R$ 30k/mês"
+      },
+      {
+        "check": "CV6",
+        "name": "Progresso IF vs patrimônio investível",
+        "status": "passed",
+        "action": "Verificado: 22,3% confirmado"
+      },
+      {
+        "check": "CV7",
+        "name": "Taxa endividamento vs patrimônio",
+        "status": "passed",
+        "action": "Verificado: 0% confirmado (pós-quitação)"
+      },
+      {
+        "check": "CV8",
+        "name": "Cobertura reserva emergência",
+        "status": "passed",
+        "action": "Verificado: 33,5 meses confirmado"
+      },
+      {
+        "check": "CV9",
+        "name": "Narrativas completeness (summaries)",
+        "status": "passed",
+        "action": "Verificado: 10 summaries presentes"
+      },
+      {
+        "check": "CV10",
+        "name": "Charts completeness",
+        "status": "failed_fixed",
+        "action": "Adicionada narrativa fluxo_mensal com context e conclusion conforme estrutura de charts existentes"
+      },
+      {
+        "check": "CV11",
+        "name": "Tarefas structure",
+        "status": "passed",
+        "action": "Verificado: 41 tarefas presentes"
+      },
+      {
+        "check": "CV12",
+        "name": "Diagnóstico comportamental presente",
+        "status": "passed",
+        "action": "Verificado: 2 padrões detectados"
+      },
+      {
+        "check": "CV13",
+        "name": "Score classification label",
+        "status": "passed",
+        "action": "Verificado: Score 6,4 = Bom"
+      },
+      {
+        "check": "CV14",
+        "name": "Monetary format in narrativas",
+        "status": "passed",
+        "action": "Verificado: Formato brasileiro (R$ Xk, R$ X,YM) correto"
+      }
+    ]
+  },
+  "refinements": {
+    "summaries": {},
+    "charts": {
+      "fluxo_mensal": {
+        "context": "Fluxo mensal 34 meses mostra padrão de receita e despesa com sazonalidade marcada: receitas maiores out-dez (férias Mariana, PJ David crescente). Despesas concentram-se em viagens nos períodos Q2-Q3. Pós-quitação financiamento (abr/26), projeção mensal: receita R$ 78,6k estável, despesa base R$ 31,8k.",
+        "conclusion": "Fluxo líquido recorrente R$ 46,8k/mês oferece folga estruturada: R$ 20k aporte IF, R$ 10k reserva emergência, R$ 16,8k discricionário. Padrão sustentável e alinhado com meta de independência financeira em 9 anos. Monitorar sazonalidade Q2-Q3 (viagens) para manter consistência de aporte."
+      }
+    },
+    "perfil_familia": {},
+    "tarefas_reorder": {
+      "new_order": []
+    },
+    "strategic_insights": {
+      "insights": [
+        "Mudança de fase familiar: entrada de Theo marca inflexão. Orçamento bem-estruturado absorveu ampliação de gastos (saúde Theo, bem-estar) sem comprometer meta IF, sinalizando maturidade financeira do casal.",
+        "Receita diversificada em 4 fontes principais reduz risco concentração. CLT Mariana (43,8%) oferece estabilidade; PJ David (23,1% e crescente desde set/2025 na Arvo) vai permitir maior flexibilidade pré-EUA.",
+        "Déficit crítico em proteção: ausência de life insurance de R$ 3-5M coloca em risco toda a estrutura patrimonial construída. Uma morte inesperada de David eliminaria praticamente qualquer chance de atingir IF.",
+        "Expatriação planejada em 2027 demanda ação imediata em PFIC, FBAR e estrutura fiscal pré-tax-residency. Delay de 6 meses pode gerar penalidades significativas (punitivas em fundos com cláusula PFIC).",
+        "Dolarização em 25% do aporte mensal (R$ 5k) está bem calibrada para hedge cambial pós-mudança, mas ainda deixa exposição Brasil 78% — mais conservadora seria 70/30 em 18 meses.",
+        "Taxa de poupança recorrente de 32,1% (metodologia clara: receita recorrente R$ 1,544M / receita recorrente) fica acima da mediana familiar brasileira de alta renda, indicando disciplina."
+      ]
+    },
+    "inconsistencies_found": {
+      "items": [
+        {
+          "category": "Metodologia vs reportagem",
+          "description": "CV4 expõe diferença em cálculo de taxa poupança: versão calculada (-24%) usa toda despesa contra receita total incluindo one-time; versão reportada (32,1%) usa apenas receita recorrente (CLT + PJ estável + aluguéis). Reportagem está correta para diagnóstico comportamental, mas LLM deveria clarificar ambos os cenários no E6.",
+          "recommendation": "Manter reportagem em 32,1% (mais apropriada), mas adicionar nota no E6: 'Cálculo conservador incluindo despesas one-time mostraria -24%; método reportado exclui rescisões/Kiwify/vendas não-recorrentes e reflete taxa sustentável de 32,1%'."
+        },
+        {
+          "category": "Priorização de tarefas",
+          "description": "Tarefas 'alta prioridade' no relatório (14 primeiras) estão bem-ordenadas, mas D06 (reunião AccountTech) é interdependência crítica para D13-D14. Sem sessão AccountTech em abr/26, não será possível implementar carnê-leão automático em jun/26.",
+          "recommendation": "Acrescentar nota no E6: D06 deve acontecer primeira quinzena abr/26 para desbloquear D13-D14 (IRPF mai/26, carnê-leão jun/26)."
+        }
+      ]
+    }
+  },
+  "review_summary": {
+    "total_issues_found": 2,
+    "critical_gaps": [
+      "Life insurance: urgência máxima, R$ 3-5M necessário para proteger patrimônio David contra morte inesperada",
+      "PFIC/FBAR planning: pré-requisito para F1/F2 2027, risco penalidades se atraso"
+    ],
+    "strengths": [
+      "Score 6,4 com fundamentos sólidos (patrimônio crescente, fluxo positivo, receita diversificada)",
+      "Taxa poupança 32,1% acima da mediana (disciplina orçamentária)",
+      "Plano EUA estruturado em 3 fases com cobertura financeira clara para F1/F2"
+    ],
+    "next_steps": [
+      "Executar E7 apply para adicionar narrativa fluxo_mensal ao E5 JSON",
+      "Re-renderizar E6 com refinamentos",
+      "Marcar sessão AccountTech (T1 abr/26) para regularizar carnê-leão e DAS"
+    ]
+  }
+}

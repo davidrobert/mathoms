@@ -1,1 +1,17 @@
-{}
+{
+  "tipo": "cdbdetalhes",
+  "banco": "santander",
+  "membro": "david",
+  "data_posicao": "2026-04",
+  "posicoes": [
+    {
+      "product_type": "CDB DI",
+      "applied_value": 100000.0,
+      "current_value": 120238.33,
+      "rate": "100% CDI",
+      "maturity_date": "2029-10-16",
+      "acquisition_date": "2024-11-11"
+    }
+  ],
+  "saldo_atual": 120238.33
+}

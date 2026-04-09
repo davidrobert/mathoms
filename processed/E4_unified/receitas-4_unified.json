@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-09T13:49:09.814631-03:00",
+  "consolidation_date": "2026-04-09T15:11:22.426678-03:00",
   "periodo": "2023-01 a 2026-04",
   "categorias": [
     "outras_receitas",
@@ -12,9 +12,9 @@
     "receita_venda_ativo"
   ],
   "total_categorias": 8,
-  "total_transacoes": 630,
+  "total_transacoes": 631,
   "totais_por_categoria": {
-    "outras_receitas": 462099.30000000057,
+    "outras_receitas": 612099.3000000005,
     "receita_investimento": 14565.170000000011,
     "receita_resgate": 27416.699999999997,
     "receita_aluguel": 173662.92999999993,
@@ -23,7 +23,7 @@
     "receita_venda_ativo": 49402.0,
     "receita_restituicao": 16.99
   },
-  "total_geral": 2506928.89,
+  "total_geral": 2656928.89,
   "dados": {
     "outras_receitas": [
       {
@@ -1322,6 +1322,17 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-01",
+        "descricao": "Depósito",
+        "valor": 150000.0,
+        "banco": "itau",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {

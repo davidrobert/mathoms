@@ -1,1 +1,28 @@
-{"_tombstone": true}
+{
+  "banco": "itau",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2026-03-01",
+    "fim": "2026-03-31"
+  },
+  "saldo_inicial": 150000.0,
+  "saldo_inicial_unknown": false,
+  "saldo_final": 206491.7,
+  "saldo_final_unknown": false,
+  "fontes": [
+    "itau_extratocontapersonnalite_202603a-2_extract.json",
+    "itau_extratocontapersonnalite_202603b-2_extract.json"
+  ],
+  "transacoes_total": 1,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2025-07-01",
+      "descricao": "Depósito",
+      "valor": 150000.0,
+      "tipo": "credito"
+    }
+  ]
+}

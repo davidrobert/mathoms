@@ -1,1 +1,34 @@
-{}
+{
+  "tipo": "investimentosposicao",
+  "banco": "itau",
+  "membro": "david",
+  "data_posicao": "2026-03",
+  "moeda": "BRL",
+  "composicao": [
+    {
+      "product_type": "CDB",
+      "name": "CDB-DI",
+      "issuer": "Itaú",
+      "applied_value": 116374.26,
+      "current_value": 116374.26,
+      "rate": "DI-based"
+    },
+    {
+      "product_type": "CDB",
+      "name": "CDB-DI Previdência",
+      "issuer": "Itaú",
+      "applied_value": 18715.24,
+      "current_value": 18715.24,
+      "rate": "DI-based"
+    },
+    {
+      "product_type": "Poupança",
+      "name": "Poupança",
+      "issuer": "Itaú",
+      "current_value": 0,
+      "pm_note": "No active savings account"
+    }
+  ],
+  "saldo_atual": 341581.2,
+  "rentabilidade_acumulada": 3159.59
+}

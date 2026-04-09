@@ -1,1 +1,34 @@
-{}
+{
+  "tipo": "carteirarendafixa",
+  "banco": "c6bank",
+  "membro": "david",
+  "data_posicao": "2026-03",
+  "moeda": "BRL",
+  "composicao": [
+    {
+      "product_type": "Renda Fixa",
+      "name": "Renda Fixa Limite",
+      "issuer": "C6 Bank",
+      "current_value": 6930.11,
+      "rate": "102% do CDI"
+    },
+    {
+      "product_type": "CDB",
+      "name": "CDB C6 Pós-fixado 3 meses",
+      "issuer": "C6 Bank",
+      "current_value": null,
+      "rate": "102% do CDI",
+      "pm_note": "Amount not clearly specified in source"
+    },
+    {
+      "product_type": "CDB",
+      "name": "CDB C6 Pós-fixado 6 meses",
+      "issuer": "C6 Bank",
+      "current_value": null,
+      "rate": "103% do CDI",
+      "pm_note": "Amount not clearly specified in source"
+    }
+  ],
+  "saldo_atual": 6930.11,
+  "rentabilidade_acumulada": null
+}

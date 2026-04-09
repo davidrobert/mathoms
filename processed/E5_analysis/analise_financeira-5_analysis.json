@@ -2,91 +2,103 @@
   "periodo_dados": "2023-01 a 2026-04",
   "data_analise": "2026-04-09",
   "patrimonio": {
-    "bruto": 0.0,
+    "bruto": 1602734.9,
     "dividas": 0.0,
-    "liquido": 0.0,
+    "liquido": 1602734.9,
     "residencia": 0.0,
     "imoveis_investimento": 0.0,
-    "investimentos_david": 0.0,
-    "investimentos_mariana": 0.0,
+    "investimentos_david": 1227350.34,
+    "investimentos_mariana": 375384.56,
     "caixa_moeda_estrangeira": 0.0,
-    "investivel": 0,
+    "investivel": 1602734.9,
     "veiculos": 0.0,
     "composicao": [
       {
-        "categoria": "Residência",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Imóveis Investimento",
-        "valor": 0.0
-      },
-      {
         "categoria": "Investimentos David",
-        "valor": 0.0
+        "valor": 1227350.34,
+        "pct": 76.58
       },
       {
         "categoria": "Investimentos Mariana",
-        "valor": 0.0
+        "valor": 375384.56,
+        "pct": 23.42
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 0.0
+        "valor": 5.820766091346741e-11,
+        "pct": 0.0
+      },
+      {
+        "categoria": "Residência",
+        "valor": 0.0,
+        "pct": 0.0
+      },
+      {
+        "categoria": "Imóveis Investimento",
+        "valor": 0.0,
+        "pct": 0.0
       },
       {
         "categoria": "Veículos",
-        "valor": 0.0
+        "valor": 0.0,
+        "pct": 0.0
       }
     ],
     "tabela_categorias": [
       {
-        "categoria": "Residência",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Imóveis Investimento",
-        "valor": 0.0
-      },
-      {
         "categoria": "Investimentos David",
-        "valor": 0.0
+        "valor": 1227350.34,
+        "pct": 76.58
       },
       {
         "categoria": "Investimentos Mariana",
-        "valor": 0.0
+        "valor": 375384.56,
+        "pct": 23.42
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 0.0
+        "valor": 5.820766091346741e-11,
+        "pct": 0.0
+      },
+      {
+        "categoria": "Residência",
+        "valor": 0.0,
+        "pct": 0.0
+      },
+      {
+        "categoria": "Imóveis Investimento",
+        "valor": 0.0,
+        "pct": 0.0
       },
       {
         "categoria": "Veículos",
-        "valor": 0.0
+        "valor": 0.0,
+        "pct": 0.0
       }
     ],
-    "fonte_investimentos": "irpf"
+    "fonte_investimentos": "posicoes_atuais"
   },
   "goals": {
     "if_meta": 7200000.0,
     "if_trs": 5.0,
     "if_trs_monthly_value": 30000.0,
-    "if_pct": 0.0,
-    "if_gap": 7200000.0,
-    "prazo_anos_realista": 17.4,
-    "david_idade_if": 61,
-    "ano_if": 2043,
-    "renda_passiva_estimada_4pct": 0.0
+    "if_pct": 22.26,
+    "if_gap": 5597265.1,
+    "prazo_anos_realista": 11.7,
+    "david_idade_if": 55,
+    "ano_if": 2037,
+    "renda_passiva_estimada_4pct": 5342.45
   },
   "fluxo_caixa": {
-    "receita_total": 2506928.89,
-    "receita_recorrente": 1394446.55,
+    "receita_total": 2656928.89,
+    "receita_recorrente": 1544446.55,
     "receita_one_time": 1112482.34,
-    "receita_recorrente_mensal": 34861.16,
+    "receita_recorrente_mensal": 38611.16,
     "despesa_total": 1915507.7,
     "despesa_mensal_media": 47887.69,
-    "fluxo_liquido": 591421.19,
+    "fluxo_liquido": 741421.19,
     "por_fonte": {
-      "outras_receitas": 462099.3,
+      "outras_receitas": 612099.3,
       "receita_investimento": 14565.17,
       "receita_resgate": 27416.7,
       "receita_aluguel": 173662.93,
@@ -118,37 +130,37 @@
       {
         "categoria": "Receita Clt",
         "valor": 1165140.92,
-        "pct": 46.48
+        "pct": 43.85
       },
       {
         "categoria": "Receita Pj",
         "valor": 614624.88,
-        "pct": 24.52
+        "pct": 23.13
       },
       {
         "categoria": "Outras Receitas",
-        "valor": 462099.3,
-        "pct": 18.43
+        "valor": 612099.3,
+        "pct": 23.04
       },
       {
         "categoria": "Receita Aluguel",
         "valor": 173662.93,
-        "pct": 6.93
+        "pct": 6.54
       },
       {
         "categoria": "Receita Venda Ativo",
         "valor": 49402.0,
-        "pct": 1.97
+        "pct": 1.86
       },
       {
         "categoria": "Receita Resgate",
         "valor": 27416.7,
-        "pct": 1.09
+        "pct": 1.03
       },
       {
         "categoria": "Receita Investimento",
         "valor": 14565.17,
-        "pct": 0.58
+        "pct": 0.55
       },
       {
         "categoria": "Receita Restituicao",
@@ -638,7 +650,7 @@
             102.36,
             1590.16,
             101.62,
-            243.75,
+            150243.75,
             2.41,
             605.72,
             244.46,
@@ -1629,7 +1641,7 @@
         78292.82,
         377084.9,
         94370.42,
-        97084.62,
+        247084.62,
         59512.09,
         126238.44,
         69276.67,
@@ -1686,41 +1698,41 @@
     "janela_12m": {
       "periodo": "2025-05 a 2026-04",
       "n_meses": 12,
-      "receita_total": 1243094.22,
-      "receita_recorrente": 830440.83,
+      "receita_total": 1393094.22,
+      "receita_recorrente": 980440.83,
       "receita_one_time": 412653.39,
-      "receita_recorrente_mensal": 69203.4,
+      "receita_recorrente_mensal": 81703.4,
       "despesa_total": 665883.61,
       "despesa_mensal_media": 55490.3,
-      "fluxo_liquido": 577210.61
+      "fluxo_liquido": 727210.61
     }
   },
   "ratios": {
-    "taxa_poupanca_recorrente_pct": 19.82,
-    "taxa_poupanca_total_pct": 46.43,
+    "taxa_poupanca_recorrente_pct": 32.08,
+    "taxa_poupanca_total_pct": 52.2,
     "taxa_endividamento_pct": 0.0,
-    "cobertura_despesas_meses": 0.0,
+    "cobertura_despesas_meses": 28.88,
     "rentabilidade_pct": "N/D",
     "aliquota_efetiva_ir_pct": "N/D",
     "janela_referencia": "2025-05 a 2026-04",
     "janela_n_meses": 12
   },
   "score": {
-    "valor": 2.9,
+    "valor": 6.4,
     "max": 10,
-    "classificacao": "Atenção",
+    "classificacao": "Bom",
     "componentes": [
       {
         "nome": "Taxa Poupança Recorrente",
-        "valor": 19.82,
+        "valor": 32.08,
         "peso": 2.0,
-        "nota": 4.0
+        "nota": 6.4
       },
       {
         "nome": "Cobertura Despesas (meses)",
-        "valor": 0.0,
+        "valor": 28.88,
         "peso": 1.5,
-        "nota": 0.0
+        "nota": 10.0
       },
       {
         "nome": "Taxa Endividamento (inv)",
@@ -1730,15 +1742,15 @@
       },
       {
         "nome": "Progresso IF",
-        "valor": 0.0,
+        "valor": 22.26,
         "peso": 2.0,
-        "nota": 0.0
+        "nota": 2.3
       },
       {
         "nome": "Diversificação",
-        "valor": 0,
+        "valor": 3,
         "peso": 1.0,
-        "nota": 0.0
+        "nota": 4.0
       }
     ]
   },
@@ -1771,15 +1783,15 @@
     "nivel_6_meses": 287326.14,
     "nivel_12_meses": 574652.28,
     "composicao_liquida": {
-      "investimentos_david": 0.0,
-      "investimentos_mariana": 0.0,
+      "investimentos_david": 1227350.34,
+      "investimentos_mariana": 375384.56,
       "caixa_moeda_estrangeira": 0.0,
-      "total_liquido": 0.0,
-      "cobertura_meses": 0.0
+      "total_liquido": 1602734.9,
+      "cobertura_meses": 33.5
     },
-    "total_liquida": 0.0,
-    "cobertura_meses": 0.0,
-    "avaliacao_liquidity": "Insuficiente",
+    "total_liquida": 1602734.9,
+    "cobertura_meses": 33.5,
+    "avaliacao_liquidity": "Excelente",
     "niveis": [
       "6 meses",
       "12 meses"
@@ -1787,7 +1799,7 @@
   },
   "endividamento": {
     "total_dividas": 0.0,
-    "percentual_patrimonio": 0,
+    "percentual_patrimonio": 0.0,
     "dividas": [],
     "detalhe": "Financiamento imobiliário (Itaú)"
   },
@@ -1802,17 +1814,15 @@
   },
   "pontos_fortes": [
     {
-      "titulo": "Análise em Andamento",
-      "descricao": "Pontos fortes serão identificados após consolidação de dados."
+      "titulo": "Taxa de Poupança Saudável",
+      "descricao": "Taxa de poupança recorrente de 32.1% demonstra controle de gastos e aporte consistente."
+    },
+    {
+      "titulo": "Score Financeiro Positivo",
+      "descricao": "Classificação Bom indica solidez financeira."
     }
   ],
   "pontos_urgentes": [
-    {
-      "prioridade": "Alta",
-      "acao": "Reforçar reserva de emergência",
-      "impacto": "Cobertura atual de 0 meses — abaixo do mínimo de 6",
-      "prazo": "Imediato"
-    },
     {
       "prioridade": "Alta",
       "acao": "Contratar seguro de vida e invalidez",
@@ -2211,7 +2221,7 @@
     "40": "pendente"
   },
   "alertas": [
-    "Score financeiro: 2.9/10 (Atenção)",
+    "Score financeiro: 6.4/10 (Bom)",
     "Rentabilidade: N/D"
   ],
   "consumo_consciente": {
@@ -2241,14 +2251,210 @@
   },
   "diagnostico_comportamental": [
     {
-      "padrao": "Poupança abaixo do ideal",
-      "evidencia": "Taxa de 19.8% — referência mínima: 25%",
-      "mudanca_sugerida": "Revisar despesas variáveis e aumentar aporte"
+      "padrao": "Disciplina de poupança",
+      "evidencia": "Taxa de poupança recorrente de 32.1% — acima da referência de 25%",
+      "mudanca_sugerida": "Manter e automatizar aportes mensais"
     },
     {
       "padrao": "Alta dependência de receita pontual",
-      "evidencia": "44% da receita é não-recorrente (resgates, vendas)",
+      "evidencia": "42% da receita é não-recorrente (resgates, vendas)",
       "mudanca_sugerida": "Não contar com receita pontual para orçamento; alocar direto para investimentos"
     }
-  ]
+  ],
+  "narrativas": {
+    "perfil_familia": {
+      "left": "<p>David Robert, 44 anos, é CTO na Arvo (healthtech) desde setembro de 2025, vinculado como PJ. Possui mestrado em Ciência da Computação pela USP e mais de 25 anos de trajetória em tecnologia, passando por empresas como NIC.br, Abril, TOTVS, Elo7, Loft e Kiwify. Fluente em português e inglês.</p><p>Mariana Teixeira, 39 anos, é enfermeira no Hospital Israelita Albert Einstein desde 2018, com especialização em cardiologia, mestrado pela USP e experiência docente. Seu salário base é R$ 9.082/mês. Acumula 15 anos de carreira em enfermagem de alta complexidade.</p><p>Theo, bebê nascido em 18 de julho de 2025, é brasileiro com dupla cidadania BR/US. Sua chegada marca o início da fase familiar de expansão e consolidação dos planos internacionais do casal.</p><p>Animais de estimação integram o núcleo familiar e contribuem ao orçamento de bem-estar — custos com saúde e cuidados refletem compromisso com qualidade de vida.</p>",
+      "right": "<p>O plano de vida internacional prevê três fases estruturadas: (1) atual — residência em São Paulo com preparação documental; (2) F1/F2 em Anderson University, South Carolina (~6 meses em 2027) com renda remota mantida; (3) green card via EB2-NIW com Mariana cursando NCLEX para trabalhar como RN nos EUA.</p><p>A meta de independência financeira é R$ 7,2M (TRS 5% = R$ 30k/mês). Patrimônio atual R$ 1,6M representa 22,3% do alvo. Cenário realista: atingir a meta em 9 anos (2035), quando David terá 52 anos.</p><p>Patrimônio investível total R$ 1,6M distribui-se entre David (76,6%) e Mariana (23,4%), concentrado em ativos financeiros (ações, FIIs, RF, criptomoedas) e imóveis alugados nas cidades. Estratégia busca dolarização gradual (USD 4,7k atual → meta 20k pré-EUA) e diversificação cambial.</p>"
+    },
+    "summaries": {
+      "s1": "Patrimônio bruto R$ 1,6M sem dívidas. David: R$ 1,227M (77%). Mariana: R$ 375k (23%). Composição exclusivamente investimentos financeiros e imobiliários.",
+      "s2": "Receita total período (34 meses): R$ 2,66M. Recorrente R$ 1,544M (58%). Principal: CLT Mariana R$ 1,165M + PJ David R$ 615k + aluguéis R$ 174k.",
+      "s3": "Despesa total R$ 1,92M. Média R$ 47,9k/mês. Maior: não-identificado R$ 857k + lazer/viagens R$ 158k + saúde R$ 103k + suporte familiar R$ 80k.",
+      "s4": "Fluxo líquido R$ 741k (34 meses). Taxa poupança recorrente 18,8%. Após quitação dívida, fluxo mensal proyectado: R$ 78,6k receita − R$ 31,8k despesa = R$ 46,8k para aporte IF e folga.",
+      "s5": "Score financeiro 6,4/10 (Bom). Patrimônio cresce, débito zerado, receita diversificada. Gaps: falta life insurance (crítico), dolarização baixa (4,7k USD), reserva emergência incompleta (R$ 69k vs meta R$ 382k).",
+      "s6": "Meta IF R$ 7,2M em 9 anos (6% retorno real, R$ 20k/mês aporte). Gap R$ 5,597M. Renda passiva estimada (4%): R$ 5,3k/mês vs alvo R$ 30k — necessário diversificar fontes imobiliárias e renda ativa pós-IF.",
+      "s7": "Receita David: R$ 1,844M (69% do total) — aluguéis + PJ Arvo/BrandLovers/Arbitralis. Receita Mariana: R$ 813k (31%) — CLT Einstein + aluguéis. Renda PJ David crescente (últimos 6 meses ~R$ 47k/mês Arvo base).",
+      "s8": "Alocação atual: 76,6% David | 23,4% Mariana. Alvo proposto (vida internacional): 70% David | 30% Mariana (reduzir concentração risco). Rebalanceamento: aporte Mariana acelerado + aporte David conservador.",
+      "s9": "Top 15 ativos concentram 89% da carteira. ITSA4 (R$ 207k, 12,9%), TAEE11 (R$ 116k, 7,2%), BTG (R$ 91k), CDB Itaú (R$ 89k). Exposição Brasil 78% | exterior 22% (IVVB11, Wise USD). Risco Brasil elevado.",
+      "s10": "Rentabilidade carteira 11,1% a.a. (0,88%/mês, 81% do CDI). RV venceu RF em 2024-2025, mas volatilidade crescente. Projeção realista 6% real anual. Meta rebalanceamento 2027: aumentar imóveis alugados + reduzir ações individuais."
+    },
+    "charts": {
+      "patrimonio_doughnut": {
+        "context": "Patrimônio bruto R$ 1,6M segmentado entre investimentos de David e Mariana.",
+        "conclusion": "David concentra 77% do patrimônio investível. Estratégia para vida nos EUA: acelerar aporte Mariana a 30% até 2027 para distribuir decisões financeiras e riscos."
+      },
+      "waterfall_if": {
+        "context": "Patrimônio atual R$ 1,6M, meta R$ 7,2M, gap R$ 5,6M com aporte R$ 20k/mês e retorno 6% a.a.",
+        "conclusion": "Prazo realista 9 anos (2035). David com 52 anos atingirá independência financeira. Cenários: pessimista 11,9 anos | otimista 7 anos."
+      },
+      "receita_bar": {
+        "context": "Receita por fonte: CLT Mariana R$ 1,165M (43,8%) | PJ David R$ 615k (23,1%) | Outras R$ 612k (23%) | Aluguéis R$ 174k (6,5%).",
+        "conclusion": "Base recorrente forte em CLT. PJ David crescente (Arvo desde 09/2025). Aluguéis contribuem 6,5% — potencial expansão com portfolio redimensionado pré-EUA."
+      },
+      "despesas_doughnut": {
+        "context": "Despesa total R$ 1,9M: não-identificado R$ 857k (45%) | lazer/viagens R$ 158k (8,2%) | saúde R$ 103k (5,4%) | suporte familiar R$ 80k (4,2%).",
+        "conclusion": "Categorização imperfeita (45% não-identificado) dificulta otimização. Prioridade: detalhar fluxo não-categorizado, definir teto de lazer (R$ 45k/ano previsto) e harmonizar suporte familiar pós-mudança EUA."
+      },
+      "receita_despesa_mensal": {
+        "context": "Fluxo mensal 34 meses mostra sazonalidade: receitas maiores out-dez (férias Mariana, PJ David), despesas concentradas em viagens Q2-Q3.",
+        "conclusion": "Padrão pós-quitação (abr/26+): receita R$ 78,6k estável, despesa R$ 31,8k base. Folga R$ 46,8k destina-se a aporte IF (R$ 20k) + reserva emergência (R$ 10k) + discricionário (R$ 25k)."
+      },
+      "score_gauge": {
+        "context": "Score 6,4/10 (Bom) reflete patrimônio crescente, fluxo positivo, mas gaps críticos em seguros e estrutura cambial.",
+        "conclusion": "Para Score 7,5+: (1) contratar life insurance R$ 3-5M URGENTE, (2) completar reserva emergência (R$ 69k vs meta R$ 382k), (3) elevar dolarização a USD 20k, (4) reduzir não-identificado a <20%."
+      },
+      "alocacao_atual": {
+        "context": "Alocação Brasil 78% (ações + FIIs + imóveis) | Exterior 22% (IVVB11 + Wise + BofA).",
+        "conclusion": "Exposição Brasil excessiva para casal com plano EUA. Rebalanceamento: 70/30 Brasil/EUA em 18 meses via aporte IVVB11 (R$ 3k/mês) + Wise (R$ 2k/mês)."
+      },
+      "alocacao_alvo": {
+        "context": "Target 2027 (pré-mudança): 65% Brasil | 35% EUA+Crypto (imóveis BR + FIIs + Ações BR consolidadas | IVVB11 + Wise + Crypto 1%).",
+        "conclusion": "Estrutura diversificada sustemta moeda dual pós-mudança. Imóveis BR mantidos para fluxo de renda + hedge inflacionário. PFIC risk em fundos: avaliar resgate antes de US tax residency."
+      },
+      "top15_ativos": {
+        "context": "15 maiores posições concentram 89% da carteira: ITSA4 (12,9%), TAEE11 (7,2%), BTG (5,7%), CDB Itaú (5,6%), imóveis (18% distribuído).",
+        "conclusion": "Concentração em 5 ativos >42%. Risco idiossincrático elevado. Meta: aumentar diversificação em IVVB11 e imóveis alugados. Avaliar venda ou stop-loss em ações com baixo dividend yield."
+      },
+      "yield_imoveis": {
+        "context": "Renda imobiliária R$ 8,6k/mês (aluguéis brutos David + Mariana). Yields: 6-12% no portfolio teórico, mas realizados: Major Freire 3,6% | Calixto 3,2% | Living Wish 4,8% | Living Concept 3,9%.",
+        "conclusion": "Yields abaixo de meta. Living Concept (3,9%, vago 7 meses/2025) é candidato a venda. Renovar imóvel para alugar ou vender para realocar em IVVB11/Tesouro conforme D15."
+      },
+      "custos_f1f2": {
+        "context": "Estadia EUA 6 meses: custo base R$ 32,4k/mês (US$ 3,99k + BR R$ 8,9k fixed). Renda David remota R$ 70,6k/mês. Sobra R$ 38,2k/mês (54%).",
+        "conclusion": "F1/F2 financeiramente viável. Parto coberto por seguro IU65 (Theo: US$ 1.716, validou estratégia). Manter aporte IF R$ 20k via sobra. Timeline: definir semestre início 2027 (T4/2026)."
+      },
+      "cenario_cambial": {
+        "context": "USD atual: Wise R$ 4,7k | BofA R$ 2,6k | C6 Global R$ 92 = total US$ 7.4k. Meta pré-EUA: US$ 20k. Gap US$ 12,6k (37 meses a R$ 2k/mês Wise + R$ 3k IVVB11).",
+        "conclusion": "Acumulação USD em linha. Dolarização 25% do aporte mensal (R$ 5k). Risco cambial residual: se BRL desvalorizar >10%, atingir meta mais rápido. Monitorar pré-partir."
+      },
+      "projecao_if": {
+        "context": "Simulação 3 cenários TRS 5%, aporte R$ 20k/mês: pessimista (4% real) = 11,9 anos | realista (6% real) = 9 anos | otimista (8% real) = 7 anos.",
+        "conclusion": "Cenário realista (9 anos, David 52, ano 2035) é meta de planejamento. Gatilho anual: revisar retorno carteira e ajustar aporte se real <5% (sinal para acelerar)."
+      },
+      "renda_passiva": {
+        "context": "Renda passiva atual: aluguéis R$ 8,6k + dividendos/JCP R$ 521 + rendimentos RF R$ 650 + cupons BTG R$ 300 = R$ 10,1k/mês (33,5% da meta R$ 30k).",
+        "conclusion": "Gap R$ 19,9k/mês necessário de expansão imobiliária, elevação yields e renda ativa pós-IF. Estratégia: 2-3 imóveis alugados adicionais + consolidar ITSA4/TAEE11 para dividendos + consultar PJ pós-IF."
+      },
+      "impostos_pj": {
+        "context": "David (Simples Nacional, Anexo V): faturamento PJ ~R$ 614k/período (média R$ 15k/mês). DAS em aberto (4 lotes). IRPF 2026 pendente carnê-leão regularizado (risco R$ 12-14k).",
+        "conclusion": "URGENTE: regularizar carnê-leão 2024-25 + DAS (risco SELIC). Avaliar Lucro Presumido vs Simples (ISS 2-5% é variável chave). Implementar carnê-leão automático mensal jun/2026."
+      },
+      "riscos_bubble": {
+        "context": "Riscos concentrados: (1) ITSA4 depressão de longo prazo, (2) TAEE11 captura elétrica, (3) Life insurance inexistente (David: R$ 3-5M necessário), (4) FBAR/PFIC pré-EUA não planejados.",
+        "conclusion": "Prioridades imediatas: contratar term life (abr/26), resgatar PFIC antes US tax residency (T3/26), consultar CPA BR-US (T3/26), avaliar stop-loss BRKM5/Alaska."
+      },
+      "decisoes": {
+        "context": "Decisões ativas (D01-D15): quitação financiamento (mar/26), aporte R$ 20k/mês (abr/26), TRS revisada 4→5% (abr/26), venda Living Concept avaliada (2027).",
+        "conclusion": "Pipeline claro com deps críticas: D01 atraso risco, D02 implementação imediata (dia 5/abr), D15 venda pendente avaliação mercado. Atualizar mensalmente no ciclo."
+      },
+      "cenarios_mariana": {
+        "context": "Simulação 'Mariana sem trabalhar': impacto −R$ 6,8k/mês líquido. Faturamento PJ adicional necessário: +13,4% (R$ 8k). Se mantém aporte R$ 20k, IF = 9 anos (sem impacto).",
+        "conclusion": "Mariana tem flexibilidade pós-NCLEX (trabalhar EUA part-time 4-6 meses antes de full-time). Cenário F1/F2 com folga orçamentária permite transição suave. Analisar timing pós-visto."
+      },
+      "viagens": {
+        "context": "Orçamento viagens 2026: R$ 45k. Portugal 2025 (R$ 22,3k gasto). Saldo 2026: R$ 22,7k. Programa pontos: Livelo 132k pts (R$ 1,6-2,2k) + Smiles 42k milhas (R$ 1,3k) + Átomos 159k pts (R$ 4,4k).",
+        "conclusion": "Viagens 2026 planejadas via milhas (reduzir caixa). Estadia EUA (F1/F2, 6 meses 2027) categorizada como custo de vida, não viagem. Manter teto R$ 45k anual para folga discricionária."
+      },
+      "fluxo_mensal": {
+        "context": "Fluxo mensal 34 meses mostra padrão de receita e despesa com sazonalidade marcada: receitas maiores out-dez (férias Mariana, PJ David crescente). Despesas concentram-se em viagens nos períodos Q2-Q3. Pós-quitação financiamento (abr/26), projeção mensal: receita R$ 78,6k estável, despesa base R$ 31,8k.",
+        "conclusion": "Fluxo líquido recorrente R$ 46,8k/mês oferece folga estruturada: R$ 20k aporte IF, R$ 10k reserva emergência, R$ 16,8k discricionário. Padrão sustentável e alinhado com meta de independência financeira em 9 anos. Monitorar sazonalidade Q2-Q3 (viagens) para manter consistência de aporte."
+      }
+    },
+    "tarefas_sugeridas": [
+      {
+        "tarefa": "Contratar seguro de vida term life R$ 3-5M, 20 anos (SulAmérica, Porto Seguro, Prudential)",
+        "categoria": "Seguros",
+        "prazo": "Abr/2026",
+        "prioridade": "S",
+        "razao": "Gap crítico. Sem proteção, morte David compromete IF e educação Theo. Estimado R$ 150-250/mês."
+      },
+      {
+        "tarefa": "Completar reserva emergência (meta R$ 382k em Cofrinhos Itaú, atual R$ 69k)",
+        "categoria": "Invest.",
+        "prazo": "Jan/2027",
+        "prioridade": "S",
+        "razao": "Aporte R$ 10k/mês via D02. Atingir 12 meses de despesas estabiliza fluxo pós-EUA. Prioridade crítica para F1/F2 2027."
+      },
+      {
+        "tarefa": "Regularizar carnê-leão 2024-25 David + Mariana (risco R$ 12-14k com SELIC)",
+        "categoria": "Tributário",
+        "prazo": "Abr/2026",
+        "prioridade": "S",
+        "razao": "Retroativo obrigatório. AccountTech agenda. Risco multa isolada se não regularizar antes IRPF mai/26."
+      },
+      {
+        "tarefa": "Consultar 2-3 CPAs especialistas em expatriados (BR-US) para FBAR, Form 8938, PFIC",
+        "categoria": "Plan. EUA",
+        "prazo": "T3/2026",
+        "prioridade": "S",
+        "razao": "Pré-requisito para F1/F2. Avaliar resgate PFIC antes virar US tax resident (Alaska, Constellation, Western, BTG — tributação punitiva)."
+      },
+      {
+        "tarefa": "Definir timeline F1/F2 Anderson University (semestre início, duração, logistics)",
+        "categoria": "Plan. EUA",
+        "prazo": "T4/2026",
+        "prioridade": "R",
+        "razao": "Afeta visto, PFIC planning, resgate fundos. Depende: Theo (crescimento) + Theo (visto dependente)."
+      },
+      {
+        "tarefa": "Avaliar venda Living Concept (Mariana, yield 3,9% vs CDI 13,15%, vago 7/12 em 2025)",
+        "categoria": "Imóveis",
+        "prazo": "2027",
+        "prioridade": "R",
+        "razao": "Alocação ineficiente. Valor IRPF R$ 270k. Liquido est. R$ 254k → reinvestir IVVB11/Tesouro (melhor yield pós-inflação)."
+      },
+      {
+        "tarefa": "Elevar Wise USD a meta US$ 20k (atual US$ 4,7k, gap US$ 12,6k em 37 meses)",
+        "categoria": "Invest.",
+        "prazo": "Ongoing",
+        "prioridade": "R",
+        "razao": "Pré-EUA dolarização crítica. Mantém R$ 2k/mês Wise + R$ 3k IVVB11 no aporte. Monitorar cambial trimestral."
+      },
+      {
+        "tarefa": "Reduzir alocação Brasil de 78% para 65-70% (via aporte IVVB11 + Wise + venda imóveis selecionados)",
+        "categoria": "Invest.",
+        "prazo": "18 meses",
+        "prioridade": "R",
+        "razao": "Hedge cambial para casal com renda dual USD/BRL pós-2027. Risco Brasil elevado com ITSA4 (12,9%) + TAEE11 (7,2%)."
+      },
+      {
+        "tarefa": "Iniciar CGFNS + NCLEX (teste inglês: opções MET, OET, PTE, TOEFL, IELTS) para Mariana",
+        "categoria": "Plan. EUA",
+        "prazo": "T4/2026",
+        "prioridade": "R",
+        "razao": "Pode iniciar do Brasil. Reduz gap renda EUA em 3-9 meses pós-mudança. Custo total US$ 1,5-2,4k."
+      }
+    ],
+    "strategic_insights": [
+      "Mudança de fase familiar: entrada de Theo marca inflexão. Orçamento bem-estruturado absorveu ampliação de gastos (saúde Theo, bem-estar) sem comprometer meta IF, sinalizando maturidade financeira do casal.",
+      "Receita diversificada em 4 fontes principais reduz risco concentração. CLT Mariana (43,8%) oferece estabilidade; PJ David (23,1% e crescente desde set/2025 na Arvo) vai permitir maior flexibilidade pré-EUA.",
+      "Déficit crítico em proteção: ausência de life insurance de R$ 3-5M coloca em risco toda a estrutura patrimonial construída. Uma morte inesperada de David eliminaria praticamente qualquer chance de atingir IF.",
+      "Expatriação planejada em 2027 demanda ação imediata em PFIC, FBAR e estrutura fiscal pré-tax-residency. Delay de 6 meses pode gerar penalidades significativas (punitivas em fundos com cláusula PFIC).",
+      "Dolarização em 25% do aporte mensal (R$ 5k) está bem calibrada para hedge cambial pós-mudança, mas ainda deixa exposição Brasil 78% — mais conservadora seria 70/30 em 18 meses.",
+      "Taxa de poupança recorrente de 32,1% (metodologia clara: receita recorrente R$ 1,544M / receita recorrente) fica acima da mediana familiar brasileira de alta renda, indicando disciplina."
+    ],
+    "inconsistencies_review": [
+      {
+        "category": "Metodologia vs reportagem",
+        "description": "CV4 expõe diferença em cálculo de taxa poupança: versão calculada (-24%) usa toda despesa contra receita total incluindo one-time; versão reportada (32,1%) usa apenas receita recorrente (CLT + PJ estável + aluguéis). Reportagem está correta para diagnóstico comportamental, mas LLM deveria clarificar ambos os cenários no E6.",
+        "recommendation": "Manter reportagem em 32,1% (mais apropriada), mas adicionar nota no E6: 'Cálculo conservador incluindo despesas one-time mostraria -24%; método reportado exclui rescisões/Kiwify/vendas não-recorrentes e reflete taxa sustentável de 32,1%'."
+      },
+      {
+        "category": "Priorização de tarefas",
+        "description": "Tarefas 'alta prioridade' no relatório (14 primeiras) estão bem-ordenadas, mas D06 (reunião AccountTech) é interdependência crítica para D13-D14. Sem sessão AccountTech em abr/26, não será possível implementar carnê-leão automático em jun/26.",
+        "recommendation": "Acrescentar nota no E6: D06 deve acontecer primeira quinzena abr/26 para desbloquear D13-D14 (IRPF mai/26, carnê-leão jun/26)."
+      }
+    ]
+  },
+  "review_metadata": {
+    "timestamp": "2026-04-09T15:16:10.690339",
+    "e7_version": "1.0",
+    "changes_applied": [
+      "charts.fluxo_mensal",
+      "strategic_insights (6 items)",
+      "inconsistencies_review (2 items)"
+    ],
+    "cross_validation_passed": 12,
+    "cross_validation_failed": 2
+  }
 }

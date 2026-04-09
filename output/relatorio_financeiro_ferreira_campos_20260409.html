@@ -91,70 +91,47 @@
   --badge-neutral-text: #475569;
 }
 
-[data-theme="dark"] {
-  --color-bg: #0F172A;
-  --color-surface: #1E293B;
-  --color-text: #E2E8F0;
-  --color-text-muted: #94A3B8;
-  --color-border: #334155;
-  --color-primary: #2E86AB;
-  --color-light: #1E3A5F;
-}
-[data-theme="dark"] .card, [data-theme="dark"] .familia-card {
-  background: var(--color-surface) !important; border-color: var(--color-border) !important;
-}
-[data-theme="dark"] .card-feature, [data-theme="dark"] .card-success {
-  background: var(--color-surface) !important;
-}
-[data-theme="dark"] table tr:nth-child(even) { background: #1A2332 !important; }
-[data-theme="dark"] table tr:hover { background: #243447 !important; }
-[data-theme="dark"] table th { background: #1E3A5F !important; color: #E2E8F0 !important; }
-[data-theme="dark"] .td-total { background: #1A2332 !important; }
-[data-theme="dark"] table td { border-color: #334155 !important; }
-[data-theme="dark"] .alert-danger { background: #2D1B1B !important; color: #FCA5A5 !important; }
-[data-theme="dark"] .alert-warning { background: #2D2410 !important; color: #FCD34D !important; }
-[data-theme="dark"] .alert-success { background: #1A2D1A !important; color: #86EFAC !important; }
-[data-theme="dark"] .alert-info { background: #1A2440 !important; color: #93C5FD !important; }
-[data-theme="dark"] .badge-green { background: #16533480 !important; color: #86EFAC !important; }
-[data-theme="dark"] .badge-red { background: #991B1B80 !important; color: #FCA5A5 !important; }
-[data-theme="dark"] .badge-yellow { background: #92400E80 !important; color: #FCD34D !important; }
-[data-theme="dark"] .badge-blue { background: #1E40AF80 !important; color: #93C5FD !important; }
-[data-theme="dark"] .section-summary { background: #1A2440 !important; color: #CBD5E1 !important; }
-[data-theme="dark"] .chart-conclusion, [data-theme="dark"] .chart-note { background: #1A2332 !important; color: #CBD5E1 !important; }
-[data-theme="dark"] .card h3 { color: #E2E8F0 !important; border-bottom-color: #334155 !important; }
-[data-theme="dark"] .chart-context { color: #94A3B8 !important; }
-[data-theme="dark"] .chart-conclusion { background: #1A2440 !important; border-left-color: #2E86AB !important; }
-[data-theme="dark"] .kpi-grid .kpi-card { background: var(--color-surface) !important; border-color: var(--color-border) !important; }
-[data-theme="dark"] .kpi-value { color: var(--color-text) !important; }
-[data-theme="dark"] .kpi-value.blue { color: #60A5FA !important; }
-[data-theme="dark"] .kpi-value.green { color: #4ADE80 !important; }
-[data-theme="dark"] .kpi-value.red { color: #F87171 !important; }
-[data-theme="dark"] .kpi-sub { color: var(--color-text-muted) !important; }
-[data-theme="dark"] .export-toolbar { background: linear-gradient(135deg, #0B1929, #132337) !important; }
-[data-theme="dark"] strong { color: #F1F5F9; }
-[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3 { color: #F1F5F9 !important; }
-[data-theme="dark"] .section-header h1 { color: #F1F5F9 !important; }
-[data-theme="dark"] .container.section { background: var(--color-surface); border-color: var(--color-border); }
-[data-theme="dark"] .dash-section { background: var(--color-surface) !important; }
-[data-theme="dark"] .dash-kpi { background: var(--color-surface) !important; border-color: var(--color-border) !important; }
-[data-theme="dark"] .dash-kpi-label { color: var(--color-text-muted) !important; }
-[data-theme="dark"] .dash-kpi-value { color: var(--color-text) !important; }
-[data-theme="dark"] .dash-kpi-value.ok { color: #4ADE80 !important; }
-[data-theme="dark"] .dash-kpi-value.alert { color: #F87171 !important; }
-[data-theme="dark"] .progress-bar { background: #334155 !important; }
-[data-theme="dark"] [style*="background: #EFF6FF"],
-[data-theme="dark"] [style*="background:#EFF6FF"],
-[data-theme="dark"] [style*="background: linear-gradient(135deg, #F8FAFC"],
-[data-theme="dark"] [style*="background: linear-gradient(135deg, #EFF6FF"],
-[data-theme="dark"] [style*="background: linear-gradient(135deg, #F0FDF4"] {
-  background: var(--color-surface) !important;
-}
-[data-theme="dark"] table.table-compare td:nth-child(2) { background: #2D1B1B !important; }
-[data-theme="dark"] table.table-compare td:nth-child(3) { background: #1A2D1A !important; }
-
-
 /* Dark Mode */
-
+[data-theme="dark"] {
+  --color-bg: #0B1120;
+  --color-surface: #151D2E;
+  --color-surface-raised: #1C2640;
+  --color-text: #E2E8F0;
+  --color-text-muted: #8B9AB8;
+  --color-border: #243049;
+  --color-primary: #7EB8DA;
+  --color-secondary: #5CC8F0;
+  --color-accent: #4ADE80;
+  --color-accent-bg: #4ADE80;
+  --color-danger: #FB7185;
+  --color-warning: #FBBF24;
+  --color-warning-text: #FBBF24;
+  --color-neutral: #7CA3BD;
+  --color-light: #2A4A6B;
+  --color-row-even: #111827;
+  --color-row-hover: #1A2744;
+  --color-row-total: #1A2540;
+  --color-summary-bg: #111D30;
+  --color-conclusion-bg: #111827;
+  --color-compare-neg: #2A1520;
+  --color-compare-pos: #152A1A;
+  --alert-danger-bg: #2A1520; --alert-danger-text: #FCA5A5;
+  --alert-warning-bg: #2A2215; --alert-warning-text: #FDE68A;
+  --alert-success-bg: #152A1A; --alert-success-text: #86EFAC;
+  --alert-info-bg: #152035; --alert-info-text: #93C5FD;
+  --badge-green-bg: #14532D; --badge-green-text: #86EFAC;
+  --badge-red-bg: #4C1D2A; --badge-red-text: #FCA5A5;
+  --badge-yellow-bg: #3D2E0A; --badge-yellow-text: #FDE68A;
+  --badge-blue-bg: #172554; --badge-blue-text: #93C5FD;
+  --badge-neutral-bg: #1E293B; --badge-neutral-text: #94A3B8;
+  --table-even-bg: #111827; --table-hover-bg: #1A2744;
+  --table-total-bg: #1A2540; --table-header-bg: #1A3A5C;
+  --card-feature-bg: linear-gradient(135deg, #111D30 0%, #151D2E 100%);
+  --card-success-bg: linear-gradient(135deg, #0F1F18, #151D2E);
+  --shadow-card: 0 1px 6px rgba(0,0,0,0.25);
+  --shadow-card-hover: 0 4px 16px rgba(0,0,0,0.3);
+  --roadmap-bg: #111D30;
+}
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: var(--font-body); font-size:var(--font-md); line-height:1.6; color: var(--color-text); background: var(--color-bg); }
 
@@ -241,7 +218,9 @@ h3 { font-family: var(--font-display); font-size:15px; font-weight:700; color: v
 .section .chart-row + .chart-row,
 .section .chart-row + .chart-container,
 .section .alert + .card,
-.section .alert + 
+.section .alert + .chart-container {
+  margin-top: var(--space-section-gap);
+}
 .card-title { font-family: var(--font-display); font-size:var(--font-md); font-weight:700;
   color: var(--color-primary); margin-bottom:var(--space-md); }
 .card-title-lg { font-size:var(--font-lg); color:var(--color-primary); }
@@ -417,7 +396,10 @@ tr.total-row td { border-bottom: 2px solid var(--color-border); }
   transform: scale(1.1);
   box-shadow: 0 2px 12px rgba(46,134,171,0.15);
 }
-
+[data-theme="dark"] .section-divider-icon {
+  background: linear-gradient(135deg, rgba(46,134,171,0.15), rgba(45,198,83,0.12));
+  border-color: var(--color-border);
+}
 
 /* Tactical section dividers */
 .dash-section + .dash-section {
@@ -768,142 +750,149 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 .callout-danger  { background: var(--alert-danger-bg);  border-left:3px solid var(--color-danger);    padding: var(--space-md); border-radius: var(--radius-lg); color: var(--alert-danger-text); }
 
 /* ===== DARK MODE OVERRIDES ===== */
-/* NOTE: Many colors are now handled via CSS custom properties in 
+/* NOTE: Many colors are now handled via CSS custom properties in [data-theme="dark"] :root.
+   These overrides remain only for elements that need !important or specific targeting. */
 
-
+/* Tables — header still needs override for specificity */
+[data-theme="dark"] th { background: var(--table-header-bg) !important; }
+[data-theme="dark"] table.table-steps { border-left-color: var(--color-secondary); }
+[data-theme="dark"] table.table-steps td:first-child { color: var(--color-primary); }
 
 /* Inline style overrides for E5-generated table cells */
-
-
+[data-theme="dark"] td[style*="background:#FEF2F2"],
+[data-theme="dark"] td[style*="background: #FEF2F2"] { background: #2A1520 !important; color: var(--alert-danger-text) !important; }
+[data-theme="dark"] td[style*="background:#F0FDF4"],
+[data-theme="dark"] td[style*="background: #F0FDF4"] { background: #152A1A !important; color: var(--alert-success-text) !important; }
 
 /* Alerts */
-
-
-
-
+[data-theme="dark"] .alert-danger { background: var(--alert-danger-bg) !important; color: var(--alert-danger-text) !important; }
+[data-theme="dark"] .alert-warning { background: var(--alert-warning-bg) !important; color: var(--alert-warning-text) !important; }
+[data-theme="dark"] .alert-success { background: var(--alert-success-bg) !important; color: var(--alert-success-text) !important; }
+[data-theme="dark"] .alert-info { background: var(--alert-info-bg) !important; color: var(--alert-info-text) !important; }
 
 /* Inline style overrides for E5-generated alerts */
-
-
-
-
+[data-theme="dark"] .alert[style*="background:#FEF2F2"],
+[data-theme="dark"] .alert[style*="background: #FEF2F2"],
+[data-theme="dark"] div[style*="background:#FEF2F2"],
+[data-theme="dark"] div[style*="background: #FEF2F2"] { background: var(--alert-danger-bg) !important; color: var(--alert-danger-text) !important; }
+[data-theme="dark"] .alert[style*="background:#FFFBEB"],
+[data-theme="dark"] .alert[style*="background: #FFFBEB"],
+[data-theme="dark"] div[style*="background:#FFFBEB"],
+[data-theme="dark"] div[style*="background: #FFFBEB"] { background: var(--alert-warning-bg) !important; color: var(--alert-warning-text) !important; }
+[data-theme="dark"] .alert[style*="background:#F0FDF4"],
+[data-theme="dark"] .alert[style*="background: #F0FDF4"],
+[data-theme="dark"] div[style*="background:#F0FDF4"],
+[data-theme="dark"] div[style*="background: #F0FDF4"] { background: var(--alert-success-bg) !important; color: var(--alert-success-text) !important; }
+[data-theme="dark"] .alert[style*="background:#EFF6FF"],
+[data-theme="dark"] .alert[style*="background: #EFF6FF"],
+[data-theme="dark"] div[style*="background:#EFF6FF"],
+[data-theme="dark"] div[style*="background: #EFF6FF"] { background: var(--alert-info-bg) !important; color: var(--alert-info-text) !important; }
 
 /* Badges */
-
-
-
-
-
+[data-theme="dark"] .badge-green, [data-theme="dark"] .badge-success { background: var(--badge-green-bg) !important; color: var(--badge-green-text) !important; }
+[data-theme="dark"] .badge-red, [data-theme="dark"] .badge-danger { background: var(--badge-red-bg) !important; color: var(--badge-red-text) !important; }
+[data-theme="dark"] .badge-yellow, [data-theme="dark"] .badge-warning { background: var(--badge-yellow-bg) !important; color: var(--badge-yellow-text) !important; }
+[data-theme="dark"] .badge-blue, [data-theme="dark"] .badge-info { background: var(--badge-blue-bg) !important; color: var(--badge-blue-text) !important; }
+[data-theme="dark"] .badge-neutral { background: var(--badge-neutral-bg) !important; color: var(--badge-neutral-text) !important; }
 
 /* Timeline badges */
-
-
-
+[data-theme="dark"] .timeline-badge.feito { background: var(--badge-green-bg) !important; color: var(--badge-green-text) !important; }
+[data-theme="dark"] .timeline-badge.pendente { background: var(--badge-yellow-bg) !important; color: var(--badge-yellow-text) !important; }
+[data-theme="dark"] .timeline-badge.aguardando { background: var(--badge-blue-bg) !important; color: var(--badge-blue-text) !important; }
 
 /* Cards — feature/success need gradient override */
-
-
-
+[data-theme="dark"] .card-feature { background: var(--card-feature-bg) !important; border-color: transparent; }
+[data-theme="dark"] .card-success { background: var(--card-success-bg) !important; }
+[data-theme="dark"] .kpi-hero { border-color: var(--color-primary) !important; }
 
 /* Section summary, chart conclusion — now use tokens, but keep color override */
-
+[data-theme="dark"] .section-summary { color: var(--color-secondary); }
 
 /* h1 border */
-
-
-
+[data-theme="dark"] h1 { border-left-color: var(--color-secondary); }
+[data-theme="dark"] h3 { color: var(--color-primary); }
+[data-theme="dark"] .card-title { color: var(--color-primary); }
 
 /* Cover hero */
-
+[data-theme="dark"] .cover-hero { background: linear-gradient(135deg, #080E1A 0%, #0F172A 50%, #162033 100%); }
 
 /* Dashboard section h2 border */
-
+[data-theme="dark"] .dash-section h2 { border-bottom-color: var(--color-border); }
 
 /* Filter buttons */
-
-
+[data-theme="dark"] .filter-btn { border-color: var(--color-border); color: var(--color-text-muted); }
+[data-theme="dark"] .filter-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: #0B1120; }
 
 /* Task rows */
-
-
+[data-theme="dark"] .task-row { border-bottom-color: var(--color-border); }
+[data-theme="dark"] .task-text.done { color: var(--color-text-muted); }
 
 /* Timeline */
-
-
+[data-theme="dark"] .timeline-item { border-bottom-color: var(--color-border); }
+[data-theme="dark"] .timeline-date { color: var(--color-primary); }
 
 /* Progress bars */
-
+[data-theme="dark"] .progress-bar { background: #1A2540; }
 
 /* Footer */
-
+[data-theme="dark"] .footer { background: #080E1A; }
 
 /* Back to top */
-
-
+[data-theme="dark"] .back-to-top, [data-theme="dark"] .go-to-bottom { background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-primary); }
+[data-theme="dark"] .back-to-top:hover, [data-theme="dark"] .go-to-bottom:hover { background: var(--color-secondary); color: #0B1120; }
 
 /* Perfil grid */
-
+[data-theme="dark"] .perfil-col strong { color: var(--color-primary); }
 
 /* Expandables */
-
+[data-theme="dark"] details.expandable summary { color: var(--color-secondary); }
 
 /* List actions */
-
+[data-theme="dark"] .list-actions li { border-bottom-color: var(--color-border); }
 
 /* JS-generated effort badges (dark) */
-
-
-
-
+[data-theme="dark"] .effort-badge-s { background: var(--badge-yellow-bg) !important; color: var(--badge-yellow-text) !important; }
+[data-theme="dark"] .effort-badge-r { background: var(--badge-blue-bg) !important; color: var(--badge-blue-text) !important; }
+[data-theme="dark"] .effort-badge-o { background: var(--badge-neutral-bg) !important; color: var(--badge-neutral-text) !important; }
+[data-theme="dark"] .alert-success-inline { background: var(--alert-success-bg) !important; color: var(--alert-success-text) !important; }
 
 /* Priority badges (dark) — colors are high-contrast, work in both themes */
-
-
-
+[data-theme="dark"] .priority-alta  { background: #EF4444 !important; color: #FFFFFF !important; }
+[data-theme="dark"] .priority-media { background: #3B82F6 !important; color: #FFFFFF !important; }
+[data-theme="dark"] .priority-baixa { background: #6B7280 !important; color: #E5E7EB !important; }
 
 /* Inline style overrides for E5-generated colored spans */
-
-
-
-
+[data-theme="dark"] span[style*="background:#FEF3C7"],
+[data-theme="dark"] span[style*="background: #FEF3C7"] { background: var(--badge-yellow-bg) !important; color: var(--badge-yellow-text) !important; }
+[data-theme="dark"] span[style*="background:#DCFCE7"],
+[data-theme="dark"] span[style*="background: #DCFCE7"] { background: var(--badge-green-bg) !important; color: var(--badge-green-text) !important; }
+[data-theme="dark"] span[style*="background:#FEE2E2"],
+[data-theme="dark"] span[style*="background: #FEE2E2"] { background: var(--badge-red-bg) !important; color: var(--badge-red-text) !important; }
+[data-theme="dark"] span[style*="background:#DBEAFE"],
+[data-theme="dark"] span[style*="background: #DBEAFE"] { background: var(--badge-blue-bg) !important; color: var(--badge-blue-text) !important; }
 
 /* Section > h2 first-child */
-
+[data-theme="dark"] .section > h2:first-child { color: var(--color-primary); border-left-color: var(--color-secondary); }
 
 /* Strong in paragraphs */
-
+[data-theme="dark"] p strong { color: var(--color-primary); }
 
 /* Catch-all: E5-generated inline background:#F0FDF4 (callout-success pattern) */
-
-
+[data-theme="dark"] div[style*="background:#F0FDF4"],
+[data-theme="dark"] div[style*="background: #F0FDF4"] {
+  background: var(--alert-success-bg) !important;
+  color: var(--alert-success-text) !important;
+}
+[data-theme="dark"] div[style*="border-left:3px solid #16A34A"],
+[data-theme="dark"] div[style*="border-left: 3px solid #16A34A"] {
+  border-left-color: var(--color-accent) !important;
+}
 
 /* Callout classes — dark mode */
-
-
-
-
-
-
-.chart-container {
-  position:relative; margin:20px 0; max-width:100%;
-  background: var(--color-surface); border-radius:12px; padding:24px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.06); border:1px solid var(--color-border);
-}
-.chart-container canvas { max-height:550px; min-height:350px; }
-.chart-row { display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin:20px 0; }
-.chart-row .chart-container { margin:0; }
-
-
-.card h3 { font-family: var(--font-display); font-size:15px; font-weight:700;
-  color: var(--color-primary); margin:0 0 14px 0; padding-bottom:10px;
-  border-bottom:1px solid var(--color-border); line-height:1.4; }
-.card h3 .icon-badge { margin-right:6px; }
-.chart-context { font-size:13px; color: var(--color-text-muted); margin:0 0 12px 0;
-  line-height:1.5; font-style:italic; }
-.chart-conclusion { font-size:13px; color: var(--color-text); margin:12px 0 0 0;
-  padding:10px 14px; background:#F0F9FF; border-radius:8px; border-left:3px solid var(--color-secondary);
-  line-height:1.5; }
-.chart-note { font-size:12px; color: var(--color-text-muted); margin:8px 0 0 0; font-style:italic; }
+[data-theme="dark"] .callout-success { background: var(--alert-success-bg); color: var(--alert-success-text); border-left-color: var(--color-accent); }
+[data-theme="dark"] .callout-info    { background: var(--alert-info-bg);    color: var(--alert-info-text);    border-left-color: var(--color-secondary); }
+[data-theme="dark"] .callout-warning { background: var(--alert-warning-bg); color: var(--alert-warning-text); border-left-color: var(--color-warning); }
+[data-theme="dark"] .callout-danger  { background: var(--alert-danger-bg);  color: var(--alert-danger-text);  border-left-color: var(--color-danger); }
 
 </style>
 </head>
@@ -927,11 +916,11 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       </div>
       <div class="cover-meta-card">
         <div class="cover-meta-label">Data e Hora de Geração</div>
-        <div class="cover-meta-value">09/04/2026 — 14:40</div>
+        <div class="cover-meta-value">9 abr 2026, 15h16</div>
       </div>
       <div class="cover-meta-card">
         <div class="cover-meta-label">Versão Manual Operações</div>
-        <div class="cover-meta-value">v5.8</div>
+        <div class="cover-meta-value">5.8</div>
       </div>
     </div>
   </div>
@@ -990,43 +979,43 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="kpi-grid">
   <div class="kpi-card">
     <div class="kpi-label">Patrimônio Bruto</div>
-    <div data-prompt="PATRIMONIO_BRUTO" class="kpi-value">R$ 0</div>
-    <div class="kpi-sub">Líquido: R$ 0</div>
+    <div data-prompt="PATRIMONIO_BRUTO" class="kpi-value">R$ 1.602.734</div>
+    <div class="kpi-sub">Líquido: R$ 1.602.734</div>
   </div>
   <div class="kpi-card kpi-hero">
     <div class="kpi-label">Patrimônio Investível</div>
-    <div data-prompt="PATRIMONIO_INVESTIVEL" class="kpi-value blue">R$ 0</div>
-    <div class="kpi-sub">N/D</div>
+    <div data-prompt="PATRIMONIO_INVESTIVEL" class="kpi-value blue">R$ 1.602.734</div>
+    <div class="kpi-sub">100,0% do bruto</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-label">Renda Mensal</div>
-    <div data-prompt="RENDA_MENSAL" class="kpi-value green">R$ 69.203</div>
+    <div data-prompt="RENDA_MENSAL" class="kpi-value green">R$ 81.703</div>
     <div class="kpi-sub">Recorrente · média últ. 12 meses</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-label">Taxa de Poupança</div>
-    <div data-prompt="TAXA_POUPANCA" class="kpi-value">19,8%</div>
-    <div class="kpi-sub">Recorrente últ. 12 meses · Total: 46,4%</div>
+    <div data-prompt="TAXA_POUPANCA" class="kpi-value">32,1%</div>
+    <div class="kpi-sub">Recorrente últ. 12 meses · Total: 52,2%</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-label">Meta Indep. Financeira</div>
     <div data-prompt="META_IF" class="kpi-value">R$ 7,2M</div>
-    <div class="kpi-sub">TRS 5% · 0% atingido</div>
+    <div class="kpi-sub">TRS 5% · 22% atingido</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-label">Gap Indep. Financeira</div>
-    <div data-prompt="GAP_IF" class="kpi-value red">R$ 7,2M</div>
+    <div data-prompt="GAP_IF" class="kpi-value red">R$ 5,6M</div>
     <div class="kpi-sub">Faltam para a meta</div>
   </div>
   <div class="kpi-card kpi-hero">
     <div class="kpi-label">Prazo Indep. Financeira</div>
-    <div data-prompt="PRAZO_IF" class="kpi-value blue">17.4 anos</div>
-    <div class="kpi-sub">David com 61 em 2043</div>
+    <div data-prompt="PRAZO_IF" class="kpi-value blue">11.7 anos</div>
+    <div class="kpi-sub">David com 55 em 2037</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-label">Score Financeiro</div>
-    <div data-prompt="SCORE" class="kpi-value">2,9 / 10</div>
-    <div class="kpi-sub">Atenção</div>
+    <div data-prompt="SCORE" class="kpi-value">6,4 / 10</div>
+    <div class="kpi-sub">Bom</div>
   </div>
 
 <!-- TACTICAL KPI ROW -->
@@ -1048,10 +1037,10 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   <div class="card-title card-title-lg">👨‍👩‍👦 A Família Ferreira Campos</div>
   <div class="perfil-grid">
     <div class="perfil-col">
-      <p>Dados pendentes</p>
+      <p>David Robert, 44 anos, é CTO na Arvo (healthtech) desde setembro de 2025, vinculado como PJ. Possui mestrado em Ciência da Computação pela USP e mais de 25 anos de trajetória em tecnologia, passando por empresas como NIC.br, Abril, TOTVS, Elo7, Loft e Kiwify. Fluente em português e inglês.</p><p>Mariana Teixeira, 39 anos, é enfermeira no Hospital Israelita Albert Einstein desde 2018, com especialização em cardiologia, mestrado pela USP e experiência docente. Seu salário base é R$ 9.082/mês. Acumula 15 anos de carreira em enfermagem de alta complexidade.</p><p>Theo, bebê nascido em 18 de julho de 2025, é brasileiro com dupla cidadania BR/US. Sua chegada marca o início da fase familiar de expansão e consolidação dos planos internacionais do casal.</p><p>Animais de estimação integram o núcleo familiar e contribuem ao orçamento de bem-estar — custos com saúde e cuidados refletem compromisso com qualidade de vida.</p>
     </div>
     <div class="perfil-col" style="border-left:none;">
-      <p>Dados pendentes</p>
+      <p>O plano de vida internacional prevê três fases estruturadas: (1) atual — residência em São Paulo com preparação documental; (2) F1/F2 em Anderson University, South Carolina (~6 meses em 2027) com renda remota mantida; (3) green card via EB2-NIW com Mariana cursando NCLEX para trabalhar como RN nos …</p><p>A meta de independência financeira é R$ 7,2M (TRS 5% = R$ 30k/mês). Patrimônio atual R$ 1,6M representa 22,3% do alvo. Cenário realista: atingir a meta em 9 anos (2035), quando David terá 52 anos.</p><p>Patrimônio investível total R$ 1,6M distribui-se entre David (76,6%) e Mariana (23,4%), concentrado em ativos financeiros (ações, FIIs, RF, criptomoedas) e imóveis alugados nas cidades. Estratégia busca dolarização gradual (USD 4,7k atual → meta 20k pré-EUA) e diversificação cambial.</p>
     </div>
   </div>
 </div>
@@ -1209,14 +1198,18 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>1. Visão Geral Patrimonial</h1>
 </div>
-<div class="section-summary">Seção 1 — dados pendentes</div>
+<div class="section-summary">Patrimônio bruto R$ 1,6M sem dívidas. David: R$ 1,227M (77%). Mariana: R$ 375k (23%). Composição exclusivamente investimentos financeiros e imobiliários.</div>
 <div class="chart-container">
   <div class="card-title">Composição Patrimonial</div>
+  <p class="chart-context">Patrimônio bruto R$ 1,6M segmentado entre investimentos de David e Mariana.</p>
   <canvas id="chart-patrimonio-doughnut"></canvas>
+  <p class="chart-conclusion">David concentra 77% do patrimônio investível. Estratégia para vida nos EUA: acelerar aporte Mariana a 30% até 2027 para distribuir decisões financeiras e riscos.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Caminho para Independência Financeira</div>
+  <p class="chart-context">Patrimônio atual R$ 1,6M, meta R$ 7,2M, gap R$ 5,6M com aporte R$ 20k/mês e retorno 6% a.a.</p>
   <canvas id="chart-waterfall-if"></canvas>
+  <p class="chart-conclusion">Prazo realista 9 anos (2035). David com 52 anos atingirá independência financeira. Cenários: pessimista 11,9 anos | otimista 7 anos.</p>
 </div>
 <div class="card card-feature">
   <div class="card-title">Patrimônio por Categoria</div>
@@ -1225,15 +1218,15 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>
     </thead>
     <tbody>
+      <tr><td>Investimentos David</td><td>R$ 1.227.350</td><td>76,6%</td></tr>
+      <tr><td>Investimentos Mariana</td><td>R$ 375.384</td><td>23,4%</td></tr>
+      <tr><td>Caixa e Moeda Estrangeira</td><td>R$ 0</td><td>0,0%</td></tr>
       <tr><td>Residência</td><td>R$ 0</td><td>0,0%</td></tr>
       <tr><td>Imóveis Investimento</td><td>R$ 0</td><td>0,0%</td></tr>
-      <tr><td>Investimentos David</td><td>R$ 0</td><td>0,0%</td></tr>
-      <tr><td>Investimentos Mariana</td><td>R$ 0</td><td>0,0%</td></tr>
-      <tr><td>Caixa e Moeda Estrangeira</td><td>R$ 0</td><td>0,0%</td></tr>
       <tr><td>Veículos</td><td>R$ 0</td><td>0,0%</td></tr>
-    <tr class="total-row"><td><strong>PATRIMÔNIO BRUTO</strong></td><td><strong>R$ 0</strong></td><td><strong>100%</strong></td></tr>
+    <tr class="total-row"><td><strong>PATRIMÔNIO BRUTO</strong></td><td><strong>R$ 1.602.734</strong></td><td><strong>100%</strong></td></tr>
     <tr><td>(-) Dívidas</td><td>R$ 0</td><td>—</td></tr>
-    <tr class="total-row"><td><strong>PATRIMÔNIO INVESTÍVEL (excl. residência + veículos)</strong></td><td><strong>R$ 0</strong></td><td>—</td></tr>
+    <tr class="total-row"><td><strong>PATRIMÔNIO INVESTÍVEL (excl. residência + veículos)</strong></td><td><strong>R$ 1.602.734</strong></td><td>—</td></tr>
     </tbody>
   </table>
 </div>
@@ -1244,15 +1237,15 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>
     </thead>
     <tbody>
-      <tr><td>Receita Clt</td><td>R$ 1.165.140</td><td>46,5%</td></tr>
-      <tr><td>Receita Pj</td><td>R$ 614.624</td><td>24,5%</td></tr>
-      <tr><td>Outras Receitas</td><td>R$ 462.099</td><td>18,4%</td></tr>
-      <tr><td>Receita Aluguel</td><td>R$ 173.662</td><td>6,9%</td></tr>
-      <tr><td>Receita Venda Ativo</td><td>R$ 49.402</td><td>2,0%</td></tr>
-      <tr><td>Receita Resgate</td><td>R$ 27.416</td><td>1,1%</td></tr>
+      <tr><td>Receita Clt</td><td>R$ 1.165.140</td><td>43,9%</td></tr>
+      <tr><td>Receita Pj</td><td>R$ 614.624</td><td>23,1%</td></tr>
+      <tr><td>Outras Receitas</td><td>R$ 612.099</td><td>23,0%</td></tr>
+      <tr><td>Receita Aluguel</td><td>R$ 173.662</td><td>6,5%</td></tr>
+      <tr><td>Receita Venda Ativo</td><td>R$ 49.402</td><td>1,9%</td></tr>
+      <tr><td>Receita Resgate</td><td>R$ 27.416</td><td>1,0%</td></tr>
       <tr><td>Receita Investimento</td><td>R$ 14.565</td><td>0,6%</td></tr>
       <tr><td>Receita Restituicao</td><td>R$ 16</td><td>0,0%</td></tr>
-    <tr class="total-row"><td><strong>Total</strong></td><td><strong>R$ 2.506.928</strong></td><td><strong>100,0%</strong></td></tr>
+    <tr class="total-row"><td><strong>Total</strong></td><td><strong>R$ 2.656.928</strong></td><td><strong>100,0%</strong></td></tr>
     </tbody>
   </table>
 </div>
@@ -1265,9 +1258,9 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Critério</th><th>Meses</th><th>Valor Necessário</th><th>Liquidez Atual</th><th>Status</th></tr>
     </thead>
     <tbody>
-      <tr><td>Mínimo (Perini)</td><td>6</td><td>R$ 287.326</td><td rowspan="3">R$ 0<br><small>(0.0 meses)</small></td><td>⚠️</td></tr>
-      <tr><td>Conforto</td><td>9</td><td>R$ 430.989</td><td>⚠️</td></tr>
-      <tr><td>Conservador (Cerbasi)</td><td>12</td><td>R$ 574.652</td><td>⚠️</td></tr>
+      <tr><td>Mínimo (Perini)</td><td>6</td><td>R$ 287.326</td><td rowspan="3">R$ 1.602.734<br><small>(33.5 meses)</small></td><td>✅</td></tr>
+      <tr><td>Conforto</td><td>9</td><td>R$ 430.989</td><td>✅</td></tr>
+      <tr><td>Conservador (Cerbasi)</td><td>12</td><td>R$ 574.652</td><td>✅</td></tr>
     </tbody>
   </table>
   <p style="margin-top:1em;"><strong>Composição da Liquidez Imediata:</strong></p>
@@ -1276,7 +1269,9 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Componente</th><th>Valor (R$)</th><th>% do Total</th></tr>
     </thead>
     <tbody>
-      <tr style="font-weight:bold;"><td>Total</td><td>R$ 0</td><td>—</td></tr>
+      <tr><td>Investimentos David</td><td>R$ 1.227.350 (77%)</td><td>76,6%</td></tr>
+      <tr><td>Investimentos Mariana</td><td>R$ 375.384 (23%)</td><td>23,4%</td></tr>
+      <tr style="font-weight:bold;"><td>Total</td><td>R$ 1.602.734</td><td>—</td></tr>
     </tbody>
   </table>
   <p style="margin-top:0.8em; font-size:0.85em; color:#666;">
@@ -1304,21 +1299,28 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>2. Fluxo de Caixa e Orçamento</h1>
 </div>
-<div class="section-summary">Seção 2 — dados pendentes</div>
+<div class="section-summary">Receita total período (34 meses): R$ 2,66M. Recorrente R$ 1,544M (58%). Principal: CLT Mariana R$ 1,165M + PJ David R$ 615k + aluguéis R$ 174k.</div>
 <div class="chart-container">
   <div class="card-title">Fluxo de Caixa Mensal</div>
+  <p class="chart-context">Fluxo mensal 34 meses mostra padrão de receita e despesa com sazonalidade marcada: receitas maiores out-dez (férias Mariana, PJ David crescente). Despesas concentram-se em viagens nos períodos Q2-Q3. Pós-quitação financiamento (abr/26), projeção mensal: receita R$ 78,6k estável, despesa base R$ 31,8k.</p>
   <canvas id="chart-fluxo-mensal"></canvas>
+  <p class="chart-conclusion">Fluxo líquido recorrente R$ 46,8k/mês oferece folga estruturada: R$ 20k aporte IF, R$ 10k reserva emergência, R$ 16,8k discricionário. Padrão sustentável e alinhado com meta de independência financeira em 9 anos. Monitorar sazonalidade Q2-Q3 (viagens) para manter consistência de aporte.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Receita por Fonte</div>
+  <p class="chart-context">Receita por fonte: CLT Mariana R$ 1,165M (43,8%) | PJ David R$ 615k (23,1%) | Outras R$ 612k (23%) | Aluguéis R$ 174k (6,5%).</p>
   <canvas id="chart-receita-bar"></canvas>
+  <p class="chart-conclusion">Base recorrente forte em CLT. PJ David crescente (Arvo desde 09/2025). Aluguéis contribuem 6,5% — potencial expansão com portfolio redimensionado pré-EUA.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Despesas por Categoria</div>
+  <p class="chart-context">Despesa total R$ 1,9M: não-identificado R$ 857k (45%) | lazer/viagens R$ 158k (8,2%) | saúde R$ 103k (5,4%) | suporte familiar R$ 80k (4,2%).</p>
   <canvas id="chart-despesas-doughnut"></canvas>
+  <p class="chart-conclusion">Categorização imperfeita (45% não-identificado) dificulta otimização. Prioridade: detalhar fluxo não-categorizado, definir teto de lazer (R$ 45k/ano previsto) e harmonizar suporte familiar pós-mudança EUA.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Receita vs Despesa — Mês a Mês</div>
+  <p class="chart-context">Fluxo mensal 34 meses mostra sazonalidade: receitas maiores out-dez (férias Mariana, PJ David), despesas concentradas em viagens Q2-Q3.</p>
   <div id="rdm-nav" class="chart-nav">
     <button id="rdm-prev" class="chart-nav-btn" title="Meses anteriores">&#8249;</button>
     <span id="rdm-period" class="chart-nav-period"></span>
@@ -1327,10 +1329,13 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   <canvas id="chart-receita-despesa-mensal"></canvas>
   <div id="rdm-dots" class="chart-nav-dots"></div>
   <div id="legend-receita-despesa" class="chart-legend-grouped"></div>
+  <p class="chart-conclusion">Padrão pós-quitação (abr/26+): receita R$ 78,6k estável, despesa R$ 31,8k base. Folga R$ 46,8k destina-se a aporte IF (R$ 20k) + reserva emergência (R$ 10k) + discricionário (R$ 25k).</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Score Financeiro</div>
-  <canvas id="chart-score-gauge" data-type="gauge" data-score="2.9"></canvas>
+  <p class="chart-context">Score 6,4/10 (Bom) reflete patrimônio crescente, fluxo positivo, mas gaps críticos em seguros e estrutura cambial.</p>
+  <canvas id="chart-score-gauge" data-type="gauge" data-score="6.4"></canvas>
+  <p class="chart-conclusion">Para Score 7,5+: (1) contratar life insurance R$ 3-5M URGENTE, (2) completar reserva emergência (R$ 69k vs meta R$ 382k), (3) elevar dolarização a USD 20k, (4) reduzir não-identificado a <20%.</p>
 </div>
 <div class="card card-feature">
   <div class="card-title">Orçamento Prospectivo (14 Categorias)</div>
@@ -1371,8 +1376,8 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Padrão</th><th>Evidência</th><th>Mudança Sugerida</th></tr>
     </thead>
     <tbody>
-      <tr><td>Poupança abaixo do ideal</td><td>Taxa de 19.8% — referência mínima: 25%</td><td>Revisar despesas variáveis e aumentar aporte</td></tr>
-      <tr><td>Alta dependência de receita pontual</td><td>44% da receita é não-recorrente (resgates, vendas)</td><td>Não contar com receita pontual para orçamento; alocar direto para investimentos</td></tr>
+      <tr><td>Disciplina de poupança</td><td>Taxa de poupança recorrente de 32.1% — acima da referência de 25%</td><td>Manter e automatizar aportes mensais</td></tr>
+      <tr><td>Alta dependência de receita pontual</td><td>42% da receita é não-recorrente (resgates, vendas)</td><td>Não contar com receita pontual para orçamento; alocar direto para investimentos</td></tr>
     </tbody>
   </table>
 </div>
@@ -1389,18 +1394,24 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>3. Investimentos e Rendimentos</h1>
 </div>
-<div class="section-summary">Seção 3 — dados pendentes</div>
+<div class="section-summary">Despesa total R$ 1,92M. Média R$ 47,9k/mês. Maior: não-identificado R$ 857k + lazer/viagens R$ 158k + saúde R$ 103k + suporte familiar R$ 80k.</div>
 <div class="chart-container">
   <div class="card-title">Alocação Atual</div>
+  <p class="chart-context">Alocação Brasil 78% (ações + FIIs + imóveis) | Exterior 22% (IVVB11 + Wise + BofA).</p>
   <canvas id="chart-alocacao-atual"></canvas>
+  <p class="chart-conclusion">Exposição Brasil excessiva para casal com plano EUA. Rebalanceamento: 70/30 Brasil/EUA em 18 meses via aporte IVVB11 (R$ 3k/mês) + Wise (R$ 2k/mês).</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Alocação Alvo</div>
+  <p class="chart-context">Target 2027 (pré-mudança): 65% Brasil | 35% EUA+Crypto (imóveis BR + FIIs + Ações BR consolidadas | IVVB11 + Wise + Crypto 1%).</p>
   <canvas id="chart-alocacao-alvo"></canvas>
+  <p class="chart-conclusion">Estrutura diversificada sustemta moeda dual pós-mudança. Imóveis BR mantidos para fluxo de renda + hedge inflacionário. PFIC risk em fundos: avaliar resgate antes de US tax residency.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Top 15 Ativos Financeiros</div>
+  <p class="chart-context">15 maiores posições concentram 89% da carteira: ITSA4 (12,9%), TAEE11 (7,2%), BTG (5,7%), CDB Itaú (5,6%), imóveis (18% distribuído).</p>
   <canvas id="chart-top15-ativos"></canvas>
+  <p class="chart-conclusion">Concentração em 5 ativos >42%. Risco idiossincrático elevado. Meta: aumentar diversificação em IVVB11 e imóveis alugados. Avaliar venda ou stop-loss em ações com baixo dividend yield.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Cenários IF — Mariana</div>
@@ -1408,7 +1419,9 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 </div>
 <div class="chart-container">
   <div class="card-title">Orçamento de Viagens</div>
+  <p class="chart-context">Orçamento viagens 2026: R$ 45k. Portugal 2025 (R$ 22,3k gasto). Saldo 2026: R$ 22,7k. Programa pontos: Livelo 132k pts (R$ 1,6-2,2k) + Smiles 42k milhas (R$ 1,3k) + Átomos 159k pts (R$ 4,4k).</p>
   <canvas id="chart-viagens"></canvas>
+  <p class="chart-conclusion">Viagens 2026 planejadas via milhas (reduzir caixa). Estadia EUA (F1/F2, 6 meses 2027) categorizada como custo de vida, não viagem. Manter teto R$ 45k anual para folga discricionária.</p>
 </div>
 <div class="card card-feature">
   <div class="card-title">Investimentos por Classe de Ativo</div>
@@ -1507,11 +1520,13 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>4. Imóveis e Bens</h1>
 </div>
-<div class="section-summary">Seção 4 — dados pendentes</div>
+<div class="section-summary">Fluxo líquido R$ 741k (34 meses). Taxa poupança recorrente 18,8%. Após quitação dívida, fluxo mensal proyectado: R$ 78,6k receita − R$ 31,8k despesa = R$ 46,8k para aporte IF e folga.</div>
 <div class="chart-container">
   <div class="card-title">Rentabilidade dos Imóveis (Yield) vs CDI</div>
   <p class="chart-context" style="font-style:italic;opacity:0.85;"><strong>O que é yield?</strong> Yield (rentabilidade) é o retorno anual que o imóvel gera em aluguéis, expresso como percentual do valor estimado do bem. Fórmula: (aluguel anual ÷ valor estimado) × 100. Comparar com o CDI ajuda a avaliar se o capital imobilizado rende mais ou menos que uma aplicação financeira de baixo risco.</p>
+  <p class="chart-context">Renda imobiliária R$ 8,6k/mês (aluguéis brutos David + Mariana). Yields: 6-12% no portfolio teórico, mas realizados: Major Freire 3,6% | Calixto 3,2% | Living Wish 4,8% | Living Concept 3,9%.</p>
   <canvas id="chart-yield-imoveis"></canvas>
+  <p class="chart-conclusion">Yields abaixo de meta. Living Concept (3,9%, vago 7 meses/2025) é candidato a venda. Renovar imóvel para alugar ou vender para realocar em IVVB11/Tesouro conforme D15.</p>
 </div>
 </div>
 
@@ -1520,10 +1535,12 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>5. F1/F2 EUA</h1>
 </div>
-<div class="section-summary">Seção 5 — dados pendentes</div>
+<div class="section-summary">Score financeiro 6,4/10 (Bom). Patrimônio cresce, débito zerado, receita diversificada. Gaps: falta life insurance (crítico), dolarização baixa (4,7k USD), reserva emergência incompleta (R$ 69k vs meta R$ 382k).</div>
 <div class="chart-container">
   <div class="card-title">Custos Mensais F1/F2</div>
+  <p class="chart-context">Estadia EUA 6 meses: custo base R$ 32,4k/mês (US$ 3,99k + BR R$ 8,9k fixed). Renda David remota R$ 70,6k/mês. Sobra R$ 38,2k/mês (54%).</p>
   <canvas id="chart-custos-f1f2"></canvas>
+  <p class="chart-conclusion">F1/F2 financeiramente viável. Parto coberto por seguro IU65 (Theo: US$ 1.716, validou estratégia). Manter aporte IF R$ 20k via sobra. Timeline: definir semestre início 2027 (T4/2026).</p>
 </div>
 </div>
 
@@ -1532,7 +1549,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>6. Green Card</h1>
 </div>
-<div class="section-summary">Seção 6 — dados pendentes</div>
+<div class="section-summary">Meta IF R$ 7,2M em 9 anos (6% retorno real, R$ 20k/mês aporte). Gap R$ 5,597M. Renda passiva estimada (4%): R$ 5,3k/mês vs alvo R$ 30k — necessário diversificar fontes imobiliárias e renda ativa pós-IF.</div>
 <div class="chart-container">
   <div class="card-title">Cenários Cambiais</div>
   <canvas id="chart-cenarios-cambiais"></canvas>
@@ -1544,14 +1561,16 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>7. Independência Financeira</h1>
 </div>
-<div class="section-summary">Seção 7 — dados pendentes</div>
+<div class="section-summary">Receita David: R$ 1,844M (69% do total) — aluguéis + PJ Arvo/BrandLovers/Arbitralis. Receita Mariana: R$ 813k (31%) — CLT Einstein + aluguéis. Renda PJ David crescente (últimos 6 meses ~R$ 47k/mês Arvo base).</div>
 <div class="chart-container">
   <div class="card-title">Projeção Patrimonial — 3 Cenários</div>
   <canvas id="chart-projecao-3cenarios"></canvas>
 </div>
 <div class="chart-container">
   <div class="card-title">Renda Passiva vs Meta</div>
+  <p class="chart-context">Renda passiva atual: aluguéis R$ 8,6k + dividendos/JCP R$ 521 + rendimentos RF R$ 650 + cupons BTG R$ 300 = R$ 10,1k/mês (33,5% da meta R$ 30k).</p>
   <canvas id="chart-renda-passiva"></canvas>
+  <p class="chart-conclusion">Gap R$ 19,9k/mês necessário de expansão imobiliária, elevação yields e renda ativa pós-IF. Estratégia: 2-3 imóveis alugados adicionais + consolidar ITSA4/TAEE11 para dividendos + consultar PJ pós-IF.</p>
 </div>
 <div class="card card-feature">
   <div class="card-title">Previdência PGBL</div>
@@ -1575,10 +1594,12 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>8. Tributário</h1>
 </div>
-<div class="section-summary">Seção 8 — dados pendentes</div>
+<div class="section-summary">Alocação atual: 76,6% David | 23,4% Mariana. Alvo proposto (vida internacional): 70% David | 30% Mariana (reduzir concentração risco). Rebalanceamento: aporte Mariana acelerado + aporte David conservador.</div>
 <div class="chart-container">
   <div class="card-title">DAS PJ — Mês a Mês</div>
+  <p class="chart-context">David (Simples Nacional, Anexo V): faturamento PJ ~R$ 614k/período (média R$ 15k/mês). DAS em aberto (4 lotes). IRPF 2026 pendente carnê-leão regularizado (risco R$ 12-14k).</p>
   <canvas id="chart-impostos-pj"></canvas>
+  <p class="chart-conclusion">URGENTE: regularizar carnê-leão 2024-25 + DAS (risco SELIC). Avaliar Lucro Presumido vs Simples (ISS 2-5% é variável chave). Implementar carnê-leão automático mensal jun/2026.</p>
 </div>
 </div>
 
@@ -1587,7 +1608,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>9. Riscos e Proteção</h1>
 </div>
-<div class="section-summary">Seção 9 — dados pendentes</div>
+<div class="section-summary">Top 15 ativos concentram 89% da carteira. ITSA4 (R$ 207k, 12,9%), TAEE11 (R$ 116k, 7,2%), BTG (R$ 91k), CDB Itaú (R$ 89k). Exposição Brasil 78% | exterior 22% (IVVB11, Wise USD). Risco Brasil elevado.</div>
 <div class="chart-container">
   <div class="card-title">Mapa de Riscos</div>
   <canvas id="chart-bubble-riscos"></canvas>
@@ -1599,7 +1620,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="section-header">
   <h1>10. Conclusão e Roadmap</h1>
 </div>
-<div class="section-summary">Seção 10 — dados pendentes</div>
+<div class="section-summary">Rentabilidade carteira 11,1% a.a. (0,88%/mês, 81% do CDI). RV venceu RF em 2024-2025, mas volatilidade crescente. Projeção realista 6% real anual. Meta rebalanceamento 2027: aumentar imóveis alugados + reduzir ações individuais.</div>
 <div class="chart-container">
   <div class="card-title">Top 5 Decisões de Impacto</div>
   <canvas id="chart-top5-decisoes"></canvas>
@@ -1608,7 +1629,8 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <div class="card card-success">
   <div class="card-title">Pontos Fortes</div>
   <ol>
-    <li><strong>Análise em Andamento</strong>: Pontos fortes serão identificados após consolidação de dados.</li>
+    <li><strong>Taxa de Poupança Saudável</strong>: Taxa de poupança recorrente de 32.1% demonstra controle de gastos e aporte consistente.</li>
+    <li><strong>Score Financeiro Positivo</strong>: Classificação Bom indica solidez financeira.</li>
   </ol>
 </div>
 <div class="card card-critical">
@@ -1618,7 +1640,6 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       <tr><th>Prioridade</th><th>Ação</th><th>Impacto</th><th>Prazo</th></tr>
     </thead>
     <tbody>
-      <tr><td>Alta</td><td>Reforçar reserva de emergência</td><td>Cobertura atual de 0 meses — abaixo do mínimo de 6</td><td>Imediato</td></tr>
       <tr><td>Alta</td><td>Contratar seguro de vida e invalidez</td><td>Proteção patrimonial da família — nenhuma apólice identificada</td><td>Imediato</td></tr>
       <tr><td>Média</td><td>Consolidar dados de rentabilidade dos investimentos</td><td>Sem dados de performance, impossível otimizar alocação</td><td>Próximo trimestre</td></tr>
     </tbody>
@@ -1809,12 +1830,12 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   <table>
     <thead><tr><th>Cenário</th><th>Retorno real a.a.</th><th>Aporte/mês</th><th>Prazo</th><th>David com</th></tr></thead>
     <tbody>
-      <tr><td>Pessimista</td><td>4.0%</td><td>R$ 20,000</td><td>~19.9 anos</td><td>63 (2046)</td></tr>
-      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>6.0%</strong></td><td><strong>R$ 20,000</strong></td><td><strong>~17.4 anos</strong></td><td><strong>60 (2043)</strong></td></tr>
-      <tr><td>Otimista</td><td>8.0%</td><td>R$ 20,000</td><td>~15.6 anos</td><td>59 (2042)</td></tr>
+      <tr><td>Pessimista</td><td>4.0%</td><td>R$ 20,000</td><td>~13.9 anos</td><td>57 (2040)</td></tr>
+      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>6.0%</strong></td><td><strong>R$ 20,000</strong></td><td><strong>~11.7 anos</strong></td><td><strong>55 (2038)</strong></td></tr>
+      <tr><td>Otimista</td><td>8.0%</td><td>R$ 20,000</td><td>~10.2 anos</td><td>53 (2036)</td></tr>
     </tbody>
   </table>
-  <p><strong>Progresso atual:</strong> R$ 0 de R$ 7,200,000 (0.0% atingido).</p>
+  <p><strong>Progresso atual:</strong> R$ 1,602,735 de R$ 7,200,000 (22.3% atingido).</p>
 </div>
 <div class="card">
   <div class="card-title">Cenários — Câmbio BRL/USD</div>
@@ -1858,9 +1879,9 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
     <thead><tr><th>Pergunta</th><th>Resposta / Mitigação</th></tr></thead>
     <tbody>
       <tr><td><strong>E se a Selic cair a 8%?</strong></td><td>CDBs pós rendem menos. Ação: contrafluxo — já ter IPCA+ longos na carteira captura a valorização. Manter Tesouro IPCA+ 2035/2040.</td></tr>
-      <tr><td><strong>E se o USD chegar a R$7.50?</strong></td><td>Custos F1/F2 sobem ~29%. A sobra mensal cai de R$13,594 para ~R$7,361 — ainda viável. Dolarização via Wise fica mais cara mas protege o patrimônio.</td></tr>
+      <tr><td><strong>E se o USD chegar a R$7.50?</strong></td><td>Custos F1/F2 sobem ~29%. A sobra mensal cai de R$17,344 para ~R$11,111 — ainda viável. Dolarização via Wise fica mais cara mas protege o patrimônio.</td></tr>
       <tr><td><strong>E se Mariana não conseguir o NCLEX?</strong></td><td>A simulação 'Mariana sem trabalhar' mostra prazo IF maior. David absorve com aporte reduzido.</td></tr>
-      <tr><td><strong>E se David perder o contrato principal?</strong></td><td>Renda cai significativamente. Reserva de emergência cobre 0.0 meses. Ações: (1) buscar contratos substitutos, (2) reduzir aporte IF, (3) Mariana mantém renda.</td></tr>
+      <tr><td><strong>E se David perder o contrato principal?</strong></td><td>Renda cai significativamente. Reserva de emergência cobre 33.5 meses. Ações: (1) buscar contratos substitutos, (2) reduzir aporte IF, (3) Mariana mantém renda.</td></tr>
       <tr><td><strong>E se os imóveis desvalorizarem 20%?</strong></td><td>Patrimônio bruto cai, mas o patrimônio investível não muda (imóvel residência já excluído). Yield dos imóveis de investimento sobe proporcionalmente.</td></tr>
     </tbody>
   </table>
@@ -1977,7 +1998,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   <p style="font-size:13px;">✅ 2 tarefa(s) concluída(s) neste ciclo.</p>
   <h3>Alertas</h3>
   <ul>
-    <li>⚠️ Score financeiro: 2.9/10 (Atenção)</li>
+    <li>⚠️ Score financeiro: 6.4/10 (Bom)</li>
     <li>⚠️ Rentabilidade: N/D</li>
   </ul>
 </div>
@@ -2015,8 +2036,8 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   <table>
     <thead><tr><th>Métrica</th><th>Valor</th></tr></thead>
     <tbody>
-      <tr><td>IF com aporte R$20k mantido</td><td><strong>17.4 anos</strong> (folga absorve a perda)</td></tr>
-      <tr><td>IF com aporte reduzido R$13,2k</td><td>22.2 anos (+4.8 anos)</td></tr>
+      <tr><td>IF com aporte R$20k mantido</td><td><strong>11.7 anos</strong> (folga absorve a perda)</td></tr>
+      <tr><td>IF com aporte reduzido R$13,2k</td><td>14.3 anos (+2.6 anos)</td></tr>
     </tbody>
   </table>
 </div>
@@ -2056,7 +2077,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 
 <footer class="footer">
 <div class="footer-content">
-        <p><strong>Relatório gerado em:</strong> 9 abr 2026, 14h40</p>
+        <p><strong>Relatório gerado em:</strong> 9 abr 2026, 15h16</p>
         <p><strong>Período dos dados:</strong> 2023-01 a 2026-04</p>
         <p><strong>Versão Manual Operações:</strong> 5.8</p>
         <p class="footer-disclaimer">
@@ -2071,103 +2092,115 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
     "modo_padrao": "strategic",
     "familia": "Ferreira Campos",
     "periodo": "2023-01 a 2026-04",
-    "data_geracao": "2026-04-09T14:40:47.677170",
+    "data_geracao": "2026-04-09T15:16:12.268970",
     "versao": "5.8"
   },
   "kpis": {
-    "patrimonio_bruto": 0.0,
-    "patrimonio_liquido": 0.0,
-    "patrimonio_investivel": 0,
-    "receita_recorrente_mensal": 34861.16,
-    "taxa_poupanca": 19.82,
+    "patrimonio_bruto": 1602734.9,
+    "patrimonio_liquido": 1602734.9,
+    "patrimonio_investivel": 1602734.9,
+    "receita_recorrente_mensal": 38611.16,
+    "taxa_poupanca": 32.08,
     "if_meta": 7200000.0,
-    "if_gap": 7200000.0,
-    "if_pct": 0.0,
-    "score": 2.9,
-    "renda_passiva_mensal": 0.0,
+    "if_gap": 5597265.1,
+    "if_pct": 22.26,
+    "score": 6.4,
+    "renda_passiva_mensal": 5342.45,
     "renda_passiva_meta": 30000.0
   },
   "patrimonio": {
-    "bruto": 0.0,
+    "bruto": 1602734.9,
     "dividas": 0.0,
-    "liquido": 0.0,
+    "liquido": 1602734.9,
     "residencia": 0.0,
     "imoveis_investimento": 0.0,
-    "investimentos_david": 0.0,
-    "investimentos_mariana": 0.0,
+    "investimentos_david": 1227350.34,
+    "investimentos_mariana": 375384.56,
     "caixa_moeda_estrangeira": 0.0,
-    "investivel": 0,
+    "investivel": 1602734.9,
     "veiculos": 0.0,
     "composicao": [
       {
-        "categoria": "Residência",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Imóveis Investimento",
-        "valor": 0.0
-      },
-      {
         "categoria": "Investimentos David",
-        "valor": 0.0
+        "valor": 1227350.34,
+        "pct": 76.58
       },
       {
         "categoria": "Investimentos Mariana",
-        "valor": 0.0
+        "valor": 375384.56,
+        "pct": 23.42
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 0.0
+        "valor": 5.820766091346741e-11,
+        "pct": 0.0
+      },
+      {
+        "categoria": "Residência",
+        "valor": 0.0,
+        "pct": 0.0
+      },
+      {
+        "categoria": "Imóveis Investimento",
+        "valor": 0.0,
+        "pct": 0.0
       },
       {
         "categoria": "Veículos",
-        "valor": 0.0
+        "valor": 0.0,
+        "pct": 0.0
       }
     ],
     "tabela_categorias": [
       {
-        "categoria": "Residência",
-        "valor": 0.0
-      },
-      {
-        "categoria": "Imóveis Investimento",
-        "valor": 0.0
-      },
-      {
         "categoria": "Investimentos David",
-        "valor": 0.0
+        "valor": 1227350.34,
+        "pct": 76.58
       },
       {
         "categoria": "Investimentos Mariana",
-        "valor": 0.0
+        "valor": 375384.56,
+        "pct": 23.42
       },
       {
         "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 0.0
+        "valor": 5.820766091346741e-11,
+        "pct": 0.0
+      },
+      {
+        "categoria": "Residência",
+        "valor": 0.0,
+        "pct": 0.0
+      },
+      {
+        "categoria": "Imóveis Investimento",
+        "valor": 0.0,
+        "pct": 0.0
       },
       {
         "categoria": "Veículos",
-        "valor": 0.0
+        "valor": 0.0,
+        "pct": 0.0
       }
     ],
-    "fonte_investimentos": "irpf"
+    "fonte_investimentos": "posicoes_atuais"
   },
   "charts": {
     "patrimonio_doughnut": {
       "labels": [
-        "Residência",
-        "Imóveis Investimento",
         "Investimentos David",
         "Investimentos Mariana",
         "Caixa e Moeda Estrangeira",
+        "Residência",
+        "Imóveis Investimento",
         "Veículos"
       ],
       "datasets": [
         {
           "data": [
-            0.0,
-            0.0,
-            0.0,
+            1227350.34,
+            375384.56,
+            5.820766091346741e-11,
             0.0,
             0.0,
             0.0
@@ -2190,8 +2223,8 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
         "Meta IF"
       ],
       "data": [
-        0,
-        7200000.0,
+        1602734.9,
+        5597265.1,
         7200000.0
       ]
     },
@@ -2209,7 +2242,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       "datasets": [
         {
           "data": [
-            462099.3,
+            612099.3,
             14565.17,
             27416.7,
             173662.93,
@@ -2241,9 +2274,9 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
         {
           "label": "Fluxo de Caixa (R$)",
           "data": [
-            34861.16,
+            38611.16,
             47887.69,
-            -13026.53
+            -9276.53
           ],
           "backgroundColor": [
             "#15803D",
@@ -2763,7 +2796,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             102.36,
             1590.16,
             101.62,
-            243.75,
+            150243.75,
             2.41,
             605.72,
             244.46,
@@ -3818,7 +3851,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
         78292.82,
         377084.9,
         94370.42,
-        97084.62,
+        247084.62,
         59512.09,
         126238.44,
         69276.67,
@@ -3955,7 +3988,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
         "#15803D",
         "#1E6E8F"
       ],
-      "value": 2.9,
+      "value": 6.4,
       "max": 10
     },
     "alocacao_atual": {
@@ -4027,8 +4060,8 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
             13292,
             7975,
             21267,
-            34861,
-            13594
+            38611,
+            17344
           ],
           "backgroundColor": [
             "#E63946",
@@ -4059,18 +4092,18 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
         {
           "label": "Sem Mariana",
           "data": [
-            7361,
-            13594,
-            18361
+            11111,
+            17344,
+            22111
           ],
           "backgroundColor": "#F4A261"
         },
         {
           "label": "Com Mariana (NCLEX)",
           "data": [
-            37361,
-            36794,
-            36361
+            41111,
+            40544,
+            40111
           ],
           "backgroundColor": "#2DC653"
         }
@@ -4078,7 +4111,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
     },
     "projecao_3cenarios": {
       "meta_if": 7200000.0,
-      "investivel": 0,
+      "investivel": 1602734.9,
       "imoveis": 0.0,
       "aporte_mensal": 20000,
       "anos": 20,
@@ -4332,19 +4365,19 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   },
   "diagnostico_comportamental": [
     {
-      "padrao": "Poupança abaixo do ideal",
-      "evidencia": "Taxa de 19.8% — referência mínima: 25%",
-      "mudanca_sugerida": "Revisar despesas variáveis e aumentar aporte"
+      "padrao": "Disciplina de poupança",
+      "evidencia": "Taxa de poupança recorrente de 32.1% — acima da referência de 25%",
+      "mudanca_sugerida": "Manter e automatizar aportes mensais"
     },
     {
       "padrao": "Alta dependência de receita pontual",
-      "evidencia": "44% da receita é não-recorrente (resgates, vendas)",
+      "evidencia": "42% da receita é não-recorrente (resgates, vendas)",
       "mudanca_sugerida": "Não contar com receita pontual para orçamento; alocar direto para investimentos"
     }
   ],
   "investimentos": {
-    "david_valor": 0.0,
-    "mariana_valor": 0.0,
+    "david_valor": 1227350.34,
+    "mariana_valor": 375384.56,
     "total": 0.0,
     "kpis": {
       "yield_medio_pct": "N/D",
@@ -4418,10 +4451,10 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   },
   "tactical": {
     "cash_position": 0.0,
-    "monthly_pnl": 14785.53,
+    "monthly_pnl": 18535.53,
     "next_30_days": [],
     "alerts": [
-      "Score financeiro: 2.9/10 (Atenção)",
+      "Score financeiro: 6.4/10 (Bom)",
       "Rentabilidade: N/D"
     ]
   },
@@ -4430,15 +4463,15 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
     "nivel_6_meses": 287326.14,
     "nivel_12_meses": 574652.28,
     "composicao_liquida": {
-      "investimentos_david": 0.0,
-      "investimentos_mariana": 0.0,
+      "investimentos_david": 1227350.34,
+      "investimentos_mariana": 375384.56,
       "caixa_moeda_estrangeira": 0.0,
-      "total_liquido": 0.0,
-      "cobertura_meses": 0.0
+      "total_liquido": 1602734.9,
+      "cobertura_meses": 33.5
     },
-    "total_liquida": 0.0,
-    "cobertura_meses": 0.0,
-    "avaliacao_liquidity": "Insuficiente",
+    "total_liquida": 1602734.9,
+    "cobertura_meses": 33.5,
+    "avaliacao_liquidity": "Excelente",
     "niveis": [
       "6 meses",
       "12 meses"
@@ -4446,7 +4479,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   },
   "endividamento": {
     "total_dividas": 0.0,
-    "percentual_patrimonio": 0,
+    "percentual_patrimonio": 0.0,
     "dividas": [],
     "detalhe": "Financiamento imobiliário (Itaú)"
   },
@@ -4461,17 +4494,15 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   },
   "pontos_fortes": [
     {
-      "titulo": "Análise em Andamento",
-      "descricao": "Pontos fortes serão identificados após consolidação de dados."
+      "titulo": "Taxa de Poupança Saudável",
+      "descricao": "Taxa de poupança recorrente de 32.1% demonstra controle de gastos e aporte consistente."
+    },
+    {
+      "titulo": "Score Financeiro Positivo",
+      "descricao": "Classificação Bom indica solidez financeira."
     }
   ],
   "pontos_urgentes": [
-    {
-      "prioridade": "Alta",
-      "acao": "Reforçar reserva de emergência",
-      "impacto": "Cobertura atual de 0 meses — abaixo do mínimo de 6",
-      "prazo": "Imediato"
-    },
     {
       "prioridade": "Alta",
       "acao": "Contratar seguro de vida e invalidez",
@@ -4866,21 +4897,21 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
     "40": "pendente"
   },
   "score": {
-    "valor": 2.9,
+    "valor": 6.4,
     "max": 10,
-    "classificacao": "Atenção",
+    "classificacao": "Bom",
     "componentes": [
       {
         "nome": "Taxa Poupança Recorrente",
-        "valor": 19.82,
+        "valor": 32.08,
         "peso": 2.0,
-        "nota": 4.0
+        "nota": 6.4
       },
       {
         "nome": "Cobertura Despesas (meses)",
-        "valor": 0.0,
+        "valor": 28.88,
         "peso": 1.5,
-        "nota": 0.0
+        "nota": 10.0
       },
       {
         "nome": "Taxa Endividamento (inv)",
@@ -4890,15 +4921,15 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
       },
       {
         "nome": "Progresso IF",
-        "valor": 0.0,
+        "valor": 22.26,
         "peso": 2.0,
-        "nota": 0.0
+        "nota": 2.3
       },
       {
         "nome": "Diversificação",
-        "valor": 0,
+        "valor": 3,
         "peso": 1.0,
-        "nota": 0.0
+        "nota": 4.0
       }
     ]
   }
@@ -6517,48 +6548,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   walk(document.body);
 });
-</script>
-
-
-<script>
-var _currentThemePref = 'system';
-function setTheme(theme) {
-  _currentThemePref = theme;
-  var html = document.documentElement;
-  var resolved = theme;
-  if (theme === 'system') {
-    resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  html.setAttribute('data-theme', resolved);
-  document.querySelectorAll('.theme-btn').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.theme === theme);
-  });
-  var isDark = resolved === 'dark';
-  var textColor = isDark ? '#94A3B8' : '#64748B';
-  var gridColor = isDark ? '#334155' : '#E2E8F0';
-  if (typeof Chart !== 'undefined' && Chart.instances) {
-    Chart.defaults.color = textColor;
-    Chart.defaults.borderColor = gridColor;
-    Object.values(Chart.instances).forEach(function(chart) {
-      if (chart && chart.options && chart.options.scales) {
-        Object.values(chart.options.scales).forEach(function(s) {
-          if (s.ticks) s.ticks.color = textColor;
-          if (s.grid) s.grid.color = gridColor;
-        });
-      }
-      if (chart && chart.options && chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
-        chart.options.plugins.legend.labels.color = textColor;
-      }
-      if (chart) chart.update('none');
-    });
-  }
-}
-(function() {
-  document.documentElement.setAttribute('data-theme', 'light');
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-    if (_currentThemePref === 'system') setTheme('system');
-  });
-})();
 </script>
 
 </body>

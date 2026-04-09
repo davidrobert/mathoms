@@ -1,1 +1,33 @@
-{}
+{
+  "tipo": "cdbresumo",
+  "banco": "santander",
+  "membro": "david",
+  "data_posicao": "2026-03",
+  "posicoes": [
+    {
+      "product_type": "CDB DI",
+      "applied_value": 137409.67,
+      "current_value": 137409.67,
+      "rate": "100% CDI",
+      "maturity_date": "2028-06-05",
+      "acquisition_date": "2024-06-26"
+    },
+    {
+      "product_type": "CDB DI",
+      "applied_value": 101522.74,
+      "current_value": 101522.74,
+      "rate": "100% CDI",
+      "maturity_date": "2028-08-09",
+      "acquisition_date": "2024-08-30"
+    },
+    {
+      "product_type": "CDB Progressivo",
+      "applied_value": 60545.52,
+      "current_value": 60545.52,
+      "rate": "95% CDI",
+      "maturity_date": "2028-08-09",
+      "acquisition_date": "2024-08-30"
+    }
+  ],
+  "saldo_atual": 299477.93
+}

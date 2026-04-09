@@ -1,1 +1,160 @@
-{}
+{
+  "tipo": "investimentosposicao",
+  "banco": "btgpactual",
+  "membro": "mariana",
+  "data_posicao": "2026-03",
+  "moeda": "BRL",
+  "composicao": [
+    {
+      "product_type": "CDB",
+      "name": "BANCO AGIBANK S.A",
+      "issuer": "BANCO AGIBANK S.A",
+      "current_value": 29353.39,
+      "rate": "116.65% do CDI",
+      "maturity_date": "2026-10-11"
+    },
+    {
+      "product_type": "CDB",
+      "name": "PICPAY BANK - BANCO MULTI",
+      "issuer": "PICPAY BANK",
+      "current_value": 30442.6,
+      "rate": "15.26% a.a.",
+      "maturity_date": "2030-03-25"
+    },
+    {
+      "product_type": "CDB",
+      "name": "BANCO DIGIMAIS S.A.",
+      "issuer": "BANCO DIGIMAIS S.A.",
+      "current_value": 12631.0,
+      "rate": "121.00% do CDI",
+      "maturity_date": "2030-05-21"
+    },
+    {
+      "product_type": "CDB",
+      "name": "PICPAY BANK - BANCO MULTI",
+      "issuer": "PICPAY BANK",
+      "current_value": 22563.46,
+      "rate": "15.34% a.a.",
+      "maturity_date": "2032-03-24"
+    },
+    {
+      "product_type": "CRI",
+      "name": "CRI - TEX COURIER",
+      "issuer": "TEX COURIER",
+      "current_value": 8002.3,
+      "rate": "CDI + 2.90%",
+      "maturity_date": "2028-11-16"
+    },
+    {
+      "product_type": "CRI",
+      "name": "CRI - ONCOCLINICAS II",
+      "issuer": "ONCOCLINICAS",
+      "current_value": 7020.69,
+      "rate": "12.16% a.a.",
+      "maturity_date": "2030-10-15"
+    },
+    {
+      "product_type": "CRA",
+      "name": "CRA - Zamp",
+      "issuer": "ZAMP",
+      "current_value": 8608.78,
+      "rate": "12.17% a.a.",
+      "maturity_date": "2029-02-15"
+    },
+    {
+      "product_type": "CRA",
+      "name": "CRA - MADERO",
+      "issuer": "MADERO",
+      "current_value": 7778.47,
+      "rate": "12.98% a.a.",
+      "maturity_date": "2029-10-29"
+    },
+    {
+      "product_type": "CRA",
+      "name": "CRA - FS AGRISOLUTIONS",
+      "issuer": "FS AGRISOLUTIONS",
+      "current_value": 7276.46,
+      "rate": "12.88% a.a.",
+      "maturity_date": "2030-06-17"
+    },
+    {
+      "product_type": "CRA",
+      "name": "CRA - CEREAL",
+      "issuer": "CEREAL",
+      "current_value": 8795.66,
+      "rate": "14.28% a.a.",
+      "maturity_date": "2032-09-15"
+    },
+    {
+      "product_type": "CRA",
+      "name": "CRA - Caramuru",
+      "issuer": "CARAMURU",
+      "current_value": 20318.78,
+      "rate": "15.29% a.a.",
+      "maturity_date": "2033-02-15"
+    },
+    {
+      "product_type": "CRA",
+      "name": "CRA - MINERVA",
+      "issuer": "MINERVA",
+      "current_value": 26663.31,
+      "rate": "13.66% a.a.",
+      "maturity_date": "2035-07-16"
+    },
+    {
+      "product_type": "CRA",
+      "name": "CRA - ELDORADO",
+      "issuer": "ELDORADO",
+      "current_value": 28517.95,
+      "rate": "IPCA + 7.20%",
+      "maturity_date": "2040-09-17"
+    },
+    {
+      "product_type": "Debentura",
+      "name": "LOCALIZA RENT A CAR SA",
+      "issuer": "LOCALIZA",
+      "current_value": 29205.27,
+      "rate": "IPCA + 8.50%",
+      "maturity_date": "2031-12-15"
+    },
+    {
+      "product_type": "Debentura",
+      "name": "CSN MINERACAO S.A.",
+      "issuer": "CSN",
+      "current_value": 6993.62,
+      "rate": "IPCA + 7.93%",
+      "maturity_date": "2036-07-15"
+    },
+    {
+      "product_type": "Fundo",
+      "name": "BTG HEDGE FIRF CRPR SUB",
+      "issuer": "BTG",
+      "current_value": 2544.45,
+      "rate": "0.61% mês / 2.99% ano / 13.73% 12m"
+    },
+    {
+      "product_type": "Fundo",
+      "name": "BTG HEDGE INCENTIVADO I",
+      "issuer": "BTG",
+      "current_value": 30091.92,
+      "rate": "-0.78% mês / 2.55% ano / 14.15% 12m"
+    },
+    {
+      "product_type": "COE",
+      "name": "3R - Cupom Semestral",
+      "issuer": "BANCO BTG PACTUAL",
+      "applied_value": 20000.0,
+      "current_value": 20449.45,
+      "maturity_date": "2031-02-07",
+      "acquisition_date": "2025-04-30"
+    },
+    {
+      "product_type": "Swap",
+      "name": "Swap",
+      "issuer": "BTG",
+      "current_value": -448.78
+    }
+  ],
+  "saldo_atual": 375384.56,
+  "rentabilidade_acumulada": null
+}

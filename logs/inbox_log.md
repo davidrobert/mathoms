@@ -196,3 +196,21 @@
 | vehicles/ | 0 |
 | members/ | 3 |
 
+
+## Ciclo 2026-04-09 — 102 arquivos recebidos (e0_route.py)
+
+### Resumo
+
+| Métrica | Valor |
+|---|---|
+| Arquivos detectados | 102 |
+| Roteados com sucesso | 102 |
+| Duplicatas ignoradas | 0 |
+| Não identificados | 0 |
+| Pulados (integridade) | 0 |
+| financial_statements/ | 91 |
+| income_tax_br/ | 7 |
+| real_estate/ | 1 |
+| vehicles/ | 0 |
+| members/ | 3 |
+

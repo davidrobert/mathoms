@@ -1,231 +1,115 @@
-[
-  {
-    "id": "david",
-    "nome_completo": "David Robert Camargo Ferreira Campos",
-    "nomes_alternativos": [
-      "DAVID ROBERT CAMARGO DE CAMPOS",
-      "DAVID ROBERT CAMARGO",
-      "DAVID ROBERT"
-    ],
-    "cpf": "287.766.948-36",
-    "data_nascimento": "1981-09-05",
-    "papel": "titular",
-    "profissao_cargo": "Chief Technology Officer (CTO)",
-    "experiencias": [
-      {
-        "empresa": "Arvo",
-        "cargo": "Chief Technology Officer (CTO)",
-        "data_inicio": "2025-09-08",
-        "data_fim": "presente",
-        "descricao": "Fast-growing Brazilian healthtech company leveraging AI/ML for healthcare ecosystem optimization. Direct technology strategy, spearhead AI-First engineering vision, and establish robust cybersecurity frameworks."
-      },
-      {
-        "empresa": "Kiwify",
-        "cargo": "Chief Technology Officer (CTO)",
-        "data_inicio": null,
-        "data_fim": null,
-        "descricao": "E-commerce and marketplace platform"
-      },
-      {
-        "empresa": "CredPago (Loft Group)",
-        "cargo": "VP of Software Engineering",
-        "data_inicio": null,
-        "data_fim": null,
-        "descricao": "Proptech platform, contributed to Loft's growth to unicorn status"
-      },
-      {
-        "empresa": "Loft",
-        "cargo": null,
-        "data_inicio": null,
-        "data_fim": null,
-        "descricao": "Proptech platform - played key role in growth to unicorn status"
-      },
-      {
-        "empresa": "Elo7",
-        "cargo": null,
-        "data_inicio": null,
-        "data_fim": null,
-        "descricao": "E-commerce marketplace"
-      }
-    ],
-    "formacao": [
-      {
-        "grau": "Mestrado",
-        "area": "Ciência da Computação - Inteligência Artificial",
-        "instituicao": "Universidade de São Paulo (USP), Instituto de Matemática e Estatística (IME)",
-        "ano_conclusao": 2008
-      },
-      {
-        "grau": "Bacharelado",
-        "area": "Ciência da Computação",
-        "instituicao": "Pontifical Catholic University of São Paulo (PUC/SP)",
-        "ano_conclusao": 2004
-      }
-    ],
-    "certificacoes": [],
-    "habilidades": [
-      "Software Architecture",
-      "Microservices",
-      "Domain-Driven Design (DDD)",
-      "Cloud Computing (AWS, GCP)",
-      "Kubernetes",
-      "Docker",
-      "DevOps",
-      "Infrastructure as Code (Terraform, Ansible)",
-      "Cybersecurity",
-      "DNSSEC",
-      "CI/CD",
-      "Data Engineering",
-      "Machine Learning",
-      "Big Data (Hadoop, Spark)"
-    ],
-    "idiomas": [
-      {
-        "idioma": "Português",
-        "nivel": "nativo"
-      },
-      {
-        "idioma": "Inglês",
-        "nivel": "fluente"
-      }
-    ],
-    "salario": null,
-    "documentos_disponiveis": [
-      "curriculo"
-    ]
-  },
-  {
-    "id": "mariana",
-    "nome_completo": "Mariana Ferreira Campos",
-    "nome_fiscal": "Mariana Teixeira Ferreira",
-    "nomes_alternativos": [
-      "MARIANA TEIXEIRA FERREIRA",
-      "MARIANA TEIXEIRA"
-    ],
-    "cpf": "085.052.396-60",
-    "data_nascimento": "1986-08-30",
-    "papel": "conjuge",
-    "profissao_cargo": "Enfermeira",
-    "experiencias": [
-      {
-        "empresa": "Hospital Israelita Albert Einstein",
-        "cargo": "Enfermeiro",
-        "data_inicio": "2018-01",
-        "data_fim": "presente",
-        "descricao": "Atuação em unidade de alta complexidade com foco em Cardiologia, Clínica Médica e Cirúrgica. Auditoria e Qualidade. Atuação ativa em projetos de melhoria contínua e segurança do paciente. Responsável pela auditoria de prontuários eletrônicos focada em preenchimento de alergias, risco de queda e sinais vitais."
-      },
-      {
-        "empresa": "Hospital Israelita Albert Einstein",
-        "cargo": "Enfermeiro",
-        "data_inicio": "2014-08",
-        "data_fim": "2018-06",
-        "descricao": "UPA Campo Limpo"
-      },
-      {
-        "empresa": "Faculdade Israelita Albert Einstein",
-        "cargo": "Docente universitário",
-        "data_inicio": "2021-01",
-        "data_fim": "2024-12",
-        "descricao": "Docente em Semiologia e Semiotécnica, com desenvolvimento de conteúdo teórico-prático e avaliação de competências clínicas."
-      },
-      {
-        "empresa": "Senac São Paulo",
-        "cargo": "Docente universitário",
-        "data_inicio": "2012-01",
-        "data_fim": "2016-01",
-        "descricao": null
-      },
-      {
-        "empresa": "Faculdade Sequencial",
-        "cargo": "Docente universitário",
-        "data_inicio": "2013-01",
-        "data_fim": "2015-08",
-        "descricao": null
-      },
-      {
-        "empresa": "Hospital Municipal Dr. Moysés Deutsch (Parceria com Hospital Israelita Einstein)",
-        "cargo": "Enfermeira",
-        "data_inicio": "2011",
-        "data_fim": "2014",
-        "descricao": "Atuação assistencial em UTI Adulto e Pediátrica. Atuação assistencial em Clínica Médica e Cirúrgica"
-      }
-    ],
-    "formacao": [
-      {
-        "grau": "Mestrado",
-        "area": "Enfermagem - Enfermagem em Saúde Adulta",
-        "instituicao": "Universidade de São Paulo (USP)",
-        "ano_conclusao": 2021
-      },
-      {
-        "grau": "Pós-graduação Lato Sensu (Especialização)",
-        "area": "Enfermagem em Cardiologia e Hemodinâmica",
-        "instituicao": "Unifesp - Universidade Federal de São Paulo",
-        "ano_conclusao": 2012
-      },
-      {
-        "grau": "Bacharelado",
-        "area": "Enfermagem",
-        "instituicao": "PUC Minas",
-        "ano_conclusao": 2010
-      },
-      {
-        "grau": "Pós-graduação Lato Sensu (Especialização)",
-        "area": "Especialização em Formação Docente em Educação Profissional",
-        "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
-        "ano_conclusao": null
-      }
-    ],
-    "certificacoes": [
-      "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
-      "Classificação de Risco (Protocolo de Manchester)",
-      "Advanced Trauma Care for Nurses (ATCN)",
-      "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP) e Curso de Osteoporose"
-    ],
-    "habilidades": [
-      "Processo de enfermagem",
-      "Cuidados de qualidade ao paciente",
-      "Auditoria e Qualidade",
-      "Segurança do Paciente",
-      "Gestão de equipes",
-      "Análise de prontuários eletrônicos",
-      "PDCA",
-      "Educação em Saúde"
-    ],
-    "idiomas": [
-      {
-        "idioma": "Português",
-        "nivel": "nativo"
-      }
-    ],
-    "salario": {
-      "salario_base_mensal": 9082.92,
-      "salario_bruto": 12086.06,
-      "salario_liquido": 3425.41,
-      "fonte": "holerite",
-      "periodo": "2026-02",
-      "empresa": "Hospital Israelita Albert Einstein",
-      "estabelecimento": "Unidade Morumbi",
-      "cargo_holerite": "Enfermeiro Pl",
-      "data_admissao": "2014-07-21",
-      "nota": "Dados do holerite de fevereiro de 2026"
+{
+  "membros": [
+    {
+      "id": "david",
+      "nome_atual": "David Robert Camargo Ferreira Campos",
+      "nomes_alternativos": ["David Robert Camargo de Ferreira Campos"],
+      "cpf": "287.766.948-36",
+      "data_nascimento": "1981-09-05",
+      "papel": "Titular",
+      "profissao_cargo": "Chief Technology Officer (CTO)",
+      "vinculo": "PJ",
+      "empresa_atual": "Arvo",
+      "empresa_pj": "DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+      "cnpj_pj": "48.771.488/0001-87",
+      "cargo_atual": "Chief Technology Officer (CTO)",
+      "data_inicio_atual": "2025-09",
+      "salario": null,
+      "salario_nota": "PJ — valor a confirmar via extratos bancarios de C6 Bank (conta PJ)",
+      "experiencias": [
+        {"empresa": "Arvo", "cargo": "CTO", "inicio": "2025-09", "fim": "presente"},
+        {"empresa": "Kiwify", "cargo": "CTO", "inicio": "2024-06", "fim": "2025-05"},
+        {"empresa": "Loft", "cargo": "Software Engineering Consultant", "inicio": "2022-12", "fim": "2024-06"},
+        {"empresa": "Loft", "cargo": "Director of Software Engineering", "inicio": "2021-11", "fim": "2022-12"},
+        {"empresa": "Loft", "cargo": "Engineering Manager", "inicio": "2019-06", "fim": "2021-10"},
+        {"empresa": "Elo7", "cargo": "CTO", "inicio": "2013-08", "fim": "2020-07"},
+        {"empresa": "Abril", "cargo": "Solutions Architect I", "inicio": "2012-03", "fim": "2013-08"},
+        {"empresa": "TOTVS", "cargo": "R&D Engineer IV", "inicio": "2011-02", "fim": "2012-03"},
+        {"empresa": "NIC.br", "cargo": "Software Engineer", "inicio": "2006-04", "fim": "2011-01"},
+        {"empresa": "Agencia Estado", "cargo": "Jr System Analyst", "inicio": "2004-01", "fim": "2006-03"},
+        {"empresa": "Agencia Estado", "cargo": "Trainee", "inicio": "2002-06", "fim": "2003-12"},
+        {"empresa": "Brazilian Army (CPOR/SP)", "cargo": "Aspiring Communications Officer", "inicio": "2000-01", "fim": "2001-07"}
+      ],
+      "formacao": [
+        {"instituicao": "USP (IME)", "curso": "Mestrado em Ciencia da Computacao", "grau": "Mestrado", "fim": "2008"},
+        {"instituicao": "PUC/SP", "curso": "Bacharelado em Ciencia da Computacao", "grau": "Bacharelado", "fim": "2004"}
+      ],
+      "certificacoes": [
+        "Oracle Certified Professional, Java SE 5 Programmer",
+        "Duolingo English Test"
+      ],
+      "idiomas": [
+        {"idioma": "Portugues", "nivel": "Nativo"},
+        {"idioma": "Ingles", "nivel": "Profissional"}
+      ],
+      "documentos_disponiveis": ["curriculo"]
     },
-    "documentos_disponiveis": [
-      "curriculo",
-      "holerite"
-    ]
-  },
-  {
-    "id": "theo",
-    "nome_completo": "Theo Ferreira Campos",
-    "nomes_alternativos": [],
-    "data_nascimento": "2025-07-18",
-    "papel": "filho",
-    "cidadania": [
-      "brasileira",
-      "americana"
-    ],
-    "local_nascimento": "Orlando, Flórida",
-    "documentos_disponiveis": []
-  }
-]
+    {
+      "id": "mariana",
+      "nome_atual": "Mariana Teixeira Ferreira Campos",
+      "nomes_alternativos": ["Mariana Ferreira Campos", "Mariana Teixeira Ferreira"],
+      "cpf": "085.052.396-60",
+      "data_nascimento": "1986-08-30",
+      "papel": "Conjuge",
+      "profissao_cargo": "Enfermeira",
+      "vinculo": "CLT",
+      "empresa_atual": "Hospital Israelita Albert Einstein",
+      "cargo_atual": "Enfermeiro Pl",
+      "data_inicio_atual": "2014-07",
+      "data_admissao": "2014-07-21",
+      "salario": {
+        "base_mensal": 9082.92,
+        "bruto": 12086.06,
+        "liquido": 3425.41,
+        "fonte": "holerite",
+        "periodo": "2026-02",
+        "nota": "Bruto inclui ferias no mes (R$ 2.494,16) e insalubridade (R$ 270,17). Liquido reduzido por adiantamento (R$ 3.633,17) e desconto de ferias (R$ 2.529,63)."
+      },
+      "fgts_mensal": 950.62,
+      "experiencias": [
+        {"empresa": "Hospital Israelita Albert Einstein", "cargo": "Enfermeiro", "inicio": "2018-01", "fim": "presente"},
+        {"empresa": "Faculdade Israelita Albert Einstein", "cargo": "Docente universitario", "inicio": "2021-01", "fim": "2024-12"},
+        {"empresa": "UPA Campo Limpo", "cargo": "Enfermeiro", "inicio": "2014-08", "fim": "2018-06"},
+        {"empresa": "Senac Sao Paulo", "cargo": "Docente universitario", "inicio": "2012-01", "fim": "2016-01"},
+        {"empresa": "Faculdade Sequencial", "cargo": "Docente universitario", "inicio": "2013-01", "fim": "2015-08"},
+        {"empresa": "Hospital Municipal Dr. Moyses Deutsch", "cargo": "Enfermeira", "inicio": "2011-01", "fim": "2014-12"}
+      ],
+      "formacao": [
+        {"instituicao": "USP", "curso": "Mestrado em Enfermagem", "grau": "Mestrado", "fim": "2021"},
+        {"instituicao": "UNIFESP", "curso": "Especializacao em Enfermagem em Cardiologia e Hemodinamica", "grau": "Especializacao", "fim": "2012"},
+        {"instituicao": "PUC Minas", "curso": "Bacharelado em Enfermagem", "grau": "Bacharelado", "fim": "2010"},
+        {"instituicao": "FIOCRUZ", "curso": "Especializacao em Formacao Docente em Educacao Profissional", "grau": "Especializacao", "fim": null}
+      ],
+      "certificacoes": [
+        "Auditoria e Qualidade: Projetos PDCA",
+        "Classificacao de Risco (Protocolo de Manchester)",
+        "Advanced Trauma Care for Nurses (ATCN)",
+        "Gestao de Cronicos: Preceptoria em Esclerose Multipla (USP)",
+        "Curso de Osteoporose"
+      ],
+      "idiomas": [
+        {"idioma": "Portugues", "nivel": "Nativo"}
+      ],
+      "documentos_disponiveis": ["curriculo", "holerite_202602"]
+    },
+    {
+      "id": "theo",
+      "nome_atual": "Theo Ferreira Campos",
+      "nomes_alternativos": [],
+      "cpf": null,
+      "data_nascimento": "2025-07-18",
+      "papel": "Filho",
+      "profissao_cargo": null,
+      "vinculo": null,
+      "empresa_atual": null,
+      "cargo_atual": null,
+      "salario": null,
+      "experiencias": [],
+      "formacao": [],
+      "certificacoes": [],
+      "idiomas": [],
+      "documentos_disponiveis": [],
+      "nota": "Dupla cidadania BR/US. Sem documentos processados neste ciclo."
+    }
+  ]
+}
