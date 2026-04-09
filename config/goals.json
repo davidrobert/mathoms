@@ -28,6 +28,8 @@
     "universidade": "Anderson University, SC",
     "visto": "F1/F2",
     "green_card_via": "EB2-NIW",
+    "tuition_usd_anual": 27500,
+    "room_board_usd_anual": 16500,
     "custo_mensal_estimado": 32400,
     "custo_viagem_minimo": 20000,
     "custo_viagem_maximo": 30000,
@@ -89,6 +91,27 @@
     {"nome": "Falta de seguro de vida", "prob": "alta", "impacto": "crítico"},
     {"nome": "Tributação PFIC sobre fundos brasileiros", "prob": "média", "impacto": "médio"},
     {"nome": "Dupla tributação BR-EUA", "prob": "média", "impacto": "médio"}
+  ],
+
+  "viagens": {
+    "teto_anual": 45000
+  },
+
+  "nclex_roadmap": [
+    {"etapa": 1, "descricao": "CGFNS Credentials Evaluation", "custo": "US$ 350", "duracao": "4-8 semanas"},
+    {"etapa": 2, "descricao": "Teste de Inglês (MET ou OET recomendados)", "custo": "US$ 235–455", "duracao": "Prep 2-3 meses"},
+    {"etapa": 3, "descricao": "CGFNS VisaScreen Certificate", "custo": "US$ 540", "duracao": "8-12 semanas"},
+    {"etapa": 4, "descricao": "State Board Application (SC)", "custo": "US$ 200", "duracao": "2-4 semanas"},
+    {"etapa": 5, "descricao": "ATT (Authorization to Test)", "custo": "—", "duracao": "2-4 semanas"},
+    {"etapa": 6, "descricao": "NCLEX-RN Exam", "custo": "US$ 200", "duracao": "Agendar Pearson VUE"},
+    {"etapa": 7, "descricao": "License Issued", "custo": "—", "duracao": "2-4 semanas"}
+  ],
+
+  "aportes_destinos_detalhados": [
+    {"destino": "CDB Cofrinhos Itaú", "valor": 10000, "pct": 50, "objetivo": "Reserva de emergência + liquidez", "liquidez": "D+0", "moeda": "BRL"},
+    {"destino": "Tesouro IPCA+", "valor": 5000, "pct": 25, "objetivo": "Proteção inflação, RF longa", "liquidez": "D+1 (com marcação)", "moeda": "BRL"},
+    {"destino": "IVVB11 (ETF S&P 500)", "valor": 3000, "pct": 15, "objetivo": "Dolarização indireta + RV global", "liquidez": "D+2", "moeda": "USD"},
+    {"destino": "Wise USD", "valor": 2000, "pct": 10, "objetivo": "Dolarização direta (acumulação pré-EUA)", "liquidez": "Imediata", "moeda": "USD"}
   ],
 
   "decisoes_prioritarias": [

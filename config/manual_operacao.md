@@ -1,10 +1,20 @@
 # Manual de Operação — Pipeline Financeiro
 ## Família Ferreira Campos
-## Versão: 5.7.1 — abr/2026
+## Versão: 5.8 — abr/2026
 
 ---
 
-## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1 → v5.4 → v5.5 → v5.6 → v5.7 → v5.7.1
+## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1 → v5.4 → v5.5 → v5.6 → v5.7 → v5.7.1 → v5.8
+
+### v5.7.1 → v5.8
+
+| Mudança | Motivo |
+|---|---|
+| **Fix: e0_route.py — preservar nomes de arquivo** | Rico não era reconhecido como banco (regex `rico(?!_)` bloqueava `rico_*`). Wise perdia sufixo de moeda (BRL/USD). Santander CDB perdia subtipo (di1/di2/prog). QuintoAndar informe perdia sufixo `aluguel`. IRPF com `[mariana]` perdia identificação do membro. Adicionados 12+ patterns específicos ANTES dos genéricos. |
+| **Fix: e0_route.py — c6bank carteirarendafixa** | `c6bank_carteirarendafixa` era incorretamente classificado como `cdbdetalhes` pelo regex genérico. Novo pattern específico `carteira.*renda.?fixa` adicionado. |
+| **Novo: mapeamento banco→membro (family_members.json)** | Investimentos sem campo `membro` (extratos de posição bancários) ficavam com patrimônio atribuído a `""`. Novo campo `banco_membro` em `family_members.json` mapeia cada instituição ao membro titular. E4 usa como fallback. |
+| **Fix: e4_categorize.py — fallback banco→membro** | `build_investimentos_unified()` agora consulta `BANCO_MEMBRO` quando `data.membro` é vazio. Resolve patrimônio zerado no E5 para investimentos pessoais. |
+| **Docs: schema baseline_patrimonial no manual** | Exemplo JSON completo do formato esperado por E5 adicionado à seção E1.5. Previne LLM gerar schemas incompatíveis. |
 
 ### v5.7 → v5.7.1
 
@@ -1205,6 +1215,44 @@ V5 — **Documentos corrompidos ou vazios:**
    - Destacar **divergências**: se um imóvel está no IRPF mas não no XLSX (ou vice-versa), registrar
    - Salvar divergências em `logs/divergences.md`
 
+**Schema do baseline_patrimonial-1.5_consolidated.json:**
+
+O baseline DEVE seguir este formato exato (validado por `config/schemas/baseline_patrimonial.schema.json`):
+
+```json
+{
+  "pipeline_stage": "E1.5_Baseline_Patrimonial",
+  "data_processamento": "2026-04-09",
+  "membros": ["david", "mariana"],
+  "anos_base": [2023, 2024],
+  "declarations": [
+    {
+      "membro": "david",
+      "ano_base": 2024,
+      "bens_direitos": [
+        {
+          "grupo": "G01",
+          "codigo": "01",
+          "descricao": "Apartamento Rua X",
+          "situacao_anterior": 450000.00,
+          "situacao_atual": 450000.00
+        }
+      ],
+      "dividas": [],
+      "rendimentos": {
+        "tributaveis": [],
+        "isentos": []
+      }
+    }
+  ],
+  "imoveis_xlsx": [],
+  "veiculos_xlsx": [],
+  "divergencias": []
+}
+```
+
+Campos obrigatórios: `pipeline_stage`, `data_processamento`, `declarations` (array de objetos com `membro`, `ano_base`, `bens_direitos`). O campo `membros` aceita lista de strings ou objetos com `nome`. Grupos IRPF para E5: G01=imóveis, G02=veículos, G03/G04/G07=investimentos, G06=contas bancárias.
+
 **Outputs:**
 - `processed/E2_extracts/receitafederal_irpfdeclaracao_[ano]-2_extract.json` (múltiplos)
 - `processed/E2_extracts/receitafederal_irpfrecibo_[ano]-2_extract.json` (múltiplos)
@@ -1216,6 +1264,7 @@ V5 — **Documentos corrompidos ou vazios:**
 
 **Validation:**
 - Baseline consolidado deve conter: membros identificados, ano-base da declaração, bens totais, renda total
+- Baseline DEVE passar validação do JSON Schema em `config/schemas/baseline_patrimonial.schema.json`
 - Todos os imóveis devem ter cruzamento IRPF <→ XLSX
 - Divergências devem ser documentadas e resolvidas antes de E2
 

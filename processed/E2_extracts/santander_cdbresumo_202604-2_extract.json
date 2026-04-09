@@ -1,14 +1,1 @@
-{
-  "banco": "Santander",
-  "tipo": "cdbresumo",
-  "periodo": {
-    "inicio": null,
-    "fim": "2026-04-30"
-  },
-  "composicao": [],
-  "saldo_atual": null,
-  "moeda": "BRL",
-  "source_file": "santander_cdbresumo_202604-0_original.xlsx",
-  "requires_llm_fallback": true,
-  "note": "XLSX file - data extraction needed"
-}
+{}

@@ -43,36 +43,50 @@ def _load_account_type_equivalences() -> Dict[str, str]:
 
 ACCOUNT_TYPE_EQUIVALENCES = _load_account_type_equivalences()
 
-# File types that should be skipped (not transaction-bearing accounts)
-SKIP_TYPES = {
-    'investimentosposicao',
-    'carteirarendafixa',
-    'cdbdetalhes',
-    'cdbresumo',
-    'faturaaluguel',
-    'informerendimentos',
-    'irpf',
+# ---------------------------------------------------------------------------
+# Config loader — pipeline.json
+# ---------------------------------------------------------------------------
+def _load_json_config(path: Path, label: str = "") -> dict:
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"  ⚠️  Error loading {label or path.name}: {e}")
+    else:
+        print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
+    return {}
+
+_BASE_DIR = Path(__file__).resolve().parent.parent
+PIPE_CONFIG = _load_json_config(_BASE_DIR / "config" / "pipeline.json", "pipeline.json")
+_recon_cfg = PIPE_CONFIG.get("reconciliation", {})
+
+# File types that should be skipped (not transaction-bearing accounts) — from config
+SKIP_TYPES = set(_recon_cfg.get("skip_types", [])) or {
+    'investimentosposicao', 'carteirarendafixa', 'cdbdetalhes', 'cdbresumo',
+    'faturaaluguel', 'informerendimentos', 'irpf',
 }
 
-# Special files to skip
-SKIP_FILES = {
+# Special files to skip — from config
+SKIP_FILES = set(_recon_cfg.get("skip_files", [])) or {
     'baseline_patrimonial-1.5_consolidated.json',
     'dados_imoveis-2_extract.json',
 }
 
-# Mapping from tipo to a canonical form for output (tipo_conta field)
-TIPO_CANONICAL = {
-    'extratoconta': 'extratoconta',
-    'extratocontapj': 'extratocontapj',
+# Mapping from tipo to a canonical form for output (tipo_conta field) — from config
+TIPO_CANONICAL = _recon_cfg.get("tipo_canonical", {}) or {
+    'extratoconta': 'extratoconta', 'extratocontapj': 'extratocontapj',
     'extratocontapersonnalite': 'extratocontapersonnalite',
-    'extratopoupanca': 'extratopoupanca',
-    'extratocontaglobal': 'extratocontaglobal',
-    'extratocontaglobalusd': 'extratocontaglobalusd',
-    'extratocontaglobaleur': 'extratocontaglobaleur',
-    'faturacarbon': 'faturacarbon',
-    'faturaunique': 'faturaunique',
-    'faturapaoacucar': 'faturapaoacucar',
+    'extratopoupanca': 'extratopoupanca', 'extratocontaglobal': 'extratocontaglobal',
+    'extratocontaglobalusd': 'extratocontaglobalusd', 'extratocontaglobaleur': 'extratocontaglobaleur',
+    'faturacarbon': 'faturacarbon', 'faturaunique': 'faturaunique', 'faturapaoacucar': 'faturapaoacucar',
 }
+
+# Tolerances — from config
+_tolerances = _recon_cfg.get("tolerances", {})
+_TOLERANCE_SALDO_DIFF = _tolerances.get("saldo_diff", 0.01)
+_TOLERANCE_GAP_DAYS = _tolerances.get("temporal_gap_days", 2)
+_TOLERANCE_BASELINE_DIFF = _tolerances.get("baseline_irpf_diff", 1.0)
 
 
 # =============================================================================
@@ -466,7 +480,7 @@ def validate_saldo_and_gaps(
             # Saldo continuity check
             if prev_final_saldo is not None and saldo_inicial is not None:
                 # Allow small floating point differences
-                if abs(prev_final_saldo - saldo_inicial) > 0.01:
+                if abs(prev_final_saldo - saldo_inicial) > _TOLERANCE_SALDO_DIFF:
                     warnings[account_key_str].append(
                         f"Saldo gap: {path.name} "
                         f"(prev_final={prev_final_saldo}, "
@@ -481,8 +495,8 @@ def validate_saldo_and_gaps(
                     current_inicio_dt = datetime.strptime(inicio, '%Y-%m-%d')
                     days_gap = (current_inicio_dt - prev_fim_dt).days
 
-                    # Allow up to 2 days gap (weekends, processing delays)
-                    if days_gap > 2:
+                    # Allow up to N days gap (weekends, processing delays)
+                    if days_gap > _TOLERANCE_GAP_DAYS:
                         gap_msg = (
                             f"{account_key_str}: Temporal gap of {days_gap} days "
                             f"between {prev_name} (fim={prev_fim}) and "
@@ -590,7 +604,7 @@ def validate_against_baseline(
                     diff = abs(bl_saldo - account_saldo_on_date)
                     pct = (diff / abs(bl_saldo) * 100) if bl_saldo != 0 else float('inf')
 
-                    if diff > 1.0:  # More than R$1 difference
+                    if diff > _TOLERANCE_BASELINE_DIFF:  # More than threshold difference
                         account_desc = f"{account['banco']} {tipo}"
                         baseline_warnings[account_desc].append(
                             f"Saldo em {target_date}: baseline IRPF={bl_saldo:.2f}, "

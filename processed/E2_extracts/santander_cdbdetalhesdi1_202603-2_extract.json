@@ -1,14 +1,1 @@
-{
-  "banco": "Santander",
-  "tipo": "cdbdetalhes",
-  "periodo": {
-    "inicio": null,
-    "fim": "2026-03-31"
-  },
-  "composicao": [],
-  "saldo_atual": null,
-  "moeda": "BRL",
-  "source_file": "santander_cdbdetalhesdi1_202603-0_original.pdf",
-  "requires_llm_fallback": true,
-  "note": "PDF content requires detailed parsing"
-}
+{}

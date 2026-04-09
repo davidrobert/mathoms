@@ -79,8 +79,23 @@ for _mid, _mdata in _MEMBROS.items():
     if cpf:
         _MEMBER_CPFS[cpf] = _mid
 
-# Meses PT-BR → número
-MESES_BR = {
+# Meses PT-BR → número — from config/localization.json with hardcoded fallback
+def _load_json_config(path: Path, label: str = "") -> dict:
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"  ⚠️  Error loading {label or path.name}: {e}")
+    else:
+        print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
+    return {}
+
+_LOCALE_CONFIG = _load_json_config(CONFIG_DIR / "localization.json", "localization.json")
+_INST_CONFIG = _load_json_config(CONFIG_DIR / "institutions.json", "institutions.json")
+_PIPE_CONFIG = _load_json_config(CONFIG_DIR / "pipeline.json", "pipeline.json")
+
+MESES_BR = _LOCALE_CONFIG.get("meses_br_int", {}) or {
     'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4,
     'mai': 5, 'jun': 6, 'jul': 7, 'ago': 8,
     'set': 9, 'out': 10, 'nov': 11, 'dez': 12,
@@ -88,6 +103,17 @@ MESES_BR = {
     'maio': 5, 'junho': 6, 'julho': 7, 'agosto': 8,
     'setembro': 9, 'outubro': 10, 'novembro': 11, 'dezembro': 12,
 }
+
+# Layouts from config — Itaú XLS, Santander XLS, C6 CSV
+_LAYOUTS = _INST_CONFIG.get("layouts", {})
+_ITAU_XLS = _LAYOUTS.get("itau_xls", {})
+_SANTANDER_XLS = _LAYOUTS.get("santander_xls", {})
+_C6_CSV = _LAYOUTS.get("c6_csv", {})
+
+# File size thresholds from config
+_file_limits = _PIPE_CONFIG.get("file_limits", {})
+_MIN_XLS_BYTES = _file_limits.get("min_xls_bytes", 40000)
+_MIN_CSV_BYTES = _file_limits.get("min_csv_bytes", 500)
 
 # Extrato file patterns recognized by deterministic parsers
 # Maps (banco_prefix, tipo_contains) → parser function name
@@ -586,28 +612,34 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
             pending_tx: Optional[Dict] = None
             saldo_values: List[Tuple[str, float]] = []
 
+            # C6 CSV column layout from config
+            _c6g = _C6_CSV.get("global_format", {})
+            _c6cp = _C6_CSV.get("conta_pj_format", {})
+            _c6_min_cols = _C6_CSV.get("min_columns", 5)
+            _c6_saldo_re = _C6_CSV.get("saldo_regex", r'Saldo do dia\s+(\d{2}/\d{2}/\d{2,4})')
+
             for row in all_rows:
-                # Normalize: ensure 5 columns
-                cols = list(row) + [""] * (5 - len(row))
+                # Normalize: ensure min_columns
+                cols = list(row) + [""] * (_c6_min_cols - len(row))
                 col0, col1, col2, col3, col4 = cols[:5]
 
                 # For Global format, valor is in col3 (with currency prefix)
                 # For Conta/PJ format, valor is in col4
                 if is_global:
-                    valor_col = col3
-                    desc_col = col2
-                    tipo_col = col1
+                    valor_col = cols[_c6g.get("valor", 3)]
+                    desc_col = cols[_c6g.get("descricao", 2)]
+                    tipo_col = cols[_c6g.get("tipo", 1)]
                 else:
-                    valor_col = col4
-                    desc_col = col3
-                    tipo_col = col2
+                    valor_col = cols[_c6cp.get("valor", 4)]
+                    desc_col = cols[_c6cp.get("descricao", 3)]
+                    tipo_col = cols[_c6cp.get("tipo", 2)]
 
                 # Skip empty/header rows
                 if not any(c.strip() for c in cols):
                     continue
 
-                # Detect "Saldo do dia" rows
-                saldo_match = re.match(r'Saldo do dia\s+(\d{2}/\d{2}/\d{2,4})', col0)
+                # Detect "Saldo do dia" rows — regex from config
+                saldo_match = re.match(_c6_saldo_re, col0)
                 if saldo_match:
                     saldo_val = parse_brl(col4) or parse_brl(col3)
                     if saldo_val is not None:
@@ -790,19 +822,27 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 
         sh = wb.sheet_by_name(lancamentos_name)
 
-        # --- Extract header info (rows 0-4) ---
-        if sh.nrows >= 5:
-            # Nome do titular (row 2, col 1)
-            nome_raw = str(sh.cell(2, 1).value).strip()
+        # --- Extract header info — layout from config ---
+        _ih = _ITAU_XLS.get("header", {})
+        _titular_r = _ih.get("titular_row", 2)
+        _titular_c = _ih.get("titular_col", 1)
+        _ag_r = _ih.get("agencia_row", 3)
+        _ag_c = _ih.get("agencia_col", 1)
+        _conta_r = _ih.get("conta_row", 4)
+        _conta_c = _ih.get("conta_col", 1)
+
+        if sh.nrows >= max(_titular_r, _ag_r, _conta_r) + 1:
+            # Nome do titular
+            nome_raw = str(sh.cell(_titular_r, _titular_c).value).strip()
             nome = _fix_itau_xls_encoding(nome_raw)
             result["titular"] = detect_member_from_text(nome)
 
-            # Agência (row 3, col 1)
-            ag_val = sh.cell(3, 1).value
+            # Agência
+            ag_val = sh.cell(_ag_r, _ag_c).value
             agencia = str(int(ag_val)) if isinstance(ag_val, float) else str(ag_val).strip()
 
-            # Conta (row 4, col 1)
-            conta_val = str(sh.cell(4, 1).value).strip()
+            # Conta
+            conta_val = str(sh.cell(_conta_r, _conta_c).value).strip()
             result["numero_conta"] = conta_val
 
         # --- Parse transactions ---
@@ -812,12 +852,19 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
         first_tx_date = None
         last_tx_date = None
 
-        for r in range(10, sh.nrows):
-            # Read cells
-            cell_date = str(sh.cell(r, 0).value).strip() if sh.ncols > 0 else ""
-            cell_desc = str(sh.cell(r, 1).value).strip() if sh.ncols > 1 else ""
-            cell_valor = sh.cell(r, 3).value if sh.ncols > 3 else ""
-            cell_saldo = sh.cell(r, 4).value if sh.ncols > 4 else ""
+        _data_start = _ITAU_XLS.get("data_start_row", 10)
+        _icols = _ITAU_XLS.get("columns", {})
+        _cd = _icols.get("data", 0)
+        _cde = _icols.get("descricao", 1)
+        _cv = _icols.get("valor", 3)
+        _cs = _icols.get("saldo", 4)
+
+        for r in range(_data_start, sh.nrows):
+            # Read cells — columns from config
+            cell_date = str(sh.cell(r, _cd).value).strip() if sh.ncols > _cd else ""
+            cell_desc = str(sh.cell(r, _cde).value).strip() if sh.ncols > _cde else ""
+            cell_valor = sh.cell(r, _cv).value if sh.ncols > _cv else ""
+            cell_saldo = sh.cell(r, _cs).value if sh.ncols > _cs else ""
 
             # Fix encoding on description
             cell_desc = _fix_itau_xls_encoding(cell_desc)
@@ -1512,21 +1559,29 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
         wb = xlrd.open_workbook(xls_path)
         sh = wb.sheet_by_index(0)  # "Plan1"
 
-        # --- Header info ---
-        if sh.nrows >= 3:
-            # Titular (row 2, col 0)
-            nome_raw = str(sh.cell(2, 0).value).strip()
+        # --- Header info — layout from config ---
+        _sh = _SANTANDER_XLS.get("header", {})
+        _st_r = _sh.get("titular_row", 2)
+        _st_c = _sh.get("titular_col", 0)
+        _sc_r = _sh.get("conta_row", 2)
+        _sc_c = _sh.get("conta_col", 4)
+        _sp_r = _sh.get("periodo_row", 4)
+        _sp_c = _sh.get("periodo_col", 4)
+
+        if sh.nrows >= _st_r + 1:
+            # Titular
+            nome_raw = str(sh.cell(_st_r, _st_c).value).strip()
             result["titular"] = detect_member_from_text(nome_raw)
 
-            # Conta (row 2, col 4) — "Conta: 1652-01.001341.6"
-            conta_raw = str(sh.cell(2, 4).value).strip()
+            # Conta — "Conta: 1652-01.001341.6"
+            conta_raw = str(sh.cell(_sc_r, _sc_c).value).strip()
             m = re.search(r'Conta:\s*([\d\-\.]+)', conta_raw)
             if m:
                 result["numero_conta"] = m.group(1)
 
-        # --- Period (row 4, col 4) — "Extrato de DD/MM/YYYY a DD/MM/YYYY" ---
-        if sh.nrows >= 5:
-            periodo_raw = str(sh.cell(4, 4).value).strip()
+        # --- Period ---
+        if sh.nrows >= _sp_r + 1:
+            periodo_raw = str(sh.cell(_sp_r, _sp_c).value).strip()
             pm = re.search(r'Extrato de\s+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', periodo_raw)
             if pm:
                 p1 = pm.group(1).split("/")
@@ -1534,16 +1589,24 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
                 result["periodo"]["inicio"] = f"{p1[2]}-{p1[1]}-{p1[0]}"
                 result["periodo"]["fim"] = f"{p2[2]}-{p2[1]}-{p2[0]}"
 
-        # --- Parse transactions (row 6+) ---
+        # --- Parse transactions — columns from config ---
         saldo_anterior = None
         saldo_values = []
 
-        for r in range(6, sh.nrows):
-            cell_date = str(sh.cell(r, 0).value).strip()
-            cell_desc = str(sh.cell(r, 1).value).strip()
-            cell_credito = str(sh.cell(r, 4).value).strip()
-            cell_debito = str(sh.cell(r, 5).value).strip()
-            cell_saldo = str(sh.cell(r, 6).value).strip()
+        _sdata_start = _SANTANDER_XLS.get("data_start_row", 6)
+        _scols = _SANTANDER_XLS.get("columns", {})
+        _scd = _scols.get("data", 0)
+        _scde = _scols.get("descricao", 1)
+        _sccr = _scols.get("credito", 4)
+        _scdb = _scols.get("debito", 5)
+        _scss = _scols.get("saldo", 6)
+
+        for r in range(_sdata_start, sh.nrows):
+            cell_date = str(sh.cell(r, _scd).value).strip()
+            cell_desc = str(sh.cell(r, _scde).value).strip()
+            cell_credito = str(sh.cell(r, _sccr).value).strip()
+            cell_debito = str(sh.cell(r, _scdb).value).strip()
+            cell_saldo = str(sh.cell(r, _scss).value).strip()
 
             # Stop at TOTAL row or empty section
             if cell_date.upper().startswith("TOTAL"):
@@ -2593,7 +2656,7 @@ def validate_result(result: Dict[str, Any], file_path: Path, is_csv: bool = Fals
 
         # XLS binary format has ~36KB overhead even for empty files — raise threshold
         is_xls = str(file_path).endswith(".xls")
-        size_threshold = 40000 if is_xls else 500  # 40KB for XLS, 500B for CSV
+        size_threshold = _MIN_XLS_BYTES if is_xls else _MIN_CSV_BYTES
 
         if n_tx == 0 and total_chars > size_threshold:
             notas_lower = [n.lower() for n in result.get("notas", [])]

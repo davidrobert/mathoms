@@ -42,6 +42,24 @@ DATA = BASE / "data"
 MEMBERS = BASE / "members"
 
 # ---------------------------------------------------------------------------
+# Config loader
+# ---------------------------------------------------------------------------
+def _load_json_config(path: Path, label: str = "") -> dict:
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"  ⚠️  Error loading {label or path.name}: {e}")
+    else:
+        print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
+    return {}
+
+INST_CONFIG = _load_json_config(BASE / "config" / "institutions.json", "institutions.json")
+PIPE_CONFIG = _load_json_config(BASE / "config" / "pipeline.json", "pipeline.json")
+FAMILY_CONFIG = _load_json_config(BASE / "config" / "family_members.json", "family_members.json")
+
+# ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
 _LOG_LINES: list[str] = []
@@ -52,74 +70,105 @@ def log(level: str, msg: str) -> None:
     _LOG_LINES.append(line)
 
 # ---------------------------------------------------------------------------
-# Institution patterns  (Seção 3.1, Passo 2 do manual)
+# Institution patterns  (Seção 3.1, Passo 2 do manual) — from config
 # ---------------------------------------------------------------------------
-INSTITUTION_PATTERNS: list[tuple[re.Pattern, str]] = [
-    (re.compile(r"c6|carbon|c6bank", re.I),                   "c6bank"),
-    (re.compile(r"itau|itaú|personnalite|paoacucar", re.I),   "itau"),
-    (re.compile(r"santander|unique", re.I),                    "santander"),
-    (re.compile(r"bradesco", re.I),                            "bradesco"),
-    (re.compile(r"btg|btgpactual", re.I),                     "btgpactual"),
-    (re.compile(r"rico(?!_)|xp", re.I),                       "rico"),
-    (re.compile(r"picpay", re.I),                              "picpay"),
-    (re.compile(r"wise|transferwise", re.I),                   "wise"),
-    (re.compile(r"bofa|bankofamerica|bank.of.america", re.I), "bankofamerica"),
-    (re.compile(r"quintoandar|quinto.andar", re.I),           "quintoandar"),
-    (re.compile(r"binance", re.I),                             "binance"),
-    (re.compile(r"receita|rfb|irpf", re.I),                   "receitafederal"),
-    (re.compile(r"einstein|sociedade.beneficente", re.I),      "einstein"),
-]
+def _build_institution_patterns() -> list[tuple[re.Pattern, str]]:
+    cfg_list = INST_CONFIG.get("institution_patterns", [])
+    if cfg_list:
+        return [(re.compile(p["regex"], re.I), p["canonical"]) for p in cfg_list]
+    print("  [WARN] institution_patterns não encontrado em institutions.json — usando defaults hardcoded")
+    return [
+        (re.compile(r"c6|carbon|c6bank", re.I),                   "c6bank"),
+        (re.compile(r"itau|itaú|personnalite|paoacucar", re.I),   "itau"),
+        (re.compile(r"santander|unique", re.I),                    "santander"),
+        (re.compile(r"bradesco", re.I),                            "bradesco"),
+        (re.compile(r"btg|btgpactual", re.I),                     "btgpactual"),
+        (re.compile(r"rico|xp", re.I),                              "rico"),
+        (re.compile(r"picpay", re.I),                              "picpay"),
+        (re.compile(r"wise|transferwise", re.I),                   "wise"),
+        (re.compile(r"bofa|bankofamerica|bank.of.america", re.I), "bankofamerica"),
+        (re.compile(r"quintoandar|quinto.andar", re.I),           "quintoandar"),
+        (re.compile(r"binance", re.I),                             "binance"),
+        (re.compile(r"receita|rfb|irpf", re.I),                   "receitafederal"),
+        (re.compile(r"einstein|sociedade.beneficente", re.I),      "einstein"),
+    ]
+
+INSTITUTION_PATTERNS = _build_institution_patterns()
 
 # ---------------------------------------------------------------------------
-# Document-type patterns  (Seção 3.1, Passo 3 do manual)
+# Document-type patterns  (Seção 3.1, Passo 3 do manual) — from config
 # ---------------------------------------------------------------------------
-DOC_TYPE_PATTERNS: list[tuple[re.Pattern, str, str]] = [
-    # (regex on filename, doc_type code, destination group)
-    # Income tax (GRUPO B)
-    (re.compile(r"irpf.*declara[cç]", re.I),               "irpfdeclaracao",       "income_tax_br"),
-    (re.compile(r"irpf.*recibo|recibo.*irpf", re.I),       "irpfrecibo",           "income_tax_br"),
-    (re.compile(r"informe.*rendimento", re.I),              "informerendimentos",   "income_tax_br"),
-    # Real estate / vehicles (GRUPO C/D)
-    (re.compile(r"dados?.?im[oó]ve", re.I),                "dados_imoveis",        "real_estate"),
-    (re.compile(r"dados?.?ve[ií]culo|vehicles|carros", re.I), "dados_veiculos",    "vehicles"),
-    # Members (GRUPO E)
-    (re.compile(r"curriculo|resume|cv(?!\d)", re.I),       "curriculo",            "members"),
-    (re.compile(r"holerite|contracheque|folha.?pagamento", re.I), "holerite",      "members"),
-    (re.compile(r"\brg\b|registro.?geral|identidade", re.I), "rg",                "members"),
-    (re.compile(r"\bcpf\b|pessoa.?f[ií]sica", re.I),       "cpf",                 "members"),
-    (re.compile(r"passaporte|passport", re.I),              "passaporte",           "members"),
-    (re.compile(r"visto\b|visa\b", re.I),                   "visto",               "members"),
-    (re.compile(r"certid[aã]o.*nascimento", re.I),         "certidao_nascimento",  "members"),
-    (re.compile(r"certid[aã]o.*casamento", re.I),          "certidao_casamento",   "members"),
-    (re.compile(r"\bssn\b|social.?security", re.I),         "ssn",                 "members"),
-    (re.compile(r"driver|carteira.?motorista", re.I),       "drivers_license",      "members"),
-    (re.compile(r"green.?card|resident", re.I),             "green_card",           "members"),
-    # Financial statements (GRUPO A) — more specific first
-    (re.compile(r"(?:extrato.*)?personnalite", re.I),       "extratocontapersonnalite", "financial_statements"),
-    (re.compile(r"extrato.*pj|pj.*extrato", re.I),        "extratocontapj",       "financial_statements"),
-    (re.compile(r"extrato.*global.*usd|usd.*global", re.I), "extratocontaglobalusd", "financial_statements"),
-    (re.compile(r"extrato.*global.*eur|eur.*global", re.I), "extratocontaglobaleur", "financial_statements"),
-    (re.compile(r"extrato.*poupan[cç]a|caderneta|savings", re.I), "extratopoupanca", "financial_statements"),
-    (re.compile(r"extrato|lan[cç]amento|statement", re.I), "extratoconta",         "financial_statements"),
-    (re.compile(r"fatura.*carbon", re.I),                   "faturacarbon",         "financial_statements"),
-    (re.compile(r"fatura.*unique", re.I),                   "faturaunique",         "financial_statements"),
-    (re.compile(r"fatura.*p[aã]o.?a[cç][uú]car", re.I),   "faturapaoacucar",      "financial_statements"),
-    (re.compile(r"fatura.*aluguel.*calixto", re.I),        "faturaaluguelcalixto", "financial_statements"),
-    (re.compile(r"fatura.*aluguel.*major.?freire", re.I),  "faturaaluguelmajorfreire", "financial_statements"),
-    (re.compile(r"fatura.*aluguel", re.I),                 "faturaaluguel",        "financial_statements"),
-    (re.compile(r"fatura", re.I),                          "fatura",               "financial_statements"),
-    (re.compile(r"posi[cç][aã]o|carteira.*invest", re.I), "investimentosposicao", "financial_statements"),
-    (re.compile(r"renda.?fixa|cdb.*detalhe", re.I),        "cdbdetalhes",         "financial_statements"),
-    (re.compile(r"cdb.*resumo|resumo.*cdb", re.I),         "cdbresumo",           "financial_statements"),
-    (re.compile(r"cdb", re.I),                              "cdb",                 "financial_statements"),
-]
+def _build_doc_type_patterns() -> list[tuple[re.Pattern, str, str]]:
+    cfg_list = INST_CONFIG.get("doc_type_patterns", [])
+    if cfg_list:
+        return [(re.compile(p["regex"], re.I), p["type"], p["group"]) for p in cfg_list]
+    print("  [WARN] doc_type_patterns não encontrado em institutions.json — usando defaults hardcoded")
+    return [
+        (re.compile(r"irpf.*declara[cç]", re.I),               "irpfdeclaracao",       "income_tax_br"),
+        (re.compile(r"irpf.*recibo|recibo.*irpf", re.I),       "irpfrecibo",           "income_tax_br"),
+        (re.compile(r"informe.*rendimento.*aluguel", re.I),    "informerendimentosaluguel", "income_tax_br"),
+        (re.compile(r"informe.*rendimento", re.I),              "informerendimentos",   "income_tax_br"),
+        (re.compile(r"dados?.?im[oó]ve", re.I),                "dados_imoveis",        "real_estate"),
+        (re.compile(r"dados?.?ve[ií]culo|vehicles|carros", re.I), "dados_veiculos",    "vehicles"),
+        (re.compile(r"curriculo|resume|cv(?!\d)", re.I),       "curriculo",            "members"),
+        (re.compile(r"holerite|contracheque|folha.?pagamento", re.I), "holerite",      "members"),
+        (re.compile(r"\brg\b|registro.?geral|identidade", re.I), "rg",                "members"),
+        (re.compile(r"\bcpf\b|pessoa.?f[ií]sica", re.I),       "cpf",                 "members"),
+        (re.compile(r"passaporte|passport", re.I),              "passaporte",           "members"),
+        (re.compile(r"visto\b|visa\b", re.I),                   "visto",               "members"),
+        (re.compile(r"certid[aã]o.*nascimento", re.I),         "certidao_nascimento",  "members"),
+        (re.compile(r"certid[aã]o.*casamento", re.I),          "certidao_casamento",   "members"),
+        (re.compile(r"\bssn\b|social.?security", re.I),         "ssn",                 "members"),
+        (re.compile(r"driver|carteira.?motorista", re.I),       "drivers_license",      "members"),
+        (re.compile(r"green.?card|resident", re.I),             "green_card",           "members"),
+        (re.compile(r"(?:extrato.*)?personnalite", re.I),       "extratocontapersonnalite", "financial_statements"),
+        (re.compile(r"extrato.*pj|pj.*extrato", re.I),        "extratocontapj",       "financial_statements"),
+        (re.compile(r"extrato.*global.*usd|usd.*global", re.I), "extratocontaglobalusd", "financial_statements"),
+        (re.compile(r"extrato.*global.*eur|eur.*global", re.I), "extratocontaglobaleur", "financial_statements"),
+        (re.compile(r"extrato.*poupan[cç]a|caderneta|savings", re.I), "extratopoupanca", "financial_statements"),
+        (re.compile(r"extrato.*conta.*brl|extratocontabrl", re.I), "extratocontabrl", "financial_statements"),
+        (re.compile(r"extrato.*conta.*usd|extratocontausd", re.I), "extratocontausd", "financial_statements"),
+        (re.compile(r"extrato.*conta.*eur|extratocontaeur", re.I), "extratocontaeur", "financial_statements"),
+        (re.compile(r"extrato|lan[cç]amento|statement", re.I), "extratoconta",         "financial_statements"),
+        (re.compile(r"fatura.*carbon", re.I),                   "faturacarbon",         "financial_statements"),
+        (re.compile(r"fatura.*unique", re.I),                   "faturaunique",         "financial_statements"),
+        (re.compile(r"fatura.*p[aã]o.?a[cç][uú]car", re.I),   "faturapaoacucar",      "financial_statements"),
+        (re.compile(r"fatura.*aluguel.*calixto", re.I),        "faturaaluguelcalixto", "financial_statements"),
+        (re.compile(r"fatura.*aluguel.*major.?freire", re.I),  "faturaaluguelmajorfreire", "financial_statements"),
+        (re.compile(r"fatura.*aluguel", re.I),                 "faturaaluguel",        "financial_statements"),
+        (re.compile(r"fatura", re.I),                          "fatura",               "financial_statements"),
+        (re.compile(r"posi[cç][aã]o|carteira.*invest", re.I), "investimentosposicao", "financial_statements"),
+        (re.compile(r"carteira.*renda.?fixa", re.I),           "carteirarendafixa",    "financial_statements"),
+        (re.compile(r"cdbdetalhesdi1|cdb.*detalhe.*di.?1", re.I), "cdbdetalhesdi1",  "financial_statements"),
+        (re.compile(r"cdbdetalhesdi2|cdb.*detalhe.*di.?2", re.I), "cdbdetalhesdi2",  "financial_statements"),
+        (re.compile(r"cdbdetalhesprog|cdb.*detalhe.*prog", re.I), "cdbdetalhesprog",  "financial_statements"),
+        (re.compile(r"cdbmetaservas|cdb.*meta.*servas", re.I), "cdbmetaservas",       "financial_statements"),
+        (re.compile(r"cdbdi|cdb.*\bdi\b", re.I),               "cdbdi",               "financial_statements"),
+        (re.compile(r"renda.?fixa|cdb.*detalhe", re.I),        "cdbdetalhes",         "financial_statements"),
+        (re.compile(r"cdb.*resumo|resumo.*cdb", re.I),         "cdbresumo",           "financial_statements"),
+        (re.compile(r"cdb", re.I),                              "cdb",                 "financial_statements"),
+    ]
 
-# Period extraction regex
-PERIOD_RE = re.compile(r"(\d{6})(?:_(\d{6}))?")          # YYYYMM or YYYYMM_YYYYMM
-YEAR_RE   = re.compile(r"(20\d{2})")                      # fallback: just year
+DOC_TYPE_PATTERNS = _build_doc_type_patterns()
 
-# Member name patterns (for GRUPO E routing)
-MEMBER_NAMES = ["david", "mariana", "theo"]
+# Period extraction regex — from config
+_period_cfg = PIPE_CONFIG.get("period_regex", {})
+PERIOD_RE = re.compile(_period_cfg.get("period", r"(\d{6})(?:_(\d{6}))?"))
+YEAR_RE   = re.compile(_period_cfg.get("year_fallback", r"(20\d{2})"))
+
+# Member name patterns (for GRUPO E routing) — from config
+MEMBER_NAMES = list(FAMILY_CONFIG.get("membros", {}).keys()) or ["david", "mariana", "theo"]
+
+# Pipeline parameters — from config
+_file_limits = PIPE_CONFIG.get("file_limits", {})
+_PREVIEW_MAX_CHARS = _file_limits.get("preview_max_chars", 2000)
+_PREVIEW_MAX_ROWS = _file_limits.get("preview_max_rows", 20)
+_MIN_PDF_BYTES = _file_limits.get("min_pdf_bytes", 1024)
+
+_llm_cfg = PIPE_CONFIG.get("llm", {})
+_LLM_MODEL = _llm_cfg.get("model", "claude-sonnet-4-20250514")
+_LLM_MAX_TOKENS = _llm_cfg.get("max_tokens", 500)
+_LLM_CONFIDENCE_THRESHOLD = _llm_cfg.get("confidence_threshold", 0.7)
 
 # ---------------------------------------------------------------------------
 # Camada 1 — Classificação determinística por regex
@@ -197,7 +246,7 @@ def classify_by_name(filename: str) -> dict | None:
 # Camada 2 — Classificação por LLM (fallback)
 # ---------------------------------------------------------------------------
 
-def _extract_file_preview(filepath: Path, max_chars: int = 2000) -> str:
+def _extract_file_preview(filepath: Path, max_chars: int = _PREVIEW_MAX_CHARS) -> str:
     """Extract text preview from file for LLM classification."""
     ext = filepath.suffix.lower()
 
@@ -223,7 +272,7 @@ def _extract_file_preview(filepath: Path, max_chars: int = 2000) -> str:
                 rows = []
                 for i, row in enumerate(ws.iter_rows(values_only=True)):
                     rows.append(" | ".join(str(c) if c is not None else "" for c in row))
-                    if i > 20:
+                    if i > _PREVIEW_MAX_ROWS:
                         break
                 wb.close()
                 return "\n".join(rows)[:max_chars]
@@ -232,7 +281,7 @@ def _extract_file_preview(filepath: Path, max_chars: int = 2000) -> str:
                 wb = xlrd.open_workbook(filepath)
                 ws = wb.sheet_by_index(0)
                 rows = []
-                for i in range(min(ws.nrows, 20)):
+                for i in range(min(ws.nrows, _PREVIEW_MAX_ROWS)):
                     rows.append(" | ".join(str(ws.cell_value(i, j)) for j in range(ws.ncols)))
                 return "\n".join(rows)[:max_chars]
         except Exception as e:
@@ -303,8 +352,8 @@ Regras:
     client = anthropic.Anthropic(api_key=api_key)
     try:
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=500,
+            model=_LLM_MODEL,
+            max_tokens=_LLM_MAX_TOKENS,
             messages=[{"role": "user", "content": prompt}],
         )
         raw = response.content[0].text.strip()
@@ -317,7 +366,7 @@ Regras:
         result = json.loads(raw)
         confidence = result.get("confidence", 0)
 
-        if confidence < 0.7:
+        if confidence < _LLM_CONFIDENCE_THRESHOLD:
             log("INFO", f"LLM classificou '{filename}' com confiança baixa ({confidence:.1%}) — nao_identificados/")
             return None
 
@@ -367,7 +416,15 @@ def build_final_name(classification: dict, original_ext: str) -> str:
         institution = classification.get("institution") or "unknown"
         doc_type = classification["doc_type"]
         period = classification.get("period", date.today().strftime("%Y%m%d"))
-        parts = [f"{institution}_{doc_type}_{period}-0_original{original_ext}"]
+        # Preserve member suffix for income_tax_br and informe docs (e.g., IRPF[mariana], informerendimentosaluguel[mariana])
+        member = classification.get("member")
+        member_suffix = ""
+        if member and dest_group == "income_tax_br" and member != "david":
+            member_suffix = member  # e.g., irpfdeclaracaomariana, informerendimentosaluguelmariana
+        if member_suffix:
+            parts = [f"{institution}_{doc_type}{member_suffix}_{period}-0_original{original_ext}"]
+        else:
+            parts = [f"{institution}_{doc_type}_{period}-0_original{original_ext}"]
 
     return parts[0]
 
@@ -443,7 +500,7 @@ def route_file(filepath: Path, base: Path, *, dry_run: bool = False,
 
     # Validate integrity (Passo 8a)
     size = filepath.stat().st_size
-    min_size = 1024 if ext == ".pdf" else 1  # PDFs < 1KB are suspect
+    min_size = _MIN_PDF_BYTES if ext == ".pdf" else 1  # PDFs < threshold are suspect
     if size < min_size:
         log("WARN", f"Arquivo '{filename}' muito pequeno ({size} bytes) — NÃO roteado")
         return {"file": filename, "status": "skipped", "reason": f"too_small ({size}B)"}

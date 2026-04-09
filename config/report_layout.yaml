@@ -1,0 +1,495 @@
+# ==============================================================================
+# Report Layout Configuration — Relatório Financeiro Família Ferreira Campos
+# ==============================================================================
+# Este arquivo controla quais seções, cards e charts aparecem no relatório,
+# em que ordem, e com que estilo visual.
+#
+# REGRAS:
+#   - A ORDEM dos itens nas listas define a ordem no relatório
+#   - enabled: true/false liga ou desliga o elemento
+#   - Cards são LIVRES para migrar entre seções (basta mover o bloco YAML)
+#   - variant: estilo visual do card (highlight|feature|success|warn|critical|
+#              primary|neutral|top-danger|top-accent)
+#   - size: largura no grid (full = 100% | half = 50%)
+#
+# VARIANTES DISPONÍVEIS (ref: report_spec.md v5.3):
+#   highlight  — destaque principal (fundo accent)
+#   feature    — card informativo padrão
+#   success    — indicador positivo (verde)
+#   warn       — alerta moderado (amarelo/laranja)
+#   critical   — alerta grave (vermelho)
+#   primary    — informação neutra com destaque
+#   neutral    — card discreto, sem cor forte
+#   top-danger — borda superior vermelha
+#   top-accent — borda superior accent
+#
+# Para aplicar: e6_render.py lê este arquivo e itera pelas seções/cards
+# ao invés de usar a sequência hardcoded.
+# ==============================================================================
+
+version: "1.1"
+
+# ==============================================================================
+# MODO ESTRATÉGICO (S1-S10 + Apêndices A-E)
+# ==============================================================================
+estrategico:
+
+  sections:
+
+    # --------------------------------------------------------------------------
+    # S1 — Patrimônio
+    # --------------------------------------------------------------------------
+    - id: "S1"
+      title: "Patrimônio — Estrutura e Composição"
+      enabled: true
+      charts:
+        - id: "patrimonio_doughnut"
+          enabled: true
+        - id: "waterfall_if"
+          enabled: true
+      cards:
+        - id: "patrimonio_categorias"
+          enabled: true
+          variant: "feature"
+          size: "full"
+        - id: "receitas_fonte"
+          enabled: true
+          variant: "feature"
+          size: "full"
+        - id: "reserva_emergencia"
+          enabled: true
+          variant: "warn"
+          size: "half"
+        - id: "endividamento"
+          enabled: true
+          variant: "feature"
+          size: "half"
+
+    # --------------------------------------------------------------------------
+    # S2 — Fluxo de Caixa
+    # --------------------------------------------------------------------------
+    - id: "S2"
+      title: "Fluxo de Caixa — Receitas e Despesas"
+      enabled: true
+      charts:
+        - id: "fluxo_mensal"
+          enabled: true
+        - id: "receita_bar"
+          enabled: true
+        - id: "despesas_doughnut"
+          enabled: true
+        - id: "receita_despesa_mensal"
+          enabled: true
+        - id: "score_gauge"
+          enabled: true
+      cards:
+        - id: "orcamento_prospectivo"
+          enabled: true
+          variant: "feature"
+          size: "full"
+        - id: "consumo_consciente"
+          enabled: true
+          variant: "success"
+          size: "full"
+        - id: "diagnostico_comportamental"
+          enabled: true
+          variant: "primary"
+          size: "full"
+        - id: "milhas"
+          enabled: true
+          variant: "feature"
+          size: "half"
+
+    # --------------------------------------------------------------------------
+    # S3 — Investimentos
+    # --------------------------------------------------------------------------
+    - id: "S3"
+      title: "Investimentos — Carteira Financeira"
+      enabled: true
+      charts:
+        - id: "alocacao_atual"
+          enabled: true
+        - id: "alocacao_alvo"
+          enabled: true
+        - id: "top15_ativos"
+          enabled: true
+        - id: "mariana_cenarios"
+          enabled: true
+        - id: "viagens"
+          enabled: true
+      cards:
+        - id: "investimentos_classe"
+          enabled: true
+          variant: "feature"
+          size: "full"
+        - id: "kpi_rentabilidade"
+          enabled: true
+          variant: "feature"
+          size: "half"
+        - id: "estrategia_aporte"
+          enabled: true
+          variant: "highlight"
+          size: "full"
+        - id: "contrafluxo"
+          enabled: true
+          variant: "primary"
+          size: "half"
+
+    # --------------------------------------------------------------------------
+    # S4 — Real Estate
+    # --------------------------------------------------------------------------
+    - id: "S4"
+      title: "Real Estate — Imóveis e Renda Passiva"
+      enabled: true
+      charts:
+        - id: "yield_imoveis"
+          enabled: true
+      cards: []
+
+    # --------------------------------------------------------------------------
+    # S5 — Mudança EUA (F1/F2)
+    # --------------------------------------------------------------------------
+    - id: "S5"
+      title: "Mudança EUA — Estrutura F1/F2 e Custos"
+      enabled: true
+      charts:
+        - id: "custos_f1f2"
+          enabled: true
+      cards: []
+
+    # --------------------------------------------------------------------------
+    # S6 — Green Card
+    # --------------------------------------------------------------------------
+    - id: "S6"
+      title: "Green Card — EB2-NIW e Compliance"
+      enabled: true
+      charts:
+        - id: "cenarios_cambiais"
+          enabled: true
+      cards: []
+
+    # --------------------------------------------------------------------------
+    # S7 — Independência Financeira
+    # --------------------------------------------------------------------------
+    - id: "S7"
+      title: "Independência Financeira — Meta 2035"
+      enabled: true
+      charts:
+        - id: "projecao_3cenarios"
+          enabled: true
+        - id: "renda_passiva"
+          enabled: true
+      cards:
+        - id: "previdencia_pgbl"
+          enabled: true
+          variant: "feature"
+          size: "full"
+
+    # --------------------------------------------------------------------------
+    # S8 — Tributário / Previdência
+    # --------------------------------------------------------------------------
+    - id: "S8"
+      title: "Previdência — PGBL e Fiscalidade"
+      enabled: true
+      charts:
+        - id: "impostos_pj"
+          enabled: true
+      cards: []
+
+    # --------------------------------------------------------------------------
+    # S9 — Riscos e Proteção
+    # --------------------------------------------------------------------------
+    - id: "S9"
+      title: "Riscos e Proteção — Seguros Críticos"
+      enabled: true
+      charts:
+        - id: "bubble_riscos"
+          enabled: true
+      cards: []
+
+    # --------------------------------------------------------------------------
+    # S10 — Síntese Estratégica
+    # --------------------------------------------------------------------------
+    - id: "S10"
+      title: "Síntese Estratégica — Tarefas e Score"
+      enabled: true
+      charts:
+        - id: "top5_decisoes"
+          enabled: true
+      cards:
+        - id: "pontos_fortes"
+          enabled: true
+          variant: "success"
+          size: "half"
+        - id: "pontos_urgentes"
+          enabled: true
+          variant: "critical"
+          size: "half"
+        - id: "equilibrio_cerbasi"
+          enabled: true
+          variant: "highlight"
+          size: "full"
+
+  # ----------------------------------------------------------------------------
+  # Apêndices (A-E)
+  # ----------------------------------------------------------------------------
+  appendices:
+    - id: "APP_A"
+      title: "Definições e Siglas"
+      enabled: true
+    - id: "APP_B"
+      title: "Premissas Econômicas"
+      enabled: true
+    - id: "APP_C"
+      title: "Cenários de Sensibilidade"
+      enabled: true
+    - id: "APP_D"
+      title: "Referências e Recursos"
+      enabled: true
+    - id: "APP_E"
+      title: "Próximos Ciclos e Roadmap"
+      enabled: true
+
+# ==============================================================================
+# MODO TÁTICO (T1-T6 + KPIs)
+# ==============================================================================
+tatico:
+
+  # KPIs do painel tático (barra superior)
+  kpis:
+    - id: "patrimonio_delta"
+      label: "Patrimônio Δ"
+      enabled: true
+    - id: "aportes_check"
+      label: "Aportes ✓"
+      enabled: true
+    - id: "despesas_alerta"
+      label: "Despesas Alerta"
+      enabled: true
+    - id: "tarefas_pct"
+      label: "Tarefas %"
+      enabled: true
+    - id: "alerta_1"
+      label: "Alerta 1"
+      enabled: true
+    - id: "alerta_2"
+      label: "Alerta 2"
+      enabled: true
+
+  # Dashboards táticos
+  sections:
+    - id: "T1"
+      title: "Fluxo"
+      description: "Despesas vs tetos — tabela interativa com barras de progresso"
+      enabled: true
+    - id: "T2"
+      title: "Aportes"
+      description: "Destinos de investimento, delta tracking por bloco"
+      enabled: true
+    - id: "T3"
+      title: "Tarefas"
+      description: "Checklist com filtro (pendente/feito/vencido)"
+      enabled: true
+    - id: "T4"
+      title: "Alertas"
+      description: "Avisos-chave do dashboard"
+      enabled: true
+    - id: "T5"
+      title: "Próximos Passos"
+      description: "Timeline de 15 dias com badges de status"
+      enabled: true
+    - id: "T6"
+      title: "Notas"
+      description: "Notas operacionais livres"
+      enabled: true
+
+# ==============================================================================
+# REGISTRY DE CARDS DISPONÍVEIS
+# ==============================================================================
+# Referência: todos os card builders existentes no e6_render.py
+# Use os IDs abaixo nas seções acima. Cada ID mapeia para um builder function.
+#
+# ID                          | Builder Function                        | Seção Original
+# ----------------------------|-----------------------------------------|---------------
+# patrimonio_categorias       | build_patrimonio_categorias_card()      | S1
+# receitas_fonte              | build_receitas_fonte_card()             | S1
+# reserva_emergencia          | build_reserva_emergencia_card()         | S1
+# endividamento               | build_endividamento_card()              | S1
+# orcamento_prospectivo       | build_orcamento_prospectivo_card()      | S2
+# consumo_consciente          | build_consumo_consciente_card()         | S2
+# diagnostico_comportamental  | build_diagnostico_comportamental_card() | S2
+# milhas                      | build_milhas_card()                     | S2
+# investimentos_classe        | build_investimentos_classe_card()       | S3
+# kpi_rentabilidade           | (inline HTML block)                     | S3
+# estrategia_aporte           | build_estrategia_aporte_card()          | S3
+# contrafluxo                 | (inline HTML block)                     | S3
+# previdencia_pgbl            | build_previdencia_pgbl_card()           | S7
+# pontos_fortes               | build_pontos_fortes_card()              | S10
+# pontos_urgentes             | build_pontos_urgentes_card()            | S10
+# equilibrio_cerbasi          | build_equilibrio_cerbasi_card()         | S10
+#
+# CHARTS DISPONÍVEIS (20 total):
+# patrimonio_doughnut, waterfall_if, fluxo_mensal, receita_bar,
+# despesas_doughnut, receita_despesa_mensal, score_gauge,
+# alocacao_atual, alocacao_alvo, top15_ativos, mariana_cenarios,
+# viagens, yield_imoveis, custos_f1f2, cenarios_cambiais,
+# projecao_3cenarios, renda_passiva, impostos_pj, bubble_riscos,
+# top5_decisoes
+
+# ==============================================================================
+# PALETA DE CORES DOS GRÁFICOS
+# ==============================================================================
+# Usada por e6_render.py como PALETTE para todos os Chart.js
+chart_palette:
+  - "#1A3A5C"
+  - "#1E6E8F"
+  - "#15803D"
+  - "#F4A261"
+  - "#B91C1C"
+  - "#457B9D"
+  - "#E63946"
+  - "#A8DADC"
+  - "#457B9D"
+  - "#2A9D8F"
+  - "#E76F51"
+  - "#F4A460"
+  - "#FFB703"
+  - "#8ECAE6"
+  - "#219EBC"
+
+# ==============================================================================
+# MAPEAMENTO: chart key → canvas ID (usado pelo template JS)
+# ==============================================================================
+chart_canvas_map:
+  patrimonio_doughnut: "chart-patrimonio-doughnut"
+  waterfall_if: "chart-waterfall-if"
+  receita_bar: "chart-receita-bar"
+  despesas_doughnut: "chart-despesas-doughnut"
+  fluxo_mensal: "chart-fluxo-mensal"
+  receita_despesa_mensal: "chart-receita-despesa-mensal"
+  score_gauge: "chart-score-gauge"
+  alocacao_atual: "chart-alocacao-atual"
+  alocacao_alvo: "chart-alocacao-alvo"
+  top15_ativos: "chart-top15-ativos"
+  yield_imoveis: "chart-yield-imoveis"
+  custos_f1f2: "chart-custos-f1f2"
+  cenarios_cambiais: "chart-cenarios-cambiais"
+  projecao_3cenarios: "chart-projecao-3cenarios"
+  renda_passiva: "chart-renda-passiva"
+  impostos_pj: "chart-impostos-pj"
+  bubble_riscos: "chart-bubble-riscos"
+  top5_decisoes: "chart-top5-decisoes"
+  mariana_cenarios: "chart-mariana-cenarios"
+  viagens: "chart-viagens"
+
+# ==============================================================================
+# MAPEAMENTO: chart key → título amigável para exibição
+# ==============================================================================
+chart_titles:
+  patrimonio_doughnut: "Composição Patrimonial"
+  waterfall_if: "Caminho para Independência Financeira"
+  receita_bar: "Receita por Fonte"
+  despesas_doughnut: "Despesas por Categoria"
+  fluxo_mensal: "Fluxo de Caixa Mensal"
+  receita_despesa_mensal: "Receita vs Despesa — Mês a Mês"
+  score_gauge: "Score Financeiro"
+  alocacao_atual: "Alocação Atual"
+  alocacao_alvo: "Alocação Alvo"
+  top15_ativos: "Top 15 Ativos Financeiros"
+  yield_imoveis: "Rentabilidade dos Imóveis (Yield) vs CDI"
+  custos_f1f2: "Custos Mensais F1/F2"
+  cenarios_cambiais: "Cenários Cambiais"
+  projecao_3cenarios: "Projeção Patrimonial — 3 Cenários"
+  renda_passiva: "Renda Passiva vs Meta"
+  impostos_pj: "DAS PJ — Mês a Mês"
+  bubble_riscos: "Mapa de Riscos"
+  top5_decisoes: "Top 5 Decisões de Impacto"
+  mariana_cenarios: "Cenários IF — Mariana"
+  viagens: "Orçamento de Viagens"
+
+# ==============================================================================
+# MAPEAMENTO: seção → charts (número da seção → lista de chart keys)
+# ==============================================================================
+section_charts:
+  1: ["patrimonio_doughnut", "waterfall_if"]
+  2: ["fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "score_gauge"]
+  3: ["alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "viagens"]
+  4: ["yield_imoveis"]
+  5: ["custos_f1f2"]
+  6: ["cenarios_cambiais"]
+  7: ["projecao_3cenarios", "renda_passiva"]
+  8: ["impostos_pj"]
+  9: ["bubble_riscos"]
+  10: ["top5_decisoes"]
+
+# ==============================================================================
+# DARK MODE — cores CSS (usadas por e6_regen.py)
+# ==============================================================================
+dark_mode:
+  # Variáveis CSS raiz
+  css_vars:
+    color-bg: "#0F172A"
+    color-surface: "#1E293B"
+    color-text: "#E2E8F0"
+    color-text-muted: "#94A3B8"
+    color-border: "#334155"
+    color-primary: "#2E86AB"
+    color-light: "#1E3A5F"
+
+  # Cores específicas de componentes
+  table:
+    row_even: "#1A2332"
+    row_hover: "#243447"
+    th_bg: "#1E3A5F"
+    th_color: "#E2E8F0"
+    td_total: "#1A2332"
+    td_border: "#334155"
+
+  alerts:
+    danger_bg: "#2D1B1B"
+    danger_color: "#FCA5A5"
+    warning_bg: "#2D2410"
+    warning_color: "#FCD34D"
+    success_bg: "#1A2D1A"
+    success_color: "#86EFAC"
+    info_bg: "#1A2440"
+    info_color: "#93C5FD"
+
+  badges:
+    green_bg: "#16533480"
+    green_color: "#86EFAC"
+    red_bg: "#991B1B80"
+    red_color: "#FCA5A5"
+    yellow_bg: "#92400E80"
+    yellow_color: "#FCD34D"
+    blue_bg: "#1E40AF80"
+    blue_color: "#93C5FD"
+
+  kpi:
+    blue: "#60A5FA"
+    green: "#4ADE80"
+    red: "#F87171"
+
+  headings_color: "#F1F5F9"
+  strong_color: "#F1F5F9"
+  section_summary_bg: "#1A2440"
+  section_summary_color: "#CBD5E1"
+  chart_conclusion_bg: "#1A2440"
+  chart_conclusion_border: "#2E86AB"
+  chart_context_color: "#94A3B8"
+  export_toolbar_bg: "linear-gradient(135deg, #0B1929, #132337)"
+  progress_bar_bg: "#334155"
+  compare_col2_bg: "#2D1B1B"
+  compare_col3_bg: "#1A2D1A"
+
+  # Cores para Chart.js no modo dark/light (usadas pelo theme JS)
+  chart_theme:
+    dark:
+      text_color: "#94A3B8"
+      grid_color: "#334155"
+    light:
+      text_color: "#64748B"
+      grid_color: "#E2E8F0"
+
+  # Versão fallback (quando manual_operacao.md não tem Versão:)
+  version_fallback: "v5.3"

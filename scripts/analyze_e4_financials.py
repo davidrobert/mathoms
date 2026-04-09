@@ -9,12 +9,37 @@ import json
 from pathlib import Path
 from collections import defaultdict
 
+# ---------------------------------------------------------------------------
+# Config loader
+# ---------------------------------------------------------------------------
+_BASE_DIR = Path(__file__).resolve().parent.parent
+
+def _load_json_config(path: Path, label: str = "") -> dict:
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"  ⚠️  Error loading {label or path.name}: {e}")
+    else:
+        print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
+    return {}
+
+_INST_CONFIG = _load_json_config(_BASE_DIR / "config" / "institutions.json", "institutions.json")
+
+# PJ/non-PJ source classification — from config
+_PJ_SOURCES = _INST_CONFIG.get("pj_sources", []) or ['arvo', 'pj_nao_identificado', 'arbitralis', 'barte', 'brandlovers', 'cnry_canary', 'learntofly']
+_NON_PJ_SOURCES = _INST_CONFIG.get("non_pj_sources", []) or ['quintoandar']
+_CAT_LABELS = _INST_CONFIG.get("category_labels", {})
+_LABEL_PJ = _CAT_LABELS.get("pj", "PJ")
+_LABEL_NON_PJ = _CAT_LABELS.get("non_pj", "CLT + Alugueis")
+
 def analyze_financials():
     # File paths
-    base = Path(__file__).resolve().parent.parent
+    base = _BASE_DIR
     receitas_path = str(base / "processed" / "E4_unified" / "receitas-4_unified.json")
     despesas_path = str(base / "processed" / "E4_unified" / "despesas-4_unified.json")
-    
+
     # Read files
     try:
         with open(receitas_path, 'r', encoding='utf-8') as f:
@@ -41,7 +66,7 @@ def analyze_financials():
         print(f"[ERROR] JSON malformado em {despesas_path}: {e}")
         import sys
         sys.exit(1)
-    
+
     # Derive period dynamically from available data
     all_months = set()
     for fonte_data in receitas.get('por_fonte', {}).values():
@@ -49,26 +74,26 @@ def analyze_financials():
     for cat_data in despesas.get('por_categoria', {}).values():
         all_months.update(cat_data.get('por_mes', {}).keys())
     months_list = sorted(all_months) if all_months else []
-    
+
     # ===== RECEITAS ANALYSIS =====
     por_fonte = receitas.get('por_fonte', {})
-    # FIXME: Lista hardcoded — manter sincronizada com e4_categorize.py PJ_SOURCE_MAPPING
-    pj_sources = ['arvo', 'pj_nao_identificado', 'arbitralis', 'barte', 'brandlovers', 'cnry_canary', 'learntofly']
-    non_pj_sources = ['quintoandar']
+    # PJ/non-PJ classification from config/institutions.json
+    pj_sources = _PJ_SOURCES
+    non_pj_sources = _NON_PJ_SOURCES
     unknown_sources = set()
 
-    monthly_receitas = defaultdict(lambda: {'PJ': 0, 'CLT + Alugueis': 0})
+    monthly_receitas = defaultdict(lambda: {_LABEL_PJ: 0, _LABEL_NON_PJ: 0})
 
     for fonte, fonte_data in por_fonte.items():
         por_mes = fonte_data.get('por_mes', {})
         fonte_lower = fonte.lower()
         if fonte_lower in pj_sources:
-            categoria = 'PJ'
+            categoria = _LABEL_PJ
         elif fonte_lower in non_pj_sources:
-            categoria = 'CLT + Alugueis'
+            categoria = _LABEL_NON_PJ
         else:
             unknown_sources.add(fonte)
-            categoria = 'CLT + Alugueis'  # default
+            categoria = _LABEL_NON_PJ  # default
 
         for month, value in por_mes.items():
             monthly_receitas[month][categoria] += value
@@ -94,16 +119,16 @@ def analyze_financials():
     print(f"E4 UNIFIED FINANCIAL ANALYSIS - {period_label}")
     print("=" * 120)
     
-    print(f"\n{'Mês':<12} {'Receita PJ':<18} {'CLT + Alugueis':<18} {'Total Receita':<18} {'Despesas':<18} {'Saldo':<18}")
+    print(f"\n{'Mês':<12} {'Receita '+_LABEL_PJ:<18} {_LABEL_NON_PJ:<18} {'Total Receita':<18} {'Despesas':<18} {'Saldo':<18}")
     print("-" * 110)
-    
+
     total_pj = 0
     total_aluguel = 0
     total_despesas = 0
-    
+
     for month in months_list:
-        pj = monthly_receitas[month].get('PJ', 0)
-        clt_aluguel = monthly_receitas[month].get('CLT + Alugueis', 0)
+        pj = monthly_receitas[month].get(_LABEL_PJ, 0)
+        clt_aluguel = monthly_receitas[month].get(_LABEL_NON_PJ, 0)
         total_rec = pj + clt_aluguel
         desp = monthly_despesas.get(month, 0)
         saldo = total_rec - desp
@@ -125,9 +150,9 @@ def analyze_financials():
         'months': months_list,
         'monthly_data': {
             month: {
-                'pj': monthly_receitas[month].get('PJ', 0),
-                'aluguel': monthly_receitas[month].get('CLT + Alugueis', 0),
-                'total_receita': monthly_receitas[month].get('PJ', 0) + monthly_receitas[month].get('CLT + Alugueis', 0),
+                'pj': monthly_receitas[month].get(_LABEL_PJ, 0),
+                'aluguel': monthly_receitas[month].get(_LABEL_NON_PJ, 0),
+                'total_receita': monthly_receitas[month].get(_LABEL_PJ, 0) + monthly_receitas[month].get(_LABEL_NON_PJ, 0),
                 'despesas': monthly_despesas.get(month, 0),
             }
             for month in months_list

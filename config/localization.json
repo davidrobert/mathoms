@@ -1,0 +1,31 @@
+{
+  "_comment": "Localização PT-BR: meses, moeda padrão e formatação. Fonte única para e2_extract_extratos.py e e2_extract_faturas.py.",
+  "_ultima_atualizacao": "2026-04-09",
+
+  "meses_br_int": {
+    "_comment": "Meses PT-BR → inteiro (usado em e2_extract_extratos.py)",
+    "jan": 1, "fev": 2, "mar": 3, "abr": 4,
+    "mai": 5, "jun": 6, "jul": 7, "ago": 8,
+    "set": 9, "out": 10, "nov": 11, "dez": 12,
+    "janeiro": 1, "fevereiro": 2, "março": 3, "marco": 3, "abril": 4,
+    "maio": 5, "junho": 6, "julho": 7, "agosto": 8,
+    "setembro": 9, "outubro": 10, "novembro": 11, "dezembro": 12
+  },
+
+  "meses_br_str": {
+    "_comment": "Meses PT-BR → string zero-padded (usado em e2_extract_faturas.py)",
+    "jan": "01", "fev": "02", "mar": "03", "abr": "04",
+    "mai": "05", "jun": "06", "jul": "07", "ago": "08",
+    "set": "09", "out": "10", "nov": "11", "dez": "12",
+    "janeiro": "01", "fevereiro": "02", "março": "03", "abril": "04",
+    "maio": "05", "junho": "06", "julho": "07", "agosto": "08",
+    "setembro": "09", "outubro": "10", "novembro": "11", "dezembro": "12"
+  },
+
+  "moeda_padrao": "BRL",
+
+  "formato_numero": {
+    "separador_milhar": ".",
+    "separador_decimal": ","
+  }
+}

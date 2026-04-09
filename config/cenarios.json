@@ -1,0 +1,57 @@
+{
+  "_comment": "Cenários de sensibilidade para projeções — pessimista/realista/otimista. Fonte: BCB, IBGE, consenso de mercado.",
+  "_ultima_atualizacao": "2026-04-09",
+
+  "inflacao_ipca": {
+    "label": "Inflação (IPCA)",
+    "pessimista_pct": 6.0,
+    "realista_pct": 4.5,
+    "otimista_pct": 3.5,
+    "atual_label": "~5%"
+  },
+  "retorno_real": {
+    "label": "Retorno real carteira",
+    "pessimista_pct": 4.0,
+    "realista_pct": 6.0,
+    "otimista_pct": 8.0,
+    "atual_label": "~6,0%"
+  },
+  "selic": {
+    "label": "CDI / Selic",
+    "pessimista": {"selic": 8.0, "cdi": 7.9},
+    "realista": null,
+    "otimista": {"selic": 15.0, "cdi": 14.9},
+    "atual_label": null
+  },
+  "cambio": {
+    "label": "Câmbio BRL/USD",
+    "pessimista": 7.50,
+    "otimista": 4.50,
+    "atual_label": null
+  },
+  "valorizacao_imoveis": {
+    "label": "Valorização imóveis SP",
+    "pessimista_pct": 2.0,
+    "realista_pct": 5.0,
+    "otimista_pct": 8.0,
+    "atual_label": "—"
+  },
+  "trs": {
+    "label": "TRS",
+    "pessimista_pct": 3.5,
+    "realista_pct": 4.0,
+    "otimista_pct": 5.0,
+    "atual_label": "—"
+  },
+
+  "horizonte_projecao_anos": 20,
+
+  "premissas_ordem": [
+    "inflacao_ipca",
+    "retorno_real",
+    "selic",
+    "cambio",
+    "valorizacao_imoveis",
+    "trs"
+  ]
+}

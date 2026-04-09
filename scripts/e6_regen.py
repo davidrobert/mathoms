@@ -19,6 +19,34 @@ from pathlib import Path
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# ---------------------------------------------------------------------------
+# Config loader — report_layout.yaml (dark mode, chart theme, version)
+# ---------------------------------------------------------------------------
+def _load_report_layout() -> dict:
+    try:
+        import yaml
+    except ImportError:
+        print("  [WARN] PyYAML não instalado — usando defaults hardcoded para dark mode")
+        return {}
+    layout_path = Path(BASE) / "config" / "report_layout.yaml"
+    if layout_path.exists():
+        try:
+            with open(layout_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+        except Exception as e:
+            print(f"  ⚠️  Error loading report_layout.yaml: {e}")
+    return {}
+
+_LAYOUT = _load_report_layout()
+_DM = _LAYOUT.get("dark_mode", {})
+
+# Chart theme colors (dark/light) — from config
+_CT = _DM.get("chart_theme", {})
+_CT_DARK_TEXT = _CT.get("dark", {}).get("text_color", "#94A3B8")
+_CT_DARK_GRID = _CT.get("dark", {}).get("grid_color", "#334155")
+_CT_LIGHT_TEXT = _CT.get("light", {}).get("text_color", "#64748B")
+_CT_LIGHT_GRID = _CT.get("light", {}).get("grid_color", "#E2E8F0")
+
 def _extract_version_from_manual():
     """Extrai versão do manual_operacao.md."""
     manual_path = Path(__file__).resolve().parent.parent / "config" / "manual_operacao.md"
@@ -31,7 +59,7 @@ def _extract_version_from_manual():
                     return f"v{m.group(1)}"
                 if line.startswith("---") and not line.startswith("## "):
                     break  # past the header
-    return "v5.3"  # fallback
+    return _DM.get("version_fallback", "v5.3")  # from config
 
 # Dynamic report filename: find the most recent relatorio_*.html in output/
 def _find_report():
@@ -136,69 +164,126 @@ if html != html_before:
 else:
     print(f"  [WARN] Regex não fez match: Data e Hora de Geração...")
 
-# ─── 6. DARK MODE CSS ───────────────────────────────────────────────
-DARK_CSS = """
-[data-theme="dark"] {
-  --color-bg: #0F172A;
-  --color-surface: #1E293B;
-  --color-text: #E2E8F0;
-  --color-text-muted: #94A3B8;
-  --color-border: #334155;
-  --color-primary: #2E86AB;
-  --color-light: #1E3A5F;
-}
-[data-theme="dark"] .card, [data-theme="dark"] .familia-card {
+# ─── 6. DARK MODE CSS — from config/report_layout.yaml ──────────────
+def _build_dark_css() -> str:
+    """Build dark mode CSS from report_layout.yaml config, with hardcoded fallback."""
+    cv = _DM.get("css_vars", {})
+    tb = _DM.get("table", {})
+    al = _DM.get("alerts", {})
+    bd = _DM.get("badges", {})
+    kp = _DM.get("kpi", {})
+
+    # CSS vars with fallback defaults
+    bg = cv.get("color-bg", "#0F172A")
+    surface = cv.get("color-surface", "#1E293B")
+    text = cv.get("color-text", "#E2E8F0")
+    muted = cv.get("color-text-muted", "#94A3B8")
+    border = cv.get("color-border", "#334155")
+    primary = cv.get("color-primary", "#2E86AB")
+    light = cv.get("color-light", "#1E3A5F")
+
+    # Table
+    row_even = tb.get("row_even", "#1A2332")
+    row_hover = tb.get("row_hover", "#243447")
+    th_bg = tb.get("th_bg", "#1E3A5F")
+    th_color = tb.get("th_color", "#E2E8F0")
+    td_total = tb.get("td_total", "#1A2332")
+    td_border = tb.get("td_border", "#334155")
+
+    # Alerts
+    da_bg = al.get("danger_bg", "#2D1B1B"); da_c = al.get("danger_color", "#FCA5A5")
+    wa_bg = al.get("warning_bg", "#2D2410"); wa_c = al.get("warning_color", "#FCD34D")
+    su_bg = al.get("success_bg", "#1A2D1A"); su_c = al.get("success_color", "#86EFAC")
+    in_bg = al.get("info_bg", "#1A2440"); in_c = al.get("info_color", "#93C5FD")
+
+    # Badges
+    bg_g = bd.get("green_bg", "#16533480"); bc_g = bd.get("green_color", "#86EFAC")
+    bg_r = bd.get("red_bg", "#991B1B80"); bc_r = bd.get("red_color", "#FCA5A5")
+    bg_y = bd.get("yellow_bg", "#92400E80"); bc_y = bd.get("yellow_color", "#FCD34D")
+    bg_b = bd.get("blue_bg", "#1E40AF80"); bc_b = bd.get("blue_color", "#93C5FD")
+
+    # KPI colors
+    kp_blue = kp.get("blue", "#60A5FA")
+    kp_green = kp.get("green", "#4ADE80")
+    kp_red = kp.get("red", "#F87171")
+
+    # Other
+    hd_color = _DM.get("headings_color", "#F1F5F9")
+    strong_c = _DM.get("strong_color", "#F1F5F9")
+    ss_bg = _DM.get("section_summary_bg", "#1A2440")
+    ss_c = _DM.get("section_summary_color", "#CBD5E1")
+    cc_bg = _DM.get("chart_conclusion_bg", "#1A2440")
+    cc_brd = _DM.get("chart_conclusion_border", "#2E86AB")
+    ctx_c = _DM.get("chart_context_color", "#94A3B8")
+    exp_bg = _DM.get("export_toolbar_bg", "linear-gradient(135deg, #0B1929, #132337)")
+    pb_bg = _DM.get("progress_bar_bg", "#334155")
+    cmp2 = _DM.get("compare_col2_bg", "#2D1B1B")
+    cmp3 = _DM.get("compare_col3_bg", "#1A2D1A")
+
+    return f"""
+[data-theme="dark"] {{
+  --color-bg: {bg};
+  --color-surface: {surface};
+  --color-text: {text};
+  --color-text-muted: {muted};
+  --color-border: {border};
+  --color-primary: {primary};
+  --color-light: {light};
+}}
+[data-theme="dark"] .card, [data-theme="dark"] .familia-card {{
   background: var(--color-surface) !important; border-color: var(--color-border) !important;
-}
-[data-theme="dark"] .card-feature, [data-theme="dark"] .card-success {
+}}
+[data-theme="dark"] .card-feature, [data-theme="dark"] .card-success {{
   background: var(--color-surface) !important;
-}
-[data-theme="dark"] table tr:nth-child(even) { background: #1A2332 !important; }
-[data-theme="dark"] table tr:hover { background: #243447 !important; }
-[data-theme="dark"] table th { background: #1E3A5F !important; color: #E2E8F0 !important; }
-[data-theme="dark"] .td-total { background: #1A2332 !important; }
-[data-theme="dark"] table td { border-color: #334155 !important; }
-[data-theme="dark"] .alert-danger { background: #2D1B1B !important; color: #FCA5A5 !important; }
-[data-theme="dark"] .alert-warning { background: #2D2410 !important; color: #FCD34D !important; }
-[data-theme="dark"] .alert-success { background: #1A2D1A !important; color: #86EFAC !important; }
-[data-theme="dark"] .alert-info { background: #1A2440 !important; color: #93C5FD !important; }
-[data-theme="dark"] .badge-green { background: #16533480 !important; color: #86EFAC !important; }
-[data-theme="dark"] .badge-red { background: #991B1B80 !important; color: #FCA5A5 !important; }
-[data-theme="dark"] .badge-yellow { background: #92400E80 !important; color: #FCD34D !important; }
-[data-theme="dark"] .badge-blue { background: #1E40AF80 !important; color: #93C5FD !important; }
-[data-theme="dark"] .section-summary { background: #1A2440 !important; color: #CBD5E1 !important; }
-[data-theme="dark"] .chart-conclusion, [data-theme="dark"] .chart-note { background: #1A2332 !important; color: #CBD5E1 !important; }
-[data-theme="dark"] .card h3 { color: #E2E8F0 !important; border-bottom-color: #334155 !important; }
-[data-theme="dark"] .chart-context { color: #94A3B8 !important; }
-[data-theme="dark"] .chart-conclusion { background: #1A2440 !important; border-left-color: #2E86AB !important; }
-[data-theme="dark"] .kpi-grid .kpi-card { background: var(--color-surface) !important; border-color: var(--color-border) !important; }
-[data-theme="dark"] .kpi-value { color: var(--color-text) !important; }
-[data-theme="dark"] .kpi-value.blue { color: #60A5FA !important; }
-[data-theme="dark"] .kpi-value.green { color: #4ADE80 !important; }
-[data-theme="dark"] .kpi-value.red { color: #F87171 !important; }
-[data-theme="dark"] .kpi-sub { color: var(--color-text-muted) !important; }
-[data-theme="dark"] .export-toolbar { background: linear-gradient(135deg, #0B1929, #132337) !important; }
-[data-theme="dark"] strong { color: #F1F5F9; }
-[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3 { color: #F1F5F9 !important; }
-[data-theme="dark"] .section-header h1 { color: #F1F5F9 !important; }
-[data-theme="dark"] .container.section { background: var(--color-surface); border-color: var(--color-border); }
-[data-theme="dark"] .dash-section { background: var(--color-surface) !important; }
-[data-theme="dark"] .dash-kpi { background: var(--color-surface) !important; border-color: var(--color-border) !important; }
-[data-theme="dark"] .dash-kpi-label { color: var(--color-text-muted) !important; }
-[data-theme="dark"] .dash-kpi-value { color: var(--color-text) !important; }
-[data-theme="dark"] .dash-kpi-value.ok { color: #4ADE80 !important; }
-[data-theme="dark"] .dash-kpi-value.alert { color: #F87171 !important; }
-[data-theme="dark"] .progress-bar { background: #334155 !important; }
+}}
+[data-theme="dark"] table tr:nth-child(even) {{ background: {row_even} !important; }}
+[data-theme="dark"] table tr:hover {{ background: {row_hover} !important; }}
+[data-theme="dark"] table th {{ background: {th_bg} !important; color: {th_color} !important; }}
+[data-theme="dark"] .td-total {{ background: {td_total} !important; }}
+[data-theme="dark"] table td {{ border-color: {td_border} !important; }}
+[data-theme="dark"] .alert-danger {{ background: {da_bg} !important; color: {da_c} !important; }}
+[data-theme="dark"] .alert-warning {{ background: {wa_bg} !important; color: {wa_c} !important; }}
+[data-theme="dark"] .alert-success {{ background: {su_bg} !important; color: {su_c} !important; }}
+[data-theme="dark"] .alert-info {{ background: {in_bg} !important; color: {in_c} !important; }}
+[data-theme="dark"] .badge-green {{ background: {bg_g} !important; color: {bc_g} !important; }}
+[data-theme="dark"] .badge-red {{ background: {bg_r} !important; color: {bc_r} !important; }}
+[data-theme="dark"] .badge-yellow {{ background: {bg_y} !important; color: {bc_y} !important; }}
+[data-theme="dark"] .badge-blue {{ background: {bg_b} !important; color: {bc_b} !important; }}
+[data-theme="dark"] .section-summary {{ background: {ss_bg} !important; color: {ss_c} !important; }}
+[data-theme="dark"] .chart-conclusion, [data-theme="dark"] .chart-note {{ background: {row_even} !important; color: {ss_c} !important; }}
+[data-theme="dark"] .card h3 {{ color: {text} !important; border-bottom-color: {border} !important; }}
+[data-theme="dark"] .chart-context {{ color: {ctx_c} !important; }}
+[data-theme="dark"] .chart-conclusion {{ background: {cc_bg} !important; border-left-color: {cc_brd} !important; }}
+[data-theme="dark"] .kpi-grid .kpi-card {{ background: var(--color-surface) !important; border-color: var(--color-border) !important; }}
+[data-theme="dark"] .kpi-value {{ color: var(--color-text) !important; }}
+[data-theme="dark"] .kpi-value.blue {{ color: {kp_blue} !important; }}
+[data-theme="dark"] .kpi-value.green {{ color: {kp_green} !important; }}
+[data-theme="dark"] .kpi-value.red {{ color: {kp_red} !important; }}
+[data-theme="dark"] .kpi-sub {{ color: var(--color-text-muted) !important; }}
+[data-theme="dark"] .export-toolbar {{ background: {exp_bg} !important; }}
+[data-theme="dark"] strong {{ color: {strong_c}; }}
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3 {{ color: {hd_color} !important; }}
+[data-theme="dark"] .section-header h1 {{ color: {hd_color} !important; }}
+[data-theme="dark"] .container.section {{ background: var(--color-surface); border-color: var(--color-border); }}
+[data-theme="dark"] .dash-section {{ background: var(--color-surface) !important; }}
+[data-theme="dark"] .dash-kpi {{ background: var(--color-surface) !important; border-color: var(--color-border) !important; }}
+[data-theme="dark"] .dash-kpi-label {{ color: var(--color-text-muted) !important; }}
+[data-theme="dark"] .dash-kpi-value {{ color: var(--color-text) !important; }}
+[data-theme="dark"] .dash-kpi-value.ok {{ color: {kp_green} !important; }}
+[data-theme="dark"] .dash-kpi-value.alert {{ color: {kp_red} !important; }}
+[data-theme="dark"] .progress-bar {{ background: {pb_bg} !important; }}
 [data-theme="dark"] [style*="background: #EFF6FF"],
 [data-theme="dark"] [style*="background:#EFF6FF"],
 [data-theme="dark"] [style*="background: linear-gradient(135deg, #F8FAFC"],
 [data-theme="dark"] [style*="background: linear-gradient(135deg, #EFF6FF"],
-[data-theme="dark"] [style*="background: linear-gradient(135deg, #F0FDF4"] {
+[data-theme="dark"] [style*="background: linear-gradient(135deg, #F0FDF4"] {{
   background: var(--color-surface) !important;
-}
-[data-theme="dark"] table.table-compare td:nth-child(2) { background: #2D1B1B !important; }
-[data-theme="dark"] table.table-compare td:nth-child(3) { background: #1A2D1A !important; }
+}}
+[data-theme="dark"] table.table-compare td:nth-child(2) {{ background: {cmp2} !important; }}
+[data-theme="dark"] table.table-compare td:nth-child(3) {{ background: {cmp3} !important; }}
 """
+
+DARK_CSS = _build_dark_css()
 
 # Remove existing dark mode CSS block if present, then always inject fresh
 if '[data-theme="dark"]' in html:
@@ -381,8 +466,8 @@ function setTheme(theme) {
     b.classList.toggle('active', b.dataset.theme === theme);
   });
   var isDark = resolved === 'dark';
-  var textColor = isDark ? '#94A3B8' : '#64748B';
-  var gridColor = isDark ? '#334155' : '#E2E8F0';
+  var textColor = isDark ? '__CT_DARK_TEXT__' : '__CT_LIGHT_TEXT__';
+  var gridColor = isDark ? '__CT_DARK_GRID__' : '__CT_LIGHT_GRID__';
   if (typeof Chart !== 'undefined' && Chart.instances) {
     Chart.defaults.color = textColor;
     Chart.defaults.borderColor = gridColor;
@@ -407,7 +492,10 @@ function setTheme(theme) {
   });
 })();
 </script>
-"""
+""".replace('__CT_DARK_TEXT__', _CT_DARK_TEXT) \
+   .replace('__CT_LIGHT_TEXT__', _CT_LIGHT_TEXT) \
+   .replace('__CT_DARK_GRID__', _CT_DARK_GRID) \
+   .replace('__CT_LIGHT_GRID__', _CT_LIGHT_GRID)
 
 # Remove existing setTheme if present, then inject fresh
 html = re.sub(r'<script>\s*var _currentThemePref.*?</script>', '', html, flags=re.DOTALL)

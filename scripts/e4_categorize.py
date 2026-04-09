@@ -53,6 +53,9 @@ INTERNAL_TRANSFER_PATTERNS += _family.get("transferencias_internas", {}).get("pa
 
 INTERNAL_TRANSFER_RECIPIENTS = _family.get("transferencias_internas", {}).get("recipients", [])
 
+# Mapeamento banco→membro para investimentos sem campo membro explícito
+BANCO_MEMBRO = {k: v for k, v in _family.get("banco_membro", {}).items() if k != "_comment"}
+
 PJ_SOURCE_MAPPING = {"receita_pj": _categorization["pj_source_mapping"]}
 CLT_SOURCE_MAPPING = _categorization["clt_source_mapping"]
 
@@ -272,6 +275,10 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
 
             instituicao = data.get("instituicao", data.get("banco", ""))
             membro = data.get("membro", "").lower()
+            # Fallback: use banco_membro mapping when membro is empty
+            if not membro and instituicao:
+                inst_key = instituicao.lower().replace(" ", "")
+                membro = BANCO_MEMBRO.get(inst_key, "")
             data_ref = data.get("data_referencia", data.get("data_posicao", data.get("periodo", "")))
             # Support multiple field names for totals:
             #   "total" (old), "saldo_atual" (E2 schema), "saldo_total" (E2-LLM output)

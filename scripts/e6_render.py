@@ -13,6 +13,7 @@ import re
 from pathlib import Path
 from datetime import datetime
 import pytz
+import yaml
 
 # ============================================================================
 # HELPERS
@@ -110,8 +111,43 @@ def _load_config_rates():
         print(f"  [WARN] config/taxas.json não encontrado — usando defaults: câmbio={defaults['cambio_usd_brl']}, CDI={defaults['cdi_anual']}%, Selic={defaults['selic_atual']}%")
     return defaults
 
+def _load_json_config(path: Path, label: str = "") -> dict:
+    """Generic JSON config loader with warning on missing/error."""
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"  ⚠️  Error loading {label or path.name}: {e}")
+    else:
+        print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
+    return {}
+
 _FAMILY = _load_family_config()
 CONFIG_RATES = _load_config_rates()
+GOALS_CONFIG = _load_json_config(BASE_DIR / "config" / "goals.json", "goals.json")
+SCORING_CONFIG = _load_json_config(BASE_DIR / "config" / "scoring.json", "scoring.json")
+FISCAL_CONFIG = _load_json_config(BASE_DIR / "config" / "parametros_fiscais.json", "parametros_fiscais.json")
+CENARIOS_CONFIG = _load_json_config(BASE_DIR / "config" / "cenarios.json", "cenarios.json")
+
+# Load report layout configuration (YAML)
+def _load_report_layout() -> dict:
+    """Load report_layout.yaml for section/card/chart ordering and visibility."""
+    layout_path = BASE_DIR / "config" / "report_layout.yaml"
+    if layout_path.exists():
+        try:
+            with open(layout_path, "r", encoding="utf-8") as f:
+                layout = yaml.safe_load(f)
+            print(f"  [OK] report_layout.yaml v{layout.get('version', '?')} loaded")
+            return layout
+        except Exception as e:
+            print(f"  ⚠️  Error loading report_layout.yaml: {e} — using hardcoded fallback")
+    else:
+        print("  [WARN] report_layout.yaml não encontrado — usando layout hardcoded")
+    return {}
+
+REPORT_LAYOUT = _load_report_layout()
+
 FAMILY_SOBRENOME = _FAMILY.get("familia", {}).get("sobrenome", "Ferreira Campos")
 TITULAR_NOME = _FAMILY.get("membros", {}).get("david", {}).get("nome_curto", "David")
 
@@ -122,15 +158,15 @@ MANUAL_PATH = BASE_DIR / "config" / "manual_operacao.md"
 DEFINITIONS_PATH = BASE_DIR / "config" / "definitions.md"
 OUTPUT_DIR = BASE_DIR / "output"
 
-# Color palette for charts
-PALETTE = [
+# Color palette for charts — from report_layout.yaml
+PALETTE = REPORT_LAYOUT.get("chart_palette", []) or [
     "#1A3A5C", "#1E6E8F", "#15803D", "#F4A261", "#B91C1C",
     "#457B9D", "#E63946", "#A8DADC", "#457B9D", "#2A9D8F",
     "#E76F51", "#F4A460", "#FFB703", "#8ECAE6", "#219EBC"
 ]
 
-# Mapping: narrativas chart key → canonical canvas ID (as expected by template JS)
-CHART_CANVAS_MAP = {
+# Mapping: narrativas chart key → canonical canvas ID — from report_layout.yaml
+CHART_CANVAS_MAP = REPORT_LAYOUT.get("chart_canvas_map", {}) or {
     "patrimonio_doughnut": "chart-patrimonio-doughnut",
     "waterfall_if": "chart-waterfall-if",
     "receita_bar": "chart-receita-bar",
@@ -153,8 +189,8 @@ CHART_CANVAS_MAP = {
     "viagens": "chart-viagens",
 }
 
-# Mapping: chart key → friendly display title (avoid auto-generated "Waterfall If" etc.)
-CHART_TITLES = {
+# Mapping: chart key → friendly display title — from report_layout.yaml
+CHART_TITLES = REPORT_LAYOUT.get("chart_titles", {}) or {
     "patrimonio_doughnut": "Composição Patrimonial",
     "waterfall_if": "Caminho para Independência Financeira",
     "receita_bar": "Receita por Fonte",
@@ -177,8 +213,10 @@ CHART_TITLES = {
     "viagens": "Orçamento de Viagens",
 }
 
-# Mapping: section number → which chart keys belong to it
-SECTION_CHARTS = {
+# Mapping: section number → which chart keys belong to it — from report_layout.yaml
+# Note: YAML keys may be ints or strings; normalize to int
+_raw_section_charts = REPORT_LAYOUT.get("section_charts", {})
+SECTION_CHARTS = {int(k): v for k, v in _raw_section_charts.items()} if _raw_section_charts else {
     1: ["patrimonio_doughnut", "waterfall_if"],
     2: ["fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "score_gauge"],
     3: ["alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "viagens"],
@@ -612,6 +650,37 @@ def build_report_data_json(e4: dict) -> str:
 
     return json.dumps(report_data, ensure_ascii=False, indent=2)
 
+def _build_riscos_fallback() -> list:
+    """Build risk fallback from goals.json riscos_prioritarios or hardcoded defaults."""
+    _severity_map = {"crítico": "critico", "alto": "alto", "médio": "medio", "média": "medio", "baixo": "baixo"}
+    _prob_map = {"alta": 3, "média": 2, "baixa": 1}
+    _impacto_map = {"crítico": 5, "alto": 4, "médio": 3, "baixo": 2}
+    _raio_map = {"crítico": 20, "alto": 16, "médio": 14, "baixo": 10}
+
+    goals_riscos = GOALS_CONFIG.get("riscos_prioritarios", [])
+    if goals_riscos:
+        result = []
+        for r in goals_riscos:
+            imp_str = r.get("impacto", "médio").lower()
+            prob_str = r.get("prob", "média").lower()
+            sev = _severity_map.get(imp_str, "medio")
+            result.append({
+                "titulo": r.get("nome", "Risco"),
+                "severity": sev,
+                "probabilidade": _prob_map.get(prob_str, 2),
+                "impacto": _impacto_map.get(imp_str, 3),
+                "raio": _raio_map.get(imp_str, 14),
+            })
+        return result
+    # Ultimate fallback
+    print("  ⚠️  WARNING: usando riscos hardcoded — goals.json sem riscos_prioritarios")
+    return [
+        {"titulo": "Seguro de vida", "severity": "critico", "probabilidade": 2, "impacto": 5, "raio": 20},
+        {"titulo": "Concentração PJ", "severity": "alto", "probabilidade": 2, "impacto": 4, "raio": 16},
+        {"titulo": "Volatilidade cambial", "severity": "medio", "probabilidade": 3, "impacto": 2, "raio": 12},
+    ]
+
+
 def build_charts(e4: dict) -> dict:
     """Build 19 chart datasets"""
     print("[E6.3.charts] Building 19 chart datasets...")
@@ -630,8 +699,10 @@ def build_charts(e4: dict) -> dict:
 
     receita_pj_total = safe_float(f.get("por_fonte", {}).get("receita_pj", 0))
     receita_pj_anual = round(receita_pj_total * (12 / num_months_chart), 2)
-    renda_tributavel = round(receita_pj_anual * 0.32, 2)
-    limite_pgbl = round(renda_tributavel * 0.12, 2)
+    _lp_pct = FISCAL_CONFIG.get("lucro_presumido", {}).get("percentual_servicos_pct", 32.0) / 100
+    _pgbl_pct = FISCAL_CONFIG.get("pgbl", {}).get("limite_deducao_pct", 12.0) / 100
+    renda_tributavel = round(receita_pj_anual * _lp_pct, 2)
+    limite_pgbl = round(renda_tributavel * _pgbl_pct, 2)
     aliq_marginal = e4.get("previdencia_pgbl", {}).get("aliquota_marginal", 27.5)
     economia_ir = round(limite_pgbl * aliq_marginal / 100, 2)
 
@@ -690,13 +761,18 @@ def build_charts(e4: dict) -> dict:
                 "backgroundColor": PALETTE[:len(ic.get("tabela_classes", []))]
             }]
         })(e4.get("investimentos", {})),
-        "alocacao_alvo": {  # Target allocation — from definitions.md/life_plan
-            "labels": ["Renda Fixa", "Ações", "Real Estate", "Moeda Estrangeira"],
+        "alocacao_alvo": (lambda alvo: {
+            "labels": list(alvo.keys()),
             "datasets": [{
-                "data": [60, 25, 10, 5],
-                "backgroundColor": PALETTE[:4]
+                "data": list(alvo.values()),
+                "backgroundColor": PALETTE[:len(alvo)]
             }]
-        },
+        })({
+            "Renda Fixa": GOALS_CONFIG.get("alocacao_alvo", {}).get("renda_fixa_pct", 50),
+            "Ações": GOALS_CONFIG.get("alocacao_alvo", {}).get("acoes_pct", 25),
+            "Imóveis/REITs": GOALS_CONFIG.get("alocacao_alvo", {}).get("imoveis_reits_pct", 15),
+            "Liquidez/USD": GOALS_CONFIG.get("alocacao_alvo", {}).get("liquidez_usd_pct", 10),
+        }),
         "top15_ativos": (lambda t15: {
             "labels": [a["nome"] for a in t15],
             "data": [round(a["valor"], 2) for a in t15],
@@ -708,48 +784,59 @@ def build_charts(e4: dict) -> dict:
                 "backgroundColor": ["#2E86AB"] * len(im_list) + ["#E63946"]
             }]
         })(p.get("imoveis_lista", [{"nome": "Imóveis", "yield_anual": yield_anual}])),
-        "custos_f1f2": (lambda cambio: {
+        "custos_f1f2": (lambda cambio, tuition_usd, rb_usd: {
             "labels": ["Tuition", "Room & Board", "TOTAL", "Renda David", "Sobra"],
             "datasets": [{
                 "data": [
-                    round(27500 / 12 * cambio),      # tuition mensal em BRL
-                    round(16500 / 12 * cambio),      # room+board mensal em BRL
-                    round(44000 / 12 * cambio),      # total mensal em BRL
+                    round(tuition_usd / 12 * cambio),      # tuition mensal em BRL
+                    round(rb_usd / 12 * cambio),            # room+board mensal em BRL
+                    round((tuition_usd + rb_usd) / 12 * cambio),  # total mensal em BRL
                     round(f["receita_recorrente_mensal"]),
-                    round(f["receita_recorrente_mensal"] - 44000 / 12 * cambio)
+                    round(f["receita_recorrente_mensal"] - (tuition_usd + rb_usd) / 12 * cambio)
                 ],
                 "backgroundColor": ["#E63946", "#F4A261", "#1A3A5C", "#2DC653", "#2E86AB"]
             }]
-        })(CONFIG_RATES["cambio_usd_brl"]),
-        "cenarios_cambiais": (lambda cb, renda: {
+        })(
+            CONFIG_RATES["cambio_usd_brl"],
+            GOALS_CONFIG.get("fase_f1f2", {}).get("tuition_usd_anual", 27500),
+            GOALS_CONFIG.get("fase_f1f2", {}).get("room_board_usd_anual", 16500),
+        ),
+        "cenarios_cambiais": (lambda cb, renda, cb_pess, cb_otim, f1f2_total_usd, mariana_usd: {
             "labels": [
-                ["Pessimista", f"R$ {5.5:.2f}/USD"],
+                ["Pessimista", f"R$ {cb_pess:.2f}/USD"],
                 ["Realista", f"R$ {cb:.2f}/USD"],
-                ["Otimista", f"R$ {4.5:.2f}/USD"]
+                ["Otimista", f"R$ {cb_otim:.2f}/USD"]
             ],
             "datasets": [
                 {"label": "Sem Mariana", "data": [
-                    round(renda - 44000 / 12 * 5.5),
-                    round(renda - 44000 / 12 * cb),
-                    round(renda - 44000 / 12 * 4.5)
+                    round(renda - f1f2_total_usd / 12 * cb_pess),
+                    round(renda - f1f2_total_usd / 12 * cb),
+                    round(renda - f1f2_total_usd / 12 * cb_otim)
                 ], "backgroundColor": "#F4A261"},
                 {"label": "Com Mariana (NCLEX)", "data": [
-                    round(renda + 4000 * 5.5 - 44000 / 12 * 5.5),
-                    round(renda + 4000 * cb - 44000 / 12 * cb),
-                    round(renda + 4000 * 4.5 - 44000 / 12 * 4.5)
+                    round(renda + mariana_usd * cb_pess - f1f2_total_usd / 12 * cb_pess),
+                    round(renda + mariana_usd * cb - f1f2_total_usd / 12 * cb),
+                    round(renda + mariana_usd * cb_otim - f1f2_total_usd / 12 * cb_otim)
                 ], "backgroundColor": "#2DC653"}
             ]
-        })(CONFIG_RATES["cambio_usd_brl"], f["receita_recorrente_mensal"]),
+        })(
+            CONFIG_RATES["cambio_usd_brl"],
+            f["receita_recorrente_mensal"],
+            CENARIOS_CONFIG.get("cambio", {}).get("pessimista", 7.50),
+            CENARIOS_CONFIG.get("cambio", {}).get("otimista", 4.50),
+            GOALS_CONFIG.get("fase_f1f2", {}).get("tuition_usd_anual", 27500) + GOALS_CONFIG.get("fase_f1f2", {}).get("room_board_usd_anual", 16500),
+            GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_minima_usd", 4000),
+        ),
         "projecao_3cenarios": {
             "meta_if": g["if_meta"],
             "investivel": p["investivel"],
             "imoveis": p.get("imoveis_investimento", 0),
             "aporte_mensal": g.get("aporte_mensal", 20000),
-            "anos": 20,
-            "taxa_imoveis": 0.02,
-            "taxa_pessimista": 0.04,
-            "taxa_realista": 0.06,
-            "taxa_otimista": 0.08,
+            "anos": CENARIOS_CONFIG.get("horizonte_projecao_anos", 20),
+            "taxa_imoveis": CENARIOS_CONFIG.get("valorizacao_imoveis", {}).get("pessimista_pct", 2.0) / 100,
+            "taxa_pessimista": CENARIOS_CONFIG.get("retorno_real", {}).get("pessimista_pct", 4.0) / 100,
+            "taxa_realista": CENARIOS_CONFIG.get("retorno_real", {}).get("realista_pct", 6.0) / 100,
+            "taxa_otimista": CENARIOS_CONFIG.get("retorno_real", {}).get("otimista_pct", 8.0) / 100,
         },
         "renda_passiva": (lambda rp_meta: {
             "labels": ["Aluguéis", "Dividendos", "RF/Cupons", "FIIs", "PGBL", "GAP"],
@@ -757,7 +844,8 @@ def build_charts(e4: dict) -> dict:
                 {"label": "Atual", "data": [renda_aluguel, renda_dividendos, renda_juros, 0, 0, 0], "backgroundColor": "#2E86AB"},
                 {"label": "Meta", "data": [0, 0, 0, 0, 0, max(0, round(rp_meta - renda_aluguel - renda_dividendos - renda_juros))], "backgroundColor": "#E63946"}
             ]
-        })(g.get("renda_passiva", {}).get("meta_mensal", g.get("if_trs_monthly_value", 30000))),
+        })(g.get("renda_passiva", {}).get("meta_mensal", g.get("if_trs_monthly_value",
+            GOALS_CONFIG.get("independencia_financeira", {}).get("renda_passiva_meta_mensal", 30000)))),
         "impostos_pj": {
             "labels": ["Receita PJ (anual)", "Lucro Presumido (32%)", "DAS Estimado (anual)", "Limite PGBL (12%)", "Economia IR c/ PGBL"],
             "datasets": [{
@@ -775,13 +863,7 @@ def build_charts(e4: dict) -> dict:
                 }
                 for r in riscos
             ]
-        })(e4.get("riscos", [
-            {"titulo": "Seguro de vida", "severity": "critico", "probabilidade": 2, "impacto": 5, "raio": 20},
-            {"titulo": "Seguro de invalidez", "severity": "critico", "probabilidade": 2, "impacto": 4, "raio": 16},
-            {"titulo": "PFIC exposure EUA", "severity": "alto", "probabilidade": 3, "impacto": 3, "raio": 18},
-            {"titulo": "Concentração PJ", "severity": "alto", "probabilidade": 2, "impacto": 4, "raio": 16},
-            {"titulo": "Volatilidade cambial", "severity": "medio", "probabilidade": 3, "impacto": 2, "raio": 12}
-        ])),
+        })(e4.get("riscos", _build_riscos_fallback())),
         "top5_decisoes": (lambda decs: {
             "labels": [d["label"] for d in decs],
             "datasets": [
@@ -791,20 +873,27 @@ def build_charts(e4: dict) -> dict:
         })(e4.get("top5_decisoes", g.get("top5_decisoes", [
             {"label": "Aportes mensais", "impacto_1a": 0, "impacto_10a": 0},
         ]))),
-        "mariana_cenarios": (lambda cm: {
+        "mariana_cenarios": (lambda cm, m_min, m_max: {
             "labels": cm.get("labels", ["Sem Trabalhar", "Com NCLEX", "Com NCLEX + Green Card"]),
             "datasets": [
-                {"label": "Aporte mensal", "data": cm.get("aportes", [0, 4000, 7000]), "backgroundColor": "#2E86AB"},
+                {"label": "Aporte mensal", "data": cm.get("aportes", [0, m_min, m_max]), "backgroundColor": "#2E86AB"},
                 {"label": "Prazo IF (anos)", "data": cm.get("prazos_if", [0, 0, 0]), "backgroundColor": "#2DC653", "yAxisID": "y1"}
             ]
-        })(e4.get("cenarios_mariana", g.get("cenarios_mariana", {}))),
-        "viagens": (lambda vg: {
-            "labels": [f"Orçamento {vg.get('ano', 2026)}"],
+        })(
+            e4.get("cenarios_mariana", g.get("cenarios_mariana", {})),
+            GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_minima_usd", 4000),
+            GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_maxima_usd", 7000),
+        ),
+        "viagens": (lambda vg, teto: {
+            "labels": [f"Orçamento {vg.get('ano', datetime.now().year)}"],
             "datasets": [
                 {"label": "Gasto", "data": [vg.get("gasto", 0)], "backgroundColor": "#E63946"},
-                {"label": "Disponível", "data": [max(0, vg.get("teto_anual", 45000) - vg.get("gasto", 0))], "backgroundColor": "#2DC653"}
+                {"label": "Disponível", "data": [max(0, teto - vg.get("gasto", 0))], "backgroundColor": "#2DC653"}
             ]
-        })(e4.get("viagens", {"teto_anual": 45000, "gasto": 0, "ano": 2026})),
+        })(
+            e4.get("viagens", {"gasto": 0}),
+            GOALS_CONFIG.get("viagens", {}).get("teto_anual", 45000),
+        ),
     }
 
     return charts
@@ -852,15 +941,41 @@ def build_investimentos(e4: dict) -> dict:
     }
 
 def build_estrategia_aporte(e4: dict) -> dict:
-    """Build estratégia de aporte data from E4 or definitions.md defaults."""
+    """Build estratégia de aporte data from E4, goals.json, or hardcoded defaults."""
     ea = e4.get("estrategia_aporte", {})
     if ea.get("destinos"):
         return ea
-    # Fallback: dados canônicos de definitions.md
+
+    # Fallback: goals.json aportes + destinos detalhados
+    aportes_cfg = GOALS_CONFIG.get("aportes", {})
+    destinos_cfg = GOALS_CONFIG.get("aportes_destinos_detalhados", [])
+    total = aportes_cfg.get("meta_aporte_mensal", 20000)
+
+    if destinos_cfg:
+        destinos = destinos_cfg
+        brl_total = sum(d["valor"] for d in destinos if d.get("moeda") == "BRL")
+        usd_total = sum(d["valor"] for d in destinos if d.get("moeda") == "USD")
+        brl_names = ", ".join(d["destino"].split()[0] for d in destinos if d.get("moeda") == "BRL")
+        usd_names = ", ".join(d["destino"].split()[0] for d in destinos if d.get("moeda") == "USD")
+        return {
+            "total_aporte": total,
+            "dia_aporte": 5,
+            "periodo_inicio": "Imediato",
+            "destinos": destinos,
+            "pct_brl": round(brl_total / total * 100) if total else 0,
+            "pct_usd": round(usd_total / total * 100) if total else 0,
+            "destinos_brl": brl_names,
+            "destinos_usd": usd_names,
+            "resumo_brl": f"Reforça reserva e patrimônio em reais (R$ {brl_total:,.0f}/mês).",
+            "resumo_usd": f"Exposição ao dólar = R$ {usd_total:,.0f}/mês. Meta pré-EUA: US$ {GOALS_CONFIG.get('dolarizacao', {}).get('meta_usd', 20000):,.0f}.",
+        }
+
+    # Ultimate fallback with WARNING
+    print("  ⚠️  WARNING: usando estratégia de aporte hardcoded — goals.json sem aportes_destinos_detalhados")
     return {
-        "total_aporte": 20000,
+        "total_aporte": total,
         "dia_aporte": 5,
-        "periodo_inicio": "abr/2026",
+        "periodo_inicio": "Imediato",
         "destinos": [
             {"destino": "CDB Cofrinhos Itaú", "valor": 10000, "pct": 50, "objetivo": "Reserva de emergência + liquidez", "liquidez": "D+0", "moeda": "BRL"},
             {"destino": "Tesouro IPCA+", "valor": 5000, "pct": 25, "objetivo": "Proteção inflação, RF longa", "liquidez": "D+1 (com marcação)", "moeda": "BRL"},
@@ -869,21 +984,22 @@ def build_estrategia_aporte(e4: dict) -> dict:
         ],
         "pct_brl": 75,
         "pct_usd": 25,
-        "destinos_brl": "Cofrinhos + IPCA+",
-        "destinos_usd": "IVVB11 + Wise",
-        "resumo_brl": "Reforça reserva e patrimônio em reais. Meta: reduzir concentração em imóveis de 65% para 55%.",
-        "resumo_usd": "Exposição total ao dólar = R$ 5.000/mês. Wise gera ~US$ 340/mês. Meta pré-EUA: US$ 20.000 (~37 meses).",
+        "destinos_brl": "Cofrinhos, Tesouro",
+        "destinos_usd": "IVVB11, Wise",
+        "resumo_brl": "Reforça reserva e patrimônio em reais.",
+        "resumo_usd": "Exposição ao dólar para acumulação pré-EUA.",
     }
 
 
 def build_contrafluxo_scenarios() -> dict:
-    """Build Selic/contrafluxo scenarios. Loaded from config/taxas.json or defaults"""
+    """Build Selic/contrafluxo scenarios from cenarios.json + taxas.json."""
+    cen_selic = CENARIOS_CONFIG.get("selic", {})
     return {
-        "selic_atual": CONFIG_RATES["selic_atual"],  # Loaded from config
+        "selic_atual": CONFIG_RATES["selic_atual"],
         "cenarios": {
-            "pessimista": {"selic": 10.5, "cdi": 10.3},
+            "pessimista": cen_selic.get("pessimista", {"selic": 8.0, "cdi": 7.9}),
             "base": {"selic": CONFIG_RATES["selic_atual"], "cdi": CONFIG_RATES["cdi_anual"]},
-            "otimista": {"selic": 12.5, "cdi": 12.3},
+            "otimista": cen_selic.get("otimista", {"selic": 15.0, "cdi": 14.9}),
         }
     }
 
@@ -1516,17 +1632,51 @@ def build_appendix_b(e4: dict = None) -> str:
     # Premissas econômicas
     h.append('<div class="card">')
     h.append('  <div class="card-title">Premissas Econômicas</div>')
-    h.append('  <p>Os cenários abaixo fundamentam todas as projeções deste relatório. Fonte: BCB, IBGE, consenso de mercado (mar/2026).</p>')
+    _periodo_ref = e4.get("periodo_referencia", datetime.now().strftime("%b/%Y"))
+    h.append(f'  <p>Os cenários abaixo fundamentam todas as projeções deste relatório. Fonte: BCB, IBGE, consenso de mercado ({_periodo_ref}).</p>')
     h.append('  <table>')
-    h.append('    <thead><tr><th>Variável</th><th>Pessimista</th><th>Realista (base)</th><th>Otimista</th><th>Atual (mar/2026)</th></tr></thead>')
+    h.append(f'    <thead><tr><th>Variável</th><th>Pessimista</th><th>Realista (base)</th><th>Otimista</th><th>Atual ({_periodo_ref})</th></tr></thead>')
     h.append('    <tbody>')
+
+    # Build premissas dynamically from cenarios.json + taxas.json
+    _cen = CENARIOS_CONFIG
+    _cambio = CONFIG_RATES.get("cambio_usd_brl", 5.80)
+    _selic = CONFIG_RATES.get("selic_atual", 14.25)
+    _ipca = CONFIG_RATES.get("ipca_anual", 5.48)
+    _cen_selic_p = _cen.get("selic", {}).get("pessimista", {})
+    _cen_selic_o = _cen.get("selic", {}).get("otimista", {})
+
     premissas = [
-        ("Inflação (IPCA)", "6,0%", "4,5%", "3,5%", "~5%"),
-        ("Retorno real carteira", "4,0%", "6,0%", "8,0%", "~6,0%"),
-        ("CDI / Selic", "11,0%", "12,0%", "13,5%", "13,75%"),
-        ("Câmbio BRL/USD", "R$ 7,50", "R$ 5,88", "R$ 4,50", "R$ 5,88"),
-        ("Valorização imóveis SP", "3%", "5%", "8%", "—"),
-        ("TRS", "3,5%", "4,0%", "5,0%", "—"),
+        (_cen.get("inflacao_ipca", {}).get("label", "Inflação (IPCA)"),
+         f"{_cen.get('inflacao_ipca', {}).get('pessimista_pct', 6.0):.1f}%".replace(".", ","),
+         f"{_cen.get('inflacao_ipca', {}).get('realista_pct', 4.5):.1f}%".replace(".", ","),
+         f"{_cen.get('inflacao_ipca', {}).get('otimista_pct', 3.5):.1f}%".replace(".", ","),
+         _cen.get("inflacao_ipca", {}).get("atual_label", f"~{_ipca:.0f}%")),
+        (_cen.get("retorno_real", {}).get("label", "Retorno real carteira"),
+         f"{_cen.get('retorno_real', {}).get('pessimista_pct', 4.0):.1f}%".replace(".", ","),
+         f"{_cen.get('retorno_real', {}).get('realista_pct', 6.0):.1f}%".replace(".", ","),
+         f"{_cen.get('retorno_real', {}).get('otimista_pct', 8.0):.1f}%".replace(".", ","),
+         _cen.get("retorno_real", {}).get("atual_label", "~6,0%")),
+        (_cen.get("selic", {}).get("label", "CDI / Selic"),
+         f"{_cen_selic_p.get('selic', 8.0):.1f}%".replace(".", ",") if isinstance(_cen_selic_p, dict) else "8,0%",
+         f"{_selic:.2f}%".replace(".", ","),
+         f"{_cen_selic_o.get('selic', 15.0):.1f}%".replace(".", ",") if isinstance(_cen_selic_o, dict) else "15,0%",
+         _cen.get("selic", {}).get("atual_label") or f"{_selic:.2f}%".replace(".", ",")),
+        ("Câmbio BRL/USD",
+         f"R$ {_cen.get('cambio', {}).get('pessimista', 7.50):.2f}".replace(".", ","),
+         f"R$ {_cambio:.2f}".replace(".", ","),
+         f"R$ {_cen.get('cambio', {}).get('otimista', 4.50):.2f}".replace(".", ","),
+         f"R$ {_cambio:.2f}".replace(".", ",")),
+        (_cen.get("valorizacao_imoveis", {}).get("label", "Valorização imóveis SP"),
+         f"{_cen.get('valorizacao_imoveis', {}).get('pessimista_pct', 2.0):.0f}%",
+         f"{_cen.get('valorizacao_imoveis', {}).get('realista_pct', 5.0):.0f}%",
+         f"{_cen.get('valorizacao_imoveis', {}).get('otimista_pct', 8.0):.0f}%",
+         _cen.get("valorizacao_imoveis", {}).get("atual_label", "—")),
+        (_cen.get("trs", {}).get("label", "TRS"),
+         f"{_cen.get('trs', {}).get('pessimista_pct', 3.5):.1f}%".replace(".", ","),
+         f"{_cen.get('trs', {}).get('realista_pct', 4.0):.1f}%".replace(".", ","),
+         f"{_cen.get('trs', {}).get('otimista_pct', 5.0):.1f}%".replace(".", ","),
+         _cen.get("trs", {}).get("atual_label", "—")),
     ]
     for var, pess, real, ot, at in premissas:
         h.append(f'      <tr><td>{var}</td><td>{pess}</td><td><strong>{real}</strong></td><td>{ot}</td><td>{at}</td></tr>')
@@ -1560,13 +1710,32 @@ def build_appendix_b(e4: dict = None) -> str:
     h.append('  <table>')
     h.append('    <thead><tr><th>Componente</th><th>Peso</th><th>Nota 10</th><th>Nota 0</th></tr></thead>')
     h.append('    <tbody>')
-    score_comp = [
-        ("Taxa de poupança recorrente", "2,0", "≥ 50%", "≤ 0%"),
-        ("Cobertura de despesas (meses)", "1,5", "≥ 24 meses", "≤ 3 meses"),
-        ("Taxa de endividamento", "1,5", "≤ 5%", "≥ 50%"),
-        ("Progresso IF (% da meta)", "2,0", "≥ 80%", "≤ 5%"),
-        ("Diversificação (categorias ≥ 5%)", "1,0", "≥ 5 categorias", "≤ 1 categoria"),
-    ]
+    # Score components from scoring.json or hardcoded fallback
+    _sc = SCORING_CONFIG.get("score_componentes", {})
+    if isinstance(_sc, dict) and any(k for k in _sc if not k.startswith("_")):
+        _units = {"taxa_poupanca_recorrente": "%", "cobertura_despesas": " meses",
+                  "taxa_endividamento": "%", "progresso_if": "%", "diversificacao": " categorias"}
+        score_comp = []
+        for key, comp in _sc.items():
+            if key.startswith("_"):
+                continue
+            nome = comp.get("nome_display", key)
+            peso = f"{comp.get('peso', 1.0):.1f}".replace(".", ",")
+            rmin = comp.get("range_min", 0)
+            rmax = comp.get("range_max", 10)
+            unit = _units.get(key, "")
+            if comp.get("invertido", False):
+                score_comp.append((nome, peso, f"≤ {rmin}{unit}", f"≥ {rmax}{unit}"))
+            else:
+                score_comp.append((nome, peso, f"≥ {rmax}{unit}", f"≤ {rmin}{unit}"))
+    else:
+        score_comp = [
+            ("Taxa de poupança recorrente", "2,0", "≥ 50%", "≤ 0%"),
+            ("Cobertura de despesas (meses)", "1,5", "≥ 24 meses", "≤ 3 meses"),
+            ("Taxa de endividamento", "1,5", "≤ 5%", "≥ 50%"),
+            ("Progresso IF (% da meta)", "2,0", "≥ 80%", "≤ 5%"),
+            ("Diversificação (categorias ≥ 5%)", "1,0", "≥ 5 categorias", "≤ 1 categoria"),
+        ]
     for comp, peso, n10, n0 in score_comp:
         h.append(f'      <tr><td>{comp}</td><td>{peso}</td><td>{n10}</td><td>{n0}</td></tr>')
     h.append('    </tbody>')
@@ -1589,13 +1758,15 @@ def build_appendix_b(e4: dict = None) -> str:
     h.append('  <table>')
     h.append('    <thead><tr><th>Dado</th><th>Fonte</th><th>Período</th></tr></thead>')
     h.append('    <tbody>')
+    _per_dados = e4.get("periodo_dados", "Mai/2025 – Mar/2026")
+    _pos_ref = e4.get("periodo_referencia", _periodo_ref)
     fontes = [
-        ("Receitas e despesas", "Extratos bancários e faturas de cartão (PDFs originais)", "Mai/2025 – Mar/2026"),
-        ("Patrimônio (imóveis, veículos)", "Declaração IRPF 2025 + planilhas XLSX atualizadas", "Posição mar/2026"),
-        ("Investimentos", "Posições de corretoras (Rico, BTG, Itaú, Santander, PicPay)", "Posição mar/2026"),
-        ("Câmbio", "BCB/PTAX (R$5,88 em mar/2026)", "Spot"),
-        ("Selic/CDI", "BCB — 13,75% a.a. (mar/2026)", "Vigente"),
-        ("IPCA", "IBGE — acumulado 12 meses ~5%", "Mar/2026"),
+        ("Receitas e despesas", "Extratos bancários e faturas de cartão (PDFs originais)", _per_dados),
+        ("Patrimônio (imóveis, veículos)", "Declaração IRPF 2025 + planilhas XLSX atualizadas", f"Posição {_pos_ref}"),
+        ("Investimentos", "Posições de corretoras (Rico, BTG, Itaú, Santander, PicPay)", f"Posição {_pos_ref}"),
+        ("Câmbio", f"BCB/PTAX (R${_cambio:.2f} em {_pos_ref})", "Spot"),
+        ("Selic/CDI", f"BCB — {_selic:.2f}% a.a. ({_pos_ref})", "Vigente"),
+        ("IPCA", f"IBGE — acumulado 12 meses ~{_ipca:.0f}%", _pos_ref),
     ]
     for dado, fonte, per in fontes:
         h.append(f'      <tr><td>{dado}</td><td>{fonte}</td><td>{per}</td></tr>')
@@ -1619,85 +1790,172 @@ def build_appendix_b(e4: dict = None) -> str:
     return '\n'.join(h)
 
 
+def _compute_nper(investivel: float, aporte_mensal: float, taxa_anual_pct: float, meta: float) -> float:
+    """Calcula prazo em anos para atingir meta via juros compostos + aportes mensais."""
+    import math
+    if taxa_anual_pct <= 0:
+        gap = meta - investivel
+        return gap / (aporte_mensal * 12) if aporte_mensal > 0 else 999
+    r = (1 + taxa_anual_pct / 100) ** (1/12) - 1  # taxa mensal
+    if r == 0:
+        return (meta - investivel) / aporte_mensal / 12 if aporte_mensal > 0 else 999
+    # FV = PV*(1+r)^n + PMT*((1+r)^n - 1)/r = meta
+    # Solve for n: (meta*r + PMT) / (PV*r + PMT) = (1+r)^n
+    numerator = meta * r + aporte_mensal
+    denominator = investivel * r + aporte_mensal
+    if denominator <= 0 or numerator / denominator <= 0:
+        return 999
+    n_months = math.log(numerator / denominator) / math.log(1 + r)
+    return round(max(0, n_months / 12), 1)
+
+
 def build_appendix_c(e4: dict) -> str:
-    """Apêndice C — Cenários de Sensibilidade."""
+    """Apêndice C — Cenários de Sensibilidade (dinâmico a partir de configs)."""
     h = []
 
     goals = e4.get("goals", {})
     patrimonio = e4.get("patrimonio", {})
     pat_investivel = safe_float(patrimonio.get("investivel", 0))
-    meta_if = safe_float(goals.get("if_meta", 7200000))
+    meta_if = safe_float(goals.get("if_meta",
+        GOALS_CONFIG.get("independencia_financeira", {}).get("if_meta", 7200000)))
+    aporte = safe_float(goals.get("aporte_mensal",
+        GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 20000)))
+
+    # Taxas de retorno dos cenários
+    _rr = CENARIOS_CONFIG.get("retorno_real", {})
+    taxa_pess = _rr.get("pessimista_pct", 4.0)
+    taxa_real = _rr.get("realista_pct", 6.0)
+    taxa_otim = _rr.get("otimista_pct", 8.0)
+
+    # Idade de David (from family config)
+    _david = _FAMILY.get("membros", {}).get("david", {})
+    _nasc = _david.get("nascimento", "1983-01-01")
+    try:
+        ano_nasc = int(str(_nasc)[:4])
+    except (ValueError, TypeError):
+        ano_nasc = 1983
+    idade_atual = datetime.now().year - ano_nasc
+    ano_atual = datetime.now().year
+
+    # Calcular prazos IF
+    prazo_pess = _compute_nper(pat_investivel, aporte, taxa_pess, meta_if)
+    prazo_real = _compute_nper(pat_investivel, aporte, taxa_real, meta_if)
+    prazo_otim = _compute_nper(pat_investivel, aporte, taxa_otim, meta_if)
 
     # Cenários IF
     h.append('<div class="card">')
     h.append('  <div class="card-title">Cenários — Independência Financeira</div>')
-    h.append('  <p>Projeção de prazo para atingir a meta de R$7.200.000 com aporte de R$20.000/mês, variando a taxa de retorno real.</p>')
+    h.append(f'  <p>Projeção de prazo para atingir a meta de R${meta_if:,.0f} com aporte de R${aporte:,.0f}/mês, variando a taxa de retorno real.</p>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Cenário</th><th>Retorno real a.a.</th><th>Aporte/mês</th><th>Prazo</th><th>David com</th></tr></thead>')
     h.append('    <tbody>')
-    h.append('      <tr><td>Pessimista</td><td>4,0%</td><td>R$ 20.000</td><td>~11,9 anos</td><td>55 (2038)</td></tr>')
-    h.append('      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>6,0%</strong></td><td><strong>R$ 20.000</strong></td><td><strong>~9,0 anos</strong></td><td><strong>52 (2035)</strong></td></tr>')
-    h.append('      <tr><td>Otimista</td><td>8,0%</td><td>R$ 20.000</td><td>~7,0 anos</td><td>50 (2033)</td></tr>')
+    h.append(f'      <tr><td>Pessimista</td><td>{taxa_pess:.1f}%</td><td>R$ {aporte:,.0f}</td><td>~{prazo_pess:.1f} anos</td><td>{idade_atual + round(prazo_pess)} ({ano_atual + round(prazo_pess)})</td></tr>')
+    h.append(f'      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>{taxa_real:.1f}%</strong></td><td><strong>R$ {aporte:,.0f}</strong></td><td><strong>~{prazo_real:.1f} anos</strong></td><td><strong>{idade_atual + round(prazo_real)} ({ano_atual + round(prazo_real)})</strong></td></tr>')
+    h.append(f'      <tr><td>Otimista</td><td>{taxa_otim:.1f}%</td><td>R$ {aporte:,.0f}</td><td>~{prazo_otim:.1f} anos</td><td>{idade_atual + round(prazo_otim)} ({ano_atual + round(prazo_otim)})</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     pct_atingido = (pat_investivel / meta_if * 100) if meta_if > 0 else 0
     h.append(f'  <p><strong>Progresso atual:</strong> R$ {pat_investivel:,.0f} de R$ {meta_if:,.0f} ({pct_atingido:.1f}% atingido).</p>')
     h.append('</div>')
 
-    # Cenários cambiais
+    # Cenários cambiais (dinâmico)
+    _cc = CENARIOS_CONFIG.get("cambio", {})
+    cb_pess = _cc.get("pessimista", 7.50)
+    cb_real = CONFIG_RATES.get("cambio_usd_brl", 5.80)
+    cb_otim = _cc.get("otimista", 4.50)
+    _f1f2 = GOALS_CONFIG.get("fase_f1f2", {})
+    f1f2_usd_anual = _f1f2.get("tuition_usd_anual", 27500) + _f1f2.get("room_board_usd_anual", 16500)
+    meta_usd = GOALS_CONFIG.get("dolarizacao", {}).get("meta_usd", 20000)
+
+    custo_pess = round(f1f2_usd_anual / 12 * cb_pess)
+    custo_real = round(f1f2_usd_anual / 12 * cb_real)
+    custo_otim = round(f1f2_usd_anual / 12 * cb_otim)
+    meta_brl_pess = round(meta_usd * cb_pess)
+    meta_brl_real = round(meta_usd * cb_real)
+    meta_brl_otim = round(meta_usd * cb_otim)
+    var_pess = round((cb_pess / cb_real - 1) * 100)
+    var_otim = round((1 - cb_otim / cb_real) * 100)
+
     h.append('<div class="card">')
     h.append('  <div class="card-title">Cenários — Câmbio BRL/USD</div>')
     h.append('  <p>Impacto do câmbio nos custos da fase EUA (F1/F2) e na meta de dolarização.</p>')
     h.append('  <table>')
-    h.append('    <thead><tr><th>Cenário</th><th>Câmbio</th><th>Custo F1/F2 mensal (BRL)</th><th>Meta USD (R$20k em BRL)</th><th>Impacto</th></tr></thead>')
+    h.append(f'    <thead><tr><th>Cenário</th><th>Câmbio</th><th>Custo F1/F2 mensal (BRL)</th><th>Meta USD (R${meta_usd:,.0f}k em BRL)</th><th>Impacto</th></tr></thead>')
     h.append('    <tbody>')
-    h.append('      <tr><td>Pessimista (desvalorização)</td><td>R$ 7,50</td><td>R$ 29.925</td><td>R$ 150.000</td><td>Custos +28%, aporte USD rende menos</td></tr>')
-    h.append('      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>R$ 5,88</strong></td><td><strong>R$ 23.461</strong></td><td><strong>R$ 117.600</strong></td><td><strong>Base do planejamento</strong></td></tr>')
-    h.append('      <tr><td>Otimista (valorização)</td><td>R$ 4,50</td><td>R$ 17.955</td><td>R$ 90.000</td><td>Custos -24%, folga para aportes maiores</td></tr>')
+    h.append(f'      <tr><td>Pessimista (desvalorização)</td><td>R$ {cb_pess:.2f}</td><td>R$ {custo_pess:,.0f}</td><td>R$ {meta_brl_pess:,.0f}</td><td>Custos +{var_pess}%, aporte USD rende menos</td></tr>')
+    h.append(f'      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>R$ {cb_real:.2f}</strong></td><td><strong>R$ {custo_real:,.0f}</strong></td><td><strong>R$ {meta_brl_real:,.0f}</strong></td><td><strong>Base do planejamento</strong></td></tr>')
+    h.append(f'      <tr><td>Otimista (valorização)</td><td>R$ {cb_otim:.2f}</td><td>R$ {custo_otim:,.0f}</td><td>R$ {meta_brl_otim:,.0f}</td><td>Custos -{var_otim}%, folga para aportes maiores</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('</div>')
 
-    # Cenários Selic
+    # Cenários Selic (dinâmico)
+    _cs = CENARIOS_CONFIG.get("selic", {})
+    selic_pess = _cs.get("pessimista", {}) if isinstance(_cs.get("pessimista"), dict) else {"selic": 8.0, "cdi": 7.9}
+    selic_otim = _cs.get("otimista", {}) if isinstance(_cs.get("otimista"), dict) else {"selic": 15.0, "cdi": 14.9}
+    selic_atual = CONFIG_RATES.get("selic_atual", 14.25)
+    cdi_atual = CONFIG_RATES.get("cdi_anual", 14.15)
+
     h.append('<div class="card">')
     h.append('  <div class="card-title">Cenários — Selic e Renda Fixa</div>')
     h.append('  <p>Sensibilidade da carteira de renda fixa a mudanças na Selic.</p>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Cenário</th><th>Selic</th><th>CDI estimado</th><th>Impacto na carteira RF</th><th>Ação recomendada</th></tr></thead>')
     h.append('    <tbody>')
-    h.append('      <tr><td>Queda acentuada</td><td>8,0%</td><td>~7,9%</td><td>CDBs pós-fixados rendem menos; IPCA+ valoriza (marcação a mercado)</td><td>Manter IPCA+ até vencimento; aumentar prefixados longos</td></tr>')
-    h.append('      <tr class="total-row"><td><strong>Estabilidade</strong></td><td><strong>12,0%</strong></td><td><strong>~11,9%</strong></td><td><strong>CDBs pós rendem bem; IPCA+ em carrego</strong></td><td><strong>Manter estratégia atual (contrafluxo IPCA+)</strong></td></tr>')
-    h.append('      <tr><td>Alta adicional</td><td>15,0%</td><td>~14,9%</td><td>CDBs pós rendem mais; IPCA+ desvaloriza na marcação</td><td>Aumentar CDBs pós-fixados curtos; evitar IPCA+ longo novo</td></tr>')
+    h.append(f'      <tr><td>Queda acentuada</td><td>{selic_pess["selic"]:.1f}%</td><td>~{selic_pess["cdi"]:.1f}%</td><td>CDBs pós-fixados rendem menos; IPCA+ valoriza (marcação a mercado)</td><td>Manter IPCA+ até vencimento; aumentar prefixados longos</td></tr>')
+    h.append(f'      <tr class="total-row"><td><strong>Estabilidade</strong></td><td><strong>{selic_atual:.1f}%</strong></td><td><strong>~{cdi_atual:.1f}%</strong></td><td><strong>CDBs pós rendem bem; IPCA+ em carrego</strong></td><td><strong>Manter estratégia atual (contrafluxo IPCA+)</strong></td></tr>')
+    h.append(f'      <tr><td>Alta adicional</td><td>{selic_otim["selic"]:.1f}%</td><td>~{selic_otim["cdi"]:.1f}%</td><td>CDBs pós rendem mais; IPCA+ desvaloriza na marcação</td><td>Aumentar CDBs pós-fixados curtos; evitar IPCA+ longo novo</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('</div>')
 
-    # Cenários imóveis
+    # Cenários imóveis (dinâmico)
+    _ci = CENARIOS_CONFIG.get("valorizacao_imoveis", {})
+    im_pess = _ci.get("pessimista_pct", 2.0)
+    im_real = _ci.get("realista_pct", 5.0)
+    im_otim = _ci.get("otimista_pct", 8.0)
+    im_real_5a = round((1 + im_real/100)**5 * 100 - 100)
+    im_otim_5a_lo = round((1 + im_otim/100)**5 * 100 - 100)
+    im_otim_5a_hi = round((1 + (im_otim + 2)/100)**5 * 100 - 100)
+
     h.append('<div class="card">')
     h.append('  <div class="card-title">Cenários — Mercado Imobiliário SP</div>')
     h.append('  <p>Impacto da valorização (ou desvalorização) dos imóveis no patrimônio e no yield.</p>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Cenário</th><th>Valorização anual</th><th>Impacto em 5 anos</th><th>Efeito no yield</th></tr></thead>')
     h.append('    <tbody>')
-    h.append('      <tr><td>Pessimista (estagnação)</td><td>0-2%</td><td>Patrimônio imobiliário estável, perda real</td><td>Yield se mantém ou sobe (valor do imóvel cai)</td></tr>')
-    h.append('      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>5%</strong></td><td><strong>Valorização ~28% em 5 anos</strong></td><td><strong>Yield estável (aluguel acompanha valorização)</strong></td></tr>')
-    h.append('      <tr><td>Otimista (boom)</td><td>8-10%</td><td>Valorização ~47-61% em 5 anos</td><td>Yield pode comprimir (valor sobe mais que aluguel)</td></tr>')
+    h.append(f'      <tr><td>Pessimista (estagnação)</td><td>0-{im_pess:.0f}%</td><td>Patrimônio imobiliário estável, perda real</td><td>Yield se mantém ou sobe (valor do imóvel cai)</td></tr>')
+    h.append(f'      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>{im_real:.0f}%</strong></td><td><strong>Valorização ~{im_real_5a}% em 5 anos</strong></td><td><strong>Yield estável (aluguel acompanha valorização)</strong></td></tr>')
+    h.append(f'      <tr><td>Otimista (boom)</td><td>{im_otim:.0f}-{im_otim+2:.0f}%</td><td>Valorização ~{im_otim_5a_lo}-{im_otim_5a_hi}% em 5 anos</td><td>Yield pode comprimir (valor sobe mais que aluguel)</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('</div>')
 
-    # Stress tests
+    # Stress tests — semi-dinâmico com dados do E5
+    _reserva_meses = safe_float(e4.get("reserva_emergencia", {}).get("cobertura_meses",
+                                 e4.get("ratios", e4.get("racios", {})).get("cobertura_despesas_meses", 0)))
+    _receita_mensal = safe_float(e4.get("fluxo_caixa", {}).get("receita_recorrente_mensal", 0))
+    _custo_f1f2_mensal = round(f1f2_usd_anual / 12 * cb_real)
+    _sobra_base = round(_receita_mensal - _custo_f1f2_mensal)
+    _sobra_pess = round(_receita_mensal - round(f1f2_usd_anual / 12 * cb_pess))
+    _var_custo_pess = f"+{var_pess}%" if var_pess > 0 else f"{var_pess}%"
+
     h.append('<div class="card card-warning">')
     h.append('  <div class="card-title">Stress Tests — Perguntas-Chave</div>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Pergunta</th><th>Resposta / Mitigação</th></tr></thead>')
     h.append('    <tbody>')
     stress = [
-        ("E se a Selic cair a 8%?", "CDBs pós rendem menos (~R$1.500/mês a menos em RF). Ação: contrafluxo — já ter IPCA+ longos na carteira captura a valorização. Manter Tesouro IPCA+ 2035/2040."),
-        ("E se o USD chegar a R$7,50?", "Custos F1/F2 sobem ~28%. A sobra mensal cai de R$38k para ~R$32k — ainda viável. Dolarização via Wise fica mais cara mas protege o patrimônio."),
-        ("E se Mariana não conseguir o NCLEX?", "A simulação 'Mariana sem trabalhar' mostra IF em 11,4 anos (vs 9,0). David absorve com aporte reduzido de R$13.200/mês."),
-        ("E se David perder o contrato Arvo?", "Renda cai ~60%. Reserva de emergência cobre 19,5 meses. Ações: (1) buscar contratos substitutos, (2) reduzir aporte IF, (3) Mariana mantém renda CLT."),
-        ("E se os imóveis desvalorizarem 20%?", "Patrimônio bruto cai ~R$245k, mas o patrimônio investível não muda (imóvel residência já excluído). Yield dos imóveis de investimento sobe proporcionalmente."),
+        (f"E se a Selic cair a {selic_pess['selic']:.0f}%?",
+         f"CDBs pós rendem menos. Ação: contrafluxo — já ter IPCA+ longos na carteira captura a valorização. Manter Tesouro IPCA+ 2035/2040."),
+        (f"E se o USD chegar a R${cb_pess:.2f}?",
+         f"Custos F1/F2 sobem ~{var_pess}%. A sobra mensal cai de R${_sobra_base:,.0f} para ~R${_sobra_pess:,.0f} — {'ainda viável' if _sobra_pess > 0 else 'déficit — ajustar aportes'}. Dolarização via Wise fica mais cara mas protege o patrimônio."),
+        ("E se Mariana não conseguir o NCLEX?",
+         f"A simulação 'Mariana sem trabalhar' mostra prazo IF maior. David absorve com aporte reduzido."),
+        ("E se David perder o contrato principal?",
+         f"Renda cai significativamente. Reserva de emergência cobre {_reserva_meses:.1f} meses. Ações: (1) buscar contratos substitutos, (2) reduzir aporte IF, (3) Mariana mantém renda."),
+        ("E se os imóveis desvalorizarem 20%?",
+         "Patrimônio bruto cai, mas o patrimônio investível não muda (imóvel residência já excluído). Yield dos imóveis de investimento sobe proporcionalmente."),
     ]
     for perg, resp in stress:
         h.append(f'      <tr><td><strong>{perg}</strong></td><td>{resp}</td></tr>')
@@ -1761,12 +2019,15 @@ def build_appendix_d() -> str:
     h.append('  <table>')
     h.append('    <thead><tr><th>Profissional</th><th>Área</th><th>Quando acionar</th></tr></thead>')
     h.append('    <tbody>')
+    _contador = GOALS_CONFIG.get("tributario", {}).get("contador_nome", "AccountTech")
+    _seg_min = GOALS_CONFIG.get("seguros", {}).get("vida_term_minimo", 3000000)
+    _seg_max = GOALS_CONFIG.get("seguros", {}).get("vida_term_maximo", 5000000)
     contatos = [
-        ("Contador (AccountTech)", "Contabilidade PJ, DAS, Simples Nacional", "Mensal (DAS) + IRPF anual + mudança de regime"),
+        (f"Contador ({_contador})", "Contabilidade PJ, DAS, Simples Nacional", "Mensal (DAS) + IRPF anual + mudança de regime"),
         ("Advogado Sucessório / Tributarista SP", "Testamentos, procurações, holding", "Antes da mudança para EUA — planejamento sucessório"),
         ("CPA Expatriado (EUA)", "FBAR, FATCA, Form 1040, PFIC", "Antes de se tornar US tax resident — essencial"),
         ("Advogado Imigração (EUA)", "EB2-NIW, F1/F2, Green Card", "Acompanhamento do processo de Green Card"),
-        ("Corretor de Seguros", "Vida, invalidez (DIT), residencial", "Urgente — cotar term life R$3-5M + DIT 60% da renda"),
+        ("Corretor de Seguros", "Vida, invalidez (DIT), residencial", f"Urgente — cotar term life R${_seg_min/1e6:.0f}-{_seg_max/1e6:.0f}M + DIT 60% da renda"),
     ]
     for prof, area, quando in contatos:
         h.append(f'      <tr><td><strong>{prof}</strong></td><td>{area}</td><td>{quando}</td></tr>')
@@ -1780,6 +2041,18 @@ def build_appendix_d() -> str:
 def build_appendix_e(e4: dict) -> str:
     """Apêndice E — Próximos Ciclos e Roadmap."""
     h = []
+
+    # Config values used in multiple sub-sections
+    _seg_min = GOALS_CONFIG.get("seguros", {}).get("vida_term_minimo", 3000000)
+    _seg_max = GOALS_CONFIG.get("seguros", {}).get("vida_term_maximo", 5000000)
+
+    # For Simulação Mariana
+    goals = e4.get("goals", {})
+    patrimonio = e4.get("patrimonio", {})
+    pat_investivel = safe_float(patrimonio.get("investivel", 0))
+    meta_if = safe_float(goals.get("if_meta",
+        GOALS_CONFIG.get("independencia_financeira", {}).get("if_meta", 7200000)))
+    taxa_real = CENARIOS_CONFIG.get("retorno_real", {}).get("realista_pct", 6.0)
 
     # Tarefas priorizadas (from tarefas.md via E5)
     tarefas = e4.get("tarefas", [])
@@ -1853,80 +2126,118 @@ def build_appendix_e(e4: dict) -> str:
         h.append('  </ul>')
     h.append('</div>')
 
-    # Viagens e milhas
+    # Viagens e milhas (dinâmico)
+    _vg = e4.get("viagens", {})
+    _teto_viagens = GOALS_CONFIG.get("viagens", {}).get("teto_anual", 45000)
+    _gasto_viagens = safe_float(_vg.get("gasto", 0))
+    _saldo_viagens = _teto_viagens - _gasto_viagens
+    _ano_viagens = datetime.now().year
+    _viagens_lista = _vg.get("realizadas", [])
+
     h.append('<div class="card">')
-    h.append('  <div class="card-title">Viagens e Milhas — Orçamento 2026</div>')
+    h.append(f'  <div class="card-title">Viagens e Milhas — Orçamento {_ano_viagens}</div>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Item</th><th>Valor</th></tr></thead>')
     h.append('    <tbody>')
-    h.append('      <tr><td>Teto anual de viagens</td><td><strong>R$ 45.000</strong></td></tr>')
-    h.append('      <tr><td>Portugal (realizado)</td><td>R$ 22.337</td></tr>')
-    h.append('      <tr><td>Saldo disponível</td><td><strong>R$ 22.663</strong></td></tr>')
+    h.append(f'      <tr><td>Teto anual de viagens</td><td><strong>R$ {_teto_viagens:,.0f}</strong></td></tr>')
+    if _viagens_lista:
+        for v in _viagens_lista:
+            h.append(f'      <tr><td>{v.get("destino", "Viagem")} (realizado)</td><td>R$ {safe_float(v.get("valor", 0)):,.0f}</td></tr>')
+    elif _gasto_viagens > 0:
+        h.append(f'      <tr><td>Realizadas</td><td>R$ {_gasto_viagens:,.0f}</td></tr>')
+    h.append(f'      <tr><td>Saldo disponível</td><td><strong>R$ {_saldo_viagens:,.0f}</strong></td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('  <p><em>Nota: Custos da estadia EUA (F1/F2) NÃO entram no orçamento de viagens — são custo de vida.</em></p>')
     h.append('</div>')
 
-    # NCLEX Roadmap
+    # NCLEX Roadmap (from goals.json or hardcoded fallback)
+    _nclex_steps = GOALS_CONFIG.get("nclex_roadmap", [])
+    _mariana_usd_min = GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_minima_usd", 4000)
+    _mariana_usd_max = GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_maxima_usd", 7000)
+
     h.append('<div class="card">')
     h.append('  <div class="card-title">NCLEX Roadmap — Mariana</div>')
     h.append('  <p>Caminho para licenciamento como Registered Nurse nos EUA (estimativa 8-18 meses).</p>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Etapa</th><th>Descrição</th><th>Custo</th><th>Duração</th></tr></thead>')
     h.append('    <tbody>')
-    nclex = [
-        ("1", "CGFNS Credentials Evaluation", "US$ 350", "4-8 semanas"),
-        ("2", "Teste de Inglês (MET ou OET recomendados)", "US$ 235–455", "Prep 2-3 meses"),
-        ("3", "CGFNS VisaScreen Certificate", "US$ 540", "8-12 semanas"),
-        ("4", "State Board Application (SC)", "US$ 200", "2-4 semanas"),
-        ("5", "ATT (Authorization to Test)", "—", "2-4 semanas"),
-        ("6", "NCLEX-RN Exam", "US$ 200", "Agendar Pearson VUE"),
-        ("7", "License Issued", "—", "2-4 semanas"),
-    ]
-    for etapa, desc, custo, dur in nclex:
-        h.append(f'      <tr><td>{etapa}</td><td>{desc}</td><td>{custo}</td><td>{dur}</td></tr>')
+    if _nclex_steps:
+        for step in _nclex_steps:
+            h.append(f'      <tr><td>{step.get("etapa", "")}</td><td>{step.get("descricao", "")}</td><td>{step.get("custo", "—")}</td><td>{step.get("duracao", "—")}</td></tr>')
+    else:
+        # Fallback — STATIC-REFERENCE
+        nclex = [
+            ("1", "CGFNS Credentials Evaluation", "US$ 350", "4-8 semanas"),
+            ("2", "Teste de Inglês (MET ou OET recomendados)", "US$ 235–455", "Prep 2-3 meses"),
+            ("3", "CGFNS VisaScreen Certificate", "US$ 540", "8-12 semanas"),
+            ("4", "State Board Application (SC)", "US$ 200", "2-4 semanas"),
+            ("5", "ATT (Authorization to Test)", "—", "2-4 semanas"),
+            ("6", "NCLEX-RN Exam", "US$ 200", "Agendar Pearson VUE"),
+            ("7", "License Issued", "—", "2-4 semanas"),
+        ]
+        for etapa, desc, custo, dur in nclex:
+            h.append(f'      <tr><td>{etapa}</td><td>{desc}</td><td>{custo}</td><td>{dur}</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('  <p><strong>Custo total estimado:</strong> US$ 1.515–2.440 | <strong>Perfil competitivo Mariana:</strong> Especialização Cardiologia + Mestrado USP + 11+ anos Einstein + UTI.</p>')
-    h.append('  <p><strong>Projeção EUA:</strong> Cardiologia RN US$45–80/hora → US$4.000–7.000/mês líquido.</p>')
+    h.append(f'  <p><strong>Projeção EUA:</strong> Cardiologia RN US$45–80/hora → US${_mariana_usd_min:,.0f}–{_mariana_usd_max:,.0f}/mês líquido.</p>')
     h.append('</div>')
 
-    # Simulação Mariana sem trabalhar
+    # Simulação Mariana sem trabalhar (semi-dinâmico — usa E5 data quando disponível)
+    _sim_mariana = e4.get("simulacao_mariana_sem_trabalhar", {})
+    _aporte_cfg = GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 20000)
     h.append('<div class="card">')
     h.append('  <div class="card-title">Simulação — Mariana Sem Trabalhar</div>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Métrica</th><th>Valor</th></tr></thead>')
     h.append('    <tbody>')
-    h.append('      <tr><td>Impacto líquido mensal</td><td>-R$ 6.830 (R$8.000 perdido − R$1.170 economizado)</td></tr>')
-    h.append('      <tr><td>Faturamento PJ adicional necessário</td><td>R$ 8.035/mês bruto (+13,4%)</td></tr>')
-    h.append('      <tr><td>IF com aporte R$20k mantido</td><td><strong>9,0 anos</strong> (folga absorve a perda)</td></tr>')
-    h.append('      <tr><td>IF com aporte reduzido R$13,2k</td><td>11,4 anos (+2,4 anos)</td></tr>')
+    if _sim_mariana:
+        for row in _sim_mariana.get("linhas", []):
+            h.append(f'      <tr><td>{row.get("metrica", "")}</td><td>{row.get("valor", "")}</td></tr>')
+    else:
+        # Fallback: compute IF with full and reduced aporte
+        _aporte_red = round(_aporte_cfg * 0.66)
+        _prazo_full = _compute_nper(pat_investivel, _aporte_cfg, taxa_real, meta_if)
+        _prazo_red = _compute_nper(pat_investivel, _aporte_red, taxa_real, meta_if)
+        h.append(f'      <tr><td>IF com aporte R${_aporte_cfg/1000:.0f}k mantido</td><td><strong>{_prazo_full:.1f} anos</strong> (folga absorve a perda)</td></tr>')
+        _aporte_red_fmt = f"{_aporte_red/1000:.1f}".replace(".", ",")
+        h.append(f'      <tr><td>IF com aporte reduzido R${_aporte_red_fmt}k</td><td>{_prazo_red:.1f} anos (+{_prazo_red - _prazo_full:.1f} anos)</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('</div>')
 
-    # Calendário próximo ciclo
+    # Calendário próximo ciclo (from E5 data or config-derived defaults)
+    _calendario_e5 = e4.get("calendario_proximo_ciclo", [])
+
     h.append('<div class="card">')
     h.append('  <div class="card-title">Calendário — Próximo Ciclo</div>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Data</th><th>Item</th><th>Tipo</th></tr></thead>')
     h.append('    <tbody>')
-    calendario = [
-        ("05/Abr/2026", "Primeiro aporte R$20.000 (plano IF)", "Financeiro"),
-        ("Abr/2026", "Contratar seguro de vida term life R$3-5M", "Proteção"),
-        ("Abr/2026", "Contratar seguro invalidez (DIT) 60% da renda", "Proteção"),
-        ("Abr/2026", "Consultar advogado sucessório/tributarista SP", "Sucessório"),
-        ("Abr/2026", "Atualizar beneficiários PGBL e seguro de vida", "Proteção"),
-        ("Mai/2026", "Testamento público David + Mariana (cartório BR)", "Sucessório"),
-        ("Mai/2026", "Início prep teste inglês Mariana (MET ou OET)", "NCLEX"),
-        ("Jun/2026", "Revisão tática quinzenal — despesas vs tetos", "Pipeline"),
-        ("Jul/2026", "Análise completa trimestral (pipeline E0-E6)", "Pipeline"),
-        ("T4/2026", "Avaliar holding patrimonial", "Sucessório"),
-        ("Antes EUA", "Contratar CPA expatriado", "Tributário"),
-        ("Antes EUA", "Procuração pública para Rubens (pai David)", "Sucessório"),
-    ]
-    for data, item, tipo in calendario:
-        h.append(f'      <tr><td>{data}</td><td>{item}</td><td>{tipo}</td></tr>')
+    if _calendario_e5:
+        for ev in _calendario_e5:
+            h.append(f'      <tr><td>{ev.get("data", "—")}</td><td>{ev.get("item", "")}</td><td>{ev.get("tipo", "")}</td></tr>')
+    else:
+        # Fallback — relative dates from config
+        _aporte_val = GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 20000)
+        _holding = GOALS_CONFIG.get("tributario", {}).get("holding_avaliacao_prazo", "T4/2026")
+        calendario = [
+            ("Imediato", f"Primeiro aporte R${_aporte_val:,.0f} (plano IF)", "Financeiro"),
+            ("Imediato", f"Contratar seguro de vida term life R${_seg_min/1e6:.0f}-{_seg_max/1e6:.0f}M", "Proteção"),
+            ("Imediato", "Contratar seguro invalidez (DIT) 60% da renda", "Proteção"),
+            ("Imediato", "Consultar advogado sucessório/tributarista SP", "Sucessório"),
+            ("Próximo mês", "Atualizar beneficiários PGBL e seguro de vida", "Proteção"),
+            ("Próximo mês", "Testamento público David + Mariana (cartório BR)", "Sucessório"),
+            ("Próximo mês", "Início prep teste inglês Mariana (MET ou OET)", "NCLEX"),
+            ("Próximo trimestre", "Revisão tática quinzenal — despesas vs tetos", "Pipeline"),
+            ("Próximo trimestre", "Análise completa trimestral (pipeline E0-E6)", "Pipeline"),
+            (_holding, "Avaliar holding patrimonial", "Sucessório"),
+            ("Antes EUA", "Contratar CPA expatriado", "Tributário"),
+            ("Antes EUA", "Procuração pública para Rubens (pai David)", "Sucessório"),
+        ]
+        for data, item, tipo in calendario:
+            h.append(f'      <tr><td>{data}</td><td>{item}</td><td>{tipo}</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('</div>')
@@ -1934,8 +2245,85 @@ def build_appendix_e(e4: dict) -> str:
     return '\n'.join(h)
 
 
+def build_kpi_rentabilidade_card(e4: dict) -> str:
+    """Build KPI Rentabilidade card (previously inline in S3)."""
+    html_parts = ['<div class="card card-feature">']
+    html_parts.append('  <div class="card-title">KPI — Rentabilidade</div>')
+    html_parts.append('  <p>Yield médio de investimentos: 5,2%</p>')
+    html_parts.append('  <p>Volatilidade: 8,5%</p>')
+    html_parts.append('  <p>Diversificação: 5 blocos principais</p>')
+    html_parts.append('</div>')
+    return '\n'.join(html_parts)
+
+
+def build_contrafluxo_card(e4: dict) -> str:
+    """Build Contrafluxo card (previously inline in S3)."""
+    selic = CONFIG_RATES.get("selic_atual", 11.5)
+    cdi = CONFIG_RATES.get("cdi_anual", 11.5)
+    html_parts = ['<div class="card card-primary">']
+    html_parts.append('  <div class="card-title">Contrafluxo</div>')
+    html_parts.append(f'  <p>Selic atual: {selic}% a.a. | CDI: {cdi}%</p>')
+    html_parts.append('  <p>Cenário base mantém estratégia RF em Tesouro IPCA+.</p>')
+    html_parts.append('</div>')
+    return '\n'.join(html_parts)
+
+
+# Registry: card ID → builder function
+# All builders accept (e4: dict) and return str (HTML)
+CARD_BUILDERS = {
+    "patrimonio_categorias": build_patrimonio_categorias_card,
+    "receitas_fonte": build_receitas_fonte_card,
+    "reserva_emergencia": build_reserva_emergencia_card,
+    "endividamento": build_endividamento_card,
+    "orcamento_prospectivo": build_orcamento_prospectivo_card,
+    "consumo_consciente": build_consumo_consciente_card,
+    "diagnostico_comportamental": build_diagnostico_comportamental_card,
+    "milhas": build_milhas_card,
+    "investimentos_classe": build_investimentos_classe_card,
+    "kpi_rentabilidade": build_kpi_rentabilidade_card,
+    "estrategia_aporte": build_estrategia_aporte_card,
+    "contrafluxo": build_contrafluxo_card,
+    "previdencia_pgbl": build_previdencia_pgbl_card,
+    "pontos_fortes": build_pontos_fortes_card,
+    "pontos_urgentes": build_pontos_urgentes_card,
+    "equilibrio_cerbasi": build_equilibrio_cerbasi_card,
+}
+
+# Registry: appendix ID → builder function
+APPENDIX_BUILDERS = {
+    "APP_A": lambda e4: build_appendix_a(),
+    "APP_B": lambda e4: build_appendix_b(e4),
+    "APP_C": lambda e4: build_appendix_c(e4),
+    "APP_D": lambda e4: build_appendix_d(),
+    "APP_E": lambda e4: build_appendix_e(e4),
+}
+
+
+def _apply_card_variant(card_html: str, variant: str = "", size: str = "") -> str:
+    """Apply variant and size from layout config to a card's HTML.
+
+    Replaces the first 'class="card card-XXX"' with the configured variant,
+    and wraps in a grid column if size == 'half'.
+    """
+    if variant:
+        # Replace the card variant class (e.g., card-feature → card-warn)
+        card_html = re.sub(
+            r'class="card card-\w+"',
+            f'class="card card-{variant}"',
+            card_html,
+            count=1
+        )
+    if size == "half":
+        card_html = f'<div style="grid-column: span 1;">\n{card_html}\n</div>'
+    return card_html
+
+
 def build_sections(e4: dict) -> dict:
-    """Build S1-S10 content sections with charts and cards"""
+    """Build S1-S10 content sections with charts and cards.
+
+    If REPORT_LAYOUT is available, iterates over the YAML config.
+    Otherwise, falls back to the original hardcoded sequence.
+    """
     print("[E6.4] Building sections S1-S10...")
 
     narrativas = e4.get("narrativas", {})
@@ -1946,97 +2334,177 @@ def build_sections(e4: dict) -> dict:
 
     replacements = {}
 
-    # Build summaries
+    # Build summaries (always S1-S10 for template compatibility)
     for i in range(1, 11):
         key = f"s{i}"
         summary = summaries.get(key, f"Seção {i} — dados pendentes")
         replacements[f"{{{{SUMMARY_S{i}}}}}"] = summary
 
-    # Build content sections with chart containers
-    section_titles = {
-        1: "Patrimônio — Estrutura e Composição",
-        2: "Fluxo de Caixa — Receitas e Despesas",
-        3: "Investimentos — Carteira Financeira",
-        4: "Real Estate — Imóveis e Renda Passiva",
-        5: "Mudança EUA — Estrutura F1/F2 e Custos",
-        6: "Green Card — EB2-NIW e Compliance",
-        7: "Independência Financeira — Meta 2035",
-        8: "Previdência — PGBL e Fiscalidade",
-        9: "Riscos e Proteção — Seguros Críticos",
-        10: "Síntese Estratégica — Tarefas e Score",
-    }
+    # ── Layout-driven rendering (if report_layout.yaml is loaded) ──
+    layout_estrategico = REPORT_LAYOUT.get("estrategico", {})
+    layout_sections = layout_estrategico.get("sections", [])
 
-    for i in range(1, 11):
-        title = section_titles.get(i, f"Seção {i}")
+    if layout_sections:
+        print("  [LAYOUT] Rendering sections from report_layout.yaml")
 
-        # Get charts for this section
-        section_chart_keys = SECTION_CHARTS.get(i, [])
+        # Hardcoded fallback titles (used only if YAML title is missing)
+        _fallback_titles = {
+            1: "Patrimônio — Estrutura e Composição",
+            2: "Fluxo de Caixa — Receitas e Despesas",
+            3: "Investimentos — Carteira Financeira",
+            4: "Real Estate — Imóveis e Renda Passiva",
+            5: "Mudança EUA — Estrutura F1/F2 e Custos",
+            6: "Green Card — EB2-NIW e Compliance",
+            7: "Independência Financeira — Meta 2035",
+            8: "Previdência — PGBL e Fiscalidade",
+            9: "Riscos e Proteção — Seguros Críticos",
+            10: "Síntese Estratégica — Tarefas e Score",
+        }
 
-        html = ""
+        for section_cfg in layout_sections:
+            section_id = section_cfg.get("id", "")  # "S1", "S2", ...
+            enabled = section_cfg.get("enabled", True)
+            section_num = int(section_id.replace("S", "")) if section_id.startswith("S") else 0
 
-        # Add charts first (always emit canvas, narratives are optional context)
-        for chart_key in section_chart_keys:
-            chart_title = CHART_TITLES.get(chart_key, chart_key.replace('_', ' ').title())
-            # Inject data-score attribute for the score gauge canvas
-            extra = ""
-            if chart_key == "score_gauge":
-                score_val = e4.get("score", {}).get("valor", 0)
-                extra = f'data-score="{score_val}"'
-            html += chart_html(chart_key, chart_title, charts_narrativas, extra_attrs=extra) + "\n"
+            if not enabled:
+                # Emit empty placeholder so template doesn't break
+                replacements[f"{{{{CONTENT_S{section_num}}}}}"] = ""
+                print(f"  [LAYOUT] {section_id} — DISABLED")
+                continue
 
-        # Add cards specific to each section
-        if i == 1:
-            # S1: Patrimônio + Receitas + Reserva de Emergência + Endividamento
-            html += build_patrimonio_categorias_card(e4) + "\n"
-            html += build_receitas_fonte_card(e4) + "\n"
-            html += build_reserva_emergencia_card(e4) + "\n"
-            html += build_endividamento_card(e4) + "\n"
+            html = ""
 
-        elif i == 2:
-            # S2: Orçamento Prospectivo + Consumo Consciente + Diagnóstico + Milhas
-            html += build_orcamento_prospectivo_card(e4) + "\n"
-            html += build_consumo_consciente_card(e4) + "\n"
-            html += build_diagnostico_comportamental_card(e4) + "\n"
-            html += build_milhas_card(e4) + "\n"
+            # ── Charts (ordered by YAML) ──
+            for chart_cfg in section_cfg.get("charts", []):
+                chart_key = chart_cfg.get("id", "")
+                if not chart_cfg.get("enabled", True):
+                    continue
+                chart_title = CHART_TITLES.get(chart_key, chart_key.replace('_', ' ').title())
+                extra = ""
+                if chart_key == "score_gauge":
+                    score_val = e4.get("score", {}).get("valor", 0)
+                    extra = f'data-score="{score_val}"'
+                html += chart_html(chart_key, chart_title, charts_narrativas, extra_attrs=extra) + "\n"
 
-        elif i == 3:
-            # S3: Investimentos por Classe + KPI grid + Estratégia Aporte + Contrafluxo
-            html += build_investimentos_classe_card(e4) + "\n"
-            # KPI grid (simplified as text for now)
-            html += '<div class="card card-feature">\n'
-            html += '  <div class="card-title">KPI — Rentabilidade</div>\n'
-            html += '  <p>Yield médio de investimentos: 5,2%</p>\n'
-            html += '  <p>Volatilidade: 8,5%</p>\n'
-            html += '  <p>Diversificação: 5 blocos principais</p>\n'
-            html += '</div>\n'
+            # ── Cards (ordered by YAML, with variant/size) ──
+            has_half_cards = False
+            for card_cfg in section_cfg.get("cards", []):
+                card_id = card_cfg.get("id", "")
+                if not card_cfg.get("enabled", True):
+                    continue
+                builder = CARD_BUILDERS.get(card_id)
+                if not builder:
+                    print(f"  [WARN] Card builder not found for '{card_id}' — skipping")
+                    continue
 
-            html += build_estrategia_aporte_card(e4) + "\n"
+                variant = card_cfg.get("variant", "")
+                size = card_cfg.get("size", "full")
 
-            html += '<div class="card card-primary">\n'
-            html += '  <div class="card-title">Contrafluxo</div>\n'
-            html += '  <p>Selic atual: 11,5% a.a. | CDI: 11,5%</p>\n'
-            html += '  <p>Cenário base mantém estratégia RF em Tesouro IPCA+.</p>\n'
-            html += '</div>\n'
+                # Open a 2-column grid row when we hit the first half card
+                if size == "half" and not has_half_cards:
+                    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">\n'
+                    has_half_cards = True
+                elif size != "half" and has_half_cards:
+                    # Close the grid row before a full-width card
+                    html += '</div>\n'
+                    has_half_cards = False
 
-        elif i == 7:
-            # S7: Previdência PGBL
-            html += build_previdencia_pgbl_card(e4) + "\n"
+                card_html_str = builder(e4)
+                card_html_str = _apply_card_variant(card_html_str, variant, size="")
+                html += card_html_str + "\n"
 
-        elif i == 10:
-            # S10: Pontos Fortes + Pontos Urgentes + Equilíbrio
-            html += build_pontos_fortes_card(e4) + "\n"
-            html += build_pontos_urgentes_card(e4) + "\n"
-            html += build_equilibrio_cerbasi_card(e4) + "\n"
+            # Close any open grid row
+            if has_half_cards:
+                html += '</div>\n'
 
-        replacements[f"{{{{CONTENT_S{i}}}}}"] = html.rstrip()
+            replacements[f"{{{{CONTENT_S{section_num}}}}}"] = html.rstrip()
+            print(f"  [LAYOUT] {section_id} — OK ({len(section_cfg.get('charts', []))} charts, {len(section_cfg.get('cards', []))} cards)")
 
-    # Build appendices (full content)
-    print("[E6.4] Building appendices A-E...")
-    replacements["{{CONTENT_APP_A}}"] = build_appendix_a()
-    replacements["{{CONTENT_APP_B}}"] = build_appendix_b(e4)
-    replacements["{{CONTENT_APP_C}}"] = build_appendix_c(e4)
-    replacements["{{CONTENT_APP_D}}"] = build_appendix_d()
-    replacements["{{CONTENT_APP_E}}"] = build_appendix_e(e4)
+        # Ensure all S1-S10 have a placeholder (for sections not in YAML)
+        for i in range(1, 11):
+            key = f"{{{{CONTENT_S{i}}}}}"
+            if key not in replacements:
+                replacements[key] = ""
+
+    else:
+        # ── Hardcoded fallback (original behavior, no YAML) ──
+        print("  [LAYOUT] No report_layout.yaml — using hardcoded fallback")
+
+        section_titles = {
+            1: "Patrimônio — Estrutura e Composição",
+            2: "Fluxo de Caixa — Receitas e Despesas",
+            3: "Investimentos — Carteira Financeira",
+            4: "Real Estate — Imóveis e Renda Passiva",
+            5: "Mudança EUA — Estrutura F1/F2 e Custos",
+            6: "Green Card — EB2-NIW e Compliance",
+            7: "Independência Financeira — Meta 2035",
+            8: "Previdência — PGBL e Fiscalidade",
+            9: "Riscos e Proteção — Seguros Críticos",
+            10: "Síntese Estratégica — Tarefas e Score",
+        }
+
+        for i in range(1, 11):
+            title = section_titles.get(i, f"Seção {i}")
+            section_chart_keys = SECTION_CHARTS.get(i, [])
+            html = ""
+
+            for chart_key in section_chart_keys:
+                chart_title = CHART_TITLES.get(chart_key, chart_key.replace('_', ' ').title())
+                extra = ""
+                if chart_key == "score_gauge":
+                    score_val = e4.get("score", {}).get("valor", 0)
+                    extra = f'data-score="{score_val}"'
+                html += chart_html(chart_key, chart_title, charts_narrativas, extra_attrs=extra) + "\n"
+
+            if i == 1:
+                html += build_patrimonio_categorias_card(e4) + "\n"
+                html += build_receitas_fonte_card(e4) + "\n"
+                html += build_reserva_emergencia_card(e4) + "\n"
+                html += build_endividamento_card(e4) + "\n"
+            elif i == 2:
+                html += build_orcamento_prospectivo_card(e4) + "\n"
+                html += build_consumo_consciente_card(e4) + "\n"
+                html += build_diagnostico_comportamental_card(e4) + "\n"
+                html += build_milhas_card(e4) + "\n"
+            elif i == 3:
+                html += build_investimentos_classe_card(e4) + "\n"
+                html += build_kpi_rentabilidade_card(e4) + "\n"
+                html += build_estrategia_aporte_card(e4) + "\n"
+                html += build_contrafluxo_card(e4) + "\n"
+            elif i == 7:
+                html += build_previdencia_pgbl_card(e4) + "\n"
+            elif i == 10:
+                html += build_pontos_fortes_card(e4) + "\n"
+                html += build_pontos_urgentes_card(e4) + "\n"
+                html += build_equilibrio_cerbasi_card(e4) + "\n"
+
+            replacements[f"{{{{CONTENT_S{i}}}}}"] = html.rstrip()
+
+    # ── Appendices (layout-aware) ──
+    layout_appendices = layout_estrategico.get("appendices", [])
+
+    if layout_appendices:
+        print("  [LAYOUT] Rendering appendices from report_layout.yaml")
+        for app_cfg in layout_appendices:
+            app_id = app_cfg.get("id", "")
+            enabled = app_cfg.get("enabled", True)
+            builder = APPENDIX_BUILDERS.get(app_id)
+            if not builder:
+                print(f"  [WARN] Appendix builder not found for '{app_id}'")
+                continue
+            if enabled:
+                replacements[f"{{{{CONTENT_{app_id}}}}}"] = builder(e4)
+                print(f"  [LAYOUT] {app_id} — OK")
+            else:
+                replacements[f"{{{{CONTENT_{app_id}}}}}"] = ""
+                print(f"  [LAYOUT] {app_id} — DISABLED")
+    else:
+        print("[E6.4] Building appendices A-E (hardcoded fallback)...")
+        replacements["{{CONTENT_APP_A}}"] = build_appendix_a()
+        replacements["{{CONTENT_APP_B}}"] = build_appendix_b(e4)
+        replacements["{{CONTENT_APP_C}}"] = build_appendix_c(e4)
+        replacements["{{CONTENT_APP_D}}"] = build_appendix_d()
+        replacements["{{CONTENT_APP_E}}"] = build_appendix_e(e4)
 
     return replacements
 

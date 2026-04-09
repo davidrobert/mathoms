@@ -71,6 +71,16 @@
     "_comment": "Tipos de conta que são aliases da mesma conta bancária para deduplicação no E3",
     "extratocontapersonnalite": "extratoconta"
   },
+  "banco_membro": {
+    "_comment": "Mapeamento instituição → membro titular da conta. Usado pelo E4 para atribuir investimentos sem campo membro explícito.",
+    "btgpactual": "david",
+    "rico": "david",
+    "itau": "david",
+    "c6bank": "david",
+    "santander": "david",
+    "binance": "david",
+    "wise": "david"
+  },
   "transferencias_internas": {
     "patterns_pix": [
       "PIX TRANSF DAVID",

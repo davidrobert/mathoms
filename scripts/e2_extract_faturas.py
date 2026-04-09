@@ -52,8 +52,25 @@ def _load_family_config() -> dict:
 _FAMILY = _load_family_config()
 _TITULAR = _FAMILY.get("membros", {}).get("david", {})
 
-# Meses PT-BR → número
-MESES_BR = {
+# ---------------------------------------------------------------------------
+# Config loader
+# ---------------------------------------------------------------------------
+def _load_json_config(path: Path, label: str = "") -> dict:
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"  ⚠️  Error loading {label or path.name}: {e}")
+    else:
+        print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
+    return {}
+
+_LOCALE_CONFIG = _load_json_config(BASE_DIR / "config" / "localization.json", "localization.json")
+_INST_CONFIG = _load_json_config(BASE_DIR / "config" / "institutions.json", "institutions.json")
+
+# Meses PT-BR → número (string zero-padded) — from config
+MESES_BR = _LOCALE_CONFIG.get("meses_br_str", {}) or {
     'jan': '01', 'fev': '02', 'mar': '03', 'abr': '04',
     'mai': '05', 'jun': '06', 'jul': '07', 'ago': '08',
     'set': '09', 'out': '10', 'nov': '11', 'dez': '12',
@@ -62,13 +79,18 @@ MESES_BR = {
     'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12',
 }
 
-# Fatura file patterns recognized by deterministic parsers
-KNOWN_FATURA_PATTERNS = {
+# Fatura file patterns recognized by deterministic parsers — from config
+KNOWN_FATURA_PATTERNS = _INST_CONFIG.get("fatura_patterns", {}) or {
     'faturacarbon': r'c6bank_faturacarbon_(\d{6})',
     'faturaunique': r'santander_faturaunique_(\d{6})',
     'faturapaoacucar': r'itau_faturapaoacucar_(\d{6})',
     'faturaaluguel': r'quintoandar_faturaaluguel\w*_(\d{6})',
 }
+
+# Cartão vencimentos — from config
+_CARTOES = _INST_CONFIG.get("cartoes", {})
+_VENC_CARBON = _CARTOES.get("faturacarbon", {}).get("dia_vencimento", 5)
+_VENC_PDA = _CARTOES.get("faturapaoacucar", {}).get("dia_vencimento", 6)
 
 
 # =============================================================================
@@ -222,8 +244,8 @@ def parse_c6_carbon_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
     if m:
         ref_year = int(m.group(1))
         ref_month = int(m.group(2))
-        # C6 Carbon vencimento is always day 05 of the fatura month
-        result["data_vencimento"] = safe_date(ref_year, ref_month, 5)
+        # C6 Carbon vencimento — day from config
+        result["data_vencimento"] = safe_date(ref_year, ref_month, _VENC_CARBON)
 
     # Read CSV
     raw_text = csv_path.read_text(encoding="utf-8-sig")
@@ -1160,8 +1182,8 @@ def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         m = re.search(r'(\d{4})(\d{2})', filename)
         if m:
             ref_year, ref_month = int(m.group(1)), int(m.group(2))
-            # Fatura Itaú PdA typically due on day 6
-            data_vencimento = f"{ref_year}-{ref_month:02d}-06"
+            # Fatura Itaú PdA — day from config
+            data_vencimento = f"{ref_year}-{ref_month:02d}-{_VENC_PDA:02d}"
 
     result = {
         "banco": "Itaú",

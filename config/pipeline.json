@@ -1,0 +1,56 @@
+{
+  "_comment": "Parâmetros operacionais do pipeline: LLM, limites de arquivo, reconciliação e regras de roteamento.",
+  "_ultima_atualizacao": "2026-04-09",
+
+  "llm": {
+    "model": "claude-sonnet-4-20250514",
+    "max_tokens": 500,
+    "confidence_threshold": 0.7
+  },
+
+  "file_limits": {
+    "preview_max_chars": 2000,
+    "preview_max_rows": 20,
+    "min_pdf_bytes": 1024,
+    "min_xls_bytes": 40000,
+    "min_csv_bytes": 500
+  },
+
+  "period_regex": {
+    "period": "(\\d{6})(?:_(\\d{6}))?",
+    "year_fallback": "(20\\d{2})"
+  },
+
+  "reconciliation": {
+    "skip_types": [
+      "investimentosposicao",
+      "carteirarendafixa",
+      "cdbdetalhes",
+      "cdbresumo",
+      "faturaaluguel",
+      "informerendimentos",
+      "irpf"
+    ],
+    "skip_files": [
+      "baseline_patrimonial-1.5_consolidated.json",
+      "dados_imoveis-2_extract.json"
+    ],
+    "tipo_canonical": {
+      "extratoconta": "extratoconta",
+      "extratocontapj": "extratocontapj",
+      "extratocontapersonnalite": "extratocontapersonnalite",
+      "extratopoupanca": "extratopoupanca",
+      "extratocontaglobal": "extratocontaglobal",
+      "extratocontaglobalusd": "extratocontaglobalusd",
+      "extratocontaglobaleur": "extratocontaglobaleur",
+      "faturacarbon": "faturacarbon",
+      "faturaunique": "faturaunique",
+      "faturapaoacucar": "faturapaoacucar"
+    },
+    "tolerances": {
+      "saldo_diff": 0.01,
+      "temporal_gap_days": 2,
+      "baseline_irpf_diff": 1.0
+    }
+  }
+}

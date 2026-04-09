@@ -1,5 +1,7 @@
 {
-  "_comment": "Mapeamento de bancos e tipos de conta — fonte única para e0_audit.py e outros scripts.",
+  "_comment": "Configurações de instituições financeiras, padrões de documentos, layouts de extração e mapeamentos.",
+  "_ultima_atualizacao": "2026-04-09",
+
   "banco_canonical": {
     "bankofamerica": "bank of america",
     "btgpactual": "btg pactual",
@@ -12,8 +14,10 @@
     "wise": "wise",
     "binance": "binance",
     "receitafederal": "receita federal",
-    "quintoandar": "quintoandar"
+    "quintoandar": "quintoandar",
+    "einstein": "einstein"
   },
+
   "tipo_aliases": {
     "extratoconta": ["extratoconta", "extrato conta"],
     "extratopoupanca": ["extratopoupanca", "extrato poupanca"],
@@ -38,5 +42,136 @@
     "irpfrecibomariana": ["irpfrecibomariana", "irpf recibo"],
     "informerendimentosaluguel": ["informerendimentosaluguel", "informe rendimentos"],
     "informerendimentosaluguelmariana": ["informerendimentosaluguelmariana", "informe rendimentos"]
+  },
+
+  "institution_patterns": [
+    {"regex": "c6|carbon|c6bank", "canonical": "c6bank"},
+    {"regex": "itau|itaú|personnalite|paoacucar", "canonical": "itau"},
+    {"regex": "santander|unique", "canonical": "santander"},
+    {"regex": "bradesco", "canonical": "bradesco"},
+    {"regex": "btg|btgpactual", "canonical": "btgpactual"},
+    {"regex": "rico|xp", "canonical": "rico"},
+    {"regex": "picpay", "canonical": "picpay"},
+    {"regex": "wise|transferwise", "canonical": "wise"},
+    {"regex": "bofa|bankofamerica|bank.of.america", "canonical": "bankofamerica"},
+    {"regex": "quintoandar|quinto.andar", "canonical": "quintoandar"},
+    {"regex": "binance", "canonical": "binance"},
+    {"regex": "receita|rfb|irpf", "canonical": "receitafederal"},
+    {"regex": "einstein|sociedade.beneficente", "canonical": "einstein"}
+  ],
+
+  "doc_type_patterns": [
+    {"regex": "irpf.*declara[cç]", "type": "irpfdeclaracao", "group": "income_tax_br"},
+    {"regex": "irpf.*recibo|recibo.*irpf", "type": "irpfrecibo", "group": "income_tax_br"},
+    {"regex": "informe.*rendimento.*aluguel", "type": "informerendimentosaluguel", "group": "income_tax_br"},
+    {"regex": "informe.*rendimento", "type": "informerendimentos", "group": "income_tax_br"},
+    {"regex": "dados?.?im[oó]ve", "type": "dados_imoveis", "group": "real_estate"},
+    {"regex": "dados?.?ve[ií]culo|vehicles|carros", "type": "dados_veiculos", "group": "vehicles"},
+    {"regex": "curriculo|resume|cv(?!\\d)", "type": "curriculo", "group": "members"},
+    {"regex": "holerite|contracheque|folha.?pagamento", "type": "holerite", "group": "members"},
+    {"regex": "\\brg\\b|registro.?geral|identidade", "type": "rg", "group": "members"},
+    {"regex": "\\bcpf\\b|pessoa.?f[ií]sica", "type": "cpf", "group": "members"},
+    {"regex": "passaporte|passport", "type": "passaporte", "group": "members"},
+    {"regex": "visto\\b|visa\\b", "type": "visto", "group": "members"},
+    {"regex": "certid[aã]o.*nascimento", "type": "certidao_nascimento", "group": "members"},
+    {"regex": "certid[aã]o.*casamento", "type": "certidao_casamento", "group": "members"},
+    {"regex": "\\bssn\\b|social.?security", "type": "ssn", "group": "members"},
+    {"regex": "driver|carteira.?motorista", "type": "drivers_license", "group": "members"},
+    {"regex": "green.?card|resident", "type": "green_card", "group": "members"},
+    {"regex": "(?:extrato.*)?personnalite", "type": "extratocontapersonnalite", "group": "financial_statements"},
+    {"regex": "extrato.*pj|pj.*extrato", "type": "extratocontapj", "group": "financial_statements"},
+    {"regex": "extrato.*global.*usd|usd.*global", "type": "extratocontaglobalusd", "group": "financial_statements"},
+    {"regex": "extrato.*global.*eur|eur.*global", "type": "extratocontaglobaleur", "group": "financial_statements"},
+    {"regex": "extrato.*poupan[cç]a|caderneta|savings", "type": "extratopoupanca", "group": "financial_statements"},
+    {"regex": "extrato.*conta.*brl|extratocontabrl", "type": "extratocontabrl", "group": "financial_statements"},
+    {"regex": "extrato.*conta.*usd|extratocontausd", "type": "extratocontausd", "group": "financial_statements"},
+    {"regex": "extrato.*conta.*eur|extratocontaeur", "type": "extratocontaeur", "group": "financial_statements"},
+    {"regex": "extrato|lan[cç]amento|statement", "type": "extratoconta", "group": "financial_statements"},
+    {"regex": "fatura.*carbon", "type": "faturacarbon", "group": "financial_statements"},
+    {"regex": "fatura.*unique", "type": "faturaunique", "group": "financial_statements"},
+    {"regex": "fatura.*p[aã]o.?a[cç][uú]car", "type": "faturapaoacucar", "group": "financial_statements"},
+    {"regex": "fatura.*aluguel.*calixto", "type": "faturaaluguelcalixto", "group": "financial_statements"},
+    {"regex": "fatura.*aluguel.*major.?freire", "type": "faturaaluguelmajorfreire", "group": "financial_statements"},
+    {"regex": "fatura.*aluguel", "type": "faturaaluguel", "group": "financial_statements"},
+    {"regex": "fatura", "type": "fatura", "group": "financial_statements"},
+    {"regex": "posi[cç][aã]o|carteira.*invest", "type": "investimentosposicao", "group": "financial_statements"},
+    {"regex": "carteira.*renda.?fixa", "type": "carteirarendafixa", "group": "financial_statements"},
+    {"regex": "cdbdetalhesdi1|cdb.*detalhe.*di.?1", "type": "cdbdetalhesdi1", "group": "financial_statements"},
+    {"regex": "cdbdetalhesdi2|cdb.*detalhe.*di.?2", "type": "cdbdetalhesdi2", "group": "financial_statements"},
+    {"regex": "cdbdetalhesprog|cdb.*detalhe.*prog", "type": "cdbdetalhesprog", "group": "financial_statements"},
+    {"regex": "cdbmetaservas|cdb.*meta.*servas", "type": "cdbmetaservas", "group": "financial_statements"},
+    {"regex": "cdbdi|cdb.*\\bdi\\b", "type": "cdbdi", "group": "financial_statements"},
+    {"regex": "renda.?fixa|cdb.*detalhe", "type": "cdbdetalhes", "group": "financial_statements"},
+    {"regex": "cdb.*resumo|resumo.*cdb", "type": "cdbresumo", "group": "financial_statements"},
+    {"regex": "cdb", "type": "cdb", "group": "financial_statements"}
+  ],
+
+  "fatura_patterns": {
+    "faturacarbon": "c6bank_faturacarbon_(\\d{6})",
+    "faturaunique": "santander_faturaunique_(\\d{6})",
+    "faturapaoacucar": "itau_faturapaoacucar_(\\d{6})",
+    "faturaaluguel": "quintoandar_faturaaluguel\\w*_(\\d{6})"
+  },
+
+  "cartoes": {
+    "faturacarbon": {"banco": "C6 Bank", "dia_vencimento": 5},
+    "faturapaoacucar": {"banco": "Itaú", "dia_vencimento": 6}
+  },
+
+  "layouts": {
+    "itau_xls": {
+      "_comment": "Layout para XLS Itaú (conta corrente, personnalite, PJ)",
+      "header": {
+        "titular_row": 2, "titular_col": 1,
+        "agencia_row": 3, "agencia_col": 1,
+        "conta_row": 4, "conta_col": 1
+      },
+      "data_start_row": 10,
+      "columns": {
+        "data": 0,
+        "descricao": 1,
+        "valor": 3,
+        "saldo": 4
+      }
+    },
+    "santander_xls": {
+      "_comment": "Layout para XLS Santander (conta corrente)",
+      "header": {
+        "titular_row": 2, "titular_col": 0,
+        "conta_row": 2, "conta_col": 4,
+        "periodo_row": 4, "periodo_col": 4
+      },
+      "data_start_row": 6,
+      "columns": {
+        "data": 0,
+        "descricao": 1,
+        "credito": 4,
+        "debito": 5,
+        "saldo": 6
+      }
+    },
+    "c6_csv": {
+      "_comment": "Layout para CSV C6 Bank (Global, Conta, PJ)",
+      "min_columns": 5,
+      "global_format": {
+        "valor": 3,
+        "descricao": 2,
+        "tipo": 1
+      },
+      "conta_pj_format": {
+        "valor": 4,
+        "descricao": 3,
+        "tipo": 2
+      },
+      "saldo_regex": "Saldo do dia\\s+(\\d{2}/\\d{2}/\\d{2,4})"
+    }
+  },
+
+  "pj_sources": ["arvo", "pj_nao_identificado", "arbitralis", "barte", "brandlovers", "cnry_canary", "learntofly"],
+  "non_pj_sources": ["quintoandar"],
+
+  "category_labels": {
+    "pj": "PJ",
+    "non_pj": "CLT + Alugueis"
   }
 }

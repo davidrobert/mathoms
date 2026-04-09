@@ -1,14 +1,1 @@
-{
-  "banco": "Santander",
-  "tipo": "cdbdetalhes",
-  "periodo": {
-    "inicio": null,
-    "fim": "2026-04-30"
-  },
-  "composicao": [],
-  "saldo_atual": null,
-  "moeda": "BRL",
-  "source_file": "santander_cdbdi_202604-0_original.xls",
-  "requires_llm_fallback": true,
-  "note": "XLS file - may be HTML disguised as XLS"
-}
+{}
