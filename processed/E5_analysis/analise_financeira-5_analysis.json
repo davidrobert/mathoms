@@ -2,76 +2,76 @@
   "periodo_dados": "2023-01 a 2026-04",
   "data_analise": "2026-04-09",
   "patrimonio": {
-    "bruto": 1602734.9,
-    "dividas": 0.0,
-    "liquido": 1602734.9,
-    "residencia": 0.0,
-    "imoveis_investimento": 0.0,
+    "bruto": 4269738.6,
+    "dividas": 234792.61,
+    "liquido": 4034945.99,
+    "residencia": 996821.46,
+    "imoveis_investimento": 1442706.24,
     "investimentos_david": 1227350.34,
     "investimentos_mariana": 375384.56,
     "caixa_moeda_estrangeira": 0.0,
-    "investivel": 1602734.9,
-    "veiculos": 0.0,
+    "investivel": 3045441.14,
+    "veiculos": 227476.0,
     "composicao": [
+      {
+        "categoria": "Imóveis Investimento",
+        "valor": 1442706.24,
+        "pct": 33.79
+      },
       {
         "categoria": "Investimentos David",
         "valor": 1227350.34,
-        "pct": 76.58
+        "pct": 28.75
+      },
+      {
+        "categoria": "Residência",
+        "valor": 996821.46,
+        "pct": 23.35
       },
       {
         "categoria": "Investimentos Mariana",
         "valor": 375384.56,
-        "pct": 23.42
-      },
-      {
-        "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 5.820766091346741e-11,
-        "pct": 0.0
-      },
-      {
-        "categoria": "Residência",
-        "valor": 0.0,
-        "pct": 0.0
-      },
-      {
-        "categoria": "Imóveis Investimento",
-        "valor": 0.0,
-        "pct": 0.0
+        "pct": 8.79
       },
       {
         "categoria": "Veículos",
+        "valor": 227476.0,
+        "pct": 5.33
+      },
+      {
+        "categoria": "Caixa e Moeda Estrangeira",
         "valor": 0.0,
         "pct": 0.0
       }
     ],
     "tabela_categorias": [
       {
+        "categoria": "Imóveis Investimento",
+        "valor": 1442706.24,
+        "pct": 33.79
+      },
+      {
         "categoria": "Investimentos David",
         "valor": 1227350.34,
-        "pct": 76.58
+        "pct": 28.75
+      },
+      {
+        "categoria": "Residência",
+        "valor": 996821.46,
+        "pct": 23.35
       },
       {
         "categoria": "Investimentos Mariana",
         "valor": 375384.56,
-        "pct": 23.42
-      },
-      {
-        "categoria": "Caixa e Moeda Estrangeira",
-        "valor": 5.820766091346741e-11,
-        "pct": 0.0
-      },
-      {
-        "categoria": "Residência",
-        "valor": 0.0,
-        "pct": 0.0
-      },
-      {
-        "categoria": "Imóveis Investimento",
-        "valor": 0.0,
-        "pct": 0.0
+        "pct": 8.79
       },
       {
         "categoria": "Veículos",
+        "valor": 227476.0,
+        "pct": 5.33
+      },
+      {
+        "categoria": "Caixa e Moeda Estrangeira",
         "valor": 0.0,
         "pct": 0.0
       }
@@ -82,12 +82,12 @@
     "if_meta": 7200000.0,
     "if_trs": 5.0,
     "if_trs_monthly_value": 30000.0,
-    "if_pct": 22.26,
-    "if_gap": 5597265.1,
-    "prazo_anos_realista": 11.7,
-    "david_idade_if": 55,
-    "ano_if": 2037,
-    "renda_passiva_estimada_4pct": 5342.45
+    "if_pct": 42.3,
+    "if_gap": 4154558.86,
+    "prazo_anos_realista": 7.9,
+    "david_idade_if": 51,
+    "ano_if": 2033,
+    "renda_passiva_estimada_4pct": 10151.47
   },
   "fluxo_caixa": {
     "receita_total": 2656928.89,
@@ -1712,15 +1712,15 @@
   "ratios": {
     "taxa_poupanca_recorrente_pct": 32.08,
     "taxa_poupanca_total_pct": 52.2,
-    "taxa_endividamento_pct": 0.0,
-    "cobertura_despesas_meses": 28.88,
+    "taxa_endividamento_pct": 5.5,
+    "cobertura_despesas_meses": 54.88,
     "rentabilidade_pct": "N/D",
     "aliquota_efetiva_ir_pct": "N/D",
     "janela_referencia": "2025-05 a 2026-04",
     "janela_n_meses": 12
   },
   "score": {
-    "valor": 6.4,
+    "valor": 7.6,
     "max": 10,
     "classificacao": "Bom",
     "componentes": [
@@ -1732,27 +1732,27 @@
       },
       {
         "nome": "Cobertura Despesas (meses)",
-        "valor": 28.88,
+        "valor": 54.88,
         "peso": 1.5,
         "nota": 10.0
       },
       {
         "nome": "Taxa Endividamento (inv)",
-        "valor": 0.0,
+        "valor": 5.5,
         "peso": 1.5,
-        "nota": 10.0
+        "nota": 9.9
       },
       {
         "nome": "Progresso IF",
-        "valor": 22.26,
+        "valor": 42.3,
         "peso": 2.0,
-        "nota": 2.3
+        "nota": 5.0
       },
       {
         "nome": "Diversificação",
-        "valor": 3,
+        "valor": 5,
         "peso": 1.0,
-        "nota": 4.0
+        "nota": 8.0
       }
     ]
   },
@@ -1800,9 +1800,16 @@
     ]
   },
   "endividamento": {
-    "total_dividas": 0.0,
-    "percentual_patrimonio": 0.0,
-    "dividas": [],
+    "total_dividas": 234792.61,
+    "percentual_patrimonio": 5.5,
+    "dividas": [
+      {
+        "descricao": "Financiamento imobiliário (David)",
+        "saldo_devedor": 234792.61,
+        "parcela_mensal": 0,
+        "taxa_juros": "N/D"
+      }
+    ],
     "detalhe": "Financiamento imobiliário (Itaú)"
   },
   "previdencia_pgbl": {
@@ -1839,8 +1846,24 @@
     }
   ],
   "investimentos": {
-    "tabela_classes": [],
-    "total": 0.0
+    "tabela_classes": [
+      {
+        "categoria": "Imóveis Investimento",
+        "valor": 1442706.24,
+        "pct": 64.08
+      },
+      {
+        "categoria": "Outros",
+        "valor": 760208.64,
+        "pct": 33.76
+      },
+      {
+        "categoria": "Contas Bancárias",
+        "valor": 48633.94,
+        "pct": 2.16
+      }
+    ],
+    "total": 2251548.82
   },
   "equilibrio_cerbasi": {
     "pct_presente": 94.6,
@@ -2223,7 +2246,7 @@
     "40": "pendente"
   },
   "alertas": [
-    "Score financeiro: 6.4/10 (Bom)",
+    "Score financeiro: 7.6/10 (Bom)",
     "Rentabilidade: N/D"
   ],
   "consumo_consciente": {

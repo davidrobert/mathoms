@@ -1262,9 +1262,17 @@ Campos obrigatórios: `pipeline_stage`, `data_processamento`, `declarations` (ar
 - `processed/E2_extracts/baseline_patrimonial-1.5_consolidated.json`
 - `logs/divergences.md` (se houver divergências)
 
+7. **Consolidar chaves para E5 (determinístico):**
+   - Executar: `python scripts/e15_consolidate.py`
+   - Este script enriquece o baseline com chaves consolidadas (`imoveis_consolidados`, `veiculos_consolidados`, `investimentos_consolidados`, `dividas`, `patrimonio_por_ano`) derivadas das `declarations` e `imoveis_xlsx`/`veiculos_xlsx`
+   - Faz cross-match IRPF ↔ XLSX por keywords, número de apartamento e data de compra (±7 dias)
+   - Imóveis XLSX sem match IRPF são adicionados com flag `fonte: xlsx_only`
+   - DEVE ser executado após a etapa LLM e antes de E3/E5
+
 **Validation:**
 - Baseline consolidado deve conter: membros identificados, ano-base da declaração, bens totais, renda total
 - Baseline DEVE passar validação do JSON Schema em `config/schemas/baseline_patrimonial.schema.json`
+- Baseline DEVE conter chaves consolidadas (executar `python scripts/e15_consolidate.py` se ausentes)
 - Todos os imóveis devem ter cruzamento IRPF <→ XLSX
 - Divergências devem ser documentadas e resolvidas antes de E2
 
@@ -2800,7 +2808,8 @@ python scripts/e0_audit.py
 | Move data/+members/ → inbox/ | Determinístico | ~5s |
 | E0-unlock + E0-audit | Determinístico | ~10s |
 | E0 (roteamento de todos os arquivos) | LLM | Variável (depende de nº de arquivos no inbox) |
-| E1 + E1.5 | LLM | ~5–10 min |
+| E1 + E1.5 (LLM) | LLM | ~5–10 min |
+| E1.5 consolidate (`python scripts/e15_consolidate.py`) | Determinístico | ~1s |
 | E2-extratos-llm (investimentos, CDBs, IRPF) | LLM | ~3–5 min |
 | E2-faturas + E2-extratos + E3→E6 | Determinístico | ~60s |
 | E5.N + E6 render (pré-review) | LLM + Determinístico | ~5 min |
