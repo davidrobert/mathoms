@@ -357,11 +357,11 @@ def build_kpi_section(e4: dict, manual_text: str) -> dict:
         "{{KPI_PATRIMONIO_INVESTIVEL}}": fmt_brl(p["investivel"]),
         "{{KPI_PATRIMONIO_INVESTIVEL_SUB}}": (f"{(p['investivel']/p['bruto']*100):.1f}% do bruto".replace(".", ",") if p['bruto'] > 0 else "N/D"),
 
-        "{{KPI_RENDA_MENSAL}}": fmt_brl(f["receita_recorrente_mensal"]),
-        "{{KPI_RENDA_MENSAL_SUB}}": "Recorrente (exclui one-time)",
+        "{{KPI_RENDA_MENSAL}}": fmt_brl(f.get("janela_12m", f).get("receita_recorrente_mensal", f["receita_recorrente_mensal"])),
+        "{{KPI_RENDA_MENSAL_SUB}}": f"Recorrente · média últ. {f.get('janela_12m', {}).get('n_meses', '?')} meses",
 
         "{{KPI_TAXA_POUPANCA}}": fmt_pct(r["taxa_poupanca_recorrente_pct"]),
-        "{{KPI_TAXA_POUPANCA_SUB}}": f"Meta projetada: {fmt_pct(r['taxa_poupanca_total_pct'])}",
+        "{{KPI_TAXA_POUPANCA_SUB}}": f"Recorrente últ. {r.get('janela_n_meses', 12)} meses · Total: {fmt_pct(r['taxa_poupanca_total_pct'])}",
 
         "{{KPI_META_IF}}": fmt_brl_m(g["if_meta"]),
         "{{KPI_META_IF_SUB}}": f"TRS {fmt_pct_int(g['if_trs'])} · {fmt_pct_int(g['if_pct'])} atingido",
@@ -399,16 +399,36 @@ def build_footer(sp_time: str, periodo: str, versao: str) -> str:
 # STEP 3: E6.2 — PERFIL FAMILIA
 # ============================================================================
 
+def _truncate_perfil_paragraphs(html: str, max_chars: int = 300) -> str:
+    """Defensively truncate each <p> block to max_chars plain-text characters."""
+    import re as _re
+
+    def _truncate_match(m):
+        inner = m.group(1)
+        plain = _re.sub(r"<[^>]+>", "", inner).strip()
+        if len(plain) <= max_chars:
+            return m.group(0)
+        # Truncate plain text, then rebuild <p>
+        truncated = plain[:max_chars - 1] + "…"
+        print(f"  [WARN] Perfil paragraph truncated: {len(plain)} → {max_chars} chars")
+        return f"<p>{truncated}</p>"
+
+    return _re.sub(r"<p>(.*?)</p>", _truncate_match, html, flags=_re.DOTALL)
+
+
 def build_perfil_section(e4: dict) -> dict:
-    """Build perfil familia section"""
+    """Build perfil familia section (with defensive 300-char truncation per paragraph)."""
     print("[E6.2] Building Perfil Família section...")
 
     narrativas = e4.get("narrativas", {})
     perfil = narrativas.get("perfil_familia", {})
 
+    left = _truncate_perfil_paragraphs(perfil.get("left", "<p>Dados pendentes</p>"))
+    right = _truncate_perfil_paragraphs(perfil.get("right", "<p>Dados pendentes</p>"))
+
     return {
-        "{{PERFIL_FAMILIA_LEFT}}": perfil.get("left", "<p>Dados pendentes</p>"),
-        "{{PERFIL_FAMILIA_RIGHT}}": perfil.get("right", "<p>Dados pendentes</p>"),
+        "{{PERFIL_FAMILIA_LEFT}}": left,
+        "{{PERFIL_FAMILIA_RIGHT}}": right,
     }
 
 # ============================================================================
@@ -1550,6 +1570,15 @@ def build_appendix_b() -> str:
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('  <p><em>Fórmula: Score = Σ(nota × peso) / Σ(peso), arredondado a 1 decimal.</em></p>')
+
+    # Nota metodológica sobre janela de 12 meses
+    janela_ref = e4.get("ratios", e4.get("racios", {})).get("janela_referencia", "últimos 12 meses")
+    janela_n = e4.get("ratios", e4.get("racios", {})).get("janela_n_meses", 12)
+    h.append(f'  <p><strong>Nota metodológica:</strong> As taxas de poupança e a despesa mensal média '
+             f'são calculadas sobre os <strong>últimos {janela_n} meses ({janela_ref})</strong>, '
+             f'não sobre o período completo dos dados. Isso evita distorções causadas por receitas '
+             f'extraordinárias concentradas em períodos específicos (ex.: rescisões, vendas de ativos) '
+             f'que inflam o acumulado total sem representar a capacidade recorrente de poupança.</p>')
     h.append('</div>')
 
     # Fontes de dados

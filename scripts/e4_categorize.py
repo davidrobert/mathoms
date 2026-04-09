@@ -328,6 +328,134 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
     return result
 
 
+def normalize_baseline(data: Dict) -> Dict:
+    """Normalize baseline from E1.5 v2 format to canonical schema format.
+
+    The E1.5 LLM may produce either v1 (original) or v2 key names.
+    This function ensures canonical keys exist so that downstream code
+    (E4, E5, schema validation) can rely on a single naming convention.
+
+    Key mappings (v2 → v1 canonical):
+      membros_familia        → membros
+      data_consolidacao      → data_processamento
+      resumo_patrimonial     → patrimonio_por_ano
+      bens_imoveis_consolidados → imoveis_consolidados
+      investimentos_financeiros_consolidados → investimentos_consolidados
+      dividas_consolidados   → dividas
+
+    Also:
+      - Adds pipeline_stage if missing
+      - Adds descricao to imoveis entries from endereco/dados_completos
+      - Converts investimentos from dict to list format
+    """
+    fixes = []
+
+    # pipeline_stage
+    if "pipeline_stage" not in data:
+        data["pipeline_stage"] = "E1.5_Baseline_Patrimonial"
+        fixes.append("pipeline_stage added")
+
+    # data_processamento ← data_consolidacao
+    if "data_processamento" not in data:
+        if "data_consolidacao" in data:
+            data["data_processamento"] = data["data_consolidacao"][:10]  # ISO date only
+            fixes.append("data_processamento ← data_consolidacao")
+        else:
+            from datetime import date
+            data["data_processamento"] = date.today().isoformat()
+            fixes.append("data_processamento set to today")
+
+    # membros: membros_familia contains simple identifiers (nome, cpf, tipo)
+    # but NOT bens/imoveis data. Do NOT alias to "membros" because
+    # _resolve_members in E5 would pick it up and find empty bens dicts,
+    # bypassing _build_members_from_consolidated which correctly handles
+    # the consolidated format. Keep membros_familia as-is; schema does not
+    # require "membros".
+    if "membros" not in data and "membros_familia" in data:
+        # Extract just names for schema compliance (identification only)
+        data["membros"] = [
+            m.get("nome", m) if isinstance(m, dict) else m
+            for m in data["membros_familia"]
+        ]
+        fixes.append("membros ← membros_familia (names only, not for _resolve_members)")
+
+    # patrimonio_por_ano ← resumo_patrimonial
+    if "patrimonio_por_ano" not in data and "resumo_patrimonial" in data:
+        resumo = data["resumo_patrimonial"]
+        pat_ano = {}
+        for key, val in resumo.items():
+            # Keys like "31_12_2024" → "2024"
+            import re
+            m = re.search(r'(\d{4})$', key)
+            if m and isinstance(val, dict):
+                ano = m.group(1)
+                pat_ano[ano] = {
+                    "total_bens": val.get("total", val.get("bens_imoveis", 0)),
+                    "total_dividas": val.get("dividas", 0),
+                }
+        if pat_ano:
+            data["patrimonio_por_ano"] = pat_ano
+            fixes.append(f"patrimonio_por_ano ← resumo_patrimonial ({len(pat_ano)} anos)")
+
+    # imoveis_consolidados ← bens_imoveis_consolidados
+    if "imoveis_consolidados" not in data and "bens_imoveis_consolidados" in data:
+        imoveis = data["bens_imoveis_consolidados"]
+        # Enrich: add descricao from endereco/dados_completos if missing
+        for im in imoveis:
+            if not im.get("descricao"):
+                dc = im.get("dados_completos", {})
+                desc = dc.get("imovel", "") if isinstance(dc, dict) else ""
+                if not desc:
+                    desc = im.get("endereco", "")
+                im["descricao"] = desc
+            # Add proprietario from proprietarios list for schema compat
+            if "proprietario" not in im and "proprietarios" in im:
+                props = im["proprietarios"]
+                im["proprietario"] = ", ".join(props) if isinstance(props, list) else str(props)
+        data["imoveis_consolidados"] = imoveis
+        fixes.append(f"imoveis_consolidados ← bens_imoveis_consolidados ({len(imoveis)} imóveis, descricao enriched)")
+
+    # investimentos_consolidados ← investimentos_financeiros_consolidados
+    if "investimentos_consolidados" not in data and "investimentos_financeiros_consolidados" in data:
+        inv_raw = data["investimentos_financeiros_consolidados"]
+        if isinstance(inv_raw, dict):
+            # v2 dict format {member_year: {category: value}} → list format
+            inv_list = []
+            for member_key, categories in inv_raw.items():
+                if not isinstance(categories, dict):
+                    continue
+                # Infer proprietario from key (e.g., "david_2024" → "David")
+                prop = member_key.split("_")[0].title()
+                for cat_name, cat_value in categories.items():
+                    if cat_name in ("total",):
+                        continue
+                    inv_list.append({
+                        "descricao": cat_name.replace("_", " ").title(),
+                        "tipo": cat_name,
+                        "proprietario": prop,
+                        "valores_31_12": {member_key.split("_")[-1]: cat_value},
+                    })
+            data["investimentos_consolidados"] = inv_list
+            fixes.append(f"investimentos_consolidados ← investimentos_financeiros_consolidados (dict→list, {len(inv_list)} entries)")
+        else:
+            data["investimentos_consolidados"] = inv_raw
+            fixes.append("investimentos_consolidados ← investimentos_financeiros_consolidados (list)")
+
+    # dividas ← dividas_consolidados
+    if "dividas" not in data and "dividas_consolidados" in data:
+        data["dividas"] = data["dividas_consolidados"]
+        fixes.append("dividas ← dividas_consolidados")
+
+    if fixes:
+        print(f"[E4.0] Baseline normalized ({len(fixes)} fixes):")
+        for fix in fixes:
+            print(f"         • {fix}")
+    else:
+        print("[E4.0] Baseline already in canonical format")
+
+    return data
+
+
 def validate_baseline_schema(data: Dict, schema_path: Path) -> bool:
     """Validate baseline data against JSON schema (best-effort).
     Returns True if valid or if jsonschema is not installed.
@@ -352,11 +480,16 @@ def validate_baseline_schema(data: Dict, schema_path: Path) -> bool:
 
 
 def load_patrimonio(baseline_path: Path) -> Dict:
-    """Load baseline patrimonio consolidated file."""
+    """Load baseline patrimonio consolidated file.
+
+    Normalizes v2 key names to canonical schema format before validation.
+    """
     if baseline_path.exists():
         try:
             with open(baseline_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
+            # Normalize v2 → canonical format
+            data = normalize_baseline(data)
             # Validate schema if available
             schema_path = baseline_path.parent.parent.parent / "config" / "schemas" / "baseline_patrimonial.schema.json"
             validate_baseline_schema(data, schema_path)

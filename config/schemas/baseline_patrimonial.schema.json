@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Baseline Patrimonial E1.5",
-  "description": "Schema para o baseline_patrimonial-1.5_consolidated.json. Aceita dois formatos: (A) consolidado com patrimonio_por_ano e listas consolidadas, ou (B) declarations com bens_direitos por grupo IRPF.",
+  "description": "Schema para o baseline_patrimonial-1.5_consolidated.json. Aceita formato original (v1) e formato E1.5 v2 (key aliases). A normalização em E4 converte v2 → v1 canonical antes da validação.",
   "type": "object",
   "required": ["pipeline_stage", "data_processamento"],
   "properties": {
@@ -90,6 +90,8 @@
         "properties": {
           "descricao": {"type": "string"},
           "proprietario": {"type": "string"},
+          "endereco": {"type": "string"},
+          "tipo": {"type": "string"},
           "valores_31_12": {"type": "object"}
         }
       }

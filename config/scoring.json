@@ -1,0 +1,97 @@
+{
+  "_comment": "Parâmetros de scoring financeiro — ranges, pesos, classificações. Usado por e5_analyze.py.",
+  "_ultima_atualizacao": "2026-04-08",
+
+  "score_componentes": {
+    "_comment": "Cada componente tem range [min, max] para interpolação linear 0→10, e um peso. 'invertido' inverte a escala (valor alto = nota baixa).",
+    "taxa_poupanca_recorrente": {
+      "nome_display": "Taxa Poupança Recorrente",
+      "range_min": 0,
+      "range_max": 50,
+      "peso": 2.0,
+      "invertido": false
+    },
+    "cobertura_despesas": {
+      "nome_display": "Cobertura Despesas (meses)",
+      "range_min": 3,
+      "range_max": 24,
+      "peso": 1.5,
+      "invertido": false
+    },
+    "taxa_endividamento": {
+      "nome_display": "Taxa Endividamento (inv)",
+      "range_min": 5,
+      "range_max": 50,
+      "peso": 1.5,
+      "invertido": true
+    },
+    "progresso_if": {
+      "nome_display": "Progresso IF",
+      "range_min": 5,
+      "range_max": 80,
+      "peso": 2.0,
+      "invertido": false
+    },
+    "diversificacao": {
+      "nome_display": "Diversificação",
+      "range_min": 1,
+      "range_max": 6,
+      "peso": 1.0,
+      "invertido": false
+    }
+  },
+
+  "score_classificacao": [
+    {"min": 0,  "max": 2,  "label": "Crítico"},
+    {"min": 2,  "max": 4,  "label": "Atenção"},
+    {"min": 4,  "max": 6,  "label": "Regular"},
+    {"min": 6,  "max": 8,  "label": "Bom"},
+    {"min": 8,  "max": 10, "label": "Excelente"}
+  ],
+
+  "reserva_emergencia": {
+    "niveis_meses": [6, 12],
+    "classificacao": [
+      {"minimo_meses": 12, "label": "Excelente"},
+      {"minimo_meses": 6,  "label": "Adequada"},
+      {"minimo_meses": 0,  "label": "Insuficiente"}
+    ]
+  },
+
+  "cerbasi": {
+    "_comment": "Equilíbrio Cerbasi: presente (gastos correntes) vs futuro (investimento no futuro).",
+    "categorias_presente": [
+      "moradia", "alimentacao", "transporte", "saude", "lazer",
+      "servicos_domesticos", "pets", "cuidados_pessoais",
+      "assinaturas", "vestuario", "compras_online"
+    ],
+    "categorias_futuro": [
+      "educacao", "investimentos", "previdencia", "financeiro",
+      "reserva_desejos", "poupanca", "aportes"
+    ],
+    "classificacao": [
+      {"minimo_futuro_pct": 30, "label": "Investidor"},
+      {"minimo_futuro_pct": 20, "label": "Equilibrado"},
+      {"minimo_futuro_pct": 10, "label": "Endividado consciente"},
+      {"minimo_futuro_pct": 0,  "label": "Gastador"}
+    ]
+  },
+
+  "thresholds_alertas": {
+    "_comment": "Thresholds para pontos urgentes e diagnóstico comportamental.",
+    "reserva_minima_meses": 6,
+    "endividamento_maximo_pct": 20,
+    "poupanca_referencia_pct": 25,
+    "receita_one_time_alerta_pct": 30,
+    "consumo_consciente_min": 2000,
+    "pontos_fortes_taxa_poupanca_min_pct": 30
+  },
+
+  "asset_class_keywords": {
+    "_comment": "Keywords para classificação de investimentos por classe de ativo no E5.",
+    "Ações": ["acoes", "ações", "itsa", "brkm", "petr", "etf", "ivvb"],
+    "Renda Fixa": ["renda fixa", "cdb", "rdb", "lci", "lca", "tesouro", "debenture", "certificado de deposito"],
+    "Cripto": ["cripto", "bitcoin", "ethereum", "binance"],
+    "Contas Bancárias": ["banco", "picpay", "nubank", "saldo", "conta"]
+  }
+}

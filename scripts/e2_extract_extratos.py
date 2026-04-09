@@ -140,6 +140,40 @@ def parse_brl(text: str) -> Optional[float]:
         return None
 
 
+def parse_usd(text: str) -> Optional[float]:
+    """Parse US currency string to float. '2,605.00' → 2605.0, '-$150.25' → -150.25.
+
+    US format: comma = thousands separator, period = decimal.
+    This is the inverse of parse_brl (Brazilian format).
+    Used for Bank of America and other US bank statements.
+    """
+    if not text:
+        return None
+    text = str(text).strip()
+    # Remove currency symbols
+    for sym in ("US$", "USD", "$"):
+        text = text.replace(sym, "")
+    text = text.strip()
+    if not text or text == "-":
+        return None
+
+    negative = False
+    if text.startswith("(") and text.endswith(")"):
+        negative = True
+        text = text[1:-1].strip()
+    elif text.startswith("-") or text.startswith("(-"):
+        negative = True
+        text = text.lstrip("(-").rstrip(")").strip()
+
+    # US format: 2,605.00 → remove commas, period stays as decimal
+    text = text.replace(",", "")
+    try:
+        val = float(text)
+        return -val if negative else val
+    except ValueError:
+        return None
+
+
 def safe_date(year: int, month: int, day: int) -> str:
     """Return valid ISO date string, adjusting day if necessary."""
     year = max(1900, min(2100, year))
@@ -2191,7 +2225,8 @@ def parse_wise(pdf_path: Path, filename: str) -> Dict[str, Any]:
             # Derive saldo_inicial
             if result["saldo_final"] is not None and result["transacoes"]:
                 total = sum(t["valor"] for t in result["transacoes"] if t["valor"])
-                result["saldo_inicial"] = round(result["saldo_final"] - total, 2)
+                saldo_ini = round(result["saldo_final"] - total, 2)
+                result["saldo_inicial"] = saldo_ini + 0.0  # avoid -0.0
 
     except Exception as e:
         log("ERROR", f"  Falha ao processar {filename}: {e}")
@@ -2247,16 +2282,16 @@ def parse_bankofamerica(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     result["periodo"]["inicio"] = safe_date(int(pm.group(3)), m1, int(pm.group(2)))
                     result["periodo"]["fim"] = safe_date(int(pm.group(6)), m2, int(pm.group(5)))
 
-            # Beginning/Ending balance
+            # Beginning/Ending balance — US format ($2,605.00)
             bb = re.search(r'Beginning balance.*?\$([\d.,]+)', all_text)
             eb = re.search(r'Ending balance.*?\$([\d.,]+)', all_text)
             if bb:
-                result["saldo_inicial"] = parse_brl(bb.group(1))
+                result["saldo_inicial"] = parse_usd(bb.group(1))
             if eb:
-                result["saldo_final"] = parse_brl(eb.group(1))
+                result["saldo_final"] = parse_usd(eb.group(1))
 
             # Transaction lines: "MM/DD/YY DESCRIPTION AMOUNT"
-            # BoA uses US date format
+            # BoA uses US date format and US number format
             tx_pattern = re.compile(
                 r'^(\d{2}/\d{2}/\d{2})\s+(.+?)\s+(-?[\d.,]+)\s*$',
                 re.MULTILINE
@@ -2268,7 +2303,7 @@ def parse_bankofamerica(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 result["transacoes"].append({
                     "data": iso_date,
                     "descricao": m.group(2).strip(),
-                    "valor": parse_brl(m.group(3)),
+                    "valor": parse_usd(m.group(3)),
                 })
 
             # Note: BoA may legitimately have 0 transactions (dormant account)

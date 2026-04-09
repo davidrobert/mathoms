@@ -30,6 +30,10 @@ E5_ANALYSIS_DIR = PROCESSED_DIR / "E5_analysis"
 LIFE_PLAN_GOALS = PROJECT_DIR / "life_plan" / "life_plan_goals.md"
 CONFIG_DEFINITIONS = PROJECT_DIR / "config" / "definitions.md"
 CONFIG_TAREFAS = PROJECT_DIR / "config" / "tarefas.md"
+CONFIG_GOALS = PROJECT_DIR / "config" / "goals.json"
+CONFIG_SCORING = PROJECT_DIR / "config" / "scoring.json"
+CONFIG_FISCAL = PROJECT_DIR / "config" / "parametros_fiscais.json"
+CONFIG_FAMILY = PROJECT_DIR / "config" / "family_members.json"
 
 # Input files
 FILE_RECEITAS = E4_UNIFIED_DIR / "receitas-4_unified.json"
@@ -77,6 +81,44 @@ def _load_one_time_config():
     )
 
 ONE_TIME_INCOME_KEYWORDS, ONE_TIME_INCOME_CATEGORIES = _load_one_time_config()
+
+
+def _load_json_config(path: Path) -> Dict[str, Any]:
+    """Load a JSON config file, return empty dict if missing."""
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"  ⚠️  Error loading {path.name}: {e}")
+    return {}
+
+
+def _load_goals_config() -> Dict[str, Any]:
+    """Load goals.json — strategic parameters (aportes, IF, thresholds)."""
+    return _load_json_config(CONFIG_GOALS)
+
+
+def _load_scoring_config() -> Dict[str, Any]:
+    """Load scoring.json — score ranges, weights, classifications."""
+    return _load_json_config(CONFIG_SCORING)
+
+
+def _load_fiscal_config() -> Dict[str, Any]:
+    """Load parametros_fiscais.json — IRPF table, lucro presumido, PGBL."""
+    return _load_json_config(CONFIG_FISCAL)
+
+
+def _load_family_config() -> Dict[str, Any]:
+    """Load family_members.json — family data, residência keyword."""
+    return _load_json_config(CONFIG_FAMILY)
+
+
+# Preload configs at module level for use by all functions
+GOALS_CONFIG = _load_goals_config()
+SCORING_CONFIG = _load_scoring_config()
+FISCAL_CONFIG = _load_fiscal_config()
+FAMILY_CONFIG = _load_family_config()
 
 
 # ============================================================================
@@ -129,38 +171,48 @@ def load_json(path: Path, required: bool = False) -> Dict[str, Any]:
 
 
 def extract_if_target_from_life_plan() -> float:
-    """Extract IF meta (R$ 7,200,000) from life_plan_goals.md."""
-    if not LIFE_PLAN_GOALS.exists():
-        print(f"  ⚠️  {LIFE_PLAN_GOALS.name} not found, using default R$7,200,000")
-        return 7200000.0
+    """Extract IF meta from goals.json → life_plan_goals.md → hardcoded fallback."""
+    # Priority 1: goals.json (structured, canonical)
+    goals_if = GOALS_CONFIG.get("independencia_financeira", {}).get("if_meta")
+    if goals_if is not None:
+        return safe_float(goals_if)
 
-    try:
-        content = LIFE_PLAN_GOALS.read_text(encoding="utf-8")
-        # Search for "Número da Independência" or "meta"
-        match = re.search(r'\*\*R\$\s*([\d.,]+)', content)
-        if match:
-            val_str = match.group(1).replace(".", "").replace(",", ".")
-            return safe_float(val_str)
-    except Exception as e:
-        print(f"  ⚠️  Error reading life_plan_goals.md: {e}")
+    # Priority 2: life_plan_goals.md (regex)
+    if LIFE_PLAN_GOALS.exists():
+        try:
+            content = LIFE_PLAN_GOALS.read_text(encoding="utf-8")
+            match = re.search(r'\*\*R\$\s*([\d.,]+)', content)
+            if match:
+                val_str = match.group(1).replace(".", "").replace(",", ".")
+                return safe_float(val_str)
+        except Exception as e:
+            print(f"  ⚠️  Error reading life_plan_goals.md: {e}")
 
+    # Priority 3: hardcoded fallback with warning
+    print("  ⚠️  IF meta not found in goals.json or life_plan_goals.md, using fallback R$7,200,000")
     return 7200000.0
 
 
 def extract_if_trs() -> float:
-    """Extract TRS from life_plan_goals.md, default 5.0%."""
-    if not LIFE_PLAN_GOALS.exists():
-        return 5.0
+    """Extract TRS from goals.json → life_plan_goals.md → hardcoded fallback."""
+    # Priority 1: goals.json
+    goals_trs = GOALS_CONFIG.get("independencia_financeira", {}).get("trs_pct")
+    if goals_trs is not None:
+        return safe_float(goals_trs)
 
-    try:
-        content = LIFE_PLAN_GOALS.read_text(encoding="utf-8")
-        match = re.search(r'TRS.*?(\d+(?:[.,]\d+)?)\s*%', content, re.IGNORECASE)
-        if match:
-            val_str = match.group(1).replace(",", ".")
-            return safe_float(val_str)
-    except Exception:
-        pass
+    # Priority 2: life_plan_goals.md (regex)
+    if LIFE_PLAN_GOALS.exists():
+        try:
+            content = LIFE_PLAN_GOALS.read_text(encoding="utf-8")
+            match = re.search(r'TRS.*?(\d+(?:[.,]\d+)?)\s*%', content, re.IGNORECASE)
+            if match:
+                val_str = match.group(1).replace(",", ".")
+                return safe_float(val_str)
+        except Exception:
+            pass
 
+    # Priority 3: hardcoded fallback with warning
+    print("  ⚠️  TRS not found in goals.json or life_plan_goals.md, using fallback 5.0%")
     return 5.0
 
 
@@ -435,8 +487,17 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
     david_imoveis, mariana_imoveis = [], []
     for im in imoveis_list:
         val = _resolve_valor(im, ano_ref)
+        # Build a rich description from available fields so downstream
+        # classification (e.g. _imovel_desc) can identify the property.
+        descricao = im.get("descricao", "")
+        if not descricao:
+            # E1.5 v2 consolidated format uses endereco / dados_completos
+            dc = im.get("dados_completos", {})
+            descricao = dc.get("imovel", "") or im.get("endereco", "") or ""
         entry = {
-            "descricao": im.get("descricao", ""),
+            "descricao": descricao,
+            "endereco": im.get("endereco", ""),
+            "tipo": im.get("tipo", ""),
             "valor_31_12_ano_base": val,
         }
         if _is_mariana_exclusive(im):
@@ -579,8 +640,19 @@ def _imovel_valor(imovel: Dict[str, Any]) -> float:
 
 
 def _imovel_desc(imovel: Dict[str, Any]) -> str:
-    """Get imovel description, trying multiple field names."""
-    return (imovel.get("description") or imovel.get("descricao") or "").lower()
+    """Get imovel description, trying multiple field names.
+
+    Checks descricao, description, endereco, and dados_completos.imovel
+    so that property classification works regardless of data format.
+    """
+    desc = imovel.get("description") or imovel.get("descricao") or ""
+    if not desc:
+        desc = imovel.get("endereco") or ""
+    if not desc:
+        dc = imovel.get("dados_completos", {})
+        if isinstance(dc, dict):
+            desc = dc.get("imovel", "") or ""
+    return desc.lower()
 
 
 def _veiculo_valor(veiculo: Dict[str, Any]) -> float:
@@ -622,12 +694,15 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
     david_bens = _get_bens(david)
     mariana_bens = _get_bens(mariana)
 
-    # Residência: Tasso da Silveira (David's primary residence)
+    # Residência principal (keyword de family_members.json)
+    _residencia_kw = FAMILY_CONFIG.get("membros", {}).get("david", {}).get(
+        "residencia_principal_keyword", "tasso da silveira"
+    ).lower()
     residencia = 0.0
     imoveis_investimento = 0.0
 
     for imovel in david_bens.get("imoveis", []):
-        if "tasso da silveira" in _imovel_desc(imovel):
+        if _residencia_kw in _imovel_desc(imovel):
             residencia = _imovel_valor(imovel)
         else:
             imoveis_investimento += _imovel_valor(imovel)
@@ -781,13 +856,11 @@ def analyze_goals(patrimonio: Dict[str, Any]) -> Dict[str, Any]:
     # Prazo realista (juros compostos: PV crescendo + aportes mensais)
     # Resolve para n em: PV*(1+r)^n + PMT*((1+r)^n - 1)/r = FV
     # onde PV=investivel, PMT=aporte mensal, FV=if_meta, r=taxa mensal
-    # Try to extract from life_plan or config with fallback and warning
-    aporte_mensal = 20000
-    retorno_real_anual = 0.06  # 6% a.a. real (cenário realista)
-
-    # TODO: Try to load aporte_mensal and retorno_real_anual from config/tarefas.md or life_plan
-    # For now, use hardcoded defaults with warning
-    print(f"  [WARN] aporte_mensal={aporte_mensal} e retorno_real_anual={retorno_real_anual} — values hardcoded, should load from config/tarefas.md")
+    # Load from goals.json with hardcoded fallback
+    _if_cfg = GOALS_CONFIG.get("independencia_financeira", {})
+    _aportes_cfg = GOALS_CONFIG.get("aportes", {})
+    aporte_mensal = safe_float(_aportes_cfg.get("meta_aporte_mensal", 20000))
+    retorno_real_anual = safe_float(_if_cfg.get("retorno_real_anual_pct", 6.0)) / 100.0
 
     r = (1 + retorno_real_anual) ** (1 / 12) - 1  # taxa mensal equivalente
 
@@ -814,7 +887,9 @@ def analyze_goals(patrimonio: Dict[str, Any]) -> Dict[str, Any]:
     ano_if = TODAY.year + anos_restantes
 
     # Current passive income estimate (4% rule on investível)
-    renda_passiva_current = investivel * 0.04 / 12  # monthly
+    # Taxa de retirada segura (regra dos 4%) — carregada de goals.json
+    taxa_retirada = safe_float(_if_cfg.get("taxa_retirada_segura_pct", 4.0)) / 100.0
+    renda_passiva_current = investivel * taxa_retirada / 12  # monthly
 
     return {
         "if_meta": round(if_meta, 2),
@@ -934,6 +1009,57 @@ def analyze_fluxo_caixa(
                 "pct": round((val / total_receita_por_fonte) * 100, 2) if total_receita_por_fonte > 0 else 0,
             })
 
+    # =====================================================================
+    # 12-MONTH ROLLING WINDOW — used for ratios / score / taxa poupança
+    # =====================================================================
+    # The full-period totals (40 months) distort savings rate because
+    # one-time income (Kiwify, vendas) inflates total but not recorrente,
+    # making recorrente < despesa → negative savings rate.
+    # A 12-month window gives a more accurate snapshot of current habits.
+    # =====================================================================
+    n_janela = min(12, len(meses))
+    meses_12m = meses[-n_janela:] if n_janela > 0 else []
+    janela_12m_inicio = meses_12m[0] if meses_12m else ""
+    janela_12m_fim = meses_12m[-1] if meses_12m else ""
+
+    # One-time origin detection for fluxo_mensal display names.
+    # Category-based origins (receita_resgate etc.) are already handled,
+    # but fluxo_mensal uses user-friendly names, so we match both ways.
+    ONE_TIME_ORIGIN_NAMES = {"Resgates", "Restituições", "Venda de Ativo"}
+
+    receita_12m_total = 0.0
+    receita_12m_recorrente = 0.0
+    despesa_12m_total = 0.0
+
+    for mes in meses_12m:
+        # Receitas: split recorrente vs one-time per origin
+        mes_rec = receita_por_mes.get(mes, {})
+        for origem, valor in mes_rec.items():
+            if origem == "_total":
+                continue
+            v = safe_float(valor)
+            receita_12m_total += v
+            if origem in ONE_TIME_ORIGIN_NAMES or is_one_time_income(origem.lower()):
+                pass  # one-time — excluded from recorrente
+            else:
+                receita_12m_recorrente += v
+
+        # Despesas: full total
+        mes_desp = despesa_por_mes.get(mes, {})
+        despesa_12m_total += safe_float(mes_desp.get("_total", 0))
+
+    receita_12m_one_time = receita_12m_total - receita_12m_recorrente
+    receita_12m_recorrente_mensal = receita_12m_recorrente / n_janela if n_janela > 0 else 0
+    despesa_12m_mensal_media = despesa_12m_total / n_janela if n_janela > 0 else 0
+    fluxo_12m_liquido = receita_12m_total - despesa_12m_total
+
+    print(f"  [E5.3] Janela 12m ({janela_12m_inicio} a {janela_12m_fim}, {n_janela} meses):")
+    print(f"         Receita total 12m: R$ {receita_12m_total:,.2f}")
+    print(f"         Receita recorrente 12m: R$ {receita_12m_recorrente:,.2f}")
+    print(f"         Receita one-time 12m: R$ {receita_12m_one_time:,.2f}")
+    print(f"         Despesa total 12m: R$ {despesa_12m_total:,.2f}")
+    print(f"         Fluxo líquido 12m: R$ {fluxo_12m_liquido:,.2f}")
+
     return {
         "receita_total": round(receita_total, 2),
         "receita_recorrente": round(receita_recorrente, 2),
@@ -952,6 +1078,18 @@ def analyze_fluxo_caixa(
             "totais_receita": [round(v, 2) for v in totais_receita],
             "totais_despesa": [round(v, 2) for v in totais_despesa],
         },
+        # 12-month rolling window — preferred for ratios / score
+        "janela_12m": {
+            "periodo": f"{janela_12m_inicio} a {janela_12m_fim}",
+            "n_meses": n_janela,
+            "receita_total": round(receita_12m_total, 2),
+            "receita_recorrente": round(receita_12m_recorrente, 2),
+            "receita_one_time": round(receita_12m_one_time, 2),
+            "receita_recorrente_mensal": round(receita_12m_recorrente_mensal, 2),
+            "despesa_total": round(despesa_12m_total, 2),
+            "despesa_mensal_media": round(despesa_12m_mensal_media, 2),
+            "fluxo_liquido": round(fluxo_12m_liquido, 2),
+        },
     }
 
 
@@ -964,37 +1102,57 @@ def analyze_ratios(
     patrimonio: Dict[str, Any],
     goals: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """Compute financial ratios."""
+    """Compute financial ratios.
+
+    Uses the 12-month rolling window (fluxo.janela_12m) for savings rate
+    and expense metrics, since the full-period accumulation distorts ratios
+    when the data spans multiple years with varying income composition.
+    """
     print("[E5.4] Computing ratios...")
 
-    receita_recorrente = fluxo["receita_recorrente"]
-    despesa_total = fluxo["despesa_total"]
-    receita_total = fluxo["receita_total"]
-    despesa_mensal_media = fluxo["despesa_mensal_media"]
+    # Prefer 12-month rolling window for ratios (more representative)
+    j12m = fluxo.get("janela_12m", {})
+    if j12m:
+        receita_recorrente = j12m["receita_recorrente"]
+        despesa_total = j12m["despesa_total"]
+        receita_total = j12m["receita_total"]
+        despesa_mensal_media = j12m["despesa_mensal_media"]
+        janela_periodo = j12m["periodo"]
+        janela_n_meses = j12m["n_meses"]
+        print(f"  [E5.4] Usando janela 12m ({janela_periodo}, {janela_n_meses} meses) para rácios")
+    else:
+        receita_recorrente = fluxo["receita_recorrente"]
+        despesa_total = fluxo["despesa_total"]
+        receita_total = fluxo["receita_total"]
+        despesa_mensal_media = fluxo["despesa_mensal_media"]
+        janela_periodo = "período completo"
+        janela_n_meses = 0
+        print("  [WARN] janela_12m não disponível, usando período completo para rácios")
 
-    # Taxa poupança recorrente
+    # Taxa poupança recorrente (12m)
     taxa_poupanca_recorrente_pct = 0.0
     if receita_recorrente > 0:
         taxa_poupanca_recorrente_pct = ((receita_recorrente - despesa_total) / receita_recorrente) * 100
 
-    # Taxa poupança total
+    # Taxa poupança total (12m)
     taxa_poupanca_total_pct = 0.0
     if receita_total > 0:
         taxa_poupanca_total_pct = ((receita_total - despesa_total) / receita_total) * 100
 
-    # Taxa endividamento
+    print(f"  [E5.4] Taxa poupança recorrente (12m): {taxa_poupanca_recorrente_pct:.1f}%")
+    print(f"  [E5.4] Taxa poupança total (12m): {taxa_poupanca_total_pct:.1f}%")
+
+    # Taxa endividamento (patrimonio — not windowed)
     taxa_endividamento_pct = 0.0
     if patrimonio["bruto"] > 0:
         taxa_endividamento_pct = (patrimonio["dividas"] / patrimonio["bruto"]) * 100
 
-    # Cobertura despesas (meses)
+    # Cobertura despesas (meses) — uses 12m expense average
     cobertura_despesas_meses = 0.0
     if despesa_mensal_media > 0:
         cobertura_despesas_meses = patrimonio["investivel"] / despesa_mensal_media
 
     # Rentabilidade: N/D (cannot compute without real performance data)
-    # TODO: Attempt to load rentabilidade from investimentos tracking data before defaulting to N/D
-    # For now, mark as pending data integration rather than false urgent action
     rentabilidade_pct = "N/D"
 
     # Aliquota efetiva IR (placeholder)
@@ -1007,6 +1165,8 @@ def analyze_ratios(
         "cobertura_despesas_meses": round(cobertura_despesas_meses, 2),
         "rentabilidade_pct": rentabilidade_pct,
         "aliquota_efetiva_ir_pct": aliquota_efetiva_ir_pct,
+        "janela_referencia": janela_periodo,
+        "janela_n_meses": janela_n_meses,
     }
 
 
@@ -1020,54 +1180,76 @@ def calculate_score(
     goals: Dict[str, Any],
     fluxo: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """Calculate financial score (0-10 scale)."""
+    """Calculate financial score (0-10 scale). Parameters loaded from config/scoring.json."""
     print("[E5.5] Computing score...")
 
-    # Component 1: Taxa poupança recorrente (0% → 0, 50% → 10)
+    score_cfg = SCORING_CONFIG.get("score_componentes", {})
+
+    # Helper: get range/weight from config with fallback
+    def _get_comp(key, default_min, default_max, default_peso):
+        c = score_cfg.get(key, {})
+        return (
+            safe_float(c.get("range_min", default_min)),
+            safe_float(c.get("range_max", default_max)),
+            safe_float(c.get("peso", default_peso)),
+            c.get("nome_display", key),
+            c.get("invertido", False),
+        )
+
+    # Load component configs
+    tp_min, tp_max, tp_peso, tp_nome, _ = _get_comp("taxa_poupanca_recorrente", 0, 50, 2.0)
+    co_min, co_max, co_peso, co_nome, _ = _get_comp("cobertura_despesas", 3, 24, 1.5)
+    en_min, en_max, en_peso, en_nome, en_inv = _get_comp("taxa_endividamento", 5, 50, 1.5)
+    if_min, if_max, if_peso, if_nome, _ = _get_comp("progresso_if", 5, 80, 2.0)
+    di_min, di_max, di_peso, di_nome, _ = _get_comp("diversificacao", 1, 6, 1.0)
+
+    # Compute component scores
     taxa_poup = safe_float(ratios["taxa_poupanca_recorrente_pct"])
-    score_poup = linear_interpolate(taxa_poup, 0, 50)
+    score_poup = linear_interpolate(taxa_poup, tp_min, tp_max)
 
-    # Component 2: Cobertura despesas (3m → 0, 24m → 10)
     cobertura = safe_float(ratios["cobertura_despesas_meses"])
-    score_cobertura = linear_interpolate(cobertura, 3, 24)
+    score_cobertura = linear_interpolate(cobertura, co_min, co_max)
 
-    # Component 3: Taxa endividamento (INVERTED: 50% → 0, 5% → 10)
     endiv = safe_float(ratios["taxa_endividamento_pct"])
-    score_endiv = linear_interpolate(endiv, 50, 5)  # inverted range
+    # Inverted: high value → low score (swap min/max)
+    score_endiv = linear_interpolate(endiv, en_max, en_min) if en_inv else linear_interpolate(endiv, en_min, en_max)
 
-    # Component 4: Progresso IF (5% → 0, 80% → 10)
     if_pct = safe_float(goals["if_pct"])
-    score_if = linear_interpolate(if_pct, 5, 80)
+    score_if = linear_interpolate(if_pct, if_min, if_max)
 
-    # Component 5: Diversificação (# categorias com saldo > 0)
     composicao = patrimonio.get("composicao", [])
     num_categorias = len([c for c in composicao if c["valor"] > 0])
-    score_diversif = linear_interpolate(num_categorias, 1, 6)
+    score_diversif = linear_interpolate(num_categorias, di_min, di_max)
 
     # Weighted average
     componentes = [
-        {"nome": "Taxa Poupança Recorrente", "valor": round(taxa_poup, 2), "peso": 2.0, "nota": round(score_poup, 1)},
-        {"nome": "Cobertura Despesas (meses)", "valor": round(cobertura, 2), "peso": 1.5, "nota": round(score_cobertura, 1)},
-        {"nome": "Taxa Endividamento (inv)", "valor": round(endiv, 2), "peso": 1.5, "nota": round(score_endiv, 1)},
-        {"nome": "Progresso IF", "valor": round(if_pct, 2), "peso": 2.0, "nota": round(score_if, 1)},
-        {"nome": "Diversificação", "valor": num_categorias, "peso": 1.0, "nota": round(score_diversif, 1)},
+        {"nome": tp_nome, "valor": round(taxa_poup, 2), "peso": tp_peso, "nota": round(score_poup, 1)},
+        {"nome": co_nome, "valor": round(cobertura, 2), "peso": co_peso, "nota": round(score_cobertura, 1)},
+        {"nome": en_nome, "valor": round(endiv, 2), "peso": en_peso, "nota": round(score_endiv, 1)},
+        {"nome": if_nome, "valor": round(if_pct, 2), "peso": if_peso, "nota": round(score_if, 1)},
+        {"nome": di_nome, "valor": num_categorias, "peso": di_peso, "nota": round(score_diversif, 1)},
     ]
 
     total_peso = sum(c["peso"] for c in componentes)
     valor_score = sum(c["nota"] * c["peso"] for c in componentes) / total_peso if total_peso > 0 else 0
     valor_score = round(valor_score, 1)
 
-    # Classification
-    if valor_score < 2:
-        classificacao = "Crítico"
-    elif valor_score < 4:
-        classificacao = "Atenção"
-    elif valor_score < 6:
-        classificacao = "Regular"
-    elif valor_score < 8:
-        classificacao = "Bom"
-    else:
-        classificacao = "Excelente"
+    # Classification from config/scoring.json
+    classificacao = "N/D"
+    for faixa in SCORING_CONFIG.get("score_classificacao", []):
+        if valor_score >= safe_float(faixa.get("min", 0)) and valor_score < safe_float(faixa.get("max", 10)):
+            classificacao = faixa["label"]
+    # Handle edge: score == 10 → last band
+    if valor_score >= 10:
+        bands = SCORING_CONFIG.get("score_classificacao", [])
+        classificacao = bands[-1]["label"] if bands else "Excelente"
+    # Fallback if config missing
+    if classificacao == "N/D":
+        if valor_score < 2: classificacao = "Crítico"
+        elif valor_score < 4: classificacao = "Atenção"
+        elif valor_score < 6: classificacao = "Regular"
+        elif valor_score < 8: classificacao = "Bom"
+        else: classificacao = "Excelente"
 
     return {
         "valor": valor_score,
@@ -1118,8 +1300,18 @@ def analyze_reserva_emergencia(
     despesa_mensal = fluxo["despesa_mensal_media"]
     investivel = patrimonio["investivel"]
 
-    nivel_6_meses = despesa_mensal * 6
-    nivel_12_meses = despesa_mensal * 12
+    # Níveis de reserva carregados de scoring.json
+    _reserva_cfg = SCORING_CONFIG.get("reserva_emergencia", {})
+    _niveis = _reserva_cfg.get("niveis_meses", [6, 12])
+    _classif = _reserva_cfg.get("classificacao", [
+        {"minimo_meses": 12, "label": "Excelente"},
+        {"minimo_meses": 6,  "label": "Adequada"},
+        {"minimo_meses": 0,  "label": "Insuficiente"},
+    ])
+
+    niveis_calc = {}
+    for n in _niveis:
+        niveis_calc[n] = despesa_mensal * n
 
     # Composition of liquid reserves
     # E6 card expects: total_liquido and cobertura_meses inside composicao_liquida
@@ -1138,23 +1330,24 @@ def analyze_reserva_emergencia(
         "cobertura_meses": round(cobertura_meses, 1),
     }
 
-    # Avaliação
-    if total_liquida >= nivel_12_meses:
-        avaliacao = "Excelente"
-    elif total_liquida >= nivel_6_meses:
-        avaliacao = "Adequada"
-    else:
-        avaliacao = "Insuficiente"
+    # Avaliação dinâmica de scoring.json (faixas ordenadas por minimo_meses desc)
+    avaliacao = "Insuficiente"
+    for faixa in sorted(_classif, key=lambda x: x.get("minimo_meses", 0), reverse=True):
+        if cobertura_meses >= faixa.get("minimo_meses", 0):
+            avaliacao = faixa["label"]
+            break
 
+    # Build niveis list and dict for output (backward-compatible keys)
+    nivel_keys = sorted(niveis_calc.keys())
     return {
         "despesas_mensais": round(despesa_mensal, 2),
-        "nivel_6_meses": round(nivel_6_meses, 2),
-        "nivel_12_meses": round(nivel_12_meses, 2),
+        "nivel_6_meses": round(niveis_calc.get(6, despesa_mensal * 6), 2),
+        "nivel_12_meses": round(niveis_calc.get(12, despesa_mensal * 12), 2),
         "composicao_liquida": {k: round(v, 2) for k, v in composicao_liquida.items()},
         "total_liquida": round(total_liquida, 2),
         "cobertura_meses": round(cobertura_meses, 1),
         "avaliacao_liquidity": avaliacao,
-        "niveis": ["6 meses", "12 meses"],
+        "niveis": [f"{n} meses" for n in nivel_keys],
     }
 
 
@@ -1165,6 +1358,13 @@ def analyze_investimentos_classes(baseline: Dict[str, Any]) -> Dict[str, Any]:
     david, mariana = _resolve_members(baseline)
     david_bens = _get_bens(david)
     mariana_bens = _get_bens(mariana)
+
+    # Asset class keywords loaded from scoring.json
+    _acl_kw = SCORING_CONFIG.get("asset_class_keywords", {})
+    _kw_acoes = _acl_kw.get("Ações", ["acoes", "ações", "itsa", "brkm", "petr", "etf", "ivvb"])
+    _kw_rf = _acl_kw.get("Renda Fixa", ["renda fixa", "cdb", "rdb", "lci", "lca", "tesouro", "debenture", "certificado de deposito"])
+    _kw_cripto = _acl_kw.get("Cripto", ["cripto", "bitcoin", "ethereum", "binance"])
+    _kw_contas = _acl_kw.get("Contas Bancárias", ["banco", "picpay", "nubank", "saldo", "conta"])
 
     classes = {
         "Renda Fixa": 0.0,
@@ -1177,13 +1377,13 @@ def analyze_investimentos_classes(baseline: Dict[str, Any]) -> Dict[str, Any]:
 
     def classify_investment(tipo_str: str, valor: float):
         tipo_lower = tipo_str.lower()
-        if any(kw in tipo_lower for kw in ["acoes", "ações", "itsa", "brkm", "petr", "etf", "ivvb"]):
+        if any(kw in tipo_lower for kw in _kw_acoes):
             classes["Ações"] += valor
-        elif any(kw in tipo_lower for kw in ["renda fixa", "cdb", "rdb", "lci", "lca", "tesouro", "debenture", "certificado de deposito"]):
+        elif any(kw in tipo_lower for kw in _kw_rf):
             classes["Renda Fixa"] += valor
-        elif any(kw in tipo_lower for kw in ["cripto", "bitcoin", "ethereum", "binance"]):
+        elif any(kw in tipo_lower for kw in _kw_cripto):
             classes["Cripto"] += valor
-        elif any(kw in tipo_lower for kw in ["banco", "picpay", "nubank", "saldo", "conta"]):
+        elif any(kw in tipo_lower for kw in _kw_contas):
             classes["Contas Bancárias"] += valor
         else:
             classes["Outros"] += valor
@@ -1212,9 +1412,12 @@ def analyze_investimentos_classes(baseline: Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(contas_m, (int, float)):
         classes["Contas Bancárias"] += safe_float(contas_m)
 
-    # Add imoveis investimento
+    # Add imoveis investimento (excluindo residência principal)
+    _residencia_kw = FAMILY_CONFIG.get("membros", {}).get("david", {}).get(
+        "residencia_principal_keyword", "tasso da silveira"
+    ).lower()
     for imovel in david_bens.get("imoveis", []):
-        if "tasso da silveira" not in _imovel_desc(imovel):
+        if _residencia_kw not in _imovel_desc(imovel):
             classes["Imóveis Investimento"] += _imovel_valor(imovel)
     for imovel in mariana_bens.get("imoveis", []):
         classes["Imóveis Investimento"] += _imovel_valor(imovel)
@@ -1275,8 +1478,15 @@ def analyze_previdencia_pgbl(fluxo: Dict[str, Any]) -> Dict[str, Any]:
 
     receita_pj_anual = receita_pj * (12 / num_months) if num_months > 0 else 0
 
-    # Lucro presumido: 32% do faturamento como base tributável
-    renda_tributavel = receita_pj_anual * 0.32
+    # Parâmetros fiscais carregados de config/parametros_fiscais.json
+    _lp_cfg = FISCAL_CONFIG.get("lucro_presumido", {})
+    _pgbl_cfg = FISCAL_CONFIG.get("pgbl", {})
+    _irpf_cfg = FISCAL_CONFIG.get("irpf_tabela_progressiva", {})
+
+    lucro_presumido_pct = safe_float(_lp_cfg.get("percentual_servicos_pct", 32.0)) / 100.0
+    pgbl_limite_pct = safe_float(_pgbl_cfg.get("limite_deducao_pct", 12.0)) / 100.0
+
+    renda_tributavel = receita_pj_anual * lucro_presumido_pct
 
     if renda_tributavel <= 0:
         return {
@@ -1289,23 +1499,28 @@ def analyze_previdencia_pgbl(fluxo: Dict[str, Any]) -> Dict[str, Any]:
             "economia_ir_anual": 0,
         }
 
-    limite_pgbl = renda_tributavel * 0.12
+    limite_pgbl = renda_tributavel * pgbl_limite_pct
 
-    # Alíquota marginal IRPF (tabela progressiva simplificada)
-    if renda_tributavel > 55976.16 * 1:  # acima da faixa de 27.5%
-        aliquota_marginal = 27.5
-    elif renda_tributavel > 33919.80 * 1:
-        aliquota_marginal = 22.5
-    elif renda_tributavel > 24556.65 * 1:
-        aliquota_marginal = 15.0
-    else:
-        aliquota_marginal = 7.5
+    # Alíquota marginal IRPF (tabela progressiva de parametros_fiscais.json)
+    faixas_irpf = _irpf_cfg.get("faixas", [])
+    aliquota_marginal = 7.5  # fallback
+    if faixas_irpf:
+        # Faixas ordenadas por limite_anual ascending, última tem limite null
+        aliquota_marginal = safe_float(faixas_irpf[0].get("aliquota_pct", 7.5))
+        for faixa in faixas_irpf:
+            limite = faixa.get("limite_anual")
+            if limite is not None and renda_tributavel > safe_float(limite):
+                aliquota_marginal = safe_float(faixa.get("aliquota_pct", aliquota_marginal))
+            elif limite is None:
+                # Última faixa (sem teto)
+                aliquota_marginal = safe_float(faixa.get("aliquota_pct", aliquota_marginal))
 
     economia_ir = limite_pgbl * (aliquota_marginal / 100)
 
+    lp_pct_display = int(lucro_presumido_pct * 100)
     return {
         "status": "Calculado",
-        "nota": f"Base: receita PJ anualizada R$ {receita_pj_anual:,.0f}, lucro presumido 32%.",
+        "nota": f"Base: receita PJ anualizada R$ {receita_pj_anual:,.0f}, lucro presumido {lp_pct_display}%.",
         "renda_tributavel_anual": round(renda_tributavel, 2),
         "limite_pgbl_anual": round(limite_pgbl, 2),
         "aporte_mensal": round(limite_pgbl / 12, 2),
@@ -1320,8 +1535,10 @@ def analyze_pontos_fortes(score: Dict[str, Any], ratios: Dict[str, Any]) -> List
 
     pontos = []
 
+    _alertas_cfg = SCORING_CONFIG.get("thresholds_alertas", {})
     taxa_poup = safe_float(ratios["taxa_poupanca_recorrente_pct"])
-    if taxa_poup > 30:
+    _poup_forte_min = safe_float(_alertas_cfg.get("pontos_fortes_taxa_poupanca_min_pct", 30))
+    if taxa_poup > _poup_forte_min:
         pontos.append({
             "titulo": "Taxa de Poupança Saudável",
             "descricao": f"Taxa de poupança recorrente de {taxa_poup:.1f}% demonstra controle de gastos e aporte consistente."
@@ -1433,24 +1650,27 @@ def analyze_pontos_urgentes(ratios: Dict[str, Any], reserva: Dict[str, Any], pat
     print("[E5.11] Identifying pontos urgentes...")
 
     urgentes = []
+    _alertas_cfg = SCORING_CONFIG.get("thresholds_alertas", {})
+    _reserva_min = safe_float(_alertas_cfg.get("reserva_minima_meses", 6))
+    _endiv_max = safe_float(_alertas_cfg.get("endividamento_maximo_pct", 20))
 
-    # Check: emergency reserve below 6 months
+    # Check: emergency reserve below minimum
     cobertura = reserva.get("cobertura_meses", 0)
-    if cobertura < 6:
+    if cobertura < _reserva_min:
         urgentes.append({
             "prioridade": "Alta",
             "acao": "Reforçar reserva de emergência",
-            "impacto": f"Cobertura atual de {cobertura:.0f} meses — abaixo do mínimo de 6",
+            "impacto": f"Cobertura atual de {cobertura:.0f} meses — abaixo do mínimo de {_reserva_min:.0f}",
             "prazo": "Imediato",
         })
 
     # Check: high debt ratio
     endiv = safe_float(ratios.get("taxa_endividamento_pct", 0))
-    if endiv > 20:
+    if endiv > _endiv_max:
         urgentes.append({
             "prioridade": "Alta",
             "acao": "Reduzir endividamento",
-            "impacto": f"Taxa de endividamento em {endiv:.1f}% — meta < 20%",
+            "impacto": f"Taxa de endividamento em {endiv:.1f}% — meta < {_endiv_max:.0f}%",
             "prazo": "Próximo trimestre",
         })
 
@@ -1459,7 +1679,7 @@ def analyze_pontos_urgentes(ratios: Dict[str, Any], reserva: Dict[str, Any], pat
         "prioridade": "Alta",
         "acao": "Contratar seguro de vida e invalidez",
         "impacto": "Proteção patrimonial da família — nenhuma apólice identificada",
-        "prazo": "Abr/2026",
+        "prazo": "Imediato",
     })
 
     # Check: rentabilidade not measured
@@ -1468,21 +1688,24 @@ def analyze_pontos_urgentes(ratios: Dict[str, Any], reserva: Dict[str, Any], pat
             "prioridade": "Média",
             "acao": "Consolidar dados de rentabilidade dos investimentos",
             "impacto": "Sem dados de performance, impossível otimizar alocação",
-            "prazo": "T2/2026",
+            "prazo": "Próximo trimestre",
         })
 
     return urgentes
 
 
 def analyze_consumo_consciente(fluxo: Dict[str, Any]) -> Dict[str, Any]:
-    """Analyze top spending items (>= R$2000)."""
+    """Analyze top spending items above threshold from scoring.json."""
     print("[E5.12] Analyzing consumo consciente...")
+
+    _alertas_cfg = SCORING_CONFIG.get("thresholds_alertas", {})
+    _consumo_min = safe_float(_alertas_cfg.get("consumo_consciente_min", 2000))
 
     despesas_por_cat = fluxo["despesas_por_categoria"]
     top_gastos = [
         {"categoria": k, "valor": round(v, 2)}
         for k, v in despesas_por_cat.items()
-        if v >= 2000
+        if v >= _consumo_min
     ]
     top_gastos.sort(key=lambda x: x["valor"], reverse=True)
 
@@ -1497,18 +1720,21 @@ def analyze_diagnostico_comportamental(fluxo: Dict[str, Any], ratios: Dict[str, 
     print("[E5.13] Analyzing comportamento...")
 
     diagnosticos = []
+    _alertas_cfg = SCORING_CONFIG.get("thresholds_alertas", {})
+    _poup_ref = safe_float(_alertas_cfg.get("poupanca_referencia_pct", 25))
+    _one_time_alerta = safe_float(_alertas_cfg.get("receita_one_time_alerta_pct", 30))
 
     taxa_poup = safe_float(ratios.get("taxa_poupanca_recorrente_pct", 0))
-    if taxa_poup > 25:
+    if taxa_poup > _poup_ref:
         diagnosticos.append({
             "padrao": "Disciplina de poupança",
-            "evidencia": f"Taxa de poupança recorrente de {taxa_poup:.1f}% — acima da referência de 25%",
+            "evidencia": f"Taxa de poupança recorrente de {taxa_poup:.1f}% — acima da referência de {_poup_ref:.0f}%",
             "mudanca_sugerida": "Manter e automatizar aportes mensais",
         })
     elif taxa_poup > 0:
         diagnosticos.append({
             "padrao": "Poupança abaixo do ideal",
-            "evidencia": f"Taxa de {taxa_poup:.1f}% — referência mínima: 25%",
+            "evidencia": f"Taxa de {taxa_poup:.1f}% — referência mínima: {_poup_ref:.0f}%",
             "mudanca_sugerida": "Revisar despesas variáveis e aumentar aporte",
         })
 
@@ -1516,7 +1742,7 @@ def analyze_diagnostico_comportamental(fluxo: Dict[str, Any], ratios: Dict[str, 
     receita_total = safe_float(fluxo.get("receita_total", 0))
     if receita_total > 0:
         one_time_pct = safe_float(fluxo.get("receita_one_time", 0)) / receita_total * 100
-        if one_time_pct > 30:
+        if one_time_pct > _one_time_alerta:
             diagnosticos.append({
                 "padrao": "Alta dependência de receita pontual",
                 "evidencia": f"{one_time_pct:.0f}% da receita é não-recorrente (resgates, vendas)",
@@ -1534,18 +1760,22 @@ def analyze_diagnostico_comportamental(fluxo: Dict[str, Any], ratios: Dict[str, 
 
 
 def analyze_equilibrio_cerbasi(fluxo: Dict[str, Any]) -> Dict[str, Any]:
-    """Analyze Cerbasi balance: presente vs futuro spending."""
+    """Analyze Cerbasi balance: presente vs futuro spending. Categories from scoring.json."""
     print("[E5.14] Analyzing equilíbrio Cerbasi...")
 
     despesas = fluxo.get("despesas_por_categoria", {})
 
-    # Categorias "presente" (gastos correntes)
-    cats_presente = {"moradia", "alimentacao", "transporte", "saude", "lazer",
-                     "servicos_domesticos", "pets", "cuidados_pessoais",
-                     "assinaturas", "vestuario", "compras_online"}
-    # Categorias "futuro" (investimento no futuro)
-    cats_futuro = {"educacao", "investimentos", "previdencia", "financeiro",
-                   "reserva_desejos", "poupanca", "aportes"}
+    # Categorias carregadas de scoring.json
+    _cerbasi_cfg = SCORING_CONFIG.get("cerbasi", {})
+    cats_presente = set(_cerbasi_cfg.get("categorias_presente", [
+        "moradia", "alimentacao", "transporte", "saude", "lazer",
+        "servicos_domesticos", "pets", "cuidados_pessoais",
+        "assinaturas", "vestuario", "compras_online"
+    ]))
+    cats_futuro = set(_cerbasi_cfg.get("categorias_futuro", [
+        "educacao", "investimentos", "previdencia", "financeiro",
+        "reserva_desejos", "poupanca", "aportes"
+    ]))
 
     gasto_presente = sum(v for k, v in despesas.items() if k in cats_presente)
     gasto_futuro = sum(v for k, v in despesas.items() if k in cats_futuro)
@@ -1560,15 +1790,18 @@ def analyze_equilibrio_cerbasi(fluxo: Dict[str, Any]) -> Dict[str, Any]:
     pct_presente = round((gasto_presente / gasto_total * 100), 1) if gasto_total > 0 else 0
     pct_futuro = round((gasto_futuro / gasto_total * 100), 1) if gasto_total > 0 else 0
 
-    # Cerbasi classification
-    if pct_futuro >= 30:
-        classificacao = "Investidor"
-    elif pct_futuro >= 20:
-        classificacao = "Equilibrado"
-    elif pct_futuro >= 10:
-        classificacao = "Endividado consciente"
-    else:
-        classificacao = "Gastador"
+    # Cerbasi classification from scoring.json
+    _cerbasi_classif = _cerbasi_cfg.get("classificacao", [
+        {"minimo_futuro_pct": 30, "label": "Investidor"},
+        {"minimo_futuro_pct": 20, "label": "Equilibrado"},
+        {"minimo_futuro_pct": 10, "label": "Endividado consciente"},
+        {"minimo_futuro_pct": 0,  "label": "Gastador"},
+    ])
+    classificacao = "Gastador"
+    for faixa in sorted(_cerbasi_classif, key=lambda x: x.get("minimo_futuro_pct", 0), reverse=True):
+        if pct_futuro >= safe_float(faixa.get("minimo_futuro_pct", 0)):
+            classificacao = faixa["label"]
+            break
 
     return {
         "pct_presente": pct_presente,

@@ -1,0 +1,101 @@
+{
+  "_comment": "Parâmetros estratégicos e metas — fonte para E5.N narrativas. Atualizar a cada ciclo de planejamento.",
+  "_ultima_atualizacao": "2026-04-08",
+  "_fonte": "decisions.md (D02, D09, D15) + planejamento familiar",
+
+  "aportes": {
+    "_ref": "D02",
+    "meta_aporte_mensal": 20000,
+    "distribuicao": {
+      "cofrinhos_itau": 10000,
+      "tesouro_ipca_plus": 5000,
+      "ivvb11": 3000,
+      "wise_usd": 2000
+    }
+  },
+
+  "independencia_financeira": {
+    "_ref": "D15",
+    "if_meta": 7200000.0,
+    "trs_pct": 5.0,
+    "renda_passiva_meta_mensal": 30000,
+    "retorno_real_anual_pct": 6.0,
+    "taxa_retirada_segura_pct": 4.0,
+    "_nota_taxa_retirada": "Regra dos 4% sobre patrimônio investível para estimar renda passiva mensal (investivel * 4% / 12)"
+  },
+
+  "fase_f1f2": {
+    "universidade": "Anderson University, SC",
+    "visto": "F1/F2",
+    "green_card_via": "EB2-NIW",
+    "custo_mensal_estimado": 32400,
+    "custo_viagem_minimo": 20000,
+    "custo_viagem_maximo": 30000,
+    "viagens_anuais_estimadas": 2.5,
+    "estrategia_david": "David manterá contratos PJ brasileiros remotamente",
+    "estrategia_mariana": "Mariana se prepara para NCLEX",
+    "crescimento_salarial_eua_pct": "3-4"
+  },
+
+  "dolarizacao": {
+    "_ref": "D09",
+    "meta_usd": 20000,
+    "aporte_mensal_brl": 2000
+  },
+
+  "seguros": {
+    "vida_term_minimo": 3000000,
+    "vida_term_maximo": 5000000
+  },
+
+  "mariana_eua": {
+    "renda_rn_minima_usd": 4000,
+    "renda_rn_maxima_usd": 7000,
+    "renda_rn_projetada_usd": 5500
+  },
+
+  "tributario": {
+    "das_mensal_estimado": 5000,
+    "contador_mensal": 390,
+    "contador_nome": "AccountTech",
+    "regime_obs": "Simples Nacional Anexo V com fator R favorável",
+    "holding_avaliacao_prazo": "T4/2026"
+  },
+
+  "imoveis": {
+    "yield_potencial_pct_min": 4.0,
+    "yield_potencial_pct_max": 6.0
+  },
+
+  "thresholds": {
+    "imovel_pct_patrimonio_ideal": 50,
+    "equity_pct_alvo_min": 20,
+    "equity_pct_alvo_max": 25
+  },
+
+  "alocacao_alvo": {
+    "renda_fixa_pct": 50,
+    "acoes_pct": 25,
+    "imoveis_reits_pct": 15,
+    "liquidez_usd_pct": 10,
+    "instrumentos_rf": "IPCA+, CDBs",
+    "instrumentos_rv": "IVVB11, SCHP11",
+    "rebalanceamento": "anual"
+  },
+
+  "riscos_prioritarios": [
+    {"nome": "FBAR/FATCA compliance", "prob": "alta", "impacto": "alto"},
+    {"nome": "Estate Tax non-resident", "prob": "média", "impacto": "alto"},
+    {"nome": "Falta de seguro de vida", "prob": "alta", "impacto": "crítico"},
+    {"nome": "Tributação PFIC sobre fundos brasileiros", "prob": "média", "impacto": "médio"},
+    {"nome": "Dupla tributação BR-EUA", "prob": "média", "impacto": "médio"}
+  ],
+
+  "decisoes_prioritarias": [
+    "Aporte mensal conforme D02",
+    "Contratar seguro de vida term",
+    "NCLEX/OET para Mariana",
+    "Consultar CPA expatriado para obrigações EUA",
+    "Advogado sucessório para planejamento de herança em cenário BR-EUA"
+  ]
+}

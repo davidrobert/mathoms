@@ -24,8 +24,12 @@
         "itau_paoacucar": "(?:Titular\\s+)?(DAVID ROBERT CAMARGO DE CAMPOS)"
       },
       "profissao": "CTO da Arvo",
+      "descricao_empresa": "healthtech de auditoria médica com IA",
       "regime": "PJ Simples Nacional (Anexo V)",
-      "formacao": "Ciência da Computação PUC-SP, mestrado IA USP/IME"
+      "formacao": "Ciência da Computação PUC-SP, mestrado IA USP/IME",
+      "carreira_inicio": 2002,
+      "empresas_destaque": ["Elo7", "Loft", "Kiwify"],
+      "residencia_principal_keyword": "tasso da silveira"
     },
     "mariana": {
       "nome_completo": "Mariana Ferreira Campos",
@@ -43,7 +47,10 @@
       "profissao": "Enfermeira no Hospital Israelita Albert Einstein",
       "emprego_inicio": "julho de 2014",
       "regime": "CLT",
-      "formacao": "Enfermagem, especialização Cardiologia/Hemodinâmica UNIFESP, mestrado Enfermagem USP"
+      "formacao": "Enfermagem, especialização Cardiologia/Hemodinâmica UNIFESP, mestrado Enfermagem USP",
+      "especializacao": "Cardiologia e Hemodinâmica (UNIFESP)",
+      "mestrado": "Enfermagem (USP)",
+      "perfil_internacional": "Perfil competitivo para NCLEX nos EUA"
     },
     "theo": {
       "nome_completo": "Theo Ferreira Campos",

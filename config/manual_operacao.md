@@ -2013,7 +2013,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
 `patrimonio_doughnut`, `waterfall_if`, `receita_bar`, `despesas_doughnut`, `receita_despesa_mensal`, `score_gauge`, `alocacao_atual`, `alocacao_alvo`, `top15_ativos`, `yield_imoveis`, `custos_f1f2`, `cenario_cambial`, `projecao_if`, `renda_passiva`, `impostos_pj`, `riscos_bubble`, `decisoes`, `cenarios_mariana`, `viagens`
 
 **Regras de geração:**
-- Perfil: 7 parágrafos de prosa em `<p>`. SEM tabelas, bullets, `<strong>Label:</strong>`. Ordem: titular, cônjuge, filho(s), pets, plano de vida, meta IF, patrimônio.
+- Perfil: 7 parágrafos de prosa em `<p>`. SEM tabelas, bullets, `<strong>Label:</strong>`. Ordem: titular, cônjuge, filho(s), pets, plano de vida, meta IF, patrimônio. **Limite de 300 caracteres (texto puro, sem HTML) por parágrafo.** Validado em E5.N (V_PERFIL_MAX_CHARS) e truncado defensivamente em E6.
 - Summaries: Factuais, com dados numéricos. Ex: "Patrimônio bruto de R$ 3,5M com 72% investível."
 - Charts: Context = o que o gráfico mostra. Conclusion = insight acionável.
 - Todos os textos em português brasileiro.
@@ -2032,6 +2032,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
 - [ ] `summaries` contém 10 chaves (s1 a s10), todas não-vazias
 - [ ] `charts` contém 19 chaves, cada uma com `context` e `conclusion` não-vazios
 - [ ] Perfil é HTML com `<p>` (sem `<table>`, `<ul>`, `<li>`)
+- [ ] Cada parágrafo do `perfil_familia` tem ≤ 300 caracteres (texto puro sem tags HTML)
 - [ ] Nenhum texto contém `KM` como sufixo monetário, ponto decimal em `R$`, ou espaço entre `k` e `M`
 
 #### E5.N — Enriquecimento de Tarefas (v5.3+)
@@ -2185,6 +2186,7 @@ O E4 DEVE gerar a chave `orcamento_prospectivo.legenda` com o texto já montado 
 | V17 | CSS: sem hex hardcoded | Nenhuma cor hexadecimal hardcoded no HTML (usar variáveis CSS) |
 | V18 | CSS: tr.total-row | Linhas de total usam classe `tr.total-row` |
 | V19 | Formato monetário válido | Nenhum `KM`, `k M` separado, nem ponto decimal em `R$` (ver regras E5.N) |
+| V20 | Perfil ≤ 300 chars/parágrafo | Cada `<p>` do `perfil_familia` tem ≤ 300 caracteres (texto puro). Validado em E5.N e truncado defensivamente em E6. |
 
 **Se qualquer validação falhar:** O script imprime qual checagem falhou. Corrigir na fonte:
 - Texto errado → re-rodar E5.N

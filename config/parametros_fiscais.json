@@ -1,0 +1,25 @@
+{
+  "_comment": "Parâmetros fiscais brasileiros — tabela IRPF, lucro presumido, PGBL. Atualizar quando legislação mudar.",
+  "_ultima_atualizacao": "2026-04-08",
+  "_fonte": "Receita Federal / legislação vigente",
+
+  "irpf_tabela_progressiva": {
+    "_comment": "Tabela progressiva anual simplificada IRPF 2024/2025. Faixas em R$ anuais.",
+    "faixas": [
+      {"limite_anual": 24556.65, "aliquota_pct": 7.5},
+      {"limite_anual": 33919.80, "aliquota_pct": 15.0},
+      {"limite_anual": 55976.16, "aliquota_pct": 22.5},
+      {"limite_anual": null,     "aliquota_pct": 27.5}
+    ]
+  },
+
+  "lucro_presumido": {
+    "_comment": "Percentual de presunção para serviços (base tributável = faturamento * percentual)",
+    "percentual_servicos_pct": 32.0
+  },
+
+  "pgbl": {
+    "_comment": "Limite de dedução PGBL sobre renda tributável anual",
+    "limite_deducao_pct": 12.0
+  }
+}
