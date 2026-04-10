@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-09T18:14:25.673554-03:00",
+  "consolidation_date": "2026-04-10T08:51:46.061539-03:00",
   "periodo": "2023-01 a 2026-04",
   "categorias": [
     "outras_receitas",
@@ -12,9 +12,9 @@
     "receita_venda_ativo"
   ],
   "total_categorias": 8,
-  "total_transacoes": 660,
+  "total_transacoes": 681,
   "totais_por_categoria": {
-    "outras_receitas": 456181.45000000054,
+    "outras_receitas": 458325.7800000005,
     "receita_investimento": 14565.170000000011,
     "receita_resgate": 27416.699999999997,
     "receita_aluguel": 173662.92999999993,
@@ -23,7 +23,7 @@
     "receita_venda_ativo": 49402.0,
     "receita_restituicao": 16.99
   },
-  "total_geral": 2501011.04,
+  "total_geral": 2503155.37,
   "dados": {
     "outras_receitas": [
       {
@@ -1325,6 +1325,28 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-20",
+        "descricao": "Outros",
+        "valor": 17.55,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-22",
+        "descricao": "Outros",
+        "valor": 1002.6,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-05-24",
         "descricao": "Estorno Tarifa",
         "valor": -98.0,
@@ -1479,6 +1501,17 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-07-04",
+        "descricao": "Outros",
+        "valor": 26.6,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-07-09",
         "descricao": "EBN    *AMAZON RETAIL",
         "valor": -740.39,
@@ -1499,6 +1532,17 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-15",
+        "descricao": "Outros",
+        "valor": 10.73,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-07-20",
@@ -1666,6 +1710,17 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-08-29",
+        "descricao": "Outros",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-09-04",
         "descricao": "Rent",
         "valor": 0.46,
@@ -1675,6 +1730,39 @@
         "tipo_conta": "extratoconta",
         "titular": "mariana",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "Outros",
+        "valor": 19.31,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "Outros",
+        "valor": 19.31,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-09",
+        "descricao": "Outros",
+        "valor": 20.26,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-15",
@@ -1700,6 +1788,28 @@
       },
       {
         "data": "2025-09-20",
+        "descricao": "Outros",
+        "valor": 331.26,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-20",
+        "descricao": "Outros",
+        "valor": 81.65,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-20",
         "descricao": "EBN    *AMAZON RETAIL",
         "valor": -64.09,
         "banco": "C6 Bank",
@@ -1708,6 +1818,105 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-22",
+        "descricao": "Outros",
+        "valor": 65.19,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-23",
+        "descricao": "Outros",
+        "valor": 192.43,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-23",
+        "descricao": "Outros",
+        "valor": 85.99,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-23",
+        "descricao": "Outros",
+        "valor": 17.99,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-23",
+        "descricao": "Outros",
+        "valor": 5.36,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-23",
+        "descricao": "Outros",
+        "valor": 26.85,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-24",
+        "descricao": "Outros",
+        "valor": 8.58,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-24",
+        "descricao": "Outros",
+        "valor": 8.58,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-24",
+        "descricao": "Outros",
+        "valor": 12.09,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-25",
@@ -1843,6 +2052,17 @@
       },
       {
         "data": "2025-10-23",
+        "descricao": "Cashback Compra Cartão",
+        "valor": 3.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-10-23",
         "descricao": "THE PLATINUM HOTEL & S",
         "valor": -1418.03,
         "banco": "C6 Bank",
@@ -1895,6 +2115,17 @@
         "tipo_conta": "extratoconta",
         "titular": "mariana",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-24",
+        "descricao": "Outros",
+        "valor": 89.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-11-24",

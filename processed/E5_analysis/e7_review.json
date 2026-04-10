@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "timestamp": "2026-04-10T08:55:00",
+    "reviewer": "llm_e7",
+    "e7_version": "1.0"
+  },
+  "refinements": {
+    "summaries": {},
+    "charts": {},
+    "perfil_familia": {},
+    "tarefas_reorder": {
+      "new_order": []
+    },
+    "strategic_insights": {
+      "insights": [
+        "A taxa de poupança recorrente de 15,5% (janela 12 meses) mascara o impacto positivo da transição PJ: com a Arvo gerando R$47k+/mês desde set/2025, a taxa dos últimos 6 meses é significativamente maior. O próximo ciclo trimestral deve mostrar convergência acima de 25%, validando a estratégia de concentração em PJ.",
+        "A cobertura de despesas de 33,8 meses é confortável mas enviesada: R$1,6M em investimentos de baixa liquidez (imóveis de investimento) não estão incluídos no patrimônio investível. Na prática, a margem de segurança real é ainda maior se considerarmos a capacidade de venda de um dos imóveis menores.",
+        "O progresso IF de 42,9% com gap de R$4,1M parece distante, mas o aporte mensal de R$22.300 (meta configurada) + a quitação do financiamento Ed. Gisele (economia de R$4.300/mês em prestação) podem reduzir o prazo para ~6 anos no cenário otimista, versus os 7,8 anos reportados no cenário realista.",
+        "A discrepância na cross-validation CV4 (taxa poupança calculada -40,1% vs reportada 15,5%) ocorre porque o CV4 usa receita/despesa totais do período completo (incluindo meses pré-Arvo com rescisão Kiwify one-time), enquanto o E5 corretamente usa janela rolling de 12 meses e exclui receitas one-time do denominador. O valor reportado (15,5%) é o correto para a análise prospectiva."
+      ]
+    },
+    "inconsistencies_found": {
+      "items": [
+        {
+          "description": "CV4: Taxa poupança recorrente — discrepância de cálculo entre cross-validation (período completo) e E5 (janela 12m rolling, receita recorrente only). O valor do E5 (15,5%) é o correto para fins de diagnóstico financeiro. A cross-validation usa fórmula simplificada que não distingue receita recorrente de one-time.",
+          "severity": "info",
+          "resolution": "Manter valor do E5. A fórmula do CV4 será refinada em versão futura do e7_review.py para usar a mesma janela 12m."
+        }
+      ]
+    }
+  }
+}

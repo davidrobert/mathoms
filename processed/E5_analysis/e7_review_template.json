@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "timestamp": "2026-04-09T17:24:50.866124",
+    "timestamp": "2026-04-10T08:52:36.441081",
     "e7_version": "1.0",
     "persona_summary": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada na metodologia \"Viver de "
   },
@@ -14,7 +14,7 @@
         "name": "Taxa poupança recorrente",
         "severity": "warning",
         "passed": false,
-        "details": "Calculada: -24.0%, reportada: 32.1%, diff: 56.1pp",
+        "details": "Calculada: -40.1%, reportada: 15.5%, diff: 55.6pp",
         "sections": [
           "ratios",
           "fluxo_caixa"
@@ -27,7 +27,7 @@
         "name": "Score formula consistency",
         "severity": "info",
         "passed": true,
-        "details": "Score reportado: 7.6, calculado: 7.6, diff: 0.0",
+        "details": "Score reportado: 7.0, calculado: 7.0, diff: 0.0",
         "sections": [
           "score"
         ]
@@ -37,7 +37,7 @@
         "name": "Patrimônio composição vs bruto",
         "severity": "info",
         "passed": true,
-        "details": "Soma composição: R$ 4,269,739, bruto: R$ 4,269,739, diff: 0.0%",
+        "details": "Soma composição: R$ 4,312,279, bruto: R$ 4,312,279, diff: 0.0%",
         "sections": [
           "patrimonio"
         ]
@@ -47,7 +47,7 @@
         "name": "Fluxo de caixa aritmética",
         "severity": "info",
         "passed": true,
-        "details": "Receita (2,656,929) - Despesa (1,915,508) = 741,421, reportado: 741,421",
+        "details": "Receita (2,503,155) - Despesa (1,948,118) = 555,037, reportado: 555,037",
         "sections": [
           "fluxo_caixa"
         ]
@@ -57,7 +57,7 @@
         "name": "Taxa poupança recorrente",
         "severity": "warning",
         "passed": false,
-        "details": "Calculada: -24.0%, reportada: 32.1%, diff: 56.1pp",
+        "details": "Calculada: -40.1%, reportada: 15.5%, diff: 55.6pp",
         "sections": [
           "ratios",
           "fluxo_caixa"
@@ -78,7 +78,7 @@
         "name": "Progresso IF vs patrimônio investível",
         "severity": "info",
         "passed": true,
-        "details": "Investível/Meta = 42.3%, reportado: 42.3%",
+        "details": "Investível/Meta = 42.9%, reportado: 42.9%",
         "sections": [
           "goals",
           "patrimonio"
@@ -89,7 +89,7 @@
         "name": "Taxa endividamento vs patrimônio",
         "severity": "info",
         "passed": true,
-        "details": "Dívidas/Bruto = 5.5%, reportado: 5.5%",
+        "details": "Dívidas/Bruto = 5.4%, reportado: 5.4%",
         "sections": [
           "endividamento",
           "patrimonio"
@@ -100,7 +100,7 @@
         "name": "Cobertura reserva emergência",
         "severity": "info",
         "passed": true,
-        "details": "Líquida/Despesas = 33.5 meses, reportado: 33.5",
+        "details": "Líquida/Despesas = 33.8 meses, reportado: 33.8",
         "sections": [
           "reserva_emergencia"
         ]
@@ -150,7 +150,7 @@
         "name": "Score classification label",
         "severity": "info",
         "passed": true,
-        "details": "Score 7.6 → esperado: 'Bom', reportado: 'Bom'",
+        "details": "Score 7.0 → esperado: 'Bom', reportado: 'Bom'",
         "sections": [
           "score"
         ]
@@ -233,23 +233,15 @@
         "n": 1,
         "t": "Quitar financiamento Ed. Gisele: C6 PJ R$117.430 + CDB-DI Itaú R$117.213",
         "p": "alta",
-        "e": "Hoje",
+        "e": "Abr/2026",
         "categoria": "Invest.",
         "ref": "D01"
-      },
-      {
-        "n": 2,
-        "t": "Zerar cheque especial Santander (R$291)",
-        "p": "alta",
-        "e": "Hoje",
-        "categoria": "Orçamento",
-        "ref": "—"
       },
       {
         "n": 3,
         "t": "Solicitar resgate Safari 30 na Rico (~R$16.614, prazo D+60 para liquidação)",
         "p": "alta",
-        "e": "Semana",
+        "e": "Abr/2026",
         "categoria": "Invest.",
         "ref": "—"
       },
@@ -257,15 +249,15 @@
         "n": 4,
         "t": "Cancelar seguro de conta Santander (R$10/mês). Manter seguro de conta C6 (R$20/mês).",
         "p": "alta",
-        "e": "Semana",
+        "e": "Abr/2026",
         "categoria": "Orçamento",
         "ref": "D08"
       },
       {
         "n": 5,
-        "t": "Configurar aporte R$20k/mês (dia 5): R$10k Cofrinhos Itaú + R$5k Tesouro IPCA+ + R$3k IVVB11 + R$2k Wise USD (ver Seção 3)",
+        "t": "Configurar aporte R$20k/mês (dia 5): R$10k Cofrinhos Itaú + R$5k Tesouro IPCA+ + R$3k IVVB11 + R$2k Wise USD",
         "p": "alta",
-        "e": "05/04",
+        "e": "Abr/2026",
         "categoria": "Invest.",
         "ref": "D02"
       },
@@ -318,14 +310,6 @@
         "ref": "D14"
       },
       {
-        "n": 12,
-        "t": "Criar login Gov.br nível Prata ou Ouro para David + Mariana (pré-requisito para Carnê-Leão Web no e-CAC)",
-        "p": "alta",
-        "e": "Abr/2026",
-        "categoria": "Tributário",
-        "ref": "—"
-      },
-      {
         "n": 13,
         "t": "Entregar IRPF 2026 David + Mariana (com carnê-leão de ambos regularizado antes da entrega)",
         "p": "alta",
@@ -342,10 +326,10 @@
         "ref": "—"
       }
     ],
-    "score": 7.6,
+    "score": 7.0,
     "score_label": "Bom",
-    "patrimonio_bruto": 4269738.6,
-    "patrimonio_investivel": 3045441.14,
-    "fluxo_liquido": 741421.19
+    "patrimonio_bruto": 4312279.16,
+    "patrimonio_investivel": 3087981.7,
+    "fluxo_liquido": 555037.15
   }
 }

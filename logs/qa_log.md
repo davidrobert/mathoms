@@ -1,7 +1,7 @@
 # QA Log — E4 Categorização
-## Execução: 2026-04-09 18:14
+## Execução: 2026-04-10 08:51
 
-### Transações não identificadas: 583
+### Transações não identificadas: 678
 
 | Data | Descrição | Valor | Banco | Fonte |
 |---|---|---|---|---|
@@ -467,24 +467,200 @@
 | 2025-05-06 | PAGAMENTO EFETUADO | R$59.00 | Santander | faturaunique |
 | 2025-05-12 | Transfe Pix Des: Jair de Souza Ferreir 10/05 | R$140.00 | Bradesco | extratoconta |
 | 2025-05-19 | Transfe Pix Des: Jair de Souza Ferreir 19/05 | R$140.00 | Bradesco | extratoconta |
+| 2025-05-20 | Target 00017954\1771 Dunlawton Av Cartão
+8884 | R$20.91 | C6 Bank | extratocontaglobalusd |
 | 2025-05-22 | PIX TRANSF SUELI D22/05 | R$11,820.00 | Itaú | extratoconta |
 | 2025-05-22 | PIX TRANSF EDSON J22/05 | R$10,047.00 | Itaú | extratoconta |
+| 2025-05-22 | Transf. Internacional | R$150.00 | C6 Bank | extratocontaglobalusd |
 | 2025-06-06 | PAGAMENTO EFETUADO | R$59.00 | Santander | faturaunique |
 | 2025-06-10 | Pix enviado para ******** — TRANSF ENVIADA PIX | R$55.00 | C6 Bank | extratoconta |
+| 2025-06-10 | Keylum Llc \1114 Duval St Cartão 4845 | R$10.75 | C6 Bank | extratocontaglobalusd |
+| 2025-06-10 | Py *kermit's Key West\335 Duval St Ste F Cartão
+4845 | R$7.47 | C6 Bank | extratocontaglobalusd |
 | 2025-06-16 | Pix Qrcode Est Des: Claro 16/06 | R$55.98 | Bradesco | extratoconta |
 | 2025-06-26 | Transfe Pix Des: Floricultura Sempre v 26/06 | R$122.00 | Bradesco | extratoconta |
+| 2025-07-04 | Target 00033548\11619 Daryl Carte Cartão
+8884 | R$54.83 | C6 Bank | extratocontaglobalusd |
 | 2025-07-07 | PAGAMENTO EFETUADO | R$154.57 | Santander | faturaunique |
+| 2025-07-09 | Starbucks 21797\1680 E Buena Vista Drive
+Cartão 4845 | R$9.40 | C6 Bank | extratocontaglobalusd |
+| 2025-07-12 | Armazem X\9310 Us Highway 192\clermont\3
+Cartão 4845 | R$15.57 | C6 Bank | extratocontaglobalusd |
+| 2025-07-13 | Py *twistee Treat - We\8900 W Irlo Brons
+Cartão 4845 | R$7.62 | C6 Bank | extratocontaglobalusd |
+| 2025-07-14 | Target 00023705\3200 Rolling Oaks Cartão
+4845 | R$15.82 | C6 Bank | extratocontaglobalusd |
+| 2025-07-14 | Tst*this Little Piggy\426 W Plant St\win Cartão
+4845 | R$25.52 | C6 Bank | extratocontaglobalusd |
+| 2025-07-14 | Tbl Orlando\4963 4963 International Driv
+Cartão 4845 | R$74.54 | C6 Bank | extratocontaglobalusd |
+| 2025-07-14 | Sq *bryans Lemonade\2856 Mystic Cove Dr\
+Cartão 4845 | R$6.39 | C6 Bank | extratocontaglobalusd |
+| 2025-07-16 | Ross Store #350 \5452 Touchstone D Cartão
+4845 | R$13.83 | C6 Bank | extratocontaglobalusd |
+| 2025-07-16 | Wendy's #10587\3252 N John Young Pkwy\ki
+Cartão 4845 | R$16.06 | C6 Bank | extratocontaglobalusd |
+| 2025-07-19 | Avi Winie Plmer Hospit\83 W Miller St\or Cartão
+4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-19 | El Car Wash - Kissimme\9190 W Irlo Brons
+Cartão 4845 | R$10.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-21 | Avi Wph Wrls 33\83 W Miller St\orlando\3
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-21 | Avi Wph Wrls 33\83 W Miller St\orlando\3
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-21 | Avi Wph Wrls 32\83 W Miller St\orlando\3
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-21 | Avi Wph Wrls 31\83 W Miller St\orlando\3
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-22 | Avi Wph Wrls 32\83 W Miller St\orlando\3
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-22 | Avi Wph Wrls 3\83 W Miller St\orlando\32
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-23 | Avi Wph Wireless 36\83 W Miller St\orlan
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-23 | Avi Wph Wrls 33\83 W Miller St\orlando\3
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-24 | Avi Wph Wireless 36\83 W Miller St\orlan
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-24 | Avi Winnie Palmer Wire\83 W Miller St\or
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-24 | Tez*palmer S Hospitals\5000 Legacy Dr 1\
+Cartão 4845 | R$8.00 | C6 Bank | extratocontaglobalusd |
+| 2025-07-27 | Armazem X\9310 Us Highway 192\clermont\3
+Cartão 4845 | R$15.65 | C6 Bank | extratocontaglobalusd |
+| 2025-07-31 | Bass Pro Store Orlando\5156 Internationa
+Cartão 4845 | R$17.56 | C6 Bank | extratocontaglobalusd |
+| 2025-07-31 | Bass Pro Store Orlando\5156 Internationa
+Cartão 4845 | R$121.18 | C6 Bank | extratocontaglobalusd |
+| 2025-08-03 | Nj\110 Edsion Pl\newark, Nj 07\07070 Cartão
+4845 | R$16.75 | C6 Bank | extratocontaglobalusd |
+| 2025-08-03 | Target 00023705\3200 Rolling Oaks Cartão
+4845 | R$8.60 | C6 Bank | extratocontaglobalusd |
 | 2025-08-06 | PAGAMENTO EFETUADO | R$59.00 | Santander | faturaunique |
+| 2025-08-07 | Tez*palmer S Hospitals\5000 Legacy Dr 1\
+Cartão 4845 | R$8.00 | C6 Bank | extratocontaglobalusd |
+| 2025-08-08 | Starbucks 66716\florida Turnpike Mil\oco
+Cartão 4845 | R$7.61 | C6 Bank | extratocontaglobalusd |
+| 2025-08-08 | Pai Atm\525 Commonwealth Ave Sw\polk Cit
+Cartão 4845 | R$203.75 | C6 Bank | extratocontaglobalusd |
+| 2025-08-08 | Pai Atm\525 Commonwealth Ave Sw\polk Cit
+Cartão 4845 | R$203.75 | C6 Bank | extratocontaglobalusd |
+| 2025-08-08 | Pai Atm\525 Commonwealth Ave Sw\polk Cit
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-08-08 | Pai Atm\525 Commonwealth Ave Sw\polk Cit
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-08-08 | Chevron 0200093\525 Commonwealth Ave Sw\
+Cartão 4845 | R$4.27 | C6 Bank | extratocontaglobalusd |
+| 2025-08-10 | The Ups Store 3017\7862 W Irlo Bronson H
+Cartão 4845 | R$2.57 | C6 Bank | extratocontaglobalusd |
+| 2025-08-10 | Avi Arnold Palmer Cof\92 W Miller St\orl Cartão
+4845 | R$2.12 | C6 Bank | extratocontaglobalusd |
+| 2025-08-11 | Butterbeer 6913 \1000 Universal St Cartão
+4845 | R$20.21 | C6 Bank | extratocontaglobalusd |
+| 2025-08-11 | Epic Admission 6343 \1000 Universal St Cartão
+4845 | R$195.96 | C6 Bank | extratocontaglobalusd |
+| 2025-08-11 | Various Emporia 6602 \1000 Universal St
+Cartão 4845 | R$56.45 | C6 Bank | extratocontaglobalusd |
+| 2025-08-16 | Starbucks 63941\2875 N Old Lake Wilson R
+Cartão 4845 | R$7.72 | C6 Bank | extratocontaglobalusd |
+| 2025-08-16 | Bubba Gump Orlando \6000 Universal Bl Cartão
+4845 | R$89.84 | C6 Bank | extratocontaglobalusd |
+| 2025-08-19 | Walmart Supercenter 5\2855 N Old Lake Wi
+Cartão 4845 | R$115.56 | C6 Bank | extratocontaglobalusd |
+| 2025-08-19 | Walmart Supercenter 5\2855 N Old Lake Wi
+Cartão 4845 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-08-24 | Armazem X\9310 Us Highway 192\clermont\3
+Cartão 4845 | R$42.84 | C6 Bank | extratocontaglobalusd |
+| 2025-08-27 | 626 Gore St Fuel Mart \626 W Gore St Cartão
+4163 | R$36.09 | C6 Bank | extratocontaglobalusd |
 | 2025-08-28 | EMISSAO DE CDB | R$2,404.00 | C6 Bank | extratoconta |
+| 2025-08-28 | Consulate General Of B\1350 E Touhy Ave\
+Cartão 8884 | R$1.60 | C6 Bank | extratocontaglobalusd |
+| 2025-08-28 | Consulado Geral Do Bra\3150 Sw 38th Ave
+Cartão 8884 | R$40.00 | C6 Bank | extratocontaglobalusd |
+| 2025-08-31 | Florida Fresh Orlando\2900 Mercy Dr\orla
+Cartão 4163 | R$3.60 | C6 Bank | extratocontaglobalusd |
+| 2025-09-05 | Tjmaxx #0098\sawgrass Mills 12801 W Sunr
+Cartão 4163 | R$31.97 | C6 Bank | extratocontaglobalusd |
+| 2025-09-05 | Marshalls #486\12801 W Sunrise Blvd\sunr
+Cartão 4163 | R$52.28 | C6 Bank | extratocontaglobalusd |
+| 2025-09-05 | Books A Million 381 \12801 W Sunrise Cartão
+4163 | R$19.25 | C6 Bank | extratocontaglobalusd |
+| 2025-09-05 | The Ups Store 2439\3109 Grand Ave\miami
+Cartão 4163 | R$19.31 | C6 Bank | extratocontaglobalusd |
+| 2025-09-05 | The Ups Store 2439\3109 Grand Ave\miami
+Cartão 4163 | R$19.31 | C6 Bank | extratocontaglobalusd |
+| 2025-09-05 | Nikepos_us\12801 W Sunrise Blvd., Suite. Cartão
+4163 | R$64.19 | C6 Bank | extratocontaglobalusd |
+| 2025-09-05 | Columbia 459\12801 W. Sunrise Blvd. Ste.
+Cartão 4163 | R$26.73 | C6 Bank | extratocontaglobalusd |
+| 2025-09-06 | Burger King #6999 Q07\12801 West Sunris
+Cartão 4163 | R$21.91 | C6 Bank | extratocontaglobalusd |
 | 2025-09-08 | PAGAMENTO EFETUADO | R$1,872.43 | Santander | faturaunique |
+| 2025-09-08 | Tbl Orlando\4963 4963 International Driv
+Cartão 4163 | R$244.93 | C6 Bank | extratocontaglobalusd |
+| 2025-09-09 | Target 00023705\3200 Rolling Oaks Cartão
+4163 | R$17.98 | C6 Bank | extratocontaglobalusd |
 | 2025-09-10 | Pix enviado para JULIANA ARGONDIZO DE ROSIS DINATO — TRANSF ENVIADA PIX | R$500.00 | C6 Bank | extratoconta |
 | 2025-09-13 | Pix enviado para Vitória Maria Silva Moreira — TRANSF ENVIADA PIX | R$195.00 | C6 Bank | extratoconta |
+| 2025-09-13 | Avi Arnold Palmer Cof\92 W Miller St\orl Cartão
+4163 | R$2.97 | C6 Bank | extratocontaglobalusd |
+| 2025-09-13 | Avi Arnold Palmer Cof\92 W Miller St\orl Cartão
+4163 | R$8.07 | C6 Bank | extratocontaglobalusd |
+| 2025-09-14 | Nj\110 Edsion Pl\newark, Nj 07\07070 Cartão
+4163 | R$16.13 | C6 Bank | extratocontaglobalusd |
+| 2025-09-16 | Bass Pro Store Orlando\5156 Internationa
+Cartão 4163 | R$63.62 | C6 Bank | extratocontaglobalusd |
+| 2025-09-16 | Haagen Dazs 1052\4963 International Dr\o
+Cartão 4163 | R$22.28 | C6 Bank | extratocontaglobalusd |
+| 2025-09-16 | Columbia 451\4971 International Dr. Ste. Cartão
+4163 | R$93.13 | C6 Bank | extratocontaglobalusd |
+| 2025-09-16 | Nikepos_us\4977 International Drive, 3b-
+Cartão 4163 | R$335.39 | C6 Bank | extratocontaglobalusd |
+| 2025-09-16 | Le Creuset - Us062\4963 International Dr
+Cartão 4163 | R$69.22 | C6 Bank | extratocontaglobalusd |
+| 2025-09-16 | Pearl Factory 665 \1742 Lake Buena V Cartão
+4163 | R$658.16 | C6 Bank | extratocontaglobalusd |
+| 2025-09-17 | Marshalls #1559\8035 W Irlo Bronson Memo
+Cartão 4163 | R$48.34 | C6 Bank | extratocontaglobalusd |
+| 2025-09-17 | Ross Store #350 \5452 Touchstone D Cartão
+4163 | R$265.04 | C6 Bank | extratocontaglobalusd |
+| 2025-09-17 | 7-eleven 27426\13698 W. Colonial Dr\wint
+Cartão 4163 | R$37.96 | C6 Bank | extratocontaglobalusd |
+| 2025-09-18 | Sq *sfiha's Internatio\5640 Internationa Cartão
+4163 | R$48.17 | C6 Bank | extratocontaglobalusd |
+| 2025-09-18 | Walmart Supercenter 5\2855 N Old Lake Wi
+Cartão 4163 | R$339.42 | C6 Bank | extratocontaglobalusd |
+| 2025-09-18 | Walmart Supercenter 5\2855 N Old Lake Wi
+Cartão 4163 | R$5.00 | C6 Bank | extratocontaglobalusd |
 | 2025-09-19 | Pix enviado para JAIR DE SOUZA FERREIRA — TRANSF ENVIADA PIX | R$9,000.00 | C6 Bank | extratoconta |
 | 2025-09-22 | Pix enviado para SERGIO PALMEIRA DA SILVA — TRANSF ENVIADA PIX | R$1,080.00 | C6 Bank | extratoconta |
+| 2025-09-22 | Bass Pro Store Orlando\5156 Internationa
+Cartão 4163 | R$50.56 | C6 Bank | extratocontaglobalusd |
+| 2025-09-22 | Kipling #5506\4959 Intl Dr. Space #170\o
+Cartão 4163 | R$76.25 | C6 Bank | extratocontaglobalusd |
+| 2025-09-23 | Marshalls #1559\8035 W Irlo Bronson Memo
+Cartão 4163 | R$11.50 | C6 Bank | extratocontaglobalusd |
+| 2025-09-23 | Ross Store #350 \5452 Touchstone D Cartão
+4163 | R$41.91 | C6 Bank | extratocontaglobalusd |
+| 2025-09-24 | Sq *shake Shack\4054 Conroy Rd.\orlando\
+Cartão 4163 | R$18.61 | C6 Bank | extratocontaglobalusd |
+| 2025-09-24 | Billiontoone, Inc.\1035 Obrien Dr\menlo Cartão
+8884 | R$345.94 | C6 Bank | extratocontaglobalusd |
+| 2025-09-24 | Qdi*quest Diagnostics\15 Campus Blvd\866
+Cartão 8884 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-09-24 | Qdi*quest Diagnostics\15 Campus Blvd\866
+Cartão 8884 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-09-25 | Oakley B087 \4971 Internationa Cartão 4163 | R$478.19 | C6 Bank | extratocontaglobalusd |
+| 2025-09-26 | Starbucks Evening Mco \9301 Jeff Fuqua B
+Cartão 4163 | R$20.50 | C6 Bank | extratocontaglobalusd |
+| 2025-09-26 | El Car Wash - Kissimme\9190 W Irlo Brons
+Cartão 4163 | R$10.00 | C6 Bank | extratocontaglobalusd |
 | 2025-09-30 | Pix enviado para ZOOP BRASIL — TRANSF ENVIADA PIX | R$251.65 | C6 Bank | extratoconta |
 | 2025-09-30 | Pix recusado | R$251.65 | C6 Bank | extratoconta |
 | 2025-09-30 | Pix recusado | R$251.65 | C6 Bank | extratoconta |
 | 2025-09-30 | Pix enviado para Carlos Augusto Silva Ribeiro Junior — TRANSF ENVIADA PIX | R$200.00 | C6 Bank | extratoconta |
+| 2025-10-01 | Transf. Internacional | R$1,500.00 | C6 Bank | extratocontaglobalusd |
 | 2025-10-05 | HENRIQUEDEJESUSSI | R$13.00 | C6 Bank | faturacarbon |
 | 2025-10-06 | PAGAMENTO EFETUADO | R$697.45 | Santander | faturaunique |
 | 2025-10-06 | APE SMART STUDIO | R$15.00 | C6 Bank | faturacarbon |
@@ -494,6 +670,14 @@
 | 2025-10-22 | Transfe Pix Des: Edilene Aparecida Fra 22/10 | R$25.00 | Bradesco | extratoconta |
 | 2025-10-22 | Transfe Pix Des: Jair de Souza Ferreir 22/10 | R$400.00 | Bradesco | extratoconta |
 | 2025-10-22 | Pix Qrcode Din Des: Natura &co Pay Servic 22/10 | R$199.40 | Bradesco | extratoconta |
+| 2025-10-22 | Tst* Rosa Mexicano - L\3663 Las Vegas Bl
+Cartão 4163 | R$61.62 | C6 Bank | extratocontaglobalusd |
+| 2025-10-25 | 000000000211463\heart Attack Grill\las V
+Cartão 4163 | R$102.25 | C6 Bank | extratocontaglobalusd |
+| 2025-10-25 | 000000000211463\heart Attack Grill\las V
+Cartão 4163 | R$5.00 | C6 Bank | extratocontaglobalusd |
+| 2025-10-25 | Cosmopol-secret Pizza\3708 Las Vegas Blv
+Cartão 4163 | R$25.28 | C6 Bank | extratocontaglobalusd |
 | 2025-10-27 | Pix enviado para Carlos Augusto Silva Ribeiro Junior — TRANSF ENVIADA PIX | R$80.00 | C6 Bank | extratoconta |
 | 2025-10-30 | 2PPRODUTOS | R$25.80 | C6 Bank | faturacarbon |
 | 2025-10-31 | ALEX MARTINS DE MACEDO | R$39.00 | C6 Bank | faturacarbon |
@@ -516,6 +700,7 @@
 | 2025-11-21 | Pix enviado para Hermann Ronaldo Wecke — TRANSF ENVIADA PIX | R$150.00 | C6 Bank | extratoconta |
 | 2025-11-22 | Pix enviado para 50.340.497 LEVY VICARI DE OLIVEIRA — TRANSF ENVIADA PIX | R$20.00 | C6 Bank | extratoconta |
 | 2025-11-22 | VINICIUS DE MARCO E PA | R$368.04 | C6 Bank | faturacarbon |
+| 2025-11-24 | Transf. Internacional | R$3,840.00 | C6 Bank | extratocontaglobalusd |
 | 2025-11-25 | DEV PIX DAVID ROBER25/11 | R$333.00 | Itaú | extratoconta |
 | 2025-11-25 | Transfe Pix Des: Maria Lireuda Bastos 25/11 | R$130.00 | Bradesco | extratoconta |
 | 2025-11-28 | Pix enviado para AMAZON.COM.BR — TRANSF ENVIADA PIX | R$5,345.73 | C6 Bank | extratoconta |
@@ -589,7 +774,4 @@
 | 2026-04-06 | GUIA DE EMPREGADO DOMÉSTICO — Boleto | R$1,153.73 | C6 Bank | extratoconta |
 | 2026-04-06 | GUIA DE EMPREGADO DOMÉSTICO — Boleto | R$175.70 | C6 Bank | extratoconta |
 
-### Taxa: 17.9% ⚠️ ACIMA DA META (<10%)
-
-## E3 Temporal Gaps (2026-04-10T08:35:06.567905)
-- ('C6 Bank', 'faturacarbon'): Temporal gap of 357 days between c6bank_faturacarbon_202404-2_extract.json (fim=2024-04-05) and c6bank_faturacarbon_202505-2_extract.json (inicio=2025-03-28)
+### Taxa: 18.9% ⚠️ ACIMA DA META (<10%)

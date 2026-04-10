@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-09T18:14:25.674337-03:00",
+  "consolidation_date": "2026-04-10T08:51:46.062216-03:00",
   "periodo": "2023-01 a 2026-04",
   "categorias": [
     "alimentacao",
@@ -21,27 +21,27 @@
     "vestuario"
   ],
   "total_categorias": 17,
-  "total_transacoes": 3252,
+  "total_transacoes": 3596,
   "totais_por_categoria": {
-    "assinaturas": 14390.879999999966,
+    "assinaturas": 14793.129999999966,
     "seguros": 6656.46,
-    "financeiro": 14698.560000000001,
-    "nao_identificado": 856129.03,
+    "financeiro": 15337.560000000001,
+    "nao_identificado": 866995.7899999999,
     "financiamentos": 176146.32,
     "moradia": 37877.73000000001,
     "impostos": 126619.02999999997,
     "suporte_familiar": 80173.22,
-    "transporte": 48695.080000000016,
-    "reserva_desejos": 69968.02000000003,
+    "transporte": 54509.050000000025,
+    "reserva_desejos": 75402.31,
     "servicos_domesticos": 60885.55,
-    "saude": 102919.17000000001,
-    "lazer_viagens": 156705.43999999994,
+    "saude": 104879.20000000003,
+    "lazer_viagens": 161118.14999999994,
     "melhoria_reforma": 43494.70000000001,
-    "alimentacao": 52536.189999999966,
-    "educacao": 36967.18000000001,
-    "vestuario": 24727.289999999997
+    "alimentacao": 58696.02999999996,
+    "educacao": 37042.18000000001,
+    "vestuario": 27491.809999999998
   },
-  "total_geral": 1909589.85,
+  "total_geral": 1948118.22,
   "dados": {
     "assinaturas": [
       {
@@ -795,6 +795,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-07-17",
+        "descricao": "Google Fi T5v7pr\\1600 Amphitheatre Parkw\nCartão 8884",
+        "valor": 38.42,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-07-19",
         "descricao": "PRODUTOS GLOBO",
         "valor": 22.9,
@@ -925,6 +935,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-08-18",
+        "descricao": "Google *fi 4fgvfg\\1600 Amphitheatre Pkwy\nCartão 8884",
+        "valor": 76.67,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-08-19",
         "descricao": "GLOBO*GLOBOPLAY",
         "valor": 22.9,
@@ -1025,6 +1045,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-09-17",
+        "descricao": "Google *fi Zxgfvq\\1600 Amphitheatre Pkwy\nCartão 8884",
+        "valor": 38.43,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-09-23",
         "descricao": "MP *MELIMAIS",
         "valor": 24.9,
@@ -1033,6 +1063,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-24",
+        "descricao": "Apple.com/bill\\one Apple Park Way\\866-71\nCartão 4163",
+        "valor": 146.81,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-24",
@@ -1143,6 +1183,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-17",
+        "descricao": "Google *fi W5vclf\\1600 Amphitheatre Pkwy\nCartão 8884",
+        "valor": 25.58,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-10-23",
@@ -1435,6 +1485,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2026-01-17",
+        "descricao": "Google *fi Xtt4tw\\1600 Amphitheatre Pkwy\nCartão 8884",
+        "valor": 25.34,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2026-01-21",
         "descricao": "MP *MELIMAIS",
         "valor": 19.9,
@@ -1555,6 +1615,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2026-02-17",
+        "descricao": "Google *fi Vzhnp8\\1600 Amphitheatre Pkwy\nCartão 8884",
+        "valor": 25.66,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2026-02-18",
         "descricao": "Conta Telefone",
         "valor": 55.98,
@@ -1673,6 +1743,16 @@
         "tipo_conta": "extratoconta",
         "titular": "mariana",
         "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-17",
+        "descricao": "Google *fi 6765pk\\1600 Amphitheatre Pkwy\nCartão 8884",
+        "valor": 25.34,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2026-03-19",
@@ -2719,6 +2799,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-16",
+        "descricao": "D4u Immigration\\301 Yamato Rd, Suite 119\nCartão 8884",
+        "valor": 599.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-22",
+        "descricao": "Tarifa Transf. Internacional",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-05-24",
         "descricao": "Anuidade Diferenciada",
         "valor": 98.0,
@@ -3047,6 +3147,16 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-21",
+        "descricao": "Tarifa Transf. Internacional",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "financeiro",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-11-24",
@@ -8091,6 +8201,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-20",
+        "descricao": "Target 00017954\\1771 Dunlawton Av Cartão\n8884",
+        "valor": 20.91,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-05-22",
         "descricao": "PIX TRANSF SUELI D22/05",
         "valor": 11820.0,
@@ -8109,6 +8229,16 @@
         "tipo_conta": "extratoconta",
         "titular": "david",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-22",
+        "descricao": "Transf. Internacional",
+        "valor": 150.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-06-06",
@@ -8131,6 +8261,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-06-10",
+        "descricao": "Keylum Llc \\1114 Duval St Cartão 4845",
+        "valor": 10.75,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-10",
+        "descricao": "Py *kermit's Key West\\335 Duval St Ste F Cartão\n4845",
+        "valor": 7.47,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-06-16",
         "descricao": "Pix Qrcode Est Des: Claro 16/06",
         "valor": 55.98,
@@ -8151,6 +8301,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-07-04",
+        "descricao": "Target 00033548\\11619 Daryl Carte Cartão\n8884",
+        "valor": 54.83,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-07-07",
         "descricao": "PAGAMENTO EFETUADO",
         "valor": 154.57,
@@ -8159,6 +8319,276 @@
         "tipo_conta": "faturaunique",
         "titular": "Unique",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-09",
+        "descricao": "Starbucks 21797\\1680 E Buena Vista Drive\nCartão 4845",
+        "valor": 9.4,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-12",
+        "descricao": "Armazem X\\9310 Us Highway 192\\clermont\\3\nCartão 4845",
+        "valor": 15.57,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-13",
+        "descricao": "Py *twistee Treat - We\\8900 W Irlo Brons\nCartão 4845",
+        "valor": 7.62,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-14",
+        "descricao": "Target 00023705\\3200 Rolling Oaks Cartão\n4845",
+        "valor": 15.82,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-14",
+        "descricao": "Tst*this Little Piggy\\426 W Plant St\\win Cartão\n4845",
+        "valor": 25.52,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-14",
+        "descricao": "Tbl Orlando\\4963 4963 International Driv\nCartão 4845",
+        "valor": 74.54,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-14",
+        "descricao": "Sq *bryans Lemonade\\2856 Mystic Cove Dr\\\nCartão 4845",
+        "valor": 6.39,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-16",
+        "descricao": "Ross Store #350 \\5452 Touchstone D Cartão\n4845",
+        "valor": 13.83,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-16",
+        "descricao": "Wendy's #10587\\3252 N John Young Pkwy\\ki\nCartão 4845",
+        "valor": 16.06,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-19",
+        "descricao": "Avi Winie Plmer Hospit\\83 W Miller St\\or Cartão\n4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-19",
+        "descricao": "El Car Wash - Kissimme\\9190 W Irlo Brons\nCartão 4845",
+        "valor": 10.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-21",
+        "descricao": "Avi Wph Wrls 33\\83 W Miller St\\orlando\\3\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-21",
+        "descricao": "Avi Wph Wrls 33\\83 W Miller St\\orlando\\3\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-21",
+        "descricao": "Avi Wph Wrls 32\\83 W Miller St\\orlando\\3\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-21",
+        "descricao": "Avi Wph Wrls 31\\83 W Miller St\\orlando\\3\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-22",
+        "descricao": "Avi Wph Wrls 32\\83 W Miller St\\orlando\\3\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-22",
+        "descricao": "Avi Wph Wrls 3\\83 W Miller St\\orlando\\32\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-23",
+        "descricao": "Avi Wph Wireless 36\\83 W Miller St\\orlan\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-23",
+        "descricao": "Avi Wph Wrls 33\\83 W Miller St\\orlando\\3\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-24",
+        "descricao": "Avi Wph Wireless 36\\83 W Miller St\\orlan\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-24",
+        "descricao": "Avi Winnie Palmer Wire\\83 W Miller St\\or\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-24",
+        "descricao": "Tez*palmer S Hospitals\\5000 Legacy Dr 1\\\nCartão 4845",
+        "valor": 8.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-27",
+        "descricao": "Armazem X\\9310 Us Highway 192\\clermont\\3\nCartão 4845",
+        "valor": 15.65,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-31",
+        "descricao": "Bass Pro Store Orlando\\5156 Internationa\nCartão 4845",
+        "valor": 17.56,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-31",
+        "descricao": "Bass Pro Store Orlando\\5156 Internationa\nCartão 4845",
+        "valor": 121.18,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-03",
+        "descricao": "Nj\\110 Edsion Pl\\newark, Nj 07\\07070 Cartão\n4845",
+        "valor": 16.75,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-03",
+        "descricao": "Target 00023705\\3200 Rolling Oaks Cartão\n4845",
+        "valor": 8.6,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-08-06",
@@ -8171,6 +8601,186 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-08-07",
+        "descricao": "Tez*palmer S Hospitals\\5000 Legacy Dr 1\\\nCartão 4845",
+        "valor": 8.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-08",
+        "descricao": "Starbucks 66716\\florida Turnpike Mil\\oco\nCartão 4845",
+        "valor": 7.61,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-08",
+        "descricao": "Pai Atm\\525 Commonwealth Ave Sw\\polk Cit\nCartão 4845",
+        "valor": 203.75,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-08",
+        "descricao": "Pai Atm\\525 Commonwealth Ave Sw\\polk Cit\nCartão 4845",
+        "valor": 203.75,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-08",
+        "descricao": "Pai Atm\\525 Commonwealth Ave Sw\\polk Cit\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-08",
+        "descricao": "Pai Atm\\525 Commonwealth Ave Sw\\polk Cit\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-08",
+        "descricao": "Chevron 0200093\\525 Commonwealth Ave Sw\\\nCartão 4845",
+        "valor": 4.27,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-10",
+        "descricao": "The Ups Store 3017\\7862 W Irlo Bronson H\nCartão 4845",
+        "valor": 2.57,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-10",
+        "descricao": "Avi Arnold Palmer Cof\\92 W Miller St\\orl Cartão\n4845",
+        "valor": 2.12,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-11",
+        "descricao": "Butterbeer 6913 \\1000 Universal St Cartão\n4845",
+        "valor": 20.21,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-11",
+        "descricao": "Epic Admission 6343 \\1000 Universal St Cartão\n4845",
+        "valor": 195.96,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-11",
+        "descricao": "Various Emporia 6602 \\1000 Universal St\nCartão 4845",
+        "valor": 56.45,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-16",
+        "descricao": "Starbucks 63941\\2875 N Old Lake Wilson R\nCartão 4845",
+        "valor": 7.72,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-16",
+        "descricao": "Bubba Gump Orlando \\6000 Universal Bl Cartão\n4845",
+        "valor": 89.84,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-19",
+        "descricao": "Walmart Supercenter 5\\2855 N Old Lake Wi\nCartão 4845",
+        "valor": 115.56,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-19",
+        "descricao": "Walmart Supercenter 5\\2855 N Old Lake Wi\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-24",
+        "descricao": "Armazem X\\9310 Us Highway 192\\clermont\\3\nCartão 4845",
+        "valor": 42.84,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-27",
+        "descricao": "626 Gore St Fuel Mart \\626 W Gore St Cartão\n4163",
+        "valor": 36.09,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-08-28",
         "descricao": "EMISSAO DE CDB",
         "valor": 2404.0,
@@ -8181,6 +8791,116 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-08-28",
+        "descricao": "Consulate General Of B\\1350 E Touhy Ave\\\nCartão 8884",
+        "valor": 1.6,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-28",
+        "descricao": "Consulado Geral Do Bra\\3150 Sw 38th Ave\nCartão 8884",
+        "valor": 40.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-31",
+        "descricao": "Florida Fresh Orlando\\2900 Mercy Dr\\orla\nCartão 4163",
+        "valor": 3.6,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "Tjmaxx #0098\\sawgrass Mills 12801 W Sunr\nCartão 4163",
+        "valor": 31.97,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "Marshalls #486\\12801 W Sunrise Blvd\\sunr\nCartão 4163",
+        "valor": 52.28,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "Books A Million 381 \\12801 W Sunrise Cartão\n4163",
+        "valor": 19.25,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "The Ups Store 2439\\3109 Grand Ave\\miami\nCartão 4163",
+        "valor": 19.31,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "The Ups Store 2439\\3109 Grand Ave\\miami\nCartão 4163",
+        "valor": 19.31,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "Nikepos_us\\12801 W Sunrise Blvd., Suite. Cartão\n4163",
+        "valor": 64.19,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "Columbia 459\\12801 W. Sunrise Blvd. Ste.\nCartão 4163",
+        "valor": 26.73,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-06",
+        "descricao": "Burger King #6999 Q07\\12801 West Sunris\nCartão 4163",
+        "valor": 21.91,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-09-08",
         "descricao": "PAGAMENTO EFETUADO",
         "valor": 1872.43,
@@ -8189,6 +8909,26 @@
         "tipo_conta": "faturaunique",
         "titular": "Unique",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-08",
+        "descricao": "Tbl Orlando\\4963 4963 International Driv\nCartão 4163",
+        "valor": 244.93,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-09",
+        "descricao": "Target 00023705\\3200 Rolling Oaks Cartão\n4163",
+        "valor": 17.98,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-10",
@@ -8211,6 +8951,156 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-09-13",
+        "descricao": "Avi Arnold Palmer Cof\\92 W Miller St\\orl Cartão\n4163",
+        "valor": 2.97,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-13",
+        "descricao": "Avi Arnold Palmer Cof\\92 W Miller St\\orl Cartão\n4163",
+        "valor": 8.07,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-14",
+        "descricao": "Nj\\110 Edsion Pl\\newark, Nj 07\\07070 Cartão\n4163",
+        "valor": 16.13,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-16",
+        "descricao": "Bass Pro Store Orlando\\5156 Internationa\nCartão 4163",
+        "valor": 63.62,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-16",
+        "descricao": "Haagen Dazs 1052\\4963 International Dr\\o\nCartão 4163",
+        "valor": 22.28,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-16",
+        "descricao": "Columbia 451\\4971 International Dr. Ste. Cartão\n4163",
+        "valor": 93.13,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-16",
+        "descricao": "Nikepos_us\\4977 International Drive, 3b-\nCartão 4163",
+        "valor": 335.39,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-16",
+        "descricao": "Le Creuset - Us062\\4963 International Dr\nCartão 4163",
+        "valor": 69.22,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-16",
+        "descricao": "Pearl Factory 665 \\1742 Lake Buena V Cartão\n4163",
+        "valor": 658.16,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-17",
+        "descricao": "Marshalls #1559\\8035 W Irlo Bronson Memo\nCartão 4163",
+        "valor": 48.34,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-17",
+        "descricao": "Ross Store #350 \\5452 Touchstone D Cartão\n4163",
+        "valor": 265.04,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-17",
+        "descricao": "7-eleven 27426\\13698 W. Colonial Dr\\wint\nCartão 4163",
+        "valor": 37.96,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-18",
+        "descricao": "Sq *sfiha's Internatio\\5640 Internationa Cartão\n4163",
+        "valor": 48.17,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-18",
+        "descricao": "Walmart Supercenter 5\\2855 N Old Lake Wi\nCartão 4163",
+        "valor": 339.42,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-18",
+        "descricao": "Walmart Supercenter 5\\2855 N Old Lake Wi\nCartão 4163",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-09-19",
         "descricao": "Pix enviado para JAIR DE SOUZA FERREIRA — TRANSF ENVIADA PIX",
         "valor": 9000.0,
@@ -8229,6 +9119,116 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-22",
+        "descricao": "Bass Pro Store Orlando\\5156 Internationa\nCartão 4163",
+        "valor": 50.56,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-22",
+        "descricao": "Kipling #5506\\4959 Intl Dr. Space #170\\o\nCartão 4163",
+        "valor": 76.25,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-23",
+        "descricao": "Marshalls #1559\\8035 W Irlo Bronson Memo\nCartão 4163",
+        "valor": 11.5,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-23",
+        "descricao": "Ross Store #350 \\5452 Touchstone D Cartão\n4163",
+        "valor": 41.91,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-24",
+        "descricao": "Sq *shake Shack\\4054 Conroy Rd.\\orlando\\\nCartão 4163",
+        "valor": 18.61,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-24",
+        "descricao": "Billiontoone, Inc.\\1035 Obrien Dr\\menlo Cartão\n8884",
+        "valor": 345.94,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-24",
+        "descricao": "Qdi*quest Diagnostics\\15 Campus Blvd\\866\nCartão 8884",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-24",
+        "descricao": "Qdi*quest Diagnostics\\15 Campus Blvd\\866\nCartão 8884",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-25",
+        "descricao": "Oakley B087 \\4971 Internationa Cartão 4163",
+        "valor": 478.19,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-26",
+        "descricao": "Starbucks Evening Mco \\9301 Jeff Fuqua B\nCartão 4163",
+        "valor": 20.5,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-26",
+        "descricao": "El Car Wash - Kissimme\\9190 W Irlo Brons\nCartão 4163",
+        "valor": 10.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-30",
@@ -8269,6 +9269,16 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-01",
+        "descricao": "Transf. Internacional",
+        "valor": 1500.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-10-05",
@@ -8359,6 +9369,46 @@
         "tipo_conta": "extratoconta",
         "titular": "mariana",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-22",
+        "descricao": "Tst* Rosa Mexicano - L\\3663 Las Vegas Bl\nCartão 4163",
+        "valor": 61.62,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-10-25",
+        "descricao": "000000000211463\\heart Attack Grill\\las V\nCartão 4163",
+        "valor": 102.25,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-10-25",
+        "descricao": "000000000211463\\heart Attack Grill\\las V\nCartão 4163",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-10-25",
+        "descricao": "Cosmopol-secret Pizza\\3708 Las Vegas Blv\nCartão 4163",
+        "valor": 25.28,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-10-27",
@@ -8579,6 +9629,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-24",
+        "descricao": "Transf. Internacional",
+        "valor": 3840.0,
+        "banco": "C6 Bank",
+        "categoria": "nao_identificado",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-11-25",
@@ -16371,6 +17431,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-13",
+        "descricao": "Legacyparkingcompanyll\\229 Se 2nd St\\mia\nCartão 4845",
+        "valor": 15.0,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-14",
+        "descricao": "Disney Mk Parking \\1375 E Buena Vist Cartão\n4845",
+        "valor": 30.0,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-05-16",
         "descricao": "ML20 IMIGRANTES AUTO P",
         "valor": 231.57,
@@ -16409,6 +17489,26 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-20",
+        "descricao": "Turo Inc.* Trip May 18\\111 Sutter St Sui Cartão\n8884",
+        "valor": 1009.8,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-20",
+        "descricao": "Turo Inc.* Trip May 17\\111 Sutter St Sui Cartão\n8884",
+        "valor": 1002.6,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-05-24",
@@ -16591,6 +17691,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-06-03",
+        "descricao": "Sunoco \\167 West Plant St Cartão 4845",
+        "valor": 3.91,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-06-04",
         "descricao": "PIX TRANSF TAPECAR04/06",
         "valor": 1100.0,
@@ -16771,6 +17881,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-06-10",
+        "descricao": "Circle K # 09000\\1415 Overseas Highway\\m\nCartão 4845",
+        "valor": 18.78,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-06-11",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
         "valor": 2.8,
@@ -16792,6 +17912,16 @@
       },
       {
         "data": "2025-06-12",
+        "descricao": "Turo Inc.* Trip May 18\\111 Sutter St Sui Cartão\n8884",
+        "valor": 1009.8,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-12",
         "descricao": "EXXON AUTOMATED PETROL TA",
         "valor": 183.27,
         "banco": "C6 Bank",
@@ -16809,6 +17939,26 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-14",
+        "descricao": "City Of Clearwater Par\\100 S Myrtle Ave Cartão\n4845",
+        "valor": 11.5,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-21",
+        "descricao": "Buc-ee's #46\\200 World Commerce Parkway\\\nCartão 4845",
+        "valor": 22.88,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-06-22",
@@ -16881,6 +18031,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-06-28",
+        "descricao": "City Of Orlando Pkg-55\\60 W Pine St Cartão\n4845",
+        "valor": 4.0,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-06-30",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
         "valor": 2.8,
@@ -16919,6 +18079,36 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-11",
+        "descricao": "Nic*-fl State Parks \\3800 Commonwelath\nCartão 8884",
+        "valor": 6.0,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-11",
+        "descricao": "Nic*-fl State Parks \\3800 Commonwelath\nCartão 8884",
+        "valor": 6.0,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-12",
+        "descricao": "Turo Inc.* Trip May 18\\111 Sutter St Sui Cartão\n8884",
+        "valor": 1009.8,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-07-13",
@@ -17151,6 +18341,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-08-11",
+        "descricao": "Turo Inc.* Trip May 18\\111 Sutter St Sui Cartão\n8884",
+        "valor": 1009.8,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-08-29",
         "descricao": "C6TAG PEDAGIO — GDK6A27-ECOVIAS IMIGRANTES  SP160 160 SU",
         "valor": 3.1,
@@ -17289,6 +18489,16 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-10",
+        "descricao": "Turo Inc.* Trip May 18\\111 Sutter St Sui Cartão\n8884",
+        "valor": 639.22,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-13",
@@ -17669,6 +18879,16 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-26",
+        "descricao": "Exxon Rebel#823 \\2675 W Internatio Cartão\n4163",
+        "valor": 14.88,
+        "banco": "C6 Bank",
+        "categoria": "transporte",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-27",
@@ -20284,6 +21504,16 @@
       },
       {
         "data": "2025-05-08",
+        "descricao": "Macrobaby \\1361 Florida Mall Cartão 8884",
+        "valor": 182.85,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-08",
         "descricao": "EBN    *AMAZON RETAIL",
         "valor": 145.49,
         "banco": "C6 Bank",
@@ -20413,6 +21643,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-15",
+        "descricao": "Macrobaby \\1361 Florida Mall Cartão 8884",
+        "valor": 1163.09,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-17",
+        "descricao": "Apple Store R053 \\4200 Conroy Rd St Cartão\n8884",
+        "valor": 1489.94,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-05-30",
         "descricao": "MERCADOLIVRE*7PRODUTO",
         "valor": 200.48,
@@ -20463,6 +21713,56 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-06-27",
+        "descricao": "Amazon Reta* Nq8k07692\\410 Terry Avenue\nCartão 8884",
+        "valor": 111.88,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-30",
+        "descricao": "Amazon Mark* Nq6i26xe0\\410 Terry Avenue\nCartão 8884",
+        "valor": 19.91,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-02",
+        "descricao": "Amazon Mark* N396y28l2\\410 Terry Avenue\nCartão 8884",
+        "valor": 40.83,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-03",
+        "descricao": "Amazon Reta* N305e4ki2\\410 Terry Avenue\nCartão 8884",
+        "valor": 15.51,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-05",
+        "descricao": "Amazon Mark* N38me45l1\\410 Terry Avenue\nCartão 8884",
+        "valor": 26.61,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-07-09",
         "descricao": "EBN    *AMAZON RETAIL",
         "valor": 38.5,
@@ -20491,6 +21791,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-10",
+        "descricao": "Amazon Mark* Nl2426ip2\\410 Terry Avenue\nCartão 8884",
+        "valor": 67.05,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-07-10",
@@ -20594,6 +21904,56 @@
       },
       {
         "data": "2025-07-13",
+        "descricao": "Amazon Mark* Op9ey80f3\\410 Terry Avenue\nCartão 8884",
+        "valor": 45.41,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-13",
+        "descricao": "Amazon Mark* Nl2hz7io1\\410 Terry Avenue\nCartão 8884",
+        "valor": 9.66,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-13",
+        "descricao": "Amazon Mark* Nl8c63wl0\\410 Terry Avenue\nCartão 8884",
+        "valor": 9.62,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-13",
+        "descricao": "Amazon Reta* Nl7pr3k41\\410 Terry Avenue\nCartão 8884",
+        "valor": 39.52,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-13",
+        "descricao": "Amazon Reta* Nl1fk3kc1\\410 Terry Avenue\nCartão 8884",
+        "valor": 15.55,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-13",
         "descricao": "AMAZON MARKETPLACE     SE",
         "valor": 933.33,
         "banco": "C6 Bank",
@@ -20611,6 +21971,66 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-14",
+        "descricao": "Amazon Reta* Oq8km86k3\\410 Terry Avenue\nCartão 8884",
+        "valor": 22.92,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-24",
+        "descricao": "Amazon Reta* Qu4u29zv3\\410 Terry Avenue\nCartão 8884",
+        "valor": 16.95,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-30",
+        "descricao": "Amazon Mark* 5f6zx1513\\410 Terry Avenue\nCartão 8884",
+        "valor": 30.86,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-30",
+        "descricao": "Amazon Reta* Qe3i17a13\\410 Terry Avenue\nCartão 8884",
+        "valor": 21.37,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-03",
+        "descricao": "Amazon Reta* Pr5en2nu3\\410 Terry Avenue\nCartão 8884",
+        "valor": 25.74,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-03",
+        "descricao": "Amazon Reta* Cg1u72q73\\410 Terry Avenue\nCartão 8884",
+        "valor": 28.22,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-08-04",
@@ -20641,6 +22061,16 @@
         "tipo_conta": "faturaunique",
         "titular": "Unique",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-15",
+        "descricao": "Amazon Reta* 0i5t68033\\410 Terry Avenue\nCartão 8884",
+        "valor": 97.94,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-08-25",
@@ -20713,6 +22143,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-09-09",
+        "descricao": "Amazon Mark* Kh7ck5d43\\410 Terry Avenue\nCartão 8884",
+        "valor": 116.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-12",
+        "descricao": "Amazon Mark* Rx2o11tp3\\410 Terry Avenue\nCartão 8884",
+        "valor": 46.02,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-09-14",
         "descricao": "APPLE.COM/US           80",
         "valor": 295.57,
@@ -20731,6 +22181,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-16",
+        "descricao": "Amazon Reta* Nd7zb8kv3\\410 Terry Avenue\nCartão 8884",
+        "valor": 379.99,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-16",
@@ -20761,6 +22221,36 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-17",
+        "descricao": "Amazon Mark* Hu9ea8k83\\410 Terry Avenue\nCartão 8884",
+        "valor": 112.85,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-17",
+        "descricao": "Amazon Mark* 547pl77i3\\410 Terry Avenue\nCartão 8884",
+        "valor": 1.16,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-17",
+        "descricao": "Amazon Reta* Fs5621ee3\\410 Terry Avenue\nCartão 8884",
+        "valor": 28.22,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-19",
@@ -20803,6 +22293,36 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-09-20",
+        "descricao": "Amazon Mark* 6f2oi6m33\\410 Terry Avenue\nCartão 8884",
+        "valor": 52.64,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-20",
+        "descricao": "Amazon Mark* Jf5031ri3\\410 Terry Avenue\nCartão 8884",
+        "valor": 234.76,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-20",
+        "descricao": "Amazon Mark* Aj0gg3zc3\\410 Terry Avenue\nCartão 8884",
+        "valor": 47.93,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-09-22",
         "descricao": "AMAZON MKTPLACE PMTS",
         "valor": 396.11,
@@ -20811,6 +22331,46 @@
         "tipo_conta": "faturaunique",
         "titular": "Unique",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-22",
+        "descricao": "Amazon Mark* 032884383\\410 Terry Avenue\nCartão 8884",
+        "valor": 66.09,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-22",
+        "descricao": "Amazon Mark* 5305690m3\\410 Terry Avenue\nCartão 8884",
+        "valor": 236.4,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-22",
+        "descricao": "Amazon Mark* Lk94x4qs3\\410 Terry Avenue\nCartão 8884",
+        "valor": 36.28,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-22",
+        "descricao": "Apple Store #r053\\4200 Conroy Rd Ste 12\nCartão 4163",
+        "valor": 62.84,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-22",
@@ -20831,6 +22391,26 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-23",
+        "descricao": "Amazon Mark* H70679223\\410 Terry Avenue\nCartão 8884",
+        "valor": 47.43,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-24",
+        "descricao": "Amazon Mark* 0l68p6qj3\\410 Terry Avenue\nCartão 8884",
+        "valor": 48.31,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-25",
@@ -20933,6 +22513,66 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-10-21",
+        "descricao": "Amazon Mark* Nu93m8xn0\\410 Terry Avenue\nCartão 8884",
+        "valor": 36.57,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-10-21",
+        "descricao": "Amazon Reta* Nu76301d1\\410 Terry Avenue\nCartão 8884",
+        "valor": 58.39,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-10-21",
+        "descricao": "Amazon Reta* Nu2dq2021\\410 Terry Avenue\nCartão 8884",
+        "valor": 46.68,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-10-21",
+        "descricao": "Amazon Mark* Nu98r33t1\\410 Terry Avenue\nCartão 8884",
+        "valor": 118.35,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-10-22",
+        "descricao": "Amazon Reta* Nm8y459o2\\410 Terry Avenue\nCartão 8884",
+        "valor": 47.23,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-10-23",
+        "descricao": "Amazon Mark* Nm8wj5uh2\\410 Terry Avenue\nCartão 8884",
+        "valor": 21.66,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-10-23",
         "descricao": "MERCADOLIVRE*EBAZARCO",
         "valor": 19.0,
@@ -20941,6 +22581,26 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-24",
+        "descricao": "Amazon Reta* Nu0ll0ob2\\410 Terry Avenue\nCartão 8884",
+        "valor": 28.18,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-10-24",
+        "descricao": "Amazon Mktpl*nu49g0o52\\440 Terry Ave N\\s\nCartão 8884",
+        "valor": 78.88,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-10-29",
@@ -22777,12 +24437,52 @@
         "moeda": "USD"
       },
       {
+        "data": "2025-05-13",
+        "descricao": "Cvs/pharmacy #05010\\306 Lincoln Rd\\miami\nCartão 4845",
+        "valor": 34.76,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-06-02",
         "descricao": "Pago para IU65 Premium & B",
         "valor": 94.39,
         "banco": "Wise",
         "categoria": "saude",
         "tipo_conta": "extratocontausd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-06",
+        "descricao": "Pt *orl Hlth Pymt\\1414 Kuhl Ave\\orlando\\\nCartão 8884",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-10",
+        "descricao": "Cvs/pharmacy #08368\\101 Duval St\\key Wes\nCartão 4845",
+        "valor": 23.64,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-25",
+        "descricao": "Pt *orl Hlth Pymt\\1414 Kuhl Ave\\orlando\\\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
       },
@@ -22803,6 +24503,26 @@
         "banco": "Wise",
         "categoria": "saude",
         "tipo_conta": "extratocontausd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-16",
+        "descricao": "Pt *orl Hlth Pymt\\1414 Kuhl Ave\\orlando\\\nCartão 4845",
+        "valor": 5.0,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-17",
+        "descricao": "Pt *orl Hlth Pymt\\1414 Kuhl Ave\\orlando\\\nCartão 4845",
+        "valor": 54.5,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
       },
@@ -22867,6 +24587,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-07-24",
+        "descricao": "Pt *orl Hlth Pymt\\1414 Kuhl Ave\\orlando\\\nCartão 4845",
+        "valor": 54.51,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-07-30",
         "descricao": "Pix Qrcode Din Des: Drogaria Sao Paulo 30/07",
         "valor": 117.74,
@@ -22883,6 +24613,46 @@
         "banco": "Wise",
         "categoria": "saude",
         "tipo_conta": "extratocontausd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-08",
+        "descricao": "Pt *orl Hlth Pymt\\1414 Kuhl Ave\\orlando\\\nCartão 4845",
+        "valor": 94.0,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-08",
+        "descricao": "Pt *orl Hlth Pymt\\1414 Kuhl Ave\\orlando\\\nCartão 4845",
+        "valor": 89.0,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-10",
+        "descricao": "Scripts Pharmacy \\92 West Miller St Cartão\n4845",
+        "valor": 15.04,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-13",
+        "descricao": "Pt *orl Hlth Pymt\\1414 Kuhl Ave\\orlando\\\nCartão 4845",
+        "valor": 1496.99,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
       },
@@ -23117,6 +24887,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-11-28",
+        "descricao": "RAPPI  *DROGARIA SAO P",
+        "valor": 60.49,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-12-08",
         "descricao": "Pix enviado para LUMMA ROBERTA DA SILVA — TRANSF ENVIADA PIX",
         "valor": 1950.0,
@@ -23290,6 +25070,16 @@
         "data": "2026-01-28",
         "descricao": "DROGARIA_SP DROGARIASA",
         "valor": 2599.05,
+        "banco": "C6 Bank",
+        "categoria": "saude",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-29",
+        "descricao": "RAPPI*RAIA DROGASIL SA",
+        "valor": 22.1,
         "banco": "C6 Bank",
         "categoria": "saude",
         "tipo_conta": "faturacarbon",
@@ -25979,6 +27769,186 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-07",
+        "descricao": "Hob Club Orlando\\1490 E Buena Vista Dr\\o\nCartão 4845",
+        "valor": 59.0,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-07",
+        "descricao": "Dd's Discount #5219 \\7687 S Orange Blo Cartão\n8884",
+        "valor": 93.55,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-09",
+        "descricao": "Levi's Outlet 420 \\8200 Vineland Ave Cartão\n4845",
+        "valor": 114.55,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-09",
+        "descricao": "Orlando Prem Outl-vin\\8200 Vineland Ave\nCartão 8884",
+        "valor": 30.35,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-10",
+        "descricao": "The Childrens Place 44\\8174 Vineland Ave\nCartão 4845",
+        "valor": 56.72,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "Shell Oil 10047712012 \\mile Marker 145 Cartão\n4845",
+        "valor": 12.1,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "Starbucks Store 13007\\601 Lincoln Rd\\mia\nCartão 4845",
+        "valor": 7.69,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "City Of Miami Beach 17\\640 17th St Cartão\n4845",
+        "valor": 8.0,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "City Of Miami Beach Co\\1301 Collins Ave Cartão\n4845",
+        "valor": 15.0,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "Walgreens #13162\\1400 Collins Ave\\miami\nCartão 4845",
+        "valor": 4.85,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "Breeza Beachwear 328\\201 Lincoln Road\\mi\nCartão 4845",
+        "valor": 6.42,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "The Childrens Place 44\\8174 Vineland Ave\nCartão 4845",
+        "valor": 1.86,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "Carter's #1379\\15501 State Road 535\\orla\nCartão 4845",
+        "valor": 12.17,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "Chitown Lock Llc\\17203 Quicksilver Ave\\w\nCartão 4845",
+        "valor": 150.0,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-14",
+        "descricao": "Wdw Tickets-mk Vp \\1375 E Buena Vist Cartão\n4845",
+        "valor": 75.0,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-14",
+        "descricao": "Wdw Cosmic Ray's \\1375 E Buena Vist Cartão\n8884",
+        "valor": 35.97,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-14",
+        "descricao": "Wdw Emporium \\1375 E Buena Vist Cartão\n8884",
+        "valor": 15.96,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-14",
+        "descricao": "Wdw Cone Shop \\1375 E Buena Vist Cartão\n8884",
+        "valor": 21.29,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-05-14",
         "descricao": "AMERICAN AIR*CAPTURERE",
         "valor": 5110.48,
@@ -25987,6 +27957,46 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-15",
+        "descricao": "Walgreens #7074\\7767 W Irlo Bronson Memo\nCartão 8884",
+        "valor": 26.78,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-16",
+        "descricao": "Usces Llc \\223 Emerald Lake Cartão 8884",
+        "valor": 348.0,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-17",
+        "descricao": "Orlando Premium Outl\\4955 International\nCartão 8884",
+        "valor": 21.82,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-17",
+        "descricao": "Cheesecake Orlando \\4200 Conroy Rd Cartão\n4845",
+        "valor": 70.0,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-05-17",
@@ -26019,6 +28029,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-20",
+        "descricao": "Macys 811 Flm Sbux 565\\8001 S Orange Blo\nCartão 8884",
+        "valor": 8.88,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-23",
+        "descricao": "Fords Garage Kissimmee\\3210 Margaritavil\nCartão 4845",
+        "valor": 78.8,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-05-28",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
         "valor": 20.0,
@@ -26027,6 +28057,36 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-28",
+        "descricao": "Toothsome Choc 0010762\\1000 Universal St\nCartão 8884",
+        "valor": 19.17,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-28",
+        "descricao": "Publix #1131\\400 E Central Blvd\\orlando Cartão\n4845",
+        "valor": 7.97,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-31",
+        "descricao": "Popshelf #24439\\8035 W Irlo Bronson Memo\nCartão 4845",
+        "valor": 8.52,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-06-02",
@@ -26109,6 +28169,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-06-10",
+        "descricao": "Fh* Fury Adventures\\313 Margaret St\\key\nCartão 4845",
+        "valor": 171.9,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-12",
+        "descricao": "Sundry Shop \\2300 Wyndham Palm Cartão\n4845",
+        "valor": 30.0,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-06-14",
         "descricao": "HOTELCOM73139275741253",
         "valor": 1031.7,
@@ -26117,6 +28197,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-15",
+        "descricao": "Tnf Orlando\\4961 Orlando Premium Outlet\\\nCartão 4845",
+        "valor": 19.17,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-06-15",
@@ -26139,6 +28229,36 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-06-23",
+        "descricao": "Universal Store Cw 020\\1000 Universal St\nCartão 4845",
+        "valor": 9.57,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-01",
+        "descricao": "Starbucks Store 25466\\8200 Vineland Ave\\\nCartão 4845",
+        "valor": 9.4,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-02",
+        "descricao": "Walgreens #3106\\5935 W Irlo Bronson Memo\nCartão 4845",
+        "valor": 23.27,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-07-04",
         "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-PLAZA SUL SHOPPING  PRACA LEONOR",
         "valor": 20.0,
@@ -26147,6 +28267,36 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-07",
+        "descricao": "Dollar Tree\\3201 Rolling Oaks Blvd\\kissi Cartão\n4845",
+        "valor": 16.66,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-11",
+        "descricao": "Dollar Tree\\3201 Rolling Oaks Blvd\\kissi Cartão\n4845",
+        "valor": 2.69,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-15",
+        "descricao": "Starbucks Store 13942\\4965 Prime Outlets\nCartão 4845",
+        "valor": 8.4,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-07-15",
@@ -26179,6 +28329,66 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-07-25",
+        "descricao": "Walgreens #7074\\7767 W Irlo Bronson Memo\nCartão 4845",
+        "valor": 24.26,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-26",
+        "descricao": "Dollar Tree\\3201 Rolling Oaks Blvd\\kissi Cartão\n4845",
+        "valor": 8.06,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-28",
+        "descricao": "Walgreens #7074\\7767 W Irlo Bronson Memo\nCartão 4845",
+        "valor": 10.18,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-28",
+        "descricao": "Dollar Tree\\3201 Rolling Oaks Blvd\\kissi Cartão\n4845",
+        "valor": 20.16,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-03",
+        "descricao": "Sundry Shop \\2300 Wyndham Palm Cartão\n4845",
+        "valor": 25.0,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-07",
+        "descricao": "Wdw Tickets-ds Gr \\1375 E Buena Vist Cartão\n4845",
+        "valor": 158.69,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-08-12",
         "descricao": "DOLLAR TREE            OR",
         "valor": 70.23,
@@ -26199,6 +28409,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-08-13",
+        "descricao": "Walgreens #7074\\7767 W Irlo Bronson Memo\nCartão 4845",
+        "valor": 12.99,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-15",
+        "descricao": "Dollar Tree\\3201 Rolling Oaks Blvd\\kissi Cartão\n4845",
+        "valor": 22.28,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-08-16",
         "descricao": "WDW DROID DEPOT        LA",
         "valor": 727.5,
@@ -26217,6 +28447,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-18",
+        "descricao": "Wdw Tickets \\1375 E Buena Vist Cartão 8884",
+        "valor": 169.34,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-08-18",
@@ -26257,6 +28497,126 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-26",
+        "descricao": "Starbucks Store 08343\\400 Park Avenue\\wi\nCartão 4163",
+        "valor": 7.34,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-27",
+        "descricao": "Toothsome Choc 0010762\\1000 Universal St\nCartão 4163",
+        "valor": 38.34,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-31",
+        "descricao": "Levi's Outlet 420 \\8200 Vineland Ave Cartão\n4163",
+        "valor": 91.67,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-31",
+        "descricao": "Carter's #636\\4967 International Dr Ste Cartão\n4163",
+        "valor": 10.0,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-31",
+        "descricao": "Orlando Prem Outl-vin\\8200 Vineland Ave\nCartão 4163",
+        "valor": 9.0,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-01",
+        "descricao": "Cheesecake Orlando Vin\\11602 Regency Vil\nCartão 4163",
+        "valor": 106.01,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-04",
+        "descricao": "Dollar Tree\\3201 Rolling Oaks Blvd\\kissi Cartão\n4163",
+        "valor": 44.31,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "Carter's #575\\12801 W Sunrise Blvd Ste 8\nCartão 4163",
+        "valor": 137.88,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-06",
+        "descricao": "Shell Oil57543704316 \\mile Marker 94 Fl\nCartão 4163",
+        "valor": 30.07,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-08",
+        "descricao": "Cheesecake Orlando \\4200 Conroy Rd Cartão\n4163",
+        "valor": 67.35,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-12",
+        "descricao": "Latam Air\\av. Jurandir 856\\sao Paulo\\04\nCartão 8884",
+        "valor": 1579.79,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-16",
+        "descricao": "Orlando Premium Outl\\4955 International\nCartão 4163",
+        "valor": 175.66,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-20",
@@ -26387,6 +28747,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-20",
+        "descricao": "Walgreens #13900\\3717 Las Vegas Blvd S\\l\nCartão 4163",
+        "valor": 62.85,
+        "banco": "C6 Bank",
+        "categoria": "lazer_viagens",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-10-21",
@@ -28733,6 +31103,66 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-07",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4845",
+        "valor": 59.64,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-07",
+        "descricao": "Mcdonald's M7516\\7627 West Irlo Bronson\\\nCartão 8884",
+        "valor": 20.84,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-08",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 119.34,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-10",
+        "descricao": "Wm Supercenter #5420\\3250 Vineland Rd\\ki\nCartão 4845",
+        "valor": 371.44,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4845",
+        "valor": 143.17,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "Wm Supercenter #5420\\3250 Vineland Rd\\ki\nCartão 4845",
+        "valor": 90.79,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-05-13",
         "descricao": "WM SUPERCENTER #5214   KI",
         "valor": 230.35,
@@ -28751,6 +31181,216 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-15",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4845",
+        "valor": 101.75,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-15",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4845",
+        "valor": 3.64,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-20",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 101.39,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-22",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4845",
+        "valor": 80.89,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-27",
+        "descricao": "Mcdonald's F11085\\3191 S John Young Pkwy\nCartão 8884",
+        "valor": 15.47,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-27",
+        "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4845",
+        "valor": 123.22,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-27",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4845",
+        "valor": 186.31,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-27",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 53.89,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-30",
+        "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4845",
+        "valor": 31.51,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-30",
+        "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4845",
+        "valor": 6.5,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-31",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 15.79,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-03",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 157.95,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-03",
+        "descricao": "Haagen-dazs 774\\4200 Conroy Road\\orland\nCartão 4845",
+        "valor": 13.51,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-06",
+        "descricao": "Ghirardelli Lake Buena\\1710 E Buena Vist\nCartão 8884",
+        "valor": 21.03,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-07",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 74.8,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-07",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 58.45,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-10",
+        "descricao": "Five Guys 1541 Qsr\\2814 N Roosevelt Blvd\nCartão 4845",
+        "valor": 46.2,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-10",
+        "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4845",
+        "valor": 27.48,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-12",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 90.56,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-12",
+        "descricao": "Wicked Lick \\335 Duval St Ste Cartão 4845",
+        "valor": 11.93,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-14",
+        "descricao": "Sq *ben Jerry's Clea\\409 Mandalay Aven Cartão\n4845",
+        "valor": 13.89,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-06-15",
@@ -28773,6 +31413,96 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-06-16",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 312.1,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-18",
+        "descricao": "Texas Roadhouse #2058 \\4119 Clemson Blvd\nCartão 4845",
+        "valor": 47.04,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-21",
+        "descricao": "Parmukh Corner \\739 Us Highway 25 Cartão\n4845",
+        "valor": 8.6,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-22",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4845",
+        "valor": 121.1,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-23",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 62.44,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-23",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4845",
+        "valor": 31.0,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-23",
+        "descricao": "Ghirardelli Lake Buena\\1710 E Buena Vist\nCartão 4845",
+        "valor": 17.51,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-25",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4845",
+        "valor": 1.74,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-28",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4845",
+        "valor": 305.42,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-07-02",
         "descricao": "WAL-MART #5214         KI",
         "valor": 6.97,
@@ -28793,6 +31523,36 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-07-07",
+        "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4845",
+        "valor": 188.82,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-09",
+        "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4845",
+        "valor": 29.29,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-10",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 69.75,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-07-20",
         "descricao": "DESCAMPADO",
         "valor": 287.17,
@@ -28801,6 +31561,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-25",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4845",
+        "valor": 217.17,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-07-26",
@@ -28823,6 +31593,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-08-01",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 38.82,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-08-02",
         "descricao": "WM SUPERCENTER #5214   KI",
         "valor": 227.92,
@@ -28841,6 +31621,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-03",
+        "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4845",
+        "valor": 287.22,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-08-03",
@@ -28901,6 +31691,36 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-09",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 44.0,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-09",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+        "valor": 40.91,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-09",
+        "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4845",
+        "valor": 210.42,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-08-11",
@@ -29013,6 +31833,56 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-08-24",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+        "valor": 152.43,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-29",
+        "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4163",
+        "valor": 164.65,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-02",
+        "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4163",
+        "valor": 41.36,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-04",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+        "valor": 21.71,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-09",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+        "valor": 281.97,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-09-13",
         "descricao": "MERCADINHO BONANZA LT",
         "valor": 138.4,
@@ -29023,6 +31893,106 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-09-16",
+        "descricao": "Mcdonald's M2190\\5401 Altamira Dr\\orland\nCartão 4163",
+        "valor": 24.7,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-19",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+        "valor": 514.54,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-20",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4163",
+        "valor": 35.38,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-21",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+        "valor": 192.43,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-21",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4163",
+        "valor": 38.29,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-23",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+        "valor": 2.69,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-23",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+        "valor": 40.73,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-25",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+        "valor": 4.77,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-25",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4163",
+        "valor": 4.63,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-25",
+        "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4163",
+        "valor": 26.51,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-09-25",
         "descricao": "MILKY MOO PLAZA SUL",
         "valor": 51.0,
@@ -29031,6 +32001,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-26",
+        "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+        "valor": 15.59,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-09-27",
@@ -29351,6 +32331,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-20",
+        "descricao": "Wm Supercenter #3473\\4505 W Charleston B\nCartão 4163",
+        "valor": 605.32,
+        "banco": "C6 Bank",
+        "categoria": "alimentacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-10-23",
@@ -29986,16 +32976,6 @@
         "data": "2025-11-28",
         "descricao": "BONANZA     0001     S",
         "valor": 103.1,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-28",
-        "descricao": "RAPPI  *DROGARIA SAO P",
-        "valor": 60.49,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -31053,16 +34033,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-01-29",
-        "descricao": "RAPPI*RAIA DROGASIL SA",
-        "valor": 22.1,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-01-31",
         "descricao": "PADARIA DANIELA",
         "valor": 31.57,
@@ -32025,6 +34995,16 @@
         "moeda": "USD"
       },
       {
+        "data": "2025-06-18",
+        "descricao": "Harvard Bus Education\\20 Guest St Ste 70\nCartão 8884",
+        "valor": 43.0,
+        "banco": "C6 Bank",
+        "categoria": "educacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-06-19",
         "descricao": "Pix enviado para BELT ACADEMY — TRANSF ENVIADA PIX",
         "valor": 1950.0,
@@ -32033,6 +35013,16 @@
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-27",
+        "descricao": "Perusall E-book\\9 Beecher Road\\brookline\nCartão 8884",
+        "valor": 32.0,
+        "banco": "C6 Bank",
+        "categoria": "educacao",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-07-27",
@@ -32357,6 +35347,336 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-07",
+        "descricao": "Burlington Stores 322 \\8204 S Orange Blo\nCartão 8884",
+        "valor": 31.95,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-07",
+        "descricao": "Ross Stores #1961 \\7825 S Orange Blo Cartão\n8884",
+        "valor": 2.0,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-07",
+        "descricao": "Ross Stores #1961 \\7825 S Orange Blo Cartão\n8884",
+        "valor": 56.91,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-07",
+        "descricao": "Ross Stores #1687 \\12339 S Orange Bl Cartão\n4163",
+        "valor": 27.96,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-09",
+        "descricao": "Columbia 452\\8200 Vineland Avenue Ste. 1\nCartão 4845",
+        "valor": 253.96,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-09",
+        "descricao": "Burlington Stores 1413\\6855 S Kirkman Rd\nCartão 8884",
+        "valor": 156.14,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-09",
+        "descricao": "Ross Stores #760 \\1736 Sand Lake Rd Cartão\n8884",
+        "valor": 136.45,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "Ross Stores #1816 \\230 Lincoln Road Cartão\n4845",
+        "valor": 4.27,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4845",
+        "valor": 76.24,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-13",
+        "descricao": "Columbia 452\\8200 Vineland Avenue Ste. 1\nCartão 4845",
+        "valor": 60.23,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-15",
+        "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n8884",
+        "valor": 30.07,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-15",
+        "descricao": "Burlington Stores 1224\\tbd 7973 And 8085\nCartão 8884",
+        "valor": 34.79,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-17",
+        "descricao": "Gap Outlet Us 7730\\5401 W. Oakridge Roa\nCartão 8884",
+        "valor": 65.79,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-20",
+        "descricao": "Burlington Stores 1224\\tbd 7973 And 8085\nCartão 8884",
+        "valor": 40.83,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-05-20",
+        "descricao": "Victoria's Secret #149\\4959 Internationa\nCartão 8884",
+        "valor": 92.58,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-02",
+        "descricao": "Burlington Stores 1224\\tbd 7973 And 8085\nCartão 4845",
+        "valor": 4.29,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-03",
+        "descricao": "Victoria's Secret #149\\4959 Internationa\nCartão 4845",
+        "valor": 10.64,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-14",
+        "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4845",
+        "valor": 44.04,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-14",
+        "descricao": "T J Maxx #1331\\3219 Rolling Oaks Blvd\\ki\nCartão 4845",
+        "valor": 67.41,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-15",
+        "descricao": "Under Armour Orlando \\4975 Internationa\nCartão 4845",
+        "valor": 34.6,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-22",
+        "descricao": "1695 Great Clips At Go\\2430 Us Highway 2\nCartão 4845",
+        "valor": 29.0,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-23",
+        "descricao": "Sephora Disney Springs\\1530 E. Buena Vis\nCartão 4845",
+        "valor": 31.95,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-30",
+        "descricao": "Under Armour Orv \\8200 Vineland Ave Cartão\n4845",
+        "valor": 51.12,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-30",
+        "descricao": "Under Armour Orv \\8200 Vineland Ave Cartão\n4845",
+        "valor": 26.61,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-30",
+        "descricao": "Gap Outlet Us 1725\\8228 Vineland Avenue\\\nCartão 4845",
+        "valor": 9.57,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-30",
+        "descricao": "Michael Kors - 135 \\8200 Vineland Ave Cartão\n4845",
+        "valor": 58.79,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-06-30",
+        "descricao": "Columbia 452\\8200 Vineland Avenue Ste. 1\nCartão 4845",
+        "valor": 56.93,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-05",
+        "descricao": "T J Maxx #1331\\3219 Rolling Oaks Blvd\\ki\nCartão 4845",
+        "valor": 9.98,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-11",
+        "descricao": "T J Maxx #1331\\3219 Rolling Oaks Blvd\\ki\nCartão 4845",
+        "valor": 31.14,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-16",
+        "descricao": "Ross Stores #2024 \\3231 Vineland Roa Cartão\n4845",
+        "valor": 22.02,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-26",
+        "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4845",
+        "valor": 132.03,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-07-27",
+        "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4845",
+        "valor": 81.64,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-10",
+        "descricao": "0617 Great Clips At Ma\\2849 S Orange Ave\nCartão 4845",
+        "valor": 27.0,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-08-13",
         "descricao": "ROSS STORES #1301      KI",
         "valor": 21.0,
@@ -32397,6 +35717,66 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-09-02",
+        "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4163",
+        "valor": 37.86,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "Kiko Milano\\w Sunrise Blvd 12801\\sunrise\nCartão 4163",
+        "valor": 27.99,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-08",
+        "descricao": "Gap Outlet Us 7730\\5401 W. Oakridge Roa\nCartão 4163",
+        "valor": 71.42,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-08",
+        "descricao": "Burlington Stores209 \\12801 W Sunrise B\nCartão 4163",
+        "valor": 136.9,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-10",
+        "descricao": "Under Armour Orv \\8200 Vineland Ave Cartão\n4163",
+        "valor": 15.98,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-16",
+        "descricao": "Michael Kors - 125 \\4949 Internationa Cartão\n4163",
+        "valor": 94.79,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-09-16",
         "descricao": "THENORTHFACE           DE",
         "valor": 1152.15,
@@ -32417,6 +35797,56 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-09-17",
+        "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4163",
+        "valor": 106.31,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-18",
+        "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4163",
+        "valor": 128.15,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-22",
+        "descricao": "Gap Outlet Us 7730\\5401 W. Oakridge Roa\nCartão 4163",
+        "valor": 29.82,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-23",
+        "descricao": "Victoria's Secret #149\\4959 Internationa\nCartão 4163",
+        "valor": 42.6,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-09-24",
+        "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4163",
+        "valor": 81.94,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
         "data": "2025-09-25",
         "descricao": "OTICAS RB1 COMERCIAL L",
         "valor": 810.0,
@@ -32435,6 +35865,16 @@
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-25",
+        "descricao": "Sephora Miracle Mile\\3663 Las Vegas Blvd\nCartão 4163",
+        "valor": 191.83,
+        "banco": "C6 Bank",
+        "categoria": "vestuario",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-10-25",
