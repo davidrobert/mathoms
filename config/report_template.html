@@ -1,4 +1,4 @@
-<!-- TEMPLATE: Relatório Financeiro — Família Ferreira Campos -->
+<!-- TEMPLATE: Relatório Financeiro — Família {{FAMILY_SOBRENOME}} -->
 <!-- Versão do Template: 1.0 — abr/2026 -->
 <!-- Este arquivo contém APENAS estrutura, CSS e JS. -->
 <!-- Todos os dados são injetados via placeholders {{NOME}}. -->
@@ -9,7 +9,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planejamento Financeiro — Família Ferreira Campos</title>
+<title>Planejamento Financeiro — Família {{FAMILY_SOBRENOME}}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
 (function(){
@@ -1012,6 +1012,27 @@ body.mode-usa [data-mode="tactical"] { display: none !important; }
 /* Card header with icon (replaces inline display:flex) */
 .card-header-icon { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); }
 
+/* Pontos Fortes — styled item blocks */
+.pontos-fortes-list { display: flex; flex-direction: column; gap: var(--space-md); }
+.ponto-forte-item {
+  display: flex; align-items: flex-start; gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-compare-pos);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-accent);
+  transition: box-shadow 0.15s ease;
+}
+.ponto-forte-item:hover { box-shadow: var(--shadow-card-hover); }
+.ponto-forte-icon { font-size: var(--font-xl); flex-shrink: 0; line-height: 1.2; }
+.ponto-forte-content { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ponto-forte-content strong {
+  font-family: var(--font-display); font-size: var(--font-md);
+  font-weight: 600; color: var(--color-primary);
+}
+.ponto-forte-content span { font-size: var(--font-base); color: var(--color-text-muted); line-height: 1.4; }
+[data-theme="dark"] .ponto-forte-item { background: rgba(34, 197, 94, 0.08); border-left-color: var(--color-accent); }
+[data-theme="dark"] .ponto-forte-content strong { color: var(--color-light); }
+
 /* Split cards: 2-column grid (replaces inline display:grid) */
 .split-cards { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); margin-top: var(--space-section-gap); align-items: stretch; }
 .split-cards > .card { min-width: 0; overflow: hidden; word-break: break-word; }
@@ -1230,8 +1251,8 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <nav class="nav-sticky" role="navigation" aria-label="Navegação principal">
   <div class="nav-scroll">
   <div class="nav-brand">
-    <div class="nav-brand-icon">FC</div>
-    <div class="nav-brand-text">Ferreira Campos</div>
+    <div class="nav-brand-icon">{{NAV_BRAND_ICON}}</div>
+    <div class="nav-brand-text">{{FAMILY_SOBRENOME}}</div>
   </div>
   <div class="nav-links nav-strategic">
     <a href="#capa" class="nav-link" aria-label="KPIs e resumo"><span class="num">•</span><span class="nav-text">KPIs</span></a>
@@ -1357,7 +1378,7 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <div data-mode="strategic">
 <div class="container">
 <div class="card card-feature">
-  <div class="card-title card-title-lg">👨‍👩‍👦 A Família Ferreira Campos</div>
+  <div class="card-title card-title-lg">👨‍👩‍👦 A Família {{FAMILY_SOBRENOME}}</div>
   <div class="perfil-grid">
     <div class="perfil-col">
       {{PERFIL_FAMILIA_LEFT}}
@@ -1603,10 +1624,10 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 {{CONTENT_U3}}
 </div>
 
-<!-- USA U4 — Simulação Mariana Sem Trabalhar -->
+<!-- USA U4 — Simulação Cônjuge Sem Trabalhar -->
 <div class="section" id="usa-4" data-mode="usa">
 <div class="section-header">
-  <h1>U4. Simulação — Mariana Sem Trabalhar</h1>
+  <h1>U4. Simulação — {{CONJUGE_NOME}} Sem Trabalhar</h1>
 </div>
 <div class="section-summary">{{SUMMARY_U4}}</div>
 {{CONTENT_U4}}
@@ -1827,12 +1848,14 @@ document.addEventListener('DOMContentLoaded', function() {
   const fmtK = v => v >= 1e6 ? 'R$ '+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? 'R$ '+(v/1e3).toFixed(0)+'k' : 'R$ '+v;
 
   // Safe chart creator — skips gracefully when canvas is missing
-  function safeChart(canvasId, config) {
+  // Exposed globally so buildUsaCharts (in the global <script>) can use it.
+  window.safeChart = function safeChart(canvasId, config) {
     var el = document.getElementById(canvasId);
     if (!el) { console.warn('Canvas not found, skipping: ' + canvasId); return null; }
     try { return new Chart(el, config); }
     catch(e) { console.warn('Chart error on ' + canvasId + ':', e.message); return null; }
-  }
+  };
+  var safeChart = window.safeChart;
 
   // ============================================================
   // POPULATE KPIs FROM DATA
@@ -2585,7 +2608,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Labels include year 0 (today) through year N
   var yearsProj = [];
-  for (var yi = 0; yi <= nYears; yi++) yearsProj.push((2025 + yi).toString());
+  var _baseYear = new Date().getFullYear();
+  for (var yi = 0; yi <= nYears; yi++) yearsProj.push((_baseYear + yi).toString());
 
   // Correct compound interest: monthly contributions earn returns throughout the year
   // FV_annuity = PMT * ((1+r_m)^12 - 1) / r_m  where r_m = (1+r_annual)^(1/12) - 1
@@ -2755,7 +2779,7 @@ document.addEventListener('DOMContentLoaded', function() {
           callbacks: {
             title: function(items) {
               var yr = items[0].label;
-              return yr === '2025' ? 'Posição Atual (Hoje)' : 'Dezembro ' + yr;
+              return yr === _baseYear.toString() ? 'Posição Atual (Hoje)' : 'Dezembro ' + yr;
             },
             label: function(c) {
               if (c.datasetIndex === 0) return '  Meta IF: ' + fmtK(META_IF);
@@ -3395,13 +3419,17 @@ function buildUsaCharts() {
   var mcData = DATA.charts.mariana_cenarios || {labels:[], datasets:[]};
   safeChart('chart-mariana-cenarios-usa', {
     type: 'bar',
-    data: { labels: mcData.labels, datasets: mcData.datasets },
+    data: {
+      labels: mcData.labels,
+      datasets: (mcData.datasets || []).map(function(ds) {
+        return { label: ds.label, data: ds.data.slice(), backgroundColor: ds.backgroundColor, borderRadius: 4, yAxisID: ds.yAxisID || undefined };
+      })
+    },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom' } },
+      plugins: { datalabels: { display: false }, legend: { position: 'bottom' } },
       scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'R$' } },
-        y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Anos' }, grid: { drawOnChartArea: false } }
+        y: { position: 'left', ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } },
+        y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: function(v) { return v + ' anos'; } } }
       }
     }
   });
@@ -4062,7 +4090,7 @@ function exportMarkdown() {
     md = md.replace(/\n{4,}/g, '\n\n\n');
 
     // Add header
-    const header = '# Relatório Financeiro — Família Ferreira Campos\n\n';
+    const header = '# Relatório Financeiro — Família {{FAMILY_SOBRENOME}}\n\n';
     const meta = '_Exportado em: ' + new Date().toLocaleString('pt-BR', {timeZone:'America/Sao_Paulo'}) + ' (Brasília)_\n\n---\n\n';
     md = header + meta + md;
 
@@ -4071,7 +4099,7 @@ function exportMarkdown() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'relatorio_financeiro_ferreira_campos.md';
+    a.download = '{{EXPORT_FILENAME_MD}}';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

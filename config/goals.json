@@ -55,7 +55,9 @@
   "mariana_eua": {
     "renda_rn_minima_usd": 4000,
     "renda_rn_maxima_usd": 7000,
-    "renda_rn_projetada_usd": 5500
+    "renda_rn_projetada_usd": 5500,
+    "renda_rn_hourly_min_usd": 45,
+    "renda_rn_hourly_max_usd": 80
   },
 
   "tributario": {
@@ -148,5 +150,86 @@
     {"label": "NCLEX/OET Mariana",          "impacto_1a": 280000,  "impacto_10a": 2800000},
     {"label": "CPA expatriado (EUA)",       "impacto_1a": 100000,  "impacto_10a": 500000},
     {"label": "Advogado sucessório BR-EUA", "impacto_1a": 50000,   "impacto_10a": 1000000}
-  ]
+  ],
+
+  "dashboard": {
+    "_comment": "Parâmetros operacionais do dashboard tático — thresholds, labels, keywords.",
+    "category_labels": {
+      "moradia": "Moradia", "alimentacao": "Alimentação", "saude": "Saúde",
+      "servicos_domesticos": "Serv. Domésticos", "educacao": "Educação",
+      "transporte": "Transporte", "lazer_viagens": "Lazer/Viagens",
+      "vestuario": "Vestuário", "assinaturas": "Assinaturas",
+      "suporte_familiar": "Suporte Familiar", "financeiro": "Financeiro",
+      "melhoria_reforma": "Melhoria/Reforma", "reserva_desejos": "Reserva Desejos",
+      "seguros": "Seguros", "nao_identificado": "Não Identificado",
+      "financiamentos": "Financiamentos", "impostos": "Impostos"
+    },
+    "aporte_match_keywords": {
+      "cofrinhos": ["cofrinho", "cofrinhos", "cdb itau", "cdb itaú"],
+      "tesouro": ["tesouro", "ipca+", "ipca +", "td ipca"],
+      "ivvb11": ["ivvb11", "ivvb", "s&p", "sp500"],
+      "wise": ["wise", "usd", "dolar", "dólar"]
+    },
+    "aporte_feito_threshold_pct": 50,
+    "changelog_min_delta_brl": 500,
+    "proximos_dias_window": 15,
+    "task_urgency_days": 7,
+    "teto_fallback_multiplier": 1.2,
+    "cycle_thresholds": {
+      "quinzenal_max_days": 20,
+      "mensal_max_days": 45
+    }
+  },
+
+  "referencias": {
+    "livros": [
+      {"titulo": "Viver de Renda", "autor": "Bruno Perini", "tema": "Independência financeira, cálculo da IF, montagem de carteira de renda passiva"},
+      {"titulo": "Casais Inteligentes Enriquecem Juntos", "autor": "Gustavo Cerbasi", "tema": "Finanças do casal, equilíbrio presente vs futuro, comportamento financeiro"},
+      {"titulo": "Investimentos Inteligentes", "autor": "Gustavo Cerbasi", "tema": "Fundamentos de investimento para famílias brasileiras"},
+      {"titulo": "Do Mil ao Milhão", "autor": "Thiago Nigro", "tema": "Gastar bem, investir melhor, ganhar mais — mentalidade financeira"},
+      {"titulo": "O Homem Mais Rico da Babilônia", "autor": "George S. Clason", "tema": "Princípios atemporais de poupança e acumulação de riqueza"},
+      {"titulo": "Pai Rico, Pai Pobre", "autor": "Robert Kiyosaki", "tema": "Ativos vs passivos, mentalidade de riqueza, renda passiva"}
+    ],
+    "ferramentas": [
+      {"nome": "Tesouro Direto", "uso": "Compra de títulos públicos (IPCA+, Selic, Prefixado)", "link": "tesourodireto.com.br"},
+      {"nome": "Status Invest", "uso": "Análise fundamentalista de ações, FIIs, ETFs", "link": "statusinvest.com.br"},
+      {"nome": "Fundamentus", "uso": "Dados fundamentalistas de empresas listadas na B3", "link": "fundamentus.com.br"},
+      {"nome": "Investidor 10", "uso": "Comparação de FIIs, ações, rankings por DY", "link": "investidor10.com.br"},
+      {"nome": "AUVP Analítica", "uso": "Plataforma educacional + análise de investimentos (Raul Sena)", "link": "auvp.com.br"},
+      {"nome": "Simulador BCB — Cidadão", "uso": "Simulação de investimentos, consórcio, financiamento", "link": "bcb.gov.br/cidadaniafinanceira"},
+      {"nome": "Calculadora CDB / Tesouro", "uso": "Comparativo CDB vs Tesouro vs LCI/LCA com IR", "link": "calculadoradoinvestidor.com.br"},
+      {"nome": "Wise", "uso": "Transferências internacionais e conta multi-moeda", "link": "wise.com"},
+      {"nome": "Gov.br", "uso": "IRPF, consulta restituição, e-CAC, DAS", "link": "gov.br"}
+    ],
+    "contatos_templates": [
+      {"profissional": "Advogado Sucessório / Tributarista SP", "area": "Testamentos, procurações, holding", "quando": "Antes da mudança para EUA — planejamento sucessório"},
+      {"profissional": "CPA Expatriado (EUA)", "area": "FBAR, FATCA, Form 1040, PFIC", "quando": "Antes de se tornar US tax resident — essencial"},
+      {"profissional": "Advogado Imigração (EUA)", "area": "EB2-NIW, F1/F2, Green Card", "quando": "Acompanhamento do processo de Green Card"},
+      {"profissional": "Corretor de Seguros", "area": "Vida, invalidez (DIT), residencial", "quando_template": "Urgente — cotar term life R${seg_min}-{seg_max}M + DIT 60% da renda"}
+    ]
+  },
+
+  "calendario_fallback": [
+    {"data": "Imediato", "item_template": "Primeiro aporte {aporte_mensal} (plano IF)", "tipo": "Financeiro"},
+    {"data": "Imediato", "item_template": "Contratar seguro de vida term life R${seg_min}-{seg_max}M", "tipo": "Proteção"},
+    {"data": "Imediato", "item": "Contratar seguro invalidez (DIT) 60% da renda", "tipo": "Proteção"},
+    {"data": "Imediato", "item": "Consultar advogado sucessório/tributarista SP", "tipo": "Sucessório"},
+    {"data": "Próximo mês", "item": "Atualizar beneficiários PGBL e seguro de vida", "tipo": "Proteção"},
+    {"data": "Próximo mês", "item_template": "Testamento público {titular} + {conjuge} (cartório BR)", "tipo": "Sucessório"},
+    {"data": "Próximo mês", "item_template": "Início prep teste inglês {conjuge} (MET ou OET)", "tipo": "NCLEX"},
+    {"data": "Próximo trimestre", "item": "Revisão tática quinzenal — despesas vs tetos", "tipo": "Pipeline"},
+    {"data": "Próximo trimestre", "item": "Análise completa trimestral (pipeline E0-E6)", "tipo": "Pipeline"},
+    {"data": "_holding_prazo", "item": "Avaliar holding patrimonial", "tipo": "Sucessório"},
+    {"data": "Antes EUA", "item": "Contratar CPA expatriado", "tipo": "Tributário"},
+    {"data": "Antes EUA", "item_template": "Procuração pública para {pai_titular}", "tipo": "Sucessório"}
+  ],
+
+  "investimentos_blocos": {
+    "_comment": "Mapeamento membro→label de investimentos para changelog e dashboard.",
+    "david": {"label": "Investimentos David", "label_curto": "Inv. David"},
+    "mariana": {"label": "Investimentos Mariana", "label_curto": "Inv. Mariana"}
+  },
+
+  "stress_test_imovel_queda_pct": 20,
+  "nclex_estimativa_meses": "8-18"
 }

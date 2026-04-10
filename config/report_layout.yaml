@@ -152,7 +152,7 @@ estrategico:
     # S7 — Independência Financeira
     # --------------------------------------------------------------------------
     - id: "S7"
-      title: "Independência Financeira — Meta 2035"
+      title: "Independência Financeira — Projeção de Longo Prazo"
       enabled: true
       charts:
         - id: "projecao_3cenarios"
@@ -358,7 +358,7 @@ usa:
     # U4 — Simulação Mariana Sem Trabalhar
     # --------------------------------------------------------------------------
     - id: "U4"
-      title: "Simulação — Mariana Sem Trabalhar"
+      title: "Simulação — Cônjuge Sem Trabalhar"
       enabled: true
       charts:
         - id: "mariana_cenarios_usa"
@@ -474,8 +474,8 @@ chart_titles:
   impostos_pj: "Tributário PJ — Cascata Fiscal"
   bubble_riscos: "Mapa de Riscos"
   top5_decisoes: "Top 5 Decisões de Impacto"
-  mariana_cenarios: "Cenários IF — Mariana"
-  mariana_cenarios_usa: "Cenários IF — Mariana"
+  mariana_cenarios: "Cenários IF — Cônjuge"
+  mariana_cenarios_usa: "Cenários IF — Cônjuge"
   viagens: "Orçamento de Viagens"
 
 # ==============================================================================

@@ -1425,7 +1425,7 @@ def analyze_orcamento_prospectivo(fluxo: Dict[str, Any]) -> Dict[str, Any]:
     total_mensal = sum(categorias.values())
 
     legenda = (
-        "Orçamento prospectivo baseado na média dos últimos 15 meses. "
+        f"Orçamento prospectivo baseado na média dos últimos {num_months} meses. "
         "Recomenda-se revisar mensalmente e ajustar projeções."
     )
 
@@ -1621,7 +1621,7 @@ def analyze_previdencia_pgbl(fluxo: Dict[str, Any]) -> Dict[str, Any]:
     receita_pj = safe_float(fluxo.get("por_fonte", {}).get("receita_pj", 0))
     num_months = len(fluxo.get("receita_despesa_mensal_detalhado", {}).get("labels", []))
     if num_months == 0:
-        num_months = 15
+        num_months = 12
 
     receita_pj_anual = receita_pj * (12 / num_months) if num_months > 0 else 0
 
@@ -1676,34 +1676,130 @@ def analyze_previdencia_pgbl(fluxo: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def analyze_pontos_fortes(score: Dict[str, Any], ratios: Dict[str, Any]) -> List[Dict[str, str]]:
-    """Generate strength points based on metrics."""
+def analyze_pontos_fortes(
+    score: Dict[str, Any],
+    ratios: Dict[str, Any],
+    patrimonio: Dict[str, Any],
+    fluxo: Dict[str, Any],
+    reserva: Dict[str, Any],
+    goals: Dict[str, Any],
+) -> List[Dict[str, str]]:
+    """Generate 5-7 strength points based on real metrics."""
     print("[E5.10] Identifying pontos fortes...")
 
     pontos = []
-
     _alertas_cfg = SCORING_CONFIG.get("thresholds_alertas", {})
+
+    # 1. Score financeiro positivo
+    classificacao = score.get("classificacao", "")
+    score_val = safe_float(score.get("valor", 0))
+    if classificacao in ["Excelente", "Bom"]:
+        pontos.append({
+            "titulo": "Score Financeiro Positivo",
+            "descricao": f"Classificação «{classificacao}» ({score_val:.1f}/10) indica solidez financeira geral.",
+            "icone": "trophy",
+        })
+
+    # 2. Taxa de poupança saudável
     taxa_poup = safe_float(ratios["taxa_poupanca_recorrente_pct"])
     _poup_forte_min = safe_float(_alertas_cfg.get("pontos_fortes_taxa_poupanca_min_pct", 30))
     if taxa_poup > _poup_forte_min:
         pontos.append({
-            "titulo": "Taxa de Poupança Saudável",
-            "descricao": f"Taxa de poupança recorrente de {taxa_poup:.1f}% demonstra controle de gastos e aporte consistente."
+            "titulo": "Taxa de Poupança Elevada",
+            "descricao": f"Poupança recorrente de {taxa_poup:.1f}% da renda — acima da referência de {_poup_forte_min:.0f}%.",
+            "icone": "savings",
         })
-
-    classificacao = score.get("classificacao", "")
-    if classificacao in ["Excelente", "Bom"]:
+    elif taxa_poup > 15:
         pontos.append({
-            "titulo": "Score Financeiro Positivo",
-            "descricao": f"Classificação {classificacao} indica solidez financeira."
+            "titulo": "Disciplina de Poupança",
+            "descricao": f"Taxa de poupança de {taxa_poup:.1f}% demonstra hábito consistente de guardar dinheiro.",
+            "icone": "savings",
         })
 
+    # 3. Baixo endividamento
+    endiv = safe_float(ratios.get("taxa_endividamento_pct", 0))
+    _endiv_max = safe_float(_alertas_cfg.get("endividamento_maximo_pct", 20))
+    if endiv < _endiv_max:
+        if endiv < 5:
+            pontos.append({
+                "titulo": "Endividamento Mínimo",
+                "descricao": f"Taxa de endividamento de apenas {endiv:.1f}% do patrimônio bruto — excelente controle de dívidas.",
+                "icone": "shield",
+            })
+        else:
+            pontos.append({
+                "titulo": "Endividamento Controlado",
+                "descricao": f"Taxa de endividamento de {endiv:.1f}% — abaixo do teto de {_endiv_max:.0f}%.",
+                "icone": "shield",
+            })
+
+    # 4. Reserva de emergência
+    cobertura_meses = safe_float(reserva.get("cobertura_meses", 0))
+    if cobertura_meses >= 12:
+        pontos.append({
+            "titulo": "Reserva de Emergência Excelente",
+            "descricao": f"Cobertura de {cobertura_meses:.0f} meses de despesas — acima dos 12 meses recomendados.",
+            "icone": "emergency",
+        })
+    elif cobertura_meses >= 6:
+        pontos.append({
+            "titulo": "Reserva de Emergência Adequada",
+            "descricao": f"Cobertura de {cobertura_meses:.0f} meses protege contra imprevistos.",
+            "icone": "emergency",
+        })
+
+    # 5. Patrimônio diversificado (múltiplas categorias)
+    categorias = patrimonio.get("categorias", [])
+    n_categorias = len([c for c in categorias if safe_float(c.get("valor", 0)) > 0])
+    if n_categorias >= 4:
+        pontos.append({
+            "titulo": "Patrimônio Diversificado",
+            "descricao": f"Patrimônio distribuído em {n_categorias} categorias — reduz risco de concentração.",
+            "icone": "diversification",
+        })
+
+    # 6. Cobertura de despesas alta (patrimônio investível / despesa mensal)
+    cobertura_desp = safe_float(ratios.get("cobertura_despesas_meses", 0))
+    if cobertura_desp >= 24:
+        pontos.append({
+            "titulo": "Colchão Patrimonial Robusto",
+            "descricao": f"Patrimônio investível cobre {cobertura_desp:.0f} meses de despesas — margem de segurança ampla.",
+            "icone": "patrimony",
+        })
+    elif cobertura_desp >= 12:
+        pontos.append({
+            "titulo": "Patrimônio Investível Sólido",
+            "descricao": f"Patrimônio investível cobre {cobertura_desp:.0f} meses de despesas correntes.",
+            "icone": "patrimony",
+        })
+
+    # 7. Progresso em direção à IF
+    progresso_if = safe_float(goals.get("progresso_pct", 0))
+    if progresso_if >= 20:
+        pontos.append({
+            "titulo": "Caminho para Independência Financeira",
+            "descricao": f"Já atingiu {progresso_if:.0f}% da meta de independência financeira.",
+            "icone": "target",
+        })
+
+    # 8. Patrimônio bruto relevante
+    bruto = safe_float(patrimonio.get("bruto", 0))
+    if bruto >= 1_000_000:
+        pontos.append({
+            "titulo": "Patrimônio Acima de R$ 1M",
+            "descricao": f"Patrimônio bruto consolidado acima de R$ 1 milhão demonstra trajetória de acumulação consistente.",
+            "icone": "patrimony",
+        })
+
+    # Fallback
     if not pontos:
         pontos.append({
             "titulo": "Análise em Andamento",
-            "descricao": "Pontos fortes serão identificados após consolidação de dados."
+            "descricao": "Pontos fortes serão identificados após consolidação de dados.",
+            "icone": "info",
         })
 
+    print(f"  [E5.10] {len(pontos)} pontos fortes identificados")
     return pontos
 
 
@@ -2066,6 +2162,176 @@ def analyze_diagnostico_comportamental(fluxo: Dict[str, Any], ratios: Dict[str, 
     return diagnosticos
 
 
+def analyze_cenarios_mariana(
+    patrimonio: Dict[str, Any],
+    goals: Dict[str, Any],
+    fluxo: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Compute 3 IF scenarios for Mariana's career path.
+
+    Scenarios:
+      1. Sem Trabalhar — Mariana doesn't work in the US. Aporte reduced by
+         simulacao.aporte_reduzido_fator from goals.json.
+      2. Com NCLEX — Mariana works as RN at renda_rn_minima_usd (converted to BRL).
+      3. Com NCLEX + Green Card — Full earning potential at renda_rn_maxima_usd.
+
+    Each scenario computes: aporte_mensal (BRL), prazo_if (years), ano_if, resumo.
+    """
+    print("[E5.14b] Analyzing cenários IF — Mariana...")
+
+    _if_cfg = GOALS_CONFIG.get("independencia_financeira", {})
+    _aportes_cfg = GOALS_CONFIG.get("aportes", {})
+    _sim_cfg = GOALS_CONFIG.get("simulacao", {})
+    _mar_cfg = GOALS_CONFIG.get("mariana_eua", {})
+    _taxas_path = PROJECT_DIR / "config" / "taxas.json"
+
+    meta_if = goals["if_meta"]
+    investivel = patrimonio["investivel"]
+    retorno_real_anual = safe_float(_if_cfg.get("retorno_real_anual_pct", 6.0)) / 100.0
+    r = (1 + retorno_real_anual) ** (1 / 12) - 1
+
+    aporte_base = safe_float(_aportes_cfg.get("meta_aporte_mensal", 0))
+    fator_reduzido = safe_float(_sim_cfg.get("aporte_reduzido_fator", 0.66))
+
+    cambio = 5.80
+    if _taxas_path.exists():
+        try:
+            with open(_taxas_path, "r", encoding="utf-8") as f:
+                taxas = json.load(f)
+            cambio = taxas.get("cambio_usd_brl", cambio)
+        except Exception:
+            pass
+
+    renda_min_usd = safe_float(_mar_cfg.get("renda_rn_minima_usd", 4000))
+    renda_max_usd = safe_float(_mar_cfg.get("renda_rn_maxima_usd", 7000))
+    renda_projetada_usd = safe_float(_mar_cfg.get("renda_rn_projetada_usd", 5500))
+
+    salario_mariana_brl = 0.0
+    rmd = fluxo.get("receita_despesa_mensal_detalhado", {})
+    for ds in rmd.get("receita_datasets", []):
+        label = ds.get("label", "").lower()
+        if "clt" in label and _CONJUGE_NOME.lower() in label:
+            nonzero = [v for v in ds.get("data", []) if v > 0]
+            if nonzero:
+                salario_mariana_brl = sorted(nonzero)[len(nonzero) // 2]
+                break
+
+    def _compute_prazo(aporte_mensal: float) -> float:
+        if investivel >= meta_if:
+            return 0.0
+        if r > 0 and aporte_mensal > 0:
+            numerator = meta_if + aporte_mensal / r
+            denominator = investivel + aporte_mensal / r
+            if denominator > 0 and numerator / denominator > 0:
+                n_meses = math.log(numerator / denominator) / math.log(1 + r)
+                return max(0, n_meses / 12)
+        return 999
+
+    # Scenario 1: Sem Trabalhar — Mariana's CLT income lost, aporte reduced
+    aporte_s1 = round(aporte_base * fator_reduzido, 2)
+    prazo_s1 = round(_compute_prazo(aporte_s1), 1)
+
+    # The fraction of aporte enabled by Mariana's income
+    aporte_mariana_fraction = aporte_base * (1 - fator_reduzido)
+
+    def _compute_aporte_scenario(renda_nova_brl: float) -> tuple:
+        """Compute aporte for a scenario where Mariana earns renda_nova_brl.
+
+        Model: restore the Mariana-enabled fraction proportionally,
+        then add 50% of any surplus income above CLT as extra savings
+        (capped at 50% of aporte_base).
+        """
+        if salario_mariana_brl > 0:
+            recovery = min(1.0, renda_nova_brl / salario_mariana_brl)
+        else:
+            recovery = 1.0 if renda_nova_brl > 0 else 0.0
+        base = aporte_s1 + aporte_mariana_fraction * recovery
+        surplus = max(0, renda_nova_brl - salario_mariana_brl)
+        extra = min(surplus * 0.5, aporte_base * 0.5)
+        return round(base + extra, 2), recovery
+
+    # Scenario 2: Com NCLEX — Mariana earns renda_min_usd as RN
+    renda_nclex_brl = renda_min_usd * cambio
+    aporte_s2, recovery_nclex = _compute_aporte_scenario(renda_nclex_brl)
+    prazo_s2 = round(_compute_prazo(aporte_s2), 1)
+
+    # Scenario 3: Com NCLEX + Green Card — full earning potential
+    renda_gc_brl = renda_max_usd * cambio
+    aporte_s3, recovery_gc = _compute_aporte_scenario(renda_gc_brl)
+    prazo_s3 = round(_compute_prazo(aporte_s3), 1)
+
+    labels = ["Sem Trabalhar", "Com NCLEX", "Com NCLEX + Green Card"]
+    aportes = [aporte_s1, aporte_s2, aporte_s3]
+    prazos_if = [prazo_s1, prazo_s2, prazo_s3]
+    anos_if = [TODAY.year + int(p) for p in prazos_if]
+
+    idade_david_if = [calculate_edad(DAVID_DOB) + int(p) for p in prazos_if]
+
+    result = {
+        "labels": labels,
+        "aportes": aportes,
+        "prazos_if": prazos_if,
+        "anos_if": anos_if,
+        "idade_david_if": idade_david_if,
+        "premissas": {
+            "meta_if": meta_if,
+            "investivel_atual": investivel,
+            "retorno_real_anual_pct": retorno_real_anual * 100,
+            "cambio_usd_brl": cambio,
+            "aporte_base": aporte_base,
+            "fator_reduzido": fator_reduzido,
+            "renda_nclex_usd": renda_min_usd,
+            "renda_nclex_brl": round(renda_nclex_brl, 2),
+            "renda_gc_usd": renda_max_usd,
+            "renda_gc_brl": round(renda_gc_brl, 2),
+            "salario_mariana_clt_brl": salario_mariana_brl,
+            "recovery_nclex_pct": round(recovery_nclex * 100, 1),
+            "recovery_gc_pct": round(recovery_gc * 100, 1),
+        },
+        "cenarios": [
+            {
+                "nome": labels[0],
+                "aporte_mensal": aportes[0],
+                "prazo_if_anos": prazos_if[0],
+                "ano_if": anos_if[0],
+                "idade_david": idade_david_if[0],
+                "resumo": (
+                    f"Sem renda da Mariana, aporte cai para R$ {aportes[0]:,.0f}/mês "
+                    f"({fator_reduzido:.0%} do base). IF em {prazos_if[0]:.0f} anos ({anos_if[0]})."
+                ),
+            },
+            {
+                "nome": labels[1],
+                "aporte_mensal": aportes[1],
+                "prazo_if_anos": prazos_if[1],
+                "ano_if": anos_if[1],
+                "idade_david": idade_david_if[1],
+                "resumo": (
+                    f"Mariana como RN (US$ {renda_min_usd:,.0f}/mês), aporte sobe para "
+                    f"R$ {aportes[1]:,.0f}/mês. IF em {prazos_if[1]:.0f} anos ({anos_if[1]})."
+                ),
+            },
+            {
+                "nome": labels[2],
+                "aporte_mensal": aportes[2],
+                "prazo_if_anos": prazos_if[2],
+                "ano_if": anos_if[2],
+                "idade_david": idade_david_if[2],
+                "resumo": (
+                    f"Mariana como RN sênior/Green Card (US$ {renda_max_usd:,.0f}/mês), "
+                    f"aporte de R$ {aportes[2]:,.0f}/mês. IF em {prazos_if[2]:.0f} anos ({anos_if[2]})."
+                ),
+            },
+        ],
+    }
+
+    print(f"  ✓ 3 cenários computados:")
+    for c in result["cenarios"]:
+        print(f"    {c['nome']}: aporte R$ {c['aporte_mensal']:,.0f}/mês → IF {c['prazo_if_anos']:.1f} anos ({c['ano_if']})")
+
+    return result
+
+
 def analyze_equilibrio_cerbasi(fluxo: Dict[str, Any]) -> Dict[str, Any]:
     """Analyze Cerbasi balance: presente vs futuro spending. Categories from scoring.json."""
     print("[E5.14] Analyzing equilíbrio Cerbasi...")
@@ -2182,10 +2448,11 @@ def main():
     endividamento = analyze_endividamento(patrimonio, baseline)
     previdencia = analyze_previdencia_pgbl(fluxo)
 
-    pontos_fortes = analyze_pontos_fortes(score, ratios)
+    pontos_fortes = analyze_pontos_fortes(score, ratios, patrimonio, fluxo, reserva, goals)
     pontos_urgentes = analyze_pontos_urgentes(ratios, reserva, patrimonio)
     consumo = analyze_consumo_consciente(fluxo, despesas)
     diagnostico = analyze_diagnostico_comportamental(fluxo, ratios)
+    cenarios_mariana = analyze_cenarios_mariana(patrimonio, goals, fluxo)
     cerbasi = analyze_equilibrio_cerbasi(fluxo)
 
     # Parse tarefas.md (curated backlog) — falls back to pontos_urgentes if file missing
@@ -2226,6 +2493,7 @@ def main():
         ] + ([f"Rentabilidade: {ratios['rentabilidade_pct']}"] if ratios['rentabilidade_pct'] == 'N/D' else []),
         "consumo_consciente": consumo,
         "diagnostico_comportamental": diagnostico,
+        "cenarios_mariana": cenarios_mariana,
         "programa_milhas": programa_milhas,
     }
 

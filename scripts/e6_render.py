@@ -161,9 +161,16 @@ def _load_report_layout() -> dict:
 
 REPORT_LAYOUT = _load_report_layout()
 
-FAMILY_SOBRENOME = _FAMILY.get("familia", {}).get("sobrenome", "Ferreira Campos")
+FAMILY_SOBRENOME = _FAMILY.get("familia", {}).get("sobrenome", "")
 _TITULAR_KEY_RENDER = _FAMILY.get("titular", "")
-TITULAR_NOME = _FAMILY.get("membros", {}).get(_TITULAR_KEY_RENDER, {}).get("nome_curto", "")
+TITULAR_NOME = _FAMILY.get("membros", {}).get(_TITULAR_KEY_RENDER, {}).get("nome_curto", "Titular")
+_CONJUGE_KEY = next((k for k, v in _FAMILY.get("membros", {}).items() if v.get("papel") == "conjuge"), None)
+CONJUGE_NOME = _FAMILY.get("membros", {}).get(_CONJUGE_KEY, {}).get("nome_curto", "Cônjuge") if _CONJUGE_KEY else "Cônjuge"
+_CONJUGE_DATA = _FAMILY.get("membros", {}).get(_CONJUGE_KEY, {}) if _CONJUGE_KEY else {}
+PAI_TITULAR = _FAMILY.get("pai_titular", "")
+_OUTPUT_PATTERN = _FAMILY.get("output_filename_pattern", "relatorio_financeiro_{date}.html")
+_DASH_CFG = GOALS_CONFIG.get("dashboard", {})
+_INV_BLOCOS = GOALS_CONFIG.get("investimentos_blocos", {})
 
 TEMPLATE_PATH = BASE_DIR / "config" / "report_template.html"
 E5_JSON_PATH = BASE_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
@@ -532,12 +539,19 @@ def build_kpi_section(e4: dict, manual_text: str) -> dict:
     r = e4["racios"]
     s = e4["score"]
 
+    _nav_icon = "".join(w[0] for w in FAMILY_SOBRENOME.split()[:2]).upper() if FAMILY_SOBRENOME else "FR"
+    _export_md = _OUTPUT_PATTERN.replace("{date}", "").replace(".html", ".md").rstrip("_")
+
     replacements = {
         "{{COVER_FAMILIA}}": FAMILY_SOBRENOME,
         "{{COVER_PERIODO}}": e4["periodo_dados"],
         "{{COVER_VERSAO_MANUAL}}": version,
         "{{COVER_DATA_HORA}}": sp_time,
         "{{NOME}}": TITULAR_NOME,
+        "{{FAMILY_SOBRENOME}}": FAMILY_SOBRENOME,
+        "{{NAV_BRAND_ICON}}": _nav_icon,
+        "{{EXPORT_FILENAME_MD}}": _export_md,
+        "{{CONJUGE_NOME}}": CONJUGE_NOME,
 
         # KPIs
         "{{KPI_PATRIMONIO_BRUTO}}": fmt_brl(p["bruto"]),
@@ -558,7 +572,7 @@ def build_kpi_section(e4: dict, manual_text: str) -> dict:
         "{{KPI_GAP_IF_SUB}}": "Faltam para a meta",
 
         "{{KPI_PRAZO_IF}}": f"{g['prazo_anos_realista']} anos",
-        "{{KPI_PRAZO_IF_SUB}}": f"David com {g['david_idade_if']} em {g['ano_if']}",
+        "{{KPI_PRAZO_IF_SUB}}": f"{TITULAR_NOME} com {g['david_idade_if']} em {g['ano_if']}",
 
         "{{KPI_SCORE}}": f"{s['valor']:.1f} / {s['max']}".replace(".", ","),
         "{{KPI_SCORE_SUB}}": s["classificacao"],
@@ -974,7 +988,7 @@ def build_charts(e4: dict) -> dict:
             }]
         })(p.get("imoveis_lista", [{"nome": "Imóveis", "yield_anual": yield_anual}])),
         "custos_f1f2": (lambda cambio, tuition_usd, rb_usd: {
-            "labels": ["Tuition", "Room & Board", "TOTAL", "Renda David", "Sobra"],
+            "labels": ["Tuition", "Room & Board", "TOTAL", f"Renda {TITULAR_NOME}", "Sobra"],
             "datasets": [{
                 "data": [
                     round(tuition_usd / 12 * cambio),      # tuition mensal em BRL
@@ -1048,7 +1062,13 @@ def build_charts(e4: dict) -> dict:
                 GOALS_CONFIG.get("independencia_financeira", {}).get("renda_passiva_meta_mensal", 0))),
         ),
         "impostos_pj": {
-            "labels": ["Receita PJ (anual)", "Lucro Presumido (32%)", "DAS Estimado (anual)", "Limite PGBL (12%)", "Economia IR c/ PGBL"],
+            "labels": [
+                "Receita PJ (anual)",
+                f"Lucro Presumido ({_lp_pct*100:.0f}%)",
+                "DAS Estimado (anual)",
+                f"Limite PGBL ({_pgbl_pct*100:.0f}%)",
+                "Economia IR c/ PGBL"
+            ],
             "datasets": [{
                 "label": "Valores (R$)",
                 "data": [round(receita_pj_anual), round(renda_tributavel), round(receita_pj_anual * _das_pct), round(limite_pgbl), round(economia_ir)],
@@ -1227,25 +1247,17 @@ def build_tactical_dashboard(e4: dict) -> dict:
     now = datetime.now()
 
     _TETOS = GOALS_CONFIG.get("tetos_orcamentarios", {})
+    _teto_fallback_mult = _DASH_CFG.get("teto_fallback_multiplier", 1.2)
     if not _TETOS:
-        print("  [WARN] tetos_orcamentarios não encontrado em goals.json — usando 120% da média como fallback")
-    _LABELS = {
-        "moradia": "Moradia", "alimentacao": "Alimentação", "saude": "Saúde",
-        "servicos_domesticos": "Serv. Domésticos", "educacao": "Educação",
-        "transporte": "Transporte", "lazer_viagens": "Lazer/Viagens",
-        "vestuario": "Vestuário", "assinaturas": "Assinaturas",
-        "suporte_familiar": "Suporte Familiar", "financeiro": "Financeiro",
-        "melhoria_reforma": "Melhoria/Reforma", "reserva_desejos": "Reserva Desejos",
-        "seguros": "Seguros", "nao_identificado": "Não Identificado",
-        "financiamentos": "Financiamentos", "impostos": "Impostos",
-    }
+        print(f"  [WARN] tetos_orcamentarios não encontrado em goals.json — usando {_teto_fallback_mult*100:.0f}% da média como fallback")
+    _LABELS = _DASH_CFG.get("category_labels", {})
 
     # --- D1: Despesas por categoria (monthly average vs teto) ---
     raw_despesas = f.get("despesas_por_categoria", {})
     despesas_dash = {}
     for cat, total in raw_despesas.items():
         mensal = round(total / num_months, 2)
-        teto = _TETOS.get(cat, round(mensal * 1.2, 2))
+        teto = _TETOS.get(cat, round(mensal * _teto_fallback_mult, 2))
         despesas_dash[cat] = {
             "label": _LABELS.get(cat, cat.replace("_", " ").title()),
             "gasto": mensal,
@@ -1255,12 +1267,7 @@ def build_tactical_dashboard(e4: dict) -> dict:
     # --- R2: Aportes cross-referenced with real transactions ---
     destinos_cfg = GOALS_CONFIG.get("aportes_destinos_detalhados", [])
     aportes_dash = {}
-    aporte_keywords = {
-        "cofrinhos": ["cofrinho", "cofrinhos", "cdb itau", "cdb itaú"],
-        "tesouro": ["tesouro", "ipca+", "ipca +", "td ipca"],
-        "ivvb11": ["ivvb11", "ivvb", "s&p", "sp500"],
-        "wise": ["wise", "usd", "dolar", "dólar"],
-    }
+    aporte_keywords = _DASH_CFG.get("aporte_match_keywords", {})
     invest_txns = []
     try:
         with open(E4_INVEST_PATH, 'r', encoding='utf-8') as fi:
@@ -1286,7 +1293,7 @@ def build_tactical_dashboard(e4: dict) -> dict:
                         if any(kw in desc for kw in keywords):
                             valor_feito += abs(txn.get("valor", 0))
                 break
-        if valor_feito >= d.get("valor", 0) * 0.5:
+        if valor_feito >= d.get("valor", 0) * (_DASH_CFG.get("aporte_feito_threshold_pct", 50) / 100):
             feito = True
         aportes_dash[key] = {
             "label": d.get("destino", f"Destino {i+1}"),
@@ -1300,22 +1307,19 @@ def build_tactical_dashboard(e4: dict) -> dict:
     pat_anterior = prev.get("patrimonio_investivel", 0)
     patrimonio_delta = round(pat_atual - pat_anterior) if prev else 0
 
-    inv_delta = {
-        "david": {
-            "label": "Investimentos David",
-            "anterior": prev.get("investimentos_david", 0),
-            "atual": p.get("investimentos_david", 0),
-        },
-        "mariana": {
-            "label": "Investimentos Mariana",
-            "anterior": prev.get("investimentos_mariana", 0),
-            "atual": p.get("investimentos_mariana", 0),
-        },
-        "imoveis": {
-            "label": "Imóveis Investimento",
-            "anterior": prev.get("imoveis_investimento", 0),
-            "atual": p.get("imoveis_investimento", 0),
-        },
+    inv_delta = {}
+    for k, v in _INV_BLOCOS.items():
+        if not isinstance(v, dict):
+            continue
+        inv_delta[k] = {
+            "label": v.get("label", k.title()),
+            "anterior": prev.get(f"investimentos_{k}", 0),
+            "atual": p.get(f"investimentos_{k}", 0),
+        }
+    inv_delta["imoveis"] = {
+        "label": "Imóveis Investimento",
+        "anterior": prev.get("imoveis_investimento", 0),
+        "atual": p.get("imoveis_investimento", 0),
     }
 
     # --- Tarefas with deadline awareness (R6) ---
@@ -1334,7 +1338,7 @@ def build_tactical_dashboard(e4: dict) -> dict:
             try:
                 prazo_dt = datetime.strptime(prazo, "%Y-%m-%d")
                 dias = (prazo_dt - now).days
-                if dias <= 7:
+                if dias <= _DASH_CFG.get("task_urgency_days", 7):
                     t["_deadline"] = f"vence_em_{dias}d"
                 else:
                     t["_deadline"] = "futura"
@@ -1353,7 +1357,8 @@ def build_tactical_dashboard(e4: dict) -> dict:
 
     # --- R3: Próximos 15 dias (filtered by real date) ---
     proximos = []
-    cutoff_15d = (now + __import__('datetime').timedelta(days=15)).strftime("%Y-%m-%d")
+    _prox_window = _DASH_CFG.get("proximos_dias_window", 15)
+    cutoff_15d = (now + __import__('datetime').timedelta(days=_prox_window)).strftime("%Y-%m-%d")
     for t in tarefas:
         prazo = t.get("e", "")
         st = str(tarefas_status.get(str(t.get("n", "")), "pendente"))
@@ -1384,11 +1389,15 @@ def build_tactical_dashboard(e4: dict) -> dict:
         if dp != 0:
             sinal = "+" if dp > 0 else ""
             changelog.append(f"Patrimônio investível {sinal}R$ {dp:,.0f}".replace(",", "."))
-        for bloc_key, label in [("investimentos_david", "Inv. David"), ("investimentos_mariana", "Inv. Mariana")]:
+        _changelog_min = _DASH_CFG.get("changelog_min_delta_brl", 500)
+        _inv_label_pairs = [(f"investimentos_{k}", v.get("label_curto", k)) for k, v in _INV_BLOCOS.items() if isinstance(v, dict)]
+        if not _inv_label_pairs:
+            _inv_label_pairs = [("investimentos_david", f"Inv. {TITULAR_NOME}"), ("investimentos_mariana", f"Inv. {CONJUGE_NOME}")]
+        for bloc_key, label in _inv_label_pairs:
             ant = prev.get(bloc_key, 0)
             atu = p.get(bloc_key, 0)
             d = round(atu - ant)
-            if abs(d) > 500:
+            if abs(d) > _changelog_min:
                 sinal = "+" if d > 0 else ""
                 changelog.append(f"{label}: {sinal}R$ {d:,.0f}".replace(",", "."))
         prev_status = prev.get("tarefas_status", {})
@@ -1410,9 +1419,10 @@ def build_tactical_dashboard(e4: dict) -> dict:
         try:
             prev_dt = datetime.strptime(prev["data_geracao"][:10], "%Y-%m-%d")
             dias_entre = (now - prev_dt).days
-            if dias_entre <= 20:
+            _cyc = _DASH_CFG.get("cycle_thresholds", {})
+            if dias_entre <= _cyc.get("quinzenal_max_days", 20):
                 ciclo_label = "quinzenal"
-            elif dias_entre <= 45:
+            elif dias_entre <= _cyc.get("mensal_max_days", 45):
                 ciclo_label = "mensal"
             else:
                 ciclo_label = "trimestral"
@@ -2066,22 +2076,43 @@ def build_previdencia_pgbl_card(e4: dict) -> str:
     html_parts.append('</div>')
     return '\n'.join(html_parts)
 
-def build_pontos_fortes_card(e4: dict) -> str:
-    """Build Pontos Fortes card with ordered list"""
-    fortes = e4.get("pontos_fortes", [])
+_PONTOS_FORTES_ICON_MAP = {
+    "trophy": "🏆",
+    "savings": "💰",
+    "shield": "🛡️",
+    "emergency": "🔒",
+    "diversification": "🏗️",
+    "patrimony": "📈",
+    "target": "🎯",
+    "info": "ℹ️",
+}
 
-    html_parts = ['<div class="card card-feature">']
-    html_parts.append('  <div class="card-title">Pontos Fortes</div>')
-    html_parts.append('  <ol>')
+def build_pontos_fortes_card(e4: dict) -> str:
+    """Build Pontos Fortes card with styled item blocks."""
+    fortes = e4.get("pontos_fortes", [])
+    n = len(fortes)
+
+    h = ['<div class="card card-feature">']
+    h.append('  <div class="card-title">✅ Pontos Fortes — O Que Já Funciona</div>')
+    h.append(f'  <div class="card-subtitle">{n} destaque(s) positivo(s) identificado(s) na análise financeira</div>')
+    h.append('  <div class="pontos-fortes-list">')
 
     for item in fortes:
         titulo = item.get("titulo", "")
         descricao = item.get("descricao", "")
-        html_parts.append(f'    <li><strong>{titulo}</strong>: {descricao}</li>')
+        icone_key = item.get("icone", "info")
+        icone = _PONTOS_FORTES_ICON_MAP.get(icone_key, "💪")
+        h.append('    <div class="ponto-forte-item">')
+        h.append(f'      <span class="ponto-forte-icon">{icone}</span>')
+        h.append('      <div class="ponto-forte-content">')
+        h.append(f'        <strong>{titulo}</strong>')
+        h.append(f'        <span>{descricao}</span>')
+        h.append('      </div>')
+        h.append('    </div>')
 
-    html_parts.append('  </ol>')
-    html_parts.append('</div>')
-    return '\n'.join(html_parts)
+    h.append('  </div>')
+    h.append('</div>')
+    return '\n'.join(h)
 
 def build_pontos_urgentes_card(e4: dict) -> str:
     """Build Pontos Urgentes card"""
@@ -2135,7 +2166,7 @@ def build_estrategia_aporte_card(e4: dict) -> str:
     ea = build_estrategia_aporte(e4)
     total = ea.get("total_aporte", 20000)
     dia = ea.get("dia_aporte", 5)
-    periodo = ea.get("periodo_inicio", "abr/2026")
+    periodo = ea.get("periodo_inicio", GOALS_CONFIG.get("aportes", {}).get("periodo_inicio", "—"))
     destinos = ea.get("destinos", [])
     pct_brl = ea.get("pct_brl", 75)
     pct_usd = ea.get("pct_usd", 25)
@@ -2351,9 +2382,12 @@ def build_appendix_b(e4: dict = None) -> str:
     h.append('<div class="card">')
     h.append('  <div class="card-title">Metodologias Utilizadas</div>')
 
+    _rp_meta = GOALS_CONFIG.get("independencia_financeira", {}).get("renda_passiva_meta_mensal", 30000)
+    _trs_ref = GOALS_CONFIG.get("independencia_financeira", {}).get("trs_pct", 5.0)
+    _if_meta = GOALS_CONFIG.get("independencia_financeira", {}).get("if_meta", 7200000)
     h.append('  <h3>Bruno Perini — "Viver de Renda"</h3>')
-    h.append('  <p>Cálculo do "Número da Independência Financeira": patrimônio necessário = despesa anual desejada ÷ TRS. ')
-    h.append('  Exemplo: R$30.000/mês × 12 ÷ 5% = R$7.200.000. A projeção de prazo usa taxa de retorno real (acima da inflação) ')
+    h.append(f'  <p>Cálculo do "Número da Independência Financeira": patrimônio necessário = despesa anual desejada ÷ TRS. ')
+    h.append(f'  Exemplo: {fmt_brl(_rp_meta)}/mês × 12 ÷ {_trs_ref}% = {fmt_brl(_if_meta)}. A projeção de prazo usa taxa de retorno real (acima da inflação) ')
     h.append('  e aporte mensal constante com juros compostos.</p>')
 
     h.append('  <h3>Gustavo Cerbasi — Equilíbrio Presente × Futuro</h3>')
@@ -2513,7 +2547,7 @@ def build_appendix_c(e4: dict) -> str:
     h.append('  <div class="card-title">Cenários — Independência Financeira</div>')
     h.append(f'  <p>Projeção de prazo para atingir a meta de {fmt_brl(meta_if)} com aporte de {fmt_brl(aporte)}/mês, variando a taxa de retorno real.</p>')
     h.append('  <table>')
-    h.append('    <thead><tr><th>Cenário</th><th>Retorno real a.a.</th><th>Aporte/mês</th><th>Prazo</th><th>David com</th></tr></thead>')
+    h.append(f'    <thead><tr><th>Cenário</th><th>Retorno real a.a.</th><th>Aporte/mês</th><th>Prazo</th><th>{TITULAR_NOME} com</th></tr></thead>')
     h.append('    <tbody>')
     h.append(f'      <tr><td>Pessimista</td><td>{fmt_dec(taxa_pess)}%</td><td>{fmt_brl(aporte)}</td><td>~{fmt_dec(prazo_pess)} anos</td><td>{idade_atual + round(prazo_pess)} ({ano_atual + round(prazo_pess)})</td></tr>')
     h.append(f'      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>{fmt_dec(taxa_real)}%</strong></td><td><strong>{fmt_brl(aporte)}</strong></td><td><strong>~{fmt_dec(prazo_real)} anos</strong></td><td><strong>{idade_atual + round(prazo_real)} ({ano_atual + round(prazo_real)})</strong></td></tr>')
@@ -2526,9 +2560,9 @@ def build_appendix_c(e4: dict) -> str:
 
     # Cenários cambiais (dinâmico)
     _cc = CENARIOS_CONFIG.get("cambio", {})
-    cb_pess = _cc.get("pessimista", 7.50)
-    cb_real = CONFIG_RATES.get("cambio_usd_brl", 5.80)
-    cb_otim = _cc.get("otimista", 4.50)
+    cb_pess = _cc.get("pessimista", _cc.get("pessimista_pct", 7.50))
+    cb_real = CONFIG_RATES.get("cambio_usd_brl", _cc.get("realista", 5.80))
+    cb_otim = _cc.get("otimista", _cc.get("otimista_pct", 4.50))
     _f1f2 = GOALS_CONFIG.get("fase_f1f2", {})
     f1f2_usd_anual = _f1f2.get("tuition_usd_anual", 27500) + _f1f2.get("room_board_usd_anual", 16500)
     meta_usd = GOALS_CONFIG.get("dolarizacao", {}).get("meta_usd", 20000)
@@ -2557,10 +2591,12 @@ def build_appendix_c(e4: dict) -> str:
 
     # Cenários Selic (dinâmico)
     _cs = CENARIOS_CONFIG.get("selic", {})
-    selic_pess = _cs.get("pessimista", {}) if isinstance(_cs.get("pessimista"), dict) else {"selic": 8.0, "cdi": 7.9}
-    selic_otim = _cs.get("otimista", {}) if isinstance(_cs.get("otimista"), dict) else {"selic": 15.0, "cdi": 14.9}
-    selic_atual = CONFIG_RATES.get("selic_atual", 14.25)
-    cdi_atual = CONFIG_RATES.get("cdi_anual", 14.15)
+    _selic_pess_val = _cs.get("pessimista_pct", 8.0)
+    _selic_otim_val = _cs.get("otimista_pct", 15.0)
+    selic_pess = _cs.get("pessimista", {}) if isinstance(_cs.get("pessimista"), dict) else {"selic": _selic_pess_val, "cdi": _selic_pess_val - 0.1}
+    selic_otim = _cs.get("otimista", {}) if isinstance(_cs.get("otimista"), dict) else {"selic": _selic_otim_val, "cdi": _selic_otim_val - 0.1}
+    selic_atual = CONFIG_RATES.get("selic_atual", _cs.get("realista_pct", 14.25))
+    cdi_atual = CONFIG_RATES.get("cdi_anual", selic_atual - 0.1)
 
     h.append('<div class="card">')
     h.append('  <div class="card-title">Cenários — Selic e Renda Fixa</div>')
@@ -2616,11 +2652,11 @@ def build_appendix_c(e4: dict) -> str:
          f"CDBs pós rendem menos. Ação: contrafluxo — já ter IPCA+ longos na carteira captura a valorização. Manter Tesouro IPCA+ 2035/2040."),
         (f"E se o USD chegar a R$ {fmt_dec(cb_pess, 2)}?",
          f"Custos F1/F2 sobem ~{var_pess}%. A sobra mensal cai de {fmt_brl(_sobra_base)} para ~{fmt_brl(_sobra_pess)} — {'ainda viável' if _sobra_pess > 0 else 'déficit — ajustar aportes'}. Dolarização via Wise fica mais cara mas protege o patrimônio."),
-        ("E se Mariana não conseguir o NCLEX?",
-         f"A simulação 'Mariana sem trabalhar' mostra prazo IF maior. David absorve com aporte reduzido."),
-        ("E se David perder o contrato principal?",
-         f"Renda cai significativamente. Reserva de emergência cobre {fmt_dec(_reserva_meses)} meses. Ações: (1) buscar contratos substitutos, (2) reduzir aporte IF, (3) Mariana mantém renda."),
-        ("E se os imóveis desvalorizarem 20%?",
+        (f"E se {CONJUGE_NOME} não conseguir o NCLEX?",
+         f"A simulação '{CONJUGE_NOME} sem trabalhar' mostra prazo IF maior. {TITULAR_NOME} absorve com aporte reduzido."),
+        (f"E se {TITULAR_NOME} perder o contrato principal?",
+         f"Renda cai significativamente. Reserva de emergência cobre {fmt_dec(_reserva_meses)} meses. Ações: (1) buscar contratos substitutos, (2) reduzir aporte IF, (3) {CONJUGE_NOME} mantém renda."),
+        (f"E se os imóveis desvalorizarem {GOALS_CONFIG.get('stress_test_imovel_queda_pct', 20)}%?",
          "Patrimônio bruto cai, mas o patrimônio investível não muda (imóvel residência já excluído). Yield dos imóveis de investimento sobe proporcionalmente."),
     ]
     for perg, resp in stress:
@@ -2642,15 +2678,9 @@ def build_appendix_d() -> str:
     h.append('  <table>')
     h.append('    <thead><tr><th>Livro</th><th>Autor</th><th>Tema</th></tr></thead>')
     h.append('    <tbody>')
-    livros = [
-        ("Viver de Renda", "Bruno Perini", "Independência financeira, cálculo da IF, montagem de carteira de renda passiva"),
-        ("Casais Inteligentes Enriquecem Juntos", "Gustavo Cerbasi", "Finanças do casal, equilíbrio presente vs futuro, comportamento financeiro"),
-        ("Investimentos Inteligentes", "Gustavo Cerbasi", "Fundamentos de investimento para famílias brasileiras"),
-        ("Do Mil ao Milhão", "Thiago Nigro", "Gastar bem, investir melhor, ganhar mais — mentalidade financeira"),
-        ("O Homem Mais Rico da Babilônia", "George S. Clason", "Princípios atemporais de poupança e acumulação de riqueza"),
-        ("Pai Rico, Pai Pobre", "Robert Kiyosaki", "Ativos vs passivos, mentalidade de riqueza, renda passiva"),
-    ]
-    for livro, autor, tema in livros:
+    _refs = GOALS_CONFIG.get("referencias", {})
+    for l in _refs.get("livros", []):
+        livro, autor, tema = l.get("titulo", ""), l.get("autor", ""), l.get("tema", "")
         h.append(f'      <tr><td><strong>{livro}</strong></td><td>{autor}</td><td>{tema}</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
@@ -2662,18 +2692,8 @@ def build_appendix_d() -> str:
     h.append('  <table>')
     h.append('    <thead><tr><th>Ferramenta</th><th>Uso</th><th>Link</th></tr></thead>')
     h.append('    <tbody>')
-    ferramentas = [
-        ("Tesouro Direto", "Compra de títulos públicos (IPCA+, Selic, Prefixado)", "tesourodireto.com.br"),
-        ("Status Invest", "Análise fundamentalista de ações, FIIs, ETFs", "statusinvest.com.br"),
-        ("Fundamentus", "Dados fundamentalistas de empresas listadas na B3", "fundamentus.com.br"),
-        ("Investidor 10", "Comparação de FIIs, ações, rankings por DY", "investidor10.com.br"),
-        ("AUVP Analítica", "Plataforma educacional + análise de investimentos (Raul Sena)", "auvp.com.br"),
-        ("Simulador BCB — Cidadão", "Simulação de investimentos, consórcio, financiamento", "bcb.gov.br/cidadaniafinanceira"),
-        ("Calculadora CDB / Tesouro", "Comparativo CDB vs Tesouro vs LCI/LCA com IR", "calculadoradoinvestidor.com.br"),
-        ("Wise", "Transferências internacionais e conta multi-moeda", "wise.com"),
-        ("Gov.br", "IRPF, consulta restituição, e-CAC, DAS", "gov.br"),
-    ]
-    for ferr, uso, link in ferramentas:
+    for ft in _refs.get("ferramentas", []):
+        ferr, uso, link = ft.get("nome", ""), ft.get("uso", ""), ft.get("link", "")
         h.append(f'      <tr><td><strong>{ferr}</strong></td><td>{uso}</td><td>{link}</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
@@ -2685,16 +2705,19 @@ def build_appendix_d() -> str:
     h.append('  <table>')
     h.append('    <thead><tr><th>Profissional</th><th>Área</th><th>Quando acionar</th></tr></thead>')
     h.append('    <tbody>')
-    _contador = GOALS_CONFIG.get("tributario", {}).get("contador_nome", "AccountTech")
+    _contador = GOALS_CONFIG.get("tributario", {}).get("contador_nome", "—")
     _seg_min = GOALS_CONFIG.get("seguros", {}).get("vida_term_minimo", 0)
     _seg_max = GOALS_CONFIG.get("seguros", {}).get("vida_term_maximo", 0)
-    contatos = [
-        (f"Contador ({_contador})", "Contabilidade PJ, DAS, Simples Nacional", "Mensal (DAS) + IRPF anual + mudança de regime"),
-        ("Advogado Sucessório / Tributarista SP", "Testamentos, procurações, holding", "Antes da mudança para EUA — planejamento sucessório"),
-        ("CPA Expatriado (EUA)", "FBAR, FATCA, Form 1040, PFIC", "Antes de se tornar US tax resident — essencial"),
-        ("Advogado Imigração (EUA)", "EB2-NIW, F1/F2, Green Card", "Acompanhamento do processo de Green Card"),
-        ("Corretor de Seguros", "Vida, invalidez (DIT), residencial", f"Urgente — cotar term life R${_seg_min/1e6:.0f}-{_seg_max/1e6:.0f}M + DIT 60% da renda"),
-    ]
+    _ct_vars = {"seg_min": f"{_seg_min/1e6:.0f}" if _seg_min else "?", "seg_max": f"{_seg_max/1e6:.0f}" if _seg_max else "?"}
+    contatos = [(f"Contador ({_contador})", "Contabilidade PJ, DAS, Simples Nacional", "Mensal (DAS) + IRPF anual + mudança de regime")]
+    for ct in _refs.get("contatos_templates", []):
+        quando = ct.get("quando", "")
+        if not quando and ct.get("quando_template"):
+            try:
+                quando = ct["quando_template"].format(**_ct_vars)
+            except KeyError:
+                quando = ct["quando_template"]
+        contatos.append((ct.get("profissional", ""), ct.get("area", ""), quando))
     for prof, area, quando in contatos:
         h.append(f'      <tr><td><strong>{prof}</strong></td><td>{area}</td><td>{quando}</td></tr>')
     h.append('    </tbody>')
@@ -2744,8 +2767,11 @@ def build_nclex_roadmap_card(e4: dict) -> str:
     _conjuge_profissao = _conjuge.get("profissao", "")
     _perfil_parts = [p for p in [_conjuge_esp, f"Mestrado {_conjuge_mestrado}" if _conjuge_mestrado else "", _conjuge_profissao] if p]
     _perfil_str = " + ".join(_perfil_parts) if _perfil_parts else ""
-    h.append(f'  <p><strong>Custo total estimado:</strong> US$ 1.515–2.440{f" | <strong>Perfil competitivo {_conjuge_nome}:</strong> {_perfil_str}" if _perfil_str else ""}.</p>')
-    h.append(f'  <p><strong>Projeção EUA:</strong> RN US$45–80/hora → US${fmt_num(_mariana_usd_min)}–{fmt_num(_mariana_usd_max)}/mês líquido.</p>')
+    _hourly_min = GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_hourly_min_usd", 45)
+    _hourly_max = GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_hourly_max_usd", 80)
+    _nclex_est = GOALS_CONFIG.get("nclex_estimativa_meses", "8-18")
+    h.append(f'  <p><strong>Custo total estimado:</strong> calculado a partir das etapas acima{f" | <strong>Perfil competitivo {_conjuge_nome}:</strong> {_perfil_str}" if _perfil_str else ""}.</p>')
+    h.append(f'  <p><strong>Projeção EUA:</strong> RN US${_hourly_min}–{_hourly_max}/hora → US${fmt_num(_mariana_usd_min)}–{fmt_num(_mariana_usd_max)}/mês líquido.</p>')
     h.append('</div>')
     return '\n'.join(h)
 
@@ -2764,7 +2790,7 @@ def build_simulacao_mariana_card(e4: dict) -> str:
     _aporte_cfg = GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 20000)
     h.append('<div class="card">')
     _sim_fator = GOALS_CONFIG.get("simulacao", {}).get("aporte_reduzido_fator", 0.66)
-    h.append('  <div class="card-title">Simulação — Mariana Sem Trabalhar</div>')
+    h.append(f'  <div class="card-title">Simulação — {CONJUGE_NOME} Sem Trabalhar</div>')
     h.append(f'  <div class="card-subtitle">Cenário conservador com fator de redução de {_sim_fator*100:.0f}% no aporte mensal</div>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Métrica</th><th>Valor</th></tr></thead>')
@@ -2924,25 +2950,25 @@ def build_appendix_e(e4: dict) -> str:
         for ev in _calendario_e5:
             h.append(f'      <tr><td>{ev.get("data", "—")}</td><td>{ev.get("item", "")}</td><td>{ev.get("tipo", "")}</td></tr>')
     else:
-        # Fallback — relative dates from config
-        _aporte_val = GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 20000)
-        _holding = GOALS_CONFIG.get("tributario", {}).get("holding_avaliacao_prazo", "T4/2026")
-        calendario = [
-            ("Imediato", f"Primeiro aporte {fmt_brl(_aporte_val)} (plano IF)", "Financeiro"),
-            ("Imediato", f"Contratar seguro de vida term life R${_seg_min/1e6:.0f}-{_seg_max/1e6:.0f}M", "Proteção"),
-            ("Imediato", "Contratar seguro invalidez (DIT) 60% da renda", "Proteção"),
-            ("Imediato", "Consultar advogado sucessório/tributarista SP", "Sucessório"),
-            ("Próximo mês", "Atualizar beneficiários PGBL e seguro de vida", "Proteção"),
-            ("Próximo mês", "Testamento público David + Mariana (cartório BR)", "Sucessório"),
-            ("Próximo mês", "Início prep teste inglês Mariana (MET ou OET)", "NCLEX"),
-            ("Próximo trimestre", "Revisão tática quinzenal — despesas vs tetos", "Pipeline"),
-            ("Próximo trimestre", "Análise completa trimestral (pipeline E0-E6)", "Pipeline"),
-            (_holding, "Avaliar holding patrimonial", "Sucessório"),
-            ("Antes EUA", "Contratar CPA expatriado", "Tributário"),
-            ("Antes EUA", "Procuração pública para Rubens (pai David)", "Sucessório"),
-        ]
-        for data, item, tipo in calendario:
-            h.append(f'      <tr><td>{data}</td><td>{item}</td><td>{tipo}</td></tr>')
+        _aporte_val = GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 0)
+        _holding = GOALS_CONFIG.get("tributario", {}).get("holding_avaliacao_prazo", "—")
+        _cal_template_vars = {
+            "aporte_mensal": fmt_brl(_aporte_val),
+            "seg_min": f"{_seg_min/1e6:.0f}" if _seg_min else "?",
+            "seg_max": f"{_seg_max/1e6:.0f}" if _seg_max else "?",
+            "titular": TITULAR_NOME,
+            "conjuge": CONJUGE_NOME,
+            "pai_titular": PAI_TITULAR,
+        }
+        for ev in GOALS_CONFIG.get("calendario_fallback", []):
+            _data = _holding if ev.get("data") == "_holding_prazo" else ev.get("data", "—")
+            _item = ev.get("item", "")
+            if not _item and ev.get("item_template"):
+                try:
+                    _item = ev["item_template"].format(**_cal_template_vars)
+                except KeyError:
+                    _item = ev["item_template"]
+            h.append(f'      <tr><td>{_data}</td><td>{_item}</td><td>{ev.get("tipo", "")}</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('</div>')
@@ -3634,7 +3660,7 @@ def render_report():
 
     # Output
     timestamp = datetime.now().strftime("%Y%m%d")
-    output_path = OUTPUT_DIR / f"relatorio_financeiro_ferreira_campos_{timestamp}.html"
+    output_path = OUTPUT_DIR / _OUTPUT_PATTERN.replace("{date}", timestamp)
 
     print(f"\n[E6.7] Writing output to {output_path}...")
     output_path.write_text(html, encoding='utf-8')
