@@ -406,6 +406,7 @@
   "data_consolidacao": "2026-04-10",
   "n_posicoes": 39,
   "avisos_validacao": [
+    "[WARN] btgpactual (mariana): saldo_atual R$ 375,384.56 vs itens R$ 306,808.78 — gap R$ 68,575.78 (posições não detalhadas no E2)",
     "[WARN] itau (david): saldo_atual R$ 341,581.20 vs itens R$ 135,089.50 — gap R$ 206,491.70 (posições não detalhadas no E2)",
     "[WARN] rico (david): saldo_atual R$ 278,916.64 vs itens R$ 221,730.24 — gap R$ 57,186.40 (posições não detalhadas no E2)"
   ]

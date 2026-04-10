@@ -159,9 +159,9 @@
     "receita_recorrente": 1390673.03,
     "receita_one_time": 1112482.34,
     "receita_recorrente_mensal": 34766.83,
-    "despesa_total": 1948118.22,
-    "despesa_mensal_media": 48702.96,
-    "fluxo_liquido": 555037.15,
+    "despesa_total": 1422226.32,
+    "despesa_mensal_media": 35555.66,
+    "fluxo_liquido": 1080929.05,
     "por_fonte": {
       "outras_receitas": 458325.78,
       "receita_investimento": 14565.17,
@@ -190,20 +190,20 @@
     "despesas_por_categoria": {
       "assinaturas": 14793.13,
       "seguros": 6656.46,
-      "financeiro": 15337.56,
-      "nao_identificado": 866995.79,
+      "financeiro": 35039.55,
+      "nao_identificado": 184384.38,
+      "transporte": 102379.13,
       "financiamentos": 176146.32,
       "moradia": 37877.73,
-      "impostos": 126619.03,
-      "suporte_familiar": 80173.22,
-      "transporte": 54509.05,
-      "reserva_desejos": 75402.31,
-      "servicos_domesticos": 60885.55,
-      "saude": 104879.2,
-      "lazer_viagens": 161118.15,
-      "melhoria_reforma": 43494.7,
-      "alimentacao": 58696.03,
-      "educacao": 37042.18,
+      "impostos": 135933.24,
+      "alimentacao": 68284.09,
+      "suporte_familiar": 127114.3,
+      "saude": 108647.55,
+      "reserva_desejos": 93194.73,
+      "servicos_domesticos": 64105.47,
+      "lazer_viagens": 166238.95,
+      "melhoria_reforma": 45584.7,
+      "educacao": 28354.78,
       "vestuario": 27491.81
     },
     "tabela_receitas": [
@@ -929,28 +929,28 @@
           "data": [
             0.0,
             0.0,
+            2466.65,
+            0.0,
+            1943.72,
             0.0,
             0.0,
             0.0,
             0.0,
             0.0,
+            157.21,
+            2163.56,
+            3654.09,
+            2822.87,
+            3476.9,
             0.0,
-            0.0,
-            0.0,
-            30.0,
-            996.15,
-            2866.22,
-            1417.37,
-            1901.68,
-            0.0,
-            0.0,
+            105.54,
             0.0,
             0.0,
             0.0,
             340.0,
             0.0,
             0.0,
-            0.0,
+            8.94,
             0.0,
             0.0,
             1333.85,
@@ -1031,7 +1031,7 @@
             0.0,
             129.9,
             0.0,
-            0.0,
+            1809.15,
             0.0,
             0.0,
             0.0,
@@ -1044,8 +1044,8 @@
             39.0,
             0.0,
             8.7,
-            10144.18,
-            3370.37,
+            78.0,
+            2940.0,
             2025.0,
             1950.0,
             1950.0,
@@ -1062,7 +1062,7 @@
         {
           "label": "Financeiro",
           "data": [
-            0.0,
+            4480.02,
             33.85,
             90.14,
             0.0,
@@ -1079,7 +1079,7 @@
             168.7,
             87.84,
             429.32,
-            94.55,
+            4859.97,
             203.8,
             13.36,
             90.9,
@@ -1089,14 +1089,14 @@
             51.84,
             63.7,
             603.71,
-            643.24,
-            1172.1,
+            10709.42,
+            1582.47,
             534.74,
             539.14,
             584.43,
             540.73,
             505.38,
-            582.12,
+            562.12,
             1083.85,
             1341.63,
             1413.25,
@@ -1157,7 +1157,7 @@
             0.0,
             0.0,
             0.0,
-            0.0,
+            1951.12,
             0.0,
             0.0,
             0.0,
@@ -1169,11 +1169,11 @@
             0.0,
             0.0,
             0.0,
-            0.0,
+            4955.51,
             11956.88,
-            0.0,
-            0.0,
-            0.0,
+            155.32,
+            514.5,
+            1737.76,
             0.0,
             550.16,
             8266.07,
@@ -1208,7 +1208,7 @@
             10000.0,
             7239.85,
             0.0,
-            1063.5,
+            6184.3,
             26980.96,
             15071.93,
             0.0,
@@ -1255,20 +1255,20 @@
             0.0,
             63.8,
             167.67,
-            0.0,
+            280.0,
             475.53,
             0.0,
             0.0,
-            5000.0,
+            5350.0,
             5700.0,
             0.0,
             0.0,
+            380.0,
             0.0,
             0.0,
             0.0,
             0.0,
-            0.0,
-            0.0,
+            380.0,
             243.77,
             0.0,
             0.0,
@@ -1276,7 +1276,7 @@
             0.0,
             0.0,
             1585.59,
-            728.9,
+            1428.9,
             14267.78,
             273.2,
             5539.1,
@@ -1332,46 +1332,46 @@
         {
           "label": "Nao Identificado",
           "data": [
-            88814.37,
+            9679.44,
             0.0,
-            66449.69,
+            0.0,
             1000.0,
-            46640.23,
-            14456.45,
-            1704.08,
-            210.52,
-            86.46,
-            903.72,
-            3376.09,
-            19485.03,
-            12155.51,
-            8472.62,
-            26871.59,
-            2783.35,
-            31576.39,
-            12743.9,
-            10814.07,
-            7612.16,
-            1988.2,
-            395408.36,
-            267.8,
-            7110.24,
-            13236.0,
+            17505.43,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            813.33,
+            3248.88,
+            11529.57,
+            11205.18,
+            3422.57,
+            4916.94,
+            1327.0,
+            31186.26,
+            85.0,
+            10455.25,
+            1480.0,
+            1229.8,
+            235.0,
+            100.0,
+            3924.02,
+            5297.65,
             4258.42,
-            12056.26,
-            5911.34,
-            22384.91,
+            11676.26,
+            4911.34,
+            22234.91,
             310.2,
             621.54,
-            3545.29,
-            17196.6,
-            3514.8,
-            13417.84,
+            1141.29,
+            8196.6,
+            2014.8,
+            3382.11,
             1179.39,
-            1059.07,
+            859.07,
             2841.34,
             2056.79,
-            2475.17
+            59.0
           ]
         },
         {
@@ -1391,7 +1391,7 @@
             653.2,
             949.1,
             507.0,
-            522.79,
+            12969.48,
             0.0,
             0.0,
             0.0,
@@ -1411,7 +1411,7 @@
             2021.39,
             15024.22,
             1124.28,
-            2345.85,
+            7691.58,
             21635.27,
             2287.3,
             3278.42,
@@ -1427,14 +1427,14 @@
             0.0,
             0.0,
             0.0,
+            1831.84,
             0.0,
             0.0,
             0.0,
             0.0,
             0.0,
-            0.0,
-            2189.4,
-            2739.41,
+            3052.9,
+            2812.42,
             4007.1,
             618.97,
             0.0,
@@ -1449,7 +1449,7 @@
             0.0,
             0.0,
             2237.78,
-            2673.99,
+            3673.99,
             129.15,
             728.03,
             547.47,
@@ -1523,7 +1523,7 @@
             0.0,
             0.0,
             0.0,
-            1491.65,
+            2295.4,
             300.97,
             2131.63,
             1200.0,
@@ -1551,7 +1551,7 @@
             3545.41,
             3761.41,
             3941.41,
-            3790.21
+            6206.38
           ]
         },
         {
@@ -1559,11 +1559,11 @@
           "data": [
             0.0,
             0.0,
+            2200.0,
             0.0,
+            32191.08,
             0.0,
-            5000.0,
-            0.0,
-            0.0,
+            100.0,
             0.0,
             0.0,
             0.0,
@@ -1572,15 +1572,15 @@
             12560.0,
             6143.04,
             334.0,
-            1833.33,
+            2553.33,
             1450.21,
             2430.0,
-            1030.0,
-            682.91,
-            1600.0,
-            2172.28,
+            1240.0,
+            2682.91,
+            1760.0,
+            4182.28,
             0.0,
-            343.0,
+            3343.0,
             4645.0,
             2400.0,
             2150.0,
@@ -1589,11 +1589,11 @@
             1850.0,
             2500.0,
             3100.0,
-            2500.0,
+            11500.0,
             2916.57,
-            2525.0,
+            2675.0,
             3914.98,
-            3700.0,
+            3900.0,
             2500.0,
             2500.0,
             1000.0
@@ -1602,9 +1602,9 @@
         {
           "label": "Transporte",
           "data": [
+            9111.73,
             0.0,
-            0.0,
-            0.0,
+            30820.0,
             0.0,
             0.0,
             0.0,
@@ -1626,7 +1626,7 @@
             521.26,
             146.0,
             217.7,
-            515.2,
+            8453.55,
             217.3,
             318.68,
             4759.61,
@@ -1733,41 +1733,41 @@
         100.01
       ],
       "totais_despesa": [
-        102630.49,
+        37087.31,
         5063.41,
-        71284.52,
+        40321.48,
         6130.75,
         56728.85,
-        19545.69,
-        6761.04,
-        5456.4,
-        15473.96,
-        14138.64,
+        8872.2,
+        5156.96,
+        5245.88,
+        15387.5,
+        14048.25,
         9151.78,
         41116.76,
-        70901.18,
-        49518.45,
-        37847.73,
-        12033.28,
-        41630.7,
-        27102.38,
-        58865.45,
-        15573.95,
-        10870.05,
-        406495.44,
-        7316.73,
-        18124.05,
+        70811.73,
+        46153.9,
+        31724.14,
+        11296.93,
+        41346.11,
+        24514.41,
+        58716.63,
+        11597.11,
+        10786.15,
+        15449.84,
+        7148.93,
+        17946.77,
         32645.69,
         18359.06,
         25266.08,
         62861.46,
-        79499.74,
+        79329.74,
         25588.83,
         35634.88,
-        41610.95,
+        39206.95,
         67224.34,
-        77476.84,
-        87304.2,
+        75976.84,
+        83444.2,
         106496.63,
         52216.81,
         68458.7,
@@ -1782,18 +1782,18 @@
       "receita_recorrente": 827397.43,
       "receita_one_time": 412653.39,
       "receita_recorrente_mensal": 68949.79,
-      "despesa_total": 699224.25,
-      "despesa_mensal_media": 58268.69,
-      "fluxo_liquido": 540826.57,
-      "taxa_poupanca_recorrente": 15.49,
-      "taxa_poupanca_total": 43.61
+      "despesa_total": 691290.25,
+      "despesa_mensal_media": 57607.52,
+      "fluxo_liquido": 548760.57,
+      "taxa_poupanca_recorrente": 16.45,
+      "taxa_poupanca_total": 44.25
     }
   },
   "ratios": {
-    "taxa_poupanca_recorrente_pct": 15.49,
-    "taxa_poupanca_total_pct": 43.61,
+    "taxa_poupanca_recorrente_pct": 16.45,
+    "taxa_poupanca_total_pct": 44.25,
     "taxa_endividamento_pct": 5.85,
-    "cobertura_despesas_meses": 47.86,
+    "cobertura_despesas_meses": 48.41,
     "rentabilidade_pct": "N/D",
     "aliquota_efetiva_ir_pct": "N/D",
     "janela_referencia": "2025-05 a 2026-04",
@@ -1806,13 +1806,13 @@
     "componentes": [
       {
         "nome": "Taxa Poupança Recorrente",
-        "valor": 15.49,
+        "valor": 16.45,
         "peso": 2.0,
-        "nota": 3.1
+        "nota": 3.3
       },
       {
         "nome": "Cobertura Despesas (meses)",
-        "valor": 47.86,
+        "valor": 48.41,
         "peso": 1.5,
         "nota": 10.0
       },
@@ -1840,39 +1840,39 @@
     "categorias": {
       "assinaturas": 369.83,
       "seguros": 166.41,
-      "financeiro": 383.44,
-      "nao_identificado": 21674.89,
+      "financeiro": 875.99,
+      "nao_identificado": 4609.61,
+      "transporte": 2559.48,
       "financiamentos": 4403.66,
       "moradia": 946.94,
-      "impostos": 3165.48,
-      "suporte_familiar": 2004.33,
-      "transporte": 1362.73,
-      "reserva_desejos": 1885.06,
-      "servicos_domesticos": 1522.14,
-      "saude": 2621.98,
-      "lazer_viagens": 4027.95,
-      "melhoria_reforma": 1087.37,
-      "alimentacao": 1467.4,
-      "educacao": 926.05,
+      "impostos": 3398.33,
+      "alimentacao": 1707.1,
+      "suporte_familiar": 3177.86,
+      "saude": 2716.19,
+      "reserva_desejos": 2329.87,
+      "servicos_domesticos": 1602.64,
+      "lazer_viagens": 4155.97,
+      "melhoria_reforma": 1139.62,
+      "educacao": 708.87,
       "vestuario": 687.3
     },
-    "total": 48702.96,
-    "media_mensal": 48702.96,
+    "total": 35555.67,
+    "media_mensal": 35555.67,
     "legenda": "Orçamento prospectivo baseado na média dos últimos 15 meses. Recomenda-se revisar mensalmente e ajustar projeções."
   },
   "reserva_emergencia": {
-    "despesas_mensais": 48702.96,
-    "nivel_6_meses": 292217.76,
-    "nivel_12_meses": 584435.52,
+    "despesas_mensais": 35555.66,
+    "nivel_6_meses": 213333.96,
+    "nivel_12_meses": 426667.92,
     "composicao_liquida": {
       "investimentos_david": 927872.41,
       "investimentos_mariana": 375384.56,
       "caixa_moeda_estrangeira": 42540.56,
       "total_liquido": 1345797.53,
-      "cobertura_meses": 27.6
+      "cobertura_meses": 37.9
     },
     "total_liquida": 1345797.53,
-    "cobertura_meses": 27.6,
+    "cobertura_meses": 37.9,
     "avaliacao_liquidity": "Excelente",
     "niveis": [
       "6 meses",
@@ -1937,9 +1937,9 @@
     "total": 2251548.82
   },
   "equilibrio_cerbasi": {
-    "pct_presente": 93.4,
-    "pct_futuro": 6.6,
-    "classificacao": "Gastador",
+    "pct_presente": 89.0,
+    "pct_futuro": 11.0,
+    "classificacao": "Endividado consciente",
     "presente": "Consolidação patrimonial",
     "futuro": "Independência Financeira"
   },
@@ -2323,35 +2323,11 @@
   "consumo_consciente": {
     "itens": [
       {
-        "descricao": "01-FIN VENDA  3024717066",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2024-10",
-        "valor": 289575.58,
-        "categoria": "nao_identificado",
-        "observacao": ""
-      },
-      {
-        "descricao": "01-FIN VENDA  3024716273",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2024-10",
-        "valor": 101386.12,
-        "categoria": "nao_identificado",
-        "observacao": ""
-      },
-      {
-        "descricao": "INT TED  2A8686AC",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2023-01",
-        "valor": 50000.0,
-        "categoria": "nao_identificado",
-        "observacao": ""
-      },
-      {
         "descricao": "PIX TRANSF  FELTRIN27/03",
         "conta_cartao": "Itaú (extratoconta)",
         "mes": "2023-03",
         "valor": 30820.0,
-        "categoria": "nao_identificado",
+        "categoria": "transporte",
         "observacao": ""
       },
       {
@@ -2359,7 +2335,7 @@
         "conta_cartao": "Itaú (extratoconta)",
         "mes": "2023-05",
         "valor": 27191.08,
-        "categoria": "nao_identificado",
+        "categoria": "suporte_familiar",
         "observacao": ""
       },
       {
@@ -2383,30 +2359,6 @@
         "conta_cartao": "C6 Bank (extratoconta)",
         "mes": "2024-05",
         "valor": 16828.22,
-        "categoria": "nao_identificado",
-        "observacao": ""
-      },
-      {
-        "descricao": "INT ITAU VISA",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2023-03",
-        "valor": 16444.31,
-        "categoria": "nao_identificado",
-        "observacao": ""
-      },
-      {
-        "descricao": "INT ITAU VISA",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2023-01",
-        "valor": 15543.18,
-        "categoria": "nao_identificado",
-        "observacao": ""
-      },
-      {
-        "descricao": "INT ITAU VISA",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2023-03",
-        "valor": 14518.73,
         "categoria": "nao_identificado",
         "observacao": ""
       },
@@ -2443,14 +2395,6 @@
         "observacao": ""
       },
       {
-        "descricao": "INT ITAU VISA",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2023-06",
-        "valor": 10673.49,
-        "categoria": "nao_identificado",
-        "observacao": ""
-      },
-      {
         "descricao": "ABDO MOHAMED ABDOUNI",
         "conta_cartao": "C6 Bank (faturacarbon)",
         "mes": "2025-11",
@@ -2479,7 +2423,7 @@
         "conta_cartao": "C6 Bank (faturacarbon)",
         "mes": "2025-04",
         "valor": 9737.07,
-        "categoria": "educacao",
+        "categoria": "financeiro",
         "observacao": ""
       },
       {
@@ -2503,7 +2447,7 @@
         "conta_cartao": "C6 Bank (extratoconta)",
         "mes": "2025-09",
         "valor": 9000.0,
-        "categoria": "nao_identificado",
+        "categoria": "suporte_familiar",
         "observacao": ""
       },
       {
@@ -2519,7 +2463,7 @@
         "conta_cartao": "Itaú (extratoconta)",
         "mes": "2023-01",
         "valor": 7751.95,
-        "categoria": "nao_identificado",
+        "categoria": "transporte",
         "observacao": ""
       },
       {
@@ -2544,14 +2488,6 @@
         "mes": "2025-12",
         "valor": 6455.0,
         "categoria": "vestuario",
-        "observacao": ""
-      },
-      {
-        "descricao": "INT ITAU VISA",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2024-03",
-        "valor": 6123.59,
-        "categoria": "nao_identificado",
         "observacao": ""
       },
       {
@@ -2583,7 +2519,7 @@
         "conta_cartao": "Itaú (extratoconta)",
         "mes": "2025-01",
         "valor": 5928.18,
-        "categoria": "nao_identificado",
+        "categoria": "transporte",
         "observacao": ""
       },
       {
@@ -2591,7 +2527,7 @@
         "conta_cartao": "C6 Bank (faturacarbon)",
         "mes": "2024-03",
         "valor": 5875.45,
-        "categoria": "nao_identificado",
+        "categoria": "reserva_desejos",
         "observacao": ""
       },
       {
@@ -2599,7 +2535,7 @@
         "conta_cartao": "C6 Bank (faturacarbon)",
         "mes": "2024-03",
         "valor": 5810.86,
-        "categoria": "nao_identificado",
+        "categoria": "reserva_desejos",
         "observacao": ""
       },
       {
@@ -2623,7 +2559,7 @@
         "conta_cartao": "C6 Bank (extratoconta)",
         "mes": "2025-11",
         "valor": 5345.73,
-        "categoria": "nao_identificado",
+        "categoria": "reserva_desejos",
         "observacao": ""
       },
       {
@@ -2667,14 +2603,6 @@
         "observacao": ""
       },
       {
-        "descricao": "PIX TRANSF  RUBENS 04/05",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2023-05",
-        "valor": 5000.0,
-        "categoria": "suporte_familiar",
-        "observacao": ""
-      },
-      {
         "descricao": "MAIS DISTR VEICULOS",
         "conta_cartao": "C6 Bank (faturacarbon)",
         "mes": "2025-12",
@@ -2683,11 +2611,19 @@
         "observacao": ""
       },
       {
+        "descricao": "PIX TRANSF  RUBENS 04/05",
+        "conta_cartao": "Itaú (extratoconta)",
+        "mes": "2023-05",
+        "valor": 5000.0,
+        "categoria": "suporte_familiar",
+        "observacao": ""
+      },
+      {
         "descricao": "Pix enviado para CLAUDIA DANTAS TINOCO — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
         "mes": "2024-06",
         "valor": 4765.42,
-        "categoria": "nao_identificado",
+        "categoria": "financeiro",
         "observacao": ""
       },
       {
@@ -2711,7 +2647,7 @@
         "conta_cartao": "Itaú (extratoconta)",
         "mes": "2023-01",
         "valor": 4480.02,
-        "categoria": "nao_identificado",
+        "categoria": "financeiro",
         "observacao": ""
       },
       {
@@ -2731,35 +2667,11 @@
         "observacao": ""
       },
       {
-        "descricao": "INT /PM SAO PAU 91590049",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2024-06",
-        "valor": 3988.59,
-        "categoria": "nao_identificado",
-        "observacao": ""
-      },
-      {
         "descricao": "MC MOBILITY",
         "conta_cartao": "C6 Bank (faturacarbon)",
         "mes": "2026-02",
         "valor": 3976.8,
         "categoria": "transporte",
-        "observacao": ""
-      },
-      {
-        "descricao": "Transf. Internacional",
-        "conta_cartao": "C6 Bank (extratocontaglobalusd)",
-        "mes": "2025-11",
-        "valor": 3840.0,
-        "categoria": "nao_identificado",
-        "observacao": ""
-      },
-      {
-        "descricao": "PIX TRANSF Poupa M01/08",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2024-08",
-        "valor": 3800.0,
-        "categoria": "nao_identificado",
         "observacao": ""
       },
       {
@@ -2792,14 +2704,6 @@
         "mes": "2025-11",
         "valor": 3379.5,
         "categoria": "lazer_viagens",
-        "observacao": ""
-      },
-      {
-        "descricao": "INT ITAU VISA",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2024-02",
-        "valor": 3364.55,
-        "categoria": "nao_identificado",
         "observacao": ""
       },
       {
@@ -2839,7 +2743,7 @@
         "conta_cartao": "C6 Bank (extratoconta)",
         "mes": "2024-12",
         "valor": 3000.0,
-        "categoria": "nao_identificado",
+        "categoria": "suporte_familiar",
         "observacao": ""
       },
       {
@@ -2939,19 +2843,11 @@
         "observacao": ""
       },
       {
-        "descricao": "PIX TRANSF Poupa M19/06",
-        "conta_cartao": "Itaú (extratoconta)",
-        "mes": "2024-06",
-        "valor": 2480.0,
-        "categoria": "nao_identificado",
-        "observacao": ""
-      },
-      {
         "descricao": "PGTO MIN-PAOACUCAR-5739",
         "conta_cartao": "Itaú (extratoconta)",
         "mes": "2023-03",
         "valor": 2466.65,
-        "categoria": "nao_identificado",
+        "categoria": "alimentacao",
         "observacao": ""
       },
       {
@@ -2959,14 +2855,6 @@
         "conta_cartao": "C6 Bank (faturacarbon)",
         "mes": "2024-01",
         "valor": 2420.25,
-        "categoria": "nao_identificado",
-        "observacao": ""
-      },
-      {
-        "descricao": "EMISSAO DE CDB",
-        "conta_cartao": "C6 Bank (extratoconta)",
-        "mes": "2025-08",
-        "valor": 2404.0,
         "categoria": "nao_identificado",
         "observacao": ""
       },
@@ -3015,7 +2903,7 @@
         "conta_cartao": "Itaú (extratoconta)",
         "mes": "2023-03",
         "valor": 2200.0,
-        "categoria": "nao_identificado",
+        "categoria": "suporte_familiar",
         "observacao": ""
       },
       {
@@ -3047,7 +2935,7 @@
         "conta_cartao": "C6 Bank (extratoconta)",
         "mes": "2024-08",
         "valor": 2000.0,
-        "categoria": "nao_identificado",
+        "categoria": "suporte_familiar",
         "observacao": ""
       },
       {
@@ -3075,17 +2963,17 @@
         "observacao": ""
       }
     ],
-    "total_pontuais": 1007671.19,
-    "equivalente_meses_aporte": 50.4,
-    "folga_mensal": 94653.7,
-    "folga_pct": 137.3,
-    "teto_sugerido": -29559.5,
-    "analise": "Identificados 94 gastos pontuais ≥ R$ 2,000 no período. O total de R$ 1,007,671.19 equivale a 50.4 meses de aporte."
+    "total_pontuais": 483529.05,
+    "equivalente_meses_aporte": 24.2,
+    "folga_mensal": 51636.36,
+    "folga_pct": 74.9,
+    "teto_sugerido": 19910.45,
+    "analise": "Identificados 80 gastos pontuais ≥ R$ 2,000 no período. O total de R$ 483,529.05 equivale a 24.2 meses de aporte."
   },
   "diagnostico_comportamental": [
     {
       "padrao": "Poupança abaixo do ideal",
-      "evidencia": "Taxa de 15,5% — referência mínima: 25%",
+      "evidencia": "Taxa de 16,4% — referência mínima: 25%",
       "mudanca_sugerida": "Revisar despesas variáveis e aumentar aporte"
     },
     {
@@ -3109,31 +2997,31 @@
   "narrativas": {
     "perfil_familia": {
       "left": "<p>David Robert Camargo Ferreira Campos, 44 anos, é CTO da Arvo (healthtech de auditoria médica com IA). Mais de 24 anos em tecnologia, com passagens por Elo7, Loft, Kiwify. Formado em Ciência da Computação PUC-SP, mestrado IA USP/IME. Opera como PJ Simples Nacional (Anexo V).</p>\n<p>Mariana Ferreira Campos, 39 anos, é Enfermeira no Hospital Israelita Albert Einstein desde julho de 2014. Especialista em Cardiologia e Hemodinâmica (UNIFESP), mestre em Enfermagem (USP). CLT com salário-base de R$ 8,3k/mês. Perfil competitivo para NCLEX nos EUA.</p>\n<p>Theo Ferreira Campos nasceu em Orlando, Flórida e possui dupla cidadania brasileira e americana. Primeiro filho do casal, é peça central no planejamento internacional da família.</p>\n<p>A família conta com 3 gatos — Zack, Fuzzy e Nix — na residência da Rua Tasso da Silveira, Vila Guarani, São Paulo.</p>",
-      "right": "<p>Plano de vida centrado na mudança para os EUA via visto F1/F2 (Anderson University, SC), seguido de Green Card por EB2-NIW. David manterá contratos PJ brasileiros remotamente; Mariana se prepara para NCLEX. Custo projetado: R$ 32,4k/mês, com sobra de R$ 2,4k/mês.</p>\n<p>Meta IF: R$ 7,2M (TRS 5%, renda passiva de R$ 30k/mês). Patrimônio investível atual de R$ 3,1M (42,9% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo de 8 anos (David 51 anos, 2033).</p>\n<p>Patrimônio bruto de R$ 4,3M: 6 imóveis (R$ 996,8k residência + R$ 1,4M investimento), carteiras David (R$ 1,2M) e Mariana (R$ 375,4k). Endividamento de 5,4% — saudável.</p>"
+      "right": "<p>Plano de vida centrado na mudança para os EUA via visto F1/F2 (Anderson University, SC), seguido de Green Card por EB2-NIW. David manterá contratos PJ brasileiros remotamente; Mariana se prepara para NCLEX. Custo projetado: R$ 32,4k/mês, com sobra de R$ 2,4k/mês.</p>\n<p>Meta IF: R$ 7,2M (TRS 5%, renda passiva de R$ 30k/mês). Patrimônio investível atual de R$ 2,8M (38,7% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo de 8 anos (David 52 anos, 2034).</p>\n<p>Patrimônio bruto de R$ 4,0M: 6 imóveis (R$ 996,8k residência + R$ 1,4M investimento), carteiras David (R$ 927,9k) e Mariana (R$ 375,4k). Endividamento de 5,8% — saudável.</p>"
     },
     "summaries": {
-      "s1": "Patrimônio bruto de R$ 4,3M com 71,6% investível (R$ 3,1M). Imóveis representam 56,6% do total, com residência própria de R$ 996,8k e imóveis de investimento somando R$ 1,4M. Endividamento de 5,4% sobre o bruto.",
-      "s2": "Score financeiro de 7/10 (Bom). Pontos fortes: taxa de poupança recorrente de 15,5%, cobertura de 33,8 meses de despesas e endividamento controlado. Receita total no período de R$ 2,5M com 24,6% proveniente de PJ, 6,9% de aluguel, 46,5% de CLT e 22% de outras fontes.",
-      "s3": "Carteira diversificada entre 6 categorias de ativos. David mantém R$ 1,2M distribuídos entre C6bank, Itau, Rico, Santander. Mariana possui R$ 375,4k concentrados em Btgpactual.",
+      "s1": "Patrimônio bruto de R$ 4,0M com 69,5% investível (R$ 2,8M). Imóveis representam 60,8% do total, com residência própria de R$ 996,8k e imóveis de investimento somando R$ 1,4M. Endividamento de 5,8% sobre o bruto.",
+      "s2": "Score financeiro de 6,9/10 (Bom). Pontos fortes: taxa de poupança recorrente de 16,4%, cobertura de 37,9 meses de despesas e endividamento controlado. Receita total no período de R$ 2,5M com 24,6% proveniente de PJ, 6,9% de aluguel, 46,5% de CLT e 22% de outras fontes.",
+      "s3": "Carteira diversificada entre 6 categorias de ativos. David mantém R$ 927,9k distribuídos entre C6bank, Itau, Rico, Santander. Mariana possui R$ 375,4k concentrados em Btgpactual.",
       "s4": "6 imóveis no portfólio: residência na Rua Tasso da Silveira (R$ 996,8k), apartamentos alugados com renda de R$ 52,1k/ano (R$ 4,3k/mês). Yield bruto dos imóveis de investimento estimado em 3,6% (receita/valor total).",
       "s5": "Mudança para os EUA via visto F1/F2 (Anderson University, SC), com custo mensal estimado de R$ 32,4k. Sobra projetada de R$ 2,4k/mês (R$ 34,8k receita − R$ 32,4k custos). Viagens estimadas: 2/ano a R$ 20k-R$ 30k cada.",
       "s6": "Exposição cambial: US$ 4,7k em Wise, US$ 2,6k em Bank of America. Total US$ 7,4k. Meta pré-EUA de US$ 20k com gap de US$ 12,6k — ritmo de R$ 2k/mês na Wise alcança a meta em 36 meses.",
-      "s7": "Meta de independência financeira de R$ 7,2M em 2033. Gap atual de R$ 4,1M com prazo realista de 7,8 anos à taxa de aporte R$ 20k/mês e retorno real 6% a.a. Renda passiva estimada (5% TRS): R$ 10,3k/mês.",
+      "s7": "Meta de independência financeira de R$ 7,2M em 2034. Gap atual de R$ 4,4M com prazo realista de 8,5 anos à taxa de aporte R$ 20k/mês e retorno real 6% a.a. Renda passiva estimada (5% TRS): R$ 9,3k/mês.",
       "s8": "Simples Nacional Anexo V com fator R favorável (alíquota efetiva 6%). DAS mensal estimado em R$ 921,94 (R$ 11,1k/ano) sobre receita PJ anualizada de R$ 184,4k. AccountTech como contador (R$ 390,00/mês via C6 PJ). Avaliação de holding patrimonial pendente para T4/2026. Obrigações fiscais EUA (FBAR, Form 8938, PFIC) requerem CPA expatriado antes da mudança.",
       "s9": "8 riscos prioritários: Falta de seguro de vida/invalidez, FBAR/FATCA compliance, Estate Tax non-resident. Seguros de vida e invalidez inexistentes — classificados como urgentes. Cobertura recomendada: R$ 3-5M em seguro term. Planejamento sucessório em estágio inicial.",
       "s10": "5 decisões estratégicas prioritárias: iniciar aporte mensal de R$ 20k (R$ 10k Cofrinhos, R$ 5k IPCA+, R$ 3k IVVB11, R$ 2k Wise USD), Contratar seguro de vida term, NCLEX/OET para Mariana, Consultar CPA expatriado para obrigações EUA."
     },
     "charts": {
       "score_gauge": {
-        "context": "Indicador geral de saúde financeira da família, com score de 7/10 (Bom). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
+        "context": "Indicador geral de saúde financeira da família, com score de 6,9/10 (Bom). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
         "conclusion": "A classificação 'Bom' reflete melhora na taxa de poupança recorrente e redução da razão endividamento/patrimônio."
       },
       "patrimonio_doughnut": {
-        "context": "Distribuição do patrimônio bruto de R$ 4,3M entre 6 categorias de ativos, mostrando concentração em imóveis e peso relativo dos investimentos financeiros.",
-        "conclusion": "Imóveis respondem por 56,6% do patrimônio — acima do ideal de 50%. Aportes mensais de R$ 20k em ativos financeiros devem melhorar essa proporção."
+        "context": "Distribuição do patrimônio bruto de R$ 4,0M entre 6 categorias de ativos, mostrando concentração em imóveis e peso relativo dos investimentos financeiros.",
+        "conclusion": "Imóveis respondem por 60,8% do patrimônio — acima do ideal de 50%. Aportes mensais de R$ 20k em ativos financeiros devem melhorar essa proporção."
       },
       "alocacao_atual": {
-        "context": "Atual distribuição dos ativos financeiros (R$ 1,6M) entre classes de investimento: renda fixa, ações, fundos multimercado e estruturados.",
+        "context": "Atual distribuição dos ativos financeiros (R$ 1,3M) entre classes de investimento: renda fixa, ações, fundos multimercado e estruturados.",
         "conclusion": "David diversificado em C6bank, Itau, Rico, Santander; Mariana concentra em Btgpactual. Recomendação: gradualmente adicionar alocação de ações (IVVB11, SCHP11) para atingir 20-25% de equity."
       },
       "alocacao_alvo": {
@@ -3141,39 +3029,39 @@
         "conclusion": "Alvo: 50% Renda Fixa (IPCA+, CDBs), 25% Ações (IVVB11, SCHP11), 15% Imóveis/REITs, 10% Liquidez/USD. Aportes de R$ 20k/mês priorizarão renda fixa, com rebalanceamento anual."
       },
       "fluxo_mensal": {
-        "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente de R$ 34,8k/mês versus despesa média de R$ 48,7k/mês.",
-        "conclusion": "Fluxo líquido total de R$ 555,0k no período (40 meses). Taxa de poupança recorrente de 15,5% sustenta a meta de aportes mensais de R$ 20k para o plano IF."
+        "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente de R$ 34,8k/mês versus despesa média de R$ 35,6k/mês.",
+        "conclusion": "Fluxo líquido total de R$ 1,1M no período (40 meses). Taxa de poupança recorrente de 16,4% sustenta a meta de aportes mensais de R$ 20k para o plano IF."
       },
       "receita_bar": {
         "context": "Composição da receita total de R$ 2,5M por fonte: PJ (24,6%), CLT (46,5%), aluguel (6,9%), outras (22%).",
         "conclusion": "Receita CLT lidera com R$ 1,2M (46,5%), seguida por PJ (R$ 614,6k, 24,6%) e aluguel (R$ 173,7k, 6,9%). Diversificação de fontes reduz risco de dependência única."
       },
       "receita_despesa_mensal": {
-        "context": "Série temporal mensal de receitas (R$ 2,5M/período) versus despesas (R$ 1,9M/período), resultando em fluxo líquido de R$ 555,0k.",
-        "conclusion": "Receita recorrente de R$ 34,8k/mês e despesa média de R$ 48,7k/mês. Taxa de poupança recorrente de 15,5% valida a sustentabilidade do plano IF."
+        "context": "Série temporal mensal de receitas (R$ 2,5M/período) versus despesas (R$ 1,4M/período), resultando em fluxo líquido de R$ 1,1M.",
+        "conclusion": "Receita recorrente de R$ 34,8k/mês e despesa média de R$ 35,6k/mês. Taxa de poupança recorrente de 16,4% valida a sustentabilidade do plano IF."
       },
       "despesas_doughnut": {
-        "context": "Distribuição das despesas totais (R$ 1,9M) entre 17 categorias, destacando a composição de gastos e oportunidades de otimização.",
-        "conclusion": "Categoria 'não identificado' lidera com R$ 867,0k (44,5%), seguida por impostos (R$ 126,6k), moradia (R$ 37,9k) e serviços domésticos (R$ 60,9k). Prioridade: reclassificar 'não identificado' via melhor rastreamento."
+        "context": "Distribuição das despesas totais (R$ 1,4M) entre 17 categorias, destacando a composição de gastos e oportunidades de otimização.",
+        "conclusion": "Categoria 'não identificado' lidera com R$ 184,4k (13%), seguida por impostos (R$ 135,9k), moradia (R$ 37,9k) e serviços domésticos (R$ 64,1k). Prioridade: reclassificar 'não identificado' via melhor rastreamento."
       },
       "projecao_3cenarios": {
         "context": "Projeção do patrimônio investível até atingir a meta de R$ 7,2M, considerando aportes mensais de R$ 20k e retorno real anual de 6%.",
-        "conclusion": "Meta será atingida em 2033, quando David terá 51 anos. Renda passiva estimada será R$ 10,3k/mês (34,3% da meta de R$ 30k/mês)."
+        "conclusion": "Meta será atingida em 2034, quando David terá 52 anos. Renda passiva estimada será R$ 9,3k/mês (31% da meta de R$ 30k/mês)."
       },
       "waterfall_if": {
-        "context": "Decomposição do gap de independência financeira (R$ 4,1M), mostrando componentes de patrimônio atual, aportes acumulados e rentabilidade esperada até 2033.",
-        "conclusion": "Gap de R$ 4,1M será fechado por aportes disciplinados (R$ 20k/mês = R$ 1,9M em 8 anos) e rentabilidade real de 6% a.a. sobre patrimônio acumulado."
+        "context": "Decomposição do gap de independência financeira (R$ 4,4M), mostrando componentes de patrimônio atual, aportes acumulados e rentabilidade esperada até 2034.",
+        "conclusion": "Gap de R$ 4,4M será fechado por aportes disciplinados (R$ 20k/mês = R$ 2,0M em 8 anos) e rentabilidade real de 6% a.a. sobre patrimônio acumulado."
       },
       "renda_passiva": {
         "context": "Barra de progresso da renda passiva mensal em direção à meta de R$ 30k/mês. Cada segmento representa uma fonte: aluguéis, dividendos e rendimentos financeiros.",
-        "conclusion": "Renda passiva atual de R$ 10,3k/mês (34,3% da meta). Faltam R$ 19,7k/mês — patrimônio de R$ 7,2M (meta 2033) geraria R$ 30k/mês com TRS de 5%."
+        "conclusion": "Renda passiva atual de R$ 9,3k/mês (31% da meta). Faltam R$ 20,7k/mês — patrimônio de R$ 7,2M (meta 2034) geraria R$ 30k/mês com TRS de 5%."
       },
       "yield_imoveis": {
         "context": "Análise de yield bruto dos imóveis de investimento (valor total R$ 1,4M) versus aluguel recebido mensalizado.",
         "conclusion": "Yield atual de 3,6% com potencial de 4-6% após otimização de contratos. Imóveis funcionam como hedge inflacionário e fonte de renda complementar."
       },
       "top15_ativos": {
-        "context": "Ranking dos 15 maiores ativos financeiros individuais da família, totalizando R$ 3,1M em investimentos.",
+        "context": "Ranking dos 15 maiores ativos financeiros individuais da família, totalizando R$ 2,8M em investimentos.",
         "conclusion": "CDB DI (Santander) (R$ 137,9k de David) é o maior ativo individual. Concentração em poucos ativos reforça importância de aportes contínuos para diversificação."
       },
       "impostos_pj": {
@@ -3206,17 +3094,30 @@
       }
     },
     "strategic_insights": [
-      "A taxa de poupança recorrente de 15,5% (janela 12 meses) mascara o impacto positivo da transição PJ: com a Arvo gerando R$47k+/mês desde set/2025, a taxa dos últimos 6 meses é significativamente maior. O próximo ciclo trimestral deve mostrar convergência acima de 25%, validando a estratégia de concentração em PJ.",
-      "A cobertura de despesas de 33,8 meses é confortável mas enviesada: R$1,6M em investimentos de baixa liquidez (imóveis de investimento) não estão incluídos no patrimônio investível. Na prática, a margem de segurança real é ainda maior se considerarmos a capacidade de venda de um dos imóveis menores.",
-      "O progresso IF de 42,9% com gap de R$4,1M parece distante, mas o aporte mensal de R$22.300 (meta configurada) + a quitação do financiamento Ed. Gisele (economia de R$4.300/mês em prestação) podem reduzir o prazo para ~6 anos no cenário otimista, versus os 7,8 anos reportados no cenário realista.",
-      "A discrepância na cross-validation CV4 (taxa poupança calculada -40,1% vs reportada 15,5%) ocorre porque o CV4 usa receita/despesa totais do período completo (incluindo meses pré-Arvo com rescisão Kiwify one-time), enquanto o E5 corretamente usa janela rolling de 12 meses e exclui receitas one-time do denominador. O valor reportado (15,5%) é o correto para a análise prospectiva."
+      "Patrimônio de R$ 4,0M com apenas 38,7% do caminho IF percorrido: a concentração de 60% em imóveis (R$ 2,4M) reduz a velocidade de acumulação de patrimônio investível. Cada R$ 1 em imóvel rende ~3,6% bruto (aluguel) vs ~14% em renda fixa pós-fixada. O custo de oportunidade anual é de ~R$ 250k.",
+      "O gap entre taxa de poupança total (44,3%) e recorrente (16,4%) revela dependência estrutural de receitas extraordinárias (PJ, vendas de ativos) para manter o ritmo de acumulação. Se essas receitas cessarem — como na mudança para EUA via F1/F2 — a poupança recorrente de 16,4% sustenta aportes de apenas ~R$ 11k/mês vs a meta de R$ 20k.",
+      "O plano EUA (F1/F2) é viável mas apertado: sobra projetada de R$ 2,4k/mês não comporta os aportes de R$ 20k necessários para a meta IF 2034. A família precisará viver do patrimônio acumulado durante o período nos EUA, atrasando a IF em 2-3 anos. Decisão consciente: qualidade de vida e formação acadêmica vs velocidade IF.",
+      "A ausência de seguro de vida e invalidez é o maior risco não-mitigado do portfólio. Com patrimônio de R$ 4M e renda familiar de R$ 100k/mês, um evento adverso sem cobertura poderia comprometer toda a estratégia de IF. O custo estimado de R$ 200-400/mês é imaterial frente ao risco.",
+      "Consolidação de corretoras é uma oportunidade operacional: 6 instituições financeiras com investimentos fragmentados dificultam rebalanceamento e monitoramento. Concentrar em 2-3 corretoras reduziria complexidade sem perda de diversificação."
     ],
     "inconsistencies_review": [
       {
-        "description": "CV4: Taxa poupança recorrente — discrepância de cálculo entre cross-validation (período completo) e E5 (janela 12m rolling, receita recorrente only). O valor do E5 (15,5%) é o correto para fins de diagnóstico financeiro. A cross-validation usa fórmula simplificada que não distingue receita recorrente de one-time.",
-        "severity": "info",
-        "resolution": "Manter valor do E5. A fórmula do CV4 será refinada em versão futura do e7_review.py para usar a mesma janela 12m."
+        "sections": [
+          "ratios",
+          "fluxo_caixa"
+        ],
+        "description": "CV4: A cross-validation calcula taxa de poupança usando o período completo (~16 meses) enquanto o E5 usa janela de 12 meses. A janela de 12m é a métrica correta. O script e7_review.py deveria usar fluxo_caixa.janela_12m para esta verificação."
       }
     ]
+  },
+  "review_metadata": {
+    "timestamp": "2026-04-10T12:00:43.532787",
+    "e7_version": "1.0",
+    "changes_applied": [
+      "strategic_insights (5 items)",
+      "inconsistencies_review (1 items)"
+    ],
+    "cross_validation_passed": 13,
+    "cross_validation_failed": 1
   }
 }
