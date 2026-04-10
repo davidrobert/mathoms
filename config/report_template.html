@@ -11,6 +11,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Planejamento Financeiro — Família Ferreira Campos</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    if (t && (t === 'dark' || t === 'light')) {
+      document.documentElement.setAttribute('data-theme', t);
+    } else {
+      var d = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', d ? 'dark' : 'light');
+    }
+  } catch(e) {}
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/turndown@7.1.3/dist/turndown.min.js"></script>
@@ -232,6 +245,9 @@ h3 { font-family: var(--font-display); font-size:15px; font-weight:700; color: v
 }
 .card-title { font-family: var(--font-display); font-size:var(--font-md); font-weight:700;
   color: var(--color-primary); margin-bottom:var(--space-md); }
+.card-title + .card-subtitle { margin-top:calc(-1 * var(--space-sm)); }
+.card-subtitle { font-size:var(--font-sm); color:var(--color-text-muted); line-height:1.5;
+  margin-bottom:var(--space-md); }
 .card-title-lg { font-size:var(--font-lg); color:var(--color-primary); }
 .card-title-green { color:var(--color-accent); }
 .card-title-red { color:var(--color-danger); }
@@ -269,8 +285,8 @@ tr.total-row td { border-bottom: 2px solid var(--color-border); }
 /* Charts */
 .chart-container { position:relative; margin:var(--space-xl) 0; max-width:100%; }
 .chart-container canvas { max-height:400px; min-height:250px; }
-.chart-row { display:grid; grid-template-columns: 1fr 1fr; gap:var(--space-xl); margin:var(--space-xl) 0; align-items:start; }
-.chart-row > .chart-container { margin:0; align-self:start; }
+.chart-row { display:grid; grid-template-columns: 1fr 1fr; gap:var(--space-xl); margin:var(--space-xl) 0; align-items:stretch; }
+.chart-row > .chart-container { margin:0; display:flex; flex-direction:column; }
 .chart-row .chart-container canvas { min-height:250px; }
 
 /* Canvas inside cards (without .chart-container wrapper) */
@@ -3358,6 +3374,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 function setMode(mode) {
   document.body.className = 'mode-' + mode;
+  try { localStorage.setItem('fc_view_mode', mode); } catch(e) {}
   document.querySelectorAll('.mode-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.target === mode);
     b.setAttribute('aria-pressed', b.dataset.target === mode ? 'true' : 'false');
@@ -3769,9 +3786,23 @@ function buildDashboard() {
 }
 
 // Initialize collapsible sections
+function _loadCollapseState() {
+  try {
+    var saved = localStorage.getItem('fc_collapse_state');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return null;
+}
+
+function _saveCollapseState(states) {
+  try { localStorage.setItem('fc_collapse_state', JSON.stringify(states)); } catch(e) {}
+}
+
 function initializeCollapsibleSections() {
   var collapseByDefault = ['secao-4','secao-5','secao-6','secao-7','secao-8','secao-9',
     'apendice-a','apendice-b','apendice-c','apendice-d','apendice-e'];
+
+  var savedState = _loadCollapseState();
 
   document.querySelectorAll('.section-header').forEach(function(header) {
     var section = header.closest('.section');
@@ -3794,16 +3825,30 @@ function initializeCollapsibleSections() {
     section.appendChild(contentDiv);
 
     var sectionId = section.id || '';
-    if (collapseByDefault.indexOf(sectionId) !== -1) {
+    var shouldCollapse;
+    if (savedState && sectionId && savedState.hasOwnProperty(sectionId)) {
+      shouldCollapse = savedState[sectionId];
+    } else {
+      shouldCollapse = collapseByDefault.indexOf(sectionId) !== -1;
+    }
+
+    if (shouldCollapse) {
       contentDiv.classList.add('collapsed');
       header.classList.add('collapsed');
     }
 
-    header.setAttribute('aria-expanded', !contentDiv.classList.contains('collapsed'));
+    header.setAttribute('aria-expanded', !shouldCollapse);
     header.addEventListener('click', function() {
       contentDiv.classList.toggle('collapsed');
       header.classList.toggle('collapsed');
-      header.setAttribute('aria-expanded', !contentDiv.classList.contains('collapsed'));
+      var isCollapsed = contentDiv.classList.contains('collapsed');
+      header.setAttribute('aria-expanded', !isCollapsed);
+
+      if (sectionId) {
+        var current = _loadCollapseState() || {};
+        current[sectionId] = isCollapsed;
+        _saveCollapseState(current);
+      }
     });
   });
 }
@@ -3873,7 +3918,9 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeNavScrollSpy();
   initializePrintChartFallback();
   initializeKpiProgressBars();
-  var mode = DATA.meta.modo_padrao || 'strategic';
+  var savedMode = null;
+  try { savedMode = localStorage.getItem('fc_view_mode'); } catch(e) {}
+  var mode = savedMode || DATA.meta.modo_padrao || 'strategic';
   setMode(mode);
 });
 </script>

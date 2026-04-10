@@ -1466,6 +1466,7 @@ def build_patrimonio_categorias_card(e4: dict) -> str:
 
     html_parts = ['<div class="card card-feature">']
     html_parts.append('  <div class="card-title">Patrimônio por Categoria</div>')
+    html_parts.append(f'  <div class="card-subtitle">Composição do patrimônio bruto de {fmt_brl(pat.get("patrimonio_bruto", 0))} em {len(categorias)} categorias</div>')
     html_parts.append('  <table>')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>')
@@ -1602,7 +1603,9 @@ def build_investimentos_classe_card(e4: dict) -> str:
     classes = e4.get("investimentos", {}).get("tabela_classes", [])
 
     html_parts = ['<div class="card card-feature">']
+    total_inv = sum(c.get("valor", 0) for c in classes)
     html_parts.append('  <div class="card-title">Investimentos por Classe de Ativo</div>')
+    html_parts.append(f'  <div class="card-subtitle">Distribuição do patrimônio investível de {fmt_brl(total_inv)} por classe</div>')
     html_parts.append('  <table>')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>')
@@ -1652,7 +1655,7 @@ def build_reserva_emergencia_card(e4: dict) -> str:
 
     html_parts = ['<div class="card card-feature">']
     html_parts.append('  <div class="card-title">Reserva de Emergência — 3 Critérios</div>')
-    html_parts.append(f'  <p>Baseado na despesa mensal média de <strong>{fmt_brl(despesa_mensal)}</strong>:</p>')
+    html_parts.append(f'  <div class="card-subtitle">Baseado na despesa mensal média de {fmt_brl(despesa_mensal)}</div>')
 
     # --- Table 1: Níveis de cobertura ---
     html_parts.append('  <table>')
@@ -1716,8 +1719,13 @@ def build_endividamento_card(e4: dict) -> str:
     end = e4.get("endividamento", {})
     dividas = end.get("dividas", [])
 
+    total_saldo = sum(d.get("saldo_devedor", 0) for d in dividas)
     html_parts = ['<div class="card card-feature">']
     html_parts.append('  <div class="card-title">Endividamento</div>')
+    if dividas:
+        html_parts.append(f'  <div class="card-subtitle">{len(dividas)} dívida(s) ativa(s) totalizando {fmt_brl(total_saldo)} em saldo devedor</div>')
+    else:
+        html_parts.append('  <div class="card-subtitle">Nenhuma dívida identificada — situação saudável</div>')
     html_parts.append('  <table>')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Descrição</th><th>Saldo Devedor</th><th>Parcela Mensal</th><th>Taxa</th></tr>')
@@ -1958,6 +1966,7 @@ def build_diagnostico_comportamental_card(e4: dict) -> str:
 
     html_parts = ['<div class="card card-highlight">']
     html_parts.append('  <div class="card-title">Diagnóstico Comportamental</div>')
+    html_parts.append(f'  <div class="card-subtitle">{len(diag)} padrão(ões) identificado(s) com base nas transações do período</div>')
     html_parts.append('  <table>')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Padrão</th><th>Evidência</th><th>Mudança Sugerida</th></tr>')
@@ -2039,6 +2048,7 @@ def build_previdencia_pgbl_card(e4: dict) -> str:
 
     html_parts = ['<div class="card card-feature">']
     html_parts.append('  <div class="card-title">Previdência PGBL</div>')
+    html_parts.append(f'  <div class="card-subtitle">Benefício fiscal de até 12% da renda bruta tributável — alíquota marginal de {pgbl.get("aliquota_marginal", 27.5)}%</div>')
     html_parts.append('  <table>')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Métrica</th><th>Valor</th></tr>')
@@ -2079,6 +2089,7 @@ def build_pontos_urgentes_card(e4: dict) -> str:
 
     html_parts = ['<div class="card card-feature">']
     html_parts.append('  <div class="card-title">Pontos Urgentes</div>')
+    html_parts.append(f'  <div class="card-subtitle">{len(urgentes)} ação(ões) prioritária(s) identificada(s) para atenção imediata</div>')
     html_parts.append('  <table>')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Prioridade</th><th>Ação</th><th>Impacto</th><th>Prazo</th></tr>')
@@ -2103,6 +2114,7 @@ def build_equilibrio_cerbasi_card(e4: dict) -> str:
 
     html_parts = ['<div class="card card-highlight">']
     html_parts.append('  <div class="card-title">Equilíbrio Cerbasi</div>')
+    html_parts.append(f'  <div class="card-subtitle">Metodologia de Gustavo Cerbasi para equilíbrio entre presente e futuro — {eq.get("classificacao", "N/D")}</div>')
     html_parts.append('  <table>')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Métrica</th><th>Valor</th></tr>')
@@ -2135,11 +2147,7 @@ def build_estrategia_aporte_card(e4: dict) -> str:
     h = []
     h.append('<div class="card card-feature">')
     h.append('  <div class="card-title">Estratégia de Aporte e Alocação</div>')
-    h.append(f'  <div class="flex-row">')
-    h.append(f'    <span>💰</span>')
-    h.append(f'    <strong>Aporte Mensal — {fmt_brl(total)} (todo dia {dia})</strong>')
-    h.append(f'  </div>')
-    h.append(f'  <p class="text-sm text-muted">A partir de {periodo}. Distribuição fixa entre {len(destinos)} destinos, equilibrando liquidez, proteção contra inflação e dolarização.</p>')
+    h.append(f'  <div class="card-subtitle">💰 Aporte mensal de {fmt_brl(total)} no dia {dia} de cada mês, distribuído em {len(destinos)} destinos. A partir de {periodo}.</div>')
 
     # Tabela de destinos
     h.append('  <table>')
@@ -2177,10 +2185,12 @@ def build_estrategia_aporte_card(e4: dict) -> str:
     # Resumo BRL vs USD
     h.append('  <div class="grid-2col">')
     h.append(f'    <div class="card card-success card-compact">')
-    h.append(f'      <strong>💰 {pct_brl}% em BRL</strong> ({destinos_brl}): {resumo_brl}')
+    h.append(f'      <div class="card-title">💰 {pct_brl}% em BRL</div>')
+    h.append(f'      <div class="card-subtitle">{destinos_brl}: {resumo_brl}</div>')
     h.append(f'    </div>')
     h.append(f'    <div class="card card-highlight card-compact">')
-    h.append(f'      <strong>🇺🇸 {pct_usd}% em USD</strong> ({destinos_usd}): {resumo_usd}')
+    h.append(f'      <div class="card-title">🇺🇸 {pct_usd}% em USD</div>')
+    h.append(f'      <div class="card-subtitle">{destinos_usd}: {resumo_usd}</div>')
     h.append(f'    </div>')
     h.append('  </div>')
     h.append('</div>')
@@ -2705,7 +2715,7 @@ def build_nclex_roadmap_card(e4: dict) -> str:
     _nclex_conjuge_key = next((k for k, v in _FAMILY.get("membros", {}).items() if v.get("papel") == "conjuge"), None)
     _nclex_conjuge_nome = _FAMILY.get("membros", {}).get(_nclex_conjuge_key, {}).get("nome_curto", "") if _nclex_conjuge_key else ""
     h.append(f'  <div class="card-title">NCLEX Roadmap{f" — {_nclex_conjuge_nome}" if _nclex_conjuge_nome else ""}</div>')
-    h.append('  <p>Caminho para licenciamento como Registered Nurse nos EUA (estimativa 8-18 meses).</p>')
+    h.append('  <div class="card-subtitle">Caminho para licenciamento como Registered Nurse nos EUA (estimativa 8-18 meses)</div>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Etapa</th><th>Descrição</th><th>Custo</th><th>Duração</th></tr></thead>')
     h.append('    <tbody>')
@@ -2753,7 +2763,9 @@ def build_simulacao_mariana_card(e4: dict) -> str:
     _sim_mariana = e4.get("simulacao_mariana_sem_trabalhar", {})
     _aporte_cfg = GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 20000)
     h.append('<div class="card">')
+    _sim_fator = GOALS_CONFIG.get("simulacao", {}).get("aporte_reduzido_fator", 0.66)
     h.append('  <div class="card-title">Simulação — Mariana Sem Trabalhar</div>')
+    h.append(f'  <div class="card-subtitle">Cenário conservador com fator de redução de {_sim_fator*100:.0f}% no aporte mensal</div>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Métrica</th><th>Valor</th></tr></thead>')
     h.append('    <tbody>')
@@ -3003,6 +3015,7 @@ def build_kpi_rentabilidade_card(e4: dict) -> str:
 
     h = ['<div class="card card-feature">']
     h.append('  <div class="card-title">KPI — Rentabilidade</div>')
+    h.append('  <div class="card-subtitle">Indicadores derivados do fluxo de caixa e patrimônio — dados reais do período</div>')
 
     # Metrics table
     h.append('  <table>')
@@ -3038,8 +3051,7 @@ def build_contrafluxo_card(e4: dict) -> str:
     cdi = CONFIG_RATES.get("cdi_anual", 11.5)
     html_parts = ['<div class="card card-primary">']
     html_parts.append('  <div class="card-title">Contrafluxo</div>')
-    html_parts.append(f'  <p>Selic atual: {selic}% a.a. | CDI: {cdi}%</p>')
-    html_parts.append('  <p>Cenário base mantém estratégia RF em Tesouro IPCA+.</p>')
+    html_parts.append(f'  <div class="card-subtitle">Selic atual: {selic}% a.a. | CDI: {cdi}% — Cenário base mantém estratégia RF em Tesouro IPCA+</div>')
     html_parts.append('</div>')
     return '\n'.join(html_parts)
 
@@ -3329,8 +3341,10 @@ def build_sections(e4: dict) -> dict:
             elif i == 7:
                 html += build_previdencia_pgbl_card(e4) + "\n"
             elif i == 10:
+                html += '<div class="split-cards">\n'
                 html += build_pontos_fortes_card(e4) + "\n"
                 html += build_pontos_urgentes_card(e4) + "\n"
+                html += '</div>\n'
                 html += build_equilibrio_cerbasi_card(e4) + "\n"
 
             replacements[f"{{{{CONTENT_S{i}}}}}"] = html.rstrip()
@@ -3495,12 +3509,21 @@ def validate_report(html: str, report_data_json: str) -> dict:
         results["V6"]["passed"] = False
         results["V6"]["detail"] = f"Found {app_count} appendices, expected 5"
 
-    # V10-V13, V16: Not yet implemented — mark as warnings
-    for vnum in [10, 11, 12, 13, 16]:
+    # V10-V13: Not yet implemented — mark as warnings
+    for vnum in [10, 11, 12, 13]:
         v_key = f"V{vnum}"
         if v_key in results:
             results[v_key]["passed"] = True
             results[v_key]["warning"] = "Validação pendente de implementação"
+
+    # V16: Every <div class="card ..."> must have <div class="card-title"> as first meaningful child
+    _html_body = re.sub(r'<script[^>]*>.*?</script>', '', html_no_comments, flags=re.DOTALL)
+    _html_body = re.sub(r'<style[^>]*>.*?</style>', '', _html_body, flags=re.DOTALL)
+    card_pattern = re.findall(r'<div\s+class="card[^"]*"[^>]*>\s*\n?\s*(<[^>]+>)', _html_body)
+    cards_without_title = [m for m in card_pattern if 'card-title' not in m and 'card-compact-icon' not in m]
+    if cards_without_title:
+        results["V16"]["passed"] = False
+        results["V16"]["detail"] = f"{len(cards_without_title)} card(s) sem .card-title como primeiro filho: {cards_without_title[:3]}"
 
     # V15: Inline styles count (warn if excessive)
     inline_styles = re.findall(r'\sstyle="[^"]*"', html_no_comments)
