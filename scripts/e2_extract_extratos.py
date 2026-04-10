@@ -95,14 +95,9 @@ _LOCALE_CONFIG = _load_json_config(CONFIG_DIR / "localization.json", "localizati
 _INST_CONFIG = _load_json_config(CONFIG_DIR / "institutions.json", "institutions.json")
 _PIPE_CONFIG = _load_json_config(CONFIG_DIR / "pipeline.json", "pipeline.json")
 
-MESES_BR = _LOCALE_CONFIG.get("meses_br_int", {}) or {
-    'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4,
-    'mai': 5, 'jun': 6, 'jul': 7, 'ago': 8,
-    'set': 9, 'out': 10, 'nov': 11, 'dez': 12,
-    'janeiro': 1, 'fevereiro': 2, 'março': 3, 'marco': 3, 'abril': 4,
-    'maio': 5, 'junho': 6, 'julho': 7, 'agosto': 8,
-    'setembro': 9, 'outubro': 10, 'novembro': 11, 'dezembro': 12,
-}
+MESES_BR = _LOCALE_CONFIG.get("meses_br_int", {})
+if not MESES_BR:
+    print("  [WARN] localization.json 'meses_br_int' não encontrado — parsing de datas em português pode falhar")
 
 # Layouts from config — Itaú XLS, Santander XLS, C6 CSV
 _LAYOUTS = _INST_CONFIG.get("layouts", {})
@@ -592,6 +587,20 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 result["notas"].append(
                     f"Sem lançamentos no período ({empty_months} mês(es) sem movimentação)"
                 )
+
+            # C6 Global: extract saldo from page text header
+            # Format: "Saldo do dia • DD de MES de YYYY • US$ 91,59" or "• € 8,63"
+            if is_global_usd or is_global_eur:
+                saldo_text_match = re.search(
+                    r'Saldo do dia.*?(?:US\$|€|EUR\s*)\s*([\d.,]+)',
+                    full_text,
+                )
+                if saldo_text_match:
+                    raw = saldo_text_match.group(1).replace(".", "").replace(",", ".")
+                    try:
+                        result["saldo_final"] = float(raw)
+                    except ValueError:
+                        pass
 
             # Parse all tables across all pages
             all_rows: List[Tuple[str, str, str, str, str]] = []
@@ -1744,8 +1753,7 @@ def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
         # the holder name, so also check account number from filename
         result["membro"] = detect_member_from_text(filename)
         if not result["membro"]:
-            # Default: Santander CDB belongs to David (Conta 1652-01.001341.6)
-            result["membro"] = "david"
+            result["membro"] = _FAMILY.get("titular", "david")
 
         # Parse product groups — scan rows for product headers
         current_product = None

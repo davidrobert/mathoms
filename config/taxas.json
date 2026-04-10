@@ -1,8 +1,13 @@
 {
+  "_comment": "Taxas e indicadores macroeconômicos correntes. Atualizar a cada ciclo.",
+  "_ultima_atualizacao": "2026-04-09",
+  "_fonte": "BCB/IBGE/B3",
+
   "cambio_usd_brl": 5.80,
+  "cambio_eur_brl": 6.35,
   "cdi_anual": 14.15,
   "selic_atual": 14.25,
   "ipca_anual": 5.48,
-  "_nota": "Atualizar a cada ciclo. Última atualização: 2026-04-06.",
-  "_fonte": "BCB/IBGE"
+  "igpm_anual": 8.58,
+  "tr_anual": 2.07
 }

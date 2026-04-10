@@ -132,21 +132,36 @@ Mesma lógica da categoria 3, aplicada ao baseline de Mariana.
 
 ### 6. Caixa + Moeda Estrangeira
 
-**Regra:** Categoria RESIDUAL. Calculada por diferença.
+**Regra:** Calculada a partir dos **saldos finais do E3 reconciliado** (contas correntes + moeda estrangeira).
 
-**Fórmula:**
+**Quando `fonte_investimentos = "posicoes_atuais"` (fluxo normal):**
+
+O E5 lê todos os arquivos `*-3_reconciled.json` em `processed/E3_reconciled/` e soma os `saldo_final`
+das contas classificadas como caixa ou moeda estrangeira:
+
+| Tipo de conta (E3)               | Classificação       | Exemplo                      |
+|-----------------------------------|---------------------|------------------------------|
+| `extratoconta` BRL (banco trad.)  | ✅ Caixa             | Itaú CC, Santander CC        |
+| `extratoconta` USD/EUR            | ✅ Moeda Estrangeira | Bank of America, C6 Global   |
+| `extratocontausd` / `extratocontaeur` | ✅ Moeda Estrangeira | Wise USD                |
+| `extratocontabrl`                 | ✅ Caixa             | Wise BRL                     |
+| `extratopoupanca`                 | ❌ → Investimentos   | Bradesco Poupança            |
+| `extratocontapj`                  | ❌ → Investimentos   | C6 PJ (Banco 336)           |
+| `*fatura*`                        | ❌ → skip            | faturas de cartão            |
+| Corretora/fintech invest.         | ❌ → Investimentos   | BTG, Rico, PicPay, Binance   |
+
+Contas em moeda estrangeira são convertidas para BRL usando `config/taxas.json`
+(`cambio_usd_brl`, `cambio_eur_brl`).
+
+**Quando `fonte_investimentos = "irpf"` (fallback):**
+
+Mantém a fórmula residual original:
 ```
-caixa_moeda = patrimonio.bruto − (cat_1 + cat_2 + cat_3 + cat_4 + cat_5 + cat_7)
+caixa_moeda = total_bens_irpf − (cat_1 + cat_2 + cat_3 + cat_4 + cat_7)
 ```
 
-**Deve conter apenas:**
-- Contas corrente puras (saldo em CC sem aplicação)
-- Moeda estrangeira em espécie ou depósito
-- Qualquer ativo não classificado nas outras 6 categorias
-
-**⚠️ VALIDAÇÃO:** Se `caixa_moeda` > 5% do bruto, o E4 DEVE emitir um warning no `qa_log.md`
-solicitando revisão manual — pode indicar que ativos de investimento foram classificados erroneamente
-como caixa. Valor esperado típico: 1-3% do bruto (contas corrente + USD + resíduos).
+**⚠️ VALIDAÇÃO:** Se `caixa_moeda` > 5% do bruto, o E5 DEVE emitir um warning
+solicitando revisão manual. Valor esperado típico: 1-3% do bruto.
 
 ---
 
@@ -169,14 +184,15 @@ veiculos = SUM(david.veiculos[].valor_31_12_ano_base)
 ## FÓRMULAS DERIVADAS (recapitulação de definitions.md)
 
 ```
-patrimonio.bruto         = SUM(total_bens de cada membro)
+patrimonio.bruto         = cat_1 + cat_2 + cat_3 + cat_4 + cat_6 + cat_7
+                           (quando posicoes_atuais: soma explícita de todas as categorias)
 patrimonio.investivel    = bruto − residencia − veiculos
 patrimonio.liquido       = bruto − dividas
 patrimonio.residencia    = cat_1
 patrimonio.imoveis_investimento = cat_2
 patrimonio.investimentos_david  = cat_3
 patrimonio.investimentos_mariana = cat_4
-patrimonio.caixa_moeda_estrangeira = cat_6
+patrimonio.caixa_moeda_estrangeira = cat_6 (E3 saldos CC + FX)
 ```
 
 ---
@@ -204,3 +220,4 @@ O canvas `chart-patrimonio-doughnut` deve ter o título **"Distribuição Patrim
 | Data | Mudança | Motivo |
 |---|---|---|
 | 2026-04-04 | Criação do arquivo v1.0 | Corrigir erros de classificação no E4: imóveis Mariana faltando, contas investimento (CDB/RDB) classificadas como Caixa, inconsistência entre campos top-level e composicao |
+| 2026-04-10 | v1.1 — Cat 6 via E3 saldos | Caixa+ME agora lido dos saldo_final do E3 reconciliado (CC + FX) em vez de fórmula residual que dava sempre zero quando posicoes_atuais ativo. Câmbio via taxas.json. |

@@ -61,13 +61,12 @@
   "cerbasi": {
     "_comment": "Equilíbrio Cerbasi: presente (gastos correntes) vs futuro (investimento no futuro).",
     "categorias_presente": [
-      "moradia", "alimentacao", "transporte", "saude", "lazer",
-      "servicos_domesticos", "pets", "cuidados_pessoais",
-      "assinaturas", "vestuario", "compras_online"
+      "moradia", "alimentacao", "transporte", "saude", "lazer_viagens",
+      "servicos_domesticos", "assinaturas", "vestuario",
+      "seguros", "melhoria_reforma", "suporte_familiar"
     ],
     "categorias_futuro": [
-      "educacao", "investimentos", "previdencia", "financeiro",
-      "reserva_desejos", "poupanca", "aportes"
+      "educacao", "financeiro", "reserva_desejos"
     ],
     "classificacao": [
       {"minimo_futuro_pct": 30, "label": "Investidor"},
@@ -89,9 +88,12 @@
 
   "asset_class_keywords": {
     "_comment": "Keywords para classificação de investimentos por classe de ativo no E5.",
-    "Ações": ["acoes", "ações", "itsa", "brkm", "petr", "etf", "ivvb"],
-    "Renda Fixa": ["renda fixa", "cdb", "rdb", "lci", "lca", "tesouro", "debenture", "certificado de deposito"],
-    "Cripto": ["cripto", "bitcoin", "ethereum", "binance"],
-    "Contas Bancárias": ["banco", "picpay", "nubank", "saldo", "conta"]
+    "Ações": ["acoes", "ações", "itsa", "brkm", "petr", "etf", "ivvb", "fii", "fiis"],
+    "Renda Fixa": ["renda fixa", "cdb", "rdb", "lci", "lca", "tesouro", "debenture", "certificado de deposito", "cra", "cri", "cofrinhos"],
+    "Fundos": ["fundo", "fic", "fim", "fia", "alaska", "constellation", "western", "safari"],
+    "Cripto": ["cripto", "bitcoin", "ethereum", "binance", "btc", "eth"],
+    "Internacional": ["wise", "usd", "dolar", "ivvb11", "global", "bofa", "bank of america"],
+    "Previdência": ["pgbl", "vgbl", "previdencia", "previdência"],
+    "Contas Bancárias": ["banco", "picpay", "nubank", "saldo", "conta corrente"]
   }
 }

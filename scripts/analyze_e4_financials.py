@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 E4 Unified Financial Data Analyzer
-Extracts monthly revenue and expense data from E4_unified JSON files
-Period: May 2025 - March 2026 (11 months)
+Extracts monthly revenue and expense data from E4_unified JSON files.
+Period is determined dynamically from the data.
 """
 
 import json
@@ -26,19 +26,24 @@ def _load_json_config(path: Path, label: str = "") -> dict:
     return {}
 
 _INST_CONFIG = _load_json_config(_BASE_DIR / "config" / "institutions.json", "institutions.json")
+_PIPE_CONFIG = _load_json_config(_BASE_DIR / "config" / "pipeline.json", "pipeline.json")
+_ARTIFACT_NAMES = _PIPE_CONFIG.get("artifact_names", {})
 
 # PJ/non-PJ source classification — from config
-_PJ_SOURCES = _INST_CONFIG.get("pj_sources", []) or ['arvo', 'pj_nao_identificado', 'arbitralis', 'barte', 'brandlovers', 'cnry_canary', 'learntofly']
-_NON_PJ_SOURCES = _INST_CONFIG.get("non_pj_sources", []) or ['quintoandar']
+_PJ_SOURCES = _INST_CONFIG.get("pj_sources", [])
+_NON_PJ_SOURCES = _INST_CONFIG.get("non_pj_sources", [])
+if not _PJ_SOURCES:
+    print("  [WARN] institutions.json 'pj_sources' vazio — classificação PJ/não-PJ pode ser imprecisa")
+if not _NON_PJ_SOURCES:
+    print("  [WARN] institutions.json 'non_pj_sources' vazio — classificação PJ/não-PJ pode ser imprecisa")
 _CAT_LABELS = _INST_CONFIG.get("category_labels", {})
 _LABEL_PJ = _CAT_LABELS.get("pj", "PJ")
 _LABEL_NON_PJ = _CAT_LABELS.get("non_pj", "CLT + Alugueis")
 
 def analyze_financials():
-    # File paths
     base = _BASE_DIR
-    receitas_path = str(base / "processed" / "E4_unified" / "receitas-4_unified.json")
-    despesas_path = str(base / "processed" / "E4_unified" / "despesas-4_unified.json")
+    receitas_path = str(base / "processed" / "E4_unified" / _ARTIFACT_NAMES.get("receitas_unified", "receitas-4_unified.json"))
+    despesas_path = str(base / "processed" / "E4_unified" / _ARTIFACT_NAMES.get("despesas_unified", "despesas-4_unified.json"))
 
     # Read files
     try:

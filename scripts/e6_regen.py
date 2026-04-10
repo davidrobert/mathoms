@@ -61,11 +61,22 @@ def _extract_version_from_manual():
                     break  # past the header
     return _DM.get("version_fallback", "v5.3")  # from config
 
-# Dynamic report filename: find the most recent relatorio_*.html in output/
+def _load_output_glob():
+    fm_path = os.path.join(BASE, 'config', 'family_members.json')
+    if os.path.exists(fm_path):
+        import json as _json
+        with open(fm_path, 'r', encoding='utf-8') as f:
+            fm = _json.load(f)
+        pattern = fm.get("output_filename_pattern", "")
+        if pattern:
+            return pattern.replace("{date}", "*")
+    return "relatorio_financeiro_*.html"
+
 def _find_report():
     output_dir = os.path.join(BASE, 'output')
     import glob
-    candidates = sorted(glob.glob(os.path.join(output_dir, 'relatorio_*.html')), reverse=True)
+    _glob_pattern = _load_output_glob()
+    candidates = sorted(glob.glob(os.path.join(output_dir, _glob_pattern)), reverse=True)
     # Filter out archive files (those with _pre_regen_ in name)
     candidates = [c for c in candidates if '_pre_regen_' not in c]
     if candidates:
@@ -131,7 +142,7 @@ if html != html_before:
 
 # ─── 4. COVER: Family name (from config) ──────────────────────────────
 _fm_path = os.path.join(BASE, 'config', 'family_members.json')
-_family_sobrenome = "Ferreira Campos"
+_family_sobrenome = ""
 if os.path.exists(_fm_path):
     import json as _json
     with open(_fm_path, 'r', encoding='utf-8') as _f:

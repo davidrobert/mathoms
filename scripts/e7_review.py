@@ -42,9 +42,21 @@ E5_JSON_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5
 METHODOLOGY_PATH = PROJECT_DIR / "config" / "methodology.md"
 DEFINITIONS_PATH = PROJECT_DIR / "config" / "definitions.md"
 FAMILY_CONFIG_PATH = PROJECT_DIR / "config" / "family_members.json"
+SCORING_CONFIG_PATH = PROJECT_DIR / "config" / "scoring.json"
+PIPELINE_CONFIG_PATH = PROJECT_DIR / "config" / "pipeline.json"
 REPORT_SPEC_PATH = PROJECT_DIR / "config" / "report_spec.md"
 OUTPUT_DIR = PROJECT_DIR / "output"
 REVIEW_TEMPLATE_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "e7_review_template.json"
+
+def _load_json_config(path: Path) -> dict:
+    if path.exists():
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+_SCORING_CONFIG = _load_json_config(SCORING_CONFIG_PATH)
+_PIPELINE_CONFIG = _load_json_config(PIPELINE_CONFIG_PATH)
+_QA_THRESHOLDS = _PIPELINE_CONFIG.get("qa_thresholds", {})
 
 # =============================================================================
 # Data loading — everything from files, nothing hardcoded
@@ -154,6 +166,7 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
     results: list[CrossValidationResult] = []
 
     # --- CV1: Score formula consistency ---
+    _score_diff_max = _QA_THRESHOLDS.get("score_diff_max", 0.5)
     score_data = e5.get("score", {})
     componentes = score_data.get("componentes", [])
     if componentes:
@@ -164,13 +177,14 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
             reported_score = score_data.get("valor", 0)
             diff = abs(calculated_score - reported_score)
             results.append(CrossValidationResult(
-                "CV1", "Score formula consistency", "error" if diff > 0.5 else "info",
-                diff <= 0.5,
+                "CV1", "Score formula consistency", "error" if diff > _score_diff_max else "info",
+                diff <= _score_diff_max,
                 f"Score reportado: {reported_score}, calculado: {calculated_score}, diff: {diff:.1f}",
                 ["score"],
             ))
 
     # --- CV2: Patrimônio composition sum ---
+    _pat_diff_max = _QA_THRESHOLDS.get("patrimonio_composicao_diff_pct_max", 5)
     pat = e5.get("patrimonio", {})
     composicao = pat.get("composicao", [])
     if composicao:
@@ -179,8 +193,8 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
         if bruto > 0:
             diff_pct = abs(comp_sum - bruto) / bruto * 100
             results.append(CrossValidationResult(
-                "CV2", "Patrimônio composição vs bruto", "warning" if diff_pct > 5 else "info",
-                diff_pct <= 5,
+                "CV2", "Patrimônio composição vs bruto", "warning" if diff_pct > _pat_diff_max else "info",
+                diff_pct <= _pat_diff_max,
                 f"Soma composição: R$ {comp_sum:,.0f}, bruto: R$ {bruto:,.0f}, diff: {diff_pct:.1f}%",
                 ["patrimonio"],
             ))
@@ -361,7 +375,13 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
 
 
 def _score_classification(score: float) -> str:
-    """Map score value to classification label. Rules from methodology.md."""
+    """Map score value to classification label. Loaded from scoring.json."""
+    classificacao = _SCORING_CONFIG.get("score_classificacao", [])
+    if classificacao:
+        for entry in reversed(classificacao):
+            if score >= entry.get("min", 0):
+                return entry.get("label", "")
+        return classificacao[0].get("label", "Crítico")
     if score >= 8:
         return "Excelente"
     elif score >= 6:
@@ -370,8 +390,7 @@ def _score_classification(score: float) -> str:
         return "Regular"
     elif score >= 2:
         return "Atenção"
-    else:
-        return "Crítico"
+    return "Crítico"
 
 
 def _check_narrativas_monetary_format(narr: dict) -> list[str]:

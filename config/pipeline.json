@@ -52,5 +52,36 @@
       "temporal_gap_days": 2,
       "baseline_irpf_diff": 1.0
     }
+  },
+
+  "qa_thresholds": {
+    "_comment": "Tolerâncias para cross-validation no E7.",
+    "score_diff_max": 0.5,
+    "patrimonio_composicao_diff_pct_max": 5
+  },
+
+  "artifact_names": {
+    "_comment": "Nomes de arquivos de artefatos do pipeline. Centraliza convenções de nomes.",
+    "baseline_patrimonial": "baseline_patrimonial-1.5_consolidated.json",
+    "receitas_unified": "receitas-4_unified.json",
+    "despesas_unified": "despesas-4_unified.json",
+    "investimentos_unified": "investimentos-4_unified.json",
+    "fluxo_unified": "fluxo_mensal_detalhado-4_unified.json",
+    "analise_e5": "analise_financeira-5_analysis.json"
+  },
+
+  "log_files": {
+    "_comment": "Logs operacionais regenerados pelo pipeline.",
+    "operational": [
+      "run_log.md",
+      "reconciliation.md",
+      "divergences.md",
+      "E3_E4_EXECUTION_REPORT.md",
+      "QUICK_REFERENCE.txt"
+    ],
+    "preserved": [
+      "inbox_log.md",
+      "qa_log.md"
+    ]
   }
 }

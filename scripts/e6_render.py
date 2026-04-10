@@ -75,7 +75,7 @@ def sanitize_narrativas(narrativas: dict) -> dict:
     charts = narrativas.get("charts", {})
     for chart_key, chart_data in charts.items():
         if isinstance(chart_data, dict):
-            for field in ("titulo", "narrativa", "insight"):
+            for field in ("titulo", "narrativa", "insight", "context", "conclusion"):
                 if field in chart_data and isinstance(chart_data[field], str):
                     chart_data[field] = sanitize_monetary_format(chart_data[field])
 
@@ -129,6 +129,19 @@ GOALS_CONFIG = _load_json_config(BASE_DIR / "config" / "goals.json", "goals.json
 SCORING_CONFIG = _load_json_config(BASE_DIR / "config" / "scoring.json", "scoring.json")
 FISCAL_CONFIG = _load_json_config(BASE_DIR / "config" / "parametros_fiscais.json", "parametros_fiscais.json")
 CENARIOS_CONFIG = _load_json_config(BASE_DIR / "config" / "cenarios.json", "cenarios.json")
+INSTITUTIONS_CONFIG = _load_json_config(BASE_DIR / "config" / "institutions.json", "institutions.json")
+PIPELINE_CONFIG = _load_json_config(BASE_DIR / "config" / "pipeline.json", "pipeline.json")
+
+def _build_broker_list() -> str:
+    """Build comma-separated broker display names from banco_membro + banco_canonical."""
+    banco_membro = _FAMILY.get("banco_membro", {})
+    canonical = INSTITUTIONS_CONFIG.get("banco_canonical", {})
+    brokers = []
+    for key in banco_membro:
+        display = canonical.get(key, key).title()
+        if display not in brokers:
+            brokers.append(display)
+    return ", ".join(brokers) if brokers else "corretoras configuradas"
 
 # Load report layout configuration (YAML)
 def _load_report_layout() -> dict:
@@ -149,11 +162,15 @@ def _load_report_layout() -> dict:
 REPORT_LAYOUT = _load_report_layout()
 
 FAMILY_SOBRENOME = _FAMILY.get("familia", {}).get("sobrenome", "Ferreira Campos")
-TITULAR_NOME = _FAMILY.get("membros", {}).get("david", {}).get("nome_curto", "David")
+_TITULAR_KEY_RENDER = _FAMILY.get("titular", "")
+TITULAR_NOME = _FAMILY.get("membros", {}).get(_TITULAR_KEY_RENDER, {}).get("nome_curto", "")
 
 TEMPLATE_PATH = BASE_DIR / "config" / "report_template.html"
 E5_JSON_PATH = BASE_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
 E4_INVEST_PATH = BASE_DIR / "processed" / "E4_unified" / "investimentos-4_unified.json"
+E4_DESPESAS_PATH = BASE_DIR / "processed" / "E4_unified" / "despesas-4_unified.json"
+E4_RECEITAS_PATH = BASE_DIR / "processed" / "E4_unified" / "receitas-4_unified.json"
+E4_FLUXO_PATH = BASE_DIR / "processed" / "E4_unified" / "fluxo_mensal_detalhado-4_unified.json"
 MANUAL_PATH = BASE_DIR / "config" / "manual_operacao.md"
 DEFINITIONS_PATH = BASE_DIR / "config" / "definitions.md"
 OUTPUT_DIR = BASE_DIR / "output"
@@ -205,8 +222,8 @@ CHART_TITLES = REPORT_LAYOUT.get("chart_titles", {}) or {
     "custos_f1f2": "Custos Mensais F1/F2",
     "cenarios_cambiais": "Cenários Cambiais",
     "projecao_3cenarios": "Projeção Patrimonial — 3 Cenários",
-    "renda_passiva": "Renda Passiva vs Meta",
-    "impostos_pj": "DAS PJ — Mês a Mês",
+    "renda_passiva": "Renda Passiva — Progresso até a Meta",
+    "impostos_pj": "Tributário PJ — Cascata Fiscal",
     "bubble_riscos": "Mapa de Riscos",
     "top5_decisoes": "Top 5 Decisões de Impacto",
     "mariana_cenarios": "Cenários IF — Mariana",
@@ -258,6 +275,18 @@ def fmt_pct_int(value: float) -> str:
         return "—"
     return f"{int(value)}%"
 
+def fmt_num(value: float) -> str:
+    """Format as 3.501.275 (BR thousands, no currency prefix)"""
+    if not isinstance(value, (int, float)):
+        return "—"
+    return f"{int(value):,}".replace(",", ".")
+
+def fmt_dec(value: float, decimals: int = 1) -> str:
+    """Format decimal with BR comma: 19.9 → 19,9"""
+    if not isinstance(value, (int, float)):
+        return "—"
+    return f"{value:.{decimals}f}".replace(".", ",")
+
 def fmt_moeda(value: float) -> str:
     """Format as -$10.042 or similar for USD"""
     if not isinstance(value, (int, float)):
@@ -266,6 +295,25 @@ def fmt_moeda(value: float) -> str:
         return f"${value:,.2f}"
     else:
         return f"-${abs(value):,.2f}"
+
+PERIOD_TOGGLE_CHARTS = {"fluxo_mensal", "receita_bar", "despesas_doughnut", "viagens", "impostos_pj"}
+
+
+def _period_toggle_html(chart_key: str) -> str:
+    """Emit a segmented-control period toggle for supported charts."""
+    cid = CHART_CANVAS_MAP.get(chart_key, f"chart-{chart_key}")
+    return (
+        f'  <div class="period-toggle-row">'
+        f'<div class="period-toggle" data-period-group="{cid}">'
+        f'<button class="period-btn" data-period="3">3M</button>'
+        f'<button class="period-btn" data-period="6">6M</button>'
+        f'<button class="period-btn active" data-period="12">12M</button>'
+        f'<button class="period-btn" data-period="ytd">Ano</button>'
+        f'</div>'
+        f'<span class="period-label" id="{cid}-period-label"></span>'
+        f'</div>'
+    )
+
 
 def chart_html(chart_key: str, title: str, narrativas_charts: dict, extra_attrs: str = "") -> str:
     """Generate chart container HTML with canonical canvas ID"""
@@ -286,6 +334,9 @@ def chart_html(chart_key: str, title: str, narrativas_charts: dict, extra_attrs:
                       'financeira de baixo risco.</p>')
     if context:
         parts.append(f'  <p class="chart-context">{context}</p>')
+    # Period toggle for supported charts
+    if chart_key in PERIOD_TOGGLE_CHARTS:
+        parts.append(_period_toggle_html(chart_key))
     # Special handling for score gauge
     if chart_key == "score_gauge":
         parts.append(f'  <canvas id="{canvas_id}" data-type="gauge" {extra_attrs}></canvas>')
@@ -302,7 +353,7 @@ def chart_html(chart_key: str, title: str, narrativas_charts: dict, extra_attrs:
     else:
         parts.append(f'  <canvas id="{canvas_id}"></canvas>')
     if conclusion:
-        parts.append(f'  <p class="chart-conclusion">{conclusion}</p>')
+        parts.append(f'  <p class="chart-conclusion" id="{canvas_id}-conclusion">{conclusion}</p>')
     parts.append('</div>')
     return '\n'.join(parts)
 
@@ -321,20 +372,76 @@ def load_e4_json() -> dict:
     return data
 
 def load_top15_investimentos() -> list:
-    """Load E3 unified investments, sort by valor_atual desc, return top 15.
+    """Load E4 unified investments, sort by valor_atual desc, return top 15.
     Excludes positions with valor_atual <= 0 (closed/sold).
-    Source: investimentos-3_unified.json (posicoes dict)."""
+    Source: investimentos-4_unified.json (dados list).
+    Builds a display label that disambiguates generic types (e.g. 'CDB DI')
+    by appending the institution name."""
     print("[E6.0] Loading E4 investimentos for Top 15...")
     with open(E4_INVEST_PATH, 'r', encoding='utf-8') as f:
         data = json.load(f)
-    posicoes = data.get("posicoes", {})
-    items = [
-        {"nome": v["nome"], "banco": v["banco"], "valor": v["valor_atual"]}
-        for v in posicoes.values()
-        if v.get("valor_atual", 0) > 0
-    ]
+    dados = data.get("dados", [])
+    generic_types = {"CDB", "CDB DI", "CDB-DI", "CDB Progressivo", "LCI", "LCA", "CRI", "CRA", "LF"}
+    items = []
+    for v in dados:
+        if v.get("valor_atual", 0) <= 0:
+            continue
+        nome = v.get("nome", "").strip()
+        tipo = v.get("tipo", "").strip()
+        banco = v.get("instituicao", "").strip()
+        label = nome or tipo or "Sem nome"
+        if label in generic_types and banco:
+            label = f"{label} ({banco})"
+        items.append({"nome": label, "banco": banco, "valor": v["valor_atual"]})
     items.sort(key=lambda x: x["valor"], reverse=True)
     return items[:15]
+
+def load_viagens_12m() -> dict:
+    """Load last 12 months of lazer_viagens expenses from E4 unified data.
+    Returns dict with: gasto (total), por_mes (monthly breakdown), realizadas (transactions)."""
+    print("[E6.0] Loading E4 viagens data (12-month window)...")
+
+    hoje = datetime.now()
+    y, m = hoje.year, hoje.month
+    # Go back 12 months
+    m -= 12
+    if m <= 0:
+        y -= 1
+        m += 12
+    corte_str = f"{y:04d}-{m:02d}"
+
+    # Monthly totals from fluxo
+    with open(E4_FLUXO_PATH, 'r', encoding='utf-8') as f:
+        fluxo = json.load(f)
+    por_mes_raw = fluxo.get("despesas", {}).get("por_mes", {})
+    meses_sorted = sorted(por_mes_raw.keys())
+    meses_12m = [m for m in meses_sorted if m >= corte_str]
+
+    por_mes = {}
+    gasto_total = 0.0
+    for m in meses_12m:
+        val = por_mes_raw[m].get("lazer_viagens", 0.0)
+        por_mes[m] = val
+        gasto_total += val
+
+    # Individual transactions from despesas
+    with open(E4_DESPESAS_PATH, 'r', encoding='utf-8') as f:
+        despesas = json.load(f)
+    txns_all = despesas.get("dados", {}).get("lazer_viagens", [])
+    txns_12m = [t for t in txns_all if t.get("data", "") >= corte_str]
+    txns_12m.sort(key=lambda t: t.get("data", ""))
+
+    periodo_inicio = meses_12m[0] if meses_12m else corte_str
+    periodo_fim = meses_12m[-1] if meses_12m else hoje.strftime("%Y-%m")
+
+    return {
+        "gasto": round(gasto_total, 2),
+        "por_mes": por_mes,
+        "realizadas_txns": txns_12m,
+        "periodo": f"{periodo_inicio} a {periodo_fim}",
+        "meses": meses_12m,
+    }
+
 
 def load_manual() -> str:
     """Load manual_operacao.md for version extraction"""
@@ -412,6 +519,7 @@ def build_kpi_section(e4: dict, manual_text: str) -> dict:
 
         "{{KPI_SCORE}}": f"{s['valor']:.1f} / {s['max']}".replace(".", ","),
         "{{KPI_SCORE_SUB}}": s["classificacao"],
+        "{{KPI_SCORE_CLASS}}": s["classificacao"],
 
         # Footer
         "{{FOOTER_CONTENT}}": build_footer(sp_time, e4["periodo_dados"], version),
@@ -560,6 +668,7 @@ def build_receita_despesa_mensal(f: dict, e4: dict) -> dict:
 
         return {
             "labels": formatted_labels,
+            "_raw_labels": raw_labels,
             "datasets": datasets,
             "totais_receita": detalhado.get("totais_receita", []),
             "totais_despesa": detalhado.get("totais_despesa", [])
@@ -616,13 +725,19 @@ def build_report_data_json(e4: dict) -> str:
         "if_pct": g["if_pct"],
         "score": s["valor"],
         "renda_passiva_mensal": g.get("renda_passiva", {}).get("atual_mensal", g.get("renda_passiva_estimada_4pct", 0)),
-        "renda_passiva_meta": g.get("renda_passiva", {}).get("meta_mensal", g.get("if_trs_monthly_value", 30000)),
+        "renda_passiva_meta": g.get("renda_passiva", {}).get("meta_mensal", g.get("if_trs_monthly_value",
+            GOALS_CONFIG.get("independencia_financeira", {}).get("renda_passiva_meta_mensal", 0))),
     }
+
+    # Fiscal parameters for client-side period recalculation (impostos_pj)
+    _lp_pct_val = FISCAL_CONFIG.get("lucro_presumido", {}).get("percentual_servicos_pct", 32.0)
+    _pgbl_pct_val = FISCAL_CONFIG.get("pgbl", {}).get("limite_deducao_pct", 12.0)
+    _aliq_val = e4.get("previdencia_pgbl", {}).get("aliquota_marginal", 27.5)
 
     report_data = {
         "meta": {
             "modo_padrao": "strategic",
-            "familia": "Ferreira Campos",
+            "familia": FAMILY_SOBRENOME,
             "periodo": e4["periodo_dados"],
             "data_geracao": datetime.now().isoformat(),
             "versao": extract_version(load_manual()),
@@ -630,13 +745,19 @@ def build_report_data_json(e4: dict) -> str:
         "kpis": kpis,
         "patrimonio": p,
         "charts": charts,
+        "fiscal_params": {
+            "lucro_presumido_pct": _lp_pct_val,
+            "pgbl_limite_pct": _pgbl_pct_val,
+            "aliquota_marginal": _aliq_val,
+            "das_pct": FISCAL_CONFIG.get("das_simples", {}).get("aliquota_efetiva_pct", 6.0),
+        },
         "orcamento_prospectivo": build_orcamento_prospectivo(e4),
         "consumo_consciente": e4.get("consumo_consciente", {}),
         "diagnostico_comportamental": e4.get("diagnostico_comportamental", []),
         "investimentos": build_investimentos(e4),
         "estrategia_aporte": build_estrategia_aporte(e4),
         "contrafluxo": build_contrafluxo_scenarios(),
-        "tactical": build_tactical_dashboard(e4),
+        "dashboard": build_tactical_dashboard(e4),
         "reserva_emergencia": e4.get("reserva_emergencia", {}),
         "endividamento": e4.get("endividamento", {}),
         "previdencia_pgbl": e4.get("previdencia_pgbl", {}),
@@ -681,6 +802,26 @@ def _build_riscos_fallback() -> list:
     ]
 
 
+def _build_top5_decisoes_fallback() -> list:
+    """Build top-5 strategic decisions from goals.json or hardcoded defaults."""
+    cfg = GOALS_CONFIG.get("top5_decisoes", [])
+    if cfg and all(isinstance(d, dict) and "label" in d for d in cfg):
+        return cfg
+    print("  ⚠️  WARNING: top5_decisoes não encontrado em goals.json — configure 'top5_decisoes' para evitar dados genéricos")
+    aporte = GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 0)
+    if aporte <= 0:
+        raise ValueError("top5_decisoes e meta_aporte_mensal ausentes em goals.json. Configure pelo menos um deles.")
+    seg_min = GOALS_CONFIG.get("seguros", {}).get("vida_term_minimo", 0)
+    seg_max = GOALS_CONFIG.get("seguros", {}).get("vida_term_maximo", 0)
+    return [
+        {"label": f"Aportes R$ {aporte/1000:.0f}k/mês", "impacto_1a": aporte * 12, "impacto_10a": aporte * 12 * 10},
+        {"label": "Seguro vida term",           "impacto_1a": seg_min, "impacto_10a": seg_max},
+        {"label": "NCLEX/OET",                  "impacto_1a": 280000,  "impacto_10a": 2800000},
+        {"label": "CPA expatriado (EUA)",       "impacto_1a": 100000,  "impacto_10a": 500000},
+        {"label": "Advogado sucessório BR-EUA", "impacto_1a": 50000,   "impacto_10a": 1000000},
+    ]
+
+
 def build_charts(e4: dict) -> dict:
     """Build 19 chart datasets"""
     print("[E6.3.charts] Building 19 chart datasets...")
@@ -701,6 +842,7 @@ def build_charts(e4: dict) -> dict:
     receita_pj_anual = round(receita_pj_total * (12 / num_months_chart), 2)
     _lp_pct = FISCAL_CONFIG.get("lucro_presumido", {}).get("percentual_servicos_pct", 32.0) / 100
     _pgbl_pct = FISCAL_CONFIG.get("pgbl", {}).get("limite_deducao_pct", 12.0) / 100
+    _das_pct = FISCAL_CONFIG.get("das_simples", {}).get("aliquota_efetiva_pct", 6.0) / 100
     renda_tributavel = round(receita_pj_anual * _lp_pct, 2)
     limite_pgbl = round(renda_tributavel * _pgbl_pct, 2)
     aliq_marginal = e4.get("previdencia_pgbl", {}).get("aliquota_marginal", 27.5)
@@ -723,13 +865,13 @@ def build_charts(e4: dict) -> dict:
             "labels": ["Investível Atual", "Gap", "Meta IF"],
             "data": [p["investivel"], g["if_gap"], g["if_meta"]]
         },
-        "receita_bar": {
-            "labels": list(f["por_fonte"].keys()),
+        "receita_bar": (lambda pfd: {
+            "labels": list(pfd.keys()),
             "datasets": [{
-                "data": list(f["por_fonte"].values()),
-                "backgroundColor": PALETTE[:len(f["por_fonte"])]
+                "data": list(pfd.values()),
+                "backgroundColor": PALETTE[:len(pfd)]
             }]
-        },
+        })(f.get("por_fonte_detalhado", f["por_fonte"])),
         "fluxo_mensal": (lambda rec, desp: {
             "labels": ["Receita Mensal", "Despesa Mensal", "Saldo"],
             "datasets": [{
@@ -738,15 +880,16 @@ def build_charts(e4: dict) -> dict:
                 "backgroundColor": ["#15803D", "#B91C1C", "#2E86AB" if rec >= desp else "#F4A261"],
                 "borderRadius": 4
             }]
-        })(f["receita_recorrente_mensal"], f["despesa_mensal_media"]),
+        })(f.get("janela_12m", {}).get("receita_recorrente_mensal", f["receita_recorrente_mensal"]),
+           f.get("janela_12m", {}).get("despesa_mensal_media", f["despesa_mensal_media"])),
         "receita_despesa_mensal": build_receita_despesa_mensal(f, e4),
-        "despesas_doughnut": {
-            "labels": list(f["despesas_por_categoria"].keys()),
+        "despesas_doughnut": (lambda dc: {
+            "labels": [k for k, _ in dc],
             "datasets": [{
-                "data": list(f["despesas_por_categoria"].values()),
-                "backgroundColor": PALETTE[:len(f["despesas_por_categoria"])]
+                "data": [v for _, v in dc],
+                "backgroundColor": PALETTE[:len(dc)]
             }]
-        },
+        })(sorted(f["despesas_por_categoria"].items(), key=lambda x: x[1], reverse=True)),
         "score_gauge": {
             "band_labels": ["Crítico", "Ruim", "Regular", "Bom", "Excelente"],
             "bands": [2, 2, 2, 2, 2],
@@ -831,26 +974,34 @@ def build_charts(e4: dict) -> dict:
             "meta_if": g["if_meta"],
             "investivel": p["investivel"],
             "imoveis": p.get("imoveis_investimento", 0),
-            "aporte_mensal": g.get("aporte_mensal", 20000),
+            "aporte_mensal": g.get("aporte_mensal", GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 0)),
             "anos": CENARIOS_CONFIG.get("horizonte_projecao_anos", 20),
             "taxa_imoveis": CENARIOS_CONFIG.get("valorizacao_imoveis", {}).get("pessimista_pct", 2.0) / 100,
             "taxa_pessimista": CENARIOS_CONFIG.get("retorno_real", {}).get("pessimista_pct", 4.0) / 100,
             "taxa_realista": CENARIOS_CONFIG.get("retorno_real", {}).get("realista_pct", 6.0) / 100,
             "taxa_otimista": CENARIOS_CONFIG.get("retorno_real", {}).get("otimista_pct", 8.0) / 100,
         },
-        "renda_passiva": (lambda rp_meta: {
-            "labels": ["Aluguéis", "Dividendos", "RF/Cupons", "FIIs", "PGBL", "GAP"],
+        "renda_passiva": (lambda rp_atual, rp_meta: {
+            "labels": [""],
+            "meta_value": round(rp_meta),
+            "atual_total": round(rp_atual),
+            "pct_meta": round(rp_atual / rp_meta * 100, 1) if rp_meta > 0 else 0,
             "datasets": [
-                {"label": "Atual", "data": [renda_aluguel, renda_dividendos, renda_juros, 0, 0, 0], "backgroundColor": "#2E86AB"},
-                {"label": "Meta", "data": [0, 0, 0, 0, 0, max(0, round(rp_meta - renda_aluguel - renda_dividendos - renda_juros))], "backgroundColor": "#E63946"}
+                {"label": "Aluguéis", "data": [round(renda_aluguel)], "backgroundColor": "#2E86AB"},
+                {"label": "Dividendos", "data": [round(renda_dividendos)], "backgroundColor": "#15803D"},
+                {"label": "RF/Cupons", "data": [round(renda_juros)], "backgroundColor": "#F4A261"},
+                {"label": "Gap até Meta", "data": [max(0, round(rp_meta - rp_atual))], "backgroundColor": "rgba(200,200,200,0.25)"},
             ]
-        })(g.get("renda_passiva", {}).get("meta_mensal", g.get("if_trs_monthly_value",
-            GOALS_CONFIG.get("independencia_financeira", {}).get("renda_passiva_meta_mensal", 30000)))),
+        })(
+            renda_aluguel + renda_dividendos + renda_juros,
+            g.get("renda_passiva", {}).get("meta_mensal", g.get("if_trs_monthly_value",
+                GOALS_CONFIG.get("independencia_financeira", {}).get("renda_passiva_meta_mensal", 0))),
+        ),
         "impostos_pj": {
             "labels": ["Receita PJ (anual)", "Lucro Presumido (32%)", "DAS Estimado (anual)", "Limite PGBL (12%)", "Economia IR c/ PGBL"],
             "datasets": [{
                 "label": "Valores (R$)",
-                "data": [round(receita_pj_anual), round(renda_tributavel), round(receita_pj_anual * 0.06), round(limite_pgbl), round(economia_ir)],
+                "data": [round(receita_pj_anual), round(renda_tributavel), round(receita_pj_anual * _das_pct), round(limite_pgbl), round(economia_ir)],
                 "backgroundColor": [PALETTE[0], PALETTE[1], "#E63946", PALETTE[3], "#2DC653"]
             }]
         },
@@ -870,9 +1021,7 @@ def build_charts(e4: dict) -> dict:
                 {"label": "Impacto 1 ano", "data": [d.get("impacto_1a", 0) for d in decs], "backgroundColor": "#2E86AB"},
                 {"label": "Impacto 10 anos", "data": [d.get("impacto_10a", 0) for d in decs], "backgroundColor": "#2DC653"}
             ]
-        })(e4.get("top5_decisoes", g.get("top5_decisoes", [
-            {"label": "Aportes mensais", "impacto_1a": 0, "impacto_10a": 0},
-        ]))),
+        })(e4.get("top5_decisoes", g.get("top5_decisoes", _build_top5_decisoes_fallback()))),
         "mariana_cenarios": (lambda cm, m_min, m_max: {
             "labels": cm.get("labels", ["Sem Trabalhar", "Com NCLEX", "Com NCLEX + Green Card"]),
             "datasets": [
@@ -884,14 +1033,40 @@ def build_charts(e4: dict) -> dict:
             GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_minima_usd", 4000),
             GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_maxima_usd", 7000),
         ),
-        "viagens": (lambda vg, teto: {
-            "labels": [f"Orçamento {vg.get('ano', datetime.now().year)}"],
+        "viagens": (lambda vg12, teto: (lambda meses, pm: (lambda raw: {
+            "labels": meses,
             "datasets": [
-                {"label": "Gasto", "data": [vg.get("gasto", 0)], "backgroundColor": "#E63946"},
-                {"label": "Disponível", "data": [max(0, teto - vg.get("gasto", 0))], "backgroundColor": "#2DC653"}
-            ]
-        })(
-            e4.get("viagens", {"gasto": 0}),
+                {
+                    "label": "Acumulado",
+                    "data": [sum(raw[:i+1]) for i in range(len(raw))],
+                    "backgroundColor": "#E6394633",
+                    "borderColor": "#E63946",
+                    "borderWidth": 2,
+                    "fill": True,
+                    "type": "line",
+                    "tension": 0.3,
+                },
+                {
+                    "label": f"Teto {len(meses)}M ({fmt_brl(teto)})",
+                    "data": [teto] * len(meses),
+                    "borderColor": "#2DC653",
+                    "borderWidth": 2,
+                    "borderDash": [6, 4],
+                    "type": "line",
+                    "pointRadius": 0,
+                    "fill": False,
+                },
+            ],
+            "_raw_monthly": raw,
+            "_teto_anual": teto,
+            "_summary": {
+                "gasto_12m": vg12.get("gasto", 0),
+                "teto_anual": teto,
+                "saldo": teto - vg12.get("gasto", 0),
+                "periodo": vg12.get("periodo", ""),
+            },
+        })([pm.get(m, 0) for m in meses]))(vg12.get("meses", []), vg12.get("por_mes", {})))(
+            e4.get("_viagens_12m", {"gasto": 0, "por_mes": {}, "meses": []}),
             GOALS_CONFIG.get("viagens", {}).get("teto_anual", 45000),
         ),
     }
@@ -966,29 +1141,15 @@ def build_estrategia_aporte(e4: dict) -> dict:
             "pct_usd": round(usd_total / total * 100) if total else 0,
             "destinos_brl": brl_names,
             "destinos_usd": usd_names,
-            "resumo_brl": f"Reforça reserva e patrimônio em reais (R$ {brl_total:,.0f}/mês).",
-            "resumo_usd": f"Exposição ao dólar = R$ {usd_total:,.0f}/mês. Meta pré-EUA: US$ {GOALS_CONFIG.get('dolarizacao', {}).get('meta_usd', 20000):,.0f}.",
+            "resumo_brl": f"Reforça reserva e patrimônio em reais ({fmt_brl(brl_total)}/mês).",
+            "resumo_usd": f"Exposição ao dólar = {fmt_brl(usd_total)}/mês. Meta pré-EUA: US$ {fmt_num(GOALS_CONFIG.get('dolarizacao', {}).get('meta_usd', 20000))}.",
         }
 
-    # Ultimate fallback with WARNING
-    print("  ⚠️  WARNING: usando estratégia de aporte hardcoded — goals.json sem aportes_destinos_detalhados")
-    return {
-        "total_aporte": total,
-        "dia_aporte": 5,
-        "periodo_inicio": "Imediato",
-        "destinos": [
-            {"destino": "CDB Cofrinhos Itaú", "valor": 10000, "pct": 50, "objetivo": "Reserva de emergência + liquidez", "liquidez": "D+0", "moeda": "BRL"},
-            {"destino": "Tesouro IPCA+", "valor": 5000, "pct": 25, "objetivo": "Proteção inflação, RF longa", "liquidez": "D+1 (com marcação)", "moeda": "BRL"},
-            {"destino": "IVVB11 (ETF S&P 500)", "valor": 3000, "pct": 15, "objetivo": "Dolarização indireta + RV global", "liquidez": "D+2", "moeda": "USD"},
-            {"destino": "Wise USD", "valor": 2000, "pct": 10, "objetivo": "Dolarização direta (acumulação pré-EUA)", "liquidez": "Imediata", "moeda": "USD"},
-        ],
-        "pct_brl": 75,
-        "pct_usd": 25,
-        "destinos_brl": "Cofrinhos, Tesouro",
-        "destinos_usd": "IVVB11, Wise",
-        "resumo_brl": "Reforça reserva e patrimônio em reais.",
-        "resumo_usd": "Exposição ao dólar para acumulação pré-EUA.",
-    }
+    # Ultimate fallback: require config
+    raise ValueError(
+        "Estratégia de aportes não encontrada em goals.json. "
+        "Configure 'aportes.destinos_detalhados' ou 'aportes.meta_aporte_mensal' em config/goals.json."
+    )
 
 
 def build_contrafluxo_scenarios() -> dict:
@@ -1004,14 +1165,123 @@ def build_contrafluxo_scenarios() -> dict:
     }
 
 def build_tactical_dashboard(e4: dict) -> dict:
-    """Build tactical dashboard data"""
+    """Build tactical dashboard data for the JS buildDashboard() function.
+
+    Expected keys (consumed by buildDashboard in report_template.html):
+      patrimonio_delta, aportes, despesas_por_categoria, tarefas_status,
+      tarefas, investimentos_delta, alertas, proximos_15d, notas, periodo
+    """
     f = e4.get("fluxo_caixa", {})
     num_months = max(1, len(f.get("receita_despesa_mensal_detalhado", {}).get("labels", [])))
+
+    # --- Tetos from definitions.md (monthly ceilings) ---
+    _TETOS = {
+        "moradia": 2500, "alimentacao": 4500, "saude": 3000,
+        "servicos_domesticos": 4000, "educacao": 2000, "transporte": 1700,
+        "lazer_viagens": 3750, "vestuario": 2000, "assinaturas": 300,
+        "suporte_familiar": 5000, "financeiro": 200, "melhoria_reforma": 1500,
+        "reserva_desejos": 3000, "seguros": 1500,
+    }
+    _LABELS = {
+        "moradia": "Moradia", "alimentacao": "Alimentação", "saude": "Saúde",
+        "servicos_domesticos": "Serv. Domésticos", "educacao": "Educação",
+        "transporte": "Transporte", "lazer_viagens": "Lazer/Viagens",
+        "vestuario": "Vestuário", "assinaturas": "Assinaturas",
+        "suporte_familiar": "Suporte Familiar", "financeiro": "Financeiro",
+        "melhoria_reforma": "Melhoria/Reforma", "reserva_desejos": "Reserva Desejos",
+        "seguros": "Seguros", "nao_identificado": "Não Identificado",
+        "financiamentos": "Financiamentos", "impostos": "Impostos",
+    }
+
+    # --- D1: Despesas por categoria (monthly average vs teto) ---
+    raw_despesas = f.get("despesas_por_categoria", {})
+    despesas_dash = {}
+    for cat, total in raw_despesas.items():
+        mensal = round(total / num_months, 2)
+        teto = _TETOS.get(cat, round(mensal * 1.2, 2))
+        despesas_dash[cat] = {
+            "label": _LABELS.get(cat, cat.replace("_", " ").title()),
+            "gasto": mensal,
+            "teto": teto,
+        }
+
+    # --- D2: Aportes (from goals.json destinos) ---
+    destinos_cfg = GOALS_CONFIG.get("aportes_destinos_detalhados", [])
+    aportes_dash = {}
+    for i, d in enumerate(destinos_cfg):
+        key = f"aporte_{i}"
+        aportes_dash[key] = {
+            "label": d.get("destino", f"Destino {i+1}"),
+            "feito": False,
+            "valor_meta": d.get("valor", 0),
+            "valor_feito": 0,
+        }
+
+    # --- Investimentos delta (current snapshot, no previous period) ---
+    p = e4.get("patrimonio", {})
+    inv_delta = {
+        "david": {
+            "label": "Investimentos David",
+            "anterior": 0,
+            "atual": p.get("investimentos_david", 0),
+        },
+        "mariana": {
+            "label": "Investimentos Mariana",
+            "anterior": 0,
+            "atual": p.get("investimentos_mariana", 0),
+        },
+        "imoveis": {
+            "label": "Imóveis Investimento",
+            "anterior": 0,
+            "atual": p.get("imoveis_investimento", 0),
+        },
+    }
+
+    # --- Tarefas (pass through from E5) ---
+    tarefas = e4.get("tarefas", [])
+    tarefas_status = e4.get("tarefas_status", {})
+
+    # --- Alertas ---
+    alertas = e4.get("alertas", [])
+    pontos_urgentes = e4.get("pontos_urgentes", [])
+    for pu in pontos_urgentes:
+        txt = f"{pu.get('acao', '')} — {pu.get('impacto', '')}"
+        if txt not in alertas:
+            alertas.append(txt)
+
+    # --- Próximos 15 dias (derived from tasks with near-term deadlines) ---
+    now_label = datetime.now().strftime("%d/%m")
+    proximos = []
+    for t in tarefas[:10]:
+        st = str(tarefas_status.get(str(t["n"]), "pendente"))
+        proximos.append({
+            "data": t.get("e", "—"),
+            "acao": f"#{t['n']} {t['t'][:60]}",
+            "status": st,
+        })
+
+    # --- Notas ---
+    score_val = e4.get("score", {}).get("valor", "N/D")
+    score_cls = e4.get("score", {}).get("classificacao", "")
+    eq = e4.get("equilibrio_cerbasi", {})
+    notas = (
+        f"Score financeiro: {score_val}/10 ({score_cls}). "
+        f"Equilíbrio Cerbasi: {eq.get('pct_presente', 0):.0f}% presente / {eq.get('pct_futuro', 0):.0f}% futuro "
+        f"({eq.get('classificacao', 'N/D')}). "
+        f"Período dos dados: {e4.get('periodo_dados', 'N/D')}."
+    )
+
     return {
-        "cash_position": e4["patrimonio"].get("caixa_moeda_estrangeira", 0),
-        "monthly_pnl": round(f.get("fluxo_liquido", 0) / num_months, 2),
-        "next_30_days": [],
-        "alerts": e4.get("alertas", [])[:3],
+        "patrimonio_delta": 0,
+        "aportes": aportes_dash,
+        "despesas_por_categoria": despesas_dash,
+        "tarefas_status": tarefas_status,
+        "tarefas": tarefas,
+        "investimentos_delta": inv_delta,
+        "alertas": alertas,
+        "proximos_15d": proximos,
+        "notas": notas,
+        "periodo": e4.get("periodo_dados", ""),
     }
 
 # ============================================================================
@@ -1050,27 +1320,101 @@ def build_patrimonio_categorias_card(e4: dict) -> str:
 
 
 def build_receitas_fonte_card(e4: dict) -> str:
-    """Build Receitas por Fonte card — v4.2"""
-    receitas = e4.get("fluxo_caixa", {}).get("tabela_receitas", [])
+    """Build Receitas por Fonte card with interactive period filter (3M/6M/12M/YTD).
 
-    html_parts = ['<div class="card card-feature">']
+    Loads raw transactions from receitas-4_unified.json, embeds as JSON,
+    and uses client-side JS to filter by period / rebuild table.
+    """
+    # Load raw receitas transactions for per-period filtering
+    txns_compact: list[dict] = []
+    try:
+        with open(E4_RECEITAS_PATH, 'r', encoding='utf-8') as f:
+            receitas_raw = json.load(f)
+        for _cat_key, items in receitas_raw.get("dados", {}).items():
+            for tx in items:
+                dt = tx.get("data", "")
+                if len(dt) >= 7:
+                    txns_compact.append({
+                        "m": dt[:7],
+                        "c": _cat_key.replace("_", " ").title(),
+                        "v": round(tx.get("valor", 0), 2),
+                    })
+    except Exception:
+        txns_compact = []
+
+    html_parts = ['<div class="card card-feature" id="rf-card">']
     html_parts.append('  <div class="card-title">Receitas por Fonte</div>')
-    html_parts.append('  <table>')
+
+    if not txns_compact:
+        fallback = e4.get("fluxo_caixa", {}).get("tabela_receitas", [])
+        html_parts.append('  <table><thead>')
+        html_parts.append('    <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>')
+        html_parts.append('  </thead><tbody>')
+        total = sum(it.get("valor", 0) for it in fallback)
+        for it in fallback:
+            html_parts.append(f'    <tr><td>{it.get("categoria","")}</td><td>{fmt_brl(it.get("valor",0))}</td><td>{fmt_pct(it.get("pct",0))}</td></tr>')
+        html_parts.append(f'    <tr class="total-row"><td><strong>Total</strong></td><td><strong>{fmt_brl(total)}</strong></td><td><strong>100,0%</strong></td></tr>')
+        html_parts.append('  </tbody></table></div>')
+        return '\n'.join(html_parts)
+
+    # Period toggle buttons
+    html_parts.append('  <div class="period-toggle" id="rf-period-toggle">')
+    html_parts.append('    <button class="period-btn" data-period="3m" onclick="filterRF(\'3m\')">3M</button>')
+    html_parts.append('    <button class="period-btn" data-period="6m" onclick="filterRF(\'6m\')">6M</button>')
+    html_parts.append('    <button class="period-btn active" data-period="12m" onclick="filterRF(\'12m\')">12M</button>')
+    html_parts.append('    <button class="period-btn" data-period="ytd" onclick="filterRF(\'ytd\')">Ano</button>')
+    html_parts.append('  </div>')
+
+    # Table skeleton (JS fills tbody)
+    html_parts.append('  <table id="rf-table">')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>')
     html_parts.append('    </thead>')
-    html_parts.append('    <tbody>')
-
-    total = sum(item.get("valor", 0) for item in receitas)
-    for item in receitas:
-        cat = item.get("categoria", "")
-        valor = item.get("valor", 0)
-        pct = item.get("pct", 0)
-        html_parts.append(f'      <tr><td>{cat}</td><td>{fmt_brl(valor)}</td><td>{fmt_pct(pct)}</td></tr>')
-
-    html_parts.append(f'    <tr class="total-row"><td><strong>Total</strong></td><td><strong>{fmt_brl(total)}</strong></td><td><strong>100,0%</strong></td></tr>')
-    html_parts.append('    </tbody>')
+    html_parts.append('    <tbody></tbody>')
     html_parts.append('  </table>')
+
+    # Embed data + JS
+    txns_json = json.dumps(txns_compact, ensure_ascii=False)
+    html_parts.append('  <script>')
+    html_parts.append('  (function(){')
+    html_parts.append(f'    var rfTxns={txns_json};')
+    html_parts.append('    function pad(n){return n<10?"0"+n:""+n;}')
+    html_parts.append('    function cutoff(p){')
+    html_parts.append('      var d=new Date();')
+    html_parts.append('      if(p==="3m")d.setMonth(d.getMonth()-3);')
+    html_parts.append('      else if(p==="6m")d.setMonth(d.getMonth()-6);')
+    html_parts.append('      else if(p==="12m")d.setMonth(d.getMonth()-12);')
+    html_parts.append('      else if(p==="ytd")d=new Date(d.getFullYear(),0,1);')
+    html_parts.append('      return d.getFullYear()+"-"+pad(d.getMonth()+1);')
+    html_parts.append('    }')
+    html_parts.append('    function fB(v){return"R$ "+Math.round(v).toLocaleString("pt-BR");}')
+    html_parts.append('    function fP(v){return v.toFixed(1).replace(".",",")+"%";}')
+    html_parts.append('    window.filterRF=function(p){')
+    html_parts.append('      document.querySelectorAll("#rf-period-toggle .period-btn").forEach(function(b){b.classList.remove("active")});')
+    html_parts.append('      document.querySelector("#rf-period-toggle .period-btn[data-period=\\""+p+"\\"]").classList.add("active");')
+    html_parts.append('      var c=cutoff(p);')
+    html_parts.append('      var grouped={};')
+    html_parts.append('      rfTxns.forEach(function(t){')
+    html_parts.append('        if(t.m>=c){grouped[t.c]=(grouped[t.c]||0)+t.v;}')
+    html_parts.append('      });')
+    html_parts.append('      var arr=Object.keys(grouped).map(function(k){return{c:k,v:grouped[k]};}).sort(function(a,b){return b.v-a.v;});')
+    html_parts.append('      var total=arr.reduce(function(s,i){return s+i.v;},0);')
+    html_parts.append('      var tb=document.querySelector("#rf-table tbody");')
+    html_parts.append('      if(arr.length===0){')
+    html_parts.append('        tb.innerHTML="<tr><td colspan=\\"3\\" style=\\"text-align:center;padding:16px\\">Nenhuma receita no período</td></tr>";')
+    html_parts.append('      }else{')
+    html_parts.append('        var rows=arr.map(function(i){')
+    html_parts.append('          var pct=total>0?(i.v/total*100):0;')
+    html_parts.append('          return"<tr><td>"+i.c+"</td><td>"+fB(i.v)+"</td><td>"+fP(pct)+"</td></tr>";')
+    html_parts.append('        }).join("");')
+    html_parts.append('        rows+="<tr class=\\"total-row\\"><td><strong>Total</strong></td><td><strong>"+fB(total)+"</strong></td><td><strong>100,0%</strong></td></tr>";')
+    html_parts.append('        tb.innerHTML=rows;')
+    html_parts.append('      }')
+    html_parts.append('    };')
+    html_parts.append('    filterRF("12m");')
+    html_parts.append('  })();')
+    html_parts.append('  </script>')
+
     html_parts.append('</div>')
     return '\n'.join(html_parts)
 
@@ -1161,9 +1505,12 @@ def build_reserva_emergencia_card(e4: dict) -> str:
     html_parts.append('    <tbody>')
 
     # Use actual composition keys from E5
+    _tit_nome = _FAMILY.get("membros", {}).get(_FAMILY.get("titular", ""), {}).get("nome_curto", "Titular")
+    _conj_key = next((k for k, v in _FAMILY.get("membros", {}).items() if v.get("papel") == "conjuge"), "")
+    _conj_nome = _FAMILY.get("membros", {}).get(_conj_key, {}).get("nome_curto", "Cônjuge")
     comp_items = [
-        ("investimentos_david", "Investimentos David"),
-        ("investimentos_mariana", "Investimentos Mariana"),
+        ("investimentos_david", f"Investimentos {_tit_nome}"),
+        ("investimentos_mariana", f"Investimentos {_conj_nome}"),
         ("caixa_moeda_estrangeira", "Caixa e Moeda Estrangeira"),
     ]
     for key, nome in comp_items:
@@ -1214,81 +1561,204 @@ def build_endividamento_card(e4: dict) -> str:
     return '\n'.join(html_parts)
 
 def build_orcamento_prospectivo_card(e4: dict) -> str:
-    """Build Orçamento Prospectivo card from fluxo_caixa.despesas_por_categoria"""
-    despesas = e4.get("fluxo_caixa", {}).get("despesas_por_categoria", {})
+    """Build Orçamento Prospectivo card with interactive period filter (3M/6M/12M/YTD).
 
-    html_parts = ['<div class="card card-feature">']
-    html_parts.append('  <div class="card-title">Orçamento Prospectivo (14 Categorias)</div>')
-    html_parts.append('  <table>')
+    Monthly data per category is embedded as JSON; client-side JS filters by
+    period, computes monthly averages, sorts by impact, and rebuilds the table.
+    """
+    det = e4.get("fluxo_caixa", {}).get("receita_despesa_mensal_detalhado", {})
+    labels = det.get("labels", [])
+    despesa_datasets = det.get("despesa_datasets", [])
+
+    op_data = {
+        "labels": labels,
+        "datasets": [
+            {"key": ds.get("label", "").lower().replace(" ", "_"), "label": ds.get("label", ""), "data": ds.get("data", [])}
+            for ds in despesa_datasets
+        ],
+    }
+    num_cats = len(despesa_datasets)
+
+    html_parts = ['<div class="card card-feature" id="op-card">']
+    html_parts.append(f'  <div class="card-title">Orçamento Prospectivo ({num_cats} Categorias)</div>')
+
+    # Period toggle buttons
+    html_parts.append('  <div class="period-toggle" id="op-period-toggle">')
+    html_parts.append('    <button class="period-btn" data-period="3m" onclick="filterOP(\'3m\')">3M</button>')
+    html_parts.append('    <button class="period-btn" data-period="6m" onclick="filterOP(\'6m\')">6M</button>')
+    html_parts.append('    <button class="period-btn active" data-period="12m" onclick="filterOP(\'12m\')">12M</button>')
+    html_parts.append('    <button class="period-btn" data-period="ytd" onclick="filterOP(\'ytd\')">Ano</button>')
+    html_parts.append('  </div>')
+
+    # Context (JS updates)
+    html_parts.append('  <p class="chart-context" id="op-context"></p>')
+
+    # Table skeleton (JS fills tbody)
+    html_parts.append('  <table id="op-table">')
     html_parts.append('    <thead>')
-    html_parts.append('      <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>')
+    html_parts.append('      <tr><th>Categoria</th><th>Média Mensal</th><th>% do Total</th><th>Acum. %</th></tr>')
     html_parts.append('    </thead>')
-    html_parts.append('    <tbody>')
-
-    total = sum(despesas.values())
-    for categoria, valor in despesas.items():
-        pct = (valor / total * 100) if total > 0 else 0
-        html_parts.append(f'      <tr><td>{categoria.replace("_", " ").title()}</td><td>{fmt_brl(valor)}</td><td>{fmt_pct(pct)}</td></tr>')
-
-    html_parts.append(f'    <tr class="total-row"><td><strong>Total</strong></td><td><strong>{fmt_brl(total)}</strong></td><td><strong>100,0%</strong></td></tr>')
-    html_parts.append('    </tbody>')
+    html_parts.append('    <tbody></tbody>')
     html_parts.append('  </table>')
+
+    # Insights (JS updates)
+    html_parts.append('  <div id="op-insights"></div>')
+
+    # Methodology note (JS updates month count)
+    html_parts.append('  <p id="op-method" style="margin-top:0.8em; font-size:0.85em; color:#666;"></p>')
+
+    # Embed data + JS
+    data_json = json.dumps(op_data, ensure_ascii=False)
+    html_parts.append('  <script>')
+    html_parts.append('  (function(){')
+    html_parts.append(f'    var D={data_json};')
+    html_parts.append('    function pad(n){return n<10?"0"+n:""+n;}')
+    html_parts.append('    function cutoff(p){')
+    html_parts.append('      var d=new Date();')
+    html_parts.append('      if(p==="3m")d.setMonth(d.getMonth()-3);')
+    html_parts.append('      else if(p==="6m")d.setMonth(d.getMonth()-6);')
+    html_parts.append('      else if(p==="12m")d.setMonth(d.getMonth()-12);')
+    html_parts.append('      else if(p==="ytd")d=new Date(d.getFullYear(),0,1);')
+    html_parts.append('      return String(d.getFullYear()%100).padStart(2,"0")+"/"+pad(d.getMonth()+1);')
+    html_parts.append('    }')
+    html_parts.append('    function fB(v){return"R$ "+Math.round(v).toLocaleString("pt-BR");}')
+    html_parts.append('    function fP(v){return v.toFixed(1).replace(".",",")+"%";}')
+    html_parts.append('    var pLabels={"3m":"últimos 3 meses","6m":"últimos 6 meses","12m":"últimos 12 meses","ytd":"ano corrente"};')
+    html_parts.append('    window.filterOP=function(p){')
+    html_parts.append('      document.querySelectorAll("#op-period-toggle .period-btn").forEach(function(b){b.classList.remove("active")});')
+    html_parts.append('      document.querySelector("#op-period-toggle .period-btn[data-period=\\""+p+"\\"]").classList.add("active");')
+    html_parts.append('      var c=cutoff(p);')
+    html_parts.append('      var idx=[];')
+    html_parts.append('      D.labels.forEach(function(l,i){if(l>=c)idx.push(i);});')
+    html_parts.append('      var nM=idx.length||1;')
+    html_parts.append('      var cats=[];')
+    html_parts.append('      D.datasets.forEach(function(ds){')
+    html_parts.append('        var sum=0;idx.forEach(function(i){sum+=ds.data[i]||0;});')
+    html_parts.append('        if(sum>0)cats.push({key:ds.key,label:ds.label,avg:sum/nM,total:sum});')
+    html_parts.append('      });')
+    html_parts.append('      cats.sort(function(a,b){return b.avg-a.avg;});')
+    html_parts.append('      var totalM=cats.reduce(function(s,c){return s+c.avg;},0);')
+    html_parts.append('      var first=D.labels.length>0?D.labels[idx[0]||0]:"";')
+    html_parts.append('      var last=D.labels.length>0?D.labels[idx[idx.length-1]||0]:"";')
+    # Context
+    html_parts.append('      var ctx=document.getElementById("op-context");')
+    html_parts.append('      ctx.innerHTML="Projeção mensal baseada na média de <strong>"+nM+" meses</strong>"')
+    html_parts.append('        +(first&&last?" ("+first+" a "+last+")":"")')
+    html_parts.append('        +". Média mensal: <strong>"+fB(totalM)+"</strong>"')
+    html_parts.append('        +" &mdash; projeção anual: <strong>"+fB(totalM*12)+"</strong>.";')
+    # Table
+    html_parts.append('      var tb=document.querySelector("#op-table tbody");')
+    html_parts.append('      var rows="";var acum=0;')
+    html_parts.append('      cats.forEach(function(c){')
+    html_parts.append('        var pct=totalM>0?c.avg/totalM*100:0;acum+=pct;')
+    html_parts.append('        var cls=c.key==="nao_identificado"?" class=\\"row-highlight-warn\\"":"";')
+    html_parts.append('        rows+="<tr"+cls+"><td>"+c.label+"</td><td>"+fB(c.avg)+"</td><td>"+fP(pct)+"</td><td>"+fP(acum)+"</td></tr>";')
+    html_parts.append('      });')
+    html_parts.append('      rows+="<tr class=\\"total-row\\"><td><strong>Total Mensal</strong></td><td><strong>"+fB(totalM)+"</strong></td><td><strong>100,0%</strong></td><td></td></tr>";')
+    html_parts.append('      tb.innerHTML=rows;')
+    # Insights
+    html_parts.append('      var ins=document.getElementById("op-insights");var h="";')
+    html_parts.append('      var ni=cats.find(function(c){return c.key==="nao_identificado";});')
+    html_parts.append('      if(ni&&totalM>0){var nip=ni.avg/totalM*100;')
+    html_parts.append('        if(nip>10)h+="<p style=\\"font-size:0.9em;margin-top:0.5em\\"><strong>Atenção:</strong> "+fP(nip)+" das despesas estão como \\"Não Identificado\\" ("+fB(ni.avg)+"/mês). Classificar essas transações melhora a precisão do orçamento.</p>";}')
+    html_parts.append('      if(cats.length>=3){var t3=cats.slice(0,3);var t3p=totalM>0?t3.reduce(function(s,c){return s+c.avg;},0)/totalM*100:0;')
+    html_parts.append('        h+="<p style=\\"font-size:0.9em;margin-top:0.5em\\">As 3 maiores categorias ("+t3.map(function(c){return c.label}).join(", ")+") representam <strong>"+fP(t3p)+"</strong> do orçamento mensal.</p>";}')
+    html_parts.append('      ins.innerHTML=h;')
+    # Methodology
+    html_parts.append('      var me=document.getElementById("op-method");')
+    html_parts.append('      me.innerHTML="<strong>Metodologia:</strong> Valores calculados como média aritmética das despesas por categoria nos "+pLabels[p]+" ("+nM+" meses). Categorias ordenadas por impacto decrescente. Coluna \\"Acum. %\\" mostra concentração acumulada (análise Pareto).";')
+    html_parts.append('    };')
+    html_parts.append('    filterOP("12m");')
+    html_parts.append('  })();')
+    html_parts.append('  </script>')
+
     html_parts.append('</div>')
     return '\n'.join(html_parts)
 
 def build_consumo_consciente_card(e4: dict) -> str:
-    """Build Consumo Consciente card.
+    """Build Consumo Consciente card with interactive period filter (3M/6M/12M/YTD).
 
-    Resilient to E4 schema variations:
-    - Canonical key: cc["itens"]  (per manual_operacao.md schema)
-    - Legacy/alt key: cc["top_gastos_pontuais"]  (some E4 runs produce this)
-    Each item may have: descricao, valor, categoria/observacao, conta_cartao, mes, data.
+    All items are embedded as JSON; client-side JS filters by period,
+    rebuilds the table (top 6) and recalculates summary metrics.
     """
     cc = e4.get("consumo_consciente", {})
-    # Fallback: accept both canonical "itens" and alternate "top_gastos_pontuais"
-    itens = cc.get("itens") or cc.get("top_gastos_pontuais") or []
-    itens = itens[:6]  # Top 6 items
+    itens = cc.get("itens") or cc.get("top_gastos_pontuais") or cc.get("top_gastos") or []
 
-    html_parts = ['<div class="card card-warn">']
+    goals_cfg = e4.get("goals", {})
+    aporte_mensal = goals_cfg.get("aporte_mensal",
+        GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 0))
+
+    html_parts = ['<div class="card card-warn" id="cc-card">']
     html_parts.append('  <div class="card-title">Consumo Consciente — Top Gastos</div>')
 
     if not itens:
         analise = cc.get("analise", "")
-        if analise:
-            html_parts.append(f'  <p>{analise}</p>')
-        else:
-            html_parts.append('  <p>Nenhum gasto pontual relevante identificado.</p>')
+        html_parts.append(f'  <p>{analise or "Nenhum gasto pontual relevante identificado."}</p>')
         html_parts.append('</div>')
         return '\n'.join(html_parts)
 
-    html_parts.append('  <table>')
+    # Period toggle buttons
+    html_parts.append('  <div class="period-toggle" id="cc-period-toggle">')
+    html_parts.append('    <button class="period-btn" data-period="3m" onclick="filterCC(\'3m\')">3M</button>')
+    html_parts.append('    <button class="period-btn" data-period="6m" onclick="filterCC(\'6m\')">6M</button>')
+    html_parts.append('    <button class="period-btn active" data-period="12m" onclick="filterCC(\'12m\')">12M</button>')
+    html_parts.append('    <button class="period-btn" data-period="ytd" onclick="filterCC(\'ytd\')">Ano</button>')
+    html_parts.append('  </div>')
+
+    # Table skeleton (JS fills tbody)
+    html_parts.append('  <table id="cc-table">')
     html_parts.append('    <thead>')
-    html_parts.append('      <tr><th>Descrição</th><th>Valor</th><th>Detalhe</th></tr>')
+    html_parts.append('      <tr><th>Descrição</th><th>Valor</th><th>Mês</th><th>Categoria</th></tr>')
     html_parts.append('    </thead>')
-    html_parts.append('    <tbody>')
-
-    for item in itens:
-        desc = item.get("descricao", "")
-        valor = item.get("valor", 0)
-        # Accept "categoria", "observacao", or "conta_cartao" as detail column
-        detalhe = item.get("categoria") or item.get("observacao") or item.get("conta_cartao", "")
-        html_parts.append(f'      <tr><td>{desc}</td><td>{fmt_brl(valor)}</td><td>{detalhe}</td></tr>')
-
-    html_parts.append('    </tbody>')
+    html_parts.append('    <tbody></tbody>')
     html_parts.append('  </table>')
 
-    # Show summary metrics if available
-    metrics = []
-    if cc.get("total_pontuais"):
-        metrics.append(f'Total pontuais: {fmt_brl(cc["total_pontuais"])}')
-    if cc.get("equivalente_meses_aporte"):
-        metrics.append(f'Equivale a {cc["equivalente_meses_aporte"]:.1f} meses de aporte')
-    if cc.get("folga_mensal"):
-        metrics.append(f'Folga mensal: {fmt_brl(cc["folga_mensal"])}')
-    if cc.get("folga_pct"):
-        metrics.append(f'({fmt_pct(cc["folga_pct"])} da receita)')
-    if metrics:
-        html_parts.append(f'  <p class="metrics">{"  •  ".join(metrics)}</p>')
+    # Metrics (JS updates)
+    html_parts.append('  <p class="metrics" id="cc-metrics"></p>')
+
+    # Embed data + JS
+    items_json = json.dumps(itens, ensure_ascii=False)
+    html_parts.append(f'  <script>')
+    html_parts.append(f'  (function(){{')
+    html_parts.append(f'    var ccItems={items_json};')
+    html_parts.append(f'    var ccAporte={aporte_mensal};')
+    html_parts.append(f'    function pad(n){{return n<10?"0"+n:""+n;}}')
+    html_parts.append(f'    function cutoff(p){{')
+    html_parts.append(f'      var d=new Date();')
+    html_parts.append(f'      if(p==="3m")d.setMonth(d.getMonth()-3);')
+    html_parts.append(f'      else if(p==="6m")d.setMonth(d.getMonth()-6);')
+    html_parts.append(f'      else if(p==="12m")d.setMonth(d.getMonth()-12);')
+    html_parts.append(f'      else if(p==="ytd")d=new Date(d.getFullYear(),0,1);')
+    html_parts.append(f'      return d.getFullYear()+"-"+pad(d.getMonth()+1);')
+    html_parts.append(f'    }}')
+    html_parts.append(f'    function fB(v){{return"R$ "+Math.round(v).toLocaleString("pt-BR");}}')
+    html_parts.append(f'    window.filterCC=function(p){{')
+    html_parts.append(f'      document.querySelectorAll("#cc-period-toggle .period-btn").forEach(function(b){{b.classList.remove("active")}});')
+    html_parts.append(f'      document.querySelector("#cc-period-toggle .period-btn[data-period=\\""+p+"\\"]").classList.add("active");')
+    html_parts.append(f'      var c=cutoff(p);')
+    html_parts.append(f'      var f=ccItems.filter(function(i){{return i.mes>=c}}).sort(function(a,b){{return b.valor-a.valor}});')
+    html_parts.append(f'      var top=f.slice(0,6);')
+    html_parts.append(f'      var total=f.reduce(function(s,i){{return s+i.valor}},0);')
+    html_parts.append(f'      var equiv=ccAporte>0?(total/ccAporte).toFixed(1):"0.0";')
+    html_parts.append(f'      var tb=document.querySelector("#cc-table tbody");')
+    html_parts.append(f'      if(top.length===0){{')
+    html_parts.append(f'        tb.innerHTML="<tr><td colspan=\\"4\\" style=\\"text-align:center;padding:16px\\">Nenhum gasto pontual no período</td></tr>";')
+    html_parts.append(f'      }}else{{')
+    html_parts.append(f'        tb.innerHTML=top.map(function(i){{')
+    html_parts.append(f'          var det=i.categoria||i.observacao||i.conta_cartao||"";')
+    html_parts.append(f'          return"<tr><td>"+i.descricao+"</td><td>"+fB(i.valor)+"</td><td>"+i.mes+"</td><td>"+det+"</td></tr>";')
+    html_parts.append(f'        }}).join("");')
+    html_parts.append(f'      }}')
+    html_parts.append(f'      var me=document.getElementById("cc-metrics");')
+    html_parts.append(f'      if(f.length>0){{')
+    html_parts.append(f'        me.textContent=f.length+" gastos  \\u2022  Total: "+fB(total)+"  \\u2022  Equivale a "+equiv+" meses de aporte";')
+    html_parts.append(f'      }}else{{')
+    html_parts.append(f'        me.textContent="Nenhum gasto pontual relevante no per\\u00edodo selecionado.";')
+    html_parts.append(f'      }}')
+    html_parts.append(f'    }};')
+    html_parts.append(f'    filterCC("12m");')
+    html_parts.append(f'  }})();')
+    html_parts.append(f'  </script>')
 
     html_parts.append('</div>')
     return '\n'.join(html_parts)
@@ -1326,12 +1796,17 @@ def build_milhas_card(e4: dict) -> str:
     """
     milhas = e4.get("programa_milhas", {})
     programas = milhas.get("programas", [])
+    registrados = milhas.get("programas_registrados", [])
 
     html_parts = ['<div class="card card-feature">']
     html_parts.append('  <div class="card-title">Programa de Milhas — Economia</div>')
 
     if not programas:
-        html_parts.append('  <p>Nenhum programa de milhas cadastrado. Atualize <code>config/milhas.md</code> com seus saldos.</p>')
+        if registrados:
+            html_parts.append(f'  <p>Programas cadastrados: {", ".join(registrados)}.</p>')
+            html_parts.append('  <p>Atualize <code>config/milhas.md</code> com os saldos atuais de pontos/milhas.</p>')
+        else:
+            html_parts.append('  <p>Nenhum programa de milhas cadastrado. Atualize <code>config/milhas.md</code> com seus programas e saldos.</p>')
         html_parts.append('</div>')
         return '\n'.join(html_parts)
 
@@ -1350,7 +1825,7 @@ def build_milhas_card(e4: dict) -> str:
         economia_str = fmt_brl(economia) if economia > 0 else "—"
         html_parts.append(
             f'      <tr><td>{nome}</td><td>{titular}</td>'
-            f'<td>{saldo:,.0f}</td><td>{fmt_brl(valor_est)}</td>'
+            f'<td>{fmt_num(saldo)}</td><td>{fmt_brl(valor_est)}</td>'
             f'<td>{economia_str}</td></tr>'
         )
 
@@ -1470,7 +1945,7 @@ def build_estrategia_aporte_card(e4: dict) -> str:
 
     h = []
     h.append('<div class="card card-feature">')
-    h.append('  <div class="card-title">3.2 Estratégia de Aporte e Alocação</div>')
+    h.append('  <div class="card-title">Estratégia de Aporte e Alocação</div>')
     h.append(f'  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">')
     h.append(f'    <span style="font-size:20px;">💰</span>')
     h.append(f'    <strong>Aporte Mensal — {fmt_brl(total)} (todo dia {dia})</strong>')
@@ -1579,20 +2054,9 @@ def build_appendix_a() -> str:
     h.append('  <table>')
     h.append('    <thead><tr><th>Código</th><th>Instituição</th><th>Uso</th></tr></thead>')
     h.append('    <tbody>')
-    inst = [
-        ("C6 Bank", "Banco digital", "Conta PJ (receita) + conta PF + cartão Carbon + conta global USD/EUR"),
-        ("Itaú Personnalité", "Banco", "Conta PF David — investimentos RF + recebimento aluguéis"),
-        ("Santander", "Banco", "Conta PF David — CDBs"),
-        ("Rico / XP", "Corretora", "David — fundos, ações, FIIs"),
-        ("BTG Pactual", "Corretora", "Mariana — investimentos RF e RV"),
-        ("Bradesco", "Banco", "Mariana — CC + poupança (salário Einstein)"),
-        ("PicPay", "Conta digital", "David — RDB liquidez"),
-        ("Wise", "Conta internacional", "Acumulação USD (spread 0,5-1%)"),
-        ("Bank of America", "Banco EUA", "Conta dormida — futura residência"),
-        ("Binance", "Exchange crypto", "Criptomoedas"),
-        ("QuintoAndar", "Gestora de aluguéis", "Gestão e recebimento dos aluguéis dos imóveis"),
-    ]
-    for nome, tipo, uso in inst:
+    inst = INSTITUTIONS_CONFIG.get("institution_descriptions", [])
+    for entry in inst:
+        nome, tipo, uso = entry.get("nome", ""), entry.get("tipo", ""), entry.get("uso", "")
         h.append(f'      <tr><td><strong>{nome}</strong></td><td>{tipo}</td><td>{uso}</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
@@ -1640,9 +2104,9 @@ def build_appendix_b(e4: dict = None) -> str:
 
     # Build premissas dynamically from cenarios.json + taxas.json
     _cen = CENARIOS_CONFIG
-    _cambio = CONFIG_RATES.get("cambio_usd_brl", 5.80)
-    _selic = CONFIG_RATES.get("selic_atual", 14.25)
-    _ipca = CONFIG_RATES.get("ipca_anual", 5.48)
+    _cambio = CONFIG_RATES.get("cambio_usd_brl", 0)
+    _selic = CONFIG_RATES.get("selic_atual", 0)
+    _ipca = CONFIG_RATES.get("ipca_anual", 0)
     _cen_selic_p = _cen.get("selic", {}).get("pessimista", {})
     _cen_selic_o = _cen.get("selic", {}).get("otimista", {})
 
@@ -1758,14 +2222,15 @@ def build_appendix_b(e4: dict = None) -> str:
     h.append('  <table>')
     h.append('    <thead><tr><th>Dado</th><th>Fonte</th><th>Período</th></tr></thead>')
     h.append('    <tbody>')
-    _per_dados = e4.get("periodo_dados", "Mai/2025 – Mar/2026")
+    _per_dados = e4.get("periodo_dados", _periodo_ref)
     _pos_ref = e4.get("periodo_referencia", _periodo_ref)
+    _irpf_ano = e4.get("irpf_ano_referencia", datetime.now().year)
     fontes = [
         ("Receitas e despesas", "Extratos bancários e faturas de cartão (PDFs originais)", _per_dados),
-        ("Patrimônio (imóveis, veículos)", "Declaração IRPF 2025 + planilhas XLSX atualizadas", f"Posição {_pos_ref}"),
-        ("Investimentos", "Posições de corretoras (Rico, BTG, Itaú, Santander, PicPay)", f"Posição {_pos_ref}"),
-        ("Câmbio", f"BCB/PTAX (R${_cambio:.2f} em {_pos_ref})", "Spot"),
-        ("Selic/CDI", f"BCB — {_selic:.2f}% a.a. ({_pos_ref})", "Vigente"),
+        ("Patrimônio (imóveis, veículos)", f"Declaração IRPF {_irpf_ano} + planilhas XLSX atualizadas", f"Posição {_pos_ref}"),
+        ("Investimentos", f"Posições de corretoras ({_build_broker_list()})", f"Posição {_pos_ref}"),
+        ("Câmbio", f"BCB/PTAX (R$ {fmt_dec(_cambio, 2)} em {_pos_ref})", "Spot"),
+        ("Selic/CDI", f"BCB — {fmt_dec(_selic, 2)}% a.a. ({_pos_ref})", "Vigente"),
         ("IPCA", f"IBGE — acumulado 12 meses ~{_ipca:.0f}%", _pos_ref),
     ]
     for dado, fonte, per in fontes:
@@ -1778,7 +2243,9 @@ def build_appendix_b(e4: dict = None) -> str:
     h.append('<div class="card card-warning">')
     h.append('  <div class="card-title">Disclaimers</div>')
     h.append('  <ul>')
-    h.append('    <li>Projeções de renda passiva 2035 usam premissas de IGPM 4%/ano, DY ações 5-8%, DY FIIs 9%, retorno real 6%. Revisar anualmente.</li>')
+    _rr_cen = CENARIOS_CONFIG.get("retorno_real", {})
+    _rr_real = _rr_cen.get("realista_pct", 6.0)
+    h.append(f'    <li>Projeções de renda passiva usam premissas de retorno real {_rr_real:.0f}% a.a. conforme cenários deste relatório. Revisar anualmente.</li>')
     h.append('    <li>Tabela fundamentalista de ações — valores estimados, confirmar antes de agir.</li>')
     h.append('    <li>DY de FIIs de referência — DY passado não garante DY futuro.</li>')
     h.append('    <li>Taxa PGBL — confirmar taxa real de administração antes de portabilidade.</li>')
@@ -1817,9 +2284,9 @@ def build_appendix_c(e4: dict) -> str:
     patrimonio = e4.get("patrimonio", {})
     pat_investivel = safe_float(patrimonio.get("investivel", 0))
     meta_if = safe_float(goals.get("if_meta",
-        GOALS_CONFIG.get("independencia_financeira", {}).get("if_meta", 7200000)))
+        GOALS_CONFIG.get("independencia_financeira", {}).get("if_meta", 0)))
     aporte = safe_float(goals.get("aporte_mensal",
-        GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 20000)))
+        GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 0)))
 
     # Taxas de retorno dos cenários
     _rr = CENARIOS_CONFIG.get("retorno_real", {})
@@ -1827,13 +2294,13 @@ def build_appendix_c(e4: dict) -> str:
     taxa_real = _rr.get("realista_pct", 6.0)
     taxa_otim = _rr.get("otimista_pct", 8.0)
 
-    # Idade de David (from family config)
-    _david = _FAMILY.get("membros", {}).get("david", {})
-    _nasc = _david.get("nascimento", "1983-01-01")
+    _titular_key = _FAMILY.get("titular", "")
+    _david = _FAMILY.get("membros", {}).get(_titular_key, {})
+    _nasc = _david.get("data_nascimento", "")
     try:
         ano_nasc = int(str(_nasc)[:4])
     except (ValueError, TypeError):
-        ano_nasc = 1983
+        ano_nasc = datetime.now().year - 40
     idade_atual = datetime.now().year - ano_nasc
     ano_atual = datetime.now().year
 
@@ -1845,17 +2312,17 @@ def build_appendix_c(e4: dict) -> str:
     # Cenários IF
     h.append('<div class="card">')
     h.append('  <div class="card-title">Cenários — Independência Financeira</div>')
-    h.append(f'  <p>Projeção de prazo para atingir a meta de R${meta_if:,.0f} com aporte de R${aporte:,.0f}/mês, variando a taxa de retorno real.</p>')
+    h.append(f'  <p>Projeção de prazo para atingir a meta de {fmt_brl(meta_if)} com aporte de {fmt_brl(aporte)}/mês, variando a taxa de retorno real.</p>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Cenário</th><th>Retorno real a.a.</th><th>Aporte/mês</th><th>Prazo</th><th>David com</th></tr></thead>')
     h.append('    <tbody>')
-    h.append(f'      <tr><td>Pessimista</td><td>{taxa_pess:.1f}%</td><td>R$ {aporte:,.0f}</td><td>~{prazo_pess:.1f} anos</td><td>{idade_atual + round(prazo_pess)} ({ano_atual + round(prazo_pess)})</td></tr>')
-    h.append(f'      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>{taxa_real:.1f}%</strong></td><td><strong>R$ {aporte:,.0f}</strong></td><td><strong>~{prazo_real:.1f} anos</strong></td><td><strong>{idade_atual + round(prazo_real)} ({ano_atual + round(prazo_real)})</strong></td></tr>')
-    h.append(f'      <tr><td>Otimista</td><td>{taxa_otim:.1f}%</td><td>R$ {aporte:,.0f}</td><td>~{prazo_otim:.1f} anos</td><td>{idade_atual + round(prazo_otim)} ({ano_atual + round(prazo_otim)})</td></tr>')
+    h.append(f'      <tr><td>Pessimista</td><td>{fmt_dec(taxa_pess)}%</td><td>{fmt_brl(aporte)}</td><td>~{fmt_dec(prazo_pess)} anos</td><td>{idade_atual + round(prazo_pess)} ({ano_atual + round(prazo_pess)})</td></tr>')
+    h.append(f'      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>{fmt_dec(taxa_real)}%</strong></td><td><strong>{fmt_brl(aporte)}</strong></td><td><strong>~{fmt_dec(prazo_real)} anos</strong></td><td><strong>{idade_atual + round(prazo_real)} ({ano_atual + round(prazo_real)})</strong></td></tr>')
+    h.append(f'      <tr><td>Otimista</td><td>{fmt_dec(taxa_otim)}%</td><td>{fmt_brl(aporte)}</td><td>~{fmt_dec(prazo_otim)} anos</td><td>{idade_atual + round(prazo_otim)} ({ano_atual + round(prazo_otim)})</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     pct_atingido = (pat_investivel / meta_if * 100) if meta_if > 0 else 0
-    h.append(f'  <p><strong>Progresso atual:</strong> R$ {pat_investivel:,.0f} de R$ {meta_if:,.0f} ({pct_atingido:.1f}% atingido).</p>')
+    h.append(f'  <p><strong>Progresso atual:</strong> {fmt_brl(pat_investivel)} de {fmt_brl(meta_if)} ({fmt_dec(pct_atingido)}% atingido).</p>')
     h.append('</div>')
 
     # Cenários cambiais (dinâmico)
@@ -1880,11 +2347,11 @@ def build_appendix_c(e4: dict) -> str:
     h.append('  <div class="card-title">Cenários — Câmbio BRL/USD</div>')
     h.append('  <p>Impacto do câmbio nos custos da fase EUA (F1/F2) e na meta de dolarização.</p>')
     h.append('  <table>')
-    h.append(f'    <thead><tr><th>Cenário</th><th>Câmbio</th><th>Custo F1/F2 mensal (BRL)</th><th>Meta USD (R${meta_usd:,.0f}k em BRL)</th><th>Impacto</th></tr></thead>')
+    h.append(f'    <thead><tr><th>Cenário</th><th>Câmbio</th><th>Custo F1/F2 mensal (BRL)</th><th>Meta US$ {fmt_num(meta_usd)} em BRL</th><th>Impacto</th></tr></thead>')
     h.append('    <tbody>')
-    h.append(f'      <tr><td>Pessimista (desvalorização)</td><td>R$ {cb_pess:.2f}</td><td>R$ {custo_pess:,.0f}</td><td>R$ {meta_brl_pess:,.0f}</td><td>Custos +{var_pess}%, aporte USD rende menos</td></tr>')
-    h.append(f'      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>R$ {cb_real:.2f}</strong></td><td><strong>R$ {custo_real:,.0f}</strong></td><td><strong>R$ {meta_brl_real:,.0f}</strong></td><td><strong>Base do planejamento</strong></td></tr>')
-    h.append(f'      <tr><td>Otimista (valorização)</td><td>R$ {cb_otim:.2f}</td><td>R$ {custo_otim:,.0f}</td><td>R$ {meta_brl_otim:,.0f}</td><td>Custos -{var_otim}%, folga para aportes maiores</td></tr>')
+    h.append(f'      <tr><td>Pessimista (desvalorização)</td><td>R$ {fmt_dec(cb_pess, 2)}</td><td>{fmt_brl(custo_pess)}</td><td>{fmt_brl(meta_brl_pess)}</td><td>Custos +{var_pess}%, aporte USD rende menos</td></tr>')
+    h.append(f'      <tr class="total-row"><td><strong>Realista</strong></td><td><strong>R$ {fmt_dec(cb_real, 2)}</strong></td><td><strong>{fmt_brl(custo_real)}</strong></td><td><strong>{fmt_brl(meta_brl_real)}</strong></td><td><strong>Base do planejamento</strong></td></tr>')
+    h.append(f'      <tr><td>Otimista (valorização)</td><td>R$ {fmt_dec(cb_otim, 2)}</td><td>{fmt_brl(custo_otim)}</td><td>{fmt_brl(meta_brl_otim)}</td><td>Custos -{var_otim}%, folga para aportes maiores</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('</div>')
@@ -1902,9 +2369,9 @@ def build_appendix_c(e4: dict) -> str:
     h.append('  <table>')
     h.append('    <thead><tr><th>Cenário</th><th>Selic</th><th>CDI estimado</th><th>Impacto na carteira RF</th><th>Ação recomendada</th></tr></thead>')
     h.append('    <tbody>')
-    h.append(f'      <tr><td>Queda acentuada</td><td>{selic_pess["selic"]:.1f}%</td><td>~{selic_pess["cdi"]:.1f}%</td><td>CDBs pós-fixados rendem menos; IPCA+ valoriza (marcação a mercado)</td><td>Manter IPCA+ até vencimento; aumentar prefixados longos</td></tr>')
-    h.append(f'      <tr class="total-row"><td><strong>Estabilidade</strong></td><td><strong>{selic_atual:.1f}%</strong></td><td><strong>~{cdi_atual:.1f}%</strong></td><td><strong>CDBs pós rendem bem; IPCA+ em carrego</strong></td><td><strong>Manter estratégia atual (contrafluxo IPCA+)</strong></td></tr>')
-    h.append(f'      <tr><td>Alta adicional</td><td>{selic_otim["selic"]:.1f}%</td><td>~{selic_otim["cdi"]:.1f}%</td><td>CDBs pós rendem mais; IPCA+ desvaloriza na marcação</td><td>Aumentar CDBs pós-fixados curtos; evitar IPCA+ longo novo</td></tr>')
+    h.append(f'      <tr><td>Queda acentuada</td><td>{fmt_dec(selic_pess["selic"])}%</td><td>~{fmt_dec(selic_pess["cdi"])}%</td><td>CDBs pós-fixados rendem menos; IPCA+ valoriza (marcação a mercado)</td><td>Manter IPCA+ até vencimento; aumentar prefixados longos</td></tr>')
+    h.append(f'      <tr class="total-row"><td><strong>Estabilidade</strong></td><td><strong>{fmt_dec(selic_atual)}%</strong></td><td><strong>~{fmt_dec(cdi_atual)}%</strong></td><td><strong>CDBs pós rendem bem; IPCA+ em carrego</strong></td><td><strong>Manter estratégia atual (contrafluxo IPCA+)</strong></td></tr>')
+    h.append(f'      <tr><td>Alta adicional</td><td>{fmt_dec(selic_otim["selic"])}%</td><td>~{fmt_dec(selic_otim["cdi"])}%</td><td>CDBs pós rendem mais; IPCA+ desvaloriza na marcação</td><td>Aumentar CDBs pós-fixados curtos; evitar IPCA+ longo novo</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('</div>')
@@ -1948,12 +2415,12 @@ def build_appendix_c(e4: dict) -> str:
     stress = [
         (f"E se a Selic cair a {selic_pess['selic']:.0f}%?",
          f"CDBs pós rendem menos. Ação: contrafluxo — já ter IPCA+ longos na carteira captura a valorização. Manter Tesouro IPCA+ 2035/2040."),
-        (f"E se o USD chegar a R${cb_pess:.2f}?",
-         f"Custos F1/F2 sobem ~{var_pess}%. A sobra mensal cai de R${_sobra_base:,.0f} para ~R${_sobra_pess:,.0f} — {'ainda viável' if _sobra_pess > 0 else 'déficit — ajustar aportes'}. Dolarização via Wise fica mais cara mas protege o patrimônio."),
+        (f"E se o USD chegar a R$ {fmt_dec(cb_pess, 2)}?",
+         f"Custos F1/F2 sobem ~{var_pess}%. A sobra mensal cai de {fmt_brl(_sobra_base)} para ~{fmt_brl(_sobra_pess)} — {'ainda viável' if _sobra_pess > 0 else 'déficit — ajustar aportes'}. Dolarização via Wise fica mais cara mas protege o patrimônio."),
         ("E se Mariana não conseguir o NCLEX?",
          f"A simulação 'Mariana sem trabalhar' mostra prazo IF maior. David absorve com aporte reduzido."),
         ("E se David perder o contrato principal?",
-         f"Renda cai significativamente. Reserva de emergência cobre {_reserva_meses:.1f} meses. Ações: (1) buscar contratos substitutos, (2) reduzir aporte IF, (3) Mariana mantém renda."),
+         f"Renda cai significativamente. Reserva de emergência cobre {fmt_dec(_reserva_meses)} meses. Ações: (1) buscar contratos substitutos, (2) reduzir aporte IF, (3) Mariana mantém renda."),
         ("E se os imóveis desvalorizarem 20%?",
          "Patrimônio bruto cai, mas o patrimônio investível não muda (imóvel residência já excluído). Yield dos imóveis de investimento sobe proporcionalmente."),
     ]
@@ -2020,8 +2487,8 @@ def build_appendix_d() -> str:
     h.append('    <thead><tr><th>Profissional</th><th>Área</th><th>Quando acionar</th></tr></thead>')
     h.append('    <tbody>')
     _contador = GOALS_CONFIG.get("tributario", {}).get("contador_nome", "AccountTech")
-    _seg_min = GOALS_CONFIG.get("seguros", {}).get("vida_term_minimo", 3000000)
-    _seg_max = GOALS_CONFIG.get("seguros", {}).get("vida_term_maximo", 5000000)
+    _seg_min = GOALS_CONFIG.get("seguros", {}).get("vida_term_minimo", 0)
+    _seg_max = GOALS_CONFIG.get("seguros", {}).get("vida_term_maximo", 0)
     contatos = [
         (f"Contador ({_contador})", "Contabilidade PJ, DAS, Simples Nacional", "Mensal (DAS) + IRPF anual + mudança de regime"),
         ("Advogado Sucessório / Tributarista SP", "Testamentos, procurações, holding", "Antes da mudança para EUA — planejamento sucessório"),
@@ -2043,8 +2510,8 @@ def build_appendix_e(e4: dict) -> str:
     h = []
 
     # Config values used in multiple sub-sections
-    _seg_min = GOALS_CONFIG.get("seguros", {}).get("vida_term_minimo", 3000000)
-    _seg_max = GOALS_CONFIG.get("seguros", {}).get("vida_term_maximo", 5000000)
+    _seg_min = GOALS_CONFIG.get("seguros", {}).get("vida_term_minimo", 0)
+    _seg_max = GOALS_CONFIG.get("seguros", {}).get("vida_term_maximo", 0)
 
     # For Simulação Mariana
     goals = e4.get("goals", {})
@@ -2126,28 +2593,45 @@ def build_appendix_e(e4: dict) -> str:
         h.append('  </ul>')
     h.append('</div>')
 
-    # Viagens e milhas (dinâmico)
-    _vg = e4.get("viagens", {})
+    # Viagens e milhas (dinâmico — janela 12 meses)
+    _vg12 = e4.get("_viagens_12m", {})
     _teto_viagens = GOALS_CONFIG.get("viagens", {}).get("teto_anual", 45000)
-    _gasto_viagens = safe_float(_vg.get("gasto", 0))
+    _gasto_viagens = safe_float(_vg12.get("gasto", 0))
     _saldo_viagens = _teto_viagens - _gasto_viagens
-    _ano_viagens = datetime.now().year
-    _viagens_lista = _vg.get("realizadas", [])
+    _periodo_viagens = _vg12.get("periodo", "últimos 12 meses")
+    _por_mes = _vg12.get("por_mes", {})
+    _txns = _vg12.get("realizadas_txns", [])
+
+    # Group transactions into "trips" by aggregating consecutive spending into months
+    _meses_com_gasto = {m: v for m, v in sorted(_por_mes.items()) if v > 0}
 
     h.append('<div class="card">')
-    h.append(f'  <div class="card-title">Viagens e Milhas — Orçamento {_ano_viagens}</div>')
+    h.append(f'  <div class="card-title">Orçamento de Viagens ({_periodo_viagens})</div>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Item</th><th>Valor</th></tr></thead>')
     h.append('    <tbody>')
-    h.append(f'      <tr><td>Teto anual de viagens</td><td><strong>R$ {_teto_viagens:,.0f}</strong></td></tr>')
-    if _viagens_lista:
-        for v in _viagens_lista:
-            h.append(f'      <tr><td>{v.get("destino", "Viagem")} (realizado)</td><td>R$ {safe_float(v.get("valor", 0)):,.0f}</td></tr>')
-    elif _gasto_viagens > 0:
-        h.append(f'      <tr><td>Realizadas</td><td>R$ {_gasto_viagens:,.0f}</td></tr>')
-    h.append(f'      <tr><td>Saldo disponível</td><td><strong>R$ {_saldo_viagens:,.0f}</strong></td></tr>')
+    h.append(f'      <tr><td>Teto anual de viagens</td><td><strong>{fmt_brl(_teto_viagens)}</strong></td></tr>')
+    h.append(f'      <tr><td>Gasto 12 meses (lazer/viagens)</td><td><strong>{fmt_brl(_gasto_viagens)}</strong></td></tr>')
+
+    if _meses_com_gasto:
+        h.append(f'      <tr><td colspan="2" style="padding-top:8px"><strong>Detalhamento mensal</strong></td></tr>')
+        for mes, val in _meses_com_gasto.items():
+            h.append(f'      <tr><td style="padding-left:16px">{mes}</td><td>{fmt_brl(val)}</td></tr>')
+
+    saldo_class = "" if _saldo_viagens >= 0 else ' style="color:#E63946"'
+    h.append(f'      <tr><td>Saldo disponível</td><td{saldo_class}><strong>{fmt_brl(_saldo_viagens)}</strong></td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
+
+    if _txns:
+        h.append('  <details><summary>Ver transações individuais ({} itens)</summary>'.format(len(_txns)))
+        h.append('  <table style="font-size:0.85em">')
+        h.append('    <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead>')
+        h.append('    <tbody>')
+        for t in _txns:
+            h.append(f'      <tr><td>{t.get("data","")}</td><td>{t.get("descricao","")}</td><td>{fmt_brl(safe_float(t.get("valor",0)))}</td></tr>')
+        h.append('    </tbody></table></details>')
+
     h.append('  <p><em>Nota: Custos da estadia EUA (F1/F2) NÃO entram no orçamento de viagens — são custo de vida.</em></p>')
     h.append('</div>')
 
@@ -2157,7 +2641,9 @@ def build_appendix_e(e4: dict) -> str:
     _mariana_usd_max = GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_maxima_usd", 7000)
 
     h.append('<div class="card">')
-    h.append('  <div class="card-title">NCLEX Roadmap — Mariana</div>')
+    _nclex_conjuge_key = next((k for k, v in _FAMILY.get("membros", {}).items() if v.get("papel") == "conjuge"), None)
+    _nclex_conjuge_nome = _FAMILY.get("membros", {}).get(_nclex_conjuge_key, {}).get("nome_curto", "") if _nclex_conjuge_key else ""
+    h.append(f'  <div class="card-title">NCLEX Roadmap{f" — {_nclex_conjuge_nome}" if _nclex_conjuge_nome else ""}</div>')
     h.append('  <p>Caminho para licenciamento como Registered Nurse nos EUA (estimativa 8-18 meses).</p>')
     h.append('  <table>')
     h.append('    <thead><tr><th>Etapa</th><th>Descrição</th><th>Custo</th><th>Duração</th></tr></thead>')
@@ -2180,8 +2666,16 @@ def build_appendix_e(e4: dict) -> str:
             h.append(f'      <tr><td>{etapa}</td><td>{desc}</td><td>{custo}</td><td>{dur}</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
-    h.append('  <p><strong>Custo total estimado:</strong> US$ 1.515–2.440 | <strong>Perfil competitivo Mariana:</strong> Especialização Cardiologia + Mestrado USP + 11+ anos Einstein + UTI.</p>')
-    h.append(f'  <p><strong>Projeção EUA:</strong> Cardiologia RN US$45–80/hora → US${_mariana_usd_min:,.0f}–{_mariana_usd_max:,.0f}/mês líquido.</p>')
+    _conjuge_key = next((k for k, v in _FAMILY.get("membros", {}).items() if v.get("papel") == "conjuge"), None)
+    _conjuge = _FAMILY.get("membros", {}).get(_conjuge_key, {}) if _conjuge_key else {}
+    _conjuge_nome = _conjuge.get("nome_curto", "Cônjuge")
+    _conjuge_esp = _conjuge.get("especializacao", "")
+    _conjuge_mestrado = _conjuge.get("mestrado", "")
+    _conjuge_profissao = _conjuge.get("profissao", "")
+    _perfil_parts = [p for p in [_conjuge_esp, f"Mestrado {_conjuge_mestrado}" if _conjuge_mestrado else "", _conjuge_profissao] if p]
+    _perfil_str = " + ".join(_perfil_parts) if _perfil_parts else ""
+    h.append(f'  <p><strong>Custo total estimado:</strong> US$ 1.515–2.440{f" | <strong>Perfil competitivo {_conjuge_nome}:</strong> {_perfil_str}" if _perfil_str else ""}.</p>')
+    h.append(f'  <p><strong>Projeção EUA:</strong> RN US$45–80/hora → US${fmt_num(_mariana_usd_min)}–{fmt_num(_mariana_usd_max)}/mês líquido.</p>')
     h.append('</div>')
 
     # Simulação Mariana sem trabalhar (semi-dinâmico — usa E5 data quando disponível)
@@ -2200,9 +2694,9 @@ def build_appendix_e(e4: dict) -> str:
         _aporte_red = round(_aporte_cfg * 0.66)
         _prazo_full = _compute_nper(pat_investivel, _aporte_cfg, taxa_real, meta_if)
         _prazo_red = _compute_nper(pat_investivel, _aporte_red, taxa_real, meta_if)
-        h.append(f'      <tr><td>IF com aporte R${_aporte_cfg/1000:.0f}k mantido</td><td><strong>{_prazo_full:.1f} anos</strong> (folga absorve a perda)</td></tr>')
-        _aporte_red_fmt = f"{_aporte_red/1000:.1f}".replace(".", ",")
-        h.append(f'      <tr><td>IF com aporte reduzido R${_aporte_red_fmt}k</td><td>{_prazo_red:.1f} anos (+{_prazo_red - _prazo_full:.1f} anos)</td></tr>')
+        h.append(f'      <tr><td>IF com aporte R$ {_aporte_cfg/1000:.0f}k mantido</td><td><strong>{fmt_dec(_prazo_full)} anos</strong> (folga absorve a perda)</td></tr>')
+        _aporte_red_fmt = fmt_dec(_aporte_red/1000)
+        h.append(f'      <tr><td>IF com aporte reduzido R$ {_aporte_red_fmt}k</td><td>{fmt_dec(_prazo_red)} anos (+{fmt_dec(_prazo_red - _prazo_full)} anos)</td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
     h.append('</div>')
@@ -2223,7 +2717,7 @@ def build_appendix_e(e4: dict) -> str:
         _aporte_val = GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 20000)
         _holding = GOALS_CONFIG.get("tributario", {}).get("holding_avaliacao_prazo", "T4/2026")
         calendario = [
-            ("Imediato", f"Primeiro aporte R${_aporte_val:,.0f} (plano IF)", "Financeiro"),
+            ("Imediato", f"Primeiro aporte {fmt_brl(_aporte_val)} (plano IF)", "Financeiro"),
             ("Imediato", f"Contratar seguro de vida term life R${_seg_min/1e6:.0f}-{_seg_max/1e6:.0f}M", "Proteção"),
             ("Imediato", "Contratar seguro invalidez (DIT) 60% da renda", "Proteção"),
             ("Imediato", "Consultar advogado sucessório/tributarista SP", "Sucessório"),
@@ -2246,14 +2740,97 @@ def build_appendix_e(e4: dict) -> str:
 
 
 def build_kpi_rentabilidade_card(e4: dict) -> str:
-    """Build KPI Rentabilidade card (previously inline in S3)."""
-    html_parts = ['<div class="card card-feature">']
-    html_parts.append('  <div class="card-title">KPI — Rentabilidade</div>')
-    html_parts.append('  <p>Yield médio de investimentos: 5,2%</p>')
-    html_parts.append('  <p>Volatilidade: 8,5%</p>')
-    html_parts.append('  <p>Diversificação: 5 blocos principais</p>')
-    html_parts.append('</div>')
-    return '\n'.join(html_parts)
+    """Build KPI Rentabilidade card with real metrics from e4 data."""
+    p = e4.get("patrimonio", {})
+    f = e4.get("fluxo_caixa", {})
+    inv = e4.get("investimentos", {})
+    ratios = e4.get("ratios", {})
+
+    # ── Yield imóveis (receita aluguel anualizada / valor imóveis investimento) ──
+    num_months = max(1, len(f.get("receita_despesa_mensal_detalhado", {}).get("labels", [])))
+    aluguel_total = safe_float(f.get("por_fonte", {}).get("receita_aluguel", 0))
+    aluguel_mensal = aluguel_total / num_months
+    imoveis_inv = safe_float(p.get("imoveis_investimento", 0))
+    yield_imoveis = round((aluguel_mensal * 12 / imoveis_inv) * 100, 1) if imoveis_inv > 0 else 0
+    cdi = CONFIG_RATES.get("cdi_anual", 14.15)
+
+    # ── Renda passiva mensal ──
+    renda_dividendos = round(safe_float(f.get("por_fonte", {}).get("receita_investimento", 0)) / num_months, 2)
+    renda_juros = round(safe_float(f.get("por_fonte", {}).get("rendimentos_financeiros", 0)) / num_months, 2)
+    renda_passiva_total = round(aluguel_mensal + renda_dividendos + renda_juros, 2)
+
+    # ── Diversificação from E4 investment positions ──
+    n_classes = len(inv.get("tabela_classes", []))
+    inv_total = safe_float(inv.get("total", 0))
+
+    try:
+        with open(E4_INVEST_PATH, 'r', encoding='utf-8') as fh:
+            inv_raw = json.load(fh)
+        positions = [d for d in inv_raw.get("dados", []) if d.get("valor_atual", 0) > 0]
+        institutions = set(d.get("instituicao", "") for d in positions if d.get("instituicao"))
+        tipos = {}
+        for d in positions:
+            t = d.get("tipo", "Outros")
+            tipos[t] = tipos.get(t, 0) + d["valor_atual"]
+        pos_total = sum(d["valor_atual"] for d in positions)
+        hhi = sum((v / pos_total * 100) ** 2 for v in tipos.values()) if pos_total > 0 else 0
+        top_pos = max(positions, key=lambda x: x["valor_atual"]) if positions else {}
+        top_pct = round(top_pos.get("valor_atual", 0) / pos_total * 100, 1) if pos_total > 0 else 0
+        n_institutions = len(institutions)
+        n_tipos = len(tipos)
+        n_positions = len(positions)
+    except Exception:
+        n_institutions = 0
+        n_tipos = n_classes
+        n_positions = 0
+        hhi = 0
+        top_pct = 0
+
+    # HHI classification
+    if hhi < 1500:
+        hhi_label, hhi_badge = "Diversificado", "badge-green"
+    elif hhi < 2500:
+        hhi_label, hhi_badge = "Moderado", "badge-yellow"
+    else:
+        hhi_label, hhi_badge = "Concentrado", "badge-red"
+
+    # Yield vs CDI classification
+    if yield_imoveis >= cdi:
+        yield_badge = "badge-green"
+    elif yield_imoveis >= cdi * 0.5:
+        yield_badge = "badge-yellow"
+    else:
+        yield_badge = "badge-red"
+
+    h = ['<div class="card card-feature">']
+    h.append('  <div class="card-title">KPI — Rentabilidade</div>')
+
+    # Metrics table
+    h.append('  <table>')
+    h.append('    <thead><tr><th>Indicador</th><th>Valor</th><th>Referência</th></tr></thead>')
+    h.append('    <tbody>')
+    h.append(f'      <tr><td>Yield imóveis (anual)</td><td><span class="badge {yield_badge}">{fmt_pct(yield_imoveis)}</span></td><td>CDI {fmt_pct(cdi)}</td></tr>')
+    h.append(f'      <tr><td>Renda passiva mensal</td><td><strong>{fmt_brl(renda_passiva_total)}</strong></td><td>Aluguéis {fmt_brl(aluguel_mensal)} + Rendimentos {fmt_brl(renda_dividendos + renda_juros)}</td></tr>')
+    h.append(f'      <tr><td>Rentabilidade carteira</td><td><span class="badge badge-neutral">N/D</span></td><td>Requer série temporal de cotas</td></tr>')
+    h.append(f'      <tr><td>Volatilidade</td><td><span class="badge badge-neutral">N/D</span></td><td>Requer série temporal de cotas</td></tr>')
+    h.append('    </tbody>')
+    h.append('  </table>')
+
+    # Diversification summary
+    h.append('  <table>')
+    h.append('    <thead><tr><th>Diversificação</th><th>Valor</th><th>Avaliação</th></tr></thead>')
+    h.append('    <tbody>')
+    h.append(f'      <tr><td>Instituições</td><td>{n_institutions}</td><td>{"✅ Bem distribuído" if n_institutions >= 3 else "⚠️ Concentrado"}</td></tr>')
+    h.append(f'      <tr><td>Tipos de ativo</td><td>{n_tipos}</td><td>{"✅ Diversificado" if n_tipos >= 5 else "⚠️ Poucas classes"}</td></tr>')
+    h.append(f'      <tr><td>Posições ativas</td><td>{n_positions}</td><td></td></tr>')
+    h.append(f'      <tr><td>Concentração (maior posição)</td><td>{fmt_pct(top_pct)}</td><td>{"✅ OK" if top_pct <= 15 else "⚠️ Risco de concentração"}</td></tr>')
+    h.append(f'      <tr><td>HHI (Herfindahl por tipo)</td><td>{fmt_num(hhi)}</td><td><span class="badge {hhi_badge}">{hhi_label}</span></td></tr>')
+    h.append('    </tbody>')
+    h.append('  </table>')
+
+    h.append('  <p style="font-size:0.85em;opacity:0.75;margin-top:8px;">⚠️ Rentabilidade e volatilidade requerem dados históricos de cotas — não disponíveis nos extratos atuais.</p>')
+    h.append('</div>')
+    return '\n'.join(h)
 
 
 def build_contrafluxo_card(e4: dict) -> str:
@@ -2332,6 +2909,27 @@ def build_sections(e4: dict) -> dict:
     summaries = narrativas.get("summaries", {})
     charts_narrativas = narrativas.get("charts", {})
 
+    # Override fluxo_mensal with deterministic 12m-window data
+    j12 = e4.get("fluxo_caixa", {}).get("janela_12m", {})
+    if j12:
+        _rec12 = j12.get("receita_recorrente_mensal", 0)
+        _desp12 = j12.get("despesa_mensal_media", 0)
+        _saldo12 = _rec12 - _desp12
+        _periodo12 = j12.get("periodo", "últimos 12 meses")
+        _taxa12 = j12.get("taxa_poupanca_recorrente", 0)
+        CHART_TITLES["fluxo_mensal"] = "Fluxo de Caixa Mensal"
+        charts_narrativas["fluxo_mensal"] = {
+            "context": (
+                f"Janela dos últimos 12 meses ({_periodo12}). "
+                f"Receita recorrente média de {fmt_brl(_rec12)}/mês "
+                f"versus despesa média de {fmt_brl(_desp12)}/mês."
+            ),
+            "conclusion": (
+                f"Saldo recorrente mensal de {fmt_brl(_saldo12)}/mês. "
+                f"Taxa de poupança recorrente de {fmt_pct(_taxa12)}."
+            ),
+        }
+
     replacements = {}
 
     # Build summaries (always S1-S10 for template compatibility)
@@ -2374,20 +2972,42 @@ def build_sections(e4: dict) -> dict:
 
             html = ""
 
-            # ── Charts (ordered by YAML) ──
-            for chart_cfg in section_cfg.get("charts", []):
+            # ── Charts (ordered by YAML, with optional row grouping) ──
+            chart_cfgs = [c for c in section_cfg.get("charts", []) if c.get("enabled", True)]
+            i_ch = 0
+            while i_ch < len(chart_cfgs):
+                chart_cfg = chart_cfgs[i_ch]
                 chart_key = chart_cfg.get("id", "")
-                if not chart_cfg.get("enabled", True):
-                    continue
-                chart_title = CHART_TITLES.get(chart_key, chart_key.replace('_', ' ').title())
-                extra = ""
-                if chart_key == "score_gauge":
-                    score_val = e4.get("score", {}).get("valor", 0)
-                    extra = f'data-score="{score_val}"'
-                html += chart_html(chart_key, chart_title, charts_narrativas, extra_attrs=extra) + "\n"
+                row_group = chart_cfg.get("row", "")
+
+                if row_group:
+                    # Collect all consecutive charts in the same row group
+                    row_charts = []
+                    while i_ch < len(chart_cfgs) and chart_cfgs[i_ch].get("row", "") == row_group:
+                        row_charts.append(chart_cfgs[i_ch])
+                        i_ch += 1
+                    html += '<div class="chart-row">\n'
+                    for rc in row_charts:
+                        rk = rc.get("id", "")
+                        rt = CHART_TITLES.get(rk, rk.replace('_', ' ').title())
+                        re_ = ""
+                        if rk == "score_gauge":
+                            re_ = f'data-score="{e4.get("score", {}).get("valor", 0)}"'
+                        html += chart_html(rk, rt, charts_narrativas, extra_attrs=re_) + "\n"
+                    html += '</div>\n'
+                else:
+                    chart_title = CHART_TITLES.get(chart_key, chart_key.replace('_', ' ').title())
+                    extra = ""
+                    if chart_key == "score_gauge":
+                        score_val = e4.get("score", {}).get("valor", 0)
+                        extra = f'data-score="{score_val}"'
+                    html += chart_html(chart_key, chart_title, charts_narrativas, extra_attrs=extra) + "\n"
+                    i_ch += 1
 
             # ── Cards (ordered by YAML, with variant/size) ──
-            has_half_cards = False
+            # Pre-process: collect enabled cards with their resolved sizes,
+            # auto-promoting orphaned half cards to full width.
+            resolved_cards = []
             for card_cfg in section_cfg.get("cards", []):
                 card_id = card_cfg.get("id", "")
                 if not card_cfg.get("enabled", True):
@@ -2396,25 +3016,43 @@ def build_sections(e4: dict) -> dict:
                 if not builder:
                     print(f"  [WARN] Card builder not found for '{card_id}' — skipping")
                     continue
+                resolved_cards.append({
+                    "id": card_id,
+                    "builder": builder,
+                    "variant": card_cfg.get("variant", ""),
+                    "size": card_cfg.get("size", "full"),
+                })
 
-                variant = card_cfg.get("variant", "")
-                size = card_cfg.get("size", "full")
+            # Fix orphaned half-cards: promote to full if they lack a pair
+            i = 0
+            while i < len(resolved_cards):
+                if resolved_cards[i]["size"] == "half":
+                    j = i + 1
+                    while j < len(resolved_cards) and resolved_cards[j]["size"] == "half":
+                        j += 1
+                    half_count = j - i
+                    if half_count % 2 == 1:
+                        resolved_cards[j - 1]["size"] = "full"
+                    i = j
+                else:
+                    i += 1
 
-                # Open a 2-column grid row when we hit the first half card
-                if size == "half" and not has_half_cards:
-                    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">\n'
-                    has_half_cards = True
-                elif size != "half" and has_half_cards:
-                    # Close the grid row before a full-width card
+            # Render cards, wrapping consecutive half-pairs in split-cards grid
+            in_grid = False
+            for rc in resolved_cards:
+                size = rc["size"]
+                if size == "half" and not in_grid:
+                    html += '<div class="split-cards">\n'
+                    in_grid = True
+                elif size != "half" and in_grid:
                     html += '</div>\n'
-                    has_half_cards = False
+                    in_grid = False
 
-                card_html_str = builder(e4)
-                card_html_str = _apply_card_variant(card_html_str, variant, size="")
+                card_html_str = rc["builder"](e4)
+                card_html_str = _apply_card_variant(card_html_str, rc["variant"], size="")
                 html += card_html_str + "\n"
 
-            # Close any open grid row
-            if has_half_cards:
+            if in_grid:
                 html += '</div>\n'
 
             replacements[f"{{{{CONTENT_S{section_num}}}}}"] = html.rstrip()
@@ -2448,13 +3086,32 @@ def build_sections(e4: dict) -> dict:
             section_chart_keys = SECTION_CHARTS.get(i, [])
             html = ""
 
-            for chart_key in section_chart_keys:
-                chart_title = CHART_TITLES.get(chart_key, chart_key.replace('_', ' ').title())
-                extra = ""
-                if chart_key == "score_gauge":
-                    score_val = e4.get("score", {}).get("valor", 0)
-                    extra = f'data-score="{score_val}"'
-                html += chart_html(chart_key, chart_title, charts_narrativas, extra_attrs=extra) + "\n"
+            _FALLBACK_PAIRS = {("alocacao_atual", "alocacao_alvo")}
+            j_ch = 0
+            while j_ch < len(section_chart_keys):
+                chart_key = section_chart_keys[j_ch]
+                paired = False
+                if j_ch + 1 < len(section_chart_keys):
+                    pair = (chart_key, section_chart_keys[j_ch + 1])
+                    if pair in _FALLBACK_PAIRS:
+                        html += '<div class="chart-row">\n'
+                        for pk in pair:
+                            pt = CHART_TITLES.get(pk, pk.replace('_', ' ').title())
+                            pe = ""
+                            if pk == "score_gauge":
+                                pe = f'data-score="{e4.get("score", {}).get("valor", 0)}"'
+                            html += chart_html(pk, pt, charts_narrativas, extra_attrs=pe) + "\n"
+                        html += '</div>\n'
+                        j_ch += 2
+                        paired = True
+                if not paired:
+                    chart_title = CHART_TITLES.get(chart_key, chart_key.replace('_', ' ').title())
+                    extra = ""
+                    if chart_key == "score_gauge":
+                        score_val = e4.get("score", {}).get("valor", 0)
+                        extra = f'data-score="{score_val}"'
+                    html += chart_html(chart_key, chart_title, charts_narrativas, extra_attrs=extra) + "\n"
+                    j_ch += 1
 
             if i == 1:
                 html += build_patrimonio_categorias_card(e4) + "\n"
@@ -2628,6 +3285,9 @@ def render_report():
     e4 = load_e4_json()
     manual_text = load_manual()
     template = load_template()
+
+    # Inject 12-month viagens data into e4 so charts and cards pick it up
+    e4["_viagens_12m"] = load_viagens_12m()
 
     # Build all replacements
     print("[E6.1-E6.5] Building all replacements...")

@@ -133,8 +133,7 @@ def _build_doc_type_patterns() -> list[tuple[re.Pattern, str, str]]:
         (re.compile(r"fatura.*carbon", re.I),                   "faturacarbon",         "financial_statements"),
         (re.compile(r"fatura.*unique", re.I),                   "faturaunique",         "financial_statements"),
         (re.compile(r"fatura.*p[aã]o.?a[cç][uú]car", re.I),   "faturapaoacucar",      "financial_statements"),
-        (re.compile(r"fatura.*aluguel.*calixto", re.I),        "faturaaluguelcalixto", "financial_statements"),
-        (re.compile(r"fatura.*aluguel.*major.?freire", re.I),  "faturaaluguelmajorfreire", "financial_statements"),
+        (re.compile(r"fatura.*aluguel.*\w+", re.I),              "faturaaluguel",        "financial_statements"),
         (re.compile(r"fatura.*aluguel", re.I),                 "faturaaluguel",        "financial_statements"),
         (re.compile(r"fatura", re.I),                          "fatura",               "financial_statements"),
         (re.compile(r"posi[cç][aã]o|carteira.*invest", re.I), "investimentosposicao", "financial_statements"),
@@ -157,7 +156,8 @@ PERIOD_RE = re.compile(_period_cfg.get("period", r"(\d{6})(?:_(\d{6}))?"))
 YEAR_RE   = re.compile(_period_cfg.get("year_fallback", r"(20\d{2})"))
 
 # Member name patterns (for GRUPO E routing) — from config
-MEMBER_NAMES = list(FAMILY_CONFIG.get("membros", {}).keys()) or ["david", "mariana", "theo"]
+MEMBER_NAMES = [k for k in FAMILY_CONFIG.get("membros", {}).keys() if not k.startswith("_")]
+_TITULAR_KEY = FAMILY_CONFIG.get("titular", MEMBER_NAMES[0] if MEMBER_NAMES else "")
 
 # Pipeline parameters — from config
 _file_limits = PIPE_CONFIG.get("file_limits", {})
@@ -320,6 +320,7 @@ def classify_by_llm(filepath: Path) -> dict | None:
     preview = _extract_file_preview(filepath)
     filename = filepath.name
 
+    member_options = " | ".join(MEMBER_NAMES) if MEMBER_NAMES else "unknown"
     prompt = f"""Analise o arquivo abaixo e classifique para roteamento no pipeline financeiro familiar.
 
 Nome do arquivo: {filename}
@@ -337,7 +338,7 @@ Classifique o arquivo retornando APENAS um JSON válido (sem markdown) com estes
   "doc_type": "código do tipo (extratoconta, extratopoupanca, faturacarbon, faturaunique, faturapaoacucar, investimentosposicao, cdbdetalhes, cdbresumo, irpfdeclaracao, irpfrecibo, informerendimentos, holerite, curriculo, rg, cpf, passaporte, dados_imoveis, dados_veiculos, faturaaluguelcalixto, faturaaluguelmajorfreire, etc.)",
   "dest_group": "financial_statements | income_tax_br | real_estate | vehicles | members | income_tax_us",
   "period": "YYYYMM ou YYYYMM_YYYYMM ou YYYY",
-  "member": "david | mariana | theo | null",
+  "member": "{member_options} | null",
   "final_name": "nome final completo no padrão [instituição]_[tipo]_[período]-0_original.[ext]",
   "confidence": 0.0 a 1.0
 }}
@@ -402,7 +403,7 @@ def build_final_name(classification: dict, original_ext: str) -> str:
     dest_group = classification["dest_group"]
 
     if dest_group == "members":
-        member = classification.get("member") or "david"
+        member = classification.get("member") or _TITULAR_KEY
         doc_type = classification["doc_type"]
         period = classification.get("period", "")
         if period and doc_type in ("holerite",):
@@ -419,7 +420,7 @@ def build_final_name(classification: dict, original_ext: str) -> str:
         # Preserve member suffix for income_tax_br and informe docs (e.g., IRPF[mariana], informerendimentosaluguel[mariana])
         member = classification.get("member")
         member_suffix = ""
-        if member and dest_group == "income_tax_br" and member != "david":
+        if member and dest_group == "income_tax_br" and member != _TITULAR_KEY:
             member_suffix = member  # e.g., irpfdeclaracaomariana, informerendimentosaluguelmariana
         if member_suffix:
             parts = [f"{institution}_{doc_type}{member_suffix}_{period}-0_original{original_ext}"]

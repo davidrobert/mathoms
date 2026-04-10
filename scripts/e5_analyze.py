@@ -25,6 +25,7 @@ PROJECT_DIR = SCRIPTS_DIR.parent
 PROCESSED_DIR = PROJECT_DIR / "processed"
 E4_UNIFIED_DIR = PROCESSED_DIR / "E4_unified"
 E2_EXTRACTS_DIR = PROCESSED_DIR / "E2_extracts"
+E3_RECONCILED_DIR = PROCESSED_DIR / "E3_reconciled"
 E5_ANALYSIS_DIR = PROCESSED_DIR / "E5_analysis"
 
 LIFE_PLAN_GOALS = PROJECT_DIR / "life_plan" / "life_plan_goals.md"
@@ -34,6 +35,8 @@ CONFIG_GOALS = PROJECT_DIR / "config" / "goals.json"
 CONFIG_SCORING = PROJECT_DIR / "config" / "scoring.json"
 CONFIG_FISCAL = PROJECT_DIR / "config" / "parametros_fiscais.json"
 CONFIG_FAMILY = PROJECT_DIR / "config" / "family_members.json"
+CONFIG_TAXAS = PROJECT_DIR / "config" / "taxas.json"
+CONFIG_MILHAS = PROJECT_DIR / "config" / "milhas.md"
 
 # Input files
 FILE_RECEITAS = E4_UNIFIED_DIR / "receitas-4_unified.json"
@@ -50,15 +53,18 @@ FILE_OUTPUT = E5_ANALYSIS_DIR / "analise_financeira-5_analysis.json"
 # CONSTANTS (loaded from config/family_members.json when available)
 # ============================================================================
 def _load_titular_dob() -> date:
-    """Load titular date of birth from family config, with fallback."""
+    """Load titular date of birth from family config."""
     fm_path = PROJECT_DIR / "config" / "family_members.json"
     if fm_path.exists():
         with open(fm_path, "r", encoding="utf-8") as f:
             fm = json.load(f)
-        dob_str = fm.get("membros", {}).get("david", {}).get("data_nascimento", "1981-09-05")
-        parts = dob_str.split("-")
-        return date(int(parts[0]), int(parts[1]), int(parts[2]))
-    return date(1981, 9, 5)  # fallback
+        titular_key = fm.get("titular", "david")
+        dob_str = fm.get("membros", {}).get(titular_key, {}).get("data_nascimento", "")
+        if dob_str:
+            parts = dob_str.split("-")
+            return date(int(parts[0]), int(parts[1]), int(parts[2]))
+    print("  ⚠️  data_nascimento do titular não encontrada em family_members.json — usando 01/01 do ano atual como placeholder")
+    return date(date.today().year - 40, 1, 1)
 
 DAVID_DOB = _load_titular_dob()
 TODAY = date.today()
@@ -76,7 +82,7 @@ def _load_one_time_config():
             return keywords, set(categories)
     # Fallback if config key not yet added
     return (
-        ["fgts", "restituicao", "bolsa", "bonus", "pompeia", "venda"],
+        ["fgts", "restituicao", "bolsa", "bonus", "venda"],
         {"receita_venda_ativo", "receita_resgate", "receita_fgts", "receita_restituicao"}
     )
 
@@ -119,6 +125,12 @@ GOALS_CONFIG = _load_goals_config()
 SCORING_CONFIG = _load_scoring_config()
 FISCAL_CONFIG = _load_fiscal_config()
 FAMILY_CONFIG = _load_family_config()
+
+_TITULAR_KEY = FAMILY_CONFIG.get("titular", "")
+_MEMBROS = FAMILY_CONFIG.get("membros", {})
+_CONJUGE_KEY = next((k for k, v in _MEMBROS.items() if v.get("papel") == "conjuge"), "")
+_TITULAR_NOME = _MEMBROS.get(_TITULAR_KEY, {}).get("nome_curto", _TITULAR_KEY.title())
+_CONJUGE_NOME = _MEMBROS.get(_CONJUGE_KEY, {}).get("nome_curto", _CONJUGE_KEY.title())
 
 
 # ============================================================================
@@ -188,9 +200,8 @@ def extract_if_target_from_life_plan() -> float:
         except Exception as e:
             print(f"  ⚠️  Error reading life_plan_goals.md: {e}")
 
-    # Priority 3: hardcoded fallback with warning
-    print("  ⚠️  IF meta not found in goals.json or life_plan_goals.md, using fallback R$7,200,000")
-    return 7200000.0
+    # Priority 3: fail — no hardcoded fallback
+    raise ValueError("IF meta não encontrada em goals.json nem life_plan_goals.md. Configure 'independencia_financeira.if_meta' em config/goals.json.")
 
 
 def extract_if_trs() -> float:
@@ -211,13 +222,12 @@ def extract_if_trs() -> float:
         except Exception:
             pass
 
-    # Priority 3: hardcoded fallback with warning
-    print("  ⚠️  TRS not found in goals.json or life_plan_goals.md, using fallback 5.0%")
-    return 5.0
+    # Priority 3: fail — no hardcoded fallback
+    raise ValueError("TRS não encontrado em goals.json nem life_plan_goals.md. Configure 'independencia_financeira.trs_pct' em config/goals.json.")
 
 
 def extract_renda_passiva_from_life_plan() -> float:
-    """Extract current renda passiva (R$ 10.042/mês) from life_plan."""
+    """Extract current renda passiva from life_plan."""
     if not LIFE_PLAN_GOALS.exists():
         return 0.0
 
@@ -274,16 +284,16 @@ def _resolve_members(baseline: Dict[str, Any]) -> tuple:
         # Check if list contains dicts (format 2) or strings (format 3)
         has_dicts = any(isinstance(m, dict) for m in members)
         if has_dicts:
-            david_data, mariana_data = {}, {}
+            titular_data, conjuge_data = {}, {}
             for m in members:
                 if not isinstance(m, dict):
                     continue
                 nome = m.get("nome", "").lower()
-                if "david" in nome:
-                    david_data = m
-                elif "mariana" in nome:
-                    mariana_data = m
-            return david_data, mariana_data
+                if _TITULAR_KEY in nome:
+                    titular_data = m
+                elif _CONJUGE_KEY in nome:
+                    conjuge_data = m
+            return titular_data, conjuge_data
         # Format 3: membros is list of strings + declarations exist
         # Prefer consolidated path if imoveis_consolidados was generated by e15_consolidate
         if baseline.get("imoveis_consolidados") is not None or baseline.get("patrimonio_por_ano"):
@@ -293,7 +303,7 @@ def _resolve_members(baseline: Dict[str, Any]) -> tuple:
             print("  [WARN] Baseline em formato E1.5 declarations sem chaves consolidadas — usando fallback. Execute: python scripts/e15_consolidate.py")
             return _build_members_from_declarations(baseline)
     if members and isinstance(members, dict):
-        return members.get("david", {}), members.get("mariana", {})
+        return members.get(_TITULAR_KEY, {}), members.get(_CONJUGE_KEY, {})
     # --- v1.5 consolidated format: no "members" key ---
     # Build synthetic member dicts from top-level consolidated lists
     return _build_members_from_consolidated(baseline)
@@ -333,7 +343,7 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
                 _m = _re.search(r'(\d{4})', src.split("/")[-1] if "/" in src else src)
                 if _m:
                     ano = int(_m.group(1))
-        key = "david" if "david" in membro else "mariana" if "mariana" in membro else None
+        key = _TITULAR_KEY if _TITULAR_KEY in membro else _CONJUGE_KEY if _CONJUGE_KEY in membro else None
         if key is None:
             continue
         if key not in member_decls or ano > member_decls[key].get("ano_base", 0):
@@ -379,7 +389,7 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
         }
 
     results = {}
-    for key in ("david", "mariana"):
+    for key in (_TITULAR_KEY, _CONJUGE_KEY):
         decl = member_decls.get(key)
         if not decl:
             results[key] = {}
@@ -390,9 +400,10 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
         # total_dividas not directly in declarations — compute from dívidas if present
         total_dividas = 0.0
         for dv in baseline.get("dividas", []):
-            if key == "david" and "david" in dv.get("proprietario", "").lower():
+            prop_lower = dv.get("proprietario", "").lower()
+            if key == _TITULAR_KEY and _TITULAR_KEY in prop_lower:
                 total_dividas += safe_float(dv.get("saldo_31_12", 0))
-            elif key == "mariana" and "mariana" in dv.get("proprietario", "").lower():
+            elif key == _CONJUGE_KEY and _CONJUGE_KEY in prop_lower:
                 total_dividas += safe_float(dv.get("saldo_31_12", 0))
 
         # Synthetic total from classified bens
@@ -412,8 +423,8 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
             "bens": bens,
         }
 
-    print(f"  [E5.1] Built members from declarations: David R$ {results.get('david', {}).get('total_bens', 0):,.2f}, Mariana R$ {results.get('mariana', {}).get('total_bens', 0):,.2f}")
-    return results.get("david", {}), results.get("mariana", {})
+    print(f"  [E5.1] Built members from declarations: {_TITULAR_KEY} R$ {results.get(_TITULAR_KEY, {}).get('total_bens', 0):,.2f}, {_CONJUGE_KEY} R$ {results.get(_CONJUGE_KEY, {}).get('total_bens', 0):,.2f}")
+    return results.get(_TITULAR_KEY, {}), results.get(_CONJUGE_KEY, {})
 
 
 def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
@@ -439,7 +450,7 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
     pat_ano = baseline.get("patrimonio_por_ano", {})
     if pat_ano:
         anos = sorted(pat_ano.keys())
-        ano_ref = anos[-1] if anos else "2024"
+        ano_ref = anos[-1] if anos else str(date.today().year - 1)
         ano_data = pat_ano.get(ano_ref, {})
         total_bens = safe_float(ano_data.get("total_bens", 0))
         total_dividas = safe_float(ano_data.get("total_dividas", 0))
@@ -448,11 +459,10 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
         resumo = baseline.get("resumo_patrimonial", {})
         calculo = baseline.get("cálculo_patrimonio_liquido", baseline.get("calculo_patrimonio_liquido", {}))
 
-        # Find most recent year in resumo (keys like "31_12_2024")
-        ano_ref = "2024"
+        ano_ref = str(date.today().year - 1)
         for key in sorted(resumo.keys()):
             m = re.search(r'(\d{4})$', key)
-            if m and key != "variacao_2024":
+            if m and not key.startswith("variacao_"):
                 ano_ref = m.group(1)
 
         # Get totals from resumo or calculo
@@ -479,17 +489,15 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
         # Fallback
         return safe_float(item.get("valor", 0))
 
-    def _is_mariana_exclusive(item: dict) -> bool:
-        """Check if item belongs exclusively to Mariana."""
-        # Check single proprietario field
+    def _is_conjuge_exclusive(item: dict) -> bool:
+        """Check if item belongs exclusively to the conjuge (not titular)."""
         prop = item.get("proprietario", "")
-        if isinstance(prop, str) and prop.lower() == "mariana":
+        if isinstance(prop, str) and _CONJUGE_KEY in prop.lower() and _TITULAR_KEY not in prop.lower():
             return True
-        # Check proprietarios list — Mariana only if she's the sole owner
         props = item.get("proprietarios", [])
         if isinstance(props, list):
             names_lower = [p.lower() for p in props]
-            if "mariana" in names_lower and "david" not in names_lower:
+            if _CONJUGE_KEY in names_lower and _TITULAR_KEY not in names_lower:
                 return True
         return False
 
@@ -512,7 +520,7 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
             "tipo": im.get("tipo", ""),
             "valor_31_12_ano_base": val,
         }
-        if _is_mariana_exclusive(im):
+        if _is_conjuge_exclusive(im):
             mariana_imoveis.append(entry)
         else:
             david_imoveis.append(entry)
@@ -534,17 +542,16 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
                 "tipo": inv.get("tipo", ""),
                 "valor_31_12_ano_base": val,
             }
-            if _is_mariana_exclusive(inv):
+            if _is_conjuge_exclusive(inv):
                 mariana_inv.append(entry)
             else:
                 david_inv.append(entry)
     elif isinstance(inv_raw, dict):
-        # E1.5 v2: dict with member keys like "david_2024", "mariana_2024"
         for member_key, categories in inv_raw.items():
             member_lower = member_key.lower()
             if not isinstance(categories, dict):
                 continue
-            is_mariana = "mariana" in member_lower
+            is_mariana = _CONJUGE_KEY in member_lower
             for cat_name, cat_value in categories.items():
                 if cat_name in ("total",):
                     continue  # Skip summary key
@@ -566,7 +573,7 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
     for v in baseline.get("veiculos_consolidados", []):
         val = _resolve_valor(v, ano_ref)
         entry = {"descricao": v.get("descricao", ""), "valor_31_12_ano_base": val}
-        if _is_mariana_exclusive(v):
+        if _is_conjuge_exclusive(v):
             mariana_veiculos.append(entry)
         else:
             david_veiculos.append(entry)
@@ -583,7 +590,7 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
         else:
             val = _resolve_valor(dv, ano_ref)
         prop = dv.get("proprietario", "").lower()
-        if "mariana" in prop and "david" not in prop:
+        if _CONJUGE_KEY in prop and _TITULAR_KEY not in prop:
             mariana_dividas += val
         else:
             david_dividas += val  # Shared debts assigned to david for totaling
@@ -686,6 +693,79 @@ def _investimento_valor(inv) -> float:
     return safe_float(inv)
 
 
+_BANCOS_INVESTIMENTO = {"btg pactual", "rico", "picpay", "binance", "xp"}
+
+
+def _load_caixa_from_e3_saldos() -> Tuple[float, List[Dict[str, Any]]]:
+    """Load cash + foreign currency balances from E3 reconciled statements.
+
+    Classification (per regras_composicao_patrimonial.md):
+      Conta corrente BRL (traditional bank) → Caixa
+      Foreign currency (USD/EUR)            → Moeda Estrangeira (→ BRL via taxas.json)
+      Poupança / PJ / corretora / fatura    → skip (Investimentos or already counted)
+
+    Returns (total_brl, details_list).
+    """
+    if not E3_RECONCILED_DIR.exists():
+        print("  [WARN] E3_reconciled não encontrado — caixa/ME = R$ 0")
+        return 0.0, []
+
+    cambio_usd, cambio_eur = 5.80, 6.35
+    if CONFIG_TAXAS.exists():
+        with open(CONFIG_TAXAS, "r", encoding="utf-8") as f:
+            taxas = json.load(f)
+        cambio_usd = taxas.get("cambio_usd_brl", cambio_usd)
+        cambio_eur = taxas.get("cambio_eur_brl", cambio_eur)
+
+    total_brl = 0.0
+    detalhes: List[Dict[str, Any]] = []
+
+    for fpath in sorted(E3_RECONCILED_DIR.glob("*-3_reconciled.json")):
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            continue
+
+        tipo_conta = (data.get("tipo_conta") or "").lower()
+        banco = (data.get("banco") or "").lower()
+        moeda = (data.get("moeda") or "BRL").upper()
+        saldo = data.get("saldo_final")
+
+        if saldo is None or data.get("saldo_final_unknown", False):
+            continue
+        saldo = safe_float(saldo)
+
+        if "fatura" in tipo_conta:
+            continue
+        if "poupan" in tipo_conta:
+            continue
+        if "pj" in tipo_conta:
+            continue
+        if banco in _BANCOS_INVESTIMENTO:
+            continue
+
+        if moeda == "USD":
+            valor_brl = saldo * cambio_usd
+        elif moeda == "EUR":
+            valor_brl = saldo * cambio_eur
+        else:
+            valor_brl = saldo
+
+        categoria = "moeda_estrangeira" if moeda != "BRL" else "caixa"
+        total_brl += valor_brl
+
+        detalhes.append({
+            "conta": f"{data.get('banco', '?')} ({tipo_conta})",
+            "moeda": moeda,
+            "saldo_original": round(saldo, 2),
+            "valor_brl": round(valor_brl, 2),
+            "tipo": categoria,
+        })
+
+    return round(total_brl, 2), detalhes
+
+
 def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str, Any] = None) -> Dict[str, Any]:
     """Analyze patrimonio from baseline data, optionally enriched with current
     investment positions from investimentos-4_unified.json.
@@ -693,8 +773,9 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
     Strategy:
     - Imóveis and veículos: always from IRPF baseline (updated annually)
     - Investimentos: prefer current positions (E2-llm extracts, monthly) over IRPF
+    - Caixa e moeda estrangeira: from E3 reconciled saldos (CC + FX)
     - When current positions available: patrimonio_bruto is recalculated as
-      imóveis + veículos + investimentos_atuais + contas_bancárias
+      imóveis + veículos + investimentos_atuais + caixa/ME
     """
     print("[E5.1] Analyzing patrimonio...")
 
@@ -706,15 +787,14 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
     david_bens = _get_bens(david)
     mariana_bens = _get_bens(mariana)
 
-    # Residência principal (keyword de family_members.json)
-    _residencia_kw = FAMILY_CONFIG.get("membros", {}).get("david", {}).get(
-        "residencia_principal_keyword", "tasso da silveira"
+    _residencia_kw = FAMILY_CONFIG.get("membros", {}).get(_TITULAR_KEY, {}).get(
+        "residencia_principal_keyword", ""
     ).lower()
     residencia = 0.0
     imoveis_investimento = 0.0
 
     for imovel in david_bens.get("imoveis", []):
-        if _residencia_kw in _imovel_desc(imovel):
+        if _residencia_kw and _residencia_kw in _imovel_desc(imovel):
             residencia = _imovel_valor(imovel)
         else:
             imoveis_investimento += _imovel_valor(imovel)
@@ -750,7 +830,7 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
         unattributed = safe_float(totais.get("", 0))
         if unattributed > 0:
             investimentos_david += unattributed
-            print(f"  [INFO] R$ {unattributed:,.2f} sem membro atribuído → alocado ao titular (david)")
+            print(f"  [INFO] R$ {unattributed:,.2f} sem membro atribuído → alocado ao titular ({_TITULAR_KEY})")
         n_pos = investimentos_atuais.get("n_posicoes", 0)
         data_ref = investimentos_atuais.get("data_consolidacao", "?")
         print(f"  [INFO] Usando posições atuais ({n_pos} posições, ref: {data_ref})")
@@ -780,32 +860,45 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
             investimentos_mariana += safe_float(mariana_bens.get(extra_key, 0))
         print(f"  [INFO] Usando investimentos do IRPF (fallback)")
 
+    # Caixa e moeda estrangeira — from E3 reconciled saldos (CC + FX)
+    if has_current_positions:
+        caixa_moeda_estrangeira, caixa_detalhes = _load_caixa_from_e3_saldos()
+        caixa_moeda_estrangeira = max(0.0, caixa_moeda_estrangeira)
+        if caixa_detalhes:
+            print(f"  [INFO] Caixa e Moeda Estrangeira (E3 saldos): R$ {caixa_moeda_estrangeira:,.2f}")
+            for d in caixa_detalhes:
+                print(f"    • {d['conta']}: {d['moeda']} {d['saldo_original']:,.2f} → R$ {d['valor_brl']:,.2f} ({d['tipo']})")
+        else:
+            print("  [WARN] Nenhum saldo de CC/ME encontrado em E3 — caixa = R$ 0")
+    else:
+        # IRPF fallback: caixa is residual from total_bens
+        caixa_moeda_estrangeira = (
+            total_bens_irpf
+            - residencia
+            - imoveis_investimento
+            - veiculos
+            - investimentos_david
+            - investimentos_mariana
+        )
+        caixa_moeda_estrangeira = max(0.0, caixa_moeda_estrangeira)
+        caixa_detalhes = []
+
     # Compute patrimonio_bruto
     if has_current_positions:
-        # Recalculate: imóveis + veículos from IRPF + investimentos from current positions
         patrimonio_bruto = (
             residencia
             + imoveis_investimento
             + veiculos
             + investimentos_david
             + investimentos_mariana
+            + caixa_moeda_estrangeira
         )
-        print(f"  [INFO] Patrimônio recalculado com fontes mistas: R$ {patrimonio_bruto:,.2f} (IRPF imóveis+veículos + posições atuais)")
+        print(f"  [INFO] Patrimônio recalculado com fontes mistas: R$ {patrimonio_bruto:,.2f}")
+        print(f"         (IRPF imóveis+veículos + posições atuais + E3 caixa/ME)")
     else:
         patrimonio_bruto = total_bens_irpf
 
     patrimonio_liquido = patrimonio_bruto - total_dividas
-
-    # Caixa e moeda estrangeira (RESIDUAL)
-    caixa_moeda_estrangeira = (
-        patrimonio_bruto
-        - residencia
-        - imoveis_investimento
-        - veiculos
-        - investimentos_david
-        - investimentos_mariana
-    )
-    caixa_moeda_estrangeira = max(0.0, caixa_moeda_estrangeira)
 
     # Investível
     investivel = patrimonio_bruto - residencia - veiculos
@@ -817,8 +910,8 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
     composicao = [
         {"categoria": "Residência", "valor": residencia},
         {"categoria": "Imóveis Investimento", "valor": imoveis_investimento},
-        {"categoria": "Investimentos David", "valor": investimentos_david},
-        {"categoria": "Investimentos Mariana", "valor": investimentos_mariana},
+        {"categoria": f"Investimentos {_TITULAR_NOME}", "valor": investimentos_david},
+        {"categoria": f"Investimentos {_CONJUGE_NOME}", "valor": investimentos_mariana},
         {"categoria": "Caixa e Moeda Estrangeira", "valor": caixa_moeda_estrangeira},
         {"categoria": "Veículos", "valor": veiculos},
     ]
@@ -839,6 +932,7 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
         "investimentos_david": round(investimentos_david, 2),
         "investimentos_mariana": round(investimentos_mariana, 2),
         "caixa_moeda_estrangeira": round(caixa_moeda_estrangeira, 2),
+        "caixa_detalhes": caixa_detalhes if has_current_positions else [],
         "investivel": round(investivel, 2),
         "veiculos": round(veiculos, 2),
         "composicao": composicao,
@@ -876,7 +970,7 @@ def analyze_goals(patrimonio: Dict[str, Any]) -> Dict[str, Any]:
     # Load from goals.json with hardcoded fallback
     _if_cfg = GOALS_CONFIG.get("independencia_financeira", {})
     _aportes_cfg = GOALS_CONFIG.get("aportes", {})
-    aporte_mensal = safe_float(_aportes_cfg.get("meta_aporte_mensal", 20000))
+    aporte_mensal = safe_float(_aportes_cfg.get("meta_aporte_mensal", 0))
     retorno_real_anual = safe_float(_if_cfg.get("retorno_real_anual_pct", 6.0)) / 100.0
 
     r = (1 + retorno_real_anual) ** (1 / 12) - 1  # taxa mensal equivalente
@@ -1077,6 +1171,20 @@ def analyze_fluxo_caixa(
     print(f"         Despesa total 12m: R$ {despesa_12m_total:,.2f}")
     print(f"         Fluxo líquido 12m: R$ {fluxo_12m_liquido:,.2f}")
 
+    # por_fonte_detalhado: per-origin totals over the 12-month window (for receita_bar chart)
+    por_fonte_detalhado_raw: dict[str, float] = {}
+    for mes in meses_12m:
+        mes_rec = receita_por_mes.get(mes, {})
+        for origem, valor in mes_rec.items():
+            if origem == "_total":
+                continue
+            v = safe_float(valor)
+            if v > 0:
+                por_fonte_detalhado_raw[origem] = por_fonte_detalhado_raw.get(origem, 0.0) + v
+    por_fonte_detalhado = dict(
+        sorted(por_fonte_detalhado_raw.items(), key=lambda x: x[1], reverse=True)
+    )
+
     return {
         "receita_total": round(receita_total, 2),
         "receita_recorrente": round(receita_recorrente, 2),
@@ -1086,6 +1194,7 @@ def analyze_fluxo_caixa(
         "despesa_mensal_media": round(despesa_mensal_media, 2),
         "fluxo_liquido": round(fluxo_liquido, 2),
         "por_fonte": {k: round(v, 2) for k, v in por_fonte.items()},
+        "por_fonte_detalhado": {k: round(v, 2) for k, v in por_fonte_detalhado.items()},
         "despesas_por_categoria": {k: round(v, 2) for k, v in despesas_por_categoria.items()},
         "tabela_receitas": tabela_receitas,
         "receita_despesa_mensal_detalhado": {
@@ -1437,12 +1546,11 @@ def analyze_investimentos_classes(baseline: Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(contas_m, (int, float)):
         classes["Contas Bancárias"] += safe_float(contas_m)
 
-    # Add imoveis investimento (excluindo residência principal)
-    _residencia_kw = FAMILY_CONFIG.get("membros", {}).get("david", {}).get(
-        "residencia_principal_keyword", "tasso da silveira"
+    _residencia_kw2 = FAMILY_CONFIG.get("membros", {}).get(_TITULAR_KEY, {}).get(
+        "residencia_principal_keyword", ""
     ).lower()
     for imovel in david_bens.get("imoveis", []):
-        if _residencia_kw not in _imovel_desc(imovel):
+        if not _residencia_kw2 or _residencia_kw2 not in _imovel_desc(imovel):
             classes["Imóveis Investimento"] += _imovel_valor(imovel)
     for imovel in mariana_bens.get("imoveis", []):
         classes["Imóveis Investimento"] += _imovel_valor(imovel)
@@ -1471,7 +1579,7 @@ def analyze_endividamento(patrimonio: Dict[str, Any], baseline: Dict[str, Any]) 
 
     dividas_lista = []
     # Extract dividas from baseline members
-    for member, nome in [(david, "David"), (mariana, "Mariana")]:
+    for member, nome in [(david, _TITULAR_NOME), (mariana, _CONJUGE_NOME)]:
         divida_val = safe_float(member.get("total_dividas", member.get("dividas", 0)))
         if divida_val > 0:
             dividas_lista.append({
@@ -1481,6 +1589,7 @@ def analyze_endividamento(patrimonio: Dict[str, Any], baseline: Dict[str, Any]) 
                 "taxa_juros": "N/D",
             })
 
+    detalhe_parts = [d["descricao"] for d in dividas_lista]
     return {
         "total_dividas": patrimonio["dividas"],
         "percentual_patrimonio": round(
@@ -1488,7 +1597,7 @@ def analyze_endividamento(patrimonio: Dict[str, Any], baseline: Dict[str, Any]) 
             2
         ),
         "dividas": dividas_lista,
-        "detalhe": "Financiamento imobiliário (Itaú)",
+        "detalhe": "; ".join(detalhe_parts) if detalhe_parts else "Sem dívidas identificadas",
     }
 
 
@@ -1670,6 +1779,90 @@ def parse_tarefas_md() -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
     return tarefas, tarefas_status
 
 
+def parse_milhas_md() -> Dict[str, Any]:
+    """Parse config/milhas.md into structured programa_milhas data.
+
+    Returns dict with:
+      - programas: [{programa, titular, saldo_pontos, custo_medio_ponto_brl,
+                     valor_estimado_brl, economia_periodo_brl, resgates}]
+      - total_valor_estimado_brl, total_economia_periodo_brl, total_pontos_resgatados
+    """
+    print("[E5.15] Parsing config/milhas.md...")
+
+    if not CONFIG_MILHAS.exists():
+        print("  ⚠ config/milhas.md not found — milhas card will be empty")
+        return {}
+
+    text = CONFIG_MILHAS.read_text(encoding="utf-8")
+
+    programas = []
+    current_prog = None
+
+    for line in text.split("\n"):
+        stripped = line.strip()
+
+        # Detect program headers: ### Livelo — David
+        if stripped.startswith("### ") and "—" in stripped:
+            if current_prog is not None:
+                programas.append(current_prog)
+            parts = stripped[4:].split("—")
+            programa_nome = parts[0].strip()
+            titular = parts[1].strip() if len(parts) > 1 else ""
+            current_prog = {
+                "programa": programa_nome,
+                "titular": titular,
+                "saldo_pontos": 0,
+                "custo_medio_ponto_brl": 0.0,
+                "valor_estimado_brl": 0.0,
+                "economia_periodo_brl": 0.0,
+                "resgates": [],
+            }
+            continue
+
+        if current_prog is None:
+            continue
+
+        # Parse table rows: | campo | valor |
+        if stripped.startswith("|") and "---" not in stripped and "Campo" not in stripped:
+            cells = [c.strip() for c in stripped.split("|")]
+            if len(cells) >= 3:
+                key = cells[1].lower().replace(" ", "_")
+                val_str = cells[2]
+                try:
+                    val = float(val_str)
+                except (ValueError, TypeError):
+                    continue
+                if key in ("saldo_pontos", "custo_medio_ponto_brl", "valor_estimado_brl"):
+                    current_prog[key] = val
+
+    if current_prog is not None:
+        programas.append(current_prog)
+
+    display_programas = [p for p in programas if p["saldo_pontos"] > 0 or p["valor_estimado_brl"] > 0]
+    registered_names = [f'{p["programa"]} ({p["titular"]})' for p in programas]
+
+    total_valor = sum(p["valor_estimado_brl"] for p in display_programas)
+    total_economia = sum(p["economia_periodo_brl"] for p in display_programas)
+    total_resgatados = sum(
+        sum(r.get("pontos_usados", 0) for r in p.get("resgates", []))
+        for p in display_programas
+    )
+
+    result = {
+        "programas": display_programas,
+        "programas_registrados": registered_names,
+        "total_valor_estimado_brl": total_valor,
+        "total_economia_periodo_brl": total_economia,
+        "total_pontos_resgatados": total_resgatados,
+    }
+
+    print(f"  ✓ Parsed {len(display_programas)} programa(s) de milhas com saldo ({len(programas)} registrados)")
+    for p in display_programas:
+        print(f"    {p['programa']} ({p['titular']}): {p['saldo_pontos']:,.0f} pts, est. R$ {p['valor_estimado_brl']:,.2f}")
+
+    return result
+
+
 def analyze_pontos_urgentes(ratios: Dict[str, Any], reserva: Dict[str, Any], patrimonio: Dict[str, Any]) -> List[Dict[str, str]]:
     """Generate urgent action points based on real metrics."""
     print("[E5.11] Identifying pontos urgentes...")
@@ -1719,29 +1912,102 @@ def analyze_pontos_urgentes(ratios: Dict[str, Any], reserva: Dict[str, Any], pat
     return urgentes
 
 
-def analyze_consumo_consciente(fluxo: Dict[str, Any]) -> Dict[str, Any]:
-    """Analyze top spending items above threshold from scoring.json."""
+def analyze_consumo_consciente(fluxo: Dict[str, Any], despesas: Dict[str, Any]) -> Dict[str, Any]:
+    """Identify large one-off (pontual) expenses per manual_operacao.md schema.
+
+    Scans individual transactions from despesas-4_unified.json,
+    filters out recurrent categories, keeps items >= threshold,
+    and builds canonical 'itens' schema with summary metrics.
+    """
     print("[E5.12] Analyzing consumo consciente...")
 
     _alertas_cfg = SCORING_CONFIG.get("thresholds_alertas", {})
     _consumo_min = safe_float(_alertas_cfg.get("consumo_consciente_min", 2000))
 
-    despesas_por_cat = fluxo["despesas_por_categoria"]
-    top_gastos = [
-        {"categoria": k, "valor": round(v, 2)}
-        for k, v in despesas_por_cat.items()
-        if v >= _consumo_min
-    ]
-    top_gastos.sort(key=lambda x: x["valor"], reverse=True)
+    RECURRENT_CATEGORIES = {
+        "moradia", "financiamentos", "seguros", "assinaturas",
+        "impostos", "servicos_domesticos",
+    }
+
+    dados = despesas.get("dados", {})
+    pontual_candidates = []
+
+    for cat, transacoes in dados.items():
+        if cat in RECURRENT_CATEGORIES:
+            continue
+        if not isinstance(transacoes, list):
+            continue
+        for txn in transacoes:
+            valor = safe_float(txn.get("valor", 0))
+            if valor >= _consumo_min:
+                mes = txn.get("data", "")[:7]
+                banco = txn.get("banco", "")
+                tipo_conta = txn.get("tipo_conta", "")
+                conta_cartao = f"{banco} ({tipo_conta})" if tipo_conta else banco
+
+                pontual_candidates.append({
+                    "descricao": txn.get("descricao", "N/D"),
+                    "conta_cartao": conta_cartao,
+                    "mes": mes,
+                    "valor": round(valor, 2),
+                    "categoria": cat,
+                    "observacao": "",
+                })
+
+    pontual_candidates.sort(key=lambda x: x["valor"], reverse=True)
+    total_pontuais = round(sum(c["valor"] for c in pontual_candidates), 2)
+    itens = pontual_candidates
+
+    _aportes_cfg = GOALS_CONFIG.get("aportes", {})
+    aporte_mensal = safe_float(_aportes_cfg.get("meta_aporte_mensal", 0))
+    equivalente_meses_aporte = round(total_pontuais / aporte_mensal, 1) if aporte_mensal > 0 else 0.0
+
+    j12m = fluxo.get("janela_12m", {})
+    if j12m:
+        receita_rec_mensal = safe_float(j12m.get("receita_recorrente_mensal", 0))
+        despesa_mensal_media = safe_float(j12m.get("despesa_mensal_media", 0))
+        n_meses = safe_float(j12m.get("n_meses", 12))
+    else:
+        receita_rec_mensal = safe_float(fluxo.get("receita_recorrente_mensal", 0))
+        despesa_mensal_media = safe_float(fluxo.get("despesa_mensal_media", 0))
+        n_meses = safe_float(fluxo.get("num_months", 12))
+
+    pontual_mensal = total_pontuais / n_meses if n_meses > 0 else 0
+    despesas_recorrentes_mensal = despesa_mensal_media - pontual_mensal
+    folga_mensal = round(receita_rec_mensal - despesas_recorrentes_mensal, 2)
+    folga_pct = round((folga_mensal / receita_rec_mensal * 100) if receita_rec_mensal > 0 else 0, 1)
+    teto_sugerido = round(despesas_recorrentes_mensal * 1.15, 2)
+
+    if itens:
+        analise = (
+            f"Identificados {len(pontual_candidates)} gastos pontuais ≥ R$ {_consumo_min:,.0f} no período. "
+            f"O total de R$ {total_pontuais:,.2f} equivale a {equivalente_meses_aporte:.1f} meses de aporte."
+        )
+    else:
+        analise = (
+            f"Nenhum gasto pontual relevante ≥ R$ {_consumo_min:,.0f} identificado no período — "
+            "padrão de consumo dentro dos limites recorrentes."
+        )
+
+    print(f"  ✓ Pontual candidates: {len(pontual_candidates)}, total: R$ {total_pontuais:,.2f}")
 
     return {
-        "top_gastos": top_gastos[:5],
-        "total_top_5": round(sum(g["valor"] for g in top_gastos[:5]), 2),
+        "itens": itens,
+        "total_pontuais": total_pontuais,
+        "equivalente_meses_aporte": equivalente_meses_aporte,
+        "folga_mensal": folga_mensal,
+        "folga_pct": folga_pct,
+        "teto_sugerido": teto_sugerido,
+        "analise": analise,
     }
 
 
 def analyze_diagnostico_comportamental(fluxo: Dict[str, Any], ratios: Dict[str, Any]) -> List[Dict[str, str]]:
-    """Generate behavioral diagnostics from financial data."""
+    """Generate behavioral diagnostics from financial data.
+
+    Uses janela_12m (12-month rolling window) consistently for all checks,
+    matching the same window used by ratios/score calculations.
+    """
     print("[E5.13] Analyzing comportamento...")
 
     diagnosticos = []
@@ -1750,23 +2016,26 @@ def analyze_diagnostico_comportamental(fluxo: Dict[str, Any], ratios: Dict[str, 
     _one_time_alerta = safe_float(_alertas_cfg.get("receita_one_time_alerta_pct", 30))
 
     taxa_poup = safe_float(ratios.get("taxa_poupanca_recorrente_pct", 0))
+    _taxa_str = f"{taxa_poup:.1f}".replace(".", ",")
+    _ref_str = f"{_poup_ref:.0f}"
     if taxa_poup > _poup_ref:
         diagnosticos.append({
             "padrao": "Disciplina de poupança",
-            "evidencia": f"Taxa de poupança recorrente de {taxa_poup:.1f}% — acima da referência de {_poup_ref:.0f}%",
+            "evidencia": f"Taxa de poupança recorrente de {_taxa_str}% — acima da referência de {_ref_str}%",
             "mudanca_sugerida": "Manter e automatizar aportes mensais",
         })
     elif taxa_poup > 0:
         diagnosticos.append({
             "padrao": "Poupança abaixo do ideal",
-            "evidencia": f"Taxa de {taxa_poup:.1f}% — referência mínima: {_poup_ref:.0f}%",
+            "evidencia": f"Taxa de {_taxa_str}% — referência mínima: {_ref_str}%",
             "mudanca_sugerida": "Revisar despesas variáveis e aumentar aporte",
         })
 
-    despesa_total = safe_float(fluxo.get("despesa_total", 0))
-    receita_total = safe_float(fluxo.get("receita_total", 0))
+    j12m = fluxo.get("janela_12m", {})
+    receita_total = safe_float(j12m.get("receita_total", 0)) if j12m else safe_float(fluxo.get("receita_total", 0))
+    receita_one_time = safe_float(j12m.get("receita_one_time", 0)) if j12m else safe_float(fluxo.get("receita_one_time", 0))
     if receita_total > 0:
-        one_time_pct = safe_float(fluxo.get("receita_one_time", 0)) / receita_total * 100
+        one_time_pct = receita_one_time / receita_total * 100
         if one_time_pct > _one_time_alerta:
             diagnosticos.append({
                 "padrao": "Alta dependência de receita pontual",
@@ -1902,12 +2171,15 @@ def main():
 
     pontos_fortes = analyze_pontos_fortes(score, ratios)
     pontos_urgentes = analyze_pontos_urgentes(ratios, reserva, patrimonio)
-    consumo = analyze_consumo_consciente(fluxo)
+    consumo = analyze_consumo_consciente(fluxo, despesas)
     diagnostico = analyze_diagnostico_comportamental(fluxo, ratios)
     cerbasi = analyze_equilibrio_cerbasi(fluxo)
 
     # Parse tarefas.md (curated backlog) — falls back to pontos_urgentes if file missing
     tarefas_parsed, tarefas_status_parsed = parse_tarefas_md()
+
+    # Parse milhas.md (manual input for miles programs)
+    programa_milhas = parse_milhas_md()
 
     # ========================================================================
     # BUILD OUTPUT JSON
@@ -1941,6 +2213,7 @@ def main():
         ] + ([f"Rentabilidade: {ratios['rentabilidade_pct']}"] if ratios['rentabilidade_pct'] == 'N/D' else []),
         "consumo_consciente": consumo,
         "diagnostico_comportamental": diagnostico,
+        "programa_milhas": programa_milhas,
     }
 
     # PRESERVE narrativas from existing output (E5.N will add these later)

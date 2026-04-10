@@ -73,20 +73,38 @@
   },
   "banco_membro": {
     "_comment": "Mapeamento instituição → membro titular da conta. Usado pelo E4 para atribuir investimentos sem campo membro explícito.",
-    "btgpactual": "david",
+    "btgpactual": "mariana",
     "rico": "david",
     "itau": "david",
     "c6bank": "david",
     "santander": "david",
     "binance": "david",
-    "wise": "david"
+    "wise": "david",
+    "bradesco": "mariana"
   },
+  "titular": "david",
+
+  "imovel_match_keywords": [
+    "tasso", "silveira", "calixto", "benedito", "freire", "major",
+    "leonardo", "vinci", "gisele", "capanema", "living",
+    "concept", "wish", "campinas"
+  ],
+
+  "output_filename_pattern": "relatorio_financeiro_ferreira_campos_{date}.html",
+
   "transferencias_internas": {
     "patterns_pix": [
       "PIX TRANSF DAVID",
       "PIX TRANSF MARIANA",
       "PIX ENVIADA - DAVID",
       "PIX ENVIADA - MARIANA"
+    ],
+    "patterns_bank_specific": {
+      "c6bank": ["Pagamento"],
+      "_comment": "Patterns que só identificam transferência interna no contexto de um banco específico"
+    },
+    "patterns_global": [
+      "TED D HBANK"
     ],
     "recipients": [
       "DAVID ROBERT CAMARGO",

@@ -79,7 +79,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 
 **E5.3 — Independência Financeira (→ seção 7 do relatório)**
 - **Objetivo:** Número da IF, gap, prazo em 3 cenários.
-- **Inputs:** `patrimonio-4_unified.json`, `life_plan_goals.md`
+- **Inputs:** `patrimonio-4_unified.json`, `config/goals.json`
 - **Outputs:** Bloco `independencia_financeira` no E5 JSON — Projeção 3 cenários, renda passiva 2035 por 8 fontes com disclaimer, card TRS didático.
 - **Terminologia:** Usar "Independência Financeira" (não "IF") nos títulos.
 
@@ -95,7 +95,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 
 **E5.6 — Plano EUA (→ seções 4-6 do relatório: Imóveis + F1/F2 + Green Card)**
 - **Objetivo:** Projetar custos e sobras para fases EUA, yield imóveis, proteção patrimonial.
-- **Inputs:** `patrimonio-4_unified.json`, `life_plan_goals.md`, `decisions.md`
+- **Inputs:** `patrimonio-4_unified.json`, `config/goals.json`, `decisions.md`
 - **Outputs:** Bloco `plano_eua` no E5 JSON — Custos F1/F2, cenários cambiais, 5 riscos proteção, yield imóveis vs CDI, NCLEX roadmap.
 
 **E5.7 — Riscos e Seguros (→ seção 9 do relatório)**
@@ -110,7 +110,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 
 ### E5.N — Narrativas
 - **Objetivo:** Gerar todos os textos analíticos e narrativos (perfil, summaries, contexts/conclusions de gráficos).
-- **Inputs:** `analise_financeira-5_analysis.json` (dados completos do E5), `members-1c_enriched.md`, `life_plan_goals.md`
+- **Inputs:** `analise_financeira-5_analysis.json` (dados completos do E5), `members-1c_enriched.md`, `config/goals.json`
 - **Outputs:** Chave `narrativas` adicionada ao E5 JSON com `perfil_familia`, `summaries`, `charts`.
 
 ### E6 — Relatório HTML (Determinístico)
@@ -157,13 +157,13 @@ Salvar componentes individuais em `score.componentes[]` para transparência. Ver
 
 ## PREMISSAS ECONÔMICAS
 
-| Variável | Pessimista | Realista (base) | Otimista | Atual (mar/2026) |
+| Variável | Pessimista | Realista (base) | Otimista | Atual (abr/2026) |
 |---|---|---|---|---|
-| Inflação (IPCA) | 6,0% | 4,5% | 3,5% | ~5% |
+| Inflação (IPCA) | 6,0% | 4,5% | 3,5% | 5,48% |
 | Retorno real carteira | 4,0% | 6,0% | 8,0% | ~6,0% |
-| CDI / Selic | 11,0% | 12,0% | 13,5% | 13,75% |
-| Câmbio BRL/USD | R$ 7,50 | R$ 5,88 | R$ 4,50 | R$ 5,88 |
-| Valorização imóveis SP | 3% | 5% | 8% | — |
+| CDI / Selic | 8,0% | 14,15% | 15,0% | 14,25% |
+| Câmbio BRL/USD | R$ 7,50 | R$ 5,80 | R$ 4,50 | R$ 5,80 |
+| Valorização imóveis SP | 2% | 5% | 8% | — |
 | TRS (Taxa de Retirada Segura) | 3,5% | 4,0% | 5,0% | — |
 
 ---

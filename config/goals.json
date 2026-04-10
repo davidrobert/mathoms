@@ -20,8 +20,8 @@
     "trs_pct": 5.0,
     "renda_passiva_meta_mensal": 30000,
     "retorno_real_anual_pct": 6.0,
-    "taxa_retirada_segura_pct": 4.0,
-    "_nota_taxa_retirada": "Regra dos 4% sobre patrimônio investível para estimar renda passiva mensal (investivel * 4% / 12)"
+    "taxa_retirada_segura_classica_pct": 4.0,
+    "_nota_taxa_retirada": "TRS operacional = trs_pct (5%). A 'regra dos 4%' clássica (Trinity Study) é referência acadêmica conservadora. Cálculo IF: investivel * trs_pct / 12."
   },
 
   "fase_f1f2": {
@@ -57,9 +57,10 @@
   },
 
   "tributario": {
-    "das_mensal_estimado": 5000,
+    "_note_das": "DAS agora é calculado automaticamente: receita PJ anualizada × alíquota de parametros_fiscais.json",
     "contador_mensal": 390,
     "contador_nome": "AccountTech",
+    "contador_canal_pagamento": "via C6 PJ",
     "regime_obs": "Simples Nacional Anexo V com fator R favorável",
     "holding_avaliacao_prazo": "T4/2026"
   },
@@ -86,11 +87,14 @@
   },
 
   "riscos_prioritarios": [
+    {"nome": "Falta de seguro de vida/invalidez", "prob": "alta", "impacto": "crítico"},
     {"nome": "FBAR/FATCA compliance", "prob": "alta", "impacto": "alto"},
     {"nome": "Estate Tax non-resident", "prob": "média", "impacto": "alto"},
-    {"nome": "Falta de seguro de vida", "prob": "alta", "impacto": "crítico"},
-    {"nome": "Tributação PFIC sobre fundos brasileiros", "prob": "média", "impacto": "médio"},
-    {"nome": "Dupla tributação BR-EUA", "prob": "média", "impacto": "médio"}
+    {"nome": "Tributação PFIC sobre fundos BR", "prob": "média", "impacto": "alto"},
+    {"nome": "Concentração PJ (cliente único)", "prob": "média", "impacto": "alto"},
+    {"nome": "Dupla tributação BR-EUA", "prob": "média", "impacto": "médio"},
+    {"nome": "Iliquidez patrimonial (imóveis 57%)", "prob": "alta", "impacto": "médio"},
+    {"nome": "Exposição cambial insuficiente", "prob": "alta", "impacto": "médio"}
   ],
 
   "viagens": {
@@ -120,5 +124,13 @@
     "NCLEX/OET para Mariana",
     "Consultar CPA expatriado para obrigações EUA",
     "Advogado sucessório para planejamento de herança em cenário BR-EUA"
+  ],
+
+  "top5_decisoes": [
+    {"label": "Aportes R$ 20k/mês",        "impacto_1a": 240000,  "impacto_10a": 3300000},
+    {"label": "Seguro vida term",           "impacto_1a": 3000000, "impacto_10a": 5000000},
+    {"label": "NCLEX/OET Mariana",          "impacto_1a": 280000,  "impacto_10a": 2800000},
+    {"label": "CPA expatriado (EUA)",       "impacto_1a": 100000,  "impacto_10a": 500000},
+    {"label": "Advogado sucessório BR-EUA", "impacto_1a": 50000,   "impacto_10a": 1000000}
   ]
 }

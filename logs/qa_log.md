@@ -1,7 +1,7 @@
 # QA Log — E4 Categorização
-## Execução: 2026-04-09 18:00
+## Execução: 2026-04-09 18:14
 
-### Transações não identificadas: 594
+### Transações não identificadas: 583
 
 | Data | Descrição | Valor | Banco | Fonte |
 |---|---|---|---|---|
@@ -56,7 +56,6 @@
 | 2023-12-04 | PAG*EXPRESSONUTRI | R$4.50 | C6 Bank | faturacarbon |
 | 2023-12-04 | PAG*EXPRESSONUTRI | R$4.50 | C6 Bank | faturacarbon |
 | 2023-12-05 | RAPPI  *RAPPI * BRASI | R$362.35 | C6 Bank | faturacarbon |
-| 2023-12-05 | RAPPI  *RAPPI * BRASI | R$17.58 | C6 Bank | faturacarbon |
 | 2023-12-06 | PAG*GESSICAMARIAFEITO | R$21.00 | C6 Bank | faturacarbon |
 | 2023-12-07 | MOBILEPAG TIT 4700148270 | R$171.42 | Itaú | extratoconta |
 | 2023-12-07 | ARMAZEN 72 | R$59.00 | C6 Bank | faturacarbon |
@@ -66,7 +65,6 @@
 | 2023-12-08 | LATICINIOS CAMANDUCAIA | R$111.56 | C6 Bank | faturacarbon |
 | 2023-12-08 | PAG*MEGAVESTCASA | R$161.80 | C6 Bank | faturacarbon |
 | 2023-12-09 | CASTROPIL EMBALAGENS | R$9.60 | C6 Bank | faturacarbon |
-| 2023-12-09 | FIBRA POSTO | R$28.63 | C6 Bank | faturacarbon |
 | 2023-12-09 | REI .DO MDF -25 | R$56.00 | C6 Bank | faturacarbon |
 | 2023-12-09 | ESTAPAR F DE ABREU | R$21.00 | C6 Bank | faturacarbon |
 | 2023-12-09 | PAROQUIA NOSSA SENHORA | R$16.00 | C6 Bank | faturacarbon |
@@ -109,8 +107,6 @@
 | 2023-12-25 | PAG*A2FSERVICOSDE | R$20.00 | C6 Bank | faturacarbon |
 | 2023-12-26 | PAG*MERCADINHOBONANZA | R$180.30 | C6 Bank | faturacarbon |
 | 2023-12-26 | SMILES FIDEL*TXAEMBARQ | R$497.19 | C6 Bank | faturacarbon |
-| 2023-12-26 | ADMINISTRADORA GERAL D | R$16.00 | C6 Bank | faturacarbon |
-| 2023-12-26 | ADMINISTRADORA GERAL D | R$16.00 | C6 Bank | faturacarbon |
 | 2023-12-27 | ANANDA SOUZA DA COSTA | R$2,012.50 | C6 Bank | faturacarbon |
 | 2023-12-27 | ENG ARMANDO PEREIRA | R$41.60 | C6 Bank | faturacarbon |
 | 2023-12-28 | RODOSNACK | R$32.60 | C6 Bank | faturacarbon |
@@ -219,7 +215,6 @@
 | 2024-02-22 | RA MOTA ESTACIONAMENTO | R$30.00 | C6 Bank | faturacarbon |
 | 2024-02-23 | BARBEARIACLASSEA | R$85.00 | C6 Bank | faturacarbon |
 | 2024-02-23 | RAPPI  *RAPPI * BRASI | R$672.09 | C6 Bank | faturacarbon |
-| 2024-02-23 | RAPPI  *RAPPI * BRASI | R$68.71 | C6 Bank | faturacarbon |
 | 2024-02-23 | REDE DUQUE | R$329.03 | C6 Bank | faturacarbon |
 | 2024-02-23 | VAI DE PIZZA | R$60.00 | C6 Bank | faturacarbon |
 | 2024-02-25 | CASA DO NORTE TAUAZINH | R$193.00 | C6 Bank | faturacarbon |
@@ -480,7 +475,6 @@
 | 2025-06-26 | Transfe Pix Des: Floricultura Sempre v 26/06 | R$122.00 | Bradesco | extratoconta |
 | 2025-07-07 | PAGAMENTO EFETUADO | R$154.57 | Santander | faturaunique |
 | 2025-08-06 | PAGAMENTO EFETUADO | R$59.00 | Santander | faturaunique |
-| 2025-08-19 | DESC MASTERCARDWALMART | R$17.10 | C6 Bank | faturacarbon |
 | 2025-08-28 | EMISSAO DE CDB | R$2,404.00 | C6 Bank | extratoconta |
 | 2025-09-08 | PAGAMENTO EFETUADO | R$1,872.43 | Santander | faturaunique |
 | 2025-09-10 | Pix enviado para JULIANA ARGONDIZO DE ROSIS DINATO — TRANSF ENVIADA PIX | R$500.00 | C6 Bank | extratoconta |
@@ -529,20 +523,15 @@
 | 2025-12-01 | Pix Qrcode Din Des: Moda Mundial Brasil p 01/12 | R$37.56 | Bradesco | extratoconta |
 | 2025-12-06 | COR | R$84.90 | C6 Bank | faturacarbon |
 | 2025-12-08 | PAGAMENTO EFETUADO | R$59.00 | Santander | faturaunique |
-| 2025-12-08 | Pix Qrcode Din Des: Magalupay 06/12 | R$404.16 | Bradesco | extratoconta |
 | 2025-12-08 | ALEX MARTINS DE MACEDO | R$39.00 | C6 Bank | faturacarbon |
-| 2025-12-11 | FIBRA | R$60.00 | C6 Bank | faturacarbon |
-| 2025-12-11 | FIBRA | R$28.00 | C6 Bank | faturacarbon |
 | 2025-12-12 | Pix enviado para MIQUEIAS FERREIRA DA SILVA — TRANSF ENVIADA PIX C | R$20.00 | C6 Bank | extratoconta |
 | 2025-12-12 | BRUNOMARTINS | R$67.00 | C6 Bank | faturacarbon |
 | 2025-12-14 | SANDRA REGINA ORUE DA | R$115.50 | C6 Bank | faturacarbon |
 | 2025-12-15 | Transfe Pix Des: Maria Gizelia Dos San 15/12 | R$35.00 | Bradesco | extratoconta |
 | 2025-12-15 | J S THENORIO | R$420.00 | C6 Bank | faturacarbon |
-| 2025-12-16 | Pix enviado para SHEILA APARECIDA DA ROCHA DE CAMARGO — TRANSF ENVIADA PIX | R$100.00 | C6 Bank | extratoconta |
 | 2025-12-16 | Transfe Pix Des: Aline Lopes Oliveira 16/12 | R$42.13 | Bradesco | extratoconta |
 | 2025-12-18 | Transfe Pix Des: Hugo Dos Santos 18/12 | R$10.00 | Bradesco | extratoconta |
 | 2025-12-20 | Pix enviado para Anderson Sampaio de Vasconcelos — TRANSF ENVIADA PIX | R$20.00 | C6 Bank | extratoconta |
-| 2025-12-21 | ADMINISTRADORA | R$27.00 | C6 Bank | faturacarbon |
 | 2025-12-23 | Transfe Pix Des: Maria Gizelia Dos San 23/12 | R$105.00 | Bradesco | extratoconta |
 | 2025-12-27 | MP *ASCFDISTRIBUI | R$51.60 | C6 Bank | faturacarbon |
 | 2025-12-27 | MP *ASCFDISTRIBUI | R$52.70 | C6 Bank | faturacarbon |
@@ -600,4 +589,7 @@
 | 2026-04-06 | GUIA DE EMPREGADO DOMÉSTICO — Boleto | R$1,153.73 | C6 Bank | extratoconta |
 | 2026-04-06 | GUIA DE EMPREGADO DOMÉSTICO — Boleto | R$175.70 | C6 Bank | extratoconta |
 
-### Taxa: 18.1% ⚠️ ACIMA DA META (<10%)
+### Taxa: 17.9% ⚠️ ACIMA DA META (<10%)
+
+## E3 Temporal Gaps (2026-04-10T08:35:06.567905)
+- ('C6 Bank', 'faturacarbon'): Temporal gap of 357 days between c6bank_faturacarbon_202404-2_extract.json (fim=2024-04-05) and c6bank_faturacarbon_202505-2_extract.json (inicio=2025-03-28)

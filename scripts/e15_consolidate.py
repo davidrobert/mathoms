@@ -33,7 +33,25 @@ from typing import Any, Dict, List, Optional, Tuple
 # ============================================================================
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 E2_DIR = PROJECT_DIR / "processed" / "E2_extracts"
-BASELINE_FILE = E2_DIR / "baseline_patrimonial-1.5_consolidated.json"
+
+def _load_json_config(path: Path) -> dict:
+    if path.exists():
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+def _load_family_config() -> dict:
+    return _load_json_config(PROJECT_DIR / "config" / "family_members.json")
+
+_PIPELINE_CONFIG = _load_json_config(PROJECT_DIR / "config" / "pipeline.json")
+_ARTIFACT_NAMES = _PIPELINE_CONFIG.get("artifact_names", {})
+BASELINE_FILE = E2_DIR / _ARTIFACT_NAMES.get("baseline_patrimonial", "baseline_patrimonial-1.5_consolidated.json")
+
+_FAMILY = _load_family_config()
+_TITULAR = _FAMILY.get("titular", "")
+_MEMBROS = _FAMILY.get("membros", {})
+_MEMBER_KEYS = [k for k in _MEMBROS if not k.startswith("_")]
+_IMOVEL_MATCH_KEYWORDS = _FAMILY.get("imovel_match_keywords", [])
 
 # IRPF grupo → categoria
 GRUPO_MAP = {
@@ -89,16 +107,13 @@ def _match_imovel_xlsx(descricao_irpf: str, imoveis_xlsx: List[dict]) -> Optiona
         score += len(keywords_nome & keywords_desc) * 3
         score += len(keywords_end & keywords_desc) * 2
 
-        # Boost: street name / building name match
-        for kw in ("tasso", "silveira", "calixto", "benedito", "freire", "major",
-                    "leonardo", "vinci", "gisele", "capanema", "living",
-                    "concept", "wish", "campinas"):
+        for kw in _IMOVEL_MATCH_KEYWORDS:
             if kw in desc_lower and (kw in nome or kw in endereco):
                 score += 10
 
         # Cross-match: IRPF building name ↔ XLSX street/nome
-        # E.g., "EDIFICICIO GISELE" in IRPF matches "Rua Major Freire" in XLSX
-        # if both refer to same apt number
+        # E.g., building name in IRPF matches street in XLSX if both
+        # refer to same apt number
         irpf_apt = re.search(r'apt[o]?\s*(\d+)', desc_lower)
         xlsx_apt = re.search(r'apt[o]?\s*(\d+)', (nome + " " + endereco).lower())
         if irpf_apt and xlsx_apt and irpf_apt.group(1) == xlsx_apt.group(1):
@@ -145,13 +160,13 @@ def consolidate(baseline: dict) -> dict:
         membro = decl.get("membro", "").lower()
         ano = decl.get("ano_base", 0)
         all_anos.add(ano)
-        key = "david" if "david" in membro else "mariana" if "mariana" in membro else None
+        key = next((mk for mk in _MEMBER_KEYS if mk in membro), None)
         if key is None:
             continue
         if key not in member_decls or ano > member_decls[key].get("ano_base", 0):
             member_decls[key] = decl
 
-    ano_ref = max(all_anos) if all_anos else 2024
+    ano_ref = max(all_anos) if all_anos else (date.today().year - 1)
     print(f"  [E1.5] ano_ref={ano_ref}, membros={list(member_decls.keys())}")
 
     # =========================================================================
@@ -255,7 +270,7 @@ def consolidate(baseline: dict) -> dict:
             print(f"  [INFO] Imóvel XLSX sem match IRPF: {im.get('nome', '?')} (membro={im.get('membro', '?')})")
             entry = {
                 "descricao": im.get("nome", ""),
-                "proprietario": im.get("membro", "david"),
+                "proprietario": im.get("membro", _TITULAR),
                 "endereco": im.get("endereco", ""),
                 "tipo": "imovel",
                 "valores_31_12": {
@@ -279,7 +294,7 @@ def consolidate(baseline: dict) -> dict:
     for v in veiculos_xlsx:
         veiculos_consolidados.append({
             "descricao": f"{v.get('marca', '')} {v.get('modelo', '')} {v.get('ano', '')}".strip(),
-            "proprietario": v.get("membro", "david"),
+            "proprietario": v.get("membro", _TITULAR),
             "tipo": "veiculo",
             "valores_31_12": {
                 str(ano_ref): safe_float(v.get("valor_aquisicao", 0)),

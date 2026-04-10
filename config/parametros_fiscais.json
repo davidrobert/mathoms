@@ -4,10 +4,11 @@
   "_fonte": "Receita Federal / legislação vigente",
 
   "irpf_tabela_progressiva": {
-    "_comment": "Tabela progressiva anual simplificada IRPF 2024/2025. Faixas em R$ anuais.",
+    "_comment": "Tabela progressiva mensal IRPF 2025/2026. Faixas em R$ anuais. Verificar se houve atualização legislativa.",
     "faixas": [
-      {"limite_anual": 24556.65, "aliquota_pct": 7.5},
-      {"limite_anual": 33919.80, "aliquota_pct": 15.0},
+      {"limite_anual": 26963.20, "aliquota_pct": 0.0},
+      {"limite_anual": 33919.80, "aliquota_pct": 7.5},
+      {"limite_anual": 45012.60, "aliquota_pct": 15.0},
       {"limite_anual": 55976.16, "aliquota_pct": 22.5},
       {"limite_anual": null,     "aliquota_pct": 27.5}
     ]
@@ -21,5 +22,10 @@
   "pgbl": {
     "_comment": "Limite de dedução PGBL sobre renda tributável anual",
     "limite_deducao_pct": 12.0
+  },
+
+  "das_simples": {
+    "_comment": "Alíquota efetiva estimada do DAS (Simples Nacional) sobre faturamento PJ. Varia por faixa; 6% é a estimativa corrente.",
+    "aliquota_efetiva_pct": 6.0
   }
 }

@@ -167,6 +167,20 @@
     }
   },
 
+  "institution_descriptions": [
+    {"nome": "C6 Bank", "tipo": "Banco digital", "uso": "Conta PJ (receita) + conta PF + cartão Carbon + conta global USD/EUR"},
+    {"nome": "Itaú Personnalité", "tipo": "Banco", "uso": "Conta PF David — investimentos RF + recebimento aluguéis"},
+    {"nome": "Santander", "tipo": "Banco", "uso": "Conta PF David — CDBs"},
+    {"nome": "Rico / XP", "tipo": "Corretora", "uso": "David — fundos, ações, FIIs"},
+    {"nome": "BTG Pactual", "tipo": "Corretora", "uso": "Mariana — investimentos RF e RV"},
+    {"nome": "Bradesco", "tipo": "Banco", "uso": "Mariana — CC + poupança (salário CLT)"},
+    {"nome": "PicPay", "tipo": "Conta digital", "uso": "David — RDB liquidez"},
+    {"nome": "Wise", "tipo": "Conta internacional", "uso": "Acumulação USD (spread 0,5-1%)"},
+    {"nome": "Bank of America", "tipo": "Banco EUA", "uso": "Conta dormida — futura residência"},
+    {"nome": "Binance", "tipo": "Exchange crypto", "uso": "Criptomoedas"},
+    {"nome": "QuintoAndar", "tipo": "Gestora de aluguéis", "uso": "Gestão e recebimento dos aluguéis dos imóveis"}
+  ],
+
   "pj_sources": ["arvo", "pj_nao_identificado", "arbitralis", "barte", "brandlovers", "cnry_canary", "learntofly"],
   "non_pj_sources": ["quintoandar"],
 

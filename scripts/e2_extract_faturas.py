@@ -50,7 +50,8 @@ def _load_family_config() -> dict:
     return {}
 
 _FAMILY = _load_family_config()
-_TITULAR = _FAMILY.get("membros", {}).get("david", {})
+_TITULAR_KEY = _FAMILY.get("titular", "")
+_TITULAR = _FAMILY.get("membros", {}).get(_TITULAR_KEY, {})
 
 # ---------------------------------------------------------------------------
 # Config loader
@@ -70,22 +71,14 @@ _LOCALE_CONFIG = _load_json_config(BASE_DIR / "config" / "localization.json", "l
 _INST_CONFIG = _load_json_config(BASE_DIR / "config" / "institutions.json", "institutions.json")
 
 # Meses PT-BR → número (string zero-padded) — from config
-MESES_BR = _LOCALE_CONFIG.get("meses_br_str", {}) or {
-    'jan': '01', 'fev': '02', 'mar': '03', 'abr': '04',
-    'mai': '05', 'jun': '06', 'jul': '07', 'ago': '08',
-    'set': '09', 'out': '10', 'nov': '11', 'dez': '12',
-    'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04',
-    'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
-    'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12',
-}
+MESES_BR = _LOCALE_CONFIG.get("meses_br_str", {})
+if not MESES_BR:
+    print("  [WARN] localization.json 'meses_br_str' não encontrado — parsing de datas em português pode falhar")
 
 # Fatura file patterns recognized by deterministic parsers — from config
-KNOWN_FATURA_PATTERNS = _INST_CONFIG.get("fatura_patterns", {}) or {
-    'faturacarbon': r'c6bank_faturacarbon_(\d{6})',
-    'faturaunique': r'santander_faturaunique_(\d{6})',
-    'faturapaoacucar': r'itau_faturapaoacucar_(\d{6})',
-    'faturaaluguel': r'quintoandar_faturaaluguel\w*_(\d{6})',
-}
+KNOWN_FATURA_PATTERNS = _INST_CONFIG.get("fatura_patterns", {})
+if not KNOWN_FATURA_PATTERNS:
+    print("  [WARN] institutions.json 'fatura_patterns' não encontrado — nenhum parser determinístico de fatura será ativado")
 
 # Cartão vencimentos — from config
 _CARTOES = _INST_CONFIG.get("cartoes", {})
@@ -213,8 +206,8 @@ def parse_c6_carbon_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
       - International purchases have non-zero USD value and cotação
       - Domestic purchases have US$=0, Cotação=0
       - Payments (Inclusao de Pagamento) have negative Valor (em R$)
-      - Multiple cardholders in same invoice (DAVID ROBERT, MARIANA CAMPOS, etc.)
-      - Multiple card finals (5241, 9612, 3175, 3933, 1619)
+      - Multiple cardholders in same invoice (identified via config variantes_nome)
+      - Multiple card finals (identified dynamically from PDF)
     """
     import csv as csv_mod
 
@@ -299,7 +292,7 @@ def parse_c6_carbon_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
             cards_seen[card_key] = 0.0
         cards_seen[card_key] += valor_brl
 
-        # Detect titular from first DAVID ROBERT entry
+        # Detect titular from first cardholder name entry
         if result["titular"] is None and nome_cartao:
             detected = _detect_member_from_card_name(nome_cartao)
             if detected:
@@ -581,10 +574,10 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
             # --- Extract header info ---
             # Titular
-            _c6_regex = _TITULAR.get("regex_nome_fatura", {}).get("c6_carbon", r"DAVID ROBERT\s+CAMARGO(?:\s+FERREIRA\s+CAMPOS)?")
-            m = re.search(_c6_regex, full_text)
+            _c6_regex = _TITULAR.get("regex_nome_fatura", {}).get("c6_carbon", "")
+            m = re.search(_c6_regex, full_text) if _c6_regex else None
             if m:
-                result["titular"] = _TITULAR.get("variantes_nome", ["DAVID ROBERT CAMARGO FERREIRA CAMPOS"])[0]
+                result["titular"] = _TITULAR.get("variantes_nome", [_TITULAR.get("nome_completo", "")])[0]
 
             # Vencimento: "05 de Março" or "Vencimento: 05 de Março"
             m = re.search(r'[Vv]encimento[:\s]+(\d{1,2})\s+de\s+(\w+)', full_text)
@@ -633,7 +626,7 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 re.MULTILINE
             )
 
-            # Card header: "C6 Carbon Virtual Final 5241 - DAVID ROBERT"
+            # Card header: "C6 Carbon Virtual Final XXXX - CARDHOLDER NAME"
             card_pattern = re.compile(
                 r'C6 Carbon\s+(?:Virtual\s+)?Final\s+(\d{4})\s*-\s*(.+?)(?:\s+Cartão|\s+Subtotal)',
                 re.IGNORECASE
@@ -778,8 +771,8 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
             full_text = "\n".join(all_text)
 
             # --- Header ---
-            _unique_regex = _TITULAR.get("regex_nome_fatura", {}).get("santander_unique", r"DAVID ROBERT CAMARGO FERREIR\w*(?:\s+CAMPOS)?")
-            m = re.search(_unique_regex, full_text)
+            _unique_regex = _TITULAR.get("regex_nome_fatura", {}).get("santander_unique", "")
+            m = re.search(_unique_regex, full_text) if _unique_regex else None
             if m:
                 result["titular"] = m.group(0).strip()
 
@@ -834,7 +827,7 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
         # pdfplumber merges left+right columns into single lines, so we need
         # to handle "polluted" lines where right-column text is appended.
         #
-        # Card sections: "DAVID R C DE CAMPOS - 5228 XXXX XXXX 2506"
+        # Card sections: "CARDHOLDER NAME - XXXX XXXX XXXX XXXX"
         # Transactions: "[prefix] DD/MM DESCRIPTION VALUE [USD_VALUE]"
         # Prefix can be "1 " or "□ " from checkbox icons
 
@@ -983,8 +976,8 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
         full_text = "\n".join(all_text)
 
         # --- Header ---
-        _itau_regex = _TITULAR.get("regex_nome_fatura", {}).get("itau_paoacucar", r"(?:Titular\s+)?(DAVID ROBERT CAMARGO DE CAMPOS)")
-        m = re.search(_itau_regex, full_text)
+        _itau_regex = _TITULAR.get("regex_nome_fatura", {}).get("itau_paoacucar", "")
+        m = re.search(_itau_regex, full_text) if _itau_regex else None
         if m:
             result["titular"] = m.group(1)
 
@@ -1077,7 +1070,7 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
             if not (in_lancamentos or in_parceladas):
                 continue
 
-            # Card sub-header: "DAVID R C DE CAMPOS (final 4984)"
+            # Card sub-header: "CARDHOLDER NAME (final XXXX)"
             card_m = re.search(r'([A-Z][\w\s]+)\(final\s+(\d+)\)', line)
             if card_m:
                 current_card = f"{card_m.group(1).strip()} (final {card_m.group(2)})"
@@ -1293,9 +1286,8 @@ def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         result["saldo_atual"] = round(total_compras + total_pagamentos, 2) if result["transacoes"] else None
 
         # Itaú CSV doesn't include cardholder info — default to primary titular
-        # since this card is linked to David's account (Conta 04397-8)
         if not result["titular"]:
-            result["titular"] = _TITULAR.get("variantes_nome", [None])[0]
+            result["titular"] = _TITULAR.get("variantes_nome", [_TITULAR.get("nome_completo")])[0]
 
     except Exception as e:
         log("ERROR", f"  Falha ao processar CSV {filename}: {e}")

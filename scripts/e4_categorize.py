@@ -53,6 +53,11 @@ INTERNAL_TRANSFER_PATTERNS += _family.get("transferencias_internas", {}).get("pa
 
 INTERNAL_TRANSFER_RECIPIENTS = _family.get("transferencias_internas", {}).get("recipients", [])
 
+# Bank-specific patterns (e.g., "Pagamento" only means internal transfer in C6 Bank)
+_BANK_SPECIFIC_PATTERNS = _family.get("transferencias_internas", {}).get("patterns_bank_specific", {})
+# Global patterns that always mean internal transfer regardless of bank
+_GLOBAL_TRANSFER_PATTERNS = _family.get("transferencias_internas", {}).get("patterns_global", [])
+
 # Mapeamento banco→membro para investimentos sem campo membro explícito
 BANCO_MEMBRO = {k: v for k, v in _family.get("banco_membro", {}).items() if k != "_comment"}
 
@@ -129,28 +134,26 @@ def is_internal_transfer(description: str, tipo: Optional[str] = None, banco: st
         if normalize_text(recipient) in norm_desc:
             return True
 
-    # v4.7: Bank-specific patterns (too generic to use globally)
-    # "Pagamento" alone in C6 Bank extrato = credit card bill payment
+    # Bank-specific patterns from config (e.g., "Pagamento" only in C6)
     norm_banco = normalize_text(banco)
-    if "C6" in norm_banco and norm_desc.strip() == normalize_text("Pagamento"):
-        return True
+    for bank_key, patterns in _BANK_SPECIFIC_PATTERNS.items():
+        if bank_key.startswith("_"):
+            continue
+        if normalize_text(bank_key) in norm_banco:
+            for pat in patterns:
+                if norm_desc.strip() == normalize_text(pat):
+                    return True
 
-    # v5.0.1: TED to Hbank (Bradesco → BTG Pactual, Mariana investment transfer)
-    if "TED D HBANK" in norm_desc:
-        return True
+    # Global transfer patterns from config
+    for pat in _GLOBAL_TRANSFER_PATTERNS:
+        if normalize_text(pat) in norm_desc:
+            return True
 
     return False
 
 
 def categorize_expense(description: str) -> Optional[str]:
     """Categorize a debit transaction as expense."""
-    # Special cases first
-    if normalize_text("NATHALIACASADE") in normalize_text(description):
-        return "alimentacao"
-    if normalize_text("ABDO MOHAMED") in normalize_text(description):
-        return "saude"
-
-    # If it looks like an internal transfer, don't categorize as expense
     if is_internal_transfer(description):
         return None
 
@@ -546,11 +549,13 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
             if tipo is not None:
                 tipo = normalize_text(tipo).lower()  # "crédito" → "CREDITO" → "credito"
             # v5.1: Infer tipo from valor sign when missing (E2 extracts may omit it)
-            # Faturas excluded: positive values in faturas are purchases (expenses)
+            # Faturas: positive values are purchases (expenses), negative are estornos (credits)
             if tipo is None and valor is not None:
                 is_fatura = tipo_conta.startswith("fatura")
                 if not is_fatura:
                     tipo = "credito" if valor > 0 else "debito"
+                elif valor < 0:
+                    tipo = "credito"
             saldo_apos = tx.get("saldo_apos")
 
             # Detect internal transfers first

@@ -1,0 +1,40 @@
+{
+  "banco": "C6 Bank",
+  "tipo": "extratocontaglobalusd",
+  "moeda": "USD",
+  "numero_conta": "100348783-7",
+  "titular": "david",
+  "periodo": {
+    "inicio": "2025-11-01",
+    "fim": "2025-12-31"
+  },
+  "saldo_inicial": null,
+  "saldo_final": 91.59,
+  "transacoes": [
+    {
+      "data": "2025-11-24",
+      "descricao": "Outros",
+      "valor": 89.0,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-11-24",
+      "descricao": "Transf. Internacional",
+      "valor": -3840.0,
+      "tipo_lancamento": "Saída"
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Tarifa Transf. Internacional",
+      "valor": -20.0,
+      "tipo_lancamento": "Saída"
+    },
+    {
+      "data": "2025-11-21",
+      "descricao": "Transf C6 Conta Global Líquido",
+      "valor": 1800.0,
+      "tipo_lancamento": "Entrada"
+    }
+  ],
+  "notas": []
+}

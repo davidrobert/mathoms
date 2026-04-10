@@ -1,0 +1,1038 @@
+{
+  "banco": "C6 Bank",
+  "tipo": "extratocontaglobalusd",
+  "moeda": "USD",
+  "numero_conta": "100348783-7",
+  "titular": "david",
+  "periodo": {
+    "inicio": "2025-08-01",
+    "fim": "2025-10-31"
+  },
+  "saldo_inicial": null,
+  "saldo_final": 91.59,
+  "transacoes": [
+    {
+      "data": "2025-10-25",
+      "descricao": "000000000211463\\heart Attack Grill\\las V\nCartão 4163",
+      "valor": -102.25,
+      "tipo_lancamento": "Saque"
+    },
+    {
+      "data": "2025-10-25",
+      "descricao": "000000000211463\\heart Attack Grill\\las V\nCartão 4163",
+      "valor": -5.0,
+      "tipo_lancamento": "Tarifa de saque"
+    },
+    {
+      "data": "2025-10-25",
+      "descricao": "Cosmopol-secret Pizza\\3708 Las Vegas Blv\nCartão 4163",
+      "valor": -25.28,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-25",
+      "descricao": "Sephora Miracle Mile\\3663 Las Vegas Blvd\nCartão 4163",
+      "valor": -191.83,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-24",
+      "descricao": "Amazon Reta* Nu0ll0ob2\\410 Terry Avenue\nCartão 8884",
+      "valor": -28.18,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-24",
+      "descricao": "Amazon Mktpl*nu49g0o52\\440 Terry Ave N\\s\nCartão 8884",
+      "valor": -78.88,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-23",
+      "descricao": "Cashback Compra Cartão",
+      "valor": 3.0,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-10-23",
+      "descricao": "Amazon Mark* Nm8wj5uh2\\410 Terry Avenue\nCartão 8884",
+      "valor": -21.66,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-22",
+      "descricao": "Tst* Rosa Mexicano - L\\3663 Las Vegas Bl\nCartão 4163",
+      "valor": -61.62,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-22",
+      "descricao": "Amazon Reta* Nm8y459o2\\410 Terry Avenue\nCartão 8884",
+      "valor": -47.23,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-21",
+      "descricao": "Amazon Mark* Nu93m8xn0\\410 Terry Avenue\nCartão 8884",
+      "valor": -36.57,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-21",
+      "descricao": "Amazon Reta* Nu76301d1\\410 Terry Avenue\nCartão 8884",
+      "valor": -58.39,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-21",
+      "descricao": "Amazon Reta* Nu2dq2021\\410 Terry Avenue\nCartão 8884",
+      "valor": -46.68,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-21",
+      "descricao": "Amazon Mark* Nu98r33t1\\410 Terry Avenue\nCartão 8884",
+      "valor": -118.35,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-20",
+      "descricao": "Walgreens #13900\\3717 Las Vegas Blvd S\\l\nCartão 4163",
+      "valor": -62.85,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-20",
+      "descricao": "Wm Supercenter #3473\\4505 W Charleston B\nCartão 4163",
+      "valor": -605.32,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-17",
+      "descricao": "Google *fi W5vclf\\1600 Amphitheatre Pkwy\nCartão 8884",
+      "valor": -25.58,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-10-01",
+      "descricao": "Transf. Internacional",
+      "valor": -1500.0,
+      "tipo_lancamento": "Saída"
+    },
+    {
+      "data": "2025-09-26",
+      "descricao": "Starbucks Evening Mco \\9301 Jeff Fuqua B\nCartão 4163",
+      "valor": -20.5,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-26",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+      "valor": -15.59,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-26",
+      "descricao": "El Car Wash - Kissimme\\9190 W Irlo Brons\nCartão 4163",
+      "valor": -10.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-26",
+      "descricao": "Exxon Rebel#823 \\2675 W Internatio Cartão\n4163",
+      "valor": -14.88,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-25",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+      "valor": -4.77,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-25",
+      "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4163",
+      "valor": -4.63,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-25",
+      "descricao": "Oakley B087 \\4971 Internationa Cartão 4163",
+      "valor": -478.19,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-25",
+      "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4163",
+      "valor": -26.51,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Sq *shake Shack\\4054 Conroy Rd.\\orlando\\\nCartão 4163",
+      "valor": -18.61,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Apple.com/bill\\one Apple Park Way\\866-71\nCartão 4163",
+      "valor": -146.81,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Amazon Mark* 0l68p6qj3\\410 Terry Avenue\nCartão 8884",
+      "valor": -48.31,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Billiontoone, Inc.\\1035 Obrien Dr\\menlo Cartão\n8884",
+      "valor": -345.94,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4163",
+      "valor": -81.94,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Qdi*quest Diagnostics\\15 Campus Blvd\\866\nCartão 8884",
+      "valor": -5.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Outros",
+      "valor": 8.58,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Outros",
+      "valor": 8.58,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Outros",
+      "valor": 12.09,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-24",
+      "descricao": "Qdi*quest Diagnostics\\15 Campus Blvd\\866\nCartão 8884",
+      "valor": -5.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Marshalls #1559\\8035 W Irlo Bronson Memo\nCartão 4163",
+      "valor": -11.5,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+      "valor": -2.69,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+      "valor": -40.73,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Victoria's Secret #149\\4959 Internationa\nCartão 4163",
+      "valor": -42.6,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Amazon Mark* H70679223\\410 Terry Avenue\nCartão 8884",
+      "valor": -47.43,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Outros",
+      "valor": 192.43,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Outros",
+      "valor": 85.99,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Outros",
+      "valor": 17.99,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Outros",
+      "valor": 5.36,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Ross Store #350 \\5452 Touchstone D Cartão\n4163",
+      "valor": -41.91,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-23",
+      "descricao": "Outros",
+      "valor": 26.85,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Bass Pro Store Orlando\\5156 Internationa\nCartão 4163",
+      "valor": -50.56,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Kipling #5506\\4959 Intl Dr. Space #170\\o\nCartão 4163",
+      "valor": -76.25,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Gap Outlet Us 7730\\5401 W. Oakridge Roa\nCartão 4163",
+      "valor": -29.82,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Amazon Mark* 032884383\\410 Terry Avenue\nCartão 8884",
+      "valor": -66.09,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Amazon Mark* 5305690m3\\410 Terry Avenue\nCartão 8884",
+      "valor": -236.4,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Amazon Mark* Lk94x4qs3\\410 Terry Avenue\nCartão 8884",
+      "valor": -36.28,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Outros",
+      "valor": 65.19,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-22",
+      "descricao": "Apple Store #r053\\4200 Conroy Rd Ste 12\nCartão 4163",
+      "valor": -62.84,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+      "valor": -192.43,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-21",
+      "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4163",
+      "valor": -38.29,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Wal-mart #5214\\2855 N Old Lake Wilson\\ki\nCartão 4163",
+      "valor": -35.38,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Amazon Mark* 6f2oi6m33\\410 Terry Avenue\nCartão 8884",
+      "valor": -52.64,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Amazon Mark* Jf5031ri3\\410 Terry Avenue\nCartão 8884",
+      "valor": -234.76,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Outros",
+      "valor": 331.26,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Outros",
+      "valor": 81.65,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-20",
+      "descricao": "Amazon Mark* Aj0gg3zc3\\410 Terry Avenue\nCartão 8884",
+      "valor": -47.93,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-19",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+      "valor": -514.54,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-18",
+      "descricao": "Sq *sfiha's Internatio\\5640 Internationa Cartão\n4163",
+      "valor": -48.17,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-18",
+      "descricao": "Walmart Supercenter 5\\2855 N Old Lake Wi\nCartão 4163",
+      "valor": -339.42,
+      "tipo_lancamento": "Saque"
+    },
+    {
+      "data": "2025-09-18",
+      "descricao": "Walmart Supercenter 5\\2855 N Old Lake Wi\nCartão 4163",
+      "valor": -5.0,
+      "tipo_lancamento": "Tarifa de saque"
+    },
+    {
+      "data": "2025-09-18",
+      "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4163",
+      "valor": -128.15,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Marshalls #1559\\8035 W Irlo Bronson Memo\nCartão 4163",
+      "valor": -48.34,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Amazon Mark* Hu9ea8k83\\410 Terry Avenue\nCartão 8884",
+      "valor": -112.85,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Amazon Mark* 547pl77i3\\410 Terry Avenue\nCartão 8884",
+      "valor": -1.16,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Ross Store #350 \\5452 Touchstone D Cartão\n4163",
+      "valor": -265.04,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Amazon Reta* Fs5621ee3\\410 Terry Avenue\nCartão 8884",
+      "valor": -28.22,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "7-eleven 27426\\13698 W. Colonial Dr\\wint\nCartão 4163",
+      "valor": -37.96,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4163",
+      "valor": -106.31,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-17",
+      "descricao": "Google *fi Zxgfvq\\1600 Amphitheatre Pkwy\nCartão 8884",
+      "valor": -38.43,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Bass Pro Store Orlando\\5156 Internationa\nCartão 4163",
+      "valor": -63.62,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Mcdonald's M2190\\5401 Altamira Dr\\orland\nCartão 4163",
+      "valor": -24.7,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Michael Kors - 125 \\4949 Internationa Cartão\n4163",
+      "valor": -94.79,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Haagen Dazs 1052\\4963 International Dr\\o\nCartão 4163",
+      "valor": -22.28,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Columbia 451\\4971 International Dr. Ste. Cartão\n4163",
+      "valor": -93.13,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Nikepos_us\\4977 International Drive, 3b-\nCartão 4163",
+      "valor": -335.39,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Le Creuset - Us062\\4963 International Dr\nCartão 4163",
+      "valor": -69.22,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Orlando Premium Outl\\4955 International\nCartão 4163",
+      "valor": -175.66,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Amazon Reta* Nd7zb8kv3\\410 Terry Avenue\nCartão 8884",
+      "valor": -379.99,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-16",
+      "descricao": "Pearl Factory 665 \\1742 Lake Buena V Cartão\n4163",
+      "valor": -658.16,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-14",
+      "descricao": "Nj\\110 Edsion Pl\\newark, Nj 07\\07070 Cartão\n4163",
+      "valor": -16.13,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-13",
+      "descricao": "Avi Arnold Palmer Cof\\92 W Miller St\\orl Cartão\n4163",
+      "valor": -2.97,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-13",
+      "descricao": "Avi Arnold Palmer Cof\\92 W Miller St\\orl Cartão\n4163",
+      "valor": -8.07,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-12",
+      "descricao": "Latam Air\\av. Jurandir 856\\sao Paulo\\04\nCartão 8884",
+      "valor": -1579.79,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-12",
+      "descricao": "Amazon Mark* Rx2o11tp3\\410 Terry Avenue\nCartão 8884",
+      "valor": -46.02,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-10",
+      "descricao": "Turo Inc.* Trip May 18\\111 Sutter St Sui Cartão\n8884",
+      "valor": -639.22,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-10",
+      "descricao": "Under Armour Orv \\8200 Vineland Ave Cartão\n4163",
+      "valor": -15.98,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-09",
+      "descricao": "Amazon Mark* Kh7ck5d43\\410 Terry Avenue\nCartão 8884",
+      "valor": -116.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-09",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+      "valor": -281.97,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-09",
+      "descricao": "Outros",
+      "valor": 20.26,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-09",
+      "descricao": "Target 00023705\\3200 Rolling Oaks Cartão\n4163",
+      "valor": -17.98,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "Cheesecake Orlando \\4200 Conroy Rd Cartão\n4163",
+      "valor": -67.35,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "Gap Outlet Us 7730\\5401 W. Oakridge Roa\nCartão 4163",
+      "valor": -71.42,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "Tbl Orlando\\4963 4963 International Driv\nCartão 4163",
+      "valor": -244.93,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-08",
+      "descricao": "Burlington Stores209 \\12801 W Sunrise B\nCartão 4163",
+      "valor": -136.9,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-06",
+      "descricao": "Shell Oil57543704316 \\mile Marker 94 Fl\nCartão 4163",
+      "valor": -30.07,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-06",
+      "descricao": "Burger King #6999 Q07\\12801 West Sunris\nCartão 4163",
+      "valor": -21.91,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Carter's #575\\12801 W Sunrise Blvd Ste 8\nCartão 4163",
+      "valor": -137.88,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Tjmaxx #0098\\sawgrass Mills 12801 W Sunr\nCartão 4163",
+      "valor": -31.97,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Marshalls #486\\12801 W Sunrise Blvd\\sunr\nCartão 4163",
+      "valor": -52.28,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Books A Million 381 \\12801 W Sunrise Cartão\n4163",
+      "valor": -19.25,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "The Ups Store 2439\\3109 Grand Ave\\miami\nCartão 4163",
+      "valor": -19.31,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "The Ups Store 2439\\3109 Grand Ave\\miami\nCartão 4163",
+      "valor": -19.31,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Kiko Milano\\w Sunrise Blvd 12801\\sunrise\nCartão 4163",
+      "valor": -27.99,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Nikepos_us\\12801 W Sunrise Blvd., Suite. Cartão\n4163",
+      "valor": -64.19,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Columbia 459\\12801 W. Sunrise Blvd. Ste.\nCartão 4163",
+      "valor": -26.73,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Outros",
+      "valor": 19.31,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-05",
+      "descricao": "Outros",
+      "valor": 19.31,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-09-04",
+      "descricao": "Dollar Tree\\3201 Rolling Oaks Blvd\\kissi Cartão\n4163",
+      "valor": -44.31,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-04",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+      "valor": -21.71,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-02",
+      "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4163",
+      "valor": -41.36,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-02",
+      "descricao": "Ross Stores #1301 \\3205 Rolling Oaks Cartão\n4163",
+      "valor": -37.86,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-09-01",
+      "descricao": "Cheesecake Orlando Vin\\11602 Regency Vil\nCartão 4163",
+      "valor": -106.01,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-31",
+      "descricao": "Levi's Outlet 420 \\8200 Vineland Ave Cartão\n4163",
+      "valor": -91.67,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-31",
+      "descricao": "Carter's #636\\4967 International Dr Ste Cartão\n4163",
+      "valor": -10.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-31",
+      "descricao": "Florida Fresh Orlando\\2900 Mercy Dr\\orla\nCartão 4163",
+      "valor": -3.6,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-31",
+      "descricao": "Orlando Prem Outl-vin\\8200 Vineland Ave\nCartão 4163",
+      "valor": -9.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4163",
+      "valor": -164.65,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-29",
+      "descricao": "Outros",
+      "valor": 100.0,
+      "tipo_lancamento": "Entrada"
+    },
+    {
+      "data": "2025-08-28",
+      "descricao": "Consulate General Of B\\1350 E Touhy Ave\\\nCartão 8884",
+      "valor": -1.6,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-28",
+      "descricao": "Consulado Geral Do Bra\\3150 Sw 38th Ave\nCartão 8884",
+      "valor": -40.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "626 Gore St Fuel Mart \\626 W Gore St Cartão\n4163",
+      "valor": -36.09,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-27",
+      "descricao": "Toothsome Choc 0010762\\1000 Universal St\nCartão 4163",
+      "valor": -38.34,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-26",
+      "descricao": "Starbucks Store 08343\\400 Park Avenue\\wi\nCartão 4163",
+      "valor": -7.34,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-24",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4163",
+      "valor": -152.43,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-24",
+      "descricao": "Armazem X\\9310 Us Highway 192\\clermont\\3\nCartão 4845",
+      "valor": -42.84,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-19",
+      "descricao": "Walmart Supercenter 5\\2855 N Old Lake Wi\nCartão 4845",
+      "valor": -115.56,
+      "tipo_lancamento": "Saque"
+    },
+    {
+      "data": "2025-08-19",
+      "descricao": "Walmart Supercenter 5\\2855 N Old Lake Wi\nCartão 4845",
+      "valor": -5.0,
+      "tipo_lancamento": "Tarifa de saque"
+    },
+    {
+      "data": "2025-08-18",
+      "descricao": "Wdw Tickets \\1375 E Buena Vist Cartão 8884",
+      "valor": -169.34,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-18",
+      "descricao": "Google *fi 4fgvfg\\1600 Amphitheatre Pkwy\nCartão 8884",
+      "valor": -76.67,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-16",
+      "descricao": "Starbucks 63941\\2875 N Old Lake Wilson R\nCartão 4845",
+      "valor": -7.72,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-16",
+      "descricao": "Bubba Gump Orlando \\6000 Universal Bl Cartão\n4845",
+      "valor": -89.84,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "Dollar Tree\\3201 Rolling Oaks Blvd\\kissi Cartão\n4845",
+      "valor": -22.28,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-15",
+      "descricao": "Amazon Reta* 0i5t68033\\410 Terry Avenue\nCartão 8884",
+      "valor": -97.94,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-13",
+      "descricao": "Walgreens #7074\\7767 W Irlo Bronson Memo\nCartão 4845",
+      "valor": -12.99,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-13",
+      "descricao": "Pt *orl Hlth Pymt\\1414 Kuhl Ave\\orlando\\\nCartão 4845",
+      "valor": -1496.99,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "Butterbeer 6913 \\1000 Universal St Cartão\n4845",
+      "valor": -20.21,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "Epic Admission 6343 \\1000 Universal St Cartão\n4845",
+      "valor": -195.96,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "Various Emporia 6602 \\1000 Universal St\nCartão 4845",
+      "valor": -56.45,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-11",
+      "descricao": "Turo Inc.* Trip May 18\\111 Sutter St Sui Cartão\n8884",
+      "valor": -1009.8,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-10",
+      "descricao": "Scripts Pharmacy \\92 West Miller St Cartão\n4845",
+      "valor": -15.04,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-10",
+      "descricao": "The Ups Store 3017\\7862 W Irlo Bronson H\nCartão 4845",
+      "valor": -2.57,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-10",
+      "descricao": "0617 Great Clips At Ma\\2849 S Orange Ave\nCartão 4845",
+      "valor": -27.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-10",
+      "descricao": "Avi Arnold Palmer Cof\\92 W Miller St\\orl Cartão\n4845",
+      "valor": -2.12,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-09",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+      "valor": -44.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-09",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+      "valor": -40.91,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-09",
+      "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4845",
+      "valor": -210.42,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Starbucks 66716\\florida Turnpike Mil\\oco\nCartão 4845",
+      "valor": -7.61,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Pt *orl Hlth Pymt\\1414 Kuhl Ave\\orlando\\\nCartão 4845",
+      "valor": -94.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Pai Atm\\525 Commonwealth Ave Sw\\polk Cit\nCartão 4845",
+      "valor": -203.75,
+      "tipo_lancamento": "Saque"
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Pai Atm\\525 Commonwealth Ave Sw\\polk Cit\nCartão 4845",
+      "valor": -5.0,
+      "tipo_lancamento": "Tarifa de saque"
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Pai Atm\\525 Commonwealth Ave Sw\\polk Cit\nCartão 4845",
+      "valor": -203.75,
+      "tipo_lancamento": "Saque"
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Pai Atm\\525 Commonwealth Ave Sw\\polk Cit\nCartão 4845",
+      "valor": -5.0,
+      "tipo_lancamento": "Tarifa de saque"
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Chevron 0200093\\525 Commonwealth Ave Sw\\\nCartão 4845",
+      "valor": -4.27,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-08",
+      "descricao": "Pt *orl Hlth Pymt\\1414 Kuhl Ave\\orlando\\\nCartão 4845",
+      "valor": -89.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-07",
+      "descricao": "Tez*palmer S Hospitals\\5000 Legacy Dr 1\\\nCartão 4845",
+      "valor": -8.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-07",
+      "descricao": "Wdw Tickets-ds Gr \\1375 E Buena Vist Cartão\n4845",
+      "valor": -158.69,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-03",
+      "descricao": "Sundry Shop \\2300 Wyndham Palm Cartão\n4845",
+      "valor": -25.0,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-03",
+      "descricao": "Amazon Reta* Pr5en2nu3\\410 Terry Avenue\nCartão 8884",
+      "valor": -25.74,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-03",
+      "descricao": "Nj\\110 Edsion Pl\\newark, Nj 07\\07070 Cartão\n4845",
+      "valor": -16.75,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-03",
+      "descricao": "Target 00023705\\3200 Rolling Oaks Cartão\n4845",
+      "valor": -8.6,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-03",
+      "descricao": "Amazon Reta* Cg1u72q73\\410 Terry Avenue\nCartão 8884",
+      "valor": -28.22,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-03",
+      "descricao": "Wal-mart #5214 \\2855 N Old Lake W Cartão\n4845",
+      "valor": -287.22,
+      "tipo_lancamento": "Débito de cartão"
+    },
+    {
+      "data": "2025-08-01",
+      "descricao": "Wm Supercenter #5214\\2855 N Old Lake Wil\nCartão 4845",
+      "valor": -38.82,
+      "tipo_lancamento": "Débito de cartão"
+    }
+  ],
+  "notas": [
+    "INFO: 6 possíveis duplicatas intra-arquivo"
+  ]
+}

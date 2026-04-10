@@ -109,8 +109,10 @@ estrategico:
       charts:
         - id: "alocacao_atual"
           enabled: true
+          row: "alocacao"
         - id: "alocacao_alvo"
           enabled: true
+          row: "alocacao"
         - id: "top15_ativos"
           enabled: true
         - id: "mariana_cenarios"
@@ -251,11 +253,14 @@ estrategico:
       enabled: true
 
 # ==============================================================================
-# MODO TÁTICO (T1-T6 + KPIs)
+# MODO TÁTICO (T1-T6 + KPIs) — Dashboard Operacional Quinzenal
+# ==============================================================================
+# Alinhado com o template HTML (report_template.html) que implementa T1-T6
+# como seções JS-driven alimentadas por DATA.dashboard.
 # ==============================================================================
 tatico:
 
-  # KPIs do painel tático (barra superior)
+  # KPIs do painel tático (barra superior, 6 slots)
   kpis:
     - id: "patrimonio_delta"
       label: "Patrimônio Δ"
@@ -270,38 +275,61 @@ tatico:
       label: "Tarefas %"
       enabled: true
     - id: "alerta_1"
-      label: "Alerta 1"
+      label: "Alerta Crítico 1"
       enabled: true
     - id: "alerta_2"
-      label: "Alerta 2"
+      label: "Alerta Crítico 2"
       enabled: true
 
-  # Dashboards táticos
   sections:
+
+    # --------------------------------------------------------------------------
+    # T1 — Fluxo Operacional (Despesas vs Tetos por categoria)
+    # --------------------------------------------------------------------------
     - id: "T1"
-      title: "Fluxo"
-      description: "Despesas vs tetos — tabela interativa com barras de progresso"
+      title: "Fluxo Operacional — Despesas vs Tetos"
       enabled: true
+      data_source: "dashboard.despesas_por_categoria"
+
+    # --------------------------------------------------------------------------
+    # T2 — Aportes e Investimentos (status de cada destino + variação patrimonial)
+    # --------------------------------------------------------------------------
     - id: "T2"
-      title: "Aportes"
-      description: "Destinos de investimento, delta tracking por bloco"
+      title: "Aportes e Investimentos"
       enabled: true
+      data_source: "dashboard.aportes + dashboard.investimentos_delta"
+
+    # --------------------------------------------------------------------------
+    # T3 — Checklist de Tarefas (filtros: todas/pendentes/feitas/vencidas)
+    # --------------------------------------------------------------------------
     - id: "T3"
-      title: "Tarefas"
-      description: "Checklist com filtro (pendente/feito/vencido)"
+      title: "Checklist de Tarefas"
       enabled: true
+      data_source: "dashboard.tarefas + dashboard.tarefas_status"
+
+    # --------------------------------------------------------------------------
+    # T4 — Alertas e Pendências
+    # --------------------------------------------------------------------------
     - id: "T4"
-      title: "Alertas"
-      description: "Avisos-chave do dashboard"
+      title: "Alertas e Pendências"
       enabled: true
+      data_source: "dashboard.alertas"
+
+    # --------------------------------------------------------------------------
+    # T5 — Próximos Passos (timeline 15 dias)
+    # --------------------------------------------------------------------------
     - id: "T5"
       title: "Próximos Passos"
-      description: "Timeline de 15 dias com badges de status"
       enabled: true
+      data_source: "dashboard.proximos_15d"
+
+    # --------------------------------------------------------------------------
+    # T6 — Notas e Observações
+    # --------------------------------------------------------------------------
     - id: "T6"
-      title: "Notas"
-      description: "Notas operacionais livres"
+      title: "Notas e Observações"
       enabled: true
+      data_source: "dashboard.notas"
 
 # ==============================================================================
 # REGISTRY DE CARDS DISPONÍVEIS
@@ -349,7 +377,7 @@ chart_palette:
   - "#457B9D"
   - "#E63946"
   - "#A8DADC"
-  - "#457B9D"
+  - "#8338EC"
   - "#2A9D8F"
   - "#E76F51"
   - "#F4A460"
@@ -400,8 +428,8 @@ chart_titles:
   custos_f1f2: "Custos Mensais F1/F2"
   cenarios_cambiais: "Cenários Cambiais"
   projecao_3cenarios: "Projeção Patrimonial — 3 Cenários"
-  renda_passiva: "Renda Passiva vs Meta"
-  impostos_pj: "DAS PJ — Mês a Mês"
+  renda_passiva: "Renda Passiva — Progresso até a Meta"
+  impostos_pj: "Tributário PJ — Cascata Fiscal"
   bubble_riscos: "Mapa de Riscos"
   top5_decisoes: "Top 5 Decisões de Impacto"
   mariana_cenarios: "Cenários IF — Mariana"
@@ -491,5 +519,4 @@ dark_mode:
       text_color: "#64748B"
       grid_color: "#E2E8F0"
 
-  # Versão fallback (quando manual_operacao.md não tem Versão:)
-  version_fallback: "v5.3"
+version_fallback: "v5.3"

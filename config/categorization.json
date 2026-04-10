@@ -15,7 +15,8 @@
       "DDDRIN SERVICO DE DESI",
       "DE PAULA REALTY",
       "APPFOLIO",
-      "SECRETARIA MUNICIPAL"
+      "SECRETARIA MUNICIPAL",
+      "ADMINISTRADORA"
     ],
     "financiamentos": [
       "FINANC IMOBILIARIO",
@@ -158,8 +159,6 @@
       "DL *DLRAPPI BR",
       "DL*DLRAPPI BR",
       "DL *DLRAPPIPROBR",
-      "RAPPI *DROGARIA SAO P",
-      "RAPPI*RAIA DROGASIL",
       "EJM RESTAURANTE JAPONE",
       "PAYGO*LG ESPETOS",
       "POINTJABAQUARA",
@@ -167,7 +166,6 @@
       "EMPORIOMATTERLTDA",
       "SAMS CLUB",
       "SAM'S CLUB",
-      "SAMS*",
       "FIVE GUYS",
       "TEXAS ROADHOUSE",
       "GHIRARDELLI",
@@ -307,7 +305,8 @@
       "FREEPIK",
       "MIDJOURNEY",
       "CANVA",
-      "WIX"
+      "WIX",
+      "FIBRA"
     ],
     "saude": [
       "CORPO E VIDA",
@@ -351,7 +350,9 @@
       "FULL FACE MEDIC",
       "CONCAVO E CONVEXO",
       "PACEFIT",
-      "MOURA ACADEMIA"
+      "MOURA ACADEMIA",
+      "RAPPI *DROGARIA SAO P",
+      "RAPPI*RAIA DROGASIL"
     ],
     "seguros": [
       "SUL AMERICA SEG",
@@ -667,7 +668,8 @@
       "NEUSA CIMAR TEIXEIRA",
       "NEUSA CIMAR",
       "DOUGLAS CAMARGO DE CAMPOS",
-      "ERIC VINICIUS"
+      "ERIC VINICIUS",
+      "SHEILA APARECIDA DA ROCHA DE CAMARGO"
     ],
     "reserva_desejos": [
       "AMAZON MKTPLACE",
@@ -687,7 +689,10 @@
       "VIDESUL",
       "TARGET LOJA",
       "APPLE STORE",
-      "MACROBABY"
+      "MACROBABY",
+      "MERCADOLIVRE",
+      "MAGALUPAY",
+      "MAGALU"
     ]
   },
   "income_keywords": {

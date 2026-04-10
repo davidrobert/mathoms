@@ -18,16 +18,17 @@
   },
   "selic": {
     "label": "CDI / Selic",
-    "pessimista": {"selic": 8.0, "cdi": 7.9},
-    "realista": null,
-    "otimista": {"selic": 15.0, "cdi": 14.9},
-    "atual_label": null
+    "pessimista_pct": 8.0,
+    "realista_pct": 14.15,
+    "otimista_pct": 15.0,
+    "atual_label": "14,25%"
   },
   "cambio": {
     "label": "Câmbio BRL/USD",
     "pessimista": 7.50,
+    "realista": 5.80,
     "otimista": 4.50,
-    "atual_label": null
+    "atual_label": "R$ 5,80"
   },
   "valorizacao_imoveis": {
     "label": "Valorização imóveis SP",
@@ -44,7 +45,7 @@
     "atual_label": "—"
   },
 
-  "horizonte_projecao_anos": 20,
+  "horizonte_projecao_anos": 10,
 
   "premissas_ordem": [
     "inflacao_ipca",

@@ -211,14 +211,23 @@ h3 { font-family: var(--font-display); font-size:15px; font-weight:700; color: v
 .section .card + .chart-container,
 .section .card + .chart-row,
 .section .card + .alert,
+.section .card + .split-cards,
 .section .chart-container + .card,
 .section .chart-container + .chart-container,
 .section .chart-container + .chart-row,
+.section .chart-container + .split-cards,
 .section .chart-row + .card,
 .section .chart-row + .chart-row,
 .section .chart-row + .chart-container,
+.section .chart-row + .split-cards,
 .section .alert + .card,
-.section .alert + .chart-container {
+.section .alert + .chart-container,
+.section .alert + .split-cards,
+.section .split-cards + .card,
+.section .split-cards + .chart-container,
+.section .split-cards + .chart-row,
+.section .split-cards + .split-cards,
+.section .split-cards + .alert {
   margin-top: var(--space-section-gap);
 }
 .card-title { font-family: var(--font-display); font-size:var(--font-md); font-weight:700;
@@ -260,7 +269,8 @@ tr.total-row td { border-bottom: 2px solid var(--color-border); }
 /* Charts */
 .chart-container { position:relative; margin:var(--space-xl) 0; max-width:100%; }
 .chart-container canvas { max-height:400px; min-height:250px; }
-.chart-row { display:grid; grid-template-columns: 1fr 1fr; gap:var(--space-xl); margin:var(--space-xl) 0; }
+.chart-row { display:grid; grid-template-columns: 1fr 1fr; gap:var(--space-xl); margin:var(--space-xl) 0; align-items:start; }
+.chart-row > .chart-container { margin:0; align-self:start; }
 .chart-row .chart-container canvas { min-height:250px; }
 
 /* Canvas inside cards (without .chart-container wrapper) */
@@ -304,6 +314,40 @@ tr.total-row td { border-bottom: 2px solid var(--color-border); }
   background: var(--color-border); transition: background 0.2s;
 }
 .chart-nav-dot.active { background: var(--color-accent); }
+
+/* Period toggle — segmented control */
+.period-toggle {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: var(--color-bg); border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill); padding: 3px;
+  margin-bottom: 12px; user-select: none;
+}
+.period-btn {
+  font-family: var(--font-body); font-size: 11px; font-weight: 600;
+  padding: 5px 14px; border-radius: calc(var(--radius-pill) - 2px);
+  border: none; background: transparent; color: var(--color-text-muted);
+  cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
+  letter-spacing: 0.3px; line-height: 1;
+}
+.period-btn:hover:not(.active) {
+  color: var(--color-text); background: rgba(0,0,0,0.04);
+}
+.period-btn.active {
+  background: var(--color-primary); color: #fff;
+  box-shadow: 0 1px 4px rgba(26,58,92,0.25);
+}
+.period-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 4px; flex-wrap: wrap; gap: 8px;
+}
+.period-label {
+  font-size: 11px; font-weight: 500; color: var(--color-text-muted);
+  letter-spacing: 0.3px;
+}
+[data-theme="dark"] .period-toggle { background: var(--color-surface); border-color: var(--color-border); }
+[data-theme="dark"] .period-btn { color: var(--color-text-muted); }
+[data-theme="dark"] .period-btn:hover:not(.active) { color: var(--color-text); background: rgba(255,255,255,0.06); }
+[data-theme="dark"] .period-btn.active { background: var(--color-primary); color: #0B1120; box-shadow: 0 1px 4px rgba(0,0,0,0.35); }
 
 .chart-legend-grouped { margin-top: var(--space-sm); }
 .chart-legend-grouped .legend-group { margin-bottom: var(--space-xs); }
@@ -686,21 +730,63 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 }
 
 /* Fix gauge chart sizing — maintain 2:1 aspect ratio for semi-circle */
-#chart-score-gauge { width: 100% !important; aspect-ratio: 2 / 1.1; max-width: 600px; margin: 0 auto; display: block; }
+#chart-score-gauge { width: 100% !important; aspect-ratio: 2 / 1.1; max-width: 520px; margin: 0 auto; display: block; }
 
-/* Score breakdown table */
-.score-breakdown { max-width: 600px; margin: 16px auto 0; font-size: 13px; }
-.score-breakdown table { width: 100%; border-collapse: collapse; }
-.score-breakdown th { text-align: left; font-weight: 600; color: var(--color-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 8px; border-bottom: 2px solid var(--color-border); }
-.score-breakdown td { padding: 8px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
-.score-breakdown td:nth-child(2), .score-breakdown td:nth-child(4) { text-align: center; }
-.score-breakdown th:nth-child(2), .score-breakdown th:nth-child(4) { text-align: center; }
-.score-bar-cell { min-width: 120px; }
-.score-bar-wrap { display: flex; align-items: center; gap: 6px; }
-.score-bar-bg { flex: 1; height: 8px; background: var(--color-border); border-radius: 4px; overflow: hidden; }
-.score-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
-.score-bar-val { font-weight: 600; min-width: 28px; text-align: right; font-size: 12px; }
-.score-formula { text-align: center; color: var(--color-muted); font-size: 11px; margin-top: 8px; font-style: italic; }
+/* Score card container — elevated style */
+.score-card-wrap { position: relative; overflow: hidden; }
+.score-card-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: var(--radius-card) var(--radius-card) 0 0; }
+.score-card-wrap[data-class="Excelente"]::before { background: linear-gradient(90deg, #15803D, #22B566); }
+.score-card-wrap[data-class="Bom"]::before { background: linear-gradient(90deg, #22B566, #6EDBA0); }
+.score-card-wrap[data-class="Regular"]::before { background: linear-gradient(90deg, #F5BF2F, #FBBF24); }
+.score-card-wrap[data-class="Ruim"]::before { background: linear-gradient(90deg, #F0924A, #F4A261); }
+.score-card-wrap[data-class="Péssimo"]::before, .score-card-wrap[data-class="Crítico"]::before { background: linear-gradient(90deg, #B91C1C, #DC2640); }
+
+/* Score header badge */
+.score-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.score-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; }
+.score-badge[data-level="Excelente"] { background: rgba(34,181,102,0.12); color: #15803D; }
+.score-badge[data-level="Bom"] { background: rgba(110,219,160,0.15); color: #15803D; }
+.score-badge[data-level="Regular"] { background: rgba(245,191,47,0.15); color: #92600A; }
+.score-badge[data-level="Ruim"] { background: rgba(240,146,74,0.15); color: #9A3412; }
+.score-badge[data-level="Péssimo"], .score-badge[data-level="Crítico"] { background: rgba(185,28,28,0.12); color: #B91C1C; }
+
+/* Score breakdown table — polished */
+.score-breakdown { max-width: 100%; margin: 20px 0 0; font-size: 13px; }
+.score-breakdown table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.score-breakdown thead th { text-align: left; font-weight: 600; color: var(--color-text-muted); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.8px; padding: 8px 10px; border-bottom: 2px solid var(--color-border); }
+.score-breakdown tbody tr { transition: background 0.15s; }
+.score-breakdown tbody tr:hover { background: rgba(0,0,0,0.02); }
+[data-theme="dark"] .score-breakdown tbody tr:hover { background: rgba(255,255,255,0.03); }
+.score-breakdown td { padding: 10px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+.score-breakdown td:first-child { font-weight: 500; }
+.score-breakdown td:nth-child(2), .score-breakdown td:nth-child(4), .score-breakdown td:nth-child(5) { text-align: center; }
+.score-breakdown th:nth-child(2), .score-breakdown th:nth-child(4), .score-breakdown th:nth-child(5) { text-align: center; }
+
+/* Progress bars */
+.score-bar-cell { min-width: 140px; }
+.score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.score-bar-bg { flex: 1; height: 10px; background: var(--color-border); border-radius: 5px; overflow: hidden; position: relative; }
+.score-bar-fill { height: 100%; border-radius: 5px; transition: width 0.6s cubic-bezier(.25,.8,.25,1); position: relative; }
+.score-bar-val { font-weight: 700; min-width: 32px; text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* Score summary footer */
+.score-summary { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px;
+  padding: 14px 20px; border-radius: 10px; background: var(--color-bg); border: 1px solid var(--color-border); }
+.score-summary-num { font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--color-primary); }
+.score-summary-label { font-size: 12px; color: var(--color-text-muted); line-height: 1.3; }
+.score-summary-label strong { display: block; font-size: 13px; color: var(--color-text); }
+.score-formula { text-align: center; color: var(--color-text-muted); font-size: 11px; margin-top: 10px; font-style: italic; opacity: 0.7; }
+
+/* KPI score card dynamic accent */
+.kpi-card-score { position: relative; overflow: hidden; }
+.kpi-card-score::after { content: ''; position: absolute; bottom: 0; left: 10%; right: 10%; height: 3px; border-radius: 3px 3px 0 0; }
+.kpi-card-score[data-class="Excelente"]::after { background: #22B566; }
+.kpi-card-score[data-class="Bom"]::after { background: #6EDBA0; }
+.kpi-card-score[data-class="Regular"]::after { background: #F5BF2F; }
+.kpi-card-score[data-class="Ruim"]::after { background: #F0924A; }
+.kpi-card-score[data-class="Péssimo"]::after, .kpi-card-score[data-class="Crítico"]::after { background: #DC2640; }
 
 /* Give chart-container card styling (matching reference) */
 .chart-container {
@@ -732,7 +818,9 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 .card-header-icon { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); }
 
 /* Split cards: 2-column grid (replaces inline display:grid) */
-.split-cards { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); margin-top: var(--space-lg); }
+.split-cards { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); margin-top: var(--space-section-gap); align-items: stretch; }
+.split-cards > .card { min-width: 0; overflow: hidden; word-break: break-word; }
+.split-cards > .card table { display: block; overflow-x: auto; }
 
 /* KPI card accent variants (replaces inline border-color) */
 .kpi-card-accent { border-color: var(--color-accent); }
@@ -748,6 +836,10 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 .callout-info    { background: var(--alert-info-bg);    border-left:3px solid var(--color-secondary); padding: var(--space-md); border-radius: var(--radius-lg); color: var(--alert-info-text); }
 .callout-warning { background: var(--alert-warning-bg); border-left:3px solid var(--color-warning);   padding: var(--space-md); border-radius: var(--radius-lg); color: var(--alert-warning-text); }
 .callout-danger  { background: var(--alert-danger-bg);  border-left:3px solid var(--color-danger);    padding: var(--space-md); border-radius: var(--radius-lg); color: var(--alert-danger-text); }
+
+/* Row highlight (warning-style, theme-aware) */
+tr.row-highlight-warn { background: var(--alert-warning-bg); }
+tr.row-highlight-warn td { color: var(--alert-warning-text); }
 
 /* ===== DARK MODE OVERRIDES ===== */
 /* NOTE: Many colors are now handled via CSS custom properties in [data-theme="dark"] :root.
@@ -804,6 +896,11 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 [data-theme="dark"] .card-feature { background: var(--card-feature-bg) !important; border-color: transparent; }
 [data-theme="dark"] .card-success { background: var(--card-success-bg) !important; }
 [data-theme="dark"] .kpi-hero { border-color: var(--color-primary) !important; }
+[data-theme="dark"] .score-summary { background: var(--color-surface); border-color: var(--color-border); }
+[data-theme="dark"] .score-summary-num { color: var(--color-light) !important; }
+[data-theme="dark"] .score-badge[data-level="Bom"] { background: rgba(110,219,160,0.1); }
+[data-theme="dark"] .score-badge[data-level="Excelente"] { background: rgba(34,181,102,0.1); }
+[data-theme="dark"] .score-badge[data-level="Regular"] { background: rgba(245,191,47,0.1); }
 
 /* Section summary, chart conclusion — now use tokens, but keep color override */
 [data-theme="dark"] .section-summary { color: var(--color-secondary); }
@@ -976,7 +1073,9 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 
 <div class="container">
 <div class="section" id="kpis">
-<div class="kpi-grid">
+
+<!-- STRATEGIC KPI GRID (hidden in tactical mode) -->
+<div class="kpi-grid" data-mode="strategic">
   <div class="kpi-card">
     <div class="kpi-label">Patrimônio Bruto</div>
     <div data-prompt="PATRIMONIO_BRUTO" class="kpi-value">{{KPI_PATRIMONIO_BRUTO}}</div>
@@ -1012,13 +1111,14 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
     <div data-prompt="PRAZO_IF" class="kpi-value blue">{{KPI_PRAZO_IF}}</div>
     <div class="kpi-sub">{{KPI_PRAZO_IF_SUB}}</div>
   </div>
-  <div class="kpi-card">
+  <div class="kpi-card kpi-card-score" data-class="{{KPI_SCORE_CLASS}}">
     <div class="kpi-label">Score Financeiro</div>
     <div data-prompt="SCORE" class="kpi-value">{{KPI_SCORE}}</div>
     <div class="kpi-sub">{{KPI_SCORE_SUB}}</div>
   </div>
+</div>
 
-<!-- TACTICAL KPI ROW -->
+<!-- TACTICAL KPI ROW (hidden in strategic mode) -->
 <div class="dash-kpis" data-mode="tactical" id="dash-kpis-row">
   <div class="dash-kpi"><div class="dash-kpi-label">Patrimônio Δ</div><div class="dash-kpi-value ok" id="dk-patrim-delta">—</div><div class="dash-kpi-sub">vs último período</div></div>
   <div class="dash-kpi"><div class="dash-kpi-label">Aportes</div><div class="dash-kpi-value" id="dk-aportes">—</div><div class="dash-kpi-sub">de 4 destinos</div></div>
@@ -1026,7 +1126,8 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
   <div class="dash-kpi"><div class="dash-kpi-label">Tarefas</div><div class="dash-kpi-value" id="dk-tarefas">—</div><div class="dash-kpi-sub">concluídas</div></div>
   <div class="dash-kpi"><div class="dash-kpi-label">Alerta 1</div><div class="dash-kpi-value alert" id="dk-alerta1">—</div><div class="dash-kpi-sub" id="dk-alerta1-sub"></div></div>
   <div class="dash-kpi"><div class="dash-kpi-label">Alerta 2</div><div class="dash-kpi-value alert" id="dk-alerta2">—</div><div class="dash-kpi-sub" id="dk-alerta2-sub"></div></div>
-</div></div>
+</div>
+
 </div>
 </div>
 
@@ -1165,7 +1266,7 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
     chart-cenarios-cambiais     — Cenários cambiais (bar agrupado)
   Seção 7 (IF):
     chart-projecao-3cenarios    — Projeção patrimonial 3 cenários (line)
-    chart-renda-passiva         — Renda passiva vs meta (bar)
+    chart-renda-passiva         — Renda passiva progresso até meta (horizontal stacked bar)
   Seção 8 (Tributário):
     chart-impostos-pj           — DAS PJ mês a mês (bar + line)
   Seção 9 (Riscos):
@@ -1343,31 +1444,22 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 <!--
   REPORT_DATA_JSON must include at minimum:
   {
+    "meta": {"modo_padrao": "strategic", ...},
     "kpis": {...},
-    "summaries": [...],
-    "meses": ["Mai/25", ...],
-    "rentabilidade": {...},
-    "charts": {
-      "patrimonio_doughnut": {"labels":[], "data":[]},
-      "waterfall": {"labels":[], "data":[]},
-      "fluxo_mensal": {"receita":{...}, "despesa":[...]},
-      "receita_despesa_mensal": {
-        "labels": ["Mai/25","Jun/25",...,"Mar/26"],
-        "receita": {
-          "pj_income": [7000,...],
-          "clt_salary": [7918,...],
-          "alugueis":   [1393,...]
-        },
-        "despesa_categorizada": [35148,...],
-        "note": "Exclui 'financeiro'. Fonte: receitas + despesas E3 monthly_breakdown."
-      },
-      "despesas_doughnut": {"labels":[], "data":[]},
-      "score_gauge": {...},
-      "alocacao_atual": {...},
-      "alocacao_alvo": {...},
-      "top15_ativos": {"labels":["Cofrinhos",...], "data":[206491,...]},
-      ...
-    }
+    "charts": {...},
+    "dashboard": {
+      "patrimonio_delta": 0,
+      "aportes": {"key": {"label":"...", "feito":bool, "valor_meta":N, "valor_feito":N}},
+      "despesas_por_categoria": {"cat": {"label":"...", "gasto":N, "teto":N}},
+      "tarefas_status": {"1": "pendente"|"feito"|"vencido"},
+      "tarefas": [{"n":1, "t":"...", "p":"alta|media|baixa", "e":"Abr/2026"}],
+      "investimentos_delta": {"key": {"label":"...", "anterior":N, "atual":N}},
+      "alertas": ["..."],
+      "proximos_15d": [{"data":"...", "acao":"...", "status":"pendente|feito|aguardando"}],
+      "notas": "...",
+      "periodo": "..."
+    },
+    ...
   }
 -->
 
@@ -1562,7 +1654,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // ========== CHART 2B: Fluxo de Caixa Mensal (dinâmico via DATA) ==========
   var fmData = DATA.charts.fluxo_mensal || {labels:[], datasets:[{data:[]}]};
-  safeChart('chart-fluxo-mensal', {
+  var fmChart = safeChart('chart-fluxo-mensal', {
     type: 'bar',
     data: {
       labels: fmData.labels,
@@ -1594,12 +1686,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // ========== CHART 3: Receita por fonte (dinâmico via DATA) ==========
   var rbData = DATA.charts.receita_bar || {labels:[], datasets:[{data:[]}]};
-  safeChart('chart-receita-bar', {
+  var rbChart = safeChart('chart-receita-bar', {
     type: 'bar',
     data: {
       labels: rbData.labels,
       datasets: [{
-        label: 'R$/mês',
+        label: 'R$ (12 meses)',
         data: rbData.datasets[0].data,
         backgroundColor: rbData.datasets[0].backgroundColor || palette.slice(0, rbData.labels.length),
         borderRadius: 4
@@ -1608,10 +1700,13 @@ document.addEventListener('DOMContentLoaded', function() {
     options: {
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: function(c) { return fmt(c.raw) + '/mês'; } } },
+        tooltip: { callbacks: { label: function(c) { return fmt(c.raw); } } },
         datalabels: { display: false }
       },
-      scales: { y: { ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } } }
+      scales: {
+        x: { ticks: { maxRotation: 45, minRotation: 25, font: { size: 10 } } },
+        y: { ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } }
+      }
     }
   });
 
@@ -1802,7 +1897,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // ========== CHART 4: Despesas Doughnut (dinâmico via DATA) ==========
   var ddData = DATA.charts.despesas_doughnut || {labels:[], datasets:[{data:[]}]};
-  safeChart('chart-despesas-doughnut', {
+  var ddChart = safeChart('chart-despesas-doughnut', {
     type: 'doughnut',
     data: {
       labels: ddData.labels,
@@ -1816,7 +1911,15 @@ document.addEventListener('DOMContentLoaded', function() {
       cutout: '50%',
       plugins: {
         legend: { position: 'bottom', labels: { padding: 8, usePointStyle: true, font: { size: 10 } } },
-        tooltip: { callbacks: { label: function(c) { return c.label + ': ' + fmt(c.raw); } } },
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function(c) {
+              var total = c.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+              return c.label + ': ' + fmt(c.raw) + ' (' + ((c.raw / total) * 100).toFixed(1) + '%)';
+            }
+          }
+        },
         datalabels: {
           color: '#fff',
           font: { weight: 'bold', size: 11 },
@@ -1840,26 +1943,37 @@ document.addEventListener('DOMContentLoaded', function() {
     var canvas = document.getElementById('chart-score-gauge');
     if (!canvas) return;
     var parent = canvas.parentElement;
-    var w = Math.min(parent.clientWidth || 400, 600);
-    var h = Math.round(w * 0.55);
+
+    // Add score-card-wrap class + data-class for accent strip
+    var scoreData = window.DATA && window.DATA.score;
+    var classLabel = scoreData ? scoreData.classificacao : '';
+    parent.classList.add('score-card-wrap');
+    parent.setAttribute('data-class', classLabel);
+
+    var w = Math.min(parent.clientWidth || 400, 520);
+    var h = Math.round(w * 0.58);
     canvas.width = w * 2; canvas.height = h * 2;
     canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
     var ctx = canvas.getContext('2d');
     ctx.scale(2, 2);
 
     var cx = w / 2;
-    var cy = h * 0.82;
-    var outerR = Math.min(cx, cy) * 0.92;
-    var thickness = outerR * 0.32;
+    var cy = h * 0.84;
+    var outerR = Math.min(cx, cy) * 0.88;
+    var thickness = outerR * 0.28;
     var innerR = outerR - thickness;
-    var gap = 0.025; // radians gap between segments
+    var gap = 0.02;
 
     var colors = ['#DC2640', '#F0924A', '#F5BF2F', '#6EDBA0', '#22B566'];
     var segCount = colors.length;
     var totalArc = Math.PI - (gap * (segCount - 1));
     var segArc = totalArc / segCount;
 
-    // Draw arc segments
+    // Subtle shadow behind the arc
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.08)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 4;
     for (var i = 0; i < segCount; i++) {
       var startA = Math.PI + i * (segArc + gap);
       var endA = startA + segArc;
@@ -1870,24 +1984,70 @@ document.addEventListener('DOMContentLoaded', function() {
       ctx.fillStyle = colors[i];
       ctx.fill();
     }
+    ctx.restore();
 
-    // Read score from data attribute (set by E5) or fallback to DATA (parsed from #report-data)
+    // Tick marks and labels (0, 2, 4, 6, 8, 10) along the outer edge
+    var tickR = outerR + 14;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '600 ' + Math.round(outerR * 0.075) + 'px Inter, sans-serif';
+    ctx.fillStyle = '#94A3B8';
+    for (var t = 0; t <= 10; t += 2) {
+      var angle = Math.PI + (t / 10) * Math.PI;
+      var tx = cx + Math.cos(angle) * tickR;
+      var ty = cy + Math.sin(angle) * tickR;
+      ctx.fillText(t.toString(), tx, ty);
+      // Small tick mark
+      var t1x = cx + Math.cos(angle) * (outerR + 2);
+      var t1y = cy + Math.sin(angle) * (outerR + 2);
+      var t2x = cx + Math.cos(angle) * (outerR + 6);
+      var t2y = cy + Math.sin(angle) * (outerR + 6);
+      ctx.beginPath();
+      ctx.moveTo(t1x, t1y);
+      ctx.lineTo(t2x, t2y);
+      ctx.strokeStyle = '#CBD5E1';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    ctx.restore();
+
     var score = parseFloat(canvas.getAttribute('data-score'))
              || (window.DATA && (window.DATA.kpis || {}).score)
              || 0;
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var needleColor = isDark ? '#E2E8F0' : '#1A2E44';
+    var dotCenter = isDark ? '#151D2E' : '#FFFFFF';
     var needleAngle = Math.PI + (score / 10) * Math.PI;
-    var needleLen = outerR * 0.88;
+    var needleLen = outerR * 0.92;
+
+    // Needle with tapered shape
     ctx.save();
+    var nx = cx + Math.cos(needleAngle) * needleLen;
+    var ny = cy + Math.sin(needleAngle) * needleLen;
+    var perpAngle = needleAngle + Math.PI / 2;
+    var baseW = 3.5;
     ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + Math.cos(needleAngle) * needleLen, cy + Math.sin(needleAngle) * needleLen);
-    ctx.strokeStyle = '#1A2E44';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.stroke();
+    ctx.moveTo(nx, ny);
+    ctx.lineTo(cx + Math.cos(perpAngle) * baseW, cy + Math.sin(perpAngle) * baseW);
+    ctx.lineTo(cx - Math.cos(perpAngle) * baseW, cy - Math.sin(perpAngle) * baseW);
+    ctx.closePath();
+    ctx.fillStyle = needleColor;
+    ctx.fill();
     ctx.restore();
 
-    // Score label
+    // Center dot
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+    ctx.fillStyle = needleColor;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = dotCenter;
+    ctx.fill();
+    ctx.restore();
+
     var scoreLabel = function(s) {
       if (s < 2) return { text: 'PÉSSIMO', color: colors[0] };
       if (s < 4) return { text: 'RUIM', color: colors[1] };
@@ -1897,28 +2057,55 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     var info = scoreLabel(score);
 
+    // Score value + label below gauge
     ctx.save();
     ctx.textAlign = 'center';
-    ctx.font = 'bold ' + Math.round(outerR * 0.28) + 'px Plus Jakarta Sans, sans-serif';
-    ctx.fillStyle = '#1A2E44';
-    ctx.fillText(score.toFixed(1).replace('.', ','), cx, cy + outerR * 0.22);
-    ctx.font = 'bold ' + Math.round(outerR * 0.11) + 'px Plus Jakarta Sans, sans-serif';
+    ctx.font = 'bold ' + Math.round(outerR * 0.22) + 'px Plus Jakarta Sans, sans-serif';
+    ctx.fillStyle = needleColor;
+    ctx.fillText(score.toFixed(1).replace('.', ',') + ' / 10', cx, cy + outerR * 0.20);
+    ctx.font = 'bold ' + Math.round(outerR * 0.10) + 'px Plus Jakarta Sans, sans-serif';
     ctx.fillStyle = info.color;
-    ctx.fillText(info.text, cx, cy + outerR * 0.36);
+    ctx.fillText(info.text, cx, cy + outerR * 0.34);
     ctx.restore();
 
-    // Auto-update the chart-context paragraph to match the gauge score
+    // Badge next to title
+    var titleEl = parent.querySelector('.card-title');
+    if (titleEl && !titleEl.querySelector('.score-badge')) {
+      var badge = document.createElement('span');
+      badge.className = 'score-badge';
+      badge.setAttribute('data-level', classLabel);
+      badge.textContent = score.toFixed(1).replace('.', ',') + ' — ' + classLabel;
+      titleEl.style.display = 'flex';
+      titleEl.style.alignItems = 'center';
+      titleEl.style.justifyContent = 'space-between';
+      titleEl.appendChild(badge);
+    }
+
+    // Update context paragraph
     var ctxP = parent.querySelector('.chart-context');
     if (ctxP) {
       ctxP.textContent = 'Avaliação consolidada: ' + score.toFixed(1).replace('.', ',') + '/10 (' + info.text.charAt(0) + info.text.slice(1).toLowerCase() + ').';
     }
 
-    // ── Score Breakdown Table (reads from DATA.score.componentes) ──
-    var scoreData = window.DATA && window.DATA.score;
+    // ── Score Breakdown Table ──
     var comps = scoreData && scoreData.componentes;
     if (comps && comps.length) {
-      var barColors = ['#22B566','#22B566','#6EDBA0','#F5BF2F','#F0924A','#DC2640'];
-      function barColor(v) { if (v >= 8) return barColors[0]; if (v >= 6) return barColors[2]; if (v >= 4) return barColors[3]; if (v >= 2) return barColors[4]; return barColors[5]; }
+      function barColor(v) {
+        if (v >= 8) return '#22B566';
+        if (v >= 6) return '#6EDBA0';
+        if (v >= 4) return '#F5BF2F';
+        if (v >= 2) return '#F0924A';
+        return '#DC2640';
+      }
+      var compIcons = {
+        'poupança': '💰', 'cobertura': '🛡️', 'endividamento': '📊',
+        'progresso': '🎯', 'diversifica': '🧩'
+      };
+      function getIcon(nome) {
+        var lower = nome.toLowerCase();
+        for (var k in compIcons) { if (lower.indexOf(k) >= 0) return compIcons[k]; }
+        return '📈';
+      }
       function fmtBase(nome, val) {
         if (/poupança|endividamento/i.test(nome)) return val.toFixed(1).replace('.',',') + '%';
         if (/cobertura/i.test(nome)) return val.toFixed(1).replace('.',',') + ' meses';
@@ -1926,19 +2113,37 @@ document.addEventListener('DOMContentLoaded', function() {
         if (/diversifica/i.test(nome)) return val.toFixed(0) + ' cat.';
         return val.toFixed(1).replace('.',',');
       }
-      var html = '<div class="score-breakdown"><table><thead><tr><th>Componente</th><th>Valor</th><th class="score-bar-cell">Nota</th><th>Peso</th></tr></thead><tbody>';
+      var totalPeso = 0;
+      for (var i = 0; i < comps.length; i++) totalPeso += comps[i].peso;
+
+      var html = '<div class="score-breakdown"><table><thead><tr>';
+      html += '<th>Componente</th><th>Valor</th><th class="score-bar-cell">Nota</th><th>Peso</th><th>Contrib.</th>';
+      html += '</tr></thead><tbody>';
       for (var i = 0; i < comps.length; i++) {
         var c = comps[i];
-        var nota = c.score != null ? c.score : (c.valor || 0);
+        var nota = c.score != null ? c.score : (c.nota != null ? c.nota : (c.valor || 0));
         var base = c.valor_base != null ? c.valor_base : (c.valor || 0);
         var pct = Math.min(nota / 10 * 100, 100);
-        html += '<tr><td>' + c.nome + '</td>';
+        var contrib = (nota * c.peso / totalPeso).toFixed(1).replace('.',',');
+        var icon = getIcon(c.nome);
+        html += '<tr><td>' + icon + ' ' + c.nome + '</td>';
         html += '<td>' + fmtBase(c.nome, base) + '</td>';
-        html += '<td class="score-bar-cell"><div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:' + pct + '%;background:' + barColor(nota) + '"></div></div><span class="score-bar-val">' + nota.toFixed(1).replace('.',',') + '</span></div></td>';
-        html += '<td>' + c.peso.toFixed(1).replace('.',',') + '</td></tr>';
+        html += '<td class="score-bar-cell"><div class="score-bar-wrap">';
+        html += '<div class="score-bar-bg"><div class="score-bar-fill" style="width:' + pct + '%;background:' + barColor(nota) + '"></div></div>';
+        html += '<span class="score-bar-val">' + nota.toFixed(1).replace('.',',') + '</span>';
+        html += '</div></td>';
+        html += '<td>' + c.peso.toFixed(1).replace('.',',') + '</td>';
+        html += '<td>' + contrib + '</td></tr>';
       }
       html += '</tbody></table>';
-      html += '<p class="score-formula">Score = \u03A3(nota \u00D7 peso) / \u03A3(peso) = ' + score.toFixed(1).replace('.',',') + ' / 10</p>';
+
+      // Summary footer
+      html += '<div class="score-summary">';
+      html += '<div class="score-summary-num" style="color:' + info.color + '">' + score.toFixed(1).replace('.',',') + '</div>';
+      html += '<div class="score-summary-label"><strong>' + info.text.charAt(0) + info.text.slice(1).toLowerCase() + '</strong>';
+      html += 'Média ponderada de ' + comps.length + ' componentes</div>';
+      html += '</div>';
+      html += '<p class="score-formula">\u03A3(nota \u00D7 peso) \u00F7 \u03A3(peso) = ' + score.toFixed(1).replace('.',',') + ' / 10</p>';
       html += '</div>';
       var breakdownDiv = document.createElement('div');
       breakdownDiv.innerHTML = html;
@@ -2314,28 +2519,71 @@ document.addEventListener('DOMContentLoaded', function() {
     }]
   });
 
-  // ========== CHART 13: Renda passiva (dinâmico via DATA) ==========
-  var rpData = DATA.charts.renda_passiva || {labels:[], datasets:[]};
+  // ========== CHART 13: Renda passiva — termômetro horizontal (dinâmico via DATA) ==========
+  var rpData = DATA.charts.renda_passiva || {labels:[''], datasets:[]};
+  var rpMeta = rpData.meta_value || 30000;
+  var rpAtual = rpData.atual_total || 0;
+  var rpPct = rpData.pct_meta || 0;
+  (function() {
+    var el = document.getElementById('chart-renda-passiva');
+    if (!el) return;
+    el.parentElement.style.position = 'relative';
+    var kpiDiv = document.createElement('div');
+    kpiDiv.style.cssText = 'text-align:center;margin-bottom:8px;';
+    kpiDiv.innerHTML = '<span style="font-size:2.2rem;font-weight:800;color:var(--accent-blue,#1A3A5C);">' + rpPct.toFixed(1).replace('.',',') + '%</span>'
+      + '<span style="font-size:1rem;opacity:0.7;margin-left:6px;">da meta</span>'
+      + '<br><span style="font-size:0.95rem;opacity:0.8;">' + fmt(rpAtual) + '/mês de ' + fmt(rpMeta) + '/mês</span>';
+    el.parentElement.insertBefore(kpiDiv, el);
+  })();
   safeChart('chart-renda-passiva', {
     type: 'bar',
     data: {
       labels: rpData.labels,
       datasets: (rpData.datasets || []).map(function(ds) {
-        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4 };
+        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 0, barThickness: 38 };
       })
     },
     options: {
-      plugins: {
-        tooltip: { callbacks: { label: function(c) { return c.dataset.label + ': ' + fmt(c.raw); } } },
-        datalabels: { display: false }
+      indexAxis: 'y',
+      responsive: true,
+      scales: {
+        x: { stacked: true, max: Math.round(rpMeta * 1.08), ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } }, grid: { display: false } },
+        y: { stacked: true, display: false }
       },
-      scales: { y: { ticks: { callback: function(v) { return 'R$ ' + (v/1000).toFixed(0) + 'k'; } } } }
-    }
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, font: { size: 11 } } },
+        tooltip: { callbacks: { label: function(c) { return c.dataset.label + ': ' + fmt(c.raw) + '/mês'; } } },
+        datalabels: { display: false }
+      }
+    },
+    plugins: [{
+      id: 'metaLine',
+      afterDraw: function(chart) {
+        var xScale = chart.scales.x;
+        if (!xScale) return;
+        var ctx = chart.ctx;
+        var xPos = xScale.getPixelForValue(rpMeta);
+        var area = chart.chartArea;
+        ctx.save();
+        ctx.strokeStyle = '#E63946';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.moveTo(xPos, area.top - 8);
+        ctx.lineTo(xPos, area.bottom + 8);
+        ctx.stroke();
+        ctx.fillStyle = '#E63946';
+        ctx.font = 'bold 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Meta: R$ ' + (rpMeta/1000).toFixed(0) + 'k/mês', xPos, area.top - 14);
+        ctx.restore();
+      }
+    }]
   });
 
   // ========== CHART 14: Impostos PJ (dinâmico via DATA) ==========
   var ipData = DATA.charts.impostos_pj || {labels:[], datasets:[{data:[]}]};
-  safeChart('chart-impostos-pj', {
+  var ipChart = safeChart('chart-impostos-pj', {
     type: 'bar',
     data: {
       labels: ipData.labels,
@@ -2423,25 +2671,236 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHART 18: Viagens (dinâmico via DATA) ==========
+  // ========== CHART 18: Viagens — Acumulado 12 Meses ==========
   var vgData = DATA.charts.viagens || {labels:[], datasets:[]};
-  safeChart('chart-viagens', {
-    type: 'bar',
-    data: {
-      labels: vgData.labels,
-      datasets: (vgData.datasets || []).map(function(ds) {
-        return { label: ds.label, data: ds.data, backgroundColor: ds.backgroundColor, borderRadius: 4 };
-      })
-    },
+  var vgDatasets = (vgData.datasets || []).map(function(ds) {
+    var out = { label: ds.label, data: ds.data, type: 'line' };
+    out.borderColor = ds.borderColor || ds.backgroundColor || '#E63946';
+    out.borderWidth = ds.borderWidth || 2;
+    out.pointRadius = ds.pointRadius !== undefined ? ds.pointRadius : 3;
+    out.fill = ds.fill || false;
+    out.tension = ds.tension || 0;
+    if (ds.fill) out.backgroundColor = ds.backgroundColor || 'rgba(230,57,70,0.15)';
+    if (ds.borderDash) out.borderDash = ds.borderDash;
+    return out;
+  });
+  var vgChart = safeChart('chart-viagens', {
+    type: 'line',
+    data: { labels: vgData.labels, datasets: vgDatasets },
     options: {
-      indexAxis: 'y',
-      scales: { x: { stacked: true, ticks: { callback: function(v) { return fmt(v); } } }, y: { stacked: true } },
+      scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return fmt(v); } } } },
       plugins: {
         tooltip: { callbacks: { label: function(c) { return c.dataset.label + ': ' + fmt(c.raw); } } },
         datalabels: { display: false }
       }
     }
   });
+
+  // ============================================================
+  // PERIOD TOGGLE CONTROLLER
+  // ============================================================
+  (function() {
+    var RDM = DATA.charts.receita_despesa_mensal;
+    if (!RDM || !RDM.labels || !RDM.labels.length) return;
+
+    var allLabels = RDM.labels;
+    var rawLabels = RDM._raw_labels || [];
+    var allDatasets = RDM.datasets || [];
+    var totalMonths = allLabels.length;
+
+    function getMonthSlice(period) {
+      if (period === 'ytd') {
+        var lastRaw = rawLabels[rawLabels.length - 1] || '';
+        var parts = lastRaw.split('/');
+        var currentYear = parts.length === 2 ? parts[0] : '';
+        var start = 0;
+        for (var i = 0; i < rawLabels.length; i++) {
+          if (rawLabels[i].indexOf(currentYear + '/') === 0) { start = i; break; }
+        }
+        return { start: start, end: totalMonths };
+      }
+      var n = parseInt(period, 10) || 12;
+      var s = Math.max(0, totalMonths - n);
+      return { start: s, end: totalMonths };
+    }
+
+    function sumRange(arr, start, end) {
+      var t = 0;
+      for (var i = start; i < end; i++) t += (arr[i] || 0);
+      return t;
+    }
+
+    function aggregateByStack(stack, start, end) {
+      var map = {};
+      allDatasets.forEach(function(ds) {
+        if (ds.stack !== stack) return;
+        var sum = sumRange(ds.data, start, end);
+        if (sum > 0) map[ds.label] = (map[ds.label] || 0) + sum;
+      });
+      return map;
+    }
+
+    function formatPeriodLabel(start, end) {
+      return allLabels[start] + ' — ' + allLabels[end - 1];
+    }
+
+    // --- Fluxo de Caixa Mensal ---
+    function updateFluxoMensal(start, end) {
+      if (!fmChart) return;
+      var nMeses = end - start;
+      var receitaMap = aggregateByStack('receita', start, end);
+      var despesaMap = aggregateByStack('despesa', start, end);
+      var totalR = 0, totalD = 0;
+      for (var k in receitaMap) totalR += receitaMap[k];
+      for (var k in despesaMap) totalD += despesaMap[k];
+      var avgR = Math.round(totalR / nMeses);
+      var avgD = Math.round(totalD / nMeses);
+      var saldo = avgR - avgD;
+      fmChart.data.datasets[0].data = [avgR, avgD, saldo];
+      fmChart.data.datasets[0].backgroundColor = ['#15803D', '#B91C1C', saldo >= 0 ? '#2E86AB' : '#F4A261'];
+      fmChart.update();
+      var lbl = document.getElementById('chart-fluxo-mensal-period-label');
+      if (lbl) lbl.textContent = formatPeriodLabel(start, end);
+    }
+
+    // --- Receita por Fonte ---
+    function updateReceitaBar(start, end) {
+      if (!rbChart) return;
+      var map = aggregateByStack('receita', start, end);
+      var sorted = Object.entries(map).sort(function(a,b) { return b[1] - a[1]; });
+      rbChart.data.labels = sorted.map(function(e) { return e[0]; });
+      rbChart.data.datasets[0].data = sorted.map(function(e) { return Math.round(e[1]); });
+      rbChart.data.datasets[0].backgroundColor = palette.slice(0, sorted.length);
+      rbChart.update();
+      var lbl = document.getElementById('chart-receita-bar-period-label');
+      if (lbl) lbl.textContent = formatPeriodLabel(start, end);
+    }
+
+    // --- Despesas Doughnut ---
+    function updateDespesasDoughnut(start, end) {
+      if (!ddChart) return;
+      var map = aggregateByStack('despesa', start, end);
+      var sorted = Object.entries(map).sort(function(a,b) { return b[1] - a[1]; });
+      ddChart.data.labels = sorted.map(function(e) { return e[0]; });
+      ddChart.data.datasets[0].data = sorted.map(function(e) { return Math.round(e[1]); });
+      ddChart.data.datasets[0].backgroundColor = (ddData.datasets[0].backgroundColor || palette).slice(0, sorted.length);
+      ddChart.update();
+      var lbl = document.getElementById('chart-despesas-doughnut-period-label');
+      if (lbl) lbl.textContent = formatPeriodLabel(start, end);
+    }
+
+    // --- Viagens ---
+    function updateViagens(start, end) {
+      if (!vgChart) return;
+      var vgFull = DATA.charts.viagens;
+      var rawMonthly = vgFull._raw_monthly || [];
+      var vgLabels = vgFull.labels || [];
+      var tetoAnual = vgFull._teto_anual || 45000;
+      var nTotal = vgLabels.length;
+      var vgStart, vgEnd;
+      if (typeof start === 'object') {
+        vgStart = start.start; vgEnd = start.end;
+      } else {
+        vgStart = Math.max(0, nTotal - (end - start));
+        vgEnd = nTotal;
+      }
+      var sliceLabels = vgLabels.slice(vgStart, vgEnd);
+      var sliceRaw = rawMonthly.slice(vgStart, vgEnd);
+      var nMeses = sliceLabels.length;
+      var tetoProporcional = Math.round(tetoAnual * nMeses / 12);
+      var accumulated = [];
+      var acc = 0;
+      for (var i = 0; i < sliceRaw.length; i++) { acc += sliceRaw[i]; accumulated.push(acc); }
+      vgChart.data.labels = sliceLabels;
+      vgChart.data.datasets[0].data = accumulated;
+      vgChart.data.datasets[1].data = sliceLabels.map(function() { return tetoProporcional; });
+      vgChart.data.datasets[1].label = 'Teto ' + nMeses + 'M (R$ ' + tetoProporcional.toLocaleString('pt-BR') + ')';
+      vgChart.update();
+      var lbl = document.getElementById('chart-viagens-period-label');
+      if (lbl && sliceLabels.length) lbl.textContent = sliceLabels[0] + ' — ' + sliceLabels[sliceLabels.length - 1];
+    }
+
+    // --- Impostos PJ ---
+    function updateImpostosPJ(start, end) {
+      if (!ipChart) return;
+      var fp = DATA.fiscal_params || {};
+      var nMeses = end - start;
+      var pjMap = aggregateByStack('receita', start, end);
+      var pjLabel = null;
+      var pjTotal = 0;
+      for (var k in pjMap) {
+        var kl = k.toLowerCase();
+        if (kl.indexOf('pj') >= 0 || kl.indexOf('nota fiscal') >= 0 || kl.indexOf('pessoa jur') >= 0) {
+          pjLabel = k; pjTotal = pjMap[k]; break;
+        }
+      }
+      var lpPct = (fp.lucro_presumido_pct || 32) / 100;
+      var pgblPct = (fp.pgbl_limite_pct || 12) / 100;
+      var dasPct = (fp.das_pct || 6) / 100;
+      var aliq = (fp.aliquota_marginal || 27.5) / 100;
+      var pjAnual = Math.round(pjTotal * (12 / nMeses));
+      var lp = Math.round(pjAnual * lpPct);
+      var das = Math.round(pjAnual * dasPct);
+      var pgbl = Math.round(lp * pgblPct);
+      var ecIR = Math.round(pgbl * aliq);
+      ipChart.data.datasets[0].data = [pjAnual, lp, das, pgbl, ecIR];
+      ipChart.update();
+      var lbl = document.getElementById('chart-impostos-pj-period-label');
+      if (lbl) lbl.textContent = formatPeriodLabel(start, end) + ' (anualizado)';
+    }
+
+    // --- Viagens period slice helper ---
+    function getViagensSlice(period) {
+      var vgLabels = (DATA.charts.viagens || {}).labels || [];
+      var n = vgLabels.length;
+      if (period === 'ytd') {
+        var last = vgLabels[n - 1] || '';
+        var yr = last.substring(0, 4);
+        var s = 0;
+        for (var i = 0; i < n; i++) { if (vgLabels[i].indexOf(yr) === 0) { s = i; break; } }
+        return { start: s, end: n };
+      }
+      var cnt = parseInt(period, 10) || 12;
+      return { start: Math.max(0, n - cnt), end: n };
+    }
+
+    // --- Bind toggle buttons ---
+    document.querySelectorAll('.period-toggle').forEach(function(toggle) {
+      var group = toggle.getAttribute('data-period-group');
+      toggle.querySelectorAll('.period-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          toggle.querySelectorAll('.period-btn').forEach(function(b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          var period = btn.getAttribute('data-period');
+          var slice = getMonthSlice(period);
+
+          if (group === 'chart-fluxo-mensal') updateFluxoMensal(slice.start, slice.end);
+          else if (group === 'chart-receita-bar') updateReceitaBar(slice.start, slice.end);
+          else if (group === 'chart-despesas-doughnut') updateDespesasDoughnut(slice.start, slice.end);
+          else if (group === 'chart-impostos-pj') updateImpostosPJ(slice.start, slice.end);
+          else if (group === 'chart-viagens') {
+            var vSlice = getViagensSlice(period);
+            updateViagens(vSlice, null);
+          }
+        });
+      });
+    });
+
+    // Set initial period labels for 12M
+    var init = getMonthSlice('12');
+    var lbl;
+    lbl = document.getElementById('chart-fluxo-mensal-period-label');
+    if (lbl) lbl.textContent = formatPeriodLabel(init.start, init.end);
+    lbl = document.getElementById('chart-receita-bar-period-label');
+    if (lbl) lbl.textContent = formatPeriodLabel(init.start, init.end);
+    lbl = document.getElementById('chart-despesas-doughnut-period-label');
+    if (lbl) lbl.textContent = formatPeriodLabel(init.start, init.end);
+    lbl = document.getElementById('chart-impostos-pj-period-label');
+    if (lbl) lbl.textContent = formatPeriodLabel(init.start, init.end) + ' (anualizado)';
+    var vgLabels = (DATA.charts.viagens || {}).labels || [];
+    lbl = document.getElementById('chart-viagens-period-label');
+    if (lbl && vgLabels.length) lbl.textContent = vgLabels[0] + ' — ' + vgLabels[vgLabels.length - 1];
+  })();
 
   // NOTE: setMode, setTheme, initializeTheme, buildDashboard são definidas
   // no bloco <script> global abaixo. Não duplicar aqui.

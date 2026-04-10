@@ -2,14 +2,7 @@
 """
 E5.N Narrativas Generator
 Generates updated narrativas for E5 analysis JSON with family financial context.
-
-Key metrics (rerun data):
-- Score: 7.7/10 (Bom)
-- Taxa Poupança Recorrente: 38.63%
-- Cobertura Despesas: 80.7 meses
-- Taxa Endividamento: 6.71%
-- Progresso IF: 31.62%
-- Diversificação: 5 classes
+Metrics are loaded dynamically from E5 JSON at runtime.
 """
 
 import json
@@ -23,6 +16,8 @@ E5_JSON_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5
 FAMILY_CONFIG_PATH = PROJECT_DIR / "config" / "family_members.json"
 GOALS_CONFIG_PATH = PROJECT_DIR / "config" / "goals.json"
 TAXAS_CONFIG_PATH = PROJECT_DIR / "config" / "taxas.json"
+CATEGORIZATION_CONFIG_PATH = PROJECT_DIR / "config" / "categorization.json"
+FISCAL_CONFIG_PATH = PROJECT_DIR / "config" / "parametros_fiscais.json"
 
 def _load_family():
     """Load family members config."""
@@ -31,7 +26,26 @@ def _load_family():
             return json.load(f)
     return {}
 
+def _load_categorization():
+    """Load categorization config for CLT source mappings."""
+    if CATEGORIZATION_CONFIG_PATH.exists():
+        with open(CATEGORIZATION_CONFIG_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
 FAMILY = _load_family()
+_CATEGORIZATION = _load_categorization()
+
+def _load_fiscal():
+    """Load fiscal parameters config (parametros_fiscais.json)."""
+    if FISCAL_CONFIG_PATH.exists():
+        with open(FISCAL_CONFIG_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    print(f"  [WARN] parametros_fiscais.json não encontrado em {FISCAL_CONFIG_PATH}")
+    return {}
+
+FISCAL = _load_fiscal()
+_CLT_SOURCE_LABELS = list(_CATEGORIZATION.get("clt_source_mapping", {}).values())
 
 # METRICS will be loaded from E5 JSON at runtime (no more hardcoding)
 # Add a guard to prevent KeyError on import
@@ -65,6 +79,7 @@ def _find_top_asset(e5_data: dict) -> dict:
     """Find the largest individual financial asset from E4 investimentos.
 
     Returns dict with 'nome', 'valor', 'membro', 'instituicao'.
+    Falls back to 'tipo (instituicao)' when nome is empty.
     """
     inv_path = PROJECT_DIR / "processed" / "E4_unified" / "investimentos-4_unified.json"
     if inv_path.exists():
@@ -73,8 +88,13 @@ def _find_top_asset(e5_data: dict) -> dict:
         dados = inv.get("dados", [])
         if dados:
             top = max(dados, key=lambda d: d.get("valor_atual", 0))
+            nome = top.get("nome", "").strip()
+            if not nome:
+                tipo = top.get("tipo", "Investimento")
+                inst = top.get("instituicao", "").capitalize()
+                nome = f"{tipo} ({inst})" if inst else tipo
             return {
-                "nome": top.get("nome", ""),
+                "nome": nome,
                 "valor": top.get("valor_atual", 0),
                 "membro": top.get("membro", ""),
                 "instituicao": top.get("instituicao", ""),
@@ -85,10 +105,15 @@ def _find_top_asset(e5_data: dict) -> dict:
 def _extract_top_institutions(e5_data: dict) -> dict:
     """Extract investment institutions per member from E4 investimentos.
 
-    Returns dict with 'david_inst', 'mariana_inst', 'n_imoveis'.
+    Returns dict with '{member}_inst' for each member, plus 'n_imoveis'.
+    Member keys are loaded from family_members.json config.
     """
+    _titular = FAMILY.get("titular", "")
+    _membros = FAMILY.get("membros", {})
+    _conjuge = next((k for k, v in _membros.items() if v.get("papel") == "conjuge"), None)
+
     inv_path = PROJECT_DIR / "processed" / "E4_unified" / "investimentos-4_unified.json"
-    david_inst, mariana_inst = set(), set()
+    titular_inst, conjuge_inst = set(), set()
     if inv_path.exists():
         with open(inv_path, "r", encoding="utf-8") as f:
             inv = json.load(f)
@@ -97,10 +122,10 @@ def _extract_top_institutions(e5_data: dict) -> dict:
             membro = d.get("membro", "")
             if not inst:
                 continue
-            if membro == "david":
-                david_inst.add(inst.capitalize())
-            elif membro == "mariana":
-                mariana_inst.add(inst.capitalize())
+            if membro == _titular:
+                titular_inst.add(inst.capitalize())
+            elif _conjuge and membro == _conjuge:
+                conjuge_inst.add(inst.capitalize())
 
     # Count imoveis from patrimonio
     pat_path = PROJECT_DIR / "processed" / "E4_unified" / "patrimonio-4_unified.json"
@@ -114,8 +139,8 @@ def _extract_top_institutions(e5_data: dict) -> dict:
         n_imoveis = len(imoveis)
 
     return {
-        "david_inst": sorted(david_inst),
-        "mariana_inst": sorted(mariana_inst),
+        "titular_inst": sorted(titular_inst),
+        "conjuge_inst": sorted(conjuge_inst),
         "n_imoveis": n_imoveis,
     }
 
@@ -148,16 +173,19 @@ def _compute_usd_saldos_per_bank(e5_data: dict) -> dict:
     return saldos
 
 
-def _compute_salario_mariana(e5_data: dict) -> float:
-    """Compute Mariana's average CLT salary from fluxo mensal detalhado."""
+def _compute_salario_conjuge(e5_data: dict) -> float:
+    """Compute conjuge CLT salary from fluxo mensal detalhado.
+
+    Matches dataset labels against CLT source mappings from categorization.json.
+    """
     rmd = e5_data.get("fluxo_caixa", {}).get("receita_despesa_mensal_detalhado", {})
     datasets = rmd.get("receita_datasets", [])
     for ds in datasets:
         label = ds.get("label", "")
-        if "Einstein" in label and "CLT" in label:
+        is_clt = any(src_label in label for src_label in _CLT_SOURCE_LABELS) if _CLT_SOURCE_LABELS else ("CLT" in label)
+        if is_clt:
             nonzero = [v for v in ds.get("data", []) if v > 0]
             if nonzero:
-                # Use median (less sensitive to outliers like 13º/férias)
                 sorted_vals = sorted(nonzero)
                 mid = len(sorted_vals) // 2
                 return sorted_vals[mid]
@@ -218,7 +246,7 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
 
     yield_imoveis_pct = round(_safe_div(receita_aluguel_anual, imoveis_invest) * 100, 1)
 
-    salario_mariana = _compute_salario_mariana(e5_data)
+    salario_mariana = _compute_salario_conjuge(e5_data)
     receita_recorrente_mensal = fluxo.get("receita_recorrente_mensal", 0)
 
     # --- From goals.json ---
@@ -246,11 +274,14 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
     pct_receita_outras = round(100 - pct_receita_pj - pct_receita_aluguel - pct_receita_clt, 1)
     pct_despesas_nao_id = round(_safe_div(despesas_nao_id, despesa_total) * 100, 1)
 
-    das_mensal = trib_cfg.get("das_mensal_estimado", 0)
-    pct_das_receita_pj = round(_safe_div(das_mensal * 12, receita_pj) * 100, 1) if receita_pj else 0
+    receita_pj_anual = (receita_pj / n_meses_periodo) * 12 if n_meses_periodo else 0
+    das_aliquota_pct = FISCAL.get("das_simples", {}).get("aliquota_efetiva_pct", 6.0) / 100
+    das_anual = receita_pj_anual * das_aliquota_pct
+    das_mensal = das_anual / 12 if receita_pj_anual else 0
+    pct_das_receita_pj = round(das_aliquota_pct * 100, 1)
 
     if_cfg = goals_cfg.get("independencia_financeira", {})
-    renda_passiva_meta = if_cfg.get("renda_passiva_meta_mensal", 30000)
+    renda_passiva_meta = if_cfg.get("renda_passiva_meta_mensal", 0)
     renda_passiva_4pct = goals.get("renda_passiva_estimada_4pct", 0)
     pct_renda_passiva_meta = round(_safe_div(renda_passiva_4pct, renda_passiva_meta) * 100, 1)
 
@@ -358,7 +389,9 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "receita_aluguel_anual": round(receita_aluguel_anual, 2),
         "yield_imoveis_pct": yield_imoveis_pct,
         "sobra_mensal_f1f2": round(sobra_mensal_f1f2, 2),
-        "das_anual_estimado": das_mensal * 12,
+        "das_anual_estimado": round(das_anual, 2),
+        "receita_pj_anual": round(receita_pj_anual, 2),
+        "das_aliquota_pct": round(das_aliquota_pct * 100, 1),
         "anos_para_if_calculo": round(prazo_anos),
         "aportes_acum_prazo": round(aportes_acum_prazo, 0),
         "renda_eua_projetada_brl": round(renda_eua_projetada_brl, 0),
@@ -367,8 +400,8 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "top_asset_nome": top_asset["nome"],
         "top_asset_valor": top_asset["valor"],
         "top_asset_membro": top_asset["membro"],
-        "david_instituicoes": ", ".join(inst_data["david_inst"]) if inst_data["david_inst"] else "múltiplas instituições",
-        "mariana_instituicoes": ", ".join(inst_data["mariana_inst"]) if inst_data["mariana_inst"] else "BTG Pactual",
+        "david_instituicoes": ", ".join(inst_data["titular_inst"]) if inst_data["titular_inst"] else "múltiplas instituições",
+        "mariana_instituicoes": ", ".join(inst_data["conjuge_inst"]) if inst_data["conjuge_inst"] else "não identificadas",
         "n_imoveis": inst_data["n_imoveis"],
 
         # === Computed: USD/EUR saldos per bank ===
@@ -414,10 +447,11 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "renda_mariana_eua_maxima": mar_eua.get("renda_rn_maxima_usd", 0),
         "renda_mariana_eua_projetada": renda_eua_projetada_usd,
 
-        # === config/goals.json: tributário ===
-        "das_mensal_estimado": das_mensal,
+        # === Tributário (calculado a partir de parametros_fiscais.json + dados reais) ===
+        "das_mensal_estimado": round(das_mensal, 2),
         "contador_mensal": trib_cfg.get("contador_mensal", 0),
-        "contador_nome": trib_cfg.get("contador_nome", "AccountTech"),
+        "contador_nome": trib_cfg.get("contador_nome", ""),
+        "contador_canal": trib_cfg.get("contador_canal_pagamento", ""),
         "regime_obs": trib_cfg.get("regime_obs", ""),
         "holding_prazo": trib_cfg.get("holding_avaliacao_prazo", ""),
 
@@ -449,28 +483,28 @@ def fmt_currency(value):
     Rules:
     - Millions: R$ X,YM (comma as decimal separator)
     - Thousands: R$ XXk or R$ XX,Yk
-    - Numbers with dots for separator: R$ 1.102k
+    - Sub-thousand: R$ X.XXX,XX (Brazilian format)
+    - Negative values: preserves sign, uses abs() for range detection
 
     Returns: str
     """
     if not isinstance(value, (int, float)):
         return f"R$ {value}"
-    if value >= 1_000_000:
-        # Millions
-        millions = value / 1_000_000
+    sign = "-" if value < 0 else ""
+    abs_val = abs(value)
+    if abs_val >= 1_000_000:
+        millions = abs_val / 1_000_000
         formatted = f"{millions:.1f}".replace(".", ",")
-        return f"R$ {formatted}M"
-    elif value >= 1_000:
-        # Thousands
-        thousands = value / 1_000
+        return f"R$ {sign}{formatted}M"
+    elif abs_val >= 1_000:
+        thousands = abs_val / 1_000
         if thousands == int(thousands):
-            return f"R$ {int(thousands)}k"
+            return f"R$ {sign}{int(thousands)}k"
         formatted = f"{thousands:.1f}".replace(".", ",")
-        return f"R$ {formatted}k"
+        return f"R$ {sign}{formatted}k"
     else:
-        # For values < 1000, use Brazilian format (dot for thousands, comma for decimal)
-        formatted = f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-        return f"R$ {formatted}"
+        formatted = f"{abs_val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        return f"R$ {sign}{formatted}"
 
 
 def fmt_percent(value):
@@ -478,6 +512,15 @@ def fmt_percent(value):
     if value == int(value):
         return f"{int(value)}%"
     return f"{value:.1f}%".replace(".", ",")
+
+
+def fmt_num(value, decimals=1):
+    """Format a numeric value with Brazilian decimal separator (comma)."""
+    if not isinstance(value, (int, float)):
+        return str(value)
+    if value == int(value):
+        return str(int(value))
+    return f"{value:.{decimals}f}".replace(".", ",")
 
 
 def validate_narrativas(narrativas_obj):
@@ -613,15 +656,17 @@ def build_narrativas():
     """
     M = METRICS  # shorthand
 
-    # --- Load family data from config ---
+    # --- Load family data from config (dynamic key lookup) ---
     _fm = FAMILY.get("membros", {})
-    _david = _fm.get("david", {})
-    _mariana = _fm.get("mariana", {})
-    _theo = _fm.get("theo", {})
+    _titular_key = FAMILY.get("titular", "")
+    _conjuge_key = next((k for k, v in _fm.items() if v.get("papel") == "conjuge"), "")
+    _filho_key = next((k for k, v in _fm.items() if v.get("papel") == "filho"), "")
+    _david = _fm.get(_titular_key, {})
+    _mariana = _fm.get(_conjuge_key, {})
+    _theo = _fm.get(_filho_key, {})
     _endereco = FAMILY.get("endereco", {})
     _pets = FAMILY.get("pets", [])
 
-    # Calculate ages from config DOBs
     from datetime import date as _date
     _today = _date.today()
 
@@ -640,19 +685,17 @@ def build_narrativas():
     _mariana_age = _age(_mariana.get("data_nascimento"))
     _pets_str = ", ".join(_pets[:-1]) + " e " + _pets[-1] if len(_pets) > 1 else ", ".join(_pets)
 
-    # Years of experience (computed from config)
-    _anos_exp = _today.year - _david.get("carreira_inicio", 2002)
+    _carreira_inicio = _david.get("carreira_inicio")
+    _anos_exp = (_today.year - _carreira_inicio) if _carreira_inicio else 0
     _empresas = _david.get("empresas_destaque", [])
     _empresas_str = ", ".join(_empresas) if _empresas else ""
 
-    # Mariana specialization from config
     _mar_esp = _mariana.get("especializacao", "")
     _mar_mestrado = _mariana.get("mestrado", "")
     _mar_perfil_int = _mariana.get("perfil_internacional", "")
 
-    # Cidadania from config
     _cidadanias = _theo.get("cidadania", [])
-    _cidadanias_str = " e ".join(_cidadanias) if _cidadanias else "brasileira e americana"
+    _cidadanias_str = " e ".join(_cidadanias) if _cidadanias else ""
 
     # Riscos from goals.json
     _riscos = M.get("riscos_prioritarios", [])
@@ -668,6 +711,17 @@ def build_narrativas():
 
     # --- Helper: imovel concentration conditional ---
     _imovel_acima = M['pct_imoveis_bruto'] > M['threshold_imovel_pct']
+
+    # --- Helper: determine dominant revenue source dynamically ---
+    _fontes_receita = [
+        ("PJ", M['receita_pj'], M['pct_receita_pj']),
+        ("CLT", M['receita_clt'], M['pct_receita_clt']),
+        ("aluguel", M['receita_aluguel'], M['pct_receita_aluguel']),
+    ]
+    _fontes_receita.sort(key=lambda x: x[1], reverse=True)
+    _top_fonte_nome, _top_fonte_valor, _top_fonte_pct = _fontes_receita[0]
+    _sec_fonte_nome, _sec_fonte_valor, _sec_fonte_pct = _fontes_receita[1]
+    _ter_fonte_nome, _ter_fonte_valor, _ter_fonte_pct = _fontes_receita[2]
 
     narrativas = {
         "perfil_familia": {
@@ -695,9 +749,9 @@ def build_narrativas():
                 f"{M['f1f2_estrategia_david']}; {M['f1f2_estrategia_mariana']}. "
                 f"Custo projetado: {fmt_currency(M['custo_fase_f1f2'])}/mês, com sobra de "
                 f"{fmt_currency(M['sobra_mensal_f1f2'])}/mês.</p>\n"
-                f"<p>Meta IF: {fmt_currency(M['if_meta'])} (TRS {M['if_trs_pct']:.0f}%, renda passiva de {fmt_currency(M['if_renda_passiva_meta'])}/mês). "
+                f"<p>Meta IF: {fmt_currency(M['if_meta'])} (TRS {fmt_num(M['if_trs_pct'], 0)}%, renda passiva de {fmt_currency(M['if_renda_passiva_meta'])}/mês). "
                 f"Patrimônio investível atual de {fmt_currency(M['patrimonio_investivel'])} ({fmt_percent(M['progresso_if'])} da meta). "
-                f"Com aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real de {M['if_retorno_real_pct']:.0f}% a.a., "
+                f"Com aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a., "
                 f"prazo de {M['anos_para_if_calculo']} anos (David {M['david_idade_if']} anos, {M['if_ano']}).</p>\n"
                 f"<p>Patrimônio bruto de {fmt_currency(M['patrimonio_bruto'])}: "
                 f"{M['n_imoveis']} imóveis ({fmt_currency(M['residencia'])} residência + {fmt_currency(M['imoveis_investimento'])} investimento), "
@@ -712,8 +766,8 @@ def build_narrativas():
                 f"{fmt_currency(M['imoveis_investimento'])}. Endividamento de {fmt_percent(M['taxa_endividamento'])} sobre o bruto."
             ),
             "s2": (
-                f"Score financeiro de {M['score']}/10 ({M['score_label']}). Pontos fortes: taxa de poupança recorrente de {fmt_percent(M['taxa_poupanca'])}, "
-                f"cobertura de {M['cobertura_meses']:.1f} meses de despesas e endividamento controlado. Receita total no período de {fmt_currency(M['receita_total'])} "
+                f"Score financeiro de {fmt_num(M['score'])}/10 ({M['score_label']}). Pontos fortes: taxa de poupança recorrente de {fmt_percent(M['taxa_poupanca'])}, "
+                f"cobertura de {fmt_num(M['cobertura_meses'])} meses de despesas e endividamento controlado. Receita total no período de {fmt_currency(M['receita_total'])} "
                 f"com {fmt_percent(M['pct_receita_pj'])} proveniente de PJ, {fmt_percent(M['pct_receita_aluguel'])} de aluguel, "
                 f"{fmt_percent(M['pct_receita_clt'])} de CLT e {fmt_percent(M['pct_receita_outras'])} de outras fontes."
             ),
@@ -725,13 +779,14 @@ def build_narrativas():
             "s4": (
                 f"{M['n_imoveis']} imóveis no portfólio: residência na {_endereco.get('rua', '')} ({fmt_currency(M['residencia'])}), "
                 f"apartamentos alugados com renda de {fmt_currency(M['receita_aluguel_anual'])}/ano ({fmt_currency(M['receita_aluguel'] / M['n_meses_periodo'] if M['n_meses_periodo'] else 0)}/mês). "
-                f"Yield bruto dos imóveis de investimento estimado em {M['yield_imoveis_pct']}% (receita/valor total)."
+                f"Yield bruto dos imóveis de investimento estimado em {fmt_num(M['yield_imoveis_pct'])}% (receita/valor total)."
             ),
             "s5": (
-                f"Meta de independência financeira de {fmt_currency(M['if_meta'])} em {M['if_ano']}. "
-                f"Gap atual de {fmt_currency(M['if_gap'])} com prazo realista de {M['if_prazo_anos']:.1f} anos "
-                f"à taxa de aporte {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real {M['if_retorno_real_pct']:.0f}% a.a. "
-                f"Renda passiva estimada ({M['if_trs_pct']:.0f}% TRS): {fmt_currency(M['renda_passiva_4pct'])}/mês."
+                f"Mudança para os EUA via visto {M['f1f2_visto']} ({M['f1f2_universidade']}), "
+                f"com custo mensal estimado de {fmt_currency(M['custo_fase_f1f2'])}. "
+                f"Sobra projetada de {fmt_currency(M['sobra_mensal_f1f2'])}/mês "
+                f"({fmt_currency(M['receita_recorrente_mensal'])} receita − {fmt_currency(M['custo_fase_f1f2'])} custos). "
+                f"Viagens estimadas: {fmt_num(M['viagens_anuais_estimadas'], 0)}/ano a {fmt_currency(M['custo_viagem_minimo'])}-{fmt_currency(M['custo_viagem_maximo'])} cada."
             ),
             "s6": (
                 f"Exposição cambial: {fmt_usd(M['wise_usd'])} em Wise, {fmt_usd(M['bofa_usd'])} em Bank of America. "
@@ -740,20 +795,24 @@ def build_narrativas():
                 f"ritmo de {fmt_currency(M['aporte_cambial_mensal'])}/mês na Wise alcança a meta em {M['meses_para_cambial']} meses."
             ),
             "s7": (
-                f"{len(_riscos_nomes)} riscos prioritários: {', '.join(_riscos_nomes[:3])}. "
-                "Seguros de vida e invalidez inexistentes — classificados como urgentes. Planejamento sucessório em estágio inicial."
+                f"Meta de independência financeira de {fmt_currency(M['if_meta'])} em {M['if_ano']}. "
+                f"Gap atual de {fmt_currency(M['if_gap'])} com prazo realista de {fmt_num(M['if_prazo_anos'])} anos "
+                f"à taxa de aporte {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. "
+                f"Renda passiva estimada ({fmt_num(M['if_trs_pct'], 0)}% TRS): {fmt_currency(M['renda_passiva_4pct'])}/mês."
             ),
             "s8": (
-                f"{M['regime_obs']}. DAS mensal estimado em {fmt_currency(M['das_mensal_estimado'])}. "
-                f"{M['contador_nome']} como contador ({fmt_currency(M['contador_mensal'])}/mês via C6 PJ). "
+                f"{M['regime_obs']} (alíquota efetiva {fmt_percent(M['das_aliquota_pct'])}). "
+                f"DAS mensal estimado em {fmt_currency(M['das_mensal_estimado'])} ({fmt_currency(M['das_anual_estimado'])}/ano) "
+                f"sobre receita PJ anualizada de {fmt_currency(M['receita_pj_anual'])}. "
+                f"{M['contador_nome']} como contador ({fmt_currency(M['contador_mensal'])}/mês{' ' + M['contador_canal'] if M.get('contador_canal') else ''}). "
                 f"Avaliação de holding patrimonial pendente para {M['holding_prazo']}. "
                 "Obrigações fiscais EUA (FBAR, Form 8938, PFIC) requerem CPA expatriado antes da mudança."
             ),
             "s9": (
-                f"Despesas totais no período ({M['n_meses_periodo']} meses): {fmt_currency(M['despesa_total'])} ({fmt_currency(M['despesa_mensal_media'])}/mês média). "
-                f"Maior categoria 'não identificado' com {fmt_currency(M['despesas_nao_id'])} ({fmt_percent(M['pct_despesas_nao_id'])} do total). "
-                f"Impostos ({fmt_currency(M['despesas_impostos'])}), moradia ({fmt_currency(M['despesas_moradia'])}) e serviços domésticos "
-                f"({fmt_currency(M['despesas_serv_dom'])}) completam o perfil de gastos."
+                f"{len(_riscos_nomes)} riscos prioritários: {', '.join(_riscos_nomes[:3])}. "
+                f"Seguros de vida e invalidez inexistentes — classificados como urgentes. "
+                f"Cobertura recomendada: R$ {M['seguro_vida_minimo'] // 1_000_000}-{M['seguro_vida_maximo'] // 1_000_000}M em seguro term. "
+                "Planejamento sucessório em estágio inicial."
             ),
             "s10": (
                 f"{len(_decisoes)} decisões estratégicas prioritárias: iniciar aporte mensal de {fmt_currency(M['meta_aporte_mensal'])} "
@@ -767,7 +826,7 @@ def build_narrativas():
         "charts": {
             "score_gauge": {
                 "context": (
-                    f"Indicador geral de saúde financeira da família, com score de {M['score']}/10 "
+                    f"Indicador geral de saúde financeira da família, com score de {fmt_num(M['score'])}/10 "
                     f"({M['score_label']}). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria."
                 ),
                 "conclusion": (
@@ -812,9 +871,9 @@ def build_narrativas():
                     f"versus despesa média de {fmt_currency(M['despesa_mensal_media'])}/mês."
                 ),
                 "conclusion": (
-                    f"Saldo mensal de {fmt_currency(M['receita_recorrente_mensal'] - M['despesa_mensal_media'])}/mês. "
-                    f"Taxa de poupança de {fmt_percent(M['taxa_poupanca'])} garante capacidade de aporte consistente. "
-                    f"Sustenta a meta de aportes mensais de {fmt_currency(M['meta_aporte_mensal'])} para o plano IF."
+                    f"Fluxo líquido total de {fmt_currency(M['fluxo_liquido'])} no período ({M['n_meses_periodo']} meses). "
+                    f"Taxa de poupança recorrente de {fmt_percent(M['taxa_poupanca'])} "
+                    f"sustenta a meta de aportes mensais de {fmt_currency(M['meta_aporte_mensal'])} para o plano IF."
                 )
             },
             "receita_bar": {
@@ -824,10 +883,10 @@ def build_narrativas():
                     f"aluguel ({fmt_percent(M['pct_receita_aluguel'])}), outras ({fmt_percent(M['pct_receita_outras'])})."
                 ),
                 "conclusion": (
-                    f"Receita PJ de {fmt_currency(M['receita_pj'])} mantém dominância ({fmt_percent(M['pct_receita_pj'])}), "
-                    f"com CLT ({fmt_currency(M['receita_clt'])}, {fmt_percent(M['pct_receita_clt'])}) "
-                    f"e aluguel ({fmt_currency(M['receita_aluguel'])}, {fmt_percent(M['pct_receita_aluguel'])}). "
-                    "Diversificação reduz risco de dependência única."
+                    f"Receita {_top_fonte_nome} lidera com {fmt_currency(_top_fonte_valor)} ({fmt_percent(_top_fonte_pct)}), "
+                    f"seguida por {_sec_fonte_nome} ({fmt_currency(_sec_fonte_valor)}, {fmt_percent(_sec_fonte_pct)}) "
+                    f"e {_ter_fonte_nome} ({fmt_currency(_ter_fonte_valor)}, {fmt_percent(_ter_fonte_pct)}). "
+                    "Diversificação de fontes reduz risco de dependência única."
                 )
             },
             "receita_despesa_mensal": {
@@ -854,7 +913,7 @@ def build_narrativas():
             "projecao_3cenarios": {
                 "context": (
                     f"Projeção do patrimônio investível até atingir a meta de {fmt_currency(M['if_meta'])}, "
-                    f"considerando aportes mensais de {fmt_currency(M['meta_aporte_mensal'])} e retorno real anual de {M['if_retorno_real_pct']:.0f}%."
+                    f"considerando aportes mensais de {fmt_currency(M['meta_aporte_mensal'])} e retorno real anual de {fmt_num(M['if_retorno_real_pct'], 0)}%."
                 ),
                 "conclusion": (
                     f"Meta será atingida em {M['if_ano']}, quando David terá {M['david_idade_if']} anos. "
@@ -868,19 +927,19 @@ def build_narrativas():
                 ),
                 "conclusion": (
                     f"Gap de {fmt_currency(M['if_gap'])} será fechado por aportes disciplinados "
-                    f"({fmt_currency(M['meta_aporte_mensal'])}/mês = {fmt_currency(M['aportes_acum_prazo'])} em {M['if_prazo_anos']:.0f} anos) "
-                    f"e rentabilidade real de {M['if_retorno_real_pct']:.0f}% a.a. sobre patrimônio acumulado."
+                    f"({fmt_currency(M['meta_aporte_mensal'])}/mês = {fmt_currency(M['aportes_acum_prazo'])} em {fmt_num(M['if_prazo_anos'], 0)} anos) "
+                    f"e rentabilidade real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. sobre patrimônio acumulado."
                 )
             },
             "renda_passiva": {
                 "context": (
-                    f"Renda passiva estimada em diferentes cenários de patrimônio investível, "
-                    f"assumindo TRS de {M['if_trs_pct']:.0f}% (alvo) e 4% (conservador)."
+                    f"Barra de progresso da renda passiva mensal em direção à meta de {fmt_currency(M['if_renda_passiva_meta'])}/mês. "
+                    f"Cada segmento representa uma fonte: aluguéis, dividendos e rendimentos financeiros."
                 ),
                 "conclusion": (
-                    f"Cenário atual ({fmt_currency(M['patrimonio_investivel'])}): {fmt_currency(M['renda_passiva_4pct'])}/mês ({fmt_percent(M['pct_renda_passiva_meta'])} da meta). "
-                    f"Cenário {M['if_ano']} ({fmt_currency(M['if_meta'])}): {fmt_currency(M['if_renda_passiva_meta'])}/mês. "
-                    "Diversidade de fontes (aluguel, dividendos, renda fixa) reduz risco."
+                    f"Renda passiva atual de {fmt_currency(M['renda_passiva_4pct'])}/mês ({fmt_percent(M['pct_renda_passiva_meta'])} da meta). "
+                    f"Faltam {fmt_currency(M['if_renda_passiva_meta'] - M['renda_passiva_4pct'])}/mês — patrimônio de {fmt_currency(M['if_meta'])} (meta {M['if_ano']}) "
+                    f"geraria {fmt_currency(M['if_renda_passiva_meta'])}/mês com TRS de {fmt_num(M['if_trs_pct'], 0)}%."
                 )
             },
             "yield_imoveis": {
@@ -889,8 +948,8 @@ def build_narrativas():
                     "versus aluguel recebido mensalizado."
                 ),
                 "conclusion": (
-                    f"Yield atual de {M['yield_imoveis_pct']}% com potencial de "
-                    f"{M['yield_imoveis_potencial_pct_min']}-{M['yield_imoveis_potencial_pct_max']}% após otimização de contratos. "
+                    f"Yield atual de {fmt_num(M['yield_imoveis_pct'])}% com potencial de "
+                    f"{fmt_num(M['yield_imoveis_potencial_pct_min'])}-{fmt_num(M['yield_imoveis_potencial_pct_max'])}% após otimização de contratos. "
                     "Imóveis funcionam como hedge inflacionário e fonte de renda complementar."
                 )
             },
@@ -905,13 +964,14 @@ def build_narrativas():
             },
             "impostos_pj": {
                 "context": (
-                    f"Análise da carga tributária PJ de David (receita {fmt_currency(M['receita_pj'])}), "
-                    f"estimando DAS mensal sob {M['regime_obs']}."
+                    f"Carga tributária da PJ de David: receita anualizada de {fmt_currency(M['receita_pj_anual'])}, "
+                    f"enquadrada no {M['regime_obs']} (alíquota efetiva {fmt_percent(M['das_aliquota_pct'])})."
                 ),
                 "conclusion": (
-                    f"DAS estimado em {fmt_currency(M['das_mensal_estimado'])}/mês ({fmt_currency(M['das_anual_estimado'])}/ano), "
-                    f"representando {fmt_percent(M['pct_das_receita_pj'])} da receita PJ. "
-                    f"Contador {M['contador_nome']} em funcionamento. Avaliação de holding patrimonial pendente para {M['holding_prazo']}."
+                    f"DAS estimado em {fmt_currency(M['das_mensal_estimado'])}/mês ({fmt_currency(M['das_anual_estimado'])}/ano). "
+                    f"Lucro presumido (32%) define base tributável de {fmt_currency(M['receita_pj_anual'] * 0.32)} para cálculo do PGBL "
+                    f"(dedução de até 12%). Contador {M['contador_nome']} em funcionamento. "
+                    f"Avaliação de holding patrimonial pendente para {M['holding_prazo']}."
                 )
             },
             "mariana_cenarios": {
@@ -940,13 +1000,13 @@ def build_narrativas():
                 ),
                 "conclusion": (
                     f"Viagens para EUA estimadas em {fmt_currency(M['custo_viagem_minimo'])}-{fmt_currency(M['custo_viagem_maximo'])} por viagem. "
-                    f"Frequência média de {M['viagens_anuais_estimadas']:.0f} viagens/ano para acompanhamento do processo {M['f1f2_visto']}."
+                    f"Frequência média de {fmt_num(M['viagens_anuais_estimadas'], 0)} viagens/ano para acompanhamento do processo {M['f1f2_visto']}."
                 )
             },
             "cenarios_cambiais": {
                 "context": (
                     f"Exposição cambial atual ({fmt_usd(M['poupanca_cambial_actual_usd'])}) e meta pré-EUA ({fmt_usd(M['poupanca_cambial_meta_usd'])}), "
-                    f"considerando câmbio de R$ {M['cambio_usd_brl']:.2f}/USD."
+                    f"considerando câmbio de R$ {fmt_num(M['cambio_usd_brl'], 2)}/USD."
                 ),
                 "conclusion": (
                     f"Gap de {fmt_usd(M['poupanca_cambial_gap_usd'])} com aporte atual de {fmt_currency(M['aporte_cambial_mensal'])}/mês em Wise, "
@@ -1058,13 +1118,13 @@ def main():
     print("Summary of updated metrics:")
     print(f"  Score: {METRICS['score']}/10 ({METRICS['score_label']})")
     print(f"  Taxa Poupança Recorrente: {fmt_percent(METRICS['taxa_poupanca'])}")
-    print(f"  Cobertura Despesas: {METRICS['cobertura_meses']:.1f} meses")
+    print(f"  Cobertura Despesas: {fmt_num(METRICS['cobertura_meses'])} meses")
     print(f"  Taxa Endividamento: {fmt_percent(METRICS['taxa_endividamento'])}")
     print(f"  Progresso IF: {fmt_percent(METRICS['progresso_if'])}")
     print(f"  Patrimônio Bruto: {fmt_currency(METRICS['patrimonio_bruto'])}")
     print(f"  Patrimônio Investível: {fmt_currency(METRICS['patrimonio_investivel'])}")
     print(f"  IF Gap: {fmt_currency(METRICS['if_gap'])}")
-    print(f"  IF Prazo: {METRICS['if_prazo_anos']:.1f} anos (ano {METRICS['if_ano']})")
+    print(f"  IF Prazo: {fmt_num(METRICS['if_prazo_anos'])} anos (ano {METRICS['if_ano']})")
     print()
 
     return True

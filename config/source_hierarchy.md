@@ -69,7 +69,7 @@ Estas correções foram feitas entre v3.0 e v4.3 e devem ser mantidas. Se um ext
 | GRPQA Ltda. = salário Einstein | v4.2 | GRPQA = QuintoAndar (aluguéis Mariana). Salário Einstein vai para poupança Bradesco ("Sociedade Beneficente Israelita"). |
 | Dupla contagem salário/aluguéis Mariana | v4.2 | "Salário" R$53.808 era na verdade GRPQA (aluguéis) já contados. Eliminada. |
 | Salário Mariana R$6.720/mês | v4.2 | Corrigido para R$8.000/mês (poupança Bradesco). |
-| ITSA4 = 763 ou 778 ações | v4.0 | Corrigido para 693 ações (screenshot). |
+| ITSA4 = 778 ações | v4.0→v4.3 | Corrigido para 763 ações (693 compradas + 70 bonificação, PM R$7,63). |
 | Patrimônio investível R$3.407.041 | v4.0 | Corrigido para R$3.648.716 (pós-quitação). |
 | Score Financeiro 6,4/10 | v4.2 | Corrigido para 6,8/10 (receita recorrente maior). |
 | Taxa de poupança 11,9% | v4.2 | Corrigido para 18,8% (salário Mariana real adicionado). |

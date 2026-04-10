@@ -83,7 +83,7 @@
 |---|---|---|---|
 | CPAs expatriados BR-US | David | T3/2026 | Consultar 2-3 para FBAR, Form 8938, Form 1040, PFIC. Contratar ANTES de partir. |
 | Avaliar resgate fundos PFIC | David + CPA | T3/2026 | Alaska, Constellation, Western, BTG — tributados punitivamente nos EUA. Resgatar ANTES de virar US tax resident. |
-| CGFNS + teste de inglês Mariana (NCLEX) | Mariana | T4/2026 | Teste de inglês ainda não escolhido — opções: MET, OET, PTE, TOEFL ou IELTS (ver life_plan_goals.md). Pode iniciar do Brasil. |
+| CGFNS + teste de inglês Mariana (NCLEX) | Mariana | T4/2026 | MET ou OET recomendados (ver config/goals.json nclex_roadmap). Pode iniciar do Brasil. |
 | Timeline F1/F2 Anderson University | David | T4/2026 | Definir semestre de início. |
 | Visto F1 (se timeline = 2027) | David | T4/2026 | Matrícula + aplicação. |
 | Procurações em cartório | David | Antes EUA | Pública para Rubens + duradoura David→Mariana+Rubens. |

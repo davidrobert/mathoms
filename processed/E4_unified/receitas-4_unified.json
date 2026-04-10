@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-09T18:00:19.485306-03:00",
+  "consolidation_date": "2026-04-09T18:14:25.673554-03:00",
   "periodo": "2023-01 a 2026-04",
   "categorias": [
     "outras_receitas",
@@ -12,9 +12,9 @@
     "receita_venda_ativo"
   ],
   "total_categorias": 8,
-  "total_transacoes": 630,
+  "total_transacoes": 660,
   "totais_por_categoria": {
-    "outras_receitas": 462099.30000000057,
+    "outras_receitas": 456181.45000000054,
     "receita_investimento": 14565.170000000011,
     "receita_resgate": 27416.699999999997,
     "receita_aluguel": 173662.92999999993,
@@ -23,7 +23,7 @@
     "receita_venda_ativo": 49402.0,
     "receita_restituicao": 16.99
   },
-  "total_geral": 2506928.89,
+  "total_geral": 2501011.04,
   "dados": {
     "outras_receitas": [
       {
@@ -200,6 +200,28 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-05",
+        "descricao": "RAPPI  *RAPPI * BRASI",
+        "valor": -17.58,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-24",
+        "descricao": "Estorno Tarifa",
+        "valor": -85.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -555,6 +577,17 @@
         "moeda": "BRL"
       },
       {
+        "data": "2024-01-24",
+        "descricao": "Estorno Tarifa",
+        "valor": -85.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2024-02-21",
         "descricao": "Pix recebido de I.Casei Presentes E Intermediacao De Negocios Ltda.",
         "valor": 25838.09,
@@ -563,6 +596,28 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-23",
+        "descricao": "RAPPI  *RAPPI * BRASI",
+        "valor": -68.71,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-24",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -596,6 +651,17 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-03-24",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -1083,6 +1149,17 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-04-07",
+        "descricao": "MERCADOLIVRE*JAPAVEND",
+        "valor": -179.83,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-04-08",
         "descricao": "Rent",
         "valor": 0.13,
@@ -1171,6 +1248,17 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-04-23",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-04-24",
         "descricao": "Rent",
         "valor": 0.45,
@@ -1237,6 +1325,17 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-24",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-06-02",
         "descricao": "Rent",
         "valor": 0.54,
@@ -1278,6 +1377,17 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-24",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -1366,6 +1476,28 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-09",
+        "descricao": "EBN    *AMAZON RETAIL",
+        "valor": -740.39,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-09",
+        "descricao": "EBN    *AMAZON RETAIL",
+        "valor": -103.49,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -1468,6 +1600,39 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-08-15",
+        "descricao": "WAL-MART #5214",
+        "valor": -569.29,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-19",
+        "descricao": "DESC MASTERCARDWALMART",
+        "valor": -17.1,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-24",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-08-27",
         "descricao": "Rent",
         "valor": 0.33,
@@ -1531,6 +1696,28 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-20",
+        "descricao": "EBN    *AMAZON RETAIL",
+        "valor": -64.09,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-25",
+        "descricao": "AMAZON MARK* 0809W0H83",
+        "valor": -894.25,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -1644,6 +1831,28 @@
         "moeda": "USD"
       },
       {
+        "data": "2025-10-22",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-23",
+        "descricao": "THE PLATINUM HOTEL & S",
+        "valor": -1418.03,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-11-19",
         "descricao": "DESBLOQUEIO PIX",
         "valor": 333.0,
@@ -1688,6 +1897,17 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-11-24",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-11-25",
         "descricao": "Rent Des: Eliane Costa Goncalve 1900316 - 220,00",
         "valor": 0.03,
@@ -1729,6 +1949,28 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-02",
+        "descricao": "MERCADOLIVRE*MAE",
+        "valor": -134.31,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-02",
+        "descricao": "MERCADOLIVRE*DRAGONGA",
+        "valor": -36.99,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -1787,6 +2029,17 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-12-23",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-12-30",
         "descricao": "Rent",
         "valor": 0.41,
@@ -1809,6 +2062,28 @@
         "moeda": "BRL"
       },
       {
+        "data": "2026-01-03",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": -19.72,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-03",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": -33.91,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2026-01-05",
         "descricao": "Rent",
         "valor": 0.41,
@@ -1828,6 +2103,28 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-24",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-29",
+        "descricao": "AMAZON BR",
+        "valor": -199.9,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -1919,6 +2216,17 @@
         "moeda": "BRL"
       },
       {
+        "data": "2026-02-24",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2026-02-28",
         "descricao": "Pix recebido de REINALDO MARTINS DE ARAUJO",
         "valor": 1000.0,
@@ -1960,6 +2268,17 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-05",
+        "descricao": "MERCADOLIVRE*3PRODUTO",
+        "valor": -74.26,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -2015,6 +2334,17 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-24",
+        "descricao": "Estorno Tarifa",
+        "valor": -98.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {

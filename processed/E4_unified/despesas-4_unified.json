@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-09T18:00:19.485946-03:00",
+  "consolidation_date": "2026-04-09T18:14:25.674337-03:00",
   "periodo": "2023-01 a 2026-04",
   "categorias": [
     "alimentacao",
@@ -21,27 +21,27 @@
     "vestuario"
   ],
   "total_categorias": 17,
-  "total_transacoes": 3282,
+  "total_transacoes": 3252,
   "totais_por_categoria": {
-    "assinaturas": 14274.249999999965,
+    "assinaturas": 14390.879999999966,
     "seguros": 6656.46,
-    "financeiro": 16044.560000000001,
-    "nao_identificado": 856912.21,
+    "financeiro": 14698.560000000001,
+    "nao_identificado": 856129.03,
     "financiamentos": 176146.32,
-    "moradia": 37818.73000000001,
+    "moradia": 37877.73000000001,
     "impostos": 126619.02999999997,
-    "suporte_familiar": 80073.22,
+    "suporte_familiar": 80173.22,
     "transporte": 48695.080000000016,
-    "reserva_desejos": 50092.35000000002,
+    "reserva_desejos": 69968.02000000003,
     "servicos_domesticos": 60885.55,
     "saude": 102919.17000000001,
-    "lazer_viagens": 158123.46999999997,
+    "lazer_viagens": 156705.43999999994,
     "melhoria_reforma": 43494.70000000001,
-    "alimentacao": 75058.12999999995,
+    "alimentacao": 52536.189999999966,
     "educacao": 36967.18000000001,
     "vestuario": 24727.289999999997
   },
-  "total_geral": 1915507.7,
+  "total_geral": 1909589.85,
   "dados": {
     "assinaturas": [
       {
@@ -68,6 +68,16 @@
         "data": "2023-12-04",
         "descricao": "LINKEDIN 9141",
         "valor": 1079.88,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-09",
+        "descricao": "FIBRA POSTO",
+        "valor": 28.63,
         "banco": "C6 Bank",
         "categoria": "assinaturas",
         "tipo_conta": "faturacarbon",
@@ -1275,6 +1285,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-12-11",
+        "descricao": "FIBRA",
+        "valor": 60.0,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-11",
+        "descricao": "FIBRA",
+        "valor": 28.0,
+        "banco": "C6 Bank",
+        "categoria": "assinaturas",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-12-13",
         "descricao": "WELLHUB GYMPASS BR WEL",
         "valor": 79.89,
@@ -2150,16 +2180,6 @@
       },
       {
         "data": "2023-12-24",
-        "descricao": "Estorno Tarifa",
-        "valor": 85.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-12-24",
         "descricao": "Anuidade Diferenciada",
         "valor": 85.0,
         "banco": "C6 Bank",
@@ -2220,16 +2240,6 @@
       },
       {
         "data": "2024-01-24",
-        "descricao": "Estorno Tarifa",
-        "valor": 85.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-24",
         "descricao": "Anuidade Diferenciada",
         "valor": 85.0,
         "banco": "C6 Bank",
@@ -2276,16 +2286,6 @@
         "categoria": "financeiro",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-24",
-        "descricao": "Estorno Tarifa",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -2341,16 +2341,6 @@
       {
         "data": "2024-03-24",
         "descricao": "Anuidade Diferenciada",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-03-24",
-        "descricao": "Estorno Tarifa",
         "valor": 98.0,
         "banco": "C6 Bank",
         "categoria": "financeiro",
@@ -2689,16 +2679,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-04-23",
-        "descricao": "Estorno Tarifa",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-04-30",
         "descricao": "VINDI  *ACCOUNTBANKTEC",
         "valor": 365.35,
@@ -2749,16 +2729,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-05-24",
-        "descricao": "Estorno Tarifa",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-05-30",
         "descricao": "VINDI  *ACCOUNTBANKTEC",
         "valor": 390.0,
@@ -2796,16 +2766,6 @@
         "categoria": "financeiro",
         "tipo_conta": "faturaunique",
         "titular": "Unique",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-24",
-        "descricao": "Estorno Tarifa",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -2906,16 +2866,6 @@
         "categoria": "financeiro",
         "tipo_conta": "faturaunique",
         "titular": "Unique",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-24",
-        "descricao": "Estorno Tarifa",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -3070,16 +3020,6 @@
       },
       {
         "data": "2025-10-22",
-        "descricao": "Estorno Tarifa",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-22",
         "descricao": "Anuidade Diferenciada",
         "valor": 98.0,
         "banco": "C6 Bank",
@@ -3119,16 +3059,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-11-24",
-        "descricao": "Estorno Tarifa",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-11-30",
         "descricao": "VINDI  *ACCOUNTBANKTEC",
         "valor": 390.0,
@@ -3156,16 +3086,6 @@
         "categoria": "financeiro",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-23",
-        "descricao": "Estorno Tarifa",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -3236,16 +3156,6 @@
         "categoria": "financeiro",
         "tipo_conta": "faturaunique",
         "titular": "Unique",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-24",
-        "descricao": "Estorno Tarifa",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -3326,16 +3236,6 @@
         "categoria": "financeiro",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-24",
-        "descricao": "Estorno Tarifa",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -3456,16 +3356,6 @@
         "categoria": "financeiro",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-24",
-        "descricao": "Estorno Tarifa",
-        "valor": 98.0,
-        "banco": "C6 Bank",
-        "categoria": "financeiro",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -4091,16 +3981,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2023-12-05",
-        "descricao": "RAPPI  *RAPPI * BRASI",
-        "valor": 17.58,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2023-12-06",
         "descricao": "PAG*GESSICAMARIAFEITO",
         "valor": 21.0,
@@ -4184,16 +4064,6 @@
         "data": "2023-12-09",
         "descricao": "CASTROPIL EMBALAGENS",
         "valor": 9.6,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-12-09",
-        "descricao": "FIBRA POSTO",
-        "valor": 28.63,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -4614,26 +4484,6 @@
         "data": "2023-12-26",
         "descricao": "SMILES FIDEL*TXAEMBARQ",
         "valor": 497.19,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-12-26",
-        "descricao": "ADMINISTRADORA GERAL D",
-        "valor": 16.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-12-26",
-        "descricao": "ADMINISTRADORA GERAL D",
-        "valor": 16.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -5714,16 +5564,6 @@
         "data": "2024-02-23",
         "descricao": "RAPPI  *RAPPI * BRASI",
         "valor": 672.09,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-02-23",
-        "descricao": "RAPPI  *RAPPI * BRASI",
-        "valor": 68.71,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -8331,16 +8171,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-08-19",
-        "descricao": "DESC MASTERCARDWALMART",
-        "valor": 17.1,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-08-28",
         "descricao": "EMISSAO DE CDB",
         "valor": 2404.0,
@@ -8822,38 +8652,8 @@
       },
       {
         "data": "2025-12-08",
-        "descricao": "Pix Qrcode Din Des: Magalupay 06/12",
-        "valor": 404.16,
-        "banco": "Bradesco",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-08",
         "descricao": "ALEX MARTINS DE MACEDO",
         "valor": 39.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-11",
-        "descricao": "FIBRA",
-        "valor": 60.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-11",
-        "descricao": "FIBRA",
-        "valor": 28.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -8912,16 +8712,6 @@
       },
       {
         "data": "2025-12-16",
-        "descricao": "Pix enviado para SHEILA APARECIDA DA ROCHA DE CAMARGO — TRANSF ENVIADA PIX",
-        "valor": 100.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-16",
         "descricao": "Transfe Pix Des: Aline Lopes Oliveira 16/12",
         "valor": 42.13,
         "banco": "Bradesco",
@@ -8948,16 +8738,6 @@
         "categoria": "nao_identificado",
         "tipo_conta": "extratoconta",
         "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-21",
-        "descricao": "ADMINISTRADORA",
-        "valor": 27.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -10025,6 +9805,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2023-12-26",
+        "descricao": "ADMINISTRADORA GERAL D",
+        "valor": 16.0,
+        "banco": "C6 Bank",
+        "categoria": "moradia",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-26",
+        "descricao": "ADMINISTRADORA GERAL D",
+        "valor": 16.0,
+        "banco": "C6 Bank",
+        "categoria": "moradia",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2023-12-27",
         "descricao": "DA  ELETROPAULO 31237205",
         "valor": 369.96,
@@ -10638,6 +10438,16 @@
         "data": "2025-12-14",
         "descricao": "TELHA NORTE",
         "valor": 353.8,
+        "banco": "C6 Bank",
+        "categoria": "moradia",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-21",
+        "descricao": "ADMINISTRADORA",
+        "valor": 27.0,
         "banco": "C6 Bank",
         "categoria": "moradia",
         "tipo_conta": "faturacarbon",
@@ -11946,6 +11756,16 @@
         "categoria": "suporte_familiar",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-16",
+        "descricao": "Pix enviado para SHEILA APARECIDA DA ROCHA DE CAMARGO — TRANSF ENVIADA PIX",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "suporte_familiar",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -20053,9 +19873,99 @@
     ],
     "reserva_desejos": [
       {
+        "data": "2023-10-26",
+        "descricao": "MERCADOLIVRE*ATENAMIX",
+        "valor": 43.3,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-10-31",
+        "descricao": "MERCADOLIVRE*MOTOLUC",
+        "valor": 173.2,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-11-08",
+        "descricao": "MERCADOLIVRE*4PRODUTO",
+        "valor": 181.63,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-03",
+        "descricao": "MERCADOLIVRE*ENGEMOD",
+        "valor": 135.7,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2023-12-06",
         "descricao": "DISTRIBUIDORA MENEZES",
         "valor": 13.2,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-11",
+        "descricao": "MERCADOLIVRE*3PRODUTO",
+        "valor": 57.81,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-11",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 38.49,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-14",
+        "descricao": "MERCADOLIVRE*FOOTLET",
+        "valor": 214.95,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-14",
+        "descricao": "MERCADOLIVRE*FATML",
+        "valor": 74.85,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2023-12-20",
+        "descricao": "MERCADOLIVRE*MANDALA",
+        "valor": 118.2,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
@@ -20073,6 +19983,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2024-01-08",
+        "descricao": "MERCADOLIVRE*HAUSTUDO",
+        "valor": 429.56,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-01-14",
+        "descricao": "MERCADOLIVRE*SWEETHOM",
+        "valor": 312.88,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2024-01-15",
         "descricao": "VIDESUL",
         "valor": 80.65,
@@ -20083,9 +20013,79 @@
         "moeda": "BRL"
       },
       {
+        "data": "2024-01-16",
+        "descricao": "MERCADOLIVRE*LUGARI",
+        "valor": 74.82,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2024-01-19",
         "descricao": "LOJAS MEL",
         "valor": 44.99,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-02-15",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 507.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-03-01",
+        "descricao": "MERCADOLIVRE*LEGIAONER",
+        "valor": 60.88,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-03-01",
+        "descricao": "MERCADOLIVRE*LOJASKUBB",
+        "valor": 129.9,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-03-16",
+        "descricao": "MERCADOLIVRE*DRMUSCLE",
+        "valor": 188.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-03-20",
+        "descricao": "MERCADOLIVRE*3PRODUTO",
+        "valor": 29.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-03-20",
+        "descricao": "MERCADOLIVRE*3PRODUTO",
+        "valor": 61.74,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
@@ -20123,6 +20123,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-04-04",
+        "descricao": "MERCADOLIVRE*JAPAVEND",
+        "valor": 179.83,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-07",
+        "descricao": "MERCADOLIVRE*JHPETS",
+        "valor": 149.97,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-04-07",
         "descricao": "AMAZONMKTPLC*LOTSHOMES",
         "valor": 93.84,
@@ -20136,6 +20156,16 @@
         "data": "2025-04-07",
         "descricao": "AMAZON BR",
         "valor": 29.98,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-13",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 803.0,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
@@ -20196,6 +20226,36 @@
         "data": "2025-04-15",
         "descricao": "AMAZON MARKETPLACE",
         "valor": 117.72,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-21",
+        "descricao": "MERCADOLIVRE*2PRODUTO",
+        "valor": 103.84,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-21",
+        "descricao": "MERCADOLIVRE*2PRODUTO",
+        "valor": 155.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-23",
+        "descricao": "MERCADOLIVRE*RICAPET",
+        "valor": 77.99,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
@@ -20353,6 +20413,26 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-05-30",
+        "descricao": "MERCADOLIVRE*7PRODUTO",
+        "valor": 200.48,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-30",
+        "descricao": "MERCADOLIVRE*7PRODUTO",
+        "valor": 129.9,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-06-03",
         "descricao": "EBN    *AMAZON RETAIL",
         "valor": 41.78,
@@ -20405,27 +20485,7 @@
       {
         "data": "2025-07-09",
         "descricao": "EBN    *AMAZON RETAIL",
-        "valor": 740.39,
-        "banco": "C6 Bank",
-        "categoria": "reserva_desejos",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-09",
-        "descricao": "EBN    *AMAZON RETAIL",
         "valor": 787.38,
-        "banco": "C6 Bank",
-        "categoria": "reserva_desejos",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-09",
-        "descricao": "EBN    *AMAZON RETAIL",
-        "valor": 103.49,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
@@ -20674,6 +20734,26 @@
       },
       {
         "data": "2025-09-16",
+        "descricao": "MERCADOLIVRE*3PRODUTO",
+        "valor": 387.99,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-16",
+        "descricao": "MERCADOLIVRE*3PRODUTO",
+        "valor": 1100.13,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-16",
         "descricao": "EBN    *AMAZON RETAIL",
         "valor": 413.12,
         "banco": "C6 Bank",
@@ -20723,16 +20803,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-09-20",
-        "descricao": "EBN    *AMAZON RETAIL",
-        "valor": 64.09,
-        "banco": "C6 Bank",
-        "categoria": "reserva_desejos",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-09-22",
         "descricao": "AMAZON MKTPLACE PMTS",
         "valor": 396.11,
@@ -20743,9 +20813,29 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-09-22",
+        "descricao": "MERCADOLIVRE*MICHELAIN",
+        "valor": 64.79,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-22",
+        "descricao": "MERCADOLIVRE*BCBCOMERC",
+        "valor": 61.89,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-09-25",
-        "descricao": "AMAZON MARK* 0809W0H83",
-        "valor": 894.25,
+        "descricao": "MERCADOLIVRE*UTILECOM",
+        "valor": 52.9,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
@@ -20760,6 +20850,36 @@
         "categoria": "reserva_desejos",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "MERCADOLIVRE*LUARTEBAB",
+        "valor": 78.1,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "MERCADOLIVRE*3PRODUTO",
+        "valor": 468.67,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 71.01,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -20783,9 +20903,49 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-10-07",
+        "descricao": "MERCADOLIVRE*ROCKETKID",
+        "valor": 37.99,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-10-11",
         "descricao": "DISTRIBUIDORA MENEZES",
         "valor": 104.94,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-19",
+        "descricao": "MERCADOLIVRE*PLANETAI",
+        "valor": 299.9,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-23",
+        "descricao": "MERCADOLIVRE*EBAZARCO",
+        "valor": 19.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-29",
+        "descricao": "MERCADOLIVRE*UTILECOML",
+        "valor": 38.62,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
@@ -20803,6 +20963,116 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-11-05",
+        "descricao": "MERCADOLIVRE*FENIXAFRO",
+        "valor": 57.9,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-10",
+        "descricao": "MERCADOLIVRE*DRAGONGA",
+        "valor": 36.99,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-11",
+        "descricao": "MERCADOLIVRE*6PRODUTO",
+        "valor": 548.3,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-11",
+        "descricao": "MERCADOLIVRE*6PRODUTO",
+        "valor": 891.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-13",
+        "descricao": "MERCADOLIVRE*SERGIOCO",
+        "valor": 42.83,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-17",
+        "descricao": "MERCADOLIVRE*DOCELIMA",
+        "valor": 69.69,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-18",
+        "descricao": "MERCADOLIVRE*SOLDIERS",
+        "valor": 43.9,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-26",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 46.43,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-26",
+        "descricao": "MERCADOLIVRE*MAE",
+        "valor": 134.31,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-28",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 474.5,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-01",
+        "descricao": "MERCADOLIVRE*DADDYSTO",
+        "valor": 94.98,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-12-08",
         "descricao": "Pix enviado para GRUPO CASAS BAHIA S.A. — TRANSF ENVIADA PIX",
         "valor": 18233.19,
@@ -20810,6 +21080,36 @@
         "categoria": "reserva_desejos",
         "tipo_conta": "extratoconta",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-08",
+        "descricao": "Pix Qrcode Din Des: Magalupay 06/12",
+        "valor": 404.16,
+        "banco": "Bradesco",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-08",
+        "descricao": "MERCADOLIVRE*2RUN",
+        "valor": 54.9,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-08",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 249.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -20823,9 +21123,99 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-12-08",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 360.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-11",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 33.91,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-12",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 21.33,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-12",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 219.94,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-12",
+        "descricao": "MERCADOLIVRE*CARINHAD",
+        "valor": 74.2,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-12-13",
         "descricao": "MP *VICTORELETRONICOS",
         "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-14",
+        "descricao": "MERCADOLIVRE*4PRODUTO",
+        "valor": 1018.49,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-14",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 75.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-15",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 177.48,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-15",
+        "descricao": "MERCADOLIVRE*PAPELARI",
+        "valor": 24.15,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
@@ -20863,9 +21253,59 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-12-28",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 19.72,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-29",
+        "descricao": "MERCADOLIVRE*RIMAD",
+        "valor": 20.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-12-30",
         "descricao": "GRUPO CASAS BAHIA S.A.",
         "valor": 249.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-02",
+        "descricao": "MERCADOLIVRE*MISSAOSA",
+        "valor": 890.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-06",
+        "descricao": "MERCADOLIVRE*POTENZAP",
+        "valor": 379.15,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-10",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 32.22,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
@@ -20886,6 +21326,16 @@
         "data": "2026-01-16",
         "descricao": "AMAZON BR",
         "valor": 229.56,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-25",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 55.5,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
@@ -20963,16 +21413,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-01-29",
-        "descricao": "AMAZON BR",
-        "valor": 199.9,
-        "banco": "C6 Bank",
-        "categoria": "reserva_desejos",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-01-30",
         "descricao": "Pix Qrcode Din Des: Shpp Brasil Instituic 30/01",
         "valor": 35.99,
@@ -21003,9 +21443,199 @@
         "moeda": "BRL"
       },
       {
+        "data": "2026-02-02",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 230.0,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2026-02-06",
         "descricao": "LOJAS MEL CONCEICAO II",
         "valor": 72.97,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-16",
+        "descricao": "MERCADOLIVRE*MERCADOLI",
+        "valor": 29.43,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-17",
+        "descricao": "MERCADOLIVRE*6PRODUTO",
+        "valor": 1989.4,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-17",
+        "descricao": "MERCADOLIVRE*3PRODUTOS",
+        "valor": 131.22,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-19",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 346.06,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-21",
+        "descricao": "MERCADOLIVRE*SOLUTIONS",
+        "valor": 46.35,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-22",
+        "descricao": "MERCADOLIVRE*2PRODUTOS",
+        "valor": 289.89,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-01",
+        "descricao": "MERCADOLIVRE*9PRODUTOS",
+        "valor": 359.96,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-01",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 39.9,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-02",
+        "descricao": "MERCADOLIVRE*8PRODUTO",
+        "valor": 325.75,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-04",
+        "descricao": "MERCADOLIVRE*3PRODUTO",
+        "valor": 94.26,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-05",
+        "descricao": "MERCADOLIVRE*SIONE",
+        "valor": 321.42,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-06",
+        "descricao": "MERCADO*MERCADOLIVRE",
+        "valor": 419.4,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-07",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 44.9,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-08",
+        "descricao": "MERCADOLIVRE*RARVELST",
+        "valor": 62.9,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-08",
+        "descricao": "MERCADOLIVRE*3PRODUTOS",
+        "valor": 250.03,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-11",
+        "descricao": "MERCADOLIVRE*2PRODUTOS",
+        "valor": 77.53,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-18",
+        "descricao": "MERCADOLIVRE*3PRODUTO",
+        "valor": 2829.16,
+        "banco": "C6 Bank",
+        "categoria": "reserva_desejos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-18",
+        "descricao": "MERCADOLIVRE*MERCADOL",
+        "valor": 127.34,
         "banco": "C6 Bank",
         "categoria": "reserva_desejos",
         "tipo_conta": "faturacarbon",
@@ -25859,16 +26489,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-10-23",
-        "descricao": "THE PLATINUM HOTEL & S",
-        "valor": 1418.03,
-        "banco": "C6 Bank",
-        "categoria": "lazer_viagens",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-10-24",
         "descricao": "TERMINAL III DESEMBARQ",
         "valor": 22.9,
@@ -27233,36 +27853,6 @@
     ],
     "alimentacao": [
       {
-        "data": "2023-10-26",
-        "descricao": "MERCADOLIVRE*ATENAMIX",
-        "valor": 43.3,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-10-31",
-        "descricao": "MERCADOLIVRE*MOTOLUC",
-        "valor": 173.2,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-11-08",
-        "descricao": "MERCADOLIVRE*4PRODUTO",
-        "valor": 181.63,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2023-11-30",
         "descricao": "REAL DA VILLA",
         "valor": 30.0,
@@ -27276,16 +27866,6 @@
         "data": "2023-12-02",
         "descricao": "CARREFOUR GUATAPARA",
         "valor": 120.88,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-12-03",
-        "descricao": "MERCADOLIVRE*ENGEMOD",
-        "valor": 135.7,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -27363,46 +27943,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2023-12-11",
-        "descricao": "MERCADOLIVRE*3PRODUTO",
-        "valor": 57.81,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-12-11",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 38.49,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-12-14",
-        "descricao": "MERCADOLIVRE*FOOTLET",
-        "valor": 214.95,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-12-14",
-        "descricao": "MERCADOLIVRE*FATML",
-        "valor": 74.85,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2023-12-17",
         "descricao": "MERCADO AGUA FUNDA",
         "valor": 62.96,
@@ -27446,16 +27986,6 @@
         "data": "2023-12-19",
         "descricao": "CARREFOUR JOAO CACHOEI",
         "valor": 48.97,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2023-12-20",
-        "descricao": "MERCADOLIVRE*MANDALA",
-        "valor": 118.2,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -27533,39 +28063,9 @@
         "moeda": "BRL"
       },
       {
-        "data": "2024-01-08",
-        "descricao": "MERCADOLIVRE*HAUSTUDO",
-        "valor": 429.56,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-14",
-        "descricao": "MERCADOLIVRE*SWEETHOM",
-        "valor": 312.88,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2024-01-15",
         "descricao": "OUTBACK MORUMBI",
         "valor": 453.94,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-01-16",
-        "descricao": "MERCADOLIVRE*LUGARI",
-        "valor": 74.82,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -27633,16 +28133,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2024-02-15",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 507.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2024-02-17",
         "descricao": "SAMS",
         "valor": 1400.37,
@@ -27656,26 +28146,6 @@
         "data": "2024-02-23",
         "descricao": "DEL NERO E MIRANDEZ PA",
         "valor": 17.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-03-01",
-        "descricao": "MERCADOLIVRE*LEGIAONER",
-        "valor": 60.88,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-03-01",
-        "descricao": "MERCADOLIVRE*LOJASKUBB",
-        "valor": 129.9,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -27733,16 +28203,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2024-03-16",
-        "descricao": "MERCADOLIVRE*DRMUSCLE",
-        "valor": 188.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2024-03-18",
         "descricao": "TORRALTA",
         "valor": 126.0,
@@ -27756,26 +28216,6 @@
         "data": "2024-03-20",
         "descricao": "CARREFOUR JOAO CACHOEI",
         "valor": 3.69,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-03-20",
-        "descricao": "MERCADOLIVRE*3PRODUTO",
-        "valor": 29.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-03-20",
-        "descricao": "MERCADOLIVRE*3PRODUTO",
-        "valor": 61.74,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -27924,16 +28364,6 @@
       },
       {
         "data": "2025-04-04",
-        "descricao": "MERCADOLIVRE*JAPAVEND",
-        "valor": 179.83,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-04",
         "descricao": "RAPPI  *RAPPI RAPPI BR",
         "valor": 53.34,
         "banco": "C6 Bank",
@@ -28004,26 +28434,6 @@
       },
       {
         "data": "2025-04-07",
-        "descricao": "MERCADOLIVRE*JAPAVEND",
-        "valor": 179.83,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-07",
-        "descricao": "MERCADOLIVRE*JHPETS",
-        "valor": 149.97,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-07",
         "descricao": "OXXO VILA GUARANI",
         "valor": 42.6,
         "banco": "C6 Bank",
@@ -28076,16 +28486,6 @@
         "data": "2025-04-12",
         "descricao": "SUPERMERCADO VILA DAS",
         "valor": 850.97,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-13",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 803.0,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -28193,26 +28593,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-04-21",
-        "descricao": "MERCADOLIVRE*2PRODUTO",
-        "valor": 103.84,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-21",
-        "descricao": "MERCADOLIVRE*2PRODUTO",
-        "valor": 155.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-04-23",
         "descricao": "MINAS QUEIJO",
         "valor": 115.0,
@@ -28226,16 +28606,6 @@
         "data": "2025-04-23",
         "descricao": "MINAS QUEIJO",
         "valor": 33.9,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-23",
-        "descricao": "MERCADOLIVRE*RICAPET",
-        "valor": 77.99,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -28376,26 +28746,6 @@
         "data": "2025-05-13",
         "descricao": "WM SUPERCENTER #5214   KI",
         "valor": 7.79,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-30",
-        "descricao": "MERCADOLIVRE*7PRODUTO",
-        "valor": 200.48,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-30",
-        "descricao": "MERCADOLIVRE*7PRODUTO",
-        "valor": 129.9,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -28584,16 +28934,6 @@
       },
       {
         "data": "2025-08-15",
-        "descricao": "WAL-MART #5214",
-        "valor": 569.29,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-15",
         "descricao": "WAL-MART #5214         KI",
         "valor": 44.52,
         "banco": "C6 Bank",
@@ -28683,56 +29023,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-09-16",
-        "descricao": "MERCADOLIVRE*3PRODUTO",
-        "valor": 387.99,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-16",
-        "descricao": "MERCADOLIVRE*3PRODUTO",
-        "valor": 1100.13,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-22",
-        "descricao": "MERCADOLIVRE*MICHELAIN",
-        "valor": 64.79,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-22",
-        "descricao": "MERCADOLIVRE*BCBCOMERC",
-        "valor": 61.89,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-25",
-        "descricao": "MERCADOLIVRE*UTILECOM",
-        "valor": 52.9,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-09-25",
         "descricao": "MILKY MOO PLAZA SUL",
         "valor": 51.0,
@@ -28806,36 +29096,6 @@
         "data": "2025-09-29",
         "descricao": "ARKOS RESTAURANTE",
         "valor": 52.97,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
-        "descricao": "MERCADOLIVRE*LUARTEBAB",
-        "valor": 78.1,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
-        "descricao": "MERCADOLIVRE*3PRODUTO",
-        "valor": 468.67,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 71.01,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -28964,16 +29224,6 @@
       },
       {
         "data": "2025-10-07",
-        "descricao": "MERCADOLIVRE*ROCKETKID",
-        "valor": 37.99,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-07",
         "descricao": "OFNER PINHEIROS",
         "valor": 40.8,
         "banco": "C6 Bank",
@@ -29084,16 +29334,6 @@
       },
       {
         "data": "2025-10-19",
-        "descricao": "MERCADOLIVRE*PLANETAI",
-        "valor": 299.9,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-19",
         "descricao": "BOBBY'S BURGERS        LA",
         "valor": 3.67,
         "banco": "C6 Bank",
@@ -29126,16 +29366,6 @@
         "data": "2025-10-23",
         "descricao": "METRO PIZZA D-SW LAS   LA",
         "valor": 58.31,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-23",
-        "descricao": "MERCADOLIVRE*EBAZARCO",
-        "valor": 19.0,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -29206,16 +29436,6 @@
         "data": "2025-10-29",
         "descricao": "REAL DA VILLA",
         "valor": 16.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-29",
-        "descricao": "MERCADOLIVRE*UTILECOML",
-        "valor": 38.62,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -29353,16 +29573,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-11-05",
-        "descricao": "MERCADOLIVRE*FENIXAFRO",
-        "valor": 57.9,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-11-07",
         "descricao": "LANCHONETE REAL DA VI",
         "valor": 16.0,
@@ -29444,38 +29654,8 @@
       },
       {
         "data": "2025-11-10",
-        "descricao": "MERCADOLIVRE*DRAGONGA",
-        "valor": 36.99,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-10",
         "descricao": "5M COMERCIO ATACADISTA",
         "valor": 895.75,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-11",
-        "descricao": "MERCADOLIVRE*6PRODUTO",
-        "valor": 548.3,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-11",
-        "descricao": "MERCADOLIVRE*6PRODUTO",
-        "valor": 891.0,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -29496,16 +29676,6 @@
         "data": "2025-11-13",
         "descricao": "BONANZA     0001     S",
         "valor": 93.63,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-13",
-        "descricao": "MERCADOLIVRE*SERGIOCO",
-        "valor": 42.83,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -29564,16 +29734,6 @@
       },
       {
         "data": "2025-11-17",
-        "descricao": "MERCADOLIVRE*DOCELIMA",
-        "valor": 69.69,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-17",
         "descricao": "SUPERMERCADO DANCAR",
         "valor": 150.09,
         "banco": "C6 Bank",
@@ -29616,16 +29776,6 @@
         "data": "2025-11-18",
         "descricao": "BONANZA     0001     S",
         "valor": 125.07,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-18",
-        "descricao": "MERCADOLIVRE*SOLDIERS",
-        "valor": 43.9,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -29813,26 +29963,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-11-26",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 46.43,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-26",
-        "descricao": "MERCADOLIVRE*MAE",
-        "valor": 134.31,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-11-27",
         "descricao": "VISTA IBIRAPUERA",
         "valor": 613.59,
@@ -29874,16 +30004,6 @@
       },
       {
         "data": "2025-11-28",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 474.5,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-28",
         "descricao": "SAMS*JABAQUARA",
         "valor": 370.76,
         "banco": "C6 Bank",
@@ -29913,39 +30033,9 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-12-01",
-        "descricao": "MERCADOLIVRE*DADDYSTO",
-        "valor": 94.98,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-12-02",
         "descricao": "SAKURAPAESEDOCES",
         "valor": 23.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-02",
-        "descricao": "MERCADOLIVRE*MAE",
-        "valor": 134.31,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-02",
-        "descricao": "MERCADOLIVRE*DRAGONGA",
-        "valor": 36.99,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -30033,36 +30123,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-12-08",
-        "descricao": "MERCADOLIVRE*2RUN",
-        "valor": 54.9,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-08",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 249.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-08",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 360.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-12-09",
         "descricao": "OXXO VILA GUARANI",
         "valor": 17.61,
@@ -30133,16 +30193,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-12-11",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 33.91,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-12-12",
         "descricao": "SAKURAPAESEDOCES",
         "valor": 11.5,
@@ -30156,36 +30206,6 @@
         "data": "2025-12-12",
         "descricao": "BONANZA     0001     S",
         "valor": 118.05,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-12",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 21.33,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-12",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 219.94,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-12",
-        "descricao": "MERCADOLIVRE*CARINHAD",
-        "valor": 74.2,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -30214,48 +30234,8 @@
       },
       {
         "data": "2025-12-14",
-        "descricao": "MERCADOLIVRE*4PRODUTO",
-        "valor": 1018.49,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-14",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 75.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-14",
         "descricao": "5M COMERCIO ATACADISTA",
         "valor": 831.21,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-15",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 177.48,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-15",
-        "descricao": "MERCADOLIVRE*PAPELARI",
-        "valor": 24.15,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -30513,26 +30493,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-12-28",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 19.72,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-29",
-        "descricao": "MERCADOLIVRE*RIMAD",
-        "valor": 20.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-12-30",
         "descricao": "BONANZA     0001     S",
         "valor": 35.47,
@@ -30613,36 +30573,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-01-02",
-        "descricao": "MERCADOLIVRE*MISSAOSA",
-        "valor": 890.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-03",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 19.72,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-03",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 33.91,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-01-03",
         "descricao": "PAYGO*LG ESPETOS LTDA",
         "valor": 39.7,
@@ -30676,16 +30606,6 @@
         "data": "2026-01-06",
         "descricao": "BONANZA     0001     S",
         "valor": 71.87,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-06",
-        "descricao": "MERCADOLIVRE*POTENZAP",
-        "valor": 379.15,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -30736,16 +30656,6 @@
         "data": "2026-01-10",
         "descricao": "SACOLAO VILA GUARANI",
         "valor": 82.43,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-10",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 32.22,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -31074,16 +30984,6 @@
       },
       {
         "data": "2026-01-25",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 55.5,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-25",
         "descricao": "LANCHONETE CAMPING",
         "valor": 144.34,
         "banco": "C6 Bank",
@@ -31214,16 +31114,6 @@
       },
       {
         "data": "2026-02-02",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 230.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-02",
         "descricao": "SAFIRA SUPERMERCADO",
         "valor": 6.89,
         "banco": "C6 Bank",
@@ -31334,16 +31224,6 @@
       },
       {
         "data": "2026-02-16",
-        "descricao": "MERCADOLIVRE*MERCADOLI",
-        "valor": 29.43,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-16",
         "descricao": "NATA 7 PORTO",
         "valor": 16.42,
         "banco": "C6 Bank",
@@ -31356,26 +31236,6 @@
         "data": "2026-02-16",
         "descricao": "NATA 7 PORTO",
         "valor": 0.57,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-17",
-        "descricao": "MERCADOLIVRE*6PRODUTO",
-        "valor": 1989.4,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-17",
-        "descricao": "MERCADOLIVRE*3PRODUTOS",
-        "valor": 131.22,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -31453,16 +31313,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-02-19",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 346.06,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-02-20",
         "descricao": "TORRALTA",
         "valor": 76.0,
@@ -31506,26 +31356,6 @@
         "data": "2026-02-21",
         "descricao": "PAO DE ACUCAR-2336",
         "valor": 688.84,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-21",
-        "descricao": "MERCADOLIVRE*SOLUTIONS",
-        "valor": 46.35,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-22",
-        "descricao": "MERCADOLIVRE*2PRODUTOS",
-        "valor": 289.89,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -31673,36 +31503,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-03-01",
-        "descricao": "MERCADOLIVRE*9PRODUTOS",
-        "valor": 359.96,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-01",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 39.9,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-02",
-        "descricao": "MERCADOLIVRE*8PRODUTO",
-        "valor": 325.75,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-03-03",
         "descricao": "EXTRA HIPER-1359",
         "valor": 70.59,
@@ -31733,46 +31533,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-03-04",
-        "descricao": "MERCADOLIVRE*3PRODUTO",
-        "valor": 94.26,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-05",
-        "descricao": "MERCADOLIVRE*3PRODUTO",
-        "valor": 74.26,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-05",
-        "descricao": "MERCADOLIVRE*SIONE",
-        "valor": 321.42,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-06",
-        "descricao": "MERCADO*MERCADOLIVRE",
-        "valor": 419.4,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-03-07",
         "descricao": "SUPERMERCADO DANCAR",
         "valor": 42.39,
@@ -31793,39 +31553,9 @@
         "moeda": "BRL"
       },
       {
-        "data": "2026-03-07",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 44.9,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-08",
-        "descricao": "MERCADOLIVRE*RARVELST",
-        "valor": 62.9,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2026-03-08",
         "descricao": "STAR CHICKEN",
         "valor": 13.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-08",
-        "descricao": "MERCADOLIVRE*3PRODUTOS",
-        "valor": 250.03,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -31886,16 +31616,6 @@
         "data": "2026-03-11",
         "descricao": "RJB ACAI E TAPIOCA",
         "valor": 6.0,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-11",
-        "descricao": "MERCADOLIVRE*2PRODUTOS",
-        "valor": 77.53,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
@@ -32006,26 +31726,6 @@
         "data": "2026-03-17",
         "descricao": "MERCADINHO BONANZA LT",
         "valor": 21.55,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-18",
-        "descricao": "MERCADOLIVRE*3PRODUTO",
-        "valor": 2829.16,
-        "banco": "C6 Bank",
-        "categoria": "alimentacao",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-18",
-        "descricao": "MERCADOLIVRE*MERCADOL",
-        "valor": 127.34,
         "banco": "C6 Bank",
         "categoria": "alimentacao",
         "tipo_conta": "faturacarbon",
