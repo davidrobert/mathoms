@@ -820,6 +820,62 @@ body.mode-tactical [data-mode="strategic"] { display: none !important; }
 .timeline-badge.pendente { background:#FEF3C7; color:#92400E; }
 .timeline-badge.aguardando { background:#DBEAFE; color:#1E40AF; }
 
+/* R4: Interactive task checkboxes */
+.task-checkbox { width:20px; height:20px; cursor:pointer; accent-color: var(--color-primary); flex-shrink:0; }
+.task-row { transition: opacity 0.2s; }
+.task-row[data-status="feito"] { opacity: 0.6; }
+
+/* R5: Kanban columns */
+.kanban-board { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:12px; }
+.kanban-col { background:var(--color-bg); border-radius:var(--radius-card); padding:12px; border:1px solid var(--color-border); min-height:120px; }
+.kanban-col-title { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;
+  padding-bottom:8px; border-bottom:2px solid var(--color-border); display:flex; justify-content:space-between; }
+.kanban-col-title .count { background:var(--color-primary); color:#fff; border-radius:10px; padding:1px 8px; font-size:11px; }
+.kanban-item { background:var(--color-surface); border-radius:var(--radius-sm); padding:8px 10px; margin-bottom:6px;
+  border-left:3px solid var(--color-border); font-size:13px; box-shadow:var(--shadow-card); }
+.kanban-item.alta { border-left-color:var(--color-danger); }
+.kanban-item.media { border-left-color:var(--color-primary); }
+.kanban-item.baixa { border-left-color:var(--color-text-muted); }
+.kanban-item .kanban-prazo { font-size:11px; color:var(--color-text-muted); margin-top:4px; }
+
+/* R6: Deadline indicators */
+.deadline-badge { font-size:10px; padding:2px 6px; border-radius:3px; font-weight:600; margin-left:6px; white-space:nowrap; }
+.deadline-vencida { background:#FEE2E2; color:#991B1B; }
+.deadline-urgente { background:#FEF3C7; color:#92400E; }
+.deadline-ok { background:#F1F5F9; color:#475569; }
+
+/* R7: Changelog section */
+.changelog-list { list-style:none; padding:0; margin:0; }
+.changelog-list li { padding:8px 12px; border-left:3px solid var(--color-secondary); margin-bottom:6px;
+  background:var(--color-bg); border-radius:0 var(--radius-sm) var(--radius-sm) 0; font-size:14px; }
+.changelog-list li:first-child { border-left-color:var(--color-text-muted); font-weight:600; font-size:12px; }
+.ciclo-badge { display:inline-block; background:var(--color-primary); color:#fff; padding:4px 12px;
+  border-radius:var(--radius-sm); font-size:12px; font-weight:600; margin-bottom:12px; }
+
+/* R9: Editable notes + quick actions */
+.notes-textarea { width:100%; min-height:100px; padding:12px; border:1px solid var(--color-border);
+  border-radius:var(--radius-sm); font-family:var(--font-body); font-size:var(--font-base);
+  background:var(--color-surface); color:var(--color-text); resize:vertical; }
+.notes-textarea:focus { outline:2px solid var(--color-secondary); border-color:transparent; }
+.quick-actions { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+.quick-action-btn { font-size:12px; padding:6px 14px; border-radius:var(--radius-sm);
+  border:1px solid var(--color-border); background:var(--color-surface); cursor:pointer;
+  color:var(--color-text); font-weight:500; transition:all 0.2s; }
+.quick-action-btn:hover { background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
+.quick-action-btn.success { background:var(--color-accent); color:#fff; border-color:var(--color-accent); }
+
+/* R5: Kanban responsive */
+@media (max-width:768px) { .kanban-board { grid-template-columns:1fr; } }
+
+/* R10: Tactical print compact */
+@media print {
+  body.mode-tactical .kanban-board { grid-template-columns: 1fr 1fr 1fr; }
+  body.mode-tactical .dash-kpis { grid-template-columns: repeat(6, 1fr); }
+  body.mode-tactical .notes-textarea { border:1px solid #ccc; }
+  body.mode-tactical .quick-actions { display:none; }
+  body.mode-tactical .filter-bar { display:none; }
+}
+
 /* JS-generated compact cards (tactical aportes, etc.) */
 .card-compact { padding:var(--space-card-sm); text-align:center; }
 .card-compact .card-compact-icon { font-size:var(--font-xl); margin-bottom:var(--space-xs); }
@@ -1191,11 +1247,12 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
   </div>
   <div class="nav-links nav-dashboard" style="display:none;">
     <a href="#capa" class="nav-link"><span class="num">•</span><span class="nav-text">KPIs</span></a>
+    <a href="#dash-changelog" class="nav-link"><span class="num">T0</span><span class="nav-text">Mudanças</span></a>
     <a href="#dash-fluxo" class="nav-link"><span class="num">T1</span><span class="nav-text">Fluxo</span></a>
     <a href="#dash-aportes" class="nav-link"><span class="num">T2</span><span class="nav-text">Aportes</span></a>
     <a href="#dash-tarefas" class="nav-link"><span class="num">T3</span><span class="nav-text">Tarefas</span></a>
     <a href="#dash-alertas" class="nav-link"><span class="num">T4</span><span class="nav-text">Alertas</span></a>
-    <a href="#dash-proximos" class="nav-link"><span class="num">T5</span><span class="nav-text">Próximos Passos</span></a>
+    <a href="#dash-proximos" class="nav-link"><span class="num">T5</span><span class="nav-text">15 Dias</span></a>
     <a href="#dash-notas" class="nav-link"><span class="num">T6</span><span class="nav-text">Notas</span></a>
   </div>
   </div><!-- end nav-scroll -->
@@ -1289,9 +1346,15 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 </div>
 
 <!-- ============================================================ -->
-<!-- TACTICAL SECTIONS (T1-T6) — data-driven, built by JS         -->
+<!-- TACTICAL SECTIONS (T0-T6) — data-driven, built by JS         -->
 <!-- ============================================================ -->
 <div data-mode="tactical" class="container">
+
+<div class="dash-section" id="dash-changelog">
+  <h2>T0. O Que Mudou</h2>
+  <div id="ds-ciclo-badge"></div>
+  <div id="ds-changelog"></div>
+</div>
 
 <div class="dash-section" id="dash-fluxo">
   <h2>T1. Fluxo Operacional — Despesas vs Tetos</h2>
@@ -1304,7 +1367,7 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 
 <div class="dash-section" id="dash-aportes">
   <h2>T2. Aportes e Investimentos</h2>
-  <div id="ds-aportes-cards" class="kpi-grid" style="margin-bottom:16px;"></div>
+  <div id="ds-aportes-cards" class="kpi-grid"></div>
   <div class="card">
     <div class="card-title">Variação Patrimonial por Bloco</div>
     <div id="ds-aportes-table"></div>
@@ -1314,8 +1377,10 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <div class="dash-section" id="dash-tarefas">
   <h2>T3. Checklist de Tarefas</h2>
   <div class="filter-bar" id="ds-task-filters"></div>
-  <div id="ds-task-progress" style="margin-bottom:12px;"></div>
+  <div id="ds-task-progress"></div>
+  <div id="ds-task-view-toggle"></div>
   <div id="ds-task-list"></div>
+  <div id="ds-task-kanban"></div>
 </div>
 
 <div class="dash-section" id="dash-alertas">
@@ -1324,14 +1389,24 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 </div>
 
 <div class="dash-section" id="dash-proximos">
-  <h2>T5. Próximos Passos</h2>
+  <h2>T5. Próximos 15 Dias</h2>
   <div id="ds-timeline"></div>
 </div>
 
 <div class="dash-section" id="dash-notas">
   <h2>T6. Notas e Observações</h2>
-  <div id="ds-notas" class="card" style="min-height:80px;">
-    <div class="card-title">Notas</div>
+  <div class="card">
+    <div class="card-title">Notas do Sistema</div>
+    <div id="ds-notas-auto"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Minhas Anotações</div>
+    <textarea class="notes-textarea" id="ds-notas-manual" placeholder="Escreva suas anotações aqui... (salva automaticamente no navegador)"></textarea>
+    <div class="quick-actions">
+      <button class="quick-action-btn" onclick="copyTasksMarkdown()">📋 Copiar Tarefas</button>
+      <button class="quick-action-btn" onclick="exportTaskStatus()">💾 Exportar Status</button>
+      <button class="quick-action-btn" onclick="clearNotes()">🗑️ Limpar Notas</button>
+    </div>
   </div>
 </div>
 
@@ -3301,10 +3376,192 @@ function initializeTheme() {
   });
 }
 
+var _taskLocalStatus = {};
+var _taskViewMode = 'list';
+
+function _loadTaskStatus() {
+  try {
+    var saved = localStorage.getItem('fc_task_status');
+    if (saved) _taskLocalStatus = JSON.parse(saved);
+  } catch(e) {}
+}
+
+function _saveTaskStatus() {
+  try { localStorage.setItem('fc_task_status', JSON.stringify(_taskLocalStatus)); } catch(e) {}
+}
+
+function _getTaskStatus(taskId) {
+  return _taskLocalStatus[taskId] || DATA.dashboard.tarefas_status[taskId] || 'pendente';
+}
+
+function toggleTaskDone(taskId) {
+  var current = _getTaskStatus(taskId);
+  _taskLocalStatus[taskId] = current === 'feito' ? 'pendente' : 'feito';
+  _saveTaskStatus();
+  _renderTasks();
+  _renderKpiTasks();
+}
+
+function _deadlineBadge(t) {
+  var dl = t._deadline || '';
+  if (dl === 'vencida') return '<span class="deadline-badge deadline-vencida">VENCIDA</span>';
+  if (dl.indexOf('vence_em_') === 0) {
+    var d = dl.replace('vence_em_', '').replace('d', '');
+    return '<span class="deadline-badge deadline-urgente">' + d + ' dias</span>';
+  }
+  return '';
+}
+
+function _renderKpiTasks() {
+  var D = DATA.dashboard;
+  var done = 0, total = 0;
+  (D.tarefas || []).forEach(function(t) {
+    total++;
+    if (_getTaskStatus(t.n) === 'feito') done++;
+  });
+  var el = document.getElementById('dk-tarefas');
+  if (el) {
+    var pct = total > 0 ? Math.round(done / total * 100) : 0;
+    el.textContent = done + '/' + total + ' (' + pct + '%)';
+    el.className = 'dash-kpi-value ' + (pct >= 50 ? 'ok' : pct >= 25 ? 'warn' : 'alert');
+  }
+  var progEl = document.getElementById('ds-task-progress');
+  if (progEl) {
+    var pctDone = total > 0 ? Math.round(done / total * 100) : 0;
+    progEl.innerHTML = '<div class="flex-row"><div style="flex:1"><div class="progress-bar" style="height:12px"><div class="progress-fill ok" style="width:' + pctDone + '%"></div></div></div><span class="text-sm fw-bold">' + done + '/' + total + ' (' + pctDone + '%)</span></div>';
+  }
+}
+
+function _renderTasks() {
+  var D = DATA.dashboard;
+  var tasks = D.tarefas || [];
+
+  if (_taskViewMode === 'kanban') {
+    _renderKanban(tasks);
+    return;
+  }
+
+  var taskEl = document.getElementById('ds-task-list');
+  if (!taskEl) return;
+  taskEl.style.display = 'block';
+  var kanbanEl = document.getElementById('ds-task-kanban');
+  if (kanbanEl) kanbanEl.style.display = 'none';
+
+  var listHtml = '';
+  tasks.forEach(function(t) {
+    var st = _getTaskStatus(t.n);
+    var checked = st === 'feito' ? ' checked' : '';
+    var cls = st === 'feito' ? 'done' : '';
+    var pCls = t.p === 'alta' ? 'priority-alta' : t.p === 'media' ? 'priority-media' : 'priority-baixa';
+    var pLabel = t.p === 'alta' ? 'Alta' : t.p === 'media' ? 'Média' : 'Baixa';
+    var dlBadge = _deadlineBadge(t);
+    listHtml += '<div class="task-row" data-status="' + st + '" data-task="' + t.n + '">';
+    listHtml += '<input type="checkbox" class="task-checkbox" ' + checked + ' onchange="toggleTaskDone(' + t.n + ')">';
+    listHtml += '<span class="task-text ' + cls + '">#' + t.n + ' ' + t.t + '</span>';
+    listHtml += '<span class="priority-badge ' + pCls + '">' + pLabel + '</span>';
+    listHtml += dlBadge;
+    listHtml += '<span class="task-prazo">' + t.e + '</span>';
+    listHtml += '</div>';
+  });
+  taskEl.innerHTML = listHtml;
+}
+
+function _renderKanban(tasks) {
+  var taskEl = document.getElementById('ds-task-list');
+  if (taskEl) taskEl.style.display = 'none';
+  var kanbanEl = document.getElementById('ds-task-kanban');
+  if (!kanbanEl) return;
+  kanbanEl.style.display = 'block';
+
+  var cols = {pendente:[], em_progresso:[], feito:[]};
+  tasks.forEach(function(t) {
+    var st = _getTaskStatus(t.n);
+    if (st === 'feito') cols.feito.push(t);
+    else if (st === 'em_progresso') cols.em_progresso.push(t);
+    else cols.pendente.push(t);
+  });
+
+  function renderCol(title, items) {
+    var h = '<div class="kanban-col"><div class="kanban-col-title">' + title + ' <span class="count">' + items.length + '</span></div>';
+    items.forEach(function(t) {
+      var pCls = t.p || 'baixa';
+      var dl = _deadlineBadge(t);
+      h += '<div class="kanban-item ' + pCls + '">#' + t.n + ' ' + t.t + dl + '<div class="kanban-prazo">' + t.e + '</div></div>';
+    });
+    if (items.length === 0) h += '<div class="kanban-item" style="opacity:0.4;text-align:center">Nenhuma tarefa</div>';
+    h += '</div>';
+    return h;
+  }
+
+  kanbanEl.innerHTML = '<div class="kanban-board">' + renderCol('⏳ Pendente', cols.pendente) + renderCol('🔄 Em Progresso', cols.em_progresso) + renderCol('✅ Feito', cols.feito) + '</div>';
+}
+
+function setTaskView(mode) {
+  _taskViewMode = mode;
+  document.querySelectorAll('.view-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+  var active = document.querySelector('.view-toggle-btn[data-view="' + mode + '"]');
+  if (active) active.classList.add('active');
+  _renderTasks();
+}
+
+function filterTasks(filter, btn) {
+  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.task-row').forEach(function(r) {
+    if (filter === 'all') { r.style.display = 'flex'; }
+    else if (filter === 'vencida') { r.style.display = r.querySelector('.deadline-vencida') ? 'flex' : 'none'; }
+    else { r.style.display = r.dataset.status === filter ? 'flex' : 'none'; }
+  });
+}
+
+function copyTasksMarkdown() {
+  var D = DATA.dashboard;
+  var md = '## Tarefas — ' + (D.ciclo_display || '') + '\n\n';
+  (D.tarefas || []).forEach(function(t) {
+    var st = _getTaskStatus(t.n);
+    var check = st === 'feito' ? '[x]' : '[ ]';
+    md += '- ' + check + ' #' + t.n + ' ' + t.t + ' (' + t.p + ', ' + t.e + ')\n';
+  });
+  navigator.clipboard.writeText(md).then(function() {
+    var btn = document.querySelector('.quick-actions .quick-action-btn');
+    if (btn) { btn.classList.add('success'); btn.textContent = '✅ Copiado!'; setTimeout(function() { btn.classList.remove('success'); btn.textContent = '📋 Copiar Tarefas'; }, 2000); }
+  });
+}
+
+function exportTaskStatus() {
+  var out = JSON.stringify(_taskLocalStatus, null, 2);
+  var blob = new Blob([out], {type: 'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tarefas_status_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+function clearNotes() {
+  if (confirm('Limpar todas as anotações?')) {
+    document.getElementById('ds-notas-manual').value = '';
+    localStorage.removeItem('fc_notes');
+  }
+}
+
 function buildDashboard() {
   var D = DATA.dashboard;
   if (!D) return;
-  var fmt = function(v) { return 'R$ ' + v.toLocaleString('pt-BR'); };
+  var fmt = function(v) { return 'R$ ' + Math.round(v).toLocaleString('pt-BR'); };
+  _loadTaskStatus();
+
+  // === T0: Changelog ===
+  var clEl = document.getElementById('ds-changelog');
+  if (clEl && D.changelog) {
+    var h = '<ul class="changelog-list">';
+    D.changelog.forEach(function(c) { h += '<li>' + c + '</li>'; });
+    h += '</ul>';
+    clEl.innerHTML = h;
+  }
+  var cbEl = document.getElementById('ds-ciclo-badge');
+  if (cbEl && D.ciclo_display) {
+    cbEl.innerHTML = '<span class="ciclo-badge">' + D.ciclo_display + '</span>';
+  }
 
   // === D-KPIs row ===
   var delta = D.patrimonio_delta;
@@ -3333,14 +3590,7 @@ function buildDashboard() {
     el.className = 'dash-kpi-value ' + (alertCats === 0 ? 'ok' : 'alert');
   }
 
-  var tasksDone = 0, tasksTotal = 0;
-  for (var k in D.tarefas_status) { tasksTotal++; if (D.tarefas_status[k] === 'feito') tasksDone++; }
-  el = document.getElementById('dk-tarefas');
-  if (el) {
-    var pct = tasksTotal > 0 ? Math.round(tasksDone / tasksTotal * 100) : 0;
-    el.textContent = tasksDone + '/' + tasksTotal + ' (' + pct + '%)';
-    el.className = 'dash-kpi-value ' + (pct >= 50 ? 'ok' : pct >= 25 ? 'warn' : 'alert');
-  }
+  _renderKpiTasks();
 
   if (D.alertas && D.alertas.length > 0) {
     el = document.getElementById('dk-alerta1');
@@ -3351,7 +3601,7 @@ function buildDashboard() {
     }
   }
 
-  // === D1: Fluxo da Quinzena ===
+  // === D1: Fluxo ===
   var fluxoEl = document.getElementById('ds-fluxo-table');
   if (fluxoEl) {
     var totalGasto = 0, totalTeto = 0;
@@ -3363,15 +3613,16 @@ function buildDashboard() {
       totalGasto += c.gasto; totalTeto += c.teto;
       rows += '<tr><td>' + c.label + '</td>';
       rows += '<td class="td-right">' + fmt(c.gasto) + '</td>';
-      rows += '<td class="td-right" style="color:var(--color-text-muted)">' + fmt(c.teto) + '</td>';
+      rows += '<td class="td-right text-muted">' + fmt(c.teto) + '</td>';
       rows += '<td><div class="progress-bar"><div class="progress-fill ' + cls + '" style="width:' + Math.min(pct, 100) + '%"></div></div></td>';
       rows += '<td class="td-right td-' + (pct > 100 ? 'red' : 'green') + '">' + pct + '%</td></tr>';
     }
-    rows += '<tr class="td-total"><td><strong>TOTAL</strong></td><td class="td-right td-bold">' + fmt(totalGasto) + '</td><td class="td-right">' + fmt(totalTeto) + '</td><td></td><td class="td-right td-bold">' + Math.round(totalGasto / totalTeto * 100) + '%</td></tr>';
+    var totalPct = totalTeto > 0 ? Math.round(totalGasto / totalTeto * 100) : 0;
+    rows += '<tr class="td-total"><td><strong>TOTAL</strong></td><td class="td-right td-bold">' + fmt(totalGasto) + '</td><td class="td-right">' + fmt(totalTeto) + '</td><td></td><td class="td-right td-bold">' + totalPct + '%</td></tr>';
     rows += '</tbody></table>';
     fluxoEl.innerHTML = rows;
     var summEl = document.getElementById('ds-fluxo-summary');
-    if (summEl) summEl.textContent = 'Gasto total ' + fmt(totalGasto) + ' de ' + fmt(totalTeto) + ' (' + Math.round(totalGasto / totalTeto * 100) + '%) · ' + alertCats + ' categorias acima do teto · ' + (D.periodo || 'período atual');
+    if (summEl) summEl.textContent = 'Gasto total ' + fmt(totalGasto) + ' de ' + fmt(totalTeto) + ' (' + totalPct + '%) · ' + alertCats + ' categorias acima do teto · ' + (D.periodo || 'período atual');
   }
 
   // === D2: Aportes ===
@@ -3406,40 +3657,29 @@ function buildDashboard() {
   }
 
   // === D3: Tarefas ===
-  var taskEl = document.getElementById('ds-task-list');
-  var taskProgEl = document.getElementById('ds-task-progress');
+  var tasks = D.tarefas || [];
   var filterEl = document.getElementById('ds-task-filters');
-  if (taskEl) {
-    // Task list from hardcoded reference (40 tasks)
-    var tasks = D.tarefas || [];
-
-    filterEl.innerHTML = '<button class="filter-btn active" onclick="filterTasks(\'all\')">Todas (' + tasks.length + ')</button><button class="filter-btn" onclick="filterTasks(\'pendente\')">Pendentes</button><button class="filter-btn" onclick="filterTasks(\'feito\')">Feitas</button><button class="filter-btn" onclick="filterTasks(\'vencido\')">Vencidas</button>';
-
-    var pctDone = tasksTotal > 0 ? Math.round(tasksDone / tasksTotal * 100) : 0;
-    taskProgEl.innerHTML = '<div style="display:flex;align-items:center;gap:12px;"><div style="flex:1"><div class="progress-bar" style="height:12px;"><div class="progress-fill ok" style="width:' + pctDone + '%;"></div></div></div><span style="font-size:13px;font-weight:600;">' + tasksDone + '/' + tasksTotal + ' (' + pctDone + '%)</span></div>';
-
-    var listHtml = '';
-    tasks.forEach(function(t) {
-      var st = D.tarefas_status[t.n] || 'pendente';
-      var icon = st === 'feito' ? '✅' : st === 'vencido' ? '🔴' : '⏳';
-      var cls = st === 'feito' ? 'done' : '';
-      // t.p = prioridade (alta/media/baixa), t.e = entrega/prazo
-      var pCls = t.p === 'alta' ? 'priority-alta' : t.p === 'media' ? 'priority-media' : 'priority-baixa';
-      var pLabel = t.p === 'alta' ? 'Alta' : t.p === 'media' ? 'Média' : 'Baixa';
-      var pBadge = '<span class="priority-badge ' + pCls + '">' + pLabel + '</span>';
-      listHtml += '<div class="task-row" data-status="' + st + '"><span class="task-status">' + icon + '</span><span class="task-text ' + cls + '">#' + t.n + ' ' + t.t + '</span>' + pBadge + '<span class="task-prazo">' + t.e + '</span></div>';
-    });
-    taskEl.innerHTML = listHtml;
+  if (filterEl) {
+    var vencidas = tasks.filter(function(t) { return t._deadline === 'vencida' && _getTaskStatus(t.n) !== 'feito'; }).length;
+    filterEl.innerHTML = '<button class="filter-btn active" onclick="filterTasks(\'all\',this)">Todas (' + tasks.length + ')</button>'
+      + '<button class="filter-btn" onclick="filterTasks(\'pendente\',this)">Pendentes</button>'
+      + '<button class="filter-btn" onclick="filterTasks(\'feito\',this)">Feitas</button>'
+      + (vencidas > 0 ? '<button class="filter-btn" onclick="filterTasks(\'vencida\',this)" style="color:var(--color-danger)">Vencidas (' + vencidas + ')</button>' : '');
   }
+  var viewEl = document.getElementById('ds-task-view-toggle');
+  if (viewEl) {
+    viewEl.innerHTML = '<div class="filter-bar"><button class="view-toggle-btn filter-btn active" data-view="list" onclick="setTaskView(\'list\')">📋 Lista</button><button class="view-toggle-btn filter-btn" data-view="kanban" onclick="setTaskView(\'kanban\')">📊 Kanban</button></div>';
+  }
+  _renderTasks();
 
   // === D4: Alertas ===
   var alertEl = document.getElementById('ds-alertas-list');
   if (alertEl && D.alertas) {
     var alertHtml = '';
     D.alertas.forEach(function(a) {
-      alertHtml += '<div class="alert alert-warning" style="margin:8px 0;"><strong>⚠️</strong> ' + a + '</div>';
+      alertHtml += '<div class="alert alert-warning"><strong>⚠️</strong> ' + a + '</div>';
     });
-    if (D.alertas.length === 0) alertHtml = '<div class="alert alert-success-inline">Nenhum alerta pendente.</div>';
+    if (D.alertas.length === 0) alertHtml = '<div class="alert alert-success-inline">Nenhum alerta pendente. ✅</div>';
     alertEl.innerHTML = alertHtml;
   }
 
@@ -3447,27 +3687,30 @@ function buildDashboard() {
   var timeEl = document.getElementById('ds-timeline');
   if (timeEl && D.proximos_15d) {
     var tHtml = '';
-    D.proximos_15d.forEach(function(item) {
-      var bcls = item.status === 'feito' ? 'feito' : item.status === 'pendente' ? 'pendente' : 'aguardando';
-      tHtml += '<div class="timeline-item"><span class="timeline-date">' + item.data + '</span><span class="timeline-action">' + item.acao + '</span><span class="timeline-badge ' + bcls + '">' + item.status + '</span></div>';
-    });
+    if (D.proximos_15d.length === 0) {
+      tHtml = '<p class="text-sm note-muted">Nenhuma tarefa pendente nos próximos 15 dias.</p>';
+    } else {
+      D.proximos_15d.forEach(function(item) {
+        var bcls = item.status === 'feito' ? 'feito' : item.status === 'vencida' ? 'pendente' : 'aguardando';
+        var prBadge = item.prioridade === 'alta' ? ' <span class="priority-badge priority-alta">Alta</span>' : '';
+        tHtml += '<div class="timeline-item"><span class="timeline-date">' + item.data + '</span><span class="timeline-action">' + item.acao + prBadge + '</span><span class="timeline-badge ' + bcls + '">' + item.status + '</span></div>';
+      });
+    }
     timeEl.innerHTML = tHtml;
   }
 
   // === D6: Notas ===
-  var notaEl = document.getElementById('ds-notas');
-  if (notaEl && D.notas) {
-    notaEl.innerHTML = '<p class="text-base" style="white-space:pre-wrap;">' + D.notas + '</p>';
+  var notaAutoEl = document.getElementById('ds-notas-auto');
+  if (notaAutoEl && D.notas) {
+    notaAutoEl.innerHTML = '<p>' + D.notas + '</p>';
   }
-}
-
-function filterTasks(filter) {
-  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
-  event.target.classList.add('active');
-  document.querySelectorAll('.task-row').forEach(function(r) {
-    if (filter === 'all') { r.style.display = 'flex'; }
-    else { r.style.display = r.dataset.status === filter ? 'flex' : 'none'; }
-  });
+  var notaManualEl = document.getElementById('ds-notas-manual');
+  if (notaManualEl) {
+    try { notaManualEl.value = localStorage.getItem('fc_notes') || ''; } catch(e) {}
+    notaManualEl.addEventListener('input', function() {
+      try { localStorage.setItem('fc_notes', notaManualEl.value); } catch(e) {}
+    });
+  }
 }
 
 // Initialize collapsible sections

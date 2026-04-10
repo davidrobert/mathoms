@@ -174,6 +174,49 @@ E4_FLUXO_PATH = BASE_DIR / "processed" / "E4_unified" / "fluxo_mensal_detalhado-
 MANUAL_PATH = BASE_DIR / "config" / "manual_operacao.md"
 DEFINITIONS_PATH = BASE_DIR / "config" / "definitions.md"
 OUTPUT_DIR = BASE_DIR / "output"
+SNAPSHOT_PATH = OUTPUT_DIR / "snapshot_anterior.json"
+
+
+def _load_previous_snapshot() -> dict:
+    """Load previous cycle snapshot for delta calculations."""
+    if SNAPSHOT_PATH.exists():
+        try:
+            with open(SNAPSHOT_PATH, 'r', encoding='utf-8') as f:
+                snap = json.load(f)
+            print(f"  [OK] Snapshot anterior carregado ({snap.get('data_geracao', '?')})")
+            return snap
+        except Exception as e:
+            print(f"  [WARN] Erro ao carregar snapshot: {e}")
+    else:
+        print("  [INFO] Sem snapshot anterior — primeiro ciclo")
+    return {}
+
+
+def _save_snapshot(e4: dict):
+    """Save current cycle snapshot for next run's delta calculations."""
+    p = e4.get("patrimonio", {})
+    f = e4.get("fluxo_caixa", {})
+    snap = {
+        "data_geracao": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "patrimonio_bruto": p.get("patrimonio_bruto", 0),
+        "patrimonio_investivel": p.get("patrimonio_investivel", 0),
+        "investimentos_david": p.get("investimentos_david", 0),
+        "investimentos_mariana": p.get("investimentos_mariana", 0),
+        "imoveis_investimento": p.get("imoveis_investimento", 0),
+        "renda_mensal": f.get("renda_mensal", 0),
+        "despesa_mensal": f.get("despesa_mensal_media", 0),
+        "taxa_poupanca": f.get("taxa_poupanca", 0),
+        "tarefas_status": e4.get("tarefas_status", {}),
+        "periodo_dados": e4.get("periodo_dados", ""),
+    }
+    try:
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        with open(SNAPSHOT_PATH, 'w', encoding='utf-8') as fout:
+            json.dump(snap, fout, ensure_ascii=False, indent=2)
+        print(f"  [OK] Snapshot salvo em {SNAPSHOT_PATH.name}")
+    except Exception as e:
+        print(f"  [WARN] Erro ao salvar snapshot: {e}")
+
 
 # Color palette for charts — from report_layout.yaml
 PALETTE = REPORT_LAYOUT.get("chart_palette", []) or [
@@ -701,8 +744,8 @@ def build_receita_despesa_mensal(f: dict, e4: dict) -> dict:
 # STEP 4: E6.3 — BUILD REPORT-DATA JSON
 # ============================================================================
 
-def build_report_data_json(e4: dict) -> str:
-    """Build complete report-data JSON object"""
+def build_report_data_json(e4: dict) -> tuple:
+    """Build complete report-data JSON object. Returns (json_str, dashboard_dict)."""
     print("[E6.3] Building report-data JSON...")
 
     p = e4["patrimonio"]
@@ -734,9 +777,12 @@ def build_report_data_json(e4: dict) -> str:
     _pgbl_pct_val = FISCAL_CONFIG.get("pgbl", {}).get("limite_deducao_pct", 12.0)
     _aliq_val = e4.get("previdencia_pgbl", {}).get("aliquota_marginal", 27.5)
 
+    _dashboard = build_tactical_dashboard(e4)
+    _modo_sugerido = _dashboard.get("modo_sugerido", "strategic")
+
     report_data = {
         "meta": {
-            "modo_padrao": "strategic",
+            "modo_padrao": _modo_sugerido,
             "familia": FAMILY_SOBRENOME,
             "periodo": e4["periodo_dados"],
             "data_geracao": datetime.now().isoformat(),
@@ -757,7 +803,7 @@ def build_report_data_json(e4: dict) -> str:
         "investimentos": build_investimentos(e4),
         "estrategia_aporte": build_estrategia_aporte(e4),
         "contrafluxo": build_contrafluxo_scenarios(),
-        "dashboard": build_tactical_dashboard(e4),
+        "dashboard": _dashboard,
         "reserva_emergencia": e4.get("reserva_emergencia", {}),
         "endividamento": e4.get("endividamento", {}),
         "previdencia_pgbl": e4.get("previdencia_pgbl", {}),
@@ -769,7 +815,7 @@ def build_report_data_json(e4: dict) -> str:
         "score": s,
     }
 
-    return json.dumps(report_data, ensure_ascii=False, indent=2)
+    return json.dumps(report_data, ensure_ascii=False, indent=2), _dashboard
 
 def _build_riscos_fallback() -> list:
     """Build risk fallback from goals.json riscos_prioritarios or hardcoded defaults."""
@@ -1171,12 +1217,14 @@ def build_contrafluxo_scenarios() -> dict:
 def build_tactical_dashboard(e4: dict) -> dict:
     """Build tactical dashboard data for the JS buildDashboard() function.
 
-    Expected keys (consumed by buildDashboard in report_template.html):
-      patrimonio_delta, aportes, despesas_por_categoria, tarefas_status,
-      tarefas, investimentos_delta, alertas, proximos_15d, notas, periodo
+    Enhanced with: real deltas from snapshot, deadline awareness, changelog,
+    cycle detection, and aportes cross-referenced with transactions.
     """
+    prev = _load_previous_snapshot()
     f = e4.get("fluxo_caixa", {})
+    p = e4.get("patrimonio", {})
     num_months = max(1, len(f.get("receita_despesa_mensal_detalhado", {}).get("labels", [])))
+    now = datetime.now()
 
     _TETOS = GOALS_CONFIG.get("tetos_orcamentarios", {})
     if not _TETOS:
@@ -1204,41 +1252,96 @@ def build_tactical_dashboard(e4: dict) -> dict:
             "teto": teto,
         }
 
-    # --- D2: Aportes (from goals.json destinos) ---
+    # --- R2: Aportes cross-referenced with real transactions ---
     destinos_cfg = GOALS_CONFIG.get("aportes_destinos_detalhados", [])
     aportes_dash = {}
+    aporte_keywords = {
+        "cofrinhos": ["cofrinho", "cofrinhos", "cdb itau", "cdb itaú"],
+        "tesouro": ["tesouro", "ipca+", "ipca +", "td ipca"],
+        "ivvb11": ["ivvb11", "ivvb", "s&p", "sp500"],
+        "wise": ["wise", "usd", "dolar", "dólar"],
+    }
+    invest_txns = []
+    try:
+        with open(E4_INVEST_PATH, 'r', encoding='utf-8') as fi:
+            inv_raw = json.load(fi)
+        for cat_data in inv_raw.get("dados", {}).values():
+            if isinstance(cat_data, list):
+                invest_txns.extend(cat_data)
+    except Exception:
+        pass
+
+    current_month = now.strftime("%Y-%m")
     for i, d in enumerate(destinos_cfg):
         key = f"aporte_{i}"
+        dest_lower = d.get("destino", "").lower()
+        feito = False
+        valor_feito = 0
+        for kw_group, keywords in aporte_keywords.items():
+            if any(kw in dest_lower for kw in keywords):
+                for txn in invest_txns:
+                    txn_date = txn.get("data", "")
+                    if txn_date[:7] == current_month:
+                        desc = txn.get("descricao", "").lower()
+                        if any(kw in desc for kw in keywords):
+                            valor_feito += abs(txn.get("valor", 0))
+                break
+        if valor_feito >= d.get("valor", 0) * 0.5:
+            feito = True
         aportes_dash[key] = {
             "label": d.get("destino", f"Destino {i+1}"),
-            "feito": False,
+            "feito": feito,
             "valor_meta": d.get("valor", 0),
-            "valor_feito": 0,
+            "valor_feito": round(valor_feito, 2),
         }
 
-    # --- Investimentos delta (current snapshot, no previous period) ---
-    p = e4.get("patrimonio", {})
+    # --- R1: Real deltas from snapshot ---
+    pat_atual = p.get("patrimonio_investivel", 0)
+    pat_anterior = prev.get("patrimonio_investivel", 0)
+    patrimonio_delta = round(pat_atual - pat_anterior) if prev else 0
+
     inv_delta = {
         "david": {
             "label": "Investimentos David",
-            "anterior": 0,
+            "anterior": prev.get("investimentos_david", 0),
             "atual": p.get("investimentos_david", 0),
         },
         "mariana": {
             "label": "Investimentos Mariana",
-            "anterior": 0,
+            "anterior": prev.get("investimentos_mariana", 0),
             "atual": p.get("investimentos_mariana", 0),
         },
         "imoveis": {
             "label": "Imóveis Investimento",
-            "anterior": 0,
+            "anterior": prev.get("imoveis_investimento", 0),
             "atual": p.get("imoveis_investimento", 0),
         },
     }
 
-    # --- Tarefas (pass through from E5) ---
+    # --- Tarefas with deadline awareness (R6) ---
     tarefas = e4.get("tarefas", [])
     tarefas_status = e4.get("tarefas_status", {})
+    today_str = now.strftime("%Y-%m-%d")
+
+    for t in tarefas:
+        prazo = t.get("e", "")
+        st = str(tarefas_status.get(str(t.get("n", "")), "pendente"))
+        if st == "feito":
+            t["_deadline"] = "done"
+        elif prazo and prazo <= today_str:
+            t["_deadline"] = "vencida"
+        elif prazo:
+            try:
+                prazo_dt = datetime.strptime(prazo, "%Y-%m-%d")
+                dias = (prazo_dt - now).days
+                if dias <= 7:
+                    t["_deadline"] = f"vence_em_{dias}d"
+                else:
+                    t["_deadline"] = "futura"
+            except ValueError:
+                t["_deadline"] = "futura"
+        else:
+            t["_deadline"] = "sem_prazo"
 
     # --- Alertas ---
     alertas = e4.get("alertas", [])
@@ -1248,16 +1351,78 @@ def build_tactical_dashboard(e4: dict) -> dict:
         if txt not in alertas:
             alertas.append(txt)
 
-    # --- Próximos 15 dias (derived from tasks with near-term deadlines) ---
-    now_label = datetime.now().strftime("%d/%m")
+    # --- R3: Próximos 15 dias (filtered by real date) ---
     proximos = []
-    for t in tarefas[:10]:
-        st = str(tarefas_status.get(str(t["n"]), "pendente"))
-        proximos.append({
-            "data": t.get("e", "—"),
-            "acao": f"#{t['n']} {t['t'][:60]}",
-            "status": st,
-        })
+    cutoff_15d = (now + __import__('datetime').timedelta(days=15)).strftime("%Y-%m-%d")
+    for t in tarefas:
+        prazo = t.get("e", "")
+        st = str(tarefas_status.get(str(t.get("n", "")), "pendente"))
+        if prazo and prazo <= cutoff_15d and st != "feito":
+            proximos.append({
+                "data": prazo,
+                "acao": f"#{t['n']} {t['t'][:60]}",
+                "status": "vencida" if prazo <= today_str else st,
+                "prioridade": t.get("p", "baixa"),
+            })
+    proximos.sort(key=lambda x: x["data"])
+    if not proximos:
+        for t in tarefas[:5]:
+            st = str(tarefas_status.get(str(t.get("n", "")), "pendente"))
+            if st != "feito":
+                proximos.append({
+                    "data": t.get("e", "—"),
+                    "acao": f"#{t['n']} {t['t'][:60]}",
+                    "status": st,
+                    "prioridade": t.get("p", "baixa"),
+                })
+
+    # --- R7: Changelog (what changed since last cycle) ---
+    changelog = []
+    if prev:
+        prev_data = prev.get("data_geracao", "?")
+        dp = patrimonio_delta
+        if dp != 0:
+            sinal = "+" if dp > 0 else ""
+            changelog.append(f"Patrimônio investível {sinal}R$ {dp:,.0f}".replace(",", "."))
+        for bloc_key, label in [("investimentos_david", "Inv. David"), ("investimentos_mariana", "Inv. Mariana")]:
+            ant = prev.get(bloc_key, 0)
+            atu = p.get(bloc_key, 0)
+            d = round(atu - ant)
+            if abs(d) > 500:
+                sinal = "+" if d > 0 else ""
+                changelog.append(f"{label}: {sinal}R$ {d:,.0f}".replace(",", "."))
+        prev_status = prev.get("tarefas_status", {})
+        novas_feitas = sum(1 for k, v in tarefas_status.items() if str(v) == "feito" and str(prev_status.get(k, "")) != "feito")
+        if novas_feitas:
+            changelog.append(f"{novas_feitas} tarefa(s) concluída(s) desde último ciclo")
+        acima_teto = sum(1 for c in despesas_dash.values() if c["gasto"] > c["teto"])
+        if acima_teto:
+            changelog.append(f"{acima_teto} categoria(s) de despesa acima do teto")
+        if not changelog:
+            changelog.append("Sem variações significativas desde o último ciclo")
+        changelog.insert(0, f"Comparação com ciclo de {prev_data}")
+    else:
+        changelog.append("Primeiro ciclo — sem comparação anterior disponível")
+
+    # --- R8: Cycle detection ---
+    ciclo_label = ""
+    if prev and prev.get("data_geracao"):
+        try:
+            prev_dt = datetime.strptime(prev["data_geracao"][:10], "%Y-%m-%d")
+            dias_entre = (now - prev_dt).days
+            if dias_entre <= 20:
+                ciclo_label = "quinzenal"
+            elif dias_entre <= 45:
+                ciclo_label = "mensal"
+            else:
+                ciclo_label = "trimestral"
+        except ValueError:
+            ciclo_label = "manual"
+    else:
+        ciclo_label = "primeiro"
+
+    quinzena = 1 if now.day <= 15 else 2
+    ciclo_display = f"Quinzena {quinzena}, {now.strftime('%B %Y').title()}"
 
     # --- Notas ---
     score_val = e4.get("score", {}).get("valor", "N/D")
@@ -1271,7 +1436,7 @@ def build_tactical_dashboard(e4: dict) -> dict:
     )
 
     return {
-        "patrimonio_delta": 0,
+        "patrimonio_delta": patrimonio_delta,
         "aportes": aportes_dash,
         "despesas_por_categoria": despesas_dash,
         "tarefas_status": tarefas_status,
@@ -1281,6 +1446,10 @@ def build_tactical_dashboard(e4: dict) -> dict:
         "proximos_15d": proximos,
         "notas": notas,
         "periodo": e4.get("periodo_dados", ""),
+        "changelog": changelog,
+        "ciclo": ciclo_label,
+        "ciclo_display": ciclo_display,
+        "modo_sugerido": "tactical" if ciclo_label in ("quinzenal", "mensal") else "strategic",
     }
 
 # ============================================================================
@@ -3344,7 +3513,8 @@ def render_report():
     all_replacements.update(build_sections(e4))
 
     # Build and inject report-data JSON
-    report_data_json = build_report_data_json(e4)
+    report_data_json, _dashboard = build_report_data_json(e4)
+    _modo_sugerido = _dashboard.get("modo_sugerido", "strategic")
     all_replacements["{{REPORT_DATA_JSON}}"] = report_data_json
 
     # Apply replacements
@@ -3375,7 +3545,12 @@ def render_report():
     print(f"\n[E6.7] Writing output to {output_path}...")
     output_path.write_text(html, encoding='utf-8')
 
-    print(f"[E6.8] Report size: {len(html.encode('utf-8')) / 1024:.1f}KB")
+    # R1: Save snapshot for next cycle comparison
+    print("[E6.8] Saving snapshot for next cycle...")
+    _save_snapshot(e4)
+
+    print(f"[E6.9] Report size: {len(html.encode('utf-8')) / 1024:.1f}KB")
+    print(f"[E6.9] Modo sugerido: {_modo_sugerido} (ciclo: {_dashboard.get('ciclo', '?')})")
     print(f"\n✓ Report generated successfully!")
     print(f"  Output: {output_path}")
 
