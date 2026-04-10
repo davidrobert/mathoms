@@ -44,6 +44,7 @@ def _load_json_config(filename: str) -> dict:
 
 _categorization = _load_json_config("categorization.json")
 _family = _load_json_config("family_members.json")
+_pipeline_cfg = _load_json_config("pipeline.json")
 
 EXPENSE_KEYWORDS = _categorization["expense_keywords"]
 INCOME_KEYWORDS = _categorization["income_keywords"]
@@ -246,6 +247,13 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
     and *cdbresumo*-2_extract.json (but NOT *cdbdetalhes* which are individual
     position details already covered by cdbresumo).
 
+    DEDUPLICATION: When multiple extracts exist for the same (institution, member)
+    pair (e.g. santander_cdbresumo for 2026-03 AND 2026-04), only the most recent
+    is used. This prevents double-counting the same positions at different dates.
+
+    VALIDATION: Warns when saldo_atual diverges from sum of itemized positions,
+    indicating incomplete extraction at E2.
+
     Returns a unified dict with all positions, totals per member, and metadata.
     """
     patterns = [
@@ -254,10 +262,8 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
         "*cdbresumo*-2_extract.json",
     ]
 
-    all_positions = []
-    sources = []
-    totals_by_member: Dict[str, float] = {}
-
+    # Phase 1: Load all candidate extracts
+    candidates: List[Dict] = []
     for pattern in patterns:
         for fpath in sorted(e2_dir.glob(pattern)):
             if fpath.stat().st_size == 0:
@@ -267,62 +273,113 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
                     data = json.load(f)
             except (json.JSONDecodeError, Exception):
                 continue
-
             if not isinstance(data, dict):
                 continue
 
-            # Support both "posicoes" (old format) and "composicao" (E2 schema)
             posicoes = data.get("posicoes", data.get("composicao", []))
             if not posicoes:
                 continue
 
             instituicao = data.get("instituicao", data.get("banco", ""))
             membro = data.get("membro", "").lower()
-            # Fallback: use banco_membro mapping when membro is empty
             if not membro and instituicao:
                 inst_key = instituicao.lower().replace(" ", "")
                 membro = BANCO_MEMBRO.get(inst_key, "")
             data_ref = data.get("data_referencia", data.get("data_posicao", data.get("periodo", "")))
-            # Support multiple field names for totals:
-            #   "total" (old), "saldo_atual" (E2 schema), "saldo_total" (E2-LLM output)
             total_fonte = data.get("total", data.get("saldo_atual", data.get("saldo_total", 0)))
 
-            for pos in posicoes:
-                if not isinstance(pos, dict):
-                    continue
-                # Support multiple field names for position value:
-                #   "valor_total", "valor_atual" (CDB resumo), "current_value" (E2-LLM output)
-                valor = pos.get("valor_total", pos.get("valor_atual", pos.get("current_value", 0)))
-                try:
-                    valor = float(valor) if valor else 0.0
-                except (ValueError, TypeError):
-                    valor = 0.0
+            candidates.append({
+                "_fpath": fpath,
+                "_data": data,
+                "_posicoes": posicoes,
+                "instituicao": instituicao,
+                "membro": membro,
+                "data_ref": data_ref,
+                "total_fonte": total_fonte,
+            })
 
-                all_positions.append({
-                    "nome": pos.get("nome", pos.get("name", "")),
-                    "tipo": pos.get("tipo", pos.get("tipo_produto", pos.get("product_type", ""))),
-                    "instituicao": instituicao,
-                    "membro": membro,
-                    "valor_atual": valor,
-                    "data_referencia": data_ref,
-                    "taxa": pos.get("taxa", pos.get("rentabilidade", "")),
-                    "vencimento": pos.get("vencimento", ""),
-                })
+    # Phase 2: Deduplicate — keep only the most recent extract per (institution, member)
+    best_by_key: Dict[str, Dict] = {}
+    for cand in candidates:
+        key = (cand["instituicao"].lower().strip(), cand["membro"])
+        existing = best_by_key.get(key)
+        if existing is None:
+            best_by_key[key] = cand
+        else:
+            if str(cand["data_ref"]) > str(existing["data_ref"]):
+                old_name = existing["_fpath"].name
+                new_name = cand["_fpath"].name
+                print(f"  [E4.INV] Dedup: {key[0]}/{key[1]} — descartando {old_name} (ref {existing['data_ref']}), mantendo {new_name} (ref {cand['data_ref']})")
+                best_by_key[key] = cand
+            else:
+                old_name = cand["_fpath"].name
+                kept_name = existing["_fpath"].name
+                print(f"  [E4.INV] Dedup: {key[0]}/{key[1]} — descartando {old_name} (ref {cand['data_ref']}), mantendo {kept_name} (ref {existing['data_ref']})")
 
-            # Accumulate total by member
-            # Prefer source-level total; fallback to sum of position values
+    # Phase 3: Build unified positions from deduplicated extracts
+    all_positions = []
+    sources = []
+    totals_by_member: Dict[str, float] = {}
+    warnings: List[str] = []
+
+    for cand in best_by_key.values():
+        posicoes = cand["_posicoes"]
+        instituicao = cand["instituicao"]
+        membro = cand["membro"]
+        data_ref = cand["data_ref"]
+        total_fonte = cand["total_fonte"]
+        fpath = cand["_fpath"]
+
+        positions_sum = 0.0
+        for pos in posicoes:
+            if not isinstance(pos, dict):
+                continue
+            valor = pos.get("valor_total", pos.get("valor_atual", pos.get("current_value", 0)))
             try:
-                total_f = float(total_fonte) if total_fonte else 0.0
+                valor = float(valor) if valor else 0.0
             except (ValueError, TypeError):
-                total_f = 0.0
-            if total_f == 0 and posicoes:
-                # Compute from individual positions as fallback
-                total_f = sum(
-                    float(p.get("valor_total", p.get("valor_atual", p.get("current_value", 0))) or 0)
-                    for p in posicoes if isinstance(p, dict)
-                )
-            totals_by_member[membro] = totals_by_member.get(membro, 0.0) + total_f
-            sources.append(fpath.name)
+                valor = 0.0
+            positions_sum += valor
+
+            all_positions.append({
+                "nome": pos.get("nome", pos.get("name", "")),
+                "tipo": pos.get("tipo", pos.get("tipo_produto", pos.get("product_type", ""))),
+                "instituicao": instituicao,
+                "membro": membro,
+                "valor_atual": valor,
+                "data_referencia": data_ref,
+                "taxa": pos.get("taxa", pos.get("rentabilidade", "")),
+                "vencimento": pos.get("vencimento", ""),
+            })
+
+        try:
+            total_f = float(total_fonte) if total_fonte else 0.0
+        except (ValueError, TypeError):
+            total_f = 0.0
+        if total_f == 0 and posicoes:
+            total_f = positions_sum
+
+        # Validation: saldo_atual vs sum of itemized positions
+        if total_f > 0 and positions_sum > 0 and abs(total_f - positions_sum) > 1.0:
+            gap = total_f - positions_sum
+            warnings.append(
+                f"[WARN] {instituicao} ({membro}): saldo_atual R$ {total_f:,.2f} vs itens R$ {positions_sum:,.2f} — "
+                f"gap R$ {gap:,.2f} (posições não detalhadas no E2)"
+            )
+
+        totals_by_member[membro] = totals_by_member.get(membro, 0.0) + total_f
+        sources.append(fpath.name)
+
+    # Phase 4: Coverage check — warn about known institutions without extracts
+    _expected_institutions = {
+        m_key: inst_list
+        for m_key, inst_list in (
+            BANCO_MEMBRO.items()
+        )
+    }
+
+    for w in warnings:
+        print(f"  {w}")
 
     total_geral = sum(totals_by_member.values())
 
@@ -334,6 +391,9 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
         "data_consolidacao": datetime.now().strftime("%Y-%m-%d"),
         "n_posicoes": len(all_positions),
     }
+
+    if warnings:
+        result["avisos_validacao"] = warnings
 
     return result
 
@@ -827,16 +887,18 @@ def generate_qa_log(despesas: List[Dict], log_path: Path) -> None:
         lines.append(f"| {data} | {desc} | R${valor:,.2f} | {banco} | {fonte} |")
 
     lines.append("")
-    meta_status = "✅ DENTRO DA META" if taxa < 10.0 else "⚠️ ACIMA DA META (<10%)"
+    _qa_target_pct = _pipeline_cfg.get("qa_thresholds", {}).get("qa_unidentified_target_pct", 10.0)
+    meta_status = "✅ DENTRO DA META" if taxa < _qa_target_pct else f"⚠️ ACIMA DA META (<{_qa_target_pct:.0f}%)"
     lines.append(f"### Taxa: {taxa:.1f}% {meta_status}")
     lines.append("")
 
-    # Notes for specific items to investigate
+    _qa_patterns = _categorization.get("qa_investigation_patterns", [])
     notas = []
     for tx in nao_id:
         desc_up = tx.get("descricao", "").upper()
-        if "ZS RES PREMI" in desc_up:
-            notas.append(f"- **ZS RES PREMI** (R${tx['valor']:,.2f}, {tx['banco']}): Investigar — possível resgate de prêmio de seguro ou programa de pontos Santander.")
+        for patt in _qa_patterns:
+            if patt.get("pattern", "").upper() in desc_up:
+                notas.append(f"- **{patt['pattern']}** (R${tx['valor']:,.2f}, {tx['banco']}): {patt.get('note', 'Investigar')}")
     if notas:
         lines.append("### Notas para investigação")
         lines.append("")

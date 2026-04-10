@@ -83,6 +83,7 @@ if not KNOWN_FATURA_PATTERNS:
 # Cartão vencimentos — from config
 _CARTOES = _INST_CONFIG.get("cartoes", {})
 _VENC_CARBON = _CARTOES.get("faturacarbon", {}).get("dia_vencimento", 5)
+_VENC_UNIQUE = _CARTOES.get("faturaunique", {}).get("dia_vencimento", 6)
 _VENC_PDA = _CARTOES.get("faturapaoacucar", {}).get("dia_vencimento", 6)
 
 
@@ -435,8 +436,7 @@ def parse_santander_fatura_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
     if m:
         ref_year = int(m.group(1))
         ref_month = int(m.group(2))
-        # Santander Unique vencimento is typically day 06 of the fatura month
-        result["data_vencimento"] = safe_date(ref_year, ref_month, 6)
+        result["data_vencimento"] = safe_date(ref_year, ref_month, _VENC_UNIQUE)
 
     # Read CSV (handle BOM)
     raw_text = csv_path.read_text(encoding="utf-8-sig")

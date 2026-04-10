@@ -365,36 +365,6 @@
       "tipo": "CDB DI",
       "instituicao": "santander",
       "membro": "david",
-      "valor_atual": 137409.67,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "",
-      "tipo": "CDB DI",
-      "instituicao": "santander",
-      "membro": "david",
-      "valor_atual": 101522.74,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "",
-      "tipo": "CDB Progressivo",
-      "instituicao": "santander",
-      "membro": "david",
-      "valor_atual": 60545.52,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "",
-      "tipo": "CDB DI",
-      "instituicao": "santander",
-      "membro": "david",
       "valor_atual": 137857.68,
       "data_referencia": "2026-04",
       "taxa": "",
@@ -422,18 +392,21 @@
     }
   ],
   "total_por_membro": {
-    "david": 1227350.34,
+    "david": 927872.41,
     "mariana": 375384.56
   },
-  "total_geral": 1602734.9,
+  "total_geral": 1303256.97,
   "fontes": [
     "btgpactual_investimentosposicao_202603-2_extract.json",
     "itau_investimentosposicao_202603-2_extract.json",
     "rico_investimentosposicao_202603-2_extract.json",
     "c6bank_carteirarendafixa_202603-2_extract.json",
-    "santander_cdbresumo_202603-2_extract.json",
     "santander_cdbresumo_202604-2_extract.json"
   ],
   "data_consolidacao": "2026-04-10",
-  "n_posicoes": 42
+  "n_posicoes": 39,
+  "avisos_validacao": [
+    "[WARN] itau (david): saldo_atual R$ 341,581.20 vs itens R$ 135,089.50 — gap R$ 206,491.70 (posições não detalhadas no E2)",
+    "[WARN] rico (david): saldo_atual R$ 278,916.64 vs itens R$ 221,730.24 — gap R$ 57,186.40 (posições não detalhadas no E2)"
+  ]
 }

@@ -1134,8 +1134,8 @@ def build_estrategia_aporte(e4: dict) -> dict:
         usd_names = ", ".join(d["destino"].split()[0] for d in destinos if d.get("moeda") == "USD")
         return {
             "total_aporte": total,
-            "dia_aporte": 5,
-            "periodo_inicio": "Imediato",
+            "dia_aporte": aportes_cfg.get("dia_aporte", 5),
+            "periodo_inicio": aportes_cfg.get("periodo_inicio", "Imediato"),
             "destinos": destinos,
             "pct_brl": round(brl_total / total * 100) if total else 0,
             "pct_usd": round(usd_total / total * 100) if total else 0,
@@ -1174,14 +1174,9 @@ def build_tactical_dashboard(e4: dict) -> dict:
     f = e4.get("fluxo_caixa", {})
     num_months = max(1, len(f.get("receita_despesa_mensal_detalhado", {}).get("labels", [])))
 
-    # --- Tetos from definitions.md (monthly ceilings) ---
-    _TETOS = {
-        "moradia": 2500, "alimentacao": 4500, "saude": 3000,
-        "servicos_domesticos": 4000, "educacao": 2000, "transporte": 1700,
-        "lazer_viagens": 3750, "vestuario": 2000, "assinaturas": 300,
-        "suporte_familiar": 5000, "financeiro": 200, "melhoria_reforma": 1500,
-        "reserva_desejos": 3000, "seguros": 1500,
-    }
+    _TETOS = GOALS_CONFIG.get("tetos_orcamentarios", {})
+    if not _TETOS:
+        print("  [WARN] tetos_orcamentarios não encontrado em goals.json — usando 120% da média como fallback")
     _LABELS = {
         "moradia": "Moradia", "alimentacao": "Alimentação", "saude": "Saúde",
         "servicos_domesticos": "Serv. Domésticos", "educacao": "Educação",
@@ -2691,7 +2686,8 @@ def build_appendix_e(e4: dict) -> str:
             h.append(f'      <tr><td>{row.get("metrica", "")}</td><td>{row.get("valor", "")}</td></tr>')
     else:
         # Fallback: compute IF with full and reduced aporte
-        _aporte_red = round(_aporte_cfg * 0.66)
+        _fator_red = GOALS_CONFIG.get("simulacao", {}).get("aporte_reduzido_fator", 0.66)
+        _aporte_red = round(_aporte_cfg * _fator_red)
         _prazo_full = _compute_nper(pat_investivel, _aporte_cfg, taxa_real, meta_if)
         _prazo_red = _compute_nper(pat_investivel, _aporte_red, taxa_real, meta_if)
         h.append(f'      <tr><td>IF com aporte R$ {_aporte_cfg/1000:.0f}k mantido</td><td><strong>{fmt_dec(_prazo_full)} anos</strong> (folga absorve a perda)</td></tr>')

@@ -200,6 +200,7 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
             ))
 
     # --- CV3: Fluxo de caixa arithmetic ---
+    _cv_fluxo_max = _QA_THRESHOLDS.get("cv_fluxo_diff_max", 100)
     fluxo = e5.get("fluxo_caixa", {})
     receita = fluxo.get("receita_total", 0)
     despesa = fluxo.get("despesa_total", 0)
@@ -208,13 +209,14 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
         expected_fluxo = receita - despesa
         diff = abs(expected_fluxo - fluxo_liq)
         results.append(CrossValidationResult(
-            "CV3", "Fluxo de caixa aritmética", "warning" if diff > 100 else "info",
-            diff <= 100,
+            "CV3", "Fluxo de caixa aritmética", "warning" if diff > _cv_fluxo_max else "info",
+            diff <= _cv_fluxo_max,
             f"Receita ({receita:,.0f}) - Despesa ({despesa:,.0f}) = {expected_fluxo:,.0f}, reportado: {fluxo_liq:,.0f}",
             ["fluxo_caixa"],
         ))
 
     # --- CV4: Taxa de poupança consistency ---
+    _cv_tp_max = _QA_THRESHOLDS.get("cv_taxa_poupanca_diff_pp_max", 5)
     ratios = e5.get("ratios", {})
     tp_pct = ratios.get("taxa_poupanca_recorrente_pct", None)
     rec_recorrente = fluxo.get("receita_recorrente", 0)
@@ -222,13 +224,14 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
         calculated_tp = ((rec_recorrente - despesa) / rec_recorrente) * 100
         diff = abs(calculated_tp - tp_pct)
         results.append(CrossValidationResult(
-            "CV4", "Taxa poupança recorrente", "warning" if diff > 5 else "info",
-            diff <= 5,
+            "CV4", "Taxa poupança recorrente", "warning" if diff > _cv_tp_max else "info",
+            diff <= _cv_tp_max,
             f"Calculada: {calculated_tp:.1f}%, reportada: {tp_pct:.1f}%, diff: {diff:.1f}pp",
             ["ratios", "fluxo_caixa"],
         ))
 
     # --- CV5: IF goal coherence ---
+    _cv_if_monthly_max = _QA_THRESHOLDS.get("cv_if_monthly_diff_max", 500)
     goals = e5.get("goals", {})
     if_meta = goals.get("if_meta", 0)
     if_trs = goals.get("if_trs", 0)
@@ -238,14 +241,15 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
         diff = abs(expected_monthly - if_monthly)
         results.append(CrossValidationResult(
             "CV5", "IF meta × TRS = renda mensal",
-            "warning" if diff > 500 else "info",
-            diff <= 500,
+            "warning" if diff > _cv_if_monthly_max else "info",
+            diff <= _cv_if_monthly_max,
             f"Meta R$ {if_meta:,.0f} × {if_trs}% / 12 = R$ {expected_monthly:,.0f}/mês, "
             f"reportado: R$ {if_monthly:,.0f}/mês",
             ["goals"],
         ))
 
     # --- CV6: IF progress consistency ---
+    _cv_if_pct_max = _QA_THRESHOLDS.get("cv_if_progress_diff_pct_max", 2)
     if_pct = goals.get("if_pct", 0)
     pat_investivel = pat.get("investivel", 0)
     if if_meta > 0:
@@ -253,13 +257,14 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
         diff = abs(calculated_pct - if_pct)
         results.append(CrossValidationResult(
             "CV6", "Progresso IF vs patrimônio investível",
-            "warning" if diff > 2 else "info",
-            diff <= 2,
+            "warning" if diff > _cv_if_pct_max else "info",
+            diff <= _cv_if_pct_max,
             f"Investível/Meta = {calculated_pct:.1f}%, reportado: {if_pct:.1f}%",
             ["goals", "patrimonio"],
         ))
 
     # --- CV7: Endividamento ratio ---
+    _cv_endiv_max = _QA_THRESHOLDS.get("cv_endividamento_diff_pct_max", 1)
     endiv = e5.get("endividamento", {})
     total_dividas = endiv.get("total_dividas", 0)
     endiv_pct = endiv.get("percentual_patrimonio", 0)
@@ -269,8 +274,8 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
         diff = abs(calculated_endiv - endiv_pct)
         results.append(CrossValidationResult(
             "CV7", "Taxa endividamento vs patrimônio",
-            "warning" if diff > 1 else "info",
-            diff <= 1,
+            "warning" if diff > _cv_endiv_max else "info",
+            diff <= _cv_endiv_max,
             f"Dívidas/Bruto = {calculated_endiv:.1f}%, reportado: {endiv_pct:.1f}%",
             ["endividamento", "patrimonio"],
         ))

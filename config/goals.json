@@ -6,6 +6,8 @@
   "aportes": {
     "_ref": "D02",
     "meta_aporte_mensal": 20000,
+    "dia_aporte": 5,
+    "periodo_inicio": "Imediato",
     "distribuicao": {
       "cofrinhos_itau": 10000,
       "tesouro_ipca_plus": 5000,
@@ -125,6 +127,20 @@
     "Consultar CPA expatriado para obrigações EUA",
     "Advogado sucessório para planejamento de herança em cenário BR-EUA"
   ],
+
+  "simulacao": {
+    "aporte_reduzido_fator": 0.66,
+    "_nota": "Fator de redução do aporte para simulação 'Mariana sem trabalhar'. 0.66 = 66% do aporte total."
+  },
+
+  "tetos_orcamentarios": {
+    "_comment": "Tetos mensais por categoria de despesa — usados pelo dashboard tático no E6.",
+    "moradia": 2500, "alimentacao": 4500, "saude": 3000,
+    "servicos_domesticos": 4000, "educacao": 2000, "transporte": 1700,
+    "lazer_viagens": 3750, "vestuario": 2000, "assinaturas": 300,
+    "suporte_familiar": 5000, "financeiro": 200, "melhoria_reforma": 1500,
+    "reserva_desejos": 3000, "seguros": 1500
+  },
 
   "top5_decisoes": [
     {"label": "Aportes R$ 20k/mês",        "impacto_1a": 240000,  "impacto_10a": 3300000},

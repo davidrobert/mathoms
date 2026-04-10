@@ -55,9 +55,16 @@
   },
 
   "qa_thresholds": {
-    "_comment": "Tolerâncias para cross-validation no E7.",
+    "_comment": "Tolerâncias para cross-validation no E7 e QA no E4.",
     "score_diff_max": 0.5,
-    "patrimonio_composicao_diff_pct_max": 5
+    "patrimonio_composicao_diff_pct_max": 5,
+    "cv_fluxo_diff_max": 100,
+    "cv_taxa_poupanca_diff_pp_max": 5,
+    "cv_if_monthly_diff_max": 500,
+    "cv_if_progress_diff_pct_max": 2,
+    "cv_endividamento_diff_pct_max": 1,
+    "cv_reserva_cobertura_diff_max": 1,
+    "qa_unidentified_target_pct": 10.0
   },
 
   "artifact_names": {

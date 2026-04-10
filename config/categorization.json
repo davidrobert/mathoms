@@ -119,6 +119,7 @@
       "WM SUPERCENTER",
       "WAL-MART",
       "PAO DE ACUCAR",
+      "PAOACUCAR",
       "5M COMERCIO ATACADISTA",
       "CARREFOUR",
       "EXTRA HIPER",
@@ -172,7 +173,11 @@
       "BEN JERRY",
       "HAAGEN-DAZS",
       "WICKED LICK",
-      "PARMUKH CORNER"
+      "PARMUKH CORNER",
+      "PAG*MERCADINHOBONANZA",
+      "DJAPA",
+      "RAPPI  *RAPPI * BRASI",
+      "RAPPI*RAPPI BRASIL"
     ],
     "transporte": [
       "PARK",
@@ -184,6 +189,10 @@
       "PUNTO *PRIME AUTO",
       "ECOPISTA",
       "FELTRIN MOTOS",
+      "FELTRIN",
+      "INT LICENC",
+      "FELTRIN",
+      "INT LICENC SP",
       "MEGAPASS",
       "MC MOBILITY",
       "MCOUTINHO MOBILITY",
@@ -352,7 +361,10 @@
       "PACEFIT",
       "MOURA ACADEMIA",
       "RAPPI *DROGARIA SAO P",
-      "RAPPI*RAIA DROGASIL"
+      "RAPPI*RAIA DROGASIL",
+      "DROGASI",
+      "CLIMEFE",
+      "SER MED"
     ],
     "seguros": [
       "SUL AMERICA SEG",
@@ -568,7 +580,9 @@
       "SILVESTRI SIMONE",
       "F611 RISTOP",
       "GEDAC SRL",
-      "DUFRY LOJAS FRANCAS"
+      "DUFRY LOJAS FRANCAS",
+      "ITALIA TR",
+      "STUDIO DANSOU"
     ],
     "melhoria_reforma": [
       "JS MATERIAIS DE CONS",
@@ -588,7 +602,8 @@
       "INACIO JOSE",
       "MATEUS SOUZA ARCANJO",
       "MANOEL MESSIAS",
-      "LEROY MERLIN"
+      "LEROY MERLIN",
+      "VESALTEC"
     ],
     "educacao": [
       "LEITURA",
@@ -597,12 +612,12 @@
       "PAPELARIA",
       "PRIMO RICO",
       "FUNDACAO SAO PAULO",
-      "IN *CA TRANSLATION SER",
       "ANDERSON UNIVERS",
       "HARVARD BUS",
       "PERUSALL",
       "BELT ACADEMY",
-      "CONSELHO REGIONAL"
+      "CONSELHO REGIONAL",
+      "OPEN ENGLISH"
     ],
     "servicos_domesticos": [
       "SUECIA",
@@ -618,7 +633,9 @@
       "RK2LAVARAPIDOE",
       "SAMUELABNERSANTOSMARC",
       "MP *33798933SAMUELABN",
-      "ANA LUCIA SANTOS"
+      "ANA LUCIA SANTOS",
+      "GUIA DE EMPREGADO DOMESTICO",
+      "PAG*PETCENTERCOMERCIO"
     ],
     "financeiro": [
       "VINDI *ACCOUNTBANKTEC",
@@ -641,7 +658,10 @@
       "Encargos",
       "D4U IMMIGRATION",
       "D4U",
-      "MORAR EUA"
+      "MORAR EUA",
+      "IN *CA TRANSLATION SER",
+      "TABEL",
+      "CLAUDIA DANTAS TINOCO"
     ],
     "impostos": [
       "DEBITO RFB",
@@ -657,7 +677,11 @@
       "PGTO ELET TRIB",
       "PGTO TRIB",
       "INT /SIMPLES",
-      "SECRETARIA MUNICIPAL DA FAZENDA"
+      "SECRETARIA MUNICIPAL DA FAZENDA",
+      "INT /PM SAO PAU",
+      "DA  REC FED",
+      "MINISTERIO DA FAZENDA",
+      "SECRETARIA DO TESOURO NACIONAL"
     ],
     "suporte_familiar": [
       "ALO BEBE",
@@ -669,7 +693,13 @@
       "NEUSA CIMAR",
       "DOUGLAS CAMARGO DE CAMPOS",
       "ERIC VINICIUS",
-      "SHEILA APARECIDA DA ROCHA DE CAMARGO"
+      "SHEILA APARECIDA DA ROCHA DE CAMARGO",
+      "JAIR DE SOUZA FERREIRA",
+      "MILTON AUGUSTO DE CAMARGO",
+      "SUELEN",
+      "HERMANN RONALDO WECKE",
+      "HERMANN",
+      "RAFAEL BARROSO DE CARVALHO"
     ],
     "reserva_desejos": [
       "AMAZON MKTPLACE",
@@ -692,7 +722,9 @@
       "MACROBABY",
       "MERCADOLIVRE",
       "MAGALUPAY",
-      "MAGALU"
+      "MAGALU",
+      "AMZN MKTP US",
+      "AMAZON.COM.BR"
     ]
   },
   "income_keywords": {
@@ -800,7 +832,13 @@
     "TRANSFERENCIA PESSOAL",
     "Total - Os dados aci",
     "PIX QRS WISE",
-    "WISE BRASIL"
+    "WISE BRASIL",
+    "INT ITAU VISA",
+    "01-FIN VENDA",
+    "Transf. Internacional",
+    "PIX TRANSF Poupa",
+    "EMISSAO DE CDB",
+    "INT TED"
   ],
   "pj_source_mapping": {
     "ARVO": "Arvo (David - PJ)",
@@ -835,5 +873,9 @@
     "receita_resgate",
     "receita_fgts",
     "receita_restituicao"
+  ],
+
+  "qa_investigation_patterns": [
+    {"pattern": "ZS RES PREMI", "note": "Investigar — possível resgate de prêmio de seguro ou programa de pontos Santander."}
   ]
 }

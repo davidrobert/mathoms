@@ -693,7 +693,20 @@ def _investimento_valor(inv) -> float:
     return safe_float(inv)
 
 
-_BANCOS_INVESTIMENTO = {"btg pactual", "rico", "picpay", "binance", "xp"}
+def _load_investment_banks() -> set:
+    inst_path = PROJECT_DIR / "config" / "institutions.json"
+    if inst_path.exists():
+        try:
+            with open(inst_path, "r", encoding="utf-8") as f:
+                inst = json.load(f)
+            banks = inst.get("investment_banks", [])
+            if banks:
+                return set(b.lower() for b in banks)
+        except Exception:
+            pass
+    return {"btg pactual", "rico", "picpay", "binance", "xp"}
+
+_BANCOS_INVESTIMENTO = _load_investment_banks()
 
 
 def _load_caixa_from_e3_saldos() -> Tuple[float, List[Dict[str, Any]]]:

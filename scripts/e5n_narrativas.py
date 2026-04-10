@@ -978,7 +978,7 @@ def build_narrativas():
                 "context": (
                     f"Cenários financeiros para Mariana pós-NCLEX, com projeções de renda americana como RN "
                     f"({fmt_usd(M['renda_mariana_eua_minima'])}-{fmt_usd(M['renda_mariana_eua_maxima'])}/mês) "
-                    f"versus permanência no Brasil (CLT Einstein {fmt_currency(M['salario_mariana'])}/mês)."
+                    f"versus permanência no Brasil ({_mariana.get('regime', 'CLT')} {_mariana.get('empregador_curto', '')} {fmt_currency(M['salario_mariana'])}/mês)."
                 ),
                 "conclusion": (
                     f"Cenário EUA com {fmt_usd(M['renda_mariana_eua_projetada'])}/mês = {fmt_currency(M['renda_eua_projetada_brl'])}/mês. "
