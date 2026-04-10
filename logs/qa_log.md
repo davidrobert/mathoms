@@ -1,7 +1,7 @@
 # QA Log — E4 Categorização
-## Execução: 2026-04-10 12:00
+## Execução: 2026-04-10 15:17
 
-### Transações não identificadas: 563
+### Transações não identificadas: 558
 
 | Data | Descrição | Valor | Banco | Fonte |
 |---|---|---|---|---|
@@ -72,7 +72,6 @@
 | 2023-12-19 | CEA IBI 100 ECPC | R$119.99 | C6 Bank | faturacarbon |
 | 2023-12-19 | EXPRESSO NUTRI | R$3.50 | C6 Bank | faturacarbon |
 | 2023-12-21 | PADARIA NOVA GUARANY L | R$7.00 | C6 Bank | faturacarbon |
-| 2023-12-21 | PAG*4MS | R$55.00 | C6 Bank | faturacarbon |
 | 2023-12-23 | CITURPC | R$10.00 | C6 Bank | faturacarbon |
 | 2023-12-23 | MAIS REVENDA DE COMBUS | R$241.52 | C6 Bank | faturacarbon |
 | 2023-12-24 | RECANTO DOS FRIOS | R$182.93 | C6 Bank | faturacarbon |
@@ -187,7 +186,6 @@
 | 2024-03-02 | PRIME EDITORIAL | R$30.00 | C6 Bank | faturacarbon |
 | 2024-03-02 | PAG*EMILYNAYLADASILVA | R$47.00 | C6 Bank | faturacarbon |
 | 2024-03-03 | DEOCLECIUS LANCHONETE | R$23.70 | C6 Bank | faturacarbon |
-| 2024-03-04 | PAG*4MS | R$95.00 | C6 Bank | faturacarbon |
 | 2024-03-04 | PAG*PALACIOCOMERCIO | R$33.64 | C6 Bank | faturacarbon |
 | 2024-03-04 | PADARIA NOVA GUARANY L | R$15.00 | C6 Bank | faturacarbon |
 | 2024-03-04 | ELMAR POSTO DE ABASTEC | R$150.00 | C6 Bank | faturacarbon |
@@ -347,7 +345,6 @@
 | 2025-04-10 | Pix Qrcode Din Des: Hanesbrands Brasil tê 10/04 | R$144.26 | Bradesco | extratoconta |
 | 2025-04-10 | Pix Qrcode Din Des: Zoop Tecnologia e Ins 10/04 | R$91.45 | Bradesco | extratoconta |
 | 2025-04-10 | ENG ARMANDO PEREIRA | R$113.80 | C6 Bank | faturacarbon |
-| 2025-04-11 | 4MS | R$75.00 | C6 Bank | faturacarbon |
 | 2025-04-12 | GARCIARODASE | R$260.00 | C6 Bank | faturacarbon |
 | 2025-04-14 | Pix Qrcode Din Des: Zoop Tecnologia e Ins 12/04 | R$78.07 | Bradesco | extratoconta |
 | 2025-04-16 | Pix enviado para ELIBELTO JOSE DE LIMA — TRANSF ENVIADA PIX | R$500.00 | C6 Bank | extratoconta |
@@ -585,7 +582,6 @@ Cartão 4163 | R$25.28 | C6 Bank | extratocontaglobalusd |
 | 2025-11-11 | GABRIELLYSANTOS | R$10.00 | C6 Bank | faturacarbon |
 | 2025-11-12 | Conta de Luz | R$37.07 | Bradesco | extratoconta |
 | 2025-11-14 | Pix enviado para DANIEL JESUS DO ROSARIO — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
-| 2025-11-15 | 4MS | R$65.00 | C6 Bank | faturacarbon |
 | 2025-11-17 | Transfe Pix Des: Maria Gizelia Dos San 17/11 | R$35.00 | Bradesco | extratoconta |
 | 2025-11-19 | BLOQUEIO PIX | R$333.00 | Itaú | extratoconta |
 | 2025-11-20 | Pix enviado para AMANTIKIR — TRANSF ENVIADA PIX | R$270.00 | C6 Bank | extratoconta |
@@ -620,7 +616,6 @@ Cartão 4163 | R$25.28 | C6 Bank | extratocontaglobalusd |
 | 2026-01-11 | TATUAPE GARDEM 2 | R$52.25 | C6 Bank | faturacarbon |
 | 2026-01-15 | Transfe Pix Des: Juliana Maria da Silv 15/01 | R$10.00 | Bradesco | extratoconta |
 | 2026-01-17 | 55656744FERNANDA | R$65.00 | C6 Bank | faturacarbon |
-| 2026-01-17 | 4MS | R$80.00 | C6 Bank | faturacarbon |
 | 2026-01-18 | MP *HIDEOMINETA | R$18.50 | C6 Bank | faturacarbon |
 | 2026-01-18 | JOSE ROBERTO RICCIME | R$50.00 | C6 Bank | faturacarbon |
 | 2026-01-18 | ADLERLUCENADASILV | R$13.00 | C6 Bank | faturacarbon |
@@ -659,4 +654,4 @@ Cartão 4163 | R$25.28 | C6 Bank | extratocontaglobalusd |
 | 2026-03-20 | Transfe Pix Des: Kate Costa Cristo de 20/03 | R$34.70 | Bradesco | extratoconta |
 | 2026-04-06 | PAGAMENTO EFETUADO | R$59.00 | Santander | faturaunique |
 
-### Taxa: 15.8% ⚠️ ACIMA DA META (<10%)
+### Taxa: 15.7% ⚠️ ACIMA DA META (<10%)

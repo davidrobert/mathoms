@@ -1,13 +1,13 @@
 {
   "metadata": {
-    "timestamp": "2026-04-10T12:00:43.532787",
+    "timestamp": "2026-04-10T15:25:07.022828",
     "e7_version": "1.0",
     "persona_summary": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada na metodologia \"Viver de "
   },
   "cross_validation": {
     "total_checks": 14,
-    "passed": 13,
-    "failed": 1,
+    "passed": 12,
+    "failed": 2,
     "issues": [
       {
         "check_id": "CV4",
@@ -18,6 +18,16 @@
         "sections": [
           "ratios",
           "fluxo_caixa"
+        ]
+      },
+      {
+        "check_id": "CV10",
+        "name": "Charts completeness",
+        "severity": "error",
+        "passed": false,
+        "details": "Missing: ['fluxo_mensal'], Incomplete: nenhum",
+        "sections": [
+          "narrativas"
         ]
       }
     ],
@@ -118,9 +128,9 @@
       {
         "check_id": "CV10",
         "name": "Charts completeness",
-        "severity": "info",
-        "passed": true,
-        "details": "Missing: nenhum, Incomplete: nenhum",
+        "severity": "error",
+        "passed": false,
+        "details": "Missing: ['fluxo_mensal'], Incomplete: nenhum",
         "sections": [
           "narrativas"
         ]
@@ -206,26 +216,25 @@
       "s10"
     ],
     "chart_keys": [
-      "score_gauge",
       "patrimonio_doughnut",
+      "waterfall_if",
+      "receita_bar",
+      "despesas_doughnut",
+      "receita_despesa_mensal",
+      "score_gauge",
       "alocacao_atual",
       "alocacao_alvo",
-      "fluxo_mensal",
-      "receita_bar",
-      "receita_despesa_mensal",
-      "despesas_doughnut",
-      "projecao_3cenarios",
-      "waterfall_if",
-      "renda_passiva",
-      "yield_imoveis",
       "top15_ativos",
-      "impostos_pj",
-      "mariana_cenarios",
+      "yield_imoveis",
       "custos_f1f2",
-      "viagens",
-      "cenarios_cambiais",
-      "bubble_riscos",
-      "top5_decisoes"
+      "cenario_cambial",
+      "projecao_if",
+      "renda_passiva",
+      "impostos_pj",
+      "riscos_bubble",
+      "decisoes",
+      "cenarios_mariana",
+      "viagens"
     ],
     "total_tarefas": 41,
     "tarefas_alta_prioridade": [

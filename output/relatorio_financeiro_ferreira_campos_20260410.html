@@ -770,9 +770,13 @@ details.expandable > div { padding:12px 0 0; }
   body { font-size:var(--font-base); }
 }
 
-/* ============ DUAL MODE: Strategic / Tactical ============ */
-body.mode-strategic [data-mode="tactical"] { display: none !important; }
-body.mode-tactical [data-mode="strategic"] { display: none !important; }
+/* ============ TRI-MODE: Strategic / Tactical / USA ============ */
+body.mode-strategic [data-mode="tactical"],
+body.mode-strategic [data-mode="usa"] { display: none !important; }
+body.mode-tactical [data-mode="strategic"],
+body.mode-tactical [data-mode="usa"] { display: none !important; }
+body.mode-usa [data-mode="strategic"],
+body.mode-usa [data-mode="tactical"] { display: none !important; }
 [data-mode="both"] { display: block; }
 
 /* Mode toggle in nav */
@@ -1196,7 +1200,7 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
       </div>
       <div class="cover-meta-card">
         <div class="cover-meta-label">Data e Hora de Geração</div>
-        <div class="cover-meta-value">10 abr 2026, 14h38</div>
+        <div class="cover-meta-value">10 abr 2026, 15h28</div>
       </div>
       <div class="cover-meta-card">
         <div class="cover-meta-label">Versão Manual Operações</div>
@@ -1225,8 +1229,6 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
     <div class="nav-group">
       <span class="nav-group-label">Específico</span>
       <a href="#secao-4" class="nav-link"><span class="num">4</span><span class="nav-text">Imóveis</span></a>
-      <a href="#secao-5" class="nav-link"><span class="num">5</span><span class="nav-text">F1/F2</span></a>
-      <a href="#secao-6" class="nav-link"><span class="num">6</span><span class="nav-text">Green Card</span></a>
     </div>
     <div class="nav-separator"></div>
     <div class="nav-group">
@@ -1255,10 +1257,17 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
     <a href="#dash-proximos" class="nav-link"><span class="num">T5</span><span class="nav-text">15 Dias</span></a>
     <a href="#dash-notas" class="nav-link"><span class="num">T6</span><span class="nav-text">Notas</span></a>
   </div>
+  <div class="nav-links nav-usa" style="display:none;">
+    <a href="#usa-1" class="nav-link"><span class="num">U1</span><span class="nav-text">F1/F2</span></a>
+    <a href="#usa-2" class="nav-link"><span class="num">U2</span><span class="nav-text">Green Card</span></a>
+    <a href="#usa-3" class="nav-link"><span class="num">U3</span><span class="nav-text">NCLEX</span></a>
+    <a href="#usa-4" class="nav-link"><span class="num">U4</span><span class="nav-text">Simulação</span></a>
+  </div>
   </div><!-- end nav-scroll -->
   <div class="mode-toggle" data-mode="both" role="group" aria-label="Modo de visualização">
     <button class="mode-btn active" data-target="strategic" onclick="setMode('strategic')" aria-pressed="true">📊 Estratégico</button>
     <button class="mode-btn" data-target="tactical" onclick="setMode('tactical')" aria-pressed="false">⚡ Tático</button>
+    <button class="mode-btn" data-target="usa" onclick="setMode('usa')" aria-pressed="false">🇺🇸 USA</button>
   </div>
   <div class="theme-toggle" data-mode="both" role="group" aria-label="Tema de cores">
     <button class="theme-btn" data-theme="light" onclick="setTheme('light')" title="Modo Claro" aria-label="Tema claro">☀️</button>
@@ -1335,15 +1344,10 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
   <div class="card-title card-title-lg">👨‍👩‍👦 A Família Ferreira Campos</div>
   <div class="perfil-grid">
     <div class="perfil-col">
-      <p>David Robert Camargo Ferreira Campos, 44 anos, é CTO da Arvo (healthtech de auditoria médica com IA). Mais de 24 anos em tecnologia, com passagens por Elo7, Loft, Kiwify. Formado em Ciência da Computação PUC-SP, mestrado IA USP/IME. Opera como PJ Simples Nacional (Anexo V).</p>
-<p>Mariana Ferreira Campos, 39 anos, é Enfermeira no Hospital Israelita Albert Einstein desde julho de 2014. Especialista em Cardiologia e Hemodinâmica (UNIFESP), mestre em Enfermagem (USP). CLT com salário-base de R$ 8,3k/mês. Perfil competitivo para NCLEX nos EUA.</p>
-<p>Theo Ferreira Campos nasceu em Orlando, Flórida e possui dupla cidadania brasileira e americana. Primeiro filho do casal, é peça central no planejamento internacional da família.</p>
-<p>A família conta com 3 gatos — Zack, Fuzzy e Nix — na residência da Rua Tasso da Silveira, Vila Guarani, São Paulo.</p>
+      <p>David Robert, 44 anos, é CTO da Arvo Saúde e lidera a estratégia de tecnologia da startup. Com mais de 20 anos em tech, acumula passagens por grandes empresas e startups, incluindo Kiwify e CNRY.</p><p>Mariana, 39 anos, é enfermeira especialista em cardiologia e hemodinâmica no Hospital Albert Einstein há 12 anos. Possui mestrado em enfermagem pela USP e perfil competitivo para o NCLEX nos EUA.</p><p>Theo, 9 meses, nasceu em Orlando, Flórida, e possui dupla cidadania brasileira e americana. Primeiro filho do casal, que planeja um segundo filho durante a fase F1/F2 nos EUA.</p><p>A família inclui três pets: Zack, Fuzzy e Nix, que acompanham o dia a dia na casa da Vila Guarani, em São Paulo.</p>
     </div>
     <div class="perfil-col" style="border-left:none;">
-      <p>Plano de vida centrado na mudança para os EUA via visto F1/F2 (Anderson University, SC), seguido de Green Card por EB2-NIW. David manterá contratos PJ brasileiros remotamente; Mariana se prepara para NCLEX. Custo projetado: R$ 32,4k/mês, com sobra de R$ 2,4k/mês.</p>
-<p>Meta IF: R$ 7,2M (TRS 5%, renda passiva de R$ 30k/mês). Patrimônio investível atual de R$ 2,8M (38,7% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo de 8 anos (David 52 anos, 2034).</p>
-<p>Patrimônio bruto de R$ 4,0M: 6 imóveis (R$ 996,8k residência + R$ 1,4M investimento), carteiras David (R$ 927,9k) e Mariana (R$ 375,4k). Endividamento de 5,8% — saudável.</p>
+      <p>O casal planeja uma temporada nos EUA via visto F1/F2 na Anderson University em 2027, seguida de processo de Green Card via EB2-NIW. David manterá trabalho remoto PJ durante toda a estadia.</p><p>A meta de independência financeira é atingir R 7,2M em patrimônio investível, gerando R 30k/mês via TRS de 5%. Com 38,7% da meta atingida, o prazo realista é 2034, quando David terá 52 anos.</p><p>O patrimônio bruto totaliza R 4,0M, distribuído entre 6 imóveis, investimentos financeiros em 5 corretoras, contas internacionais e criptoativos, com endividamento controlado de 5,9%.</p>
     </div>
   </div>
 </div>
@@ -1480,10 +1484,6 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
     chart-top15-ativos          — Top 15 ativos (horizontal bar)
   Seção 4 (Imóveis):
     chart-yield-imoveis         — Yield vs CDI (bar)
-  Seção 5 (F1/F2):
-    chart-custos-f1f2           — Custos mensais F1/F2 (horizontal bar)
-  Seção 6 (Green Card):
-    chart-cenarios-cambiais     — Cenários cambiais (bar agrupado)
   Seção 7 (IF):
     chart-projecao-3cenarios    — Projeção patrimonial 3 cenários (line)
     chart-renda-passiva         — Renda passiva progresso até meta (horizontal stacked bar)
@@ -1497,8 +1497,14 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
     chart-viagens               — Orçamento viagens (doughnut/bar)
   Apêndice E (Mariana):
     chart-mariana-cenarios      — Cenários IF Mariana (line)
+  USA U1 (F1/F2):
+    chart-custos-f1f2           — Custos mensais F1/F2 (horizontal bar)
+  USA U2 (Green Card):
+    chart-cenarios-cambiais     — Cenários cambiais (bar agrupado)
+  USA U4 (Simulação Mariana):
+    chart-mariana-cenarios-usa  — Cenários IF Mariana (bar) — duplicate canvas
 
-  ⚠️ REGRAS DE DESIGN HTML — Obrigatórias em TODO conteúdo gerado para {{CONTENT_S*}} e {{CONTENT_APP_*}}:
+  ⚠️ REGRAS DE DESIGN HTML — Obrigatórias em TODO conteúdo gerado para {{CONTENT_S*}}, {{CONTENT_U*}} e {{CONTENT_APP_*}}:
 
   1. ZERO margin-top/margin-bottom inline — O CSS usa seletores adjacentes (.card + .card, etc.)
      para espaçamento automático. NUNCA colocar style="margin-top:..." em cards, chart-container,
@@ -1519,18 +1525,18 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <div class="section-header">
   <h1>1. Visão Geral Patrimonial</h1>
 </div>
-<div class="section-summary">Patrimônio bruto de R$ 4,0M com 69,5% investível (R$ 2,8M). Imóveis representam 60,8% do total, com residência própria de R$ 996,8k e imóveis de investimento somando R$ 1,4M. Endividamento de 5,8% sobre o bruto.</div>
+<div class="section-summary">Patrimônio bruto de R 4,0M com 69% investível. Score financeiro 6,9/10, sustentado por baixo endividamento e reserva de 37,9 meses de despesas.</div>
 <div class="chart-container">
   <div class="card-title">Composição Patrimonial</div>
-  <p class="chart-context">Distribuição do patrimônio bruto de R$ 4,0M entre 6 categorias de ativos, mostrando concentração em imóveis e peso relativo dos investimentos financeiros.</p>
+  <p class="chart-context">Composição do patrimônio bruto de R 4,0M por categoria. Imóveis representam 61% do total, seguidos por investimentos financeiros (32%).</p>
   <canvas id="chart-patrimonio-doughnut"></canvas>
-  <p class="chart-conclusion" id="chart-patrimonio-doughnut-conclusion">Imóveis respondem por 60,8% do patrimônio — acima do ideal de 50%. Aportes mensais de R$ 20k em ativos financeiros devem melhorar essa proporção.</p>
+  <p class="chart-conclusion" id="chart-patrimonio-doughnut-conclusion">Concentração imobiliária alta. À medida que reserva e aportes crescem, a proporção de investimentos financeiros deve subir para 45-50% nos próximos 3 anos.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Caminho para Independência Financeira</div>
-  <p class="chart-context">Decomposição do gap de independência financeira (R$ 4,4M), mostrando componentes de patrimônio atual, aportes acumulados e rentabilidade esperada até 2034.</p>
+  <p class="chart-context">Decomposição do patrimônio investível de R 2,8M até a meta de R 7,2M, mostrando o gap de R 4,4M a ser preenchido.</p>
   <canvas id="chart-waterfall-if"></canvas>
-  <p class="chart-conclusion" id="chart-waterfall-if-conclusion">Gap de R$ 4,4M será fechado por aportes disciplinados (R$ 20k/mês = R$ 2,0M em 8 anos) e rentabilidade real de 6% a.a. sobre patrimônio acumulado.</p>
+  <p class="chart-conclusion" id="chart-waterfall-if-conclusion">Com aporte de R 20k/mês e retorno real de 6%, o gap fecha em 8,5 anos. Cada R 5k adicional de aporte reduz o prazo em ~1,5 ano.</p>
 </div>
 <div class="card card-feature">
   <div class="card-title">Patrimônio por Categoria</div>
@@ -1642,7 +1648,7 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <div class="section-header">
   <h1>2. Fluxo de Caixa e Orçamento</h1>
 </div>
-<div class="section-summary">Score financeiro de 6,9/10 (Bom). Pontos fortes: taxa de poupança recorrente de 16,4%, cobertura de 37,9 meses de despesas e endividamento controlado. Receita total no período de R$ 2,5M com 24,6% proveniente de PJ, 6,9% de aluguel, 46,5% de CLT e 22% de outras fontes.</div>
+<div class="section-summary">Receita recorrente de R 68,9k/mês com despesa média de R 57,6k. Taxa de poupança recorrente de 16,4%, abaixo da referência de 25%, mas com folga de R 11,3k/mês para aportes.</div>
 <div class="chart-container">
   <div class="card-title">Fluxo de Caixa Mensal</div>
   <p class="chart-context">Janela dos últimos 12 meses (2025-05 a 2026-04). Receita recorrente média de R$ 68.949/mês versus despesa média de R$ 57.607/mês.</p>
@@ -1652,21 +1658,21 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 </div>
 <div class="chart-container">
   <div class="card-title">Receita por Fonte</div>
-  <p class="chart-context">Composição da receita total de R$ 2,5M por fonte: PJ (24,6%), CLT (46,5%), aluguel (6,9%), outras (22%).</p>
+  <p class="chart-context">Receita total de R 2,5M no período, com CLT representando 47% e PJ 25%. Receitas one-time (Kiwify rescisão, CNRY, Barte) totalizaram R 1,1M.</p>
   <div class="period-toggle-row"><div class="period-toggle" data-period-group="chart-receita-bar"><button class="period-btn" data-period="3">3M</button><button class="period-btn" data-period="6">6M</button><button class="period-btn active" data-period="12">12M</button><button class="period-btn" data-period="ytd">Ano</button></div><span class="period-label" id="chart-receita-bar-period-label"></span></div>
   <canvas id="chart-receita-bar"></canvas>
-  <p class="chart-conclusion" id="chart-receita-bar-conclusion">Receita CLT lidera com R$ 1,2M (46,5%), seguida por PJ (R$ 614,6k, 24,6%) e aluguel (R$ 173,7k, 6,9%). Diversificação de fontes reduz risco de dependência única.</p>
+  <p class="chart-conclusion" id="chart-receita-bar-conclusion">Base recorrente estável em R 68,9k/mês pós-saída de Kiwify. Diversificação PJ com Arvo + BrandLovers + Arbitralis reduz risco de concentração.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Despesas por Categoria</div>
-  <p class="chart-context">Distribuição das despesas totais (R$ 1,4M) entre 17 categorias, destacando a composição de gastos e oportunidades de otimização.</p>
+  <p class="chart-context">Distribuição de R 1,4M em despesas por categoria. Financiamentos (12%), lazer/viagens (12%) e não identificados (13%) lideram.</p>
   <div class="period-toggle-row"><div class="period-toggle" data-period-group="chart-despesas-doughnut"><button class="period-btn" data-period="3">3M</button><button class="period-btn" data-period="6">6M</button><button class="period-btn active" data-period="12">12M</button><button class="period-btn" data-period="ytd">Ano</button></div><span class="period-label" id="chart-despesas-doughnut-period-label"></span></div>
   <canvas id="chart-despesas-doughnut"></canvas>
-  <p class="chart-conclusion" id="chart-despesas-doughnut-conclusion">Categoria 'não identificado' lidera com R$ 184,4k (13%), seguida por impostos (R$ 135,9k), moradia (R$ 37,9k) e serviços domésticos (R$ 64,1k). Prioridade: reclassificar 'não identificado' via melhor rastreamento.</p>
+  <p class="chart-conclusion" id="chart-despesas-doughnut-conclusion">Categoria não identificada em 13% requer revisão no próximo ciclo. Financiamentos serão eliminados com quitação do Ed. Gisele, liberando R 4,3k/mês.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Receita vs Despesa — Mês a Mês</div>
-  <p class="chart-context">Série temporal mensal de receitas (R$ 2,5M/período) versus despesas (R$ 1,4M/período), resultando em fluxo líquido de R$ 1,1M.</p>
+  <p class="chart-context">Evolução mensal de receitas e despesas desde jan/2023. Picos de receita em meses com rescisão Kiwify e pagamentos PJ acumulados.</p>
   <div id="rdm-nav" class="chart-nav">
     <button id="rdm-prev" class="chart-nav-btn" title="Meses anteriores">&#8249;</button>
     <span id="rdm-period" class="chart-nav-period"></span>
@@ -1675,13 +1681,13 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
   <canvas id="chart-receita-despesa-mensal"></canvas>
   <div id="rdm-dots" class="chart-nav-dots"></div>
   <div id="legend-receita-despesa" class="chart-legend-grouped"></div>
-  <p class="chart-conclusion" id="chart-receita-despesa-mensal-conclusion">Receita recorrente de R$ 34,8k/mês e despesa média de R$ 35,6k/mês. Taxa de poupança recorrente de 16,4% valida a sustentabilidade do plano IF.</p>
+  <p class="chart-conclusion" id="chart-receita-despesa-mensal-conclusion">Padrão estável pós-2025 com receita recorrente cobrindo despesas. Meses de viagem internacional mostram picos de despesa previsíveis.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Score Financeiro</div>
-  <p class="chart-context">Indicador geral de saúde financeira da família, com score de 6,9/10 (Bom). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.</p>
+  <p class="chart-context">Score financeiro de 6,9/10 classificado como Bom, calculado por 5 critérios ponderados: poupança, cobertura, endividamento, IF e diversificação.</p>
   <canvas id="chart-score-gauge" data-type="gauge" data-score="6.9"></canvas>
-  <p class="chart-conclusion" id="chart-score-gauge-conclusion">A classificação 'Bom' reflete melhora na taxa de poupança recorrente e redução da razão endividamento/patrimônio.</p>
+  <p class="chart-conclusion" id="chart-score-gauge-conclusion">Principal detrator: taxa de poupança recorrente (16,4%) puxa a nota para baixo. Subir para 25% elevaria o score para ~7,5.</p>
 </div>
 <div class="card card-feature" id="op-card">
   <div class="card-title">Orçamento Prospectivo (17 Categorias)</div>
@@ -1702,7 +1708,7 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
   <p id="op-method" class="method-note"></p>
   <script>
   (function(){
-    var A={"3m": {"cats": [{"key": "saude", "label": "Saude", "avg": 5700.2, "total": 22800.82}, {"key": "servicos_domesticos", "label": "Servicos Domesticos", "avg": 4363.65, "total": 17454.61}, {"key": "impostos", "label": "Impostos", "avg": 4029.1, "total": 16116.4}, {"key": "lazer_viagens", "label": "Lazer Viagens", "avg": 3995.52, "total": 15982.07}, {"key": "melhoria_reforma", "label": "Melhoria Reforma", "avg": 3815.41, "total": 15261.66}, {"key": "financiamentos", "label": "Financiamentos", "avg": 3210.62, "total": 12842.48}, {"key": "alimentacao", "label": "Alimentacao", "avg": 3039.64, "total": 12158.57}, {"key": "transporte", "label": "Transporte", "avg": 2929.65, "total": 11718.59}, {"key": "reserva_desejos", "label": "Reserva Desejos", "avg": 2629.57, "total": 10518.27}, {"key": "suporte_familiar", "label": "Suporte Familiar", "avg": 2475.0, "total": 9900.0}, {"key": "educacao", "label": "Educacao", "avg": 2392.76, "total": 9571.03}, {"key": "moradia", "label": "Moradia", "avg": 1815.38, "total": 7261.54}, {"key": "nao_identificado", "label": "Nao Identificado", "avg": 1454.05, "total": 5816.2}, {"key": "financeiro", "label": "Financeiro", "avg": 1040.03, "total": 4160.11}, {"key": "assinaturas", "label": "Assinaturas", "avg": 886.84, "total": 3547.34}, {"key": "vestuario", "label": "Vestuario", "avg": 613.38, "total": 2453.51}, {"key": "seguros", "label": "Seguros", "avg": 206.16, "total": 824.64}], "totalM": 44596.96, "nM": 4, "first": "26/01", "last": "26/04", "pLabel": "últimos 3 meses"}, "6m": {"cats": [{"key": "saude", "label": "Saude", "avg": 12276.48, "total": 85935.33}, {"key": "impostos", "label": "Impostos", "avg": 8145.01, "total": 57015.08}, {"key": "reserva_desejos", "label": "Reserva Desejos", "avg": 5852.77, "total": 40969.4}, {"key": "servicos_domesticos", "label": "Servicos Domesticos", "avg": 4709.03, "total": 32963.18}, {"key": "melhoria_reforma", "label": "Melhoria Reforma", "avg": 4649.13, "total": 32543.93}, {"key": "lazer_viagens", "label": "Lazer Viagens", "avg": 4599.37, "total": 32195.57}, {"key": "alimentacao", "label": "Alimentacao", "avg": 4408.5, "total": 30859.51}, {"key": "financiamentos", "label": "Financiamentos", "avg": 3685.51, "total": 25798.54}, {"key": "transporte", "label": "Transporte", "avg": 3141.61, "total": 21991.3}, {"key": "suporte_familiar", "label": "Suporte Familiar", "avg": 2772.36, "total": 19406.55}, {"key": "educacao", "label": "Educacao", "avg": 2210.72, "total": 15475.03}, {"key": "nao_identificado", "label": "Nao Identificado", "avg": 1770.36, "total": 12392.5}, {"key": "moradia", "label": "Moradia", "avg": 1739.24, "total": 12174.68}, {"key": "vestuario", "label": "Vestuario", "avg": 1681.03, "total": 11767.2}, {"key": "financeiro", "label": "Financeiro", "avg": 901.64, "total": 6311.46}, {"key": "assinaturas", "label": "Assinaturas", "avg": 803.09, "total": 5621.61}, {"key": "seguros", "label": "Seguros", "avg": 126.38, "total": 884.64}], "totalM": 63472.23, "nM": 7, "first": "25/10", "last": "26/04", "pLabel": "últimos 6 meses"}, "12m": {"cats": [{"key": "saude", "label": "Saude", "avg": 7142.04, "total": 92846.54}, {"key": "impostos", "label": "Impostos", "avg": 7004.75, "total": 91061.75}, {"key": "reserva_desejos", "label": "Reserva Desejos", "avg": 5974.83, "total": 77672.83}, {"key": "lazer_viagens", "label": "Lazer Viagens", "avg": 5840.22, "total": 75922.91}, {"key": "financiamentos", "label": "Financiamentos", "avg": 4000.09, "total": 52001.15}, {"key": "alimentacao", "label": "Alimentacao", "avg": 3831.6, "total": 49810.76}, {"key": "nao_identificado", "label": "Nao Identificado", "avg": 3831.41, "total": 49808.38}, {"key": "suporte_familiar", "label": "Suporte Familiar", "avg": 3442.27, "total": 44749.45}, {"key": "transporte", "label": "Transporte", "avg": 2972.75, "total": 38645.75}, {"key": "servicos_domesticos", "label": "Servicos Domesticos", "avg": 2902.11, "total": 37727.47}, {"key": "melhoria_reforma", "label": "Melhoria Reforma", "avg": 2522.13, "total": 32787.7}, {"key": "educacao", "label": "Educacao", "avg": 2028.31, "total": 26368.03}, {"key": "moradia", "label": "Moradia", "avg": 2023.73, "total": 26308.52}, {"key": "financeiro", "label": "Financeiro", "avg": 1600.18, "total": 20802.39}, {"key": "vestuario", "label": "Vestuario", "avg": 1468.91, "total": 19095.86}, {"key": "assinaturas", "label": "Assinaturas", "avg": 938.44, "total": 12199.68}, {"key": "seguros", "label": "Seguros", "avg": 487.89, "total": 6342.54}], "totalM": 58011.66, "nM": 13, "first": "25/04", "last": "26/04", "pLabel": "últimos 12 meses"}, "ytd": {"cats": [{"key": "saude", "label": "Saude", "avg": 5700.2, "total": 22800.82}, {"key": "servicos_domesticos", "label": "Servicos Domesticos", "avg": 4363.65, "total": 17454.61}, {"key": "impostos", "label": "Impostos", "avg": 4029.1, "total": 16116.4}, {"key": "lazer_viagens", "label": "Lazer Viagens", "avg": 3995.52, "total": 15982.07}, {"key": "melhoria_reforma", "label": "Melhoria Reforma", "avg": 3815.41, "total": 15261.66}, {"key": "financiamentos", "label": "Financiamentos", "avg": 3210.62, "total": 12842.48}, {"key": "alimentacao", "label": "Alimentacao", "avg": 3039.64, "total": 12158.57}, {"key": "transporte", "label": "Transporte", "avg": 2929.65, "total": 11718.59}, {"key": "reserva_desejos", "label": "Reserva Desejos", "avg": 2629.57, "total": 10518.27}, {"key": "suporte_familiar", "label": "Suporte Familiar", "avg": 2475.0, "total": 9900.0}, {"key": "educacao", "label": "Educacao", "avg": 2392.76, "total": 9571.03}, {"key": "moradia", "label": "Moradia", "avg": 1815.38, "total": 7261.54}, {"key": "nao_identificado", "label": "Nao Identificado", "avg": 1454.05, "total": 5816.2}, {"key": "financeiro", "label": "Financeiro", "avg": 1040.03, "total": 4160.11}, {"key": "assinaturas", "label": "Assinaturas", "avg": 886.84, "total": 3547.34}, {"key": "vestuario", "label": "Vestuario", "avg": 613.38, "total": 2453.51}, {"key": "seguros", "label": "Seguros", "avg": 206.16, "total": 824.64}], "totalM": 44596.96, "nM": 4, "first": "26/01", "last": "26/04", "pLabel": "ano corrente"}};
+    var A={"3m": {"cats": [{"key": "saude", "label": "Saude", "avg": 5700.2, "total": 22800.82}, {"key": "servicos_domesticos", "label": "Servicos Domesticos", "avg": 4383.65, "total": 17534.61}, {"key": "impostos", "label": "Impostos", "avg": 4029.1, "total": 16116.4}, {"key": "lazer_viagens", "label": "Lazer Viagens", "avg": 3995.52, "total": 15982.07}, {"key": "melhoria_reforma", "label": "Melhoria Reforma", "avg": 3815.42, "total": 15261.66}, {"key": "financiamentos", "label": "Financiamentos", "avg": 3210.62, "total": 12842.48}, {"key": "alimentacao", "label": "Alimentacao", "avg": 3039.64, "total": 12158.57}, {"key": "transporte", "label": "Transporte", "avg": 2929.65, "total": 11718.59}, {"key": "reserva_desejos", "label": "Reserva Desejos", "avg": 2629.57, "total": 10518.27}, {"key": "suporte_familiar", "label": "Suporte Familiar", "avg": 2475.0, "total": 9900.0}, {"key": "educacao", "label": "Educacao", "avg": 2392.76, "total": 9571.03}, {"key": "moradia", "label": "Moradia", "avg": 1815.38, "total": 7261.54}, {"key": "nao_identificado", "label": "Nao Identificado", "avg": 1434.05, "total": 5736.2}, {"key": "financeiro", "label": "Financeiro", "avg": 1040.03, "total": 4160.11}, {"key": "assinaturas", "label": "Assinaturas", "avg": 886.84, "total": 3547.34}, {"key": "vestuario", "label": "Vestuario", "avg": 613.38, "total": 2453.51}, {"key": "seguros", "label": "Seguros", "avg": 206.16, "total": 824.64}], "totalM": 44596.97, "nM": 4, "first": "26/01", "last": "26/04", "pLabel": "últimos 3 meses"}, "6m": {"cats": [{"key": "saude", "label": "Saude", "avg": 12276.48, "total": 85935.33}, {"key": "impostos", "label": "Impostos", "avg": 8145.01, "total": 57015.08}, {"key": "reserva_desejos", "label": "Reserva Desejos", "avg": 5852.77, "total": 40969.4}, {"key": "servicos_domesticos", "label": "Servicos Domesticos", "avg": 4729.74, "total": 33108.18}, {"key": "melhoria_reforma", "label": "Melhoria Reforma", "avg": 4649.13, "total": 32543.93}, {"key": "lazer_viagens", "label": "Lazer Viagens", "avg": 4599.37, "total": 32195.57}, {"key": "alimentacao", "label": "Alimentacao", "avg": 4408.5, "total": 30859.51}, {"key": "financiamentos", "label": "Financiamentos", "avg": 3685.51, "total": 25798.54}, {"key": "transporte", "label": "Transporte", "avg": 3141.61, "total": 21991.3}, {"key": "suporte_familiar", "label": "Suporte Familiar", "avg": 2772.36, "total": 19406.55}, {"key": "educacao", "label": "Educacao", "avg": 2210.72, "total": 15475.03}, {"key": "nao_identificado", "label": "Nao Identificado", "avg": 1749.64, "total": 12247.5}, {"key": "moradia", "label": "Moradia", "avg": 1739.24, "total": 12174.68}, {"key": "vestuario", "label": "Vestuario", "avg": 1681.03, "total": 11767.2}, {"key": "financeiro", "label": "Financeiro", "avg": 901.64, "total": 6311.46}, {"key": "assinaturas", "label": "Assinaturas", "avg": 803.09, "total": 5621.61}, {"key": "seguros", "label": "Seguros", "avg": 126.38, "total": 884.64}], "totalM": 63472.22, "nM": 7, "first": "25/10", "last": "26/04", "pLabel": "últimos 6 meses"}, "12m": {"cats": [{"key": "saude", "label": "Saude", "avg": 7142.04, "total": 92846.54}, {"key": "impostos", "label": "Impostos", "avg": 7004.75, "total": 91061.75}, {"key": "reserva_desejos", "label": "Reserva Desejos", "avg": 5974.83, "total": 77672.83}, {"key": "lazer_viagens", "label": "Lazer Viagens", "avg": 5840.22, "total": 75922.91}, {"key": "financiamentos", "label": "Financiamentos", "avg": 4000.09, "total": 52001.15}, {"key": "alimentacao", "label": "Alimentacao", "avg": 3831.6, "total": 49810.76}, {"key": "nao_identificado", "label": "Nao Identificado", "avg": 3814.49, "total": 49588.38}, {"key": "suporte_familiar", "label": "Suporte Familiar", "avg": 3442.27, "total": 44749.45}, {"key": "transporte", "label": "Transporte", "avg": 2972.75, "total": 38645.75}, {"key": "servicos_domesticos", "label": "Servicos Domesticos", "avg": 2919.04, "total": 37947.47}, {"key": "melhoria_reforma", "label": "Melhoria Reforma", "avg": 2522.13, "total": 32787.7}, {"key": "educacao", "label": "Educacao", "avg": 2028.31, "total": 26368.03}, {"key": "moradia", "label": "Moradia", "avg": 2023.73, "total": 26308.52}, {"key": "financeiro", "label": "Financeiro", "avg": 1600.18, "total": 20802.39}, {"key": "vestuario", "label": "Vestuario", "avg": 1468.91, "total": 19095.86}, {"key": "assinaturas", "label": "Assinaturas", "avg": 938.44, "total": 12199.68}, {"key": "seguros", "label": "Seguros", "avg": 487.89, "total": 6342.54}], "totalM": 58011.67, "nM": 13, "first": "25/04", "last": "26/04", "pLabel": "últimos 12 meses"}, "ytd": {"cats": [{"key": "saude", "label": "Saude", "avg": 5700.2, "total": 22800.82}, {"key": "servicos_domesticos", "label": "Servicos Domesticos", "avg": 4383.65, "total": 17534.61}, {"key": "impostos", "label": "Impostos", "avg": 4029.1, "total": 16116.4}, {"key": "lazer_viagens", "label": "Lazer Viagens", "avg": 3995.52, "total": 15982.07}, {"key": "melhoria_reforma", "label": "Melhoria Reforma", "avg": 3815.42, "total": 15261.66}, {"key": "financiamentos", "label": "Financiamentos", "avg": 3210.62, "total": 12842.48}, {"key": "alimentacao", "label": "Alimentacao", "avg": 3039.64, "total": 12158.57}, {"key": "transporte", "label": "Transporte", "avg": 2929.65, "total": 11718.59}, {"key": "reserva_desejos", "label": "Reserva Desejos", "avg": 2629.57, "total": 10518.27}, {"key": "suporte_familiar", "label": "Suporte Familiar", "avg": 2475.0, "total": 9900.0}, {"key": "educacao", "label": "Educacao", "avg": 2392.76, "total": 9571.03}, {"key": "moradia", "label": "Moradia", "avg": 1815.38, "total": 7261.54}, {"key": "nao_identificado", "label": "Nao Identificado", "avg": 1434.05, "total": 5736.2}, {"key": "financeiro", "label": "Financeiro", "avg": 1040.03, "total": 4160.11}, {"key": "assinaturas", "label": "Assinaturas", "avg": 886.84, "total": 3547.34}, {"key": "vestuario", "label": "Vestuario", "avg": 613.38, "total": 2453.51}, {"key": "seguros", "label": "Seguros", "avg": 206.16, "total": 824.64}], "totalM": 44596.97, "nM": 4, "first": "26/01", "last": "26/04", "pLabel": "ano corrente"}};
     function fB(v){return"R$ "+Math.round(v).toLocaleString("pt-BR");}
     function fP(v){return v.toFixed(1).replace(".",",")+"%";}
     window.filterOP=function(p){
@@ -1803,39 +1809,37 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <div class="section-header">
   <h1>3. Investimentos e Rendimentos</h1>
 </div>
-<div class="section-summary">Carteira diversificada entre 6 categorias de ativos. David mantém R$ 927,9k distribuídos entre C6bank, Itau, Rico, Santander. Mariana possui R$ 375,4k concentrados em Btgpactual.</div>
+<div class="section-summary">Carteira de R 1,3M distribuída entre RF, fundos, ações e renda fixa bancária. Concentração em Cofrinhos Itaú para reserva de emergência, com diversificação em 5 corretoras.</div>
 <div class="chart-row">
 <div class="chart-container">
   <div class="card-title">Alocação Atual</div>
-  <p class="chart-context">Atual distribuição dos ativos financeiros (R$ 1,3M) entre classes de investimento: renda fixa, ações, fundos multimercado e estruturados.</p>
+  <p class="chart-context">Alocação atual da carteira investível por classe de ativo. RF domina com 54%, seguida por fundos (12%) e ações (7%).</p>
   <canvas id="chart-alocacao-atual"></canvas>
-  <p class="chart-conclusion" id="chart-alocacao-atual-conclusion">David diversificado em C6bank, Itau, Rico, Santander; Mariana concentra em Btgpactual. Recomendação: gradualmente adicionar alocação de ações (IVVB11, SCHP11) para atingir 20-25% de equity.</p>
+  <p class="chart-conclusion" id="chart-alocacao-atual-conclusion">Sobreposição em RF deve reduzir com migração para Tesouro IPCA+ e IVVB11 via aportes mensais. Caixa de 10% é temporário até completar reserva 12 meses.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Alocação Alvo</div>
-  <p class="chart-context">Alocação estratégica recomendada para os ativos financeiros, considerando horizonte de 8 anos até IF e tolerância ao risco médio.</p>
+  <p class="chart-context">Alocação-alvo de longo prazo definida em goals.json: RF 50%, Internacional 10%, Ações 10%, Previdência 5%, Crypto 1%.</p>
   <canvas id="chart-alocacao-alvo"></canvas>
-  <p class="chart-conclusion" id="chart-alocacao-alvo-conclusion">Alvo: 50% Renda Fixa (IPCA+, CDBs), 25% Ações (IVVB11, SCHP11), 15% Imóveis/REITs, 10% Liquidez/USD. Aportes de R$ 20k/mês priorizarão renda fixa, com rebalanceamento anual.</p>
+  <p class="chart-conclusion" id="chart-alocacao-alvo-conclusion">Gap principal em Internacional (0% vs 10% alvo) e Previdência (1,4% vs 5%). Aportes em IVVB11 e PGBL endereçam ambos gradualmente.</p>
 </div>
 </div>
 <div class="chart-container">
   <div class="card-title">Top 15 Ativos Financeiros</div>
-  <p class="chart-context">Ranking dos 15 maiores ativos financeiros individuais da família, totalizando R$ 2,8M em investimentos.</p>
+  <p class="chart-context">Os 15 maiores ativos da carteira, liderados por CDB Cofrinhos Itaú (R 135k), BTG Global (R 95k) e PETR4 (R 70k).</p>
   <canvas id="chart-top15-ativos"></canvas>
-  <p class="chart-conclusion" id="chart-top15-ativos-conclusion">CDB DI (Santander) (R$ 137,9k de David) é o maior ativo individual. Concentração em poucos ativos reforça importância de aportes contínuos para diversificação.</p>
+  <p class="chart-conclusion" id="chart-top15-ativos-conclusion">Concentração top 3 em 23% da carteira financeira. PicPay RDB (R 53k) e Alaska Black (R 44k) são candidatos a consolidação/resgate.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Cenários IF — Mariana</div>
-  <p class="chart-context">Cenários financeiros para Mariana pós-NCLEX, com projeções de renda americana como RN (US$ 4k-US$ 7k/mês) versus permanência no Brasil (CLT Einstein R$ 8,3k/mês).</p>
   <canvas id="chart-mariana-cenarios"></canvas>
-  <p class="chart-conclusion" id="chart-mariana-cenarios-conclusion">Cenário EUA com US$ 5,5k/mês = R$ 31,9k/mês. Compensado por: integração com patrimônio de David, renda PJ remota, renda de aluguel em BRL e potencial de crescimento salarial anual de 3-4%.</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Orçamento de Viagens</div>
-  <p class="chart-context">Padrão de despesas com viagens identificado nos extratos, estimando frequência e custo médio.</p>
+  <p class="chart-context">Gastos com viagens nos últimos 12 meses: destinos, valores e frequência. Inclui viagens internacionais e nacionais.</p>
   <div class="period-toggle-row"><div class="period-toggle" data-period-group="chart-viagens"><button class="period-btn" data-period="3">3M</button><button class="period-btn" data-period="6">6M</button><button class="period-btn active" data-period="12">12M</button><button class="period-btn" data-period="ytd">Ano</button></div><span class="period-label" id="chart-viagens-period-label"></span></div>
   <canvas id="chart-viagens"></canvas>
-  <p class="chart-conclusion" id="chart-viagens-conclusion">Viagens para EUA estimadas em R$ 20k-R$ 30k por viagem. Frequência média de 2 viagens/ano para acompanhamento do processo F1/F2.</p>
+  <p class="chart-conclusion" id="chart-viagens-conclusion">Viagens representam 6% do orçamento total. Planejar com antecedência e usar milhas pode reduzir custos em 20-30%.</p>
 </div>
 <div class="card card-feature">
   <div class="card-title">Investimentos por Classe de Ativo</div>
@@ -1949,41 +1953,91 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <div class="section-header">
   <h1>4. Imóveis e Bens</h1>
 </div>
-<div class="section-summary">6 imóveis no portfólio: residência na Rua Tasso da Silveira (R$ 996,8k), apartamentos alugados com renda de R$ 52,1k/ano (R$ 4,3k/mês). Yield bruto dos imóveis de investimento estimado em 3,6% (receita/valor total).</div>
+<div class="section-summary">Seis imóveis com yield bruto entre 2,8% e 12,3%. Aluguéis somam R 9,4k/mês, representando 33% da meta de renda passiva. Living Concept com pior yield e vacância — candidato a venda.</div>
 <div class="chart-container">
   <div class="card-title">Rentabilidade dos Imóveis (Yield) vs CDI</div>
   <p class="chart-context"><strong>O que é yield?</strong> Yield (rentabilidade) é o retorno anual que o imóvel gera em aluguéis, expresso como percentual do valor estimado do bem. Fórmula: (aluguel anual ÷ valor estimado) × 100. Comparar com o CDI ajuda a avaliar se o capital imobilizado rende mais ou menos que uma aplicação financeira de baixo risco.</p>
-  <p class="chart-context">Análise de yield bruto dos imóveis de investimento (valor total R$ 1,4M) versus aluguel recebido mensalizado.</p>
+  <p class="chart-context">Yield bruto anual por imóvel. Living Wish lidera com 12,3%, enquanto Barão de Capanema tem yield de 2,8% — abaixo do CDI.</p>
   <canvas id="chart-yield-imoveis"></canvas>
-  <p class="chart-conclusion" id="chart-yield-imoveis-conclusion">Yield atual de 3,6% com potencial de 4-6% após otimização de contratos. Imóveis funcionam como hedge inflacionário e fonte de renda complementar.</p>
+  <p class="chart-conclusion" id="chart-yield-imoveis-conclusion">Living Concept (3,9%) e Barão de Capanema (2,8%) são candidatos a desinvestimento. Liberar capital para ativos financeiros com yield superior.</p>
 </div>
 </div>
 
-<!-- SEÇÃO 5 -->
-<div class="section" id="secao-5" data-mode="strategic">
+<!-- ============================================================ -->
+<!-- USA SECTIONS (U1-U4) — Projeto Mudança EUA                  -->
+<!-- ============================================================ -->
+
+<!-- USA U1 — F1/F2 (ex-S5) -->
+<div class="section" id="usa-1" data-mode="usa">
 <div class="section-header">
-  <h1>5. F1/F2 EUA</h1>
+  <h1>U1. Mudança EUA — F1/F2</h1>
 </div>
-<div class="section-summary">Mudança para os EUA via visto F1/F2 (Anderson University, SC), com custo mensal estimado de R$ 32,4k. Sobra projetada de R$ 2,4k/mês (R$ 34,8k receita − R$ 32,4k custos). Viagens estimadas: 2/ano a R$ 20k-R$ 30k cada.</div>
+<div class="section-summary">Custos estimados da fase F1/F2 em Anderson, SC: US 3.990/mês no EUA mais R 8,9k mantidos no Brasil. Sobra mensal projetada de R 38,2k com David trabalhando remoto.</div>
 <div class="chart-container">
   <div class="card-title">Custos Mensais F1/F2</div>
-  <p class="chart-context">Estimativa de custos mensais na fase F1/F2 nos EUA: tuition + living + viagens BR = R$ 32,4k/mês.</p>
+  <p class="chart-context">Projeção de custos mensais da fase F1/F2: US 3.990 no EUA + R 8,9k no Brasil = R 32,4k total ao câmbio de R 5,80.</p>
   <canvas id="chart-custos-f1f2"></canvas>
-  <p class="chart-conclusion" id="chart-custos-f1f2-conclusion">Sobra projetada: R$ 2,4k/mês (R$ 34,8k - R$ 32,4k).</p>
+  <p class="chart-conclusion" id="chart-custos-f1f2-conclusion">Sobra mensal de R 38,2k permite manter aportes de R 20k/mês durante toda a estadia, sem comprometer reserva de emergência.</p>
 </div>
 </div>
 
-<!-- SEÇÃO 6 -->
-<div class="section" id="secao-6" data-mode="strategic">
+<!-- USA U2 — Green Card (ex-S6) -->
+<div class="section" id="usa-2" data-mode="usa">
 <div class="section-header">
-  <h1>6. Green Card</h1>
+  <h1>U2. Green Card — EB2-NIW</h1>
 </div>
-<div class="section-summary">Exposição cambial: US$ 4,7k em Wise, US$ 2,6k em Bank of America. Total US$ 7,4k. Meta pré-EUA de US$ 20k com gap de US$ 12,6k — ritmo de R$ 2k/mês na Wise alcança a meta em 36 meses.</div>
+<div class="section-summary">Cenários cambiais entre R 4,50 e R 7,50 por dólar. No cenário realista (R 5,80), custo F1/F2 de R 32,4k/mês preserva capacidade de aporte de R 20k/mês.</div>
 <div class="chart-container">
   <div class="card-title">Cenários Cambiais</div>
-  <p class="chart-context">Exposição cambial atual (US$ 7,4k) e meta pré-EUA (US$ 20k), considerando câmbio de R$ 5,80/USD.</p>
   <canvas id="chart-cenarios-cambiais"></canvas>
-  <p class="chart-conclusion" id="chart-cenarios-cambiais-conclusion">Gap de US$ 12,6k com aporte atual de R$ 2k/mês em Wise, atingindo meta em 36 meses. Risco mitigado por diversificação USD/EUR, renda PJ em BRL e flexibilidade de data de mudança.</p>
+</div>
+</div>
+
+<!-- USA U3 — NCLEX Roadmap -->
+<div class="section" id="usa-3" data-mode="usa">
+<div class="section-header">
+  <h1>U3. NCLEX Roadmap</h1>
+</div>
+<div class="section-summary">Roadmap de licenciamento NCLEX-RN para atuação como enfermeira nos EUA.</div>
+<div class="card">
+  <div class="card-title">NCLEX Roadmap — Mariana</div>
+  <p>Caminho para licenciamento como Registered Nurse nos EUA (estimativa 8-18 meses).</p>
+  <table>
+    <thead><tr><th>Etapa</th><th>Descrição</th><th>Custo</th><th>Duração</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>CGFNS Credentials Evaluation</td><td>US$ 350</td><td>4-8 semanas</td></tr>
+      <tr><td>2</td><td>Teste de Inglês (MET ou OET recomendados)</td><td>US$ 235–455</td><td>Prep 2-3 meses</td></tr>
+      <tr><td>3</td><td>CGFNS VisaScreen Certificate</td><td>US$ 540</td><td>8-12 semanas</td></tr>
+      <tr><td>4</td><td>State Board Application (SC)</td><td>US$ 200</td><td>2-4 semanas</td></tr>
+      <tr><td>5</td><td>ATT (Authorization to Test)</td><td>—</td><td>2-4 semanas</td></tr>
+      <tr><td>6</td><td>NCLEX-RN Exam</td><td>US$ 200</td><td>Agendar Pearson VUE</td></tr>
+      <tr><td>7</td><td>License Issued</td><td>—</td><td>2-4 semanas</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Custo total estimado:</strong> US$ 1.515–2.440 | <strong>Perfil competitivo Mariana:</strong> Cardiologia e Hemodinâmica (UNIFESP) + Mestrado Enfermagem (USP) + Enfermeira no Hospital Israelita Albert Einstein.</p>
+  <p><strong>Projeção EUA:</strong> RN US$45–80/hora → US$4.000–7.000/mês líquido.</p>
+</div>
+</div>
+
+<!-- USA U4 — Simulação Mariana Sem Trabalhar -->
+<div class="section" id="usa-4" data-mode="usa">
+<div class="section-header">
+  <h1>U4. Simulação — Mariana Sem Trabalhar</h1>
+</div>
+<div class="section-summary">Cenário financeiro caso a cônjuge não trabalhe nos primeiros meses nos EUA.</div>
+<div class="chart-container">
+  <div class="card-title">Cenários IF — Mariana</div>
+  <canvas id="chart-mariana-cenarios-usa"></canvas>
+</div>
+<div class="card">
+  <div class="card-title">Simulação — Mariana Sem Trabalhar</div>
+  <table>
+    <thead><tr><th>Métrica</th><th>Valor</th></tr></thead>
+    <tbody>
+      <tr><td>IF com aporte R$ 20k mantido</td><td><strong>8,5 anos</strong> (folga absorve a perda)</td></tr>
+      <tr><td>IF com aporte reduzido R$ 13,2k</td><td>10,1 anos (+1,6 anos)</td></tr>
+    </tbody>
+  </table>
 </div>
 </div>
 
@@ -1992,18 +2046,16 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <div class="section-header">
   <h1>7. Independência Financeira</h1>
 </div>
-<div class="section-summary">Meta de independência financeira de R$ 7,2M em 2034. Gap atual de R$ 4,4M com prazo realista de 8,5 anos à taxa de aporte R$ 20k/mês e retorno real 6% a.a. Renda passiva estimada (5% TRS): R$ 9,3k/mês.</div>
+<div class="section-summary">Meta IF de R 7,2M com prazo realista de 8,5 anos. Patrimônio investível de R 2,8M cobre 38,7% da meta. Aporte de R 20k/mês a 6% real projeta conclusão em 2034.</div>
 <div class="chart-container">
   <div class="card-title">Projeção Patrimonial — 3 Cenários</div>
-  <p class="chart-context">Projeção do patrimônio investível até atingir a meta de R$ 7,2M, considerando aportes mensais de R$ 20k e retorno real anual de 6%.</p>
   <canvas id="chart-projecao-3cenarios"></canvas>
-  <p class="chart-conclusion" id="chart-projecao-3cenarios-conclusion">Meta será atingida em 2034, quando David terá 52 anos. Renda passiva estimada será R$ 9,3k/mês (31% da meta de R$ 30k/mês).</p>
 </div>
 <div class="chart-container">
   <div class="card-title">Renda Passiva — Progresso até a Meta</div>
-  <p class="chart-context">Barra de progresso da renda passiva mensal em direção à meta de R$ 30k/mês. Cada segmento representa uma fonte: aluguéis, dividendos e rendimentos financeiros.</p>
+  <p class="chart-context">Composição da renda passiva atual de R 9,3k/mês e projeção para R 30k/mês em 2034, distribuída entre 8 fontes.</p>
   <canvas id="chart-renda-passiva"></canvas>
-  <p class="chart-conclusion" id="chart-renda-passiva-conclusion">Renda passiva atual de R$ 9,3k/mês (31% da meta). Faltam R$ 20,7k/mês — patrimônio de R$ 7,2M (meta 2034) geraria R$ 30k/mês com TRS de 5%.</p>
+  <p class="chart-conclusion" id="chart-renda-passiva-conclusion">Renda passiva atual cobre 31% da meta. Aluguéis são a base, complementados por dividendos e cupons de RF à medida que a carteira cresce.</p>
 </div>
 <div class="card card-feature">
   <div class="card-title">Previdência PGBL</div>
@@ -2027,13 +2079,13 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <div class="section-header">
   <h1>8. Tributário</h1>
 </div>
-<div class="section-summary">Simples Nacional Anexo V com fator R favorável (alíquota efetiva 6%). DAS mensal estimado em R$ 921,94 (R$ 11,1k/ano) sobre receita PJ anualizada de R$ 184,4k. AccountTech como contador (R$ 390,00/mês via C6 PJ). Avaliação de holding patrimonial pendente para T4/2026. Obrigações fiscais EUA (FBAR, Form 8938, PFIC) requerem CPA expatriado antes da mudança.</div>
+<div class="section-summary">Simples Nacional continua mais vantajoso com ISS 5%. Oportunidade de economia de R 5,9k/ano via PGBL com aporte de R 590/mês. Carnê-leão 2024-2025 pendente de regularização.</div>
 <div class="chart-container">
   <div class="card-title">Tributário PJ — Cascata Fiscal</div>
-  <p class="chart-context">Carga tributária da PJ de David: receita anualizada de R$ 184,4k, enquadrada no Simples Nacional Anexo V com fator R favorável (alíquota efetiva 6%).</p>
+  <p class="chart-context">Comparação Simples Nacional vs Lucro Presumido para receita PJ atual. Simples resulta em alíquota efetiva menor com ISS 5%.</p>
   <div class="period-toggle-row"><div class="period-toggle" data-period-group="chart-impostos-pj"><button class="period-btn" data-period="3">3M</button><button class="period-btn" data-period="6">6M</button><button class="period-btn active" data-period="12">12M</button><button class="period-btn" data-period="ytd">Ano</button></div><span class="period-label" id="chart-impostos-pj-period-label"></span></div>
   <canvas id="chart-impostos-pj"></canvas>
-  <p class="chart-conclusion" id="chart-impostos-pj-conclusion">DAS estimado em R$ 921,94/mês (R$ 11,1k/ano). Lucro presumido (32%) define base tributável de R$ 59,0k para cálculo do PGBL (dedução de até 12%). Contador AccountTech em funcionamento. Avaliação de holding patrimonial pendente para T4/2026.</p>
+  <p class="chart-conclusion" id="chart-impostos-pj-conclusion">Manter Simples Nacional por ora. Simular novamente se ISS municipal cair para 2% — nesse caso, LP pode economizar ~R 11k/ano.</p>
 </div>
 </div>
 
@@ -2042,12 +2094,10 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <div class="section-header">
   <h1>9. Riscos e Proteção</h1>
 </div>
-<div class="section-summary">8 riscos prioritários: Falta de seguro de vida/invalidez, FBAR/FATCA compliance, Estate Tax non-resident. Seguros de vida e invalidez inexistentes — classificados como urgentes. Cobertura recomendada: R$ 3-5M em seguro term. Planejamento sucessório em estágio inicial.</div>
+<div class="section-summary">Seguro de vida e invalidez inexistentes — risco crítico para família com filho pequeno e patrimônio em construção. Prioridade imediata: Term Life R 3-5M e invalidez 60% da renda.</div>
 <div class="chart-container">
   <div class="card-title">Mapa de Riscos</div>
-  <p class="chart-context">Identificação de 8 riscos críticos de compliance e proteção ao plano IF, com probabilidade e impacto.</p>
   <canvas id="chart-bubble-riscos"></canvas>
-  <p class="chart-conclusion" id="chart-bubble-riscos-conclusion">Riscos prioritários: (1) Falta de seguro de vida/invalidez (alta prob., crítico impacto), (2) FBAR/FATCA compliance (alta prob., alto impacto), (3) Estate Tax non-resident (média prob., alto impacto). Ação: CPA expatriado + seguro term R$ 3-5M.</p>
 </div>
 </div>
 
@@ -2056,12 +2106,10 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <div class="section-header">
   <h1>10. Conclusão e Roadmap</h1>
 </div>
-<div class="section-summary">5 decisões estratégicas prioritárias: iniciar aporte mensal de R$ 20k (R$ 10k Cofrinhos, R$ 5k IPCA+, R$ 3k IVVB11, R$ 2k Wise USD), Contratar seguro de vida term, NCLEX/OET para Mariana, Consultar CPA expatriado para obrigações EUA.</div>
+<div class="section-summary">Doze tarefas essenciais pendentes, com destaque para seguros, aportes automáticos e regularização tributária. Equilíbrio Cerbasi indica 89% presente vs 11% futuro — priorizar aportes de longo prazo.</div>
 <div class="chart-container">
   <div class="card-title">Top 5 Decisões de Impacto</div>
-  <p class="chart-context">5 decisões estratégicas de curto prazo (6-12 meses) para otimizar a trajetória até IF.</p>
   <canvas id="chart-top5-decisoes"></canvas>
-  <p class="chart-conclusion" id="chart-top5-decisoes-conclusion">Prioridade 1: Aporte mensal R$ 20k com divisão (R$ 10k Cofrinhos, R$ 5k IPCA+, R$ 3k IVVB11, R$ 2k Wise USD). Prioridade 2: Contratar seguro de vida term. Prioridade 3: NCLEX/OET para Mariana. Prioridade 4: Consultar CPA expatriado para obrigações EUA. Prioridade 5: Advogado sucessório para planejamento de herança em cenário BR-EUA.</p>
 </div>
 <div class="split-cards">
 <div class="card card-success">
@@ -2788,7 +2836,7 @@ Cartão 4163</td><td>R$ 62</td></tr>
 
 <footer class="footer">
 <div class="footer-content">
-        <p><strong>Relatório gerado em:</strong> 10 abr 2026, 14h38</p>
+        <p><strong>Relatório gerado em:</strong> 10 abr 2026, 15h28</p>
         <p><strong>Período dos dados:</strong> 2023-01 a 2026-04</p>
         <p><strong>Versão Manual Operações:</strong> 5.8</p>
         <p class="footer-disclaimer">
@@ -2803,7 +2851,7 @@ Cartão 4163</td><td>R$ 62</td></tr>
     "modo_padrao": "tactical",
     "familia": "Ferreira Campos",
     "periodo": "2023-01 a 2026-04",
-    "data_geracao": "2026-04-10T14:38:21.382859",
+    "data_geracao": "2026-04-10T15:28:18.590016",
     "versao": "5.8"
   },
   "kpis": {
@@ -4282,10 +4330,10 @@ Cartão 4163</td><td>R$ 62</td></tr>
             0.0,
             813.33,
             3248.88,
-            11529.57,
+            11474.57,
             11205.18,
             3422.57,
-            4916.94,
+            4821.94,
             1327.0,
             31186.26,
             85.0,
@@ -4298,16 +4346,16 @@ Cartão 4163</td><td>R$ 62</td></tr>
             5297.65,
             4258.42,
             11676.26,
-            4911.34,
+            4836.34,
             22234.91,
             310.2,
             621.54,
             1141.29,
             8196.6,
             2014.8,
-            3382.11,
+            3317.11,
             1179.39,
-            859.07,
+            779.07,
             2841.34,
             2056.79,
             59.0
@@ -4474,10 +4522,10 @@ Cartão 4163</td><td>R$ 62</td></tr>
             0.0,
             0.0,
             0.0,
-            2295.4,
+            2350.4,
             300.97,
             2131.63,
-            1200.0,
+            1295.0,
             1200.0,
             2900.0,
             1500.0,
@@ -4490,16 +4538,16 @@ Cartão 4163</td><td>R$ 62</td></tr>
             0.0,
             1800.0,
             1650.0,
-            1685.63,
+            1760.63,
             1890.0,
             115.0,
             0.0,
             0.0,
             1073.66,
             4647.43,
-            6111.39,
+            6176.39,
             4749.75,
-            3545.41,
+            3625.41,
             3761.41,
             3941.41,
             6206.38
@@ -4761,7 +4809,7 @@ Cartão 4163</td><td>R$ 62</td></tr>
       "datasets": [
         {
           "data": [
-            184384.38,
+            184014.38,
             176146.32,
             166238.95,
             135933.24,
@@ -4770,7 +4818,7 @@ Cartão 4163</td><td>R$ 62</td></tr>
             102379.13,
             93194.73,
             68284.09,
-            64105.47,
+            64475.47,
             45584.7,
             37877.73,
             35039.55,
@@ -5241,12 +5289,12 @@ Cartão 4163</td><td>R$ 62</td></tr>
             26945.760000000002,
             30527.99,
             36058.23,
-            37482.770000000004,
-            43727.340000000004,
-            45704.380000000005,
-            56747.46000000001,
-            59940.840000000004,
-            60028.840000000004,
+            37482.77,
+            43727.34,
+            45704.38,
+            56747.46,
+            59940.84,
+            60028.84,
             75615.91,
             75922.91,
             75922.91
@@ -5321,7 +5369,7 @@ Cartão 4163</td><td>R$ 62</td></tr>
       "assinaturas": 14793.13,
       "seguros": 6656.46,
       "financeiro": 35039.55,
-      "nao_identificado": 184384.38,
+      "nao_identificado": 184014.38,
       "transporte": 102379.13,
       "financiamentos": 176146.32,
       "moradia": 37877.73,
@@ -5330,7 +5378,7 @@ Cartão 4163</td><td>R$ 62</td></tr>
       "suporte_familiar": 127114.3,
       "saude": 108647.55,
       "reserva_desejos": 93194.73,
-      "servicos_domesticos": 64105.47,
+      "servicos_domesticos": 64475.47,
       "lazer_viagens": 166238.95,
       "melhoria_reforma": 45584.7,
       "educacao": 28354.78,
@@ -6144,8 +6192,8 @@ Cartão 4163</td><td>R$ 62</td></tr>
       },
       "nao_identificado": {
         "label": "Não Identificado",
-        "gasto": 4609.61,
-        "teto": 5531.53
+        "gasto": 4600.36,
+        "teto": 5520.43
       },
       "transporte": {
         "label": "Transporte",
@@ -6189,7 +6237,7 @@ Cartão 4163</td><td>R$ 62</td></tr>
       },
       "servicos_domesticos": {
         "label": "Serv. Domésticos",
-        "gasto": 1602.64,
+        "gasto": 1611.89,
         "teto": 4000
       },
       "lazer_viagens": {
@@ -6685,7 +6733,7 @@ Cartão 4163</td><td>R$ 62</td></tr>
     "notas": "Score financeiro: 6.9/10 (Bom). Equilíbrio Cerbasi: 89% presente / 11% futuro (Endividado consciente). Período dos dados: 2023-01 a 2026-04.",
     "periodo": "2023-01 a 2026-04",
     "changelog": [
-      "Comparação com ciclo de 2026-04-10 14:38",
+      "Comparação com ciclo de 2026-04-10 15:24",
       "4 categoria(s) de despesa acima do teto"
     ],
     "ciclo": "quinzenal",
@@ -7215,7 +7263,7 @@ Cartão 4163</td><td>R$ 62</td></tr>
 <!--
   REPORT_DATA_JSON must include at minimum:
   {
-    "meta": {"modo_padrao": "strategic", ...},
+    "meta": {"modo_padrao": "strategic|tactical|usa", ...},
     "kpis": {...},
     "charts": {...},
     "dashboard": {
@@ -8870,25 +8918,47 @@ document.addEventListener('DOMContentLoaded', function() {
     if (lbl && vgLabels.length) lbl.textContent = vgLabels[0] + ' — ' + vgLabels[vgLabels.length - 1];
   })();
 
-  // NOTE: setMode, setTheme, initializeTheme, buildDashboard são definidas
-  // no bloco <script> global abaixo. Não duplicar aqui.
+  // NOTE: setMode, setTheme, initializeTheme, buildDashboard, buildUsaCharts
+  // são definidas no bloco <script> global abaixo. Não duplicar aqui.
 });
 </script>
 
 <script>
 // ============================================================
-// DUAL MODE: Strategic / Tactical
+// TRI-MODE: Strategic / Tactical / USA
 // ============================================================
 function setMode(mode) {
   document.body.className = 'mode-' + mode;
   document.querySelectorAll('.mode-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.target === mode);
+    b.setAttribute('aria-pressed', b.dataset.target === mode ? 'true' : 'false');
   });
   var navS = document.querySelector('.nav-strategic');
   var navD = document.querySelector('.nav-dashboard');
+  var navU = document.querySelector('.nav-usa');
   if (navS) navS.style.display = mode === 'strategic' ? 'flex' : 'none';
   if (navD) navD.style.display = mode === 'tactical' ? 'flex' : 'none';
+  if (navU) navU.style.display = mode === 'usa' ? 'flex' : 'none';
   if (mode === 'tactical') setTimeout(buildDashboard, 50);
+  if (mode === 'usa') setTimeout(buildUsaCharts, 50);
+}
+
+function buildUsaCharts() {
+  if (window._usaChartsBuilt) return;
+  window._usaChartsBuilt = true;
+  var mcData = DATA.charts.mariana_cenarios || {labels:[], datasets:[]};
+  safeChart('chart-mariana-cenarios-usa', {
+    type: 'bar',
+    data: { labels: mcData.labels, datasets: mcData.datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'R$' } },
+        y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Anos' }, grid: { drawOnChartArea: false } }
+      }
+    }
+  });
 }
 
 // ============================================================

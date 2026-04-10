@@ -1,48 +1,47 @@
 {
   "metadata": {
-    "timestamp": "2026-04-10T12:00:43.532787",
-    "e7_version": "1.0",
-    "persona_summary": "Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional."
-  },
-  "cross_validation": {
-    "total_checks": 14,
-    "passed": 13,
-    "failed": 1,
-    "issues": [
-      {
-        "check_id": "CV4",
-        "name": "Taxa poupança recorrente",
-        "severity": "warning",
-        "passed": false,
-        "details": "Calculada: -2.3%, reportada: 16.4%, diff: 18.7pp",
-        "sections": ["ratios", "fluxo_caixa"],
-        "llm_assessment": "Divergência metodológica, não inconsistência real. O CV4 usa fluxo_caixa.receita_recorrente (período completo ~16 meses, R$ 1,39M) e fluxo_caixa.despesa_total (R$ 1,42M), gerando taxa negativa. O E5 usa a janela de 12 meses (R$ 827k receita recorrente vs R$ 691k despesa = 16,4%). A janela de 12 meses é a métrica correta para avaliar taxa de poupança — o período completo inclui meses parciais que distorcem o cálculo."
-      }
-    ]
+    "reviewer": "Claude Opus 4.6",
+    "timestamp": "2026-04-10T15:30:00",
+    "review_type": "E-full-reset holistic review"
   },
   "refinements": {
-    "summaries": {},
-    "charts": {},
-    "perfil_familia": {},
-    "tarefas_reorder": {
-      "new_order": []
-    },
-    "strategic_insights": {
-      "insights": [
-        "Patrimônio de R$ 4,0M com apenas 38,7% do caminho IF percorrido: a concentração de 60% em imóveis (R$ 2,4M) reduz a velocidade de acumulação de patrimônio investível. Cada R$ 1 em imóvel rende ~3,6% bruto (aluguel) vs ~14% em renda fixa pós-fixada. O custo de oportunidade anual é de ~R$ 250k.",
-        "O gap entre taxa de poupança total (44,3%) e recorrente (16,4%) revela dependência estrutural de receitas extraordinárias (PJ, vendas de ativos) para manter o ritmo de acumulação. Se essas receitas cessarem — como na mudança para EUA via F1/F2 — a poupança recorrente de 16,4% sustenta aportes de apenas ~R$ 11k/mês vs a meta de R$ 20k.",
-        "O plano EUA (F1/F2) é viável mas apertado: sobra projetada de R$ 2,4k/mês não comporta os aportes de R$ 20k necessários para a meta IF 2034. A família precisará viver do patrimônio acumulado durante o período nos EUA, atrasando a IF em 2-3 anos. Decisão consciente: qualidade de vida e formação acadêmica vs velocidade IF.",
-        "A ausência de seguro de vida e invalidez é o maior risco não-mitigado do portfólio. Com patrimônio de R$ 4M e renda familiar de R$ 100k/mês, um evento adverso sem cobertura poderia comprometer toda a estratégia de IF. O custo estimado de R$ 200-400/mês é imaterial frente ao risco.",
-        "Consolidação de corretoras é uma oportunidade operacional: 6 instituições financeiras com investimentos fragmentados dificultam rebalanceamento e monitoramento. Concentrar em 2-3 corretoras reduziria complexidade sem perda de diversificação."
+    "narrativas": {
+      "summaries": {},
+      "charts": {}
+    }
+  },
+  "strategic_insights": [
+    {
+      "insight": "A taxa de poupança recorrente de 16,4% está abaixo da referência mínima de 25%. Com a quitação do financiamento Ed. Gisele (R 4,3k/mês) e configuração de aportes automáticos (R 20k/mês), a taxa pode subir para 22-25% no próximo trimestre.",
+      "priority": "alta",
+      "sections_affected": [
+        "s2",
+        "s7"
       ]
     },
-    "inconsistencies_found": {
-      "items": [
-        {
-          "sections": ["ratios", "fluxo_caixa"],
-          "description": "CV4: A cross-validation calcula taxa de poupança usando o período completo (~16 meses) enquanto o E5 usa janela de 12 meses. A janela de 12m é a métrica correta. O script e7_review.py deveria usar fluxo_caixa.janela_12m para esta verificação."
-        }
+    {
+      "insight": "Ausência de seguros de vida e invalidez representa o risco mais crítico para a família. Com Theo de 9 meses e patrimônio em fase de acumulação, a contratação urgente de Term Life R 3-5M protege o plano de IF em caso de sinistro.",
+      "priority": "alta",
+      "sections_affected": [
+        "s9",
+        "s10"
+      ]
+    },
+    {
+      "insight": "A concentração imobiliária de 61% do patrimônio bruto é alta para o perfil. A venda do Living Concept (yield 3,9%) e eventual desinvestimento do Barão de Capanema (yield 2,8%) liberariam R 600-900k para ativos financeiros com melhor liquidez e retorno.",
+      "priority": "media",
+      "sections_affected": [
+        "s1",
+        "s3",
+        "s4"
       ]
     }
-  }
+  ],
+  "inconsistencies_review": [
+    {
+      "issue": "CV4: Taxa poupança reportada (16,4%) usa janela 12m com receita recorrente; cross-validator usa período completo. Ambos corretos em seus contextos — a janela 12m é mais representativa da situação atual.",
+      "resolution": "Manter 16,4% — janela 12m é a métrica correta para o score e narrativas.",
+      "severity": "info"
+    }
+  ]
 }

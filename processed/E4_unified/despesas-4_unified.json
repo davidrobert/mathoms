@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-10T12:00:03.732149-03:00",
+  "consolidation_date": "2026-04-10T15:17:56.543204-03:00",
   "periodo": "2023-01 a 2026-04",
   "categorias": [
     "alimentacao",
@@ -26,7 +26,7 @@
     "assinaturas": 14793.129999999966,
     "seguros": 6656.46,
     "financeiro": 35039.549999999996,
-    "nao_identificado": 184384.37999999986,
+    "nao_identificado": 184014.37999999986,
     "transporte": 102379.13000000012,
     "financiamentos": 176146.32,
     "moradia": 37877.73000000001,
@@ -35,7 +35,7 @@
     "suporte_familiar": 127114.30000000002,
     "saude": 108647.55000000002,
     "reserva_desejos": 93194.72999999986,
-    "servicos_domesticos": 64105.47,
+    "servicos_domesticos": 64475.47,
     "lazer_viagens": 166238.94999999995,
     "melhoria_reforma": 45584.70000000001,
     "educacao": 28354.780000000006,
@@ -4291,16 +4291,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2023-12-21",
-        "descricao": "PAG*4MS",
-        "valor": 55.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2023-12-23",
         "descricao": "CITURPC",
         "valor": 10.0,
@@ -5434,16 +5424,6 @@
         "data": "2024-03-03",
         "descricao": "DEOCLECIUS LANCHONETE",
         "valor": 23.7,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-03-04",
-        "descricao": "PAG*4MS",
-        "valor": 95.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -7041,16 +7021,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-04-11",
-        "descricao": "4MS",
-        "valor": 75.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-04-12",
         "descricao": "GARCIARODASE",
         "valor": 260.0,
@@ -8521,16 +8491,6 @@
         "moeda": "BRL"
       },
       {
-        "data": "2025-11-15",
-        "descricao": "4MS",
-        "valor": 65.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
         "data": "2025-11-17",
         "descricao": "Transfe Pix Des: Maria Gizelia Dos San 17/11",
         "valor": 35.0,
@@ -8864,16 +8824,6 @@
         "data": "2026-01-17",
         "descricao": "55656744FERNANDA",
         "valor": 65.0,
-        "banco": "C6 Bank",
-        "categoria": "nao_identificado",
-        "tipo_conta": "faturacarbon",
-        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-17",
-        "descricao": "4MS",
-        "valor": 80.0,
         "banco": "C6 Bank",
         "categoria": "nao_identificado",
         "tipo_conta": "faturacarbon",
@@ -28789,6 +28739,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2023-12-21",
+        "descricao": "PAG*4MS",
+        "valor": 55.0,
+        "banco": "C6 Bank",
+        "categoria": "servicos_domesticos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2023-12-31",
         "descricao": "Pix enviado para ANA LUCIA SANTOS — TRANSF ENVIADA PIX",
         "valor": 700.0,
@@ -28836,6 +28796,16 @@
         "categoria": "servicos_domesticos",
         "tipo_conta": "extratoconta",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-03-04",
+        "descricao": "PAG*4MS",
+        "valor": 95.0,
+        "banco": "C6 Bank",
+        "categoria": "servicos_domesticos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -29006,6 +28976,16 @@
         "categoria": "servicos_domesticos",
         "tipo_conta": "extratoconta",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-11",
+        "descricao": "4MS",
+        "valor": 75.0,
+        "banco": "C6 Bank",
+        "categoria": "servicos_domesticos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {
@@ -29239,6 +29219,16 @@
         "moeda": "BRL"
       },
       {
+        "data": "2025-11-15",
+        "descricao": "4MS",
+        "valor": 65.0,
+        "banco": "C6 Bank",
+        "categoria": "servicos_domesticos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
         "data": "2025-11-24",
         "descricao": "ELAINE APARECIDA BUZZ",
         "valor": 215.05,
@@ -29396,6 +29386,16 @@
         "categoria": "servicos_domesticos",
         "tipo_conta": "extratoconta",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-17",
+        "descricao": "4MS",
+        "valor": 80.0,
+        "banco": "C6 Bank",
+        "categoria": "servicos_domesticos",
+        "tipo_conta": "faturacarbon",
+        "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
         "moeda": "BRL"
       },
       {

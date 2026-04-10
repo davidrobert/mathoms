@@ -304,3 +304,57 @@
 | vehicles/ | 0 |
 | members/ | 3 |
 
+
+## Ciclo 2026-04-10 — 110 arquivos recebidos (e0_route.py)
+
+### Resumo
+
+| Métrica | Valor |
+|---|---|
+| Arquivos detectados | 110 |
+| Roteados com sucesso | 110 |
+| Duplicatas ignoradas | 0 |
+| Não identificados | 0 |
+| Pulados (integridade) | 0 |
+| financial_statements/ | 99 |
+| income_tax_br/ | 7 |
+| real_estate/ | 1 |
+| vehicles/ | 0 |
+| members/ | 3 |
+
+
+## Ciclo 2026-04-10 — 110 arquivos recebidos (e0_route.py)
+
+### Resumo
+
+| Métrica | Valor |
+|---|---|
+| Arquivos detectados | 110 |
+| Roteados com sucesso | 110 |
+| Duplicatas ignoradas | 0 |
+| Não identificados | 0 |
+| Pulados (integridade) | 0 |
+| financial_statements/ | 99 |
+| income_tax_br/ | 7 |
+| real_estate/ | 1 |
+| vehicles/ | 0 |
+| members/ | 3 |
+
+
+## Ciclo 2026-04-10 — 1 arquivos recebidos (e0_route.py)
+
+### Resumo
+
+| Métrica | Valor |
+|---|---|
+| Arquivos detectados | 1 |
+| Roteados com sucesso | 0 |
+| Duplicatas ignoradas | 0 |
+| Não identificados | 1 |
+| Pulados (integridade) | 0 |
+| financial_statements/ | 0 |
+| income_tax_br/ | 0 |
+| real_estate/ | 0 |
+| vehicles/ | 0 |
+| members/ | 0 |
+
