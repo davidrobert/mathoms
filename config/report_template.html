@@ -191,7 +191,7 @@ body { font-family: var(--font-body); font-size:var(--font-md); line-height:1.6;
 .nav-link.appendix { color:rgba(255,255,255,0.4); }
 
 /* Main container */
-.container { max-width:960px; margin:0 auto; padding:0 var(--space-3xl); }
+.container { max-width:1120px; margin:0 auto; padding:0 var(--space-3xl); }
 
 /* Sections */
 .section { padding:var(--space-4xl) 0; }
@@ -281,6 +281,53 @@ tr.total-row td { border-bottom: 2px solid var(--color-border); }
 .chart-context { font-size:var(--font-base); color:var(--color-text-muted); margin:var(--space-sm) 0 var(--space-xs); line-height:1.5; }
 .chart-conclusion { font-size:var(--font-base); color:var(--color-text); margin:var(--space-xs) 0 0; line-height:1.5;
   padding:10px 14px; background:var(--color-conclusion-bg); border-radius:var(--radius-md); border-left:3px solid var(--color-secondary); }
+
+/* Projeção Patrimonial — KPI Strip */
+.proj-kpi-strip {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+  margin-bottom: var(--space-lg); padding: 14px 0 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+.proj-kpi { text-align: center; }
+.proj-kpi-label {
+  display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--color-text-muted); margin-bottom: 4px; font-weight: 600;
+}
+.proj-kpi-val {
+  display: block; font-family: var(--font-display); font-size: var(--font-lg);
+  font-weight: 800; color: var(--color-primary);
+}
+.proj-kpi-meta { color: var(--color-secondary); }
+.proj-kpi-gap { color: var(--color-danger); }
+.proj-kpi-year { color: var(--color-accent); font-size: var(--font-xl); }
+.proj-progress-track {
+  margin-top: 6px; height: 5px; border-radius: 3px;
+  background: var(--color-border); overflow: hidden;
+}
+.proj-progress-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--color-secondary), var(--color-accent));
+  transition: width 0.6s ease;
+}
+.proj-summary-table {
+  width: 100%; margin: var(--space-md) 0; font-size: var(--font-sm);
+  border-collapse: collapse;
+}
+.proj-summary-table th {
+  text-align: left; padding: 8px 12px; font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--color-text-muted); border-bottom: 2px solid var(--color-border);
+}
+.proj-summary-table td { padding: 10px 12px; border-bottom: 1px solid var(--color-border); }
+.proj-summary-table .total-row td { font-weight: 700; background: var(--color-row-total); }
+
+@media (max-width: 768px) {
+  .proj-kpi-strip { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .proj-kpi-val { font-size: var(--font-base); }
+  .proj-kpi-year { font-size: var(--font-lg); }
+}
+@media (max-width: 480px) {
+  .proj-kpi-strip { grid-template-columns: repeat(2, 1fr); }
+}
 
 /* Grouped chart legend (receita vs despesa) */
 /* Chart time-window navigation bar */
@@ -452,12 +499,49 @@ tr.total-row td { border-bottom: 2px solid var(--color-border); }
   margin-top: 28px;
 }
 
-/* Collapsible sections */
-.section-header { cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
-.section-header .collapse-icon { transition: transform 0.3s; font-size: 14px; color: var(--color-text-muted); margin-left: 8px; }
+/* Collapsible sections — enhanced with visible chevron */
+.section-header { cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+.section-header:hover { opacity: 0.85; }
+.section-header .collapse-icon {
+  transition: transform 0.3s ease; font-size: 18px; color: var(--color-text-muted);
+  margin-left: 12px; flex-shrink: 0; width: 28px; height: 28px; display: flex;
+  align-items: center; justify-content: center; border-radius: 50%;
+  background: var(--color-bg); border: 1px solid var(--color-border);
+}
+.section-header:hover .collapse-icon { border-color: var(--color-secondary); color: var(--color-secondary); }
 .section-header.collapsed .collapse-icon { transform: rotate(-90deg); }
-.section-content { transition: max-height 0.3s ease; overflow: hidden; }
-.section-content.collapsed { max-height: 0; padding: 0; }
+.section-content { transition: max-height 0.5s ease-in-out; overflow: hidden; }
+.section-content.collapsed { max-height: 0 !important; padding: 0; margin: 0; }
+
+/* Skip navigation — accessibility */
+.skip-nav {
+  position: absolute; top: -100px; left: 16px; z-index: 9999;
+  background: var(--color-primary); color: #fff; padding: 12px 24px;
+  border-radius: var(--radius-lg); font-weight: 600; font-size: var(--font-md);
+  text-decoration: none; transition: top 0.2s;
+}
+.skip-nav:focus { top: 16px; outline: 3px solid var(--color-accent); }
+
+/* Nav grouping separators */
+.nav-group { display: flex; align-items: center; gap: 2px; }
+.nav-group-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px;
+  color: rgba(255,255,255,0.3); padding: 0 6px; white-space: nowrap;
+  font-weight: 600; display: none;
+}
+@media (min-width: 1200px) { .nav-group-label { display: block; } }
+
+/* Card equalization — min-heights for consistent visual weight */
+.split-cards > .card { min-height: 200px; display: flex; flex-direction: column; }
+.split-cards > .card > table { flex: 1; }
+.split-cards > .card > p:last-child { margin-top: auto; }
+
+/* Section collapsed count badge */
+.section-collapsed-hint {
+  display: none; font-size: var(--font-sm); color: var(--color-text-muted);
+  padding: 12px 0; font-style: italic;
+}
+.section-header.collapsed + .section-collapsed-hint { display: block; }
 
 /* Theme toggle */
 .theme-toggle { display: flex; gap: 2px; margin-left: 12px; padding: 6px 0; flex-shrink: 0; }
@@ -471,10 +555,18 @@ tr.total-row td { border-bottom: 2px solid var(--color-border); }
 .section-summary { font-family:var(--font-display); font-size:var(--font-md); font-weight:500; color:var(--color-secondary);
   padding:var(--space-md) var(--space-lg); background:var(--color-summary-bg); border-radius:var(--radius-lg); margin-bottom:var(--space-xl); line-height:1.5; }
 
-/* KPI hierarchy */
-.kpi-hero { border:2px solid var(--color-primary) !important; }
-.kpi-hero .kpi-value { font-size:var(--font-2xl) !important; }
-.kpi-hero .kpi-label { font-weight:600; }
+/* KPI hierarchy — enhanced visual weight for hero cards */
+.kpi-hero { border:2px solid var(--color-primary) !important; grid-column: span 1; position: relative; }
+.kpi-hero .kpi-value { font-size:32px !important; }
+.kpi-hero .kpi-label { font-weight:600; font-size: var(--font-base); }
+.kpi-hero .kpi-sub { font-size: var(--font-sm); }
+
+/* KPI progress micro-bar (injected by JS for Meta IF) */
+.kpi-progress { width: 100%; height: 6px; background: var(--color-border); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.kpi-progress-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.kpi-progress-fill.green { background: var(--color-accent); }
+.kpi-progress-fill.blue { background: var(--color-secondary); }
+.kpi-progress-fill.red { background: var(--color-danger); }
 
 /* Comparison layout */
 .comparison { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-lg); margin:var(--space-md) 0; }
@@ -549,12 +641,19 @@ details.expandable > div { padding:12px 0 0; }
   font-size:var(--font-sm); line-height:1.8; margin-top:var(--space-4xl); }
 .footer strong { color:#fff; }
 
-/* Print (#12) */
+/* Print (#12) — with chart image fallback */
 @media print {
   .nav-sticky { display:none; }
+  .skip-nav { display:none; }
+  .back-to-top, .go-to-bottom { display:none !important; }
+  .export-toolbar { display:none; }
+  .mode-toggle, .theme-toggle { display:none; }
+  .period-toggle { display:none; }
   .cover-hero { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
   .cover-hero::before, .cover-hero::after { display:none; }
   .section { page-break-before:auto; }
+  .section-content.collapsed { max-height:none !important; overflow:visible !important; }
+  .section-header .collapse-icon { display:none; }
   .card { page-break-inside:avoid; }
   table { page-break-inside:avoid; }
   .alert { page-break-inside:avoid; }
@@ -563,13 +662,33 @@ details.expandable > div { padding:12px 0 0; }
   body { font-size:12px; }
   .kpi-grid { grid-template-columns: repeat(4, 1fr); }
   canvas { display:none !important; }
-  
+  .chart-print-img { display:block !important; max-width:100%; height:auto; margin:8px auto; }
   .section-summary { background:var(--color-summary-bg) !important; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
   .badge { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
   .icon-badge { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .card-feature, .card-success, .card-warn, .card-critical { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
   @page { margin: 15mm; }
   @page :first { margin-top:0; }
 }
+.chart-print-img { display:none; }
+
+/* Utility classes to replace inline styles */
+.method-note { margin-top:0.8em; font-size:0.85em; color: var(--color-text-muted); }
+.insight-note { font-size:0.9em; margin-top:0.5em; }
+.empty-state { text-align:center; padding:16px; }
+.note-muted { font-size:0.85em; opacity:0.75; margin-top:8px; }
+.text-sm { font-size:13px; }
+.text-right { text-align:right; }
+.text-left { text-align:left; }
+.fw-bold { font-weight:bold; }
+.flex-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.grid-2col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px; }
+.card-compact { padding:12px; margin:0; }
+.mt-1 { margin-top:1em; }
+.mt-sm { margin-top:0.5em; }
+.pl-md { padding-left:16px; }
+.pt-sm { padding-top:8px; }
+.text-danger { color: var(--color-danger); }
 
 /* ===== RESPONSIVE DESIGN ===== */
 
@@ -910,6 +1029,13 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 [data-theme="dark"] h3 { color: var(--color-primary); }
 [data-theme="dark"] .card-title { color: var(--color-primary); }
 
+/* Projeção KPI strip dark overrides */
+[data-theme="dark"] .proj-kpi-val { color: #E2E8F0; }
+[data-theme="dark"] .proj-kpi-meta { color: #60A5FA; }
+[data-theme="dark"] .proj-kpi-gap { color: #F87171; }
+[data-theme="dark"] .proj-kpi-year { color: #4ADE80; }
+[data-theme="dark"] .proj-progress-track { background: #334155; }
+
 /* Cover hero */
 [data-theme="dark"] .cover-hero { background: linear-gradient(135deg, #080E1A 0%, #0F172A 50%, #162033 100%); }
 
@@ -995,8 +1121,9 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 </head>
 <body class="mode-strategic">
 
+<a href="#secao-1" class="skip-nav">Pular para o conteúdo principal</a>
 
-<div class="cover-hero" id="capa" data-mode="both">
+<div class="cover-hero" id="capa" data-mode="both" role="banner">
   <div class="container">
     <div class="cover-badge">RELATÓRIO CONFIDENCIAL</div>
     <div class="cover-title">Planejamento Financeiro</div>
@@ -1024,30 +1151,43 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 </div>
 
 
-<nav class="nav-sticky">
+<nav class="nav-sticky" role="navigation" aria-label="Navegação principal">
   <div class="nav-scroll">
   <div class="nav-brand">
     <div class="nav-brand-icon">FC</div>
     <div class="nav-brand-text">Ferreira Campos</div>
   </div>
   <div class="nav-links nav-strategic">
-    <a href="#capa" class="nav-link"><span class="num">•</span><span class="nav-text">KPIs</span></a>
-    <a href="#secao-1" class="nav-link"><span class="num">1</span><span class="nav-text">Patrimônio</span></a>
-    <a href="#secao-2" class="nav-link"><span class="num">2</span><span class="nav-text">Fluxo</span></a>
-    <a href="#secao-3" class="nav-link"><span class="num">3</span><span class="nav-text">Investimentos</span></a>
-    <a href="#secao-4" class="nav-link"><span class="num">4</span><span class="nav-text">Imóveis</span></a>
-    <a href="#secao-5" class="nav-link"><span class="num">5</span><span class="nav-text">F1/F2</span></a>
-    <a href="#secao-6" class="nav-link"><span class="num">6</span><span class="nav-text">Green Card</span></a>
-    <a href="#secao-7" class="nav-link"><span class="num">7</span><span class="nav-text">Indep. Fin.</span></a>
-    <a href="#secao-8" class="nav-link"><span class="num">8</span><span class="nav-text">Tributário</span></a>
-    <a href="#secao-9" class="nav-link"><span class="num">9</span><span class="nav-text">Riscos e Proteção</span></a>
-    <a href="#secao-10" class="nav-link"><span class="num">10</span><span class="nav-text">Conclusão</span></a>
+    <a href="#capa" class="nav-link" aria-label="KPIs e resumo"><span class="num">•</span><span class="nav-text">KPIs</span></a>
+    <div class="nav-group">
+      <span class="nav-group-label">Principal</span>
+      <a href="#secao-1" class="nav-link"><span class="num">1</span><span class="nav-text">Patrimônio</span></a>
+      <a href="#secao-2" class="nav-link"><span class="num">2</span><span class="nav-text">Fluxo</span></a>
+      <a href="#secao-3" class="nav-link"><span class="num">3</span><span class="nav-text">Investimentos</span></a>
+    </div>
     <div class="nav-separator"></div>
-    <a href="#apendice-a" class="nav-link appendix"><span class="num">A</span><span class="nav-text">Definições</span></a>
-    <a href="#apendice-b" class="nav-link appendix"><span class="num">B</span><span class="nav-text">Premissas</span></a>
-    <a href="#apendice-c" class="nav-link appendix"><span class="num">C</span><span class="nav-text">Cenários</span></a>
-    <a href="#apendice-d" class="nav-link appendix"><span class="num">D</span><span class="nav-text">Referências</span></a>
-    <a href="#apendice-e" class="nav-link appendix"><span class="num">E</span><span class="nav-text">Próx. Ciclos</span></a>
+    <div class="nav-group">
+      <span class="nav-group-label">Específico</span>
+      <a href="#secao-4" class="nav-link"><span class="num">4</span><span class="nav-text">Imóveis</span></a>
+      <a href="#secao-5" class="nav-link"><span class="num">5</span><span class="nav-text">F1/F2</span></a>
+      <a href="#secao-6" class="nav-link"><span class="num">6</span><span class="nav-text">Green Card</span></a>
+    </div>
+    <div class="nav-separator"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">Planejamento</span>
+      <a href="#secao-7" class="nav-link"><span class="num">7</span><span class="nav-text">Indep. Fin.</span></a>
+      <a href="#secao-8" class="nav-link"><span class="num">8</span><span class="nav-text">Tributário</span></a>
+      <a href="#secao-9" class="nav-link"><span class="num">9</span><span class="nav-text">Riscos e Proteção</span></a>
+      <a href="#secao-10" class="nav-link"><span class="num">10</span><span class="nav-text">Conclusão</span></a>
+    </div>
+    <div class="nav-separator"></div>
+    <div class="nav-group">
+      <a href="#apendice-a" class="nav-link appendix"><span class="num">A</span><span class="nav-text">Definições</span></a>
+      <a href="#apendice-b" class="nav-link appendix"><span class="num">B</span><span class="nav-text">Premissas</span></a>
+      <a href="#apendice-c" class="nav-link appendix"><span class="num">C</span><span class="nav-text">Cenários</span></a>
+      <a href="#apendice-d" class="nav-link appendix"><span class="num">D</span><span class="nav-text">Referências</span></a>
+      <a href="#apendice-e" class="nav-link appendix"><span class="num">E</span><span class="nav-text">Próx. Ciclos</span></a>
+    </div>
   </div>
   <div class="nav-links nav-dashboard" style="display:none;">
     <a href="#capa" class="nav-link"><span class="num">•</span><span class="nav-text">KPIs</span></a>
@@ -1059,14 +1199,14 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
     <a href="#dash-notas" class="nav-link"><span class="num">T6</span><span class="nav-text">Notas</span></a>
   </div>
   </div><!-- end nav-scroll -->
-  <div class="mode-toggle" data-mode="both">
-    <button class="mode-btn active" data-target="strategic" onclick="setMode('strategic')">📊 Estratégico</button>
-    <button class="mode-btn" data-target="tactical" onclick="setMode('tactical')">⚡ Tático</button>
+  <div class="mode-toggle" data-mode="both" role="group" aria-label="Modo de visualização">
+    <button class="mode-btn active" data-target="strategic" onclick="setMode('strategic')" aria-pressed="true">📊 Estratégico</button>
+    <button class="mode-btn" data-target="tactical" onclick="setMode('tactical')" aria-pressed="false">⚡ Tático</button>
   </div>
-  <div class="theme-toggle" data-mode="both">
-    <button class="theme-btn" data-theme="light" onclick="setTheme('light')" title="Modo Claro">☀️</button>
-    <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')" title="Modo Escuro">🌙</button>
-    <button class="theme-btn active" data-theme="system" onclick="setTheme('system')" title="Sistema">⚙️</button>
+  <div class="theme-toggle" data-mode="both" role="group" aria-label="Tema de cores">
+    <button class="theme-btn" data-theme="light" onclick="setTheme('light')" title="Modo Claro" aria-label="Tema claro">☀️</button>
+    <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')" title="Modo Escuro" aria-label="Tema escuro">🌙</button>
+    <button class="theme-btn active" data-theme="system" onclick="setTheme('system')" title="Sistema" aria-label="Tema do sistema">⚙️</button>
   </div>
 </nav>
 
@@ -1075,13 +1215,13 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <div class="section" id="kpis">
 
 <!-- STRATEGIC KPI GRID (hidden in tactical mode) -->
-<div class="kpi-grid" data-mode="strategic">
-  <div class="kpi-card">
+<div class="kpi-grid" data-mode="strategic" role="region" aria-label="Indicadores-chave de desempenho">
+  <div class="kpi-card" role="status" aria-label="Patrimônio Bruto">
     <div class="kpi-label">Patrimônio Bruto</div>
     <div data-prompt="PATRIMONIO_BRUTO" class="kpi-value">{{KPI_PATRIMONIO_BRUTO}}</div>
     <div class="kpi-sub">{{KPI_PATRIMONIO_BRUTO_SUB}}</div>
   </div>
-  <div class="kpi-card kpi-hero">
+  <div class="kpi-card kpi-hero" role="status" aria-label="Patrimônio Investível">
     <div class="kpi-label">Patrimônio Investível</div>
     <div data-prompt="PATRIMONIO_INVESTIVEL" class="kpi-value blue">{{KPI_PATRIMONIO_INVESTIVEL}}</div>
     <div class="kpi-sub">{{KPI_PATRIMONIO_INVESTIVEL_SUB}}</div>
@@ -1543,6 +1683,15 @@ document.addEventListener('DOMContentLoaded', function() {
       // Update legend
       if (chart.options && chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
         chart.options.plugins.legend.labels.color = textColor;
+      }
+
+      // Projeção 3 Cenários: Meta IF line color must follow theme
+      if (chart.canvas && chart.canvas.id === 'chart-projecao-3cenarios') {
+        var metaDs = chart.data.datasets[0];
+        if (metaDs && metaDs.label && metaDs.label.indexOf('Meta') >= 0) {
+          metaDs.borderColor = dark ? '#F8FAFC' : '#1A3A5C';
+          metaDs.borderWidth = dark ? 2.5 : 2;
+        }
       }
 
       chart.update('none');
@@ -2308,13 +2457,21 @@ document.addEventListener('DOMContentLoaded', function() {
   var imoveis = projData.imoveis || 0;
   var monthlyAporte = projData.aporte_mensal || 0;
   var nYears = projData.anos || 13;
-  var yearsProj = [];
-  for (var yi = 0; yi < nYears; yi++) yearsProj.push((2026 + yi).toString());
+  var startTotal = investivel + imoveis;
 
+  // Labels include year 0 (today) through year N
+  var yearsProj = [];
+  for (var yi = 0; yi <= nYears; yi++) yearsProj.push((2025 + yi).toString());
+
+  // Correct compound interest: monthly contributions earn returns throughout the year
+  // FV_annuity = PMT * ((1+r_m)^12 - 1) / r_m  where r_m = (1+r_annual)^(1/12) - 1
   function projTotal(startInv, rateInv, monthly, startImov, rateImov, n) {
-    var vals = []; var inv = startInv; var imov = startImov;
+    var vals = [Math.round(startInv + startImov)];
+    var inv = startInv; var imov = startImov;
+    var rM = Math.pow(1 + rateInv, 1/12) - 1;
+    var fvFactor = rM > 0 ? (Math.pow(1 + rM, 12) - 1) / rM : 12;
     for (var i = 0; i < n; i++) {
-      inv = inv * (1 + rateInv) + monthly * 12;
+      inv = inv * (1 + rateInv) + monthly * fvFactor;
       imov = imov * (1 + rateImov);
       vals.push(Math.round(inv + imov));
     }
@@ -2337,14 +2494,17 @@ document.addEventListener('DOMContentLoaded', function() {
     return -1;
   }
 
-  var imovRate = projData.taxa_imoveis || 0.02;
+  // Per-scenario imóveis rates (backward-compatible: falls back to single taxa_imoveis)
+  var imovRatePess = projData.taxa_imoveis_pessimista || projData.taxa_imoveis || 0.02;
+  var imovRateReal = projData.taxa_imoveis_realista || projData.taxa_imoveis || 0.05;
+  var imovRateOtim = projData.taxa_imoveis_otimista || projData.taxa_imoveis || 0.08;
   var taxaPess = projData.taxa_pessimista || 0.04;
   var taxaReal = projData.taxa_realista || 0.06;
   var taxaOtim = projData.taxa_otimista || 0.08;
-  var dataPess = projTotal(investivel, taxaPess, monthlyAporte, imoveis, imovRate, nYears);
-  var dataReal = projTotal(investivel, taxaReal, monthlyAporte, imoveis, imovRate, nYears);
-  var dataOtim = projTotal(investivel, taxaOtim, monthlyAporte, imoveis, imovRate, nYears);
-  var metaLine = new Array(nYears).fill(META_IF);
+  var dataPess = projTotal(investivel, taxaPess, monthlyAporte, imoveis, imovRatePess, nYears);
+  var dataReal = projTotal(investivel, taxaReal, monthlyAporte, imoveis, imovRateReal, nYears);
+  var dataOtim = projTotal(investivel, taxaOtim, monthlyAporte, imoveis, imovRateOtim, nYears);
+  var metaLine = new Array(nYears + 1).fill(META_IF);
 
   var crossPess = findCrossYear(dataPess, META_IF);
   var crossReal = findCrossYear(dataReal, META_IF);
@@ -2353,8 +2513,39 @@ document.addEventListener('DOMContentLoaded', function() {
   var crossRealX = findCrossExact(dataReal, META_IF);
   var crossOtimX = findCrossExact(dataOtim, META_IF);
 
-  function crossPoints(data, crossIdx) {
-    return data.map(function() { return 3; });
+  // KPI strip above chart
+  var projContainer = document.getElementById('chart-projecao-3cenarios');
+  if (projContainer && projContainer.parentNode) {
+    var gap = META_IF - startTotal;
+    var pctDone = META_IF > 0 ? (startTotal / META_IF * 100) : 0;
+    var crossYearLabel = crossReal > 0 ? yearsProj[crossReal] : '—';
+    var kpiHtml = '<div class="proj-kpi-strip">' +
+      '<div class="proj-kpi"><span class="proj-kpi-label">Patrimônio Atual</span><span class="proj-kpi-val">' + fmtK(startTotal) + '</span></div>' +
+      '<div class="proj-kpi"><span class="proj-kpi-label">Meta IF</span><span class="proj-kpi-val proj-kpi-meta">' + fmtK(META_IF) + '</span></div>' +
+      '<div class="proj-kpi"><span class="proj-kpi-label">Gap</span><span class="proj-kpi-val proj-kpi-gap">' + fmtK(gap) + '</span></div>' +
+      '<div class="proj-kpi"><span class="proj-kpi-label">Progresso</span><span class="proj-kpi-val">' + pctDone.toFixed(1).replace('.', ',') + '%</span>' +
+        '<div class="proj-progress-track"><div class="proj-progress-fill" style="width:' + Math.min(pctDone, 100) + '%"></div></div></div>' +
+      '<div class="proj-kpi"><span class="proj-kpi-label">IF Realista</span><span class="proj-kpi-val proj-kpi-year">' + crossYearLabel + '</span></div>' +
+    '</div>';
+    var kpiDiv = document.createElement('div');
+    kpiDiv.innerHTML = kpiHtml;
+    projContainer.parentNode.insertBefore(kpiDiv.firstChild, projContainer);
+  }
+
+  // Create gradient fills
+  var projCanvas = document.getElementById('chart-projecao-3cenarios');
+  var projCtx2d = projCanvas ? projCanvas.getContext('2d') : null;
+  var gradPess, gradReal, gradOtim;
+  if (projCtx2d) {
+    gradPess = projCtx2d.createLinearGradient(0, 0, 0, 400);
+    gradPess.addColorStop(0, 'rgba(230,57,70,0.18)');
+    gradPess.addColorStop(1, 'rgba(230,57,70,0.01)');
+    gradReal = projCtx2d.createLinearGradient(0, 0, 0, 400);
+    gradReal.addColorStop(0, 'rgba(46,134,171,0.22)');
+    gradReal.addColorStop(1, 'rgba(46,134,171,0.01)');
+    gradOtim = projCtx2d.createLinearGradient(0, 0, 0, 400);
+    gradOtim.addColorStop(0, 'rgba(45,198,83,0.22)');
+    gradOtim.addColorStop(1, 'rgba(45,198,83,0.01)');
   }
 
   var projChart = safeChart('chart-projecao-3cenarios', {
@@ -2363,47 +2554,59 @@ document.addEventListener('DOMContentLoaded', function() {
       labels: yearsProj,
       datasets: [
         {
-          label: 'Meta IF — ' + fmtK(META_IF),
+          label: 'Meta IF',
           data: metaLine,
-          borderColor: '#1A3A5C',
-          borderDash: [8, 4],
-          borderWidth: 2,
+          borderColor: isDarkMode() ? '#F8FAFC' : '#1A3A5C',
+          borderDash: [10, 5],
+          borderWidth: isDarkMode() ? 2.5 : 2,
           pointRadius: 0,
+          pointHoverRadius: 0,
           fill: false,
           order: 4
         },
         {
-          label: 'Pessimista (' + (taxaPess*100).toFixed(0) + '%)',
+          label: 'Pessimista ' + (taxaPess*100).toFixed(0) + '% a.a.',
           data: dataPess,
           borderColor: '#E63946',
-          backgroundColor: 'rgba(230,57,70,0.08)',
+          backgroundColor: gradPess || 'rgba(230,57,70,0.08)',
           fill: true,
           tension: 0.3,
-          pointRadius: crossPoints(dataPess, crossPess),
-          pointBackgroundColor: '#E63946',
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#E63946',
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 2,
           order: 3
         },
         {
-          label: 'Realista (' + (taxaReal*100).toFixed(0) + '%)',
+          label: 'Realista ' + (taxaReal*100).toFixed(0) + '% a.a.',
           data: dataReal,
           borderColor: '#2E86AB',
-          backgroundColor: 'rgba(46,134,171,0.08)',
+          backgroundColor: gradReal || 'rgba(46,134,171,0.08)',
           fill: true,
           tension: 0.3,
           borderWidth: 3,
-          pointRadius: crossPoints(dataReal, crossReal),
-          pointBackgroundColor: '#2E86AB',
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#2E86AB',
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 2,
           order: 2
         },
         {
-          label: 'Otimista (' + (taxaOtim*100).toFixed(0) + '%)',
+          label: 'Otimista ' + (taxaOtim*100).toFixed(0) + '% a.a.',
           data: dataOtim,
           borderColor: '#2DC653',
-          backgroundColor: 'rgba(45,198,83,0.08)',
+          backgroundColor: gradOtim || 'rgba(45,198,83,0.08)',
           fill: true,
           tension: 0.3,
-          pointRadius: crossPoints(dataOtim, crossOtim),
-          pointBackgroundColor: '#2DC653',
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#2DC653',
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 2,
           order: 1
         }
       ]
@@ -2420,29 +2623,60 @@ document.addEventListener('DOMContentLoaded', function() {
           enabled: true,
           mode: 'index',
           intersect: false,
+          backgroundColor: 'rgba(15,23,42,0.92)',
+          titleFont: { family: '"Plus Jakarta Sans"', weight: 'bold', size: 13 },
+          bodyFont: { family: '"Plus Jakarta Sans"', size: 12 },
+          padding: 12,
+          cornerRadius: 8,
           callbacks: {
+            title: function(items) {
+              var yr = items[0].label;
+              return yr === '2025' ? 'Posição Atual (Hoje)' : 'Dezembro ' + yr;
+            },
             label: function(c) {
-              var txt = c.dataset.label + ': ' + fmt(c.raw);
-              if (c.datasetIndex === 1 && c.dataIndex === crossPess) txt += ' ★ IF atingida!';
-              if (c.datasetIndex === 2 && c.dataIndex === crossReal) txt += ' ★ IF atingida!';
-              if (c.datasetIndex === 3 && c.dataIndex === crossOtim) txt += ' ★ IF atingida!';
+              if (c.datasetIndex === 0) return '  Meta IF: ' + fmtK(META_IF);
+              var name = c.dataset.label.split(' ')[0];
+              var txt = '  ' + name + ': ' + fmt(c.raw);
+              if (c.datasetIndex === 1 && c.dataIndex === crossPess) txt += '  ★ IF atingida!';
+              if (c.datasetIndex === 2 && c.dataIndex === crossReal) txt += '  ★ IF atingida!';
+              if (c.datasetIndex === 3 && c.dataIndex === crossOtim) txt += '  ★ IF atingida!';
               return txt;
+            },
+            afterBody: function(items) {
+              var idx = items[0].dataIndex;
+              if (idx === 0) return '\n  Aporte mensal: R$ ' + (monthlyAporte/1000).toFixed(0) + 'k';
+              return '';
             }
           }
         },
         legend: {
           position: 'bottom',
-          labels: { usePointStyle: true, padding: 16, font: { size: 11 } }
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'circle',
+            padding: 20,
+            font: { family: '"Plus Jakarta Sans"', size: 12, weight: '600' },
+            filter: function(item) { return item.datasetIndex > 0; }
+          }
         },
         datalabels: { display: false }
       },
       scales: {
         y: {
-          ticks: { callback: function(v) { return 'R$ ' + (v/1000000).toFixed(1) + 'M'; } },
-          grid: { color: defaultGridColor }
+          beginAtZero: false,
+          ticks: {
+            callback: function(v) { return 'R$ ' + (v/1000000).toFixed(1) + 'M'; },
+            font: { family: '"Plus Jakarta Sans"', size: 11 },
+            color: getThemeColor('#64748B', '#94A3B8')
+          },
+          grid: { color: getThemeColor('rgba(226,232,240,0.7)', 'rgba(51,65,85,0.5)') }
         },
         x: {
-          grid: { display: false }
+          grid: { display: false },
+          ticks: {
+            font: { family: '"Plus Jakarta Sans"', size: 11 },
+            color: getThemeColor('#64748B', '#94A3B8')
+          }
         }
       }
     },
@@ -2453,71 +2687,174 @@ document.addEventListener('DOMContentLoaded', function() {
         var xScale = chart.scales.x;
         var yScale = chart.scales.y;
         var metaY = yScale.getPixelForValue(META_IF);
+        var chartArea = chart.chartArea;
+        var _dk = isDarkMode();
 
+        ctx.save();
+
+        // ── Starting point annotation ──
+        var startX = xScale.getPixelForValue(0);
+        var startY = yScale.getPixelForValue(startTotal);
+        // Single dot (blue, matching Realista as primary)
+        ctx.beginPath();
+        ctx.arc(startX, startY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#2E86AB';
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // "Hoje · R$ X.XM" as single label to the right
+        ctx.font = 'bold 10px "Plus Jakarta Sans"';
+        ctx.fillStyle = _dk ? '#CBD5E1' : '#1A3A5C';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Hoje · ' + fmtK(startTotal), startX + 10, startY);
+
+        // ── Meta IF label (right-aligned, inline with dashed line) ──
+        ctx.font = 'bold 11px "Plus Jakarta Sans"';
+        ctx.fillStyle = _dk ? '#F1F5F9' : '#1A3A5C';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.globalAlpha = _dk ? 1 : 0.9;
+        ctx.fillText('Meta IF  ' + fmtK(META_IF), chartArea.right - 6, metaY - 6);
+        ctx.globalAlpha = 1;
+
+        // ── Crossing annotations ──
         var crossings = [
           { idx: crossOtim, exactIdx: crossOtimX, color: '#2DC653', label: 'Otimista' },
           { idx: crossReal, exactIdx: crossRealX, color: '#2E86AB', label: 'Realista' },
           { idx: crossPess, exactIdx: crossPessX, color: '#E63946', label: 'Pessimista' }
         ];
-
-        ctx.save();
-        var labelOffsets = [0, -16, -32];
-        var ci = 0;
+        var usedSlots = [];
         crossings.forEach(function(cr) {
           if (cr.idx < 0) return;
           var x = xScale.getPixelForValue(cr.exactIdx);
 
+          // Vertical dashed line from meta down (subtle)
           ctx.beginPath();
-          ctx.setLineDash([4, 4]);
-          ctx.moveTo(x, metaY);
-          ctx.lineTo(x, yScale.top);
+          ctx.setLineDash([3, 3]);
+          ctx.moveTo(x, metaY + 8);
+          ctx.lineTo(x, chartArea.bottom);
           ctx.strokeStyle = cr.color;
-          ctx.lineWidth = 1.5;
-          ctx.globalAlpha = 0.4;
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = 0.25;
           ctx.stroke();
           ctx.setLineDash([]);
           ctx.globalAlpha = 1;
 
+          // Year pill — stagger to avoid overlap
           var yearLabel = yearsProj[cr.idx];
-          var yOff = labelOffsets[ci] || 0;
           ctx.font = 'bold 11px "Plus Jakarta Sans"';
-          var txt = yearLabel + ' · ' + cr.label;
+          var txt = yearLabel;
           var tw = ctx.measureText(txt).width;
-          var px = x - tw/2 - 6;
-          var py = metaY - 24 + yOff;
-          ctx.fillStyle = cr.color;
-          ctx.globalAlpha = 0.9;
+          var pillW = tw + 14;
+          var pillH = 20;
+          var pillX = x - pillW / 2;
+          var baseY = metaY - 26;
+          for (var si = 0; si < usedSlots.length; si++) {
+            var s = usedSlots[si];
+            if (Math.abs(x - s.cx) < (pillW + s.w) / 2 + 6) {
+              baseY = Math.min(baseY, s.y - pillH - 4);
+            }
+          }
+          usedSlots.push({ cx: x, y: baseY, w: pillW });
+
+          // Connector line from pill to diamond
           ctx.beginPath();
-          ctx.roundRect(px, py - 10, tw + 12, 16, 4);
-          ctx.fill();
+          ctx.moveTo(x, baseY + pillH / 2);
+          ctx.lineTo(x, metaY - 8);
+          ctx.strokeStyle = cr.color;
+          ctx.lineWidth = 1.5;
+          ctx.globalAlpha = 0.5;
+          ctx.stroke();
           ctx.globalAlpha = 1;
+
+          // Pill
+          ctx.fillStyle = cr.color;
+          ctx.beginPath();
+          ctx.roundRect(pillX, baseY - pillH / 2, pillW, pillH, 5);
+          ctx.fill();
           ctx.fillStyle = '#fff';
           ctx.textAlign = 'center';
-          ctx.fillText(txt, x, py + 2);
+          ctx.textBaseline = 'middle';
+          ctx.fillText(txt, x, baseY);
 
+          // Diamond at intersection
+          var ds = 6;
           ctx.beginPath();
-          ctx.moveTo(x, metaY - 6);
-          ctx.lineTo(x + 6, metaY);
-          ctx.lineTo(x, metaY + 6);
-          ctx.lineTo(x - 6, metaY);
+          ctx.moveTo(x, metaY - ds);
+          ctx.lineTo(x + ds, metaY);
+          ctx.lineTo(x, metaY + ds);
+          ctx.lineTo(x - ds, metaY);
           ctx.closePath();
           ctx.fillStyle = cr.color;
           ctx.fill();
-          ctx.strokeStyle = '#fff';
+          ctx.strokeStyle = _dk ? '#1E293B' : '#fff';
           ctx.lineWidth = 2;
           ctx.stroke();
-          ci++;
         });
-
-        ctx.font = 'bold 12px "Plus Jakarta Sans"';
-        ctx.fillStyle = '#1A3A5C';
-        ctx.textAlign = 'left';
-        ctx.fillText('Meta IF = ' + fmtK(META_IF), xScale.left + 8, metaY - 8);
 
         ctx.restore();
       }
     }]
   });
+
+  // Summary table below chart
+  var projChartContainer = projCanvas ? projCanvas.closest('.chart-container') : null;
+  if (projChartContainer) {
+    var summRows = [
+      { label: 'Pessimista', color: '#E63946', taxaInv: taxaPess, taxaImov: imovRatePess, cross: crossPess, data: dataPess },
+      { label: 'Realista', color: '#2E86AB', taxaInv: taxaReal, taxaImov: imovRateReal, cross: crossReal, data: dataReal, highlight: true },
+      { label: 'Otimista', color: '#2DC653', taxaInv: taxaOtim, taxaImov: imovRateOtim, cross: crossOtim, data: dataOtim }
+    ];
+    var endYear = yearsProj[yearsProj.length - 1];
+    var tblHtml = '<table class="proj-summary-table"><thead><tr>' +
+      '<th>Cenário</th><th>Retorno Investimentos</th><th>Valoriz. Imóveis</th><th>Patrimônio ' + endYear + '</th><th>IF atingida em</th></tr></thead><tbody>';
+    summRows.forEach(function(r) {
+      var finalVal = r.data[r.data.length - 1];
+      var yearStr = r.cross >= 0 ? yearsProj[r.cross] : 'Além de ' + yearsProj[yearsProj.length - 1];
+      var cls = r.highlight ? ' class="total-row"' : '';
+      tblHtml += '<tr' + cls + '><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + r.color + ';margin-right:6px;vertical-align:middle;"></span>' +
+        (r.highlight ? '<strong>' + r.label + '</strong>' : r.label) + '</td>' +
+        '<td>' + (r.taxaInv * 100).toFixed(0) + '% a.a.</td>' +
+        '<td>' + (r.taxaImov * 100).toFixed(0) + '% a.a.</td>' +
+        '<td>' + (r.highlight ? '<strong>' : '') + fmt(finalVal) + (r.highlight ? '</strong>' : '') + '</td>' +
+        '<td>' + (r.highlight ? '<strong>' : '') + yearStr + (r.highlight ? '</strong>' : '') + '</td></tr>';
+    });
+    tblHtml += '</tbody></table>';
+    var conclusionEl = projChartContainer.querySelector('.chart-conclusion');
+    if (conclusionEl) {
+      var tblDiv = document.createElement('div');
+      tblDiv.innerHTML = tblHtml;
+      conclusionEl.parentNode.insertBefore(tblDiv.firstChild, conclusionEl);
+
+      // Update conclusion text dynamically to match computed chart data
+      var realYear = crossReal >= 0 ? yearsProj[crossReal] : null;
+      var pessYear = crossPess >= 0 ? yearsProj[crossPess] : null;
+      var otimYear = crossOtim >= 0 ? yearsProj[crossOtim] : null;
+      var finalReal = dataReal[dataReal.length - 1];
+      var trs = projData.trs_pct || 5;
+      var rendaMeta = projData.renda_passiva_meta || 30000;
+      var rendaPassivaProj = Math.round(finalReal * trs / 100 / 12);
+      var pctRenda = rendaMeta > 0 ? Math.round(rendaPassivaProj / rendaMeta * 100) : 0;
+
+      var dynParts = [];
+      if (realYear) {
+        var ifLine = 'No cenário <strong>realista</strong>, a meta IF será atingida em <strong>' + realYear + '</strong>';
+        if (otimYear && pessYear) ifLine += ' (otimista: ' + otimYear + ', pessimista: ' + pessYear + ')';
+        else if (otimYear) ifLine += ' (otimista: ' + otimYear + ')';
+        ifLine += '.';
+        dynParts.push(ifLine);
+      } else {
+        dynParts.push('No horizonte de ' + nYears + ' anos, a meta IF de ' + fmtK(META_IF) + ' <strong>não é atingida</strong> no cenário realista.');
+      }
+      dynParts.push('Patrimônio projetado em ' + yearsProj[yearsProj.length - 1] + ' (realista): <strong>' + fmtK(finalReal) + '</strong>.');
+      var fmtRenda = rendaPassivaProj >= 1000 ? 'R$ ' + (rendaPassivaProj/1000).toFixed(1).replace('.', ',') + 'k' : fmt(rendaPassivaProj);
+      var fmtRendaMeta = rendaMeta >= 1000 ? 'R$ ' + (rendaMeta/1000).toFixed(0) + 'k' : fmt(rendaMeta);
+      dynParts.push('Renda passiva estimada (TRS ' + trs + '%): <strong>' + fmtRenda + '/mês</strong> (' + pctRenda + '% da meta de ' + fmtRendaMeta + '/mês).');
+      conclusionEl.innerHTML = dynParts.join(' ');
+    }
+  }
 
   // ========== CHART 13: Renda passiva — termômetro horizontal (dinâmico via DATA) ==========
   var rpData = DATA.charts.renda_passiva || {labels:[''], datasets:[]};
@@ -3135,44 +3472,125 @@ function filterTasks(filter) {
 
 // Initialize collapsible sections
 function initializeCollapsibleSections() {
+  var collapseByDefault = ['secao-4','secao-5','secao-6','secao-7','secao-8','secao-9',
+    'apendice-a','apendice-b','apendice-c','apendice-d','apendice-e'];
+
   document.querySelectorAll('.section-header').forEach(function(header) {
-    const section = header.closest('.section');
+    var section = header.closest('.section');
     if (!section) return;
 
-    // Add collapse icon if not already present
     if (!header.querySelector('.collapse-icon')) {
-      const icon = document.createElement('span');
+      var icon = document.createElement('span');
       icon.className = 'collapse-icon';
       icon.textContent = '▾';
+      icon.setAttribute('aria-hidden', 'true');
       header.appendChild(icon);
     }
 
-    // Wrap content in a content container
-    const contentDiv = document.createElement('div');
+    var contentDiv = document.createElement('div');
     contentDiv.className = 'section-content';
+    contentDiv.setAttribute('role', 'region');
     while (section.children.length > 1) {
       contentDiv.appendChild(section.children[1]);
     }
     section.appendChild(contentDiv);
 
-    // Add click handler
+    var sectionId = section.id || '';
+    if (collapseByDefault.indexOf(sectionId) !== -1) {
+      contentDiv.classList.add('collapsed');
+      header.classList.add('collapsed');
+    }
+
+    header.setAttribute('aria-expanded', !contentDiv.classList.contains('collapsed'));
     header.addEventListener('click', function() {
       contentDiv.classList.toggle('collapsed');
       header.classList.toggle('collapsed');
+      header.setAttribute('aria-expanded', !contentDiv.classList.contains('collapsed'));
     });
   });
+}
+
+function initializeNavScrollSpy() {
+  var sections = document.querySelectorAll('.section[id]');
+  var navLinks = document.querySelectorAll('.nav-strategic .nav-link');
+  if (!sections.length || !navLinks.length) return;
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var id = entry.target.id;
+        navLinks.forEach(function(link) {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(function(s) { observer.observe(s); });
+}
+
+function initializePrintChartFallback() {
+  window.addEventListener('beforeprint', function() {
+    document.querySelectorAll('canvas').forEach(function(canvas) {
+      if (canvas.style.display === 'none') return;
+      try {
+        var chart = Chart.getChart(canvas);
+        if (!chart) return;
+        var img = canvas.nextElementSibling;
+        if (img && img.classList.contains('chart-print-img')) return;
+        img = document.createElement('img');
+        img.className = 'chart-print-img';
+        img.src = chart.toBase64Image();
+        img.alt = canvas.getAttribute('aria-label') || 'Gráfico financeiro';
+        canvas.parentNode.insertBefore(img, canvas.nextSibling);
+      } catch(e) {}
+    });
+  });
+  window.addEventListener('afterprint', function() {
+    document.querySelectorAll('.chart-print-img').forEach(function(img) { img.remove(); });
+  });
+}
+
+function initializeKpiProgressBars() {
+  var metaKpi = document.querySelector('[data-prompt="META_IF"]');
+  if (!metaKpi) return;
+  var card = metaKpi.closest('.kpi-card');
+  if (!card) return;
+  var subEl = card.querySelector('.kpi-sub');
+  if (!subEl) return;
+  var match = subEl.textContent.match(/([\d,.]+)%\s*atingido/);
+  if (match) {
+    var pct = parseFloat(match[1].replace(',', '.'));
+    var bar = document.createElement('div');
+    bar.className = 'kpi-progress';
+    bar.innerHTML = '<div class="kpi-progress-fill blue" style="width:' + Math.min(pct, 100) + '%"></div>';
+    card.appendChild(bar);
+  }
 }
 
 // Initialize mode on load
 document.addEventListener('DOMContentLoaded', function() {
   initializeTheme();
   initializeCollapsibleSections();
+  initializeNavScrollSpy();
+  initializePrintChartFallback();
+  initializeKpiProgressBars();
   var mode = DATA.meta.modo_padrao || 'strategic';
   setMode(mode);
 });
 </script>
 
 <script>
+// Add aria-labels to all chart canvases for accessibility
+document.querySelectorAll('canvas[id^="chart-"]').forEach(function(c) {
+  if (!c.getAttribute('aria-label')) {
+    var title = c.closest('.chart-container');
+    var label = title ? (title.querySelector('.card-title') || {}).textContent : '';
+    c.setAttribute('role', 'img');
+    c.setAttribute('aria-label', label || c.id.replace('chart-', '').replace(/-/g, ' '));
+  }
+});
+
 const btn = document.getElementById('backToTop');
 const btnBottom = document.getElementById('goToBottom');
 window.addEventListener('scroll', () => {

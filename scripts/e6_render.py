@@ -326,7 +326,7 @@ def chart_html(chart_key: str, title: str, narrativas_charts: dict, extra_attrs:
     parts.append(f'  <div class="card-title">{title}</div>')
     # Yield explainer for non-specialists
     if chart_key == "yield_imoveis":
-        parts.append('  <p class="chart-context" style="font-style:italic;opacity:0.85;">'
+        parts.append('  <p class="chart-context">'
                       '<strong>O que é yield?</strong> Yield (rentabilidade) é o retorno anual '
                       'que o imóvel gera em aluguéis, expresso como percentual do valor estimado '
                       'do bem. Fórmula: (aluguel anual ÷ valor estimado) × 100. Comparar com o CDI '
@@ -976,7 +976,11 @@ def build_charts(e4: dict) -> dict:
             "imoveis": p.get("imoveis_investimento", 0),
             "aporte_mensal": g.get("aporte_mensal", GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 0)),
             "anos": CENARIOS_CONFIG.get("horizonte_projecao_anos", 20),
-            "taxa_imoveis": CENARIOS_CONFIG.get("valorizacao_imoveis", {}).get("pessimista_pct", 2.0) / 100,
+            "trs_pct": GOALS_CONFIG.get("independencia_financeira", {}).get("trs_pct", 5.0),
+            "renda_passiva_meta": GOALS_CONFIG.get("independencia_financeira", {}).get("renda_passiva_meta_mensal", 30000),
+            "taxa_imoveis_pessimista": CENARIOS_CONFIG.get("valorizacao_imoveis", {}).get("pessimista_pct", 2.0) / 100,
+            "taxa_imoveis_realista": CENARIOS_CONFIG.get("valorizacao_imoveis", {}).get("realista_pct", 5.0) / 100,
+            "taxa_imoveis_otimista": CENARIOS_CONFIG.get("valorizacao_imoveis", {}).get("otimista_pct", 8.0) / 100,
             "taxa_pessimista": CENARIOS_CONFIG.get("retorno_real", {}).get("pessimista_pct", 4.0) / 100,
             "taxa_realista": CENARIOS_CONFIG.get("retorno_real", {}).get("realista_pct", 6.0) / 100,
             "taxa_otimista": CENARIOS_CONFIG.get("retorno_real", {}).get("otimista_pct", 8.0) / 100,
@@ -1314,13 +1318,39 @@ def build_patrimonio_categorias_card(e4: dict) -> str:
     return '\n'.join(html_parts)
 
 
+def _aggregate_receitas_by_period(txns_compact: list) -> dict:
+    """Pre-aggregate receitas by period to avoid embedding raw transactions."""
+    now = datetime.now()
+
+    def _cutoff(months_back=None, ytd=False):
+        if ytd:
+            return f"{now.year}-01"
+        d = now.replace(day=1)
+        m = d.month - months_back
+        y = d.year
+        while m < 1:
+            m += 12
+            y -= 1
+        return f"{y}-{m:02d}"
+
+    periods = {"3m": _cutoff(3), "6m": _cutoff(6), "12m": _cutoff(12), "ytd": _cutoff(ytd=True)}
+    result = {}
+    for pkey, cutoff in periods.items():
+        grouped: dict = {}
+        for t in txns_compact:
+            if t["m"] >= cutoff:
+                grouped[t["c"]] = grouped.get(t["c"], 0) + t["v"]
+        arr = sorted(grouped.items(), key=lambda x: x[1], reverse=True)
+        total = sum(v for _, v in arr)
+        result[pkey] = {"rows": [{"c": c, "v": round(v, 2)} for c, v in arr], "total": round(total, 2)}
+    return result
+
+
 def build_receitas_fonte_card(e4: dict) -> str:
     """Build Receitas por Fonte card with interactive period filter (3M/6M/12M/YTD).
 
-    Loads raw transactions from receitas-4_unified.json, embeds as JSON,
-    and uses client-side JS to filter by period / rebuild table.
+    Pre-aggregates data server-side per period to keep HTML lightweight.
     """
-    # Load raw receitas transactions for per-period filtering
     txns_compact: list[dict] = []
     try:
         with open(E4_RECEITAS_PATH, 'r', encoding='utf-8') as f:
@@ -1352,7 +1382,9 @@ def build_receitas_fonte_card(e4: dict) -> str:
         html_parts.append('  </tbody></table></div>')
         return '\n'.join(html_parts)
 
-    # Period toggle buttons
+    aggregated = _aggregate_receitas_by_period(txns_compact)
+    agg_json = json.dumps(aggregated, ensure_ascii=False)
+
     html_parts.append('  <div class="period-toggle" id="rf-period-toggle">')
     html_parts.append('    <button class="period-btn" data-period="3m" onclick="filterRF(\'3m\')">3M</button>')
     html_parts.append('    <button class="period-btn" data-period="6m" onclick="filterRF(\'6m\')">6M</button>')
@@ -1360,7 +1392,6 @@ def build_receitas_fonte_card(e4: dict) -> str:
     html_parts.append('    <button class="period-btn" data-period="ytd" onclick="filterRF(\'ytd\')">Ano</button>')
     html_parts.append('  </div>')
 
-    # Table skeleton (JS fills tbody)
     html_parts.append('  <table id="rf-table">')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Categoria</th><th>Valor (R$)</th><th>% do Total</th></tr>')
@@ -1368,41 +1399,24 @@ def build_receitas_fonte_card(e4: dict) -> str:
     html_parts.append('    <tbody></tbody>')
     html_parts.append('  </table>')
 
-    # Embed data + JS
-    txns_json = json.dumps(txns_compact, ensure_ascii=False)
     html_parts.append('  <script>')
     html_parts.append('  (function(){')
-    html_parts.append(f'    var rfTxns={txns_json};')
-    html_parts.append('    function pad(n){return n<10?"0"+n:""+n;}')
-    html_parts.append('    function cutoff(p){')
-    html_parts.append('      var d=new Date();')
-    html_parts.append('      if(p==="3m")d.setMonth(d.getMonth()-3);')
-    html_parts.append('      else if(p==="6m")d.setMonth(d.getMonth()-6);')
-    html_parts.append('      else if(p==="12m")d.setMonth(d.getMonth()-12);')
-    html_parts.append('      else if(p==="ytd")d=new Date(d.getFullYear(),0,1);')
-    html_parts.append('      return d.getFullYear()+"-"+pad(d.getMonth()+1);')
-    html_parts.append('    }')
+    html_parts.append(f'    var rfAgg={agg_json};')
     html_parts.append('    function fB(v){return"R$ "+Math.round(v).toLocaleString("pt-BR");}')
     html_parts.append('    function fP(v){return v.toFixed(1).replace(".",",")+"%";}')
     html_parts.append('    window.filterRF=function(p){')
     html_parts.append('      document.querySelectorAll("#rf-period-toggle .period-btn").forEach(function(b){b.classList.remove("active")});')
     html_parts.append('      document.querySelector("#rf-period-toggle .period-btn[data-period=\\""+p+"\\"]").classList.add("active");')
-    html_parts.append('      var c=cutoff(p);')
-    html_parts.append('      var grouped={};')
-    html_parts.append('      rfTxns.forEach(function(t){')
-    html_parts.append('        if(t.m>=c){grouped[t.c]=(grouped[t.c]||0)+t.v;}')
-    html_parts.append('      });')
-    html_parts.append('      var arr=Object.keys(grouped).map(function(k){return{c:k,v:grouped[k]};}).sort(function(a,b){return b.v-a.v;});')
-    html_parts.append('      var total=arr.reduce(function(s,i){return s+i.v;},0);')
+    html_parts.append('      var d=rfAgg[p]||{rows:[],total:0};')
     html_parts.append('      var tb=document.querySelector("#rf-table tbody");')
-    html_parts.append('      if(arr.length===0){')
-    html_parts.append('        tb.innerHTML="<tr><td colspan=\\"3\\" style=\\"text-align:center;padding:16px\\">Nenhuma receita no período</td></tr>";')
+    html_parts.append('      if(d.rows.length===0){')
+    html_parts.append('        tb.innerHTML="<tr><td colspan=\\"3\\" class=\\"empty-state\\">Nenhuma receita no período</td></tr>";')
     html_parts.append('      }else{')
-    html_parts.append('        var rows=arr.map(function(i){')
-    html_parts.append('          var pct=total>0?(i.v/total*100):0;')
+    html_parts.append('        var rows=d.rows.map(function(i){')
+    html_parts.append('          var pct=d.total>0?(i.v/d.total*100):0;')
     html_parts.append('          return"<tr><td>"+i.c+"</td><td>"+fB(i.v)+"</td><td>"+fP(pct)+"</td></tr>";')
     html_parts.append('        }).join("");')
-    html_parts.append('        rows+="<tr class=\\"total-row\\"><td><strong>Total</strong></td><td><strong>"+fB(total)+"</strong></td><td><strong>100,0%</strong></td></tr>";')
+    html_parts.append('        rows+="<tr class=\\"total-row\\"><td><strong>Total</strong></td><td><strong>"+fB(d.total)+"</strong></td><td><strong>100,0%</strong></td></tr>";')
     html_parts.append('        tb.innerHTML=rows;')
     html_parts.append('      }')
     html_parts.append('    };')
@@ -1492,7 +1506,7 @@ def build_reserva_emergencia_card(e4: dict) -> str:
     html_parts.append('  </table>')
 
     # --- Table 2: Composição da liquidez ---
-    html_parts.append('  <p style="margin-top:1em;"><strong>Composição da Liquidez Imediata:</strong></p>')
+    html_parts.append('  <p class="mt-1"><strong>Composição da Liquidez Imediata:</strong></p>')
     html_parts.append('  <table>')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Componente</th><th>Valor (R$)</th><th>% do Total</th></tr>')
@@ -1514,12 +1528,12 @@ def build_reserva_emergencia_card(e4: dict) -> str:
             pct = (val / total_liquido * 100) if total_liquido else 0
             html_parts.append(f'      <tr><td>{nome}</td><td>{fmt_brl(val)} ({pct:.0f}%)</td><td>{fmt_pct(pct)}</td></tr>')
 
-    html_parts.append(f'      <tr style="font-weight:bold;"><td>Total</td><td>{fmt_brl(total_liquido)}</td><td>—</td></tr>')
+    html_parts.append(f'      <tr class="fw-bold"><td>Total</td><td>{fmt_brl(total_liquido)}</td><td>—</td></tr>')
     html_parts.append('    </tbody>')
     html_parts.append('  </table>')
 
     # --- Footnote: critérios de inclusão ---
-    html_parts.append('  <p style="margin-top:0.8em; font-size:0.85em; color:#666;">')
+    html_parts.append('  <p class="method-note">')
     html_parts.append('    <strong>Nota:</strong> Consideram-se reserva de emergência apenas ativos com liquidez D+0 ou D+1 ')
     html_parts.append('    e sem volatilidade relevante: CDB liquidez diária, Tesouro Selic, poupança e contas remuneradas. ')
     html_parts.append('    Não se incluem: CDB com vencimento, fundos de ações, multimercado, criptomoedas ou imóveis.')
@@ -1555,29 +1569,60 @@ def build_endividamento_card(e4: dict) -> str:
     html_parts.append('</div>')
     return '\n'.join(html_parts)
 
+def _aggregate_orcamento_by_period(labels: list, despesa_datasets: list) -> dict:
+    """Pre-aggregate orçamento prospectivo data per period server-side."""
+    now = datetime.now()
+
+    def _cutoff_yymm(months_back=None, ytd=False):
+        if ytd:
+            return f"{now.year % 100:02d}/01"
+        d_year, d_month = now.year, now.month - months_back
+        while d_month < 1:
+            d_month += 12
+            d_year -= 1
+        return f"{d_year % 100:02d}/{d_month:02d}"
+
+    periods = {"3m": _cutoff_yymm(3), "6m": _cutoff_yymm(6), "12m": _cutoff_yymm(12), "ytd": _cutoff_yymm(ytd=True)}
+    p_labels = {"3m": "últimos 3 meses", "6m": "últimos 6 meses", "12m": "últimos 12 meses", "ytd": "ano corrente"}
+    result = {}
+
+    for pkey, cutoff in periods.items():
+        idx = [i for i, l in enumerate(labels) if l >= cutoff]
+        n_months = len(idx) or 1
+        cats = []
+        for ds in despesa_datasets:
+            key = ds.get("label", "").lower().replace(" ", "_")
+            data_arr = ds.get("data", [])
+            total_sum = sum(data_arr[i] for i in idx if i < len(data_arr))
+            if total_sum > 0:
+                cats.append({"key": key, "label": ds.get("label", ""), "avg": round(total_sum / n_months, 2), "total": round(total_sum, 2)})
+        cats.sort(key=lambda c: c["avg"], reverse=True)
+        total_mensal = sum(c["avg"] for c in cats)
+        first_label = labels[idx[0]] if idx and labels else ""
+        last_label = labels[idx[-1]] if idx and labels else ""
+        result[pkey] = {
+            "cats": cats, "totalM": round(total_mensal, 2), "nM": n_months,
+            "first": first_label, "last": last_label, "pLabel": p_labels[pkey]
+        }
+    return result
+
+
 def build_orcamento_prospectivo_card(e4: dict) -> str:
     """Build Orçamento Prospectivo card with interactive period filter (3M/6M/12M/YTD).
 
-    Monthly data per category is embedded as JSON; client-side JS filters by
-    period, computes monthly averages, sorts by impact, and rebuilds the table.
+    Pre-aggregates per-period data server-side to minimize embedded JS payload.
     """
     det = e4.get("fluxo_caixa", {}).get("receita_despesa_mensal_detalhado", {})
     labels = det.get("labels", [])
     despesa_datasets = det.get("despesa_datasets", [])
-
-    op_data = {
-        "labels": labels,
-        "datasets": [
-            {"key": ds.get("label", "").lower().replace(" ", "_"), "label": ds.get("label", ""), "data": ds.get("data", [])}
-            for ds in despesa_datasets
-        ],
-    }
     num_cats = len(despesa_datasets)
+
+    aggregated = _aggregate_orcamento_by_period(labels, despesa_datasets)
+    agg_json = json.dumps(aggregated, ensure_ascii=False)
 
     html_parts = ['<div class="card card-feature" id="op-card">']
     html_parts.append(f'  <div class="card-title">Orçamento Prospectivo ({num_cats} Categorias)</div>')
 
-    # Period toggle buttons
     html_parts.append('  <div class="period-toggle" id="op-period-toggle">')
     html_parts.append('    <button class="period-btn" data-period="3m" onclick="filterOP(\'3m\')">3M</button>')
     html_parts.append('    <button class="period-btn" data-period="6m" onclick="filterOP(\'6m\')">6M</button>')
@@ -1585,10 +1630,8 @@ def build_orcamento_prospectivo_card(e4: dict) -> str:
     html_parts.append('    <button class="period-btn" data-period="ytd" onclick="filterOP(\'ytd\')">Ano</button>')
     html_parts.append('  </div>')
 
-    # Context (JS updates)
     html_parts.append('  <p class="chart-context" id="op-context"></p>')
 
-    # Table skeleton (JS fills tbody)
     html_parts.append('  <table id="op-table">')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Categoria</th><th>Média Mensal</th><th>% do Total</th><th>Acum. %</th></tr>')
@@ -1596,72 +1639,41 @@ def build_orcamento_prospectivo_card(e4: dict) -> str:
     html_parts.append('    <tbody></tbody>')
     html_parts.append('  </table>')
 
-    # Insights (JS updates)
     html_parts.append('  <div id="op-insights"></div>')
+    html_parts.append('  <p id="op-method" class="method-note"></p>')
 
-    # Methodology note (JS updates month count)
-    html_parts.append('  <p id="op-method" style="margin-top:0.8em; font-size:0.85em; color:#666;"></p>')
-
-    # Embed data + JS
-    data_json = json.dumps(op_data, ensure_ascii=False)
     html_parts.append('  <script>')
     html_parts.append('  (function(){')
-    html_parts.append(f'    var D={data_json};')
-    html_parts.append('    function pad(n){return n<10?"0"+n:""+n;}')
-    html_parts.append('    function cutoff(p){')
-    html_parts.append('      var d=new Date();')
-    html_parts.append('      if(p==="3m")d.setMonth(d.getMonth()-3);')
-    html_parts.append('      else if(p==="6m")d.setMonth(d.getMonth()-6);')
-    html_parts.append('      else if(p==="12m")d.setMonth(d.getMonth()-12);')
-    html_parts.append('      else if(p==="ytd")d=new Date(d.getFullYear(),0,1);')
-    html_parts.append('      return String(d.getFullYear()%100).padStart(2,"0")+"/"+pad(d.getMonth()+1);')
-    html_parts.append('    }')
+    html_parts.append(f'    var A={agg_json};')
     html_parts.append('    function fB(v){return"R$ "+Math.round(v).toLocaleString("pt-BR");}')
     html_parts.append('    function fP(v){return v.toFixed(1).replace(".",",")+"%";}')
-    html_parts.append('    var pLabels={"3m":"últimos 3 meses","6m":"últimos 6 meses","12m":"últimos 12 meses","ytd":"ano corrente"};')
     html_parts.append('    window.filterOP=function(p){')
     html_parts.append('      document.querySelectorAll("#op-period-toggle .period-btn").forEach(function(b){b.classList.remove("active")});')
     html_parts.append('      document.querySelector("#op-period-toggle .period-btn[data-period=\\""+p+"\\"]").classList.add("active");')
-    html_parts.append('      var c=cutoff(p);')
-    html_parts.append('      var idx=[];')
-    html_parts.append('      D.labels.forEach(function(l,i){if(l>=c)idx.push(i);});')
-    html_parts.append('      var nM=idx.length||1;')
-    html_parts.append('      var cats=[];')
-    html_parts.append('      D.datasets.forEach(function(ds){')
-    html_parts.append('        var sum=0;idx.forEach(function(i){sum+=ds.data[i]||0;});')
-    html_parts.append('        if(sum>0)cats.push({key:ds.key,label:ds.label,avg:sum/nM,total:sum});')
-    html_parts.append('      });')
-    html_parts.append('      cats.sort(function(a,b){return b.avg-a.avg;});')
-    html_parts.append('      var totalM=cats.reduce(function(s,c){return s+c.avg;},0);')
-    html_parts.append('      var first=D.labels.length>0?D.labels[idx[0]||0]:"";')
-    html_parts.append('      var last=D.labels.length>0?D.labels[idx[idx.length-1]||0]:"";')
-    # Context
+    html_parts.append('      var d=A[p];if(!d)return;')
     html_parts.append('      var ctx=document.getElementById("op-context");')
-    html_parts.append('      ctx.innerHTML="Projeção mensal baseada na média de <strong>"+nM+" meses</strong>"')
-    html_parts.append('        +(first&&last?" ("+first+" a "+last+")":"")')
-    html_parts.append('        +". Média mensal: <strong>"+fB(totalM)+"</strong>"')
-    html_parts.append('        +" &mdash; projeção anual: <strong>"+fB(totalM*12)+"</strong>.";')
-    # Table
+    html_parts.append('      ctx.innerHTML="Projeção mensal baseada na média de <strong>"+d.nM+" meses</strong>"')
+    html_parts.append('        +(d.first&&d.last?" ("+d.first+" a "+d.last+")":"")')
+    html_parts.append('        +". Média mensal: <strong>"+fB(d.totalM)+"</strong>"')
+    html_parts.append('        +" &mdash; projeção anual: <strong>"+fB(d.totalM*12)+"</strong>.";')
     html_parts.append('      var tb=document.querySelector("#op-table tbody");')
     html_parts.append('      var rows="";var acum=0;')
-    html_parts.append('      cats.forEach(function(c){')
-    html_parts.append('        var pct=totalM>0?c.avg/totalM*100:0;acum+=pct;')
+    html_parts.append('      d.cats.forEach(function(c){')
+    html_parts.append('        var pct=d.totalM>0?c.avg/d.totalM*100:0;acum+=pct;')
     html_parts.append('        var cls=c.key==="nao_identificado"?" class=\\"row-highlight-warn\\"":"";')
     html_parts.append('        rows+="<tr"+cls+"><td>"+c.label+"</td><td>"+fB(c.avg)+"</td><td>"+fP(pct)+"</td><td>"+fP(acum)+"</td></tr>";')
     html_parts.append('      });')
-    html_parts.append('      rows+="<tr class=\\"total-row\\"><td><strong>Total Mensal</strong></td><td><strong>"+fB(totalM)+"</strong></td><td><strong>100,0%</strong></td><td></td></tr>";')
+    html_parts.append('      rows+="<tr class=\\"total-row\\"><td><strong>Total Mensal</strong></td><td><strong>"+fB(d.totalM)+"</strong></td><td><strong>100,0%</strong></td><td></td></tr>";')
     html_parts.append('      tb.innerHTML=rows;')
-    # Insights
     html_parts.append('      var ins=document.getElementById("op-insights");var h="";')
-    html_parts.append('      var ni=cats.find(function(c){return c.key==="nao_identificado";});')
-    html_parts.append('      if(ni&&totalM>0){var nip=ni.avg/totalM*100;')
-    html_parts.append('        if(nip>10)h+="<p style=\\"font-size:0.9em;margin-top:0.5em\\"><strong>Atenção:</strong> "+fP(nip)+" das despesas estão como \\"Não Identificado\\" ("+fB(ni.avg)+"/mês). Classificar essas transações melhora a precisão do orçamento.</p>";}')
-    html_parts.append('      if(cats.length>=3){var t3=cats.slice(0,3);var t3p=totalM>0?t3.reduce(function(s,c){return s+c.avg;},0)/totalM*100:0;')
-    html_parts.append('        h+="<p style=\\"font-size:0.9em;margin-top:0.5em\\">As 3 maiores categorias ("+t3.map(function(c){return c.label}).join(", ")+") representam <strong>"+fP(t3p)+"</strong> do orçamento mensal.</p>";}')
+    html_parts.append('      var ni=d.cats.find(function(c){return c.key==="nao_identificado";});')
+    html_parts.append('      if(ni&&d.totalM>0){var nip=ni.avg/d.totalM*100;')
+    html_parts.append('        if(nip>10)h+="<p class=\\"insight-note\\"><strong>Atenção:</strong> "+fP(nip)+" das despesas estão como \\"Não Identificado\\" ("+fB(ni.avg)+"/mês). Classificar essas transações melhora a precisão do orçamento.</p>";}')
+    html_parts.append('      if(d.cats.length>=3){var t3=d.cats.slice(0,3);var t3p=d.totalM>0?t3.reduce(function(s,c){return s+c.avg;},0)/d.totalM*100:0;')
+    html_parts.append('        h+="<p class=\\"insight-note\\">As 3 maiores categorias ("+t3.map(function(c){return c.label}).join(", ")+") representam <strong>"+fP(t3p)+"</strong> do orçamento mensal.</p>";}')
     html_parts.append('      ins.innerHTML=h;')
-    # Methodology
     html_parts.append('      var me=document.getElementById("op-method");')
-    html_parts.append('      me.innerHTML="<strong>Metodologia:</strong> Valores calculados como média aritmética das despesas por categoria nos "+pLabels[p]+" ("+nM+" meses). Categorias ordenadas por impacto decrescente. Coluna \\"Acum. %\\" mostra concentração acumulada (análise Pareto).";')
+    html_parts.append('      me.innerHTML="<strong>Metodologia:</strong> Valores calculados como média aritmética das despesas por categoria nos "+d.pLabel+" ("+d.nM+" meses). Categorias ordenadas por impacto decrescente. Coluna \\"Acum. %\\" mostra concentração acumulada (análise Pareto).";')
     html_parts.append('    };')
     html_parts.append('    filterOP("12m");')
     html_parts.append('  })();')
@@ -1670,11 +1682,41 @@ def build_orcamento_prospectivo_card(e4: dict) -> str:
     html_parts.append('</div>')
     return '\n'.join(html_parts)
 
+def _aggregate_consumo_consciente_by_period(itens: list, aporte_mensal: float) -> dict:
+    """Pre-aggregate consumo consciente per period (top 6 + metrics)."""
+    now = datetime.now()
+
+    def _cutoff(months_back=None, ytd=False):
+        if ytd:
+            return f"{now.year}-01"
+        d_year, d_month = now.year, now.month - months_back
+        while d_month < 1:
+            d_month += 12
+            d_year -= 1
+        return f"{d_year}-{d_month:02d}"
+
+    periods = {"3m": _cutoff(3), "6m": _cutoff(6), "12m": _cutoff(12), "ytd": _cutoff(ytd=True)}
+    result = {}
+    for pkey, cutoff in periods.items():
+        filtered = sorted([i for i in itens if i.get("mes", "") >= cutoff], key=lambda x: x.get("valor", 0), reverse=True)
+        top6 = []
+        for i in filtered[:6]:
+            top6.append({
+                "descricao": i.get("descricao", ""),
+                "valor": round(i.get("valor", 0), 2),
+                "mes": i.get("mes", ""),
+                "det": i.get("categoria") or i.get("observacao") or i.get("conta_cartao") or "",
+            })
+        total = sum(i.get("valor", 0) for i in filtered)
+        equiv = round(total / aporte_mensal, 1) if aporte_mensal > 0 else 0
+        result[pkey] = {"top": top6, "count": len(filtered), "total": round(total, 2), "equiv": equiv}
+    return result
+
+
 def build_consumo_consciente_card(e4: dict) -> str:
     """Build Consumo Consciente card with interactive period filter (3M/6M/12M/YTD).
 
-    All items are embedded as JSON; client-side JS filters by period,
-    rebuilds the table (top 6) and recalculates summary metrics.
+    Pre-aggregates per-period data server-side (top 6 + metrics) to keep HTML small.
     """
     cc = e4.get("consumo_consciente", {})
     itens = cc.get("itens") or cc.get("top_gastos_pontuais") or cc.get("top_gastos") or []
@@ -1692,7 +1734,9 @@ def build_consumo_consciente_card(e4: dict) -> str:
         html_parts.append('</div>')
         return '\n'.join(html_parts)
 
-    # Period toggle buttons
+    aggregated = _aggregate_consumo_consciente_by_period(itens, aporte_mensal)
+    agg_json = json.dumps(aggregated, ensure_ascii=False)
+
     html_parts.append('  <div class="period-toggle" id="cc-period-toggle">')
     html_parts.append('    <button class="period-btn" data-period="3m" onclick="filterCC(\'3m\')">3M</button>')
     html_parts.append('    <button class="period-btn" data-period="6m" onclick="filterCC(\'6m\')">6M</button>')
@@ -1700,7 +1744,6 @@ def build_consumo_consciente_card(e4: dict) -> str:
     html_parts.append('    <button class="period-btn" data-period="ytd" onclick="filterCC(\'ytd\')">Ano</button>')
     html_parts.append('  </div>')
 
-    # Table skeleton (JS fills tbody)
     html_parts.append('  <table id="cc-table">')
     html_parts.append('    <thead>')
     html_parts.append('      <tr><th>Descrição</th><th>Valor</th><th>Mês</th><th>Categoria</th></tr>')
@@ -1708,52 +1751,34 @@ def build_consumo_consciente_card(e4: dict) -> str:
     html_parts.append('    <tbody></tbody>')
     html_parts.append('  </table>')
 
-    # Metrics (JS updates)
     html_parts.append('  <p class="metrics" id="cc-metrics"></p>')
 
-    # Embed data + JS
-    items_json = json.dumps(itens, ensure_ascii=False)
-    html_parts.append(f'  <script>')
-    html_parts.append(f'  (function(){{')
-    html_parts.append(f'    var ccItems={items_json};')
-    html_parts.append(f'    var ccAporte={aporte_mensal};')
-    html_parts.append(f'    function pad(n){{return n<10?"0"+n:""+n;}}')
-    html_parts.append(f'    function cutoff(p){{')
-    html_parts.append(f'      var d=new Date();')
-    html_parts.append(f'      if(p==="3m")d.setMonth(d.getMonth()-3);')
-    html_parts.append(f'      else if(p==="6m")d.setMonth(d.getMonth()-6);')
-    html_parts.append(f'      else if(p==="12m")d.setMonth(d.getMonth()-12);')
-    html_parts.append(f'      else if(p==="ytd")d=new Date(d.getFullYear(),0,1);')
-    html_parts.append(f'      return d.getFullYear()+"-"+pad(d.getMonth()+1);')
-    html_parts.append(f'    }}')
-    html_parts.append(f'    function fB(v){{return"R$ "+Math.round(v).toLocaleString("pt-BR");}}')
-    html_parts.append(f'    window.filterCC=function(p){{')
-    html_parts.append(f'      document.querySelectorAll("#cc-period-toggle .period-btn").forEach(function(b){{b.classList.remove("active")}});')
-    html_parts.append(f'      document.querySelector("#cc-period-toggle .period-btn[data-period=\\""+p+"\\"]").classList.add("active");')
-    html_parts.append(f'      var c=cutoff(p);')
-    html_parts.append(f'      var f=ccItems.filter(function(i){{return i.mes>=c}}).sort(function(a,b){{return b.valor-a.valor}});')
-    html_parts.append(f'      var top=f.slice(0,6);')
-    html_parts.append(f'      var total=f.reduce(function(s,i){{return s+i.valor}},0);')
-    html_parts.append(f'      var equiv=ccAporte>0?(total/ccAporte).toFixed(1):"0.0";')
-    html_parts.append(f'      var tb=document.querySelector("#cc-table tbody");')
-    html_parts.append(f'      if(top.length===0){{')
-    html_parts.append(f'        tb.innerHTML="<tr><td colspan=\\"4\\" style=\\"text-align:center;padding:16px\\">Nenhum gasto pontual no período</td></tr>";')
-    html_parts.append(f'      }}else{{')
-    html_parts.append(f'        tb.innerHTML=top.map(function(i){{')
-    html_parts.append(f'          var det=i.categoria||i.observacao||i.conta_cartao||"";')
-    html_parts.append(f'          return"<tr><td>"+i.descricao+"</td><td>"+fB(i.valor)+"</td><td>"+i.mes+"</td><td>"+det+"</td></tr>";')
-    html_parts.append(f'        }}).join("");')
-    html_parts.append(f'      }}')
-    html_parts.append(f'      var me=document.getElementById("cc-metrics");')
-    html_parts.append(f'      if(f.length>0){{')
-    html_parts.append(f'        me.textContent=f.length+" gastos  \\u2022  Total: "+fB(total)+"  \\u2022  Equivale a "+equiv+" meses de aporte";')
-    html_parts.append(f'      }}else{{')
-    html_parts.append(f'        me.textContent="Nenhum gasto pontual relevante no per\\u00edodo selecionado.";')
-    html_parts.append(f'      }}')
-    html_parts.append(f'    }};')
-    html_parts.append(f'    filterCC("12m");')
-    html_parts.append(f'  }})();')
-    html_parts.append(f'  </script>')
+    html_parts.append('  <script>')
+    html_parts.append('  (function(){')
+    html_parts.append(f'    var ccAgg={agg_json};')
+    html_parts.append('    function fB(v){return"R$ "+Math.round(v).toLocaleString("pt-BR");}')
+    html_parts.append('    window.filterCC=function(p){')
+    html_parts.append('      document.querySelectorAll("#cc-period-toggle .period-btn").forEach(function(b){b.classList.remove("active")});')
+    html_parts.append('      document.querySelector("#cc-period-toggle .period-btn[data-period=\\""+p+"\\"]").classList.add("active");')
+    html_parts.append('      var d=ccAgg[p]||{top:[],count:0,total:0,equiv:0};')
+    html_parts.append('      var tb=document.querySelector("#cc-table tbody");')
+    html_parts.append('      if(d.top.length===0){')
+    html_parts.append('        tb.innerHTML="<tr><td colspan=\\"4\\" class=\\"empty-state\\">Nenhum gasto pontual no período</td></tr>";')
+    html_parts.append('      }else{')
+    html_parts.append('        tb.innerHTML=d.top.map(function(i){')
+    html_parts.append('          return"<tr><td>"+i.descricao+"</td><td>"+fB(i.valor)+"</td><td>"+i.mes+"</td><td>"+i.det+"</td></tr>";')
+    html_parts.append('        }).join("");')
+    html_parts.append('      }')
+    html_parts.append('      var me=document.getElementById("cc-metrics");')
+    html_parts.append('      if(d.count>0){')
+    html_parts.append('        me.textContent=d.count+" gastos  \\u2022  Total: "+fB(d.total)+"  \\u2022  Equivale a "+d.equiv+" meses de aporte";')
+    html_parts.append('      }else{')
+    html_parts.append('        me.textContent="Nenhum gasto pontual relevante no per\\u00edodo selecionado.";')
+    html_parts.append('      }')
+    html_parts.append('    };')
+    html_parts.append('    filterCC("12m");')
+    html_parts.append('  })();')
+    html_parts.append('  </script>')
 
     html_parts.append('</div>')
     return '\n'.join(html_parts)
@@ -1941,8 +1966,8 @@ def build_estrategia_aporte_card(e4: dict) -> str:
     h = []
     h.append('<div class="card card-feature">')
     h.append('  <div class="card-title">Estratégia de Aporte e Alocação</div>')
-    h.append(f'  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">')
-    h.append(f'    <span style="font-size:20px;">💰</span>')
+    h.append(f'  <div class="flex-row">')
+    h.append(f'    <span>💰</span>')
     h.append(f'    <strong>Aporte Mensal — {fmt_brl(total)} (todo dia {dia})</strong>')
     h.append(f'  </div>')
     h.append(f'  <p class="text-sm text-muted">A partir de {periodo}. Distribuição fixa entre {len(destinos)} destinos, equilibrando liquidez, proteção contra inflação e dolarização.</p>')
@@ -1951,11 +1976,11 @@ def build_estrategia_aporte_card(e4: dict) -> str:
     h.append('  <table>')
     h.append('    <thead>')
     h.append('      <tr>')
-    h.append('        <th style="text-align:left;">DESTINO</th>')
-    h.append('        <th style="text-align:right;">VALOR/MÊS</th>')
-    h.append('        <th style="text-align:right;">%</th>')
-    h.append('        <th style="text-align:left;">OBJETIVO</th>')
-    h.append('        <th style="text-align:left;">LIQUIDEZ</th>')
+    h.append('        <th class="text-left">DESTINO</th>')
+    h.append('        <th class="text-right">VALOR/MÊS</th>')
+    h.append('        <th class="text-right">%</th>')
+    h.append('        <th class="text-left">OBJETIVO</th>')
+    h.append('        <th class="text-left">LIQUIDEZ</th>')
     h.append('      </tr>')
     h.append('    </thead>')
     h.append('    <tbody>')
@@ -1963,17 +1988,17 @@ def build_estrategia_aporte_card(e4: dict) -> str:
     for d in destinos:
         h.append('      <tr>')
         h.append(f'        <td><strong>{d["destino"]}</strong></td>')
-        h.append(f'        <td style="text-align:right;">{fmt_brl(d["valor"])}</td>')
-        h.append(f'        <td style="text-align:right;">{d["pct"]}%</td>')
+        h.append(f'        <td class="text-right">{fmt_brl(d["valor"])}</td>')
+        h.append(f'        <td class="text-right">{d["pct"]}%</td>')
         h.append(f'        <td>{d["objetivo"]}</td>')
         h.append(f'        <td>{d["liquidez"]}</td>')
         h.append('      </tr>')
 
     # Linha TOTAL
-    h.append('      <tr class="total-row" style="font-weight:bold;border-top:2px solid #333;">')
+    h.append('      <tr class="total-row">')
     h.append(f'        <td><strong>TOTAL</strong></td>')
-    h.append(f'        <td style="text-align:right;"><strong>{fmt_brl(total)}</strong></td>')
-    h.append(f'        <td style="text-align:right;"><strong>100%</strong></td>')
+    h.append(f'        <td class="text-right"><strong>{fmt_brl(total)}</strong></td>')
+    h.append(f'        <td class="text-right"><strong>100%</strong></td>')
     h.append(f'        <td></td>')
     h.append(f'        <td></td>')
     h.append('      </tr>')
@@ -1981,11 +2006,11 @@ def build_estrategia_aporte_card(e4: dict) -> str:
     h.append('  </table>')
 
     # Resumo BRL vs USD
-    h.append('  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">')
-    h.append(f'    <div class="card card-success" style="padding:12px;margin:0;">')
+    h.append('  <div class="grid-2col">')
+    h.append(f'    <div class="card card-success card-compact">')
     h.append(f'      <strong>💰 {pct_brl}% em BRL</strong> ({destinos_brl}): {resumo_brl}')
     h.append(f'    </div>')
-    h.append(f'    <div class="card card-highlight" style="padding:12px;margin:0;">')
+    h.append(f'    <div class="card card-highlight card-compact">')
     h.append(f'      <strong>🇺🇸 {pct_usd}% em USD</strong> ({destinos_usd}): {resumo_usd}')
     h.append(f'    </div>')
     h.append('  </div>')
@@ -2554,17 +2579,17 @@ def build_appendix_e(e4: dict) -> str:
         recomendadas = sum(1 for t in tarefas if t.get("p") == "media")
         opcionais = sum(1 for t in tarefas if t.get("p") == "baixa")
         feitas = sum(1 for v in tarefas_status.values() if v == "feito")
-        h.append(f'  <p style="margin-top:12px;font-size:13px;"><span class="priority-badge priority-alta">S</span> = Essencial (S) — {essenciais} tarefas &nbsp; ')
+        h.append(f'  <p class="text-sm mt-sm"><span class="priority-badge priority-alta">S</span> = Essencial (S) — {essenciais} tarefas &nbsp; ')
         h.append(f'  <span class="priority-badge priority-media">R</span> = Recomendada (R) — {recomendadas} tarefas &nbsp; ')
         h.append(f'  <span class="priority-badge priority-baixa">O</span> = Opcional (O) — {opcionais} tarefas</p>')
         if feitas > 0:
-            h.append(f'  <p style="font-size:13px;">✅ {feitas} tarefa(s) concluída(s) neste ciclo.</p>')
+            h.append(f'  <p class="text-sm">✅ {feitas} tarefa(s) concluída(s) neste ciclo.</p>')
 
         # LLM-suggested tasks (from E5.N)
         sugeridas = e4.get("tarefas_sugeridas", [])
         if sugeridas:
             h.append('  <h3>Tarefas Sugeridas pela Análise</h3>')
-            h.append('  <p style="font-size:13px;"><em>Sugeridas automaticamente com base nos dados financeiros. Pendente aprovação do titular para inclusão no backlog.</em></p>')
+            h.append('  <p class="text-sm"><em>Sugeridas automaticamente com base nos dados financeiros. Pendente aprovação do titular para inclusão no backlog.</em></p>')
             h.append('  <table>')
             h.append('    <thead><tr><th>Sugestão</th><th>Motivo</th><th>Prioridade sugerida</th></tr></thead>')
             h.append('    <tbody>')
@@ -2609,18 +2634,18 @@ def build_appendix_e(e4: dict) -> str:
     h.append(f'      <tr><td>Gasto 12 meses (lazer/viagens)</td><td><strong>{fmt_brl(_gasto_viagens)}</strong></td></tr>')
 
     if _meses_com_gasto:
-        h.append(f'      <tr><td colspan="2" style="padding-top:8px"><strong>Detalhamento mensal</strong></td></tr>')
+        h.append(f'      <tr><td colspan="2" class="pt-sm"><strong>Detalhamento mensal</strong></td></tr>')
         for mes, val in _meses_com_gasto.items():
-            h.append(f'      <tr><td style="padding-left:16px">{mes}</td><td>{fmt_brl(val)}</td></tr>')
+            h.append(f'      <tr><td class="pl-md">{mes}</td><td>{fmt_brl(val)}</td></tr>')
 
-    saldo_class = "" if _saldo_viagens >= 0 else ' style="color:#E63946"'
+    saldo_class = "" if _saldo_viagens >= 0 else ' class="text-danger"'
     h.append(f'      <tr><td>Saldo disponível</td><td{saldo_class}><strong>{fmt_brl(_saldo_viagens)}</strong></td></tr>')
     h.append('    </tbody>')
     h.append('  </table>')
 
     if _txns:
         h.append('  <details><summary>Ver transações individuais ({} itens)</summary>'.format(len(_txns)))
-        h.append('  <table style="font-size:0.85em">')
+        h.append('  <table class="method-note">')
         h.append('    <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead>')
         h.append('    <tbody>')
         for t in _txns:
@@ -2824,7 +2849,7 @@ def build_kpi_rentabilidade_card(e4: dict) -> str:
     h.append('    </tbody>')
     h.append('  </table>')
 
-    h.append('  <p style="font-size:0.85em;opacity:0.75;margin-top:8px;">⚠️ Rentabilidade e volatilidade requerem dados históricos de cotas — não disponíveis nos extratos atuais.</p>')
+    h.append('  <p class="note-muted">⚠️ Rentabilidade e volatilidade requerem dados históricos de cotas — não disponíveis nos extratos atuais.</p>')
     h.append('</div>')
     return '\n'.join(h)
 
@@ -2887,7 +2912,7 @@ def _apply_card_variant(card_html: str, variant: str = "", size: str = "") -> st
             count=1
         )
     if size == "half":
-        card_html = f'<div style="grid-column: span 1;">\n{card_html}\n</div>'
+        card_html = f'<div>\n{card_html}\n</div>'
     return card_html
 
 
@@ -3230,12 +3255,38 @@ def validate_report(html: str, report_data_json: str) -> dict:
         results["V6"]["passed"] = False
         results["V6"]["detail"] = f"Found {app_count} appendices, expected 5"
 
-    # V10-V17: Not yet implemented — mark as warnings
-    for vnum in range(10, 18):
+    # V10-V13, V16: Not yet implemented — mark as warnings
+    for vnum in [10, 11, 12, 13, 16]:
         v_key = f"V{vnum}"
         if v_key in results:
-            results[v_key]["passed"] = True  # Default to True until implemented
+            results[v_key]["passed"] = True
             results[v_key]["warning"] = "Validação pendente de implementação"
+
+    # V15: Inline styles count (warn if excessive)
+    inline_styles = re.findall(r'\sstyle="[^"]*"', html_no_comments)
+    # Exclude known safe inline styles (cover-meta grid, chart containers)
+    safe_patterns = ['grid-template-columns', 'display:none', 'display: none']
+    unsafe_count = sum(1 for s in inline_styles if not any(sp in s for sp in safe_patterns))
+    if unsafe_count > 30:
+        results["V15"]["passed"] = False
+        results["V15"]["detail"] = f"Found {unsafe_count} inline styles (limit: 30). Migrate to CSS classes."
+    else:
+        results["V15"]["detail"] = f"{unsafe_count} inline styles (OK, ≤30)"
+
+    # V17: Hardcoded hex colors in HTML body (outside <style> blocks)
+    body_html = re.sub(r'<style[^>]*>.*?</style>', '', html_no_comments, flags=re.DOTALL)
+    body_html = re.sub(r'<script[^>]*>.*?</script>', '', body_html, flags=re.DOTALL)
+    hex_colors = re.findall(r'(?:color|background|border)[^"]*#[0-9a-fA-F]{3,8}', body_html)
+    if len(hex_colors) > 10:
+        results["V17"]["passed"] = False
+        results["V17"]["detail"] = f"Found {len(hex_colors)} hardcoded colors. Use CSS variables."
+
+    # V18: total-row class for total rows
+    total_rows_ok = len(re.findall(r'class="total-row"', html_no_comments))
+    total_strong_rows = len(re.findall(r'<tr[^>]*><td><strong>Total', html_no_comments))
+    if total_strong_rows > total_rows_ok + 2:
+        results["V18"]["passed"] = False
+        results["V18"]["detail"] = f"Found {total_strong_rows} total rows but only {total_rows_ok} with .total-row class"
 
     # V14: Size > 100KB
     if len(html.encode('utf-8')) < 100000:

@@ -370,19 +370,19 @@ tatico:
 # Usada por e6_render.py como PALETTE para todos os Chart.js
 chart_palette:
   - "#1A3A5C"
-  - "#1E6E8F"
+  - "#2A9D8F"
   - "#15803D"
   - "#F4A261"
   - "#B91C1C"
   - "#457B9D"
-  - "#E63946"
-  - "#A8DADC"
   - "#8338EC"
-  - "#2A9D8F"
+  - "#A8DADC"
+  - "#E63946"
+  - "#1E6E8F"
   - "#E76F51"
-  - "#F4A460"
+  - "#06B6D4"
   - "#FFB703"
-  - "#8ECAE6"
+  - "#7C3AED"
   - "#219EBC"
 
 # ==============================================================================
