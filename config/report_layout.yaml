@@ -30,7 +30,7 @@
 version: "1.1"
 
 # ==============================================================================
-# MODO ESTRATÉGICO (S1-S10 + Apêndices A-E)
+# MODO ESTRATÉGICO (S1-S4, S7-S10 + Apêndices A-E)
 # ==============================================================================
 estrategico:
 
@@ -145,28 +145,6 @@ estrategico:
       enabled: true
       charts:
         - id: "yield_imoveis"
-          enabled: true
-      cards: []
-
-    # --------------------------------------------------------------------------
-    # S5 — Mudança EUA (F1/F2)
-    # --------------------------------------------------------------------------
-    - id: "S5"
-      title: "Mudança EUA — Estrutura F1/F2 e Custos"
-      enabled: true
-      charts:
-        - id: "custos_f1f2"
-          enabled: true
-      cards: []
-
-    # --------------------------------------------------------------------------
-    # S6 — Green Card
-    # --------------------------------------------------------------------------
-    - id: "S6"
-      title: "Green Card — EB2-NIW e Compliance"
-      enabled: true
-      charts:
-        - id: "cenarios_cambiais"
           enabled: true
       cards: []
 
@@ -332,6 +310,66 @@ tatico:
       data_source: "dashboard.notas"
 
 # ==============================================================================
+# MODO USA (U1-U4) — Projeto Mudança EUA
+# ==============================================================================
+# Seções exclusivas do modo USA: F1/F2, Green Card, NCLEX e Simulação Mariana.
+# Anteriormente S5 e S6 no modo Estratégico + cards do Apêndice E.
+# ==============================================================================
+usa:
+
+  sections:
+
+    # --------------------------------------------------------------------------
+    # U1 — Mudança EUA (F1/F2) — ex-S5
+    # --------------------------------------------------------------------------
+    - id: "U1"
+      title: "Mudança EUA — Estrutura F1/F2 e Custos"
+      enabled: true
+      charts:
+        - id: "custos_f1f2"
+          enabled: true
+      cards: []
+
+    # --------------------------------------------------------------------------
+    # U2 — Green Card — ex-S6
+    # --------------------------------------------------------------------------
+    - id: "U2"
+      title: "Green Card — EB2-NIW e Compliance"
+      enabled: true
+      charts:
+        - id: "cenarios_cambiais"
+          enabled: true
+      cards: []
+
+    # --------------------------------------------------------------------------
+    # U3 — NCLEX Roadmap
+    # --------------------------------------------------------------------------
+    - id: "U3"
+      title: "NCLEX Roadmap — Licenciamento RN"
+      enabled: true
+      charts: []
+      cards:
+        - id: "nclex_roadmap"
+          enabled: true
+          variant: "feature"
+          size: "full"
+
+    # --------------------------------------------------------------------------
+    # U4 — Simulação Mariana Sem Trabalhar
+    # --------------------------------------------------------------------------
+    - id: "U4"
+      title: "Simulação — Mariana Sem Trabalhar"
+      enabled: true
+      charts:
+        - id: "mariana_cenarios_usa"
+          enabled: true
+      cards:
+        - id: "simulacao_mariana"
+          enabled: true
+          variant: "warn"
+          size: "full"
+
+# ==============================================================================
 # REGISTRY DE CARDS DISPONÍVEIS
 # ==============================================================================
 # Referência: todos os card builders existentes no e6_render.py
@@ -356,13 +394,16 @@ tatico:
 # pontos_urgentes             | build_pontos_urgentes_card()            | S10
 # equilibrio_cerbasi          | build_equilibrio_cerbasi_card()         | S10
 #
-# CHARTS DISPONÍVEIS (20 total):
+# nclex_roadmap               | build_nclex_roadmap_card()              | U3
+# simulacao_mariana            | build_simulacao_mariana_card()           | U4
+#
+# CHARTS DISPONÍVEIS (21 total):
 # patrimonio_doughnut, waterfall_if, fluxo_mensal, receita_bar,
 # despesas_doughnut, receita_despesa_mensal, score_gauge,
 # alocacao_atual, alocacao_alvo, top15_ativos, mariana_cenarios,
 # viagens, yield_imoveis, custos_f1f2, cenarios_cambiais,
 # projecao_3cenarios, renda_passiva, impostos_pj, bubble_riscos,
-# top5_decisoes
+# top5_decisoes, mariana_cenarios_usa
 
 # ==============================================================================
 # PALETA DE CORES DOS GRÁFICOS
@@ -408,6 +449,7 @@ chart_canvas_map:
   bubble_riscos: "chart-bubble-riscos"
   top5_decisoes: "chart-top5-decisoes"
   mariana_cenarios: "chart-mariana-cenarios"
+  mariana_cenarios_usa: "chart-mariana-cenarios-usa"
   viagens: "chart-viagens"
 
 # ==============================================================================
@@ -433,6 +475,7 @@ chart_titles:
   bubble_riscos: "Mapa de Riscos"
   top5_decisoes: "Top 5 Decisões de Impacto"
   mariana_cenarios: "Cenários IF — Mariana"
+  mariana_cenarios_usa: "Cenários IF — Mariana"
   viagens: "Orçamento de Viagens"
 
 # ==============================================================================
@@ -443,12 +486,15 @@ section_charts:
   2: ["fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "score_gauge"]
   3: ["alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "viagens"]
   4: ["yield_imoveis"]
-  5: ["custos_f1f2"]
-  6: ["cenarios_cambiais"]
   7: ["projecao_3cenarios", "renda_passiva"]
   8: ["impostos_pj"]
   9: ["bubble_riscos"]
   10: ["top5_decisoes"]
+
+usa_section_charts:
+  1: ["custos_f1f2"]
+  2: ["cenarios_cambiais"]
+  4: ["mariana_cenarios_usa"]
 
 # ==============================================================================
 # DARK MODE — cores CSS (usadas por e6_regen.py)

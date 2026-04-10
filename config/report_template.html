@@ -770,9 +770,13 @@ details.expandable > div { padding:12px 0 0; }
   body { font-size:var(--font-base); }
 }
 
-/* ============ DUAL MODE: Strategic / Tactical ============ */
-body.mode-strategic [data-mode="tactical"] { display: none !important; }
-body.mode-tactical [data-mode="strategic"] { display: none !important; }
+/* ============ TRI-MODE: Strategic / Tactical / USA ============ */
+body.mode-strategic [data-mode="tactical"],
+body.mode-strategic [data-mode="usa"] { display: none !important; }
+body.mode-tactical [data-mode="strategic"],
+body.mode-tactical [data-mode="usa"] { display: none !important; }
+body.mode-usa [data-mode="strategic"],
+body.mode-usa [data-mode="tactical"] { display: none !important; }
 [data-mode="both"] { display: block; }
 
 /* Mode toggle in nav */
@@ -1225,8 +1229,6 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
     <div class="nav-group">
       <span class="nav-group-label">Específico</span>
       <a href="#secao-4" class="nav-link"><span class="num">4</span><span class="nav-text">Imóveis</span></a>
-      <a href="#secao-5" class="nav-link"><span class="num">5</span><span class="nav-text">F1/F2</span></a>
-      <a href="#secao-6" class="nav-link"><span class="num">6</span><span class="nav-text">Green Card</span></a>
     </div>
     <div class="nav-separator"></div>
     <div class="nav-group">
@@ -1255,10 +1257,17 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
     <a href="#dash-proximos" class="nav-link"><span class="num">T5</span><span class="nav-text">15 Dias</span></a>
     <a href="#dash-notas" class="nav-link"><span class="num">T6</span><span class="nav-text">Notas</span></a>
   </div>
+  <div class="nav-links nav-usa" style="display:none;">
+    <a href="#usa-1" class="nav-link"><span class="num">U1</span><span class="nav-text">F1/F2</span></a>
+    <a href="#usa-2" class="nav-link"><span class="num">U2</span><span class="nav-text">Green Card</span></a>
+    <a href="#usa-3" class="nav-link"><span class="num">U3</span><span class="nav-text">NCLEX</span></a>
+    <a href="#usa-4" class="nav-link"><span class="num">U4</span><span class="nav-text">Simulação</span></a>
+  </div>
   </div><!-- end nav-scroll -->
   <div class="mode-toggle" data-mode="both" role="group" aria-label="Modo de visualização">
     <button class="mode-btn active" data-target="strategic" onclick="setMode('strategic')" aria-pressed="true">📊 Estratégico</button>
     <button class="mode-btn" data-target="tactical" onclick="setMode('tactical')" aria-pressed="false">⚡ Tático</button>
+    <button class="mode-btn" data-target="usa" onclick="setMode('usa')" aria-pressed="false">🇺🇸 USA</button>
   </div>
   <div class="theme-toggle" data-mode="both" role="group" aria-label="Tema de cores">
     <button class="theme-btn" data-theme="light" onclick="setTheme('light')" title="Modo Claro" aria-label="Tema claro">☀️</button>
@@ -1475,10 +1484,6 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
     chart-top15-ativos          — Top 15 ativos (horizontal bar)
   Seção 4 (Imóveis):
     chart-yield-imoveis         — Yield vs CDI (bar)
-  Seção 5 (F1/F2):
-    chart-custos-f1f2           — Custos mensais F1/F2 (horizontal bar)
-  Seção 6 (Green Card):
-    chart-cenarios-cambiais     — Cenários cambiais (bar agrupado)
   Seção 7 (IF):
     chart-projecao-3cenarios    — Projeção patrimonial 3 cenários (line)
     chart-renda-passiva         — Renda passiva progresso até meta (horizontal stacked bar)
@@ -1492,8 +1497,14 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
     chart-viagens               — Orçamento viagens (doughnut/bar)
   Apêndice E (Mariana):
     chart-mariana-cenarios      — Cenários IF Mariana (line)
+  USA U1 (F1/F2):
+    chart-custos-f1f2           — Custos mensais F1/F2 (horizontal bar)
+  USA U2 (Green Card):
+    chart-cenarios-cambiais     — Cenários cambiais (bar agrupado)
+  USA U4 (Simulação Mariana):
+    chart-mariana-cenarios-usa  — Cenários IF Mariana (bar) — duplicate canvas
 
-  ⚠️ REGRAS DE DESIGN HTML — Obrigatórias em TODO conteúdo gerado para {{CONTENT_S*}} e {{CONTENT_APP_*}}:
+  ⚠️ REGRAS DE DESIGN HTML — Obrigatórias em TODO conteúdo gerado para {{CONTENT_S*}}, {{CONTENT_U*}} e {{CONTENT_APP_*}}:
 
   1. ZERO margin-top/margin-bottom inline — O CSS usa seletores adjacentes (.card + .card, etc.)
      para espaçamento automático. NUNCA colocar style="margin-top:..." em cards, chart-container,
@@ -1545,22 +1556,44 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 {{CONTENT_S4}}
 </div>
 
-<!-- SEÇÃO 5 -->
-<div class="section" id="secao-5" data-mode="strategic">
+<!-- ============================================================ -->
+<!-- USA SECTIONS (U1-U4) — Projeto Mudança EUA                  -->
+<!-- ============================================================ -->
+
+<!-- USA U1 — F1/F2 (ex-S5) -->
+<div class="section" id="usa-1" data-mode="usa">
 <div class="section-header">
-  <h1>5. F1/F2 EUA</h1>
+  <h1>U1. Mudança EUA — F1/F2</h1>
 </div>
-<div class="section-summary">{{SUMMARY_S5}}</div>
-{{CONTENT_S5}}
+<div class="section-summary">{{SUMMARY_U1}}</div>
+{{CONTENT_U1}}
 </div>
 
-<!-- SEÇÃO 6 -->
-<div class="section" id="secao-6" data-mode="strategic">
+<!-- USA U2 — Green Card (ex-S6) -->
+<div class="section" id="usa-2" data-mode="usa">
 <div class="section-header">
-  <h1>6. Green Card</h1>
+  <h1>U2. Green Card — EB2-NIW</h1>
 </div>
-<div class="section-summary">{{SUMMARY_S6}}</div>
-{{CONTENT_S6}}
+<div class="section-summary">{{SUMMARY_U2}}</div>
+{{CONTENT_U2}}
+</div>
+
+<!-- USA U3 — NCLEX Roadmap -->
+<div class="section" id="usa-3" data-mode="usa">
+<div class="section-header">
+  <h1>U3. NCLEX Roadmap</h1>
+</div>
+<div class="section-summary">{{SUMMARY_U3}}</div>
+{{CONTENT_U3}}
+</div>
+
+<!-- USA U4 — Simulação Mariana Sem Trabalhar -->
+<div class="section" id="usa-4" data-mode="usa">
+<div class="section-header">
+  <h1>U4. Simulação — Mariana Sem Trabalhar</h1>
+</div>
+<div class="section-summary">{{SUMMARY_U4}}</div>
+{{CONTENT_U4}}
 </div>
 
 <!-- SEÇÃO 7 -->
@@ -1659,7 +1692,7 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 <!--
   REPORT_DATA_JSON must include at minimum:
   {
-    "meta": {"modo_padrao": "strategic", ...},
+    "meta": {"modo_padrao": "strategic|tactical|usa", ...},
     "kpis": {...},
     "charts": {...},
     "dashboard": {
@@ -3314,25 +3347,47 @@ document.addEventListener('DOMContentLoaded', function() {
     if (lbl && vgLabels.length) lbl.textContent = vgLabels[0] + ' — ' + vgLabels[vgLabels.length - 1];
   })();
 
-  // NOTE: setMode, setTheme, initializeTheme, buildDashboard são definidas
-  // no bloco <script> global abaixo. Não duplicar aqui.
+  // NOTE: setMode, setTheme, initializeTheme, buildDashboard, buildUsaCharts
+  // são definidas no bloco <script> global abaixo. Não duplicar aqui.
 });
 </script>
 
 <script>
 // ============================================================
-// DUAL MODE: Strategic / Tactical
+// TRI-MODE: Strategic / Tactical / USA
 // ============================================================
 function setMode(mode) {
   document.body.className = 'mode-' + mode;
   document.querySelectorAll('.mode-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.target === mode);
+    b.setAttribute('aria-pressed', b.dataset.target === mode ? 'true' : 'false');
   });
   var navS = document.querySelector('.nav-strategic');
   var navD = document.querySelector('.nav-dashboard');
+  var navU = document.querySelector('.nav-usa');
   if (navS) navS.style.display = mode === 'strategic' ? 'flex' : 'none';
   if (navD) navD.style.display = mode === 'tactical' ? 'flex' : 'none';
+  if (navU) navU.style.display = mode === 'usa' ? 'flex' : 'none';
   if (mode === 'tactical') setTimeout(buildDashboard, 50);
+  if (mode === 'usa') setTimeout(buildUsaCharts, 50);
+}
+
+function buildUsaCharts() {
+  if (window._usaChartsBuilt) return;
+  window._usaChartsBuilt = true;
+  var mcData = DATA.charts.mariana_cenarios || {labels:[], datasets:[]};
+  safeChart('chart-mariana-cenarios-usa', {
+    type: 'bar',
+    data: { labels: mcData.labels, datasets: mcData.datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'R$' } },
+        y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Anos' }, grid: { drawOnChartArea: false } }
+      }
+    }
+  });
 }
 
 // ============================================================

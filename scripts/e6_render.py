@@ -246,6 +246,7 @@ CHART_CANVAS_MAP = REPORT_LAYOUT.get("chart_canvas_map", {}) or {
     "bubble_riscos": "chart-bubble-riscos",
     "top5_decisoes": "chart-top5-decisoes",
     "mariana_cenarios": "chart-mariana-cenarios",
+    "mariana_cenarios_usa": "chart-mariana-cenarios-usa",
     "viagens": "chart-viagens",
 }
 
@@ -270,6 +271,7 @@ CHART_TITLES = REPORT_LAYOUT.get("chart_titles", {}) or {
     "bubble_riscos": "Mapa de Riscos",
     "top5_decisoes": "Top 5 Decisões de Impacto",
     "mariana_cenarios": "Cenários IF — Mariana",
+    "mariana_cenarios_usa": "Cenários IF — Mariana",
     "viagens": "Orçamento de Viagens",
 }
 
@@ -281,8 +283,6 @@ SECTION_CHARTS = {int(k): v for k, v in _raw_section_charts.items()} if _raw_sec
     2: ["fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "score_gauge"],
     3: ["alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "viagens"],
     4: ["yield_imoveis"],
-    5: ["custos_f1f2"],
-    6: ["cenarios_cambiais"],
     7: ["projecao_3cenarios", "renda_passiva"],
     8: ["impostos_pj"],
     9: ["bubble_riscos"],
@@ -2694,6 +2694,86 @@ def build_appendix_d() -> str:
     return '\n'.join(h)
 
 
+def build_nclex_roadmap_card(e4: dict) -> str:
+    """Card: NCLEX Roadmap — licenciamento RN nos EUA."""
+    h = []
+    _nclex_steps = GOALS_CONFIG.get("nclex_roadmap", [])
+    _mariana_usd_min = GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_minima_usd", 4000)
+    _mariana_usd_max = GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_maxima_usd", 7000)
+
+    h.append('<div class="card">')
+    _nclex_conjuge_key = next((k for k, v in _FAMILY.get("membros", {}).items() if v.get("papel") == "conjuge"), None)
+    _nclex_conjuge_nome = _FAMILY.get("membros", {}).get(_nclex_conjuge_key, {}).get("nome_curto", "") if _nclex_conjuge_key else ""
+    h.append(f'  <div class="card-title">NCLEX Roadmap{f" — {_nclex_conjuge_nome}" if _nclex_conjuge_nome else ""}</div>')
+    h.append('  <p>Caminho para licenciamento como Registered Nurse nos EUA (estimativa 8-18 meses).</p>')
+    h.append('  <table>')
+    h.append('    <thead><tr><th>Etapa</th><th>Descrição</th><th>Custo</th><th>Duração</th></tr></thead>')
+    h.append('    <tbody>')
+    if _nclex_steps:
+        for step in _nclex_steps:
+            h.append(f'      <tr><td>{step.get("etapa", "")}</td><td>{step.get("descricao", "")}</td><td>{step.get("custo", "—")}</td><td>{step.get("duracao", "—")}</td></tr>')
+    else:
+        nclex = [
+            ("1", "CGFNS Credentials Evaluation", "US$ 350", "4-8 semanas"),
+            ("2", "Teste de Inglês (MET ou OET recomendados)", "US$ 235–455", "Prep 2-3 meses"),
+            ("3", "CGFNS VisaScreen Certificate", "US$ 540", "8-12 semanas"),
+            ("4", "State Board Application (SC)", "US$ 200", "2-4 semanas"),
+            ("5", "ATT (Authorization to Test)", "—", "2-4 semanas"),
+            ("6", "NCLEX-RN Exam", "US$ 200", "Agendar Pearson VUE"),
+            ("7", "License Issued", "—", "2-4 semanas"),
+        ]
+        for etapa, desc, custo, dur in nclex:
+            h.append(f'      <tr><td>{etapa}</td><td>{desc}</td><td>{custo}</td><td>{dur}</td></tr>')
+    h.append('    </tbody>')
+    h.append('  </table>')
+    _conjuge_key = next((k for k, v in _FAMILY.get("membros", {}).items() if v.get("papel") == "conjuge"), None)
+    _conjuge = _FAMILY.get("membros", {}).get(_conjuge_key, {}) if _conjuge_key else {}
+    _conjuge_nome = _conjuge.get("nome_curto", "Cônjuge")
+    _conjuge_esp = _conjuge.get("especializacao", "")
+    _conjuge_mestrado = _conjuge.get("mestrado", "")
+    _conjuge_profissao = _conjuge.get("profissao", "")
+    _perfil_parts = [p for p in [_conjuge_esp, f"Mestrado {_conjuge_mestrado}" if _conjuge_mestrado else "", _conjuge_profissao] if p]
+    _perfil_str = " + ".join(_perfil_parts) if _perfil_parts else ""
+    h.append(f'  <p><strong>Custo total estimado:</strong> US$ 1.515–2.440{f" | <strong>Perfil competitivo {_conjuge_nome}:</strong> {_perfil_str}" if _perfil_str else ""}.</p>')
+    h.append(f'  <p><strong>Projeção EUA:</strong> RN US$45–80/hora → US${fmt_num(_mariana_usd_min)}–{fmt_num(_mariana_usd_max)}/mês líquido.</p>')
+    h.append('</div>')
+    return '\n'.join(h)
+
+
+def build_simulacao_mariana_card(e4: dict) -> str:
+    """Card: Simulação — Mariana Sem Trabalhar."""
+    h = []
+    goals = e4.get("goals", {})
+    patrimonio = e4.get("patrimonio", {})
+    pat_investivel = safe_float(patrimonio.get("investivel", 0))
+    meta_if = safe_float(goals.get("if_meta",
+        GOALS_CONFIG.get("independencia_financeira", {}).get("if_meta", 7200000)))
+    taxa_real = CENARIOS_CONFIG.get("retorno_real", {}).get("realista_pct", 6.0)
+
+    _sim_mariana = e4.get("simulacao_mariana_sem_trabalhar", {})
+    _aporte_cfg = GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 20000)
+    h.append('<div class="card">')
+    h.append('  <div class="card-title">Simulação — Mariana Sem Trabalhar</div>')
+    h.append('  <table>')
+    h.append('    <thead><tr><th>Métrica</th><th>Valor</th></tr></thead>')
+    h.append('    <tbody>')
+    if _sim_mariana:
+        for row in _sim_mariana.get("linhas", []):
+            h.append(f'      <tr><td>{row.get("metrica", "")}</td><td>{row.get("valor", "")}</td></tr>')
+    else:
+        _fator_red = GOALS_CONFIG.get("simulacao", {}).get("aporte_reduzido_fator", 0.66)
+        _aporte_red = round(_aporte_cfg * _fator_red)
+        _prazo_full = _compute_nper(pat_investivel, _aporte_cfg, taxa_real, meta_if)
+        _prazo_red = _compute_nper(pat_investivel, _aporte_red, taxa_real, meta_if)
+        h.append(f'      <tr><td>IF com aporte R$ {_aporte_cfg/1000:.0f}k mantido</td><td><strong>{fmt_dec(_prazo_full)} anos</strong> (folga absorve a perda)</td></tr>')
+        _aporte_red_fmt = fmt_dec(_aporte_red/1000)
+        h.append(f'      <tr><td>IF com aporte reduzido R$ {_aporte_red_fmt}k</td><td>{fmt_dec(_prazo_red)} anos (+{fmt_dec(_prazo_red - _prazo_full)} anos)</td></tr>')
+    h.append('    </tbody>')
+    h.append('  </table>')
+    h.append('</div>')
+    return '\n'.join(h)
+
+
 def build_appendix_e(e4: dict) -> str:
     """Apêndice E — Próximos Ciclos e Roadmap."""
     h = []
@@ -2701,14 +2781,6 @@ def build_appendix_e(e4: dict) -> str:
     # Config values used in multiple sub-sections
     _seg_min = GOALS_CONFIG.get("seguros", {}).get("vida_term_minimo", 0)
     _seg_max = GOALS_CONFIG.get("seguros", {}).get("vida_term_maximo", 0)
-
-    # For Simulação Mariana
-    goals = e4.get("goals", {})
-    patrimonio = e4.get("patrimonio", {})
-    pat_investivel = safe_float(patrimonio.get("investivel", 0))
-    meta_if = safe_float(goals.get("if_meta",
-        GOALS_CONFIG.get("independencia_financeira", {}).get("if_meta", 7200000)))
-    taxa_real = CENARIOS_CONFIG.get("retorno_real", {}).get("realista_pct", 6.0)
 
     # Tarefas priorizadas (from tarefas.md via E5)
     tarefas = e4.get("tarefas", [])
@@ -2824,72 +2896,9 @@ def build_appendix_e(e4: dict) -> str:
     h.append('  <p><em>Nota: Custos da estadia EUA (F1/F2) NÃO entram no orçamento de viagens — são custo de vida.</em></p>')
     h.append('</div>')
 
-    # NCLEX Roadmap (from goals.json or hardcoded fallback)
-    _nclex_steps = GOALS_CONFIG.get("nclex_roadmap", [])
-    _mariana_usd_min = GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_minima_usd", 4000)
-    _mariana_usd_max = GOALS_CONFIG.get("mariana_eua", {}).get("renda_rn_maxima_usd", 7000)
-
-    h.append('<div class="card">')
-    _nclex_conjuge_key = next((k for k, v in _FAMILY.get("membros", {}).items() if v.get("papel") == "conjuge"), None)
-    _nclex_conjuge_nome = _FAMILY.get("membros", {}).get(_nclex_conjuge_key, {}).get("nome_curto", "") if _nclex_conjuge_key else ""
-    h.append(f'  <div class="card-title">NCLEX Roadmap{f" — {_nclex_conjuge_nome}" if _nclex_conjuge_nome else ""}</div>')
-    h.append('  <p>Caminho para licenciamento como Registered Nurse nos EUA (estimativa 8-18 meses).</p>')
-    h.append('  <table>')
-    h.append('    <thead><tr><th>Etapa</th><th>Descrição</th><th>Custo</th><th>Duração</th></tr></thead>')
-    h.append('    <tbody>')
-    if _nclex_steps:
-        for step in _nclex_steps:
-            h.append(f'      <tr><td>{step.get("etapa", "")}</td><td>{step.get("descricao", "")}</td><td>{step.get("custo", "—")}</td><td>{step.get("duracao", "—")}</td></tr>')
-    else:
-        # Fallback — STATIC-REFERENCE
-        nclex = [
-            ("1", "CGFNS Credentials Evaluation", "US$ 350", "4-8 semanas"),
-            ("2", "Teste de Inglês (MET ou OET recomendados)", "US$ 235–455", "Prep 2-3 meses"),
-            ("3", "CGFNS VisaScreen Certificate", "US$ 540", "8-12 semanas"),
-            ("4", "State Board Application (SC)", "US$ 200", "2-4 semanas"),
-            ("5", "ATT (Authorization to Test)", "—", "2-4 semanas"),
-            ("6", "NCLEX-RN Exam", "US$ 200", "Agendar Pearson VUE"),
-            ("7", "License Issued", "—", "2-4 semanas"),
-        ]
-        for etapa, desc, custo, dur in nclex:
-            h.append(f'      <tr><td>{etapa}</td><td>{desc}</td><td>{custo}</td><td>{dur}</td></tr>')
-    h.append('    </tbody>')
-    h.append('  </table>')
-    _conjuge_key = next((k for k, v in _FAMILY.get("membros", {}).items() if v.get("papel") == "conjuge"), None)
-    _conjuge = _FAMILY.get("membros", {}).get(_conjuge_key, {}) if _conjuge_key else {}
-    _conjuge_nome = _conjuge.get("nome_curto", "Cônjuge")
-    _conjuge_esp = _conjuge.get("especializacao", "")
-    _conjuge_mestrado = _conjuge.get("mestrado", "")
-    _conjuge_profissao = _conjuge.get("profissao", "")
-    _perfil_parts = [p for p in [_conjuge_esp, f"Mestrado {_conjuge_mestrado}" if _conjuge_mestrado else "", _conjuge_profissao] if p]
-    _perfil_str = " + ".join(_perfil_parts) if _perfil_parts else ""
-    h.append(f'  <p><strong>Custo total estimado:</strong> US$ 1.515–2.440{f" | <strong>Perfil competitivo {_conjuge_nome}:</strong> {_perfil_str}" if _perfil_str else ""}.</p>')
-    h.append(f'  <p><strong>Projeção EUA:</strong> RN US$45–80/hora → US${fmt_num(_mariana_usd_min)}–{fmt_num(_mariana_usd_max)}/mês líquido.</p>')
-    h.append('</div>')
-
-    # Simulação Mariana sem trabalhar (semi-dinâmico — usa E5 data quando disponível)
-    _sim_mariana = e4.get("simulacao_mariana_sem_trabalhar", {})
-    _aporte_cfg = GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 20000)
-    h.append('<div class="card">')
-    h.append('  <div class="card-title">Simulação — Mariana Sem Trabalhar</div>')
-    h.append('  <table>')
-    h.append('    <thead><tr><th>Métrica</th><th>Valor</th></tr></thead>')
-    h.append('    <tbody>')
-    if _sim_mariana:
-        for row in _sim_mariana.get("linhas", []):
-            h.append(f'      <tr><td>{row.get("metrica", "")}</td><td>{row.get("valor", "")}</td></tr>')
-    else:
-        # Fallback: compute IF with full and reduced aporte
-        _fator_red = GOALS_CONFIG.get("simulacao", {}).get("aporte_reduzido_fator", 0.66)
-        _aporte_red = round(_aporte_cfg * _fator_red)
-        _prazo_full = _compute_nper(pat_investivel, _aporte_cfg, taxa_real, meta_if)
-        _prazo_red = _compute_nper(pat_investivel, _aporte_red, taxa_real, meta_if)
-        h.append(f'      <tr><td>IF com aporte R$ {_aporte_cfg/1000:.0f}k mantido</td><td><strong>{fmt_dec(_prazo_full)} anos</strong> (folga absorve a perda)</td></tr>')
-        _aporte_red_fmt = fmt_dec(_aporte_red/1000)
-        h.append(f'      <tr><td>IF com aporte reduzido R$ {_aporte_red_fmt}k</td><td>{fmt_dec(_prazo_red)} anos (+{fmt_dec(_prazo_red - _prazo_full)} anos)</td></tr>')
-    h.append('    </tbody>')
-    h.append('  </table>')
-    h.append('</div>')
+    # NCLEX Roadmap + Simulação Mariana (delegated to standalone builders)
+    h.append(build_nclex_roadmap_card(e4))
+    h.append(build_simulacao_mariana_card(e4))
 
     # Calendário próximo ciclo (from E5 data or config-derived defaults)
     _calendario_e5 = e4.get("calendario_proximo_ciclo", [])
@@ -3054,6 +3063,8 @@ CARD_BUILDERS = {
     "pontos_fortes": build_pontos_fortes_card,
     "pontos_urgentes": build_pontos_urgentes_card,
     "equilibrio_cerbasi": build_equilibrio_cerbasi_card,
+    "nclex_roadmap": build_nclex_roadmap_card,
+    "simulacao_mariana": build_simulacao_mariana_card,
 }
 
 # Registry: appendix ID → builder function
@@ -3086,12 +3097,13 @@ def _apply_card_variant(card_html: str, variant: str = "", size: str = "") -> st
 
 
 def build_sections(e4: dict) -> dict:
-    """Build S1-S10 content sections with charts and cards.
+    """Build S1-S10 + U1-U4 content sections with charts and cards.
 
     If REPORT_LAYOUT is available, iterates over the YAML config.
     Otherwise, falls back to the original hardcoded sequence.
+    USA sections (U1-U4) are rendered from the 'usa' block in YAML.
     """
-    print("[E6.4] Building sections S1-S10...")
+    print("[E6.4] Building sections S1-S10 + U1-U4...")
 
     narrativas = e4.get("narrativas", {})
     # Sanitize monetary formats in narrativas before rendering
@@ -3141,8 +3153,6 @@ def build_sections(e4: dict) -> dict:
             2: "Fluxo de Caixa — Receitas e Despesas",
             3: "Investimentos — Carteira Financeira",
             4: "Real Estate — Imóveis e Renda Passiva",
-            5: "Mudança EUA — Estrutura F1/F2 e Custos",
-            6: "Green Card — EB2-NIW e Compliance",
             7: "Independência Financeira — Meta 2035",
             8: "Previdência — PGBL e Fiscalidade",
             9: "Riscos e Proteção — Seguros Críticos",
@@ -3263,8 +3273,6 @@ def build_sections(e4: dict) -> dict:
             2: "Fluxo de Caixa — Receitas e Despesas",
             3: "Investimentos — Carteira Financeira",
             4: "Real Estate — Imóveis e Renda Passiva",
-            5: "Mudança EUA — Estrutura F1/F2 e Custos",
-            6: "Green Card — EB2-NIW e Compliance",
             7: "Independência Financeira — Meta 2035",
             8: "Previdência — PGBL e Fiscalidade",
             9: "Riscos e Proteção — Seguros Críticos",
@@ -3353,6 +3361,67 @@ def build_sections(e4: dict) -> dict:
         replacements["{{CONTENT_APP_D}}"] = build_appendix_d()
         replacements["{{CONTENT_APP_E}}"] = build_appendix_e(e4)
 
+    # ── USA Mode Sections (U1-U4) ──
+    layout_usa = REPORT_LAYOUT.get("usa", {})
+    usa_sections = layout_usa.get("sections", [])
+
+    _usa_summaries = {
+        "u1": summaries.get("s5", summaries.get("u1", "Estrutura de custos para visto F1/F2 nos EUA.")),
+        "u2": summaries.get("s6", summaries.get("u2", "Processo e compliance EB2-NIW para Green Card.")),
+        "u3": summaries.get("u3", "Roadmap de licenciamento NCLEX-RN para atuação como enfermeira nos EUA."),
+        "u4": summaries.get("u4", "Cenário financeiro caso a cônjuge não trabalhe nos primeiros meses nos EUA."),
+    }
+    for i in range(1, 5):
+        replacements[f"{{{{SUMMARY_U{i}}}}}"] = _usa_summaries.get(f"u{i}", f"USA seção {i} — dados pendentes")
+
+    # Alias narrativas so _usa suffix charts inherit from parent key
+    if "mariana_cenarios_usa" not in charts_narrativas and "mariana_cenarios" in charts_narrativas:
+        charts_narrativas["mariana_cenarios_usa"] = charts_narrativas["mariana_cenarios"]
+
+    if usa_sections:
+        print("  [LAYOUT] Rendering USA sections from report_layout.yaml")
+        for section_cfg in usa_sections:
+            section_id = section_cfg.get("id", "")
+            enabled = section_cfg.get("enabled", True)
+            section_num = int(section_id.replace("U", "")) if section_id.startswith("U") else 0
+
+            if not enabled:
+                replacements[f"{{{{CONTENT_U{section_num}}}}}"] = ""
+                print(f"  [LAYOUT] {section_id} — DISABLED")
+                continue
+
+            html = ""
+
+            chart_cfgs = [c for c in section_cfg.get("charts", []) if c.get("enabled", True)]
+            for chart_cfg in chart_cfgs:
+                chart_key = chart_cfg.get("id", "")
+                chart_title = CHART_TITLES.get(chart_key, chart_key.replace('_', ' ').title())
+                html += chart_html(chart_key, chart_title, charts_narrativas) + "\n"
+
+            for card_cfg in section_cfg.get("cards", []):
+                card_id = card_cfg.get("id", "")
+                if not card_cfg.get("enabled", True):
+                    continue
+                builder = CARD_BUILDERS.get(card_id)
+                if builder:
+                    card_out = builder(e4)
+                    variant = card_cfg.get("variant", "")
+                    size = card_cfg.get("size", "full")
+                    card_out = _apply_card_variant(card_out, variant, size)
+                    html += card_out + "\n"
+                else:
+                    print(f"  [WARN] Card builder not found for '{card_id}' in USA mode")
+
+            replacements[f"{{{{CONTENT_U{section_num}}}}}"] = html.rstrip()
+            print(f"  [LAYOUT] {section_id} — OK ({len(chart_cfgs)} charts, {len(section_cfg.get('cards', []))} cards)")
+    else:
+        print("  [USA] No layout config — using fallback empty placeholders")
+
+    for i in range(1, 5):
+        key = f"{{{{CONTENT_U{i}}}}}"
+        if key not in replacements:
+            replacements[key] = ""
+
     return replacements
 
 # ============================================================================
@@ -3412,11 +3481,13 @@ def validate_report(html: str, report_data_json: str) -> dict:
         results["V4"]["passed"] = False
         results["V4"]["detail"] = f"Found {canvas_count} canvases, expected 19"
 
-    # V5: Sections (9+ in template, we build 9-10)
+    # V5: Sections (strategic S1-S4,S7-S10 = 8, plus USA U1-U4 = 4, total 12)
     section_count = len(re.findall(r'id="secao-\d+"', html))
-    if section_count < 9:
+    usa_section_count = len(re.findall(r'id="usa-\d+"', html))
+    total_sections = section_count + usa_section_count
+    if total_sections < 9:
         results["V5"]["passed"] = False
-        results["V5"]["detail"] = f"Found {section_count} sections, expected 9+"
+        results["V5"]["detail"] = f"Found {total_sections} sections (S:{section_count} + U:{usa_section_count}), expected 9+"
 
     # V6: Appendices
     app_count = len(re.findall(r'id="apendice-[a-e]"', html))
