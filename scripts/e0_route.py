@@ -151,6 +151,11 @@ def _build_doc_type_patterns() -> list[tuple[re.Pattern, str, str]]:
 
 DOC_TYPE_PATTERNS = _build_doc_type_patterns()
 
+_doc_type_examples = sorted(
+    set(p[1] for p in DOC_TYPE_PATTERNS) | set(INST_CONFIG.get("tipo_aliases", {}).keys())
+)
+_DOC_TYPE_LIST = ", ".join(_doc_type_examples)
+
 # Period extraction regex — from config
 _period_cfg = PIPE_CONFIG.get("period_regex", {})
 PERIOD_RE = re.compile(_period_cfg.get("period", r"(\d{6})(?:_(\d{6}))?"))
@@ -336,7 +341,7 @@ Conteúdo (preview):
 Classifique o arquivo retornando APENAS um JSON válido (sem markdown) com estes campos:
 {{
   "institution": "código da instituição (c6bank, itau, santander, bradesco, btgpactual, rico, picpay, wise, bankofamerica, quintoandar, binance, receitafederal) ou null",
-  "doc_type": "código do tipo (extratoconta, extratopoupanca, faturacarbon, faturaunique, faturapaoacucar, investimentosposicao, cdbdetalhes, cdbresumo, irpfdeclaracao, irpfrecibo, informerendimentos, holerite, curriculo, rg, cpf, passaporte, dados_imoveis, dados_veiculos, faturaaluguelcalixto, faturaaluguelmajorfreire, etc.)",
+  "doc_type": "código do tipo ({_DOC_TYPE_LIST}, etc.)",
   "dest_group": "financial_statements | income_tax_br | real_estate | vehicles | members | income_tax_us",
   "period": "YYYYMM ou YYYYMM_YYYYMM ou YYYY",
   "member": "{member_options} | null",
@@ -396,9 +401,11 @@ def file_hash(filepath: Path) -> str:
 
 def build_final_name(classification: dict, original_ext: str) -> str:
     """Build the standardized filename from classification result."""
-    # If LLM gave a final_name, use it
+    # If LLM gave a final_name, sanitize and use it
     if classification.get("source") == "llm" and classification.get("final_name"):
-        return classification["final_name"]
+        sanitized = Path(classification["final_name"]).name
+        if sanitized and ".." not in sanitized:
+            return sanitized
 
     parts = []
     dest_group = classification["dest_group"]
@@ -590,7 +597,11 @@ def route_all(base: Path | None = None, *, dry_run: bool = False,
 
     # Collect files (skip hidden, skip directories)
     if file_filter:
-        files = [inbox / file_filter]
+        target = (inbox / file_filter).resolve()
+        if not str(target).startswith(str(inbox.resolve())):
+            log("ERROR", f"Caminho inválido (fora do inbox): {file_filter}")
+            return {"total": 0, "error": "invalid_path"}
+        files = [target]
         if not files[0].exists():
             log("ERROR", f"Arquivo não encontrado: {file_filter}")
             return {"total": 0, "error": "file_not_found"}

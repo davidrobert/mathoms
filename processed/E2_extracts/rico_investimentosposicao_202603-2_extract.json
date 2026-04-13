@@ -1,102 +1,117 @@
 {
   "tipo": "investimentosposicao",
-  "banco": "rico",
+  "instituicao": "Rico",
   "membro": "david",
-  "data_posicao": "2026-03",
+  "data_posicao": "2026-03-29",
   "moeda": "BRL",
+  "total_aplicado": 261730.24,
+  "saldo_atual": 278916.64,
+  "saldo_disponivel": 17186.4,
   "composicao": [
     {
-      "product_type": "Fundo",
-      "name": "Alaska Block FIC de FIA - BDR NIVEL I",
-      "issuer": "Alaska",
-      "applied_value": 60000.0,
-      "current_value": 52443.66,
-      "quantity": null,
-      "rate": "Renda Variável Brasil"
+      "tipo_produto": "fundo",
+      "nome": "Alaska Black FIC de FIA - BDR NÍVEL I",
+      "valor_total": 52443.66,
+      "percentual_carteira": 18.8,
+      "valor_aplicado": 60000.0,
+      "rentabilidade_liquida": -13.24
     },
     {
-      "product_type": "Fundo",
-      "name": "Alaska Institucional Long Only FIF em Ações RL",
-      "issuer": "Alaska",
-      "applied_value": 35000.0,
-      "current_value": 52294.2,
-      "rate": "Renda Variável Brasil"
+      "tipo_produto": "fundo",
+      "nome": "Alaska Institucional Long Only FIF em Ações RL",
+      "valor_total": 52294.2,
+      "percentual_carteira": 18.75,
+      "valor_aplicado": 35000.0,
+      "rentabilidade_liquida": 42.0
     },
     {
-      "product_type": "Fundo",
-      "name": "Safari 30 FIF em Cotas de FIM II",
-      "issuer": "Safari",
-      "applied_value": 25238.59,
-      "current_value": 16613.5,
-      "rate": "Renda Variável Brasil"
+      "tipo_produto": "fundo",
+      "nome": "Safari 30 FIF em Cotas de FIM II",
+      "valor_total": 16613.5,
+      "percentual_carteira": 5.96,
+      "valor_aplicado": 25238.59,
+      "rentabilidade_liquida": -34.17
     },
     {
-      "product_type": "Fundo",
-      "name": "Constellation Institucional Advisory FIC de Ações RL",
-      "issuer": "Constellation",
-      "applied_value": 10000.0,
-      "current_value": 12585.32,
-      "rate": "Renda Variável Brasil"
+      "tipo_produto": "fundo",
+      "nome": "Constellation Institucional Advisory FIC de Ações RL",
+      "valor_total": 12585.32,
+      "percentual_carteira": 4.51,
+      "valor_aplicado": 10000.0,
+      "rentabilidade_liquida": 24.09
     },
     {
-      "product_type": "Fundo",
-      "name": "Western Asset BDR FIF",
-      "issuer": "Western Asset",
-      "applied_value": 17651.61,
-      "current_value": 25913.09,
-      "rate": "Renda Variável Global"
+      "tipo_produto": "fundo",
+      "nome": "Western Asset BDR FIF",
+      "valor_total": 25913.09,
+      "percentual_carteira": 9.29,
+      "valor_aplicado": 17651.61,
+      "rentabilidade_liquida": 39.78
     },
     {
-      "product_type": "Fundo",
-      "name": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
-      "issuer": "Hashdex",
-      "applied_value": 2008.21,
-      "current_value": 3264.13,
-      "rate": "Alternativos"
+      "tipo_produto": "fundo",
+      "nome": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
+      "valor_total": 3264.13,
+      "percentual_carteira": 1.17,
+      "valor_aplicado": 2008.21,
+      "rentabilidade_liquida": 62.54
     },
     {
-      "product_type": "Fundo",
-      "name": "XP Alocação Sofisticado FIM CP RL",
-      "issuer": "XP",
-      "applied_value": 1356.59,
-      "current_value": 1576.08,
-      "rate": "Multimercado"
+      "tipo_produto": "fundo",
+      "nome": "XP Alocação Sofisticada FIM CP RL",
+      "valor_total": 1576.08,
+      "percentual_carteira": 0.57,
+      "valor_aplicado": 1356.59,
+      "rentabilidade_liquida": 16.18
     },
     {
-      "product_type": "Acao",
-      "name": "PETR4",
-      "issuer": "Petrobrás",
-      "quantity": null,
-      "unit_price": 49.38,
-      "current_value": 43946.0,
-      "pm_note": "Applied value not provided in source"
+      "tipo_produto": "acao",
+      "nome": "PETR4",
+      "issuer": "Petrobras PN",
+      "quantidade": 1700,
+      "valor_unitario": 49.38,
+      "valor_total": 83946.0,
+      "percentual_carteira": 30.1,
+      "applied_value": null,
+      "pm_note": "PM não disponível no extrato Rico. Histórico: 400x R$16,67 + 900x R$22,11 + 400x R$30,79. PM estimado: R$22,87."
     },
     {
-      "product_type": "Acao",
-      "name": "ITSA4",
-      "issuer": "Itaúsa",
-      "quantity": null,
-      "unit_price": 13.22,
-      "current_value": 10285.16,
-      "pm_note": "Applied value not provided in source"
+      "tipo_produto": "acao",
+      "nome": "ITSA4",
+      "issuer": "Itaúsa PN",
+      "quantidade": 778,
+      "valor_unitario": 13.22,
+      "valor_total": 10285.16,
+      "percentual_carteira": 3.69,
+      "applied_value": null,
+      "pm_note": "PM não disponível. Compra 693x R$8,40 + bonificação → 763 cotas (IRPF). Posição atual 778 (diferença de 15 cotas vs IRPF, possivelmente bonificação adicional)."
     },
     {
-      "product_type": "Acao",
-      "name": "BBKM5",
-      "issuer": "Brookfield Incorporadora",
-      "quantity": null,
-      "unit_price": 9.0,
-      "current_value": 2700.0,
-      "pm_note": "Applied value not provided in source"
-    },
-    {
-      "product_type": "Dividendos",
-      "name": "ITSA4 Dividendos",
-      "issuer": "Itaúsa",
-      "current_value": 109.1,
-      "pm_note": "Cash dividends from shares"
+      "tipo_produto": "acao",
+      "nome": "BRKM5",
+      "issuer": "Braskem PNA",
+      "quantidade": 300,
+      "valor_unitario": 9.0,
+      "valor_total": 2700.0,
+      "percentual_carteira": 0.97,
+      "applied_value": null,
+      "pm_note": "PM não disponível. Compra original 300x R$20,89 = R$6.267. Posição mantida."
     }
   ],
-  "saldo_atual": 278916.64,
-  "rentabilidade_acumulada": null
+  "proventos": [
+    {
+      "ativo": "ITSA4",
+      "tipo": "JCP",
+      "quantidade": 778,
+      "valor_bruto": 90.24,
+      "valor_liquido": 74.45
+    },
+    {
+      "ativo": "ITSA4",
+      "tipo": "JCP",
+      "quantidade": 778,
+      "valor_bruto": 18.86,
+      "valor_liquido": 15.56
+    }
+  ]
 }

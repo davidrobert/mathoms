@@ -66,7 +66,23 @@ def _load_titular_dob() -> date:
     print("  ⚠️  data_nascimento do titular não encontrada em family_members.json — usando 01/01 do ano atual como placeholder")
     return date(date.today().year - 40, 1, 1)
 
-DAVID_DOB = _load_titular_dob()
+_TITULAR_DOB = _load_titular_dob()
+
+def _load_conjuge_dob() -> date:
+    """Load conjuge date of birth from family config."""
+    fm_path = PROJECT_DIR / "config" / "family_members.json"
+    if fm_path.exists():
+        with open(fm_path, "r", encoding="utf-8") as f:
+            fm = json.load(f)
+        conjuge_key = next((k for k, v in fm.get("membros", {}).items() if v.get("papel") == "conjuge"), "")
+        if conjuge_key:
+            dob_str = fm["membros"][conjuge_key].get("data_nascimento", "")
+            if dob_str:
+                parts = dob_str.split("-")
+                return date(int(parts[0]), int(parts[1]), int(parts[2]))
+    return None
+
+_CONJUGE_DOB = _load_conjuge_dob()
 TODAY = date.today()
 
 # One-time income keywords and categories (not counted in recorrente)
@@ -131,6 +147,10 @@ _MEMBROS = FAMILY_CONFIG.get("membros", {})
 _CONJUGE_KEY = next((k for k, v in _MEMBROS.items() if v.get("papel") == "conjuge"), "")
 _TITULAR_NOME = _MEMBROS.get(_TITULAR_KEY, {}).get("nome_curto", _TITULAR_KEY.title())
 _CONJUGE_NOME = _MEMBROS.get(_CONJUGE_KEY, {}).get("nome_curto", _CONJUGE_KEY.title())
+
+_KEY_INV_TITULAR = f"investimentos_{_TITULAR_KEY}"
+_KEY_INV_CONJUGE = f"investimentos_{_CONJUGE_KEY}"
+_KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}"
 
 
 # ============================================================================
@@ -255,9 +275,11 @@ def is_one_time_income(descricao: str) -> bool:
 
 
 def calculate_edad(dob: date, reference_date: date = TODAY) -> int:
-    """Calculate age in years."""
-    delta = reference_date - dob
-    return delta.days // 365
+    """Calculate age in years (calendar-accurate)."""
+    age = reference_date.year - dob.year
+    if (reference_date.month, reference_date.day) < (dob.month, dob.day):
+        age -= 1
+    return age
 
 
 def linear_interpolate(val: float, min_val: float, max_val: float) -> float:
@@ -274,7 +296,7 @@ def linear_interpolate(val: float, min_val: float, max_val: float) -> float:
 
 def _resolve_members(baseline: Dict[str, Any]) -> tuple:
     """Resolve members from baseline, handling multiple formats:
-    1. Dict format: members/membros as dict with david/mariana sub-dicts
+    1. Dict format: members/membros as dict with titular/conjuge sub-dicts
     2. List-of-dicts format: membros as list of dicts with "nome" key
     3. E1.5 declarations format: membros as list of strings + declarations[]
     4. Consolidated format: top-level imoveis_consolidados, etc.
@@ -310,7 +332,7 @@ def _resolve_members(baseline: Dict[str, Any]) -> tuple:
 
 
 def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
-    """Build synthetic david/mariana member dicts from E1.5 declarations format.
+    """Build synthetic titular/conjuge member dicts from E1.5 declarations format.
 
     The E1.5 baseline has declarations[] where each declaration contains
     bens_direitos[] using IRPF grupo/codigo classification:
@@ -428,7 +450,7 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
 
 
 def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
-    """Build synthetic david/mariana member dicts from the v1.5 consolidated
+    """Build synthetic titular/conjuge member dicts from the v1.5 consolidated
     baseline format (top-level lists keyed by imoveis_consolidados, etc.).
 
     Handles TWO key naming conventions from E1.5:
@@ -443,7 +465,7 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
 
     Proprietário field resolution:
       - proprietario (string)
-      - proprietarios (list) — assigns to David unless Mariana listed exclusively
+      - proprietarios (list) — assigns to titular unless conjuge listed exclusively
     """
     # --- Determine ano_ref and totals ---
     # Try original format first, then E1.5 v2
@@ -630,7 +652,7 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
 
     # Sanity check: synthetic totals vs summary totals
     synthetic_total = david_bens_total + mariana_bens_total
-    print(f"  [E5.1] Synthetic total_bens: R$ {synthetic_total:,.2f} (David: R$ {david_bens_total:,.2f}, Mariana: R$ {mariana_bens_total:,.2f})")
+    print(f"  [E5.1] Synthetic total_bens: R$ {synthetic_total:,.2f} ({_TITULAR_NOME}: R$ {david_bens_total:,.2f}, {_CONJUGE_NOME}: R$ {mariana_bens_total:,.2f})")
 
     if total_bens > 0 and abs(synthetic_total - total_bens) > 1.0:
         print(f"  [INFO] Synthetic total_bens (R$ {synthetic_total:,.2f}) vs resumo_patrimonial (R$ {total_bens:,.2f})")
@@ -837,8 +859,8 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
         # Use current E2-llm position extracts (more recent than IRPF)
         fonte_investimentos = "posicoes_atuais"
         totais = investimentos_atuais.get("total_por_membro", {})
-        investimentos_david = safe_float(totais.get("david", 0))
-        investimentos_mariana = safe_float(totais.get("mariana", 0))
+        investimentos_david = safe_float(totais.get(_TITULAR_KEY, 0))
+        investimentos_mariana = safe_float(totais.get(_CONJUGE_KEY, 0))
         # Positions without member attribution (membro="") are assigned to titular (david)
         unattributed = safe_float(totais.get("", 0))
         if unattributed > 0:
@@ -847,7 +869,7 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
         n_pos = investimentos_atuais.get("n_posicoes", 0)
         data_ref = investimentos_atuais.get("data_consolidacao", "?")
         print(f"  [INFO] Usando posições atuais ({n_pos} posições, ref: {data_ref})")
-        print(f"  [INFO] David: R$ {investimentos_david:,.2f}, Mariana: R$ {investimentos_mariana:,.2f}")
+        print(f"  [INFO] {_TITULAR_NOME}: R$ {investimentos_david:,.2f}, {_CONJUGE_NOME}: R$ {investimentos_mariana:,.2f}")
     else:
         # Fallback to IRPF baseline
         for inv in david_bens.get("investimentos", []):
@@ -929,11 +951,19 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
         {"categoria": "Veículos", "valor": veiculos},
     ]
 
-    # Sort descending, add percentage
+    # Sort descending, add percentage (largest remainder method for sum=100%)
     total_nonzero = sum(c["valor"] for c in composicao)
     if total_nonzero > 0:
-        for comp in composicao:
-            comp["pct"] = round((comp["valor"] / total_nonzero) * 100, 2)
+        raw_pcts = [(c["valor"] / total_nonzero) * 100 for c in composicao]
+        floored = [int(p * 100) / 100.0 for p in raw_pcts]
+        remainders = [(raw_pcts[i] - floored[i], i) for i in range(len(composicao))]
+        remainder_sum = round(100.0 - sum(floored), 2)
+        steps = int(round(remainder_sum / 0.01))
+        remainders.sort(key=lambda x: -x[0])
+        for j in range(min(steps, len(remainders))):
+            floored[remainders[j][1]] += 0.01
+        for i, comp in enumerate(composicao):
+            comp["pct"] = round(floored[i], 2)
         composicao.sort(key=lambda x: x["valor"], reverse=True)
 
     return {
@@ -942,8 +972,8 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
         "liquido": round(patrimonio_liquido, 2),
         "residencia": round(residencia, 2),
         "imoveis_investimento": round(imoveis_investimento, 2),
-        "investimentos_david": round(investimentos_david, 2),
-        "investimentos_mariana": round(investimentos_mariana, 2),
+        _KEY_INV_TITULAR: round(investimentos_david, 2),
+        _KEY_INV_CONJUGE: round(investimentos_mariana, 2),
         "caixa_moeda_estrangeira": round(caixa_moeda_estrangeira, 2),
         "caixa_detalhes": caixa_detalhes if has_current_positions else [],
         "investivel": round(investivel, 2),
@@ -1005,9 +1035,10 @@ def analyze_goals(patrimonio: Dict[str, Any]) -> Dict[str, Any]:
     else:
         prazo_anos = 999
 
-    # David's age at IF
+    # Ages at IF
     anos_restantes = int(prazo_anos)
-    david_idade_if = calculate_edad(DAVID_DOB) + anos_restantes
+    david_idade_if = calculate_edad(_TITULAR_DOB) + anos_restantes
+    conjuge_idade_if = calculate_edad(_CONJUGE_DOB) + anos_restantes if _CONJUGE_DOB else None
     ano_if = TODAY.year + anos_restantes
 
     # Current passive income estimate (4% rule on investível)
@@ -1015,17 +1046,21 @@ def analyze_goals(patrimonio: Dict[str, Any]) -> Dict[str, Any]:
     taxa_retirada = safe_float(_if_cfg.get("taxa_retirada_segura_pct", 4.0)) / 100.0
     renda_passiva_current = investivel * taxa_retirada / 12  # monthly
 
-    return {
+    result = {
         "if_meta": round(if_meta, 2),
         "if_trs": round(if_trs, 2),
         "if_trs_monthly_value": round(if_trs_value, 2),
         "if_pct": round(if_pct, 2),
         "if_gap": round(if_gap, 2),
         "prazo_anos_realista": round(prazo_anos, 1),
+        f"idade_{_TITULAR_KEY}_if": david_idade_if,
         "david_idade_if": david_idade_if,
         "ano_if": ano_if,
         "renda_passiva_estimada_4pct": round(renda_passiva_current, 2),
     }
+    if conjuge_idade_if is not None:
+        result[f"idade_{_CONJUGE_KEY}_if"] = conjuge_idade_if
+    return result
 
 
 # ============================================================================
@@ -1462,16 +1497,16 @@ def analyze_reserva_emergencia(
 
     # Composition of liquid reserves
     # E6 card expects: total_liquido and cobertura_meses inside composicao_liquida
-    inv_david = patrimonio["investimentos_david"]
-    inv_mariana = patrimonio["investimentos_mariana"]
+    inv_david = patrimonio[_KEY_INV_TITULAR]
+    inv_mariana = patrimonio[_KEY_INV_CONJUGE]
     caixa = patrimonio["caixa_moeda_estrangeira"]
     total_liquida = inv_david + inv_mariana + caixa
 
     cobertura_meses = total_liquida / despesa_mensal if despesa_mensal > 0 else 0
 
     composicao_liquida = {
-        "investimentos_david": inv_david,
-        "investimentos_mariana": inv_mariana,
+        _KEY_INV_TITULAR: inv_david,
+        _KEY_INV_CONJUGE: inv_mariana,
         "caixa_moeda_estrangeira": caixa,
         "total_liquido": round(total_liquida, 2),
         "cobertura_meses": round(cobertura_meses, 1),
@@ -2057,6 +2092,7 @@ def analyze_consumo_consciente(fluxo: Dict[str, Any], despesas: Dict[str, Any]) 
                 pontual_candidates.append({
                     "descricao": txn.get("descricao", "N/D"),
                     "conta_cartao": conta_cartao,
+                    "data": txn.get("data", ""),
                     "mes": mes,
                     "valor": round(valor, 2),
                     "categoria": cat,
@@ -2162,27 +2198,27 @@ def analyze_diagnostico_comportamental(fluxo: Dict[str, Any], ratios: Dict[str, 
     return diagnosticos
 
 
-def analyze_cenarios_mariana(
+def analyze_cenarios_conjuge(
     patrimonio: Dict[str, Any],
     goals: Dict[str, Any],
     fluxo: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Compute 3 IF scenarios for Mariana's career path.
+    """Compute 3 IF scenarios for conjuge's career path.
 
     Scenarios:
-      1. Sem Trabalhar — Mariana doesn't work in the US. Aporte reduced by
+      1. Sem Trabalhar — conjuge doesn't work in the US. Aporte reduced by
          simulacao.aporte_reduzido_fator from goals.json.
-      2. Com NCLEX — Mariana works as RN at renda_rn_minima_usd (converted to BRL).
+      2. Com NCLEX — conjuge works as RN at renda_rn_minima_usd (converted to BRL).
       3. Com NCLEX + Green Card — Full earning potential at renda_rn_maxima_usd.
 
     Each scenario computes: aporte_mensal (BRL), prazo_if (years), ano_if, resumo.
     """
-    print("[E5.14b] Analyzing cenários IF — Mariana...")
+    print(f"[E5.14b] Analyzing cenários IF — {_CONJUGE_NOME}...")
 
     _if_cfg = GOALS_CONFIG.get("independencia_financeira", {})
     _aportes_cfg = GOALS_CONFIG.get("aportes", {})
     _sim_cfg = GOALS_CONFIG.get("simulacao", {})
-    _mar_cfg = GOALS_CONFIG.get("mariana_eua", {})
+    _mar_cfg = GOALS_CONFIG.get("cenarios_conjuge", GOALS_CONFIG.get("mariana_eua", {}))
     _taxas_path = PROJECT_DIR / "config" / "taxas.json"
 
     meta_if = goals["if_meta"]
@@ -2206,14 +2242,14 @@ def analyze_cenarios_mariana(
     renda_max_usd = safe_float(_mar_cfg.get("renda_rn_maxima_usd", 7000))
     renda_projetada_usd = safe_float(_mar_cfg.get("renda_rn_projetada_usd", 5500))
 
-    salario_mariana_brl = 0.0
+    salario_conjuge_brl = 0.0
     rmd = fluxo.get("receita_despesa_mensal_detalhado", {})
     for ds in rmd.get("receita_datasets", []):
         label = ds.get("label", "").lower()
         if "clt" in label and _CONJUGE_NOME.lower() in label:
             nonzero = [v for v in ds.get("data", []) if v > 0]
             if nonzero:
-                salario_mariana_brl = sorted(nonzero)[len(nonzero) // 2]
+                salario_conjuge_brl = sorted(nonzero)[len(nonzero) // 2]
                 break
 
     def _compute_prazo(aporte_mensal: float) -> float:
@@ -2231,22 +2267,22 @@ def analyze_cenarios_mariana(
     aporte_s1 = round(aporte_base * fator_reduzido, 2)
     prazo_s1 = round(_compute_prazo(aporte_s1), 1)
 
-    # The fraction of aporte enabled by Mariana's income
-    aporte_mariana_fraction = aporte_base * (1 - fator_reduzido)
+    # The fraction of aporte enabled by conjuge's income
+    aporte_conjuge_fraction = aporte_base * (1 - fator_reduzido)
 
     def _compute_aporte_scenario(renda_nova_brl: float) -> tuple:
-        """Compute aporte for a scenario where Mariana earns renda_nova_brl.
+        """Compute aporte for a scenario where conjuge earns renda_nova_brl.
 
-        Model: restore the Mariana-enabled fraction proportionally,
+        Model: restore the conjuge-enabled fraction proportionally,
         then add 50% of any surplus income above CLT as extra savings
         (capped at 50% of aporte_base).
         """
-        if salario_mariana_brl > 0:
-            recovery = min(1.0, renda_nova_brl / salario_mariana_brl)
+        if salario_conjuge_brl > 0:
+            recovery = min(1.0, renda_nova_brl / salario_conjuge_brl)
         else:
             recovery = 1.0 if renda_nova_brl > 0 else 0.0
-        base = aporte_s1 + aporte_mariana_fraction * recovery
-        surplus = max(0, renda_nova_brl - salario_mariana_brl)
+        base = aporte_s1 + aporte_conjuge_fraction * recovery
+        surplus = max(0, renda_nova_brl - salario_conjuge_brl)
         extra = min(surplus * 0.5, aporte_base * 0.5)
         return round(base + extra, 2), recovery
 
@@ -2265,14 +2301,14 @@ def analyze_cenarios_mariana(
     prazos_if = [prazo_s1, prazo_s2, prazo_s3]
     anos_if = [TODAY.year + int(p) for p in prazos_if]
 
-    idade_david_if = [calculate_edad(DAVID_DOB) + int(p) for p in prazos_if]
+    idade_titular_if = [calculate_edad(_TITULAR_DOB) + int(p) for p in prazos_if]
 
     result = {
         "labels": labels,
         "aportes": aportes,
         "prazos_if": prazos_if,
         "anos_if": anos_if,
-        "idade_david_if": idade_david_if,
+        f"idade_{_TITULAR_KEY}_if": idade_titular_if,
         "premissas": {
             "meta_if": meta_if,
             "investivel_atual": investivel,
@@ -2284,7 +2320,7 @@ def analyze_cenarios_mariana(
             "renda_nclex_brl": round(renda_nclex_brl, 2),
             "renda_gc_usd": renda_max_usd,
             "renda_gc_brl": round(renda_gc_brl, 2),
-            "salario_mariana_clt_brl": salario_mariana_brl,
+            f"salario_{_CONJUGE_KEY}_clt_brl": salario_conjuge_brl,
             "recovery_nclex_pct": round(recovery_nclex * 100, 1),
             "recovery_gc_pct": round(recovery_gc * 100, 1),
         },
@@ -2294,9 +2330,9 @@ def analyze_cenarios_mariana(
                 "aporte_mensal": aportes[0],
                 "prazo_if_anos": prazos_if[0],
                 "ano_if": anos_if[0],
-                "idade_david": idade_david_if[0],
+                f"idade_{_TITULAR_KEY}": idade_titular_if[0],
                 "resumo": (
-                    f"Sem renda da Mariana, aporte cai para R$ {aportes[0]:,.0f}/mês "
+                    f"Sem renda da {_CONJUGE_NOME}, aporte cai para R$ {aportes[0]:,.0f}/mês "
                     f"({fator_reduzido:.0%} do base). IF em {prazos_if[0]:.0f} anos ({anos_if[0]})."
                 ),
             },
@@ -2305,9 +2341,9 @@ def analyze_cenarios_mariana(
                 "aporte_mensal": aportes[1],
                 "prazo_if_anos": prazos_if[1],
                 "ano_if": anos_if[1],
-                "idade_david": idade_david_if[1],
+                f"idade_{_TITULAR_KEY}": idade_titular_if[1],
                 "resumo": (
-                    f"Mariana como RN (US$ {renda_min_usd:,.0f}/mês), aporte sobe para "
+                    f"{_CONJUGE_NOME} como RN (US$ {renda_min_usd:,.0f}/mês), aporte sobe para "
                     f"R$ {aportes[1]:,.0f}/mês. IF em {prazos_if[1]:.0f} anos ({anos_if[1]})."
                 ),
             },
@@ -2316,9 +2352,9 @@ def analyze_cenarios_mariana(
                 "aporte_mensal": aportes[2],
                 "prazo_if_anos": prazos_if[2],
                 "ano_if": anos_if[2],
-                "idade_david": idade_david_if[2],
+                f"idade_{_TITULAR_KEY}": idade_titular_if[2],
                 "resumo": (
-                    f"Mariana como RN sênior/Green Card (US$ {renda_max_usd:,.0f}/mês), "
+                    f"{_CONJUGE_NOME} como RN sênior/Green Card (US$ {renda_max_usd:,.0f}/mês), "
                     f"aporte de R$ {aportes[2]:,.0f}/mês. IF em {prazos_if[2]:.0f} anos ({anos_if[2]})."
                 ),
             },
@@ -2452,7 +2488,7 @@ def main():
     pontos_urgentes = analyze_pontos_urgentes(ratios, reserva, patrimonio)
     consumo = analyze_consumo_consciente(fluxo, despesas)
     diagnostico = analyze_diagnostico_comportamental(fluxo, ratios)
-    cenarios_mariana = analyze_cenarios_mariana(patrimonio, goals, fluxo)
+    cenarios_conjuge = analyze_cenarios_conjuge(patrimonio, goals, fluxo)
     cerbasi = analyze_equilibrio_cerbasi(fluxo)
 
     # Parse tarefas.md (curated backlog) — falls back to pontos_urgentes if file missing
@@ -2493,7 +2529,7 @@ def main():
         ] + ([f"Rentabilidade: {ratios['rentabilidade_pct']}"] if ratios['rentabilidade_pct'] == 'N/D' else []),
         "consumo_consciente": consumo,
         "diagnostico_comportamental": diagnostico,
-        "cenarios_mariana": cenarios_mariana,
+        _KEY_CENARIOS_CONJUGE: cenarios_conjuge,
         "programa_milhas": programa_milhas,
     }
 

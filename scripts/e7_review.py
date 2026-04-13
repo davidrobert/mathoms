@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """
 E7 Review & Refine — Post-report holistic review with persona-driven analysis
 
@@ -46,7 +47,7 @@ SCORING_CONFIG_PATH = PROJECT_DIR / "config" / "scoring.json"
 PIPELINE_CONFIG_PATH = PROJECT_DIR / "config" / "pipeline.json"
 REPORT_SPEC_PATH = PROJECT_DIR / "config" / "report_spec.md"
 OUTPUT_DIR = PROJECT_DIR / "output"
-REVIEW_TEMPLATE_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "e7_review_template.json"
+REVIEW_TEMPLATE_PATH = PROJECT_DIR / "processed" / "E7_review" / "e7_review_template.json"
 
 def _load_json_config(path: Path) -> dict:
     if path.exists():
@@ -888,6 +889,7 @@ Exemplos:
     template = build_review_template(e5, cv_results, persona)
 
     if not dry_run:
+        REVIEW_TEMPLATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         with open(REVIEW_TEMPLATE_PATH, "w", encoding="utf-8") as f:
             json.dump(template, f, indent=2, ensure_ascii=False)
         print(f"  Template salvo em: {REVIEW_TEMPLATE_PATH.relative_to(PROJECT_DIR)}")

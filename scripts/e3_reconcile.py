@@ -46,19 +46,41 @@ ACCOUNT_TYPE_EQUIVALENCES = _load_account_type_equivalences()
 # ---------------------------------------------------------------------------
 # Config loader — pipeline.json
 # ---------------------------------------------------------------------------
-def _load_json_config(path: Path, label: str = "") -> dict:
-    if path.exists():
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"  ⚠️  Error loading {label or path.name}: {e}")
-    else:
-        print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
-    return {}
+try:
+    from scripts.pipeline_common import load_json_config as _load_pipeline_config
+    PIPE_CONFIG = _load_pipeline_config("pipeline.json")
+except ImportError:
+    def _load_json_config(path: Path, label: str = "") -> dict:
+        if path.exists():
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"  ⚠️  Error loading {label or path.name}: {e}")
+        return {}
+    PIPE_CONFIG = _load_json_config(
+        Path(__file__).resolve().parent.parent / "config" / "pipeline.json",
+        "pipeline.json",
+    )
 
 _BASE_DIR = Path(__file__).resolve().parent.parent
-PIPE_CONFIG = _load_json_config(_BASE_DIR / "config" / "pipeline.json", "pipeline.json")
+
+# Display name → canonical code (from institutions.json)
+def _load_banco_canonical_reverse() -> Dict[str, str]:
+    """Build reverse map: display name (lowercase) → canonical code."""
+    config_path = _BASE_DIR / 'config' / 'institutions.json'
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        mapping = {}
+        for code, display in data.get('banco_canonical', {}).items():
+            mapping[display.lower()] = code
+        return mapping
+    except Exception:
+        return {}
+
+_BANCO_DISPLAY_TO_CANONICAL = _load_banco_canonical_reverse()
+
 _recon_cfg = PIPE_CONFIG.get("reconciliation", {})
 
 # File types that should be skipped (not transaction-bearing accounts) — from config
@@ -363,10 +385,12 @@ def _normalize_description_for_dedup(descricao: str) -> str:
 def transaction_signature(txn: Dict[str, Any]) -> Tuple:
     """
     Create a normalized signature for deduplication.
-    Signature = (data, valor, descricao_normalized)
+    Signature = (data, valor_rounded, descricao_normalized)
     """
     data = txn.get('data', '').strip()
     valor = txn.get('valor', 0)
+    if isinstance(valor, float):
+        valor = round(valor, 2)
     descricao = _normalize_description_for_dedup(txn.get('descricao', ''))
 
     return (data, valor, descricao)
@@ -386,45 +410,10 @@ def deduplicate_transactions(
 
     Returns: (deduplicated_list, count_removed)
     """
-    # Group transactions by signature
-    # For each signature, track: list of (txn, source_file) tuples
-    sig_groups: Dict[Tuple, List[Tuple[Dict[str, Any], str]]] = defaultdict(list)
-
-    for txn, source_file in transactions_with_sources:
-        sig = transaction_signature(txn)
-        sig_groups[sig].append((txn, source_file))
-
     deduplicated = []
     duplicates_removed = 0
 
-    for sig, group in sig_groups.items():
-        # Collect unique source files for this signature
-        seen_sources = set()
-        for txn, source_file in group:
-            if source_file not in seen_sources:
-                # First occurrence from this source file — keep it
-                seen_sources.add(source_file)
-                deduplicated.append(txn)
-            else:
-                # Same source file, same signature — this is a legitimate
-                # intra-file duplicate (e.g., two identical purchases).
-                # Keep it.
-                deduplicated.append(txn)
-
-        # Count cross-file duplicates removed:
-        # Total occurrences minus (unique sources × avg occurrences per source)
-        # Simpler: total kept = sum of per-source counts; removed = total - kept
-        # But we kept ALL within each source. So removed = total - len(deduplicated added)
-        # Actually: we kept one copy per source. Cross-file dups = extra sources.
-        # Let me recalculate: for this sig, we have N total entries across S unique sources.
-        # We keep all entries from the FIRST source we encounter, plus one from each additional.
-        # No — we keep ALL from every source. That's wrong for cross-file dedup.
-
-    # Re-approach: cleaner logic
-    deduplicated = []
-    duplicates_removed = 0
-
-    # First pass: group by (signature, source_file) to count per-file occurrences
+    # Group by (signature, source_file) to count per-file occurrences
     per_file_counts: Dict[Tuple, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
     per_file_txns: Dict[Tuple, Dict[str, List[Dict[str, Any]]]] = defaultdict(lambda: defaultdict(list))
 
@@ -905,7 +894,8 @@ def generate_output_filename(reconciled: Dict[str, Any]) -> str:
     For conta types: {banco}_{tipo_conta}_{moeda}_{YYYYMM}_{YYYYMM}-3_reconciled.json
     For fatura types: {banco}_{tipo_conta}_{YYYYMM}_{YYYYMM}-3_reconciled.json
     """
-    banco = reconciled['banco'].lower().replace(' ', '_')
+    banco_raw = reconciled['banco'].strip()
+    banco = _BANCO_DISPLAY_TO_CANONICAL.get(banco_raw.lower(), banco_raw.lower().replace(' ', ''))
     tipo_conta = reconciled['tipo_conta'].lower()
     moeda = reconciled['moeda'].upper()
 

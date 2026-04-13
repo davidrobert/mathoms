@@ -1,1 +1,19 @@
-{}
+{
+  "tipo": "irpfdeclaracao",
+  "ano_base": 2023,
+  "declarante": {
+    "nome": "MARIANA TEIXEIRA FERREIRA",
+    "cpf": "085.052.396-60"
+  },
+  "data_declaracao": "2024-05-01",
+  "totalizadores": {
+    "bens_totais": 811301.24,
+    "dividas_totais": 0.0,
+    "renda_tributavel": 152292.83,
+    "imposto_devido": 26715.95,
+    "imposto_pago": 26255.09,
+    "saldo": 460.86,
+    "aliquota_efetiva": 17.54
+  },
+  "observacoes": "Declaração Mariana sob nome de solteira. Dados completos no baseline."
+}

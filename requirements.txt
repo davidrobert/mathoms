@@ -1,0 +1,25 @@
+# Pipeline Financeiro — Python dependencies
+# Install: pip install -r requirements.txt
+
+# PDF extraction
+pdfplumber>=0.10
+pikepdf>=8.0
+
+# Spreadsheet parsing
+xlrd>=2.0
+openpyxl>=3.1
+
+# HTML parsing (Itaú CDB HTML-as-XLS)
+beautifulsoup4>=4.12
+
+# YAML (E6 render, config)
+PyYAML>=6.0
+
+# Timezone handling
+pytz>=2024.1
+
+# LLM routing (optional — E0 route fallback)
+# anthropic>=0.30
+
+# Schema validation (optional)
+# jsonschema>=4.20

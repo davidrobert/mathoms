@@ -102,5 +102,6 @@
     }
   ],
   "cartoes": [],
-  "parse_quality": "ok"
+  "parse_quality": "ok",
+  "notas": []
 }

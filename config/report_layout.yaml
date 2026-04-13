@@ -47,6 +47,8 @@ estrategico:
           enabled: true
         - id: "waterfall_if"
           enabled: true
+        - id: "score_gauge"
+          enabled: true
       cards:
         - id: "patrimonio_categorias"
           enabled: true
@@ -80,7 +82,7 @@ estrategico:
           enabled: true
         - id: "receita_despesa_mensal"
           enabled: true
-        - id: "score_gauge"
+        - id: "viagens"
           enabled: true
       cards:
         - id: "orcamento_prospectivo"
@@ -94,9 +96,13 @@ estrategico:
         - id: "diagnostico_comportamental"
           enabled: true
           variant: "primary"
-          size: "full"
-        - id: "milhas"
+          size: "half"
+        - id: "equilibrio_cerbasi"
           enabled: true
+          variant: "highlight"
+          size: "half"
+        - id: "milhas"
+          enabled: false
           variant: "feature"
           size: "half"
 
@@ -116,8 +122,6 @@ estrategico:
         - id: "top15_ativos"
           enabled: true
         - id: "mariana_cenarios"
-          enabled: true
-        - id: "viagens"
           enabled: true
       cards:
         - id: "investimentos_classe"
@@ -205,8 +209,8 @@ estrategico:
           enabled: true
           variant: "critical"
           size: "half"
-        - id: "equilibrio_cerbasi"
-          enabled: true
+        - id: "equilibrio_cerbasi_ref"
+          enabled: false
           variant: "highlight"
           size: "full"
 
@@ -425,6 +429,11 @@ chart_palette:
   - "#FFB703"
   - "#7C3AED"
   - "#219EBC"
+  - "#6366F1"
+  - "#EC4899"
+  - "#84CC16"
+  - "#F97316"
+  - "#8B5CF6"
 
 # ==============================================================================
 # MAPEAMENTO: chart key → canvas ID (usado pelo template JS)

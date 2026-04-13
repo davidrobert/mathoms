@@ -3,19 +3,19 @@
   "_ultima_atualizacao": "2026-04-09",
 
   "banco_canonical": {
-    "bankofamerica": "bank of america",
-    "btgpactual": "btg pactual",
-    "c6bank": "c6 bank",
-    "picpay": "picpay",
-    "bradesco": "bradesco",
-    "itau": "itaú",
-    "santander": "santander",
-    "rico": "rico",
-    "wise": "wise",
-    "binance": "binance",
-    "receitafederal": "receita federal",
-    "quintoandar": "quintoandar",
-    "einstein": "einstein"
+    "bankofamerica": "Bank of America",
+    "btgpactual": "BTG Pactual",
+    "c6bank": "C6 Bank",
+    "picpay": "PicPay",
+    "bradesco": "Bradesco",
+    "itau": "Itaú",
+    "santander": "Santander",
+    "rico": "Rico",
+    "wise": "Wise",
+    "binance": "Binance",
+    "receitafederal": "Receita Federal",
+    "quintoandar": "QuintoAndar",
+    "einstein": "Einstein"
   },
 
   "tipo_aliases": {
@@ -114,9 +114,9 @@
   },
 
   "cartoes": {
-    "faturacarbon": {"banco": "C6 Bank", "dia_vencimento": 5},
-    "faturaunique": {"banco": "Santander", "dia_vencimento": 6},
-    "faturapaoacucar": {"banco": "Itaú", "dia_vencimento": 6}
+    "faturacarbon": {"banco": "C6 Bank", "dia_vencimento": 5, "nome_cartao": "Carbon"},
+    "faturaunique": {"banco": "Santander", "dia_vencimento": 6, "nome_cartao": "Unique"},
+    "faturapaoacucar": {"banco": "Itaú", "dia_vencimento": 6, "nome_cartao": "Pão de Açúcar"}
   },
 
   "investment_banks": ["btg pactual", "rico", "picpay", "binance", "xp"],

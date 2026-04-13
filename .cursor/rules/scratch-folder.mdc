@@ -1,0 +1,33 @@
+---
+description: Use _scratch/ for temporary artifacts (scripts, reports, logs) generated during pipeline execution
+alwaysApply: true
+---
+
+# Pasta _scratch/ para artefatos temporários
+
+Ao gerar arquivos temporários durante execução de pipeline — scripts intermediários, relatórios de execução, logs, manifestos, summaries — **sempre salve em `_scratch/`** na raiz do projeto.
+
+## O que vai em `_scratch/`
+
+- Scripts de processamento descartáveis (ex: `stage_e2_processor.py`)
+- Relatórios de execução (ex: `E2_EXECUTION_REPORT.md`)
+- Summaries e manifestos (ex: `STAGE_E1_5_SUMMARY.txt`)
+- Qualquer arquivo intermediário que não faz parte do output final
+
+## O que NÃO vai em `_scratch/`
+
+- Scripts permanentes do projeto → `scripts/`
+- Output final do pipeline → `output/`
+- Configurações → `config/`
+- Dados fonte → `data/`
+- Logs de execução permanentes → `logs/`
+
+## Regra
+
+```
+# Antes de criar um arquivo temporário na raiz:
+_scratch/meu_relatorio.md     ← CORRETO
+./meu_relatorio.md            ← ERRADO (polui a raiz)
+```
+
+A pasta `_scratch/` está no `.gitignore` e pode ser limpa a qualquer momento.

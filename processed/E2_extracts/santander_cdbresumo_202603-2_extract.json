@@ -1,33 +1,28 @@
 {
-  "tipo": "cdbresumo",
-  "banco": "santander",
+  "tipo": "investimentosposicao",
+  "instituicao": "Santander",
   "membro": "david",
-  "data_posicao": "2026-03",
-  "posicoes": [
+  "data_posicao": "2026-03-29",
+  "moeda": "BRL",
+  "saldo_atual": 299477.93,
+  "composicao": [
     {
-      "product_type": "CDB DI",
-      "applied_value": 137409.67,
-      "current_value": 137409.67,
-      "rate": "100% CDI",
-      "maturity_date": "2028-06-05",
-      "acquisition_date": "2024-06-26"
+      "tipo_produto": "CDB",
+      "nome": "CDB DI SANTANDER (op. 06380267)",
+      "valor_total": 137409.67,
+      "disponivel_resgate": 132662.92
     },
     {
-      "product_type": "CDB DI",
-      "applied_value": 101522.74,
-      "current_value": 101522.74,
-      "rate": "100% CDI",
-      "maturity_date": "2028-08-09",
-      "acquisition_date": "2024-08-30"
+      "tipo_produto": "CDB",
+      "nome": "CDB DI SANTANDER (op. 06541929)",
+      "valor_total": 101522.74,
+      "disponivel_resgate": 98281.27
     },
     {
-      "product_type": "CDB Progressivo",
-      "applied_value": 60545.52,
-      "current_value": 60545.52,
-      "rate": "95% CDI",
-      "maturity_date": "2028-08-09",
-      "acquisition_date": "2024-08-30"
+      "tipo_produto": "CDB",
+      "nome": "CDB PROG SANTANDER (op. 06541912)",
+      "valor_total": 60545.52,
+      "disponivel_resgate": 58700.06
     }
-  ],
-  "saldo_atual": 299477.93
+  ]
 }

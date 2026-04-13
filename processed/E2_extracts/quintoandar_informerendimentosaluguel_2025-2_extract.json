@@ -1,1 +1,25 @@
-{}
+{
+  "tipo": "informerendimentos",
+  "instituicao": "QuintoAndar",
+  "membro": "david",
+  "ano_base": 2025,
+  "total_alugueis_bruto": 36335.43,
+  "total_descontos": 4930.03,
+  "rendimento_liquido": 31405.4,
+  "imoveis": [
+    {
+      "endereco": "Rua Major Freire 496 - Ed Gisele Ap 12, SP",
+      "locatario": "Gabriel Ortega Mischi",
+      "total_bruto": 18543.82,
+      "total_descontos": 1576.19,
+      "rendimento_liquido": 16967.63
+    },
+    {
+      "endereco": "Praça Benedito Calixto 186 - 34, SP",
+      "locatario": "Caroline Coimbra Cardoso",
+      "total_bruto": 17791.61,
+      "total_descontos": 3353.84,
+      "rendimento_liquido": 14437.77
+    }
+  ]
+}

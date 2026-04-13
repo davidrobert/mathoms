@@ -154,6 +154,18 @@ def try_unlock(pdf_path: Path, passwords: list[str], dry_run: bool = False) -> b
 
 # ---------- ZIP functions ----------
 
+def _safe_extractall(zf: zipfile.ZipFile, dest_dir: Path, pwd: bytes | None = None) -> None:
+    """Extract ZIP members with path traversal validation (zip slip protection)."""
+    dest_resolved = dest_dir.resolve()
+    for member in zf.infolist():
+        member_path = (dest_dir / member.filename).resolve()
+        if not str(member_path).startswith(str(dest_resolved)):
+            raise ValueError(
+                f"ZIP member '{member.filename}' resolves outside destination "
+                f"directory — possible zip slip attack. Aborting extraction."
+            )
+    zf.extractall(dest_dir, pwd=pwd)
+
 def is_zip_encrypted(zip_path: Path) -> bool:
     """Verifica se o ZIP está protegido por senha."""
     try:
@@ -199,7 +211,7 @@ def try_extract_zip(zip_path: Path, passwords: list[str], dry_run: bool = False)
                     for info in file_list:
                         print(f"      → {info.filename}")
                     return True
-                zf.extractall(dest_dir)
+                _safe_extractall(zf, dest_dir)
                 print(f"  ✓ Extraído (sem senha) — {len(file_list)} arquivo(s)")
                 for info in file_list:
                     print(f"      → {info.filename}")
@@ -219,7 +231,7 @@ def try_extract_zip(zip_path: Path, passwords: list[str], dry_run: bool = False)
                         for info in file_list:
                             print(f"      → {info.filename}")
                         return True
-                    zf.extractall(dest_dir, pwd=pw_bytes)
+                    _safe_extractall(zf, dest_dir, pwd=pw_bytes)
                     print(f"  ✓ Extraído com senha — {len(file_list)} arquivo(s)")
                     for info in file_list:
                         print(f"      → {info.filename}")
@@ -340,7 +352,11 @@ def main():
 
     # ==================== ZIPs ====================
     if args.file and args.file.lower().endswith(".zip"):
-        zip_files = [INBOX / args.file]
+        target = (INBOX / args.file).resolve()
+        if not str(target).startswith(str(INBOX.resolve())):
+            print(f"ERRO: Caminho inválido (fora do inbox): {args.file}")
+            sys.exit(1)
+        zip_files = [target]
         if not zip_files[0].exists():
             print(f"ERRO: Arquivo não encontrado: {zip_files[0]}")
             sys.exit(1)
@@ -376,7 +392,10 @@ def main():
 
     # ==================== PDFs ====================
     if args.file and not args.file.lower().endswith(".zip"):
-        target = INBOX / args.file
+        target = (INBOX / args.file).resolve()
+        if not str(target).startswith(str(INBOX.resolve())):
+            print(f"ERRO: Caminho inválido (fora do inbox): {args.file}")
+            sys.exit(1)
         if not target.exists():
             print(f"ERRO: Arquivo não encontrado: {target}")
             sys.exit(1)

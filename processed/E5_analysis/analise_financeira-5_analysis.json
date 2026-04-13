@@ -1,6 +1,6 @@
 {
   "periodo_dados": "2023-01 a 2026-04",
-  "data_analise": "2026-04-10",
+  "data_analise": "2026-04-13",
   "patrimonio": {
     "bruto": 4012801.23,
     "dividas": 234792.61,
@@ -96,7 +96,7 @@
       {
         "categoria": "Investimentos Mariana",
         "valor": 375384.56,
-        "pct": 9.35
+        "pct": 9.36
       },
       {
         "categoria": "Veículos",
@@ -128,7 +128,7 @@
       {
         "categoria": "Investimentos Mariana",
         "valor": 375384.56,
-        "pct": 9.35
+        "pct": 9.36
       },
       {
         "categoria": "Veículos",
@@ -150,9 +150,11 @@
     "if_pct": 38.73,
     "if_gap": 4411496.23,
     "prazo_anos_realista": 8.5,
+    "idade_david_if": 52,
     "david_idade_if": 52,
     "ano_if": 2034,
-    "renda_passiva_estimada_4pct": 9295.01
+    "renda_passiva_estimada_4pct": 9295.01,
+    "idade_mariana_if": 47
   },
   "fluxo_caixa": {
     "receita_total": 2503155.37,
@@ -198,11 +200,11 @@
       "impostos": 135933.24,
       "alimentacao": 68284.09,
       "suporte_familiar": 127114.3,
-      "saude": 108647.55,
+      "saude": 98047.55,
       "reserva_desejos": 93194.73,
       "servicos_domesticos": 64475.47,
       "lazer_viagens": 166238.95,
-      "melhoria_reforma": 45584.7,
+      "melhoria_reforma": 56184.7,
       "educacao": 28354.78,
       "vestuario": 27491.81
     },
@@ -1276,7 +1278,7 @@
             0.0,
             0.0,
             1585.59,
-            1428.9,
+            12028.9,
             14267.78,
             273.2,
             5539.1,
@@ -1456,7 +1458,7 @@
             1711.15,
             121.42,
             25229.22,
-            29924.89,
+            19324.89,
             7980.4,
             10064.71,
             3573.5,
@@ -1848,17 +1850,17 @@
       "impostos": 3398.33,
       "alimentacao": 1707.1,
       "suporte_familiar": 3177.86,
-      "saude": 2716.19,
+      "saude": 2451.19,
       "reserva_desejos": 2329.87,
       "servicos_domesticos": 1611.89,
       "lazer_viagens": 4155.97,
-      "melhoria_reforma": 1139.62,
+      "melhoria_reforma": 1404.62,
       "educacao": 708.87,
       "vestuario": 687.3
     },
     "total": 35555.67,
     "media_mensal": 35555.67,
-    "legenda": "Orçamento prospectivo baseado na média dos últimos 15 meses. Recomenda-se revisar mensalmente e ajustar projeções."
+    "legenda": "Orçamento prospectivo baseado na média dos últimos 40 meses. Recomenda-se revisar mensalmente e ajustar projeções."
   },
   "reserva_emergencia": {
     "despesas_mensais": 35555.66,
@@ -1952,15 +1954,15 @@
       {
         "categoria": "Imóveis Investimento",
         "valor": 1442706.24,
-        "pct": 64.08
+        "pct": 63.36
       },
       {
         "categoria": "Outros",
-        "valor": 808842.58,
-        "pct": 35.92
+        "valor": 834271.74,
+        "pct": 36.64
       }
     ],
-    "total": 2251548.82
+    "total": 2276977.98
   },
   "equilibrio_cerbasi": {
     "pct_presente": 89.0,
@@ -1979,20 +1981,28 @@
       "ref": "D01"
     },
     {
-      "n": 3,
-      "t": "Solicitar resgate Safari 30 na Rico (~R$16.614, prazo D+60 para liquidação)",
+      "n": 2,
+      "t": "Reunião AccountTech (pauta completa): (a) regularizar carnê-leão David + Mariana 2025, (b) confirmar risco multa isolada 2024, (c) DAS mensal automático dia 20 via C6 PJ, (d) parar impostos PJ por contas pessoais, (e) Simples vs LP, (f) Carnê-Leão mensal para ambos",
       "p": "alta",
       "e": "Abr/2026",
-      "categoria": "Invest.",
+      "categoria": "Tributário",
+      "ref": "—"
+    },
+    {
+      "n": 3,
+      "t": "Entregar IRPF 2026 David + Mariana (com carnê-leão de ambos regularizado antes da entrega)",
+      "p": "alta",
+      "e": "Mai/2026",
+      "categoria": "Tributário",
       "ref": "—"
     },
     {
       "n": 4,
-      "t": "Cancelar seguro de conta Santander (R$10/mês). Manter seguro de conta C6 (R$20/mês).",
+      "t": "Configurar carnê-leão automático mensal David + Mariana (lançar aluguéis no Carnê-Leão Web e pagar DARF até último dia útil do mês seguinte)",
       "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Orçamento",
-      "ref": "D08"
+      "e": "Jun/2026",
+      "categoria": "Tributário",
+      "ref": "—"
     },
     {
       "n": 5,
@@ -2004,14 +2014,6 @@
     },
     {
       "n": 6,
-      "t": "Reunião AccountTech (pauta completa): (a) regularizar carnê-leão David + Mariana 2025, (b) confirmar risco multa isolada 2024, (c) DAS mensal automático dia 20 via C6 PJ, (d) parar impostos PJ por contas pessoais, (e) Simples vs LP, (f) Carnê-Leão mensal para ambos",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 7,
       "t": "Cotar seguro de vida Term Life R$3-5M, 20 anos (SulAmérica, Porto Seguro, Prudential)",
       "p": "alta",
       "e": "Abr/2026",
@@ -2019,7 +2021,7 @@
       "ref": "—"
     },
     {
-      "n": 8,
+      "n": 7,
       "t": "Cotar seguro de invalidez (60% da renda, ~R$100-200/mês)",
       "p": "alta",
       "e": "Abr/2026",
@@ -2027,7 +2029,7 @@
       "ref": "—"
     },
     {
-      "n": 9,
+      "n": 8,
       "t": "CAIXA: confirmar valor do FGTS Kiwify + solicitar saque na mesma visita. Levar: RG, CPF, CTPS digital, termo de rescisão. Incluir valor no patrimônio investível.",
       "p": "alta",
       "e": "Abr/2026",
@@ -2035,7 +2037,7 @@
       "ref": "—"
     },
     {
-      "n": 10,
+      "n": 9,
       "t": "Regularizar registro do Ed. Gisele no cartório (matrícula ainda no nome do antigo dono)",
       "p": "alta",
       "e": "Abr/2026",
@@ -2043,7 +2045,7 @@
       "ref": "—"
     },
     {
-      "n": 11,
+      "n": 10,
       "t": "Configurar transferência automática R$5k C6 PJ → C6 PF no dia 1 de cada mês (eliminar cheque especial)",
       "p": "alta",
       "e": "Abr/2026",
@@ -2051,23 +2053,23 @@
       "ref": "D14"
     },
     {
+      "n": 11,
+      "t": "Solicitar resgate Safari 30 na Rico (~R$16.614, prazo D+60 para liquidação)",
+      "p": "alta",
+      "e": "Abr/2026",
+      "categoria": "Invest.",
+      "ref": "—"
+    },
+    {
+      "n": 12,
+      "t": "Cancelar seguro de conta Santander (R$10/mês). Manter seguro de conta C6 (R$20/mês).",
+      "p": "alta",
+      "e": "Abr/2026",
+      "categoria": "Orçamento",
+      "ref": "D08"
+    },
+    {
       "n": 13,
-      "t": "Entregar IRPF 2026 David + Mariana (com carnê-leão de ambos regularizado antes da entrega)",
-      "p": "alta",
-      "e": "Mai/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 14,
-      "t": "Configurar carnê-leão automático mensal David + Mariana (lançar aluguéis no Carnê-Leão Web e pagar DARF até último dia útil do mês seguinte)",
-      "p": "alta",
-      "e": "Jun/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 15,
       "t": "Vender BRKM5 (300 ações, prejuízo R$3.516). Compensar prejuízo com lucros futuros para IR.",
       "p": "media",
       "e": "Abr/2026",
@@ -2075,7 +2077,7 @@
       "ref": "—"
     },
     {
-      "n": 16,
+      "n": 14,
       "t": "Crypto: vender ADA e AXS. Iniciar DCA R$500/mês (R$400 BTC + R$100 ETH) até 1% da carteira (~R$12.845). Fonte: folga mensal.",
       "p": "media",
       "e": "Abr/2026",
@@ -2083,7 +2085,7 @@
       "ref": "D04"
     },
     {
-      "n": 17,
+      "n": 15,
       "t": "Consolidar corretoras — fase 1: transferir PicPay R$53k para Cofrinhos Itaú + resgatar C6 investimentos R$2k",
       "p": "media",
       "e": "Abr/2026",
@@ -2091,7 +2093,7 @@
       "ref": "—"
     },
     {
-      "n": 18,
+      "n": 16,
       "t": "Confirmar taxa real PGBL Itaú (app ou central 4004-4828). Se >1% a.a., solicitar portabilidade para BTG ou XP.",
       "p": "media",
       "e": "Abr/2026",
@@ -2099,7 +2101,7 @@
       "ref": "—"
     },
     {
-      "n": 19,
+      "n": 17,
       "t": "Iniciar aportes PGBL R$1.800/mês (economia IRPF R$5.940/ano). Depende de #18 (taxa PGBL). Quanto antes, melhor.",
       "p": "media",
       "e": "Abr/2026",
@@ -2107,7 +2109,7 @@
       "ref": "—"
     },
     {
-      "n": 20,
+      "n": 18,
       "t": "Solicitar avaliação do Barão de Capanema (Pça Calixto) com corretora local — pode valer R$900k-1,1M",
       "p": "media",
       "e": "Abr/2026",
@@ -2115,7 +2117,7 @@
       "ref": "—"
     },
     {
-      "n": 21,
+      "n": 19,
       "t": "Reinvestir resgate Safari 30 (~R$16.614) em IVVB11 ou ETF global (após D+60 da tarefa 3)",
       "p": "media",
       "e": "Mai/2026",
@@ -2123,7 +2125,7 @@
       "ref": "—"
     },
     {
-      "n": 22,
+      "n": 20,
       "t": "Consultar 2-3 CPAs especialistas em expatriados (BR-US) para FBAR, Form 8938, Form 1040, PFIC",
       "p": "media",
       "e": "T3/26",
@@ -2131,7 +2133,7 @@
       "ref": "—"
     },
     {
-      "n": 23,
+      "n": 21,
       "t": "Avaliar resgate dos fundos brasileiros classificáveis como PFIC (Alaska, Constellation, Western Asset, BTG) ANTES de se tornar US tax resident — tributação punitiva nos EUA",
       "p": "media",
       "e": "T3/26",
@@ -2139,7 +2141,7 @@
       "ref": "—"
     },
     {
-      "n": 24,
+      "n": 22,
       "t": "Avaliar desempenho Alaska Black FIA BDR (-13,24%). Se persistir negativo, resgatar e realocar em IVVB11.",
       "p": "media",
       "e": "Set/2026",
@@ -2147,7 +2149,7 @@
       "ref": "—"
     },
     {
-      "n": 25,
+      "n": 23,
       "t": "Iniciar CGFNS + teste de inglês para Mariana (NCLEX). MET ou OET recomendados. Pode ser feito do Brasil — reduz gap de renda nos EUA em 3-9 meses.",
       "p": "media",
       "e": "T4/26",
@@ -2155,7 +2157,7 @@
       "ref": "goals.json"
     },
     {
-      "n": 26,
+      "n": 24,
       "t": "Definir timeline F1/F2 Anderson University (semestre de início, duração, logistics)",
       "p": "media",
       "e": "T4/26",
@@ -2163,7 +2165,7 @@
       "ref": "life_plan"
     },
     {
-      "n": 27,
+      "n": 25,
       "t": "Iniciar processo matrícula e visto F1 (se timeline definir início em 2027)",
       "p": "media",
       "e": "T4/26",
@@ -2171,7 +2173,7 @@
       "ref": "life_plan"
     },
     {
-      "n": 28,
+      "n": 26,
       "t": "Procurações em cartório (mesma visita): (a) procuração pública para Rubens administrar imóveis e contas, (b) procuração duradoura David → Mariana + Rubens para emergências/incapacidade",
       "p": "media",
       "e": "Antes EUA",
@@ -2179,7 +2181,7 @@
       "ref": "life_plan"
     },
     {
-      "n": 29,
+      "n": 27,
       "t": "Configurar débito automático IPTU e condomínio de todos os 6 imóveis",
       "p": "media",
       "e": "Antes EUA",
@@ -2187,7 +2189,7 @@
       "ref": "—"
     },
     {
-      "n": 30,
+      "n": 28,
       "t": "Separar R$3k/mês como \"reserva de desejos\" da folga mensal (para compras planejadas acima de R$2k — ver Orçamento Prospectivo)",
       "p": "media",
       "e": "Abr/2026",
@@ -2195,7 +2197,7 @@
       "ref": "D13"
     },
     {
-      "n": 31,
+      "n": 29,
       "t": "Revisar assinaturas: Gympass R$80 (usa?), Livelo Clube R$45, MeliMais R$20. Economia potencial: ~R$145/mês.",
       "p": "media",
       "e": "Abr/2026",
@@ -2203,7 +2205,7 @@
       "ref": "—"
     },
     {
-      "n": 32,
+      "n": 30,
       "t": "Seguro residencial Tasso: cotar Porto Seguro, SulAmérica, Tokio Marine (economia 20-40% vs Santander atual)",
       "p": "media",
       "e": "T3/26",
@@ -2211,7 +2213,7 @@
       "ref": "—"
     },
     {
-      "n": 33,
+      "n": 31,
       "t": "Verificar vigência dos seguros veiculares (Toro + NMax) e agendar renovação antes de viajar",
       "p": "media",
       "e": "Antes EUA",
@@ -2219,7 +2221,7 @@
       "ref": "—"
     },
     {
-      "n": 34,
+      "n": 32,
       "t": "Após reserva emergência atingir 12 meses (R$382k), realocar os R$10k dos Cofrinhos: R$5k → reserva de oportunidade (CDB liquidez, meta R$50-80k) + R$5k → Tesouro IPCA+ 2035/2040 (contrafluxo, travar IPCA+7%)",
       "p": "media",
       "e": "Jan/27",
@@ -2227,7 +2229,7 @@
       "ref": "—"
     },
     {
-      "n": 35,
+      "n": 33,
       "t": "Avaliar venda Living Concept (yield 3,9% vs CDI 14,15%). Imóvel ficou vago 7 meses em 2025.",
       "p": "media",
       "e": "2027",
@@ -2235,7 +2237,7 @@
       "ref": "D15"
     },
     {
-      "n": 41,
+      "n": 34,
       "t": "Atualizar cadastro e pagar anuidade do Clube de Tiro Águia de Haia",
       "p": "media",
       "e": "Abr/2026",
@@ -2243,7 +2245,7 @@
       "ref": "—"
     },
     {
-      "n": 42,
+      "n": 35,
       "t": "Atualizar IPTU 2026 dos imóveis David (Calixto + Major Freire) na plataforma QuintoAndar",
       "p": "media",
       "e": "30/04/2026",
@@ -2251,7 +2253,7 @@
       "ref": "—"
     },
     {
-      "n": 43,
+      "n": 36,
       "t": "Atualizar IPTU 2026 dos imóveis Mariana (Living Wish + Living Concept) na plataforma QuintoAndar",
       "p": "media",
       "e": "30/04/2026",
@@ -2259,7 +2261,7 @@
       "ref": "—"
     },
     {
-      "n": 36,
+      "n": 37,
       "t": "Advogado sucessório/tributarista SP — contratar para testamento + holding",
       "p": "baixa",
       "e": "Abr/2026",
@@ -2267,7 +2269,7 @@
       "ref": "life_plan"
     },
     {
-      "n": 37,
+      "n": 38,
       "t": "Testamento público David + Mariana (cartório BR). Depende de advogado (tarefa 36)",
       "p": "baixa",
       "e": "Mai/2026",
@@ -2275,7 +2277,7 @@
       "ref": "life_plan"
     },
     {
-      "n": 38,
+      "n": 39,
       "t": "Atualizar beneficiários PGBL e seguro de vida",
       "p": "baixa",
       "e": "Abr/2026",
@@ -2283,7 +2285,7 @@
       "ref": "life_plan"
     },
     {
-      "n": 39,
+      "n": 40,
       "t": "Avaliar holding patrimonial com tributarista",
       "p": "baixa",
       "e": "T4/2026",
@@ -2291,7 +2293,7 @@
       "ref": "life_plan"
     },
     {
-      "n": 40,
+      "n": 41,
       "t": "Testamento americano (BR assets) + Standby Guardianship para Theo",
       "p": "baixa",
       "e": "Após mudança EUA",
@@ -2351,6 +2353,7 @@
       {
         "descricao": "PIX TRANSF  FELTRIN27/03",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2023-03-27",
         "mes": "2023-03",
         "valor": 30820.0,
         "categoria": "transporte",
@@ -2359,6 +2362,7 @@
       {
         "descricao": "PIX TRANSF  SUELEN 02/05",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2023-05-02",
         "mes": "2023-05",
         "valor": 27191.08,
         "categoria": "suporte_familiar",
@@ -2367,6 +2371,7 @@
       {
         "descricao": "Pix enviado para PARAISO AGENCIA DE VIAGENS E TURISMO LTD — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-07-29",
         "mes": "2024-07",
         "valor": 23000.0,
         "categoria": "lazer_viagens",
@@ -2375,6 +2380,7 @@
       {
         "descricao": "Pix enviado para GRUPO CASAS BAHIA S.A. — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2025-12-08",
         "mes": "2025-12",
         "valor": 18233.19,
         "categoria": "reserva_desejos",
@@ -2383,6 +2389,7 @@
       {
         "descricao": "Boleto",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-05-07",
         "mes": "2024-05",
         "valor": 16828.22,
         "categoria": "nao_identificado",
@@ -2391,6 +2398,7 @@
       {
         "descricao": "INT PAG TIT 175181821942",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2023-05-17",
         "mes": "2023-05",
         "valor": 12542.98,
         "categoria": "nao_identificado",
@@ -2399,6 +2407,7 @@
       {
         "descricao": "PIX TRANSF SUELI D22/05",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2025-05-22",
         "mes": "2025-05",
         "valor": 11820.0,
         "categoria": "nao_identificado",
@@ -2407,6 +2416,7 @@
       {
         "descricao": "CLINICA DERMATOLOGICA",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-11-14",
         "mes": "2025-11",
         "valor": 11400.0,
         "categoria": "saude",
@@ -2415,6 +2425,7 @@
       {
         "descricao": "Pix enviado para DOUGLAS CAMARGO DE CAMPOS — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-01-17",
         "mes": "2024-01",
         "valor": 10700.0,
         "categoria": "suporte_familiar",
@@ -2423,14 +2434,16 @@
       {
         "descricao": "ABDO MOHAMED ABDOUNI",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-11-01",
         "mes": "2025-11",
         "valor": 10600.0,
-        "categoria": "saude",
+        "categoria": "melhoria_reforma",
         "observacao": ""
       },
       {
         "descricao": "PIX TRANSF EDSON J22/05",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2025-05-22",
         "mes": "2025-05",
         "valor": 10047.0,
         "categoria": "nao_identificado",
@@ -2439,6 +2452,7 @@
       {
         "descricao": "BISUTTI",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2023-09-30",
         "mes": "2023-09",
         "valor": 10000.0,
         "categoria": "lazer_viagens",
@@ -2447,6 +2461,7 @@
       {
         "descricao": "IN *CA TRANSLATION SER MO",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-04-22",
         "mes": "2025-04",
         "valor": 9737.07,
         "categoria": "financeiro",
@@ -2455,6 +2470,7 @@
       {
         "descricao": "AIRBNB PAGAM*AIRBNB *",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-04-27",
         "mes": "2025-04",
         "valor": 9434.06,
         "categoria": "lazer_viagens",
@@ -2463,6 +2479,7 @@
       {
         "descricao": "Pix enviado para INACIO JOSE MACEDO — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2025-12-22",
         "mes": "2025-12",
         "valor": 9400.0,
         "categoria": "melhoria_reforma",
@@ -2471,6 +2488,7 @@
       {
         "descricao": "Pix enviado para JAIR DE SOUZA FERREIRA — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2025-09-19",
         "mes": "2025-09",
         "valor": 9000.0,
         "categoria": "suporte_familiar",
@@ -2479,6 +2497,7 @@
       {
         "descricao": "APPLE.COM/US           80",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-09-14",
         "mes": "2025-09",
         "valor": 8444.83,
         "categoria": "reserva_desejos",
@@ -2487,6 +2506,7 @@
       {
         "descricao": "INT LICENC SP 94108287",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2023-01-09",
         "mes": "2023-01",
         "valor": 7751.95,
         "categoria": "transporte",
@@ -2495,6 +2515,7 @@
       {
         "descricao": "Boleto",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-05-29",
         "mes": "2024-05",
         "valor": 7720.71,
         "categoria": "nao_identificado",
@@ -2503,6 +2524,7 @@
       {
         "descricao": "PIX TRANSF  ARMANDO15/03",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2025-03-17",
         "mes": "2025-03",
         "valor": 7550.0,
         "categoria": "nao_identificado",
@@ -2511,6 +2533,7 @@
       {
         "descricao": "VIVARA PLA",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-12-19",
         "mes": "2025-12",
         "valor": 6455.0,
         "categoria": "vestuario",
@@ -2519,6 +2542,7 @@
       {
         "descricao": "INSTITUTO DR BARAKAT",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-10-30",
         "mes": "2025-10",
         "valor": 6000.0,
         "categoria": "saude",
@@ -2527,6 +2551,7 @@
       {
         "descricao": "INSTITUTO DR BARAKAT",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-10-30",
         "mes": "2025-10",
         "valor": 6000.0,
         "categoria": "saude",
@@ -2535,6 +2560,7 @@
       {
         "descricao": "PLATAFORMA S*BISUTTI",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2023-10-06",
         "mes": "2023-10",
         "valor": 6000.0,
         "categoria": "lazer_viagens",
@@ -2543,6 +2569,7 @@
       {
         "descricao": "INT LICENC SP 94108287",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2025-01-14",
         "mes": "2025-01",
         "valor": 5928.18,
         "categoria": "transporte",
@@ -2551,6 +2578,7 @@
       {
         "descricao": "AMZN MKTP US           AM",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2024-03-01",
         "mes": "2024-03",
         "valor": 5875.45,
         "categoria": "reserva_desejos",
@@ -2559,6 +2587,7 @@
       {
         "descricao": "AMZN MKTP US           AM",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2024-03-04",
         "mes": "2024-03",
         "valor": 5810.86,
         "categoria": "reserva_desejos",
@@ -2567,6 +2596,7 @@
       {
         "descricao": "AMAZON MARKETPLACE     SE",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-07-12",
         "mes": "2025-07",
         "valor": 5801.56,
         "categoria": "reserva_desejos",
@@ -2575,6 +2605,7 @@
       {
         "descricao": "Pix enviado para ERIC VINICIUS CAMARGO DE CAMPOS — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-02-19",
         "mes": "2024-02",
         "valor": 5413.04,
         "categoria": "suporte_familiar",
@@ -2583,6 +2614,7 @@
       {
         "descricao": "Pix enviado para AMAZON.COM.BR — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2025-11-28",
         "mes": "2025-11",
         "valor": 5345.73,
         "categoria": "reserva_desejos",
@@ -2591,6 +2623,7 @@
       {
         "descricao": "LATAM AIRLINES",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-07-15",
         "mes": "2025-07",
         "valor": 5229.63,
         "categoria": "lazer_viagens",
@@ -2599,6 +2632,7 @@
       {
         "descricao": "PIX TRANSF  LUCIENE12/01",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2023-01-12",
         "mes": "2023-01",
         "valor": 5187.14,
         "categoria": "nao_identificado",
@@ -2607,6 +2641,7 @@
       {
         "descricao": "DOLLAR RAC",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-05-18",
         "mes": "2025-05",
         "valor": 5179.09,
         "categoria": "lazer_viagens",
@@ -2615,6 +2650,7 @@
       {
         "descricao": "AIRBNB PAGAM*AIRBNB *",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-05-17",
         "mes": "2025-05",
         "valor": 5121.14,
         "categoria": "lazer_viagens",
@@ -2623,6 +2659,7 @@
       {
         "descricao": "AMERICAN AIR*CAPTURERE",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-05-14",
         "mes": "2025-05",
         "valor": 5110.48,
         "categoria": "lazer_viagens",
@@ -2631,6 +2668,7 @@
       {
         "descricao": "MAIS DISTR VEICULOS",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-12-09",
         "mes": "2025-12",
         "valor": 5000.0,
         "categoria": "transporte",
@@ -2639,6 +2677,7 @@
       {
         "descricao": "PIX TRANSF  RUBENS 04/05",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2023-05-04",
         "mes": "2023-05",
         "valor": 5000.0,
         "categoria": "suporte_familiar",
@@ -2647,6 +2686,7 @@
       {
         "descricao": "Pix enviado para CLAUDIA DANTAS TINOCO — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-06-21",
         "mes": "2024-06",
         "valor": 4765.42,
         "categoria": "financeiro",
@@ -2655,6 +2695,7 @@
       {
         "descricao": "Pix enviado para IONE GIAMBRUNI COSTA — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-01-16",
         "mes": "2024-01",
         "valor": 4750.0,
         "categoria": "lazer_viagens",
@@ -2663,6 +2704,7 @@
       {
         "descricao": "Boleto",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-05-31",
         "mes": "2024-05",
         "valor": 4670.3,
         "categoria": "nao_identificado",
@@ -2671,6 +2713,7 @@
       {
         "descricao": "PIX TRANSF  2 TABEL12/01",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2023-01-12",
         "mes": "2023-01",
         "valor": 4480.02,
         "categoria": "financeiro",
@@ -2679,6 +2722,7 @@
       {
         "descricao": "BRENTESINSTITUTO",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-10-08",
         "mes": "2025-10",
         "valor": 4099.68,
         "categoria": "saude",
@@ -2687,6 +2731,7 @@
       {
         "descricao": "PIX TRANSF  SARITA 16/05",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2023-05-16",
         "mes": "2023-05",
         "valor": 4000.0,
         "categoria": "nao_identificado",
@@ -2695,6 +2740,7 @@
       {
         "descricao": "MC MOBILITY",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2026-02-08",
         "mes": "2026-02",
         "valor": 3976.8,
         "categoria": "transporte",
@@ -2703,6 +2749,7 @@
       {
         "descricao": "Pix enviado para Manoel Messias Gaspar De Souza — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-07-12",
         "mes": "2024-07",
         "valor": 3700.0,
         "categoria": "melhoria_reforma",
@@ -2711,6 +2758,7 @@
       {
         "descricao": "EINSTEIN MORUMBI",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2026-03-13",
         "mes": "2026-03",
         "valor": 3682.0,
         "categoria": "saude",
@@ -2719,6 +2767,7 @@
       {
         "descricao": "AIR EUROPA LINEAS AE",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-11-28",
         "mes": "2025-11",
         "valor": 3562.43,
         "categoria": "lazer_viagens",
@@ -2727,6 +2776,7 @@
       {
         "descricao": "HOTEIS.COM",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-11-05",
         "mes": "2025-11",
         "valor": 3379.5,
         "categoria": "lazer_viagens",
@@ -2735,6 +2785,7 @@
       {
         "descricao": "HOTELSCOM7205212252371",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2024-01-11",
         "mes": "2024-01",
         "valor": 3351.82,
         "categoria": "lazer_viagens",
@@ -2743,6 +2794,7 @@
       {
         "descricao": "HOTELSCOM7205212252371",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2024-01-11",
         "mes": "2024-01",
         "valor": 3351.8,
         "categoria": "lazer_viagens",
@@ -2751,6 +2803,7 @@
       {
         "descricao": "PRIMO RICO",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2026-02-09",
         "mes": "2026-02",
         "valor": 3197.0,
         "categoria": "educacao",
@@ -2759,6 +2812,7 @@
       {
         "descricao": "Pix enviado para RENDIMENTOPAY INSTITUICAO DE PAGAME — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-07-06",
         "mes": "2024-07",
         "valor": 3061.53,
         "categoria": "nao_identificado",
@@ -2767,6 +2821,7 @@
       {
         "descricao": "Pix enviado para Milton Augusto de Camargo Filho — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-12-20",
         "mes": "2024-12",
         "valor": 3000.0,
         "categoria": "suporte_familiar",
@@ -2775,6 +2830,7 @@
       {
         "descricao": "Pix enviado para LUMMA ROBERTA DA SILVA — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2025-10-26",
         "mes": "2025-10",
         "valor": 3000.0,
         "categoria": "saude",
@@ -2783,6 +2839,7 @@
       {
         "descricao": "PDV*BARA CLINICA",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-10-31",
         "mes": "2025-10",
         "valor": 3000.0,
         "categoria": "saude",
@@ -2791,6 +2848,7 @@
       {
         "descricao": "Pix enviado para Manoel Messias Gaspar De Souza — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-06-14",
         "mes": "2024-06",
         "valor": 3000.0,
         "categoria": "melhoria_reforma",
@@ -2799,6 +2857,7 @@
       {
         "descricao": "Pago para Anderson Univers",
         "conta_cartao": "Wise (extratocontausd)",
+        "data": "2025-05-28",
         "mes": "2025-05",
         "valor": 2940.0,
         "categoria": "educacao",
@@ -2807,6 +2866,7 @@
       {
         "descricao": "MERCADOLIVRE*3PRODUTO",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2026-03-18",
         "mes": "2026-03",
         "valor": 2829.16,
         "categoria": "reserva_desejos",
@@ -2815,6 +2875,7 @@
       {
         "descricao": "AIR EUROPA LINEAS AE",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-11-28",
         "mes": "2025-11",
         "valor": 2747.6,
         "categoria": "lazer_viagens",
@@ -2823,6 +2884,7 @@
       {
         "descricao": "ENTERPRISE RENT A CAR",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2024-01-22",
         "mes": "2024-01",
         "valor": 2666.4,
         "categoria": "transporte",
@@ -2831,6 +2893,7 @@
       {
         "descricao": "HOTEL AT BOOKING.COM",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2026-02-01",
         "mes": "2026-02",
         "valor": 2634.71,
         "categoria": "lazer_viagens",
@@ -2839,6 +2902,7 @@
       {
         "descricao": "DROGARIA_SP DROGARIASA",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2026-01-28",
         "mes": "2026-01",
         "valor": 2599.05,
         "categoria": "saude",
@@ -2847,6 +2911,7 @@
       {
         "descricao": "Pix enviado para GlobalPower Pagamentos Digitais LTDA — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-07-06",
         "mes": "2024-07",
         "valor": 2517.05,
         "categoria": "nao_identificado",
@@ -2855,6 +2920,7 @@
       {
         "descricao": "DROGARIA SAO PAULO 003",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2026-03-11",
         "mes": "2026-03",
         "valor": 2500.28,
         "categoria": "saude",
@@ -2863,6 +2929,7 @@
       {
         "descricao": "Pix enviado para RUBENS DE CAMPOS — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2025-01-22",
         "mes": "2025-01",
         "valor": 2500.0,
         "categoria": "suporte_familiar",
@@ -2871,6 +2938,7 @@
       {
         "descricao": "PGTO MIN-PAOACUCAR-5739",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2023-03-14",
         "mes": "2023-03",
         "valor": 2466.65,
         "categoria": "alimentacao",
@@ -2879,6 +2947,7 @@
       {
         "descricao": "PLATAFORMA SERVICO DE",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2024-01-11",
         "mes": "2024-01",
         "valor": 2420.25,
         "categoria": "nao_identificado",
@@ -2887,6 +2956,7 @@
       {
         "descricao": "DPS SUPLEMENTOS",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2025-11-04",
         "mes": "2025-11",
         "valor": 2400.0,
         "categoria": "saude",
@@ -2895,6 +2965,7 @@
       {
         "descricao": "Boleto",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-12-20",
         "mes": "2024-12",
         "valor": 2325.19,
         "categoria": "nao_identificado",
@@ -2903,6 +2974,7 @@
       {
         "descricao": "Pix enviado para Andressa Nunes Da SILVA — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2026-02-25",
         "mes": "2026-02",
         "valor": 2300.0,
         "categoria": "nao_identificado",
@@ -2911,6 +2983,7 @@
       {
         "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2026-02-27",
         "mes": "2026-02",
         "valor": 2300.0,
         "categoria": "melhoria_reforma",
@@ -2919,6 +2992,7 @@
       {
         "descricao": "SAN FRANCISCO HOTEL MO",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2026-02-02",
         "mes": "2026-02",
         "valor": 2263.52,
         "categoria": "lazer_viagens",
@@ -2927,6 +3001,7 @@
       {
         "descricao": "PIX TRANSF  HERMANN24/03",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2023-03-24",
         "mes": "2023-03",
         "valor": 2200.0,
         "categoria": "suporte_familiar",
@@ -2935,6 +3010,7 @@
       {
         "descricao": "PIX TRANSF  RENATO 11/01",
         "conta_cartao": "Itaú (extratoconta)",
+        "data": "2023-01-11",
         "mes": "2023-01",
         "valor": 2100.0,
         "categoria": "nao_identificado",
@@ -2943,6 +3019,7 @@
       {
         "descricao": "Pix enviado para LUMMA ROBERTA DA SILVA — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2026-01-26",
         "mes": "2026-01",
         "valor": 2100.0,
         "categoria": "saude",
@@ -2951,6 +3028,7 @@
       {
         "descricao": "ANANDA SOUZA DA COSTA",
         "conta_cartao": "C6 Bank (faturacarbon)",
+        "data": "2023-12-27",
         "mes": "2023-12",
         "valor": 2012.5,
         "categoria": "nao_identificado",
@@ -2959,6 +3037,7 @@
       {
         "descricao": "Pix enviado para Hermann Ronaldo Wecke — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-08-01",
         "mes": "2024-08",
         "valor": 2000.0,
         "categoria": "suporte_familiar",
@@ -2967,6 +3046,7 @@
       {
         "descricao": "Pix enviado para Manoel Messias Gaspar De Souza — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-06-28",
         "mes": "2024-06",
         "valor": 2000.0,
         "categoria": "melhoria_reforma",
@@ -2975,6 +3055,7 @@
       {
         "descricao": "Pix enviado para Manoel Messias Gaspar De Souza — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2024-07-10",
         "mes": "2024-07",
         "valor": 2000.0,
         "categoria": "melhoria_reforma",
@@ -2983,6 +3064,7 @@
       {
         "descricao": "Pix enviado para REINALDO MARTINS DE ARAUJO — TRANSF ENVIADA PIX",
         "conta_cartao": "C6 Bank (extratoconta)",
+        "data": "2026-03-04",
         "mes": "2026-03",
         "valor": 2000.0,
         "categoria": "melhoria_reforma",
@@ -3091,18 +3173,18 @@
   "narrativas": {
     "perfil_familia": {
       "left": "<p>David Robert Camargo Ferreira Campos, 44 anos, é CTO da Arvo (healthtech de auditoria médica com IA). Mais de 24 anos em tecnologia, com passagens por Elo7, Loft, Kiwify. Formado em Ciência da Computação PUC-SP, mestrado IA USP/IME. Opera como PJ Simples Nacional (Anexo V).</p>\n<p>Mariana Ferreira Campos, 39 anos, é Enfermeira no Hospital Israelita Albert Einstein desde julho de 2014. Especialista em Cardiologia e Hemodinâmica (UNIFESP), mestre em Enfermagem (USP). CLT com salário-base de R$ 8,3k/mês. Perfil competitivo para NCLEX nos EUA.</p>\n<p>Theo Ferreira Campos nasceu em Orlando, Flórida e possui dupla cidadania brasileira e americana. Primeiro filho do casal, é peça central no planejamento internacional da família.</p>\n<p>A família conta com 3 gatos — Zack, Fuzzy e Nix — na residência da Rua Tasso da Silveira, Vila Guarani, São Paulo.</p>",
-      "right": "<p>Plano de vida centrado na mudança para os EUA via visto F1/F2 (Anderson University, SC), seguido de Green Card por EB2-NIW. David manterá contratos PJ brasileiros remotamente; Mariana se prepara para NCLEX. Custo projetado: R$ 32,4k/mês, com sobra de R$ 2,4k/mês.</p>\n<p>Meta IF: R$ 7,2M (TRS 5%, renda passiva de R$ 30k/mês). Patrimônio investível atual de R$ 2,8M (38,7% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo de 8 anos (David 52 anos, 2034).</p>\n<p>Patrimônio bruto de R$ 4,0M: 6 imóveis (R$ 996,8k residência + R$ 1,4M investimento), carteiras David (R$ 927,9k) e Mariana (R$ 375,4k). Endividamento de 5,8% — saudável.</p>"
+      "right": "<p>Plano de vida centrado na mudança para os EUA via visto F1/F2 (Anderson University, SC), seguido de Green Card por EB2-NIW. David manterá contratos PJ brasileiros remotamente; Mariana se prepara para NCLEX. Custo projetado: R$ 32,4k/mês, com sobra de R$ 2,4k/mês.</p>\n<p>Meta IF: R$ 7,2M (TRS 5%, renda passiva de R$ 30k/mês). Patrimônio investível atual de R$ 2,8M (38,7% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo estimado de 8,5 anos (David 52 anos, 2034). A aprovação de Mariana no NCLEX pode antecipar a IF para 2032.</p>\n<p>Patrimônio bruto de R$ 4,0M: 6 imóveis (R$ 996,8k residência + R$ 1,4M investimento), carteiras David (R$ 927,9k) e Mariana (R$ 375,4k). Endividamento de 5,8% — saudável. Prioridade imediata: quitação do financiamento Ed. Gisele e regularização tributária.</p>"
     },
     "summaries": {
       "s1": "Patrimônio bruto de R$ 4,0M com 69,5% investível (R$ 2,8M). Imóveis representam 60,8% do total, com residência própria de R$ 996,8k e imóveis de investimento somando R$ 1,4M. Endividamento de 5,8% sobre o bruto.",
       "s2": "Score financeiro de 6,9/10 (Bom). Pontos fortes: taxa de poupança recorrente de 16,4%, cobertura de 37,9 meses de despesas e endividamento controlado. Receita total no período de R$ 2,5M com 24,6% proveniente de PJ, 6,9% de aluguel, 46,5% de CLT e 22% de outras fontes.",
-      "s3": "Carteira diversificada entre 6 categorias de ativos. David mantém R$ 927,9k distribuídos entre C6bank, Itau, Rico, Santander. Mariana possui R$ 375,4k concentrados em Btgpactual.",
-      "s4": "6 imóveis no portfólio: residência na Rua Tasso da Silveira (R$ 996,8k), apartamentos alugados com renda de R$ 52,1k/ano (R$ 4,3k/mês). Yield bruto dos imóveis de investimento estimado em 3,6% (receita/valor total).",
+      "s3": "Carteira diversificada entre 6 categorias de ativos. David mantém R$ 927,9k distribuídos entre C6 Bank, Itaú, Rico e Santander. Mariana possui R$ 375,4k concentrados em BTG Pactual. Consolidação em menor número de corretoras pode reduzir custos e simplificar gestão — avaliar migração de Rico para Itaú ou BTG.",
+      "s4": "6 imóveis no portfólio: residência na Rua Tasso da Silveira (R$ 996,8k) e imóveis de investimento (R$ 1,4M). Renda atual de aluguéis: R$ 8,7k/mês (R$ 104k/ano anualizado nos últimos 6 meses), com yield bruto de ~6% sobre o valor dos imóveis de investimento. Crescimento expressivo desde 2023 (de R$ 2,7k/mês para R$ 8,7k/mês) reflete entrada de novos imóveis no portfólio.",
       "s5": "Mudança para os EUA via visto F1/F2 (Anderson University, SC), com custo mensal estimado de R$ 32,4k. Sobra projetada de R$ 2,4k/mês (R$ 34,8k receita − R$ 32,4k custos). Viagens estimadas: 2/ano a R$ 20k-R$ 30k cada.",
       "s6": "Exposição cambial: US$ 4,7k em Wise, US$ 2,6k em Bank of America. Total US$ 7,4k. Meta pré-EUA de US$ 20k com gap de US$ 12,6k — ritmo de R$ 2k/mês na Wise alcança a meta em 36 meses.",
-      "s7": "Meta de independência financeira de R$ 7,2M em 2034. Gap atual de R$ 4,4M com prazo realista de 8,5 anos à taxa de aporte R$ 20k/mês e retorno real 6% a.a. Renda passiva estimada (5% TRS): R$ 9,3k/mês.",
+      "s7": "Meta de independência financeira de R$ 7,2M (TRS 5% = R$ 30k/mês de renda passiva). Patrimônio investível atual de R$ 2,8M (38,7% da meta), com gap de R$ 4,4M. Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo realista de 8,5 anos (David 52 anos, 2034). Renda passiva atual estimada: R$ 9,3k/mês (31% da meta).",
       "s8": "Simples Nacional Anexo V com fator R favorável (alíquota efetiva 6%). DAS mensal estimado em R$ 921,94 (R$ 11,1k/ano) sobre receita PJ anualizada de R$ 184,4k. AccountTech como contador (R$ 390,00/mês via C6 PJ). Avaliação de holding patrimonial pendente para T4/2026. Obrigações fiscais EUA (FBAR, Form 8938, PFIC) requerem CPA expatriado antes da mudança.",
-      "s9": "8 riscos prioritários: Falta de seguro de vida/invalidez, FBAR/FATCA compliance, Estate Tax non-resident. Seguros de vida e invalidez inexistentes — classificados como urgentes. Cobertura recomendada: R$ 3-5M em seguro term. Planejamento sucessório em estágio inicial.",
+      "s9": "8 riscos prioritários: Falta de seguro de vida/invalidez, Concentração PJ (cliente único ~80%), Tributação PFIC sobre fundos BR. Seguros de vida e invalidez inexistentes — classificados como urgentes. Cobertura recomendada: R$ 3-5M em seguro term. Planejamento sucessório em estágio inicial.",
       "s10": "5 decisões estratégicas prioritárias: iniciar aporte mensal de R$ 20k (R$ 10k Cofrinhos, R$ 5k IPCA+, R$ 3k IVVB11, R$ 2k Wise USD), Contratar seguro de vida term, NCLEX/OET para Mariana, Consultar CPA expatriado para obrigações EUA."
     },
     "charts": {
@@ -3116,15 +3198,15 @@
       },
       "alocacao_atual": {
         "context": "Atual distribuição dos ativos financeiros (R$ 1,3M) entre classes de investimento: renda fixa, ações, fundos multimercado e estruturados.",
-        "conclusion": "David diversificado em C6bank, Itau, Rico, Santander; Mariana concentra em Btgpactual. Recomendação: gradualmente adicionar alocação de ações (IVVB11, SCHP11) para atingir 20-25% de equity."
+        "conclusion": "David diversificado entre C6 Bank, Itaú, Rico e Santander; Mariana concentra em BTG Pactual. Recomendação: gradualmente aumentar alocação em ações (IVVB11, SCHP11) para atingir 20-25% de equity, priorizando ETFs internacionais que facilitam a transição para os EUA."
       },
       "alocacao_alvo": {
         "context": "Alocação estratégica recomendada para os ativos financeiros, considerando horizonte de 8 anos até IF e tolerância ao risco médio.",
         "conclusion": "Alvo: 50% Renda Fixa (IPCA+, CDBs), 25% Ações (IVVB11, SCHP11), 15% Imóveis/REITs, 10% Liquidez/USD. Aportes de R$ 20k/mês priorizarão renda fixa, com rebalanceamento anual."
       },
       "fluxo_mensal": {
-        "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente de R$ 34,8k/mês versus despesa média de R$ 35,6k/mês.",
-        "conclusion": "Fluxo líquido total de R$ 1,1M no período (40 meses). Taxa de poupança recorrente de 16,4% sustenta a meta de aportes mensais de R$ 20k para o plano IF."
+        "context": "Visão consolidada do fluxo de caixa mensal. Janela de 12 meses (mai/2025–abr/2026): receita recorrente de R$ 68,9k/mês versus despesa média de R$ 57,6k/mês. Taxa de poupança recorrente de 16,4%.",
+        "conclusion": "Fluxo líquido positivo de R$ 548,8k nos últimos 12 meses. A melhora significativa em relação ao período inicial (2023) reflete a diversificação de receita PJ e crescimento dos aluguéis. A meta de aportes mensais de R$ 20k é factível dentro do fluxo atual."
       },
       "receita_bar": {
         "context": "Composição da receita total de R$ 2,5M por fonte: PJ (24,6%), CLT (46,5%), aluguel (6,9%), outras (22%).",
@@ -3136,11 +3218,11 @@
       },
       "despesas_doughnut": {
         "context": "Distribuição das despesas totais (R$ 1,4M) entre 17 categorias, destacando a composição de gastos e oportunidades de otimização.",
-        "conclusion": "Categoria 'não identificado' lidera com R$ 184,0k (12,9%), seguida por impostos (R$ 135,9k), moradia (R$ 37,9k) e serviços domésticos (R$ 64,5k). Prioridade: reclassificar 'não identificado' via melhor rastreamento."
+        "conclusion": "Categoria 'não identificado' lidera com R$ 184k (12,9%) — prioridade absoluta é reclassificar essas transações via melhor rastreamento. Financiamentos (R$ 176k) cairão significativamente com a quitação do Ed. Gisele. Lazer e viagens (R$ 166k) refletem preparação para mudança EUA e devem ser orçados separadamente."
       },
       "projecao_3cenarios": {
         "context": "Projeção do patrimônio investível até atingir a meta de R$ 7,2M, considerando aportes mensais de R$ 20k e retorno real anual de 6%.",
-        "conclusion": "Meta será atingida em 2034, quando David terá 52 anos. Renda passiva estimada será R$ 9,3k/mês (31% da meta de R$ 30k/mês)."
+        "conclusion": "No cenário realista (retorno real 6%, aporte R$ 20k/mês), a meta de R$ 7,2M será atingida em 2034 (David 52 anos). Renda passiva na IF: R$ 30k/mês (TRS 5%). Renda passiva atual estimada: R$ 9,3k/mês (31% da meta). Cenário otimista (NCLEX + Green Card): antecipa para 2032."
       },
       "waterfall_if": {
         "context": "Decomposição do gap de independência financeira (R$ 4,4M), mostrando componentes de patrimônio atual, aportes acumulados e rentabilidade esperada até 2034.",
@@ -3148,15 +3230,15 @@
       },
       "renda_passiva": {
         "context": "Barra de progresso da renda passiva mensal em direção à meta de R$ 30k/mês. Cada segmento representa uma fonte: aluguéis, dividendos e rendimentos financeiros.",
-        "conclusion": "Renda passiva atual de R$ 9,3k/mês (31% da meta). Faltam R$ 20,7k/mês — patrimônio de R$ 7,2M (meta 2034) geraria R$ 30k/mês com TRS de 5%."
+        "conclusion": "Renda passiva atual estimada de R$ 9,3k/mês (31% da meta de R$ 30k/mês). Composição atual: aluguéis (~R$ 8,7k/mês) + rendimentos financeiros (~R$ 600/mês). Aluguéis são a principal fonte de renda passiva e devem ser preservados durante a transição EUA via gestão remota (QuintoAndar)."
       },
       "yield_imoveis": {
-        "context": "Análise de yield bruto dos imóveis de investimento (valor total R$ 1,4M) versus aluguel recebido mensalizado.",
-        "conclusion": "Yield atual de 3,6% com potencial de 4-6% após otimização de contratos. Imóveis funcionam como hedge inflacionário e fonte de renda complementar."
+        "context": "Análise de yield bruto dos imóveis de investimento (valor total R$ 1,4M) versus aluguel recebido anualizado nos últimos 6 meses.",
+        "conclusion": "Yield bruto atual de ~6%, acima do CDI líquido de IR para investimentos de curto prazo. Imóveis com gestão via QuintoAndar mantêm bom yield com baixa demanda operacional — viável para manutenção remota durante período nos EUA."
       },
       "top15_ativos": {
         "context": "Ranking dos 15 maiores ativos financeiros individuais da família, totalizando R$ 2,8M em investimentos.",
-        "conclusion": "CDB DI (Santander) (R$ 137,9k de David) é o maior ativo individual. Concentração em poucos ativos reforça importância de aportes contínuos para diversificação."
+        "conclusion": "Cofrinhos Itaú (R$ 206,5k) é o maior ativo financeiro individual de David. CDBs Santander somam R$ 300,4k. Concentração em renda fixa pós-fixada reflete perfil conservador — adequado para fase pré-EUA, mas requer rebalanceamento gradual para atingir alocação-alvo com mais equity."
       },
       "impostos_pj": {
         "context": "Carga tributária da PJ de David: receita anualizada de R$ 184,4k, enquadrada no Simples Nacional Anexo V com fator R favorável (alíquota efetiva 6%).",
@@ -3180,12 +3262,73 @@
       },
       "bubble_riscos": {
         "context": "Identificação de 8 riscos críticos de compliance e proteção ao plano IF, com probabilidade e impacto.",
-        "conclusion": "Riscos prioritários: (1) Falta de seguro de vida/invalidez (alta prob., crítico impacto), (2) FBAR/FATCA compliance (alta prob., alto impacto), (3) Estate Tax non-resident (média prob., alto impacto). Ação: CPA expatriado + seguro term R$ 3-5M."
+        "conclusion": "Riscos prioritários: (1) Falta de seguro de vida/invalidez (alta prob., crítico impacto), (2) Concentração PJ (cliente único ~80%) (alta prob., alto impacto), (3) Tributação PFIC sobre fundos BR (alta prob., alto impacto). Ação: CPA expatriado + seguro term R$ 3-5M."
       },
       "top5_decisoes": {
         "context": "5 decisões estratégicas de curto prazo (6-12 meses) para otimizar a trajetória até IF.",
         "conclusion": "Prioridade 1: Aporte mensal R$ 20k com divisão (R$ 10k Cofrinhos, R$ 5k IPCA+, R$ 3k IVVB11, R$ 2k Wise USD). Prioridade 2: Contratar seguro de vida term. Prioridade 3: NCLEX/OET para Mariana. Prioridade 4: Consultar CPA expatriado para obrigações EUA. Prioridade 5: Advogado sucessório para planejamento de herança em cenário BR-EUA."
       }
-    }
+    },
+    "strategic_insights": [
+      "Risco de transição BR→EUA como principal vulnerabilidade: o plano financeiro assume manutenção integral da receita PJ brasileira durante o período F1/F2 nos EUA. Se David perder contratos PJ durante a transição (Arvo é ~80% da receita PJ), a sobra mensal de R$ 2,4k se torna déficit de ~R$ 45k/mês. Mitigação: diversificar base de clientes PJ antes da mudança, constituir reserva específica de 6 meses de custos EUA (~R$ 195k), manter imóveis alugados como colchão de renda passiva.",
+      "Crescimento de renda de aluguéis como motor silencioso da IF: a renda cresceu de R$ 2,7k/mês (2023) para R$ 8,7k/mês (2026) — aumento de 3,2x em 3 anos. Mantendo o portfólio atual, os aluguéis devem contribuir ~R$ 104k/ano, representando 29% da meta de renda passiva de IF (R$ 360k/ano). É a fonte de renda passiva mais tangível e previsível.",
+      "Janela tributária crítica: 2026 é o último ano para otimizar antes dos EUA. A entrada no sistema tributário americano (FBAR, FATCA, Form 8938) tornará a gestão fiscal muito mais complexa. Resolver em 2026: regularizar carnê-leão de David e Mariana, avaliar Simples vs LP antes de ser residente fiscal EUA, declarar IRPF 2026 com documentação em ordem, contratar CPA expatriado.",
+      "Score de 6,9 mascarado por componentes desbalanceados: Cobertura (10/10), Endividamento (9,8/10) e Diversificação (10/10) são excelentes, mas Taxa Poupança (3,3/10) e Progresso IF (4,5/10) são fracos. Principal alavanca: Progresso IF subirá mecanicamente com aportes consistentes. Taxa de poupança melhora pós-quitação do financiamento.",
+      "R$ 184k em despesas não identificadas (12,9% do total) prejudicam diagnóstico comportamental e são a maior categoria do orçamento. Reclassificar via melhoria nos parsers E2 e keywords de categorização E4 deve ser prioridade no próximo ciclo do pipeline."
+    ],
+    "inconsistencies_review": [
+      {
+        "id": "IC1",
+        "sections": [
+          "s4",
+          "yield_imoveis"
+        ],
+        "description": "O summary s4 reporta renda de aluguéis de R$ 52,1k/ano (R$ 4,3k/mês) com yield de 3,6%. Esse valor usa a média do período completo (40 meses), onde os primeiros 17 meses não tinham renda de aluguel. A renda atual anualizada é ~R$ 104k/ano (R$ 8,7k/mês), dando yield bruto de ~6% sobre imóveis de investimento. Refinamento aplicado no s4 para usar dados atualizados.",
+        "severity": "medium",
+        "action": "Refinement applied in s4 summary"
+      },
+      {
+        "id": "IC2",
+        "sections": [
+          "s7",
+          "projecao_3cenarios",
+          "renda_passiva"
+        ],
+        "description": "Múltiplas menções a 'renda passiva estimada de R$ 9,3k/mês (TRS 5%)' mesclam o estado atual com a meta. R$ 9,3k é a renda passiva ATUAL (TRS 4% sobre investível de R$ 2,8M). A meta é R$ 30k/mês (TRS 5% sobre R$ 7,2M em 2034). Refinamentos aplicados para distinguir claramente estado atual vs meta.",
+        "severity": "medium",
+        "action": "Refinements applied in s7, projecao_3cenarios, renda_passiva"
+      },
+      {
+        "id": "IC3",
+        "sections": [
+          "alocacao_atual"
+        ],
+        "description": "Nomes de instituições com capitalização inconsistente: 'C6 bank' (minúsculo) vs 'C6 Bank', 'Btg pactual' vs 'BTG Pactual'. Corrigido nas narrativas refinadas.",
+        "severity": "low",
+        "action": "Fixed in refined chart conclusions"
+      }
+    ]
+  },
+  "review_metadata": {
+    "timestamp": "2026-04-13T15:28:07.679846",
+    "e7_version": "1.0",
+    "changes_applied": [
+      "summaries.s3",
+      "summaries.s4",
+      "summaries.s7",
+      "charts.alocacao_atual",
+      "charts.fluxo_mensal",
+      "charts.despesas_doughnut",
+      "charts.projecao_3cenarios",
+      "charts.renda_passiva",
+      "charts.yield_imoveis",
+      "charts.top15_ativos",
+      "perfil_familia.right",
+      "tarefas (reordered 12 items)",
+      "strategic_insights (5 items)",
+      "inconsistencies_review (3 items)"
+    ],
+    "cross_validation_passed": 13,
+    "cross_validation_failed": 1
   }
 }

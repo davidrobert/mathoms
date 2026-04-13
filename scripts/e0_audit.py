@@ -14,8 +14,8 @@ Detecta problemas de roteamento (E0) que se propagariam pelo pipeline:
   8. HTML disfarçado de XLS (detecção de formato)
   9. Nomes incorretos de extracts E2 (sufixo errado, zero duplicado)
 
-Não altera nenhum arquivo — apenas imprime um relatório.
-Use --fix-names para auto-corrigir nomes de extracts da checagem 9.
+Modo padrão: apenas imprime um relatório (read-only).
+Use --fix-names para auto-corrigir nomes de extracts da checagem 9 (altera arquivos).
 
 Usage:
   python scripts/e0_audit.py              # Relatório completo

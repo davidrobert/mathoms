@@ -1,160 +1,197 @@
 {
   "tipo": "investimentosposicao",
-  "banco": "btgpactual",
+  "instituicao": "BTG Pactual",
   "membro": "mariana",
-  "data_posicao": "2026-03",
+  "data_posicao": "2026-03-29",
   "moeda": "BRL",
+  "total_aplicado": 362373.34,
+  "saldo_atual": 375384.56,
+  "conta_investimento": 13011.22,
+  "rentabilidade": {
+    "valor": 27743.47,
+    "percentual": 10.84
+  },
   "composicao": [
     {
-      "product_type": "CDB",
-      "name": "BANCO AGIBANK S.A",
-      "issuer": "BANCO AGIBANK S.A",
-      "current_value": 29353.39,
-      "rate": "116.65% do CDI",
-      "maturity_date": "2026-10-11"
+      "tipo_produto": "CDB",
+      "nome": "BANCO AGIBANK S.A (Pós-fixado 116.65% CDI)",
+      "quantidade": 22,
+      "valor_unitario": 1393.23,
+      "valor_total": 29353.39,
+      "vencimento": "2026-11-10",
+      "taxa": "116.65% do CDI"
     },
     {
-      "product_type": "CDB",
-      "name": "PICPAY BANK - BANCO MULTI",
-      "issuer": "PICPAY BANK",
-      "current_value": 30442.6,
-      "rate": "15.26% a.a.",
-      "maturity_date": "2030-03-25"
+      "tipo_produto": "CDB",
+      "nome": "PICPAY BANK (Pré-fixado 15.26% a.a.)",
+      "quantidade": 27,
+      "valor_unitario": 1154.55,
+      "valor_total": 30442.6,
+      "vencimento": "2030-03-25",
+      "taxa": "15.26% a.a."
     },
     {
-      "product_type": "CDB",
-      "name": "BANCO DIGIMAIS S.A.",
-      "issuer": "BANCO DIGIMAIS S.A.",
-      "current_value": 12631.0,
-      "rate": "121.00% do CDI",
-      "maturity_date": "2030-05-21"
+      "tipo_produto": "CDB",
+      "nome": "BANCO DIGIMAIS S.A. (Pós-fixado 121% CDI)",
+      "quantidade": 10,
+      "valor_unitario": 1318.91,
+      "valor_total": 12631.0,
+      "vencimento": "2030-05-21",
+      "taxa": "121.00% do CDI"
     },
     {
-      "product_type": "CDB",
-      "name": "PICPAY BANK - BANCO MULTI",
-      "issuer": "PICPAY BANK",
-      "current_value": 22563.46,
-      "rate": "15.34% a.a.",
-      "maturity_date": "2032-03-24"
+      "tipo_produto": "CDB",
+      "nome": "PICPAY BANK (Pré-fixado 15.34% a.a.)",
+      "quantidade": 20,
+      "valor_unitario": 1155.36,
+      "valor_total": 22563.46,
+      "vencimento": "2032-03-24",
+      "taxa": "15.34% a.a."
     },
     {
-      "product_type": "CRI",
-      "name": "CRI - TEX COURIER",
-      "issuer": "TEX COURIER",
-      "current_value": 8002.3,
-      "rate": "CDI + 2.90%",
-      "maturity_date": "2028-11-16"
+      "tipo_produto": "CRI",
+      "nome": "CRI - TEX COURIER (CDI + 2.90%)",
+      "quantidade": 10,
+      "valor_unitario": 800.23,
+      "valor_total": 8002.3,
+      "vencimento": "2028-11-16",
+      "taxa": "CDI + 2.90%"
     },
     {
-      "product_type": "CRI",
-      "name": "CRI - ONCOCLINICAS II",
-      "issuer": "ONCOCLINICAS",
-      "current_value": 7020.69,
-      "rate": "12.16% a.a.",
-      "maturity_date": "2030-10-15"
+      "tipo_produto": "CRI",
+      "nome": "CRI - ONCOCLINICAS II (12.16% a.a.)",
+      "quantidade": 9,
+      "valor_unitario": 780.08,
+      "valor_total": 7020.69,
+      "vencimento": "2030-10-15",
+      "taxa": "12.16% a.a."
     },
     {
-      "product_type": "CRA",
-      "name": "CRA - Zamp",
-      "issuer": "ZAMP",
-      "current_value": 8608.78,
-      "rate": "12.17% a.a.",
-      "maturity_date": "2029-02-15"
+      "tipo_produto": "CRA",
+      "nome": "CRA - Zamp (12.17% a.a.)",
+      "quantidade": 9,
+      "valor_unitario": 956.53,
+      "valor_total": 8608.78,
+      "vencimento": "2029-02-15",
+      "taxa": "12.17% a.a."
     },
     {
-      "product_type": "CRA",
-      "name": "CRA - MADERO",
-      "issuer": "MADERO",
-      "current_value": 7778.47,
-      "rate": "12.98% a.a.",
-      "maturity_date": "2029-10-29"
+      "tipo_produto": "CRA",
+      "nome": "CRA - MADERO (12.98% a.a.)",
+      "quantidade": 9,
+      "valor_unitario": 864.27,
+      "valor_total": 7778.47,
+      "vencimento": "2029-10-29",
+      "taxa": "12.98% a.a."
     },
     {
-      "product_type": "CRA",
-      "name": "CRA - FS AGRISOLUTIONS",
-      "issuer": "FS AGRISOLUTIONS",
-      "current_value": 7276.46,
-      "rate": "12.88% a.a.",
-      "maturity_date": "2030-06-17"
+      "tipo_produto": "CRA",
+      "nome": "CRA - FS AGRISOLUTIONS (12.88% a.a.)",
+      "quantidade": 9,
+      "valor_unitario": 808.5,
+      "valor_total": 7276.46,
+      "vencimento": "2030-06-17",
+      "taxa": "12.88% a.a."
     },
     {
-      "product_type": "CRA",
-      "name": "CRA - CEREAL",
-      "issuer": "CEREAL",
-      "current_value": 8795.66,
-      "rate": "14.28% a.a.",
-      "maturity_date": "2032-09-15"
+      "tipo_produto": "CRA",
+      "nome": "CRA - CEREAL (14.28% a.a.)",
+      "quantidade": 9,
+      "valor_unitario": 977.3,
+      "valor_total": 8795.66,
+      "vencimento": "2032-09-15",
+      "taxa": "14.28% a.a."
     },
     {
-      "product_type": "CRA",
-      "name": "CRA - Caramuru",
-      "issuer": "CARAMURU",
-      "current_value": 20318.78,
-      "rate": "15.29% a.a.",
-      "maturity_date": "2033-02-15"
+      "tipo_produto": "CRA",
+      "nome": "CRA - Caramuru (15.29% a.a.)",
+      "quantidade": 21,
+      "valor_unitario": 967.56,
+      "valor_total": 20318.78,
+      "vencimento": "2033-02-15",
+      "taxa": "15.29% a.a."
     },
     {
-      "product_type": "CRA",
-      "name": "CRA - MINERVA",
-      "issuer": "MINERVA",
-      "current_value": 26663.31,
-      "rate": "13.66% a.a.",
-      "maturity_date": "2035-07-16"
+      "tipo_produto": "CRA",
+      "nome": "CRA - MINERVA (13.66% a.a.)",
+      "quantidade": 27,
+      "valor_unitario": 987.53,
+      "valor_total": 26663.31,
+      "vencimento": "2035-07-16",
+      "taxa": "13.66% a.a."
     },
     {
-      "product_type": "CRA",
-      "name": "CRA - ELDORADO",
-      "issuer": "ELDORADO",
-      "current_value": 28517.95,
-      "rate": "IPCA + 7.20%",
-      "maturity_date": "2040-09-17"
+      "tipo_produto": "CRA",
+      "nome": "CRA - ELDORADO (IPCA + 7.20%)",
+      "quantidade": 29,
+      "valor_unitario": 983.38,
+      "valor_total": 28517.95,
+      "vencimento": "2040-09-17",
+      "taxa": "IPCA + 7.20%"
     },
     {
-      "product_type": "Debentura",
-      "name": "LOCALIZA RENT A CAR SA",
-      "issuer": "LOCALIZA",
-      "current_value": 29205.27,
-      "rate": "IPCA + 8.50%",
-      "maturity_date": "2031-12-15"
+      "tipo_produto": "debenture",
+      "nome": "LOCALIZA RENT A CAR SA (IPCA + 8.50%)",
+      "quantidade": 26,
+      "valor_unitario": 1134.93,
+      "valor_total": 29205.27,
+      "vencimento": "2031-12-15",
+      "taxa": "IPCA + 8.50%"
     },
     {
-      "product_type": "Debentura",
-      "name": "CSN MINERACAO S.A.",
-      "issuer": "CSN",
-      "current_value": 6993.62,
-      "rate": "IPCA + 7.93%",
-      "maturity_date": "2036-07-15"
+      "tipo_produto": "debenture",
+      "nome": "CSN MINERACAO S.A. (IPCA + 7.93%)",
+      "quantidade": 9,
+      "valor_unitario": 777.07,
+      "valor_total": 6993.62,
+      "vencimento": "2036-07-15",
+      "taxa": "IPCA + 7.93%"
     },
     {
-      "product_type": "Fundo",
-      "name": "BTG HEDGE FIRF CRPR SUB",
-      "issuer": "BTG",
-      "current_value": 2544.45,
-      "rate": "0.61% mês / 2.99% ano / 13.73% 12m"
+      "tipo_produto": "titulo_publico",
+      "nome": "Tesouro IPCA+ com Juros Semestrais 2030",
+      "quantidade": 10,
+      "valor_unitario": 4354.64,
+      "valor_total": 43348.99,
+      "vencimento": "2030-08-15",
+      "taxa": "IPCA + 7.11%"
     },
     {
-      "product_type": "Fundo",
-      "name": "BTG HEDGE INCENTIVADO I",
-      "issuer": "BTG",
-      "current_value": 30091.92,
-      "rate": "-0.78% mês / 2.55% ano / 14.15% 12m"
+      "tipo_produto": "titulo_publico",
+      "nome": "Tesouro IPCA+ com Juros Semestrais 2033",
+      "quantidade": 2,
+      "valor_unitario": 4292.75,
+      "valor_total": 8585.49,
+      "vencimento": "2033-05-15",
+      "taxa": "IPCA + 7.05%"
     },
     {
-      "product_type": "COE",
-      "name": "3R - Cupom Semestral",
-      "issuer": "BANCO BTG PACTUAL",
-      "applied_value": 20000.0,
-      "current_value": 20449.45,
-      "maturity_date": "2031-02-07",
-      "acquisition_date": "2025-04-30"
+      "tipo_produto": "fundo",
+      "nome": "BTG HEDGE FIRF CRPR",
+      "valor_total": 2544.45,
+      "rentabilidade_12m": 13.73
     },
     {
-      "product_type": "Swap",
-      "name": "Swap",
-      "issuer": "BTG",
-      "current_value": -448.78
+      "tipo_produto": "fundo",
+      "nome": "BTG HEDGE INCENTIVADO INFRAESTRUTURA RF",
+      "valor_total": 30091.92,
+      "rentabilidade_12m": 14.15
+    },
+    {
+      "tipo_produto": "COE",
+      "nome": "3R - Cupom Semestral (BANCO BTG PACTUAL)",
+      "valor_total": 20449.45,
+      "valor_aplicado": 20000.0,
+      "vencimento": "2031-02-07",
+      "data_inicio": "2025-04-30"
+    },
+    {
+      "tipo_produto": "swap",
+      "nome": "Swap Derivativo",
+      "valor_total": -448.78,
+      "principal": 50000.0,
+      "data_inicio": "2025-11-26",
+      "vencimento": "2035-11-26"
     }
-  ],
-  "saldo_atual": 375384.56,
-  "rentabilidade_acumulada": null
+  ]
 }

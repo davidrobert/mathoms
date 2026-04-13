@@ -1,6 +1,6 @@
 {
   "pipeline_stage": "E1.5_Baseline_Patrimonial",
-  "data_processamento": "2026-04-09",
+  "data_processamento": "2026-04-13",
   "membros": [
     "david",
     "mariana"
@@ -11,27 +11,497 @@
   ],
   "declarations": [
     {
+      "membro": "david",
+      "ano_base": 2024,
+      "bens_direitos": [
+        {
+          "grupo": "G01",
+          "codigo": "11",
+          "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34 - Praça Benedito Calixto 190, Pinheiros, SP",
+          "situacao_anterior": 350000.0,
+          "situacao_atual": 350000.0
+        },
+        {
+          "grupo": "G01",
+          "codigo": "11",
+          "descricao": "APARTAMENTO - EDIFICIO GISELE - APTO 12 - Rua Major Freire 496, Vila Monte Alegre, SP - ALIENACAO FIDUCIARIA AO ITAU UNIBANCO",
+          "situacao_anterior": 212706.24,
+          "situacao_atual": 212706.24
+        },
+        {
+          "grupo": "G01",
+          "codigo": "12",
+          "descricao": "CASA - Av. Leonardo da Vinci 2707, Jabaquara, SP - Usufruto vitalício",
+          "situacao_anterior": 80000.0,
+          "situacao_atual": 80000.0
+        },
+        {
+          "grupo": "G01",
+          "codigo": "12",
+          "descricao": "CASA - Rua Tasso da Silveira 61, Vila Guarani, SP - Residência própria - Financiamento quitado Caixa",
+          "situacao_anterior": 996821.46,
+          "situacao_atual": 996821.46
+        },
+        {
+          "grupo": "G02",
+          "codigo": "01",
+          "descricao": "VEICULO - MOTOCICLETA YAMAHA NMAX - PRETA - PLACA DAV0351 - ANO 2018",
+          "situacao_anterior": 15093.0,
+          "situacao_atual": 15093.0
+        },
+        {
+          "grupo": "G02",
+          "codigo": "01",
+          "descricao": "VEICULO - MOTOCICLETA YAMAHA MT 09 TRACER - AZUL - PLACA DAV 0342 - ANO 2018 (vendida em 2024)",
+          "situacao_anterior": 51722.0,
+          "situacao_atual": 0.0
+        },
+        {
+          "grupo": "G02",
+          "codigo": "01",
+          "descricao": "VEICULO - CARRO FIAT TORO ULTRA - COR AZUL - PLACA GDK6A27",
+          "situacao_anterior": 191354.0,
+          "situacao_atual": 191354.0
+        },
+        {
+          "grupo": "G02",
+          "codigo": "01",
+          "descricao": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA STH2C88",
+          "situacao_anterior": 0.0,
+          "situacao_atual": 21029.0
+        },
+        {
+          "grupo": "G03",
+          "codigo": "01",
+          "descricao": "ACOES - ITSA4 - QUANTIDADE 693 - CNPJ 61.532.644/0001-15",
+          "situacao_anterior": 5821.2,
+          "situacao_atual": 0.0
+        },
+        {
+          "grupo": "G03",
+          "codigo": "01",
+          "descricao": "ACOES - BRKM5 - QUANTIDADE 300 - CNPJ 42.150.391/0001-70",
+          "situacao_anterior": 6267.0,
+          "situacao_atual": 0.0
+        },
+        {
+          "grupo": "G03",
+          "codigo": "01",
+          "descricao": "ACOES - PETR4 - QUANTIDADE 300 - CNPJ 33.000.167/0001-01",
+          "situacao_anterior": 38883.0,
+          "situacao_atual": 0.0
+        },
+        {
+          "grupo": "G04",
+          "codigo": "01",
+          "descricao": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL",
+          "situacao_anterior": 61507.2,
+          "situacao_atual": 0.0
+        },
+        {
+          "grupo": "G04",
+          "codigo": "02",
+          "descricao": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP - AG/CONTA 9652/0004397-8",
+          "situacao_anterior": 277658.86,
+          "situacao_atual": 151602.49
+        },
+        {
+          "grupo": "G04",
+          "codigo": "02",
+          "descricao": "BANCO PICPAY BANK - AGENCIA 0001 CONTA 438329-0 INSTITUICAO 380",
+          "situacao_anterior": 73587.74,
+          "situacao_atual": 46684.62
+        },
+        {
+          "grupo": "G04",
+          "codigo": "02",
+          "descricao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB) - AGENCIA 1652 - CONTA 010013416",
+          "situacao_anterior": 1886.46,
+          "situacao_atual": 243285.37
+        },
+        {
+          "grupo": "G04",
+          "codigo": "02",
+          "descricao": "BANCO C6 - APLICACAO EM RENDA FIXA",
+          "situacao_anterior": 23439.0,
+          "situacao_atual": 1765.0
+        },
+        {
+          "grupo": "G04",
+          "codigo": "02",
+          "descricao": "SALDO EM RDB NO NUBANK",
+          "situacao_anterior": 5.98,
+          "situacao_atual": 189.3
+        },
+        {
+          "grupo": "G06",
+          "codigo": "01",
+          "descricao": "BANCO CAIXA - CONTA CORRENTE - AG 1218 CONTA 22539-4",
+          "situacao_anterior": 275.29,
+          "situacao_atual": 230.53
+        },
+        {
+          "grupo": "G06",
+          "codigo": "01",
+          "descricao": "BANCO ITAU - CONTA CORRENTE - AG 9652 CONTA 4397-8",
+          "situacao_anterior": 10.0,
+          "situacao_atual": 1.01
+        },
+        {
+          "grupo": "G06",
+          "codigo": "01",
+          "descricao": "DEPOSITO EM CONTA CORRENTE - BANCO C6 (336) AG 0001 CONTA 13095222-2",
+          "situacao_anterior": 0.0,
+          "situacao_atual": 4936.98
+        },
+        {
+          "grupo": "G06",
+          "codigo": "11",
+          "descricao": "MOEDA ESTRANGEIRA - U$ 6524,00",
+          "situacao_anterior": 34433.67,
+          "situacao_atual": 34433.67
+        },
+        {
+          "grupo": "G06",
+          "codigo": "99",
+          "descricao": "RICO - SALDO EM CONTA - XP INVESTIMENTOS CCTVM S/A",
+          "situacao_anterior": 15717.49,
+          "situacao_atual": 8546.95
+        },
+        {
+          "grupo": "G06",
+          "codigo": "99",
+          "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS CAYMAN) AG 0001/CC 100348783-7",
+          "situacao_anterior": 768.94,
+          "situacao_atual": 484.8
+        },
+        {
+          "grupo": "G07",
+          "codigo": "01",
+          "descricao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F - CNPJ 33.736.873/0001-16",
+          "situacao_anterior": 2457.74,
+          "situacao_atual": 3189.68
+        },
+        {
+          "grupo": "G07",
+          "codigo": "01",
+          "descricao": "RICO - DNA ENERGY FIC FIM CP - CNPJ 35.956.056/0001-07",
+          "situacao_anterior": 1387.66,
+          "situacao_atual": 1416.09
+        },
+        {
+          "grupo": "G07",
+          "codigo": "04",
+          "descricao": "RICO - CONSTELLATION INSTITUCIONAL ADVI - CNPJ 34.462.109/0001-62",
+          "situacao_anterior": 10000.0,
+          "situacao_atual": 11409.17
+        },
+        {
+          "grupo": "G07",
+          "codigo": "04",
+          "descricao": "RICO - WESTERN ASSET FIA BDR NIVEL I - CNPJ 19.831.126/0001-36",
+          "situacao_anterior": 17651.61,
+          "situacao_atual": 17651.61
+        },
+        {
+          "grupo": "G07",
+          "codigo": "04",
+          "descricao": "RICO - ALASKA BLACK FIC FIA - BDR - CNPJ 12.987.743/0001-86",
+          "situacao_anterior": 60000.0,
+          "situacao_atual": 60000.0
+        },
+        {
+          "grupo": "G07",
+          "codigo": "04",
+          "descricao": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR - CNPJ 26.673.556/0001-32",
+          "situacao_anterior": 35000.0,
+          "situacao_atual": 35000.0
+        },
+        {
+          "grupo": "G07",
+          "codigo": "04",
+          "descricao": "RICO - SAFARI 30 FIC FIM II - CNPJ 23.960.625/0001-09",
+          "situacao_anterior": 25238.59,
+          "situacao_atual": 25238.59
+        },
+        {
+          "grupo": "G99",
+          "codigo": "07",
+          "descricao": "ITAUSA S.A - POSICAO ACIONARIA - JUROS SOBRE CAPITAL CREDITADOS E NAO PAGOS - CNPJ 61.532.644/0001-15",
+          "situacao_anterior": 192.96,
+          "situacao_atual": 82.15
+        }
+      ],
+      "dividas": [
+        {
+          "codigo": "11",
+          "descricao": "CREDITO IMOBILIARIO - CREDOR: ITAU UNIBANCO S.A. - CONTRATO 10171192207",
+          "situacao_anterior": 265420.59,
+          "situacao_atual": 234642.79,
+          "valor_pago_periodo": 54416.0
+        },
+        {
+          "codigo": "11",
+          "descricao": "CHEQUE ESPECIAL BANCO SANTANDER",
+          "situacao_anterior": 0.0,
+          "situacao_atual": 149.82,
+          "valor_pago_periodo": 0.0
+        }
+      ],
+      "rendimentos": {
+        "tributaveis": [
+          {
+            "fonte": "DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+            "cnpj": "48.771.488/0001-87",
+            "valor": 153938.74,
+            "irrf": 33225.23
+          },
+          {
+            "fonte": "KIWIFY PAGAMENTOS TECNOLOGIA E SERVICOS LTDA",
+            "cnpj": "36.149.947/0001-06",
+            "valor": 466978.67,
+            "irrf": 121543.55
+          }
+        ],
+        "isentos": [
+          {
+            "tipo": "13 - Rendimento de sócio ME/EPP Simples Nacional",
+            "fonte": "DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+            "valor": 301277.39
+          }
+        ],
+        "exclusivos": [
+          {
+            "tipo": "13º salário",
+            "valor": 31259.11
+          },
+          {
+            "tipo": "Rendimentos de aplicações financeiras",
+            "valor": 55445.46
+          },
+          {
+            "tipo": "Juros sobre capital próprio",
+            "valor": 2658.8
+          }
+        ]
+      },
+      "totais": {
+        "bens_direitos_anterior": 2513151.71,
+        "bens_direitos_atual": 2589887.09,
+        "dividas_anterior": 265420.59,
+        "dividas_atual": 234792.61,
+        "rendimentos_tributaveis": 651374.65,
+        "imposto_devido": 163779.6,
+        "imposto_pago": 154768.78,
+        "saldo_imposto": 9010.82,
+        "aliquota_efetiva": 25.14
+      }
+    },
+    {
+      "membro": "mariana",
+      "ano_base": 2024,
+      "bens_direitos": [
+        {
+          "grupo": "G01",
+          "codigo": "11",
+          "descricao": "APARTAMENTO - COND. LIVING CONCEPT - Av. Alberto Augusto Alves 320, Apto 812, Santo Amaro, SP - 25,7m²",
+          "situacao_anterior": 223733.99,
+          "situacao_atual": 270000.0
+        },
+        {
+          "grupo": "G01",
+          "codigo": "11",
+          "descricao": "APARTAMENTO - COND. LIVING WISH - Av. João Dias 2192, Torre 2 Apt 163, Santo Amaro, SP - 88,9m²",
+          "situacao_anterior": 477436.58,
+          "situacao_atual": 530000.0
+        },
+        {
+          "grupo": "G04",
+          "codigo": "01",
+          "descricao": "CONTA BRADESCO POUPANCA - AG 6543 CONTA 6673-7",
+          "situacao_anterior": 25337.34,
+          "situacao_atual": 0.0
+        },
+        {
+          "grupo": "G04",
+          "codigo": "02",
+          "descricao": "BTG - PRODUTO CDBB2353UR4",
+          "situacao_anterior": 22000.0,
+          "situacao_atual": 22000.0
+        },
+        {
+          "grupo": "G04",
+          "codigo": "02",
+          "descricao": "BTG - CDB-SR - AGENCIA 0001",
+          "situacao_anterior": 1826.51,
+          "situacao_atual": 3429.16
+        },
+        {
+          "grupo": "G04",
+          "codigo": "02",
+          "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
+          "situacao_anterior": 4365.03,
+          "situacao_atual": 0.0
+        },
+        {
+          "grupo": "G04",
+          "codigo": "02",
+          "descricao": "SALDO RDB - NUBANK",
+          "situacao_anterior": 58.23,
+          "situacao_atual": 0.0
+        },
+        {
+          "grupo": "G04",
+          "codigo": "02",
+          "descricao": "BTG - PRODUTO CDB524BFK2F",
+          "situacao_anterior": 0.0,
+          "situacao_atual": 10000.0
+        },
+        {
+          "grupo": "G04",
+          "codigo": "03",
+          "descricao": "BTG - PRODUTO 22J1410500 (LCI)",
+          "situacao_anterior": 10349.69,
+          "situacao_atual": 9349.69
+        },
+        {
+          "grupo": "G04",
+          "codigo": "03",
+          "descricao": "BTG - PRODUTO 22K1692411 (LCI)",
+          "situacao_anterior": 10324.25,
+          "situacao_atual": 10324.25
+        },
+        {
+          "grupo": "G04",
+          "codigo": "03",
+          "descricao": "BTG - PRODUTO CRA02300MZU",
+          "situacao_anterior": 0.0,
+          "situacao_atual": 9115.01
+        },
+        {
+          "grupo": "G04",
+          "codigo": "03",
+          "descricao": "BTG - PRODUTO CRA02300SPD",
+          "situacao_anterior": 0.0,
+          "situacao_atual": 9109.54
+        },
+        {
+          "grupo": "G04",
+          "codigo": "03",
+          "descricao": "BTG - PRODUTO CRA024001Q9",
+          "situacao_anterior": 0.0,
+          "situacao_atual": 9248.83
+        },
+        {
+          "grupo": "G04",
+          "codigo": "03",
+          "descricao": "BTG - PRODUTO 23J0138431",
+          "situacao_anterior": 0.0,
+          "situacao_atual": 9164.03
+        },
+        {
+          "grupo": "G06",
+          "codigo": "01",
+          "descricao": "CONTA CORRENTE BRADESCO - AG 6543 CONTA 6673-7",
+          "situacao_anterior": 1.0,
+          "situacao_atual": 0.0
+        },
+        {
+          "grupo": "G07",
+          "codigo": "01",
+          "descricao": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO - CNPJ 11.952.873/0001-10",
+          "situacao_anterior": 35868.62,
+          "situacao_atual": 41408.87
+        },
+        {
+          "grupo": "G07",
+          "codigo": "01",
+          "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI - CNPJ 00.888.897/0001-31",
+          "situacao_anterior": 0.0,
+          "situacao_atual": 4494.93
+        },
+        {
+          "grupo": "G07",
+          "codigo": "07",
+          "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRIVADO LP - CNPJ 39.958.460/0001-62",
+          "situacao_anterior": 0.0,
+          "situacao_atual": 25479.42
+        },
+        {
+          "grupo": "G07",
+          "codigo": "10",
+          "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE INVESTIMENTO FINANCEIRO EM INFRAESTRUTURA RF - CNPJ 51.697.128/0001-97",
+          "situacao_anterior": 0.0,
+          "situacao_atual": 25000.0
+        }
+      ],
+      "dividas": [],
+      "rendimentos": {
+        "tributaveis": [
+          {
+            "fonte": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA HOSPITAL ALBERT EINSTEIN",
+            "cnpj": "60.765.823/0001-30",
+            "valor": 141842.7,
+            "irrf": 22575.99
+          }
+        ],
+        "isentos": [
+          {
+            "tipo": "99 - Outros (Abono de férias, PIS)",
+            "fonte": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA",
+            "valor": 1336.61
+          }
+        ],
+        "exclusivos": [
+          {
+            "tipo": "13º salário",
+            "valor": 8301.32
+          },
+          {
+            "tipo": "Rendimentos de aplicações financeiras",
+            "valor": 3319.56
+          }
+        ]
+      },
+      "alugueis_recebidos": {
+        "total_anual": 62140.28,
+        "fonte": "Carnê-Leão (PF/Exterior)",
+        "nota": "Aluguéis via QuintoAndar, pagos por meses: jan R$1.504,80 / fev R$3.094,84 / abr R$6.488,68 / mai R$6.488,68 / jun R$6.429,60 / jul R$6.429,60 / ago R$6.488,68 / set R$6.488,68 / out R$4.294,11 / nov R$6.488,68 / dez R$6.488,68 / mar R$1.504,80"
+      },
+      "totais": {
+        "bens_direitos_anterior": 811301.24,
+        "bens_direitos_atual": 988123.73,
+        "dividas_anterior": 0.0,
+        "dividas_atual": 0.0,
+        "rendimentos_tributaveis": 203982.98,
+        "imposto_devido": 40746.89,
+        "imposto_pago": 22575.99,
+        "saldo_imposto": 18170.9,
+        "aliquota_efetiva": 19.97
+      }
+    },
+    {
       "membro": "mariana",
       "ano_base": 2023,
       "bens_direitos": [
         {
           "grupo": "G01",
           "codigo": "11",
-          "descricao": "APARTAMENTO NO COND. LIVING CONCEPT - CAMPINAS",
+          "descricao": "APARTAMENTO - COND. LIVING CONCEPT - Av. Alberto Augusto Alves 320, Apto 812, Santo Amaro, SP - 25,7m²",
           "situacao_anterior": 116839.26,
           "situacao_atual": 223733.99
         },
         {
           "grupo": "G01",
           "codigo": "11",
-          "descricao": "APARTAMENTO NO COND. LIVING WISH - SÃO PAULO",
+          "descricao": "APARTAMENTO - COND. LIVING WISH - Av. João Dias 2192, Torre 2 Apt 163, Santo Amaro, SP - 88,9m²",
           "situacao_anterior": 477436.58,
           "situacao_atual": 477436.58
         },
         {
           "grupo": "G04",
           "codigo": "01",
-          "descricao": "CONTA MANTIDA JUNTO AO BANCO BRADESCO",
+          "descricao": "CONTA BRADESCO POUPANCA - AG 6543 CONTA 6673-7",
           "situacao_anterior": 36692.14,
           "situacao_atual": 25337.34
         },
@@ -80,14 +550,14 @@
         {
           "grupo": "G06",
           "codigo": "01",
-          "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO",
+          "descricao": "CONTA CORRENTE BRADESCO - AG 6543 CONTA 6673-7",
           "situacao_anterior": 1.0,
           "situacao_atual": 1.0
         },
         {
           "grupo": "G07",
           "codigo": "01",
-          "descricao": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LONGO PRAZO",
+          "descricao": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO LP - CNPJ 11.952.873/0001-10",
           "situacao_anterior": 0.0,
           "situacao_atual": 35868.62
         }
@@ -98,589 +568,112 @@
           {
             "fonte": "SOCIEDADE BENEF ISRAELITA BRAS HOSPITAL ALBERT EINSTEIN",
             "cnpj": "60.765.823/0001-30",
-            "valor": 146176.12
+            "valor": 146176.12,
+            "irrf": 26255.09
           }
         ],
         "isentos": [
           {
-            "descricao": "Restituição do imposto sobre a renda de anos-calendário anteriores",
+            "tipo": "25 - Restituição IRPF anos anteriores",
             "valor": 1099.91
           },
           {
-            "descricao": "ABONO DE FÉRIAS PIS",
+            "tipo": "99 - Outros (Abono de férias, PIS)",
+            "fonte": "SOCIEDADE BENEF ISRAELITA BRAS HOSPITAL ALBERT EINSTEIN",
             "valor": 8265.49
           }
-        ]
-      }
-    },
-    {
-      "membro": "david",
-      "ano_base": 2024,
-      "bens_direitos": [
-        {
-          "grupo": "G01",
-          "codigo": "11",
-          "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
-          "situacao_anterior": 350000.0,
-          "situacao_atual": 350000.0
-        },
-        {
-          "grupo": "G01",
-          "codigo": "11",
-          "descricao": "APARTAMENTO - EDIFICICIO GISELE - APTO 12",
-          "situacao_anterior": 212706.24,
-          "situacao_atual": 212706.24
-        },
-        {
-          "grupo": "G01",
-          "codigo": "12",
-          "descricao": "COMPRA E VENDA DE CASA - ADQUIRIDO EM 12/01/2023",
-          "situacao_anterior": 80000.0,
-          "situacao_atual": 80000.0
-        },
-        {
-          "grupo": "G01",
-          "codigo": "12",
-          "descricao": "CASA - RUA TASSO DA SILVEIRA - FINANCIAMENTO QUITADO",
-          "situacao_anterior": 996821.46,
-          "situacao_atual": 996821.46
-        },
-        {
-          "grupo": "G02",
-          "codigo": "01",
-          "descricao": "VEICULO - MOTOCICLETA YAMAHA NMAX - PLACA DAV0351",
-          "situacao_anterior": 15093.0,
-          "situacao_atual": 15093.0
-        },
-        {
-          "grupo": "G02",
-          "codigo": "01",
-          "descricao": "VEICULO - MOTOCICLETA YAMAHA MT 09 TRACER - PLACA DAV 0342",
-          "situacao_anterior": 51722.0,
-          "situacao_atual": 0.0
-        },
-        {
-          "grupo": "G02",
-          "codigo": "01",
-          "descricao": "VEICULO - CARRO FIAT TORO ULTRA - PLACA GDK6A27",
-          "situacao_anterior": 191354.0,
-          "situacao_atual": 191354.0
-        },
-        {
-          "grupo": "G02",
-          "codigo": "01",
-          "descricao": "MOTONET A YAMAHA/NMAX 160 MODELO 2024",
-          "situacao_anterior": 0.0,
-          "situacao_atual": 21029.0
-        },
-        {
-          "grupo": "G03",
-          "codigo": "01",
-          "descricao": "ACOES - ITSA4 - QUANTIDADE 693",
-          "situacao_anterior": 5821.2,
-          "situacao_atual": 0.0
-        },
-        {
-          "grupo": "G03",
-          "codigo": "01",
-          "descricao": "ACOES - BRKM5 - QUANTIDADE 300",
-          "situacao_anterior": 6267.0,
-          "situacao_atual": 0.0
-        },
-        {
-          "grupo": "G03",
-          "codigo": "01",
-          "descricao": "ACOES - PETR4 - QUANTIDADE 300",
-          "situacao_anterior": 38883.0,
-          "situacao_atual": 0.0
-        },
-        {
-          "grupo": "G04",
-          "codigo": "01",
-          "descricao": "SALDO POUPANCA CAIXA ECONOMICA FEDERAL",
-          "situacao_anterior": 61507.2,
-          "situacao_atual": 0.0
-        },
-        {
-          "grupo": "G04",
-          "codigo": "02",
-          "descricao": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP",
-          "situacao_anterior": 277658.86,
-          "situacao_atual": 151602.49
-        },
-        {
-          "grupo": "G04",
-          "codigo": "02",
-          "descricao": "BANCO PICPAY BANK BANCO MULTIPLO S.A.",
-          "situacao_anterior": 73587.74,
-          "situacao_atual": 46684.62
-        },
-        {
-          "grupo": "G04",
-          "codigo": "02",
-          "descricao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB)",
-          "situacao_anterior": 1886.46,
-          "situacao_atual": 243285.37
-        },
-        {
-          "grupo": "G04",
-          "codigo": "02",
-          "descricao": "BANCO C6 - APLICACAO EM RENDA FIXA",
-          "situacao_anterior": 23439.0,
-          "situacao_atual": 1765.0
-        },
-        {
-          "grupo": "G04",
-          "codigo": "02",
-          "descricao": "SALDO EM RDB NO NUBANK",
-          "situacao_anterior": 5.98,
-          "situacao_atual": 189.3
-        },
-        {
-          "grupo": "G06",
-          "codigo": "01",
-          "descricao": "BANCO CAIXA - CONTA CORRENTE - AG 1218",
-          "situacao_anterior": 275.29,
-          "situacao_atual": 230.53
-        },
-        {
-          "grupo": "G06",
-          "codigo": "01",
-          "descricao": "BANCO ITAU - CONTA CORRENTE",
-          "situacao_anterior": 10.0,
-          "situacao_atual": 1.01
-        },
-        {
-          "grupo": "G06",
-          "codigo": "01",
-          "descricao": "DEPOSITO EM CONTA CORRENTE DE DEPOSITO A VISTA",
-          "situacao_anterior": 0.0,
-          "situacao_atual": 4936.98
-        },
-        {
-          "grupo": "G06",
-          "codigo": "11",
-          "descricao": "US 6524.00",
-          "situacao_anterior": 34433.67,
-          "situacao_atual": 34433.67
-        },
-        {
-          "grupo": "G06",
-          "codigo": "99",
-          "descricao": "RICO - SALDO EM CONTA - XP INVESTIMENTOS CCTVM S/A",
-          "situacao_anterior": 15717.49,
-          "situacao_atual": 8546.95
-        },
-        {
-          "grupo": "G06",
-          "codigo": "99",
-          "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS CAYMAN)",
-          "situacao_anterior": 768.94,
-          "situacao_atual": 484.8
-        },
-        {
-          "grupo": "G07",
-          "codigo": "01",
-          "descricao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F",
-          "situacao_anterior": 2457.74,
-          "situacao_atual": 3189.68
-        },
-        {
-          "grupo": "G07",
-          "codigo": "01",
-          "descricao": "RICO - DNA ENERGY FIC FIM CP",
-          "situacao_anterior": 1387.66,
-          "situacao_atual": 1416.09
-        },
-        {
-          "grupo": "G07",
-          "codigo": "04",
-          "descricao": "RICO - CONSTELLATION INSTITUTIONAL ADVI",
-          "situacao_anterior": 10000.0,
-          "situacao_atual": 11409.17
-        },
-        {
-          "grupo": "G07",
-          "codigo": "04",
-          "descricao": "RICO - WESTERN ASSET FIA BDR NIVEL I",
-          "situacao_anterior": 17651.61,
-          "situacao_atual": 17651.61
-        },
-        {
-          "grupo": "G07",
-          "codigo": "04",
-          "descricao": "RICO - ALASKA BLACK FIC FIA - BDR",
-          "situacao_anterior": 60000.0,
-          "situacao_atual": 60000.0
-        },
-        {
-          "grupo": "G07",
-          "codigo": "04",
-          "descricao": "RICO - ALASKA BLACK INSTITUTIONAL FIA BDR",
-          "situacao_anterior": 35000.0,
-          "situacao_atual": 35000.0
-        },
-        {
-          "grupo": "G07",
-          "codigo": "04",
-          "descricao": "RICO - SAFARI 30 FIC FIM II",
-          "situacao_anterior": 25238.59,
-          "situacao_atual": 25238.59
-        },
-        {
-          "grupo": "G99",
-          "codigo": "07",
-          "descricao": "ITAUSA S.A. - POSICAO ACIONARIA",
-          "situacao_anterior": 192.96,
-          "situacao_atual": 82.15
-        }
-      ],
-      "dividas": [
-        {
-          "codigo": "11",
-          "descricao": "CREDITO IMOBILIARIO - CREDOR: ITAU UNIBANCO S.A.",
-          "situacao_anterior": 265420.59,
-          "situacao_atual": 234642.79
-        },
-        {
-          "codigo": "11",
-          "descricao": "CHEQUE ESPECIAL BANCO SANTANDER",
-          "situacao_anterior": 0.0,
-          "situacao_atual": 149.82
-        }
-      ],
-      "rendimentos": {
-        "tributaveis": [
+        ],
+        "exclusivos": [
           {
-            "fonte": "DAVID ROBERT CAMARGO DE CAMPOS LTDA",
-            "cnpj": "48.771.488/0001-87",
-            "valor": 153938.74
+            "tipo": "13º salário",
+            "valor": 9228.14
           },
           {
-            "fonte": "KIWIFY PAGAMENTOS TECNOLOGIA E SERVICOS LTDA",
-            "cnpj": "36.149.947/0001-06",
-            "valor": 466978.67
-          }
-        ],
-        "isentos": [
-          {
-            "descricao": "Rendimento de sócio ou titular de microempresa optante pelo Simples Nacional",
-            "valor": 301277.39
+            "tipo": "Rendimentos de aplicações financeiras",
+            "valor": 12584.21
           }
         ]
-      }
-    },
-    {
-      "membro": "mariana",
-      "ano_base": 2024,
-      "bens_direitos": [
-        {
-          "grupo": "G01",
-          "codigo": "11",
-          "descricao": "APARTAMENTO NO COND. LIVING CONCEPT - CAMPINAS",
-          "situacao_anterior": 223733.99,
-          "situacao_atual": 270000.0
-        },
-        {
-          "grupo": "G01",
-          "codigo": "11",
-          "descricao": "APARTAMENTO NO COND. LIVING WISH - SÃO PAULO",
-          "situacao_anterior": 477436.58,
-          "situacao_atual": 530000.0
-        },
-        {
-          "grupo": "G04",
-          "codigo": "02",
-          "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
-          "situacao_anterior": 4365.03,
-          "situacao_atual": 0.0
-        },
-        {
-          "grupo": "G04",
-          "codigo": "02",
-          "descricao": "SALDO RDB - NUBANK",
-          "situacao_anterior": 58.23,
-          "situacao_atual": 0.0
-        },
-        {
-          "grupo": "G04",
-          "codigo": "02",
-          "descricao": "BTG - PRODUTO CDBB2353UR4",
-          "situacao_anterior": 0.0,
-          "situacao_atual": 10000.0
-        },
-        {
-          "grupo": "G04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO 22J1410500",
-          "situacao_anterior": 10349.69,
-          "situacao_atual": 9349.69
-        },
-        {
-          "grupo": "G04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO 22K1692411",
-          "situacao_anterior": 10324.25,
-          "situacao_atual": 10324.25
-        },
-        {
-          "grupo": "G04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO CRA0233OUZ1",
-          "situacao_anterior": 0.0,
-          "situacao_atual": 9115.01
-        },
-        {
-          "grupo": "G04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO GRA023005PD",
-          "situacao_anterior": 0.0,
-          "situacao_atual": 9109.54
-        },
-        {
-          "grupo": "G04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO CRA0240001Q9",
-          "situacao_anterior": 0.0,
-          "situacao_atual": 9248.83
-        },
-        {
-          "grupo": "G04",
-          "codigo": "03",
-          "descricao": "BTG - PRODUTO 23J0138431",
-          "situacao_anterior": 0.0,
-          "situacao_atual": 9164.03
-        },
-        {
-          "grupo": "G06",
-          "codigo": "01",
-          "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO",
-          "situacao_anterior": 1.0,
-          "situacao_atual": 0.0
-        },
-        {
-          "grupo": "G07",
-          "codigo": "01",
-          "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO LO",
-          "situacao_anterior": 35868.62,
-          "situacao_atual": 41408.87
-        },
-        {
-          "grupo": "G07",
-          "codigo": "01",
-          "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO",
-          "situacao_anterior": 0.0,
-          "situacao_atual": 4494.93
-        },
-        {
-          "grupo": "G07",
-          "codigo": "07",
-          "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA",
-          "situacao_anterior": 0.0,
-          "situacao_atual": 25479.42
-        },
-        {
-          "grupo": "G07",
-          "codigo": "10",
-          "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO INVESTIMENTO FINANCEIRO",
-          "situacao_anterior": 0.0,
-          "situacao_atual": 25000.0
-        }
-      ],
-      "dividas": [],
-      "rendimentos": {
-        "tributaveis": [
-          {
-            "fonte": "SOCIEDADE BENEFICENTE ISRAELITA BRASILEIRA HOSPITAL ALBERT",
-            "cnpj": "60.765.823/0001-30",
-            "valor": 141842.7
-          }
-        ],
-        "isentos": [
-          {
-            "descricao": "ABONO DE FÉRIAS PIS",
-            "valor": 1336.61
-          }
-        ]
+      },
+      "alugueis_recebidos": {
+        "total_anual": 6116.71,
+        "fonte": "Carnê-Leão (PF/Exterior)",
+        "nota": "Aluguéis via QuintoAndar — apenas últimos meses do ano (início de contrato): set R$97,51 / out R$1.504,80 / nov R$1.504,80 / dez R$1.504,80"
+      },
+      "totais": {
+        "bens_direitos_anterior": 799147.53,
+        "bens_direitos_atual": 811301.24,
+        "dividas_anterior": 0.0,
+        "dividas_atual": 0.0,
+        "rendimentos_tributaveis": 152292.83,
+        "imposto_devido": 26715.95,
+        "imposto_pago": 26255.09,
+        "saldo_imposto": 460.86,
+        "aliquota_efetiva": 17.54
       }
     }
   ],
-  "imoveis_xlsx": [
-    {
-      "nome": "Apartamento Praça Benedito Calixto",
-      "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
-      "data_compra": "2021-11-16",
-      "valor_compra": 348000.0,
-      "situacao_atual": "proprio",
-      "membro": "david"
-    },
-    {
-      "nome": "Apartamento Rua Major Freire",
-      "endereco": "R. Major Freire, 496, APT 12 - São Paulo - SP, 04304-110",
-      "data_compra": null,
-      "valor_compra": 400000.0,
-      "situacao_atual": "financiado",
-      "membro": "david",
-      "financiamento": {
-        "banco": "Banco Itau",
-        "saldo_devedor": 0.0,
-        "parcela_mensal": 4294.0
-      }
-    },
-    {
-      "nome": "Casa Tasso da Silveira",
-      "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
-      "data_compra": "2022-08-29",
-      "valor_compra": 670000.0,
-      "situacao_atual": "financiado",
-      "membro": "david"
-    },
-    {
-      "nome": "Casa Leonardo da Vinci",
-      "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
-      "data_compra": "2023-01-13",
-      "valor_compra": 80000.0,
-      "vendedor": "Leonilda de Souza",
-      "situacao_atual": "proprio",
-      "membro": "david"
-    }
-  ],
+  "imoveis_xlsx": [],
   "veiculos_xlsx": [],
-  "divergencias": [
-    {
-      "tipo": "PROPRIEDADE_NAO_ENCONTRADA_EM_XLSX",
-      "membro": "mariana",
-      "descricao_irpf": "APARTAMENTO NO COND. LIVING CONCEPT - CAMPINAS",
-      "grupo": "G01",
-      "situacao_atual_irpf": 270000.0,
-      "observacao": "Mariana possui dois apartamentos em suas declarações IRPF (2023-2024), mas nenhum aparece no arquivo de imóveis XLSX. XLSX contém apenas 4 propriedades atribuídas a David."
-    },
-    {
-      "tipo": "PROPRIEDADE_NAO_ENCONTRADA_EM_XLSX",
-      "membro": "mariana",
-      "descricao_irpf": "APARTAMENTO NO COND. LIVING WISH - SÃO PAULO",
-      "grupo": "G01",
-      "situacao_atual_irpf": 530000.0,
-      "observacao": "Propriedade de Mariana não aparece no arquivo XLSX de imóveis."
-    }
-  ],
+  "divergencias": [],
   "imoveis_consolidados": [
     {
-      "descricao": "APARTAMENTO NO COND. LIVING CONCEPT - CAMPINAS",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 270000.0,
-        "2023": 223733.99
-      },
-      "tipo": "imovel",
-      "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
-      "dados_completos": {
-        "imovel": "Apartamento Praça Benedito Calixto",
-        "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
-        "data_compra": "2021-11-16",
-        "valor_compra": 348000.0,
-        "situacao": "proprio",
-        "financiamento": null
-      }
-    },
-    {
-      "descricao": "APARTAMENTO NO COND. LIVING WISH - SÃO PAULO",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 530000.0,
-        "2023": 477436.58
-      },
-      "tipo": "imovel",
-      "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
-      "dados_completos": {
-        "imovel": "Apartamento Praça Benedito Calixto",
-        "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
-        "data_compra": "2021-11-16",
-        "valor_compra": 348000.0,
-        "situacao": "proprio",
-        "financiamento": null
-      }
-    },
-    {
-      "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34",
+      "descricao": "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34 - Praça Benedito Calixto 190, Pinheiros, SP",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 350000.0,
         "2023": 350000.0
       },
-      "tipo": "imovel",
-      "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
-      "dados_completos": {
-        "imovel": "Apartamento Praça Benedito Calixto",
-        "endereco": "Praça Benedito Calixto, 186/190, APT 34 - Pinheiros, São Paulo - SP, 05406-040",
-        "data_compra": "2021-11-16",
-        "valor_compra": 348000.0,
-        "situacao": "proprio",
-        "financiamento": null
-      }
+      "tipo": "imovel"
     },
     {
-      "descricao": "APARTAMENTO - EDIFICICIO GISELE - APTO 12",
+      "descricao": "APARTAMENTO - EDIFICIO GISELE - APTO 12 - Rua Major Freire 496, Vila Monte Alegre, SP - ALIENACAO FIDUCIARIA AO ITAU UNIBANCO",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 212706.24,
         "2023": 212706.24
       },
-      "tipo": "imovel",
-      "endereco": "R. Major Freire, 496, APT 12 - São Paulo - SP, 04304-110",
-      "dados_completos": {
-        "imovel": "Apartamento Rua Major Freire",
-        "endereco": "R. Major Freire, 496, APT 12 - São Paulo - SP, 04304-110",
-        "data_compra": null,
-        "valor_compra": 400000.0,
-        "situacao": "financiado",
-        "financiamento": {
-          "banco": "Banco Itau",
-          "saldo_devedor": 0.0,
-          "parcela_mensal": 4294.0
-        }
-      }
+      "tipo": "imovel"
     },
     {
-      "descricao": "COMPRA E VENDA DE CASA - ADQUIRIDO EM 12/01/2023",
+      "descricao": "CASA - Av. Leonardo da Vinci 2707, Jabaquara, SP - Usufruto vitalício",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 80000.0,
         "2023": 80000.0
       },
-      "tipo": "imovel",
-      "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
-      "dados_completos": {
-        "imovel": "Casa Leonardo da Vinci",
-        "endereco": "Av. Leonardo da Vinci, 2707 - Vila Guarani, São Paulo - SP, 04313-002",
-        "data_compra": "2023-01-13",
-        "valor_compra": 80000.0,
-        "situacao": "proprio",
-        "financiamento": null
-      }
+      "tipo": "imovel"
     },
     {
-      "descricao": "CASA - RUA TASSO DA SILVEIRA - FINANCIAMENTO QUITADO",
+      "descricao": "CASA - Rua Tasso da Silveira 61, Vila Guarani, SP - Residência própria - Financiamento quitado Caixa",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 996821.46,
         "2023": 996821.46
       },
-      "tipo": "imovel",
-      "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
-      "dados_completos": {
-        "imovel": "Casa Tasso da Silveira",
-        "endereco": "R. Tasso da Silveira, 61 - Vila Guarani, São Paulo - SP, 04316-080",
-        "data_compra": "2022-08-29",
-        "valor_compra": 670000.0,
-        "situacao": "financiado",
-        "financiamento": null
-      }
+      "tipo": "imovel"
+    },
+    {
+      "descricao": "APARTAMENTO - COND. LIVING CONCEPT - Av. Alberto Augusto Alves 320, Apto 812, Santo Amaro, SP - 25,7m²",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 270000.0,
+        "2023": 223733.99
+      },
+      "tipo": "imovel"
+    },
+    {
+      "descricao": "APARTAMENTO - COND. LIVING WISH - Av. João Dias 2192, Torre 2 Apt 163, Santo Amaro, SP - 88,9m²",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 530000.0,
+        "2023": 477436.58
+      },
+      "tipo": "imovel"
     }
   ],
   "veiculos_consolidados": [
     {
-      "descricao": "VEICULO - MOTOCICLETA YAMAHA NMAX - PLACA DAV0351",
+      "descricao": "VEICULO - MOTOCICLETA YAMAHA NMAX - PRETA - PLACA DAV0351 - ANO 2018",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 15093.0,
@@ -689,7 +682,7 @@
       "tipo": "veiculo"
     },
     {
-      "descricao": "VEICULO - MOTOCICLETA YAMAHA MT 09 TRACER - PLACA DAV 0342",
+      "descricao": "VEICULO - MOTOCICLETA YAMAHA MT 09 TRACER - AZUL - PLACA DAV 0342 - ANO 2018 (vendida em 2024)",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 0.0,
@@ -698,7 +691,7 @@
       "tipo": "veiculo"
     },
     {
-      "descricao": "VEICULO - CARRO FIAT TORO ULTRA - PLACA GDK6A27",
+      "descricao": "VEICULO - CARRO FIAT TORO ULTRA - COR AZUL - PLACA GDK6A27",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 191354.0,
@@ -707,7 +700,7 @@
       "tipo": "veiculo"
     },
     {
-      "descricao": "MOTONET A YAMAHA/NMAX 160 MODELO 2024",
+      "descricao": "MOTONETA YAMAHA/NMAX 160 MODELO 2024 - PLACA STH2C88",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 21029.0
@@ -717,125 +710,7 @@
   ],
   "investimentos_consolidados": [
     {
-      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 0.0,
-        "2023": 4365.03
-      },
-      "tipo": "renda_fixa"
-    },
-    {
-      "descricao": "SALDO RDB - NUBANK",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 0.0,
-        "2023": 58.23
-      },
-      "tipo": "renda_fixa"
-    },
-    {
-      "descricao": "BTG - PRODUTO CDBB2353UR4",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 10000.0
-      },
-      "tipo": "renda_fixa"
-    },
-    {
-      "descricao": "BTG - PRODUTO 22J1410500",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 9349.69,
-        "2023": 10349.69
-      },
-      "tipo": "renda_fixa"
-    },
-    {
-      "descricao": "BTG - PRODUTO 22K1692411",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 10324.25,
-        "2023": 10324.25
-      },
-      "tipo": "renda_fixa"
-    },
-    {
-      "descricao": "BTG - PRODUTO CRA0233OUZ1",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 9115.01
-      },
-      "tipo": "renda_fixa"
-    },
-    {
-      "descricao": "BTG - PRODUTO GRA023005PD",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 9109.54
-      },
-      "tipo": "renda_fixa"
-    },
-    {
-      "descricao": "BTG - PRODUTO CRA0240001Q9",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 9248.83
-      },
-      "tipo": "renda_fixa"
-    },
-    {
-      "descricao": "BTG - PRODUTO 23J0138431",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 9164.03
-      },
-      "tipo": "renda_fixa"
-    },
-    {
-      "descricao": "CONTA CORRENTE MANTIDA JUNTO AO BANCO BRADESCO",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 0.0,
-        "2023": 1.0
-      },
-      "tipo": "conta_bancaria"
-    },
-    {
-      "descricao": "BTG - PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO LO",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 41408.87,
-        "2023": 35868.62
-      },
-      "tipo": "fundo_investimento"
-    },
-    {
-      "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 4494.93
-      },
-      "tipo": "fundo_investimento"
-    },
-    {
-      "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 25479.42
-      },
-      "tipo": "fundo_investimento"
-    },
-    {
-      "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO INVESTIMENTO FINANCEIRO",
-      "proprietario": "mariana",
-      "valores_31_12": {
-        "2024": 25000.0
-      },
-      "tipo": "fundo_investimento"
-    },
-    {
-      "descricao": "ACOES - ITSA4 - QUANTIDADE 693",
+      "descricao": "ACOES - ITSA4 - QUANTIDADE 693 - CNPJ 61.532.644/0001-15",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 0.0,
@@ -844,7 +719,7 @@
       "tipo": "acao"
     },
     {
-      "descricao": "ACOES - BRKM5 - QUANTIDADE 300",
+      "descricao": "ACOES - BRKM5 - QUANTIDADE 300 - CNPJ 42.150.391/0001-70",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 0.0,
@@ -853,7 +728,7 @@
       "tipo": "acao"
     },
     {
-      "descricao": "ACOES - PETR4 - QUANTIDADE 300",
+      "descricao": "ACOES - PETR4 - QUANTIDADE 300 - CNPJ 33.000.167/0001-01",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 0.0,
@@ -871,7 +746,7 @@
       "tipo": "poupanca"
     },
     {
-      "descricao": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP",
+      "descricao": "BANCO ITAU - APLICACAO DE RENDA FIXA - RDB/CDP - AG/CONTA 9652/0004397-8",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 151602.49,
@@ -880,7 +755,7 @@
       "tipo": "renda_fixa"
     },
     {
-      "descricao": "BANCO PICPAY BANK BANCO MULTIPLO S.A.",
+      "descricao": "BANCO PICPAY BANK - AGENCIA 0001 CONTA 438329-0 INSTITUICAO 380",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 46684.62,
@@ -889,7 +764,7 @@
       "tipo": "renda_fixa"
     },
     {
-      "descricao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB)",
+      "descricao": "BANCO SANTANDER - APLICACAO RENDA FIXA (CDB) - AGENCIA 1652 - CONTA 010013416",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 243285.37,
@@ -916,7 +791,7 @@
       "tipo": "renda_fixa"
     },
     {
-      "descricao": "BANCO CAIXA - CONTA CORRENTE - AG 1218",
+      "descricao": "BANCO CAIXA - CONTA CORRENTE - AG 1218 CONTA 22539-4",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 230.53,
@@ -925,7 +800,7 @@
       "tipo": "conta_bancaria"
     },
     {
-      "descricao": "BANCO ITAU - CONTA CORRENTE",
+      "descricao": "BANCO ITAU - CONTA CORRENTE - AG 9652 CONTA 4397-8",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 1.01,
@@ -934,7 +809,7 @@
       "tipo": "conta_bancaria"
     },
     {
-      "descricao": "DEPOSITO EM CONTA CORRENTE DE DEPOSITO A VISTA",
+      "descricao": "DEPOSITO EM CONTA CORRENTE - BANCO C6 (336) AG 0001 CONTA 13095222-2",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 4936.98
@@ -942,7 +817,7 @@
       "tipo": "conta_bancaria"
     },
     {
-      "descricao": "US 6524.00",
+      "descricao": "MOEDA ESTRANGEIRA - U$ 6524,00",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 34433.67,
@@ -960,7 +835,7 @@
       "tipo": "conta_bancaria"
     },
     {
-      "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS CAYMAN)",
+      "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS CAYMAN) AG 0001/CC 100348783-7",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 484.8,
@@ -969,7 +844,7 @@
       "tipo": "conta_bancaria"
     },
     {
-      "descricao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F",
+      "descricao": "RICO - HASHDEX 20 NASDAQ CRYPTO INDEX F - CNPJ 33.736.873/0001-16",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 3189.68,
@@ -978,7 +853,7 @@
       "tipo": "fundo_investimento"
     },
     {
-      "descricao": "RICO - DNA ENERGY FIC FIM CP",
+      "descricao": "RICO - DNA ENERGY FIC FIM CP - CNPJ 35.956.056/0001-07",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 1416.09,
@@ -987,7 +862,7 @@
       "tipo": "fundo_investimento"
     },
     {
-      "descricao": "RICO - CONSTELLATION INSTITUTIONAL ADVI",
+      "descricao": "RICO - CONSTELLATION INSTITUCIONAL ADVI - CNPJ 34.462.109/0001-62",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 11409.17,
@@ -996,7 +871,7 @@
       "tipo": "fundo_investimento"
     },
     {
-      "descricao": "RICO - WESTERN ASSET FIA BDR NIVEL I",
+      "descricao": "RICO - WESTERN ASSET FIA BDR NIVEL I - CNPJ 19.831.126/0001-36",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 17651.61,
@@ -1005,7 +880,7 @@
       "tipo": "fundo_investimento"
     },
     {
-      "descricao": "RICO - ALASKA BLACK FIC FIA - BDR",
+      "descricao": "RICO - ALASKA BLACK FIC FIA - BDR - CNPJ 12.987.743/0001-86",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 60000.0,
@@ -1014,7 +889,7 @@
       "tipo": "fundo_investimento"
     },
     {
-      "descricao": "RICO - ALASKA BLACK INSTITUTIONAL FIA BDR",
+      "descricao": "RICO - ALASKA BLACK INSTITUCIONAL FIA BDR - CNPJ 26.673.556/0001-32",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 35000.0,
@@ -1023,7 +898,7 @@
       "tipo": "fundo_investimento"
     },
     {
-      "descricao": "RICO - SAFARI 30 FIC FIM II",
+      "descricao": "RICO - SAFARI 30 FIC FIM II - CNPJ 23.960.625/0001-09",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 25238.59,
@@ -1032,18 +907,163 @@
       "tipo": "fundo_investimento"
     },
     {
-      "descricao": "ITAUSA S.A. - POSICAO ACIONARIA",
+      "descricao": "ITAUSA S.A - POSICAO ACIONARIA - JUROS SOBRE CAPITAL CREDITADOS E NAO PAGOS - CNPJ 61.532.644/0001-15",
       "proprietario": "david",
       "valores_31_12": {
         "2024": 82.15,
         "2023": 192.96
       },
       "tipo": "outros"
+    },
+    {
+      "descricao": "CONTA BRADESCO POUPANCA - AG 6543 CONTA 6673-7",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 25337.34
+      },
+      "tipo": "poupanca"
+    },
+    {
+      "descricao": "BTG - PRODUTO CDBB2353UR4",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 22000.0,
+        "2023": 22000.0
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - CDB-SR - AGENCIA 0001",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 3429.16,
+        "2023": 1826.51
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "APLICACAO DE RENDA FIXA (CDB) - BRADESCO",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 4365.03
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "SALDO RDB - NUBANK",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 58.23
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO CDB524BFK2F",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 10000.0
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO 22J1410500 (LCI)",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 9349.69,
+        "2023": 10349.69
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO 22K1692411 (LCI)",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 10324.25,
+        "2023": 10324.25
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO CRA02300MZU",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 9115.01
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO CRA02300SPD",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 9109.54
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO CRA024001Q9",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 9248.83
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "BTG - PRODUTO 23J0138431",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 9164.03
+      },
+      "tipo": "renda_fixa"
+    },
+    {
+      "descricao": "CONTA CORRENTE BRADESCO - AG 6543 CONTA 6673-7",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 0.0,
+        "2023": 1.0
+      },
+      "tipo": "conta_bancaria"
+    },
+    {
+      "descricao": "BTG PACTUAL EXPLORER RENDA FIXA ATIVA FUNDO DE INVESTIMENTO - CNPJ 11.952.873/0001-10",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 41408.87,
+        "2023": 35868.62
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "BTG PACTUAL HEDGE FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRI - CNPJ 00.888.897/0001-31",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 4494.93
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "BTG - M8 CAPITAL PLUS FUNDO DE INVESTIMENTO RENDA FIXA CREDITO PRIVADO LP - CNPJ 39.958.460/0001-62",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 25479.42
+      },
+      "tipo": "fundo_investimento"
+    },
+    {
+      "descricao": "BTG PACTUAL HEDGE FUNDO INCENTIVADO DE INVESTIMENTO FINANCEIRO EM INFRAESTRUTURA RF - CNPJ 51.697.128/0001-97",
+      "proprietario": "mariana",
+      "valores_31_12": {
+        "2024": 25000.0
+      },
+      "tipo": "fundo_investimento"
     }
   ],
   "dividas": [
     {
-      "descricao": "CREDITO IMOBILIARIO - CREDOR: ITAU UNIBANCO S.A.",
+      "descricao": "CREDITO IMOBILIARIO - CREDOR: ITAU UNIBANCO S.A. - CONTRATO 10171192207",
       "proprietario": "david",
       "saldo_31_12": {
         "2024": 234642.79,
@@ -1060,7 +1080,7 @@
   ],
   "patrimonio_por_ano": {
     "2024": {
-      "total_bens": 3475846.28,
+      "total_bens": 3501275.44,
       "total_dividas": 234792.61
     }
   }

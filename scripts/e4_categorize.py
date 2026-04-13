@@ -117,7 +117,7 @@ def find_longest_matching_keyword(description: str, keywords_dict: Dict[str, Lis
     return longest_category, longest_match
 
 
-def is_internal_transfer(description: str, tipo: Optional[str] = None, banco: str = "") -> bool:
+def is_internal_transfer(description: str, _tipo: Optional[str] = None, banco: str = "") -> bool:
     """
     Detect if transaction is an internal transfer.
     Conservative: only mark as internal if clearly between family accounts.
@@ -162,16 +162,9 @@ def categorize_expense(description: str) -> Optional[str]:
     return category
 
 
-def categorize_income(description: str, account_type: str = "",
-                      banco: str = "", titular: str = "") -> Optional[str]:
+def categorize_income(description: str, _account_type: str = "",
+                      _banco: str = "", _titular: str = "") -> Optional[str]:
     """Categorize a credit transaction as income."""
-    norm_desc = normalize_text(description)
-    norm_titular = normalize_text(titular)
-    norm_banco = normalize_text(banco)
-
-    # All income categorization is driven by config keywords in categorization.json
-    # (income_keywords.receita_aluguel has GRPQA, RECEB PAGFOR GRPQA, etc.)
-    # (income_keywords.receita_clt has SOCIEDADE BENEFICENTE ISRAELITA, *3221, etc.)
     category, _ = find_longest_matching_keyword(description, INCOME_KEYWORDS)
     return category
 

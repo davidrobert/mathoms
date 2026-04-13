@@ -1,1 +1,28 @@
-{}
+{
+  "tipo": "informerendimentos",
+  "instituicao": "QuintoAndar",
+  "membro": "mariana",
+  "ano_base": 2025,
+  "total_alugueis_bruto": 74179.77,
+  "total_descontos": 7423.08,
+  "rendimento_liquido": 66756.69,
+  "imoveis": [
+    {
+      "endereco": "Av. Alberto Augusto Alves 320 - 812, SP (Living Concept)",
+      "locatarios": [
+        "Luana Pereira Da Silva",
+        "Brenda Maraisa De Souza"
+      ],
+      "total_bruto": 7424.71,
+      "total_descontos": 1548.62,
+      "rendimento_liquido": 5876.09
+    },
+    {
+      "endereco": "Av. João Dias 2192 - 163 Torre 2, SP (Living Wish)",
+      "locatario": "Wesley Augusto De Almeida Sandes",
+      "total_bruto": 66755.06,
+      "total_descontos": 5874.46,
+      "rendimento_liquido": 60880.6
+    }
+  ]
+}

@@ -120,7 +120,8 @@
 
 - **Período mês único:** `YYYYMM` (ex: `202603`)
 - **Período intervalo:** `YYYYMM_YYYYMM` (ex: `202601_202603`)
-- **Sufixos de processamento:** `-0_original`, `-1a_extract`, `-1b_unified`, `-1c_enriched`, `-2_extract`, `-2_reconciled`, `-3_unified`, `-4`
+- **Período indeterminado:** `999999` — sentinel para faturas cujo período não pôde ser extraído
+- **Sufixos de processamento:** `-0_original`, `-1a_extract`, `-1b_unified`, `-1c_enriched`, `-1.5_consolidated`, `-2_extract`, `-3_reconciled`, `-4_unified`, `-5_analysis`
 
 ---
 
