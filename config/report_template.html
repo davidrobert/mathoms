@@ -757,6 +757,7 @@ details.expandable > div { padding:12px 0 0; }
 
   table { font-size:var(--font-sm); display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
   th, td { padding:var(--space-md) var(--space-sm); white-space:nowrap; }
+  .card-feature th, .card-feature td { white-space:normal; }
 
   .alert { padding:var(--space-md) 14px; font-size:var(--font-sm); }
 
@@ -872,17 +873,62 @@ body.mode-usa [data-mode="tactical"] { display: none !important; }
 .ciclo-badge { display:inline-block; background:var(--color-primary); color:#fff; padding:4px 12px;
   border-radius:var(--radius-sm); font-size:12px; font-weight:600; margin-bottom:12px; }
 
-/* R9: Editable notes + quick actions */
-.notes-textarea { width:100%; min-height:100px; padding:12px; border:1px solid var(--color-border);
-  border-radius:var(--radius-sm); font-family:var(--font-body); font-size:var(--font-base);
-  background:var(--color-surface); color:var(--color-text); resize:vertical; }
-.notes-textarea:focus { outline:2px solid var(--color-secondary); border-color:transparent; }
-.quick-actions { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
-.quick-action-btn { font-size:12px; padding:6px 14px; border-radius:var(--radius-sm);
-  border:1px solid var(--color-border); background:var(--color-surface); cursor:pointer;
-  color:var(--color-text); font-weight:500; transition:all 0.2s; }
-.quick-action-btn:hover { background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
-.quick-action-btn.success { background:var(--color-accent); color:#fff; border-color:var(--color-accent); }
+/* R9: T6 — Notas e Observações */
+.notas-insights-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:var(--space-lg); margin-bottom:var(--space-xl); }
+.notas-insight-card { background:var(--color-surface); border-radius:var(--radius-card); padding:var(--space-xl) var(--space-lg);
+  border:1px solid var(--color-border); position:relative; overflow:hidden; transition:box-shadow 0.2s, transform 0.2s; }
+.notas-insight-card:hover { box-shadow:var(--shadow-card-hover); transform:translateY(-1px); }
+.notas-insight-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.notas-insight-card.score-card::before { background:var(--color-primary); }
+.notas-insight-card.cerbasi-card::before { background:var(--color-secondary); }
+.notas-insight-card.periodo-card::before { background:var(--color-accent); }
+.notas-insight-icon { font-size:20px; margin-bottom:var(--space-sm); }
+.notas-insight-label { font-size:var(--font-xs); text-transform:uppercase; letter-spacing:0.6px; color:var(--color-text-muted); font-weight:600; margin-bottom:var(--space-xs); }
+.notas-insight-value { font-family:var(--font-display); font-size:var(--font-xl); font-weight:700; color:var(--color-text); line-height:1.2; }
+.notas-insight-sub { font-size:var(--font-sm); color:var(--color-text-muted); margin-top:var(--space-xs); }
+.notas-score-bar { display:flex; gap:3px; margin-top:var(--space-md); }
+.notas-score-seg { flex:1; height:6px; border-radius:3px; background:var(--color-border); transition:background 0.3s; }
+.notas-score-seg.filled { background:var(--color-primary); }
+.notas-score-seg.filled.ok { background:var(--color-accent); }
+.notas-score-seg.filled.warn { background:var(--color-warning); }
+.notas-score-seg.filled.alert { background:var(--color-danger); }
+.notas-cerbasi-bars { display:flex; gap:var(--space-sm); align-items:flex-end; margin-top:var(--space-md); height:40px; }
+.notas-cerbasi-bar { flex:1; border-radius:var(--radius-sm) var(--radius-sm) 0 0; position:relative; min-height:6px; transition:height 0.4s; }
+.notas-cerbasi-bar.presente { background:var(--color-secondary); }
+.notas-cerbasi-bar.futuro { background:var(--color-accent); }
+.notas-cerbasi-legend { display:flex; gap:var(--space-lg); margin-top:var(--space-sm); }
+.notas-cerbasi-legend-item { display:flex; align-items:center; gap:var(--space-xs); font-size:var(--font-xs); color:var(--color-text-muted); }
+.notas-cerbasi-legend-dot { width:8px; height:8px; border-radius:50%; }
+.notas-cerbasi-legend-dot.presente { background:var(--color-secondary); }
+.notas-cerbasi-legend-dot.futuro { background:var(--color-accent); }
+
+/* Manual notes card */
+.notas-card { padding:0 !important; overflow:hidden; }
+.notas-card-header { display:flex; justify-content:space-between; align-items:center; padding:var(--space-lg) var(--space-xl); border-bottom:1px solid var(--color-border); }
+.notas-card-header .card-title { margin:0; padding:0; border:0; }
+.notas-save-indicator { display:flex; align-items:center; gap:6px; font-size:var(--font-xs); color:var(--color-text-muted); }
+.notas-save-dot { width:8px; height:8px; border-radius:50%; background:var(--color-accent); transition:background 0.3s; }
+.notas-save-dot.saving { background:var(--color-warning); animation:notas-pulse 0.8s ease-in-out infinite; }
+@keyframes notas-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.notas-card .notes-textarea { border:none; border-radius:0; min-height:140px; padding:var(--space-lg) var(--space-xl);
+  font-size:var(--font-base); line-height:1.7; resize:vertical; background:transparent; }
+.notas-card .notes-textarea:focus { outline:none; box-shadow:inset 0 0 0 2px rgba(30,110,143,0.15); }
+.notas-footer { display:flex; justify-content:space-between; align-items:center; padding:var(--space-md) var(--space-xl);
+  border-top:1px solid var(--color-border); background:var(--color-row-even); }
+.notas-char-count { font-size:var(--font-xs); color:var(--color-text-muted); }
+.notas-actions { display:flex; gap:var(--space-sm); }
+.notas-action-btn { display:inline-flex; align-items:center; gap:6px; font-size:var(--font-xs); padding:6px 12px;
+  border-radius:var(--radius-md); border:1px solid var(--color-border); background:var(--color-surface);
+  cursor:pointer; color:var(--color-text-muted); font-weight:500; transition:all 0.2s; font-family:var(--font-body); }
+.notas-action-btn:hover { background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
+.notas-action-btn:hover svg { stroke:#fff; }
+.notas-action-btn.notas-action-danger:hover { background:var(--color-danger); border-color:var(--color-danger); }
+.notas-action-btn.success { background:var(--color-accent); color:#fff; border-color:var(--color-accent); }
+@media (max-width:768px) {
+  .notas-insights-grid { grid-template-columns:1fr; }
+  .notas-footer { flex-direction:column; gap:var(--space-sm); align-items:stretch; }
+  .notas-actions { justify-content:flex-end; }
+}
 
 /* R5: Kanban responsive */
 @media (max-width:768px) { .kanban-board { grid-template-columns:1fr; } }
@@ -891,8 +937,10 @@ body.mode-usa [data-mode="tactical"] { display: none !important; }
 @media print {
   body.mode-tactical .kanban-board { grid-template-columns: 1fr 1fr 1fr; }
   body.mode-tactical .dash-kpis { grid-template-columns: repeat(6, 1fr); }
-  body.mode-tactical .notes-textarea { border:1px solid #ccc; }
-  body.mode-tactical .quick-actions { display:none; }
+  body.mode-tactical .notas-card .notes-textarea { border:1px solid #ccc; }
+  body.mode-tactical .notas-actions { display:none; }
+  body.mode-tactical .notas-save-indicator { display:none; }
+  body.mode-tactical .notas-insight-card:hover { transform:none; box-shadow:none; }
   body.mode-tactical .filter-bar { display:none; }
 }
 
@@ -1214,6 +1262,16 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 [data-theme="dark"] .callout-warning { background: var(--alert-warning-bg); color: var(--alert-warning-text); border-left-color: var(--color-warning); }
 [data-theme="dark"] .callout-danger  { background: var(--alert-danger-bg);  color: var(--alert-danger-text);  border-left-color: var(--color-danger); }
 
+/* T6: Notas insight cards dark */
+[data-theme="dark"] .notas-insight-card { background: var(--color-surface); border-color: var(--color-border); }
+[data-theme="dark"] .notas-insight-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+[data-theme="dark"] .notas-score-seg { background: #243049; }
+[data-theme="dark"] .notas-card .notes-textarea:focus { box-shadow: inset 0 0 0 2px rgba(92,200,240,0.15); }
+[data-theme="dark"] .notas-action-btn { border-color: var(--color-border); color: var(--color-text-muted); background: var(--color-surface); }
+[data-theme="dark"] .notas-action-btn:hover { background: var(--color-primary); color: #0B1120; border-color: var(--color-primary); }
+[data-theme="dark"] .notas-action-btn.notas-action-danger:hover { background: var(--color-danger); border-color: var(--color-danger); color: #fff; }
+[data-theme="dark"] .notas-footer { background: rgba(0,0,0,0.15); }
+
 </style>
 </head>
 <body class="mode-strategic">
@@ -1441,17 +1499,36 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 
 <div class="dash-section" id="dash-notas">
   <h2>T6. Notas e Observações</h2>
-  <div class="card">
-    <div class="card-title">Notas do Sistema</div>
-    <div id="ds-notas-auto"></div>
-  </div>
-  <div class="card">
-    <div class="card-title">Minhas Anotações</div>
-    <textarea class="notes-textarea" id="ds-notas-manual" placeholder="Escreva suas anotações aqui... (salva automaticamente no navegador)"></textarea>
-    <div class="quick-actions">
-      <button class="quick-action-btn" onclick="copyTasksMarkdown()">📋 Copiar Tarefas</button>
-      <button class="quick-action-btn" onclick="exportTaskStatus()">💾 Exportar Status</button>
-      <button class="quick-action-btn" onclick="clearNotes()">🗑️ Limpar Notas</button>
+
+  <!-- System insights grid -->
+  <div class="notas-insights-grid" id="ds-notas-auto"></div>
+
+  <!-- Manual notes card -->
+  <div class="card notas-card">
+    <div class="notas-card-header">
+      <div class="card-title">Minhas Anotações</div>
+      <div class="notas-save-indicator" id="ds-notas-save-status">
+        <span class="notas-save-dot"></span>
+        <span class="notas-save-text">Salvo</span>
+      </div>
+    </div>
+    <textarea class="notes-textarea" id="ds-notas-manual" placeholder="Escreva suas anotações aqui...&#10;&#10;Dica: use para lembretes, metas pessoais ou observações do período."></textarea>
+    <div class="notas-footer">
+      <span class="notas-char-count" id="ds-notas-count">0 caracteres</span>
+      <div class="notas-actions">
+        <button class="notas-action-btn" onclick="copyTasksMarkdown()" title="Copiar tarefas em Markdown">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar Tarefas
+        </button>
+        <button class="notas-action-btn" onclick="exportTaskStatus()" title="Exportar status das tarefas como JSON">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar Status
+        </button>
+        <button class="notas-action-btn notas-action-danger" onclick="clearNotes()" title="Limpar todas as anotações">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Limpar
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -3623,8 +3700,8 @@ function copyTasksMarkdown() {
     md += '- ' + check + ' #' + t.n + ' ' + t.t + ' (' + t.p + ', ' + t.e + ')\n';
   });
   navigator.clipboard.writeText(md).then(function() {
-    var btn = document.querySelector('.quick-actions .quick-action-btn');
-    if (btn) { btn.classList.add('success'); btn.textContent = '✅ Copiado!'; setTimeout(function() { btn.classList.remove('success'); btn.textContent = '📋 Copiar Tarefas'; }, 2000); }
+    var btn = document.querySelector('.notas-actions .notas-action-btn');
+    if (btn) { var orig = btn.innerHTML; btn.classList.add('success'); btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copiado!'; setTimeout(function() { btn.classList.remove('success'); btn.innerHTML = orig; }, 2000); }
   });
 }
 
@@ -3639,9 +3716,29 @@ function exportTaskStatus() {
 
 function clearNotes() {
   if (confirm('Limpar todas as anotações?')) {
-    document.getElementById('ds-notas-manual').value = '';
+    var el = document.getElementById('ds-notas-manual');
+    if (el) el.value = '';
     localStorage.removeItem('fc_notes');
+    _updateNotesCharCount();
   }
+}
+
+function _updateNotesCharCount() {
+  var el = document.getElementById('ds-notas-manual');
+  var countEl = document.getElementById('ds-notas-count');
+  if (el && countEl) {
+    var len = el.value.length;
+    countEl.textContent = len + (len === 1 ? ' caractere' : ' caracteres');
+  }
+}
+
+function _flashSaveIndicator() {
+  var dot = document.querySelector('.notas-save-dot');
+  var txt = document.querySelector('.notas-save-text');
+  if (!dot || !txt) return;
+  dot.classList.add('saving');
+  txt.textContent = 'Salvando...';
+  setTimeout(function() { dot.classList.remove('saving'); txt.textContent = 'Salvo'; }, 600);
 }
 
 function buildDashboard() {
@@ -3802,13 +3899,59 @@ function buildDashboard() {
   // === D6: Notas ===
   var notaAutoEl = document.getElementById('ds-notas-auto');
   if (notaAutoEl && D.notas) {
-    notaAutoEl.innerHTML = '<p>' + D.notas + '</p>';
+    var n = D.notas;
+    var scoreNum = parseFloat(n.score_valor) || 0;
+    var scoreCls = scoreNum >= 7 ? 'ok' : scoreNum >= 4 ? 'warn' : 'alert';
+
+    var scoreBarHtml = '<div class="notas-score-bar">';
+    for (var si = 1; si <= 10; si++) {
+      scoreBarHtml += '<div class="notas-score-seg' + (si <= scoreNum ? ' filled ' + scoreCls : '') + '"></div>';
+    }
+    scoreBarHtml += '</div>';
+
+    var pctPres = n.eq_pct_presente || 0;
+    var pctFut = n.eq_pct_futuro || 0;
+    var maxPct = Math.max(pctPres, pctFut, 1);
+    var barPresH = Math.round((pctPres / maxPct) * 36) + 4;
+    var barFutH = Math.round((pctFut / maxPct) * 36) + 4;
+
+    notaAutoEl.innerHTML =
+      '<div class="notas-insight-card score-card">' +
+        '<div class="notas-insight-icon">📊</div>' +
+        '<div class="notas-insight-label">Score Financeiro</div>' +
+        '<div class="notas-insight-value">' + n.score_valor + '<span style="font-size:14px;font-weight:400;color:var(--color-text-muted)">/10</span></div>' +
+        '<div class="notas-insight-sub">' + (n.score_classificacao || '') + '</div>' +
+        scoreBarHtml +
+      '</div>' +
+      '<div class="notas-insight-card cerbasi-card">' +
+        '<div class="notas-insight-icon">⚖️</div>' +
+        '<div class="notas-insight-label">Equilíbrio Cerbasi</div>' +
+        '<div class="notas-insight-value">' + (n.eq_classificacao || 'N/D') + '</div>' +
+        '<div class="notas-cerbasi-bars">' +
+          '<div class="notas-cerbasi-bar presente" style="height:' + barPresH + 'px" title="Presente: ' + pctPres + '%"></div>' +
+          '<div class="notas-cerbasi-bar futuro" style="height:' + barFutH + 'px" title="Futuro: ' + pctFut + '%"></div>' +
+        '</div>' +
+        '<div class="notas-cerbasi-legend">' +
+          '<span class="notas-cerbasi-legend-item"><span class="notas-cerbasi-legend-dot presente"></span>' + pctPres + '% presente</span>' +
+          '<span class="notas-cerbasi-legend-item"><span class="notas-cerbasi-legend-dot futuro"></span>' + pctFut + '% futuro</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="notas-insight-card periodo-card">' +
+        '<div class="notas-insight-icon">📅</div>' +
+        '<div class="notas-insight-label">Período dos Dados</div>' +
+        '<div class="notas-insight-value" style="font-size:16px">' + (n.periodo_dados || 'N/D') + '</div>' +
+        '<div class="notas-insight-sub">Base utilizada neste relatório</div>' +
+      '</div>';
   }
+
   var notaManualEl = document.getElementById('ds-notas-manual');
   if (notaManualEl) {
     try { notaManualEl.value = localStorage.getItem('fc_notes') || ''; } catch(e) {}
+    _updateNotesCharCount();
     notaManualEl.addEventListener('input', function() {
       try { localStorage.setItem('fc_notes', notaManualEl.value); } catch(e) {}
+      _updateNotesCharCount();
+      _flashSaveIndicator();
     });
   }
 }

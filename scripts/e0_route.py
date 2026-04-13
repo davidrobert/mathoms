@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """
 E0-route — Roteamento automático de arquivos do inbox para diretórios de destino.
 

@@ -263,6 +263,9 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
     riscos = goals_cfg.get("riscos_prioritarios", [])
     decisoes = goals_cfg.get("decisoes_prioritarias", [])
 
+    # --- Cenários Mariana (computed by E5) ---
+    cm = e5_data.get("cenarios_mariana", {})
+
     # --- Computed percentages (Cat. A) ---
     despesas_nao_id = desp_cat.get("nao_identificado", 0)
 
@@ -474,6 +477,22 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         # === config/goals.json: riscos e decisões ===
         "riscos_prioritarios": riscos,
         "decisoes_prioritarias": decisoes,
+
+        # === cenarios_mariana (computed by E5) ===
+        "cm_labels": cm.get("labels", []),
+        "cm_aportes": cm.get("aportes", []),
+        "cm_prazos": cm.get("prazos_if", []),
+        "cm_anos_if": cm.get("anos_if", []),
+        "cm_idade_david": cm.get("idade_david_if", []),
+        "cm_cenarios": cm.get("cenarios", []),
+        "cm_fator_reduzido": cm.get("premissas", {}).get("fator_reduzido", 0.66),
+        "cm_renda_nclex_usd": cm.get("premissas", {}).get("renda_nclex_usd", 4000),
+        "cm_renda_nclex_brl": cm.get("premissas", {}).get("renda_nclex_brl", 0),
+        "cm_renda_gc_usd": cm.get("premissas", {}).get("renda_gc_usd", 7000),
+        "cm_renda_gc_brl": cm.get("premissas", {}).get("renda_gc_brl", 0),
+        "cm_salario_clt_brl": cm.get("premissas", {}).get("salario_mariana_clt_brl", 0),
+        "cm_recovery_nclex_pct": cm.get("premissas", {}).get("recovery_nclex_pct", 0),
+        "cm_recovery_gc_pct": cm.get("premissas", {}).get("recovery_gc_pct", 0),
     }
 
 
@@ -974,18 +993,43 @@ def build_narrativas():
                     f"Avaliação de holding patrimonial pendente para {M['holding_prazo']}."
                 )
             },
-            "mariana_cenarios": {
+            "mariana_cenarios": (lambda _cm_cenarios, _cm_prazos, _cm_aportes, _cm_anos: {
                 "context": (
-                    f"Cenários financeiros para Mariana pós-NCLEX, com projeções de renda americana como RN "
-                    f"({fmt_usd(M['renda_mariana_eua_minima'])}-{fmt_usd(M['renda_mariana_eua_maxima'])}/mês) "
-                    f"versus permanência no Brasil ({_mariana.get('regime', 'CLT')} {_mariana.get('empregador_curto', '')} {fmt_currency(M['salario_mariana'])}/mês)."
+                    f"Três cenários projetam o impacto da carreira de Mariana no prazo para independência financeira. "
+                    f"Premissas: meta IF de {fmt_currency(M['if_meta'])}, patrimônio investível de {fmt_currency(M['patrimonio_investivel'])}, "
+                    f"retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. e câmbio de R$ {fmt_num(M['cambio_usd_brl'], 2)}/USD. "
+                    f"Atualmente Mariana ganha {fmt_currency(M['cm_salario_clt_brl'])}/mês ({_mariana.get('regime', 'CLT')} {_mariana.get('empregador_curto', '')}); "
+                    f"a renda nos EUA como RN ({fmt_usd(M['cm_renda_nclex_usd'])}-{fmt_usd(M['cm_renda_gc_usd'])}/mês = "
+                    f"{fmt_currency(M['cm_renda_nclex_brl'])}-{fmt_currency(M['cm_renda_gc_brl'])}/mês) "
+                    + (f"supera a renda CLT atual em {fmt_num(M['cm_renda_nclex_brl'] / M['cm_salario_clt_brl'], 1)}x a {fmt_num(M['cm_renda_gc_brl'] / M['cm_salario_clt_brl'], 1)}x, "
+                       "permitindo aportes acima da meta-base."
+                       if M['cm_salario_clt_brl'] > 0 and M['cm_renda_nclex_brl'] > M['cm_salario_clt_brl']
+                       else f"repõe {fmt_num(M['cm_recovery_nclex_pct'], 0)}-{fmt_num(M['cm_recovery_gc_pct'], 0)}% da renda CLT atual."
+                    )
                 ),
                 "conclusion": (
+                    (f"<strong>Cenário 1 — Sem Trabalhar:</strong> aporte reduzido para {fmt_currency(_cm_aportes[0])}/mês "
+                     f"({fmt_num(M['cm_fator_reduzido'] * 100, 0)}% do aporte-base). IF em {fmt_num(_cm_prazos[0], 0)} anos ({_cm_anos[0]}). "
+                     f"Cenário mais conservador — custo de oportunidade de +{fmt_num(_cm_prazos[0] - M['if_prazo_anos'], 0)} anos em relação ao cenário-base.<br>"
+                     f"<strong>Cenário 2 — Com NCLEX (RN nos EUA):</strong> renda de {fmt_usd(M['cm_renda_nclex_usd'])}/mês "
+                     f"({fmt_currency(M['cm_renda_nclex_brl'])}/mês), "
+                     f"aporte sobe para {fmt_currency(_cm_aportes[1])}/mês. IF em {fmt_num(_cm_prazos[1], 0)} anos ({_cm_anos[1]}). "
+                     f"A aprovação no NCLEX é o divisor de águas — a renda americana supera o CLT atual e permite aportes acima da meta-base.<br>"
+                     f"<strong>Cenário 3 — NCLEX + Green Card:</strong> potencial pleno de {fmt_usd(M['cm_renda_gc_usd'])}/mês "
+                     f"({fmt_currency(M['cm_renda_gc_brl'])}/mês), "
+                     f"aporte de {fmt_currency(_cm_aportes[2])}/mês. IF em {fmt_num(_cm_prazos[2], 0)} anos ({_cm_anos[2]}). "
+                     f"Acelera a IF em {fmt_num(_cm_prazos[0] - _cm_prazos[2], 0)} anos vs cenário sem trabalhar. "
+                     f"Crescimento salarial de {M['f1f2_crescimento_salarial']}%/ano pode fechar o gap de renda em poucos anos.")
+                    if len(_cm_prazos) >= 3 else
                     f"Cenário EUA com {fmt_usd(M['renda_mariana_eua_projetada'])}/mês = {fmt_currency(M['renda_eua_projetada_brl'])}/mês. "
-                    "Compensado por: integração com patrimônio de David, renda PJ remota, "
-                    f"renda de aluguel em BRL e potencial de crescimento salarial anual de {M['f1f2_crescimento_salarial']}%."
+                    f"Compensado por: integração com patrimônio de David, renda PJ remota e aluguel em BRL."
                 )
-            },
+            })(
+                M.get('cm_cenarios', []),
+                M.get('cm_prazos', []),
+                M.get('cm_aportes', []),
+                M.get('cm_anos_if', []),
+            ),
             "custos_f1f2": {
                 "context": (
                     f"Estimativa de custos mensais na fase {M['f1f2_visto']} nos EUA: tuition + living + viagens BR = {fmt_currency(M['custo_fase_f1f2'])}/mês."

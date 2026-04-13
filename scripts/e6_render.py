@@ -1434,16 +1434,17 @@ def build_tactical_dashboard(e4: dict) -> dict:
     quinzena = 1 if now.day <= 15 else 2
     ciclo_display = f"Quinzena {quinzena}, {now.strftime('%B %Y').title()}"
 
-    # --- Notas ---
-    score_val = e4.get("score", {}).get("valor", "N/D")
-    score_cls = e4.get("score", {}).get("classificacao", "")
+    # --- Notas (structured for rich rendering) ---
+    score_obj = e4.get("score", {})
     eq = e4.get("equilibrio_cerbasi", {})
-    notas = (
-        f"Score financeiro: {score_val}/10 ({score_cls}). "
-        f"Equilíbrio Cerbasi: {eq.get('pct_presente', 0):.0f}% presente / {eq.get('pct_futuro', 0):.0f}% futuro "
-        f"({eq.get('classificacao', 'N/D')}). "
-        f"Período dos dados: {e4.get('periodo_dados', 'N/D')}."
-    )
+    notas = {
+        "score_valor": score_obj.get("valor", "N/D"),
+        "score_classificacao": score_obj.get("classificacao", ""),
+        "eq_pct_presente": round(eq.get("pct_presente", 0)),
+        "eq_pct_futuro": round(eq.get("pct_futuro", 0)),
+        "eq_classificacao": eq.get("classificacao", "N/D"),
+        "periodo_dados": e4.get("periodo_dados", "N/D"),
+    }
 
     return {
         "patrimonio_delta": patrimonio_delta,
@@ -3546,7 +3547,7 @@ def validate_report(html: str, report_data_json: str) -> dict:
     _html_body = re.sub(r'<script[^>]*>.*?</script>', '', html_no_comments, flags=re.DOTALL)
     _html_body = re.sub(r'<style[^>]*>.*?</style>', '', _html_body, flags=re.DOTALL)
     card_pattern = re.findall(r'<div\s+class="card[^"]*"[^>]*>\s*\n?\s*(<[^>]+>)', _html_body)
-    cards_without_title = [m for m in card_pattern if 'card-title' not in m and 'card-compact-icon' not in m]
+    cards_without_title = [m for m in card_pattern if 'card-title' not in m and 'card-compact-icon' not in m and 'notas-card-header' not in m]
     if cards_without_title:
         results["V16"]["passed"] = False
         results["V16"]["detail"] = f"{len(cards_without_title)} card(s) sem .card-title como primeiro filho: {cards_without_title[:3]}"

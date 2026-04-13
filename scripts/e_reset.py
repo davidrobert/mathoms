@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """
 E-reset / E-reset-from — Pipeline completo: reset + reprocessamento
 
