@@ -176,7 +176,15 @@ def save_result(result: Dict[str, Any], filename: str, output_dir: Path) -> Path
     return out_path
 
 
-def main():
+def main(root_dir: Path = None):
+    if root_dir:
+        from scripts.e2.common import _init_config as _e2_init_config
+        _e2_init_config(root_dir)
+        from scripts.e2 import common as _e2c
+        global DATA_DIR, OUTPUT_DIR
+        DATA_DIR = _e2c.DATA_DIR
+        OUTPUT_DIR = _e2c.OUTPUT_DIR
+
     parser = argparse.ArgumentParser(
         description="E2 Extraction — Unified deterministic parsers for financial documents"
     )

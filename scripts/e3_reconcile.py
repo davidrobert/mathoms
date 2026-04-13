@@ -30,85 +30,69 @@ from typing import Dict, List, Tuple, Optional, Any
 # Configuration & Types
 # =============================================================================
 
-# Load account type equivalences from config (for cross-type deduplication)
-def _load_account_type_equivalences() -> Dict[str, str]:
-    """Load account type alias mappings from family_members.json."""
-    config_path = Path(__file__).resolve().parent.parent / 'config' / 'family_members.json'
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        return data.get('account_type_equivalences', {})
-    except Exception:
-        return {}
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
-ACCOUNT_TYPE_EQUIVALENCES = _load_account_type_equivalences()
 
-# ---------------------------------------------------------------------------
-# Config loader — pipeline.json
-# ---------------------------------------------------------------------------
-try:
-    from scripts.pipeline_common import load_json_config as _load_pipeline_config
-    PIPE_CONFIG = _load_pipeline_config("pipeline.json")
-except ImportError:
-    def _load_json_config(path: Path, label: str = "") -> dict:
-        if path.exists():
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    return json.load(f)
-            except Exception as e:
-                print(f"  ⚠️  Error loading {label or path.name}: {e}")
-        return {}
-    PIPE_CONFIG = _load_json_config(
-        Path(__file__).resolve().parent.parent / "config" / "pipeline.json",
-        "pipeline.json",
-    )
+def _load_json_safe(path: Path) -> dict:
+    """Load a JSON file safely, returning {} on any error."""
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
 
-_BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Display name → canonical code (from institutions.json)
-def _load_banco_canonical_reverse() -> Dict[str, str]:
-    """Build reverse map: display name (lowercase) → canonical code."""
-    config_path = _BASE_DIR / 'config' / 'institutions.json'
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        mapping = {}
-        for code, display in data.get('banco_canonical', {}).items():
-            mapping[display.lower()] = code
-        return mapping
-    except Exception:
-        return {}
+def _init_config(base_dir: Path) -> None:
+    """(Re)carrega paths e configs a partir de um root_dir.
 
-_BANCO_DISPLAY_TO_CANONICAL = _load_banco_canonical_reverse()
+    Chamado no module level com default, e por main(root_dir=...) quando injetado.
+    """
+    global _BASE_DIR, ACCOUNT_TYPE_EQUIVALENCES, PIPE_CONFIG
+    global _BANCO_DISPLAY_TO_CANONICAL
+    global SKIP_TYPES, SKIP_FILES, TIPO_CANONICAL
+    global _TOLERANCE_SALDO_DIFF, _TOLERANCE_GAP_DAYS, _TOLERANCE_BASELINE_DIFF
 
-_recon_cfg = PIPE_CONFIG.get("reconciliation", {})
+    _BASE_DIR = base_dir
+    config_dir = base_dir / "config"
 
-# File types that should be skipped (not transaction-bearing accounts) — from config
-SKIP_TYPES = set(_recon_cfg.get("skip_types", [])) or {
-    'investimentosposicao', 'carteirarendafixa', 'cdbdetalhes', 'cdbresumo',
-    'faturaaluguel', 'informerendimentos', 'irpf',
-}
+    family_data = _load_json_safe(config_dir / "family_members.json")
+    ACCOUNT_TYPE_EQUIVALENCES = family_data.get("account_type_equivalences", {})
 
-# Special files to skip — from config
-SKIP_FILES = set(_recon_cfg.get("skip_files", [])) or {
-    'baseline_patrimonial-1.5_consolidated.json',
-    'dados_imoveis-2_extract.json',
-}
+    PIPE_CONFIG = _load_json_safe(config_dir / "pipeline.json")
 
-# Mapping from tipo to a canonical form for output (tipo_conta field) — from config
-TIPO_CANONICAL = _recon_cfg.get("tipo_canonical", {}) or {
-    'extratoconta': 'extratoconta', 'extratocontapj': 'extratocontapj',
-    'extratocontapersonnalite': 'extratocontapersonnalite',
-    'extratopoupanca': 'extratopoupanca', 'extratocontaglobal': 'extratocontaglobal',
-    'extratocontaglobalusd': 'extratocontaglobalusd', 'extratocontaglobaleur': 'extratocontaglobaleur',
-    'faturacarbon': 'faturacarbon', 'faturaunique': 'faturaunique', 'faturapaoacucar': 'faturapaoacucar',
-}
+    inst_data = _load_json_safe(config_dir / "institutions.json")
+    _BANCO_DISPLAY_TO_CANONICAL = {}
+    for code, display in inst_data.get("banco_canonical", {}).items():
+        _BANCO_DISPLAY_TO_CANONICAL[display.lower()] = code
 
-# Tolerances — from config
-_tolerances = _recon_cfg.get("tolerances", {})
-_TOLERANCE_SALDO_DIFF = _tolerances.get("saldo_diff", 0.01)
-_TOLERANCE_GAP_DAYS = _tolerances.get("temporal_gap_days", 2)
-_TOLERANCE_BASELINE_DIFF = _tolerances.get("baseline_irpf_diff", 1.0)
+    _recon_cfg = PIPE_CONFIG.get("reconciliation", {})
+
+    SKIP_TYPES = set(_recon_cfg.get("skip_types", [])) or {
+        'investimentosposicao', 'carteirarendafixa', 'cdbdetalhes', 'cdbresumo',
+        'faturaaluguel', 'informerendimentos', 'irpf',
+    }
+    SKIP_FILES = set(_recon_cfg.get("skip_files", [])) or {
+        'baseline_patrimonial-1.5_consolidated.json',
+        'dados_imoveis-2_extract.json',
+    }
+    TIPO_CANONICAL = _recon_cfg.get("tipo_canonical", {}) or {
+        'extratoconta': 'extratoconta', 'extratocontapj': 'extratocontapj',
+        'extratocontapersonnalite': 'extratocontapersonnalite',
+        'extratopoupanca': 'extratopoupanca', 'extratocontaglobal': 'extratocontaglobal',
+        'extratocontaglobalusd': 'extratocontaglobalusd', 'extratocontaglobaleur': 'extratocontaglobaleur',
+        'faturacarbon': 'faturacarbon', 'faturaunique': 'faturaunique', 'faturapaoacucar': 'faturapaoacucar',
+    }
+
+    _tolerances = _recon_cfg.get("tolerances", {})
+    _TOLERANCE_SALDO_DIFF = _tolerances.get("saldo_diff", 0.01)
+    _TOLERANCE_GAP_DAYS = _tolerances.get("temporal_gap_days", 2)
+    _TOLERANCE_BASELINE_DIFF = _tolerances.get("baseline_irpf_diff", 1.0)
+
+
+# Module level: carrega defaults (retrocompat com import e CLI direto)
+_init_config(_DEFAULT_BASE_DIR)
 
 
 # =============================================================================
@@ -917,15 +901,18 @@ def generate_output_filename(reconciled: Dict[str, Any]) -> str:
     return filename
 
 
-def main():
+def main(root_dir: Path = None):
     """Main reconciliation pipeline."""
+    if root_dir:
+        _init_config(root_dir)
+
+    base_dir = _BASE_DIR
+
     print("=" * 80)
     print("E3 RECONCILIATION STAGE - Deterministic Account Reconciliation")
     print("=" * 80)
 
     # Paths
-    script_dir = Path(__file__).resolve().parent
-    base_dir = script_dir.parent
     e2_dir = base_dir / 'processed' / 'E2_extracts'
     e3_dir = base_dir / 'processed' / 'E3_reconciled'
     logs_dir = base_dir / 'logs'

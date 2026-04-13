@@ -20,7 +20,9 @@ from typing import Any, Dict, List, Optional, Tuple
 # Paths
 # =============================================================================
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+BASE_DIR = _DEFAULT_BASE_DIR
 DATA_DIR = BASE_DIR / "data" / "financial_statements"
 OUTPUT_DIR = BASE_DIR / "processed" / "E2_extracts"
 CONFIG_DIR = BASE_DIR / "config"
@@ -42,64 +44,67 @@ def _load_json_config(path: Path, label: str = "") -> dict:
     return {}
 
 
-def _load_family_config() -> dict:
+def _init_config(base_dir: Path) -> None:
+    """(Re)carrega paths e configs a partir de um root_dir."""
+    global BASE_DIR, DATA_DIR, OUTPUT_DIR, CONFIG_DIR
+    global FAMILY, MEMBROS, TITULAR_KEY, TITULAR, MEMBER_NAMES, MEMBER_CPFS
+    global LOCALE_CONFIG, INST_CONFIG, PIPE_CONFIG
+    global MESES_BR_INT, MESES_BR_STR, BANCO_CANONICAL
+    global KNOWN_FATURA_PATTERNS, CARTOES
+    global VENC_CARBON, VENC_UNIQUE, VENC_PDA
+    global CARTAO_CARBON, CARTAO_UNIQUE, CARTAO_PDA
+    global LAYOUTS, ITAU_XLS_LAYOUT, SANTANDER_XLS_LAYOUT, C6_CSV_LAYOUT
+    global MIN_XLS_BYTES, MIN_CSV_BYTES
+
+    BASE_DIR = base_dir
+    DATA_DIR = base_dir / "data" / "financial_statements"
+    OUTPUT_DIR = base_dir / "processed" / "E2_extracts"
+    CONFIG_DIR = base_dir / "config"
+
     fm_path = CONFIG_DIR / "family_members.json"
-    if fm_path.exists():
-        with open(fm_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
+    FAMILY = _load_json_config(fm_path, "family_members.json") if fm_path.exists() else {}
+    MEMBROS = FAMILY.get("membros", {})
+    TITULAR_KEY = FAMILY.get("titular", "")
+    TITULAR = MEMBROS.get(TITULAR_KEY, {})
+
+    MEMBER_NAMES = []
+    MEMBER_CPFS = {}
+    for _mid, _mdata in MEMBROS.items():
+        for variant in _mdata.get("variantes_nome", []):
+            MEMBER_NAMES.append(variant)
+        cpf = _mdata.get("cpf", "")
+        if cpf:
+            MEMBER_CPFS[cpf] = _mid
+
+    LOCALE_CONFIG = _load_json_config(CONFIG_DIR / "localization.json", "localization.json")
+    INST_CONFIG = _load_json_config(CONFIG_DIR / "institutions.json", "institutions.json")
+    PIPE_CONFIG = _load_json_config(CONFIG_DIR / "pipeline.json", "pipeline.json")
+
+    MESES_BR_INT = LOCALE_CONFIG.get("meses_br_int", {})
+    MESES_BR_STR = LOCALE_CONFIG.get("meses_br_str", {})
+
+    BANCO_CANONICAL = INST_CONFIG.get("banco_canonical", {})
+    KNOWN_FATURA_PATTERNS = INST_CONFIG.get("fatura_patterns", {})
+    CARTOES = INST_CONFIG.get("cartoes", {})
+    VENC_CARBON = CARTOES.get("faturacarbon", {}).get("dia_vencimento", 5)
+    VENC_UNIQUE = CARTOES.get("faturaunique", {}).get("dia_vencimento", 6)
+    VENC_PDA = CARTOES.get("faturapaoacucar", {}).get("dia_vencimento", 6)
+    CARTAO_CARBON = CARTOES.get("faturacarbon", {}).get("nome_cartao", "Carbon")
+    CARTAO_UNIQUE = CARTOES.get("faturaunique", {}).get("nome_cartao", "Unique")
+    CARTAO_PDA = CARTOES.get("faturapaoacucar", {}).get("nome_cartao", "Pão de Açúcar")
+
+    LAYOUTS = INST_CONFIG.get("layouts", {})
+    ITAU_XLS_LAYOUT = LAYOUTS.get("itau_xls", {})
+    SANTANDER_XLS_LAYOUT = LAYOUTS.get("santander_xls", {})
+    C6_CSV_LAYOUT = LAYOUTS.get("c6_csv", {})
+
+    _file_limits = PIPE_CONFIG.get("file_limits", {})
+    MIN_XLS_BYTES = _file_limits.get("min_xls_bytes", 40000)
+    MIN_CSV_BYTES = _file_limits.get("min_csv_bytes", 500)
 
 
-# --- Load all configs at module level ---
-FAMILY = _load_family_config()
-MEMBROS = FAMILY.get("membros", {})
-TITULAR_KEY = FAMILY.get("titular", "")
-TITULAR = MEMBROS.get(TITULAR_KEY, {})
-
-MEMBER_NAMES: List[str] = []
-MEMBER_CPFS: Dict[str, str] = {}
-for _mid, _mdata in MEMBROS.items():
-    for variant in _mdata.get("variantes_nome", []):
-        MEMBER_NAMES.append(variant)
-    cpf = _mdata.get("cpf", "")
-    if cpf:
-        MEMBER_CPFS[cpf] = _mid
-
-LOCALE_CONFIG = _load_json_config(CONFIG_DIR / "localization.json", "localization.json")
-INST_CONFIG = _load_json_config(CONFIG_DIR / "institutions.json", "institutions.json")
-PIPE_CONFIG = _load_json_config(CONFIG_DIR / "pipeline.json", "pipeline.json")
-
-# Month maps — both integer and string variants
-MESES_BR_INT = LOCALE_CONFIG.get("meses_br_int", {})
-MESES_BR_STR = LOCALE_CONFIG.get("meses_br_str", {})
-if not MESES_BR_INT:
-    print("  [WARN] localization.json 'meses_br_int' não encontrado — parsing de datas em português pode falhar")
-if not MESES_BR_STR:
-    print("  [WARN] localization.json 'meses_br_str' não encontrado — parsing de datas em português pode falhar")
-
-# Bank canonical names
-BANCO_CANONICAL = INST_CONFIG.get("banco_canonical", {})
-
-# Fatura patterns and card configs
-KNOWN_FATURA_PATTERNS = INST_CONFIG.get("fatura_patterns", {})
-CARTOES = INST_CONFIG.get("cartoes", {})
-VENC_CARBON = CARTOES.get("faturacarbon", {}).get("dia_vencimento", 5)
-VENC_UNIQUE = CARTOES.get("faturaunique", {}).get("dia_vencimento", 6)
-VENC_PDA = CARTOES.get("faturapaoacucar", {}).get("dia_vencimento", 6)
-CARTAO_CARBON = CARTOES.get("faturacarbon", {}).get("nome_cartao", "Carbon")
-CARTAO_UNIQUE = CARTOES.get("faturaunique", {}).get("nome_cartao", "Unique")
-CARTAO_PDA = CARTOES.get("faturapaoacucar", {}).get("nome_cartao", "Pão de Açúcar")
-
-# Layouts from config
-LAYOUTS = INST_CONFIG.get("layouts", {})
-ITAU_XLS_LAYOUT = LAYOUTS.get("itau_xls", {})
-SANTANDER_XLS_LAYOUT = LAYOUTS.get("santander_xls", {})
-C6_CSV_LAYOUT = LAYOUTS.get("c6_csv", {})
-
-# File size thresholds
-_file_limits = PIPE_CONFIG.get("file_limits", {})
-MIN_XLS_BYTES = _file_limits.get("min_xls_bytes", 40000)
-MIN_CSV_BYTES = _file_limits.get("min_csv_bytes", 500)
+# Module level: carrega defaults (retrocompat)
+_init_config(_DEFAULT_BASE_DIR)
 
 
 # =============================================================================
