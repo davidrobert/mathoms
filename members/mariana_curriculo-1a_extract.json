@@ -1,118 +1,86 @@
 {
-  "tipo": "curriculo",
-  "membro": "mariana",
-  "nome_completo": "Mariana Ferreira Campos",
-  "nome_atual": "Mariana Ferreira Campos",
-  "profissao_cargo": "Enfermeira no Hospital Israelita Albert Einstein",
-  "experiencias": [
-    {
-      "empresa": "Hospital Israelita Albert Einstein",
-      "cargo": "Enfermeiro",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2018-01",
-      "data_fim": "presente",
-      "descricao": "Unidade de alta complexidade com foco em Cardiologia, Clínica Médica e Cirúrgica. Auditoria de prontuários eletrônicos, projetos PDCA e segurança do paciente."
+  "source_file": "mariana_curriculo-0_original.pdf",
+  "member_id": "mariana",
+  "extraction_date": "2026-04-13",
+  "data": {
+    "nome_completo": "Mariana Ferreira Campos",
+    "nome_solteira": "Mariana Teixeira Ferreira",
+    "contato": {
+      "telefone": "+55 11 96073-3929",
+      "email": "mtf3008@gmail.com",
+      "linkedin": "https://www.linkedin.com/in/mariana-ferreira-campos"
     },
-    {
-      "empresa": "Hospital Israelita Albert Einstein",
-      "cargo": "Enfermeiro",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2014-08",
-      "data_fim": "2018-06",
-      "descricao": "UPA Campo Limpo — atendimento de urgência e emergência."
-    },
-    {
-      "empresa": "Faculdade Israelita Albert Einstein",
-      "cargo": "Docente universitário",
-      "tipo_vinculo": "docencia",
-      "data_inicio": "2021-01",
-      "data_fim": "2024-12",
-      "descricao": "Docente em Semiologia e Semiotécnica, metodologias ativas de ensino."
-    },
-    {
-      "empresa": "Senac São Paulo",
-      "cargo": "Docente universitário",
-      "tipo_vinculo": "docencia",
-      "data_inicio": "2012-01",
-      "data_fim": "2016-01",
-      "descricao": "Ensino técnico e superior em enfermagem."
-    },
-    {
-      "empresa": "Faculdade Sequencial",
-      "cargo": "Docente universitário",
-      "tipo_vinculo": "docencia",
-      "data_inicio": "2013-01",
-      "data_fim": "2015-08",
-      "descricao": "Docência em enfermagem."
-    },
-    {
-      "empresa": "Hospital Municipal Dr. Moysés Deutsch (Parceria Einstein)",
-      "cargo": "Enfermeira",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2011-01",
-      "data_fim": "2014-01",
-      "descricao": "UTI Adulto e Pediátrica, Clínica Médica e Cirúrgica."
-    }
-  ],
-  "formacao": [
-    {
-      "instituicao": "Universidade de São Paulo (USP)",
-      "curso": "Mestrado em Enfermagem — Enfermagem em Saúde Adulta",
-      "grau": "mestrado",
-      "data_conclusao": "2021"
-    },
-    {
-      "instituicao": "UNIFESP - Universidade Federal de São Paulo",
-      "curso": "Especialização em Enfermagem em Cardiologia e Hemodinâmica",
-      "grau": "especializacao",
-      "data_conclusao": "2012"
-    },
-    {
-      "instituicao": "PUC Minas",
-      "curso": "Bacharelado em Enfermagem",
-      "grau": "graduacao",
-      "data_conclusao": "2010"
-    },
-    {
-      "instituicao": "FIOCRUZ - Fundação Oswaldo Cruz",
-      "curso": "Especialização em Formação Docente em Educação Profissional",
-      "grau": "especializacao",
-      "data_conclusao": null
-    }
-  ],
-  "certificacoes": [
-    {
-      "nome": "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
-      "instituicao": "Hospital Albert Einstein"
-    },
-    {
-      "nome": "Classificação de Risco (Protocolo de Manchester)",
-      "instituicao": null
-    },
-    {
-      "nome": "Advanced Trauma Care for Nurses (ATCN)",
-      "instituicao": null
-    },
-    {
-      "nome": "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP) e Osteoporose",
-      "instituicao": "USP"
-    }
-  ],
-  "habilidades": [
-    "Processo de enfermagem",
-    "Cuidados de qualidade ao paciente",
-    "Gestão de equipes",
-    "Auditoria clínica",
-    "Segurança do paciente",
-    "Educação em saúde",
-    "Pesquisa clínica",
-    "Metodologia científica"
-  ],
-  "idiomas": [
-    {
-      "idioma": "Português",
-      "nivel": "nativo",
-      "fonte": "inferido"
-    }
-  ]
+    "formacao": [
+      {
+        "grau": "Mestrado",
+        "area": "Enfermagem em Saúde do Adulto",
+        "instituicao": "Universidade de São Paulo (USP)",
+        "periodo": "2019–2021"
+      },
+      {
+        "grau": "Especialização",
+        "area": "Enfermagem em Cardiologia e Hemodinâmica",
+        "instituicao": "UNIFESP",
+        "periodo": "2011–2012"
+      },
+      {
+        "grau": "Especialização",
+        "area": "Formação Docente em Educação Profissional",
+        "instituicao": "FIOCRUZ",
+        "periodo": null
+      },
+      {
+        "grau": "Bacharelado",
+        "area": "Enfermagem",
+        "instituicao": "PUC Minas",
+        "periodo": "2007–2010"
+      }
+    ],
+    "experiencia_profissional": [
+      {
+        "empresa": "Hospital Israelita Albert Einstein",
+        "cargo": "Enfermeiro Pleno",
+        "periodo": "jan/2018 – atual",
+        "descricao": "Unidade de alta complexidade (Cardiologia, Clínica Médica e Cirúrgica). Auditoria de prontuários eletrônicos, projetos PDCA, segurança do paciente."
+      },
+      {
+        "empresa": "Hospital Israelita Albert Einstein",
+        "cargo": "Enfermeiro",
+        "periodo": "ago/2014 – jun/2018",
+        "descricao": "UPA Campo Limpo."
+      },
+      {
+        "empresa": "Faculdade Israelita Albert Einstein",
+        "cargo": "Docente universitário",
+        "periodo": "jan/2021 – dez/2024",
+        "descricao": "Semiologia e Semiotécnica, metodologias ativas de ensino."
+      },
+      {
+        "empresa": "Senac São Paulo",
+        "cargo": "Docente universitário",
+        "periodo": "jan/2012 – jan/2016",
+        "descricao": null
+      },
+      {
+        "empresa": "Hospital Municipal Dr. Moysés Deutsch (parceria Einstein)",
+        "cargo": "Enfermeira",
+        "periodo": "2011–2014",
+        "descricao": "UTI Adulto e Pediátrica, Clínica Médica e Cirúrgica."
+      }
+    ],
+    "certificacoes": [
+      "Auditoria e Qualidade: Projetos PDCA e Auditoria de Prontuário Eletrônico",
+      "Classificação de Risco (Protocolo de Manchester)",
+      "Advanced Trauma Care for Nurses (ATCN)",
+      "Gestão de Crônicos: Preceptoria em Esclerose Múltipla (USP) e Osteoporose"
+    ],
+    "competencias_chave": [
+      "Auditoria clínica e segurança do paciente",
+      "Cardiologia e Hemodinâmica",
+      "Educação em saúde e docência",
+      "Pesquisa clínica e prática baseada em evidências",
+      "Processo de enfermagem"
+    ],
+    "anos_experiencia": 15
+  }
 }

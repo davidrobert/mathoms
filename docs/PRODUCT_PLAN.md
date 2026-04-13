@@ -425,31 +425,52 @@ class WorkspaceContext:
 | 0B.6 | Testes de regressão E3: output idêntico via wrapper vs CLI direto | P0 | 2h | ☐ |
 | 0B.7 | Testes de regressão E4: output idêntico via wrapper vs CLI direto | P0 | 2h | ☐ |
 
-**Pattern do wrapper — Opção B (Decidido)**
+**Pattern do wrapper — Opção B com `_init_config()` (Decidido)**
 
-Cada script recebe `root_dir=None` no `main()`. Se None → usa `__file__` (retrocompatível). Se fornecido → usa o root injetado. Mudança mínima (~5-10 linhas por script), limpa e thread-safe.
+Cada script ganha uma função `_init_config(base_dir)` que (re)carrega todos os globals
+de configuração. É chamada no module level com o default (retrocompat), e re-chamada
+por `main(root_dir=...)` quando um root diferente é injetado.
 
 **Passo 1 — Mudança cirúrgica no script (exemplo E3):**
 
 ```python
-# scripts/e3_reconcile.py — mudança mínima no topo e no main()
+# scripts/e3_reconcile.py
 
-# ANTES:
-_BASE_DIR = Path(__file__).resolve().parent.parent
+_DEFAULT_BASE = Path(__file__).resolve().parent.parent
 
-# DEPOIS:
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
-_BASE_DIR = _DEFAULT_BASE_DIR  # mantém global para retrocompat de funções internas
+def _init_config(base_dir: Path):
+    """(Re)carrega paths e configs a partir de um root_dir.
+    Chamado no module level com default, e por main() com root injetado."""
+    global _BASE_DIR, _CONFIG_DIR, PIPE_CONFIG, ACCOUNT_TYPE_EQUIVALENCES
+    global _BANCO_CANONICAL_REVERSE
+    _BASE_DIR = base_dir
+    _CONFIG_DIR = base_dir / "config"
+    PIPE_CONFIG = _load_json(_CONFIG_DIR / "pipeline.json")
+    ACCOUNT_TYPE_EQUIVALENCES = _load_equivalences(_CONFIG_DIR / "family_members.json")
+    _BANCO_CANONICAL_REVERSE = _load_banco_canonical_reverse()
+
+# Module level: carrega defaults (retrocompat com import e CLI direto)
+_init_config(_DEFAULT_BASE)
 
 def main(root_dir: Path = None):
-    global _BASE_DIR
-    _BASE_DIR = root_dir or _DEFAULT_BASE_DIR
-    # ... resto do main() inalterado, todas as funções internas
-    # continuam lendo _BASE_DIR normalmente ...
+    if root_dir:
+        _init_config(root_dir)
+    # ... resto do main() 100% inalterado ...
 
 if __name__ == "__main__":
-    main()  # sem argumento = comportamento original
+    main()  # sem argumento = default = igual a antes
 ```
+
+**Esforço real por script (refinado):**
+
+| Script | Globals a re-inicializar | Linhas extras | Complexidade |
+|--------|--------------------------|---------------|-------------|
+| `e3_reconcile.py` | ~5 | ~15 | Baixa |
+| `e4_categorize.py` | ~10 (3 configs + 7 derivados) | ~25 | Média |
+| `e2/common.py` | ~8 (FAMILY, LOCALE, INST, PIPE + derivados) | ~20 | Média |
+| `e5_analyze.py` | ~5 (paths + DOBs) | ~15 | Baixa |
+| `e5n_narrativas.py` | ~15 (FAMILY + 12 keys + FISCAL) | ~35 | Média-alta |
+| `e6_render.py` | ~3 (paths + template) | ~10 | Baixa |
 
 **Passo 2 — Wrapper fino no package pipeline:**
 
@@ -461,17 +482,22 @@ def run(ctx: WorkspaceContext) -> dict:
     """Executa E3 reconciliation com contexto injetado."""
     from scripts.e3_reconcile import main as e3_main
     e3_main(root_dir=ctx.root)
-    # Coletar resultados do filesystem (os JSONs gerados)
     files = list(ctx.e3_dir.glob("*-3_reconciled.json"))
     return {"success": True, "files_created": [f.name for f in files]}
 ```
 
-**Vantagens da Opção B:**
-- Mudança de ~5 linhas por script (baixo risco)
-- Thread-safe (cada call recebe seu root)
+**Vantagens:**
+- Thread-safe (cada call re-inicializa seus globals com o root recebido)
 - CLI funciona idêntico (`main()` sem argumento)
 - Wrappers são triviais (3-5 linhas cada)
 - Testável com `main(root_dir=Path("/tmp/test_workspace"))`
+- Lógica interna dos scripts permanece 100% inalterada
+
+**Regras da Fase 0:**
+- Scripts permanecem em `scripts/` (sem reorganização de arquivos)
+- `pipeline/` importa de `scripts/` (reorganização de pastas é Fase 2+)
+- Config sempre vem de `root_dir/config/` (injeção via DB é Fase 3)
+- `e_reset.py` roda scripts via subprocess hoje — orchestrator (0D) substitui por chamadas diretas
 
 ---
 
@@ -1055,7 +1081,8 @@ Total de tarefas: **122**
 |------|--------|-------|
 | 2026-04-13 | Brainstorm inicial | Decisões: Freemium, Next.js, FastAPI, Hybrid LLM |
 | 2026-04-13 | Documento de plano criado | `docs/PRODUCT_PLAN.md` — este arquivo |
-| 2026-04-13 | Fase 0 refinada | Diagnóstico técnico detalhado. Estratégia "Wrap Don't Rewrite". 4 sub-fases (0A-0D), 27 tarefas. |
+| 2026-04-13 | Fase 0 refinada | Diagnóstico técnico detalhado. Estratégia "Wrap Don't Rewrite". 4 sub-fases (0A-0D), 27 tarefas |
+| 2026-04-13 | D13 decidido: Opção B | Parâmetro `root_dir` + `_init_config()` pattern. Refinado com análise de module-level globals por script |
 | | | |
 | | | |
 

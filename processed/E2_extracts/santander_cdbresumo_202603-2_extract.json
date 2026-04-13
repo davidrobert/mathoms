@@ -1,26 +1,26 @@
 {
+  "source_file": "santander_cdbresumo_202603-0_original.pdf",
   "tipo": "investimentosposicao",
-  "instituicao": "Santander",
+  "instituicao": "santander",
   "membro": "david",
-  "data_posicao": "2026-03-29",
-  "moeda": "BRL",
-  "saldo_atual": 299477.93,
-  "composicao": [
+  "data_referencia": "2026-03-29",
+  "total_cdb": 299477.93,
+  "posicoes": [
     {
-      "tipo_produto": "CDB",
-      "nome": "CDB DI SANTANDER (op. 06380267)",
+      "tipo": "CDB-DI",
+      "operacao": "00331652260006380267",
       "valor_total": 137409.67,
       "disponivel_resgate": 132662.92
     },
     {
-      "tipo_produto": "CDB",
-      "nome": "CDB DI SANTANDER (op. 06541929)",
+      "tipo": "CDB-DI",
+      "operacao": "00331652260006541929",
       "valor_total": 101522.74,
       "disponivel_resgate": 98281.27
     },
     {
-      "tipo_produto": "CDB",
-      "nome": "CDB PROG SANTANDER (op. 06541912)",
+      "tipo": "CDB-PROG",
+      "operacao": "00331652260006541912",
       "valor_total": 60545.52,
       "disponivel_resgate": 58700.06
     }

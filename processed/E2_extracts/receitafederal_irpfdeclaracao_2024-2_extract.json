@@ -1,19 +1,14 @@
 {
+  "source_file": "receitafederal_irpfdeclaracao_2024-0_original.pdf",
   "tipo": "irpfdeclaracao",
+  "instituicao": "receitafederal",
+  "membro": "david",
   "ano_base": 2024,
-  "declarante": {
-    "nome": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
-    "cpf": "287.766.948-36"
-  },
-  "data_declaracao": "2025-05-28",
-  "totalizadores": {
-    "bens_totais": 2589887.09,
-    "dividas_totais": 234792.61,
-    "renda_tributavel": 651374.65,
-    "imposto_devido": 163779.6,
-    "imposto_pago": 154768.78,
-    "saldo": 9010.82,
-    "aliquota_efetiva": 25.14
-  },
-  "observacoes": "Dados completos extraídos no baseline_patrimonial-1.5_consolidated.json"
+  "exercicio": 2025,
+  "rendimentos_tributaveis": 651374.65,
+  "imposto_devido": 163779.6,
+  "aliquota_efetiva_pct": 25.14,
+  "total_bens_2024": 2589887.09,
+  "total_dividas_2024": 234792.61,
+  "nota": "Dados completos no baseline_patrimonial-1.5_consolidated.json"
 }

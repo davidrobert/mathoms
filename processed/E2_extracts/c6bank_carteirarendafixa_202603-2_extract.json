@@ -1,31 +1,31 @@
 {
+  "source_file": "c6bank_carteirarendafixa_202603-0_original.pdf",
   "tipo": "investimentosposicao",
-  "instituicao": "C6 Bank",
+  "instituicao": "c6bank",
   "membro": "david",
-  "data_posicao": "2026-03-29",
-  "moeda": "BRL",
-  "saldo_atual": 6930.11,
-  "composicao": [
+  "data_referencia": "2026-03",
+  "saldo_total": 6930.11,
+  "posicoes": [
     {
-      "tipo_produto": "CDB",
+      "tipo": "CDB",
       "nome": "CDB C6 Pós-fixado Liq. Diária",
-      "taxa": "102% do CDI"
+      "indexador": "102% do CDI"
     },
     {
-      "tipo_produto": "CDB",
+      "tipo": "CDB",
       "nome": "CDB C6 Limite Garantido",
-      "taxa": "102% do CDI"
+      "indexador": "102% do CDI"
     },
     {
-      "tipo_produto": "CDB",
+      "tipo": "CDB",
       "nome": "CDB C6 Pós-fixado 3 meses",
-      "taxa": "103% do CDI"
+      "indexador": "102% do CDI"
     },
     {
-      "tipo_produto": "CDB",
+      "tipo": "CDB",
       "nome": "CDB C6 Pós-fixado 6 meses",
-      "taxa": "103% do CDI"
+      "indexador": "103% do CDI"
     }
   ],
-  "observacoes": "PDF mostra apenas tipos de CDB disponíveis e saldo total de R$6.930,11. Detalhamento individual não disponível no documento."
+  "nota": "PDF mostra apenas tipos de produto e taxas, sem valores individuais. Saldo total R$6.930,11."
 }

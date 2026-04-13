@@ -1,19 +1,15 @@
 {
+  "source_file": "receitafederal_irpfdeclaracao_2023-0_original.pdf",
   "tipo": "irpfdeclaracao",
+  "instituicao": "receitafederal",
+  "membro": "mariana",
   "ano_base": 2023,
-  "declarante": {
-    "nome": "MARIANA TEIXEIRA FERREIRA",
-    "cpf": "085.052.396-60"
-  },
-  "data_declaracao": "2024-05-01",
-  "totalizadores": {
-    "bens_totais": 811301.24,
-    "dividas_totais": 0.0,
-    "renda_tributavel": 152292.83,
-    "imposto_devido": 26715.95,
-    "imposto_pago": 26255.09,
-    "saldo": 460.86,
-    "aliquota_efetiva": 17.54
-  },
-  "observacoes": "Declaração Mariana sob nome de solteira. Dados completos no baseline."
+  "exercicio": 2024,
+  "nome_declarante": "Mariana Teixeira Ferreira",
+  "rendimentos_tributaveis": 152292.83,
+  "imposto_devido": 26715.95,
+  "aliquota_efetiva_pct": 17.54,
+  "total_bens_2023": 811301.24,
+  "total_dividas_2023": 0.0,
+  "nota": "Dados completos no baseline_patrimonial-1.5_consolidated.json"
 }

@@ -1,20 +1,13 @@
 {
+  "source_file": "receitafederal_irpfrecibomariana_2024-0_original.pdf",
   "tipo": "irpfrecibo",
+  "instituicao": "receitafederal",
+  "membro": "mariana",
   "ano_base": 2024,
-  "declarante": {
-    "nome": "MARIANA FERREIRA CAMPOS",
-    "cpf": "085.052.396-60"
-  },
-  "data_entrega": "2025-05-30",
   "numero_recibo": "14.54.94.96.65-76",
-  "total_rendimentos_tributaveis": 203982.98,
+  "data_entrega": "2025-05-30",
+  "rendimentos_tributaveis": 203982.98,
   "imposto_devido": 40746.89,
-  "imposto_restituir": 0.0,
-  "saldo_imposto_pagar": 18170.9,
-  "quotas": 8,
-  "valor_quota": 2271.36,
-  "debito_automatico": true,
-  "banco": "237",
-  "agencia": "0504",
-  "conta": "0077113-9"
+  "imposto_a_pagar": 18170.9,
+  "quotas": 8
 }

@@ -1,130 +1,70 @@
 {
-  "tipo": "curriculo",
-  "membro": "david",
-  "nome_completo": "David Robert Camargo Ferreira Campos",
-  "nome_atual": "David Robert Camargo Ferreira Campos",
-  "profissao_cargo": "Chief Technology Officer (CTO) na Arvo",
-  "experiencias": [
-    {
-      "empresa": "Arvo",
-      "cargo": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "PJ",
-      "data_inicio": "2025-09",
-      "data_fim": "presente",
-      "descricao": "Healthtech de auditoria médica com IA. Dirige estratégia tecnológica, frameworks de cybersecurity (LGPD/HIPAA), visão AI-First no SDLC."
+  "source_file": "david_curriculo-0_original.docx",
+  "member_id": "david",
+  "extraction_date": "2026-04-13",
+  "data": {
+    "nome_completo": "David Robert Camargo Ferreira Campos",
+    "contato": {
+      "telefone": "+55 (11) 99681-9851",
+      "email": "davidrobert@gmail.com",
+      "linkedin": "https://www.linkedin.com/in/davidrobert/",
+      "github": "https://github.com/davidrobert/",
+      "lattes": "http://lattes.cnpq.br/2986072670677092"
     },
-    {
-      "empresa": "Kiwify",
-      "cargo": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2024-06",
-      "data_fim": "2025-05",
-      "descricao": "Plataforma de e-commerce e produtos digitais. Liderou 5 squads, otimizou infra para 7k req/min, lançou vendas internacionais com multi-currency."
-    },
-    {
-      "empresa": "Loft",
-      "cargo": "Software Engineering Consultant",
-      "tipo_vinculo": "PJ",
-      "data_inicio": "2022-12",
-      "data_fim": "2024-06",
-      "descricao": "Proptech. Gestão de 60+ engenheiros, integração tecnológica CrediHome/CredPago, disponibilidade 99.99%."
-    },
-    {
-      "empresa": "Loft",
-      "cargo": "Director of Software Engineering",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2021-11",
-      "data_fim": "2022-12",
-      "descricao": "Recrutamento de 70+ engenheiros, migração para microservices, internalização 123i."
-    },
-    {
-      "empresa": "Loft",
-      "cargo": "Engineering Manager",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2019-06",
-      "data_fim": "2021-10",
-      "descricao": "Liderança de equipes cross-funcionais, expansão do marketplace imobiliário."
-    },
-    {
-      "empresa": "Elo7",
-      "cargo": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2013-08",
-      "data_fim": "2020-07",
-      "descricao": "E-commerce de produtos artesanais. Gestão de 70 engenheiros, arquitetura microservices, redução de custos AWS em 35%."
-    },
-    {
-      "empresa": "NIC.br / Registro.br",
-      "cargo": "Analista de Segurança / Desenvolvedor DNSSEC",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2005-12",
-      "data_fim": "2013-07",
-      "descricao": "Desenvolvimento de servidor DNS com DNSSEC, segurança de infraestrutura de internet no Brasil."
-    },
-    {
-      "empresa": "Telefônica/Vivo",
-      "cargo": "Software Engineer",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2005-03",
-      "data_fim": "2005-11",
-      "descricao": "Desenvolvimento de sistemas de telecomunicações."
-    },
-    {
-      "empresa": "MAPS S.A.",
-      "cargo": "Software Engineer",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2004-02",
-      "data_fim": "2005-02",
-      "descricao": "Soluções de automação e gestão para setor público e financeiro."
-    },
-    {
-      "empresa": "Alcatel",
-      "cargo": "Estagiário de Engenharia de Software",
-      "tipo_vinculo": "CLT",
-      "data_inicio": "2002-07",
-      "data_fim": "2004-01",
-      "descricao": "Estágio em engenharia de software no setor de telecomunicações."
-    }
-  ],
-  "formacao": [
-    {
-      "instituicao": "Universidade de São Paulo (USP) - Instituto de Matemática e Estatística (IME)",
-      "curso": "Mestrado em Ciência da Computação — Inteligência Artificial",
-      "grau": "mestrado",
-      "data_conclusao": "2008"
-    },
-    {
-      "instituicao": "Pontifícia Universidade Católica de São Paulo (PUC/SP)",
-      "curso": "Bacharelado em Ciência da Computação",
-      "grau": "graduacao",
-      "data_conclusao": "2004"
-    }
-  ],
-  "certificacoes": [],
-  "habilidades": [
-    "Software Architecture",
-    "Microservices",
-    "Domain-Driven Design (DDD)",
-    "Cloud Computing (AWS, GCP)",
-    "Kubernetes / Docker",
-    "CI/CD Pipelines",
-    "Machine Learning / AI",
-    "Cybersecurity / DNSSEC",
-    "Python, Java, C/C++, Go, Kotlin, JavaScript",
-    "Data Engineering (Hadoop, Spark)",
-    "Team Leadership (100+ engineers)",
-    "DevOps / Infrastructure as Code"
-  ],
-  "idiomas": [
-    {
-      "idioma": "Português",
-      "nivel": "nativo",
-      "fonte": "inferido"
-    },
-    {
-      "idioma": "Inglês",
-      "nivel": "fluente",
-      "fonte": "inferido"
-    }
-  ]
+    "formacao": [
+      {
+        "grau": "Mestrado",
+        "area": "Ciência da Computação — Inteligência Artificial",
+        "instituicao": "Universidade de São Paulo (USP), Instituto de Matemática e Estatística (IME)",
+        "ano": 2008
+      },
+      {
+        "grau": "Bacharelado",
+        "area": "Ciência da Computação",
+        "instituicao": "Pontifícia Universidade Católica de São Paulo (PUC/SP)",
+        "ano": 2004
+      }
+    ],
+    "experiencia_profissional": [
+      {
+        "empresa": "Arvo",
+        "cargo": "Chief Technology Officer (CTO)",
+        "periodo": "set/2025 – atual",
+        "descricao": "Healthtech de auditoria médica com IA. Dirige estratégia tecnológica, frameworks de cibersegurança (LGPD/HIPAA), visão AI-First, career ladder de engenharia."
+      },
+      {
+        "empresa": "Kiwify",
+        "cargo": "Chief Technology Officer (CTO)",
+        "periodo": "jun/2024 – mai/2025",
+        "descricao": "Plataforma de e-commerce e produtos digitais. Liderou 5 squads, otimizou infraestrutura (7k req/min), lançou vendas internacionais multi-moeda, implementou CD."
+      },
+      {
+        "empresa": "Loft",
+        "cargo": "Software Engineering Consultant / Director / VP of Software Engineering",
+        "periodo": "jun/2019 – jun/2024",
+        "descricao": "Proptech. Consultoria de engenharia, direção e VP. Liderou 60+ engenheiros, integrou CrediHome e CredPago, 99.99% availability, 5x volume de transações."
+      },
+      {
+        "empresa": "Elo7",
+        "cargo": "Principal Software Engineer",
+        "periodo": "jun/2014 – mai/2019",
+        "descricao": "Marketplace de produtos artesanais. Arquitetura de microserviços, plataforma de vendas cross-border, migração para cloud."
+      },
+      {
+        "empresa": "Registro.br / NIC.br",
+        "cargo": "Analista de Sistemas Sênior",
+        "periodo": "out/2004 – mai/2014",
+        "descricao": "Registro de domínios .br. Desenvolveu servidor DNS autoritativo com DNSSEC, infraestrutura crítica de internet brasileira."
+      }
+    ],
+    "competencias_chave": [
+      "Arquitetura de software escalável (microserviços, DDD)",
+      "Liderança de times de engenharia (100+ engenheiros ao longo da carreira)",
+      "Cloud computing (AWS, GCP, Kubernetes, Docker)",
+      "IA/ML aplicada",
+      "Cibersegurança e DNSSEC",
+      "Java, Python, C/C++, Go, Kotlin, JavaScript"
+    ],
+    "anos_experiencia": 24
+  }
 }

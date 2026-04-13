@@ -1,19 +1,14 @@
 {
+  "source_file": "receitafederal_irpfdeclaracaomariana_2024-0_original.pdf",
   "tipo": "irpfdeclaracao",
+  "instituicao": "receitafederal",
+  "membro": "mariana",
   "ano_base": 2024,
-  "declarante": {
-    "nome": "MARIANA FERREIRA CAMPOS",
-    "cpf": "085.052.396-60"
-  },
-  "data_declaracao": "2025-05-30",
-  "totalizadores": {
-    "bens_totais": 988123.73,
-    "dividas_totais": 0.0,
-    "renda_tributavel": 203982.98,
-    "imposto_devido": 40746.89,
-    "imposto_pago": 22575.99,
-    "saldo": 18170.9,
-    "aliquota_efetiva": 19.97
-  },
-  "observacoes": "Dados completos extraídos no baseline_patrimonial-1.5_consolidated.json"
+  "exercicio": 2025,
+  "rendimentos_tributaveis": 203982.98,
+  "imposto_devido": 40746.89,
+  "aliquota_efetiva_pct": 19.97,
+  "total_bens_2024": 988123.73,
+  "total_dividas_2024": 0.0,
+  "nota": "Dados completos no baseline_patrimonial-1.5_consolidated.json"
 }
