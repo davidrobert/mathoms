@@ -37,14 +37,22 @@ from pathlib import Path
 from typing import Any
 
 # =============================================================================
-# Paths
+# Paths — re-inicializáveis via _init_config()
 # =============================================================================
-SCRIPTS_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = SCRIPTS_DIR.parent
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
-DATA_DIR = PROJECT_DIR / "data"
-E2_DIR = PROJECT_DIR / "processed" / "E2_extracts"
-INBOX_LOG = PROJECT_DIR / "logs" / "inbox_log.md"
+
+def _init_config(base_dir: Path) -> None:
+    """(Re-)inicializa paths globais a partir de base_dir."""
+    global SCRIPTS_DIR, PROJECT_DIR, DATA_DIR, E2_DIR, INBOX_LOG
+    SCRIPTS_DIR = base_dir / "scripts"
+    PROJECT_DIR = base_dir
+    DATA_DIR = PROJECT_DIR / "data"
+    E2_DIR = PROJECT_DIR / "processed" / "E2_extracts"
+    INBOX_LOG = PROJECT_DIR / "logs" / "inbox_log.md"
+
+
+_init_config(_DEFAULT_BASE_DIR)
 
 # =============================================================================
 # Helpers
@@ -802,7 +810,9 @@ ALL_CHECKS = {
 }
 
 
-def main():
+def main(root_dir: Path = None):
+    if root_dir:
+        _init_config(root_dir)
     parser = argparse.ArgumentParser(
         description="E0-audit — Auditoria de integridade data/ ↔ E2 ↔ E3",
         formatter_class=argparse.RawDescriptionHelpFormatter,

@@ -9,50 +9,63 @@ import json
 import re
 from pathlib import Path
 
-# Configuration — relative path (works from any session)
-SCRIPTS_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = SCRIPTS_DIR.parent
-E5_JSON_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-FAMILY_CONFIG_PATH = PROJECT_DIR / "config" / "family_members.json"
-GOALS_CONFIG_PATH = PROJECT_DIR / "config" / "goals.json"
-TAXAS_CONFIG_PATH = PROJECT_DIR / "config" / "taxas.json"
-CATEGORIZATION_CONFIG_PATH = PROJECT_DIR / "config" / "categorization.json"
-FISCAL_CONFIG_PATH = PROJECT_DIR / "config" / "parametros_fiscais.json"
+# Configuration — paths e config re-inicializáveis via _init_config()
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
-def _load_family():
-    """Load family members config."""
-    if FAMILY_CONFIG_PATH.exists():
-        with open(FAMILY_CONFIG_PATH, "r", encoding="utf-8") as f:
+
+def _load_json_safe(path: Path) -> dict:
+    if path.exists():
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
 
-def _load_categorization():
-    """Load categorization config for CLT source mappings."""
-    if CATEGORIZATION_CONFIG_PATH.exists():
-        with open(CATEGORIZATION_CONFIG_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
 
-FAMILY = _load_family()
-_CATEGORIZATION = _load_categorization()
+def _init_config(base_dir: Path) -> None:
+    """(Re-)inicializa paths e config globals a partir de base_dir."""
+    global SCRIPTS_DIR, PROJECT_DIR
+    global E5_JSON_PATH, FAMILY_CONFIG_PATH, GOALS_CONFIG_PATH
+    global TAXAS_CONFIG_PATH, CATEGORIZATION_CONFIG_PATH, FISCAL_CONFIG_PATH
+    global FAMILY, _CATEGORIZATION
+    global _TITULAR_KEY, _MEMBROS, _CONJUGE_KEY, _TITULAR_NOME, _CONJUGE_NOME
+    global _KEY_INV_TITULAR, _KEY_INV_CONJUGE, _KEY_CENARIOS_CONJUGE
+    global _KEY_IDADE_TITULAR_IF, _KEY_SAL_CONJUGE
+    global _KEY_INST_TITULAR, _KEY_INST_CONJUGE
+    global _KEY_F1F2_TITULAR, _KEY_F1F2_CONJUGE
+    global _KEY_RENDA_CONJUGE_EUA_PROJ, _KEY_CENARIOS_SECTION
 
-_TITULAR_KEY = FAMILY.get("titular", "")
-_MEMBROS = FAMILY.get("membros", {})
-_CONJUGE_KEY = next((k for k, v in _MEMBROS.items() if isinstance(v, dict) and v.get("papel") == "conjuge"), "")
-_TITULAR_NOME = _MEMBROS.get(_TITULAR_KEY, {}).get("nome_curto", _TITULAR_KEY.title())
-_CONJUGE_NOME = _MEMBROS.get(_CONJUGE_KEY, {}).get("nome_curto", _CONJUGE_KEY.title())
+    SCRIPTS_DIR = base_dir / "scripts"
+    PROJECT_DIR = base_dir
+    E5_JSON_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+    FAMILY_CONFIG_PATH = PROJECT_DIR / "config" / "family_members.json"
+    GOALS_CONFIG_PATH = PROJECT_DIR / "config" / "goals.json"
+    TAXAS_CONFIG_PATH = PROJECT_DIR / "config" / "taxas.json"
+    CATEGORIZATION_CONFIG_PATH = PROJECT_DIR / "config" / "categorization.json"
+    FISCAL_CONFIG_PATH = PROJECT_DIR / "config" / "parametros_fiscais.json"
 
-_KEY_INV_TITULAR = f"investimentos_{_TITULAR_KEY}"
-_KEY_INV_CONJUGE = f"investimentos_{_CONJUGE_KEY}"
-_KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}"
-_KEY_IDADE_TITULAR_IF = f"idade_{_TITULAR_KEY}_if"
-_KEY_SAL_CONJUGE = f"salario_{_CONJUGE_KEY}"
-_KEY_INST_TITULAR = f"{_TITULAR_KEY}_instituicoes"
-_KEY_INST_CONJUGE = f"{_CONJUGE_KEY}_instituicoes"
-_KEY_F1F2_TITULAR = f"f1f2_estrategia_{_TITULAR_KEY}"
-_KEY_F1F2_CONJUGE = f"f1f2_estrategia_{_CONJUGE_KEY}"
-_KEY_RENDA_CONJUGE_EUA_PROJ = f"renda_{_CONJUGE_KEY}_eua_projetada"
-_KEY_CENARIOS_SECTION = f"{_CONJUGE_KEY}_cenarios"
+    FAMILY = _load_json_safe(FAMILY_CONFIG_PATH)
+    _CATEGORIZATION = _load_json_safe(CATEGORIZATION_CONFIG_PATH)
+
+    _TITULAR_KEY = FAMILY.get("titular", "")
+    _MEMBROS = FAMILY.get("membros", {})
+    _CONJUGE_KEY = next((k for k, v in _MEMBROS.items() if isinstance(v, dict) and v.get("papel") == "conjuge"), "")
+    _TITULAR_NOME = _MEMBROS.get(_TITULAR_KEY, {}).get("nome_curto", _TITULAR_KEY.title())
+    _CONJUGE_NOME = _MEMBROS.get(_CONJUGE_KEY, {}).get("nome_curto", _CONJUGE_KEY.title())
+
+    _KEY_INV_TITULAR = f"investimentos_{_TITULAR_KEY}"
+    _KEY_INV_CONJUGE = f"investimentos_{_CONJUGE_KEY}"
+    _KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}"
+    _KEY_IDADE_TITULAR_IF = f"idade_{_TITULAR_KEY}_if"
+    _KEY_SAL_CONJUGE = f"salario_{_CONJUGE_KEY}"
+    _KEY_INST_TITULAR = f"{_TITULAR_KEY}_instituicoes"
+    _KEY_INST_CONJUGE = f"{_CONJUGE_KEY}_instituicoes"
+    _KEY_F1F2_TITULAR = f"f1f2_estrategia_{_TITULAR_KEY}"
+    _KEY_F1F2_CONJUGE = f"f1f2_estrategia_{_CONJUGE_KEY}"
+    _KEY_RENDA_CONJUGE_EUA_PROJ = f"renda_{_CONJUGE_KEY}_eua_projetada"
+    _KEY_CENARIOS_SECTION = f"{_CONJUGE_KEY}_cenarios"
+
+
+_init_config(_DEFAULT_BASE_DIR)
+
 
 def _load_fiscal():
     """Load fiscal parameters config (parametros_fiscais.json)."""
@@ -1107,8 +1120,10 @@ def build_narrativas():
     return narrativas
 
 
-def main():
+def main(root_dir: Path = None):
     """Main execution function."""
+    if root_dir:
+        _init_config(root_dir)
 
     print("=" * 80)
     print("E5.N NARRATIVAS GENERATOR")

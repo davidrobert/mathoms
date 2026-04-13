@@ -17,92 +17,9 @@ from typing import Dict, Any, List, Tuple
 import re
 
 # ============================================================================
-# PATHS
+# PATHS & CONFIG — inicializados por _init_config(), re-invocável via root_dir
 # ============================================================================
-SCRIPTS_DIR = Path(__file__).parent
-PROJECT_DIR = SCRIPTS_DIR.parent
-
-PROCESSED_DIR = PROJECT_DIR / "processed"
-E4_UNIFIED_DIR = PROCESSED_DIR / "E4_unified"
-E2_EXTRACTS_DIR = PROCESSED_DIR / "E2_extracts"
-E3_RECONCILED_DIR = PROCESSED_DIR / "E3_reconciled"
-E5_ANALYSIS_DIR = PROCESSED_DIR / "E5_analysis"
-
-LIFE_PLAN_GOALS = PROJECT_DIR / "life_plan" / "life_plan_goals.md"
-CONFIG_DEFINITIONS = PROJECT_DIR / "config" / "definitions.md"
-CONFIG_TAREFAS = PROJECT_DIR / "config" / "tarefas.md"
-CONFIG_GOALS = PROJECT_DIR / "config" / "goals.json"
-CONFIG_SCORING = PROJECT_DIR / "config" / "scoring.json"
-CONFIG_FISCAL = PROJECT_DIR / "config" / "parametros_fiscais.json"
-CONFIG_FAMILY = PROJECT_DIR / "config" / "family_members.json"
-CONFIG_TAXAS = PROJECT_DIR / "config" / "taxas.json"
-CONFIG_MILHAS = PROJECT_DIR / "config" / "milhas.md"
-
-# Input files
-FILE_RECEITAS = E4_UNIFIED_DIR / "receitas-4_unified.json"
-FILE_DESPESAS = E4_UNIFIED_DIR / "despesas-4_unified.json"
-FILE_PATRIMONIO = E4_UNIFIED_DIR / "patrimonio-4_unified.json"
-FILE_INVESTIMENTOS = E4_UNIFIED_DIR / "investimentos-4_unified.json"
-FILE_FLUXO_MENSAL = E4_UNIFIED_DIR / "fluxo_mensal_detalhado-4_unified.json"
-FILE_BASELINE = E2_EXTRACTS_DIR / "baseline_patrimonial-1.5_consolidated.json"
-
-# Output file
-FILE_OUTPUT = E5_ANALYSIS_DIR / "analise_financeira-5_analysis.json"
-
-# ============================================================================
-# CONSTANTS (loaded from config/family_members.json when available)
-# ============================================================================
-def _load_titular_dob() -> date:
-    """Load titular date of birth from family config."""
-    fm_path = PROJECT_DIR / "config" / "family_members.json"
-    if fm_path.exists():
-        with open(fm_path, "r", encoding="utf-8") as f:
-            fm = json.load(f)
-        titular_key = fm.get("titular", "david")
-        dob_str = fm.get("membros", {}).get(titular_key, {}).get("data_nascimento", "")
-        if dob_str:
-            parts = dob_str.split("-")
-            return date(int(parts[0]), int(parts[1]), int(parts[2]))
-    print("  ⚠️  data_nascimento do titular não encontrada em family_members.json — usando 01/01 do ano atual como placeholder")
-    return date(date.today().year - 40, 1, 1)
-
-_TITULAR_DOB = _load_titular_dob()
-
-def _load_conjuge_dob() -> date:
-    """Load conjuge date of birth from family config."""
-    fm_path = PROJECT_DIR / "config" / "family_members.json"
-    if fm_path.exists():
-        with open(fm_path, "r", encoding="utf-8") as f:
-            fm = json.load(f)
-        conjuge_key = next((k for k, v in fm.get("membros", {}).items() if v.get("papel") == "conjuge"), "")
-        if conjuge_key:
-            dob_str = fm["membros"][conjuge_key].get("data_nascimento", "")
-            if dob_str:
-                parts = dob_str.split("-")
-                return date(int(parts[0]), int(parts[1]), int(parts[2]))
-    return None
-
-_CONJUGE_DOB = _load_conjuge_dob()
-TODAY = date.today()
-
-# One-time income keywords and categories (not counted in recorrente)
-# v5.3.1: load from categorization.json if available, with hardcoded fallback
-def _load_one_time_config():
-    cat_path = PROJECT_DIR / "config" / "categorization.json"
-    if cat_path.exists():
-        with open(cat_path, "r", encoding="utf-8") as f:
-            cat = json.load(f)
-        keywords = cat.get("one_time_income_keywords", None)
-        categories = cat.get("one_time_income_categories", None)
-        if keywords is not None and categories is not None:
-            return keywords, set(categories)
-    # Fallback if config key not yet added
-    return (
-        ["fgts", "restituicao", "bolsa", "bonus", "venda"],
-        {"receita_venda_ativo", "receita_resgate", "receita_fgts", "receita_restituicao"}
-    )
-
-ONE_TIME_INCOME_KEYWORDS, ONE_TIME_INCOME_CATEGORIES = _load_one_time_config()
+_DEFAULT_BASE_DIR = Path(__file__).parent.parent
 
 
 def _load_json_config(path: Path) -> Dict[str, Any]:
@@ -116,41 +33,99 @@ def _load_json_config(path: Path) -> Dict[str, Any]:
     return {}
 
 
-def _load_goals_config() -> Dict[str, Any]:
-    """Load goals.json — strategic parameters (aportes, IF, thresholds)."""
-    return _load_json_config(CONFIG_GOALS)
+def _load_dob(fm: dict, member_key: str) -> date:
+    """Parse data_nascimento de um membro, retorna date ou None."""
+    dob_str = fm.get("membros", {}).get(member_key, {}).get("data_nascimento", "")
+    if dob_str:
+        parts = dob_str.split("-")
+        return date(int(parts[0]), int(parts[1]), int(parts[2]))
+    return None
 
 
-def _load_scoring_config() -> Dict[str, Any]:
-    """Load scoring.json — score ranges, weights, classifications."""
-    return _load_json_config(CONFIG_SCORING)
+def _init_config(base_dir: Path) -> None:
+    """(Re-)inicializa todos os globals de path e config a partir de base_dir."""
+    global SCRIPTS_DIR, PROJECT_DIR
+    global PROCESSED_DIR, E4_UNIFIED_DIR, E2_EXTRACTS_DIR, E3_RECONCILED_DIR, E5_ANALYSIS_DIR
+    global LIFE_PLAN_GOALS, CONFIG_DEFINITIONS, CONFIG_TAREFAS
+    global CONFIG_GOALS, CONFIG_SCORING, CONFIG_FISCAL, CONFIG_FAMILY, CONFIG_TAXAS, CONFIG_MILHAS
+    global FILE_RECEITAS, FILE_DESPESAS, FILE_PATRIMONIO, FILE_INVESTIMENTOS
+    global FILE_FLUXO_MENSAL, FILE_BASELINE, FILE_OUTPUT
+    global _TITULAR_DOB, _CONJUGE_DOB, TODAY
+    global ONE_TIME_INCOME_KEYWORDS, ONE_TIME_INCOME_CATEGORIES
+    global GOALS_CONFIG, SCORING_CONFIG, FISCAL_CONFIG, FAMILY_CONFIG
+    global _TITULAR_KEY, _MEMBROS, _CONJUGE_KEY
+    global _TITULAR_NOME, _CONJUGE_NOME
+    global _KEY_INV_TITULAR, _KEY_INV_CONJUGE, _KEY_CENARIOS_CONJUGE
+
+    SCRIPTS_DIR = base_dir / "scripts"
+    PROJECT_DIR = base_dir
+
+    PROCESSED_DIR = PROJECT_DIR / "processed"
+    E4_UNIFIED_DIR = PROCESSED_DIR / "E4_unified"
+    E2_EXTRACTS_DIR = PROCESSED_DIR / "E2_extracts"
+    E3_RECONCILED_DIR = PROCESSED_DIR / "E3_reconciled"
+    E5_ANALYSIS_DIR = PROCESSED_DIR / "E5_analysis"
+
+    LIFE_PLAN_GOALS = PROJECT_DIR / "life_plan" / "life_plan_goals.md"
+    CONFIG_DEFINITIONS = PROJECT_DIR / "config" / "definitions.md"
+    CONFIG_TAREFAS = PROJECT_DIR / "config" / "tarefas.md"
+    CONFIG_GOALS = PROJECT_DIR / "config" / "goals.json"
+    CONFIG_SCORING = PROJECT_DIR / "config" / "scoring.json"
+    CONFIG_FISCAL = PROJECT_DIR / "config" / "parametros_fiscais.json"
+    CONFIG_FAMILY = PROJECT_DIR / "config" / "family_members.json"
+    CONFIG_TAXAS = PROJECT_DIR / "config" / "taxas.json"
+    CONFIG_MILHAS = PROJECT_DIR / "config" / "milhas.md"
+
+    FILE_RECEITAS = E4_UNIFIED_DIR / "receitas-4_unified.json"
+    FILE_DESPESAS = E4_UNIFIED_DIR / "despesas-4_unified.json"
+    FILE_PATRIMONIO = E4_UNIFIED_DIR / "patrimonio-4_unified.json"
+    FILE_INVESTIMENTOS = E4_UNIFIED_DIR / "investimentos-4_unified.json"
+    FILE_FLUXO_MENSAL = E4_UNIFIED_DIR / "fluxo_mensal_detalhado-4_unified.json"
+    FILE_BASELINE = E2_EXTRACTS_DIR / "baseline_patrimonial-1.5_consolidated.json"
+
+    FILE_OUTPUT = E5_ANALYSIS_DIR / "analise_financeira-5_analysis.json"
+
+    # Family config + DOBs
+    fm = _load_json_config(CONFIG_FAMILY)
+    titular_key = fm.get("titular", "david")
+    _TITULAR_DOB = _load_dob(fm, titular_key)
+    if not _TITULAR_DOB:
+        print("  ⚠️  data_nascimento do titular não encontrada — usando placeholder")
+        _TITULAR_DOB = date(date.today().year - 40, 1, 1)
+
+    conjuge_key = next((k for k, v in fm.get("membros", {}).items() if v.get("papel") == "conjuge"), "")
+    _CONJUGE_DOB = _load_dob(fm, conjuge_key) if conjuge_key else None
+
+    TODAY = date.today()
+
+    # One-time income config
+    cat_path = PROJECT_DIR / "config" / "categorization.json"
+    cat = _load_json_config(cat_path)
+    kw = cat.get("one_time_income_keywords", None)
+    cats = cat.get("one_time_income_categories", None)
+    if kw is not None and cats is not None:
+        ONE_TIME_INCOME_KEYWORDS, ONE_TIME_INCOME_CATEGORIES = kw, set(cats)
+    else:
+        ONE_TIME_INCOME_KEYWORDS = ["fgts", "restituicao", "bolsa", "bonus", "venda"]
+        ONE_TIME_INCOME_CATEGORIES = {"receita_venda_ativo", "receita_resgate", "receita_fgts", "receita_restituicao"}
+
+    GOALS_CONFIG = _load_json_config(CONFIG_GOALS)
+    SCORING_CONFIG = _load_json_config(CONFIG_SCORING)
+    FISCAL_CONFIG = _load_json_config(CONFIG_FISCAL)
+    FAMILY_CONFIG = fm
+
+    _TITULAR_KEY = FAMILY_CONFIG.get("titular", "")
+    _MEMBROS = FAMILY_CONFIG.get("membros", {})
+    _CONJUGE_KEY = next((k for k, v in _MEMBROS.items() if v.get("papel") == "conjuge"), "")
+    _TITULAR_NOME = _MEMBROS.get(_TITULAR_KEY, {}).get("nome_curto", _TITULAR_KEY.title())
+    _CONJUGE_NOME = _MEMBROS.get(_CONJUGE_KEY, {}).get("nome_curto", _CONJUGE_KEY.title())
+
+    _KEY_INV_TITULAR = f"investimentos_{_TITULAR_KEY}"
+    _KEY_INV_CONJUGE = f"investimentos_{_CONJUGE_KEY}"
+    _KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}"
 
 
-def _load_fiscal_config() -> Dict[str, Any]:
-    """Load parametros_fiscais.json — IRPF table, lucro presumido, PGBL."""
-    return _load_json_config(CONFIG_FISCAL)
-
-
-def _load_family_config() -> Dict[str, Any]:
-    """Load family_members.json — family data, residência keyword."""
-    return _load_json_config(CONFIG_FAMILY)
-
-
-# Preload configs at module level for use by all functions
-GOALS_CONFIG = _load_goals_config()
-SCORING_CONFIG = _load_scoring_config()
-FISCAL_CONFIG = _load_fiscal_config()
-FAMILY_CONFIG = _load_family_config()
-
-_TITULAR_KEY = FAMILY_CONFIG.get("titular", "")
-_MEMBROS = FAMILY_CONFIG.get("membros", {})
-_CONJUGE_KEY = next((k for k, v in _MEMBROS.items() if v.get("papel") == "conjuge"), "")
-_TITULAR_NOME = _MEMBROS.get(_TITULAR_KEY, {}).get("nome_curto", _TITULAR_KEY.title())
-_CONJUGE_NOME = _MEMBROS.get(_CONJUGE_KEY, {}).get("nome_curto", _CONJUGE_KEY.title())
-
-_KEY_INV_TITULAR = f"investimentos_{_TITULAR_KEY}"
-_KEY_INV_CONJUGE = f"investimentos_{_CONJUGE_KEY}"
-_KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}"
+_init_config(_DEFAULT_BASE_DIR)
 
 
 # ============================================================================
@@ -2425,8 +2400,10 @@ def analyze_equilibrio_cerbasi(fluxo: Dict[str, Any]) -> Dict[str, Any]:
 # MAIN ANALYSIS ORCHESTRATION
 # ============================================================================
 
-def main():
+def main(root_dir: Path = None):
     """Main orchestration."""
+    if root_dir:
+        _init_config(root_dir)
     print("\n" + "="*70)
     print("E5 ANALYSIS — NUMERIC PORTIONS")
     print("="*70)

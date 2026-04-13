@@ -29,10 +29,10 @@ from datetime import date
 from typing import Any, Dict, List, Optional, Tuple
 
 # ============================================================================
-# Constants
+# Constants — re-inicializáveis via _init_config()
 # ============================================================================
-PROJECT_DIR = Path(__file__).resolve().parent.parent
-E2_DIR = PROJECT_DIR / "processed" / "E2_extracts"
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 def _load_json_config(path: Path) -> dict:
     if path.exists():
@@ -40,18 +40,25 @@ def _load_json_config(path: Path) -> dict:
             return json.load(f)
     return {}
 
-def _load_family_config() -> dict:
-    return _load_json_config(PROJECT_DIR / "config" / "family_members.json")
 
-_PIPELINE_CONFIG = _load_json_config(PROJECT_DIR / "config" / "pipeline.json")
-_ARTIFACT_NAMES = _PIPELINE_CONFIG.get("artifact_names", {})
-BASELINE_FILE = E2_DIR / _ARTIFACT_NAMES.get("baseline_patrimonial", "baseline_patrimonial-1.5_consolidated.json")
+def _init_config(base_dir: Path) -> None:
+    """(Re-)inicializa paths e config globais a partir de base_dir."""
+    global PROJECT_DIR, E2_DIR, BASELINE_FILE
+    global _PIPELINE_CONFIG, _ARTIFACT_NAMES
+    global _FAMILY, _TITULAR, _MEMBROS, _MEMBER_KEYS, _IMOVEL_MATCH_KEYWORDS
+    PROJECT_DIR = base_dir
+    E2_DIR = PROJECT_DIR / "processed" / "E2_extracts"
+    _PIPELINE_CONFIG = _load_json_config(PROJECT_DIR / "config" / "pipeline.json")
+    _ARTIFACT_NAMES = _PIPELINE_CONFIG.get("artifact_names", {})
+    BASELINE_FILE = E2_DIR / _ARTIFACT_NAMES.get("baseline_patrimonial", "baseline_patrimonial-1.5_consolidated.json")
+    _FAMILY = _load_json_config(PROJECT_DIR / "config" / "family_members.json")
+    _TITULAR = _FAMILY.get("titular", "")
+    _MEMBROS = _FAMILY.get("membros", {})
+    _MEMBER_KEYS = [k for k in _MEMBROS if not k.startswith("_")]
+    _IMOVEL_MATCH_KEYWORDS = _FAMILY.get("imovel_match_keywords", [])
 
-_FAMILY = _load_family_config()
-_TITULAR = _FAMILY.get("titular", "")
-_MEMBROS = _FAMILY.get("membros", {})
-_MEMBER_KEYS = [k for k in _MEMBROS if not k.startswith("_")]
-_IMOVEL_MATCH_KEYWORDS = _FAMILY.get("imovel_match_keywords", [])
+
+_init_config(_DEFAULT_BASE_DIR)
 
 # IRPF grupo → categoria
 GRUPO_MAP = {
@@ -356,7 +363,9 @@ def _classify_investimento(grupo: str, descricao: str) -> str:
     return "investimento"
 
 
-def main():
+def main(root_dir: Path = None):
+    if root_dir:
+        _init_config(root_dir)
     parser = argparse.ArgumentParser(
         description="E1.5 Consolidate — Enriquece baseline com chaves consolidadas",
     )

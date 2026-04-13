@@ -21,27 +21,35 @@ from typing import Any, Dict, Optional
 
 
 # =============================================================================
-# Paths (single source of truth for the entire pipeline)
+# Paths — re-inicializáveis via _init_config()
 # =============================================================================
-
-PROJECT_DIR = Path(__file__).resolve().parent.parent
-CONFIG_DIR = PROJECT_DIR / "config"
-DATA_DIR = PROJECT_DIR / "data"
-PROCESSED_DIR = PROJECT_DIR / "processed"
-LOGS_DIR = PROJECT_DIR / "logs"
-
-E2_DIR = PROCESSED_DIR / "E2_extracts"
-E3_DIR = PROCESSED_DIR / "E3_reconciled"
-E4_DIR = PROCESSED_DIR / "E4_unified"
-E5_DIR = PROCESSED_DIR / "E5_analysis"
-E7_DIR = PROCESSED_DIR / "E7_review"
-
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
 # =============================================================================
 # Config loading
 # =============================================================================
 
 _config_cache: Dict[str, dict] = {}
+
+
+def _init_config(base_dir: Path) -> None:
+    """(Re-)inicializa paths globais e limpa cache de config."""
+    global PROJECT_DIR, CONFIG_DIR, DATA_DIR, PROCESSED_DIR, LOGS_DIR
+    global E2_DIR, E3_DIR, E4_DIR, E5_DIR, E7_DIR
+    PROJECT_DIR = base_dir
+    CONFIG_DIR = PROJECT_DIR / "config"
+    DATA_DIR = PROJECT_DIR / "data"
+    PROCESSED_DIR = PROJECT_DIR / "processed"
+    LOGS_DIR = PROJECT_DIR / "logs"
+    E2_DIR = PROCESSED_DIR / "E2_extracts"
+    E3_DIR = PROCESSED_DIR / "E3_reconciled"
+    E4_DIR = PROCESSED_DIR / "E4_unified"
+    E5_DIR = PROCESSED_DIR / "E5_analysis"
+    E7_DIR = PROCESSED_DIR / "E7_review"
+    _config_cache.clear()
+
+
+_init_config(_DEFAULT_BASE_DIR)
 
 
 def load_json_config(name: str, *, required: bool = False) -> dict:

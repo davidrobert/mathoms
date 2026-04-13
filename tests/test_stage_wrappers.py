@@ -25,6 +25,34 @@ class TestStageImports:
         from pipeline.stages import e4
         assert callable(e4.run)
 
+    def test_import_e5(self):
+        from pipeline.stages import e5
+        assert callable(e5.run)
+
+    def test_import_e5n(self):
+        from pipeline.stages import e5n
+        assert callable(e5n.run)
+
+    def test_import_e6(self):
+        from pipeline.stages import e6
+        assert callable(e6.run)
+
+    def test_import_e0_unlock(self):
+        from pipeline.stages import e0_unlock
+        assert callable(e0_unlock.run)
+
+    def test_import_e0_route(self):
+        from pipeline.stages import e0_route
+        assert callable(e0_route.run)
+
+    def test_import_e0_audit(self):
+        from pipeline.stages import e0_audit
+        assert callable(e0_audit.run)
+
+    def test_import_e15c(self):
+        from pipeline.stages import e15c
+        assert callable(e15c.run)
+
     def test_import_e7(self):
         from pipeline.stages import e7
         assert callable(e7.run_crossval)
@@ -93,6 +121,114 @@ class TestInitConfig:
         _init_config(tmp_path)
         from scripts import e7_review
         assert e7_review.PROJECT_DIR == tmp_path
+
+        _init_config(_DEFAULT_BASE_DIR)
+
+    def test_e5_init_config_custom_root(self, tmp_path):
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        (config_dir / "family_members.json").write_text('{"titular":"test","membros":{}}')
+        (config_dir / "goals.json").write_text('{}')
+        (config_dir / "scoring.json").write_text('{}')
+        (config_dir / "parametros_fiscais.json").write_text('{}')
+        (config_dir / "categorization.json").write_text('{}')
+
+        from scripts.e5_analyze import _init_config, _DEFAULT_BASE_DIR
+        _init_config(tmp_path)
+        from scripts import e5_analyze
+        assert e5_analyze.PROJECT_DIR == tmp_path
+        assert e5_analyze.E5_ANALYSIS_DIR == tmp_path / "processed" / "E5_analysis"
+
+        _init_config(_DEFAULT_BASE_DIR)
+
+    def test_e5n_init_config_custom_root(self, tmp_path):
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        (config_dir / "family_members.json").write_text('{"titular":"test","membros":{}}')
+        (config_dir / "categorization.json").write_text('{}')
+
+        from scripts.e5n_narrativas import _init_config, _DEFAULT_BASE_DIR
+        _init_config(tmp_path)
+        from scripts import e5n_narrativas
+        assert e5n_narrativas.PROJECT_DIR == tmp_path
+        assert e5n_narrativas.E5_JSON_PATH == tmp_path / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+
+        _init_config(_DEFAULT_BASE_DIR)
+
+    def test_e6_init_config_custom_root(self, tmp_path):
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        (config_dir / "family_members.json").write_text('{"titular":"test","membros":{}}')
+        (config_dir / "goals.json").write_text('{}')
+        (config_dir / "scoring.json").write_text('{}')
+        (config_dir / "parametros_fiscais.json").write_text('{}')
+        (config_dir / "taxas.json").write_text('{}')
+        (config_dir / "cenarios.json").write_text('{}')
+        (config_dir / "institutions.json").write_text('{}')
+        (config_dir / "pipeline.json").write_text('{}')
+
+        from scripts.e6_render import _init_config, _DEFAULT_BASE_DIR
+        _init_config(tmp_path)
+        from scripts import e6_render
+        assert e6_render.BASE_DIR == tmp_path
+        assert e6_render.OUTPUT_DIR == tmp_path / "output"
+
+        _init_config(_DEFAULT_BASE_DIR)
+
+    def test_e0_audit_init_config_custom_root(self, tmp_path):
+        from scripts.e0_audit import _init_config, _DEFAULT_BASE_DIR
+        _init_config(tmp_path)
+        from scripts import e0_audit
+        assert e0_audit.PROJECT_DIR == tmp_path
+        assert e0_audit.DATA_DIR == tmp_path / "data"
+
+        _init_config(_DEFAULT_BASE_DIR)
+
+    def test_e0_route_init_config_custom_root(self, tmp_path):
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        (config_dir / "institutions.json").write_text('{}')
+        (config_dir / "pipeline.json").write_text('{}')
+        (config_dir / "family_members.json").write_text('{}')
+
+        from scripts.e0_route import _init_config, _DEFAULT_BASE_DIR
+        _init_config(tmp_path)
+        from scripts import e0_route
+        assert e0_route.BASE == tmp_path
+        assert e0_route.INBOX == tmp_path / "inbox"
+
+        _init_config(_DEFAULT_BASE_DIR)
+
+    def test_e0_unlock_init_config_custom_root(self, tmp_path):
+        from scripts.e0_unlock import _init_config, _DEFAULT_BASE_DIR
+        _init_config(tmp_path)
+        from scripts import e0_unlock
+        assert e0_unlock.BASE == tmp_path
+        assert e0_unlock.INBOX == tmp_path / "inbox"
+
+        _init_config(_DEFAULT_BASE_DIR)
+
+    def test_e15c_init_config_custom_root(self, tmp_path):
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        (config_dir / "pipeline.json").write_text('{}')
+        (config_dir / "family_members.json").write_text('{}')
+
+        from scripts.e15_consolidate import _init_config, _DEFAULT_BASE_DIR
+        _init_config(tmp_path)
+        from scripts import e15_consolidate
+        assert e15_consolidate.PROJECT_DIR == tmp_path
+        assert e15_consolidate.E2_DIR == tmp_path / "processed" / "E2_extracts"
+
+        _init_config(_DEFAULT_BASE_DIR)
+
+    def test_pipeline_common_init_config_custom_root(self, tmp_path):
+        from scripts.pipeline_common import _init_config, _DEFAULT_BASE_DIR
+        _init_config(tmp_path)
+        from scripts import pipeline_common as pc
+        assert pc.PROJECT_DIR == tmp_path
+        assert pc.CONFIG_DIR == tmp_path / "config"
+        assert pc.E5_DIR == tmp_path / "processed" / "E5_analysis"
 
         _init_config(_DEFAULT_BASE_DIR)
 

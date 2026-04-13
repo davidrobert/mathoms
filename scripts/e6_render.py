@@ -86,31 +86,8 @@ def sanitize_narrativas(narrativas: dict) -> dict:
 # CONFIGURATION
 # ============================================================================
 
-BASE_DIR = Path(__file__).resolve().parent.parent  # financas-familia/
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load family config for cover page
-def _load_family_config():
-    fm_path = BASE_DIR / "config" / "family_members.json"
-    if fm_path.exists():
-        with open(fm_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-# Load financial rates from config or use defaults with warning
-def _load_config_rates():
-    """Carrega taxas financeiras de config ou usa defaults com warning."""
-    config_path = BASE_DIR / "config" / "taxas.json"
-    defaults = {"cambio_usd_brl": 5.0, "cdi_anual": 11.5, "selic_atual": 11.5}
-    if config_path.exists():
-        try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                loaded = json.load(f)
-            defaults.update(loaded)
-        except Exception as e:
-            print(f"  [WARN] Erro ao carregar config/taxas.json: {e}")
-    else:
-        print(f"  [WARN] config/taxas.json não encontrado — usando defaults: câmbio={defaults['cambio_usd_brl']}, CDI={defaults['cdi_anual']}%, Selic={defaults['selic_atual']}%")
-    return defaults
 
 def _load_json_config(path: Path, label: str = "") -> dict:
     """Generic JSON config loader with warning on missing/error."""
@@ -124,14 +101,98 @@ def _load_json_config(path: Path, label: str = "") -> dict:
         print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
     return {}
 
-_FAMILY = _load_family_config()
-CONFIG_RATES = _load_config_rates()
-GOALS_CONFIG = _load_json_config(BASE_DIR / "config" / "goals.json", "goals.json")
-SCORING_CONFIG = _load_json_config(BASE_DIR / "config" / "scoring.json", "scoring.json")
-FISCAL_CONFIG = _load_json_config(BASE_DIR / "config" / "parametros_fiscais.json", "parametros_fiscais.json")
-CENARIOS_CONFIG = _load_json_config(BASE_DIR / "config" / "cenarios.json", "cenarios.json")
-INSTITUTIONS_CONFIG = _load_json_config(BASE_DIR / "config" / "institutions.json", "institutions.json")
-PIPELINE_CONFIG = _load_json_config(BASE_DIR / "config" / "pipeline.json", "pipeline.json")
+
+def _load_config_rates(base: Path) -> dict:
+    """Carrega taxas financeiras de config ou usa defaults com warning."""
+    config_path = base / "config" / "taxas.json"
+    defaults = {"cambio_usd_brl": 5.0, "cdi_anual": 11.5, "selic_atual": 11.5}
+    if config_path.exists():
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                loaded = json.load(f)
+            defaults.update(loaded)
+        except Exception as e:
+            print(f"  [WARN] Erro ao carregar config/taxas.json: {e}")
+    else:
+        print(f"  [WARN] config/taxas.json não encontrado — usando defaults")
+    return defaults
+
+
+def _load_report_layout(base: Path) -> dict:
+    """Load report_layout.yaml for section/card/chart ordering and visibility."""
+    layout_path = base / "config" / "report_layout.yaml"
+    if layout_path.exists():
+        try:
+            with open(layout_path, "r", encoding="utf-8") as f:
+                layout = yaml.safe_load(f)
+            print(f"  [OK] report_layout.yaml v{layout.get('version', '?')} loaded")
+            return layout
+        except Exception as e:
+            print(f"  ⚠️  Error loading report_layout.yaml: {e} — using hardcoded fallback")
+    else:
+        print("  [WARN] report_layout.yaml não encontrado — usando layout hardcoded")
+    return {}
+
+
+def _init_config(base_dir: Path) -> None:
+    """(Re-)inicializa todos os globals de path e config a partir de base_dir."""
+    global BASE_DIR
+    global _FAMILY, CONFIG_RATES, GOALS_CONFIG, SCORING_CONFIG, FISCAL_CONFIG
+    global CENARIOS_CONFIG, INSTITUTIONS_CONFIG, PIPELINE_CONFIG
+    global REPORT_LAYOUT
+    global FAMILY_SOBRENOME, _TITULAR_KEY, _MEMBROS_DATA
+    global TITULAR_NOME, _CONJUGE_KEY, CONJUGE_NOME, _CONJUGE_DATA
+    global PAI_TITULAR, _OUTPUT_PATTERN
+    global _KEY_INV_TITULAR, _KEY_INV_CONJUGE, _KEY_CENARIOS_CONJUGE
+    global _DASH_CFG, _INV_BLOCOS
+    global TEMPLATE_PATH, E5_JSON_PATH, E4_INVEST_PATH, E4_DESPESAS_PATH
+    global E4_RECEITAS_PATH, E4_FLUXO_PATH, MANUAL_PATH, DEFINITIONS_PATH
+    global OUTPUT_DIR, SNAPSHOT_PATH
+
+    BASE_DIR = base_dir
+
+    fm_path = BASE_DIR / "config" / "family_members.json"
+    _FAMILY = _load_json_config(fm_path, "family_members.json") if fm_path.exists() else {}
+    CONFIG_RATES = _load_config_rates(BASE_DIR)
+    GOALS_CONFIG = _load_json_config(BASE_DIR / "config" / "goals.json", "goals.json")
+    SCORING_CONFIG = _load_json_config(BASE_DIR / "config" / "scoring.json", "scoring.json")
+    FISCAL_CONFIG = _load_json_config(BASE_DIR / "config" / "parametros_fiscais.json", "parametros_fiscais.json")
+    CENARIOS_CONFIG = _load_json_config(BASE_DIR / "config" / "cenarios.json", "cenarios.json")
+    INSTITUTIONS_CONFIG = _load_json_config(BASE_DIR / "config" / "institutions.json", "institutions.json")
+    PIPELINE_CONFIG = _load_json_config(BASE_DIR / "config" / "pipeline.json", "pipeline.json")
+
+    REPORT_LAYOUT = _load_report_layout(BASE_DIR)
+
+    FAMILY_SOBRENOME = _FAMILY.get("familia", {}).get("sobrenome", "")
+    _TITULAR_KEY = _FAMILY.get("titular", "")
+    _MEMBROS_DATA = _FAMILY.get("membros", {})
+    TITULAR_NOME = _MEMBROS_DATA.get(_TITULAR_KEY, {}).get("nome_curto", "Titular")
+    _CONJUGE_KEY = next((k for k, v in _MEMBROS_DATA.items() if isinstance(v, dict) and v.get("papel") == "conjuge"), None)
+    CONJUGE_NOME = _MEMBROS_DATA.get(_CONJUGE_KEY, {}).get("nome_curto", "Cônjuge") if _CONJUGE_KEY else "Cônjuge"
+    _CONJUGE_DATA = _MEMBROS_DATA.get(_CONJUGE_KEY, {}) if _CONJUGE_KEY else {}
+    PAI_TITULAR = _FAMILY.get("pai_titular", "")
+    _OUTPUT_PATTERN = _FAMILY.get("output_filename_pattern", "relatorio_financeiro_{date}.html")
+
+    _KEY_INV_TITULAR = f"investimentos_{_TITULAR_KEY}" if _TITULAR_KEY else "investimentos_titular"
+    _KEY_INV_CONJUGE = f"investimentos_{_CONJUGE_KEY}" if _CONJUGE_KEY else "investimentos_conjuge"
+    _KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}" if _CONJUGE_KEY else "cenarios_conjuge"
+    _DASH_CFG = GOALS_CONFIG.get("dashboard", {})
+    _INV_BLOCOS = GOALS_CONFIG.get("investimentos_blocos", {})
+
+    TEMPLATE_PATH = BASE_DIR / "config" / "templates" / "report_template.html"
+    E5_JSON_PATH = BASE_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+    E4_INVEST_PATH = BASE_DIR / "processed" / "E4_unified" / "investimentos-4_unified.json"
+    E4_DESPESAS_PATH = BASE_DIR / "processed" / "E4_unified" / "despesas-4_unified.json"
+    E4_RECEITAS_PATH = BASE_DIR / "processed" / "E4_unified" / "receitas-4_unified.json"
+    E4_FLUXO_PATH = BASE_DIR / "processed" / "E4_unified" / "fluxo_mensal_detalhado-4_unified.json"
+    MANUAL_PATH = BASE_DIR / "config" / "manual_operacao.md"
+    DEFINITIONS_PATH = BASE_DIR / "config" / "definitions.md"
+    OUTPUT_DIR = BASE_DIR / "output"
+    SNAPSHOT_PATH = OUTPUT_DIR / "snapshot_anterior.json"
+
+
+_init_config(_DEFAULT_BASE_DIR)
+
 
 def _build_broker_list() -> str:
     """Build comma-separated broker display names from banco_membro + banco_canonical."""
@@ -145,51 +206,6 @@ def _build_broker_list() -> str:
         if display not in brokers:
             brokers.append(display)
     return ", ".join(brokers) if brokers else "corretoras configuradas"
-
-# Load report layout configuration (YAML)
-def _load_report_layout() -> dict:
-    """Load report_layout.yaml for section/card/chart ordering and visibility."""
-    layout_path = BASE_DIR / "config" / "report_layout.yaml"
-    if layout_path.exists():
-        try:
-            with open(layout_path, "r", encoding="utf-8") as f:
-                layout = yaml.safe_load(f)
-            print(f"  [OK] report_layout.yaml v{layout.get('version', '?')} loaded")
-            return layout
-        except Exception as e:
-            print(f"  ⚠️  Error loading report_layout.yaml: {e} — using hardcoded fallback")
-    else:
-        print("  [WARN] report_layout.yaml não encontrado — usando layout hardcoded")
-    return {}
-
-REPORT_LAYOUT = _load_report_layout()
-
-FAMILY_SOBRENOME = _FAMILY.get("familia", {}).get("sobrenome", "")
-_TITULAR_KEY = _FAMILY.get("titular", "")
-_MEMBROS_DATA = _FAMILY.get("membros", {})
-TITULAR_NOME = _MEMBROS_DATA.get(_TITULAR_KEY, {}).get("nome_curto", "Titular")
-_CONJUGE_KEY = next((k for k, v in _MEMBROS_DATA.items() if isinstance(v, dict) and v.get("papel") == "conjuge"), None)
-CONJUGE_NOME = _MEMBROS_DATA.get(_CONJUGE_KEY, {}).get("nome_curto", "Cônjuge") if _CONJUGE_KEY else "Cônjuge"
-_CONJUGE_DATA = _MEMBROS_DATA.get(_CONJUGE_KEY, {}) if _CONJUGE_KEY else {}
-PAI_TITULAR = _FAMILY.get("pai_titular", "")
-_OUTPUT_PATTERN = _FAMILY.get("output_filename_pattern", "relatorio_financeiro_{date}.html")
-
-_KEY_INV_TITULAR = f"investimentos_{_TITULAR_KEY}" if _TITULAR_KEY else "investimentos_titular"
-_KEY_INV_CONJUGE = f"investimentos_{_CONJUGE_KEY}" if _CONJUGE_KEY else "investimentos_conjuge"
-_KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}" if _CONJUGE_KEY else "cenarios_conjuge"
-_DASH_CFG = GOALS_CONFIG.get("dashboard", {})
-_INV_BLOCOS = GOALS_CONFIG.get("investimentos_blocos", {})
-
-TEMPLATE_PATH = BASE_DIR / "config" / "templates" / "report_template.html"
-E5_JSON_PATH = BASE_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-E4_INVEST_PATH = BASE_DIR / "processed" / "E4_unified" / "investimentos-4_unified.json"
-E4_DESPESAS_PATH = BASE_DIR / "processed" / "E4_unified" / "despesas-4_unified.json"
-E4_RECEITAS_PATH = BASE_DIR / "processed" / "E4_unified" / "receitas-4_unified.json"
-E4_FLUXO_PATH = BASE_DIR / "processed" / "E4_unified" / "fluxo_mensal_detalhado-4_unified.json"
-MANUAL_PATH = BASE_DIR / "config" / "manual_operacao.md"
-DEFINITIONS_PATH = BASE_DIR / "config" / "definitions.md"
-OUTPUT_DIR = BASE_DIR / "output"
-SNAPSHOT_PATH = OUTPUT_DIR / "snapshot_anterior.json"
 
 
 def _load_previous_snapshot() -> dict:
@@ -3878,8 +3894,10 @@ def validate_report(html: str, report_data_json: str) -> dict:
 # MAIN RENDERER
 # ============================================================================
 
-def render_report():
+def render_report(root_dir: Path = None):
     """Main rendering pipeline"""
+    if root_dir:
+        _init_config(root_dir)
     print("\n" + "="*70)
     print("E6 RENDERER — Deterministic Financial Report Generation")
     print("="*70 + "\n")

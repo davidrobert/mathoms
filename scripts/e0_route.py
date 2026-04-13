@@ -33,18 +33,11 @@ from datetime import date
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Paths
+# Paths — re-inicializáveis via _init_config()
 # ---------------------------------------------------------------------------
-BASE = Path(__file__).resolve().parent.parent
-INBOX = BASE / "inbox"
-INBOX_PROCESSED = BASE / "inbox_processed"
-LOGS = BASE / "logs"
-DATA = BASE / "data"
-MEMBERS = BASE / "members"
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ---------------------------------------------------------------------------
-# Config loader
-# ---------------------------------------------------------------------------
+
 def _load_json_config(path: Path, label: str = "") -> dict:
     if path.exists():
         try:
@@ -56,9 +49,23 @@ def _load_json_config(path: Path, label: str = "") -> dict:
         print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
     return {}
 
-INST_CONFIG = _load_json_config(BASE / "config" / "institutions.json", "institutions.json")
-PIPE_CONFIG = _load_json_config(BASE / "config" / "pipeline.json", "pipeline.json")
-FAMILY_CONFIG = _load_json_config(BASE / "config" / "family_members.json", "family_members.json")
+
+def _init_config(base_dir: Path) -> None:
+    """(Re-)inicializa paths e configs globais a partir de base_dir."""
+    global BASE, INBOX, INBOX_PROCESSED, LOGS, DATA, MEMBERS
+    global INST_CONFIG, PIPE_CONFIG, FAMILY_CONFIG
+    BASE = base_dir
+    INBOX = BASE / "inbox"
+    INBOX_PROCESSED = BASE / "inbox_processed"
+    LOGS = BASE / "logs"
+    DATA = BASE / "data"
+    MEMBERS = BASE / "members"
+    INST_CONFIG = _load_json_config(BASE / "config" / "institutions.json", "institutions.json")
+    PIPE_CONFIG = _load_json_config(BASE / "config" / "pipeline.json", "pipeline.json")
+    FAMILY_CONFIG = _load_json_config(BASE / "config" / "family_members.json", "family_members.json")
+
+
+_init_config(_DEFAULT_BASE_DIR)
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -690,7 +697,9 @@ def _write_inbox_log(base: Path, today: str, stats: dict) -> None:
 # CLI
 # ---------------------------------------------------------------------------
 
-def main():
+def main(root_dir: Path = None):
+    if root_dir:
+        _init_config(root_dir)
     parser = argparse.ArgumentParser(
         description="E0-route — Roteamento automático de arquivos do inbox",
     )

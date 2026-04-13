@@ -44,19 +44,28 @@ except ImportError:
     print("ERRO: pikepdf não instalado. Rode: pip install pikepdf")
     sys.exit(1)
 
-# ---------- paths ----------
-BASE = Path(__file__).resolve().parent.parent
-INBOX = BASE / "inbox"
-INBOX_PROCESSED = BASE / "inbox_processed"
-PASSWORDS_FILE = BASE / "config" / "passwords.txt"
-QA_LOG = BASE / "logs" / "qa_log.md"
-DEST_DIRS = [
-    BASE / "data" / "financial_statements",
-    BASE / "data" / "income_tax_br",
-    BASE / "data" / "real_estate",
-    BASE / "data" / "vehicles",
-    BASE / "members",
-]
+# ---------- paths — re-inicializáveis via _init_config() ----------
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _init_config(base_dir: Path) -> None:
+    """(Re-)inicializa paths globais a partir de base_dir."""
+    global BASE, INBOX, INBOX_PROCESSED, PASSWORDS_FILE, QA_LOG, DEST_DIRS
+    BASE = base_dir
+    INBOX = BASE / "inbox"
+    INBOX_PROCESSED = BASE / "inbox_processed"
+    PASSWORDS_FILE = BASE / "config" / "passwords.txt"
+    QA_LOG = BASE / "logs" / "qa_log.md"
+    DEST_DIRS = [
+        BASE / "data" / "financial_statements",
+        BASE / "data" / "income_tax_br",
+        BASE / "data" / "real_estate",
+        BASE / "data" / "vehicles",
+        BASE / "members",
+    ]
+
+
+_init_config(_DEFAULT_BASE_DIR)
 
 
 def _discover_dest_dirs() -> list:
@@ -332,7 +341,9 @@ def check_destinations(passwords: list[str], dry_run: bool = False) -> int:
     return failed
 
 
-def main():
+def main(root_dir: Path = None):
+    if root_dir:
+        _init_config(root_dir)
     parser = argparse.ArgumentParser(
         description="Desbloqueia PDFs protegidos por senha e descompacta ZIPs com senha no inbox"
     )
