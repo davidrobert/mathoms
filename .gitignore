@@ -16,6 +16,29 @@ inbox_processed/
 # Senhas
 config/passwords.txt
 
+# Scratch — artefatos temporários de pipeline (scripts, relatórios, logs)
+_scratch/
+
+# Python
+__pycache__/
+*.pyc
+
+# Database (dev)
+*.db
+
+# Per-tenant file storage (uploads, processed, reports)
+storage/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+
+# Testing
+.pytest_cache/
+
+# Virtual environment
+.venv/
+
 # Backups legados — substituídos pelo histórico Git
 *.bak
 *_backup.*

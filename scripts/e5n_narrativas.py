@@ -9,32 +9,63 @@ import json
 import re
 from pathlib import Path
 
-# Configuration — relative path (works from any session)
-SCRIPTS_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = SCRIPTS_DIR.parent
-E5_JSON_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-FAMILY_CONFIG_PATH = PROJECT_DIR / "config" / "family_members.json"
-GOALS_CONFIG_PATH = PROJECT_DIR / "config" / "goals.json"
-TAXAS_CONFIG_PATH = PROJECT_DIR / "config" / "taxas.json"
-CATEGORIZATION_CONFIG_PATH = PROJECT_DIR / "config" / "categorization.json"
-FISCAL_CONFIG_PATH = PROJECT_DIR / "config" / "parametros_fiscais.json"
+# Configuration — paths e config re-inicializáveis via _init_config()
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
-def _load_family():
-    """Load family members config."""
-    if FAMILY_CONFIG_PATH.exists():
-        with open(FAMILY_CONFIG_PATH, "r", encoding="utf-8") as f:
+
+def _load_json_safe(path: Path) -> dict:
+    if path.exists():
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
 
-def _load_categorization():
-    """Load categorization config for CLT source mappings."""
-    if CATEGORIZATION_CONFIG_PATH.exists():
-        with open(CATEGORIZATION_CONFIG_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
 
-FAMILY = _load_family()
-_CATEGORIZATION = _load_categorization()
+def _init_config(base_dir: Path) -> None:
+    """(Re-)inicializa paths e config globals a partir de base_dir."""
+    global SCRIPTS_DIR, PROJECT_DIR
+    global E5_JSON_PATH, FAMILY_CONFIG_PATH, GOALS_CONFIG_PATH
+    global TAXAS_CONFIG_PATH, CATEGORIZATION_CONFIG_PATH, FISCAL_CONFIG_PATH
+    global FAMILY, _CATEGORIZATION
+    global _TITULAR_KEY, _MEMBROS, _CONJUGE_KEY, _TITULAR_NOME, _CONJUGE_NOME
+    global _KEY_INV_TITULAR, _KEY_INV_CONJUGE, _KEY_CENARIOS_CONJUGE
+    global _KEY_IDADE_TITULAR_IF, _KEY_SAL_CONJUGE
+    global _KEY_INST_TITULAR, _KEY_INST_CONJUGE
+    global _KEY_F1F2_TITULAR, _KEY_F1F2_CONJUGE
+    global _KEY_RENDA_CONJUGE_EUA_PROJ, _KEY_CENARIOS_SECTION
+
+    SCRIPTS_DIR = base_dir / "scripts"
+    PROJECT_DIR = base_dir
+    E5_JSON_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+    FAMILY_CONFIG_PATH = PROJECT_DIR / "config" / "family_members.json"
+    GOALS_CONFIG_PATH = PROJECT_DIR / "config" / "goals.json"
+    TAXAS_CONFIG_PATH = PROJECT_DIR / "config" / "taxas.json"
+    CATEGORIZATION_CONFIG_PATH = PROJECT_DIR / "config" / "categorization.json"
+    FISCAL_CONFIG_PATH = PROJECT_DIR / "config" / "parametros_fiscais.json"
+
+    FAMILY = _load_json_safe(FAMILY_CONFIG_PATH)
+    _CATEGORIZATION = _load_json_safe(CATEGORIZATION_CONFIG_PATH)
+
+    _TITULAR_KEY = FAMILY.get("titular", "")
+    _MEMBROS = FAMILY.get("membros", {})
+    _CONJUGE_KEY = next((k for k, v in _MEMBROS.items() if isinstance(v, dict) and v.get("papel") == "conjuge"), "")
+    _TITULAR_NOME = _MEMBROS.get(_TITULAR_KEY, {}).get("nome_curto", _TITULAR_KEY.title())
+    _CONJUGE_NOME = _MEMBROS.get(_CONJUGE_KEY, {}).get("nome_curto", _CONJUGE_KEY.title())
+
+    _KEY_INV_TITULAR = f"investimentos_{_TITULAR_KEY}"
+    _KEY_INV_CONJUGE = f"investimentos_{_CONJUGE_KEY}"
+    _KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}"
+    _KEY_IDADE_TITULAR_IF = f"idade_{_TITULAR_KEY}_if"
+    _KEY_SAL_CONJUGE = f"salario_{_CONJUGE_KEY}"
+    _KEY_INST_TITULAR = f"{_TITULAR_KEY}_instituicoes"
+    _KEY_INST_CONJUGE = f"{_CONJUGE_KEY}_instituicoes"
+    _KEY_F1F2_TITULAR = f"f1f2_estrategia_{_TITULAR_KEY}"
+    _KEY_F1F2_CONJUGE = f"f1f2_estrategia_{_CONJUGE_KEY}"
+    _KEY_RENDA_CONJUGE_EUA_PROJ = f"renda_{_CONJUGE_KEY}_eua_projetada"
+    _KEY_CENARIOS_SECTION = f"{_CONJUGE_KEY}_cenarios"
+
+
+_init_config(_DEFAULT_BASE_DIR)
+
 
 def _load_fiscal():
     """Load fiscal parameters config (parametros_fiscais.json)."""
@@ -241,12 +272,12 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
 
     patrimonio_bruto = pat.get("bruto", 0)
     patrimonio_investivel = pat.get("investivel", 0)
-    investimentos_david = pat.get("investimentos_david", 0)
-    investimentos_mariana = pat.get("investimentos_mariana", 0)
+    investimentos_titular = pat.get(_KEY_INV_TITULAR, 0)
+    investimentos_conjuge = pat.get(_KEY_INV_CONJUGE, 0)
 
     yield_imoveis_pct = round(_safe_div(receita_aluguel_anual, imoveis_invest) * 100, 1)
 
-    salario_mariana = _compute_salario_conjuge(e5_data)
+    salario_conjuge = _compute_salario_conjuge(e5_data)
     receita_recorrente_mensal = fluxo.get("receita_recorrente_mensal", 0)
 
     # --- From goals.json ---
@@ -255,13 +286,16 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
     f1f2 = goals_cfg.get("fase_f1f2", {})
     dolar = goals_cfg.get("dolarizacao", {})
     seguros = goals_cfg.get("seguros", {})
-    mar_eua = goals_cfg.get("mariana_eua", {})
+    mar_eua = goals_cfg.get("cenarios_conjuge", goals_cfg.get("mariana_eua", {}))
     trib_cfg = goals_cfg.get("tributario", {})
     imov_cfg = goals_cfg.get("imoveis", {})
     thresholds = goals_cfg.get("thresholds", {})
     aloc_alvo = goals_cfg.get("alocacao_alvo", {})
     riscos = goals_cfg.get("riscos_prioritarios", [])
     decisoes = goals_cfg.get("decisoes_prioritarias", [])
+
+    # --- Cenários cônjuge (computed by E5) ---
+    cm = e5_data.get(_KEY_CENARIOS_CONJUGE, {})
 
     # --- Computed percentages (Cat. A) ---
     despesas_nao_id = desp_cat.get("nao_identificado", 0)
@@ -301,12 +335,12 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
     aporte_cambial_usd = _safe_div(aporte_cambial_brl, cambio)
     meses_cambial = int(_safe_div(gap_usd, aporte_cambial_usd)) if aporte_cambial_usd > 0 else 0
 
-    # Mariana EUA vs CLT computation
+    # Cônjuge EUA vs CLT computation
     renda_eua_projetada_usd = mar_eua.get("renda_rn_projetada_usd", 0)
     renda_eua_projetada_brl = renda_eua_projetada_usd * cambio
     pct_renda_eua_vs_clt = round(
-        (1 - _safe_div(renda_eua_projetada_brl, salario_mariana)) * 100, 0
-    ) if salario_mariana else 0
+        (1 - _safe_div(renda_eua_projetada_brl, salario_conjuge)) * 100, 0
+    ) if salario_conjuge else 0
 
     # Accumulated contributions projection
     aportes_acum_prazo = meta_aporte_mensal * 12 * prazo_anos if prazo_anos else 0
@@ -333,8 +367,8 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "patrimonio_investivel": patrimonio_investivel,
         "imoveis_investimento": imoveis_invest,
         "residencia": residencia,
-        "investimentos_david": investimentos_david,
-        "investimentos_mariana": investimentos_mariana,
+        _KEY_INV_TITULAR: investimentos_titular,
+        _KEY_INV_CONJUGE: investimentos_conjuge,
         "veiculos": pat.get("veiculos", 0),
         "dividas": e5_data.get("endividamento", {}).get("total_dividas", 0),
 
@@ -369,7 +403,7 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "if_gap": goals.get("if_gap", 0),
         "if_prazo_anos": prazo_anos,
         "if_ano": goals.get("ano_if", 0),
-        "david_idade_if": goals.get("david_idade_if", 0),
+        _KEY_IDADE_TITULAR_IF: goals.get(f"idade_{_TITULAR_KEY}_if", 0),
         "renda_passiva_4pct": renda_passiva_4pct,
 
         # === Computed percentages (Cat. A) ===
@@ -385,7 +419,7 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "pct_renda_eua_vs_clt": pct_renda_eua_vs_clt,
 
         # === Computed from E5 data ===
-        "salario_mariana": salario_mariana,
+        _KEY_SAL_CONJUGE: salario_conjuge,
         "receita_aluguel_anual": round(receita_aluguel_anual, 2),
         "yield_imoveis_pct": yield_imoveis_pct,
         "sobra_mensal_f1f2": round(sobra_mensal_f1f2, 2),
@@ -400,8 +434,8 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "top_asset_nome": top_asset["nome"],
         "top_asset_valor": top_asset["valor"],
         "top_asset_membro": top_asset["membro"],
-        "david_instituicoes": ", ".join(inst_data["titular_inst"]) if inst_data["titular_inst"] else "múltiplas instituições",
-        "mariana_instituicoes": ", ".join(inst_data["conjuge_inst"]) if inst_data["conjuge_inst"] else "não identificadas",
+        _KEY_INST_TITULAR: ", ".join(inst_data["titular_inst"]) if inst_data["titular_inst"] else "múltiplas instituições",
+        _KEY_INST_CONJUGE: ", ".join(inst_data["conjuge_inst"]) if inst_data["conjuge_inst"] else "não identificadas",
         "n_imoveis": inst_data["n_imoveis"],
 
         # === Computed: USD/EUR saldos per bank ===
@@ -434,18 +468,18 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "f1f2_universidade": f1f2.get("universidade", ""),
         "f1f2_visto": f1f2.get("visto", "F1/F2"),
         "f1f2_green_card_via": f1f2.get("green_card_via", "EB2-NIW"),
-        "f1f2_estrategia_david": f1f2.get("estrategia_david", ""),
-        "f1f2_estrategia_mariana": f1f2.get("estrategia_mariana", ""),
+        _KEY_F1F2_TITULAR: f1f2.get(f"estrategia_{_TITULAR_KEY}", ""),
+        _KEY_F1F2_CONJUGE: f1f2.get(f"estrategia_{_CONJUGE_KEY}", ""),
         "f1f2_crescimento_salarial": f1f2.get("crescimento_salarial_eua_pct", "3-4"),
 
         # === config/goals.json: seguros ===
         "seguro_vida_minimo": seguros.get("vida_term_minimo", 0),
         "seguro_vida_maximo": seguros.get("vida_term_maximo", 0),
 
-        # === config/goals.json: Mariana EUA ===
-        "renda_mariana_eua_minima": mar_eua.get("renda_rn_minima_usd", 0),
-        "renda_mariana_eua_maxima": mar_eua.get("renda_rn_maxima_usd", 0),
-        "renda_mariana_eua_projetada": renda_eua_projetada_usd,
+        # === config/goals.json: cônjuge EUA ===
+        f"renda_{_CONJUGE_KEY}_eua_minima": mar_eua.get("renda_rn_minima_usd", 0),
+        f"renda_{_CONJUGE_KEY}_eua_maxima": mar_eua.get("renda_rn_maxima_usd", 0),
+        _KEY_RENDA_CONJUGE_EUA_PROJ: renda_eua_projetada_usd,
 
         # === Tributário (calculado a partir de parametros_fiscais.json + dados reais) ===
         "das_mensal_estimado": round(das_mensal, 2),
@@ -474,6 +508,22 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         # === config/goals.json: riscos e decisões ===
         "riscos_prioritarios": riscos,
         "decisoes_prioritarias": decisoes,
+
+        # === cenarios cônjuge (computed by E5) ===
+        "cm_labels": cm.get("labels", []),
+        "cm_aportes": cm.get("aportes", []),
+        "cm_prazos": cm.get("prazos_if", []),
+        "cm_anos_if": cm.get("anos_if", []),
+        f"cm_idade_{_TITULAR_KEY}": cm.get(f"idade_{_TITULAR_KEY}_if", []),
+        "cm_cenarios": cm.get("cenarios", []),
+        "cm_fator_reduzido": cm.get("premissas", {}).get("fator_reduzido", 0.66),
+        "cm_renda_nclex_usd": cm.get("premissas", {}).get("renda_nclex_usd", 4000),
+        "cm_renda_nclex_brl": cm.get("premissas", {}).get("renda_nclex_brl", 0),
+        "cm_renda_gc_usd": cm.get("premissas", {}).get("renda_gc_usd", 7000),
+        "cm_renda_gc_brl": cm.get("premissas", {}).get("renda_gc_brl", 0),
+        "cm_salario_clt_brl": cm.get("premissas", {}).get(f"salario_{_CONJUGE_KEY}_clt_brl", 0),
+        "cm_recovery_nclex_pct": cm.get("premissas", {}).get("recovery_nclex_pct", 0),
+        "cm_recovery_gc_pct": cm.get("premissas", {}).get("recovery_gc_pct", 0),
     }
 
 
@@ -582,7 +632,7 @@ def validate_narrativas(narrativas_obj):
         "score_gauge", "patrimonio_doughnut", "alocacao_atual", "alocacao_alvo",
         "fluxo_mensal", "receita_bar", "receita_despesa_mensal", "despesas_doughnut",
         "projecao_3cenarios", "waterfall_if", "renda_passiva", "yield_imoveis",
-        "top15_ativos", "impostos_pj", "mariana_cenarios", "custos_f1f2", "viagens",
+        "top15_ativos", "impostos_pj", _KEY_CENARIOS_SECTION, "custos_f1f2", "viagens",
         "cenarios_cambiais", "bubble_riscos", "top5_decisoes"
     ]
 
@@ -661,9 +711,9 @@ def build_narrativas():
     _titular_key = FAMILY.get("titular", "")
     _conjuge_key = next((k for k, v in _fm.items() if v.get("papel") == "conjuge"), "")
     _filho_key = next((k for k, v in _fm.items() if v.get("papel") == "filho"), "")
-    _david = _fm.get(_titular_key, {})
-    _mariana = _fm.get(_conjuge_key, {})
-    _theo = _fm.get(_filho_key, {})
+    _tit = _fm.get(_titular_key, {})
+    _conj = _fm.get(_conjuge_key, {})
+    _filho = _fm.get(_filho_key, {})
     _endereco = FAMILY.get("endereco", {})
     _pets = FAMILY.get("pets", [])
 
@@ -681,20 +731,20 @@ def build_narrativas():
             print(f"  [WARN] Erro ao calcular idade de '{dob_str}': {e}")
             return "?"
 
-    _david_age = _age(_david.get("data_nascimento"))
-    _mariana_age = _age(_mariana.get("data_nascimento"))
+    _titular_age = _age(_tit.get("data_nascimento"))
+    _conjuge_age = _age(_conj.get("data_nascimento"))
     _pets_str = ", ".join(_pets[:-1]) + " e " + _pets[-1] if len(_pets) > 1 else ", ".join(_pets)
 
-    _carreira_inicio = _david.get("carreira_inicio")
+    _carreira_inicio = _tit.get("carreira_inicio")
     _anos_exp = (_today.year - _carreira_inicio) if _carreira_inicio else 0
-    _empresas = _david.get("empresas_destaque", [])
+    _empresas = _tit.get("empresas_destaque", [])
     _empresas_str = ", ".join(_empresas) if _empresas else ""
 
-    _mar_esp = _mariana.get("especializacao", "")
-    _mar_mestrado = _mariana.get("mestrado", "")
-    _mar_perfil_int = _mariana.get("perfil_internacional", "")
+    _mar_esp = _conj.get("especializacao", "")
+    _mar_mestrado = _conj.get("mestrado", "")
+    _mar_perfil_int = _conj.get("perfil_internacional", "")
 
-    _cidadanias = _theo.get("cidadania", [])
+    _cidadanias = _filho.get("cidadania", [])
     _cidadanias_str = " e ".join(_cidadanias) if _cidadanias else ""
 
     # Riscos from goals.json
@@ -726,18 +776,18 @@ def build_narrativas():
     narrativas = {
         "perfil_familia": {
             "left": (
-                f"<p>{_david.get('nome_completo', '')}, {_david_age} anos, "
-                f"é {_david.get('profissao', '')} ({_david.get('descricao_empresa', '')}). "
+                f"<p>{_tit.get('nome_completo', '')}, {_titular_age} anos, "
+                f"é {_tit.get('profissao', '')} ({_tit.get('descricao_empresa', '')}). "
                 f"Mais de {_anos_exp} anos em tecnologia, com passagens por {_empresas_str}. "
-                f"Formado em {_david.get('formacao', '')}. "
-                f"Opera como {_david.get('regime', '')}.</p>\n"
-                f"<p>{_mariana.get('nome_completo', '')}, {_mariana_age} anos, "
-                f"é {_mariana.get('profissao', '')} desde {_mariana.get('emprego_inicio', '')}. "
+                f"Formado em {_tit.get('formacao', '')}. "
+                f"Opera como {_tit.get('regime', '')}.</p>\n"
+                f"<p>{_conj.get('nome_completo', '')}, {_conjuge_age} anos, "
+                f"é {_conj.get('profissao', '')} desde {_conj.get('emprego_inicio', '')}. "
                 f"Especialista em {_mar_esp}, mestre em {_mar_mestrado}. "
-                f"CLT com salário-base de {fmt_currency(M['salario_mariana'])}/mês. "
+                f"CLT com salário-base de {fmt_currency(M[_KEY_SAL_CONJUGE])}/mês. "
                 f"{_mar_perfil_int}.</p>\n"
-                f"<p>{_theo.get('nome_completo', '')} nasceu em "
-                f"{_theo.get('local_nascimento', '')} e possui dupla cidadania {_cidadanias_str}. "
+                f"<p>{_filho.get('nome_completo', '')} nasceu em "
+                f"{_filho.get('local_nascimento', '')} e possui dupla cidadania {_cidadanias_str}. "
                 "Primeiro filho do casal, é peça central no planejamento internacional da família.</p>\n"
                 f"<p>A família conta com {len(_pets)} gatos — {_pets_str} — na residência da "
                 f"{_endereco.get('rua', '')}, {_endereco.get('bairro', '')}, "
@@ -746,16 +796,16 @@ def build_narrativas():
             "right": (
                 f"<p>Plano de vida centrado na mudança para os EUA via visto {M['f1f2_visto']} "
                 f"({M['f1f2_universidade']}), seguido de Green Card por {M['f1f2_green_card_via']}. "
-                f"{M['f1f2_estrategia_david']}; {M['f1f2_estrategia_mariana']}. "
+                f"{M[_KEY_F1F2_TITULAR]}; {M[_KEY_F1F2_CONJUGE]}. "
                 f"Custo projetado: {fmt_currency(M['custo_fase_f1f2'])}/mês, com sobra de "
                 f"{fmt_currency(M['sobra_mensal_f1f2'])}/mês.</p>\n"
                 f"<p>Meta IF: {fmt_currency(M['if_meta'])} (TRS {fmt_num(M['if_trs_pct'], 0)}%, renda passiva de {fmt_currency(M['if_renda_passiva_meta'])}/mês). "
                 f"Patrimônio investível atual de {fmt_currency(M['patrimonio_investivel'])} ({fmt_percent(M['progresso_if'])} da meta). "
                 f"Com aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a., "
-                f"prazo de {M['anos_para_if_calculo']} anos (David {M['david_idade_if']} anos, {M['if_ano']}).</p>\n"
+                f"prazo de {M['anos_para_if_calculo']} anos ({_TITULAR_NOME} {M[_KEY_IDADE_TITULAR_IF]} anos, {M['if_ano']}).</p>\n"
                 f"<p>Patrimônio bruto de {fmt_currency(M['patrimonio_bruto'])}: "
                 f"{M['n_imoveis']} imóveis ({fmt_currency(M['residencia'])} residência + {fmt_currency(M['imoveis_investimento'])} investimento), "
-                f"carteiras David ({fmt_currency(M['investimentos_david'])}) e Mariana ({fmt_currency(M['investimentos_mariana'])}). "
+                f"carteiras {_TITULAR_NOME} ({fmt_currency(M[_KEY_INV_TITULAR])}) e {_CONJUGE_NOME} ({fmt_currency(M[_KEY_INV_CONJUGE])}). "
                 f"Endividamento de {fmt_percent(M['taxa_endividamento'])} — saudável.</p>"
             )
         },
@@ -773,8 +823,8 @@ def build_narrativas():
             ),
             "s3": (
                 f"Carteira diversificada entre {M['diversificacao']} categorias de ativos. "
-                f"David mantém {fmt_currency(M['investimentos_david'])} distribuídos entre {M['david_instituicoes']}. "
-                f"Mariana possui {fmt_currency(M['investimentos_mariana'])} concentrados em {M['mariana_instituicoes']}."
+                f"{_TITULAR_NOME} mantém {fmt_currency(M[_KEY_INV_TITULAR])} distribuídos entre {M[_KEY_INST_TITULAR]}. "
+                f"{_CONJUGE_NOME} possui {fmt_currency(M[_KEY_INV_CONJUGE])} concentrados em {M[_KEY_INST_CONJUGE]}."
             ),
             "s4": (
                 f"{M['n_imoveis']} imóveis no portfólio: residência na {_endereco.get('rua', '')} ({fmt_currency(M['residencia'])}), "
@@ -847,11 +897,11 @@ def build_narrativas():
             },
             "alocacao_atual": {
                 "context": (
-                    f"Atual distribuição dos ativos financeiros ({fmt_currency(M['investimentos_david'] + M['investimentos_mariana'])}) "
+                    f"Atual distribuição dos ativos financeiros ({fmt_currency(M[_KEY_INV_TITULAR] + M[_KEY_INV_CONJUGE])}) "
                     "entre classes de investimento: renda fixa, ações, fundos multimercado e estruturados."
                 ),
                 "conclusion": (
-                    f"David diversificado em {M['david_instituicoes']}; Mariana concentra em {M['mariana_instituicoes']}. "
+                    f"{_TITULAR_NOME} diversificado em {M[_KEY_INST_TITULAR]}; {_CONJUGE_NOME} concentra em {M[_KEY_INST_CONJUGE]}. "
                     f"Recomendação: gradualmente adicionar alocação de ações ({M['aloc_instrumentos_rv']}) para atingir {M['equity_alvo_min']}-{M['equity_alvo_max']}% de equity."
                 )
             },
@@ -916,7 +966,7 @@ def build_narrativas():
                     f"considerando aportes mensais de {fmt_currency(M['meta_aporte_mensal'])} e retorno real anual de {fmt_num(M['if_retorno_real_pct'], 0)}%."
                 ),
                 "conclusion": (
-                    f"Meta será atingida em {M['if_ano']}, quando David terá {M['david_idade_if']} anos. "
+                    f"Meta será atingida em {M['if_ano']}, quando {_TITULAR_NOME} terá {M[_KEY_IDADE_TITULAR_IF]} anos. "
                     f"Renda passiva estimada será {fmt_currency(M['renda_passiva_4pct'])}/mês ({fmt_percent(M['pct_renda_passiva_meta'])} da meta de {fmt_currency(M['if_renda_passiva_meta'])}/mês)."
                 )
             },
@@ -964,7 +1014,7 @@ def build_narrativas():
             },
             "impostos_pj": {
                 "context": (
-                    f"Carga tributária da PJ de David: receita anualizada de {fmt_currency(M['receita_pj_anual'])}, "
+                    f"Carga tributária da PJ de {_TITULAR_NOME}: receita anualizada de {fmt_currency(M['receita_pj_anual'])}, "
                     f"enquadrada no {M['regime_obs']} (alíquota efetiva {fmt_percent(M['das_aliquota_pct'])})."
                 ),
                 "conclusion": (
@@ -974,18 +1024,43 @@ def build_narrativas():
                     f"Avaliação de holding patrimonial pendente para {M['holding_prazo']}."
                 )
             },
-            "mariana_cenarios": {
+            _KEY_CENARIOS_SECTION: (lambda _cm_cenarios, _cm_prazos, _cm_aportes, _cm_anos: {
                 "context": (
-                    f"Cenários financeiros para Mariana pós-NCLEX, com projeções de renda americana como RN "
-                    f"({fmt_usd(M['renda_mariana_eua_minima'])}-{fmt_usd(M['renda_mariana_eua_maxima'])}/mês) "
-                    f"versus permanência no Brasil ({_mariana.get('regime', 'CLT')} {_mariana.get('empregador_curto', '')} {fmt_currency(M['salario_mariana'])}/mês)."
+                    f"Três cenários projetam o impacto da carreira de {_CONJUGE_NOME} no prazo para independência financeira. "
+                    f"Premissas: meta IF de {fmt_currency(M['if_meta'])}, patrimônio investível de {fmt_currency(M['patrimonio_investivel'])}, "
+                    f"retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. e câmbio de R$ {fmt_num(M['cambio_usd_brl'], 2)}/USD. "
+                    f"Atualmente {_CONJUGE_NOME} ganha {fmt_currency(M['cm_salario_clt_brl'])}/mês ({_conj.get('regime', 'CLT')} {_conj.get('empregador_curto', '')}); "
+                    f"a renda nos EUA como RN ({fmt_usd(M['cm_renda_nclex_usd'])}-{fmt_usd(M['cm_renda_gc_usd'])}/mês = "
+                    f"{fmt_currency(M['cm_renda_nclex_brl'])}-{fmt_currency(M['cm_renda_gc_brl'])}/mês) "
+                    + (f"supera a renda CLT atual em {fmt_num(M['cm_renda_nclex_brl'] / M['cm_salario_clt_brl'], 1)}x a {fmt_num(M['cm_renda_gc_brl'] / M['cm_salario_clt_brl'], 1)}x, "
+                       "permitindo aportes acima da meta-base."
+                       if M['cm_salario_clt_brl'] > 0 and M['cm_renda_nclex_brl'] > M['cm_salario_clt_brl']
+                       else f"repõe {fmt_num(M['cm_recovery_nclex_pct'], 0)}-{fmt_num(M['cm_recovery_gc_pct'], 0)}% da renda CLT atual."
+                    )
                 ),
                 "conclusion": (
-                    f"Cenário EUA com {fmt_usd(M['renda_mariana_eua_projetada'])}/mês = {fmt_currency(M['renda_eua_projetada_brl'])}/mês. "
-                    "Compensado por: integração com patrimônio de David, renda PJ remota, "
-                    f"renda de aluguel em BRL e potencial de crescimento salarial anual de {M['f1f2_crescimento_salarial']}%."
+                    (f"<strong>Cenário 1 — Sem Trabalhar:</strong> aporte reduzido para {fmt_currency(_cm_aportes[0])}/mês "
+                     f"({fmt_num(M['cm_fator_reduzido'] * 100, 0)}% do aporte-base). IF em {fmt_num(_cm_prazos[0], 0)} anos ({_cm_anos[0]}). "
+                     f"Cenário mais conservador — custo de oportunidade de +{fmt_num(_cm_prazos[0] - M['if_prazo_anos'], 0)} anos em relação ao cenário-base.<br>"
+                     f"<strong>Cenário 2 — Com NCLEX (RN nos EUA):</strong> renda de {fmt_usd(M['cm_renda_nclex_usd'])}/mês "
+                     f"({fmt_currency(M['cm_renda_nclex_brl'])}/mês), "
+                     f"aporte sobe para {fmt_currency(_cm_aportes[1])}/mês. IF em {fmt_num(_cm_prazos[1], 0)} anos ({_cm_anos[1]}). "
+                     f"A aprovação no NCLEX é o divisor de águas — a renda americana supera o CLT atual e permite aportes acima da meta-base.<br>"
+                     f"<strong>Cenário 3 — NCLEX + Green Card:</strong> potencial pleno de {fmt_usd(M['cm_renda_gc_usd'])}/mês "
+                     f"({fmt_currency(M['cm_renda_gc_brl'])}/mês), "
+                     f"aporte de {fmt_currency(_cm_aportes[2])}/mês. IF em {fmt_num(_cm_prazos[2], 0)} anos ({_cm_anos[2]}). "
+                     f"Acelera a IF em {fmt_num(_cm_prazos[0] - _cm_prazos[2], 0)} anos vs cenário sem trabalhar. "
+                     f"Crescimento salarial de {M['f1f2_crescimento_salarial']}%/ano pode fechar o gap de renda em poucos anos.")
+                    if len(_cm_prazos) >= 3 else
+                    f"Cenário EUA com {fmt_usd(M[_KEY_RENDA_CONJUGE_EUA_PROJ])}/mês = {fmt_currency(M['renda_eua_projetada_brl'])}/mês. "
+                    f"Compensado por: integração com patrimônio de {_TITULAR_NOME}, renda PJ remota e aluguel em BRL."
                 )
-            },
+            })(
+                M.get('cm_cenarios', []),
+                M.get('cm_prazos', []),
+                M.get('cm_aportes', []),
+                M.get('cm_anos_if', []),
+            ),
             "custos_f1f2": {
                 "context": (
                     f"Estimativa de custos mensais na fase {M['f1f2_visto']} nos EUA: tuition + living + viagens BR = {fmt_currency(M['custo_fase_f1f2'])}/mês."
@@ -1045,8 +1120,10 @@ def build_narrativas():
     return narrativas
 
 
-def main():
+def main(root_dir: Path = None):
     """Main execution function."""
+    if root_dir:
+        _init_config(root_dir)
 
     print("=" * 80)
     print("E5.N NARRATIVAS GENERATOR")

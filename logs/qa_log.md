@@ -1,5 +1,5 @@
 # QA Log — E4 Categorização
-## Execução: 2026-04-10 15:17
+## Execução: 2026-04-13 17:39
 
 ### Transações não identificadas: 558
 
@@ -102,21 +102,21 @@
 | 2024-01-08 | PLATAFORMA SERVICO DE | R$540.00 | C6 Bank | faturacarbon |
 | 2024-01-10 | PLATAFORMA S*PRODUCAO | R$250.00 | C6 Bank | faturacarbon |
 | 2024-01-10 | FLORICULTURA MOEMA GA | R$200.00 | C6 Bank | faturacarbon |
+| 2024-01-11 | PLATAFORMA SERVICO DE | R$2,420.25 | C6 Bank | faturacarbon |
 | 2024-01-11 | Pix enviado para MARCELO LA PASTINA — TRANSF ENVIADA PIX | R$300.00 | C6 Bank | extratoconta |
 | 2024-01-11 | Pix enviado para Marcela Malzone Rosa — TRANSF ENVIADA PIX | R$230.00 | C6 Bank | extratoconta |
-| 2024-01-11 | PLATAFORMA SERVICO DE | R$2,420.25 | C6 Bank | faturacarbon |
 | 2024-01-12 | IMIGRANTES MERCANTIL L | R$767.96 | C6 Bank | faturacarbon |
 | 2024-01-12 | IMIGRANTES MERCANTIL L | R$767.94 | C6 Bank | faturacarbon |
-| 2024-01-13 | Pix enviado para Roseli Teles dos Santos — TRANSF ENVIADA PIX | R$300.00 | C6 Bank | extratoconta |
 | 2024-01-13 | CALIFORNIA SUPERFOOD B | R$92.73 | C6 Bank | faturacarbon |
 | 2024-01-13 | CONFEITARIA LANCHONETE | R$18.50 | C6 Bank | faturacarbon |
+| 2024-01-13 | Pix enviado para Roseli Teles dos Santos — TRANSF ENVIADA PIX | R$300.00 | C6 Bank | extratoconta |
 | 2024-01-15 | 7015  MORUMBI | R$279.50 | C6 Bank | faturacarbon |
-| 2024-01-16 | Pix enviado para SERGIO PALMEIRA DA SILVA — TRANSF ENVIADA PIX | R$840.00 | C6 Bank | extratoconta |
 | 2024-01-16 | DL          *RAPPI | R$34.90 | C6 Bank | faturacarbon |
-| 2024-01-17 | Pix enviado para ADILSON MESSIAS DE OLIVEIRA 29375362809 — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
+| 2024-01-16 | Pix enviado para SERGIO PALMEIRA DA SILVA — TRANSF ENVIADA PIX | R$840.00 | C6 Bank | extratoconta |
 | 2024-01-17 | VFY COMERCIO LOCACAO E | R$22.91 | C6 Bank | faturacarbon |
-| 2024-01-18 | Pix enviado para CASSIO LEONARDO FARIA DA SILVA — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
+| 2024-01-17 | Pix enviado para ADILSON MESSIAS DE OLIVEIRA 29375362809 — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
 | 2024-01-18 | EMPORIO CAFE | R$21.96 | C6 Bank | faturacarbon |
+| 2024-01-18 | Pix enviado para CASSIO LEONARDO FARIA DA SILVA — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
 | 2024-01-19 | NATUREZA SUBLIME | R$260.00 | C6 Bank | faturacarbon |
 | 2024-01-21 | Pix enviado para PLATAFORMA SERVICO DE GESTAO DE RECEBIVEIS LTDA — TRANSF ENVIADA PIX | R$1,150.00 | C6 Bank | extratoconta |
 | 2024-01-23 | SHELL 3322 | R$3.19 | C6 Bank | faturacarbon |
@@ -287,14 +287,14 @@
 | 2025-01-02 | Transfe Pix Des: Marília Panarello Kos 02/01 | R$163.50 | Bradesco | extratoconta |
 | 2025-01-03 | Boleto | R$750.48 | C6 Bank | extratoconta |
 | 2025-01-03 | Boleto | R$728.63 | C6 Bank | extratoconta |
+| 2025-01-06 | Transfe Pix Des: Ksv Collection Confec 04/01 | R$266.00 | Bradesco | extratoconta |
 | 2025-01-06 | Pix enviado para ALEX FERREIRA DOS SANTOS — TRANSF ENVIADA PIX | R$80.00 | C6 Bank | extratoconta |
 | 2025-01-06 | Pix enviado para JULIANA OLIVEIRA CARVALHO — TRANSF ENVIADA PIX | R$440.00 | C6 Bank | extratoconta |
 | 2025-01-06 | Pix enviado para MARIA LUCIA SARTORI GUEVARA — TRANSF ENVIADA PIX | R$140.00 | C6 Bank | extratoconta |
-| 2025-01-06 | Transfe Pix Des: Ksv Collection Confec 04/01 | R$266.00 | Bradesco | extratoconta |
 | 2025-01-08 | Pix enviado para João Drago Filho — TRANSF ENVIADA PIX | R$500.00 | C6 Bank | extratoconta |
 | 2025-01-09 | Boleto | R$162.75 | C6 Bank | extratoconta |
-| 2025-01-10 | Pix enviado para PRISCILLA DE ANGELO LIMA — TRANSF ENVIADA PIX | R$525.00 | C6 Bank | extratoconta |
 | 2025-01-10 | Des: Carla Mayara Marconde 1112126 | R$99.00 | Bradesco | extratoconta |
+| 2025-01-10 | Pix enviado para PRISCILLA DE ANGELO LIMA — TRANSF ENVIADA PIX | R$525.00 | C6 Bank | extratoconta |
 | 2025-01-11 | Pix enviado para MARIA REGINA DOS SANTOS — TRANSF ENVIADA PIX | R$250.00 | C6 Bank | extratoconta |
 | 2025-01-13 | Transfe Pix Des: Marília Panarello Kos 11/01 | R$163.50 | Bradesco | extratoconta |
 | 2025-01-14 | INT MULTA REN28776694836 | R$131.46 | Itaú | extratoconta |
@@ -304,8 +304,8 @@
 | 2025-01-31 | Transfe Pix Des: Leticia Aparecida de 31/01 | R$40.00 | Bradesco | extratoconta |
 | 2025-01-31 | Des: Antonia Gecileuda Roc 0937271 | R$75.00 | Bradesco | extratoconta |
 | 2025-02-03 | PIX QRS CIA DE SANE03/02 | R$334.52 | Itaú | extratoconta |
-| 2025-02-04 | Pix enviado para LARISSA MARTINS AZEVEDO DE OLIVEIRA — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-02-04 | Des: Estacar Estacionament 1343186 | R$10.00 | Bradesco | extratoconta |
+| 2025-02-04 | Pix enviado para LARISSA MARTINS AZEVEDO DE OLIVEIRA — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-02-06 | Pix enviado para LARISSA MARTINS AZEVEDO DE OLIVEIRA — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-02-07 | Pix enviado para VINICIUS MATIELLO KELCIAUSKAS — TRANSF ENVIADA PIX | R$24.00 | C6 Bank | extratoconta |
 | 2025-02-13 | Boleto | R$749.90 | C6 Bank | extratoconta |
@@ -324,14 +324,14 @@
 | 2025-03-10 | Transfe Pix Des: Gabriel Antonio Marti 08/03 | R$60.00 | Bradesco | extratoconta |
 | 2025-03-15 | Pix enviado para ARMANDO TIUJI SAITO — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-03-17 | PIX TRANSF  ARMANDO15/03 | R$7,550.00 | Itaú | extratoconta |
+| 2025-03-18 | Pix Qrcode Din Des: Prodata Mobility Bras 18/03 | R$10.00 | Bradesco | extratoconta |
 | 2025-03-18 | Boleto | R$745.84 | C6 Bank | extratoconta |
 | 2025-03-18 | Boleto | R$115.91 | C6 Bank | extratoconta |
-| 2025-03-18 | Pix Qrcode Din Des: Prodata Mobility Bras 18/03 | R$10.00 | Bradesco | extratoconta |
 | 2025-03-25 | Transfe Pix Des: ht Saragiotto s 25/03 | R$600.00 | Bradesco | extratoconta |
 | 2025-03-26 | Pix enviado para ITTALO DE SOUZA TEIXEIRA — TRANSF ENVIADA PIX | R$770.00 | C6 Bank | extratoconta |
 | 2025-03-27 | Transfe Pix Des: Jsrs f e Ltda 27/03 | R$90.00 | Bradesco | extratoconta |
-| 2025-03-29 | Pix enviado para PARCELA EXPRESS SERVICOS DIGITAIS LTDA — TRANSF ENVIADA PIX | R$28.01 | C6 Bank | extratoconta |
 | 2025-03-29 | MULTIPLAN ADMINISTRADO | R$31.00 | C6 Bank | faturacarbon |
+| 2025-03-29 | Pix enviado para PARCELA EXPRESS SERVICOS DIGITAIS LTDA — TRANSF ENVIADA PIX | R$28.01 | C6 Bank | extratoconta |
 | 2025-03-30 | Pix enviado para ELAINE WENZEL — TRANSF ENVIADA PIX | R$10.00 | C6 Bank | extratoconta |
 | 2025-03-31 | Pix enviado para Maria Lúcia Marques Oliveira — TRANSF ENVIADA PIX | R$200.00 | C6 Bank | extratoconta |
 | 2025-04-01 | Transfe Pix Des: Thiago Rodrigues de l 01/04 | R$50.00 | Bradesco | extratoconta |
@@ -341,19 +341,19 @@
 | 2025-04-09 | Pix Qrcode Din Des: Ateliê Algodão Doce 09/04 | R$361.00 | Bradesco | extratoconta |
 | 2025-04-09 | Pix Qrcode Din Des: Agora Sou Mae 09/04 | R$157.09 | Bradesco | extratoconta |
 | 2025-04-09 | Pix Qrcode Din Des: Zoop Tecnologia e Ins 09/04 | R$339.89 | Bradesco | extratoconta |
-| 2025-04-10 | Pix enviado para REGIANE DONIZETI BALBINO — TRANSF ENVIADA PIX | R$320.00 | C6 Bank | extratoconta |
 | 2025-04-10 | Pix Qrcode Din Des: Hanesbrands Brasil tê 10/04 | R$144.26 | Bradesco | extratoconta |
 | 2025-04-10 | Pix Qrcode Din Des: Zoop Tecnologia e Ins 10/04 | R$91.45 | Bradesco | extratoconta |
 | 2025-04-10 | ENG ARMANDO PEREIRA | R$113.80 | C6 Bank | faturacarbon |
+| 2025-04-10 | Pix enviado para REGIANE DONIZETI BALBINO — TRANSF ENVIADA PIX | R$320.00 | C6 Bank | extratoconta |
 | 2025-04-12 | GARCIARODASE | R$260.00 | C6 Bank | faturacarbon |
 | 2025-04-14 | Pix Qrcode Din Des: Zoop Tecnologia e Ins 12/04 | R$78.07 | Bradesco | extratoconta |
 | 2025-04-16 | Pix enviado para ELIBELTO JOSE DE LIMA — TRANSF ENVIADA PIX | R$500.00 | C6 Bank | extratoconta |
 | 2025-04-16 | Boleto | R$226.68 | C6 Bank | extratoconta |
 | 2025-04-18 | M NEGOCIOS E SERVICOS | R$41.10 | C6 Bank | faturacarbon |
 | 2025-04-18 | MATHEUS MATIAS DE OLI | R$20.00 | C6 Bank | faturacarbon |
-| 2025-04-23 | Pix enviado para ANA MARIA DE OLIVEIRA — TRANSF ENVIADA PIX | R$80.00 | C6 Bank | extratoconta |
 | 2025-04-23 | Transfe Pix Des: Edilene Aparecida Fra 23/04 | R$25.00 | Bradesco | extratoconta |
 | 2025-04-23 | Transfe Pix Des: Iraci Conceicao Silva 23/04 | R$60.00 | Bradesco | extratoconta |
+| 2025-04-23 | Pix enviado para ANA MARIA DE OLIVEIRA — TRANSF ENVIADA PIX | R$80.00 | C6 Bank | extratoconta |
 | 2025-04-26 | Pix enviado para ELIBELTO JOSE DE LIMA — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-04-26 | Pix enviado para Mariana Dos Santos Almeida — TRANSF ENVIADA PIX | R$50.00 | C6 Bank | extratoconta |
 | 2025-04-29 | JS TRAINING | R$59.00 | C6 Bank | faturacarbon |
@@ -366,10 +366,10 @@
 | 2025-05-22 | PIX TRANSF SUELI D22/05 | R$11,820.00 | Itaú | extratoconta |
 | 2025-05-22 | PIX TRANSF EDSON J22/05 | R$10,047.00 | Itaú | extratoconta |
 | 2025-06-06 | PAGAMENTO EFETUADO | R$59.00 | Santander | faturaunique |
-| 2025-06-10 | Pix enviado para ******** — TRANSF ENVIADA PIX | R$55.00 | C6 Bank | extratoconta |
 | 2025-06-10 | Keylum Llc \1114 Duval St Cartão 4845 | R$10.75 | C6 Bank | extratocontaglobalusd |
 | 2025-06-10 | Py *kermit's Key West\335 Duval St Ste F Cartão
 4845 | R$7.47 | C6 Bank | extratocontaglobalusd |
+| 2025-06-10 | Pix enviado para ******** — TRANSF ENVIADA PIX | R$55.00 | C6 Bank | extratoconta |
 | 2025-06-16 | Pix Qrcode Est Des: Claro 16/06 | R$55.98 | Bradesco | extratoconta |
 | 2025-06-26 | Transfe Pix Des: Floricultura Sempre v 26/06 | R$122.00 | Bradesco | extratoconta |
 | 2025-07-04 | Target 00033548\11619 Daryl Carte Cartão
@@ -494,11 +494,11 @@ Cartão 4163 | R$244.93 | C6 Bank | extratocontaglobalusd |
 | 2025-09-09 | Target 00023705\3200 Rolling Oaks Cartão
 4163 | R$17.98 | C6 Bank | extratocontaglobalusd |
 | 2025-09-10 | Pix enviado para JULIANA ARGONDIZO DE ROSIS DINATO — TRANSF ENVIADA PIX | R$500.00 | C6 Bank | extratoconta |
-| 2025-09-13 | Pix enviado para Vitória Maria Silva Moreira — TRANSF ENVIADA PIX | R$195.00 | C6 Bank | extratoconta |
 | 2025-09-13 | Avi Arnold Palmer Cof\92 W Miller St\orl Cartão
 4163 | R$2.97 | C6 Bank | extratocontaglobalusd |
 | 2025-09-13 | Avi Arnold Palmer Cof\92 W Miller St\orl Cartão
 4163 | R$8.07 | C6 Bank | extratocontaglobalusd |
+| 2025-09-13 | Pix enviado para Vitória Maria Silva Moreira — TRANSF ENVIADA PIX | R$195.00 | C6 Bank | extratoconta |
 | 2025-09-14 | Nj\110 Edsion Pl\newark, Nj 07\07070 Cartão
 4163 | R$16.13 | C6 Bank | extratocontaglobalusd |
 | 2025-09-16 | Bass Pro Store Orlando\5156 Internationa
@@ -525,11 +525,11 @@ Cartão 4163 | R$37.96 | C6 Bank | extratocontaglobalusd |
 Cartão 4163 | R$339.42 | C6 Bank | extratocontaglobalusd |
 | 2025-09-18 | Walmart Supercenter 5\2855 N Old Lake Wi
 Cartão 4163 | R$5.00 | C6 Bank | extratocontaglobalusd |
-| 2025-09-22 | Pix enviado para SERGIO PALMEIRA DA SILVA — TRANSF ENVIADA PIX | R$1,080.00 | C6 Bank | extratoconta |
 | 2025-09-22 | Bass Pro Store Orlando\5156 Internationa
 Cartão 4163 | R$50.56 | C6 Bank | extratocontaglobalusd |
 | 2025-09-22 | Kipling #5506\4959 Intl Dr. Space #170\o
 Cartão 4163 | R$76.25 | C6 Bank | extratocontaglobalusd |
+| 2025-09-22 | Pix enviado para SERGIO PALMEIRA DA SILVA — TRANSF ENVIADA PIX | R$1,080.00 | C6 Bank | extratoconta |
 | 2025-09-23 | Marshalls #1559\8035 W Irlo Bronson Memo
 Cartão 4163 | R$11.50 | C6 Bank | extratocontaglobalusd |
 | 2025-09-23 | Ross Store #350 \5452 Touchstone D Cartão
@@ -557,11 +557,11 @@ Cartão 4163 | R$10.00 | C6 Bank | extratocontaglobalusd |
 | 2025-10-07 | Pix enviado para ROBERTO FERNANDO ALVES DE SOUZA — obrigado pela carteira | R$100.00 | C6 Bank | extratoconta |
 | 2025-10-13 | Des: Vanessa Emiliano Dias 1747124 | R$216.00 | Bradesco | extratoconta |
 | 2025-10-14 | Transfe Pix Des: Neilton da Silva de o 14/10 | R$10.00 | Bradesco | extratoconta |
+| 2025-10-22 | Tst* Rosa Mexicano - L\3663 Las Vegas Bl
+Cartão 4163 | R$61.62 | C6 Bank | extratocontaglobalusd |
 | 2025-10-22 | Transfe Pix Des: Edilene Aparecida Fra 22/10 | R$25.00 | Bradesco | extratoconta |
 | 2025-10-22 | Transfe Pix Des: Jair de Souza Ferreir 22/10 | R$400.00 | Bradesco | extratoconta |
 | 2025-10-22 | Pix Qrcode Din Des: Natura &co Pay Servic 22/10 | R$199.40 | Bradesco | extratoconta |
-| 2025-10-22 | Tst* Rosa Mexicano - L\3663 Las Vegas Bl
-Cartão 4163 | R$61.62 | C6 Bank | extratocontaglobalusd |
 | 2025-10-25 | 000000000211463\heart Attack Grill\las V
 Cartão 4163 | R$102.25 | C6 Bank | extratocontaglobalusd |
 | 2025-10-25 | 000000000211463\heart Attack Grill\las V
@@ -572,8 +572,8 @@ Cartão 4163 | R$25.28 | C6 Bank | extratocontaglobalusd |
 | 2025-10-30 | 2PPRODUTOS | R$25.80 | C6 Bank | faturacarbon |
 | 2025-10-31 | ALEX MARTINS DE MACEDO | R$39.00 | C6 Bank | faturacarbon |
 | 2025-11-02 | Pix enviado para Marcelo Silva Santos — TRANSF ENVIADA PIX | R$30.00 | C6 Bank | extratoconta |
-| 2025-11-04 | Pix enviado para STUDIO 19 — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-11-04 | Transfe Pix Des: Maria Gizelia Dos San 04/11 | R$35.00 | Bradesco | extratoconta |
+| 2025-11-04 | Pix enviado para STUDIO 19 — TRANSF ENVIADA PIX | R$1,000.00 | C6 Bank | extratoconta |
 | 2025-11-05 | Transfe Pix Des: Daniel Jesus do Rosar 05/11 | R$300.00 | Bradesco | extratoconta |
 | 2025-11-06 | PAGAMENTO EFETUADO | R$59.00 | Santander | faturaunique |
 | 2025-11-08 | Pix enviado para EDILBERTO RODRIGUES COUTINHO — TRANSF ENVIADA PIX | R$15.00 | C6 Bank | extratoconta |
@@ -585,8 +585,8 @@ Cartão 4163 | R$25.28 | C6 Bank | extratocontaglobalusd |
 | 2025-11-17 | Transfe Pix Des: Maria Gizelia Dos San 17/11 | R$35.00 | Bradesco | extratoconta |
 | 2025-11-19 | BLOQUEIO PIX | R$333.00 | Itaú | extratoconta |
 | 2025-11-20 | Pix enviado para AMANTIKIR — TRANSF ENVIADA PIX | R$270.00 | C6 Bank | extratoconta |
-| 2025-11-22 | Pix enviado para 50.340.497 LEVY VICARI DE OLIVEIRA — TRANSF ENVIADA PIX | R$20.00 | C6 Bank | extratoconta |
 | 2025-11-22 | VINICIUS DE MARCO E PA | R$368.04 | C6 Bank | faturacarbon |
+| 2025-11-22 | Pix enviado para 50.340.497 LEVY VICARI DE OLIVEIRA — TRANSF ENVIADA PIX | R$20.00 | C6 Bank | extratoconta |
 | 2025-11-25 | DEV PIX DAVID ROBER25/11 | R$333.00 | Itaú | extratoconta |
 | 2025-11-25 | Transfe Pix Des: Maria Lireuda Bastos 25/11 | R$130.00 | Bradesco | extratoconta |
 | 2025-11-28 | Transfe Pix Des: Maria Gizelia Dos San 28/11 | R$70.00 | Bradesco | extratoconta |
@@ -594,8 +594,8 @@ Cartão 4163 | R$25.28 | C6 Bank | extratocontaglobalusd |
 | 2025-12-06 | COR | R$84.90 | C6 Bank | faturacarbon |
 | 2025-12-08 | PAGAMENTO EFETUADO | R$59.00 | Santander | faturaunique |
 | 2025-12-08 | ALEX MARTINS DE MACEDO | R$39.00 | C6 Bank | faturacarbon |
-| 2025-12-12 | Pix enviado para MIQUEIAS FERREIRA DA SILVA — TRANSF ENVIADA PIX C | R$20.00 | C6 Bank | extratoconta |
 | 2025-12-12 | BRUNOMARTINS | R$67.00 | C6 Bank | faturacarbon |
+| 2025-12-12 | Pix enviado para MIQUEIAS FERREIRA DA SILVA — TRANSF ENVIADA PIX C | R$20.00 | C6 Bank | extratoconta |
 | 2025-12-14 | SANDRA REGINA ORUE DA | R$115.50 | C6 Bank | faturacarbon |
 | 2025-12-15 | Transfe Pix Des: Maria Gizelia Dos San 15/12 | R$35.00 | Bradesco | extratoconta |
 | 2025-12-15 | J S THENORIO | R$420.00 | C6 Bank | faturacarbon |

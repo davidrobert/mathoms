@@ -1,17 +1,16 @@
 {
-  "tipo": "cdbdetalhes",
-  "banco": "santander",
+  "source_file": "santander_cdbdetalhesprog_202603-0_original.pdf",
+  "tipo": "investimentosposicao",
+  "instituicao": "santander",
   "membro": "david",
-  "data_posicao": "2026-03",
   "posicoes": [
     {
-      "product_type": "CDB Progressivo",
-      "applied_value": 60545.52,
-      "current_value": 60545.52,
-      "rate": "95% CDI",
-      "maturity_date": "2028-08-09",
-      "acquisition_date": "2024-08-30"
+      "tipo": "CDB-PROG",
+      "operacao": "00331652260006541912",
+      "data_contratacao": "2024-08-30",
+      "vencimento": "2028-08-09",
+      "prazo_dias": 1440,
+      "indexador": "95.00% do CDI"
     }
-  ],
-  "saldo_atual": 60545.52
+  ]
 }

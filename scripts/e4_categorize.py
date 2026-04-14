@@ -29,41 +29,50 @@ from collections import defaultdict
 # LOAD CONFIGURATION FROM JSON FILES
 # ============================================================================
 
-SCRIPTS_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = SCRIPTS_DIR.parent
-CONFIG_DIR = PROJECT_DIR / "config"
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
-def _load_json_config(filename: str) -> dict:
-    """Load a JSON config file from config/ directory."""
-    path = CONFIG_DIR / filename
+
+def _load_json_config_from(config_dir: Path, filename: str) -> dict:
+    """Load a JSON config file from a given config directory."""
+    path = config_dir / filename
     if not path.exists():
         print(f"FATAL: Config file not found: {path}", file=sys.stderr)
         sys.exit(1)
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-_categorization = _load_json_config("categorization.json")
-_family = _load_json_config("family_members.json")
-_pipeline_cfg = _load_json_config("pipeline.json")
 
-EXPENSE_KEYWORDS = _categorization["expense_keywords"]
-INCOME_KEYWORDS = _categorization["income_keywords"]
-INTERNAL_TRANSFER_PATTERNS = _categorization["internal_transfer_patterns"]
-# PIX patterns from family config (items like "PIX TRANSF DAVID")
-INTERNAL_TRANSFER_PATTERNS += _family.get("transferencias_internas", {}).get("patterns_pix", [])
+def _init_config(base_dir: Path) -> None:
+    """(Re)carrega todas as configs a partir de um root_dir."""
+    global _BASE_DIR, EXPENSE_KEYWORDS, INCOME_KEYWORDS
+    global INTERNAL_TRANSFER_PATTERNS, INTERNAL_TRANSFER_RECIPIENTS
+    global _BANK_SPECIFIC_PATTERNS, _GLOBAL_TRANSFER_PATTERNS
+    global BANCO_MEMBRO, PJ_SOURCE_MAPPING, CLT_SOURCE_MAPPING
+    global _pipeline_cfg
 
-INTERNAL_TRANSFER_RECIPIENTS = _family.get("transferencias_internas", {}).get("recipients", [])
+    _BASE_DIR = base_dir
+    config_dir = base_dir / "config"
 
-# Bank-specific patterns (e.g., "Pagamento" only means internal transfer in C6 Bank)
-_BANK_SPECIFIC_PATTERNS = _family.get("transferencias_internas", {}).get("patterns_bank_specific", {})
-# Global patterns that always mean internal transfer regardless of bank
-_GLOBAL_TRANSFER_PATTERNS = _family.get("transferencias_internas", {}).get("patterns_global", [])
+    _categorization = _load_json_config_from(config_dir, "categorization.json")
+    _family = _load_json_config_from(config_dir, "family_members.json")
+    _pipeline_cfg = _load_json_config_from(config_dir, "pipeline.json")
 
-# Mapeamento banco→membro para investimentos sem campo membro explícito
-BANCO_MEMBRO = {k: v for k, v in _family.get("banco_membro", {}).items() if k != "_comment"}
+    EXPENSE_KEYWORDS = _categorization["expense_keywords"]
+    INCOME_KEYWORDS = _categorization["income_keywords"]
+    INTERNAL_TRANSFER_PATTERNS = list(_categorization["internal_transfer_patterns"])
+    INTERNAL_TRANSFER_PATTERNS += _family.get("transferencias_internas", {}).get("patterns_pix", [])
 
-PJ_SOURCE_MAPPING = {"receita_pj": _categorization["pj_source_mapping"]}
-CLT_SOURCE_MAPPING = _categorization["clt_source_mapping"]
+    INTERNAL_TRANSFER_RECIPIENTS = _family.get("transferencias_internas", {}).get("recipients", [])
+    _BANK_SPECIFIC_PATTERNS = _family.get("transferencias_internas", {}).get("patterns_bank_specific", {})
+    _GLOBAL_TRANSFER_PATTERNS = _family.get("transferencias_internas", {}).get("patterns_global", [])
+
+    BANCO_MEMBRO = {k: v for k, v in _family.get("banco_membro", {}).items() if k != "_comment"}
+    PJ_SOURCE_MAPPING = {"receita_pj": _categorization["pj_source_mapping"]}
+    CLT_SOURCE_MAPPING = _categorization["clt_source_mapping"]
+
+
+# Module level: carrega defaults (retrocompat com import e CLI direto)
+_init_config(_DEFAULT_BASE_DIR)
 
 
 # NOTE: All keyword data, transfer patterns, PJ/CLT mappings, and transfer
@@ -117,7 +126,7 @@ def find_longest_matching_keyword(description: str, keywords_dict: Dict[str, Lis
     return longest_category, longest_match
 
 
-def is_internal_transfer(description: str, tipo: Optional[str] = None, banco: str = "") -> bool:
+def is_internal_transfer(description: str, _tipo: Optional[str] = None, banco: str = "") -> bool:
     """
     Detect if transaction is an internal transfer.
     Conservative: only mark as internal if clearly between family accounts.
@@ -162,16 +171,9 @@ def categorize_expense(description: str) -> Optional[str]:
     return category
 
 
-def categorize_income(description: str, account_type: str = "",
-                      banco: str = "", titular: str = "") -> Optional[str]:
+def categorize_income(description: str, _account_type: str = "",
+                      _banco: str = "", _titular: str = "") -> Optional[str]:
     """Categorize a credit transaction as income."""
-    norm_desc = normalize_text(description)
-    norm_titular = normalize_text(titular)
-    norm_banco = normalize_text(banco)
-
-    # All income categorization is driven by config keywords in categorization.json
-    # (income_keywords.receita_aluguel has GRPQA, RECEB PAGFOR GRPQA, etc.)
-    # (income_keywords.receita_clt has SOCIEDADE BENEFICENTE ISRAELITA, *3221, etc.)
     category, _ = find_longest_matching_keyword(description, INCOME_KEYWORDS)
     return category
 
@@ -916,13 +918,16 @@ def generate_qa_log(despesas: List[Dict], log_path: Path) -> None:
 # MAIN ENTRY POINT
 # ============================================================================
 
-def main():
+def main(root_dir: Path = None):
     """Main processing function."""
+    if root_dir:
+        _init_config(root_dir)
+
+    base_dir = _BASE_DIR
+
     print("[E4.0] Starting E4 Categorization Stage...")
 
     # Setup paths
-    scripts_dir = Path(__file__).parent
-    base_dir = scripts_dir.parent
     processed_dir = base_dir / "processed"
     input_dir = processed_dir / "E3_reconciled"
     output_dir = processed_dir / "E4_unified"

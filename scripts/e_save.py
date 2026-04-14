@@ -28,7 +28,6 @@ Date: 2026-04-05
 """
 
 import argparse
-import re
 import subprocess
 import sys
 from pathlib import Path

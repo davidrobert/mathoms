@@ -1,5 +1,5 @@
 {
-  "consolidation_date": "2026-04-10T15:17:56.542510-03:00",
+  "consolidation_date": "2026-04-13T17:39:48.724255-03:00",
   "periodo": "2023-01 a 2026-04",
   "categorias": [
     "outras_receitas",
@@ -15,13 +15,13 @@
   "total_transacoes": 681,
   "totais_por_categoria": {
     "outras_receitas": 458325.7800000005,
-    "receita_investimento": 14565.170000000011,
-    "receita_resgate": 27416.699999999997,
-    "receita_aluguel": 173662.92999999993,
-    "receita_clt": 1165140.9200000002,
+    "receita_investimento": 14565.170000000007,
     "receita_pj": 614624.88,
-    "receita_venda_ativo": 49402.0,
-    "receita_restituicao": 16.99
+    "receita_clt": 1165140.92,
+    "receita_aluguel": 173662.92999999993,
+    "receita_resgate": 27416.699999999997,
+    "receita_restituicao": 16.99,
+    "receita_venda_ativo": 49402.0
   },
   "total_geral": 2503155.37,
   "dados": {
@@ -1073,17 +1073,6 @@
       },
       {
         "data": "2025-03-07",
-        "descricao": "Pix recebido de Douglas Camargo de Campos",
-        "valor": 100.0,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-03-07",
         "descricao": "Rent",
         "valor": 0.97,
         "banco": "Bradesco",
@@ -1091,6 +1080,17 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-03-07",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -1315,17 +1315,6 @@
       },
       {
         "data": "2025-05-20",
-        "descricao": "Rent",
-        "valor": 0.13,
-        "banco": "Bradesco",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-20",
         "descricao": "Outros",
         "valor": 17.55,
         "banco": "C6 Bank",
@@ -1334,6 +1323,17 @@
         "tipo_conta": "extratocontaglobalusd",
         "titular": "david",
         "moeda": "USD"
+      },
+      {
+        "data": "2025-05-20",
+        "descricao": "Rent",
+        "valor": 0.13,
+        "banco": "Bradesco",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
       },
       {
         "data": "2025-05-22",
@@ -1370,17 +1370,6 @@
       },
       {
         "data": "2025-06-03",
-        "descricao": "Pix recebido de Douglas Camargo de Campos",
-        "valor": 100.0,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-03",
         "descricao": "Rent",
         "valor": 0.24,
         "banco": "Bradesco",
@@ -1388,6 +1377,17 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-03",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -1469,17 +1469,6 @@
       },
       {
         "data": "2025-07-02",
-        "descricao": "Pix recebido de Douglas Camargo de Campos",
-        "valor": 100.0,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-02",
         "descricao": "Rent",
         "valor": 0.09,
         "banco": "Bradesco",
@@ -1487,6 +1476,17 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-02",
+        "descricao": "Pix recebido de Douglas Camargo de Campos",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -1689,6 +1689,17 @@
       },
       {
         "data": "2025-08-29",
+        "descricao": "Outros",
+        "valor": 100.0,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
+      },
+      {
+        "data": "2025-08-29",
         "descricao": "Rent",
         "valor": 0.08,
         "banco": "Bradesco",
@@ -1708,17 +1719,6 @@
         "tipo_conta": "extratoconta",
         "titular": "mariana",
         "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-29",
-        "descricao": "Outros",
-        "valor": 100.0,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
       },
       {
         "data": "2025-09-04",
@@ -1931,28 +1931,6 @@
       },
       {
         "data": "2025-09-30",
-        "descricao": "Pix estornado",
-        "valor": 251.65,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
-        "descricao": "Pix estornado",
-        "valor": 251.65,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
         "descricao": "Rent",
         "valor": 1.93,
         "banco": "Bradesco",
@@ -1960,6 +1938,28 @@
         "origem": "Outras Receitas",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "Pix estornado",
+        "valor": 251.65,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "Pix estornado",
+        "valor": 251.65,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -2096,14 +2096,14 @@
       },
       {
         "data": "2025-11-24",
-        "descricao": "C6TAG PEDAG ESTORNO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
-        "valor": 8.1,
+        "descricao": "Outros",
+        "valor": 89.0,
         "banco": "C6 Bank",
         "categoria": "outras_receitas",
         "origem": "Outras Receitas",
-        "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
+        "tipo_conta": "extratocontaglobalusd",
+        "titular": "david",
+        "moeda": "USD"
       },
       {
         "data": "2025-11-24",
@@ -2118,17 +2118,6 @@
       },
       {
         "data": "2025-11-24",
-        "descricao": "Outros",
-        "valor": 89.0,
-        "banco": "C6 Bank",
-        "categoria": "outras_receitas",
-        "origem": "Outras Receitas",
-        "tipo_conta": "extratocontaglobalusd",
-        "titular": "david",
-        "moeda": "USD"
-      },
-      {
-        "data": "2025-11-24",
         "descricao": "Estorno Tarifa",
         "valor": -98.0,
         "banco": "C6 Bank",
@@ -2136,6 +2125,17 @@
         "origem": "Outras Receitas",
         "tipo_conta": "faturacarbon",
         "titular": "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-24",
+        "descricao": "C6TAG PEDAG ESTORNO — GDK6A27-ECOPISTAS AYRTON SENNA E CARVALH",
+        "valor": 8.1,
+        "banco": "C6 Bank",
+        "categoria": "outras_receitas",
+        "origem": "Outras Receitas",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       },
       {
@@ -3264,17 +3264,6 @@
       },
       {
         "data": "2025-01-14",
-        "descricao": "REND PAGO APLIC AUT MAIS",
-        "valor": 7.34,
-        "banco": "Itaú",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-01-14",
         "descricao": "Rendimentos",
         "valor": 23.87,
         "banco": "Bradesco",
@@ -3282,6 +3271,17 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratopoupanca",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-14",
+        "descricao": "REND PAGO APLIC AUT MAIS",
+        "valor": 7.34,
+        "banco": "Itaú",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
         "moeda": "BRL"
       },
       {
@@ -3330,17 +3330,6 @@
       },
       {
         "data": "2025-02-03",
-        "descricao": "REND PAGO APLIC AUT MAIS",
-        "valor": 2.2,
-        "banco": "Itaú",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-02-03",
         "descricao": "Rendimentos",
         "valor": 45.54,
         "banco": "Bradesco",
@@ -3348,6 +3337,17 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratopoupanca",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-02-03",
+        "descricao": "REND PAGO APLIC AUT MAIS",
+        "valor": 2.2,
+        "banco": "Itaú",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
         "moeda": "BRL"
       },
       {
@@ -3836,17 +3836,6 @@
       },
       {
         "data": "2025-07-07",
-        "descricao": "REND PAGO APLIC AUT MAIS",
-        "valor": 0.42,
-        "banco": "Itaú",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-07",
         "descricao": "Rendimentos",
         "valor": 28.81,
         "banco": "Bradesco",
@@ -3854,6 +3843,17 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratopoupanca",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-07",
+        "descricao": "REND PAGO APLIC AUT MAIS",
+        "valor": 0.42,
+        "banco": "Itaú",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
         "moeda": "BRL"
       },
       {
@@ -3913,17 +3913,6 @@
       },
       {
         "data": "2025-08-05",
-        "descricao": "REND PAGO APLIC AUT MAIS",
-        "valor": 0.1,
-        "banco": "Itaú",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-05",
         "descricao": "Rendimentos",
         "valor": 29.01,
         "banco": "Bradesco",
@@ -3931,6 +3920,17 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratopoupanca",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-05",
+        "descricao": "REND PAGO APLIC AUT MAIS",
+        "valor": 0.1,
+        "banco": "Itaú",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
         "moeda": "BRL"
       },
       {
@@ -4001,17 +4001,6 @@
       },
       {
         "data": "2025-09-05",
-        "descricao": "REND PAGO APLIC AUT MAIS",
-        "valor": 0.18,
-        "banco": "Itaú",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-05",
         "descricao": "Rendimentos",
         "valor": 29.38,
         "banco": "Bradesco",
@@ -4019,6 +4008,17 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratopoupanca",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-05",
+        "descricao": "REND PAGO APLIC AUT MAIS",
+        "valor": 0.18,
+        "banco": "Itaú",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
         "moeda": "BRL"
       },
       {
@@ -4100,17 +4100,6 @@
       },
       {
         "data": "2025-10-06",
-        "descricao": "REND PAGO APLIC AUT MAIS",
-        "valor": 5.08,
-        "banco": "Itaú",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-06",
         "descricao": "Rendimentos",
         "valor": 29.41,
         "banco": "Bradesco",
@@ -4118,6 +4107,17 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratopoupanca",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-06",
+        "descricao": "REND PAGO APLIC AUT MAIS",
+        "valor": 5.08,
+        "banco": "Itaú",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
         "moeda": "BRL"
       },
       {
@@ -4639,17 +4639,6 @@
       },
       {
         "data": "2026-01-27",
-        "descricao": "REND PAGO APLIC AUT MAIS",
-        "valor": 0.05,
-        "banco": "Itaú",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-27",
         "descricao": "Rendimentos",
         "valor": 38.96,
         "banco": "Bradesco",
@@ -4657,6 +4646,17 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratopoupanca",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-27",
+        "descricao": "REND PAGO APLIC AUT MAIS",
+        "valor": 0.05,
+        "banco": "Itaú",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
         "moeda": "BRL"
       },
       {
@@ -4991,17 +4991,6 @@
       },
       {
         "data": "2026-02-27",
-        "descricao": "REND PAGO APLIC AUT MAIS",
-        "valor": 0.04,
-        "banco": "Itaú",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-27",
         "descricao": "Rendimentos",
         "valor": 39.33,
         "banco": "Bradesco",
@@ -5009,6 +4998,17 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratopoupanca",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-27",
+        "descricao": "REND PAGO APLIC AUT MAIS",
+        "valor": 0.04,
+        "banco": "Itaú",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
         "moeda": "BRL"
       },
       {
@@ -5079,17 +5079,6 @@
       },
       {
         "data": "2026-03-05",
-        "descricao": "REND PAGO APLIC AUT MAIS",
-        "valor": 0.04,
-        "banco": "Itaú",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-05",
         "descricao": "Rendimentos",
         "valor": 13.59,
         "banco": "Bradesco",
@@ -5097,6 +5086,17 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratopoupanca",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-05",
+        "descricao": "REND PAGO APLIC AUT MAIS",
+        "valor": 0.04,
+        "banco": "Itaú",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
         "moeda": "BRL"
       },
       {
@@ -5145,17 +5145,6 @@
       },
       {
         "data": "2026-03-10",
-        "descricao": "LIQ BOLSA (CREDITO MARGEM EM DINHEIRO",
-        "valor": 382.55,
-        "banco": "BTG Pactual",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-10",
         "descricao": "REND PAGO APLIC AUT MAIS",
         "valor": 0.31,
         "banco": "Itaú",
@@ -5163,6 +5152,17 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratoconta",
         "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-10",
+        "descricao": "LIQ BOLSA (CREDITO MARGEM EM DINHEIRO",
+        "valor": 382.55,
+        "banco": "BTG Pactual",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
         "moeda": "BRL"
       },
       {
@@ -5233,28 +5233,6 @@
       },
       {
         "data": "2026-03-16",
-        "descricao": "CUPOM - CRA FS AGRISOLUTIONS - Venc.: 2030-06-",
-        "valor": 80.05,
-        "banco": "BTG Pactual",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-16",
-        "descricao": "CUPOM - CRA ELDORADO - Venc.: 2040-09-17",
-        "valor": 1013.67,
-        "banco": "BTG Pactual",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-16",
         "descricao": "Rendimentos",
         "valor": 27.53,
         "banco": "Bradesco",
@@ -5273,6 +5251,28 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratopoupanca",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-16",
+        "descricao": "CUPOM - CRA FS AGRISOLUTIONS - Venc.: 2030-06-",
+        "valor": 80.05,
+        "banco": "BTG Pactual",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-16",
+        "descricao": "CUPOM - CRA ELDORADO - Venc.: 2040-09-17",
+        "valor": 1013.67,
+        "banco": "BTG Pactual",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
         "moeda": "BRL"
       },
       {
@@ -5475,17 +5475,6 @@
       },
       {
         "data": "2026-03-27",
-        "descricao": "REND PAGO APLIC AUT MAIS",
-        "valor": 0.04,
-        "banco": "Itaú",
-        "categoria": "receita_investimento",
-        "origem": "Rendimentos Financeiros",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-27",
         "descricao": "Rendimentos",
         "valor": 29.03,
         "banco": "Bradesco",
@@ -5493,6 +5482,17 @@
         "origem": "Rendimentos Financeiros",
         "tipo_conta": "extratopoupanca",
         "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-27",
+        "descricao": "REND PAGO APLIC AUT MAIS",
+        "valor": 0.04,
+        "banco": "Itaú",
+        "categoria": "receita_investimento",
+        "origem": "Rendimentos Financeiros",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
         "moeda": "BRL"
       },
       {
@@ -5529,192 +5529,799 @@
         "moeda": "BRL"
       }
     ],
-    "receita_resgate": [
+    "receita_pj": [
       {
-        "data": "2024-01-22",
-        "descricao": "RESGATE DE CDB",
-        "valor": 25000.64,
+        "data": "2025-05-30",
+        "descricao": "Pix recebido de BRANDLOVRS LTDA.",
+        "valor": 7000.0,
         "banco": "C6 Bank",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
+        "categoria": "receita_pj",
+        "origem": "BrandLovers (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-02",
+        "descricao": "Pix recebido de BARTE BRASIL LTDA.",
+        "valor": 10000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Barte (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-20",
+        "descricao": "Pix recebido de BRANDLOVRS LTDA.",
+        "valor": 10000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "BrandLovers (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-15",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NFS 25",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "CNRY (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-29",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NF 26",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "CNRY (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-26",
+        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NFS 27",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "CNRY (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-22",
+        "descricao": "Pix recebido de BARTE BRASIL LTDA.",
+        "valor": 30000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Barte (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "Pix recebido de BRANDLOVRS LTDA",
+        "valor": 40000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "BrandLovers (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 38333.33,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-30",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 50000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-31",
+        "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
+        "valor": 500.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Learn To Fly (David - PJ)",
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
       },
       {
-        "data": "2025-08-28",
-        "descricao": "RESGATE DE CDB VENC",
-        "valor": 2408.14,
+        "data": "2025-11-27",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — 13 Salário",
+        "valor": 8333.33,
         "banco": "C6 Bank",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-28",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 46624.29,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-19",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — 13 Salário",
+        "valor": 8333.33,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-29",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 46624.29,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-09",
+        "descricao": "Pix recebido de BRANDLOVERS LTDA",
+        "valor": 20000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "BrandLovers (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-30",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 47208.77,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-05",
+        "descricao": "Pix recebido de ARBITRALIS S.A. — mentoria desenvolvimento Arbi",
+        "valor": 3500.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arbitralis (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-27",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 47208.77,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
         "titular": null,
         "moeda": "BRL"
       },
       {
         "data": "2026-03-09",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.73,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
+        "descricao": "Pix recebido de ARBITRALIS S.A. — Total de mentorias realizadas: 4Valor unitário: R 500,00Total a pagar: R 2.000,00Período faturado: 25022026  05032026",
+        "valor": 2000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arbitralis (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-12",
+        "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
+        "valor": 1750.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Learn To Fly (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-20",
+        "descricao": "Pix recebido de BRANDLOVERS LTDA",
+        "valor": 30000.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "BrandLovers (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-30",
+        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
+        "valor": 47208.77,
+        "banco": "C6 Bank",
+        "categoria": "receita_pj",
+        "origem": "Arvo (David - PJ)",
+        "tipo_conta": "extratocontapj",
+        "titular": null,
+        "moeda": "BRL"
+      }
+    ],
+    "receita_clt": [
+      {
+        "data": "2024-07-02",
+        "descricao": "PIX TRANSF Kiwify 02/07",
+        "valor": 28994.42,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
         "tipo_conta": "extratoconta",
-        "titular": "mariana",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-08-02",
+        "descricao": "PIX TRANSF  KIWIFY 02/08",
+        "valor": 61861.08,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-09-04",
+        "descricao": "PIX TRANSF  KIWIFY 04/09",
+        "valor": 61861.08,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-10-02",
+        "descricao": "PIX TRANSF  KIWIFY 02/10",
+        "valor": 61861.08,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-11-01",
+        "descricao": "PIX TRANSF Kiwify 01/11",
+        "valor": 63118.23,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-11-19",
+        "descricao": "PIX TRANSF Kiwify 19/11",
+        "valor": 21394.5,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-12-03",
+        "descricao": "PIX TRANSF Kiwify 03/12",
+        "valor": 62146.13,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2024-12-11",
+        "descricao": "PIX TRANSF Kiwify 11/12",
+        "valor": 9864.61,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-03",
+        "descricao": "PIX TRANSF  KIWIFY 03/01",
+        "valor": 62146.13,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-01-31",
+        "descricao": "tr Sal p/poup",
+        "valor": 3535.83,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-02-04",
+        "descricao": "PIX TRANSF Kiwify 04/02",
+        "valor": 62119.13,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-02-14",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-02-28",
+        "descricao": "tr Sal p/poup Faça recargas em seu celular pré-pago.",
+        "valor": 3483.62,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-03-05",
+        "descricao": "PIX TRANSF  KIWIFY 05/03",
+        "valor": 62119.13,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-03-14",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-03-31",
+        "descricao": "tr Sal p/poup",
+        "valor": 6598.53,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-03",
+        "descricao": "PIX TRANSF  KIWIFY 03/04",
+        "valor": 62119.13,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-04-30",
+        "descricao": "tr Sal p/poup",
+        "valor": 3574.83,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-02",
+        "descricao": "PIX TRANSF  KIWIFY 02/05",
+        "valor": 62131.86,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-09",
+        "descricao": "PIX TRANSF  KIWIFY 09/05",
+        "valor": 289774.39,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-05-30",
+        "descricao": "tr Sal p/poup",
+        "valor": 3778.33,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-05",
+        "descricao": "tr Sal p/poup",
+        "valor": 4282.7,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-13",
+        "descricao": "tr Sal p/poup",
+        "valor": 2759.72,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-18",
+        "descricao": "PIX TRANSF Kiwify 18/06",
+        "valor": 55450.71,
+        "banco": "Itaú",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-06-30",
+        "descricao": "tr Sal p/poup",
+        "valor": 2997.28,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-07-31",
+        "descricao": "tr Sal p/poup",
+        "valor": 3777.75,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4139.58,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-08-29",
+        "descricao": "tr Sal p/poup",
+        "valor": 4241.08,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4359.8,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-09-30",
+        "descricao": "tr Sal p/poup",
+        "valor": 3954.66,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4359.8,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-10-31",
+        "descricao": "tr Sal p/poup",
+        "valor": 5196.53,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-14",
+        "descricao": "tr Sal p/poup",
+        "valor": 4359.8,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-27",
+        "descricao": "tr Sal p/poup",
+        "valor": 5769.9,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-11-28",
+        "descricao": "tr Sal p/poup",
+        "valor": 9532.78,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 2179.9,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-19",
+        "descricao": "tr Sal p/poup",
+        "valor": 2741.19,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-22",
+        "descricao": "Pix recebido de Kiwify Pagamentos, Tecnologia e Servicos Ltda",
+        "valor": 2863.38,
+        "banco": "C6 Bank",
+        "categoria": "receita_clt",
+        "origem": "Kiwify (David - CLT)",
+        "tipo_conta": "extratoconta",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2025-12-29",
+        "descricao": "tr Sal p/poup",
+        "valor": 2848.01,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-15",
+        "descricao": "tr Sal p/poup",
+        "valor": 4359.8,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-01-30",
+        "descricao": "tr Sal p/poup",
+        "valor": 3902.36,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-05",
+        "descricao": "tr Sal p/poup",
+        "valor": 2326.29,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-13",
+        "descricao": "tr Sal p/poup",
+        "valor": 3633.17,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-02-27",
+        "descricao": "tr Sal p/poup",
+        "valor": 3425.41,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
         "moeda": "BRL"
       },
       {
         "data": "2026-03-13",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.18,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-13",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.49,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-16",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 1.06,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-18",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.24,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-19",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.15,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-23",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 1.27,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-25",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.56,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-25",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.55,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-25",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.04,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-25",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.38,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-25",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 1.35,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-25",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.01,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-25",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.02,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-25",
-        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
-        "valor": 0.89,
-        "banco": "BTG Pactual",
-        "categoria": "receita_resgate",
-        "origem": "Resgates",
-        "tipo_conta": "extratoconta",
-        "titular": "mariana",
+        "descricao": "tr Sal p/poup",
+        "valor": 4359.8,
+        "banco": "Bradesco",
+        "categoria": "receita_clt",
+        "origem": "Einstein (Mariana - CLT)",
+        "tipo_conta": "extratopoupanca",
+        "titular": null,
         "moeda": "BRL"
       }
     ],
@@ -6710,812 +7317,192 @@
         "moeda": "BRL"
       }
     ],
-    "receita_clt": [
+    "receita_resgate": [
       {
-        "data": "2024-07-02",
-        "descricao": "PIX TRANSF Kiwify 02/07",
-        "valor": 28994.42,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-08-02",
-        "descricao": "PIX TRANSF  KIWIFY 02/08",
-        "valor": 61861.08,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-09-04",
-        "descricao": "PIX TRANSF  KIWIFY 04/09",
-        "valor": 61861.08,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-10-02",
-        "descricao": "PIX TRANSF  KIWIFY 02/10",
-        "valor": 61861.08,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-11-01",
-        "descricao": "PIX TRANSF Kiwify 01/11",
-        "valor": 63118.23,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-11-19",
-        "descricao": "PIX TRANSF Kiwify 19/11",
-        "valor": 21394.5,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-12-03",
-        "descricao": "PIX TRANSF Kiwify 03/12",
-        "valor": 62146.13,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2024-12-11",
-        "descricao": "PIX TRANSF Kiwify 11/12",
-        "valor": 9864.61,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-01-03",
-        "descricao": "PIX TRANSF  KIWIFY 03/01",
-        "valor": 62146.13,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-01-15",
-        "descricao": "tr Sal p/poup",
-        "valor": 4139.58,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-01-31",
-        "descricao": "tr Sal p/poup",
-        "valor": 3535.83,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-02-04",
-        "descricao": "PIX TRANSF Kiwify 04/02",
-        "valor": 62119.13,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-02-14",
-        "descricao": "tr Sal p/poup",
-        "valor": 4139.58,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-02-28",
-        "descricao": "tr Sal p/poup Faça recargas em seu celular pré-pago.",
-        "valor": 3483.62,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-03-05",
-        "descricao": "PIX TRANSF  KIWIFY 05/03",
-        "valor": 62119.13,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-03-14",
-        "descricao": "tr Sal p/poup",
-        "valor": 4139.58,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-03-31",
-        "descricao": "tr Sal p/poup",
-        "valor": 6598.53,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-03",
-        "descricao": "PIX TRANSF  KIWIFY 03/04",
-        "valor": 62119.13,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-15",
-        "descricao": "tr Sal p/poup",
-        "valor": 4139.58,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-04-30",
-        "descricao": "tr Sal p/poup",
-        "valor": 3574.83,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-02",
-        "descricao": "PIX TRANSF  KIWIFY 02/05",
-        "valor": 62131.86,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-09",
-        "descricao": "PIX TRANSF  KIWIFY 09/05",
-        "valor": 289774.39,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-15",
-        "descricao": "tr Sal p/poup",
-        "valor": 4139.58,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-05-30",
-        "descricao": "tr Sal p/poup",
-        "valor": 3778.33,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-05",
-        "descricao": "tr Sal p/poup",
-        "valor": 4282.7,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-13",
-        "descricao": "tr Sal p/poup",
-        "valor": 2759.72,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-18",
-        "descricao": "PIX TRANSF Kiwify 18/06",
-        "valor": 55450.71,
-        "banco": "Itaú",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
-        "tipo_conta": "extratoconta",
-        "titular": "david",
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-30",
-        "descricao": "tr Sal p/poup",
-        "valor": 2997.28,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-15",
-        "descricao": "tr Sal p/poup",
-        "valor": 4139.58,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-31",
-        "descricao": "tr Sal p/poup",
-        "valor": 3777.75,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-15",
-        "descricao": "tr Sal p/poup",
-        "valor": 4139.58,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-29",
-        "descricao": "tr Sal p/poup",
-        "valor": 4241.08,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-15",
-        "descricao": "tr Sal p/poup",
-        "valor": 4359.8,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
-        "descricao": "tr Sal p/poup",
-        "valor": 3954.66,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-15",
-        "descricao": "tr Sal p/poup",
-        "valor": 4359.8,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-31",
-        "descricao": "tr Sal p/poup",
-        "valor": 5196.53,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-14",
-        "descricao": "tr Sal p/poup",
-        "valor": 4359.8,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-27",
-        "descricao": "tr Sal p/poup",
-        "valor": 5769.9,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-28",
-        "descricao": "tr Sal p/poup",
-        "valor": 9532.78,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-15",
-        "descricao": "tr Sal p/poup",
-        "valor": 2179.9,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-19",
-        "descricao": "tr Sal p/poup",
-        "valor": 2741.19,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-22",
-        "descricao": "Pix recebido de Kiwify Pagamentos, Tecnologia e Servicos Ltda",
-        "valor": 2863.38,
+        "data": "2024-01-22",
+        "descricao": "RESGATE DE CDB",
+        "valor": 25000.64,
         "banco": "C6 Bank",
-        "categoria": "receita_clt",
-        "origem": "Kiwify (David - CLT)",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
         "tipo_conta": "extratoconta",
         "titular": null,
         "moeda": "BRL"
       },
       {
-        "data": "2025-12-29",
-        "descricao": "tr Sal p/poup",
-        "valor": 2848.01,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-15",
-        "descricao": "tr Sal p/poup",
-        "valor": 4359.8,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-30",
-        "descricao": "tr Sal p/poup",
-        "valor": 3902.36,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-05",
-        "descricao": "tr Sal p/poup",
-        "valor": 2326.29,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-13",
-        "descricao": "tr Sal p/poup",
-        "valor": 3633.17,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-27",
-        "descricao": "tr Sal p/poup",
-        "valor": 3425.41,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-13",
-        "descricao": "tr Sal p/poup",
-        "valor": 4359.8,
-        "banco": "Bradesco",
-        "categoria": "receita_clt",
-        "origem": "Einstein (Mariana - CLT)",
-        "tipo_conta": "extratopoupanca",
-        "titular": null,
-        "moeda": "BRL"
-      }
-    ],
-    "receita_pj": [
-      {
-        "data": "2025-05-30",
-        "descricao": "Pix recebido de BRANDLOVRS LTDA.",
-        "valor": 7000.0,
+        "data": "2025-08-28",
+        "descricao": "RESGATE DE CDB VENC",
+        "valor": 2408.14,
         "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "BrandLovers (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-02",
-        "descricao": "Pix recebido de BARTE BRASIL LTDA.",
-        "valor": 10000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Barte (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-06-20",
-        "descricao": "Pix recebido de BRANDLOVRS LTDA.",
-        "valor": 10000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "BrandLovers (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-15",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NFS 25",
-        "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "CNRY (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-07-29",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NF 26",
-        "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "CNRY (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-08-26",
-        "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NFS 27",
-        "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "CNRY (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-22",
-        "descricao": "Pix recebido de BARTE BRASIL LTDA.",
-        "valor": 30000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Barte (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
-        "descricao": "Pix recebido de BRANDLOVRS LTDA",
-        "valor": 40000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "BrandLovers (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-09-30",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
-        "valor": 38333.33,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-30",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
-        "valor": 50000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-10-31",
-        "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
-        "valor": 500.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Learn To Fly (David - PJ)",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
         "tipo_conta": "extratoconta",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-27",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — 13 Salário",
-        "valor": 8333.33,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-11-28",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
-        "valor": 46624.29,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-19",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — 13 Salário",
-        "valor": 8333.33,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2025-12-29",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
-        "valor": 46624.29,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-09",
-        "descricao": "Pix recebido de BRANDLOVERS LTDA",
-        "valor": 20000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "BrandLovers (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-01-30",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
-        "valor": 47208.77,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-05",
-        "descricao": "Pix recebido de ARBITRALIS S.A. — mentoria desenvolvimento Arbi",
-        "valor": 3500.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arbitralis (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-02-27",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
-        "valor": 47208.77,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
         "titular": null,
         "moeda": "BRL"
       },
       {
         "data": "2026-03-09",
-        "descricao": "Pix recebido de ARBITRALIS S.A. — Total de mentorias realizadas: 4Valor unitário: R 500,00Total a pagar: R 2.000,00Período faturado: 25022026  05032026",
-        "valor": 2000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arbitralis (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-12",
-        "descricao": "Pix recebido de LEARNTOFLY DESENVOLVIMENTO HUMANO LTDA",
-        "valor": 1750.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Learn To Fly (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-20",
-        "descricao": "Pix recebido de BRANDLOVERS LTDA",
-        "valor": 30000.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "BrandLovers (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      },
-      {
-        "data": "2026-03-30",
-        "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ",
-        "valor": 47208.77,
-        "banco": "C6 Bank",
-        "categoria": "receita_pj",
-        "origem": "Arvo (David - PJ)",
-        "tipo_conta": "extratocontapj",
-        "titular": null,
-        "moeda": "BRL"
-      }
-    ],
-    "receita_venda_ativo": [
-      {
-        "data": "2025-03-29",
-        "descricao": "Pix recebido de POMPEIA MOTOS MULTIMARCAS LTDA",
-        "valor": 49402.0,
-        "banco": "C6 Bank",
-        "categoria": "receita_venda_ativo",
-        "origem": "Venda de Ativo",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.73,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
         "tipo_conta": "extratoconta",
-        "titular": null,
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-13",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.18,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-13",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.49,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-16",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 1.06,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-18",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.24,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-19",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.15,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-23",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 1.27,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-25",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.56,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-25",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.55,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-25",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.04,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-25",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.38,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-25",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 1.35,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-25",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.01,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-25",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.02,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
+        "moeda": "BRL"
+      },
+      {
+        "data": "2026-03-25",
+        "descricao": "CONTA REMUNERADA - RESGATE REMUNERAÇÃO -",
+        "valor": 0.89,
+        "banco": "BTG Pactual",
+        "categoria": "receita_resgate",
+        "origem": "Resgates",
+        "tipo_conta": "extratoconta",
+        "titular": "mariana",
         "moeda": "BRL"
       }
     ],
@@ -7529,6 +7516,19 @@
         "origem": "Restituições",
         "tipo_conta": "extratoconta",
         "titular": "mariana",
+        "moeda": "BRL"
+      }
+    ],
+    "receita_venda_ativo": [
+      {
+        "data": "2025-03-29",
+        "descricao": "Pix recebido de POMPEIA MOTOS MULTIMARCAS LTDA",
+        "valor": 49402.0,
+        "banco": "C6 Bank",
+        "categoria": "receita_venda_ativo",
+        "origem": "Venda de Ativo",
+        "tipo_conta": "extratoconta",
+        "titular": null,
         "moeda": "BRL"
       }
     ]

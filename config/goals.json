@@ -92,13 +92,13 @@
 
   "riscos_prioritarios": [
     {"nome": "Falta de seguro de vida/invalidez", "prob": "alta", "impacto": "crítico"},
-    {"nome": "FBAR/FATCA compliance", "prob": "alta", "impacto": "alto"},
-    {"nome": "Estate Tax non-resident", "prob": "média", "impacto": "alto"},
-    {"nome": "Tributação PFIC sobre fundos BR", "prob": "média", "impacto": "alto"},
-    {"nome": "Concentração PJ (cliente único)", "prob": "média", "impacto": "alto"},
-    {"nome": "Dupla tributação BR-EUA", "prob": "média", "impacto": "médio"},
-    {"nome": "Iliquidez patrimonial (imóveis 57%)", "prob": "alta", "impacto": "médio"},
-    {"nome": "Exposição cambial insuficiente", "prob": "alta", "impacto": "médio"}
+    {"nome": "Concentração PJ (cliente único ~80%)", "prob": "alta", "impacto": "alto"},
+    {"nome": "Tributação PFIC sobre fundos BR", "prob": "alta", "impacto": "alto"},
+    {"nome": "FBAR/FATCA compliance", "prob": "média", "impacto": "alto"},
+    {"nome": "Iliquidez patrimonial (imóveis 62%)", "prob": "alta", "impacto": "alto"},
+    {"nome": "Ausência de planejamento sucessório", "prob": "alta", "impacto": "médio"},
+    {"nome": "Exposição cambial insuficiente", "prob": "alta", "impacto": "médio"},
+    {"nome": "Estate Tax non-resident", "prob": "média", "impacto": "médio"}
   ],
 
   "viagens": {

@@ -1,0 +1,45 @@
+{
+  "members": [
+    {
+      "key": "david",
+      "full_name": "David Ferreira Campos",
+      "short_name": "David",
+      "cpf": "12345678901",
+      "birth_date": "1985-03-15",
+      "role": "titular",
+      "accounts": [
+        {
+          "institution_code": "itau",
+          "account_type": "extratoconta",
+          "agency": "1234",
+          "account_number": "56789"
+        },
+        {
+          "institution_code": "c6bank",
+          "account_type": "extratoconta",
+          "agency": null,
+          "account_number": null
+        }
+      ]
+    },
+    {
+      "key": "mariana",
+      "full_name": "Mariana Silva Campos",
+      "short_name": "Mariana",
+      "cpf": "98765432100",
+      "birth_date": "1987-07-22",
+      "role": "conjuge",
+      "accounts": [
+        {
+          "institution_code": "nubank",
+          "account_type": "cartao_credito",
+          "agency": null,
+          "account_number": null
+        }
+      ]
+    }
+  ],
+  "titular_key": "david",
+  "confidence": 0.95,
+  "notes": "Extracted from IRPF 2024 declaration and bank statements"
+}

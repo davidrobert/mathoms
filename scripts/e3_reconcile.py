@@ -30,63 +30,69 @@ from typing import Dict, List, Tuple, Optional, Any
 # Configuration & Types
 # =============================================================================
 
-# Load account type equivalences from config (for cross-type deduplication)
-def _load_account_type_equivalences() -> Dict[str, str]:
-    """Load account type alias mappings from family_members.json."""
-    config_path = Path(__file__).resolve().parent.parent / 'config' / 'family_members.json'
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        return data.get('account_type_equivalences', {})
-    except Exception:
-        return {}
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
-ACCOUNT_TYPE_EQUIVALENCES = _load_account_type_equivalences()
 
-# ---------------------------------------------------------------------------
-# Config loader — pipeline.json
-# ---------------------------------------------------------------------------
-def _load_json_config(path: Path, label: str = "") -> dict:
+def _load_json_safe(path: Path) -> dict:
+    """Load a JSON file safely, returning {} on any error."""
     if path.exists():
         try:
             with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception as e:
-            print(f"  ⚠️  Error loading {label or path.name}: {e}")
-    else:
-        print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
+        except Exception:
+            pass
     return {}
 
-_BASE_DIR = Path(__file__).resolve().parent.parent
-PIPE_CONFIG = _load_json_config(_BASE_DIR / "config" / "pipeline.json", "pipeline.json")
-_recon_cfg = PIPE_CONFIG.get("reconciliation", {})
 
-# File types that should be skipped (not transaction-bearing accounts) — from config
-SKIP_TYPES = set(_recon_cfg.get("skip_types", [])) or {
-    'investimentosposicao', 'carteirarendafixa', 'cdbdetalhes', 'cdbresumo',
-    'faturaaluguel', 'informerendimentos', 'irpf',
-}
+def _init_config(base_dir: Path) -> None:
+    """(Re)carrega paths e configs a partir de um root_dir.
 
-# Special files to skip — from config
-SKIP_FILES = set(_recon_cfg.get("skip_files", [])) or {
-    'baseline_patrimonial-1.5_consolidated.json',
-    'dados_imoveis-2_extract.json',
-}
+    Chamado no module level com default, e por main(root_dir=...) quando injetado.
+    """
+    global _BASE_DIR, ACCOUNT_TYPE_EQUIVALENCES, PIPE_CONFIG
+    global _BANCO_DISPLAY_TO_CANONICAL
+    global SKIP_TYPES, SKIP_FILES, TIPO_CANONICAL
+    global _TOLERANCE_SALDO_DIFF, _TOLERANCE_GAP_DAYS, _TOLERANCE_BASELINE_DIFF
 
-# Mapping from tipo to a canonical form for output (tipo_conta field) — from config
-TIPO_CANONICAL = _recon_cfg.get("tipo_canonical", {}) or {
-    'extratoconta': 'extratoconta', 'extratocontapj': 'extratocontapj',
-    'extratocontapersonnalite': 'extratocontapersonnalite',
-    'extratopoupanca': 'extratopoupanca', 'extratocontaglobal': 'extratocontaglobal',
-    'extratocontaglobalusd': 'extratocontaglobalusd', 'extratocontaglobaleur': 'extratocontaglobaleur',
-    'faturacarbon': 'faturacarbon', 'faturaunique': 'faturaunique', 'faturapaoacucar': 'faturapaoacucar',
-}
+    _BASE_DIR = base_dir
+    config_dir = base_dir / "config"
 
-# Tolerances — from config
-_tolerances = _recon_cfg.get("tolerances", {})
-_TOLERANCE_SALDO_DIFF = _tolerances.get("saldo_diff", 0.01)
-_TOLERANCE_GAP_DAYS = _tolerances.get("temporal_gap_days", 2)
-_TOLERANCE_BASELINE_DIFF = _tolerances.get("baseline_irpf_diff", 1.0)
+    family_data = _load_json_safe(config_dir / "family_members.json")
+    ACCOUNT_TYPE_EQUIVALENCES = family_data.get("account_type_equivalences", {})
+
+    PIPE_CONFIG = _load_json_safe(config_dir / "pipeline.json")
+
+    inst_data = _load_json_safe(config_dir / "institutions.json")
+    _BANCO_DISPLAY_TO_CANONICAL = {}
+    for code, display in inst_data.get("banco_canonical", {}).items():
+        _BANCO_DISPLAY_TO_CANONICAL[display.lower()] = code
+
+    _recon_cfg = PIPE_CONFIG.get("reconciliation", {})
+
+    SKIP_TYPES = set(_recon_cfg.get("skip_types", [])) or {
+        'investimentosposicao', 'carteirarendafixa', 'cdbdetalhes', 'cdbresumo',
+        'faturaaluguel', 'informerendimentos', 'irpf',
+    }
+    SKIP_FILES = set(_recon_cfg.get("skip_files", [])) or {
+        'baseline_patrimonial-1.5_consolidated.json',
+        'dados_imoveis-2_extract.json',
+    }
+    TIPO_CANONICAL = _recon_cfg.get("tipo_canonical", {}) or {
+        'extratoconta': 'extratoconta', 'extratocontapj': 'extratocontapj',
+        'extratocontapersonnalite': 'extratocontapersonnalite',
+        'extratopoupanca': 'extratopoupanca', 'extratocontaglobal': 'extratocontaglobal',
+        'extratocontaglobalusd': 'extratocontaglobalusd', 'extratocontaglobaleur': 'extratocontaglobaleur',
+        'faturacarbon': 'faturacarbon', 'faturaunique': 'faturaunique', 'faturapaoacucar': 'faturapaoacucar',
+    }
+
+    _tolerances = _recon_cfg.get("tolerances", {})
+    _TOLERANCE_SALDO_DIFF = _tolerances.get("saldo_diff", 0.01)
+    _TOLERANCE_GAP_DAYS = _tolerances.get("temporal_gap_days", 2)
+    _TOLERANCE_BASELINE_DIFF = _tolerances.get("baseline_irpf_diff", 1.0)
+
+
+# Module level: carrega defaults (retrocompat com import e CLI direto)
+_init_config(_DEFAULT_BASE_DIR)
 
 
 # =============================================================================
@@ -363,10 +369,12 @@ def _normalize_description_for_dedup(descricao: str) -> str:
 def transaction_signature(txn: Dict[str, Any]) -> Tuple:
     """
     Create a normalized signature for deduplication.
-    Signature = (data, valor, descricao_normalized)
+    Signature = (data, valor_rounded, descricao_normalized)
     """
     data = txn.get('data', '').strip()
     valor = txn.get('valor', 0)
+    if isinstance(valor, float):
+        valor = round(valor, 2)
     descricao = _normalize_description_for_dedup(txn.get('descricao', ''))
 
     return (data, valor, descricao)
@@ -386,45 +394,10 @@ def deduplicate_transactions(
 
     Returns: (deduplicated_list, count_removed)
     """
-    # Group transactions by signature
-    # For each signature, track: list of (txn, source_file) tuples
-    sig_groups: Dict[Tuple, List[Tuple[Dict[str, Any], str]]] = defaultdict(list)
-
-    for txn, source_file in transactions_with_sources:
-        sig = transaction_signature(txn)
-        sig_groups[sig].append((txn, source_file))
-
     deduplicated = []
     duplicates_removed = 0
 
-    for sig, group in sig_groups.items():
-        # Collect unique source files for this signature
-        seen_sources = set()
-        for txn, source_file in group:
-            if source_file not in seen_sources:
-                # First occurrence from this source file — keep it
-                seen_sources.add(source_file)
-                deduplicated.append(txn)
-            else:
-                # Same source file, same signature — this is a legitimate
-                # intra-file duplicate (e.g., two identical purchases).
-                # Keep it.
-                deduplicated.append(txn)
-
-        # Count cross-file duplicates removed:
-        # Total occurrences minus (unique sources × avg occurrences per source)
-        # Simpler: total kept = sum of per-source counts; removed = total - kept
-        # But we kept ALL within each source. So removed = total - len(deduplicated added)
-        # Actually: we kept one copy per source. Cross-file dups = extra sources.
-        # Let me recalculate: for this sig, we have N total entries across S unique sources.
-        # We keep all entries from the FIRST source we encounter, plus one from each additional.
-        # No — we keep ALL from every source. That's wrong for cross-file dedup.
-
-    # Re-approach: cleaner logic
-    deduplicated = []
-    duplicates_removed = 0
-
-    # First pass: group by (signature, source_file) to count per-file occurrences
+    # Group by (signature, source_file) to count per-file occurrences
     per_file_counts: Dict[Tuple, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
     per_file_txns: Dict[Tuple, Dict[str, List[Dict[str, Any]]]] = defaultdict(lambda: defaultdict(list))
 
@@ -905,7 +878,8 @@ def generate_output_filename(reconciled: Dict[str, Any]) -> str:
     For conta types: {banco}_{tipo_conta}_{moeda}_{YYYYMM}_{YYYYMM}-3_reconciled.json
     For fatura types: {banco}_{tipo_conta}_{YYYYMM}_{YYYYMM}-3_reconciled.json
     """
-    banco = reconciled['banco'].lower().replace(' ', '_')
+    banco_raw = reconciled['banco'].strip()
+    banco = _BANCO_DISPLAY_TO_CANONICAL.get(banco_raw.lower(), banco_raw.lower().replace(' ', ''))
     tipo_conta = reconciled['tipo_conta'].lower()
     moeda = reconciled['moeda'].upper()
 
@@ -927,15 +901,18 @@ def generate_output_filename(reconciled: Dict[str, Any]) -> str:
     return filename
 
 
-def main():
+def main(root_dir: Path = None):
     """Main reconciliation pipeline."""
+    if root_dir:
+        _init_config(root_dir)
+
+    base_dir = _BASE_DIR
+
     print("=" * 80)
     print("E3 RECONCILIATION STAGE - Deterministic Account Reconciliation")
     print("=" * 80)
 
     # Paths
-    script_dir = Path(__file__).resolve().parent
-    base_dir = script_dir.parent
     e2_dir = base_dir / 'processed' / 'E2_extracts'
     e3_dir = base_dir / 'processed' / 'E3_reconciled'
     logs_dir = base_dir / 'logs'

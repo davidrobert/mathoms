@@ -1,17 +1,16 @@
 {
-  "tipo": "cdbdetalhes",
-  "banco": "santander",
+  "source_file": "santander_cdbdetalhesdi2_202603-0_original.pdf",
+  "tipo": "investimentosposicao",
+  "instituicao": "santander",
   "membro": "david",
-  "data_posicao": "2026-03",
   "posicoes": [
     {
-      "product_type": "CDB DI",
-      "applied_value": 137409.67,
-      "current_value": 137409.67,
-      "rate": "100% CDI",
-      "maturity_date": "2028-06-05",
-      "acquisition_date": "2024-06-26"
+      "tipo": "CDB-DI",
+      "operacao": "00331652260006380267",
+      "data_contratacao": "2024-06-26",
+      "vencimento": "2028-06-05",
+      "prazo_dias": 1440,
+      "indexador": "100.00% do CDI"
     }
-  ],
-  "saldo_atual": 137409.67
+  ]
 }

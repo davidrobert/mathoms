@@ -1,102 +1,107 @@
 {
+  "source_file": "rico_investimentosposicao_202603-0_original.pdf",
   "tipo": "investimentosposicao",
-  "banco": "rico",
+  "instituicao": "rico",
   "membro": "david",
-  "data_posicao": "2026-03",
-  "moeda": "BRL",
-  "composicao": [
+  "data_referencia": "2026-03-29",
+  "conta": "674239-4",
+  "patrimonio_total": 278916.64,
+  "saldo_disponivel": 17186.4,
+  "total_investido": 261730.24,
+  "posicoes": [
     {
-      "product_type": "Fundo",
-      "name": "Alaska Block FIC de FIA - BDR NIVEL I",
-      "issuer": "Alaska",
-      "applied_value": 60000.0,
-      "current_value": 52443.66,
-      "quantity": null,
-      "rate": "Renda Variável Brasil"
+      "tipo": "FUNDO",
+      "nome": "Alaska Black FIC de FIA - BDR NÍVEL I",
+      "valor": 52443.66,
+      "pct_alocacao": 18.8,
+      "rentabilidade_liquida_pct": -13.24,
+      "valor_aplicado": 60000.0
     },
     {
-      "product_type": "Fundo",
-      "name": "Alaska Institucional Long Only FIF em Ações RL",
-      "issuer": "Alaska",
-      "applied_value": 35000.0,
-      "current_value": 52294.2,
-      "rate": "Renda Variável Brasil"
+      "tipo": "FUNDO",
+      "nome": "Alaska Institucional Long Only FIF em Ações RL",
+      "valor": 52294.2,
+      "pct_alocacao": 18.75,
+      "rentabilidade_liquida_pct": 42.0,
+      "valor_aplicado": 35000.0
     },
     {
-      "product_type": "Fundo",
-      "name": "Safari 30 FIF em Cotas de FIM II",
-      "issuer": "Safari",
-      "applied_value": 25238.59,
-      "current_value": 16613.5,
-      "rate": "Renda Variável Brasil"
+      "tipo": "FUNDO",
+      "nome": "Safari 30 FIF em Cotas de FIM II",
+      "valor": 16613.5,
+      "pct_alocacao": 5.96,
+      "rentabilidade_liquida_pct": -34.17,
+      "valor_aplicado": 25238.59
     },
     {
-      "product_type": "Fundo",
-      "name": "Constellation Institucional Advisory FIC de Ações RL",
-      "issuer": "Constellation",
-      "applied_value": 10000.0,
-      "current_value": 12585.32,
-      "rate": "Renda Variável Brasil"
+      "tipo": "FUNDO",
+      "nome": "Constellation Institucional Advisory FIC de Ações RL",
+      "valor": 12585.32,
+      "pct_alocacao": 4.51,
+      "rentabilidade_liquida_pct": 24.09,
+      "valor_aplicado": 10000.0
     },
     {
-      "product_type": "Fundo",
-      "name": "Western Asset BDR FIF",
-      "issuer": "Western Asset",
-      "applied_value": 17651.61,
-      "current_value": 25913.09,
-      "rate": "Renda Variável Global"
+      "tipo": "FUNDO",
+      "nome": "Western Asset BDR FIF",
+      "valor": 25913.09,
+      "pct_alocacao": 9.29,
+      "rentabilidade_liquida_pct": 39.78,
+      "valor_aplicado": 17651.61
     },
     {
-      "product_type": "Fundo",
-      "name": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
-      "issuer": "Hashdex",
-      "applied_value": 2008.21,
-      "current_value": 3264.13,
-      "rate": "Alternativos"
+      "tipo": "FUNDO",
+      "nome": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
+      "valor": 3264.13,
+      "pct_alocacao": 1.17,
+      "rentabilidade_liquida_pct": 62.54,
+      "valor_aplicado": 2008.21
     },
     {
-      "product_type": "Fundo",
-      "name": "XP Alocação Sofisticado FIM CP RL",
-      "issuer": "XP",
-      "applied_value": 1356.59,
-      "current_value": 1576.08,
-      "rate": "Multimercado"
+      "tipo": "FUNDO",
+      "nome": "XP Alocação Sofisticada FIM CP RL",
+      "valor": 1576.08,
+      "pct_alocacao": 0.57,
+      "rentabilidade_liquida_pct": 16.18,
+      "valor_aplicado": 1356.59
     },
     {
-      "product_type": "Acao",
-      "name": "PETR4",
-      "issuer": "Petrobrás",
-      "quantity": null,
-      "unit_price": 49.38,
-      "current_value": 43946.0,
-      "pm_note": "Applied value not provided in source"
+      "tipo": "ACAO",
+      "ticker": "PETR4",
+      "quantidade": 1700,
+      "preco_unitario": 49.38,
+      "valor": 83946.0,
+      "pct_alocacao": 30.1
     },
     {
-      "product_type": "Acao",
-      "name": "ITSA4",
-      "issuer": "Itaúsa",
-      "quantity": null,
-      "unit_price": 13.22,
-      "current_value": 10285.16,
-      "pm_note": "Applied value not provided in source"
+      "tipo": "ACAO",
+      "ticker": "ITSA4",
+      "quantidade": 778,
+      "preco_unitario": 13.22,
+      "valor": 10285.16,
+      "pct_alocacao": 3.69
     },
     {
-      "product_type": "Acao",
-      "name": "BBKM5",
-      "issuer": "Brookfield Incorporadora",
-      "quantity": null,
-      "unit_price": 9.0,
-      "current_value": 2700.0,
-      "pm_note": "Applied value not provided in source"
-    },
-    {
-      "product_type": "Dividendos",
-      "name": "ITSA4 Dividendos",
-      "issuer": "Itaúsa",
-      "current_value": 109.1,
-      "pm_note": "Cash dividends from shares"
+      "tipo": "ACAO",
+      "ticker": "BRKM5",
+      "quantidade": 300,
+      "preco_unitario": 9.0,
+      "valor": 2700.0,
+      "pct_alocacao": 0.97
     }
   ],
-  "saldo_atual": 278916.64,
-  "rentabilidade_acumulada": null
+  "proventos": [
+    {
+      "ticker": "ITSA4",
+      "tipo": "JUROS SOBRE CAPITAL PROPRIO",
+      "valor_bruto": 90.24,
+      "valor_liquido": 74.45
+    },
+    {
+      "ticker": "ITSA4",
+      "tipo": "JUROS SOBRE CAPITAL PROPRIO",
+      "valor_bruto": 18.86,
+      "valor_liquido": 15.56
+    }
+  ]
 }

@@ -1,10 +1,53 @@
 # Manual de Operação — Pipeline Financeiro
 ## Família Ferreira Campos
-## Versão: 5.8 — abr/2026
+## Versão: 6.1 — abr/2026
 
 ---
 
-## CHANGELOG v1.0 → v2.0 → v2.1 → v3.0 → v3.1 → v3.2 → v4.0 → v4.1 → v4.2 → v4.3 → v4.4 → v4.5 → v4.6 → v4.7 → v4.8 → v4.9 → v5.0 → v5.0.1 → v5.1 → v5.2 → v5.3 → v5.3.1 → v5.4 → v5.5 → v5.6 → v5.7 → v5.7.1 → v5.8
+## CHANGELOG v1.0 → ... → v6.0 → v6.1
+
+### v6.0 → v6.1
+
+| Mudança | Motivo |
+|---|---|
+| **Fix: footer versão 3.1 → 6.1** | Header dizia v6.0 mas footer e Apêndices B/D ainda diziam v3.1. Unificado para v6.1. |
+| **Fix: E5.N reclassificado como determinístico no corpo** | Changelog v6.0 promoveu E5.N para determinístico, mas 6+ referências no corpo ainda diziam "LLM" (STAGE E5.N, E-reset, E-reset-from, cascata, tarefas). Corrigidas para refletir `e5n_narrativas.py` como script determinístico. |
+| **Fix: validações E6 unificadas para 19 (V1-V19)** | Referências conflitantes: 18, 19 e 20 checagens em diferentes seções. Código real implementa V1-V19. Removido V20 (não implementado em `validate_report()`). Todas as referências agora dizem 19. |
+| **Fix: tabela cascata E-reset-from — linha E7 adicionada** | `--from E7` era documentado como valor válido mas não tinha linha na tabela de cascata. |
+| **Fix: contagem E4 unified 6 → 7 arquivos** | Apêndice D e checklist não incluíam `fluxo_mensal_detalhado-4_unified.json`, documentado como output obrigatório desde v4.1. |
+| **Fix: changelog duplicado `v5.0→v5.1`** | Duas seções com o mesmo heading e conteúdo diferente. Segunda renomeada para `v5.0.1→v5.1 (cont.)`. |
+| **Fix: `e2_extract_faturas.py` removido do repositório** | Referências operacionais ainda diziam "deprecated mas funcional". Atualizado para "removido". Referências em changelog preservadas como histórico. |
+| **Novo: seção 1.1.2 — Arquivos de config operacionais** | `pipeline.json`, `categorization.json`, `family_members.json`, `passwords.txt`, `milhas.md`, `tarefas.md`, `regras_composicao_patrimonial.md` e schema não estavam documentados nos pré-requisitos. |
+| **Fix: casing `PJ_SOURCE_MAPPING` → `pj_source_mapping`** | Manual usava uppercase mas JSON real usa snake_case lowercase. 4 referências operacionais corrigidas. |
+| **Fix: changelog reordenado cronologicamente** | Bloco v1.0→v4.1 estava fora de ordem (mistura de ascendente e descendente). Reordenado para mais recente primeiro, consistente com v4.2→v6.0. |
+| **Fix: Apêndice D — `(E5)` → `(E6)`** | Output HTML é gerado por E6, não E5. |
+| **Fix: formato `[DATE]` documentado na STAGE E6** | Formato `YYYYMMDD` estava apenas no changelog v3.0→v3.1, não na seção operacional do E6. |
+| **Fix: referências "E4 JSON" → "E5 analysis JSON"** | 2 referências operacionais usavam "E4" para o artefato `analise_financeira-5_analysis.json` (que é E5). |
+| **Fix: E-full-reset intro inclui E7** | Objetivo dizia "até E6" mas pipeline vai até E6-final (após E7-review + E7-apply). |
+| **Fix: numeração duplicada seção 5.2** | Dois itens numerados "4." — segundo corrigido para "5.". |
+| **Fix: tabelas de parsers "v5.5" → referência genérica** | Versão fixa nos headings substituída por "Parsers de extratos/faturas disponíveis". |
+| **Glossário expandido** | 7 termos adicionados: Wall, Tombstone, Parse quality, Cascata, E-full-reset, State file, Determinístico. |
+
+### v5.9 → v6.0
+
+| Mudança | Motivo |
+|---|---|
+| **Novo: E-full-reset modo `--interactive`** | Pipeline completo agora pode ser orquestrado automaticamente via `--interactive` + `--continue`. O script para em 3 "walls" (etapas LLM: E1+E1.5, E2-llm, E7-review) e retoma com `--continue`. Entre walls, todas as etapas determinísticas rodam automaticamente. |
+| **Promoção: E1.5c, E5.N, E7-crossval para determinísticos** | Análise revelou que `e15_consolidate.py`, `e5n_narrativas.py` e `e7_review.py` (sem --apply) são 100% determinísticos (zero chamadas LLM). Removidos de `LLM_STAGES`, adicionados a `DETERMINISTIC_SCRIPTS`. Reduz de 6 para 4 etapas LLM. |
+| **Novo: E7 dividido em E7-crossval + E7-review + E7-apply** | E7 era monolítico. Agora: E7-crossval (det.) faz cross-validation, E7-review (LLM) preenche template, E7-apply (det.) aplica refinamentos. Permite automação parcial. |
+| **Novo: state file `_scratch/.e_reset_state.json`** | Rastreia progresso do pipeline interativo entre invocações. Inclui etapas concluídas, próxima etapa, e instruções para o agente. Limpo automaticamente ao completar. |
+| **Novo: exit code 10** | Pipeline pausado em wall LLM (não é erro). Distingue de exit 0 (sucesso) e exit 1 (falha). |
+| **Atualização: EXECUTION_ORDER_FULL** | Nova ordem: E1 → E1.5 → E1.5c → E2-llm → E2-fat → E2-ext → E3 → E4 → E5 → E5.N → E6 → E7-crossval → E7-review → E7-apply → E6-final. |
+
+### v5.8 → v5.9
+
+| Mudança | Motivo |
+|---|---|
+| **Regra: E-save EXCLUSIVAMENTE manual** | Commits e pushes eram instruídos inline em E-reset, E-reset-from, E-full-reset e Seção 5.1. O operador (LLM) podia interpretar como obrigatório e fazer commits automáticos sem solicitação do usuário. Agora: `e_save.py` é a ÚNICA forma de commit/push, e só é executado quando o operador invoca explicitamente. |
+| **Remoção: passos `git add/commit` das etapas** | Passos "Comitar estado atual via Git" e "Comitar resultado" removidos de E-reset (Passos 1 e 5), E-reset-from (Passos 1 e 5), E-full-reset (Passos 1 e 10). Substituídos por nota informando que E-save é manual. |
+| **Remoção: `git add/commit` inline da Seção 5.1** | Seção "Versionamento de arquivo" não instrui mais `git add` + `git commit` diretamente. Referencia `e_save.py` como opcional antes da sobrescrita. |
+| **Atualização: Seção 4.5.2** | "Fluxo padrão: comitar antes de alterar" reescrita para "Fluxo padrão: salvar estado via E-save", com regra explícita de que nenhuma etapa faz commit automaticamente. |
+| **Renumeração de passos** | E-reset: 5→3 passos. E-reset-from: 5→3 passos. E-full-reset: 11→9 passos. Referências internas atualizadas. |
 
 ### v5.7.1 → v5.8
 
@@ -153,7 +196,7 @@
 | **Fix: QuintoAndar skip-list invertida** | Skip-list ampla descartava itens legítimos contendo nomes de meses. Agora: match do item primeiro, rejeição apenas por descrição exata de header. +1 item recuperado. |
 | **Seção 7.1: schema fatura atualizado** | Schema antigo (com `instituicao`, `resumo{}`, `periodo{}`) divergia do output real. Atualizado para schema flat real + novo schema QuintoAndar. LLM fallback agora gera formato compatível com E3. |
 
-### v5.0 → v5.1
+### v5.0.1 → v5.1 (cont. — mudanças E3)
 
 | Mudança | Motivo |
 |---|---|
@@ -263,64 +306,6 @@
 | **Cards obrigatórios: 13 → 16** | Lista expandida de 13 para 16 cards. Numeração ajustada. |
 | **Patrimônio card inclui rodapé** | Linhas "(-) Dívidas" e "PATRIMÔNIO INVESTÍVEL" fora do array principal, como no design de referência. |
 
-### v1.0 → v2.0
-
-| Mudança | Motivo |
-|---|---|
-| **E0.B (desempacotamento ZIP) removido** | PDFs são PDFs reais, não ZIPs disfarçados. Confirmado no setup inicial (QA-5). |
-| **XLSX agora tem extração formal** | `dados_imoveis-0_original.xlsx` contém datas de compra, valores e dados cadastrais — fonte primária de patrimônio imobiliário. |
-| **Income Tax processado ANTES de Financial Statements** | Declarações IRPF são o snapshot mais completo do patrimônio e servem de baseline para validar extratos. |
-| **Sessão dedicada para IR + Imóveis** | Nova Sessão 4 (E1.5) extrai patrimônio-base antes dos extratos bancários. |
-| **Contagem atualizada: 89 arquivos (não 80)** | +7 Bradesco Poupança, +1 holerite Mariana, +1 posição Rico. |
-| **Novos tipos: `extratopoupanca`, `holerite`, `investimentosposicao` (Rico)** | Descobertos no primeiro ciclo. |
-| **Referências a "(ZIP)" removidas** | Toda menção a `pdftotext`/unzip/manifest.json eliminada. |
-
-### v2.0 → v2.1
-
-| Mudança | Motivo |
-|---|---|
-| **Remoção da separação rígida Cowork/Chat** | Qualquer ambiente (Cowork ou Chat) pode executar qualquer etapa. Execução é agnóstica ao ambiente. |
-| **Detecção inteligente de ciclo (SMART CYCLE)** | Ciclos não são mais fixos (quinzenal/trimestral). Pipeline detecta tipos de arquivo e determina quais etapas são necessárias. |
-| **Suporte a veículos (XLSX)** | Novo diretório `data/vehicles/` com tipo `dados_veiculos` e padrão `dados_veiculos-0_original.xlsx`. Extração em E1.5. |
-| **Documentos pessoais (BR e US)** | Novos tipos em `members/`: RG, CPF, passaporte, visto, certidão, SSN, drivers license, green card. Enriquecem `members-1c_enriched.md`. |
-| **Categoria "outros ativos"** | Patrimônio expandido para incluir veículos, ações, criptos, joias, arte — não só imóveis. Arquivo `patrimonio-4_unified.json` (consolidação de TODOS os ativos do IRPF). |
-| **Versionamento via Git** | Quando arquivo existente é atualizado (novo CV, novo IRPF): comitar estado atual via Git antes de sobrescrever, re-extrair. Histórico acessível via `git log`. |
-| **Tratamento de sobreposição de dados** | E2.5 reconciliação detecta duplicatas por data+amount+description, retém apenas novos. E3/E4 podem ser incrementais. |
-| **JSON schemas em apêndice** | Esquemas explícitos para -2_extract.json para cada tipo de documento. Permite execução sem memória prévia. |
-| **Seção 4 reescrita como "PIPELINE STAGES"** | Cada estágio descrito independentemente, especificando inputs/outputs/validação. Não mais amarrado a "Momento 1/2" ou "Cowork/Chat". |
-| **Diretório `data/vehicles/` adicionado** | Estrutura de diretórios atualizada. Agora 89 arquivos + veículos (se presentes). |
-| **Seção "Incremental Updates"** | Nova seção explicando como pipeline trata novos arquivos para períodos existentes, versões atualizadas, e novos tipos de arquivo. |
-| **Diagrama visual atualizado** | Apêndice com fluxo revisado refletindo detecção inteligente e processamento agnóstico. |
-| **Manual auto-contido** | Instruções explícitas para leitura de PDFs e XLSX. Schemas completos. Uma execução fresca pode rodar tudo do zero lendo apenas este manual. |
-
-### v3.0 → v3.1
-
-| Mudança | Motivo |
-|---|---|
-| **`[membro]s-1b_unified.json` corrigido para `members-1b_unified.json`** | Nome anterior gerava confusão: LLM criava arquivo por membro ao invés de consolidado único. Alinhado com Apêndice D e estado real do disco. |
-| **Contagem canvas IDs corrigida: 18 → 19** | V4 na validação E5.6 dizia 18 mas as tabelas E5.4+E5.5 somam 19 IDs distintos. Nota sobre alias `fluxo_mensal` adicionada. |
-| **Contagem chaves JSON top-level corrigida para 14** | Lista explícita das 14 chaves adicionada na validação E5.3 para evitar ambiguidade. |
-| **Schemas adicionados: currículo, holerite, seguros, analise_financeira** | Seção 7.2 com schemas formais que faltavam. O schema do E4 (`analise_financeira-5_analysis.json`) é crítico pois é o input principal do E5. |
-| **Fórmula do score financeiro especificada** | E4 item 5 agora tem média ponderada de 5 componentes com critérios 0/10 e 10/10, classificação e interpolação linear. |
-| **Critérios de tarefas e alertas adicionados** | E4 item 9 (novo) com tabelas de gatilhos para geração de tarefas (12 critérios) e alertas (8 critérios), formatos e prioridades. |
-| **Formato de [DATE] especificado** | `YYYYMMDD` sem hífens. Ex: `20260403`. Antes não documentado, causando variação entre execuções. |
-| **Tipo `faturacc` esclarecido** | Schema agora usa códigos de roteamento (`faturacarbon`, `faturaunique`, `faturapaoacucar`) em vez de genérico `faturacc`. |
-| **Instrução de origem `report_template.html` adicionada** | Nova Seção 1.1.1 explica que o template HTML não é gerado pelo pipeline — deve pré-existir ou ser fornecido pelo usuário. |
-| **Nota sobre E1.5 outputs em `E2_extracts/`** | Esclarece por que outputs de E1.5 ficam em `processed/E2_extracts/` (convenção: inputs diretos para E2). |
-| **Contagem "6 configs" esclarecida** | Agora especifica "5 em config/ + 1 em life_plan/" para evitar confusão. |
-
-### v3.1 → v3.2
-
-| Mudança | Motivo |
-|---|---|
-| **Migração para Git** | Versionamento ad-hoc (`output/archive/`, `_v1`, `.bak`, `version_log.md`) substituído por repositório Git. Todas as versões anteriores agora acessíveis via `git log` / `git show`. |
-| **Nova Seção 4.5 — Versionamento com Git** | Documenta o que está no Git, fluxo de commits, convenção de mensagens, e como recuperar versões anteriores. |
-| **`output/archive/` removido** | Diretório eliminado da estrutura. Git é o archive. |
-| **`logs/version_log.md` removido** | Substituído pelo histórico Git. Logs operacionais (inbox, run, qa, divergences, reconciliation) mantidos. |
-| **Seção 5.1 reescrita** | Fluxo de atualização de arquivos agora usa `git commit` + sobrescrita em vez de renomear com `_v1`. |
-| **E5.6 e E5-regen atualizados** | "Mover para archive" substituído por "comitar via Git antes de sobrescrever". |
-| **`.gitignore` adicionado** | Exclui `data/`, `inbox/`, `inbox_processed/`, `.DS_Store`, `.obsidian/`, e backups legados. |
-
 ### v4.0 → v4.1
 
 | Mudança | Motivo |
@@ -342,6 +327,34 @@
 | **Scripts legados depreciados** | `execute_e5.py` e `generate_e5_report.py` substituídos por `scripts/e5_render.py`. Mantidos no repositório para referência histórica. |
 | **Separação de concerns** | E4 = análise + narrativa (LLM). E5 = renderização pura (script). Debugging mais fácil: erro no texto → E4. Erro no layout → template. Erro nos dados → E2/E3/E4. |
 
+### v3.1 → v3.2
+
+| Mudança | Motivo |
+|---|---|
+| **Migração para Git** | Versionamento ad-hoc (`output/archive/`, `_v1`, `.bak`, `version_log.md`) substituído por repositório Git. Todas as versões anteriores agora acessíveis via `git log` / `git show`. |
+| **Nova Seção 4.5 — Versionamento com Git** | Documenta o que está no Git, fluxo de commits, convenção de mensagens, e como recuperar versões anteriores. |
+| **`output/archive/` removido** | Diretório eliminado da estrutura. Git é o archive. |
+| **`logs/version_log.md` removido** | Substituído pelo histórico Git. Logs operacionais (inbox, run, qa, divergences, reconciliation) mantidos. |
+| **Seção 5.1 reescrita** | Fluxo de atualização de arquivos agora usa `e_save.py` (manual) + sobrescrita em vez de renomear com `_v1`. |
+| **E5.6 e E5-regen atualizados** | "Mover para archive" substituído por "comitar via Git antes de sobrescrever". |
+| **`.gitignore` adicionado** | Exclui `data/`, `inbox/`, `inbox_processed/`, `.DS_Store`, `.obsidian/`, e backups legados. |
+
+### v3.0 → v3.1
+
+| Mudança | Motivo |
+|---|---|
+| **`[membro]s-1b_unified.json` corrigido para `members-1b_unified.json`** | Nome anterior gerava confusão: LLM criava arquivo por membro ao invés de consolidado único. Alinhado com Apêndice D e estado real do disco. |
+| **Contagem canvas IDs corrigida: 18 → 19** | V4 na validação E5.6 dizia 18 mas as tabelas E5.4+E5.5 somam 19 IDs distintos. Nota sobre alias `fluxo_mensal` adicionada. |
+| **Contagem chaves JSON top-level corrigida para 14** | Lista explícita das 14 chaves adicionada na validação E5.3 para evitar ambiguidade. |
+| **Schemas adicionados: currículo, holerite, seguros, analise_financeira** | Seção 7.2 com schemas formais que faltavam. O schema do E5 (`analise_financeira-5_analysis.json`) é crítico pois é o input principal do E6. |
+| **Fórmula do score financeiro especificada** | E4 item 5 agora tem média ponderada de 5 componentes com critérios 0/10 e 10/10, classificação e interpolação linear. |
+| **Critérios de tarefas e alertas adicionados** | E4 item 9 (novo) com tabelas de gatilhos para geração de tarefas (12 critérios) e alertas (8 critérios), formatos e prioridades. |
+| **Formato de [DATE] especificado** | `YYYYMMDD` sem hífens. Ex: `20260403`. Antes não documentado, causando variação entre execuções. |
+| **Tipo `faturacc` esclarecido** | Schema agora usa códigos de roteamento (`faturacarbon`, `faturaunique`, `faturapaoacucar`) em vez de genérico `faturacc`. |
+| **Instrução de origem `report_template.html` adicionada** | Nova Seção 1.1.1 explica que o template HTML não é gerado pelo pipeline — deve pré-existir ou ser fornecido pelo usuário. |
+| **Nota sobre E1.5 outputs em `E2_extracts/`** | Esclarece por que outputs de E1.5 ficam em `processed/E2_extracts/` (convenção: inputs diretos para E2). |
+| **Contagem "6 configs" esclarecida** | Agora especifica "5 em config/ + 1 em life_plan/" para evitar confusão. |
+
 ### v2.1 → v3.0
 
 | Mudança | Motivo |
@@ -356,6 +369,36 @@
 | **Instruções E5 para atualizações de placeholders** | E5 agora especifica que `{{COVER_DATA_HORA}}` e `{{COVER_VERSAO}}` são atualizados a cada geração de relatório; `{{COVER_PERIODO}}` atualizado quando novos arquivos processados. |
 | **Categoria "Seguros" adicionada** | `seguros-4_unified.json` agora captura prêmios, coberturas e vencimentos (extraído de faturas e holerites). |
 | **Nenhuma contagem hardcoded** | Removidas referências a "89 arquivos", "77 arquivos", etc. Texto agora genérico: "todos os arquivos detectados" ou "varies based on input". |
+
+### v2.0 → v2.1
+
+| Mudança | Motivo |
+|---|---|
+| **Remoção da separação rígida Cowork/Chat** | Qualquer ambiente (Cowork ou Chat) pode executar qualquer etapa. Execução é agnóstica ao ambiente. |
+| **Detecção inteligente de ciclo (SMART CYCLE)** | Ciclos não são mais fixos (quinzenal/trimestral). Pipeline detecta tipos de arquivo e determina quais etapas são necessárias. |
+| **Suporte a veículos (XLSX)** | Novo diretório `data/vehicles/` com tipo `dados_veiculos` e padrão `dados_veiculos-0_original.xlsx`. Extração em E1.5. |
+| **Documentos pessoais (BR e US)** | Novos tipos em `members/`: RG, CPF, passaporte, visto, certidão, SSN, drivers license, green card. Enriquecem `members-1c_enriched.md`. |
+| **Categoria "outros ativos"** | Patrimônio expandido para incluir veículos, ações, criptos, joias, arte — não só imóveis. Arquivo `patrimonio-4_unified.json` (consolidação de TODOS os ativos do IRPF). |
+| **Versionamento via Git** | Quando arquivo existente é atualizado (novo CV, novo IRPF): comitar estado atual via Git antes de sobrescrever, re-extrair. Histórico acessível via `git log`. |
+| **Tratamento de sobreposição de dados** | E2.5 reconciliação detecta duplicatas por data+amount+description, retém apenas novos. E3/E4 podem ser incrementais. |
+| **JSON schemas em apêndice** | Esquemas explícitos para -2_extract.json para cada tipo de documento. Permite execução sem memória prévia. |
+| **Seção 4 reescrita como "PIPELINE STAGES"** | Cada estágio descrito independentemente, especificando inputs/outputs/validação. Não mais amarrado a "Momento 1/2" ou "Cowork/Chat". |
+| **Diretório `data/vehicles/` adicionado** | Estrutura de diretórios atualizada. Agora 89 arquivos + veículos (se presentes). |
+| **Seção "Incremental Updates"** | Nova seção explicando como pipeline trata novos arquivos para períodos existentes, versões atualizadas, e novos tipos de arquivo. |
+| **Diagrama visual atualizado** | Apêndice com fluxo revisado refletindo detecção inteligente e processamento agnóstico. |
+| **Manual auto-contido** | Instruções explícitas para leitura de PDFs e XLSX. Schemas completos. Uma execução fresca pode rodar tudo do zero lendo apenas este manual. |
+
+### v1.0 → v2.0
+
+| Mudança | Motivo |
+|---|---|
+| **E0.B (desempacotamento ZIP) removido** | PDFs são PDFs reais, não ZIPs disfarçados. Confirmado no setup inicial (QA-5). |
+| **XLSX agora tem extração formal** | `dados_imoveis-0_original.xlsx` contém datas de compra, valores e dados cadastrais — fonte primária de patrimônio imobiliário. |
+| **Income Tax processado ANTES de Financial Statements** | Declarações IRPF são o snapshot mais completo do patrimônio e servem de baseline para validar extratos. |
+| **Sessão dedicada para IR + Imóveis** | Nova Sessão 4 (E1.5) extrai patrimônio-base antes dos extratos bancários. |
+| **Contagem atualizada: 89 arquivos (não 80)** | +7 Bradesco Poupança, +1 holerite Mariana, +1 posição Rico. |
+| **Novos tipos: `extratopoupanca`, `holerite`, `investimentosposicao` (Rico)** | Descobertos no primeiro ciclo. |
+| **Referências a "(ZIP)" removidas** | Toda menção a `pdftotext`/unzip/manifest.json eliminada. |
 
 ---
 
@@ -381,9 +424,9 @@ O pipeline é **agnóstico ao ambiente**: tanto Cowork quanto Chat podem executa
 
 | Sintoma                                           | Onde corrigir                                                          | Depois rodar      |
 | ------------------------------------------------- | ---------------------------------------------------------------------- | ----------------- |
-| Layout quebrado, CSS errado, JS com bug           | `config/report_template.html`                                          | E6-regen          |
-| Label de gráfico errado, texto fixo errado        | `config/report_template.html`                                          | E6-regen          |
-| Gráfico não renderiza (canvas não encontrado)     | `config/report_template.html` (verificar IDs canônicos na Seção 4, E6) | E6-regen          |
+| Layout quebrado, CSS errado, JS com bug           | `config/templates/report_template.html`                                          | E6-regen          |
+| Label de gráfico errado, texto fixo errado        | `config/templates/report_template.html`                                          | E6-regen          |
+| Gráfico não renderiza (canvas não encontrado)     | `config/templates/report_template.html` (verificar IDs canônicos na Seção 4, E6) | E6-regen          |
 | Valor de KPI errado, dado numérico incorreto      | `processed/E5_analysis/` (ou E2/E4 se o erro vem de extração)          | E5 + E6           |
 | Transação categorizada errada                     | `processed/E4_unified/` ou regras em `config/definitions.md`           | E4 + E5 + E6      |
 | Transação faltando ou duplicada                   | `processed/E2_extracts/` ou `E3_reconciled/`                           | E3 + E4 + E5 + E6 |
@@ -452,11 +495,26 @@ Se template não existir, usar estrutura mínima e solicitar revisão manual dep
 
 ### 1.1.1 — Template de relatório HTML
 
-O arquivo `config/report_template.html` é o template estrutural para o relatório final (E5). Ele contém a estrutura HTML, CSS, JavaScript (Chart.js) e placeholders `{{...}}` que são preenchidos durante E5.
+O arquivo `config/templates/report_template.html` é o template estrutural para o relatório final (E6). Ele contém a estrutura HTML, CSS, JavaScript (Chart.js) e placeholders `{{...}}` que são preenchidos durante E6.
 
-- **Se já existir** em `config/report_template.html`: usar como está (não gerar automaticamente).
+- **Se já existir** em `config/templates/report_template.html`: usar como está (não gerar automaticamente).
 - **Se não existir**: solicitar ao usuário. Este arquivo é criado manualmente ou por um designer — o pipeline NÃO o gera automaticamente, apenas o popula.
 - **Requisitos mínimos do template:** deve conter os 19 canvas IDs listados em E6.4/E6.5, os placeholders `{{COVER_*}}`, `{{KPI_*}}`, `{{SUMMARY_S*}}`, `{{CONTENT_S*}}`, `{{CONTENT_APP_*}}`, `{{PERFIL_FAMILIA_*}}`, `{{REPORT_DATA_JSON}}` e `{{FOOTER_CONTENT}}`.
+
+### 1.1.2 — Arquivos de config operacionais
+
+Além dos 5 arquivos de config gerados no onboarding, o pipeline depende dos seguintes arquivos operacionais que devem existir em `config/`:
+
+| Arquivo | Descrição | Gerado automaticamente? |
+|---|---|---|
+| `config/pipeline.json` | Parâmetros operacionais: modelo LLM, limites, tolerâncias, nomes de artefatos | Não — criado manualmente ou copiado de template |
+| `config/categorization.json` | Keywords de categorização de receitas/despesas, `pj_source_mapping`, `clt_source_mapping` | Não — curado manualmente |
+| `config/family_members.json` | Dados cadastrais da família, `banco_membro`, `account_type_equivalences` | Não — curado manualmente |
+| `config/passwords.txt` | Senhas de PDFs e ZIPs protegidos (usado por `e0_unlock.py`) | Não — **NÃO versionado** (`.gitignore`) |
+| `config/milhas.md` | Saldos e resgates de programas de milhas (input manual para card S2) | Não — atualizado a cada ciclo |
+| `config/tarefas.md` | Backlog curado de tarefas financeiras | Não — atualizado a cada ciclo |
+| `config/regras_composicao_patrimonial.md` | Regras canônicas de composição patrimonial | Não — curado manualmente |
+| `config/schemas/baseline_patrimonial.schema.json` | JSON Schema para validação do baseline E1.5 | Sim — parte do repositório |
 
 ### 1.2 — Localização dos arquivos financeiros
 
@@ -1299,29 +1357,54 @@ Campos obrigatórios: `pipeline_stage`, `data_processamento`, `declarations` (ar
 
 **Processing logic:**
 
-> **Arquitetura híbrida (v5.5):** Faturas de cartão de crédito e aluguel são processadas pelo
-> script determinístico `e2_extract_faturas.py`. **Extratos bancários** (conta corrente, poupança,
-> conta global, conta PJ) são processados pelo script determinístico `e2_extract_extratos.py` (v5.5).
-> Investimentos, CDBs, IRPF e informes de rendimentos continuam sendo processados via LLM.
-> Isso garante velocidade, reprodutibilidade e precisão para os formatos conhecidos,
-> com fallback LLM apenas para bancos novos ou formatos desconhecidos.
+> **Arquitetura modular (v5.10):** Todos os formatos determinísticos (extratos, faturas, CDBs)
+> são processados por um CLI unificado `e2_extract.py`, com parsers organizados por banco em
+> `scripts/e2/banks/`. Investimentos, IRPF e informes de rendimentos continuam via LLM.
+> Novo banco = novo arquivo em `scripts/e2/banks/<banco>.py`.
+>
+> **Scripts legados:** `e2_extract_extratos.py` e `e2_extract_faturas.py` foram removidos.
+> Use exclusivamente `e2_extract.py` para todos os processamentos.
 
-#### E2-extratos (determinístico — v5.5)
+#### E2 determinístico (unificado — v5.10)
 
 **Execução:**
 ```bash
-python scripts/e2_extract_extratos.py
+python scripts/e2_extract.py                  # Processa tudo (extratos + faturas + CDBs)
+python scripts/e2_extract.py --extratos-only  # Apenas extratos bancários
+python scripts/e2_extract.py --faturas-only   # Apenas faturas de cartão
 ```
 O script é 100% determinístico (zero LLM) para bancos conhecidos. Usa pdfplumber para extração
 de texto e tabelas de PDFs, e parser CSV nativo para formatos exportados do internet banking.
-Tempo de execução: ~50s para ~32 extratos. Mesmos inputs = mesmos outputs.
+Mesmos inputs = mesmos outputs.
+
+**Estrutura modular:**
+```
+scripts/e2/
+  common.py       — utilities compartilhadas (parse_brl, safe_date, config, etc.)
+  registry.py     — auto-discovery de parsers por banco, routing por filename
+  validation.py   — validação pós-parse (extratos e faturas)
+  banks/
+    c6bank.py     — extrato CSV/PDF, conta PJ, global USD/EUR, fatura Carbon CSV/PDF
+    itau.py       — extrato XLS/PDF, Personnalité, CDB HTML-XLS, fatura PdA CSV/PDF
+    santander.py  — extrato XLS/PDF, CDB XLSX, fatura Unique CSV/PDF
+    bradesco.py   — extrato conta, poupança
+    btg.py        — extrato conta
+    rico.py       — extrato conta
+    wise.py       — extrato conta USD/BRL
+    bankofamerica.py — extrato conta (formato US)
+    picpay.py     — extrato conta
+    quintoandar.py — fatura aluguel
+```
 
 **Opções CLI:**
 - `--dry-run` — mostra o que seria processado sem gravar arquivos
-- `--file <caminho>` — processa apenas um extrato específico (PDF ou CSV)
+- `--file <caminho>` — processa apenas um arquivo específico (PDF, CSV, XLS, XLSX)
 - `--output-dir <caminho>` — diretório de saída (padrão: `processed/E2_extracts/`)
+- `--quiet` — suprime output de debug
+- `--extratos-only` — apenas extratos bancários
+- `--faturas-only` — apenas faturas de cartão
 
-**Parsers disponíveis (v5.5):**
+**Parsers de extratos disponíveis:**
 
 | Banco | Tipo | Método | Obs |
 |-------|------|--------|-----|
@@ -1393,22 +1476,16 @@ Para bancos sem parser determinístico ou arquivos marcados com `requires_llm_fa
    - Extrair: tipo de produto, valor aplicado, data de aplicação, taxa, vencimento, saldo atual
    - Salvar em `processed/E2_extracts/[banco]_cdb*-2_extract.json`
 
-#### E2-faturas (determinístico)
+#### E2-faturas (determinístico — incluído em e2_extract.py)
 
-**Execução:**
-```bash
-python scripts/e2_extract_faturas.py
-```
-O script é 100% determinístico (zero LLM) para bancos conhecidos. Usa pdfplumber para extração de texto
-de PDFs e parser CSV nativo para formatos exportados do internet banking.
-Tempo de execução: proporcional ao número de faturas (~0,2s por fatura). Mesmos inputs = mesmos outputs.
+> **Nota (v5.10+):** Faturas agora são processadas pelo CLI unificado `e2_extract.py`.
+> Scripts legados (`e2_extract_faturas.py`, `e2_extract_extratos.py`) foram removidos.
+>
+> ```bash
+> python scripts/e2_extract.py --faturas-only
+> ```
 
-**Opções CLI:**
-- `--dry-run` — mostra o que seria processado sem gravar arquivos
-- `--file <caminho>` — processa apenas uma fatura específica (PDF ou CSV)
-- `--output-dir <caminho>` — diretório de saída (padrão: `processed/E2_extracts/`)
-
-**Parsers disponíveis (v5.5):**
+**Parsers de faturas disponíveis:**
 
 | Banco | Tipo | Função | Obs |
 |-------|------|--------|-----|
@@ -1572,8 +1649,8 @@ O script é 100% determinístico (zero LLM). Keywords hardcoded do `definitions.
 2b. **Gerar breakdown mensal por origem (CRÍTICO para gráfico `receita_despesa_mensal`):**
    - Gerar `processed/E4_unified/fluxo_mensal_detalhado-4_unified.json`
    - **Receitas:** Para cada transação de receita categorizada no item 1, identificar a **origem nomeada** usando as REGRAS DE CATEGORIZAÇÃO DE RECEITAS em `definitions.md` e agregar valor por mês (YYYY-MM).
-     - Origens PJ: usar subcategoria conforme `PJ_SOURCE_MAPPING` em `config/categorization.json` (ex: "Arvo (David - PJ)", etc.). Conta esperada: C6 PJ.
-     - Origem CLT: conforme `CLT_SOURCE_MAPPING` em `config/categorization.json` (ex: "Einstein (Mariana - CLT)"). Conta esperada: Poupança Bradesco.
+    - Origens PJ: usar subcategoria conforme `pj_source_mapping` em `config/categorization.json` (ex: "Arvo (David - PJ)", etc.). Conta esperada: C6 PJ.
+    - Origem CLT: conforme `clt_source_mapping` em `config/categorization.json` (ex: "Einstein (Mariana - CLT)"). Conta esperada: Poupança Bradesco.
      - Aluguéis: "Aluguéis" (QuintoAndar via GRPQA + diretos).
      - Rendimentos: "Rendimentos Financeiros" (rendimentos de poupança, CDB, fundos, dividendos).
      - Outras: agrupar como "Outras Receitas".
@@ -1584,7 +1661,7 @@ O script é 100% determinístico (zero LLM). Keywords hardcoded do `definitions.
        "periodo": "YYYY-MM a YYYY-MM",
        "meses_ordenados": ["YYYY-MM", "YYYY-MM", "..."],
        "receitas": {
-         "origens": ["[origens PJ conforme PJ_SOURCE_MAPPING do definitions.md]", "[CLT conforme CLT_SOURCE_MAPPING]", "Aluguéis", "Rendimentos Financeiros", "Outras Receitas"],
+         "origens": ["[origens PJ conforme pj_source_mapping do categorization.json]", "[CLT conforme clt_source_mapping]", "Aluguéis", "Rendimentos Financeiros", "Outras Receitas"],
          "por_mes": {
            "YYYY-MM": {
              "[Origem PJ 1]": 0.00,
@@ -1607,7 +1684,7 @@ O script é 100% determinístico (zero LLM). Keywords hardcoded do `definitions.
        }
      }
      ```
-   > **Nota:** Os nomes das origens de receita PJ e CLT vêm de `PJ_SOURCE_MAPPING` e `CLT_SOURCE_MAPPING` em `config/categorization.json`. As categorias de despesa vêm de `config/definitions.md`. Todos os valores são calculados dinamicamente a partir dos dados do período.
+   > **Nota:** Os nomes das origens de receita PJ e CLT vêm de `pj_source_mapping` e `clt_source_mapping` em `config/categorization.json`. As categorias de despesa vêm de `config/definitions.md`. Todos os valores são calculados dinamicamente a partir dos dados do período.
    - **Validação:** Para cada mês, `receitas.por_mes[mes]._total` deve ser consistente com `receitas-4_unified.json` e `despesas.por_mes[mes]._total` com `despesas-4_unified.json`.
    - **⚠️ IMPORTANTE:** Este JSON é a fonte de verdade para o gráfico `receita_despesa_mensal`. Sem ele, o gráfico usa médias planas (incorreto).
 
@@ -1666,7 +1743,7 @@ python scripts/e5_analyze.py
 ```
 O script computa todos os blocos numéricos do `analise_financeira-5_analysis.json` (patrimônio, goals, fluxo_caixa, ratios, score, orçamento prospectivo, reserva emergência, endividamento, PGBL, pontos fortes/urgentes, consumo consciente, comportamento). Preserva chave `narrativas` existente. Tempo de execução: ~1s.
 
-**E5.N (narrativas) continua sendo LLM-driven** — o operador E5.N gera os textos narrativos interpretativos após os cálculos numéricos estarem prontos.
+**E5.N (narrativas) é determinístico** — executar `python scripts/e5n_narrativas.py` para gerar os textos narrativos após os cálculos numéricos estarem prontos.
 
 **Inputs:**
 - `processed/E4_unified/*-4_unified.json` (todos)
@@ -1685,7 +1762,7 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
 
 1b. **Fluxo de caixa mensal detalhado (CRÍTICO — alimenta gráfico `receita_despesa_mensal`):**
    - Input: `processed/E4_unified/fluxo_mensal_detalhado-4_unified.json`
-   - Gerar chave `receita_despesa_mensal_detalhado` no JSON de análise E4 com a estrutura abaixo:
+   - Gerar chave `receita_despesa_mensal_detalhado` no E5 analysis JSON (`analise_financeira-5_analysis.json`) com a estrutura abaixo:
      ```json
      "receita_despesa_mensal_detalhado": {
        "labels": ["mmm/YY", "mmm/YY", "..."],
@@ -2076,12 +2153,18 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
 
 ---
 
-### STAGE E5.N — Narrativas
+### STAGE E5.N — Narrativas (Determinístico)
 
-**Objetivo:** Gerar todos os textos analíticos e narrativos necessários para o relatório. Executada pelo LLM como última sub-etapa do E5, após todos os cálculos estarem completos.
+**Objetivo:** Gerar todos os textos analíticos e narrativos necessários para o relatório. Executada deterministicamente via `python scripts/e5n_narrativas.py`, após todos os cálculos estarem completos.
+
+**Execução:**
+```bash
+python scripts/e5n_narrativas.py
+```
+O script é 100% determinístico (zero LLM). Mesmos inputs = mesmos outputs.
 
 **Inputs:**
-- `processed/E5_analysis/analise_financeira-5_analysis.json` (dados completos do E4)
+- `processed/E5_analysis/analise_financeira-5_analysis.json` (dados completos do E5)
 - `members/members-1c_enriched.md` (dados dos membros)
 - `life_plan/life_plan_goals.md` (metas, plano internacional, NCLEX)
 - `config/report_spec.md` (regras de formatação e design)
@@ -2125,9 +2208,9 @@ O script computa todos os blocos numéricos do `analise_financeira-5_analysis.js
 
 #### E5.N — Enriquecimento de Tarefas (v5.3+)
 
-**Fluxo híbrido (curado + LLM):**
+**Fluxo híbrido (curado + determinístico):**
 1. `config/tarefas.md` → E5 (parser determinístico) → `tarefas[]` no JSON (formato `{n, t, p, e, categoria, ref}`)
-2. E5.N (LLM) lê `tarefas[]` + dados financeiros → pode adicionar `tarefas_sugeridas[]` ao JSON
+2. E5.N (`e5n_narrativas.py`, determinístico) lê `tarefas[]` + dados financeiros → pode adicionar `tarefas_sugeridas[]` ao JSON
 
 **Input para enriquecimento:**
 - `tarefas[]` já parseado do E5 JSON
@@ -2175,12 +2258,12 @@ python scripts/e6_render.py
 ```
 
 **Inputs:**
-- `config/report_template.html` ← template com placeholders `{{...}}`
+- `config/templates/report_template.html` ← template com placeholders `{{...}}`
 - `processed/E5_analysis/analise_financeira-5_analysis.json` ← dados + narrativas
 - `config/manual_operacao.md` ← versão do manual
 - `config/definitions.md` ← categorias de despesa
 
-**Output:** `output/relatorio_financeiro_ferreira_campos_[DATE].html`
+**Output:** `output/relatorio_financeiro_ferreira_campos_[DATE].html` (onde `[DATE]` = `YYYYMMDD` sem hífens, ex: `20260413`)
 
 **O que o script faz (6 fases):**
 
@@ -2191,7 +2274,7 @@ python scripts/e6_render.py
 | E6.3 | E5.3 (JSON) | Monta report-data JSON (20 chaves, 19 charts) por mapeamento de dados |
 | E6.4 | E5.4 (S1-S5) | Gera HTML das seções com charts (canvas IDs canônicos) + cards obrigatórios |
 | E6.5 | E5.5 (S6-S10+Apps) | Gera HTML das seções restantes + apêndices |
-| E6.6 | E5.6 (Validação) | Roda 18 checagens automáticas |
+| E6.6 | E5.6 (Validação) | Roda 19 checagens automáticas |
 
 **Mapeamento de canvas IDs (chart key → canvas ID):**
 
@@ -2251,7 +2334,7 @@ Texto-modelo (adaptar com dados reais de cada período):
 
 O E4 DEVE gerar a chave `orcamento_prospectivo.legenda` com o texto já montado (usando valores calculados de `media_mensal`, `receita_recorrente` e o percentual). O E5 render script injeta esse texto no card antes da tabela.
 
-**Validação E6.6 (19 checagens automáticas):**
+**Validação E6.6 (19 checagens automáticas — V1 a V19):**
 
 | Check | Nome | Critério |
 |---|---|---|
@@ -2274,7 +2357,8 @@ O E4 DEVE gerar a chave `orcamento_prospectivo.legenda` com o texto já montado 
 | V17 | CSS: sem hex hardcoded | Nenhuma cor hexadecimal hardcoded no HTML (usar variáveis CSS) |
 | V18 | CSS: tr.total-row | Linhas de total usam classe `tr.total-row` |
 | V19 | Formato monetário válido | Nenhum `KM`, `k M` separado, nem ponto decimal em `R$` (ver regras E5.N) |
-| V20 | Perfil ≤ 300 chars/parágrafo | Cada `<p>` do `perfil_familia` tem ≤ 300 caracteres (texto puro). Validado em E5.N e truncado defensivamente em E6. |
+
+> **Nota:** O limite de 300 caracteres por parágrafo do `perfil_familia` é validado em E5.N (V_PERFIL_MAX_CHARS) e truncado defensivamente em `_truncate_perfil_paragraphs` no E6, mas não constitui um check numerado na `validate_report()`.
 
 **Se qualquer validação falhar:** O script imprime qual checagem falhou. Corrigir na fonte:
 - Texto errado → re-rodar E5.N
@@ -2293,9 +2377,9 @@ O E4 DEVE gerar a chave `orcamento_prospectivo.legenda` com o texto já montado 
 - Correção de dados → re-rodar E5 (ou E4+E5) + `python scripts/e6_render.py`
 
 **Processo:**
-1. Comitar versão anterior via Git
+1. (Opcional) Salvar estado via `python scripts/e_save.py -m "mensagem"` se desejar preservar versão anterior
 2. Rodar `python scripts/e6_render.py`
-3. Verificar que as 18 validações passam
+3. Verificar que as 19 validações passam
 
 ---
 
@@ -2342,7 +2426,7 @@ O script executa 14 verificações automáticas:
 | CV13 | Classificação do score (label vs valor) |
 | CV14 | Formato monetário nas narrativas |
 
-Resultado: `processed/E5_analysis/e7_review_template.json` com findings + template para refinamentos.
+Resultado: `processed/E7_review/e7_review_template.json` com findings + template para refinamentos.
 
 **9b — Review holístico (LLM):**
 A LLM lê:
@@ -2370,7 +2454,7 @@ python scripts/e6_render.py
 ```
 
 **Artefatos gerados:**
-- `processed/E5_analysis/e7_review_template.json` — template com cross-validation results
+- `processed/E7_review/e7_review_template.json` — template com cross-validation results
 - Chave `review_metadata` no E5 JSON — metadata do review aplicado
 - Chave `narrativas.strategic_insights` no E5 JSON — insights holísticos
 - `output/*.html` — relatório final refinado (após E6-final)
@@ -2561,18 +2645,12 @@ python scripts/e_reset.py --from E7              # Reset E7 + re-render E6
 
 > Nota: todos os comandos nesta seção assumem working directory = `financas-familia/`.
 
-**Passo 1 — Comitar estado atual via Git (preservar histórico):**
-```bash
-git add -A
-git commit -m "pre-reset: snapshot antes de reprocessamento completo [DATA]"
-```
-
-**Passo 2 — Preview (opcional mas recomendado):**
+**Passo 1 — Preview (opcional mas recomendado):**
 ```bash
 python scripts/e_reset.py --dry-run
 ```
 
-**Passo 3 — Executar reset completo:**
+**Passo 2 — Executar reset completo:**
 ```bash
 python scripts/e_reset.py
 ```
@@ -2581,18 +2659,14 @@ O script automaticamente:
 - Apaga artefatos gerados (E2→E6 JSONs, HTML, logs operacionais, `__pycache__`)
 - Preserva `data/`, `members/*-0_original.*`, artefatos E1 (`*-1a_extract.json`, `*-1b_unified.json`, `*-1c_enriched.md`), `config/`, `life_plan/`, `inbox_processed/`, `logs/inbox_log.md`, `logs/qa_log.md`
 - Verifica dependências Python (pdfplumber, pytz) **antes** de apagar qualquer artefato
-- Executa etapas determinísticas: `e2_extract_faturas.py` → `e3_reconcile.py` → `e4_categorize.py` → `e5_analyze.py` → `e6_render.py`
-- Pula etapas LLM (E1, E1.5, E2-extratos, E5.N) com lembrete no console
+- Executa etapas determinísticas: `e2_extract.py` → `e3_reconcile.py` → `e4_categorize.py` → `e5_analyze.py` → `e5n_narrativas.py` → `e6_render.py`
+- Pula etapas LLM (E1, E1.5, E2-llm) com lembrete no console
 - Valida presença dos artefatos esperados ao final
 
-**Passo 4 — Executar etapas LLM pendentes:**
-O script informa quais etapas LLM precisam ser executadas manualmente (E1, E1.5, E2-extratos, E5.N).
+**Passo 3 — Executar etapas LLM pendentes:**
+O script informa quais etapas LLM precisam ser executadas manualmente (E1, E1.5, E2-llm).
 
-**Passo 5 — Comitar resultado:**
-```bash
-git add -A
-git commit -m "E-reset: reprocessamento completo [DATA]"
-```
+> **Nota:** Nenhuma etapa do pipeline faz commit ou push automaticamente. Quando desejar salvar o estado, execute `python scripts/e_save.py -m "mensagem"` manualmente.
 
 **Flags disponíveis:**
 | Flag | Efeito |
@@ -2603,7 +2677,7 @@ git commit -m "E-reset: reprocessamento completo [DATA]"
 
 **Validation:**
 - O script valida presença **e conteúdo** dos artefatos E3/E4/E5/E6 (JSON parseável, campos obrigatórios não-vazios)
-- Executar checklist V1–V18 do E6 (Seção 4, STAGE E6)
+- Executar checklist V1–V19 do E6 (Seção 4, STAGE E6)
 - Comparar com relatório anterior (disponível no histórico Git) para confirmar que não houve perda de dados
 
 ---
@@ -2627,18 +2701,12 @@ git commit -m "E-reset: reprocessamento completo [DATA]"
 
 > Nota: todos os comandos nesta seção assumem working directory = `financas-familia/`.
 
-**Passo 1 — Comitar estado atual via Git:**
-```bash
-git add -A
-git commit -m "pre-reset-from-E[N]: snapshot antes de reprocessamento parcial [DATA]"
-```
-
-**Passo 2 — Preview (opcional mas recomendado):**
+**Passo 1 — Preview (opcional mas recomendado):**
 ```bash
 python scripts/e_reset.py --from E[N] --dry-run
 ```
 
-**Passo 3 — Executar reset parcial:**
+**Passo 2 — Executar reset parcial:**
 ```bash
 python scripts/e_reset.py --from E[N]
 ```
@@ -2647,37 +2715,33 @@ O script automaticamente:
 - Apaga artefatos da etapa escolhida em diante (cascata)
 - Quando E5.N está na cascata, **limpa a chave `narrativas`** dos JSONs E5 (garante que narrativas velhas não passem para E6)
 - Verifica dependências Python antes de apagar artefatos
-- Executa etapas determinísticas na sequência correta
-- Pula E5.N (LLM) com lembrete
+- Executa etapas determinísticas na sequência correta (incluindo E5.N via `e5n_narrativas.py`)
 - Valida artefatos ao final (existência + conteúdo JSON)
 
 **Referência de cascata (o que o script apaga e executa):**
 
 | `--from` | Apaga | Executa |
 |---|---|---|
-| `E2-faturas` | Faturas E2 (por tipo, não filename) + E3 + E4 + E5 + E6 + logs | e2_extract_faturas → e3 → e4 → e5 → (E5.N LLM) → e6 |
-| `E3` | E3 + E4 + E5 + E6 + logs | e3 → e4 → e5 → (E5.N LLM) → e6 |
-| `E4` | E4 + E5 + E6 + logs | e4 → e5 → (E5.N LLM) → e6 |
-| `E5` | E5 + E6 | e5 → (E5.N LLM) → e6 |
-| `E5.N` | narrativas do E5 JSON + E6 | (E5.N LLM) → e6 |
+| `E2-faturas` | Faturas E2 (por tipo, não filename) + E3 + E4 + E5 + E6 + logs | e2_extract --faturas-only → e3 → e4 → e5 → e5n → e6 |
+| `E3` | E3 + E4 + E5 + E6 + logs | e3 → e4 → e5 → e5n → e6 |
+| `E4` | E4 + E5 + E6 + logs | e4 → e5 → e5n → e6 |
+| `E5` | E5 + E6 | e5 → e5n → e6 |
+| `E5.N` | narrativas do E5 JSON + E6 | e5n → e6 |
 | `E6` | E6 | e6 |
+| `E7` | E7 artefatos (review template, review metadata, strategic insights) + E6 | e7_review (crossval) → (E7-review LLM) → e7_review --apply → e6 |
 
-**Passo 4 — Executar etapas LLM pendentes (se houver):**
-O script informa quais etapas LLM precisam ser executadas manualmente.
+**Passo 3 — Executar etapas LLM pendentes (se houver):**
+O script informa quais etapas LLM precisam ser executadas manualmente (apenas E7-review quando `--from E7`).
 
-**Passo 5 — Comitar resultado:**
-```bash
-git add -A
-git commit -m "E-reset-from-E[N]: reprocessamento parcial [DATA]"
-```
+> **Nota:** Nenhuma etapa do pipeline faz commit ou push automaticamente. Quando desejar salvar o estado, execute `python scripts/e_save.py -m "mensagem"` manualmente.
 
-**Validation:** Mesma do E-reset (checklist V1–V18 do E6), comparando com relatório anterior via Git.
+**Validation:** Mesma do E-reset (checklist V1–V19 do E6), comparando com relatório anterior via Git.
 
 ---
 
 ### STAGE E-full-reset — Reprocessamento completo desde E0 (unlock + audit + pipeline inteiro)
 
-**Objetivo:** Executar o ciclo completo do pipeline desde a verificação de integridade dos PDFs (E0-unlock, E0-audit) até o relatório final (E6), incluindo todas as etapas LLM e determinísticas. É o "nuclear option" — reconstrói tudo do zero a partir dos originais em `data/`.
+**Objetivo:** Executar o ciclo completo do pipeline desde a verificação de integridade dos PDFs (E0-unlock, E0-audit) até o relatório final refinado (E6-final, após E7-review + E7-apply), incluindo todas as etapas LLM e determinísticas. É o "nuclear option" — reconstrói tudo do zero a partir dos originais em `data/`.
 
 **Quando usar:**
 - Reprocessamento completo solicitado explicitamente pelo usuário
@@ -2691,26 +2755,75 @@ git commit -m "E-reset-from-E[N]: reprocessamento parcial [DATA]"
 - Apenas uma etapa específica precisa ser refeita → usar `E-reset-from`
 - Apenas template/CSS mudou → usar `E6-regen`
 
-**Diferença para E-reset:** E-reset preserva artefatos E1 e não roda E0-unlock/E0-audit. E-full-reset move **todos** os arquivos de `data/` e `members/` de volta para `inbox/`, permitindo re-roteamento completo, e re-executa **todas** as etapas LLM (E1, E1.5, E2-extratos, E5.N).
+**Diferença para E-reset:** E-reset preserva artefatos E1 e não roda E0-unlock/E0-audit. E-full-reset move **todos** os arquivos de `data/` e `members/` de volta para `inbox/`, permitindo re-roteamento completo, e re-executa **todas** as etapas LLM (E1, E1.5, E2-llm, E7-review).
 
-**Procedimento:**
+#### Modo interativo (recomendado)
 
-> Nota: todos os comandos nesta seção assumem working directory = `financas-familia/`.
+O modo `--interactive` orquestra o pipeline completo automaticamente, parando apenas nas 3 etapas que realmente precisam de intervenção do agente LLM ("walls"). Etapas que antes eram classificadas como LLM mas são 100% determinísticas (E1.5c, E5.N, E7-crossval) agora rodam automaticamente.
 
-**Passo 1 — Comitar estado atual via Git (preservar histórico):**
-```bash
-git add -A
-git commit -m "pre-full-reset: snapshot antes de reprocessamento E0→E6 [DATA]"
+**Sequência de execução:**
+
+```
+Fase 0: Move inbox + unlock + audit + route (automático)
+  ↓
+WALL 1: [E1 + E1.5] — agente extrai dados de membros + baseline IRPF
+  ↓ --continue
+E1.5c (automático) → ...
+  ↓
+WALL 2: [E2-llm] — agente extrai investimentos/CDBs sem parser
+  ↓ --continue
+E2-fat → E2-ext → E3 → E4 → E5 → E5.N → E6 → E7-crossval (automático)
+  ↓
+WALL 3: [E7-review] — agente preenche template de review holístico
+  ↓ --continue
+E7-apply → E6-final → Validação (automático) → PIPELINE COMPLETO
 ```
 
-**Passo 2 — Mover arquivos de data/ e members/ → inbox/ (re-roteamento):**
+**Comandos:**
+
+```bash
+# Passo 1: Iniciar pipeline interativo
+python scripts/e_reset.py --move-to-inbox --interactive --dry-run  # Preview
+python scripts/e_reset.py --move-to-inbox --interactive            # Executa até Wall 1
+
+# Passo 2: Agente LLM executa E1 + E1.5 (mapeamento de membros + baseline IRPF)
+# ... (criar members/*-1a_extract.json, members-1b_unified.json, baseline_patrimonial, etc.)
+
+# Passo 3: Retomar — roda E1.5c, para na Wall 2
+python scripts/e_reset.py --continue
+
+# Passo 4: Agente LLM executa E2-llm (investimentos, CDBs, IRPF sem parser)
+# ... (criar processed/E2_extracts/*-2_extract.json para tipos sem parser)
+
+# Passo 5: Retomar — roda E2→E3→E4→E5→E5.N→E6→E7-crossval, para na Wall 3
+python scripts/e_reset.py --continue
+
+# Passo 6: Agente LLM preenche review template
+# ... (ler processed/E7_review/e7_review_template.json, salvar em _scratch/e7_review_filled.json)
+
+# Passo 7: Retomar — roda E7-apply + E6-final + validação → COMPLETO
+python scripts/e_reset.py --continue
+```
+
+O state file (`_scratch/.e_reset_state.json`) rastreia o progresso entre invocações. É limpo automaticamente ao completar o pipeline.
+
+Exit code 10 = pipeline pausado em wall LLM (não é erro).
+
+> **Nota:** Se desejar preservar o estado atual antes do full-reset, execute `python scripts/e_save.py -m "pre-full-reset: snapshot [DATA]"` manualmente antes do Passo 1.
+
+#### Modo manual (legado)
+
+Para execução manual passo-a-passo sem o modo interativo:
+
+**Passo 1 — Mover arquivos de data/ e members/ → inbox/ (re-roteamento):**
 ```bash
 python scripts/e_reset.py --move-to-inbox --dry-run   # Preview: listar o que seria movido
 python scripts/e_reset.py --move-to-inbox --clean-only # Executar: mover + limpar artefatos (sem re-executar pipeline)
 ```
+> **Nota:** Se desejar preservar o estado atual antes do full-reset, execute `python scripts/e_save.py -m "pre-full-reset: snapshot [DATA]"` manualmente antes deste passo.
 O script move todos os arquivos de `data/` (financial_statements, income_tax_br, etc.) e os originais de `members/` (`*-0_original.*`) de volta para `inbox/`. Artefatos E1 em `members/` (extract, unified, enriched) são removidos. A estrutura de diretórios em `data/` é preservada (vazia).
 
-**Passo 3 — E0-unlock: Verificar e desbloquear PDFs encriptados + descompactar ZIPs:**
+**Passo 2 — E0-unlock: Verificar e desbloquear PDFs encriptados + descompactar ZIPs:**
 ```bash
 python scripts/e0_unlock.py --dry-run          # Preview: listar status de todos os PDFs e ZIPs
 python scripts/e0_unlock.py                     # Executar: desbloquear PDFs + extrair ZIPs no inbox
@@ -2718,7 +2831,7 @@ python scripts/e0_unlock.py                     # Executar: desbloquear PDFs + e
 Se PDFs encriptados forem encontrados sem senha válida, registra em `qa_log.md` e move para `nao_identificados/`.
 ZIPs extraídos com sucesso são movidos para `inbox_processed/`; conteúdo extraído fica no inbox para roteamento.
 
-**Passo 4 — E0-audit: Auditoria de integridade:**
+**Passo 3 — E0-audit: Auditoria de integridade:**
 ```bash
 python scripts/e0_audit.py
 ```
@@ -2734,52 +2847,53 @@ Analisar o relatório. As 7 checagens são:
 **Se houver ERRORs:** corrigir antes de prosseguir. Erros de colisão de nomes se propagam por todo o pipeline.
 **Se apenas WARNs:** registrar em `qa_log.md` e prosseguir com cautela.
 
-**Passo 5 — E0: Roteamento de TODOS os arquivos do inbox/:**
+**Passo 4 — E0: Roteamento de TODOS os arquivos do inbox/:**
 Agora que todos os arquivos estão de volta no `inbox/`:
 - Executar o algoritmo de detecção (Seção 3.1) para **cada** arquivo
 - Verificar tamanho (Passo 8a) e encriptação (Passo 8b)
 - Copiar para `inbox_processed/[DATA]/` e mover para `data/`
 - Atualizar `logs/inbox_log.md`
 
-**Passo 6 — Etapas LLM pré-extração (execução manual, nesta ordem):**
+**Passo 5 — Etapas LLM pré-extração (execução manual, nesta ordem):**
 
 | Ordem | Etapa | O que fazer | Artefatos gerados |
 |---|---|---|---|
-| 6a | **E1** | Mapeamento de membros (currículos, docs pessoais) | `members/*-1a_extract.json`, `members-1b_unified.json` |
-| 6b | **E1.5** | Baseline patrimonial (IRPF, XLSX imóveis/veículos) | `members-1c_enriched.md`, `E2_extracts/*-1.5_*.json` |
-| 6c | **E2-extratos-llm** | Extração LLM de investimentos, CDBs, informes (apenas tipos sem parser determinístico) | `E2_extracts/*-2_extract.json` |
+| 5a | **E1** | Mapeamento de membros (currículos, docs pessoais) | `members/*-1a_extract.json`, `members-1b_unified.json` |
+| 5b | **E1.5** | Baseline patrimonial (IRPF, XLSX imóveis/veículos) | `members-1c_enriched.md`, `E2_extracts/*-1.5_*.json` |
+| 5c | **E2-extratos-llm** | Extração LLM de investimentos, CDBs, informes (apenas tipos sem parser determinístico) | `E2_extracts/*-2_extract.json` |
 
-> **Nota (v5.5):** Extratos bancários (conta corrente, poupança, global, PJ) agora são processados deterministicamente no Passo 7. A etapa 6c é apenas para tipos sem parser: `investimentosposicao`, `carteirarendafixa`, `cdbdetalhes`, `cdbresumo`, `informerendimentos`, `irpf`.
+> **Nota (v5.5):** Extratos bancários (conta corrente, poupança, global, PJ) agora são processados deterministicamente no Passo 6. A etapa 5c é apenas para tipos sem parser: `investimentosposicao`, `carteirarendafixa`, `cdbdetalhes`, `cdbresumo`, `informerendimentos`, `irpf`.
 
-**Passo 7 — Etapas determinísticas completas (E2-faturas + E2-extratos + E3→E6):**
+**Passo 6 — Etapas determinísticas completas (E2-faturas + E2-extratos + E3→E6):**
 ```bash
-python scripts/e2_extract_faturas.py               # E2-faturas (cartões de crédito + aluguel)
-python scripts/e2_extract_extratos.py               # E2-extratos (contas bancárias — v5.5)
+python scripts/e2_extract.py                        # E2 unificado (extratos + faturas + CDBs)
+python scripts/e2_extract.py --faturas-only          # E2 apenas faturas
+python scripts/e2_extract.py --extratos-only         # E2 apenas extratos
 python scripts/e_reset.py --from E3                 # Cascata E3→E4→E5→E6
 ```
-Os três scripts são 100% determinísticos. `e2_extract_extratos.py` possui validation gate integrada que rejeita extrações com 0 transações quando o PDF contém texto significativo. Tempo total: ~60s.
+O script unificado `e2_extract.py` é 100% determinístico, com validation gate que rejeita extrações com 0 transações quando o PDF contém texto significativo.
 
-**Passo 8 — Narrativas e render inicial:**
+**Passo 7 — Narrativas e render inicial:**
 
 | Ordem | Etapa | O que fazer | Artefatos gerados |
 |---|---|---|---|
-| 8a | **E5.N** | Narrativas analíticas | Chave `narrativas` nos JSONs E5 |
-| 8b | **E6 render** | `python scripts/e6_render.py` | `output/*.html` (versão pré-review) |
+| 7a | **E5.N** | Narrativas analíticas (`python scripts/e5n_narrativas.py` — determinístico) | Chave `narrativas` nos JSONs E5 |
+| 7b | **E6 render** | `python scripts/e6_render.py` | `output/*.html` (versão pré-review) |
 
-**Passo 9 — E7: Review holístico pós-relatório:**
+**Passo 8 — E7: Review holístico pós-relatório:**
 
 Após o primeiro render do relatório, a LLM realiza uma revisão holística usando a persona e abordagem definidas em `config/methodology.md`. Esta etapa retroalimenta as narrativas geradas, detectando inconsistências entre seções e refinando textos, análises, cards, lista de tarefas e prioridades.
 
 | Ordem | Etapa | O que fazer | Artefatos gerados |
 |---|---|---|---|
-| 9a | **E7 cross-validation** | `python scripts/e7_review.py` | `processed/E5_analysis/e7_review_template.json` |
-| 9b | **E7 review (LLM)** | LLM lê template + relatório HTML + methodology.md, preenche refinamentos | Review JSON (`review.json`) |
-| 9c | **E7 apply** | `python scripts/e7_review.py --apply review.json` | E5 JSON atualizado com refinamentos + metadata |
-| 9d | **E6-final render** | `python scripts/e6_render.py` | `output/*.html` (versão final refinada) |
+| 8a | **E7 cross-validation** | `python scripts/e7_review.py` (determinístico) | `processed/E7_review/e7_review_template.json` |
+| 8b | **E7 review (LLM)** | LLM lê template + relatório HTML + methodology.md, preenche refinamentos | Review JSON (`_scratch/e7_review_filled.json`) |
+| 8c | **E7 apply** | `python scripts/e7_review.py --apply _scratch/e7_review_filled.json` | E5 JSON atualizado com refinamentos + metadata |
+| 8d | **E6-final render** | `python scripts/e6_render.py` | `output/*.html` (versão final refinada) |
 
-O sub-passo 9a executa 14 verificações determinísticas de consistência (score formula, patrimônio composition, fluxo aritmética, taxa poupança, IF coherence, etc.). Qualquer falha é reportada para a LLM corrigir durante o review.
+O sub-passo 8a executa 14 verificações determinísticas de consistência (score formula, patrimônio composition, fluxo aritmética, taxa poupança, IF coherence, etc.). Qualquer falha é reportada para a LLM corrigir durante o review.
 
-No sub-passo 9b, a LLM utiliza a persona de "Consultor financeiro especialista em independência financeira" para:
+No sub-passo 8b, a LLM utiliza a persona de "Consultor financeiro especialista em independência financeira" para:
 - Detectar contradições entre seções (ex: fluxo de caixa diz "poupança saudável" mas IF diz "ritmo insuficiente")
 - Refinar narrativas com visão holística do relatório completo
 - Re-priorizar tarefas baseado em insights que emergem da visão completa
@@ -2787,13 +2901,7 @@ No sub-passo 9b, a LLM utiliza a persona de "Consultor financeiro especialista e
 
 > **Nota:** O E7 é limitado a uma única passagem de review (sem recursão) para evitar loops. Se refinamentos significativos forem necessários, rodar `python scripts/e_reset.py --from E7` para repetir.
 
-**Passo 10 — Comitar resultado:**
-```bash
-git add -A
-git commit -m "E-full-reset: reprocessamento completo E0→E7 [DATA]"
-```
-
-**Passo 11 — Validação final:**
+**Passo 9 — Validação final:**
 - Executar checklist V1–V19 do E6 (Seção 4, STAGE E6)
 - Comparar com relatório anterior via `git diff` para confirmar que não houve perda de dados
 - Verificar que `e0_audit.py` não reporta novos ERRORs:
@@ -2806,26 +2914,34 @@ python scripts/e0_audit.py
 | Fase | Tipo | Tempo estimado |
 |---|---|---|
 | Move data/+members/ → inbox/ | Determinístico | ~5s |
-| E0-unlock + E0-audit | Determinístico | ~10s |
-| E0 (roteamento de todos os arquivos) | LLM | Variável (depende de nº de arquivos no inbox) |
-| E1 + E1.5 (LLM) | LLM | ~5–10 min |
-| E1.5 consolidate (`python scripts/e15_consolidate.py`) | Determinístico | ~1s |
-| E2-extratos-llm (investimentos, CDBs, IRPF) | LLM | ~3–5 min |
-| E2-faturas + E2-extratos + E3→E6 | Determinístico | ~60s |
-| E5.N + E6 render (pré-review) | LLM + Determinístico | ~5 min |
-| E7 review + E6-final render | LLM + Determinístico | ~5 min |
+| E0-unlock + E0-audit + E0-route | Determinístico | ~10s |
+| E1 + E1.5 (LLM) | LLM — Wall 1 | ~5–10 min |
+| E1.5c consolidate | Determinístico | ~1s |
+| E2-llm (investimentos, CDBs, IRPF) | LLM — Wall 2 | ~3–5 min |
+| E2-faturas + E2-extratos + E3→E5 | Determinístico | ~60s |
+| E5.N narrativas + E6 render | Determinístico | ~30s |
+| E7-crossval | Determinístico | ~5s |
+| E7-review (LLM) | LLM — Wall 3 | ~5 min |
+| E7-apply + E6-final render | Determinístico | ~15s |
 
 ---
 
-### STAGE E-save — Commit e push para remote
+### STAGE E-save — Commit e push para remote (EXCLUSIVAMENTE MANUAL)
 
 **Execução:** `python scripts/e_save.py -m "mensagem"` | Flags: `--dry-run` (preview), `--no-push` (commit local)
+
+**⚠️ REGRA ABSOLUTA: E-save é a ÚNICA forma de fazer commit/push neste projeto.**
+- Nenhum outro script do pipeline (E0 a E7, E-reset, E-reset-from, E-full-reset) faz `git add`, `git commit` ou `git push`.
+- E-save NUNCA é chamado automaticamente por outro script.
+- E-save só é executado quando o operador (humano ou LLM) invoca explicitamente o comando.
+- O assistente (LLM) NÃO deve executar E-save por conta própria — apenas quando o usuário solicitar.
 
 **Quando usar:**
 - Após qualquer execução bem-sucedida do pipeline (E1→E6, E-reset, E-reset-from, E-full-reset)
 - Após edição significativa de configs (manual, definitions, methodology, milhas, etc.)
 - Após correção de bugs em scripts ou templates
 - Em qualquer momento que o estado atual represente um "ponto bom" que vale preservar
+- Antes de operações destrutivas (reset, full-reset) se desejar preservar o estado atual
 
 **Pré-condição:** Alterações já feitas e validadas. Não executar E-save com trabalho incompleto ou erros conhecidos.
 
@@ -2891,13 +3007,15 @@ O pipeline usa Git como sistema de controle de versão. Todos os arquivos de tex
 | `members/` (currículos, documentos pessoais) | |
 | `life_plan/` | |
 
-### 4.5.2 — Fluxo padrão: comitar antes de alterar
+### 4.5.2 — Fluxo padrão: salvar estado via E-save
 
-Antes de qualquer operação que sobrescreva um arquivo existente (novo relatório, arquivo atualizado, re-extração), o pipeline deve:
+**REGRA: Nenhuma etapa do pipeline (E0 a E7, E-reset, E-reset-from, E-full-reset) faz commit ou push automaticamente.** Commits e pushes são realizados EXCLUSIVAMENTE pelo operador (humano ou LLM) invocando manualmente:
 
-1. `git add [arquivos afetados]`
-2. `git commit -m "[contexto]: [descrição curta]"`
-3. Executar a alteração
+```bash
+python scripts/e_save.py -m "mensagem"
+```
+
+Quando desejar preservar o estado antes de uma operação destrutiva (reset, sobrescrita de arquivo), execute E-save manualmente antes de prosseguir.
 
 ### 4.5.3 — Convenção de mensagens de commit
 
@@ -2928,7 +3046,7 @@ git diff <hash1> <hash2> -- processed/E5_analysis/analise_financeira-5_analysis.
 
 - O `.gitignore` garante que PDFs financeiros e dados sensíveis **nunca** entrem no Git
 - Se o repositório for hospedado no GitHub, usar **repositório privado**
-- Antes de qualquer `git push`, verificar com `git status` que nenhum arquivo sensível está staged
+- O `e_save.py` inclui safety check automático que bloqueia commit de arquivos em `data/`, `inbox/` e `inbox_processed/`
 
 ---
 
@@ -2940,11 +3058,10 @@ Quando um arquivo existente é substituído por versão nova, seguir este protoc
 
 Quando arquivo com mesmo nome chega no inbox (e.g., novo `david_curriculo-0_original.docx`):
 
-1. **Comitar estado atual via Git:**
+1. **(Opcional) Salvar estado atual via E-save:**
+   Se desejar preservar o estado antes da substituição, execute manualmente:
    ```bash
-   cd financas-familia/
-   git add members/david_curriculo-0_original.docx
-   git commit -m "pre-update: david_curriculo antes de substituição por versão nova"
+   python scripts/e_save.py -m "pre-update: david_curriculo antes de substituição por versão nova"
    ```
 
 2. **Sobrescrever com o novo arquivo:**
@@ -2953,13 +3070,7 @@ Quando arquivo com mesmo nome chega no inbox (e.g., novo `david_curriculo-0_orig
       financas-familia/members/david_curriculo-0_original.docx
    ```
 
-3. **Comitar a nova versão:**
-   ```bash
-   git add members/david_curriculo-0_original.docx
-   git commit -m "update: david_curriculo — CV atualizado com nova experiência"
-   ```
-
-4. **Re-executar etapa relevante:**
+3. **Re-executar etapa relevante:**
    - Se currículo → re-executar E1
    - Se holerite → re-executar E1
    - Se IRPF → re-executar E1.5
@@ -2990,7 +3101,7 @@ Quando extratos novos chegam para períodos já processados (e.g., novo extrato 
    - Re-categorizar com novo conjunto de transações
    - Gerar novos -4_unified.json
 
-4. **Registrar em reconciliation.md:**
+5. **Registrar em reconciliation.md:**
    ```markdown
    | Data | Conta | Arquivo novo | Período | Duplicatas | Novas transações |
    |---|---|---|---|---|---|
@@ -3115,7 +3226,7 @@ Cada -2_extract.json deve seguir um schema específico. Aqui estão os schemas e
 
 **Fatura de cartão de crédito (C6, Santander, Itaú):**
 
-> **Nota (v4.9.1):** Schema atualizado para refletir o output real de `e2_extract_faturas.py`.
+> **Nota (v4.9.1+):** Schema atualizado para refletir o output real de `e2_extract.py`.
 > Campos `forex`, `tipo_lancamento`, `cartoes`, `compras_parceladas_futuras` e `parse_quality` são opcionais.
 > O campo `pagamentos` é SEMPRE negativo por convenção (reduz saldo da fatura).
 > Se o LLM processar faturas fallback, deve gerar JSON neste formato (não no formato antigo com `instituicao`/`resumo`).
@@ -3835,7 +3946,7 @@ Chaves obrigatórias por membro: `id`, `nome_atual`, `papel_familia`, `documento
 
 ---
 
-## APÊNDICE B — ROADMAP DE FEATURES FUTURAS (v3.1+)
+## APÊNDICE B — ROADMAP DE FEATURES FUTURAS
 
 | Feature | Descrição | Impacto |
 |---|---|---|
@@ -3861,13 +3972,20 @@ Chaves obrigatórias por membro: `id`, `nome_atual`, `papel_familia`, `documento
 | **Unificação (-4_unified.json)** | Agregação de dados reconciliados por tipo (receita, despesa, etc.) com categorização completa |
 | **Análise (-5_analysis.json)** | Derivação de métricas: fluxo, rácios, crescimento, alíquota, saúde vs. goals |
 | **SMART CYCLE** | Detecção automática de tipos de arquivo → determinação de etapas necessárias (vs. ciclos fixos quinzenal/trimestral) |
-| **Versionamento** | Comitar estado atual via Git antes de substituir arquivo. Histórico acessível via `git log -- [caminho/do/arquivo]` |
+| **Versionamento** | Salvar estado atual via `e_save.py` (manual) antes de substituir arquivo. Histórico acessível via `git log -- [caminho/do/arquivo]` |
 | **Divergência** | Inconsistência detectada entre fontes (e.g., saldo IRPF vs. saldo extrato, imóvel em IRPF mas não em XLSX) |
 | **QA Log** | Registro de itens não automatizáveis — requerem revisão/instrução manual antes de continuação |
+| **Wall** | Ponto de parada no modo interativo (`--interactive`) onde o pipeline aguarda intervenção do agente LLM. Existem 3 walls: E1+E1.5, E2-llm, E7-review. Exit code 10 indica pausa em wall. |
+| **Tombstone** | JSON vazio (`{}`) ou marcador de arquivo removido, usado pelo E3 para sinalizar que um arquivo reconciliado anterior foi invalidado |
+| **Parse quality** | Campo de validação nos JSONs E2 (`ok`, `empty_result`, `missing_transactions`) que indica a qualidade da extração determinística |
+| **Cascata** | Re-execução automática de etapas downstream quando uma etapa anterior é reprocessada. Ex: `--from E3` causa cascata E3→E4→E5→E5.N→E6 |
+| **E-full-reset** | Reprocessamento nuclear do pipeline inteiro desde E0 até E6-final, incluindo re-roteamento de todos os arquivos e todas as etapas LLM |
+| **State file** | Arquivo `_scratch/.e_reset_state.json` que rastreia o progresso do pipeline interativo entre invocações de `--continue` |
+| **Determinístico** | Etapa 100% reproduzível via script Python, sem chamadas a LLM. Mesmos inputs = mesmos outputs |
 
 ---
 
-## APÊNDICE D — ESTRUTURA FINAL DE DIRETÓRIOS (v3.1)
+## APÊNDICE D — ESTRUTURA FINAL DE DIRETÓRIOS
 
 ```
 financas-familia/
@@ -3940,11 +4058,12 @@ financas-familia/
 │   │   ├── patrimonio-4_unified.json
 │   │   ├── seguros-4_unified.json
 │   │   ├── pontos_milhas-4_unified.json
-│   │   └── [exatamente 6 arquivos]
+│   │   ├── fluxo_mensal_detalhado-4_unified.json
+│   │   └── [exatamente 7 arquivos]
 │   └── E5_analysis/                      (outputs de E5)
 │       └── analise_financeira-5_analysis.json
 ├── output/
-│   └── relatorio_financeiro_ferreira_campos_[DATE].html (E5 — versões anteriores no histórico Git)
+│   └── relatorio_financeiro_ferreira_campos_[DATE].html (E6 — versões anteriores no histórico Git)
 ├── logs/
 │   ├── inbox_log.md                      (roteamento de todos os ciclos)
 │   ├── run_log.md                        (execução de cada etapa)
@@ -3971,7 +4090,7 @@ financas-familia/
 - [ ] E1.5: baseline_patrimonial-1.5_consolidated.json gerado
 - [ ] E2: todos os -2_extract.json gerados
 - [ ] E3: todos os -3_reconciled.json gerados
-- [ ] E4: 6 arquivos -4_unified.json gerados (incluindo seguros)
+- [ ] E4: 7 arquivos -4_unified.json gerados (incluindo seguros e fluxo_mensal_detalhado)
 - [ ] E5: analise_financeira-5_analysis.json gerado com chave narrativas
 - [ ] E5.N: narrativas geradas (perfil, summaries, charts)
 - [ ] E6: relatorio_financeiro_*.html gerado
@@ -3985,6 +4104,6 @@ financas-familia/
 
 ---
 
-**Versão 3.1 — Abril 2026**
+**Versão 6.1 — Abril 2026**
 **Autor: Pipeline Financeiro Ferreira Campos**
-**Última atualização: 4 abr 2026**
+**Última atualização: 13 abr 2026**

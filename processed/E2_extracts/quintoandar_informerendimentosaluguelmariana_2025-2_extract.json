@@ -1,1 +1,34 @@
-{}
+{
+  "source_file": "quintoandar_informerendimentosaluguelmariana_2025-0_original.pdf",
+  "tipo": "informerendimentosaluguel",
+  "instituicao": "quintoandar",
+  "membro": "mariana",
+  "ano_base": 2025,
+  "administradora": "GRPQA LTDA",
+  "total_bruto": 74179.77,
+  "total_descontos": 7423.08,
+  "rendimento_liquido": 66756.69,
+  "imoveis": [
+    {
+      "endereco": "Av. Alberto Augusto Alves, 320 - Ap 812 (Living Concept)",
+      "codigo": "894064293",
+      "inquilinos": [
+        "Luana Pereira Da Silva",
+        "Brenda Maraisa De Souza"
+      ],
+      "total_bruto": 7424.71,
+      "total_descontos": 1548.62,
+      "rendimento_liquido": 5876.09
+    },
+    {
+      "endereco": "Av. João Dias, 2192 - Ap 163 Torre 2 (Living Wish)",
+      "codigo": "894326656",
+      "inquilino": "Wesley Augusto De Almeida Sandes",
+      "cpf_inquilino": "351.146.508-74",
+      "contrato": "689924",
+      "total_bruto": 66755.06,
+      "total_descontos": 5874.46,
+      "rendimento_liquido": 60880.6
+    }
+  ]
+}

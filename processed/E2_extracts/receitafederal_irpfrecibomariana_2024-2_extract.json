@@ -1,1 +1,13 @@
-{}
+{
+  "source_file": "receitafederal_irpfrecibomariana_2024-0_original.pdf",
+  "tipo": "irpfrecibo",
+  "instituicao": "receitafederal",
+  "membro": "mariana",
+  "ano_base": 2024,
+  "numero_recibo": "14.54.94.96.65-76",
+  "data_entrega": "2025-05-30",
+  "rendimentos_tributaveis": 203982.98,
+  "imposto_devido": 40746.89,
+  "imposto_a_pagar": 18170.9,
+  "quotas": 8
+}

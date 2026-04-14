@@ -1,98 +1,107 @@
 {
-  "tipo": "members_unified",
-  "data_geracao": "2026-04-09",
-  "fonte_definitions": true,
+  "pipeline_stage": "E1",
+  "extraction_date": "2026-04-13",
   "membros": [
     {
       "id": "david",
-      "nome_atual": "David Robert Camargo Ferreira Campos",
-      "nomes_alternativos": ["David Robert Camargo de Campos"],
+      "nome_completo": "David Robert Camargo Ferreira Campos",
+      "nome_curto": "David",
+      "nome_solteiro": "David Robert Camargo de Campos",
       "cpf": "287.766.948-36",
       "data_nascimento": "1981-09-05",
-      "papel_familia": "Titular",
-      "empregador_atual": "Arvo",
-      "cargo_atual": "Chief Technology Officer (CTO)",
-      "tipo_vinculo": "PJ",
-      "data_admissao": "2025-09-08",
-      "formacao_maxima": "Mestrado em Ciência da Computação — Inteligência Artificial (USP/IME, 2008)",
-      "idiomas": [
-        {"idioma": "Português", "nivel": "nativo", "fonte": "inferido"},
-        {"idioma": "Inglês", "nivel": "fluente", "fonte": "documento"}
-      ],
-      "experiencias": [
-        {"empresa": "Arvo", "cargo": "CTO", "tipo_vinculo": "PJ", "data_inicio": "2025-09", "data_fim": "presente"},
-        {"empresa": "Kiwify", "cargo": "CTO", "tipo_vinculo": "CLT", "data_inicio": "2024-06", "data_fim": "2025-05"},
-        {"empresa": "Loft", "cargo": "Software Engineering Consultant", "tipo_vinculo": "PJ", "data_inicio": "2022-12", "data_fim": "2024-06"},
-        {"empresa": "Loft / CredPago", "cargo": "VP of Software Engineering", "tipo_vinculo": "PJ", "data_inicio": "2019-06", "data_fim": "2022-12"},
-        {"empresa": "Elo7", "cargo": "CTO", "tipo_vinculo": "PJ", "data_inicio": "2015-06", "data_fim": "2019-06"},
-        {"empresa": "NetServices (Grupo UOL/PagSeguro)", "cargo": "CTO", "tipo_vinculo": "CLT", "data_inicio": "2013-01", "data_fim": "2015-06"},
-        {"empresa": "UOL / BOL", "cargo": "Software Engineer / Tech Lead", "tipo_vinculo": "CLT", "data_inicio": "2006-01", "data_fim": "2013-01"},
-        {"empresa": "Registro.br / NIC.br", "cargo": "Software Developer", "tipo_vinculo": "CLT", "data_inicio": "2004-01", "data_fim": "2006-01"},
-        {"empresa": "Exército Brasileiro (CPOR/SP)", "cargo": "Aspirante a Oficial de Comunicações", "tipo_vinculo": "CLT", "data_inicio": "2000-01", "data_fim": "2001-12"}
-      ],
-      "salario": {
-        "bruto": null,
-        "liquido": null,
-        "periodo_referencia": null,
-        "fonte": null,
-        "nota": "PJ — valor a confirmar via extratos bancários da C6 Bank PJ"
+      "papel": "titular",
+      "contato": {
+        "telefone": "+55 (11) 99681-9851",
+        "email": "davidrobert@gmail.com",
+        "linkedin": "https://www.linkedin.com/in/davidrobert/"
       },
-      "documentos_disponiveis": ["curriculo"],
-      "status_fiscal": "BR",
-      "observacoes": "Mais de 20 anos de carreira em tecnologia. Atuou em empresas como Elo7, Loft (unicórnio), Kiwify. Atualmente CTO da Arvo (healthtech IA). PJ via Simples Nacional (Anexo V)."
+      "profissao": "CTO da Arvo (healthtech de auditoria médica com IA)",
+      "regime": "PJ Simples Nacional (Anexo V)",
+      "empregador": "Arvo",
+      "emprego_inicio": "set/2025",
+      "formacao": {
+        "graduacao": "Ciência da Computação — PUC/SP (2004)",
+        "pos_graduacao": "Mestrado em Ciência da Computação (IA) — USP/IME (2008)"
+      },
+      "carreira_inicio": 2002,
+      "anos_experiencia": 24,
+      "empresas_destaque": ["Arvo", "Kiwify", "Loft", "Elo7", "Registro.br"],
+      "renda_mensal_estimada": {
+        "pro_labore_pj": 54958.00,
+        "advisory_brandlovers": 3333.00,
+        "advisory_arbitralis": 2500.00,
+        "mentoria_learntofly": 1750.00,
+        "aluguel_liquido": 2617.12,
+        "total_estimado": 65158.12,
+        "nota": "Pro-labore inclui rateio 13o/ferias. Advisory BrandLovers = ~10k trimestral. Arbitralis = R$500/h."
+      },
+      "irpf_2024": {
+        "rendimentos_tributaveis": 651374.65,
+        "imposto_devido": 163779.60,
+        "aliquota_efetiva": 25.14,
+        "bens_direitos_31_12_2024": 2589887.09,
+        "dividas_31_12_2024": 234792.61
+      }
     },
     {
       "id": "mariana",
-      "nome_atual": "Mariana Ferreira Campos",
-      "nomes_alternativos": ["Mariana Teixeira Ferreira"],
+      "nome_completo": "Mariana Ferreira Campos",
+      "nome_curto": "Mariana",
+      "nome_solteira": "Mariana Teixeira Ferreira",
+      "nome_fiscal": "Mariana Teixeira Ferreira",
       "cpf": "085.052.396-60",
       "data_nascimento": "1986-08-30",
-      "papel_familia": "Cônjuge",
-      "empregador_atual": "Hospital Israelita Albert Einstein",
-      "cargo_atual": "Enfermeiro Pl",
-      "tipo_vinculo": "CLT",
-      "data_admissao": "2014-07-21",
-      "formacao_maxima": "Mestrado em Enfermagem — Enfermagem em Saúde Adulta (USP, 2021)",
-      "idiomas": [
-        {"idioma": "Português", "nivel": "nativo", "fonte": "inferido"}
-      ],
-      "experiencias": [
-        {"empresa": "Hospital Israelita Albert Einstein", "cargo": "Enfermeiro Pl", "tipo_vinculo": "CLT", "data_inicio": "2018-01", "data_fim": "presente"},
-        {"empresa": "Hospital Israelita Albert Einstein - UPA Campo Limpo", "cargo": "Enfermeiro", "tipo_vinculo": "CLT", "data_inicio": "2014-08", "data_fim": "2018-06"},
-        {"empresa": "Faculdade Israelita Albert Einstein", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2021-01", "data_fim": "2024-12"},
-        {"empresa": "Senac São Paulo", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2012-01", "data_fim": "2016-01"},
-        {"empresa": "Faculdade Sequencial", "cargo": "Docente universitário", "tipo_vinculo": "docencia", "data_inicio": "2013-01", "data_fim": "2015-08"},
-        {"empresa": "Hospital Municipal Dr. Moysés Deutsch", "cargo": "Enfermeira", "tipo_vinculo": "CLT", "data_inicio": "2011-01", "data_fim": "2014-12"}
-      ],
-      "salario": {
-        "bruto": 12086.06,
-        "liquido": 3425.41,
-        "periodo_referencia": "2026-02",
-        "fonte": "holerite",
-        "nota": "Líquido atípico (R$ 3.425,41): holerite de fev/2026 inclui férias parciais (5 dias), com desconto de adiantamento (R$ 3.633,17) e desconto de férias (R$ 2.529,63). Salário base mensal: R$ 10.899,51."
+      "papel": "conjuge",
+      "contato": {
+        "telefone": "+55 11 96073-3929",
+        "email": "mtf3008@gmail.com",
+        "linkedin": "https://www.linkedin.com/in/mariana-ferreira-campos"
       },
-      "documentos_disponiveis": ["curriculo", "holerite"],
-      "status_fiscal": "BR",
-      "observacoes": "11+ anos no Einstein (desde jul/2014). Mestre USP, especialista Cardiologia UNIFESP. Perfil competitivo para NCLEX nos EUA. Também atuou como docente universitária no Einstein e Senac."
+      "profissao": "Enfermeira no Hospital Israelita Albert Einstein",
+      "regime": "CLT",
+      "empregador": "Hospital Israelita Albert Einstein (SBIBHAE)",
+      "emprego_inicio": "jul/2014",
+      "cargo": "Enfermeiro Pleno (Grade P4)",
+      "formacao": {
+        "graduacao": "Enfermagem — PUC Minas (2010)",
+        "pos_graduacao": "Especialização em Cardiologia e Hemodinâmica — UNIFESP (2012)",
+        "mestrado": "Enfermagem em Saúde do Adulto — USP (2021)"
+      },
+      "salario_mensal": {
+        "bruto": 10899.51,
+        "liquido": 3425.41,
+        "referencia": "fev/2026",
+        "nota": "Liquido baixo por desconto de ferias no mes. Salario base R$9.082,92 + insalubridade R$270,17."
+      },
+      "renda_mensal_estimada": {
+        "salario_einstein": 10899.51,
+        "aluguel_liquido": 5563.06,
+        "total_estimado": 16462.57,
+        "nota": "Aluguel liquido = media mensal QuintoAndar 2025 (R$66.756,69/12)."
+      },
+      "irpf_2024": {
+        "rendimentos_tributaveis": 203982.98,
+        "imposto_devido": 40746.89,
+        "aliquota_efetiva": 19.97,
+        "bens_direitos_31_12_2024": 988123.73,
+        "dividas_31_12_2024": 0.00
+      }
     },
     {
       "id": "theo",
-      "nome_atual": "Theo Ferreira Campos",
-      "nomes_alternativos": [],
-      "cpf": null,
+      "nome_completo": "Theo Ferreira Campos",
+      "nome_curto": "Theo",
       "data_nascimento": "2025-07-18",
-      "papel_familia": "Filho",
-      "empregador_atual": null,
-      "cargo_atual": null,
-      "tipo_vinculo": null,
-      "data_admissao": null,
-      "formacao_maxima": null,
-      "idiomas": [],
-      "experiencias": [],
-      "salario": null,
-      "documentos_disponiveis": [],
-      "status_fiscal": "BR+US",
-      "observacoes": "Dupla cidadania brasileira e americana. Nascido em Orlando, Flórida, em 18/07/2025."
+      "papel": "filho",
+      "cidadania": ["brasileira", "americana"],
+      "local_nascimento": "Orlando, Flórida",
+      "nota": "Sem renda propria. Dupla cidadania BR/US."
     }
-  ]
+  ],
+  "resumo_familia": {
+    "renda_bruta_mensal_estimada": 81620.69,
+    "patrimonio_bruto_31_12_2024": 3578010.82,
+    "dividas_31_12_2024": 234792.61,
+    "patrimonio_liquido_31_12_2024": 3343218.21
+  }
 }

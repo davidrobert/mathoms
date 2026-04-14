@@ -1,34 +1,31 @@
 {
-  "tipo": "carteirarendafixa",
-  "banco": "c6bank",
+  "source_file": "c6bank_carteirarendafixa_202603-0_original.pdf",
+  "tipo": "investimentosposicao",
+  "instituicao": "c6bank",
   "membro": "david",
-  "data_posicao": "2026-03",
-  "moeda": "BRL",
-  "composicao": [
+  "data_referencia": "2026-03",
+  "saldo_total": 6930.11,
+  "posicoes": [
     {
-      "product_type": "Renda Fixa",
-      "name": "Renda Fixa Limite",
-      "issuer": "C6 Bank",
-      "current_value": 6930.11,
-      "rate": "102% do CDI"
+      "tipo": "CDB",
+      "nome": "CDB C6 Pós-fixado Liq. Diária",
+      "indexador": "102% do CDI"
     },
     {
-      "product_type": "CDB",
-      "name": "CDB C6 Pós-fixado 3 meses",
-      "issuer": "C6 Bank",
-      "current_value": null,
-      "rate": "102% do CDI",
-      "pm_note": "Amount not clearly specified in source"
+      "tipo": "CDB",
+      "nome": "CDB C6 Limite Garantido",
+      "indexador": "102% do CDI"
     },
     {
-      "product_type": "CDB",
-      "name": "CDB C6 Pós-fixado 6 meses",
-      "issuer": "C6 Bank",
-      "current_value": null,
-      "rate": "103% do CDI",
-      "pm_note": "Amount not clearly specified in source"
+      "tipo": "CDB",
+      "nome": "CDB C6 Pós-fixado 3 meses",
+      "indexador": "102% do CDI"
+    },
+    {
+      "tipo": "CDB",
+      "nome": "CDB C6 Pós-fixado 6 meses",
+      "indexador": "103% do CDI"
     }
   ],
-  "saldo_atual": 6930.11,
-  "rentabilidade_acumulada": null
+  "nota": "PDF mostra apenas tipos de produto e taxas, sem valores individuais. Saldo total R$6.930,11."
 }

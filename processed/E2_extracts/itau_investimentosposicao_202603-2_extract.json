@@ -1,34 +1,40 @@
 {
+  "source_file": "itau_investimentosposicao_202603-0_original.pdf",
   "tipo": "investimentosposicao",
-  "banco": "itau",
+  "instituicao": "itau",
   "membro": "david",
-  "data_posicao": "2026-03",
-  "moeda": "BRL",
-  "composicao": [
+  "data_referencia": "2026-03-29",
+  "conta": "9652/04397-8",
+  "total_investido": 341581.2,
+  "rentabilidade_periodo": {
+    "pct": 0.91,
+    "valor": 3159.59,
+    "pct_cdi": 86.67,
+    "periodo": "2026-03-02 a 2026-03-26"
+  },
+  "posicoes": [
     {
-      "product_type": "CDB",
-      "name": "CDB-DI",
-      "issuer": "Itaú",
-      "applied_value": 116374.26,
-      "current_value": 116374.26,
-      "rate": "DI-based"
+      "tipo": "CDB-DI",
+      "nome": "CDB-DI Itaú (Cofrinhos)",
+      "valor": 116374.26,
+      "distribuicao_pct": 34.07,
+      "rendimento_2026": 3761.5
     },
     {
-      "product_type": "CDB",
-      "name": "CDB-DI Previdência",
-      "issuer": "Itaú",
-      "applied_value": 18715.24,
-      "current_value": 18715.24,
-      "rate": "DI-based"
+      "tipo": "PREVIDENCIA",
+      "nome": "Itau Prev Corp Platinum Rv49 Mm PGBL",
+      "valor": 18715.24,
+      "distribuicao_pct": 5.48,
+      "rendimento_2026": 1288.35,
+      "rentabilidade_12m_pct": 23.44,
+      "desde": "2021-12-02"
     },
     {
-      "product_type": "Poupança",
-      "name": "Poupança",
-      "issuer": "Itaú",
-      "current_value": 0,
-      "pm_note": "No active savings account"
+      "tipo": "COFRINHOS",
+      "nome": "Cofrinhos Itaú",
+      "valor": 206491.7,
+      "distribuicao_pct": 60.45,
+      "rendimento_2026": 6610.29
     }
-  ],
-  "saldo_atual": 341581.2,
-  "rentabilidade_acumulada": 3159.59
+  ]
 }

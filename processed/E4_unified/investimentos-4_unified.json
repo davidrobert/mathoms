@@ -1,172 +1,192 @@
 {
   "dados": [
     {
-      "nome": "BANCO AGIBANK S.A",
+      "nome": "",
       "tipo": "CDB",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 29353.39,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2026-11-10"
     },
     {
-      "nome": "PICPAY BANK - BANCO MULTI",
+      "nome": "",
       "tipo": "CDB",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 30442.6,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2030-03-25"
     },
     {
-      "nome": "BANCO DIGIMAIS S.A.",
+      "nome": "",
       "tipo": "CDB",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 12631.0,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2030-05-21"
     },
     {
-      "nome": "PICPAY BANK - BANCO MULTI",
+      "nome": "",
       "tipo": "CDB",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 22563.46,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2032-03-24"
     },
     {
-      "nome": "CRI - TEX COURIER",
+      "nome": "",
       "tipo": "CRI",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 8002.3,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2028-11-16"
     },
     {
-      "nome": "CRI - ONCOCLINICAS II",
+      "nome": "",
       "tipo": "CRI",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 7020.69,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2030-10-15"
     },
     {
-      "nome": "CRA - Zamp",
+      "nome": "",
       "tipo": "CRA",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 8608.78,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2029-02-15"
     },
     {
-      "nome": "CRA - MADERO",
+      "nome": "",
       "tipo": "CRA",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 7778.47,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2029-10-29"
     },
     {
-      "nome": "CRA - FS AGRISOLUTIONS",
+      "nome": "",
       "tipo": "CRA",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 7276.46,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2030-06-17"
     },
     {
-      "nome": "CRA - CEREAL",
+      "nome": "",
       "tipo": "CRA",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 8795.66,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2032-09-15"
     },
     {
-      "nome": "CRA - Caramuru",
+      "nome": "",
       "tipo": "CRA",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 20318.78,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2033-02-15"
     },
     {
-      "nome": "CRA - MINERVA",
+      "nome": "",
       "tipo": "CRA",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 26663.31,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2035-07-16"
     },
     {
-      "nome": "CRA - ELDORADO",
+      "nome": "",
       "tipo": "CRA",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 28517.95,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2040-09-17"
     },
     {
-      "nome": "LOCALIZA RENT A CAR SA",
-      "tipo": "Debentura",
+      "nome": "",
+      "tipo": "DEBENTURE",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 29205.27,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2031-12-15"
     },
     {
-      "nome": "CSN MINERACAO S.A.",
-      "tipo": "Debentura",
+      "nome": "",
+      "tipo": "DEBENTURE",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 6993.62,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2036-07-15"
+    },
+    {
+      "nome": "",
+      "tipo": "TITULO_PUBLICO",
+      "instituicao": "btgpactual",
+      "membro": "mariana",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": "2030-08-15"
+    },
+    {
+      "nome": "",
+      "tipo": "TITULO_PUBLICO",
+      "instituicao": "btgpactual",
+      "membro": "mariana",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": "2033-05-15"
     },
     {
       "nome": "BTG HEDGE FIRF CRPR SUB",
-      "tipo": "Fundo",
+      "tipo": "FUNDO",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 2544.45,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
       "vencimento": ""
     },
     {
-      "nome": "BTG HEDGE INCENTIVADO I",
-      "tipo": "Fundo",
+      "nome": "BTG HEDGE INCENTIVADO INFRA RF",
+      "tipo": "FUNDO",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": 30091.92,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
       "vencimento": ""
     },
@@ -176,44 +196,154 @@
       "instituicao": "btgpactual",
       "membro": "mariana",
       "valor_atual": 20449.45,
-      "data_referencia": "2026-03",
+      "data_referencia": "2026-03-29",
       "taxa": "",
-      "vencimento": ""
+      "vencimento": "2031-02-07"
     },
     {
-      "nome": "Swap",
-      "tipo": "Swap",
+      "nome": "",
+      "tipo": "SWAP",
       "instituicao": "btgpactual",
       "membro": "mariana",
-      "valor_atual": -448.78,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
       "vencimento": ""
     },
     {
-      "nome": "CDB-DI",
-      "tipo": "CDB",
+      "nome": "CDB-DI Itaú (Cofrinhos)",
+      "tipo": "CDB-DI",
       "instituicao": "itau",
       "membro": "david",
-      "valor_atual": 116374.26,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
       "vencimento": ""
     },
     {
-      "nome": "CDB-DI Previdência",
-      "tipo": "CDB",
+      "nome": "Itau Prev Corp Platinum Rv49 Mm PGBL",
+      "tipo": "PREVIDENCIA",
       "instituicao": "itau",
       "membro": "david",
-      "valor_atual": 18715.24,
-      "data_referencia": "2026-03",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
       "taxa": "",
       "vencimento": ""
     },
     {
-      "nome": "Poupança",
-      "tipo": "Poupança",
+      "nome": "Cofrinhos Itaú",
+      "tipo": "COFRINHOS",
       "instituicao": "itau",
+      "membro": "david",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "Alaska Black FIC de FIA - BDR NÍVEL I",
+      "tipo": "FUNDO",
+      "instituicao": "rico",
+      "membro": "david",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "Alaska Institucional Long Only FIF em Ações RL",
+      "tipo": "FUNDO",
+      "instituicao": "rico",
+      "membro": "david",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "Safari 30 FIF em Cotas de FIM II",
+      "tipo": "FUNDO",
+      "instituicao": "rico",
+      "membro": "david",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "Constellation Institucional Advisory FIC de Ações RL",
+      "tipo": "FUNDO",
+      "instituicao": "rico",
+      "membro": "david",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "Western Asset BDR FIF",
+      "tipo": "FUNDO",
+      "instituicao": "rico",
+      "membro": "david",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
+      "tipo": "FUNDO",
+      "instituicao": "rico",
+      "membro": "david",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "XP Alocação Sofisticada FIM CP RL",
+      "tipo": "FUNDO",
+      "instituicao": "rico",
+      "membro": "david",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "",
+      "tipo": "ACAO",
+      "instituicao": "rico",
+      "membro": "david",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "",
+      "tipo": "ACAO",
+      "instituicao": "rico",
+      "membro": "david",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "",
+      "tipo": "ACAO",
+      "instituicao": "rico",
+      "membro": "david",
+      "valor_atual": 0.0,
+      "data_referencia": "2026-03-29",
+      "taxa": "",
+      "vencimento": ""
+    },
+    {
+      "nome": "CDB C6 Pós-fixado Liq. Diária",
+      "tipo": "CDB",
+      "instituicao": "c6bank",
       "membro": "david",
       "valor_atual": 0.0,
       "data_referencia": "2026-03",
@@ -221,121 +351,11 @@
       "vencimento": ""
     },
     {
-      "nome": "Alaska Block FIC de FIA - BDR NIVEL I",
-      "tipo": "Fundo",
-      "instituicao": "rico",
-      "membro": "david",
-      "valor_atual": 52443.66,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "Alaska Institucional Long Only FIF em Ações RL",
-      "tipo": "Fundo",
-      "instituicao": "rico",
-      "membro": "david",
-      "valor_atual": 52294.2,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "Safari 30 FIF em Cotas de FIM II",
-      "tipo": "Fundo",
-      "instituicao": "rico",
-      "membro": "david",
-      "valor_atual": 16613.5,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "Constellation Institucional Advisory FIC de Ações RL",
-      "tipo": "Fundo",
-      "instituicao": "rico",
-      "membro": "david",
-      "valor_atual": 12585.32,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "Western Asset BDR FIF",
-      "tipo": "Fundo",
-      "instituicao": "rico",
-      "membro": "david",
-      "valor_atual": 25913.09,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "Hashdex 20 Nasdaq Crypto Index FIF em Cotas de FIM",
-      "tipo": "Fundo",
-      "instituicao": "rico",
-      "membro": "david",
-      "valor_atual": 3264.13,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "XP Alocação Sofisticado FIM CP RL",
-      "tipo": "Fundo",
-      "instituicao": "rico",
-      "membro": "david",
-      "valor_atual": 1576.08,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "PETR4",
-      "tipo": "Acao",
-      "instituicao": "rico",
-      "membro": "david",
-      "valor_atual": 43946.0,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "ITSA4",
-      "tipo": "Acao",
-      "instituicao": "rico",
-      "membro": "david",
-      "valor_atual": 10285.16,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "BBKM5",
-      "tipo": "Acao",
-      "instituicao": "rico",
-      "membro": "david",
-      "valor_atual": 2700.0,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "ITSA4 Dividendos",
-      "tipo": "Dividendos",
-      "instituicao": "rico",
-      "membro": "david",
-      "valor_atual": 109.1,
-      "data_referencia": "2026-03",
-      "taxa": "",
-      "vencimento": ""
-    },
-    {
-      "nome": "Renda Fixa Limite",
-      "tipo": "Renda Fixa",
+      "nome": "CDB C6 Limite Garantido",
+      "tipo": "CDB",
       "instituicao": "c6bank",
       "membro": "david",
-      "valor_atual": 6930.11,
+      "valor_atual": 0.0,
       "data_referencia": "2026-03",
       "taxa": "",
       "vencimento": ""
@@ -361,41 +381,41 @@
       "vencimento": ""
     },
     {
-      "nome": "",
-      "tipo": "CDB DI",
-      "instituicao": "santander",
+      "nome": "CDB DI SANTANDER - Op. 00331652260006380267",
+      "tipo": "CDB DI SANTANDER",
+      "instituicao": "Santander",
       "membro": "david",
       "valor_atual": 137857.68,
-      "data_referencia": "2026-04",
+      "data_referencia": "2026-04-08",
       "taxa": "",
       "vencimento": ""
     },
     {
-      "nome": "",
-      "tipo": "CDB DI",
-      "instituicao": "santander",
+      "nome": "CDB DI SANTANDER - Op. 00331652260006541929",
+      "tipo": "CDB DI SANTANDER",
+      "instituicao": "Santander",
       "membro": "david",
       "valor_atual": 101853.74,
-      "data_referencia": "2026-04",
+      "data_referencia": "2026-04-08",
       "taxa": "",
       "vencimento": ""
     },
     {
-      "nome": "",
-      "tipo": "CDB Progressivo",
-      "instituicao": "santander",
+      "nome": "CDB PROG SANTANDER - Op. 00331652260006541912",
+      "tipo": "CDB PROG SANTANDER",
+      "instituicao": "Santander",
       "membro": "david",
       "valor_atual": 60733.04,
-      "data_referencia": "2026-04",
+      "data_referencia": "2026-04-08",
       "taxa": "",
       "vencimento": ""
     }
   ],
   "total_por_membro": {
-    "david": 927872.41,
-    "mariana": 375384.56
+    "david": 307374.57,
+    "mariana": 20449.45
   },
-  "total_geral": 1303256.97,
+  "total_geral": 327824.02,
   "fontes": [
     "btgpactual_investimentosposicao_202603-2_extract.json",
     "itau_investimentosposicao_202603-2_extract.json",
@@ -403,11 +423,6 @@
     "c6bank_carteirarendafixa_202603-2_extract.json",
     "santander_cdbresumo_202604-2_extract.json"
   ],
-  "data_consolidacao": "2026-04-10",
-  "n_posicoes": 39,
-  "avisos_validacao": [
-    "[WARN] btgpactual (mariana): saldo_atual R$ 375,384.56 vs itens R$ 306,808.78 — gap R$ 68,575.78 (posições não detalhadas no E2)",
-    "[WARN] itau (david): saldo_atual R$ 341,581.20 vs itens R$ 135,089.50 — gap R$ 206,491.70 (posições não detalhadas no E2)",
-    "[WARN] rico (david): saldo_atual R$ 278,916.64 vs itens R$ 221,730.24 — gap R$ 57,186.40 (posições não detalhadas no E2)"
-  ]
+  "data_consolidacao": "2026-04-13",
+  "n_posicoes": 41
 }

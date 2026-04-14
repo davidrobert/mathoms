@@ -1,0 +1,29 @@
+[project]
+name = "fin-pipeline"
+version = "0.2.0"
+description = "Pipeline de consolidação financeira familiar"
+requires-python = ">=3.11"
+dependencies = [
+    "pdfplumber>=0.10",
+    "pikepdf>=8.0",
+    "xlrd>=2.0",
+    "openpyxl>=3.1",
+    "beautifulsoup4>=4.12",
+    "PyYAML>=6.0",
+    "pytz>=2024.1",
+]
+
+[project.optional-dependencies]
+llm = ["anthropic>=0.30"]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[tool.setuptools.packages.find]
+include = ["pipeline*", "scripts*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

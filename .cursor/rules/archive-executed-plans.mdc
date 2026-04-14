@@ -1,0 +1,31 @@
+---
+description: Após executar um plano de correção (plano_correcao_*.md ou similar em docs/), mover para _archive/
+globs: docs/plano_*.md
+alwaysApply: false
+---
+
+# Arquivar planos de correção após execução
+
+Planos de correção em `docs/` (ex: `plano_correcao_e5n_narrativas.md`) são artefatos transitórios de planejamento.
+
+## Regra
+
+Após executar todas as fases de um plano:
+
+1. Verificar se as correções foram de fato implementadas no código-alvo
+2. Mover o plano para `_archive/`:
+   ```
+   mv docs/plano_correcao_*.md _archive/
+   ```
+3. Nunca deixar planos executados em `docs/` — polui a documentação permanente
+
+## O que é um plano de correção
+
+- Arquivos com prefixo `plano_correcao_` ou `plano_` em `docs/`
+- Descrevem fases de refatoração, correção ou melhoria de um script
+- Tornam-se obsoletos após execução completa
+
+## O que NÃO arquivar
+
+- Documentação técnica permanente (ex: `docs/e2_architecture.md`)
+- READMEs e guias de referência

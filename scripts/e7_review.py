@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """
 E7 Review & Refine — Post-report holistic review with persona-driven analysis
 
@@ -35,9 +36,9 @@ from pathlib import Path
 # =============================================================================
 # Paths — all relative to project root, no hardcoded absolute paths
 # =============================================================================
-SCRIPTS_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = SCRIPTS_DIR.parent
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
+PROJECT_DIR = _DEFAULT_BASE_DIR
 E5_JSON_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
 METHODOLOGY_PATH = PROJECT_DIR / "config" / "methodology.md"
 DEFINITIONS_PATH = PROJECT_DIR / "config" / "definitions.md"
@@ -46,7 +47,7 @@ SCORING_CONFIG_PATH = PROJECT_DIR / "config" / "scoring.json"
 PIPELINE_CONFIG_PATH = PROJECT_DIR / "config" / "pipeline.json"
 REPORT_SPEC_PATH = PROJECT_DIR / "config" / "report_spec.md"
 OUTPUT_DIR = PROJECT_DIR / "output"
-REVIEW_TEMPLATE_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "e7_review_template.json"
+REVIEW_TEMPLATE_PATH = PROJECT_DIR / "processed" / "E7_review" / "e7_review_template.json"
 
 def _load_json_config(path: Path) -> dict:
     if path.exists():
@@ -54,9 +55,31 @@ def _load_json_config(path: Path) -> dict:
             return json.load(f)
     return {}
 
-_SCORING_CONFIG = _load_json_config(SCORING_CONFIG_PATH)
-_PIPELINE_CONFIG = _load_json_config(PIPELINE_CONFIG_PATH)
-_QA_THRESHOLDS = _PIPELINE_CONFIG.get("qa_thresholds", {})
+
+def _init_config(base_dir: Path) -> None:
+    """(Re)carrega paths e configs a partir de um root_dir."""
+    global PROJECT_DIR, E5_JSON_PATH, METHODOLOGY_PATH, DEFINITIONS_PATH
+    global FAMILY_CONFIG_PATH, SCORING_CONFIG_PATH, PIPELINE_CONFIG_PATH
+    global REPORT_SPEC_PATH, OUTPUT_DIR, REVIEW_TEMPLATE_PATH
+    global _SCORING_CONFIG, _PIPELINE_CONFIG, _QA_THRESHOLDS
+
+    PROJECT_DIR = base_dir
+    E5_JSON_PATH = base_dir / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+    METHODOLOGY_PATH = base_dir / "config" / "methodology.md"
+    DEFINITIONS_PATH = base_dir / "config" / "definitions.md"
+    FAMILY_CONFIG_PATH = base_dir / "config" / "family_members.json"
+    SCORING_CONFIG_PATH = base_dir / "config" / "scoring.json"
+    PIPELINE_CONFIG_PATH = base_dir / "config" / "pipeline.json"
+    REPORT_SPEC_PATH = base_dir / "config" / "report_spec.md"
+    OUTPUT_DIR = base_dir / "output"
+    REVIEW_TEMPLATE_PATH = base_dir / "processed" / "E7_review" / "e7_review_template.json"
+
+    _SCORING_CONFIG = _load_json_config(SCORING_CONFIG_PATH)
+    _PIPELINE_CONFIG = _load_json_config(PIPELINE_CONFIG_PATH)
+    _QA_THRESHOLDS = _PIPELINE_CONFIG.get("qa_thresholds", {})
+
+
+_init_config(_DEFAULT_BASE_DIR)
 
 # =============================================================================
 # Data loading — everything from files, nothing hardcoded
@@ -748,7 +771,10 @@ def strip_review_from_e5(dry_run: bool = False) -> int:
 # Main
 # =============================================================================
 
-def main():
+def main(root_dir: Path = None):
+    if root_dir:
+        _init_config(root_dir)
+
     parser = argparse.ArgumentParser(
         description="E7 Review & Refine — Post-report holistic review",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -888,6 +914,7 @@ Exemplos:
     template = build_review_template(e5, cv_results, persona)
 
     if not dry_run:
+        REVIEW_TEMPLATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         with open(REVIEW_TEMPLATE_PATH, "w", encoding="utf-8") as f:
             json.dump(template, f, indent=2, ensure_ascii=False)
         print(f"  Template salvo em: {REVIEW_TEMPLATE_PATH.relative_to(PROJECT_DIR)}")

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """
 E0-route — Roteamento automático de arquivos do inbox para diretórios de destino.
 
@@ -32,18 +33,11 @@ from datetime import date
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Paths
+# Paths — re-inicializáveis via _init_config()
 # ---------------------------------------------------------------------------
-BASE = Path(__file__).resolve().parent.parent
-INBOX = BASE / "inbox"
-INBOX_PROCESSED = BASE / "inbox_processed"
-LOGS = BASE / "logs"
-DATA = BASE / "data"
-MEMBERS = BASE / "members"
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ---------------------------------------------------------------------------
-# Config loader
-# ---------------------------------------------------------------------------
+
 def _load_json_config(path: Path, label: str = "") -> dict:
     if path.exists():
         try:
@@ -55,9 +49,23 @@ def _load_json_config(path: Path, label: str = "") -> dict:
         print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
     return {}
 
-INST_CONFIG = _load_json_config(BASE / "config" / "institutions.json", "institutions.json")
-PIPE_CONFIG = _load_json_config(BASE / "config" / "pipeline.json", "pipeline.json")
-FAMILY_CONFIG = _load_json_config(BASE / "config" / "family_members.json", "family_members.json")
+
+def _init_config(base_dir: Path) -> None:
+    """(Re-)inicializa paths e configs globais a partir de base_dir."""
+    global BASE, INBOX, INBOX_PROCESSED, LOGS, DATA, MEMBERS
+    global INST_CONFIG, PIPE_CONFIG, FAMILY_CONFIG
+    BASE = base_dir
+    INBOX = BASE / "inbox"
+    INBOX_PROCESSED = BASE / "inbox_processed"
+    LOGS = BASE / "logs"
+    DATA = BASE / "data"
+    MEMBERS = BASE / "members"
+    INST_CONFIG = _load_json_config(BASE / "config" / "institutions.json", "institutions.json")
+    PIPE_CONFIG = _load_json_config(BASE / "config" / "pipeline.json", "pipeline.json")
+    FAMILY_CONFIG = _load_json_config(BASE / "config" / "family_members.json", "family_members.json")
+
+
+_init_config(_DEFAULT_BASE_DIR)
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -149,6 +157,11 @@ def _build_doc_type_patterns() -> list[tuple[re.Pattern, str, str]]:
     ]
 
 DOC_TYPE_PATTERNS = _build_doc_type_patterns()
+
+_doc_type_examples = sorted(
+    set(p[1] for p in DOC_TYPE_PATTERNS) | set(INST_CONFIG.get("tipo_aliases", {}).keys())
+)
+_DOC_TYPE_LIST = ", ".join(_doc_type_examples)
 
 # Period extraction regex — from config
 _period_cfg = PIPE_CONFIG.get("period_regex", {})
@@ -335,7 +348,7 @@ Conteúdo (preview):
 Classifique o arquivo retornando APENAS um JSON válido (sem markdown) com estes campos:
 {{
   "institution": "código da instituição (c6bank, itau, santander, bradesco, btgpactual, rico, picpay, wise, bankofamerica, quintoandar, binance, receitafederal) ou null",
-  "doc_type": "código do tipo (extratoconta, extratopoupanca, faturacarbon, faturaunique, faturapaoacucar, investimentosposicao, cdbdetalhes, cdbresumo, irpfdeclaracao, irpfrecibo, informerendimentos, holerite, curriculo, rg, cpf, passaporte, dados_imoveis, dados_veiculos, faturaaluguelcalixto, faturaaluguelmajorfreire, etc.)",
+  "doc_type": "código do tipo ({_DOC_TYPE_LIST}, etc.)",
   "dest_group": "financial_statements | income_tax_br | real_estate | vehicles | members | income_tax_us",
   "period": "YYYYMM ou YYYYMM_YYYYMM ou YYYY",
   "member": "{member_options} | null",
@@ -395,9 +408,11 @@ def file_hash(filepath: Path) -> str:
 
 def build_final_name(classification: dict, original_ext: str) -> str:
     """Build the standardized filename from classification result."""
-    # If LLM gave a final_name, use it
+    # If LLM gave a final_name, sanitize and use it
     if classification.get("source") == "llm" and classification.get("final_name"):
-        return classification["final_name"]
+        sanitized = Path(classification["final_name"]).name
+        if sanitized and ".." not in sanitized:
+            return sanitized
 
     parts = []
     dest_group = classification["dest_group"]
@@ -589,7 +604,11 @@ def route_all(base: Path | None = None, *, dry_run: bool = False,
 
     # Collect files (skip hidden, skip directories)
     if file_filter:
-        files = [inbox / file_filter]
+        target = (inbox / file_filter).resolve()
+        if not str(target).startswith(str(inbox.resolve())):
+            log("ERROR", f"Caminho inválido (fora do inbox): {file_filter}")
+            return {"total": 0, "error": "invalid_path"}
+        files = [target]
         if not files[0].exists():
             log("ERROR", f"Arquivo não encontrado: {file_filter}")
             return {"total": 0, "error": "file_not_found"}
@@ -678,7 +697,9 @@ def _write_inbox_log(base: Path, today: str, stats: dict) -> None:
 # CLI
 # ---------------------------------------------------------------------------
 
-def main():
+def main(root_dir: Path = None):
+    if root_dir:
+        _init_config(root_dir)
     parser = argparse.ArgumentParser(
         description="E0-route — Roteamento automático de arquivos do inbox",
     )

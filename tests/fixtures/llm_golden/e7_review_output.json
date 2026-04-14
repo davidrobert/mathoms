@@ -1,0 +1,59 @@
+{
+  "insights": [
+    {
+      "category": "patrimonio",
+      "severity": "info",
+      "title": "Patrimônio concentrado em imóvel",
+      "description": "72% do patrimônio líquido (R$ 650.000 de R$ 897.000) está alocado em imóvel residencial, gerando baixa liquidez.",
+      "recommendation": "Considere diversificar para ativos líquidos ao longo dos próximos 2-3 anos."
+    },
+    {
+      "category": "investimentos",
+      "severity": "attention",
+      "title": "Investimentos 100% em renda fixa",
+      "description": "Total de R$ 95.000 em investimentos, todos em CDB e poupança. Sem exposição a renda variável ou fundos multimercado.",
+      "recommendation": "Avaliar perfil de risco e incluir pelo menos 10-20% em fundos diversificados."
+    },
+    {
+      "category": "fluxo_caixa",
+      "severity": "info",
+      "title": "Taxa de poupança saudável",
+      "description": "Taxa de poupança de 22% da renda líquida mensal, acima da média brasileira de 10-15%.",
+      "recommendation": null
+    }
+  ],
+  "recommendations": [
+    "Diversificar investimentos além de renda fixa — considerar fundos multimercado ou ETFs",
+    "Construir reserva de emergência de 6 meses em investimento líquido (atualmente 3 meses)",
+    "Revisar alocação patrimonial: reduzir concentração em imóvel de 72% para <60%"
+  ],
+  "score_adjustments": [
+    {
+      "factor": "diversificacao_investimentos",
+      "original_value": 70.0,
+      "adjustment": -10.0,
+      "reason": "100% concentrado em renda fixa, sem diversificação"
+    },
+    {
+      "factor": "reserva_emergencia",
+      "original_value": 60.0,
+      "adjustment": -5.0,
+      "reason": "Reserva cobre apenas 3 meses, meta é 6 meses"
+    }
+  ],
+  "narrative_sections": [
+    {
+      "section_key": "resumo_executivo",
+      "title": "Resumo Executivo",
+      "content": "A família Ferreira Campos apresenta uma situação financeira estável, com patrimônio líquido de R$ 897.000 e taxa de poupança de 22%. Os principais pontos de atenção são a concentração patrimonial em imóvel (72%) e a falta de diversificação nos investimentos."
+    },
+    {
+      "section_key": "patrimonio_analise",
+      "title": "Análise Patrimonial",
+      "content": "O patrimônio líquido totaliza R$ 897.000, distribuído entre: imóvel residencial (R$ 650.000 — 72%), veículo (R$ 120.000 — 13%), investimentos financeiros (R$ 95.000 — 11%) e contas correntes (R$ 32.000 — 4%). A concentração em imóvel é o principal risco de liquidez."
+    }
+  ],
+  "overall_assessment": "A família Ferreira Campos apresenta saúde financeira moderadamente positiva. Com patrimônio líquido de R$ 897.000 e zero endividamento, a base é sólida. A taxa de poupança de 22% demonstra disciplina financeira. No entanto, a concentração de 72% do patrimônio em um único imóvel e a ausência de diversificação nos investimentos limitam o crescimento do patrimônio e expõem a família a risco de liquidez.\n\nAs recomendações prioritárias são: (1) diversificar investimentos além de CDB e poupança, (2) ampliar a reserva de emergência para 6 meses, e (3) considerar uma estratégia de longo prazo para reduzir a concentração imobiliária.",
+  "risk_level": "moderate",
+  "confidence": 0.85
+}

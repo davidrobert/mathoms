@@ -54,5 +54,67 @@
     "cambio",
     "valorizacao_imoveis",
     "trs"
-  ]
+  ],
+
+  "contrafluxo": {
+    "_comment": "Configuração do card Contrafluxo — classificação de posições e cenários de impacto.",
+    "selic_alta_pct": 10.0,
+    "selic_baixa_pct": 8.0,
+    "classificacao_indexador": {
+      "pos_cdi": {
+        "label": "Pós-fixado (CDI)",
+        "keywords_taxa": ["CDI"],
+        "tipos_fallback": ["CDB", "CDB DI SANTANDER", "CDB PROG SANTANDER", "CDB_Renda_Fixa", "Cofrinhos"]
+      },
+      "ipca_plus": {
+        "label": "IPCA+",
+        "keywords_taxa": ["IPCA"],
+        "tipos_fallback": ["Titulo_Publico", "CRA", "CRI", "Debenture"]
+      },
+      "prefixado": {
+        "label": "Prefixado",
+        "keywords_taxa": ["% a.a."]
+      },
+      "renda_variavel": {
+        "label": "Renda Variável",
+        "tipos_fallback": ["Acao", "Fundo"]
+      },
+      "previdencia": {
+        "label": "Previdência",
+        "tipos_fallback": ["Previdencia"]
+      }
+    },
+    "cenarios": [
+      {
+        "nome": "Queda acentuada",
+        "campo_selic": "pessimista_pct",
+        "impacto_pos_cdi": "Rendimento cai proporcionalmente",
+        "impacto_ipca_plus": "Valoriza (marcação a mercado favorável)",
+        "impacto_prefixado": "Valoriza (taxa travada acima do novo CDI)",
+        "acao": "Manter IPCA+ até vencimento; aumentar prefixados longos"
+      },
+      {
+        "nome": "Estabilidade",
+        "campo_selic": "realista_pct",
+        "destaque": true,
+        "impacto_pos_cdi": "Rendimento alto e estável",
+        "impacto_ipca_plus": "Carrego normal (juros semestrais + correção IPCA)",
+        "impacto_prefixado": "Carrego normal (taxa travada)",
+        "acao": "Manter estratégia atual de contrafluxo em IPCA+"
+      },
+      {
+        "nome": "Alta adicional",
+        "campo_selic": "otimista_pct",
+        "impacto_pos_cdi": "Rendimento sobe proporcionalmente",
+        "impacto_ipca_plus": "Desvaloriza na marcação a mercado",
+        "impacto_prefixado": "Desvaloriza (taxa travada abaixo do CDI)",
+        "acao": "Aumentar pós-fixados curtos; evitar IPCA+ longo novo"
+      }
+    ],
+    "recomendacao": {
+      "selic_alta": "Com Selic acima de {threshold}%, o contrafluxo indica acumular IPCA+ e prefixados longos — os spreads estão atrativos e a carteira se beneficiará quando o ciclo de juros reverter.",
+      "selic_moderada": "Selic em zona intermediária — manter mix equilibrado entre pós-fixados CDI e IPCA+, sem concentrar.",
+      "selic_baixa": "Com Selic abaixo de {threshold}%, o contrafluxo indica acumular pós-fixados CDI — protegem contra alta futura de juros."
+    }
+  }
 }
