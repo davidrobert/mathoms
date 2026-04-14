@@ -4,6 +4,11 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { register, setToken, ApiError } from "@/lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/Spinner";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -20,7 +25,7 @@ export default function RegisterPage() {
     try {
       const data = await register(email, password, fullName);
       setToken(data.access_token);
-      router.push("/reports");
+      router.push("/documents");
     } catch (err) {
       if (err instanceof ApiError) {
         setError(
@@ -40,86 +45,79 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Fin
-          </h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Crie sua conta
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Fin</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Crie sua conta</p>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-          <h2 className="mb-6 text-xl font-semibold">Criar conta</h2>
+        <Card>
+          <CardHeader>
+            <CardTitle>Criar conta</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error && (
+              <div className="mb-4 rounded-lg bg-loss/10 p-3 text-sm text-loss">
+                {error}
+              </div>
+            )}
 
-          {error && (
-            <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Nome completo</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Seu nome"
+                />
+              </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                Nome completo
-              </label>
-              <input
-                id="fullName"
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Seu nome"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                />
+              </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="seu@email.com"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                />
+              </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Senha
-              </label>
-              <input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Mínimo 6 caracteres"
-              />
-            </div>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size="sm" className="text-primary-foreground" />
+                    Criando conta...
+                  </span>
+                ) : (
+                  "Criar conta"
+                )}
+              </Button>
+            </form>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-            >
-              {loading ? "Criando conta..." : "Criar conta"}
-            </button>
-          </form>
-
-          <p className="mt-4 text-center text-sm text-gray-500">
-            Já tem conta?{" "}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-              Entrar
-            </Link>
-          </p>
-        </div>
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              Já tem conta?{" "}
+              <Link href="/login" className="font-medium text-primary hover:underline">
+                Entrar
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

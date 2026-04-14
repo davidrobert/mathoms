@@ -1,0 +1,59 @@
+"""Stage retry configuration — defines which stages can be retried on failure.
+
+Retry behavior:
+- Default: 0 retries (explicit opt-in per stage)
+- Only specific error types are retryable (network, timeout, transient LLM errors)
+- Deterministic stages (E2, E3, etc.) don't retry by default
+- LLM stages may retry on API errors
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+
+@dataclass
+class StageRetryConfig:
+    max_retries: int = 0
+    retryable_errors: list[str] = field(default_factory=list)
+    retry_delay_seconds: float = 5.0
+    backoff_factor: float = 2.0
+
+    def should_retry(self, attempt: int, error: str) -> bool:
+        if attempt >= self.max_retries:
+            return False
+        if not self.retryable_errors:
+            return attempt < self.max_retries
+        error_lower = error.lower()
+        return any(pattern.lower() in error_lower for pattern in self.retryable_errors)
+
+    def delay_for_attempt(self, attempt: int) -> float:
+        return self.retry_delay_seconds * (self.backoff_factor ** attempt)
+
+
+STAGE_RETRY_CONFIGS: dict[str, StageRetryConfig] = {
+    "E1": StageRetryConfig(
+        max_retries=2,
+        retryable_errors=["timeout", "rate_limit", "connection", "503", "429"],
+        retry_delay_seconds=10.0,
+    ),
+    "E1.5": StageRetryConfig(
+        max_retries=2,
+        retryable_errors=["timeout", "rate_limit", "connection", "503", "429"],
+        retry_delay_seconds=10.0,
+    ),
+    "E2-llm": StageRetryConfig(
+        max_retries=2,
+        retryable_errors=["timeout", "rate_limit", "connection", "503", "429"],
+        retry_delay_seconds=10.0,
+    ),
+    "E7-review": StageRetryConfig(
+        max_retries=1,
+        retryable_errors=["timeout", "rate_limit", "connection", "503", "429"],
+        retry_delay_seconds=15.0,
+    ),
+}
+
+
+def get_retry_config(stage_name: str) -> StageRetryConfig:
+    return STAGE_RETRY_CONFIGS.get(stage_name, StageRetryConfig())

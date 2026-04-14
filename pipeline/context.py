@@ -21,6 +21,10 @@ class WorkspaceContext:
 
     root: Path
 
+    # Optional config_dir override — when tenant root doesn't contain config/,
+    # point to the global project config/ instead.
+    _config_dir_override: Optional[Path] = field(default=None, repr=False)
+
     # Paths derivados (calculados no __post_init__)
     config_dir: Path = field(init=False)
     data_dir: Path = field(init=False)
@@ -40,7 +44,10 @@ class WorkspaceContext:
 
     def __post_init__(self):
         self.root = Path(self.root).resolve()
-        self.config_dir = self.root / "config"
+        if self._config_dir_override is not None:
+            self.config_dir = Path(self._config_dir_override).resolve()
+        else:
+            self.config_dir = self.root / "config"
         self.data_dir = self.root / "data"
         self.processed_dir = self.root / "processed"
         self.e2_dir = self.processed_dir / "E2_extracts"
@@ -109,6 +116,18 @@ class WorkspaceContext:
         cls,
         tenant_root: Path,
         config: Optional[Dict[str, Any]] = None,
+        config_dir: Optional[Path] = None,
     ) -> WorkspaceContext:
-        """Contexto para tenant web com config do banco de dados."""
-        return cls(root=tenant_root, config_overrides=config)
+        """Contexto para tenant web com config do banco de dados.
+
+        Args:
+            tenant_root: Root directory for this tenant's data.
+            config: Dict overrides for pipeline config files.
+            config_dir: External config directory (e.g. global project config/).
+                        If None, defaults to tenant_root/config/.
+        """
+        return cls(
+            root=tenant_root,
+            _config_dir_override=config_dir,
+            config_overrides=config,
+        )

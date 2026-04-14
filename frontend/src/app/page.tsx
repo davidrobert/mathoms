@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/Spinner";
 
 export default function Home() {
   const router = useRouter();
@@ -9,7 +10,7 @@ export default function Home() {
   useEffect(() => {
     const token = localStorage.getItem("fin_token");
     if (token) {
-      router.replace("/reports");
+      router.replace("/dashboard");
     } else {
       router.replace("/login");
     }
@@ -17,7 +18,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+      <Spinner size="lg" />
     </div>
   );
 }

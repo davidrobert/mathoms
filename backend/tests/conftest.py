@@ -1,19 +1,34 @@
 """Shared test fixtures for backend tests."""
 
 import asyncio
+import os
 from typing import AsyncGenerator
+
+_TEST_FERNET_KEY = "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
+os.environ.setdefault("FIN_FERNET_KEY", _TEST_FERNET_KEY)
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from backend.app.core.database import Base, get_db
+import backend.app.models  # noqa: F401 — ensure ALL models register with Base.metadata
+from backend.app.core.config import settings
 from backend.app.main import app
+
+if not settings.FERNET_KEY:
+    settings.FERNET_KEY = _TEST_FERNET_KEY
 
 TEST_DB_URL = "sqlite+aiosqlite://"
 
-engine = create_async_engine(TEST_DB_URL, echo=False)
+engine = create_async_engine(
+    TEST_DB_URL,
+    echo=False,
+    poolclass=pool.StaticPool,
+    connect_args={"check_same_thread": False},
+)
 TestSession = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
@@ -42,6 +57,13 @@ async def _override_get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 app.dependency_overrides[get_db] = _override_get_db
+
+
+@pytest_asyncio.fixture
+async def db() -> AsyncGenerator[AsyncSession, None]:
+    """Raw async DB session for model-level tests."""
+    async with TestSession() as session:
+        yield session
 
 
 @pytest_asyncio.fixture

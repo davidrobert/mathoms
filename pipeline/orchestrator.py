@@ -65,6 +65,7 @@ class PipelineResult:
 LLM_STAGES = {"E1", "E1.5", "E2-llm", "E7-review"}
 
 DETERMINISTIC_ORDER = [
+    "E0-audit",
     "E1.5c",
     "E2-faturas", "E2-extratos",
     "E3", "E4", "E5", "E5.N",
@@ -75,6 +76,7 @@ DETERMINISTIC_ORDER = [
 ]
 
 FULL_ORDER = [
+    "E0-unlock", "E0-audit", "E0-route",
     "E1", "E1.5",
     "E1.5c",
     "E2-llm",
@@ -89,8 +91,8 @@ FULL_ORDER = [
 
 FROM_MAP = {
     "E0":  FULL_ORDER[:],
-    "E1":  FULL_ORDER[:],
-    "E2":  [s for s in FULL_ORDER if s not in ("E1", "E1.5", "E1.5c")],
+    "E1":  [s for s in FULL_ORDER if s not in ("E0-unlock", "E0-audit", "E0-route")],
+    "E2":  [s for s in FULL_ORDER if s not in ("E0-unlock", "E0-audit", "E0-route", "E1", "E1.5", "E1.5c")],
     "E3":  [s for s in FULL_ORDER if FULL_ORDER.index(s) >= FULL_ORDER.index("E3")],
     "E4":  [s for s in FULL_ORDER if FULL_ORDER.index(s) >= FULL_ORDER.index("E4")],
     "E5":  [s for s in FULL_ORDER if FULL_ORDER.index(s) >= FULL_ORDER.index("E5")],
@@ -102,8 +104,26 @@ FROM_MAP = {
 
 def _get_stage_runner(stage: str) -> Callable:
     """Lazy-import do runner correto para cada stage."""
+    if stage == "E0-unlock":
+        from pipeline.stages.e0_unlock import run
+        return run
+    if stage == "E0-audit":
+        from pipeline.stages.e0_audit import run
+        return run
+    if stage == "E0-route":
+        from pipeline.stages.e0_route import run
+        return run
+    if stage == "E1":
+        from pipeline.stages.e1 import run
+        return run
+    if stage == "E1.5":
+        from pipeline.stages.e15 import run
+        return run
     if stage == "E1.5c":
         from pipeline.stages.e15c import run
+        return run
+    if stage == "E2-llm":
+        from pipeline.stages.e2_llm import run
         return run
     if stage in ("E2-faturas", "E2-extratos"):
         from pipeline.stages.e2 import run
@@ -126,6 +146,9 @@ def _get_stage_runner(stage: str) -> Callable:
     if stage == "E7-crossval":
         from pipeline.stages.e7 import run_crossval
         return run_crossval
+    if stage == "E7-review":
+        from pipeline.stages.e7_review_llm import run
+        return run
     if stage == "E7-apply":
         from pipeline.stages.e7 import run_apply
         return run_apply
@@ -138,12 +161,6 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
 
     runner = _get_stage_runner(stage)
     if runner is None:
-        if stage in LLM_STAGES:
-            return StageResult(
-                stage=stage,
-                success=True,
-                detail={"skipped": True, "reason": "LLM stage — requires external processing"},
-            )
         return StageResult(stage=stage, success=False, error=f"No runner found for {stage}")
 
     start = time.monotonic()

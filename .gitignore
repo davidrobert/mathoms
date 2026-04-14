@@ -26,6 +26,9 @@ __pycache__/
 # Database (dev)
 *.db
 
+# Per-tenant file storage (uploads, processed, reports)
+storage/
+
 # Frontend
 frontend/node_modules/
 frontend/.next/

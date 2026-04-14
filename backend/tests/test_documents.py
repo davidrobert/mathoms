@@ -1,0 +1,252 @@
+"""Tests for Documents API — upload, list, delete, retry-unlock."""
+
+import io
+import json
+from pathlib import Path
+from unittest.mock import patch
+
+import pytest
+from httpx import AsyncClient
+
+from backend.app.models.document import DocumentStatus, DocumentType
+
+_PROC = "backend.app.api.documents.process_uploaded_document"
+
+
+def _mock_process(file_path, passwords, config_dir):
+    """Deterministic mock for process_uploaded_document that classifies by extension/content."""
+    ext = Path(file_path).suffix.lower()
+    if ext == ".json":
+        try:
+            data = json.loads(Path(file_path).read_text())
+            if isinstance(data, dict):
+                if "membros" in data or "members" in data:
+                    return {
+                        "status": DocumentStatus.ready,
+                        "doc_type": DocumentType.e1_members_json,
+                        "bank_code": None, "period": None,
+                        "classification_meta": {"source": "json_structure"},
+                        "error_message": None,
+                    }
+                if "patrimonio" in data or "baseline" in data:
+                    return {
+                        "status": DocumentStatus.ready,
+                        "doc_type": DocumentType.e1_5_baseline_json,
+                        "bank_code": None, "period": None,
+                        "classification_meta": {"source": "json_structure"},
+                        "error_message": None,
+                    }
+        except Exception:
+            pass
+    return {
+        "status": DocumentStatus.ready,
+        "doc_type": DocumentType.other,
+        "bank_code": None, "period": None,
+        "classification_meta": {"source": "test_mock"},
+        "error_message": None,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Upload
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_upload_csv_file(auth_client: AsyncClient):
+    content = b"date,description,value\n2026-01-01,Test,100.00\n"
+    with patch(_PROC, side_effect=_mock_process):
+        resp = await auth_client.post(
+            "/api/documents/upload",
+            files=[("files", ("extrato_itau_202601.csv", io.BytesIO(content), "text/csv"))],
+        )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert len(data) == 1
+    doc = data[0]
+    assert doc["original_name"] == "extrato_itau_202601.csv"
+    assert doc["file_size_bytes"] == len(content)
+    assert doc["status"] == "ready"
+
+
+@pytest.mark.asyncio
+async def test_upload_multiple_files(auth_client: AsyncClient):
+    files = [
+        ("files", ("file1.csv", io.BytesIO(b"data1"), "text/csv")),
+        ("files", ("file2.csv", io.BytesIO(b"data2"), "text/csv")),
+        ("files", ("file3.csv", io.BytesIO(b"data3"), "text/csv")),
+    ]
+    with patch(_PROC, side_effect=_mock_process):
+        resp = await auth_client.post("/api/documents/upload", files=files)
+    assert resp.status_code == 201
+    assert len(resp.json()) == 3
+
+
+@pytest.mark.asyncio
+async def test_upload_invalid_extension(auth_client: AsyncClient):
+    resp = await auth_client.post(
+        "/api/documents/upload",
+        files=[("files", ("virus.exe", io.BytesIO(b"malware"), "application/octet-stream"))],
+    )
+    assert resp.status_code == 201
+    doc = resp.json()[0]
+    assert doc["status"] == "error"
+    assert doc["error_message"] is not None
+
+
+@pytest.mark.asyncio
+async def test_upload_empty_file(auth_client: AsyncClient):
+    resp = await auth_client.post(
+        "/api/documents/upload",
+        files=[("files", ("empty.csv", io.BytesIO(b""), "text/csv"))],
+    )
+    assert resp.status_code == 201
+    doc = resp.json()[0]
+    assert doc["status"] == "error"
+    assert "vazio" in doc["error_message"].lower()
+
+
+@pytest.mark.asyncio
+async def test_upload_json_e1_members(auth_client: AsyncClient):
+    members_json = json.dumps({"membros": [{"nome": "David", "cpf": "123"}]}).encode()
+    with patch(_PROC, side_effect=_mock_process):
+        resp = await auth_client.post(
+            "/api/documents/upload",
+            files=[("files", ("members.json", io.BytesIO(members_json), "application/json"))],
+        )
+    assert resp.status_code == 201
+    doc = resp.json()[0]
+    assert doc["doc_type"] == "e1_members_json"
+    assert doc["status"] == "ready"
+
+
+@pytest.mark.asyncio
+async def test_upload_json_e15_baseline(auth_client: AsyncClient):
+    baseline_json = json.dumps({"patrimonio": {"total": 100000}}).encode()
+    with patch(_PROC, side_effect=_mock_process):
+        resp = await auth_client.post(
+            "/api/documents/upload",
+            files=[("files", ("baseline.json", io.BytesIO(baseline_json), "application/json"))],
+        )
+    assert resp.status_code == 201
+    doc = resp.json()[0]
+    assert doc["doc_type"] == "e1_5_baseline_json"
+    assert doc["status"] == "ready"
+
+
+# ---------------------------------------------------------------------------
+# List
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_list_documents_empty(auth_client: AsyncClient):
+    resp = await auth_client.get("/api/documents")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 0
+    assert data["documents"] == []
+
+
+@pytest.mark.asyncio
+async def test_list_documents_after_upload(auth_client: AsyncClient):
+    with patch(_PROC, side_effect=_mock_process):
+        await auth_client.post(
+            "/api/documents/upload",
+            files=[("files", ("test.csv", io.BytesIO(b"data"), "text/csv"))],
+        )
+    resp = await auth_client.get("/api/documents")
+    assert resp.status_code == 200
+    assert resp.json()["total"] >= 1
+
+
+@pytest.mark.asyncio
+async def test_list_documents_filter_by_status(auth_client: AsyncClient):
+    with patch(_PROC, side_effect=_mock_process):
+        await auth_client.post(
+            "/api/documents/upload",
+            files=[("files", ("good.csv", io.BytesIO(b"data"), "text/csv"))],
+        )
+    await auth_client.post(
+        "/api/documents/upload",
+        files=[("files", ("bad.exe", io.BytesIO(b"data"), "application/octet-stream"))],
+    )
+
+    resp_error = await auth_client.get("/api/documents?status=error")
+    assert resp_error.status_code == 200
+    for doc in resp_error.json()["documents"]:
+        assert doc["status"] == "error"
+
+
+@pytest.mark.asyncio
+async def test_list_documents_invalid_status_filter(auth_client: AsyncClient):
+    resp = await auth_client.get("/api/documents?status=bogus")
+    assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Delete
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_delete_document(auth_client: AsyncClient):
+    with patch(_PROC, side_effect=_mock_process):
+        resp = await auth_client.post(
+            "/api/documents/upload",
+            files=[("files", ("delete_me.csv", io.BytesIO(b"data"), "text/csv"))],
+        )
+    doc_id = resp.json()[0]["id"]
+
+    del_resp = await auth_client.delete(f"/api/documents/{doc_id}")
+    assert del_resp.status_code == 204
+
+    list_resp = await auth_client.get("/api/documents")
+    ids = [d["id"] for d in list_resp.json()["documents"]]
+    assert doc_id not in ids
+
+
+@pytest.mark.asyncio
+async def test_delete_document_not_found(auth_client: AsyncClient):
+    resp = await auth_client.delete("/api/documents/nonexistent-id")
+    assert resp.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Retry-unlock
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_retry_unlock_no_passwords(auth_client: AsyncClient):
+    resp = await auth_client.post("/api/documents/retry-unlock")
+    assert resp.status_code == 400
+    assert "senha" in resp.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_retry_unlock_no_pending_docs(auth_client: AsyncClient):
+    await auth_client.post("/api/vault/passwords", json={"label": "test", "password": "pw"})
+    resp = await auth_client.post("/api/documents/retry-unlock")
+    assert resp.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Auth
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_upload_unauthorized(client: AsyncClient):
+    resp = await client.post(
+        "/api/documents/upload",
+        files=[("files", ("test.csv", io.BytesIO(b"data"), "text/csv"))],
+    )
+    assert resp.status_code in (401, 403)
+
+
+@pytest.mark.asyncio
+async def test_list_unauthorized(client: AsyncClient):
+    resp = await client.get("/api/documents")
+    assert resp.status_code in (401, 403)
+
+
+@pytest.mark.asyncio
+async def test_delete_unauthorized(client: AsyncClient):
+    resp = await client.delete("/api/documents/some-id")
+    assert resp.status_code in (401, 403)

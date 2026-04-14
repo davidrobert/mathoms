@@ -25,3 +25,20 @@ class Workspace(Base):
 
     owner = relationship("User", back_populates="workspaces")
     reports = relationship("Report", back_populates="workspace", cascade="all, delete-orphan")
+    documents = relationship("Document", back_populates="workspace", cascade="all, delete-orphan")
+    vault_passwords = relationship("PasswordVault", back_populates="workspace", cascade="all, delete-orphan")
+    pipeline_runs = relationship("PipelineRun", back_populates="workspace", cascade="all, delete-orphan")
+
+    # Phase 3 — config relationships
+    family_members = relationship("FamilyMember", back_populates="workspace", cascade="all, delete-orphan")
+    categories = relationship("Category", back_populates="workspace", cascade="all, delete-orphan")
+    pipeline_config = relationship("PipelineConfig", back_populates="workspace", uselist=False, cascade="all, delete-orphan")
+    institution_config = relationship("InstitutionConfig", back_populates="workspace", uselist=False, cascade="all, delete-orphan")
+    report_layout = relationship("ReportLayout", back_populates="workspace", uselist=False, cascade="all, delete-orphan")
+
+    # Phase 4 — LLM config
+    llm_config = relationship("LLMConfig", back_populates="workspace", uselist=False, cascade="all, delete-orphan")
+
+    # Phase 6 — transactions & notifications
+    transaction_overrides = relationship("TransactionOverride", back_populates="workspace", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="workspace", cascade="all, delete-orphan")

@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import String, DateTime, ForeignKey, Integer, Text
+from sqlalchemy import String, DateTime, Float, ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -18,12 +18,18 @@ class Report(Base):
     workspace_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False
     )
+    pipeline_run_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("pipeline_runs.id", ondelete="SET NULL"), nullable=True
+    )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     period: Mapped[str] = mapped_column(String(50), nullable=True)
     html_path: Mapped[str] = mapped_column(Text, nullable=False)
     size_bytes: Mapped[int] = mapped_column(Integer, nullable=True)
+    score: Mapped[float] = mapped_column(Float, nullable=True)
+    patrimonio_liquido: Mapped[float] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
     workspace = relationship("Workspace", back_populates="reports")
+    pipeline_run = relationship("PipelineRun", back_populates="report")

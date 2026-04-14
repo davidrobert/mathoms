@@ -82,11 +82,18 @@ class TestOrchestratorLogic:
             assert runner is not None, f"No runner for {stage}"
             assert callable(runner)
 
-    def test_get_stage_runner_returns_none_for_llm(self):
+    def test_get_stage_runner_returns_callable_for_implemented_llm(self):
         from pipeline.orchestrator import _get_stage_runner
-        for stage in ["E1", "E1.5", "E2-llm", "E7-review"]:
+        for stage in ["E1", "E1.5", "E2-llm"]:
             runner = _get_stage_runner(stage)
-            assert runner is None, f"Runner should be None for LLM stage {stage}"
+            assert runner is not None, f"Runner should be callable for implemented LLM stage {stage}"
+            assert callable(runner)
+
+    def test_get_stage_runner_returns_callable_for_e7_review(self):
+        from pipeline.orchestrator import _get_stage_runner
+        runner = _get_stage_runner("E7-review")
+        assert runner is not None, "E7-review should have a runner"
+        assert callable(runner)
 
     def test_pipeline_result_summary(self):
         from pipeline import PipelineResult, StageResult

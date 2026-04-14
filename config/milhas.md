@@ -1,5 +1,7 @@
 # Programas de Milhas — Input Manual
+
 ## Família Ferreira Campos
+
 ## Atualizado em: 2026-04-04
 
 ---
@@ -10,6 +12,7 @@ Este arquivo é o input manual para o card "Programa de Milhas — Economia" na 
 Atualizar a cada ciclo com os saldos atuais e resgates realizados no período.
 
 **Campos por programa:**
+
 - `programa`: nome do programa (Livelo, Smiles, Atomos, TudoAzul, Latam Pass, etc.)
 - `titular`: membro da família (David, Mariana)
 - `saldo_pontos`: saldo atual de pontos/milhas
@@ -18,6 +21,7 @@ Atualizar a cada ciclo com os saldos atuais e resgates realizados no período.
 - `resgates_periodo`: lista de resgates feitos no período analisado
 
 **Campos por resgate:**
+
 - `descricao`: o que foi resgatado (ex: "Passagem GRU→MIA", "Upgrade executiva")
 - `pontos_usados`: quantos pontos foram gastos
 - `valor_equivalente_brl`: quanto custaria em R$ se comprado diretamente
@@ -28,51 +32,64 @@ Atualizar a cada ciclo com os saldos atuais e resgates realizados no período.
 ## Programas
 
 ### Livelo — David
-| Campo | Valor |
-|---|---|
-| saldo_pontos | 0 |
+
+
+| Campo                 | Valor |
+| --------------------- | ----- |
+| saldo_pontos          | 0     |
 | custo_medio_ponto_brl | 0.015 |
-| valor_estimado_brl | 0 |
+| valor_estimado_brl    | 0     |
+
 
 **Resgates no período:**
-_(nenhum)_
+*(nenhum)*
 
 ### Smiles — David
-| Campo | Valor |
-|---|---|
-| saldo_pontos | 0 |
+
+
+| Campo                 | Valor |
+| --------------------- | ----- |
+| saldo_pontos          | 0     |
 | custo_medio_ponto_brl | 0.020 |
-| valor_estimado_brl | 0 |
+| valor_estimado_brl    | 0     |
+
 
 **Resgates no período:**
-_(nenhum)_
+*(nenhum)*
 
 ### Atomos — David
-| Campo | Valor |
-|---|---|
-| saldo_pontos | 0 |
+
+
+| Campo                 | Valor |
+| --------------------- | ----- |
+| saldo_pontos          | 0     |
 | custo_medio_ponto_brl | 0.040 |
-| valor_estimado_brl | 0 |
+| valor_estimado_brl    | 0     |
+
 
 **Resgates no período:**
-_(nenhum)_
+*(nenhum)*
 
 ### Livelo — Mariana
-| Campo | Valor |
-|---|---|
-| saldo_pontos | 0 |
+
+
+| Campo                 | Valor |
+| --------------------- | ----- |
+| saldo_pontos          | 0     |
 | custo_medio_ponto_brl | 0.015 |
-| valor_estimado_brl | 0 |
+| valor_estimado_brl    | 0     |
+
 
 **Resgates no período:**
-_(nenhum)_
+*(nenhum)*
 
 ---
 
 ## Resumo do Período
 
-| Métrica | Valor |
-|---|---|
-| Total saldo estimado (R$) | 0 |
-| Total economia no período (R$) | 0 |
-| Total pontos resgatados | 0 |
+
+| Métrica                        | Valor |
+| ------------------------------ | ----- |
+| Total saldo estimado (R$)      | 0     |
+| Total economia no período (R$) | 0     |
+| Total pontos resgatados        | 0     |

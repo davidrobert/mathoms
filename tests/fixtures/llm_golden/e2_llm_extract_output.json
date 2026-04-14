@@ -1,0 +1,58 @@
+{
+  "source_file": "btgpactual_informe_rendimentos_2024.pdf",
+  "institution": "btgpactual",
+  "document_type": "investment_report",
+  "period": "202412",
+  "member_key": "david",
+  "currency": "BRL",
+  "transactions": [
+    {
+      "date": "2024-12-02",
+      "description": "Resgate CDB DI Venc 02/12/2024",
+      "amount": 15000.00,
+      "category_hint": null,
+      "balance_after": null
+    },
+    {
+      "date": "2024-12-15",
+      "description": "Aplicação LCI 90% CDI",
+      "amount": -20000.00,
+      "category_hint": null,
+      "balance_after": null
+    }
+  ],
+  "investments": [
+    {
+      "type": "cdb",
+      "institution": "btgpactual",
+      "description": "CDB DI BTG Pactual 100% CDI",
+      "value_brl": 25000.00,
+      "applied_date": "2024-06-15",
+      "maturity_date": "2025-06-15",
+      "rate": "100% CDI",
+      "member_key": "david"
+    },
+    {
+      "type": "lci",
+      "institution": "btgpactual",
+      "description": "LCI BTG Pactual 90% CDI",
+      "value_brl": 20000.00,
+      "applied_date": "2024-12-15",
+      "maturity_date": "2025-12-15",
+      "rate": "90% CDI",
+      "member_key": "david"
+    },
+    {
+      "type": "fundo",
+      "institution": "btgpactual",
+      "description": "BTG Pactual Tesouro Selic Simples",
+      "value_brl": 50000.00,
+      "applied_date": "2024-01-10",
+      "maturity_date": null,
+      "rate": null,
+      "member_key": "david"
+    }
+  ],
+  "confidence": 0.88,
+  "notes": "Extracted from BTG Pactual investment report PDF, December 2024 position"
+}

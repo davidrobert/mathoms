@@ -49,14 +49,30 @@ class TestStageImports:
         from pipeline.stages import e0_audit
         assert callable(e0_audit.run)
 
+    def test_import_e1(self):
+        from pipeline.stages import e1
+        assert callable(e1.run)
+
+    def test_import_e15(self):
+        from pipeline.stages import e15
+        assert callable(e15.run)
+
     def test_import_e15c(self):
         from pipeline.stages import e15c
         assert callable(e15c.run)
+
+    def test_import_e2_llm(self):
+        from pipeline.stages import e2_llm
+        assert callable(e2_llm.run)
 
     def test_import_e7(self):
         from pipeline.stages import e7
         assert callable(e7.run_crossval)
         assert callable(e7.run_apply)
+
+    def test_import_e7_review_llm(self):
+        from pipeline.stages import e7_review_llm
+        assert callable(e7_review_llm.run)
 
 
 class TestInitConfig:
