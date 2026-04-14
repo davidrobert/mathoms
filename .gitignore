@@ -23,6 +23,13 @@ _scratch/
 __pycache__/
 *.pyc
 
+# Database (dev)
+*.db
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+
 # Testing
 .pytest_cache/
 

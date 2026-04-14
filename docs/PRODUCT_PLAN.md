@@ -2,7 +2,7 @@
 
 > **Documento vivo.** Atualizado a cada sprint. Fonte de verdade para visão, arquitetura, fases e backlog.
 >
-> **Última atualização:** 2026-04-13
+> **Última atualização:** 2026-04-14
 > **Status global:** Fase 0 — Planejamento
 
 ---
@@ -14,14 +14,14 @@
 3. [Arquitetura Alvo](#3-arquitetura-alvo)
 4. [Estado Atual do Projeto](#4-estado-atual-do-projeto)
 5. [Fases de Migração](#5-fases-de-migração)
-   - [Fase 0 — Desacoplar Core](#fase-0--desacoplar-core-em-package-python)
-   - [Fase 1 — Backend API + Auth](#fase-1--backend-fastapi--auth--db)
-   - [Fase 2 — Upload + Pipeline Web](#fase-2--upload-de-arquivos--pipeline-trigger)
-   - [Fase 3 — Configuração via UI](#fase-3--configuração-via-ui)
-   - [Fase 4 — Automação LLM](#fase-4--automação-llm-premium)
-   - [Fase 5 — Task Queue + Async](#fase-5--task-queue--real-time-progress)
-   - [Fase 6 — Frontend Polished](#fase-6--frontend-completo--polish)
-   - [Fase 7 — Produção + LGPD](#fase-7--infraestrutura-de-produção--lgpd)
+  - [Fase 0 — Desacoplar Core](#fase-0--desacoplar-core-em-package-python)
+  - [Fase 1 — Backend API + Auth](#fase-1--backend-fastapi--auth--db)
+  - [Fase 2 — Upload + Pipeline Web](#fase-2--upload-de-arquivos--pipeline-trigger)
+  - [Fase 3 — Configuração via UI](#fase-3--configuração-via-ui)
+  - [Fase 4 — Automação LLM](#fase-4--automação-llm-premium)
+  - [Fase 5 — Task Queue + Async](#fase-5--task-queue--real-time-progress)
+  - [Fase 6 — Frontend Polished](#fase-6--frontend-completo--polish)
+  - [Fase 7 — Produção + LGPD](#fase-7--infraestrutura-de-produção--lgpd)
 6. [Backlog Priorizado](#6-backlog-priorizado)
 7. [Sprints](#7-sprints)
 8. [Decisões Técnicas Pendentes](#8-decisões-técnicas-pendentes)
@@ -51,25 +51,29 @@
 
 ### Público-alvo
 
-| Segmento | Perfil | Dor |
-|----------|--------|-----|
-| **Primário** | Profissionais PJ/CLT alta renda, múltiplas contas | Não conseguem ver o retrato completo das finanças |
-| **Secundário** | Famílias com patrimônio diversificado (imóveis + investimentos) | Consolidação manual em planilha demora dias |
-| **Futuro (B2B2C)** | Planejadores financeiros independentes | Ferramenta white-label para atender clientes |
+
+| Segmento           | Perfil                                                          | Dor                                               |
+| ------------------ | --------------------------------------------------------------- | ------------------------------------------------- |
+| **Primário**       | Profissionais PJ/CLT alta renda, múltiplas contas               | Não conseguem ver o retrato completo das finanças |
+| **Secundário**     | Famílias com patrimônio diversificado (imóveis + investimentos) | Consolidação manual em planilha demora dias       |
+| **Futuro (B2B2C)** | Planejadores financeiros independentes                          | Ferramenta white-label para atender clientes      |
+
 
 ---
 
 ## 2. Decisões Estratégicas
 
-| Decisão | Escolha | Data | Rationale |
-|---------|---------|------|-----------|
-| Modelo de negócio | **Freemium** | 2026-04-13 | Free = pipeline determinístico. Premium = LLM + features avançadas |
-| Primeiro cliente | **Dogfood (David)** | 2026-04-13 | Refinar até estar perfeito antes de abrir |
-| LLM strategy | **Híbrido** | 2026-04-13 | Free sem LLM. Premium: BYOK ou incluso na assinatura |
-| Frontend | **Next.js + TypeScript** | 2026-04-13 | Performático, tipagem estática, ecossistema maduro |
-| Backend | **FastAPI (Python)** | 2026-04-13 | Mesma linguagem dos scripts, async, Pydantic nativo |
-| Banco de dados | **PostgreSQL** (prod) / **SQLite** (dev) | 2026-04-13 | Robusto, JSON support, full-text search |
-| Type safety end-to-end | **openapi-typescript** | 2026-04-13 | FastAPI OpenAPI → TS types auto-gerados |
+
+| Decisão                | Escolha                                  | Data       | Rationale                                                          |
+| ---------------------- | ---------------------------------------- | ---------- | ------------------------------------------------------------------ |
+| Modelo de negócio      | **Freemium**                             | 2026-04-13 | Free = pipeline determinístico. Premium = LLM + features avançadas |
+| Primeiro cliente       | **Dogfood (David)**                      | 2026-04-13 | Refinar até estar perfeito antes de abrir                          |
+| LLM strategy           | **Híbrido**                              | 2026-04-13 | Free sem LLM. Premium: BYOK ou incluso na assinatura               |
+| Frontend               | **Next.js + TypeScript**                 | 2026-04-13 | Performático, tipagem estática, ecossistema maduro                 |
+| Backend                | **FastAPI (Python)**                     | 2026-04-13 | Mesma linguagem dos scripts, async, Pydantic nativo                |
+| Banco de dados         | **PostgreSQL** (prod) / **SQLite** (dev) | 2026-04-13 | Robusto, JSON support, full-text search                            |
+| Type safety end-to-end | **openapi-typescript**                   | 2026-04-13 | FastAPI OpenAPI → TS types auto-gerados                            |
+
 
 ---
 
@@ -136,8 +140,12 @@ BankAccount
   id, family_member_id, institution, account_type, agency, account_number
 
 Document
-  id, workspace_id, original_name, stored_path, doc_type
-  status (uploaded|routed|processed|error), uploaded_at
+  id, workspace_id, original_name, stored_path, doc_type, bank_code, period
+  status (uploaded|unlocking|classifying|ready|needs_password|processing|processed|error)
+  classification_meta (JSON), uploaded_at
+
+PasswordVault
+  id, workspace_id, label, encrypted_password (Fernet), created_at
 
 Category
   id, workspace_id, code, name, monthly_cap, keywords[]
@@ -241,16 +249,18 @@ fin/
 
 ### O que já existe e funciona
 
-| Asset | Detalhes | Valor |
-|-------|----------|-------|
-| **11 parsers bancários** | C6, Itaú, Santander, Bradesco, BTG, Rico, PicPay, Wise, BoA, QuintoAndar, Binance | Alto — difícil de replicar |
-| **Pipeline E0→E7** | 14 etapas, 31 scripts Python, ~860KB de código | Alto — lógica de domínio refinada |
-| **Categorização** | 300+ keywords em 16 categorias | Médio — expansível |
-| **Relatório HTML** | ~411KB, Chart.js, dark mode, narrativas | Médio — precisa virar componente |
-| **Reconciliação** | Deduplicação cross-banco, transferências internas | Alto — lógica complexa |
-| **Cross-validation** | 14 checks automáticos no E7 | Médio — qualidade do output |
-| **Config estruturada** | 22 arquivos em config/ (JSON, YAML, MD) | Médio — precisa virar DB |
-| **Testes** | ~7 arquivos em tests/ | Baixo — precisa expandir |
+
+| Asset                    | Detalhes                                                                          | Valor                             |
+| ------------------------ | --------------------------------------------------------------------------------- | --------------------------------- |
+| **11 parsers bancários** | C6, Itaú, Santander, Bradesco, BTG, Rico, PicPay, Wise, BoA, QuintoAndar, Binance | Alto — difícil de replicar        |
+| **Pipeline E0→E7**       | 14 etapas, 31 scripts Python, ~860KB de código                                    | Alto — lógica de domínio refinada |
+| **Categorização**        | 300+ keywords em 16 categorias                                                    | Médio — expansível                |
+| **Relatório HTML**       | ~411KB, Chart.js, dark mode, narrativas                                           | Médio — precisa virar componente  |
+| **Reconciliação**        | Deduplicação cross-banco, transferências internas                                 | Alto — lógica complexa            |
+| **Cross-validation**     | 14 checks automáticos no E7                                                       | Médio — qualidade do output       |
+| **Config estruturada**   | 22 arquivos em config/ (JSON, YAML, MD)                                           | Médio — precisa virar DB          |
+| **Testes**               | ~7 arquivos em tests/                                                             | Baixo — precisa expandir          |
+
 
 ### O que NÃO existe ainda
 
@@ -270,18 +280,20 @@ fin/
 
 ### Visão geral
 
-| Fase | Nome | Duração est. | Pré-requisito | Entrega principal |
-|------|------|-------------|---------------|-------------------|
-| **0** | Desacoplar Core | 3-4 sem | — | Pipeline como package Python importável + contexto injetável |
-| **1** | Backend API + Auth | 2-3 sem | Fase 0 | Login/registro + API de relatórios |
-| **2** | Upload + Pipeline Web | 2-3 sem | Fase 1 | Upload via browser + trigger de pipeline |
-| **3** | Configuração via UI | 3-4 sem | Fase 2 | CRUD de membros, categorias, parâmetros |
-| **4** | Automação LLM | 3-4 sem | Fase 3 | Pipeline end-to-end sem intervenção |
-| **5** | Task Queue + Async | 2-3 sem | Fase 4 | Execução em background + progresso real-time |
-| **6** | Frontend Polished | 4-6 sem | Fase 5 | Dashboard, onboarding, landing page |
-| **7** | Produção + LGPD | 2-3 sem | Fase 6 | Deploy seguro, criptografia, compliance |
 
-**Timeline total estimada: ~7 meses** (com entregas funcionais a cada 2-3 semanas).
+| Fase  | Nome                  | Duração est. | Pré-requisito | Entrega principal                                            |
+| ----- | --------------------- | ------------ | ------------- | ------------------------------------------------------------ |
+| **0** | Desacoplar Core       | 3-4 sem      | —             | Pipeline como package Python importável + contexto injetável |
+| **1** | Backend API + Auth    | 2-3 sem      | Fase 0        | Login/registro + API de relatórios                           |
+| **2** | Upload + Pipeline Web | 3-4 sem      | Fase 1        | Upload + unlock/classify auto + pipeline pseudo-async        |
+| **3** | Configuração via UI   | 3-4 sem      | Fase 2        | CRUD de membros, categorias, parâmetros                      |
+| **4** | Automação LLM         | 3-4 sem      | Fase 3        | Pipeline end-to-end sem intervenção                          |
+| **5** | Task Queue + Async    | 2-3 sem      | Fase 4        | Execução em background + progresso real-time                 |
+| **6** | Frontend Polished     | 4-6 sem      | Fase 5        | Dashboard, onboarding, landing page                          |
+| **7** | Produção + LGPD       | 2-3 sem      | Fase 6        | Deploy seguro, criptografia, compliance                      |
+
+
+**Timeline total estimada: ~8 meses / 16 sprints** (com entregas funcionais a cada 2-3 semanas).
 
 ---
 
@@ -302,29 +314,33 @@ Os scripts são grandes (E6=197KB, E5=107KB) e têm lógica de domínio refinada
 
 #### Diagnóstico técnico dos acoplamentos atuais
 
-| Acoplamento | Onde ocorre | Impacto |
-|-------------|-------------|---------|
-| Paths via `__file__` | Todos os 14 scripts | Impede rodar com root diferente (multi-tenant) |
-| Config no module-level | e2/common, e3, e4, e5, e5n | Importar módulo = ler disco. Impede injetar config do DB |
-| `_load_json_config` duplicado | 6 implementações diferentes | Dificulta trocar source de config |
-| `print()` para progresso | Todos os scripts | Impede capturar progresso para WebSocket |
-| I/O direto no filesystem | Todos os scripts | OK para Fase 0, abstrair em Fase 2 |
+
+| Acoplamento                   | Onde ocorre                 | Impacto                                                  |
+| ----------------------------- | --------------------------- | -------------------------------------------------------- |
+| Paths via `__file__`          | Todos os 14 scripts         | Impede rodar com root diferente (multi-tenant)           |
+| Config no module-level        | e2/common, e3, e4, e5, e5n  | Importar módulo = ler disco. Impede injetar config do DB |
+| `_load_json_config` duplicado | 6 implementações diferentes | Dificulta trocar source de config                        |
+| `print()` para progresso      | Todos os scripts            | Impede capturar progresso para WebSocket                 |
+| I/O direto no filesystem      | Todos os scripts            | OK para Fase 0, abstrair em Fase 2                       |
+
 
 #### Scripts por tamanho e risco
 
-| Script | KB | Linhas | Entry point existente | Risco |
-|--------|-----|--------|----------------------|-------|
-| `e6_render.py` | 197 | ~3968 | `render_report()` ✓ | Alto — refatorar por ÚLTIMO |
-| `e5_analyze.py` | 107 | ~2572 | `main()` ✓ | Alto — muitas configs |
-| `e5n_narrativas.py` | 61 | ~1198 | `main()` ✓ | Médio |
-| `e_reset.py` | 55 | ~1314 | Orchestration complexo | Médio — postergar para 0D |
-| `e3_reconcile.py` | 44 | ~1131 | `main()` ✓ | Médio — bom candidato inicial |
-| `e4_categorize.py` | 41 | ~1018 | `main()` ✓ | Médio — bom candidato inicial |
-| `e7_review.py` | 36 | ~900 | `main()` ✓ | Baixo |
-| `e0_audit.py` | 36 | ~900 | `main()` ✓ | Baixo |
-| `e0_route.py` | 31 | ~750 | `main()` ✓ | Baixo |
-| `e2_extract.py` | 10 | ~300 | `main()` ✓ | Baixo — E2 já é modular |
-| `e2/` (banks+common) | ~130 | ~3000 | Registry pattern ✓ | Baixo — já bem estruturado |
+
+| Script               | KB   | Linhas | Entry point existente  | Risco                         |
+| -------------------- | ---- | ------ | ---------------------- | ----------------------------- |
+| `e6_render.py`       | 197  | ~3968  | `render_report()` ✓    | Alto — refatorar por ÚLTIMO   |
+| `e5_analyze.py`      | 107  | ~2572  | `main()` ✓             | Alto — muitas configs         |
+| `e5n_narrativas.py`  | 61   | ~1198  | `main()` ✓             | Médio                         |
+| `e_reset.py`         | 55   | ~1314  | Orchestration complexo | Médio — postergar para 0D     |
+| `e3_reconcile.py`    | 44   | ~1131  | `main()` ✓             | Médio — bom candidato inicial |
+| `e4_categorize.py`   | 41   | ~1018  | `main()` ✓             | Médio — bom candidato inicial |
+| `e7_review.py`       | 36   | ~900   | `main()` ✓             | Baixo                         |
+| `e0_audit.py`        | 36   | ~900   | `main()` ✓             | Baixo                         |
+| `e0_route.py`        | 31   | ~750   | `main()` ✓             | Baixo                         |
+| `e2_extract.py`      | 10   | ~300   | `main()` ✓             | Baixo — E2 já é modular       |
+| `e2/` (banks+common) | ~130 | ~3000  | Registry pattern ✓     | Baixo — já bem estruturado    |
+
 
 ---
 
@@ -332,16 +348,18 @@ Os scripts são grandes (E6=197KB, E5=107KB) e têm lógica de domínio refinada
 
 **Objetivo:** Criar as abstrações base sem tocar nos scripts existentes.
 
-| # | Tarefa | Prioridade | Estimativa | Status |
-|---|--------|-----------|-----------|--------|
-| 0A.1 | Criar `pipeline/` package com `__init__.py` na raiz do projeto | P0 | 1h | ☐ |
-| 0A.2 | Criar `pipeline/context.py` com classe `WorkspaceContext` | P0 | 4h | ☐ |
-| 0A.3 | Criar `pipeline/config_loader.py` — loader unificado (disco ou dict) | P0 | 4h | ☐ |
-| 0A.4 | Criar `pipeline/logging.py` — adapter que captura print + logging | P1 | 3h | ☐ |
-| 0A.5 | Snapshot de golden files: salvar outputs atuais do E2→E6 para regressão | P0 | 2h | ☐ |
-| 0A.6 | Criar script `tests/test_regression.py` que compara outputs | P0 | 3h | ☐ |
 
-**`WorkspaceContext`** — o conceito central:
+| #    | Tarefa                                                                  | Prioridade | Estimativa | Status |
+| ---- | ----------------------------------------------------------------------- | ---------- | ---------- | ------ |
+| 0A.1 | Criar `pipeline/` package com `__init__.py` na raiz do projeto          | P0         | 1h         | ☐      |
+| 0A.2 | Criar `pipeline/context.py` com classe `WorkspaceContext`               | P0         | 4h         | ☐      |
+| 0A.3 | Criar `pipeline/config_loader.py` — loader unificado (disco ou dict)    | P0         | 4h         | ☐      |
+| 0A.4 | Criar `pipeline/logging.py` — adapter que captura print + logging       | P1         | 3h         | ☐      |
+| 0A.5 | Snapshot de golden files: salvar outputs atuais do E2→E6 para regressão | P0         | 2h         | ☐      |
+| 0A.6 | Criar script `tests/test_regression.py` que compara outputs             | P0         | 3h         | ☐      |
+
+
+`**WorkspaceContext`** — o conceito central:
 
 ```python
 # pipeline/context.py
@@ -405,6 +423,7 @@ class WorkspaceContext:
 ```
 
 **Por que isso é poderoso:**
+
 - Scripts CLI: `ctx = WorkspaceContext.default()` → funciona igual a antes
 - Web API: `ctx = WorkspaceContext.for_tenant(Path(f"storage/{workspace_id}"), db_config)` → multi-tenant
 - Testes: `ctx = WorkspaceContext(root=tmp_dir, config_overrides={...})` → isolado
@@ -415,15 +434,17 @@ class WorkspaceContext:
 
 **Objetivo:** Criar wrappers para E3 e E4 (os mais "funcionais" — input claro → output claro).
 
-| # | Tarefa | Prioridade | Estimativa | Status |
-|---|--------|-----------|-----------|--------|
-| 0B.1 | Wrap `e3_reconcile.py`: criar `run_e3(ctx: WorkspaceContext)` | P0 | 4h | ☐ |
-| 0B.2 | Wrap `e4_categorize.py`: criar `run_e4(ctx: WorkspaceContext)` | P0 | 4h | ☐ |
-| 0B.3 | Wrap `e2_extract.py`: criar `run_e2(ctx: WorkspaceContext, mode)` | P0 | 3h | ☐ |
-| 0B.4 | Wrap `e7_review.py`: criar `run_e7_crossval(ctx)` e `run_e7_apply(ctx)` | P1 | 3h | ☐ |
-| 0B.5 | Criar `pipeline/stages.py` — registry de stages com suas funções | P0 | 2h | ☐ |
-| 0B.6 | Testes de regressão E3: output idêntico via wrapper vs CLI direto | P0 | 2h | ☐ |
-| 0B.7 | Testes de regressão E4: output idêntico via wrapper vs CLI direto | P0 | 2h | ☐ |
+
+| #    | Tarefa                                                                  | Prioridade | Estimativa | Status |
+| ---- | ----------------------------------------------------------------------- | ---------- | ---------- | ------ |
+| 0B.1 | Wrap `e3_reconcile.py`: criar `run_e3(ctx: WorkspaceContext)`           | P0         | 4h         | ☐      |
+| 0B.2 | Wrap `e4_categorize.py`: criar `run_e4(ctx: WorkspaceContext)`          | P0         | 4h         | ☐      |
+| 0B.3 | Wrap `e2_extract.py`: criar `run_e2(ctx: WorkspaceContext, mode)`       | P0         | 3h         | ☐      |
+| 0B.4 | Wrap `e7_review.py`: criar `run_e7_crossval(ctx)` e `run_e7_apply(ctx)` | P1         | 3h         | ☐      |
+| 0B.5 | Criar `pipeline/stages.py` — registry de stages com suas funções        | P0         | 2h         | ☐      |
+| 0B.6 | Testes de regressão E3: output idêntico via wrapper vs CLI direto       | P0         | 2h         | ☐      |
+| 0B.7 | Testes de regressão E4: output idêntico via wrapper vs CLI direto       | P0         | 2h         | ☐      |
+
 
 **Pattern do wrapper — Opção B com `_init_config()` (Decidido)**
 
@@ -463,14 +484,16 @@ if __name__ == "__main__":
 
 **Esforço real por script (refinado):**
 
-| Script | Globals a re-inicializar | Linhas extras | Complexidade |
-|--------|--------------------------|---------------|-------------|
-| `e3_reconcile.py` | ~5 | ~15 | Baixa |
-| `e4_categorize.py` | ~10 (3 configs + 7 derivados) | ~25 | Média |
-| `e2/common.py` | ~8 (FAMILY, LOCALE, INST, PIPE + derivados) | ~20 | Média |
-| `e5_analyze.py` | ~5 (paths + DOBs) | ~15 | Baixa |
-| `e5n_narrativas.py` | ~15 (FAMILY + 12 keys + FISCAL) | ~35 | Média-alta |
-| `e6_render.py` | ~3 (paths + template) | ~10 | Baixa |
+
+| Script              | Globals a re-inicializar                    | Linhas extras | Complexidade |
+| ------------------- | ------------------------------------------- | ------------- | ------------ |
+| `e3_reconcile.py`   | ~5                                          | ~15           | Baixa        |
+| `e4_categorize.py`  | ~10 (3 configs + 7 derivados)               | ~25           | Média        |
+| `e2/common.py`      | ~8 (FAMILY, LOCALE, INST, PIPE + derivados) | ~20           | Média        |
+| `e5_analyze.py`     | ~5 (paths + DOBs)                           | ~15           | Baixa        |
+| `e5n_narrativas.py` | ~15 (FAMILY + 12 keys + FISCAL)             | ~35           | Média-alta   |
+| `e6_render.py`      | ~3 (paths + template)                       | ~10           | Baixa        |
+
 
 **Passo 2 — Wrapper fino no package pipeline:**
 
@@ -487,6 +510,7 @@ def run(ctx: WorkspaceContext) -> dict:
 ```
 
 **Vantagens:**
+
 - Thread-safe (cada call re-inicializa seus globals com o root recebido)
 - CLI funciona idêntico (`main()` sem argumento)
 - Wrappers são triviais (3-5 linhas cada)
@@ -494,6 +518,7 @@ def run(ctx: WorkspaceContext) -> dict:
 - Lógica interna dos scripts permanece 100% inalterada
 
 **Regras da Fase 0:**
+
 - Scripts permanecem em `scripts/` (sem reorganização de arquivos)
 - `pipeline/` importa de `scripts/` (reorganização de pastas é Fase 2+)
 - Config sempre vem de `root_dir/config/` (injeção via DB é Fase 3)
@@ -505,26 +530,30 @@ def run(ctx: WorkspaceContext) -> dict:
 
 **Objetivo:** E5, E5.N, E6 e E0s ganham wrappers. Config passa a ser injetável.
 
-| # | Tarefa | Prioridade | Estimativa | Status |
-|---|--------|-----------|-----------|--------|
-| 0C.1 | Wrap `e5_analyze.py`: criar `run_e5(ctx)` | P0 | 6h | ☐ |
-| 0C.2 | Wrap `e5n_narrativas.py`: criar `run_e5n(ctx)` | P0 | 4h | ☐ |
-| 0C.3 | Wrap `e6_render.py`: criar `run_e6(ctx)` | P0 | 6h | ☐ |
-| 0C.4 | Wrap `e0_audit.py`: criar `run_e0_audit(ctx)` | P1 | 3h | ☐ |
-| 0C.5 | Wrap `e0_route.py`: criar `run_e0_route(ctx)` | P1 | 3h | ☐ |
-| 0C.6 | Wrap `e0_unlock.py`: criar `run_e0_unlock(ctx)` | P1 | 2h | ☐ |
-| 0C.7 | Wrap `e15_consolidate.py`: criar `run_e15c(ctx)` | P1 | 2h | ☐ |
-| 0C.8 | Refatorar `pipeline_common.py` para usar `WorkspaceContext` | P0 | 3h | ☐ |
-| 0C.9 | Refatorar `e2/common.py` — config lazy-loaded em vez de module-level | P0 | 4h | ☐ |
-| 0C.10 | Testes de regressão completos: E0→E6 via wrappers | P0 | 3h | ☐ |
+
+| #     | Tarefa                                                               | Prioridade | Estimativa | Status |
+| ----- | -------------------------------------------------------------------- | ---------- | ---------- | ------ |
+| 0C.1  | Wrap `e5_analyze.py`: criar `run_e5(ctx)`                            | P0         | 6h         | ☐      |
+| 0C.2  | Wrap `e5n_narrativas.py`: criar `run_e5n(ctx)`                       | P0         | 4h         | ☐      |
+| 0C.3  | Wrap `e6_render.py`: criar `run_e6(ctx)`                             | P0         | 6h         | ☐      |
+| 0C.4  | Wrap `e0_audit.py`: criar `run_e0_audit(ctx)`                        | P1         | 3h         | ☐      |
+| 0C.5  | Wrap `e0_route.py`: criar `run_e0_route(ctx)`                        | P1         | 3h         | ☐      |
+| 0C.6  | Wrap `e0_unlock.py`: criar `run_e0_unlock(ctx)`                      | P1         | 2h         | ☐      |
+| 0C.7  | Wrap `e15_consolidate.py`: criar `run_e15c(ctx)`                     | P1         | 2h         | ☐      |
+| 0C.8  | Refatorar `pipeline_common.py` para usar `WorkspaceContext`          | P0         | 3h         | ☐      |
+| 0C.9  | Refatorar `e2/common.py` — config lazy-loaded em vez de module-level | P0         | 4h         | ☐      |
+| 0C.10 | Testes de regressão completos: E0→E6 via wrappers                    | P0         | 3h         | ☐      |
+
 
 **O desafio do E5 (107KB):**
+
 - Carrega **10 arquivos de config** diferentes (`goals.json`, `scoring.json`, `parametros_fiscais.json`, etc.)
 - Muitos desses loads são em `_load_*()` functions chamadas no module level
 - Solução: Mover loads para dentro de `main()`, guardar em dict, passar para subfunções
 - Mudança cirúrgica: renomear `main()` para `_main_impl(ctx=None)`, criar novo `main()` que chama `_main_impl(WorkspaceContext.default())`
 
 **O desafio do E6 (197KB):**
+
 - Já tem `render_report()` como entry point limpo
 - A maioria dos helpers não lê config — recebe dados como parâmetro
 - Path de output e template são os principais acoplamentos
@@ -536,15 +565,17 @@ def run(ctx: WorkspaceContext) -> dict:
 
 **Objetivo:** Pipeline chamável end-to-end via Python. CLIs viram thin wrappers.
 
-| # | Tarefa | Prioridade | Estimativa | Status |
-|---|--------|-----------|-----------|--------|
-| 0D.1 | Criar `pipeline/orchestrator.py` — sequencia stages usando wrappers | P0 | 8h | ☐ |
-| 0D.2 | Adaptar `e_reset.py` para usar orchestrator (manter CLI interface) | P1 | 6h | ☐ |
-| 0D.3 | Criar `pipeline/__init__.py` com API pública limpa | P0 | 2h | ☐ |
-| 0D.4 | Criar `pyproject.toml` com dependências | P1 | 2h | ☐ |
-| 0D.5 | Consolidar `_load_json_config` — uma implementação, em `pipeline/config_loader.py` | P1 | 3h | ☐ |
-| 0D.6 | Testes de integração: `pipeline.run(ctx)` produz relatório correto | P0 | 4h | ☐ |
-| 0D.7 | Documentar API do package em docstrings | P2 | 2h | ☐ |
+
+| #    | Tarefa                                                                             | Prioridade | Estimativa | Status |
+| ---- | ---------------------------------------------------------------------------------- | ---------- | ---------- | ------ |
+| 0D.1 | Criar `pipeline/orchestrator.py` — sequencia stages usando wrappers                | P0         | 8h         | ☐      |
+| 0D.2 | Adaptar `e_reset.py` para usar orchestrator (manter CLI interface)                 | P1         | 6h         | ☐      |
+| 0D.3 | Criar `pipeline/__init__.py` com API pública limpa                                 | P0         | 2h         | ☐      |
+| 0D.4 | Criar `pyproject.toml` com dependências                                            | P1         | 2h         | ☐      |
+| 0D.5 | Consolidar `_load_json_config` — uma implementação, em `pipeline/config_loader.py` | P1         | 3h         | ☐      |
+| 0D.6 | Testes de integração: `pipeline.run(ctx)` produz relatório correto                 | P0         | 4h         | ☐      |
+| 0D.7 | Documentar API do package em docstrings                                            | P2         | 2h         | ☐      |
+
 
 **Orchestrator — interface alvo:**
 
@@ -598,25 +629,29 @@ if __name__ == "__main__":
 
 #### Critérios de aceite da Fase 0 completa
 
-| Critério | Verificação |
-|----------|-------------|
-| CLI funciona igual | `python scripts/e_reset.py` → output idêntico ao pré-Fase-0 |
-| Pipeline importável | `from pipeline import run_pipeline` funciona |
-| Contexto injetável | `run_pipeline(WorkspaceContext(root=Path("/tmp/test")))` funciona |
-| Config injetável | `WorkspaceContext(root=..., config_overrides={"family_members.json": {...}})` funciona |
-| Regressão zero | Golden files do E2→E6 match byte-a-byte |
-| Testes passam | `pytest tests/` verde |
-| Scripts inalterados | Lógica interna dos scripts E2-E7 não muda (apenas wrappers adicionados) |
+
+| Critério            | Verificação                                                                            |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| CLI funciona igual  | `python scripts/e_reset.py` → output idêntico ao pré-Fase-0                            |
+| Pipeline importável | `from pipeline import run_pipeline` funciona                                           |
+| Contexto injetável  | `run_pipeline(WorkspaceContext(root=Path("/tmp/test")))` funciona                      |
+| Config injetável    | `WorkspaceContext(root=..., config_overrides={"family_members.json": {...}})` funciona |
+| Regressão zero      | Golden files do E2→E6 match byte-a-byte                                                |
+| Testes passam       | `pytest tests/` verde                                                                  |
+| Scripts inalterados | Lógica interna dos scripts E2-E7 não muda (apenas wrappers adicionados)                |
+
 
 #### O que a Fase 0 NÃO faz (fica para fases posteriores)
 
-| Escopo excluído | Por quê | Fase destino |
-|----------------|---------|-------------|
-| Pydantic models dos artefatos | Útil mas não bloqueante. Scripts leem/escrevem dicts. | Fase 1-2 |
-| Abstrair storage (S3/MinIO) | Filesystem funciona até ter web | Fase 2 |
-| Substituir print por logging | Funciona sem isso para CLI | Fase 5 (WebSocket) |
-| Refatorar lógica interna dos scripts | Risco alto, valor baixo nesta fase | Futuro (gradual) |
-| Migrar E2 registry para auto-discovery | O sistema de BANK_MODULES funciona bem | Futuro |
+
+| Escopo excluído                        | Por quê                                               | Fase destino       |
+| -------------------------------------- | ----------------------------------------------------- | ------------------ |
+| Pydantic models dos artefatos          | Útil mas não bloqueante. Scripts leem/escrevem dicts. | Fase 1-2           |
+| Abstrair storage (S3/MinIO)            | Filesystem funciona até ter web                       | Fase 2             |
+| Substituir print por logging           | Funciona sem isso para CLI                            | Fase 5 (WebSocket) |
+| Refatorar lógica interna dos scripts   | Risco alto, valor baixo nesta fase                    | Futuro (gradual)   |
+| Migrar E2 registry para auto-discovery | O sistema de BANK_MODULES funciona bem                | Futuro             |
+
 
 ---
 
@@ -628,26 +663,28 @@ if __name__ == "__main__":
 
 #### Tarefas
 
-| # | Tarefa | Prioridade | Complexidade | Status |
-|---|--------|-----------|-------------|--------|
-| 1.1 | Setup FastAPI project (`backend/app/`) | P0 | Baixa | ☐ |
-| 1.2 | Setup SQLAlchemy 2.0 + Alembic | P0 | Média | ☐ |
-| 1.3 | Modelo `User` + migration | P0 | Baixa | ☐ |
-| 1.4 | Auth: register, login, JWT tokens | P0 | Média | ☐ |
-| 1.5 | Middleware de autenticação (dependency injection) | P0 | Baixa | ☐ |
-| 1.6 | Modelo `Workspace` + migration | P0 | Baixa | ☐ |
-| 1.7 | Modelo `Report` + migration | P0 | Baixa | ☐ |
-| 1.8 | Endpoint `GET /api/reports` (lista relatórios) | P0 | Baixa | ☐ |
-| 1.9 | Endpoint `GET /api/reports/{id}/html` (serve HTML) | P0 | Baixa | ☐ |
-| 1.10 | Seed: importar relatório existente para o banco | P1 | Baixa | ☐ |
-| 1.11 | CORS configurado para frontend Next.js | P0 | Baixa | ☐ |
-| 1.12 | Script de setup dev (`docker-compose.dev.yml` com PostgreSQL) | P1 | Média | ☐ |
-| 1.13 | Testes dos endpoints de auth | P1 | Média | ☐ |
-| 1.14 | Setup Next.js project (`frontend/`) | P0 | Baixa | ☐ |
-| 1.15 | Página de login/registro (Next.js) | P0 | Média | ☐ |
-| 1.16 | Página de lista de relatórios | P1 | Média | ☐ |
-| 1.17 | Visualização de relatório HTML em iframe/embed | P1 | Baixa | ☐ |
-| 1.18 | Auto-geração de types TS via `openapi-typescript` | P1 | Média | ☐ |
+
+| #    | Tarefa                                                        | Prioridade | Complexidade | Status |
+| ---- | ------------------------------------------------------------- | ---------- | ------------ | ------ |
+| 1.1  | Setup FastAPI project (`backend/app/`)                        | P0         | Baixa        | ☐      |
+| 1.2  | Setup SQLAlchemy 2.0 + Alembic                                | P0         | Média        | ☐      |
+| 1.3  | Modelo `User` + migration                                     | P0         | Baixa        | ☐      |
+| 1.4  | Auth: register, login, JWT tokens                             | P0         | Média        | ☐      |
+| 1.5  | Middleware de autenticação (dependency injection)             | P0         | Baixa        | ☐      |
+| 1.6  | Modelo `Workspace` + migration                                | P0         | Baixa        | ☐      |
+| 1.7  | Modelo `Report` + migration                                   | P0         | Baixa        | ☐      |
+| 1.8  | Endpoint `GET /api/reports` (lista relatórios)                | P0         | Baixa        | ☐      |
+| 1.9  | Endpoint `GET /api/reports/{id}/html` (serve HTML)            | P0         | Baixa        | ☐      |
+| 1.10 | Seed: importar relatório existente para o banco               | P1         | Baixa        | ☐      |
+| 1.11 | CORS configurado para frontend Next.js                        | P0         | Baixa        | ☐      |
+| 1.12 | Script de setup dev (`docker-compose.dev.yml` com PostgreSQL) | P1         | Média        | ☐      |
+| 1.13 | Testes dos endpoints de auth                                  | P1         | Média        | ☐      |
+| 1.14 | Setup Next.js project (`frontend/`)                           | P0         | Baixa        | ☐      |
+| 1.15 | Página de login/registro (Next.js)                            | P0         | Média        | ☐      |
+| 1.16 | Página de lista de relatórios                                 | P1         | Média        | ☐      |
+| 1.17 | Visualização de relatório HTML em iframe/embed                | P1         | Baixa        | ☐      |
+| 1.18 | Auto-geração de types TS via `openapi-typescript`             | P1         | Média        | ☐      |
+
 
 #### Critério de aceite
 
@@ -682,36 +719,250 @@ openapi-typescript
 
 ### FASE 2 — Upload de Arquivos + Pipeline Trigger
 
-**Objetivo:** Usuário faz upload via browser e dispara pipeline (ainda síncrono).
+**Objetivo:** Usuário faz upload de documentos via browser. Documentos são automaticamente desbloqueados (vault de senhas) e classificados (E0-route). Pipeline determinístico roda via API (pseudo-async com background thread) e gera relatório acessível na UI.
 
-**Duração estimada:** 2-3 semanas
+**Duração estimada:** 3-4 semanas (4 sub-fases)
 
-#### Tarefas
+#### Decisões tomadas para esta fase
 
-| # | Tarefa | Prioridade | Complexidade | Status |
-|---|--------|-----------|-------------|--------|
-| 2.1 | Modelo `Document` + migration | P0 | Baixa | ☐ |
-| 2.2 | File storage organizado por tenant (`storage/{workspace_id}/`) | P0 | Média | ☐ |
-| 2.3 | Endpoint `POST /api/documents/upload` (multipart, batch) | P0 | Média | ☐ |
-| 2.4 | Endpoint `GET /api/documents` (lista por workspace) | P0 | Baixa | ☐ |
-| 2.5 | Endpoint `DELETE /api/documents/{id}` | P1 | Baixa | ☐ |
-| 2.6 | Adaptar E0-route para processar a partir do storage do tenant | P0 | Alta | ☐ |
-| 2.7 | Modelo `PipelineRun` + `PipelineStageLog` + migration | P0 | Média | ☐ |
-| 2.8 | Endpoint `POST /api/pipeline/run` (trigger síncrono) | P0 | Alta | ☐ |
-| 2.9 | Endpoint `GET /api/pipeline/runs/{id}` (status) | P0 | Baixa | ☐ |
-| 2.10 | Adaptar orchestrator para trabalhar com paths do tenant | P0 | Alta | ☐ |
-| 2.11 | UI: página de upload com drag-and-drop | P0 | Média | ☐ |
-| 2.12 | UI: lista de documentos com status | P0 | Média | ☐ |
-| 2.13 | UI: botão "Gerar Relatório" + feedback | P0 | Média | ☐ |
-| 2.14 | Validação de tipos de arquivo no upload (PDF, XLSX, CSV, JPG) | P1 | Baixa | ☐ |
-| 2.15 | Limite de tamanho de upload (50MB por arquivo) | P1 | Baixa | ☐ |
-| 2.16 | Testes de integração: upload → pipeline → relatório | P0 | Alta | ☐ |
 
-#### Critério de aceite
+| Decisão                    | Escolha                                    | Rationale                                                              |
+| -------------------------- | ------------------------------------------ | ---------------------------------------------------------------------- |
+| Execução do pipeline       | Pseudo-async (background thread + polling) | Sem task queue (Fase 5), mas sem bloquear HTTP request                 |
+| Escopo do pipeline         | Etapas determinísticas (E0→E7-crossval)    | LLM é Fase 4. Se JSONs de E1/E1.5 existirem, E6 os incorpora         |
+| Senhas de PDF              | Vault de senhas por workspace              | Testadas automaticamente no upload. User gerencia via UI               |
+| Classificação de docs      | E0-route automático no upload              | Sem intervenção manual. Classifica banco, tipo e período               |
+| File storage               | Filesystem local por tenant                | S3/MinIO fica para Fase 7. Suficiente para MVP                        |
+| Dados de E1/E1.5           | Upload de JSONs pré-existentes             | User pode subir baseline_patrimonial e members junto com docs bancários |
+| Trigger do pipeline        | Docs novos por default, opção reprocessar  | Evita reprocessamento desnecessário, mas dá controle ao user           |
 
-- Upload via browser substitui completamente o fluxo `inbox/`
-- Pipeline roda via API e gera relatório acessível na UI
-- Dados isolados por workspace (multi-tenant no filesystem)
+
+#### Diagrama do fluxo
+
+```
+User drag-and-drop (batch de arquivos)
+    ↓
+POST /api/documents/upload
+    ↓
+┌─── Para cada arquivo ────────────────────────────────┐
+│ Validação (tipo, tamanho, integridade)               │
+│    ↓                                                 │
+│ Se PDF protegido → tenta vault passwords → E0-unlock │
+│    ↓ (sucesso)              ↓ (falha)                │
+│ E0-route (classifica)    status: needs_password       │
+│    ↓                                                 │
+│ status: ready                                         │
+└──────────────────────────────────────────────────────┘
+    ↓
+Documentos aparecem na lista com status e classificação
+    ↓
+User clica "Gerar Relatório"
+    ↓
+POST /api/pipeline/run → retorna run_id imediatamente
+    ↓
+Pipeline roda em background thread:
+  E0-audit → E2 → E3 → E4 → E5 → E5.N → E6 → E7-crossval
+  (atualiza PipelineStageLog a cada etapa)
+    ↓
+Frontend faz polling GET /api/pipeline/runs/{id}
+  → mostra progresso stage-by-stage
+    ↓
+Pipeline completo → Report criado → user visualiza relatório
+```
+
+---
+
+#### Sub-fase 2A: Storage Layer + Models (Semana 1)
+
+**Objetivo:** Infraestrutura de storage por tenant, modelos de banco e vault de senhas.
+
+
+| #    | Tarefa                                                                                                                                             | Prioridade | Estimativa | Status |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- | ------ |
+| 2A.1 | Modelo `Document` + migration (workspace_id, original_name, stored_path, doc_type, bank_code, period, status, classification_meta JSON, uploaded_at) | P0         | 3h         | ☐      |
+| 2A.2 | Modelo `PasswordVault` (workspace_id, label, encrypted_password via Fernet, created_at) + migration                                                | P0         | 3h         | ☐      |
+| 2A.3 | Modelo `PipelineRun` + `PipelineStageLog` + migration                                                                                              | P0         | 4h         | ☐      |
+| 2A.4 | Estrutura de storage por tenant: `storage/{workspace_id}/{inbox,data,processed,output}/` com criação automática no primeiro upload                  | P0         | 2h         | ☐      |
+| 2A.5 | Service `StorageService` — CRUD de arquivos no tenant, sanitização de filenames, prevenção de path traversal                                       | P0         | 4h         | ☐      |
+| 2A.6 | CRUD API: `POST/GET/DELETE /api/vault/passwords` (senhas criptografadas at-rest com Fernet)                                                        | P0         | 3h         | ☐      |
+
+
+**Checkpoint 2A:** Modelos criados, migrations rodando, storage por tenant funcional, vault API respondendo.
+
+**Modelo `Document` — status machine:**
+
+```python
+class DocumentStatus(str, Enum):
+    uploaded = "uploaded"            # Arquivo recebido, aguardando processamento
+    unlocking = "unlocking"          # Tentando desbloquear com vault
+    classifying = "classifying"      # E0-route classificando
+    ready = "ready"                  # Classificado, pronto para pipeline
+    needs_password = "needs_password"  # PDF protegido, nenhuma senha do vault funcionou
+    processing = "processing"        # Pipeline em execução usando este documento
+    processed = "processed"          # Pipeline completou com este documento
+    error = "error"                  # Erro em qualquer etapa
+
+class DocumentType(str, Enum):
+    bank_statement = "bank_statement"
+    credit_card_bill = "credit_card_bill"
+    investment_report = "investment_report"
+    irpf = "irpf"
+    e1_members_json = "e1_members_json"         # JSON de E1 (upload manual)
+    e1_5_baseline_json = "e1_5_baseline_json"    # JSON de E1.5 (upload manual)
+    other = "other"
+```
+
+---
+
+#### Sub-fase 2B: Upload + E0 Processing (Semana 1-2)
+
+**Objetivo:** Upload funcional com desbloqueio automático via vault e classificação via E0-route.
+
+
+| #     | Tarefa                                                                                                                                          | Prioridade | Estimativa | Status |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- | ------ |
+| 2B.1  | Endpoint `POST /api/documents/upload` (multipart, batch até 20 arquivos simultâneos)                                                            | P0         | 4h         | ☐      |
+| 2B.2  | Validação no upload: tipos aceitos (PDF, XLSX, XLS, CSV, JPG, PNG, JSON), tamanho máx 50MB/arquivo, detecção de arquivo corrompido/vazio        | P0         | 4h         | ☐      |
+| 2B.3  | Suporte a upload de JSONs de E1/E1.5 — classificação automática como `e1_members_json` ou `e1_5_baseline_json` baseado na estrutura do JSON     | P0         | 3h         | ☐      |
+| 2B.4  | Integração E0-unlock: ao receber PDF, tenta desbloquear com todas as senhas do vault. Se nenhuma funciona → status `needs_password`             | P0         | 4h         | ☐      |
+| 2B.5  | Integração E0-route: classifica documento automaticamente (banco, tipo, período). Resultado salvo em `Document.classification_meta`             | P0         | 6h         | ☐      |
+| 2B.6  | Status tracking por documento: transições atômicas `uploaded → unlocking → classifying → ready` (ou `needs_password` / `error`)                 | P0         | 3h         | ☐      |
+| 2B.7  | Endpoint `GET /api/documents` (lista por workspace, filtros por status, paginação)                                                              | P0         | 3h         | ☐      |
+| 2B.8  | Endpoint `DELETE /api/documents/{id}` (remove arquivo do storage + registro do banco)                                                           | P1         | 2h         | ☐      |
+| 2B.9  | Segurança: sanitização de filename, prevenção de path traversal, validação de content-type vs extensão, limite de storage por workspace (500MB) | P0         | 4h         | ☐      |
+| 2B.10 | Re-tentativa de unlock: endpoint `POST /api/documents/retry-unlock` testa senhas novas do vault nos docs com `needs_password`                   | P0         | 3h         | ☐      |
+
+
+**Checkpoint 2B:** Upload via API funciona. Documentos são desbloqueados e classificados automaticamente. Lista de documentos mostra status correto.
+
+**Adaptação do E0-route para web:**
+
+No CLI, E0-route lê de `inbox/` e move para `data/`. Na web:
+1. Arquivo vai para `storage/{workspace_id}/inbox/` (pelo upload)
+2. E0-route classifica e copia para subpasta correta em `storage/{workspace_id}/data/` (ex: `data/financial_statements/`)
+3. Nome canônico (renomeado) é salvo em `Document.stored_path`
+4. Metadados de classificação (banco, tipo, período) salvos em `Document.classification_meta` (JSON)
+
+---
+
+#### Sub-fase 2C: Pipeline Execution (Semana 2-3)
+
+**Objetivo:** Pipeline determinístico roda via API em background thread com tracking de progresso por etapa.
+
+
+| #     | Tarefa                                                                                                                               | Prioridade | Estimativa | Status |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------- | ---------- | ------ |
+| 2C.1  | Adaptar orchestrator (Fase 0D) para receber tenant root e operar sobre `storage/{workspace_id}/`                                     | P0         | 6h         | ☐      |
+| 2C.2  | Endpoint `POST /api/pipeline/run` — valida docs ready, cria `PipelineRun`, inicia background thread, retorna `run_id` imediatamente  | P0         | 6h         | ☐      |
+| 2C.3  | Seleção de documentos: default = docs `ready` não processados em runs anteriores. Flag `reprocess_all=true` para incluir todos       | P0         | 3h         | ☐      |
+| 2C.4  | Se JSONs de E1/E1.5 foram uploaded, copiar para posição correta no workspace antes de E2 (baseline em `E2_extracts/`, members em `members/`) | P0         | 3h         | ☐      |
+| 2C.5  | Stage tracking: pipeline atualiza `PipelineStageLog` a cada etapa com status (running/completed/failed/skipped), timestamps, output_summary | P0         | 4h         | ☐      |
+| 2C.6  | Endpoint `GET /api/pipeline/runs/{id}` — status geral + array de stages com progresso detalhado                                      | P0         | 3h         | ☐      |
+| 2C.7  | Endpoint `GET /api/pipeline/runs/{id}/logs` — logs detalhados por etapa (stdout capturado, errors, warnings)                         | P1         | 3h         | ☐      |
+| 2C.8  | Error handling: se etapa falha, salvar resultados parciais, marcar `PipelineRun` como `partial_failure` com stage de falha            | P0         | 4h         | ☐      |
+| 2C.9  | Endpoint `POST /api/pipeline/runs/{id}/retry` — re-executar desde etapa que falhou ou `from_start=true`                              | P1         | 4h         | ☐      |
+| 2C.10 | Report linkage: ao final de E6, criar registro `Report` vinculado ao `PipelineRun` com path do HTML, período, score                  | P0         | 2h         | ☐      |
+| 2C.11 | Limite de concorrência: máximo 1 pipeline run ativo por workspace. Rejeitar com `409 Conflict` se já houver run em andamento         | P1         | 2h         | ☐      |
+
+
+**Checkpoint 2C:** `POST /api/pipeline/run` retorna `run_id`. Polling mostra progresso. Pipeline gera relatório. Erros reportados por etapa.
+
+**Background thread — design (sem Celery):**
+
+```python
+import threading
+
+def _run_pipeline_background(run_id: int, workspace_id: int, reprocess_all: bool):
+    """Roda em thread separada. Cria session própria do banco."""
+    db = SessionLocal()
+    try:
+        run = db.query(PipelineRun).get(run_id)
+        ctx = WorkspaceContext.for_tenant(
+            tenant_root=Path(f"storage/{workspace_id}"),
+            config_overrides=None  # Fase 2 usa config do disco. Fase 3 injeta do DB.
+        )
+        for stage_name, stage_fn in DETERMINISTIC_STAGES:
+            log = PipelineStageLog(pipeline_run_id=run_id, stage=stage_name, status="running")
+            db.add(log); db.commit()
+            try:
+                result = stage_fn(ctx)
+                log.status = "completed"
+                log.output_summary = result
+            except Exception as e:
+                log.status = "failed"
+                log.errors = str(e)
+                run.status = "partial_failure"
+                run.failed_at_stage = stage_name
+                db.commit()
+                return  # Para execução, preserva resultados parciais
+            log.completed_at = datetime.utcnow()
+            db.commit()
+        run.status = "completed"
+        run.completed_at = datetime.utcnow()
+        db.commit()
+    finally:
+        db.close()
+```
+
+**Limitação conhecida:** Background threads não sobrevivem a restart do servidor. Aceitável para Fase 2 (dogfood). Fase 5 (Celery/ARQ + Redis) resolve definitivamente.
+
+---
+
+#### Sub-fase 2D: Frontend + Integração (Semana 3-4)
+
+**Objetivo:** UI funcional de upload, documentos, vault, execução de pipeline e visualização de relatório.
+
+
+| #     | Tarefa                                                                                                                  | Prioridade | Estimativa | Status |
+| ----- | ----------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- | ------ |
+| 2D.1  | Página de upload com drag-and-drop (batch de múltiplos arquivos, progress bar de upload individual)                      | P0         | 6h         | ☐      |
+| 2D.2  | Lista de documentos: tabela com nome, tipo detectado, banco, período, status (badge colorido), ação delete              | P0         | 4h         | ☐      |
+| 2D.3  | Tela de vault de senhas: adicionar/remover senhas + botão "Tentar desbloquear novamente" nos docs `needs_password`      | P0         | 4h         | ☐      |
+| 2D.4  | Botão "Gerar Relatório" com opções: "Processar novos documentos" (default) / "Reprocessar tudo"                         | P0         | 3h         | ☐      |
+| 2D.5  | Tela de progresso do pipeline: polling a cada 2s, barra com etapas (E0→E7), etapa atual destacada, tempo decorrido      | P0         | 6h         | ☐      |
+| 2D.6  | Estados de erro: etapa que falhou em vermelho, mensagem de erro expandível, botão "Tentar novamente"                    | P0         | 4h         | ☐      |
+| 2D.7  | Pós-pipeline: redirecionamento automático para visualização do relatório (reutiliza viewer da Fase 1)                   | P0         | 2h         | ☐      |
+| 2D.8  | Feedback visual: ícone por tipo de documento (PDF/CSV/XLSX), indicador de banco detectado, tooltip com detalhes         | P1         | 3h         | ☐      |
+| 2D.9  | Testes de integração E2E: upload batch → classify → pipeline → relatório visível na UI                                  | P0         | 6h         | ☐      |
+| 2D.10 | Testes de cenários de erro: PDF corrompido, senha errada, pipeline parcial, isolamento entre workspaces                 | P0         | 4h         | ☐      |
+
+
+**Checkpoint 2D:** Fluxo completo via browser: upload → classificação automática → gerar relatório → visualizar. Erros tratados com UX clara.
+
+---
+
+#### Critérios de aceite da Fase 2 completa
+
+
+| Critério                    | Verificação                                                                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Upload funcional            | Drag-and-drop de batch de documentos via browser. Arquivos salvos no storage do tenant                       |
+| Unlock automático           | PDFs protegidos são desbloqueados usando senhas do vault. PDFs sem senha ficam como `needs_password`          |
+| Classificação automática    | E0-route classifica banco, tipo e período de cada documento sem intervenção manual                           |
+| Pipeline via API            | `POST /api/pipeline/run` executa etapas determinísticas (E0-audit → E7-crossval) e gera relatório HTML       |
+| Dados de E1/E1.5            | Se JSONs de E1/E1.5 foram uploaded, E6 incorpora esses dados no relatório. Se não, relatório sai sem eles   |
+| Progresso visível           | Frontend mostra progresso stage-by-stage via polling (2s) durante execução do pipeline                       |
+| Erros tratados              | Falhas por etapa são reportadas com mensagem clara. Pipeline parcial preserva resultados das etapas anteriores |
+| Retry funcional             | Usuário pode re-executar pipeline desde etapa que falhou ou desde o início                                   |
+| Multi-tenant                | Workspace A não vê documentos/relatórios de workspace B (teste explícito de isolamento)                      |
+| CLI inalterado              | `python scripts/e_reset.py` continua funcionando independentemente da web                                    |
+| Regressão zero              | Relatório gerado via web é idêntico ao gerado via CLI com mesmos inputs                                      |
+
+
+#### O que a Fase 2 NÃO faz (fica para fases posteriores)
+
+
+| Escopo excluído                              | Por quê                                     | Fase destino |
+| -------------------------------------------- | ------------------------------------------- | ------------ |
+| Task queue (Celery/Redis)                    | Background thread suficiente para dogfood   | Fase 5       |
+| WebSocket para progresso                     | Polling a cada 2s funciona adequadamente    | Fase 5       |
+| LLM automático (E1, E1.5, E2-llm, E7-review) | Requer infra de LLM service                | Fase 4       |
+| Config de membros/categorias via UI          | Requer CRUD completo de config              | Fase 3       |
+| S3/MinIO para storage                        | Filesystem local suficiente para MVP        | Fase 7       |
+| Preview de documentos (PDF viewer na UI)     | Nice-to-have, não bloqueante               | Fase 6       |
+| Notificações (email/push)                    | Polling resolve para dogfood                | Fase 6       |
+| Cleanup/retention automático de storage      | Gestão manual suficiente para dogfood       | Fase 7       |
+
 
 ---
 
@@ -723,29 +974,31 @@ openapi-typescript
 
 #### Tarefas
 
-| # | Tarefa | Prioridade | Complexidade | Status |
-|---|--------|-----------|-------------|--------|
-| 3.1 | Modelos `FamilyMember`, `BankAccount` + migrations | P0 | Média | ☐ |
-| 3.2 | Modelos `Category`, `CategoryKeyword` + migrations | P0 | Média | ☐ |
-| 3.3 | Modelo `Institution` + migration | P1 | Baixa | ☐ |
-| 3.4 | Modelo `PipelineConfig` (tolerâncias, thresholds) + migration | P1 | Média | ☐ |
-| 3.5 | Modelo `ReportLayout` (seções, ordem, visibilidade) + migration | P2 | Média | ☐ |
-| 3.6 | CRUD API: `/api/config/members` | P0 | Média | ☐ |
-| 3.7 | CRUD API: `/api/config/accounts` | P0 | Média | ☐ |
-| 3.8 | CRUD API: `/api/config/categories` | P0 | Média | ☐ |
-| 3.9 | CRUD API: `/api/config/institutions` | P1 | Baixa | ☐ |
-| 3.10 | CRUD API: `/api/config/pipeline` | P1 | Baixa | ☐ |
-| 3.11 | CRUD API: `/api/config/report-layout` | P2 | Média | ☐ |
-| 3.12 | Serializar config do banco → `PipelineConfig` Pydantic para pipeline | P0 | Alta | ☐ |
-| 3.13 | Adaptar pipeline para receber config como parâmetro (não ler disco) | P0 | Alta | ☐ |
-| 3.14 | Default values = valores atuais do `config/*.json` | P0 | Média | ☐ |
-| 3.15 | UI: tela de membros da família | P0 | Média | ☐ |
-| 3.16 | UI: tela de contas bancárias (vinculadas a membros) | P0 | Média | ☐ |
-| 3.17 | UI: tela de categorias (keywords, tetos, drag-and-drop reorder) | P0 | Alta | ☐ |
-| 3.18 | UI: tela de parâmetros do pipeline | P1 | Média | ☐ |
-| 3.19 | UI: tela de layout do relatório (toggle seções, reordenar) | P2 | Alta | ☐ |
-| 3.20 | Seed de defaults na criação de novo workspace | P0 | Média | ☐ |
-| 3.21 | Testes: config via UI gera mesmo relatório que config em arquivo | P0 | Alta | ☐ |
+
+| #    | Tarefa                                                               | Prioridade | Complexidade | Status |
+| ---- | -------------------------------------------------------------------- | ---------- | ------------ | ------ |
+| 3.1  | Modelos `FamilyMember`, `BankAccount` + migrations                   | P0         | Média        | ☐      |
+| 3.2  | Modelos `Category`, `CategoryKeyword` + migrations                   | P0         | Média        | ☐      |
+| 3.3  | Modelo `Institution` + migration                                     | P1         | Baixa        | ☐      |
+| 3.4  | Modelo `PipelineConfig` (tolerâncias, thresholds) + migration        | P1         | Média        | ☐      |
+| 3.5  | Modelo `ReportLayout` (seções, ordem, visibilidade) + migration      | P2         | Média        | ☐      |
+| 3.6  | CRUD API: `/api/config/members`                                      | P0         | Média        | ☐      |
+| 3.7  | CRUD API: `/api/config/accounts`                                     | P0         | Média        | ☐      |
+| 3.8  | CRUD API: `/api/config/categories`                                   | P0         | Média        | ☐      |
+| 3.9  | CRUD API: `/api/config/institutions`                                 | P1         | Baixa        | ☐      |
+| 3.10 | CRUD API: `/api/config/pipeline`                                     | P1         | Baixa        | ☐      |
+| 3.11 | CRUD API: `/api/config/report-layout`                                | P2         | Média        | ☐      |
+| 3.12 | Serializar config do banco → `PipelineConfig` Pydantic para pipeline | P0         | Alta         | ☐      |
+| 3.13 | Adaptar pipeline para receber config como parâmetro (não ler disco)  | P0         | Alta         | ☐      |
+| 3.14 | Default values = valores atuais do `config/*.json`                   | P0         | Média        | ☐      |
+| 3.15 | UI: tela de membros da família                                       | P0         | Média        | ☐      |
+| 3.16 | UI: tela de contas bancárias (vinculadas a membros)                  | P0         | Média        | ☐      |
+| 3.17 | UI: tela de categorias (keywords, tetos, drag-and-drop reorder)      | P0         | Alta         | ☐      |
+| 3.18 | UI: tela de parâmetros do pipeline                                   | P1         | Média        | ☐      |
+| 3.19 | UI: tela de layout do relatório (toggle seções, reordenar)           | P2         | Alta         | ☐      |
+| 3.20 | Seed de defaults na criação de novo workspace                        | P0         | Média        | ☐      |
+| 3.21 | Testes: config via UI gera mesmo relatório que config em arquivo     | P0         | Alta         | ☐      |
+
 
 #### Critério de aceite
 
@@ -763,23 +1016,25 @@ openapi-typescript
 
 #### Tarefas
 
-| # | Tarefa | Prioridade | Complexidade | Status |
-|---|--------|-----------|-------------|--------|
-| 4.1 | Modelo `LLMConfig` (api_key encrypted, model, limits) + migration | P0 | Média | ☐ |
-| 4.2 | UI: tela para configurar API key (com teste de conectividade) | P0 | Média | ☐ |
-| 4.3 | Módulo `pipeline/llm/service.py` — wrapper para Anthropic API | P0 | Alta | ☐ |
-| 4.4 | `pipeline/llm/prompts/` — templates versionados por etapa | P0 | Alta | ☐ |
-| 4.5 | Implementar E1 via API: extração de dados pessoais | P0 | Alta | ☐ |
-| 4.6 | Implementar E1.5 via API: consolidação baseline patrimonial | P0 | Alta | ☐ |
-| 4.7 | Implementar E2-llm via API: extração sem parser determinístico | P0 | Alta | ☐ |
-| 4.8 | Implementar E7-review via API: review holístico com persona | P1 | Alta | ☐ |
-| 4.9 | `pipeline/llm/validators/` — validação de output LLM contra schemas | P0 | Alta | ☐ |
-| 4.10 | Retry com exponential backoff para LLM calls | P0 | Média | ☐ |
-| 4.11 | Fallback para revisão manual se confidence < threshold | P1 | Média | ☐ |
-| 4.12 | Orchestrator: detectar tier → skip LLM no free, executar no premium | P0 | Média | ☐ |
-| 4.13 | Token usage tracking por run (para billing futuro) | P2 | Média | ☐ |
-| 4.14 | UI: indicador de quais etapas são premium (lock icon) | P1 | Baixa | ☐ |
-| 4.15 | Testes: comparar output LLM automático vs manual anterior | P0 | Alta | ☐ |
+
+| #    | Tarefa                                                              | Prioridade | Complexidade | Status |
+| ---- | ------------------------------------------------------------------- | ---------- | ------------ | ------ |
+| 4.1  | Modelo `LLMConfig` (api_key encrypted, model, limits) + migration   | P0         | Média        | ☐      |
+| 4.2  | UI: tela para configurar API key (com teste de conectividade)       | P0         | Média        | ☐      |
+| 4.3  | Módulo `pipeline/llm/service.py` — wrapper para Anthropic API       | P0         | Alta         | ☐      |
+| 4.4  | `pipeline/llm/prompts/` — templates versionados por etapa           | P0         | Alta         | ☐      |
+| 4.5  | Implementar E1 via API: extração de dados pessoais                  | P0         | Alta         | ☐      |
+| 4.6  | Implementar E1.5 via API: consolidação baseline patrimonial         | P0         | Alta         | ☐      |
+| 4.7  | Implementar E2-llm via API: extração sem parser determinístico      | P0         | Alta         | ☐      |
+| 4.8  | Implementar E7-review via API: review holístico com persona         | P1         | Alta         | ☐      |
+| 4.9  | `pipeline/llm/validators/` — validação de output LLM contra schemas | P0         | Alta         | ☐      |
+| 4.10 | Retry com exponential backoff para LLM calls                        | P0         | Média        | ☐      |
+| 4.11 | Fallback para revisão manual se confidence < threshold              | P1         | Média        | ☐      |
+| 4.12 | Orchestrator: detectar tier → skip LLM no free, executar no premium | P0         | Média        | ☐      |
+| 4.13 | Token usage tracking por run (para billing futuro)                  | P2         | Média        | ☐      |
+| 4.14 | UI: indicador de quais etapas são premium (lock icon)               | P1         | Baixa        | ☐      |
+| 4.15 | Testes: comparar output LLM automático vs manual anterior           | P0         | Alta         | ☐      |
+
 
 #### Critério de aceite
 
@@ -798,20 +1053,22 @@ openapi-typescript
 
 #### Tarefas
 
-| # | Tarefa | Prioridade | Complexidade | Status |
-|---|--------|-----------|-------------|--------|
-| 5.1 | Setup Celery + Redis (ou ARQ) | P0 | Média | ☐ |
-| 5.2 | Mover pipeline execution para task assíncrona | P0 | Alta | ☐ |
-| 5.3 | `POST /api/pipeline/run` retorna imediatamente com `run_id` | P0 | Média | ☐ |
-| 5.4 | Task atualiza `PipelineStageLog` a cada etapa | P0 | Média | ☐ |
-| 5.5 | WebSocket endpoint para push de progresso | P0 | Alta | ☐ |
-| 5.6 | UI: barra de progresso com etapas (E0→E6) | P0 | Alta | ☐ |
-| 5.7 | UI: notificação quando relatório está pronto | P1 | Média | ☐ |
-| 5.8 | Cancelamento de pipeline em execução | P2 | Média | ☐ |
-| 5.9 | Retry automático de etapa falhada | P2 | Média | ☐ |
-| 5.10 | Limite de concorrência (1 run por workspace) | P1 | Baixa | ☐ |
-| 5.11 | Docker Compose com Redis | P0 | Baixa | ☐ |
-| 5.12 | Testes de integração assíncronos | P1 | Alta | ☐ |
+
+| #    | Tarefa                                                      | Prioridade | Complexidade | Status |
+| ---- | ----------------------------------------------------------- | ---------- | ------------ | ------ |
+| 5.1  | Setup Celery + Redis (ou ARQ)                               | P0         | Média        | ☐      |
+| 5.2  | Mover pipeline execution para task assíncrona               | P0         | Alta         | ☐      |
+| 5.3  | `POST /api/pipeline/run` retorna imediatamente com `run_id` | P0         | Média        | ☐      |
+| 5.4  | Task atualiza `PipelineStageLog` a cada etapa               | P0         | Média        | ☐      |
+| 5.5  | WebSocket endpoint para push de progresso                   | P0         | Alta         | ☐      |
+| 5.6  | UI: barra de progresso com etapas (E0→E6)                   | P0         | Alta         | ☐      |
+| 5.7  | UI: notificação quando relatório está pronto                | P1         | Média        | ☐      |
+| 5.8  | Cancelamento de pipeline em execução                        | P2         | Média        | ☐      |
+| 5.9  | Retry automático de etapa falhada                           | P2         | Média        | ☐      |
+| 5.10 | Limite de concorrência (1 run por workspace)                | P1         | Baixa        | ☐      |
+| 5.11 | Docker Compose com Redis                                    | P0         | Baixa        | ☐      |
+| 5.12 | Testes de integração assíncronos                            | P1         | Alta         | ☐      |
+
 
 #### Critério de aceite
 
@@ -829,22 +1086,24 @@ openapi-typescript
 
 #### Tarefas
 
-| # | Tarefa | Prioridade | Complexidade | Status |
-|---|--------|-----------|-------------|--------|
-| 6.1 | Dashboard com KPIs (score, patrimônio, taxa poupança) | P0 | Alta | ☐ |
-| 6.2 | Relatório renderizado in-app (não só iframe/download) | P0 | Alta | ☐ |
-| 6.3 | Histórico de relatórios com comparação entre períodos | P1 | Alta | ☐ |
-| 6.4 | Onboarding wizard (3 passos: dados → upload → gerar) | P0 | Alta | ☐ |
-| 6.5 | Landing page com proposta de valor | P1 | Alta | ☐ |
-| 6.6 | Dark mode nativo (toda a UI) | P1 | Média | ☐ |
-| 6.7 | Design responsivo (mobile-first) | P1 | Alta | ☐ |
-| 6.8 | Export PDF do relatório | P2 | Média | ☐ |
-| 6.9 | Tela de billing/planos (free vs premium) | P2 | Média | ☐ |
-| 6.10 | Documentação/FAQ | P2 | Média | ☐ |
-| 6.11 | Loading states e error handling polished | P0 | Média | ☐ |
-| 6.12 | Animações sutis (gráficos, transições) | P2 | Baixa | ☐ |
-| 6.13 | SEO da landing page | P2 | Média | ☐ |
-| 6.14 | Accessibility (WCAG 2.1 AA) | P2 | Média | ☐ |
+
+| #    | Tarefa                                                | Prioridade | Complexidade | Status |
+| ---- | ----------------------------------------------------- | ---------- | ------------ | ------ |
+| 6.1  | Dashboard com KPIs (score, patrimônio, taxa poupança) | P0         | Alta         | ☐      |
+| 6.2  | Relatório renderizado in-app (não só iframe/download) | P0         | Alta         | ☐      |
+| 6.3  | Histórico de relatórios com comparação entre períodos | P1         | Alta         | ☐      |
+| 6.4  | Onboarding wizard (3 passos: dados → upload → gerar)  | P0         | Alta         | ☐      |
+| 6.5  | Landing page com proposta de valor                    | P1         | Alta         | ☐      |
+| 6.6  | Dark mode nativo (toda a UI)                          | P1         | Média        | ☐      |
+| 6.7  | Design responsivo (mobile-first)                      | P1         | Alta         | ☐      |
+| 6.8  | Export PDF do relatório                               | P2         | Média        | ☐      |
+| 6.9  | Tela de billing/planos (free vs premium)              | P2         | Média        | ☐      |
+| 6.10 | Documentação/FAQ                                      | P2         | Média        | ☐      |
+| 6.11 | Loading states e error handling polished              | P0         | Média        | ☐      |
+| 6.12 | Animações sutis (gráficos, transições)                | P2         | Baixa        | ☐      |
+| 6.13 | SEO da landing page                                   | P2         | Média        | ☐      |
+| 6.14 | Accessibility (WCAG 2.1 AA)                           | P2         | Média        | ☐      |
+
 
 #### Critério de aceite
 
@@ -862,23 +1121,25 @@ openapi-typescript
 
 #### Tarefas
 
-| # | Tarefa | Prioridade | Complexidade | Status |
-|---|--------|-----------|-------------|--------|
-| 7.1 | Dockerfile backend (FastAPI + Celery) | P0 | Média | ☐ |
-| 7.2 | Dockerfile frontend (Next.js) | P0 | Baixa | ☐ |
-| 7.3 | `docker-compose.prod.yml` (API + DB + Redis + Frontend) | P0 | Média | ☐ |
-| 7.4 | Deploy em cloud (Railway, Fly.io, ou AWS) | P0 | Alta | ☐ |
-| 7.5 | HTTPS + domínio próprio | P0 | Baixa | ☐ |
-| 7.6 | Criptografia de CPFs e dados sensíveis at-rest (Fernet/AES) | P0 | Alta | ☐ |
-| 7.7 | Rate limiting | P0 | Baixa | ☐ |
-| 7.8 | Backup automático diário do banco | P0 | Média | ☐ |
-| 7.9 | Sentry para error tracking | P1 | Baixa | ☐ |
-| 7.10 | Uptime monitoring | P1 | Baixa | ☐ |
-| 7.11 | Termos de uso + política de privacidade | P0 | Média | ☐ |
-| 7.12 | Endpoint `DELETE /api/account` (direito ao esquecimento) | P0 | Média | ☐ |
-| 7.13 | Endpoint `GET /api/account/export` (portabilidade LGPD) | P1 | Média | ☐ |
-| 7.14 | Log de auditoria (quem acessou o quê) | P2 | Média | ☐ |
-| 7.15 | CI/CD pipeline (GitHub Actions) | P1 | Média | ☐ |
+
+| #    | Tarefa                                                      | Prioridade | Complexidade | Status |
+| ---- | ----------------------------------------------------------- | ---------- | ------------ | ------ |
+| 7.1  | Dockerfile backend (FastAPI + Celery)                       | P0         | Média        | ☐      |
+| 7.2  | Dockerfile frontend (Next.js)                               | P0         | Baixa        | ☐      |
+| 7.3  | `docker-compose.prod.yml` (API + DB + Redis + Frontend)     | P0         | Média        | ☐      |
+| 7.4  | Deploy em cloud (Railway, Fly.io, ou AWS)                   | P0         | Alta         | ☐      |
+| 7.5  | HTTPS + domínio próprio                                     | P0         | Baixa        | ☐      |
+| 7.6  | Criptografia de CPFs e dados sensíveis at-rest (Fernet/AES) | P0         | Alta         | ☐      |
+| 7.7  | Rate limiting                                               | P0         | Baixa        | ☐      |
+| 7.8  | Backup automático diário do banco                           | P0         | Média        | ☐      |
+| 7.9  | Sentry para error tracking                                  | P1         | Baixa        | ☐      |
+| 7.10 | Uptime monitoring                                           | P1         | Baixa        | ☐      |
+| 7.11 | Termos de uso + política de privacidade                     | P0         | Média        | ☐      |
+| 7.12 | Endpoint `DELETE /api/account` (direito ao esquecimento)    | P0         | Média        | ☐      |
+| 7.13 | Endpoint `GET /api/account/export` (portabilidade LGPD)     | P1         | Média        | ☐      |
+| 7.14 | Log de auditoria (quem acessou o quê)                       | P2         | Média        | ☐      |
+| 7.15 | CI/CD pipeline (GitHub Actions)                             | P1         | Média        | ☐      |
+
 
 #### Critério de aceite
 
@@ -899,18 +1160,20 @@ openapi-typescript
 
 ### Backlog completo (todas as fases)
 
-Total de tarefas: **122**
+Total de tarefas: **146**
 
-| Fase | Sub-fases | P0 | P1 | P2 | Total |
-|------|-----------|----|----|----|----|
-| 0 — Core | 0A, 0B, 0C, 0D | 16 | 10 | 1 | 27 |
-| 1 — API + Auth | — | 11 | 5 | 0 | 16 |
-| 2 — Upload | — | 10 | 3 | 0 | 13 |
-| 3 — Config UI | — | 10 | 5 | 3 | 18 |
-| 4 — LLM | — | 9 | 3 | 2 | 14 |
-| 5 — Task Queue | — | 5 | 3 | 3 | 11 |
-| 6 — Frontend | — | 4 | 4 | 6 | 14 |
-| 7 — Produção | — | 7 | 4 | 1 | 12 |
+
+| Fase           | Sub-fases      | P0  | P1  | P2  | Total |
+| -------------- | -------------- | --- | --- | --- | ----- |
+| 0 — Core       | 0A, 0B, 0C, 0D | 16  | 10  | 1   | 27    |
+| 1 — API + Auth | —              | 11  | 5   | 0   | 16    |
+| 2 — Upload     | 2A, 2B, 2C, 2D | 31  | 6   | 0   | 37    |
+| 3 — Config UI  | —              | 10  | 5   | 3   | 18    |
+| 4 — LLM        | —              | 9   | 3   | 2   | 14    |
+| 5 — Task Queue | —              | 5   | 3   | 3   | 11    |
+| 6 — Frontend   | —              | 4   | 4   | 6   | 14    |
+| 7 — Produção   | —              | 7   | 4   | 1   | 12    |
+
 
 ---
 
@@ -924,10 +1187,12 @@ Total de tarefas: **122**
 
 **Objetivo:** Pipeline como package Python importável com contexto injetável.
 
-| Sprint | Foco | Sub-fase | Tarefas |
-|--------|------|----------|---------|
-| S1 (sem 1) | Foundation layer + wrap módulos menores | 0A + 0B | 0A.1–0A.6, 0B.1–0B.7 |
-| S2 (sem 2-3) | Wrap módulos grandes + orchestrator | 0C + 0D | 0C.1–0C.10, 0D.1–0D.7 |
+
+| Sprint       | Foco                                    | Sub-fase | Tarefas               |
+| ------------ | --------------------------------------- | -------- | --------------------- |
+| S1 (sem 1)   | Foundation layer + wrap módulos menores | 0A + 0B  | 0A.1–0A.6, 0B.1–0B.7  |
+| S2 (sem 2-3) | Wrap módulos grandes + orchestrator     | 0C + 0D  | 0C.1–0C.10, 0D.1–0D.7 |
+
 
 **Checkpoint S1:** E3 e E4 chamáveis via `run_e3(ctx)` / `run_e4(ctx)`. Golden files match.
 **Checkpoint S2:** Pipeline completo chamável via `pipeline.run_pipeline(ctx)`. Regressão zero.
@@ -936,77 +1201,94 @@ Total de tarefas: **122**
 
 #### Sprint 3-4: Fase 1 — API + Auth
 
-| Sprint | Foco | Tarefas |
-|--------|------|---------|
-| S3 | Backend: FastAPI + DB + Auth + endpoints | 1.1–1.13 |
-| S4 | Frontend: Next.js + login + relatórios | 1.14–1.18 |
+
+| Sprint | Foco                                     | Tarefas   |
+| ------ | ---------------------------------------- | --------- |
+| S3     | Backend: FastAPI + DB + Auth + endpoints | 1.1–1.13  |
+| S4     | Frontend: Next.js + login + relatórios   | 1.14–1.18 |
+
 
 **Checkpoint S4:** Login via browser. Relatório visível na UI.
 
 ---
 
-#### Sprint 5-6: Fase 2 — Upload + Pipeline Web
+#### Sprint 5-7: Fase 2 — Upload + Pipeline Web
 
-| Sprint | Foco | Tarefas |
-|--------|------|---------|
-| S5 | Backend: upload, storage, pipeline trigger | 2.1–2.10 |
-| S6 | Frontend: upload UI + pipeline feedback | 2.11–2.16 |
 
-**Checkpoint S6:** Upload via browser → pipeline → relatório. CLI pode ser aposentado.
+| Sprint       | Foco                                         | Sub-fase | Tarefas                  |
+| ------------ | -------------------------------------------- | -------- | ------------------------ |
+| S5 (sem 1)   | Storage layer + upload + E0 processing       | 2A + 2B  | 2A.1–2A.6, 2B.1–2B.10   |
+| S6 (sem 2-3) | Pipeline execution + backend integration     | 2C       | 2C.1–2C.11               |
+| S7 (sem 3-4) | Frontend completo + testes E2E               | 2D       | 2D.1–2D.10               |
 
----
 
-#### Sprint 7-8: Fase 3 — Config UI
-
-| Sprint | Foco | Tarefas |
-|--------|------|---------|
-| S7 | Backend: modelos de config + CRUD APIs | 3.1–3.14 |
-| S8 | Frontend: telas de configuração | 3.15–3.21 |
-
-**Checkpoint S8:** Configuração via UI. Novo usuário consegue configurar e gerar relatório.
+**Checkpoint S5:** Upload via API funcional. Documentos desbloqueados via vault e classificados automaticamente.
+**Checkpoint S6:** Pipeline roda em background via API. Progresso rastreado por etapa. Erros tratados com parcial.
+**Checkpoint S7:** Fluxo completo via browser: upload → classify → pipeline → relatório. Testes E2E passando.
 
 ---
 
-#### Sprint 9-10: Fase 4 — LLM Automation
+#### Sprint 8-9: Fase 3 — Config UI
 
-| Sprint | Foco | Tarefas |
-|--------|------|---------|
-| S9 | LLM service + E1/E1.5/E2-llm | 4.1–4.7, 4.9–4.10 |
-| S10 | E7-review + tier detection + UI | 4.8, 4.11–4.15 |
 
-**Checkpoint S10:** Pipeline premium roda end-to-end sem intervenção.
+| Sprint | Foco                                   | Tarefas   |
+| ------ | -------------------------------------- | --------- |
+| S8     | Backend: modelos de config + CRUD APIs | 3.1–3.14  |
+| S9     | Frontend: telas de configuração        | 3.15–3.21 |
 
----
 
-#### Sprint 11: Fase 5 — Task Queue
-
-| Sprint | Foco | Tarefas |
-|--------|------|---------|
-| S11 | Queue + async + WebSocket + progress UI | 5.1–5.12 |
-
-**Checkpoint S11:** Pipeline roda em background com progresso real-time.
+**Checkpoint S9:** Configuração via UI. Novo usuário consegue configurar e gerar relatório.
 
 ---
 
-#### Sprint 12-14: Fase 6 — Frontend Polish
+#### Sprint 10-11: Fase 4 — LLM Automation
 
-| Sprint | Foco | Tarefas |
-|--------|------|---------|
-| S12 | Dashboard + relatório in-app + onboarding | 6.1–6.4, 6.11 |
-| S13 | Landing page + dark mode + responsive | 6.5–6.7 |
-| S14 | Export PDF + billing + docs + polish | 6.8–6.14 |
 
-**Checkpoint S14:** Produto profissional completo.
+| Sprint | Foco                            | Tarefas            |
+| ------ | ------------------------------- | ------------------ |
+| S10    | LLM service + E1/E1.5/E2-llm    | 4.1–4.7, 4.9–4.10 |
+| S11    | E7-review + tier detection + UI | 4.8, 4.11–4.15    |
+
+
+**Checkpoint S11:** Pipeline premium roda end-to-end sem intervenção.
 
 ---
 
-#### Sprint 15: Fase 7 — Produção
+#### Sprint 12: Fase 5 — Task Queue
 
-| Sprint | Foco | Tarefas |
-|--------|------|---------|
-| S15 | Docker + deploy + crypto + LGPD + CI/CD | 7.1–7.15 |
 
-**Checkpoint S15:** Produto em produção. Acessível via URL pública.
+| Sprint | Foco                                    | Tarefas  |
+| ------ | --------------------------------------- | -------- |
+| S12    | Queue + async + WebSocket + progress UI | 5.1–5.12 |
+
+
+**Checkpoint S12:** Pipeline roda em background com progresso real-time.
+
+---
+
+#### Sprint 13-15: Fase 6 — Frontend Polish
+
+
+| Sprint | Foco                                      | Tarefas       |
+| ------ | ----------------------------------------- | ------------- |
+| S13    | Dashboard + relatório in-app + onboarding | 6.1–6.4, 6.11 |
+| S14    | Landing page + dark mode + responsive     | 6.5–6.7       |
+| S15    | Export PDF + billing + docs + polish      | 6.8–6.14      |
+
+
+**Checkpoint S15:** Produto profissional completo.
+
+---
+
+#### Sprint 16: Fase 7 — Produção
+
+
+| Sprint | Foco                                    | Tarefas  |
+| ------ | --------------------------------------- | -------- |
+| S16    | Docker + deploy + crypto + LGPD + CI/CD | 7.1–7.15 |
+
+
+**Checkpoint S16:** Produto em produção. Acessível via URL pública.
 
 ---
 
@@ -1014,21 +1296,26 @@ Total de tarefas: **122**
 
 > Decisões que precisam ser tomadas antes ou durante a execução.
 
-| # | Decisão | Fase | Opções | Status |
-|---|---------|------|--------|--------|
-| D1 | ORM vs Raw SQL | F1 | SQLAlchemy 2.0 (recomendado) / Tortoise / raw | **Decidido: SQLAlchemy 2.0** |
-| D2 | File storage | F2 | Filesystem local / S3 / MinIO | Pendente |
-| D3 | Auth provider | F1 | Custom JWT / Auth.js / Clerk | Pendente |
-| D4 | Task queue | F5 | Celery+Redis / ARQ / Dramatiq | Pendente |
-| D5 | Cloud provider | F7 | Railway / Fly.io / AWS / Vercel+Railway | Pendente |
-| D6 | Monorepo vs repos separados | F0 | Monorepo (recomendado) / backend+frontend separados | Pendente |
-| D13 | Wrapper pattern na Fase 0 | F0 | Monkey-patch globals / **Parâmetro `root_dir=None` no main()** / Ambos | **Decidido: Opção B** |
-| D7 | Criptografia de dados sensíveis | F7 | Fernet (symmetric) / pgcrypto / app-level AES | Pendente |
-| D8 | Pricing do premium | F6 | R$29/mês / R$49/mês / R$99/mês | Pendente |
-| D9 | Nome do produto | F6 | Fin / FinPlan / outro | Pendente |
-| D10 | Prioridade de novos bancos | F3+ | Nubank / Inter / Mercado Pago / Open Finance | Pendente |
-| D11 | Relatório in-app: como renderizar | F6 | iframe / React components / server-side render | Pendente |
-| D12 | Multi-language support | F6+ | pt-BR only / pt-BR + en | Pendente |
+
+| #   | Decisão                           | Fase | Opções                                                                 | Status                       |
+| --- | --------------------------------- | ---- | ---------------------------------------------------------------------- | ---------------------------- |
+| D1  | ORM vs Raw SQL                    | F1   | SQLAlchemy 2.0 (recomendado) / Tortoise / raw                          | **Decidido: SQLAlchemy 2.0** |
+| D2  | File storage                      | F2   | **Filesystem local por tenant** (F2) / S3 (F7) / MinIO (F7)            | **Decidido: Filesystem (F2)** |
+| D3  | Auth provider                     | F1   | Custom JWT / Auth.js / Clerk                                           | Pendente                     |
+| D4  | Task queue                        | F5   | Celery+Redis / ARQ / Dramatiq                                          | Pendente                     |
+| D5  | Cloud provider                    | F7   | Railway / Fly.io / AWS / Vercel+Railway                                | Pendente                     |
+| D6  | Monorepo vs repos separados       | F0   | Monorepo (recomendado) / backend+frontend separados                    | Pendente                     |
+| D13 | Wrapper pattern na Fase 0         | F0   | Monkey-patch globals / **Parâmetro `root_dir=None` no main()** / Ambos | **Decidido: Opção B**        |
+| D7  | Criptografia de dados sensíveis   | F7   | Fernet (symmetric) / pgcrypto / app-level AES                          | Pendente                     |
+| D8  | Pricing do premium                | F6   | R$29/mês / R$49/mês / R$99/mês                                         | Pendente                     |
+| D9  | Nome do produto                   | F6   | Fin / FinPlan / outro                                                  | Pendente                     |
+| D10 | Prioridade de novos bancos        | F3+  | Nubank / Inter / Mercado Pago / Open Finance                           | Pendente                     |
+| D11 | Relatório in-app: como renderizar | F6   | iframe / React components / server-side render                         | Pendente                     |
+| D12 | Multi-language support            | F6+  | pt-BR only / pt-BR + en                                                | Pendente                     |
+| D14 | Background execution (Fase 2)    | F2   | **`threading.Thread`** / `asyncio.create_task` / `ProcessPoolExecutor`  | **Decidido: threading.Thread** |
+| D15 | Senhas de PDF na web             | F2   | **Vault por workspace** / senha por doc no upload / rejeitar protegidos | **Decidido: Vault**           |
+| D16 | Classificação de docs na web     | F2   | **E0-route automático no upload** / manual pelo user / no pipeline run  | **Decidido: Auto no upload**  |
+
 
 ---
 
@@ -1036,40 +1323,46 @@ Total de tarefas: **122**
 
 ### Por fase
 
-| Fase | Métrica | Meta |
-|------|---------|------|
-| F0 | Output diff pré/pós refactoring | 0 diff |
-| F1 | Login → ver relatório funciona | <3s load |
-| F2 | Upload → relatório gerado | <5min end-to-end |
-| F3 | Config UI → relatório correto | 100% paridade |
-| F4 | Pipeline premium sem intervenção | >95% runs sem erro |
-| F5 | Progresso real-time funciona | <1s latency |
-| F6 | NPS de beta testers | >8/10 |
-| F7 | Uptime | >99.5% |
+
+| Fase | Métrica                          | Meta               |
+| ---- | -------------------------------- | ------------------ |
+| F0   | Output diff pré/pós refactoring  | 0 diff             |
+| F1   | Login → ver relatório funciona   | <3s load           |
+| F2   | Upload → relatório gerado        | <5min end-to-end   |
+| F3   | Config UI → relatório correto    | 100% paridade      |
+| F4   | Pipeline premium sem intervenção | >95% runs sem erro |
+| F5   | Progresso real-time funciona     | <1s latency        |
+| F6   | NPS de beta testers              | >8/10              |
+| F7   | Uptime                           | >99.5%             |
+
 
 ### De produto (longo prazo)
 
-| Métrica | Meta 3 meses | Meta 6 meses | Meta 12 meses |
-|---------|-------------|-------------|---------------|
-| Usuários registrados | 1 (dogfood) | 10 (beta) | 100 |
-| Relatórios gerados/mês | 2 | 20 | 200 |
-| Bancos suportados | 11 | 15 | 20+ |
-| MRR | R$0 | R$0 | R$2.000+ |
+
+| Métrica                | Meta 3 meses | Meta 6 meses | Meta 12 meses |
+| ---------------------- | ------------ | ------------ | ------------- |
+| Usuários registrados   | 1 (dogfood)  | 10 (beta)    | 100           |
+| Relatórios gerados/mês | 2            | 20           | 200           |
+| Bancos suportados      | 11           | 15           | 20+           |
+| MRR                    | R$0          | R$0          | R$2.000+      |
+
 
 ---
 
 ## 10. Riscos e Mitigações
 
-| # | Risco | Impacto | Probabilidade | Mitigação |
-|---|-------|---------|---------------|-----------|
-| R1 | Refactoring quebra pipeline | Alto | Média | Testes de regressão antes/depois (F0) |
-| R2 | LLM output inconsistente | Alto | Alta | Schema validation + retry + fallback manual (F4) |
-| R3 | Custo de LLM por run inviável | Médio | Baixa | BYOK + cache de prompts + modelo menor para tasks simples |
-| R4 | Dados sensíveis vazam | Crítico | Baixa | Criptografia at-rest, HTTPS, audit log, LGPD compliance |
-| R5 | Parsers quebram com mudança de layout do banco | Alto | Alta | Testes com golden files, alertas de parsing error, LLM fallback |
-| R6 | Escopo cresce demais | Alto | Alta | Stick to P0 tasks por sprint, cortar P2 se atrasar |
-| R7 | Complexidade do E5/E6 dificulta refactoring | Médio | Alta | Estratégia "Wrap Don't Rewrite": wrappers finos, lógica interna inalterada. E5 (107KB) e E6 (197KB) por último |
-| R8 | Mudanças no Open Banking BR | Baixo | Média | Arquitetura de parsers já suporta novos sources |
+
+| #   | Risco                                          | Impacto | Probabilidade | Mitigação                                                                                                      |
+| --- | ---------------------------------------------- | ------- | ------------- | -------------------------------------------------------------------------------------------------------------- |
+| R1  | Refactoring quebra pipeline                    | Alto    | Média         | Testes de regressão antes/depois (F0)                                                                          |
+| R2  | LLM output inconsistente                       | Alto    | Alta          | Schema validation + retry + fallback manual (F4)                                                               |
+| R3  | Custo de LLM por run inviável                  | Médio   | Baixa         | BYOK + cache de prompts + modelo menor para tasks simples                                                      |
+| R4  | Dados sensíveis vazam                          | Crítico | Baixa         | Criptografia at-rest, HTTPS, audit log, LGPD compliance                                                        |
+| R5  | Parsers quebram com mudança de layout do banco | Alto    | Alta          | Testes com golden files, alertas de parsing error, LLM fallback                                                |
+| R6  | Escopo cresce demais                           | Alto    | Alta          | Stick to P0 tasks por sprint, cortar P2 se atrasar                                                             |
+| R7  | Complexidade do E5/E6 dificulta refactoring    | Médio   | Alta          | Estratégia "Wrap Don't Rewrite": wrappers finos, lógica interna inalterada. E5 (107KB) e E6 (197KB) por último |
+| R8  | Mudanças no Open Banking BR                    | Baixo   | Média         | Arquitetura de parsers já suporta novos sources                                                                |
+
 
 ---
 
@@ -1077,14 +1370,17 @@ Total de tarefas: **122**
 
 > Atualizar a cada sprint ou milestone significativo.
 
-| Data | Evento | Notas |
-|------|--------|-------|
-| 2026-04-13 | Brainstorm inicial | Decisões: Freemium, Next.js, FastAPI, Hybrid LLM |
-| 2026-04-13 | Documento de plano criado | `docs/PRODUCT_PLAN.md` — este arquivo |
-| 2026-04-13 | Fase 0 refinada | Diagnóstico técnico detalhado. Estratégia "Wrap Don't Rewrite". 4 sub-fases (0A-0D), 27 tarefas |
-| 2026-04-13 | D13 decidido: Opção B | Parâmetro `root_dir` + `_init_config()` pattern. Refinado com análise de module-level globals por script |
-| | | |
-| | | |
+
+| Data       | Evento                    | Notas                                                                                                    |
+| ---------- | ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 2026-04-13 | Brainstorm inicial        | Decisões: Freemium, Next.js, FastAPI, Hybrid LLM                                                         |
+| 2026-04-13 | Documento de plano criado | `docs/PRODUCT_PLAN.md` — este arquivo                                                                    |
+| 2026-04-13 | Fase 0 refinada           | Diagnóstico técnico detalhado. Estratégia "Wrap Don't Rewrite". 4 sub-fases (0A-0D), 27 tarefas          |
+| 2026-04-13 | D13 decidido: Opção B     | Parâmetro `root_dir` + `_init_config()` pattern. Refinado com análise de module-level globals por script |
+| 2026-04-14 | Fase 2 refinada           | 4 sub-fases (2A-2D), 37 tarefas. Decisões: pseudo-async, vault senhas, E0-route auto, upload E1/E1.5 JSON |
+| 2026-04-14 | D2,D14,D15,D16 decididos  | Filesystem local, threading.Thread, vault por workspace, E0-route auto no upload                        |
+|            |                           |                                                                                                          |
+
 
 ---
 
@@ -1092,19 +1388,21 @@ Total de tarefas: **122**
 
 ### Free — "Consolidação Determinística"
 
-| Funcionalidade | Etapa |
-|----------------|-------|
-| Upload de documentos | Web UI |
-| Desbloqueio de PDFs | E0-unlock |
-| Auditoria de integridade | E0-audit |
-| Roteamento automático (determinístico) | E0-route |
-| Extração de extratos e faturas (11 bancos) | E2 |
-| Reconciliação e deduplicação | E3 |
-| Categorização automática (300+ keywords) | E4 |
-| Análise financeira (patrimônio, score, fluxo) | E5 |
-| Narrativas determinísticas | E5.N |
-| Relatório HTML completo | E6 |
-| Cross-validation (14 checks) | E7-crossval |
+
+| Funcionalidade                                | Etapa       |
+| --------------------------------------------- | ----------- |
+| Upload de documentos                          | Web UI      |
+| Desbloqueio de PDFs                           | E0-unlock   |
+| Auditoria de integridade                      | E0-audit    |
+| Roteamento automático (determinístico)        | E0-route    |
+| Extração de extratos e faturas (11 bancos)    | E2          |
+| Reconciliação e deduplicação                  | E3          |
+| Categorização automática (300+ keywords)      | E4          |
+| Análise financeira (patrimônio, score, fluxo) | E5          |
+| Narrativas determinísticas                    | E5.N        |
+| Relatório HTML completo                       | E6          |
+| Cross-validation (14 checks)                  | E7-crossval |
+
 
 **Limitações:** 1 relatório/mês. Sem LLM. Sem histórico.
 
@@ -1112,15 +1410,17 @@ Total de tarefas: **122**
 
 Tudo do free, mais:
 
-| Funcionalidade | Etapa |
-|----------------|-------|
-| Extração LLM de dados pessoais | E1, E1.5 |
-| Extração LLM de investimentos/IRPF | E2-llm |
-| Review holístico com persona | E7-review |
-| Refinamentos automáticos | E7-apply |
-| Relatórios ilimitados | — |
-| Histórico + comparação temporal | — |
-| Export PDF | — |
+
+| Funcionalidade                     | Etapa     |
+| ---------------------------------- | --------- |
+| Extração LLM de dados pessoais     | E1, E1.5  |
+| Extração LLM de investimentos/IRPF | E2-llm    |
+| Review holístico com persona       | E7-review |
+| Refinamentos automáticos           | E7-apply  |
+| Relatórios ilimitados              | —         |
+| Histórico + comparação temporal    | —         |
+| Export PDF                         | —         |
+
 
 **LLM:** BYOK (chave própria) ou incluso na assinatura.
 
@@ -1135,27 +1435,31 @@ Tudo do free, mais:
 
 ### Staging / MVP
 
-| Serviço | Estimativa | Provider |
-|---------|-----------|----------|
-| PostgreSQL | $0–7/mês | Railway / Neon free tier |
-| Backend (FastAPI) | $5–10/mês | Railway / Fly.io |
-| Frontend (Next.js) | $0/mês | Vercel free tier |
-| Redis | $0–5/mês | Upstash free tier |
-| Storage (uploads) | $1–5/mês | S3 / R2 |
-| **Total MVP** | **~$10–25/mês** | |
+
+| Serviço            | Estimativa      | Provider                 |
+| ------------------ | --------------- | ------------------------ |
+| PostgreSQL         | $0–7/mês        | Railway / Neon free tier |
+| Backend (FastAPI)  | $5–10/mês       | Railway / Fly.io         |
+| Frontend (Next.js) | $0/mês          | Vercel free tier         |
+| Redis              | $0–5/mês        | Upstash free tier        |
+| Storage (uploads)  | $1–5/mês        | S3 / R2                  |
+| **Total MVP**      | **~$10–25/mês** |                          |
+
 
 ### Produção (100 usuários)
 
-| Serviço | Estimativa | Provider |
-|---------|-----------|----------|
-| PostgreSQL | $15–30/mês | Railway / RDS |
-| Backend | $20–40/mês | Railway / Fly.io |
-| Frontend | $0–20/mês | Vercel |
-| Redis | $5–10/mês | Upstash / ElastiCache |
-| Storage | $5–20/mês | S3 |
-| Domínio + SSL | $10/mês | Cloudflare |
-| Sentry | $0–26/mês | Free tier |
-| **Total Produção** | **~$55–160/mês** | |
+
+| Serviço            | Estimativa       | Provider              |
+| ------------------ | ---------------- | --------------------- |
+| PostgreSQL         | $15–30/mês       | Railway / RDS         |
+| Backend            | $20–40/mês       | Railway / Fly.io      |
+| Frontend           | $0–20/mês        | Vercel                |
+| Redis              | $5–10/mês        | Upstash / ElastiCache |
+| Storage            | $5–20/mês        | S3                    |
+| Domínio + SSL      | $10/mês          | Cloudflare            |
+| Sentry             | $0–26/mês        | Free tier             |
+| **Total Produção** | **~$55–160/mês** |                       |
+
 
 ---
 
