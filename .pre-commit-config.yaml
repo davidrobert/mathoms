@@ -52,3 +52,10 @@ repos:
         pass_filenames: false
         # Roda apenas quando arquivos relevantes mudam
         files: '^(design-tokens/tokens\.json|frontend/src/styles/tokens\.css|config/templates/_tokens\.css)$'
+
+      - id: report-layout-codegen
+        name: "Report layout codegen (TS/Pydantic) em sync com YAML (ADR-076)"
+        entry: python3 dev/codegen_report_layout.py --check
+        language: system
+        pass_filenames: false
+        files: '^(config/report_layout\.yaml|config/schemas/report_layout\.schema\.json|frontend/src/generated/report-layout\.ts|backend/app/generated/report_layout\.py)$'

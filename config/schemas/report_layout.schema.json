@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fin.family/schemas/report_layout.schema.json",
+  "title": "Report Layout",
+  "description": "Schema do config/report_layout.yaml — fonte de verdade da estrutura do relatório (seções, cards, charts). Validado em pre-commit e CI (ADR-076).",
+  "type": "object",
+  "required": ["version", "estrategico", "tatico", "usa"],
+  "additionalProperties": true,
+
+  "$defs": {
+    "cardVariant": {
+      "type": "string",
+      "enum": [
+        "highlight",
+        "feature",
+        "success",
+        "warn",
+        "critical",
+        "primary",
+        "neutral",
+        "top-danger",
+        "top-accent"
+      ],
+      "description": "Deve existir como chave em design-tokens/tokens.json sob card_variants."
+    },
+    "cardSize": {
+      "type": "string",
+      "enum": ["full", "half"]
+    },
+    "cardSpec": {
+      "type": "object",
+      "required": ["id", "enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "pattern": "^[a-z0-9_]+$"},
+        "enabled": {"type": "boolean"},
+        "variant": {"$ref": "#/$defs/cardVariant"},
+        "size": {"$ref": "#/$defs/cardSize"}
+      }
+    },
+    "chartSpec": {
+      "type": "object",
+      "required": ["id", "enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "pattern": "^[a-z0-9_]+$"},
+        "enabled": {"type": "boolean"},
+        "row": {"type": "string"}
+      }
+    },
+    "sectionSpec": {
+      "type": "object",
+      "required": ["id", "title", "enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "enabled": {"type": "boolean"},
+        "charts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/chartSpec"}
+        },
+        "cards": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/cardSpec"}
+        },
+        "data_source": {"type": "string"}
+      }
+    },
+    "appendixSpec": {
+      "type": "object",
+      "required": ["id", "title", "enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "enabled": {"type": "boolean"}
+      }
+    },
+    "kpiSpec": {
+      "type": "object",
+      "required": ["id", "label", "enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "label": {"type": "string", "minLength": 1},
+        "enabled": {"type": "boolean"}
+      }
+    },
+    "hexColor": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}$"
+    }
+  },
+
+  "properties": {
+    "version": {"type": "string"},
+
+    "estrategico": {
+      "type": "object",
+      "required": ["sections"],
+      "additionalProperties": false,
+      "properties": {
+        "sections": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/sectionSpec"}
+        },
+        "appendices": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/appendixSpec"}
+        }
+      }
+    },
+
+    "tatico": {
+      "type": "object",
+      "required": ["sections"],
+      "additionalProperties": false,
+      "properties": {
+        "kpis": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/kpiSpec"}
+        },
+        "sections": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/sectionSpec"}
+        }
+      }
+    },
+
+    "usa": {
+      "type": "object",
+      "required": ["sections"],
+      "additionalProperties": false,
+      "properties": {
+        "sections": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/sectionSpec"}
+        }
+      }
+    },
+
+    "chart_palette": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/hexColor"}
+    },
+
+    "chart_canvas_map": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z0-9_]+$": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+
+    "chart_titles": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z0-9_]+$": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+
+    "section_charts": {
+      "type": "object"
+    },
+
+    "usa_section_charts": {
+      "type": "object"
+    },
+
+    "dark_mode": {
+      "type": "object",
+      "description": "Legado: cores hardcoded para dark mode. Será superseded por design-tokens em F9."
+    },
+
+    "version_fallback": {"type": "string"}
+  }
+}
