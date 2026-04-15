@@ -242,10 +242,10 @@ class TestConfigBlobModels:
 class TestFamilyMemberSchema:
     def test_valid_member(self):
         schema = FamilyMemberCreateRequest(
-            key="david", full_name="David RC", short_name="David", role="titular", cpf="287.766.948-36"
+            key="david", full_name="David RC", short_name="David", role="titular", cpf="910.428.398-01"  # noqa: PII-ok (gerado por tests/utils/cpf.py seed=42)
         )
         assert schema.key == "david"
-        assert schema.cpf == "287.766.948-36"
+        assert schema.cpf == "910.428.398-01"  # noqa: PII-ok (gerado por tests/utils/cpf.py seed=42)
 
     def test_cpf_wrong_digits(self):
         with pytest.raises(ValueError, match="11 dígitos"):

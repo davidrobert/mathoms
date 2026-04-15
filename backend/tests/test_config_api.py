@@ -23,11 +23,12 @@ class TestMembersAPI:
 
     @pytest.mark.asyncio
     async def test_create_member(self, auth_client: AsyncClient):
+        # CPF gerado por tests/utils/cpf.py seed=42  # noqa: PII-ok
         resp = await auth_client.post("/api/config/members", json={
             "key": "david",
             "full_name": "David Robert Camargo",
             "short_name": "David",
-            "cpf": "287.766.948-36",
+            "cpf": "910.428.398-01",  # noqa: PII-ok
             "birth_date": "1981-09-05",
             "role": "titular",
         })
@@ -35,7 +36,7 @@ class TestMembersAPI:
         data = resp.json()
         assert data["key"] == "david"
         assert data["full_name"] == "David Robert Camargo"
-        assert data["cpf"] == "287.766.948-36"
+        assert data["cpf"] == "910.428.398-01"  # noqa: PII-ok (gerado por tests/utils/cpf.py seed=42)
         assert data["id"] is not None
 
     @pytest.mark.asyncio

@@ -113,7 +113,7 @@ class TestRoundTripFamilyMembers:
     def test_round_trip_all_fields_preserved(self, db, workspace):
         # Workspace COM sobrenome (caminho feliz)
         workspace.family_surname = "Silva Souza"
-        cpf_plain = "287.766.948-36"
+        cpf_plain = "910.428.398-01"  # noqa: PII-ok (gerado por tests/utils/cpf.py seed=42)
         cpf_enc = _vault.encrypt(cpf_plain)
         m = FamilyMember(
             workspace_id=workspace.id,

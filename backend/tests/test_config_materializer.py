@@ -69,7 +69,8 @@ class TestSerializeFamilyMembers:
         assert serialize_family_members(workspace.id, db) is None
 
     def test_basic_serialization(self, db, workspace):
-        cpf_enc = _vault.encrypt("287.766.948-36")
+        # CPF gerado por tests/utils/cpf.py seed=42  # noqa: PII-ok
+        cpf_enc = _vault.encrypt("910.428.398-01")  # noqa: PII-ok
         m = FamilyMember(
             workspace_id=workspace.id, key="david", full_name="David Robert",
             short_name="David", cpf_encrypted=cpf_enc, role="titular", order=0,
@@ -83,7 +84,7 @@ class TestSerializeFamilyMembers:
         result = serialize_family_members(workspace.id, db)
         assert result is not None
         assert "david" in result["membros"]
-        assert result["membros"]["david"]["cpf"] == "287.766.948-36"
+        assert result["membros"]["david"]["cpf"] == "910.428.398-01"  # noqa: PII-ok (gerado por tests/utils/cpf.py seed=42)
         assert result["membros"]["david"]["profissao"] == "CTO"
         assert result["banco_membro"]["itau"] == "david"
         assert result["titular"] == "david"

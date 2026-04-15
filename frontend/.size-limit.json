@@ -1,0 +1,24 @@
+[
+  {
+    "_comment": "Bundle size budget — F6.5D.9. Sobe limites em F7 se necessário",
+    "name": "Main app (Next.js produção, chunks por route)",
+    "path": ".next/static/**/*.js",
+    "limit": "1 MB",
+    "ignore": ["node_modules"]
+  },
+  {
+    "name": "Dashboard route chunk",
+    "path": ".next/static/chunks/**/dashboard*.js",
+    "limit": "250 KB"
+  },
+  {
+    "name": "Transactions route chunk",
+    "path": ".next/static/chunks/**/transactions*.js",
+    "limit": "200 KB"
+  },
+  {
+    "name": "Reports route chunk",
+    "path": ".next/static/chunks/**/reports*.js",
+    "limit": "300 KB"
+  }
+]

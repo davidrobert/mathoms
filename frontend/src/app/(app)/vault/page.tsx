@@ -166,6 +166,7 @@ export default function VaultPage() {
                 size="sm"
                 onClick={() => setDeleteTarget({ id: pw.id, label: pw.label })}
                 className="text-muted-foreground hover:text-destructive"
+                aria-label={`Remover senha ${pw.label}`}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

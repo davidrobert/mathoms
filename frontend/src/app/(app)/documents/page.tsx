@@ -207,6 +207,7 @@ export default function DocumentsPage() {
           multiple
           accept=".pdf,.csv,.xlsx,.xls,.jpg,.jpeg,.png,.json"
           className="hidden"
+          aria-label="Selecionar arquivos para upload"
           onChange={(e) => e.target.files && handleUpload(e.target.files)}
         />
         {uploading ? (
@@ -307,6 +308,7 @@ export default function DocumentsPage() {
                         size="sm"
                         onClick={() => setDeleteTarget({ id: doc.id, name: doc.original_name })}
                         className="text-muted-foreground hover:text-destructive"
+                        aria-label={`Remover ${doc.original_name}`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
