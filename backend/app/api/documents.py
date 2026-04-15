@@ -6,7 +6,7 @@ import hashlib
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +18,7 @@ from backend.app.models.password_vault import PasswordVault
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.document import DocumentListResponse, DocumentResponse, DocumentUploadResponse
+from backend.app.services.audit import AuditAction, audit_log
 from backend.app.services.storage import StorageService
 from backend.app.services.vault import VaultService
 from backend.app.services.document_processor import process_uploaded_document
@@ -53,6 +54,7 @@ async def _get_vault_passwords(ws_id: str, db: AsyncSession) -> list[str]:
 
 @router.post("/upload", response_model=DocumentUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_documents(
+    request: Request,
     files: list[UploadFile] = File(...),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -151,6 +153,26 @@ async def upload_documents(
 
         created_docs.append(doc)
 
+        # Audit: só registramos uploads que chegaram a ter row criado com
+        # stored_path (ignoramos validação falha puramente, para não poluir
+        # o log com spam de file-type-errado).
+        if doc.stored_path:
+            await audit_log(
+                db,
+                action=AuditAction.document_upload,
+                resource_type="document",
+                resource_id=doc.id,
+                workspace_id=ws.id,
+                actor_user_id=user.id,
+                request=request,
+                details={
+                    "filename": filename,
+                    "size_bytes": len(content),
+                    "content_hash": content_hash,
+                    "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
+                },
+            )
+
     await db.commit()
     for doc in created_docs:
         await db.refresh(doc)
@@ -201,6 +223,7 @@ async def list_documents(
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_document(
     document_id: str,
+    request: Request,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -213,17 +236,36 @@ async def delete_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Documento não encontrado")
 
+    audit_details = {
+        "original_name": doc.original_name,
+        "content_hash": doc.content_hash,
+        "doc_type": doc.doc_type.value if hasattr(doc.doc_type, "value") else doc.doc_type,
+    }
+
     if doc.stored_path:
         stored = Path(doc.stored_path)
         if stored.exists():
             stored.unlink(missing_ok=True)
 
     await db.delete(doc)
+
+    await audit_log(
+        db,
+        action=AuditAction.document_delete,
+        resource_type="document",
+        resource_id=document_id,
+        workspace_id=ws.id,
+        actor_user_id=user.id,
+        request=request,
+        details=audit_details,
+    )
+
     await db.commit()
 
 
 @router.post("/retry-unlock", response_model=list[DocumentResponse])
 async def retry_unlock(
+    request: Request,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -269,6 +311,21 @@ async def retry_unlock(
             doc.error_message = f"Erro no retry: {str(exc)[:500]}"
 
         updated.append(doc)
+
+    await audit_log(
+        db,
+        action=AuditAction.document_retry_unlock,
+        resource_type="workspace",
+        resource_id=ws.id,
+        workspace_id=ws.id,
+        actor_user_id=user.id,
+        request=request,
+        details={
+            "total_attempted": len(updated),
+            "total_ready": sum(1 for d in updated if d.status == DocumentStatus.ready),
+            "total_errored": sum(1 for d in updated if d.status == DocumentStatus.error),
+        },
+    )
 
     await db.commit()
     for doc in updated:

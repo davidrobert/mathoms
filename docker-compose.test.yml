@@ -1,0 +1,53 @@
+# docker-compose.test.yml — F6.5 (sub-fase 6.5F.3)
+#
+# Stack isolada para E2E + integration tests que exigem backend "real":
+# - Postgres 16 em porta 5433 (não colide com 5432 dev)
+# - Redis 7 em porta 6380 (não colide com 6379 dev)
+# - Volumes nomeados com sufixo "_test" para evitar leak de estado dev<->test
+#
+# Uso:
+#   ./scripts/test_backend_up.sh        # sobe + aguarda health
+#   ./scripts/test_backend_down.sh      # derruba
+#   docker compose -f docker-compose.test.yml ps
+#   docker compose -f docker-compose.test.yml logs -f
+#
+# CI: GH Actions usa `services:` nativo (pg + redis) ao invés deste compose,
+# para reduzir overhead. Este compose é para desenvolvedor local rodar E2E
+# sem conflitar com `npm run dev` no terminal ao lado.
+
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: fin-postgres-test
+    environment:
+      POSTGRES_USER: fin_test
+      POSTGRES_PASSWORD: fin_test
+      POSTGRES_DB: fin_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fin_test -d fin_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    tmpfs:
+      # /tmp em RAM acelera operações pesadas de schema (CREATE/DROP em loop)
+      - /tmp
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: fin-redis-test
+    ports:
+      - "6380:6379"
+    command: redis-server --save "" --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_test_data:
+    name: fin_postgres_test_data

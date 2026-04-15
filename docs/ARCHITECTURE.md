@@ -376,13 +376,103 @@ fin-current/
 │
 ├── tests/                     # Pipeline tests (~270)
 ├── docs/                      # Este diretório
+├── dev/                       # Dev tooling (commit helper, pre-commit hooks)
 ├── docker-compose.yml         # Redis (dev)
 └── pyproject.toml             # Package fin-pipeline
 ```
 
 ---
 
-## 8. Padrões arquiteturais importantes
+## 8. Onde moram os dados
+
+A pergunta "onde está tal dado?" aparece toda hora. Essa seção é a fonte de
+verdade curta. Vale para o produto web multi-tenant atual; não descreve o
+estado do pipeline legado single-tenant em `data/`/`inbox/` (que persiste
+apenas no repo do dono original e não é usado pela API).
+
+### 8.1 Mapa por tipo de dado
+
+| Dado                                              | Onde vive                                                   | Persistido por                                                  | Quando                                  |
+| ------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------- |
+| Código-fonte + docs                               | Git (`github.com/.../fin-current`)                          | Desenvolvedor via `git commit`                                  | Manual, em PRs                          |
+| Schema do banco                                   | Migrations Alembic (`backend/alembic/versions/`)            | Desenvolvedor (`alembic revision`)                              | Ao mudar modelo                         |
+| Config global (fallback de todo tenant)           | `config/*.{json,yaml,md}`                                   | Versionado no repo                                              | Só muda via PR                          |
+| **Usuário** (email, senha hash, MFA)              | `users` (DB)                                                | `POST /auth/register`, `/auth/login`                            | Síncrono no request                     |
+| **Workspace** (tenant)                            | `workspaces` (DB)                                           | Criado no primeiro login do owner                               | Síncrono                                |
+| **Documento uploadado** (metadata)                | `documents` (DB)                                            | `POST /documents/upload`                                        | Síncrono no request                     |
+| **Documento uploadado** (bytes)                   | `storage/{workspace_id}/inbox/{safe_name}`                  | `StorageService.save_to_inbox`                                  | Síncrono no upload                      |
+| Documento classificado (após E0)                  | `storage/{workspace_id}/data/<subdir>/`                     | `document_processor` → `StorageService.move_to_data`            | Síncrono no upload                      |
+| Senhas de PDF (vault)                             | `password_vault` (DB), `encrypted_password` Fernet          | `POST /vault/passwords`                                         | Síncrono                                |
+| Chaves API LLM do usuário (BYOK)                  | `llm_configs` (DB), `api_key_encrypted` Fernet              | `POST /llm/config`                                              | Síncrono                                |
+| CPFs dos membros                                  | `family_members.cpf_encrypted` (DB), Fernet                 | `POST /config/family-members` (ou E1 LLM)                       | Síncrono / durante pipeline             |
+| Config materializada por tenant (input do E2–E7)  | `storage/{ws_id}/config/*`                                  | `config_materializer.materialize_config()`                      | Antes de cada `PipelineRun`             |
+| Artefatos intermediários (`-2_extract.json`, …)   | `storage/{ws_id}/processed/E2_extracts/` etc.               | Scripts E2–E5 executando dentro do tenant_root                  | Durante job Celery do pipeline          |
+| Análise final (`analise_financeira-5_analysis.json`) | `storage/{ws_id}/processed/E5_analysis/`                 | Stage E5                                                        | Durante job Celery                      |
+| Relatório HTML final                              | `storage/{ws_id}/output/` e row em `reports` (DB)           | Stage E6 + handler que registra `Report`                        | Ao final do `PipelineRun`               |
+| Logs do pipeline                                  | `pipeline_runs`, `pipeline_stage_logs` (DB) + stdout stages | `orchestrator` + `storage/{ws_id}/logs/` (texto bruto)          | Durante o job                           |
+| Transações extraídas (após reconcile)             | `transactions` (DB)                                         | Serializer no fim do E3/E4                                      | Durante o job                           |
+| Override de categoria pelo usuário                | `transaction_overrides` (DB)                                | `PATCH /transactions/{hash}`                                    | Síncrono                                |
+| Notificações UI                                   | `notifications` (DB)                                        | Vários serviços                                                 | Síncrono / por job                      |
+| **Audit log** (uploads, deletes, purges…)         | `audit_logs` (DB)                                           | `services/audit.py::audit_log` dentro da transação do endpoint  | Síncrono com a ação auditada            |
+| Tasks queue state                                 | Redis (broker + result backend)                             | Celery                                                          | Efêmero                                 |
+| Eventos WebSocket (progresso live)                | Redis Pub/Sub                                               | `services/events.py`                                            | Efêmero                                 |
+
+### 8.2 O que **não** é persistido no git
+
+Todos os dados de usuário estão fora do git por design. `.gitignore`
+bloqueia `storage/`, `*.db`, `.env`, `config/passwords.txt`,
+`data/`, `inbox/`, `inbox_processed/`, `_scratch/`. O `pre-commit`
+(`dev/check_forbidden_paths.py`) aplica a mesma regra em nível de hook
+para defense-in-depth.
+
+### 8.3 Fluxo "onde está o documento do usuário X?"
+
+Tomando o upload como exemplo canônico:
+
+```
+Frontend (Next.js)
+   │  multipart/form-data
+   ▼
+POST /api/documents/upload
+   │  1. resolve Workspace do user autenticado (JWT → user.id → workspace)
+   │  2. StorageService.validate_file (extensão, tamanho)
+   │  3. StorageService.check_workspace_quota (MAX_STORAGE_PER_WORKSPACE_MB)
+   │  4. SHA-256 → dedup em documents.content_hash
+   │  5. StorageService.save_to_inbox → storage/{ws_id}/inbox/{safe_name}
+   │  6. INSERT documents (stored_path, status=classifying, content_hash…)
+   │  7. document_processor: unlock PDF + classifica banco/período/tipo
+   │  8. UPDATE documents com resultado
+   │  9. audit_log('document.upload', resource_id=doc.id, ip, ua)  ← novo
+   │  10. db.commit()
+   │
+   ▼
+Resposta 201 (DocumentUploadResponse)
+```
+
+Quem: `backend/app/api/documents.py::upload_documents`.
+Onde (bytes): `storage/{workspace_id}/inbox/`.
+Onde (metadata): tabela `documents`, scoped por `workspace_id`.
+Quando: síncrono, dentro do próprio request HTTP.
+
+Isolamento: `StorageService.resolve_path` rejeita qualquer path que escape
+de `storage/{ws_id}/` (evita path traversal). FK `documents.workspace_id`
++ filtro em toda query impedem vazamento entre tenants.
+
+### 8.4 Deleção e purge
+
+- `DELETE /documents/{id}` — remove row no DB + unlink do arquivo em `storage/{ws_id}/inbox/` ou subdir. Emite `audit.document_delete`.
+- `StorageService.delete_tenant(ws_id)` — apaga `storage/{ws_id}/` inteiro. Usado quando workspace é removido (cascade no DB cuida das tabelas).
+- Não há soft-delete por padrão; auditoria preserva o histórico mesmo após hard-delete (FK usa `ON DELETE CASCADE` com `workspace_id`, mas `audit_logs` sobrevive ao usuário via `ON DELETE SET NULL` em `actor_user_id`).
+
+### 8.5 Backups (F7, ainda não implementado)
+
+- DB: `pg_dump` diário → S3/B2 (criptografado).
+- `storage/`: snapshot incremental (restic/borg) → mesmo destino.
+- Restore drill trimestral (runbook em `docs/` — a criar).
+
+---
+
+## 9. Padrões arquiteturais importantes
 
 ### "Wrap, Don't Rewrite" (Fase 0)
 
@@ -413,7 +503,7 @@ Scripts legados usam `sys.exit(1)` para erros. Em Celery fork worker, isso mata 
 
 ---
 
-## 9. Segurança
+## 10. Segurança
 
 ### At-rest
 - **Fernet** (symmetric encryption) para:
@@ -431,11 +521,11 @@ Scripts legados usam `sys.exit(1)` para erros. Em Celery fork worker, isso mata 
 - Termos aceitos no registro
 - DELETE /api/account com cascade completo
 - Export ZIP com dados pessoais
-- Audit log em todas ações sensíveis
+- **Audit log** — tabela `audit_logs` + `services/audit.py` registra upload/delete/retry-unlock de documentos (implementado F6.5 hardening). Expansão para auth/config/pipeline planejada em F7. Endpoint read-only: `GET /api/audit`.
 
 ---
 
-## 10. Observabilidade (F7)
+## 11. Observabilidade (F7)
 
 - **Sentry** — backend + frontend (error tracking, performance sampling 10%)
 - **Structured logging** — structlog JSON em prod, `request_id` UUID por request

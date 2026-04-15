@@ -1,0 +1,28 @@
+# Fin — Dev/Test dependencies — F6.5 (sub-fase 6.5F)
+# Install: pip install -r requirements-dev.txt
+#
+# Inclui requirements.txt + backend/requirements.txt + test-only deps.
+
+-r requirements.txt
+-r backend/requirements.txt
+
+# Test runner (já em uso)
+pytest>=8.0
+pytest-asyncio>=0.23
+pytest-cov>=5.0
+
+# 6.5F.12 — Synthetic PDF generator
+reportlab>=4.4
+
+# 6.5F.3 — Backend-real spec (asyncpg para PG via SQLAlchemy async)
+# Apenas necessário quando rodando contra docker-compose.test.yml.
+asyncpg>=0.30
+
+# 6.5E.3 — Alembic CI guardrails (já em backend/requirements via alembic)
+# Anti-regression bank (6.5E.8): catalogar bugs em tests/regressions/
+# (sem deps adicionais)
+
+# 6.5D.7 — Lint anti-PII em fixtures (gerador CPF mod-11 puro Python, sem deps)
+
+# 6.5F.14 — Pre-commit (P1)
+# pre-commit>=3.0

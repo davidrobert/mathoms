@@ -712,7 +712,13 @@ async def _export_family_members(ws_id: str, db: AsyncSession) -> dict[str, Any]
     family_surname = workspace.family_surname if workspace else None
 
     if not members:
-        return _load_global_json("family_members.json")
+        # F6.5E.6: NÃO retornar global cru (vaza identidade do founder).
+        # Em vez disso, retornar a estrutura mínima esperada — vazia se o
+        # workspace ainda não tem nada. Surname só vai se o user setou.
+        result_dict: dict[str, Any] = {"membros": {}}
+        if family_surname:
+            result_dict["familia"] = {"sobrenome": family_surname}
+        return result_dict
 
     membros: dict[str, Any] = {}
     banco_membro: dict[str, str] = {}
@@ -795,17 +801,41 @@ async def _export_report_layout(ws_id: str, db: AsyncSession) -> dict[str, Any]:
 # =============================================================================
 
 
+# F6.5E.6 — Neutral global defaults: para evitar vazamento da identidade do
+# founder via fallback do `config/family_members.json` global, todos os campos
+# identitários são substituídos por placeholders ao servir como fallback para
+# tenants novos. Originalmente apenas CPF era stripado (BUG-004); a auditoria
+# de F6.5E.6 estendeu para nome, sobrenome e data de nascimento.
+_NEUTRAL_PLACEHOLDER_NAMES = {
+    "titular": ("Titular Exemplo", "Titular"),
+    "conjuge": ("Cônjuge Exemplo", "Cônjuge"),
+    "filho": ("Filho Exemplo", "Filho"),
+    "dependente": ("Dependente Exemplo", "Dependente"),
+}
+
+
 def _convert_members_json_to_schemas(data: dict[str, Any]) -> list[FamilyMemberSchema]:
+    """Converte family_members.json global → schemas para fallback.
+
+    REGRA F6.5E.6: nunca expor identidade real (founder ou outro) via fallback.
+    Substitui nome/sobrenome/data_nascimento/CPF por placeholders neutros.
+    O `key` e `papel` são preservados porque carregam a *estrutura* esperada
+    (titular, conjuge, etc.), não a identidade.
+    """
     membros = data.get("membros", {})
     schemas = []
     for order, (key, info) in enumerate(membros.items()):
+        role = info.get("papel", "titular")
+        full_default, short_default = _NEUTRAL_PLACEHOLDER_NAMES.get(
+            role, ("Membro Exemplo", "Membro")
+        )
         schemas.append(FamilyMemberSchema(
             key=key,
-            full_name=info.get("nome_completo", key),
-            short_name=info.get("nome_curto", key),
-            cpf=None,  # BUG-004: never expose real CPFs from global fallback file
-            birth_date=info.get("data_nascimento"),
-            role=info.get("papel", "titular"),
+            full_name=full_default,            # F6.5E.6: era info["nome_completo"]
+            short_name=short_default,          # F6.5E.6: era info["nome_curto"]
+            cpf=None,                          # BUG-004
+            birth_date=None,                   # F6.5E.6: era info["data_nascimento"]
+            role=role,
             order=order,
             accounts=[],
         ))

@@ -18,8 +18,12 @@ config/              Configurações, schemas, templates, regras do pipeline
   schemas/                 JSON Schemas de validação (ex: baseline_patrimonial.schema.json)
   templates/               Templates estáticos (HTML, Markdown)
     report_template.html     Template HTML do relatório final (E6)
-scripts/             Scripts determinísticos do pipeline (e0–e7, e_reset, e_save)
+scripts/             Scripts determinísticos do pipeline (e0–e7, e_reset)
   pipeline_common.py   Módulo compartilhado (paths, config loading, JSON I/O)
+dev/                 Dev-tooling (commit helper, pre-commit hooks) — NÃO é produto
+  commit.py            Wrapper git com guardrails (substitui o antigo e_save.py)
+  check_forbidden_paths.py  Hook que bloqueia paths sensíveis no staging
+  validate_commit_msg.py    Hook commit-msg que valida prefixo
   e2/                  Módulo E2 modular (common, registry, validation, banks/)
   e2/banks/            Parsers por banco (c6bank, itau, santander, bradesco, etc.)
   e6_regen.py          Utilitário: injeta melhorias visuais em relatório existente
@@ -98,7 +102,7 @@ python scripts/e_reset.py --from E3                    # Reset parcial a partir 
 python scripts/e_reset.py --dry-run                    # Preview sem mudanças
 python scripts/e_reset.py --move-to-inbox --interactive  # E-full-reset interativo (para em walls LLM)
 python scripts/e_reset.py --continue                   # Retoma pipeline interativo após etapa LLM
-python scripts/e_save.py -m "msg"                      # Commit + push (ÚNICA forma de commitar)
+python dev/commit.py -m "msg"                          # Wrapper de commit+push com guardrails (dev-tooling)
 python scripts/e0_audit.py                             # Auditoria de integridade
 python scripts/e2_extract.py                           # E2 unificado (extratos + faturas + CDBs)
 python scripts/e2_extract.py --extratos-only           # Apenas extratos bancários
@@ -109,9 +113,23 @@ python scripts/e2_extract.py --faturas-only            # Apenas faturas de cart�
 
 ### Git e commits
 
-- **NUNCA** faça `git add`, `git commit` ou `git push` diretamente. Use exclusivamente `e_save.py`.
-- **NUNCA** comite automaticamente — somente quando o usuário pedir explicitamente.
-- Prefixos obrigatórios de commit: `pipeline:`, `config:`, `docs:`, `fix:`, `update:`, `scripts:`.
+- **NUNCA** comite automaticamente — só quando o usuário pedir explicitamente.
+- **Proteção é responsabilidade do `pre-commit`**, não do caminho do commit. Instalar uma vez:
+  `pip install pre-commit && pre-commit install --install-hooks && pre-commit install --hook-type commit-msg`.
+  A partir daí, tanto `git commit` direto quanto `dev/commit.py` passam pelos mesmos guardrails
+  (paths proibidos, prefixo de mensagem, segredos, etc.).
+- `dev/commit.py` é **atalho opcional** (dev-tooling), não obrigatório. Use quando quiser
+  dry-run, push automático e mensagens validadas num único comando. Está em `dev/` — não em
+  `scripts/` — justamente para não confundir com etapas do pipeline.
+- **Paths nunca commitados** (enforçados por `dev/check_forbidden_paths.py` e pelo hook):
+  `storage/`, `data/`, `inbox/`, `inbox_processed/`, `_scratch/`, `.env`, `.env.test`,
+  `fin.db`, `config/passwords.txt`, qualquer `*.db`/`*.sqlite`.
+- Prefixos aceitos de mensagem (ver `dev/validate_commit_msg.py` para lista completa):
+  - Produto web: `feat:`, `fix:`, `refactor:`, `perf:`, `test:`, `chore:`, `backend:`,
+    `frontend:`, `api:`, `db:`, `infra:`, `ci:`, `docs:`, `update:`.
+  - Com escopo: `feat(api): ...`, `fix(backend/storage): ...`.
+  - Legacy (mantidos por compat com histórico): `pipeline:`, `config:`, `E1:`...`E7:`,
+    `E-reset:`, `pre-reset:`.
 
 ### Dados sensíveis
 

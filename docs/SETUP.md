@@ -86,6 +86,22 @@ Isso cria:
 - Workspace default para esse usuário
 - Importa relatórios HTML existentes em `output/` (se houver)
 
+### Migrations (Alembic)
+
+> **F6.5E.4 — cwd safety:** o `backend/alembic.ini` usa `%(here)s/../fin.db` (caminho absoluto resolvido a partir do diretório do .ini), e `env.py` tem um guard que **rejeita** SQLite com path relativo. Resultado: você pode rodar `alembic` de qualquer pasta sem risco de aplicar a migration na DB errada.
+
+```bash
+# Da raiz do repo:
+alembic -c backend/alembic.ini current      # estado atual
+alembic -c backend/alembic.ini upgrade head # aplica migrations pendentes
+
+# Ou de dentro de backend/ (atalho):
+cd backend && alembic current
+cd backend && alembic upgrade head
+```
+
+Em **CI/produção** sempre setar `FIN_DATABASE_URL` com path absoluto (ou URL Postgres). O guard só permite SQLite relativo se você setar `FIN_ALEMBIC_ALLOW_RELATIVE_SQLITE=1` — use **apenas** em testes do próprio guard.
+
 ---
 
 ## 4. Rodar os 4 serviços

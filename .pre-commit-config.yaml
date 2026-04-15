@@ -1,0 +1,46 @@
+# .pre-commit-config.yaml — hooks locais + comunitários
+#
+# Instalar uma vez:  pip install pre-commit && pre-commit install --install-hooks
+# Instalar commit-msg hook também: pre-commit install --hook-type commit-msg
+#
+# Rodar manualmente em todos os arquivos: pre-commit run --all-files
+#
+# Os hooks locais usam os scripts em dev/ — mesma lógica do dev/commit.py,
+# aplicada por git hook (pre-commit e commit-msg). Defense-in-depth:
+# mesmo quem roda `git commit` direto é protegido.
+
+repos:
+  # ----------------------------------------------------------------------
+  # Hooks da comunidade — higiene básica
+  # ----------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]  # 1MB — PRs ficam leves; override com --no-verify se precisar
+      - id: detect-private-key
+
+  # ----------------------------------------------------------------------
+  # Hooks locais — regras específicas do Fin
+  # ----------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: forbidden-paths
+        name: "Bloqueia paths sensíveis (storage/, .env, *.db, …)"
+        entry: python dev/check_forbidden_paths.py
+        language: system
+        # Roda uma vez por commit, passando todos os arquivos staged
+        pass_filenames: true
+        # Não queremos restringir por tipo — queremos ver TODOS os paths
+        types: [file]
+
+      - id: commit-msg-format
+        name: "Valida prefixo de mensagem de commit"
+        entry: python dev/validate_commit_msg.py
+        language: system
+        stages: [commit-msg]

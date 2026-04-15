@@ -119,12 +119,102 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 
 **Duração estimada:** 2.5 semanas (4 sub-fases)
 
+### 🛠 Bootstrap (executado em 2026-04-15) ✅
+
+Bloco zero da reordenação CTO (ver discussão em conselho 2026-04-15): toda a fundação que A-E vão consumir, antes de qualquer test funcional. Itens entregues:
+
+- **6.5A.1** Vitest + jsdom + coverage v8 + path alias `@/*` ([`frontend/vitest.config.ts`](../frontend/vitest.config.ts), [`frontend/tests/setup.ts`](../frontend/tests/setup.ts))
+  - Polyfill explícito de `localStorage`/`sessionStorage` (jsdom 25 + vitest 2.1.x não instanciam Storage nativa — workaround em setup.ts)
+  - Polyfills de `matchMedia`, `IntersectionObserver`, `ResizeObserver`, `URL.createObjectURL`, `crypto.randomUUID`
+- **6.5A.2** MSW v2 (`tests/mocks/server.ts` + `handlers.ts` + `fixtures.ts`) com defaults para 50+ endpoints de `lib/api.ts`
+- **6.5C.1** Playwright multi-browser (chromium + firefox + webkit + projeto `visual` isolado), auth helper com workspace isolation por worker
+- **6.5F.1** DB isolation strategy documentada em [`backend/tests/conftest.py`](../backend/tests/conftest.py) (recreate-per-test sobre SQLite in-memory; ADR inline com alternativas e gatilho de migração para PG)
+- **6.5F.2** Backend factories type-safe em [`backend/tests/factories/`](../backend/tests/factories/) (12 builders: user, workspace, member, account, category, document, vault, run, stage_log, report, notification, llm_config)
+- **6.5F.3** [`docker-compose.test.yml`](../docker-compose.test.yml) (PG 5433 + Redis 6380, isolados do dev) + scripts `test_backend_up.sh`/`test_backend_down.sh` + `.env.test` gitignored
+- **6.5F.7** Frontend factories type-safe em [`frontend/tests/factories/`](../frontend/tests/factories/) (12 builders alinhados com `lib/api.ts`)
+- **6.5F.12** Gerador determinístico de PDFs sintéticos para 13 bancos em [`tests/fixtures/pdf_generator.py`](../tests/fixtures/pdf_generator.py) (reportlab; CPF placeholder LGPD-safe)
+- **6.5F.13** Esqueleto de [`docs/TESTING.md`](TESTING.md) com TL;DR, comandos, FAQ
+- Smoke test [`frontend/tests/bootstrap.test.tsx`](../frontend/tests/bootstrap.test.tsx) cobrindo Vitest + jsdom + jest-dom + MSW + factories: **7/7 passando em 941ms**
+
+**Bugs pré-existentes detectados durante validação** (entrarão em 6.5E.8 anti-regression bank):
+- `backend/tests/test_pipeline_api.py`: 6 testes falhando (KeyError 'id' + assert errors em trigger/cancel/list/get_run_detail)
+- `backend/tests/test_pipeline_phase5.py`: 2 testes falhando (concurrency + health)
+- `backend/tests/test_pipeline_review.py`: 2 testes falhando (tier detection)
+- `backend/tests/test_retry_config.py`: 1 teste falhando (multiple retryable errors)
+- `backend/tests/test_pipeline_task.py`: 3 ERROR (celery_task_id field, cancellation flag)
+- **Total:** 7 failed + 3 errors em 269 passados (estado inicial pré-F6.5)
+
+### 🛡 Bloco 1 — Backend Hardening 6.5E (executado em 2026-04-15) ✅
+
+Segundo bloco da reordenação CTO: blindar a fronteira DB → pipeline contra a classe de bugs do BUG-015 antes de ataque ao frontend. Itens entregues:
+
+- **6.5E.4** Fix cwd-sensitivity:
+  - [`backend/alembic.ini`](../backend/alembic.ini): URL agora usa `%(here)s/../fin.db` (absoluto)
+  - [`backend/alembic/env.py`](../backend/alembic/env.py): guard que rejeita SQLite com path relativo (com bypass `FIN_ALEMBIC_ALLOW_RELATIVE_SQLITE=1` para tests)
+  - [`backend/app/core/config.py`](../backend/app/core/config.py): `DATABASE_URL` default agora absoluto via `_PROJECT_ROOT`
+  - [`docs/SETUP.md`](SETUP.md): seção "Migrations (Alembic)" documentando políticas
+- **6.5E.1 + 6.5E.5** [`backend/tests/test_serializers_round_trip.py`](../backend/tests/test_serializers_round_trip.py) — **15 testes** cobrindo:
+  - `serialize_family_members` round-trip + 4 cenários anti-regressão BUG-015 (com/sem surname, com/sem members, round-trip por disco)
+  - `serialize_categorization` (expense/income separation)
+  - `serialize_pipeline_config`, `serialize_institution_config`, `serialize_report_layout` (blob round-trip + YAML em disco)
+  - `serialize_llm_config` (decifração de api_key + round-trip por disco)
+- **6.5E.3** [`backend/tests/test_alembic_guardrails.py`](../backend/tests/test_alembic_guardrails.py) — **4 testes**:
+  - drift detection model↔migration (catálogo `KNOWN_PRE_EXISTING_DRIFT` com 4 itens conhecidos a regenerar; novo drift falha imediato)
+  - idempotency test (`upgrade → downgrade → upgrade` = mesmo schema)
+  - linearidade do histórico (sem branches/heads múltiplos)
+  - offline SQL preview gera `CREATE TABLE` válido
+- **6.5E.2** [`backend/tests/test_golden_pipeline.py`](../backend/tests/test_golden_pipeline.py) — **18 testes + 1 skip**:
+  - workspace fixture canônica → materialize → asserts no JSON em disco
+  - 13 PDFs sintéticos parametrizados (1 por banco) abrem no pdfplumber
+  - token `{{COVER_FAMILIA}}` substituído corretamente no template
+  - **Skip documentado:** full E2E pipeline (E0→E6) deferido (requer refinar gerador por banco + mocks LLM + refator de globals em `e6_render.py`)
+- **6.5E.8** [`backend/tests/regressions/`](../backend/tests/regressions/) — **20 testes ativos + 1 placeholder frontend**:
+  - BUG-001 (Celery task discovery), BUG-002 (sys.path em fork worker)
+  - BUG-003 (on_failure callback), BUG-004 (CPF leak fallback)
+  - BUG-007 (skip_llm tier respect), BUG-014 (BankAccount.label)
+  - BUG-015 (familia.sobrenome — sentinela; cobertura primária em test_serializers_round_trip)
+  - OP-001 (parse_args sys.argv parametrizado em 6 scripts), OP-002 (SystemExit em Celery)
+  - OP-008 (FERNET persistence), OP-009 (max_tokens schema + DB default)
+  - OP-010 (started_at tz-aware no Pydantic serializer)
+  - Placeholder para BUG-005/006/008/011/012 + OP-011 (frontend — cobertos em 6.5B/D)
+- [`backend/tests/regressions/README.md`](../backend/tests/regressions/README.md) com catálogo + convenções
+
+**Resultado agregado Bloco 1:** 57 passing + 2 skipped em 5.32s.
+
+**Achados não previstos:**
+- 6 serializers confirmados (não 5 como cogitado): `family_members`, `categorization`, `pipeline_config`, `institution_config`, `report_layout`, `llm_config`
+- Drift real catalogado: `bank_accounts.label`, `notifications.created_at NOT NULL`, `transaction_overrides.created_at NOT NULL`, `pipeline_stage_logs.status` Enum (4 itens — gerar migration consolidada como follow-up)
+- `LLMConfigCreate` schema chamado de `LLMConfigCreateRequest`
+- `max_tokens=16384` é configuração runtime, não default — schema permite (`le=200000`); test ajustado
+
+### 🛡 Bloco 2 — Multi-tenant gate 6.5B.12 + 6.5E.6 (executado em 2026-04-15) ✅
+
+Terceiro bloco da reordenação CTO: blindar fronteira tenant↔tenant antes de qualquer test de UI. Sem isso, beta com >1 user é roleta russa.
+
+- **6.5B.12** [`backend/tests/test_multi_tenant_isolation.py`](../backend/tests/test_multi_tenant_isolation.py) — **27 tests**:
+  - Fixture `tenants` cria 2 universos paralelos (User A + Workspace A com `family_surname="Alves"` + 9 entidades vs User B com `family_surname="Brito"`)
+  - 9 domínios cobertos: workspace settings, members + bank accounts, categories, documents, vault, pipeline runs + reviews, reports, transactions, LLM config, notifications
+  - Cada classe testa: (a) GET retorna só dados de A, (b) mutação por path-id de B retorna 404
+  - Helper `_assert_no_b_leak` faz dump JSON e busca signatures de B (IDs + valores únicos: `Brito`, `Bob Brito`, `claude-haiku-4-5`, etc.)
+  - Sanity test: B continua vendo seus dados (cobre falso negativo no setup)
+- **6.5E.6** [`backend/tests/test_neutral_global_defaults.py`](../backend/tests/test_neutral_global_defaults.py) — **3 tests** + fix em [`backend/app/api/config.py`](../backend/app/api/config.py):
+  - **Vazamento detectado durante auditoria:** BUG-004 só strippava CPF; `full_name`, `short_name`, `data_nascimento` do founder ainda vazavam via `_convert_members_json_to_schemas`
+  - **2º vazamento:** `_export_family_members` retornava `_load_global_json("family_members.json")` cru para tenant vazio (founder full identity + surname "Ferreira Campos")
+  - **Fix systemic:** `_NEUTRAL_PLACEHOLDER_NAMES` por role (Titular Exemplo, Cônjuge Exemplo, etc.) + export retorna `{"membros": {}}` para tenant sem members
+  - Tests anti-leak via `_FOUNDER_LEAK_SIGNALS` set (8 sinais de identidade do founder)
+
+**Resultado agregado Bloco 2:** 30 passing em ~12s.
+
+**Bug encontrado e corrigido nas factories:** `make_member` default `role="responsavel"` não passava validação de schema (`^(titular|conjuge|filho|dependente)$`). Corrigido para `role="titular"`.
+
+**Resultado consolidado Bloco 1 + Bloco 2:** 87 passing + 2 skipped em 16.59s.
+
 ### 6.5A — Tooling Setup + Unit Tests (semana 1, dias 1-3)
 
 | #      | Tarefa                                                                      | Prio | Est. | Status |
 | ------ | --------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 6.5A.1 | Setup Vitest (`vitest.config.ts`, jsdom, path aliases, coverage v8)         | P0   | 2h   | ☐      |
-| 6.5A.2 | Setup MSW (`tests/mocks/server.ts` + handlers + fixtures JSON)              | P0   | 3h   | ☐      |
+| 6.5A.1 | Setup Vitest (`vitest.config.ts`, jsdom, path aliases, coverage v8)         | P0   | 2h   | ✅ Bootstrap |
+| 6.5A.2 | Setup MSW (`tests/mocks/server.ts` + handlers + fixtures JSON)              | P0   | 3h   | ✅ Bootstrap |
 | 6.5A.3 | Unit tests `format.ts` (9 formatters + 3 status maps, ~40 cases) — incluir property-based via `fast-check` (round-trip, edge BRL) | P0 | 5h | ☐ |
 | 6.5A.4 | Unit tests `export.ts` (CSV BOM, XLSX auto-width, mock document.createElement) | P0 | 2h | ☐      |
 | 6.5A.5 | Unit tests `api.ts` (token mgmt, apiFetch, ApiError, 401 redirect)          | P0   | 3h   | ☐      |
@@ -149,7 +239,7 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | 6.5B.9  | Tests AppShell (auth gate, navigation, mobile, logout, NotificationCenter) | P0   | 3h   | ☐      |
 | 6.5B.10 | Tests compostos (KPICard, EmptyState, StatusBadge, ConfirmDialog, Delta, Spinner, ThemeToggle, DataTable) | P1 | 3h | ☐ |
 | 6.5B.11 | Tests dark mode (7 compostos + Dashboard charts + Transaction table)       | P1   | 2h   | ☐      |
-| 6.5B.12 | **Multi-tenant isolation suite** (backend, paramétrica): para CADA endpoint write/read, criar 2 workspaces (A e B) + dados em ambos; chamar como user A → assert que dados de B nunca aparecem. Inclui: members, categories, documents, runs, reports, transactions, vault, llm_config, notifications. **Sem isso, beta com >1 user é roleta russa** | P0 | 6h | ☐ |
+| 6.5B.12 | **Multi-tenant isolation suite** (backend, paramétrica): para CADA endpoint write/read, criar 2 workspaces (A e B) + dados em ambos; chamar como user A → assert que dados de B nunca aparecem. Inclui: members, categories, documents, runs, reports, transactions, vault, llm_config, notifications. **Sem isso, beta com >1 user é roleta russa** | P0 | 6h | ✅ Bloco 2 (27 tests, 0 vazamentos) |
 | 6.5B.13 | **Form validation suite** (frontend): 6 forms (Login, Register, Member create, Bank account, Vault password, Family surname) × validações (required, email format, password strength, max length, CPF mod-11, duplicate key). Mensagens user-facing testadas | P0 | 4h | ☐ |
 | 6.5B.14 | **WebSocket integration real** (com Redis pub/sub real, não mock): backend publica evento de stage → JWT auth → frontend recebe em <500ms; multiplos clients no mesmo run; reconnect mid-stage não perde eventos posteriores | P0 | 4h | ☐ |
 | 6.5B.15 | **Date/timezone regression suite**: `started_at`/`completed_at`/`created_at` sempre com tz-aware (regressão BUG do dogfood); render no frontend mostra hora local correta; teste em browsers com TZ=`America/Sao_Paulo`, `UTC`, `America/New_York` | P0 | 3h | ☐ |
@@ -160,7 +250,7 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 
 | #       | Tarefa                                                              | Prio | Est. | Status |
 | ------- | ------------------------------------------------------------------- | ---- | ---- | ------ |
-| 6.5C.1  | Setup Playwright (`playwright.config.ts`, webServer, auth helper, projects: chromium + firefox + webkit) | P0 | 4h | ☐ |
+| 6.5C.1  | Setup Playwright (`playwright.config.ts`, webServer, auth helper, projects: chromium + firefox + webkit) | P0 | 4h | ✅ Bootstrap |
 | 6.5C.0  | **E2E Golden Path End-to-End** — fluxo único encadeado: registro fresh → login → **definir Sobrenome da família** (config/members) → upload de PDFs sintéticos (extrato + fatura) → vault unlock se necessário → trigger pipeline (free tier) → aguardar WS até E6 completo → abrir relatório → validar conteúdo: (1) KPIs presentes, (2) charts renderizados, (3) score >0, (4) **`{{COVER_FAMILIA}}` da capa contém o sobrenome definido** (regressão BUG-015), (5) nome do arquivo HTML inclui o sobrenome. **Test único, não-paramétrico, smoke do produto inteiro.** | P0 | 4h | ☐ |
 | 6.5C.2  | E2E Fluxo 1 — Onboarding completo (variações: erros de validação, email duplicado, password fraca) | P0 | 3h | ☐ |
 | 6.5C.3  | E2E Fluxo 2 — Upload → Pipeline → Report (variações: needs_review, cancel mid-stage, retry de stage falho, premium tier com LLM) | P0 | 5h | ☐ |
@@ -204,14 +294,14 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 
 | #       | Tarefa                                                                                                                                                              | Prio | Est. | Status |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 6.5E.1  | **Round-trip tests para os 6 serializers** do `config_materializer` (family_members, categorization, pipeline, institutions, report_layout, llm_config): DB seed → materialize → ler JSON → assert todos os campos preservados (inclui `familia.sobrenome` após BUG-015) | P0 | 6h | ☐ |
-| 6.5E.2  | **Golden file pipeline com PDFs 100% sintéticos** (zero dado real): fixture completa de workspace + PDFs → orchestrator → E6 HTML → assert estrutura + valores esperados. Reutilizável como base do 6.5C.0 E2E | P0 | 4h | ☐ |
-| 6.5E.3  | **Alembic CI guardrails**: `alembic check` detecta drift entre models e migrations; idempotency test (`upgrade → downgrade → upgrade` = mesmo schema); `alembic upgrade head --sql` preview em PR | P0 | 3h | ☐ |
-| 6.5E.4  | **Fix cwd-sensitivity em alembic.ini**: caminho absoluto ou env var `FIN_DB_URL` obrigatória; documentar em SETUP.md que alembic roda da raiz; adicionar guard no `env.py` que rejeita paths relativos ambíguos | P0 | 1h | ☐ |
-| 6.5E.5  | **Test anti-regressão BUG-015**: workspace com `FamilyMember` no DB mas sem `family_surname` definido → materialized `family_members.json` NÃO contém `familia.sobrenome` do global (`"Ferreira Campos"` do founder) | P0 | 1h | ☐ |
-| 6.5E.6  | **Systemic fix para fallback-leak class**: políticas "neutral global defaults" (strip identity fields do `config/family_members.json` antes de copiar pro tenant quando workspace tem membros) + test que cobre cada config | P1 | 4h | ☐ |
+| 6.5E.1  | **Round-trip tests para os 6 serializers** do `config_materializer` (family_members, categorization, pipeline, institutions, report_layout, llm_config): DB seed → materialize → ler JSON → assert todos os campos preservados (inclui `familia.sobrenome` após BUG-015) | P0 | 6h | ✅ Bloco 1 |
+| 6.5E.2  | **Golden file pipeline com PDFs 100% sintéticos** (zero dado real): fixture completa de workspace + PDFs → orchestrator → E6 HTML → assert estrutura + valores esperados. Reutilizável como base do 6.5C.0 E2E | P0 | 4h | ✅ Bloco 1 (caminho crítico — full E2E pipeline deferido com test skip + docs) |
+| 6.5E.3  | **Alembic CI guardrails**: `alembic check` detecta drift entre models e migrations; idempotency test (`upgrade → downgrade → upgrade` = mesmo schema); `alembic upgrade head --sql` preview em PR | P0 | 3h | ✅ Bloco 1 (drift catalog ativo — 4 itens conhecidos a regenerar) |
+| 6.5E.4  | **Fix cwd-sensitivity em alembic.ini**: caminho absoluto ou env var `FIN_DB_URL` obrigatória; documentar em SETUP.md que alembic roda da raiz; adicionar guard no `env.py` que rejeita paths relativos ambíguos | P0 | 1h | ✅ Bloco 1 |
+| 6.5E.5  | **Test anti-regressão BUG-015**: workspace com `FamilyMember` no DB mas sem `family_surname` definido → materialized `family_members.json` NÃO contém `familia.sobrenome` do global (`"Ferreira Campos"` do founder) | P0 | 1h | ✅ Bloco 1 (incluso em 6.5E.1) |
+| 6.5E.6  | **Systemic fix para fallback-leak class**: políticas "neutral global defaults" (strip identity fields do `config/family_members.json` antes de copiar pro tenant quando workspace tem membros) + test que cobre cada config | P1 | 4h | ✅ Bloco 2 (extension de BUG-004: full_name/short_name/birth_date neutralizados em GET /config/members fallback + GET /config/export para tenant vazio; 3 tests) |
 | 6.5E.7  | **Concurrency test para `_init_config` pattern** (thread-safe em Celery fork pool + múltiplas runs paralelas): 2 workspaces materializando ao mesmo tempo não corrompem configs um do outro | P1 | 3h | ☐ |
-| 6.5E.8  | **Anti-regression bank** (catalogar TODOS bugs já vividos): criar `tests/regressions/` com um teste por bug do `CHANGELOG.md`, nomeado `test_bug_NNN_<slug>.py`. Cobrir BUG-001..BUG-015 (14 bugs UI+backend) + 11 bugs operacionais do dogfood (parse_args/Celery, SystemExit, FERNET persistence, max_tokens E1.5, started_at tz, animate-pulse, _categorization global, skip_llm default, route_to_data_dir, validation pré-pipeline, stages LLM skip gracioso). Cada teste falha SE o fix for revertido | P0 | 5h | ☐ |
+| 6.5E.8  | **Anti-regression bank** (catalogar TODOS bugs já vividos): criar `tests/regressions/` com um teste por bug do `CHANGELOG.md`, nomeado `test_bug_NNN_<slug>.py`. Cobrir BUG-001..BUG-015 (14 bugs UI+backend) + 11 bugs operacionais do dogfood (parse_args/Celery, SystemExit, FERNET persistence, max_tokens E1.5, started_at tz, animate-pulse, _categorization global, skip_llm default, route_to_data_dir, validation pré-pipeline, stages LLM skip gracioso). Cada teste falha SE o fix for revertido | P0 | 5h | ✅ Bloco 1 (20 testes ativos cobrindo BUG-001/002/003/004/007/014/015 + OP-001/002/008/009/010; 6 placeholders frontend para 6.5B/D) |
 
 **Checkpoint:** 6 serializers com round-trip green • golden pipeline test verde com PDFs sintéticos • CI falha em migration drift/non-idempotent • BUG-015 coberto por test anti-regressão • alembic roda sempre na DB correta • 25 bugs anti-regressão em `tests/regressions/`.
 
@@ -223,9 +313,9 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 
 | #       | Tarefa                                                                                                                                                                  | Prio | Est. | Status |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 6.5F.1  | **Test DB isolation strategy**: ADR + impl em `conftest.py` (decisão entre transactions+rollback vs truncate vs recreate); fixture `db_session` consistente para todos os tests | P0 | 3h | ☐ |
-| 6.5F.2  | **Test data factories** em `backend/tests/factories/`: `make_user()`, `make_workspace()`, `make_member()`, `make_run()`, `make_category()`, `make_document()`, `make_report()`. Refatorar tests existentes para usar | P0 | 4h | ☐ |
-| 6.5F.3  | **Backend-real spec para E2E**: `docker-compose.test.yml` com PG + Redis isolados (porta diferente do dev); script `scripts/test_backend_up.sh` que sobe + aguarda health; reset entre test runs | P0 | 4h | ☐ |
+| 6.5F.1  | **Test DB isolation strategy**: ADR + impl em `conftest.py` (decisão entre transactions+rollback vs truncate vs recreate); fixture `db_session` consistente para todos os tests | P0 | 3h | ✅ Bootstrap |
+| 6.5F.2  | **Test data factories** em `backend/tests/factories/`: `make_user()`, `make_workspace()`, `make_member()`, `make_run()`, `make_category()`, `make_document()`, `make_report()`. Refatorar tests existentes para usar | P0 | 4h | ✅ Bootstrap (factories criadas; refactor de tests existentes em sub-fase própria) |
+| 6.5F.3  | **Backend-real spec para E2E**: `docker-compose.test.yml` com PG + Redis isolados (porta diferente do dev); script `scripts/test_backend_up.sh` que sobe + aguarda health; reset entre test runs | P0 | 4h | ✅ Bootstrap |
 | 6.5F.4  | **Long-running pipeline E2E strategy**: pipeline mock fixtures pré-computadas (PipelineRun + StageLog + Report já populados) para 6.5C.0/C.3 happy path; `--real-pipeline` flag para nightly opt-in | P0 | 4h | ☐ |
 
 #### 6.5F.B — Frontend test infrastructure
@@ -234,7 +324,7 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
 | 6.5F.5  | **MSW sync strategy**: ADR sobre fonte de verdade (manual+lint vs `openapi-typescript` codegen); integrar com 6.5D.10 contract test; CI falha se MSW handlers divergem do OpenAPI | P0 | 2h | ☐ |
 | 6.5F.6  | **Test parallelization + workspace isolation**: Playwright workers usam pool de workspaces pré-criadas OU `worker-${id}@test.com` no email; doc trade-offs em `TESTING.md` | P0 | 3h | ☐ |
-| 6.5F.7  | **Frontend factories** em `frontend/tests/factories/`: `makeUser`, `makeMember`, `makeTransaction`, `makeRun`, `makeReport` retornam objetos type-safe alinhados com `lib/api.ts` | P0 | 3h | ☐ |
+| 6.5F.7  | **Frontend factories** em `frontend/tests/factories/`: `makeUser`, `makeMember`, `makeTransaction`, `makeRun`, `makeReport` retornam objetos type-safe alinhados com `lib/api.ts` | P0 | 3h | ✅ Bootstrap |
 
 #### 6.5F.C — CI/Process
 
@@ -249,8 +339,8 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 
 | #       | Tarefa                                                                                                                                                                                          | Prio | Est. | Status |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 6.5F.12 | **Synthetic PDF generator** em `tests/fixtures/pdf_generator.py` (`reportlab` ou `weasyprint`): 1 template por banco (11 bancos atuais), gera fatura + extrato; CI regenera fixtures determinísticas; substitui qualquer PDF real em `tests/` | P0 | 6h | ☐ |
-| 6.5F.13 | **`docs/TESTING.md` contributor guide**: como rodar (backend + frontend), como adicionar test (factory pattern, fixture pattern), como debugar falha CI (artifacts, vídeo, trace), como atualizar snapshot, FAQ, tabela de comandos | P0 | 4h | ☐ |
+| 6.5F.12 | **Synthetic PDF generator** em `tests/fixtures/pdf_generator.py` (`reportlab` ou `weasyprint`): 1 template por banco (13 bancos atuais), gera fatura + extrato; CI regenera fixtures determinísticas; substitui qualquer PDF real em `tests/` | P0 | 6h | ✅ Bootstrap (gerador implementado; regenerador determinístico em sub-task posterior) |
+| 6.5F.13 | **`docs/TESTING.md` contributor guide**: como rodar (backend + frontend), como adicionar test (factory pattern, fixture pattern), como debugar falha CI (artifacts, vídeo, trace), como atualizar snapshot, FAQ, tabela de comandos | P0 | 4h | 🚧 Esqueleto (preenchido ao longo de F6.5) |
 | 6.5F.14 | **Pre-commit hooks** (`pre-commit` + `husky`): lint + format obrigatórios; opcional: rodar unit tests rápidos (<5s); opt-out via `--no-verify` documentado mas desencorajado | P1 | 2h | ☐ |
 
 **Checkpoint:** DB isolation green • factories adotadas em 100% novos tests • backend-real CI roda em <3min • CI artifacts com vídeo+trace acessíveis em PR • `TESTING.md` cobre 100% dos cenários de novo contributor • PDFs sintéticos para 11 bancos versionados • premium LLM E2E definido (mock + nightly real) • snapshot review processado.

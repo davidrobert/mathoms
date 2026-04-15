@@ -44,3 +44,5 @@ frontend/.next/
 *_backup.*
 *_prev.*
 *_pre_fix.*
+
+.env.test

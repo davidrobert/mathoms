@@ -16,6 +16,7 @@ from backend.app.models.llm_config import LLMConfig
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.models.transaction_override import TransactionOverride
 from backend.app.models.notification import Notification
+from backend.app.models.audit_log import AuditLog
 
 __all__ = [
     "User",
@@ -41,4 +42,5 @@ __all__ = [
     "StageReviewStatus",
     "TransactionOverride",
     "Notification",
+    "AuditLog",
 ]

@@ -19,6 +19,7 @@ from backend.app.api.ws import router as ws_router
 from backend.app.api.transactions import router as transactions_router
 from backend.app.api.dashboard import router as dashboard_router
 from backend.app.api.notifications import router as notifications_router
+from backend.app.api.audit import router as audit_router
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,7 @@ app.include_router(ws_router, prefix=settings.API_PREFIX)
 app.include_router(transactions_router, prefix=settings.API_PREFIX)
 app.include_router(dashboard_router, prefix=settings.API_PREFIX)
 app.include_router(notifications_router, prefix=settings.API_PREFIX)
+app.include_router(audit_router, prefix=settings.API_PREFIX)
 
 
 @app.get("/health")

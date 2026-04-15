@@ -16,8 +16,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24h
     ALGORITHM: str = "HS256"
 
-    # Database (SQLite for dev, PostgreSQL for prod)
-    DATABASE_URL: str = "sqlite+aiosqlite:///./fin.db"
+    # Database (SQLite for dev, PostgreSQL for prod).
+    # F6.5E.4: default usa caminho ABSOLUTO derivado de _PROJECT_ROOT para
+    # eliminar ambiguidade de cwd (mesmo bug que motivou o guard em
+    # backend/alembic/env.py). Em prod sempre setar FIN_DATABASE_URL.
+    DATABASE_URL: str = f"sqlite+aiosqlite:///{_PROJECT_ROOT / 'fin.db'}"
 
     # Redis (Celery broker + result backend + Pub/Sub)
     REDIS_URL: str = "redis://localhost:6379/0"
