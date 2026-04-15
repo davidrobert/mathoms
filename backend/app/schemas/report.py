@@ -1,9 +1,9 @@
 """Report request/response schemas."""
 
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 
 class ReportResponse(BaseModel):
@@ -15,6 +15,10 @@ class ReportResponse(BaseModel):
     score: Optional[float] = None
     patrimonio_liquido: Optional[float] = None
     created_at: datetime
+    # ADR-076 / F9: indica ao frontend se o relatório tem JSON de análise
+    # disponível para o render nativo React. False = apenas HTML (legado pré-F9),
+    # usar download do standalone HTML em vez do view nativo.
+    has_analysis_data: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -22,3 +26,14 @@ class ReportResponse(BaseModel):
 class ReportListResponse(BaseModel):
     reports: list[ReportResponse]
     total: int
+
+
+class ReportAnalysisResponse(BaseModel):
+    """Payload do endpoint GET /reports/{id}/data (F9 · F0.4).
+
+    Serve o snapshot E5 JSON que alimenta o render nativo do relatório.
+    Esquema frouxo nesta fase (E5 tem 24 chaves top-level; tipar
+    incrementalmente conforme as seções migram para React — fases 2.A-2.H).
+    """
+
+    data: dict[str, Any]

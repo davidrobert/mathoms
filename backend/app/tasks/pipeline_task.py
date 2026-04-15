@@ -38,6 +38,24 @@ from backend.app.services.events import (
 from backend.app.services.retry_config import get_retry_config
 
 
+def _find_latest_analysis_json(tenant_root: Path) -> Path | None:
+    """Locate the E5 analysis JSON snapshot used for the native React report view.
+
+    ADR-076 / F9: the rendered HTML (E6) is no longer the only consumable — the
+    frontend reads the E5 JSON directly. We persist the path so GET
+    /reports/{id}/data can serve it without re-running the pipeline.
+    """
+    e5_dir = tenant_root / "processed" / "E5_analysis"
+    if not e5_dir.exists():
+        return None
+    candidates = sorted(
+        e5_dir.glob("*-5_analysis.json"),
+        key=lambda f: f.stat().st_mtime,
+        reverse=True,
+    )
+    return candidates[0] if candidates else None
+
+
 def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> None:
     output_dir = tenant_root / "output"
     if not output_dir.exists():
@@ -46,6 +64,7 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
     if not html_files:
         return
     latest = html_files[0]
+    analysis_json = _find_latest_analysis_json(tenant_root)
     with SyncSessionLocal() as db:
         report = Report(
             id=str(uuid.uuid4()),
@@ -53,6 +72,7 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
             pipeline_run_id=run_id,
             title=f"Relatório {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')}",
             html_path=str(latest),
+            analysis_json_path=str(analysis_json) if analysis_json else None,
             size_bytes=latest.stat().st_size,
         )
         db.add(report)

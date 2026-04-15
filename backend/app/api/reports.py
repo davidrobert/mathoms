@@ -1,9 +1,10 @@
 """Report endpoints — list and serve HTML reports."""
 
+import json
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,6 +28,21 @@ async def _get_user_workspace(user: User, db: AsyncSession) -> Workspace:
     return ws
 
 
+def _serialize_report(report: Report) -> ReportResponse:
+    """Build ReportResponse with `has_analysis_data` derived from the model (F9)."""
+    return ReportResponse(
+        id=report.id,
+        workspace_id=report.workspace_id,
+        title=report.title,
+        period=report.period,
+        size_bytes=report.size_bytes,
+        score=report.score,
+        patrimonio_liquido=report.patrimonio_liquido,
+        created_at=report.created_at,
+        has_analysis_data=bool(report.analysis_json_path),
+    )
+
+
 @router.get("", response_model=ReportListResponse)
 async def list_reports(
     current_user: User = Depends(get_current_user),
@@ -39,7 +55,10 @@ async def list_reports(
         .order_by(Report.created_at.desc())
     )
     reports = list(result.scalars().all())
-    return ReportListResponse(reports=reports, total=len(reports))
+    return ReportListResponse(
+        reports=[_serialize_report(r) for r in reports],
+        total=len(reports),
+    )
 
 
 @router.get("/{report_id}", response_model=ReportResponse)
@@ -55,7 +74,7 @@ async def get_report(
     report = result.scalar_one_or_none()
     if not report:
         raise HTTPException(status_code=404, detail="Relatório não encontrado")
-    return report
+    return _serialize_report(report)
 
 
 @router.get("/{report_id}/html", response_class=HTMLResponse)

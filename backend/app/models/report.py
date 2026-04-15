@@ -24,6 +24,10 @@ class Report(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     period: Mapped[str] = mapped_column(String(50), nullable=True)
     html_path: Mapped[str] = mapped_column(Text, nullable=False)
+    # Path to the E5 analysis JSON snapshot (ADR-076 / F9): enables the native
+    # React report view to consume structured data instead of parsing HTML.
+    # Nullable for backward-compat with pre-F9 reports where only html_path existed.
+    analysis_json_path: Mapped[str | None] = mapped_column(Text, nullable=True)
     size_bytes: Mapped[int] = mapped_column(Integer, nullable=True)
     score: Mapped[float] = mapped_column(Float, nullable=True)
     patrimonio_liquido: Mapped[float] = mapped_column(Float, nullable=True)
