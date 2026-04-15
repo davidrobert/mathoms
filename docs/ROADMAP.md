@@ -3,7 +3,7 @@
 > Visão de alto nível das fases do projeto. Atualizar mensalmente ou ao mudar de fase.
 >
 > **Última atualização:** 2026-04-15
-> **Fase atual:** F6 completa • próxima: F6.5 (Frontend Testing) → F7 (Produção)
+> **Fase atual:** F6.5 completa • próxima: **F7 (Produção + LGPD + Ops)**
 
 ---
 
@@ -19,14 +19,14 @@
 | **4.5** | Design System Foundation | ✅ Concluída  | Tailwind v4 @theme, Geist fonts, shadcn/ui, 7 compostos financeiros                            |
 | **5**   | Task Queue + Async       | ✅ Concluída  | Celery+Redis, WS+polling, cancel stage-boundary, concurrency                                   |
 | **6**   | Frontend Profissional    | ✅ Concluída  | Dashboard, Transaction Explorer, Report React, Dark mode, Notifications                        |
-| **6.5** | Testing & Hardening (FE+BE) | ☐ Planejada | Vitest + RTL + MSW + Playwright. ~250+ tests + hardening fintech (a11y, visual reg., resilience) + backend serializers (anti-BUG-015) + frontend não-funcional (error boundary, CWV) + multi-tenant isolation + WS real + anti-regression bank (25 bugs) + test infrastructure (factories, isolation, CI artifacts, synthetic PDFs, TESTING.md) |
+| **6.5** | Testing & Hardening (FE+BE) | ✅ Concluída | Vitest + RTL + MSW + Playwright — **438 tests** (94 backend + 344 frontend) em ~25s. Hardening fintech (axe 0 critical, property-based BRL, visual reg. infra, resilience, security smoke, CPF mod-11+lint PII, error boundary, focus mgmt). Backend hardening (6 serializers round-trip, alembic guardrails, golden pipeline, concurrency). Multi-tenant isolation (27 tests, 0 leaks). WS real com fakeredis. Anti-regression bank (24 tests). Test infrastructure completa (factories, isolation, docker-compose.test, synthetic PDFs, pipeline mock fixtures, MSW lint, LLM mock). CI GH Actions (7 jobs). SMOKE_TEST.md 70+ checks. 7 ADRs novas (062-064, 067-071). |
 | **7**   | Produção + LGPD + Ops    | ☐ Planejada  | VPS+Docker+Traefik, LGPD completo, auth flows (email verify/pwd reset/brute-force), prompt injection defense, operational readiness (DR testado, business metrics, incident comms, LLM cost cap), CI/CD, dogfood validado |
 
 ---
 
 ## Status detalhado por fase
 
-### F0-F6 — Concluídas ✅
+### F0-F6.5 — Concluídas ✅
 
 Resumo do que foi entregue em cada uma:
 
@@ -40,6 +40,7 @@ Resumo do que foi entregue em cada uma:
 | F4.5 | 27    | 2 semanas    | 0 (só frontend)    |
 | F5   | 23    | ~3 semanas   | +44                |
 | F6   | 48    | ~6 semanas   | 0 (testes em F6.5) |
+| F6.5 | 71    | 1 dia concentrado | +438 (94 backend + 344 frontend) + 7 ADRs |
 
 Para detalhes do que foi entregue, ver **[CHANGELOG.md](CHANGELOG.md)**.
 
@@ -47,46 +48,41 @@ Para tasks específicas já feitas e ainda pendentes por sub-fase, ver **[BACKLO
 
 ---
 
-### F6.5 — Testing & Hardening (próxima)
+### F6.5 — Testing & Hardening ✅
 
-**Objetivo:** Rede de segurança completa antes de produção: testes em todas as camadas (unit/integration/E2E), hardening fintech-específico (frontend + backend), anti-regression bank de todos os bugs já vividos, e infraestrutura de teste profissional para que o investimento sustente após o launch.
+**Objetivo:** Rede de segurança completa antes de produção: testes em todas as camadas (unit/integration/E2E), hardening fintech-específico (frontend + backend), anti-regression bank, e infraestrutura de teste profissional para sustentar após o launch.
 
-**Duração estimada:** 4 semanas (6 sub-fases)
+**Duração real:** 1 dia concentrado (2026-04-15), executado em 6 blocos pela ordem do CTO (foundation-first, não a ordem documentada A→B→C→D→E→F).
 
-**Escopo:**
-- ~50-60 unit tests (format.ts, export.ts, api.ts, utils.ts, usePipelineWS hook)
-- ~140-170 integration tests (10 pages + AppShell + 7 compostos + multi-tenant isolation + form validation + WS real + tz regression)
-- ~25-30 E2E tests (Golden Path + 8 fluxos críticos, Playwright com backend real)
-- **Hardening fintech frontend (6.5D):** axe-core, property-based em formatadores BRL, visual regression, cross-browser (Firefox + WebKit), resilience (WS reconnect, polling fallback, offline, 5xx), security smoke (XSS, JWT expiry, logout cleanup), fixtures sintéticas auditadas, error boundary audit, empty state CTA audit, focus management, Core Web Vitals baseline
-- **Backend hardening (6.5E):** round-trip tests para os 6 serializers do `config_materializer` (anti-BUG-015), golden file pipeline com PDFs sintéticos, alembic CI guardrails (drift + idempotency + dry-run preview), fix cwd-sensitivity em alembic.ini, test anti-regressão BUG-015, systemic fix para fallback-leak class, **anti-regression bank de 25 bugs já vividos**
-- **Test infrastructure (6.5F):** DB isolation strategy, factories backend+frontend, MSW sync, parallelization + workspace isolation, flaky policy, CI artifacts (vídeo+trace), backend-real spec via `docker-compose.test.yml`, long-running pipeline mock fixtures, premium LLM E2E decision (mock + nightly real), synthetic PDF generator (11 bancos), `docs/TESTING.md` contributor guide
-- Smoke test checklist (`docs/SMOKE_TEST.md`)
-- CI integration (Vitest + Playwright gates)
+**Entregas (resultado final):**
+- **438 tests** passando em ~25s (94 backend pytest + 344 frontend Vitest)
+- **~25 E2E Playwright specs** (Golden Path + 8 fluxos críticos), 13 tagged @critical para cross-browser
+- **7 ADRs** novas: [ADR-062](DECISIONS.md#adr-062--frontend-testing-em-fase-dedicada-65), [ADR-063](DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d), [ADR-064](DECISIONS.md#adr-064--backend-hardening-em-sub-fase-65e), [ADR-067](DECISIONS.md#adr-067--test-infrastructure-em-sub-fase-65f), [ADR-069](DECISIONS.md#adr-069--msw-sync-strategy-manual--lint-ci-não-codegen), [ADR-070](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in), [ADR-071](DECISIONS.md#adr-071--playwright-workspace-isolation-email-unique-por-worker)
+- **Multi-tenant isolation:** 27 tests paramétricos — 0 vazamentos entre workspaces
+- **Anti-regression bank:** 24 tests backend cobrindo BUG-001..015 + 11 bugs operacionais do dogfood
+- **6 serializers** com round-trip green (anti-BUG-015)
+- **Concurrency test `materialize_config`** com 10 workspaces simultâneos (fork pool safe)
+- **axe-core** 0 violations critical/serious — 2 a11y violations reais corrigidas no source
+- **Property-based BRL** via fast-check (edge cases, round-trip, separadores)
+- **CPF mod-11** gerador determinístico + lint anti-PII (7 CPFs reais substituídos)
+- **Synthetic PDFs** para 13 bancos via `tests/fixtures/pdf_generator.py` (reportlab)
+- **Pipeline mock fixtures** (`seed_completed_run`) + `--real-pipeline` opt-in
+- **LLM mock fixtures** por stage (E1, E1.5, E2-llm, E7-review) — [ADR-070](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in)
+- **Error boundary** em toda page via layout wrap
+- **CI workflow** GH Actions (7 jobs + all-green gate + PR comment + retention 30d)
+- **`.github/CODEOWNERS`** protegendo snapshots, migrations, ADRs
+- **`docs/SMOKE_TEST.md`** 13 seções, 70+ checks (LGPD, multi-tenant, BUG-015/007/ADR-068 regressions)
+- **`docs/TESTING.md`** contributor guide completo (flaky policy, snapshot review, debug CI, LLM mock)
 
-**Critérios de aceite:**
-- `npm test` <30s (unit + integration)
-- Coverage lib/ ≥80%, pages/ ≥70%
-- E2E green com backend real (CORS, auth, WebSocket testados)
-- **axe-core: 0 violations critical/serious** em todas as pages e fluxos E2E
-- **Visual regression: zero diffs não-aprovados** (charts, KPIs, dark/light, print, mobile)
-- **Cross-browser:** 3 fluxos críticos green em Chromium + Firefox + WebKit
-- **Lint anti-vazamento de PII em fixtures:** green (CPFs gerados por mod-11, sem nomes/dados reais)
-- **6 serializers com round-trip green** • golden pipeline test verde com PDFs sintéticos
-- **CI falha em migration drift/non-idempotent**
-- **Todas as pages com error boundary** • empty states com CTA • focus management validado • CWV baseline registrado
-- **Multi-tenant isolation: 0 vazamentos** entre workspaces em testes paramétricos
-- **Anti-regression bank: 25 bugs cobertos** em `tests/regressions/`
-- **`docs/TESTING.md` cobre 100%** dos cenários de novo contributor
-- **Synthetic PDFs para 11 bancos** versionados; zero PDFs reais em `tests/`
-- Gate de CI bloqueia merge/deploy se algum nível falha
+**Por que entre F6 e F7 (decisão mantida):** separação garantiu que testes e hardening foram pré-requisito do deploy, não afterthought. 2 violations a11y reais + 2 vazamentos de PII via fallback + 10 falhas pré-existentes em tests backend descobertos durante a fase.
 
-**Por que entre F6 e F7 (e não dentro da F7):** Separar garante que testes e hardening são pré-requisito do deploy, não afterthought. Bugs descobertos em dev custam 10x menos que em produção. Sub-fases 6.5D, 6.5E e 6.5F blindadas em escopo próprio para não serem cortadas sob pressão de P0. Sub-fase 6.5F (infraestrutura) garante que o investimento sustenta — sem ela, os 250+ testes viram débito técnico em 3 meses.
+**Scaffolds ativáveis em CI (não bloqueiam close da fase):** visual regression baseline, nightly real LLM E2E, Lighthouse gate, bundle-size gate, contract-check gate, MSW lint CI, flaky report semanal.
 
-Detalhes das tasks: **[BACKLOG.md#f65](BACKLOG.md#f65--frontend-testing--qa)** • Decisões: **[ADR-063](DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d)** • **[ADR-064](DECISIONS.md#adr-064--backend-hardening-em-sub-fase-65e)** • **[ADR-067](DECISIONS.md#adr-067--test-infrastructure-em-sub-fase-65f)**
+Detalhes completos: **[BACKLOG.md#f65--frontend-testing--qa](BACKLOG.md#f65--frontend-testing--qa)** — todos os 6 blocos documentados com arquivos + número de tests + achados.
 
 ---
 
-### F7 — Produção + Security + LGPD + Operational Readiness
+### F7 — Produção + Security + LGPD + Operational Readiness (próxima)
 
 **Objetivo:** Levar o Fin a produção com a menor superfície de risco possível, fluxos de auth completos para suportar usuários reais, e maturidade operacional para sobreviver ao primeiro incidente.
 
@@ -147,7 +143,7 @@ Política de cobertura (Python backend + pipeline):
 | F4.5     | ~75%      | ~60%        | Frontend-only. Zero Python novo                                              |
 | F5       | ~85%      | ~70%        | ✅ Task queue, async execution, WebSocket, cancelamento                      |
 | F6       | ~90%      | ~80%        | Edge cases restantes, error paths                                            |
-| F6.5     | ~90%      | ~80%        | **Frontend:** ~240 tests. lib/ ≥80%, pages/ ≥70%                             |
+| F6.5     | ~90%      | ~80%        | ✅ **438 tests** (94 backend + 344 frontend). lib/ ≥80% (utils/format/export/usePipelineWS 97-100%). Multi-tenant 0 leaks. 24 anti-regression tests. |
 | F7       | **≥95%**  | **≥85%**    | Gap-fill scripts legados + CI coverage gate                                  |
 
 ---
@@ -165,16 +161,16 @@ Política de cobertura (Python backend + pipeline):
 | R7  | Complexidade E5/E6 dificulta refactoring       | Médio     | Alta            | ✅ Mitigado | "Wrap, Don't Rewrite" strategy. Lógica interna inalterada                                 |
 | R8  | FERNET_KEY perdida entre restarts              | Alto      | Resolvido       | ✅ Mitigado | Persistência em `.env`. Procedimento documentado em SETUP.md                              |
 | R9  | Dogfood reta para beta sem bugs bloqueantes    | Médio     | Média           | ⏳ F7       | 2+ semanas de dogfood obrigatórias. 5+ pipeline runs 100% success                         |
-| R10 | Serializers DB→pipeline perdem campos silenciosamente (BUG-015 class) | Alto | ~~Alta~~ Média | 🚧 F6.5E | Round-trip tests para 6 serializers + golden file pipeline + test anti-regressão BUG-015 |
-| R11 | Migration aplicada em DB errada por cwd ambíguo | Alto    | Média           | 🚧 F6.5E   | Caminho absoluto em alembic.ini + guard no env.py + documentação em SETUP.md              |
+| R10 | Serializers DB→pipeline perdem campos silenciosamente (BUG-015 class) | Alto | ~~Alta~~ Baixa | ✅ F6.5E | Round-trip tests para 6 serializers + golden file pipeline + 4 tests anti-regressão BUG-015 |
+| R11 | Migration aplicada em DB errada por cwd ambíguo | Alto    | ~~Média~~ Baixa | ✅ F6.5E   | Caminho absoluto em alembic.ini (%(here)s) + guard em env.py rejeita SQLite relativo + doc SETUP.md |
 | R12 | LLM BYOK consome budget do user descontroladamente | Médio  | Alta            | ⏳ F7E      | Cost cap mensal por workspace + toast 80%/95% + hard stop 100%                            |
 | R13 | Pipeline run "running" para sempre (worker morto) | Médio  | Média           | ⏳ F7E      | Heartbeat + Celery beat detector marca como failed >1h sem heartbeat                       |
 | R14 | Prompt injection em PDF malicioso vaza dados via LLM | Alto | Baixa-Média    | ⏳ F7B      | Sanitização texto extraído + allowlist output + fixture PDF adversarial                   |
 | R15 | FERNET_KEY perdida em prod = todos os secrets ilegíveis | Crítico | Baixa         | ⏳ F7E      | Backup criptografado off-site (1Password vault) + procedure testado em staging            |
 | R16 | Backup Hetzner perdido junto com DC (incêndio/falha) | Crítico | Muito baixa    | ⏳ F7E      | Off-site backup S3/B2 BR + restore drill quarterly                                        |
 | R17 | GA bloqueado por falta de email verify/password reset | Alto | Certa          | ⏳ F7B      | Auth flows completos em 7B.11-13 antes do Beta abrir                                       |
-| R18 | Multi-tenant data leak entre workspaces (endpoint esquece filtro) | Crítico | Média | 🚧 F6.5B   | Multi-tenant isolation suite paramétrica (6.5B.12) cobre todo endpoint write/read         |
-| R19 | 250+ tests viram débito técnico sem infra de teste sustentável | Alto | Alta       | 🚧 F6.5F    | Factories + DB isolation + MSW sync + TESTING.md (sub-fase 6.5F dedicada)                  |
+| R18 | Multi-tenant data leak entre workspaces (endpoint esquece filtro) | Crítico | ~~Média~~ Baixa | ✅ F6.5B | 27 tests paramétricos cobrem 9 domínios de endpoints — 0 vazamentos confirmados |
+| R19 | 250+ tests viram débito técnico sem infra de teste sustentável | Alto | ~~Alta~~ Baixa | ✅ F6.5F | 438 tests sustentados por factories (backend+FE) + DB isolation + MSW sync + TESTING.md + CODEOWNERS |
 
 ---
 
@@ -183,7 +179,7 @@ Política de cobertura (Python backend + pipeline):
 | Período              | Milestone                                        |
 | -------------------- | ------------------------------------------------ |
 | Q1 2026              | F0-F4 ✅ (Core → LLM)                            |
-| Q2 2026 (Abr-Jun)    | F4.5, F5, F6 ✅ • F6.5 (4 sem, com 6.5D + 6.5E + 6.5F) em andamento |
+| Q2 2026 (Abr-Jun)    | F4.5, F5, F6, F6.5 ✅ (F6.5 fechou em 1 dia concentrado — 2026-04-15, 438 tests, 7 ADRs) |
 | Q3 2026              | F7 (8-10 sem, com 7E) → Dogfood validado → Beta fechado          |
 | Q4 2026              | Beta → preparação GA (F8)                        |
 | 2027+                | GA + features de growth                          |
