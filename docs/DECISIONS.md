@@ -44,6 +44,15 @@
 **UX/Linguagem:**
 [D68](#adr-068--códigos-internos-do-pipeline-nunca-vazam-na-ui)
 
+**Multi-tenancy (F8):**
+[D72](#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família)
+
+**Goals & Tasks (F8):**
+[D73](#adr-073--goals-como-entidade-versionada-não-config-estático) [D74](#adr-074--tasks-como-entidade-de-1ª-classe-fora-do-relatório) [D75](#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters)
+
+**Design System (F9):**
+[D76](#adr-076--design-tokens-unificados-site--relatório)
+
 ---
 
 ## ADR-001 — SQLAlchemy 2.0 como ORM
@@ -1035,6 +1044,288 @@ Integração com 6.5D.10 (contract test types) = complementar: aquele valida typ
 - ❌ Não exercita "user com dados pré-existentes" — esses cenários cobertos em integration tests (factories backend)
 
 **Implementação:** já feita em Bootstrap. Esta ADR documenta a decisão para future-me não reabrir.
+
+---
+
+## ADR-072 — Multi-tenancy: `workspace_id` scoping explícito + `WorkspaceMember` para multi-família
+
+**Status:** Decidido (F8) • **Data:** 2026-04-15 • **Contexto da task:** F8.0 — Fundação Goals & Tasks
+
+**Contexto:** Até F6.5 o produto operou assumindo **1 workspace por usuário** (query `Workspace WHERE owner_id = user.id` replicada em helpers `_get_workspace(user)` em cada arquivo de API — ex: [backend/app/api/documents.py:30](backend/app/api/documents.py:30)). Esse contrato foi aceitável no MVP com a família Ferreira Campos como único tenant. Para F8, a premissa do produto muda: **"será utilizado por diferentes clientes (e famílias) com objetivos, metas e dinâmicas próprias e distintas"**. Isso exige:
+
+1. Múltiplos workspaces por usuário (um consultor pode acompanhar várias famílias).
+2. Múltiplos usuários por workspace (cônjuges, dependentes, contador convidado).
+3. Isolamento rigoroso: zero vazamento cross-tenant em queries, notificações, LLM prompts, exports.
+
+**Alternativas consideradas:**
+- (A) **Postgres Row-Level Security (RLS)** — `CREATE POLICY ... USING (workspace_id = current_setting('app.workspace_id')::uuid)`. Segurança no banco, independente da aplicação.
+  - ❌ Rejeitada por ora: dual-db SQLite (dev) + PostgreSQL (prod) do [ADR-039](#adr-039--dual-db-sqlite-dev--postgresql-prod) — SQLite não tem RLS. Forçaria divergência dev/prod ou migração para só-PG no dev.
+- (B) **Scoping explícito no service layer + lint custom** — toda query recebe `workspace_id` como primeiro argumento; ruff custom rule barra queries sem filtro.
+  - ✅ **Escolhida**: portável entre SQLite e Postgres, testável, e o lint evita regressão humana.
+- (C) **Continuar com `owner_id` implícito** — manter 1:1 user↔workspace e resolver multi-família via múltiplos users.
+  - ❌ Rejeitada: quebra o caso do consultor com várias famílias e não acomoda múltiplos membros adultos com login próprio.
+
+**Decisão:**
+1. **Modelo `WorkspaceMember`** (nova tabela) — `(workspace_id, user_id, role, invited_by, joined_at)`. Roles iniciais: `owner`, `member`. Substitui o uso exclusivo de `Workspace.owner_id` (que permanece como "criador original" por audit, mas não é mais usado como filtro de acesso).
+2. **Resolução explícita via path param** — todo endpoint novo de F8+ usa prefixo `/api/workspaces/{workspace_id}/...`. A dependency FastAPI `get_current_workspace()` valida que o `user_id` tem `WorkspaceMember` na `workspace_id` pedida; 403 se não tiver.
+3. **Lint rule custom** — `scripts/lint/check_workspace_scoping.py` (CI-gated) escaneia `backend/app/services/**/*.py` por queries (`select(X).where(...)`, `db.execute(...)`) e falha se a primeira condição não referenciar `workspace_id`. Exceções marcadas com `# tenancy: global` (ex: `User` auth, `Category` templates globais).
+4. **Services recebem `workspace_id` como primeiro argumento**, nunca inferem por `user_id`. Padrão obrigatório para qualquer código novo: `def list_tasks(workspace_id: UUID, filters: TaskFilters) -> list[Task]`.
+5. **Testes de isolamento automáticos** — factory cria 2 workspaces, e para cada novo endpoint há teste `test_<endpoint>_tenant_isolation` que verifica que dados do WS-A nunca vazam em resposta com token do WS-B.
+6. **Migração dos endpoints legados** — endpoints pré-F8 continuam usando `_get_workspace(user)` até serem tocados. Quando forem tocados, migram para `get_current_workspace()`. Deadline rígido: F8.4 (cutover final).
+7. **UUIDs não-enumeráveis** — todas as novas tabelas usam `uuid.uuid4()` (já é padrão; reforçar nos novos models).
+
+**Consequências:**
+- ✅ Multi-família viável sem mudar banco (SQLite dev + Postgres prod continua valendo)
+- ✅ Path-based workspace resolution é explícito, debugável, e funciona bem com OpenAPI/typed clients no frontend
+- ✅ Lint custom pega regressões antes do review humano
+- ✅ `WorkspaceMember` abre caminho para RBAC granular futuro sem re-modelagem (roles evoluem)
+- ⚠️ Migração dos 10+ endpoints legados é esforço incremental, não big-bang — aceito
+- ⚠️ Sem RLS, bug na app = vazamento. Mitigado por lint + testes de isolamento + audit log
+- ❌ Cross-workspace queries (ex: "advisor dashboard agregado") exigem endpoint especial com check explícito por workspace — aceito como débito documentado
+
+**Implementação inicial (F8.0):**
+- Migration alembic: criar tabela `workspace_members`; backfill `(workspace_id, owner_id, 'owner', NULL, created_at)` para todo `Workspace` existente.
+- `backend/app/core/tenancy.py` com `get_current_workspace(workspace_id: UUID, user = Depends(get_current_user), db = Depends(get_db))`.
+- `scripts/lint/check_workspace_scoping.py` + job `tenancy-lint` no CI.
+- Documentação em `docs/tenancy.md` (criar) com exemplos de do/don't.
+
+**Débito explícito (fora do escopo desta ADR):**
+- RBAC granular por papel (`read_only`, `approver`, `admin`) — endereçar quando primeiro consultor pedir.
+- Workspace sharing UI (convite, aceite, revogação) — F9+.
+- Cross-tenant analytics (produto) — requer ADR própria quando surgir.
+
+---
+
+## ADR-073 — Goals como entidade versionada (não config estático)
+
+**Status:** Decidido (F8) • **Data:** 2026-04-15 • **Contexto da task:** F8.1 — Metas IF
+
+**Contexto:** Hoje o objetivo de Independência Financeira (IF) vive em [config/goals.json:19-27](config/goals.json:19) como `if_meta: 7200000.0` — um número digitado à mão, sem derivação matemática, sem histórico de mudanças, sem audit de quem alterou. No modelo multi-família, cada workspace precisa ter sua meta própria, editável por UI, e é essencial preservar **trajetória** (qual era a meta em jan/2025 vs. abr/2026) para gráficos de progresso e comparativos "antes/depois". O valor tampouco deve ser digitado diretamente: é derivado de `renda_passiva_mensal × 12 / trs_pct` — e o usuário pensa em termos de renda desejada, não de patrimônio-alvo.
+
+**Alternativas consideradas:**
+- (A) **Reusar `ConfigBlob`** (modelo existente que armazena JSON arbitrário por workspace — padrão do [ADR-020](#adr-020--materializar-config-em-disco)).
+  - ❌ Rejeitada: não versiona por default, sem semântica de "vigência", e mistura goals (dado crítico com narrativa no produto) com configs operacionais (keywords, thresholds). Goal merece tipo forte.
+- (B) **Model único `Goal` com JSONB `params_json` + `derived_json`** — `type` discrimina IF, Aporte Mensal, Dolarização, etc.
+  - ✅ **Escolhida**: flexível para tipos variados (goals.json atual tem 10+ "seções" de meta), versiona com `effective_from`, valida por tipo via JSON Schema.
+- (C) **Model por tipo (`IFGoal`, `MonthlyContributionGoal`, ...)** — rigor máximo de tipagem.
+  - ❌ Rejeitada: cada novo tipo de goal exige migration; a variação acontece muito cedo no produto para cristalizar em tabelas separadas.
+- (D) **Digitar `if_meta` diretamente no formulário** — simpler.
+  - ❌ Rejeitada: usuário pensa em "quanto quero receber por mês?", não "qual meu patrimônio-alvo?". Forçar o cálculo matemático explícito é pedagógico e elimina inconsistências.
+
+**Decisão:**
+1. **Tabela `goals`** com colunas: `id (UUID)`, `workspace_id (FK)`, `type (Enum)`, `params_json (JSONB)`, `derived_json (JSONB)`, `effective_from (Date)`, `effective_to (Date|NULL)`, `created_by (FK user)`, `notes (text)`, `created_at`, `updated_at`.
+2. **Versionamento por append-only** — edição cria novo registro com `effective_from = hoje` e fecha o anterior com `effective_to = ontem`. Registro vigente é único por `(workspace_id, type)` e tem `effective_to IS NULL`.
+3. **Derivação server-side** — `goal_service.compute_if_derived(inputs: dict) -> dict` é função pura, testada, e é **a única fonte** do cálculo. Frontend chama `POST /goals/if/compute` para preview live; pipeline chama a mesma função.
+4. **Schema canônico por tipo** — `config/schemas/goal.if.schema.json` (criar) define `params_json.inputs.{renda_passiva_mensal_brl, trs_pct, retorno_real_anual_pct, horizonte_anos, taxa_retirada_conservadora_pct}` e `derived.{if_meta_brl, aporte_necessario_mensal_brl, if_meta_conservadora_brl}`. Backend valida write, frontend gera tipos TS via codegen (OpenAPI).
+5. **Tipos de goal implementados em F8.1**: apenas `INDEPENDENCIA_FINANCEIRA`. Outros tipos (`APORTE_MENSAL`, `DOLARIZACAO`, alocação-alvo) ficam como débito para F8.5+; campos correspondentes em `goals.json` continuam sendo lidos via adapter até migração.
+6. **Migração do `goals.json` de Ferreira Campos** — one-shot script em `backend/app/scripts/seed_if_goal_ferreira_campos.py` cria registro inicial para a workspace existente com `renda_passiva_mensal_brl=30000, trs_pct=5.0, retorno_real_anual_pct=6.0` → `derived.if_meta_brl=7200000` (paridade bit-a-bit com valor legado).
+7. **Novos workspaces** — seed cria Goal template flag `is_template=true` com valores default (renda 20k/mês, trs 5%). UI do dashboard detecta a flag e força wizard antes de liberar outras funcionalidades.
+8. **Pipeline (E5/E5.N)** — lê Goal vigente via `pipeline_adapter.build_goals_payload(workspace_id)` que retorna dict no formato atual de `goals.json` (campo `independencia_financeira`). Rest de `goals.json` (`aportes`, `fase_f1f2`, etc.) continua servido pelo adapter a partir de fontes legadas até F8.5.
+
+**Consequências:**
+- ✅ Histórico preservado — é possível mostrar "sua meta subiu 8% no último ano" e gerar gráfico de progresso real
+- ✅ Derivação única — zero risco de UI mostrar 7.2M enquanto pipeline calcula 7.5M
+- ✅ Validação por schema versionável (`meta_version`) — permite evoluir sem quebrar históricos
+- ✅ Audit log natural via `created_by` + `effective_from`
+- ⚠️ Migração dos outros "tipos de goal" (aportes, alocação alvo) fica como débito — durante transição, `goals.json` continua existindo como seed + override legado
+- ❌ Não temos "rascunho" de goal (user editando sem commit) — aceito; wizard confirma antes de persistir
+
+**Implementação inicial (F8.1):**
+- `backend/app/models/goal.py` + Alembic migration
+- `backend/app/services/goal_service.py` (`compute_if_derived`, `create_goal_version`, `get_current_goal`, `get_goal_history`)
+- `backend/app/api/goals.py` com endpoints documentados no plano de execução
+- `config/schemas/goal.if.schema.json`
+- Testes unitários de `compute_if_derived` (10+ casos) + integração multi-workspace
+- Script one-shot de seed para Ferreira Campos
+
+---
+
+## ADR-074 — Tasks como entidade de 1ª classe (fora do relatório)
+
+**Status:** Decidido (F8) • **Data:** 2026-04-15 • **Contexto da task:** F8.2 — Plano de Ação
+
+**Contexto:** Hoje a "checklist de tarefas" vive em [config/tarefas.md](config/tarefas.md) como markdown versionado no git, parseado deterministicamente pelo E5, enriquecido pelo E5.N (LLM), e renderizado no relatório HTML final pelo E6. Esse fluxo é elegante para o pipeline batch, mas **impossibilita execução interativa**:
+- Usuário não consegue marcar "feito" sem editar markdown e rodar pipeline de novo.
+- Não há notificação de prazo (ex: IPTU 30/04 é time-bomb).
+- Sem anexos de comprovante, sem conexão com transações, sem histórico estruturado.
+- Sugestões do E5.N ficam em `tarefas_sugeridas[]` que o usuário precisa copiar/colar manualmente.
+- Relatório vira poluído de operacional — deveria ser estratégico (foto do momento).
+
+No modelo multi-família, cada workspace tem seu próprio backlog com dinâmica distinta — um arquivo compartilhado no repo não escala.
+
+**Alternativas consideradas:**
+- (A) **Manter `tarefas.md` por workspace** (um arquivo por tenant no storage local).
+  - ❌ Rejeitada: não resolve execução interativa; arquivo compartilhado entre pipeline e UI gera race; sem audit/versionamento/anexos.
+- (B) **Tabela `tasks` como entidade de 1ª classe + `task_suggestions` queue + `task_attachments`**.
+  - ✅ **Escolhida**: resolve todos os problemas. `tarefas.md` vira *export* gerado on-demand (compat pipeline legado).
+- (C) **Integrar com Todoist/Things/Linear via OAuth**.
+  - ❌ Rejeitada: acopla produto a SaaS externo, perde ligação semântica com dados financeiros (task↔transaction↔goal), e LGPD + contexto fintech exigem dados sob controle.
+
+**Decisão:**
+1. **Tabelas novas**: `tasks`, `task_suggestions`, `task_attachments` (reusa padrão do vault para anexos).
+2. **`Task` preserva `number int` único por workspace** — mantém a ref `#5` do `tarefas.md` atual, crítica para rastreabilidade em commits, ADRs e narrativas do E5.N.
+3. **`Task.deadline`** é modelado com `deadline_kind Enum("HARD_DATE", "MONTH", "QUARTER", "CONDITIONAL", "UNSCHEDULED")` + `deadline_date Date|NULL` + `deadline_label str|NULL`. Acomoda os padrões do MD atual ("Abr/2026", "30/04/2026", "Antes EUA", "T3/26").
+4. **`Task.status`** com transições validadas: `pending → in_progress | done | cancelled | blocked`; `blocked → pending | cancelled`; `done` e `cancelled` são terminais (exigem `unarchive` explícito para reabrir). Enforcer em `task_service.transition_status`.
+5. **Dependências explícitas** via `parent_task_id` — UI bloqueia marcar como `done` se parent estiver pendente (regra do `enforce_dependency_rule`). Migração inicial infere dependências a partir das Notas do `tarefas.md` (ex: "#19 depende de #18").
+6. **E5.N escreve em `task_suggestions`** (não mais em `tarefas_sugeridas[]` do JSON). Sugestão contém `proposed_payload JSONB` com estrutura idêntica à `Task`. Usuário aprova 1-click → cria `Task` + marca suggestion como `approved`. Queue aparece em `/plano-de-acao/sugestoes` com badge contador.
+7. **Relatório lê snapshot imutável** — no momento da geração do relatório (E6), o serviço copia o estado atual de `tasks` para `report.snapshot_json`. O relatório renderiza a partir do snapshot, não do DB live. Garante que "relatório de 15/abr/2026" sempre mostra o que estava pendente naquele dia.
+8. **Export `GET /tasks/export.md`** — gera `tarefas.md` on-demand a partir do DB, preservando formato atual. Usado durante transição para scripts legados que ainda esperam o arquivo.
+9. **Migração one-shot do `tarefas.md` de Ferreira Campos** — importer em `backend/app/scripts/seed_tasks_ferreira_campos.py` parseia o MD, cria tasks preservando `number` (1..43, com `#2` e `#12` como `status=done`), categorias, prioridades, status, ref. Notas com dependência ("#19 depende de #18") são parsed e materializadas em `parent_task_id`.
+10. **Novos workspaces recebem templates genéricos** (não dados Ferreira Campos) — 10-12 tarefas essenciais comuns a qualquer família (contratar seguro vida, consultar CPA expatriado se aplicável, etc.) com `created_from='seed'`. Usuário pode aceitar, editar, ou descartar no onboarding.
+11. **Integração Task↔Transaction↔Goal (F8.3)** — `related_transaction_id` e `related_goal_id` opcionais. UI usa para mostrar "% executado" (tarefa "Aporte R$20k/mês" lê aportes do mês atual agregados por `aporte_match_keywords` do `goals.json`).
+12. **Remoção do `tarefas.md` do repo** acontece em F8.4 (cutover final) — até lá, arquivo permanece como seed/fallback.
+
+**Consequências:**
+- ✅ Execução interativa real — marca feito, anexa comprovante, recebe notificação
+- ✅ Relatório volta a ser estratégico (snapshot imutável) — operacional fica no módulo próprio
+- ✅ Sugestões do E5.N viram fluxo de aprovação UI, não copy-paste em markdown
+- ✅ Dependências explícitas destravam UX ("cadeado" em task bloqueada)
+- ✅ Audit log natural de transições
+- ✅ Multi-tenant desde o dia 1 via [ADR-072](#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família)
+- ⚠️ Pipeline E5 precisa refatorar leitura — de parser MD para `task_service.list_tasks(workspace_id)` via adapter. Contrato JSON preservado.
+- ⚠️ Novas tarefas criadas via UI precisam de `number` — incrementa `max(number) + 1` por workspace (lock em transação para evitar race)
+- ❌ Sem sync bidirecional com Google Tasks / Todoist — aceito (débito; pode ser adicionado sem quebrar modelo)
+
+**Implementação inicial (F8.2):**
+- Models + migrations
+- Services (`task_service`, `task_suggestion_service`) com transições validadas
+- Endpoints documentados no plano
+- Rota frontend `/plano-de-acao` + drawer + sugestões
+- Widget `UpcomingTasksWidget` no dashboard (`deadline_date <= today + 7d` e `status in (pending, in_progress)`)
+- Importer one-shot + testes de paridade (MD inicial vs. DB pós-import)
+- Feature flag `tasks_v2_enabled` (workspace-level)
+
+---
+
+## ADR-075 — Cutover CLI → Web: estratégia de transição faseada com adapters
+
+**Status:** Decidido (F8) • **Data:** 2026-04-15 • **Contexto da task:** F8.0-F8.4 — migração completa
+
+**Contexto:** O pipeline original (E0-E7) foi construído como CLI determinístico + etapas LLM manuais — scripts Python em `scripts/` que leem `config/*.json`, `config/tarefas.md`, `data/` e escrevem em `processed/` e `output/`. A partir de F1 o produto incorporou backend + frontend, mas o pipeline determinístico continua rodando via worker Celery que envelopa os scripts CLI ([ADR-013](#adr-013--wrap-dont-rewrite-pattern) — "wrap, don't rewrite"). **A decisão confirmada pelo usuário em F8 é: a app web substitui o pipeline CLI**. Isso não significa reescrever tudo de uma vez — significa que o CLI deixa de ser interface suportada e a fonte de verdade migra `config/*.json` → DB.
+
+O risco principal: quebrar o pipeline durante a transição e perder capacidade de gerar relatórios antes que a UI seja equivalente. Mitigação via **adapters**: scripts continuam rodando com I/O preservado, mas leem do DB em vez de arquivos.
+
+**Alternativas consideradas:**
+- (A) **Big-bang rewrite** — reescreve E5, E5.N, E6 em F8.4 e desliga CLI.
+  - ❌ Rejeitada: F6.5 acabou de consolidar 438 testes contra o pipeline atual. Reescrever antes de substituir integralmente a UI perde a rede de segurança.
+- (B) **Manter dual-source indefinidamente** — DB como source of truth para UI, `config/*.json` para pipeline.
+  - ❌ Rejeitada: dual-write é origem clássica de inconsistência. Aceitável como fase, não como destino.
+- (C) **Adapter pattern faseado + remoção gradual de arquivos do repo** — DB passa a ser fonte única; scripts consultam DB via `pipeline_adapter`; arquivos de config de usuário são removidos do repo fase por fase.
+  - ✅ **Escolhida**: preserva robustez do pipeline atual, migra source of truth uma entidade por vez, e termina com `config/` contendo apenas seeds/templates de produto (institutions, categorization keywords) — não mais dados de usuário.
+
+**Decisão:**
+1. **Contrato de adapter** — `backend/app/services/pipeline_adapter.py` é a única fachada entre pipeline scripts e DB. Funções:
+   - `build_goals_payload(workspace_id) -> dict` (replica estrutura de `goals.json`)
+   - `build_tasks_payload(workspace_id) -> dict` (replica `tarefas[]` do JSON E5)
+   - `build_tarefas_md(workspace_id) -> str` (formato markdown, compat legado)
+   - `build_family_members_payload(workspace_id) -> dict` (de `family_members.json`)
+   - ...outras conforme entidades migrem
+2. **Classificação dos artefatos de `config/`** em 3 grupos:
+   - **Grupo A — Dados do usuário** (migram para DB): `goals.json`, `tarefas.md`, `family_members.json`, `cenarios.json`, `decisions.md`. Removidos do repo ao final de F8.4.
+   - **Grupo B — Seeds/templates de produto** (permanecem no repo): `institutions.json` (padrões de banco), `categorization.json` (keywords default), `parametros_fiscais.json` (alíquotas), `localization.json`, `taxas.json`, `scoring.json`. Carregados como seed no primeiro acesso do workspace; usuário pode editar cópia via `config_blob`.
+   - **Grupo C — Documentação** (permanecem): `definitions.md`, `manual_operacao.md`, `methodology.md`, `source_hierarchy.md`, `regras_composicao_patrimonial.md`, `decisions.md`, `report_layout.yaml`, `report_spec.md`. Atualizar seções que referenciam Grupo A.
+3. **Ordem de migração** (escolhida para minimizar risco):
+   - **F8.1**: `goals.json` (parcial — só `independencia_financeira`) + adapter para resto
+   - **F8.2**: `tarefas.md` completo
+   - **F8.3**: integrações profundas (Task↔Transaction↔Goal)
+   - **F8.4**: migração completa do resto do `goals.json` (aportes, alocação, riscos), `family_members.json`, `cenarios.json`, `decisions.md` — E5 passa a ler tudo do DB, remoção dos arquivos de Grupo A do repo.
+4. **Feature flags** por módulo — `goals_v2_enabled`, `tasks_v2_enabled`, `report_snapshot_v2_enabled`, todas workspace-level. Durante transição, flag OFF = pipeline usa arquivo legado; flag ON = pipeline usa adapter. Default ON na workspace de Ferreira Campos assim que módulo entrega; default ON para todos em F8.4.
+5. **Scripts CLI desabilitados em produção** — a partir de F8.4, `scripts/e*.py` são executáveis **apenas** via worker (import como módulo, não invocação CLI). Mantidos no repo como implementação de reference; `README.md` documenta que a interface suportada é a UI. Remoção total dos scripts fica como débito F9+ quando for seguro.
+6. **Regressão blindada** — cada fase roda o ciclo completo E0→E7 antes/depois em workspace de teste e faz diff dos artefatos (tolerância: só diferença em timestamps). Falha de paridade = rollback automático.
+7. **Backup dos Grupo A antes da remoção** — último snapshot pre-F8.4 vai para `_archive/pre-f8-cutover-2026-XX-XX/` com tag git, para referência histórica e auditoria.
+
+**Consequências:**
+- ✅ Pipeline atual segue funcionando a cada fase — risco de quebra limitado à entidade que migra
+- ✅ Rollback de uma fase é reversão de flag, não de deploy
+- ✅ `config/` termina enxuto (só produto), não mais mistura dados de usuário
+- ✅ Claro para desenvolvedores: fontes de verdade explícitas por grupo
+- ⚠️ Complexidade adicional do adapter durante transição — aceito; código isolado, removível
+- ⚠️ Testes duplicados (pipeline lendo arquivo vs. pipeline lendo DB) durante transição — removidos ao fim de F8.4
+- ❌ Advanced pipeline features novas (ex: goal recalculation on-demand disparado por UI) ficam esperando F8.4 — aceito
+- ❌ CLI permanece tecnicamente executável pós-F8.4 (scripts não removidos), mas sem suporte — aceito
+
+**Supersedes parcial:** [ADR-013 "Wrap, don't rewrite"](#adr-013--wrap-dont-rewrite-pattern) — a filosofia original era wrap indefinido. F8 formaliza migração eventual dos wraps em adapters DB, com remoção dos arquivos de config de usuário do repo. O padrão "wrap" continua válido para scripts que não migram (E0 route, E2 parsers).
+
+**Implementação:**
+- F8.0: contrato e stubs do adapter, CI test que valida assinatura de funções do adapter
+- F8.1+: cada fase implementa as funções correspondentes e migra scripts para usá-las
+- F8.4: checklist de cutover (backup → remoção de arquivos Grupo A → desabilitar entradas CLI do Makefile/documentação → atualizar `manual_operacao.md`)
+
+---
+
+## ADR-076 — Design Tokens Unificados Site ↔ Relatório
+
+**Status:** Decidido (F9) • **Data:** 2026-04-15
+
+**Contexto:**
+Auditoria visual comparando `frontend/src/app/globals.css` e `config/templates/report_template.html` revelou duas linguagens de design completamente divergentes, sem ponte:
+
+| Eixo | Site | Relatório |
+|---|---|---|
+| Cor primária | `oklch(0.205 0 0)` (navy neutro) | `#1A3A5C` (navy quente, hex fixo) |
+| Accent | `oklch(0.97 0 0)` (quase sem saturação) | `#15803D` (verde floresta) |
+| Fonte | Geist | Inter + Plus Jakarta Sans |
+| Cards | Minimais, borda neutra | Left-border 4px colorida, gradientes |
+| Dark mode | CSS vars + `next-themes` | `data-theme="dark"` com hex hardcoded |
+
+Ao abrir `/reports/{id}`, o usuário experimenta uma quebra visual perceptível — duas identidades de produto disputando o mesmo espaço. O relatório tem o DNA fintech mais maduro (navy institucional, verde/vermelho semânticos, tipografia editorial); o site está na paleta shadcn default.
+
+**Alternativas consideradas:**
+- **A** — Nivelar o site pelo relatório manualmente (copiar cores/fontes no `globals.css`). Resolve agora, diverge de novo no próximo ciclo.
+- **B** — TypeScript como fonte de verdade (tokens em `.ts`, exportar CSS). Bom para frontend, mas E6 (Python) vira consumidor de TS — inversão estranha.
+- **C** — ✅ **Escolhida**: fonte única declarativa (`design-tokens/tokens.json`) + build step que gera CSS para Next.js e CSS para o template standalone do E6. Padrão OpenAPI/Stripe.
+
+**Decisão:**
+
+1. **Fonte de verdade:** `design-tokens/tokens.json` na raiz do monorepo. Estrutura semântica por categoria (color, typography, spacing, radius, shadow) com variantes light/dark. Referência visual: DNA do relatório (navy + verde/vermelho semânticos + Plus Jakarta + Inter).
+
+2. **Build step:** `design-tokens/build.py` — emite dois arquivos:
+   - `frontend/src/styles/tokens.css` — custom properties CSS consumidas por `globals.css` via `@import`. Tailwind v4 lê via `@theme inline`.
+   - `config/templates/_tokens.css` — custom properties injetadas no `<style>` do relatório standalone (E6).
+   Ambos são **gerados e gitignored no frontend** (regenerados no build), mas **commitados no template E6** (standalone precisa funcionar offline sem build step).
+
+3. **Valores semânticos canônicos** (derivados do DNA do relatório):
+   - `--brand-primary: #1A3A5C` (navy institucional)
+   - `--brand-accent: #15803D` (verde patrimônio/gain)
+   - `--brand-danger: #B91C1C` (vermelho passivo/loss)
+   - `--brand-warning: #F4A261` (atenção)
+   - `--font-display: 'Plus Jakarta Sans'`
+   - `--font-body: 'Inter'`
+   - `--font-mono: 'JetBrains Mono'` (exclusivo para valores monetários com tabular-nums)
+   - `--radius-card: 12px`
+
+4. **Dark mode:** ambos ambientes consomem os mesmos tokens; a classe `.dark` (ou `[data-theme="dark"]`) reescreve as mesmas custom properties. Elimina o divergence atual onde site usa OKLch swap e relatório usa hex hardcoded.
+
+5. **Migração das variantes de card do relatório** (highlight, feature, success, warn, critical, primary, neutral, top-danger, top-accent) viram tokens compostos em `tokens.json` sob `card.variants.*`, consumidos identicamente pelos componentes React novos (Fase 2) e pelo E6 standalone.
+
+6. **Regras de uso obrigatórias** (enforçadas via ESLint + pre-commit):
+   - Nenhum `#` hex literal em CSS/TSX de `frontend/src/` (exceto tokens gerados).
+   - Nenhum `font-family:` fora de `tokens.css`.
+   - Valores monetários SEMPRE com `font-family: var(--font-mono); font-variant-numeric: tabular-nums;` — centralizado no componente `<MonetaryValue/>`.
+
+7. **Backwards-compat:** ADR-050 (Tailwind v4 `@theme inline`) e ADR-051 (Geist fonts) são **parcialmente supersedidos** — Tailwind v4 theme continua, mas agora hidratado por `tokens.css` ao invés de hardcoded; Geist é substituído por Plus Jakarta + Inter.
+
+**Consequências:**
+- ✅ Uma identidade visual, um lugar para mudar. Fin vira produto coeso.
+- ✅ Fim da dissonância site × relatório — critério de aceite F9.
+- ✅ Rebase rápido para tema white-label futuro (multi-família com branding próprio — F10+): sobrescrever `tokens.json` por workspace.
+- ✅ Testes de token via snapshot (`tests/design_tokens/test_build.py`) garantem paridade.
+- ✅ Princípio de "config/ é fonte de verdade" preservado: tokens vivem na raiz do monorepo, acima de site e pipeline.
+- ⚠️ Adiciona build step obrigatório antes de rodar `pnpm dev` — mitigado por hook `pnpm predev` e CI check.
+- ⚠️ Fontes Plus Jakarta + Inter adicionam ~150KB de fontes sobre Geist (~80KB). Aceito — trade visual > bytes.
+- ❌ `globals.css` atual precisa ser reescrito (~200 linhas). Aceito — custo pontual, ganho permanente.
+- ❌ Qualquer branch em andamento com CSS hardcoded conflita na merge. Aceito — migração concentrada em F9.
+
+**Supersedes parcial:**
+- [ADR-050 "Tailwind v4 theme inline"](#adr-050--tailwind-v4-theme-inline) — tema continua inline, agora hidratado por tokens gerados.
+- [ADR-051 "Geist fonts"](#adr-051--geist-fonts) — Geist substituída por Plus Jakarta Sans (display) + Inter (body).
+
+**Implementação (F9):**
+- F0.2: `design-tokens/tokens.json` + `build.py` + geração de ambos os CSS
+- F0.2.5: estender build step para também gerar tipos do layout (YAML→TS/Pydantic)
+- F1.2: `globals.css` consome `tokens.css`; fontes carregadas via Next.js `next/font/google`
+- F4.1: E6 standalone template importa `_tokens.css` gerado
+- F5.x: ESLint rule `no-hex-literal` + `no-direct-font-family` ativadas
 
 ---
 
