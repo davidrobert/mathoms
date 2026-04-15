@@ -1,10 +1,11 @@
 """Report endpoints — list and serve HTML reports."""
 
 import json
+import re
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -97,6 +98,48 @@ async def get_report_html(
 
     html_content = html_path.read_text(encoding="utf-8")
     return HTMLResponse(content=html_content)
+
+
+def _sanitize_filename(raw: str) -> str:
+    """Whitelist [A-Za-z0-9._-] para impedir injeção em Content-Disposition."""
+    cleaned = re.sub(r"[^A-Za-z0-9._-]", "_", raw).strip("._")
+    return cleaned or "relatorio.html"
+
+
+@router.get("/{report_id}/download.html")
+async def download_report_html(
+    report_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Download do relatório HTML standalone (F9 · F1.5).
+
+    Endpoint substitui GET /{id}/html quando o objetivo é preservar o artefato
+    (ex: compartilhar com contador, anexo de e-mail, backup). O HTML standalone
+    continua sendo gerado pelo E6 e mora em `report.html_path`.
+    """
+    ws = await _get_user_workspace(current_user, db)
+    result = await db.execute(
+        select(Report).where(Report.id == report_id, Report.workspace_id == ws.id)
+    )
+    report = result.scalar_one_or_none()
+    if not report:
+        raise HTTPException(status_code=404, detail="Relatório não encontrado")
+
+    html_path = Path(report.html_path)
+    if not html_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Arquivo HTML não encontrado no disco",
+        )
+
+    filename = _sanitize_filename(html_path.name)
+    return FileResponse(
+        html_path,
+        media_type="text/html; charset=utf-8",
+        filename=filename,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/{report_id}/data")

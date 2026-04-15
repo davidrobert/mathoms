@@ -190,6 +190,61 @@ async def test_get_report_data_500_when_json_corrupted(
     assert "corrompido" in resp.json()["detail"].lower()
 
 
+# ─── F1.5: GET /reports/{id}/download.html ────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_download_html_unauthorized(client: AsyncClient):
+    resp = await client.get("/api/reports/any-id/download.html")
+    assert resp.status_code in (401, 403)
+
+
+@pytest.mark.asyncio
+async def test_download_html_not_found(auth_client: AsyncClient):
+    resp = await auth_client.get("/api/reports/nonexistent-id/download.html")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_download_html_sends_attachment_headers(
+    auth_client: AsyncClient, tmp_path: Path
+):
+    rid = await _seed_report(
+        auth_client,
+        html_content="<html><body>Relatório</body></html>",
+        analysis_payload=None,
+        tmp_path=tmp_path,
+    )
+    resp = await auth_client.get(f"/api/reports/{rid}/download.html")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("text/html")
+    disp = resp.headers["content-disposition"]
+    assert disp.startswith("attachment;")
+    assert "filename=" in disp
+    assert b"Relat" in resp.content
+
+
+@pytest.mark.asyncio
+async def test_download_html_404_when_file_missing_from_disk(
+    auth_client: AsyncClient, tmp_path: Path
+):
+    rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path)
+    (tmp_path / "report.html").unlink()
+    resp = await auth_client.get(f"/api/reports/{rid}/download.html")
+    assert resp.status_code == 404
+
+
+def test_download_html_sanitize_filename_helper():
+    """Nome com caracteres perigosos deve virar whitelist antes do header."""
+    from backend.app.api.reports import _sanitize_filename
+
+    assert _sanitize_filename('abc"; rm -rf /') == "abc___rm_-rf"
+    assert _sanitize_filename("relatório família.html") == "relat_rio_fam_lia.html"
+    assert _sanitize_filename("") == "relatorio.html"
+    assert _sanitize_filename("...") == "relatorio.html"
+    assert _sanitize_filename("report_2026-04.html") == "report_2026-04.html"
+
+
 @pytest.mark.asyncio
 async def test_get_report_data_isolation_across_workspaces(
     auth_client: AsyncClient, client: AsyncClient, tmp_path: Path
