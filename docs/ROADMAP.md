@@ -19,7 +19,7 @@
 | **4.5** | Design System Foundation | ✅ Concluída  | Tailwind v4 @theme, Geist fonts, shadcn/ui, 7 compostos financeiros                            |
 | **5**   | Task Queue + Async       | ✅ Concluída  | Celery+Redis, WS+polling, cancel stage-boundary, concurrency                                   |
 | **6**   | Frontend Profissional    | ✅ Concluída  | Dashboard, Transaction Explorer, Report React, Dark mode, Notifications                        |
-| **6.5** | Frontend Testing & QA    | ☐ Planejada  | Vitest + RTL + MSW + Playwright. ~240 tests. CI gates. Smoke checklist                        |
+| **6.5** | Frontend Testing & QA    | ☐ Planejada  | Vitest + RTL + MSW + Playwright. ~240 tests + hardening fintech (a11y, visual reg., resilience). CI gates. Smoke checklist |
 | **7**   | Produção + LGPD          | ☐ Planejada  | VPS+Docker+Traefik, LGPD, CI/CD, coverage gate, dogfood validado                               |
 
 ---
@@ -49,14 +49,15 @@ Para tasks específicas já feitas e ainda pendentes por sub-fase, ver **[BACKLO
 
 ### F6.5 — Frontend Testing & QA (próxima)
 
-**Objetivo:** Rede de segurança de testes no frontend antes de ir para produção. A Fase 6 entregou features; a 6.5 entrega confiança.
+**Objetivo:** Rede de segurança de testes no frontend antes de ir para produção. A Fase 6 entregou features; a 6.5 entrega confiança. Inclui hardening específico de fintech (a11y, visual regression, resilience, security smoke).
 
-**Duração estimada:** 2 semanas (3 sub-fases)
+**Duração estimada:** 2.5 semanas (4 sub-fases)
 
 **Escopo:**
 - ~50-60 unit tests (format.ts, export.ts, api.ts, utils.ts, usePipelineWS hook)
 - ~120-150 integration tests (10 pages + AppShell + 7 compostos, loading/empty/error/success)
 - ~25-30 E2E tests (8 fluxos críticos, Playwright com backend real)
+- **Hardening fintech (6.5D):** axe-core, property-based em formatadores BRL, visual regression, cross-browser (Firefox + WebKit), resilience (WS reconnect, polling fallback, offline, 5xx), security smoke (XSS, JWT expiry, logout cleanup), fixtures sintéticas auditadas
 - Smoke test checklist (`docs/SMOKE_TEST.md`)
 - CI integration (Vitest + Playwright gates)
 
@@ -64,11 +65,15 @@ Para tasks específicas já feitas e ainda pendentes por sub-fase, ver **[BACKLO
 - `npm test` <30s (unit + integration)
 - Coverage lib/ ≥80%, pages/ ≥70%
 - E2E green com backend real (CORS, auth, WebSocket testados)
+- **axe-core: 0 violations critical/serious** em todas as pages e fluxos E2E
+- **Visual regression: zero diffs não-aprovados** (charts, KPIs, dark/light, print, mobile)
+- **Cross-browser:** 3 fluxos críticos green em Chromium + Firefox + WebKit
+- **Lint anti-vazamento de PII em fixtures:** green (CPFs gerados por mod-11, sem nomes/dados reais)
 - Gate de CI bloqueia merge/deploy se algum nível falha
 
-**Por que entre F6 e F7 (e não dentro da F7):** Separar garante que testes são pré-requisito do deploy, não afterthought. Bugs descobertos em dev custam 10x menos que em produção.
+**Por que entre F6 e F7 (e não dentro da F7):** Separar garante que testes são pré-requisito do deploy, não afterthought. Bugs descobertos em dev custam 10x menos que em produção. Hardening fintech (6.5D) blindado em sub-fase própria para não ser cortado sob pressão de P0.
 
-Detalhes das tasks: **[BACKLOG.md#f65](BACKLOG.md#f65--frontend-testing--qa)**
+Detalhes das tasks: **[BACKLOG.md#f65](BACKLOG.md#f65--frontend-testing--qa)** • Decisão: **[DECISIONS.md#adr-063](DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d)**
 
 ---
 

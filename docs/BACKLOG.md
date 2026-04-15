@@ -115,9 +115,9 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 
 ## F6.5 — Frontend Testing & QA
 
-**Objetivo:** Rede de segurança de testes. Vitest + RTL + MSW + Playwright.
+**Objetivo:** Rede de segurança de testes. Vitest + RTL + MSW + Playwright + hardening fintech (a11y, visual regression, resilience, security smoke).
 
-**Duração estimada:** 2 semanas
+**Duração estimada:** 2.5 semanas (4 sub-fases)
 
 ### 6.5A — Tooling Setup + Unit Tests (semana 1, dias 1-3)
 
@@ -125,11 +125,11 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | ------ | --------------------------------------------------------------------------- | ---- | ---- | ------ |
 | 6.5A.1 | Setup Vitest (`vitest.config.ts`, jsdom, path aliases, coverage v8)         | P0   | 2h   | ☐      |
 | 6.5A.2 | Setup MSW (`tests/mocks/server.ts` + handlers + fixtures JSON)              | P0   | 3h   | ☐      |
-| 6.5A.3 | Unit tests `format.ts` (9 formatters + 3 status maps, ~40 cases)            | P0   | 4h   | ☐      |
+| 6.5A.3 | Unit tests `format.ts` (9 formatters + 3 status maps, ~40 cases) — incluir property-based via `fast-check` (round-trip, edge BRL) | P0 | 5h | ☐ |
 | 6.5A.4 | Unit tests `export.ts` (CSV BOM, XLSX auto-width, mock document.createElement) | P0 | 2h | ☐      |
 | 6.5A.5 | Unit tests `api.ts` (token mgmt, apiFetch, ApiError, 401 redirect)          | P0   | 3h   | ☐      |
 | 6.5A.6 | Unit tests `utils.ts` (`cn()` Tailwind merge)                               | P0   | 1h   | ☐      |
-| 6.5A.7 | Unit tests `usePipelineWS.ts` (connect, events, reconnect backoff)          | P1   | 3h   | ☐      |
+| 6.5A.7 | Unit tests `usePipelineWS.ts` (connect, events, reconnect backoff + jitter, polling fallback após 3 falhas, offline) | P1 | 4h | ☐ |
 | 6.5A.8 | Coverage baseline + thresholds em `vitest.config.ts`                        | P0   | 1h   | ☐      |
 
 **Checkpoint:** ~50-60 unit tests green. `npm test` <5s.
@@ -142,7 +142,7 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | 6.5B.2  | Tests Dashboard (KPIs, charts, empty, error, loading, drill-down, refresh) | P0   | 4h   | ☐      |
 | 6.5B.3  | Tests Documents (empty, drag-drop, progress, needs_password, delete, CTA)  | P0   | 4h   | ☐      |
 | 6.5B.4  | Tests Pipeline (trigger, WS progress, needs_review, cancel, failed)        | P0   | 5h   | ☐      |
-| 6.5B.5  | Tests Transactions (render, busca, override, export, paginação, URL state) | P0   | 5h   | ☐      |
+| 6.5B.5  | Tests Transactions (render, busca, override, export, paginação, URL state) — incluir XSS smoke: nota com `<script>`/`<img onerror>` deve renderizar escapado | P0 | 5h | ☐ |
 | 6.5B.6  | Tests Reports (list, viewer iframe, print, download, export tables)        | P0   | 4h   | ☐      |
 | 6.5B.7  | Tests Config (6 tabs: Members, Categories, Pipeline, LLM, Inst, Layout)    | P0   | 5h   | ☐      |
 | 6.5B.8  | Tests Vault (CRUD passwords, retry unlock)                                 | P0   | 2h   | ☐      |
@@ -156,7 +156,7 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 
 | #       | Tarefa                                                              | Prio | Est. | Status |
 | ------- | ------------------------------------------------------------------- | ---- | ---- | ------ |
-| 6.5C.1  | Setup Playwright (`playwright.config.ts`, webServer, auth helper)   | P0   | 3h   | ☐      |
+| 6.5C.1  | Setup Playwright (`playwright.config.ts`, webServer, auth helper, projects: chromium + firefox + webkit) | P0 | 4h | ☐ |
 | 6.5C.2  | E2E Fluxo 1 — Onboarding completo                                   | P0   | 3h   | ☐      |
 | 6.5C.3  | E2E Fluxo 2 — Upload → Pipeline → Report                            | P0   | 5h   | ☐      |
 | 6.5C.4  | E2E Fluxo 3 — Config round-trip (criar membro → export JSON)        | P0   | 3h   | ☐      |
@@ -165,10 +165,29 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | 6.5C.7  | E2E Fluxo 6 — Dark mode persistência                                | P0   | 2h   | ☐      |
 | 6.5C.8  | E2E Fluxo 7 — Error handling e auth redirect                        | P0   | 2h   | ☐      |
 | 6.5C.9  | E2E Fluxo 8 — Notifications (bell + Sheet + mark read)              | P1   | 2h   | ☐      |
-| 6.5C.10 | Smoke test checklist (`docs/SMOKE_TEST.md`, 30+ checks)             | P0   | 2h   | ☐      |
+| 6.5C.10 | Smoke test checklist (`docs/SMOKE_TEST.md`, 30+ checks) — incluir seção LGPD pré-beta: nenhum dado real em fixtures, audit do localStorage pós-logout | P0 | 3h | ☐ |
 | 6.5C.11 | CI integration (GH Actions com PostgreSQL + Redis services)         | P0   | 3h   | ☐      |
 
 **Checkpoint:** ~25-30 E2E tests green cobrindo 8 fluxos críticos. `docs/SMOKE_TEST.md` criado.
+
+### 6.5D — Hardening Fintech (semana 2-3, 3-4 dias)
+
+> Sub-fase dedicada para garantir que itens P0 fintech-specific (a11y, visual regression, resilience, security smoke) não sejam cortados sob pressão de prazo. Ver [ADR-063](DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d).
+
+| #       | Tarefa                                                                                                | Prio | Est. | Status |
+| ------- | ----------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
+| 6.5D.1  | `axe-core` integrado (`vitest-axe` em integration + `@axe-core/playwright` em E2E). Gate: 0 critical/serious | P0 | 4h | ☐ |
+| 6.5D.2  | Property-based em `format.ts` via `fast-check` (BRL: negativos, micro-valores, R$ 9B+, NaN/null; round-trip) | P0 | 3h | ☐ |
+| 6.5D.3  | Visual regression (Playwright `toHaveScreenshot()`): 4 charts Recharts, 3 KPI states, dark/light, print preview, AppShell mobile (~12 snapshots) | P0 | 4h | ☐ |
+| 6.5D.4  | Cross-browser: `playwright.config` adiciona `firefox` + `webkit`; rodar 3 fluxos críticos (Onboarding, Upload→Pipeline→Report, Vault) | P0 | 2h | ☐ |
+| 6.5D.5  | Resilience suite: WS drop+reconnect com jitter, polling fallback ativa após 3 falhas, `navigator.onLine` banner, backend 502/503 → toast com retry, slow 3G via `page.route` | P0 | 5h | ☐ |
+| 6.5D.6  | Security smoke: XSS em 4 campos user-controlled (transação.nota, member.full_name, category.name, vault.label), JWT expiry mid-sessão (upload em andamento), logout limpa localStorage | P0 | 4h | ☐ |
+| 6.5D.7  | Fixtures sintéticas auditadas: gerador CPF mod-11 determinístico, lint custom CI falha se detectar `\d{3}\.\d{3}\.\d{3}-\d{2}` real, repositório de PDFs sintéticos versionados separados | P0 | 3h | ☐ |
+| 6.5D.8  | Lighthouse CI (perf>85, a11y>95, best-practices>90; SEO ignorado). **Modo medir, não bloquear** (gate vira hard em F7D.7) | P1 | 3h | ☐ |
+| 6.5D.9  | Bundle size budget (`@next/bundle-analyzer` + `size-limit` em CI; budget por chunk: dashboard <250KB, transactions <200KB, reports <300KB) | P1 | 2h | ☐ |
+| 6.5D.10 | Contract test FE↔BE: `openapi-typescript` em CI gera types do OpenAPI do backend; diff vs `lib/api.ts` types → fail se drift | P1 | 4h | ☐ |
+
+**Checkpoint:** axe-core 0 violations critical/serious • visual regression baseline criado e versionado • 3 fluxos green em 3 browsers • resilience + security smoke green • lint anti-PII green em CI.
 
 ---
 
