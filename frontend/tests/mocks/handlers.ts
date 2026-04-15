@@ -34,9 +34,30 @@ export const handlers = [
   http.get(`${API}/reports`, () =>
     HttpResponse.json({ reports: fixtures.reports, total: fixtures.reports.length }),
   ),
+  http.get(`${API}/reports/:id`, ({ params }) => {
+    const report = fixtures.reports.find((r) => r.id === params.id);
+    if (!report) return HttpResponse.json({ detail: "Not found" }, { status: 404 });
+    return HttpResponse.json(report);
+  }),
   http.get(`${API}/reports/:id/html`, () =>
     HttpResponse.html("<html><body>Mocked report</body></html>"),
   ),
+  // F9 · ADR-076
+  http.get(`${API}/reports/:id/data`, ({ params }) => {
+    const report = fixtures.reports.find((r) => r.id === params.id);
+    if (!report) return HttpResponse.json({ detail: "Not found" }, { status: 404 });
+    if (!report.has_analysis_data) {
+      return HttpResponse.json(
+        { detail: "Relatório pré-F9, sem JSON de análise." },
+        { status: 404 },
+      );
+    }
+    return HttpResponse.json({
+      periodo_dados: "202601-202604",
+      patrimonio: { bruto: 1_000_000, liquido: 950_000 },
+      score: { valor: 82, max: 100, classificacao: "Muito Bom" },
+    });
+  }),
 
   // ─── Documents ───
   http.get(`${API}/documents`, () =>

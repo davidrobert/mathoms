@@ -217,7 +217,10 @@ export function makeReport(
     title: `Relatório ${n}`,
     period: "2026-04",
     size_bytes: 500_000,
+    score: null,
+    patrimonio_liquido: null,
     created_at: isoNow(),
+    has_analysis_data: true,
     ...overrides,
   };
 }

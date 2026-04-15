@@ -22,12 +22,56 @@ export interface ReportResponse {
   title: string;
   period: string | null;
   size_bytes: number | null;
+  score: number | null;
+  patrimonio_liquido: number | null;
   created_at: string;
+  /** F9 · ADR-076 — true se o relatório tem JSON de análise p/ render nativo. */
+  has_analysis_data: boolean;
 }
 
 export interface ReportListResponse {
   reports: ReportResponse[];
   total: number;
+}
+
+/** F9 · ADR-076 — payload do GET /reports/{id}/data.
+ *
+ * Tipagem progressiva: as 24 chaves top-level do E5 JSON serão tipadas
+ * fortemente conforme as seções forem migradas nos lotes 2.A–2.H. Nesta
+ * fase (F0.5) expomos shape parcial + fallback `Record<string, unknown>`.
+ */
+export interface ReportAnalysisData {
+  periodo_dados?: string;
+  data_analise?: string;
+  patrimonio?: Record<string, unknown>;
+  goals?: Record<string, unknown>;
+  fluxo_caixa?: Record<string, unknown>;
+  ratios?: Record<string, unknown>;
+  score?: {
+    valor: number;
+    max: number;
+    classificacao?: string;
+    componentes?: unknown[];
+  };
+  orcamento_prospectivo?: Record<string, unknown>;
+  reserva_emergencia?: Record<string, unknown>;
+  endividamento?: Record<string, unknown>;
+  previdencia_pgbl?: Record<string, unknown>;
+  pontos_fortes?: unknown[];
+  pontos_urgentes?: unknown[];
+  tarefas?: unknown[];
+  diagnostico_comportamental?: unknown[];
+  tarefas_status?: Record<string, unknown>;
+  investimentos?: Record<string, unknown>;
+  equilibrio_cerbasi?: Record<string, unknown>;
+  cenarios_mariana?: Record<string, unknown>;
+  programa_milhas?: Record<string, unknown>;
+  alertas?: unknown[];
+  consumo_consciente?: Record<string, unknown>;
+  narrativas?: Record<string, unknown>;
+  review_metadata?: Record<string, unknown>;
+  // Extensibilidade para chaves ainda não tipadas
+  [key: string]: unknown;
 }
 
 // ─── Document Types ───
@@ -249,8 +293,21 @@ export async function listReports(): Promise<ReportListResponse> {
   return apiFetch("/reports");
 }
 
+export async function getReport(reportId: string): Promise<ReportResponse> {
+  return apiFetch(`/reports/${reportId}`);
+}
+
 export function getReportHtmlUrl(reportId: string): string {
   return `${API_BASE}/reports/${reportId}/html`;
+}
+
+/** F9 · ADR-076 — Busca o snapshot E5 JSON para o render nativo.
+ *
+ * Retorna 404 se o relatório é pré-F9 (sem analysis_json_path) — verifique
+ * antes via `ReportResponse.has_analysis_data` para evitar a requisição.
+ */
+export async function getReportData(reportId: string): Promise<ReportAnalysisData> {
+  return apiFetch(`/reports/${reportId}/data`);
 }
 
 // ─── Documents ───
@@ -734,5 +791,109 @@ export async function submitStageReview(
   return apiFetch(`/pipeline/runs/${runId}/reviews/${reviewId}`, {
     method: "POST",
     body: JSON.stringify(data),
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Workspaces (F8) — listagem de memberships do usuário
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface UserWorkspace {
+  id: string;
+  name: string;
+  family_surname: string | null;
+  role: "owner" | "member";
+  joined_at: string;
+}
+
+export interface UserWorkspaceList {
+  workspaces: UserWorkspace[];
+  total: number;
+}
+
+export async function listMyWorkspaces(): Promise<UserWorkspaceList> {
+  return apiFetch("/me/workspaces");
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Goals — Meta IF (ADR-073, F8.1)
+// Padrão F8+: endpoints escopados por /api/workspaces/{ws_id}/...
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface IFGoalInputs {
+  renda_passiva_mensal_brl: number;
+  trs_pct: number;
+  retorno_real_anual_pct: number;
+  horizonte_anos: number;
+  taxa_retirada_conservadora_pct?: number;
+}
+
+export interface IFGoalDerived {
+  if_meta_brl: number;
+  aporte_necessario_mensal_brl: number;
+  if_meta_conservadora_brl: number;
+}
+
+export interface IFGoalResponse {
+  id: string;
+  workspace_id: string;
+  type: "INDEPENDENCIA_FINANCEIRA";
+  inputs: IFGoalInputs;
+  derived: IFGoalDerived;
+  effective_from: string;
+  effective_to: string | null;
+  is_template: boolean;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IFGoalHistoryResponse {
+  goals: IFGoalResponse[];
+  total: number;
+}
+
+export interface IFGoalComputeRequest {
+  inputs: IFGoalInputs;
+  patrimonio_atual_brl?: number;
+}
+
+export interface IFGoalComputeResponse {
+  derived: IFGoalDerived;
+  percentual_conquistado: number | null;
+  faltante_brl: number | null;
+}
+
+export async function computeIFGoal(
+  workspaceId: string,
+  body: IFGoalComputeRequest
+): Promise<IFGoalComputeResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/if/compute`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getIFGoal(
+  workspaceId: string
+): Promise<IFGoalResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/if`);
+}
+
+export async function getIFGoalHistory(
+  workspaceId: string
+): Promise<IFGoalHistoryResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/if/history`);
+}
+
+export async function upsertIFGoal(
+  workspaceId: string,
+  inputs: IFGoalInputs,
+  notes?: string
+): Promise<IFGoalResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/if`, {
+    method: "PUT",
+    body: JSON.stringify({ inputs, notes }),
   });
 }

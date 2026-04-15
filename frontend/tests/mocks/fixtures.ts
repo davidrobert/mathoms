@@ -42,7 +42,10 @@ const reports: ReportResponse[] = [
     title: "Relatório Família Teste — Abr/2026",
     period: "2026-04",
     size_bytes: 524_288,
+    score: 82,
+    patrimonio_liquido: 950_000,
     created_at: NOW,
+    has_analysis_data: true,
   },
 ];
 
