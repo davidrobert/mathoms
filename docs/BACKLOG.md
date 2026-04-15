@@ -209,18 +209,71 @@ Terceiro bloco da reordenação CTO: blindar fronteira tenant↔tenant antes de 
 
 **Resultado consolidado Bloco 1 + Bloco 2:** 87 passing + 2 skipped em 16.59s.
 
+### 🧪 Bloco 3a — Unit Tests Frontend 6.5A (executado em 2026-04-15) ✅
+
+Quarto bloco da reordenação CTO: unit tests do `lib/` consumindo a fundação criada no Bootstrap.
+
+- **6.5A.6** [`frontend/tests/lib/utils.test.ts`](../frontend/tests/lib/utils.test.ts) — **9 tests** (`cn()` clsx + tailwind-merge: concatenação, falsy, conflitos Tailwind, variants condicionais)
+- **6.5A.3** [`frontend/tests/lib/format.test.ts`](../frontend/tests/lib/format.test.ts) — **102 tests**:
+  - 9 formatters (currency BRL/USD, percent, delta, compact, number, bytes, duration, date)
+  - 4 status maps (docStatus, docType, runStatus, stageStatus, bankLabel) cobrindo TODOS os enums conhecidos via parametrização
+  - Stage display names parametrizado
+  - **Property-based via `fast-check`** (F6.5D.2 antecipada): BRL sempre tem R$ + 2 decimais, separadores BR íntegros, percent inverte sinal corretamente, formatDelta positivo sempre `+`, formatBytes monotônico
+- **6.5A.4** [`frontend/tests/lib/export.test.ts`](../frontend/tests/lib/export.test.ts) — **16 tests** (CSV BOM UTF-8, delimitador `;`, MIME, acentos, XLSX MIME spreadsheetml, auto-width via spy em `book_append_sheet`, sheet names, round-trip XLSX)
+- **6.5A.5** [`frontend/tests/lib/api.test.ts`](../frontend/tests/lib/api.test.ts) — **17 tests** (token mgmt, Bearer header, Content-Type, ApiError 401/422/500, 204 No Content, XHR upload com progress events + ApiError 4xx)
+- **6.5A.7** [`frontend/tests/lib/usePipelineWS.test.tsx`](../frontend/tests/lib/usePipelineWS.test.tsx) — **15 tests** (mock WebSocket, connect com URL-encoded token, status transitions, heartbeat ignorado, terminal events `run_completed/failed/cancelled`, reconnect com backoff exponencial, max retries → `failed`, close 1000 sem reconnect, contador zerado em sucesso, cleanup ao desmontar/runId change)
+- **6.5A.8** [`frontend/vitest.config.ts`](../frontend/vitest.config.ts) — thresholds calibrados (5% global, 65% lib/) com TODOs para subir em 6.5B/D
+
+**Resultado Bloco 3a:** 167/167 passing em 1.15s. Coverage: utils 100%, format 98.96%, export 100%, usePipelineWS 97.75%, api 35.57% (50+ endpoints ficam para integration tests em 6.5B).
+
+**Achados não previstos:**
+- jsdom 25 + vitest 2.1.x: `Blob.text()` e `Blob.arrayBuffer()` quebrados → workaround spy no construtor `Blob` para capturar `parts` + `options` diretamente
+- `WebSocket` é `readonly` no globalThis → `vi.stubGlobal()` em vez de assignment
+- `XLSX.utils.book_append_sheet` precisa ser espionado para validar `!cols` (auto-write não persiste no formato XLSX, é metadata runtime)
+
+### 🧩 Bloco 3b — Integration Tests (sample, 6.5B parcial) (executado em 2026-04-15) ✅ parcial
+
+Quinto bloco da reordenação CTO. **Sample representativo** que estabelece o pattern; restante de 6.5B (8 pages: Dashboard/Documents/Pipeline/Transactions/Reports/Config/Vault/AppShell + ConfirmDialog/ThemeToggle/DataTable + Register + form validation suite + WS real) fica para PRs focados em sequência.
+
+- **6.5B.10 (sample)** [`frontend/tests/components/composites.test.tsx`](../frontend/tests/components/composites.test.tsx) — **26 tests** cobrindo 5 dos 8 compostos:
+  - `<KPICard />`: render, loading skeletons (data-slot), Delta opcional, className custom
+  - `<EmptyState />`: title+description, **CTA com href (F6.5D.12 antecipada)**, CTA com onClick, variant=error, todas as variants
+  - `<StatusBadge />`: render children, parametrizado nos 7 variants
+  - `<Delta />`: positivo (TrendingUp + aria-label "aumento"), negativo (TrendingDown + "redução"), zero (Minus), invert (despesa reduzida = positivo), percentual inline
+  - `<Spinner />`: animate-spin (anti-regressão OP-011), 3 sizes parametrizados
+- **6.5B.1 (sample)** [`frontend/tests/pages/login.test.tsx`](../frontend/tests/pages/login.test.tsx) — **8 tests**:
+  - Render form completo
+  - Happy path: submit → setToken + push("/documents")
+  - 401 → "Email ou senha incorretos" custom
+  - 500 → mostra detail do servidor
+  - Erro de rede (HttpResponse.error) → "Erro de conexão"
+  - Loading: botão disabled + "Entrando..."
+  - Link "Criar conta" aponta para /register
+  - Submit sem campos não dispara navigation (HTML5 validation gate)
+
+**Resultado Bloco 3b parcial:** 34 novos integration tests, total agregado 201/201 passing em 1.56s.
+
+**Pendente para PRs sucessivos** (escopo deferido com justificativa):
+- 6.5B.1 Register (similar a Login)
+- 6.5B.2-9 Dashboard/Documents/Pipeline/Transactions/Reports/Config/Vault/AppShell (10 pages × ~5h cada)
+- 6.5B.10 ConfirmDialog/ThemeToggle/DataTable (3 compostos restantes)
+- 6.5B.11 Dark mode em compostos + charts
+- 6.5B.13 Form validation suite paramétrica (6 forms × validações)
+- 6.5B.14 WebSocket integration real (Redis pub/sub)
+- 6.5B.15 Date/timezone regression (browsers TZ; OP-010 já cobre Pydantic side em 6.5E.8)
+
 ### 6.5A — Tooling Setup + Unit Tests (semana 1, dias 1-3)
 
 | #      | Tarefa                                                                      | Prio | Est. | Status |
 | ------ | --------------------------------------------------------------------------- | ---- | ---- | ------ |
 | 6.5A.1 | Setup Vitest (`vitest.config.ts`, jsdom, path aliases, coverage v8)         | P0   | 2h   | ✅ Bootstrap |
 | 6.5A.2 | Setup MSW (`tests/mocks/server.ts` + handlers + fixtures JSON)              | P0   | 3h   | ✅ Bootstrap |
-| 6.5A.3 | Unit tests `format.ts` (9 formatters + 3 status maps, ~40 cases) — incluir property-based via `fast-check` (round-trip, edge BRL) | P0 | 5h | ☐ |
-| 6.5A.4 | Unit tests `export.ts` (CSV BOM, XLSX auto-width, mock document.createElement) | P0 | 2h | ☐      |
-| 6.5A.5 | Unit tests `api.ts` (token mgmt, apiFetch, ApiError, 401 redirect)          | P0   | 3h   | ☐      |
-| 6.5A.6 | Unit tests `utils.ts` (`cn()` Tailwind merge)                               | P0   | 1h   | ☐      |
-| 6.5A.7 | Unit tests `usePipelineWS.ts` (connect, events, reconnect backoff + jitter, polling fallback após 3 falhas, offline) | P1 | 4h | ☐ |
-| 6.5A.8 | Coverage baseline + thresholds em `vitest.config.ts`                        | P0   | 1h   | ☐      |
+| 6.5A.3 | Unit tests `format.ts` (9 formatters + 3 status maps, ~40 cases) — incluir property-based via `fast-check` (round-trip, edge BRL) | P0 | 5h | ✅ Bloco 3 (102 tests, format.ts 98.96% line) |
+| 6.5A.4 | Unit tests `export.ts` (CSV BOM, XLSX auto-width, mock document.createElement) | P0 | 2h | ✅ Bloco 3 (16 tests, 100% line) |
+| 6.5A.5 | Unit tests `api.ts` (token mgmt, apiFetch, ApiError, 401 redirect)          | P0   | 3h   | ✅ Bloco 3 (17 tests; api.ts em 35% line — restantes endpoints subem via integration tests em 6.5B) |
+| 6.5A.6 | Unit tests `utils.ts` (`cn()` Tailwind merge)                               | P0   | 1h   | ✅ Bloco 3 (9 tests, 100% line) |
+| 6.5A.7 | Unit tests `usePipelineWS.ts` (connect, events, reconnect backoff + jitter, polling fallback após 3 falhas, offline) | P1 | 4h | ✅ Bloco 3 (15 tests, 97.75% line) |
+| 6.5A.8 | Coverage baseline + thresholds em `vitest.config.ts`                        | P0   | 1h   | ✅ Bloco 3 (thresholds calibrados por sub-fase; sobem em 6.5B/D) |
 
 **Checkpoint:** ~50-60 unit tests green. `npm test` <5s.
 
@@ -228,7 +281,7 @@ Terceiro bloco da reordenação CTO: blindar fronteira tenant↔tenant antes de 
 
 | #       | Tarefa                                                                     | Prio | Est. | Status |
 | ------- | -------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 6.5B.1  | Tests Login/Register (render, submit, errors, loading)                     | P0   | 3h   | ☐      |
+| 6.5B.1  | Tests Login/Register (render, submit, errors, loading)                     | P0   | 3h   | 🚧 Bloco 3b sample (Login: 8 tests; Register pendente) |
 | 6.5B.2  | Tests Dashboard (KPIs, charts, empty, error, loading, drill-down, refresh) | P0   | 4h   | ☐      |
 | 6.5B.3  | Tests Documents (empty, drag-drop, progress, needs_password, delete, CTA)  | P0   | 4h   | ☐      |
 | 6.5B.4  | Tests Pipeline (trigger, WS progress, needs_review, cancel, failed)        | P0   | 5h   | ☐      |
@@ -237,7 +290,7 @@ Terceiro bloco da reordenação CTO: blindar fronteira tenant↔tenant antes de 
 | 6.5B.7  | Tests Config (6 tabs: Members, Categories, Pipeline, LLM, Inst, Layout)    | P0   | 5h   | ☐      |
 | 6.5B.8  | Tests Vault (CRUD passwords, retry unlock)                                 | P0   | 2h   | ☐      |
 | 6.5B.9  | Tests AppShell (auth gate, navigation, mobile, logout, NotificationCenter) | P0   | 3h   | ☐      |
-| 6.5B.10 | Tests compostos (KPICard, EmptyState, StatusBadge, ConfirmDialog, Delta, Spinner, ThemeToggle, DataTable) | P1 | 3h | ☐ |
+| 6.5B.10 | Tests compostos (KPICard, EmptyState, StatusBadge, ConfirmDialog, Delta, Spinner, ThemeToggle, DataTable) | P1 | 3h | 🚧 Bloco 3b sample (KPICard, EmptyState, StatusBadge, Delta, Spinner: 26 tests; ConfirmDialog/ThemeToggle/DataTable pendentes) |
 | 6.5B.11 | Tests dark mode (7 compostos + Dashboard charts + Transaction table)       | P1   | 2h   | ☐      |
 | 6.5B.12 | **Multi-tenant isolation suite** (backend, paramétrica): para CADA endpoint write/read, criar 2 workspaces (A e B) + dados em ambos; chamar como user A → assert que dados de B nunca aparecem. Inclui: members, categories, documents, runs, reports, transactions, vault, llm_config, notifications. **Sem isso, beta com >1 user é roleta russa** | P0 | 6h | ✅ Bloco 2 (27 tests, 0 vazamentos) |
 | 6.5B.13 | **Form validation suite** (frontend): 6 forms (Login, Register, Member create, Bank account, Vault password, Family surname) × validações (required, email format, password strength, max length, CPF mod-11, duplicate key). Mensagens user-facing testadas | P0 | 4h | ☐ |

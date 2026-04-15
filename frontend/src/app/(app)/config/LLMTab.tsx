@@ -238,8 +238,8 @@ export default function LLMTab() {
         <CardContent className="pt-0">
           <p className="text-sm text-muted-foreground">
             {tier?.tier === "premium"
-              ? "Todas as etapas LLM (E1, E1.5, E2-LLM, E7-review) estão habilitadas."
-              : "Configure uma chave de API para desbloquear etapas LLM do pipeline."}
+              ? "Todas as etapas com IA (leitura de dados pessoais, IRPF, investimentos e revisão final) estão habilitadas."
+              : "Configure uma chave de API para desbloquear as etapas com IA do processamento."}
           </p>
         </CardContent>
       </Card>

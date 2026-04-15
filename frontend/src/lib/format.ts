@@ -212,22 +212,42 @@ export function stageStatusLabel(status: PipelineStageStatus): StageStatusLabel 
   return STAGE_STATUS_MAP[status] ?? { label: status, variant: "neutral", icon: "?" };
 }
 
+/**
+ * Nomes user-facing das etapas do pipeline (ADR-068).
+ *
+ * Regra: UI, toasts, e-mails e notificações NUNCA mostram códigos `E*`.
+ * Códigos continuam preservados em logs, API, WebSocket e telemetria
+ * para observabilidade e suporte.
+ *
+ * Ver também: `PIPELINE_PHASES` em `./pipelinePhases.ts` — agrupamento
+ * de 4 fases narrativas para o stepper de alto nível.
+ */
 export const STAGE_DISPLAY_NAMES: Record<string, string> = {
-  "E0-audit": "Auditoria",
-  "E0-route": "Roteamento",
-  "E0-unlock": "Desbloqueio",
-  "E1.5c": "Consolidar Baseline",
-  "E2": "Extração",
-  "E2-extratos": "Extratos",
-  "E2-faturas": "Faturas",
-  "E3": "Reconciliação",
+  "E0-audit": "Auditoria de integridade",
+  "E0-route": "Organização de arquivos",
+  "E0-unlock": "Desbloqueio de PDFs",
+  "E1": "Leitura de dados pessoais",
+  "E1.5": "Leitura da declaração IRPF",
+  "E1.5c": "Consolidação do patrimônio inicial",
+  "E2": "Extração de transações",
+  "E2-llm": "Leitura de investimentos",
+  "E2-extratos": "Leitura de extratos bancários",
+  "E2-faturas": "Leitura de faturas de cartão",
+  "E3": "Reconciliação e deduplicação",
   "E4": "Categorização",
-  "E5": "Análise",
+  "E5": "Análise financeira",
   "E5.N": "Narrativas",
-  "E6": "Relatório",
-  "E7-crossval": "Cross-validation",
+  "E6": "Geração do relatório",
+  "E6-final": "Relatório final",
+  "E7-crossval": "Validação cruzada",
+  "E7-review": "Revisão holística",
+  "E7-apply": "Aplicação da revisão",
 };
 
+/**
+ * Traduz código interno de etapa (ex: "E3") para nome user-facing.
+ * Fallback: retorna o código original quando não mapeado (não deve acontecer).
+ */
 export function stageName(stage: string): string {
   return STAGE_DISPLAY_NAMES[stage] ?? stage;
 }

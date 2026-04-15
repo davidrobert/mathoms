@@ -27,7 +27,14 @@ import {
   stageStatusLabel,
   stageName,
 } from "@/lib/format";
+import {
+  computePhaseStates,
+  PIPELINE_PHASES,
+  getPhase,
+} from "@/lib/pipelinePhases";
+import { buildUserFacingError } from "@/lib/pipelineErrorMessages";
 import { PageHeader } from "@/components/PageHeader";
+import { PhaseStepper } from "@/components/PhaseStepper";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Spinner } from "@/components/Spinner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -292,7 +299,7 @@ export default function PipelinePage() {
                       onClick={() => handleTrigger("E3")}
                       disabled={triggering}
                     >
-                      Reprocessar a partir do E3
+                      Reprocessar a partir de {stageName("E3")}
                     </Button>
                   </div>
                 </>
@@ -318,11 +325,11 @@ export default function PipelinePage() {
             <CardContent>
               <div className="flex items-center gap-3 mb-3">
                 <AlertTriangle className="h-5 w-5 text-warning" />
-                <h2 className="font-medium text-warning">Revisão Necessária</h2>
+                <h2 className="font-medium text-warning">Aguardando sua confirmação</h2>
               </div>
               <p className="text-sm text-muted-foreground mb-3">
-                O pipeline pausou na etapa <span className="font-medium">{stageName(activeRun.paused_at_stage ?? "")}</span>.
-                Aprove os resultados para continuar o processamento.
+                Pausamos o processamento em <span className="font-medium">{getPhase(activeRun.paused_at_stage ?? "").title}</span>{" "}
+                para que você aprove os resultados antes de continuar.
               </p>
               <div className="flex gap-3">
                 <Button
@@ -424,25 +431,32 @@ function FailedRunCard({
     ? new Date(run.completed_at).getTime() - new Date(run.started_at).getTime()
     : null;
 
+  // Mensagem user-facing centrada em impacto + próximo passo (ADR-068)
+  const userError = buildUserFacingError(
+    failedStage?.errors,
+    run.failed_at_stage,
+  );
+
   return (
     <Card className="mb-8 border-loss/40 bg-loss/[0.03]">
       <CardContent>
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-loss/10">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-loss/10">
               <XCircle className="h-5 w-5 text-loss" />
             </div>
-            <div>
-              <h2 className="font-medium text-loss">Pipeline falhou</h2>
-              <p className="text-sm text-muted-foreground">
-                {run.failed_at_stage
-                  ? <>Erro na etapa: <span className="font-medium text-foreground">{stageName(run.failed_at_stage)}</span></>
-                  : "Erro durante a execução"
-                }
-                {duration != null && (
-                  <span className="ml-2 text-xs">({formatDuration(duration)})</span>
-                )}
-              </p>
+            <div className="min-w-0">
+              <h2 className="font-medium text-loss">{userError.headline}</h2>
+              {userError.hint && (
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {userError.hint}
+                </p>
+              )}
+              {duration != null && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Falhou após {formatDuration(duration)}
+                </p>
+              )}
             </div>
           </div>
           <button
@@ -516,6 +530,7 @@ function ActiveRunCard({
 
   const [elapsed, setElapsed] = useState(() => formatElapsed(run.started_at));
   const [stallWarning, setStallWarning] = useState<string | null>(null);
+  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -527,7 +542,7 @@ function ActiveRunCard({
 
       if (isPending && hasNoStages && runAge > STALL_PENDING_MS) {
         setStallWarning(
-          "O pipeline está aguardando há mais de 30s. O worker Celery pode não estar rodando."
+          "O processamento está aguardando há mais de 30s. Pode haver um problema na fila de execução."
         );
       } else if (isRunning && sinceLastWs > STALL_RUNNING_MS) {
         setStallWarning("Sem atualizações recentes. O processamento pode estar lento.");
@@ -538,23 +553,31 @@ function ActiveRunCard({
     return () => clearInterval(interval);
   }, [run.started_at, isPending, isRunning, hasNoStages, lastWsEventRef]);
 
+  // Agrupamento em 4 fases narrativas (ADR-068)
+  const phaseStates = computePhaseStates(run.stage_logs, run.current_stage, run.status);
+  const activePhase = run.current_stage
+    ? getPhase(run.current_stage)
+    : isPending
+      ? PIPELINE_PHASES[0]
+      : null;
+
   const title = isPending
-    ? "Iniciando pipeline..."
-    : run.current_stage
-      ? `Processando: ${stageName(run.current_stage)}`
-      : "Executando pipeline...";
+    ? "Iniciando processamento..."
+    : activePhase
+      ? activePhase.title
+      : "Processando seus documentos...";
 
   const subtitle = isPending
-    ? "Conectando ao worker de processamento..."
-    : run.current_stage
-      ? `Etapa ${completedCount + 1} de ${totalStages || "?"}`
+    ? "Conectando ao serviço de processamento..."
+    : activePhase
+      ? activePhase.activeMessage
       : null;
 
   return (
     <Card className={`mb-8 ${stallWarning ? "border-alert/50" : "border-primary/30"}`}>
       <CardContent>
         {/* Header */}
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {isPending ? (
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -590,30 +613,30 @@ function ActiveRunCard({
 
         {/* Stall Warning */}
         {stallWarning && (
-          <div className="mb-3 flex items-start gap-2 rounded-lg bg-alert/10 px-3 py-2.5 text-sm text-alert">
+          <div className="mb-4 flex items-start gap-2 rounded-lg bg-alert/10 px-3 py-2.5 text-sm text-alert">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{stallWarning}</span>
           </div>
         )}
 
-        {/* Progress Bar */}
-        <div className="mb-4">
+        {/* Phase Stepper — macro view (4 fases narrativas) */}
+        <div className="mb-5">
+          <PhaseStepper states={phaseStates} />
+        </div>
+
+        {/* Progress Bar (quando já temos etapas logadas) */}
+        <div className="mb-3">
           {isPending && hasNoStages ? (
-            <>
-              <div className="mb-1 text-xs text-muted-foreground">Preparando...</div>
-              <div className="h-2.5 overflow-hidden rounded-full bg-muted">
-                <div className="h-full w-[40%] rounded-full bg-primary/60 animate-indeterminate" />
-              </div>
-            </>
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
+              <div className="h-full w-[40%] rounded-full bg-primary/60 animate-indeterminate" />
+            </div>
           ) : (
             <>
               <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                <span>
-                  {completedCount} de {totalStages} etapa{totalStages !== 1 ? "s" : ""}
-                </span>
+                <span>Progresso geral</span>
                 <span>{pct}%</span>
               </div>
-              <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div
                   className={`h-full rounded-full transition-all duration-700 ease-out ${
                     run.status === "failed" || run.status === "partial_failure"
@@ -631,20 +654,31 @@ function ActiveRunCard({
           )}
         </div>
 
-        {/* Current stage indicator when no stage_logs yet but running */}
-        {isRunning && hasNoStages && run.current_stage && (
-          <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-            <Spinner size="sm" />
-            <span>Etapa atual: <span className="font-medium text-foreground">{stageName(run.current_stage)}</span></span>
-          </div>
-        )}
-
-        {/* Stage List */}
+        {/* Disclosure: detalhes técnicos (etapas individuais) */}
         {totalStages > 0 && (
-          <div className="space-y-0.5">
-            {run.stage_logs.map((stage) => (
-              <StageRow key={stage.id} stage={stage} />
-            ))}
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setShowTechnicalDetails((v) => !v)}
+              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              aria-expanded={showTechnicalDetails}
+            >
+              {showTechnicalDetails ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+              {showTechnicalDetails
+                ? "Ocultar detalhes técnicos"
+                : `Ver detalhes técnicos (${completedCount}/${totalStages} etapas)`}
+            </button>
+            {showTechnicalDetails && (
+              <div className="mt-3 space-y-0.5 rounded-lg border border-border/60 bg-muted/30 p-2">
+                {run.stage_logs.map((stage) => (
+                  <StageRow key={stage.id} stage={stage} />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -737,6 +771,16 @@ function StageRow({ stage }: { stage: PipelineStageLog }) {
         </span>
         <span className={`flex-1 ${stage.status === "running" ? "font-medium" : ""}`}>
           {stageName(stage.stage)}
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <span className="ml-2 inline-block rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground cursor-help" />
+              }
+            >
+              {stage.stage}
+            </TooltipTrigger>
+            <TooltipContent>Código interno usado em logs e suporte</TooltipContent>
+          </Tooltip>
           {stage.status === "running" && (
             <span className="ml-2 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
           )}

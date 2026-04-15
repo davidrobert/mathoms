@@ -73,7 +73,7 @@ export default function PipelineTab() {
         { key: "min_csv_bytes", label: "Min bytes CSV", value: fileLimits.min_csv_bytes as number ?? 500, type: "number" },
       ]} onSave={(data) => handleSave("file_limits", data)} saving={saving} />
 
-      <ConfigSection title="QA Thresholds" description="Tolerâncias para cross-validation (E7)" fields={[
+      <ConfigSection title="QA Thresholds" description="Tolerâncias para a validação cruzada do relatório" fields={[
         { key: "score_diff_max", label: "Score diff max", value: qa.score_diff_max as number ?? 0.5, type: "number", step: "0.1" },
         { key: "patrimonio_composicao_diff_pct_max", label: "Composição patrim. diff % max", value: qa.patrimonio_composicao_diff_pct_max as number ?? 5, type: "number" },
         { key: "cv_fluxo_diff_max", label: "Fluxo diff max (R$)", value: qa.cv_fluxo_diff_max as number ?? 100, type: "number" },
