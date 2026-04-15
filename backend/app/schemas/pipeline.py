@@ -1,9 +1,9 @@
 """Pydantic schemas for Pipeline execution endpoints."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_serializer, field_validator
 
 from backend.app.models.pipeline_run import PipelineRunStatus, PipelineStageStatus
 from backend.app.models.stage_review import StageReviewStatus
@@ -35,6 +35,15 @@ class PipelineStageLogResponse(BaseModel):
     completed_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+    @field_serializer("started_at", "completed_at")
+    @classmethod
+    def _serialize_dt_utc(cls, v: datetime | None) -> str | None:
+        if v is None:
+            return None
+        if v.tzinfo is None:
+            v = v.replace(tzinfo=timezone.utc)
+        return v.isoformat()
 
 
 class StageReviewResponse(BaseModel):
@@ -80,6 +89,15 @@ class PipelineRunResponse(BaseModel):
     stage_logs: list[PipelineStageLogResponse] = []
 
     model_config = {"from_attributes": True}
+
+    @field_serializer("started_at", "completed_at")
+    @classmethod
+    def _serialize_dt_utc(cls, v: datetime | None) -> str | None:
+        if v is None:
+            return None
+        if v.tzinfo is None:
+            v = v.replace(tzinfo=timezone.utc)
+        return v.isoformat()
 
 
 class PipelineRunListResponse(BaseModel):

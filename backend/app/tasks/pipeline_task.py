@@ -86,6 +86,33 @@ def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
             return None, attempts + 1, error_msg
 
 
+def _on_pipeline_task_failure(self, exc, task_id, args, kwargs, einfo):
+    """BUG-003 fix: mark pipeline run as failed when the Celery task crashes
+    outside the main try-catch (e.g. OOM, import error, worker killed).
+
+    Without this, the run stays in 'pending'/'running' forever and blocks
+    new runs (409 Conflict on the concurrency check).
+    """
+    run_id = kwargs.get("run_id") or (args[0] if args else None)
+    if not run_id:
+        return
+    try:
+        with SyncSessionLocal() as db:
+            run = db.get(PipelineRun, run_id)
+            if run and run.status in (
+                PipelineRunStatus.pending,
+                PipelineRunStatus.running,
+                PipelineRunStatus.resuming,
+            ):
+                run.status = PipelineRunStatus.failed
+                run.completed_at = datetime.now(timezone.utc)
+                run.current_stage = None
+                db.commit()
+        publish_run_failed(run_id)
+    except Exception:
+        pass  # best-effort — DB may be down too
+
+
 @celery_app.task(
     name="pipeline.run",
     bind=True,
@@ -94,6 +121,7 @@ def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
     reject_on_worker_lost=True,
     time_limit=3600,
     soft_time_limit=3000,
+    on_failure=_on_pipeline_task_failure,
 )
 def run_pipeline_task(
     self,
@@ -112,6 +140,11 @@ def run_pipeline_task(
     - free tier: LLM stages auto-skipped
     - premium: LLM stages run; validation failures → StageReview + pause
     """
+    import sys
+    _root = str(Path(__file__).resolve().parent.parent.parent.parent)
+    if _root not in sys.path:
+        sys.path.insert(0, _root)
+
     from pipeline.context import WorkspaceContext
     from pipeline.orchestrator import LLM_STAGES, _run_stage
 

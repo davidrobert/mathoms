@@ -156,21 +156,71 @@ def _get_stage_runner(stage: str) -> Callable:
 
 
 def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
-    """Executa um stage individual e retorna StageResult."""
+    """Executa um stage individual e retorna StageResult.
+
+    Captures stdout/stderr so that error messages from legacy scripts (which
+    print to stderr before calling sys.exit(1)) are included in the result.
+
+    Catches SystemExit from legacy scripts that call sys.exit() on error.
+    In CLI mode sys.exit() terminates the process (expected). In Celery worker
+    mode it would kill the fork pool worker (catastrophic). Converting to
+    StageResult(success=False) lets the task handle it gracefully.
+    """
+    import io
+    import sys
     import time
 
     runner = _get_stage_runner(stage)
     if runner is None:
         return StageResult(stage=stage, success=False, error=f"No runner found for {stage}")
 
+    # Capture stderr to extract error messages from legacy scripts
+    original_stderr = sys.stderr
+    original_stdout = sys.stdout
+    captured_stderr = io.StringIO()
+    captured_stdout = io.StringIO()
+    sys.stderr = captured_stderr
+    sys.stdout = captured_stdout
+
     start = time.monotonic()
     try:
         detail = runner(ctx)
         elapsed = (time.monotonic() - start) * 1000
         return StageResult(stage=stage, success=True, duration_ms=elapsed, detail=detail)
+    except SystemExit as exc:
+        elapsed = (time.monotonic() - start) * 1000
+        code = exc.code if exc.code is not None else 0
+        if code == 0:
+            return StageResult(stage=stage, success=True, duration_ms=elapsed, detail={"exit_code": 0})
+        # Extract last meaningful error lines from captured output
+        error_msg = _extract_error_message(captured_stderr.getvalue(), captured_stdout.getvalue(), code)
+        return StageResult(stage=stage, success=False, duration_ms=elapsed, error=error_msg)
     except Exception as exc:
         elapsed = (time.monotonic() - start) * 1000
         return StageResult(stage=stage, success=False, duration_ms=elapsed, error=str(exc))
+    finally:
+        sys.stderr = original_stderr
+        sys.stdout = original_stdout
+
+
+def _extract_error_message(stderr: str, stdout: str, exit_code: int) -> str:
+    """Build a user-friendly error message from captured script output."""
+    # Look for [ERROR], FATAL, or last non-empty lines in stderr then stdout
+    for output in (stderr, stdout):
+        for line in reversed(output.strip().splitlines()):
+            line = line.strip()
+            if not line:
+                continue
+            # Prefer lines with error markers
+            for marker in ("[ERROR]", "FATAL", "Error:", "ERROR:"):
+                if marker in line:
+                    return line
+    # Fallback: last non-empty line from either stream
+    for output in (stderr, stdout):
+        lines = [l.strip() for l in output.strip().splitlines() if l.strip()]
+        if lines:
+            return lines[-1]
+    return f"Script exited with code {exit_code}"
 
 
 def run_stages(

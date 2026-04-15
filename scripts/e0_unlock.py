@@ -351,7 +351,7 @@ def main(root_dir: Path = None):
     parser.add_argument("--dry-run", action="store_true", help="Apenas mostra status, sem alterar")
     parser.add_argument("--check-destinations", action="store_true",
                         help="Varre data/ e members/ por PDFs encriptados e desbloqueia in-place")
-    args = parser.parse_args()
+    args = parser.parse_args([] if root_dir else None)
 
     passwords = load_passwords()
     print(f"Senhas carregadas: {len(passwords)}")

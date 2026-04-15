@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   listNotifications,
   markNotificationsRead,
+  deleteNotification,
   type NotificationItem,
 } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -20,6 +22,7 @@ import {
   AlertCircle,
   Info,
   CheckCheck,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -67,9 +70,12 @@ export function NotificationCenter() {
       setItems(data.notifications);
       setUnread(data.unread_count);
     } catch {
-      // silently ignore — bell just shows stale count
+      // Only toast when user explicitly opened the panel (not background polling)
+      if (open) {
+        toast.error("Erro ao carregar notificações");
+      }
     }
-  }, []);
+  }, [open]);
 
   useEffect(() => {
     fetchNotifications();
@@ -89,8 +95,23 @@ export function NotificationCenter() {
       await markNotificationsRead(unreadIds);
       setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
       setUnread(0);
+    } catch {
+      toast.error("Erro ao marcar notificações como lidas");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteNotification(id);
+      setItems((prev) => prev.filter((n) => n.id !== id));
+      setUnread((prev) => {
+        const wasUnread = items.find((n) => n.id === id && !n.is_read);
+        return wasUnread ? Math.max(0, prev - 1) : prev;
+      });
+    } catch {
+      toast.error("Erro ao remover notificação");
     }
   };
 
@@ -148,7 +169,7 @@ export function NotificationCenter() {
                   <li
                     key={item.id}
                     className={cn(
-                      "flex gap-3 rounded-lg p-3 transition-colors",
+                      "group/item flex gap-3 rounded-lg p-3 transition-colors",
                       !item.is_read && "bg-accent/50"
                     )}
                   >
@@ -170,9 +191,18 @@ export function NotificationCenter() {
                         >
                           {item.title}
                         </p>
-                        <span className="shrink-0 text-xs text-muted-foreground">
-                          {formatRelativeTime(item.created_at)}
-                        </span>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <span className="text-xs text-muted-foreground">
+                            {formatRelativeTime(item.created_at)}
+                          </span>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover/item:opacity-100"
+                            aria-label="Remover notificação"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
                       </div>
                       <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
                         {item.message}

@@ -799,7 +799,7 @@ Exemplos:
         help="Preview without making changes.",
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args([] if root_dir else None)
     dry_run = args.dry_run
 
     print("=" * 70)

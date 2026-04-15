@@ -235,7 +235,8 @@ async def create_account(
     member = await _verify_member(member_id, ws.id, db)
     account = BankAccount(
         member_id=member.id, institution_code=body.institution_code,
-        account_type=body.account_type, agency=body.agency, account_number=body.account_number,
+        account_type=body.account_type, agency=body.agency,
+        account_number=body.account_number, label=body.label,
     )
     db.add(account)
     await db.commit()
@@ -757,7 +758,7 @@ def _convert_members_json_to_schemas(data: dict[str, Any]) -> list[FamilyMemberS
             key=key,
             full_name=info.get("nome_completo", key),
             short_name=info.get("nome_curto", key),
-            cpf=info.get("cpf"),
+            cpf=None,  # BUG-004: never expose real CPFs from global fallback file
             birth_date=info.get("data_nascimento"),
             role=info.get("papel", "titular"),
             order=order,

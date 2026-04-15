@@ -712,7 +712,7 @@ def main(root_dir: Path = None):
     parser.add_argument("--base", type=str, default=None,
                         help="Diretório base do projeto (default: auto-detect)")
 
-    args = parser.parse_args()
+    args = parser.parse_args([] if root_dir else None)
     base = Path(args.base) if args.base else BASE
 
     stats = route_all(

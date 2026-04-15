@@ -19,6 +19,7 @@ class BankAccountSchema(BaseModel):
     account_type: str = Field(..., min_length=1, max_length=100)
     agency: Optional[str] = Field(None, max_length=20)
     account_number: Optional[str] = Field(None, max_length=30)
+    label: Optional[str] = Field(None, max_length=255)
 
     model_config = {"from_attributes": True}
 
@@ -28,6 +29,7 @@ class BankAccountCreateRequest(BaseModel):
     account_type: str = Field(..., min_length=1, max_length=100)
     agency: Optional[str] = Field(None, max_length=20)
     account_number: Optional[str] = Field(None, max_length=30)
+    label: Optional[str] = Field(None, max_length=255)
 
 
 class FamilyMemberSchema(BaseModel):

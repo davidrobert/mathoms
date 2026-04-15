@@ -4,9 +4,18 @@ Start worker:
     celery -A backend.app.worker worker -l info -c 2
 """
 
+import sys
+from pathlib import Path
+
 from celery import Celery
 
 from backend.app.core.config import settings
+
+# BUG-002 fix: ensure project root is on sys.path so that `import pipeline`
+# works inside the Celery worker process (fork pool doesn't inherit sys.path).
+_project_root = str(Path(__file__).resolve().parent.parent.parent)
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
 
 celery_app = Celery("fin")
 
@@ -26,6 +35,8 @@ celery_app.conf.update(
     task_acks_late=True,
     task_reject_on_worker_lost=True,
     broker_connection_retry_on_startup=True,
+    # BUG-001 fix: explicit include instead of autodiscover_tasks.
+    # autodiscover_tasks looks for a module named `tasks.py` inside the package,
+    # but our task file is `pipeline_task.py`.
+    include=["backend.app.tasks.pipeline_task"],
 )
-
-celery_app.autodiscover_tasks(["backend.app.tasks"])

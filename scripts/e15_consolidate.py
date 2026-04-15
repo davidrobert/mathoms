@@ -377,7 +377,7 @@ def main(root_dir: Path = None):
         "--baseline", type=str, default=str(BASELINE_FILE),
         help=f"Caminho do baseline JSON (default: {BASELINE_FILE})",
     )
-    args = parser.parse_args()
+    args = parser.parse_args([] if root_dir else None)
 
     baseline_path = Path(args.baseline)
     if not baseline_path.exists():
