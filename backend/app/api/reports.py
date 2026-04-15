@@ -97,3 +97,49 @@ async def get_report_html(
 
     html_content = html_path.read_text(encoding="utf-8")
     return HTMLResponse(content=html_content)
+
+
+@router.get("/{report_id}/data")
+async def get_report_data(
+    report_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Serve o snapshot E5 JSON do relatório para o render nativo React (F9 · F0.4).
+
+    ADR-076: o render nativo consome o JSON estruturado ao invés de parsear
+    o HTML do iframe. Relatórios pré-F9 (sem analysis_json_path) retornam 404.
+    """
+    ws = await _get_user_workspace(current_user, db)
+    result = await db.execute(
+        select(Report).where(Report.id == report_id, Report.workspace_id == ws.id)
+    )
+    report = result.scalar_one_or_none()
+    if not report:
+        raise HTTPException(status_code=404, detail="Relatório não encontrado")
+
+    if not report.analysis_json_path:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=(
+                "Este relatório não tem JSON de análise disponível "
+                "(gerado antes do F9). Use /html ou /download.html."
+            ),
+        )
+
+    json_path = Path(report.analysis_json_path)
+    if not json_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Arquivo JSON de análise não encontrado no disco",
+        )
+
+    try:
+        payload = json.loads(json_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"JSON de análise corrompido: {exc}",
+        )
+
+    return JSONResponse(content=payload)
