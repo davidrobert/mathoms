@@ -44,3 +44,11 @@ repos:
         entry: python dev/validate_commit_msg.py
         language: system
         stages: [commit-msg]
+
+      - id: design-tokens-sync
+        name: "Design tokens gerados estão em sync com tokens.json (ADR-076)"
+        entry: python3 design-tokens/build.py --check
+        language: system
+        pass_filenames: false
+        # Roda apenas quando arquivos relevantes mudam
+        files: '^(design-tokens/tokens\.json|frontend/src/styles/tokens\.css|config/templates/_tokens\.css)$'

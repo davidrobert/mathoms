@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "design-tokens:build": "cd .. && python3 design-tokens/build.py",
+    "design-tokens:check": "cd .. && python3 design-tokens/build.py --check",
+    "predev": "npm run design-tokens:check",
+    "prebuild": "npm run design-tokens:build",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",

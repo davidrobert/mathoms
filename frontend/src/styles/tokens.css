@@ -1,0 +1,301 @@
+/* =====================================================================
+ * Ferreira Campos Editorial — design tokens
+ * Tokens unificados site × relatório (ADR-076)
+ *
+ * GENERATED FILE — do not edit by hand.
+ * Source: design-tokens/tokens.json
+ * Regenerate: python design-tokens/build.py
+ *
+ * Version: 1.0.0
+ * ===================================================================== */
+
+:root {
+    --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-md: 1.125rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 1.5rem;
+    --font-size-2xl: 1.875rem;
+    --font-size-3xl: 2.25rem;
+    --font-size-4xl: 3rem;
+
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.6;
+
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 0.75rem;
+    --space-lg: 1rem;
+    --space-xl: 1.25rem;
+    --space-2xl: 1.5rem;
+    --space-3xl: 2rem;
+    --space-4xl: 2.5rem;
+    --space-5xl: 3rem;
+    --space-6xl: 4rem;
+
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-card: 0.75rem;
+    --radius-pill: 9999px;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+    --shadow-md: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
+    --shadow-lg: 0 4px 12px rgb(0 0 0 / 0.08);
+    --shadow-card: 0 1px 3px rgb(0 0 0 / 0.06);
+    --shadow-card-hover: 0 4px 12px rgb(0 0 0 / 0.08);
+    --shadow-card-dark: 0 1px 6px rgb(0 0 0 / 0.25);
+    --shadow-card-hover-dark: 0 6px 18px rgb(0 0 0 / 0.35);
+
+    --brand-primary: #1A3A5C;
+    --brand-primary-foreground: #FFFFFF;
+    --brand-accent: #15803D;
+    --brand-accent-foreground: #FFFFFF;
+    --brand-danger: #B91C1C;
+    --brand-danger-foreground: #FFFFFF;
+    --brand-warning: #F4A261;
+    --brand-warning-foreground: #1A3A5C;
+    --brand-neutral: #457B9D;
+    --brand-info: #1E6E8F;
+
+    --surface-background: #FFFFFF;
+    --surface-foreground: #0F172A;
+    --surface-card: #FFFFFF;
+    --surface-card-foreground: #0F172A;
+    --surface-popover: #FFFFFF;
+    --surface-popover-foreground: #0F172A;
+    --surface-muted: #F1F5F9;
+    --surface-muted-foreground: #475569;
+    --surface-border: #E2E8F0;
+    --surface-input: #E2E8F0;
+    --surface-ring: #94A3B8;
+    --surface-row-even: #F8FAFC;
+    --surface-row-hover: #EFF6FF;
+
+    --semantic-gain: #15803D;
+    --semantic-loss: #B91C1C;
+    --semantic-alert: #F4A261;
+    --semantic-neutral-financial: #64748B;
+    --semantic-info-financial: #1E6E8F;
+
+    --chart-1: #1A3A5C;
+    --chart-2: #15803D;
+    --chart-3: #B91C1C;
+    --chart-4: #F4A261;
+    --chart-5: #6D28D9;
+    --chart-6: #0891B2;
+    --chart-7: #CA8A04;
+    --chart-8: #BE185D;
+    --chart-9: #166534;
+    --chart-10: #9F1239;
+    --chart-11: #0369A1;
+    --chart-12: #A16207;
+
+    --sidebar-background: #F8FAFC;
+    --sidebar-foreground: #0F172A;
+    --sidebar-primary: #1A3A5C;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #F1F5F9;
+    --sidebar-accent-foreground: #1A3A5C;
+    --sidebar-border: #E2E8F0;
+    --sidebar-ring: #94A3B8;
+}
+
+.dark,
+[data-theme='dark'] {
+    --brand-primary: #7EB8DA;
+    --brand-primary-foreground: #0F172A;
+    --brand-accent: #4ADE80;
+    --brand-accent-foreground: #052E16;
+    --brand-danger: #FB7185;
+    --brand-danger-foreground: #4C0519;
+    --brand-warning: #FDBA74;
+    --brand-warning-foreground: #1C1917;
+    --brand-neutral: #94A3B8;
+    --brand-info: #5CC8F0;
+
+    --surface-background: #0F172A;
+    --surface-foreground: #F8FAFC;
+    --surface-card: #1E293B;
+    --surface-card-foreground: #F8FAFC;
+    --surface-popover: #1E293B;
+    --surface-popover-foreground: #F8FAFC;
+    --surface-muted: #1E293B;
+    --surface-muted-foreground: #94A3B8;
+    --surface-border: #334155;
+    --surface-input: #334155;
+    --surface-ring: #64748B;
+    --surface-row-even: #1E293B;
+    --surface-row-hover: #334155;
+
+    --semantic-gain: #4ADE80;
+    --semantic-loss: #FB7185;
+    --semantic-alert: #FDBA74;
+    --semantic-neutral-financial: #94A3B8;
+    --semantic-info-financial: #5CC8F0;
+
+    --chart-1: #7EB8DA;
+    --chart-2: #4ADE80;
+    --chart-3: #FB7185;
+    --chart-4: #FDBA74;
+    --chart-5: #A78BFA;
+    --chart-6: #22D3EE;
+    --chart-7: #FACC15;
+    --chart-8: #F472B6;
+    --chart-9: #86EFAC;
+    --chart-10: #FCA5A5;
+    --chart-11: #7DD3FC;
+    --chart-12: #FBBF24;
+
+    --sidebar-background: #0F172A;
+    --sidebar-foreground: #F8FAFC;
+    --sidebar-primary: #7EB8DA;
+    --sidebar-primary-foreground: #0F172A;
+    --sidebar-accent: #1E293B;
+    --sidebar-accent-foreground: #F8FAFC;
+    --sidebar-border: #334155;
+    --sidebar-ring: #64748B;
+
+    --shadow-card: 0 1px 6px rgb(0 0 0 / 0.25);
+    --shadow-card-hover: 0 6px 18px rgb(0 0 0 / 0.35);
+}
+
+/* Card variants — visual DNA do relatório */
+.card-variant-highlight {
+    border-left: 4px solid var(--brand-primary);
+    background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-card));
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-feature {
+    border: 1px solid var(--surface-border);
+    background: var(--surface-card);
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-success {
+    border-left: 4px solid var(--semantic-gain);
+    background: color-mix(in srgb, var(--semantic-gain) 6%, var(--surface-card));
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-warn {
+    border-left: 4px solid var(--semantic-alert);
+    background: color-mix(in srgb, var(--semantic-alert) 8%, var(--surface-card));
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-critical {
+    border-left: 4px solid var(--semantic-loss);
+    background: color-mix(in srgb, var(--semantic-loss) 6%, var(--surface-card));
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-primary {
+    border-left: 4px solid var(--brand-primary);
+    background: var(--surface-card);
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-neutral {
+    border-left: 4px solid var(--brand-neutral);
+    background: var(--surface-card);
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-top-danger {
+    border-top: 4px solid var(--semantic-loss);
+    background: var(--surface-card);
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-top-accent {
+    border-top: 4px solid var(--brand-accent);
+    background: var(--surface-card);
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+
+@theme inline {
+    --color-brand-primary: var(--brand-primary);
+    --color-brand-primary-foreground: var(--brand-primary-foreground);
+    --color-brand-accent: var(--brand-accent);
+    --color-brand-accent-foreground: var(--brand-accent-foreground);
+    --color-brand-danger: var(--brand-danger);
+    --color-brand-danger-foreground: var(--brand-danger-foreground);
+    --color-brand-warning: var(--brand-warning);
+    --color-brand-warning-foreground: var(--brand-warning-foreground);
+    --color-brand-neutral: var(--brand-neutral);
+    --color-brand-info: var(--brand-info);
+    --color-background: var(--surface-background);
+    --color-foreground: var(--surface-foreground);
+    --color-card: var(--surface-card);
+    --color-card-foreground: var(--surface-card-foreground);
+    --color-popover: var(--surface-popover);
+    --color-popover-foreground: var(--surface-popover-foreground);
+    --color-muted: var(--surface-muted);
+    --color-muted-foreground: var(--surface-muted-foreground);
+    --color-border: var(--surface-border);
+    --color-input: var(--surface-input);
+    --color-ring: var(--surface-ring);
+    --color-row-even: var(--surface-row-even);
+    --color-row-hover: var(--surface-row-hover);
+    --color-gain: var(--semantic-gain);
+    --color-loss: var(--semantic-loss);
+    --color-alert: var(--semantic-alert);
+    --color-neutral-financial: var(--semantic-neutral-financial);
+    --color-info-financial: var(--semantic-info-financial);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --color-chart-6: var(--chart-6);
+    --color-chart-7: var(--chart-7);
+    --color-chart-8: var(--chart-8);
+    --color-chart-9: var(--chart-9);
+    --color-chart-10: var(--chart-10);
+    --color-chart-11: var(--chart-11);
+    --color-chart-12: var(--chart-12);
+    --color-sidebar-background: var(--sidebar-background);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    --font-heading: var(--font-display);
+    --font-sans: var(--font-body);
+    --font-mono: var(--font-mono);
+
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
+    --radius-xl: var(--radius-xl);
+    --radius-card: var(--radius-card);
+    --radius-pill: var(--radius-pill);
+}
