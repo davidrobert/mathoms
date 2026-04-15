@@ -2,6 +2,13 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* F9 · ADR-076 — design tokens unificados (site × relatório E6).
+ * Emite :root + .dark com --brand-*, --surface-*, --semantic-*, --chart-*,
+ * --shadow-*, --space-*, --radius-* e as classes .card-variant-*.
+ * As famílias de fonte (--font-display/body/mono) vêm de next/font/google
+ * em layout.tsx — este CSS não as redefine. */
+@import "../styles/tokens.css";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

@@ -83,15 +83,26 @@ def _mode_block(mode_data: dict[str, Any]) -> list[str]:
     return lines
 
 
-def _static_tokens_block(tokens: dict[str, Any]) -> list[str]:
-    """Typography, spacing, radius, shadow — invariantes de modo."""
+def _static_tokens_block(tokens: dict[str, Any], *, emit_fonts: bool) -> list[str]:
+    """Typography, spacing, radius, shadow — invariantes de modo.
+
+    `emit_fonts=False` no output do Next.js: as vars --font-* são
+    providenciadas pelo next/font/google em runtime (layout.tsx) para
+    preservar otimizações (subsetting, self-hosting, font-display:swap).
+    Emitir aqui criaria conflito de cascata.
+
+    `emit_fonts=True` no output do E6 standalone: não há next/font — o
+    template precisa das vars para resolver as famílias via @import
+    Google Fonts no próprio HTML.
+    """
     lines: list[str] = []
 
     # typography
     typo = tokens["typography"]
-    for k, v in typo["fonts"].items():
-        lines.append(f"    --font-{_kebab(k)}: {v};")
-    lines.append("")
+    if emit_fonts:
+        for k, v in typo["fonts"].items():
+            lines.append(f"    --font-{_kebab(k)}: {v};")
+        lines.append("")
     for k, v in typo["sizes"].items():
         lines.append(f"    --font-size-{_kebab(k)}: {v};")
     lines.append("")
@@ -166,12 +177,20 @@ def _theme_inline_block(tokens: dict[str, Any]) -> list[str]:
 
 
 def render_css(tokens: dict[str, Any], *, include_tailwind_theme: bool) -> str:
-    """Render the full CSS file."""
+    """Render the full CSS file.
+
+    `include_tailwind_theme=True` emite o bloco @theme inline do Tailwind v4
+    (para o Next.js). Nesse caso `--font-*` NÃO são emitidas aqui, já que
+    vêm do next/font/google em runtime.
+
+    `include_tailwind_theme=False` é o output do E6 standalone: inclui
+    `--font-*` porque o standalone não tem next/font.
+    """
     meta = tokens["meta"]
     out: list[str] = [HEADER.format(**meta)]
 
     out.append(":root {")
-    out.extend(_static_tokens_block(tokens))
+    out.extend(_static_tokens_block(tokens, emit_fonts=not include_tailwind_theme))
     out.append("")
     out.extend(_mode_block(tokens["modes"]["light"]))
     out.append("}")

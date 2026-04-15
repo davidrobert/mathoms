@@ -112,13 +112,36 @@ class TestBuild:
         """Card variants and theme block should use var(), not hex literals."""
         frontend_css, template_css = build()
         for css in (frontend_css, template_css):
-            # Extract everything after the :root+dark blocks end
             idx = css.index("Card variants")
             rest = css[idx:]
-            # Find any #xxxxxx literal in the card variants / utilities section
             import re
             hex_matches = re.findall(r"#[0-9A-Fa-f]{6}", rest)
             assert not hex_matches, f"hex literal found in utility section: {hex_matches}"
+
+    def test_frontend_does_not_emit_font_families(self):
+        """Frontend delega --font-display/body/mono para next/font/google.
+
+        Emitir literais aqui quebraria as otimizações do Next (subsetting,
+        self-hosting, font-display:swap). Só --font-size-* e --font-weight-*
+        podem vir daqui.
+        """
+        frontend_css, _ = build()
+        # Extrai apenas o bloco :root (antes do .dark)
+        root_block = frontend_css.split(".dark,")[0]
+        for family in ("display", "body", "mono"):
+            forbidden = f"--font-{family}: '"
+            assert forbidden not in root_block, (
+                f"frontend CSS não deve definir --font-{family} como literal — "
+                f"essa var vem do next/font em runtime"
+            )
+
+    def test_template_emits_font_families(self):
+        """Template E6 standalone precisa das famílias (não tem next/font)."""
+        _, template_css = build()
+        root_block = template_css.split(".dark,")[0]
+        assert "--font-display: 'Plus Jakarta Sans'" in root_block
+        assert "--font-body: 'Inter'" in root_block
+        assert "--font-mono: 'JetBrains Mono'" in root_block
 
     def test_card_variants_all_emitted(self, tokens):
         frontend_css, _ = build()

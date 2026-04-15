@@ -1,12 +1,31 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 
-const geistSans = Geist({ subsets: ["latin"], variable: "--font-sans" });
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
+// F9 · ADR-076 — Plus Jakarta Sans (display), Inter (body), JetBrains Mono
+// (monetário + identificadores). As variáveis CSS abaixo são consumidas
+// por design-tokens/tokens.json → frontend/src/styles/tokens.css.
+const fontBody = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-body",
+});
+
+const fontDisplay = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const fontMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
   title: "Fin — Relatório Financeiro",
@@ -21,10 +40,14 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={cn(geistSans.variable, geistMono.variable)}
+      className={cn(
+        fontBody.variable,
+        fontDisplay.variable,
+        fontMono.variable,
+      )}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-background text-foreground antialiased">
+      <body className="min-h-screen bg-background text-foreground antialiased font-body">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
