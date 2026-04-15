@@ -42,6 +42,11 @@ export const handlers = [
   http.get(`${API}/reports/:id/html`, () =>
     HttpResponse.html("<html><body>Mocked report</body></html>"),
   ),
+  http.get(`${API}/reports/:id/download.html`, () =>
+    HttpResponse.html("<html><body>Mocked standalone</body></html>", {
+      headers: { "Content-Disposition": 'attachment; filename="report.html"' },
+    }),
+  ),
   // F9 · ADR-076
   http.get(`${API}/reports/:id/data`, ({ params }) => {
     const report = fixtures.reports.find((r) => r.id === params.id);

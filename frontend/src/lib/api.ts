@@ -301,6 +301,12 @@ export function getReportHtmlUrl(reportId: string): string {
   return `${API_BASE}/reports/${reportId}/html`;
 }
 
+/** F9 · F1.5 — URL de download do HTML standalone (E6). Preservado como
+ *  produto para compartilhamento offline (contador, anexo, backup). */
+export function getReportDownloadHtmlUrl(reportId: string): string {
+  return `${API_BASE}/reports/${reportId}/download.html`;
+}
+
 /** F9 · ADR-076 — Busca o snapshot E5 JSON para o render nativo.
  *
  * Retorna 404 se o relatório é pré-F9 (sem analysis_json_path) — verifique
