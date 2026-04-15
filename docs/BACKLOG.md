@@ -149,8 +149,12 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | 6.5B.9  | Tests AppShell (auth gate, navigation, mobile, logout, NotificationCenter) | P0   | 3h   | ☐      |
 | 6.5B.10 | Tests compostos (KPICard, EmptyState, StatusBadge, ConfirmDialog, Delta, Spinner, ThemeToggle, DataTable) | P1 | 3h | ☐ |
 | 6.5B.11 | Tests dark mode (7 compostos + Dashboard charts + Transaction table)       | P1   | 2h   | ☐      |
+| 6.5B.12 | **Multi-tenant isolation suite** (backend, paramétrica): para CADA endpoint write/read, criar 2 workspaces (A e B) + dados em ambos; chamar como user A → assert que dados de B nunca aparecem. Inclui: members, categories, documents, runs, reports, transactions, vault, llm_config, notifications. **Sem isso, beta com >1 user é roleta russa** | P0 | 6h | ☐ |
+| 6.5B.13 | **Form validation suite** (frontend): 6 forms (Login, Register, Member create, Bank account, Vault password, Family surname) × validações (required, email format, password strength, max length, CPF mod-11, duplicate key). Mensagens user-facing testadas | P0 | 4h | ☐ |
+| 6.5B.14 | **WebSocket integration real** (com Redis pub/sub real, não mock): backend publica evento de stage → JWT auth → frontend recebe em <500ms; multiplos clients no mesmo run; reconnect mid-stage não perde eventos posteriores | P0 | 4h | ☐ |
+| 6.5B.15 | **Date/timezone regression suite**: `started_at`/`completed_at`/`created_at` sempre com tz-aware (regressão BUG do dogfood); render no frontend mostra hora local correta; teste em browsers com TZ=`America/Sao_Paulo`, `UTC`, `America/New_York` | P0 | 3h | ☐ |
 
-**Checkpoint:** ~120-150 integration tests green. `npm test` <30s.
+**Checkpoint:** ~140-170 integration tests green. `npm test` <30s. Multi-tenant isolation: 0 vazamentos. Form validation: 100% mensagens cobertas.
 
 ### 6.5C — E2E Tests + Smoke Checklist (semana 2)
 
@@ -207,8 +211,49 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | 6.5E.5  | **Test anti-regressão BUG-015**: workspace com `FamilyMember` no DB mas sem `family_surname` definido → materialized `family_members.json` NÃO contém `familia.sobrenome` do global (`"Ferreira Campos"` do founder) | P0 | 1h | ☐ |
 | 6.5E.6  | **Systemic fix para fallback-leak class**: políticas "neutral global defaults" (strip identity fields do `config/family_members.json` antes de copiar pro tenant quando workspace tem membros) + test que cobre cada config | P1 | 4h | ☐ |
 | 6.5E.7  | **Concurrency test para `_init_config` pattern** (thread-safe em Celery fork pool + múltiplas runs paralelas): 2 workspaces materializando ao mesmo tempo não corrompem configs um do outro | P1 | 3h | ☐ |
+| 6.5E.8  | **Anti-regression bank** (catalogar TODOS bugs já vividos): criar `tests/regressions/` com um teste por bug do `CHANGELOG.md`, nomeado `test_bug_NNN_<slug>.py`. Cobrir BUG-001..BUG-015 (14 bugs UI+backend) + 11 bugs operacionais do dogfood (parse_args/Celery, SystemExit, FERNET persistence, max_tokens E1.5, started_at tz, animate-pulse, _categorization global, skip_llm default, route_to_data_dir, validation pré-pipeline, stages LLM skip gracioso). Cada teste falha SE o fix for revertido | P0 | 5h | ☐ |
 
-**Checkpoint:** 6 serializers com round-trip green • golden pipeline test verde com PDFs sintéticos • CI falha em migration drift/non-idempotent • BUG-015 coberto por test anti-regressão • alembic roda sempre na DB correta.
+**Checkpoint:** 6 serializers com round-trip green • golden pipeline test verde com PDFs sintéticos • CI falha em migration drift/non-idempotent • BUG-015 coberto por test anti-regressão • alembic roda sempre na DB correta • 25 bugs anti-regressão em `tests/regressions/`.
+
+### 6.5F — Test Infrastructure & Process (semana 4, ~1 semana)
+
+> Sub-fase dedicada aos **fundamentos** de teste que estavam implícitos em 6.5A-E e iam virar dor na execução: isolation strategy, factories, MSW sync, flaky policy, parallelization, CI artifacts, backend-real spec, long-running pipeline strategy, contributor docs e geração de PDFs sintéticos. Sem essa base, os 240+ testes das outras sub-fases viram débito técnico em 3 meses. Ver [ADR-067](DECISIONS.md#adr-067--test-infrastructure-em-sub-fase-65f).
+
+#### 6.5F.A — Backend test infrastructure
+
+| #       | Tarefa                                                                                                                                                                  | Prio | Est. | Status |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
+| 6.5F.1  | **Test DB isolation strategy**: ADR + impl em `conftest.py` (decisão entre transactions+rollback vs truncate vs recreate); fixture `db_session` consistente para todos os tests | P0 | 3h | ☐ |
+| 6.5F.2  | **Test data factories** em `backend/tests/factories/`: `make_user()`, `make_workspace()`, `make_member()`, `make_run()`, `make_category()`, `make_document()`, `make_report()`. Refatorar tests existentes para usar | P0 | 4h | ☐ |
+| 6.5F.3  | **Backend-real spec para E2E**: `docker-compose.test.yml` com PG + Redis isolados (porta diferente do dev); script `scripts/test_backend_up.sh` que sobe + aguarda health; reset entre test runs | P0 | 4h | ☐ |
+| 6.5F.4  | **Long-running pipeline E2E strategy**: pipeline mock fixtures pré-computadas (PipelineRun + StageLog + Report já populados) para 6.5C.0/C.3 happy path; `--real-pipeline` flag para nightly opt-in | P0 | 4h | ☐ |
+
+#### 6.5F.B — Frontend test infrastructure
+
+| #       | Tarefa                                                                                                                                                                                              | Prio | Est. | Status |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
+| 6.5F.5  | **MSW sync strategy**: ADR sobre fonte de verdade (manual+lint vs `openapi-typescript` codegen); integrar com 6.5D.10 contract test; CI falha se MSW handlers divergem do OpenAPI | P0 | 2h | ☐ |
+| 6.5F.6  | **Test parallelization + workspace isolation**: Playwright workers usam pool de workspaces pré-criadas OU `worker-${id}@test.com` no email; doc trade-offs em `TESTING.md` | P0 | 3h | ☐ |
+| 6.5F.7  | **Frontend factories** em `frontend/tests/factories/`: `makeUser`, `makeMember`, `makeTransaction`, `makeRun`, `makeReport` retornam objetos type-safe alinhados com `lib/api.ts` | P0 | 3h | ☐ |
+
+#### 6.5F.C — CI/Process
+
+| #       | Tarefa                                                                                                                                                            | Prio | Est. | Status |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
+| 6.5F.8  | **Flaky test policy**: Playwright `retries: 2` em CI/0 em local; quarentena via `test.skip(true, "flaky: TODO BUG-XXX")`; CI gera report de testes flaky semanal  | P0 | 2h | ☐ |
+| 6.5F.9  | **CI test reporter + artifacts**: HTML report, vídeo + trace on failure, JUnit XML, retention 30 dias, link automático em PR comment via GH Actions               | P0 | 3h | ☐ |
+| 6.5F.10 | **Snapshot review process**: seção em `TESTING.md` "Visual regression updates"; PR template com checkbox "snapshots intencionais? screenshot do diff?"; CODEOWNERS para `tests/__snapshots__/` | P1 | 2h | ☐ |
+| 6.5F.11 | **Premium tier LLM E2E decisão**: ADR + impl (mock LiteLLM em CI default; `--real-llm` flag para nightly opt-in com Anthropic key em secret); custo monitorado | P0 | 3h | ☐ |
+
+#### 6.5F.D — Documentação + tooling
+
+| #       | Tarefa                                                                                                                                                                                          | Prio | Est. | Status |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
+| 6.5F.12 | **Synthetic PDF generator** em `tests/fixtures/pdf_generator.py` (`reportlab` ou `weasyprint`): 1 template por banco (11 bancos atuais), gera fatura + extrato; CI regenera fixtures determinísticas; substitui qualquer PDF real em `tests/` | P0 | 6h | ☐ |
+| 6.5F.13 | **`docs/TESTING.md` contributor guide**: como rodar (backend + frontend), como adicionar test (factory pattern, fixture pattern), como debugar falha CI (artifacts, vídeo, trace), como atualizar snapshot, FAQ, tabela de comandos | P0 | 4h | ☐ |
+| 6.5F.14 | **Pre-commit hooks** (`pre-commit` + `husky`): lint + format obrigatórios; opcional: rodar unit tests rápidos (<5s); opt-out via `--no-verify` documentado mas desencorajado | P1 | 2h | ☐ |
+
+**Checkpoint:** DB isolation green • factories adotadas em 100% novos tests • backend-real CI roda em <3min • CI artifacts com vídeo+trace acessíveis em PR • `TESTING.md` cobre 100% dos cenários de novo contributor • PDFs sintéticos para 11 bancos versionados • premium LLM E2E definido (mock + nightly real) • snapshot review processado.
 
 ---
 

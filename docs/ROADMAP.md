@@ -19,7 +19,7 @@
 | **4.5** | Design System Foundation | ✅ Concluída  | Tailwind v4 @theme, Geist fonts, shadcn/ui, 7 compostos financeiros                            |
 | **5**   | Task Queue + Async       | ✅ Concluída  | Celery+Redis, WS+polling, cancel stage-boundary, concurrency                                   |
 | **6**   | Frontend Profissional    | ✅ Concluída  | Dashboard, Transaction Explorer, Report React, Dark mode, Notifications                        |
-| **6.5** | Frontend Testing & QA + Backend Hardening | ☐ Planejada | Vitest + RTL + MSW + Playwright. ~240 tests + hardening fintech (a11y, visual reg., resilience) + backend round-trip serializers (anti-BUG-015) + frontend não-funcional (error boundary, CWV) |
+| **6.5** | Testing & Hardening (FE+BE) | ☐ Planejada | Vitest + RTL + MSW + Playwright. ~250+ tests + hardening fintech (a11y, visual reg., resilience) + backend serializers (anti-BUG-015) + frontend não-funcional (error boundary, CWV) + multi-tenant isolation + WS real + anti-regression bank (25 bugs) + test infrastructure (factories, isolation, CI artifacts, synthetic PDFs, TESTING.md) |
 | **7**   | Produção + LGPD + Ops    | ☐ Planejada  | VPS+Docker+Traefik, LGPD completo, auth flows (email verify/pwd reset/brute-force), prompt injection defense, operational readiness (DR testado, business metrics, incident comms, LLM cost cap), CI/CD, dogfood validado |
 
 ---
@@ -47,18 +47,19 @@ Para tasks específicas já feitas e ainda pendentes por sub-fase, ver **[BACKLO
 
 ---
 
-### F6.5 — Frontend Testing & QA + Backend Hardening (próxima)
+### F6.5 — Testing & Hardening (próxima)
 
-**Objetivo:** Rede de segurança de testes no frontend antes de ir para produção, mais blindagem da fronteira backend (DB → pipeline) que demonstrou ser frágil (BUG-015). A Fase 6 entregou features; a 6.5 entrega confiança end-to-end.
+**Objetivo:** Rede de segurança completa antes de produção: testes em todas as camadas (unit/integration/E2E), hardening fintech-específico (frontend + backend), anti-regression bank de todos os bugs já vividos, e infraestrutura de teste profissional para que o investimento sustente após o launch.
 
-**Duração estimada:** 3 semanas (5 sub-fases)
+**Duração estimada:** 4 semanas (6 sub-fases)
 
 **Escopo:**
 - ~50-60 unit tests (format.ts, export.ts, api.ts, utils.ts, usePipelineWS hook)
-- ~120-150 integration tests (10 pages + AppShell + 7 compostos, loading/empty/error/success)
+- ~140-170 integration tests (10 pages + AppShell + 7 compostos + multi-tenant isolation + form validation + WS real + tz regression)
 - ~25-30 E2E tests (Golden Path + 8 fluxos críticos, Playwright com backend real)
-- **Hardening fintech frontend (6.5D):** axe-core, property-based em formatadores BRL, visual regression, cross-browser (Firefox + WebKit), resilience (WS reconnect, polling fallback, offline, 5xx), security smoke (XSS, JWT expiry, logout cleanup), fixtures sintéticas auditadas, **error boundary audit, empty state CTA audit, focus management, Core Web Vitals baseline**
-- **Backend hardening (6.5E):** round-trip tests para os 6 serializers do `config_materializer` (anti-BUG-015), golden file pipeline com PDFs sintéticos, alembic CI guardrails (drift + idempotency + dry-run preview), fix cwd-sensitivity em alembic.ini, test anti-regressão BUG-015, systemic fix para fallback-leak class
+- **Hardening fintech frontend (6.5D):** axe-core, property-based em formatadores BRL, visual regression, cross-browser (Firefox + WebKit), resilience (WS reconnect, polling fallback, offline, 5xx), security smoke (XSS, JWT expiry, logout cleanup), fixtures sintéticas auditadas, error boundary audit, empty state CTA audit, focus management, Core Web Vitals baseline
+- **Backend hardening (6.5E):** round-trip tests para os 6 serializers do `config_materializer` (anti-BUG-015), golden file pipeline com PDFs sintéticos, alembic CI guardrails (drift + idempotency + dry-run preview), fix cwd-sensitivity em alembic.ini, test anti-regressão BUG-015, systemic fix para fallback-leak class, **anti-regression bank de 25 bugs já vividos**
+- **Test infrastructure (6.5F):** DB isolation strategy, factories backend+frontend, MSW sync, parallelization + workspace isolation, flaky policy, CI artifacts (vídeo+trace), backend-real spec via `docker-compose.test.yml`, long-running pipeline mock fixtures, premium LLM E2E decision (mock + nightly real), synthetic PDF generator (11 bancos), `docs/TESTING.md` contributor guide
 - Smoke test checklist (`docs/SMOKE_TEST.md`)
 - CI integration (Vitest + Playwright gates)
 
@@ -73,11 +74,15 @@ Para tasks específicas já feitas e ainda pendentes por sub-fase, ver **[BACKLO
 - **6 serializers com round-trip green** • golden pipeline test verde com PDFs sintéticos
 - **CI falha em migration drift/non-idempotent**
 - **Todas as pages com error boundary** • empty states com CTA • focus management validado • CWV baseline registrado
+- **Multi-tenant isolation: 0 vazamentos** entre workspaces em testes paramétricos
+- **Anti-regression bank: 25 bugs cobertos** em `tests/regressions/`
+- **`docs/TESTING.md` cobre 100%** dos cenários de novo contributor
+- **Synthetic PDFs para 11 bancos** versionados; zero PDFs reais em `tests/`
 - Gate de CI bloqueia merge/deploy se algum nível falha
 
-**Por que entre F6 e F7 (e não dentro da F7):** Separar garante que testes e hardening são pré-requisito do deploy, não afterthought. Bugs descobertos em dev custam 10x menos que em produção. Sub-fases 6.5D e 6.5E blindadas em escopo próprio para não serem cortadas sob pressão de P0.
+**Por que entre F6 e F7 (e não dentro da F7):** Separar garante que testes e hardening são pré-requisito do deploy, não afterthought. Bugs descobertos em dev custam 10x menos que em produção. Sub-fases 6.5D, 6.5E e 6.5F blindadas em escopo próprio para não serem cortadas sob pressão de P0. Sub-fase 6.5F (infraestrutura) garante que o investimento sustenta — sem ela, os 250+ testes viram débito técnico em 3 meses.
 
-Detalhes das tasks: **[BACKLOG.md#f65](BACKLOG.md#f65--frontend-testing--qa)** • Decisões: **[ADR-063](DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d)** • **[ADR-064](DECISIONS.md#adr-064--backend-hardening-em-sub-fase-65e)**
+Detalhes das tasks: **[BACKLOG.md#f65](BACKLOG.md#f65--frontend-testing--qa)** • Decisões: **[ADR-063](DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d)** • **[ADR-064](DECISIONS.md#adr-064--backend-hardening-em-sub-fase-65e)** • **[ADR-067](DECISIONS.md#adr-067--test-infrastructure-em-sub-fase-65f)**
 
 ---
 
@@ -168,6 +173,8 @@ Política de cobertura (Python backend + pipeline):
 | R15 | FERNET_KEY perdida em prod = todos os secrets ilegíveis | Crítico | Baixa         | ⏳ F7E      | Backup criptografado off-site (1Password vault) + procedure testado em staging            |
 | R16 | Backup Hetzner perdido junto com DC (incêndio/falha) | Crítico | Muito baixa    | ⏳ F7E      | Off-site backup S3/B2 BR + restore drill quarterly                                        |
 | R17 | GA bloqueado por falta de email verify/password reset | Alto | Certa          | ⏳ F7B      | Auth flows completos em 7B.11-13 antes do Beta abrir                                       |
+| R18 | Multi-tenant data leak entre workspaces (endpoint esquece filtro) | Crítico | Média | 🚧 F6.5B   | Multi-tenant isolation suite paramétrica (6.5B.12) cobre todo endpoint write/read         |
+| R19 | 250+ tests viram débito técnico sem infra de teste sustentável | Alto | Alta       | 🚧 F6.5F    | Factories + DB isolation + MSW sync + TESTING.md (sub-fase 6.5F dedicada)                  |
 
 ---
 
@@ -176,7 +183,7 @@ Política de cobertura (Python backend + pipeline):
 | Período              | Milestone                                        |
 | -------------------- | ------------------------------------------------ |
 | Q1 2026              | F0-F4 ✅ (Core → LLM)                            |
-| Q2 2026 (Abr-Jun)    | F4.5, F5, F6 ✅ • F6.5 (3 sem, com 6.5D + 6.5E) em andamento     |
+| Q2 2026 (Abr-Jun)    | F4.5, F5, F6 ✅ • F6.5 (4 sem, com 6.5D + 6.5E + 6.5F) em andamento |
 | Q3 2026              | F7 (8-10 sem, com 7E) → Dogfood validado → Beta fechado          |
 | Q4 2026              | Beta → preparação GA (F8)                        |
 | 2027+                | GA + features de growth                          |
