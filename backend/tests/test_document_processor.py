@@ -60,17 +60,58 @@ class TestMapDocType:
     def test_extratoconta(self):
         assert _map_doc_type("extratoconta") == DocumentType.bank_statement
 
+    def test_extratoconta_brl_variant(self):
+        # E0-route produces specific currency variants
+        assert _map_doc_type("extratocontabrl") == DocumentType.bank_statement
+        assert _map_doc_type("extratocontausd") == DocumentType.bank_statement
+        assert _map_doc_type("extratocontaeur") == DocumentType.bank_statement
+
+    def test_extratoconta_named_variants(self):
+        assert _map_doc_type("extratocontapersonnalite") == DocumentType.bank_statement
+        assert _map_doc_type("extratocontapj") == DocumentType.bank_statement
+        assert _map_doc_type("extratocontaglobalusd") == DocumentType.bank_statement
+
+    def test_extratopoupanca(self):
+        assert _map_doc_type("extratopoupanca") == DocumentType.bank_statement
+
     def test_faturacartao(self):
         assert _map_doc_type("faturacartao") == DocumentType.credit_card_bill
+
+    def test_fatura_variants(self):
+        # Real codes emitted by E0-route regex
+        assert _map_doc_type("fatura") == DocumentType.credit_card_bill
+        assert _map_doc_type("faturaunique") == DocumentType.credit_card_bill
+        assert _map_doc_type("faturacarbon") == DocumentType.credit_card_bill
+        assert _map_doc_type("faturapaoacucar") == DocumentType.credit_card_bill
+
+    def test_faturaaluguel_is_other(self):
+        # Rent invoice is not a credit card bill
+        assert _map_doc_type("faturaaluguel") == DocumentType.other
 
     def test_investimentos(self):
         assert _map_doc_type("investimentos") == DocumentType.investment_report
 
+    def test_cdb_variants(self):
+        assert _map_doc_type("cdb") == DocumentType.investment_report
+        assert _map_doc_type("cdbdetalhesdi1") == DocumentType.investment_report
+        assert _map_doc_type("cdbresumo") == DocumentType.investment_report
+
+    def test_carteira_and_posicao(self):
+        assert _map_doc_type("investimentosposicao") == DocumentType.investment_report
+        assert _map_doc_type("carteirarendafixa") == DocumentType.investment_report
+
     def test_irpfdeclaracao(self):
         assert _map_doc_type("irpfdeclaracao") == DocumentType.irpf
 
+    def test_informerendimentos(self):
+        assert _map_doc_type("informerendimentos") == DocumentType.irpf
+        assert _map_doc_type("informerendimentosaluguel") == DocumentType.irpf
+
     def test_unknown(self):
         assert _map_doc_type("weird_type") == DocumentType.other
+
+    def test_empty(self):
+        assert _map_doc_type("") == DocumentType.other
 
 
 class TestProcessUploadedDocument:

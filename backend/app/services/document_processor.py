@@ -33,20 +33,41 @@ def _detect_json_type(file_path: Path) -> Optional[DocumentType]:
 
 
 def _map_doc_type(e0_doc_type: str) -> DocumentType:
-    """Map E0-route doc_type string to DocumentType enum."""
-    mapping = {
-        "extratoconta": DocumentType.bank_statement,
-        "extratoinvest": DocumentType.investment_report,
-        "faturacartao": DocumentType.credit_card_bill,
-        "faturacaratao": DocumentType.credit_card_bill,
-        "investimentos": DocumentType.investment_report,
-        "cdb": DocumentType.investment_report,
-        "irpfdeclaracao": DocumentType.irpf,
-        "irpfrecibo": DocumentType.irpf,
-        "informerendimentos": DocumentType.irpf,
-        "informerendimentosaluguel": DocumentType.irpf,
-    }
-    return mapping.get(e0_doc_type, DocumentType.other)
+    """Map E0-route doc_type string to DocumentType enum.
+
+    E0-route (scripts/e0_route.py) generates specific variant codes like
+    ``faturaunique``, ``extratocontabrl``, ``cdbdetalhesdi1``, etc. We group
+    them by semantic prefix here. Keep in sync with ``_build_doc_type_patterns``.
+    """
+    if not e0_doc_type:
+        return DocumentType.other
+
+    code = e0_doc_type.lower()
+
+    # IRPF / informes de rendimento → fiscal
+    if code.startswith("irpf") or code.startswith("informerendimento"):
+        return DocumentType.irpf
+
+    # Investimentos: CDBs, carteira, posição, extrato de investimento
+    if (
+        code.startswith("cdb")
+        or code.startswith("investimentos")
+        or code.startswith("carteirarenda")
+        or code == "extratoinvest"
+    ):
+        return DocumentType.investment_report
+
+    # Cartão de crédito: fatura* (exceto fatura de aluguel, que não é cartão)
+    if code.startswith("fatura"):
+        if code.startswith("faturaaluguel"):
+            return DocumentType.other
+        return DocumentType.credit_card_bill
+
+    # Extratos bancários: extratoconta*, extratopoupanca, etc.
+    if code.startswith("extratoconta") or code.startswith("extratopoupanca"):
+        return DocumentType.bank_statement
+
+    return DocumentType.other
 
 
 def try_unlock_pdf(file_path: Path, passwords: list[str]) -> tuple[bool, bool]:

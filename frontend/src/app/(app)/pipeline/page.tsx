@@ -61,6 +61,26 @@ import {
 const ACTIVE_STATUSES = new Set(["pending", "running", "resuming"]);
 const STALL_PENDING_MS = 30_000;
 const STALL_RUNNING_MS = 60_000;
+const DISMISSED_FAILED_RUN_KEY = "pipeline:dismissedFailedRunId";
+
+function getDismissedFailedRunId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(DISMISSED_FAILED_RUN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setDismissedFailedRunId(id: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (id) window.localStorage.setItem(DISMISSED_FAILED_RUN_KEY, id);
+    else window.localStorage.removeItem(DISMISSED_FAILED_RUN_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 export default function PipelinePage() {
   const router = useRouter();
@@ -153,7 +173,13 @@ export default function PipelinePage() {
         const recentFailed = runsData.runs.find(
           (r) => r.status === "failed" || r.status === "partial_failure"
         );
-        if (recentFailed) setLastFailedRun(recentFailed);
+        const dismissedId = getDismissedFailedRunId();
+        if (recentFailed && recentFailed.id !== dismissedId) {
+          setLastFailedRun(recentFailed);
+        } else if (!recentFailed && dismissedId) {
+          // No more failed runs — clear stale dismissal.
+          setDismissedFailedRunId(null);
+        }
       }
     } catch {
       setError("Erro ao carregar dados");
@@ -260,7 +286,10 @@ export default function PipelinePage() {
             run={lastFailedRun}
             onRetry={() => handleTrigger()}
             onRetryFrom={lastFailedRun.failed_at_stage ? () => handleTrigger(lastFailedRun.failed_at_stage!) : undefined}
-            onDismiss={() => setLastFailedRun(null)}
+            onDismiss={() => {
+              setDismissedFailedRunId(lastFailedRun.id);
+              setLastFailedRun(null);
+            }}
             triggering={triggering}
           />
         )}

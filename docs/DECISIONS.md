@@ -36,7 +36,7 @@
 [D7](#adr-007--fernet-app-level-para-criptografia) [D40](#adr-040--billing-adiado-para-pós-launch) [D41](#adr-041--traefik-como-reverse-proxy) [D55](#adr-055--coverage-target--85-line--95-new-code) [D56](#adr-056--rolling-restart-em-vez-de-blue-green) [D57](#adr-057--jwt-15min--refresh-7d) [D58](#adr-058--vps-cx32-para-sizing) [D59](#adr-059--docker-image-cve-scan-no-ci) [D60](#adr-060--fernet-dual-key-para-secret-rotation) [D61](#adr-061--telemetria-privacy-first)
 
 **Testing:**
-[D62](#adr-062--frontend-testing-em-fase-dedicada-65) [D63](#adr-063--hardening-fintech-em-sub-fase-65d) [D64](#adr-064--backend-hardening-em-sub-fase-65e) [D67](#adr-067--test-infrastructure-em-sub-fase-65f)
+[D62](#adr-062--frontend-testing-em-fase-dedicada-65) [D63](#adr-063--hardening-fintech-em-sub-fase-65d) [D64](#adr-064--backend-hardening-em-sub-fase-65e) [D67](#adr-067--test-infrastructure-em-sub-fase-65f) [D69](#adr-069--msw-sync-strategy-manual--lint-ci-não-codegen) [D70](#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in) [D71](#adr-071--playwright-workspace-isolation-email-unique-por-worker)
 
 **Operations:**
 [D65](#adr-065--sub-fase-7e-operational-readiness) [D66](#adr-066--auth-flows-completos-e-prompt-injection-em-7b-bloqueadores-de-beta)
@@ -941,6 +941,100 @@ Renderizado como **stepper horizontal de 4 nós** (`PhaseStepper.tsx`) com toolt
 - `frontend/src/components/PhaseStepper.tsx` (novo) — stepper horizontal com tooltips
 - `frontend/src/app/(app)/pipeline/page.tsx` — `ActiveRunCard` usa stepper + disclosure; `FailedRunCard` usa `buildUserFacingError`
 - `frontend/src/app/(app)/config/{LLMTab,PipelineTab}.tsx` — copy reescrito sem códigos
+
+---
+
+## ADR-069 — MSW sync strategy: manual + lint CI (não codegen)
+
+**Status:** Decidido • **Data:** 2026-04-15 • **Contexto da task:** F6.5F.5
+
+**Contexto:** `frontend/tests/mocks/handlers.ts` define 50+ endpoints MSW que espelham `lib/api.ts`. Duas estratégias possíveis para manter sync com backend:
+
+1. **Codegen via `openapi-typescript`:** baixar `openapi.json` do backend → gerar types + validar shapes dos handlers.
+2. **Manual + lint CI:** handlers escritos à mão, contract test (6.5D.10) garante drift zero.
+
+**Alternativas consideradas:**
+- (A) Codegen completo → MSW handlers re-gerados a partir do OpenAPI + mocks auto-derivados. Custoso: requer adapter entre tipos OpenAPI e `HttpResponse.json()`, difícil testar cenários de erro customizados.
+- (B) **[escolhida]** Manual + lint CI — devs escrevem handlers usando `lib/api.ts` types. Lint rodado em CI compara endpoints declarados em `handlers.ts` vs `openapi.json` do backend. Falha se há drift.
+- (C) Nenhum mecanismo — confiar em reviews. Não-escalável com 50+ endpoints.
+
+**Decisão:** Abordagem (B). `frontend/scripts/msw-lint.mjs` (scaffold inicial) lista URLs em `handlers.ts` (via AST parse de `http.<method>("/api/...")`) e diff contra `openapi.json` paths. Falha em endpoints backend sem handler correspondente OU handlers com URL que não existe no OpenAPI.
+
+Integração com 6.5D.10 (contract test types) = complementar: aquele valida types, este valida URLs.
+
+**Consequências:**
+- ✅ Handlers escritos manualmente são leves (response body inline, fácil variar em tests)
+- ✅ Cenários de erro (401, 422, 500) modelados naturalmente — codegen teria dificuldade
+- ✅ Lint CI cobre "drift" — novo endpoint no backend sem handler → CI falha
+- ⚠️ Primeiro run do lint precisa de baseline (lista de endpoints já presentes)
+- ⚠️ Depende de backend estar UP para baixar `openapi.json` (ou pre-commit snapshot)
+- ❌ Sem auto-sincronização — dev precisa atualizar `handlers.ts` ao adicionar endpoint
+
+**Implementação:** scaffold em `frontend/scripts/msw-lint.mjs` (a criar, similar a `contract-check.mjs`). Ativar em CI após primeiro baseline.
+
+---
+
+## ADR-070 — Premium LLM E2E: mock default + nightly real opt-in
+
+**Status:** Decidido • **Data:** 2026-04-15 • **Contexto da task:** F6.5F.11
+
+**Contexto:** Pipeline premium tier chama LiteLLM → Anthropic/OpenAI/etc. Em CI, duas estratégias:
+
+1. **Mock LiteLLM:** interceptar chamadas, retornar fixtures pré-computadas. Custo zero, reproduzível.
+2. **Real API calls:** anotar chave do provedor em GH secret, chamar API real. Valida comportamento real do provider (rate limit, token counting, etc.).
+
+**Alternativas consideradas:**
+- (A) Só real em TODO PR — custo imprevisível ($$$), flaky com rate limits do provider, chave em CI de PRs de contributors externos = risco
+- (B) Só mock — perde validação de mudanças no provider API (breaking changes do Anthropic SDK, por exemplo)
+- (C) **[escolhida]** Mock default em PR + nightly real opt-in (workflow schedulado)
+
+**Decisão:**
+1. **PR checks:** `frontend-e2e` job usa LiteLLM mockado (adapter em `backend/tests/fixtures/llm_mock.py` retorna outputs válidos por stage). Custo $0.
+2. **Nightly:** GH Actions scheduled workflow `nightly-e2e-real-llm.yml` (a criar em 6.5F.11 implementação) roda 6.5C.0 com `PW_REAL_LLM=1` + `ANTHROPIC_API_KEY` em secret. Falha → issue automática.
+3. **Custo monitorado:** dashboard interno lista token spending do nightly; alerta se >$10/mês.
+
+**Consequências:**
+- ✅ PR checks são rápidos + gratuitos
+- ✅ Validação de integração real provider é mantida (nightly)
+- ✅ Breaking changes do Anthropic SDK pegos em <24h
+- ⚠️ Se nightly falha por rate limit do provider, issue gerada pode ser ruído — mitigado por retry + detecção
+- ❌ Sem validação de "LLM output shape" em cada PR — aceito (cobertura de validators em pipeline/llm/validators.py)
+
+**Implementação:**
+- `backend/tests/fixtures/llm_mock.py`: fixtures por stage (E1, E1.5, E2-llm, E7-review) com JSON válido.
+- `.github/workflows/nightly-e2e-real-llm.yml` — scheduled (cron: `0 3 * * *`) rodando só `@critical` em chromium, com `PW_REAL_LLM=1` + ANTHROPIC_API_KEY.
+- ADR referencia decisão D11 (pendente): provider pode mudar no futuro, ADR ajusta.
+
+---
+
+## ADR-071 — Playwright workspace isolation: email unique por worker
+
+**Status:** Decidido • **Data:** 2026-04-15 • **Contexto da task:** F6.5F.6
+
+**Contexto:** Playwright roda workers paralelos por default. Em E2E que faz registro de users (golden path, onboarding), 2 workers paralelos criando `e2e@test.com` causa race 409. Duas opções de isolation:
+
+1. **Pool de workspaces pré-criadas:** seed 10 users/workspaces antes dos tests, workers sacam da pool + devolvem.
+2. **Email unique por worker:** cada worker usa `e2e-w${parallelIndex}-${STAMP}@test.com`.
+
+**Alternativas consideradas:**
+- (A) Pool pré-criada — complexidade de setup (seed + cleanup), eficiente para testes longos mas overkill para smoke
+- (B) **[escolhida]** Email unique por worker — helper `userForWorker(info)` gera email derivado de `parallelIndex` + `STAMP`. Cada worker opera em seu próprio "workspace fresco" sem coordenação
+- (C) `fullyParallel: false` — serializa tests, mata paralelização
+
+**Decisão:** Abordagem (B). Já implementada em `frontend/tests/e2e/helpers/auth.ts::userForWorker()` no Bootstrap. Workers NÃO compartilham state; cada um registra user novo por run.
+
+**Cleanup:** users criados ficam no DB. Estratégia:
+- **CI:** DB PG service é efêmero (spun up por run) → sem cleanup necessário
+- **Local:** users acumulam em `fin.db`; documented em `TESTING.md` que dev pode dar `./scripts/test_backend_up.sh --reset` para zerar
+
+**Consequências:**
+- ✅ Zero coordenação entre workers — paralelização total
+- ✅ Simples (3 linhas de código no helper)
+- ✅ Cada test é hermético — falha de um worker não afeta outro
+- ⚠️ DB local acumula users — reset manual quando ficar pesado
+- ❌ Não exercita "user com dados pré-existentes" — esses cenários cobertos em integration tests (factories backend)
+
+**Implementação:** já feita em Bootstrap. Esta ADR documenta a decisão para future-me não reabrir.
 
 ---
 

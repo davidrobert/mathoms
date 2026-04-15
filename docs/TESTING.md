@@ -176,35 +176,131 @@ npm run test:e2e tests/e2e/golden-path.spec.ts
 
 ## Como debugar falha em CI
 
-[6.5F.9 — preencher quando CI artifacts implementados]
+**F6.5F.9 — artifacts disponíveis no GH Actions run:**
 
-- HTML report do Playwright: baixar do PR comment
-- Vídeo + trace: `playwright-results/output/<test>/{video.webm,trace.zip}`
-- JUnit XML: `playwright-results/junit.xml`
-- Coverage: `coverage/index.html`
+| Artifact                       | Onde baixar                                  | Conteúdo                                            | Retention |
+| ------------------------------ | -------------------------------------------- | --------------------------------------------------- | --------- |
+| `playwright-report`            | Aba "Actions" → run → Artifacts              | HTML report + vídeo + trace em cada test falhado   | 30 dias   |
+| `backend-coverage`             | Mesmo lugar                                  | `coverage.xml` + `htmlcov/` (line coverage HTML)    | 14 dias   |
+| `frontend-vitest-results`      | Mesmo lugar                                  | `vitest-results.xml` (JUnit) para integration CI    | 14 dias   |
+
+**Passo a passo ao debugar:**
+1. Abrir o run falhado em GH Actions.
+2. Baixar `playwright-report` (ZIP).
+3. Abrir `index.html` → clicar no test vermelho.
+4. Ver:
+   - **Screenshot pós-falha** — estado da UI no momento do erro
+   - **Vídeo** — replay do test inteiro
+   - **Trace** — timeline clicável com network + DOM snapshots (usar `npx playwright show-trace trace.zip`)
+5. Reproduzir localmente com o mesmo input antes de fix.
+
+**Unit test falhando só em CI (não local):**
+- Provável causa: dependency order / flaky / timezone difference.
+- Rodar com `TZ=UTC npm test` local para ver se é TZ.
+- Aplicar quarentena (ver "Flaky test policy" abaixo) enquanto investiga.
 
 ---
 
-## Como atualizar snapshot (visual regression)
+## Flaky test policy — F6.5F.8
 
-[6.5D.3 + 6.5F.10 — preencher quando snapshots implementados]
+**Philosophy:** tests flaky matam confiança no CI. Em vez de suprimir silenciosamente, temos processo explícito.
+
+### Playwright retries
+
+- **CI:** `retries: 2` (em `playwright.config.ts`) — test flaky retenta até 2x
+- **Local:** `retries: 0` — flakiness aparece imediato no dev loop
+
+### Quarentena
+
+Se test é legitimamente flaky e bloqueia merge:
+
+```ts
+// Em vez de deletar ou suprimir, anote explicitamente:
+test.skip(true, "flaky: TODO BUG-XXX — race com WS reconnect");
+
+test("upload real", async ({ page }) => {
+  // ...
+});
+```
+
+Gera sinal claro para quem vê o test listado como "skipped".
+
+### Report semanal
+
+CI pode rodar workflow `nightly-flaky-report.yml` (a criar) que lista tests com `test.skip(true, "flaky: ...")`. Issues auto-geradas por flaky >2 semanas sem fix.
+
+---
+
+## Como atualizar snapshot (visual regression) — F6.5F.10
+
+**Política:** snapshots são artefatos versionados. Mudança em snapshot = mudança visual intencional. Requer revisão manual.
+
+### Workflow
 
 ```bash
-# Atualizar localmente (revisar diff visual antes!)
+# 1. Rodar local com --update-snapshots (revisar o diff ANTES)
+cd frontend
 npm run test:e2e -- --update-snapshots tests/e2e/<spec>.visual.spec.ts
 
-# Em PR: marcar checkbox "snapshots intencionais? screenshot do diff?"
+# 2. Inspecionar os PNG novos
+ls -la tests/e2e/__snapshots__/
+
+# 3. Commitar os snapshots JUNTO com o código da mudança visual
+#    (não em PR separado; revisor precisa do contexto)
+git add tests/e2e/__snapshots__/
+git add src/components/<mudança>
+git commit -m "feat(design): <mudança visual> + snapshots atualizados"
+```
+
+### PR template checkbox
+
+Toda PR que altera `tests/e2e/__snapshots__/` deve marcar:
+
+```markdown
+- [ ] Snapshots atualizados são **intencionais** (change visual esperada)
+- [ ] Incluí screenshot do diff na descrição do PR (antes/depois)
+- [ ] Testei em light + dark mode local
+```
+
+### CODEOWNERS
+
+`.github/CODEOWNERS` requer review de designer (ou founder) para mudanças em snapshots:
+
+```
+/frontend/tests/e2e/__snapshots__/ @davidrobert
 ```
 
 ---
 
-## Premium tier LLM em E2E
+## Premium tier LLM em E2E — F6.5F.11 (ADR-070)
 
-[6.5F.11 — preencher quando ADR formal]
+**Default (PR checks):** LiteLLM mockado. Custo $0. Rápido.
 
-- Default em CI: mock LiteLLM (custo $0).
-- Nightly opt-in: `--real-llm` + `ANTHROPIC_API_KEY` em GH secret.
-- Custo monitorado via dashboard interno.
+```python
+# backend/tests/fixtures/llm_mock.py expõe `mock_llm_service()` que retorna
+# outputs Pydantic válidos por stage (E1, E1.5, E2-llm, E7-review).
+# Usado via dependency override em integration tests + E2E default.
+```
+
+**Nightly opt-in:** `nightly-e2e-real-llm.yml` (scheduled cron, a criar em follow-up):
+
+```yaml
+on:
+  schedule:
+    - cron: "0 3 * * *"  # 03:00 UTC diário
+env:
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  PW_REAL_LLM: "1"
+```
+
+Validates:
+- Breaking changes do SDK Anthropic/OpenAI (pegos em <24h)
+- Rate limit / quota behavior
+- Token counting real
+
+Se nightly falha: issue auto-gerada. Cost cap no CI secret: <$10/mês esperado.
+
+Ver [ADR-070](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in) para rationale.
 
 ---
 

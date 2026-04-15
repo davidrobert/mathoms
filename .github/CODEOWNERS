@@ -1,0 +1,20 @@
+# CODEOWNERS — F6.5F.10 (snapshot review process)
+#
+# Ver https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: founder aprova tudo se ninguém mais foi pingado
+*                                          @davidrobert
+
+# Visual regression snapshots — mudanças exigem review deliberado
+/frontend/tests/e2e/__snapshots__/         @davidrobert
+/frontend/tests/e2e/*.visual.spec.ts       @davidrobert
+
+# Migrations Alembic — mudanças de schema exigem revisão sistemática
+/backend/alembic/versions/                 @davidrobert
+
+# Fixtures sintéticas (tests/fixtures/) — qualquer mudança pode afetar
+# reproducibilidade de testes
+/tests/fixtures/                           @davidrobert
+
+# ADRs — decisões arquiteturais exigem pausa para review
+/docs/DECISIONS.md                         @davidrobert

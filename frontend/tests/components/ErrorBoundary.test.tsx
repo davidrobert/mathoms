@@ -1,14 +1,15 @@
 /**
  * Tests — ErrorBoundary (F6.5D.11)
  */
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Componente que crasha deliberadamente
-function Crasher({ shouldCrash = true }: { shouldCrash?: boolean }): JSX.Element {
+function Crasher({ shouldCrash = true }: { shouldCrash?: boolean }): ReactElement {
   if (shouldCrash) {
     throw new Error("Chart quebrou");
   }
