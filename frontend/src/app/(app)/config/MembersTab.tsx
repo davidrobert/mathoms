@@ -8,6 +8,8 @@ import {
   deleteMember,
   createBankAccount,
   deleteBankAccount,
+  getWorkspaceSettings,
+  updateWorkspaceSettings,
   type FamilyMemberConfig,
   type BankAccountConfig,
   ApiError,
@@ -30,6 +32,9 @@ const ROLES = [
 
 export default function MembersTab() {
   const [members, setMembers] = useState<FamilyMemberConfig[]>([]);
+  const [familySurname, setFamilySurname] = useState<string>("");
+  const [familySurnameDirty, setFamilySurnameDirty] = useState(false);
+  const [savingSurname, setSavingSurname] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -40,16 +45,33 @@ export default function MembersTab() {
 
   const reload = useCallback(async () => {
     try {
-      const data = await listMembers();
+      const [data, ws] = await Promise.all([listMembers(), getWorkspaceSettings()]);
       setMembers(data.members);
+      setFamilySurname(ws.family_surname ?? "");
+      setFamilySurnameDirty(false);
     } catch {
-      setError("Erro ao carregar membros");
+      setError("Erro ao carregar dados do workspace");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => { reload(); }, [reload]);
+
+  async function handleSaveSurname() {
+    setError(""); setSuccess("");
+    setSavingSurname(true);
+    try {
+      const updated = await updateWorkspaceSettings({ family_surname: familySurname.trim() || null });
+      setFamilySurname(updated.family_surname ?? "");
+      setFamilySurnameDirty(false);
+      setSuccess("Sobrenome da família atualizado!");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.detail : "Erro ao salvar sobrenome");
+    } finally {
+      setSavingSurname(false);
+    }
+  }
 
   async function handleCreate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -140,6 +162,34 @@ export default function MembersTab() {
           {success} <button onClick={() => setSuccess("")} className="ml-2 underline">fechar</button>
         </div>
       )}
+
+      {/* Workspace settings — Sobrenome da família (vai para a capa do relatório) */}
+      <Card className="mb-4">
+        <CardContent className="p-5">
+          <Label htmlFor="family-surname" className="mb-1 block text-sm font-medium">
+            Sobrenome da família
+          </Label>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Aparece na capa do relatório (ex: &quot;Relatório Financeiro Família Silva&quot;) e no nome do arquivo HTML gerado.
+          </p>
+          <div className="flex gap-2">
+            <Input
+              id="family-surname"
+              value={familySurname}
+              onChange={(e) => { setFamilySurname(e.target.value); setFamilySurnameDirty(true); }}
+              placeholder="ex: Silva, Ferreira Campos"
+              maxLength={255}
+              className="flex-1"
+            />
+            <Button
+              onClick={handleSaveSurname}
+              disabled={!familySurnameDirty || savingSurname}
+            >
+              {savingSurname ? "Salvando..." : "Salvar"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Member Cards */}
       <div className="space-y-3">

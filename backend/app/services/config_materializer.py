@@ -23,6 +23,7 @@ from backend.app.models.category import Category, CategoryKeyword
 from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
 from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.llm_config import LLMConfig
+from backend.app.models.workspace import Workspace
 from backend.app.services.vault import VaultService
 
 _vault = VaultService()
@@ -74,7 +75,13 @@ def _write_yaml(path: Path, data: dict[str, Any]) -> None:
 
 
 def serialize_family_members(workspace_id: str, db: Session) -> dict[str, Any] | None:
-    """Serialize FamilyMember + BankAccount rows into family_members.json format."""
+    """Serialize FamilyMember + BankAccount rows into family_members.json format.
+
+    Includes `familia.sobrenome` (from Workspace.family_surname) — consumed by E6
+    as `{{COVER_FAMILIA}}` and in the report filename pattern. If the workspace has
+    no family_surname set, the field is omitted (preserving the value already in
+    the global config copied to tenant — typically empty for fresh workspaces).
+    """
     members = (
         db.query(FamilyMember)
         .filter(FamilyMember.workspace_id == workspace_id)
@@ -82,7 +89,11 @@ def serialize_family_members(workspace_id: str, db: Session) -> dict[str, Any] |
         .order_by(FamilyMember.order)
         .all()
     )
-    if not members:
+
+    workspace = db.query(Workspace).filter(Workspace.id == workspace_id).first()
+    family_surname = workspace.family_surname if workspace else None
+
+    if not members and not family_surname:
         return None
 
     membros: dict[str, Any] = {}
@@ -110,6 +121,8 @@ def serialize_family_members(workspace_id: str, db: Session) -> dict[str, Any] |
             banco_membro[acc.institution_code] = m.key
 
     result: dict[str, Any] = {"membros": membros}
+    if family_surname:
+        result["familia"] = {"sobrenome": family_surname}
     if banco_membro:
         result["banco_membro"] = banco_membro
     if titular:

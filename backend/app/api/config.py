@@ -39,6 +39,8 @@ from backend.app.schemas.config import (
     PipelineConfigUpdateRequest,
     ReportLayoutSchema,
     ReportLayoutUpdateRequest,
+    WorkspaceSettingsSchema,
+    WorkspaceSettingsUpdateRequest,
 )
 from backend.app.services.vault import VaultService
 
@@ -98,6 +100,35 @@ def _category_to_schema(c: Category) -> CategorySchema:
         id=c.id, code=c.code, name=c.name, category_type=c.category_type,
         monthly_cap=c.monthly_cap, order=c.order, keywords=keywords,
     )
+
+
+# =============================================================================
+# Workspace settings (family_surname — exibido no relatório E6)
+# =============================================================================
+
+
+@router.get("/workspace", response_model=WorkspaceSettingsSchema)
+async def get_workspace_settings(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    ws = await _get_workspace(user, db)
+    return WorkspaceSettingsSchema(name=ws.name, family_surname=ws.family_surname)
+
+
+@router.patch("/workspace", response_model=WorkspaceSettingsSchema)
+async def update_workspace_settings(
+    body: WorkspaceSettingsUpdateRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    ws = await _get_workspace(user, db)
+    # Tratamento explícito: empty string → None (limpa o campo)
+    if body.family_surname is not None:
+        ws.family_surname = body.family_surname.strip() or None
+    await db.commit()
+    await db.refresh(ws)
+    return WorkspaceSettingsSchema(name=ws.name, family_surname=ws.family_surname)
 
 
 # =============================================================================
@@ -596,6 +627,13 @@ async def _import_family_members(ws_id: str, data: dict[str, Any], db: AsyncSess
         await db.delete(m)
     await db.flush()
 
+    family_surname = data.get("familia", {}).get("sobrenome") if isinstance(data.get("familia"), dict) else None
+    if family_surname is not None:
+        ws_result = await db.execute(select(Workspace).where(Workspace.id == ws_id))
+        ws = ws_result.scalar_one_or_none()
+        if ws is not None:
+            ws.family_surname = family_surname or None  # empty string → None
+
     membros = data.get("membros", {})
     banco_membro = data.get("banco_membro", {})
 
@@ -668,6 +706,11 @@ async def _export_family_members(ws_id: str, db: AsyncSession) -> dict[str, Any]
         .order_by(FamilyMember.order)
     )
     members = result.scalars().all()
+
+    ws_result = await db.execute(select(Workspace).where(Workspace.id == ws_id))
+    workspace = ws_result.scalar_one_or_none()
+    family_surname = workspace.family_surname if workspace else None
+
     if not members:
         return _load_global_json("family_members.json")
 
@@ -696,6 +739,8 @@ async def _export_family_members(ws_id: str, db: AsyncSession) -> dict[str, Any]
             banco_membro[acc.institution_code] = m.key
 
     result_dict: dict[str, Any] = {"membros": membros}
+    if family_surname:
+        result_dict["familia"] = {"sobrenome": family_surname}
     if banco_membro:
         result_dict["banco_membro"] = banco_membro
     if titular:

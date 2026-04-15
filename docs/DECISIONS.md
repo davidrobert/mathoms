@@ -36,7 +36,10 @@
 [D7](#adr-007--fernet-app-level-para-criptografia) [D40](#adr-040--billing-adiado-para-pós-launch) [D41](#adr-041--traefik-como-reverse-proxy) [D55](#adr-055--coverage-target--85-line--95-new-code) [D56](#adr-056--rolling-restart-em-vez-de-blue-green) [D57](#adr-057--jwt-15min--refresh-7d) [D58](#adr-058--vps-cx32-para-sizing) [D59](#adr-059--docker-image-cve-scan-no-ci) [D60](#adr-060--fernet-dual-key-para-secret-rotation) [D61](#adr-061--telemetria-privacy-first)
 
 **Testing:**
-[D62](#adr-062--frontend-testing-em-fase-dedicada-65) [D63](#adr-063--hardening-fintech-em-sub-fase-65d)
+[D62](#adr-062--frontend-testing-em-fase-dedicada-65) [D63](#adr-063--hardening-fintech-em-sub-fase-65d) [D64](#adr-064--backend-hardening-em-sub-fase-65e)
+
+**Operations:**
+[D65](#adr-065--sub-fase-7e-operational-readiness) [D66](#adr-066--auth-flows-completos-e-prompt-injection-em-7b-bloqueadores-de-beta)
 
 ---
 
@@ -698,6 +701,127 @@ Documentado no Runbook.
 
 ---
 
+## ADR-064 — Backend hardening em sub-fase 6.5E
+
+**Status:** Decidido • **Data:** 2026-04-15
+
+**Contexto:** O incidente BUG-015 (capa do relatório vazia para workspaces multi-tenant porque `serialize_family_members` perdia `familia.sobrenome` ao sobrescrever o JSON tenant) revelou uma classe inteira de bugs latente:
+
+1. Os serializers (DB → pipeline JSON) são **contratos silenciosos** — sem testes de round-trip, qualquer mudança quebra o pipeline sem que o backend perceba
+2. O fallback do `_copy_global` permite que dados do founder vazem para workspaces reais (relacionado a BUG-004)
+3. Migrations Alembic rodam contra qualquer DB no `cwd` — possível aplicar migration na DB errada (foi exatamente o que aconteceu durante o fix de BUG-015)
+4. `_init_config` é compartilhado entre Celery workers — sem teste de concorrência
+
+F6.5 originalmente cobria só frontend. F7D.1-3 falava em "gap-fill" mas sem foco específico nessas fronteiras.
+
+**Alternativas consideradas:**
+- (A) Adicionar tasks soltas em F7D — se diluem entre 30+ outras tarefas, alta chance de cair
+- (B) Esperar primeira regressão real em prod — inaceitável para produto financeiro
+- (C) **[escolhida]** Sub-fase 6.5E dedicada (~2 dias), antes do deploy para prod
+
+**Decisão:** Criar sub-fase **6.5E — Backend Hardening** com 7 tasks (5 P0 + 2 P1) cobrindo:
+- Round-trip tests para os 6 serializers
+- Golden file pipeline com PDFs sintéticos (proves zero data leakage)
+- Alembic CI guardrails (drift + idempotency + dry-run)
+- Fix de cwd-sensitivity em alembic.ini
+- Test anti-regressão BUG-015 explícito
+- Systemic fix para fallback-leak class
+- Concurrency test para `_init_config`
+
+**Critérios de aceite adicionais em F6.5:**
+- 6 serializers com round-trip green
+- Golden pipeline test com PDFs sintéticos: green
+- CI falha em migration drift ou non-idempotent
+- BUG-015 coberto por test que falharia se removermos o fix
+
+**Consequências:**
+- ✅ Classe BUG-015 eliminada via cobertura sistemática
+- ✅ Confiança em mudar serializers no futuro
+- ✅ Migrations não podem aplicar na DB errada por acidente
+- ✅ Pipeline test golden com dados sintéticos = base reusável para 6.5C.0 E2E
+- ⚠️ Prazo de F6.5 +2 dias (2.5 → 3 semanas)
+- ⚠️ Manutenção: golden file precisa ser regenerado quando schema do report muda intencionalmente
+- ❌ Não cobre todos os edge cases de scripts E5/E6 — ainda fica para 7D.2 gap-fill
+
+---
+
+## ADR-065 — Sub-fase 7E Operational Readiness
+
+**Status:** Decidido • **Data:** 2026-04-15
+
+**Contexto:** A versão original da F7 cobria deploy (7A), security/LGPD (7B), CI/observabilidade (7C) e quality gate (7D). Faltam concerns operacionais que só aparecem **depois** que o produto está rodando com usuários:
+
+1. **Pipeline runs órfãs:** Celery worker morre → run fica `"running"` para sempre → user vê spinner eterno
+2. **Disaster recovery não testado:** 7A.10 menciona backup mas sem restore drill, RPO/RTO não declarados, backup mora no mesmo DC do Hetzner (incêndio = perda total)
+3. **FERNET_KEY recovery:** ADR-060 menciona dual-key mas sem procedure testado
+4. **Observabilidade só captura erros:** Sentry vê crashes; nada vê "0 reports nas últimas 24h" = produto silenciosamente quebrado
+5. **Comunicação durante incidente:** sem template, sem status page público, sem support runbook
+6. **LLM cost runaway:** BYOK não isenta de monitoring; user pode estourar próprio budget sem perceber, e nós não sabemos
+7. **API key inválida** crasha mid-pipeline com 500 em vez de validar antes
+
+**Alternativas consideradas:**
+- (A) Distribuir essas tasks entre 7A/7B/7C/7D — risco de virar P2 e ser cortado
+- (B) Empurrar para pós-launch — significa primeiro incidente sem ferramentas para responder
+- (C) **[escolhida]** Sub-fase dedicada 7E, ~2 semanas, executada após 7D mas **antes** do dogfood
+
+**Decisão:** Criar sub-fase **7E — Operational Readiness** com 14 tasks organizadas em 5 grupos:
+- **7E.A Pipeline operacional:** stuck-run detector
+- **7E.B Disaster recovery:** restore drill, RPO/RTO, off-site backup, FERNET recovery
+- **7E.C Observabilidade de negócio:** status page, business metrics, SLOs/SLAs
+- **7E.D Comunicação de incidentes:** templates de comms, support runbook
+- **7E.E LLM cost runaway protection:** cost cap, dashboard, API key validation, fallback model
+
+**Consequências:**
+- ✅ Beta começa com ferramentas para responder ao primeiro incidente
+- ✅ Off-site backup elimina risco de perda total em falha de DC
+- ✅ Pipeline runs órfãs viram tickets, não experiências silenciosamente quebradas
+- ✅ Cost cap protege user de queimar próprio budget BYOK
+- ✅ Status page + comms templates = comunicação profissional desde dia 1
+- ⚠️ Prazo de F7 +2 semanas (6-8 → 8-10 semanas, sem contar dogfood)
+- ⚠️ Off-site backup adiciona custo (~$1-3/mo S3 BR ou Backblaze B2)
+- ❌ MFA fica para F8 (decisão deliberada — ver ADR-066)
+
+---
+
+## ADR-066 — Auth flows completos e prompt injection em 7B (bloqueadores de beta)
+
+**Status:** Decidido • **Data:** 2026-04-15
+
+**Contexto:** F7B original cobria session security (JWT + refresh), audit log e LGPD (termos, exclusão, portabilidade). Faltam fluxos de auth básicos que **bloqueiam GA**:
+
+1. **Email verification** ausente — qualquer um pode registrar `presidente@empresa.com` e receber relatórios financeiros (impersonation)
+2. **Password reset** ausente — esqueci minha senha = produto inutilizável, sem recovery
+3. **Brute-force lockout** ausente — rate limit de 5/min ainda permite 7200 tentativas/dia
+4. **MFA** não está nem no roadmap explícito — fintech bare minimum para GA
+5. **Prompt injection no E2-llm/E1.5:** PDFs vêm de usuários; um PDF malicioso pode conter texto invisível instruindo o LLM a vazar dados via campo `notes` ou similar — sem defesa hoje
+6. **Terms versioning:** quando termos mudam, LGPD requer consentimento informado; hoje não há mecanismo
+
+**Alternativas consideradas:**
+- (A) Empurrar email verify/password reset para F8 — significa que beta fechado roda com auth quebrado
+- (B) Implementar tudo só quando necessário — impossível abrir GA sem isso
+- (C) **[escolhida]** Adicionar 8 tasks novas em 7B (7B.11-7B.18) cobrindo auth completo, prompt injection e terms versioning. MFA stub via ADR (decidir timing F7 vs F8 separadamente — task 7B.14)
+
+**Decisão:** Expandir F7B com:
+- 7B.11 Email verification (P0)
+- 7B.12 Password reset completo (P0)
+- 7B.13 Brute-force lockout escalonado (P0)
+- 7B.14 MFA decision stub + campo `mfa_enabled` migration-ready (P1, decisão de timing em ADR futura)
+- 7B.15 Prompt injection defense (P0)
+- 7B.16 Terms versioning + re-aceitação (P1)
+- 7B.17 Soft-delete period 30d (P1)
+- 7B.18 DSAR SLA workflow (P1)
+
+**Consequências:**
+- ✅ Beta fechado pode rodar com fluxos de auth reais
+- ✅ Caminho claro para GA (não há show-stopper de auth descoberto na hora)
+- ✅ Prompt injection defense em produto LLM-augmented = não-negociável para fintech
+- ✅ LGPD coberto além do mínimo (terms versioning + DSAR + soft-delete)
+- ⚠️ Prazo de F7B +1-2 semanas
+- ⚠️ Email transactional precisa ser configurado (provider TBD: Resend? Mailgun? AWS SES? Decisão pendente em D11 a criar)
+- ❌ MFA fica como decisão pendente — provavelmente F8, mas migration-safe via stub
+
+---
+
 ## Decisões pendentes
 
 | #   | Decisão                           | Quando precisa | Opções                                                               |
@@ -705,7 +829,14 @@ Documentado no Runbook.
 | D8  | Pricing do premium                | Pós-beta       | R$29/mês / R$49/mês / R$99/mês                                       |
 | D9  | Nome do produto                   | Pré-GA         | Fin / FinPlan / outro                                                |
 | D10 | Prioridade de novos bancos        | Pós-beta       | Nubank / Inter / Mercado Pago / Open Finance                         |
+| D11 | Email transactional provider      | Pré-7B.11      | Resend / Mailgun / AWS SES / SendGrid                                |
 | D12 | Multi-language support            | F8+            | pt-BR only / pt-BR + en                                              |
+| D13 | MFA: F7 ou F8                     | Pré-7B.14      | F7 (TOTP via authenticator app) / F8 (após beta validado)            |
+| D14 | Menores como `FamilyMember`       | Pré-beta       | Permitir (LGPD/ECA exigem cuidados) / Bloquear (apenas adultos)      |
+| D15 | Cost cap mensal default           | Pré-7E.11      | 500K tokens / 1M / 2M / configurável sem default                     |
+| D16 | Off-site backup destination       | Pré-7E.4       | S3 BR (custo) / Backblaze B2 (US, mais barato) / R2 Cloudflare       |
+| D17 | Status page provider              | Pré-7E.6       | uptime-kuma self-hosted / instatus.com free / better-stack           |
+| D18 | RPO/RTO target                    | Pré-7E.3       | Dogfood: RPO=24h RTO=4h • Beta: RPO=1h RTO=1h • GA: RPO=15min RTO=30min |
 
 ---
 

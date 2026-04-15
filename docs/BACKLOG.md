@@ -157,8 +157,9 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | #       | Tarefa                                                              | Prio | Est. | Status |
 | ------- | ------------------------------------------------------------------- | ---- | ---- | ------ |
 | 6.5C.1  | Setup Playwright (`playwright.config.ts`, webServer, auth helper, projects: chromium + firefox + webkit) | P0 | 4h | ☐ |
-| 6.5C.2  | E2E Fluxo 1 — Onboarding completo                                   | P0   | 3h   | ☐      |
-| 6.5C.3  | E2E Fluxo 2 — Upload → Pipeline → Report                            | P0   | 5h   | ☐      |
+| 6.5C.0  | **E2E Golden Path End-to-End** — fluxo único encadeado: registro fresh → login → **definir Sobrenome da família** (config/members) → upload de PDFs sintéticos (extrato + fatura) → vault unlock se necessário → trigger pipeline (free tier) → aguardar WS até E6 completo → abrir relatório → validar conteúdo: (1) KPIs presentes, (2) charts renderizados, (3) score >0, (4) **`{{COVER_FAMILIA}}` da capa contém o sobrenome definido** (regressão BUG-015), (5) nome do arquivo HTML inclui o sobrenome. **Test único, não-paramétrico, smoke do produto inteiro.** | P0 | 4h | ☐ |
+| 6.5C.2  | E2E Fluxo 1 — Onboarding completo (variações: erros de validação, email duplicado, password fraca) | P0 | 3h | ☐ |
+| 6.5C.3  | E2E Fluxo 2 — Upload → Pipeline → Report (variações: needs_review, cancel mid-stage, retry de stage falho, premium tier com LLM) | P0 | 5h | ☐ |
 | 6.5C.4  | E2E Fluxo 3 — Config round-trip (criar membro → export JSON)        | P0   | 3h   | ☐      |
 | 6.5C.5  | E2E Fluxo 4 — Vault + Unlock                                        | P1   | 3h   | ☐      |
 | 6.5C.6  | E2E Fluxo 5 — Drill-down Dashboard → Transactions                   | P1   | 3h   | ☐      |
@@ -168,7 +169,7 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | 6.5C.10 | Smoke test checklist (`docs/SMOKE_TEST.md`, 30+ checks) — incluir seção LGPD pré-beta: nenhum dado real em fixtures, audit do localStorage pós-logout | P0 | 3h | ☐ |
 | 6.5C.11 | CI integration (GH Actions com PostgreSQL + Redis services)         | P0   | 3h   | ☐      |
 
-**Checkpoint:** ~25-30 E2E tests green cobrindo 8 fluxos críticos. `docs/SMOKE_TEST.md` criado.
+**Checkpoint:** ~25-30 E2E tests green cobrindo Golden Path + 8 fluxos críticos. `docs/SMOKE_TEST.md` criado. **Golden Path (6.5C.0) é o gate sagrado:** se ele falha, deploy não sai — independente do resto.
 
 ### 6.5D — Hardening Fintech (semana 2-3, 3-4 dias)
 
@@ -186,8 +187,28 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | 6.5D.8  | Lighthouse CI (perf>85, a11y>95, best-practices>90; SEO ignorado). **Modo medir, não bloquear** (gate vira hard em F7D.7) | P1 | 3h | ☐ |
 | 6.5D.9  | Bundle size budget (`@next/bundle-analyzer` + `size-limit` em CI; budget por chunk: dashboard <250KB, transactions <200KB, reports <300KB) | P1 | 2h | ☐ |
 | 6.5D.10 | Contract test FE↔BE: `openapi-typescript` em CI gera types do OpenAPI do backend; diff vs `lib/api.ts` types → fail se drift | P1 | 4h | ☐ |
+| 6.5D.11 | **Error boundary audit**: cada página sob `(app)/` envolvida em `<ErrorBoundary>` (React 19); crash em 1 chart não derruba dashboard inteiro; fallback UI com botão "Recarregar"/"Reportar" | P0 | 3h | ☐ |
+| 6.5D.12 | **Empty state CTA audit**: toda empty state tem CTA acionável (ex: "Sem transações" → botão "Subir extrato"); sem dead-ends; revisão sistemática de 10 pages | P1 | 3h | ☐ |
+| 6.5D.13 | **Focus management**: route change manda foco pro `<h1>` da nova página; modal close volta foco pro trigger; form submit mantém foco útil; testes Playwright | P1 | 3h | ☐ |
+| 6.5D.14 | **Core Web Vitals targets** específicos (não só Lighthouse): LCP <2.5s, INP <200ms, CLS <0.1 — medir via `web-vitals` lib em Playwright no Golden Path; gate soft em 6.5, hard em F7 | P1 | 3h | ☐ |
 
-**Checkpoint:** axe-core 0 violations critical/serious • visual regression baseline criado e versionado • 3 fluxos green em 3 browsers • resilience + security smoke green • lint anti-PII green em CI.
+**Checkpoint:** axe-core 0 violations critical/serious • visual regression baseline criado e versionado • 3 fluxos green em 3 browsers • resilience + security smoke green • lint anti-PII green em CI • todas as pages com error boundary • empty states com CTA • focus management validado • CWV baseline registrado.
+
+### 6.5E — Backend Hardening (semana 3, 2 dias)
+
+> Sub-fase dedicada a blindar a fronteira DB → pipeline contra a classe de bugs que gerou **BUG-015** (serializers perdendo campos silenciosamente, migrations rodando na DB errada por cwd, dados do founder vazando do fallback global). Ver [ADR-064](DECISIONS.md#adr-064--backend-hardening-em-sub-fase-65e).
+
+| #       | Tarefa                                                                                                                                                              | Prio | Est. | Status |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
+| 6.5E.1  | **Round-trip tests para os 6 serializers** do `config_materializer` (family_members, categorization, pipeline, institutions, report_layout, llm_config): DB seed → materialize → ler JSON → assert todos os campos preservados (inclui `familia.sobrenome` após BUG-015) | P0 | 6h | ☐ |
+| 6.5E.2  | **Golden file pipeline com PDFs 100% sintéticos** (zero dado real): fixture completa de workspace + PDFs → orchestrator → E6 HTML → assert estrutura + valores esperados. Reutilizável como base do 6.5C.0 E2E | P0 | 4h | ☐ |
+| 6.5E.3  | **Alembic CI guardrails**: `alembic check` detecta drift entre models e migrations; idempotency test (`upgrade → downgrade → upgrade` = mesmo schema); `alembic upgrade head --sql` preview em PR | P0 | 3h | ☐ |
+| 6.5E.4  | **Fix cwd-sensitivity em alembic.ini**: caminho absoluto ou env var `FIN_DB_URL` obrigatória; documentar em SETUP.md que alembic roda da raiz; adicionar guard no `env.py` que rejeita paths relativos ambíguos | P0 | 1h | ☐ |
+| 6.5E.5  | **Test anti-regressão BUG-015**: workspace com `FamilyMember` no DB mas sem `family_surname` definido → materialized `family_members.json` NÃO contém `familia.sobrenome` do global (`"Ferreira Campos"` do founder) | P0 | 1h | ☐ |
+| 6.5E.6  | **Systemic fix para fallback-leak class**: políticas "neutral global defaults" (strip identity fields do `config/family_members.json` antes de copiar pro tenant quando workspace tem membros) + test que cobre cada config | P1 | 4h | ☐ |
+| 6.5E.7  | **Concurrency test para `_init_config` pattern** (thread-safe em Celery fork pool + múltiplas runs paralelas): 2 workspaces materializando ao mesmo tempo não corrompem configs um do outro | P1 | 3h | ☐ |
+
+**Checkpoint:** 6 serializers com round-trip green • golden pipeline test verde com PDFs sintéticos • CI falha em migration drift/non-idempotent • BUG-015 coberto por test anti-regressão • alembic roda sempre na DB correta.
 
 ---
 
@@ -229,6 +250,14 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | 7B.8  | LGPD — Portabilidade (`GET /api/account/export`, ZIP com dados pessoais, download link temporário)   | P1   | 6h   | ☐      |
 | 7B.9  | Storage cleanup (retention 90 dias, Celery periodic task, soft-delete)                               | P1   | 4h   | ☐      |
 | 7B.10 | UX de produção (rate limit toast, LGPD delete stepper, export notification, maintenance page)        | P1   | 4h   | ☐      |
+| 7B.11 | **Email verification** no registro (token 24h, link em email, bloqueio de login até verificar, reenvio) — **sem isso GA é impossível** | P0 | 6h | ☐ |
+| 7B.12 | **Password reset** (fluxo completo: endpoint request, token Fernet 1h, email com link, página `/reset-password/{token}`, invalidação de refresh tokens) | P0 | 8h | ☐ |
+| 7B.13 | **Brute-force lockout**: N falhas consecutivas (5) → cooldown escalonado (1min → 5min → 15min → 1h); contador em Redis com TTL; unlock automático e manual (admin) | P0 | 3h | ☐ |
+| 7B.14 | **MFA decision stub**: ADR documentando se TOTP entra F7 ou F8; se F8, stub de campo `mfa_enabled` em `User` para migration path futura sem breaking change | P1 | 1h | ☐ |
+| 7B.15 | **Prompt injection defense** para E2-llm/E1.5: sanitização de texto extraído (strip invisível/zero-width/ANSI), allowlist rígida de campos no output via Instructor, truncamento de input com warning, teste com PDF adversarial fixture | P0 | 6h | ☐ |
+| 7B.16 | **Terms versioning + re-aceitação**: `TermsVersion` model (`version`, `content_md`, `effective_at`); `UserTermsAcceptance` (`user_id`, `version_id`, `accepted_at`); prompt de re-aceitação quando versão ativa muda; bloqueio de API até aceitar | P1 | 4h | ☐ |
+| 7B.17 | **Soft-delete period** em LGPD delete (7B.7): `deleted_at` timestamp, 30 dias de reversibilidade via endpoint, Celery task purga definitivamente após 30d, email de confirmação | P1 | 4h | ☐ |
+| 7B.18 | **DSAR SLA workflow** (LGPD art. 18, 15 dias): endpoint `POST /api/account/dsar`, cria ticket, notifica admin, template de resposta, audit log; exportação automatizada reusa 7B.8 | P1 | 5h | ☐ |
 
 ### 7C — CI/CD + Observabilidade (semana 3-4)
 
@@ -257,6 +286,51 @@ Ver [CHANGELOG.md](CHANGELOG.md#bug-fixes-2026-04-1415).
 | 7D.9  | Telemetria básica (tabela `UsageMetric`, privacy-first, dashboard query simples)                 | P1   | 4h   | ☐      |
 | 7D.10 | Pre-launch checklist (smoke test prod, backup restore, rollback test, SSL Labs grade A)          | P0   | 3h   | ☐      |
 | 7D.11 | **Dogfood period** (2+ semanas uso real, 5+ pipeline runs, zero critical bugs)                   | P0   | —    | ☐      |
+
+### 7E — Operational Readiness (semana 6-7, ~2 semanas)
+
+> Sub-fase dedicada à maturidade operacional além de "produto compila e sobe": runs órfãs, disaster recovery testado, observabilidade de negócio (não só erros), comunicação durante incidentes, e proteção contra runaway de custo LLM (BYOK não isenta de monitoring). Ver [ADR-065](DECISIONS.md#adr-065--sub-fase-7e-operational-readiness).
+
+#### 7E.A — Pipeline operacional
+
+| #     | Tarefa                                                                                                                                                                       | Prio | Est. | Status |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
+| 7E.1  | **Stuck pipeline run detector**: campo `last_heartbeat_at` em `PipelineRun`, atualizado a cada stage; Celery beat task roda a cada 5min e marca como `failed` runs sem heartbeat há >1h; notification automática | P0 | 4h | ☐ |
+
+#### 7E.B — Disaster recovery
+
+| #     | Tarefa                                                                                                                                       | Prio | Est. | Status |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
+| 7E.2  | **Restore drill quarterly**: documentado em RUNBOOK; executar pré-beta; gravar tempo real (RTO efetivo); checklist de validação pós-restore | P0 | 3h | ☐ |
+| 7E.3  | **RPO/RTO declarados**: docs/SLO.md com targets (RPO=24h, RTO=4h propostos para dogfood; RPO=1h, RTO=1h para beta)                          | P0 | 1h | ☐ |
+| 7E.4  | **Off-site backup** (S3 BR ou Backblaze B2): pg_dump diário replicado fora do Hetzner; rotação 30d off-site; restore testado de off-site    | P0 | 4h | ☐ |
+| 7E.5  | **FERNET_KEY loss recovery**: procedure documentado em RUNBOOK; teste em ambiente staging que simula key perdida; backup criptografado da key em local separado (ex: 1Password vault) | P0 | 3h | ☐ |
+
+#### 7E.C — Observabilidade de negócio
+
+| #     | Tarefa                                                                                                                                                                                                          | Prio | Est. | Status |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
+| 7E.6  | **Status page público** (`uptime-kuma` self-hosted ou `instatus.com` free tier): incidentes manuais + uptime auto; link na footer do app                                                                       | P1 | 3h | ☐ |
+| 7E.7  | **Business metrics dashboard**: query simples + página interna `/admin/metrics`: runs/day, success rate trend (7d/30d), p95 duration, custo médio LLM por run, documents uploaded/day, active workspaces      | P1 | 6h | ☐ |
+| 7E.8  | **SLOs/SLAs declarados** em `docs/SLO.md`: uptime 99% beta / 99.5% GA; p95 API <1s; p95 pipeline free <5min, premium <15min; alertas Sentry quando burn rate >2x                                                | P0 | 1h | ☐ |
+
+#### 7E.D — Comunicação de incidentes
+
+| #     | Tarefa                                                                                                                                                                  | Prio | Est. | Status |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
+| 7E.9  | **Incident comms templates** em RUNBOOK: 3 templates Markdown (`initial_report`, `update_in_progress`, `resolved_postmortem`) com placeholders e exemplos preenchidos; treinar uso na primeira incident drill | P0 | 2h | ☐ |
+| 7E.10 | **Support runbook** (`docs/SUPPORT.md`): triagem por severidade, templates de resposta para 5 perguntas comuns, fluxo de escalação, tempo de resposta esperado por tier | P1 | 4h | ☐ |
+
+#### 7E.E — LLM cost runaway protection
+
+| #     | Tarefa                                                                                                                                                                                                            | Prio | Est. | Status |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
+| 7E.11 | **LLM cost cap por workspace/mês**: campo `monthly_token_cap` em `LLMConfig` (default 1M tokens premium); incrementa em `usage_metric`; toast 80%/95% cap; hard stop em 100% (próxima call retorna 429 com explicação) | P0 | 5h | ☐ |
+| 7E.12 | **Dashboard de custo por run**: agregação de `token_tracking` existente; UI em `/pipeline/runs/{id}` mostra custo total estimado por modelo; export CSV de uso mensal                                              | P1 | 3h | ☐ |
+| 7E.13 | **API key validation pré-pipeline**: ping rápido ao modelo (`messages.count_tokens` ou similar barato) antes de iniciar; falha clara em 400 vs crash mid-stage com 500                                            | P0 | 2h | ☐ |
+| 7E.14 | **Fallback model** quando primary rate-limited (429/529): retry com modelo secundário configurável (ex: claude-haiku se opus indisponível); log explícito em `PipelineStageLog`                                   | P1 | 4h | ☐ |
+
+**Checkpoint:** zero pipeline runs órfãs >1h • restore drill executado em <RTO declarado • off-site backup verificado • FERNET recovery testado • status page no ar • business metrics dashboard renderizando • 3 incident templates prontos • LLM cost cap funcionando com toast e hard stop • API key validation antes de cada run.
 
 ---
 

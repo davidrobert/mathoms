@@ -262,3 +262,24 @@ class FamilyMemberListResponse(BaseModel):
 class CategoryListResponse(BaseModel):
     categories: list[CategorySchema]
     total: int
+
+
+# =============================================================================
+# Workspace settings (family_surname etc.)
+# =============================================================================
+
+class WorkspaceSettingsSchema(BaseModel):
+    """Workspace-level settings consumed by the report (E6 cover, filename)."""
+    name: str = Field(..., description="Internal workspace name")
+    family_surname: Optional[str] = Field(
+        None,
+        max_length=255,
+        description="Sobrenome da família — aparece como {{COVER_FAMILIA}} no relatório E6 e no nome do arquivo HTML.",
+    )
+
+    model_config = {"from_attributes": True}
+
+
+class WorkspaceSettingsUpdateRequest(BaseModel):
+    """Partial update for workspace settings. Use null to clear family_surname."""
+    family_surname: Optional[str] = Field(None, max_length=255)

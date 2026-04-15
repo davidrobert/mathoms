@@ -19,8 +19,8 @@
 | **4.5** | Design System Foundation | ✅ Concluída  | Tailwind v4 @theme, Geist fonts, shadcn/ui, 7 compostos financeiros                            |
 | **5**   | Task Queue + Async       | ✅ Concluída  | Celery+Redis, WS+polling, cancel stage-boundary, concurrency                                   |
 | **6**   | Frontend Profissional    | ✅ Concluída  | Dashboard, Transaction Explorer, Report React, Dark mode, Notifications                        |
-| **6.5** | Frontend Testing & QA    | ☐ Planejada  | Vitest + RTL + MSW + Playwright. ~240 tests + hardening fintech (a11y, visual reg., resilience). CI gates. Smoke checklist |
-| **7**   | Produção + LGPD          | ☐ Planejada  | VPS+Docker+Traefik, LGPD, CI/CD, coverage gate, dogfood validado                               |
+| **6.5** | Frontend Testing & QA + Backend Hardening | ☐ Planejada | Vitest + RTL + MSW + Playwright. ~240 tests + hardening fintech (a11y, visual reg., resilience) + backend round-trip serializers (anti-BUG-015) + frontend não-funcional (error boundary, CWV) |
+| **7**   | Produção + LGPD + Ops    | ☐ Planejada  | VPS+Docker+Traefik, LGPD completo, auth flows (email verify/pwd reset/brute-force), prompt injection defense, operational readiness (DR testado, business metrics, incident comms, LLM cost cap), CI/CD, dogfood validado |
 
 ---
 
@@ -47,17 +47,18 @@ Para tasks específicas já feitas e ainda pendentes por sub-fase, ver **[BACKLO
 
 ---
 
-### F6.5 — Frontend Testing & QA (próxima)
+### F6.5 — Frontend Testing & QA + Backend Hardening (próxima)
 
-**Objetivo:** Rede de segurança de testes no frontend antes de ir para produção. A Fase 6 entregou features; a 6.5 entrega confiança. Inclui hardening específico de fintech (a11y, visual regression, resilience, security smoke).
+**Objetivo:** Rede de segurança de testes no frontend antes de ir para produção, mais blindagem da fronteira backend (DB → pipeline) que demonstrou ser frágil (BUG-015). A Fase 6 entregou features; a 6.5 entrega confiança end-to-end.
 
-**Duração estimada:** 2.5 semanas (4 sub-fases)
+**Duração estimada:** 3 semanas (5 sub-fases)
 
 **Escopo:**
 - ~50-60 unit tests (format.ts, export.ts, api.ts, utils.ts, usePipelineWS hook)
 - ~120-150 integration tests (10 pages + AppShell + 7 compostos, loading/empty/error/success)
-- ~25-30 E2E tests (8 fluxos críticos, Playwright com backend real)
-- **Hardening fintech (6.5D):** axe-core, property-based em formatadores BRL, visual regression, cross-browser (Firefox + WebKit), resilience (WS reconnect, polling fallback, offline, 5xx), security smoke (XSS, JWT expiry, logout cleanup), fixtures sintéticas auditadas
+- ~25-30 E2E tests (Golden Path + 8 fluxos críticos, Playwright com backend real)
+- **Hardening fintech frontend (6.5D):** axe-core, property-based em formatadores BRL, visual regression, cross-browser (Firefox + WebKit), resilience (WS reconnect, polling fallback, offline, 5xx), security smoke (XSS, JWT expiry, logout cleanup), fixtures sintéticas auditadas, **error boundary audit, empty state CTA audit, focus management, Core Web Vitals baseline**
+- **Backend hardening (6.5E):** round-trip tests para os 6 serializers do `config_materializer` (anti-BUG-015), golden file pipeline com PDFs sintéticos, alembic CI guardrails (drift + idempotency + dry-run preview), fix cwd-sensitivity em alembic.ini, test anti-regressão BUG-015, systemic fix para fallback-leak class
 - Smoke test checklist (`docs/SMOKE_TEST.md`)
 - CI integration (Vitest + Playwright gates)
 
@@ -69,31 +70,35 @@ Para tasks específicas já feitas e ainda pendentes por sub-fase, ver **[BACKLO
 - **Visual regression: zero diffs não-aprovados** (charts, KPIs, dark/light, print, mobile)
 - **Cross-browser:** 3 fluxos críticos green em Chromium + Firefox + WebKit
 - **Lint anti-vazamento de PII em fixtures:** green (CPFs gerados por mod-11, sem nomes/dados reais)
+- **6 serializers com round-trip green** • golden pipeline test verde com PDFs sintéticos
+- **CI falha em migration drift/non-idempotent**
+- **Todas as pages com error boundary** • empty states com CTA • focus management validado • CWV baseline registrado
 - Gate de CI bloqueia merge/deploy se algum nível falha
 
-**Por que entre F6 e F7 (e não dentro da F7):** Separar garante que testes são pré-requisito do deploy, não afterthought. Bugs descobertos em dev custam 10x menos que em produção. Hardening fintech (6.5D) blindado em sub-fase própria para não ser cortado sob pressão de P0.
+**Por que entre F6 e F7 (e não dentro da F7):** Separar garante que testes e hardening são pré-requisito do deploy, não afterthought. Bugs descobertos em dev custam 10x menos que em produção. Sub-fases 6.5D e 6.5E blindadas em escopo próprio para não serem cortadas sob pressão de P0.
 
-Detalhes das tasks: **[BACKLOG.md#f65](BACKLOG.md#f65--frontend-testing--qa)** • Decisão: **[DECISIONS.md#adr-063](DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d)**
+Detalhes das tasks: **[BACKLOG.md#f65](BACKLOG.md#f65--frontend-testing--qa)** • Decisões: **[ADR-063](DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d)** • **[ADR-064](DECISIONS.md#adr-064--backend-hardening-em-sub-fase-65e)**
 
 ---
 
-### F7 — Produção + Security + LGPD
+### F7 — Produção + Security + LGPD + Operational Readiness
 
-**Objetivo:** Levar o Fin a produção com a menor superfície de risco possível.
+**Objetivo:** Levar o Fin a produção com a menor superfície de risco possível, fluxos de auth completos para suportar usuários reais, e maturidade operacional para sobreviver ao primeiro incidente.
 
-**Duração estimada:** 6-8 semanas (4 sub-fases + 2 semanas de dogfood validado)
+**Duração estimada:** 8-10 semanas (5 sub-fases + 2 semanas de dogfood validado)
 
 **Sub-fases:**
 
-| Sub-fase | Foco                                                      | Duração    |
-| -------- | --------------------------------------------------------- | ---------- |
-| 7A       | Docker + Deploy + HTTPS (VPS, Traefik, Let's Encrypt)     | 1-2 sem    |
-| 7B       | Security Hardening + LGPD (Fernet expandido, rate limit, JWT refresh, audit, termos) | 2-3 sem |
-| 7C       | CI/CD + Observabilidade (GH Actions, Sentry, logs, uptime)| 1-2 sem    |
-| 7D       | Quality Gate + Launch Readiness (gap-fill, baseline perf, checklist) | 2-3 sem |
-| Dogfood  | 2+ semanas de uso real antes de beta                      | 2+ sem     |
+| Sub-fase | Foco                                                                                                                                                              | Duração    |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 7A       | Docker + Deploy + HTTPS (VPS, Traefik, Let's Encrypt)                                                                                                             | 1-2 sem    |
+| 7B       | Security + LGPD + Auth (Fernet expandido, rate limit, JWT refresh, audit, termos versionados, **email verification, password reset, brute-force lockout, prompt injection defense, soft-delete, DSAR**) | 3-4 sem    |
+| 7C       | CI/CD + Observabilidade (GH Actions, Sentry, logs, uptime)                                                                                                        | 1-2 sem    |
+| 7D       | Quality Gate + Launch Readiness (gap-fill, baseline perf, checklist)                                                                                              | 2-3 sem    |
+| 7E       | **Operational Readiness** (stuck-run detector, restore drill, off-site backup, FERNET recovery, status page, business metrics, SLOs, incident comms templates, support runbook, LLM cost cap, API key validation, fallback model) | ~2 sem     |
+| Dogfood  | 2+ semanas de uso real antes de beta                                                                                                                              | 2+ sem     |
 
-**Deploy target:** VPS Hetzner CX32 (4 vCPU, 8GB, ~$8/mo) + Docker Compose + PostgreSQL + Traefik.
+**Deploy target:** VPS Hetzner CX32 (4 vCPU, 8GB, ~$8/mo) + Docker Compose + PostgreSQL + Traefik. Backup off-site em S3 BR ou Backblaze B2.
 
 **Progressão pós-F7:**
 
@@ -155,6 +160,14 @@ Política de cobertura (Python backend + pipeline):
 | R7  | Complexidade E5/E6 dificulta refactoring       | Médio     | Alta            | ✅ Mitigado | "Wrap, Don't Rewrite" strategy. Lógica interna inalterada                                 |
 | R8  | FERNET_KEY perdida entre restarts              | Alto      | Resolvido       | ✅ Mitigado | Persistência em `.env`. Procedimento documentado em SETUP.md                              |
 | R9  | Dogfood reta para beta sem bugs bloqueantes    | Médio     | Média           | ⏳ F7       | 2+ semanas de dogfood obrigatórias. 5+ pipeline runs 100% success                         |
+| R10 | Serializers DB→pipeline perdem campos silenciosamente (BUG-015 class) | Alto | ~~Alta~~ Média | 🚧 F6.5E | Round-trip tests para 6 serializers + golden file pipeline + test anti-regressão BUG-015 |
+| R11 | Migration aplicada em DB errada por cwd ambíguo | Alto    | Média           | 🚧 F6.5E   | Caminho absoluto em alembic.ini + guard no env.py + documentação em SETUP.md              |
+| R12 | LLM BYOK consome budget do user descontroladamente | Médio  | Alta            | ⏳ F7E      | Cost cap mensal por workspace + toast 80%/95% + hard stop 100%                            |
+| R13 | Pipeline run "running" para sempre (worker morto) | Médio  | Média           | ⏳ F7E      | Heartbeat + Celery beat detector marca como failed >1h sem heartbeat                       |
+| R14 | Prompt injection em PDF malicioso vaza dados via LLM | Alto | Baixa-Média    | ⏳ F7B      | Sanitização texto extraído + allowlist output + fixture PDF adversarial                   |
+| R15 | FERNET_KEY perdida em prod = todos os secrets ilegíveis | Crítico | Baixa         | ⏳ F7E      | Backup criptografado off-site (1Password vault) + procedure testado em staging            |
+| R16 | Backup Hetzner perdido junto com DC (incêndio/falha) | Crítico | Muito baixa    | ⏳ F7E      | Off-site backup S3/B2 BR + restore drill quarterly                                        |
+| R17 | GA bloqueado por falta de email verify/password reset | Alto | Certa          | ⏳ F7B      | Auth flows completos em 7B.11-13 antes do Beta abrir                                       |
 
 ---
 
@@ -163,8 +176,8 @@ Política de cobertura (Python backend + pipeline):
 | Período              | Milestone                                        |
 | -------------------- | ------------------------------------------------ |
 | Q1 2026              | F0-F4 ✅ (Core → LLM)                            |
-| Q2 2026 (Abr-Jun)    | F4.5, F5, F6 ✅ • F6.5 + F7 em andamento         |
-| Q3 2026              | F7 completa → Dogfood validado → Beta fechado    |
+| Q2 2026 (Abr-Jun)    | F4.5, F5, F6 ✅ • F6.5 (3 sem, com 6.5D + 6.5E) em andamento     |
+| Q3 2026              | F7 (8-10 sem, com 7E) → Dogfood validado → Beta fechado          |
 | Q4 2026              | Beta → preparação GA (F8)                        |
 | 2027+                | GA + features de growth                          |
 

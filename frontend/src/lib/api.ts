@@ -411,6 +411,23 @@ export interface ConfigExport {
   report_layout: Record<string, unknown>;
 }
 
+// ─── Config: Workspace settings (family_surname etc.) ───
+
+export interface WorkspaceSettings {
+  name: string;
+  family_surname: string | null;
+}
+
+export async function getWorkspaceSettings(): Promise<WorkspaceSettings> {
+  return apiFetch("/config/workspace");
+}
+
+export async function updateWorkspaceSettings(
+  data: Partial<Pick<WorkspaceSettings, "family_surname">>,
+): Promise<WorkspaceSettings> {
+  return apiFetch("/config/workspace", { method: "PATCH", body: JSON.stringify(data) });
+}
+
 // ─── Config: Members ───
 
 export async function listMembers(): Promise<{ members: FamilyMemberConfig[]; total: number }> {
