@@ -16,7 +16,15 @@ def run_crossval(ctx: WorkspaceContext) -> dict:
 
 
 def run_apply(ctx: WorkspaceContext, review_path: str = None) -> dict:
-    """Aplica review LLM ao E5 JSON."""
+    """Aplica review LLM ao E5 JSON.
+
+    Skips gracefully if no E7-review output exists (free tier: E7-review LLM
+    is skipped, so there is nothing to apply).
+    """
+    review_dir = ctx.root / "processed" / "E7_review"
+    if not review_path and (not review_dir.exists() or not list(review_dir.glob("*.json"))):
+        return {"success": True, "skipped": True, "reason": "No E7-review output — E7-review not run (free tier)"}
+
     import sys
     if review_path:
         sys.argv = ["e7_review.py", "--apply", review_path]

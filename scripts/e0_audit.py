@@ -847,7 +847,7 @@ Exemplos:
         help="Corrige automaticamente nomes incorretos de extracts E2 (check 9).",
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args([] if root_dir else None)
 
     # --fix-names: run check 9 + auto-fix
     if args.fix_names:

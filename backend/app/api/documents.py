@@ -75,6 +75,7 @@ async def upload_documents(
 
     passwords = await _get_vault_passwords(ws.id, db)
     config_dir = settings.PIPELINE_ROOT / "config"
+    tenant_root = _storage.ensure_tenant_dirs(ws.id)
     created_docs = []
 
     skipped_duplicates: list[str] = []
@@ -137,7 +138,7 @@ async def upload_documents(
         await db.flush()
 
         try:
-            result = process_uploaded_document(stored_path, passwords, config_dir)
+            result = process_uploaded_document(stored_path, passwords, config_dir, tenant_root=tenant_root)
             doc.status = result["status"]
             doc.doc_type = result["doc_type"]
             doc.bank_code = result["bank_code"]
@@ -243,6 +244,7 @@ async def retry_unlock(
         raise HTTPException(status_code=404, detail="Nenhum documento pendente de senha")
 
     config_dir = settings.PIPELINE_ROOT / "config"
+    tenant_root = _storage.ensure_tenant_dirs(ws.id)
     updated = []
 
     for doc in docs:
@@ -254,7 +256,7 @@ async def retry_unlock(
 
         try:
             proc_result = process_uploaded_document(
-                Path(doc.stored_path), passwords, config_dir
+                Path(doc.stored_path), passwords, config_dir, tenant_root=tenant_root
             )
             doc.status = proc_result["status"]
             doc.doc_type = proc_result["doc_type"]

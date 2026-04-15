@@ -17,6 +17,7 @@ import {
   ArrowLeftRight,
   BarChart3,
   Settings,
+  KeyRound,
   Menu,
   LogOut,
 } from "lucide-react";
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { href: "/pipeline", label: "Pipeline", icon: Zap },
   { href: "/transactions", label: "Transações", icon: ArrowLeftRight },
   { href: "/reports", label: "Relatórios", icon: BarChart3 },
+  { href: "/vault", label: "Cofre", icon: KeyRound },
   { href: "/config", label: "Configurações", icon: Settings },
 ];
 

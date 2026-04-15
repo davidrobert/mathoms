@@ -201,7 +201,7 @@ def main(root_dir: Path = None):
     parser.add_argument("--faturas-only", action="store_true",
                         help="Process only faturas (credit card invoices)")
 
-    args = parser.parse_args()
+    args = parser.parse_args([] if root_dir else None)
 
     if args.quiet:
         set_verbose(False)

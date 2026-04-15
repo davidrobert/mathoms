@@ -132,8 +132,6 @@ export default function ReportViewPage() {
     const doc = iframeRef.current?.contentDocument;
     if (!doc) return;
 
-    const { exportToXLSX } = await import("@/lib/export");
-
     const tables = doc.querySelectorAll("table");
     if (tables.length === 0) return;
 

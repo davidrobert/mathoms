@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import csv
+import io
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -88,6 +91,66 @@ async def list_transactions(
         page=page,
         page_size=page_size,
         summary=summary,
+    )
+
+
+@router.get("/export")
+async def export_transactions(
+    member: Optional[str] = Query(None),
+    bank: Optional[str] = Query(None),
+    category: Optional[str] = Query(None),
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    value_min: Optional[float] = Query(None),
+    value_max: Optional[float] = Query(None),
+    search: Optional[str] = Query(None),
+    format: str = Query("csv", pattern=r"^(csv)$"),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """BUG-009 fix: export ALL filtered transactions server-side (no pagination).
+
+    Returns a CSV download with BOM for Excel compatibility.
+    """
+    ws = await _get_workspace(user, db)
+    transactions = load_transactions(_tenant_root(ws.id))
+    overrides_map = await _load_overrides_map(ws.id, db)
+    transactions = apply_overrides(transactions, overrides_map)
+
+    transactions = filter_transactions(
+        transactions,
+        member=member,
+        bank=bank,
+        category=category,
+        date_from=date_from,
+        date_to=date_to,
+        value_min=value_min,
+        value_max=value_max,
+        search=search,
+    )
+
+    buf = io.StringIO()
+    # UTF-8 BOM for Excel
+    buf.write("\ufeff")
+    writer = csv.writer(buf)
+    writer.writerow(["Data", "Descrição", "Categoria", "Valor", "Membro", "Banco", "Origem", "Editado"])
+    for tx in transactions:
+        writer.writerow([
+            tx.data,
+            tx.descricao,
+            tx.categoria,
+            tx.valor,
+            tx.membro,
+            tx.banco,
+            tx.origem,
+            "Sim" if tx.reviewed else "",
+        ])
+
+    buf.seek(0)
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="transacoes.csv"'},
     )
 
 

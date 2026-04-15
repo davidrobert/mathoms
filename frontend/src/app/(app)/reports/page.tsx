@@ -9,7 +9,7 @@ import { Spinner } from "@/components/Spinner";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BarChart3, FileText, Calendar, ArrowRight } from "lucide-react";
+import { FileText, Calendar, ArrowRight } from "lucide-react";
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<ReportResponse[]>([]);

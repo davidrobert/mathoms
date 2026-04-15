@@ -3,12 +3,14 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as XLSX from "xlsx";
+import { toast } from "sonner";
 import {
   listTransactions,
   listCategories,
   listMembers,
   overrideTransactionCategory,
   removeTransactionOverride,
+  getToken,
   type TransactionItem,
   type TransactionListResponse,
   type CategoryConfig,
@@ -302,6 +304,38 @@ function TransactionsContent() {
   function exportTransactions(format: "csv" | "xlsx") {
     if (!data?.transactions.length) return;
 
+    if (format === "csv") {
+      // BUG-009 fix: server-side export for ALL filtered transactions (not just current page)
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      if (bank) params.set("bank", bank);
+      if (category) params.set("category", category);
+      if (member) params.set("member", member);
+      if (dateFrom) params.set("date_from", dateFrom);
+      if (dateTo) params.set("date_to", dateTo);
+      if (valueMin) params.set("value_min", valueMin);
+      if (valueMax) params.set("value_max", valueMax);
+      params.set("format", "csv");
+
+      const token = getToken();
+      const url = `/api/transactions/export?${params.toString()}`;
+      fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+        .then((res) => {
+          if (!res.ok) throw new Error("Export failed");
+          return res.blob();
+        })
+        .then((blob) => {
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "transacoes.csv";
+          a.click();
+          URL.revokeObjectURL(a.href);
+        })
+        .catch(() => toast.error("Erro ao exportar transações"));
+      return;
+    }
+
+    // XLSX: client-side export (current page only — server-side XLSX not implemented)
     const rows = data.transactions.map((tx) => ({
       Data: tx.data,
       Descrição: tx.descricao,
@@ -318,12 +352,7 @@ function TransactionsContent() {
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Transações");
-
-    if (format === "xlsx") {
-      XLSX.writeFile(wb, "transacoes.xlsx");
-    } else {
-      XLSX.writeFile(wb, "transacoes.csv", { bookType: "csv" });
-    }
+    XLSX.writeFile(wb, "transacoes.xlsx");
   }
 
   // --- Render ---

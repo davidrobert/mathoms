@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
 from backend.app.models.document import Document, DocumentStatus
@@ -76,7 +77,29 @@ async def trigger_pipeline(
     )
     doc_count = doc_count_result.scalar() or 0
 
-    from pipeline.orchestrator import DETERMINISTIC_ORDER, FROM_MAP
+    # Block pipeline if no documents are available to process
+    if doc_count == 0 and not body.from_stage:
+        raise HTTPException(
+            status_code=400,
+            detail="Nenhum documento pronto para processar. Envie documentos antes de executar o pipeline.",
+        )
+
+    # Also verify tenant data/ directory has actual files (docs may be "ready"
+    # in DB but data/ can be empty if classification put them elsewhere)
+    tenant_data = settings.STORAGE_ROOT / ws.id / "data"
+    has_financial_files = False
+    if tenant_data.exists():
+        for sub in tenant_data.iterdir():
+            if sub.is_dir() and any(sub.iterdir()):
+                has_financial_files = True
+                break
+    if not has_financial_files and not body.from_stage:
+        raise HTTPException(
+            status_code=400,
+            detail="Nenhum documento financeiro encontrado no workspace. Os documentos podem não ter sido classificados corretamente.",
+        )
+
+    from pipeline.orchestrator import DETERMINISTIC_ORDER, FULL_ORDER, FROM_MAP
 
     if body.from_stage:
         stages = FROM_MAP.get(body.from_stage)
@@ -85,14 +108,10 @@ async def trigger_pipeline(
                 status_code=400,
                 detail=f"from_stage inválido: {body.from_stage}",
             )
-    else:
+    elif body.skip_llm:
         stages = DETERMINISTIC_ORDER[:]
-
-    if body.skip_llm:
-        from pipeline.orchestrator import LLM_STAGES
-        stages = [s for s in stages if s not in LLM_STAGES] + [
-            s for s in stages if s in LLM_STAGES
-        ]
+    else:
+        stages = FULL_ORDER[:]
 
     llm_result = await db.execute(select(LLMConfig).where(LLMConfig.workspace_id == ws.id))
     tier = "premium" if llm_result.scalar_one_or_none() else "free"

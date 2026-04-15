@@ -115,6 +115,7 @@ def classify_document(file_path: Path, base_dir: Path) -> dict:
             "bank_code": None,
             "period": None,
             "dest_group": None,
+            "routed_path": None,
             "classification_meta": {"source": "unidentified"},
         }
 
@@ -123,20 +124,52 @@ def classify_document(file_path: Path, base_dir: Path) -> dict:
         "bank_code": result.get("institution"),
         "period": result.get("period"),
         "dest_group": result.get("dest_group"),
+        "routed_path": None,  # filled by route_to_data_dir
         "classification_meta": result,
     }
+
+
+def route_to_data_dir(file_path: Path, dest_group: str | None, tenant_root: Path) -> Path | None:
+    """Copy a classified document from inbox/ to data/{dest_group}/.
+
+    This mirrors what E0-route does in CLI mode (move from inbox/ to data/).
+    In web mode we copy (not move) so the inbox/ original is preserved as the
+    canonical stored_path in the Document model.
+
+    Returns the destination path, or None if dest_group is unknown.
+    """
+    if not dest_group or not file_path.exists():
+        return None
+
+    dest_dir = tenant_root / "data" / dest_group
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    dest_path = dest_dir / file_path.name
+    # Avoid overwriting if name collides
+    counter = 1
+    while dest_path.exists():
+        stem = file_path.stem
+        ext = file_path.suffix
+        dest_path = dest_dir / f"{stem}_{counter}{ext}"
+        counter += 1
+
+    import shutil
+    shutil.copy2(str(file_path), str(dest_path))
+    return dest_path
 
 
 def process_uploaded_document(
     file_path: Path,
     passwords: list[str],
     config_dir: Path,
+    tenant_root: Path | None = None,
 ) -> dict:
     """Full processing pipeline for a single uploaded document.
 
     1. If PDF → check encryption → try unlock with vault passwords
     2. Classify via E0-route regex
     3. If JSON → detect E1/E1.5 type
+    4. Route classified file from inbox/ to data/{dest_group}/
 
     Returns dict with: status, doc_type, bank_code, period, classification_meta, error_message.
     """
@@ -145,6 +178,17 @@ def process_uploaded_document(
     if ext == ".json":
         json_type = _detect_json_type(file_path)
         if json_type:
+            # JSON files (E1/E1.5) go to specific dirs
+            if tenant_root and json_type == DocumentType.e1_members_json:
+                members_dir = tenant_root / "members"
+                members_dir.mkdir(parents=True, exist_ok=True)
+                import shutil
+                shutil.copy2(str(file_path), str(members_dir / file_path.name))
+            elif tenant_root and json_type == DocumentType.e1_5_baseline_json:
+                e2_dir = tenant_root / "processed" / "E2_extracts"
+                e2_dir.mkdir(parents=True, exist_ok=True)
+                import shutil
+                shutil.copy2(str(file_path), str(e2_dir / file_path.name))
             return {
                 "status": DocumentStatus.ready,
                 "doc_type": json_type,
@@ -168,6 +212,11 @@ def process_uploaded_document(
 
     project_root = config_dir.parent if config_dir.name == "config" else config_dir
     classification = classify_document(file_path, project_root)
+
+    # Route file from inbox/ to data/{dest_group}/ so pipeline stages find it
+    if tenant_root and classification.get("dest_group"):
+        routed = route_to_data_dir(file_path, classification["dest_group"], tenant_root)
+        classification["routed_path"] = str(routed) if routed else None
 
     return {
         "status": DocumentStatus.ready,

@@ -48,7 +48,7 @@ def _init_config(base_dir: Path) -> None:
     global INTERNAL_TRANSFER_PATTERNS, INTERNAL_TRANSFER_RECIPIENTS
     global _BANK_SPECIFIC_PATTERNS, _GLOBAL_TRANSFER_PATTERNS
     global BANCO_MEMBRO, PJ_SOURCE_MAPPING, CLT_SOURCE_MAPPING
-    global _pipeline_cfg
+    global _pipeline_cfg, _categorization
 
     _BASE_DIR = base_dir
     config_dir = base_dir / "config"

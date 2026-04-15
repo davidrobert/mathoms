@@ -9,7 +9,9 @@ import {
   listPipelineRuns,
   getPipelineRun,
   cancelPipelineRun,
+  resumePipelineRun,
   listDocuments,
+  getLLMTier,
   getToken,
   type PipelineRunResponse,
   type PipelineStageLog,
@@ -66,6 +68,8 @@ export default function PipelinePage() {
   const [wsProgressPct, setWsProgressPct] = useState<number | null>(null);
   const lastWsEventRef = useRef<number>(Date.now());
   const [lastFailedRun, setLastFailedRun] = useState<PipelineRunResponse | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
+  const [resuming, setResuming] = useState(false);
 
   const token = typeof window !== "undefined" ? getToken() : null;
 
@@ -123,12 +127,17 @@ export default function PipelinePage() {
 
   const reload = useCallback(async () => {
     try {
-      const [runsData, docsData] = await Promise.all([
+      const [runsData, docsData, tierData] = await Promise.all([
         listPipelineRuns(),
         listDocuments("ready"),
+        getLLMTier().catch((): { tier: string; has_llm_config: boolean } => ({
+          tier: "free",
+          has_llm_config: false,
+        })),
       ]);
       setRuns(runsData.runs);
       setReadyCount(docsData.total);
+      setIsPremium(tierData.tier === "premium");
 
       const active = runsData.runs.find((r) => ACTIVE_STATUSES.has(r.status));
       setActiveRun(active ?? null);
@@ -189,7 +198,7 @@ export default function PipelinePage() {
     setLastFailedRun(null);
     setTriggering(true);
     try {
-      const run = await triggerPipeline({ from_stage: fromStage, skip_llm: true });
+      const run = await triggerPipeline({ from_stage: fromStage, skip_llm: !isPremium });
       setActiveRun(run);
       setRuns((prev) => [run, ...prev]);
       setWsProgressPct(0);
@@ -313,12 +322,41 @@ export default function PipelinePage() {
               </div>
               <p className="text-sm text-muted-foreground mb-3">
                 O pipeline pausou na etapa <span className="font-medium">{stageName(activeRun.paused_at_stage ?? "")}</span>.
-                Revise e aprove os resultados para continuar.
+                Aprove os resultados para continuar o processamento.
               </p>
-              <Button size="sm" variant="outline">
-                <AlertTriangle className="mr-2 h-4 w-4" />
-                Revisar
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    if (!activeRun) return;
+                    setResuming(true);
+                    try {
+                      await resumePipelineRun(activeRun.id);
+                      toast.success("Pipeline retomado", { duration: 3000 });
+                      await reload();
+                    } catch (err) {
+                      toast.error(
+                        err instanceof ApiError ? err.detail : "Erro ao retomar pipeline"
+                      );
+                    } finally {
+                      setResuming(false);
+                    }
+                  }}
+                  disabled={resuming}
+                >
+                  {resuming ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Spinner size="sm" className="text-primary-foreground" />
+                      Retomando...
+                    </span>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Aprovar e Continuar
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -694,7 +732,7 @@ function StageRow({ stage }: { stage: PipelineStageLog }) {
               : ""
         }`}
       >
-        <span className={`text-base ${variantColors[st.variant] ?? "text-muted-foreground"}`}>
+        <span className={`text-base ${variantColors[st.variant] ?? "text-muted-foreground"} ${stage.status === "running" ? "animate-pulse" : ""}`}>
           {st.icon}
         </span>
         <span className={`flex-1 ${stage.status === "running" ? "font-medium" : ""}`}>

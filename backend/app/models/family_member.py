@@ -50,5 +50,6 @@ class BankAccount(Base):
     account_type: Mapped[str] = mapped_column(String(100), nullable=False)
     agency: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     account_number: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    label: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     member = relationship("FamilyMember", back_populates="accounts")
