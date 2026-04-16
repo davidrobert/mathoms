@@ -10,14 +10,18 @@ import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Calendar, ArrowRight } from "lucide-react";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 export default function ReportsPage() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   const [reports, setReports] = useState<ReportResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    listReports()
+    listReports(workspace!.id)
       .then((data) => setReports(data.reports))
       .catch(() => setError("Erro ao carregar relatórios"))
       .finally(() => setLoading(false));

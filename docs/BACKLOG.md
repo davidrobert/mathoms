@@ -566,7 +566,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | 7A.2  | Dockerfile frontend (multi-stage, Next.js standalone, ~100MB)                        | P0   | 3h   | ☐      |
 | 7A.3  | `docker-compose.dev.yml` (PG + Redis + hot reload)                                   | P0   | 3h   | ☐      |
 | 7A.4  | `docker-compose.prod.yml` (API + Worker + Frontend + PG + Redis + Traefik)           | P0   | 5h   | ☐      |
-| 7A.5  | `.env.example` + env management + `scripts/gen-secrets.sh`                           | P0   | 2h   | ☐      |
+| 7A.5  | `.env.example` + env management + `scripts/gen-secrets.sh`                           | P0   | 2h   | ✅     |
 | 7A.6  | VPS provisioning (Hetzner CX32, UFW, SSH keys, fail2ban, Docker)                     | P0   | 3h   | ☐      |
 | 7A.7  | Traefik config (auto-SSL, HTTP→HTTPS, TLS 1.2+, WebSocket pass-through)              | P0   | 3h   | ☐      |
 | 7A.8  | Domínio + DNS (A record, TTL curto)                                                  | P0   | 1h   | ☐      |

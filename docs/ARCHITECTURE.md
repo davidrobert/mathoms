@@ -299,7 +299,7 @@ FeatureFlag
 | **document_processor** | Upload pipeline: unlock → classify → dedupe → route |
 | **content_classifier** | Content-first classification (regex + LLM fallback) |
 | **config_materializer** | Materializa 5 configs editáveis (DB → disco per-tenant) |
-| **goal_service** | IF goal computation (FV anuidade), CRUD versionado append-only |
+| **goal_service** | Goal computation (IF via FV anuidade, Aporte, Dolar, Alocação) + CRUD versionado append-only (`create_goal_version` genérica, helpers tipados) |
 | **task_service** | Task CRUD + status transitions + dependencies + export MD |
 | **task_suggestion_service** | Suggestion queue: create/approve/reject/merge |
 | **task_notification_service** | Scan deadlines → notifications (overdue/upcoming) |

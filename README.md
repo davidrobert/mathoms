@@ -1,74 +1,97 @@
 # Fin — Planejamento Financeiro Inteligente
 
-> Envie seus PDFs bancários. Receba um retrato financeiro completo da sua família em minutos — não em semanas de planilha.
+> Envie extratos e documentos financeiros. Obtenha um retrato consolidado da família em minutos — não em semanas de planilha.
 
-**Status:** Dogfood interno • F9 concluída • Relatório nativo React (sem iframe), design tokens unificados, workspace sharing
+**Status:** Dogfood interno · **F9 concluída** (relatório nativo React, design tokens, workspace sharing) · Próxima fase planejada: **F7** (produção, LGPD, ops) — ver [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ---
 
 ## O que é
 
-Fin consolida automaticamente extratos, faturas, investimentos e IRPFs de múltiplos bancos brasileiros, gerando um relatório unificado com score financeiro, análise patrimonial, fluxo de caixa e recomendações.
+Fin consolida extratos, faturas, investimentos e IRPFs de múltiplas instituições, gerando análise com score financeiro, visão patrimonial, fluxo de caixa e recomendações.
 
-- **11 parsers bancários nativos** (C6, Itaú, Santander, Bradesco, BTG, Rico, PicPay, Wise, BoA, QuintoAndar, Binance)
-- **LLM opcional** (BYOK — Bring Your Own Key) para extração de docs sem parser determinístico
-- **Multi-tenant** com isolamento por workspace
-- **Type-safe end-to-end** (FastAPI OpenAPI → TypeScript)
+- **10 parsers bancários determinísticos** (`scripts/e2/banks/`): C6, Itaú, Santander, Bradesco, BTG, Rico, PicPay, Wise, Bank of America, QuintoAndar. Outras fontes (ex.: cripto/exchanges) entram via **E2-LLM** ou extensão futura do E2.
+- **LLM opcional (BYOK)** para etapas que não têm parser fixo (E1, E1.5, E2-llm, E7-review, etc.).
+- **Multi-tenant** com isolamento por workspace.
+- **Contratos type-safe** na API (FastAPI / OpenAPI) e tipagem forte no frontend (TypeScript).
 
 ---
 
 ## Documentação
 
-### Para entender o produto
-- **[docs/PRODUCT.md](docs/PRODUCT.md)** — Visão, proposta de valor, público-alvo, modelo de negócio
-- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — Stack, modelo de dados, fluxos, estrutura de pastas
-- **[docs/SETUP.md](docs/SETUP.md)** — Setup local, dependências, variáveis de ambiente
+### Produto e arquitetura
 
-### Para acompanhar a execução
-- **[docs/ROADMAP.md](docs/ROADMAP.md)** — Fases do projeto, milestones, status atual, timeline
-- **[docs/BACKLOG.md](docs/BACKLOG.md)** — Tasks detalhadas com status (P0/P1/P2)
-- **[docs/DECISIONS.md](docs/DECISIONS.md)** — Architecture Decision Records (ADRs)
-- **[docs/CHANGELOG.md](docs/CHANGELOG.md)** — Log cronológico do que foi entregue
+| Documento | Conteúdo |
+| --------- | --------- |
+| [docs/PRODUCT.md](docs/PRODUCT.md) | Visão, proposta de valor, público-alvo |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Stack, modelo de dados, fluxos, pastas |
+| [docs/tenancy.md](docs/tenancy.md) | Workspaces, isolamento, convites |
+| [docs/SETUP.md](docs/SETUP.md) | Setup local, env, Redis, Celery, LLM |
+
+### Execução e decisões
+
+| Documento | Conteúdo |
+| --------- | --------- |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Fases, milestones, status |
+| [docs/BACKLOG.md](docs/BACKLOG.md) | Tasks (P0/P1/P2) |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | ADRs |
+| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Entregas por data |
+
+### Contribuição e qualidade
+
+| Documento | Conteúdo |
+| --------- | --------- |
+| [docs/TESTING.md](docs/TESTING.md) | Como rodar testes, CI, mocks |
+| [CLAUDE.md](CLAUDE.md) | Instruções para assistentes de código / convenções do repo |
 
 ---
 
-## Quick Start
+## Quick start
+
+Pré-requisitos: **Python 3.11+**, **Node 18+**, **Redis** (ex.: `brew install redis`). Recomenda-se um virtualenv na raiz do repositório.
 
 ```bash
-# 1. Pré-requisitos: Python 3.11+, Node 18+, Redis
+# Na raiz do repositório
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 
-# 2. Instalar pipeline + backend deps
 pip install -e ".[dev]"
 
-# 3. Instalar frontend
 cd frontend && npm install && cd ..
 
-# 4. Configurar env
-cp .env.example .env   # ajustar FIN_FERNET_KEY se necessário
+# Variáveis de ambiente (na raiz): ./scripts/gen-secrets.sh --init-env
+# (requer cryptography — ex.: pip install -r backend/requirements.txt)
 
-# 5. Inicializar DB (SQLite por default)
+# Primeira vez / após mudanças em layout ou tokens:
+python3 design-tokens/build.py
+python3 dev/codegen_report_layout.py
+
+# Banco e usuário dev (SQLite em ./fin.db por padrão)
 cd backend && python seed_db.py && cd ..
-
-# 6. Rodar os 3 serviços (cada um em um terminal)
-redis-server
-cd backend && uvicorn app.main:app --reload --port 8000
-cd backend && celery -A app.worker worker -l info -c 2
-cd frontend && npm run dev
-
-# 7. Abrir http://localhost:3000
-#    Login: admin@fin.app / admin123
 ```
 
-Para setup detalhado, troubleshooting e configuração de LLM: **[docs/SETUP.md](docs/SETUP.md)**
+**Subir a aplicação** — são necessários **4 terminais** (Redis, API, worker Celery, Next.js):
 
----
+```bash
+# Terminal 1
+redis-server
 
-## Fase atual
+# Terminal 2 (com venv ativado, na raiz)
+cd backend && uvicorn app.main:app --reload --port 8000
 
-**F9 concluída** — Relatório nativo React (sem iframe), design tokens unificados, workspace sharing multi-user. Próxima: **F7** (produção + LGPD). Ver [docs/ROADMAP.md](docs/ROADMAP.md).
+# Terminal 3 (com venv ativado, na raiz — mesmo nível que contém backend/)
+celery -A backend.app.worker worker -l info -c 2
+
+# Terminal 4
+cd frontend && npm run dev
+```
+
+Abrir **http://localhost:3000** · API: **http://localhost:8000/docs** · Login após `seed_db.py`: `admin@fin.app` / `admin123`.
+
+Detalhes (Fernet, migrations Alembic, Playwright/PDF, troubleshooting): **[docs/SETUP.md](docs/SETUP.md)**.
 
 ---
 
 ## Contribuindo
 
-Antes de abrir um PR, leia [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e [docs/DECISIONS.md](docs/DECISIONS.md) para entender o padrão de wrappers e a estrutura multi-tenant.
+Antes de abrir um PR, leia [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e [docs/DECISIONS.md](docs/DECISIONS.md) (wrappers do pipeline, multi-tenant). Para testes e CI, [docs/TESTING.md](docs/TESTING.md). Commits e paths sensíveis: [CLAUDE.md](CLAUDE.md) e hooks em `dev/`.

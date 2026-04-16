@@ -14,7 +14,9 @@ in depth.
 
 from __future__ import annotations
 
+import subprocess
 import sys
+from pathlib import Path
 
 # Alinhado com dev/commit.py — mudar lá mudar aqui.
 FORBIDDEN_DIRS = (
@@ -39,12 +41,38 @@ FORBIDDEN_SUFFIXES = (
 )
 
 
-def check(path: str) -> str | None:
+def _staged_deletion_paths(repo_root: Path) -> set[str]:
+    """Paths com delete staged (`git diff --cached`) — remover `.env` do repo é OK."""
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(repo_root), "diff", "--cached", "--name-status"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    if proc.returncode != 0 or not proc.stdout:
+        return set()
+    out: set[str] = set()
+    for line in proc.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        status = parts[0]
+        if status == "D":
+            out.add(parts[1])
+    return out
+
+
+def check(path: str, *, staged_deletions: set[str] | None = None) -> str | None:
     """Retorna a razão da violação, ou None se passou."""
     for forbidden in FORBIDDEN_DIRS:
         if path.startswith(forbidden):
             return f"diretório proibido: {forbidden}"
     if path in FORBIDDEN_FILES:
+        if staged_deletions is not None and path in staged_deletions:
+            return None
         return f"arquivo proibido: {path}"
     for suffix in FORBIDDEN_SUFFIXES:
         if path.endswith(suffix):
@@ -53,9 +81,11 @@ def check(path: str) -> str | None:
 
 
 def main() -> int:
+    repo_root = Path.cwd()
+    staged_del = _staged_deletion_paths(repo_root)
     violations: list[tuple[str, str]] = []
     for path in sys.argv[1:]:
-        reason = check(path)
+        reason = check(path, staged_deletions=staged_del)
         if reason:
             violations.append((path, reason))
 

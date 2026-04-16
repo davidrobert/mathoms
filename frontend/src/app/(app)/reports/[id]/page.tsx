@@ -14,6 +14,7 @@ import { AlertCircle, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { getReportDownloadHtmlUrl } from "@/lib/api";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 /** F9 · ADR-076 · F1.1 — Rota nativa do relatório.
  *
@@ -24,6 +25,9 @@ import { getReportDownloadHtmlUrl } from "@/lib/api";
  * Design tokens (Plus Jakarta + Inter + navy/verde) são aplicados em F1.2.
  */
 export default function ReportPage() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   const router = useRouter();
   const params = useParams();
   const reportId = params.id as string;
@@ -40,7 +44,7 @@ export default function ReportPage() {
     }
 
     let cancelled = false;
-    getReport(reportId)
+    getReport(workspace!.id, reportId)
       .then((r) => {
         if (!cancelled) setReport(r);
       })
@@ -111,7 +115,7 @@ export default function ReportPage() {
               nativeButton={false}
               render={
                 <Link
-                  href={getReportDownloadHtmlUrl(reportId)}
+                  href={getReportDownloadHtmlUrl(workspace!.id, reportId)}
                   target="_blank"
                   rel="noopener"
                 />

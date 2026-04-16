@@ -16,11 +16,10 @@ from sqlalchemy.orm import selectinload
 
 from backend.app.core.config import settings
 from backend.app.core.database import get_db
-from backend.app.core.deps import get_current_user
+from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.category import Category, CategoryKeyword
 from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
 from backend.app.models.family_member import BankAccount, FamilyMember
-from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.config import (
     BankAccountCreateRequest,
@@ -46,7 +45,10 @@ from backend.app.schemas.config import (
 )
 from backend.app.services.vault import VaultService
 
-router = APIRouter(prefix="/config", tags=["config"])
+router = APIRouter(
+    prefix="/workspaces/{workspace_id}/config",
+    tags=["config"],
+)
 
 _vault = VaultService()
 
@@ -104,14 +106,6 @@ async def _allocate_unique_member_key(
 # =============================================================================
 
 
-async def _get_workspace(user: User, db: AsyncSession) -> Workspace:
-    result = await db.execute(select(Workspace).where(Workspace.owner_id == user.id))
-    ws = result.scalar_one_or_none()
-    if not ws:
-        raise HTTPException(status_code=404, detail="Workspace não encontrado")
-    return ws
-
-
 def _global_config_dir() -> Path:
     return settings.PIPELINE_ROOT / "config"
 
@@ -161,26 +155,28 @@ def _category_to_schema(c: Category) -> CategorySchema:
 
 @router.get("/workspace", response_model=WorkspaceSettingsSchema)
 async def get_workspace_settings(
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    return WorkspaceSettingsSchema(name=ws.name, family_surname=ws.family_surname)
+    return WorkspaceSettingsSchema(name=workspace.name, family_surname=workspace.family_surname)
 
 
-@router.patch("/workspace", response_model=WorkspaceSettingsSchema)
+@router.patch(
+    "/workspace",
+    response_model=WorkspaceSettingsSchema,
+    dependencies=[Depends(require_write_role)],
+)
 async def update_workspace_settings(
     body: WorkspaceSettingsUpdateRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
     # Tratamento explícito: empty string → None (limpa o campo)
     if body.family_surname is not None:
-        ws.family_surname = body.family_surname.strip() or None
+        workspace.family_surname = body.family_surname.strip() or None
     await db.commit()
-    await db.refresh(ws)
-    return WorkspaceSettingsSchema(name=ws.name, family_surname=ws.family_surname)
+    await db.refresh(workspace)
+    return WorkspaceSettingsSchema(name=workspace.name, family_surname=workspace.family_surname)
 
 
 # =============================================================================
@@ -190,13 +186,12 @@ async def update_workspace_settings(
 
 @router.get("/members", response_model=FamilyMemberListResponse)
 async def list_members(
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
     result = await db.execute(
         select(FamilyMember)
-        .where(FamilyMember.workspace_id == ws.id)
+        .where(FamilyMember.workspace_id == workspace.id)
         .options(selectinload(FamilyMember.accounts))
         .order_by(FamilyMember.order, FamilyMember.key)
     )
@@ -215,15 +210,14 @@ async def list_members(
 @router.post("/members", response_model=FamilyMemberSchema, status_code=status.HTTP_201_CREATED)
 async def create_member(
     body: FamilyMemberCreateRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
 
     if body.key:
         key = body.key
         existing = await db.execute(
-            select(FamilyMember).where(FamilyMember.workspace_id == ws.id, FamilyMember.key == key)
+            select(FamilyMember).where(FamilyMember.workspace_id == workspace.id, FamilyMember.key == key)
         )
         if existing.scalar_one_or_none():
             raise HTTPException(
@@ -232,7 +226,7 @@ async def create_member(
             )
     else:
         slug = _slug_member_key_from_full_name(body.full_name)
-        key = await _allocate_unique_member_key(db, ws.id, slug)
+        key = await _allocate_unique_member_key(db, workspace.id, slug)
 
     extra: dict[str, Any] = dict(body.extra or {})
     if body.birth_name is not None:
@@ -244,7 +238,7 @@ async def create_member(
 
     cpf_enc = _vault.encrypt(body.cpf) if body.cpf else None
     member = FamilyMember(
-        workspace_id=ws.id, key=key, full_name=body.full_name,
+        workspace_id=workspace.id, key=key, full_name=body.full_name,
         short_name=body.short_name, cpf_encrypted=cpf_enc,
         birth_date=body.birth_date, role=body.role, order=body.order,
         extra=extra or None,
@@ -262,13 +256,12 @@ async def create_member(
 async def update_member(
     member_id: str,
     body: FamilyMemberUpdateRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
     result = await db.execute(
         select(FamilyMember)
-        .where(FamilyMember.id == member_id, FamilyMember.workspace_id == ws.id)
+        .where(FamilyMember.id == member_id, FamilyMember.workspace_id == workspace.id)
         .options(selectinload(FamilyMember.accounts))
     )
     member = result.scalar_one_or_none()
@@ -293,7 +286,7 @@ async def update_member(
     if nk is not None and nk != member.key:
         conflict = await db.execute(
             select(FamilyMember).where(
-                FamilyMember.workspace_id == ws.id,
+                FamilyMember.workspace_id == workspace.id,
                 FamilyMember.key == nk,
                 FamilyMember.id != member_id,
             )
@@ -317,12 +310,11 @@ async def update_member(
 @router.delete("/members/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_member(
     member_id: str,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
     result = await db.execute(
-        select(FamilyMember).where(FamilyMember.id == member_id, FamilyMember.workspace_id == ws.id)
+        select(FamilyMember).where(FamilyMember.id == member_id, FamilyMember.workspace_id == workspace.id)
     )
     member = result.scalar_one_or_none()
     if not member:
@@ -339,11 +331,10 @@ async def delete_member(
 @router.get("/members/{member_id}/accounts", response_model=list[BankAccountSchema])
 async def list_accounts(
     member_id: str,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    member = await _verify_member(member_id, ws.id, db)
+    member = await _verify_member(member_id, workspace.id, db)
     result = await db.execute(select(BankAccount).where(BankAccount.member_id == member.id))
     return [BankAccountSchema.model_validate(a) for a in result.scalars().all()]
 
@@ -352,11 +343,10 @@ async def list_accounts(
 async def create_account(
     member_id: str,
     body: BankAccountCreateRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    member = await _verify_member(member_id, ws.id, db)
+    member = await _verify_member(member_id, workspace.id, db)
     account = BankAccount(
         member_id=member.id, institution_code=body.institution_code,
         account_type=body.account_type, agency=body.agency,
@@ -373,11 +363,10 @@ async def update_account(
     member_id: str,
     account_id: str,
     body: BankAccountCreateRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    await _verify_member(member_id, ws.id, db)
+    await _verify_member(member_id, workspace.id, db)
     result = await db.execute(
         select(BankAccount).where(BankAccount.id == account_id, BankAccount.member_id == member_id)
     )
@@ -397,11 +386,10 @@ async def update_account(
 async def delete_account(
     member_id: str,
     account_id: str,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    await _verify_member(member_id, ws.id, db)
+    await _verify_member(member_id, workspace.id, db)
     result = await db.execute(
         select(BankAccount).where(BankAccount.id == account_id, BankAccount.member_id == member_id)
     )
@@ -429,13 +417,12 @@ async def _verify_member(member_id: str, ws_id: str, db: AsyncSession) -> Family
 
 @router.get("/categories", response_model=CategoryListResponse)
 async def list_categories(
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
     result = await db.execute(
         select(Category)
-        .where(Category.workspace_id == ws.id)
+        .where(Category.workspace_id == workspace.id)
         .options(selectinload(Category.keywords))
         .order_by(Category.order, Category.code)
     )
@@ -454,18 +441,17 @@ async def list_categories(
 @router.post("/categories", response_model=CategorySchema, status_code=status.HTTP_201_CREATED)
 async def create_category(
     body: CategoryCreateRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
     existing = await db.execute(
-        select(Category).where(Category.workspace_id == ws.id, Category.code == body.code)
+        select(Category).where(Category.workspace_id == workspace.id, Category.code == body.code)
     )
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=409, detail=f"Categoria com code '{body.code}' já existe")
 
     cat = Category(
-        workspace_id=ws.id, code=body.code, name=body.name,
+        workspace_id=workspace.id, code=body.code, name=body.name,
         category_type=body.category_type, monthly_cap=body.monthly_cap, order=body.order,
     )
     db.add(cat)
@@ -485,12 +471,11 @@ async def create_category(
 async def update_category(
     category_id: str,
     body: CategoryUpdateRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
     result = await db.execute(
-        select(Category).where(Category.id == category_id, Category.workspace_id == ws.id)
+        select(Category).where(Category.id == category_id, Category.workspace_id == workspace.id)
     )
     cat = result.scalar_one_or_none()
     if not cat:
@@ -522,12 +507,11 @@ async def update_category(
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_category(
     category_id: str,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
     result = await db.execute(
-        select(Category).where(Category.id == category_id, Category.workspace_id == ws.id)
+        select(Category).where(Category.id == category_id, Category.workspace_id == workspace.id)
     )
     cat = result.scalar_one_or_none()
     if not cat:
@@ -543,11 +527,10 @@ async def delete_category(
 
 @router.get("/pipeline", response_model=PipelineConfigSchema)
 async def get_pipeline_config(
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    result = await db.execute(select(PipelineConfig).where(PipelineConfig.workspace_id == ws.id))
+    result = await db.execute(select(PipelineConfig).where(PipelineConfig.workspace_id == workspace.id))
     cfg = result.scalar_one_or_none()
     if cfg:
         return PipelineConfigSchema(**cfg.config_json)
@@ -557,11 +540,10 @@ async def get_pipeline_config(
 @router.put("/pipeline", response_model=PipelineConfigSchema)
 async def update_pipeline_config(
     body: PipelineConfigUpdateRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    result = await db.execute(select(PipelineConfig).where(PipelineConfig.workspace_id == ws.id))
+    result = await db.execute(select(PipelineConfig).where(PipelineConfig.workspace_id == workspace.id))
     cfg = result.scalar_one_or_none()
 
     new_data = body.model_dump(exclude_unset=True)
@@ -570,7 +552,7 @@ async def update_pipeline_config(
     if cfg:
         cfg.config_json = merged
     else:
-        cfg = PipelineConfig(workspace_id=ws.id, config_json=merged)
+        cfg = PipelineConfig(workspace_id=workspace.id, config_json=merged)
         db.add(cfg)
     await db.commit()
     return PipelineConfigSchema(**merged)
@@ -583,11 +565,10 @@ async def update_pipeline_config(
 
 @router.get("/institutions", response_model=InstitutionConfigSchema)
 async def get_institution_config(
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    result = await db.execute(select(InstitutionConfig).where(InstitutionConfig.workspace_id == ws.id))
+    result = await db.execute(select(InstitutionConfig).where(InstitutionConfig.workspace_id == workspace.id))
     cfg = result.scalar_one_or_none()
     if cfg:
         return InstitutionConfigSchema(config_json=cfg.config_json)
@@ -597,16 +578,15 @@ async def get_institution_config(
 @router.put("/institutions", response_model=InstitutionConfigSchema)
 async def update_institution_config(
     body: InstitutionConfigUpdateRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    result = await db.execute(select(InstitutionConfig).where(InstitutionConfig.workspace_id == ws.id))
+    result = await db.execute(select(InstitutionConfig).where(InstitutionConfig.workspace_id == workspace.id))
     cfg = result.scalar_one_or_none()
     if cfg:
         cfg.config_json = body.config_json
     else:
-        cfg = InstitutionConfig(workspace_id=ws.id, config_json=body.config_json)
+        cfg = InstitutionConfig(workspace_id=workspace.id, config_json=body.config_json)
         db.add(cfg)
     await db.commit()
     return InstitutionConfigSchema(config_json=cfg.config_json)
@@ -619,11 +599,10 @@ async def update_institution_config(
 
 @router.get("/report-layout", response_model=ReportLayoutSchema)
 async def get_report_layout(
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    result = await db.execute(select(ReportLayout).where(ReportLayout.workspace_id == ws.id))
+    result = await db.execute(select(ReportLayout).where(ReportLayout.workspace_id == workspace.id))
     cfg = result.scalar_one_or_none()
     if cfg:
         return ReportLayoutSchema(config_json=cfg.config_json)
@@ -633,16 +612,15 @@ async def get_report_layout(
 @router.put("/report-layout", response_model=ReportLayoutSchema)
 async def update_report_layout(
     body: ReportLayoutUpdateRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    result = await db.execute(select(ReportLayout).where(ReportLayout.workspace_id == ws.id))
+    result = await db.execute(select(ReportLayout).where(ReportLayout.workspace_id == workspace.id))
     cfg = result.scalar_one_or_none()
     if cfg:
         cfg.config_json = body.config_json
     else:
-        cfg = ReportLayout(workspace_id=ws.id, config_json=body.config_json)
+        cfg = ReportLayout(workspace_id=workspace.id, config_json=body.config_json)
         db.add(cfg)
     await db.commit()
     return ReportLayoutSchema(config_json=cfg.config_json)
@@ -656,30 +634,29 @@ async def update_report_layout(
 @router.post("/import", status_code=status.HTTP_200_OK)
 async def import_config(
     body: ConfigImportRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
     imported = []
 
     if body.family_members:
-        await _import_family_members(ws.id, body.family_members, db)
+        await _import_family_members(workspace.id, body.family_members, db)
         imported.append("family_members")
 
     if body.categorization:
-        await _import_categorization(ws.id, body.categorization, db)
+        await _import_categorization(workspace.id, body.categorization, db)
         imported.append("categorization")
 
     if body.pipeline:
-        await _import_blob(ws.id, PipelineConfig, body.pipeline, db)
+        await _import_blob(workspace.id, PipelineConfig, body.pipeline, db)
         imported.append("pipeline")
 
     if body.institutions:
-        await _import_blob(ws.id, InstitutionConfig, body.institutions, db)
+        await _import_blob(workspace.id, InstitutionConfig, body.institutions, db)
         imported.append("institutions")
 
     if body.report_layout:
-        await _import_blob(ws.id, ReportLayout, body.report_layout, db)
+        await _import_blob(workspace.id, ReportLayout, body.report_layout, db)
         imported.append("report_layout")
 
     await db.commit()
@@ -688,16 +665,15 @@ async def import_config(
 
 @router.get("/export", response_model=ConfigExportResponse)
 async def export_config(
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
 
-    members_data = await _export_family_members(ws.id, db)
-    categorization_data = await _export_categorization(ws.id, db)
-    pipeline_data = await _export_pipeline(ws.id, db)
-    institutions_data = await _export_institutions(ws.id, db)
-    layout_data = await _export_report_layout(ws.id, db)
+    members_data = await _export_family_members(workspace.id, db)
+    categorization_data = await _export_categorization(workspace.id, db)
+    pipeline_data = await _export_pipeline(workspace.id, db)
+    institutions_data = await _export_institutions(workspace.id, db)
+    layout_data = await _export_report_layout(workspace.id, db)
 
     return ConfigExportResponse(
         family_members=members_data,

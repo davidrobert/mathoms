@@ -5,6 +5,7 @@ import { exportConfig, importConfig, type ConfigExport, ApiError } from "@/lib/a
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Download, Upload } from "lucide-react";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 const CONFIG_SECTIONS = [
   { key: "family_members", label: "Membros da família" },
@@ -17,6 +18,9 @@ const CONFIG_SECTIONS = [
 type SectionKey = (typeof CONFIG_SECTIONS)[number]["key"];
 
 export default function ImportExportTab() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [importing, setImporting] = useState(false);
@@ -30,7 +34,7 @@ export default function ImportExportTab() {
   const handleExport = useCallback(async () => {
     setError(""); setExporting(true);
     try {
-      const data = await exportConfig();
+      const data = await exportConfig(workspace!.id);
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -75,7 +79,7 @@ export default function ImportExportTab() {
     }
 
     try {
-      const result = await importConfig(importData);
+      const result = await importConfig(workspace!.id, importData);
       setSuccess(`Importado com sucesso: ${result.imported.join(", ")} (${result.total} seções)`);
       setPreview(null);
       if (fileRef.current) fileRef.current.value = "";

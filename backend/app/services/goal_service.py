@@ -18,6 +18,8 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Optional
 
+from pydantic import BaseModel as BaseModel
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,6 +30,16 @@ from backend.app.schemas.goal import (
     IFGoalDerived,
     IFGoalInputs,
     IFGoalResponse,
+    AporteGoalDerived,
+    AporteGoalInputs,
+    AporteGoalResponse,
+    DolarGoalDerived,
+    DolarGoalInputs,
+    DolarGoalResponse,
+    AlocacaoGoalDerived,
+    AlocacaoGoalInputs,
+    AlocacaoGoalResponse,
+    _GoalResponseBase,
 )
 
 
@@ -102,7 +114,80 @@ def compute_if_derived(
     )
 
 
+# ─── Funções puras de derivação — Aporte, Dólar, Alocação ────────────
+
+DEFAULT_CAMBIO_BRL_USD = 5.70  # MVP — override via compute request
+
+
+def compute_aporte_derived(inputs: AporteGoalInputs) -> AporteGoalDerived:
+    """Deriva aporte anual e % de distribuição."""
+    anual = inputs.meta_aporte_mensal_brl * 12
+    pct: dict[str, float] = {}
+    if inputs.distribuicao:
+        pct = {
+            k: round(100 * v / inputs.meta_aporte_mensal_brl, 2)
+            for k, v in inputs.distribuicao.items()
+        }
+    return AporteGoalDerived(
+        aporte_anual_brl=round(anual, 2),
+        distribuicao_pct=pct,
+    )
+
+
+def compute_dolar_derived(
+    inputs: DolarGoalInputs,
+    cambio_brl_usd: Optional[float] = None,
+) -> DolarGoalDerived:
+    """Estima meses para atingir meta USD dado aporte mensal em BRL."""
+    cambio = cambio_brl_usd or DEFAULT_CAMBIO_BRL_USD
+    aporte_usd = inputs.aporte_mensal_brl / cambio
+    if aporte_usd <= 0:
+        meses = 0.0
+    else:
+        meses = inputs.meta_usd / aporte_usd
+    return DolarGoalDerived(
+        horizonte_estimado_meses=round(max(0.0, meses), 1),
+    )
+
+
+def compute_alocacao_derived(inputs: AlocacaoGoalInputs) -> AlocacaoGoalDerived:
+    """Calcula soma dos percentuais (deve ser 100)."""
+    soma = (
+        inputs.renda_fixa_pct
+        + inputs.acoes_pct
+        + inputs.imoveis_reits_pct
+        + inputs.liquidez_usd_pct
+    )
+    return AlocacaoGoalDerived(soma_percentuais=round(soma, 2))
+
+
 # ─── CRUD versionado ──────────────────────────────────────────────────
+
+
+def _goal_to_typed_response(
+    goal: Goal,
+    *,
+    response_cls: type[_GoalResponseBase],
+    inputs_cls: type,
+    derived_cls: type,
+    created_by_name: Optional[str] = None,
+) -> _GoalResponseBase:
+    """Conversor genérico entity → response Pydantic (qualquer goal type)."""
+    return response_cls(
+        id=goal.id,
+        workspace_id=goal.workspace_id,
+        type=goal.type,  # type: ignore[arg-type]
+        inputs=inputs_cls(**goal.params_json["inputs"]),
+        derived=derived_cls(**goal.derived_json),
+        effective_from=goal.effective_from,
+        effective_to=goal.effective_to,
+        is_template=goal.is_template,
+        notes=goal.notes,
+        created_by=goal.created_by,
+        created_by_name=created_by_name,
+        created_at=goal.created_at,
+        updated_at=goal.updated_at,
+    )
 
 
 def _goal_to_response(
@@ -271,6 +356,114 @@ async def create_if_goal_version(
     return goal
 
 
+async def create_goal_version(
+    workspace_id: str,
+    goal_type: str,
+    inputs: BaseModel,
+    derived: BaseModel,
+    *,
+    db: AsyncSession,
+    created_by: Optional[str] = None,
+    notes: Optional[str] = None,
+    is_template: bool = False,
+    effective_from: Optional[date] = None,
+) -> Goal:
+    """Cria nova versão de qualquer goal type (genérico).
+
+    Mesma lógica append-only que `create_if_goal_version`: fecha o vigente
+    anterior antes de inserir o novo.
+    """
+    if goal_type not in VALID_GOAL_TYPES:
+        raise ValueError(f"Tipo de goal inválido: {goal_type}")
+
+    eff_from = effective_from or date.today()
+
+    current = await get_current_goal(workspace_id, goal_type, db=db)
+    if current is not None:
+        current.effective_to = eff_from - timedelta(days=1)
+        db.add(current)
+        await db.flush()
+
+    goal = Goal(
+        workspace_id=workspace_id,
+        type=goal_type,
+        params_json={
+            "inputs": inputs.model_dump(),
+            "meta_version": 1,
+        },
+        derived_json=derived.model_dump(exclude_none=True),
+        effective_from=eff_from,
+        effective_to=None,
+        created_by=created_by,
+        notes=notes,
+        is_template=is_template,
+    )
+    db.add(goal)
+    await db.flush()
+    return goal
+
+
+# Mapeia goal_type → (response_cls, inputs_cls, derived_cls) para helpers
+_GOAL_TYPE_CLASSES: dict[str, tuple[type, type, type]] = {
+    "INDEPENDENCIA_FINANCEIRA": (IFGoalResponse, IFGoalInputs, IFGoalDerived),
+    "APORTE_MENSAL": (AporteGoalResponse, AporteGoalInputs, AporteGoalDerived),
+    "DOLARIZACAO": (DolarGoalResponse, DolarGoalInputs, DolarGoalDerived),
+    "ALOCACAO_ALVO": (AlocacaoGoalResponse, AlocacaoGoalInputs, AlocacaoGoalDerived),
+}
+
+
+async def get_current_goal_typed(
+    workspace_id: str,
+    goal_type: str,
+    *,
+    db: AsyncSession,
+):
+    """Retorna o Goal vigente como response tipada (qualquer goal type)."""
+    goal = await get_current_goal(workspace_id, goal_type, db=db)
+    if goal is None:
+        return None
+    cls = _GOAL_TYPE_CLASSES.get(goal_type)
+    if cls is None:
+        return None
+    resp_cls, inp_cls, der_cls = cls
+    names = await _resolve_author_names(
+        {goal.created_by} if goal.created_by else set(), db=db
+    )
+    return _goal_to_typed_response(
+        goal,
+        response_cls=resp_cls,
+        inputs_cls=inp_cls,
+        derived_cls=der_cls,
+        created_by_name=names.get(goal.created_by or ""),
+    )
+
+
+async def get_goal_history_typed(
+    workspace_id: str,
+    goal_type: str,
+    *,
+    db: AsyncSession,
+) -> list:
+    """Histórico tipado de qualquer goal type."""
+    goals = await get_goal_history(workspace_id, goal_type, db=db)
+    cls = _GOAL_TYPE_CLASSES.get(goal_type)
+    if cls is None:
+        return []
+    resp_cls, inp_cls, der_cls = cls
+    ids = {g.created_by for g in goals if g.created_by}
+    names = await _resolve_author_names(ids, db=db)
+    return [
+        _goal_to_typed_response(
+            g,
+            response_cls=resp_cls,
+            inputs_cls=inp_cls,
+            derived_cls=der_cls,
+            created_by_name=names.get(g.created_by or ""),
+        )
+        for g in goals
+    ]
+
+
 async def get_latest_report_patrimonio_liquido(
     workspace_id: str,
     *,
@@ -294,9 +487,17 @@ async def get_latest_report_patrimonio_liquido(
 
 __all__ = [
     "compute_if_derived",
+    "compute_aporte_derived",
+    "compute_dolar_derived",
+    "compute_alocacao_derived",
     "get_current_goal",
     "get_goal_history",
     "create_if_goal_version",
+    "create_goal_version",
+    "get_current_goal_typed",
+    "get_goal_history_typed",
     "get_latest_report_patrimonio_liquido",
     "_goal_to_response",
+    "_goal_to_typed_response",
+    "DEFAULT_CAMBIO_BRL_USD",
 ]

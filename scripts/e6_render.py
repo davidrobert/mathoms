@@ -1007,7 +1007,7 @@ def build_charts(e4: dict) -> dict:
         "alocacao_atual": (lambda ic: {
             "labels": [c["categoria"] for c in ic.get("tabela_classes", [])],
             "datasets": [{
-                "data": [c["pct"] for c in ic.get("tabela_classes", [])],
+                "data": [c.get("pct", 0) for c in ic.get("tabela_classes", [])],
                 "backgroundColor": PALETTE[:len(ic.get("tabela_classes", []))]
             }]
         })(e4.get("investimentos", {})),
@@ -1233,7 +1233,7 @@ def build_investimentos(e4: dict) -> dict:
             "yield_medio_pct": "N/D",
             "volatilidade_pct": "N/D",
         },
-        "blocos": [{"nome": c["categoria"], "valor": c["valor"], "pct": c["pct"]} for c in tabela],
+        "blocos": [{"nome": c["categoria"], "valor": c["valor"], "pct": c.get("pct", 0)} for c in tabela],
         "cdi_anual": CONFIG_RATES["cdi_anual"],  # Loaded from config/taxas.json or defaults
         "tabela_classes": tabela,
     }
@@ -1251,6 +1251,12 @@ def build_estrategia_aporte(e4: dict) -> dict:
 
     if destinos_cfg:
         destinos = destinos_cfg
+        # Ensure every destino has required keys (may be absent in goals.json)
+        for d in destinos:
+            if "pct" not in d:
+                d["pct"] = round((d.get("valor", 0) / total) * 100, 1) if total > 0 else 0
+            d.setdefault("objetivo", "—")
+            d.setdefault("liquidez", "—")
         brl_total = sum(d["valor"] for d in destinos if d.get("moeda") == "BRL")
         usd_total = sum(d["valor"] for d in destinos if d.get("moeda") == "USD")
         brl_names = ", ".join(d["destino"].split()[0] for d in destinos if d.get("moeda") == "BRL")
@@ -1275,7 +1281,7 @@ def build_estrategia_aporte(e4: dict) -> dict:
             "total_aporte": total,
             "dia_aporte": aportes_cfg.get("dia_aporte", 5),
             "periodo_inicio": aportes_cfg.get("periodo_inicio", "Imediato"),
-            "destinos": [{"destino": "Investimentos", "valor": total, "moeda": "BRL", "veiculo": "—", "notas": "Configure aportes_destinos_detalhados em goals.json para detalhamento"}],
+            "destinos": [{"destino": "Investimentos", "valor": total, "pct": 100, "objetivo": "Crescimento", "liquidez": "—", "moeda": "BRL", "veiculo": "—", "notas": "Configure aportes_destinos_detalhados em goals.json para detalhamento"}],
             "pct_brl": 100,
             "pct_usd": 0,
             "destinos_brl": "Investimentos",
@@ -2330,11 +2336,11 @@ def build_estrategia_aporte_card(e4: dict) -> str:
 
     for d in destinos:
         h.append('      <tr>')
-        h.append(f'        <td><strong>{d["destino"]}</strong></td>')
-        h.append(f'        <td class="text-right">{fmt_brl(d["valor"])}</td>')
-        h.append(f'        <td class="text-right">{d["pct"]}%</td>')
-        h.append(f'        <td>{d["objetivo"]}</td>')
-        h.append(f'        <td>{d["liquidez"]}</td>')
+        h.append(f'        <td><strong>{d.get("destino", "—")}</strong></td>')
+        h.append(f'        <td class="text-right">{fmt_brl(d.get("valor", 0))}</td>')
+        h.append(f'        <td class="text-right">{d.get("pct", 0)}%</td>')
+        h.append(f'        <td>{d.get("objetivo", "—")}</td>')
+        h.append(f'        <td>{d.get("liquidez", "—")}</td>')
         h.append('      </tr>')
 
     # Linha TOTAL
@@ -3762,6 +3768,15 @@ def render_report(root_dir: Path = None):
     except (FileNotFoundError, json.JSONDecodeError):
         e4["_inv4_dados"] = []
 
+    # Check for missing goals — inject banner CTA
+    _goals_keys = {"aportes", "independencia_financeira", "dolarizacao", "alocacao_alvo"}
+    _configured_goals = [k for k in _goals_keys if GOALS_CONFIG.get(k)]
+    if len(_configured_goals) == 0:
+        print("  [WARN] Nenhuma meta financeira configurada — banner CTA será injetado")
+    elif len(_configured_goals) < len(_goals_keys):
+        _missing = _goals_keys - set(_configured_goals)
+        print(f"  [INFO] Metas pendentes: {', '.join(sorted(_missing))}")
+
     # Build all replacements
     print("[E6.1-E6.5] Building all replacements...")
     all_replacements = {}
@@ -3779,6 +3794,32 @@ def render_report(root_dir: Path = None):
     html = template
     for placeholder, value in all_replacements.items():
         html = html.replace(placeholder, str(value))
+
+    # Inject goals CTA banner if needed
+    if len(_configured_goals) < len(_goals_keys):
+        _missing_labels = {
+            "independencia_financeira": "Independência Financeira",
+            "aportes": "Aportes Mensais",
+            "dolarizacao": "Dolarização",
+            "alocacao_alvo": "Alocação-Alvo",
+        }
+        _missing_list = ", ".join(
+            _missing_labels[k] for k in sorted(_goals_keys - set(_configured_goals))
+        )
+        _banner_html = (
+            '<div class="card" style="background:var(--semantic-warning-bg, #fef3c7);'
+            'border-left:4px solid var(--semantic-warning, #f59e0b);margin-bottom:1.5rem;">'
+            '<h3 style="margin-top:0;">Configure suas metas financeiras</h3>'
+            f'<p>As seguintes metas ainda não foram definidas: <strong>{_missing_list}</strong>. '
+            'Acesse a seção "Meu Plano" no app para configurar e obter análises completas.</p>'
+            '</div>'
+        )
+        # Inject after <body> or at the start of the first section
+        if '<body' in html:
+            html = html.replace('</header>', '</header>' + _banner_html, 1)
+        elif '{{' not in html:
+            # Fallback: prepend after first <main> or <div class="container">
+            html = html.replace('<main', _banner_html + '<main', 1)
 
     # Validate
     validation = validate_report(html, report_data_json)

@@ -1,4 +1,4 @@
-"""Audit API — expõe o audit log do workspace do usuário autenticado.
+"""Audit API — expõe o audit log do workspace (tenant-scoped, ADR-072).
 
 Rota read-only. Não há endpoint de delete/edit — audit logs são imutáveis
 por definição (integridade).
@@ -13,18 +13,20 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.database import get_db
-from backend.app.core.deps import get_current_user
+from backend.app.core.tenancy import get_current_workspace
 from backend.app.models.audit_log import AuditLog
-from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 
-router = APIRouter(prefix="/audit", tags=["audit"])
+router = APIRouter(
+    prefix="/workspaces/{workspace_id}/audit",
+    tags=["audit"],
+)
 
 
 class AuditLogEntry(BaseModel):
@@ -45,25 +47,15 @@ class AuditLogListResponse(BaseModel):
     total: int
 
 
-async def _get_workspace(user: User, db: AsyncSession) -> Workspace:
-    result = await db.execute(select(Workspace).where(Workspace.owner_id == user.id))
-    ws = result.scalar_one_or_none()
-    if not ws:
-        raise HTTPException(status_code=404, detail="Workspace não encontrado")
-    return ws
-
-
 @router.get("", response_model=AuditLogListResponse)
 async def list_audit_logs(
     limit: int = Query(100, ge=1, le=500),
     action: Optional[str] = Query(None, description="Filtrar por ação exata, ex.: document.upload"),
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    """Lista os audit logs do workspace do usuário autenticado."""
-    ws = await _get_workspace(user, db)
-
-    query = select(AuditLog).where(AuditLog.workspace_id == ws.id)
+    """Lista os audit logs do workspace."""
+    query = select(AuditLog).where(AuditLog.workspace_id == workspace.id)
     if action:
         query = query.where(AuditLog.action == action)
     query = query.order_by(AuditLog.created_at.desc()).limit(limit)

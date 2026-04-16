@@ -1,4 +1,4 @@
-"""Documents API — upload, list, delete, retry-unlock."""
+"""Documents API — upload, list, delete, retry-unlock (tenant-scoped, ADR-072)."""
 
 from __future__ import annotations
 
@@ -7,12 +7,14 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
-from sqlalchemy import func, select
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
+from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.models.password_vault import PasswordVault
 from backend.app.models.user import User
@@ -23,16 +25,11 @@ from backend.app.services.storage import StorageService
 from backend.app.services.vault import VaultService
 from backend.app.services.document_processor import process_uploaded_document
 
-router = APIRouter(prefix="/documents", tags=["documents"])
+router = APIRouter(
+    prefix="/workspaces/{workspace_id}/documents",
+    tags=["documents"],
+)
 _storage = StorageService()
-
-
-async def _get_workspace(user: User, db: AsyncSession) -> Workspace:
-    result = await db.execute(select(Workspace).where(Workspace.owner_id == user.id))
-    ws = result.scalar_one_or_none()
-    if not ws:
-        raise HTTPException(status_code=404, detail="Workspace não encontrado")
-    return ws
 
 
 async def _get_vault_passwords(ws_id: str, db: AsyncSession) -> list[str]:
@@ -52,32 +49,36 @@ async def _get_vault_passwords(ws_id: str, db: AsyncSession) -> list[str]:
     return passwords
 
 
-@router.post("/upload", response_model=DocumentUploadResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/upload",
+    response_model=DocumentUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_write_role)],
+)
 async def upload_documents(
     request: Request,
     files: list[UploadFile] = File(...),
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Upload one or more documents. Each is saved, validated, unlocked (if PDF), and classified."""
-    ws = await _get_workspace(user, db)
-
     if len(files) > settings.MAX_UPLOAD_BATCH_SIZE:
         raise HTTPException(
             status_code=400,
             detail=f"Máximo de {settings.MAX_UPLOAD_BATCH_SIZE} arquivos por upload",
         )
 
-    within_quota, current_bytes = _storage.check_workspace_quota(ws.id)
+    within_quota, current_bytes = _storage.check_workspace_quota(workspace.id)
     if not within_quota:
         raise HTTPException(
             status_code=413,
             detail=f"Quota de storage excedida ({settings.MAX_STORAGE_PER_WORKSPACE_MB}MB)",
         )
 
-    passwords = await _get_vault_passwords(ws.id, db)
+    passwords = await _get_vault_passwords(workspace.id, db)
     config_dir = settings.PIPELINE_ROOT / "config"
-    tenant_root = _storage.ensure_tenant_dirs(ws.id)
+    tenant_root = _storage.ensure_tenant_dirs(workspace.id)
     created_docs = []
 
     skipped_duplicates: list[str] = []
@@ -89,7 +90,7 @@ async def upload_documents(
         ok, err_msg = _storage.validate_file(filename, len(content))
         if not ok:
             doc = Document(
-                workspace_id=ws.id,
+                workspace_id=workspace.id,
                 original_name=filename,
                 status=DocumentStatus.error,
                 file_size_bytes=len(content),
@@ -102,7 +103,7 @@ async def upload_documents(
 
         if len(content) == 0:
             doc = Document(
-                workspace_id=ws.id,
+                workspace_id=workspace.id,
                 original_name=filename,
                 status=DocumentStatus.error,
                 file_size_bytes=0,
@@ -115,29 +116,35 @@ async def upload_documents(
 
         content_hash = hashlib.sha256(content).hexdigest()
 
-        existing = await db.execute(
-            select(Document.id).where(
-                Document.workspace_id == ws.id,
-                Document.content_hash == content_hash,
-            ).limit(1)
-        )
-        if existing.scalar_one_or_none():
+        # Atomic dedup: rely on partial unique index
+        # `ux_documents_workspace_content_hash` (migration f1a2b3c4d5e6).
+        # Racing uploads of the same file hash against the index; at most
+        # one INSERT wins, others raise IntegrityError and are treated as
+        # duplicates. The file is only persisted to disk if the INSERT wins.
+        savepoint = await db.begin_nested()
+        try:
+            stored_path = _storage.save_to_inbox(workspace.id, filename, content)
+            doc = Document(
+                workspace_id=workspace.id,
+                original_name=filename,
+                stored_path=str(stored_path),
+                file_size_bytes=len(content),
+                content_type=upload_file.content_type,
+                content_hash=content_hash,
+                status=DocumentStatus.classifying,
+            )
+            db.add(doc)
+            await db.flush()
+        except IntegrityError:
+            await savepoint.rollback()
+            # Best-effort cleanup of orphaned file on disk
+            try:
+                if 'stored_path' in locals() and stored_path and Path(stored_path).exists():
+                    Path(stored_path).unlink(missing_ok=True)
+            except OSError:
+                pass
             skipped_duplicates.append(filename)
             continue
-
-        stored_path = _storage.save_to_inbox(ws.id, filename, content)
-
-        doc = Document(
-            workspace_id=ws.id,
-            original_name=filename,
-            stored_path=str(stored_path),
-            file_size_bytes=len(content),
-            content_type=upload_file.content_type,
-            content_hash=content_hash,
-            status=DocumentStatus.classifying,
-        )
-        db.add(doc)
-        await db.flush()
 
         try:
             result = process_uploaded_document(stored_path, passwords, config_dir, tenant_root=tenant_root)
@@ -162,7 +169,7 @@ async def upload_documents(
                 fuzzy = await db.execute(
                     select(Document.id)
                     .where(
-                        Document.workspace_id == ws.id,
+                        Document.workspace_id == workspace.id,
                         Document.doc_type == doc.doc_type,
                         Document.bank_code == doc.bank_code,
                         Document.period == doc.period,
@@ -189,8 +196,8 @@ async def upload_documents(
                 action=AuditAction.document_upload,
                 resource_type="document",
                 resource_id=doc.id,
-                workspace_id=ws.id,
-                actor_user_id=user.id,
+                workspace_id=workspace.id,
+                actor_user_id=current_user.id,
                 request=request,
                 details={
                     "filename": filename,
@@ -216,12 +223,11 @@ async def upload_documents(
 async def list_documents(
     status_filter: Optional[str] = Query(None, alias="status"),
     doc_type_filter: Optional[str] = Query(None, alias="doc_type"),
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """List documents in the workspace, optionally filtered by status or doc_type."""
-    ws = await _get_workspace(user, db)
-    query = select(Document).where(Document.workspace_id == ws.id)
+    query = select(Document).where(Document.workspace_id == workspace.id)
 
     if status_filter:
         try:
@@ -247,17 +253,21 @@ async def list_documents(
     )
 
 
-@router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{document_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_write_role)],
+)
 async def delete_document(
     document_id: str,
     request: Request,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Delete a document and its file from storage."""
-    ws = await _get_workspace(user, db)
     result = await db.execute(
-        select(Document).where(Document.id == document_id, Document.workspace_id == ws.id)
+        select(Document).where(Document.id == document_id, Document.workspace_id == workspace.id)
     )
     doc = result.scalar_one_or_none()
     if not doc:
@@ -281,8 +291,8 @@ async def delete_document(
         action=AuditAction.document_delete,
         resource_type="document",
         resource_id=document_id,
-        workspace_id=ws.id,
-        actor_user_id=user.id,
+        workspace_id=workspace.id,
+        actor_user_id=current_user.id,
         request=request,
         details=audit_details,
     )
@@ -290,21 +300,25 @@ async def delete_document(
     await db.commit()
 
 
-@router.post("/retry-unlock", response_model=list[DocumentResponse])
+@router.post(
+    "/retry-unlock",
+    response_model=list[DocumentResponse],
+    dependencies=[Depends(require_write_role)],
+)
 async def retry_unlock(
     request: Request,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Re-attempt unlock on all documents with status 'needs_password' using current vault."""
-    ws = await _get_workspace(user, db)
-    passwords = await _get_vault_passwords(ws.id, db)
+    passwords = await _get_vault_passwords(workspace.id, db)
     if not passwords:
         raise HTTPException(status_code=400, detail="Nenhuma senha cadastrada no vault")
 
     result = await db.execute(
         select(Document).where(
-            Document.workspace_id == ws.id,
+            Document.workspace_id == workspace.id,
             Document.status == DocumentStatus.needs_password,
         )
     )
@@ -313,7 +327,7 @@ async def retry_unlock(
         raise HTTPException(status_code=404, detail="Nenhum documento pendente de senha")
 
     config_dir = settings.PIPELINE_ROOT / "config"
-    tenant_root = _storage.ensure_tenant_dirs(ws.id)
+    tenant_root = _storage.ensure_tenant_dirs(workspace.id)
     updated = []
 
     for doc in docs:
@@ -343,9 +357,9 @@ async def retry_unlock(
         db,
         action=AuditAction.document_retry_unlock,
         resource_type="workspace",
-        resource_id=ws.id,
-        workspace_id=ws.id,
-        actor_user_id=user.id,
+        resource_id=workspace.id,
+        workspace_id=workspace.id,
+        actor_user_id=current_user.id,
         request=request,
         details={
             "total_attempted": len(updated),

@@ -1,4 +1,4 @@
-"""Report endpoints — list and serve HTML reports."""
+"""Report endpoints — list and serve HTML reports (tenant-scoped, ADR-072)."""
 
 import json
 import re
@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
+from backend.app.core.tenancy import get_current_workspace
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.models.report import Report
@@ -18,17 +19,10 @@ from backend.app.schemas.report import ReportResponse, ReportListResponse
 from backend.app.services import report_tasks_snapshot_service, task_service
 from backend.app.schemas.task import TaskFilters, TaskResponse
 
-router = APIRouter(prefix="/reports", tags=["reports"])
-
-
-async def _get_user_workspace(user: User, db: AsyncSession) -> Workspace:
-    result = await db.execute(
-        select(Workspace).where(Workspace.owner_id == user.id)
-    )
-    ws = result.scalar_one_or_none()
-    if not ws:
-        raise HTTPException(status_code=404, detail="Workspace não encontrado")
-    return ws
+router = APIRouter(
+    prefix="/workspaces/{workspace_id}/reports",
+    tags=["reports"],
+)
 
 
 def _serialize_report(report: Report) -> ReportResponse:
@@ -48,13 +42,12 @@ def _serialize_report(report: Report) -> ReportResponse:
 
 @router.get("", response_model=ReportListResponse)
 async def list_reports(
-    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_user_workspace(current_user, db)
     result = await db.execute(
         select(Report)
-        .where(Report.workspace_id == ws.id)
+        .where(Report.workspace_id == workspace.id)
         .order_by(Report.created_at.desc())
     )
     reports = list(result.scalars().all())
@@ -67,12 +60,11 @@ async def list_reports(
 @router.get("/{report_id}", response_model=ReportResponse)
 async def get_report(
     report_id: str,
-    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_user_workspace(current_user, db)
     result = await db.execute(
-        select(Report).where(Report.id == report_id, Report.workspace_id == ws.id)
+        select(Report).where(Report.id == report_id, Report.workspace_id == workspace.id)
     )
     report = result.scalar_one_or_none()
     if not report:
@@ -83,12 +75,11 @@ async def get_report(
 @router.get("/{report_id}/html", response_class=HTMLResponse)
 async def get_report_html(
     report_id: str,
-    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_user_workspace(current_user, db)
     result = await db.execute(
-        select(Report).where(Report.id == report_id, Report.workspace_id == ws.id)
+        select(Report).where(Report.id == report_id, Report.workspace_id == workspace.id)
     )
     report = result.scalar_one_or_none()
     if not report:
@@ -111,7 +102,7 @@ def _sanitize_filename(raw: str) -> str:
 @router.get("/{report_id}/download.html")
 async def download_report_html(
     report_id: str,
-    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """Download do relatório HTML standalone (F9 · F1.5).
@@ -120,9 +111,8 @@ async def download_report_html(
     (ex: compartilhar com contador, anexo de e-mail, backup). O HTML standalone
     continua sendo gerado pelo E6 e mora em `report.html_path`.
     """
-    ws = await _get_user_workspace(current_user, db)
     result = await db.execute(
-        select(Report).where(Report.id == report_id, Report.workspace_id == ws.id)
+        select(Report).where(Report.id == report_id, Report.workspace_id == workspace.id)
     )
     report = result.scalar_one_or_none()
     if not report:
@@ -147,7 +137,7 @@ async def download_report_html(
 @router.get("/{report_id}/data")
 async def get_report_data(
     report_id: str,
-    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """Serve o snapshot E5 JSON do relatório para o render nativo React (F9 · F0.4).
@@ -155,9 +145,8 @@ async def get_report_data(
     ADR-076: o render nativo consome o JSON estruturado ao invés de parsear
     o HTML do iframe. Relatórios pré-F9 (sem analysis_json_path) retornam 404.
     """
-    ws = await _get_user_workspace(current_user, db)
     result = await db.execute(
-        select(Report).where(Report.id == report_id, Report.workspace_id == ws.id)
+        select(Report).where(Report.id == report_id, Report.workspace_id == workspace.id)
     )
     report = result.scalar_one_or_none()
     if not report:
@@ -193,6 +182,7 @@ async def get_report_data(
 @router.get("/{report_id}/download.pdf")
 async def download_report_pdf(
     report_id: str,
+    workspace: Workspace = Depends(get_current_workspace),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -206,9 +196,8 @@ async def download_report_pdf(
     from backend.app.core.security import create_access_token
     from backend.app.services.pdf_renderer import render_pdf
 
-    ws = await _get_user_workspace(current_user, db)
     result = await db.execute(
-        select(Report).where(Report.id == report_id, Report.workspace_id == ws.id)
+        select(Report).where(Report.id == report_id, Report.workspace_id == workspace.id)
     )
     report = result.scalar_one_or_none()
     if not report:
@@ -258,7 +247,7 @@ async def download_report_pdf(
 @router.get("/{report_id}/tasks")
 async def get_report_tasks(
     report_id: str,
-    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """Tasks do relatório (ADR-074 §F8.3 — snapshot imutável).
@@ -269,9 +258,8 @@ async def get_report_tasks(
       no workspace, marcado com `is_live_fallback: true` para a UI
       mostrar aviso.
     """
-    ws = await _get_user_workspace(current_user, db)
     snapshot = await report_tasks_snapshot_service.get_report_snapshot(
-        ws.id, report_id, db=db
+        workspace.id, report_id, db=db
     )
     if snapshot is not None:
         return JSONResponse(content={"is_live_fallback": False, **snapshot})
@@ -280,7 +268,7 @@ async def get_report_tasks(
     # Valida que o relatório existe no workspace antes de vazar tasks
     result = await db.execute(
         select(Report).where(
-            Report.id == report_id, Report.workspace_id == ws.id
+            Report.id == report_id, Report.workspace_id == workspace.id
         )
     )
     if result.scalar_one_or_none() is None:
@@ -289,7 +277,7 @@ async def get_report_tasks(
         )
 
     live_tasks = await task_service.list_tasks(
-        ws.id, TaskFilters(include_done=True, include_cancelled=True), db=db
+        workspace.id, TaskFilters(include_done=True, include_cancelled=True), db=db
     )
     return JSONResponse(
         content={

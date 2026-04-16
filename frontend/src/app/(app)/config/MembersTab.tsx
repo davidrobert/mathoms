@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trash2, Plus, Check, X } from "lucide-react";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 const ROLES = [
   { value: "titular", label: "Titular" },
@@ -31,6 +32,9 @@ const ROLES = [
 ];
 
 export default function MembersTab() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   const [members, setMembers] = useState<FamilyMemberConfig[]>([]);
   const [familySurname, setFamilySurname] = useState<string>("");
   const [familySurnameDirty, setFamilySurnameDirty] = useState(false);
@@ -46,7 +50,7 @@ export default function MembersTab() {
 
   const reload = useCallback(async () => {
     try {
-      const [data, ws] = await Promise.all([listMembers(), getWorkspaceSettings()]);
+      const [data, ws] = await Promise.all([listMembers(workspace!.id), getWorkspaceSettings(workspace!.id)]);
       setMembers(data.members);
       setFamilySurname(ws.family_surname ?? "");
       setFamilySurnameDirty(false);
@@ -63,7 +67,7 @@ export default function MembersTab() {
     setError(""); setSuccess("");
     setSavingSurname(true);
     try {
-      const updated = await updateWorkspaceSettings({ family_surname: familySurname.trim() || null });
+      const updated = await updateWorkspaceSettings(workspace!.id, { family_surname: familySurname.trim() || null });
       setFamilySurname(updated.family_surname ?? "");
       setFamilySurnameDirty(false);
       setSuccess("Sobrenome da família atualizado!");
@@ -79,7 +83,7 @@ export default function MembersTab() {
     setError(""); setSuccess("");
     const fd = new FormData(e.currentTarget);
     try {
-      const created = await createMember({
+      const created = await createMember(workspace!.id, {
         full_name: (fd.get("full_name") as string).trim(),
         short_name: (fd.get("short_name") as string).trim(),
         birth_name: ((fd.get("birth_name") as string) || "").trim() || undefined,
@@ -103,7 +107,7 @@ export default function MembersTab() {
   async function handleDelete() {
     if (!deleteTarget?.id) return;
     try {
-      await deleteMember(deleteTarget.id);
+      await deleteMember(workspace!.id, deleteTarget.id);
       await reload();
     } catch { setError("Erro ao remover membro"); }
     setDeleteTarget(null);
@@ -112,7 +116,7 @@ export default function MembersTab() {
   async function handleUpdate(m: FamilyMemberConfig, field: string, value: string) {
     if (!m.id) return;
     try {
-      await updateMember(m.id, { [field]: value || null });
+      await updateMember(workspace!.id, m.id, { [field]: value || null });
       await reload();
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Erro ao atualizar");
@@ -124,7 +128,7 @@ export default function MembersTab() {
     setError("");
     const fd = new FormData(e.currentTarget);
     try {
-      await createBankAccount(memberId, {
+      await createBankAccount(workspace!.id, memberId, {
         institution_code: fd.get("institution_code") as string,
         account_type: fd.get("account_type") as string,
         agency: (fd.get("agency") as string) || undefined,
@@ -140,7 +144,7 @@ export default function MembersTab() {
   async function handleDeleteAccount() {
     if (!deleteAccountTarget) return;
     try {
-      await deleteBankAccount(deleteAccountTarget.memberId, deleteAccountTarget.acc.id!);
+      await deleteBankAccount(workspace!.id, deleteAccountTarget.memberId, deleteAccountTarget.acc.id!);
       await reload();
     } catch { setError("Erro ao remover conta"); }
     setDeleteAccountTarget(null);

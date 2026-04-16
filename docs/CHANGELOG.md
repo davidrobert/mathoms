@@ -8,6 +8,19 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **F7 / 7A.5:** `.env.example` na raiz (todas as `FIN_*` documentadas + opcionais comentadas); `scripts/gen-secrets.sh` para gerar `FIN_FERNET_KEY` / `FIN_SECRET_KEY` (modo imprimir ou `--init-env` a partir do example); `docs/SETUP.md` e README atualizados.
+
+**F8.5 · Multi-tenant Goals completo (ADR-079):**
+- **Backend**: API completa para APORTE_MENSAL, DOLARIZACAO e ALOCACAO_ALVO (12 novos endpoints: POST compute, GET current, GET history, PUT upsert por tipo)
+- **Backend**: 3 compute functions puras (`compute_aporte_derived`, `compute_dolar_derived`, `compute_alocacao_derived`); `create_goal_version` genérica + helpers tipados (`get_current_goal_typed`, `get_goal_history_typed`)
+- **Backend**: Pydantic models com validadores (distribuição == meta, alocação soma 100%); `_GoalResponseBase` compartilhada por IF + 3 novos
+- **Frontend**: `/plano` refatorada para dashboard multi-goal (grid 2×2 com status cards) + banner CTA quando 0 goals configurados
+- **Frontend**: 6 novas páginas (3 edit + 3 wizards): `/plano/aportes`, `/plano/dolarizacao`, `/plano/alocacao`
+- **Frontend**: Types + 12 funções API client em `lib/api.ts`
+- **Pipeline**: `scripts/e6_render.py` — resiliência (ValueError → fallback gracioso em `build_estrategia_aporte` e `_build_top5_decisoes_fallback`); banner CTA injetado no HTML quando goals vazios
+- **Câmbio hardcoded**: `DEFAULT_CAMBIO_BRL_USD = 5.70` em DOLARIZACAO — override via `cambio_brl_usd` no compute request (débito futuro: API externa)
+- Fluxo end-to-end completo: UI → DB (append-only versionado) → adapter → `goals.json` materializado → E5/E6 → relatório
+
 **Pipeline hardening (revisão arquitetural):**
 - `pipeline_common.py`: novos paths (INBOX_DIR, INBOX_PROCESSED_DIR, MEMBERS_DIR, OUTPUT_DIR) + `validate_artifact()` para validação de schemas
 - `pipeline_common.py`: `write_json_atomic()` para escrita atômica via temp+rename (crash-safe, com flag `fsync=True` para artefatos críticos)

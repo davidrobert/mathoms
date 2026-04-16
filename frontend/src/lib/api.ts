@@ -346,27 +346,27 @@ export async function login(
 
 // ─── Reports ───
 
-export async function listReports(): Promise<ReportListResponse> {
-  return apiFetch("/reports");
+export async function listReports(workspaceId: string): Promise<ReportListResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/reports`);
 }
 
-export async function getReport(reportId: string): Promise<ReportResponse> {
-  return apiFetch(`/reports/${reportId}`);
+export async function getReport(workspaceId: string, reportId: string): Promise<ReportResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}`);
 }
 
-export function getReportHtmlUrl(reportId: string): string {
-  return `${API_BASE}/reports/${reportId}/html`;
+export function getReportHtmlUrl(workspaceId: string, reportId: string): string {
+  return `${API_BASE}/workspaces/${workspaceId}/reports/${reportId}/html`;
 }
 
 /** F9 · F1.5 — URL de download do HTML standalone (E6). Preservado como
  *  produto para compartilhamento offline (contador, anexo, backup). */
-export function getReportDownloadHtmlUrl(reportId: string): string {
-  return `${API_BASE}/reports/${reportId}/download.html`;
+export function getReportDownloadHtmlUrl(workspaceId: string, reportId: string): string {
+  return `${API_BASE}/workspaces/${workspaceId}/reports/${reportId}/download.html`;
 }
 
 /** F9 · F4.2 — URL de download do PDF server-side (Playwright). */
-export function getReportDownloadPdfUrl(reportId: string): string {
-  return `${API_BASE}/reports/${reportId}/download.pdf`;
+export function getReportDownloadPdfUrl(workspaceId: string, reportId: string): string {
+  return `${API_BASE}/workspaces/${workspaceId}/reports/${reportId}/download.pdf`;
 }
 
 /** F9 · ADR-076 — Busca o snapshot E5 JSON para o render nativo.
@@ -374,13 +374,14 @@ export function getReportDownloadPdfUrl(reportId: string): string {
  * Retorna 404 se o relatório é pré-F9 (sem analysis_json_path) — verifique
  * antes via `ReportResponse.has_analysis_data` para evitar a requisição.
  */
-export async function getReportData(reportId: string): Promise<ReportAnalysisData> {
-  return apiFetch(`/reports/${reportId}/data`);
+export async function getReportData(workspaceId: string, reportId: string): Promise<ReportAnalysisData> {
+  return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}/data`);
 }
 
 // ─── Documents ───
 
 export async function uploadDocuments(
+  workspaceId: string,
   files: File[],
   onProgress?: (loaded: number, total: number) => void
 ): Promise<DocumentUploadResponse> {
@@ -392,7 +393,7 @@ export async function uploadDocuments(
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${API_BASE}/documents/upload`);
+    xhr.open("POST", `${API_BASE}/workspaces/${workspaceId}/documents/upload`);
     if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
     xhr.upload.addEventListener("progress", (e) => {
@@ -416,6 +417,7 @@ export async function uploadDocuments(
 }
 
 export async function listDocuments(
+  workspaceId: string,
   statusFilter?: DocumentStatus,
   docTypeFilter?: DocumentType
 ): Promise<DocumentListResponse> {
@@ -423,46 +425,47 @@ export async function listDocuments(
   if (statusFilter) params.set("status", statusFilter);
   if (docTypeFilter) params.set("doc_type", docTypeFilter);
   const qs = params.toString();
-  return apiFetch(`/documents${qs ? `?${qs}` : ""}`);
+  return apiFetch(`/workspaces/${workspaceId}/documents${qs ? `?${qs}` : ""}`);
 }
 
-export async function deleteDocument(documentId: string): Promise<void> {
-  return apiFetch(`/documents/${documentId}`, { method: "DELETE" });
+export async function deleteDocument(workspaceId: string, documentId: string): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/documents/${documentId}`, { method: "DELETE" });
 }
 
-export async function retryUnlock(): Promise<DocumentResponse[]> {
-  return apiFetch("/documents/retry-unlock", { method: "POST" });
+export async function retryUnlock(workspaceId: string): Promise<DocumentResponse[]> {
+  return apiFetch(`/workspaces/${workspaceId}/documents/retry-unlock`, { method: "POST" });
 }
 
 // ─── Vault ───
 
-export async function listVaultPasswords(): Promise<VaultListResponse> {
-  return apiFetch("/vault/passwords");
+export async function listVaultPasswords(workspaceId: string): Promise<VaultListResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/vault/passwords`);
 }
 
 export async function createVaultPassword(
+  workspaceId: string,
   label: string,
   password: string
 ): Promise<VaultPasswordResponse> {
-  return apiFetch("/vault/passwords", {
+  return apiFetch(`/workspaces/${workspaceId}/vault/passwords`, {
     method: "POST",
     body: JSON.stringify({ label, password }),
   });
 }
 
-export async function deleteVaultPassword(passwordId: string): Promise<void> {
-  return apiFetch(`/vault/passwords/${passwordId}`, { method: "DELETE" });
+export async function deleteVaultPassword(workspaceId: string, passwordId: string): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/vault/passwords/${passwordId}`, { method: "DELETE" });
 }
 
 // ─── Pipeline ───
 
-export async function triggerPipeline(opts?: {
+export async function triggerPipeline(workspaceId: string, opts?: {
   from_stage?: string;
   skip_llm?: boolean;
   stop_on_error?: boolean;
   incremental?: boolean;
 }): Promise<PipelineRunResponse> {
-  return apiFetch("/pipeline/run", {
+  return apiFetch(`/workspaces/${workspaceId}/pipeline/run`, {
     method: "POST",
     body: JSON.stringify({
       from_stage: opts?.from_stage ?? null,
@@ -473,22 +476,23 @@ export async function triggerPipeline(opts?: {
   });
 }
 
-export async function getNewDocCount(): Promise<{ new_count: number }> {
-  return apiFetch("/pipeline/new-doc-count");
+export async function getNewDocCount(workspaceId: string): Promise<{ new_count: number }> {
+  return apiFetch(`/workspaces/${workspaceId}/pipeline/new-doc-count`);
 }
 
-export async function listPipelineRuns(): Promise<PipelineRunListResponse> {
-  return apiFetch("/pipeline/runs");
+export async function listPipelineRuns(workspaceId: string): Promise<PipelineRunListResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/pipeline/runs`);
 }
 
 export async function getPipelineRun(
+  workspaceId: string,
   runId: string
 ): Promise<PipelineRunResponse> {
-  return apiFetch(`/pipeline/runs/${runId}`);
+  return apiFetch(`/workspaces/${workspaceId}/pipeline/runs/${runId}`);
 }
 
-export async function cancelPipelineRun(runId: string): Promise<void> {
-  return apiFetch(`/pipeline/runs/${runId}/cancel`, { method: "POST" });
+export async function cancelPipelineRun(workspaceId: string, runId: string): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/pipeline/runs/${runId}/cancel`, { method: "POST" });
 }
 
 // ─── Config: Types ───
@@ -551,20 +555,21 @@ export interface WorkspaceSettings {
   family_surname: string | null;
 }
 
-export async function getWorkspaceSettings(): Promise<WorkspaceSettings> {
-  return apiFetch("/config/workspace");
+export async function getWorkspaceSettings(workspaceId: string): Promise<WorkspaceSettings> {
+  return apiFetch(`/workspaces/${workspaceId}/config/workspace`);
 }
 
 export async function updateWorkspaceSettings(
+  workspaceId: string,
   data: Partial<Pick<WorkspaceSettings, "family_surname">>,
 ): Promise<WorkspaceSettings> {
-  return apiFetch("/config/workspace", { method: "PATCH", body: JSON.stringify(data) });
+  return apiFetch(`/workspaces/${workspaceId}/config/workspace`, { method: "PATCH", body: JSON.stringify(data) });
 }
 
 // ─── Config: Members ───
 
-export async function listMembers(): Promise<{ members: FamilyMemberConfig[]; total: number }> {
-  return apiFetch("/config/members");
+export async function listMembers(workspaceId: string): Promise<{ members: FamilyMemberConfig[]; total: number }> {
+  return apiFetch(`/workspaces/${workspaceId}/config/members`);
 }
 
 export type CreateMemberPayload = Omit<FamilyMemberConfig, "id" | "accounts"> & {
@@ -572,80 +577,80 @@ export type CreateMemberPayload = Omit<FamilyMemberConfig, "id" | "accounts"> & 
   key?: string;
 };
 
-export async function createMember(data: CreateMemberPayload): Promise<FamilyMemberConfig> {
-  return apiFetch("/config/members", { method: "POST", body: JSON.stringify(data) });
+export async function createMember(workspaceId: string, data: CreateMemberPayload): Promise<FamilyMemberConfig> {
+  return apiFetch(`/workspaces/${workspaceId}/config/members`, { method: "POST", body: JSON.stringify(data) });
 }
 
-export async function updateMember(id: string, data: Partial<FamilyMemberConfig>): Promise<FamilyMemberConfig> {
-  return apiFetch(`/config/members/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export async function updateMember(workspaceId: string, id: string, data: Partial<FamilyMemberConfig>): Promise<FamilyMemberConfig> {
+  return apiFetch(`/workspaces/${workspaceId}/config/members/${id}`, { method: "PUT", body: JSON.stringify(data) });
 }
 
-export async function deleteMember(id: string): Promise<void> {
-  return apiFetch(`/config/members/${id}`, { method: "DELETE" });
+export async function deleteMember(workspaceId: string, id: string): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/config/members/${id}`, { method: "DELETE" });
 }
 
 // ─── Config: Bank Accounts ───
 
-export async function createBankAccount(memberId: string, data: Omit<BankAccountConfig, "id">): Promise<BankAccountConfig> {
-  return apiFetch(`/config/members/${memberId}/accounts`, { method: "POST", body: JSON.stringify(data) });
+export async function createBankAccount(workspaceId: string, memberId: string, data: Omit<BankAccountConfig, "id">): Promise<BankAccountConfig> {
+  return apiFetch(`/workspaces/${workspaceId}/config/members/${memberId}/accounts`, { method: "POST", body: JSON.stringify(data) });
 }
 
-export async function deleteBankAccount(memberId: string, accountId: string): Promise<void> {
-  return apiFetch(`/config/members/${memberId}/accounts/${accountId}`, { method: "DELETE" });
+export async function deleteBankAccount(workspaceId: string, memberId: string, accountId: string): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/config/members/${memberId}/accounts/${accountId}`, { method: "DELETE" });
 }
 
 // ─── Config: Categories ───
 
-export async function listCategories(): Promise<{ categories: CategoryConfig[]; total: number }> {
-  return apiFetch("/config/categories");
+export async function listCategories(workspaceId: string): Promise<{ categories: CategoryConfig[]; total: number }> {
+  return apiFetch(`/workspaces/${workspaceId}/config/categories`);
 }
 
-export async function createCategory(data: Omit<CategoryConfig, "id">): Promise<CategoryConfig> {
-  return apiFetch("/config/categories", { method: "POST", body: JSON.stringify(data) });
+export async function createCategory(workspaceId: string, data: Omit<CategoryConfig, "id">): Promise<CategoryConfig> {
+  return apiFetch(`/workspaces/${workspaceId}/config/categories`, { method: "POST", body: JSON.stringify(data) });
 }
 
-export async function updateCategory(id: string, data: Partial<CategoryConfig>): Promise<CategoryConfig> {
-  return apiFetch(`/config/categories/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export async function updateCategory(workspaceId: string, id: string, data: Partial<CategoryConfig>): Promise<CategoryConfig> {
+  return apiFetch(`/workspaces/${workspaceId}/config/categories/${id}`, { method: "PUT", body: JSON.stringify(data) });
 }
 
-export async function deleteCategory(id: string): Promise<void> {
-  return apiFetch(`/config/categories/${id}`, { method: "DELETE" });
+export async function deleteCategory(workspaceId: string, id: string): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/config/categories/${id}`, { method: "DELETE" });
 }
 
 // ─── Config: Pipeline / Institutions / Report Layout ───
 
-export async function getPipelineConfig(): Promise<PipelineConfigData> {
-  return apiFetch("/config/pipeline");
+export async function getPipelineConfig(workspaceId: string): Promise<PipelineConfigData> {
+  return apiFetch(`/workspaces/${workspaceId}/config/pipeline`);
 }
 
-export async function updatePipelineConfig(data: Partial<PipelineConfigData>): Promise<PipelineConfigData> {
-  return apiFetch("/config/pipeline", { method: "PUT", body: JSON.stringify(data) });
+export async function updatePipelineConfig(workspaceId: string, data: Partial<PipelineConfigData>): Promise<PipelineConfigData> {
+  return apiFetch(`/workspaces/${workspaceId}/config/pipeline`, { method: "PUT", body: JSON.stringify(data) });
 }
 
-export async function getInstitutionsConfig(): Promise<{ config_json: Record<string, unknown> }> {
-  return apiFetch("/config/institutions");
+export async function getInstitutionsConfig(workspaceId: string): Promise<{ config_json: Record<string, unknown> }> {
+  return apiFetch(`/workspaces/${workspaceId}/config/institutions`);
 }
 
-export async function updateInstitutionsConfig(config_json: Record<string, unknown>): Promise<{ config_json: Record<string, unknown> }> {
-  return apiFetch("/config/institutions", { method: "PUT", body: JSON.stringify({ config_json }) });
+export async function updateInstitutionsConfig(workspaceId: string, config_json: Record<string, unknown>): Promise<{ config_json: Record<string, unknown> }> {
+  return apiFetch(`/workspaces/${workspaceId}/config/institutions`, { method: "PUT", body: JSON.stringify({ config_json }) });
 }
 
-export async function getReportLayout(): Promise<{ config_json: Record<string, unknown> }> {
-  return apiFetch("/config/report-layout");
+export async function getReportLayout(workspaceId: string): Promise<{ config_json: Record<string, unknown> }> {
+  return apiFetch(`/workspaces/${workspaceId}/config/report-layout`);
 }
 
-export async function updateReportLayout(config_json: Record<string, unknown>): Promise<{ config_json: Record<string, unknown> }> {
-  return apiFetch("/config/report-layout", { method: "PUT", body: JSON.stringify({ config_json }) });
+export async function updateReportLayout(workspaceId: string, config_json: Record<string, unknown>): Promise<{ config_json: Record<string, unknown> }> {
+  return apiFetch(`/workspaces/${workspaceId}/config/report-layout`, { method: "PUT", body: JSON.stringify({ config_json }) });
 }
 
 // ─── Config: Import / Export ───
 
-export async function importConfig(data: Partial<ConfigExport>): Promise<{ imported: string[]; total: number }> {
-  return apiFetch("/config/import", { method: "POST", body: JSON.stringify(data) });
+export async function importConfig(workspaceId: string, data: Partial<ConfigExport>): Promise<{ imported: string[]; total: number }> {
+  return apiFetch(`/workspaces/${workspaceId}/config/import`, { method: "POST", body: JSON.stringify(data) });
 }
 
-export async function exportConfig(): Promise<ConfigExport> {
-  return apiFetch("/config/export");
+export async function exportConfig(workspaceId: string): Promise<ConfigExport> {
+  return apiFetch(`/workspaces/${workspaceId}/config/export`);
 }
 
 // ─── Transaction Types ───
@@ -741,7 +746,7 @@ export interface NotificationListResponse {
 
 // ─── Transaction API ───
 
-export async function listTransactions(params?: {
+export async function listTransactions(workspaceId: string, params?: {
   member?: string;
   bank?: string;
   category?: string;
@@ -760,32 +765,33 @@ export async function listTransactions(params?: {
     });
   }
   const qs = qp.toString();
-  return apiFetch(`/transactions${qs ? `?${qs}` : ""}`);
+  return apiFetch(`/workspaces/${workspaceId}/transactions${qs ? `?${qs}` : ""}`);
 }
 
 export async function overrideTransactionCategory(
+  workspaceId: string,
   hash: string,
   data: { new_category: string; notes?: string }
 ): Promise<TransactionOverrideResponse> {
-  return apiFetch(`/transactions/${hash}/override`, {
+  return apiFetch(`/workspaces/${workspaceId}/transactions/${hash}/override`, {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
-export async function removeTransactionOverride(hash: string): Promise<void> {
-  return apiFetch(`/transactions/${hash}/override`, { method: "DELETE" });
+export async function removeTransactionOverride(workspaceId: string, hash: string): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/transactions/${hash}/override`, { method: "DELETE" });
 }
 
 // ─── Dashboard API ───
 
-export async function getDashboard(): Promise<DashboardResponse> {
-  return apiFetch("/dashboard");
+export async function getDashboard(workspaceId: string): Promise<DashboardResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/dashboard`);
 }
 
 // ─── Notification API ───
 
-export async function listNotifications(params?: {
+export async function listNotifications(workspaceId: string, params?: {
   severity?: string;
   is_read?: boolean;
   limit?: number;
@@ -797,18 +803,18 @@ export async function listNotifications(params?: {
     });
   }
   const qs = qp.toString();
-  return apiFetch(`/notifications${qs ? `?${qs}` : ""}`);
+  return apiFetch(`/workspaces/${workspaceId}/notifications${qs ? `?${qs}` : ""}`);
 }
 
-export async function markNotificationsRead(ids: string[]): Promise<void> {
-  return apiFetch("/notifications/read", {
+export async function markNotificationsRead(workspaceId: string, ids: string[]): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/notifications/read`, {
     method: "PATCH",
     body: JSON.stringify({ notification_ids: ids }),
   });
 }
 
-export async function deleteNotification(id: string): Promise<void> {
-  return apiFetch(`/notifications/${id}`, { method: "DELETE" });
+export async function deleteNotification(workspaceId: string, id: string): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/notifications/${id}`, { method: "DELETE" });
 }
 
 // ─── LLM Config Types ───
@@ -828,48 +834,49 @@ export interface LLMTierResponse {
   has_llm_config: boolean;
 }
 
-export async function getLLMConfig(): Promise<LLMConfigResponse | null> {
-  return apiFetch("/config/llm");
+export async function getLLMConfig(workspaceId: string): Promise<LLMConfigResponse | null> {
+  return apiFetch(`/workspaces/${workspaceId}/config/llm`);
 }
 
-export async function saveLLMConfig(data: {
+export async function saveLLMConfig(workspaceId: string, data: {
   provider: string;
   api_key: string;
   model_name: string;
   max_tokens?: number;
   temperature?: number;
 }): Promise<LLMConfigResponse> {
-  return apiFetch("/config/llm", { method: "PUT", body: JSON.stringify(data) });
+  return apiFetch(`/workspaces/${workspaceId}/config/llm`, { method: "PUT", body: JSON.stringify(data) });
 }
 
-export async function deleteLLMConfig(): Promise<void> {
-  return apiFetch("/config/llm", { method: "DELETE" });
+export async function deleteLLMConfig(workspaceId: string): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/config/llm`, { method: "DELETE" });
 }
 
-export async function testLLMConnection(): Promise<{ success: boolean; message: string; model?: string }> {
-  return apiFetch("/config/llm/test", { method: "POST" });
+export async function testLLMConnection(workspaceId: string): Promise<{ success: boolean; message: string; model?: string }> {
+  return apiFetch(`/workspaces/${workspaceId}/config/llm/test`, { method: "POST" });
 }
 
-export async function getLLMTier(): Promise<LLMTierResponse> {
-  return apiFetch("/config/llm/tier");
+export async function getLLMTier(workspaceId: string): Promise<LLMTierResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/config/llm/tier`);
 }
 
 // ─── Pipeline Resume ───
 
-export async function resumePipelineRun(runId: string): Promise<void> {
-  return apiFetch(`/pipeline/runs/${runId}/resume`, { method: "POST" });
+export async function resumePipelineRun(workspaceId: string, runId: string): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/pipeline/runs/${runId}/resume`, { method: "POST" });
 }
 
-export async function listStageReviews(runId: string): Promise<unknown[]> {
-  return apiFetch(`/pipeline/runs/${runId}/reviews`);
+export async function listStageReviews(workspaceId: string, runId: string): Promise<unknown[]> {
+  return apiFetch(`/workspaces/${workspaceId}/pipeline/runs/${runId}/reviews`);
 }
 
 export async function submitStageReview(
+  workspaceId: string,
   runId: string,
   reviewId: string,
   data: { action: string; edited_output?: Record<string, unknown>; notes?: string }
 ): Promise<unknown> {
-  return apiFetch(`/pipeline/runs/${runId}/reviews/${reviewId}`, {
+  return apiFetch(`/workspaces/${workspaceId}/pipeline/runs/${runId}/reviews/${reviewId}`, {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -1135,6 +1142,230 @@ export async function upsertIFGoal(
   notes?: string
 ): Promise<IFGoalResponse> {
   return apiFetch(`/workspaces/${workspaceId}/goals/if`, {
+    method: "PUT",
+    body: JSON.stringify({ inputs, notes }),
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Goals — Aportes Mensais (F8.5)
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface AporteGoalInputs {
+  meta_aporte_mensal_brl: number;
+  dia_aporte: number;
+  periodo_inicio?: string;
+  distribuicao?: Record<string, number>;
+}
+
+export interface AporteGoalDerived {
+  aporte_anual_brl: number;
+  distribuicao_pct: Record<string, number>;
+}
+
+export interface AporteGoalResponse {
+  id: string;
+  workspace_id: string;
+  type: "APORTE_MENSAL";
+  inputs: AporteGoalInputs;
+  derived: AporteGoalDerived;
+  effective_from: string;
+  effective_to: string | null;
+  is_template: boolean;
+  notes: string | null;
+  created_by: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AporteGoalHistoryResponse {
+  goals: AporteGoalResponse[];
+  total: number;
+}
+
+export interface AporteGoalComputeResponse {
+  derived: AporteGoalDerived;
+}
+
+export async function computeAporteGoal(
+  workspaceId: string,
+  inputs: AporteGoalInputs
+): Promise<AporteGoalComputeResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/aportes/compute`, {
+    method: "POST",
+    body: JSON.stringify({ inputs }),
+  });
+}
+
+export async function getAporteGoal(
+  workspaceId: string
+): Promise<AporteGoalResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/aportes`);
+}
+
+export async function getAporteGoalHistory(
+  workspaceId: string
+): Promise<AporteGoalHistoryResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/aportes/history`);
+}
+
+export async function upsertAporteGoal(
+  workspaceId: string,
+  inputs: AporteGoalInputs,
+  notes?: string
+): Promise<AporteGoalResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/aportes`, {
+    method: "PUT",
+    body: JSON.stringify({ inputs, notes }),
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Goals — Dolarização (F8.5)
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface DolarGoalInputs {
+  meta_usd: number;
+  aporte_mensal_brl: number;
+}
+
+export interface DolarGoalDerived {
+  horizonte_estimado_meses: number;
+}
+
+export interface DolarGoalResponse {
+  id: string;
+  workspace_id: string;
+  type: "DOLARIZACAO";
+  inputs: DolarGoalInputs;
+  derived: DolarGoalDerived;
+  effective_from: string;
+  effective_to: string | null;
+  is_template: boolean;
+  notes: string | null;
+  created_by: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DolarGoalHistoryResponse {
+  goals: DolarGoalResponse[];
+  total: number;
+}
+
+export interface DolarGoalComputeResponse {
+  derived: DolarGoalDerived;
+  cambio_utilizado: number;
+}
+
+export async function computeDolarGoal(
+  workspaceId: string,
+  inputs: DolarGoalInputs,
+  cambio_brl_usd?: number
+): Promise<DolarGoalComputeResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/dolarizacao/compute`, {
+    method: "POST",
+    body: JSON.stringify({ inputs, cambio_brl_usd }),
+  });
+}
+
+export async function getDolarGoal(
+  workspaceId: string
+): Promise<DolarGoalResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/dolarizacao`);
+}
+
+export async function getDolarGoalHistory(
+  workspaceId: string
+): Promise<DolarGoalHistoryResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/dolarizacao/history`);
+}
+
+export async function upsertDolarGoal(
+  workspaceId: string,
+  inputs: DolarGoalInputs,
+  notes?: string
+): Promise<DolarGoalResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/dolarizacao`, {
+    method: "PUT",
+    body: JSON.stringify({ inputs, notes }),
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Goals — Alocação-Alvo (F8.5)
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface AlocacaoGoalInputs {
+  renda_fixa_pct: number;
+  acoes_pct: number;
+  imoveis_reits_pct: number;
+  liquidez_usd_pct: number;
+  instrumentos_rf?: string;
+  instrumentos_rv?: string;
+  rebalanceamento?: string;
+}
+
+export interface AlocacaoGoalDerived {
+  soma_percentuais: number;
+}
+
+export interface AlocacaoGoalResponse {
+  id: string;
+  workspace_id: string;
+  type: "ALOCACAO_ALVO";
+  inputs: AlocacaoGoalInputs;
+  derived: AlocacaoGoalDerived;
+  effective_from: string;
+  effective_to: string | null;
+  is_template: boolean;
+  notes: string | null;
+  created_by: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AlocacaoGoalHistoryResponse {
+  goals: AlocacaoGoalResponse[];
+  total: number;
+}
+
+export interface AlocacaoGoalComputeResponse {
+  derived: AlocacaoGoalDerived;
+  valido: boolean;
+}
+
+export async function computeAlocacaoGoal(
+  workspaceId: string,
+  inputs: AlocacaoGoalInputs
+): Promise<AlocacaoGoalComputeResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/alocacao/compute`, {
+    method: "POST",
+    body: JSON.stringify({ inputs }),
+  });
+}
+
+export async function getAlocacaoGoal(
+  workspaceId: string
+): Promise<AlocacaoGoalResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/alocacao`);
+}
+
+export async function getAlocacaoGoalHistory(
+  workspaceId: string
+): Promise<AlocacaoGoalHistoryResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/alocacao/history`);
+}
+
+export async function upsertAlocacaoGoal(
+  workspaceId: string,
+  inputs: AlocacaoGoalInputs,
+  notes?: string
+): Promise<AlocacaoGoalResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/goals/alocacao`, {
     method: "PUT",
     body: JSON.stringify({ inputs, notes }),
   });

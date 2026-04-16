@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 const SEVERITY_CONFIG: Record<
   string,
@@ -59,14 +60,16 @@ function formatRelativeTime(iso: string): string {
 }
 
 export function NotificationCenter() {
+  const { workspace } = useWorkspace();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
+    if (!workspace) return;
     try {
-      const data = await listNotifications({ limit: 50 });
+      const data = await listNotifications(workspace.id, { limit: 50 });
       setItems(data.notifications);
       setUnread(data.unread_count);
     } catch {
@@ -75,7 +78,7 @@ export function NotificationCenter() {
         toast.error("Erro ao carregar notificações");
       }
     }
-  }, [open]);
+  }, [open, workspace]);
 
   useEffect(() => {
     fetchNotifications();
@@ -88,11 +91,12 @@ export function NotificationCenter() {
   }, [open, fetchNotifications]);
 
   const handleMarkAllRead = async () => {
+    if (!workspace) return;
     const unreadIds = items.filter((n) => !n.is_read).map((n) => n.id);
     if (unreadIds.length === 0) return;
     setLoading(true);
     try {
-      await markNotificationsRead(unreadIds);
+      await markNotificationsRead(workspace.id, unreadIds);
       setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
       setUnread(0);
     } catch {
@@ -103,8 +107,9 @@ export function NotificationCenter() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!workspace) return;
     try {
-      await deleteNotification(id);
+      await deleteNotification(workspace.id, id);
       setItems((prev) => prev.filter((n) => n.id !== id));
       setUnread((prev) => {
         const wasUnread = items.find((n) => n.id === id && !n.is_read);

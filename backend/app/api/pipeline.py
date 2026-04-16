@@ -1,4 +1,4 @@
-"""Pipeline API — trigger execution, track progress, list runs, cancel, resume, reviews."""
+"""Pipeline API — trigger execution, track progress, list runs, cancel, resume, reviews (tenant-scoped, ADR-072)."""
 
 from __future__ import annotations
 
@@ -11,11 +11,10 @@ from sqlalchemy.orm import selectinload
 
 from backend.app.core.config import settings
 from backend.app.core.database import get_db
-from backend.app.core.deps import get_current_user
+from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.document import Document, DocumentStatus
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.models.stage_review import StageReview, StageReviewStatus
-from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.pipeline import (
     PipelineRunListResponse,
@@ -27,20 +26,14 @@ from backend.app.schemas.pipeline import (
 from backend.app.models.llm_config import LLMConfig
 from backend.app.services.pipeline_service import (
     cancel_pipeline_run,
-    is_run_active,
     resume_pipeline_run,
     start_pipeline_run,
 )
 
-router = APIRouter(prefix="/pipeline", tags=["pipeline"])
-
-
-async def _get_workspace(user: User, db: AsyncSession) -> Workspace:
-    result = await db.execute(select(Workspace).where(Workspace.owner_id == user.id))
-    ws = result.scalar_one_or_none()
-    if not ws:
-        raise HTTPException(status_code=404, detail="Workspace não encontrado")
-    return ws
+router = APIRouter(
+    prefix="/workspaces/{workspace_id}/pipeline",
+    tags=["pipeline"],
+)
 
 
 async def _check_no_active_run(ws_id: str, db: AsyncSession) -> None:
@@ -59,19 +52,23 @@ async def _check_no_active_run(ws_id: str, db: AsyncSession) -> None:
         )
 
 
-@router.post("/run", response_model=PipelineRunResponse, status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/run",
+    response_model=PipelineRunResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[Depends(require_write_role)],
+)
 async def trigger_pipeline(
     body: PipelineRunRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """Start a pipeline execution (deterministic stages by default)."""
-    ws = await _get_workspace(user, db)
-    await _check_no_active_run(ws.id, db)
+    await _check_no_active_run(workspace.id, db)
 
     doc_count_result = await db.execute(
         select(func.count()).select_from(Document).where(
-            Document.workspace_id == ws.id,
+            Document.workspace_id == workspace.id,
             Document.status == DocumentStatus.ready,
         )
     )
@@ -80,7 +77,7 @@ async def trigger_pipeline(
     # Count new documents (never processed by pipeline)
     new_doc_count_result = await db.execute(
         select(func.count()).select_from(Document).where(
-            Document.workspace_id == ws.id,
+            Document.workspace_id == workspace.id,
             Document.status == DocumentStatus.ready,
             Document.pipeline_last_run_at.is_(None),
         )
@@ -103,7 +100,7 @@ async def trigger_pipeline(
 
     # Also verify tenant data/ directory has actual files (docs may be "ready"
     # in DB but data/ can be empty if classification put them elsewhere)
-    tenant_data = settings.STORAGE_ROOT / ws.id / "data"
+    tenant_data = settings.STORAGE_ROOT / workspace.id / "data"
     has_financial_files = False
     if tenant_data.exists():
         for sub in tenant_data.iterdir():
@@ -122,7 +119,7 @@ async def trigger_pipeline(
     if body.incremental:
         new_docs_result = await db.execute(
             select(Document.id, Document.stored_path).where(
-                Document.workspace_id == ws.id,
+                Document.workspace_id == workspace.id,
                 Document.status == DocumentStatus.ready,
                 Document.pipeline_last_run_at.is_(None),
             )
@@ -145,11 +142,11 @@ async def trigger_pipeline(
     else:
         stages = FULL_ORDER[:]
 
-    llm_result = await db.execute(select(LLMConfig).where(LLMConfig.workspace_id == ws.id))
+    llm_result = await db.execute(select(LLMConfig).where(LLMConfig.workspace_id == workspace.id))
     tier = "premium" if llm_result.scalar_one_or_none() else "free"
 
     run = PipelineRun(
-        workspace_id=ws.id,
+        workspace_id=workspace.id,
         status=PipelineRunStatus.pending,
         total_documents=doc_count,
         incremental=body.incremental,
@@ -168,7 +165,7 @@ async def trigger_pipeline(
 
     start_pipeline_run(
         run_id=run.id,
-        ws_id=ws.id,
+        ws_id=workspace.id,
         stages=stages,
         skip_llm=body.skip_llm,
         stop_on_error=body.stop_on_error,
@@ -182,14 +179,13 @@ async def trigger_pipeline(
 
 @router.get("/new-doc-count")
 async def new_doc_count(
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """Count documents never processed by the pipeline (pipeline_last_run_at IS NULL)."""
-    ws = await _get_workspace(user, db)
     result = await db.execute(
         select(func.count()).select_from(Document).where(
-            Document.workspace_id == ws.id,
+            Document.workspace_id == workspace.id,
             Document.status == DocumentStatus.ready,
             Document.pipeline_last_run_at.is_(None),
         )
@@ -199,14 +195,13 @@ async def new_doc_count(
 
 @router.get("/runs", response_model=PipelineRunListResponse)
 async def list_runs(
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """List all pipeline runs for the workspace, most recent first."""
-    ws = await _get_workspace(user, db)
     result = await db.execute(
         select(PipelineRun)
-        .where(PipelineRun.workspace_id == ws.id)
+        .where(PipelineRun.workspace_id == workspace.id)
         .options(selectinload(PipelineRun.stage_logs))
         .order_by(PipelineRun.started_at.desc())
     )
@@ -220,14 +215,13 @@ async def list_runs(
 @router.get("/runs/{run_id}", response_model=PipelineRunResponse)
 async def get_run(
     run_id: str,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """Get detailed status of a pipeline run including all stage logs."""
-    ws = await _get_workspace(user, db)
     result = await db.execute(
         select(PipelineRun)
-        .where(PipelineRun.id == run_id, PipelineRun.workspace_id == ws.id)
+        .where(PipelineRun.id == run_id, PipelineRun.workspace_id == workspace.id)
         .options(selectinload(PipelineRun.stage_logs))
     )
     run = result.scalar_one_or_none()
@@ -236,17 +230,20 @@ async def get_run(
     return PipelineRunResponse.model_validate(run)
 
 
-@router.post("/runs/{run_id}/cancel", status_code=status.HTTP_200_OK)
+@router.post(
+    "/runs/{run_id}/cancel",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_write_role)],
+)
 async def cancel_run(
     run_id: str,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """Cancel an active pipeline run (stage-boundary cancellation)."""
-    ws = await _get_workspace(user, db)
     result = await db.execute(
         select(PipelineRun).where(
-            PipelineRun.id == run_id, PipelineRun.workspace_id == ws.id
+            PipelineRun.id == run_id, PipelineRun.workspace_id == workspace.id
         )
     )
     run = result.scalar_one_or_none()
@@ -264,17 +261,20 @@ async def cancel_run(
     return {"detail": "Cancelamento solicitado. Pipeline parará após a etapa atual.", "run_id": run_id}
 
 
-@router.post("/runs/{run_id}/resume", status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/runs/{run_id}/resume",
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[Depends(require_write_role)],
+)
 async def resume_run(
     run_id: str,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """Resume a pipeline run paused for review (needs_review status)."""
-    ws = await _get_workspace(user, db)
     result = await db.execute(
         select(PipelineRun).where(
-            PipelineRun.id == run_id, PipelineRun.workspace_id == ws.id
+            PipelineRun.id == run_id, PipelineRun.workspace_id == workspace.id
         )
     )
     run = result.scalar_one_or_none()
@@ -300,7 +300,7 @@ async def resume_run(
         )
 
     try:
-        resume_pipeline_run(run_id, ws.id)
+        resume_pipeline_run(run_id, workspace.id)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc))
 
@@ -310,14 +310,13 @@ async def resume_run(
 @router.get("/runs/{run_id}/reviews", response_model=list[StageReviewResponse])
 async def list_reviews(
     run_id: str,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """List all stage reviews for a pipeline run."""
-    ws = await _get_workspace(user, db)
     run_result = await db.execute(
         select(PipelineRun).where(
-            PipelineRun.id == run_id, PipelineRun.workspace_id == ws.id
+            PipelineRun.id == run_id, PipelineRun.workspace_id == workspace.id
         )
     )
     if not run_result.scalar_one_or_none():
@@ -332,19 +331,22 @@ async def list_reviews(
     return [StageReviewResponse.model_validate(r) for r in reviews]
 
 
-@router.post("/runs/{run_id}/reviews/{review_id}", response_model=StageReviewResponse)
+@router.post(
+    "/runs/{run_id}/reviews/{review_id}",
+    response_model=StageReviewResponse,
+    dependencies=[Depends(require_write_role)],
+)
 async def action_review(
     run_id: str,
     review_id: str,
     body: StageReviewActionRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """Approve or edit a stage review."""
-    ws = await _get_workspace(user, db)
     run_result = await db.execute(
         select(PipelineRun).where(
-            PipelineRun.id == run_id, PipelineRun.workspace_id == ws.id
+            PipelineRun.id == run_id, PipelineRun.workspace_id == workspace.id
         )
     )
     if not run_result.scalar_one_or_none():

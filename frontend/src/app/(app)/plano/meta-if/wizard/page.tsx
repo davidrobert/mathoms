@@ -50,6 +50,7 @@ const RENDA_PRESETS = [10000, 20000, 30000, 50000];
 
 
 export default function MetaIFWizardPage() {
+
   const router = useRouter();
   const { workspace, isLoading: wsLoading } = useCurrentWorkspace();
 
@@ -64,7 +65,7 @@ export default function MetaIFWizardPage() {
   useEffect(() => {
     if (!workspace?.id) return;
     let cancelled = false;
-    listReports()
+    listReports(workspace.id)
       .then(({ reports }) => {
         if (cancelled) return;
         const p = reports.find((r) => r.patrimonio_liquido != null)

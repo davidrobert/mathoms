@@ -18,8 +18,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Trash2, Plus } from "lucide-react";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 export default function CategoriesTab() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -31,7 +35,7 @@ export default function CategoriesTab() {
 
   const reload = useCallback(async () => {
     try {
-      const data = await listCategories();
+      const data = await listCategories(workspace!.id);
       setCategories(data.categories);
     } catch {
       setError("Erro ao carregar categorias");
@@ -54,7 +58,7 @@ export default function CategoriesTab() {
     const fd = new FormData(e.currentTarget);
     const kwStr = fd.get("keywords") as string;
     try {
-      await createCategory({
+      await createCategory(workspace!.id, {
         code: fd.get("code") as string,
         name: fd.get("name") as string,
         category_type: fd.get("category_type") as "expense" | "income",
@@ -73,7 +77,7 @@ export default function CategoriesTab() {
   async function handleDelete() {
     if (!deleteTarget?.id) return;
     try {
-      await deleteCategory(deleteTarget.id);
+      await deleteCategory(workspace!.id, deleteTarget.id);
       await reload();
     } catch { setError("Erro ao remover"); }
     setDeleteTarget(null);
@@ -82,7 +86,7 @@ export default function CategoriesTab() {
   async function handleSaveKeywords(cat: CategoryConfig, newKeywords: string[]) {
     if (!cat.id) return;
     try {
-      await updateCategory(cat.id, { keywords: newKeywords });
+      await updateCategory(workspace!.id, cat.id, { keywords: newKeywords });
       setEditingId(null);
       await reload();
     } catch (err) {
@@ -93,7 +97,7 @@ export default function CategoriesTab() {
   async function handleUpdateCap(cat: CategoryConfig, val: string) {
     if (!cat.id) return;
     try {
-      await updateCategory(cat.id, { monthly_cap: val ? Number(val) : null });
+      await updateCategory(workspace!.id, cat.id, { monthly_cap: val ? Number(val) : null });
       await reload();
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Erro ao atualizar teto");

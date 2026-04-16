@@ -940,6 +940,9 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
         for i, comp in enumerate(composicao):
             comp["pct"] = round(floored[i], 2)
         composicao.sort(key=lambda x: x["valor"], reverse=True)
+    else:
+        for comp in composicao:
+            comp["pct"] = 0.0
 
     return {
         "bruto": round(patrimonio_bruto, 2),

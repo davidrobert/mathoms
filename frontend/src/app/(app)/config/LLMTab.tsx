@@ -42,6 +42,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 const PROVIDERS = [
   { value: "anthropic", label: "Anthropic" },
@@ -93,6 +94,9 @@ const MODELS_BY_PROVIDER: Record<string, { value: string; label: string }[]> = {
 };
 
 export default function LLMTab() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   const [config, setConfig] = useState<LLMConfigResponse | null>(null);
   const [tier, setTier] = useState<LLMTierResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,7 +127,7 @@ export default function LLMTab() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [cfg, t] = await Promise.all([getLLMConfig(), getLLMTier()]);
+      const [cfg, t] = await Promise.all([getLLMConfig(workspace!.id), getLLMTier(workspace!.id)]);
       setConfig(cfg);
       setTier(t);
       if (cfg) {
@@ -151,7 +155,7 @@ export default function LLMTab() {
     }
     setSaving(true);
     try {
-      const updated = await saveLLMConfig({
+      const updated = await saveLLMConfig(workspace!.id, {
         provider,
         api_key: apiKey,
         model_name: modelName,
@@ -160,7 +164,7 @@ export default function LLMTab() {
       setApiKey("");
       setShowKey(false);
       toast.success("Configuração LLM salva com sucesso");
-      const t = await getLLMTier();
+      const t = await getLLMTier(workspace!.id);
       setTier(t);
     } catch {
       toast.error("Erro ao salvar configuração");
@@ -172,7 +176,7 @@ export default function LLMTab() {
   const handleTest = async () => {
     setTesting(true);
     try {
-      const result = await testLLMConnection();
+      const result = await testLLMConnection(workspace!.id);
       if (result.success) {
         toast.success(result.message || "Conexão bem-sucedida");
       } else {
@@ -188,14 +192,14 @@ export default function LLMTab() {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await deleteLLMConfig();
+      await deleteLLMConfig(workspace!.id);
       setConfig(null);
       setProvider("anthropic");
       setApiKey("");
       setModelName(MODELS_BY_PROVIDER["anthropic"][0]?.value ?? "");
       setCustomModel(false);
       toast.success("Configuração LLM removida");
-      const t = await getLLMTier();
+      const t = await getLLMTier(workspace!.id);
       setTier(t);
     } catch {
       toast.error("Erro ao remover configuração");

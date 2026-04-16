@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ApiError, getReportData, type ReportAnalysisData } from "@/lib/api";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
+export type { ApiError };
 
 export type UseReportDataState =
   | { status: "idle" }
@@ -19,10 +21,11 @@ export type UseReportDataState =
  * o estado fica em `error` com `ApiError.status === 404`.
  */
 export function useReportData(reportId: string | null): UseReportDataState {
+  const { workspace } = useWorkspace();
   const [state, setState] = useState<UseReportDataState>({ status: "idle" });
 
   useEffect(() => {
-    if (!reportId) {
+    if (!reportId || !workspace) {
       setState({ status: "idle" });
       return;
     }
@@ -30,7 +33,7 @@ export function useReportData(reportId: string | null): UseReportDataState {
     let cancelled = false;
     setState({ status: "loading" });
 
-    getReportData(reportId)
+    getReportData(workspace.id, reportId)
       .then((data) => {
         if (!cancelled) setState({ status: "success", data });
       })
@@ -46,7 +49,7 @@ export function useReportData(reportId: string | null): UseReportDataState {
     return () => {
       cancelled = true;
     };
-  }, [reportId]);
+  }, [reportId, workspace]);
 
   return state;
 }

@@ -1,12 +1,10 @@
-"""Goals API — F8.1 (ADR-073).
+"""Goals API — F8.1 + F8.5 (ADR-073).
 
-Primeiro endpoint escrito no padrão F8+:
-- Prefix `/api/workspaces/{workspace_id}/...`
-- Depende de `get_current_workspace` (não `get_current_user` + resolução legada)
-- Services recebem `workspace_id` como primeiro argumento
-
-Escopo em F8.1: apenas o tipo `INDEPENDENCIA_FINANCEIRA`. Outros tipos
-serão adicionados em F8.5 conforme migrados do `goals.json`.
+Tipos implementados:
+- INDEPENDENCIA_FINANCEIRA (F8.1)
+- APORTE_MENSAL (F8.5)
+- DOLARIZACAO (F8.5)
+- ALOCACAO_ALVO (F8.5)
 """
 
 from __future__ import annotations
@@ -25,6 +23,21 @@ from backend.app.schemas.goal import (
     IFGoalHistoryResponse,
     IFGoalResponse,
     IFGoalUpsertRequest,
+    AporteGoalComputeRequest,
+    AporteGoalComputeResponse,
+    AporteGoalHistoryResponse,
+    AporteGoalResponse,
+    AporteGoalUpsertRequest,
+    DolarGoalComputeRequest,
+    DolarGoalComputeResponse,
+    DolarGoalHistoryResponse,
+    DolarGoalResponse,
+    DolarGoalUpsertRequest,
+    AlocacaoGoalComputeRequest,
+    AlocacaoGoalComputeResponse,
+    AlocacaoGoalHistoryResponse,
+    AlocacaoGoalResponse,
+    AlocacaoGoalUpsertRequest,
 )
 from backend.app.schemas.task import (
     TaskFilters,
@@ -184,4 +197,272 @@ async def upsert_if_goal(
     base = goal_service._goal_to_response(goal, created_by_name=user.full_name)
     return await _enrich_if_goal_with_latest_patrimonio(
         base, workspace.id, db=db
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# APORTE_MENSAL (F8.5)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+@router.post(
+    "/aportes/compute",
+    response_model=AporteGoalComputeResponse,
+    summary="Dry-run: calcula derivados de aportes",
+)
+async def compute_aporte_goal(
+    body: AporteGoalComputeRequest,
+    workspace: Workspace = Depends(get_current_workspace),
+    user: User = Depends(get_current_user),
+):
+    derived = goal_service.compute_aporte_derived(body.inputs)
+    return AporteGoalComputeResponse(derived=derived)
+
+
+@router.get(
+    "/aportes",
+    response_model=AporteGoalResponse,
+    summary="Meta de aportes vigente",
+)
+async def get_aporte_goal(
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+):
+    response = await goal_service.get_current_goal_typed(
+        workspace.id, "APORTE_MENSAL", db=db
+    )
+    if response is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workspace ainda não tem meta de aportes configurada",
+        )
+    return response
+
+
+@router.get(
+    "/aportes/history",
+    response_model=AporteGoalHistoryResponse,
+    summary="Histórico de versões da meta de aportes",
+)
+async def get_aporte_goal_history(
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+):
+    responses = await goal_service.get_goal_history_typed(
+        workspace.id, "APORTE_MENSAL", db=db
+    )
+    return AporteGoalHistoryResponse(goals=responses, total=len(responses))
+
+
+@router.put(
+    "/aportes",
+    response_model=AporteGoalResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Cria nova versão da meta de aportes",
+    dependencies=[Depends(require_write_role)],
+)
+async def upsert_aporte_goal(
+    body: AporteGoalUpsertRequest,
+    workspace: Workspace = Depends(get_current_workspace),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    derived = goal_service.compute_aporte_derived(body.inputs)
+    goal = await goal_service.create_goal_version(
+        workspace.id,
+        "APORTE_MENSAL",
+        body.inputs,
+        derived,
+        db=db,
+        created_by=user.id,
+        notes=body.notes,
+    )
+    await db.commit()
+    await db.refresh(goal)
+    return goal_service._goal_to_typed_response(
+        goal,
+        response_cls=AporteGoalResponse,
+        inputs_cls=goal_service.AporteGoalInputs,
+        derived_cls=goal_service.AporteGoalDerived,
+        created_by_name=user.full_name,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# DOLARIZACAO (F8.5)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+@router.post(
+    "/dolarizacao/compute",
+    response_model=DolarGoalComputeResponse,
+    summary="Dry-run: calcula derivados de dolarização",
+)
+async def compute_dolar_goal(
+    body: DolarGoalComputeRequest,
+    workspace: Workspace = Depends(get_current_workspace),
+    user: User = Depends(get_current_user),
+):
+    cambio = body.cambio_brl_usd or goal_service.DEFAULT_CAMBIO_BRL_USD
+    derived = goal_service.compute_dolar_derived(body.inputs, cambio)
+    return DolarGoalComputeResponse(derived=derived, cambio_utilizado=cambio)
+
+
+@router.get(
+    "/dolarizacao",
+    response_model=DolarGoalResponse,
+    summary="Meta de dolarização vigente",
+)
+async def get_dolar_goal(
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+):
+    response = await goal_service.get_current_goal_typed(
+        workspace.id, "DOLARIZACAO", db=db
+    )
+    if response is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workspace ainda não tem meta de dolarização configurada",
+        )
+    return response
+
+
+@router.get(
+    "/dolarizacao/history",
+    response_model=DolarGoalHistoryResponse,
+    summary="Histórico de versões da meta de dolarização",
+)
+async def get_dolar_goal_history(
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+):
+    responses = await goal_service.get_goal_history_typed(
+        workspace.id, "DOLARIZACAO", db=db
+    )
+    return DolarGoalHistoryResponse(goals=responses, total=len(responses))
+
+
+@router.put(
+    "/dolarizacao",
+    response_model=DolarGoalResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Cria nova versão da meta de dolarização",
+    dependencies=[Depends(require_write_role)],
+)
+async def upsert_dolar_goal(
+    body: DolarGoalUpsertRequest,
+    workspace: Workspace = Depends(get_current_workspace),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    derived = goal_service.compute_dolar_derived(body.inputs)
+    goal = await goal_service.create_goal_version(
+        workspace.id,
+        "DOLARIZACAO",
+        body.inputs,
+        derived,
+        db=db,
+        created_by=user.id,
+        notes=body.notes,
+    )
+    await db.commit()
+    await db.refresh(goal)
+    return goal_service._goal_to_typed_response(
+        goal,
+        response_cls=DolarGoalResponse,
+        inputs_cls=goal_service.DolarGoalInputs,
+        derived_cls=goal_service.DolarGoalDerived,
+        created_by_name=user.full_name,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# ALOCACAO_ALVO (F8.5)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+@router.post(
+    "/alocacao/compute",
+    response_model=AlocacaoGoalComputeResponse,
+    summary="Dry-run: valida alocação-alvo",
+)
+async def compute_alocacao_goal(
+    body: AlocacaoGoalComputeRequest,
+    workspace: Workspace = Depends(get_current_workspace),
+    user: User = Depends(get_current_user),
+):
+    derived = goal_service.compute_alocacao_derived(body.inputs)
+    return AlocacaoGoalComputeResponse(
+        derived=derived,
+        valido=abs(derived.soma_percentuais - 100.0) < 0.01,
+    )
+
+
+@router.get(
+    "/alocacao",
+    response_model=AlocacaoGoalResponse,
+    summary="Alocação-alvo vigente",
+)
+async def get_alocacao_goal(
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+):
+    response = await goal_service.get_current_goal_typed(
+        workspace.id, "ALOCACAO_ALVO", db=db
+    )
+    if response is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workspace ainda não tem alocação-alvo configurada",
+        )
+    return response
+
+
+@router.get(
+    "/alocacao/history",
+    response_model=AlocacaoGoalHistoryResponse,
+    summary="Histórico de versões da alocação-alvo",
+)
+async def get_alocacao_goal_history(
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+):
+    responses = await goal_service.get_goal_history_typed(
+        workspace.id, "ALOCACAO_ALVO", db=db
+    )
+    return AlocacaoGoalHistoryResponse(goals=responses, total=len(responses))
+
+
+@router.put(
+    "/alocacao",
+    response_model=AlocacaoGoalResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Cria nova versão da alocação-alvo",
+    dependencies=[Depends(require_write_role)],
+)
+async def upsert_alocacao_goal(
+    body: AlocacaoGoalUpsertRequest,
+    workspace: Workspace = Depends(get_current_workspace),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    derived = goal_service.compute_alocacao_derived(body.inputs)
+    goal = await goal_service.create_goal_version(
+        workspace.id,
+        "ALOCACAO_ALVO",
+        body.inputs,
+        derived,
+        db=db,
+        created_by=user.id,
+        notes=body.notes,
+    )
+    await db.commit()
+    await db.refresh(goal)
+    return goal_service._goal_to_typed_response(
+        goal,
+        response_cls=AlocacaoGoalResponse,
+        inputs_cls=goal_service.AlocacaoGoalInputs,
+        derived_cls=goal_service.AlocacaoGoalDerived,
+        created_by_name=user.full_name,
     )

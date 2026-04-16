@@ -59,6 +59,7 @@ import {
   TrendingDown,
   ArrowLeftRight,
 } from "lucide-react";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 const PAGE_SIZE = 50;
 
@@ -79,6 +80,9 @@ const BANK_OPTIONS = [
 ];
 
 export default function TransactionsPage() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   return (
     <Suspense fallback={
       <div className="flex justify-center py-24">
@@ -91,6 +95,7 @@ export default function TransactionsPage() {
 }
 
 function TransactionsContent() {
+  const { workspace } = useWorkspace();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -134,8 +139,8 @@ function TransactionsContent() {
 
   // --- Load categories & members for filter dropdowns ---
   useEffect(() => {
-    listCategories().then((r) => setCategories(r.categories)).catch(() => {});
-    listMembers().then((r) => setMembers(r.members)).catch(() => {});
+    listCategories(workspace!.id).then((r) => setCategories(r.categories)).catch(() => {});
+    listMembers(workspace!.id).then((r) => setMembers(r.members)).catch(() => {});
   }, []);
 
   // --- Build query params and push to URL ---
@@ -174,7 +179,7 @@ function TransactionsContent() {
     setLoading(true);
     setError("");
     try {
-      const result = await listTransactions({
+      const result = await listTransactions(workspace!.id, {
         search: search || undefined,
         bank: bank || undefined,
         category: category || undefined,
@@ -266,7 +271,7 @@ function TransactionsContent() {
     if (!editCategory) return;
     setSavingOverride(true);
     try {
-      await overrideTransactionCategory(hash, { new_category: editCategory });
+      await overrideTransactionCategory(workspace!.id, hash, { new_category: editCategory });
       setEditingHash(null);
       await fetchData();
     } catch (err) {
@@ -281,7 +286,7 @@ function TransactionsContent() {
   async function removeOverride(hash: string) {
     setSavingOverride(true);
     try {
-      await removeTransactionOverride(hash);
+      await removeTransactionOverride(workspace!.id, hash);
       await fetchData();
     } catch (err) {
       setError(

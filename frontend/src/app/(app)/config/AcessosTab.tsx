@@ -99,8 +99,8 @@ export default function AcessosTab() {
     setLoading(true);
     try {
       const [m, inv] = await Promise.all([
-        listWorkspaceMembers(workspace.id),
-        listWorkspaceInvitations(workspace.id),
+        listWorkspaceMembers(workspace!.id),
+        listWorkspaceInvitations(workspace!.id),
       ]);
       setMembers(m.members);
       setInvitations(inv.invitations);
@@ -125,7 +125,7 @@ export default function AcessosTab() {
     setInviting(true);
     try {
       const result = await createWorkspaceInvitation(
-        workspace.id,
+        workspace!.id,
         inviteEmail.trim(),
         inviteRole
       );
@@ -147,7 +147,7 @@ export default function AcessosTab() {
   ) {
     if (!workspace) return;
     try {
-      await updateMemberRole(workspace.id, member.user_id, newRole);
+      await updateMemberRole(workspace!.id, member.user_id, newRole);
       toast.success(`Papel de ${member.full_name} atualizado.`);
       await reload();
     } catch (err) {
@@ -160,7 +160,7 @@ export default function AcessosTab() {
   async function handleRemove() {
     if (!workspace || !removeTarget) return;
     try {
-      await removeWorkspaceMember(workspace.id, removeTarget.user_id);
+      await removeWorkspaceMember(workspace!.id, removeTarget.user_id);
       toast.success(`${removeTarget.full_name} removido do workspace.`);
       setRemoveTarget(null);
       await reload();
@@ -174,7 +174,7 @@ export default function AcessosTab() {
   async function handleRevoke() {
     if (!workspace || !revokeTarget) return;
     try {
-      await revokeWorkspaceInvitation(workspace.id, revokeTarget.id);
+      await revokeWorkspaceInvitation(workspace!.id, revokeTarget.id);
       toast.success("Convite cancelado.");
       setRevokeTarget(null);
       await reload();

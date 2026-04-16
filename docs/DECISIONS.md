@@ -1117,7 +1117,7 @@ Integração com 6.5D.10 (contract test types) = complementar: aquele valida typ
 2. **Versionamento por append-only** — edição cria novo registro com `effective_from = hoje` e fecha o anterior com `effective_to = ontem`. Registro vigente é único por `(workspace_id, type)` e tem `effective_to IS NULL`.
 3. **Derivação server-side** — `goal_service.compute_if_derived(inputs: dict) -> dict` é função pura, testada, e é **a única fonte** do cálculo. Frontend chama `POST /goals/if/compute` para preview live; pipeline chama a mesma função.
 4. **Schema canônico por tipo** — `config/schemas/goal.if.schema.json` (criar) define `params_json.inputs.{renda_passiva_mensal_brl, trs_pct, retorno_real_anual_pct, horizonte_anos, taxa_retirada_conservadora_pct}` e `derived.{if_meta_brl, aporte_necessario_mensal_brl, if_meta_conservadora_brl}`. Backend valida write, frontend gera tipos TS via codegen (OpenAPI).
-5. **Tipos de goal implementados em F8.1**: apenas `INDEPENDENCIA_FINANCEIRA`. Outros tipos (`APORTE_MENSAL`, `DOLARIZACAO`, alocação-alvo) ficam como débito para F8.5+; campos correspondentes em `goals.json` continuam sendo lidos via adapter até migração.
+5. **Tipos de goal implementados**: `INDEPENDENCIA_FINANCEIRA` em F8.1; `APORTE_MENSAL`, `DOLARIZACAO`, `ALOCACAO_ALVO` em F8.5 (ver ADR-079). `PLANNING_CONTEXT` cobre as 23 seções restantes do `goals.json` como blob genérico via adapter.
 6. **Migração do `goals.json` de Ferreira Campos** — one-shot script em `backend/app/scripts/seed_if_goal_ferreira_campos.py` cria registro inicial para a workspace existente com `renda_passiva_mensal_brl=30000, trs_pct=5.0, retorno_real_anual_pct=6.0` → `derived.if_meta_brl=7200000` (paridade bit-a-bit com valor legado).
 7. **Novos workspaces** — seed cria Goal template flag `is_template=true` com valores default (renda 20k/mês, trs 5%). UI do dashboard detecta a flag e força wizard antes de liberar outras funcionalidades.
 8. **Pipeline (E5/E5.N)** — lê Goal vigente via `pipeline_adapter.build_goals_payload(workspace_id)` que retorna dict no formato atual de `goals.json` (campo `independencia_financeira`). Rest de `goals.json` (`aportes`, `fase_f1f2`, etc.) continua servido pelo adapter a partir de fontes legadas até F8.5.
@@ -1526,6 +1526,45 @@ membro. F9 endereça esses 3 gaps.
 - ⚠️ Se parser E2 for corrigido, extracts antigos ficam desatualizados — mitigado por "Processar todos".
 - ⚠️ Stem matching entre stored_path e filename no filesystem pode falhar se renaming E0 for complexo — na prática, uploads web não passam por E0-route.
 - ❌ E0 stages (unlock/audit/route) não são filtrados — operam em inbox (CLI flow). No web flow, inbox está vazio e eles fazem no-op naturalmente.
+
+---
+
+## ADR-079 — Multi-tenant Goals completos (APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO)
+
+**Status:** Decidido (F8.5) • **Data:** 2026-04-16
+
+**Contexto:**
+Após F8.1 (ADR-073), apenas `INDEPENDENCIA_FINANCEIRA` tinha API + UI; os outros 3 tipos declarados em `VALID_GOAL_TYPES` ficavam como débito. O `config/goals.json` foi arquivado no cutover F8.4, mas sem UI para substituí-lo, workspaces sem seed travavam o pipeline com `ValueError: Estratégia de aportes não encontrada em goals.json` no E6. Diagnóstico: (1) E6 violava fail-safe defaults (duas funções com `raise` em vez de fallback); (2) não havia caminho multi-tenant para o usuário configurar aportes/dolarização/alocação via UI.
+
+**Decisão:**
+1. **Resiliência do E6**: `build_estrategia_aporte` e `_build_top5_decisoes_fallback` em `scripts/e6_render.py` passam a degradar graciosamente (warning + struct mínima) em vez de `raise ValueError`, alinhando com o padrão do resto do arquivo (`_build_riscos_fallback`, etc.). Banner CTA é injetado no HTML quando goals estão vazios.
+2. **Backend F8.5** — API completa para os 3 tipos restantes, seguindo o padrão IF literalmente:
+   - Schemas Pydantic em `backend/app/schemas/goal.py` (validadores: soma distribuição == meta, soma pcts alocação == 100)
+   - `_GoalResponseBase` compartilhada por todos os Response types
+   - Service funcs puras: `compute_aporte_derived`, `compute_dolar_derived`, `compute_alocacao_derived`
+   - `create_goal_version` genérica (substitui duplicação de 3x `create_*_goal_version`)
+   - `get_current_goal_typed` / `get_goal_history_typed` via mapa `_GOAL_TYPE_CLASSES`
+   - 12 endpoints: POST compute, GET current, GET history, PUT upsert (por tipo)
+3. **Frontend F8.5**:
+   - 3 edit pages + 3 wizards em `frontend/src/app/(app)/plano/{aportes,dolarizacao,alocacao}/`
+   - Types + 12 funções API client em `lib/api.ts`
+   - `/plano` refatorada para dashboard multi-goal (grid 2×2 status cards) + banner CTA quando 0 goals configurados
+4. **DOLARIZACAO usa câmbio hardcoded (`DEFAULT_CAMBIO_BRL_USD = 5.70`)** como MVP — override via `cambio_brl_usd` no compute request. Integração com API externa fica como débito futuro.
+5. **ALOCACAO_ALVO valida soma=100** tanto no Pydantic (`model_validator`) quanto no endpoint (`valido` flag no compute response).
+
+**Consequências:**
+- ✅ Qualquer workspace pode configurar todas as 4 metas via UI sem depender de arquivo pré-seedado
+- ✅ Pipeline nunca mais crasha por goals ausentes — degrada graciosamente com warning + banner CTA
+- ✅ Refactor para generic helpers (`create_goal_version`, `get_current_goal_typed`) evita 3x duplicação mantendo backward compat com IF
+- ✅ Fluxo end-to-end: UI → DB → adapter → `goals.json` materializado → E5/E6 → relatório
+- ⚠️ Câmbio hardcoded em DOLARIZACAO fica desatualizado — aceito; override manual + débito futuro
+- ⚠️ Validação de distribuição no APORTE é strict (soma == meta ±0.01) — usuário não pode salvar parcial
+- ❌ PLANNING_CONTEXT (23 seções legadas) ainda sem UI — goals restantes (fase_f1f2, seguros, etc.) são seedados só via `seed_goals_full_ferreira_campos.py` ou permanecem vazios
+
+**Arquivos críticos:**
+- Backend: `backend/app/schemas/goal.py`, `backend/app/services/goal_service.py`, `backend/app/api/goals.py`
+- Frontend: `frontend/src/lib/api.ts`, `frontend/src/app/(app)/plano/page.tsx`, `frontend/src/app/(app)/plano/{aportes,dolarizacao,alocacao}/{page,wizard/page}.tsx` (7 arquivos novos/refatorados)
+- Pipeline: `scripts/e6_render.py` (resiliência + banner CTA)
 
 ---
 

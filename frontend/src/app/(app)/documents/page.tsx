@@ -47,8 +47,12 @@ import {
   Info,
   KeyRound,
 } from "lucide-react";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 export default function DocumentsPage() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   const [docs, setDocs] = useState<DocumentResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -61,7 +65,7 @@ export default function DocumentsPage() {
 
   const reload = useCallback(async () => {
     try {
-      const data = await listDocuments();
+      const data = await listDocuments(workspace!.id);
       setDocs(data.documents);
     } catch {
       setError("Erro ao carregar documentos");
@@ -84,7 +88,7 @@ export default function DocumentsPage() {
     setUploadProgress(0);
 
     try {
-      const result = await uploadDocuments(fileArray, (loaded, total) => {
+      const result = await uploadDocuments(workspace!.id, fileArray, (loaded, total) => {
         setUploadProgress(Math.round((loaded / total) * 100));
       });
       const uploaded = result.documents;
@@ -116,7 +120,7 @@ export default function DocumentsPage() {
   async function handleDelete() {
     if (!deleteTarget) return;
     try {
-      await deleteDocument(deleteTarget.id);
+      await deleteDocument(workspace!.id, deleteTarget.id);
       setDocs((prev) => prev.filter((d) => d.id !== deleteTarget.id));
     } catch {
       setError("Erro ao remover documento");
@@ -128,7 +132,7 @@ export default function DocumentsPage() {
   async function handleRetryUnlock() {
     setError("");
     try {
-      const result = await retryUnlock();
+      const result = await retryUnlock(workspace!.id);
       const unlocked = result.filter((d) => d.status === "ready").length;
       setSuccessMsg(
         unlocked > 0

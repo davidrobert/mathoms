@@ -60,6 +60,7 @@ import {
   WifiOff,
   Loader2,
 } from "lucide-react";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 const ACTIVE_STATUSES = new Set(["pending", "running", "resuming"]);
 const STALL_PENDING_MS = 30_000;
@@ -86,6 +87,9 @@ function setDismissedFailedRunId(id: string | null) {
 }
 
 export default function PipelinePage() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   const router = useRouter();
   const [runs, setRuns] = useState<PipelineRunResponse[]>([]);
   const [activeRun, setActiveRun] = useState<PipelineRunResponse | null>(null);
@@ -134,7 +138,7 @@ export default function PipelinePage() {
     }
 
     if (activeRun && event.run_id === activeRun.id) {
-      getPipelineRun(activeRun.id).then((updated) => {
+      getPipelineRun(workspace!.id, activeRun.id).then((updated) => {
         setActiveRun(updated);
         setRuns((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
       }).catch(() => {});
@@ -161,7 +165,7 @@ export default function PipelinePage() {
     }
 
     if (activeRun) {
-      getPipelineRun(activeRun.id).then((updated) => {
+      getPipelineRun(workspace!.id, activeRun.id).then((updated) => {
         if (updated.status === "failed" || updated.status === "partial_failure") {
           setLastFailedRun(updated);
         }
@@ -186,13 +190,13 @@ export default function PipelinePage() {
   const reload = useCallback(async () => {
     try {
       const [runsData, docsData, tierData, newDocData] = await Promise.all([
-        listPipelineRuns(),
-        listDocuments("ready"),
-        getLLMTier().catch((): { tier: string; has_llm_config: boolean } => ({
+        listPipelineRuns(workspace!.id),
+        listDocuments(workspace!.id, "ready"),
+        getLLMTier(workspace!.id).catch((): { tier: string; has_llm_config: boolean } => ({
           tier: "free",
           has_llm_config: false,
         })),
-        getNewDocCount().catch(() => ({ new_count: 0 })),
+        getNewDocCount(workspace!.id).catch(() => ({ new_count: 0 })),
       ]);
       setRuns(runsData.runs);
       setReadyCount(docsData.total);
@@ -238,7 +242,7 @@ export default function PipelinePage() {
     async function poll() {
       if (!activeRun) return;
       try {
-        const updated = await getPipelineRun(activeRun.id);
+        const updated = await getPipelineRun(workspace!.id, activeRun.id);
         setActiveRun(ACTIVE_STATUSES.has(updated.status) ? updated : null);
         setRuns((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
 
@@ -268,7 +272,7 @@ export default function PipelinePage() {
     setLastFailedRun(null);
     setTriggering(true);
     try {
-      const run = await triggerPipeline({ from_stage: fromStage, skip_llm: !isPremium, incremental });
+      const run = await triggerPipeline(workspace!.id, { from_stage: fromStage, skip_llm: !isPremium, incremental });
       setActiveRun(run);
       setRuns((prev) => [run, ...prev]);
       lastWsEventRef.current = Date.now();
@@ -282,8 +286,8 @@ export default function PipelinePage() {
   async function handleCancel() {
     if (!activeRun) return;
     try {
-      await cancelPipelineRun(activeRun.id);
-      const updated = await getPipelineRun(activeRun.id);
+      await cancelPipelineRun(workspace!.id, activeRun.id);
+      const updated = await getPipelineRun(workspace!.id, activeRun.id);
       setActiveRun(ACTIVE_STATUSES.has(updated.status) ? updated : null);
       setRuns((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
     } catch {
@@ -430,7 +434,7 @@ export default function PipelinePage() {
                     if (!activeRun) return;
                     setResuming(true);
                     try {
-                      await resumePipelineRun(activeRun.id);
+                      await resumePipelineRun(workspace!.id, activeRun.id);
                       toast.success("Pipeline retomado", { duration: 3000 });
                       await reload();
                     } catch (err) {

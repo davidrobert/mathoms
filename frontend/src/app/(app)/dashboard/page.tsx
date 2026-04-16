@@ -41,6 +41,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { UpcomingTasksWidget } from "@/components/tasks/UpcomingTasksWidget";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 // ─── Chart Palette ───
 
@@ -320,6 +321,9 @@ function AlertCard({ alert }: { alert: DashboardAlert }) {
 // ─── Page ───
 
 export default function DashboardPage() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   const router = useRouter();
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -329,7 +333,7 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       setError(null);
-      const res = await getDashboard();
+      const res = await getDashboard(workspace!.id);
       setData(res);
     } catch (err) {
       setError(

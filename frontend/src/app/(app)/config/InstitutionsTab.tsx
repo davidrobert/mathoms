@@ -9,8 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 export default function InstitutionsTab() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   const [config, setConfig] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,7 +25,7 @@ export default function InstitutionsTab() {
 
   const reload = useCallback(async () => {
     try {
-      const data = await getInstitutionsConfig();
+      const data = await getInstitutionsConfig(workspace!.id);
       setConfig(data.config_json);
       setJsonText(JSON.stringify(data.config_json, null, 2));
     } catch {
@@ -39,7 +43,7 @@ export default function InstitutionsTab() {
     setError(""); setSaving(true);
     try {
       const parsed = JSON.parse(jsonText);
-      const updated = await updateInstitutionsConfig(parsed);
+      const updated = await updateInstitutionsConfig(workspace!.id, parsed);
       setConfig(updated.config_json);
       setJsonText(JSON.stringify(updated.config_json, null, 2));
       setSuccess("Salvo!");
@@ -107,7 +111,7 @@ export default function InstitutionsTab() {
                   const newConfig = { ...config!, [key]: { ...bank, active: !isActive } };
                   setSaving(true);
                   try {
-                    const updated = await updateInstitutionsConfig(newConfig);
+                    const updated = await updateInstitutionsConfig(workspace!.id, newConfig);
                     setConfig(updated.config_json);
                     setJsonText(JSON.stringify(updated.config_json, null, 2));
                   } catch (err) {

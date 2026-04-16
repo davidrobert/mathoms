@@ -48,6 +48,7 @@ const DEFAULT_INPUTS: IFGoalInputs = {
 
 
 export default function MetaIFEditPage() {
+
   const router = useRouter();
   const { workspace, isLoading: wsLoading } = useCurrentWorkspace();
   const { canWrite } = usePermissions();
@@ -65,7 +66,7 @@ export default function MetaIFEditPage() {
   useEffect(() => {
     if (!workspace?.id) return;
     let cancelled = false;
-    listReports()
+    listReports(workspace.id)
       .then(({ reports }) => {
         if (cancelled) return;
         const p = reports.find((r) => r.patrimonio_liquido != null)

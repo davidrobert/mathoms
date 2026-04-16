@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 interface Section {
   key: string;
@@ -16,6 +17,9 @@ interface Section {
 }
 
 export default function ReportLayoutTab() {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
+
   const [config, setConfig] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -26,7 +30,7 @@ export default function ReportLayoutTab() {
 
   const reload = useCallback(async () => {
     try {
-      const data = await getReportLayout();
+      const data = await getReportLayout(workspace!.id);
       setConfig(data.config_json);
       setJsonText(JSON.stringify(data.config_json, null, 2));
     } catch {
@@ -67,7 +71,7 @@ export default function ReportLayoutTab() {
     setSaving(true);
     try {
       const updated = toggleSection(config, section.key, !section.visible);
-      const result = await updateReportLayout(updated);
+      const result = await updateReportLayout(workspace!.id, updated);
       setConfig(result.config_json);
       setJsonText(JSON.stringify(result.config_json, null, 2));
       setSuccess("Visibilidade atualizada!");
@@ -86,7 +90,7 @@ export default function ReportLayoutTab() {
     setSaving(true);
     try {
       const reordered = reorderSection(config, idx, targetIdx);
-      const result = await updateReportLayout(reordered);
+      const result = await updateReportLayout(workspace!.id, reordered);
       setConfig(result.config_json);
       setJsonText(JSON.stringify(result.config_json, null, 2));
     } catch (err) {
@@ -100,7 +104,7 @@ export default function ReportLayoutTab() {
     setError(""); setSaving(true);
     try {
       const parsed = JSON.parse(jsonText);
-      const result = await updateReportLayout(parsed);
+      const result = await updateReportLayout(workspace!.id, parsed);
       setConfig(result.config_json);
       setJsonText(JSON.stringify(result.config_json, null, 2));
       setSuccess("Salvo!");

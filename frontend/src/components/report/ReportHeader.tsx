@@ -19,6 +19,7 @@ import {
 import { getReportDownloadHtmlUrl, getReportDownloadPdfUrl } from "@/lib/api";
 import { useReportMode } from "./ReportModeProvider";
 import type { ReportMode } from "@/generated/report-layout";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 interface ReportHeaderProps {
   reportId: string;
@@ -50,10 +51,13 @@ export function ReportHeader({
   onToggleSidebar,
 }: ReportHeaderProps) {
   const { mode, setMode } = useReportMode();
+  const { workspace } = useWorkspace();
 
   const handlePrint = () => {
     if (typeof window !== "undefined") window.print();
   };
+
+  if (!workspace) return null;
 
   return (
     <div data-report-header className="no-print flex items-center justify-between border-b border-[var(--surface-border)] bg-[var(--surface-card)] px-4 py-2">
@@ -146,7 +150,7 @@ export function ReportHeader({
                 nativeButton={false}
                 render={
                   <Link
-                    href={getReportDownloadHtmlUrl(reportId)}
+                    href={getReportDownloadHtmlUrl(workspace.id, reportId)}
                     target="_blank"
                     rel="noopener"
                     aria-label="Baixar HTML standalone"
@@ -169,7 +173,7 @@ export function ReportHeader({
                 nativeButton={false}
                 render={
                   <Link
-                    href={getReportDownloadPdfUrl(reportId)}
+                    href={getReportDownloadPdfUrl(workspace.id, reportId)}
                     target="_blank"
                     rel="noopener"
                     aria-label="Baixar PDF"

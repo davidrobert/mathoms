@@ -1,4 +1,4 @@
-"""Transactions API — list, filter, and override categorized transactions from E4 JSON."""
+"""Transactions API — list, filter, and override categorized transactions from E4 JSON (tenant-scoped, ADR-072)."""
 
 from __future__ import annotations
 
@@ -13,9 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import settings
 from backend.app.core.database import get_db
-from backend.app.core.deps import get_current_user
+from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.transaction_override import TransactionOverride
-from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.transactions import (
     TransactionListResponse,
@@ -29,15 +28,10 @@ from backend.app.services.transaction_service import (
     paginate_transactions,
 )
 
-router = APIRouter(prefix="/transactions", tags=["transactions"])
-
-
-async def _get_workspace(user: User, db: AsyncSession) -> Workspace:
-    result = await db.execute(select(Workspace).where(Workspace.owner_id == user.id))
-    ws = result.scalar_one_or_none()
-    if not ws:
-        raise HTTPException(status_code=404, detail="Workspace não encontrado")
-    return ws
+router = APIRouter(
+    prefix="/workspaces/{workspace_id}/transactions",
+    tags=["transactions"],
+)
 
 
 def _tenant_root(workspace_id: str) -> str:
@@ -63,12 +57,11 @@ async def list_transactions(
     search: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=500),
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    transactions = load_transactions(_tenant_root(ws.id))
-    overrides_map = await _load_overrides_map(ws.id, db)
+    transactions = load_transactions(_tenant_root(workspace.id))
+    overrides_map = await _load_overrides_map(workspace.id, db)
     transactions = apply_overrides(transactions, overrides_map)
 
     transactions = filter_transactions(
@@ -105,16 +98,15 @@ async def export_transactions(
     value_max: Optional[float] = Query(None),
     search: Optional[str] = Query(None),
     format: str = Query("csv", pattern=r"^(csv)$"),
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """BUG-009 fix: export ALL filtered transactions server-side (no pagination).
 
     Returns a CSV download with BOM for Excel compatibility.
     """
-    ws = await _get_workspace(user, db)
-    transactions = load_transactions(_tenant_root(ws.id))
-    overrides_map = await _load_overrides_map(ws.id, db)
+    transactions = load_transactions(_tenant_root(workspace.id))
+    overrides_map = await _load_overrides_map(workspace.id, db)
     transactions = apply_overrides(transactions, overrides_map)
 
     transactions = filter_transactions(
@@ -158,16 +150,15 @@ async def export_transactions(
     "/{transaction_hash}/override",
     response_model=TransactionOverrideResponse,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_write_role)],
 )
 async def create_override(
     transaction_hash: str,
     body: TransactionOverrideRequest,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-
-    transactions = load_transactions(_tenant_root(ws.id))
+    transactions = load_transactions(_tenant_root(workspace.id))
     matching = [t for t in transactions if t.transaction_hash == transaction_hash]
     if not matching:
         raise HTTPException(status_code=404, detail="Transação não encontrada")
@@ -175,7 +166,7 @@ async def create_override(
 
     result = await db.execute(
         select(TransactionOverride).where(
-            TransactionOverride.workspace_id == ws.id,
+            TransactionOverride.workspace_id == workspace.id,
             TransactionOverride.transaction_hash == transaction_hash,
         )
     )
@@ -190,7 +181,7 @@ async def create_override(
         return TransactionOverrideResponse.model_validate(existing)
 
     override = TransactionOverride(
-        workspace_id=ws.id,
+        workspace_id=workspace.id,
         transaction_hash=transaction_hash,
         original_category=original_category,
         new_category=body.new_category,
@@ -203,16 +194,19 @@ async def create_override(
     return TransactionOverrideResponse.model_validate(override)
 
 
-@router.delete("/{transaction_hash}/override", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{transaction_hash}/override",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_write_role)],
+)
 async def delete_override(
     transaction_hash: str,
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
     result = await db.execute(
         select(TransactionOverride).where(
-            TransactionOverride.workspace_id == ws.id,
+            TransactionOverride.workspace_id == workspace.id,
             TransactionOverride.transaction_hash == transaction_hash,
         )
     )

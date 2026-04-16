@@ -145,24 +145,34 @@ def get_diff_stat() -> str:
     return result.stdout
 
 
-def _status_paths(status_output: str) -> list[str]:
-    """Extrai paths de `git status --short`."""
-    paths = []
-    for line in status_output.strip().splitlines():
-        if not line.strip():
-            continue
-        # Formato: "XY filename" ou "XY old -> new"
-        rest = line[3:].strip()
-        if " -> " in rest:
-            rest = rest.split(" -> ", 1)[1]
-        paths.append(rest.strip('"'))
-    return paths
+def _parse_status_short_line(line: str) -> tuple[str, str, str] | None:
+    """Retorna (path, index_status, worktree_status) ou None para linhas ignoradas."""
+    line = line.rstrip()
+    if not line or line.startswith("## "):
+        return None
+    if line.startswith("?? ") or line.startswith("!! "):
+        return (line[3:].strip().strip('"'), "?", "?")
+    if len(line) < 4:
+        return None
+    idx, wt = line[0], line[1]
+    rest = line[3:].strip()
+    if " -> " in rest:
+        rest = rest.split(" -> ", 1)[1]
+    path = rest.strip('"')
+    return (path, idx, wt)
 
 
 def check_forbidden_paths(status_output: str) -> list[tuple[str, str]]:
     """Retorna lista de (path, motivo) violando FORBIDDEN_{DIRS,FILES,SUFFIXES}."""
     violations: list[tuple[str, str]] = []
-    for path in _status_paths(status_output):
+    for line in status_output.strip().splitlines():
+        parsed = _parse_status_short_line(line)
+        if parsed is None:
+            continue
+        path, idx, wt = parsed
+        # Remover `.env`/etc. do repositório é desejável — não bloquear deletes.
+        if path in FORBIDDEN_FILES and (idx == "D" or wt == "D"):
+            continue
         for forbidden in FORBIDDEN_DIRS:
             if path.startswith(forbidden):
                 violations.append((path, f"diretório proibido: {forbidden}"))

@@ -1,13 +1,11 @@
-"""Dashboard API — KPIs, charts, and alerts from E5 analysis."""
+"""Dashboard API — KPIs, charts, and alerts from E5 analysis (tenant-scoped, ADR-072)."""
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import settings
 from backend.app.core.database import get_db
-from backend.app.core.deps import get_current_user
-from backend.app.models.user import User
+from backend.app.core.tenancy import get_current_workspace
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.dashboard import DashboardAlert, DashboardResponse
 from backend.app.services.dashboard_service import (
@@ -19,15 +17,10 @@ from backend.app.services.dashboard_service import (
     load_e5_analysis,
 )
 
-router = APIRouter(prefix="/dashboard", tags=["dashboard"])
-
-
-async def _get_workspace(user: User, db: AsyncSession) -> Workspace:
-    result = await db.execute(select(Workspace).where(Workspace.owner_id == user.id))
-    ws = result.scalar_one_or_none()
-    if not ws:
-        raise HTTPException(status_code=404, detail="Workspace não encontrado")
-    return ws
+router = APIRouter(
+    prefix="/workspaces/{workspace_id}/dashboard",
+    tags=["dashboard"],
+)
 
 
 def _tenant_root(workspace_id: str) -> str:
@@ -36,11 +29,10 @@ def _tenant_root(workspace_id: str) -> str:
 
 @router.get("", response_model=DashboardResponse)
 async def get_dashboard(
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    e5 = load_e5_analysis(_tenant_root(ws.id))
+    e5 = load_e5_analysis(_tenant_root(workspace.id))
 
     if not e5:
         return DashboardResponse(
@@ -58,11 +50,10 @@ async def get_dashboard(
 
 @router.get("/alerts", response_model=list[DashboardAlert])
 async def get_alerts(
-    user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    ws = await _get_workspace(user, db)
-    e5 = load_e5_analysis(_tenant_root(ws.id))
+    e5 = load_e5_analysis(_tenant_root(workspace.id))
 
     if not e5:
         return []

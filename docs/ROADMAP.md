@@ -21,7 +21,7 @@
 | **6**   | Frontend Profissional    | ✅ Concluída  | Dashboard, Transaction Explorer, Report React, Dark mode, Notifications                        |
 | **6.5** | Testing & Hardening (FE+BE) | ✅ Concluída | Vitest + RTL + MSW + Playwright — **438 tests** (94 backend + 344 frontend) em ~25s. Hardening fintech (axe 0 critical, property-based BRL, visual reg. infra, resilience, security smoke, CPF mod-11+lint PII, error boundary, focus mgmt). Backend hardening (6 serializers round-trip, alembic guardrails, golden pipeline, concurrency). Multi-tenant isolation (27 tests, 0 leaks). WS real com fakeredis. Anti-regression bank (24 tests). Test infrastructure completa (factories, isolation, docker-compose.test, synthetic PDFs, pipeline mock fixtures, MSW lint, LLM mock). CI GH Actions (7 jobs). SMOKE_TEST.md 70+ checks. 7 ADRs novas (062-064, 067-071). |
 | **7**   | Produção + LGPD + Ops    | ☐ Planejada  | VPS+Docker+Traefik, LGPD completo, auth flows (email verify/pwd reset/brute-force), prompt injection defense, operational readiness (DR testado, business metrics, incident comms, LLM cost cap), CI/CD, dogfood validado |
-| **8**   | Goals & Tasks + Cutover CLI→Web | ✅ Concluída | Goals versionados (IF + 4 types), Tasks como entidade de 1ª classe (CRUD + dependencies + suggestions + attachments + progress%), Pipeline adapter (DB→JSON), Feature flags, Worker beat, Snapshot imutável no relatório, Celery beat diário scan-deadlines. **~146 testes, 6 ADRs (072-075, 077), 5 migrations, 20 tenant models, 9 services, ~30 endpoints, 10 componentes React, 5 rotas frontend**. Cutover reversível via feature flags. ADR-072/073/074/075/077. |
+| **8**   | Goals & Tasks + Cutover CLI→Web | ✅ Concluída | Goals versionados (IF + APORTE_MENSAL + DOLARIZACAO + ALOCACAO_ALVO + PLANNING_CONTEXT em F8.5), Tasks como entidade de 1ª classe (CRUD + dependencies + suggestions + attachments + progress%), Pipeline adapter (DB→JSON), Feature flags, Worker beat, Snapshot imutável no relatório, Celery beat diário scan-deadlines. **~146 testes, 7 ADRs (072-075, 077, 079), 5 migrations, 20 tenant models, 9 services, ~42 endpoints, 10 componentes React, 11 rotas frontend**. Cutover reversível via feature flags. ADR-072/073/074/075/077/079. |
 | **9**   | Relatório Nativo React + Workspace Sharing + Design System | ✅ Concluída | **Relatório:** render React nativo (18 seções, 13 cards, 8 charts Recharts, deep-links, scroll-spy, print CSS A4, PDF Playwright). E6 vira exportador standalone. **Design System:** tokens.json → CSS unificado (ADR-076), codegen YAML→TS/Pydantic. **Sharing:** 3 roles, convites SHA-256/TTL 72h, forced logout, viewer banner, workspace switcher. **113 testes novos (56 BE + 23 FE + 20 tokens + 14 codegen), 3 ADRs (076-078), 3 migrations.** |
 
 ---
@@ -99,6 +99,7 @@ Detalhes completos: **[BACKLOG.md#f65--frontend-testing--qa](BACKLOG.md#f65--fro
 | F8.2 | Plano de Ação | Task/TaskSuggestion/TaskAttachment models, tarefas.md parser (43 tasks, 5 deadline types, dep #19→#18), 3 views (priority/deadline/category), drawer, form, sugestões 1-click, widget dashboard |
 | F8.3 | Integrações profundas | Task↔Goal linking, % executado (BRL parser + match transactions), snapshot imutável no Report, anexos CRUD (upload/download/delete), feature flags workspace-level (4 flags) |
 | F8.4 | Cutover CLI→Web | Pipeline adapter (materializa payloads antes do run), E5.N hook → TaskSuggestion, PLANNING_CONTEXT goal type (cobertura 100% do goals.json), worker beat diário, scripts de paridade + cutover automatizado, ADR-077 |
+| F8.5 | Multi-tenant Goals completo | API+UI para APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO (12 endpoints, 6 páginas React, dashboard `/plano` multi-goal), `create_goal_version` genérica, resiliência E6 (fallback + banner CTA), ADR-079 |
 
 **Números:**
 - **~146 testes** novos (goals: 32, tasks: 48, integrações: 45, adapter: 9, lint: 12)
@@ -106,7 +107,7 @@ Detalhes completos: **[BACKLOG.md#f65--frontend-testing--qa](BACKLOG.md#f65--fro
 - **5 migrations Alembic** encadeadas: workspace_members → goals → tasks → report_snapshot → feature_flags
 - **20 tenant models** detectados pelo lint AST
 - **9 services** novos: goal, task, task_suggestion, task_notification, task_progress, task_attachment, report_tasks_snapshot, feature_flags, pipeline_adapter
-- **5 rotas frontend**: /plano, /plano/meta-if, /plano/meta-if/wizard, /plano-de-acao, /plano-de-acao/sugestoes
+- **11 rotas frontend**: /plano, /plano/meta-if[/wizard], /plano/aportes[/wizard], /plano/dolarizacao[/wizard], /plano/alocacao[/wizard], /plano-de-acao, /plano-de-acao/sugestoes
 - **4 JSON schemas** canônicos: goal.if, goal.aporte_mensal, goal.dolarizacao, goal.alocacao_alvo
 
 **Sequência operacional de cutover** (pós-deploy):

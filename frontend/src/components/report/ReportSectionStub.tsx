@@ -3,6 +3,7 @@ import { Construction, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getReportDownloadHtmlUrl } from "@/lib/api";
 import { ReportCard } from "./ReportCard";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 interface ReportSectionStubProps {
   reportId: string;
@@ -23,6 +24,8 @@ export function ReportSectionStub({
   cardIds,
   chartIds,
 }: ReportSectionStubProps) {
+  const { workspace } = useWorkspace();
+  if (!workspace) return null;
   return (
     <ReportCard variant="neutral" size="full">
       <div className="flex flex-col gap-4">
@@ -58,7 +61,7 @@ export function ReportSectionStub({
             nativeButton={false}
             render={
               <Link
-                href={getReportDownloadHtmlUrl(reportId)}
+                href={getReportDownloadHtmlUrl(workspace.id, reportId)}
                 target="_blank"
                 rel="noopener"
               />

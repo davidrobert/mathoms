@@ -62,11 +62,29 @@ pip install playwright && playwright install chromium
 
 ## 2. Variáveis de ambiente
 
-Criar `.env` na raiz do projeto:
+Na raiz do repositório existe **`.env.example`** com todas as variáveis documentadas (valores seguros para commit).
+
+**Fluxo recomendado:**
+
+```bash
+# Na raiz, com dependências Python do backend instaladas (cryptography).
+# Cria .env a partir de .env.example e preenche FIN_FERNET_KEY + FIN_SECRET_KEY (falha se .env já existir).
+./scripts/gen-secrets.sh --init-env
+```
+
+Alternativa manual: `cp .env.example .env` e rode `./scripts/gen-secrets.sh` (sem flags) para imprimir chaves e colá-las no `.env`.
+
+Se `.env` já existir e você só precisar rotacionar segredos, edite o arquivo à mão ou gere novas linhas com:
+
+```bash
+./scripts/gen-secrets.sh
+```
+
+Bloco equivalente (trecho mínimo — ver `.env.example` para o restante):
 
 ```bash
 # Fernet key — CRÍTICO. Gerar uma vez, NUNCA mudar sem re-encriptar dados.
-# Gerar nova: python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# Preferência: ./scripts/gen-secrets.sh
 FIN_FERNET_KEY=sua-chave-fernet-aqui
 
 # JWT secret (dev pode ser qualquer string, prod tem que ser forte)
