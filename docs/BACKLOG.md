@@ -233,7 +233,7 @@ Quarto bloco da reordenação CTO: unit tests do `lib/` consumindo a fundação 
 
 ### 🧩 Bloco 3b — Integration Tests 6.5B (executado em 2026-04-15) ✅
 
-Quinto bloco da reordenação CTO. Cobertura completa de 6.5B com integration tests para todas as 10 pages, 8 compostos, dark mode, form validation, WS real e tz regression. Restou minoria de detalhes (tabs individuais de Config, Reports viewer iframe) para PRs focados em sequência.
+Quinto bloco da reordenação CTO. Cobertura completa de 6.5B com integration tests para todas as 10 pages, 8 compostos, dark mode, form validation, WS real e tz regression. Restou minoria de detalhes (tabs individuais de Config, Reports viewer React nativo) para PRs focados em sequência.
 
 **Pages (10 pages):**
 - **6.5B.1** [`pages/login.test.tsx`](../frontend/tests/pages/login.test.tsx) — **8 tests** + [`pages/register.test.tsx`](../frontend/tests/pages/register.test.tsx) — **6 tests**
@@ -271,7 +271,7 @@ Quinto bloco da reordenação CTO. Cobertura completa de 6.5B com integration te
 - factory `make_member(role="responsavel")` falhava schema (corrigido para `"titular"`)
 
 **Pendente para PRs sucessivos** (não bloqueador):
-- 6.5B.6 Reports viewer (iframe, print, download tables) — pequena page individual
+- 6.5B.6 Reports viewer (React nativo, print, download tables) — concluído em F9
 - 6.5B.7 Tabs individuais (CategoriesTab, PipelineTab, LLMTab CRUD) — cobertura por tab
 - 6.5B.10 NotificationCenter (interaction completa)
 
@@ -437,7 +437,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | 6.5B.3  | Tests Documents (empty, drag-drop, progress, needs_password, delete, CTA)  | P0   | 4h   | ✅ Bloco 3b (8 tests) |
 | 6.5B.4  | Tests Pipeline (trigger, WS progress, needs_review, cancel, failed)        | P0   | 5h   | ✅ Bloco 3b (7 tests + cobre BUG-007 skip_llm tier) |
 | 6.5B.5  | Tests Transactions (render, busca, override, export, paginação, URL state) — incluir XSS smoke: nota com `<script>`/`<img onerror>` deve renderizar escapado | P0 | 5h | ✅ Bloco 3b (4 tests + XSS smoke F6.5D.6 antecipada) |
-| 6.5B.6  | Tests Reports (list, viewer iframe, print, download, export tables)        | P0   | 4h   | ✅ Bloco 3b (5 tests; viewer/print pendentes em PR focado) |
+| 6.5B.6  | Tests Reports (list, viewer React nativo, print, download, export tables)  | P0   | 4h   | ✅ Bloco 3b (5 tests; viewer concluído em F9) |
 | 6.5B.7  | Tests Config (6 tabs: Members, Categories, Pipeline, LLM, Inst, Layout)    | P0   | 5h   | ✅ Bloco 3b (5 tests; tabs individuais pendentes em PR focado) |
 | 6.5B.8  | Tests Vault (CRUD passwords, retry unlock)                                 | P0   | 2h   | ✅ Bloco 3b (9 tests) |
 | 6.5B.9  | Tests AppShell (auth gate, navigation, mobile, logout, NotificationCenter) | P0   | 3h   | ✅ Bloco 3b (9 tests + cobre BUG-005 Vault no nav) |

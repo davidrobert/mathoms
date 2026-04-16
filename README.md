@@ -2,7 +2,7 @@
 
 > Envie seus PDFs bancários. Receba um retrato financeiro completo da sua família em minutos — não em semanas de planilha.
 
-**Status:** Dogfood interno • Premium E2E funcional • Dashboard + Transaction Explorer + Report React prontos
+**Status:** Dogfood interno • F9 concluída • Relatório nativo React (sem iframe), design tokens unificados, workspace sharing
 
 ---
 
@@ -65,7 +65,7 @@ Para setup detalhado, troubleshooting e configuração de LLM: **[docs/SETUP.md]
 
 ## Fase atual
 
-**F6 completa** (Transaction Explorer + Dashboard + Report React + UX polish) • **F6.5** (testes frontend) e **F7** (produção + LGPD) em planejamento. Ver [docs/ROADMAP.md](docs/ROADMAP.md).
+**F9 concluída** — Relatório nativo React (sem iframe), design tokens unificados, workspace sharing multi-user. Próxima: **F7** (produção + LGPD). Ver [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ---
 

@@ -7,6 +7,7 @@ Pipeline de consolidação financeira da família Ferreira Campos. Processa docu
 ## Estrutura de diretórios
 
 ```
+design-tokens/       Design tokens unificados (ADR-076) — tokens.json + build.py
 config/              Configurações, schemas, templates, regras do pipeline
   definitions.md           Definições canônicas (membros, instituições, categorias)
   pipeline.json            Parâmetros operacionais (LLM, limites, tolerâncias, versão do relatório)
@@ -26,6 +27,7 @@ dev/                 Dev-tooling (commit helper, pre-commit hooks) — NÃO é p
   e2/                  Módulo E2 modular (common, registry, validation, banks/)
   e2/banks/            Parsers por banco (c6bank, itau, santander, bradesco, etc.)
   e6_regen.py          Utilitário: injeta melhorias visuais em relatório existente
+  codegen_report_layout.py  Gera TS + Pydantic a partir do report_layout.yaml
 data/                Documentos financeiros originais — NÃO versionado
   financial_statements/  Extratos e faturas (PDFs, CSVs, XLS)
   income_tax_br/         Declarações IRPF e informes de rendimentos
@@ -56,6 +58,11 @@ backend/             Aplicação web (FastAPI + React)
   alembic/             DB migrations
   tests/               Testes unitários (pytest) — backend web
 frontend/            React app (Next.js)
+  src/components/report/  Componentes do relatório nativo React
+  src/generated/           Tipos e schemas gerados pelo codegen
+  src/types/               Tipos fortes do E5 (análise financeira)
+  src/hooks/               React hooks (useReportData, etc.)
+  src/styles/              tokens.css gerado pelo design-tokens build
 _archive/            Arquivos antigos preservados (scripts legados, backups)
 _scratch/            Artefatos temporários — NÃO versionado, pode ser limpo a qualquer momento
 ```

@@ -58,6 +58,13 @@ frontend/playwright.config.ts
 tests/fixtures/                 # PDFs sintéticos (gerador determinístico)
 tests/fixtures/pdf_generator.py # 6.5F.12 — 13 bancos cobertos
 tests/regressions/              # 6.5E.8 — 1 test por bug histórico (BUG-NNN)
+tests/test_design_tokens_build.py       # F9 — 20 tests (tokens build + parity)
+tests/test_report_layout_codegen.py     # F9 — 14 tests (codegen + schema)
+
+frontend/tests/components/report/       # F9 — testes do relatório nativo React
+  ReportShell.test.tsx                  # 9 tests (shell + cards)
+frontend/tests/lib/reports.test.ts      # F9 — 8 tests (API client)
+frontend/tests/hooks/useReportData.test.tsx  # F9 — 6 tests (hook)
 ```
 
 ---

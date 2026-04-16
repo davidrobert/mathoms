@@ -1,5 +1,7 @@
 # E6 Renderer — Comprehensive Financial Report Generator
 
+> **NOTA (F9 · ADR-078):** Desde F9, o E6 é um **exportador HTML standalone** — o render primário do relatório é a rota React nativa `/reports/[id]`. Este documento descreve o gerador standalone usado para email, backup e impressão offline.
+
 ## Overview
 
 `e6_render.py` is a **deterministic, pure-Python financial report generator** that reads E5 analysis JSON (containing data + narratives) and an HTML template, then produces a complete financial report via string replacement. **No LLM required.**
@@ -19,7 +21,7 @@
 | ---------------------- | -------------------------------------- | ------------------------ |
 | `E5_analysis.json`     | Analysis output with data + narratives | `processed/E5_analysis/` |
 | `report_template.html` | HTML structure + CSS + JS template     | `config/templates/`      |
-| `manual_operacao.md`   | Manual for version extraction          | `config/`                |
+| `pipeline.json`        | Version extraction (`report_version`)  | `config/`                |
 | `definitions.md`       | Categories and definitions (optional)  | `config/`                |
 
 
@@ -37,7 +39,7 @@ Latest example: `relatorio_financeiro_ferreira_campos_20260404.html` (166KB)
 
 - Load E5 JSON with patrimonio, fluxo_caixa, narrativas, etc.
 - Load HTML template with placeholders
-- Load manual_operacao.md for version extraction
+- Load pipeline.json for version extraction (`report_version`)
 
 ### 2. Build Phase (E6.1–E6.5)
 
@@ -278,7 +280,7 @@ financas-familia/
 ├── config/
 │   ├── templates/
 │   │   └── report_template.html  ← HTML structure
-│   ├── manual_operacao.md        ← Version source
+│   ├── pipeline.json             ← Version source (report_version)
 │   ├── definitions.md
 │   └── ...
 ├── processed/

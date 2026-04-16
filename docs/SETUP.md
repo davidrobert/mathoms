@@ -45,6 +45,21 @@ cd frontend && npm install && cd ..
 
 ---
 
+## 1.1. Build steps (codegen e tokens)
+
+```bash
+# Design tokens (gera CSS para Next.js e E6)
+python3 design-tokens/build.py
+
+# Codegen do layout (gera TS e Pydantic a partir do YAML)
+python3 dev/codegen_report_layout.py
+
+# Playwright chromium (para PDF server-side — opcional em dev)
+pip install playwright && playwright install chromium
+```
+
+---
+
 ## 2. Variáveis de ambiente
 
 Criar `.env` na raiz do projeto:

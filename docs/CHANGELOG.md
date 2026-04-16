@@ -6,7 +6,11 @@
 
 ## [Unreleased]
 
-### F9 — Relatório Nativo React + Design System Unificado (2026-04-15)
+Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
+
+---
+
+## [F9] Relatório Nativo React + Workspace Sharing + Design System — 2026-04-15 ✅
 
 **ADRs:**
 - [ADR-076](DECISIONS.md#adr-076) Design tokens unificados site × relatório (fonte única `tokens.json`)
@@ -41,13 +45,26 @@
 - Print CSS A4 (report-print.css): break-inside:avoid, print-color-adjust:exact, SVG nativo
 - Deep-links via hash (#S3) + scroll-spy debounced + auto-scroll TOC
 
+**Migração por lotes (commits):**
+| Lote | Seções | Commit |
+|------|--------|--------|
+| F0.2–F0.5 | Infra: tokens.json, build.py, codegen, useReportData, /data endpoint | `6020917`→`c88f9a5` |
+| F1.1–F1.5 | Rota nativa React substitui iframe, download.html endpoint | `2751dea`→`8b9071d` |
+| F1.2 | Design tokens aplicados no site (ADR-076) | `e2a9b29` |
+| F2.A | Patrimônio S1 migrado | `78a351b` |
+| F2.B | Fluxo de Caixa S2 migrado | `431f39c` |
+| F2.C–G | S3-S10 migrados, modo estratégico completo | `1289ea8` |
+| F2.H | USA + Tático, Fase 2 completa | `a3411e6` |
+| F3.1–3.2 | Scroll-spy, deep-links, print CSS A4, mode via URL | `dc4f9d0`→`92d8de1` |
+| F4.0–4.2 | PDF server-side Playwright, E6 como exportador | `bc232cc`→`7733adf` |
+
 **Testes:** 56 backend + 23 frontend + 20 design tokens + 14 codegen = 113 novos
 
 **Iframe removido:** `page.tsx` reescrita de 436 linhas (iframe + MutationObserver) para render React nativo.
 
 ---
 
-### F8 — Goals & Tasks + Cutover CLI→Web (2026-04-15)
+## [F8] Goals & Tasks + Cutover CLI→Web — 2026-04-15 ✅
 
 **ADRs:**
 - [ADR-072](DECISIONS.md#adr-072) Multi-tenancy: `WorkspaceMember` N:N, `get_current_workspace` dependency, tenancy lint AST-based com baseline

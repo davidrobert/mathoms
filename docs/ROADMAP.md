@@ -3,7 +3,7 @@
 > Visão de alto nível das fases do projeto. Atualizar mensalmente ou ao mudar de fase.
 >
 > **Última atualização:** 2026-04-15
-> **Fase atual:** F6.5 completa • próxima: **F7 (Produção + LGPD + Ops)**
+> **Fase atual:** F9 concluída • próxima: **F7 (Produção + LGPD + Ops)**
 
 ---
 
@@ -21,6 +21,8 @@
 | **6**   | Frontend Profissional    | ✅ Concluída  | Dashboard, Transaction Explorer, Report React, Dark mode, Notifications                        |
 | **6.5** | Testing & Hardening (FE+BE) | ✅ Concluída | Vitest + RTL + MSW + Playwright — **438 tests** (94 backend + 344 frontend) em ~25s. Hardening fintech (axe 0 critical, property-based BRL, visual reg. infra, resilience, security smoke, CPF mod-11+lint PII, error boundary, focus mgmt). Backend hardening (6 serializers round-trip, alembic guardrails, golden pipeline, concurrency). Multi-tenant isolation (27 tests, 0 leaks). WS real com fakeredis. Anti-regression bank (24 tests). Test infrastructure completa (factories, isolation, docker-compose.test, synthetic PDFs, pipeline mock fixtures, MSW lint, LLM mock). CI GH Actions (7 jobs). SMOKE_TEST.md 70+ checks. 7 ADRs novas (062-064, 067-071). |
 | **7**   | Produção + LGPD + Ops    | ☐ Planejada  | VPS+Docker+Traefik, LGPD completo, auth flows (email verify/pwd reset/brute-force), prompt injection defense, operational readiness (DR testado, business metrics, incident comms, LLM cost cap), CI/CD, dogfood validado |
+| **8**   | Goals & Tasks + Cutover CLI→Web | ✅ Concluída | Goals versionados (IF + 4 types), Tasks como entidade de 1ª classe (CRUD + dependencies + suggestions + attachments + progress%), Pipeline adapter (DB→JSON), Feature flags, Worker beat, Snapshot imutável no relatório, Celery beat diário scan-deadlines. **~146 testes, 6 ADRs (072-075, 077), 5 migrations, 20 tenant models, 9 services, ~30 endpoints, 10 componentes React, 5 rotas frontend**. Cutover reversível via feature flags. ADR-072/073/074/075/077. |
+| **9**   | Relatório Nativo React + Workspace Sharing + Design System | ✅ Concluída | **Relatório:** render React nativo (18 seções, 13 cards, 8 charts Recharts, deep-links, scroll-spy, print CSS A4, PDF Playwright). E6 vira exportador standalone. **Design System:** tokens.json → CSS unificado (ADR-076), codegen YAML→TS/Pydantic. **Sharing:** 3 roles, convites SHA-256/TTL 72h, forced logout, viewer banner, workspace switcher. **113 testes novos (56 BE + 23 FE + 20 tokens + 14 codegen), 3 ADRs (076-078), 3 migrations.** |
 
 ---
 
@@ -41,6 +43,8 @@ Resumo do que foi entregue em cada uma:
 | F5   | 23    | ~3 semanas   | +44                |
 | F6   | 48    | ~6 semanas   | 0 (testes em F6.5) |
 | F6.5 | 71    | 1 dia concentrado | +438 (94 backend + 344 frontend) + 7 ADRs |
+| F8   | —     | 1 sessão concentrada | +~146 backend + 12 lint. 6 ADRs (072-075, 077). 5 migrations |
+| F9   | —     | 1 sessão concentrada | +113 tests (56 BE + 23 FE + 20 tokens + 14 codegen). 3 ADRs (076-078). 3 migrations. 50 componentes report, design tokens, codegen, PDF Playwright |
 
 Para detalhes do que foi entregue, ver **[CHANGELOG.md](CHANGELOG.md)**.
 
@@ -82,6 +86,58 @@ Detalhes completos: **[BACKLOG.md#f65--frontend-testing--qa](BACKLOG.md#f65--fro
 
 ---
 
+### F8 — Goals & Tasks + Cutover CLI→Web ✅
+
+**Objetivo:** Dar ao produto capacidade de (1) o usuário configurar sua meta de Independência Financeira via wizard interativo, (2) gestão de backlog de tarefas fora do relatório (módulo de 1ª classe), (3) eliminar dependência de arquivos `config/goals.json` e `config/tarefas.md` via pipeline adapter + DB como fonte de verdade.
+
+**Fases internas:**
+
+| Sub-fase | Foco | Entregas |
+|---|---|---|
+| F8.0 | Fundação multi-tenancy | 4 ADRs (072-075), WorkspaceMember, `get_current_workspace`, tenancy lint AST-based + baseline (6 legados), docs/tenancy.md, CI job |
+| F8.1 | Metas IF | Goal model versionado, `compute_if_derived` (FV anuidade), wizard 4 passos, seed Ferreira Campos (paridade 7.2M), `/plano` + `/plano/meta-if` |
+| F8.2 | Plano de Ação | Task/TaskSuggestion/TaskAttachment models, tarefas.md parser (43 tasks, 5 deadline types, dep #19→#18), 3 views (priority/deadline/category), drawer, form, sugestões 1-click, widget dashboard |
+| F8.3 | Integrações profundas | Task↔Goal linking, % executado (BRL parser + match transactions), snapshot imutável no Report, anexos CRUD (upload/download/delete), feature flags workspace-level (4 flags) |
+| F8.4 | Cutover CLI→Web | Pipeline adapter (materializa payloads antes do run), E5.N hook → TaskSuggestion, PLANNING_CONTEXT goal type (cobertura 100% do goals.json), worker beat diário, scripts de paridade + cutover automatizado, ADR-077 |
+
+**Números:**
+- **~146 testes** novos (goals: 32, tasks: 48, integrações: 45, adapter: 9, lint: 12)
+- **6 ADRs**: [072](DECISIONS.md#adr-072) multi-tenancy, [073](DECISIONS.md#adr-073) goals versionados, [074](DECISIONS.md#adr-074) tasks 1ª classe, [075](DECISIONS.md#adr-075) cutover faseado, [077](DECISIONS.md#adr-077) adapter contrato
+- **5 migrations Alembic** encadeadas: workspace_members → goals → tasks → report_snapshot → feature_flags
+- **20 tenant models** detectados pelo lint AST
+- **9 services** novos: goal, task, task_suggestion, task_notification, task_progress, task_attachment, report_tasks_snapshot, feature_flags, pipeline_adapter
+- **5 rotas frontend**: /plano, /plano/meta-if, /plano/meta-if/wizard, /plano-de-acao, /plano-de-acao/sugestoes
+- **4 JSON schemas** canônicos: goal.if, goal.aporte_mensal, goal.dolarizacao, goal.alocacao_alvo
+
+**Sequência operacional de cutover** (pós-deploy):
+```bash
+python -m backend.app.scripts.seed_if_goal_ferreira_campos --apply
+python -m backend.app.scripts.seed_tasks_ferreira_campos --apply
+python -m backend.app.scripts.seed_goals_full_ferreira_campos --apply
+python -m backend.app.scripts.validate_adapter_parity
+python -m backend.app.scripts.cutover_execute --apply
+```
+
+---
+
+### F9 — Relatório Nativo React + Workspace Sharing + Design System ✅
+
+**Objetivo:** (1) Substituir o iframe do relatório por render React nativo consumindo E5 JSON via API, (2) unificar identidade visual site × relatório via design tokens, (3) permitir compartilhamento multi-user do workspace.
+
+**3 vertentes paralelas:**
+
+| Vertente | Foco | Entregas |
+|---|---|---|
+| Report React | Render nativo de 18 seções | 50 componentes (shell + 13 cards + 8 charts + 9 sections), lotes A–H, deep-links, scroll-spy, print CSS A4, mode via URL `?mode=` |
+| Design System | Identidade visual unificada | `tokens.json` (fonte única), `build.py` (CSS para frontend + E6), codegen YAML→TS/Pydantic, pre-commit hooks |
+| Workspace Sharing | Multi-user com roles | WorkspaceInvitation, 3 roles (owner/member/viewer), forced logout, AcessosTab, workspace switcher, viewer banner |
+
+**Backend:** 3 migrations (analysis_json_path, invitations, token_version), 5 endpoints novos (/data, /download.html, /download.pdf, invitations CRUD), PDF server-side Playwright.
+
+**Números:** 113 testes novos, 3 ADRs (076-078), 3 migrations, 50 componentes report React.
+
+---
+
 ### F7 — Produção + Security + LGPD + Operational Readiness (próxima)
 
 **Objetivo:** Levar o Fin a produção com a menor superfície de risco possível, fluxos de auth completos para suportar usuários reais, e maturidade operacional para sobreviver ao primeiro incidente.
@@ -113,7 +169,7 @@ Detalhes das tasks: **[BACKLOG.md#f7](BACKLOG.md#f7--produção--lgpd)**
 
 ---
 
-### F8 — Growth & Aquisição (pós-launch, Futuro)
+### F10 — Growth & Aquisição (pós-launch, Futuro)
 
 Adiado conscientemente: são features de aquisição/marketing que não fazem sentido no estágio dogfood/beta. Incluídas para referência futura.
 
@@ -179,9 +235,9 @@ Política de cobertura (Python backend + pipeline):
 | Período              | Milestone                                        |
 | -------------------- | ------------------------------------------------ |
 | Q1 2026              | F0-F4 ✅ (Core → LLM)                            |
-| Q2 2026 (Abr-Jun)    | F4.5, F5, F6, F6.5 ✅ (F6.5 fechou em 1 dia concentrado — 2026-04-15, 438 tests, 7 ADRs) |
-| Q3 2026              | F7 (8-10 sem, com 7E) → Dogfood validado → Beta fechado          |
-| Q4 2026              | Beta → preparação GA (F8)                        |
+| Q2 2026 (Abr)        | F4.5, F5, F6, F6.5, F8, F9 ✅ — feature-complete pré-produção |
+| Q2-Q3 2026 (Mai-Jul) | F7 (8-10 sem) → Dogfood validado → Beta fechado  |
+| Q3-Q4 2026           | Beta → preparação GA + F10 (Growth)              |
 | 2027+                | GA + features de growth                          |
 
 ---
