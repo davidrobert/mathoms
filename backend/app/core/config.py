@@ -42,7 +42,17 @@ class Settings(BaseSettings):
     # Vault encryption (Fernet symmetric key). Generate via: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     FERNET_KEY: str = ""
 
-    model_config = {"env_prefix": "FIN_", "env_file": ".env"}
+    # env_file resolvido em ABSOLUTO e com múltiplas localizações — evita que o
+    # backend carregue config diferente conforme cwd (bug onde `.env` em
+    # `backend/.env` não era lido quando uvicorn rodava da raiz do repo).
+    # Ordem de precedência: raiz do repo > backend/.
+    model_config = {
+        "env_prefix": "FIN_",
+        "env_file": (
+            str(_PROJECT_ROOT / ".env"),
+            str(_PROJECT_ROOT / "backend" / ".env"),
+        ),
+    }
 
     @property
     def sync_database_url(self) -> str:

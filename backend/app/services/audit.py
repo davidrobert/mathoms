@@ -47,6 +47,7 @@ class AuditAction(str, enum.Enum):
     document_upload = "document.upload"
     document_delete = "document.delete"
     document_retry_unlock = "document.retry_unlock"
+    document_update_classification = "document.update_classification"
 
     # Storage / workspace
     workspace_purge = "workspace.purge"

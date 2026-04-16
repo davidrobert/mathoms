@@ -18,10 +18,10 @@ from backend.app.models.llm_config import LLMConfig
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.services.events import publish_run_cancelled
 from backend.app.services.storage import StorageService
-from backend.app.services.vault import VaultService
+from backend.app.services.vault import get_vault
 
 logger = logging.getLogger(__name__)
-_vault = VaultService()
+_vault = get_vault()
 
 
 def detect_tier(ws_id: str) -> str:

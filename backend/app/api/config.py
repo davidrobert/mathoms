@@ -43,14 +43,14 @@ from backend.app.schemas.config import (
     WorkspaceSettingsSchema,
     WorkspaceSettingsUpdateRequest,
 )
-from backend.app.services.vault import VaultService
+from backend.app.services.vault import get_vault
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/config",
     tags=["config"],
 )
 
-_vault = VaultService()
+_vault = get_vault()
 
 
 def _birth_name_from_extra(extra: dict[str, Any] | None) -> str | None:

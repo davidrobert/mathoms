@@ -16,11 +16,11 @@ import { WorkspaceProvider } from "@/lib/WorkspaceProvider";
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AppShell>
-      <AuthBootstrap />
-      <WorkspaceProvider>
+    <WorkspaceProvider>
+      <AppShell>
+        <AuthBootstrap />
         <ErrorBoundary>{children}</ErrorBoundary>
-      </WorkspaceProvider>
-    </AppShell>
+      </AppShell>
+    </WorkspaceProvider>
   );
 }

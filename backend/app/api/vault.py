@@ -9,7 +9,7 @@ from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.workspace import Workspace
 from backend.app.models.password_vault import PasswordVault
 from backend.app.schemas.vault import VaultCreateRequest, VaultListResponse, VaultResponse
-from backend.app.services.vault import VaultService
+from backend.app.services.vault import get_vault
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/vault",
@@ -45,7 +45,7 @@ async def create_password(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    vault_service = VaultService()
+    vault_service = get_vault()
     entry = PasswordVault(
         workspace_id=workspace.id,
         label=body.label,

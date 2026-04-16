@@ -24,9 +24,9 @@ from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, Re
 from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.workspace import Workspace
-from backend.app.services.vault import VaultService
+from backend.app.services.vault import get_vault
 
-_vault = VaultService()
+_vault = get_vault()
 
 
 def materialize_config(workspace_id: str, tenant_root: Path, db: Session) -> Path:

@@ -20,14 +20,14 @@ from backend.app.schemas.llm import (
     LLMTierResponse,
 )
 from backend.app.services.pipeline_service import resolve_llm_tier_async
-from backend.app.services.vault import VaultService
+from backend.app.services.vault import get_vault
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/config",
     tags=["llm"],
 )
 
-_vault = VaultService()
+_vault = get_vault()
 
 
 def _mask_api_key(key: str) -> str:
