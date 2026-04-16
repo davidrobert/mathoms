@@ -19,11 +19,29 @@ import { S7IndependenciaSection } from "./sections/S7IndependenciaSection";
 import { S8PrevidenciaSection } from "./sections/S8PrevidenciaSection";
 import { S9RiscosSection } from "./sections/S9RiscosSection";
 import { S10SinteseSection } from "./sections/S10SinteseSection";
+import {
+  U1MudancaEuaSection,
+  U2GreenCardSection,
+  U3NclexSection,
+  U4SimulacaoMarianaSection,
+} from "./sections/UsaSections";
+import {
+  T1FluxoOperacionalSection,
+  T2AportesSection,
+  T3TarefasSection,
+  T4AlertasSection,
+  T5ProximosPassosSection,
+  T6NotasSection,
+} from "./sections/TaticoSections";
 
-/** IDs de seções com render React completo (sem stubs).
- *  F2.A–G: todas as seções do modo estratégico migradas. */
+/** Todas as seções de todos os modos estão migradas (F2.A–H). */
 const MIGRATED_SECTIONS = new Set([
+  // Estratégico
   "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10",
+  // USA
+  "U1", "U2", "U3", "U4",
+  // Tático
+  "T1", "T2", "T3", "T4", "T5", "T6",
 ]);
 
 interface ReportShellProps {
@@ -176,7 +194,28 @@ function MigratedSection({
       return <S9RiscosSection data={data} />;
     case "S10":
       return <S10SinteseSection data={data} />;
-    // F2.H: USA sections (U1–U4)
+    // USA
+    case "U1":
+      return <U1MudancaEuaSection data={data} />;
+    case "U2":
+      return <U2GreenCardSection data={data} />;
+    case "U3":
+      return <U3NclexSection data={data} />;
+    case "U4":
+      return <U4SimulacaoMarianaSection data={data} />;
+    // Tático
+    case "T1":
+      return <T1FluxoOperacionalSection data={data} />;
+    case "T2":
+      return <T2AportesSection data={data} />;
+    case "T3":
+      return <T3TarefasSection data={data} />;
+    case "T4":
+      return <T4AlertasSection data={data} />;
+    case "T5":
+      return <T5ProximosPassosSection />;
+    case "T6":
+      return <T6NotasSection />;
     default:
       return null;
   }
