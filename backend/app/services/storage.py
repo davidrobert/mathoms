@@ -14,6 +14,49 @@ ALLOWED_EXTENSIONS = {
     ".json",
 }
 
+# Magic number (file signature) prefixes for supported types (P1.3).
+# Maps extension → list of valid byte-prefixes (OR-composed). CSV/JSON are
+# plain text — they have no reliable signature, validated by extension only.
+# References:
+#   PDF: ISO 32000-1 §7.5.2 ("%PDF-")
+#   ZIP-based (xlsx/docx): PKWARE APPNOTE ("PK\x03\x04" / "PK\x05\x06" /
+#     "PK\x07\x08")
+#   OLE Compound Document (xls legacy): ".\\xd0\\xcf\\x11\\xe0\\xa1\\xb1\\x1a\\xe1"
+#   JPEG: ISO/IEC 10918-1 ("\\xff\\xd8\\xff")
+#   PNG: RFC 2083 ("\\x89PNG\\r\\n\\x1a\\n")
+_MAGIC_SIGNATURES: "dict[str, tuple[bytes, ...]]" = {
+    ".pdf":  (b"%PDF-",),
+    ".xlsx": (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08"),
+    ".xls":  (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1", b"PK\x03\x04"),  # OLE2 or ZIP (xlsx renamed)
+    ".jpg":  (b"\xff\xd8\xff",),
+    ".jpeg": (b"\xff\xd8\xff",),
+    ".png":  (b"\x89PNG\r\n\x1a\n",),
+}
+
+
+def _validate_magic_number(filename: str, content: bytes) -> tuple[bool, str]:
+    """Verify content prefix matches expected magic bytes for its extension.
+
+    Returns (ok, reason). Unknown extensions (csv/json) always pass since
+    they have no reliable magic. Content shorter than the smallest known
+    signature is rejected as "malformed".
+    """
+    ext = Path(filename).suffix.lower()
+    expected = _MAGIC_SIGNATURES.get(ext)
+    if expected is None:
+        return True, ""
+    if not content:
+        return False, "Arquivo vazio"
+    for sig in expected:
+        if content.startswith(sig):
+            return True, ""
+    # Hex preview of first few bytes to aid debugging without leaking content
+    preview = content[:8].hex()
+    return False, (
+        f"Conteúdo não corresponde à extensão {ext} "
+        f"(bytes iniciais: {preview})"
+    )
+
 TENANT_SUBDIRS = [
     "inbox",
     "data/financial_statements",
@@ -58,14 +101,33 @@ class StorageService:
             (root / subdir).mkdir(parents=True, exist_ok=True)
         return root
 
-    def validate_file(self, filename: str, size_bytes: int) -> tuple[bool, str]:
-        """Validate file extension and size. Returns (ok, error_message)."""
+    def validate_file(
+        self,
+        filename: str,
+        size_bytes: int,
+        content: Optional[bytes] = None,
+    ) -> tuple[bool, str]:
+        """Validate file extension, size, and (optionally) magic number.
+
+        Args:
+            filename: client-provided filename.
+            size_bytes: total size of the upload.
+            content: if provided, magic-number verification is performed (P1.3).
+                Falsy or None disables magic-check for backward compatibility
+                (legacy callers that only know size).
+
+        Returns ``(ok, error_message)``.
+        """
         ext = Path(filename).suffix.lower()
         if ext not in ALLOWED_EXTENSIONS:
             return False, f"Tipo de arquivo não permitido: {ext}. Aceitos: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
         max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
         if size_bytes > max_bytes:
             return False, f"Arquivo excede limite de {settings.MAX_UPLOAD_SIZE_MB}MB"
+        if content is not None:
+            ok, err = _validate_magic_number(filename, content)
+            if not ok:
+                return False, err
         return True, ""
 
     def check_workspace_quota(self, workspace_id: str) -> tuple[bool, int]:
@@ -108,6 +170,15 @@ class StorageService:
         if not str(resolved).startswith(str(tenant)):
             return None
         return resolved
+
+    def abs_stored_file(self, workspace_id: str, stored_path: str | None) -> Optional[Path]:
+        """Resolve ``stored_path`` to an absolute ``Path`` (legacy absolute or tenant-relative)."""
+        if not stored_path:
+            return None
+        p = Path(stored_path)
+        if p.is_absolute():
+            return p if p.exists() else None
+        return self.resolve_path(workspace_id, stored_path)
 
     def delete_file(self, workspace_id: str, relative_path: str) -> bool:
         """Delete a file within the tenant storage. Returns True if deleted."""

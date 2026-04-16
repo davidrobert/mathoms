@@ -222,7 +222,9 @@ class TestPipelineService:
         from backend.app.services.pipeline_service import detect_tier
         mock_config = MagicMock()
         mock_config.api_key_encrypted = "encrypted-key"
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal") as mock_session:
+        with patch("backend.app.services.pipeline_service.SyncSessionLocal") as mock_session, patch(
+            "backend.app.services.pipeline_service._vault.decrypt", return_value="sk-real-key"
+        ):
             mock_db = MagicMock()
             mock_session.return_value.__enter__ = MagicMock(return_value=mock_db)
             mock_session.return_value.__exit__ = MagicMock(return_value=False)

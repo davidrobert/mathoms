@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 @pytest.mark.asyncio
 async def test_list_reports_empty(auth_client: AsyncClient):
-    resp = await auth_client.get("/api/reports")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports")
     assert resp.status_code == 200
     data = resp.json()
     assert data["reports"] == []
@@ -21,19 +21,19 @@ async def test_list_reports_empty(auth_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_list_reports_unauthorized(client: AsyncClient):
-    resp = await client.get("/api/reports")
+    resp = await client.get("/api/workspaces/00000000-0000-0000-0000-000000000000/reports")
     assert resp.status_code in (401, 403)
 
 
 @pytest.mark.asyncio
 async def test_get_report_not_found(auth_client: AsyncClient):
-    resp = await auth_client.get("/api/reports/nonexistent-id")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/nonexistent-id")
     assert resp.status_code == 404
 
 
 @pytest.mark.asyncio
 async def test_get_report_html_not_found(auth_client: AsyncClient):
-    resp = await auth_client.get("/api/reports/nonexistent-id/html")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/nonexistent-id/html")
     assert resp.status_code == 404
 
 
@@ -110,7 +110,7 @@ async def test_get_report_includes_has_analysis_data_true(
         tmp_path=tmp_path,
         db=db,
     )
-    resp = await auth_client.get(f"/api/reports/{rid}")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}")
     assert resp.status_code == 200
     assert resp.json()["has_analysis_data"] is True
 
@@ -120,7 +120,7 @@ async def test_get_report_has_analysis_data_false_when_no_json(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
     rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path, db=db)
-    resp = await auth_client.get(f"/api/reports/{rid}")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}")
     assert resp.status_code == 200
     assert resp.json()["has_analysis_data"] is False
 
@@ -134,7 +134,7 @@ async def test_list_reports_propagates_has_analysis_data(
     await _seed_report(auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path / "a", db=db)
     await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path / "b", db=db)
 
-    resp = await auth_client.get("/api/reports")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports")
     assert resp.status_code == 200
     flags = [r["has_analysis_data"] for r in resp.json()["reports"]]
     assert True in flags and False in flags
@@ -145,13 +145,13 @@ async def test_list_reports_propagates_has_analysis_data(
 
 @pytest.mark.asyncio
 async def test_get_report_data_unauthorized(client: AsyncClient):
-    resp = await client.get("/api/reports/any-id/data")
+    resp = await client.get(f"/api/workspaces/00000000-0000-0000-0000-000000000000/reports/any-id/data")
     assert resp.status_code in (401, 403)
 
 
 @pytest.mark.asyncio
 async def test_get_report_data_not_found(auth_client: AsyncClient):
-    resp = await auth_client.get("/api/reports/nonexistent-id/data")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/nonexistent-id/data")
     assert resp.status_code == 404
 
 
@@ -165,7 +165,7 @@ async def test_get_report_data_returns_json_payload(
         "score": {"valor": 85, "max": 100, "classificacao": "Muito Bom"},
     }
     rid = await _seed_report(auth_client, analysis_payload=payload, tmp_path=tmp_path, db=db)
-    resp = await auth_client.get(f"/api/reports/{rid}/data")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
     assert resp.status_code == 200
     body = resp.json()
     assert body["periodo_dados"] == "202601-202604"
@@ -179,7 +179,7 @@ async def test_get_report_data_404_when_analysis_missing(
 ):
     """Relatório pré-F9 (sem analysis_json_path) retorna 404."""
     rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path, db=db)
-    resp = await auth_client.get(f"/api/reports/{rid}/data")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
     assert resp.status_code == 404
     assert "análise" in resp.json()["detail"].lower()
 
@@ -194,7 +194,7 @@ async def test_get_report_data_404_when_file_missing_from_disk(
     )
     # Apaga o JSON do disco preservando a row do DB
     (tmp_path / "analysis.json").unlink()
-    resp = await auth_client.get(f"/api/reports/{rid}/data")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
     assert resp.status_code == 404
 
 
@@ -207,7 +207,7 @@ async def test_get_report_data_500_when_json_corrupted(
     )
     # Corrompe o arquivo
     (tmp_path / "analysis.json").write_text("{invalid json", encoding="utf-8")
-    resp = await auth_client.get(f"/api/reports/{rid}/data")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
     assert resp.status_code == 500
     assert "corrompido" in resp.json()["detail"].lower()
 
@@ -217,13 +217,13 @@ async def test_get_report_data_500_when_json_corrupted(
 
 @pytest.mark.asyncio
 async def test_download_html_unauthorized(client: AsyncClient):
-    resp = await client.get("/api/reports/any-id/download.html")
+    resp = await client.get(f"/api/workspaces/00000000-0000-0000-0000-000000000000/reports/any-id/download.html")
     assert resp.status_code in (401, 403)
 
 
 @pytest.mark.asyncio
 async def test_download_html_not_found(auth_client: AsyncClient):
-    resp = await auth_client.get("/api/reports/nonexistent-id/download.html")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/nonexistent-id/download.html")
     assert resp.status_code == 404
 
 
@@ -238,7 +238,7 @@ async def test_download_html_sends_attachment_headers(
         tmp_path=tmp_path,
         db=db,
     )
-    resp = await auth_client.get(f"/api/reports/{rid}/download.html")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/download.html")
     assert resp.status_code == 200
     assert resp.headers["content-type"].startswith("text/html")
     disp = resp.headers["content-disposition"]
@@ -253,7 +253,7 @@ async def test_download_html_404_when_file_missing_from_disk(
 ):
     rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path, db=db)
     (tmp_path / "report.html").unlink()
-    resp = await auth_client.get(f"/api/reports/{rid}/download.html")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/download.html")
     assert resp.status_code == 404
 
 
@@ -287,8 +287,20 @@ async def test_get_report_data_isolation_across_workspaces(
         },
     )
     token_b = resp_b.json()["access_token"]
+    # Resolve B's own workspace id — B is now a legit tenant, just not the one
+    # that holds the report (seeded under auth_client's workspace).
+    from backend.app.models.user import User as _User
+    from backend.app.models.workspace import Workspace as _Ws
+    user_b = (await db.execute(
+        select(_User).where(_User.email == "user-b@test.com")
+    )).scalar_one()
+    ws_b = (await db.execute(
+        select(_Ws).where(_Ws.owner_id == user_b.id)
+    )).scalar_one()
     resp = await client.get(
-        f"/api/reports/{rid}/data",
+        f"/api/workspaces/{ws_b.id}/reports/{rid}/data",
         headers={"Authorization": f"Bearer {token_b}"},
     )
+    # B autentica no próprio workspace mas o report vive no workspace do auth_client.
+    # `get_current_workspace` passa (B é owner de ws_b), depois query retorna None (report não é de ws_b).
     assert resp.status_code == 404

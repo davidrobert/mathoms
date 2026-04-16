@@ -8,6 +8,56 @@ from typing import Optional
 
 from backend.app.core.config import settings
 from backend.app.models.document import DocumentStatus, DocumentType
+from backend.app.services.canonical_routing import (
+    ensure_minus_zero_original_filename,
+    route_inbox_to_canonical_data,
+)
+
+
+# P1.4 — LLM error classification helpers.
+# Transient: retryable (network, 5xx, rate limit, timeout).
+# Permanent: not retryable without config change (auth, quota, bad request).
+# Unknown:   caught-all; log and treat as best-effort failure.
+_TRANSIENT_ERROR_NAMES = frozenset({
+    "APIConnectionError", "APITimeoutError", "ConnectionError",
+    "ReadTimeout", "ConnectTimeout", "Timeout", "RateLimitError",
+    "APIStatusError",  # sometimes used for 5xx
+    "InternalServerError", "ServiceUnavailableError",
+})
+_PERMANENT_ERROR_NAMES = frozenset({
+    "AuthenticationError", "PermissionDeniedError", "PermissionError",
+    "BadRequestError", "NotFoundError", "UnprocessableEntityError",
+    "InvalidRequestError", "APIKeyError",
+})
+
+
+def _classify_llm_error(exc: BaseException) -> str:
+    """Return 'transient' | 'permanent' | 'unknown'.
+
+    First checks explicit type names (portable across SDKs). Then inspects
+    ``status_code`` / ``code`` attributes if present (requests / httpx / anthropic
+    all expose these on their API errors).
+    """
+    name = type(exc).__name__
+    if name in _TRANSIENT_ERROR_NAMES:
+        return "transient"
+    if name in _PERMANENT_ERROR_NAMES:
+        return "permanent"
+
+    # HTTP status-based classification (if the exception carries one).
+    status_code = getattr(exc, "status_code", None) or getattr(exc, "code", None)
+    try:
+        status_code = int(status_code)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        status_code = None
+
+    if status_code is not None:
+        if status_code in (408, 429) or 500 <= status_code < 600:
+            return "transient"
+        if 400 <= status_code < 500:
+            return "permanent"
+
+    return "unknown"
 
 
 def _detect_json_type(file_path: Path) -> Optional[DocumentType]:
@@ -165,7 +215,12 @@ def classify_document(file_path: Path, base_dir: Path) -> dict:
         try:
             llm_result = classify_by_llm(file_path)
         except Exception as exc:  # network / parse error — don't crash upload
+            # P1.4 — classify error kind so the caller can decide between
+            # retry (transient), mark-for-review (permanent config issue),
+            # or best-effort continue with content-regex result only.
+            kind = _classify_llm_error(exc)
             meta["llm_error"] = f"{type(exc).__name__}: {str(exc)[:200]}"
+            meta["llm_error_kind"] = kind  # one of: transient, permanent, unknown
 
         if llm_result:
             meta["llm"] = llm_result
@@ -189,6 +244,7 @@ def classify_document(file_path: Path, base_dir: Path) -> dict:
             "bank_code": best_institution,
             "period": best_period,
             "dest_group": None,
+            "e0_doc_type": None,
             "routed_path": None,
             "classification_meta": meta,
             "confidence": confidence,
@@ -200,40 +256,12 @@ def classify_document(file_path: Path, base_dir: Path) -> dict:
         "bank_code": best_institution,
         "period": best_period,
         "dest_group": best_dest_group,
+        "e0_doc_type": best_type,
         "routed_path": None,
         "classification_meta": meta,
         "confidence": confidence,
         "needs_review": needs_review,
     }
-
-
-def route_to_data_dir(file_path: Path, dest_group: str | None, tenant_root: Path) -> Path | None:
-    """Copy a classified document from inbox/ to data/{dest_group}/.
-
-    This mirrors what E0-route does in CLI mode (move from inbox/ to data/).
-    In web mode we copy (not move) so the inbox/ original is preserved as the
-    canonical stored_path in the Document model.
-
-    Returns the destination path, or None if dest_group is unknown.
-    """
-    if not dest_group or not file_path.exists():
-        return None
-
-    dest_dir = tenant_root / "data" / dest_group
-    dest_dir.mkdir(parents=True, exist_ok=True)
-
-    dest_path = dest_dir / file_path.name
-    # Avoid overwriting if name collides
-    counter = 1
-    while dest_path.exists():
-        stem = file_path.stem
-        ext = file_path.suffix
-        dest_path = dest_dir / f"{stem}_{counter}{ext}"
-        counter += 1
-
-    import shutil
-    shutil.copy2(str(file_path), str(dest_path))
-    return dest_path
 
 
 def process_uploaded_document(
@@ -256,17 +284,26 @@ def process_uploaded_document(
     if ext == ".json":
         json_type = _detect_json_type(file_path)
         if json_type:
-            # JSON files (E1/E1.5) go to specific dirs
+            import shutil
+
+            stored_rel: str | None = None  # remains None if tenant_root missing
+            # JSON files (E1/E1.5) go to specific dirs — use *-0_original.* for E2/pipeline parity
             if tenant_root and json_type == DocumentType.e1_members_json:
                 members_dir = tenant_root / "members"
                 members_dir.mkdir(parents=True, exist_ok=True)
-                import shutil
-                shutil.copy2(str(file_path), str(members_dir / file_path.name))
+                final_name = ensure_minus_zero_original_filename(file_path.name)
+                dest = members_dir / final_name
+                shutil.copy2(str(file_path), str(dest))
+                rel = dest.resolve().relative_to(tenant_root.resolve())
+                stored_rel = str(rel).replace("\\", "/")
             elif tenant_root and json_type == DocumentType.e1_5_baseline_json:
                 e2_dir = tenant_root / "processed" / "E2_extracts"
                 e2_dir.mkdir(parents=True, exist_ok=True)
-                import shutil
-                shutil.copy2(str(file_path), str(e2_dir / file_path.name))
+                final_name = ensure_minus_zero_original_filename(file_path.name)
+                dest = e2_dir / final_name
+                shutil.copy2(str(file_path), str(dest))
+                rel = dest.resolve().relative_to(tenant_root.resolve())
+                stored_rel = str(rel).replace("\\", "/")
             return {
                 "status": DocumentStatus.ready,
                 "doc_type": json_type,
@@ -276,6 +313,7 @@ def process_uploaded_document(
                 "confidence": 1.0,
                 "needs_review": False,
                 "error_message": None,
+                "stored_path_relative": stored_rel,
             }
 
     if ext == ".pdf" and passwords:
@@ -290,15 +328,32 @@ def process_uploaded_document(
                 "confidence": 0.0,
                 "needs_review": True,
                 "error_message": "PDF protegido por senha. Nenhuma senha do vault funcionou.",
+                "stored_path_relative": None,
             }
 
     project_root = config_dir.parent if config_dir.name == "config" else config_dir
     classification = classify_document(file_path, project_root)
 
-    # Route file from inbox/ to data/{dest_group}/ so pipeline stages find it
-    if tenant_root and classification.get("dest_group"):
-        routed = route_to_data_dir(file_path, classification["dest_group"], tenant_root)
-        classification["routed_path"] = str(routed) if routed else None
+    stored_rel: str | None = None
+    # Move inbox → data/... with E0 canonical filename (*-0_original.*)
+    if tenant_root and classification.get("dest_group") and classification.get("e0_doc_type"):
+        routed = route_inbox_to_canonical_data(
+            file_path,
+            tenant_root,
+            project_root,
+            dest_group=classification["dest_group"],
+            e0_doc_type=classification["e0_doc_type"],
+            institution=classification.get("bank_code"),
+            period=classification.get("period"),
+            classification_meta=classification.get("classification_meta"),
+        )
+        if routed:
+            abs_dest, stored_rel = routed
+            classification["routed_path"] = str(abs_dest)
+        else:
+            classification["routed_path"] = None
+    elif tenant_root and classification.get("dest_group"):
+        classification["routed_path"] = None
 
     return {
         "status": DocumentStatus.ready,
@@ -309,4 +364,5 @@ def process_uploaded_document(
         "confidence": classification.get("confidence", 0.0),
         "needs_review": classification.get("needs_review", False),
         "error_message": None,
+        "stored_path_relative": stored_rel,
     }

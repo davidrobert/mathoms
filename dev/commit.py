@@ -57,10 +57,10 @@ PROJECT_DIR = DEV_DIR.parent
 # .gitignore, mas se alguém editar o gitignore sem pensar, este check impede
 # o vazamento).
 #
-# - storage/   → uploads por tenant (dados financeiros de TODOS os usuários)
-# - data/      → legado single-tenant: extratos/faturas brutos
-# - inbox/     → legado single-tenant: área de entrada
-# - inbox_processed/ → legado single-tenant: processados
+# - storage/   → árvore backend multi-tenant (storage/<workspace_id>/…)
+# - data/      → legado CLI na raiz do repo: extratos/faturas (scripts/)
+# - inbox/     → legado CLI: área de entrada
+# - inbox_processed/ → legado CLI: processados
 # - _scratch/  → temporários
 FORBIDDEN_DIRS = (
     "storage/",

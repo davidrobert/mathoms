@@ -59,7 +59,7 @@ class TestConcurrencyLimit:
         db.add(active_run)
         await db.commit()
 
-        resp = await client.post("/api/pipeline/run", json={"skip_llm": True})
+        resp = await client.post(f"/api/workspaces/{ws.id}/pipeline/run", json={"skip_llm": True})
         assert resp.status_code == 409
         assert "ativa" in resp.json()["detail"].lower() or "execução" in resp.json()["detail"].lower()
 
@@ -95,7 +95,7 @@ class TestConcurrencyLimit:
         (data_dir / "seed.pdf").write_bytes(b"x")
 
         with patch("backend.app.api.pipeline.start_pipeline_run"):
-            resp = await client.post("/api/pipeline/run", json={"skip_llm": True})
+            resp = await client.post(f"/api/workspaces/{ws.id}/pipeline/run", json={"skip_llm": True})
             assert resp.status_code == 202
 
     @pytest.mark.asyncio
@@ -113,7 +113,7 @@ class TestConcurrencyLimit:
         db.add(pending_run)
         await db.commit()
 
-        resp = await client.post("/api/pipeline/run", json={"skip_llm": True})
+        resp = await client.post(f"/api/workspaces/{ws.id}/pipeline/run", json={"skip_llm": True})
         assert resp.status_code == 409
 
 
@@ -136,7 +136,7 @@ class TestCancellation:
         await db.commit()
 
         with patch("backend.app.services.pipeline_service.publish_run_cancelled") as mock_pub:
-            resp = await client.post(f"/api/pipeline/runs/{run.id}/cancel")
+            resp = await client.post(f"/api/workspaces/{ws.id}/pipeline/runs/{run.id}/cancel")
             assert resp.status_code == 200
             assert "cancelamento" in resp.json()["detail"].lower()
 
@@ -156,14 +156,15 @@ class TestCancellation:
         db.add(run)
         await db.commit()
 
-        resp = await client.post(f"/api/pipeline/runs/{run.id}/cancel")
+        resp = await client.post(f"/api/workspaces/{ws.id}/pipeline/runs/{run.id}/cancel")
         assert resp.status_code == 409
 
     @pytest.mark.asyncio
     async def test_cancel_nonexistent_run(self, auth_user):
         """Cancelling a nonexistent run should return 404."""
         client = auth_user["client"]
-        resp = await client.post(f"/api/pipeline/runs/{uuid.uuid4()}/cancel")
+        ws = auth_user["workspace"]
+        resp = await client.post(f"/api/workspaces/{ws.id}/pipeline/runs/{uuid.uuid4()}/cancel")
         assert resp.status_code == 404
 
 
@@ -197,7 +198,7 @@ class TestPolling:
         db.add(log)
         await db.commit()
 
-        resp = await client.get(f"/api/pipeline/runs/{run.id}")
+        resp = await client.get(f"/api/workspaces/{ws.id}/pipeline/runs/{run.id}")
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "running"
@@ -223,7 +224,7 @@ class TestPolling:
         db.add(run)
         await db.commit()
 
-        resp = await client.get(f"/api/pipeline/runs/{run.id}")
+        resp = await client.get(f"/api/workspaces/{ws.id}/pipeline/runs/{run.id}")
         assert resp.status_code == 200
         assert resp.json()["celery_task_id"] == "celery-abc-123"
 
@@ -243,7 +244,7 @@ class TestPolling:
         db.add(run)
         await db.commit()
 
-        resp = await client.get(f"/api/pipeline/runs/{run.id}")
+        resp = await client.get(f"/api/workspaces/{ws.id}/pipeline/runs/{run.id}")
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "needs_review"
@@ -278,7 +279,7 @@ class TestResume:
         db.add(review)
         await db.commit()
 
-        resp = await client.post(f"/api/pipeline/runs/{run.id}/resume")
+        resp = await client.post(f"/api/workspaces/{ws.id}/pipeline/runs/{run.id}/resume")
         assert resp.status_code == 409
         assert "pendentes" in resp.json()["detail"].lower()
 
@@ -297,7 +298,7 @@ class TestResume:
         db.add(run)
         await db.commit()
 
-        resp = await client.post(f"/api/pipeline/runs/{run.id}/resume")
+        resp = await client.post(f"/api/workspaces/{ws.id}/pipeline/runs/{run.id}/resume")
         assert resp.status_code == 409
 
 
@@ -325,7 +326,7 @@ class TestRunList:
             db.add(run)
         await db.commit()
 
-        resp = await client.get("/api/pipeline/runs")
+        resp = await client.get(f"/api/workspaces/{ws.id}/pipeline/runs")
         assert resp.status_code == 200
         data = resp.json()
         assert data["total"] == 3

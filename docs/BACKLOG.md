@@ -651,7 +651,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | #     | Tarefa                                                                                                                                                                                                          | Prio | Est. | Status |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
 | 7E.6  | **Status page público** (`uptime-kuma` self-hosted ou `instatus.com` free tier): incidentes manuais + uptime auto; link na footer do app                                                                       | P1 | 3h | ☐ |
-| 7E.7  | **Business metrics dashboard**: query simples + página interna `/admin/metrics`: runs/day, success rate trend (7d/30d), p95 duration, custo médio LLM por run, documents uploaded/day, active workspaces — integra **IA-1** do [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md) (protegida por **7F.2–7F.4**) | P1 | 6h | ☐ |
+| 7E.7  | **Business metrics dashboard**: query simples + página interna `/admin/metrics`: runs/day, success rate trend (7d/30d), p95 duration, custo médio LLM por run, documents uploaded/day, active workspaces — integra **IA-2** do [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md) (protegida por **7F.2–7F.4**) | P1 | 6h | ☐ |
 | 7E.8  | **SLOs/SLAs declarados** em `docs/SLO.md`: uptime 99% beta / 99.5% GA; p95 API <1s; p95 pipeline free <5min, premium <15min; alertas Sentry quando burn rate >2x                                                | P0 | 1h | ☐ |
 
 #### 7E.D — Comunicação de incidentes
@@ -674,7 +674,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 ### F7F — Console interno (operadores)
 
-> Superfície para CEO, Ops, CS, Financeiro e Legal **operarem a plataforma** (não confundir com `/config` do workspace do cliente). Fases conceituais **IA-0 … IA-3** em [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md). A entrega **7E.7** (`/admin/metrics`) é o núcleo da **IA-1**; as linhas abaixo cobrem fundação, API e evolução CS/financeiro.
+> Superfície para CEO, Ops, CS, Financeiro e Legal **operarem a plataforma** (não confundir com `/config` do workspace do cliente). Fases conceituais **IA-0 … IA-4** em [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md). **7F.9–7F.15** materializam a **IA-0** (CLI local + **7F.15** UI web só em **localhost**; executável antes de auth staff na rede). A entrega **7E.7** (`/admin/metrics`) é o núcleo da **IA-2**. **Ordem sugerida:** fechar **7F.9–7F.12** (P0) cedo; **7F.15** em paralelo ou logo após se a v1 incluir interface web local; **7F.1** (ADR) pode iniciar em paralelo; **7F.2–7F.4** quando for expor operações fora de localhost.
 
 | #     | Tarefa | Prio | Est. | Status |
 | ----- | ------ | ---- | ---- | ------ |
@@ -686,8 +686,17 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | 7F.6  | **CS:** busca por email / `user_id` → workspaces, roles, convites (somente metadados); toda consulta auditada | P2 | 8h | ☐ |
 | 7F.7  | **CS:** endpoint + UI para **support bundle** JSON (diagnóstico redigido, sem valores/PII por padrão) | P2 | 6h | ☐ |
 | 7F.8  | **Financeiro (pós-billing):** links read-only Stripe + export CSV contábil — depende de billing real (F10 / roadmap) | P2 | TBD | ☐ |
+| 7F.9  | **IA-0 — CLI interno:** entrypoint documentado (ex.: `python -m app.scripts.internal_ops` ou target em `Makefile`) + guardrails: `--dry-run` ou confirmação explícita em deletes; bloqueio se ambiente produção sem flag + env explícitos; append de linha de audit em `logs/` (operador, ação, alvo, timestamp) | P0 | 4h | ☐ |
+| 7F.10 | **IA-0 — Exclusão de usuário:** cascata coerente no BD (memberships, convites, ownership de workspace conforme política); documentar hard delete vs anonimização; testes com fixture SQLite | P0 | 6h | ☐ |
+| 7F.11 | **IA-0 — Reset de senha manual:** CLI atualiza hash no modelo `User` (mesmo algoritmo do app); senha via prompt quando possível, não via shell history | P0 | 2h | ☐ |
+| 7F.12 | **IA-0 — Purge de documentos:** por `user_id` ou `workspace_id`, remove registros e blobs em storage (`stored_path` / [storage.py](../backend/app/services/storage.py)); `--dry-run` lista arquivos e linhas afetadas | P0 | 6h | ☐ |
+| 7F.13 | **IA-0 — Métricas de utilização:** script agrega uploads/runs/workspaces/volume storage → stdout ou CSV (base para **7D.9**) | P1 | 4h | ☐ |
+| 7F.14 | **IA-0 — Relatórios read-only:** lista ou dump JSON dos últimos `Report` (ou pipeline runs) por conta; sem mutação nem reexecução de pipeline pelo mesmo comando | P1 | 4h | ☐ |
+| 7F.15 | **IA-0 — UI web local:** páginas mínimas (Next dev e/ou rotas FastAPI) em **127.0.0.1** apenas, habilitadas por env explícito; reutilizam a mesma camada de serviço que o CLI (**7F.9**); confirmação em tela para deletes; mesmo bloqueio de produção que o CLI; documentar URL e flag no runbook | P0 | 6h | ☐ |
 
-**Checkpoint F7F (MVP):** 7F.1–7F.4 concluídos • **7E.7** renderizando para papel `internal_ops` • zero exposição de rotas internas em deploy sem config explícita.
+**Checkpoint IA-0:** 7F.9–7F.12 concluídos (operador executa exclusão de conta, purge e troca de senha localmente com documentação) • 7F.13–7F.14 desejáveis antes de portar tudo para `/api/internal/` • **7F.15** concluído se a v1 incluir interface web rodando só em localhost.
+
+**Checkpoint F7F (MVP remoto):** 7F.1–7F.4 concluídos • **7E.7** renderizando para papel `internal_ops` • zero exposição de rotas internas em deploy sem config explícita.
 
 ---
 

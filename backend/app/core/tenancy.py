@@ -90,7 +90,10 @@ async def get_current_workspace(
         )
 
     ws_row = await db.execute(
-        select(Workspace).where(Workspace.id == workspace_id)
+        select(Workspace).where(
+            Workspace.id == workspace_id,
+            Workspace.deleted_at.is_(None),  # P1.2 soft-delete filter
+        )
     )
     workspace = ws_row.scalar_one_or_none()
     if workspace is None:

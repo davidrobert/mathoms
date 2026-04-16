@@ -52,7 +52,9 @@ async def test_goals_payload_without_if_returns_empty_section(db):
     ws = await factories.make_workspace(db)
     payload = await build_goals_payload(ws.id, db=db)
     assert "independencia_financeira" not in payload
-    assert payload["_adapter_version"] == 1
+    # Adapter sempre emite v2 após refactor do build_goals_payload; payload
+    # mínimo só contém _adapter_version = 2.
+    assert payload["_adapter_version"] == 2
 
 
 @pytest.mark.asyncio

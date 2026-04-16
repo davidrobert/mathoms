@@ -13,6 +13,17 @@ Diferença conceitual:
 | `frontend/`  | SPA Next.js                                      |
 | **`dev/`**   | **Dev tooling: commit, hooks, validadores**      |
 
+## Dados no disco (o que os hooks bloqueiam)
+
+- **`storage/`** na raiz do repo — árvore **multi-tenant** do backend
+  (``storage/<workspace_id>/data/…``, ``inbox/``, ``processed/``, …). Nunca
+  versionar: contém PDFs e artefatos por workspace.
+- **`data/`**, **`inbox/`**, **`inbox_processed/`** na raiz — fluxo **CLI**
+  single-tenant (pipeline legado em ``scripts/``), também ignorados pelo git.
+
+Os hooks (`check_forbidden_paths`, lógica espelhada em `commit.py`) bloqueiam
+ambos os mundos para evitar vazamento acidental de dados.
+
 ## Arquivos
 
 - **`commit.py`** — wrapper opinado para `git add -A && git commit && git push`

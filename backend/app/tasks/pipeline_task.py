@@ -10,6 +10,7 @@ The core logic is identical to the former _run_pipeline_thread but:
 
 from __future__ import annotations
 
+import logging
 import time
 import uuid
 from datetime import datetime, timezone
@@ -44,6 +45,8 @@ from backend.app.services.pipeline_adapter import (
 from backend.app.services.report_tasks_snapshot_service import (
     build_snapshot_sync,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _materialize_adapter_configs(
@@ -350,6 +353,17 @@ def run_pipeline_task(
     ctx.incremental = incremental
     ctx.incremental_doc_paths = incremental_doc_paths or []
     ctx.ensure_dirs()
+
+    logger.info(
+        "pipeline_start run_id=%s workspace_id=%s incremental=%s "
+        "incremental_paths=%d stages=%d tier=%s",
+        run_id,
+        ws_id,
+        incremental,
+        len(incremental_doc_paths or []),
+        len(stages),
+        tier,
+    )
 
     # ADR-077 / F8.4: materializa payloads do adapter como arquivos no
     # tenant config dir ANTES de rodar o pipeline. Os scripts (E5, E5.N,

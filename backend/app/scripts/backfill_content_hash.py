@@ -6,8 +6,11 @@ fail if some rows are left NULL, the dedupe check only works for rows that
 have a hash.
 
 Usage:
-    .venv/bin/python -m backend.scripts.backfill_content_hash --dry-run
-    .venv/bin/python -m backend.scripts.backfill_content_hash --apply
+    .venv/bin/python -m backend.app.scripts.backfill_content_hash --dry-run
+    .venv/bin/python -m backend.app.scripts.backfill_content_hash --apply
+
+``stored_path`` no DB pode ser relativo ao tenant — a resolução é feita via
+:class:`~backend.app.services.storage.StorageService`.
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ from sqlalchemy import select
 
 from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.models.document import Document
+from backend.app.services.storage import StorageService
 
 
 def _sha256_of(path: Path) -> str | None:
@@ -33,6 +37,9 @@ def _sha256_of(path: Path) -> str | None:
         return h.hexdigest()
     except (OSError, FileNotFoundError):
         return None
+
+
+_storage = StorageService()
 
 
 async def backfill(apply: bool) -> tuple[int, int, int]:
@@ -51,7 +58,11 @@ async def backfill(apply: bool) -> tuple[int, int, int]:
                 failed += 1
                 print(f"  [skip] {doc.id}: stored_path is NULL", flush=True)
                 continue
-            path = Path(doc.stored_path)
+            path = _storage.abs_stored_file(doc.workspace_id, doc.stored_path)
+            if path is None:
+                failed += 1
+                print(f"  [skip] {doc.id}: stored_path not resolvable — {doc.stored_path!r}", flush=True)
+                continue
             digest = _sha256_of(path)
             if digest is None:
                 failed += 1

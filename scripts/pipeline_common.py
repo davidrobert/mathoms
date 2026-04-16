@@ -6,6 +6,11 @@ Pipeline Common — shared utilities for all pipeline stages (E0–E7).
 Consolidates config loading, path resolution, JSON I/O, and logging
 that was previously duplicated across each eN_*.py script.
 
+**Layout de paths:** por omissão, ``PROJECT_DIR`` é a raiz do repositório
+(``data/``, ``processed/``, …). No produto web, :func:`_init_config` é chamado
+com a raiz do tenant (``storage/<workspace_id>/``); a mesma árvore de pastas,
+com ``config/`` materializado pelo backend.
+
 Usage:
     from scripts.pipeline_common import (
         PROJECT_DIR, CONFIG_DIR, DATA_DIR, PROCESSED_DIR, LOGS_DIR,

@@ -13,11 +13,14 @@ preserved). If you need an audit trail, take a DB backup before running with
 --apply.
 
 Usage:
-    .venv/bin/python -m backend.scripts.reclassify_documents --dry-run
-    .venv/bin/python -m backend.scripts.reclassify_documents --apply
-    .venv/bin/python -m backend.scripts.reclassify_documents --apply --no-llm
-    .venv/bin/python -m backend.scripts.reclassify_documents --apply \\
+    .venv/bin/python -m backend.app.scripts.reclassify_documents --dry-run
+    .venv/bin/python -m backend.app.scripts.reclassify_documents --apply
+    .venv/bin/python -m backend.app.scripts.reclassify_documents --apply --no-llm
+    .venv/bin/python -m backend.app.scripts.reclassify_documents --apply \\
         --only-doc-type other           # restrict to currently-misclassified docs
+
+Caminhos: ``stored_path`` relativo ao workspace é resolvido com
+:class:`~backend.app.services.storage.StorageService` (compatível com legado absoluto).
 """
 
 from __future__ import annotations
@@ -37,14 +40,18 @@ from backend.app.services.document_processor import (
     _detect_json_type,
     classify_document,
 )
+from backend.app.services.storage import StorageService
 
 
 def _doc_type_value(v) -> str:
     return v.value if hasattr(v, "value") else (v or "")
 
 
+_storage = StorageService()
+
+
 async def _reclassify_one(doc: Document, config_root: Path) -> dict:
-    path = Path(doc.stored_path) if doc.stored_path else None
+    path = _storage.abs_stored_file(doc.workspace_id, doc.stored_path)
     if path is None or not path.exists():
         return {"skipped": "no_stored_path", "prior": _doc_type_value(doc.doc_type)}
 

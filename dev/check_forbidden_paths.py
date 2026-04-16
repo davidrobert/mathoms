@@ -10,6 +10,9 @@ ou tiver sufixo proibido.
 Mantém em sincronia com `dev/commit.py`: a intenção é que pre-commit rode
 esta mesma validação em CI, git hooks locais e via dev/commit.py — defense
 in depth.
+
+Nota: `storage/` cobre uploads multi-tenant; `data/`/`inbox/` cobrem o pipeline
+CLI na raiz do repo — ver `dev/README.md`.
 """
 
 from __future__ import annotations

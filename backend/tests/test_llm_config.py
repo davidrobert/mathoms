@@ -199,7 +199,7 @@ async def test_pipeline_stage_skipped_free_tier(db: AsyncSession):
 @pytest.mark.asyncio
 async def test_get_llm_config_empty(auth_client: AsyncClient):
     """GET /api/config/llm returns null when no config exists."""
-    resp = await auth_client.get("/api/config/llm")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/llm")
     assert resp.status_code == 200
     assert resp.json() is None
 
@@ -207,7 +207,7 @@ async def test_get_llm_config_empty(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_save_and_get_llm_config(auth_client: AsyncClient):
     """PUT /api/config/llm saves config with encrypted key, GET returns masked key."""
-    resp = await auth_client.put("/api/config/llm", json={
+    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
         "provider": "anthropic",
         "api_key": "sk-ant-api03-REAL-KEY-HERE-1234567890",
         "model_name": "claude-sonnet-4-20250514",
@@ -224,7 +224,7 @@ async def test_save_and_get_llm_config(auth_client: AsyncClient):
     assert "7890" in data["api_key_masked"]
     assert "REAL-KEY-HERE" not in data["api_key_masked"]
 
-    get_resp = await auth_client.get("/api/config/llm")
+    get_resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/llm")
     assert get_resp.status_code == 200
     assert get_resp.json()["provider"] == "anthropic"
 
@@ -232,13 +232,13 @@ async def test_save_and_get_llm_config(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_update_llm_config(auth_client: AsyncClient):
     """PUT /api/config/llm updates existing config."""
-    await auth_client.put("/api/config/llm", json={
+    await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
         "provider": "anthropic",
         "api_key": "sk-ant-first-key",
         "model_name": "claude-sonnet-4-20250514",
     })
 
-    resp = await auth_client.put("/api/config/llm", json={
+    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
         "provider": "openai",
         "api_key": "sk-openai-new-key",
         "model_name": "gpt-4o",
@@ -255,29 +255,29 @@ async def test_update_llm_config(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_delete_llm_config(auth_client: AsyncClient):
     """DELETE /api/config/llm removes config."""
-    await auth_client.put("/api/config/llm", json={
+    await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
         "provider": "anthropic",
         "api_key": "sk-ant-delete-test",
     })
 
-    resp = await auth_client.delete("/api/config/llm")
+    resp = await auth_client.delete(f"/api/workspaces/{auth_client.ws_id}/config/llm")
     assert resp.status_code == 204
 
-    get_resp = await auth_client.get("/api/config/llm")
+    get_resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/llm")
     assert get_resp.json() is None
 
 
 @pytest.mark.asyncio
 async def test_delete_llm_config_not_found(auth_client: AsyncClient):
     """DELETE /api/config/llm returns 404 when no config."""
-    resp = await auth_client.delete("/api/config/llm")
+    resp = await auth_client.delete(f"/api/workspaces/{auth_client.ws_id}/config/llm")
     assert resp.status_code == 404
 
 
 @pytest.mark.asyncio
 async def test_invalid_provider_rejected(auth_client: AsyncClient):
     """PUT /api/config/llm rejects invalid provider."""
-    resp = await auth_client.put("/api/config/llm", json={
+    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
         "provider": "invalid_provider",
         "api_key": "some-key",
     })
@@ -287,7 +287,7 @@ async def test_invalid_provider_rejected(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_empty_api_key_rejected(auth_client: AsyncClient):
     """PUT /api/config/llm rejects empty API key."""
-    resp = await auth_client.put("/api/config/llm", json={
+    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
         "provider": "anthropic",
         "api_key": "",
     })
@@ -297,7 +297,7 @@ async def test_empty_api_key_rejected(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_tier_free_by_default(auth_client: AsyncClient):
     """GET /api/config/llm/tier returns 'free' when no LLM config."""
-    resp = await auth_client.get("/api/config/llm/tier")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/llm/tier")
     assert resp.status_code == 200
     data = resp.json()
     assert data["tier"] == "free"
@@ -307,12 +307,12 @@ async def test_tier_free_by_default(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_tier_premium_with_config(auth_client: AsyncClient):
     """GET /api/config/llm/tier returns 'premium' when LLM config exists."""
-    await auth_client.put("/api/config/llm", json={
+    await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
         "provider": "anthropic",
         "api_key": "sk-ant-test-key",
     })
 
-    resp = await auth_client.get("/api/config/llm/tier")
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/llm/tier")
     assert resp.status_code == 200
     data = resp.json()
     assert data["tier"] == "premium"
@@ -323,7 +323,7 @@ async def test_tier_premium_with_config(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_test_connection_no_config(auth_client: AsyncClient):
     """POST /api/config/llm/test returns 404 when no config and no api_key override."""
-    resp = await auth_client.post("/api/config/llm/test", json={})
+    resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/config/llm/test", json={})
     assert resp.status_code == 404
 
 
@@ -335,14 +335,14 @@ async def test_test_connection_no_config(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_max_tokens_bounds(auth_client: AsyncClient):
     """max_tokens must be between 1 and 200000."""
-    resp = await auth_client.put("/api/config/llm", json={
+    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
         "provider": "anthropic",
         "api_key": "sk-test",
         "max_tokens": 0,
     })
     assert resp.status_code == 422
 
-    resp = await auth_client.put("/api/config/llm", json={
+    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
         "provider": "anthropic",
         "api_key": "sk-test",
         "max_tokens": 200001,
@@ -353,14 +353,14 @@ async def test_max_tokens_bounds(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_temperature_bounds(auth_client: AsyncClient):
     """temperature must be between 0.0 and 2.0."""
-    resp = await auth_client.put("/api/config/llm", json={
+    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
         "provider": "anthropic",
         "api_key": "sk-test",
         "temperature": -0.1,
     })
     assert resp.status_code == 422
 
-    resp = await auth_client.put("/api/config/llm", json={
+    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
         "provider": "anthropic",
         "api_key": "sk-test",
         "temperature": 2.1,

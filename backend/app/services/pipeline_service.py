@@ -9,23 +9,51 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.app.core.config import settings
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.services.events import publish_run_cancelled
 from backend.app.services.storage import StorageService
+from backend.app.services.vault import VaultService
 
 logger = logging.getLogger(__name__)
+_vault = VaultService()
 
 
 def detect_tier(ws_id: str) -> str:
-    """Check if workspace has a valid LLM config → 'premium', else 'free'."""
+    """``premium`` only when LLMConfig exists and the API key decrypts to non-empty text."""
     with SyncSessionLocal() as db:
         cfg = db.query(LLMConfig).filter(LLMConfig.workspace_id == ws_id).first()
-        if cfg and cfg.api_key_encrypted:
-            return "premium"
-    return "free"
+        if not cfg or not (cfg.api_key_encrypted or "").strip():
+            return "free"
+        try:
+            plain = _vault.decrypt(cfg.api_key_encrypted)
+        except Exception:
+            return "free"
+        if not plain or not str(plain).strip():
+            return "free"
+        return "premium"
+
+
+async def resolve_llm_tier_async(db: AsyncSession, workspace_id: str) -> str:
+    """Async variant of :func:`detect_tier` for FastAPI handlers (same rules)."""
+    result = await db.execute(
+        select(LLMConfig).where(LLMConfig.workspace_id == workspace_id)
+    )
+    cfg = result.scalar_one_or_none()
+    if not cfg or not (cfg.api_key_encrypted or "").strip():
+        return "free"
+    try:
+        plain = _vault.decrypt(cfg.api_key_encrypted)
+    except Exception:
+        return "free"
+    if not plain or not str(plain).strip():
+        return "free"
+    return "premium"
 
 
 def start_pipeline_run(

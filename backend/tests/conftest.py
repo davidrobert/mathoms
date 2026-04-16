@@ -116,11 +116,18 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 async def auth_client(client: AsyncClient) -> AsyncClient:
     """Client with a pre-registered, authenticated user.
 
+    After F9/ADR-072 tenant-path migration, also exposes the auto-created
+    workspace's id via ``client.ws_id`` so tests can build tenant-scoped
+    URLs as ``f"/api/workspaces/{client.ws_id}/{resource}"``.
+
     NOTE: Para tests de multi-tenant isolation (6.5B.12), use a factory
     `make_user(db, ...)` + `make_workspace(db, owner=user)` e crie tokens
     via `backend.app.core.security.create_access_token(user.id)` para evitar
     colidir nesse fixture pré-fabricado.
     """
+    from sqlalchemy import select
+    from backend.app.models.workspace import Workspace
+
     resp = await client.post("/api/auth/register", json={
         "email": "fixture@test.com",
         "password": "testpass123",
@@ -128,6 +135,11 @@ async def auth_client(client: AsyncClient) -> AsyncClient:
     })
     token = resp.json()["access_token"]
     client.headers["Authorization"] = f"Bearer {token}"
+
+    # Resolve workspace id of the user (register auto-creates one).
+    async with TestSession() as session:
+        ws = (await session.execute(select(Workspace))).scalar_one()
+        client.ws_id = ws.id  # type: ignore[attr-defined]
     return client
 
 
@@ -155,7 +167,7 @@ async def auth_client_with_doc(auth_client: AsyncClient) -> AsyncClient:
         doc = Document(
             workspace_id=ws.id,
             original_name="fixture_extrato.pdf",
-            stored_path=f"/tmp/fixture-{ws.id}.pdf",
+            stored_path="data/financial_statements/itau_extratoconta_202601_202602-0_original.pdf",
             doc_type=DocumentType.bank_statement,
             bank_code="itau",
             period="202601",
@@ -168,7 +180,7 @@ async def auth_client_with_doc(auth_client: AsyncClient) -> AsyncClient:
 
         data_dir = settings.STORAGE_ROOT / ws.id / "data" / "financial_statements"
         data_dir.mkdir(parents=True, exist_ok=True)
-        (data_dir / "fixture.pdf").write_bytes(b"x")
+        (data_dir / "itau_extratoconta_202601_202602-0_original.pdf").write_bytes(b"x")
 
     return auth_client
 

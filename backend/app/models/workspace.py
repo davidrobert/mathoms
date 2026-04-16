@@ -24,6 +24,12 @@ class Workspace(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+    # Soft-delete (P1.2 · ADR-072). When not null, workspace is in "deleted"
+    # state — hard-delete happens via janitor job after grace period (30 days).
+    # Tenancy dependency (`get_current_workspace`) filters these out.
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
 
     owner = relationship("User", back_populates="workspaces")
     reports = relationship("Report", back_populates="workspace", cascade="all, delete-orphan")

@@ -46,12 +46,16 @@ _FOUNDER_LEAK_SIGNALS = {
 
 
 @pytest_asyncio.fixture
-async def fresh_user_and_token(db) -> tuple[str, str]:
-    """User novo SEM members no DB — força o caminho de fallback."""
+async def fresh_user_and_token(db) -> tuple[str, str, str]:
+    """User novo SEM members no DB — força o caminho de fallback.
+
+    Returns (user_id, token, workspace_id). Após F9/ADR-072, endpoints
+    tenant-scoped exigem path param `{workspace_id}`.
+    """
     u = await make_user(db, email="fresh@test.com", full_name="Fresh User")
-    await make_workspace(db, owner=u, name="Workspace Fresh")
+    ws = await make_workspace(db, owner=u, name="Workspace Fresh")
     await db.commit()
-    return u.id, create_access_token(u.id)
+    return u.id, create_access_token(u.id), ws.id
 
 
 def _assert_no_founder_leak(payload, where: str) -> None:
@@ -74,9 +78,8 @@ class TestMembersFallbackNeutral:
     async def test_fallback_returns_neutral_placeholders(
         self, client: AsyncClient, fresh_user_and_token
     ):
-        _, token = fresh_user_and_token
-        r = await client.get(
-            "/api/config/members",
+        _, token, ws_id = fresh_user_and_token
+        r = await client.get(f"/api/workspaces/{ws_id}/config/members",
             headers={"Authorization": f"Bearer {token}"},
         )
         assert r.status_code == 200, r.text
@@ -106,9 +109,8 @@ class TestExportFallbackNeutral:
     async def test_export_for_empty_tenant_does_not_dump_global(
         self, client: AsyncClient, fresh_user_and_token
     ):
-        _, token = fresh_user_and_token
-        r = await client.get(
-            "/api/config/export",
+        _, token, ws_id = fresh_user_and_token
+        r = await client.get(f"/api/workspaces/{ws_id}/config/export",
             headers={"Authorization": f"Bearer {token}"},
         )
         assert r.status_code == 200, r.text
@@ -140,8 +142,7 @@ class TestPopulatedTenantStillWorks:
         await db.commit()
         token = create_access_token(u.id)
 
-        r = await client.get(
-            "/api/config/members",
+        r = await client.get(f"/api/workspaces/{ws.id}/config/members",
             headers={"Authorization": f"Bearer {token}"},
         )
         assert r.status_code == 200, r.text

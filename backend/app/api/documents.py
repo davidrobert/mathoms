@@ -87,7 +87,7 @@ async def upload_documents(
         filename = upload_file.filename or "unknown"
         content = await upload_file.read()
 
-        ok, err_msg = _storage.validate_file(filename, len(content))
+        ok, err_msg = _storage.validate_file(filename, len(content), content=content)
         if not ok:
             doc = Document(
                 workspace_id=workspace.id,
@@ -156,6 +156,19 @@ async def upload_documents(
             doc.classification_confidence = result.get("confidence")
             doc.needs_review = bool(result.get("needs_review"))
             doc.error_message = result["error_message"]
+            rel = result.get("stored_path_relative")
+            if rel:
+                doc.stored_path = rel
+
+            # P1.4 — if the LLM fallback failed for a permanent reason
+            # (auth, bad request, etc), force `needs_review=True` so the UI
+            # surfaces the issue to the user even if content-regex produced
+            # a weakly-confident classification. Transient errors don't
+            # force review because retry-unlock will naturally retry.
+            meta = result.get("classification_meta") or {}
+            if (meta.get("llm_error_kind") == "permanent"
+                    and doc.status != DocumentStatus.error):
+                doc.needs_review = True
 
             # Fuzzy dedupe: if another doc in this workspace has the same
             # (doc_type, bank_code, period) but a different content_hash, flag
@@ -279,10 +292,9 @@ async def delete_document(
         "doc_type": doc.doc_type.value if hasattr(doc.doc_type, "value") else doc.doc_type,
     }
 
-    if doc.stored_path:
-        stored = Path(doc.stored_path)
-        if stored.exists():
-            stored.unlink(missing_ok=True)
+    abs_stored = _storage.abs_stored_file(workspace.id, doc.stored_path)
+    if abs_stored and abs_stored.exists():
+        abs_stored.unlink(missing_ok=True)
 
     await db.delete(doc)
 
@@ -331,7 +343,8 @@ async def retry_unlock(
     updated = []
 
     for doc in docs:
-        if not doc.stored_path or not Path(doc.stored_path).exists():
+        abs_doc = _storage.abs_stored_file(workspace.id, doc.stored_path)
+        if not doc.stored_path or not abs_doc or not abs_doc.exists():
             doc.status = DocumentStatus.error
             doc.error_message = "Arquivo não encontrado no storage"
             updated.append(doc)
@@ -339,7 +352,7 @@ async def retry_unlock(
 
         try:
             proc_result = process_uploaded_document(
-                Path(doc.stored_path), passwords, config_dir, tenant_root=tenant_root
+                abs_doc, passwords, config_dir, tenant_root=tenant_root
             )
             doc.status = proc_result["status"]
             doc.doc_type = proc_result["doc_type"]
@@ -347,6 +360,9 @@ async def retry_unlock(
             doc.period = proc_result["period"]
             doc.classification_meta = proc_result["classification_meta"]
             doc.error_message = proc_result["error_message"]
+            rel = proc_result.get("stored_path_relative")
+            if rel:
+                doc.stored_path = rel
         except Exception as exc:
             doc.status = DocumentStatus.error
             doc.error_message = f"Erro no retry: {str(exc)[:500]}"

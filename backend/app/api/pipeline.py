@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -23,10 +24,10 @@ from backend.app.schemas.pipeline import (
     StageReviewActionRequest,
     StageReviewResponse,
 )
-from backend.app.models.llm_config import LLMConfig
 from backend.app.services.pipeline_service import (
     cancel_pipeline_run,
     resume_pipeline_run,
+    resolve_llm_tier_async,
     start_pipeline_run,
 )
 
@@ -37,7 +38,17 @@ router = APIRouter(
 
 
 async def _check_no_active_run(ws_id: str, db: AsyncSession) -> None:
-    """Prevent concurrent pipeline runs in the same workspace."""
+    """Fast-path check for an active pipeline run in the workspace.
+
+    Serves two purposes:
+      1. UX: return a descriptive 409 before doing the heavier doc-count /
+         data-dir validation.
+      2. Defense-in-depth: the partial unique index
+         ``ux_pipeline_runs_ws_active`` (migration ``i4c5d6e7f8a9``) is the
+         authoritative guard — two concurrent requests that both pass this
+         check will collide on INSERT; the 2nd gets ``IntegrityError`` and
+         is converted to 409 inside ``trigger_pipeline``.
+    """
     result = await db.execute(
         select(func.count()).select_from(PipelineRun).where(
             PipelineRun.workspace_id == ws_id,
@@ -127,6 +138,14 @@ async def trigger_pipeline(
         new_docs_rows = new_docs_result.all()
         incremental_doc_ids = [str(r.id) for r in new_docs_rows]
         incremental_doc_paths = [r.stored_path for r in new_docs_rows if r.stored_path]
+        if not incremental_doc_paths:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Modo incremental requer documentos novos com caminho de armazenamento válido. "
+                    "Corrija documentos sem arquivo associado ou use 'Processar todos'."
+                ),
+            )
 
     from pipeline.orchestrator import DETERMINISTIC_ORDER, FULL_ORDER, FROM_MAP
 
@@ -142,8 +161,7 @@ async def trigger_pipeline(
     else:
         stages = FULL_ORDER[:]
 
-    llm_result = await db.execute(select(LLMConfig).where(LLMConfig.workspace_id == workspace.id))
-    tier = "premium" if llm_result.scalar_one_or_none() else "free"
+    tier = await resolve_llm_tier_async(db, workspace.id)
 
     run = PipelineRun(
         workspace_id=workspace.id,
@@ -154,7 +172,17 @@ async def trigger_pipeline(
         tier_at_run=tier,
     )
     db.add(run)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        # Partial unique index `ux_pipeline_runs_ws_active` collided —
+        # another request inserted a pending/running run between
+        # `_check_no_active_run` and this commit. Race resolved in DB.
+        await db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Já existe uma execução ativa neste workspace. Cancele ou aguarde.",
+        )
 
     result = await db.execute(
         select(PipelineRun)

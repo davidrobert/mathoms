@@ -9,33 +9,29 @@ if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
 
 
+def _normalize_stem_for_incremental(stem: str) -> str:
+    """Align E2 disk stem with DB stored_path stem (strip ``-0_original`` segment)."""
+    if "-0_original" in stem:
+        return stem.split("-0_original")[0]
+    return stem
+
+
 def _incremental_stems(ctx: WorkspaceContext) -> set[str] | None:
     """Return set of filename stems for incremental filtering, or None if not incremental."""
     if not ctx.incremental or not ctx.incremental_doc_paths:
         return None
     stems = set()
     for p in ctx.incremental_doc_paths:
-        # stored_path is relative (e.g. "data/financial_statements/banco_extrato.pdf")
+        # stored_path is relative (e.g. "data/financial_statements/banco_extrato-0_original.pdf")
         stem = Path(p).stem
-        # Also handle routed names (e.g. "itau_extratoconta_202601-0_original.csv")
-        # Strip the -0_original suffix to match against the base name
-        if "-0_original" in stem:
-            stem = stem.split("-0_original")[0]
-        stems.add(stem)
+        stems.add(_normalize_stem_for_incremental(stem))
     return stems
 
 
 def _matches_incremental(filepath: Path, allowed_stems: set[str]) -> bool:
-    """Check if a file matches the incremental document set."""
-    stem = filepath.stem
-    # Check direct match
-    if stem in allowed_stems:
-        return True
-    # Check if any allowed stem is a prefix (routed files may have suffixes)
-    for s in allowed_stems:
-        if stem.startswith(s) or s.startswith(stem):
-            return True
-    return False
+    """True iff normalized disk stem equals one of the allowed normalized stems."""
+    stem = _normalize_stem_for_incremental(filepath.stem)
+    return stem in allowed_stems
 
 
 def run(ctx: WorkspaceContext, extratos_only: bool = False, faturas_only: bool = False) -> dict:

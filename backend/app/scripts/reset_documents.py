@@ -1,9 +1,9 @@
 """Destructive reset: wipe Documents from DB and tenant storage.
 
-Use case: content-first classifier rollout. The existing DB has ~200 rows
-whose stored_path points at files that no longer exist on disk (storage was
-partially cleaned), making reclassification impossible. User will re-upload
-all documents after the reset.
+Use case: migração ou limpeza total. Uploads atuais guardam ``stored_path``
+relativo a ``storage/<workspace_id>/`` (ex.: ``data/financial_statements/...-0_original.pdf``).
+Este script não resolve ficheiros por linha — apaga todas as linhas ``documents``
+e remove diretórios de dados por tenant (inbox, data, processed, etc.).
 
 What it does (with --apply):
     1. DELETE FROM documents  (all rows, all workspaces)

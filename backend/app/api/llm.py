@@ -19,6 +19,7 @@ from backend.app.schemas.llm import (
     LLMConfigTestResponse,
     LLMTierResponse,
 )
+from backend.app.services.pipeline_service import resolve_llm_tier_async
 from backend.app.services.vault import VaultService
 
 router = APIRouter(
@@ -166,12 +167,10 @@ async def get_tier(
     """Check current workspace tier (free or premium based on valid LLM config)."""
     result = await db.execute(select(LLMConfig).where(LLMConfig.workspace_id == workspace.id))
     cfg = result.scalar_one_or_none()
-
-    if cfg and cfg.api_key_encrypted:
-        return LLMTierResponse(
-            tier="premium",
-            has_llm_config=True,
-            provider=cfg.provider,
-            model=cfg.model_name,
-        )
-    return LLMTierResponse(tier="free", has_llm_config=False)
+    tier = await resolve_llm_tier_async(db, workspace.id)
+    return LLMTierResponse(
+        tier=tier,
+        has_llm_config=cfg is not None,
+        provider=cfg.provider if cfg else None,
+        model=cfg.model_name if cfg else None,
+    )

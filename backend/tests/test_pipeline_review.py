@@ -113,7 +113,7 @@ async def test_trigger_pipeline_detects_free_tier(client: AsyncClient, db: Async
     await _seed_doc_for_pipeline(db, ws.id)
 
     with patch(_START):
-        resp = await client.post("/api/pipeline/run", json={"skip_llm": True})
+        resp = await client.post(f"/api/workspaces/{ws.id}/pipeline/run", json={"skip_llm": True})
     assert resp.status_code == 202
     assert resp.json()["tier_at_run"] == "free"
 
@@ -125,7 +125,7 @@ async def test_trigger_pipeline_detects_premium_tier(client: AsyncClient, db: As
     await _seed_doc_for_pipeline(db, ws_id)
 
     with patch(_START) as mock_start:
-        resp = await client.post("/api/pipeline/run", json={"skip_llm": True})
+        resp = await client.post(f"/api/workspaces/{ws_id}/pipeline/run", json={"skip_llm": True})
     assert resp.status_code == 202
     assert resp.json()["tier_at_run"] == "premium"
     call_kwargs = mock_start.call_args
@@ -143,7 +143,7 @@ async def test_list_reviews_empty(client: AsyncClient, db: AsyncSession):
     db.add(run)
     await db.commit()
 
-    resp = await client.get(f"/api/pipeline/runs/{run.id}/reviews")
+    resp = await client.get(f"/api/workspaces/{ws_id}/pipeline/runs/{run.id}/reviews")
     assert resp.status_code == 200
     assert resp.json() == []
 
@@ -153,7 +153,7 @@ async def test_list_reviews_with_pending(client: AsyncClient, db: AsyncSession):
     ws_id, token = await _setup_workspace_with_llm(db, client)
     run_id, review_id = await _create_needs_review_run(db, ws_id)
 
-    resp = await client.get(f"/api/pipeline/runs/{run_id}/reviews")
+    resp = await client.get(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews")
     assert resp.status_code == 200
     reviews = resp.json()
     assert len(reviews) == 1
@@ -167,8 +167,7 @@ async def test_approve_review(client: AsyncClient, db: AsyncSession):
     ws_id, token = await _setup_workspace_with_llm(db, client)
     run_id, review_id = await _create_needs_review_run(db, ws_id)
 
-    resp = await client.post(
-        f"/api/pipeline/runs/{run_id}/reviews/{review_id}",
+    resp = await client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/{review_id}",
         json={"action": "approve", "reviewer_notes": "Looks good"},
     )
     assert resp.status_code == 200
@@ -184,8 +183,7 @@ async def test_edit_review(client: AsyncClient, db: AsyncSession):
     run_id, review_id = await _create_needs_review_run(db, ws_id)
 
     edited = {"members": [{"key": "david", "full_name": "David FC"}]}
-    resp = await client.post(
-        f"/api/pipeline/runs/{run_id}/reviews/{review_id}",
+    resp = await client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/{review_id}",
         json={"action": "edit", "edited_output_json": edited, "reviewer_notes": "Fixed name"},
     )
     assert resp.status_code == 200
@@ -199,8 +197,7 @@ async def test_edit_review_requires_output_json(client: AsyncClient, db: AsyncSe
     ws_id, token = await _setup_workspace_with_llm(db, client)
     run_id, review_id = await _create_needs_review_run(db, ws_id)
 
-    resp = await client.post(
-        f"/api/pipeline/runs/{run_id}/reviews/{review_id}",
+    resp = await client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/{review_id}",
         json={"action": "edit"},
     )
     assert resp.status_code == 400
@@ -212,12 +209,10 @@ async def test_review_already_processed(client: AsyncClient, db: AsyncSession):
     ws_id, token = await _setup_workspace_with_llm(db, client)
     run_id, review_id = await _create_needs_review_run(db, ws_id)
 
-    await client.post(
-        f"/api/pipeline/runs/{run_id}/reviews/{review_id}",
+    await client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/{review_id}",
         json={"action": "approve"},
     )
-    resp = await client.post(
-        f"/api/pipeline/runs/{run_id}/reviews/{review_id}",
+    resp = await client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/{review_id}",
         json={"action": "approve"},
     )
     assert resp.status_code == 409
@@ -228,8 +223,7 @@ async def test_review_invalid_action(client: AsyncClient, db: AsyncSession):
     ws_id, token = await _setup_workspace_with_llm(db, client)
     run_id, review_id = await _create_needs_review_run(db, ws_id)
 
-    resp = await client.post(
-        f"/api/pipeline/runs/{run_id}/reviews/{review_id}",
+    resp = await client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/{review_id}",
         json={"action": "reject"},
     )
     assert resp.status_code == 422
@@ -240,8 +234,7 @@ async def test_review_not_found(client: AsyncClient, db: AsyncSession):
     ws_id, token = await _setup_workspace_with_llm(db, client)
     run_id, _ = await _create_needs_review_run(db, ws_id)
 
-    resp = await client.post(
-        f"/api/pipeline/runs/{run_id}/reviews/nonexistent-id",
+    resp = await client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/nonexistent-id",
         json={"action": "approve"},
     )
     assert resp.status_code == 404
@@ -255,7 +248,7 @@ async def test_resume_blocked_with_pending_reviews(client: AsyncClient, db: Asyn
     ws_id, token = await _setup_workspace_with_llm(db, client)
     run_id, review_id = await _create_needs_review_run(db, ws_id)
 
-    resp = await client.post(f"/api/pipeline/runs/{run_id}/resume")
+    resp = await client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/resume")
     assert resp.status_code == 409
     assert "reviews pendentes" in resp.json()["detail"]
 
@@ -268,7 +261,7 @@ async def test_resume_not_needs_review(client: AsyncClient, db: AsyncSession):
     db.add(run)
     await db.commit()
 
-    resp = await client.post(f"/api/pipeline/runs/{run.id}/resume")
+    resp = await client.post(f"/api/workspaces/{ws_id}/pipeline/runs/{run.id}/resume")
     assert resp.status_code == 409
     assert "não está pausada" in resp.json()["detail"]
 
@@ -277,7 +270,7 @@ async def test_resume_not_needs_review(client: AsyncClient, db: AsyncSession):
 async def test_resume_run_not_found(client: AsyncClient, db: AsyncSession):
     ws_id, token = await _setup_workspace_with_llm(db, client)
 
-    resp = await client.post("/api/pipeline/runs/nonexistent-id/resume")
+    resp = await client.post(f"/api/workspaces/{ws_id}/pipeline/runs/nonexistent-id/resume")
     assert resp.status_code == 404
 
 
@@ -289,7 +282,7 @@ async def test_pipeline_response_includes_tier_and_paused(client: AsyncClient, d
     ws_id, token = await _setup_workspace_with_llm(db, client)
     run_id, _ = await _create_needs_review_run(db, ws_id)
 
-    resp = await client.get(f"/api/pipeline/runs/{run_id}")
+    resp = await client.get(f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}")
     assert resp.status_code == 200
     data = resp.json()
     assert data["tier_at_run"] == "premium"
