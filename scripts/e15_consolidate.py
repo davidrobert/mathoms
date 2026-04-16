@@ -148,7 +148,18 @@ def _match_imovel_xlsx(descricao_irpf: str, imoveis_xlsx: List[dict]) -> Optiona
 
 
 def consolidate(baseline: dict) -> dict:
-    """Add consolidated keys to baseline from declarations + XLSX data."""
+    """Add consolidated keys to baseline from declarations + XLSX data.
+
+    Suporta dois formatos de input do E1.5:
+      - Legacy: ``{declarations: [...], imoveis_xlsx: [...]}``
+      - Atual (schema flat, ADR-*):
+        ``{itens: [{codigo, descricao, categoria, valor_brl, membro, ano}],
+           resumo: {...}, _meta: {...}}``
+
+    Quando detecta o formato atual, delega para :func:`consolidate_from_itens`.
+    """
+    if isinstance(baseline.get("itens"), list) and baseline.get("itens"):
+        return consolidate_from_itens(baseline)
 
     declarations = baseline.get("declarations", [])
     imoveis_xlsx = baseline.get("imoveis_xlsx", [])
@@ -330,6 +341,114 @@ def consolidate(baseline: dict) -> dict:
     # =========================================================================
     # 7. Merge into baseline
     # =========================================================================
+    baseline["imoveis_consolidados"] = imoveis_consolidados
+    baseline["veiculos_consolidados"] = veiculos_consolidados
+    baseline["investimentos_consolidados"] = investimentos_consolidados
+    baseline["dividas"] = dividas_consolidadas
+    baseline["patrimonio_por_ano"] = patrimonio_por_ano
+
+    return baseline
+
+
+def consolidate_from_itens(baseline: dict) -> dict:
+    """Consolida schema flat ``itens[]`` do E1.5 atual para as chaves que o E5 espera.
+
+    Schema esperado no input::
+
+        {
+          "itens": [
+            {"codigo", "descricao", "categoria", "valor_brl", "membro", "ano", "instituicao"?}
+          ],
+          "resumo": {"total_ativos", "total_passivos", "patrimonio_liquido", "ano_referencia", "membros"},
+          "_meta": {...}
+        }
+
+    Categoria ``"outros"`` com ``valor_brl < 0`` é tratada como dívida (valor absoluto).
+    Categoria ``"outros"`` com ``valor_brl >= 0`` vira investimento tipo ``outros``.
+    """
+    itens = baseline.get("itens", [])
+    resumo = baseline.get("resumo", {})
+    ano_ref = resumo.get("ano_referencia") or (date.today().year - 1)
+    ano_str = str(ano_ref)
+
+    imoveis_consolidados: List[dict] = []
+    veiculos_consolidados: List[dict] = []
+    investimentos_consolidados: List[dict] = []
+    dividas_consolidadas: List[dict] = []
+    total_bens = 0.0
+    total_dividas = 0.0
+
+    for item in itens:
+        valor = safe_float(item.get("valor_brl", 0))
+        categoria = (item.get("categoria") or "").strip().lower()
+        membro = (item.get("membro") or _TITULAR or "").strip().lower()
+        descricao = item.get("descricao", "")
+
+        is_divida = categoria == "outros" and valor < 0
+        if is_divida:
+            dividas_consolidadas.append({
+                "descricao": descricao,
+                "proprietario": membro,
+                "saldo_31_12": {ano_str: abs(valor)},
+            })
+            total_dividas += abs(valor)
+            continue
+
+        entry = {
+            "descricao": descricao,
+            "proprietario": membro,
+            "valores_31_12": {ano_str: valor},
+        }
+        if item.get("instituicao"):
+            entry["instituicao"] = item["instituicao"]
+
+        if categoria == "imovel":
+            entry["tipo"] = "imovel"
+            imoveis_consolidados.append(entry)
+        elif categoria == "veiculo":
+            entry["tipo"] = "veiculo"
+            veiculos_consolidados.append(entry)
+        elif categoria == "poupanca":
+            entry["tipo"] = "poupanca"
+            investimentos_consolidados.append(entry)
+        elif categoria == "conta_corrente":
+            entry["tipo"] = "conta_bancaria"
+            investimentos_consolidados.append(entry)
+        elif categoria == "investimento":
+            entry["tipo"] = _classify_investimento(
+                normalize_grupo(item.get("codigo", "")), descricao
+            )
+            investimentos_consolidados.append(entry)
+        else:  # "outros" com valor >= 0 (ex: moeda estrangeira) ou desconhecido
+            entry["tipo"] = "outros"
+            investimentos_consolidados.append(entry)
+
+        total_bens += valor
+
+    # Totais vindo do próprio resumo do E1.5 são mais confiáveis
+    # (LLM já somou considerando arredondamentos).
+    resumo_bens = safe_float(resumo.get("total_ativos", 0))
+    resumo_dividas = safe_float(resumo.get("total_passivos", 0))
+    if resumo_bens > 0:
+        total_bens = resumo_bens
+    if resumo_dividas > 0:
+        total_dividas = resumo_dividas
+
+    patrimonio_por_ano = {
+        ano_str: {
+            "total_bens": round(total_bens, 2),
+            "total_dividas": round(total_dividas, 2),
+        }
+    }
+
+    print("  [E1.5c] Consolidado a partir de itens[]:")
+    print(f"    Ano ref: {ano_str}")
+    print(f"    Imóveis: {len(imoveis_consolidados)}")
+    print(f"    Veículos: {len(veiculos_consolidados)}")
+    print(f"    Investimentos/Contas: {len(investimentos_consolidados)}")
+    print(f"    Dívidas: {len(dividas_consolidadas)}")
+    print(f"    Total bens: R$ {total_bens:,.2f}, total dívidas: R$ {total_dividas:,.2f}")
+
     baseline["imoveis_consolidados"] = imoveis_consolidados
     baseline["veiculos_consolidados"] = veiculos_consolidados
     baseline["investimentos_consolidados"] = investimentos_consolidados

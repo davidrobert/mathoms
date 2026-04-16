@@ -1,6 +1,6 @@
 {
   "periodo_dados": "2023-01 a 2026-04",
-  "data_analise": "2026-04-13",
+  "data_analise": "2026-04-16",
   "patrimonio": {
     "bruto": 370364.58,
     "dividas": 0.0,
@@ -149,12 +149,12 @@
     "if_trs_monthly_value": 30000.0,
     "if_pct": 5.14,
     "if_gap": 6829635.42,
-    "prazo_anos_realista": 15.9,
-    "idade_david_if": 59,
-    "david_idade_if": 59,
-    "ano_if": 2041,
+    "prazo_anos_realista": 999,
+    "idade_david_if": 1043,
+    "david_idade_if": 1043,
+    "ano_if": 3025,
     "renda_passiva_estimada_4pct": 1234.55,
-    "idade_mariana_if": 54
+    "idade_mariana_if": 1038
   },
   "fluxo_caixa": {
     "receita_total": 2503155.37,
@@ -1941,375 +1941,22 @@
   "tarefas": [
     {
       "n": 1,
-      "t": "Quitar financiamento Ed. Gisele: C6 PJ R$117.430 + CDB-DI Itaú R$117.213",
+      "t": "Contratar seguro de vida e invalidez",
       "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Invest.",
-      "ref": "D01"
+      "e": "Imediato",
+      "impacto": "Proteção patrimonial da família — nenhuma apólice identificada"
     },
     {
       "n": 2,
-      "t": "Configurar aporte R$20k/mês (dia 5): R$10k Cofrinhos Itaú + R$5k Tesouro IPCA+ + R$3k IVVB11 + R$2k Wise USD",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Invest.",
-      "ref": "D02"
-    },
-    {
-      "n": 3,
-      "t": "Reunião AccountTech (pauta completa): (a) regularizar carnê-leão David + Mariana 2025, (b) confirmar risco multa isolada 2024, (c) DAS mensal automático dia 20 via C6 PJ, (d) parar impostos PJ por contas pessoais, (e) Simples vs LP, (f) Carnê-Leão mensal para ambos",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 4,
-      "t": "Configurar transferência automática R$5k C6 PJ → C6 PF no dia 1 de cada mês (eliminar cheque especial)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Orçamento",
-      "ref": "D14"
-    },
-    {
-      "n": 5,
-      "t": "Entregar IRPF 2026 David + Mariana (com carnê-leão de ambos regularizado antes da entrega)",
-      "p": "alta",
-      "e": "Mai/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 6,
-      "t": "Configurar carnê-leão automático mensal David + Mariana (lançar aluguéis no Carnê-Leão Web e pagar DARF até último dia útil do mês seguinte)",
-      "p": "alta",
-      "e": "Jun/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 7,
-      "t": "Cotar seguro de vida Term Life R$3-5M, 20 anos (SulAmérica, Porto Seguro, Prudential)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Seguros",
-      "ref": "—"
-    },
-    {
-      "n": 8,
-      "t": "Cotar seguro de invalidez (60% da renda, ~R$100-200/mês)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Seguros",
-      "ref": "—"
-    },
-    {
-      "n": 9,
-      "t": "CAIXA: confirmar valor do FGTS Kiwify + solicitar saque na mesma visita. Levar: RG, CPF, CTPS digital, termo de rescisão. Incluir valor no patrimônio investível.",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Financeiro",
-      "ref": "—"
-    },
-    {
-      "n": 10,
-      "t": "Regularizar registro do Ed. Gisele no cartório (matrícula ainda no nome do antigo dono)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Imóveis",
-      "ref": "—"
-    },
-    {
-      "n": 11,
-      "t": "Solicitar resgate Safari 30 na Rico (~R$16.614, prazo D+60 para liquidação)",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 12,
-      "t": "Cancelar seguro de conta Santander (R$10/mês). Manter seguro de conta C6 (R$20/mês).",
-      "p": "alta",
-      "e": "Abr/2026",
-      "categoria": "Orçamento",
-      "ref": "D08"
-    },
-    {
-      "n": 13,
-      "t": "Vender BRKM5 (300 ações, prejuízo R$3.516). Compensar prejuízo com lucros futuros para IR.",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 14,
-      "t": "Crypto: vender ADA e AXS. Iniciar DCA R$500/mês (R$400 BTC + R$100 ETH) até 1% da carteira (~R$12.845). Fonte: folga mensal.",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Invest.",
-      "ref": "D04"
-    },
-    {
-      "n": 15,
-      "t": "Consolidar corretoras — fase 1: transferir PicPay R$53k para Cofrinhos Itaú + resgatar C6 investimentos R$2k",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 16,
-      "t": "Confirmar taxa real PGBL Itaú (app ou central 4004-4828). Se >1% a.a., solicitar portabilidade para BTG ou XP.",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 17,
-      "t": "Iniciar aportes PGBL R$1.800/mês (economia IRPF R$5.940/ano). Depende de #18 (taxa PGBL). Quanto antes, melhor.",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Tributário",
-      "ref": "—"
-    },
-    {
-      "n": 18,
-      "t": "Solicitar avaliação do Barão de Capanema (Pça Calixto) com corretora local — pode valer R$900k-1,1M",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Imóveis",
-      "ref": "—"
-    },
-    {
-      "n": 19,
-      "t": "Reinvestir resgate Safari 30 (~R$16.614) em IVVB11 ou ETF global (após D+60 da tarefa 3)",
-      "p": "media",
-      "e": "Mai/2026",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 20,
-      "t": "Consultar 2-3 CPAs especialistas em expatriados (BR-US) para FBAR, Form 8938, Form 1040, PFIC",
-      "p": "media",
-      "e": "T3/26",
-      "categoria": "Trib./EUA",
-      "ref": "—"
-    },
-    {
-      "n": 21,
-      "t": "Avaliar resgate dos fundos brasileiros classificáveis como PFIC (Alaska, Constellation, Western Asset, BTG) ANTES de se tornar US tax resident — tributação punitiva nos EUA",
-      "p": "media",
-      "e": "T3/26",
-      "categoria": "Invest./EUA",
-      "ref": "—"
-    },
-    {
-      "n": 22,
-      "t": "Avaliar desempenho Alaska Black FIA BDR (-13,24%). Se persistir negativo, resgatar e realocar em IVVB11.",
-      "p": "media",
-      "e": "Set/2026",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 23,
-      "t": "Iniciar CGFNS + teste de inglês para Mariana (NCLEX). MET ou OET recomendados. Pode ser feito do Brasil — reduz gap de renda nos EUA em 3-9 meses.",
-      "p": "media",
-      "e": "T4/26",
-      "categoria": "Plan. EUA",
-      "ref": "goals.json"
-    },
-    {
-      "n": 24,
-      "t": "Definir timeline F1/F2 Anderson University (semestre de início, duração, logistics)",
-      "p": "media",
-      "e": "T4/26",
-      "categoria": "Plan. EUA",
-      "ref": "life_plan"
-    },
-    {
-      "n": 25,
-      "t": "Iniciar processo matrícula e visto F1 (se timeline definir início em 2027)",
-      "p": "media",
-      "e": "T4/26",
-      "categoria": "Plan. EUA",
-      "ref": "life_plan"
-    },
-    {
-      "n": 26,
-      "t": "Procurações em cartório (mesma visita): (a) procuração pública para Rubens administrar imóveis e contas, (b) procuração duradoura David → Mariana + Rubens para emergências/incapacidade",
-      "p": "media",
-      "e": "Antes EUA",
-      "categoria": "Jurídico",
-      "ref": "life_plan"
-    },
-    {
-      "n": 27,
-      "t": "Configurar débito automático IPTU e condomínio de todos os 6 imóveis",
-      "p": "media",
-      "e": "Antes EUA",
-      "categoria": "Imóveis",
-      "ref": "—"
-    },
-    {
-      "n": 28,
-      "t": "Separar R$3k/mês como \"reserva de desejos\" da folga mensal (para compras planejadas acima de R$2k — ver Orçamento Prospectivo)",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Orçamento",
-      "ref": "D13"
-    },
-    {
-      "n": 29,
-      "t": "Revisar assinaturas: Gympass R$80 (usa?), Livelo Clube R$45, MeliMais R$20. Economia potencial: ~R$145/mês.",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Orçamento",
-      "ref": "—"
-    },
-    {
-      "n": 30,
-      "t": "Seguro residencial Tasso: cotar Porto Seguro, SulAmérica, Tokio Marine (economia 20-40% vs Santander atual)",
-      "p": "media",
-      "e": "T3/26",
-      "categoria": "Seguros",
-      "ref": "—"
-    },
-    {
-      "n": 31,
-      "t": "Verificar vigência dos seguros veiculares (Toro + NMax) e agendar renovação antes de viajar",
-      "p": "media",
-      "e": "Antes EUA",
-      "categoria": "Seguros",
-      "ref": "—"
-    },
-    {
-      "n": 32,
-      "t": "Após reserva emergência atingir 12 meses (R$382k), realocar os R$10k dos Cofrinhos: R$5k → reserva de oportunidade (CDB liquidez, meta R$50-80k) + R$5k → Tesouro IPCA+ 2035/2040 (contrafluxo, travar IPCA+7%)",
-      "p": "media",
-      "e": "Jan/27",
-      "categoria": "Invest.",
-      "ref": "—"
-    },
-    {
-      "n": 33,
-      "t": "Avaliar venda Living Concept (yield 3,9% vs CDI 14,15%). Imóvel ficou vago 7 meses em 2025.",
-      "p": "media",
-      "e": "2027",
-      "categoria": "Imóveis",
-      "ref": "D15"
-    },
-    {
-      "n": 34,
-      "t": "Atualizar cadastro e pagar anuidade do Clube de Tiro Águia de Haia",
-      "p": "media",
-      "e": "Abr/2026",
-      "categoria": "Financeiro",
-      "ref": "—"
-    },
-    {
-      "n": 35,
-      "t": "Atualizar IPTU 2026 dos imóveis David (Calixto + Major Freire) na plataforma QuintoAndar",
-      "p": "media",
-      "e": "30/04/2026",
-      "categoria": "Imóveis",
-      "ref": "—"
-    },
-    {
-      "n": 36,
-      "t": "Atualizar IPTU 2026 dos imóveis Mariana (Living Wish + Living Concept) na plataforma QuintoAndar",
-      "p": "media",
-      "e": "30/04/2026",
-      "categoria": "Imóveis",
-      "ref": "—"
-    },
-    {
-      "n": 37,
-      "t": "Advogado sucessório/tributarista SP — contratar para testamento + holding",
-      "p": "baixa",
-      "e": "Abr/2026",
-      "categoria": "Sucessório",
-      "ref": "life_plan"
-    },
-    {
-      "n": 38,
-      "t": "Testamento público David + Mariana (cartório BR). Depende de advogado (tarefa 36)",
-      "p": "baixa",
-      "e": "Mai/2026",
-      "categoria": "Sucessório",
-      "ref": "life_plan"
-    },
-    {
-      "n": 39,
-      "t": "Atualizar beneficiários PGBL e seguro de vida",
-      "p": "baixa",
-      "e": "Abr/2026",
-      "categoria": "Sucessório",
-      "ref": "life_plan"
-    },
-    {
-      "n": 40,
-      "t": "Avaliar holding patrimonial com tributarista",
-      "p": "baixa",
-      "e": "T4/2026",
-      "categoria": "Sucessório",
-      "ref": "life_plan"
-    },
-    {
-      "n": 41,
-      "t": "Testamento americano (BR assets) + Standby Guardianship para Theo",
-      "p": "baixa",
-      "e": "Após mudança EUA",
-      "categoria": "Sucessório",
-      "ref": "life_plan"
+      "t": "Consolidar dados de rentabilidade dos investimentos",
+      "p": "média",
+      "e": "Próximo trimestre",
+      "impacto": "Sem dados de performance, impossível otimizar alocação"
     }
   ],
   "tarefas_status": {
     "1": "pendente",
-    "3": "pendente",
-    "4": "pendente",
-    "5": "pendente",
-    "6": "pendente",
-    "7": "pendente",
-    "8": "pendente",
-    "9": "pendente",
-    "10": "pendente",
-    "11": "pendente",
-    "13": "pendente",
-    "14": "pendente",
-    "15": "pendente",
-    "16": "pendente",
-    "17": "pendente",
-    "18": "pendente",
-    "19": "pendente",
-    "20": "pendente",
-    "21": "pendente",
-    "22": "pendente",
-    "23": "pendente",
-    "24": "pendente",
-    "25": "pendente",
-    "26": "pendente",
-    "27": "pendente",
-    "28": "pendente",
-    "29": "pendente",
-    "30": "pendente",
-    "31": "pendente",
-    "32": "pendente",
-    "33": "pendente",
-    "34": "pendente",
-    "35": "pendente",
-    "41": "pendente",
-    "42": "pendente",
-    "43": "pendente",
-    "36": "pendente",
-    "37": "pendente",
-    "38": "pendente",
-    "39": "pendente",
-    "40": "pendente"
+    "2": "pendente"
   },
   "alertas": [
     "Score financeiro: 3.5/10 (Atenção)",
@@ -3039,11 +2686,11 @@
       }
     ],
     "total_pontuais": 483529.05,
-    "equivalente_meses_aporte": 24.2,
+    "equivalente_meses_aporte": 0.0,
     "folga_mensal": 51636.36,
     "folga_pct": 74.9,
     "teto_sugerido": 19910.45,
-    "analise": "Identificados 80 gastos pontuais ≥ R$ 2,000 no período. O total de R$ 483,529.05 equivale a 24.2 meses de aporte."
+    "analise": "Identificados 80 gastos pontuais ≥ R$ 2,000 no período. O total de R$ 483,529.05 equivale a 0.0 meses de aporte."
   },
   "diagnostico_comportamental": [
     {
@@ -3064,31 +2711,31 @@
       "Com NCLEX + Green Card"
     ],
     "aportes": [
-      13200.0,
-      27468.92,
-      30000.0
+      0.0,
+      0.0,
+      0.0
     ],
     "prazos_if": [
-      20.0,
-      13.0,
-      12.3
+      999,
+      999,
+      999
     ],
     "anos_if": [
-      2046,
-      2039,
-      2038
+      3025,
+      3025,
+      3025
     ],
     "idade_david_if": [
-      64,
-      57,
-      56
+      1043,
+      1043,
+      1043
     ],
     "premissas": {
       "meta_if": 7200000.0,
       "investivel_atual": 370364.58,
       "retorno_real_anual_pct": 6.0,
       "cambio_usd_brl": 5.8,
-      "aporte_base": 20000.0,
+      "aporte_base": 0.0,
       "fator_reduzido": 0.66,
       "renda_nclex_usd": 4000.0,
       "renda_nclex_brl": 23200.0,
@@ -3101,27 +2748,27 @@
     "cenarios": [
       {
         "nome": "Sem Trabalhar",
-        "aporte_mensal": 13200.0,
-        "prazo_if_anos": 20.0,
-        "ano_if": 2046,
-        "idade_david": 64,
-        "resumo": "Sem renda da Mariana, aporte cai para R$ 13,200/mês (66% do base). IF em 20 anos (2046)."
+        "aporte_mensal": 0.0,
+        "prazo_if_anos": 999,
+        "ano_if": 3025,
+        "idade_david": 1043,
+        "resumo": "Sem renda da Mariana, aporte cai para R$ 0/mês (66% do base). IF em 999 anos (3025)."
       },
       {
         "nome": "Com NCLEX",
-        "aporte_mensal": 27468.92,
-        "prazo_if_anos": 13.0,
-        "ano_if": 2039,
-        "idade_david": 57,
-        "resumo": "Mariana como RN (US$ 4,000/mês), aporte sobe para R$ 27,469/mês. IF em 13 anos (2039)."
+        "aporte_mensal": 0.0,
+        "prazo_if_anos": 999,
+        "ano_if": 3025,
+        "idade_david": 1043,
+        "resumo": "Mariana como RN (US$ 4,000/mês), aporte sobe para R$ 0/mês. IF em 999 anos (3025)."
       },
       {
         "nome": "Com NCLEX + Green Card",
-        "aporte_mensal": 30000.0,
-        "prazo_if_anos": 12.3,
-        "ano_if": 2038,
-        "idade_david": 56,
-        "resumo": "Mariana como RN sênior/Green Card (US$ 7,000/mês), aporte de R$ 30,000/mês. IF em 12 anos (2038)."
+        "aporte_mensal": 0.0,
+        "prazo_if_anos": 999,
+        "ano_if": 3025,
+        "idade_david": 1043,
+        "resumo": "Mariana como RN sênior/Green Card (US$ 7,000/mês), aporte de R$ 0/mês. IF em 999 anos (3025)."
       }
     ]
   },
@@ -3267,18 +2914,5 @@
         ]
       }
     ]
-  },
-  "review_metadata": {
-    "timestamp": "2026-04-13T17:45:00",
-    "e7_version": "1.0",
-    "changes_applied": [
-      "summaries.s2",
-      "summaries.s4",
-      "tarefas (reordered 12 items)",
-      "strategic_insights (5 items)",
-      "inconsistencies_review (3 items)"
-    ],
-    "cross_validation_passed": 0,
-    "cross_validation_failed": 0
   }
 }
