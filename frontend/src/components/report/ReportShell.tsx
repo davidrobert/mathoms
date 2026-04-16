@@ -13,10 +13,18 @@ import { ReportSectionStub } from "./ReportSectionStub";
 import { useReportMode } from "./ReportModeProvider";
 import { S1PatrimonioSection } from "./sections/S1PatrimonioSection";
 import { S2FluxoCaixaSection } from "./sections/S2FluxoCaixaSection";
+import { S3InvestimentosSection } from "./sections/S3InvestimentosSection";
+import { S4RealEstateSection } from "./sections/S4RealEstateSection";
+import { S7IndependenciaSection } from "./sections/S7IndependenciaSection";
+import { S8PrevidenciaSection } from "./sections/S8PrevidenciaSection";
+import { S9RiscosSection } from "./sections/S9RiscosSection";
+import { S10SinteseSection } from "./sections/S10SinteseSection";
 
 /** IDs de seções com render React completo (sem stubs).
- *  Cada lote F2.A–F2.H adiciona IDs aqui. */
-const MIGRATED_SECTIONS = new Set(["S1", "S2"]);
+ *  F2.A–G: todas as seções do modo estratégico migradas. */
+const MIGRATED_SECTIONS = new Set([
+  "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10",
+]);
 
 interface ReportShellProps {
   reportId: string;
@@ -156,8 +164,19 @@ function MigratedSection({
       return <S1PatrimonioSection data={data} />;
     case "S2":
       return <S2FluxoCaixaSection data={data} />;
-    // F2.C: case "S3": return <S3InvestimentosSection data={data} />;
-    // ...
+    case "S3":
+      return <S3InvestimentosSection data={data} />;
+    case "S4":
+      return <S4RealEstateSection data={data} />;
+    case "S7":
+      return <S7IndependenciaSection data={data} />;
+    case "S8":
+      return <S8PrevidenciaSection data={data} />;
+    case "S9":
+      return <S9RiscosSection data={data} />;
+    case "S10":
+      return <S10SinteseSection data={data} />;
+    // F2.H: USA sections (U1–U4)
     default:
       return null;
   }

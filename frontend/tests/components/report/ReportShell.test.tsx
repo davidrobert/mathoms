@@ -55,20 +55,18 @@ describe("ReportShell", () => {
     expect(screen.getByRole("tab", { name: "EUA" })).toBeInTheDocument();
   });
 
-  it("renderiza seções do layout como stubs enquanto não migrados", () => {
+  it("renderiza seções migradas sem stubs no modo estratégico", () => {
     const state: UseReportDataState = { status: "success", data: SAMPLE_DATA };
     render(
       wrap(
         <ReportShell reportId="r1" reportTitle="Rel" dataState={state} />,
       ),
     );
-    // Usa getAllByText pq "Patrimônio" aparece em título + card_ids listados
+    // S1 "Patrimônio" deve aparecer como seção real (não stub)
     const matches = screen.getAllByText(/Patrimônio/i);
     expect(matches.length).toBeGreaterThan(0);
-    // O stub mostra mensagem padronizada — uma por seção no layout estratégico
-    expect(
-      screen.getAllByText(/Conteúdo em migração/).length,
-    ).toBeGreaterThan(0);
+    // S1-S10 todas migradas: nenhum stub no modo estratégico
+    expect(screen.queryAllByText(/Conteúdo em migração/).length).toBe(0);
   });
 
   it("mostra mensagem de erro quando o fetch falha", () => {
