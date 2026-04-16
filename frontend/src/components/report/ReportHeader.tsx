@@ -6,6 +6,7 @@ import {
   Download,
   Eye,
   EyeOff,
+  FileText,
   Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getReportDownloadHtmlUrl } from "@/lib/api";
+import { getReportDownloadHtmlUrl, getReportDownloadPdfUrl } from "@/lib/api";
 import { useReportMode } from "./ReportModeProvider";
 import type { ReportMode } from "@/generated/report-layout";
 
@@ -157,6 +158,29 @@ export function ReportHeader({
             <Download className="h-4 w-4" />
           </TooltipTrigger>
           <TooltipContent>Baixar HTML standalone</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                nativeButton={false}
+                render={
+                  <Link
+                    href={getReportDownloadPdfUrl(reportId)}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label="Baixar PDF"
+                  />
+                }
+              />
+            }
+          >
+            <FileText className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>Baixar PDF</TooltipContent>
         </Tooltip>
       </div>
     </div>

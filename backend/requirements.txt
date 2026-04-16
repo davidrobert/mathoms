@@ -20,6 +20,9 @@ instructor>=1.3.0
 pdfplumber>=0.11.0
 eval_type_backport>=0.2.0  # Required for instructor on Python 3.9
 
+# Phase 9 — Server-side PDF via Playwright (ADR-076)
+playwright>=1.47.0
+
 # Phase 5 — Task Queue + Real-time
 celery[redis]>=5.4.0
 redis>=5.0.0
