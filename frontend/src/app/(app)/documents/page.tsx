@@ -16,7 +16,6 @@ import {
   formatDocPeriod,
   docStatusLabel,
   docTypeLabel,
-  fileFormatLabel,
   institutionLabel,
   pipelineE2TouchLabel,
 } from "@/lib/format";
@@ -25,6 +24,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Spinner } from "@/components/Spinner";
 import { EmptyState } from "@/components/EmptyState";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { EditDocumentDialog } from "@/components/EditDocumentDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -46,6 +46,7 @@ import {
   Wrench,
   Info,
   KeyRound,
+  Pencil,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 
@@ -62,6 +63,7 @@ export default function DocumentsPage() {
   const [successMsg, setSuccessMsg] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [editTarget, setEditTarget] = useState<DocumentResponse | null>(null);
 
   const reload = useCallback(async () => {
     try {
@@ -161,7 +163,7 @@ export default function DocumentsPage() {
   const readyDocs = docs.filter((d) => d.status === "ready");
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-6xl px-6 py-8">
       <PageHeader
         title="Documentos"
         description="Envie extratos, faturas e documentos financeiros"
@@ -270,69 +272,95 @@ export default function DocumentsPage() {
           action={{ label: "Enviar documentos", onClick: () => fileInputRef.current?.click() }}
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-card">
+        <div className="rounded-xl border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Arquivo</TableHead>
-                <TableHead>Formato</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Instituição</TableHead>
                 <TableHead>Período</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Último pipeline</TableHead>
-                <TableHead>Tamanho</TableHead>
-                <TableHead>Data</TableHead>
                 <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {docs.map((doc) => {
                 const st = docStatusLabel(doc.status);
+                const pipelineLabel = pipelineE2TouchLabel(
+                  doc.pipeline_last_run_at,
+                  doc.pipeline_e2_extract_ok,
+                );
                 return (
                   <TableRow key={doc.id}>
-                    <TableCell className="max-w-[200px] truncate font-medium" title={doc.original_name}>
-                      <span className="mr-2 inline-flex text-muted-foreground">
-                        <FileIcon contentType={doc.content_type} />
-                      </span>
-                      {doc.original_name}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-xs">
-                      {fileFormatLabel(doc.content_type, doc.original_name)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{docTypeLabel(doc.doc_type)}</TableCell>
-                    <TableCell className="text-muted-foreground">{institutionLabel(doc.bank_code)}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatDocPeriod(doc.period)}</TableCell>
-                    <TableCell>
-                      <StatusBadge variant={st.variant}>{st.label}</StatusBadge>
-                      {doc.error_message && (
-                        <span className="ml-1 cursor-help text-muted-foreground" title={doc.error_message}>
-                          <Info className="inline h-3.5 w-3.5" />
+                    <TableCell className="max-w-[320px] align-top whitespace-normal">
+                      <div className="flex items-start gap-2">
+                        <span
+                          className="mt-0.5 inline-flex shrink-0 text-muted-foreground"
+                          title={`${formatBytes(doc.file_size_bytes)} · ${doc.original_name}`}
+                        >
+                          <FileIcon contentType={doc.content_type} />
                         </span>
+                        <div className="min-w-0 flex-1">
+                          <div
+                            className="break-all font-medium leading-snug line-clamp-2"
+                            title={doc.original_name}
+                          >
+                            {doc.original_name}
+                          </div>
+                          <div className="mt-0.5 text-xs text-muted-foreground">
+                            {formatDate(doc.uploaded_at)} · {formatBytes(doc.file_size_bytes)}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="align-top text-muted-foreground">{docTypeLabel(doc.doc_type)}</TableCell>
+                    <TableCell className="align-top text-muted-foreground">{institutionLabel(doc.bank_code)}</TableCell>
+                    <TableCell className="align-top text-muted-foreground">{formatDocPeriod(doc.period)}</TableCell>
+                    <TableCell className="align-top">
+                      <div className="flex items-center gap-1">
+                        <StatusBadge variant={st.variant}>{st.label}</StatusBadge>
+                        {doc.error_message && (
+                          <span className="cursor-help text-muted-foreground" title={doc.error_message}>
+                            <Info className="inline h-3.5 w-3.5" />
+                          </span>
+                        )}
+                      </div>
+                      {pipelineLabel !== "—" && (
+                        <div
+                          className="mt-1 text-xs text-muted-foreground"
+                          title={
+                            doc.pipeline_last_run_at
+                              ? "Data do último pipeline concluído com sucesso neste workspace. “Sem extrato E2” indica que não há JSON do estágio E2 para este arquivo (parser não cobriu, só LLM, ou formato não suportado)."
+                              : undefined
+                          }
+                        >
+                          {pipelineLabel}
+                        </div>
                       )}
                     </TableCell>
-                    <TableCell
-                      className="max-w-[160px] text-muted-foreground text-xs"
-                      title={
-                        doc.pipeline_last_run_at
-                          ? "Data do último pipeline concluído com sucesso neste workspace. “Sem extrato E2” indica que não há JSON do estágio E2 para este arquivo (parser não cobriu, só LLM, ou formato não suportado)."
-                          : undefined
-                      }
-                    >
-                      {pipelineE2TouchLabel(doc.pipeline_last_run_at, doc.pipeline_e2_extract_ok)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-xs">{formatBytes(doc.file_size_bytes)}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(doc.uploaded_at)}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeleteTarget({ id: doc.id, name: doc.original_name })}
-                        className="text-muted-foreground hover:text-destructive"
-                        aria-label={`Remover ${doc.original_name}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <TableCell className="align-top">
+                      <div className="flex items-center gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditTarget(doc)}
+                          className="text-muted-foreground hover:text-foreground"
+                          aria-label={`Editar classificação de ${doc.original_name}`}
+                          title="Editar classificação"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteTarget({ id: doc.id, name: doc.original_name })}
+                          className="text-muted-foreground hover:text-destructive"
+                          aria-label={`Remover ${doc.original_name}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -350,6 +378,17 @@ export default function DocumentsPage() {
         confirmLabel="Remover"
         variant="destructive"
         onConfirm={handleDelete}
+      />
+
+      <EditDocumentDialog
+        workspaceId={workspace.id}
+        doc={editTarget}
+        open={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        onSaved={(updated) => {
+          setDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
+          setSuccessMsg("Classificação atualizada.");
+        }}
       />
     </div>
   );

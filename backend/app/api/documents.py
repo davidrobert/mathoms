@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -19,10 +20,15 @@ from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.models.password_vault import PasswordVault
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
-from backend.app.schemas.document import DocumentListResponse, DocumentResponse, DocumentUploadResponse
+from backend.app.schemas.document import (
+    DocumentListResponse,
+    DocumentResponse,
+    DocumentUpdateRequest,
+    DocumentUploadResponse,
+)
 from backend.app.services.audit import AuditAction, audit_log
 from backend.app.services.storage import StorageService
-from backend.app.services.vault import VaultService
+from backend.app.services.vault import get_vault
 from backend.app.services.document_processor import process_uploaded_document
 
 router = APIRouter(
@@ -40,7 +46,7 @@ async def _get_vault_passwords(ws_id: str, db: AsyncSession) -> list[str]:
     entries = result.scalars().all()
     if not entries:
         return []
-    vault_svc = VaultService()
+    vault_svc = get_vault()
     passwords = []
     for entry in entries:
         pw = vault_svc.decrypt(entry.encrypted_password)
@@ -264,6 +270,77 @@ async def list_documents(
         documents=[DocumentResponse.model_validate(d) for d in docs],
         total=len(docs),
     )
+
+
+@router.patch(
+    "/{document_id}",
+    response_model=DocumentResponse,
+    dependencies=[Depends(require_write_role)],
+)
+async def update_document_classification(
+    document_id: str,
+    payload: DocumentUpdateRequest,
+    request: Request,
+    workspace: Workspace = Depends(get_current_workspace),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Correção manual de classificação (tipo, instituição, período).
+
+    Aceita envio parcial — só atualiza os campos presentes no body. Marca
+    ``classification_meta.manual_override`` e zera ``needs_review`` porque
+    o usuário confirmou o valor explicitamente.
+    """
+    result = await db.execute(
+        select(Document).where(
+            Document.id == document_id, Document.workspace_id == workspace.id
+        )
+    )
+    doc = result.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Documento não encontrado")
+
+    updates = payload.model_dump(exclude_unset=True)
+    if not updates:
+        raise HTTPException(status_code=400, detail="Nenhum campo para atualizar")
+
+    before = {
+        "doc_type": doc.doc_type.value if hasattr(doc.doc_type, "value") else doc.doc_type,
+        "bank_code": doc.bank_code,
+        "period": doc.period,
+    }
+
+    if "doc_type" in updates:
+        doc.doc_type = updates["doc_type"]
+    if "bank_code" in updates:
+        doc.bank_code = updates["bank_code"]
+    if "period" in updates:
+        doc.period = updates["period"]
+
+    meta = dict(doc.classification_meta or {})
+    meta["manual_override"] = {
+        "at": datetime.now(timezone.utc).isoformat(),
+        "by": current_user.id,
+        "fields": sorted(updates.keys()),
+    }
+    doc.classification_meta = meta
+    doc.classification_confidence = 1.0
+    doc.needs_review = False
+
+    await audit_log(
+        db,
+        action=AuditAction.document_update_classification,
+        resource_type="document",
+        resource_id=doc.id,
+        workspace_id=workspace.id,
+        actor_user_id=current_user.id,
+        request=request,
+        details={"before": before, "after": updates},
+    )
+
+    await db.commit()
+    await db.refresh(doc)
+    return DocumentResponse.model_validate(doc)
 
 
 @router.delete(

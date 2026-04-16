@@ -53,8 +53,24 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(r"Quinto\s*Andar|QuintoAndar", re.I), "quintoandar"),
     # Binance
     (re.compile(r"Binance", re.I), "binance"),
-    # Receita Federal
-    (re.compile(r"Receita\s*Federal\s*do\s*Brasil|RFB\s*-\s*Receita", re.I), "receitafederal"),
+    # Receita Federal — marcadores canônicos em declarações e recibos da RFB.
+    # NÃO usar siglas soltas (\bIRPF\b / \bDAA\b): informes bancários
+    # mencionam "IRPF 20XX" como ano-calendário e seriam atribuídos à RFB
+    # indevidamente. Exigimos âncoras institucionais (razão social, "DIRPF",
+    # "Declaração de Ajuste Anual", CNPJ oficial).
+    (
+        re.compile(
+            r"Receita\s*Federal\s*do\s*Brasil"
+            r"|Secretaria\s*(Especial\s*)?da\s*Receita\s*Federal"
+            r"|RFB\s*[-–]\s*Receita"
+            r"|\bDIRPF\s*20\d{2}\b"
+            r"|Imposto\s*de\s*Renda\s*(da\s*)?Pessoa\s*F[ií]sica"
+            r"|Declara[çc][ãa]o\s*de\s*Ajuste\s*Anual"
+            r"|00\.?394\.?460[/.]0058-?87",
+            re.I,
+        ),
+        "receitafederal",
+    ),
 ]
 
 
@@ -81,11 +97,32 @@ TYPE_RULES: tuple[TypeRule, ...] = (
     TypeRule(
         code="irpfdeclaracao",
         dest_group="income_tax_br",
-        required=(_c(r"Declara[çc][ãa]o.*(IRPF|Imposto\s*de\s*Renda|Pessoa\s*F[ií]sica)"),),
+        # Aceita as variações mais comuns em PDFs gerados pelo PGD/e-CAC:
+        #   "Declaração IRPF 20XX", "Declaração de Ajuste Anual",
+        #   "Declaração de Imposto de Renda Pessoa Física",
+        #   "DIRPF 20XX", "Modelo Completo/Simplificado".
+        # Marcadores de suporte cobrem seções internas (Bens e Direitos,
+        # Rendimentos Tributáveis, Dependentes, Resumo, etc.).
+        required=(
+            # Âncoras estritas — sempre começam por "Declaração" ou por "DIRPF"
+            # (sigla exclusiva da declaração). Evita colidir com informes
+            # financeiros que só mencionam "IRPF 20XX" como ano-calendário.
+            _c(
+                r"Declara[çc][ãa]o\s*(?:de\s*)?(?:IRPF|"
+                r"de\s*Ajuste\s*Anual|"
+                r"de\s*Imposto\s*de\s*Renda|"
+                r"Pessoa\s*F[ií]sica)"
+                r"|\bDIRPF\s*20\d{2}\b"
+            ),
+        ),
         supporting=(
             _c(r"Bens\s*e\s*Direitos"),
             _c(r"Rendimentos\s*Tribut[aá]veis"),
+            _c(r"Rendimentos\s*Isentos"),
             _c(r"Ano-?[Cc]alend[aá]rio"),
+            _c(r"Imposto\s*(a\s*)?(Pagar|Restituir)"),
+            _c(r"Dependentes"),
+            _c(r"Resumo\s*(da\s*)?Declara[çc][ãa]o"),
         ),
         priority=1,
     ),

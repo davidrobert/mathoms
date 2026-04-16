@@ -432,6 +432,19 @@ export async function deleteDocument(workspaceId: string, documentId: string): P
   return apiFetch(`/workspaces/${workspaceId}/documents/${documentId}`, { method: "DELETE" });
 }
 
+/** Corrige manualmente a classificação de um documento (tipo, instituição, período).
+ *  Envia apenas os campos presentes — backend faz PATCH parcial. */
+export async function updateDocumentClassification(
+  workspaceId: string,
+  documentId: string,
+  data: Partial<Pick<DocumentResponse, "doc_type" | "bank_code" | "period">>,
+): Promise<DocumentResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/documents/${documentId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function retryUnlock(workspaceId: string): Promise<DocumentResponse[]> {
   return apiFetch(`/workspaces/${workspaceId}/documents/retry-unlock`, { method: "POST" });
 }
@@ -572,7 +585,14 @@ export async function listMembers(workspaceId: string): Promise<{ members: Famil
   return apiFetch(`/workspaces/${workspaceId}/config/members`);
 }
 
-export type CreateMemberPayload = Omit<FamilyMemberConfig, "id" | "accounts"> & {
+// `Omit<T, "id" | "accounts">` preserva `key: string` (required) do
+// FamilyMemberConfig. Intersection com `{ key?: string }` NÃO sobrescreve
+// — TypeScript mantém o tipo mais restrito. Por isso omitimos `key`
+// explicitamente antes de re-declará-lo como opcional.
+export type CreateMemberPayload = Omit<
+  FamilyMemberConfig,
+  "id" | "accounts" | "key"
+> & {
   /** Se omitido, o backend gera um identificador único a partir do nome completo */
   key?: string;
 };

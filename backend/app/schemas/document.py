@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 from backend.app.models.document import DocumentStatus, DocumentType
 
@@ -41,3 +41,22 @@ class DocumentUploadResponse(BaseModel):
     skipped_duplicates: list[str] = []
     total_uploaded: int = 0
     total_skipped: int = 0
+
+
+class DocumentUpdateRequest(BaseModel):
+    """Correção manual de classificação pelo usuário.
+
+    Todos os campos são opcionais — atualiza apenas os enviados (PATCH).
+    Envie `null` explícito para limpar um campo.
+    """
+
+    doc_type: Optional[DocumentType] = Field(default=None)
+    bank_code: Optional[str] = Field(default=None, max_length=50)
+    period: Optional[str] = Field(default=None, max_length=50)
+
+    @field_validator("bank_code", "period", mode="before")
+    @classmethod
+    def _empty_str_to_none(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
