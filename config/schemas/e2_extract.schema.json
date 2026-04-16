@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E2 Extract",
+  "description": "Schema mínimo para artefatos E2 (extratos e faturas extraídos). Valida presença de campos obrigatórios sem restringir campos adicionais.",
+  "type": "object",
+  "required": ["pipeline_stage", "banco", "tipo", "moeda"],
+  "properties": {
+    "pipeline_stage": {
+      "type": "string",
+      "minLength": 1
+    },
+    "banco": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tipo": {
+      "type": "string",
+      "minLength": 1
+    },
+    "moeda": {
+      "type": "string",
+      "enum": ["BRL", "USD", "EUR"]
+    },
+    "transacoes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["data", "descricao", "valor"],
+        "properties": {
+          "data": {"type": "string"},
+          "descricao": {"type": "string"},
+          "valor": {"type": "number"}
+        }
+      }
+    },
+    "periodo_inicio": {"type": "string"},
+    "periodo_fim": {"type": "string"}
+  },
+  "additionalProperties": true
+}

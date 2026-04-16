@@ -2,7 +2,7 @@
 
 > Documento técnico de referência. Atualizar quando stack ou modelo de dados mudar.
 >
-> **Última atualização:** 2026-04-15
+> **Última atualização:** 2026-04-16
 
 ---
 
@@ -18,6 +18,7 @@
 - **LiteLLM + Instructor** — LLM orchestration (multi-provider)
 - **Playwright** — PDF server-side rendering (headless Chromium)
 - **pdfplumber, openpyxl, xlrd, pikepdf** — extração de documentos
+- **jsonschema** — validação de artefatos pipeline (E2/E4/E5 schemas)
 
 ### Frontend
 - **Next.js 16.2** (App Router) + **React 19** + **TypeScript 6**
@@ -367,6 +368,21 @@ E0-audit → E1.5c (skip se sem baseline)
 
 > **Render do relatório (F9):** Desde F9, o relatório é renderizado como rota React nativa (`/reports/[id]`) consumindo `GET /reports/{id}/data`. O E6 gera HTML standalone para exportação (email, backup, impressão offline). PDF server-side via Playwright.
 
+### Modo incremental (ADR-080)
+
+O pipeline suporta execução **incremental**: processar apenas documentos novos (upload após última execução) nas etapas de extração, mantendo consolidação full.
+
+**Comportamento:**
+- **E0→E2**: filtrado — só processa docs com `pipeline_last_run_at IS NULL`
+- **E3→E7**: full — roda sobre todos os E2_extracts existentes (novos + anteriores)
+- **Resultado**: relatório completo, mas com economia de tempo/custo nas etapas E0→E2
+
+**Trigger:** `POST /pipeline/run { incremental: true }`. A API busca `stored_path` dos docs novos e passa ao Celery task via `WorkspaceContext.incremental_doc_paths`. O E2 wrapper filtra `find_all_files()` por stem matching.
+
+**Contagem:** `GET /pipeline/new-doc-count` retorna quantos docs têm `pipeline_last_run_at IS NULL`.
+
+**UI:** Quando há docs novos e já houve run anterior, a página Pipeline mostra botão primário "Processar N novo(s)" + secundário "Processar todos".
+
 ---
 
 ## 8. Frontend — Rotas e componentes
@@ -376,7 +392,7 @@ E0-audit → E1.5c (skip se sem baseline)
 **Públicas:**
 | Rota | Página |
 | --- | --- |
-| `/` | Redirect → dashboard ou login |
+| `/` | Redirect → `/plano` (autenticado) ou `/login` |
 | `/login` | Login (email/password, suporta `?next=`) |
 | `/register` | Registro |
 | `/invite/[token]` | Aceite de convite (preview público, aceite com auth) |
@@ -390,7 +406,7 @@ E0-audit → E1.5c (skip se sem baseline)
 | `/transactions` | Filtros, busca, override de categoria, export CSV/XLSX |
 | `/reports` | Lista de relatórios (metadata, score, tamanho) |
 | `/reports/[id]` | **Render nativo React** (18 seções, 13 cards, 8 charts Recharts) |
-| `/plano` | Overview meta IF (3 KPI cards + parâmetros) |
+| `/plano` | **Home do app.** Overview meta IF: barra de progresso %, 3 KPI cards, parâmetros, tarefas ligadas |
 | `/plano/meta-if` | Editor da meta IF com simulador live |
 | `/plano/meta-if/wizard` | Wizard 4 passos (renda → TRS → horizonte → confirm) |
 | `/plano-de-acao` | Tasks: 3 views (priority/deadline/category) + CRUD + drawer |
@@ -414,7 +430,8 @@ E0-audit → E1.5c (skip se sem baseline)
 | --- | --- |
 | `api.ts` | API client completo (todos os endpoints, types, token management) |
 | `useCurrentUser.ts` | User autenticado (cache module-level) |
-| `useCurrentWorkspace.ts` | Workspace atual (localStorage + /me/workspaces) |
+| `WorkspaceProvider.tsx` | **React Context** — resolve workspace uma vez no layout, compartilha via `useWorkspace()` |
+| `useCurrentWorkspace.ts` | Workspace atual (standalone, legado) — preferir `useWorkspace()` em pages sob `(app)/` |
 | `usePermissions.ts` | Derives permissions from role (isOwner, canWrite, etc.) |
 | `usePipelineWS.ts` | WebSocket hook (auto-reconnect, terminal events) |
 | `format.ts` | 9 formatters (currency BRL/USD, percent, delta, compact, doc/pipeline status) |
@@ -533,7 +550,9 @@ fin-current/
 │   ├── e3_reconcile.py, e4_categorize.py
 │   ├── e5_analyze.py, e5n_narrativas.py
 │   ├── e6_render.py, e7_review.py, e_reset.py
-│   └── pipeline_common.py
+│   ├── e6/                    # Submódulos E6 (sanitize.py, validate.py)
+│   ├── e2/                    # Parsers por banco (registry, common, banks/)
+│   └── pipeline_common.py     # Paths, config, JSON I/O, schema validation
 │
 ├── frontend/
 │   ├── src/
@@ -558,6 +577,7 @@ fin-current/
 │   │   └── lib/
 │   │       ├── api.ts         # API client completo + types
 │   │       ├── format.ts, export.ts
+│   │       ├── WorkspaceProvider.tsx  # Context provider (useWorkspace hook)
 │   │       ├── useCurrentUser.ts, useCurrentWorkspace.ts, usePermissions.ts
 │   │       ├── usePipelineWS.ts
 │   │       └── utils.ts       # cn()
@@ -654,6 +674,25 @@ DB flag `PipelineRun.status = "cancelled"`. Task verifica entre stages. Celery `
 ### SystemExit Interception
 Scripts legados usam `sys.exit(1)`. Em Celery fork worker, `_run_stage()` no orchestrator captura `SystemExit` → converte em `StageResult(success=False)`.
 
+### Retorno `dict` e chave `success` (orchestrator)
+
+Alguns runners (`pipeline/stages/*.py`) retornam um **dicionário** com metadados (tokens, arquivos processados, erros parciais). Para falhas **sem** exceção (ex.: E2-llm concluiu mas há erros; E5.N não gerou output), o runner deve incluir explicitamente:
+
+```python
+{"success": False, ...}  # ou True em caso de sucesso explícito
+```
+
+Regras em `_run_stage()` (`pipeline/orchestrator.py`):
+
+| Retorno do runner | `StageResult.success` |
+| ----------------- | ---------------------- |
+| Exceção ou `SystemExit` com código ≠ 0 | `False` |
+| Qualquer valor que **não** seja `dict` | `True` |
+| `dict` **sem** chave `"success"` | `True` (compat.: skips como E1 sem docs) |
+| `dict` **com** `"success"` | `bool(detail["success"])` |
+
+O dicionário completo permanece em `StageResult.detail` para a UI, logs e persistência do run.
+
 ---
 
 ## 13. Segurança
@@ -701,3 +740,13 @@ CI: `.github/workflows/ci.yml` com 7 jobs (lint, PII lint, pipeline, backend+Red
 - **Custom telemetry** — UsageMetric (privacy-first)
 
 Para decisões arquiteturais detalhadas com rationale, ver [DECISIONS.md](DECISIONS.md).
+
+---
+
+## 16. Console interno (operadores, planejado — F7F)
+
+Aplicação **separada** do fluxo multi-tenant do cliente: autenticação própria, RBAC interno, APIs em prefixo dedicado (ex.: `/api/internal/...`), agregados privacy-first e ações mutadoras com audit obrigatório. O `/config` do workspace continua sendo **administração pelo cliente**.
+
+- Plano por fases (IA-0 … IA-3): [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md)
+- Tasks: [BACKLOG.md — F7F](BACKLOG.md#f7f--console-interno-operadores)
+- Primeira entrega de UI alinhada: **7E.7** (business metrics em `/admin/metrics`)

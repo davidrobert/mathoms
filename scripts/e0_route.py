@@ -33,36 +33,28 @@ from datetime import date
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Paths — re-inicializáveis via _init_config()
+# Paths — shared via pipeline_common + local extras
 # ---------------------------------------------------------------------------
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+import scripts.pipeline_common as _pc
 
-
-def _load_json_config(path: Path, label: str = "") -> dict:
-    if path.exists():
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"  ⚠️  Error loading {label or path.name}: {e}")
-    else:
-        print(f"  [WARN] {label or path.name} não encontrado — usando defaults hardcoded")
-    return {}
+_DEFAULT_BASE_DIR = _pc._DEFAULT_BASE_DIR
+log_stage = _pc.log_stage
 
 
 def _init_config(base_dir: Path) -> None:
     """(Re-)inicializa paths e configs globais a partir de base_dir."""
     global BASE, INBOX, INBOX_PROCESSED, LOGS, DATA, MEMBERS
     global INST_CONFIG, PIPE_CONFIG, FAMILY_CONFIG
-    BASE = base_dir
-    INBOX = BASE / "inbox"
-    INBOX_PROCESSED = BASE / "inbox_processed"
-    LOGS = BASE / "logs"
-    DATA = BASE / "data"
-    MEMBERS = BASE / "members"
-    INST_CONFIG = _load_json_config(BASE / "config" / "institutions.json", "institutions.json")
-    PIPE_CONFIG = _load_json_config(BASE / "config" / "pipeline.json", "pipeline.json")
-    FAMILY_CONFIG = _load_json_config(BASE / "config" / "family_members.json", "family_members.json")
+    _pc._init_config(base_dir)
+    BASE = _pc.PROJECT_DIR
+    INBOX = _pc.INBOX_DIR
+    INBOX_PROCESSED = _pc.INBOX_PROCESSED_DIR
+    LOGS = _pc.LOGS_DIR
+    DATA = _pc.DATA_DIR
+    MEMBERS = _pc.MEMBERS_DIR
+    INST_CONFIG = _pc.load_json_config("institutions.json")
+    PIPE_CONFIG = _pc.load_json_config("pipeline.json")
+    FAMILY_CONFIG = _pc.load_json_config("family_members.json")
 
 
 _init_config(_DEFAULT_BASE_DIR)
@@ -204,16 +196,31 @@ def detect_doc_type(filename: str) -> tuple[str, str] | None:
     return None
 
 
+def _validate_period(yyyymm: str) -> bool:
+    """Validate YYYYMM: month 01-12, year 2018-2030."""
+    if len(yyyymm) != 6:
+        return False
+    try:
+        year, month = int(yyyymm[:4]), int(yyyymm[4:6])
+        return 2018 <= year <= 2030 and 1 <= month <= 12
+    except ValueError:
+        return False
+
+
 def extract_period(filename: str) -> str:
     """Extract period from filename. Returns YYYYMM, YYYYMM_YYYYMM, YYYY, or today's date."""
     m = PERIOD_RE.search(filename)
     if m:
-        if m.group(2):
-            return f"{m.group(1)}_{m.group(2)}"
-        return m.group(1)
+        p1, p2 = m.group(1), m.group(2)
+        if _validate_period(p1) and (p2 is None or _validate_period(p2)):
+            return f"{p1}_{p2}" if p2 else p1
+        log("WARN", f"Período inválido no filename '{filename}': {p1}{'_' + p2 if p2 else ''}")
     m = YEAR_RE.search(filename)
     if m:
-        return m.group(1)
+        year = int(m.group(1))
+        if 2018 <= year <= 2030:
+            return m.group(1)
+        log("WARN", f"Ano inválido no filename '{filename}': {year}")
     return date.today().strftime("%Y%m%d")
 
 
@@ -363,34 +370,49 @@ Regras:
 - Member é relevante apenas para GRUPO E (members/) — documentos pessoais
 """
 
-    client = anthropic.Anthropic(api_key=api_key)
-    try:
-        response = client.messages.create(
-            model=_LLM_MODEL,
-            max_tokens=_LLM_MAX_TOKENS,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        raw = response.content[0].text.strip()
+    import time
 
-        # Parse JSON — handle markdown-wrapped responses
-        if raw.startswith("```"):
-            raw = re.sub(r"^```(?:json)?\n?", "", raw)
-            raw = re.sub(r"\n?```$", "", raw)
+    client = anthropic.Anthropic(api_key=api_key, timeout=30.0)
+    max_retries = 3
+    backoff = [1, 2, 4]
 
-        result = json.loads(raw)
-        confidence = result.get("confidence", 0)
+    for attempt in range(max_retries):
+        try:
+            response = client.messages.create(
+                model=_LLM_MODEL,
+                max_tokens=_LLM_MAX_TOKENS,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            raw = response.content[0].text.strip()
 
-        if confidence < _LLM_CONFIDENCE_THRESHOLD:
-            log("INFO", f"LLM classificou '{filename}' com confiança baixa ({confidence:.1%}) — nao_identificados/")
-            return None
+            # Parse JSON — handle markdown-wrapped responses
+            if raw.startswith("```"):
+                raw = re.sub(r"^```(?:json)?\n?", "", raw)
+                raw = re.sub(r"\n?```$", "", raw)
 
-        log("INFO", f"LLM classificou '{filename}' → {result.get('dest_group')}/{result.get('final_name')} (confiança {confidence:.0%})")
-        result["source"] = "llm"
-        return result
+            result = json.loads(raw)
+            confidence = result.get("confidence", 0)
 
-    except Exception as e:
-        log("ERROR", f"LLM fallback falhou para '{filename}': {e}")
-        return None
+            if confidence < _LLM_CONFIDENCE_THRESHOLD:
+                log("INFO", f"LLM classificou '{filename}' com confiança baixa ({confidence:.1%}) — nao_identificados/")
+                return None
+
+            log("INFO", f"LLM classificou '{filename}' → {result.get('dest_group')}/{result.get('final_name')} (confiança {confidence:.0%})")
+            result["source"] = "llm"
+            return result
+
+        except json.JSONDecodeError as e:
+            log("WARN", f"LLM retornou JSON inválido para '{filename}': {e}")
+            return None  # Don't retry JSON errors — response was received
+        except Exception as e:
+            if attempt < max_retries - 1:
+                delay = backoff[attempt]
+                log("WARN", f"LLM tentativa {attempt + 1}/{max_retries} falhou para '{filename}': {e}. Retry em {delay}s...")
+                time.sleep(delay)
+            else:
+                log("ERROR", f"LLM fallback falhou após {max_retries} tentativas para '{filename}': {e}")
+                return None
+    return None
 
 
 # ---------------------------------------------------------------------------

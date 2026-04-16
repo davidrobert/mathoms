@@ -8,7 +8,8 @@ that was previously duplicated across each eN_*.py script.
 
 Usage:
     from scripts.pipeline_common import (
-        PROJECT_DIR, CONFIG_DIR, PROCESSED_DIR, LOGS_DIR,
+        PROJECT_DIR, CONFIG_DIR, DATA_DIR, PROCESSED_DIR, LOGS_DIR,
+        INBOX_DIR, INBOX_PROCESSED_DIR, MEMBERS_DIR, OUTPUT_DIR,
         load_json_config, read_json, write_json, safe_float, log_stage,
     )
 """
@@ -36,6 +37,7 @@ def _init_config(base_dir: Path) -> None:
     """(Re-)inicializa paths globais e limpa cache de config."""
     global PROJECT_DIR, CONFIG_DIR, DATA_DIR, PROCESSED_DIR, LOGS_DIR
     global E2_DIR, E3_DIR, E4_DIR, E5_DIR, E7_DIR
+    global INBOX_DIR, INBOX_PROCESSED_DIR, MEMBERS_DIR, OUTPUT_DIR
     PROJECT_DIR = base_dir
     CONFIG_DIR = PROJECT_DIR / "config"
     DATA_DIR = PROJECT_DIR / "data"
@@ -46,6 +48,10 @@ def _init_config(base_dir: Path) -> None:
     E4_DIR = PROCESSED_DIR / "E4_unified"
     E5_DIR = PROCESSED_DIR / "E5_analysis"
     E7_DIR = PROCESSED_DIR / "E7_review"
+    INBOX_DIR = PROJECT_DIR / "inbox"
+    INBOX_PROCESSED_DIR = PROJECT_DIR / "inbox_processed"
+    MEMBERS_DIR = PROJECT_DIR / "members"
+    OUTPUT_DIR = PROJECT_DIR / "output"
     _config_cache.clear()
 
 
@@ -106,6 +112,49 @@ def write_json(path: Path, data: Dict[str, Any], *, indent: int = 2) -> bool:
 
 
 # =============================================================================
+# Schema validation
+# =============================================================================
+
+def validate_artifact(path: Path, schema_name: str) -> bool:
+    """Validate JSON file against a schema in config/schemas/.
+
+    Returns True if valid, validation disabled, or schema/jsonschema missing.
+    In 'warn' mode (default), logs warning but returns True.
+    In 'strict' mode, returns False on validation failure.
+    """
+    config = load_json_config("pipeline.json")
+    sv = config.get("schema_validation", {})
+    if not sv.get("enabled", False):
+        return True
+
+    try:
+        import jsonschema
+    except ImportError:
+        log_stage("WARN", "jsonschema não instalado — validação de schema pulada")
+        return True
+
+    schema_path = CONFIG_DIR / "schemas" / schema_name
+    if not schema_path.exists():
+        return True
+
+    schema = read_json(schema_path)
+    data = read_json(path)
+    if data is None or schema is None:
+        return False
+
+    try:
+        jsonschema.validate(data, schema)
+        return True
+    except jsonschema.ValidationError as e:
+        msg = f"Schema validation falhou para {path.name}: {e.message}"
+        if sv.get("mode", "warn") == "warn":
+            log_stage("WARN", msg)
+            return True  # don't block pipeline
+        log_stage("ERROR", msg)
+        return False
+
+
+# =============================================================================
 # Numeric helpers
 # =============================================================================
 
@@ -127,6 +176,7 @@ def safe_float(val: Any, default: float = 0.0) -> float:
         try:
             return float(s.replace(".", "").replace(",", "."))
         except ValueError:
+            log_stage("WARN", f"safe_float: não conseguiu converter '{s}' — usando {default}")
             return default
     return default
 

@@ -18,8 +18,10 @@ PyYAML>=6.0
 # Timezone handling
 pytz>=2024.1
 
-# LLM routing (optional — E0 route fallback)
-# anthropic>=0.30
+# LLM classification fallback (content-first classifier, D1=B in ADR)
+# Required in backend: when content-regex confidence < 0.8, classify_document
+# escalates to Claude via this SDK. Needs ANTHROPIC_API_KEY at runtime.
+anthropic>=0.30
 
-# Schema validation (optional)
-# jsonschema>=4.20
+# Schema validation
+jsonschema>=4.20

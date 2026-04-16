@@ -1,6 +1,13 @@
 {
   "_comment": "Parâmetros operacionais do pipeline: LLM, limites de arquivo, reconciliação e regras de roteamento.",
-  "_ultima_atualizacao": "2026-04-09",
+  "_ultima_atualizacao": "2026-04-15",
+
+  "report_version": "6.1",
+
+  "schema_validation": {
+    "enabled": true,
+    "mode": "warn"
+  },
 
   "llm": {
     "model": "claude-sonnet-4-20250514",
@@ -75,6 +82,13 @@
     "investimentos_unified": "investimentos-4_unified.json",
     "fluxo_unified": "fluxo_mensal_detalhado-4_unified.json",
     "analise_e5": "analise_financeira-5_analysis.json"
+  },
+
+  "e2_llm": {
+    "_comment": "E2-llm: uma chamada LLM por arquivo; concurrency reduz tempo total (ajuste se a API limitar). FIN_E2_LLM_CONCURRENCY (1–8) sobrescreve só concurrency.",
+    "concurrency": 4,
+    "max_input_chars": 40000,
+    "max_pdf_pages": 35
   },
 
   "log_files": {

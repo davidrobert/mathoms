@@ -7,7 +7,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.pipeline_common import (
-    PROJECT_DIR, CONFIG_DIR, safe_float, load_json_config,
+    PROJECT_DIR, CONFIG_DIR, DATA_DIR, INBOX_DIR, INBOX_PROCESSED_DIR,
+    MEMBERS_DIR, OUTPUT_DIR, safe_float, load_json_config,
 )
 
 
@@ -17,6 +18,25 @@ class TestPaths:
 
     def test_config_dir_exists(self):
         assert CONFIG_DIR.exists()
+
+
+class TestE0Paths:
+    """Verify E0-related paths are set after import."""
+
+    def test_inbox_dir(self):
+        assert INBOX_DIR == PROJECT_DIR / "inbox"
+
+    def test_inbox_processed_dir(self):
+        assert INBOX_PROCESSED_DIR == PROJECT_DIR / "inbox_processed"
+
+    def test_members_dir(self):
+        assert MEMBERS_DIR == PROJECT_DIR / "members"
+
+    def test_output_dir(self):
+        assert OUTPUT_DIR == PROJECT_DIR / "output"
+
+    def test_data_dir(self):
+        assert DATA_DIR == PROJECT_DIR / "data"
 
 
 class TestSafeFloat:
@@ -43,6 +63,36 @@ class TestSafeFloat:
 
     def test_garbage(self):
         assert safe_float("abc") == 0.0
+
+
+class TestSafeFloatWarning:
+    """Verify safe_float logs warnings for non-empty failed conversions."""
+
+    def test_garbage_logs_warning(self, capsys):
+        safe_float("abc")
+        captured = capsys.readouterr()
+        assert "safe_float" in captured.err
+        assert "abc" in captured.err
+
+    def test_partial_garbage_logs_warning(self, capsys):
+        safe_float("R$")
+        captured = capsys.readouterr()
+        assert "safe_float" in captured.err
+
+    def test_none_no_warning(self, capsys):
+        safe_float(None)
+        captured = capsys.readouterr()
+        assert "safe_float" not in captured.err
+
+    def test_empty_string_no_warning(self, capsys):
+        safe_float("")
+        captured = capsys.readouterr()
+        assert "safe_float" not in captured.err
+
+    def test_valid_no_warning(self, capsys):
+        safe_float("1.234,56")
+        captured = capsys.readouterr()
+        assert "safe_float" not in captured.err
 
 
 class TestLoadJsonConfig:

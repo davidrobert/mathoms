@@ -17,7 +17,7 @@ Usage:
 Valid --from values: E0, E1, E2-faturas, E3, E4, E5, E5.N, E6, E7
 
 Sequência completa (sem --from):
-  E0 Unlock → E0 Audit → E0 Route → E1 → E1.5 → E1.5c → E2-llm → E2-fat → E2-ext →
+  E0 Unlock → E0 Audit → E0 Route → E1 → E1.5 → E1.5c → E2-fat → E2-ext → E2-llm →
   E3 → E4 → E5 → E5.N → E6 → E7-crossval → E7-review → E7-apply → E6-final
 
 Modo padrão: etapas determinísticas rodam automaticamente, LLM são puladas com lembrete.
@@ -422,8 +422,8 @@ LLM_STAGES = {"E1", "E1.5", "E2-llm", "E7-review"}
 EXECUTION_ORDER_FULL = [
     "E1", "E1.5",                              # Wall 1 (LLM)
     "E1.5c",                                    # Deterministic consolidation
-    "E2-llm",                                   # Wall 2 (LLM)
-    "E2-faturas", "E2-extratos",
+    "E2-faturas", "E2-extratos",               # E2 determinístico primeiro
+    "E2-llm",                                   # Wall 2 (LLM) — só docs sem parser
     "E3", "E4", "E5",
     "E5.N",                                     # Deterministic (narrativas)
     "E6",
@@ -433,8 +433,8 @@ EXECUTION_ORDER_FULL = [
     "E6-final",
 ]
 EXECUTION_ORDER_FROM = {
-    "E0":          ["E1", "E1.5", "E1.5c", "E2-llm", "E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E1":          ["E1", "E1.5", "E1.5c", "E2-llm", "E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
+    "E0":          ["E1", "E1.5", "E1.5c", "E2-faturas", "E2-extratos", "E2-llm", "E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
+    "E1":          ["E1", "E1.5", "E1.5c", "E2-faturas", "E2-extratos", "E2-llm", "E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
     "E2-faturas":  ["E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
     "E3":          ["E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
     "E4":          ["E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
@@ -603,7 +603,7 @@ WALL_INSTRUCTIONS = {
             "4. Use o formato padrão E2 (tipo, membro, instituicao, transacoes[])",
         ],
         "artifacts_expected": [],  # Variable — depends on files present
-        "next_stage_after_wall": "E2-faturas",
+        "next_stage_after_wall": "E3",
     },
     "E7-review": {
         "wall": "wall_3",
@@ -788,7 +788,7 @@ Exemplos:
   python scripts/e_reset.py --continue                       # Retomar após etapa LLM
 
 Sequência completa (modo interativo):
-  [E1] → [E1.5] → E1.5c → [E2-llm] → E2-fat → E2-ext → E3 → E4 → E5 →
+  [E1] → [E1.5] → E1.5c → E2-fat → E2-ext → [E2-llm] → E3 → E4 → E5 →
   E5.N → E6 → E7-crossval → [E7-review] → E7-apply → E6-final
   Colchetes = etapa LLM (wall — pipeline para e aguarda)
 
@@ -1213,12 +1213,16 @@ def _run_interactive_stages(
 
         elif stage in DETERMINISTIC_SCRIPTS:
             print(f"\n  [{stage}]")
+            state["in_progress"] = stage
+            _save_state(state)
             ok = run_script(stage, dry_run, state)
             if not ok and not dry_run:
                 print(f"\n  [ABORTADO] Falha em {stage}. Pipeline parado.")
                 state["completed_stages"].append(f"{stage}:FAILED")
+                state["in_progress"] = None
                 _save_state(state)
                 sys.exit(1)
+            state["in_progress"] = None
             state["completed_stages"].append(stage)
             _save_state(state)
 
@@ -1248,6 +1252,19 @@ def _main_continue(args) -> None:
         print("[ERRO] Nenhum state file encontrado em _scratch/.e_reset_state.json")
         print("       Use --interactive para iniciar um pipeline interativo.")
         sys.exit(1)
+
+    # Crash recovery: if a stage was in_progress when pipeline died, re-execute it
+    in_progress = state.get("in_progress")
+    if in_progress:
+        print(f"\n  [AVISO] Etapa '{in_progress}' estava em progresso quando o pipeline parou.")
+        print(f"          Re-executando '{in_progress}' antes de continuar.")
+        completed = state.get("completed_stages", [])
+        if in_progress in completed:
+            completed.remove(in_progress)
+        state["completed_stages"] = completed
+        state["next_stage"] = in_progress
+        state["in_progress"] = None
+        _save_state(state)
 
     wall_hit = state.get("wall_hit", "?")
     next_stage = state.get("next_stage")

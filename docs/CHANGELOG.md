@@ -8,6 +8,37 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+**Pipeline hardening (revisão arquitetural):**
+- `pipeline_common.py`: novos paths (INBOX_DIR, INBOX_PROCESSED_DIR, MEMBERS_DIR, OUTPUT_DIR) + `validate_artifact()` para validação de schemas
+- E0 scripts (`e0_unlock`, `e0_audit`, `e0_route`) migrados para importar de `pipeline_common` — eliminada duplicação de `_init_config()`
+- `e0_route.py`: LLM fallback agora com timeout 30s + retry 3x com backoff exponencial (1s/2s/4s)
+- `e0_unlock.py`: limite de tamanho em extração ZIP (500MB/arquivo, 2GB total) — proteção contra zip bomb
+- `e0_route.py` + `e2/common.py`: validação de período extraído por regex (mês 01-12, ano 2018-2030)
+- `e_reset.py`: campo `in_progress` no state interativo para crash recovery no `--continue`
+- 3 novos JSON Schemas: `e2_extract`, `e4_unified`, `e5_analysis` — validação via `pipeline.json` → `schema_validation` (modo warn)
+- `jsonschema>=4.20` adicionado como dependência (anteriormente comentado)
+- `safe_float()` e `parse_brl()` agora logam warning para conversões falhas com input não-vazio
+- `e5n_narrativas.py`: `_MetricsProxy` retorna `None` (não `0`) para chaves ausentes; formatadores (`fmt_currency`, etc.) tratam `None` → "N/D"
+- `scripts/e6/` package: `sanitize.py` e `validate.py` extraídos de `e6_render.py` (-187 linhas)
+- 61 novos testes: `test_e2_parsers.py`, `test_e5n_formatting.py`, `test_schema_validation.py` + extensões em testes existentes
+
+**Pipeline incremental (ADR-080):**
+- `POST /pipeline/run { incremental: true }` — processa só docs novos (E0→E2 filtrado, E3→E7 full)
+- `GET /pipeline/new-doc-count` — contagem de docs nunca processados
+- UI: botão "Processar N novo(s)" quando há docs novos + botão "Processar todos" como secundário
+- Model: `PipelineRun.incremental` + `incremental_doc_ids` (JSON)
+- Pipeline: `WorkspaceContext.incremental` + `incremental_doc_paths` propagados ao E2 wrapper
+
+**Documentação:**
+- Plano do **console interno** (operadores CEO/Ops/CS/Financeiro/LGPD): [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md); sub-fase **F7F** no [BACKLOG.md](BACKLOG.md); menções em [ROADMAP.md](ROADMAP.md) e [ARCHITECTURE.md](ARCHITECTURE.md).
+
+**UX & Robustez — Meu Plano (P0–P5):**
+- **P0 fix:** `/plano` reescrito com `async/await` + estado de erro explícito (fix loading infinito por promise chain frágil)
+- **P1 feat:** Barra de progresso % da meta IF (patrimônio atual vs. meta, via `computeIFGoal`)
+- **P2 refactor:** `WorkspaceProvider` (React Context) no layout — resolve workspace uma vez, `useWorkspace()` substitui N fetches paralelos de `useCurrentWorkspace()`
+- **P4 feat:** Empty state de tarefas no Plano agora mostra CTAs: "Criar tarefa manual" + "Ver sugestões automáticas" (link `/plano-de-acao/sugestoes`)
+- **P5 feat:** `/plano` é a nova home do app (redirect `/` → `/plano`, sidebar reordenada, logo, invite flow, ErrorBoundary fallback, `nextUrl` default)
+
 ---
 
 ## [F9] Relatório Nativo React + Workspace Sharing + Design System — 2026-04-15 ✅
@@ -61,6 +92,26 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 **Testes:** 56 backend + 23 frontend + 20 design tokens + 14 codegen = 113 novos
 
 **Iframe removido:** `page.tsx` reescrita de 436 linhas (iframe + MutationObserver) para render React nativo.
+
+**Workspace Sharing (ADR-078):**
+
+Backend:
+- `WorkspaceInvitation` model + migration — convites com token SHA-256, TTL 72h, uso único, rate limit 10 pendentes/workspace.
+- Role `viewer` adicionado a `VALID_ROLES`. `WRITE_ROLES` e `MEMBER_ADMIN_ROLES` para policy granular.
+- `require_role(allowed)` factory em `tenancy.py` — `require_write_role` e `require_member_admin_role` prontos.
+- `PUT /goals/if` agora exige `require_write_role` — viewer recebe 403.
+- `User.token_version` + claim `tv` no JWT — forced logout ao remover membro (migration `d1b2c3d4e5f6`).
+- 7 novos endpoints: invitations CRUD, members CRUD, aceite público.
+- 39 testes (invitations + members + viewer role matrix + forced logout + goals regression).
+
+Frontend:
+- Aba "Acessos" em Configurações: lista membros, convida por email, muda roles, remove, revoga convites.
+- Workspace switcher no header (nome + badge de role; dropdown se 2+ workspaces).
+- Viewer banner ("Você está acompanhando") + botão Salvar desabilitado na meta IF.
+- Página pública `/invite/{token}` — preview sem auth, aceite com auth.
+- `?next=` em login/register — redireciona pós-auth para URL original.
+- `AuthBootstrap` global detecta `token_revoked` → limpa sessão + redirect para login.
+- `useCurrentUser`, `usePermissions` hooks. `roleLabels.ts` com labels PT-BR.
 
 ---
 
@@ -145,36 +196,6 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 - UpcomingTasksWidget inserido no dashboard entre KPIs e Charts
 
 ---
-
-### F9 — Workspace sharing (2026-04-15)
-
-**Backend:**
-
-- `WorkspaceInvitation` model + migration — convites com token SHA-256, TTL 72h, uso único, rate limit 10 pendentes/workspace.
-- Role `viewer` adicionado a `VALID_ROLES`. `WRITE_ROLES` e `MEMBER_ADMIN_ROLES` para policy granular.
-- `require_role(allowed)` factory em `tenancy.py` — `require_write_role` e `require_member_admin_role` prontos.
-- `PUT /goals/if` agora exige `require_write_role` — viewer recebe 403.
-- `User.token_version` + claim `tv` no JWT — forced logout ao remover membro (migration `d1b2c3d4e5f6`).
-- `IFGoalResponse.created_by_name` — join com `users.full_name` para atribuição de autoria.
-- 7 novos endpoints: `POST/GET/DELETE /workspaces/{ws}/invitations`, `GET/PATCH/DELETE /workspaces/{ws}/members`, `GET /invitations/{token}`, `POST /invitations/{token}/accept`.
-- `audit_service.log()` helper reusando `AuditLog` existente com convenções de naming.
-- 39 testes (invitations + members + viewer role matrix + forced logout + goals regression).
-- ADR-078 documentada. `docs/tenancy.md` atualizado com roles, convites, token invalidation, checklist de PR expandido.
-
-**Frontend:**
-
-- Aba "Acessos" em Configurações: lista membros, convida por email, muda roles, remove, revoga convites. Owner-only para ações de gestão.
-- Workspace switcher no header (nome + badge de role; dropdown se 2+ workspaces).
-- Viewer banner ("Você está acompanhando") + botão Salvar desabilitado na meta IF.
-- Atribuição de autoria: "Última edição por X em Y" na meta IF.
-- Página pública `/invite/{token}` — preview sem auth, aceite com auth, tratamento de estados terminais.
-- `?next=` em login/register — redireciona pós-auth para URL original (ex: aceite de convite).
-- `AuthBootstrap` global detecta `token_revoked` → limpa sessão + redirect para login.
-- `useCurrentUser`, `usePermissions` hooks. `roleLabels.ts` com labels PT-BR.
-
----
-
-Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
 ### Bug fixes 2026-04-14/15
 

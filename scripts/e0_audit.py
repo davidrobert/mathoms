@@ -37,19 +37,24 @@ from pathlib import Path
 from typing import Any
 
 # =============================================================================
-# Paths — re-inicializáveis via _init_config()
+# Paths — shared via pipeline_common + local extras
 # =============================================================================
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+import scripts.pipeline_common as _pc
+
+_DEFAULT_BASE_DIR = _pc._DEFAULT_BASE_DIR
+load_json_config = _pc.load_json_config
+log_stage = _pc.log_stage
 
 
 def _init_config(base_dir: Path) -> None:
     """(Re-)inicializa paths globais a partir de base_dir."""
     global SCRIPTS_DIR, PROJECT_DIR, DATA_DIR, E2_DIR, INBOX_LOG
+    _pc._init_config(base_dir)
     SCRIPTS_DIR = base_dir / "scripts"
-    PROJECT_DIR = base_dir
-    DATA_DIR = PROJECT_DIR / "data"
-    E2_DIR = PROJECT_DIR / "processed" / "E2_extracts"
-    INBOX_LOG = PROJECT_DIR / "logs" / "inbox_log.md"
+    PROJECT_DIR = _pc.PROJECT_DIR
+    DATA_DIR = _pc.DATA_DIR
+    E2_DIR = _pc.E2_DIR
+    INBOX_LOG = _pc.LOGS_DIR / "inbox_log.md"
 
 
 _init_config(_DEFAULT_BASE_DIR)
@@ -139,19 +144,7 @@ def parse_e2_filename(filename: str) -> dict[str, str]:
 
 
 # Load institution mappings from config/institutions.json
-def _load_institutions() -> dict:
-    inst_path = PROJECT_DIR / "config" / "institutions.json"
-    if not inst_path.exists():
-        print(f"  [WARN] config/institutions.json não encontrado — matching de banco/tipo será impreciso")
-        return {}
-    try:
-        with open(inst_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"  [WARN] Erro ao carregar institutions.json: {e}")
-        return {}
-
-_INSTITUTIONS = _load_institutions()
+_INSTITUTIONS = load_json_config("institutions.json")
 BANCO_CANONICAL = _INSTITUTIONS.get("banco_canonical", {})
 TIPO_ALIASES = _INSTITUTIONS.get("tipo_aliases", {})
 

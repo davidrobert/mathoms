@@ -178,11 +178,13 @@ def parse_brl(text: str) -> Optional[float]:
         negative = True
         text = text.lstrip("(-").rstrip(")").strip()
 
+    original = text
     text = text.replace(".", "").replace(",", ".")
     try:
         val = float(text)
         return -val if negative else val
     except ValueError:
+        log("E2-PARSE", "WARN", f"parse_brl: formato inesperado '{original}'")
         return None
 
 
@@ -230,11 +232,19 @@ def safe_date(year: int, month: int, day: int) -> str:
     return f"{year}-{month:02d}-{day:02d}"
 
 
+def _valid_ym(year: int, month: int) -> bool:
+    """Validate year/month: year 2018-2030, month 1-12."""
+    return 2018 <= year <= 2030 and 1 <= month <= 12
+
+
 def infer_periodo_from_filename(filename: str) -> Tuple[Optional[str], Optional[str]]:
     """Extract periodo start/end from filename patterns like _202501_202512 or _202603."""
     m = re.search(r'_(\d{4})(\d{2})_(\d{4})(\d{2})', filename)
     if m:
         y1, m1, y2, m2 = int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4))
+        if not (_valid_ym(y1, m1) and _valid_ym(y2, m2)):
+            log("E2-PARSE", "WARN", f"Período inválido em '{filename}': {y1}{m1:02d}_{y2}{m2:02d}")
+            return None, None
         inicio = safe_date(y1, m1, 1)
         fim_day = calendar.monthrange(y2, m2)[1]
         fim = safe_date(y2, m2, fim_day)
@@ -243,6 +253,9 @@ def infer_periodo_from_filename(filename: str) -> Tuple[Optional[str], Optional[
     m = re.search(r'_(\d{4})(\d{2})(?:[a-z])?-', filename)
     if m:
         y, mo = int(m.group(1)), int(m.group(2))
+        if not _valid_ym(y, mo):
+            log("E2-PARSE", "WARN", f"Período inválido em '{filename}': {y}{mo:02d}")
+            return None, None
         inicio = safe_date(y, mo, 1)
         fim_day = calendar.monthrange(y, mo)[1]
         fim = safe_date(y, mo, fim_day)

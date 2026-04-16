@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E4 Unified",
+  "description": "Schema mínimo para artefatos E4 (receitas, despesas, fluxo, patrimonio, investimentos). Aceita qualquer dos 7 formatos de saída E4.",
+  "type": "object",
+  "oneOf": [
+    {
+      "description": "Receitas ou Despesas unificadas",
+      "required": ["periodo", "total_geral"],
+      "properties": {
+        "periodo": {"type": "object"},
+        "total_geral": {"type": "number"}
+      }
+    },
+    {
+      "description": "Fluxo mensal detalhado",
+      "required": ["meses_ordenados"],
+      "properties": {
+        "meses_ordenados": {"type": "array", "minItems": 1}
+      }
+    },
+    {
+      "description": "Patrimônio ou Investimentos",
+      "required": ["dados"],
+      "properties": {
+        "dados": {}
+      }
+    },
+    {
+      "description": "Placeholder (seguros, pontos_milhas)",
+      "required": ["status"],
+      "properties": {
+        "status": {"type": "string"}
+      }
+    }
+  ],
+  "additionalProperties": true
+}

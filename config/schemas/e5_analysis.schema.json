@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E5 Analysis",
+  "description": "Schema mínimo para analise_financeira-5_analysis.json. Valida presença dos blocos principais de análise.",
+  "type": "object",
+  "required": ["score", "patrimonio", "fluxo_caixa"],
+  "properties": {
+    "score": {
+      "type": "object",
+      "required": ["valor", "classificacao"],
+      "properties": {
+        "valor": {"type": "number", "minimum": 0, "maximum": 10},
+        "classificacao": {"type": "string"}
+      }
+    },
+    "patrimonio": {
+      "type": "object",
+      "required": ["bruto", "liquido"],
+      "properties": {
+        "bruto": {"type": "number"},
+        "liquido": {"type": "number"}
+      }
+    },
+    "fluxo_caixa": {
+      "type": "object"
+    },
+    "ratios": {
+      "type": "object"
+    },
+    "goals": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

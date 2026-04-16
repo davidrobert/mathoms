@@ -70,6 +70,27 @@ class TestParseBRL:
         assert result == -1234.56
 
 
+class TestParseBRLWarning:
+    """Verify parse_brl logs on unexpected formats."""
+
+    def test_garbled_input_logs_warning(self, capsys):
+        result = parse_brl("xyz!!!")
+        assert result is None
+        captured = capsys.readouterr()
+        assert "parse_brl" in captured.err
+        assert "xyz" in captured.err
+
+    def test_valid_input_no_warning(self, capsys):
+        parse_brl("1.234,56")
+        captured = capsys.readouterr()
+        assert "parse_brl" not in captured.err
+
+    def test_none_no_warning(self, capsys):
+        parse_brl(None)
+        captured = capsys.readouterr()
+        assert "parse_brl" not in captured.err
+
+
 class TestParseUSD:
     def test_standard_format(self):
         assert parse_usd("2,605.00") == 2605.0

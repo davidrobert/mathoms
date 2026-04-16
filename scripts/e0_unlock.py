@@ -44,24 +44,28 @@ except ImportError:
     print("ERRO: pikepdf não instalado. Rode: pip install pikepdf")
     sys.exit(1)
 
-# ---------- paths — re-inicializáveis via _init_config() ----------
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+import scripts.pipeline_common as _pc
+
+_DEFAULT_BASE_DIR = _pc._DEFAULT_BASE_DIR
+
+# ---------- paths — script-specific extras ----------
 
 
 def _init_config(base_dir: Path) -> None:
     """(Re-)inicializa paths globais a partir de base_dir."""
     global BASE, INBOX, INBOX_PROCESSED, PASSWORDS_FILE, QA_LOG, DEST_DIRS
-    BASE = base_dir
-    INBOX = BASE / "inbox"
-    INBOX_PROCESSED = BASE / "inbox_processed"
-    PASSWORDS_FILE = BASE / "config" / "passwords.txt"
-    QA_LOG = BASE / "logs" / "qa_log.md"
+    _pc._init_config(base_dir)
+    BASE = _pc.PROJECT_DIR
+    INBOX = _pc.INBOX_DIR
+    INBOX_PROCESSED = _pc.INBOX_PROCESSED_DIR
+    PASSWORDS_FILE = _pc.CONFIG_DIR / "passwords.txt"
+    QA_LOG = _pc.LOGS_DIR / "qa_log.md"
     DEST_DIRS = [
-        BASE / "data" / "financial_statements",
-        BASE / "data" / "income_tax_br",
-        BASE / "data" / "real_estate",
-        BASE / "data" / "vehicles",
-        BASE / "members",
+        _pc.DATA_DIR / "financial_statements",
+        _pc.DATA_DIR / "income_tax_br",
+        _pc.DATA_DIR / "real_estate",
+        _pc.DATA_DIR / "vehicles",
+        _pc.MEMBERS_DIR,
     ]
 
 
@@ -164,17 +168,44 @@ def try_unlock(pdf_path: Path, passwords: list[str], dry_run: bool = False) -> b
 
 # ---------- ZIP functions ----------
 
+MAX_EXTRACT_FILE_SIZE = 500 * 1024 * 1024       # 500 MB per member
+MAX_EXTRACT_TOTAL_SIZE = 2 * 1024 * 1024 * 1024  # 2 GB total
+
+
 def _safe_extractall(zf: zipfile.ZipFile, dest_dir: Path, pwd: bytes | None = None) -> None:
-    """Extract ZIP members with path traversal validation (zip slip protection)."""
+    """Extract ZIP members with path traversal validation (zip slip) and size limits."""
     dest_resolved = dest_dir.resolve()
+    total_size = 0
+    members_to_extract = []
+
     for member in zf.infolist():
+        # Zip slip check
         member_path = (dest_dir / member.filename).resolve()
         if not str(member_path).startswith(str(dest_resolved)):
             raise ValueError(
                 f"ZIP member '{member.filename}' resolves outside destination "
                 f"directory — possible zip slip attack. Aborting extraction."
             )
-    zf.extractall(dest_dir, pwd=pwd)
+        # Size limit per file
+        if member.file_size > MAX_EXTRACT_FILE_SIZE:
+            print(
+                f"  WARN: ZIP member '{member.filename}' "
+                f"({member.file_size / (1024*1024):.0f}MB) excede limite de "
+                f"{MAX_EXTRACT_FILE_SIZE // (1024*1024)}MB — pulando"
+            )
+            continue
+        # Cumulative size limit
+        total_size += member.file_size
+        if total_size > MAX_EXTRACT_TOTAL_SIZE:
+            raise ValueError(
+                f"ZIP total extraction size ({total_size / (1024**3):.1f}GB) "
+                f"excede limite de {MAX_EXTRACT_TOTAL_SIZE // (1024**3)}GB — "
+                f"abortando extração."
+            )
+        members_to_extract.append(member)
+
+    for member in members_to_extract:
+        zf.extract(member, dest_dir, pwd=pwd)
 
 def is_zip_encrypted(zip_path: Path) -> bool:
     """Verifica se o ZIP está protegido por senha."""

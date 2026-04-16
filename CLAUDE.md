@@ -15,11 +15,12 @@ config/              Configurações, schemas, templates, regras do pipeline
   categorization.json      Keywords de categorização de receitas/despesas
   institutions.json        Padrões de bancos, tipos de documento, layouts de extração
   report_layout.yaml       Layout do relatório (seções, cards, charts) — YAML por extensos comentários inline
-  schemas/                 JSON Schemas de validação (ex: baseline_patrimonial.schema.json)
+  schemas/                 JSON Schemas de validação (baseline_patrimonial, e2_extract, e4_unified, e5_analysis)
   templates/               Templates estáticos (HTML, Markdown)
     report_template.html     Template HTML do relatório final (E6)
 scripts/             Scripts determinísticos do pipeline (e0–e7, e_reset)
-  pipeline_common.py   Módulo compartilhado (paths, config loading, JSON I/O)
+  pipeline_common.py   Módulo compartilhado (paths, config loading, JSON I/O, schema validation)
+  e6/                  Submódulos E6 extraídos (sanitize.py, validate.py)
 dev/                 Dev-tooling (commit helper, pre-commit hooks) — NÃO é produto
   commit.py            Wrapper git com guardrails (substitui o antigo e_save.py)
   check_forbidden_paths.py  Hook que bloqueia paths sensíveis no staging
@@ -92,7 +93,7 @@ A pasta `_scratch/` está no `.gitignore`.
 | ----------- | ------- | ---------------------- | ------------------------------------------------- |
 | E0-unlock   | Det.    | `e0_unlock.py`         | Desbloqueia PDFs/ZIPs protegidos por senha        |
 | E0-audit    | Det.    | `e0_audit.py`          | Auditoria de integridade pré-pipeline             |
-| E0-route    | Det.    | `e0_route.py`          | Renomeia e roteia documentos do inbox             |
+| E0-route    | Det.    | `e0_route.py`          | Renomeia e roteia documentos do inbox (LLM fallback: timeout 30s, 3 retries) |
 | E1          | **LLM** | —                      | Extrai dados pessoais de membros                  |
 | E1.5        | **LLM** | —                      | Consolida baseline patrimonial (IRPF)             |
 | E1.5c       | Det.    | `e15_consolidate.py`   | Enriquece baseline com chaves consolidadas        |
@@ -109,6 +110,16 @@ A pasta `_scratch/` está no `.gitignore`.
 
 
 **Det.** = determinístico (script Python). **LLM** = requer processamento por modelo de linguagem.
+
+### Modo incremental (ADR-080)
+
+O pipeline web suporta modo **incremental**: extrai só docs novos (E0→E2), depois consolida tudo (E3→E7 full).
+
+- **Filtragem:** `Document.pipeline_last_run_at IS NULL` identifica docs nunca processados.
+- **API:** `POST /pipeline/run { incremental: true }` · `GET /pipeline/new-doc-count`
+- **Propagação:** API coleta `stored_path` dos docs novos → Celery task → `WorkspaceContext.incremental_doc_paths` → E2 wrapper filtra `find_all_files()` por stem matching.
+- **E3→E7 sempre full:** reconciliação, categorização e análise rodam sobre todos os extracts.
+- **UI:** botão "Processar N novo(s)" (primary) + "Processar todos" (secondary) quando há docs novos.
 
 ## Comandos principais
 
@@ -190,7 +201,9 @@ Existem **dois caminhos de classificação** no projeto:
 
 ### Convenções de código
 
-- Scripts em `scripts/` seguem o padrão `eN_nome.py` (e0, e2, e3...). Exceção: `pipeline_common.py` (módulo compartilhado) e `e6_regen.py` (utilitário visual).
+- Scripts em `scripts/` seguem o padrão `eN_nome.py` (e0, e2, e3...). Exceção: `pipeline_common.py` (módulo compartilhado — paths, config, JSON I/O, schema validation) e `e6_regen.py` (utilitário visual).
+- E0 scripts (`e0_unlock.py`, `e0_audit.py`, `e0_route.py`) importam paths e config de `pipeline_common.py` via `import scripts.pipeline_common as _pc`.
+- `scripts/e6/` contém submódulos extraídos de `e6_render.py`: `sanitize.py` (formato monetário) e `validate.py` (19 checks V1-V19).
 - Parsers de E2 ficam em `scripts/e2/banks/<banco>.py` — um módulo por banco.
 - Novo banco = novo arquivo em `scripts/e2/banks/`, com lista `PARSERS` exportada.
 - Valores monetários em BRL usam formato brasileiro: `1.234,56` nos documentos, `1234.56` (float) nos JSONs.
@@ -223,6 +236,6 @@ Nomes de banco em filenames seguem o código canônico de `institutions.json` (e
 - `**report_layout.yaml`**: único YAML no projeto. Justificado por extensos comentários inline que seriam perdidos em JSON.
 - `**inbox_processed/**`: sem prefixo `_` (diferente de `_archive/`, `_scratch/`) porque semanticamente é parte do fluxo de dados, não um diretório auxiliar.
 - **Período sentinel `999999`**: usado em faturas de cartão cujo período não pôde ser determinado. Propaga de E0→E2→E3.
-- `**config/schemas/**`: contém apenas `baseline_patrimonial.schema.json`. Schemas adicionais podem ser criados conforme necessidade.
+- `**config/schemas/**`: contém 4 schemas — `baseline_patrimonial.schema.json` (E1.5), `e2_extract.schema.json` (E2), `e4_unified.schema.json` (E4), `e5_analysis.schema.json` (E5). Validação controlada por `pipeline.json` → `schema_validation.enabled` (modo warn ou strict).
 - **Logs**: nomes em lowercase com prefixo de etapa quando aplicável (ex: `e1_5_execution_report.txt`, `qa_log.md`).
 

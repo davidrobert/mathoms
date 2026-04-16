@@ -81,10 +81,10 @@ _CLT_SOURCE_LABELS = list(_CATEGORIZATION.get("clt_source_mapping", {}).values()
 # METRICS will be loaded from E5 JSON at runtime (no more hardcoding)
 # Add a guard to prevent KeyError on import
 class _MetricsProxy(dict):
-    """Dict that returns safe defaults for missing keys."""
+    """Dict that returns None for missing keys (distinguishes from 0)."""
     def __missing__(self, key):
-        print(f"  [WARN] METRICS['{key}'] não encontrado, usando default")
-        return 0
+        print(f"  [WARN] METRICS['{key}'] não encontrado, retornando None")
+        return None
 
 METRICS = _MetricsProxy()
 
@@ -535,9 +535,12 @@ def fmt_currency(value):
     - Thousands: R$ XXk or R$ XX,Yk
     - Sub-thousand: R$ X.XXX,XX (Brazilian format)
     - Negative values: preserves sign, uses abs() for range detection
+    - None: returns "N/D" (dado não disponível)
 
     Returns: str
     """
+    if value is None:
+        return "N/D"
     if not isinstance(value, (int, float)):
         return f"R$ {value}"
     sign = "-" if value < 0 else ""
@@ -558,14 +561,18 @@ def fmt_currency(value):
 
 
 def fmt_percent(value):
-    """Format percentage value."""
+    """Format percentage value. Returns 'N/D' for None."""
+    if value is None:
+        return "N/D"
     if value == int(value):
         return f"{int(value)}%"
     return f"{value:.1f}%".replace(".", ",")
 
 
 def fmt_num(value, decimals=1):
-    """Format a numeric value with Brazilian decimal separator (comma)."""
+    """Format a numeric value with Brazilian decimal separator (comma). Returns 'N/D' for None."""
+    if value is None:
+        return "N/D"
     if not isinstance(value, (int, float)):
         return str(value)
     if value == int(value):
@@ -683,7 +690,9 @@ def validate_narrativas(narrativas_obj):
 
 
 def fmt_usd(value):
-    """Format USD value: US$ X,Yk or US$ X."""
+    """Format USD value: US$ X,Yk or US$ X. Returns 'N/D' for None."""
+    if value is None:
+        return "N/D"
     if not isinstance(value, (int, float)):
         return f"US$ {value}"
     if value >= 1000:
@@ -1146,6 +1155,9 @@ def main(root_dir: Path = None):
     # Load metrics dynamically from E5 JSON
     global METRICS
     METRICS = load_metrics_from_e5(e5_data)
+    none_count = sum(1 for v in METRICS.values() if v is None)
+    if none_count > 0:
+        print(f"  [WARN] {none_count} métricas com valor None após carregamento do E5")
     print(f"✓ Loaded {len(METRICS)} metrics from E5 JSON")
     print(f"  Score: {METRICS['score']}/10, Patrimônio: R$ {METRICS['patrimonio_bruto']:,.0f}")
     print()
