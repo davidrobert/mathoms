@@ -5,11 +5,17 @@ import { AlertCircle } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
 import { LAYOUT, type SectionSpec } from "@/generated/report-layout";
 import { type UseReportDataState } from "@/hooks/useReportData";
+import type { ReportAnalysisData } from "@/lib/api";
 import { ReportHeader } from "./ReportHeader";
 import { ReportToc, type TocEntry } from "./ReportToc";
 import { ReportSection } from "./ReportSection";
 import { ReportSectionStub } from "./ReportSectionStub";
 import { useReportMode } from "./ReportModeProvider";
+import { S1PatrimonioSection } from "./sections/S1PatrimonioSection";
+
+/** IDs de seções com render React completo (sem stubs).
+ *  Cada lote F2.A–F2.H adiciona IDs aqui. */
+const MIGRATED_SECTIONS = new Set(["S1"]);
 
 interface ReportShellProps {
   reportId: string;
@@ -103,27 +109,54 @@ export function ReportShell({
                 </h1>
               </header>
 
-              {enabledSections.map((section) => (
-                <ReportSection
-                  key={section.id}
-                  id={section.id}
-                  title={section.title}
-                >
-                  <ReportSectionStub
-                    reportId={reportId}
-                    cardIds={(section.cards ?? [])
-                      .filter((c) => c.enabled)
-                      .map((c) => c.id)}
-                    chartIds={(section.charts ?? [])
-                      .filter((c) => c.enabled)
-                      .map((c) => c.id)}
+              {enabledSections.map((section) =>
+                MIGRATED_SECTIONS.has(section.id) ? (
+                  <MigratedSection
+                    key={section.id}
+                    sectionId={section.id}
+                    data={dataState.data}
                   />
-                </ReportSection>
-              ))}
+                ) : (
+                  <ReportSection
+                    key={section.id}
+                    id={section.id}
+                    title={section.title}
+                  >
+                    <ReportSectionStub
+                      reportId={reportId}
+                      cardIds={(section.cards ?? [])
+                        .filter((c) => c.enabled)
+                        .map((c) => c.id)}
+                      chartIds={(section.charts ?? [])
+                        .filter((c) => c.enabled)
+                        .map((c) => c.id)}
+                    />
+                  </ReportSection>
+                ),
+              )}
             </article>
           )}
         </main>
       </div>
     </div>
   );
+}
+
+/** Dispatcher para seções migradas. Cada lote F2.A–F2.H adiciona um case. */
+function MigratedSection({
+  sectionId,
+  data,
+}: {
+  sectionId: string;
+  data: ReportAnalysisData;
+}) {
+  switch (sectionId) {
+    case "S1":
+      return <S1PatrimonioSection data={data} />;
+    // F2.B: case "S2": return <S2FluxoCaixaSection data={data} />;
+    // F2.C: case "S3": return <S3InvestimentosSection data={data} />;
+    // ...
+    default:
+      return null;
+  }
 }
