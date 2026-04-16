@@ -147,6 +147,8 @@ export function makeDocument(
     content_type: "application/pdf",
     error_message: null,
     uploaded_at: isoNow(),
+    pipeline_last_run_at: null,
+    pipeline_e2_extract_ok: null,
     ...overrides,
   };
 }
@@ -197,6 +199,7 @@ export function makeRun(
     paused_at_stage: null,
     tier_at_run: "free",
     total_documents: 1,
+    incremental: false,
     celery_task_id: `celery-${n}`,
     started_at: isoNow(),
     completed_at: isoNow(),

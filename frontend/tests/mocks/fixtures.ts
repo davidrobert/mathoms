@@ -80,6 +80,7 @@ const pipelineRun: PipelineRunResponse = {
   paused_at_stage: null,
   tier_at_run: "free",
   total_documents: 1,
+  incremental: false,
   celery_task_id: "celery-task-1",
   started_at: NOW,
   completed_at: NOW,

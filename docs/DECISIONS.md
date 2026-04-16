@@ -1223,7 +1223,7 @@ O risco principal: quebrar o pipeline durante a transição e perder capacidade 
 2. **Classificação dos artefatos de `config/`** em 3 grupos:
    - **Grupo A — Dados do usuário** (migram para DB): `goals.json`, `tarefas.md`, `family_members.json`, `cenarios.json`, `decisions.md`. Removidos do repo ao final de F8.4.
    - **Grupo B — Seeds/templates de produto** (permanecem no repo): `institutions.json` (padrões de banco), `categorization.json` (keywords default), `parametros_fiscais.json` (alíquotas), `localization.json`, `taxas.json`, `scoring.json`. Carregados como seed no primeiro acesso do workspace; usuário pode editar cópia via `config_blob`.
-   - **Grupo C — Documentação** (permanecem): `definitions.md`, `manual_operacao.md`, `methodology.md`, `source_hierarchy.md`, `regras_composicao_patrimonial.md`, `decisions.md`, `report_layout.yaml`, `report_spec.md`. Atualizar seções que referenciam Grupo A.
+   - **Grupo C — Documentação** (permanecem): `definitions.md`, `methodology.md`, `source_hierarchy.md`, `regras_composicao_patrimonial.md`, `report_layout.yaml`, `report_spec.md`. Nota: `manual_operacao.md` foi arquivado em `_archive/manual_operacao_v6.1.md` (versão agora em `pipeline.json::report_version`). `decisions.md` listado em Grupo A para migração ao DB.
 3. **Ordem de migração** (escolhida para minimizar risco):
    - **F8.1**: `goals.json` (parcial — só `independencia_financeira`) + adapter para resto
    - **F8.2**: `tarefas.md` completo
@@ -1249,7 +1249,7 @@ O risco principal: quebrar o pipeline durante a transição e perder capacidade 
 **Implementação:**
 - F8.0: contrato e stubs do adapter, CI test que valida assinatura de funções do adapter
 - F8.1+: cada fase implementa as funções correspondentes e migra scripts para usá-las
-- F8.4: checklist de cutover (backup → remoção de arquivos Grupo A → desabilitar entradas CLI do Makefile/documentação → atualizar `manual_operacao.md`)
+- F8.4: checklist de cutover (backup → remoção de arquivos Grupo A → desabilitar entradas CLI do Makefile/documentação → atualizar docs relevantes)
 
 ---
 
@@ -1427,11 +1427,6 @@ O relatório financeiro era exibido via iframe carregando o HTML produzido pelo 
 
 ---
 
-## Como registrar uma nova ADR
-
-Ao tomar uma decisão não-trivial, adicione aqui com o template:
-
-```markdown
 ## ADR-078 — Workspace sharing: convites, viewer role, forced logout
 
 **Status:** Decidido (F9) • **Data:** 2026-04-15
@@ -1480,9 +1475,9 @@ membro. F9 endereça esses 3 gaps.
 
 ---
 
-## ADR-075 — Content-first classification no upload web
+## ADR-079 — Content-first classification no upload web
 
-**Status:** Decidido • **Data:** 2026-04-15 • Supersedes D16 (parcialmente — D16 vale para CLI)
+**Status:** Decidido • **Data:** 2026-04-15 • Supersedes D16 (parcialmente — D16 vale para CLI) • Nota: renumerado de ADR-075 (duplicado) para ADR-079
 
 **Contexto:** O upload web classificava documentos pelo nome do arquivo (via `e0_route.classify_by_name`). Na prática, bancos brasileiros exportam PDFs/CSVs com nomes arbitrários ou genéricos (ex: `document.pdf`, `export_20260415.csv`). Resultado: ~65% dos uploads caíam no tipo "Outro".
 
@@ -1501,6 +1496,36 @@ membro. F9 endereça esses 3 gaps.
 - ⚠️ Requer `anthropic` SDK + `ANTHROPIC_API_KEY` no env do backend. Sem a key, degrada para regex-only (~85%).
 - ⚠️ Imagens (JPG/PNG) não podem ser classificadas por content-regex — vão direto para `needs_review`. OCR/vision é work futuro.
 - ❌ Soft FK em `possible_duplicate_of_id` (sem constraint real) por limitação de alembic offline mode em SQLite. Dangling pointers são harmless — o JOIN retorna empty.
+
+---
+
+## ADR-080 — Pipeline incremental: extrair só docs novos, consolidar full
+
+**Status:** Decidido (F7) • **Data:** 2026-04-16
+
+**Contexto:** Com 96+ documentos, o pipeline reprocessava tudo do zero a cada execução — incluindo etapas caras de LLM (E1, E1.5, E2-llm). Após upload de 1 doc novo, rodar o pipeline completo desperdiçava tempo e custo. O modelo `Document` já tinha `pipeline_last_run_at` (adicionado na sync pós-pipeline), permitindo distinguir docs novos de já processados.
+
+**Alternativas avaliadas:**
+1. **Sempre full (status quo)** — simples, mas O(n) no custo/tempo com crescimento de docs.
+2. **E0→E7 incremental puro** — processaria só docs novos em todas as etapas. Quebraria E3 (reconciliação cross-period) e E5 (análise consolidada).
+3. **Híbrido: E0→E2 incremental + E3→E7 full (escolhida)** — extrai só novos (custo LLM proporcional a novos), consolida sobre todos os extracts (relatório sempre completo).
+
+**Decisão:** Modo incremental (`POST /pipeline/run { incremental: true }`) filtra E0→E2 para docs com `pipeline_last_run_at IS NULL`. E3→E7 sempre rodam full sobre todos os E2_extracts existentes.
+
+**Implementação:**
+- `PipelineRun.incremental` (bool) + `incremental_doc_ids` (JSON) — rastreabilidade
+- `WorkspaceContext.incremental` + `incremental_doc_paths` — propagação ao orchestrator
+- `pipeline/stages/e2.py` — filtragem por stem matching dos stored_paths
+- `GET /pipeline/new-doc-count` — endpoint leve para UI
+- UI dinâmica: botão primary muda entre "Processar N novo(s)" e "Processar documentos"
+
+**Consequências:**
+- ✅ Custo de LLM proporcional a docs novos, não ao total do workspace.
+- ✅ E3→E7 full garante reconciliação, categorização e análise sempre completas.
+- ✅ Botão "Processar todos" mantido como fallback explícito.
+- ⚠️ Se parser E2 for corrigido, extracts antigos ficam desatualizados — mitigado por "Processar todos".
+- ⚠️ Stem matching entre stored_path e filename no filesystem pode falhar se renaming E0 for complexo — na prática, uploads web não passam por E0-route.
+- ❌ E0 stages (unlock/audit/route) não são filtrados — operam em inbox (CLI flow). No web flow, inbox está vazio e eles fazem no-op naturalmente.
 
 ---
 

@@ -36,6 +36,173 @@ from backend.app.services.events import (
     publish_stage_started,
 )
 from backend.app.services.retry_config import get_retry_config
+from backend.app.services.pipeline_adapter import (
+    build_goals_payload_sync,
+    build_tasks_payload_sync,
+    build_tarefas_md_sync,
+)
+from backend.app.services.report_tasks_snapshot_service import (
+    build_snapshot_sync,
+)
+
+
+def _materialize_adapter_configs(
+    ws_id: str, ctx, config_dir: Path
+) -> None:
+    """ADR-077: materializa `goals.json` e `tarefas.md` gerados pelo
+    pipeline adapter a partir do DB → filesystem do tenant.
+
+    Scripts do pipeline (E5, E5.N, E6) continuam lendo de filesystem —
+    zero refactor neles. O adapter gera payloads idênticos ao formato
+    legado, mas a fonte de verdade é o DB.
+
+    Se o workspace não tem dados no DB (ex: primeiro run antes do seed),
+    preserva os arquivos originais que vieram do config_dir (fallback).
+
+    Best-effort: exceções são logadas mas não interrompem o pipeline.
+    """
+    import json
+    import logging
+
+    logger = logging.getLogger("pipeline_task.materialize")
+
+    try:
+        with SyncSessionLocal() as db:
+            # -- goals.json --
+            # Carrega o legado como base e sobrescreve com dados do DB
+            legacy_goals_path = config_dir / "goals.json"
+            legacy_extras = {}
+            if legacy_goals_path.exists():
+                try:
+                    legacy_extras = json.loads(
+                        legacy_goals_path.read_text(encoding="utf-8")
+                    )
+                except (json.JSONDecodeError, OSError):
+                    pass
+
+            goals_payload = build_goals_payload_sync(
+                ws_id, db=db, legacy_extras=legacy_extras
+            )
+
+            # Materializa no config_dir do context (pode ser tenant_root/config/
+            # ou o config_dir global — depende do setup). Se é o global, grava
+            # em tenant_root/config/ para não poluir o original.
+            target_config_dir = ctx.config_dir
+            target_config_dir.mkdir(parents=True, exist_ok=True)
+
+            goals_out = target_config_dir / "goals.json"
+            goals_out.write_text(
+                json.dumps(goals_payload, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            logger.info("Materialized goals.json → %s", goals_out)
+
+            # -- tarefas.md --
+            md = build_tarefas_md_sync(ws_id, db=db)
+            if md.strip():
+                tarefas_out = target_config_dir / "tarefas.md"
+                tarefas_out.write_text(md, encoding="utf-8")
+                logger.info("Materialized tarefas.md → %s", tarefas_out)
+            else:
+                logger.info("No tasks in DB — keeping original tarefas.md")
+
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "Failed to materialize adapter configs for ws=%s: %s. "
+            "Pipeline will use original config files (fallback).",
+            ws_id,
+            exc,
+        )
+
+
+def _persist_llm_suggestions(
+    ws_id: str, run_id: str, tenant_root: Path
+) -> None:
+    """ADR-074: lê `tarefas_sugeridas` do JSON de análise (E5) e persiste
+    como `TaskSuggestion(source='e5n_llm')` no DB.
+
+    Se a lista estiver vazia (caso mais comum até o LLM ser treinado para
+    produzir sugestões), não faz nada. Idempotente: duplicatas são evitadas
+    pelo `source_run_id` (se o mesmo run_id já tem sugestões, pula).
+    """
+    import asyncio
+    import json
+    import logging
+
+    logger = logging.getLogger("pipeline_task.suggestions")
+
+    analysis = _find_latest_analysis_json(tenant_root)
+    if analysis is None:
+        return
+
+    try:
+        data = json.loads(analysis.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return
+
+    sugeridas = data.get("tarefas_sugeridas", [])
+    if not sugeridas:
+        return
+
+    logger.info(
+        "Persisting %d LLM suggestions for ws=%s run=%s",
+        len(sugeridas),
+        ws_id,
+        run_id,
+    )
+
+    async def _save():
+        from backend.app.core.database import async_session as AsyncSessionLocal
+        from backend.app.schemas.task import (
+            TaskSuggestionCreate,
+            TaskSuggestionProposed,
+        )
+        from backend.app.services import task_suggestion_service
+
+        async with AsyncSessionLocal() as db:
+            # Check idempotência: se já existem suggestions desse run, pula
+            from sqlalchemy import select
+            from backend.app.models.task import TaskSuggestion
+
+            existing = (
+                await db.execute(
+                    select(TaskSuggestion).where(
+                        TaskSuggestion.workspace_id == ws_id,
+                        TaskSuggestion.source_run_id == run_id,
+                    )
+                )
+            ).scalars().first()
+            if existing:
+                logger.info("Suggestions for run %s already exist — skipping", run_id)
+                return
+
+            creates = []
+            for s in sugeridas:
+                try:
+                    proposed = TaskSuggestionProposed(
+                        title=s.get("tarefa", s.get("title", "Sugestão LLM")),
+                        category=s.get("categoria", s.get("category", "Orcamento")),
+                        priority=s.get("prioridade", s.get("priority", "R")),
+                        deadline_kind=s.get("deadline_kind", "UNSCHEDULED"),
+                        deadline_label=s.get("prazo", s.get("deadline_label")),
+                        description=s.get("descricao", s.get("description")),
+                    )
+                    creates.append(
+                        TaskSuggestionCreate(
+                            proposed_payload=proposed,
+                            source="e5n_llm",
+                            source_run_id=run_id,
+                        )
+                    )
+                except Exception as exc:
+                    logger.warning("Skipping invalid suggestion: %s — %s", s, exc)
+
+            if creates:
+                await task_suggestion_service.bulk_create(ws_id, creates, db=db)
+                await db.commit()
+                logger.info("Saved %d suggestions", len(creates))
+
+    asyncio.run(_save())
 
 
 def _find_latest_analysis_json(tenant_root: Path) -> Path | None:
@@ -66,6 +233,14 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
     latest = html_files[0]
     analysis_json = _find_latest_analysis_json(tenant_root)
     with SyncSessionLocal() as db:
+        # ADR-074 §F8.3 — snapshot imutável das tasks no momento da geração.
+        # Se a tabela `tasks` está vazia (ex: workspace legado pré-F8.2), vira
+        # snapshot vazio — melhor que NULL pois a UI pode distinguir
+        # "foto vazia" de "pré-F8.3 (fallback live)".
+        try:
+            tasks_snapshot = build_snapshot_sync(ws_id, db=db)
+        except Exception:  # noqa: BLE001 — best-effort; nunca impede report
+            tasks_snapshot = None
         report = Report(
             id=str(uuid.uuid4()),
             workspace_id=ws_id,
@@ -74,6 +249,7 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
             html_path=str(latest),
             analysis_json_path=str(analysis_json) if analysis_json else None,
             size_bytes=latest.stat().st_size,
+            tasks_snapshot_json=tasks_snapshot,
         )
         db.add(report)
         db.commit()
@@ -153,6 +329,8 @@ def run_pipeline_task(
     skip_llm: bool,
     stop_on_error: bool,
     tier: str = "free",
+    incremental: bool = False,
+    incremental_doc_paths: list[str] | None = None,
 ) -> dict:
     """Execute pipeline stages sequentially as a Celery task.
 
@@ -171,8 +349,18 @@ def run_pipeline_task(
     tenant_root = Path(tenant_root_str)
     config_dir = Path(config_dir_str)
 
-    ctx = WorkspaceContext.for_tenant(tenant_root, config_dir=config_dir)
+    ctx = WorkspaceContext.for_tenant(
+        tenant_root, config_dir=config_dir, pipeline_run_id=run_id
+    )
+    ctx.incremental = incremental
+    ctx.incremental_doc_paths = incremental_doc_paths or []
     ctx.ensure_dirs()
+
+    # ADR-077 / F8.4: materializa payloads do adapter como arquivos no
+    # tenant config dir ANTES de rodar o pipeline. Os scripts (E5, E5.N,
+    # E6) continuam lendo de filesystem — zero refactor neles. O adapter
+    # gera o mesmo formato de `goals.json` e `tarefas.md` a partir do DB.
+    _materialize_adapter_configs(ws_id, ctx, config_dir)
 
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
@@ -323,7 +511,30 @@ def run_pipeline_task(
 
         if not has_failure:
             try:
+                from backend.app.services.document_pipeline_sync import (
+                    sync_documents_pipeline_e2_status,
+                )
+
+                with SyncSessionLocal() as db:
+                    run_row = db.get(PipelineRun, run_id)
+                    touch_ts = (
+                        run_row.completed_at
+                        if run_row and run_row.completed_at
+                        else datetime.now(timezone.utc)
+                    )
+                sync_documents_pipeline_e2_status(ws_id, tenant_root, touch_ts)
+            except Exception:
+                pass
+
+            try:
                 _create_report_from_output(ws_id, run_id, tenant_root)
+            except Exception:
+                pass
+
+            # ADR-074 / F8.4: persiste tarefas_sugeridas do E5.N no DB
+            # (se existirem no JSON de análise).
+            try:
+                _persist_llm_suggestions(ws_id, run_id, tenant_root)
             except Exception:
                 pass
 

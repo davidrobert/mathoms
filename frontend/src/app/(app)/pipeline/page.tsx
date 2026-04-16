@@ -11,11 +11,13 @@ import {
   cancelPipelineRun,
   resumePipelineRun,
   listDocuments,
+  getNewDocCount,
   getLLMTier,
   getToken,
   type PipelineRunResponse,
   type PipelineStageLog,
   type PipelineEvent,
+  type PipelineStageActivity,
   ApiError,
 } from "@/lib/api";
 import { usePipelineWS } from "@/lib/usePipelineWS";
@@ -33,6 +35,7 @@ import {
   getPhase,
 } from "@/lib/pipelinePhases";
 import { buildUserFacingError } from "@/lib/pipelineErrorMessages";
+import { isPipelineLlmStage } from "@/lib/pipelineLlmStages";
 import { PageHeader } from "@/components/PageHeader";
 import { PhaseStepper } from "@/components/PhaseStepper";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -87,24 +90,47 @@ export default function PipelinePage() {
   const [runs, setRuns] = useState<PipelineRunResponse[]>([]);
   const [activeRun, setActiveRun] = useState<PipelineRunResponse | null>(null);
   const [readyCount, setReadyCount] = useState(0);
+  const [newCount, setNewCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState(false);
   const [error, setError] = useState("");
   const [cancelOpen, setCancelOpen] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [wsProgressPct, setWsProgressPct] = useState<number | null>(null);
   const lastWsEventRef = useRef<number>(Date.now());
   const [lastFailedRun, setLastFailedRun] = useState<PipelineRunResponse | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const [resuming, setResuming] = useState(false);
+  const [liveStageActivity, setLiveStageActivity] =
+    useState<PipelineStageActivity | null>(null);
 
   const token = typeof window !== "undefined" ? getToken() : null;
 
   const handleWSEvent = useCallback((event: PipelineEvent) => {
     lastWsEventRef.current = Date.now();
 
-    if (event.progress_pct != null) {
-      setWsProgressPct(event.progress_pct);
+    if (event.event === "stage_activity" && event.stage) {
+      const d = event.detail ?? {};
+      setLiveStageActivity({
+        stage: event.stage,
+        file: typeof d.file === "string" ? d.file : undefined,
+        message: typeof d.message === "string" ? d.message : undefined,
+      });
+    }
+
+    if (event.event === "stage_started") {
+      setLiveStageActivity((prev) =>
+        prev && event.stage && prev.stage !== event.stage ? null : prev
+      );
+    }
+
+    if (
+      event.event === "stage_completed" ||
+      event.event === "stage_skipped" ||
+      event.event === "stage_failed"
+    ) {
+      setLiveStageActivity((prev) =>
+        prev && event.stage && prev.stage === event.stage ? null : prev
+      );
     }
 
     if (activeRun && event.run_id === activeRun.id) {
@@ -145,25 +171,32 @@ export default function PipelinePage() {
     }
   }, [activeRun, router]);
 
+  const bumpWsLiveness = useCallback(() => {
+    lastWsEventRef.current = Date.now();
+  }, []);
+
   const { status: wsStatus } = usePipelineWS({
     runId: activeRun?.id ?? null,
     token,
     onEvent: handleWSEvent,
+    onHeartbeat: bumpWsLiveness,
     onRunFinished: handleRunFinished,
   });
 
   const reload = useCallback(async () => {
     try {
-      const [runsData, docsData, tierData] = await Promise.all([
+      const [runsData, docsData, tierData, newDocData] = await Promise.all([
         listPipelineRuns(),
         listDocuments("ready"),
         getLLMTier().catch((): { tier: string; has_llm_config: boolean } => ({
           tier: "free",
           has_llm_config: false,
         })),
+        getNewDocCount().catch(() => ({ new_count: 0 })),
       ]);
       setRuns(runsData.runs);
       setReadyCount(docsData.total);
+      setNewCount(newDocData.new_count);
       setIsPremium(tierData.tier === "premium");
 
       const active = runsData.runs.find((r) => ACTIVE_STATUSES.has(r.status));
@@ -191,6 +224,10 @@ export default function PipelinePage() {
   useEffect(() => {
     reload();
   }, [reload]);
+
+  useEffect(() => {
+    if (!activeRun) setLiveStageActivity(null);
+  }, [activeRun]);
 
   useEffect(() => {
     if (!activeRun || wsStatus === "connected") {
@@ -226,15 +263,14 @@ export default function PipelinePage() {
     };
   }, [activeRun?.id, activeRun?.status, wsStatus, router]);
 
-  async function handleTrigger(fromStage?: string) {
+  async function handleTrigger(fromStage?: string, incremental?: boolean) {
     setError("");
     setLastFailedRun(null);
     setTriggering(true);
     try {
-      const run = await triggerPipeline({ from_stage: fromStage, skip_llm: !isPremium });
+      const run = await triggerPipeline({ from_stage: fromStage, skip_llm: !isPremium, incremental });
       setActiveRun(run);
       setRuns((prev) => [run, ...prev]);
-      setWsProgressPct(0);
       lastWsEventRef.current = Date.now();
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Erro ao iniciar pipeline");
@@ -310,21 +346,48 @@ export default function PipelinePage() {
                 <>
                   <p className="mb-4 text-sm text-muted-foreground">
                     <span className="font-medium text-foreground">{readyCount}</span>{" "}
-                    documento(s) pronto(s) para processamento.
+                    documento(s) pronto(s) para processamento
+                    {newCount > 0 && newCount < readyCount && (
+                      <> · <span className="font-medium text-primary">{newCount}</span> novo(s) desde última execução</>
+                    )}
+                    .
                   </p>
-                  <div className="flex gap-3">
-                    <Button onClick={() => handleTrigger()} disabled={triggering}>
-                      {triggering ? (
-                        <span className="inline-flex items-center gap-2">
-                          <Spinner size="sm" className="text-primary-foreground" />
-                          Iniciando...
-                        </span>
-                      ) : (
-                        "Processar documentos"
-                      )}
-                    </Button>
+                  <div className="flex flex-wrap gap-3">
+                    {/* Primary: "Processar novos" when there are new docs and it's not the first run */}
+                    {newCount > 0 && newCount < readyCount ? (
+                      <>
+                        <Button onClick={() => handleTrigger(undefined, true)} disabled={triggering}>
+                          {triggering ? (
+                            <span className="inline-flex items-center gap-2">
+                              <Spinner size="sm" className="text-primary-foreground" />
+                              Iniciando...
+                            </span>
+                          ) : (
+                            `Processar ${newCount} novo(s)`
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleTrigger()}
+                          disabled={triggering}
+                        >
+                          Processar todos ({readyCount})
+                        </Button>
+                      </>
+                    ) : (
+                      <Button onClick={() => handleTrigger()} disabled={triggering}>
+                        {triggering ? (
+                          <span className="inline-flex items-center gap-2">
+                            <Spinner size="sm" className="text-primary-foreground" />
+                            Iniciando...
+                          </span>
+                        ) : (
+                          "Processar documentos"
+                        )}
+                      </Button>
+                    )}
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       onClick={() => handleTrigger("E3")}
                       disabled={triggering}
                     >
@@ -342,8 +405,8 @@ export default function PipelinePage() {
           <ActiveRunCard
             run={activeRun}
             wsStatus={wsStatus}
-            wsProgressPct={wsProgressPct}
             lastWsEventRef={lastWsEventRef}
+            liveStageActivity={liveStageActivity}
             onCancel={() => setCancelOpen(true)}
           />
         )}
@@ -537,22 +600,22 @@ function FailedRunCard({
 function ActiveRunCard({
   run,
   wsStatus,
-  wsProgressPct,
   lastWsEventRef,
+  liveStageActivity,
   onCancel,
 }: {
   run: PipelineRunResponse;
   wsStatus: string;
-  wsProgressPct: number | null;
   lastWsEventRef: React.RefObject<number>;
+  liveStageActivity: PipelineStageActivity | null;
   onCancel: () => void;
 }) {
   const completedCount = run.stage_logs.filter(
     (s) => s.status === "completed" || s.status === "skipped" || s.status === "skipped_free_tier"
   ).length;
   const totalStages = run.stage_logs.length;
-  const dbPct = totalStages > 0 ? Math.round((completedCount / totalStages) * 100) : 0;
-  const pct = wsProgressPct != null ? Math.max(wsProgressPct, dbPct) : dbPct;
+  /** Só etapas já finalizadas — evita “80%” no início de uma etapa longa (o WS reporta % ao entrar na etapa). */
+  const pct = totalStages > 0 ? Math.round((completedCount / totalStages) * 100) : 0;
   const isPending = run.status === "pending";
   const isRunning = run.status === "running" || run.status === "resuming";
   const hasNoStages = totalStages === 0;
@@ -574,13 +637,17 @@ function ActiveRunCard({
           "O processamento está aguardando há mais de 30s. Pode haver um problema na fila de execução."
         );
       } else if (isRunning && sinceLastWs > STALL_RUNNING_MS) {
-        setStallWarning("Sem atualizações recentes. O processamento pode estar lento.");
+        setStallWarning(
+          wsStatus === "connected"
+            ? "Sem sinal do servidor há mais de 1 min. Se o indicador mostrar “Tempo real”, aguarde; caso contrário, verifique a conexão."
+            : "Sem atualizações recentes. O processamento pode estar lento."
+        );
       } else {
         setStallWarning(null);
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [run.started_at, isPending, isRunning, hasNoStages, lastWsEventRef]);
+  }, [run.started_at, isPending, isRunning, hasNoStages, lastWsEventRef, wsStatus]);
 
   // Agrupamento em 4 fases narrativas (ADR-068)
   const phaseStates = computePhaseStates(run.stage_logs, run.current_stage, run.status);
@@ -601,6 +668,11 @@ function ActiveRunCard({
     : activePhase
       ? activePhase.activeMessage
       : null;
+
+  const llmStageActive =
+    isRunning &&
+    run.current_stage != null &&
+    isPipelineLlmStage(run.current_stage);
 
   return (
     <Card className={`mb-8 ${stallWarning ? "border-alert/50" : "border-primary/30"}`}>
@@ -665,9 +737,33 @@ function ActiveRunCard({
                 <span>Progresso geral</span>
                 <span>{pct}%</span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-muted">
+              <p className="mb-2 text-[11px] leading-snug text-muted-foreground">
+                {llmStageActive ? (
+                  <>
+                    Etapa com IA em andamento: a parte sólida é o que já foi concluído; a faixa ao lado com movimento
+                    indica processamento ativo (sem percentual fixo dentro desta etapa).
+                  </>
+                ) : (
+                  <>
+                    O percentual só avança quando uma etapa termina. Etapas longas podem levar vários minutos sem
+                    mudar o número — use o tempo na lista abaixo para acompanhar a etapa atual.
+                  </>
+                )}
+              </p>
+              <div
+                className="flex h-2 w-full overflow-hidden rounded-full bg-muted"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={pct}
+                aria-label={
+                  llmStageActive
+                    ? `Progresso: ${pct} por cento das etapas concluídas, etapa com IA em execução`
+                    : `Progresso: ${pct} por cento das etapas concluídas`
+                }
+              >
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ease-out ${
+                  className={`h-full shrink-0 rounded-l-full transition-all duration-700 ease-out ${
                     run.status === "failed" || run.status === "partial_failure"
                       ? "bg-loss"
                       : run.status === "completed"
@@ -678,6 +774,13 @@ function ActiveRunCard({
                   }`}
                   style={{ width: `${pct}%` }}
                 />
+                {llmStageActive && pct < 100 ? (
+                  <div className="relative h-full min-w-0 flex-1 overflow-hidden rounded-r-full">
+                    <div className="h-full w-[42%] max-w-[min(12rem,100%)] rounded-full bg-primary/55 animate-indeterminate" />
+                  </div>
+                ) : (
+                  <div className="h-full min-w-0 flex-1 bg-muted" aria-hidden />
+                )}
               </div>
             </>
           )}
@@ -704,7 +807,15 @@ function ActiveRunCard({
             {showTechnicalDetails && (
               <div className="mt-3 space-y-0.5 rounded-lg border border-border/60 bg-muted/30 p-2">
                 {run.stage_logs.map((stage) => (
-                  <StageRow key={stage.id} stage={stage} />
+                  <StageRow
+                    key={stage.id}
+                    stage={stage}
+                    liveActivity={
+                      liveStageActivity?.stage === stage.stage
+                        ? liveStageActivity
+                        : undefined
+                    }
+                  />
                 ))}
               </div>
             )}
@@ -769,11 +880,32 @@ function ConnectionChip({ status }: { status: string }) {
   );
 }
 
+function useNowInterval(active: boolean, ms: number) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => setNow(Date.now()), ms);
+    return () => clearInterval(id);
+  }, [active, ms]);
+  return now;
+}
+
 // ─── Stage Row ───
 
-function StageRow({ stage }: { stage: PipelineStageLog }) {
+function StageRow({
+  stage,
+  liveActivity,
+}: {
+  stage: PipelineStageLog;
+  liveActivity?: PipelineStageActivity;
+}) {
   const st = stageStatusLabel(stage.status);
   const [expanded, setExpanded] = useState(false);
+  const running = stage.status === "running";
+  const now = useNowInterval(running, 1000);
+  const displayMs = running
+    ? Math.max(0, now - new Date(stage.started_at).getTime())
+    : stage.duration_ms;
 
   const variantColors: Record<string, string> = {
     neutral: "text-muted-foreground",
@@ -818,7 +950,7 @@ function StageRow({ stage }: { stage: PipelineStageLog }) {
           )}
         </span>
         <span className="text-xs text-muted-foreground font-mono">
-          {formatDuration(stage.duration_ms)}
+          {formatDuration(displayMs)}
         </span>
         {stage.errors && (
           <Button
@@ -836,6 +968,21 @@ function StageRow({ stage }: { stage: PipelineStageLog }) {
         <pre className="mx-3 mb-1 max-h-40 overflow-auto rounded bg-loss/5 p-3 text-xs text-loss font-mono">
           {stage.errors}
         </pre>
+      )}
+      {stage.status === "running" && liveActivity && (liveActivity.message || liveActivity.file) && (
+        <div className="mx-3 mb-1 rounded-md border border-border/50 bg-muted/40 px-3 py-2 text-xs">
+          {liveActivity.message && (
+            <p className="text-muted-foreground leading-snug">{liveActivity.message}</p>
+          )}
+          {liveActivity.file && (
+            <p
+              className="mt-1 font-mono text-[11px] text-foreground/90 truncate"
+              title={liveActivity.file}
+            >
+              Arquivo: {liveActivity.file}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );

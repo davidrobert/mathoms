@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -41,6 +41,15 @@ class WorkspaceContext:
     scratch_dir: Path = field(init=False)
 
     config_overrides: Optional[Dict[str, Any]] = field(default=None, repr=False)
+
+    #: When set (web/Celery run), stages may emit fine-grained ``stage_activity`` WS events.
+    pipeline_run_id: Optional[str] = field(default=None, repr=False)
+
+    #: Incremental mode — E0/E2 stages only process new (unprocessed) documents.
+    #: E3→E7 always run full over all existing extracts.
+    incremental: bool = False
+    #: Stored paths of new documents (relative to tenant root). Used by E0/E2 to filter.
+    incremental_doc_paths: List[str] = field(default_factory=list)
 
     def __post_init__(self):
         self.root = Path(self.root).resolve()
@@ -117,6 +126,7 @@ class WorkspaceContext:
         tenant_root: Path,
         config: Optional[Dict[str, Any]] = None,
         config_dir: Optional[Path] = None,
+        pipeline_run_id: Optional[str] = None,
     ) -> WorkspaceContext:
         """Contexto para tenant web com config do banco de dados.
 
@@ -125,9 +135,11 @@ class WorkspaceContext:
             config: Dict overrides for pipeline config files.
             config_dir: External config directory (e.g. global project config/).
                         If None, defaults to tenant_root/config/.
+            pipeline_run_id: Active pipeline run id — enables live ``stage_activity`` events.
         """
         return cls(
             root=tenant_root,
             _config_dir_override=config_dir,
             config_overrides=config,
+            pipeline_run_id=pipeline_run_id,
         )

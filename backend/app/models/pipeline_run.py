@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -48,6 +48,8 @@ class PipelineRun(Base):
     config_snapshot: Mapped[dict] = mapped_column(JSON, nullable=True)
     total_documents: Mapped[int] = mapped_column(Integer, nullable=True)
     reprocess_all: Mapped[bool] = mapped_column(default=False)
+    incremental: Mapped[bool] = mapped_column(Boolean, default=False)
+    incremental_doc_ids: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

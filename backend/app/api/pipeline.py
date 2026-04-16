@@ -77,6 +77,23 @@ async def trigger_pipeline(
     )
     doc_count = doc_count_result.scalar() or 0
 
+    # Count new documents (never processed by pipeline)
+    new_doc_count_result = await db.execute(
+        select(func.count()).select_from(Document).where(
+            Document.workspace_id == ws.id,
+            Document.status == DocumentStatus.ready,
+            Document.pipeline_last_run_at.is_(None),
+        )
+    )
+    new_doc_count = new_doc_count_result.scalar() or 0
+
+    # Incremental mode: require new docs
+    if body.incremental and new_doc_count == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Nenhum documento novo desde a última execução. Use 'Processar todos' para reprocessar.",
+        )
+
     # Block pipeline if no documents are available to process
     if doc_count == 0 and not body.from_stage:
         raise HTTPException(
@@ -99,6 +116,21 @@ async def trigger_pipeline(
             detail="Nenhum documento financeiro encontrado no workspace. Os documentos podem não ter sido classificados corretamente.",
         )
 
+    # Collect stored_paths of new documents for incremental filtering
+    incremental_doc_ids: list[str] | None = None
+    incremental_doc_paths: list[str] | None = None
+    if body.incremental:
+        new_docs_result = await db.execute(
+            select(Document.id, Document.stored_path).where(
+                Document.workspace_id == ws.id,
+                Document.status == DocumentStatus.ready,
+                Document.pipeline_last_run_at.is_(None),
+            )
+        )
+        new_docs_rows = new_docs_result.all()
+        incremental_doc_ids = [str(r.id) for r in new_docs_rows]
+        incremental_doc_paths = [r.stored_path for r in new_docs_rows if r.stored_path]
+
     from pipeline.orchestrator import DETERMINISTIC_ORDER, FULL_ORDER, FROM_MAP
 
     if body.from_stage:
@@ -120,6 +152,8 @@ async def trigger_pipeline(
         workspace_id=ws.id,
         status=PipelineRunStatus.pending,
         total_documents=doc_count,
+        incremental=body.incremental,
+        incremental_doc_ids=incremental_doc_ids,
         tier_at_run=tier,
     )
     db.add(run)
@@ -139,9 +173,28 @@ async def trigger_pipeline(
         skip_llm=body.skip_llm,
         stop_on_error=body.stop_on_error,
         tier=tier,
+        incremental=body.incremental,
+        incremental_doc_paths=incremental_doc_paths or [],
     )
 
     return PipelineRunResponse.model_validate(run)
+
+
+@router.get("/new-doc-count")
+async def new_doc_count(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Count documents never processed by the pipeline (pipeline_last_run_at IS NULL)."""
+    ws = await _get_workspace(user, db)
+    result = await db.execute(
+        select(func.count()).select_from(Document).where(
+            Document.workspace_id == ws.id,
+            Document.status == DocumentStatus.ready,
+            Document.pipeline_last_run_at.is_(None),
+        )
+    )
+    return {"new_count": result.scalar() or 0}
 
 
 @router.get("/runs", response_model=PipelineRunListResponse)

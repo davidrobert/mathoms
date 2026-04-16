@@ -15,6 +15,7 @@ class PipelineRunRequest(BaseModel):
     from_stage: Optional[str] = None
     skip_llm: bool = True
     stop_on_error: bool = True
+    incremental: bool = False
 
     @field_validator("from_stage")
     @classmethod
@@ -83,6 +84,7 @@ class PipelineRunResponse(BaseModel):
     paused_at_stage: Optional[str] = None
     tier_at_run: str = "free"
     total_documents: Optional[int] = None
+    incremental: bool = False
     celery_task_id: Optional[str] = None
     started_at: datetime
     completed_at: Optional[datetime] = None

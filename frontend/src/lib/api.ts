@@ -105,10 +105,15 @@ export interface DocumentResponse {
   period: string | null;
   status: DocumentStatus;
   classification_meta: Record<string, unknown> | null;
+  classification_confidence?: number | null;
+  needs_review?: boolean;
+  possible_duplicate_of_id?: string | null;
   file_size_bytes: number | null;
   content_type: string | null;
   error_message: string | null;
   uploaded_at: string;
+  pipeline_last_run_at?: string | null;
+  pipeline_e2_extract_ok?: boolean | null;
 }
 
 export interface DocumentListResponse {
@@ -177,6 +182,7 @@ export interface PipelineRunResponse {
   paused_at_stage: string | null;
   tier_at_run: string;
   total_documents: number | null;
+  incremental: boolean;
   celery_task_id: string | null;
   started_at: string;
   completed_at: string | null;
@@ -186,6 +192,13 @@ export interface PipelineRunResponse {
 export interface PipelineRunListResponse {
   runs: PipelineRunResponse[];
   total: number;
+}
+
+/** Live sub-step within a stage (WebSocket ``stage_activity``). */
+export interface PipelineStageActivity {
+  stage: string;
+  file?: string;
+  message?: string;
 }
 
 export interface PipelineEvent {
@@ -447,6 +460,7 @@ export async function triggerPipeline(opts?: {
   from_stage?: string;
   skip_llm?: boolean;
   stop_on_error?: boolean;
+  incremental?: boolean;
 }): Promise<PipelineRunResponse> {
   return apiFetch("/pipeline/run", {
     method: "POST",
@@ -454,8 +468,13 @@ export async function triggerPipeline(opts?: {
       from_stage: opts?.from_stage ?? null,
       skip_llm: opts?.skip_llm ?? true,
       stop_on_error: opts?.stop_on_error ?? true,
+      incremental: opts?.incremental ?? false,
     }),
   });
+}
+
+export async function getNewDocCount(): Promise<{ new_count: number }> {
+  return apiFetch("/pipeline/new-doc-count");
 }
 
 export async function listPipelineRuns(): Promise<PipelineRunListResponse> {
@@ -487,6 +506,8 @@ export interface FamilyMemberConfig {
   key: string;
   full_name: string;
   short_name: string;
+  /** Nome civil anterior / de nascimento (contas antigas); opcional */
+  birth_name?: string | null;
   cpf?: string | null;
   birth_date?: string | null;
   role: string;
@@ -546,7 +567,12 @@ export async function listMembers(): Promise<{ members: FamilyMemberConfig[]; to
   return apiFetch("/config/members");
 }
 
-export async function createMember(data: Omit<FamilyMemberConfig, "id" | "accounts">): Promise<FamilyMemberConfig> {
+export type CreateMemberPayload = Omit<FamilyMemberConfig, "id" | "accounts"> & {
+  /** Se omitido, o backend gera um identificador único a partir do nome completo */
+  key?: string;
+};
+
+export async function createMember(data: CreateMemberPayload): Promise<FamilyMemberConfig> {
   return apiFetch("/config/members", { method: "POST", body: JSON.stringify(data) });
 }
 
@@ -1033,8 +1059,19 @@ export interface IFGoalInputs {
 
 export interface IFGoalDerived {
   if_meta_brl: number;
+  /** Aporte assumindo patrimônio inicial zero (baseline; persistido). */
   aporte_necessario_mensal_brl: number;
   if_meta_conservadora_brl: number;
+  /** Quando há patrimônio de referência (ex.: último relatório), aporte para fechar o gap. */
+  aporte_mensal_com_patrimonio_atual_brl?: number | null;
+  patrimonio_atual_utilizado_brl?: number | null;
+}
+
+/** Aporte a exibir: ajustado ao patrimônio conhecido, senão baseline. */
+export function ifMonthlyContributionDisplay(d: IFGoalDerived): number {
+  return (
+    d.aporte_mensal_com_patrimonio_atual_brl ?? d.aporte_necessario_mensal_brl
+  );
 }
 
 export interface IFGoalResponse {

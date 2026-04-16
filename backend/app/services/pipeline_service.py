@@ -36,6 +36,8 @@ def start_pipeline_run(
     skip_llm: bool = True,
     stop_on_error: bool = True,
     tier: str | None = None,
+    incremental: bool = False,
+    incremental_doc_paths: list[str] | None = None,
 ) -> str | None:
     """Launch the pipeline as a Celery task.
 
@@ -63,6 +65,8 @@ def start_pipeline_run(
             skip_llm=skip_llm,
             stop_on_error=stop_on_error,
             tier=tier,
+            incremental=incremental,
+            incremental_doc_paths=incremental_doc_paths or [],
         )
         with SyncSessionLocal() as db:
             run = db.get(PipelineRun, run_id)
@@ -76,11 +80,11 @@ def start_pipeline_run(
             "Celery unavailable (%s), falling back to background thread for run %s",
             exc, run_id,
         )
-        _start_fallback_thread(run_id, ws_id, tenant_root, config_dir, stages, skip_llm, stop_on_error, tier)
+        _start_fallback_thread(run_id, ws_id, tenant_root, config_dir, stages, skip_llm, stop_on_error, tier, incremental, incremental_doc_paths)
         return None
 
 
-def _start_fallback_thread(run_id, ws_id, tenant_root, config_dir, stages, skip_llm, stop_on_error, tier):
+def _start_fallback_thread(run_id, ws_id, tenant_root, config_dir, stages, skip_llm, stop_on_error, tier, incremental=False, incremental_doc_paths=None):
     """Fallback: run pipeline in a daemon thread when Celery/Redis is unavailable."""
     import threading
     from backend.app.tasks.pipeline_task import run_pipeline_task
@@ -95,6 +99,8 @@ def _start_fallback_thread(run_id, ws_id, tenant_root, config_dir, stages, skip_
             skip_llm=skip_llm,
             stop_on_error=stop_on_error,
             tier=tier,
+            incremental=incremental,
+            incremental_doc_paths=incremental_doc_paths or [],
         )
 
     t = threading.Thread(target=_thread_target, daemon=True, name=f"pipeline-{run_id[:8]}")

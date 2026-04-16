@@ -19,13 +19,13 @@
 
 ## 1. Auth & onboarding
 
-- [ ] **Registro novo** com email único funciona → redirect para `/documents`
+- [ ] **Registro novo** com email único funciona → redirect para `/plano`
 - [ ] **Registro duplicado** mostra mensagem "Email já cadastrado" (não HTTP 409)
 - [ ] **Registro com senha <6** é bloqueado pela validação HTML5
-- [ ] **Login** com credenciais corretas → redirect para `/documents`
+- [ ] **Login** com credenciais corretas → redirect para `/plano`
 - [ ] **Login com credenciais erradas** → "Email ou senha incorretos"
 - [ ] **Logout** limpa `localStorage.fin_token` E redireciona para `/login`
-- [ ] **Acesso a `/dashboard` sem token** redireciona para `/login`
+- [ ] **Acesso a `/plano` sem token** redireciona para `/login`
 - [ ] **Token inválido** (cookie corrompido) faz logout automático
 - [ ] Link "Criar conta" em `/login` leva para `/register` e vice-versa
 
@@ -56,6 +56,10 @@
 - [ ] Pipeline termina → toast "Relatório gerado com sucesso"
 - [ ] Cancel mid-stage muda status para `cancelled`
 - [ ] Pipeline failed mostra mensagem de erro user-friendly (não stack trace)
+- [ ] **Incremental (ADR-080):** Upload 2 docs → run pipeline → upload 1 doc novo → página Pipeline mostra "1 novo(s) desde última execução"
+- [ ] Botão "Processar 1 novo(s)" aparece como primary, "Processar todos (3)" como secondary
+- [ ] Run incremental: DevTools Network mostra `{ incremental: true }` no body do POST
+- [ ] Após run incremental, contagem de novos volta a 0
 
 ## 5. Relatório
 
@@ -97,6 +101,7 @@
 ## 9. Performance & UX
 
 - [ ] Home page / login carrega em <2s (3G throttled DevTools)
+- [ ] LCP em `/plano` (home) é <2.5s
 - [ ] LCP em `/dashboard` com KPIs é <2.5s
 - [ ] Dark mode toggle funciona + persiste após reload
 - [ ] Sidebar mobile (<1024px) abre via menu hambúrguer
@@ -114,6 +119,7 @@
 ## 11. Acessibilidade (axe-core)
 
 - [ ] `/login` passa axe (0 violations critical/serious)
+- [ ] `/plano` passa axe (0 violations critical/serious)
 - [ ] `/dashboard` passa axe (0 violations critical/serious)
 - [ ] `/documents` com docs listed passa axe (incluindo botões delete com aria-label)
 - [ ] Navegação completa via teclado (Tab) funciona em todas as pages
