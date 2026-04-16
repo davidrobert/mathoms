@@ -184,6 +184,7 @@ def _process_one_e2_llm_document(
             output_schema=LLMExtractOutput,
             max_retries=2,
             max_tokens=min_out,
+            stage=f"E2-llm:{doc.name}",
         )
         output: LLMExtractOutput = result.output
 

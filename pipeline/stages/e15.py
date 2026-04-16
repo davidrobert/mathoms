@@ -114,6 +114,7 @@ def run(ctx: WorkspaceContext) -> dict:
         user_prompt=user_prompt,
         output_schema=BaselinePatrimonialOutput,
         max_tokens=max(config.max_tokens, _E15_MIN_COMPLETION_TOKENS),
+        stage="E1.5",
     )
 
     output: BaselinePatrimonialOutput = result.output

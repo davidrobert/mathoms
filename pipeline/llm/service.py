@@ -208,6 +208,12 @@ class LLMService:
 
         litellm.drop_params = True
 
+        # Silencia logs de transport do LiteLLM ("Wrapper: Completed Call...") —
+        # eles não carregam contexto de stage. Nossos próprios logs (LLM call START / OK)
+        # cobrem início, fim e retries com muito mais informação.
+        logging.getLogger("LiteLLM").setLevel(logging.WARNING)
+        logging.getLogger("litellm").setLevel(logging.WARNING)
+
         self._raw_client = litellm
         self._client = instructor.from_litellm(litellm.completion)
 
@@ -255,11 +261,17 @@ class LLMService:
         max_retries: int = 3,
         max_tokens: int | None = None,
         temperature: float | None = None,
+        stage: str | None = None,
     ) -> LLMCallResult:
         """Call an LLM with structured output enforcement.
 
         Uses Instructor to auto-retry on validation failures. Additionally retries
         on transient errors (rate_limit, timeout) with exponential backoff.
+
+        Args:
+            stage: Identificador do stage chamador (ex: "E7-review", "E1"). Aparece
+                em todos os logs desta chamada — essencial para debug quando múltiplos
+                stages disputam o worker.
 
         Raises:
             LLMValidationError: if output fails validation after all retries
@@ -270,6 +282,17 @@ class LLMService:
         effective_max_tokens = max_tokens or self._config.max_tokens
         effective_temperature = temperature if temperature is not None else self._config.temperature
 
+        # Tag de stage para todos os logs desta chamada — formato "[stage] " para scan visual rápido.
+        tag = f"[{stage}] " if stage else ""
+        prompt_chars = len(system_prompt) + len(user_prompt)
+        schema_name = getattr(output_schema, "__name__", str(output_schema))
+
+        logger.info(
+            "%sLLM call START: model=%s max_tokens=%d temp=%.2f prompt_chars=%d schema=%s",
+            tag, self._config.model_name, effective_max_tokens,
+            effective_temperature, prompt_chars, schema_name,
+        )
+
         last_exception = None
         retries_used = 0
         start_total = time.monotonic()
@@ -279,6 +302,9 @@ class LLMService:
             try:
                 start = time.monotonic()
 
+                # Instructor retry mínimo: truncation é tratada pelo loop externo
+                # que dobra max_tokens. Retry interno aqui só cobre erros de validação
+                # pontuais (enum errado, tipo incorreto) — ver _is_completion_truncated_max_tokens.
                 response = self._client.chat.completions.create(
                     model=model,
                     messages=[
@@ -288,7 +314,7 @@ class LLMService:
                     response_model=output_schema,
                     max_tokens=effective_max_tokens,
                     temperature=effective_temperature,
-                    max_retries=2,
+                    max_retries=1,
                     api_key=self._config.api_key,
                 )
 
@@ -317,8 +343,8 @@ class LLMService:
                 self._summary.calls.append(result)
 
                 logger.info(
-                    "LLM call OK: provider=%s model=%s tokens=%d+%d cost=$%.4f duration=%dms retries=%d",
-                    self._config.provider, self._config.model_name,
+                    "%sLLM call OK: model=%s tokens=%d+%d cost=$%.4f duration=%dms retries=%d",
+                    tag, self._config.model_name,
                     tokens_in, tokens_out, cost, elapsed, retries_used,
                 )
 
@@ -333,9 +359,8 @@ class LLMService:
                     if bumped > effective_max_tokens:
                         effective_max_tokens = bumped
                         logger.warning(
-                            "LLM completion truncated at max_tokens=%d — retrying with max_tokens=%d",
-                            prev_cap,
-                            effective_max_tokens,
+                            "%sLLM completion truncated at max_tokens=%d — retrying with max_tokens=%d",
+                            tag, prev_cap, effective_max_tokens,
                         )
                         continue
 
@@ -343,8 +368,8 @@ class LLMService:
                 error_type = _classify_error(exc)
 
                 logger.warning(
-                    "LLM call attempt %d/%d failed: type=%s error=%s",
-                    attempt + 1, max_retries + 1, error_type.value, str(exc)[:200],
+                    "%sLLM call attempt %d/%d failed: type=%s error=%s",
+                    tag, attempt + 1, max_retries + 1, error_type.value, str(exc)[:200],
                 )
 
                 if error_type == LLMErrorType.auth:

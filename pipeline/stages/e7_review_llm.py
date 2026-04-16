@@ -23,6 +23,66 @@ def _load_json_file(path) -> str:
     return "{}"
 
 
+# Chaves do E5 que importam para o review holístico.
+# Tabelas mensais, lista de transações, 41 tarefas e programa de milhas são
+# descartados — o consultor decide com base em indicadores agregados.
+_E5_COMPACT_TOP_KEYS = (
+    "periodo_dados", "data_analise",
+    "goals", "ratios", "score",
+    "pontos_fortes", "pontos_urgentes", "alertas",
+    "equilibrio_cerbasi", "previdencia_pgbl",
+    "diagnostico_comportamental",
+)
+
+# Subset de chaves para dicts grandes — o resto é agregado redundante.
+_E5_SUBKEYS = {
+    "patrimonio": ("bruto", "dividas", "liquido", "investivel", "composicao"),
+    "fluxo_caixa": (
+        "receita_total", "receita_recorrente_mensal",
+        "despesa_total", "despesa_mensal_media",
+        "fluxo_liquido", "despesas_por_categoria",
+    ),
+    "reserva_emergencia": (
+        "despesas_mensais", "cobertura_meses",
+        "total_liquida", "avaliacao_liquidity",
+    ),
+    "endividamento": ("total_dividas", "percentual_patrimonio", "dividas"),
+    "investimentos": ("total", "tabela_classes"),
+    "consumo_consciente": ("folga_mensal", "folga_pct", "analise"),
+    "cenarios_mariana": ("labels", "prazos_if", "anos_if", "premissas"),
+    "narrativas": ("perfil_familia", "strategic_insights", "inconsistencies_review"),
+}
+
+
+def _build_compact_e5(e5_data: dict) -> dict:
+    """Projeta o E5 para os campos que o consultor LLM realmente usa.
+
+    Reduz o payload de ~60k para ~10k chars — menos input tokens, menos latência,
+    sem perda analítica relevante (tabelas mês-a-mês e listas de tarefas não agregam
+    valor ao review holístico)."""
+    compact: dict = {}
+    for key in _E5_COMPACT_TOP_KEYS:
+        if key in e5_data:
+            compact[key] = e5_data[key]
+    for key, subkeys in _E5_SUBKEYS.items():
+        section = e5_data.get(key)
+        if isinstance(section, dict):
+            compact[key] = {k: section[k] for k in subkeys if k in section}
+    return compact
+
+
+def _load_e5_compact(path) -> str:
+    """Load E5 JSON and return a compact projection as JSON string."""
+    if path.exists():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            compact = _build_compact_e5(data)
+            return json.dumps(compact, ensure_ascii=False, indent=2)
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning("E7-review: could not load %s: %s", path, exc)
+    return "{}"
+
+
 def _output_to_review_json(output) -> dict:
     """Convert E7ReviewOutput to the format consumed by E7-apply and the report."""
     insights = []
@@ -87,7 +147,7 @@ def run(ctx: WorkspaceContext) -> dict:
     if not e5_path.exists():
         return {"skipped": True, "reason": "E5 analysis not found — run E5 first"}
 
-    e5_json = _load_json_file(e5_path)
+    e5_json = _load_e5_compact(e5_path)
 
     crossval_files = list(ctx.e7_dir.glob("*crossval*")) if ctx.e7_dir.exists() else []
     e7_crossval_json = "{}"
@@ -107,10 +167,15 @@ def run(ctx: WorkspaceContext) -> dict:
     config = LLMConfig(**llm_config_data)
     service = LLMService(config)
 
+    # max_tokens=16384 dimensionado para o pior caso do schema (ver schemas/e7_review.py):
+    # 8 insights + 6 recs + 5 ajustes + 5 narrativas + assessment cabem com folga.
+    # Evita o ciclo truncation → retry → dobra que custava ~3min por patamar.
     result = service.call(
         system_prompt=SYSTEM_PROMPT,
         user_prompt=user_prompt,
         output_schema=E7ReviewOutput,
+        max_tokens=16384,
+        stage="E7-review",
     )
 
     output: E7ReviewOutput = result.output

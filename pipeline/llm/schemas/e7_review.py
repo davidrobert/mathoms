@@ -11,32 +11,32 @@ class ReviewInsight(BaseModel):
     """A single insight from the financial review."""
     category: str = Field(..., description="Category: patrimonio, fluxo_caixa, investimentos, endividamento, planejamento, score")
     severity: str = Field(..., description="Severity: info, attention, warning, critical")
-    title: str = Field(..., description="Short insight title")
-    description: str = Field(..., description="Detailed explanation")
-    recommendation: Optional[str] = Field(None, description="Specific actionable recommendation")
+    title: str = Field(..., max_length=120, description="Short insight title — até 120 caracteres")
+    description: str = Field(..., max_length=600, description="Explicação objetiva — até 100 palavras (máx 600 caracteres)")
+    recommendation: Optional[str] = Field(None, max_length=400, description="Ação concreta — até 60 palavras (máx 400 caracteres)")
 
 
 class ScoreAdjustment(BaseModel):
     """An adjustment to the financial score based on qualitative review."""
-    factor: str = Field(..., description="Factor being adjusted")
+    factor: str = Field(..., max_length=80, description="Factor being adjusted")
     original_value: Optional[float] = None
     adjustment: float = Field(..., description="Adjustment amount (positive or negative)")
-    reason: str = Field(..., description="Justification for the adjustment")
+    reason: str = Field(..., max_length=300, description="Justificativa — até 50 palavras (máx 300 caracteres)")
 
 
 class NarrativeSection(BaseModel):
     """A narrative section for the report."""
     section_key: str = Field(..., description="Section identifier (e.g. 'resumo_executivo', 'patrimonio_analise')")
-    title: str = Field(..., description="Section title")
-    content: str = Field(..., description="Narrative text content (markdown supported)")
+    title: str = Field(..., max_length=100, description="Section title — até 100 caracteres")
+    content: str = Field(..., max_length=2000, description="Texto narrativo em markdown simples — até 300 palavras (máx 2000 caracteres). Sem listas gigantes, sem tabelas.")
 
 
 class E7ReviewOutput(BaseModel):
     """Structured output for E7-review — holistic financial review."""
-    insights: list[ReviewInsight] = Field(default_factory=list, description="Key insights from the analysis")
-    recommendations: list[str] = Field(default_factory=list, description="Prioritized recommendations")
-    score_adjustments: list[ScoreAdjustment] = Field(default_factory=list)
-    narrative_sections: list[NarrativeSection] = Field(default_factory=list)
-    overall_assessment: str = Field(..., description="Overall financial health assessment (2-3 paragraphs)")
+    insights: list[ReviewInsight] = Field(default_factory=list, max_length=8, description="Até 8 insights priorizados por severidade")
+    recommendations: list[str] = Field(default_factory=list, max_length=6, description="Até 6 recomendações — cada uma com até 200 caracteres, ordenadas por impacto")
+    score_adjustments: list[ScoreAdjustment] = Field(default_factory=list, max_length=5, description="Até 5 ajustes qualitativos ao score")
+    narrative_sections: list[NarrativeSection] = Field(default_factory=list, max_length=5, description="Até 5 seções narrativas")
+    overall_assessment: str = Field(..., max_length=1200, description="Avaliação geral — 2 a 3 parágrafos curtos (máx 1200 caracteres)")
     risk_level: str = Field(..., description="Overall risk level: low, moderate, high, critical")
     confidence: float = Field(..., ge=0.0, le=1.0)

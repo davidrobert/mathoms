@@ -12,6 +12,10 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Família típica tem 3–5 membros com contas em múltiplos bancos. O schema
+# MembersExtractOutput sai facilmente de 4096 tokens — dimensionado igual a E1.5/E2-llm.
+_E1_MIN_COMPLETION_TOKENS = 16_384
+
 
 def _find_personal_docs(ctx: WorkspaceContext) -> list[Path]:
     """Find documents that may contain personal data (IRPF, IDs, etc.)."""
@@ -107,6 +111,8 @@ def run(ctx: WorkspaceContext) -> dict:
         system_prompt=SYSTEM_PROMPT,
         user_prompt=user_prompt,
         output_schema=MembersExtractOutput,
+        max_tokens=max(config.max_tokens, _E1_MIN_COMPLETION_TOKENS),
+        stage="E1",
     )
 
     output: MembersExtractOutput = result.output
