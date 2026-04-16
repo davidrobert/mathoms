@@ -97,6 +97,7 @@ def run(ctx: WorkspaceContext) -> dict:
     family_config = ctx.load_config("family_members.json")
     family_config_str = json.dumps(family_config, ensure_ascii=False, indent=2) if family_config else "{}"
 
+    # JSON aninhado pode conter `{`/`}` — em kwargs do str.format o valor é inserido literalmente.
     user_prompt = USER_PROMPT_TEMPLATE.format(
         e5_analysis_json=e5_json,
         e7_crossval_json=e7_crossval_json,

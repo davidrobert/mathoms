@@ -83,6 +83,7 @@ class TestMapDocType:
         assert _map_doc_type("faturaunique") == DocumentType.credit_card_bill
         assert _map_doc_type("faturacarbon") == DocumentType.credit_card_bill
         assert _map_doc_type("faturapaoacucar") == DocumentType.credit_card_bill
+        assert _map_doc_type("faturasantander") == DocumentType.credit_card_bill
 
     def test_faturaaluguel_is_other(self):
         # Rent invoice is not a credit card bill

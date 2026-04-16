@@ -38,5 +38,16 @@ celery_app.conf.update(
     # BUG-001 fix: explicit include instead of autodiscover_tasks.
     # autodiscover_tasks looks for a module named `tasks.py` inside the package,
     # but our task file is `pipeline_task.py`.
-    include=["backend.app.tasks.pipeline_task"],
+    include=[
+        "backend.app.tasks.pipeline_task",
+        "backend.app.tasks.periodic_tasks",
+    ],
+    # F8.4 / ADR-074 — beat schedule para tarefas periódicas.
+    # Start beat: celery -A backend.app.worker beat -l info
+    beat_schedule={
+        "scan-deadlines-daily": {
+            "task": "fin.scan_all_deadlines",
+            "schedule": 86400.0,  # diário (24h em segundos)
+        },
+    },
 )

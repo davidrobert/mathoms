@@ -112,6 +112,11 @@ def _static_tokens_block(tokens: dict[str, Any], *, emit_fonts: bool) -> list[st
     for k, v in typo["weights"].items():
         lines.append(f"    --font-weight-{_kebab(k)}: {v};")
     lines.append("")
+    # tracking (letter-spacing)
+    if "tracking" in typo:
+        for k, v in typo["tracking"].items():
+            lines.append(f"    --tracking-{_kebab(k)}: {v};")
+        lines.append("")
 
     # spacing
     for k, v in tokens["spacing"].items():
@@ -164,15 +169,52 @@ def _theme_inline_block(tokens: dict[str, Any]) -> list[str]:
     for k in tokens["modes"]["light"]["sidebar"]:
         lines.append(f"    --color-sidebar-{_kebab(k)}: var(--sidebar-{_kebab(k)});")
     lines.append("")
-    # typography
+    # typography — font families
     lines.append("    --font-heading: var(--font-display);")
     lines.append("    --font-sans: var(--font-body);")
     lines.append("    --font-mono: var(--font-mono);")
     lines.append("")
+    # typography — font sizes (wire tokens into Tailwind)
+    typo = tokens["typography"]
+    for k in typo["sizes"]:
+        tw_key = _kebab(k)
+        lines.append(f"    --text-{tw_key}: var(--font-size-{tw_key});")
+    lines.append("")
+    # typography — line heights
+    for k in typo["line_heights"]:
+        tw_key = _kebab(k)
+        lines.append(f"    --leading-{tw_key}: var(--line-height-{tw_key});")
+    lines.append("")
+    # typography — tracking (letter-spacing)
+    if "tracking" in typo:
+        for k in typo["tracking"]:
+            tw_key = _kebab(k)
+            lines.append(f"    --tracking-{tw_key}: var(--tracking-{tw_key});")
+        lines.append("")
     # radius
     for k in tokens["radius"]:
         lines.append(f"    --radius-{_kebab(k)}: var(--radius-{_kebab(k)});")
     lines.append("}")
+
+    # text styles — CSS utility classes from composite tokens
+    if "text_styles" in typo:
+        lines.append("")
+        lines.append("/* Text styles — composições tipográficas semânticas (ADR-076) */")
+        for style_name, style_def in typo["text_styles"].items():
+            class_name = f"text-style-{_kebab(style_name)}"
+            font_var = f"var(--font-{style_def['font']})"
+            size_var = f"var(--font-size-{_kebab(style_def['size'])})"
+            weight_var = f"var(--font-weight-{_kebab(style_def['weight'])})"
+            lh_var = f"var(--line-height-{_kebab(style_def['line_height'])})"
+            tracking_var = f"var(--tracking-{_kebab(style_def['tracking'])})"
+            lines.append(f".{class_name} {{")
+            lines.append(f"    font-family: {font_var};")
+            lines.append(f"    font-size: {size_var};")
+            lines.append(f"    font-weight: {weight_var};")
+            lines.append(f"    line-height: {lh_var};")
+            lines.append(f"    letter-spacing: {tracking_var};")
+            lines.append("}")
+
     return lines
 
 

@@ -7,6 +7,8 @@ interface UsePipelineWSOptions {
   runId: string | null;
   token: string | null;
   onEvent?: (event: PipelineEvent) => void;
+  /** Chamado a cada ~15s enquanto o servidor mantém o WS vivo (não é persistido como evento de etapa). */
+  onHeartbeat?: () => void;
   onRunFinished?: (event: PipelineEvent) => void;
   maxReconnects?: number;
 }
@@ -24,6 +26,7 @@ export function usePipelineWS({
   runId,
   token,
   onEvent,
+  onHeartbeat,
   onRunFinished,
   maxReconnects = 3,
 }: UsePipelineWSOptions) {
@@ -72,7 +75,10 @@ export function usePipelineWS({
     ws.onmessage = (evt) => {
       try {
         const data: PipelineEvent = JSON.parse(evt.data);
-        if (data.event === "heartbeat") return;
+        if (data.event === "heartbeat") {
+          onHeartbeat?.();
+          return;
+        }
 
         setLastEvent(data);
         onEvent?.(data);
@@ -105,7 +111,7 @@ export function usePipelineWS({
     ws.onerror = () => {
       // onclose will handle reconnection
     };
-  }, [runId, token, maxReconnects, onEvent, onRunFinished, cleanup]);
+  }, [runId, token, maxReconnects, onEvent, onHeartbeat, onRunFinished, cleanup]);
 
   useEffect(() => {
     if (runId && token) {

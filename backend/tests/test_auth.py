@@ -18,6 +18,28 @@ async def test_register_success(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_register_creates_owner_workspace_membership(client: AsyncClient):
+    """Registro deve criar WorkspaceMember(owner) — senão /me/workspaces fica vazio e rotas F8+ retornam 403."""
+    resp = await client.post("/api/auth/register", json={
+        "email": "owner-membership@test.com",
+        "password": "senha123",
+        "full_name": "Dono Workspace",
+    })
+    assert resp.status_code == 201
+    token = resp.json()["access_token"]
+
+    me_ws = await client.get(
+        "/api/me/workspaces",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert me_ws.status_code == 200
+    data = me_ws.json()
+    assert data["total"] == 1
+    assert data["workspaces"][0]["role"] == "owner"
+    assert data["workspaces"][0]["name"] == "Workspace de Dono Workspace"
+
+
+@pytest.mark.asyncio
 async def test_register_duplicate_email(client: AsyncClient):
     payload = {
         "email": "dup@test.com",

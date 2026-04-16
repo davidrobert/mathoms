@@ -23,82 +23,132 @@ from backend.app.models.user import User
 
 
 @pytest_asyncio.fixture
-async def workspace_with_run(db: AsyncSession):
-    """Create a user + workspace + pending pipeline run."""
-    from backend.app.core.security import get_password_hash
+async def workspace_with_run(tmp_path, monkeypatch, db: AsyncSession):
+    """Create user + workspace + pending pipeline run.
 
-    user = User(
-        id=str(uuid.uuid4()),
-        email="task_test@test.com",
-        hashed_password=get_password_hash("pass"),
-        full_name="Task Tester",
+    Backed by a temp SQLite FILE (not in-memory) so that the sync
+    ``SyncSessionLocal`` used by ``_is_cancelled`` and friends sees the
+    same data we write here. The default conftest engine is in-memory
+    (``sqlite+aiosqlite://``) which is invisible to a parallel sync
+    engine — that's why these tests previously failed.
+    """
+    from sqlalchemy import create_engine
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from sqlalchemy.orm import sessionmaker
+
+    from backend.app.core.database import Base
+    from backend.app.core.security import hash_password
+    import backend.app.models  # noqa: F401 — register all models on Base
+    import backend.app.tasks.pipeline_task as task_module
+
+    db_file = tmp_path / "pipeline_task.db"
+    async_url = f"sqlite+aiosqlite:///{db_file}"
+    sync_url = f"sqlite:///{db_file}"
+
+    async_engine = create_async_engine(async_url)
+    sync_engine = create_engine(sync_url)
+    AsyncTestSession = async_sessionmaker(
+        async_engine, class_=AsyncSession, expire_on_commit=False
     )
-    db.add(user)
-    await db.flush()
+    SyncTestSession = sessionmaker(bind=sync_engine, expire_on_commit=False)
 
-    ws = Workspace(id=str(uuid.uuid4()), owner_id=user.id, name="Test WS")
-    db.add(ws)
-    await db.flush()
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-    run = PipelineRun(
-        id=str(uuid.uuid4()),
-        workspace_id=ws.id,
-        status=PipelineRunStatus.pending,
-        total_documents=3,
-    )
-    db.add(run)
-    await db.commit()
+    monkeypatch.setattr(task_module, "SyncSessionLocal", SyncTestSession)
 
-    return {"user": user, "workspace": ws, "run": run}
+    async with AsyncTestSession() as session:
+        user = User(
+            id=str(uuid.uuid4()),
+            email="task_test@test.com",
+            hashed_password=hash_password("pass"),
+            full_name="Task Tester",
+        )
+        session.add(user)
+        await session.flush()
+
+        ws = Workspace(id=str(uuid.uuid4()), owner_id=user.id, name="Test WS")
+        session.add(ws)
+        await session.flush()
+
+        run = PipelineRun(
+            id=str(uuid.uuid4()),
+            workspace_id=ws.id,
+            status=PipelineRunStatus.pending,
+            total_documents=3,
+        )
+        session.add(run)
+        await session.commit()
+
+        # Re-attach to the conftest db session so existing tests that read
+        # the run via the ``db`` fixture keep working.
+        # We use the IDs only — actual reads happen against AsyncTestSession.
+        result = {
+            "user_id": user.id, "workspace_id": ws.id, "run_id": run.id,
+            "session": AsyncTestSession,
+            "user": user, "workspace": ws, "run": run,
+        }
+
+    yield result
+
+    await async_engine.dispose()
+    sync_engine.dispose()
 
 
 class TestPipelineRunModel:
     """Test the celery_task_id field on PipelineRun."""
 
     @pytest.mark.asyncio
-    async def test_celery_task_id_field(self, db: AsyncSession, workspace_with_run):
+    async def test_celery_task_id_field(self, workspace_with_run):
         """PipelineRun should have a nullable celery_task_id field."""
-        run_id = workspace_with_run["run"].id
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
         from sqlalchemy import select
-        result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
-        run = result.scalar_one()
-        assert run.celery_task_id is None
+        async with Session() as db:
+            result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
+            run = result.scalar_one()
+            assert run.celery_task_id is None
 
-        run.celery_task_id = "celery-task-123"
-        await db.commit()
+            run.celery_task_id = "celery-task-123"
+            await db.commit()
 
-        result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
-        run = result.scalar_one()
-        assert run.celery_task_id == "celery-task-123"
+        async with Session() as db:
+            result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
+            run = result.scalar_one()
+            assert run.celery_task_id == "celery-task-123"
 
 
 class TestCancellationFlag:
     """Test stage-boundary cancellation via DB flag."""
 
     @pytest.mark.asyncio
-    async def test_cancelled_run_detected(self, db: AsyncSession, workspace_with_run):
+    async def test_cancelled_run_detected(self, workspace_with_run):
         """A run marked cancelled in DB should be detected by _is_cancelled."""
-        run_id = workspace_with_run["run"].id
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
 
         from sqlalchemy import select
-        result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
-        run = result.scalar_one()
-        run.status = PipelineRunStatus.cancelled
-        await db.commit()
+        async with Session() as db:
+            result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
+            run = result.scalar_one()
+            run.status = PipelineRunStatus.cancelled
+            await db.commit()
 
         from backend.app.tasks.pipeline_task import _is_cancelled
         assert _is_cancelled(run_id) is True
 
     @pytest.mark.asyncio
-    async def test_running_run_not_cancelled(self, db: AsyncSession, workspace_with_run):
+    async def test_running_run_not_cancelled(self, workspace_with_run):
         """A running pipeline should not be detected as cancelled."""
-        run_id = workspace_with_run["run"].id
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
 
         from sqlalchemy import select
-        result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
-        run = result.scalar_one()
-        run.status = PipelineRunStatus.running
-        await db.commit()
+        async with Session() as db:
+            result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
+            run = result.scalar_one()
+            run.status = PipelineRunStatus.running
+            await db.commit()
 
         from backend.app.tasks.pipeline_task import _is_cancelled
         assert _is_cancelled(run_id) is False

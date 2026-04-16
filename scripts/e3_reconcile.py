@@ -21,6 +21,7 @@ v2.0 — Fixes applied:
 import json
 import re
 import sys
+from calendar import monthrange
 from pathlib import Path
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -129,6 +130,45 @@ def write_json(path: Path, data: Dict[str, Any]) -> bool:
     except Exception as e:
         log_progress("ERROR", f"Failed to write {path.name}: {e}")
         return False
+
+
+def normalize_periodo_in_extract(data: Dict[str, Any]) -> None:
+    """Ensure ``periodo`` is a dict with ``inicio``/``fim``.
+
+    E2-llm (schema) uses ``period`` as YYYYMM string → JSON field ``periodo`` as str.
+    E3 assumes ``periodo`` is ``{inicio, fim}`` and calls ``.get()`` on it — str would raise.
+    """
+    raw = data.get("periodo")
+    if raw is None:
+        return
+    if isinstance(raw, dict):
+        return
+    if isinstance(raw, str):
+        s = raw.strip()
+        if len(s) == 6 and s.isdigit():
+            y, m = int(s[:4]), int(s[4:6])
+            if 1 <= m <= 12:
+                last = monthrange(y, m)[1]
+                data["periodo"] = {
+                    "inicio": f"{y}-{m:02d}-01",
+                    "fim": f"{y}-{m:02d}-{last:02d}",
+                }
+                return
+        if len(s) >= 10 and s[4] == "-" and s[7] == "-":
+            d = s[:10]
+            data["periodo"] = {"inicio": d, "fim": d}
+            return
+        log_progress(
+            "E3.0",
+            f"Could not parse periodo string; using empty range (value={s[:48]!r})",
+        )
+        data["periodo"] = {"inicio": "", "fim": ""}
+        return
+    log_progress(
+        "E3.0",
+        f"Unexpected periodo type {type(raw).__name__}; coercing to empty dict",
+    )
+    data["periodo"] = {"inicio": "", "fim": ""}
 
 
 # =============================================================================
@@ -628,6 +668,8 @@ def load_and_group_e2_extracts(e2_dir: Path) -> Tuple[Dict, List[Tuple]]:
             load_errors.append(fpath.name)
             continue
 
+        normalize_periodo_in_extract(data)
+
         if should_skip_extract(data):
             log_progress("E3.1", f"Skipping {fpath.name} (type={data.get('tipo')})")
             continue
@@ -928,6 +970,22 @@ def main(root_dir: Path = None):
     file_groups, grouped = load_and_group_e2_extracts(e2_dir)
 
     if not grouped:
+        # IRPF-only (baseline) ou só posições de investimento: não há *-2_extract.json
+        # com transações de conta/fatura — E3 não tem o que reconciliar, mas o
+        # pipeline ainda pode seguir (E4 patrimônio + posições a partir de E2).
+        if e2_dir.exists() and any(e2_dir.glob("*.json")):
+            log_progress(
+                "E3",
+                "SKIP: Nenhuma conta corrente/fatura para reconciliar — E2_extracts só tem "
+                "baseline IRPF e/ou extratos sem transações reconciliáveis. "
+                "Seguindo sem arquivos em E3_reconciled.",
+            )
+            print(
+                "\n[SUMMARY] No bank/card accounts to reconcile; E2 has other JSON — "
+                "continuing pipeline (patrimônio/posições via E4).",
+                file=sys.stderr,
+            )
+            sys.exit(0)
         log_progress("E3", "FATAL: No accounts to reconcile — E2_extracts vazio ou corrompido.")
         print("\n[SUMMARY] No accounts found. No files written.", file=sys.stderr)
         sys.exit(1)

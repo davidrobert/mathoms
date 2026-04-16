@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fin://schemas/goal.if.v1",
+  "title": "Goal — Independência Financeira (v1)",
+  "description": "Schema canônico para inputs e derivados do Goal do tipo INDEPENDENCIA_FINANCEIRA. Referência: ADR-073. Usado por backend (validação), pipeline (adapter) e frontend (codegen de tipos).",
+  "type": "object",
+  "required": ["inputs", "derived", "meta_version"],
+  "additionalProperties": false,
+  "properties": {
+    "meta_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Versão deste schema. Incrementar (v2, v3...) se a forma dos inputs/derived mudar."
+    },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "renda_passiva_mensal_brl",
+        "trs_pct",
+        "retorno_real_anual_pct",
+        "horizonte_anos"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "renda_passiva_mensal_brl": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 10000000,
+          "description": "Renda passiva mensal desejada em BRL. Usuário pensa neste número, não no patrimônio-alvo."
+        },
+        "trs_pct": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 20,
+          "description": "Taxa de Retirada Segura operacional (percentual ao ano). Default produto: 5%. Trinity Study clássico usa 4%."
+        },
+        "retorno_real_anual_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 20,
+          "description": "Retorno real esperado (acima da inflação) ao ano. Usado para simular o aporte mensal necessário para atingir a meta no horizonte dado."
+        },
+        "horizonte_anos": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Horizonte em anos até atingir a meta IF."
+        },
+        "taxa_retirada_conservadora_pct": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 20,
+          "description": "Taxa conservadora adicional para cálculo de meta alternativa (geralmente 4% — regra de Trinity). Opcional; se ausente usa 4.0."
+        }
+      }
+    },
+    "derived": {
+      "type": "object",
+      "required": ["if_meta_brl", "aporte_necessario_mensal_brl"],
+      "additionalProperties": false,
+      "properties": {
+        "if_meta_brl": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Patrimônio-alvo calculado: renda_passiva × 12 / (trs_pct / 100)."
+        },
+        "aporte_necessario_mensal_brl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Aporte mensal para atingir if_meta no horizonte assumindo patrimônio inicial zero (baseline persistido)."
+        },
+        "if_meta_conservadora_brl": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Patrimônio-alvo alternativo usando taxa_retirada_conservadora_pct (default 4%)."
+        },
+        "aporte_mensal_com_patrimonio_atual_brl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Opcional. Aporte mensal quando há patrimônio inicial conhecido (ex.: último relatório)."
+        },
+        "patrimonio_atual_utilizado_brl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Opcional. Patrimônio usado no cálculo do aporte ajustado."
+        }
+      }
+    }
+  }
+}

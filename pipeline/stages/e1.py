@@ -88,7 +88,16 @@ def run(ctx: WorkspaceContext) -> dict:
     if not docs_text_parts:
         return {"skipped": True, "reason": "No extractable text in documents"}
 
+    from pipeline.live_progress import emit_stage_activity
+
+    emit_stage_activity(
+        ctx.pipeline_run_id,
+        "E1",
+        message=f"Lendo dados pessoais com IA ({len(docs_text_parts)} documento(s))…",
+    )
+
     documents_text = "\n\n".join(docs_text_parts)
+    # JSON/PDF podem conter `{`/`}` — em kwargs do str.format o valor é inserido literalmente.
     user_prompt = USER_PROMPT_TEMPLATE.format(documents_text=documents_text)
 
     config = LLMConfig(**llm_config_data)

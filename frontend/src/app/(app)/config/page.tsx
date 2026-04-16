@@ -3,6 +3,7 @@
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MembersTab from "./MembersTab";
+import AcessosTab from "./AcessosTab";
 import CategoriesTab from "./CategoriesTab";
 import PipelineTab from "./PipelineTab";
 import InstitutionsTab from "./InstitutionsTab";
@@ -12,6 +13,7 @@ import LLMTab from "./LLMTab";
 
 const TABS = [
   { id: "members", label: "Membros" },
+  { id: "acessos", label: "Acessos" },
   { id: "categories", label: "Categorias" },
   { id: "pipeline", label: "Pipeline" },
   { id: "llm", label: "LLM" },
@@ -25,7 +27,7 @@ export default function ConfigPage() {
     <div className="mx-auto max-w-5xl px-6 py-8">
       <PageHeader
         title="Configurações"
-        description="Edite membros da família, categorias, parâmetros do pipeline e layout do relatório"
+        description="Membros do relatório, quem tem acesso ao app (Acessos), categorias, pipeline e layout"
       />
 
       <Tabs defaultValue="members">
@@ -38,6 +40,7 @@ export default function ConfigPage() {
         </TabsList>
 
         <TabsContent value="members"><MembersTab /></TabsContent>
+        <TabsContent value="acessos"><AcessosTab /></TabsContent>
         <TabsContent value="categories"><CategoriesTab /></TabsContent>
         <TabsContent value="pipeline"><PipelineTab /></TabsContent>
         <TabsContent value="llm"><LLMTab /></TabsContent>

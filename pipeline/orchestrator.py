@@ -79,8 +79,10 @@ FULL_ORDER = [
     "E0-unlock", "E0-audit", "E0-route",
     "E1", "E1.5",
     "E1.5c",
-    "E2-llm",
+    # Deterministic E2 first — creates *-2_extract.json for extratos/faturas conhecidos.
+    # E2-llm só processa o que ainda não tem extrato (investimentos, formatos sem parser).
     "E2-faturas", "E2-extratos",
+    "E2-llm",
     "E3", "E4", "E5", "E5.N",
     "E6",
     "E7-crossval",
@@ -165,6 +167,20 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
     In CLI mode sys.exit() terminates the process (expected). In Celery worker
     mode it would kill the fork pool worker (catastrophic). Converting to
     StageResult(success=False) lets the task handle it gracefully.
+
+    **Convenção — retorno ``dict`` e chave ``success``**
+
+    Runners que retornam um ``dict`` (ex.: E2-llm, E5.N) podem sinalizar falha
+    **sem** lançar exceção, incluindo ``"success": false`` no dicionário.
+
+    - Se o retorno **não** é ``dict``, ou é ``dict`` **sem** a chave
+      ``"success"``, o stage é considerado **bem-sucedido** (desde que não haja
+      exceção).
+    - Se o retorno é ``dict`` **com** ``"success"``, ``StageResult.success``
+      segue ``bool(detail["success"])``. O ``detail`` completo é preservado em
+      ``StageResult.detail`` (erros parciais, métricas, etc.).
+
+    Documentação: ``docs/ARCHITECTURE.md`` (seção *Padrões arquiteturais*).
     """
     import io
     import sys
@@ -186,7 +202,12 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
     try:
         detail = runner(ctx)
         elapsed = (time.monotonic() - start) * 1000
-        return StageResult(stage=stage, success=True, duration_ms=elapsed, detail=detail)
+        # Wrappers que retornam dict podem sinalizar falha parcial/total sem exceção
+        # (ex.: E2-llm com erros em alguns arquivos, E5.N sem output).
+        ok = True
+        if isinstance(detail, dict) and "success" in detail:
+            ok = bool(detail.get("success"))
+        return StageResult(stage=stage, success=ok, duration_ms=elapsed, detail=detail)
     except SystemExit as exc:
         elapsed = (time.monotonic() - start) * 1000
         code = exc.code if exc.code is not None else 0

@@ -13,6 +13,7 @@
 - [Fases concluídas (F0-F6)](#fases-concluídas-f0-f6)
 - [F6.5 — Frontend Testing & QA](#f65--frontend-testing--qa) ← **próxima**
 - [F7 — Produção + LGPD](#f7--produção--lgpd)
+- [F7F — Console interno (operadores)](#f7f--console-interno-operadores)
 - [F8 — Growth (Futuro)](#f8--growth-futuro)
 
 ---
@@ -650,7 +651,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | #     | Tarefa                                                                                                                                                                                                          | Prio | Est. | Status |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
 | 7E.6  | **Status page público** (`uptime-kuma` self-hosted ou `instatus.com` free tier): incidentes manuais + uptime auto; link na footer do app                                                                       | P1 | 3h | ☐ |
-| 7E.7  | **Business metrics dashboard**: query simples + página interna `/admin/metrics`: runs/day, success rate trend (7d/30d), p95 duration, custo médio LLM por run, documents uploaded/day, active workspaces      | P1 | 6h | ☐ |
+| 7E.7  | **Business metrics dashboard**: query simples + página interna `/admin/metrics`: runs/day, success rate trend (7d/30d), p95 duration, custo médio LLM por run, documents uploaded/day, active workspaces — integra **IA-1** do [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md) (protegida por **7F.2–7F.4**) | P1 | 6h | ☐ |
 | 7E.8  | **SLOs/SLAs declarados** em `docs/SLO.md`: uptime 99% beta / 99.5% GA; p95 API <1s; p95 pipeline free <5min, premium <15min; alertas Sentry quando burn rate >2x                                                | P0 | 1h | ☐ |
 
 #### 7E.D — Comunicação de incidentes
@@ -670,6 +671,23 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | 7E.14 | **Fallback model** quando primary rate-limited (429/529): retry com modelo secundário configurável (ex: claude-haiku se opus indisponível); log explícito em `PipelineStageLog`                                   | P1 | 4h | ☐ |
 
 **Checkpoint:** zero pipeline runs órfãs >1h • restore drill executado em <RTO declarado • off-site backup verificado • FERNET recovery testado • status page no ar • business metrics dashboard renderizando • 3 incident templates prontos • LLM cost cap funcionando com toast e hard stop • API key validation antes de cada run.
+
+### F7F — Console interno (operadores)
+
+> Superfície para CEO, Ops, CS, Financeiro e Legal **operarem a plataforma** (não confundir com `/config` do workspace do cliente). Fases conceituais **IA-0 … IA-3** em [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md). A entrega **7E.7** (`/admin/metrics`) é o núcleo da **IA-1**; as linhas abaixo cobrem fundação, API e evolução CS/financeiro.
+
+| #     | Tarefa | Prio | Est. | Status |
+| ----- | ------ | ---- | ---- | ------ |
+| 7F.1  | **ADR + política interna:** identidade staff vs `User` cliente; impersonation proibida por padrão ou “break glass” com TTL + audit + ADR em [DECISIONS.md](DECISIONS.md) | P0 | 3h | ☐ |
+| 7F.2  | **Auth interna MVP:** credencial separada do JWT cliente (ex.: allowlist email + senha/secret rotativo, ou OAuth Google Workspace restrito a domínio da empresa); sessão não reutiliza cookie do app | P0 | 8h | ☐ |
+| 7F.3  | **RBAC interno** (`internal_ops`, `internal_support`, …) + dependency FastAPI + testes 403 entre papéis | P1 | 6h | ☐ |
+| 7F.4  | **Prefixo `/api/internal/`** (ou equivalente) protegido por env + testes; nenhuma rota interna em build do cliente sem flag explícita | P0 | 4h | ☐ |
+| 7F.5  | **Documentação:** ao concluir **7C.7** (`docs/RUNBOOK.md`), incluir secção console interno — quem acessa, rotação de credenciais, revogação de acesso staff | P1 | 1h | ☐ |
+| 7F.6  | **CS:** busca por email / `user_id` → workspaces, roles, convites (somente metadados); toda consulta auditada | P2 | 8h | ☐ |
+| 7F.7  | **CS:** endpoint + UI para **support bundle** JSON (diagnóstico redigido, sem valores/PII por padrão) | P2 | 6h | ☐ |
+| 7F.8  | **Financeiro (pós-billing):** links read-only Stripe + export CSV contábil — depende de billing real (F10 / roadmap) | P2 | TBD | ☐ |
+
+**Checkpoint F7F (MVP):** 7F.1–7F.4 concluídos • **7E.7** renderizando para papel `internal_ops` • zero exposição de rotas internas em deploy sem config explícita.
 
 ---
 

@@ -2,7 +2,7 @@
 
 > Visão de alto nível das fases do projeto. Atualizar mensalmente ou ao mudar de fase.
 >
-> **Última atualização:** 2026-04-15
+> **Última atualização:** 2026-04-16
 > **Fase atual:** F9 concluída • próxima: **F7 (Produção + LGPD + Ops)**
 
 ---
@@ -153,6 +153,7 @@ python -m backend.app.scripts.cutover_execute --apply
 | 7C       | CI/CD + Observabilidade (GH Actions, Sentry, logs, uptime)                                                                                                        | 1-2 sem    |
 | 7D       | Quality Gate + Launch Readiness (gap-fill, baseline perf, checklist)                                                                                              | 2-3 sem    |
 | 7E       | **Operational Readiness** (stuck-run detector, restore drill, off-site backup, FERNET recovery, status page, business metrics, SLOs, incident comms templates, support runbook, LLM cost cap, API key validation, fallback model) | ~2 sem     |
+| 7F       | **Console interno** (auth/RBAC staff, APIs `/api/internal`, métricas agregadas, CS search/bundle; evolui com beta/billing) — ver [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md) | paralelo a 7D–7E |
 | Dogfood  | 2+ semanas de uso real antes de beta                                                                                                                              | 2+ sem     |
 
 **Deploy target:** VPS Hetzner CX32 (4 vCPU, 8GB, ~$8/mo) + Docker Compose + PostgreSQL + Traefik. Backup off-site em S3 BR ou Backblaze B2.
@@ -165,7 +166,7 @@ python -m backend.app.scripts.cutover_execute --apply
 | **Beta**    | Família + 2-3 convidados (5 users)    | Onboarding sem suporte. Latência p95 <1s. Nenhum dado corrompido. LGPD verificado   |
 | **GA**      | Público                               | Landing page + demo mode + billing (se aplicável). Suporte básico                   |
 
-Detalhes das tasks: **[BACKLOG.md#f7](BACKLOG.md#f7--produção--lgpd)**
+Detalhes das tasks: **[BACKLOG.md#f7](BACKLOG.md#f7--produção--lgpd)** · Console interno (operadores): **[INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md)** + **[BACKLOG.md#f7f](BACKLOG.md#f7f--console-interno-operadores)**
 
 ---
 

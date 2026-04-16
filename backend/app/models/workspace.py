@@ -44,3 +44,17 @@ class Workspace(Base):
     # Phase 6 — transactions & notifications
     transaction_overrides = relationship("TransactionOverride", back_populates="workspace", cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="workspace", cascade="all, delete-orphan")
+
+    # F8 / ADR-072 — membership (N:N user↔workspace)
+    members = relationship(
+        "WorkspaceMember",
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+    )
+
+    # F9 — convites pendentes/aceitos/revogados
+    invitations = relationship(
+        "WorkspaceInvitation",
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+    )

@@ -13,37 +13,44 @@ from backend.app.models.document import DocumentStatus, DocumentType
 _PROC = "backend.app.api.documents.process_uploaded_document"
 
 
-def _mock_process(file_path, passwords, config_dir):
-    """Deterministic mock for process_uploaded_document that classifies by extension/content."""
+def _mock_process(file_path, passwords, config_dir, tenant_root=None):
+    """Deterministic mock for process_uploaded_document that classifies by extension/content.
+
+    Kwarg ``tenant_root`` kept for parity with the real signature — ignored here.
+    """
     ext = Path(file_path).suffix.lower()
+    base = {
+        "bank_code": None, "period": None,
+        "confidence": 1.0, "needs_review": False,
+        "error_message": None,
+    }
     if ext == ".json":
         try:
             data = json.loads(Path(file_path).read_text())
             if isinstance(data, dict):
                 if "membros" in data or "members" in data:
                     return {
+                        **base,
                         "status": DocumentStatus.ready,
                         "doc_type": DocumentType.e1_members_json,
-                        "bank_code": None, "period": None,
                         "classification_meta": {"source": "json_structure"},
-                        "error_message": None,
                     }
                 if "patrimonio" in data or "baseline" in data:
                     return {
+                        **base,
                         "status": DocumentStatus.ready,
                         "doc_type": DocumentType.e1_5_baseline_json,
-                        "bank_code": None, "period": None,
                         "classification_meta": {"source": "json_structure"},
-                        "error_message": None,
                     }
         except Exception:
             pass
     return {
+        **base,
         "status": DocumentStatus.ready,
         "doc_type": DocumentType.other,
-        "bank_code": None, "period": None,
         "classification_meta": {"source": "test_mock"},
-        "error_message": None,
+        "confidence": 0.0,
+        "needs_review": True,
     }
 
 
@@ -61,8 +68,8 @@ async def test_upload_csv_file(auth_client: AsyncClient):
         )
     assert resp.status_code == 201
     data = resp.json()
-    assert len(data) == 1
-    doc = data[0]
+    assert data["total_uploaded"] == 1
+    doc = data["documents"][0]
     assert doc["original_name"] == "extrato_itau_202601.csv"
     assert doc["file_size_bytes"] == len(content)
     assert doc["status"] == "ready"
@@ -78,7 +85,9 @@ async def test_upload_multiple_files(auth_client: AsyncClient):
     with patch(_PROC, side_effect=_mock_process):
         resp = await auth_client.post("/api/documents/upload", files=files)
     assert resp.status_code == 201
-    assert len(resp.json()) == 3
+    data = resp.json()
+    assert data["total_uploaded"] == 3
+    assert len(data["documents"]) == 3
 
 
 @pytest.mark.asyncio
@@ -88,7 +97,7 @@ async def test_upload_invalid_extension(auth_client: AsyncClient):
         files=[("files", ("virus.exe", io.BytesIO(b"malware"), "application/octet-stream"))],
     )
     assert resp.status_code == 201
-    doc = resp.json()[0]
+    doc = resp.json()["documents"][0]
     assert doc["status"] == "error"
     assert doc["error_message"] is not None
 
@@ -100,7 +109,7 @@ async def test_upload_empty_file(auth_client: AsyncClient):
         files=[("files", ("empty.csv", io.BytesIO(b""), "text/csv"))],
     )
     assert resp.status_code == 201
-    doc = resp.json()[0]
+    doc = resp.json()["documents"][0]
     assert doc["status"] == "error"
     assert "vazio" in doc["error_message"].lower()
 
@@ -114,7 +123,7 @@ async def test_upload_json_e1_members(auth_client: AsyncClient):
             files=[("files", ("members.json", io.BytesIO(members_json), "application/json"))],
         )
     assert resp.status_code == 201
-    doc = resp.json()[0]
+    doc = resp.json()["documents"][0]
     assert doc["doc_type"] == "e1_members_json"
     assert doc["status"] == "ready"
 
@@ -128,7 +137,7 @@ async def test_upload_json_e15_baseline(auth_client: AsyncClient):
             files=[("files", ("baseline.json", io.BytesIO(baseline_json), "application/json"))],
         )
     assert resp.status_code == 201
-    doc = resp.json()[0]
+    doc = resp.json()["documents"][0]
     assert doc["doc_type"] == "e1_5_baseline_json"
     assert doc["status"] == "ready"
 
@@ -193,7 +202,7 @@ async def test_delete_document(auth_client: AsyncClient):
             "/api/documents/upload",
             files=[("files", ("delete_me.csv", io.BytesIO(b"data"), "text/csv"))],
         )
-    doc_id = resp.json()[0]["id"]
+    doc_id = resp.json()["documents"][0]["id"]
 
     del_resp = await auth_client.delete(f"/api/documents/{doc_id}")
     assert del_resp.status_code == 204

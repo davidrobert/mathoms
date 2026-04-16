@@ -16,7 +16,9 @@ import {
   formatDocPeriod,
   docStatusLabel,
   docTypeLabel,
-  bankLabel,
+  fileFormatLabel,
+  institutionLabel,
+  pipelineE2TouchLabel,
 } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -269,10 +271,12 @@ export default function DocumentsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Arquivo</TableHead>
+                <TableHead>Formato</TableHead>
                 <TableHead>Tipo</TableHead>
-                <TableHead>Banco</TableHead>
+                <TableHead>Instituição</TableHead>
                 <TableHead>Período</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Último pipeline</TableHead>
                 <TableHead>Tamanho</TableHead>
                 <TableHead>Data</TableHead>
                 <TableHead className="w-10"></TableHead>
@@ -289,8 +293,11 @@ export default function DocumentsPage() {
                       </span>
                       {doc.original_name}
                     </TableCell>
+                    <TableCell className="text-muted-foreground font-mono text-xs">
+                      {fileFormatLabel(doc.content_type, doc.original_name)}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{docTypeLabel(doc.doc_type)}</TableCell>
-                    <TableCell className="text-muted-foreground">{bankLabel(doc.bank_code)}</TableCell>
+                    <TableCell className="text-muted-foreground">{institutionLabel(doc.bank_code)}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDocPeriod(doc.period)}</TableCell>
                     <TableCell>
                       <StatusBadge variant={st.variant}>{st.label}</StatusBadge>
@@ -299,6 +306,16 @@ export default function DocumentsPage() {
                           <Info className="inline h-3.5 w-3.5" />
                         </span>
                       )}
+                    </TableCell>
+                    <TableCell
+                      className="max-w-[160px] text-muted-foreground text-xs"
+                      title={
+                        doc.pipeline_last_run_at
+                          ? "Data do último pipeline concluído com sucesso neste workspace. “Sem extrato E2” indica que não há JSON do estágio E2 para este arquivo (parser não cobriu, só LLM, ou formato não suportado)."
+                          : undefined
+                      }
+                    >
+                      {pipelineE2TouchLabel(doc.pipeline_last_run_at, doc.pipeline_e2_extract_ok)}
                     </TableCell>
                     <TableCell className="text-muted-foreground font-mono text-xs">{formatBytes(doc.file_size_bytes)}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(doc.uploaded_at)}</TableCell>

@@ -18,10 +18,15 @@ class DocumentResponse(BaseModel):
     period: Optional[str] = None
     status: DocumentStatus
     classification_meta: Optional[dict] = None
+    classification_confidence: Optional[float] = None
+    needs_review: bool = False
+    possible_duplicate_of_id: Optional[str] = None
     file_size_bytes: Optional[int] = None
     content_type: Optional[str] = None
     error_message: Optional[str] = None
     uploaded_at: datetime
+    pipeline_last_run_at: Optional[datetime] = None
+    pipeline_e2_extract_ok: Optional[bool] = None
 
     model_config = {"from_attributes": True}
 

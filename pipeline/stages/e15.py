@@ -12,6 +12,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# OP-009 / IRPF: baseline JSON is large; sub-16k completions truncate and break structured output.
+_E15_MIN_COMPLETION_TOKENS = 16_384
+
 
 def _find_irpf_docs(ctx: WorkspaceContext) -> list[Path]:
     """Find IRPF declarations and related patrimony documents."""
@@ -91,7 +94,16 @@ def run(ctx: WorkspaceContext) -> dict:
     if not docs_text_parts:
         return {"skipped": True, "reason": "No extractable text in IRPF documents"}
 
+    from pipeline.live_progress import emit_stage_activity
+
+    emit_stage_activity(
+        ctx.pipeline_run_id,
+        "E1.5",
+        message=f"Lendo declaração IRPF com IA ({len(docs_text_parts)} documento(s))…",
+    )
+
     documents_text = "\n\n".join(docs_text_parts)
+    # JSON/IRPF podem conter `{`/`}` — em kwargs do str.format o valor é inserido literalmente.
     user_prompt = USER_PROMPT_TEMPLATE.format(documents_text=documents_text)
 
     config = LLMConfig(**llm_config_data)
@@ -101,6 +113,7 @@ def run(ctx: WorkspaceContext) -> dict:
         system_prompt=SYSTEM_PROMPT,
         user_prompt=user_prompt,
         output_schema=BaselinePatrimonialOutput,
+        max_tokens=max(config.max_tokens, _E15_MIN_COMPLETION_TOKENS),
     )
 
     output: BaselinePatrimonialOutput = result.output

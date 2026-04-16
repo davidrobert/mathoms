@@ -88,8 +88,6 @@ def _sync_engine_for(db_path: Path) -> Engine:
 # correspondente daqui. NOVO drift adicionado em PR fará o teste falhar.
 # Tracking issue: F6.5E.3 follow-up — gerar migration consolidada para regularizar.
 KNOWN_PRE_EXISTING_DRIFT: set[str] = {
-    # column added in model but never migrated:
-    "add_column:bank_accounts:label",
     # NOT NULL constraint declared in model mas migration deixou nullable:
     "modify_nullable:notifications:created_at:False",
     "modify_nullable:transaction_overrides:created_at:False",

@@ -87,6 +87,31 @@ def publish_stage_skipped(run_id: str, stage: str, reason: str, progress_pct: in
     publish_event(run_id, "stage_skipped", stage=stage, status="skipped", progress_pct=progress_pct, detail={"reason": reason})
 
 
+def publish_stage_activity(
+    run_id: str,
+    stage: str,
+    *,
+    file: Optional[str] = None,
+    message: Optional[str] = None,
+    extra: Optional[dict[str, Any]] = None,
+) -> None:
+    """Fine-grained progress within a stage (current file, sub-step message)."""
+    detail: dict[str, Any] = {}
+    if message:
+        detail["message"] = message
+    if file:
+        detail["file"] = file
+    if extra:
+        detail.update(extra)
+    publish_event(
+        run_id,
+        "stage_activity",
+        stage=stage,
+        status="running",
+        detail=detail if detail else None,
+    )
+
+
 def publish_needs_review(run_id: str, stage: str) -> None:
     publish_event(run_id, "needs_review", stage=stage, status="needs_review")
 

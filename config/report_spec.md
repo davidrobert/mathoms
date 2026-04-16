@@ -1315,7 +1315,7 @@ Sempre que o E5 gerar uma tabela com coluna "Prioridade" (tarefas, pontos urgent
 
 ### Schema JSON: `tarefas[]` (chave #18)
 
-**Fonte:** E4 item 9 — geradas a partir de 12 critérios de gatilho (ver `manual_operacao.md`, E4).
+**Fonte:** E4 item 9 — geradas a partir de 12 critérios de gatilho (ver `e4_categorize.py`).
 
 ```json
 "tarefas": [
@@ -1651,7 +1651,7 @@ Modo padrão definido em `report-data.meta.modo_padrao`:
 
 ## 20 CHAVES TOP-LEVEL DO `REPORT_DATA_JSON`
 
-Tabela consolidada de todas as chaves obrigatórias no JSON embutido no relatório. O E5.3 DEVE gerar TODAS elas. Cada chave tem schema detalhado mais abaixo neste documento ou no `manual_operacao.md` (E4).
+Tabela consolidada de todas as chaves obrigatórias no JSON embutido no relatório. O E5.3 DEVE gerar TODAS elas. Cada chave tem schema detalhado mais abaixo neste documento ou nos scripts correspondentes (E4/E5).
 
 | # | Chave | Fonte principal | Seção que consome | Schema neste doc? |
 |---|---|---|---|---|
@@ -1770,5 +1770,5 @@ Aguardar confirmação entre cada bloco antes de prosseguir.
 
 ### Notas importantes para geração:
 - **COVER_DATA_HORA** deve ser atualizado a cada geração com data/hora atual
-- **COVER_VERSAO_MANUAL** deve ler a versão do `manual_operacao.md` (atualmente 3.0)
+- **COVER_VERSAO_MANUAL** deve ler `report_version` de `config/pipeline.json`
 - **COVER_PERIODO** deve ser atualizado quando novos arquivos financeiros são processados

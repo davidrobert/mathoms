@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fin://schemas/goal.aporte_mensal.v1",
+  "title": "Goal — Aporte Mensal (v1)",
+  "description": "Meta de aporte mensal total + distribuição por destino. Migrada de `goals.json:aportes`. ADR-075 §F8.4.",
+  "type": "object",
+  "required": ["inputs", "derived", "meta_version"],
+  "additionalProperties": false,
+  "properties": {
+    "meta_version": {"type": "integer", "const": 1},
+    "inputs": {
+      "type": "object",
+      "required": ["meta_aporte_mensal_brl", "dia_aporte"],
+      "additionalProperties": false,
+      "properties": {
+        "meta_aporte_mensal_brl": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Total aportado por mês em BRL."
+        },
+        "dia_aporte": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 28,
+          "description": "Dia do mês do aporte automático (1-28 para segurança)."
+        },
+        "periodo_inicio": {
+          "type": "string",
+          "description": "Ex: 'Imediato', 'Abr/2026'. Livre."
+        },
+        "distribuicao": {
+          "type": "object",
+          "description": "Map destino→valor_brl. Soma deve bater com meta_aporte_mensal_brl.",
+          "additionalProperties": {"type": "number", "minimum": 0}
+        }
+      }
+    },
+    "derived": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "aporte_anual_brl": {"type": "number"},
+        "distribuicao_pct": {
+          "type": "object",
+          "additionalProperties": {"type": "number"}
+        }
+      }
+    }
+  }
+}

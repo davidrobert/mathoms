@@ -41,7 +41,7 @@ Ao final de cada etapa concluída, antes de avançar para a próxima, obrigatori
 
 ## PIPELINE DE DADOS (E0 a E3)
 
-O pipeline de dados é executado por qualquer ambiente (Cowork ou Chat). Ver `config/manual_operacao.md` para detalhes completos.
+O pipeline de dados é executado por qualquer ambiente (Cowork ou Chat). Ver scripts em `scripts/` e configs em `config/` para detalhes completos.
 
 | Etapa | Objetivo | Input | Output |
 |---|---|---|---|
@@ -73,7 +73,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 **E5.2 — Fluxo de Caixa e Orçamento (→ seção 2 do relatório)**
 - **Objetivo:** Receitas vs despesas, taxa de poupança, orçamento prospectivo com tetos, diagnóstico comportamental.
 - **Inputs:** `receitas-4_unified.json`, `despesas-4_unified.json`, `definitions.md` (categorias e tetos), `investimentos-4_unified.json` (para cruzamento de liquidez)
-- **Outputs:** Bloco `fluxo_de_caixa` no E5 JSON — Fluxo, projeção pós-quitação, 13 categorias vs tetos, consumo consciente, **diagnóstico comportamental** (`diagnostico_comportamental[]` no E5 JSON — array de padrões detectados com evidência e mudança sugerida; ver regras de detecção no manual_operacao.md E5 etapa 8).
+- **Outputs:** Bloco `fluxo_de_caixa` no E5 JSON — Fluxo, projeção pós-quitação, 13 categorias vs tetos, consumo consciente, **diagnóstico comportamental** (`diagnostico_comportamental[]` no E5 JSON — array de padrões detectados com evidência e mudança sugerida; ver regras de detecção em `e5_analyze.py`).
 - **Atenção:** NÃO confundir despesas PJ com pessoais. Incluir "reserva de desejos" R$3k/mês.
 - **Diagnóstico comportamental:** OBRIGATÓRIO em todo ciclo. Mesmo sem padrões detectados, gerar bloco com array vazio e nota positiva. Tom não-julgamental — foco em automatização de fluxo.
 
@@ -151,7 +151,7 @@ O score é uma média ponderada de 5 componentes, cada um pontuado de 0 a 10 com
 
 **Classificação:** 0-2 = "Crítico", 2-4 = "Atenção", 4-6 = "Regular", 6-8 = "Bom", 8-10 = "Excelente".
 
-Salvar componentes individuais em `score.componentes[]` para transparência. Ver `manual_operacao.md` (E5, item 5) para detalhes de implementação.
+Salvar componentes individuais em `score.componentes[]` para transparência. Ver `e5_analyze.py` para detalhes de implementação.
 
 ---
 

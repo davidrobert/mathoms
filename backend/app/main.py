@@ -20,6 +20,14 @@ from backend.app.api.transactions import router as transactions_router
 from backend.app.api.dashboard import router as dashboard_router
 from backend.app.api.notifications import router as notifications_router
 from backend.app.api.audit import router as audit_router
+from backend.app.api.goals import router as goals_router
+from backend.app.api.workspaces import (
+    router as workspaces_router,
+    tenant_router as workspaces_tenant_router,
+)
+from backend.app.api.invitations import router as invitations_router
+from backend.app.api.tasks import router as tasks_router
+from backend.app.api.feature_flags import router as feature_flags_router
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +65,12 @@ app.include_router(transactions_router, prefix=settings.API_PREFIX)
 app.include_router(dashboard_router, prefix=settings.API_PREFIX)
 app.include_router(notifications_router, prefix=settings.API_PREFIX)
 app.include_router(audit_router, prefix=settings.API_PREFIX)
+app.include_router(goals_router, prefix=settings.API_PREFIX)
+app.include_router(workspaces_router, prefix=settings.API_PREFIX)
+app.include_router(workspaces_tenant_router, prefix=settings.API_PREFIX)
+app.include_router(invitations_router, prefix=settings.API_PREFIX)
+app.include_router(tasks_router, prefix=settings.API_PREFIX)
+app.include_router(feature_flags_router, prefix=settings.API_PREFIX)
 
 
 @app.get("/health")

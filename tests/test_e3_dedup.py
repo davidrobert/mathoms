@@ -10,6 +10,7 @@ from scripts.e3_reconcile import (
     transaction_signature,
     deduplicate_transactions,
     _normalize_description_for_dedup,
+    normalize_periodo_in_extract,
 )
 
 
@@ -106,3 +107,27 @@ class TestDeduplicateTransactions:
         result, removed = deduplicate_transactions([])
         assert result == []
         assert removed == 0
+
+
+class TestNormalizePeriodo:
+    """E2-llm wrote periodo as YYYYMM string — E3 must coerce before .get(inicio)."""
+
+    def test_yyyymm_string_to_range(self):
+        d = {"tipo": "extrato", "periodo": "202412", "transacoes": []}
+        normalize_periodo_in_extract(d)
+        assert d["periodo"]["inicio"] == "2024-12-01"
+        assert d["periodo"]["fim"] == "2024-12-31"
+
+    def test_dict_unchanged(self):
+        d = {
+            "periodo": {"inicio": "2024-01-01", "fim": "2024-01-31"},
+            "transacoes": [],
+        }
+        normalize_periodo_in_extract(d)
+        assert d["periodo"]["inicio"] == "2024-01-01"
+
+    def test_iso_date_string(self):
+        d = {"periodo": "2024-06-15", "transacoes": []}
+        normalize_periodo_in_extract(d)
+        assert d["periodo"]["inicio"] == "2024-06-15"
+        assert d["periodo"]["fim"] == "2024-06-15"

@@ -47,10 +47,9 @@ export const PIPELINE_PHASES: readonly Phase[] = [
       "E1",
       "E1.5",
       "E1.5c",
-      "E2",
-      "E2-llm",
       "E2-extratos",
       "E2-faturas",
+      "E2-llm",
     ],
   },
   {

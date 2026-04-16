@@ -43,7 +43,7 @@
 ## REGRAS DE GERAÇÃO
 
 - `{{COVER_DATA_HORA}}` deve ser atualizado a cada geração do relatório
-- `{{COVER_VERSAO_MANUAL}}` deve ler a versão do manual_operacao.md
+- `{{COVER_VERSAO_MANUAL}}` deve ler `report_version` de `config/pipeline.json`
 - `{{COVER_PERIODO}}` deve ser atualizado quando novos arquivos financeiros são processados
 - Nenhum dado financeiro deve estar hardcoded no template
 

@@ -50,6 +50,53 @@ class TestMembersAPI:
         assert resp.status_code == 409
 
     @pytest.mark.asyncio
+    async def test_create_member_auto_key_from_full_name(self, auth_client: AsyncClient):
+        """Sem `key` no JSON — backend gera slug único a partir do nome."""
+        resp = await auth_client.post("/api/config/members", json={
+            "full_name": "Maria Silva Costa",
+            "short_name": "Maria",
+            "role": "titular",
+        })
+        assert resp.status_code == 201
+        data = resp.json()
+        assert data["key"] == "maria_silva_costa"
+        assert data["full_name"] == "Maria Silva Costa"
+
+    @pytest.mark.asyncio
+    async def test_create_member_auto_key_collision_suffix(self, auth_client: AsyncClient):
+        await auth_client.post("/api/config/members", json={
+            "full_name": "João Teste",
+            "short_name": "J",
+            "role": "titular",
+        })
+        resp = await auth_client.post("/api/config/members", json={
+            "full_name": "João Teste",
+            "short_name": "J2",
+            "role": "conjuge",
+        })
+        assert resp.status_code == 201
+        assert resp.json()["key"] == "joao_teste_1"
+
+    @pytest.mark.asyncio
+    async def test_create_member_birth_name_persists(self, auth_client: AsyncClient):
+        resp = await auth_client.post("/api/config/members", json={
+            "key": "bn",
+            "full_name": "Test Birth",
+            "short_name": "T",
+            "role": "titular",
+            "birth_name": "Nome Antigo de Solteira",
+        })
+        assert resp.status_code == 201
+        assert resp.json()["birth_name"] == "Nome Antigo de Solteira"
+        mid = resp.json()["id"]
+        get_one = await auth_client.get("/api/config/members")
+        keys = {m["key"]: m for m in get_one.json()["members"]}
+        assert keys["bn"]["birth_name"] == "Nome Antigo de Solteira"
+        upd = await auth_client.put(f"/api/config/members/{mid}", json={"birth_name": ""})
+        assert upd.status_code == 200
+        assert upd.json().get("birth_name") in (None, "")
+
+    @pytest.mark.asyncio
     async def test_list_members_from_db(self, auth_client: AsyncClient):
         """After creating a member, list returns from DB (not fallback)."""
         await auth_client.post("/api/config/members", json={

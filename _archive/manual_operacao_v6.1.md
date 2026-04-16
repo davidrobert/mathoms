@@ -1,10 +1,27 @@
 # Manual de Operação — Pipeline Financeiro
 ## Família Ferreira Campos
-## Versão: 6.1 — abr/2026
+## Versão: 7.0 — abr/2026
 
 ---
 
-## CHANGELOG v1.0 → ... → v6.0 → v6.1
+## CHANGELOG v1.0 → ... → v6.1 → v7.0
+
+### v6.1 → v7.0
+
+| Mudança | Motivo |
+|---|---|
+| **Novo: Metas (Goals) via Web UI** | Meta de Independência Financeira configurável via wizard interativo em `/plano/meta-if/wizard` (4 passos). Valores derivados `compute_if_derived` (FV anuidade). Histórico versionado (append-only). ADR-073. |
+| **Novo: Plano de Ação via Web UI** | `config/tarefas.md` migrado para entidade `Task` no DB (ADR-074). CRUD completo em `/plano-de-acao` com 3 views (prioridade/prazo/categoria). Dependências explícitas (`parent_task_id`). Transições validadas. Widget "Próximos 7 dias" no Dashboard. |
+| **Novo: Sugestões do E5.N** | Pipeline E5.N agora persiste `tarefas_sugeridas` como `TaskSuggestion` no DB. Aprovação/rejeição 1-click em `/plano-de-acao/sugestoes`. Endpoint `POST /task-suggestions` para pipeline escrever via HTTP. |
+| **Novo: Anexos em tarefas** | Upload de comprovantes (PDF, imagem) em `/plano-de-acao` drawer. Storage em `task_attachments/{task_id}/`. Endpoint de download com Content-Disposition. |
+| **Novo: % executado para aportes** | Parser BRL no título da task (`R$ 20k`, `R$ 1.800`) + match de transações por keywords → barra de progresso mensal no drawer da task. |
+| **Novo: Pipeline adapter (ADR-075/077)** | `pipeline_adapter.py` reconstrói `goals.json` e `tarefas.md` a partir do DB. Worker materializa os arquivos no `config_dir` do tenant ANTES de rodar stages → scripts E5/E6 não precisam mudar. |
+| **Novo: Feature flags workspace-level** | `FeatureFlag` model com 4 flags (tasks_v2_enabled, task_attachments_enabled, report_tasks_snapshot_enabled, task_deadline_notifications_enabled). Endpoint GET/PUT. |
+| **Novo: Worker beat diário** | `scan_all_deadlines` via Celery beat (86400s). Cria notificações para tasks overdue/urgentes/próximas. |
+| **Novo: Snapshot imutável no relatório** | `Report.tasks_snapshot_json` copiado automaticamente no `_create_report_from_output`. Endpoint `GET /reports/{id}/tasks` com fallback live para relatórios pré-F8. |
+| **Novo: Goal types expandidos** | `APORTE_MENSAL`, `DOLARIZACAO`, `ALOCACAO_ALVO`, `PLANNING_CONTEXT` — cobertura 100% do `goals.json`. Seeds completos para Ferreira Campos. |
+| **Deprecação: `config/goals.json` e `config/tarefas.md`** | Marcados para remoção via `cutover_execute.py --apply` após validação de paridade. Backup automático em `_archive/pre-f8-cutover-YYYY-MM-DD/`. Fonte de verdade passa a ser o DB. |
+| **Novo: Tenancy lint (CI)** | `scripts/lint/check_workspace_scoping.py` — AST-based, detecta queries sem `workspace_id`. Baseline com 6 violações legadas. Job `tenancy-lint` no CI. |
 
 ### v6.0 → v6.1
 
@@ -1005,12 +1022,40 @@ O roteamento descrito nos Passos 1-10 acima é implementado pelo script `scripts
 - **Camada 1 (determinística):** Classificação por regex sobre o nome do arquivo. Cobre ~95% dos casos usando as tabelas de instituição (Passo 2) e tipo de documento (Passo 3) compiladas em `INSTITUTION_PATTERNS` e `DOC_TYPE_PATTERNS`.
 - **Camada 2 (LLM fallback):** Para arquivos que a Camada 1 não consegue classificar, o script extrai ~2000 caracteres do conteúdo e consulta Claude (via API Anthropic) para classificação. Se a confiança for >= 70%, o arquivo é roteado automaticamente. Caso contrário, vai para `nao_identificados/`.
 
-**Uso standalone:**
+**Uso standalone (CLI):**
 ```bash
 python scripts/e0_route.py                  # Roteia tudo (regex + LLM)
 python scripts/e0_route.py --dry-run        # Apenas mostra o que faria
 python scripts/e0_route.py --no-llm         # Apenas regex, sem fallback LLM
 python scripts/e0_route.py --file X.pdf     # Roteia um arquivo específico
+```
+
+### 3.1.2 — Classificação via web (upload no backend)
+
+O upload web (`POST /api/documents/upload`) usa um classificador **content-first** que **não depende do nome do arquivo** — bancos exportam arquivos com nomes arbitrários e frequentemente incorretos.
+
+**Arquitetura de três camadas (content-first):**
+
+| Camada | Método | Threshold | Ação |
+|--------|--------|-----------|------|
+| 1 | Regex sobre **conteúdo extraído** (`content_classifier.py`) | confidence >= 0.8 | Aceita classificação |
+| 2 | LLM fallback (`classify_by_llm`) via Anthropic API | confidence >= 0.7 | Aceita classificação |
+| 3 | Fallback | confidence < 0.7 | `doc_type=other`, `needs_review=true` |
+
+- **Camada 1** extrai texto (primeiras 3 páginas do PDF via pdfplumber, primeiras 20 linhas do XLSX/CSV) e aplica marcadores de conteúdo por banco (cabeçalhos, CNPJ, razão social) e tipo (FATURA + vencimento, EXTRATO + saldo anterior, CDB + rentabilidade, IRPF + declaração, etc.).
+- **Camada 2** requer `anthropic` SDK (`pip install anthropic`) e `ANTHROPIC_API_KEY` no env do FastAPI. Custo: ~$0,005 por documento ambíguo.
+- `_map_doc_type()` converte códigos de tipo específicos (ex: `faturaunique`, `extratocontabrl`, `cdbdetalhesdi1`) para a enum `DocumentType` via prefixo semântico.
+
+**Dedupe no upload:**
+- **Exato:** SHA-256 do conteúdo → partial unique index `(workspace_id, content_hash)`. Mesmo conteúdo = rejeitado.
+- **Fuzzy:** se outro documento no mesmo workspace tem o mesmo `(doc_type, bank_code, period)` mas hash diferente → `possible_duplicate_of_id` aponta para o existente, `needs_review=true`. Não bloqueia — UI exibe para o usuário decidir.
+
+**Scripts operacionais (em `backend/app/scripts/`):**
+```bash
+.venv/bin/python -m backend.app.scripts.reclassify_documents --dry-run     # Preview
+.venv/bin/python -m backend.app.scripts.reclassify_documents --apply       # Reclassifica todos
+.venv/bin/python -m backend.app.scripts.backfill_content_hash --apply      # Backfill SHA-256
+.venv/bin/python -m backend.app.scripts.reset_documents --apply            # Wipe DB + storage
 ```
 
 **Integração com e_reset.py:**

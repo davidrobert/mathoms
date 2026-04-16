@@ -166,10 +166,10 @@ npm run test:e2e tests/e2e/golden-path.spec.ts
    import { test, expect } from "@playwright/test";
    import { ensureLoggedIn } from "./helpers/auth";
 
-   test("dashboard", async ({ page, request }, info) => {
+   test("plano (home)", async ({ page, request }, info) => {
      await ensureLoggedIn(page, request, info);
-     await page.goto("/dashboard");
-     await expect(page.getByRole("heading", { name: /dashboard/i })).toBeVisible();
+     await page.goto("/plano");
+     await expect(page.getByRole("heading", { name: /meu plano/i })).toBeVisible();
    });
    ```
 

@@ -117,36 +117,93 @@ def try_unlock_pdf(file_path: Path, passwords: list[str]) -> tuple[bool, bool]:
     return True, False
 
 
-def classify_document(file_path: Path, base_dir: Path) -> dict:
-    """Classify a document using E0-route's regex engine.
+# Classification confidence threshold. Below this, we escalate to LLM.
+_CONTENT_CONFIDENCE_THRESHOLD = 0.8
+# Below this, even after LLM, we flag the doc for manual review.
+_REVIEW_CONFIDENCE_THRESHOLD = 0.7
 
-    Returns dict with: doc_type, bank_code, period, dest_group, classification_meta.
-    Does NOT use LLM (that's Phase 4).
+
+def classify_document(file_path: Path, base_dir: Path) -> dict:
+    """Classify a document by content (regex → LLM fallback).
+
+    Filename is NOT used — bank exports come with arbitrary or wrong names.
+    Pipeline:
+        1. Extract text preview from the file.
+        2. Content regex classifier (backend.app.services.content_classifier).
+        3. If confidence < 0.8 and ANTHROPIC_API_KEY is set → LLM fallback.
+        4. If still < 0.7 → mark as ``other`` with ``needs_review=true``.
+
+    Returns dict with keys:
+        doc_type, bank_code, period, dest_group, routed_path,
+        classification_meta, confidence, needs_review.
     """
     from scripts.e0_route import (
         _init_config as route_init_config,
-        classify_by_name,
+        _extract_file_preview,
+        classify_by_llm,
     )
+    from backend.app.services.content_classifier import classify_file
+
     route_init_config(base_dir)
 
-    result = classify_by_name(file_path.name)
-    if result is None:
+    # -- Layer 1: content-based regex --------------------------------------
+    content_result = classify_file(file_path, _extract_file_preview)
+    meta: dict = {
+        "source": content_result.source,
+        "content": content_result.to_dict(),
+    }
+
+    best_type = content_result.doc_type
+    best_institution = content_result.institution
+    best_period = content_result.period
+    best_dest_group = content_result.dest_group
+    confidence = content_result.confidence
+
+    # -- Layer 2: LLM fallback ---------------------------------------------
+    if confidence < _CONTENT_CONFIDENCE_THRESHOLD:
+        llm_result = None
+        try:
+            llm_result = classify_by_llm(file_path)
+        except Exception as exc:  # network / parse error — don't crash upload
+            meta["llm_error"] = f"{type(exc).__name__}: {str(exc)[:200]}"
+
+        if llm_result:
+            meta["llm"] = llm_result
+            llm_confidence = float(llm_result.get("confidence", 0.0) or 0.0)
+            if llm_confidence > confidence:
+                best_type = llm_result.get("doc_type") or best_type
+                best_institution = llm_result.get("institution") or best_institution
+                best_period = llm_result.get("period") or best_period
+                best_dest_group = llm_result.get("dest_group") or best_dest_group
+                confidence = llm_confidence
+                meta["source"] = "llm_fallback"
+
+    needs_review = confidence < _REVIEW_CONFIDENCE_THRESHOLD
+    meta["confidence"] = confidence
+    meta["needs_review"] = needs_review
+
+    # If everything failed, return "other" but preserve any partial signals.
+    if not best_type:
         return {
             "doc_type": DocumentType.other,
-            "bank_code": None,
-            "period": None,
+            "bank_code": best_institution,
+            "period": best_period,
             "dest_group": None,
             "routed_path": None,
-            "classification_meta": {"source": "unidentified"},
+            "classification_meta": meta,
+            "confidence": confidence,
+            "needs_review": True,
         }
 
     return {
-        "doc_type": _map_doc_type(result.get("doc_type", "")),
-        "bank_code": result.get("institution"),
-        "period": result.get("period"),
-        "dest_group": result.get("dest_group"),
-        "routed_path": None,  # filled by route_to_data_dir
-        "classification_meta": result,
+        "doc_type": _map_doc_type(best_type),
+        "bank_code": best_institution,
+        "period": best_period,
+        "dest_group": best_dest_group,
+        "routed_path": None,
+        "classification_meta": meta,
+        "confidence": confidence,
+        "needs_review": needs_review,
     }
 
 
@@ -216,6 +273,8 @@ def process_uploaded_document(
                 "bank_code": None,
                 "period": None,
                 "classification_meta": {"source": "json_structure", "type": json_type.value},
+                "confidence": 1.0,
+                "needs_review": False,
                 "error_message": None,
             }
 
@@ -228,6 +287,8 @@ def process_uploaded_document(
                 "bank_code": None,
                 "period": None,
                 "classification_meta": {"encrypted": True, "unlock_attempted": True},
+                "confidence": 0.0,
+                "needs_review": True,
                 "error_message": "PDF protegido por senha. Nenhuma senha do vault funcionou.",
             }
 
@@ -245,5 +306,7 @@ def process_uploaded_document(
         "bank_code": classification["bank_code"],
         "period": classification["period"],
         "classification_meta": classification["classification_meta"],
+        "confidence": classification.get("confidence", 0.0),
+        "needs_review": classification.get("needs_review", False),
         "error_message": None,
     }

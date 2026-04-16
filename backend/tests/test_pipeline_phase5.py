@@ -13,6 +13,8 @@ from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.core.config import settings
+from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus, PipelineStageLog, PipelineStageStatus
 from backend.app.models.workspace import Workspace
 from backend.app.models.user import User
@@ -75,7 +77,22 @@ class TestConcurrencyLimit:
             total_documents=1,
         )
         db.add(completed_run)
+        # Seed a ready document + a file in the tenant data dir so the
+        # endpoint's "no documents to process" gate passes.
+        db.add(Document(
+            workspace_id=ws.id,
+            original_name="seed.pdf",
+            stored_path=f"/tmp/seed-{ws.id}.pdf",
+            doc_type=DocumentType.bank_statement,
+            bank_code="itau", period="202601",
+            status=DocumentStatus.ready,
+            file_size_bytes=1,
+            content_hash="phase5seed" + ws.id[:22],
+        ))
         await db.commit()
+        data_dir = settings.STORAGE_ROOT / ws.id / "data" / "financial_statements"
+        data_dir.mkdir(parents=True, exist_ok=True)
+        (data_dir / "seed.pdf").write_bytes(b"x")
 
         with patch("backend.app.api.pipeline.start_pipeline_run"):
             resp = await client.post("/api/pipeline/run", json={"skip_llm": True})
@@ -330,7 +347,9 @@ class TestHealthCheck:
         assert "api" in data
         assert data["api"] == "ok"
         assert "version" in data
-        assert data["version"] == "0.3.0"
+        # Just check it's a non-empty version string — exact value lives in
+        # main.py and is bumped frequently.
+        assert isinstance(data["version"], str) and data["version"]
         assert "redis" in data
         assert "celery" in data
         assert "database" in data

@@ -14,7 +14,7 @@ Os dados pré-preenchidos são baseados em extratos bancários, faturas e declar
 | Nível | Fonte | Exemplo | Quando usar |
 |---|---|---|---|
 | **1 — Primária** | Documento original (.pdf leitura direta, .jpg OCR, .xlsx planilha, .docx) | PDF de `c6bank_extratoconta_202603` | Sempre que disponível |
-| **2 — Secundária** | Dados consolidados no manual_operacao.md v3.0 (este prompt) | Tabela de receita mês a mês | Quando extrato original não está disponível para o período |
+| **2 — Secundária** | Dados consolidados nos configs e artefatos intermediários do pipeline | Tabela de receita mês a mês | Quando extrato original não está disponível para o período |
 | **3 — Terciária** | Relatório HTML anterior (v4.2, v4.3) | KPIs, gráficos, tabelas do HTML | Para manter consistência visual; dados devem ser revalidados |
 | **4 — Estimativa** | Projeção ou cálculo derivado | Renda projetada abr/26+ = R$78.611/mês | Sinalizar explicitamente como estimativa |
 

@@ -587,6 +587,36 @@ class TestE2LLMStage:
         assert result["total_errors"] == 0
         assert result["processed"][0]["transactions"] == 1
         assert result["processed"][0]["investments"] == 1
+        assert result["queued"]["total"] == 1
+        assert result["queued"]["by_data_subdir"].get("financial_statements") == 1
+        assert result["e2_llm_settings"]["workers"] == 1
+
+    def test_e2_llm_perf_settings_defaults(self, tmp_path):
+        from pipeline.stages.e2_llm import _e2_llm_perf_settings
+
+        ctx = _make_ctx(tmp_path)
+        perf = _e2_llm_perf_settings(ctx)
+        assert perf["concurrency"] == 4
+        assert perf["max_input_chars"] == 40_000
+        assert perf["max_pdf_pages"] == 35
+
+    def test_e2_llm_queue_stats_groups_by_data_subdir(self, tmp_path):
+        from pipeline.stages.e2_llm import _e2_llm_queue_stats
+
+        data_dir = tmp_path / "data"
+        fs = data_dir / "financial_statements"
+        ir = data_dir / "income_tax_br"
+        fs.mkdir(parents=True)
+        ir.mkdir(parents=True)
+        a = fs / "a.pdf"
+        b = fs / "sub" / "b.pdf"
+        c = ir / "c.pdf"
+        for p in (a, b, c):
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text("x")
+
+        stats = _e2_llm_queue_stats(data_dir, [a, b, c])
+        assert stats == {"financial_statements": 2, "income_tax_br": 1}
 
     def test_find_unprocessed_docs_skips_already_extracted(self, tmp_path):
         ctx = _make_ctx(tmp_path)
@@ -603,6 +633,21 @@ class TestE2LLMStage:
         names = [d.name for d in docs]
         assert "btg_informe.pdf" in names
         assert "itau_extrato-0_original.csv" not in names
+
+    def test_find_unprocessed_docs_skips_income_tax_br_when_extract_exists(self, tmp_path):
+        """Regression: IRPF/informes must not be re-queued every run once E2 JSON exists."""
+        ctx = _make_ctx(tmp_path)
+        irpf_dir = tmp_path / "data" / "income_tax_br"
+        irpf_dir.mkdir(parents=True)
+        (irpf_dir / "irpf_2024.pdf").write_text("x")
+
+        ctx.e2_dir.mkdir(parents=True)
+        (ctx.e2_dir / "irpf_2024-2_extract.json").write_text("{}")
+
+        from pipeline.stages.e2_llm import _find_unprocessed_docs
+
+        docs = _find_unprocessed_docs(ctx)
+        assert docs == []
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -642,6 +687,8 @@ class TestOutputConverters:
         assert len(result["transacoes"]) == 1
         assert len(result["investimentos"]) == 1
         assert result["investimentos"][0]["taxa"] == "100% CDI"
+        assert result["periodo"]["inicio"] == "2024-12-01"
+        assert result["periodo"]["fim"] == "2024-12-31"
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -771,4 +818,6 @@ class TestOrchestratorLLMStages:
         e2_llm_idx = FULL_ORDER.index("E2-llm")
         e2_fat_idx = FULL_ORDER.index("E2-faturas")
 
-        assert e1_idx < e15_idx < e15c_idx < e2_llm_idx < e2_fat_idx
+        e2_ext_idx = FULL_ORDER.index("E2-extratos")
+        # E2 determinístico antes do E2-llm — só o que falhar no parser vai à IA.
+        assert e1_idx < e15_idx < e15c_idx < e2_fat_idx < e2_ext_idx < e2_llm_idx

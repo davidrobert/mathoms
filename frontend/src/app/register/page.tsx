@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { register, setToken, ApiError } from "@/lib/api";
+import { resolveNext } from "@/lib/nextUrl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,8 @@ import { Spinner } from "@/components/Spinner";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextUrl = resolveNext(searchParams.get("next"));
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,7 +28,7 @@ export default function RegisterPage() {
     try {
       const data = await register(email, password, fullName);
       setToken(data.access_token);
-      router.push("/documents");
+      router.push(nextUrl);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(
@@ -46,7 +49,13 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight">Fin</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Crie sua conta</p>
+          <p className="mt-2 text-sm text-muted-foreground">Crie sua conta de acesso</p>
+          <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-muted-foreground">
+            Isto é só o <span className="text-foreground/90">login</span> (quem usa o app). Depois de entrar, seu nome e
+            email aparecem em <span className="font-medium text-foreground">Configurações → Acessos</span>. As pessoas
+            que entram no relatório e no pipeline são cadastradas em{" "}
+            <span className="font-medium text-foreground">Configurações → Membros</span>.
+          </p>
         </div>
 
         <Card>
@@ -62,15 +71,19 @@ export default function RegisterPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Nome completo</Label>
+                <Label htmlFor="fullName">Seu nome</Label>
                 <Input
                   id="fullName"
                   type="text"
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Seu nome"
+                  placeholder="Como deve aparecer na sua conta"
+                  autoComplete="name"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Independente dos membros da família que você configurará no relatório.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -112,7 +125,10 @@ export default function RegisterPage() {
 
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Já tem conta?{" "}
-              <Link href="/login" className="font-medium text-primary hover:underline">
+              <Link
+                href={`/login${nextUrl !== "/documents" ? `?next=${encodeURIComponent(nextUrl)}` : ""}`}
+                className="font-medium text-primary hover:underline"
+              >
                 Entrar
               </Link>
             </p>

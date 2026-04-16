@@ -47,19 +47,17 @@ _CT_DARK_GRID = _CT.get("dark", {}).get("grid_color", "#334155")
 _CT_LIGHT_TEXT = _CT.get("light", {}).get("text_color", "#64748B")
 _CT_LIGHT_GRID = _CT.get("light", {}).get("grid_color", "#E2E8F0")
 
-def _extract_version_from_manual():
-    """Extrai versão do manual_operacao.md."""
-    manual_path = Path(__file__).resolve().parent.parent / "config" / "manual_operacao.md"
-    if manual_path.exists():
-        # Read just the first few lines
-        with open(manual_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                m = re.search(r'Versão:\s*([\d.]+)', line)
-                if m:
-                    return f"v{m.group(1)}"
-                if line.startswith("---") and not line.startswith("## "):
-                    break  # past the header
-    return _DM.get("version_fallback", "v5.3")  # from config
+def _extract_version_from_config():
+    """Extrai versão do pipeline.json."""
+    pipeline_path = Path(__file__).resolve().parent.parent / "config" / "pipeline.json"
+    if pipeline_path.exists():
+        import json as _json
+        with open(pipeline_path, 'r', encoding='utf-8') as f:
+            cfg = _json.load(f)
+        v = cfg.get("report_version")
+        if v:
+            return f"v{v}"
+    return _DM.get("version_fallback", "v5.3")
 
 def _load_output_glob():
     fm_path = os.path.join(BASE, 'config', 'family_members.json')
@@ -129,8 +127,8 @@ if 'Versão do Prompt' in html:
     changes += 1
     print("[OK] Versão do Prompt → Versão Manual Operações")
 
-# ─── 3. COVER: Version value (from manual_operacao.md) ──────────────────
-_version = _extract_version_from_manual()
+# ─── 3. COVER: Version value (from pipeline.json) ───────────────────────
+_version = _extract_version_from_config()
 html_before = html
 html = re.sub(
     r'(Versão Manual Operações</div>\s*<div class="cover-meta-value">)[^<]*(</div>)',

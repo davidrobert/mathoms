@@ -127,6 +127,17 @@ class LLMConfig:
     temperature: float = 0.1
 
 
+def _is_completion_truncated_max_tokens(exc: Exception) -> bool:
+    """True when the provider cut the completion off at max_tokens (structured output then fails)."""
+    msg = str(exc).lower()
+    if not any(x in msg for x in ("max_tokens", "max output tokens", "maximum output")):
+        return False
+    return any(
+        x in msg
+        for x in ("incomplete", "length limit", "truncat", "cut off", "stopped before")
+    )
+
+
 def _classify_error(exc: Exception) -> LLMErrorType:
     """Classify an LLM exception into a retryable/non-retryable category."""
     msg = str(exc).lower()
@@ -147,6 +158,8 @@ def _classify_error(exc: Exception) -> LLMErrorType:
 
 _RETRYABLE_ERRORS = {LLMErrorType.rate_limit, LLMErrorType.timeout, LLMErrorType.provider_error}
 _BACKOFF_DELAYS = [2.0, 4.0, 8.0]
+# Pydantic / API caps for completion budget (aligned with backend LLMConfigCreateRequest)
+_MAX_COMPLETION_TOKENS_CEILING = 200_000
 
 
 class LLMService:
@@ -261,7 +274,8 @@ class LLMService:
         retries_used = 0
         start_total = time.monotonic()
 
-        for attempt in range(max_retries + 1):
+        attempt = 0
+        while attempt <= max_retries:
             try:
                 start = time.monotonic()
 
@@ -311,8 +325,21 @@ class LLMService:
                 return result
 
             except Exception as exc:
-                retries_used = attempt + 1
                 last_exception = exc
+
+                if _is_completion_truncated_max_tokens(exc):
+                    prev_cap = effective_max_tokens
+                    bumped = min(effective_max_tokens * 2, _MAX_COMPLETION_TOKENS_CEILING)
+                    if bumped > effective_max_tokens:
+                        effective_max_tokens = bumped
+                        logger.warning(
+                            "LLM completion truncated at max_tokens=%d — retrying with max_tokens=%d",
+                            prev_cap,
+                            effective_max_tokens,
+                        )
+                        continue
+
+                retries_used = attempt + 1
                 error_type = _classify_error(exc)
 
                 logger.warning(
@@ -340,6 +367,8 @@ class LLMService:
                         delay *= 2
                     logger.info("Retrying in %.1fs...", delay)
                     time.sleep(delay)
+
+                attempt += 1
 
         total_elapsed = int((time.monotonic() - start_total) * 1000)
 

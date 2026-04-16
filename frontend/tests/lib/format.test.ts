@@ -19,6 +19,9 @@ import {
   bankLabel,
   docStatusLabel,
   docTypeLabel,
+  fileFormatLabel,
+  institutionLabel,
+  pipelineE2TouchLabel,
   formatBytes,
   formatCompact,
   formatCurrency,
@@ -329,6 +332,7 @@ describe("bankLabel()", () => {
     ["c6bank", "C6 Bank"],
     ["nubank", "Nubank"],
     ["bankofamerica", "Bank of America"],
+    ["receitafederal", "Receita Federal"],
   ])("%s → %s", (code, label) => {
     expect(bankLabel(code)).toBe(label);
   });
@@ -336,6 +340,34 @@ describe("bankLabel()", () => {
   it("null → '—'", () => expect(bankLabel(null)).toBe("—"));
   it("desconhecido → o próprio code", () => expect(bankLabel("xyz")).toBe("xyz"));
   it("uppercase é normalizado", () => expect(bankLabel("ITAU")).toBe("Itaú"));
+});
+
+describe("institutionLabel()", () => {
+  it("espelha bankLabel", () => {
+    expect(institutionLabel("santander")).toBe(bankLabel("santander"));
+  });
+});
+
+describe("fileFormatLabel()", () => {
+  it("usa extensão do nome", () => {
+    expect(fileFormatLabel(null, "x.pdf")).toBe("PDF");
+    expect(fileFormatLabel(null, "dados.CSV")).toBe("CSV");
+  });
+  it("fallback por content-type", () => {
+    expect(fileFormatLabel("application/pdf", "noext")).toBe("PDF");
+  });
+});
+
+describe("pipelineE2TouchLabel()", () => {
+  it("sem data → —", () => expect(pipelineE2TouchLabel(null, null)).toBe("—"));
+  it("com extrato E2", () => {
+    const s = pipelineE2TouchLabel("2026-04-16T12:00:00.000Z", true);
+    expect(s).toContain("extrato E2");
+  });
+  it("sem extrato E2", () => {
+    const s = pipelineE2TouchLabel("2026-04-16T12:00:00.000Z", false);
+    expect(s).toContain("sem extrato E2");
+  });
 });
 
 describe("runStatusLabel()", () => {

@@ -25,14 +25,19 @@ from backend.app.models import (
     CategoryKeyword,
     Document,
     FamilyMember,
+    Goal,
     LLMConfig,
     Notification,
     PasswordVault,
     PipelineRun,
     PipelineStageLog,
     Report,
+    Task,
+    TaskSuggestion,
     User,
     Workspace,
+    WorkspaceInvitation,
+    WorkspaceMember,
 )
 
 
@@ -50,6 +55,11 @@ _counters = {
     "stage": 0,
     "vault": 0,
     "notification": 0,
+    "ws_member": 0,
+    "ws_invitation": 0,
+    "goal": 0,
+    "task": 0,
+    "task_suggestion": 0,
 }
 
 
@@ -93,7 +103,13 @@ async def make_workspace(
     owner: Optional[User] = None,
     name: Optional[str] = None,
     family_surname: Optional[str] = None,
+    skip_membership: bool = False,
 ) -> Workspace:
+    """Cria workspace + auto-cria WorkspaceMember(role='owner') para o
+    owner. ADR-072: nenhum acesso sem membership.
+
+    Use `skip_membership=True` apenas em testes que validam ausência
+    de membership (ex: cross-tenant isolation negativa)."""
     n = _next("workspace")
     if owner is None:
         owner = await make_user(db)
@@ -104,7 +120,192 @@ async def make_workspace(
     )
     db.add(ws)
     await db.flush()
+
+    if not skip_membership:
+        await make_workspace_member(
+            db, workspace=ws, user=owner, role="owner"
+        )
     return ws
+
+
+# ─── WorkspaceMember (ADR-072) ────────────────────────────────────────
+
+async def make_workspace_member(
+    db: AsyncSession,
+    *,
+    workspace: Workspace,
+    user: User,
+    role: str = "member",
+    invited_by: Optional[User] = None,
+) -> WorkspaceMember:
+    _next("ws_member")
+    wm = WorkspaceMember(
+        workspace_id=workspace.id,
+        user_id=user.id,
+        role=role,
+        invited_by=invited_by.id if invited_by else None,
+    )
+    db.add(wm)
+    await db.flush()
+    return wm
+
+
+# ─── WorkspaceInvitation (F9) ─────────────────────────────────────────
+
+async def make_invitation(
+    db: AsyncSession,
+    *,
+    workspace: Workspace,
+    email: Optional[str] = None,
+    role: str = "viewer",
+    invited_by: Optional[User] = None,
+    expires_in_hours: int = 72,
+    already_accepted: bool = False,
+    already_revoked: bool = False,
+    already_expired: bool = False,
+) -> WorkspaceInvitation:
+    """Cria um convite. Por padrão, em estado `pending`.
+
+    Use os flags `already_*` para simular estados terminais em tests. Eles
+    são mutuamente exclusivos na prática — o teste decide qual ativa.
+    """
+    from datetime import timedelta
+
+    from backend.app.services.invitation_service import _generate_token
+
+    n = _next("ws_invitation")
+    _, token_hash = _generate_token()
+    now = datetime.now(timezone.utc)
+
+    expires_at = (
+        now - timedelta(hours=1)
+        if already_expired
+        else now + timedelta(hours=expires_in_hours)
+    )
+
+    inv = WorkspaceInvitation(
+        workspace_id=workspace.id,
+        email=email or f"invitee{n}@test.com",
+        role=role,
+        token_hash=token_hash,
+        invited_by=invited_by.id if invited_by else None,
+        expires_at=expires_at,
+        accepted_at=now if already_accepted else None,
+        revoked_at=now if already_revoked else None,
+    )
+    db.add(inv)
+    await db.flush()
+    return inv
+
+
+# ─── Goal (ADR-073) ───────────────────────────────────────────────────
+
+async def make_if_goal(
+    db: AsyncSession,
+    *,
+    workspace: Workspace,
+    renda_passiva_mensal_brl: float = 20000,
+    trs_pct: float = 5.0,
+    retorno_real_anual_pct: float = 6.0,
+    horizonte_anos: int = 15,
+    created_by: Optional[User] = None,
+    effective_from: Optional[date] = None,
+    is_template: bool = False,
+) -> Goal:
+    """Factory dogfood: usa compute_if_derived do service para manter
+    paridade com produção."""
+    from backend.app.schemas.goal import IFGoalInputs
+    from backend.app.services.goal_service import compute_if_derived
+
+    _next("goal")
+    inputs = IFGoalInputs(
+        renda_passiva_mensal_brl=renda_passiva_mensal_brl,
+        trs_pct=trs_pct,
+        retorno_real_anual_pct=retorno_real_anual_pct,
+        horizonte_anos=horizonte_anos,
+    )
+    derived = compute_if_derived(inputs)
+    goal = Goal(
+        workspace_id=workspace.id,
+        type="INDEPENDENCIA_FINANCEIRA",
+        params_json={"inputs": inputs.model_dump(), "meta_version": 1},
+        derived_json=derived.model_dump(exclude_none=True),
+        effective_from=effective_from or date.today(),
+        effective_to=None,
+        created_by=created_by.id if created_by else None,
+        is_template=is_template,
+    )
+    db.add(goal)
+    await db.flush()
+    return goal
+
+
+# ─── Task / TaskSuggestion (ADR-074) ──────────────────────────────────
+
+async def make_task(
+    db: AsyncSession,
+    *,
+    workspace: Workspace,
+    number: Optional[int] = None,
+    title: Optional[str] = None,
+    category: str = "Invest",
+    priority: str = "R",
+    status: str = "pending",
+    deadline_kind: str = "UNSCHEDULED",
+    deadline_date=None,
+    deadline_label: Optional[str] = None,
+    parent_task_id: Optional[str] = None,
+    ref: Optional[str] = None,
+    created_by: Optional[User] = None,
+    created_from: str = "manual",
+) -> Task:
+    n = _next("task")
+    task = Task(
+        workspace_id=workspace.id,
+        number=number or n,
+        title=title or f"Test task {n}",
+        category=category,
+        priority=priority,
+        status=status,
+        deadline_kind=deadline_kind,
+        deadline_date=deadline_date,
+        deadline_label=deadline_label,
+        parent_task_id=parent_task_id,
+        ref=ref,
+        created_by=created_by.id if created_by else None,
+        created_from=created_from,
+    )
+    db.add(task)
+    await db.flush()
+    return task
+
+
+async def make_task_suggestion(
+    db: AsyncSession,
+    *,
+    workspace: Workspace,
+    proposed_payload: Optional[dict] = None,
+    source: str = "e5n_llm",
+    source_run_id: Optional[str] = None,
+    status: str = "pending",
+) -> TaskSuggestion:
+    n = _next("task_suggestion")
+    default_payload = {
+        "title": f"Sugestão {n}",
+        "category": "Orcamento",
+        "priority": "R",
+        "deadline_kind": "UNSCHEDULED",
+    }
+    sugg = TaskSuggestion(
+        workspace_id=workspace.id,
+        proposed_payload=proposed_payload or default_payload,
+        source=source,
+        source_run_id=source_run_id,
+        status=status,
+    )
+    db.add(sugg)
+    await db.flush()
+    return sugg
 
 
 # ─── FamilyMember + BankAccount ───────────────────────────────────────

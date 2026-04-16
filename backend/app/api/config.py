@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -49,6 +51,54 @@ router = APIRouter(prefix="/config", tags=["config"])
 _vault = VaultService()
 
 
+def _birth_name_from_extra(extra: dict[str, Any] | None) -> str | None:
+    if not extra:
+        return None
+    for k in ("nome_nascimento", "nome_solteiro", "nome_solteira"):
+        raw = extra.get(k)
+        if raw is None:
+            continue
+        s = str(raw).strip()
+        if s:
+            return s
+    return None
+
+
+def _slug_member_key_from_full_name(full_name: str, max_len: int = 50) -> str:
+    s = unicodedata.normalize("NFKD", (full_name or "").strip().lower())
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    s = re.sub(r"[^a-z0-9]+", "_", s)
+    s = s.strip("_") or "membro"
+    if len(s) > max_len:
+        s = s[:max_len].rstrip("_") or "membro"
+    return s
+
+
+async def _allocate_unique_member_key(
+    db: AsyncSession,
+    workspace_id: str,
+    base: str,
+    max_len: int = 50,
+) -> str:
+    base = (base or "membro")[:max_len].rstrip("_") or "membro"
+    for n in range(0, 10_000):
+        candidate = base if n == 0 else f"{base}_{n}"
+        if len(candidate) > max_len:
+            candidate = candidate[:max_len]
+        result = await db.execute(
+            select(FamilyMember.id).where(
+                FamilyMember.workspace_id == workspace_id,
+                FamilyMember.key == candidate,
+            ).limit(1)
+        )
+        if result.scalar_one_or_none() is None:
+            return candidate
+    raise HTTPException(
+        status_code=500,
+        detail="Não foi possível gerar um identificador interno único; tente informar o identificador manualmente.",
+    )
+
+
 # =============================================================================
 # Helpers
 # =============================================================================
@@ -87,8 +137,10 @@ def _member_to_schema(m: FamilyMember) -> FamilyMemberSchema:
     if m.cpf_encrypted:
         cpf_plain = _vault.decrypt(m.cpf_encrypted)
     accounts = [BankAccountSchema.model_validate(a) for a in m.accounts] if m.accounts else []
+    birth_name = _birth_name_from_extra(m.extra)
     return FamilyMemberSchema(
         id=m.id, key=m.key, full_name=m.full_name, short_name=m.short_name,
+        birth_name=birth_name,
         cpf=cpf_plain, birth_date=m.birth_date, role=m.role, order=m.order,
         extra=m.extra, accounts=accounts,
     )
@@ -167,18 +219,35 @@ async def create_member(
     db: AsyncSession = Depends(get_db),
 ):
     ws = await _get_workspace(user, db)
-    existing = await db.execute(
-        select(FamilyMember).where(FamilyMember.workspace_id == ws.id, FamilyMember.key == body.key)
-    )
-    if existing.scalar_one_or_none():
-        raise HTTPException(status_code=409, detail=f"Membro com key '{body.key}' já existe neste workspace")
+
+    if body.key:
+        key = body.key
+        existing = await db.execute(
+            select(FamilyMember).where(FamilyMember.workspace_id == ws.id, FamilyMember.key == key)
+        )
+        if existing.scalar_one_or_none():
+            raise HTTPException(
+                status_code=409,
+                detail=f"Já existe um membro com o identificador interno '{key}' neste workspace",
+            )
+    else:
+        slug = _slug_member_key_from_full_name(body.full_name)
+        key = await _allocate_unique_member_key(db, ws.id, slug)
+
+    extra: dict[str, Any] = dict(body.extra or {})
+    if body.birth_name is not None:
+        bn = body.birth_name.strip()
+        if bn:
+            extra["nome_nascimento"] = bn
+        else:
+            extra.pop("nome_nascimento", None)
 
     cpf_enc = _vault.encrypt(body.cpf) if body.cpf else None
     member = FamilyMember(
-        workspace_id=ws.id, key=body.key, full_name=body.full_name,
+        workspace_id=ws.id, key=key, full_name=body.full_name,
         short_name=body.short_name, cpf_encrypted=cpf_enc,
         birth_date=body.birth_date, role=body.role, order=body.order,
-        extra=body.extra,
+        extra=extra or None,
     )
     db.add(member)
     await db.commit()
@@ -210,6 +279,30 @@ async def update_member(
     if "cpf" in update_data:
         cpf_val = update_data.pop("cpf")
         member.cpf_encrypted = _vault.encrypt(cpf_val) if cpf_val else None
+    if "birth_name" in update_data:
+        birth_val = update_data.pop("birth_name")
+        extra = dict(member.extra or {})
+        if birth_val is not None and str(birth_val).strip():
+            extra["nome_nascimento"] = str(birth_val).strip()
+        else:
+            extra.pop("nome_nascimento", None)
+        member.extra = extra or None
+    if "key" in update_data and update_data["key"] is None:
+        update_data.pop("key")
+    nk = update_data.get("key")
+    if nk is not None and nk != member.key:
+        conflict = await db.execute(
+            select(FamilyMember).where(
+                FamilyMember.workspace_id == ws.id,
+                FamilyMember.key == nk,
+                FamilyMember.id != member_id,
+            )
+        )
+        if conflict.scalar_one_or_none():
+            raise HTTPException(
+                status_code=409,
+                detail=f"Já existe um membro com o identificador interno '{nk}' neste workspace",
+            )
     for field, value in update_data.items():
         setattr(member, field, value)
 

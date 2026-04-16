@@ -2032,7 +2032,7 @@ def analyze_pontos_urgentes(ratios: Dict[str, Any], reserva: Dict[str, Any], pat
 
 
 def analyze_consumo_consciente(fluxo: Dict[str, Any], despesas: Dict[str, Any]) -> Dict[str, Any]:
-    """Identify large one-off (pontual) expenses per manual_operacao.md schema.
+    """Identify large one-off (pontual) expenses.
 
     Scans individual transactions from despesas-4_unified.json,
     filters out recurrent categories, keeps items >= threshold,

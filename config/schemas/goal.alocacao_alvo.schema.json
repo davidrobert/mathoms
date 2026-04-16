@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fin://schemas/goal.alocacao_alvo.v1",
+  "title": "Goal — Alocação-alvo (v1)",
+  "description": "Percentuais-alvo de alocação da carteira (RF, RV, imóveis, liquidez USD). Migrada de `goals.json:alocacao_alvo`. ADR-075 §F8.4. Soma de %s deve ser 100.",
+  "type": "object",
+  "required": ["inputs", "derived", "meta_version"],
+  "additionalProperties": false,
+  "properties": {
+    "meta_version": {"type": "integer", "const": 1},
+    "inputs": {
+      "type": "object",
+      "required": [
+        "renda_fixa_pct",
+        "acoes_pct",
+        "imoveis_reits_pct",
+        "liquidez_usd_pct"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "renda_fixa_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "acoes_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "imoveis_reits_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "liquidez_usd_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "instrumentos_rf": {"type": "string"},
+        "instrumentos_rv": {"type": "string"},
+        "rebalanceamento": {
+          "type": "string",
+          "description": "Ex: 'anual', 'semestral'."
+        }
+      }
+    },
+    "derived": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "soma_percentuais": {
+          "type": "number",
+          "description": "Soma dos 4 percentuais. Deve bater com 100 (validar no service)."
+        }
+      }
+    }
+  }
+}

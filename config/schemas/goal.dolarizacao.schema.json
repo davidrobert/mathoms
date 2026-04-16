@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fin://schemas/goal.dolarizacao.v1",
+  "title": "Goal — Dolarização (v1)",
+  "description": "Meta de acumulação em USD. Migrada de `goals.json:dolarizacao`. ADR-075 §F8.4.",
+  "type": "object",
+  "required": ["inputs", "derived", "meta_version"],
+  "additionalProperties": false,
+  "properties": {
+    "meta_version": {"type": "integer", "const": 1},
+    "inputs": {
+      "type": "object",
+      "required": ["meta_usd", "aporte_mensal_brl"],
+      "additionalProperties": false,
+      "properties": {
+        "meta_usd": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Saldo-alvo em USD."
+        },
+        "aporte_mensal_brl": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Quanto aportar por mês em BRL (conversão via Wise ou similar)."
+        }
+      }
+    },
+    "derived": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "horizonte_estimado_meses": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Estimativa de meses para atingir meta_usd (depende do câmbio corrente)."
+        }
+      }
+    }
+  }
+}

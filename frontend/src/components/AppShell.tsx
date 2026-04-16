@@ -10,6 +10,8 @@ import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/Spinner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationCenter } from "@/components/NotificationCenter";
+import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
+import { ViewerBanner } from "@/components/ViewerBanner";
 import {
   LayoutDashboard,
   FileText,
@@ -20,9 +22,18 @@ import {
   KeyRound,
   Menu,
   LogOut,
+  Target,
+  ListTodo,
 } from "lucide-react";
 
+/** Match route without treating `/plano` as prefix of `/plano-de-acao` (startsWith bug). */
+function isNavActive(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 const NAV_ITEMS = [
+  { href: "/plano", label: "Meu Plano", icon: Target },
+  { href: "/plano-de-acao", label: "Plano de Ação", icon: ListTodo },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/documents", label: "Documentos", icon: FileText },
   { href: "/pipeline", label: "Pipeline", icon: Zap },
@@ -67,14 +78,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         )}
       >
         <div className="flex h-14 items-center border-b border-border px-5">
-          <Link href="/dashboard" className="text-xl font-bold">
+          <Link href="/plano" className="font-display text-xl font-bold tracking-tight">
             Fin
           </Link>
         </div>
 
         <nav className="flex-1 space-y-0.5 px-3 py-4">
           {NAV_ITEMS.map((item) => {
-            const active = pathname.startsWith(item.href);
+            const active = isNavActive(pathname, item.href);
             return (
               <Link
                 key={item.href}
@@ -126,8 +137,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Main */}
       <div className="flex flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between gap-4 border-b border-border bg-card px-6">
-          <div className="flex items-center gap-4">
+        <header className="flex h-14 shrink-0 items-center border-b border-border bg-card">
+          {/* Left: mobile menu + branding */}
+          <div className="flex items-center gap-3 pl-4 pr-2 lg:pl-6">
             <Button
               variant="ghost"
               size="sm"
@@ -137,15 +149,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <span className="font-bold lg:hidden">Fin</span>
+            <span className="text-style-heading-sm lg:hidden">Fin</span>
           </div>
-          <div className="flex items-center gap-1">
+
+          {/* Center: workspace — grows to fill, stays centered on desktop */}
+          <div className="flex min-w-0 flex-1 items-center lg:justify-start">
+            <WorkspaceSwitcher />
+          </div>
+
+          {/* Right: actions */}
+          <div className="flex items-center gap-1 pr-4 lg:pr-6">
             <NotificationCenter />
             <div className="lg:hidden">
               <ThemeToggle />
             </div>
           </div>
         </header>
+        <ViewerBanner />
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>

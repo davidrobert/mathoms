@@ -67,6 +67,22 @@ jobs:
       - name: Run PII lint
         run: python tests/utils/lint_no_real_pii.py --verbose
 
+  tenancy-lint:
+    name: Tenancy scoping lint (ADR-072)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install pytest for lint tests
+        run: pip install pytest
+      - name: Run lint on services + api
+        run: python scripts/lint/check_workspace_scoping.py --verbose
+      - name: Run lint unit tests
+        run: python -m pytest scripts/lint/test_check_workspace_scoping.py -q
+
   pipeline-tests:
     name: Pipeline tests (tests/)
     runs-on: ubuntu-latest
@@ -266,6 +282,7 @@ jobs:
     needs:
       - lint
       - lint-pii
+      - tenancy-lint
       - pipeline-tests
       - backend-tests
       - frontend-tests
@@ -275,6 +292,7 @@ jobs:
         run: |
           if [[ "${{ needs.lint.result }}" != "success" ]]; then exit 1; fi
           if [[ "${{ needs.lint-pii.result }}" != "success" ]]; then exit 1; fi
+          if [[ "${{ needs.tenancy-lint.result }}" != "success" ]]; then exit 1; fi
           if [[ "${{ needs.pipeline-tests.result }}" != "success" ]]; then exit 1; fi
           if [[ "${{ needs.backend-tests.result }}" != "success" ]]; then exit 1; fi
           if [[ "${{ needs.frontend-tests.result }}" != "success" ]]; then exit 1; fi

@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { login, setToken, ApiError } from "@/lib/api";
+import { resolveNext } from "@/lib/nextUrl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,8 @@ import { Spinner } from "@/components/Spinner";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextUrl = resolveNext(searchParams.get("next"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,7 +27,7 @@ export default function LoginPage() {
     try {
       const data = await login(email, password);
       setToken(data.access_token);
-      router.push("/documents");
+      router.push(nextUrl);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(
@@ -100,7 +103,10 @@ export default function LoginPage() {
 
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Não tem conta?{" "}
-              <Link href="/register" className="font-medium text-primary hover:underline">
+              <Link
+                href={`/register${nextUrl !== "/documents" ? `?next=${encodeURIComponent(nextUrl)}` : ""}`}
+                className="font-medium text-primary hover:underline"
+              >
                 Criar conta
               </Link>
             </p>

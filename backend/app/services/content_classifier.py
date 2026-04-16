@@ -1,0 +1,455 @@
+"""Content-based document classifier.
+
+Classifies financial documents by inspecting their **contents** (not filenames).
+Bank-exported filenames are frequently wrong or misleading, so we ignore them
+entirely for classification purposes.
+
+Pipeline:
+    1. Extract text preview (first pages of PDF, first rows of XLSX/CSV).
+    2. Match institution markers (razão social, CNPJ, headers).
+    3. Match document-type markers in priority order (IRPF > fatura > extrato
+       > investimento > CDB). Each type has REQUIRED and SUPPORTING markers;
+       confidence = 1.0 if required + ≥1 supporting, 0.7 if only required,
+       0.5 if only supporting.
+    4. Extract period from content (DD/MM/YYYY ranges, MM/YYYY, YYYY).
+    5. Return dict compatible with ``scripts.e0_route.classify_by_name``.
+
+The caller decides what to do with low-confidence results (LLM fallback,
+``needs_review`` flag, etc.). This module has no LLM calls and no network.
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+from datetime import date
+from pathlib import Path
+
+
+# ---------------------------------------------------------------------------
+# Institution markers — matched against file text content
+# ---------------------------------------------------------------------------
+# Order matters only for disambiguation; first match wins.
+INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
+    # C6 Bank: razão social, marca Carbon, CNPJ 31.872.495
+    (re.compile(r"C6\s*CARBON|C6\s*BANK|BANCO\s*C6\s*S\.?A\.?|31\.?872\.?495", re.I), "c6bank"),
+    # Itaú: Personnalité, razão social
+    (re.compile(r"ITA[UÚ]\s*(UNIBANCO|PERSONNALIT[ÉE])?|PERSONNALIT[ÉE]\s*ITA[UÚ]", re.I), "itau"),
+    # Santander Unique + razão social
+    (re.compile(r"SANTANDER\s*(BRASIL|UNIQUE|S\.?A\.?)|BANCO\s*SANTANDER", re.I), "santander"),
+    # Bradesco
+    (re.compile(r"BRADESCO|BANCO\s*BRADESCO", re.I), "bradesco"),
+    # BTG Pactual (before PicPay — evita falso PicPay em PDFs de corretora)
+    (re.compile(r"BTG\s*PACTUAL|BANCO\s*BTG|BTG\s+Pactual", re.I), "btgpactual"),
+    # Bank of America
+    (re.compile(r"Bank\s*of\s*America|BofA", re.I), "bankofamerica"),
+    # PicPay — exige marca forte (evita match em menções promocionais)
+    (re.compile(r"PicPay\s*(?:Bank|Servi[çc]os|Institui[çc][ãa]o\s+de\s+Pagamento)", re.I), "picpay"),
+    # Wise (TransferWise)
+    (re.compile(r"\bWise\b|TransferWise", re.I), "wise"),
+    # Rico / XP
+    (re.compile(r"Rico\s*(Investimentos|CTVM)|\bXP\s*Investimentos", re.I), "rico"),
+    # QuintoAndar
+    (re.compile(r"Quinto\s*Andar|QuintoAndar", re.I), "quintoandar"),
+    # Binance
+    (re.compile(r"Binance", re.I), "binance"),
+    # Receita Federal
+    (re.compile(r"Receita\s*Federal\s*do\s*Brasil|RFB\s*-\s*Receita", re.I), "receitafederal"),
+]
+
+
+# ---------------------------------------------------------------------------
+# Document-type rules — matched against file text content
+# ---------------------------------------------------------------------------
+@dataclass(frozen=True)
+class TypeRule:
+    """A content-based document-type matcher."""
+    code: str
+    dest_group: str
+    required: tuple[re.Pattern, ...]   # ALL must match
+    supporting: tuple[re.Pattern, ...]  # at least one boosts confidence to 1.0
+    priority: int = 100  # lower = evaluated first
+
+
+def _c(pattern: str) -> re.Pattern:
+    return re.compile(pattern, re.I | re.MULTILINE)
+
+
+# Priority: specific (IRPF, faturas, poupança) → generic (extrato, fatura)
+TYPE_RULES: tuple[TypeRule, ...] = (
+    # ---------- IRPF / Receita Federal (most specific first) ----------
+    TypeRule(
+        code="irpfdeclaracao",
+        dest_group="income_tax_br",
+        required=(_c(r"Declara[çc][ãa]o.*(IRPF|Imposto\s*de\s*Renda|Pessoa\s*F[ií]sica)"),),
+        supporting=(
+            _c(r"Bens\s*e\s*Direitos"),
+            _c(r"Rendimentos\s*Tribut[aá]veis"),
+            _c(r"Ano-?[Cc]alend[aá]rio"),
+        ),
+        priority=1,
+    ),
+    TypeRule(
+        code="irpfrecibo",
+        dest_group="income_tax_br",
+        required=(_c(r"Recibo\s*de\s*Entrega.*IRPF|IRPF.*Recibo\s*de\s*Entrega"),),
+        supporting=(_c(r"N[uú]mero\s*do\s*Recibo"),),
+        priority=1,
+    ),
+    TypeRule(
+        code="informerendimentosaluguel",
+        dest_group="income_tax_br",
+        required=(_c(r"Informe.*Rendiment"), _c(r"Aluguel|Locat[áa]rio|Loca[çc][ãa]o")),
+        supporting=(_c(r"Rendimento\s*Bruto"),),
+        priority=2,
+    ),
+    TypeRule(
+        code="informerendimentos",
+        dest_group="income_tax_br",
+        required=(_c(r"Informe\s*de\s*Rendimentos\s*Financeiros|Informe\s*Anual\s*de\s*Rendimentos"),),
+        supporting=(
+            _c(r"Rendimentos\s*Tribut[aá]veis|Isentos\s*e\s*N[ãa]o\s*Tribut[aá]veis"),
+            _c(r"Fonte\s*Pagadora"),
+            _c(r"Ano-?[Cc]alend[aá]rio"),
+        ),
+        priority=3,
+    ),
+    # ---------- Fatura de aluguel (specific before cartão) ----------
+    TypeRule(
+        code="faturaaluguel",
+        dest_group="financial_statements",
+        required=(_c(r"Fatura\s*de\s*Aluguel|Boleto\s*de\s*Aluguel"),),
+        supporting=(_c(r"Locador|Locat[áa]rio|QuintoAndar"),),
+        priority=5,
+    ),
+    # ---------- Fatura de cartão ----------
+    TypeRule(
+        code="faturaunique",
+        dest_group="financial_statements",
+        required=(_c(r"SANTANDER\s*UNIQUE|Cart[ãa]o\s*Santander\s*Unique"),),
+        supporting=(
+            _c(r"Total\s*a\s*Pagar"),
+            _c(r"Vencimento\s*(da)?\s*Fatura"),
+            _c(r"Limite\s*(de)?\s*Cr[eé]dito"),
+        ),
+        priority=10,
+    ),
+    TypeRule(
+        code="faturacarbon",
+        dest_group="financial_statements",
+        required=(_c(r"C6\s*Carbon"),),
+        supporting=(
+            _c(r"Subtotal\s*deste\s*cart[ãa]o"),
+            _c(r"Vencimento\s*da\s*Fatura"),
+            _c(r"Total\s*desta\s*Fatura"),
+        ),
+        priority=10,
+    ),
+    TypeRule(
+        code="faturapaoacucar",
+        dest_group="financial_statements",
+        required=(_c(r"P[ãa]o\s*de\s*A[çc][uú]car|Cart[ãa]o\s*Pao\s*de\s*A[çc]ucar"),),
+        supporting=(
+            _c(r"Total\s*desta\s*fatura"),
+            _c(r"Lan[çc]amentos\s*atuais"),
+            _c(r"Vencimento"),
+        ),
+        priority=10,
+    ),
+    # Santander — cartões que não são "Unique" (Elite, Free, etc.): texto costuma
+    # misturar "Cartão de Crédito" + vencimento sem a palavra FATURA na 1ª página.
+    TypeRule(
+        code="faturasantander",
+        dest_group="financial_statements",
+        required=(
+            _c(r"BANCO\s+SANTANDER|BANCO\s+SANTANDER\s+S\.?\s*A\.?|SANTANDER\s+BRASIL"),
+            _c(
+                r"(?:\bFATURA\b|Fatura\s+[Dd]igital|Resumo\s+da\s+[Ff]atura|"
+                r"Demonstrativo\s+de\s+[Ff]atura|"
+                r"Data\s+de\s+[Vv]encimento|Vencimento\s+(?:da\s+)?[Ff]atura|"
+                r"Total\s+a\s+Pagar|Total\s+da\s+[Ff]atura|"
+                r"Pagamento\s+[Mm][íi]nimo|Limite\s+(?:de\s+)?Cr[eé]dito|"
+                r"Cart[ãa]o\s+de\s+Cr[eé]dito)"
+            ),
+        ),
+        supporting=(
+            _c(r"R\$\s*[\d\.\s]+|R\$\s*[\d,\.]+"),
+            _c(r"Lan[çc]amentos|Compras|Parcelas|rotativo|final\s*\d{4}"),
+        ),
+        priority=11,
+    ),
+    # Generic fatura de cartão — um único padrão OR (evita exigir \bFATURA\b + linha
+    # financeira ao mesmo tempo, o que falhava em muitos PDFs reais).
+    TypeRule(
+        code="fatura",
+        dest_group="financial_statements",
+        required=(
+            _c(
+                r"(?:"
+                r"(?:\bFATURA\b|Fatura\s+[Dd]igital|Demonstrativo\s+da\s+[Ff]atura)"
+                r".{0,1200}?"
+                r"(?:Total\s*(?:a\s*Pagar|da\s*Fatura|desta\s*Fatura)|"
+                r"Vencimento\s*(?:da\s*)?\s*[Ff]atura|Data\s+de\s+[Vv]encimento|"
+                r"Limite\s*(?:de\s*)?\s*Cr[eé]dito|Pagamento\s*[Mm][íi]nimo)"
+                r"|"
+                r"Cart[ãa]o\s+de\s+Cr[eé]dito"
+                r".{0,2600}?"
+                r"(?:Total\s+a\s*Pagar|Total\s+da\s+[Ff]atura|"
+                r"Vencimento\s+(?:da\s+)?[Ff]atura|Data\s+de\s+[Vv]encimento|"
+                r"Pagamento\s+[Mm][íi]nimo|Limite\s+(?:de\s+)?Cr[eé]dito|"
+                r"\bFATURA\b)"
+                r")"
+            ),
+        ),
+        supporting=(
+            _c(r"Cart[ãa]o|Cr[eé]dito|Final\s*\d{4}"),
+            _c(r"Lan[çc]amentos|Compras|Parcelas|R\$\s*[\d\.,]+"),
+        ),
+        priority=21,
+    ),
+    # ---------- Investimentos (CDB, posição, renda fixa) ----------
+    TypeRule(
+        code="investimentosposicao",
+        dest_group="financial_statements",
+        required=(_c(r"Posi[çc][ãa]o\s*(Consolidada|de\s*Investimentos|de\s*Carteira)"),),
+        supporting=(
+            _c(r"Renda\s*Fixa|Renda\s*Vari[aá]vel|Fundos\s*de\s*Investimento"),
+            _c(r"Saldo\s*(Total|Consolidado)"),
+        ),
+        priority=15,
+    ),
+    TypeRule(
+        code="carteirarendafixa",
+        dest_group="financial_statements",
+        required=(_c(r"Carteira\s*(de\s*)?Renda\s*Fixa"),),
+        supporting=(_c(r"Vencimento"), _c(r"Rentabilidade")),
+        priority=15,
+    ),
+    TypeRule(
+        code="cdbdetalhes",
+        dest_group="financial_statements",
+        required=(_c(r"\bCDB\b|Certificado\s*de\s*Dep[oó]sito\s*Banc[aá]rio"),),
+        supporting=(
+            _c(r"Dispon[ií]vel\s*para\s*Resgate"),
+            _c(r"Rentabilidade"),
+            _c(r"Vencimento"),
+            _c(r"Valor\s*(Total|Aplicado|Bruto)"),
+        ),
+        priority=18,
+    ),
+    # ---------- Extratos bancários ----------
+    TypeRule(
+        code="extratopoupanca",
+        dest_group="financial_statements",
+        required=(_c(r"Extrato.*Poupan[çc]a|Conta\s*Poupan[çc]a|Caderneta\s*de\s*Poupan[çc]a"),),
+        supporting=(_c(r"Rendimento"), _c(r"Saldo\s*Anterior|Saldo\s*Atual")),
+        priority=25,
+    ),
+    TypeRule(
+        code="extratocontaglobalusd",
+        dest_group="financial_statements",
+        required=(
+            _c(r"Extrato.*(Global|Internacional)|Account\s*Statement"),
+            _c(r"US\$|USD\b|Dollar|D[oó]lar"),
+        ),
+        supporting=(_c(r"Saldo|Balance"),),
+        priority=25,
+    ),
+    TypeRule(
+        code="extratocontaglobaleur",
+        dest_group="financial_statements",
+        required=(
+            _c(r"Extrato.*(Global|Internacional)|Account\s*Statement"),
+            _c(r"€|EUR\b|Euro"),
+        ),
+        supporting=(_c(r"Saldo|Balance"),),
+        priority=25,
+    ),
+    # Bank of America style statement (English)
+    TypeRule(
+        code="extratocontausd",
+        dest_group="financial_statements",
+        required=(
+            _c(r"Account\s*Statement|Account\s*number"),
+            _c(r"Beginning\s*balance|Ending\s*balance"),
+        ),
+        supporting=(_c(r"Transaction|Deposit|Withdrawal"),),
+        priority=28,
+    ),
+    # Generic extrato de conta corrente (Brazilian)
+    TypeRule(
+        code="extratoconta",
+        dest_group="financial_statements",
+        required=(_c(r"EXTRATO\s*(DA\s*CONTA|DE\s*CONTA|CORRENTE)?|Lan[çc]amentos\s*(da\s*)?Conta|Movimenta[çc][õo]es"),),
+        supporting=(
+            _c(r"SALDO\s*(ANTERIOR|DO\s*DIA|DISPON[IÍ]VEL|FINAL|ATUAL)"),
+            _c(r"Ag[êe]ncia\s*[:\-]?\s*\d+.*Conta\s*[:\-]?\s*[\d-]+"),
+            _c(r"Per[ií]odo\s*:?\s*\d{2}/\d{2}/\d{4}"),
+        ),
+        priority=30,
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
+# Period extraction from content
+# ---------------------------------------------------------------------------
+_PERIOD_RANGE_RE = re.compile(
+    r"(\d{1,2})/(\d{1,2})/(\d{4}).{0,20}?(?:a|at[eé]|to|-)\s*(\d{1,2})/(\d{1,2})/(\d{4})",
+    re.I | re.DOTALL,
+)
+_YYYYMM_RE = re.compile(r"\b(20\d{2})[-/](0?[1-9]|1[012])\b")
+_MESES = {
+    "janeiro": 1, "fevereiro": 2, "março": 3, "marco": 3, "abril": 4, "maio": 5,
+    "junho": 6, "julho": 7, "agosto": 8, "setembro": 9, "outubro": 10,
+    "novembro": 11, "dezembro": 12,
+}
+_MONTH_YEAR_BR_RE = re.compile(
+    r"\b(jan(?:eiro)?|fev(?:ereiro)?|mar(?:[çc]o)?|abr(?:il)?|mai(?:o)?|jun(?:ho)?|"
+    r"jul(?:ho)?|ago(?:sto)?|set(?:embro)?|out(?:ubro)?|nov(?:embro)?|dez(?:embro)?)"
+    r"[\s/\-]+(20\d{2})",
+    re.I,
+)
+
+
+def _mm(month_name: str) -> int:
+    key = month_name.lower()[:3]
+    for full, n in _MESES.items():
+        if full.startswith(key):
+            return n
+    return 0
+
+
+def extract_period_from_content(text: str) -> str | None:
+    """Try to extract a YYYYMM or YYYYMM_YYYYMM period from document text."""
+    m = _PERIOD_RANGE_RE.search(text)
+    if m:
+        _, m1, y1, _, m2, y2 = m.groups()
+        return f"{int(y1):04d}{int(m1):02d}_{int(y2):04d}{int(m2):02d}"
+    m = _YYYYMM_RE.search(text)
+    if m:
+        y, mn = m.groups()
+        return f"{int(y):04d}{int(mn):02d}"
+    m = _MONTH_YEAR_BR_RE.search(text)
+    if m:
+        name, year = m.groups()
+        mn = _mm(name)
+        if mn:
+            return f"{int(year):04d}{mn:02d}"
+    # Year-only fallback
+    m = re.search(r"\b(20\d{2})\b", text)
+    if m:
+        return m.group(1)
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Main entry point
+# ---------------------------------------------------------------------------
+@dataclass
+class ContentClassification:
+    doc_type: str | None
+    dest_group: str | None
+    institution: str | None
+    period: str | None
+    confidence: float  # 0.0 to 1.0
+    source: str = "content_regex"
+    matched_required: int = 0
+    matched_supporting: int = 0
+
+    def to_dict(self) -> dict:
+        return {
+            "institution": self.institution,
+            "doc_type": self.doc_type,
+            "dest_group": self.dest_group,
+            "period": self.period,
+            "member": None,
+            "confidence": self.confidence,
+            "source": self.source,
+            "matched_required": self.matched_required,
+            "matched_supporting": self.matched_supporting,
+        }
+
+
+def detect_institution_by_content(text: str) -> str | None:
+    for pattern, code in INSTITUTION_CONTENT_PATTERNS:
+        if pattern.search(text):
+            return code
+    return None
+
+
+def detect_type_by_content(text: str) -> tuple[TypeRule | None, int, int]:
+    """Return (best rule, required_matches, supporting_matches).
+
+    Evaluates rules in priority order. The first rule whose REQUIRED patterns
+    all match wins — supporting matches just adjust confidence.
+    """
+    for rule in sorted(TYPE_RULES, key=lambda r: r.priority):
+        req_matches = sum(1 for p in rule.required if p.search(text))
+        if req_matches < len(rule.required):
+            continue
+        sup_matches = sum(1 for p in rule.supporting if p.search(text))
+        return rule, req_matches, sup_matches
+    return None, 0, 0
+
+
+def _compute_confidence(rule: TypeRule, req: int, sup: int) -> float:
+    """All required + ≥1 supporting → 1.0. All required, 0 supporting → 0.7."""
+    if req < len(rule.required):
+        return 0.0
+    if sup >= 1:
+        return 1.0
+    # Only required matched — tight rules (single required pattern, e.g. IRPF)
+    # are still high-confidence; generic rules with no supporting match are
+    # weaker.
+    if len(rule.required) >= 2:
+        return 0.85
+    return 0.7
+
+
+def classify_text(text: str) -> ContentClassification:
+    """Classify a preview text extracted from a financial document."""
+    if not text or len(text.strip()) < 20:
+        return ContentClassification(
+            doc_type=None, dest_group=None, institution=None,
+            period=None, confidence=0.0, source="content_regex_empty",
+        )
+
+    institution = detect_institution_by_content(text)
+    rule, req, sup = detect_type_by_content(text)
+    period = extract_period_from_content(text)
+
+    if rule is None:
+        return ContentClassification(
+            doc_type=None, dest_group=None, institution=institution,
+            period=period, confidence=0.0,
+            matched_required=0, matched_supporting=0,
+        )
+
+    return ContentClassification(
+        doc_type=rule.code,
+        dest_group=rule.dest_group,
+        institution=institution,
+        period=period,
+        confidence=_compute_confidence(rule, req, sup),
+        matched_required=req,
+        matched_supporting=sup,
+    )
+
+
+def classify_file(filepath: Path, preview_extractor) -> ContentClassification:
+    """Classify a file by its content.
+
+    ``preview_extractor`` is a callable ``(Path) -> str`` that extracts a text
+    preview from the file. We inject it (rather than importing) so tests can
+    pass fake text and so we don't pull in pdfplumber/openpyxl at import time.
+    """
+    try:
+        text = preview_extractor(filepath)
+    except Exception as exc:  # preview extraction failed — fall through
+        return ContentClassification(
+            doc_type=None, dest_group=None, institution=None,
+            period=None, confidence=0.0,
+            source=f"content_regex_preview_error:{type(exc).__name__}",
+        )
+    return classify_text(text or "")

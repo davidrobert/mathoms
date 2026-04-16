@@ -131,6 +131,48 @@ async def auth_client(client: AsyncClient) -> AsyncClient:
     return client
 
 
+@pytest_asyncio.fixture
+async def auth_client_with_doc(auth_client: AsyncClient) -> AsyncClient:
+    """``auth_client`` with one ready document + a file in the tenant data dir.
+
+    Required by tests that hit ``/api/pipeline/run`` — the endpoint blocks
+    triggering the pipeline when the workspace has zero ``ready`` documents
+    or no files under ``storage/<ws>/data/<group>/``.
+
+    Creates the doc directly in the DB (bypasses the upload endpoint) and
+    drops a 1-byte file in ``data/financial_statements/`` so both checks
+    pass. The pipeline itself is always mocked in these tests; we just need
+    the gate to let us through.
+    """
+    from sqlalchemy import select
+
+    from backend.app.core.config import settings
+    from backend.app.models.document import Document, DocumentStatus, DocumentType
+    from backend.app.models.workspace import Workspace
+
+    async with TestSession() as session:
+        ws = (await session.execute(select(Workspace))).scalar_one()
+        doc = Document(
+            workspace_id=ws.id,
+            original_name="fixture_extrato.pdf",
+            stored_path=f"/tmp/fixture-{ws.id}.pdf",
+            doc_type=DocumentType.bank_statement,
+            bank_code="itau",
+            period="202601",
+            status=DocumentStatus.ready,
+            file_size_bytes=1,
+            content_hash="fixture" + ws.id[:24],
+        )
+        session.add(doc)
+        await session.commit()
+
+        data_dir = settings.STORAGE_ROOT / ws.id / "data" / "financial_statements"
+        data_dir.mkdir(parents=True, exist_ok=True)
+        (data_dir / "fixture.pdf").write_bytes(b"x")
+
+    return auth_client
+
+
 # ─── Factories — exported for ergonomic test setup (F6.5F.2) ────────────
 # Re-export `factories` namespace so tests can do:
 #   from backend.tests.conftest import factories

@@ -146,7 +146,34 @@ async def upload_documents(
             doc.bank_code = result["bank_code"]
             doc.period = result["period"]
             doc.classification_meta = result["classification_meta"]
+            doc.classification_confidence = result.get("confidence")
+            doc.needs_review = bool(result.get("needs_review"))
             doc.error_message = result["error_message"]
+
+            # Fuzzy dedupe: if another doc in this workspace has the same
+            # (doc_type, bank_code, period) but a different content_hash, flag
+            # this one as a possible duplicate. We don't block — user decides.
+            if (
+                doc.doc_type
+                and doc.doc_type != DocumentType.other
+                and doc.bank_code
+                and doc.period
+            ):
+                fuzzy = await db.execute(
+                    select(Document.id)
+                    .where(
+                        Document.workspace_id == ws.id,
+                        Document.doc_type == doc.doc_type,
+                        Document.bank_code == doc.bank_code,
+                        Document.period == doc.period,
+                        Document.id != doc.id,
+                    )
+                    .limit(1)
+                )
+                existing_id = fuzzy.scalar_one_or_none()
+                if existing_id:
+                    doc.possible_duplicate_of_id = existing_id
+                    doc.needs_review = True
         except Exception as exc:
             doc.status = DocumentStatus.error
             doc.error_message = f"Erro no processamento: {str(exc)[:500]}"

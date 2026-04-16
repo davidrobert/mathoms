@@ -36,7 +36,7 @@ Ao final de cada etapa concluída, antes de avançar para a próxima, obrigatori
 
 ## PIPELINE DE DADOS (E0 a E3)
 
-Ver manual_operacao.md para detalhes completos.
+Ver scripts em `scripts/` e configs em `config/` para detalhes completos.
 
 | Etapa | Objetivo | Input | Output |
 |---|---|---|---|

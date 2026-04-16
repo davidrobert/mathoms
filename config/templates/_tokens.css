@@ -22,17 +22,28 @@
     --font-size-xl: 1.5rem;
     --font-size-2xl: 1.875rem;
     --font-size-3xl: 2.25rem;
+    --font-size-3-5xl: 2.625rem;
     --font-size-4xl: 3rem;
 
+    --line-height-compact: 1.1;
     --line-height-tight: 1.2;
+    --line-height-snug: 1.35;
     --line-height-normal: 1.5;
     --line-height-relaxed: 1.6;
+    --line-height-loose: 1.75;
 
     --font-weight-regular: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
     --font-weight-extrabold: 800;
+
+    --tracking-tighter: -0.05em;
+    --tracking-tight: -0.025em;
+    --tracking-normal: 0em;
+    --tracking-wide: 0.025em;
+    --tracking-wider: 0.05em;
+    --tracking-widest: 0.1em;
 
     --space-xs: 0.25rem;
     --space-sm: 0.5rem;

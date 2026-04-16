@@ -14,7 +14,8 @@ _CANCEL = "backend.app.api.pipeline.cancel_pipeline_run"
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_trigger_pipeline_default(auth_client: AsyncClient):
+async def test_trigger_pipeline_default(auth_client_with_doc: AsyncClient):
+    auth_client = auth_client_with_doc
     with patch(_START) as mock_start:
         resp = await auth_client.post("/api/pipeline/run", json={})
     assert resp.status_code == 202
@@ -30,7 +31,8 @@ async def test_trigger_pipeline_default(auth_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_trigger_pipeline_from_stage(auth_client: AsyncClient):
+async def test_trigger_pipeline_from_stage(auth_client_with_doc: AsyncClient):
+    auth_client = auth_client_with_doc
     with patch(_START) as mock_start:
         resp = await auth_client.post(
             "/api/pipeline/run", json={"from_stage": "E3", "skip_llm": True}
@@ -51,7 +53,8 @@ async def test_trigger_pipeline_invalid_from_stage(auth_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_trigger_pipeline_concurrent_blocked(auth_client: AsyncClient):
+async def test_trigger_pipeline_concurrent_blocked(auth_client_with_doc: AsyncClient):
+    auth_client = auth_client_with_doc
     with patch(_START):
         resp1 = await auth_client.post("/api/pipeline/run", json={})
     assert resp1.status_code == 202
@@ -76,7 +79,8 @@ async def test_list_runs_empty(auth_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_list_runs_after_trigger(auth_client: AsyncClient):
+async def test_list_runs_after_trigger(auth_client_with_doc: AsyncClient):
+    auth_client = auth_client_with_doc
     with patch(_START):
         await auth_client.post("/api/pipeline/run", json={})
     resp = await auth_client.get("/api/pipeline/runs")
@@ -89,7 +93,8 @@ async def test_list_runs_after_trigger(auth_client: AsyncClient):
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_get_run_detail(auth_client: AsyncClient):
+async def test_get_run_detail(auth_client_with_doc: AsyncClient):
+    auth_client = auth_client_with_doc
     with patch(_START):
         trigger_resp = await auth_client.post("/api/pipeline/run", json={})
     run_id = trigger_resp.json()["id"]
@@ -112,7 +117,8 @@ async def test_get_run_not_found(auth_client: AsyncClient):
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_cancel_active_run(auth_client: AsyncClient):
+async def test_cancel_active_run(auth_client_with_doc: AsyncClient):
+    auth_client = auth_client_with_doc
     with patch(_START):
         trigger_resp = await auth_client.post("/api/pipeline/run", json={})
     run_id = trigger_resp.json()["id"]
@@ -131,7 +137,8 @@ async def test_cancel_not_found(auth_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_cancel_already_completed(auth_client: AsyncClient):
+async def test_cancel_already_completed(auth_client_with_doc: AsyncClient):
+    auth_client = auth_client_with_doc
     with patch(_START):
         trigger_resp = await auth_client.post("/api/pipeline/run", json={})
     run_id = trigger_resp.json()["id"]

@@ -8,6 +8,8 @@ from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.core.config import settings
+from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.models.stage_review import StageReview, StageReviewStatus
@@ -17,6 +19,31 @@ from backend.app.services.vault import VaultService
 
 _vault = VaultService()
 _START = "backend.app.api.pipeline.start_pipeline_run"
+
+
+async def _seed_doc_for_pipeline(db: AsyncSession, ws_id: str) -> None:
+    """Create one ready Document + a file in the tenant data dir.
+
+    The /api/pipeline/run endpoint blocks runs when the workspace has no
+    ready docs or no files under storage/<ws>/data/<group>/. Tests that
+    only care about tier detection or stage reviews need this minimal
+    setup to clear the gate.
+    """
+    db.add(Document(
+        workspace_id=ws_id,
+        original_name="seed.pdf",
+        stored_path=f"/tmp/seed-{ws_id}.pdf",
+        doc_type=DocumentType.bank_statement,
+        bank_code="itau",
+        period="202601",
+        status=DocumentStatus.ready,
+        file_size_bytes=1,
+        content_hash="seed" + ws_id[:28],
+    ))
+    await db.commit()
+    data_dir = settings.STORAGE_ROOT / ws_id / "data" / "financial_statements"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    (data_dir / "seed.pdf").write_bytes(b"x")
 
 
 async def _setup_workspace_with_llm(db: AsyncSession, client: AsyncClient) -> tuple[str, str]:
@@ -82,6 +109,9 @@ async def test_trigger_pipeline_detects_free_tier(client: AsyncClient, db: Async
     token = resp.json()["access_token"]
     client.headers["Authorization"] = f"Bearer {token}"
 
+    ws = (await db.execute(select(Workspace))).scalar_one()
+    await _seed_doc_for_pipeline(db, ws.id)
+
     with patch(_START):
         resp = await client.post("/api/pipeline/run", json={"skip_llm": True})
     assert resp.status_code == 202
@@ -92,6 +122,7 @@ async def test_trigger_pipeline_detects_free_tier(client: AsyncClient, db: Async
 async def test_trigger_pipeline_detects_premium_tier(client: AsyncClient, db: AsyncSession):
     """When LLM config exists, pipeline run should have tier_at_run='premium'."""
     ws_id, token = await _setup_workspace_with_llm(db, client)
+    await _seed_doc_for_pipeline(db, ws_id)
 
     with patch(_START) as mock_start:
         resp = await client.post("/api/pipeline/run", json={"skip_llm": True})

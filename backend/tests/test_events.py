@@ -10,6 +10,7 @@ from backend.app.services.events import (
     publish_run_cancelled,
     publish_run_completed,
     publish_run_failed,
+    publish_stage_activity,
     publish_stage_completed,
     publish_stage_failed,
     publish_stage_skipped,
@@ -75,6 +76,21 @@ class TestPublishEvent:
         payload = json.loads(mock_redis.publish.call_args[0][1])
         assert payload["event"] == "stage_failed"
         assert payload["error"] == "boom"
+
+    def test_publish_stage_activity(self):
+        mock_redis = MagicMock()
+        with patch("backend.app.services.events._get_redis", return_value=mock_redis):
+            publish_stage_activity(
+                "run-1",
+                "E2-llm",
+                file="informe.pdf",
+                message="Extraindo com IA…",
+            )
+        payload = json.loads(mock_redis.publish.call_args[0][1])
+        assert payload["event"] == "stage_activity"
+        assert payload["stage"] == "E2-llm"
+        assert payload["detail"]["file"] == "informe.pdf"
+        assert payload["detail"]["message"] == "Extraindo com IA…"
 
     def test_publish_stage_skipped(self):
         mock_redis = MagicMock()

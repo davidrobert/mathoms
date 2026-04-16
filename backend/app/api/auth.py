@@ -9,6 +9,7 @@ from backend.app.core.deps import get_current_user
 from backend.app.core.security import hash_password, verify_password, create_access_token
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
+from backend.app.models.workspace_member import WorkspaceMember
 from backend.app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -33,11 +34,21 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
 
     workspace = Workspace(name=f"Workspace de {body.full_name}", owner_id=user.id)
     db.add(workspace)
+    await db.flush()
+
+    # ADR-072: acesso ao tenant exige linha em workspace_members (owner_id sozinho não basta).
+    db.add(
+        WorkspaceMember(
+            workspace_id=workspace.id,
+            user_id=user.id,
+            role="owner",
+        )
+    )
 
     await db.commit()
     await db.refresh(user)
 
-    token = create_access_token(subject=user.id)
+    token = create_access_token(subject=user.id, token_version=user.token_version)
     return TokenResponse(access_token=token)
 
 
@@ -52,7 +63,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             detail="Credenciais inválidas",
         )
 
-    token = create_access_token(subject=user.id)
+    token = create_access_token(subject=user.id, token_version=user.token_version)
     return TokenResponse(access_token=token)
 
 

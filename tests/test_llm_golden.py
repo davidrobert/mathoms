@@ -114,7 +114,7 @@ class TestE2LLMGoldenFile:
 
         assert e2["extraido_por"] == "llm"
         assert e2["instituicao"] == "btgpactual"
-        assert e2["periodo"] == "202412"
+        assert e2["periodo"] == {"inicio": "2024-12-01", "fim": "2024-12-31"}
         assert len(e2["transacoes"]) == 2
         assert len(e2["investimentos"]) == 3
         assert e2["investimentos"][0]["taxa"] == "100% CDI"

@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import String, DateTime, Float, ForeignKey, Integer, Text
+from sqlalchemy import String, DateTime, Float, ForeignKey, Integer, JSON, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -28,6 +28,10 @@ class Report(Base):
     # React report view to consume structured data instead of parsing HTML.
     # Nullable for backward-compat with pre-F9 reports where only html_path existed.
     analysis_json_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # F8.3 / ADR-074: snapshot imutável da lista de tasks no momento em que
+    # o relatório foi gerado. Permite ao relatório renderizar "tarefas relatadas
+    # em 15/abr/2026" mesmo que o backlog tenha mudado depois. Nullable = pré-F8.3.
+    tasks_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     size_bytes: Mapped[int] = mapped_column(Integer, nullable=True)
     score: Mapped[float] = mapped_column(Float, nullable=True)
     patrimonio_liquido: Mapped[float] = mapped_column(Float, nullable=True)

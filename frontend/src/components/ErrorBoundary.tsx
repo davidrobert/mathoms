@@ -78,11 +78,11 @@ function DefaultFallback({ error, reset }: { error: Error; reset: () => void }) 
           variant="outline"
           onClick={() => {
             if (typeof window !== "undefined") {
-              window.location.href = "/dashboard";
+              window.location.href = "/plano";
             }
           }}
         >
-          Ir para dashboard
+          Ir para Meu Plano
         </Button>
       </div>
     </div>

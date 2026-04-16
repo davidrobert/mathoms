@@ -1,0 +1,12 @@
+# Baseline de violações de tenancy scoping — ADR-072.
+# Cada linha é um id estável: <path>:<line>:<Model>.
+# Adicionado automaticamente por check_workspace_scoping.py --write-baseline.
+# Objetivo: esvaziar este arquivo até F8.4 (cutover CLI→web).
+# NÃO adicionar manualmente entradas novas — código F8+ corrige em vez de baselinar.
+
+backend/app/api/config.py:187:FamilyMember
+backend/app/api/config.py:219:FamilyMember
+backend/app/api/config.py:386:Category
+backend/app/api/config.py:424:Category
+backend/app/api/pipeline.py:129:PipelineRun
+backend/app/services/seed.py:41:Report

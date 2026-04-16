@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.mark.asyncio
@@ -45,15 +46,19 @@ async def _seed_report(
     html_content: str = "<html><body>ok</body></html>",
     analysis_payload: dict | None = None,
     tmp_path: Path,
+    db: AsyncSession | None = None,
 ) -> str:
     """Cria um Report vinculado ao workspace do auth_client e retorna seu id.
 
     Escreve HTML e (opcionalmente) o JSON de análise em `tmp_path` para que
     os endpoints possam servir os arquivos.
+
+    ``db`` — deve ser a fixture ``db`` do conftest. Usar TestSession()
+    direto causa "no such table" em pytest-asyncio strict mode porque a
+    session é criada fora do lifecycle de fixtures.
     """
     from backend.app.models.report import Report
     from backend.app.models.workspace import Workspace
-    from backend.tests.conftest import TestSession
 
     html_file = tmp_path / "report.html"
     html_file.write_text(html_content, encoding="utf-8")
@@ -63,7 +68,23 @@ async def _seed_report(
         analysis_path = tmp_path / "analysis.json"
         analysis_path.write_text(json.dumps(analysis_payload), encoding="utf-8")
 
-    async with TestSession() as session:
+    # Use the fixture-managed session (same lifecycle as setup_db/create_all).
+    # Falls back to TestSession if db not provided (compat).
+    if db is None:
+        from backend.tests.conftest import TestSession
+        session_ctx = TestSession()
+    else:
+        # Wrap the db fixture in a no-op context manager so we can use the
+        # same ``async with`` pattern.
+        from contextlib import asynccontextmanager
+
+        @asynccontextmanager
+        async def _passthrough():
+            yield db
+
+        session_ctx = _passthrough()
+
+    async with session_ctx as session:
         ws = (await session.execute(select(Workspace))).scalar_one()
         report = Report(
             id=str(uuid.uuid4()),
@@ -81,12 +102,13 @@ async def _seed_report(
 
 @pytest.mark.asyncio
 async def test_get_report_includes_has_analysis_data_true(
-    auth_client: AsyncClient, tmp_path: Path
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
     rid = await _seed_report(
         auth_client,
         analysis_payload={"periodo_dados": "202601-202604", "patrimonio": {}},
         tmp_path=tmp_path,
+        db=db,
     )
     resp = await auth_client.get(f"/api/reports/{rid}")
     assert resp.status_code == 200
@@ -95,9 +117,9 @@ async def test_get_report_includes_has_analysis_data_true(
 
 @pytest.mark.asyncio
 async def test_get_report_has_analysis_data_false_when_no_json(
-    auth_client: AsyncClient, tmp_path: Path
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
-    rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path)
+    rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path, db=db)
     resp = await auth_client.get(f"/api/reports/{rid}")
     assert resp.status_code == 200
     assert resp.json()["has_analysis_data"] is False
@@ -105,12 +127,12 @@ async def test_get_report_has_analysis_data_false_when_no_json(
 
 @pytest.mark.asyncio
 async def test_list_reports_propagates_has_analysis_data(
-    auth_client: AsyncClient, tmp_path: Path
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
     (tmp_path / "a").mkdir(exist_ok=True)
     (tmp_path / "b").mkdir(exist_ok=True)
-    await _seed_report(auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path / "a")
-    await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path / "b")
+    await _seed_report(auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path / "a", db=db)
+    await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path / "b", db=db)
 
     resp = await auth_client.get("/api/reports")
     assert resp.status_code == 200
@@ -135,14 +157,14 @@ async def test_get_report_data_not_found(auth_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_get_report_data_returns_json_payload(
-    auth_client: AsyncClient, tmp_path: Path
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
     payload = {
         "periodo_dados": "202601-202604",
         "patrimonio": {"bruto": 1234567.89, "liquido": 1200000.0},
         "score": {"valor": 85, "max": 100, "classificacao": "Muito Bom"},
     }
-    rid = await _seed_report(auth_client, analysis_payload=payload, tmp_path=tmp_path)
+    rid = await _seed_report(auth_client, analysis_payload=payload, tmp_path=tmp_path, db=db)
     resp = await auth_client.get(f"/api/reports/{rid}/data")
     assert resp.status_code == 200
     body = resp.json()
@@ -153,10 +175,10 @@ async def test_get_report_data_returns_json_payload(
 
 @pytest.mark.asyncio
 async def test_get_report_data_404_when_analysis_missing(
-    auth_client: AsyncClient, tmp_path: Path
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
     """Relatório pré-F9 (sem analysis_json_path) retorna 404."""
-    rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path)
+    rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path, db=db)
     resp = await auth_client.get(f"/api/reports/{rid}/data")
     assert resp.status_code == 404
     assert "análise" in resp.json()["detail"].lower()
@@ -164,11 +186,11 @@ async def test_get_report_data_404_when_analysis_missing(
 
 @pytest.mark.asyncio
 async def test_get_report_data_404_when_file_missing_from_disk(
-    auth_client: AsyncClient, tmp_path: Path
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
     """Path persistido mas arquivo apagado → 404 (não 500)."""
     rid = await _seed_report(
-        auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path
+        auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path, db=db
     )
     # Apaga o JSON do disco preservando a row do DB
     (tmp_path / "analysis.json").unlink()
@@ -178,10 +200,10 @@ async def test_get_report_data_404_when_file_missing_from_disk(
 
 @pytest.mark.asyncio
 async def test_get_report_data_500_when_json_corrupted(
-    auth_client: AsyncClient, tmp_path: Path
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
     rid = await _seed_report(
-        auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path
+        auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path, db=db
     )
     # Corrompe o arquivo
     (tmp_path / "analysis.json").write_text("{invalid json", encoding="utf-8")
@@ -207,13 +229,14 @@ async def test_download_html_not_found(auth_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_download_html_sends_attachment_headers(
-    auth_client: AsyncClient, tmp_path: Path
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
     rid = await _seed_report(
         auth_client,
         html_content="<html><body>Relatório</body></html>",
         analysis_payload=None,
         tmp_path=tmp_path,
+        db=db,
     )
     resp = await auth_client.get(f"/api/reports/{rid}/download.html")
     assert resp.status_code == 200
@@ -226,9 +249,9 @@ async def test_download_html_sends_attachment_headers(
 
 @pytest.mark.asyncio
 async def test_download_html_404_when_file_missing_from_disk(
-    auth_client: AsyncClient, tmp_path: Path
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
-    rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path)
+    rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path, db=db)
     (tmp_path / "report.html").unlink()
     resp = await auth_client.get(f"/api/reports/{rid}/download.html")
     assert resp.status_code == 404
@@ -247,12 +270,12 @@ def test_download_html_sanitize_filename_helper():
 
 @pytest.mark.asyncio
 async def test_get_report_data_isolation_across_workspaces(
-    auth_client: AsyncClient, client: AsyncClient, tmp_path: Path
+    auth_client: AsyncClient, client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
     """Garante scoping por workspace — user B não vê report de A."""
     # Cria o report no workspace do auth_client
     rid = await _seed_report(
-        auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path
+        auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path, db=db
     )
     # User B separado
     resp_b = await client.post(

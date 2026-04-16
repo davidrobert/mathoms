@@ -20,6 +20,14 @@ def run(ctx: WorkspaceContext) -> dict:
     if not baseline_input.exists() and not raw_baseline.exists():
         return {"success": True, "skipped": True, "reason": "No baseline file — E1.5 not run (free tier)"}
 
+    from pipeline.live_progress import emit_stage_activity
+
+    emit_stage_activity(
+        ctx.pipeline_run_id,
+        "E1.5c",
+        message="Consolidando patrimônio inicial (enriquecimento determinístico)…",
+    )
+
     from scripts.e15_consolidate import main as e15c_main
     e15c_main(root_dir=ctx.root)
 

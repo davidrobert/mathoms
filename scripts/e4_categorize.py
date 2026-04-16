@@ -931,7 +931,8 @@ def main(root_dir: Path = None):
     processed_dir = base_dir / "processed"
     input_dir = processed_dir / "E3_reconciled"
     output_dir = processed_dir / "E4_unified"
-    baseline_path = processed_dir / "E2_extracts" / "baseline_patrimonial-1.5_consolidated.json"
+    e2_dir = processed_dir / "E2_extracts"
+    baseline_path = e2_dir / "baseline_patrimonial-1.5_consolidated.json"
 
     # Create output directory if needed
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -942,8 +943,19 @@ def main(root_dir: Path = None):
     print(f"[E4.1] Loaded {len(reconciled_data)} reconciled account files")
 
     if not reconciled_data:
-        print("[E4.1] FATAL: Nenhum arquivo E3 reconciliado encontrado. Abortando.", file=sys.stderr)
-        sys.exit(1)
+        e2_has_json = e2_dir.exists() and any(e2_dir.glob("*.json"))
+        if baseline_path.exists() or e2_has_json:
+            print(
+                "[E4.1] Nenhum E3 reconciliado — gerando receitas/despesas/fluxo vazios "
+                "(workspace só com patrimônio IRPF e/ou posições em E2, sem extratos de conta).",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                "[E4.1] FATAL: Nenhum arquivo E3 reconciliado e E2_extracts sem JSON. Abortando.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
 
     print("[E4.2] Processing transactions...")
     receitas, despesas, transferencias, n_receitas, n_despesas, n_transfers = process_transactions(reconciled_data)
@@ -977,7 +989,6 @@ def main(root_dir: Path = None):
         print("[E4.4] Saved empty patrimonio placeholder (no baseline found)")
 
     # Investimentos: consolidate from E2 position extracts
-    e2_dir = processed_dir / "E2_extracts"
     investimentos = build_investimentos_unified(e2_dir)
     inv_path = output_dir / "investimentos-4_unified.json"
     save_json(inv_path, investimentos)

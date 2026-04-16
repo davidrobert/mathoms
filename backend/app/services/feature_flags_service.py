@@ -1,0 +1,109 @@
+"""Feature flags workspace-level — ADR-074 §"Feature flag".
+
+Implementação mínima: flags armazenadas num único ConfigBlob dedicado por
+workspace (`type='feature_flags'`). Defaults compilados no código (abaixo
+em DEFAULTS) — se a row não existe ou não tem a flag, cai para o default.
+
+Uso típico:
+    enabled = await is_enabled(workspace_id, "tasks_v2_enabled", db=db)
+
+Para F8/F9+, flags permitem rollout controlado: Ferreira Campos tem
+`tasks_v2_enabled=True` por default (já consumimos em produção), novas
+workspaces recebem o default (atualmente True também — pode virar False
+em F8.4 se quisermos opt-in para beta testers).
+
+Persistência: só há uma linha por workspace com `key='feature_flags'` e
+`value_json={flag: bool, ...}`. Evita proliferação de rows ao adicionar
+flag nova.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.app.models.feature_flag import FeatureFlag
+
+
+# Defaults de produto. Flags definidas aqui têm efeito imediato no CI
+# e em qualquer workspace que ainda não tenha a row persistida.
+DEFAULTS: dict[str, bool] = {
+    # F8.2 — backlog interativo de tarefas. Em F8.4 (cutover), vira default True
+    # para todos. Por enquanto True porque a UI /plano-de-acao já está em produção
+    # para Ferreira Campos.
+    "tasks_v2_enabled": True,
+    # F8.3 — anexos em tarefas. Pode ser False enquanto o quota de storage por
+    # workspace não está configurado em produção.
+    "task_attachments_enabled": True,
+    # F8.3 — snapshot automático de tasks no relatório.
+    "report_tasks_snapshot_enabled": True,
+    # F8.3 — scan automático de prazos por cron beat.
+    "task_deadline_notifications_enabled": True,
+}
+
+
+async def _get_flags_row(
+    workspace_id: str, *, db: AsyncSession
+) -> FeatureFlag | None:
+    stmt = select(FeatureFlag).where(
+        FeatureFlag.workspace_id == workspace_id,
+    )
+    return (await db.execute(stmt)).scalar_one_or_none()
+
+
+async def get_flags(workspace_id: str, *, db: AsyncSession) -> dict[str, bool]:
+    """Retorna dict com todas as flags aplicáveis ao workspace (defaults
+    + overrides). Sempre tem todas as chaves de DEFAULTS."""
+    row = await _get_flags_row(workspace_id, db=db)
+    flags: dict[str, bool] = dict(DEFAULTS)
+    if row and isinstance(row.flags_json, dict):
+        for k, v in row.flags_json.items():
+            if k in flags and isinstance(v, bool):
+                flags[k] = v
+    return flags
+
+
+async def is_enabled(
+    workspace_id: str,
+    flag: str,
+    *,
+    db: AsyncSession,
+) -> bool:
+    """Shortcut para uma flag única. Se a flag não existe em DEFAULTS,
+    retorna False (fail-safe)."""
+    if flag not in DEFAULTS:
+        return False
+    flags = await get_flags(workspace_id, db=db)
+    return flags.get(flag, False)
+
+
+async def set_flag(
+    workspace_id: str,
+    flag: str,
+    enabled: bool,
+    *,
+    db: AsyncSession,
+) -> dict[str, bool]:
+    """Persiste mudança. Cria a row de config_blob se não existe.
+    Só aceita flags de DEFAULTS (fail-safe contra typos)."""
+    if flag not in DEFAULTS:
+        raise ValueError(f"Flag desconhecida: {flag}")
+    row = await _get_flags_row(workspace_id, db=db)
+    if row is None:
+        row = FeatureFlag(
+            workspace_id=workspace_id,
+            flags_json={flag: enabled},
+        )
+        db.add(row)
+    else:
+        current: dict[str, Any] = dict(row.flags_json or {})
+        current[flag] = enabled
+        row.flags_json = current
+        db.add(row)
+    await db.flush()
+    return await get_flags(workspace_id, db=db)
+
+
+__all__ = ["DEFAULTS", "get_flags", "is_enabled", "set_flag"]

@@ -116,3 +116,23 @@ class TestOrchestratorLogic:
         for key, stages in FROM_MAP.items():
             for s in stages:
                 assert s in valid, f"FROM_MAP['{key}'] has invalid stage '{s}'"
+
+    def test_run_stage_maps_success_false_from_detail_dict(self, monkeypatch, tmp_path):
+        """E2-llm (e similares) retornam dict com success=False sem exceção — o orquestrador deve falhar a etapa."""
+        from pipeline.context import WorkspaceContext
+        from pipeline import orchestrator
+
+        def fake_get_runner(stage: str):
+            if stage != "E2-llm":
+                return None
+
+            def run(ctx):
+                return {"success": False, "errors": [{"file": "x.pdf"}], "total_errors": 1}
+
+            return run
+
+        monkeypatch.setattr(orchestrator, "_get_stage_runner", fake_get_runner)
+        ctx = WorkspaceContext(root=tmp_path)
+        sr = orchestrator._run_stage(ctx, "E2-llm")
+        assert sr.success is False
+        assert sr.detail["total_errors"] == 1

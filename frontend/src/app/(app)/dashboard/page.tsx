@@ -38,6 +38,7 @@ import { KPICard } from "@/components/KPICard";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusBadge } from "@/components/StatusBadge";
+import { UpcomingTasksWidget } from "@/components/tasks/UpcomingTasksWidget";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -450,6 +451,11 @@ export default function DashboardPage() {
                 }
               />
             ))}
+      </div>
+
+      {/* F8.2: Widget de tarefas próximas (ADR-074) */}
+      <div className="mb-6">
+        <UpcomingTasksWidget />
       </div>
 
       {/* Charts Grid */}

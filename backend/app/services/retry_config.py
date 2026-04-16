@@ -12,6 +12,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 
+def _normalize(s: str) -> str:
+    """Lowercase and collapse underscores/hyphens to spaces for fuzzy matching."""
+    return s.lower().replace("_", " ").replace("-", " ")
+
+
 @dataclass
 class StageRetryConfig:
     max_retries: int = 0
@@ -24,8 +29,10 @@ class StageRetryConfig:
             return False
         if not self.retryable_errors:
             return attempt < self.max_retries
-        error_lower = error.lower()
-        return any(pattern.lower() in error_lower for pattern in self.retryable_errors)
+        # Normalize both sides — patterns like "rate_limit" should match
+        # human-formatted errors like "Rate limit exceeded".
+        error_norm = _normalize(error)
+        return any(_normalize(p) in error_norm for p in self.retryable_errors)
 
     def delay_for_attempt(self, attempt: int) -> float:
         return self.retry_delay_seconds * (self.backoff_factor ** attempt)

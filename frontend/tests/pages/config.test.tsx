@@ -24,6 +24,7 @@ vi.mock("next/link", () => ({
 }));
 
 import ConfigPage from "@/app/(app)/config/page";
+import MembersTab from "@/app/(app)/config/MembersTab";
 
 beforeEach(() => {
   localStorage.setItem("fin_token", "t");
@@ -44,11 +45,12 @@ describe("ConfigPage", () => {
     );
   });
 
-  it("renderiza header + 7 tabs", async () => {
+  it("renderiza header + 8 tabs", async () => {
     render(<ConfigPage />);
     expect(screen.getByText("Configurações")).toBeInTheDocument();
     for (const label of [
       "Membros",
+      "Acessos",
       "Categorias",
       "Pipeline",
       "LLM",
@@ -85,6 +87,34 @@ describe("ConfigPage", () => {
   it("tab inicial Members carrega dados via API", async () => {
     render(<ConfigPage />);
     expect(await screen.findByText(/Membro Inicial/)).toBeInTheDocument();
+  });
+
+  it("membros template (sem id) mostram Editar e explicam ao expandir", async () => {
+    server.use(
+      http.get("/api/config/members", () =>
+        HttpResponse.json({
+          members: [
+            {
+              key: "titular",
+              full_name: "Titular Exemplo",
+              short_name: "Titular",
+              role: "titular",
+              order: 0,
+              accounts: [],
+            },
+          ],
+          total: 1,
+        }),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<MembersTab />);
+    expect(
+      await screen.findByText(/Conta de acesso e pessoas do relatório são coisas diferentes/),
+    ).toBeInTheDocument();
+    await screen.findByText("Titular Exemplo");
+    await user.click(screen.getByRole("button", { name: "Editar" }));
+    expect(await screen.findByTestId("members-fallback-notice")).toBeInTheDocument();
   });
 
   it("F6.5B.7: navegação para LLM tab carrega seu endpoint", async () => {

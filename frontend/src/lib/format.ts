@@ -63,7 +63,7 @@ export function formatBytes(bytes: number | null | undefined): string {
 }
 
 export function formatDuration(ms: number | null | undefined): string {
-  if (!ms) return "—";
+  if (ms == null) return "—";
   if (ms < 1000) return `${ms}ms`;
   if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
   return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
@@ -170,11 +170,53 @@ const BANK_NAMES: Record<string, string> = {
   binance: "Binance",
   nubank: "Nubank",
   inter: "Inter",
+  receitafederal: "Receita Federal",
 };
 
 export function bankLabel(code: string | null): string {
   if (!code) return "—";
   return BANK_NAMES[code.toLowerCase()] ?? code;
+}
+
+/** Rótulo de instituição (banco, corretora, Receita, QuintoAndar, etc.) — alias de ``bankLabel``. */
+export function institutionLabel(code: string | null): string {
+  return bankLabel(code);
+}
+
+/** Extensão amigável para exibição (PDF, CSV, …). */
+export function fileFormatLabel(contentType: string | null | undefined, originalName: string): string {
+  const ext = originalName.includes(".") ? originalName.split(".").pop()?.toLowerCase() ?? "" : "";
+  const map: Record<string, string> = {
+    pdf: "PDF",
+    csv: "CSV",
+    xls: "XLS",
+    xlsx: "XLSX",
+    json: "JSON",
+    jpg: "JPEG",
+    jpeg: "JPEG",
+    png: "PNG",
+  };
+  if (ext && map[ext]) return map[ext];
+  if (contentType?.includes("pdf")) return "PDF";
+  if (contentType?.includes("csv")) return "CSV";
+  if (contentType?.includes("spreadsheet") || contentType?.includes("excel")) return "XLSX";
+  if (contentType?.includes("json")) return "JSON";
+  if (contentType?.includes("image/jpeg") || contentType?.includes("jpg")) return "JPEG";
+  if (contentType?.includes("png")) return "PNG";
+  if (ext) return ext.toUpperCase();
+  return "—";
+}
+
+/** Último pipeline concluído + se gerou JSON no E2. */
+export function pipelineE2TouchLabel(
+  lastRunAt: string | null | undefined,
+  e2Ok: boolean | null | undefined,
+): string {
+  if (!lastRunAt) return "—";
+  const when = formatDateShort(lastRunAt);
+  if (e2Ok === true) return `${when} · extrato E2`;
+  if (e2Ok === false) return `${when} · sem extrato E2`;
+  return when;
 }
 
 const RUN_STATUS_MAP: Record<PipelineRunStatus, StatusLabel> = {

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from typing import Any, Optional
 
@@ -38,6 +39,11 @@ class FamilyMemberSchema(BaseModel):
     key: str = Field(..., min_length=1, max_length=50, description="Canonical short key (e.g. 'david', 'mariana')")
     full_name: str = Field(..., min_length=1, max_length=255)
     short_name: str = Field(..., min_length=1, max_length=100)
+    birth_name: Optional[str] = Field(
+        None,
+        max_length=255,
+        description="Nome civil anterior / de nascimento (contas antigas); persiste em extra.nome_nascimento",
+    )
     cpf: Optional[str] = Field(None, max_length=14, description="CPF (masked on read, plain on write)")
     birth_date: Optional[date] = None
     role: str = Field(..., pattern=r"^(titular|conjuge|filho|dependente)$")
@@ -62,14 +68,35 @@ class FamilyMemberSchema(BaseModel):
 
 
 class FamilyMemberCreateRequest(BaseModel):
-    key: str = Field(..., min_length=1, max_length=50)
+    key: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=50,
+        description="Opcional; se omitido, gerado a partir do nome completo (slug único)",
+    )
     full_name: str = Field(..., min_length=1, max_length=255)
     short_name: str = Field(..., min_length=1, max_length=100)
+    birth_name: Optional[str] = Field(None, max_length=255)
     cpf: Optional[str] = Field(None, max_length=14)
     birth_date: Optional[date] = None
     role: str = Field(..., pattern=r"^(titular|conjuge|filho|dependente)$")
     order: int = Field(default=0, ge=0)
     extra: Optional[dict[str, Any]] = None
+
+    @field_validator("key")
+    @classmethod
+    def normalize_optional_key(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        s = v.strip()
+        if not s:
+            return None
+
+        if not re.fullmatch(r"[a-z0-9_]{1,50}", s):
+            raise ValueError(
+                "Identificador interno: use apenas letras minúsculas, números e _ (máx. 50 caracteres)"
+            )
+        return s
 
     @field_validator("cpf")
     @classmethod
@@ -86,11 +113,24 @@ class FamilyMemberUpdateRequest(BaseModel):
     key: Optional[str] = Field(None, min_length=1, max_length=50)
     full_name: Optional[str] = Field(None, min_length=1, max_length=255)
     short_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    birth_name: Optional[str] = Field(None, max_length=255)
     cpf: Optional[str] = Field(None, max_length=14)
     birth_date: Optional[date] = None
     role: Optional[str] = Field(None, pattern=r"^(titular|conjuge|filho|dependente)$")
     order: Optional[int] = Field(None, ge=0)
     extra: Optional[dict[str, Any]] = None
+
+    @field_validator("key")
+    @classmethod
+    def normalize_key(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+
+        if not re.fullmatch(r"[a-z0-9_]{1,50}", v):
+            raise ValueError(
+                "Identificador interno: use apenas letras minúsculas, números e _ (máx. 50 caracteres)"
+            )
+        return v
 
     @field_validator("cpf")
     @classmethod
