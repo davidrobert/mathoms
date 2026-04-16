@@ -116,6 +116,56 @@ export interface FluxoCaixaSummary {
   despesa_mensal_media?: number;
   fluxo_liquido?: number;
   por_fonte?: FluxoPorFonte;
+  por_fonte_detalhado?: Record<string, number>;
+  despesas_por_categoria?: Record<string, number>;
+  tabela_receitas?: Array<{ categoria: string; valor: number; pct: number }>;
+  receita_despesa_mensal_detalhado?: {
+    labels?: string[];
+    totais_receita?: number[];
+    totais_despesa?: number[];
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Lote B (S2) — Fluxo de Caixa
+// ──────────────────────────────────────────────────────────────────────
+
+export interface OrcamentoProspectivoData {
+  categorias?: Record<string, number>;
+  total?: number;
+  media_mensal?: number;
+  legenda?: string;
+}
+
+export interface ConsumoConscienteData {
+  itens?: Array<{
+    descricao: string;
+    conta_cartao?: string;
+    data?: string;
+    mes?: string;
+    valor?: number;
+    [key: string]: unknown;
+  }>;
+  total_pontuais?: number;
+  equivalente_meses_aporte?: number;
+  folga_mensal?: number;
+  folga_pct?: number;
+  teto_sugerido?: number;
+  analise?: string;
+}
+
+export interface DiagnosticoComportamental {
+  padrao: string;
+  evidencia?: string;
+  mudanca_sugerida?: string;
+}
+
+export interface EquilibrioCerbasiData {
+  pct_presente?: number;
+  pct_futuro?: number;
+  classificacao?: string;
+  presente?: string;
+  futuro?: string;
 }
 
 /** Type guard defensivo. */

@@ -12,10 +12,11 @@ import { ReportSection } from "./ReportSection";
 import { ReportSectionStub } from "./ReportSectionStub";
 import { useReportMode } from "./ReportModeProvider";
 import { S1PatrimonioSection } from "./sections/S1PatrimonioSection";
+import { S2FluxoCaixaSection } from "./sections/S2FluxoCaixaSection";
 
 /** IDs de seções com render React completo (sem stubs).
  *  Cada lote F2.A–F2.H adiciona IDs aqui. */
-const MIGRATED_SECTIONS = new Set(["S1"]);
+const MIGRATED_SECTIONS = new Set(["S1", "S2"]);
 
 interface ReportShellProps {
   reportId: string;
@@ -153,7 +154,8 @@ function MigratedSection({
   switch (sectionId) {
     case "S1":
       return <S1PatrimonioSection data={data} />;
-    // F2.B: case "S2": return <S2FluxoCaixaSection data={data} />;
+    case "S2":
+      return <S2FluxoCaixaSection data={data} />;
     // F2.C: case "S3": return <S3InvestimentosSection data={data} />;
     // ...
     default:
