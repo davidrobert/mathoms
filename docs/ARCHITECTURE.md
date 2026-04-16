@@ -552,7 +552,7 @@ fin-current/
 │   ├── e6_render.py, e7_review.py, e_reset.py
 │   ├── e6/                    # Submódulos E6 (sanitize.py, validate.py)
 │   ├── e2/                    # Parsers por banco (registry, common, banks/)
-│   └── pipeline_common.py     # Paths, config, JSON I/O, schema validation
+│   └── pipeline_common.py     # Paths, config, JSON I/O (atomic writes), schema validation, structured logging
 │
 ├── frontend/
 │   ├── src/
@@ -667,6 +667,12 @@ Scripts lêem config do disco via `_init_config`. `materialize_config()` copia `
 
 ### Pipeline Adapter (F8)
 `pipeline_adapter.py` é a fachada DB → JSON para entidades migradas (goals, tasks, family_members). Scripts recebem JSONs materializados no disco, sem saber que a fonte é o DB.
+
+### Atomic Writes (pipeline hardening)
+Artefatos intermediários (E3, E4, E5) são escritos atomicamente via `pipeline_common.write_json_atomic()` (temp file + `os.replace()`). O flag `fsync=True` é usado para artefatos críticos (E5 analysis). Previne arquivos truncados em caso de crash/OOM kill do worker.
+
+### Consolidate, Don't Duplicate (pipeline hardening)
+Scripts E3/E4/E5 delegam `read_json()`, `write_json()`, `log_progress()` para `pipeline_common.py`. Elimina divergência comportamental entre estágios (ex: error handling, encoding, indentation). `safe_float(locale=)` aceita BRL/USD/EUR para parsing correto de valores multi-moeda.
 
 ### Cancel Cooperativo (F5)
 DB flag `PipelineRun.status = "cancelled"`. Task verifica entre stages. Celery `revoke()` adicional. Stages completos preservados.

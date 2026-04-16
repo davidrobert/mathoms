@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fin://schemas/pipeline.v1",
+  "title": "Pipeline Configuration",
+  "description": "Operational parameters for the financial consolidation pipeline (E0–E7).",
+  "type": "object",
+  "required": ["report_version", "llm", "file_limits", "reconciliation"],
+  "additionalProperties": true,
+  "properties": {
+    "_comment": { "type": "string" },
+    "_ultima_atualizacao": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "report_version": {
+      "type": "string",
+      "description": "Semantic version of the report format."
+    },
+    "schema_validation": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "mode": {
+          "type": "string",
+          "enum": ["warn", "strict"]
+        }
+      },
+      "required": ["enabled", "mode"],
+      "additionalProperties": false
+    },
+    "llm": {
+      "type": "object",
+      "description": "LLM configuration for E0 routing fallback, E1, E1.5, E5.N, E7 review.",
+      "properties": {
+        "model": {
+          "type": "string",
+          "description": "Anthropic model ID (e.g. claude-sonnet-4-20250514)."
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 16000
+        },
+        "confidence_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum confidence for LLM classification fallback."
+        }
+      },
+      "required": ["model", "max_tokens", "confidence_threshold"],
+      "additionalProperties": false
+    },
+    "file_limits": {
+      "type": "object",
+      "properties": {
+        "preview_max_chars": { "type": "integer", "minimum": 100 },
+        "preview_max_rows": { "type": "integer", "minimum": 1 },
+        "min_pdf_bytes": { "type": "integer", "minimum": 0 },
+        "min_xls_bytes": { "type": "integer", "minimum": 0 },
+        "min_csv_bytes": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["preview_max_chars", "min_pdf_bytes"],
+      "additionalProperties": false
+    },
+    "period_regex": {
+      "type": "object",
+      "properties": {
+        "period": { "type": "string" },
+        "year_fallback": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "reconciliation": {
+      "type": "object",
+      "properties": {
+        "skip_types": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Document types to skip during reconciliation."
+        },
+        "skip_files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Specific filenames to skip during reconciliation."
+        },
+        "tipo_canonical": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Mapping of tipo aliases to canonical tipo names."
+        },
+        "tolerances": {
+          "type": "object",
+          "properties": {
+            "saldo_diff": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Max acceptable saldo difference between consecutive extracts."
+            },
+            "temporal_gap_days": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Max acceptable gap in days between consecutive extracts."
+            },
+            "baseline_irpf_diff": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Max acceptable difference between baseline IRPF and extract saldo."
+            }
+          },
+          "required": ["saldo_diff", "temporal_gap_days", "baseline_irpf_diff"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["skip_types", "tolerances"],
+      "additionalProperties": false
+    },
+    "qa_thresholds": {
+      "type": "object",
+      "properties": {
+        "_comment": { "type": "string" },
+        "score_diff_max": { "type": "number", "minimum": 0 },
+        "patrimonio_composicao_diff_pct_max": { "type": "number", "minimum": 0 },
+        "cv_fluxo_diff_max": { "type": "number", "minimum": 0 },
+        "cv_taxa_poupanca_diff_pp_max": { "type": "number", "minimum": 0 },
+        "cv_if_monthly_diff_max": { "type": "number", "minimum": 0 },
+        "cv_if_progress_diff_pct_max": { "type": "number", "minimum": 0 },
+        "cv_endividamento_diff_pct_max": { "type": "number", "minimum": 0 },
+        "cv_reserva_cobertura_diff_max": { "type": "number", "minimum": 0 },
+        "qa_unidentified_target_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+      },
+      "additionalProperties": true
+    },
+    "artifact_names": {
+      "type": "object",
+      "properties": {
+        "_comment": { "type": "string" },
+        "baseline_patrimonial": { "type": "string" },
+        "receitas_unified": { "type": "string" },
+        "despesas_unified": { "type": "string" },
+        "investimentos_unified": { "type": "string" },
+        "fluxo_unified": { "type": "string" },
+        "analise_e5": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "e2_llm": {
+      "type": "object",
+      "properties": {
+        "_comment": { "type": "string" },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "max_input_chars": { "type": "integer", "minimum": 1000 },
+        "max_pdf_pages": { "type": "integer", "minimum": 1, "maximum": 100 }
+      },
+      "required": ["concurrency"],
+      "additionalProperties": false
+    },
+    "log_files": {
+      "type": "object",
+      "properties": {
+        "_comment": { "type": "string" },
+        "operational": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "preserved": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

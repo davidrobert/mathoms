@@ -24,6 +24,11 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Tuple, Optional
 from collections import defaultdict
 
+try:
+    import scripts.pipeline_common as _pc
+except ImportError:
+    _pc = None  # Fallback: standalone CLI execution
+
 
 # ============================================================================
 # LOAD CONFIGURATION FROM JSON FILES
@@ -33,7 +38,14 @@ _DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def _load_json_config_from(config_dir: Path, filename: str) -> dict:
-    """Load a JSON config file from a given config directory."""
+    """Load a JSON config file from a given config directory.
+    Fix 2.1: delegates to pipeline_common when available.
+    """
+    if _pc is not None:
+        # Use cached loader from pipeline_common
+        data = _pc.load_json_config(filename, required=True)
+        if data:
+            return data
     path = config_dir / filename
     if not path.exists():
         print(f"FATAL: Config file not found: {path}", file=sys.stderr)
@@ -691,8 +703,13 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
                             "moeda": moeda
                         })
                         continue
-                    # If no keyword match and not internal → nao_identificado
+                    # Fix 3.2: explicit fallback + logging for uncategorized expenses
                     category = "nao_identificado"
+                    print(
+                        f"  [E4.2] UNCATEGORIZED: {descricao[:80]} "
+                        f"(R$ {abs(valor):,.2f}, {banco_raw})",
+                        file=sys.stderr,
+                    )
 
                 # Use absolute value for expenses (debits often stored as negative)
                 valor_abs = abs(valor)
@@ -843,7 +860,11 @@ def build_fluxo_mensal_detalhado(receitas: List[Dict], despesas: List[Dict]) -> 
 
 
 def save_json(file_path: Path, data: Dict) -> None:
-    """Save JSON file with nice formatting."""
+    """Save JSON file with nice formatting. Uses atomic write when available (Fix 2.3)."""
+    if _pc is not None:
+        if not _pc.write_json_atomic(file_path, data):
+            raise IOError(f"Atomic write failed for {file_path}")
+        return
     try:
         file_path.parent.mkdir(parents=True, exist_ok=True)
         with open(file_path, 'w', encoding='utf-8') as f:

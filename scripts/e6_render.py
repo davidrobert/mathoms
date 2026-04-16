@@ -914,7 +914,10 @@ def _build_top5_decisoes_fallback() -> list:
     print("  ⚠️  WARNING: top5_decisoes não encontrado em goals.json — configure 'top5_decisoes' para evitar dados genéricos")
     aporte = GOALS_CONFIG.get("aportes", {}).get("meta_aporte_mensal", 0)
     if aporte <= 0:
-        raise ValueError("top5_decisoes e meta_aporte_mensal ausentes em goals.json. Configure pelo menos um deles.")
+        print("  ⚠️  WARNING: top5_decisoes e meta_aporte_mensal ausentes em goals.json — usando placeholder genérico")
+        return [
+            {"label": "Configure goals.json", "impacto_1a": 0, "impacto_10a": 0},
+        ]
     seg_min = GOALS_CONFIG.get("seguros", {}).get("vida_term_minimo", 0)
     seg_max = GOALS_CONFIG.get("seguros", {}).get("vida_term_maximo", 0)
     return [
@@ -1265,11 +1268,34 @@ def build_estrategia_aporte(e4: dict) -> dict:
             "resumo_usd": f"Exposição ao dólar = {fmt_brl(usd_total)}/mês. Meta pré-EUA: US$ {fmt_num(GOALS_CONFIG.get('dolarizacao', {}).get('meta_usd', 20000))}.",
         }
 
-    # Ultimate fallback: require config
-    raise ValueError(
-        "Estratégia de aportes não encontrada em goals.json. "
-        "Configure 'aportes.destinos_detalhados' ou 'aportes.meta_aporte_mensal' em config/goals.json."
-    )
+    # Ultimate fallback: return minimal default with warning
+    if total > 0:
+        print("  ⚠️  WARNING: aportes_destinos_detalhados não encontrado em goals.json — usando meta_aporte_mensal genérica")
+        return {
+            "total_aporte": total,
+            "dia_aporte": aportes_cfg.get("dia_aporte", 5),
+            "periodo_inicio": aportes_cfg.get("periodo_inicio", "Imediato"),
+            "destinos": [{"destino": "Investimentos", "valor": total, "moeda": "BRL", "veiculo": "—", "notas": "Configure aportes_destinos_detalhados em goals.json para detalhamento"}],
+            "pct_brl": 100,
+            "pct_usd": 0,
+            "destinos_brl": "Investimentos",
+            "destinos_usd": "",
+            "resumo_brl": f"Aporte total de {fmt_brl(total)}/mês (configure goals.json para detalhamento).",
+            "resumo_usd": "",
+        }
+    print("  ⚠️  WARNING: estratégia de aportes vazia — configure goals.json para dados reais")
+    return {
+        "total_aporte": 0,
+        "dia_aporte": 5,
+        "periodo_inicio": "—",
+        "destinos": [],
+        "pct_brl": 0,
+        "pct_usd": 0,
+        "destinos_brl": "",
+        "destinos_usd": "",
+        "resumo_brl": "Nenhuma estratégia de aporte configurada.",
+        "resumo_usd": "",
+    }
 
 
 def build_contrafluxo_scenarios() -> dict:

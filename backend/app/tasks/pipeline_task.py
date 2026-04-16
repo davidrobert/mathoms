@@ -124,8 +124,11 @@ def _persist_llm_suggestions(
     Se a lista estiver vazia (caso mais comum até o LLM ser treinado para
     produzir sugestões), não faz nada. Idempotente: duplicatas são evitadas
     pelo `source_run_id` (se o mesmo run_id já tem sugestões, pula).
+
+    Fix 2.5: Uses sync DB session instead of asyncio.run() which can crash
+    inside Celery workers (especially with gevent pool) and creates
+    unnecessary event loops.
     """
-    import asyncio
     import json
     import logging
 
@@ -151,58 +154,47 @@ def _persist_llm_suggestions(
         run_id,
     )
 
-    async def _save():
-        from backend.app.core.database import async_session as AsyncSessionLocal
-        from backend.app.schemas.task import (
-            TaskSuggestionCreate,
-            TaskSuggestionProposed,
-        )
-        from backend.app.services import task_suggestion_service
+    from sqlalchemy import select
+    from backend.app.models.task import TaskSuggestion
 
-        async with AsyncSessionLocal() as db:
-            # Check idempotência: se já existem suggestions desse run, pula
-            from sqlalchemy import select
-            from backend.app.models.task import TaskSuggestion
+    with SyncSessionLocal() as db:
+        # Check idempotência: se já existem suggestions desse run, pula
+        existing = db.execute(
+            select(TaskSuggestion).where(
+                TaskSuggestion.workspace_id == ws_id,
+                TaskSuggestion.source_run_id == run_id,
+            )
+        ).scalars().first()
+        if existing:
+            logger.info("Suggestions for run %s already exist — skipping", run_id)
+            return
 
-            existing = (
-                await db.execute(
-                    select(TaskSuggestion).where(
-                        TaskSuggestion.workspace_id == ws_id,
-                        TaskSuggestion.source_run_id == run_id,
-                    )
+        saved = 0
+        for s in sugeridas:
+            try:
+                sugg = TaskSuggestion(
+                    id=str(uuid.uuid4()),
+                    workspace_id=ws_id,
+                    source="e5n_llm",
+                    source_run_id=run_id,
+                    status="pending",
+                    proposed_payload={
+                        "title": s.get("tarefa", s.get("title", "Sugestão LLM")),
+                        "category": s.get("categoria", s.get("category", "Orcamento")),
+                        "priority": s.get("prioridade", s.get("priority", "R")),
+                        "deadline_kind": s.get("deadline_kind", "UNSCHEDULED"),
+                        "deadline_label": s.get("prazo", s.get("deadline_label")),
+                        "description": s.get("descricao", s.get("description")),
+                    },
                 )
-            ).scalars().first()
-            if existing:
-                logger.info("Suggestions for run %s already exist — skipping", run_id)
-                return
+                db.add(sugg)
+                saved += 1
+            except Exception as exc:
+                logger.warning("Skipping invalid suggestion: %s — %s", s, exc)
 
-            creates = []
-            for s in sugeridas:
-                try:
-                    proposed = TaskSuggestionProposed(
-                        title=s.get("tarefa", s.get("title", "Sugestão LLM")),
-                        category=s.get("categoria", s.get("category", "Orcamento")),
-                        priority=s.get("prioridade", s.get("priority", "R")),
-                        deadline_kind=s.get("deadline_kind", "UNSCHEDULED"),
-                        deadline_label=s.get("prazo", s.get("deadline_label")),
-                        description=s.get("descricao", s.get("description")),
-                    )
-                    creates.append(
-                        TaskSuggestionCreate(
-                            proposed_payload=proposed,
-                            source="e5n_llm",
-                            source_run_id=run_id,
-                        )
-                    )
-                except Exception as exc:
-                    logger.warning("Skipping invalid suggestion: %s — %s", s, exc)
-
-            if creates:
-                await task_suggestion_service.bulk_create(ws_id, creates, db=db)
-                await db.commit()
-                logger.info("Saved %d suggestions", len(creates))
-
-    asyncio.run(_save())
+        if saved:
+            db.commit()
+            logger.info("Saved %d suggestions", saved)
 
 
 def _find_latest_analysis_json(tenant_root: Path) -> Path | None:
@@ -305,8 +297,11 @@ def _on_pipeline_task_failure(self, exc, task_id, args, kwargs, einfo):
                 run.current_stage = None
                 db.commit()
         publish_run_failed(run_id)
-    except Exception:
-        pass  # best-effort — DB may be down too
+    except Exception as exc:
+        import logging as _logging
+        _logging.getLogger("pipeline_task").warning(
+            "on_failure handler could not mark run %s as failed: %s", run_id, exc
+        )
 
 
 @celery_app.task(
@@ -510,6 +505,9 @@ def run_pipeline_task(
                 db.commit()
 
         if not has_failure:
+            import logging as _logging
+            _post_logger = _logging.getLogger("pipeline_task.post")
+
             try:
                 from backend.app.services.document_pipeline_sync import (
                     sync_documents_pipeline_e2_status,
@@ -523,19 +521,19 @@ def run_pipeline_task(
                         else datetime.now(timezone.utc)
                     )
                 sync_documents_pipeline_e2_status(ws_id, tenant_root, touch_ts)
-            except Exception:
-                pass
+            except Exception as exc:
+                _post_logger.warning("Failed to sync document E2 status: %s", exc)
 
             try:
                 _create_report_from_output(ws_id, run_id, tenant_root)
-            except Exception:
-                pass
+            except Exception as exc:
+                _post_logger.warning("Failed to create report from output: %s", exc)
 
             # ADR-074 / F8.4: persiste tarefas_sugeridas do E5.N no DB
             # (se existirem no JSON de análise).
             try:
                 _persist_llm_suggestions(ws_id, run_id, tenant_root)
-            except Exception:
-                pass
+            except Exception as exc:
+                _post_logger.warning("Failed to persist LLM suggestions: %s", exc)
 
     return {"status": "completed" if not has_failure else "failed", "run_id": run_id}

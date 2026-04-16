@@ -2478,6 +2478,45 @@ def main(root_dir: Path = None):
     # BUILD OUTPUT JSON
     # ========================================================================
 
+    # ========================================================================
+    # FIX 3.3: SANITY CHECKS — detect absurd values before writing output
+    # ========================================================================
+    _sanity_errors = []
+
+    pat_bruto = patrimonio.get("bruto", 0)
+    if pat_bruto < 0:
+        _sanity_errors.append(f"Patrimônio bruto negativo: R$ {pat_bruto:,.2f}")
+
+    receita_total = fluxo.get("receita_total", 0)
+    if receita_total < 0:
+        _sanity_errors.append(f"Receita total negativa: R$ {receita_total:,.2f}")
+
+    despesa_total = fluxo.get("despesa_total", 0)
+    if despesa_total < 0:
+        _sanity_errors.append(f"Despesa total negativa: R$ {despesa_total:,.2f}")
+
+    taxa_poup = ratios.get("taxa_poupanca_recorrente_pct", 0)
+    if not isinstance(taxa_poup, str) and (taxa_poup < -100 or taxa_poup > 100):
+        _sanity_errors.append(f"Taxa poupança fora do range [-100%, 100%]: {taxa_poup:.1f}%")
+
+    if_pct = goals.get("if_pct", 0)
+    if if_pct < 0:
+        _sanity_errors.append(f"IF progresso negativo: {if_pct:.1f}%")
+
+    endiv = ratios.get("endividamento_pct", 0)
+    if not isinstance(endiv, str) and endiv > 200:
+        _sanity_errors.append(f"Endividamento acima de 200%: {endiv:.1f}%")
+
+    score_val = score.get("valor", 0)
+    if score_val < 0 or score_val > 10:
+        _sanity_errors.append(f"Score fora do range [0, 10]: {score_val}")
+
+    if _sanity_errors:
+        print("\n  ⚠️  SANITY CHECK WARNINGS (possível corrupção de input):")
+        for err in _sanity_errors:
+            print(f"     • {err}")
+        print("  Pipeline continua, mas revise os dados de entrada.\n")
+
     output = {
         "periodo_dados": periodo_dados,
         "data_analise": TODAY.isoformat(),
@@ -2516,12 +2555,17 @@ def main(root_dir: Path = None):
         print("\n  ✓ Preserving existing narrativas from previous run")
 
     # ========================================================================
-    # WRITE OUTPUT
+    # WRITE OUTPUT — atomic write for crash safety (Fix 2.3)
     # ========================================================================
 
     FILE_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    with open(FILE_OUTPUT, "w", encoding="utf-8") as f:
-        json.dump(output, f, indent=2, ensure_ascii=False)
+    try:
+        import scripts.pipeline_common as _pc
+        _pc.write_json_atomic(FILE_OUTPUT, output, fsync=True)
+    except (ImportError, Exception):
+        # Fallback to direct write if pipeline_common not available
+        with open(FILE_OUTPUT, "w", encoding="utf-8") as f:
+            json.dump(output, f, indent=2, ensure_ascii=False)
 
     print(f"\n[E5.FINAL] Analysis complete!")
     print(f"  ✓ Output saved to: {FILE_OUTPUT}")

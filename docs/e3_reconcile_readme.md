@@ -1,4 +1,4 @@
-# E3 RECONCILIATION SCRIPT - e3_reconcile.py v2.0
+# E3 RECONCILIATION SCRIPT - e3_reconcile.py v2.1
 
 PURPOSE:
 Deterministic E3 reconciliation stage that replaces the LLM-driven pipeline.
@@ -46,33 +46,42 @@ FEATURES:
   - ONLY deduplicates between different source files
   - Intra-file duplicates preserved (legitimate distinct transactions)
   - When cross-file dup found, keeps file with most occurrences
+  - v2.1: returns audit details (3rd return value) — each dedup action
+    logged with original descriptions from both kept and removed sides
 6. Saldo continuity validation:
   - Checks saldo_final (prev) ≈ saldo_inicial (next)
   - None saldos converted to 0 with warning
   - Reports gaps in reconciliation.md
 7. Temporal gap detection:
-  - Gaps > 2 days between consecutive extracts logged
+  - Gaps > 4 days (v2.1, was 2) between consecutive extracts logged
+  - Increased to reduce false positives on weekends/holidays
   - Written to logs/qa_log.md (append mode)
 8. Baseline patrimonial validation:
   - Compares 31/12 saldos against IRPF baseline
+  - v2.1: uses canonical bank codes for comparison (prevents false
+    positives from bank name variants like "Itaú" vs "itau")
   - Discrepancies > R$1 reported in reconciliation.md
 9. Deterministic output:
   - Transactions sorted chronologically
   - YYYYMM filename format (no year ambiguity)
+  - v2.1: atomic writes via write_json_atomic() for crash safety
   - Idempotent (running twice = identical output)
   - Complete metadata tracking
 
 SKIP TYPES (intentionally excluded):
 
-- -0_original backup files
-- investimentosposicao
-- carteirarendafixa
-- cdbdetalhes, cdbresumo
-- faturaaluguel*
-- informerendimentos*
-- irpf*
-- baseline_patrimonial-1.5_consolidated.json
-- dados_imoveis-2_extract.json
+- -0_original backup files (checked by should_skip_file via filename rule)
+- investimentosposicao, carteirarendafixa, cdbdetalhes, cdbresumo,
+  faturaaluguel, informerendimentos, irpf (checked by should_skip_extract
+  via JSON "tipo" field — NOT by filename substring, see v2.1 fix)
+- baseline_patrimonial-1.5_consolidated.json (skip_files config)
+- dados_imoveis-2_extract.json (skip_files config)
+
+I/O DELEGATION (v2.1):
+
+- read_json(), write_json(), log_progress() delegate to pipeline_common.py
+- Eliminates behavioral divergence with other pipeline stages
+- Output written via write_json_atomic() for crash safety
 
 LAST RUN STATS (v2.0):
 

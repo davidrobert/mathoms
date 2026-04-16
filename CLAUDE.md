@@ -15,11 +15,11 @@ config/              Configurações, schemas, templates, regras do pipeline
   categorization.json      Keywords de categorização de receitas/despesas
   institutions.json        Padrões de bancos, tipos de documento, layouts de extração
   report_layout.yaml       Layout do relatório (seções, cards, charts) — YAML por extensos comentários inline
-  schemas/                 JSON Schemas de validação (baseline_patrimonial, e2_extract, e4_unified, e5_analysis)
+  schemas/                 JSON Schemas de validação (baseline_patrimonial, e2_extract, e4_unified, e5_analysis, pipeline)
   templates/               Templates estáticos (HTML, Markdown)
     report_template.html     Template HTML do relatório final (E6)
 scripts/             Scripts determinísticos do pipeline (e0–e7, e_reset)
-  pipeline_common.py   Módulo compartilhado (paths, config loading, JSON I/O, schema validation)
+  pipeline_common.py   Módulo compartilhado (paths, config loading, JSON I/O, atomic writes, schema validation, structured logging)
   e6/                  Submódulos E6 extraídos (sanitize.py, validate.py)
 dev/                 Dev-tooling (commit helper, pre-commit hooks) — NÃO é produto
   commit.py            Wrapper git com guardrails (substitui o antigo e_save.py)
@@ -236,6 +236,6 @@ Nomes de banco em filenames seguem o código canônico de `institutions.json` (e
 - `**report_layout.yaml`**: único YAML no projeto. Justificado por extensos comentários inline que seriam perdidos em JSON.
 - `**inbox_processed/**`: sem prefixo `_` (diferente de `_archive/`, `_scratch/`) porque semanticamente é parte do fluxo de dados, não um diretório auxiliar.
 - **Período sentinel `999999`**: usado em faturas de cartão cujo período não pôde ser determinado. Propaga de E0→E2→E3.
-- `**config/schemas/**`: contém 4 schemas — `baseline_patrimonial.schema.json` (E1.5), `e2_extract.schema.json` (E2), `e4_unified.schema.json` (E4), `e5_analysis.schema.json` (E5). Validação controlada por `pipeline.json` → `schema_validation.enabled` (modo warn ou strict).
+- `**config/schemas/**`: contém 5 schemas de dados — `baseline_patrimonial.schema.json` (E1.5), `e2_extract.schema.json` (E2), `e4_unified.schema.json` (E4), `e5_analysis.schema.json` (E5), `pipeline.schema.json` (pipeline.json). Validação de dados controlada por `pipeline.json` → `schema_validation.enabled` (modo warn ou strict).
 - **Logs**: nomes em lowercase com prefixo de etapa quando aplicável (ex: `e1_5_execution_report.txt`, `qa_log.md`).
 

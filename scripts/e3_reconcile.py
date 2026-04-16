@@ -27,6 +27,8 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional, Any
 
+import scripts.pipeline_common as _pc
+
 # =============================================================================
 # Configuration & Types
 # =============================================================================
@@ -40,8 +42,8 @@ def _load_json_safe(path: Path) -> dict:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception:
-            pass
+        except Exception as e:
+            log_progress("WARN", f"Failed to load {path.name}: {e}")
     return {}
 
 
@@ -88,7 +90,8 @@ def _init_config(base_dir: Path) -> None:
 
     _tolerances = _recon_cfg.get("tolerances", {})
     _TOLERANCE_SALDO_DIFF = _tolerances.get("saldo_diff", 0.01)
-    _TOLERANCE_GAP_DAYS = _tolerances.get("temporal_gap_days", 2)
+    # Fix 3.6: default 4 days to account for weekends + possible holidays
+    _TOLERANCE_GAP_DAYS = _tolerances.get("temporal_gap_days", 4)
     _TOLERANCE_BASELINE_DIFF = _tolerances.get("baseline_irpf_diff", 1.0)
 
 
@@ -101,35 +104,22 @@ _init_config(_DEFAULT_BASE_DIR)
 # =============================================================================
 
 def log_progress(stage: str, message: str) -> None:
-    """Print a timestamped progress message."""
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"[{timestamp}] {stage}: {message}", file=sys.stderr)
+    """Delegate to pipeline_common structured logger."""
+    _pc.log_stage(stage, message)
 
 
 # =============================================================================
-# File I/O Helpers
+# File I/O Helpers — delegated to pipeline_common (Fix 2.1)
 # =============================================================================
 
 def read_json(path: Path) -> Optional[Dict[str, Any]]:
     """Safely read a JSON file."""
-    try:
-        with open(path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        log_progress("ERROR", f"Failed to read {path.name}: {e}")
-        return None
+    return _pc.read_json(path)
 
 
 def write_json(path: Path, data: Dict[str, Any]) -> bool:
     """Safely write JSON with proper formatting."""
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        return True
-    except Exception as e:
-        log_progress("ERROR", f"Failed to write {path.name}: {e}")
-        return False
+    return _pc.write_json(path, data)
 
 
 def normalize_periodo_in_extract(data: Dict[str, Any]) -> None:
@@ -196,10 +186,10 @@ def cleanup_e3_directory(e3_dir: Path) -> int:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump({"_tombstone": True}, f)
                 cleaned += 1
-            except Exception:
-                pass
-        except Exception:
-            pass
+            except Exception as e:
+                log_progress("WARN", f"Cannot delete or tombstone {file_path.name}: {e}")
+        except Exception as e:
+            log_progress("WARN", f"Unexpected error cleaning {file_path.name}: {e}")
 
     if cleaned:
         log_progress("E3.0", f"Cleaned {e3_dir.name}: {cleaned} stale files removed/tombstoned")
@@ -212,16 +202,17 @@ def cleanup_e3_directory(e3_dir: Path) -> int:
 # =============================================================================
 
 def should_skip_file(filename: str) -> bool:
-    """Check if a file should be skipped."""
+    """Check if a file should be skipped based on filename rules.
+
+    NOTE: Type-based skipping is done in should_skip_extract() using the
+    actual ``tipo`` field from the JSON content, not filename substrings.
+    This function only checks structural filename rules (Fix 3.5).
+    """
     if filename in SKIP_FILES:
         return True
     # Skip -0_original backup files (#2)
     if '-0_original' in filename:
         return True
-    # Check if tipo is in SKIP_TYPES (tipo is usually in the filename)
-    for skip_type in SKIP_TYPES:
-        if skip_type in filename:
-            return True
     return False
 
 
@@ -422,7 +413,7 @@ def transaction_signature(txn: Dict[str, Any]) -> Tuple:
 
 def deduplicate_transactions(
     transactions_with_sources: List[Tuple[Dict[str, Any], str]]
-) -> Tuple[List[Dict[str, Any]], int]:
+) -> Tuple[List[Dict[str, Any]], int, List[str]]:
     """
     Remove duplicate transactions by signature, but ONLY across different files.
     Transactions within the same source file are NEVER deduplicated — they
@@ -432,10 +423,12 @@ def deduplicate_transactions(
     Args:
         transactions_with_sources: List of (transaction_dict, source_filename) tuples
 
-    Returns: (deduplicated_list, count_removed)
+    Returns: (deduplicated_list, count_removed, dedup_details)
+        dedup_details: list of human-readable strings describing each dedup action (Fix 3.1)
     """
     deduplicated = []
     duplicates_removed = 0
+    dedup_details: List[str] = []
 
     # Group by (signature, source_file) to count per-file occurrences
     per_file_counts: Dict[Tuple, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
@@ -457,10 +450,25 @@ def deduplicate_transactions(
             # Discard occurrences from other source files.
             first_source = sorted(file_map.keys())[0]
             deduplicated.extend(file_map[first_source])
-            removed_count = sum(len(txns) for src, txns in file_map.items() if src != first_source)
+            removed_sources = sorted(src for src in file_map if src != first_source)
+            removed_count = sum(len(file_map[src]) for src in removed_sources)
             duplicates_removed += removed_count
+            # Fix 3.1: detailed dedup logging for auditability
+            if removed_count > 0:
+                date_str, valor, desc_norm = sig
+                # Recover original descriptions for audit trail
+                kept_descs = [t.get('descricao', '')[:60] for t in file_map[first_source][:1]]
+                removed_descs = []
+                for src in removed_sources:
+                    removed_descs.extend(t.get('descricao', '')[:60] for t in file_map[src][:1])
+                dedup_details.append(
+                    f"DEDUP: {date_str} R${valor} "
+                    f"kept='{kept_descs[0] if kept_descs else '?'}' from {first_source}, "
+                    f"removed {removed_count} from {','.join(removed_sources)} "
+                    f"(removed desc='{removed_descs[0] if removed_descs else '?'}')"
+                )
 
-    return deduplicated, duplicates_removed
+    return deduplicated, duplicates_removed, dedup_details
 
 
 # =============================================================================
@@ -526,8 +534,8 @@ def validate_saldo_and_gaps(
                             f"({prev_fim} -> {inicio})"
                         )
                         temporal_gaps.append(gap_msg)
-                except ValueError:
-                    pass  # Date parsing failed, skip gap check
+                except ValueError as e:
+                    log_progress("WARN", f"Date parsing failed for gap check: {prev_fim} → {inicio}: {e}")
 
             prev_final_saldo = saldo_final
             prev_fim = fim
@@ -605,7 +613,12 @@ def validate_against_baseline(
 
         # Check if this account covers any 31/12 date
         for (bl_banco, bl_ano), bl_info in baseline_saldos.items():
-            if bl_banco not in banco and banco not in bl_banco:
+            # Fix 4.4: use canonical bank codes for comparison instead of
+            # substring matching which can produce false positives (e.g.
+            # "c6" matching "abc6xyz"). Canonicalize both sides.
+            bl_canonical = _BANCO_DISPLAY_TO_CANONICAL.get(bl_banco, bl_banco)
+            acct_canonical = _BANCO_DISPLAY_TO_CANONICAL.get(banco, banco)
+            if bl_canonical != acct_canonical and bl_banco not in banco and banco not in bl_banco:
                 continue
 
             target_date = f"{bl_ano}-12-31"
@@ -855,7 +868,10 @@ def reconcile_account(
                 all_transactions_with_sources.append((txn, source_name))
 
     # Deduplicate (only across files, not within)
-    dedup_txns, dup_count = deduplicate_transactions(all_transactions_with_sources)
+    dedup_txns, dup_count, dedup_details = deduplicate_transactions(all_transactions_with_sources)
+    # Fix 3.1: log each dedup action for auditability
+    for detail in dedup_details:
+        log_progress("E3.3", detail)
 
     # Sort chronologically with proper date parsing
     dedup_txns.sort(key=lambda x: _parse_date_for_sort(x.get('data') or ''))
@@ -1033,7 +1049,8 @@ def main(root_dir: Path = None):
         filename = generate_output_filename(reconciled)
         output_path = e3_dir / filename
 
-        if write_json(output_path, reconciled):
+        # Fix 2.3: use atomic writes to prevent partial files on crash
+        if _pc.write_json_atomic(output_path, reconciled):
             written_files.append(filename)
             log_progress("E3.4", f"Wrote {filename}")
         else:

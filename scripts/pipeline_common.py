@@ -10,15 +10,35 @@ Usage:
     from scripts.pipeline_common import (
         PROJECT_DIR, CONFIG_DIR, DATA_DIR, PROCESSED_DIR, LOGS_DIR,
         INBOX_DIR, INBOX_PROCESSED_DIR, MEMBERS_DIR, OUTPUT_DIR,
-        load_json_config, read_json, write_json, safe_float, log_stage,
+        load_json_config, read_json, write_json, write_json_atomic,
+        safe_float, log_stage,
     )
 """
 
 import json
+import logging
+import os
 import sys
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+
+# =============================================================================
+# Structured logging — all pipeline scripts should use this logger
+# =============================================================================
+
+_logger = logging.getLogger("fin.pipeline")
+
+if not _logger.handlers:
+    _handler = logging.StreamHandler(sys.stderr)
+    _handler.setFormatter(logging.Formatter(
+        "[%(asctime)s] %(name)s.%(levelname)s: %(message)s",
+        datefmt="%H:%M:%S",
+    ))
+    _logger.addHandler(_handler)
+    _logger.setLevel(logging.DEBUG)
 
 
 # =============================================================================
@@ -111,6 +131,39 @@ def write_json(path: Path, data: Dict[str, Any], *, indent: int = 2) -> bool:
         return False
 
 
+def write_json_atomic(path: Path, data: Dict[str, Any], *, indent: int = 2,
+                      fsync: bool = False) -> bool:
+    """Write JSON atomically via temp file + rename.
+
+    Prevents partial writes on crash: the file is either fully written
+    or not modified at all. Use ``fsync=True`` for critical artifacts
+    (e.g. E5 analysis) where durability matters.
+    """
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(
+            dir=str(path.parent), suffix=".tmp", prefix=f".{path.stem}_"
+        )
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=indent, ensure_ascii=False)
+                if fsync:
+                    f.flush()
+                    os.fsync(f.fileno())
+            os.replace(tmp, str(path))
+            return True
+        except BaseException:
+            # Clean up temp file on any error (including KeyboardInterrupt)
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            raise
+    except (OSError, TypeError) as e:
+        log_stage("ERROR", f"Failed to write (atomic) {path.name}: {e}")
+        return False
+
+
 # =============================================================================
 # Schema validation
 # =============================================================================
@@ -158,8 +211,16 @@ def validate_artifact(path: Path, schema_name: str) -> bool:
 # Numeric helpers
 # =============================================================================
 
-def safe_float(val: Any, default: float = 0.0) -> float:
-    """Convert a value to float safely. Handles Brazilian BRL format."""
+def safe_float(val: Any, default: float = 0.0, locale: str = "BRL") -> float:
+    """Convert a value to float safely, respecting currency locale.
+
+    Args:
+        val: Value to convert.
+        default: Fallback if conversion fails.
+        locale: Currency locale — determines thousands/decimal separators.
+            "BRL" (default): 1.234,56 → 1234.56 (dot=thousands, comma=decimal)
+            "USD" / "EUR": 1,234.56 → 1234.56 (comma=thousands, dot=decimal)
+    """
     if val is None:
         return default
     if isinstance(val, (int, float)):
@@ -168,16 +229,27 @@ def safe_float(val: Any, default: float = 0.0) -> float:
         s = val.strip()
         if not s:
             return default
+        # Strip currency symbols and whitespace
+        for sym in ("R$", "US$", "€", "$", "£"):
+            s = s.replace(sym, "").strip()
         try:
             return float(s)
         except ValueError:
             pass
-        # Brazilian format: 1.234,56 → 1234.56
-        try:
-            return float(s.replace(".", "").replace(",", "."))
-        except ValueError:
-            log_stage("WARN", f"safe_float: não conseguiu converter '{s}' — usando {default}")
-            return default
+        if locale in ("USD", "EUR"):
+            # US/EU format: 1,234.56 → 1234.56
+            try:
+                return float(s.replace(",", ""))
+            except ValueError:
+                pass
+        else:
+            # Brazilian format: 1.234,56 → 1234.56
+            try:
+                return float(s.replace(".", "").replace(",", "."))
+            except ValueError:
+                pass
+        log_stage("WARN", f"safe_float: não conseguiu converter '{s}' (locale={locale}) — usando {default}")
+        return default
     return default
 
 
@@ -186,6 +258,18 @@ def safe_float(val: Any, default: float = 0.0) -> float:
 # =============================================================================
 
 def log_stage(stage: str, message: str) -> None:
-    """Print a timestamped progress message to stderr."""
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"[{timestamp}] {stage}: {message}", file=sys.stderr)
+    """Log a timestamped progress message via structured logger.
+
+    Maps stage prefixes to log levels:
+      ERROR → logging.ERROR
+      WARN  → logging.WARNING
+      otherwise → logging.INFO
+    Also prints to stderr for backward-compatible console output.
+    """
+    stage_upper = stage.upper()
+    if "ERROR" in stage_upper or "FATAL" in stage_upper:
+        _logger.error("%s: %s", stage, message)
+    elif "WARN" in stage_upper:
+        _logger.warning("%s: %s", stage, message)
+    else:
+        _logger.info("%s: %s", stage, message)

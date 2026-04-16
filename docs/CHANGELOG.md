@@ -10,14 +10,24 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
 **Pipeline hardening (revisão arquitetural):**
 - `pipeline_common.py`: novos paths (INBOX_DIR, INBOX_PROCESSED_DIR, MEMBERS_DIR, OUTPUT_DIR) + `validate_artifact()` para validação de schemas
+- `pipeline_common.py`: `write_json_atomic()` para escrita atômica via temp+rename (crash-safe, com flag `fsync=True` para artefatos críticos)
+- `pipeline_common.py`: `safe_float(val, locale="BRL")` — agora suporta BRL/USD/EUR, corrigindo parsing de valores multi-moeda (contas Wise, Bank of America)
+- `pipeline_common.py`: `log_stage()` migrado para structured logging (`logging.getLogger("fin.pipeline")`) com mapeamento WARN→WARNING, ERROR→ERROR
 - E0 scripts (`e0_unlock`, `e0_audit`, `e0_route`) migrados para importar de `pipeline_common` — eliminada duplicação de `_init_config()`
+- `e3_reconcile.py`: I/O delegado a `pipeline_common`; `deduplicate_transactions()` agora retorna audit details (3 valores) para rastreabilidade
+- `e3_reconcile.py`: `should_skip_file()` não usa mais substring matching de SKIP_TYPES no filename — filtragem por tipo feita em `should_skip_extract()` via campo JSON
+- `e3_reconcile.py`: temporal gap default 2→4 dias (cobre weekends + feriados); baseline validation usa canonical bank codes
+- `e4_categorize.py`: delega config loading e writes a `pipeline_common`; despesas não-categorizadas logadas explicitamente (`[E4.2] UNCATEGORIZED`)
+- `e5_analyze.py`: 7 sanity checks em valores computados (patrimônio negativo, receita/despesa negativa, taxa poupança range, IF%, endividamento >200%, score [0,10])
+- `e5_analyze.py`: output escrito via `write_json_atomic(fsync=True)` para durabilidade
+- `pipeline_task.py`: `_persist_llm_suggestions()` usa `SyncSessionLocal` (sync) em vez de `asyncio.run()` que crasharia em Celery fork workers
+- `pipeline_task.py`: todos `except: pass` substituídos por `except Exception` com logging observável
 - `e0_route.py`: LLM fallback agora com timeout 30s + retry 3x com backoff exponencial (1s/2s/4s)
 - `e0_unlock.py`: limite de tamanho em extração ZIP (500MB/arquivo, 2GB total) — proteção contra zip bomb
 - `e0_route.py` + `e2/common.py`: validação de período extraído por regex (mês 01-12, ano 2018-2030)
 - `e_reset.py`: campo `in_progress` no state interativo para crash recovery no `--continue`
-- 3 novos JSON Schemas: `e2_extract`, `e4_unified`, `e5_analysis` — validação via `pipeline.json` → `schema_validation` (modo warn)
+- 4 JSON Schemas: `e2_extract`, `e4_unified`, `e5_analysis`, `pipeline` (novo) — validação via `pipeline.json` → `schema_validation` (modo warn)
 - `jsonschema>=4.20` adicionado como dependência (anteriormente comentado)
-- `safe_float()` e `parse_brl()` agora logam warning para conversões falhas com input não-vazio
 - `e5n_narrativas.py`: `_MetricsProxy` retorna `None` (não `0`) para chaves ausentes; formatadores (`fmt_currency`, etc.) tratam `None` → "N/D"
 - `scripts/e6/` package: `sanitize.py` e `validate.py` extraídos de `e6_render.py` (-187 linhas)
 - 61 novos testes: `test_e2_parsers.py`, `test_e5n_formatting.py`, `test_schema_validation.py` + extensões em testes existentes
