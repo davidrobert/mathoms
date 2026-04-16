@@ -9,8 +9,7 @@ Pipeline de consolidação financeira da família Ferreira Campos. Processa docu
 ```
 config/              Configurações, schemas, templates, regras do pipeline
   definitions.md           Definições canônicas (membros, instituições, categorias)
-  manual_operacao.md       Manual completo do pipeline (fonte de verdade)
-  pipeline.json            Parâmetros operacionais (LLM, limites, tolerâncias)
+  pipeline.json            Parâmetros operacionais (LLM, limites, tolerâncias, versão do relatório)
   family_members.json      Dados cadastrais da família
   categorization.json      Keywords de categorização de receitas/despesas
   institutions.json        Padrões de bancos, tipos de documento, layouts de extração
@@ -46,7 +45,17 @@ logs/                Logs operacionais permanentes
 members/             Dados de membros (E1)
 life_plan/           Metas e plano de vida
 docs/                Documentação técnica de scripts e planos de correção
-tests/               Testes unitários (pytest)
+tests/               Testes unitários (pytest) — pipeline CLI
+backend/             Aplicação web (FastAPI + React)
+  app/api/             Routers REST (documents, pipeline, reports, etc.)
+  app/models/          SQLAlchemy models (Document, PipelineRun, etc.)
+  app/services/        Business logic:
+    content_classifier.py  Classificador content-first (regex sobre conteúdo extraído)
+    document_processor.py  Pipeline de upload (unlock → classify → dedupe → route)
+  app/scripts/         Scripts operacionais (reclassify, backfill, reset)
+  alembic/             DB migrations
+  tests/               Testes unitários (pytest) — backend web
+frontend/            React app (Next.js)
 _archive/            Arquivos antigos preservados (scripts legados, backups)
 _scratch/            Artefatos temporários — NÃO versionado, pode ser limpo a qualquer momento
 ```
@@ -86,7 +95,7 @@ A pasta `_scratch/` está no `.gitignore`.
 | E4          | Det.    | `e4_categorize.py`     | Categoriza receitas/despesas                      |
 | E5          | Det.    | `e5_analyze.py`        | Cálculos financeiros (patrimônio, score, fluxo)   |
 | E5.N        | Det.    | `e5n_narrativas.py`    | Narrativas textuais sobre os dados                |
-| E6          | Det.    | `e6_render.py`         | Renderiza relatório HTML                          |
+| E6          | Det.    | `e6_render.py`         | Exporta HTML standalone (ADR-078; render primário é React nativo) |
 | E7-crossval | Det.    | `e7_review.py`         | Cross-validation determinística (14 checks)       |
 | E7-review   | **LLM** | —                      | Review holístico com persona (preenche template)  |
 | E7-apply    | Det.    | `e7_review.py --apply` | Aplica refinamentos do review ao E5 JSON          |
@@ -139,12 +148,38 @@ python scripts/e2_extract.py --faturas-only            # Apenas faturas de cart�
 
 ### Fontes de verdade
 
-- **Manual de operação:** `config/manual_operacao.md` — procedimento completo de cada etapa.
 - **Definições:** `config/definitions.md` — membros, instituições, categorias, regras especiais.
-- **Parâmetros:** `config/pipeline.json` — configuração operacional.
+- **Parâmetros:** `config/pipeline.json` — configuração operacional (inclui `report_version`).
 - **Membros:** `config/family_members.json` — dados cadastrais canônicos.
+- **Histórico:** `_archive/manual_operacao_v6.1.md` — manual legado do pipeline CLI (arquivado, referência histórica).
 
-Em caso de dúvida sobre como o pipeline funciona, consulte esses arquivos antes de agir.
+Em caso de dúvida sobre como o pipeline funciona, consulte os scripts, configs e docstrings antes de agir.
+
+### Classificação de documentos — duas vias
+
+Existem **dois caminhos de classificação** no projeto:
+
+1. **CLI (pipeline):** `scripts/e0_route.py` — classifica por **regex no nome do arquivo**. Usado pelas etapas E0 do pipeline CLI (`python scripts/e0_route.py`). Camada 2: LLM fallback se regex não casa.
+
+2. **Web (upload):** `backend/app/services/content_classifier.py` + `document_processor.py` — classifica por **regex no conteúdo extraído** (primeiras páginas do PDF, primeiras linhas do CSV/XLSX). **Filename é ignorado** — bancos exportam arquivos com nomes arbitrários. Pipeline: content-regex → LLM fallback (confidence < 0.8) → `needs_review=true` (confidence < 0.7).
+
+   - Requer `anthropic` SDK + `ANTHROPIC_API_KEY` no env do backend para o LLM fallback.
+   - Sem a key, degrada silenciosamente para só regex (precision menor, docs ambíguos ficam `needs_review=true`).
+   - `_map_doc_type()` em `document_processor.py` mapeia códigos de tipo (ex: `faturaunique`, `extratocontabrl`) para a enum `DocumentType` via prefixo semântico.
+
+### Dedupe de uploads
+
+- **Exato:** SHA-256 do conteúdo → partial unique index `(workspace_id, content_hash)`. Mesmo arquivo = bloqueado.
+- **Fuzzy:** se `(doc_type, bank_code, period)` já existe com hash diferente → `possible_duplicate_of_id` aponta para o existente + `needs_review=true`. Não bloqueia; UI mostra para o usuário decidir.
+
+### Design System (ADR-076 · F9)
+
+- **Fonte de verdade**: `design-tokens/tokens.json` — gera CSS para Next.js e para E6 standalone via `python3 design-tokens/build.py`.
+- **Codegen do layout**: `config/report_layout.yaml` → `frontend/src/generated/report-layout.ts` + `backend/app/generated/report_layout.py` via `python3 dev/codegen_report_layout.py`.
+- **Fontes**: Plus Jakarta Sans (display), Inter (body), JetBrains Mono (monetário). Carregadas via `next/font/google` no `layout.tsx` — **não redefinir no CSS**.
+- **Relatório nativo**: `frontend/src/components/report/` contém o render React. `e6_render.py` é exportador standalone (email, backup). O render primário é a rota `/reports/[id]`.
+- **Cores**: nunca usar hex literal no frontend — sempre `var(--brand-*)`, `var(--surface-*)`, `var(--semantic-*)` dos tokens gerados.
+- **Valores monetários**: sempre com `<MonetaryValue/>` (font-mono + tabular-nums).
 
 ### Convenções de código
 

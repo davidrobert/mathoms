@@ -15,7 +15,7 @@
 [D39](#adr-039--dual-db-sqlite-dev--postgresql-prod) [D29-DB](#adr-029--alembic-para-migrations) [D38](#adr-038--docker-volume-para-storage-prod)
 
 **Pipeline:**
-[D14](#adr-014--threading-para-execução-background) [D15](#adr-015--vault-por-workspace) [D16](#adr-016--e0-route-automático-no-upload) [D17](#adr-017--sync-session-em-background-threads) [D18](#adr-018--config-dir-override-em-fortenant) [D19](#adr-019--storage-root-via-env-var) [D30](#adr-030--cancelamento-cooperativo-via-event)
+[D14](#adr-014--threading-para-execução-background) [D15](#adr-015--vault-por-workspace) [D16](#adr-016--e0-route-automático-no-upload) [D17](#adr-017--sync-session-em-background-threads) [D18](#adr-018--config-dir-override-em-fortenant) [D19](#adr-019--storage-root-via-env-var) [D30](#adr-030--cancelamento-cooperativo-via-event) [D75](#adr-075--content-first-classification-no-upload-web)
 
 **Config:**
 [D20](#adr-020--materializar-config-em-disco) [D21](#adr-021--5-configs-editáveis) [D22](#adr-022--fallback-seletivo-de-config) [D23](#adr-023--importexport-json-de-config)
@@ -48,10 +48,10 @@
 [D72](#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família)
 
 **Goals & Tasks (F8):**
-[D73](#adr-073--goals-como-entidade-versionada-não-config-estático) [D74](#adr-074--tasks-como-entidade-de-1ª-classe-fora-do-relatório) [D75](#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters)
+[D73](#adr-073--goals-como-entidade-versionada-não-config-estático) [D74](#adr-074--tasks-como-entidade-de-1ª-classe-fora-do-relatório) [D75](#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters) [D77](#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web)
 
 **Design System (F9):**
-[D76](#adr-076--design-tokens-unificados-site--relatório)
+[D76](#adr-076--design-tokens-unificados-site--relatório) [D78](#adr-078--render-nativo-react--e6-como-exportador-standalone)
 
 ---
 
@@ -1329,6 +1329,86 @@ Ao abrir `/reports/{id}`, o usuário experimenta uma quebra visual perceptível 
 
 ---
 
+## ADR-077 — Pipeline adapter como contrato de cutover (CLI → Web)
+
+**Status:** Decidido (F8.4) • **Data:** 2026-04-15
+
+**Contexto:** As 4 fases anteriores (F8.0–F8.3) criaram entidades `Goal`, `Task`, `TaskSuggestion`, `TaskAttachment`, `FeatureFlag` no DB, endpoints REST, UI completa e testes. O pipeline legado (E5, E5.N, E6) continua lendo de `config/goals.json` e `config/tarefas.md`. O cutover precisa de uma ponte que permita ao pipeline operar via DB sem reescrevê-lo. Esta ADR formaliza o contrato dessa ponte.
+
+**Decisão:**
+1. **`backend/app/services/pipeline_adapter.py`** é a fachada única entre pipeline e DB. Expõe 3 pares de funções (sync + async):
+   - `build_goals_payload` → dict compatível com `goals.json`
+   - `build_tasks_payload` → dict compatível com E5 `tarefas[]`
+   - `build_tarefas_md` → string markdown compatível com `config/tarefas.md`
+2. **Worker beat** (`backend/app/tasks/periodic_tasks.py`) roda `scan_all_deadlines` diariamente via Celery beat schedule — substitui a necessidade de cron externo.
+3. **Feature flags** (`FeatureFlag` + `feature_flags_service.py`) controlam rollout por workspace: `tasks_v2_enabled`, `task_attachments_enabled`, `report_tasks_snapshot_enabled`, `task_deadline_notifications_enabled`.
+4. **Snapshot automático** (ADR-074 §F8.3): `pipeline_task._create_report_from_output` chama `build_snapshot_sync` — relatórios novos nascem com foto imutável das tasks.
+
+**Contrato de cutover** — a remoção de `config/goals.json` e `config/tarefas.md` do repo acontece quando:
+- [ ] O adapter cobre 100% dos campos lidos pelo E5/E5.N/E6 (seção `independencia_financeira` migrada em F8.1; `aportes`, `alocacao_alvo`, `dolarizacao` types adicionados em F8.4; restante de goals.json via `legacy_extras` parameter até cobertura total)
+- [ ] Feature flag `tasks_v2_enabled` default ON para todas as workspaces
+- [ ] Pipeline roda ciclo completo E0→E7 consumindo adapter (não arquivo) sem regressão
+- [ ] Backup dos Grupo A (`_archive/pre-f8-cutover/`) + tag git
+
+**Consequências:**
+- ✅ Pipeline não precisa ser reescrito — consome adapter com mesmo contrato
+- ✅ Cutover reversível via feature flag OFF (fallback para arquivo legado)
+- ✅ Beat schedule descentraliza notificações — zero dependência de humano rodar scan
+- ⚠️ Período de dual-source (DB + arquivo) até cobertura de 100% dos campos — aceito, mitigado pelo `_adapter_version` field que permite detectar payloads vindos do adapter vs. arquivo
+- ❌ Scripts CLI (`scripts/e*.py`) ficam no repo como reference mesmo após cutover — remoção só em F9+ quando houver confiança de que a UI é autossuficiente
+
+**Supersedes:** [ADR-075](#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters) — esta ADR implementa e detalha o contrato declarado na 075.
+
+---
+
+## ADR-078 — Render Nativo React + E6 como Exportador Standalone
+
+**Status:** Decidido (F9) • **Data:** 2026-04-15
+
+**Contexto:**
+O relatório financeiro era exibido via iframe carregando o HTML produzido pelo `e6_render.py` (4000 linhas, string replacement, Chart.js Canvas). Isso causava:
+- Dissonância visual com o site (duas linguagens de design, cf. ADR-076)
+- Limitações de UX: sem deep-links, search, dark mode sincronizado, a11y parcial
+- Dependência de `doc.write()` + MutationObserver para scroll-spy e mode toggle
+- Charts Canvas não imprimiam bem (fallback PNG manual no template)
+
+**Alternativas:**
+- **A** — Manter iframe, injetar CSS via postMessage. Resolve dissonância mas não UX.
+- **B** — ✅ **Escolhida**: eliminar iframe, renderizar como rota Next.js nativa consumindo E5 JSON. E6 vira exportador HTML standalone (produto preservado).
+- **C** — Reescrever E6 em React Server Components. Over-engineering; E6 faz um bom trabalho como gerador estático.
+
+**Decisão:**
+
+1. **Render primário**: rota Next.js `/reports/[id]` consome `GET /reports/{id}/data` (E5 JSON snapshot) e renderiza via componentes React com design tokens do ADR-076.
+2. **Estrutura**: `report_layout.yaml` é fonte de verdade (codegen TS/Pydantic, F0.2.5). 18 seções em 3 modos (Estratégico S1-S10, Tático T1-T6, USA U1-U4).
+3. **Charts**: Recharts (SVG) substituiu Chart.js (Canvas). SVG imprime nativamente — elimina fallback PNG.
+4. **PDF server-side**: Playwright headless Chromium renderiza a rota React. Token efêmero (60s) para autenticação.
+5. **E6 preservado**: `e6_render.py --html` continua gerando HTML standalone para 3 use cases: contador (email), backup (offline), impressão (sem app).
+6. **Migration**: iframe removido; relatórios pré-F9 (sem `analysis_json_path`) redirecionam para download HTML.
+
+**Componentes criados** (frontend/src/components/report/):
+- Shell: ReportShell, ReportHeader, ReportToc, ReportModeProvider
+- Cards: 13 componentes (Patrimonio, Fluxo, Investimentos, Previdencia, Pontos, etc.)
+- Charts: 8 componentes Recharts + NarrativeChartCard genérico
+- Infra: MonetaryValue (font-mono tabular-nums), card registry, chart registry
+
+**Consequências:**
+- ✅ Uma linguagem visual, uma codebase — fim da dissonância site × relatório
+- ✅ Deep-links (`/reports/id?mode=usa#U2`), scroll-spy nativo, dark mode sincronizado
+- ✅ SVG charts imprimem perfeitamente (zero workaround)
+- ✅ Tipagem end-to-end: YAML → TS → componentes → runtime validated
+- ✅ PDF server-side resolve o "salvar como PDF" que antes dependia de Cmd+P do browser
+- ✅ E6 standalone preservado — valor real para contador e backup
+- ⚠️ Playwright adiciona ~200MB ao container Docker (Chromium) — aceito para v1
+- ⚠️ `e6_render.py` (4000 linhas) fica como código legado — aceito; mantém valor como exportador
+- ❌ Sem export XLSX de tabelas (existia via iframe `table_to_sheet`). Recuperar como feature futura
+
+**Supersedes parcial:**
+- [ADR-033 "React components para report"](#adr-033--react-components-para-report) — era placeholder; esta ADR implementa a decisão com arquitetura completa.
+- [ADR-035 "Media print para PDF export"](#adr-035--media-print-para-pdf-export) — media print continua como fallback mas Playwright é o caminho primário.
+
+---
+
 ## Decisões pendentes
 
 | #   | Decisão                           | Quando precisa | Opções                                                               |
@@ -1352,18 +1432,89 @@ Ao abrir `/reports/{id}`, o usuário experimenta uma quebra visual perceptível 
 Ao tomar uma decisão não-trivial, adicione aqui com o template:
 
 ```markdown
-## ADR-NNN — Título curto
+## ADR-078 — Workspace sharing: convites, viewer role, forced logout
+
+**Status:** Decidido (F9) • **Data:** 2026-04-15
+
+**Contexto:** Dados financeiros familiares precisam ser compartilhados entre
+membros da mesma família (casal, filhos adultos) e, no futuro, com
+consultores financeiros. ADR-072 criou a infraestrutura de multi-tenancy
+(`WorkspaceMember` com roles owner/member), mas não cobria o fluxo de
+convite, o papel read-only, nem a invalidação de sessão ao remover um
+membro. F9 endereça esses 3 gaps.
+
+**Decisão:**
+
+1. **3 roles fixos** (`owner`, `member`, `viewer`) com sets de conveniência
+   (`WRITE_ROLES`, `MEMBER_ADMIN_ROLES`). Roles customizadas e escopos
+   parciais (ex: "contador vê transações mas não metas") ficam como débito
+   explícito.
+2. **Convite por link copiável** (sem provider de email no V1). Backend gera
+   token aleatório 256-bit, armazena `SHA-256(token)`, retorna token cru uma
+   vez. Owner envia o link manualmente.
+3. **`WorkspaceInvitation`** como entidade separada de `WorkspaceMember` —
+   token + TTL 72h + uso único + revogável. Convite aceito cria membership.
+4. **`require_role(allowed)` factory** em `tenancy.py` como dependency FastAPI.
+   Reutiliza `workspace_member` já carregado por `get_current_workspace` (zero
+   query extra). Pré-instanciados: `require_write_role`, `require_member_admin_role`.
+5. **`User.token_version`** — claim `tv` no JWT. Incrementado ao remover membro.
+   `get_current_user` rejeita tokens stale com `code: "token_revoked"` → frontend
+   detecta e redireciona para login.
+6. **Reuso de `AuditLog`** existente — sem tabela nova. Ações de membership usam
+   convenção de naming (`workspace.member.invite`, `.accept`, `.remove`, etc).
+7. **Default de role no convite: `viewer`** — upgrade para `member` é explícito.
+   Convite como `owner` é bloqueado. Transferência de ownership é débito.
+8. **Nomenclatura UI em PT-BR** — "Responsável" / "Coadministrador" / "Acompanha"
+   (não "Owner/Admin/Viewer").
+
+**Consequências:**
+
+- ✅ Fluxo completo convite → aceite → membership funcional sem provider externo.
+- ✅ Viewer read-only com enforcement duplo (backend 403 + frontend UI guards).
+- ✅ Forced logout imediato ao remover membro — sem janela de exposição.
+- ✅ 39 testes + tenancy lint cobrem a feature end-to-end.
+- ⚠️ Convite manual (copiar link) é friction — email automático é F9.8.
+- ⚠️ `token_version` bump invalida TODAS as sessões do user, não só a do workspace removido. Aceitável porque o user faz login de novo e acessa seus outros workspaces normalmente.
+- ❌ Sem escopos parciais — um viewer vê tudo (metas, transações, patrimônio). Primeiro cliente consultor vai pedir isso.
+- ❌ Sem transferência de ownership — bloqueado explicitamente nos services com mensagem clara.
+
+---
+
+## ADR-075 — Content-first classification no upload web
+
+**Status:** Decidido • **Data:** 2026-04-15 • Supersedes D16 (parcialmente — D16 vale para CLI)
+
+**Contexto:** O upload web classificava documentos pelo nome do arquivo (via `e0_route.classify_by_name`). Na prática, bancos brasileiros exportam PDFs/CSVs com nomes arbitrários ou genéricos (ex: `document.pdf`, `export_20260415.csv`). Resultado: ~65% dos uploads caíam no tipo "Outro".
+
+**Alternativas avaliadas:**
+1. **Filename regex (status quo)** — funciona no pipeline CLI onde o E0-route renomeia antes, mas inútil para uploads web crus.
+2. **Sempre LLM** — precisão ~98%, custo ~$0,005/doc, latência +2s por upload, dependência de API key.
+3. **Content-regex + LLM fallback (escolhida)** — regex sobre texto extraído (pdfplumber/openpyxl) cobre ~85% com confidence 1.0; LLM só para os ~15% ambíguos.
+
+**Decisão:** Upload web classifica por **conteúdo extraído**, ignorando filename. Pipeline de 3 camadas: content-regex (confidence >= 0.8) → LLM fallback (>= 0.7) → `needs_review=true`.
+
+**Consequências:**
+- ✅ Precisão estimada ~97% com LLM ativo (era ~35% com filename).
+- ✅ Filename não importa — drag-and-drop de qualquer export bancário funciona.
+- ✅ `needs_review` flag permite fluxo humano-no-loop para casos ambíguos.
+- ✅ Fuzzy dedupe (por `doc_type+bank_code+period`) complementa o exact dedupe por hash.
+- ⚠️ Requer `anthropic` SDK + `ANTHROPIC_API_KEY` no env do backend. Sem a key, degrada para regex-only (~85%).
+- ⚠️ Imagens (JPG/PNG) não podem ser classificadas por content-regex — vão direto para `needs_review`. OCR/vision é work futuro.
+- ❌ Soft FK em `possible_duplicate_of_id` (sem constraint real) por limitação de alembic offline mode em SQLite. Dangling pointers são harmless — o JOIN retorna empty.
+
+---
+
+## ADR-NNN — Titulo curto
 
 **Status:** Decidido (FX) • **Data:** YYYY-MM-DD
 
 **Contexto:** Por que estamos decidindo isso? Quais eram as alternativas?
 
-**Decisão:** A decisão tomada, em uma frase.
+**Decisao:** A decisao tomada, em uma frase.
 
-**Consequências:**
-- ✅ Benefícios
+**Consequencias:**
+- ✅ Beneficios
 - ⚠️ Trade-offs
 - ❌ Drawbacks aceitos
-```
 
 Se substituir uma ADR anterior, marcar: `Supersedes ADR-NNN`.

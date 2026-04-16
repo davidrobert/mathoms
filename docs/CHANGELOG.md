@@ -6,6 +6,157 @@
 
 ## [Unreleased]
 
+### F9 — Relatório Nativo React + Design System Unificado (2026-04-15)
+
+**ADRs:**
+- [ADR-076](DECISIONS.md#adr-076) Design tokens unificados site × relatório (fonte única `tokens.json`)
+- [ADR-078](DECISIONS.md#adr-078) Render nativo React + E6 como exportador standalone
+
+**Design System:**
+- `design-tokens/tokens.json`: fonte única de verdade (typography, spacing, radius, shadow, modes, card variants)
+- `design-tokens/build.py`: gera CSS para Next.js (com @theme inline) e para E6 standalone
+- DNA canônico: navy #1A3A5C, verde #15803D, Plus Jakarta Sans + Inter + JetBrains Mono
+- Fontes via next/font/google (otimizadas: subsetting, self-hosting)
+- Pre-commit hook `design-tokens-sync` e `report-layout-codegen` garantem consistency
+
+**Codegen:**
+- `config/schemas/report_layout.schema.json`: JSON Schema validando o YAML
+- `dev/codegen_report_layout.py`: YAML → TypeScript + Pydantic, com `--check` para CI
+- `frontend/src/generated/report-layout.ts`: tipos + constantes + ALL_CARD_IDS/ALL_CHART_IDS
+- `backend/app/generated/report_layout.py`: Pydantic models validados
+
+**Backend:**
+- `Report.analysis_json_path`: ponteiro para snapshot E5 JSON (migration d3e4f5a6b7c8)
+- `GET /reports/{id}/data`: serve E5 JSON para render nativo (404 graceful para pré-F9)
+- `GET /reports/{id}/download.html`: download HTML standalone com attachment headers
+- `GET /reports/{id}/download.pdf`: PDF server-side via Playwright headless Chromium
+- `ReportResponse.has_analysis_data`: flag para frontend distinguir relatórios F9+
+
+**Frontend — Relatório nativo (18 seções, 0 stubs):**
+- Shell: ReportShell, ReportHeader (mode selector + export buttons), ReportToc (scroll-spy + deep-links)
+- 13 cards: PatrimonioCategoriasCard, ReceitasFonteCard, ReservaEmergenciaCard, EndividamentoCard, OrcamentoProspectivoCard, ConsumoConscienteCard, DiagnosticoComportamentalCard, EquilibrioCerbasiCard, InvestimentosClasseCard, EstrategiaAporteCard, PrevidenciaPgblCard, PontosFortesList, PontosUrgentesList
+- 8 charts Recharts (SVG, print-native): PatrimonioDoughnut, WaterfallIF, ScoreGauge, FluxoMensal, ReceitaBar, DespesasDoughnut, ReceitaDespesaMensal + NarrativeChartCard genérico
+- MonetaryValue (font-mono tabular-nums, BRL/USD, compact, signed, null-safe)
+- Mode toggle via URL (?mode=tatico/usa) com sync bidirecional
+- Print CSS A4 (report-print.css): break-inside:avoid, print-color-adjust:exact, SVG nativo
+- Deep-links via hash (#S3) + scroll-spy debounced + auto-scroll TOC
+
+**Testes:** 56 backend + 23 frontend + 20 design tokens + 14 codegen = 113 novos
+
+**Iframe removido:** `page.tsx` reescrita de 436 linhas (iframe + MutationObserver) para render React nativo.
+
+---
+
+### F8 — Goals & Tasks + Cutover CLI→Web (2026-04-15)
+
+**ADRs:**
+- [ADR-072](DECISIONS.md#adr-072) Multi-tenancy: `WorkspaceMember` N:N, `get_current_workspace` dependency, tenancy lint AST-based com baseline
+- [ADR-073](DECISIONS.md#adr-073) Goals como entidade versionada (append-only, derivação server-side)
+- [ADR-074](DECISIONS.md#adr-074) Tasks como entidade de 1ª classe (fora do relatório)
+- [ADR-075](DECISIONS.md#adr-075) Cutover CLI→Web: estratégia de transição faseada com adapters
+- [ADR-077](DECISIONS.md#adr-077) Pipeline adapter como contrato de cutover
+
+**Backend — Models + Migrations:**
+- `WorkspaceMember` (N:N user↔workspace, roles owner/member) + backfill migration
+- `Goal` (versionado por effective_from/to, params_json + derived_json, 5 types: IF, APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO, PLANNING_CONTEXT)
+- `Task` (number único por workspace, 5 statuses, 5 deadline kinds, parent dependency) + `TaskSuggestion` + `TaskAttachment`
+- `FeatureFlag` (workspace-level boolean flags, defaults em código)
+- `Report.tasks_snapshot_json` — snapshot imutável de tasks no momento da geração
+- 5 Alembic migrations encadeadas: workspace_members → goals → tasks → report_snapshot → feature_flags
+
+**Backend — Services (9 novos):**
+- `goal_service`: `compute_if_derived` (FV anuidade pura), CRUD versionado append-only
+- `task_service`: CRUD + auto-numbering + status transitions validadas (grafo ALLOWED_TRANSITIONS) + dependency enforcement + export markdown
+- `task_suggestion_service`: create/bulk_create/approve/reject/merge
+- `task_notification_service`: scan prazos ≤7d → notifications (overdue=critical, ≤3d=warning, ≤7d=info), idempotente
+- `task_progress_service`: % executado via parser BRL + match transactions por keywords
+- `task_attachment_service`: upload/list/delete via StorageService
+- `report_tasks_snapshot_service`: build_snapshot sync+async, get_report_snapshot com fallback live
+- `feature_flags_service`: DEFAULTS compilados, get/set/is_enabled, fail-safe
+- `pipeline_adapter`: build_goals_payload/build_tasks_payload/build_tarefas_md (sync+async), materialização pré-run
+
+**Backend — Endpoints (~30 novos):**
+- `/workspaces/{ws}/goals`: IF compute/get/put/history + `/{goal_id}/tasks`
+- `/workspaces/{ws}/tasks`: CRUD + status transition + upcoming + export.md + progress + scan-deadlines
+- `/workspaces/{ws}/tasks/{id}/attachments`: upload/list/download/delete
+- `/workspaces/{ws}/task-suggestions`: list + create + approve + reject + merge-into
+- `/workspaces/{ws}/feature-flags`: get + put
+- `/reports/{id}/tasks`: snapshot ou fallback live
+- `/me/workspaces`: listagem de memberships
+
+**Backend — Pipeline integration:**
+- `_materialize_adapter_configs`: grava goals.json + tarefas.md do DB no tenant config dir antes do run
+- `_persist_llm_suggestions`: hook pós-E5.N que persiste `tarefas_sugeridas` como TaskSuggestion
+- `build_snapshot_sync` no `_create_report_from_output`: relatórios nascem com snapshot imutável
+- Worker beat `scan_all_deadlines` (Celery beat schedule, diário)
+
+**Backend — Seeds + Scripts:**
+- `seed_if_goal_ferreira_campos.py` (paridade 7.200.000)
+- `seed_tasks_ferreira_campos.py` (43 tasks, dep #19→#18, status done #2/#12)
+- `seed_goals_full_ferreira_campos.py` (5 Goal types cobrindo 100% do goals.json)
+- `validate_adapter_parity.py` (diff recursivo com tolerância de metadata)
+- `cutover_execute.py` (check pré-condições + backup _archive/ + remoção)
+
+**Backend — Testes (~146 novos):**
+- 12 lint tenancy (AST-based, cobertura de padrões positivos e negativos)
+- 32 goal_service (paridade FC, fórmula, arredondamento, versionamento, isolation)
+- 48 task_service (transitions, dependencies, filtros, suggestions, export MD)
+- 45 integrações (endpoints, multi-tenant 403, progress, snapshot, attachments, feature flags)
+- 9 pipeline_adapter (payload format, isolation, legacy merge, MD export)
+
+**Backend — Infra:**
+- CI job `tenancy-lint` (AST scan + 12 tests + baseline) no `all-green` gate
+- `scripts/lint/check_workspace_scoping.py` com `--baseline` / `--write-baseline`
+- `docs/tenancy.md` (300 linhas — guia do/don't + checklist PR + template test isolation)
+
+**Frontend — Rotas (5 novas):**
+- `/plano`: overview IF (3 KPI cards + parâmetros + tarefas ligadas à meta)
+- `/plano/meta-if`: form edição com simulador live
+- `/plano/meta-if/wizard`: 4 passos (renda → TRS → horizonte → confirmação)
+- `/plano-de-acao`: lista com 3 views (priority/deadline/category) + create + drawer + sugestões badge
+- `/plano-de-acao/sugestoes`: fila approve/reject 1-click
+
+**Frontend — Componentes (10+ novos):**
+- TaskCard, TaskDrawer, TaskFormDialog, TaskPriorityChip, TaskStatusPill, TaskDeadlineBadge
+- TaskProgressCard (barra % executado mensal)
+- TaskAttachments (upload/list/delete inline)
+- UpcomingTasksWidget (dashboard, próximos 7 dias)
+- useCurrentWorkspace hook (localStorage + /me/workspaces)
+
+**Frontend — AppShell:**
+- "Meu Plano" (Target icon) + "Plano de Ação" (ListTodo icon) adicionados ao nav
+- UpcomingTasksWidget inserido no dashboard entre KPIs e Charts
+
+---
+
+### F9 — Workspace sharing (2026-04-15)
+
+**Backend:**
+
+- `WorkspaceInvitation` model + migration — convites com token SHA-256, TTL 72h, uso único, rate limit 10 pendentes/workspace.
+- Role `viewer` adicionado a `VALID_ROLES`. `WRITE_ROLES` e `MEMBER_ADMIN_ROLES` para policy granular.
+- `require_role(allowed)` factory em `tenancy.py` — `require_write_role` e `require_member_admin_role` prontos.
+- `PUT /goals/if` agora exige `require_write_role` — viewer recebe 403.
+- `User.token_version` + claim `tv` no JWT — forced logout ao remover membro (migration `d1b2c3d4e5f6`).
+- `IFGoalResponse.created_by_name` — join com `users.full_name` para atribuição de autoria.
+- 7 novos endpoints: `POST/GET/DELETE /workspaces/{ws}/invitations`, `GET/PATCH/DELETE /workspaces/{ws}/members`, `GET /invitations/{token}`, `POST /invitations/{token}/accept`.
+- `audit_service.log()` helper reusando `AuditLog` existente com convenções de naming.
+- 39 testes (invitations + members + viewer role matrix + forced logout + goals regression).
+- ADR-078 documentada. `docs/tenancy.md` atualizado com roles, convites, token invalidation, checklist de PR expandido.
+
+**Frontend:**
+
+- Aba "Acessos" em Configurações: lista membros, convida por email, muda roles, remove, revoga convites. Owner-only para ações de gestão.
+- Workspace switcher no header (nome + badge de role; dropdown se 2+ workspaces).
+- Viewer banner ("Você está acompanhando") + botão Salvar desabilitado na meta IF.
+- Atribuição de autoria: "Última edição por X em Y" na meta IF.
+- Página pública `/invite/{token}` — preview sem auth, aceite com auth, tratamento de estados terminais.
+- `?next=` em login/register — redireciona pós-auth para URL original (ex: aceite de convite).
+- `AuthBootstrap` global detecta `token_revoked` → limpa sessão + redirect para login.
+- `useCurrentUser`, `usePermissions` hooks. `roleLabels.ts` com labels PT-BR.
+
+---
+
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
 ### Bug fixes 2026-04-14/15
