@@ -1,11 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-E6 Renderer — Deterministic Financial Report Generation
-Reads E5 JSON (data + narratives) and HTML template, produces final report via string replacement.
-No LLM needed. Pure data transformation.
+E6 Renderer — HTML Standalone Exporter (ADR-076 · F9)
+
+Gera o relatório financeiro como arquivo HTML standalone autocontido.
+Desde F9, este script é um **exportador** (não mais o render primário):
+a visualização online vive na rota React nativa /reports/[id].
+
+Casos de uso do standalone HTML:
+  - Compartilhar com contador por e-mail
+  - Backup offline para o ano fiscal
+  - Imprimir sem acesso ao app
 
 Output: /output/relatorio_financeiro_ferreira_campos_YYYYMMDD.html
+
+Reads E5 JSON (data + narratives), report_layout.yaml (section order) e
+config/templates/report_template.html. Produz HTML via string replacement.
+Design tokens consumidos de config/templates/_tokens.css (gerado por
+design-tokens/build.py — ADR-076).
+
+No LLM needed. Pure data transformation.
 """
 
 import json
@@ -146,7 +160,7 @@ def _init_config(base_dir: Path) -> None:
     global _KEY_INV_TITULAR, _KEY_INV_CONJUGE, _KEY_CENARIOS_CONJUGE
     global _DASH_CFG, _INV_BLOCOS
     global TEMPLATE_PATH, E5_JSON_PATH, E4_INVEST_PATH, E4_DESPESAS_PATH
-    global E4_RECEITAS_PATH, E4_FLUXO_PATH, MANUAL_PATH, DEFINITIONS_PATH
+    global E4_RECEITAS_PATH, E4_FLUXO_PATH, DEFINITIONS_PATH
     global OUTPUT_DIR, SNAPSHOT_PATH
 
     BASE_DIR = base_dir
@@ -185,7 +199,6 @@ def _init_config(base_dir: Path) -> None:
     E4_DESPESAS_PATH = BASE_DIR / "processed" / "E4_unified" / "despesas-4_unified.json"
     E4_RECEITAS_PATH = BASE_DIR / "processed" / "E4_unified" / "receitas-4_unified.json"
     E4_FLUXO_PATH = BASE_DIR / "processed" / "E4_unified" / "fluxo_mensal_detalhado-4_unified.json"
-    MANUAL_PATH = BASE_DIR / "config" / "manual_operacao.md"
     DEFINITIONS_PATH = BASE_DIR / "config" / "definitions.md"
     OUTPUT_DIR = BASE_DIR / "output"
     SNAPSHOT_PATH = OUTPUT_DIR / "snapshot_anterior.json"
@@ -521,11 +534,9 @@ def load_viagens_12m() -> dict:
     }
 
 
-def load_manual() -> str:
-    """Load manual_operacao.md for version extraction"""
-    print("[E6.0] Loading manual_operacao.md...")
-    with open(MANUAL_PATH, 'r', encoding='utf-8') as f:
-        return f.read()
+def get_report_version() -> str:
+    """Get report version from pipeline.json"""
+    return PIPELINE_CONFIG.get("report_version", "6.1")
 
 def load_template() -> str:
     """Load HTML template"""
@@ -533,10 +544,6 @@ def load_template() -> str:
     with open(TEMPLATE_PATH, 'r', encoding='utf-8') as f:
         return f.read()
 
-def extract_version(manual_text: str) -> str:
-    """Extract version from manual: ## Versão: 3.3"""
-    match = re.search(r'## Versão: ([\d.]+)', manual_text)
-    return match.group(1) if match else "3.0"
 
 def get_sp_time() -> str:
     """Get current São Paulo time as '4 abr 2026, 14h32' (cross-platform, no zero-padding)"""
@@ -566,11 +573,11 @@ def _build_prazo_if_sub(g: dict) -> str:
     return line1
 
 
-def build_kpi_section(e4: dict, manual_text: str) -> dict:
+def build_kpi_section(e4: dict) -> dict:
     """Build all KPI and cover replacements"""
     print("[E6.1] Building KPI section...")
 
-    version = extract_version(manual_text)
+    version = get_report_version()
     sp_time = get_sp_time()
 
     p = e4["patrimonio"]
@@ -874,7 +881,7 @@ def build_report_data_json(e4: dict) -> tuple:
             "familia": FAMILY_SOBRENOME,
             "periodo": e4["periodo_dados"],
             "data_geracao": datetime.now().isoformat(),
-            "versao": extract_version(load_manual()),
+            "versao": get_report_version(),
         },
         "kpis": kpis,
         "patrimonio": p,
@@ -3904,7 +3911,6 @@ def render_report(root_dir: Path = None):
 
     # Load inputs
     e4 = load_e4_json()
-    manual_text = load_manual()
     template = load_template()
 
     # Inject 12-month viagens data into e4 so charts and cards pick it up
@@ -3920,7 +3926,7 @@ def render_report(root_dir: Path = None):
     # Build all replacements
     print("[E6.1-E6.5] Building all replacements...")
     all_replacements = {}
-    all_replacements.update(build_kpi_section(e4, manual_text))
+    all_replacements.update(build_kpi_section(e4))
     all_replacements.update(build_perfil_section(e4))
     all_replacements.update(build_sections(e4))
 
