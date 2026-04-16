@@ -1,5 +1,5 @@
 /**
- * F9 · F1.1 — Smoke tests do ReportShell nativo.
+ * F9 · Smoke tests do ReportShell nativo.
  */
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -8,6 +8,13 @@ import { ReportModeProvider } from "@/components/report/ReportModeProvider";
 import { ReportShell } from "@/components/report/ReportShell";
 import type { UseReportDataState } from "@/hooks/useReportData";
 import type { ReportAnalysisData } from "@/lib/api";
+
+// F3.2: ReportModeProvider uses next/navigation hooks — mock them in test env
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn() }),
+  usePathname: () => "/reports/test-id",
+}));
 
 function wrap(ui: React.ReactNode) {
   return (

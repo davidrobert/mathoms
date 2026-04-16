@@ -1,0 +1,107 @@
+/* F9 · F3.2 — Print CSS otimizado para o relatório nativo React.
+ *
+ * Carregado apenas na rota /reports/[id] (import dinâmico no page.tsx).
+ * Complementa o @media print do globals.css com regras específicas do
+ * relatório que o globals não deve conter.
+ *
+ * Recharts renderiza SVG — imprime nativamente sem fallback Canvas→PNG
+ * (melhoria sobre o report_template.html antigo com Chart.js Canvas).
+ */
+
+@media print {
+  /* ────── Page setup ────── */
+  @page {
+    size: A4 portrait;
+    margin: 15mm 12mm 15mm 12mm;
+  }
+
+  /* ────── Hide shell chrome ────── */
+  .sidebar-toc,
+  .no-print,
+  [data-report-header] {
+    display: none !important;
+  }
+
+  /* ────── Article fills page ────── */
+  [data-report-mode] {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* ────── Card page-break safety ────── */
+  [class*="card-variant-"] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 8pt;
+  }
+
+  /* ────── Section headers get break-before ────── */
+  [data-report-section] {
+    break-before: auto;
+    break-inside: avoid;
+  }
+  [data-report-section]:first-of-type {
+    break-before: avoid;
+  }
+
+  /* ────── Charts — SVG prints natively ────── */
+  .recharts-wrapper {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* ────── Tables ────── */
+  table {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    font-size: 9pt;
+  }
+  thead {
+    display: table-header-group;
+  }
+
+  /* ────── Typography refinements ────── */
+  body {
+    font-size: 10pt !important;
+    line-height: 1.5 !important;
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  h1, h2, h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* ────── Monetary values stay mono in print ────── */
+  .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+  }
+
+  /* ────── Colors: preserve brand via exact ────── */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* ────── Remove decorative shadows ────── */
+  [class*="shadow"] {
+    box-shadow: none !important;
+  }
+
+  /* ────── Progress bars render as filled ────── */
+  [role="progressbar"] > div {
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  /* ────── Footer with page numbers (optional, browser-dependent) ────── */
+  @page {
+    @bottom-center {
+      content: counter(page) " / " counter(pages);
+      font-family: 'Inter', sans-serif;
+      font-size: 8pt;
+      color: #666;
+    }
+  }
+}

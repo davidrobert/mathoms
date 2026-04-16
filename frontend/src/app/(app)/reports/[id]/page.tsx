@@ -7,6 +7,8 @@ import { getReport, type ReportResponse, ApiError } from "@/lib/api";
 import { useReportData } from "@/hooks/useReportData";
 import { ReportModeProvider } from "@/components/report/ReportModeProvider";
 import { ReportShell } from "@/components/report/ReportShell";
+// F3.2: print CSS carregado apenas nesta rota
+import "@/components/report/report-print.css";
 import { Spinner } from "@/components/Spinner";
 import { AlertCircle, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
