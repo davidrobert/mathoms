@@ -28,8 +28,8 @@ export function ReceitaBarChart({
 
   return (
     <ReportCard variant="neutral" title="Receita por Fonte">
-      <div className="h-56 w-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full">
+        <ResponsiveContainer width="100%" height={224}>
           <BarChart
             data={data}
             layout="vertical"
@@ -46,8 +46,8 @@ export function ReceitaBarChart({
             />
             <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value) => fmtBRL(Number(value))} />
             <Bar dataKey="value" radius={[0, 6, 6, 0]}>
-              {data.map((_, idx) => (
-                <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+              {data.map((entry, idx) => (
+                <Cell key={`cell-${entry.name}-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
               ))}
             </Bar>
           </BarChart>

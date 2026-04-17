@@ -4,9 +4,10 @@ from __future__ import annotations
 """
 E0-route — Roteamento automático de arquivos do inbox para diretórios de destino.
 
-Dois modos de classificação:
-  Camada 1 (determinística): regex sobre o nome do arquivo
-  Camada 2 (LLM fallback):  extrai conteúdo, consulta Claude para classificar
+Classificação (alinhada ao app web quando o pacote ``backend`` está no PYTHONPATH):
+  Camada 1: regex sobre o **conteúdo** do arquivo (``content_classifier``)
+  Camada 2 (LLM): mesmo fallback que upload / ``POST /documents/reclassify``
+  Modo standalone (sem backend): regex sobre o **nome** do arquivo + LLM (legado)
 
 Usage:
   python scripts/e0_route.py                  # Roteia tudo (regex + LLM)
@@ -287,11 +288,18 @@ def _extract_file_preview(filepath: Path, max_chars: int = _PREVIEW_MAX_CHARS) -
         try:
             if ext == ".xlsx":
                 import openpyxl
-                wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
+                import warnings as _warnings
+                # Lemos sem read_only=True: arquivos com merged cells ou sem default style
+                # retornam conteúdo truncado/incorreto no modo read_only.
+                with _warnings.catch_warnings():
+                    _warnings.simplefilter("ignore")
+                    wb = openpyxl.load_workbook(filepath, data_only=True)
                 ws = wb.active
                 rows = []
                 for i, row in enumerate(ws.iter_rows(values_only=True)):
-                    rows.append(" | ".join(str(c) if c is not None else "" for c in row))
+                    cells = [str(c) for c in row if c is not None]
+                    if cells:
+                        rows.append(" | ".join(cells))
                     if i > _PREVIEW_MAX_ROWS:
                         break
                 wb.close()
@@ -314,7 +322,10 @@ def _extract_file_preview(filepath: Path, max_chars: int = _PREVIEW_MAX_CHARS) -
             return f"[Erro ao ler CSV: {e}]"
 
     elif ext in (".jpg", ".jpeg", ".png"):
-        return f"[Imagem {ext} — classificar apenas pelo nome do arquivo]"
+        # Imagens não têm texto extraível: retornamos string vazia para que
+        # o chamador detecte a ausência de texto e acione o fallback LLM
+        # com visão (via _build_llm_messages → imagem base64).
+        return ""
 
     else:
         try:
@@ -323,9 +334,85 @@ def _extract_file_preview(filepath: Path, max_chars: int = _PREVIEW_MAX_CHARS) -
             return "[Arquivo binário — não pode ser lido como texto]"
 
 
+def _pdf_has_text_layer(filepath: Path) -> bool:
+    """Return True if the PDF has extractable text (not image-only)."""
+    try:
+        import pdfplumber
+        with pdfplumber.open(filepath) as pdf:
+            for page in pdf.pages[:2]:
+                if page.extract_text():
+                    return True
+    except Exception:
+        pass
+    return False
+
+
+def _build_llm_messages(filepath: Path, preview: str, prompt: str) -> list:
+    """Build the messages list for the LLM classification call.
+
+    Usa visão do LLM em três situações:
+    - PDF sem camada de texto (somente-imagem): envia o PDF como documento base64.
+    - Imagem JPG/PNG: envia a imagem diretamente via API vision.
+    - Demais arquivos: usa o texto do preview.
+    """
+    import base64
+
+    ext = filepath.suffix.lower()
+
+    # PDF sem camada de texto → envia como documento PDF para visão
+    if ext == ".pdf" and not preview.strip():
+        try:
+            pdf_b64 = base64.standard_b64encode(filepath.read_bytes()).decode("utf-8")
+            return [{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "document",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "application/pdf",
+                            "data": pdf_b64,
+                        },
+                    },
+                    {"type": "text", "text": prompt},
+                ],
+            }]
+        except Exception:
+            pass  # fall back to text-only
+
+    # Imagem JPG/PNG → envia via vision API
+    if ext in (".jpg", ".jpeg", ".png") and not preview.strip():
+        try:
+            media_type = "image/jpeg" if ext in (".jpg", ".jpeg") else "image/png"
+            img_b64 = base64.standard_b64encode(filepath.read_bytes()).decode("utf-8")
+            return [{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media_type,
+                            "data": img_b64,
+                        },
+                    },
+                    {"type": "text", "text": prompt},
+                ],
+            }]
+        except Exception:
+            pass  # fall back to text-only
+
+    return [{"role": "user", "content": prompt}]
+
+
 def classify_by_llm(filepath: Path) -> dict | None:
     """Camada 2: Use Claude to classify an unrecognized file.
-    Returns dict compatible with classify_by_name output, or None if low confidence."""
+
+    Para PDFs sem camada de texto (somente-imagem), envia o PDF visualmente
+    via Anthropic vision API em vez de texto extraído vazio.
+
+    Returns dict compatible with classify_by_name output, or None if low confidence.
+    """
     try:
         import anthropic
     except ImportError:
@@ -339,6 +426,17 @@ def classify_by_llm(filepath: Path) -> dict | None:
 
     preview = _extract_file_preview(filepath)
     filename = filepath.name
+    ext = filepath.suffix.lower()
+
+    # Detect files that need visual classification (no extractable text)
+    is_image_pdf = ext == ".pdf" and not preview.strip()
+    is_image_file = ext in (".jpg", ".jpeg", ".png")
+    needs_vision = is_image_pdf or is_image_file
+
+    if is_image_pdf:
+        log("INFO", f"PDF sem camada de texto detectado: '{filename}' — usando visão LLM")
+    elif is_image_file:
+        log("INFO", f"Imagem detectada: '{filename}' — usando visão LLM")
 
     member_options = " | ".join(MEMBER_NAMES) if MEMBER_NAMES else "unknown"
     prompt = f"""Analise o arquivo abaixo e classifique para roteamento no pipeline financeiro familiar.
@@ -349,12 +447,12 @@ Tamanho: {filepath.stat().st_size} bytes
 
 Conteúdo (preview):
 ---
-{preview}
+{preview if not is_image_pdf else "[PDF somente-imagem — conteúdo visual acima]"}
 ---
 
 Classifique o arquivo retornando APENAS um JSON válido (sem markdown) com estes campos:
 {{
-  "institution": "código da instituição (c6bank, itau, santander, bradesco, btgpactual, rico, picpay, wise, bankofamerica, quintoandar, binance, receitafederal) ou null",
+  "institution": "código da instituição (c6bank, itau, santander, bradesco, btgpactual, rico, picpay, wise, bankofamerica, quintoandar, caixa, binance, receitafederal) ou null",
   "doc_type": "código do tipo ({_DOC_TYPE_LIST}, etc.)",
   "dest_group": "financial_statements | income_tax_br | real_estate | vehicles | members | income_tax_us",
   "period": "YYYYMM ou YYYYMM_YYYYMM ou YYYY",
@@ -372,6 +470,20 @@ Regras:
 
     import time
 
+    # Substituir placeholder no prompt quando usando visão
+    visual_placeholder = "[Conteúdo visual enviado acima]"
+    if needs_vision:
+        prompt = prompt.replace(
+            preview if not is_image_pdf else "[PDF somente-imagem — conteúdo visual acima]",
+            visual_placeholder,
+        )
+        # Garantir que o placeholder aparece mesmo se preview era string vazia
+        prompt = prompt.replace(
+            "---\n\n---",
+            f"---\n{visual_placeholder}\n---",
+        )
+
+    messages = _build_llm_messages(filepath, preview, prompt)
     client = anthropic.Anthropic(api_key=api_key, timeout=30.0)
     max_retries = 3
     backoff = [1, 2, 4]
@@ -381,7 +493,7 @@ Regras:
             response = client.messages.create(
                 model=_LLM_MODEL,
                 max_tokens=_LLM_MAX_TOKENS,
-                messages=[{"role": "user", "content": prompt}],
+                messages=messages,
             )
             raw = response.content[0].text.strip()
 
@@ -528,10 +640,44 @@ def dest_dir_for_group(base: Path, group: str) -> Path:
 # Core routing
 # ---------------------------------------------------------------------------
 
+def _routing_dict_from_classify_document(clf: dict, filename: str) -> dict | None:
+    """Map :func:`classify_document` output to ``build_final_name`` input, or None."""
+    from backend.app.services.document_processor import classification_can_route_to_data
+
+    if not classification_can_route_to_data(clf):
+        return None
+    meta = clf.get("classification_meta") or {}
+    llm = meta.get("llm") if isinstance(meta, dict) else None
+    member = llm.get("member") if isinstance(llm, dict) else None
+    if not member:
+        member = detect_member(filename)
+    institution = clf.get("bank_code")
+    doc_type = clf["e0_doc_type"]
+    dest_group = clf["dest_group"]
+    period = clf.get("period") or extract_period(filename)
+    # Legacy convention: holerites Einstein → members/
+    if institution == "einstein" and doc_type == "holerite":
+        dest_group = "members"
+        institution = None
+    src = meta.get("source", "content_classifier") if isinstance(meta, dict) else "content_classifier"
+    return {
+        "institution": institution,
+        "doc_type": doc_type,
+        "dest_group": dest_group,
+        "period": period,
+        "member": member,
+        "source": src,
+    }
+
+
 def route_file(filepath: Path, base: Path, *, dry_run: bool = False,
                use_llm: bool = True, today: str | None = None) -> dict:
     """Route a single file from inbox to its destination.
-    Returns a status dict."""
+
+    When the Fin backend is importable, uses the same **content-first**
+    classifier as web upload and ``POST /documents/reclassify`` (regex sobre
+    conteúdo → LLM). Otherwise falls back to filename regex + LLM (standalone CLI).
+    """
     today = today or date.today().isoformat()
     filename = filepath.name
     ext = filepath.suffix.lower()
@@ -543,16 +689,40 @@ def route_file(filepath: Path, base: Path, *, dry_run: bool = False,
         log("WARN", f"Arquivo '{filename}' muito pequeno ({size} bytes) — NÃO roteado")
         return {"file": filename, "status": "skipped", "reason": f"too_small ({size}B)"}
 
-    # Camada 1: regex
-    classification = classify_by_name(filename)
+    classification = None
+    classify_document = None
+    try:
+        from backend.app.services.document_processor import classify_document as classify_document
+    except ImportError:
+        pass
 
-    # Camada 2: LLM fallback
-    if classification is None and use_llm:
-        log("INFO", f"Regex não identificou '{filename}' — tentando LLM...")
-        classification = classify_by_llm(filepath)
+    if classify_document is not None:
+        try:
+            clf = classify_document(filepath, base, use_llm=use_llm)
+            classification = _routing_dict_from_classify_document(clf, filename)
+        except Exception as exc:
+            log("WARN", f"classify_document falhou para '{filename}': {exc}")
+        if classification is None:
+            log(
+                "INFO",
+                f"Mantido no inbox (mesma regra que upload web — confiança insuficiente ou tipo indefinido): '{filename}'",
+            )
+            return {
+                "file": filename,
+                "status": "inbox_review",
+                "dest": "(inbox)",
+                "source": "content_classifier",
+            }
 
     if classification is None:
-        # Não identificado
+        # Standalone: filename regex + LLM (comportamento legado)
+        classification = classify_by_name(filename)
+        if classification is None and use_llm:
+            log("INFO", f"Regex não identificou '{filename}' — tentando LLM...")
+            classification = classify_by_llm(filepath)
+
+    if classification is None:
+        # Não identificado (legado — move para quarentena)
         nao_id_dir = base / "inbox_processed" / today / "nao_identificados"
         if not dry_run:
             nao_id_dir.mkdir(parents=True, exist_ok=True)
@@ -667,7 +837,7 @@ def route_all(base: Path | None = None, *, dry_run: bool = False,
                     break
         elif status == "duplicate":
             stats["duplicates"] += 1
-        elif status == "unidentified":
+        elif status in ("unidentified", "inbox_review"):
             stats["unidentified"] += 1
         elif status == "skipped":
             stats["skipped"] += 1

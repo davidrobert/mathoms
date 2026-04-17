@@ -449,6 +449,47 @@ export async function retryUnlock(workspaceId: string): Promise<DocumentResponse
   return apiFetch(`/workspaces/${workspaceId}/documents/retry-unlock`, { method: "POST" });
 }
 
+/**
+ * Faz fetch autenticado do arquivo original de um documento e retorna um Blob.
+ * PDFs devem ser abertos em nova aba (browser renderiza inline);
+ * outros formatos devem ser baixados via <a download>.
+ */
+export async function fetchDocumentFile(
+  workspaceId: string,
+  documentId: string,
+): Promise<{ blob: Blob; filename: string; contentType: string }> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("fin_token") : null;
+  const res = await fetch(`${API_BASE}/workspaces/${workspaceId}/documents/${documentId}/file`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new ApiError(res.status, text || res.statusText);
+  }
+  const cd = res.headers.get("content-disposition") ?? "";
+  const nameMatch = cd.match(/filename="?([^";\n]+)"?/);
+  const filename = nameMatch ? nameMatch[1] : "documento";
+  const blob = await res.blob();
+  return { blob, filename, contentType: res.headers.get("content-type") ?? "" };
+}
+
+export interface ReclassifyResponse {
+  total: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+}
+
+/** Re-executa o classificador de conteúdo em todos os documentos do workspace.
+ *  Documentos com override manual são ignorados por padrão. */
+export async function reclassifyDocuments(
+  workspaceId: string,
+  skipManualOverrides = true,
+): Promise<ReclassifyResponse> {
+  const qs = skipManualOverrides ? "" : "?skip_manual_overrides=false";
+  return apiFetch(`/workspaces/${workspaceId}/documents/reclassify${qs}`, { method: "POST" });
+}
+
 // ─── Vault ───
 
 export async function listVaultPasswords(workspaceId: string): Promise<VaultListResponse> {
@@ -487,6 +528,10 @@ export async function triggerPipeline(workspaceId: string, opts?: {
       incremental: opts?.incremental ?? false,
     }),
   });
+}
+
+export async function reclassifyExpenses(workspaceId: string): Promise<PipelineRunResponse> {
+  return triggerPipeline(workspaceId, { from_stage: "E4", skip_llm: true });
 }
 
 export async function getNewDocCount(workspaceId: string): Promise<{ new_count: number }> {

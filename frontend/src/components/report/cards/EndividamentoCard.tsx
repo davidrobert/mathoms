@@ -71,7 +71,7 @@ export function EndividamentoCard({
                 <tbody>
                   {dividas.map((d, idx) => (
                     <tr
-                      key={d.descricao + idx}
+                      key={`divida-${idx}`}
                       className="border-b border-[var(--surface-border)]/40 last:border-0"
                     >
                       <td className="py-2">{d.descricao}</td>

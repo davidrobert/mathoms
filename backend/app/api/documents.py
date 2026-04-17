@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,7 +29,9 @@ from backend.app.schemas.document import (
     DocumentUploadResponse,
 )
 from backend.app.services.audit import AuditAction, audit_log
-from backend.app.services.storage import StorageService
+from backend.app.services.config_materializer import ensure_tenant_pipeline_config
+from backend.app.services.document_duplicates import rebuild_fuzzy_duplicate_pointers
+from backend.app.services.storage import StorageService, detect_actual_mime
 from backend.app.services.vault import get_vault
 from backend.app.services.document_processor import process_uploaded_document
 
@@ -85,6 +89,7 @@ async def upload_documents(
     passwords = await _get_vault_passwords(workspace.id, db)
     config_dir = settings.PIPELINE_ROOT / "config"
     tenant_root = _storage.ensure_tenant_dirs(workspace.id)
+    ensure_tenant_pipeline_config(workspace.id, tenant_root)
     created_docs = []
 
     skipped_duplicates: list[str] = []
@@ -93,6 +98,11 @@ async def upload_documents(
         filename = upload_file.filename or "unknown"
         content = await upload_file.read()
 
+        # Detect MIME from magic bytes — more reliable than the HTTP header,
+        # which reflects the file extension chosen by the browser and can be
+        # wrong (e.g. a PDF exported with a .csv name).
+        actual_mime = detect_actual_mime(content) or upload_file.content_type
+
         ok, err_msg = _storage.validate_file(filename, len(content), content=content)
         if not ok:
             doc = Document(
@@ -100,7 +110,7 @@ async def upload_documents(
                 original_name=filename,
                 status=DocumentStatus.error,
                 file_size_bytes=len(content),
-                content_type=upload_file.content_type,
+                content_type=actual_mime,
                 error_message=err_msg,
             )
             db.add(doc)
@@ -113,7 +123,7 @@ async def upload_documents(
                 original_name=filename,
                 status=DocumentStatus.error,
                 file_size_bytes=0,
-                content_type=upload_file.content_type,
+                content_type=actual_mime,
                 error_message="Arquivo vazio",
             )
             db.add(doc)
@@ -135,7 +145,7 @@ async def upload_documents(
                 original_name=filename,
                 stored_path=str(stored_path),
                 file_size_bytes=len(content),
-                content_type=upload_file.content_type,
+                content_type=actual_mime,
                 content_hash=content_hash,
                 status=DocumentStatus.classifying,
             )
@@ -249,9 +259,8 @@ async def list_documents(
     query = select(Document).where(Document.workspace_id == workspace.id)
 
     if status_filter:
-        try:
-            DocumentStatus(status_filter)
-        except ValueError:
+        # Do not use DocumentStatus(status_filter): _missing_ maps unknown strings to ``error``.
+        if status_filter not in {m.value for m in DocumentStatus}:
             raise HTTPException(status_code=400, detail=f"Status inválido: {status_filter}")
         query = query.where(Document.status == status_filter)
 
@@ -466,3 +475,193 @@ async def retry_unlock(
         await db.refresh(doc)
 
     return [DocumentResponse.model_validate(d) for d in updated]
+
+
+@router.get("/{document_id}/file")
+async def get_document_file(
+    document_id: str,
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+):
+    """Serve o arquivo original de um documento para visualização ou download.
+
+    PDFs são servidos com ``Content-Disposition: inline`` para que o navegador
+    os abra diretamente. Outros formatos recebem ``attachment`` e são baixados.
+    Requer autenticação Bearer (igual a todos os outros endpoints).
+    """
+    result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.workspace_id == workspace.id,
+        )
+    )
+    doc = result.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Documento não encontrado")
+
+    abs_path = _storage.abs_stored_file(workspace.id, doc.stored_path)
+    if abs_path is None or not abs_path.exists():
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado no storage")
+
+    content_type = doc.content_type or "application/octet-stream"
+    # PDFs e imagens renderizam inline no browser; demais formatos são baixados.
+    disposition = "inline" if ("pdf" in content_type or content_type.startswith("image/")) else "attachment"
+    safe_name = doc.original_name.replace('"', "'")
+
+    return FileResponse(
+        path=str(abs_path),
+        media_type=content_type,
+        headers={
+            "Content-Disposition": f'{disposition}; filename="{safe_name}"',
+            "Cache-Control": "private, max-age=3600",
+        },
+    )
+
+
+class ReclassifyResponse(BaseModel):
+    total: int
+    updated: int
+    skipped: int
+    errors: int
+
+
+@router.post(
+    "/reclassify",
+    response_model=ReclassifyResponse,
+    dependencies=[Depends(require_write_role)],
+)
+async def reclassify_documents(
+    request: Request,
+    workspace: Workspace = Depends(get_current_workspace),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    skip_manual_overrides: bool = True,
+):
+    """Re-run content-first classifier on all (or non-manually-overridden) documents.
+
+    Useful when classifier rules are updated or when documents were uploaded with
+    wrong extensions and got misclassified. Documents with ``manual_override`` in
+    ``classification_meta`` are skipped by default (pass ``skip_manual_overrides=false``
+    to force reclassification of those too).
+
+    Does NOT reprocess JSON members/baseline files (those are deterministic and
+    classified by structure, not content regex).
+    """
+    import asyncio
+    from functools import partial
+    from backend.app.services.document_processor import (
+        _detect_json_type,
+        classify_document,
+        classification_can_route_to_data,
+        resolve_classification_base,
+    )
+    from backend.app.services.canonical_routing import rename_to_canonical
+
+    tenant_root = _storage.ensure_tenant_dirs(workspace.id)
+    ensure_tenant_pipeline_config(workspace.id, tenant_root)
+    classification_base = resolve_classification_base(settings.PIPELINE_ROOT / "config", tenant_root)
+
+    result_all = await db.execute(
+        select(Document).where(Document.workspace_id == workspace.id)
+    )
+    docs = result_all.scalars().all()
+
+    total = len(docs)
+    n_updated = 0
+    n_skipped = 0
+    n_errors = 0
+
+    loop = asyncio.get_event_loop()
+
+    for doc in docs:
+        # Skip docs with manual overrides (unless caller opts in)
+        if skip_manual_overrides:
+            meta = doc.classification_meta or {}
+            if isinstance(meta, dict) and "manual_override" in meta:
+                n_skipped += 1
+                continue
+
+        if not doc.stored_path:
+            n_skipped += 1
+            continue
+
+        abs_path = _storage.abs_stored_file(doc.workspace_id, doc.stored_path)
+        if abs_path is None or not abs_path.exists():
+            n_skipped += 1
+            continue
+
+        try:
+            # JSON members/baseline: classify by structure (sync, fast)
+            if abs_path.suffix.lower() == ".json":
+                json_type = _detect_json_type(abs_path)
+                if json_type:
+                    doc.doc_type = json_type
+                    doc.classification_confidence = 1.0
+                    doc.needs_review = False
+                    doc.classification_meta = {"source": "json_structure", "reclassified": True}
+                    n_updated += 1
+                else:
+                    n_skipped += 1
+                continue
+
+            # All other files: content regex → LLM fallback (blocking I/O in threadpool).
+            # Same classifier + routing gate as upload and E0-route (pipeline).
+            clf = await loop.run_in_executor(
+                None, partial(classify_document, abs_path, classification_base)
+            )
+            doc.doc_type = clf["doc_type"]
+            doc.bank_code = clf["bank_code"]
+            doc.period = clf["period"]
+            doc.classification_confidence = clf["confidence"]
+            doc.needs_review = clf["needs_review"]
+            meta = dict(clf.get("classification_meta") or {})
+            meta["reclassified_at"] = datetime.now(timezone.utc).isoformat()
+            doc.classification_meta = meta
+
+            # Rename/move only when confident enough (same rule as upload / E0-route).
+            if classification_can_route_to_data(clf):
+                rename_result = await loop.run_in_executor(
+                    None,
+                    partial(
+                        rename_to_canonical,
+                        abs_path,
+                        tenant_root,
+                        settings.PIPELINE_ROOT,
+                        dest_group=clf["dest_group"],
+                        e0_doc_type=clf["e0_doc_type"],
+                        institution=clf.get("bank_code"),
+                        period=clf.get("period"),
+                        classification_meta=meta,
+                    ),
+                )
+                if rename_result is not None:
+                    abs_new, rel_new = rename_result
+                    doc.stored_path = rel_new
+                    doc.original_name = abs_new.name
+
+            n_updated += 1
+        except Exception as exc:
+            doc.error_message = f"Reclassify error: {str(exc)[:200]}"
+            n_errors += 1
+
+    dup_rows = await db.execute(
+        select(Document).where(
+            Document.workspace_id == workspace.id,
+            Document.status != DocumentStatus.error,
+        )
+    )
+    rebuild_fuzzy_duplicate_pointers(list(dup_rows.scalars().all()))
+
+    await audit_log(
+        db,
+        action=AuditAction.document_update_classification,
+        resource_type="workspace",
+        resource_id=workspace.id,
+        workspace_id=workspace.id,
+        actor_user_id=current_user.id,
+        request=request,
+        details={"total": total, "updated": n_updated, "skipped": n_skipped, "errors": n_errors},
+    )
+
+    await db.commit()
+    return ReclassifyResponse(total=total, updated=n_updated, skipped=n_skipped, errors=n_errors)

@@ -168,8 +168,10 @@ const BANK_NAMES: Record<string, string> = {
   bankofamerica: "Bank of America",
   quintoandar: "QuintoAndar",
   binance: "Binance",
+  caixa: "Caixa Econômica Federal",
   nubank: "Nubank",
   inter: "Inter",
+  stone: "Stone",
   receitafederal: "Receita Federal",
 };
 

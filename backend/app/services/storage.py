@@ -34,6 +34,30 @@ _MAGIC_SIGNATURES: "dict[str, tuple[bytes, ...]]" = {
 }
 
 
+def detect_actual_mime(content: bytes) -> str | None:
+    """Detect real MIME type from the first bytes of file content.
+
+    Useful when the file extension or HTTP Content-Type header is unreliable
+    (e.g. a PDF exported with a .csv extension).  Returns None when the type
+    cannot be determined from the header bytes alone (e.g. plain-text CSV/JSON).
+    """
+    if not content:
+        return None
+    if content[:5] == b"%PDF-":
+        return "application/pdf"
+    if content[:4] in (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08"):
+        # Both .xlsx and .zip share the PK signature; treat as spreadsheet
+        # (upload pipeline will re-classify if it's some other ZIP-based format).
+        return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    if content[:8] == b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1":
+        return "application/vnd.ms-excel"
+    if content[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if content[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    return None
+
+
 def _validate_magic_number(filename: str, content: bytes) -> tuple[bool, str]:
     """Verify content prefix matches expected magic bytes for its extension.
 

@@ -8,10 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
+import type { UserWorkspace } from "@/lib/api";
 
 export default function PipelineTab() {
   const { workspace } = useWorkspace();
   if (!workspace) return null;
+  return <PipelineTabContent workspace={workspace} />;
+}
+
+function PipelineTabContent({ workspace }: { workspace: UserWorkspace }) {
 
   const [config, setConfig] = useState<PipelineConfigData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +26,7 @@ export default function PipelineTab() {
 
   const reload = useCallback(async () => {
     try {
-      const data = await getPipelineConfig(workspace!.id);
+      const data = await getPipelineConfig(workspace.id);
       setConfig(data);
     } catch {
       setError("Erro ao carregar configuração do pipeline");
@@ -35,7 +40,7 @@ export default function PipelineTab() {
   async function handleSave(section: string, data: Record<string, unknown>) {
     setError(""); setSuccess(""); setSaving(true);
     try {
-      const updated = await updatePipelineConfig(workspace!.id, { [section]: data });
+      const updated = await updatePipelineConfig(workspace.id, { [section]: data });
       setConfig(updated);
       setSuccess("Salvo!");
       setTimeout(() => setSuccess(""), 2000);

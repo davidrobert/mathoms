@@ -20,10 +20,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Trash2, KeyRound } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
+import type { UserWorkspace } from "@/lib/api";
 
 export default function VaultPage() {
   const { workspace } = useWorkspace();
   if (!workspace) return null;
+  return <VaultPageContent workspace={workspace} />;
+}
+
+function VaultPageContent({ workspace }: { workspace: UserWorkspace }) {
 
   const [passwords, setPasswords] = useState<VaultPasswordResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +41,7 @@ export default function VaultPage() {
 
   const reload = useCallback(async () => {
     try {
-      const data = await listVaultPasswords(workspace!.id);
+      const data = await listVaultPasswords(workspace.id);
       setPasswords(data.passwords);
     } catch {
       setError("Erro ao carregar senhas");
@@ -55,7 +60,7 @@ export default function VaultPage() {
     setSuccessMsg("");
     setSaving(true);
     try {
-      await createVaultPassword(workspace!.id, label, password);
+      await createVaultPassword(workspace.id, label, password);
       setLabel("");
       setPassword("");
       setSuccessMsg("Senha adicionada!");
@@ -70,7 +75,7 @@ export default function VaultPage() {
   async function handleDelete() {
     if (!deleteTarget) return;
     try {
-      await deleteVaultPassword(workspace!.id, deleteTarget.id);
+      await deleteVaultPassword(workspace.id, deleteTarget.id);
       setPasswords((prev) => prev.filter((p) => p.id !== deleteTarget.id));
     } catch {
       setError("Erro ao remover senha");
@@ -82,7 +87,7 @@ export default function VaultPage() {
   async function handleRetryUnlock() {
     setError("");
     try {
-      const result = await retryUnlock(workspace!.id);
+      const result = await retryUnlock(workspace.id);
       const unlocked = result.filter((d) => d.status === "ready").length;
       setSuccessMsg(
         unlocked > 0

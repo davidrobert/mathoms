@@ -30,8 +30,8 @@ export function ReceitaDespesaMensalChart({
 
   return (
     <ReportCard variant="neutral" title="Receita vs Despesa — Mês a Mês">
-      <div className="h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full">
+        <ResponsiveContainer width="100%" height={256}>
           <AreaChart data={data} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-border)" />
             <XAxis dataKey="month" tick={LABEL_TICK} tickLine={false} />

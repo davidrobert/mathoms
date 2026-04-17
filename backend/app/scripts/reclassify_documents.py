@@ -36,9 +36,12 @@ from sqlalchemy import select
 from backend.app.core.config import settings
 from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.models.document import Document, DocumentStatus, DocumentType
+from backend.app.services.config_materializer import ensure_tenant_pipeline_config
+from backend.app.services.document_duplicates import rebuild_fuzzy_duplicate_pointers
 from backend.app.services.document_processor import (
     _detect_json_type,
     classify_document,
+    resolve_classification_base,
 )
 from backend.app.services.storage import StorageService
 
@@ -50,7 +53,7 @@ def _doc_type_value(v) -> str:
 _storage = StorageService()
 
 
-async def _reclassify_one(doc: Document, config_root: Path) -> dict:
+async def _reclassify_one(doc: Document, *, use_llm: bool) -> dict:
     path = _storage.abs_stored_file(doc.workspace_id, doc.stored_path)
     if path is None or not path.exists():
         return {"skipped": "no_stored_path", "prior": _doc_type_value(doc.doc_type)}
@@ -70,8 +73,12 @@ async def _reclassify_one(doc: Document, config_root: Path) -> dict:
                 "meta": {"source": "json_structure", "type": json_type.value},
             }
 
+    _storage.ensure_tenant_dirs(doc.workspace_id)
+    tenant_root = _storage.tenant_root(doc.workspace_id)
+    ensure_tenant_pipeline_config(doc.workspace_id, tenant_root)
+    classification_base = resolve_classification_base(settings.PIPELINE_ROOT / "config", tenant_root)
     try:
-        result = classify_document(path, config_root)
+        result = classify_document(path, classification_base, use_llm=use_llm)
     except Exception as exc:
         return {"error": f"{type(exc).__name__}: {str(exc)[:200]}"}
 
@@ -87,45 +94,10 @@ async def _reclassify_one(doc: Document, config_root: Path) -> dict:
     }
 
 
-async def _rebuild_fuzzy_duplicates(db, docs: list[Document]) -> int:
-    """After reclassification, recompute possible_duplicate_of_id.
-
-    For each doc with a non-"other" type + bank + period, point it at the
-    OLDEST other doc in the same workspace with the same triple. Oldest wins
-    so the flagged doc is always the "new" one.
-    """
-    # Group by (workspace_id, doc_type, bank_code, period)
-    groups: dict[tuple, list[Document]] = {}
-    for d in docs:
-        if (
-            d.doc_type
-            and d.doc_type != DocumentType.other
-            and d.bank_code
-            and d.period
-        ):
-            key = (d.workspace_id, d.doc_type, d.bank_code, d.period)
-            groups.setdefault(key, []).append(d)
-
-    flagged = 0
-    for group in groups.values():
-        if len(group) < 2:
-            continue
-        group.sort(key=lambda x: x.uploaded_at)
-        oldest = group[0]
-        for d in group[1:]:
-            if d.possible_duplicate_of_id != oldest.id:
-                d.possible_duplicate_of_id = oldest.id
-                d.needs_review = True
-                flagged += 1
-    return flagged
-
-
 async def reclassify(apply: bool, use_llm: bool, only_doc_type: str | None) -> int:
     if not use_llm:
         # Strongest opt-out: remove the key so classify_by_llm returns None.
         os.environ.pop("ANTHROPIC_API_KEY", None)
-
-    config_root = settings.PIPELINE_ROOT  # base_dir that has /config/
 
     changed = preserved = errored = skipped = 0
     changed_by_type: dict[str, int] = {}
@@ -139,7 +111,7 @@ async def reclassify(apply: bool, use_llm: bool, only_doc_type: str | None) -> i
         print(f"[info] {len(docs)} documents to consider", flush=True)
 
         for doc in docs:
-            info = await _reclassify_one(doc, config_root)
+            info = await _reclassify_one(doc, use_llm=use_llm)
             if "skipped" in info:
                 skipped += 1
                 continue
@@ -176,7 +148,7 @@ async def reclassify(apply: bool, use_llm: bool, only_doc_type: str | None) -> i
 
         if apply:
             # Rebuild fuzzy duplicate pointers across the refreshed classification
-            flagged = await _rebuild_fuzzy_duplicates(db, docs)
+            flagged = rebuild_fuzzy_duplicate_pointers(docs)
             print(f"[info] flagged {flagged} fuzzy duplicates", flush=True)
             await db.commit()
             print("[done] committed reclassification", flush=True)

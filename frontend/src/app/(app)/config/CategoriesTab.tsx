@@ -6,9 +6,11 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
+  reclassifyExpenses,
   type CategoryConfig,
   ApiError,
 } from "@/lib/api";
+import Link from "next/link";
 import { Spinner } from "@/components/Spinner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -19,11 +21,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Trash2, Plus } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
+import type { UserWorkspace } from "@/lib/api";
 
 export default function CategoriesTab() {
   const { workspace } = useWorkspace();
-  if (!workspace) return null;
-
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,19 +33,28 @@ export default function CategoriesTab() {
   const [filter, setFilter] = useState<"all" | "expense" | "income">("all");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CategoryConfig | null>(null);
+  const [reclassifying, setReclassifying] = useState(false);
+  const [reclassifyStatus, setReclassifyStatus] = useState<"idle" | "success" | "conflict" | "error">("idle");
 
   const reload = useCallback(async () => {
+    if (!workspace) return;
     try {
-      const data = await listCategories(workspace!.id);
+      const data = await listCategories(workspace.id);
       setCategories(data.categories);
     } catch {
       setError("Erro ao carregar categorias");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [workspace]);
 
   useEffect(() => { reload(); }, [reload]);
+
+  if (!workspace) return null;
+  return <CategoriesTabContent workspace={workspace} />;
+}
+
+function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
 
   const filtered = categories.filter(
     (c) => filter === "all" || c.category_type === filter
@@ -58,7 +68,7 @@ export default function CategoriesTab() {
     const fd = new FormData(e.currentTarget);
     const kwStr = fd.get("keywords") as string;
     try {
-      await createCategory(workspace!.id, {
+      await createCategory(workspace.id, {
         code: fd.get("code") as string,
         name: fd.get("name") as string,
         category_type: fd.get("category_type") as "expense" | "income",
@@ -77,16 +87,19 @@ export default function CategoriesTab() {
   async function handleDelete() {
     if (!deleteTarget?.id) return;
     try {
-      await deleteCategory(workspace!.id, deleteTarget.id);
+      await deleteCategory(workspace.id, deleteTarget.id);
       await reload();
     } catch { setError("Erro ao remover"); }
     setDeleteTarget(null);
   }
 
   async function handleSaveKeywords(cat: CategoryConfig, newKeywords: string[]) {
-    if (!cat.id) return;
+    if (!cat.id) {
+      setError("Esta categoria ainda não foi salva no banco. Remova e recrie para editar keywords.");
+      return;
+    }
     try {
-      await updateCategory(workspace!.id, cat.id, { keywords: newKeywords });
+      await updateCategory(workspace.id, cat.id, { keywords: newKeywords });
       setEditingId(null);
       await reload();
     } catch (err) {
@@ -97,10 +110,27 @@ export default function CategoriesTab() {
   async function handleUpdateCap(cat: CategoryConfig, val: string) {
     if (!cat.id) return;
     try {
-      await updateCategory(workspace!.id, cat.id, { monthly_cap: val ? Number(val) : null });
+      await updateCategory(workspace.id, cat.id, { monthly_cap: val ? Number(val) : null });
       await reload();
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Erro ao atualizar teto");
+    }
+  }
+
+  async function handleReclassify() {
+    setReclassifying(true);
+    setReclassifyStatus("idle");
+    try {
+      await reclassifyExpenses(workspace.id);
+      setReclassifyStatus("success");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        setReclassifyStatus("conflict");
+      } else {
+        setReclassifyStatus("error");
+      }
+    } finally {
+      setReclassifying(false);
     }
   }
 
@@ -189,6 +219,43 @@ export default function CategoriesTab() {
           Adicionar categoria
         </Button>
       )}
+
+      {/* Reclassify banner */}
+      <div className="mt-6 rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium">Aplicar alterações nas transações</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Mudanças em keywords só têm efeito após reclassificar. As etapas E4→E7 serão reprocessadas.
+            </p>
+            {reclassifyStatus === "success" && (
+              <p className="text-xs text-gain mt-1">
+                Reclassificação iniciada.{" "}
+                <Link href="/pipeline" className="underline">Acompanhe o progresso.</Link>
+              </p>
+            )}
+            {reclassifyStatus === "conflict" && (
+              <p className="text-xs text-alert mt-1">
+                Já existe uma execução em andamento.{" "}
+                <Link href="/pipeline" className="underline">Ver pipeline.</Link>
+              </p>
+            )}
+            {reclassifyStatus === "error" && (
+              <p className="text-xs text-loss mt-1">Erro ao iniciar reclassificação. Tente novamente.</p>
+            )}
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleReclassify}
+            disabled={reclassifying}
+            className="shrink-0"
+          >
+            {reclassifying ? <Spinner size="sm" className="mr-2" /> : null}
+            Reclassificar Despesas
+          </Button>
+        </div>
+      </div>
 
       <ConfirmDialog
         open={!!deleteTarget}

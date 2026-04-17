@@ -36,7 +36,7 @@ export function InvestimentosClasseCard({ investimentos }: InvestimentosClasseCa
           </thead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={r.classe + i} className="border-b border-[var(--surface-border)]/40 last:border-0">
+              <tr key={`classe-${i}`} className="border-b border-[var(--surface-border)]/40 last:border-0">
                 <td className="py-2">{r.classe}</td>
                 <td className="py-2 text-right"><MonetaryValue value={r.valor} /></td>
                 <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">{r.pct.toFixed(1)}%</td>

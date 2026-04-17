@@ -37,6 +37,6 @@ class E7ReviewOutput(BaseModel):
     recommendations: list[str] = Field(default_factory=list, max_length=6, description="Até 6 recomendações — cada uma com até 200 caracteres, ordenadas por impacto")
     score_adjustments: list[ScoreAdjustment] = Field(default_factory=list, max_length=5, description="Até 5 ajustes qualitativos ao score")
     narrative_sections: list[NarrativeSection] = Field(default_factory=list, max_length=5, description="Até 5 seções narrativas")
-    overall_assessment: str = Field(..., max_length=1200, description="Avaliação geral — 2 a 3 parágrafos curtos (máx 1200 caracteres)")
+    overall_assessment: str = Field(..., max_length=2500, description="Avaliação geral — 3 a 5 parágrafos (máx 2500 caracteres)")
     risk_level: str = Field(..., description="Overall risk level: low, moderate, high, critical")
     confidence: float = Field(..., ge=0.0, le=1.0)

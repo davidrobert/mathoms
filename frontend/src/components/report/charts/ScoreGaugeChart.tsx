@@ -41,8 +41,8 @@ export function ScoreGaugeChart({ score }: { score: ScoreData | undefined }) {
   return (
     <ReportCard variant="neutral" title="Score Financeiro">
       <div className="flex flex-col items-center">
-        <div className="relative h-48 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="relative w-full">
+          <ResponsiveContainer width="100%" height={192}>
             <RadialBarChart
               cx="50%"
               cy="50%"

@@ -7,6 +7,8 @@ import {
   uploadDocuments,
   deleteDocument,
   retryUnlock,
+  reclassifyDocuments,
+  fetchDocumentFile,
   type DocumentResponse,
   ApiError,
 } from "@/lib/api";
@@ -28,6 +30,12 @@ import { EditDocumentDialog } from "@/components/EditDocumentDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Table,
   TableBody,
   TableCell,
@@ -47,13 +55,23 @@ import {
   Info,
   KeyRound,
   Pencil,
+  RefreshCw,
+  Eye,
+  Download,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
+import type { UserWorkspace } from "@/lib/api";
 
 export default function DocumentsPage() {
   const { workspace } = useWorkspace();
   if (!workspace) return null;
+  return <DocumentsPageContent workspace={workspace} />;
+}
 
+function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
   const [docs, setDocs] = useState<DocumentResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -64,6 +82,34 @@ export default function DocumentsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [editTarget, setEditTarget] = useState<DocumentResponse | null>(null);
+  const [reclassifying, setReclassifying] = useState(false);
+  const [viewingId, setViewingId] = useState<string | null>(null);
+
+  const [sortKey, setSortKey] = useState<SortKey>("uploaded_at");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
+
+  const sortedDocs = [...docs].sort((a, b) => {
+    let av: string = "";
+    let bv: string = "";
+    if (sortKey === "original_name") { av = a.original_name ?? ""; bv = b.original_name ?? ""; }
+    else if (sortKey === "doc_type")    { av = docTypeLabel(a.doc_type); bv = docTypeLabel(b.doc_type); }
+    else if (sortKey === "content_type") { av = mimeLabel(a.content_type); bv = mimeLabel(b.content_type); }
+    else if (sortKey === "bank_code")   { av = institutionLabel(a.bank_code); bv = institutionLabel(b.bank_code); }
+    else if (sortKey === "period")      { av = a.period ?? ""; bv = b.period ?? ""; }
+    else if (sortKey === "status")      { av = a.status ?? ""; bv = b.status ?? ""; }
+    else if (sortKey === "uploaded_at") { av = a.uploaded_at ?? ""; bv = b.uploaded_at ?? ""; }
+    const cmp = av.localeCompare(bv, "pt-BR", { sensitivity: "base", numeric: true });
+    return sortDir === "asc" ? cmp : -cmp;
+  });
 
   const reload = useCallback(async () => {
     try {
@@ -128,6 +174,59 @@ export default function DocumentsPage() {
       setError("Erro ao remover documento");
     } finally {
       setDeleteTarget(null);
+    }
+  }
+
+  async function handleReclassify() {
+    setError("");
+    setReclassifying(true);
+    try {
+      const result = await reclassifyDocuments(workspace!.id);
+      setSuccessMsg(
+        `Reclassificação concluída: ${result.updated} atualizado(s), ${result.skipped} ignorado(s)${result.errors > 0 ? `, ${result.errors} com erro` : ""}.`
+      );
+      await reload();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.detail : "Erro ao reclassificar documentos");
+    } finally {
+      setReclassifying(false);
+    }
+  }
+
+  async function handleViewDocument(doc: DocumentResponse) {
+    if (viewingId) return; // evita cliques duplos
+    setViewingId(doc.id);
+    setError("");
+    try {
+      const { blob, filename, contentType } = await fetchDocumentFile(workspace.id, doc.id);
+      const url = URL.createObjectURL(blob);
+      const isInlineable =
+        contentType.includes("pdf") ||
+        contentType.includes("image/"); // JPG, PNG, GIF, WebP, etc.
+      if (isInlineable) {
+        // PDFs e imagens abrem inline no browser em nova aba
+        const tab = window.open(url, "_blank");
+        // Revoga a URL temporária depois que o browser carregou o arquivo
+        if (tab) {
+          setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        } else {
+          URL.revokeObjectURL(url);
+          setError("O popup foi bloqueado. Permita popups para este site e tente novamente.");
+        }
+      } else {
+        // Demais formatos (CSV, XLS, XLSX, JSON…): download via link temporário
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.detail : "Erro ao abrir o documento.");
+    } finally {
+      setViewingId(null);
     }
   }
 
@@ -259,6 +358,31 @@ export default function DocumentsPage() {
         </div>
       )}
 
+      {/* Reclassify action — visible when there are documents */}
+      {!loading && docs.length > 0 && (
+        <div className="mb-3 flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleReclassify}
+            disabled={reclassifying}
+            title="Re-executa o classificador de conteúdo em todos os documentos (útil após atualizações de regras ou upload com extensão errada)"
+          >
+            {reclassifying ? (
+              <span className="inline-flex items-center gap-2">
+                <Spinner size="sm" />
+                Reclassificando...
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2">
+                <RefreshCw className="h-3.5 w-3.5" />
+                Reclassificar documentos
+              </span>
+            )}
+          </Button>
+        </div>
+      )}
+
       {/* Documents Table */}
       {loading ? (
         <div className="flex justify-center py-12">
@@ -276,16 +400,17 @@ export default function DocumentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Arquivo</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Instituição</TableHead>
-                <TableHead>Período</TableHead>
-                <TableHead>Status</TableHead>
+                <SortableHead label="Arquivo"     col="original_name" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortableHead label="Tipo"        col="doc_type"      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortableHead label="Formato"     col="content_type"  sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortableHead label="Instituição" col="bank_code"     sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortableHead label="Período"     col="period"        sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortableHead label="Status"      col="status"        sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
                 <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {docs.map((doc) => {
+              {sortedDocs.map((doc) => {
                 const st = docStatusLabel(doc.status);
                 const pipelineLabel = pipelineE2TouchLabel(
                   doc.pipeline_last_run_at,
@@ -315,15 +440,27 @@ export default function DocumentsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="align-top text-muted-foreground">{docTypeLabel(doc.doc_type)}</TableCell>
+                    <TableCell className="align-top">
+                      <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
+                        {mimeLabel(doc.content_type)}
+                      </span>
+                    </TableCell>
                     <TableCell className="align-top text-muted-foreground">{institutionLabel(doc.bank_code)}</TableCell>
                     <TableCell className="align-top text-muted-foreground">{formatDocPeriod(doc.period)}</TableCell>
                     <TableCell className="align-top">
                       <div className="flex items-center gap-1">
                         <StatusBadge variant={st.variant}>{st.label}</StatusBadge>
                         {doc.error_message && (
-                          <span className="cursor-help text-muted-foreground" title={doc.error_message}>
-                            <Info className="inline h-3.5 w-3.5" />
-                          </span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="cursor-help text-muted-foreground">
+                                <Info className="inline h-3.5 w-3.5" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {doc.error_message}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </div>
                       {pipelineLabel !== "—" && (
@@ -341,6 +478,28 @@ export default function DocumentsPage() {
                     </TableCell>
                     <TableCell className="align-top">
                       <div className="flex items-center gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewDocument(doc)}
+                          disabled={viewingId === doc.id}
+                          className="text-muted-foreground hover:text-foreground"
+                          aria-label={`Visualizar ${doc.original_name}`}
+                          title={
+                            doc.content_type?.includes("pdf") || doc.content_type?.includes("image/")
+                              ? "Abrir no navegador"
+                              : "Baixar arquivo"
+                          }
+                        >
+                          {viewingId === doc.id ? (
+                            <Spinner size="sm" />
+                          ) : doc.content_type?.includes("pdf") ||
+                            doc.content_type?.includes("image/") ? (
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -394,6 +553,51 @@ export default function DocumentsPage() {
   );
 }
 
+// ─── SortableHead ────────────────────────────────────────────────────────────
+
+type SortKey = "original_name" | "doc_type" | "content_type" | "bank_code" | "period" | "status" | "uploaded_at";
+type SortDir = "asc" | "desc";
+
+function SortableHead({
+  label,
+  col,
+  sortKey,
+  sortDir,
+  onSort,
+  className,
+}: {
+  label: string;
+  col: SortKey;
+  sortKey: SortKey;
+  sortDir: SortDir;
+  onSort: (key: SortKey) => void;
+  className?: string;
+}) {
+  const active = sortKey === col;
+  return (
+    <TableHead className={className}>
+      <button
+        onClick={() => onSort(col)}
+        className={`inline-flex items-center gap-1 rounded px-1 -mx-1 py-0.5 text-xs font-medium transition-colors hover:text-foreground select-none ${
+          active ? "text-foreground" : "text-muted-foreground"
+        }`}
+        title={`Ordenar por ${label}`}
+      >
+        {label}
+        {active ? (
+          sortDir === "asc" ? (
+            <ChevronUp className="h-3 w-3 shrink-0" />
+          ) : (
+            <ChevronDown className="h-3 w-3 shrink-0" />
+          )
+        ) : (
+          <ChevronsUpDown className="h-3 w-3 shrink-0 opacity-40" />
+        )}
+      </button>
+    </TableHead>
+  );
+}
+
 function FileIcon({ contentType }: { contentType: string | null }) {
   if (!contentType) return <File className="h-4 w-4" />;
   if (contentType.includes("pdf")) return <FileText className="h-4 w-4" />;
@@ -402,4 +606,19 @@ function FileIcon({ contentType }: { contentType: string | null }) {
   if (contentType.includes("image")) return <BarChart3 className="h-4 w-4" />;
   if (contentType.includes("json")) return <Wrench className="h-4 w-4" />;
   return <File className="h-4 w-4" />;
+}
+
+/** Converts a MIME type string into a short human-readable format label. */
+function mimeLabel(contentType: string | null): string {
+  if (!contentType) return "—";
+  if (contentType.includes("pdf")) return "PDF";
+  if (contentType.includes("csv")) return "CSV";
+  if (contentType.includes("openxmlformats") || contentType.includes("spreadsheetml")) return "XLSX";
+  if (contentType.includes("ms-excel") || contentType.includes("xls")) return "XLS";
+  if (contentType.includes("jpeg") || contentType.includes("jpg")) return "JPG";
+  if (contentType.includes("png")) return "PNG";
+  if (contentType.includes("json")) return "JSON";
+  // Fallback: take the subtype portion (e.g. "application/octet-stream" → "octet-stream")
+  const sub = contentType.split("/")[1];
+  return sub ? sub.toUpperCase().slice(0, 8) : contentType.slice(0, 8).toUpperCase();
 }

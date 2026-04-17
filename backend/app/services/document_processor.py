@@ -173,7 +173,33 @@ _CONTENT_CONFIDENCE_THRESHOLD = 0.8
 _REVIEW_CONFIDENCE_THRESHOLD = 0.7
 
 
-def classify_document(file_path: Path, base_dir: Path) -> dict:
+def resolve_classification_base(config_dir: Path, tenant_root: Path | None) -> Path:
+    """Directory whose ``config/`` subtree is used by ``scripts.e0_route._init_config``.
+
+    Prefer the tenant workspace when pipeline config has been materialized there
+    (``tenant_root/config/institutions.json``), so LLM prompts and ``family_members``
+    match the workspace. Otherwise use the global project root derived from
+    *config_dir* (typically ``settings.PIPELINE_ROOT``).
+    """
+    global_root = config_dir.parent if config_dir.name == "config" else config_dir
+    if tenant_root is not None:
+        t = tenant_root.resolve()
+        if (t / "config" / "institutions.json").is_file():
+            return t
+    return global_root.resolve()
+
+
+def classification_can_route_to_data(classification: dict) -> bool:
+    """Same gate as inbox → ``data/`` routing on upload and POST /reclassify."""
+    if classification.get("needs_review", False):
+        return False
+    return bool(
+        classification.get("dest_group")
+        and classification.get("e0_doc_type")
+    )
+
+
+def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) -> dict:
     """Classify a document by content (regex → LLM fallback).
 
     Filename is NOT used — bank exports come with arbitrary or wrong names.
@@ -210,7 +236,7 @@ def classify_document(file_path: Path, base_dir: Path) -> dict:
     confidence = content_result.confidence
 
     # -- Layer 2: LLM fallback ---------------------------------------------
-    if confidence < _CONTENT_CONFIDENCE_THRESHOLD:
+    if use_llm and confidence < _CONTENT_CONFIDENCE_THRESHOLD:
         llm_result = None
         try:
             llm_result = classify_by_llm(file_path)
@@ -273,7 +299,7 @@ def process_uploaded_document(
     """Full processing pipeline for a single uploaded document.
 
     1. If PDF → check encryption → try unlock with vault passwords
-    2. Classify via E0-route regex
+    2. Classify content-first (same pipeline as E0-route when backend is available)
     3. If JSON → detect E1/E1.5 type
     4. Route classified file from inbox/ to data/{dest_group}/
 
@@ -331,16 +357,25 @@ def process_uploaded_document(
                 "stored_path_relative": None,
             }
 
-    project_root = config_dir.parent if config_dir.name == "config" else config_dir
-    classification = classify_document(file_path, project_root)
+    classification_root = resolve_classification_base(config_dir, tenant_root)
+    classification = classify_document(file_path, classification_root)
 
     stored_rel: str | None = None
-    # Move inbox → data/... with E0 canonical filename (*-0_original.*)
-    if tenant_root and classification.get("dest_group") and classification.get("e0_doc_type"):
+    # Move inbox → data/... with E0 canonical filename (*-0_original.*).
+    #
+    # REGRA: só renomeamos/roteamos quando a classificação é confiante o
+    # suficiente (needs_review=False). Arquivos com baixa confiança — imagens
+    # não identificadas, PDFs somente-imagem sem ANTHROPIC_API_KEY, etc. —
+    # ficam no inbox com o nome original para revisão manual na UI.
+    #
+    # Isso evita nomes como "unknown_other_None-0_original.jpg" que não
+    # agregam informação e dificultam a auditoria.
+    _can_route = tenant_root and classification_can_route_to_data(classification)
+    if _can_route:
         routed = route_inbox_to_canonical_data(
             file_path,
             tenant_root,
-            project_root,
+            classification_root,
             dest_group=classification["dest_group"],
             e0_doc_type=classification["e0_doc_type"],
             institution=classification.get("bank_code"),
@@ -352,8 +387,16 @@ def process_uploaded_document(
             classification["routed_path"] = str(abs_dest)
         else:
             classification["routed_path"] = None
-    elif tenant_root and classification.get("dest_group"):
+    elif tenant_root:
+        # Arquivo fica onde está (inbox) — computa caminho relativo para o
+        # DB (evita caminhos absolutos que quebram ao mover o servidor).
         classification["routed_path"] = None
+        try:
+            stored_rel = str(
+                file_path.resolve().relative_to(tenant_root.resolve())
+            ).replace("\\", "/")
+        except ValueError:
+            stored_rel = None  # fora de tenant_root — ficará como caminho absoluto
 
     return {
         "status": DocumentStatus.ready,

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { ApiError, getReportData, type ReportAnalysisData } from "@/lib/api";
-import { useWorkspace } from "@/lib/WorkspaceProvider";
 export type { ApiError };
 
 export type UseReportDataState =
@@ -13,19 +12,22 @@ export type UseReportDataState =
 
 /** F9 · ADR-076 — Hook para carregar o snapshot E5 JSON do relatório.
  *
- * Não usa cache persistente nesta fase (F0.5). A Fase 1 pode migrar para
- * TanStack Query se a volumetria justificar.
+ * Recebe `workspaceId` como parâmetro em vez de chamar `useWorkspace()`
+ * internamente — evita dupla chamada de useContext quando o componente pai
+ * já tem o workspace como prop (ex: ReportPageContent).
  *
- * `reportId` pode ser `null` para desligar o fetch (ex: durante transições
- * de rota). Em caso de 404 de relatório pré-F9 (sem analysis_json_path),
- * o estado fica em `error` com `ApiError.status === 404`.
+ * `reportId` e `workspaceId` podem ser `null` para desligar o fetch (ex:
+ * durante transições de rota). Em caso de 404 de relatório pré-F9 (sem
+ * analysis_json_path), o estado fica em `error` com `ApiError.status === 404`.
  */
-export function useReportData(reportId: string | null): UseReportDataState {
-  const { workspace } = useWorkspace();
+export function useReportData(
+  reportId: string | null,
+  workspaceId: string | null,
+): UseReportDataState {
   const [state, setState] = useState<UseReportDataState>({ status: "idle" });
 
   useEffect(() => {
-    if (!reportId || !workspace) {
+    if (!reportId || !workspaceId) {
       setState({ status: "idle" });
       return;
     }
@@ -33,7 +35,7 @@ export function useReportData(reportId: string | null): UseReportDataState {
     let cancelled = false;
     setState({ status: "loading" });
 
-    getReportData(workspace.id, reportId)
+    getReportData(workspaceId, reportId)
       .then((data) => {
         if (!cancelled) setState({ status: "success", data });
       })
@@ -49,7 +51,7 @@ export function useReportData(reportId: string | null): UseReportDataState {
     return () => {
       cancelled = true;
     };
-  }, [reportId, workspace]);
+  }, [reportId, workspaceId]);
 
   return state;
 }

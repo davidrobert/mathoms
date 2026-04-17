@@ -31,14 +31,57 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # Order matters only for disambiguation; first match wins.
 INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
-    # C6 Bank: razão social, marca Carbon, CNPJ 31.872.495
-    (re.compile(r"C6\s*CARBON|C6\s*BANK|BANCO\s*C6\s*S\.?A\.?|31\.?872\.?495", re.I), "c6bank"),
+    # C6 Bank: razão social, marca Carbon, CNPJ 31.872.495, C6 Invest (app de CDB).
+    # Também detecta o formato CSV de exportação da fatura Carbon: a combinação
+    # "Valor (em US$)" + "Cotação (em R$)" é exclusiva desse extrato — o cartão
+    # Carbon exibe transações em dólar com cotação de conversão para BRL.
+    (
+        re.compile(
+            r"C6\s*CARBON|C6\s*BANK|BANCO\s*C6\s*S\.?A\.?|31\.?872\.?495"
+            r"|C6\s*Invest"                                             # app de investimentos C6
+            r"|Valor\s*\(em\s*US\$\).*Cota[çc][ãa]o\s*\(em\s*R\$\)",
+            re.I,
+        ),
+        "c6bank",
+    ),
     # Itaú: Personnalité, razão social
     (re.compile(r"ITA[UÚ]\s*(UNIBANCO|PERSONNALIT[ÉE])?|PERSONNALIT[ÉE]\s*ITA[UÚ]", re.I), "itau"),
-    # Santander Unique + razão social
-    (re.compile(r"SANTANDER\s*(BRASIL|UNIQUE|S\.?A\.?)|BANCO\s*SANTANDER", re.I), "santander"),
-    # Bradesco
-    (re.compile(r"BRADESCO|BANCO\s*BRADESCO", re.I), "bradesco"),
+    # Santander: razão social, Unique, CDB exports, Central de Atendimento, account-specific markers.
+    # "CDB DI/PROG SANTANDER" e "Central de Atendimento Santander" aparecem nos PDFs do IB.
+    # "Seguro do limite da conta" é linha no rodapé do extrato XLS (além dos 2000 chars).
+    # "Conta: NNNN-NN.NNNNNN.N" é o formato exclusivo de conta-corrente Santander que aparece
+    #   na linha 3 do XLS, dentro dos primeiros 200 chars — âncora primária para esse formato.
+    # "JUROS SALDO UTILIZ ATE LIMITE" é o encargo do "Limite Facilitado" Santander.
+    # "^data,lançamento,valor" é o header exato do CSV export do Santander Unique.
+    (
+        re.compile(
+            r"SANTANDER\s*(BRASIL|UNIQUE|S\.?A\.?)|BANCO\s*SANTANDER"
+            r"|CDB\s+(?:DI|PROG|MASTER|MAIS|METASERVAS?)\s+SANTANDER"  # CDB products
+            r"|Central\s+de\s+Atendimento\s+Santander"                 # IB footer
+            r"|Seguro\s+do\s+limite\s+da\s+conta"                      # XLS rodapé
+            r"|Conta:\s*\d{4}-0[01]\.\d{4,8}\.\d"                     # conta Santander: 1234-01.001234.5
+            r"|JUROS\s+SALDO\s+UTILIZ\s+ATE\s+LIMITE"                  # Limite Facilitado
+            r"|^\ufeff?data,lan[çc]amento,valor\s*$",                  # CSV Santander Unique (com/sem BOM)
+            re.I | re.MULTILINE,
+        ),
+        "santander",
+    ),
+    # Bradesco: razão social e marca forte.
+    # Também detecta exportações do Internet Banking Bradesco via markers visíveis
+    # no topo da página (antes dos 2000 chars do preview):
+    #   - "Ágora Home Broker" — corretora exclusiva do grupo Bradesco, presente
+    #     na barra de navegação do IB. Impossível de confundir com outro banco.
+    #   - "Fone Fácil" + "0800 570 0022" — central de atendimento Bradesco
+    #     (backup caso Ágora não esteja na nav).
+    (
+        re.compile(
+            r"BRADESCO|BANCO\s*BRADESCO"
+            r"|[AÁ]gora\s*Home\s*Broker"   # nav do IB Bradesco (dentro dos 2000 chars)
+            r"|Fone\s*F[aá]cil",           # marca registrada do atendimento Bradesco
+            re.I,
+        ),
+        "bradesco",
+    ),
     # BTG Pactual (before PicPay — evita falso PicPay em PDFs de corretora)
     (re.compile(r"BTG\s*PACTUAL|BANCO\s*BTG|BTG\s+Pactual", re.I), "btgpactual"),
     # Bank of America
@@ -47,10 +90,32 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(r"PicPay\s*(?:Bank|Servi[çc]os|Institui[çc][ãa]o\s+de\s+Pagamento)", re.I), "picpay"),
     # Wise (TransferWise)
     (re.compile(r"\bWise\b|TransferWise", re.I), "wise"),
-    # Rico / XP
-    (re.compile(r"Rico\s*(Investimentos|CTVM)|\bXP\s*Investimentos", re.I), "rico"),
+    # Rico / XP — inclui "Rico Corretora de Títulos..." (razão social completa nos PDFs de extrato).
+    # Exige sufixo identificador (Investimentos, CTVM, Corretora) para evitar falso positivo
+    # em descrições de transações com o sobrenome/nome comercial "Rico".
+    (
+        re.compile(
+            r"Rico\s*(?:Investimentos|CTVM|Corretora)"
+            r"|RICO\s+CORRETORA"        # razão social em maiúsculas nos PDFs
+            r"|\bXP\s*Investimentos",
+            re.I,
+        ),
+        "rico",
+    ),
     # QuintoAndar
     (re.compile(r"Quinto\s*Andar|QuintoAndar", re.I), "quintoandar"),
+    # Caixa Econômica Federal — razão social, CNPJ 00.360.305, marca CEF.
+    # "Alô CAIXA" / "SAC CAIXA" são rodapés de serviço presentes em extratos.
+    # "0800 726" cobre os dois ramais canônicos da CEF (0101 e 0104).
+    (
+        re.compile(
+            r"CAIXA\s*ECON[ÔO]MICA\s*FEDERAL|CEF\b|00\.?360\.?305"
+            r"|Al[oô]\s*CAIXA|SAC\s*CAIXA"
+            r"|0800\s*726",
+            re.I,
+        ),
+        "caixa",
+    ),
     # Binance
     (re.compile(r"Binance", re.I), "binance"),
     # Receita Federal — marcadores canônicos em declarações e recibos da RFB.
@@ -155,7 +220,8 @@ TYPE_RULES: tuple[TypeRule, ...] = (
     TypeRule(
         code="faturaaluguel",
         dest_group="financial_statements",
-        required=(_c(r"Fatura\s*de\s*Aluguel|Boleto\s*de\s*Aluguel"),),
+        # "Faturas de aluguel" (plural) é o cabeçalho do PDF do QuintoAndar.
+        required=(_c(r"Faturas?\s*de\s*Aluguel|Boleto\s*de\s*Aluguel"),),
         supporting=(_c(r"Locador|Locat[áa]rio|QuintoAndar"),),
         priority=5,
     ),
@@ -163,22 +229,46 @@ TYPE_RULES: tuple[TypeRule, ...] = (
     TypeRule(
         code="faturaunique",
         dest_group="financial_statements",
-        required=(_c(r"SANTANDER\s*UNIQUE|Cart[ãa]o\s*Santander\s*Unique"),),
+        # Dois formatos possíveis do Santander Unique:
+        # (a) PDF de fatura: contém "SANTANDER UNIQUE" no cabeçalho.
+        # (b) CSV de exportação do app: header exato "data,lançamento,valor"
+        #     (3 colunas em português, datas no formato YYYY-MM-DD) — esse
+        #     formato é exclusivo do export CSV do Santander Unique e não
+        #     contém nenhum marcador institucional explícito.
+        required=(
+            _c(
+                r"SANTANDER\s*UNIQUE|Cart[ãa]o\s*Santander\s*Unique"
+                r"|^\ufeff?data,lan[çc]amento,valor\s*$"  # CSV header (Santander Unique app, com/sem BOM)
+            ),
+        ),
         supporting=(
             _c(r"Total\s*a\s*Pagar"),
             _c(r"Vencimento\s*(da)?\s*Fatura"),
             _c(r"Limite\s*(de)?\s*Cr[eé]dito"),
+            _c(r"PAGAMENTO EFETUADO"),               # entrada de pagamento no CSV
+            _c(r"\d{4}-\d{2}-\d{2},"),              # data no formato ISO no CSV
         ),
         priority=10,
     ),
     TypeRule(
         code="faturacarbon",
         dest_group="financial_statements",
-        required=(_c(r"C6\s*Carbon"),),
+        # Dois formatos possíveis do C6 Carbon:
+        # (a) PDF de fatura: contém "C6 Carbon" no cabeçalho.
+        # (b) CSV de exportação: colunas "Valor (em US$)" + "Cotação (em R$)"
+        #     na mesma linha — exclusivo do extrato CSV do cartão Carbon.
+        required=(
+            _c(
+                r"C6\s*Carbon"
+                r"|Valor\s*\(em\s*US\$\).*Cota[çc][ãa]o\s*\(em\s*R\$\)"
+            ),
+        ),
         supporting=(
             _c(r"Subtotal\s*deste\s*cart[ãa]o"),
             _c(r"Vencimento\s*da\s*Fatura"),
             _c(r"Total\s*desta\s*Fatura"),
+            _c(r"Data\s+de\s+Compra"),       # CSV: coluna de data da transação
+            _c(r"Final\s+do\s+Cart[ãa]o"),   # CSV: coluna com 4 últimos dígitos
         ),
         priority=10,
     ),
@@ -313,15 +403,48 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         supporting=(_c(r"Transaction|Deposit|Withdrawal"),),
         priority=28,
     ),
-    # Generic extrato de conta corrente (Brazilian)
+    # Caixa Econômica Federal — "Extrato por período" (texto visível ou via LLM vision).
+    # Dois formatos: PDFs com camada de texto (usam razão social ou CEF) e PDFs
+    # somente-imagem (classificados pelo LLM via vision — regra usada apenas para
+    # validação pós-LLM, não precisa de match regex).
+    # Marcadores de suporte cobrem campos canônicos do extrato CEF: "Conta",
+    # "Período" e rodapés de serviço "Alô CAIXA" / "SAC CAIXA".
     TypeRule(
         code="extratoconta",
         dest_group="financial_statements",
-        required=(_c(r"EXTRATO\s*(DA\s*CONTA|DE\s*CONTA|CORRENTE)?|Lan[çc]amentos\s*(da\s*)?Conta|Movimenta[çc][õo]es"),),
+        required=(_c(r"CAIXA\s*ECON[ÔO]MICA\s*FEDERAL|CEF\b|Al[oô]\s*CAIXA|SAC\s*CAIXA"),),
         supporting=(
-            _c(r"SALDO\s*(ANTERIOR|DO\s*DIA|DISPON[IÍ]VEL|FINAL|ATUAL)"),
+            _c(r"Extrato\s*por\s*per[ií]odo|Lan[çc]amentos\s*do\s*dia"),
+            _c(r"SALDO\s*(ANTERIOR|DO\s*DIA|ATUAL)"),
+            _c(r"Per[ií]odo\s*(dos\s*lan[çc]amentos)?"),
+            _c(r"Conta\s*[:\-]?\s*\d"),  # "Conta: 00012345-6"
+            _c(r"0800\s*726"),            # central de atendimento CEF
+        ),
+        priority=27,
+    ),
+    # Generic extrato de conta corrente (Brazilian).
+    # Inclui marcadores específicos do XLS exportado pelo Itaú Internet Banking:
+    #   - "Logotipo Itaú" na linha 0 (cabeçalho fixo do XLS do Itaú)
+    #   - "lançamento.*saldos (R$)" nos títulos de coluna (linha 8 do XLS)
+    # Esses marcadores permitem classificação sem depender da palavra "EXTRATO",
+    # que não aparece no formato XLS do Itaú.
+    TypeRule(
+        code="extratoconta",
+        dest_group="financial_statements",
+        required=(
+            _c(
+                r"EXTRATO\s*(DA\s*CONTA|DE\s*CONTA|CORRENTE)?"
+                r"|Lan[çc]amentos\s*(da\s*)?Conta"
+                r"|Movimenta[çc][õo]es"
+                r"|Logotipo\s+Ita[uú]"             # Itaú XLS: cabeçalho fixo linha 0
+                r"|lan[çc]amento.*saldos?\s*\(R\$\)" # Itaú XLS: título da coluna "saldos (R$)"
+            ),
+        ),
+        supporting=(
+            _c(r"SALDO\s*(ANTERIOR|DO\s*DIA|DISPON[IÍ]VEL?|FINAL|ATUAL)"),
             _c(r"Ag[êe]ncia\s*[:\-]?\s*\d+.*Conta\s*[:\-]?\s*[\d-]+"),
             _c(r"Per[ií]odo\s*:?\s*\d{2}/\d{2}/\d{4}"),
+            _c(r"Atualiza[çc][ãa]o\s*:"),  # Itaú XLS: "Atualização: DD/MM/YYYY"
         ),
         priority=30,
     ),

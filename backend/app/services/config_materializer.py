@@ -230,3 +230,21 @@ def _override_llm_config(workspace_id: str, config_dir: Path, db: Session) -> No
     data = serialize_llm_config(workspace_id, db)
     if data is not None:
         _write_json(config_dir / "llm_config.json", data)
+
+
+def ensure_tenant_pipeline_config(workspace_id: str, tenant_root: Path) -> Path:
+    """Materialize ``tenant_root/config/`` when missing (e.g. before first pipeline run).
+
+    Ensures upload and ``POST /documents/reclassify`` can use
+    :func:`document_processor.resolve_classification_base` with tenant-specific
+    ``family_members`` / ``institutions`` without requiring a prior pipeline execution.
+    """
+    tenant_root = Path(tenant_root).resolve()
+    marker = tenant_root / "config" / "institutions.json"
+    if marker.is_file():
+        return tenant_root / "config"
+
+    from backend.app.core.database import SyncSessionLocal
+
+    with SyncSessionLocal() as db:
+        return materialize_config(workspace_id, tenant_root, db)

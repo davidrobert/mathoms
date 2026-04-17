@@ -44,7 +44,7 @@ export function PatrimonioCategoriasCard({
           <tbody>
             {rows.map((row, idx) => (
               <tr
-                key={row.categoria + idx}
+                key={`categoria-${idx}`}
                 className="border-b border-[var(--surface-border)]/40 last:border-0"
               >
                 <td className="py-2">{row.categoria}</td>

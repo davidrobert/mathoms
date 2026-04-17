@@ -52,8 +52,8 @@ export function PatrimonioDoughnutChart({
 
   return (
     <ReportCard variant="neutral" title="Composição Patrimonial">
-      <div className="h-72 w-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full">
+        <ResponsiveContainer width="100%" height={288}>
           <PieChart>
             <Pie
               data={data}
@@ -65,9 +65,9 @@ export function PatrimonioDoughnutChart({
               stroke="var(--surface-card)"
               strokeWidth={2}
             >
-              {data.map((_, idx) => (
+              {data.map((entry, idx) => (
                 <Cell
-                  key={idx}
+                  key={`cell-${entry.name}-${idx}`}
                   fill={CHART_COLORS[idx % CHART_COLORS.length]}
                 />
               ))}

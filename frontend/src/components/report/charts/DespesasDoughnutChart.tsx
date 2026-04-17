@@ -51,8 +51,8 @@ export function DespesasDoughnutChart({
 
   return (
     <ReportCard variant="neutral" title="Despesas por Categoria">
-      <div className="h-72 w-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full">
+        <ResponsiveContainer width="100%" height={288}>
           <PieChart>
             <Pie
               data={data}
@@ -64,9 +64,9 @@ export function DespesasDoughnutChart({
               stroke="var(--surface-card)"
               strokeWidth={2}
             >
-              {data.map((_, idx) => (
+              {data.map((entry, idx) => (
                 <Cell
-                  key={idx}
+                  key={`cell-${entry.name}-${idx}`}
                   fill={CHART_COLORS[idx % CHART_COLORS.length]}
                 />
               ))}

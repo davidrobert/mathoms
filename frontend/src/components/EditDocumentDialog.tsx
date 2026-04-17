@@ -53,8 +53,10 @@ const INSTITUTION_OPTIONS: { value: string; label: string }[] = [
   { value: "bankofamerica", label: "Bank of America" },
   { value: "quintoandar", label: "QuintoAndar" },
   { value: "binance", label: "Binance" },
+  { value: "caixa", label: "Caixa Econômica Federal" },
   { value: "nubank", label: "Nubank" },
   { value: "inter", label: "Inter" },
+  { value: "stone", label: "Stone" },
   { value: "receitafederal", label: "Receita Federal" },
 ];
 

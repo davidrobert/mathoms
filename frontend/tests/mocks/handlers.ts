@@ -48,7 +48,7 @@ export const handlers = [
     }),
   ),
   // F9 · ADR-076
-  http.get(`${API}/reports/:id/data`, ({ params }) => {
+  http.get(`${API}/workspaces/:workspaceId/reports/:id/data`, ({ params }) => {
     const report = fixtures.reports.find((r) => r.id === params.id);
     if (!report) return HttpResponse.json({ detail: "Not found" }, { status: 404 });
     if (!report.has_analysis_data) {

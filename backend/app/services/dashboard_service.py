@@ -107,10 +107,11 @@ def build_charts(e5: dict[str, Any]) -> list[DashboardChart]:
     patrimonio = e5.get("patrimonio", {})
     composicao = patrimonio.get("composicao", {})
     if composicao:
+        composicao_data = composicao if isinstance(composicao, dict) else {"items": composicao}
         charts.append(DashboardChart(
             chart_type="pie",
             title="Composição Patrimonial",
-            data=composicao,
+            data=composicao_data,
         ))
 
     investimentos = e5.get("investimentos", {})
@@ -136,7 +137,17 @@ def build_alerts(e5: dict[str, Any]) -> list[DashboardAlert]:
         ))
 
     for ponto in e5.get("pontos_urgentes", []):
-        msg = ponto if isinstance(ponto, str) else str(ponto)
+        if isinstance(ponto, dict):
+            acao = ponto.get("acao", "")
+            impacto = ponto.get("impacto", "")
+            prazo = ponto.get("prazo", "")
+            msg = acao
+            if impacto:
+                msg += f" — {impacto}"
+            if prazo:
+                msg += f" ({prazo})"
+        else:
+            msg = str(ponto)
         alerts.append(DashboardAlert(
             severity="critical",
             title="Ponto Urgente",

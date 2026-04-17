@@ -16,7 +16,7 @@
   },
 
   "file_limits": {
-    "preview_max_chars": 2000,
+    "preview_max_chars": 5000,
     "preview_max_rows": 20,
     "min_pdf_bytes": 1024,
     "min_xls_bytes": 40000,

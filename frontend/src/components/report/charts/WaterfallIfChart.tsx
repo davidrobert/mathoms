@@ -77,8 +77,8 @@ export function WaterfallIfChart({
         </span>{" "}
         da meta.
       </p>
-      <div className="h-56 w-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full">
+        <ResponsiveContainer width="100%" height={224}>
           <BarChart data={data} margin={{ top: 20, right: 8, left: -12, bottom: 0 }}>
             <XAxis
               dataKey="name"
@@ -114,7 +114,7 @@ export function WaterfallIfChart({
             />
             <Bar dataKey="value" radius={[6, 6, 0, 0]}>
               {data.map((entry, idx) => (
-                <Cell key={idx} fill={entry.color} />
+                <Cell key={`cell-${entry.name}-${idx}`} fill={entry.color} />
               ))}
             </Bar>
           </BarChart>

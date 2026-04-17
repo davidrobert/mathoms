@@ -2,6 +2,7 @@ import AppShell from "@/components/AppShell";
 import { AuthBootstrap } from "@/components/AuthBootstrap";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { WorkspaceProvider } from "@/lib/WorkspaceProvider";
+import { DebugDuplicateKey } from "@/components/DebugDuplicateKey";
 
 /**
  * F6.5D.11 — toda page sob (app)/ envolvida em ErrorBoundary.
@@ -18,6 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <WorkspaceProvider>
       <AppShell>
+        <DebugDuplicateKey />
         <AuthBootstrap />
         <ErrorBoundary>{children}</ErrorBoundary>
       </AppShell>

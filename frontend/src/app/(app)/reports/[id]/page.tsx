@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { getReportDownloadHtmlUrl } from "@/lib/api";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
+import type { UserWorkspace } from "@/lib/api";
 
 /** F9 · ADR-076 · F1.1 — Rota nativa do relatório.
  *
@@ -27,14 +28,20 @@ import { useWorkspace } from "@/lib/WorkspaceProvider";
 export default function ReportPage() {
   const { workspace } = useWorkspace();
   if (!workspace) return null;
+  return <ReportPageContent workspace={workspace} />;
+}
 
+function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
   const router = useRouter();
   const params = useParams();
   const reportId = params.id as string;
 
   const [report, setReport] = useState<ReportResponse | null>(null);
   const [metadataError, setMetadataError] = useState<string | null>(null);
-  const dataState = useReportData(report?.has_analysis_data ? reportId : null);
+  const dataState = useReportData(
+    report?.has_analysis_data ? reportId : null,
+    workspace.id,
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("fin_token");
@@ -44,7 +51,7 @@ export default function ReportPage() {
     }
 
     let cancelled = false;
-    getReport(workspace!.id, reportId)
+    getReport(workspace.id, reportId)
       .then((r) => {
         if (!cancelled) setReport(r);
       })
@@ -62,7 +69,7 @@ export default function ReportPage() {
     return () => {
       cancelled = true;
     };
-  }, [reportId, router]);
+  }, [reportId, router, workspace.id]);
 
   // Estado 1: carregando metadados
   if (!report && !metadataError) {
@@ -115,7 +122,7 @@ export default function ReportPage() {
               nativeButton={false}
               render={
                 <Link
-                  href={getReportDownloadHtmlUrl(workspace!.id, reportId)}
+                  href={getReportDownloadHtmlUrl(workspace.id, reportId)}
                   target="_blank"
                   rel="noopener"
                 />

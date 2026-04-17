@@ -20,6 +20,21 @@ class DocumentStatus(str, enum.Enum):
     processed = "processed"
     error = "error"
 
+    @classmethod
+    def _missing_(cls, value: object) -> "DocumentStatus":
+        """Fallback para valores legados ou corrompidos no banco.
+
+        Impede que um status desconhecido (e.g. 'classified' de código
+        anterior à state machine P1.1) derrube o endpoint GET /documents
+        inteiro com LookupError. O documento aparece com status 'error'
+        na UI, sinalizando que precisa de atenção sem bloquear os demais.
+        """
+        import logging
+        logging.getLogger(__name__).warning(
+            "DocumentStatus desconhecido '%s' lido do banco — tratado como 'error'", value
+        )
+        return cls.error
+
 
 # ─── State machine (P1.1) ───
 # Map `from_status → {allowed target statuses}`. Same-status transitions are

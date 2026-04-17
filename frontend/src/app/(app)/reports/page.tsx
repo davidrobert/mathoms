@@ -11,17 +11,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Calendar, ArrowRight } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
+import type { UserWorkspace } from "@/lib/api";
 
 export default function ReportsPage() {
   const { workspace } = useWorkspace();
   if (!workspace) return null;
+  return <ReportsPageContent workspace={workspace} />;
+}
+
+function ReportsPageContent({ workspace }: { workspace: UserWorkspace }) {
 
   const [reports, setReports] = useState<ReportResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    listReports(workspace!.id)
+    listReports(workspace.id)
       .then((data) => setReports(data.reports))
       .catch(() => setError("Erro ao carregar relatórios"))
       .finally(() => setLoading(false));

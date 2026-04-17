@@ -21,6 +21,7 @@ BANK_MODULES = [
     "wise",
     "bankofamerica",
     "quintoandar",
+    "caixa",
 ]
 
 # Types that are NOT bank statements and should not be matched by generic patterns

@@ -61,6 +61,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
+import type { UserWorkspace } from "@/lib/api";
 
 const ACTIVE_STATUSES = new Set(["pending", "running", "resuming"]);
 const STALL_PENDING_MS = 30_000;
@@ -89,7 +90,10 @@ function setDismissedFailedRunId(id: string | null) {
 export default function PipelinePage() {
   const { workspace } = useWorkspace();
   if (!workspace) return null;
+  return <PipelinePageContent workspace={workspace} />;
+}
 
+function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const router = useRouter();
   const [runs, setRuns] = useState<PipelineRunResponse[]>([]);
   const [activeRun, setActiveRun] = useState<PipelineRunResponse | null>(null);

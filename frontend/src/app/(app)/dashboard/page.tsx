@@ -322,8 +322,6 @@ function AlertCard({ alert }: { alert: DashboardAlert }) {
 
 export default function DashboardPage() {
   const { workspace } = useWorkspace();
-  if (!workspace) return null;
-
   const router = useRouter();
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -360,6 +358,8 @@ export default function DashboardPage() {
   const handlePieSliceClick = (name: string) => {
     router.push(`/transactions?category=${encodeURIComponent(name)}`);
   };
+
+  if (!workspace) return null;
 
   // Error state
   if (!loading && error) {

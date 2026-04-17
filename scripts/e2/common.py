@@ -128,6 +128,7 @@ BANCO_WISE = banco_display("wise")
 BANCO_QUINTOANDAR = banco_display("quintoandar")
 BANCO_BTG = banco_display("btgpactual")
 BANCO_BOA = banco_display("bankofamerica")
+BANCO_CAIXA = banco_display("caixa")
 
 
 # =============================================================================
