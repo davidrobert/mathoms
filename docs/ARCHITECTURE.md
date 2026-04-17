@@ -2,7 +2,7 @@
 
 > Documento técnico de referência. Atualizar quando stack ou modelo de dados mudar.
 >
-> **Última atualização:** 2026-04-16
+> **Última atualização:** 2026-04-17
 
 ---
 
@@ -383,6 +383,17 @@ O pipeline suporta execução **incremental**: processar apenas documentos novos
 
 **UI:** Quando há docs novos e já houve run anterior, a página Pipeline mostra botão primário "Processar N novo(s)" + secundário "Processar todos".
 
+### Execução offline (dev)
+
+O mesmo orquestrador usado pelo worker pode rodar localmente sobre um tenant materializado:
+
+```bash
+python -m pipeline.run_dev --root /path/to/storage/<workspace_id>
+python -m pipeline.run_dev --root ./tenant --stages E3,E4,E5
+```
+
+Fronteiras do pacote `pipeline/` (sem imports de FastAPI/Celery/SQLAlchemy) são verificadas por `python dev/check_pipeline_boundaries.py`. Artefatos JSON e schemas: [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md), [CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md).
+
 ---
 
 ## 8. Frontend — Rotas e componentes
@@ -455,12 +466,13 @@ StorageService.save_to_inbox()  →  storage/{ws_id}/inbox/
 process_uploaded_document():
   1. JSON? → detect E1/E1.5 type (structure-based, bypasses classifier)
   2. PDF encrypted? → try vault passwords → unlock OR needs_password
-  3. classify_document() — content-first pipeline:
+  3. ``document_classification.classify_document()`` — classificador único (P2 / ADR-081); content-first:
      a. Extract text preview (pdfplumber/openpyxl/csv)
      b. Content regex (content_classifier.py) → institution + doc_type + period
      c. If confidence < 0.8 → LLM fallback (anthropic SDK, classify_by_llm)
-     d. If confidence < 0.7 → doc_type=other, needs_review=true
+     d. If confidence < 0.7 → needs_review=true (e possivelmente ``other``)
      ⚠ Filename is NOT used — bank exports have wrong/arbitrary names
+     O mesmo módulo atende upload web, ``POST /documents/reclassify`` e ``e0_route.route_file`` (quando o backend está importável); o CLI sem backend cai em regex por nome + LLM.
   4. Dedupe:
      a. Exact: SHA-256 hash → rejeita se (workspace_id, content_hash) existe
      b. Fuzzy: se (doc_type, bank_code, period) já existe → possible_duplicate_of_id
@@ -738,12 +750,13 @@ CI: `.github/workflows/ci.yml` com 7 jobs (lint, PII lint, pipeline, backend+Red
 
 ---
 
-## 15. Observabilidade (F7, planejado)
+## 15. Observabilidade (F7)
 
-- **Sentry** — backend + frontend (error tracking, performance 10%)
-- **Structured logging** — structlog JSON em prod, `request_id` UUID
-- **UptimeRobot** — health check
-- **Custom telemetry** — UsageMetric (privacy-first)
+- **Runbook + SLO + incidentes** — [RUNBOOK.md](RUNBOOK.md), [SLO.md](SLO.md), templates em [runbooks/incidents/](runbooks/incidents/); link público de status no app via `NEXT_PUBLIC_FIN_STATUS_PAGE_URL` (rodapé).
+- **Sentry** — backend + frontend (error tracking, performance 10%) — tarefa 7C.4
+- **Structured logging** — structlog JSON em prod, `request_id` UUID — 7C.5
+- **Uptime externo** — health check (UptimeRobot ou equivalente) — alinhado à status page
+- **Custom telemetry** — UsageMetric (privacy-first) — 7D.9
 
 Para decisões arquiteturais detalhadas com rationale, ver [DECISIONS.md](DECISIONS.md).
 

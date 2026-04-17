@@ -286,15 +286,15 @@ Em caso de dúvida sobre como o pipeline funciona, consulte os scripts, configs 
 
 ### Classificação de documentos — duas vias
 
-Existem **dois caminhos de classificação** no projeto:
+**Classificação unificada (P2, ADR-081):** o núcleo está em `backend/app/services/document_classification.py` (`classify_document`, `ClassificationResult`). Upload web, `POST /documents/reclassify` e `e0_route.route_file` (quando o pacote `backend` está importável) usam o **mesmo** fluxo: regex sobre **conteúdo** extraído → LLM opcional (confidence < 0,8) → `needs_review` se confidence < 0,7.
 
-1. **CLI (pipeline):** `scripts/e0_route.py` — classifica por **regex no nome do arquivo**. Usado pelas etapas E0 do pipeline CLI (`python scripts/e0_route.py`). Camada 2: LLM fallback se regex não casa.
+1. **E0-route (`scripts/e0_route.py`):** com backend disponível, chama `classify_document` (content-first, nome ignorado). **Sem** backend (CLI isolado), fallback legado: regex no **nome do arquivo** + LLM.
 
-2. **Web (upload):** `backend/app/services/content_classifier.py` + `document_processor.py` — classifica por **regex no conteúdo extraído** (primeiras páginas do PDF, primeiras linhas do CSV/XLSX). **Filename é ignorado** — bancos exportam arquivos com nomes arbitrários. Pipeline: content-regex → LLM fallback (confidence < 0.8) → `needs_review=true` (confidence < 0.7).
+2. **Web (upload):** `document_processor.process_uploaded_document` chama o mesmo `classify_document` após unlock; `content_classifier.py` é a camada regex sobre o preview.
 
    - Requer `anthropic` SDK + `ANTHROPIC_API_KEY` no env do backend para o LLM fallback.
-   - Sem a key, degrada silenciosamente para só regex (precision menor, docs ambíguos ficam `needs_review=true`).
-   - `_map_doc_type()` em `document_processor.py` mapeia códigos de tipo (ex: `faturaunique`, `extratocontabrl`) para a enum `DocumentType` via prefixo semântico.
+   - Sem a key, degrada para só regex (docs ambíguos tendem a `needs_review=true`).
+   - `map_e0_doc_type_to_document_type()` mapeia códigos E0 (ex.: `faturaunique`, `extratocontabrl`) para a enum `DocumentType`.
 
 ### Dedupe de uploads
 

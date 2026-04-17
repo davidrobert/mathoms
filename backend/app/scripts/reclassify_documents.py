@@ -38,9 +38,9 @@ from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.services.config_materializer import ensure_tenant_pipeline_config
 from backend.app.services.document_duplicates import rebuild_fuzzy_duplicate_pointers
+from backend.app.services.document_classification import classify_document
 from backend.app.services.document_processor import (
     _detect_json_type,
-    classify_document,
     resolve_classification_base,
 )
 from backend.app.services.storage import StorageService

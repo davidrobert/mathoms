@@ -549,10 +549,12 @@ async def reclassify_documents(
     """
     import asyncio
     from functools import partial
-    from backend.app.services.document_processor import (
-        _detect_json_type,
+    from backend.app.services.document_classification import (
         classify_document,
         classification_can_route_to_data,
+    )
+    from backend.app.services.document_processor import (
+        _detect_json_type,
         resolve_classification_base,
     )
     from backend.app.services.canonical_routing import rename_to_canonical

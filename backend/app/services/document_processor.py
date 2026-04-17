@@ -12,52 +12,10 @@ from backend.app.services.canonical_routing import (
     ensure_minus_zero_original_filename,
     route_inbox_to_canonical_data,
 )
-
-
-# P1.4 — LLM error classification helpers.
-# Transient: retryable (network, 5xx, rate limit, timeout).
-# Permanent: not retryable without config change (auth, quota, bad request).
-# Unknown:   caught-all; log and treat as best-effort failure.
-_TRANSIENT_ERROR_NAMES = frozenset({
-    "APIConnectionError", "APITimeoutError", "ConnectionError",
-    "ReadTimeout", "ConnectTimeout", "Timeout", "RateLimitError",
-    "APIStatusError",  # sometimes used for 5xx
-    "InternalServerError", "ServiceUnavailableError",
-})
-_PERMANENT_ERROR_NAMES = frozenset({
-    "AuthenticationError", "PermissionDeniedError", "PermissionError",
-    "BadRequestError", "NotFoundError", "UnprocessableEntityError",
-    "InvalidRequestError", "APIKeyError",
-})
-
-
-def _classify_llm_error(exc: BaseException) -> str:
-    """Return 'transient' | 'permanent' | 'unknown'.
-
-    First checks explicit type names (portable across SDKs). Then inspects
-    ``status_code`` / ``code`` attributes if present (requests / httpx / anthropic
-    all expose these on their API errors).
-    """
-    name = type(exc).__name__
-    if name in _TRANSIENT_ERROR_NAMES:
-        return "transient"
-    if name in _PERMANENT_ERROR_NAMES:
-        return "permanent"
-
-    # HTTP status-based classification (if the exception carries one).
-    status_code = getattr(exc, "status_code", None) or getattr(exc, "code", None)
-    try:
-        status_code = int(status_code)  # type: ignore[arg-type]
-    except (TypeError, ValueError):
-        status_code = None
-
-    if status_code is not None:
-        if status_code in (408, 429) or 500 <= status_code < 600:
-            return "transient"
-        if 400 <= status_code < 500:
-            return "permanent"
-
-    return "unknown"
+from backend.app.services.document_classification import (
+    classify_document,
+    classification_can_route_to_data,
+)
 
 
 def _detect_json_type(file_path: Path) -> Optional[DocumentType]:
@@ -80,44 +38,6 @@ def _detect_json_type(file_path: Path) -> Optional[DocumentType]:
     except (json.JSONDecodeError, OSError, KeyError):
         pass
     return None
-
-
-def _map_doc_type(e0_doc_type: str) -> DocumentType:
-    """Map E0-route doc_type string to DocumentType enum.
-
-    E0-route (scripts/e0_route.py) generates specific variant codes like
-    ``faturaunique``, ``extratocontabrl``, ``cdbdetalhesdi1``, etc. We group
-    them by semantic prefix here. Keep in sync with ``_build_doc_type_patterns``.
-    """
-    if not e0_doc_type:
-        return DocumentType.other
-
-    code = e0_doc_type.lower()
-
-    # IRPF / informes de rendimento → fiscal
-    if code.startswith("irpf") or code.startswith("informerendimento"):
-        return DocumentType.irpf
-
-    # Investimentos: CDBs, carteira, posição, extrato de investimento
-    if (
-        code.startswith("cdb")
-        or code.startswith("investimentos")
-        or code.startswith("carteirarenda")
-        or code == "extratoinvest"
-    ):
-        return DocumentType.investment_report
-
-    # Cartão de crédito: fatura* (exceto fatura de aluguel, que não é cartão)
-    if code.startswith("fatura"):
-        if code.startswith("faturaaluguel"):
-            return DocumentType.other
-        return DocumentType.credit_card_bill
-
-    # Extratos bancários: extratoconta*, extratopoupanca, etc.
-    if code.startswith("extratoconta") or code.startswith("extratopoupanca"):
-        return DocumentType.bank_statement
-
-    return DocumentType.other
 
 
 def try_unlock_pdf(file_path: Path, passwords: list[str]) -> tuple[bool, bool]:
@@ -167,12 +87,6 @@ def try_unlock_pdf(file_path: Path, passwords: list[str]) -> tuple[bool, bool]:
     return True, False
 
 
-# Classification confidence threshold. Below this, we escalate to LLM.
-_CONTENT_CONFIDENCE_THRESHOLD = 0.8
-# Below this, even after LLM, we flag the doc for manual review.
-_REVIEW_CONFIDENCE_THRESHOLD = 0.7
-
-
 def resolve_classification_base(config_dir: Path, tenant_root: Path | None) -> Path:
     """Directory whose ``config/`` subtree is used by ``scripts.e0_route._init_config``.
 
@@ -187,107 +101,6 @@ def resolve_classification_base(config_dir: Path, tenant_root: Path | None) -> P
         if (t / "config" / "institutions.json").is_file():
             return t
     return global_root.resolve()
-
-
-def classification_can_route_to_data(classification: dict) -> bool:
-    """Same gate as inbox → ``data/`` routing on upload and POST /reclassify."""
-    if classification.get("needs_review", False):
-        return False
-    return bool(
-        classification.get("dest_group")
-        and classification.get("e0_doc_type")
-    )
-
-
-def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) -> dict:
-    """Classify a document by content (regex → LLM fallback).
-
-    Filename is NOT used — bank exports come with arbitrary or wrong names.
-    Pipeline:
-        1. Extract text preview from the file.
-        2. Content regex classifier (backend.app.services.content_classifier).
-        3. If confidence < 0.8 and ANTHROPIC_API_KEY is set → LLM fallback.
-        4. If still < 0.7 → mark as ``other`` with ``needs_review=true``.
-
-    Returns dict with keys:
-        doc_type, bank_code, period, dest_group, routed_path,
-        classification_meta, confidence, needs_review.
-    """
-    from scripts.e0_route import (
-        _init_config as route_init_config,
-        _extract_file_preview,
-        classify_by_llm,
-    )
-    from backend.app.services.content_classifier import classify_file
-
-    route_init_config(base_dir)
-
-    # -- Layer 1: content-based regex --------------------------------------
-    content_result = classify_file(file_path, _extract_file_preview)
-    meta: dict = {
-        "source": content_result.source,
-        "content": content_result.to_dict(),
-    }
-
-    best_type = content_result.doc_type
-    best_institution = content_result.institution
-    best_period = content_result.period
-    best_dest_group = content_result.dest_group
-    confidence = content_result.confidence
-
-    # -- Layer 2: LLM fallback ---------------------------------------------
-    if use_llm and confidence < _CONTENT_CONFIDENCE_THRESHOLD:
-        llm_result = None
-        try:
-            llm_result = classify_by_llm(file_path)
-        except Exception as exc:  # network / parse error — don't crash upload
-            # P1.4 — classify error kind so the caller can decide between
-            # retry (transient), mark-for-review (permanent config issue),
-            # or best-effort continue with content-regex result only.
-            kind = _classify_llm_error(exc)
-            meta["llm_error"] = f"{type(exc).__name__}: {str(exc)[:200]}"
-            meta["llm_error_kind"] = kind  # one of: transient, permanent, unknown
-
-        if llm_result:
-            meta["llm"] = llm_result
-            llm_confidence = float(llm_result.get("confidence", 0.0) or 0.0)
-            if llm_confidence > confidence:
-                best_type = llm_result.get("doc_type") or best_type
-                best_institution = llm_result.get("institution") or best_institution
-                best_period = llm_result.get("period") or best_period
-                best_dest_group = llm_result.get("dest_group") or best_dest_group
-                confidence = llm_confidence
-                meta["source"] = "llm_fallback"
-
-    needs_review = confidence < _REVIEW_CONFIDENCE_THRESHOLD
-    meta["confidence"] = confidence
-    meta["needs_review"] = needs_review
-
-    # If everything failed, return "other" but preserve any partial signals.
-    if not best_type:
-        return {
-            "doc_type": DocumentType.other,
-            "bank_code": best_institution,
-            "period": best_period,
-            "dest_group": None,
-            "e0_doc_type": None,
-            "routed_path": None,
-            "classification_meta": meta,
-            "confidence": confidence,
-            "needs_review": True,
-        }
-
-    return {
-        "doc_type": _map_doc_type(best_type),
-        "bank_code": best_institution,
-        "period": best_period,
-        "dest_group": best_dest_group,
-        "e0_doc_type": best_type,
-        "routed_path": None,
-        "classification_meta": meta,
-        "confidence": confidence,
-        "needs_review": needs_review,
-    }
 
 
 def process_uploaded_document(

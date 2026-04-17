@@ -15,7 +15,7 @@
 [D39](#adr-039--dual-db-sqlite-dev--postgresql-prod) [D29-DB](#adr-029--alembic-para-migrations) [D38](#adr-038--docker-volume-para-storage-prod)
 
 **Pipeline:**
-[D14](#adr-014--threading-para-execução-background) [D15](#adr-015--vault-por-workspace) [D16](#adr-016--e0-route-automático-no-upload) [D17](#adr-017--sync-session-em-background-threads) [D18](#adr-018--config-dir-override-em-fortenant) [D19](#adr-019--storage-root-via-env-var) [D30](#adr-030--cancelamento-cooperativo-via-event) [D75](#adr-075--content-first-classification-no-upload-web)
+[D14](#adr-014--threading-para-execução-background) [D15](#adr-015--vault-por-workspace) [D16](#adr-016--e0-route-automático-no-upload) [D17](#adr-017--sync-session-em-background-threads) [D18](#adr-018--config-dir-override-em-fortenant) [D19](#adr-019--storage-root-via-env-var) [D30](#adr-030--cancelamento-cooperativo-via-event) [D75](#adr-075--content-first-classification-no-upload-web) [D81](#adr-081--classificação-de-documentos-unificada-p2)
 
 **Config:**
 [D20](#adr-020--materializar-config-em-disco) [D21](#adr-021--5-configs-editáveis) [D22](#adr-022--fallback-seletivo-de-config) [D23](#adr-023--importexport-json-de-config)
@@ -1565,6 +1565,36 @@ Após F8.1 (ADR-073), apenas `INDEPENDENCIA_FINANCEIRA` tinha API + UI; os outro
 - Backend: `backend/app/schemas/goal.py`, `backend/app/services/goal_service.py`, `backend/app/api/goals.py`
 - Frontend: `frontend/src/lib/api.ts`, `frontend/src/app/(app)/plano/page.tsx`, `frontend/src/app/(app)/plano/{aportes,dolarizacao,alocacao}/{page,wizard/page}.tsx` (7 arquivos novos/refatorados)
 - Pipeline: `scripts/e6_render.py` (resiliência + banner CTA)
+
+---
+
+## ADR-081 — Classificação de documentos unificada (P2)
+
+**Status:** Decidido • **Data:** 2026-04-17
+
+**Contexto:** O backlog P2 exige eliminar drift entre classificação no upload web, no pipeline (E0-route) e em reclassificação manual. Antes desta ADR, a lógica já era majoritariamente compartilhada via ``classify_document`` em ``document_processor.py``, mas o contrato não estava formalizado e o roteamento por nome (CLI sem backend) era um segundo caminho.
+
+**Decisão:**
+
+1. **Módulo único** ``backend/app/services/document_classification.py`` expõe:
+   - ``classify_document(path, base_dir, use_llm=…) -> dict`` — regex sobre preview de conteúdo → LLM opcional → ``needs_review`` se confiança < 0,7;
+   - ``ClassificationResult`` (Pydantic) com ``.as_dict()`` compatível com o formato histórico;
+   - ``classification_can_route_to_data(dict)`` — gate para mover inbox → ``data/`` (exige ``dest_group`` + ``e0_doc_type`` e ``needs_review=False``);
+   - ``map_e0_doc_type_to_document_type`` — mapa códigos E0 → ``DocumentType`` API.
+2. **Entradas:**
+   - **Upload web:** ``process_uploaded_document`` chama o classificador após unlock; JSON E1/E1.5 seguem detector estrutural (fora do classificador de PDF).
+   - **Batch / inbox (``data/`` via CLI):** ``scripts/e0_route.route_file`` usa o **mesmo** ``classify_document`` quando o pacote ``backend`` é importável; caso contrário, fallback **filename regex + LLM** (legado documentado).
+   - **Reclassificação:** ``POST /workspaces/.../documents/reclassify`` e ``backend.app.scripts.reclassify_documents`` chamam o mesmo ``classify_document``.
+3. **LLM:** participa só como fallback quando a camada regex tem confiança < 0,8 e credenciais existem; erros de API são classificados (P1.4) em transiente/permanente no ``classification_meta``.
+4. **Compatibilidade:** ``canonical_routing.rename_to_canonical`` / ``route_inbox_to_canonical_data`` continuam a receber o dict de classificação; ``POST`` de correção manual (tipo/banco) permanece o fluxo de ajuste quando a UI marca incerteza (P2.4).
+5. **Paridade nome canônico:** testes garantem que ``build_final_name`` + ``classify_by_name`` reproduzem ``institution`` e ``doc_type`` para padrões representativos (evita drift pasta ↔ basename).
+
+**Consequências:**
+
+- ✅ Um lugar para evoluir limiares e meta de classificação.
+- ✅ E0-route alinhado ao upload quando o worker/CLI roda com venv do projeto.
+- ⚠️ CLI totalmente offline sem pacote ``backend`` mantém comportamento por nome — documentado como fallback.
+- ❌ Linhagem por ``document_id`` por seção de relatório não é escopo desta ADR (F11.4a).
 
 ---
 

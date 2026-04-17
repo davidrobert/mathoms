@@ -5,16 +5,63 @@
 > **Legenda de status:** ☐ Pendente • 🚧 Em andamento • ✅ Concluído • ⏭ Adiado • ❌ Descartado
 >
 > **Legenda de prioridade:** **P0** bloqueante • **P1** importante • **P2** nice-to-have
+>
+> **Última atualização:** 2026-04-17 (P2.1–P2.4 classificação unificada; Sprint C F11; F11 + P2; 7E; E2 PDF Caixa layout dedicado)
 
 ---
 
 ## Índice
 
 - [Fases concluídas (F0-F6)](#fases-concluídas-f0-f6)
-- [F6.5 — Frontend Testing & QA](#f65--frontend-testing--qa) ← **próxima**
-- [F7 — Produção + LGPD](#f7--produção--lgpd)
+- [F6.5 — Frontend Testing & QA](#f65--frontend-testing--qa) ✅
+- [P0/P1 — Motor canônico e pipeline](#p0p1--motor-canônico-e-pipeline-2026-04)
+- [P2 — Unificação da classificação de documentos](#p2--unificação-da-classificação-de-documentos)
+- [F7 — Produção + LGPD](#f7--produção--lgpd) ← **próxima fase numerada**
 - [F7F — Console interno (operadores)](#f7f--console-interno-operadores)
+- [F11 — Confiança, transparência e excelência de relatório](#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)
 - [F8 — Growth (Futuro)](#f8--growth-futuro)
+
+---
+
+## P0/P1 — Motor canônico e pipeline (2026-04)
+
+Objetivo: **inventário de drift**, **fronteira motor × adaptadores**, **contratos JSON** e **base de golden tests**; em seguida **runner offline**, **CLI fina** e **CI strict** (ver plano estrutural).
+
+| # | Entrega | Status | Notas |
+| --- | --- | --- | --- |
+| P0.1 | Inventário de duplicação / convergência | ✅ | [CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md) §1 |
+| P0.2 | Fronteira motor canônico × adaptadores | ✅ | Mesmo doc §2 |
+| P0.3 | Contratos entre estágios + override strict | ✅ | `FIN_PIPELINE_SCHEMA_MODE` + `validate_artifact`; testes em `tests/test_schema_validation.py` |
+| P0.4 | Golden / snapshot — estado e gaps | ✅ | Mesmo doc §4; full E0→E6 ainda deferido |
+| P1-A | Layout de pacotes + regras de import | ✅ | `dev/check_pipeline_boundaries.py` + teste import |
+| P1-B | Runner offline reproduzível | ✅ | `python -m pipeline.run_dev` — `pipeline/run_dev.py` |
+| P1-C | CLI apenas como fachada | ✅ | `run_dev` delega ao `orchestrator` |
+| P1-D | Job CI strict + checklist artefatos | ✅ | `.github/workflows/ci.yml`; [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) |
+| P1-E | Goldens incrementais E2/E4 (schema) | ✅ | `tests/fixtures/pipeline_golden/` + `test_pipeline_golden_fixtures.py` |
+| — | Golden execução E4 (E3→E4) | ✅ | `tests/test_e4_golden_execution.py`; [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) |
+| — | Golden execução E5 (E4→E5) | ✅ | `tests/test_e5_golden_execution.py`; [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) |
+| — | Golden execução E6 (E5→HTML) | ✅ | `tests/test_e6_golden_execution.py`; [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) |
+| — | Golden execução E5.N (narrativas no E5 JSON) | ✅ | `tests/test_e5n_golden_execution.py` (mínimo + cônjuge → chart `ana_cenarios`); [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) |
+| — | E2 PDF sintético × parsers (`registry`) | ✅ | `tests/test_e2_synthetic_pdf_parsers.py` (+ transações BTG/Rico/Wise/PicPay/BoA/Santander/Itaú + layout **Caixa**); `caixa` (`BankCode`) + layouts **BTG / Rico / Wise / PicPay / Bank of America / Santander / Itaú / Caixa** em `tests/fixtures/pdf_generator.py` |
+| — | E2 PDF **real anonimizado** (fase 2, pós-sintético) | ☐ | Complemento opcional: fixtures binárias derivadas de extratos reais com **redação total** + revisão PR + lint PII; regressão de layout além do `pdf_generator`. Critério de entrada: fechar prioridade da Fase 1 (sintético por banco-alvo). Ver [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) § *E2 — sintético e real anonimizado*. |
+
+---
+
+## P2 — Unificação da classificação de documentos
+
+> **Objetivo:** eliminar drift entre **classificação no upload web** e **E0-route / reclassify**, com **um módulo** (`document_classification`) e saída canônica: `doc_type`, `bank_code`, `period`, roteamento (`canonical_routing` / `e0_route.build_final_name`). O E0 CLI **sem** backend mantém fallback por nome de arquivo + LLM (documentado na ADR-081). Base: [CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md) §1.
+>
+> **Não bloqueia fechamento estrutural P1**; corre **em paralelo** a F7 após priorização do time. Risco se não fizer: documento na pasta errada, reprocessamento manual, sensação de “número errado” sem culpa clara.
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| P2.1 | **ADR ou doc de fronteira:** descrever entradas (upload vs batch `data/`), saída única do classificador, onde LLM pode participar, compatibilidade com `documents.reclassify` + `canonical_routing.rename_to_canonical` | P0 | 4h | ✅ ADR-081 + §9 em [ARCHITECTURE.md](ARCHITECTURE.md) |
+| P2.2 | **API interna única de classificação** (módulo único chamado por upload e por E0-route): mesma estrutura Pydantic / dict; testes unitários com matriz de casos (nome + snippet de texto) | P0 | 12h | ✅ `backend/app/services/document_classification.py` (`ClassificationResult`, `classify_document`, `classification_can_route_to_data`); E0-route + reclassify importam o módulo; testes em `test_document_classification.py` |
+| P2.3 | **Paridade de testes:** fixtures que provam que um mesmo PDF classificado no upload materializa o mesmo `doc_type`/`bank_code` que o E0-route daria para o nome canônico final | P1 | 8h | ✅ `test_classification_parity.py` — `build_final_name` + `classify_by_name` (Itaú/C6/Bradesco) |
+| P2.4 | **UI:** quando classificação for incerta, estado explícito (baixa confiança) + CTA “corrigir tipo/banco” alinhado ao fluxo de reclassificação existente | P1 | 6h | ✅ Documentos: banner + coluna Tipo com “Revisar classificação” e link para `EditDocumentDialog` (`needs_review` ou `classification_confidence` < 0,7) |
+| P2.5 | **Observabilidade:** log estruturado do resultado da classificação (sem PII) para comparar volume de mismatch antes/depois | P2 | 3h | ☐ |
+
+**Checkpoint:** contrato único em `document_classification` + ADR-081; paridade nome canônico testada; UI marca incerteza. Próximo: **P2.5** (observabilidade). Detalhes em [ARCHITECTURE.md](ARCHITECTURE.md) §9 e [DECISIONS.md](DECISIONS.md) ADR-081.
 
 ---
 
@@ -133,7 +180,7 @@ Bloco zero da reordenação CTO (ver discussão em conselho 2026-04-15): toda a 
 - **6.5F.2** Backend factories type-safe em [`backend/tests/factories/`](../backend/tests/factories/) (12 builders: user, workspace, member, account, category, document, vault, run, stage_log, report, notification, llm_config)
 - **6.5F.3** [`docker-compose.test.yml`](../docker-compose.test.yml) (PG 5433 + Redis 6380, isolados do dev) + scripts `test_backend_up.sh`/`test_backend_down.sh` + `.env.test` gitignored
 - **6.5F.7** Frontend factories type-safe em [`frontend/tests/factories/`](../frontend/tests/factories/) (12 builders alinhados com `lib/api.ts`)
-- **6.5F.12** Gerador determinístico de PDFs sintéticos para 13 bancos em [`tests/fixtures/pdf_generator.py`](../tests/fixtures/pdf_generator.py) (reportlab; CPF placeholder LGPD-safe)
+- **6.5F.12** Gerador determinístico de PDFs sintéticos para 14 códigos (`BankCode`) em [`tests/fixtures/pdf_generator.py`](../tests/fixtures/pdf_generator.py) (reportlab; CPF placeholder LGPD-safe)
 - **6.5F.13** Esqueleto de [`docs/TESTING.md`](TESTING.md) com TL;DR, comandos, FAQ
 - Smoke test [`frontend/tests/bootstrap.test.tsx`](../frontend/tests/bootstrap.test.tsx) cobrindo Vitest + jsdom + jest-dom + MSW + factories: **7/7 passando em 941ms**
 
@@ -544,7 +591,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | #       | Tarefa                                                                                                                                                                                          | Prio | Est. | Status |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 6.5F.12 | **Synthetic PDF generator** em `tests/fixtures/pdf_generator.py` (`reportlab` ou `weasyprint`): 1 template por banco (13 bancos atuais), gera fatura + extrato; CI regenera fixtures determinísticas; substitui qualquer PDF real em `tests/` | P0 | 6h | ✅ Bootstrap (gerador implementado; regenerador determinístico em sub-task posterior) |
+| 6.5F.12 | **Synthetic PDF generator** em `tests/fixtures/pdf_generator.py` (`reportlab` ou `weasyprint`): 1 template por banco (14 códigos em `BankCode`), gera fatura + extrato; CI regenera fixtures determinísticas; substitui qualquer PDF real em `tests/` | P0 | 6h | ✅ Bootstrap (gerador implementado; regenerador determinístico em sub-task posterior) |
 | 6.5F.13 | **`docs/TESTING.md` contributor guide**: como rodar (backend + frontend), como adicionar test (factory pattern, fixture pattern), como debugar falha CI (artifacts, vídeo, trace), como atualizar snapshot, FAQ, tabela de comandos | P0 | 4h | 🚧 Esqueleto (preenchido ao longo de F6.5) |
 | 6.5F.14 | **Pre-commit hooks** (`pre-commit` + `husky`): lint + format obrigatórios; opcional: rodar unit tests rápidos (<5s); opt-out via `--no-verify` documentado mas desencorajado | P1 | 2h | ✅ Entregue em commit `a7a055d` (`.pre-commit-config.yaml` + `dev/check_forbidden_paths.py` + `dev/validate_commit_msg.py` — paths proibidos, prefixos, trailing whitespace, merge conflict, private key detection) |
 
@@ -650,16 +697,24 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | #     | Tarefa                                                                                                                                                                                                          | Prio | Est. | Status |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 7E.6  | **Status page público** (`uptime-kuma` self-hosted ou `instatus.com` free tier): incidentes manuais + uptime auto; link na footer do app                                                                       | P1 | 3h | ☐ |
+| 7E.6  | **Status page público** (`uptime-kuma` self-hosted ou `instatus.com` free tier): incidentes manuais + uptime auto; link na footer do app                                                                       | P1 | 3h | ✅ Sprint A: `NEXT_PUBLIC_FIN_STATUS_PAGE_URL` + `StatusPageFooter` (login, register, invite, AppShell); provisão da ferramenta continua no deploy — ver [RUNBOOK.md](RUNBOOK.md#2-status-page-7e6) |
 | 7E.7  | **Business metrics dashboard**: query simples + página interna `/admin/metrics`: runs/day, success rate trend (7d/30d), p95 duration, custo médio LLM por run, documents uploaded/day, active workspaces — integra **IA-2** do [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md) (protegida por **7F.2–7F.4**) | P1 | 6h | ☐ |
-| 7E.8  | **SLOs/SLAs declarados** em `docs/SLO.md`: uptime 99% beta / 99.5% GA; p95 API <1s; p95 pipeline free <5min, premium <15min; alertas Sentry quando burn rate >2x                                                | P0 | 1h | ☐ |
+| 7E.8  | **SLOs/SLAs declarados** em `docs/SLO.md`: uptime 99% beta / 99.5% GA; p95 API <1s; p95 pipeline free <5min, premium <15min; alertas Sentry quando burn rate >2x                                                | P0 | 1h | ✅ Sprint A: [SLO.md](SLO.md) (alvos + SLA comunicação incidente); burn rate Sentry continua em 7C |
 
 #### 7E.D — Comunicação de incidentes
 
 | #     | Tarefa                                                                                                                                                                  | Prio | Est. | Status |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 7E.9  | **Incident comms templates** em RUNBOOK: 3 templates Markdown (`initial_report`, `update_in_progress`, `resolved_postmortem`) com placeholders e exemplos preenchidos; treinar uso na primeira incident drill | P0 | 2h | ☐ |
+| 7E.9  | **Incident comms templates** em RUNBOOK: 3 templates Markdown (`initial_report`, `update_in_progress`, `resolved_postmortem`) com placeholders e exemplos preenchidos; treinar uso na primeira incident drill | P0 | 2h | ✅ Sprint A: [runbooks/incidents/](runbooks/incidents/) + [RUNBOOK.md](RUNBOOK.md#3-resposta-a-incidentes); drill checklist em [RUNBOOK.md](RUNBOOK.md#4-drill-de-incidente-obrigatório-antes-do-beta-fechado) |
 | 7E.10 | **Support runbook** (`docs/SUPPORT.md`): triagem por severidade, templates de resposta para 5 perguntas comuns, fluxo de escalação, tempo de resposta esperado por tier | P1 | 4h | ☐ |
+
+**Detalhamento — status page (7E.6) e incidentes (7E.9)**
+
+| Área | O quê incluir |
+| --- | --- |
+| **Status page (7E.6)** | Ferramenta (`uptime-kuma`, Instatus, etc.): componentes **API**, **frontend**, **worker/Celery**, **Redis** (ou agregado “processamento”); incidentes **manuais** com título, descrição curta, severidade, atualizações; link público na **footer** do app e no e-mail de boas-vindas / suporte. SLA de conteúdo: incidente “investigating” em **menos de 15 minutos** após detecção interna (alinhado a 7E.8). |
+| **7E.9 — Templates** | Três arquivos em `docs/` ou `runbooks/incidents/`: (1) **initial** — o quê falhou, impacto usuário, escopo (região/tier), próximo update em X min; (2) **update** — mitigação em curso, workaround; (3) **resolved** — causa raiz (se conhecida), duração, follow-up. Idioma **pt-BR** para usuários; técnico pode ser bilíngue. Placeholders: `{{INCIDENT_ID}}`, `{{SEVERITY}}`, `{{AFFECTED_AREAS}}`, `{{ETA_NEXT_UPDATE}}`. |
+| **Processo** | Primeiro drill **antes do beta**: publicar incidente fictício, linkar status page, postar update e resolved; registrar tempo e melhorias no RUNBOOK. Opcional **P2:** banner in-app não bloqueante quando `status` API reportar incidente ativo (depende de endpoint ou scraping seguro). |
 
 #### 7E.E — LLM cost runaway protection
 
@@ -670,7 +725,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | 7E.13 | **API key validation pré-pipeline**: ping rápido ao modelo (`messages.count_tokens` ou similar barato) antes de iniciar; falha clara em 400 vs crash mid-stage com 500                                            | P0 | 2h | ☐ |
 | 7E.14 | **Fallback model** quando primary rate-limited (429/529): retry com modelo secundário configurável (ex: claude-haiku se opus indisponível); log explícito em `PipelineStageLog`                                   | P1 | 4h | ☐ |
 
-**Checkpoint:** zero pipeline runs órfãs >1h • restore drill executado em <RTO declarado • off-site backup verificado • FERNET recovery testado • status page no ar • business metrics dashboard renderizando • 3 incident templates prontos • LLM cost cap funcionando com toast e hard stop • API key validation antes de cada run.
+**Checkpoint:** zero pipeline runs órfãs >1h • restore drill executado em <RTO declarado • off-site backup verificado • FERNET recovery testado • status page no ar (**7E.6:** link no app + RUNBOOK; provisão do serviço no deploy) • business metrics dashboard renderizando • 3 incident templates prontos (**7E.9** ✅) • LLM cost cap funcionando com toast e hard stop • API key validation antes de cada run.
 
 ### F7F — Console interno (operadores)
 
@@ -700,6 +755,78 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 ---
 
+## F11 — Confiança, transparência e excelência de relatório (beta → GA)
+
+> Fase de **produto** pós-F7 estável: melhora percepção de qualidade, auditabilidade e uso profissional do relatório. **Não** substitui P2 (classificação unificada) nem F7 (ops). Ordem sugerida no [ROADMAP.md](ROADMAP.md#f11--confiança-transparência-e-excelência-de-relatório-beta--ga).
+
+### F11.1 — Mental model: “vida financeira” × “relatório deste mês”
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F11.1a | **Arquitetura de informação:** `/plano`, metas, tarefas e cofre de contexto = eixo **estratégico**; Documentos → Pipeline → Relatório = eixo **operacional do período**. Revisar labels do nav, títulos de página e breadcrumbs para não misturar os dois. | P1 | 6h | ☐ |
+| F11.1b | **Empty states e CTAs:** primeiro uso empurra “gerar primeiro relatório”; usuário com relatório já pode ver CTA secundário para “ajustar metas / plano”. Sem dead-end em `/dashboard` ou `/reports`. | P1 | 4h | ☐ |
+| F11.1c | **Copy guidelines** curtas no `docs/` ou comentário de design: quando falar “mês”, “período”, “projeção” vs “patrimônio alvo”. | P2 | 2h | ☐ |
+
+### F11.2 — Hierarquia de números
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F11.2a | **Auditoria visual:** mesmas regras de `format.ts` aplicadas em Dashboard, Transactions, Report React: alinhamento decimal, `tabular-nums`, escala de eixos Recharts, legenda com unidade. | P1 | 8h | ✅ Sprint B+C: Dashboard (eixos/tooltips); Transactions (data/valor/cabeçalho/paginação); hero do relatório nativo; KPICard/`MonetaryValue` já cobertos — revisão fina por seção/card se necessário |
+| F11.2b | **Prioridade semântica:** KPI primário vs secundário (peso tipográfico / posição); valores derivados claramente subordinados (ex.: variação % sob o principal). | P1 | 4h | ☐ |
+| F11.2c | **Teste de regressão visual** (Playwright ou checklist manual) para dark/light e print. | P2 | 3h | ☐ |
+
+### F11.3 — Print / PDF como entregável de consultoria
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F11.3a | **Print CSS:** revisão de quebras de página, cabeçalhos repetidos, margens A4, ocultar chrome da app na impressão; numerar páginas se o motor permitir. | P1 | 6h | ☐ |
+| F11.3b | **Export PDF server-side (Playwright):** validar que tipografia e cores ficam “apresentáveis” para terceiros; capa com período e sobrenome da família consistente. | P1 | 4h | ☐ |
+| F11.3c | **Checklist de QA** em [SMOKE_TEST.md](SMOKE_TEST.md) ou seção dedicada: “entrega impressa/PDF” (mínimo 5 itens). | P2 | 2h | ☐ |
+
+### F11.4 — Transparência na UI: origem da informação
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F11.4a | **Modelo de dados / API:** expor por bloco ou seção (ou agregado no JSON do relatório) referência a: `document_id`(s), período, run_id opcional — sem vazar dados entre workspaces. | P1 | 10h | 🚧 Sprint C: `pipeline_run_id` em `ReportResponse` + faixa do relatório + `/pipeline?run=` (scroll); próximo: IDs de documento / linhagem por seção no JSON ou metadados |
+| F11.4b | **UI:** componente discreto “Fonte” / “Origem” (tooltip ou linha secundária): ex. “Extrato Itaú · jan/2026 · run `abc…`”. | P1 | 8h | ✅ Sprint B: `ReportSourceStrip` abaixo do header do relatório (links Documentos + Pipeline; período snapshot + gerado em) |
+| F11.4c | **Fallback:** quando dado for agregado de várias fontes, texto explícito “Consolidado de N documentos”. | P1 | 3h | ✅ Sprint B: copy “consolidados a partir dos documentos…” na faixa de origem |
+
+### F11.5 — Transparência na UI: `needs_review` e trilha LLM
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F11.5a | **Mapa de estados:** definir rótulos user-facing para: sucesso determinístico; dado inferido por LLM; `needs_review`; falha de estágio. Proibido expor códigos internos E0–E7 na UI (ADR-068). | P0 | 4h | ✅ Sprint B: `pipelineTransparency.ts` (footnote LLM por etapa); removido badge com código E* na linha de etapa; `pipelineE2TouchLabel` sem “E2” na UI |
+| F11.5b | **Pipeline / Relatório:** banner ou badge persistente quando houver revisão pendente; link para tela de review ou lista de itens. | P0 | 8h | ✅ Sprint B: banner `needs_review` reforçado + CTA retomar (já existia; copy e caixa LLM) |
+| F11.5c | **Linguagem de risco:** distinguir “pode afetar categorização” vs “pode afetar saldo exibido”; texto revisado por produto. | P1 | 3h | ✅ Sprint B: `reviewPauseImpactHint()` por etapa pausada |
+
+### F11.6 — Metadados de premissas (metas e relatório)
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F11.6a | **Metas (Goals):** versão de premissas por tipo (IF, aporte, dólar, alocação): taxa, inflação, horizonte, data de vigência; exibir no wizard e na visualização. | P1 | 10h | ☐ |
+| F11.6b | **Snapshot de relatório:** quando números dependerem de premissas, gravar referência (versão goal ou blob JSON mínimo) para comparação mês a mês. | P1 | 8h | ☐ |
+| F11.6c | **Relatório UI:** bloco opcional “Premissas deste relatório” (colapsável). | P2 | 4h | ☐ |
+
+### F11.7 — Ligação explícita entre número e regra
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F11.7a | **Catálogo de fórmulas** relevantes (FV anuidade, etc.): texto curto + referência ao código ou doc (`compute_if_derived`, E5). | P1 | 6h | ☐ |
+| F11.7b | **UI:** tooltip ou painel “Como calculamos” a partir de KPIs principais e metas; link para glossário. | P1 | 8h | ☐ |
+| F11.7c | **Testes:** golden ou snapshot garante que o número exibido bate com o motor para casos fixos. | P1 | 4h | ☐ |
+
+### F11.8 — Command palette / atalhos
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F11.8a | **Command palette** (`cmdk` ou lib alinhada ao DS): buscar páginas, ir para Documentos, Pipeline, Relatórios, Config, Plano. | P2 | 10h | ☐ |
+| F11.8b | **Atalhos globais** documentados (modal `?` ou página ajuda): ex. `G` + letra para navegação, evitando conflito com inputs. | P2 | 6h | ☐ |
+| F11.8c | **A11y:** palette focável por teclado, `aria` em resultados. | P2 | 3h | ☐ |
+
+**Checkpoint F11:** usuário entende **de onde vem** o número; sabe quando **confiar** no dado vs revisar; relatório **impresso/PDF** passa checklist de consultoria; navegação separa **plano de vida** de **fechamento do mês**; hierarquia tipográfica consistente; command palette opcional para power users.
+
+---
+
 ## F8 — Growth (Futuro)
 
 Adiados conscientemente. São features de aquisição/marketing/polish pós-launch.
@@ -709,10 +836,9 @@ Adiados conscientemente. São features de aquisição/marketing/polish pós-laun
 | Landing page (hero, features, pricing, CTA)       | Prematuro: zero usuários externos no dogfood            |
 | Onboarding wizard + guided tour                   | Sem user research para validar fluxo                    |
 | PWA (manifest, service worker, offline, install)  | Implicações de security com dados financeiros           |
-| Command palette (Cmd+K, cmdk)                     | Power-user feature, não essencial                       |
+| Command palette (Cmd+K) + keyboard shortcuts        | Movidos para **F11.8** (produto); aqui só lembrete de marketing/SEO se empacotados na landing |
 | Framer Motion / page transitions                  | Polish sem valor funcional                              |
 | SEO / Open Graph / sitemap / robots.txt           | Sem landing page, sem SEO relevante                     |
-| Keyboard shortcuts (G+D, G+R)                     | Depende de command palette                              |
 | FAQ / documentation page                          | Conteúdo emerge do feedback de beta                     |
 | Report comparison (side-by-side, deltas)          | Requer 2+ relatórios (demora meses no dogfood)          |
 | Shareable report link (token + TTL)               | Security complexa para dados financeiros públicos       |
@@ -731,7 +857,8 @@ Adiados conscientemente. São features de aquisição/marketing/polish pós-laun
 ## Como trabalhar com o backlog
 
 1. **Uma fase por vez.** F6.5 precisa terminar antes de começar F7.
-2. **P0 antes de P1.** Dentro da fase, priorizar por dependência e risco.
-3. **Atualizar status aqui.** Ao concluir uma task, marcar ✅ e mover contexto relevante para [CHANGELOG.md](CHANGELOG.md).
-4. **Decisões técnicas importantes** → [DECISIONS.md](DECISIONS.md).
-5. **Mudanças de escopo/visão** → atualizar [ROADMAP.md](ROADMAP.md) e discutir antes de executar.
+2. **P0 antes de P1.** Dentro da fase, priorizar por dependência e risco. **P2** (ex.: classificação unificada, F11.8) entra quando F7 e dependências diretas permitirem.
+3. **Paralelos seguros:** [P2 — Unificação da classificação](#p2--unificação-da-classificação-de-documentos) e [F11](#f11--confiança-transparência-e-excelência-de-relatório-beta--ga) podem avançar em sprints dedicados após dogfood, sem bloquear fechamento mecânico de F7.
+4. **Atualizar status aqui.** Ao concluir uma task, marcar ✅ e mover contexto relevante para [CHANGELOG.md](CHANGELOG.md).
+5. **Decisões técnicas importantes** → [DECISIONS.md](DECISIONS.md).
+6. **Mudanças de escopo/visão** → atualizar [ROADMAP.md](ROADMAP.md) e discutir antes de executar.

@@ -65,6 +65,16 @@ import {
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import type { UserWorkspace } from "@/lib/api";
 
+/** Alinhado a ``_REVIEW_CONFIDENCE_THRESHOLD`` no backend (document_classification). */
+const CLASSIFICATION_LOW_CONFIDENCE = 0.7;
+
+function isClassificationUncertain(doc: DocumentResponse): boolean {
+  if (doc.status !== "ready") return false;
+  if (doc.needs_review) return true;
+  const c = doc.classification_confidence;
+  return c != null && c < CLASSIFICATION_LOW_CONFIDENCE;
+}
+
 export default function DocumentsPage() {
   const { workspace } = useWorkspace();
   if (!workspace) return null;
@@ -260,6 +270,7 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
 
   const needsPasswordDocs = docs.filter((d) => d.status === "needs_password");
   const readyDocs = docs.filter((d) => d.status === "ready");
+  const uncertainClassificationDocs = docs.filter(isClassificationUncertain);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
@@ -339,6 +350,25 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
           </>
         )}
       </Card>
+
+      {/* P2.4 — classificação incerta (needs_review ou confiança abaixo do limiar) */}
+      {uncertainClassificationDocs.length > 0 && (
+        <div className="mb-4 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-foreground">
+          <span className="font-medium text-warning">
+            {uncertainClassificationDocs.length} documento(s)
+          </span>{" "}
+          com classificação automática incerta. Confira o tipo e a instituição antes
+          de gerar o relatório — use{" "}
+          <button
+            type="button"
+            className="font-medium text-primary underline-offset-2 hover:underline"
+            onClick={() => uncertainClassificationDocs[0] && setEditTarget(uncertainClassificationDocs[0])}
+          >
+            corrigir tipo e instituição
+          </button>{" "}
+          na linha de cada arquivo.
+        </div>
+      )}
 
       {/* Needs Password Banner */}
       {needsPasswordDocs.length > 0 && (
@@ -439,7 +469,23 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="align-top text-muted-foreground">{docTypeLabel(doc.doc_type)}</TableCell>
+                    <TableCell className="align-top text-muted-foreground">
+                      <div>{docTypeLabel(doc.doc_type)}</div>
+                      {isClassificationUncertain(doc) && (
+                        <div className="mt-1.5 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+                          <span className="inline-flex w-fit items-center rounded border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-[10px] font-medium text-warning">
+                            Revisar classificação
+                          </span>
+                          <button
+                            type="button"
+                            className="w-fit text-left text-[11px] font-medium text-primary underline-offset-2 hover:underline"
+                            onClick={() => setEditTarget(doc)}
+                          >
+                            Corrigir tipo e instituição
+                          </button>
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell className="align-top">
                       <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
                         {mimeLabel(doc.content_type)}

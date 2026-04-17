@@ -2,7 +2,7 @@
 
 > Visão de alto nível das fases do projeto. Atualizar mensalmente ou ao mudar de fase.
 >
-> **Última atualização:** 2026-04-16
+> **Última atualização:** 2026-04-17
 > **Fase atual:** F9 concluída • próxima: **F7 (Produção + LGPD + Ops)**
 
 ---
@@ -23,6 +23,10 @@
 | **7**   | Produção + LGPD + Ops    | ☐ Planejada  | VPS+Docker+Traefik, LGPD completo, auth flows (email verify/pwd reset/brute-force), prompt injection defense, operational readiness (DR testado, business metrics, incident comms, LLM cost cap), CI/CD, dogfood validado |
 | **8**   | Goals & Tasks + Cutover CLI→Web | ✅ Concluída | Goals versionados (IF + APORTE_MENSAL + DOLARIZACAO + ALOCACAO_ALVO + PLANNING_CONTEXT em F8.5), Tasks como entidade de 1ª classe (CRUD + dependencies + suggestions + attachments + progress%), Pipeline adapter (DB→JSON), Feature flags, Worker beat, Snapshot imutável no relatório, Celery beat diário scan-deadlines. **~146 testes, 7 ADRs (072-075, 077, 079), 5 migrations, 20 tenant models, 9 services, ~42 endpoints, 10 componentes React, 11 rotas frontend**. Cutover reversível via feature flags. ADR-072/073/074/075/077/079. |
 | **9**   | Relatório Nativo React + Workspace Sharing + Design System | ✅ Concluída | **Relatório:** render React nativo (18 seções, 13 cards, 8 charts Recharts, deep-links, scroll-spy, print CSS A4, PDF Playwright). E6 vira exportador standalone. **Design System:** tokens.json → CSS unificado (ADR-076), codegen YAML→TS/Pydantic. **Sharing:** 3 roles, convites SHA-256/TTL 72h, forced logout, viewer banner, workspace switcher. **113 testes novos (56 BE + 23 FE + 20 tokens + 14 codegen), 3 ADRs (076-078), 3 migrations.** |
+| **10**  | Growth & Aquisição | ☐ Futuro (pós-GA) | Landing, SEO, billing, digest — ver § F10 |
+| **11**  | Confiança, transparência, excelência de relatório | ☐ Beta → GA | Origem dos dados, LLM/needs_review, premissas, hierarquia numérica, print/PDF consultoria, mental model plano × mês — ver § F11 |
+
+**Épicos transversais (não são fases numeradas):** [P2 classificação de documentos](BACKLOG.md#p2--unificação-da-classificação-de-documentos) (motor); **P0/P1 motor canônico** (§ *Motor canônico e pipeline* abaixo) concluído; expansão incremental de goldens/PDF continua junto a **7D.1**.
 
 ---
 
@@ -69,7 +73,7 @@ Para tasks específicas já feitas e ainda pendentes por sub-fase, ver **[BACKLO
 - **axe-core** 0 violations critical/serious — 2 a11y violations reais corrigidas no source
 - **Property-based BRL** via fast-check (edge cases, round-trip, separadores)
 - **CPF mod-11** gerador determinístico + lint anti-PII (7 CPFs reais substituídos)
-- **Synthetic PDFs** para 13 bancos via `tests/fixtures/pdf_generator.py` (reportlab)
+- **Synthetic PDFs** para 14 códigos (`BankCode`) via `tests/fixtures/pdf_generator.py` (reportlab)
 - **Pipeline mock fixtures** (`seed_completed_run`) + `--real-pipeline` opt-in
 - **LLM mock fixtures** por stage (E1, E1.5, E2-llm, E7-review) — [ADR-070](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in)
 - **Error boundary** em toda page via layout wrap
@@ -139,6 +143,24 @@ python -m backend.app.scripts.cutover_execute --apply
 
 ---
 
+### Motor canônico e pipeline (P0 / P1) — em paralelo ao F7
+
+Trabalho técnico para **uma fonte de verdade** na lógica E0–E7, **testes offline** no laptop e **gates de schema** no CI. Não substitui fases numeradas; encaixa antes/alongside **7D.1** (gap-fill pipeline) e consolida ADR-013 / 075 / 077.
+
+| Entrega | Documento / código | Status |
+| --- | --- | --- |
+| P0 — inventário, fronteira motor × adaptadores, contratos, gaps golden | [docs/CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md) | Concluído |
+| P1 — runner offline, fronteiras de import, CI strict, goldens mínimos, checklist artefatos | [docs/P1_STRUCTURAL_PLAN.md](P1_STRUCTURAL_PLAN.md), [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) | Concluído |
+| Override `FIN_PIPELINE_SCHEMA_MODE` em `validate_artifact` | `scripts/pipeline_common.py` | Concluído |
+| `python -m pipeline.run_dev` | `pipeline/run_dev.py` | Concluído |
+| Lint fronteiras `pipeline/` | `dev/check_pipeline_boundaries.py` | Concluído |
+
+**Próximo passo (incremental):** (1) **Concluir a abordagem só sintética** — layouts dedicados no `pdf_generator` para os **demais** bancos do registry que ainda usam só a tabela genérica (BTG, Rico, Wise, PicPay, Bank of America, Santander, Itaú e Caixa já têm `_draw_*` + `test_*_synthetic_extracts_transactions`). (2) **Depois**, opcionalmente: **PDFs reais anonimizados** no repositório como segunda camada de regressão de layout (processo em [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) § *E2 — sintético e real anonimizado* e [BACKLOG.md](BACKLOG.md)). Em paralelo possível: fixtures LLM determinísticas ([CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md) §4 item 3). Referência: `tests/test_e2_synthetic_pdf_parsers.py` e `tests/fixtures/pdf_generator.py`.
+
+**Epic P2 (2026-04-17):** **P2.1–P2.4 entregues** — módulo único `document_classification`, ADR-081, testes de paridade nome canônico, UI de incerteza em Documentos; upload, reclassify e E0-route (com backend) compartilham o mesmo classificador. **Pendente no epic:** [P2.5 observabilidade](BACKLOG.md#p2--unificação-da-classificação-de-documentos) (log estruturado de mismatch). Ver [BACKLOG.md](BACKLOG.md#p2--unificação-da-classificação-de-documentos).
+
+---
+
 ### F7 — Produção + Security + LGPD + Operational Readiness (próxima)
 
 **Objetivo:** Levar o Fin a produção com a menor superfície de risco possível, fluxos de auth completos para suportar usuários reais, e maturidade operacional para sobreviver ao primeiro incidente.
@@ -167,23 +189,50 @@ python -m backend.app.scripts.cutover_execute --apply
 | **Beta**    | Família + 2-3 convidados (5 users)    | Onboarding sem suporte. Latência p95 <1s. Nenhum dado corrompido. LGPD verificado   |
 | **GA**      | Público                               | Landing page + demo mode + billing (se aplicável). Suporte básico                   |
 
-Detalhes das tasks: **[BACKLOG.md#f7](BACKLOG.md#f7--produção--lgpd)** · Console interno (operadores): **[INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md)** + **[BACKLOG.md#f7f](BACKLOG.md#f7f--console-interno-operadores)**
+Detalhes das tasks: **[BACKLOG.md#f7](BACKLOG.md#f7--produção--lgpd)** · Console interno (operadores): **[INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md)** + **[BACKLOG.md#f7f](BACKLOG.md#f7f--console-interno-operadores)** · **Status page + incidentes (7E.6 / 7E.9):** ver [BACKLOG.md#7ec--observabilidade-de-negócio](BACKLOG.md#7ec--observabilidade-de-negócio) e § detalhamento após tabela 7E.D.
 
 ---
 
 ### F10 — Growth & Aquisição (pós-launch, Futuro)
 
-Adiado conscientemente: são features de aquisição/marketing que não fazem sentido no estágio dogfood/beta. Incluídas para referência futura.
+Adiado conscientemente: são features de **aquisição / marketing** que não fazem sentido no estágio dogfood/beta. Incluídas para referência futura.
 
-- Landing page + onboarding wizard + guided tour
-- PWA (service worker, install, offline seguro)
-- Command palette (Cmd+K)
-- SEO / Open Graph / sitemap
-- Email digest notifications
-- Demo mode (workspace fictício read-only)
-- Billing real (Stripe)
-- Keyboard shortcuts
-- Report comparison (side-by-side)
+| Prioridade | Item | Notas |
+| --- | --- | --- |
+| P1 | Landing page + onboarding wizard + guided tour | Depende de pesquisa com usuários beta |
+| P2 | PWA (service worker, install, offline seguro) | Segurança e superfície de dados sensíveis |
+| P2 | SEO / Open Graph / sitemap | Depende de landing |
+| P1 | Email digest notifications | Requer serviço de e-mail + templates |
+| P1 | Demo mode (workspace fictício read-only) | Também útil a **F11** (onboarding sem medo) |
+| P1 | Billing real (Stripe) | BYOK cobre Premium até GA |
+| P2 | Report comparison (side-by-side, deltas) | Requer histórico de relatórios no uso real |
+
+**Command palette / atalhos:** não é growth puro — roadmap de produto em **[F11.8](BACKLOG.md#f11-8--command-palette--atalhos)** (P2, pós-beta). Aqui permanecem apenas como lembrete: **Cmd+K**, atalhos globais (ex.: ir a Dashboard, Documentos, Pipeline), acessibilidade.
+
+---
+
+### F11 — Confiança, transparência e excelência de relatório (beta → GA)
+
+Objetivo: **baixa fricção cognitiva**, **confiança em dados e em LLM**, e **entrega visual digna de consultoria** — sem substituir F7 (produção) nem o epic de **classificação unificada** (P2 no backlog).
+
+| # | Tema | Entregas resumidas | Prio |
+| --- | --- | --- | --- |
+| F11.1 | **Mental model: “vida financeira” × “relatório deste mês”** | Rotas e IA claras: `/plano` e metas = configuração de longo prazo; fluxo Documentos → Pipeline → Relatório = ciclo mensal. Copy, navegação primária/secundária, empty states que não misturam os dois modos. | P1 |
+| F11.2 | **Hierarquia de números** | Padrão único de tipografia e alinhamento (KPI, tabelas, gráficos, relatório): decimais BRL, sinal de fluxo, escala em eixos; auditoria Dashboard + Transaction Explorer + Report React + tokens. | P1 |
+| F11.3 | **Print / PDF como entregável de consultoria** | Refino de `@media print`, capa, margens A4, quebras de página, fontes embed/sistema; export PDF/HTML com aparência “documento para terceiros”; checklist de QA visual. | P1 |
+| F11.4 | **Transparência: origem da informação** | Por seção ou bloco: qual documento / período / estágio alimenta o número (linhagem resumida; link para Documentos ou run quando aplicável). | P1 |
+| F11.5 | **Transparência: `needs_review` e trilha LLM** | Linguagem consistente: quando o dado é inferido, revisão humana pendente, ou validado; CTAs para revisão; sem jargão de estágio E* na UI (ADR-068). | P0 |
+| F11.6 | **Metadados de premissas (metas + relatório)** | Campos ou bloco explícito: taxas, inflação, horizonte, cenário base; versão das premissas no snapshot de relatório quando impactar números. | P1 |
+| F11.7 | **Número ↔ regra** | Tooltips ou painel “Como calculamos”: ligação do KPI ao motor (ex.: FV de anuidade na meta IF); glossário mínimo. | P1 |
+| F11.8 | **Command palette / atalhos** | `cmdk` (ou equivalente): busca de rotas, ações (novo upload, rodar pipeline); atalhos documentados e não conflitantes com o browser. | P2 |
+
+Detalhamento por task: **[BACKLOG.md#f11--confiança-transparência-e-excelência-de-relatório-beta--ga](BACKLOG.md#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)**.
+
+**Sprint B (2026-04-17):** F11.5 (banner `needs_review`, notas LLM por etapa, sem códigos E* na linha de etapa; rótulo de toque E2 sem “E2” na UI), F11.4b–c (`ReportSourceStrip` + período/gerado em), fatia de F11.2 (eixos/tooltips do dashboard com `tabular-nums`).
+
+**Sprint C (2026-04-17):** F11.4a no nível do relatório — `pipeline_run_id` na API, link e deep link para Pipeline; F11.2a — `tabular-nums` / `font-mono` em Transactions (tabela + paginação) e hero do relatório nativo. Próximo: linhagem por seção/bloco e `document_id` no JSON ou metadados (resto de F11.4a).
+
+**Ordem sugerida:** F11.5 → F11.4 → F11.2 → F11.7 → F11.6 → F11.3 → F11.1 → F11.8 (ajustar conforme feedback do beta).
 
 ---
 
@@ -239,7 +288,7 @@ Política de cobertura (Python backend + pipeline):
 | Q1 2026              | F0-F4 ✅ (Core → LLM)                            |
 | Q2 2026 (Abr)        | F4.5, F5, F6, F6.5, F8, F9 ✅ — feature-complete pré-produção |
 | Q2-Q3 2026 (Mai-Jul) | F7 (8-10 sem) → Dogfood validado → Beta fechado  |
-| Q3-Q4 2026           | Beta → preparação GA + F10 (Growth)              |
+| Q3-Q4 2026           | Beta → F11 (confiança / transparência) → preparação GA + F10 (Growth) |
 | 2027+                | GA + features de growth                          |
 
 ---
