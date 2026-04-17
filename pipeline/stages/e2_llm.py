@@ -198,6 +198,13 @@ def _process_one_e2_llm_document(
         out_path = e2_dir / f"{safe_stem}-2_extract.json"
         out_path.write_text(json.dumps(e2_json, ensure_ascii=False, indent=2), encoding="utf-8")
 
+        try:
+            from scripts.pipeline_common import validate_artifact
+
+            validate_artifact(out_path, "e2_extract.schema.json")
+        except ImportError:
+            pass
+
         processed = {
             "file": doc.name,
             "output": out_path.name,

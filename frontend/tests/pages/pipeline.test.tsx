@@ -7,6 +7,7 @@
  * WebSocket é mockado via `vi.mock` do hook `usePipelineWS` para evitar
  * complexidade de mock de WS aqui (hook tem suite própria em 6.5A.7).
  */
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -26,19 +27,42 @@ vi.mock("next/link", () => ({
 vi.mock("@/lib/usePipelineWS", () => ({
   usePipelineWS: () => ({ status: "disconnected", lastEvent: null }),
 }));
+vi.mock("@/lib/WorkspaceProvider", () => ({
+  WorkspaceProvider: ({ children }: { children: ReactNode }) => (
+    <>{children}</>
+  ),
+  useWorkspace: () => ({
+    workspace: {
+      id: "ws-test",
+      name: "Workspace",
+      family_surname: "Teste",
+      role: "owner" as const,
+      joined_at: "2026-01-01T00:00:00.000Z",
+    },
+    workspaces: [],
+    isLoading: false,
+    error: null,
+    refresh: vi.fn(),
+  }),
+}));
 
 import PipelinePage from "@/app/(app)/pipeline/page";
 
 beforeEach(() => {
   localStorage.setItem("fin_token", "t");
+  server.use(
+    http.get("/api/workspaces/:workspaceId/pipeline/new-doc-count", () =>
+      HttpResponse.json({ new_count: 0 }),
+    ),
+  );
 });
 
 describe("PipelinePage", () => {
   it("loading: spinner inicial", () => {
     server.use(
-      http.get("/api/pipeline/runs", () => new Promise(() => {})),
-      http.get("/api/documents", () => HttpResponse.json({ documents: [], total: 0 })),
-      http.get("/api/config/llm/tier", () =>
+      http.get("/api/workspaces/:workspaceId/pipeline/runs", () => new Promise(() => {})),
+      http.get("/api/workspaces/:workspaceId/documents", () => HttpResponse.json({ documents: [], total: 0 })),
+      http.get("/api/workspaces/:workspaceId/config/llm/tier", () =>
         HttpResponse.json({ tier: "free", has_llm_config: false }),
       ),
     );
@@ -48,13 +72,13 @@ describe("PipelinePage", () => {
 
   it("sem docs ready → mensagem 'Nenhum documento pronto' + link Enviar documentos", async () => {
     server.use(
-      http.get("/api/pipeline/runs", () =>
+      http.get("/api/workspaces/:workspaceId/pipeline/runs", () =>
         HttpResponse.json({ runs: [], total: 0 }),
       ),
-      http.get("/api/documents", () =>
+      http.get("/api/workspaces/:workspaceId/documents", () =>
         HttpResponse.json({ documents: [], total: 0 }),
       ),
-      http.get("/api/config/llm/tier", () =>
+      http.get("/api/workspaces/:workspaceId/config/llm/tier", () =>
         HttpResponse.json({ tier: "free", has_llm_config: false }),
       ),
     );
@@ -68,16 +92,16 @@ describe("PipelinePage", () => {
 
   it("com docs ready → mostra contador + botão 'Processar'", async () => {
     server.use(
-      http.get("/api/pipeline/runs", () =>
+      http.get("/api/workspaces/:workspaceId/pipeline/runs", () =>
         HttpResponse.json({ runs: [], total: 0 }),
       ),
-      http.get("/api/documents", () =>
+      http.get("/api/workspaces/:workspaceId/documents", () =>
         HttpResponse.json({
           documents: Array(3).fill({ status: "ready" }),
           total: 3,
         }),
       ),
-      http.get("/api/config/llm/tier", () =>
+      http.get("/api/workspaces/:workspaceId/config/llm/tier", () =>
         HttpResponse.json({ tier: "free", has_llm_config: false }),
       ),
     );
@@ -91,19 +115,19 @@ describe("PipelinePage", () => {
     let triggered = false;
     let triggerBody: any = null;
     server.use(
-      http.get("/api/pipeline/runs", () =>
+      http.get("/api/workspaces/:workspaceId/pipeline/runs", () =>
         HttpResponse.json({ runs: [], total: 0 }),
       ),
-      http.get("/api/documents", () =>
+      http.get("/api/workspaces/:workspaceId/documents", () =>
         HttpResponse.json({
           documents: Array(2).fill({ status: "ready" }),
           total: 2,
         }),
       ),
-      http.get("/api/config/llm/tier", () =>
+      http.get("/api/workspaces/:workspaceId/config/llm/tier", () =>
         HttpResponse.json({ tier: "free", has_llm_config: false }),
       ),
-      http.post("/api/pipeline/run", async ({ request }) => {
+      http.post("/api/workspaces/:workspaceId/pipeline/run", async ({ request }) => {
         triggered = true;
         triggerBody = await request.json();
         return HttpResponse.json(makeRun({ status: "running" }));
@@ -121,19 +145,19 @@ describe("PipelinePage", () => {
 
   it("trigger 400 mostra mensagem de erro", async () => {
     server.use(
-      http.get("/api/pipeline/runs", () =>
+      http.get("/api/workspaces/:workspaceId/pipeline/runs", () =>
         HttpResponse.json({ runs: [], total: 0 }),
       ),
-      http.get("/api/documents", () =>
+      http.get("/api/workspaces/:workspaceId/documents", () =>
         HttpResponse.json({
           documents: Array(1).fill({ status: "ready" }),
           total: 1,
         }),
       ),
-      http.get("/api/config/llm/tier", () =>
+      http.get("/api/workspaces/:workspaceId/config/llm/tier", () =>
         HttpResponse.json({ tier: "free", has_llm_config: false }),
       ),
-      http.post("/api/pipeline/run", () =>
+      http.post("/api/workspaces/:workspaceId/pipeline/run", () =>
         HttpResponse.json({ detail: "Workspace inválido" }, { status: 400 }),
       ),
     );
@@ -149,19 +173,19 @@ describe("PipelinePage", () => {
   it("premium tier → trigger envia skip_llm: false (BUG-007)", async () => {
     let triggerBody: any = null;
     server.use(
-      http.get("/api/pipeline/runs", () =>
+      http.get("/api/workspaces/:workspaceId/pipeline/runs", () =>
         HttpResponse.json({ runs: [], total: 0 }),
       ),
-      http.get("/api/documents", () =>
+      http.get("/api/workspaces/:workspaceId/documents", () =>
         HttpResponse.json({
           documents: Array(1).fill({ status: "ready" }),
           total: 1,
         }),
       ),
-      http.get("/api/config/llm/tier", () =>
+      http.get("/api/workspaces/:workspaceId/config/llm/tier", () =>
         HttpResponse.json({ tier: "premium", has_llm_config: true }),
       ),
-      http.post("/api/pipeline/run", async ({ request }) => {
+      http.post("/api/workspaces/:workspaceId/pipeline/run", async ({ request }) => {
         triggerBody = await request.json();
         return HttpResponse.json(makeRun({ status: "running" }));
       }),
@@ -176,13 +200,13 @@ describe("PipelinePage", () => {
 
   it("erro ao carregar runs mostra 'Erro ao carregar dados'", async () => {
     server.use(
-      http.get("/api/pipeline/runs", () =>
+      http.get("/api/workspaces/:workspaceId/pipeline/runs", () =>
         HttpResponse.json({ detail: "x" }, { status: 500 }),
       ),
-      http.get("/api/documents", () =>
+      http.get("/api/workspaces/:workspaceId/documents", () =>
         HttpResponse.json({ documents: [], total: 0 }),
       ),
-      http.get("/api/config/llm/tier", () =>
+      http.get("/api/workspaces/:workspaceId/config/llm/tier", () =>
         HttpResponse.json({ tier: "free", has_llm_config: false }),
       ),
     );

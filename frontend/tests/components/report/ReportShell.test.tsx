@@ -1,6 +1,7 @@
 /**
  * F9 · Smoke tests do ReportShell nativo.
  */
+import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,25 @@ import { ReportModeProvider } from "@/components/report/ReportModeProvider";
 import { ReportShell } from "@/components/report/ReportShell";
 import type { UseReportDataState } from "@/hooks/useReportData";
 import type { ReportAnalysisData } from "@/lib/api";
+
+vi.mock("@/lib/WorkspaceProvider", () => ({
+  WorkspaceProvider: ({ children }: { children: ReactNode }) => (
+    <>{children}</>
+  ),
+  useWorkspace: () => ({
+    workspace: {
+      id: "ws-test",
+      name: "Workspace",
+      family_surname: "Teste",
+      role: "owner" as const,
+      joined_at: "2026-01-01T00:00:00.000Z",
+    },
+    workspaces: [],
+    isLoading: false,
+    error: null,
+    refresh: vi.fn(),
+  }),
+}));
 
 // F3.2: ReportModeProvider uses next/navigation hooks — mock them in test env
 vi.mock("next/navigation", () => ({
@@ -39,20 +59,49 @@ describe("ReportShell", () => {
           reportId="r1"
           reportTitle="Relatório Família Teste"
           dataState={state}
+          reportPeriod="2026-Q1"
+          reportCreatedAt="2026-04-17T12:00:00.000Z"
         />,
       ),
     );
 
     // Título aparece no header + no hero do article
     expect(screen.getAllByText("Relatório Família Teste").length).toBeGreaterThan(0);
-    expect(screen.getByText(/202601-202604/)).toBeInTheDocument();
+    expect(screen.getAllByText(/202601-202604/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole("note", { name: /Origem dos dados do relatório/i })).toBeInTheDocument();
+    expect(screen.getByText(/Origem dos dados:/)).toBeInTheDocument();
+  });
+
+  it("mostra link da execução do pipeline quando pipelineRunId está definido (F11.4a)", () => {
+    const state: UseReportDataState = { status: "success", data: SAMPLE_DATA };
+    const runId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+    render(
+      wrap(
+        <ReportShell
+          reportId="r1"
+          reportTitle="Rel"
+          dataState={state}
+          reportPeriod={null}
+          reportCreatedAt="2026-04-17T12:00:00.000Z"
+          pipelineRunId={runId}
+        />,
+      ),
+    );
+    const link = screen.getByRole("link", { name: "aaaaaaaa…" });
+    expect(link).toHaveAttribute("href", `/pipeline?run=${encodeURIComponent(runId)}`);
   });
 
   it("mostra seletor de modo (estratégico/tático/EUA)", () => {
     const state: UseReportDataState = { status: "success", data: SAMPLE_DATA };
     render(
       wrap(
-        <ReportShell reportId="r1" reportTitle="Rel" dataState={state} />,
+        <ReportShell
+          reportId="r1"
+          reportTitle="Rel"
+          dataState={state}
+          reportPeriod={null}
+          reportCreatedAt="2026-04-17T12:00:00.000Z"
+        />,
       ),
     );
     expect(
@@ -66,7 +115,13 @@ describe("ReportShell", () => {
     const state: UseReportDataState = { status: "success", data: SAMPLE_DATA };
     render(
       wrap(
-        <ReportShell reportId="r1" reportTitle="Rel" dataState={state} />,
+        <ReportShell
+          reportId="r1"
+          reportTitle="Rel"
+          dataState={state}
+          reportPeriod={null}
+          reportCreatedAt="2026-04-17T12:00:00.000Z"
+        />,
       ),
     );
     // S1 "Patrimônio" deve aparecer como seção real (não stub)
@@ -83,7 +138,13 @@ describe("ReportShell", () => {
     };
     render(
       wrap(
-        <ReportShell reportId="r1" reportTitle="Rel" dataState={state} />,
+        <ReportShell
+          reportId="r1"
+          reportTitle="Rel"
+          dataState={state}
+          reportPeriod={null}
+          reportCreatedAt="2026-04-17T12:00:00.000Z"
+        />,
       ),
     );
     expect(
@@ -96,7 +157,13 @@ describe("ReportShell", () => {
     const state: UseReportDataState = { status: "loading" };
     const { container } = render(
       wrap(
-        <ReportShell reportId="r1" reportTitle="Rel" dataState={state} />,
+        <ReportShell
+          reportId="r1"
+          reportTitle="Rel"
+          dataState={state}
+          reportPeriod={null}
+          reportCreatedAt="2026-04-17T12:00:00.000Z"
+        />,
       ),
     );
     expect(container.querySelector(".animate-spin")).toBeTruthy();

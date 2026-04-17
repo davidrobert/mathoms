@@ -15,6 +15,8 @@ class ReportResponse(BaseModel):
     score: Optional[float] = None
     patrimonio_liquido: Optional[float] = None
     created_at: datetime
+    # F11.4a — linhagem: execução do pipeline que gerou o relatório (FK opcional).
+    pipeline_run_id: Optional[str] = None
     # ADR-076 / F9: indica ao frontend se o relatório tem JSON de análise
     # disponível para o render nativo React. False = apenas HTML (legado pré-F9),
     # usar download do standalone HTML em vez do view nativo.

@@ -12,11 +12,10 @@ Cobre o **caminho crítico** que motivou a sub-fase 6.5E:
 # Escopo deferido (full pipeline E2E)
 
 Rodar E0→E1→E1.5→E2→E3→E4→E5→E6 com PDFs sintéticos requer:
-- Gerar PDFs no formato exato esperado por cada parser de banco em
-  `scripts/e2/banks/<banco>.py` (atualmente os parsers têm regex/coordenadas
-  fixas que precisam do layout PDF que cada banco real emite — o gerador
-  sintético atual produz layout genérico; refinar parser-by-parser é semana
-  de trabalho).
+- **Roteamento + execução dos parsers:** `tests/test_e2_synthetic_pdf_parsers.py`
+  (filename canônico por banco → `route_to_parser` → parse sem exceção). Extração
+  detalhada de transações ainda depende de alinhar layout do gerador às regex de
+  cada `scripts/e2/banks/<banco>.py` (evolução contínua).
 - Mockar/skipar stages LLM (E1, E1.5, E2-llm) com fixtures pré-computadas
   (parte de 6.5F.4 — `--real-pipeline` flag opt-in).
 - Workaround do uso pesado de `globals` em `e6_render.py` (nas funções
@@ -212,9 +211,8 @@ class TestMaterializedConfigEndToEnd:
 class TestSyntheticPDFsAreParseable:
     """Smoke: pdfplumber consegue abrir e extrair texto dos PDFs gerados.
 
-    Não testa que os parsers de E2 reconhecem o layout (escopo deferido —
-    requer ajustar layout do gerador parser-a-parser). Aqui só prova que
-    o output é PDF válido com texto extraível.
+    Não testa alinhamento fino parser↔layout (isso é `tests/test_e2_synthetic_pdf_parsers.py`
+    + evolução do gerador). Aqui só prova PDF válido com texto extraível por banco.
     """
 
     @pytest.mark.parametrize(
@@ -233,6 +231,7 @@ class TestSyntheticPDFsAreParseable:
             ("quintoandar", "extrato"),
             ("receitafederal", "extrato"),
             ("einstein", "extrato"),
+            ("caixa", "extrato"),
         ],
     )
     def test_pdf_for_bank_is_parseable(self, bank, kind, tmp_path):

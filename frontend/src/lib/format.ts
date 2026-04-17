@@ -209,15 +209,15 @@ export function fileFormatLabel(contentType: string | null | undefined, original
   return "—";
 }
 
-/** Último pipeline concluído + se gerou JSON no E2. */
+/** Último pipeline concluído + se consolidou extrato (F11.5 — sem códigos E* na UI). */
 export function pipelineE2TouchLabel(
   lastRunAt: string | null | undefined,
   e2Ok: boolean | null | undefined,
 ): string {
   if (!lastRunAt) return "—";
   const when = formatDateShort(lastRunAt);
-  if (e2Ok === true) return `${when} · extrato E2`;
-  if (e2Ok === false) return `${when} · sem extrato E2`;
+  if (e2Ok === true) return `${when} · extrato consolidado`;
+  if (e2Ok === false) return `${when} · sem extrato consolidado`;
   return when;
 }
 

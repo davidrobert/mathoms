@@ -36,6 +36,7 @@ import { roleDescription, roleLabel } from "@/lib/roleLabels";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/Spinner";
+import { StatusPageFooter } from "@/components/StatusPageFooter";
 
 const WORKSPACE_STORAGE_KEY = "fin.currentWorkspaceId";
 
@@ -124,26 +125,32 @@ export default function AcceptInvitePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Spinner />
+      <div className="flex min-h-screen flex-col">
+        <div className="flex flex-1 items-center justify-center">
+          <Spinner />
+        </div>
+        <StatusPageFooter variant="auth" />
       </div>
     );
   }
 
   if (error && !preview) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-md items-center px-6">
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Convite inválido</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">{error}</p>
-            <Link href="/login" className="mt-6 inline-block">
-              <Button variant="outline">Ir para login</Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="flex min-h-screen flex-col px-6">
+        <div className="mx-auto flex w-full max-w-md flex-1 items-center">
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle>Convite inválido</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">{error}</p>
+              <Link href="/login" className="mt-6 inline-block">
+                <Button variant="outline">Ir para login</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+        <StatusPageFooter variant="auth" />
       </div>
     );
   }
@@ -154,8 +161,9 @@ export default function AcceptInvitePage() {
   const isTerminal = preview.status !== "pending";
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md items-center px-6">
-      <Card className="w-full">
+    <div className="flex min-h-screen flex-col px-6">
+      <div className="mx-auto flex w-full max-w-md flex-1 items-center">
+        <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-lg">
             Você foi convidado para{" "}
@@ -242,7 +250,9 @@ export default function AcceptInvitePage() {
             </>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
+      <StatusPageFooter variant="auth" />
     </div>
   );
 }

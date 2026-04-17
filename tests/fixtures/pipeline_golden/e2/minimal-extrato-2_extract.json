@@ -1,0 +1,17 @@
+{
+  "pipeline_stage": "E2",
+  "banco": "itau",
+  "tipo": "extratoconta",
+  "moeda": "BRL",
+  "periodo": {
+    "inicio": "2026-01-01",
+    "fim": "2026-01-31"
+  },
+  "transacoes": [
+    {
+      "data": "2026-01-15",
+      "descricao": "PIX recebido",
+      "valor": 100.0
+    }
+  ]
+}

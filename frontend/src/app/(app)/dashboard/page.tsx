@@ -195,12 +195,16 @@ function BarChartCard({
               className="text-muted-foreground"
             />
             <YAxis
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12, className: "tabular-nums" }}
               className="text-muted-foreground"
               tickFormatter={(v: number) => formatCurrency(v)}
             />
             <Tooltip
               formatter={(value) => formatCurrency(Number(value))}
+              itemStyle={{
+                fontFamily: "var(--font-mono)",
+                fontVariantNumeric: "tabular-nums",
+              }}
               contentStyle={{
                 borderRadius: "var(--radius-md)",
                 border: "1px solid var(--border)",
@@ -280,6 +284,10 @@ function PieChartCard({
             </Pie>
             <Tooltip
               formatter={(value) => formatCurrency(Number(value))}
+              itemStyle={{
+                fontFamily: "var(--font-mono)",
+                fontVariantNumeric: "tabular-nums",
+              }}
               contentStyle={{
                 borderRadius: "var(--radius-md)",
                 border: "1px solid var(--border)",

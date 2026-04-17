@@ -173,6 +173,15 @@ def save_result(result: Dict[str, Any], filename: str, output_dir: Path) -> Path
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 
+    # Schema check (warn by default); skip stubs que ainda não têm campos canônicos E2
+    if not result.get("requires_llm_fallback"):
+        try:
+            import scripts.pipeline_common as _pc_common
+
+            _pc_common.validate_artifact(out_path, "e2_extract.schema.json")
+        except ImportError:
+            pass
+
     return out_path
 
 

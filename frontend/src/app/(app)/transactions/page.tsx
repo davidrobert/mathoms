@@ -621,7 +621,7 @@ function TransactionsContent() {
                   <TableHead>Data</TableHead>
                   <TableHead className="min-w-[200px]">Descrição</TableHead>
                   <TableHead>Categoria</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="text-right font-mono tabular-nums">Valor</TableHead>
                   <TableHead>Banco</TableHead>
                   <TableHead>Titular</TableHead>
                 </TableRow>
@@ -629,7 +629,7 @@ function TransactionsContent() {
               <TableBody>
                 {data.transactions.map((tx) => (
                   <TableRow key={tx.transaction_hash}>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
+                    <TableCell className="font-mono text-xs tabular-nums text-muted-foreground">
                       {formatDateShort(tx.data)}
                     </TableCell>
                     <TableCell className="max-w-[300px] truncate" title={tx.descricao}>
@@ -710,7 +710,7 @@ function TransactionsContent() {
 
           {/* Pagination */}
           <div className="mt-4 flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm tabular-nums text-muted-foreground">
               {data.total.toLocaleString("pt-BR")} transação(ões) — página {page} de {totalPages}
             </p>
             <div className="flex items-center gap-2">

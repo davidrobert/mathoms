@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/Spinner";
+import { StatusPageFooter } from "@/components/StatusPageFooter";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -45,7 +46,8 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen flex-col px-4">
+      <div className="flex flex-1 items-center justify-center">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight">Fin</h1>
@@ -135,6 +137,8 @@ export default function RegisterPage() {
           </CardContent>
         </Card>
       </div>
+      </div>
+      <StatusPageFooter variant="auth" />
     </div>
   );
 }

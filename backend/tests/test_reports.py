@@ -45,6 +45,7 @@ async def _seed_report(
     *,
     html_content: str = "<html><body>ok</body></html>",
     analysis_payload: dict | None = None,
+    pipeline_run_id: str | None = None,
     tmp_path: Path,
     db: AsyncSession | None = None,
 ) -> str:
@@ -89,7 +90,7 @@ async def _seed_report(
         report = Report(
             id=str(uuid.uuid4()),
             workspace_id=ws.id,
-            pipeline_run_id=None,
+            pipeline_run_id=pipeline_run_id,
             title="Relatório de Teste",
             html_path=str(html_file),
             analysis_json_path=str(analysis_path) if analysis_path else None,
@@ -123,6 +124,23 @@ async def test_get_report_has_analysis_data_false_when_no_json(
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}")
     assert resp.status_code == 200
     assert resp.json()["has_analysis_data"] is False
+
+
+@pytest.mark.asyncio
+async def test_get_report_includes_pipeline_run_id(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    run_id = str(uuid.uuid4())
+    rid = await _seed_report(
+        auth_client,
+        analysis_payload=None,
+        pipeline_run_id=run_id,
+        tmp_path=tmp_path,
+        db=db,
+    )
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}")
+    assert resp.status_code == 200
+    assert resp.json()["pipeline_run_id"] == run_id
 
 
 @pytest.mark.asyncio

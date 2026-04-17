@@ -66,33 +66,43 @@ class TestSafeFloat:
 
 
 class TestSafeFloatWarning:
-    """Verify safe_float logs warnings for non-empty failed conversions."""
+    """Verify safe_float logs warnings for non-empty failed conversions (fin.pipeline logger)."""
 
-    def test_garbage_logs_warning(self, capsys):
+    def test_garbage_logs_warning(self, caplog):
+        import logging
+
+        caplog.set_level(logging.WARNING)
         safe_float("abc")
-        captured = capsys.readouterr()
-        assert "safe_float" in captured.err
-        assert "abc" in captured.err
+        assert "safe_float" in caplog.text
+        assert "abc" in caplog.text
 
-    def test_partial_garbage_logs_warning(self, capsys):
+    def test_partial_garbage_logs_warning(self, caplog):
+        import logging
+
+        caplog.set_level(logging.WARNING)
         safe_float("R$")
-        captured = capsys.readouterr()
-        assert "safe_float" in captured.err
+        assert "safe_float" in caplog.text
 
-    def test_none_no_warning(self, capsys):
+    def test_none_no_warning(self, caplog):
+        import logging
+
+        caplog.set_level(logging.WARNING)
         safe_float(None)
-        captured = capsys.readouterr()
-        assert "safe_float" not in captured.err
+        assert "safe_float" not in caplog.text
 
-    def test_empty_string_no_warning(self, capsys):
+    def test_empty_string_no_warning(self, caplog):
+        import logging
+
+        caplog.set_level(logging.WARNING)
         safe_float("")
-        captured = capsys.readouterr()
-        assert "safe_float" not in captured.err
+        assert "safe_float" not in caplog.text
 
-    def test_valid_no_warning(self, capsys):
+    def test_valid_no_warning(self, caplog):
+        import logging
+
+        caplog.set_level(logging.WARNING)
         safe_float("1.234,56")
-        captured = capsys.readouterr()
-        assert "safe_float" not in captured.err
+        assert "safe_float" not in caplog.text
 
 
 class TestLoadJsonConfig:

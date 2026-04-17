@@ -180,7 +180,7 @@ describe("formatBytes()", () => {
 describe("formatDuration()", () => {
   it.each([
     [null, "—"],
-    [0, "—"],
+    [0, "0ms"],
     [500, "500ms"],
     [1500, "1.5s"],
     [60_000, "1m 0s"],
@@ -360,13 +360,15 @@ describe("fileFormatLabel()", () => {
 
 describe("pipelineE2TouchLabel()", () => {
   it("sem data → —", () => expect(pipelineE2TouchLabel(null, null)).toBe("—"));
-  it("com extrato E2", () => {
+  it("com extrato consolidado (sem código E* na UI)", () => {
     const s = pipelineE2TouchLabel("2026-04-16T12:00:00.000Z", true);
-    expect(s).toContain("extrato E2");
+    expect(s).toContain("extrato consolidado");
+    expect(s).not.toMatch(/E2/i);
   });
-  it("sem extrato E2", () => {
+  it("sem extrato consolidado", () => {
     const s = pipelineE2TouchLabel("2026-04-16T12:00:00.000Z", false);
-    expect(s).toContain("sem extrato E2");
+    expect(s).toContain("sem extrato consolidado");
+    expect(s).not.toMatch(/E2/i);
   });
 });
 

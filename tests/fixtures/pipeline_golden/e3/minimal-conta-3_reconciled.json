@@ -1,0 +1,24 @@
+{
+  "banco": "itau",
+  "tipo_conta": "extratoconta",
+  "titular": null,
+  "moeda": "BRL",
+  "periodo_cobertura": {
+    "inicio": "2026-01-01",
+    "fim": "2026-01-31"
+  },
+  "saldo_inicial": 0.0,
+  "saldo_inicial_unknown": false,
+  "saldo_final": 100.0,
+  "saldo_final_unknown": false,
+  "fontes": ["itau_extratoconta_202601_202601-2_extract.json"],
+  "transacoes_total": 1,
+  "transacoes_duplicadas_removidas": 0,
+  "transacoes": [
+    {
+      "data": "2026-01-15",
+      "descricao": "PIX recebido",
+      "valor": 100.0
+    }
+  ]
+}

@@ -66,7 +66,7 @@ class TestDeduplicateTransactions:
             ({"data": "2026-01-15", "valor": 100.0, "descricao": "A"}, "file1.json"),
             ({"data": "2026-01-16", "valor": 200.0, "descricao": "B"}, "file1.json"),
         ]
-        result, removed = deduplicate_transactions(txns)
+        result, removed, _details = deduplicate_transactions(txns)
         assert len(result) == 2
         assert removed == 0
 
@@ -76,7 +76,7 @@ class TestDeduplicateTransactions:
             (dict(txn), "file1.json"),
             (dict(txn), "file2.json"),
         ]
-        result, removed = deduplicate_transactions(txns)
+        result, removed, _details = deduplicate_transactions(txns)
         assert len(result) == 1
         assert removed == 1
 
@@ -86,7 +86,7 @@ class TestDeduplicateTransactions:
             (dict(txn), "file1.json"),
             (dict(txn), "file1.json"),
         ]
-        result, removed = deduplicate_transactions(txns)
+        result, removed, _details = deduplicate_transactions(txns)
         assert len(result) == 2
         assert removed == 0
 
@@ -98,13 +98,13 @@ class TestDeduplicateTransactions:
             (txn_b, "b_file.json"),
             (txn_a, "a_file.json"),
         ]
-        result, removed = deduplicate_transactions(txns)
+        result, removed, _details = deduplicate_transactions(txns)
         assert len(result) == 1
         assert result[0].get("source_marker") == "a"
         assert removed == 1
 
     def test_empty_input(self):
-        result, removed = deduplicate_transactions([])
+        result, removed, _details = deduplicate_transactions([])
         assert result == []
         assert removed == 0
 

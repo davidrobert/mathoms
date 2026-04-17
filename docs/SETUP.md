@@ -172,6 +172,8 @@ npm run dev
 
 Acessar: http://localhost:3000
 
+**Status page (opcional, 7E.6):** crie `frontend/.env.local` com `NEXT_PUBLIC_FIN_STATUS_PAGE_URL=https://…` para exibir o link **Status e incidentes** no rodapé (login, cadastro, convite e área logada). Ver [RUNBOOK.md](RUNBOOK.md).
+
 ---
 
 ## 5. Primeiro login
@@ -232,7 +234,12 @@ python scripts/e3_reconcile.py
 
 # Relatório completo (usa config/ global)
 python scripts/e_reset.py
+
+# Mesmo orquestrador do worker, sobre tenant materializado (storage/<workspace_id>/)
+python -m pipeline.run_dev --root /caminho/para/tenant
 ```
+
+Após cada run, artefatos JSON críticos são validados contra schemas (`warn` por padrão; ver `FIN_PIPELINE_SCHEMA_MODE` e [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md)).
 
 ---
 

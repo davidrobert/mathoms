@@ -3841,6 +3841,7 @@ def render_report(root_dir: Path = None):
     output_path = OUTPUT_DIR / _OUTPUT_PATTERN.replace("{date}", timestamp)
 
     print(f"\n[E6.7] Writing output to {output_path}...")
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding='utf-8')
 
     # R1: Save snapshot for next cycle comparison

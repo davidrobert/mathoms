@@ -40,7 +40,7 @@ describe("LoginPage", () => {
     expect(screen.getByRole("button", { name: /entrar/i })).toBeInTheDocument();
   });
 
-  it("submit happy path → salva token + push para /documents", async () => {
+  it("submit happy path → salva token + push para destino pós-login (default /plano)", async () => {
     const user = userEvent.setup();
     render(<LoginPage />);
     await user.type(screen.getByLabelText(/email/i), "u@test.com");
@@ -48,7 +48,7 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: /entrar/i }));
 
     await waitFor(() => {
-      expect(pushMock).toHaveBeenCalledWith("/documents");
+      expect(pushMock).toHaveBeenCalledWith("/plano");
     });
     expect(localStorage.getItem("fin_token")).toBe("test-token");
   });
@@ -132,10 +132,10 @@ describe("LoginPage", () => {
     await waitFor(() => expect(pushMock).toHaveBeenCalled());
   });
 
-  it("link 'Criar conta' aponta para /register", () => {
+  it("link 'Criar conta' aponta para /register com next coerente", () => {
     render(<LoginPage />);
     const link = screen.getByRole("link", { name: /criar conta/i });
-    expect(link).toHaveAttribute("href", "/register");
+    expect(link).toHaveAttribute("href", "/register?next=%2Fplano");
   });
 
   // F6.5B.13 — form validation: required HTML5

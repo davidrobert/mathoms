@@ -36,6 +36,7 @@ def _serialize_report(report: Report) -> ReportResponse:
         score=report.score,
         patrimonio_liquido=report.patrimonio_liquido,
         created_at=report.created_at,
+        pipeline_run_id=report.pipeline_run_id,
         has_analysis_data=bool(report.analysis_json_path),
     )
 

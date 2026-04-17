@@ -47,6 +47,14 @@ export const handlers = [
       headers: { "Content-Disposition": 'attachment; filename="report.html"' },
     }),
   ),
+  http.get(`${API}/workspaces/:workspaceId/reports`, () =>
+    HttpResponse.json({ reports: fixtures.reports, total: fixtures.reports.length }),
+  ),
+  http.get(`${API}/workspaces/:workspaceId/reports/:id`, ({ params }) => {
+    const report = fixtures.reports.find((r) => r.id === params.id);
+    if (!report) return HttpResponse.json({ detail: "Not found" }, { status: 404 });
+    return HttpResponse.json(report);
+  }),
   // F9 · ADR-076
   http.get(`${API}/workspaces/:workspaceId/reports/:id/data`, ({ params }) => {
     const report = fixtures.reports.find((r) => r.id === params.id);

@@ -18,6 +18,8 @@
 # - E2E green (quando rodar)
 #
 # F7C estende para: Docker CVE scan, coverage ≥85%, deploy automático
+#
+# P1 (motor canônico): após pipeline-tests — schema strict + boundaries em pipeline/
 
 name: CI
 
@@ -104,6 +106,14 @@ jobs:
 
       - name: Run pipeline tests
         run: pytest tests/ -q --tb=short
+
+      - name: Pipeline JSON schema strict (FIN_PIPELINE_SCHEMA_MODE)
+        env:
+          FIN_PIPELINE_SCHEMA_MODE: strict
+        run: pytest tests/test_schema_validation.py -q --tb=short
+
+      - name: Pipeline package import boundaries (P1)
+        run: python dev/check_pipeline_boundaries.py --verbose
 
   backend-tests:
     name: Backend tests (backend/tests/)

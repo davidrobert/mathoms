@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { ViewerBanner } from "@/components/ViewerBanner";
+import { StatusPageFooter } from "@/components/StatusPageFooter";
 import {
   LayoutDashboard,
   FileText,
@@ -167,6 +168,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </header>
         <ViewerBanner />
         <main className="flex-1 overflow-y-auto">{children}</main>
+        <StatusPageFooter variant="app" />
       </div>
     </div>
   );

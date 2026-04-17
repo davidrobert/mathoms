@@ -45,6 +45,7 @@ const reports: ReportResponse[] = [
     score: 82,
     patrimonio_liquido: 950_000,
     created_at: NOW,
+    pipeline_run_id: "run-1",
     has_analysis_data: true,
   },
 ];

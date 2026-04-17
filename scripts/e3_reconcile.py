@@ -1052,6 +1052,7 @@ def main(root_dir: Path = None):
         # Fix 2.3: use atomic writes to prevent partial files on crash
         if _pc.write_json_atomic(output_path, reconciled):
             written_files.append(filename)
+            _pc.validate_artifact(output_path, "e3_reconciled.schema.json")
             log_progress("E3.4", f"Wrote {filename}")
         else:
             write_errors.append(filename)

@@ -173,12 +173,28 @@ def write_json_atomic(path: Path, data: Dict[str, Any], *, indent: int = 2,
 # Schema validation
 # =============================================================================
 
+def _effective_schema_validation_mode() -> str:
+    """Return ``strict`` or ``warn``.
+
+    ``FIN_PIPELINE_SCHEMA_MODE`` overrides ``pipeline.json`` (for CI / local gates).
+    """
+    env = os.environ.get("FIN_PIPELINE_SCHEMA_MODE", "").strip().lower()
+    if env in ("strict", "warn"):
+        return env
+    config = load_json_config("pipeline.json")
+    sv = config.get("schema_validation", {})
+    return sv.get("mode", "warn")
+
+
 def validate_artifact(path: Path, schema_name: str) -> bool:
     """Validate JSON file against a schema in config/schemas/.
 
     Returns True if valid, validation disabled, or schema/jsonschema missing.
     In 'warn' mode (default), logs warning but returns True.
     In 'strict' mode, returns False on validation failure.
+
+    Set ``FIN_PIPELINE_SCHEMA_MODE=strict`` to force strict without editing
+    ``pipeline.json`` (recommended for CI jobs).
     """
     config = load_json_config("pipeline.json")
     sv = config.get("schema_validation", {})
@@ -200,12 +216,13 @@ def validate_artifact(path: Path, schema_name: str) -> bool:
     if data is None or schema is None:
         return False
 
+    mode = _effective_schema_validation_mode()
     try:
         jsonschema.validate(data, schema)
         return True
     except jsonschema.ValidationError as e:
         msg = f"Schema validation falhou para {path.name}: {e.message}"
-        if sv.get("mode", "warn") == "warn":
+        if mode == "warn":
             log_stage("WARN", msg)
             return True  # don't block pipeline
         log_stage("ERROR", msg)
@@ -269,7 +286,6 @@ def log_stage(stage: str, message: str) -> None:
       ERROR → logging.ERROR
       WARN  → logging.WARNING
       otherwise → logging.INFO
-    Also prints to stderr for backward-compatible console output.
     """
     stage_upper = stage.upper()
     if "ERROR" in stage_upper or "FATAL" in stage_upper:

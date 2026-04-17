@@ -3,7 +3,7 @@
  * Regras de segurança:
  *   - Aceita apenas caminhos relativos começando com `/`, **sem** protocolo
  *     explícito nem `//` (open-redirect defense).
- *   - Fallback é `/documents` (comportamento histórico).
+ *   - Fallback é `/plano` (entrada pós-login).
  */
 
 const DEFAULT_NEXT = "/plano";

@@ -2565,6 +2565,7 @@ def main(root_dir: Path = None):
     try:
         import scripts.pipeline_common as _pc
         _pc.write_json_atomic(FILE_OUTPUT, output, fsync=True)
+        _pc.validate_artifact(FILE_OUTPUT, "e5_analysis.schema.json")
     except (ImportError, Exception):
         # Fallback to direct write if pipeline_common not available
         with open(FILE_OUTPUT, "w", encoding="utf-8") as f:

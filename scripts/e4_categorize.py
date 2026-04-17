@@ -864,6 +864,7 @@ def save_json(file_path: Path, data: Dict) -> None:
     if _pc is not None:
         if not _pc.write_json_atomic(file_path, data):
             raise IOError(f"Atomic write failed for {file_path}")
+        _pc.validate_artifact(file_path, "e4_unified.schema.json")
         return
     try:
         file_path.parent.mkdir(parents=True, exist_ok=True)

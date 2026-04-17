@@ -223,6 +223,7 @@ export function makeReport(
     score: null,
     patrimonio_liquido: null,
     created_at: isoNow(),
+    pipeline_run_id: null,
     has_analysis_data: true,
     ...overrides,
   };

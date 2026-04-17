@@ -25,6 +25,8 @@ export interface ReportResponse {
   score: number | null;
   patrimonio_liquido: number | null;
   created_at: string;
+  /** F11.4a — execução do pipeline que gerou o snapshot (se houver). */
+  pipeline_run_id: string | null;
   /** F9 · ADR-076 — true se o relatório tem JSON de análise p/ render nativo. */
   has_analysis_data: boolean;
 }

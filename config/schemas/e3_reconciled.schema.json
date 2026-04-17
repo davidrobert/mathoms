@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E3 Reconciled",
+  "description": "Saída de reconcile_account (*-3_reconciled.json). Campos obrigatórios alinhados a scripts/e3_reconcile.py; transações preservam chaves extras dos bancos.",
+  "type": "object",
+  "required": [
+    "banco",
+    "tipo_conta",
+    "moeda",
+    "periodo_cobertura",
+    "saldo_inicial",
+    "saldo_inicial_unknown",
+    "saldo_final",
+    "saldo_final_unknown",
+    "fontes",
+    "transacoes_total",
+    "transacoes_duplicadas_removidas",
+    "transacoes"
+  ],
+  "properties": {
+    "banco": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tipo_conta": {
+      "type": "string",
+      "minLength": 1
+    },
+    "titular": {
+      "type": ["string", "null"]
+    },
+    "moeda": {
+      "type": "string",
+      "minLength": 1
+    },
+    "periodo_cobertura": {
+      "type": "object",
+      "required": ["inicio", "fim"],
+      "properties": {
+        "inicio": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fim": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "saldo_inicial": {
+      "type": "number"
+    },
+    "saldo_inicial_unknown": {
+      "type": "boolean"
+    },
+    "saldo_final": {
+      "type": "number"
+    },
+    "saldo_final_unknown": {
+      "type": "boolean"
+    },
+    "fontes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "transacoes_total": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "transacoes_duplicadas_removidas": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "transacoes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

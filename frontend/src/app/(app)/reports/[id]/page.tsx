@@ -152,6 +152,9 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
           reportId={reportId}
           reportTitle={report!.title}
           dataState={dataState}
+          reportPeriod={report!.period}
+          reportCreatedAt={report!.created_at}
+          pipelineRunId={report!.pipeline_run_id}
         />
       </ReportModeProvider>
     </TooltipProvider>

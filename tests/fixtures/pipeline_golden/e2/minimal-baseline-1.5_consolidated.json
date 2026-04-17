@@ -1,0 +1,20 @@
+{
+  "pipeline_stage": "E1.5_Baseline_Patrimonial",
+  "data_processamento": "2024-12-31",
+  "membros": ["david"],
+  "patrimonio_por_ano": {
+    "2024": {
+      "total_bens": 500000.0,
+      "total_dividas": 100000.0
+    }
+  },
+  "dividas": [
+    {
+      "proprietario": "david",
+      "descricao": "Dívida sintética (golden)",
+      "saldo_31_12": {
+        "2024": 100000.0
+      }
+    }
+  ]
+}

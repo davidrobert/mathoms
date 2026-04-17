@@ -6,7 +6,9 @@ import { Spinner } from "@/components/Spinner";
 import { LAYOUT, type SectionSpec } from "@/generated/report-layout";
 import { type UseReportDataState } from "@/hooks/useReportData";
 import type { ReportAnalysisData } from "@/lib/api";
+import { formatDateShort } from "@/lib/format";
 import { ReportHeader } from "./ReportHeader";
+import { ReportSourceStrip } from "./ReportSourceStrip";
 import { ReportToc, type TocEntry } from "./ReportToc";
 import { ReportSection } from "./ReportSection";
 import { ReportSectionStub } from "./ReportSectionStub";
@@ -48,6 +50,11 @@ interface ReportShellProps {
   reportId: string;
   reportTitle: string;
   dataState: UseReportDataState;
+  /** Metadados do relatório (API) — F11.4 origem dos dados. */
+  reportPeriod: string | null;
+  reportCreatedAt: string;
+  /** F11.4a — opcional; link para a execução no Pipeline. */
+  pipelineRunId?: string | null;
 }
 
 function selectSections(mode: "estrategico" | "tatico" | "usa"): SectionSpec[] {
@@ -69,9 +76,22 @@ export function ReportShell({
   reportId,
   reportTitle,
   dataState,
+  reportPeriod,
+  reportCreatedAt,
+  pipelineRunId,
 }: ReportShellProps) {
   const { mode } = useReportMode();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const analysisPeriodFromSnapshot =
+    dataState.status === "success"
+      ? (typeof dataState.data.periodo_dados === "string"
+          ? dataState.data.periodo_dados
+          : undefined) ??
+        (typeof dataState.data.data_analise === "string"
+          ? dataState.data.data_analise
+          : undefined)
+      : undefined;
 
   const enabledSections = useMemo<SectionSpec[]>(
     () => selectSections(mode).filter((s) => s.enabled),
@@ -90,6 +110,13 @@ export function ReportShell({
         title={reportTitle}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((v) => !v)}
+      />
+
+      <ReportSourceStrip
+        reportPeriod={reportPeriod}
+        analysisPeriod={analysisPeriodFromSnapshot}
+        generatedAtLabel={formatDateShort(reportCreatedAt)}
+        pipelineRunId={pipelineRunId}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -128,10 +155,10 @@ export function ReportShell({
               data-report-mode={mode}
             >
               <header className="mb-10 border-b border-[var(--surface-border)] pb-6">
-                <p className="mb-2 font-mono text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
+                <p className="mb-2 font-mono text-xs tabular-nums uppercase tracking-wider text-[var(--surface-muted-foreground)]">
                   {dataState.data.periodo_dados ?? "Período não informado"}
                 </p>
-                <h1 className="font-display text-3xl font-bold leading-tight text-[var(--surface-foreground)]">
+                <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-[var(--surface-foreground)]">
                   {reportTitle}
                 </h1>
               </header>

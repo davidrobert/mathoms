@@ -36,6 +36,10 @@ import {
 } from "@/lib/pipelinePhases";
 import { buildUserFacingError } from "@/lib/pipelineErrorMessages";
 import { isPipelineLlmStage } from "@/lib/pipelineLlmStages";
+import {
+  reviewPauseImpactHint,
+  stageLlmFootnote,
+} from "@/lib/pipelineTransparency";
 import { PageHeader } from "@/components/PageHeader";
 import { PhaseStepper } from "@/components/PhaseStepper";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -233,6 +237,24 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
     reload();
   }, [reload]);
 
+  /** F11.4a — deep link desde o relatório: `/pipeline?run=<uuid>`. */
+  useEffect(() => {
+    if (loading) return;
+    const params = new URLSearchParams(window.location.search);
+    const runParam = params.get("run");
+    if (!runParam) return;
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`pipeline-run-${runParam}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        const url = new URL(window.location.href);
+        url.searchParams.delete("run");
+        const next = url.pathname + (url.search ? url.search : "");
+        window.history.replaceState({}, "", next);
+      }
+    });
+  }, [loading, runs]);
+
   useEffect(() => {
     if (!activeRun) setLiveStageActivity(null);
   }, [activeRun]);
@@ -421,17 +443,33 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
 
         {/* needs_review banner */}
         {activeRun?.status === "needs_review" && (
-          <Card className="mb-8 border-warning/50">
+          <Card
+            id={`pipeline-run-${activeRun.id}`}
+            className="mb-8 border-warning/50"
+          >
             <CardContent>
               <div className="flex items-center gap-3 mb-3">
                 <AlertTriangle className="h-5 w-5 text-warning" />
                 <h2 className="font-medium text-warning">Aguardando sua confirmação</h2>
               </div>
-              <p className="text-sm text-muted-foreground mb-3">
-                Pausamos o processamento em <span className="font-medium">{getPhase(activeRun.paused_at_stage ?? "").title}</span>{" "}
-                para que você aprove os resultados antes de continuar.
+              <p className="text-sm text-muted-foreground mb-2">
+                Pausamos o processamento na etapa{" "}
+                <span className="font-medium text-foreground">
+                  {stageName(activeRun.paused_at_stage ?? "")}
+                </span>{" "}
+                para que você revise antes de continuar.
               </p>
-              <div className="flex gap-3">
+              <p className="text-sm text-muted-foreground mb-3">
+                {reviewPauseImpactHint(activeRun.paused_at_stage)}
+              </p>
+              {activeRun.paused_at_stage &&
+                isPipelineLlmStage(activeRun.paused_at_stage) && (
+                  <p className="text-xs text-muted-foreground mb-3 rounded-md border border-border/60 bg-muted/40 px-3 py-2">
+                    Esta etapa usa leitura assistida por IA. Confira valores e
+                    categorias antes de aprovar.
+                  </p>
+                )}
+              <div className="flex flex-wrap gap-3">
                 <Button
                   size="sm"
                   onClick={async () => {
@@ -538,7 +576,10 @@ function FailedRunCard({
   );
 
   return (
-    <Card className="mb-8 border-loss/40 bg-loss/[0.03]">
+    <Card
+      id={`pipeline-run-${run.id}`}
+      className="mb-8 border-loss/40 bg-loss/[0.03]"
+    >
       <CardContent>
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
@@ -683,7 +724,10 @@ function ActiveRunCard({
     isPipelineLlmStage(run.current_stage);
 
   return (
-    <Card className={`mb-8 ${stallWarning ? "border-alert/50" : "border-primary/30"}`}>
+    <Card
+      id={`pipeline-run-${run.id}`}
+      className={`mb-8 ${stallWarning ? "border-alert/50" : "border-primary/30"}`}
+    >
       <CardContent>
         {/* Header */}
         <div className="mb-5 flex items-center justify-between">
@@ -924,6 +968,8 @@ function StageRow({
     muted: "text-muted-foreground",
   };
 
+  const llmNote = stageLlmFootnote(stage.stage);
+
   return (
     <div>
       <div
@@ -939,17 +985,14 @@ function StageRow({
           {st.icon}
         </span>
         <span className={`flex-1 ${stage.status === "running" ? "font-medium" : ""}`}>
-          {stageName(stage.stage)}
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <span className="ml-2 inline-block rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground cursor-help" />
-              }
-            >
-              {stage.stage}
-            </TooltipTrigger>
-            <TooltipContent>Código interno usado em logs e suporte</TooltipContent>
-          </Tooltip>
+          <span className="block">
+            {stageName(stage.stage)}
+            {llmNote && (
+              <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                {llmNote}
+              </span>
+            )}
+          </span>
           {stage.status === "running" && (
             <span className="ml-2 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
           )}
@@ -1017,6 +1060,7 @@ function HistoryRow({
 
   return (
     <div
+      id={`pipeline-run-${run.id}`}
       className={`group flex items-center justify-between rounded-lg border bg-card px-4 py-3 ${
         isFailed ? "border-loss/20" : "border-border"
       }`}

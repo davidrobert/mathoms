@@ -25,7 +25,10 @@ class TestValidateArtifact:
         path.write_text(json.dumps(data))
         assert validate_artifact(path, "e2_extract.schema.json") is True
 
-    def test_invalid_e2_missing_banco(self, tmp_path, capsys):
+    def test_invalid_e2_missing_banco(self, tmp_path, caplog):
+        import logging
+
+        caplog.set_level(logging.WARNING)
         data = {
             "pipeline_stage": "E2",
             "tipo": "extratoconta",
@@ -36,8 +39,18 @@ class TestValidateArtifact:
         # Default mode is 'warn' — should return True but log warning
         result = validate_artifact(path, "e2_extract.schema.json")
         assert result is True
-        captured = capsys.readouterr()
-        assert "banco" in captured.err
+        assert "banco" in caplog.text
+
+    def test_invalid_e2_strict_mode_returns_false(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("FIN_PIPELINE_SCHEMA_MODE", "strict")
+        data = {
+            "pipeline_stage": "E2",
+            "tipo": "extratoconta",
+            "moeda": "BRL",
+        }
+        path = tmp_path / "test.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e2_extract.schema.json") is False
 
     def test_valid_e5_analysis(self, tmp_path):
         data = {
@@ -48,6 +61,26 @@ class TestValidateArtifact:
         path = tmp_path / "test.json"
         path.write_text(json.dumps(data))
         assert validate_artifact(path, "e5_analysis.schema.json") is True
+
+    def test_valid_e3_reconciled(self, tmp_path):
+        data = {
+            "banco": "itau",
+            "tipo_conta": "extratoconta",
+            "titular": None,
+            "moeda": "BRL",
+            "periodo_cobertura": {"inicio": "2026-01-01", "fim": "2026-01-31"},
+            "saldo_inicial": 0.0,
+            "saldo_inicial_unknown": False,
+            "saldo_final": 0.0,
+            "saldo_final_unknown": False,
+            "fontes": ["a-2_extract.json"],
+            "transacoes_total": 0,
+            "transacoes_duplicadas_removidas": 0,
+            "transacoes": [],
+        }
+        path = tmp_path / "e3.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e3_reconciled.schema.json") is True
 
     def test_missing_schema_returns_true(self, tmp_path):
         path = tmp_path / "test.json"

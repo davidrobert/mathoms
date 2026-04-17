@@ -17,6 +17,16 @@ FIN_FERNET_KEY="NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" pytest backend/tes
 # Pipeline (pytest)
 FIN_FERNET_KEY="NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" pytest tests/ -q
 
+# Pipeline offline (mesmo orquestrador do worker) — tenant com config/ materializado
+python -m pipeline.run_dev --root /path/to/storage/<workspace_id>
+python -m pipeline.run_dev --root ./tenant --stages E3,E4
+
+# Fronteiras do pacote pipeline/ (sem FastAPI/Celery/SQLAlchemy)
+python dev/check_pipeline_boundaries.py --verbose
+
+# Schema JSON strict (mesmo gate do CI)
+FIN_PIPELINE_SCHEMA_MODE=strict pytest tests/test_schema_validation.py -q
+
 # Frontend unit + integration (Vitest)
 cd frontend
 npm install
@@ -56,7 +66,17 @@ frontend/vitest.config.ts
 frontend/playwright.config.ts
 
 tests/fixtures/                 # PDFs sintéticos (gerador determinístico)
-tests/fixtures/pdf_generator.py # 6.5F.12 — 13 bancos cobertos
+tests/fixtures/pipeline_golden/ # P1 — JSON mínimos vs schemas E2/E3/E4
+tests/test_e3_golden_execution.py  # E2 fixture → E3 run → asserts
+tests/test_e4_golden_execution.py  # E3 → E4 (+ misto receita/despesa + baseline E1.5)
+tests/test_e5_golden_execution.py  # E3→E4→E5 run → analise_financeira + E5 schema (+ misto receita/despesa + baseline E1.5)
+tests/test_e5n_golden_execution.py  # E5 + e5n_narrativas → narrativas; + tenant com cônjuge (`ana_cenarios`)
+tests/test_e6_golden_execution.py  # E4→E5→E6 HTML standalone (template + layout do repo)
+tests/pipeline_golden_asserts.py  # asserções partilhadas (ex.: qa_log.md)
+tests/test_e2_synthetic_pdf_parsers.py  # registry E2 × PDF; BTG/Rico/Wise/PicPay/BoA/Santander/Itaú/Caixa com assert de transações (`test_*_synthetic_extracts_transactions`)
+tests/fixtures/pdf_generator.py # 6.5F.12 — 14 códigos BankCode; layouts dedicados BTG/Rico/Wise/PicPay/Bank of America/Santander/Itaú/Caixa
+dev/check_pipeline_boundaries.py # P1 — imports proibidos em pipeline/
+pipeline/run_dev.py           # P1 — CLI offline (orchestrator)
 tests/regressions/              # 6.5E.8 — 1 test por bug histórico (BUG-NNN)
 tests/test_design_tokens_build.py       # F9 — 20 tests (tokens build + parity)
 tests/test_report_layout_codegen.py     # F9 — 14 tests (codegen + schema)
@@ -323,7 +343,7 @@ A: MSW intercepta no nível de fetch/XHR — testa o código real de `lib/api.ts
 A: Ver docstring de [`backend/tests/conftest.py`](../backend/tests/conftest.py). TL;DR: SQLite in-memory é instantâneo (~5ms) e isolation é trivial; otimizações são prematuras.
 
 **Q: Posso commitar PDFs reais como fixture?**
-A: **Não.** Use o gerador sintético em `tests/fixtures/pdf_generator.py`. Lint custom (6.5D.7) bloqueia CPF real em fixtures.
+A: **Não** sem anonimização completa e revisão. Padrão: gerador sintético em `tests/fixtures/pdf_generator.py`. Lint custom (6.5D.7) bloqueia CPF real em fixtures. **Segunda fase (planejada):** PDFs reais **anonimizados** versionados, com processo documentado em [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) — só depois de concluída a cobertura sintética por banco-alvo.
 
 **Q: Test flaky, o que faço?**
 A: 1) tente reproduzir local com `--repeat-each=10`. 2) se confirmado, quarentena via `test.skip(true, "flaky: TODO BUG-XXX")` e abra issue. 3) **não suprima silenciosamente**.
