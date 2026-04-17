@@ -1,13 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
 import { LAYOUT, type SectionSpec } from "@/generated/report-layout";
 import { type UseReportDataState } from "@/hooks/useReportData";
 import type { ReportAnalysisData } from "@/lib/api";
-import { formatDateShort } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { ReportHeader } from "./ReportHeader";
+import { ReportPremissasBlock } from "./ReportPremissasBlock";
 import { ReportSourceStrip } from "./ReportSourceStrip";
 import { ReportToc, type TocEntry } from "./ReportToc";
 import { ReportSection } from "./ReportSection";
@@ -55,6 +57,8 @@ interface ReportShellProps {
   reportCreatedAt: string;
   /** F11.4a — opcional; link para a execução no Pipeline. */
   pipelineRunId?: string | null;
+  /** F11.4a — contagem agregada de documentos prontos (GET report). */
+  sourceDocumentCount?: number | null;
 }
 
 function selectSections(mode: "estrategico" | "tatico" | "usa"): SectionSpec[] {
@@ -79,6 +83,7 @@ export function ReportShell({
   reportPeriod,
   reportCreatedAt,
   pipelineRunId,
+  sourceDocumentCount,
 }: ReportShellProps) {
   const { mode } = useReportMode();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -115,8 +120,9 @@ export function ReportShell({
       <ReportSourceStrip
         reportPeriod={reportPeriod}
         analysisPeriod={analysisPeriodFromSnapshot}
-        generatedAtLabel={formatDateShort(reportCreatedAt)}
+        generatedAtLabel={formatDate(reportCreatedAt)}
         pipelineRunId={pipelineRunId}
+        sourceDocumentCount={sourceDocumentCount}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -153,15 +159,28 @@ export function ReportShell({
             <article
               className="mx-auto max-w-[960px] px-6 py-8 font-body text-[var(--surface-foreground)]"
               data-report-mode={mode}
+              data-report-ready="true"
             >
               <header className="mb-10 border-b border-[var(--surface-border)] pb-6">
-                <p className="mb-2 font-mono text-xs tabular-nums uppercase tracking-wider text-[var(--surface-muted-foreground)]">
+                <p className="mb-1 font-mono text-[11px] tabular-nums uppercase tracking-wider text-[var(--surface-muted-foreground)]">
                   {dataState.data.periodo_dados ?? "Período não informado"}
                 </p>
-                <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-[var(--surface-foreground)]">
+                <h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-[var(--surface-foreground)]">
                   {reportTitle}
                 </h1>
+                <p className="mt-2 max-w-2xl text-sm text-[var(--surface-muted-foreground)]">
+                  Relatório deste período (operacional). Metas e cenários de longo prazo ficam em{" "}
+                  <Link
+                    className="font-medium text-[var(--brand-primary)] underline-offset-2 hover:underline"
+                    href="/plano"
+                  >
+                    Meu Plano
+                  </Link>
+                  .
+                </p>
               </header>
+
+              <ReportPremissasBlock data={dataState.data} />
 
               {enabledSections.map((section) =>
                 MIGRATED_SECTIONS.has(section.id) ? (

@@ -30,6 +30,8 @@ from datetime import datetime
 import pytz
 import yaml
 
+import scripts.pipeline_common as _pc
+
 # ============================================================================
 # HELPERS
 # ============================================================================
@@ -49,7 +51,7 @@ def safe_float(val) -> float:
 # CONFIGURATION
 # ============================================================================
 
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+_DEFAULT_BASE_DIR = _pc._REPO_ROOT
 
 
 def _load_json_config(path: Path, label: str = "") -> dict:
@@ -153,7 +155,7 @@ def _init_config(base_dir: Path) -> None:
     SNAPSHOT_PATH = OUTPUT_DIR / "snapshot_anterior.json"
 
 
-_init_config(_DEFAULT_BASE_DIR)
+_init_config(_pc.PROJECT_DIR)
 
 
 def _build_broker_list() -> str:

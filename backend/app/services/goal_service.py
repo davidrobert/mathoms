@@ -164,6 +164,14 @@ def compute_alocacao_derived(inputs: AlocacaoGoalInputs) -> AlocacaoGoalDerived:
 # ─── CRUD versionado ──────────────────────────────────────────────────
 
 
+def _meta_version_from_params(params_json: dict) -> int:
+    v = params_json.get("meta_version", 1)
+    try:
+        return int(v) if v is not None else 1
+    except (TypeError, ValueError):
+        return 1
+
+
 def _goal_to_typed_response(
     goal: Goal,
     *,
@@ -177,6 +185,7 @@ def _goal_to_typed_response(
         id=goal.id,
         workspace_id=goal.workspace_id,
         type=goal.type,  # type: ignore[arg-type]
+        meta_version=_meta_version_from_params(goal.params_json),
         inputs=inputs_cls(**goal.params_json["inputs"]),
         derived=derived_cls(**goal.derived_json),
         effective_from=goal.effective_from,
@@ -202,6 +211,7 @@ def _goal_to_response(
         id=goal.id,
         workspace_id=goal.workspace_id,
         type=goal.type,  # type: ignore[arg-type]
+        meta_version=_meta_version_from_params(goal.params_json),
         inputs=IFGoalInputs(**goal.params_json["inputs"]),
         derived=IFGoalDerived(**goal.derived_json),
         effective_from=goal.effective_from,

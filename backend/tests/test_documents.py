@@ -7,16 +7,17 @@ from unittest.mock import patch
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.document import DocumentStatus, DocumentType
+from backend.app.models.document import Document, DocumentStatus, DocumentType
 
 _PROC = "backend.app.api.documents.process_uploaded_document"
 
 
-def _mock_process(file_path, passwords, config_dir, tenant_root=None):
+def _mock_process(file_path, passwords, config_dir, tenant_root=None, workspace_id=None):
     """Deterministic mock for process_uploaded_document that classifies by extension/content.
 
-    Kwarg ``tenant_root`` kept for parity with the real signature — ignored here.
+    Kwargs ``tenant_root`` / ``workspace_id`` kept for parity with the real signature.
     """
     ext = Path(file_path).suffix.lower()
     base = {
@@ -182,6 +183,29 @@ async def test_list_documents_filter_by_status(auth_client: AsyncClient):
 async def test_list_documents_invalid_status_filter(auth_client: AsyncClient):
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/documents?status=bogus")
     assert resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_list_documents_filter_ready_comma_processed(auth_client: AsyncClient, db: AsyncSession):
+    ws_id = auth_client.ws_id
+    db.add(
+        Document(
+            workspace_id=ws_id,
+            original_name="pipeline_ok.pdf",
+            stored_path="data/bank/pipeline_ok-0_original.pdf",
+            doc_type=DocumentType.bank_statement,
+            status=DocumentStatus.processed,
+            file_size_bytes=1,
+        )
+    )
+    await db.commit()
+
+    resp = await auth_client.get(
+        f"/api/workspaces/{ws_id}/documents?status=ready,processed"
+    )
+    assert resp.status_code == 200
+    bodies = resp.json()["documents"]
+    assert any(d["status"] == "processed" for d in bodies)
 
 
 # ---------------------------------------------------------------------------

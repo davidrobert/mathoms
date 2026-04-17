@@ -79,7 +79,7 @@ describe("apiFetch happy path", () => {
 
   it("listReports retorna lista do handler default", async () => {
     setToken("test-token");
-    const r = await listReports();
+    const r = await listReports("ws-1");
     expect(r.total).toBeGreaterThanOrEqual(1);
   });
 });

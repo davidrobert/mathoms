@@ -20,6 +20,8 @@ import {
   docTypeLabel,
   institutionLabel,
   pipelineE2TouchLabel,
+  pipelineTouchTooltipExplanation,
+  isDocumentClassifiedOk,
 } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -61,15 +63,17 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
+  AlertTriangle,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import type { UserWorkspace } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 /** Alinhado a ``_REVIEW_CONFIDENCE_THRESHOLD`` no backend (document_classification). */
 const CLASSIFICATION_LOW_CONFIDENCE = 0.7;
 
 function isClassificationUncertain(doc: DocumentResponse): boolean {
-  if (doc.status !== "ready") return false;
+  if (!isDocumentClassifiedOk(doc.status)) return false;
   if (doc.needs_review) return true;
   const c = doc.classification_confidence;
   return c != null && c < CLASSIFICATION_LOW_CONFIDENCE;
@@ -97,6 +101,7 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
 
   const [sortKey, setSortKey] = useState<SortKey>("uploaded_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [reviewFilter, setReviewFilter] = useState<"all" | "uncertain">("all");
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
@@ -120,6 +125,21 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
     const cmp = av.localeCompare(bv, "pt-BR", { sensitivity: "base", numeric: true });
     return sortDir === "asc" ? cmp : -cmp;
   });
+
+  const needsPasswordDocs = docs.filter((d) => d.status === "needs_password");
+  const readyDocs = docs.filter((d) => isDocumentClassifiedOk(d.status));
+  const uncertainClassificationDocs = docs.filter(isClassificationUncertain);
+
+  const displayedDocs =
+    reviewFilter === "uncertain"
+      ? sortedDocs.filter(isClassificationUncertain)
+      : sortedDocs;
+
+  useEffect(() => {
+    if (reviewFilter === "uncertain" && uncertainClassificationDocs.length === 0) {
+      setReviewFilter("all");
+    }
+  }, [reviewFilter, uncertainClassificationDocs.length]);
 
   const reload = useCallback(async () => {
     try {
@@ -150,7 +170,7 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
         setUploadProgress(Math.round((loaded / total) * 100));
       });
       const uploaded = result.documents;
-      const readyCount = uploaded.filter((d) => d.status === "ready").length;
+      const readyCount = uploaded.filter((d) => isDocumentClassifiedOk(d.status)).length;
       const errorCount = uploaded.filter((d) => d.status === "error").length;
       const needsPw = uploaded.filter((d) => d.status === "needs_password").length;
 
@@ -268,10 +288,6 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
     }
   }
 
-  const needsPasswordDocs = docs.filter((d) => d.status === "needs_password");
-  const readyDocs = docs.filter((d) => d.status === "ready");
-  const uncertainClassificationDocs = docs.filter(isClassificationUncertain);
-
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
       <PageHeader
@@ -351,25 +367,6 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
         )}
       </Card>
 
-      {/* P2.4 — classificação incerta (needs_review ou confiança abaixo do limiar) */}
-      {uncertainClassificationDocs.length > 0 && (
-        <div className="mb-4 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-foreground">
-          <span className="font-medium text-warning">
-            {uncertainClassificationDocs.length} documento(s)
-          </span>{" "}
-          com classificação automática incerta. Confira o tipo e a instituição antes
-          de gerar o relatório — use{" "}
-          <button
-            type="button"
-            className="font-medium text-primary underline-offset-2 hover:underline"
-            onClick={() => uncertainClassificationDocs[0] && setEditTarget(uncertainClassificationDocs[0])}
-          >
-            corrigir tipo e instituição
-          </button>{" "}
-          na linha de cada arquivo.
-        </div>
-      )}
-
       {/* Needs Password Banner */}
       {needsPasswordDocs.length > 0 && (
         <div className="mb-4 flex items-center justify-between rounded-lg bg-alert/10 px-4 py-3">
@@ -388,12 +385,42 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
         </div>
       )}
 
-      {/* Reclassify action — visible when there are documents */}
+      {/* Lista: filtro de revisão + reclassificação em massa */}
       {!loading && docs.length > 0 && (
-        <div className="mb-3 flex justify-end">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-h-9 flex-wrap items-center gap-2">
+            {uncertainClassificationDocs.length > 0 ? (
+              <>
+                <span className="text-sm text-foreground/85">
+                  <span className="font-medium text-warning">
+                    {uncertainClassificationDocs.length}
+                  </span>{" "}
+                  {uncertainClassificationDocs.length === 1
+                    ? "documento precisa de revisão da classificação"
+                    : "documentos precisam de revisão da classificação"}
+                </span>
+                <Button
+                  type="button"
+                  variant={reviewFilter === "uncertain" ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={() =>
+                    setReviewFilter((f) => (f === "uncertain" ? "all" : "uncertain"))
+                  }
+                  aria-pressed={reviewFilter === "uncertain"}
+                >
+                  {reviewFilter === "uncertain" ? "Mostrar todos" : "Mostrar só estes"}
+                </Button>
+              </>
+            ) : (
+              <span className="text-sm text-muted-foreground">
+                {docs.length} {docs.length === 1 ? "documento" : "documentos"} na lista
+              </span>
+            )}
+          </div>
           <Button
             variant="outline"
             size="sm"
+            className="shrink-0 self-start sm:self-auto"
             onClick={handleReclassify}
             disabled={reclassifying}
             title="Re-executa o classificador de conteúdo em todos os documentos (útil após atualizações de regras ou upload com extensão errada)"
@@ -427,151 +454,175 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
         />
       ) : (
         <div className="rounded-xl border border-border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <SortableHead label="Arquivo"     col="original_name" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
-                <SortableHead label="Tipo"        col="doc_type"      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
-                <SortableHead label="Formato"     col="content_type"  sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
-                <SortableHead label="Instituição" col="bank_code"     sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
-                <SortableHead label="Período"     col="period"        sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
-                <SortableHead label="Status"      col="status"        sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
-                <TableHead className="w-10"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedDocs.map((doc) => {
-                const st = docStatusLabel(doc.status);
-                const pipelineLabel = pipelineE2TouchLabel(
-                  doc.pipeline_last_run_at,
-                  doc.pipeline_e2_extract_ok,
-                );
-                return (
-                  <TableRow key={doc.id}>
-                    <TableCell className="max-w-[320px] align-top whitespace-normal">
-                      <div className="flex items-start gap-2">
-                        <span
-                          className="mt-0.5 inline-flex shrink-0 text-muted-foreground"
-                          title={`${formatBytes(doc.file_size_bytes)} · ${doc.original_name}`}
-                        >
-                          <FileIcon contentType={doc.content_type} />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <div
-                            className="break-all font-medium leading-snug line-clamp-2"
-                            title={doc.original_name}
-                          >
-                            {doc.original_name}
-                          </div>
-                          <div className="mt-0.5 text-xs text-muted-foreground">
-                            {formatDate(doc.uploaded_at)} · {formatBytes(doc.file_size_bytes)}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="align-top text-muted-foreground">
-                      <div>{docTypeLabel(doc.doc_type)}</div>
-                      {isClassificationUncertain(doc) && (
-                        <div className="mt-1.5 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-                          <span className="inline-flex w-fit items-center rounded border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-[10px] font-medium text-warning">
-                            Revisar classificação
-                          </span>
-                          <button
-                            type="button"
-                            className="w-fit text-left text-[11px] font-medium text-primary underline-offset-2 hover:underline"
-                            onClick={() => setEditTarget(doc)}
-                          >
-                            Corrigir tipo e instituição
-                          </button>
-                        </div>
+          <TooltipProvider delay={400}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <SortableHead label="Arquivo"     col="original_name" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                  <SortableHead label="Tipo"        col="doc_type"      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                  <SortableHead label="Formato"     col="content_type"  sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                  <SortableHead label="Instituição" col="bank_code"     sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                  <SortableHead label="Período"     col="period"        sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                  <SortableHead label="Status"      col="status"        sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                  <TableHead className="w-10"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {displayedDocs.map((doc) => {
+                  const st = docStatusLabel(doc.status);
+                  const uncertain = isClassificationUncertain(doc);
+                  const pipelineLabel = pipelineE2TouchLabel(
+                    doc.pipeline_last_run_at,
+                    doc.pipeline_e2_extract_ok,
+                  );
+                  return (
+                    <TableRow
+                      key={doc.id}
+                      className={cn(
+                        uncertain && "border-l-2 border-l-warning/60 bg-warning/[0.04]",
                       )}
-                    </TableCell>
-                    <TableCell className="align-top">
-                      <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
-                        {mimeLabel(doc.content_type)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="align-top text-muted-foreground">{institutionLabel(doc.bank_code)}</TableCell>
-                    <TableCell className="align-top text-muted-foreground">{formatDocPeriod(doc.period)}</TableCell>
-                    <TableCell className="align-top">
-                      <div className="flex items-center gap-1">
-                        <StatusBadge variant={st.variant}>{st.label}</StatusBadge>
-                        {doc.error_message && (
-                          <TooltipProvider>
+                    >
+                      <TableCell className="max-w-0 min-w-[200px] align-middle">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="inline-flex shrink-0 text-muted-foreground"
+                            title={`${formatBytes(doc.file_size_bytes)} · ${doc.original_name}`}
+                          >
+                            <FileIcon contentType={doc.content_type} />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <Tooltip>
+                              <TooltipTrigger
+                                type="button"
+                                className="block w-full max-w-full cursor-default truncate border-0 bg-transparent p-0 text-left font-medium leading-tight text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              >
+                                {doc.original_name}
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-md break-words">
+                                {doc.original_name}
+                              </TooltipContent>
+                            </Tooltip>
+                            <div className="mt-0.5 truncate text-xs text-foreground/70">
+                              {formatDate(doc.uploaded_at)} · {formatBytes(doc.file_size_bytes)}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="align-middle">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "min-w-0 flex-1 truncate",
+                              uncertain ? "text-foreground" : "text-foreground/75",
+                            )}
+                          >
+                            {docTypeLabel(doc.doc_type)}
+                          </span>
+                          {uncertain && (
+                            <Tooltip>
+                              <TooltipTrigger
+                                type="button"
+                                className="shrink-0 rounded p-0.5 text-warning hover:bg-warning/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                aria-label="Classificação incerta — edite tipo e instituição com o ícone de lápis"
+                              >
+                                <AlertTriangle className="h-4 w-4" aria-hidden />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                Classificação automática incerta. Use o ícone de lápis para ajustar tipo e instituição.
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[4.5rem] align-middle">
+                        <span className="inline-block rounded bg-muted px-1 py-0 font-mono text-[10px] leading-none text-foreground/75">
+                          {mimeLabel(doc.content_type)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="align-middle text-foreground/75">{institutionLabel(doc.bank_code)}</TableCell>
+                      <TableCell className="align-middle text-foreground/75">{formatDocPeriod(doc.period)}</TableCell>
+                      <TableCell className="align-middle">
+                        <div className="flex items-center gap-1">
+                          {pipelineLabel !== "—" ? (
+                            <Tooltip>
+                              <TooltipTrigger
+                                type="button"
+                                className="inline-flex cursor-help border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              >
+                                <StatusBadge variant={st.variant}>{st.label}</StatusBadge>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-sm space-y-1.5 text-left">
+                                <p className="text-xs font-medium">Última análise</p>
+                                <p className="text-xs">{pipelineLabel}</p>
+                                <p className="text-xs text-background/80">
+                                  {pipelineTouchTooltipExplanation(doc.pipeline_e2_extract_ok)}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            <StatusBadge variant={st.variant}>{st.label}</StatusBadge>
+                          )}
+                          {doc.error_message && (
                             <Tooltip>
                               <TooltipTrigger className="cursor-help text-muted-foreground">
                                 <Info className="inline h-3.5 w-3.5" />
                               </TooltipTrigger>
-                              <TooltipContent>
-                                {doc.error_message}
-                              </TooltipContent>
+                              <TooltipContent>{doc.error_message}</TooltipContent>
                             </Tooltip>
-                          </TooltipProvider>
-                        )}
-                      </div>
-                      {pipelineLabel !== "—" && (
-                        <div
-                          className="mt-1 text-xs text-muted-foreground"
-                          title={
-                            doc.pipeline_last_run_at
-                              ? "Data do último pipeline concluído com sucesso neste workspace. “Sem extrato E2” indica que não há JSON do estágio E2 para este arquivo (parser não cobriu, só LLM, ou formato não suportado)."
-                              : undefined
-                          }
-                        >
-                          {pipelineLabel}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="align-top">
-                      <div className="flex items-center gap-0.5">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewDocument(doc)}
-                          disabled={viewingId === doc.id}
-                          className="text-muted-foreground hover:text-foreground"
-                          aria-label={`Visualizar ${doc.original_name}`}
-                          title={
-                            doc.content_type?.includes("pdf") || doc.content_type?.includes("image/")
-                              ? "Abrir no navegador"
-                              : "Baixar arquivo"
-                          }
-                        >
-                          {viewingId === doc.id ? (
-                            <Spinner size="sm" />
-                          ) : doc.content_type?.includes("pdf") ||
-                            doc.content_type?.includes("image/") ? (
-                            <Eye className="h-4 w-4" />
-                          ) : (
-                            <Download className="h-4 w-4" />
                           )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditTarget(doc)}
-                          className="text-muted-foreground hover:text-foreground"
-                          aria-label={`Editar classificação de ${doc.original_name}`}
-                          title="Editar classificação"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteTarget({ id: doc.id, name: doc.original_name })}
-                          className="text-muted-foreground hover:text-destructive"
-                          aria-label={`Remover ${doc.original_name}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                        </div>
+                      </TableCell>
+                      <TableCell className="align-middle">
+                        <div className="flex items-center gap-0.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewDocument(doc)}
+                            disabled={viewingId === doc.id}
+                            className="text-muted-foreground hover:text-foreground"
+                            aria-label={`Visualizar ${doc.original_name}`}
+                            title={
+                              doc.content_type?.includes("pdf") || doc.content_type?.includes("image/")
+                                ? "Abrir no navegador"
+                                : "Baixar arquivo"
+                            }
+                          >
+                            {viewingId === doc.id ? (
+                              <Spinner size="sm" />
+                            ) : doc.content_type?.includes("pdf") ||
+                              doc.content_type?.includes("image/") ? (
+                              <Eye className="h-4 w-4" />
+                            ) : (
+                              <Download className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditTarget(doc)}
+                            className="text-muted-foreground hover:text-foreground"
+                            aria-label={`Editar classificação de ${doc.original_name}`}
+                            title="Editar tipo e instituição"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteTarget({ id: doc.id, name: doc.original_name })}
+                            className="text-muted-foreground hover:text-destructive"
+                            aria-label={`Remover ${doc.original_name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TooltipProvider>
         </div>
       )}
 

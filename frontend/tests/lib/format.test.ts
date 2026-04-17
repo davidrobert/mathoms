@@ -18,10 +18,12 @@ import * as fc from "fast-check";
 import {
   bankLabel,
   docStatusLabel,
+  isDocumentClassifiedOk,
   docTypeLabel,
   fileFormatLabel,
   institutionLabel,
   pipelineE2TouchLabel,
+  pipelineTouchTooltipExplanation,
   formatBytes,
   formatCompact,
   formatCurrency,
@@ -317,6 +319,17 @@ describe("docStatusLabel()", () => {
   });
 });
 
+describe("isDocumentClassifiedOk()", () => {
+  it("ready e processed → true", () => {
+    expect(isDocumentClassifiedOk("ready")).toBe(true);
+    expect(isDocumentClassifiedOk("processed")).toBe(true);
+  });
+  it("demais → false", () => {
+    expect(isDocumentClassifiedOk("error")).toBe(false);
+    expect(isDocumentClassifiedOk("needs_password")).toBe(false);
+  });
+});
+
 describe("docTypeLabel()", () => {
   it("null → '—'", () => expect(docTypeLabel(null)).toBe("—"));
   it("bank_statement → 'Extrato'", () =>
@@ -360,15 +373,31 @@ describe("fileFormatLabel()", () => {
 
 describe("pipelineE2TouchLabel()", () => {
   it("sem data → —", () => expect(pipelineE2TouchLabel(null, null)).toBe("—"));
-  it("com extrato consolidado (sem código E* na UI)", () => {
+  it("com leitura estruturada", () => {
     const s = pipelineE2TouchLabel("2026-04-16T12:00:00.000Z", true);
-    expect(s).toContain("extrato consolidado");
+    expect(s).toContain("leitura estruturada");
     expect(s).not.toMatch(/E2/i);
   });
-  it("sem extrato consolidado", () => {
+  it("com leitura automática incompleta", () => {
     const s = pipelineE2TouchLabel("2026-04-16T12:00:00.000Z", false);
-    expect(s).toContain("sem extrato consolidado");
+    expect(s).toContain("leitura automática incompleta");
     expect(s).not.toMatch(/E2/i);
+  });
+});
+
+describe("pipelineTouchTooltipExplanation()", () => {
+  it("e2Ok true → mensagem clara", () => {
+    const t = pipelineTouchTooltipExplanation(true);
+    expect(t.length).toBeGreaterThan(20);
+    expect(t).not.toMatch(/E2|JSON|pipeline|LLM/i);
+  });
+  it("e2Ok false → explica limite sem jargão", () => {
+    const t = pipelineTouchTooltipExplanation(false);
+    expect(t).toMatch(/análise|extrato/i);
+    expect(t).not.toMatch(/E2|JSON|LLM/i);
+  });
+  it("e2Ok null → texto neutro", () => {
+    expect(pipelineTouchTooltipExplanation(null)).toContain("verificar");
   });
 });
 

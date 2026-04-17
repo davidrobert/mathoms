@@ -13,8 +13,9 @@ from sqlalchemy.orm import selectinload
 from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace, require_write_role
-from backend.app.models.document import Document, DocumentStatus
+from backend.app.models.document import DOCUMENT_CLASSIFIED_OK, Document, DocumentStatus
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
+from backend.app.models.report import Report as ReportModel
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.pipeline import (
@@ -80,7 +81,7 @@ async def trigger_pipeline(
     doc_count_result = await db.execute(
         select(func.count()).select_from(Document).where(
             Document.workspace_id == workspace.id,
-            Document.status == DocumentStatus.ready,
+            Document.status.in_(DOCUMENT_CLASSIFIED_OK),
         )
     )
     doc_count = doc_count_result.scalar() or 0
@@ -221,6 +222,12 @@ async def new_doc_count(
     return {"new_count": result.scalar() or 0}
 
 
+def _run_to_response(run: PipelineRun) -> PipelineRunResponse:
+    r = PipelineRunResponse.model_validate(run)
+    r.report_id = run.report.id if run.report else None
+    return r
+
+
 @router.get("/runs", response_model=PipelineRunListResponse)
 async def list_runs(
     workspace: Workspace = Depends(get_current_workspace),
@@ -230,12 +237,12 @@ async def list_runs(
     result = await db.execute(
         select(PipelineRun)
         .where(PipelineRun.workspace_id == workspace.id)
-        .options(selectinload(PipelineRun.stage_logs))
+        .options(selectinload(PipelineRun.stage_logs), selectinload(PipelineRun.report))
         .order_by(PipelineRun.started_at.desc())
     )
     runs = result.scalars().all()
     return PipelineRunListResponse(
-        runs=[PipelineRunResponse.model_validate(r) for r in runs],
+        runs=[_run_to_response(r) for r in runs],
         total=len(runs),
     )
 
@@ -250,12 +257,12 @@ async def get_run(
     result = await db.execute(
         select(PipelineRun)
         .where(PipelineRun.id == run_id, PipelineRun.workspace_id == workspace.id)
-        .options(selectinload(PipelineRun.stage_logs))
+        .options(selectinload(PipelineRun.stage_logs), selectinload(PipelineRun.report))
     )
     run = result.scalar_one_or_none()
     if not run:
         raise HTTPException(status_code=404, detail="Execução não encontrada")
-    return PipelineRunResponse.model_validate(run)
+    return _run_to_response(run)
 
 
 @router.post(

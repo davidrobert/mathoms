@@ -29,6 +29,30 @@ export const handlers = [
     HttpResponse.json({ access_token: "test-token", token_type: "bearer" }),
   ),
   http.get(`${API}/auth/me`, () => HttpResponse.json(fixtures.user)),
+  http.get(`${API}/me/workspaces`, () =>
+    HttpResponse.json({
+      workspaces: [
+        {
+          id: "ws-1",
+          name: "Workspace Teste",
+          family_surname: "Teste",
+          role: "owner",
+          joined_at: "2026-04-15T12:00:00Z",
+        },
+      ],
+      total: 1,
+    }),
+  ),
+  http.get(`${API}/workspaces/:workspaceId/dashboard`, () =>
+    HttpResponse.json(fixtures.dashboard),
+  ),
+  http.get(`${API}/workspaces/:workspaceId/notifications`, () =>
+    HttpResponse.json({
+      notifications: fixtures.notifications,
+      total: fixtures.notifications.length,
+      unread_count: fixtures.notifications.filter((n) => !n.is_read).length,
+    }),
+  ),
 
   // ─── Reports ───
   http.get(`${API}/reports`, () =>
@@ -69,11 +93,19 @@ export const handlers = [
       periodo_dados: "202601-202604",
       patrimonio: { bruto: 1_000_000, liquido: 950_000 },
       score: { valor: 82, max: 100, classificacao: "Muito Bom" },
+      _report_lineage: {
+        pipeline_run_id: report.pipeline_run_id ?? null,
+        source_document_count: 1,
+        source_document_ids: ["doc-1"],
+      },
     });
   }),
 
-  // ─── Documents ───
+  // ─── Documents (legado `/api/documents` + rotas por workspace usadas pelo cliente) ───
   http.get(`${API}/documents`, () =>
+    HttpResponse.json({ documents: fixtures.documents, total: fixtures.documents.length }),
+  ),
+  http.get(`${API}/workspaces/:workspaceId/documents`, () =>
     HttpResponse.json({ documents: fixtures.documents, total: fixtures.documents.length }),
   ),
   http.post(`${API}/documents/upload`, () =>
@@ -84,8 +116,25 @@ export const handlers = [
       total_skipped: 0,
     }),
   ),
+  http.post(`${API}/workspaces/:workspaceId/documents/upload`, () =>
+    HttpResponse.json({
+      documents: fixtures.documents,
+      skipped_duplicates: [],
+      total_uploaded: fixtures.documents.length,
+      total_skipped: 0,
+    }),
+  ),
   http.delete(`${API}/documents/:id`, () => new HttpResponse(null, { status: 204 })),
+  http.delete(`${API}/workspaces/:workspaceId/documents/:id`, () =>
+    new HttpResponse(null, { status: 204 }),
+  ),
   http.post(`${API}/documents/retry-unlock`, () => HttpResponse.json([])),
+  http.post(`${API}/workspaces/:workspaceId/documents/retry-unlock`, () =>
+    HttpResponse.json([]),
+  ),
+  http.post(`${API}/workspaces/:workspaceId/documents/reclassify`, () =>
+    HttpResponse.json({ total: 1, updated: 0, skipped: 1, errors: 0 }),
+  ),
 
   // ─── Vault ───
   http.get(`${API}/vault/passwords`, () =>

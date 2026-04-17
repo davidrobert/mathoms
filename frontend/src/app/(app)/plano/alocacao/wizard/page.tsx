@@ -33,7 +33,9 @@ import {
   upsertAlocacaoGoal,
   ApiError,
   type AlocacaoGoalInputs,
+  type AlocacaoGoalDerived,
 } from "@/lib/api";
+import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
 
 interface Pcts {
@@ -92,6 +94,21 @@ export default function AlocacaoWizardPage() {
     pcts.imoveis_reits_pct +
     pcts.liquidez_usd_pct;
   const somaValida = soma === 100;
+
+  const draftAlocacaoInputs: AlocacaoGoalInputs = useMemo(
+    () => ({
+      ...pcts,
+      instrumentos_rf: instrumentosRf || undefined,
+      instrumentos_rv: instrumentosRv || undefined,
+      rebalanceamento: rebalanceamento || "Anual",
+    }),
+    [pcts, instrumentosRf, instrumentosRv, rebalanceamento]
+  );
+
+  const alocacaoDraftDerived: AlocacaoGoalDerived = useMemo(
+    () => ({ soma_percentuais: soma }),
+    [soma]
+  );
 
   const canAdvance = useMemo(() => {
     if (step === 1) return somaValida;
@@ -163,6 +180,14 @@ export default function AlocacaoWizardPage() {
           />
         ))}
       </div>
+
+      <GoalPremissasCard
+        className="mb-4"
+        kind="alocacao"
+        mode="draft"
+        inputs={draftAlocacaoInputs}
+        derived={alocacaoDraftDerived}
+      />
 
       <Card>
         <CardContent className="py-6">

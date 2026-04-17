@@ -16,6 +16,7 @@ from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.models.report import Report
 from backend.app.schemas.report import ReportResponse, ReportListResponse
+from backend.app.services.report_lineage import lineage_payload, workspace_ready_documents_summary
 from backend.app.services import report_tasks_snapshot_service, task_service
 from backend.app.schemas.task import TaskFilters, TaskResponse
 
@@ -25,8 +26,14 @@ router = APIRouter(
 )
 
 
-def _serialize_report(report: Report) -> ReportResponse:
+def _serialize_report(
+    report: Report,
+    *,
+    source_document_count: int = 0,
+    source_document_ids: list[str] | None = None,
+) -> ReportResponse:
     """Build ReportResponse with `has_analysis_data` derived from the model (F9)."""
+    ids = source_document_ids if source_document_ids is not None else []
     return ReportResponse(
         id=report.id,
         workspace_id=report.workspace_id,
@@ -38,6 +45,9 @@ def _serialize_report(report: Report) -> ReportResponse:
         created_at=report.created_at,
         pipeline_run_id=report.pipeline_run_id,
         has_analysis_data=bool(report.analysis_json_path),
+        source_document_count=source_document_count,
+        source_document_ids=ids,
+        premissas_snapshot=report.premissas_snapshot_json,
     )
 
 
@@ -52,8 +62,16 @@ async def list_reports(
         .order_by(Report.created_at.desc())
     )
     reports = list(result.scalars().all())
+    doc_total, doc_ids = await workspace_ready_documents_summary(db, workspace.id)
     return ReportListResponse(
-        reports=[_serialize_report(r) for r in reports],
+        reports=[
+            _serialize_report(
+                r,
+                source_document_count=doc_total,
+                source_document_ids=doc_ids,
+            )
+            for r in reports
+        ],
         total=len(reports),
     )
 
@@ -70,7 +88,12 @@ async def get_report(
     report = result.scalar_one_or_none()
     if not report:
         raise HTTPException(status_code=404, detail="Relatório não encontrado")
-    return _serialize_report(report)
+    doc_total, doc_ids = await workspace_ready_documents_summary(db, workspace.id)
+    return _serialize_report(
+        report,
+        source_document_count=doc_total,
+        source_document_ids=doc_ids,
+    )
 
 
 @router.get("/{report_id}/html", response_class=HTMLResponse)
@@ -176,6 +199,22 @@ async def get_report_data(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"JSON de análise corrompido: {exc}",
         )
+
+    doc_total, doc_ids = await workspace_ready_documents_summary(db, workspace.id)
+    payload["_report_lineage"] = lineage_payload(
+        pipeline_run_id=report.pipeline_run_id,
+        source_document_count=doc_total,
+        source_document_ids=doc_ids,
+    )
+
+    # F11.6b — injeta snapshot persistido para a UI (`goals.premissas_snapshot`).
+    if report.premissas_snapshot_json:
+        snap = report.premissas_snapshot_json
+        goals_block = payload.get("goals")
+        if isinstance(goals_block, dict):
+            payload["goals"] = {**goals_block, "premissas_snapshot": snap}
+        else:
+            payload["goals"] = {"premissas_snapshot": snap}
 
     return JSONResponse(content=payload)
 

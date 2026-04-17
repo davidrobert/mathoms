@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { register, setToken, ApiError } from "@/lib/api";
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/Spinner";
 import { StatusPageFooter } from "@/components/StatusPageFooter";
 
-export default function RegisterPage() {
+function RegisterPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextUrl = resolveNext(searchParams.get("next"));
@@ -140,5 +140,19 @@ export default function RegisterPage() {
       </div>
       <StatusPageFooter variant="auth" />
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Spinner size="lg" />
+        </div>
+      }
+    >
+      <RegisterPageInner />
+    </Suspense>
   );
 }

@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""Edge-case unit tests for E5 / E6 / E5.N helpers (7D.2)."""
+
+import sys
+from datetime import date
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from scripts.e5_analyze import calculate_edad, is_one_time_income, linear_interpolate
+from scripts.e5n_narrativas import _safe_div, validate_narrativas
+from scripts.e6_render import fmt_brl, safe_float
+
+
+class TestE5AnalyzeEdges:
+    def test_linear_interpolate_equal_bounds_returns_zero(self):
+        assert linear_interpolate(5.0, 3.0, 3.0) == 0.0
+
+    def test_linear_interpolate_clamps(self):
+        assert linear_interpolate(100.0, 0.0, 10.0) == 10.0
+
+    def test_calculate_edad_birthday_not_yet(self):
+        dob = date(1990, 6, 15)
+        ref = date(2026, 6, 10)
+        assert calculate_edad(dob, ref) == 35
+
+    def test_is_one_time_income_keyword(self):
+        assert is_one_time_income("BONUS 13o SALARIO") is True
+
+
+class TestE6RenderEdges:
+    def test_safe_float_invalid(self):
+        assert safe_float("x") == 0.0
+        assert safe_float(None) == 0.0
+
+    def test_fmt_brl(self):
+        s = fmt_brl(1234.56)
+        assert "R$" in s or "1" in s
+
+
+class TestE5NEdges:
+    def test_safe_div_by_zero(self):
+        assert _safe_div(10, 0, default=-1) == -1
+
+    def test_validate_narrativas_empty(self):
+        ok, errs = validate_narrativas({})
+        assert ok is False
+        assert len(errs) >= 3

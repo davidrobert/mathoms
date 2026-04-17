@@ -155,9 +155,9 @@ Trabalho técnico para **uma fonte de verdade** na lógica E0–E7, **testes off
 | `python -m pipeline.run_dev` | `pipeline/run_dev.py` | Concluído |
 | Lint fronteiras `pipeline/` | `dev/check_pipeline_boundaries.py` | Concluído |
 
-**Próximo passo (incremental):** (1) **Concluir a abordagem só sintética** — layouts dedicados no `pdf_generator` para os **demais** bancos do registry que ainda usam só a tabela genérica (BTG, Rico, Wise, PicPay, Bank of America, Santander, Itaú e Caixa já têm `_draw_*` + `test_*_synthetic_extracts_transactions`). (2) **Depois**, opcionalmente: **PDFs reais anonimizados** no repositório como segunda camada de regressão de layout (processo em [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) § *E2 — sintético e real anonimizado* e [BACKLOG.md](BACKLOG.md)). Em paralelo possível: fixtures LLM determinísticas ([CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md) §4 item 3). Referência: `tests/test_e2_synthetic_pdf_parsers.py` e `tests/fixtures/pdf_generator.py`.
+**Próximo passo (incremental):** (1) **PDFs reais anonimizados** (opcional) — scaffold em `tests/fixtures/e2_real_pdf_anon/` + `tests/test_e2_real_pdf_regression.py`; falta commitar binários redigidos. Ver [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) § *E2 — sintético e real anonimizado* e [BACKLOG.md](BACKLOG.md). (2) **LLM:** [tests/fixtures/llm_golden/README.md](../tests/fixtures/llm_golden/README.md) + `tests/test_llm_golden.py`; novos estágios → estender schemas no mesmo padrão ([CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md) §4 item 3).
 
-**Epic P2 (2026-04-17):** **P2.1–P2.4 entregues** — módulo único `document_classification`, ADR-081, testes de paridade nome canônico, UI de incerteza em Documentos; upload, reclassify e E0-route (com backend) compartilham o mesmo classificador. **Pendente no epic:** [P2.5 observabilidade](BACKLOG.md#p2--unificação-da-classificação-de-documentos) (log estruturado de mismatch). Ver [BACKLOG.md](BACKLOG.md#p2--unificação-da-classificação-de-documentos).
+**Epic P2 (2026-04-17):** **P2.1–P2.5 entregues** — módulo único `document_classification`, ADR-081, testes de paridade nome canônico, UI de incerteza em Documentos; upload, reclassify e E0-route (com backend) compartilham o mesmo classificador; **P2.5** log estruturado `fin.classification_telemetry`. Ver [BACKLOG.md](BACKLOG.md#p2--unificação-da-classificação-de-documentos).
 
 ---
 
@@ -207,7 +207,7 @@ Adiado conscientemente: são features de **aquisição / marketing** que não fa
 | P1 | Billing real (Stripe) | BYOK cobre Premium até GA |
 | P2 | Report comparison (side-by-side, deltas) | Requer histórico de relatórios no uso real |
 
-**Command palette / atalhos:** não é growth puro — roadmap de produto em **[F11.8](BACKLOG.md#f11-8--command-palette--atalhos)** (P2, pós-beta). Aqui permanecem apenas como lembrete: **Cmd+K**, atalhos globais (ex.: ir a Dashboard, Documentos, Pipeline), acessibilidade.
+**Command palette / atalhos:** entregue em produto (**F11.8**): **⌘K** / Ctrl+K + modal **?** — ver [BACKLOG](BACKLOG.md#f11-8--command-palette--atalhos).
 
 ---
 
@@ -222,7 +222,7 @@ Objetivo: **baixa fricção cognitiva**, **confiança em dados e em LLM**, e **e
 | F11.3 | **Print / PDF como entregável de consultoria** | Refino de `@media print`, capa, margens A4, quebras de página, fontes embed/sistema; export PDF/HTML com aparência “documento para terceiros”; checklist de QA visual. | P1 |
 | F11.4 | **Transparência: origem da informação** | Por seção ou bloco: qual documento / período / estágio alimenta o número (linhagem resumida; link para Documentos ou run quando aplicável). | P1 |
 | F11.5 | **Transparência: `needs_review` e trilha LLM** | Linguagem consistente: quando o dado é inferido, revisão humana pendente, ou validado; CTAs para revisão; sem jargão de estágio E* na UI (ADR-068). | P0 |
-| F11.6 | **Metadados de premissas (metas + relatório)** | Campos ou bloco explícito: taxas, inflação, horizonte, cenário base; versão das premissas no snapshot de relatório quando impactar números. | P1 |
+| F11.6 | **Metadados de premissas (metas + relatório)** | Campos ou bloco explícito: taxas, inflação, horizonte, cenário base; **F11.6b:** snapshot persistido (`premissas_snapshot_json` + API / merge no `/data`) para comparar mês a mês. | P1 |
 | F11.7 | **Número ↔ regra** | Tooltips ou painel “Como calculamos”: ligação do KPI ao motor (ex.: FV de anuidade na meta IF); glossário mínimo. | P1 |
 | F11.8 | **Command palette / atalhos** | `cmdk` (ou equivalente): busca de rotas, ações (novo upload, rodar pipeline); atalhos documentados e não conflitantes com o browser. | P2 |
 
@@ -230,9 +230,11 @@ Detalhamento por task: **[BACKLOG.md#f11--confiança-transparência-e-excelênci
 
 **Sprint B (2026-04-17):** F11.5 (banner `needs_review`, notas LLM por etapa, sem códigos E* na linha de etapa; rótulo de toque E2 sem “E2” na UI), F11.4b–c (`ReportSourceStrip` + período/gerado em), fatia de F11.2 (eixos/tooltips do dashboard com `tabular-nums`).
 
-**Sprint C (2026-04-17):** F11.4a no nível do relatório — `pipeline_run_id` na API, link e deep link para Pipeline; F11.2a — `tabular-nums` / `font-mono` em Transactions (tabela + paginação) e hero do relatório nativo. Próximo: linhagem por seção/bloco e `document_id` no JSON ou metadados (resto de F11.4a).
+**Sprint C (2026-04-17):** F11.4a no nível do relatório — `pipeline_run_id` na API, link e deep link para Pipeline; F11.2a — `tabular-nums` / `font-mono` em Transactions (tabela + paginação) e hero do relatório nativo.
 
-**Ordem sugerida:** F11.5 → F11.4 → F11.2 → F11.7 → F11.6 → F11.3 → F11.1 → F11.8 (ajustar conforme feedback do beta).
+**Sprint D (2026-04-17):** P2.5 (telemetria de classificação); conclusão F11.4a agregada (`source_document_ids` / `_report_lineage`); F11.2b; F11.7 + F11.6c; F11.3c checklist + F11.3a/b em progresso; F11.1 nav + empty states + [COPY_GUIDELINES](BACKLOG.md); F11.8 cmdk. **Atualização:** F11.6b (snapshot de premissas no relatório) e leva inicial **7D.1 / 7D.2** (testes unitários de borda E0/E3/E4/E7 e E5/E5N/E6). Próximo: F11.6a (premissas nas metas na UI), linhagem por seção se necessário, golden F11.7c.
+
+**Ordem sugerida (histórico):** F11.5 → F11.4 → F11.2 → F11.7 → F11.6 → F11.3 → F11.1 → F11.8 — **Sprint D** executou o tail desta fila + P2.5.
 
 ---
 

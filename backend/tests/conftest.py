@@ -37,10 +37,15 @@ ADR resumido (registro completo em `docs/DECISIONS.md` quando F6.5F formal):
 
 import asyncio
 import os
+from pathlib import Path
 from typing import AsyncGenerator
 
 _TEST_FERNET_KEY = "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
 os.environ.setdefault("FIN_FERNET_KEY", _TEST_FERNET_KEY)
+
+# scripts.pipeline_common requires FIN_WORKSPACE_ROOT; repo root for config/ in tests.
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+os.environ.setdefault("FIN_WORKSPACE_ROOT", str(_REPO_ROOT))
 
 import pytest
 import pytest_asyncio

@@ -36,11 +36,13 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+import scripts.pipeline_common as _pc
+
 # =============================================================================
-# Paths
+# Paths — aligned with FIN_WORKSPACE_ROOT (see scripts.pipeline_common)
 # =============================================================================
 SCRIPTS_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = SCRIPTS_DIR.parent
+PROJECT_DIR = _pc.PROJECT_DIR
 
 PROCESSED_DIR = PROJECT_DIR / "processed"
 E2_EXTRACTS   = PROCESSED_DIR / "E2_extracts"

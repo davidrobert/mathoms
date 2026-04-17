@@ -2,12 +2,13 @@
 
 Garantias:
 - **filename canônico → `route_to_parser` → `parse*(…)`** retorna dict (smoke).
-- **BTG / Rico / Wise / PicPay / Bank of America / Santander / Itaú / Caixa:** layouts dedicados no
-  `pdf_generator` → testes exigem **≥1 transação** e `saldo_final` onde aplicável (`test_btgpactual_*`,
-  `test_rico_*`, `test_wise_*`, `test_picpay_*`, `test_bankofamerica_*`, `test_santander_*`, `test_itau_*`,
-  `test_caixa_*`).
+- **C6 / Bradesco / BTG / Rico / Wise / PicPay / Bank of America / Santander / Itaú / Caixa:** layouts
+  dedicados → **≥1** transação e `saldo_final` onde aplicável (`test_c6bank_*`, `test_bradesco_*`,
+  `test_btgpactual_*` … `test_caixa_*`). **Bradesco:** valores de crédito no PDF devem casar com o
+  heurístico `len(raw)<=6` do parser — ver `_BRADESCO_TX`.
+- **Quinto Andar:** layout fatura aluguel → **≥1** item e `total_recebido` (`test_quintoandar_*`).
 
-Demais bancos: tabela genérica; extração estável continua incremental. Smoke texto:
+Códigos só em `BankCode` fora do registry (ex.: binance): tabela genérica. Smoke texto:
 `backend/tests/test_golden_pipeline.py::TestSyntheticPDFsAreParseable`.
 """
 
@@ -25,6 +26,13 @@ pytest.importorskip("pdfplumber")
 _SAMPLE_TX = [
     {"date": "2026-04-05", "description": "Mercado Sintetico", "amount": -250.50},
     {"date": "2026-04-01", "description": "Pagto Folha", "amount": 12500.00},
+]
+
+# Crédito com máscara `X.XXX,XX` onde o raw numérico tem >6 dígitos não dispara o ramo de crédito na
+# linha da data em `parse_bradesco` — usar valor menor no teste dedicado.
+_BRADESCO_TX = [
+    {"date": "2026-04-05", "description": "Mercado Sintetico", "amount": -250.50},
+    {"date": "2026-04-10", "description": "Pagto Folha", "amount": 1250.00},
 ]
 
 # Filename alinhado ao primeiro padrão PDF (não CSV/XLS) de cada `scripts/e2/banks/*.py`
@@ -68,6 +76,49 @@ def test_synthetic_pdf_e2_parser_runs(filename: str, bank: str, kind: str, tmp_p
         or "erro" in result
         or "requires_llm_fallback" in result
     )
+
+
+def test_c6bank_synthetic_extracts_transactions(tmp_path: Path):
+    """Layout `c6bank` — `Período • … de … até …`, `Conta:`, tabela 5 colunas + `Saldo do dia`."""
+    filename = "c6bank_extratoconta_202604_golden.pdf"
+    path = tmp_path / filename
+    path.write_bytes(
+        generate_statement(
+            "c6bank",
+            "extrato",
+            period="2026-04",
+            transactions=_SAMPLE_TX,
+            account_holder="Titular Golden",
+            account_number="12345678",
+        )
+    )
+    parser_fn = route_to_parser(filename)
+    assert parser_fn is not None
+    result = parser_fn(path, filename)
+    assert len(result.get("transacoes") or []) >= 1
+    assert result.get("saldo_final") is not None
+
+
+def test_bradesco_synthetic_extracts_transactions(tmp_path: Path):
+    """Layout `bradesco` — `Ag | Conta`, `Entre`, `SALDO ANTERIOR`, linhas DD/MM/YY + `Total`."""
+    filename = "bradesco_extratoconta_202604_golden.pdf"
+    path = tmp_path / filename
+    path.write_bytes(
+        generate_statement(
+            "bradesco",
+            "extrato",
+            period="2026-04",
+            transactions=_BRADESCO_TX,
+            account_holder="Titular Golden",
+            agency="3221",
+            account_number="77113-9",
+        )
+    )
+    parser_fn = route_to_parser(filename)
+    assert parser_fn is not None
+    result = parser_fn(path, filename)
+    assert len(result.get("transacoes") or []) >= 1
+    assert result.get("saldo_final") is not None
 
 
 def test_btgpactual_synthetic_extracts_transactions(tmp_path: Path):
@@ -233,3 +284,23 @@ def test_caixa_synthetic_extracts_transactions(tmp_path: Path):
     result = parser_fn(path, filename)
     assert len(result.get("transacoes") or []) >= 1
     assert result.get("saldo_final") is not None
+
+
+def test_quintoandar_synthetic_extracts_items(tmp_path: Path):
+    """Layout `quintoandar` — `Faturas de aluguel`, `Total de`/`Receber até`, linhas item + R$."""
+    filename = "quintoandar_faturaaluguelapt01_202604.pdf"
+    path = tmp_path / filename
+    path.write_bytes(
+        generate_statement(
+            "quintoandar",
+            "extrato",
+            period="2026-04",
+            transactions=_SAMPLE_TX,
+            account_holder="Titular Golden",
+        )
+    )
+    parser_fn = route_to_parser(filename)
+    assert parser_fn is not None
+    result = parser_fn(path, filename)
+    assert len(result.get("itens") or []) >= 1
+    assert result.get("total_recebido") is not None

@@ -480,6 +480,8 @@ process_uploaded_document():
     ↓
 Document.status = "ready", classification_confidence, needs_review
     ↓
+**P2.5 (observabilidade):** após cada classificação (upload, retry-unlock, reclassify em lote), o backend emite log estruturado no logger `fin.classification_telemetry` — linha com JSON (`event`, `context`, `doc_type`, `confidence_bucket`, `type_changed_vs_prior`, etc.) **sem nome de arquivo**. Útil para medir volume de mismatch antes/depois de mudanças no classificador.
+
 User clica "Gerar Relatório"
     ↓
 POST /api/pipeline/run → materialize_config() → Celery task
@@ -645,7 +647,7 @@ fin-current/
 | Senhas de PDF (vault)                             | `password_vault` (DB), `encrypted_password` Fernet          | `POST /vault/passwords`                                         |
 | Chaves API LLM do usuário (BYOK)                  | `llm_configs` (DB), `api_key_encrypted` Fernet              | `POST /llm/config`                                              |
 | CPFs dos membros                                  | `family_members.cpf_encrypted` (DB), Fernet                 | `POST /config/family-members` (ou E1 LLM)                       |
-| Goals (metas financeiras)                         | `goals` (DB), versionado append-only                        | `PUT /goals/if`                                                 |
+| Goals (metas financeiras)                         | `goals` (DB), `params_json` com `inputs` + `meta_version`, vigência `effective_from` / `effective_to` | `PUT /goals/...` (por tipo) · **UI F11.6a:** `GoalPremissasCard` em `/plano/*` |
 | Tasks (backlog de ações)                          | `tasks`, `task_suggestions`, `task_attachments` (DB)        | CRUD via `/tasks` endpoints                                     |
 | Feature flags                                     | `feature_flags` (DB) + defaults em código                   | `PUT /feature-flags/{flag}`                                     |
 | Config materializada por tenant (input do E2–E7)  | `storage/{ws_id}/config/*`                                  | `config_materializer.materialize_config()`                      |
@@ -659,10 +661,15 @@ fin-current/
 
 ### O que **não** é persistido no git
 
-Todos os dados de usuário estão fora do git por design. `.gitignore`
-bloqueia `storage/`, `*.db`, `.env`, `config/passwords.txt`,
-`data/`, `inbox/`, `inbox_processed/`, `_scratch/`. O `pre-commit`
-(`dev/check_forbidden_paths.py`) aplica a mesma regra em nível de hook.
+Todos os dados de utilizador estão fora do git por design. O destino **canónico**
+de ficheiros por workspace é `storage/<workspace_id>/` (gitignored por completo).
+
+`.gitignore` também cobre nomes de pastas de **workspace legado na raiz do
+repo** (`data/`, `inbox/`, `inbox_processed/`, …) para quem corre o pipeline
+CLI com `FIN_WORKSPACE_ROOT` na raiz do projeto — essas pastas **não** são
+obrigatórias no clone; criam-se só quando há esse uso local. Além disso:
+`*.db`, `.env`, `config/passwords.txt`, `_scratch/`. O `pre-commit`
+(`dev/check_forbidden_paths.py`) aplica regras alinhadas em nível de hook.
 
 ---
 

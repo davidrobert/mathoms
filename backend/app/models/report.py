@@ -32,6 +32,8 @@ class Report(Base):
     # o relatório foi gerado. Permite ao relatório renderizar "tarefas relatadas
     # em 15/abr/2026" mesmo que o backlog tenha mudado depois. Nullable = pré-F8.3.
     tasks_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # F11.6b — referência às premissas vigentes (metas + hash do goals.json) para comparar relatórios.
+    premissas_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     size_bytes: Mapped[int] = mapped_column(Integer, nullable=True)
     score: Mapped[float] = mapped_column(Float, nullable=True)
     patrimonio_liquido: Mapped[float] = mapped_column(Float, nullable=True)

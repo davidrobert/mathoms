@@ -70,8 +70,9 @@
 | E6 execução golden (E5→HTML) | ✅ `tests/test_e6_golden_execution.py` |
 | QA log (`logs/qa_log.md`) em goldens E4/E5/E6 | ✅ `tests/pipeline_golden_asserts.py` |
 | E5.N execução golden (E5→narrativas) | ✅ `tests/test_e5n_golden_execution.py` (validação antes do reset de globals; cenário cônjuge cobre `ana_cenarios`) |
-| E2 PDF × registry (smoke parse) | ✅ `tests/test_e2_synthetic_pdf_parsers.py` + `caixa` + layouts **BTG / Rico / Wise / PicPay / Bank of America / Santander / Itaú / Caixa** (`test_btgpactual_*`, `test_rico_*`, `test_wise_*`, `test_picpay_*`, `test_bankofamerica_*`, `test_santander_*`, `test_itau_*`, `test_caixa_*`) |
-| E2 PDF real anonimizado (fase 2) | ☐ Planejado pós-sintético | [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) § *E2 — sintético e real anonimizado*; [BACKLOG.md](BACKLOG.md) linha E2 PDF real anonimizado |
+| E2 PDF × registry (smoke parse) | ✅ `tests/test_e2_synthetic_pdf_parsers.py` — todos os `BANK_MODULES` com `_draw_*` + testes (`test_c6bank_*`, `test_bradesco_*`, `test_btgpactual_*` … `test_caixa_*`, `test_quintoandar_*`) |
+| LLM JSON × schemas Pydantic | ✅ `tests/fixtures/llm_golden/` + `tests/test_llm_golden.py` — [README](../tests/fixtures/llm_golden/README.md) |
+| E2 PDF real anonimizado (fase 2) | ☐ Binários opcionais; scaffold ✅ | `tests/fixtures/e2_real_pdf_anon/` + `tests/test_e2_real_pdf_regression.py` — [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) § *E2 — sintético e real anonimizado*; [BACKLOG.md](BACKLOG.md) |
 
 ---
 

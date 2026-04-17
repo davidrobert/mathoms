@@ -90,7 +90,16 @@ async def render_pdf(
             url = report_url if "?" in report_url else f"{report_url}?print=1"
             await page.goto(url, wait_until="networkidle", timeout=timeout_ms)
 
-            # Espera renderização dos charts (Recharts é async)
+            # Estado terminal da rota (sucesso F9+, legado pré-F9, ou erro de metadados).
+            ready_timeout = max(5_000, timeout_ms - 3_000)
+            await page.wait_for_function(
+                """() => !!document.querySelector('[data-report-ready="true"]')"""
+                """ || !!document.querySelector('[data-report-pdf-legacy="1"]')"""
+                """ || !!document.querySelector('[data-report-pdf-error="1"]')""",
+                timeout=ready_timeout,
+            )
+
+            # Recharts / layout assíncronos
             await page.wait_for_timeout(2000)
 
             pdf_bytes = await page.pdf(

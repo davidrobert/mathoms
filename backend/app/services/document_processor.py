@@ -12,6 +12,7 @@ from backend.app.services.canonical_routing import (
     ensure_minus_zero_original_filename,
     route_inbox_to_canonical_data,
 )
+from backend.app.services.classification_telemetry import emit_classification_outcome
 from backend.app.services.document_classification import (
     classify_document,
     classification_can_route_to_data,
@@ -108,6 +109,7 @@ def process_uploaded_document(
     passwords: list[str],
     config_dir: Path,
     tenant_root: Path | None = None,
+    workspace_id: str | None = None,
 ) -> dict:
     """Full processing pipeline for a single uploaded document.
 
@@ -143,7 +145,7 @@ def process_uploaded_document(
                 shutil.copy2(str(file_path), str(dest))
                 rel = dest.resolve().relative_to(tenant_root.resolve())
                 stored_rel = str(rel).replace("\\", "/")
-            return {
+            out = {
                 "status": DocumentStatus.ready,
                 "doc_type": json_type,
                 "bank_code": None,
@@ -154,10 +156,28 @@ def process_uploaded_document(
                 "error_message": None,
                 "stored_path_relative": stored_rel,
             }
+            emit_classification_outcome(
+                context="upload",
+                classification=out,
+                workspace_id=workspace_id,
+                outcome="json_structure",
+            )
+            return out
 
     if ext == ".pdf" and passwords:
         is_encrypted, was_unlocked = try_unlock_pdf(file_path, passwords)
         if is_encrypted and not was_unlocked:
+            emit_classification_outcome(
+                context="upload",
+                classification={
+                    "doc_type": None,
+                    "confidence": 0.0,
+                    "needs_review": True,
+                    "classification_meta": {"encrypted": True},
+                },
+                workspace_id=workspace_id,
+                outcome="needs_password",
+            )
             return {
                 "status": DocumentStatus.needs_password,
                 "doc_type": None,
@@ -211,6 +231,12 @@ def process_uploaded_document(
         except ValueError:
             stored_rel = None  # fora de tenant_root — ficará como caminho absoluto
 
+    emit_classification_outcome(
+        context="upload",
+        classification=classification,
+        workspace_id=workspace_id,
+        outcome="classified",
+    )
     return {
         "status": DocumentStatus.ready,
         "doc_type": classification["doc_type"],

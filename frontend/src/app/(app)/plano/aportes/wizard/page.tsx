@@ -9,7 +9,7 @@
  *   3. Distribuicao por destinos
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Plus, Trash2, Wallet } from "lucide-react";
 
@@ -23,11 +23,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { useCurrentWorkspace } from "@/lib/useCurrentWorkspace";
 import {
+  computeAporteGoal,
   upsertAporteGoal,
   ApiError,
   type AporteGoalInputs,
+  type AporteGoalDerived,
 } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
 
 interface DistRow {
@@ -49,8 +52,33 @@ export default function AportesWizardPage() {
   const [rows, setRows] = useState<DistRow[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [derived, setDerived] = useState<AporteGoalDerived | null>(null);
 
   const distSum = rows.reduce((s, r) => s + r.valor, 0);
+
+  const draftInputs: AporteGoalInputs = useMemo(() => {
+    const distribuicao: Record<string, number> = {};
+    for (const r of rows) {
+      if (r.destino.trim()) distribuicao[r.destino.trim()] = r.valor;
+    }
+    return {
+      meta_aporte_mensal_brl: metaMensal,
+      dia_aporte: diaAporte,
+      periodo_inicio: periodoInicio || "Imediato",
+      distribuicao:
+        Object.keys(distribuicao).length > 0 ? distribuicao : undefined,
+    };
+  }, [metaMensal, diaAporte, periodoInicio, rows]);
+
+  useEffect(() => {
+    if (!workspace?.id) return;
+    const handle = setTimeout(() => {
+      computeAporteGoal(workspace.id, draftInputs)
+        .then((r) => setDerived(r.derived))
+        .catch(() => setDerived(null));
+    }, 200);
+    return () => clearTimeout(handle);
+  }, [workspace?.id, draftInputs]);
 
   const canAdvance = useMemo(() => {
     if (step === 1) return metaMensal > 0;
@@ -129,6 +157,14 @@ export default function AportesWizardPage() {
           />
         ))}
       </div>
+
+      <GoalPremissasCard
+        className="mb-4"
+        kind="aporte"
+        mode="draft"
+        inputs={draftInputs}
+        derived={derived}
+      />
 
       <Card>
         <CardContent className="py-6">

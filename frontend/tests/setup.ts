@@ -10,9 +10,29 @@
  * NÃO incluir lógica de produto aqui. Apenas plumbing de teste.
  */
 import "@testing-library/jest-dom/vitest";
+import { createElement, Fragment, type ReactNode } from "react";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 import { server } from "./mocks/server";
+
+/** Default workspace para páginas `(app)/` que usam `useWorkspace()` sem provider real. */
+vi.mock("@/lib/WorkspaceProvider", () => ({
+  WorkspaceProvider: ({ children }: { children: ReactNode }) =>
+    createElement(Fragment, null, children),
+  useWorkspace: () => ({
+    workspace: {
+      id: "ws-1",
+      name: "Test WS",
+      family_surname: "Test",
+      role: "owner" as const,
+      joined_at: "2026-01-01T00:00:00.000Z",
+    },
+    workspaces: [],
+    isLoading: false,
+    error: null,
+    refresh: vi.fn(),
+  }),
+}));
 
 // ─── MSW lifecycle ───
 // Padrão "error" garante que toda chamada não-mockada quebre o teste em vez de

@@ -46,6 +46,7 @@ async def _seed_report(
     html_content: str = "<html><body>ok</body></html>",
     analysis_payload: dict | None = None,
     pipeline_run_id: str | None = None,
+    premissas_snapshot_json: dict | None = None,
     tmp_path: Path,
     db: AsyncSession | None = None,
 ) -> str:
@@ -95,6 +96,7 @@ async def _seed_report(
             html_path=str(html_file),
             analysis_json_path=str(analysis_path) if analysis_path else None,
             size_bytes=len(html_content),
+            premissas_snapshot_json=premissas_snapshot_json,
         )
         session.add(report)
         await session.commit()
@@ -127,6 +129,24 @@ async def test_get_report_has_analysis_data_false_when_no_json(
 
 
 @pytest.mark.asyncio
+async def test_get_report_includes_source_document_fields(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    rid = await _seed_report(
+        auth_client,
+        analysis_payload={"x": 1},
+        tmp_path=tmp_path,
+        db=db,
+    )
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "source_document_count" in data
+    assert "source_document_ids" in data
+    assert isinstance(data["source_document_ids"], list)
+
+
+@pytest.mark.asyncio
 async def test_get_report_includes_pipeline_run_id(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
@@ -141,6 +161,23 @@ async def test_get_report_includes_pipeline_run_id(
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}")
     assert resp.status_code == 200
     assert resp.json()["pipeline_run_id"] == run_id
+
+
+@pytest.mark.asyncio
+async def test_get_report_includes_premissas_snapshot(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    snap = {"schema": 1, "goals_json_sha256": "abc", "active_goals": []}
+    rid = await _seed_report(
+        auth_client,
+        analysis_payload=None,
+        premissas_snapshot_json=snap,
+        tmp_path=tmp_path,
+        db=db,
+    )
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}")
+    assert resp.status_code == 200
+    assert resp.json()["premissas_snapshot"] == snap
 
 
 @pytest.mark.asyncio
@@ -189,6 +226,34 @@ async def test_get_report_data_returns_json_payload(
     assert body["periodo_dados"] == "202601-202604"
     assert body["patrimonio"]["bruto"] == 1234567.89
     assert body["score"]["classificacao"] == "Muito Bom"
+    lin = body.get("_report_lineage")
+    assert isinstance(lin, dict)
+    assert "source_document_count" in lin
+    assert "source_document_ids" in lin
+    assert isinstance(lin["source_document_ids"], list)
+
+
+@pytest.mark.asyncio
+async def test_get_report_data_merges_premissas_snapshot_into_goals(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    snap = {"schema": 1, "goals_json_sha256": "deadbeef", "active_goals": []}
+    payload = {
+        "periodo_dados": "202601-202604",
+        "goals": {"if_pct": 42.0},
+    }
+    rid = await _seed_report(
+        auth_client,
+        analysis_payload=payload,
+        premissas_snapshot_json=snap,
+        tmp_path=tmp_path,
+        db=db,
+    )
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["goals"]["if_pct"] == 42.0
+    assert body["goals"]["premissas_snapshot"] == snap
 
 
 @pytest.mark.asyncio

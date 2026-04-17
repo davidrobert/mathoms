@@ -6,7 +6,7 @@
 >
 > **Legenda de prioridade:** **P0** bloqueante • **P1** importante • **P2** nice-to-have
 >
-> **Última atualização:** 2026-04-17 (P2.1–P2.4 classificação unificada; Sprint C F11; F11 + P2; 7E; E2 PDF Caixa layout dedicado)
+> **Última atualização:** 2026-04-17 (F11.6a premissas nas metas; P2.5 observabilidade; F11.4a agregado; F11.2b; F11.7/6/3/1/8 entregas de produto; login/register Suspense)
 
 ---
 
@@ -38,12 +38,13 @@ Objetivo: **inventário de drift**, **fronteira motor × adaptadores**, **contra
 | P1-C | CLI apenas como fachada | ✅ | `run_dev` delega ao `orchestrator` |
 | P1-D | Job CI strict + checklist artefatos | ✅ | `.github/workflows/ci.yml`; [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) |
 | P1-E | Goldens incrementais E2/E4 (schema) | ✅ | `tests/fixtures/pipeline_golden/` + `test_pipeline_golden_fixtures.py` |
+| — | LLM JSON goldens (schemas Pydantic) | ✅ | `tests/fixtures/llm_golden/` + `tests/test_llm_golden.py`; [README](../tests/fixtures/llm_golden/README.md) |
 | — | Golden execução E4 (E3→E4) | ✅ | `tests/test_e4_golden_execution.py`; [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) |
 | — | Golden execução E5 (E4→E5) | ✅ | `tests/test_e5_golden_execution.py`; [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) |
 | — | Golden execução E6 (E5→HTML) | ✅ | `tests/test_e6_golden_execution.py`; [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) |
 | — | Golden execução E5.N (narrativas no E5 JSON) | ✅ | `tests/test_e5n_golden_execution.py` (mínimo + cônjuge → chart `ana_cenarios`); [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) |
-| — | E2 PDF sintético × parsers (`registry`) | ✅ | `tests/test_e2_synthetic_pdf_parsers.py` (+ transações BTG/Rico/Wise/PicPay/BoA/Santander/Itaú + layout **Caixa**); `caixa` (`BankCode`) + layouts **BTG / Rico / Wise / PicPay / Bank of America / Santander / Itaú / Caixa** em `tests/fixtures/pdf_generator.py` |
-| — | E2 PDF **real anonimizado** (fase 2, pós-sintético) | ☐ | Complemento opcional: fixtures binárias derivadas de extratos reais com **redação total** + revisão PR + lint PII; regressão de layout além do `pdf_generator`. Critério de entrada: fechar prioridade da Fase 1 (sintético por banco-alvo). Ver [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) § *E2 — sintético e real anonimizado*. |
+| — | E2 PDF sintético × parsers (`registry`) | ✅ | `tests/test_e2_synthetic_pdf_parsers.py` (todos os `BANK_MODULES`: **C6**, **Bradesco**, extratos + **Quinto Andar** fatura); `tests/fixtures/pdf_generator.py` — `_draw_*` por banco do registry |
+| — | E2 PDF **real anonimizado** (fase 2, pós-sintético) | ☐ | **Scaffold:** `tests/fixtures/e2_real_pdf_anon/` + `tests/test_e2_real_pdf_regression.py` (pasta vazia = CI verde). **Pendente:** commitar PDFs redigidos + revisão PR. Ver [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) § *E2 — sintético e real anonimizado*. |
 
 ---
 
@@ -59,9 +60,9 @@ Objetivo: **inventário de drift**, **fronteira motor × adaptadores**, **contra
 | P2.2 | **API interna única de classificação** (módulo único chamado por upload e por E0-route): mesma estrutura Pydantic / dict; testes unitários com matriz de casos (nome + snippet de texto) | P0 | 12h | ✅ `backend/app/services/document_classification.py` (`ClassificationResult`, `classify_document`, `classification_can_route_to_data`); E0-route + reclassify importam o módulo; testes em `test_document_classification.py` |
 | P2.3 | **Paridade de testes:** fixtures que provam que um mesmo PDF classificado no upload materializa o mesmo `doc_type`/`bank_code` que o E0-route daria para o nome canônico final | P1 | 8h | ✅ `test_classification_parity.py` — `build_final_name` + `classify_by_name` (Itaú/C6/Bradesco) |
 | P2.4 | **UI:** quando classificação for incerta, estado explícito (baixa confiança) + CTA “corrigir tipo/banco” alinhado ao fluxo de reclassificação existente | P1 | 6h | ✅ Documentos: banner + coluna Tipo com “Revisar classificação” e link para `EditDocumentDialog` (`needs_review` ou `classification_confidence` < 0,7) |
-| P2.5 | **Observabilidade:** log estruturado do resultado da classificação (sem PII) para comparar volume de mismatch antes/depois | P2 | 3h | ☐ |
+| P2.5 | **Observabilidade:** log estruturado do resultado da classificação (sem PII) para comparar volume de mismatch antes/depois | P2 | 3h | ✅ Logger `fin.classification_telemetry` + chamadas em upload/reclassify; ver `classification_telemetry.py` e §9 em [ARCHITECTURE.md](ARCHITECTURE.md) |
 
-**Checkpoint:** contrato único em `document_classification` + ADR-081; paridade nome canônico testada; UI marca incerteza. Próximo: **P2.5** (observabilidade). Detalhes em [ARCHITECTURE.md](ARCHITECTURE.md) §9 e [DECISIONS.md](DECISIONS.md) ADR-081.
+**Checkpoint:** contrato único em `document_classification` + ADR-081; paridade nome canônico testada; UI marca incerteza; **P2.5** observabilidade entregue. Detalhes em [ARCHITECTURE.md](ARCHITECTURE.md) §9 e [DECISIONS.md](DECISIONS.md) ADR-081.
 
 ---
 
@@ -662,8 +663,8 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | #     | Tarefa                                                                                           | Prio | Est. | Status |
 | ----- | ------------------------------------------------------------------------------------------------ | ---- | ---- | ------ |
-| 7D.1  | Gap-fill unit tests (E0, E2/banks, E3, E4, E7 edge cases)                                       | P0   | 10h  | ☐      |
-| 7D.2  | Gap-fill unit tests (E5, E5N, E6 — scripts maiores)                                             | P1   | 12h  | ☐      |
+| 7D.1  | Gap-fill unit tests (E0, E2/banks, E3, E4, E7 edge cases)                                       | P0   | 10h  | ✅ Leva inicial: `tests/test_e0_route_edges.py`, `test_e3_dedup` (período inválido), `test_e4_categorize` (despesa vazia), `tests/test_e7_edges.py`; E2/banks já cobertos por `test_e2_synthetic_pdf_parsers` + goldens |
+| 7D.2  | Gap-fill unit tests (E5, E5N, E6 — scripts maiores)                                             | P1   | 12h  | ✅ Leva inicial: `tests/test_e5_e6_e5n_edges.py` (helpers puros); goldens E5/E5N/E6 existentes continuam como regressão pesada |
 | 7D.3  | Gap-fill API endpoints + services (error paths, DB/Redis down, auth edge, concurrency)           | P0   | 8h   | ☐      |
 | 7D.4  | CI integra frontend tests (Vitest + Playwright da F6.5) no pipeline de deploy                    | P0   | 1h   | ☐      |
 | 7D.5  | Frontend E2E com PostgreSQL prod DB (ajustar fixtures)                                           | P1   | 2h   | ☐      |
@@ -763,31 +764,31 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
-| F11.1a | **Arquitetura de informação:** `/plano`, metas, tarefas e cofre de contexto = eixo **estratégico**; Documentos → Pipeline → Relatório = eixo **operacional do período**. Revisar labels do nav, títulos de página e breadcrumbs para não misturar os dois. | P1 | 6h | ☐ |
-| F11.1b | **Empty states e CTAs:** primeiro uso empurra “gerar primeiro relatório”; usuário com relatório já pode ver CTA secundário para “ajustar metas / plano”. Sem dead-end em `/dashboard` ou `/reports`. | P1 | 4h | ☐ |
-| F11.1c | **Copy guidelines** curtas no `docs/` ou comentário de design: quando falar “mês”, “período”, “projeção” vs “patrimônio alvo”. | P2 | 2h | ☐ |
+| F11.1a | **Arquitetura de informação:** `/plano`, metas, tarefas e cofre de contexto = eixo **estratégico**; Documentos → Pipeline → Relatório = eixo **operacional do período**. Revisar labels do nav, títulos de página e breadcrumbs para não misturar os dois. | P1 | 6h | ✅ Nav agrupado (Plano de vida / Fechamento do período / Conta) em `AppShell.tsx` |
+| F11.1b | **Empty states e CTAs:** primeiro uso empurra “gerar primeiro relatório”; usuário com relatório já pode ver CTA secundário para “ajustar metas / plano”. Sem dead-end em `/dashboard` ou `/reports`. | P1 | 4h | ✅ Links secundários para `/plano` em empty states de Dashboard e Relatórios; copy do dashboard empty ajustada |
+| F11.1c | **Copy guidelines** curtas no `docs/` ou comentário de design: quando falar “mês”, “período”, “projeção” vs “patrimônio alvo”. | P2 | 2h | ✅ [COPY_GUIDELINES.md](COPY_GUIDELINES.md) |
 
 ### F11.2 — Hierarquia de números
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
 | F11.2a | **Auditoria visual:** mesmas regras de `format.ts` aplicadas em Dashboard, Transactions, Report React: alinhamento decimal, `tabular-nums`, escala de eixos Recharts, legenda com unidade. | P1 | 8h | ✅ Sprint B+C: Dashboard (eixos/tooltips); Transactions (data/valor/cabeçalho/paginação); hero do relatório nativo; KPICard/`MonetaryValue` já cobertos — revisão fina por seção/card se necessário |
-| F11.2b | **Prioridade semântica:** KPI primário vs secundário (peso tipográfico / posição); valores derivados claramente subordinados (ex.: variação % sob o principal). | P1 | 4h | ☐ |
+| F11.2b | **Prioridade semântica:** KPI primário vs secundário (peso tipográfico / posição); valores derivados claramente subordinados (ex.: variação % sob o principal). | P1 | 4h | ✅ `KPICard` `emphasis` + hero do relatório (título vs período); delta menor no modo secundário |
 | F11.2c | **Teste de regressão visual** (Playwright ou checklist manual) para dark/light e print. | P2 | 3h | ☐ |
 
 ### F11.3 — Print / PDF como entregável de consultoria
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
-| F11.3a | **Print CSS:** revisão de quebras de página, cabeçalhos repetidos, margens A4, ocultar chrome da app na impressão; numerar páginas se o motor permitir. | P1 | 6h | ☐ |
-| F11.3b | **Export PDF server-side (Playwright):** validar que tipografia e cores ficam “apresentáveis” para terceiros; capa com período e sobrenome da família consistente. | P1 | 4h | ☐ |
-| F11.3c | **Checklist de QA** em [SMOKE_TEST.md](SMOKE_TEST.md) ou seção dedicada: “entrega impressa/PDF” (mínimo 5 itens). | P2 | 2h | ☐ |
+| F11.3a | **Print CSS:** revisão de quebras de página, cabeçalhos repetidos, margens A4, ocultar chrome da app na impressão; numerar páginas se o motor permitir. | P1 | 6h | ✅ Margens A4 numa única `@page`; `orphans`/`widows`; removido `@bottom-center` (suporte irregular); `?print=1` → `html[data-print-route]` |
+| F11.3b | **Export PDF server-side (Playwright):** validar que tipografia e cores ficam “apresentáveis” para terceiros; capa com período e sobrenome da família consistente. | P1 | 4h | ✅ `render_pdf` espera `[data-report-ready]` antes do `page.pdf()` (hero visível); checklist §5.1 |
+| F11.3c | **Checklist de QA** em [SMOKE_TEST.md](SMOKE_TEST.md) ou seção dedicada: “entrega impressa/PDF” (mínimo 5 itens). | P2 | 2h | ✅ §5.1 em SMOKE_TEST + itens Cmd+K / `?` em Auth |
 
 ### F11.4 — Transparência na UI: origem da informação
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
-| F11.4a | **Modelo de dados / API:** expor por bloco ou seção (ou agregado no JSON do relatório) referência a: `document_id`(s), período, run_id opcional — sem vazar dados entre workspaces. | P1 | 10h | 🚧 Sprint C: `pipeline_run_id` em `ReportResponse` + faixa do relatório + `/pipeline?run=` (scroll); próximo: IDs de documento / linhagem por seção no JSON ou metadados |
+| F11.4a | **Modelo de dados / API:** expor por bloco ou seção (ou agregado no JSON do relatório) referência a: `document_id`(s), período, run_id opcional — sem vazar dados entre workspaces. | P1 | 10h | ✅ Agregado: `source_document_count` / `source_document_ids` na API + `_report_lineage` em GET `/data`; linhagem por bloco no JSON fica como evolução futura |
 | F11.4b | **UI:** componente discreto “Fonte” / “Origem” (tooltip ou linha secundária): ex. “Extrato Itaú · jan/2026 · run `abc…`”. | P1 | 8h | ✅ Sprint B: `ReportSourceStrip` abaixo do header do relatório (links Documentos + Pipeline; período snapshot + gerado em) |
 | F11.4c | **Fallback:** quando dado for agregado de várias fontes, texto explícito “Consolidado de N documentos”. | P1 | 3h | ✅ Sprint B: copy “consolidados a partir dos documentos…” na faixa de origem |
 
@@ -803,25 +804,25 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
-| F11.6a | **Metas (Goals):** versão de premissas por tipo (IF, aporte, dólar, alocação): taxa, inflação, horizonte, data de vigência; exibir no wizard e na visualização. | P1 | 10h | ☐ |
-| F11.6b | **Snapshot de relatório:** quando números dependerem de premissas, gravar referência (versão goal ou blob JSON mínimo) para comparação mês a mês. | P1 | 8h | ☐ |
-| F11.6c | **Relatório UI:** bloco opcional “Premissas deste relatório” (colapsável). | P2 | 4h | ☐ |
+| F11.6a | **Metas (Goals):** versão de premissas por tipo (IF, aporte, dólar, alocação): taxa, inflação, horizonte, data de vigência; exibir no wizard e na visualização. | P1 | 10h | ✅ `GoalPremissasCard` + `goalPremissas.ts` em todos os wizards e formulários `/plano/*`; API expõe `meta_version` em `GET`/`PUT` goals; teste `tests/lib/goalPremissas.test.ts` |
+| F11.6b | **Snapshot de relatório:** quando números dependerem de premissas, gravar referência (versão goal ou blob JSON mínimo) para comparação mês a mês. | P1 | 8h | ✅ Coluna `reports.premissas_snapshot_json` + `build_premissas_snapshot_sync` (SHA-256 de `config/goals.json` + metas `effective_to IS NULL`); pipeline preenche em `_create_report_from_output`; API `ReportResponse.premissas_snapshot` + merge em `goals.premissas_snapshot` no GET `/data`; testes `backend/tests/test_premissas_snapshot.py`, `test_reports` |
+| F11.6c | **Relatório UI:** bloco opcional “Premissas deste relatório” (colapsável). | P2 | 4h | ✅ `ReportPremissasBlock` (snapshot opcional `goals.premissas_snapshot` se existir) |
 
 ### F11.7 — Ligação explícita entre número e regra
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
-| F11.7a | **Catálogo de fórmulas** relevantes (FV anuidade, etc.): texto curto + referência ao código ou doc (`compute_if_derived`, E5). | P1 | 6h | ☐ |
-| F11.7b | **UI:** tooltip ou painel “Como calculamos” a partir de KPIs principais e metas; link para glossário. | P1 | 8h | ☐ |
-| F11.7c | **Testes:** golden ou snapshot garante que o número exibido bate com o motor para casos fixos. | P1 | 4h | ☐ |
+| F11.7a | **Catálogo de fórmulas** relevantes (FV anuidade, etc.): texto curto + referência ao código ou doc (`compute_if_derived`, E5). | P1 | 6h | ✅ [FORMULAS.md](FORMULAS.md) + `reportFormulas.ts` |
+| F11.7b | **UI:** tooltip ou painel “Como calculamos” a partir de KPIs principais e metas; link para glossário. | P1 | 8h | ✅ Bloco premissas + glossário expansível no relatório nativo |
+| F11.7c | **Testes:** golden ou snapshot garante que o número exibido bate com o motor para casos fixos. | P1 | 4h | 🚧 Smoke vitest do catálogo (`tests/lib/reportFormulas.test.ts`); golden motor ↔ UI deferido |
 
 ### F11.8 — Command palette / atalhos
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
-| F11.8a | **Command palette** (`cmdk` ou lib alinhada ao DS): buscar páginas, ir para Documentos, Pipeline, Relatórios, Config, Plano. | P2 | 10h | ☐ |
-| F11.8b | **Atalhos globais** documentados (modal `?` ou página ajuda): ex. `G` + letra para navegação, evitando conflito com inputs. | P2 | 6h | ☐ |
-| F11.8c | **A11y:** palette focável por teclado, `aria` em resultados. | P2 | 3h | ☐ |
+| F11.8a | **Command palette** (`cmdk` ou lib alinhada ao DS): buscar páginas, ir para Documentos, Pipeline, Relatórios, Config, Plano. | P2 | 10h | ✅ `CommandPalette.tsx` + `cmdk` |
+| F11.8b | **Atalhos globais** documentados (modal `?` ou página ajuda): ex. `G` + letra para navegação, evitando conflito com inputs. | P2 | 6h | ✅ Modal **?** (fora de inputs) + **⌘K** / Ctrl+K |
+| F11.8c | **A11y:** palette focável por teclado, `aria` em resultados. | P2 | 3h | ✅ `Command` label + lista cmdk (refinar com auditoria dedicada) |
 
 **Checkpoint F11:** usuário entende **de onde vem** o número; sabe quando **confiar** no dado vs revisar; relatório **impresso/PDF** passa checklist de consultoria; navegação separa **plano de vida** de **fechamento do mês**; hierarquia tipográfica consistente; command palette opcional para power users.
 

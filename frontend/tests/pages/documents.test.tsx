@@ -23,10 +23,12 @@ beforeEach(() => {
   localStorage.setItem("fin_token", "t");
 });
 
+const WS_DOCUMENTS = "/api/workspaces/:workspaceId/documents";
+
 describe("DocumentsPage", () => {
   it("renderiza header + drop zone", async () => {
     server.use(
-      http.get("/api/documents", () =>
+      http.get(WS_DOCUMENTS, () =>
         HttpResponse.json({ documents: [], total: 0 }),
       ),
     );
@@ -36,14 +38,14 @@ describe("DocumentsPage", () => {
   });
 
   it("loading: spinner enquanto carrega", () => {
-    server.use(http.get("/api/documents", () => new Promise(() => {})));
+    server.use(http.get(WS_DOCUMENTS, () => new Promise(() => {})));
     const { container } = render(<DocumentsPage />);
     expect(container.querySelector("svg.animate-spin")).toBeInTheDocument();
   });
 
   it("empty state com CTA 'Enviar documentos' (F6.5D.12)", async () => {
     server.use(
-      http.get("/api/documents", () =>
+      http.get(WS_DOCUMENTS, () =>
         HttpResponse.json({ documents: [], total: 0 }),
       ),
     );
@@ -54,7 +56,7 @@ describe("DocumentsPage", () => {
 
   it("renderiza tabela com documentos", async () => {
     server.use(
-      http.get("/api/documents", () =>
+      http.get(WS_DOCUMENTS, () =>
         HttpResponse.json({
           documents: [
             makeDocument({ original_name: "extrato_jan.pdf", status: "ready" }),
@@ -74,7 +76,7 @@ describe("DocumentsPage", () => {
 
   it("banner needs_password aparece quando há docs bloqueados", async () => {
     server.use(
-      http.get("/api/documents", () =>
+      http.get(WS_DOCUMENTS, () =>
         HttpResponse.json({
           documents: [makeDocument({ status: "needs_password" })],
           total: 1,
@@ -88,7 +90,7 @@ describe("DocumentsPage", () => {
 
   it("erro 500 ao listar mostra mensagem", async () => {
     server.use(
-      http.get("/api/documents", () =>
+      http.get(WS_DOCUMENTS, () =>
         HttpResponse.json({ detail: "x" }, { status: 500 }),
       ),
     );
@@ -96,9 +98,34 @@ describe("DocumentsPage", () => {
     expect(await screen.findByText(/Erro ao carregar documentos/)).toBeInTheDocument();
   });
 
+  it("classificação incerta: contador, filtro e ícone (sem link duplicado)", async () => {
+    server.use(
+      http.get(WS_DOCUMENTS, () =>
+        HttpResponse.json({
+          documents: [
+            makeDocument({ status: "ready", needs_review: true }),
+            makeDocument({
+              original_name: "outro.pdf",
+              status: "ready",
+              classification_confidence: 0.99,
+            }),
+          ],
+          total: 2,
+        }),
+      ),
+    );
+    render(<DocumentsPage />);
+    expect(await screen.findByText(/revisão da classificação/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Mostrar só estes/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Classificação incerta — edite tipo e instituição/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Corrigir tipo e instituição/)).not.toBeInTheDocument();
+  });
+
   it("CTA 'Gerar Relatório' aparece quando há docs ready", async () => {
     server.use(
-      http.get("/api/documents", () =>
+      http.get(WS_DOCUMENTS, () =>
         HttpResponse.json({
           documents: [
             makeDocument({ status: "ready" }),
@@ -116,7 +143,7 @@ describe("DocumentsPage", () => {
   it("delete: abre confirm dialog e remove ao confirmar", async () => {
     let deleted = false;
     server.use(
-      http.get("/api/documents", () =>
+      http.get(WS_DOCUMENTS, () =>
         HttpResponse.json({
           documents: deleted
             ? []
@@ -124,7 +151,7 @@ describe("DocumentsPage", () => {
           total: deleted ? 0 : 1,
         }),
       ),
-      http.delete("/api/documents/:id", () => {
+      http.delete("/api/workspaces/:workspaceId/documents/:id", () => {
         deleted = true;
         return new HttpResponse(null, { status: 204 });
       }),

@@ -163,7 +163,13 @@ async def upload_documents(
             continue
 
         try:
-            result = process_uploaded_document(stored_path, passwords, config_dir, tenant_root=tenant_root)
+            result = process_uploaded_document(
+                stored_path,
+                passwords,
+                config_dir,
+                tenant_root=tenant_root,
+                workspace_id=workspace.id,
+            )
             doc.status = result["status"]
             doc.doc_type = result["doc_type"]
             doc.bank_code = result["bank_code"]
@@ -259,10 +265,17 @@ async def list_documents(
     query = select(Document).where(Document.workspace_id == workspace.id)
 
     if status_filter:
-        # Do not use DocumentStatus(status_filter): _missing_ maps unknown strings to ``error``.
-        if status_filter not in {m.value for m in DocumentStatus}:
-            raise HTTPException(status_code=400, detail=f"Status inválido: {status_filter}")
-        query = query.where(Document.status == status_filter)
+        # Suporta um valor ou lista separada por vírgula: ``status=ready,processed``.
+        parts = [p.strip() for p in status_filter.split(",") if p.strip()]
+        allowed = {m.value for m in DocumentStatus}
+        for p in parts:
+            if p not in allowed:
+                raise HTTPException(status_code=400, detail=f"Status inválido: {p}")
+        statuses = [DocumentStatus(p) for p in parts]
+        if len(statuses) == 1:
+            query = query.where(Document.status == statuses[0])
+        else:
+            query = query.where(Document.status.in_(statuses))
 
     if doc_type_filter:
         try:
@@ -438,7 +451,11 @@ async def retry_unlock(
 
         try:
             proc_result = process_uploaded_document(
-                abs_doc, passwords, config_dir, tenant_root=tenant_root
+                abs_doc,
+                passwords,
+                config_dir,
+                tenant_root=tenant_root,
+                workspace_id=workspace.id,
             )
             doc.status = proc_result["status"]
             doc.doc_type = proc_result["doc_type"]
@@ -549,6 +566,7 @@ async def reclassify_documents(
     """
     import asyncio
     from functools import partial
+    from backend.app.services.classification_telemetry import emit_classification_outcome
     from backend.app.services.document_classification import (
         classify_document,
         classification_can_route_to_data,
@@ -593,6 +611,7 @@ async def reclassify_documents(
             continue
 
         try:
+            prior_type = doc.doc_type
             # JSON members/baseline: classify by structure (sync, fast)
             if abs_path.suffix.lower() == ".json":
                 json_type = _detect_json_type(abs_path)
@@ -601,6 +620,18 @@ async def reclassify_documents(
                     doc.classification_confidence = 1.0
                     doc.needs_review = False
                     doc.classification_meta = {"source": "json_structure", "reclassified": True}
+                    emit_classification_outcome(
+                        context="reclassify",
+                        classification={
+                            "doc_type": json_type,
+                            "confidence": 1.0,
+                            "needs_review": False,
+                            "classification_meta": doc.classification_meta,
+                        },
+                        workspace_id=workspace.id,
+                        prior_doc_type=prior_type,
+                        outcome="json_structure",
+                    )
                     n_updated += 1
                 else:
                     n_skipped += 1
@@ -610,6 +641,13 @@ async def reclassify_documents(
             # Same classifier + routing gate as upload and E0-route (pipeline).
             clf = await loop.run_in_executor(
                 None, partial(classify_document, abs_path, classification_base)
+            )
+            emit_classification_outcome(
+                context="reclassify",
+                classification=clf,
+                workspace_id=workspace.id,
+                prior_doc_type=prior_type,
+                outcome="classified",
             )
             doc.doc_type = clf["doc_type"]
             doc.bank_code = clf["bank_code"]

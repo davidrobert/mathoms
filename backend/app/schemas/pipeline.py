@@ -89,6 +89,7 @@ class PipelineRunResponse(BaseModel):
     started_at: datetime
     completed_at: Optional[datetime] = None
     stage_logs: list[PipelineStageLogResponse] = []
+    report_id: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

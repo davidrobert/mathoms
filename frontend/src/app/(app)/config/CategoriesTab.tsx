@@ -25,6 +25,11 @@ import type { UserWorkspace } from "@/lib/api";
 
 export default function CategoriesTab() {
   const { workspace } = useWorkspace();
+  if (!workspace) return null;
+  return <CategoriesTabContent workspace={workspace} />;
+}
+
+function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -37,7 +42,6 @@ export default function CategoriesTab() {
   const [reclassifyStatus, setReclassifyStatus] = useState<"idle" | "success" | "conflict" | "error">("idle");
 
   const reload = useCallback(async () => {
-    if (!workspace) return;
     try {
       const data = await listCategories(workspace.id);
       setCategories(data.categories);
@@ -46,15 +50,11 @@ export default function CategoriesTab() {
     } finally {
       setLoading(false);
     }
-  }, [workspace]);
+  }, [workspace.id]);
 
-  useEffect(() => { reload(); }, [reload]);
-
-  if (!workspace) return null;
-  return <CategoriesTabContent workspace={workspace} />;
-}
-
-function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
+  useEffect(() => {
+    reload();
+  }, [reload]);
 
   const filtered = categories.filter(
     (c) => filter === "all" || c.category_type === filter

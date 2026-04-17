@@ -9,10 +9,11 @@
  */
 
 @media print {
-  /* ────── Page setup ────── */
+  /* ────── Page setup (uma única regra @page — duplicar sobrescreve margens) ────── */
   @page {
     size: A4 portrait;
     margin: 15mm 12mm 15mm 12mm;
+    /* Numeradores em @page têm suporte irregular; margens A4 ficam alinhadas ao page.pdf() do backend. */
   }
 
   /* ────── Hide shell chrome ────── */
@@ -43,6 +44,12 @@
   }
   [data-report-section]:first-of-type {
     break-before: avoid;
+  }
+
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
   }
 
   /* ────── Charts — SVG prints natively ────── */
@@ -93,15 +100,5 @@
   /* ────── Progress bars render as filled ────── */
   [role="progressbar"] > div {
     -webkit-print-color-adjust: exact !important;
-  }
-
-  /* ────── Footer with page numbers (optional, browser-dependent) ────── */
-  @page {
-    @bottom-center {
-      content: counter(page) " / " counter(pages);
-      font-family: 'Inter', sans-serif;
-      font-size: 8pt;
-      color: #666;
-    }
   }
 }

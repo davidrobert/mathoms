@@ -36,6 +36,7 @@ import {
   type IFGoalDerived,
 } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
 
 const DEFAULT_INPUTS: IFGoalInputs = {
@@ -167,6 +168,14 @@ export default function MetaIFWizardPage() {
           />
         ))}
       </div>
+
+      <GoalPremissasCard
+        className="mb-4"
+        kind="if"
+        mode="draft"
+        inputs={inputs}
+        derived={derived}
+      />
 
       <Card>
         <CardContent className="py-6">

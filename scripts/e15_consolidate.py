@@ -28,10 +28,12 @@ from pathlib import Path
 from datetime import date
 from typing import Any, Dict, List, Optional, Tuple
 
+import scripts.pipeline_common as _pc
+
 # ============================================================================
 # Constants — re-inicializáveis via _init_config()
 # ============================================================================
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+_DEFAULT_BASE_DIR = _pc._REPO_ROOT
 
 
 def _load_json_config(path: Path) -> dict:
@@ -58,7 +60,7 @@ def _init_config(base_dir: Path) -> None:
     _IMOVEL_MATCH_KEYWORDS = _FAMILY.get("imovel_match_keywords", [])
 
 
-_init_config(_DEFAULT_BASE_DIR)
+_init_config(_pc.PROJECT_DIR)
 
 # IRPF grupo → categoria
 GRUPO_MAP = {

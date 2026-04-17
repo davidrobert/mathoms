@@ -28,6 +28,7 @@ import {
   type DolarGoalComputeResponse,
 } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
 
 const USD_PRESETS = [10000, 20000, 50000, 100000];
@@ -129,6 +130,15 @@ export default function DolarizacaoWizardPage() {
           />
         ))}
       </div>
+
+      <GoalPremissasCard
+        className="mb-4"
+        kind="dolar"
+        mode="draft"
+        inputs={{ meta_usd: metaUsd, aporte_mensal_brl: aporteBrl }}
+        derived={computed?.derived ?? null}
+        cambioUtilizado={computed?.cambio_utilizado ?? null}
+      />
 
       <Card>
         <CardContent className="py-6">

@@ -33,21 +33,23 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# =============================================================================
-# Paths — all relative to project root, no hardcoded absolute paths
-# =============================================================================
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+import scripts.pipeline_common as _pc
 
-PROJECT_DIR = _DEFAULT_BASE_DIR
-E5_JSON_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-METHODOLOGY_PATH = PROJECT_DIR / "config" / "methodology.md"
-DEFINITIONS_PATH = PROJECT_DIR / "config" / "definitions.md"
-FAMILY_CONFIG_PATH = PROJECT_DIR / "config" / "family_members.json"
-SCORING_CONFIG_PATH = PROJECT_DIR / "config" / "scoring.json"
-PIPELINE_CONFIG_PATH = PROJECT_DIR / "config" / "pipeline.json"
-REPORT_SPEC_PATH = PROJECT_DIR / "config" / "report_spec.md"
-OUTPUT_DIR = PROJECT_DIR / "output"
-REVIEW_TEMPLATE_PATH = PROJECT_DIR / "processed" / "E7_review" / "e7_review_template.json"
+# =============================================================================
+# Paths — all relative to workspace root (FIN_WORKSPACE_ROOT)
+# =============================================================================
+_DEFAULT_BASE_DIR = _pc._REPO_ROOT
+
+PROJECT_DIR: Path
+E5_JSON_PATH: Path
+METHODOLOGY_PATH: Path
+DEFINITIONS_PATH: Path
+FAMILY_CONFIG_PATH: Path
+SCORING_CONFIG_PATH: Path
+PIPELINE_CONFIG_PATH: Path
+REPORT_SPEC_PATH: Path
+OUTPUT_DIR: Path
+REVIEW_TEMPLATE_PATH: Path
 
 def _load_json_config(path: Path) -> dict:
     if path.exists():
@@ -79,7 +81,7 @@ def _init_config(base_dir: Path) -> None:
     _QA_THRESHOLDS = _PIPELINE_CONFIG.get("qa_thresholds", {})
 
 
-_init_config(_DEFAULT_BASE_DIR)
+_init_config(_pc.PROJECT_DIR)
 
 # =============================================================================
 # Data loading — everything from files, nothing hardcoded

@@ -34,7 +34,7 @@ except ImportError:
 # LOAD CONFIGURATION FROM JSON FILES
 # ============================================================================
 
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent if _pc is None else _pc._REPO_ROOT
 
 
 def _load_json_config_from(config_dir: Path, filename: str) -> dict:
@@ -84,7 +84,10 @@ def _init_config(base_dir: Path) -> None:
 
 
 # Module level: carrega defaults (retrocompat com import e CLI direto)
-_init_config(_DEFAULT_BASE_DIR)
+if _pc is not None:
+    _init_config(_pc.PROJECT_DIR)
+else:
+    _init_config(_DEFAULT_BASE_DIR)
 
 
 # NOTE: All keyword data, transfer patterns, PJ/CLT mappings, and transfer
@@ -294,8 +297,8 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
             if not posicoes:
                 continue
 
-            instituicao = data.get("instituicao", data.get("banco", ""))
-            membro = data.get("membro", "").lower()
+            instituicao = data.get("instituicao") or data.get("banco") or ""
+            membro = (data.get("membro") or "").lower()
             if not membro and instituicao:
                 inst_key = instituicao.lower().replace(" ", "")
                 membro = BANCO_MEMBRO.get(inst_key, "")
@@ -315,7 +318,7 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
     # Phase 2: Deduplicate — keep only the most recent extract per (institution, member)
     best_by_key: Dict[str, Dict] = {}
     for cand in candidates:
-        key = (cand["instituicao"].lower().strip(), cand["membro"])
+        key = ((cand["instituicao"] or "").lower().strip(), cand["membro"])
         existing = best_by_key.get(key)
         if existing is None:
             best_by_key[key] = cand

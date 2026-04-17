@@ -69,7 +69,7 @@ def _init_config(base_dir: Path) -> None:
     ]
 
 
-_init_config(_DEFAULT_BASE_DIR)
+_init_config(_pc.PROJECT_DIR)
 
 
 def _discover_dest_dirs() -> list:

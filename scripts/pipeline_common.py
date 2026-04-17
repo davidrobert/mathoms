@@ -6,10 +6,14 @@ Pipeline Common — shared utilities for all pipeline stages (E0–E7).
 Consolidates config loading, path resolution, JSON I/O, and logging
 that was previously duplicated across each eN_*.py script.
 
-**Layout de paths:** por omissão, ``PROJECT_DIR`` é a raiz do repositório
-(``data/``, ``processed/``, …). No produto web, :func:`_init_config` é chamado
-com a raiz do tenant (``storage/<workspace_id>/``); a mesma árvore de pastas,
-com ``config/`` materializado pelo backend.
+**Layout de paths (Fase 2 — strict):** a raiz do workspace **não** é mais
+implícita na raiz do repositório. É obrigatório definir a variável de ambiente
+``FIN_WORKSPACE_ROOT`` para um diretório que contenha ``config/``, ``data/``,
+``inbox/``, etc. (tipicamente ``storage/<workspace_id>/``). Os pontos de entrada
+(``backend.app.main``, workers, ``pytest`` conftests, ``pipeline.run_dev``)
+fazem ``setdefault`` para a raiz do repo **apenas** para carregar configs
+partilhados em desenvolvimento; para pipeline sobre um tenant real, use
+``export`` ou ``--root`` (ver docs/SETUP.md).
 
 Usage:
     from scripts.pipeline_common import (
@@ -49,7 +53,9 @@ if not _logger.handlers:
 # =============================================================================
 # Paths — re-inicializáveis via _init_config()
 # =============================================================================
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+# Alias legado (testes, restore): raiz do repositório — não usar como tenant.
+_DEFAULT_BASE_DIR = _REPO_ROOT
 
 # =============================================================================
 # Config loading
@@ -80,7 +86,38 @@ def _init_config(base_dir: Path) -> None:
     _config_cache.clear()
 
 
-_init_config(_DEFAULT_BASE_DIR)
+_FIN_WORKSPACE_ROOT_ERR = """\
+error: FIN_WORKSPACE_ROOT is not set.
+
+It must point to a workspace (tenant) root containing config/, data/, inbox/, …
+Example:
+  export FIN_WORKSPACE_ROOT="$PWD/storage/<workspace_id>"
+
+Offline runner:
+  python -m pipeline.run_dev --root /path/to/tenant
+
+See docs/SETUP.md (FIN_WORKSPACE_ROOT).
+"""
+
+
+def init_workspace_paths_from_env() -> None:
+    """Initialise ``PROJECT_DIR`` / ``DATA_DIR`` / … from ``FIN_WORKSPACE_ROOT``.
+
+    Exits the process with code 2 if unset or not a directory (strict — no
+    implicit repository ``data/``).
+    """
+    raw = (os.environ.get("FIN_WORKSPACE_ROOT") or "").strip()
+    if not raw:
+        sys.stderr.write(_FIN_WORKSPACE_ROOT_ERR)
+        raise SystemExit(2)
+    p = Path(raw).expanduser().resolve()
+    if not p.is_dir():
+        sys.stderr.write(f"error: FIN_WORKSPACE_ROOT is not a directory: {p}\n")
+        raise SystemExit(2)
+    _init_config(p)
+
+
+init_workspace_paths_from_env()
 
 
 def load_json_config(name: str, *, required: bool = False) -> dict:

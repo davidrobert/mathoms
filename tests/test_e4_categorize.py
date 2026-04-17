@@ -82,3 +82,8 @@ class TestCategorizeExpense:
     def test_returns_string_or_none(self):
         result = categorize_expense("RANDOM DEBIT")
         assert result is None or isinstance(result, str)
+
+    def test_empty_description(self):
+        """Entrada vazia não deve levantar (7D.1)."""
+        r = categorize_expense("")
+        assert r is None or isinstance(r, str)

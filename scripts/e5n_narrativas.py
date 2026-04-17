@@ -9,8 +9,10 @@ import json
 import re
 from pathlib import Path
 
+import scripts.pipeline_common as _pc
+
 # Configuration — paths e config re-inicializáveis via _init_config()
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+_DEFAULT_BASE_DIR = _pc._REPO_ROOT
 
 
 def _load_json_safe(path: Path) -> dict:
@@ -64,7 +66,7 @@ def _init_config(base_dir: Path) -> None:
     _KEY_CENARIOS_SECTION = f"{_CONJUGE_KEY}_cenarios"
 
 
-_init_config(_DEFAULT_BASE_DIR)
+_init_config(_pc.PROJECT_DIR)
 
 
 def _load_fiscal():

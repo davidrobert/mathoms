@@ -33,7 +33,7 @@ import scripts.pipeline_common as _pc
 # Configuration & Types
 # =============================================================================
 
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent
+_DEFAULT_BASE_DIR = _pc._REPO_ROOT
 
 
 def _load_json_safe(path: Path) -> dict:
@@ -96,7 +96,7 @@ def _init_config(base_dir: Path) -> None:
 
 
 # Module level: carrega defaults (retrocompat com import e CLI direto)
-_init_config(_DEFAULT_BASE_DIR)
+_init_config(_pc.PROJECT_DIR)
 
 
 # =============================================================================
@@ -254,8 +254,8 @@ def get_account_key(data: Dict[str, Any]) -> Optional[Tuple]:
     (e.g., extratocontapersonnalite → extratoconta) so that overlapping
     extracts from the same bank account are grouped and deduplicated.
     """
-    banco = data.get('banco', data.get('instituicao', '')).strip()
-    tipo = data.get('tipo', '').strip()
+    banco = (data.get('banco') or data.get('instituicao') or '').strip()
+    tipo = (data.get('tipo') or '').strip()
 
     if not banco or not tipo:
         return None
@@ -268,12 +268,12 @@ def get_account_key(data: Dict[str, Any]) -> Optional[Tuple]:
         return (banco, tipo_normalized)
 
     # Conta types group by (banco, tipo, moeda)
-    moeda = data.get('moeda', '').strip()
+    moeda = (data.get('moeda') or '').strip()
     if not moeda:
         # Also check nested conta.moeda
         conta = data.get('conta', {})
         if isinstance(conta, dict):
-            moeda = conta.get('moeda', 'BRL').strip()
+            moeda = (conta.get('moeda') or 'BRL').strip()
         else:
             moeda = 'BRL'
     return (banco, tipo_normalized, moeda)
@@ -402,7 +402,7 @@ def transaction_signature(txn: Dict[str, Any]) -> Tuple:
     Create a normalized signature for deduplication.
     Signature = (data, valor_rounded, descricao_normalized)
     """
-    data = txn.get('data', '').strip()
+    data = (txn.get('data') or '').strip()
     valor = txn.get('valor', 0)
     if isinstance(valor, float):
         valor = round(valor, 2)
@@ -585,7 +585,7 @@ def validate_against_baseline(
         for conta in contas:
             if not isinstance(conta, dict):
                 continue
-            banco = conta.get('banco', conta.get('banco_origem', '')).strip().lower()
+            banco = (conta.get('banco') or conta.get('banco_origem') or '').strip().lower()
             saldo = conta.get('saldo_31_12', conta.get('saldo_31_12_ano_base'))
             ano_base = conta.get('ano_base', '')
 
@@ -605,7 +605,7 @@ def validate_against_baseline(
 
     # Check each reconciled account for transactions around 31/12 dates
     for account in reconciled_accounts:
-        banco = account.get('banco', '').strip().lower()
+        banco = (account.get('banco') or '').strip().lower()
         tipo = account.get('tipo_conta', '')
         periodo = account.get('periodo_cobertura', {})
         inicio = periodo.get('inicio', '')
@@ -694,7 +694,7 @@ def load_and_group_e2_extracts(e2_dir: Path) -> Tuple[Dict, List[Tuple]]:
 
         # Faturas have data_vencimento instead of periodo — synthesize periodo
         if 'periodo' not in data and data.get('tipo', '').startswith('fatura'):
-            venc = data.get('data_vencimento', '').strip()
+            venc = (data.get('data_vencimento') or '').strip()
 
             # (#10) Explicit logging for faturas without data_vencimento
             if not venc:
@@ -836,16 +836,16 @@ def reconcile_account(
 
     # Collect metadata from first file
     first_path, first_data = sorted_group[0]
-    banco = first_data.get('banco', first_data.get('instituicao', '')).strip()
-    tipo = first_data.get('tipo', '').strip()
+    banco = (first_data.get('banco') or first_data.get('instituicao') or '').strip()
+    tipo = (first_data.get('tipo') or '').strip()
     # Normalize tipo using config equivalences (same as get_account_key)
     tipo = ACCOUNT_TYPE_EQUIVALENCES.get(tipo, tipo)
     # v2.1: Use same moeda resolution as get_account_key() — check conta.moeda fallback
-    moeda = first_data.get('moeda', '').strip()
+    moeda = (first_data.get('moeda') or '').strip()
     if not moeda:
         conta = first_data.get('conta', {})
         if isinstance(conta, dict):
-            moeda = conta.get('moeda', '').strip()
+            moeda = (conta.get('moeda') or '').strip()
     if not moeda:
         log_progress("E3.3", f"[WARN] moeda ausente em {first_path.name}, usando default BRL")
         moeda = 'BRL'
@@ -936,7 +936,7 @@ def generate_output_filename(reconciled: Dict[str, Any]) -> str:
     For conta types: {banco}_{tipo_conta}_{moeda}_{YYYYMM}_{YYYYMM}-3_reconciled.json
     For fatura types: {banco}_{tipo_conta}_{YYYYMM}_{YYYYMM}-3_reconciled.json
     """
-    banco_raw = reconciled['banco'].strip()
+    banco_raw = (reconciled.get('banco') or '').strip()
     banco = _BANCO_DISPLAY_TO_CANONICAL.get(banco_raw.lower(), banco_raw.lower().replace(' ', ''))
     tipo_conta = reconciled['tipo_conta'].lower()
     moeda = reconciled['moeda'].upper()

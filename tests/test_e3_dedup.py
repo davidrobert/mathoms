@@ -131,3 +131,10 @@ class TestNormalizePeriodo:
         normalize_periodo_in_extract(d)
         assert d["periodo"]["inicio"] == "2024-06-15"
         assert d["periodo"]["fim"] == "2024-06-15"
+
+    def test_invalid_yyyymm_month_coerces_empty_range(self):
+        """YYYYMM com mês inválido → inicio/fim vazios (7D.1)."""
+        d = {"periodo": "202613", "transacoes": []}
+        normalize_periodo_in_extract(d)
+        assert d["periodo"]["inicio"] == ""
+        assert d["periodo"]["fim"] == ""

@@ -27,8 +27,13 @@ export interface ReportResponse {
   created_at: string;
   /** F11.4a — execução do pipeline que gerou o snapshot (se houver). */
   pipeline_run_id: string | null;
+  /** F11.4a — documentos prontos no workspace (agregado; IDs truncados no backend). */
+  source_document_count: number;
+  source_document_ids: string[];
   /** F9 · ADR-076 — true se o relatório tem JSON de análise p/ render nativo. */
   has_analysis_data: boolean;
+  /** F11.6b — snapshot de premissas (hash goals.json + metas ativas) na geração. */
+  premissas_snapshot?: Record<string, unknown> | null;
 }
 
 export interface ReportListResponse {
@@ -43,6 +48,12 @@ export interface ReportListResponse {
  * fase (F0.5) expomos shape parcial + fallback `Record<string, unknown>`.
  */
 export interface ReportAnalysisData {
+  /** F11.4a — injetado pelo GET /reports/{id}/data (não faz parte do E5 legado). */
+  _report_lineage?: {
+    pipeline_run_id: string | null;
+    source_document_count: number;
+    source_document_ids: string[];
+  };
   periodo_dados?: string;
   data_analise?: string;
   patrimonio?: Record<string, unknown>;
@@ -189,6 +200,7 @@ export interface PipelineRunResponse {
   started_at: string;
   completed_at: string | null;
   stage_logs: PipelineStageLog[];
+  report_id: string | null;
 }
 
 export interface PipelineRunListResponse {
@@ -420,11 +432,14 @@ export async function uploadDocuments(
 
 export async function listDocuments(
   workspaceId: string,
-  statusFilter?: DocumentStatus,
+  statusFilter?: DocumentStatus | DocumentStatus[],
   docTypeFilter?: DocumentType
 ): Promise<DocumentListResponse> {
   const params = new URLSearchParams();
-  if (statusFilter) params.set("status", statusFilter);
+  if (statusFilter) {
+    const s = Array.isArray(statusFilter) ? statusFilter.join(",") : statusFilter;
+    params.set("status", s);
+  }
   if (docTypeFilter) params.set("doc_type", docTypeFilter);
   const qs = params.toString();
   return apiFetch(`/workspaces/${workspaceId}/documents${qs ? `?${qs}` : ""}`);
@@ -1152,6 +1167,8 @@ export interface IFGoalResponse {
   id: string;
   workspace_id: string;
   type: "INDEPENDENCIA_FINANCEIRA";
+  /** Schema canônico (`config/schemas/goal.if.schema.json`). */
+  meta_version: number;
   inputs: IFGoalInputs;
   derived: IFGoalDerived;
   effective_from: string;
@@ -1234,6 +1251,7 @@ export interface AporteGoalResponse {
   id: string;
   workspace_id: string;
   type: "APORTE_MENSAL";
+  meta_version: number;
   inputs: AporteGoalInputs;
   derived: AporteGoalDerived;
   effective_from: string;
@@ -1305,6 +1323,7 @@ export interface DolarGoalResponse {
   id: string;
   workspace_id: string;
   type: "DOLARIZACAO";
+  meta_version: number;
   inputs: DolarGoalInputs;
   derived: DolarGoalDerived;
   effective_from: string;
@@ -1383,6 +1402,7 @@ export interface AlocacaoGoalResponse {
   id: string;
   workspace_id: string;
   type: "ALOCACAO_ALVO";
+  meta_version: number;
   inputs: AlocacaoGoalInputs;
   derived: AlocacaoGoalDerived;
   effective_from: string;

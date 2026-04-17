@@ -15,14 +15,20 @@ Diferença conceitual:
 
 ## Dados no disco (o que os hooks bloqueiam)
 
-- **`storage/`** na raiz do repo — árvore **multi-tenant** do backend
-  (``storage/<workspace_id>/data/…``, ``inbox/``, ``processed/``, …). Nunca
-  versionar: contém PDFs e artefatos por workspace.
-- **`data/`**, **`inbox/`**, **`inbox_processed/`** na raiz — fluxo **CLI**
-  single-tenant (pipeline legado em ``scripts/``), também ignorados pelo git.
+- **`storage/`** na raiz do repo — árvore **multi-tenant** do produto
+  (`storage/<workspace_id>/` com `inbox/`, `data/`, `processed/`, `output/`,
+  `members/`, `logs/`, `config/` materializado, etc.). Nunca versionar: PDFs e
+  artefatos por workspace.
+- **`data/`**, **`inbox/`**, **`inbox_processed/`** (e pastas irmãs como
+  **`processed/`**, **`output/`**, **`logs/`**, **`members/`**, **`life_plan/`**)
+  **só** aparecem na raiz do repo se alguém usar o pipeline CLI com
+  `FIN_WORKSPACE_ROOT` apontando para a raiz do projeto — são artefactos
+  locais opcionais, **não** fazem parte do repositório nem são necessários para
+  a app. O `.gitignore` cobre os nomes habituais na raiz; o fluxo canónico é
+  tudo sob `storage/<uuid>/`.
 
 Os hooks (`check_forbidden_paths`, lógica espelhada em `commit.py`) bloqueiam
-ambos os mundos para evitar vazamento acidental de dados.
+staging de paths sensíveis para evitar vazamento acidental de dados.
 
 ## Arquivos
 

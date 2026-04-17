@@ -86,6 +86,10 @@ Checklist **Sprint A** — execução pode ser em **staging** ou **produção** 
 
 Valores de referência estão em [SLO.md](SLO.md). Procedimentos de backup, restore e off-site: tarefas **7E.2–7E.4** e [BACKLOG.md](BACKLOG.md#f7--produção--lgpd).
 
+### 5.1 Reset intencional (dev / staging)
+
+Para apagar **toda** a base de utilizadores e ficheiros de tenant (cenário de teste “primeiro utilizador”, base descartável), usar o CLI documentado em [SETUP.md — Reset completo da plataforma](SETUP.md#reset-completo-da-plataforma-cli). **Não** usar em produção com dados reais.
+
 ---
 
 ## 6. Rotação de segredos e escalação

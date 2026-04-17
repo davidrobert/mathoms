@@ -71,6 +71,21 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
     };
   }, [reportId, router, workspace.id]);
 
+  // F11.3 — `?print=1` (PDF server-side): marca `<html>` para CSS opcional (sem useSearchParams → sem Suspense).
+  useEffect(() => {
+    const on =
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("print") === "1";
+    if (on) {
+      document.documentElement.setAttribute("data-print-route", "1");
+    } else {
+      document.documentElement.removeAttribute("data-print-route");
+    }
+    return () => {
+      document.documentElement.removeAttribute("data-print-route");
+    };
+  }, [reportId]);
+
   // Estado 1: carregando metadados
   if (!report && !metadataError) {
     return (
@@ -83,7 +98,10 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
   // Estado 2: erro no metadados
   if (metadataError) {
     return (
-      <div className="mx-auto max-w-2xl px-6 py-10">
+      <div
+        className="mx-auto max-w-2xl px-6 py-10"
+        data-report-pdf-error="1"
+      >
         <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-6">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
           <div>
@@ -107,7 +125,10 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
   // Estado 3: relatório pré-F9 (sem analysis data) — oferece download standalone
   if (report && !report.has_analysis_data) {
     return (
-      <div className="mx-auto max-w-2xl px-6 py-10">
+      <div
+        className="mx-auto max-w-2xl px-6 py-10"
+        data-report-pdf-legacy="1"
+      >
         <div className="space-y-4 rounded-lg border border-border bg-card p-6">
           <div>
             <p className="font-medium">Relatório gerado antes da migração F9</p>
@@ -155,6 +176,7 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
           reportPeriod={report!.period}
           reportCreatedAt={report!.created_at}
           pipelineRunId={report!.pipeline_run_id}
+          sourceDocumentCount={report!.source_document_count}
         />
       </ReportModeProvider>
     </TooltipProvider>

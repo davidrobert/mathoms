@@ -25,6 +25,8 @@
 - [ ] **Login** com credenciais corretas → redirect para `/plano`
 - [ ] **Login com credenciais erradas** → "Email ou senha incorretos"
 - [ ] **Logout** limpa `localStorage.fin_token` E redireciona para `/login`
+- [ ] **Paleta de comandos** abre com **⌘K** / **Ctrl+K** e navega para uma rota
+- [ ] **Ajuda de atalhos** abre com **?** fora de campos de texto
 - [ ] **Acesso a `/plano` sem token** redireciona para `/login`
 - [ ] **Token inválido** (cookie corrompido) faz logout automático
 - [ ] Link "Criar conta" em `/login` leva para `/register` e vice-versa
@@ -70,6 +72,14 @@
 - [ ] Print preview (Ctrl+P) formata corretamente (`@media print` ativa)
 - [ ] Download HTML funciona
 - [ ] Export tables (CSV/XLSX) de seção específica funciona
+
+### 5.1 Entrega impressa / PDF (F11.3)
+
+- [ ] Relatório nativo (`/reports/[id]`): preview de impressão oculta sidebar/TOC/header de ação (`@media print`)
+- [ ] Tipografia em impressão: valores monetários em monoespaçado; corpo legível em A4
+- [ ] Quebras: cartões e gráficos não ficam cortados ao meio entre páginas (evitar `break-inside` onde aplicável)
+- [ ] Download PDF server-side (`/download.pdf`) abre sem erro quando Playwright/Chromium configurado no backend
+- [ ] Capa/hero do PDF reflete período do snapshot e título do relatório (mesmo que tela)
 
 ## 6. Dashboard & Transactions
 
@@ -128,6 +138,7 @@
 
 - [ ] Nenhum dado real em `frontend/tests/mocks/fixtures.ts` (CPFs = placeholder)
 - [ ] Nenhum PDF real em `tests/fixtures/pdfs/` (só sintéticos de `pdf_generator.py`)
+- [ ] PDFs “reais” só em `tests/fixtures/e2_real_pdf_anon/`, **totalmente redigidos** e com nome canônico — ver README da pasta (Fase 2 opcional)
 - [ ] `python tests/utils/lint_no_real_pii.py` retorna green
 - [ ] `config/family_members.json` do projeto contém dados reais do founder (**OK — não é fixture; neutralizado via API pela 6.5E.6**)
 - [ ] Fernet key (`FIN_FERNET_KEY`) está persistida em `.env` (nunca commitada)

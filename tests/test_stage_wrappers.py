@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from pipeline.context import WorkspaceContext
+from scripts.pipeline_common import _REPO_ROOT
 
 
 class TestStageImports:
@@ -85,13 +86,13 @@ class TestInitConfig:
         (config_dir / "family_members.json").write_text('{}')
         (config_dir / "institutions.json").write_text('{}')
 
-        from scripts.e3_reconcile import _init_config, _BASE_DIR, _DEFAULT_BASE_DIR
+        from scripts.e3_reconcile import _init_config, _BASE_DIR
         _init_config(tmp_path)
         from scripts import e3_reconcile
         assert e3_reconcile._BASE_DIR == tmp_path
 
         # Restaurar default para não afetar outros testes
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
     def test_e4_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -104,12 +105,12 @@ class TestInitConfig:
         (config_dir / "family_members.json").write_text('{}')
         (config_dir / "pipeline.json").write_text('{}')
 
-        from scripts.e4_categorize import _init_config, _BASE_DIR, _DEFAULT_BASE_DIR
+        from scripts.e4_categorize import _init_config, _BASE_DIR
         _init_config(tmp_path)
         from scripts import e4_categorize
         assert e4_categorize._BASE_DIR == tmp_path
 
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
     def test_e2_common_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -119,13 +120,13 @@ class TestInitConfig:
         (config_dir / "institutions.json").write_text('{}')
         (config_dir / "pipeline.json").write_text('{}')
 
-        from scripts.e2.common import _init_config, BASE_DIR, _DEFAULT_BASE_DIR
+        from scripts.e2.common import _init_config, BASE_DIR
         _init_config(tmp_path)
         from scripts.e2 import common as e2c
         assert e2c.BASE_DIR == tmp_path
         assert e2c.DATA_DIR == tmp_path / "data" / "financial_statements"
 
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
     def test_e7_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -133,12 +134,12 @@ class TestInitConfig:
         (config_dir / "scoring.json").write_text('{}')
         (config_dir / "pipeline.json").write_text('{}')
 
-        from scripts.e7_review import _init_config, _DEFAULT_BASE_DIR
+        from scripts.e7_review import _init_config
         _init_config(tmp_path)
         from scripts import e7_review
         assert e7_review.PROJECT_DIR == tmp_path
 
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
     def test_e5_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -149,13 +150,13 @@ class TestInitConfig:
         (config_dir / "parametros_fiscais.json").write_text('{}')
         (config_dir / "categorization.json").write_text('{}')
 
-        from scripts.e5_analyze import _init_config, _DEFAULT_BASE_DIR
+        from scripts.e5_analyze import _init_config
         _init_config(tmp_path)
         from scripts import e5_analyze
         assert e5_analyze.PROJECT_DIR == tmp_path
         assert e5_analyze.E5_ANALYSIS_DIR == tmp_path / "processed" / "E5_analysis"
 
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
     def test_e5n_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -163,13 +164,13 @@ class TestInitConfig:
         (config_dir / "family_members.json").write_text('{"titular":"test","membros":{}}')
         (config_dir / "categorization.json").write_text('{}')
 
-        from scripts.e5n_narrativas import _init_config, _DEFAULT_BASE_DIR
+        from scripts.e5n_narrativas import _init_config
         _init_config(tmp_path)
         from scripts import e5n_narrativas
         assert e5n_narrativas.PROJECT_DIR == tmp_path
         assert e5n_narrativas.E5_JSON_PATH == tmp_path / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
 
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
     def test_e6_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -183,22 +184,22 @@ class TestInitConfig:
         (config_dir / "institutions.json").write_text('{}')
         (config_dir / "pipeline.json").write_text('{}')
 
-        from scripts.e6_render import _init_config, _DEFAULT_BASE_DIR
+        from scripts.e6_render import _init_config
         _init_config(tmp_path)
         from scripts import e6_render
         assert e6_render.BASE_DIR == tmp_path
         assert e6_render.OUTPUT_DIR == tmp_path / "output"
 
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
     def test_e0_audit_init_config_custom_root(self, tmp_path):
-        from scripts.e0_audit import _init_config, _DEFAULT_BASE_DIR
+        from scripts.e0_audit import _init_config
         _init_config(tmp_path)
         from scripts import e0_audit
         assert e0_audit.PROJECT_DIR == tmp_path
         assert e0_audit.DATA_DIR == tmp_path / "data"
 
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
     def test_e0_route_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -207,22 +208,22 @@ class TestInitConfig:
         (config_dir / "pipeline.json").write_text('{}')
         (config_dir / "family_members.json").write_text('{}')
 
-        from scripts.e0_route import _init_config, _DEFAULT_BASE_DIR
+        from scripts.e0_route import _init_config
         _init_config(tmp_path)
         from scripts import e0_route
         assert e0_route.BASE == tmp_path
         assert e0_route.INBOX == tmp_path / "inbox"
 
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
     def test_e0_unlock_init_config_custom_root(self, tmp_path):
-        from scripts.e0_unlock import _init_config, _DEFAULT_BASE_DIR
+        from scripts.e0_unlock import _init_config
         _init_config(tmp_path)
         from scripts import e0_unlock
         assert e0_unlock.BASE == tmp_path
         assert e0_unlock.INBOX == tmp_path / "inbox"
 
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
     def test_e15c_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -230,23 +231,23 @@ class TestInitConfig:
         (config_dir / "pipeline.json").write_text('{}')
         (config_dir / "family_members.json").write_text('{}')
 
-        from scripts.e15_consolidate import _init_config, _DEFAULT_BASE_DIR
+        from scripts.e15_consolidate import _init_config
         _init_config(tmp_path)
         from scripts import e15_consolidate
         assert e15_consolidate.PROJECT_DIR == tmp_path
         assert e15_consolidate.E2_DIR == tmp_path / "processed" / "E2_extracts"
 
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
     def test_pipeline_common_init_config_custom_root(self, tmp_path):
-        from scripts.pipeline_common import _init_config, _DEFAULT_BASE_DIR
+        from scripts.pipeline_common import _init_config
         _init_config(tmp_path)
         from scripts import pipeline_common as pc
         assert pc.PROJECT_DIR == tmp_path
         assert pc.CONFIG_DIR == tmp_path / "config"
         assert pc.E5_DIR == tmp_path / "processed" / "E5_analysis"
 
-        _init_config(_DEFAULT_BASE_DIR)
+        _init_config(_REPO_ROOT)
 
 
 class TestContextIntegration:

@@ -120,24 +120,17 @@ dev/                 Dev-tooling (pre-commit hooks, codegen) — NÃO é produto
   check_forbidden_paths.py  Hook que bloqueia paths sensíveis no staging
   validate_commit_msg.py    Hook commit-msg que valida prefixo
   codegen_report_layout.py  Gera TS + Pydantic a partir do report_layout.yaml
-data/                Documentos financeiros originais — NÃO versionado
-  financial_statements/  Extratos e faturas (PDFs, CSVs, XLS)
-  income_tax_br/         Declarações IRPF e informes de rendimentos
-  income_tax_us/         Documentos fiscais EUA (placeholder)
-  real_estate/           Dados de imóveis
-  vehicles/              Dados de veículos (placeholder)
-inbox/               Área de entrada de novos documentos — NÃO versionado
-inbox_processed/     Documentos já processados pelo E0 — NÃO versionado
-processed/           Artefatos intermediários do pipeline
-  E2_extracts/         JSONs extraídos (E2) + baseline_patrimonial (E1.5, por convenção)
-  E3_reconciled/       JSONs reconciliados (E3)
-  E4_unified/          JSONs categorizados e unificados (E4)
-  E5_analysis/         JSON de análise financeira (E5)
-  E7_review/           Template de review e cross-validation (E7)
-output/              Relatório HTML final (E6)
-logs/                Logs operacionais permanentes
-members/             Dados de membros (E1)
-life_plan/           Metas e plano de vida
+storage/             Dados por tenant da aplicação web — NÃO versionado (ver .gitignore)
+  <workspace_id>/    Raiz do workspace no disco (FIN_STORAGE_ROOT)
+    inbox/             Uploads pendentes de classificação / pipeline
+    inbox_processed/   Pós-E0-unlock (quando aplicável)
+    data/              Documentos classificados (financial_statements/, …)
+    processed/         Artefatos E2–E7 (E2_extracts/, E3_reconciled/, E4_unified/, E5_analysis/, E7_review/)
+    output/            Relatório HTML (E6) + ficheiros gerados
+    logs/              Logs de execução (ex.: qa_log.md)
+    members/           Saídas E1 / JSON de membros quando materializados
+    life_plan/         Metas/plano (E5) quando existir
+    config/            Config materializada por tenant (cópia/adaptação de config/ global)
 docs/                Documentação técnica de scripts e planos de correção
 tests/               Testes unitários (pytest) — pipeline CLI
 backend/             Aplicação web (FastAPI + Celery + SQLite/Postgres)
@@ -158,6 +151,8 @@ frontend/            React app (Next.js)
 _archive/            Arquivos antigos preservados (scripts legados, backups)
 _scratch/            Artefatos temporários — NÃO versionado, pode ser limpo a qualquer momento
 ```
+
+**Workspace (CLI / legado):** os mesmos nomes de pasta (`data/`, `inbox/`, `processed/`, …) existem **por baixo de** `FIN_WORKSPACE_ROOT` — tipicamente `storage/<uuid>/`; em dev pode ser a raiz do repositório. **Não** há pastas de dados obrigatórias na raiz do clone; na raiz só são artefactos locais opcionais quando o workspace aponta para o repo. Ver [docs/SETUP.md](docs/SETUP.md) (`FIN_WORKSPACE_ROOT`) e [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §11.
 
 ## Arquivos temporários → `_scratch/`
 

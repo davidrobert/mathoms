@@ -1,13 +1,17 @@
-"""Pipeline CLI (E0–E7) — layout single-tenant na **raiz do repositório**.
+"""Pipeline CLI (E0–E7) — paths do workspace via ``FIN_WORKSPACE_ROOT``.
 
-Os scripts usam :mod:`scripts.pipeline_common` com ``PROJECT_DIR`` = raiz do repo:
-``data/``, ``inbox/``, ``processed/``, etc. Isto é o fluxo **legado / local**
-(documentado no manual e em ``CLAUDE.md``).
+:mod:`scripts.pipeline_common` inicializa ``PROJECT_DIR``, ``DATA_DIR``, … a
+partir da variável de ambiente **FIN_WORKSPACE_ROOT** (directório com ``config/``,
+``data/``, ``inbox/``, …). Não há default silencioso para ``./data/`` na raiz do
+git: defina o tenant (ex.: ``export FIN_WORKSPACE_ROOT="$PWD/storage/<ws_id>"``)
+ou use ``python -m pipeline.run_dev --root …`` (define a variável antes dos
+stages). Em testes e no arranque da API, o repositório faz ``setdefault`` para
+a raiz do repo só para carregar configs partilhados.
 
-A aplicação web resolve o mesmo pipeline com
-:class:`pipeline.context.WorkspaceContext` apontando para
-``storage/<workspace_id>/`` (multi-tenant). Não importe modelos ``Document``
-daqui — operações sobre uploads vivem em ``backend.app``.
+A aplicação web usa :class:`pipeline.context.WorkspaceContext` por tenant; o
+worker Celery define ``FIN_WORKSPACE_ROOT`` para a raiz do tenant em cada run.
 
-Ferramentas de desenvolvimento (commit, hooks, codegen) estão em :mod:`dev`.
+Não importe modelos ``Document`` daqui — operações sobre uploads vivem em
+``backend.app``. Ferramentas de desenvolvimento (commit, hooks, codegen) estão
+em :mod:`dev`.
 """

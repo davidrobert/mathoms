@@ -16,7 +16,9 @@
 
 ## Fixtures golden
 
-Ver [tests/fixtures/pipeline_golden/README.md](../tests/fixtures/pipeline_golden/README.md).
+- JSON de pipeline (E2/E3/E4): [tests/fixtures/pipeline_golden/README.md](../tests/fixtures/pipeline_golden/README.md).
+- JSON de **saída LLM** (schemas Pydantic E1 / E1.5 / E2-LLM / E7-review): [tests/fixtures/llm_golden/README.md](../tests/fixtures/llm_golden/README.md) + `tests/test_llm_golden.py`.
+- **PDF real anonimizado (Fase 2, opcional):** [tests/fixtures/e2_real_pdf_anon/README.md](../tests/fixtures/e2_real_pdf_anon/README.md) + `tests/test_e2_real_pdf_regression.py` (pasta pode ficar vazia; cada `*.pdf` adicionado roda `route_to_parser`).
 
 ## Artefatos auxiliares (sem JSON schema)
 
@@ -26,17 +28,17 @@ Ver [tests/fixtures/pipeline_golden/README.md](../tests/fixtures/pipeline_golden
 
 **Próximo incremento sugerido**
 
-- Repetir o padrão **layout dedicado + `test_*_synthetic_extracts_transactions`** para bancos do registry que ainda usam só a tabela genérica (ex.: C6, Bradesco, Quinto Andar).
+- **Fase 2 (opcional):** popular `tests/fixtures/e2_real_pdf_anon/` com PDFs **redigidos** + revisão de PR (scaffold e teste já existem). **LLM:** novos estágios → novo schema + `tests/fixtures/llm_golden/` + `tests/test_llm_golden.py`.
 
 ## E2 — sintético e real anonimizado (duas fases)
 
-1. **Fase 1 (em curso): só sintético alinhado ao parser** — `tests/fixtures/pdf_generator.py` + `tests/test_e2_synthetic_pdf_parsers.py`. Objetivo: todo banco relevante do `registry` com `_draw_*` ou tabela genérica suficiente, e asserts de extração onde fizer sentido. **Não** depende de PDF real versionado.
-2. **Fase 2 (planejada, após Fase 1): PDF real anonimizado no repositório** — complemento opcional para regressão de **layout fiel** (renderização, quebras de página, ruído de OCR). Requisitos mínimos: redação completa (nome, conta, agência, CPF, valores identificáveis, metadados do PDF); revisão em PR; aderência a `tests/utils/lint_no_real_pii.py` e política do repo; localização (pasta dedicada, naming canônico, um teste por arquivo que rode o mesmo `route_to_parser` / parser). **Não** substitui o sintético no dia a dia do CI — acrescenta camada onde o custo/revisão forem aceitáveis.
+1. **Fase 1 (registry coberto): só sintético alinhado ao parser** — `tests/fixtures/pdf_generator.py` + `tests/test_e2_synthetic_pdf_parsers.py`. Cada banco em `BANK_MODULES` tem `_draw_*` + asserts onde aplicável; códigos só em `BankCode` fora do registry continuam na tabela genérica. **Não** depende de PDF real versionado.
+2. **Fase 2 (opcional): PDF real anonimizado no repositório** — complemento para regressão de **layout fiel**. **Scaffold:** `tests/fixtures/e2_real_pdf_anon/` + `tests/test_e2_real_pdf_regression.py` (CI verde com pasta vazia). Requisitos para cada binário: redação completa; nome de arquivo canônico para o registry; revisão em PR. **Não** substitui o sintético no dia a dia do CI.
 
 ## Golden E2 — PDF sintético × registry
 
-- `tests/test_e2_synthetic_pdf_parsers.py`: para cada banco em `scripts/e2/registry.py` (`BANK_MODULES`), PDF gerado + filename canônico → `route_to_parser` → resultado dict (sem exceção). **BTG, Rico, Wise, PicPay, Bank of America, Santander, Itaú, Caixa:** testes dedicados exigem transações + `saldo_final` (`test_btgpactual_*`, `test_rico_*`, `test_wise_*`, `test_picpay_*`, `test_bankofamerica_*`, `test_santander_*`, `test_itau_*`, `test_caixa_*`).
-- `tests/fixtures/pdf_generator.py`: **caixa** (14 códigos em `BankCode`); layouts dedicados **BTG**, **Rico**, **Wise**, **PicPay**, **Bank of America**, **Santander**, **Itaú**, **Caixa** (tabela 7 colunas `parse_caixa`) — ver `_draw_btgpactual_movimentacao`, `_draw_rico_extrato`, `_draw_wise_extrato`, `_draw_picpay_extrato`, `_draw_bankofamerica_extrato`, `_draw_santander_extrato`, `_draw_itau_extrato`, `_draw_caixa_extrato`.
+- `tests/test_e2_synthetic_pdf_parsers.py`: para cada banco em `scripts/e2/registry.py` (`BANK_MODULES`), PDF gerado + filename canônico → `route_to_parser` → resultado dict (sem exceção). **C6, Bradesco, BTG, Rico, Wise, PicPay, Bank of America, Santander, Itaú, Caixa:** **≥1** transação + `saldo_final` (`test_c6bank_*`, `test_bradesco_*`, `test_btgpactual_*` … `test_caixa_*`). **Quinto Andar** (fatura aluguel): **`itens`** + **`total_recebido`** (`test_quintoandar_synthetic_extracts_items`) — não usa `transacoes`/`saldo_final`.
+- `tests/fixtures/pdf_generator.py`: 14 códigos em `BankCode`; layouts dedicados ao registry incluem **C6** (`_draw_c6_extrato`), **Bradesco** (`_draw_bradesco_extrato`), **BTG**, **Rico**, **Wise**, **PicPay**, **Bank of America**, **Santander**, **Itaú**, **Caixa**, **Quinto Andar** — ver funções `_draw_*` no arquivo.
 
 ## Golden de execução E3
 

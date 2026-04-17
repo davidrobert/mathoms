@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -63,6 +64,9 @@ def main(argv: list[str] | None = None) -> int:
     if not root.is_dir():
         print(json.dumps({"error": f"not a directory: {root}"}), file=sys.stderr)
         return 2
+
+    # Required before lazy-import of scripts.* (pipeline_common).
+    os.environ["FIN_WORKSPACE_ROOT"] = str(root)
 
     ctx = WorkspaceContext(root=root)
     ctx.ensure_dirs()

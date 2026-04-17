@@ -103,6 +103,8 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const [activeRun, setActiveRun] = useState<PipelineRunResponse | null>(null);
   const [readyCount, setReadyCount] = useState(0);
   const [newCount, setNewCount] = useState(0);
+  /** False after initial/retry load fails — avoids showing "no ready docs" when counts are unknown. */
+  const [listDataOk, setListDataOk] = useState(false);
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState(false);
   const [error, setError] = useState("");
@@ -196,16 +198,19 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   });
 
   const reload = useCallback(async () => {
+    setLoading(true);
     try {
       const [runsData, docsData, tierData, newDocData] = await Promise.all([
-        listPipelineRuns(workspace!.id),
-        listDocuments(workspace!.id, "ready"),
-        getLLMTier(workspace!.id).catch((): { tier: string; has_llm_config: boolean } => ({
+        listPipelineRuns(workspace.id),
+        listDocuments(workspace.id, ["ready", "processed"]),
+        getLLMTier(workspace.id).catch((): { tier: string; has_llm_config: boolean } => ({
           tier: "free",
           has_llm_config: false,
         })),
-        getNewDocCount(workspace!.id).catch(() => ({ new_count: 0 })),
+        getNewDocCount(workspace.id).catch(() => ({ new_count: 0 })),
       ]);
+      setListDataOk(true);
+      setError("");
       setRuns(runsData.runs);
       setReadyCount(docsData.total);
       setNewCount(newDocData.new_count);
@@ -227,15 +232,18 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
         }
       }
     } catch {
+      setListDataOk(false);
       setError("Erro ao carregar dados");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [workspace.id]);
 
   useEffect(() => {
     reload();
   }, [reload]);
+
+  const [highlightedRunId, setHighlightedRunId] = useState<string | null>(null);
 
   /** F11.4a — deep link desde o relatório: `/pipeline?run=<uuid>`. */
   useEffect(() => {
@@ -247,6 +255,8 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
       const el = document.getElementById(`pipeline-run-${runParam}`);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setHighlightedRunId(runParam);
+        setTimeout(() => setHighlightedRunId(null), 3000);
         const url = new URL(window.location.href);
         url.searchParams.delete("run");
         const next = url.pathname + (url.search ? url.search : "");
@@ -365,7 +375,20 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
           <Card className="mb-8">
             <CardContent>
               <h2 className="mb-2 font-medium">Gerar Relatório</h2>
-              {readyCount === 0 ? (
+              {!listDataOk ? (
+                <div className="text-sm text-muted-foreground">
+                  <p>Não foi possível carregar o status dos documentos e da fila.</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => void reload()}
+                  >
+                    Tentar novamente
+                  </Button>
+                </div>
+              ) : readyCount === 0 ? (
                 <div className="text-sm text-muted-foreground">
                   <p>Nenhum documento pronto para processar.</p>
                   <Link href="/documents" className="mt-2 inline-block text-primary hover:underline">
@@ -525,6 +548,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
                   <HistoryRow
                     key={run.id}
                     run={run}
+                    highlighted={highlightedRunId === run.id}
                     onRetry={() => handleTrigger()}
                     onRetryFrom={run.failed_at_stage ? () => handleTrigger(run.failed_at_stage!) : undefined}
                     triggering={triggering}
@@ -610,19 +634,57 @@ function FailedRunCard({
         </div>
 
         {/* Error details */}
-        {failedStage?.errors && (
+        {(failedStage?.errors || failedStage?.output_summary) && (
           <div className="mt-3">
             <button
               onClick={() => setExpanded(!expanded)}
               className="flex items-center gap-1.5 text-xs font-medium text-loss hover:underline"
             >
               {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              {expanded ? "Ocultar detalhes" : "Ver detalhes do erro"}
+              {expanded ? "Ocultar detalhes" : "Ver detalhes técnicos"}
             </button>
             {expanded && (
-              <pre className="mt-2 max-h-48 overflow-auto rounded-lg bg-loss/5 p-3 text-xs text-loss font-mono">
-                {failedStage.errors}
-              </pre>
+              <div className="mt-2 rounded-lg bg-loss/5 border border-loss/10 overflow-hidden text-xs font-mono">
+                {/* Metadata row */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 px-3 py-2 border-b border-loss/10 text-muted-foreground">
+                  {failedStage && (
+                    <span>
+                      <span className="text-loss/60">etapa</span>{" "}
+                      <span className="text-foreground">{failedStage.stage}</span>
+                    </span>
+                  )}
+                  {failedStage?.duration_ms != null && (
+                    <span>
+                      <span className="text-loss/60">duração</span>{" "}
+                      <span className="text-foreground">{(failedStage.duration_ms / 1000).toFixed(1)}s</span>
+                    </span>
+                  )}
+                  {typeof (failedStage?.output_summary as Record<string, unknown> | null)?.attempt_count === "number" && (
+                    <span>
+                      <span className="text-loss/60">tentativas</span>{" "}
+                      <span className="text-foreground">{(failedStage!.output_summary as Record<string, unknown>).attempt_count as number}</span>
+                    </span>
+                  )}
+                  {typeof (failedStage?.output_summary as Record<string, unknown> | null)?.error_type === "string" && (
+                    <span>
+                      <span className="text-loss/60">tipo</span>{" "}
+                      <span className="text-foreground">{(failedStage!.output_summary as Record<string, unknown>).error_type as string}</span>
+                    </span>
+                  )}
+                </div>
+                {/* Error message */}
+                {failedStage?.errors && (
+                  <pre className="px-3 py-2 text-loss whitespace-pre-wrap break-all border-b border-loss/10">
+                    {failedStage.errors}
+                  </pre>
+                )}
+                {/* Traceback */}
+                {typeof (failedStage?.output_summary as Record<string, unknown> | null)?.traceback === "string" && (
+                  <pre className="max-h-64 overflow-auto px-3 py-2 text-muted-foreground whitespace-pre-wrap break-all">
+                    {(failedStage!.output_summary as Record<string, unknown>).traceback as string}
+                  </pre>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -1043,11 +1105,13 @@ function StageRow({
 
 function HistoryRow({
   run,
+  highlighted,
   onRetry,
   onRetryFrom,
   triggering,
 }: {
   run: PipelineRunResponse;
+  highlighted?: boolean;
   onRetry: () => void;
   onRetryFrom?: () => void;
   triggering: boolean;
@@ -1061,8 +1125,12 @@ function HistoryRow({
   return (
     <div
       id={`pipeline-run-${run.id}`}
-      className={`group flex items-center justify-between rounded-lg border bg-card px-4 py-3 ${
-        isFailed ? "border-loss/20" : "border-border"
+      className={`group flex items-center justify-between rounded-lg border bg-card px-4 py-3 transition-colors ${
+        highlighted
+          ? "border-primary ring-1 ring-primary/40"
+          : isFailed
+            ? "border-loss/20"
+            : "border-border"
       }`}
     >
       <div className="flex items-center gap-3">
@@ -1110,6 +1178,14 @@ function HistoryRow({
               </Button>
             )}
           </div>
+        )}
+        {run.report_id && (
+          <Link
+            href={`/reports/${run.report_id}`}
+            className="text-xs text-primary underline-offset-2 hover:underline opacity-0 transition-opacity group-hover:opacity-100"
+          >
+            Ver relatório
+          </Link>
         )}
         <span className="text-sm text-muted-foreground">{formatDate(run.started_at)}</span>
       </div>

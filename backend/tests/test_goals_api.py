@@ -124,6 +124,7 @@ async def test_put_if_goal_creates_first_version(db, client):
     data = resp.json()
     assert data["workspace_id"] == ws.id
     assert data["derived"]["if_meta_brl"] == 7_200_000.0
+    assert data["meta_version"] == 1
     assert data["effective_to"] is None
     assert data["notes"] == "configuração inicial"
 

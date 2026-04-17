@@ -224,6 +224,8 @@ export function makeReport(
     patrimonio_liquido: null,
     created_at: isoNow(),
     pipeline_run_id: null,
+    source_document_count: 0,
+    source_document_ids: [],
     has_analysis_data: true,
     ...overrides,
   };

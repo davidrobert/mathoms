@@ -13,6 +13,7 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { ViewerBanner } from "@/components/ViewerBanner";
 import { StatusPageFooter } from "@/components/StatusPageFooter";
+import { CommandPalette } from "@/components/CommandPalette";
 import {
   LayoutDashboard,
   FileText,
@@ -32,16 +33,35 @@ function isNavActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-const NAV_ITEMS = [
-  { href: "/plano", label: "Meu Plano", icon: Target },
-  { href: "/plano-de-acao", label: "Plano de Ação", icon: ListTodo },
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/documents", label: "Documentos", icon: FileText },
-  { href: "/pipeline", label: "Pipeline", icon: Zap },
-  { href: "/transactions", label: "Transações", icon: ArrowLeftRight },
-  { href: "/reports", label: "Relatórios", icon: BarChart3 },
-  { href: "/vault", label: "Cofre", icon: KeyRound },
-  { href: "/config", label: "Configurações", icon: Settings },
+/** F11.1 — eixo estratégico vs operacional do período. */
+const NAV_GROUPS: {
+  heading: string;
+  items: { href: string; label: string; icon: typeof Target }[];
+}[] = [
+  {
+    heading: "Plano de vida",
+    items: [
+      { href: "/plano", label: "Meu Plano", icon: Target },
+      { href: "/plano-de-acao", label: "Plano de Ação", icon: ListTodo },
+    ],
+  },
+  {
+    heading: "Fechamento do período",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/documents", label: "Documentos", icon: FileText },
+      { href: "/pipeline", label: "Pipeline", icon: Zap },
+      { href: "/transactions", label: "Transações", icon: ArrowLeftRight },
+      { href: "/reports", label: "Relatórios", icon: BarChart3 },
+    ],
+  },
+  {
+    heading: "Conta",
+    items: [
+      { href: "/vault", label: "Cofre", icon: KeyRound },
+      { href: "/config", label: "Configurações", icon: Settings },
+    ],
+  },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -71,6 +91,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
+      <CommandPalette />
       {/* Sidebar */}
       <aside
         className={cn(
@@ -84,26 +105,37 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
         </div>
 
-        <nav className="flex-1 space-y-0.5 px-3 py-4">
-          {NAV_ITEMS.map((item) => {
-            const active = isNavActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-                  active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                )}
-              >
-                <item.icon className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
-                {item.label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 space-y-4 px-3 py-4">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.heading}>
+              <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {group.heading}
+              </p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const active = isNavActive(pathname, item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
+                        active
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                      )}
+                    >
+                      <item.icon
+                        className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")}
+                      />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         <Separator />

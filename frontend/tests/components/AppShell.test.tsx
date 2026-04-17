@@ -3,6 +3,7 @@
  *
  * Cobre auth gate, navegação, mobile menu, logout, NotificationCenter render.
  */
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -23,6 +24,23 @@ vi.mock("next/link", () => ({
       {children}
     </a>
   ),
+}));
+
+vi.mock("@/lib/WorkspaceProvider", () => ({
+  WorkspaceProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+  useWorkspace: () => ({
+    workspace: {
+      id: "ws-1",
+      name: "WS",
+      family_surname: "Test",
+      role: "owner" as const,
+      joined_at: "2026-01-01T00:00:00.000Z",
+    },
+    workspaces: [],
+    isLoading: false,
+    error: null,
+    refresh: vi.fn(),
+  }),
 }));
 
 import AppShell from "@/components/AppShell";
@@ -53,10 +71,13 @@ describe("AppShell", () => {
     expect(localStorage.getItem("fin_token")).toBeNull();
   });
 
-  it("renderiza nav com 7 itens", async () => {
+  it("renderiza nav agrupado (F11.1) com rotas principais", async () => {
     render(<AppShell>conteudo</AppShell>);
     await screen.findByText("conteudo");
+    expect(screen.getByText("Plano de vida")).toBeInTheDocument();
+    expect(screen.getByText("Fechamento do período")).toBeInTheDocument();
     for (const label of [
+      "Meu Plano",
       "Dashboard",
       "Documentos",
       "Pipeline",

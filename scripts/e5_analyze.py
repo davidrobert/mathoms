@@ -16,10 +16,12 @@ from datetime import datetime, date
 from typing import Dict, Any, List, Tuple
 import re
 
+import scripts.pipeline_common as _pc
+
 # ============================================================================
 # PATHS & CONFIG — inicializados por _init_config(), re-invocável via root_dir
 # ============================================================================
-_DEFAULT_BASE_DIR = Path(__file__).parent.parent
+_DEFAULT_BASE_DIR = _pc._REPO_ROOT
 
 
 def _load_json_config(path: Path) -> Dict[str, Any]:
@@ -125,7 +127,7 @@ def _init_config(base_dir: Path) -> None:
     _KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}"
 
 
-_init_config(_DEFAULT_BASE_DIR)
+_init_config(_pc.PROJECT_DIR)
 
 
 # ============================================================================

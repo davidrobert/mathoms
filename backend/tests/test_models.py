@@ -57,6 +57,10 @@ async def test_document_status_transitions(db: AsyncSession):
         await db.flush()
         assert doc.status == s
 
+    doc.status = DocumentStatus.processed
+    await db.flush()
+    assert doc.status == DocumentStatus.processed
+
 
 @pytest.mark.asyncio
 async def test_password_vault_creation(db: AsyncSession):

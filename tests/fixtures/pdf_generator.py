@@ -15,7 +15,8 @@ Substitui qualquer PDF real em `tests/`, eliminando risco LGPD (ADR-063).
 - `setProducer` desabilitado para não vazar versão da lib em diff de bytes.
 
 # Bancos cobertos (14 — alinhado com `config/institutions.json` + `scripts/e2/registry.py`)
-# Layout dedicado: BTG, Rico, Wise, PicPay, Bank of America, Santander, Itaú, Caixa — `_draw_*`.
+# Layout dedicado: C6, Bradesco, BTG, Rico, Wise, PicPay, Bank of America, Santander, Itaú, Caixa,
+# Quinto Andar — `_draw_*`.
 # Demais: tabela genérica até evolução incremental.
 - Brasileiros: c6bank, itau, santander, bradesco, btgpactual, rico, picpay, caixa
 - Internacionais: bankofamerica, wise, binance
@@ -624,6 +625,156 @@ def _draw_itau_extrato(
     return y, running
 
 
+def _draw_c6_extrato(
+    c: Any,
+    width: float,
+    height: float,
+    y: float,
+    period: str,
+    transactions: list[Transaction],
+    account_number: str,
+) -> tuple[float, float]:
+    """Tabela 5 colunas — `scripts/e2/banks/c6bank.py::parse_c6bank` (`extract_tables`, `conta_pj_format`)."""
+    p_ini, p_fim = _period_to_br_range(period)
+    y1, m1, d1 = p_ini.split("/")
+    y2, m2, d2 = p_fim.split("/")
+    mi1, mi2 = int(m1), int(m2)
+    mes_a = _MONTH_BR[mi1]
+    mes_b = _MONTH_BR[mi2]
+    conta_digits = "".join(ch for ch in account_number if ch.isdigit()) or "12345678"
+
+    c.setFont("Helvetica", 9)
+    c.drawString(
+        2 * cm,
+        y,
+        f"Período • {int(d1)} de {mes_a} de {y1} até {int(d2)} de {mes_b} de {y2}",
+    )
+    y -= 0.45 * cm
+    c.drawString(2 * cm, y, f"Conta: {conta_digits}")
+    y -= 0.55 * cm
+
+    txs = sorted(transactions, key=lambda t: str(t.get("date", "")))
+    data: list[list[str]] = []
+    running = 0.0
+    for tx in txs:
+        amt = float(tx.get("amount", 0))
+        br = _iso_date_to_br(str(tx.get("date", f"{period}-01")))
+        tipo = "Pix" if amt < 0 else "TED"
+        desc = str(tx.get("description", "Lancamento"))[:40]
+        running += amt
+        data.append([br, "", tipo, desc, _format_brl(amt)])
+        # Data curta em "Saldo do dia" evita quebra de célula no pdfplumber (YY)
+        saldo_br = _iso_date_to_br(str(tx.get("date", f"{period}-01")))
+        sd_dd, sd_mm, sd_yy = saldo_br.split("/")
+        data.append(
+            [
+                f"Saldo do dia {sd_dd}/{sd_mm}/{sd_yy[-2:]}",
+                "",
+                "",
+                "",
+                _format_brl(running),
+            ]
+        )
+
+    if not data:
+        data.append(["01/01/2026", "", "", "Sem movimento", "0,00"])
+
+    table = Table(
+        data,
+        # Coluna 0 larga o suficiente para `Saldo do dia DD/MM/YY` (pdfplumber não quebrar célula)
+        colWidths=[3.8 * cm, 0.6 * cm, 1.4 * cm, 3.6 * cm, 2.2 * cm],
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("FONT", (0, 0), (-1, -1), "Helvetica", 8),
+                ("GRID", (0, 0), (-1, -1), 0.2, colors.grey),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]
+        )
+    )
+    avail_w = width - 4 * cm
+    tw, th = table.wrapOn(c, avail_w, height)
+    if y - th < 2 * cm:
+        c.showPage()
+        y = height - 2.5 * cm
+        tw, th = table.wrapOn(c, avail_w, height)
+    table.drawOn(c, 2 * cm, y - th)
+    y = y - th - 0.45 * cm
+    return y, running
+
+
+def _draw_bradesco_extrato(
+    c: Any,
+    width: float,
+    height: float,
+    y: float,
+    period: str,
+    transactions: list[Transaction],
+    agency: str,
+    account_number: str,
+) -> tuple[float, float]:
+    """Texto multilinha — `scripts/e2/banks/bradesco.py::parse_bradesco` (regex DD/MM/YY + Total)."""
+    p_ini, p_fim = _period_to_br_range(period)
+    c.setFont("Helvetica", 9)
+    c.drawString(2 * cm, y, f"Ag: {agency} | Conta: {account_number}")
+    y -= 0.42 * cm
+    c.drawString(2 * cm, y, f"Entre {p_ini} e {p_fim}")
+    y -= 0.55 * cm
+
+    txs = sorted(transactions, key=lambda t: str(t.get("date", "")))
+    saldo_ini = 10000.0
+    running = saldo_ini
+    creditos = 0.0
+    debitos = 0.0
+    c.setFont("Courier", 8)
+
+    # SALDO ANTERIOR — dia anterior ao início do período
+    py, pm = period.split("-")
+    yi, mi = int(py), int(pm)
+    prev_m, prev_y = (mi - 1, yi) if mi > 1 else (12, yi - 1)
+    last_prev = monthrange(prev_y, prev_m)[1]
+    saldo_ant_str = f"{last_prev:02d}/{prev_m:02d}/{str(prev_y)[-2:]}"
+    c.drawString(2 * cm, y, f"{saldo_ant_str} SALDO ANTERIOR {_format_brl(saldo_ini)}")
+    y -= 0.38 * cm
+
+    for tx in txs:
+        if y < 3 * cm:
+            c.showPage()
+            y = height - 2 * cm
+            c.setFont("Courier", 8)
+        amt = float(tx.get("amount", 0))
+        desc = str(tx.get("description", "Lancamento"))[:44]
+        iso = str(tx.get("date", f"{period}-01"))
+        yp, mp, dp = iso.split("-")
+        br = f"{dp}/{mp}/{yp[-2:]}"
+        running += amt
+        if amt >= 0:
+            creditos += amt
+            c.drawString(
+                2 * cm,
+                y,
+                f"{br} {desc} {_format_brl(amt)} {_format_brl(running)}"[:118],
+            )
+        else:
+            debitos += -amt
+            c.drawString(
+                2 * cm,
+                y,
+                f"{br} {desc} - {_format_brl(-amt)} {_format_brl(running)}"[:118],
+            )
+        y -= 0.36 * cm
+
+    c.setFont("Courier", 8)
+    c.drawString(
+        2 * cm,
+        y,
+        f"Total {_format_brl(creditos)} - {_format_brl(debitos)} {_format_brl(running)}"[:118],
+    )
+    y -= 0.4 * cm
+    return y, running
+
+
 def _draw_caixa_extrato(
     c: Any,
     width: float,
@@ -690,6 +841,53 @@ def _draw_caixa_extrato(
     return y, running
 
 
+def _format_quintoandar_valor(amt: float) -> str:
+    """Item no formato do regex de `parse_quintoandar`: `R$ 1.250,00` ou `-R$ 250,50`."""
+    if amt >= 0:
+        return f"R$ {_format_brl(amt)}"
+    return f"-R$ {_format_brl(abs(amt))}"
+
+
+def _draw_quintoandar_fatura(
+    c: Any,
+    width: float,
+    height: float,
+    y: float,
+    period: str,
+    transactions: list[Transaction],
+) -> tuple[float, float]:
+    """Texto compatível com `scripts/e2/banks/quintoandar.py::parse_quintoandar`."""
+    _, p_fim = _period_to_br_range(period)
+    c.setFont("Helvetica", 9)
+    c.drawString(2 * cm, y, "Faturas de aluguel")
+    y -= 0.42 * cm
+    c.drawString(2 * cm, y, "Endereco Sintetico 100 Apt Fixture")
+    y -= 0.6 * cm
+
+    txs = sorted(transactions, key=lambda t: str(t.get("date", "")))
+    total = sum(float(t.get("amount", 0)) for t in txs)
+
+    c.drawString(2 * cm, y, "Total de")
+    y -= 0.36 * cm
+    c.drawString(2 * cm, y, f"R$ {_format_brl(total)}")
+    y -= 0.55 * cm
+    c.drawString(2 * cm, y, f"Receber até {p_fim}")
+    y -= 0.55 * cm
+
+    for tx in txs:
+        if y < 2.5 * cm:
+            c.showPage()
+            y = height - 2 * cm
+            c.setFont("Helvetica", 9)
+        desc = str(tx.get("description", "Item"))[:55]
+        amt = float(tx.get("amount", 0))
+        line = f"{desc}    {_format_quintoandar_valor(amt)}"
+        c.drawString(2 * cm, y, line[:115])
+        y -= 0.4 * cm
+
+    return y, total
+
+
 def generate_statement(
     bank: BankCode,
     kind: DocKind = "extrato",
@@ -708,8 +906,8 @@ def generate_statement(
         bytes do PDF — pode ser escrito em arquivo ou consumido em memória.
 
     O conteúdo é simples (1 página A4) com texto extraível. Layouts dedicados:
-    **btgpactual**, **rico**, **wise**, **picpay**, **bankofamerica**, **santander**, **itau**, **caixa** — demais:
-    tabela genérica (ISO nas linhas) — evolução incremental.
+    **btgpactual**, **rico**, **wise**, **picpay**, **bankofamerica**, **santander**, **itau**, **caixa**,
+    **c6bank**, **bradesco**, **quintoandar** — demais: tabela genérica (ISO nas linhas) — evolução incremental.
     """
     if bank not in _BANK_LABELS:
         raise ValueError(f"Banco desconhecido: {bank}. Adicione em _BANK_LABELS.")
@@ -758,7 +956,13 @@ def generate_statement(
 
     # ─── Tabela genérica ou layout dedicado (regex dos parsers E2) ───
     y -= 1.2 * cm
-    if bank == "btgpactual":
+    if bank == "c6bank":
+        y, _ = _draw_c6_extrato(c, width, height, y, period, transactions, account_number)
+    elif bank == "bradesco":
+        y, _ = _draw_bradesco_extrato(
+            c, width, height, y, period, transactions, agency, account_number
+        )
+    elif bank == "btgpactual":
         y, _ = _draw_btgpactual_movimentacao(c, width, height, y, period, transactions)
     elif bank == "rico":
         rico_digits = "".join(ch for ch in account_number if ch.isdigit()) or "1234567890"
@@ -781,6 +985,8 @@ def generate_statement(
         y, _ = _draw_caixa_extrato(
             c, width, height, y, period, transactions, agency, account_number
         )
+    elif bank == "quintoandar":
+        y, _ = _draw_quintoandar_fatura(c, width, height, y, period, transactions)
     else:
         c.setFont("Helvetica-Bold", 9)
         c.drawString(2 * cm, y, "Data")

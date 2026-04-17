@@ -11,6 +11,8 @@ interface ReportSourceStripProps {
   generatedAtLabel: string;
   /** F11.4a — UUID da execução do pipeline (GET report). */
   pipelineRunId?: string | null;
+  /** F11.4a — agregado de documentos prontos no workspace. */
+  sourceDocumentCount?: number | null;
 }
 
 /**
@@ -27,6 +29,7 @@ export function ReportSourceStrip({
   analysisPeriod,
   generatedAtLabel,
   pipelineRunId,
+  sourceDocumentCount,
 }: ReportSourceStripProps) {
   const period =
     (analysisPeriod && String(analysisPeriod).trim()) ||
@@ -76,6 +79,20 @@ export function ReportSourceStrip({
             {" "}
             (detalhes em Pipeline)
           </span>
+        </p>
+      ) : null}
+      {sourceDocumentCount != null && sourceDocumentCount > 0 ? (
+        <p className="mt-1.5 font-mono text-[11px] tabular-nums text-[var(--surface-muted-foreground)]">
+          Base de documentos no workspace:{" "}
+          <span className="text-[var(--surface-foreground)]">{sourceDocumentCount}</span> pronto(s)
+          — gerencie em{" "}
+          <Link
+            href="/documents"
+            className="font-medium text-[var(--brand-primary)] underline-offset-2 hover:underline"
+          >
+            Documentos
+          </Link>
+          .
         </p>
       ) : null}
       <p className="mt-1.5 font-mono tabular-nums">

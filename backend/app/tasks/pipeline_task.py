@@ -12,8 +12,12 @@ from __future__ import annotations
 
 import logging
 import time
+import traceback
 import uuid
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+
+_BRT = ZoneInfo("America/Sao_Paulo")
 from pathlib import Path
 
 from backend.app.worker import celery_app
@@ -236,15 +240,26 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
             tasks_snapshot = build_snapshot_sync(ws_id, db=db)
         except Exception:  # noqa: BLE001 — best-effort; nunca impede report
             tasks_snapshot = None
+        try:
+            from backend.app.services.premissas_snapshot import (
+                build_premissas_snapshot_sync,
+            )
+
+            premissas_snapshot = build_premissas_snapshot_sync(
+                ws_id, tenant_root, db
+            )
+        except Exception:  # noqa: BLE001
+            premissas_snapshot = None
         report = Report(
             id=str(uuid.uuid4()),
             workspace_id=ws_id,
             pipeline_run_id=run_id,
-            title=f"Relatório {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')}",
+            title=f"Relatório {datetime.now(_BRT).strftime('%Y-%m-%d %H:%M')}",
             html_path=str(latest),
             analysis_json_path=str(analysis_json) if analysis_json else None,
             size_bytes=latest.stat().st_size,
             tasks_snapshot_json=tasks_snapshot,
+            premissas_snapshot_json=premissas_snapshot,
         )
         db.add(report)
         db.commit()
@@ -259,22 +274,24 @@ def _is_cancelled(run_id: str) -> bool:
 def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
     """Execute a stage with configurable retry on transient errors.
 
-    Returns (result, attempts, error_msg). result is None if all retries exhausted.
+    Returns (result, attempts, error_msg, tb). result is None if all retries exhausted.
     """
     retry_cfg = get_retry_config(stage_name)
     attempts = 0
+    last_tb = None
 
     while True:
         try:
             result = _run_stage(ctx, stage_name)
-            return result, attempts + 1, None
+            return result, attempts + 1, None, None
         except Exception as exc:
+            last_tb = traceback.format_exc()
             error_msg = str(exc)[:2000]
             if retry_cfg.should_retry(attempts, error_msg):
                 attempts += 1
                 time.sleep(retry_cfg.delay_for_attempt(attempts - 1))
                 continue
-            return None, attempts + 1, error_msg
+            return None, attempts + 1, error_msg, last_tb
 
 
 def _on_pipeline_task_failure(self, exc, task_id, args, kwargs, einfo):
@@ -336,6 +353,7 @@ def run_pipeline_task(
     - free tier: LLM stages auto-skipped
     - premium: LLM stages run; validation failures → StageReview + pause
     """
+    import os
     import sys
     _root = str(Path(__file__).resolve().parent.parent.parent.parent)
     if _root not in sys.path:
@@ -353,6 +371,9 @@ def run_pipeline_task(
     ctx.incremental = incremental
     ctx.incremental_doc_paths = incremental_doc_paths or []
     ctx.ensure_dirs()
+
+    # Lazy-imported scripts (E0–E7) load pipeline_common — tenant-scoped paths.
+    os.environ["FIN_WORKSPACE_ROOT"] = str(tenant_root.resolve())
 
     logger.info(
         "pipeline_start run_id=%s workspace_id=%s incremental=%s "
@@ -428,7 +449,7 @@ def run_pipeline_task(
 
         # --- Execute with retry ---
         start_mono = time.monotonic()
-        result, attempts, exc_error = _run_stage_with_retry(ctx, stage_name, _run_stage)
+        result, attempts, exc_error, exc_tb = _run_stage_with_retry(ctx, stage_name, _run_stage)
         elapsed_ms = int((time.monotonic() - start_mono) * 1000)
         completed_pct = int(((stage_idx + 1) / total_stages) * 100)
 
@@ -441,6 +462,11 @@ def run_pipeline_task(
                 stage_log.duration_ms = elapsed_ms
                 stage_log.completed_at = datetime.now(timezone.utc)
                 stage_log.errors = error_msg
+                stage_log.output_summary = {
+                    "error_type": exc_error.split(":")[0].strip() if exc_error else "Exception",
+                    "traceback": exc_tb,
+                    "attempt_count": attempts,
+                }
                 run = db.get(PipelineRun, run_id)
                 run.failed_at_stage = stage_name
                 db.commit()

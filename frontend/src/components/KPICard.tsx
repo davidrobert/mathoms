@@ -11,9 +11,19 @@ interface KPICardProps {
   icon?: LucideIcon;
   loading?: boolean;
   className?: string;
+  /** F11.2b — hierarquia: primeiro KPI forte; demais visualmente subordinados. */
+  emphasis?: "primary" | "secondary";
 }
 
-export function KPICard({ label, value, delta, icon: Icon, loading, className }: KPICardProps) {
+export function KPICard({
+  label,
+  value,
+  delta,
+  icon: Icon,
+  loading,
+  className,
+  emphasis = "primary",
+}: KPICardProps) {
   if (loading) {
     return (
       <Card className={cn("p-0", className)}>
@@ -26,22 +36,37 @@ export function KPICard({ label, value, delta, icon: Icon, loading, className }:
     );
   }
 
+  const labelCls =
+    emphasis === "secondary" ? "text-xs text-muted-foreground" : "text-sm text-muted-foreground";
+  const valueCls =
+    emphasis === "secondary"
+      ? "mt-1 text-lg font-medium tracking-tight font-mono tabular-nums text-foreground/95"
+      : "mt-1 text-2xl font-semibold tracking-tight font-mono tabular-nums";
+
   return (
     <Card className={cn("p-0", className)}>
       <CardContent>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">{label}</span>
-          {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+          <span className={labelCls}>{label}</span>
+          {Icon && (
+            <Icon
+              className={cn(
+                "h-4 w-4 text-muted-foreground",
+                emphasis === "secondary" && "h-3.5 w-3.5 opacity-80",
+              )}
+            />
+          )}
         </div>
-        <p className="mt-1 text-2xl font-semibold tracking-tight font-mono tabular-nums">
-          {value}
-        </p>
+        <p className={valueCls}>{value}</p>
         {delta && (
           <Delta
             value={delta.value}
             percent={delta.percent}
             invert={delta.invert}
-            className="mt-1 text-xs"
+            className={cn(
+              "mt-1",
+              emphasis === "secondary" ? "text-[11px] font-normal opacity-90" : "text-xs",
+            )}
           />
         )}
       </CardContent>

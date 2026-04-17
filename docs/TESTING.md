@@ -44,6 +44,9 @@ PW_CROSS_BROWSER=1 npm run test:e2e   # 3 browsers em fluxos críticos
 ./scripts/test_backend_up.sh
 # ... rodar testes ...
 ./scripts/test_backend_down.sh
+
+# Reset total da DB + storage + Redis (dev/staging) — ver SETUP.md
+# python -m backend.app.scripts.reset_platform --dry-run
 ```
 
 ---
@@ -55,6 +58,7 @@ tests/                          # pipeline (E0-E7), pytest
 backend/tests/                  # backend FastAPI, pytest async
 backend/tests/factories/        # data builders (make_user, make_workspace, ...)
 backend/tests/conftest.py       # DB isolation, client/auth_client fixtures
+backend/tests/test_premissas_snapshot.py  # F11.6b — snapshot goals.json + metas ativas
 
 frontend/tests/                 # Vitest (unit + integration)
 frontend/tests/setup.ts         # MSW lifecycle, jsdom polyfills
@@ -67,14 +71,19 @@ frontend/playwright.config.ts
 
 tests/fixtures/                 # PDFs sintéticos (gerador determinístico)
 tests/fixtures/pipeline_golden/ # P1 — JSON mínimos vs schemas E2/E3/E4
+tests/fixtures/llm_golden/      # JSONs saída LLM (E1, E1.5, E2-LLM, E7) vs `pipeline/llm/schemas`
+tests/test_llm_golden.py        # parse + validators + conversores dos JSONs acima
+tests/fixtures/e2_real_pdf_anon/  # Fase 2 opcional — PDFs reais redigidos + README
+tests/test_e2_real_pdf_regression.py  # `route_to_parser` em cada `*.pdf` da pasta (vazia = no-op)
 tests/test_e3_golden_execution.py  # E2 fixture → E3 run → asserts
 tests/test_e4_golden_execution.py  # E3 → E4 (+ misto receita/despesa + baseline E1.5)
 tests/test_e5_golden_execution.py  # E3→E4→E5 run → analise_financeira + E5 schema (+ misto receita/despesa + baseline E1.5)
 tests/test_e5n_golden_execution.py  # E5 + e5n_narrativas → narrativas; + tenant com cônjuge (`ana_cenarios`)
 tests/test_e6_golden_execution.py  # E4→E5→E6 HTML standalone (template + layout do repo)
 tests/pipeline_golden_asserts.py  # asserções partilhadas (ex.: qa_log.md)
-tests/test_e2_synthetic_pdf_parsers.py  # registry E2 × PDF; BTG/Rico/Wise/PicPay/BoA/Santander/Itaú/Caixa com assert de transações (`test_*_synthetic_extracts_transactions`)
-tests/fixtures/pdf_generator.py # 6.5F.12 — 14 códigos BankCode; layouts dedicados BTG/Rico/Wise/PicPay/Bank of America/Santander/Itaú/Caixa
+tests/test_e2_synthetic_pdf_parsers.py  # registry E2 × PDF; todos os bancos com assert dedicado (C6, Bradesco, … Caixa; Quinto Andar fatura)
+tests/test_e0_route_edges.py tests/test_e7_edges.py tests/test_e5_e6_e5n_edges.py  # 7D.1/7D.2 — helpers de borda (E0/E7/E5/E6/E5.N)
+tests/fixtures/pdf_generator.py # 6.5F.12 — 14 códigos BankCode; registry com `_draw_*` (C6, Bradesco, BTG, … Quinto Andar)
 dev/check_pipeline_boundaries.py # P1 — imports proibidos em pipeline/
 pipeline/run_dev.py           # P1 — CLI offline (orchestrator)
 tests/regressions/              # 6.5E.8 — 1 test por bug histórico (BUG-NNN)
@@ -302,6 +311,8 @@ Toda PR que altera `tests/e2e/__snapshots__/` deve marcar:
 ## Premium tier LLM em E2E — F6.5F.11 (ADR-070)
 
 **Default (PR checks):** LiteLLM mockado. Custo $0. Rápido.
+
+**Fixtures em disco (pipeline):** [tests/fixtures/llm_golden/README.md](../tests/fixtures/llm_golden/README.md) — um JSON por estágio LLM; `pytest tests/test_llm_golden.py` valida schemas e conversores (CI já roda via `pytest tests/`).
 
 ```python
 # backend/tests/fixtures/llm_mock.py expõe `mock_llm_service()` que retorna

@@ -1,5 +1,12 @@
 """Fin API — FastAPI application entry point."""
 
+import os
+from pathlib import Path
+
+# Before any import of scripts.* (e0_route → pipeline_common): workspace path model.
+_repo_root = Path(__file__).resolve().parent.parent.parent
+os.environ.setdefault("FIN_WORKSPACE_ROOT", str(_repo_root))
+
 import logging
 from contextlib import asynccontextmanager
 

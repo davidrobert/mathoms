@@ -58,7 +58,7 @@ def _init_config(base_dir: Path) -> None:
     FAMILY_CONFIG = _pc.load_json_config("family_members.json")
 
 
-_init_config(_DEFAULT_BASE_DIR)
+_init_config(_pc.PROJECT_DIR)
 
 # ---------------------------------------------------------------------------
 # Logging

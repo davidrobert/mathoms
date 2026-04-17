@@ -135,6 +135,10 @@ class _GoalResponseBase(BaseModel):
 
     id: str
     workspace_id: str
+    meta_version: int = Field(
+        1,
+        description="Versão do schema canônico em `params_json` (goal.*.schema.json).",
+    )
     effective_from: date
     effective_to: Optional[date] = None
     is_template: bool = False

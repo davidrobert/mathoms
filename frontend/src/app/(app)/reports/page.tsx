@@ -62,12 +62,19 @@ function ReportsPageContent({ workspace }: { workspace: UserWorkspace }) {
       )}
 
       {reports.length === 0 ? (
-        <EmptyState
-          variant="no-reports"
-          title="Nenhum relatório disponível."
-          description="Envie documentos e execute o pipeline para gerar seu primeiro relatório."
-          action={{ label: "Enviar documentos →", href: "/documents" }}
-        />
+        <div className="space-y-4">
+          <EmptyState
+            variant="no-reports"
+            title="Nenhum relatório disponível."
+            description="Envie documentos e execute o pipeline para gerar seu primeiro relatório deste período."
+            action={{ label: "Enviar documentos →", href: "/documents" }}
+          />
+          <p className="text-center text-sm text-muted-foreground">
+            <Link href="/plano" className="font-medium text-primary underline-offset-2 hover:underline">
+              Ver ou ajustar metas no Plano
+            </Link>
+          </p>
+        </div>
       ) : (
         <div className="grid gap-4">
           {reports.map((report) => (

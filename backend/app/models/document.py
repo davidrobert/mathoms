@@ -36,6 +36,15 @@ class DocumentStatus(str, enum.Enum):
         return cls.error
 
 
+# Documentos elegíveis para pipeline / relatório: classificação OK (antes ou depois de um run).
+DOCUMENT_CLASSIFIED_OK: frozenset[DocumentStatus] = frozenset(
+    {
+        DocumentStatus.ready,
+        DocumentStatus.processed,
+    }
+)
+
+
 # ─── State machine (P1.1) ───
 # Map `from_status → {allowed target statuses}`. Same-status transitions are
 # always allowed (idempotent). Rationale:
@@ -61,7 +70,10 @@ _ALLOWED_TRANSITIONS: "dict[DocumentStatus, frozenset[DocumentStatus]]" = {
         DocumentStatus.classifying, DocumentStatus.ready, DocumentStatus.error,
     }),
     DocumentStatus.ready: frozenset({
-        DocumentStatus.processing, DocumentStatus.classifying, DocumentStatus.error,
+        DocumentStatus.processing,
+        DocumentStatus.classifying,
+        DocumentStatus.error,
+        DocumentStatus.processed,
     }),
     DocumentStatus.processing: frozenset({
         DocumentStatus.processed, DocumentStatus.ready, DocumentStatus.error,

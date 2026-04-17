@@ -46,6 +46,8 @@ const reports: ReportResponse[] = [
     patrimonio_liquido: 950_000,
     created_at: NOW,
     pipeline_run_id: "run-1",
+    source_document_count: 1,
+    source_document_ids: ["doc-1"],
     has_analysis_data: true,
   },
 ];

@@ -57,7 +57,7 @@ def _init_config(base_dir: Path) -> None:
     INBOX_LOG = _pc.LOGS_DIR / "inbox_log.md"
 
 
-_init_config(_DEFAULT_BASE_DIR)
+_init_config(_pc.PROJECT_DIR)
 
 # =============================================================================
 # Helpers

@@ -42,6 +42,7 @@ import { UpcomingTasksWidget } from "@/components/tasks/UpcomingTasksWidget";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
+import Link from "next/link";
 
 // ─── Chart Palette ───
 
@@ -389,12 +390,19 @@ export default function DashboardPage() {
     return (
       <div className="mx-auto max-w-6xl px-6 py-8">
         <PageHeader title="Dashboard" />
-        <EmptyState
-          variant="no-data"
-          title="Nenhuma análise disponível"
-          description="Execute o pipeline de processamento para gerar o dashboard com KPIs e gráficos financeiros."
-          action={{ label: "Ir para Pipeline", href: "/pipeline" }}
-        />
+        <div className="space-y-4">
+          <EmptyState
+            variant="no-data"
+            title="Nenhuma análise disponível"
+            description="Execute o pipeline para gerar o dashboard deste período. Ajuste metas e plano de vida em Meu Plano quando quiser."
+            action={{ label: "Ir para Pipeline", href: "/pipeline" }}
+          />
+          <p className="text-center text-sm text-muted-foreground">
+            <Link href="/plano" className="font-medium text-primary underline-offset-2 hover:underline">
+              Abrir Meu Plano (metas)
+            </Link>
+          </p>
+        </div>
       </div>
     );
   }
@@ -453,6 +461,7 @@ export default function DashboardPage() {
                 label={kpi.label}
                 value={kpi.value}
                 icon={KPI_ICONS[i % KPI_ICONS.length]}
+                emphasis={i === 0 ? "primary" : "secondary"}
                 delta={
                   kpi.delta != null
                     ? {

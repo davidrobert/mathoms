@@ -7,6 +7,7 @@
  * - JWT expiry mid-session (401 em API → clearToken + redirect /login)
  * - Logout limpa localStorage completamente (token + quaisquer outros)
  */
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -26,6 +27,23 @@ vi.mock("next/link", () => ({
   default: ({ children, href, ...rest }: any) => (
     <a href={href} {...rest}>{children}</a>
   ),
+}));
+
+vi.mock("@/lib/WorkspaceProvider", () => ({
+  WorkspaceProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+  useWorkspace: () => ({
+    workspace: {
+      id: "ws-1",
+      name: "WS",
+      family_surname: "Test",
+      role: "owner" as const,
+      joined_at: "2026-01-01T00:00:00.000Z",
+    },
+    workspaces: [],
+    isLoading: false,
+    error: null,
+    refresh: vi.fn(),
+  }),
 }));
 
 beforeEach(() => {

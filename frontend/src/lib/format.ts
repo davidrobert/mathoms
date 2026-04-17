@@ -142,6 +142,11 @@ export function docStatusLabel(status: DocumentStatus): StatusLabel {
   return DOC_STATUS_MAP[status] ?? { label: status, variant: "neutral" };
 }
 
+/** Classificação concluída: pode ir ao pipeline / relatório (antes ou depois de um run). */
+export function isDocumentClassifiedOk(status: DocumentStatus): boolean {
+  return status === "ready" || status === "processed";
+}
+
 const DOC_TYPE_MAP: Record<DocumentType, string> = {
   bank_statement: "Extrato",
   credit_card_bill: "Fatura",
@@ -209,16 +214,36 @@ export function fileFormatLabel(contentType: string | null | undefined, original
   return "—";
 }
 
-/** Último pipeline concluído + se consolidou extrato (F11.5 — sem códigos E* na UI). */
+/** Resumo curto para a lista: data da última análise + qualidade da leitura do extrato. */
 export function pipelineE2TouchLabel(
   lastRunAt: string | null | undefined,
   e2Ok: boolean | null | undefined,
 ): string {
   if (!lastRunAt) return "—";
   const when = formatDateShort(lastRunAt);
-  if (e2Ok === true) return `${when} · extrato consolidado`;
-  if (e2Ok === false) return `${when} · sem extrato consolidado`;
+  if (e2Ok === true) return `${when} · leitura estruturada do extrato`;
+  if (e2Ok === false) return `${when} · leitura automática incompleta`;
   return when;
+}
+
+/** Texto do tooltip (sem jargão técnico de pipeline/estágios). */
+export function pipelineTouchTooltipExplanation(
+  e2Ok: boolean | null | undefined,
+): string {
+  if (e2Ok === true) {
+    return (
+      "O sistema organizou os lançamentos deste arquivo de forma estruturada para usar na consolidação " +
+      "e no relatório."
+    );
+  }
+  if (e2Ok === false) {
+    return (
+      "O arquivo entrou na análise, mas a leitura automática do extrato não foi completa " +
+      "(por exemplo: layout do banco ainda não suportado, PDF só com imagem ou formato não tratado). " +
+      "Parte das informações pode vir de outras fontes no relatório."
+    );
+  }
+  return "Não foi possível verificar automaticamente o nível de detalhe extraído deste arquivo.";
 }
 
 const RUN_STATUS_MAP: Record<PipelineRunStatus, StatusLabel> = {

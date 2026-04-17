@@ -182,7 +182,7 @@ describe("a11y — pages", () => {
 
   it("DocumentsPage (com docs) é acessível", async () => {
     server.use(
-      http.get("/api/documents", () =>
+      http.get("/api/workspaces/:workspaceId/documents", () =>
         HttpResponse.json({
           documents: [makeDocument({ original_name: "extrato.pdf", status: "ready" })],
           total: 1,

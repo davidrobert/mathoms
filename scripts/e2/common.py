@@ -15,12 +15,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import scripts.pipeline_common as _pc
 
 # =============================================================================
 # Paths
 # =============================================================================
 
-_DEFAULT_BASE_DIR = Path(__file__).resolve().parent.parent.parent
+_DEFAULT_BASE_DIR = _pc._REPO_ROOT
 
 BASE_DIR = _DEFAULT_BASE_DIR
 DATA_DIR = BASE_DIR / "data" / "financial_statements"
@@ -104,7 +105,7 @@ def _init_config(base_dir: Path) -> None:
 
 
 # Module level: carrega defaults (retrocompat)
-_init_config(_DEFAULT_BASE_DIR)
+_init_config(_pc.PROJECT_DIR)
 
 
 # =============================================================================

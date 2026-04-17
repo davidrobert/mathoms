@@ -29,7 +29,9 @@ import {
   ApiError,
   type AlocacaoGoalInputs,
   type AlocacaoGoalResponse,
+  type AlocacaoGoalDerived,
 } from "@/lib/api";
+import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
 
 const DEFAULT_INPUTS: AlocacaoGoalInputs = {
@@ -68,6 +70,8 @@ export default function AlocacaoEditPage() {
     inputs.imoveis_reits_pct +
     inputs.liquidez_usd_pct;
   const somaValida = soma === 100;
+
+  const alocacaoDerived: AlocacaoGoalDerived = { soma_percentuais: soma };
 
   // Load existing goal
   useEffect(() => {
@@ -153,6 +157,15 @@ export default function AlocacaoEditPage() {
           .
         </p>
       )}
+
+      <GoalPremissasCard
+        className="mb-4"
+        kind="alocacao"
+        mode="draft"
+        inputs={inputs}
+        derived={alocacaoDerived}
+        existingEffectiveFrom={goal?.effective_from ?? null}
+      />
 
       <Card>
         <CardContent className="space-y-6 py-6">

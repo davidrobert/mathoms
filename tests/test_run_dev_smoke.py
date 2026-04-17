@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -32,13 +33,16 @@ def test_run_dev_e3_empty_tenant(minimal_tenant: Path, capsys):
     """E3 sem extracts pode falhar o stage; o processo não deve abortar sem SystemExit tratado."""
     from pipeline.run_dev import main
 
-    # Restore cwd-sensitive scripts after stage (e3 mutates globals)
-    from scripts.e3_reconcile import _init_config as e3_init, _DEFAULT_BASE_DIR as E3_DEFAULT
+    # Restore cwd-sensitive scripts after stage (e3 + pipeline_common globals)
+    from scripts.e3_reconcile import _init_config as e3_init
+    from scripts.pipeline_common import _REPO_ROOT, _init_config as pc_init
 
     try:
         code = main(["--root", str(minimal_tenant), "--stages", "E3"])
     finally:
-        e3_init(E3_DEFAULT)
+        os.environ["FIN_WORKSPACE_ROOT"] = str(_REPO_ROOT)
+        pc_init(_REPO_ROOT)
+        e3_init(_REPO_ROOT)
 
     assert code in (0, 1)
     captured = capsys.readouterr()

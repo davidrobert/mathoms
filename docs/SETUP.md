@@ -135,6 +135,27 @@ cd backend && alembic upgrade head
 
 Em **CI/produção** sempre setar `FIN_DATABASE_URL` com path absoluto (ou URL Postgres). O guard só permite SQLite relativo se você setar `FIN_ALEMBIC_ALLOW_RELATIVE_SQLITE=1` — use **apenas** em testes do próprio guard.
 
+### Reset completo da plataforma (CLI)
+
+Use **apenas em dev/staging** (ou base descartável). Apaga **todos** os utilizadores e dados em cascata no SQL, remove o conteúdo de `FIN_STORAGE_ROOT` (ex.: `./storage/`) e, por defeito, executa `FLUSHDB` no Redis de `FIN_REDIS_URL`.
+
+| Comando | Efeito |
+| --- | --- |
+| `python -m backend.app.scripts.reset_platform --dry-run` | Mostra URL da DB (password mascarada), contagens e tamanho de storage; **não altera nada**. |
+| `python -m backend.app.scripts.reset_platform --apply` | Após **duas confirmações interactivas** (frases exactas abaixo), executa o reset. |
+| `… --apply --skip-redis` | Igual, mas **não** limpa o Redis (útil se não tiver Redis a correr). |
+
+Confirmações exigidas com `--apply` (sem aspas, uma por linha):
+
+1. `DELETE ALL DATA`
+2. `RESET PLATFORM IRREVERSIBLE`
+
+**Recomendação:** parar API, worker Celery e qualquer processo que escreva na mesma DB/storage antes de `--apply`.
+
+Depois do reset, o “primeiro login” deixa de ser o seed de `seed_db.py` até voltar a correr esse script ou registar um novo utilizador na UI.
+
+Relacionado: reset **só** de documentos e pastas de dados por tenant (preserva `config/` em cada tenant) — `python -m backend.app.scripts.reset_documents --dry-run` / `--apply`.
+
 ---
 
 ## 4. Rodar os 4 serviços
@@ -221,10 +242,13 @@ open htmlcov/index.html
 
 ## 8. Pipeline CLI (sem web)
 
-O pipeline continua funcionando via CLI para debug:
+Os scripts em `scripts/` partilham `scripts.pipeline_common`, que exige a variável de ambiente **`FIN_WORKSPACE_ROOT`**: deve apontar para a **raiz do workspace** (pasta com `config/`, `data/`, `inbox/`, …), em geral `storage/<workspace_id>/`. **Não** há mais default silencioso para `./data/` na raiz do repositório.
 
 ```bash
 source .venv/bin/activate
+export FIN_WORKSPACE_ROOT="$PWD/storage/<workspace_id>"
+# ou, para desenvolvimento com configs na raiz do repo:
+export FIN_WORKSPACE_ROOT="$PWD"
 
 # Extração de faturas
 python scripts/e2_extract.py --faturas-only
@@ -232,12 +256,21 @@ python scripts/e2_extract.py --faturas-only
 # Reconciliação
 python scripts/e3_reconcile.py
 
-# Relatório completo (usa config/ global)
+# Relatório completo (orquestra E0→E6; precisa FIN_WORKSPACE_ROOT)
 python scripts/e_reset.py
 
-# Mesmo orquestrador do worker, sobre tenant materializado (storage/<workspace_id>/)
+# Orquestrador (define FIN_WORKSPACE_ROOT a partir de --root)
 python -m pipeline.run_dev --root /caminho/para/tenant
 ```
+
+O arranque da API (`uvicorn`), o worker Celery e os `conftest` de pytest fazem `setdefault` de `FIN_WORKSPACE_ROOT` para a raiz do repositório, para carregar `config/` global em desenvolvimento.
+
+**Directórios na raiz do repo:** não é obrigatório existir `data/`, `inbox/`,
+`inbox_processed/`, `processed/`, `output/`, `logs/`, `members/` ou `life_plan/`
+na raiz do clone. Esses nomes são **subpastas do workspace** (por defeito
+`storage/<workspace_id>/…`). Só aparecem na raiz do projeto se alguém apontar
+`FIN_WORKSPACE_ROOT` para a raiz do repositório e correr o pipeline CLI aí; a app
+web não depende dessas pastas na raiz.
 
 Após cada run, artefatos JSON críticos são validados contra schemas (`warn` por padrão; ver `FIN_PIPELINE_SCHEMA_MODE` e [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md)).
 

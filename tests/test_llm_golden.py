@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Golden file / snapshot tests — validate that LLM output schemas parse
-golden fixtures correctly and that validators accept them."""
+golden fixtures correctly and that validators accept them.
+
+Fixture inventory: tests/fixtures/llm_golden/README.md
+"""
 
 import json
 import sys

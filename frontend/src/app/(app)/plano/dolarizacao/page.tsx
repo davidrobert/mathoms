@@ -33,6 +33,7 @@ import {
   type DolarGoalResponse,
 } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
 
 const DEFAULT_INPUTS: DolarGoalInputs = {
@@ -159,6 +160,16 @@ export default function DolarizacaoEditPage() {
           .
         </p>
       )}
+
+      <GoalPremissasCard
+        className="mb-4"
+        kind="dolar"
+        mode="draft"
+        inputs={inputs}
+        derived={computed?.derived ?? null}
+        cambioUtilizado={computed?.cambio_utilizado ?? null}
+        existingEffectiveFrom={goal?.effective_from ?? null}
+      />
 
       <Card>
         <CardContent className="space-y-6 py-6">

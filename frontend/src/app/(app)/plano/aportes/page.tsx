@@ -34,6 +34,7 @@ import {
   type AporteGoalResponse,
 } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
 
 interface DistRow {
@@ -189,6 +190,15 @@ export default function AportesEditPage() {
           .
         </p>
       )}
+
+      <GoalPremissasCard
+        className="mb-4"
+        kind="aporte"
+        mode="draft"
+        inputs={inputsFromRows(inputs, rows)}
+        derived={derived}
+        existingEffectiveFrom={goal?.effective_from ?? null}
+      />
 
       <Card>
         <CardContent className="space-y-6 py-6">
