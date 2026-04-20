@@ -20,10 +20,10 @@ Oferecer uma superfície **separada do usuário final**, com **least privilege**
 
 | # | Princípio |
 |---|-----------|
-| P1 | **Host e credenciais separados** do login do cliente (ex.: subdomínio `ops.*`, SSO da empresa, 2FA quando aplicável). |
+| P1 | **Host e credenciais separados** do login do cliente — **`ops.mathoms.ai`** (ADR-108), session cookie com scope exclusivo, SSO da empresa, MFA (TOTP mínimo; WebAuthn em F7E). **Nunca** compartilhar cookies com `app.mathoms.ai`. |
 | P2 | **RBAC interno** (papéis como operador, suporte, financeiro, superadmin raro) com permissões explícitas na API. |
 | P3 | Ação que altera estado do cliente ou expõe dado sensível: **motivo obrigatório** + registro em **audit log** (alinha a 7B.5). |
-| P4 | APIs dedicadas sob prefixo controlado (ex.: `/api/internal/...`) com guard por **ambiente**, **allowlist** (IP/VPN) e testes de autorização. |
+| P4 | APIs dedicadas sob **`api.mathoms.ai/v1/internal/*`** com guard por **ambiente**, **IP allowlist** (Traefik `ipAllowList` middleware) e testes de autorização. Middleware de auth **distinto** de `get_current_user` do produto. |
 | P5 | **Minimização de dados:** visão padrão = metadados e agregados; PII/valores apenas em fluxos explícitos (“break glass”) com política documentada. |
 
 ---

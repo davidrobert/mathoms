@@ -2,6 +2,16 @@
 
 > Guia para rodar o projeto em desenvolvimento local.
 
+## URLs por ambiente (ADR-108)
+
+| Ambiente | Produto | API | Console interno |
+|---|---|---|---|
+| **Dev local** | http://localhost:3000 | http://localhost:8000 | http://localhost:3000/ops |
+| **Staging** | https://app.staging.mathoms.ai | https://api.staging.mathoms.ai | https://ops.staging.mathoms.ai |
+| **Produção** | https://app.mathoms.ai | https://api.mathoms.ai/v1/ | https://ops.mathoms.ai |
+
+Docs públicas: `docs.mathoms.ai` · Status page: `status.mathoms.ai` · Landing: `mathoms.ai`. Ver [ARCHITECTURE.md §18](ARCHITECTURE.md#18-domínios-e-urls-públicas-f7a) para a arquitetura completa.
+
 ---
 
 ## Pré-requisitos

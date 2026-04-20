@@ -4,6 +4,8 @@
 
 **Status:** Dogfood interno · **F9 concluída** (relatório nativo React, design tokens, workspace sharing) · **Migração infra + domínio** em curso (fases 1-8 foundation entregues; plano em [_scratch/plano_migracao_artifacts_db.md](_scratch/plano_migracao_artifacts_db.md)) · Próxima fase planejada: **F7** (produção, LGPD, ops) — ver [docs/ROADMAP.md](docs/ROADMAP.md).
 
+**Produção (em configuração):** `app.mathoms.ai` · API: `api.mathoms.ai/v1/` · Console interno: `ops.mathoms.ai` · Docs: `docs.mathoms.ai` · Status: `status.mathoms.ai` · Landing: `mathoms.ai`. Ver [ADR-108](docs/DECISIONS.md#adr-108--estratégia-de-subdomínios-mathomsai--cloudflare-dns).
+
 ---
 
 ## O que é

@@ -171,7 +171,7 @@ Trabalho técnico para **uma fonte de verdade** na lógica E0–E7, **testes off
 
 | Sub-fase | Foco                                                                                                                                                              | Duração    |
 | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 7A       | Docker + Deploy + HTTPS (VPS, Traefik, Let's Encrypt)                                                                                                             | 1-2 sem    |
+| 7A       | Docker + Deploy + HTTPS (VPS Hetzner, Traefik, Let's Encrypt via **DNS-01 Cloudflare**, subdomínios `app/api/ops/docs/status.mathoms.ai`, ADR-108) | 1-2 sem    |
 | 7B       | Security + LGPD + Auth (Fernet expandido, rate limit, JWT refresh, audit, termos versionados, **email verification, password reset, brute-force lockout, prompt injection defense, soft-delete, DSAR**) | 3-4 sem    |
 | 7C       | CI/CD + Observabilidade (GH Actions, Sentry, logs, uptime)                                                                                                        | 1-2 sem    |
 | 7D       | Quality Gate + Launch Readiness (gap-fill, baseline perf, checklist)                                                                                              | 2-3 sem    |
@@ -179,7 +179,13 @@ Trabalho técnico para **uma fonte de verdade** na lógica E0–E7, **testes off
 | 7F       | **Console interno** (auth/RBAC staff, APIs `/api/internal`, métricas agregadas, CS search/bundle; evolui com beta/billing) — ver [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md) | paralelo a 7D–7E |
 | Dogfood  | 2+ semanas de uso real antes de beta                                                                                                                              | 2+ sem     |
 
-**Deploy target:** VPS Hetzner CX32 (4 vCPU, 8GB, ~$8/mo) + Docker Compose + PostgreSQL + Traefik. Backup off-site em S3 BR ou Backblaze B2.
+**Deploy target:** VPS Hetzner CX32 (4 vCPU, 8GB, ~$8/mo) + Docker Compose + PostgreSQL + Traefik. DNS em **Cloudflare** (domínio `mathoms.ai` registrado lá). Backup off-site em S3 BR ou Backblaze B2.
+
+**URLs públicas (ADR-108):**
+- **Produto:** `app.mathoms.ai` · **API:** `api.mathoms.ai/v1/...` · **Console interno:** `ops.mathoms.ai` (F7F, IP allowlist + MFA)
+- **Docs:** `docs.mathoms.ai` · **Status:** `status.mathoms.ai` · **Landing:** `mathoms.ai` (apex)
+- **Staging:** `*.staging.mathoms.ai` · **Dev local:** `localhost:3000`/`localhost:8000`
+- Multi-tenancy via path: `app.mathoms.ai/w/<workspace-slug>/...` (subdomain-per-tenant reservado para enterprise tier)
 
 **Progressão pós-F7:**
 
