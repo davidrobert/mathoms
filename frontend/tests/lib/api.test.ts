@@ -249,12 +249,12 @@ describe("uploadDocuments (XHR upload com progress)", () => {
     try {
       setToken("t");
       const file = new File(["hello"], "test.pdf", { type: "application/pdf" });
-      const result = await uploadDocuments([file], (loaded, total) => {
+      const result = await uploadDocuments("ws-1", [file], (loaded, total) => {
         events.push({ loaded, total });
       });
 
       expect(sentMethod).toBe("POST");
-      expect(sentURL).toContain("/api/documents/upload");
+      expect(sentURL).toContain("/api/workspaces/ws-1/documents/upload");
       expect(sentBody).toBeInstanceOf(FormData);
       expect(events).toEqual([
         { loaded: 50, total: 100 },
@@ -286,7 +286,7 @@ describe("uploadDocuments (XHR upload com progress)", () => {
     (globalThis as any).XMLHttpRequest = MockXHR;
     try {
       const file = new File(["x"], "big.pdf");
-      await expect(uploadDocuments([file])).rejects.toMatchObject({
+      await expect(uploadDocuments("ws-1", [file])).rejects.toMatchObject({
         status: 400,
         detail: "arquivo grande",
       });
