@@ -15,6 +15,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.core.config import settings
 from backend.app.core.database import init_db
+from backend.app.core.logging import setup_logging
+from backend.app.core.otel import instrument_fastapi, setup_otel
+from backend.app.middleware.correlation import CorrelationIdMiddleware
 from backend.app.api.auth import router as auth_router
 from backend.app.api.reports import router as reports_router
 from backend.app.api.vault import router as vault_router
@@ -40,8 +43,13 @@ from backend.app.schemas.health import HealthResponse
 logger = logging.getLogger(__name__)
 
 
+setup_logging()
+setup_otel(service_name="mathoms-api")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    instrument_fastapi(app)
     await init_db()
     yield
 
@@ -53,6 +61,7 @@ app = FastAPI(
     openapi_url=f"{settings.API_PREFIX}/openapi.json",
 )
 
+app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,

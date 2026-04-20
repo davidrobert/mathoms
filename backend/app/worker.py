@@ -9,8 +9,11 @@ import sys
 from pathlib import Path
 
 from celery import Celery
+from celery.signals import worker_process_init
 
 from backend.app.core.config import settings
+from backend.app.core.logging import setup_logging
+from backend.app.core.otel import instrument_celery, setup_otel
 
 # BUG-002 fix: ensure project root is on sys.path so that `import pipeline`
 # works inside the Celery worker process (fork pool doesn't inherit sys.path).
@@ -55,3 +58,11 @@ celery_app.conf.update(
         },
     },
 )
+
+
+@worker_process_init.connect
+def _init_worker_observability(**_: object) -> None:
+    """Set up JSON logging + OTel in each Celery worker process (fork-safe)."""
+    setup_logging()
+    setup_otel(service_name="mathoms-worker")
+    instrument_celery()

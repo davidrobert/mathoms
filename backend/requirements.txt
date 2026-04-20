@@ -32,6 +32,16 @@ celery[redis]>=5.4.0
 redis>=5.0.0
 websockets>=12.0
 
+# A6f.3 — Structured JSON logs + OpenTelemetry (ADR-110)
+python-json-logger>=3.2
+opentelemetry-api>=1.30
+opentelemetry-sdk>=1.30
+opentelemetry-exporter-otlp-proto-http>=1.30
+opentelemetry-instrumentation-fastapi>=0.50b0
+opentelemetry-instrumentation-sqlalchemy>=0.50b0
+opentelemetry-instrumentation-celery>=0.50b0
+opentelemetry-instrumentation-logging>=0.50b0
+
 # Dev/test
 pytest>=8.0
 pytest-asyncio>=0.24
