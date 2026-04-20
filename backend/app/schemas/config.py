@@ -1,146 +1,32 @@
-"""Pydantic schemas for the 5 editable configs: members, categories, pipeline, institutions, report_layout."""
+"""Pydantic schemas for the 5 editable configs: members, categories, pipeline, institutions, report_layout.
+
+**A6e (ADR-101)** — os DTOs de ``FamilyMember`` / ``BankAccount`` migraram
+para ``backend.app.schemas.dto.family_member``. Os nomes legados aqui são
+**aliases** durante a janela de transição (tests e imports antigos
+continuam funcionando). Use os DTOs novos em código novo.
+"""
 
 from __future__ import annotations
 
-import re
-from datetime import date
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
+# A6e aliases (preservam nomes legados apontando para os DTOs canônicos).
+from backend.app.schemas.dto.family_member.command import (
+    BankAccountCreateCommand as BankAccountCreateRequest,
+    FamilyMemberCreateCommand as FamilyMemberCreateRequest,
+    FamilyMemberUpdateCommand as FamilyMemberUpdateRequest,
+)
+from backend.app.schemas.dto.family_member.response import (
+    BankAccountResponse as BankAccountSchema,
+    FamilyMemberListResponse as _FamilyMemberListResponse,
+    FamilyMemberResponse as FamilyMemberSchema,
+)
 
-# =============================================================================
-# Family Members
-# =============================================================================
-
-class BankAccountSchema(BaseModel):
-    """A bank account linked to a family member."""
-    id: Optional[str] = None
-    institution_code: str = Field(..., min_length=1, max_length=50)
-    account_type: str = Field(..., min_length=1, max_length=100)
-    agency: Optional[str] = Field(None, max_length=20)
-    account_number: Optional[str] = Field(None, max_length=30)
-    label: Optional[str] = Field(None, max_length=255)
-
-    model_config = {"from_attributes": True}
-
-
-class BankAccountCreateRequest(BaseModel):
-    institution_code: str = Field(..., min_length=1, max_length=50)
-    account_type: str = Field(..., min_length=1, max_length=100)
-    agency: Optional[str] = Field(None, max_length=20)
-    account_number: Optional[str] = Field(None, max_length=30)
-    label: Optional[str] = Field(None, max_length=255)
-
-
-class FamilyMemberSchema(BaseModel):
-    """A family member with optional bank accounts."""
-    id: Optional[str] = None
-    key: str = Field(..., min_length=1, max_length=50, description="Canonical short key (e.g. 'david', 'mariana')")
-    full_name: str = Field(..., min_length=1, max_length=255)
-    short_name: str = Field(..., min_length=1, max_length=100)
-    birth_name: Optional[str] = Field(
-        None,
-        max_length=255,
-        description="Nome civil anterior / de nascimento (contas antigas); persiste em extra.nome_nascimento",
-    )
-    cpf: Optional[str] = Field(None, max_length=14, description="CPF (masked on read, plain on write)")
-    birth_date: Optional[date] = None
-    role: str = Field(..., pattern=r"^(titular|conjuge|filho|dependente)$")
-    order: int = Field(default=0, ge=0)
-    extra: Optional[dict[str, Any]] = Field(
-        None,
-        description="Arbitrary extra fields (variantes_nome, regex_nome_fatura, profissao, etc.)",
-    )
-    accounts: list[BankAccountSchema] = Field(default_factory=list)
-
-    model_config = {"from_attributes": True}
-
-    @field_validator("cpf")
-    @classmethod
-    def validate_cpf_format(cls, v: str | None) -> str | None:
-        if v is None:
-            return v
-        digits = "".join(c for c in v if c.isdigit())
-        if len(digits) != 11:
-            raise ValueError("CPF deve conter exatamente 11 dígitos")
-        return v
-
-
-class FamilyMemberCreateRequest(BaseModel):
-    key: Optional[str] = Field(
-        None,
-        min_length=1,
-        max_length=50,
-        description="Opcional; se omitido, gerado a partir do nome completo (slug único)",
-    )
-    full_name: str = Field(..., min_length=1, max_length=255)
-    short_name: str = Field(..., min_length=1, max_length=100)
-    birth_name: Optional[str] = Field(None, max_length=255)
-    cpf: Optional[str] = Field(None, max_length=14)
-    birth_date: Optional[date] = None
-    role: str = Field(..., pattern=r"^(titular|conjuge|filho|dependente)$")
-    order: int = Field(default=0, ge=0)
-    extra: Optional[dict[str, Any]] = None
-
-    @field_validator("key")
-    @classmethod
-    def normalize_optional_key(cls, v: str | None) -> str | None:
-        if v is None:
-            return None
-        s = v.strip()
-        if not s:
-            return None
-
-        if not re.fullmatch(r"[a-z0-9_]{1,50}", s):
-            raise ValueError(
-                "Identificador interno: use apenas letras minúsculas, números e _ (máx. 50 caracteres)"
-            )
-        return s
-
-    @field_validator("cpf")
-    @classmethod
-    def validate_cpf_format(cls, v: str | None) -> str | None:
-        if v is None:
-            return v
-        digits = "".join(c for c in v if c.isdigit())
-        if len(digits) != 11:
-            raise ValueError("CPF deve conter exatamente 11 dígitos")
-        return v
-
-
-class FamilyMemberUpdateRequest(BaseModel):
-    key: Optional[str] = Field(None, min_length=1, max_length=50)
-    full_name: Optional[str] = Field(None, min_length=1, max_length=255)
-    short_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    birth_name: Optional[str] = Field(None, max_length=255)
-    cpf: Optional[str] = Field(None, max_length=14)
-    birth_date: Optional[date] = None
-    role: Optional[str] = Field(None, pattern=r"^(titular|conjuge|filho|dependente)$")
-    order: Optional[int] = Field(None, ge=0)
-    extra: Optional[dict[str, Any]] = None
-
-    @field_validator("key")
-    @classmethod
-    def normalize_key(cls, v: str | None) -> str | None:
-        if v is None:
-            return None
-
-        if not re.fullmatch(r"[a-z0-9_]{1,50}", v):
-            raise ValueError(
-                "Identificador interno: use apenas letras minúsculas, números e _ (máx. 50 caracteres)"
-            )
-        return v
-
-    @field_validator("cpf")
-    @classmethod
-    def validate_cpf_format(cls, v: str | None) -> str | None:
-        if v is None:
-            return v
-        digits = "".join(c for c in v if c.isdigit())
-        if len(digits) != 11:
-            raise ValueError("CPF deve conter exatamente 11 dígitos")
-        return v
+# Alias legado — mantém o nome ``FamilyMemberListResponse`` servindo o mesmo
+# shape do DTO novo.
+FamilyMemberListResponse = _FamilyMemberListResponse
 
 
 # =============================================================================
@@ -288,6 +174,12 @@ class ConfigExportResponse(BaseModel):
     pipeline: dict[str, Any]
     institutions: dict[str, Any]
     report_layout: dict[str, Any]
+
+
+class ConfigImportResponse(BaseModel):
+    """Retorno de ``POST /config/import`` — reporta quais seções foram importadas."""
+    imported: list[str]
+    total: int
 
 
 # =============================================================================

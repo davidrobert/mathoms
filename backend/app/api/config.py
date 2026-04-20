@@ -1,4 +1,11 @@
-"""Config API — CRUD for the 5 editable configs, import/export, fallback to disk defaults."""
+"""Config API — CRUD for the 5 editable configs, import/export, fallback to disk defaults.
+
+**A6e (ADR-101)** — endpoints do agregado ``FamilyMember`` (members/accounts)
+delegam persistência para ``FamilyMemberRepository`` e retornam DTOs de
+``schemas/dto/family_member/``. Restante do router (categories, config blobs,
+import/export) ainda acessa o ORM direto — será migrado nas sessões
+seguintes (Category repo + ConfigBlob repo).
+"""
 
 from __future__ import annotations
 
@@ -21,19 +28,14 @@ from backend.app.models.category import Category, CategoryKeyword
 from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
 from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.workspace import Workspace
+from backend.app.repositories.family_member_repository import FamilyMemberRepository
 from backend.app.schemas.config import (
-    BankAccountCreateRequest,
-    BankAccountSchema,
     CategoryCreateRequest,
     CategoryListResponse,
     CategorySchema,
     CategoryUpdateRequest,
     ConfigExportResponse,
     ConfigImportRequest,
-    FamilyMemberCreateRequest,
-    FamilyMemberListResponse,
-    FamilyMemberSchema,
-    FamilyMemberUpdateRequest,
     InstitutionConfigSchema,
     InstitutionConfigUpdateRequest,
     PipelineConfigSchema,
@@ -42,6 +44,17 @@ from backend.app.schemas.config import (
     ReportLayoutUpdateRequest,
     WorkspaceSettingsSchema,
     WorkspaceSettingsUpdateRequest,
+)
+from backend.app.schemas.dto.family_member import (
+    BankAccountCreateCommand,
+    BankAccountResponse,
+    BankAccountUpdateCommand,
+    FamilyMemberCreateCommand,
+    FamilyMemberListResponse,
+    FamilyMemberResponse,
+    FamilyMemberUpdateCommand,
+    convert_global_defaults_to_responses,
+    member_to_response,
 )
 from backend.app.services.vault import get_vault
 
@@ -53,17 +66,11 @@ router = APIRouter(
 _vault = get_vault()
 
 
-def _birth_name_from_extra(extra: dict[str, Any] | None) -> str | None:
-    if not extra:
-        return None
-    for k in ("nome_nascimento", "nome_solteiro", "nome_solteira"):
-        raw = extra.get(k)
-        if raw is None:
-            continue
-        s = str(raw).strip()
-        if s:
-            return s
-    return None
+def _get_member_repo(
+    db: AsyncSession = Depends(get_db),
+) -> FamilyMemberRepository:
+    """DI helper — injeta o repositório no endpoint."""
+    return FamilyMemberRepository(db)
 
 
 def _slug_member_key_from_full_name(full_name: str, max_len: int = 50) -> str:
@@ -77,7 +84,7 @@ def _slug_member_key_from_full_name(full_name: str, max_len: int = 50) -> str:
 
 
 async def _allocate_unique_member_key(
-    db: AsyncSession,
+    repo: FamilyMemberRepository,
     workspace_id: str,
     base: str,
     max_len: int = 50,
@@ -87,18 +94,33 @@ async def _allocate_unique_member_key(
         candidate = base if n == 0 else f"{base}_{n}"
         if len(candidate) > max_len:
             candidate = candidate[:max_len]
-        result = await db.execute(
-            select(FamilyMember.id).where(
-                FamilyMember.workspace_id == workspace_id,
-                FamilyMember.key == candidate,
-            ).limit(1)
-        )
-        if result.scalar_one_or_none() is None:
+        if not await repo.key_exists(workspace_id, candidate):
             return candidate
     raise HTTPException(
         status_code=500,
         detail="Não foi possível gerar um identificador interno único; tente informar o identificador manualmente.",
     )
+
+
+def _extra_with_birth_name(
+    current: dict[str, Any] | None,
+    birth_name: str | None,
+) -> dict[str, Any] | None:
+    """Aplica ``birth_name`` ao dict ``extra``, preservando outras chaves.
+
+    - ``birth_name`` ``None`` **não muda** extra (campo ausente = sem update).
+    - ``birth_name`` string não-vazia → seta ``extra['nome_nascimento']``.
+    - ``birth_name`` string vazia ou só-whitespace → remove ``nome_nascimento``.
+    """
+    extra = dict(current or {})
+    if birth_name is None:
+        return extra or None
+    s = birth_name.strip()
+    if s:
+        extra["nome_nascimento"] = s
+    else:
+        extra.pop("nome_nascimento", None)
+    return extra or None
 
 
 # =============================================================================
@@ -124,20 +146,6 @@ def _load_global_yaml(name: str) -> dict[str, Any]:
         return {}
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
-
-
-def _member_to_schema(m: FamilyMember) -> FamilyMemberSchema:
-    cpf_plain = None
-    if m.cpf_encrypted:
-        cpf_plain = _vault.decrypt(m.cpf_encrypted)
-    accounts = [BankAccountSchema.model_validate(a) for a in m.accounts] if m.accounts else []
-    birth_name = _birth_name_from_extra(m.extra)
-    return FamilyMemberSchema(
-        id=m.id, key=m.key, full_name=m.full_name, short_name=m.short_name,
-        birth_name=birth_name,
-        cpf=cpf_plain, birth_date=m.birth_date, role=m.role, order=m.order,
-        extra=m.extra, accounts=accounts,
-    )
 
 
 def _category_to_schema(c: Category) -> CategorySchema:
@@ -187,140 +195,98 @@ async def update_workspace_settings(
 @router.get("/members", response_model=FamilyMemberListResponse)
 async def list_members(
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: FamilyMemberRepository = Depends(_get_member_repo),
 ):
-    result = await db.execute(
-        select(FamilyMember)
-        .where(FamilyMember.workspace_id == workspace.id)
-        .options(selectinload(FamilyMember.accounts))
-        .order_by(FamilyMember.order, FamilyMember.key)
-    )
-    members = result.scalars().all()
+    members = await repo.list_by_workspace(workspace.id)
     if members:
-        schemas = [_member_to_schema(m) for m in members]
-        return FamilyMemberListResponse(members=schemas, total=len(schemas))
+        responses = [member_to_response(m, vault=_vault) for m in members]
+        return FamilyMemberListResponse(members=responses, total=len(responses))
 
     defaults = _load_global_json("family_members.json")
     return FamilyMemberListResponse(
-        members=_convert_members_json_to_schemas(defaults),
+        members=convert_global_defaults_to_responses(defaults),
         total=len(defaults.get("membros", {})),
     )
 
 
-@router.post("/members", response_model=FamilyMemberSchema, status_code=status.HTTP_201_CREATED)
+@router.post("/members", response_model=FamilyMemberResponse, status_code=status.HTTP_201_CREATED)
 async def create_member(
-    body: FamilyMemberCreateRequest,
+    body: FamilyMemberCreateCommand,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: FamilyMemberRepository = Depends(_get_member_repo),
 ):
-
     if body.key:
-        key = body.key
-        existing = await db.execute(
-            select(FamilyMember).where(FamilyMember.workspace_id == workspace.id, FamilyMember.key == key)
-        )
-        if existing.scalar_one_or_none():
+        if await repo.key_exists(workspace.id, body.key):
             raise HTTPException(
                 status_code=409,
-                detail=f"Já existe um membro com o identificador interno '{key}' neste workspace",
+                detail=f"Já existe um membro com o identificador interno '{body.key}' neste workspace",
             )
+        key = body.key
     else:
         slug = _slug_member_key_from_full_name(body.full_name)
-        key = await _allocate_unique_member_key(db, workspace.id, slug)
+        key = await _allocate_unique_member_key(repo, workspace.id, slug)
 
-    extra: dict[str, Any] = dict(body.extra or {})
-    if body.birth_name is not None:
-        bn = body.birth_name.strip()
-        if bn:
-            extra["nome_nascimento"] = bn
-        else:
-            extra.pop("nome_nascimento", None)
-
+    extra = _extra_with_birth_name(body.extra, body.birth_name)
     cpf_enc = _vault.encrypt(body.cpf) if body.cpf else None
-    member = FamilyMember(
-        workspace_id=workspace.id, key=key, full_name=body.full_name,
-        short_name=body.short_name, cpf_encrypted=cpf_enc,
-        birth_date=body.birth_date, role=body.role, order=body.order,
-        extra=extra or None,
+
+    member = await repo.create(
+        workspace.id,
+        key=key,
+        full_name=body.full_name,
+        short_name=body.short_name,
+        role=body.role,
+        order=body.order,
+        cpf_encrypted=cpf_enc,
+        birth_date=body.birth_date,
+        extra=extra,
     )
-    db.add(member)
-    await db.commit()
-
-    result = await db.execute(
-        select(FamilyMember).where(FamilyMember.id == member.id).options(selectinload(FamilyMember.accounts))
-    )
-    return _member_to_schema(result.scalar_one())
+    return member_to_response(member, vault=_vault)
 
 
-@router.put("/members/{member_id}", response_model=FamilyMemberSchema)
+@router.put("/members/{member_id}", response_model=FamilyMemberResponse)
 async def update_member(
     member_id: str,
-    body: FamilyMemberUpdateRequest,
+    body: FamilyMemberUpdateCommand,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: FamilyMemberRepository = Depends(_get_member_repo),
 ):
-    result = await db.execute(
-        select(FamilyMember)
-        .where(FamilyMember.id == member_id, FamilyMember.workspace_id == workspace.id)
-        .options(selectinload(FamilyMember.accounts))
-    )
-    member = result.scalar_one_or_none()
+    member = await repo.get_by_id_with_accounts(workspace.id, member_id)
     if not member:
         raise HTTPException(status_code=404, detail="Membro não encontrado")
 
     update_data = body.model_dump(exclude_unset=True)
+
+    # Derivações que o repo não faz (vault, extra.nome_nascimento, key collision).
     if "cpf" in update_data:
         cpf_val = update_data.pop("cpf")
-        member.cpf_encrypted = _vault.encrypt(cpf_val) if cpf_val else None
+        update_data["cpf_encrypted"] = _vault.encrypt(cpf_val) if cpf_val else None
     if "birth_name" in update_data:
         birth_val = update_data.pop("birth_name")
-        extra = dict(member.extra or {})
-        if birth_val is not None and str(birth_val).strip():
-            extra["nome_nascimento"] = str(birth_val).strip()
-        else:
-            extra.pop("nome_nascimento", None)
-        member.extra = extra or None
-    if "key" in update_data and update_data["key"] is None:
-        update_data.pop("key")
-    nk = update_data.get("key")
-    if nk is not None and nk != member.key:
-        conflict = await db.execute(
-            select(FamilyMember).where(
-                FamilyMember.workspace_id == workspace.id,
-                FamilyMember.key == nk,
-                FamilyMember.id != member_id,
-            )
-        )
-        if conflict.scalar_one_or_none():
+        update_data["extra"] = _extra_with_birth_name(member.extra, birth_val)
+    if update_data.get("key") is None:
+        update_data.pop("key", None)
+    new_key = update_data.get("key")
+    if new_key is not None and new_key != member.key:
+        if await repo.key_exists(workspace.id, new_key, exclude_id=member_id):
             raise HTTPException(
                 status_code=409,
-                detail=f"Já existe um membro com o identificador interno '{nk}' neste workspace",
+                detail=f"Já existe um membro com o identificador interno '{new_key}' neste workspace",
             )
-    for field, value in update_data.items():
-        setattr(member, field, value)
 
-    await db.commit()
-    await db.refresh(member)
-    result = await db.execute(
-        select(FamilyMember).where(FamilyMember.id == member.id).options(selectinload(FamilyMember.accounts))
-    )
-    return _member_to_schema(result.scalar_one())
+    updated = await repo.update(member, updates=update_data)
+    return member_to_response(updated, vault=_vault)
 
 
 @router.delete("/members/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_member(
     member_id: str,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: FamilyMemberRepository = Depends(_get_member_repo),
 ):
-    result = await db.execute(
-        select(FamilyMember).where(FamilyMember.id == member_id, FamilyMember.workspace_id == workspace.id)
-    )
-    member = result.scalar_one_or_none()
+    member = await repo.get_by_id(workspace.id, member_id)
     if not member:
         raise HTTPException(status_code=404, detail="Membro não encontrado")
-    await db.delete(member)
-    await db.commit()
+    await repo.delete(member)
 
 
 # =============================================================================
@@ -328,83 +294,85 @@ async def delete_member(
 # =============================================================================
 
 
-@router.get("/members/{member_id}/accounts", response_model=list[BankAccountSchema])
+@router.get("/members/{member_id}/accounts", response_model=list[BankAccountResponse])
 async def list_accounts(
     member_id: str,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: FamilyMemberRepository = Depends(_get_member_repo),
 ):
-    member = await _verify_member(member_id, workspace.id, db)
-    result = await db.execute(select(BankAccount).where(BankAccount.member_id == member.id))
-    return [BankAccountSchema.model_validate(a) for a in result.scalars().all()]
+    await _ensure_member(repo, workspace.id, member_id)
+    accounts = await repo.list_accounts(member_id)
+    return [BankAccountResponse.model_validate(a) for a in accounts]
 
 
-@router.post("/members/{member_id}/accounts", response_model=BankAccountSchema, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/members/{member_id}/accounts",
+    response_model=BankAccountResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_account(
     member_id: str,
-    body: BankAccountCreateRequest,
+    body: BankAccountCreateCommand,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: FamilyMemberRepository = Depends(_get_member_repo),
 ):
-    member = await _verify_member(member_id, workspace.id, db)
-    account = BankAccount(
-        member_id=member.id, institution_code=body.institution_code,
-        account_type=body.account_type, agency=body.agency,
-        account_number=body.account_number, label=body.label,
+    await _ensure_member(repo, workspace.id, member_id)
+    account = await repo.add_account(
+        member_id,
+        institution_code=body.institution_code,
+        account_type=body.account_type,
+        agency=body.agency,
+        account_number=body.account_number,
+        label=body.label,
     )
-    db.add(account)
-    await db.commit()
-    await db.refresh(account)
-    return BankAccountSchema.model_validate(account)
+    return BankAccountResponse.model_validate(account)
 
 
-@router.put("/members/{member_id}/accounts/{account_id}", response_model=BankAccountSchema)
+@router.put("/members/{member_id}/accounts/{account_id}", response_model=BankAccountResponse)
 async def update_account(
     member_id: str,
     account_id: str,
-    body: BankAccountCreateRequest,
+    body: BankAccountUpdateCommand,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: FamilyMemberRepository = Depends(_get_member_repo),
 ):
-    await _verify_member(member_id, workspace.id, db)
-    result = await db.execute(
-        select(BankAccount).where(BankAccount.id == account_id, BankAccount.member_id == member_id)
-    )
-    account = result.scalar_one_or_none()
+    await _ensure_member(repo, workspace.id, member_id)
+    account = await repo.get_account(member_id, account_id)
     if not account:
         raise HTTPException(status_code=404, detail="Conta bancária não encontrada")
-    account.institution_code = body.institution_code
-    account.account_type = body.account_type
-    account.agency = body.agency
-    account.account_number = body.account_number
-    await db.commit()
-    await db.refresh(account)
-    return BankAccountSchema.model_validate(account)
+    updated = await repo.update_account(
+        account,
+        institution_code=body.institution_code,
+        account_type=body.account_type,
+        agency=body.agency,
+        account_number=body.account_number,
+        label=body.label,
+    )
+    return BankAccountResponse.model_validate(updated)
 
 
-@router.delete("/members/{member_id}/accounts/{account_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/members/{member_id}/accounts/{account_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_account(
     member_id: str,
     account_id: str,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: FamilyMemberRepository = Depends(_get_member_repo),
 ):
-    await _verify_member(member_id, workspace.id, db)
-    result = await db.execute(
-        select(BankAccount).where(BankAccount.id == account_id, BankAccount.member_id == member_id)
-    )
-    account = result.scalar_one_or_none()
+    await _ensure_member(repo, workspace.id, member_id)
+    account = await repo.get_account(member_id, account_id)
     if not account:
         raise HTTPException(status_code=404, detail="Conta bancária não encontrada")
-    await db.delete(account)
-    await db.commit()
+    await repo.delete_account(account)
 
 
-async def _verify_member(member_id: str, ws_id: str, db: AsyncSession) -> FamilyMember:
-    result = await db.execute(
-        select(FamilyMember).where(FamilyMember.id == member_id, FamilyMember.workspace_id == ws_id)
-    )
-    member = result.scalar_one_or_none()
+async def _ensure_member(
+    repo: FamilyMemberRepository, workspace_id: str, member_id: str
+) -> FamilyMember:
+    """Valida que o membro existe e pertence ao workspace; caso contrário 404."""
+    member = await repo.get_by_id(workspace_id, member_id)
     if not member:
         raise HTTPException(status_code=404, detail="Membro não encontrado")
     return member
@@ -869,46 +837,10 @@ async def _export_report_layout(ws_id: str, db: AsyncSession) -> dict[str, Any]:
 # Conversion helpers — global config JSON → Pydantic schemas (for fallback)
 # =============================================================================
 
-
-# F6.5E.6 — Neutral global defaults: para evitar vazamento da identidade do
-# founder via fallback do `config/family_members.json` global, todos os campos
-# identitários são substituídos por placeholders ao servir como fallback para
-# tenants novos. Originalmente apenas CPF era stripado (BUG-004); a auditoria
-# de F6.5E.6 estendeu para nome, sobrenome e data de nascimento.
-_NEUTRAL_PLACEHOLDER_NAMES = {
-    "titular": ("Titular Exemplo", "Titular"),
-    "conjuge": ("Cônjuge Exemplo", "Cônjuge"),
-    "filho": ("Filho Exemplo", "Filho"),
-    "dependente": ("Dependente Exemplo", "Dependente"),
-}
-
-
-def _convert_members_json_to_schemas(data: dict[str, Any]) -> list[FamilyMemberSchema]:
-    """Converte family_members.json global → schemas para fallback.
-
-    REGRA F6.5E.6: nunca expor identidade real (founder ou outro) via fallback.
-    Substitui nome/sobrenome/data_nascimento/CPF por placeholders neutros.
-    O `key` e `papel` são preservados porque carregam a *estrutura* esperada
-    (titular, conjuge, etc.), não a identidade.
-    """
-    membros = data.get("membros", {})
-    schemas = []
-    for order, (key, info) in enumerate(membros.items()):
-        role = info.get("papel", "titular")
-        full_default, short_default = _NEUTRAL_PLACEHOLDER_NAMES.get(
-            role, ("Membro Exemplo", "Membro")
-        )
-        schemas.append(FamilyMemberSchema(
-            key=key,
-            full_name=full_default,            # F6.5E.6: era info["nome_completo"]
-            short_name=short_default,          # F6.5E.6: era info["nome_curto"]
-            cpf=None,                          # BUG-004
-            birth_date=None,                   # F6.5E.6: era info["data_nascimento"]
-            role=role,
-            order=order,
-            accounts=[],
-        ))
-    return schemas
+# ``family_members`` fallback: ``convert_global_defaults_to_responses`` vive
+# em ``schemas/dto/family_member/mapper`` (A6e). Os outros fallbacks
+# (categorization, pipeline, institutions, report_layout) seguem aqui até
+# migrarem para seus próprios pacotes DTO.
 
 
 def _convert_categorization_json_to_schemas(data: dict[str, Any]) -> list[CategorySchema]:
