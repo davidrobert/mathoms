@@ -294,6 +294,25 @@ def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
             return None, attempts + 1, error_msg, last_tb
 
 
+def _resolve_use_db_artifacts(ws_id: str) -> bool:
+    """A6b (ADR-106): decide se o workspace usa DBArtifactStore.
+
+    Precedência: workspace.use_db_artifacts_override (True/False) >
+                 settings.USE_DB_ARTIFACTS (global flag, default False).
+    """
+    from backend.app.core.config import settings
+
+    with SyncSessionLocal() as db:
+        from backend.app.models.workspace import Workspace
+
+        ws = db.get(Workspace, ws_id)
+        if ws is None:
+            return settings.USE_DB_ARTIFACTS
+        if ws.use_db_artifacts_override is not None:
+            return bool(ws.use_db_artifacts_override)
+        return settings.USE_DB_ARTIFACTS
+
+
 def _on_pipeline_task_failure(self, exc, task_id, args, kwargs, einfo):
     """BUG-003 fix: mark pipeline run as failed when the Celery task crashes
     outside the main try-catch (e.g. OOM, import error, worker killed).
@@ -372,8 +391,24 @@ def run_pipeline_task(
     ctx.incremental_doc_paths = incremental_doc_paths or []
     ctx.ensure_dirs()
 
+    # A6b (ADR-106): injetar DBArtifactStore quando flag ativa.
+    # Abre sessão de longa duração para o store; commits após cada stage.
+    # Session é fechada no finally abaixo — stages não gerenciam sua própria sessão.
+    _artifact_session = None
+    use_db = _resolve_use_db_artifacts(ws_id)
+    if use_db:
+        from backend.app.services.db_artifact_store import DBArtifactStore
+
+        _artifact_session = SyncSessionLocal()
+        ctx.artifact_store = DBArtifactStore(
+            _artifact_session, workspace_id=ws_id, pipeline_run_id=run_id
+        )
+        logger.info(
+            "pipeline_start using DBArtifactStore for run_id=%s ws_id=%s", run_id, ws_id
+        )
+
     # Lazy-imported scripts (E0–E7) load pipeline_common — tenant-scoped paths.
-    os.environ["FIN_WORKSPACE_ROOT"] = str(tenant_root.resolve())
+    os.environ["MATHOMS_WORKSPACE_ROOT"] = str(tenant_root.resolve())
 
     logger.info(
         "pipeline_start run_id=%s workspace_id=%s incremental=%s "
@@ -518,6 +553,9 @@ def run_pipeline_task(
             db.commit()
 
         if result.success:
+            # A6b: commit artefatos do stage antes de avançar para o próximo.
+            if _artifact_session is not None:
+                _artifact_session.commit()
             publish_stage_completed(run_id, stage_name, completed_pct)
         else:
             publish_stage_failed(run_id, stage_name, result.error or "Unknown error", completed_pct)
@@ -575,5 +613,16 @@ def run_pipeline_task(
                 _persist_llm_suggestions(ws_id, run_id, tenant_root)
             except Exception as exc:
                 _post_logger.warning("Failed to persist LLM suggestions: %s", exc)
+
+    # A6b: fecha a sessão de artefatos após todo o pipeline (sucesso, falha ou pausa).
+    # Commit final cobre artefatos de stages em needs_review / run cancelado.
+    if _artifact_session is not None:
+        try:
+            _artifact_session.commit()
+        except Exception:
+            _artifact_session.rollback()
+        finally:
+            _artifact_session.close()
+            logger.debug("artifact_session closed for run_id=%s", run_id)
 
     return {"status": "completed" if not has_failure else "failed", "run_id": run_id}

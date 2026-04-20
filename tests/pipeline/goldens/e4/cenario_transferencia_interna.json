@@ -1,0 +1,52 @@
+{
+  "description": "Transferências PIX entre David e Mariana — não entram como receita/despesa. Inclui também uma despesa real (MERCADO) para mostrar que a filtragem funciona.",
+  "categorization": {
+    "expense_keywords": {
+      "mercado": ["mercado"]
+    },
+    "income_keywords": {},
+    "internal_transfer_patterns": ["TRANSF MARIANA", "TRANSF DAVID"],
+    "clt_source_mapping": {},
+    "pj_source_mapping": {}
+  },
+  "family": {
+    "transferencias_internas": {
+      "patterns_pix": [],
+      "recipients": [],
+      "patterns_bank_specific": {},
+      "patterns_global": []
+    }
+  },
+  "e3_accounts": [
+    {
+      "key": "itau_extratoconta_BRL_202601_202601",
+      "payload": {
+        "banco": "Itaú",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL",
+        "periodo_cobertura": {"inicio": "2026-01-01", "fim": "2026-01-31"},
+        "saldo_inicial": 1000.0,
+        "saldo_inicial_unknown": false,
+        "saldo_final": 350.0,
+        "saldo_final_unknown": false,
+        "fontes": ["itau_202601-2_extract.json"],
+        "transacoes_total": 3,
+        "transacoes_duplicadas_removidas": 0,
+        "transacoes": [
+          {"data": "2026-01-05", "descricao": "PIX TRANSF MARIANA", "valor": -500.0, "tipo": "debito"},
+          {"data": "2026-01-08", "descricao": "PIX TRANSF DAVID RECEBIDO", "valor": 200.0, "tipo": "credito"},
+          {"data": "2026-01-10", "descricao": "MERCADO", "valor": -350.0, "tipo": "debito"}
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "classified_count": 3,
+    "receitas_count": 0,
+    "despesas_count": 1,
+    "transferencias_count": 2,
+    "despesas_total": 350.0,
+    "despesa_categorias": ["mercado"]
+  }
+}

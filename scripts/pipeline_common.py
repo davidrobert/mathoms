@@ -8,7 +8,7 @@ that was previously duplicated across each eN_*.py script.
 
 **Layout de paths (Fase 2 — strict):** a raiz do workspace **não** é mais
 implícita na raiz do repositório. É obrigatório definir a variável de ambiente
-``FIN_WORKSPACE_ROOT`` para um diretório que contenha ``config/``, ``data/``,
+``MATHOMS_WORKSPACE_ROOT`` para um diretório que contenha ``config/``, ``data/``,
 ``inbox/``, etc. (tipicamente ``storage/<workspace_id>/``). Os pontos de entrada
 (``backend.app.main``, workers, ``pytest`` conftests, ``pipeline.run_dev``)
 fazem ``setdefault`` para a raiz do repo **apenas** para carregar configs
@@ -86,38 +86,55 @@ def _init_config(base_dir: Path) -> None:
     _config_cache.clear()
 
 
-_FIN_WORKSPACE_ROOT_ERR = """\
-error: FIN_WORKSPACE_ROOT is not set.
+_MATHOMS_WORKSPACE_ROOT_ERR = """\
+error: MATHOMS_WORKSPACE_ROOT is not set.
 
 It must point to a workspace (tenant) root containing config/, data/, inbox/, …
 Example:
-  export FIN_WORKSPACE_ROOT="$PWD/storage/<workspace_id>"
+  export MATHOMS_WORKSPACE_ROOT="$PWD/storage/<workspace_id>"
 
 Offline runner:
   python -m pipeline.run_dev --root /path/to/tenant
 
-See docs/SETUP.md (FIN_WORKSPACE_ROOT).
+See docs/SETUP.md (MATHOMS_WORKSPACE_ROOT).
 """
 
 
-def init_workspace_paths_from_env() -> None:
-    """Initialise ``PROJECT_DIR`` / ``DATA_DIR`` / … from ``FIN_WORKSPACE_ROOT``.
+def init_workspace_paths_from_env(*, strict: bool = True) -> None:
+    """Initialise ``PROJECT_DIR`` / ``DATA_DIR`` / … from ``MATHOMS_WORKSPACE_ROOT``.
 
-    Exits the process with code 2 if unset or not a directory (strict — no
-    implicit repository ``data/``).
+    Args:
+        strict: quando ``True`` (default para CLI) encerra o processo com
+            ``exit(2)`` se a env var estiver ausente ou inválida. Quando
+            ``False`` (import-time, testes, wrappers web) apenas faz fallback
+            para ``_DEFAULT_BASE_DIR`` silenciosamente — os wrappers de stage
+            reinicializam via ``_init_config(ctx.root)`` antes de rodar.
     """
-    raw = (os.environ.get("FIN_WORKSPACE_ROOT") or "").strip()
+    raw = (os.environ.get("MATHOMS_WORKSPACE_ROOT") or "").strip()
     if not raw:
-        sys.stderr.write(_FIN_WORKSPACE_ROOT_ERR)
-        raise SystemExit(2)
+        if strict:
+            sys.stderr.write(_MATHOMS_WORKSPACE_ROOT_ERR)
+            raise SystemExit(2)
+        _init_config(_DEFAULT_BASE_DIR)
+        return
     p = Path(raw).expanduser().resolve()
     if not p.is_dir():
-        sys.stderr.write(f"error: FIN_WORKSPACE_ROOT is not a directory: {p}\n")
-        raise SystemExit(2)
+        if strict:
+            sys.stderr.write(f"error: MATHOMS_WORKSPACE_ROOT is not a directory: {p}\n")
+            raise SystemExit(2)
+        _init_config(_DEFAULT_BASE_DIR)
+        return
     _init_config(p)
 
 
-init_workspace_paths_from_env()
+# Fase 1.5.4: inicialização no import NUNCA é estrita. Scripts invocados
+# diretamente (``python scripts/e2_extract.py``) devem chamar
+# ``init_workspace_paths_from_env(strict=True)`` no seu bloco
+# ``if __name__ == "__main__"`` para preservar a semântica fail-fast.
+# Wrappers de stage (``pipeline/stages/*.py``) reinicializam via
+# ``_init_config(ctx.root)``, portanto o estado inicial só importa se algum
+# chamador usar os globals antes de passar por um wrapper.
+init_workspace_paths_from_env(strict=False)
 
 
 def load_json_config(name: str, *, required: bool = False) -> dict:
@@ -213,9 +230,9 @@ def write_json_atomic(path: Path, data: Dict[str, Any], *, indent: int = 2,
 def _effective_schema_validation_mode() -> str:
     """Return ``strict`` or ``warn``.
 
-    ``FIN_PIPELINE_SCHEMA_MODE`` overrides ``pipeline.json`` (for CI / local gates).
+    ``MATHOMS_PIPELINE_SCHEMA_MODE`` overrides ``pipeline.json`` (for CI / local gates).
     """
-    env = os.environ.get("FIN_PIPELINE_SCHEMA_MODE", "").strip().lower()
+    env = os.environ.get("MATHOMS_PIPELINE_SCHEMA_MODE", "").strip().lower()
     if env in ("strict", "warn"):
         return env
     config = load_json_config("pipeline.json")
@@ -230,7 +247,7 @@ def validate_artifact(path: Path, schema_name: str) -> bool:
     In 'warn' mode (default), logs warning but returns True.
     In 'strict' mode, returns False on validation failure.
 
-    Set ``FIN_PIPELINE_SCHEMA_MODE=strict`` to force strict without editing
+    Set ``MATHOMS_PIPELINE_SCHEMA_MODE=strict`` to force strict without editing
     ``pipeline.json`` (recommended for CI jobs).
     """
     config = load_json_config("pipeline.json")

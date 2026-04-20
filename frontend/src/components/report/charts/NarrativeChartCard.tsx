@@ -4,6 +4,7 @@ interface NarrativeChartCardProps {
   chartId: string;
   title: string;
   narratives: Record<string, unknown> | undefined;
+  size?: "full" | "half";
 }
 
 /** F9 · F2.C–G — Card genérico para charts cujo dado é narrativo
@@ -16,6 +17,7 @@ export function NarrativeChartCard({
   chartId,
   title,
   narratives,
+  size = "full",
 }: NarrativeChartCardProps) {
   const chart = narratives?.[chartId] as
     | { context?: string; conclusion?: string }
@@ -26,7 +28,7 @@ export function NarrativeChartCard({
   }
 
   return (
-    <ReportCard variant="neutral" title={title}>
+    <ReportCard variant="neutral" title={title} size={size}>
       <div className="space-y-3">
         {chart.context && (
           <p className="text-sm text-[var(--surface-muted-foreground)]">

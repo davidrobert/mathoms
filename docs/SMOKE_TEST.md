@@ -141,7 +141,7 @@
 - [ ] PDFs “reais” só em `tests/fixtures/e2_real_pdf_anon/`, **totalmente redigidos** e com nome canônico — ver README da pasta (Fase 2 opcional)
 - [ ] `python tests/utils/lint_no_real_pii.py` retorna green
 - [ ] `config/family_members.json` do projeto contém dados reais do founder (**OK — não é fixture; neutralizado via API pela 6.5E.6**)
-- [ ] Fernet key (`FIN_FERNET_KEY`) está persistida em `.env` (nunca commitada)
+- [ ] Fernet key (`MATHOMS_FERNET_KEY`) está persistida em `.env` (nunca commitada)
 - [ ] `DELETE /api/account` (F7) remove TODOS os dados do user (cascade no DB + storage)
 
 ## 13. Observabilidade (F7)

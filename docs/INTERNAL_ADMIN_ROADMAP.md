@@ -1,4 +1,4 @@
-# Fin — Console interno (operadores)
+# Mathoms AI — Console interno (operadores)
 
 > Interface administrativa para **quem opera o produto** (CEO, Operações, Atendimento, Financeiro, Legal/LGPD), distinta do app do cliente (`/config` do workspace).
 >
@@ -142,7 +142,7 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 ## 7. Diagrama de contexto
 
 ```text
-[ Usuário final ] → App Fin (workspace, pipeline, relatório, /config )
+[ Usuário final ] → App Mathoms AI (workspace, pipeline, relatório, /config )
                          ↑
 [ Operadores ] → IA-0: CLI + UI localhost opcional (DB + storage) → IA-1…: Console interno remoto (RBAC, audit, agregados)
                         ↔ Stripe · Zendesk/Linear · Grafana/Sentry

@@ -46,3 +46,8 @@ frontend/.next/
 *_pre_fix.*
 
 .env.test
+
+# Smoke test — estado local efêmero (A6b.5)
+_smoke_pids/
+_smoke_storage/
+mathoms-smoke.db

@@ -1,4 +1,4 @@
-# Fin — Architecture Decision Records (ADRs)
+# Mathoms AI — Architecture Decision Records (ADRs)
 
 > Histórico de decisões técnicas com contexto, alternativas e consequências.
 >
@@ -52,6 +52,24 @@
 
 **Design System (F9):**
 [D76](#adr-076--design-tokens-unificados-site--relatório) [D78](#adr-078--render-nativo-react--e6-como-exportador-standalone)
+
+**Infra + Domínio (migração `plano_migracao_artifacts_db.md`):**
+[D82](#adr-082--pipelineartifact-artefatos-computacionais-no-banco)
+[D83](#adr-083--artifactstore-abstração-de-io-para-artefatos)
+[D84](#adr-084--content-addressed-uploads)
+[D85](#adr-085--eliminar-materialização-de-config-em-disco)
+[D86](#adr-086--materializationbridge-adapter-temporário)
+[D87](#adr-087--stagespec-dependências-declarativas)
+[D88](#adr-088--stageconfig-configuração-imutável-por-parâmetro)
+[D89](#adr-089--pipelinedomain-camada-de-domínio-isolada-de-io)
+[D90](#adr-090--decimal-para-valores-monetários)
+[D91](#adr-091--pydantic-para-domain-objects-com-coleções)
+[D92](#adr-092--renomear-scripts-para-nomes-descritivos-de-domínio)
+[D93](#adr-093--rename-completo-de-identificadores-de-stage-opção-a)
+[D94](#adr-094--report-single-active-vs-versionado)
+[D95](#adr-095--segurança-de-content_json-lgpd)
+[D96](#adr-096--observabilidade-de-cutover)
+[D97](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy)
 
 ---
 
@@ -204,7 +222,7 @@ Alternativa descartada: injetar config via dict. Exigiria refatorar `_init_confi
 
 **Status:** Decidido (F2)
 
-**Decisão:** `Settings.STORAGE_ROOT` configurável via `FIN_STORAGE_ROOT`. Default `./storage/`. No `.gitignore`.
+**Decisão:** `Settings.STORAGE_ROOT` configurável via `MATHOMS_STORAGE_ROOT`. Default `./storage/`. No `.gitignore`.
 
 ---
 
@@ -1034,7 +1052,7 @@ Integração com 6.5D.10 (contract test types) = complementar: aquele valida typ
 
 **Cleanup:** users criados ficam no DB. Estratégia:
 - **CI:** DB PG service é efêmero (spun up por run) → sem cleanup necessário
-- **Local:** users acumulam em `fin.db`; documented em `TESTING.md` que dev pode dar `./scripts/test_backend_up.sh --reset` para zerar
+- **Local:** users acumulam em `mathoms.db`; documented em `TESTING.md` que dev pode dar `./scripts/test_backend_up.sh --reset` para zerar
 
 **Consequências:**
 - ✅ Zero coordenação entre workers — paralelização total
@@ -1306,7 +1324,7 @@ Ao abrir `/reports/{id}`, o usuário experimenta uma quebra visual perceptível 
 7. **Backwards-compat:** ADR-050 (Tailwind v4 `@theme inline`) e ADR-051 (Geist fonts) são **parcialmente supersedidos** — Tailwind v4 theme continua, mas agora hidratado por `tokens.css` ao invés de hardcoded; Geist é substituído por Plus Jakarta + Inter.
 
 **Consequências:**
-- ✅ Uma identidade visual, um lugar para mudar. Fin vira produto coeso.
+- ✅ Uma identidade visual, um lugar para mudar. Mathoms AI vira produto coeso.
 - ✅ Fim da dissonância site × relatório — critério de aceite F9.
 - ✅ Rebase rápido para tema white-label futuro (multi-família com branding próprio — F10+): sobrescrever `tokens.json` por workspace.
 - ✅ Testes de token via snapshot (`tests/design_tokens/test_build.py`) garantem paridade.
@@ -1414,7 +1432,7 @@ O relatório financeiro era exibido via iframe carregando o HTML produzido pelo 
 | #   | Decisão                           | Quando precisa | Opções                                                               |
 | --- | --------------------------------- | -------------- | -------------------------------------------------------------------- |
 | D8  | Pricing do premium                | Pós-beta       | R$29/mês / R$49/mês / R$99/mês                                       |
-| D9  | Nome do produto                   | Pré-GA         | Fin / FinPlan / outro                                                |
+| D9  | Nome do produto                   | Pré-GA         | Mathoms AI (escolhido) / FinPlan / outros                                                |
 | D10 | Prioridade de novos bancos        | Pós-beta       | Nubank / Inter / Mercado Pago / Open Finance                         |
 | D11 | Email transactional provider      | Pré-7B.11      | Resend / Mailgun / AWS SES / SendGrid                                |
 | D12 | Multi-language support            | F8+            | pt-BR only / pt-BR + en                                              |
@@ -1595,6 +1613,1256 @@ Após F8.1 (ADR-073), apenas `INDEPENDENCIA_FINANCEIRA` tinha API + UI; os outro
 - ✅ E0-route alinhado ao upload quando o worker/CLI roda com venv do projeto.
 - ⚠️ CLI totalmente offline sem pacote ``backend`` mantém comportamento por nome — documentado como fallback.
 - ❌ Linhagem por ``document_id`` por seção de relatório não é escopo desta ADR (F11.4a).
+
+---
+
+## ADR-082 — PipelineArtifact: artefatos computacionais no banco
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** `_scratch/plano_migracao_artifacts_db.md` (Fase 1)
+
+**Contexto:** Artefatos intermediários do pipeline (E2–E7) viviam em
+`storage/<ws>/processed/*.json` e o backend se referia a eles por convenção de
+nome de arquivo (`_find_e2_extract`, `_e2_json_name`). Isso causava:
+
+- Acoplamento frágil — renomear um arquivo quebra silenciosamente o backend.
+- Modo incremental ambíguo — filtragem por stem matching permite dois E2 para o
+  mesmo documento após reclassificação.
+- Ausência de histórico auditável — sobrescrever é a única operação.
+- Dificulta multi-tenant coerente — pastas por tenant mas linkage fora do DB.
+
+**Decisão:** Nova tabela `pipeline_artifacts` como **fonte de verdade** para
+artefatos computacionais do pipeline. Schema mínimo:
+
+| Coluna | Tipo | Observação |
+|---|---|---|
+| `id` | INTEGER PK | autoincrement |
+| `workspace_id` | FK workspaces, NOT NULL, indexed | CASCADE |
+| `pipeline_run_id` | FK pipeline_runs, NOT NULL, indexed | CASCADE |
+| `stage` | VARCHAR(50) NOT NULL | `"E2"`... (Fases 1-8); `"reconcile_transactions"`... (pós-9) |
+| `artifact_key` | VARCHAR(255) NOT NULL | stem do doc (E2) ou nome canônico (E3+) |
+| `document_id` | FK documents, nullable | só E2-* (SET NULL no delete) |
+| `content_json` | JSON NOT NULL | JSONB em Postgres |
+| `schema_version`, `byte_size`, `created_at` | — | metadados |
+
+Constraints: `UNIQUE(pipeline_run_id, stage, artifact_key)` + índices em
+`(workspace_id, stage, artifact_key)` e `document_id`.
+
+`document_id` é preenchido apenas em stages de extração (E2-*); `ON DELETE
+SET NULL` preserva histórico do artefato mesmo se o documento for apagado.
+
+**Consequências:**
+- ✅ Elimina regex em nome de arquivo em `document_pipeline_sync.py` (Fase 3.2).
+- ✅ Modo incremental determinístico via `Document.pipeline_last_run_at`.
+- ✅ FK garante integridade referencial (antes: stored_path vs. stored_path estimado).
+- ✅ Histórico auditável — cada run cria novos artefatos; runs anteriores permanecem.
+- ⚠️ `content_json` em SQLite não é queryable por campo interno (aceitável hoje).
+- ⚠️ Dados sensíveis em `content_json` — endereçado em ADR-095 (LGPD, fase futura).
+
+**Arquivos:** `backend/app/models/pipeline_artifact.py`,
+`backend/alembic/versions/p4q5r6s7t8u9_pipeline_artifacts.py`,
+`backend/tests/test_pipeline_artifact_model.py`.
+
+---
+
+## ADR-083 — ArtifactStore: abstração de I/O para artefatos
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Fase 1.2 / 2.1
+
+**Contexto:** Com `pipeline_artifacts` como nova fonte de verdade (ADR-082),
+stages precisam de uma API comum que:
+- Funcione tanto em CLI dev (disco, sem DB) quanto em web (DB).
+- Seja testável em isolamento, sem banco nem disco.
+- Respeite a fronteira arquitetural: `pipeline/` não importa SQLAlchemy
+  (garantido por `dev/check_pipeline_boundaries.py`).
+
+**Decisão:** `ArtifactStore` como **Protocol** (`@runtime_checkable`) em
+`pipeline/artifact_store.py` com três implementações:
+
+| Classe | Localização | Uso |
+|---|---|---|
+| `DiskArtifactStore` | `pipeline/artifact_store.py` | CLI dev, backward compat com `processed/` |
+| `InMemoryArtifactStore` | `pipeline/artifact_store.py` | **Obrigatória** em testes de domain services |
+| `DBArtifactStore` | `backend/app/services/db_artifact_store.py` | Web/Celery — sessão injetada pelo chamador |
+
+Interface segregada (ISP): `ReadableArtifactStore` (read/list/exists) é um
+subset para clientes só-leitura.
+
+API canônica:
+```python
+store.read(stage, key) -> dict | None
+store.list_keys(stage) -> list[str]
+store.exists(stage, key) -> bool
+store.write(stage, key, data, *, document_id=None) -> None
+store.delete(stage, key) -> None
+store.delete_stage(stage) -> int
+```
+
+`DBArtifactStore.__init__(session, workspace_id, pipeline_run_id)` — sessão é
+**injetada** pelo chamador (Celery task abre, passa, fecha). O store não cria
+nem fecha sessão — evita sessões órfãs e garante que toda a run compartilha
+uma transação.
+
+`WorkspaceContext.get_artifact_store()` retorna `DiskArtifactStore` por
+default; web/Celery injetam `DBArtifactStore` via `for_tenant(artifact_store=)`.
+
+Mapeamentos compartilhados `_STAGE_TO_DIR` e `_STAGE_TO_SUFFIX` (em
+`pipeline/artifact_store.py`) formalizam a convenção legada de `processed/`
+e servem tanto o `DiskArtifactStore` quanto o `MaterializationBridge`
+(ADR-086). Invariante: `set(_STAGE_TO_DIR) == set(_STAGE_TO_SUFFIX)`.
+
+**Consequências:**
+- ✅ Services de domínio (Fase 6-8) testáveis sem fixtures de arquivo.
+- ✅ Cutover gradual — flag `MATHOMS_USE_DB_ARTIFACTS` escolhe o store.
+- ✅ Boundary `pipeline/` ↔ `sqlalchemy` preservada (DBArtifactStore fora).
+- ⚠️ Três impls duplicam shape da API — protocolo garante paridade via testes.
+
+**Arquivos:** `pipeline/artifact_store.py`,
+`backend/app/services/db_artifact_store.py`,
+`backend/app/repositories/pipeline_artifact_repository.py`,
+`tests/unit/pipeline/test_artifact_stores.py`,
+`backend/tests/test_db_artifact_store.py`,
+`backend/tests/test_pipeline_artifact_repository.py`.
+
+---
+
+## ADR-084 — Content-addressed uploads
+
+**Status:** Decidido • **Data:** 2026-04-18 • **Plano:** Fase 0
+
+**Contexto:** Antes: `stored_path` usa o nome canônico
+(`itau_extratoconta_202603-0_original.pdf`). Dois uploads distintos com nome
+canônico idêntico (mesmo tipo + banco + período) sobrescreveriam o arquivo —
+a deduplicação por `content_hash` já impedia salvar o mesmo hash duas vezes,
+mas o upload legítimo de um **documento diferente** com o mesmo nome canônico
+não era distinto no disco.
+
+**Decisão:** Prefixar `stored_path` com os primeiros 12 hex do `sha256` do
+conteúdo:
+
+    itau_extratoconta_202603-0_original.pdf
+    → a3f9c1b4d2e8_itau_extratoconta_202603-0_original.pdf
+
+Aplicado em `scripts/e0_route.build_final_name` e
+`backend/app/services/canonical_routing`. Migration
+`o3p4q5r6s7t8_backfill_stored_path_content_hash` é **documentação-only**:
+não renomeia arquivos existentes (risco desnecessário) — apenas novos uploads
+adquirem o prefixo. Reclassificação de documento naturalmente aplica.
+
+**Consequências:**
+- ✅ Dois documentos diferentes com mesmo nome canônico ficam em paths distintos.
+- ✅ `content_hash` do DB é consistente com o prefixo do path (auditável).
+- ⚠️ Path visível ao usuário em logs tem um prefixo "enigmático" — aceitável (UI esconde).
+- ❌ Documentos legados mantêm formato antigo — rename retroativo não é feito.
+
+**Arquivos:** `scripts/e0_route.py`, `backend/app/services/canonical_routing.py`,
+`backend/alembic/versions/o3p4q5r6s7t8_*.py`,
+`backend/tests/test_content_addressed_upload.py`.
+
+---
+
+## ADR-085 — Eliminar materialização de config em disco
+
+**Status:** Decidido (parcial — implementação na Fase 4) • **Data:** 2026-04-19
+**Supersedes:** ADR-020
+
+**Contexto:** ADR-020 materializava 5 configs editáveis em
+`storage/<ws>/config/` a cada run para que scripts do pipeline lessem do
+disco. Efeitos colaterais:
+
+- Drift entre DB ↔ disco exige script de validação (`validate_adapter_parity.py`).
+- I/O desnecessário a cada run.
+- Acoplamento entre `config/` no disco e `PipelineConfig`/`FamilyMember`/…
+  no DB.
+
+Com `StageConfig` (ADR-088) passando config por parâmetro, a materialização
+torna-se redundante.
+
+**Decisão:** `StageConfig.from_context(ctx)` lê diretamente de
+`ctx.config_overrides` (dict do DB, injetado em `for_tenant`) ou do disco
+legado (CLI dev). `config_materializer.py` é no-op a partir da Fase 4 e removido
+quando nenhum script legado depender mais dele.
+
+`validate_adapter_parity.py` é reposto como validação DB ↔ `StageConfig`
+(plano §12).
+
+**Consequências:**
+- ✅ Uma única fonte de verdade (DB em web, `config/` em CLI).
+- ✅ Remove race condition entre materialização e execução.
+- ⚠️ CLI dev continua lendo `config/<name>.json` — comportamento preservado.
+- ❌ Scripts legados (Caminho A) ainda leem do disco — mitigado pelo bridge.
+
+---
+
+## ADR-086 — MaterializationBridge: adapter temporário
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Fase 2.2 / 9.6
+
+**Contexto:** Migrar todos os scripts legados (48-108KB cada) para escrita
+direta no `ArtifactStore` simultaneamente é inviável. Precisamos de um
+mecanismo que permita ao orquestrador usar `DBArtifactStore` enquanto os
+scripts ainda leem/escrevem em `processed/*.json`.
+
+**Decisão:** `MaterializationBridge` context manager em
+`pipeline/materialization_bridge.py`:
+
+```python
+with MaterializationBridge(store, pipeline_run_id=run_id) as bridge:
+    root_dir = bridge.hydrate_for_stage("E3")   # DB → tmp/processed/E2_extracts/
+    legacy_script(root_dir=root_dir)
+    bridge.persist_from_stage("E3")             # tmp/processed/E3_reconciled/ → DB
+```
+
+- Hidratação consulta `StageSpec.reads` (sem lógica por stage hardcoded).
+- Persistência consulta `StageSpec.writes`.
+- Diretório efêmero `/tmp/fin_pipeline_{run_id}/` limpo no `__exit__` (mesmo
+  em exception).
+- Orquestrador detecta o tipo do store via helper
+  `pipeline.stage_runner_compat.run_legacy_with_bridge_if_db`: `DiskArtifactStore`
+  → roda com `root_dir=ctx.root`; outro store → bridge.
+
+**Consequências:**
+- ✅ Cutover stage-por-stage sem reescrever scripts pesados.
+- ✅ Mesma bridge serve E3, E4, E5, E5.N, E7 — zero duplicação.
+- ⚠️ I/O duplo (DB → disco → DB) em cada stage — overhead aceitável durante
+  cutover; medido em Fase 1.4 (baseline).
+- ❌ Temporário por contrato: removido na Fase 9.6 quando todos os stages
+  estiverem no Caminho B. Guardrail: `grep -r MaterializationBridge` deve
+  retornar zero antes da Fase 9.6.
+
+**Arquivos:** `pipeline/materialization_bridge.py`,
+`pipeline/stage_runner_compat.py`,
+`tests/unit/pipeline/test_materialization_bridge.py`,
+`tests/unit/pipeline/test_stage_runner_compat.py`.
+
+---
+
+## ADR-087 — StageSpec: dependências declarativas
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Fase 1.5
+
+**Contexto:** `pipeline/orchestrator.py` mantinha `FROM_MAP` manualmente —
+inserir um stage entre E3 e E4 exigia editar `FULL_ORDER`, `FROM_MAP`
+(calculado à mão), `DETERMINISTIC_ORDER` e `_get_stage_runner()`, propenso a
+erros silenciosos. Bug real: `E2-faturas` e `E2-extratos` mapeavam para o
+mesmo `e2.run(ctx)` sem flags — ambos processavam tudo.
+
+**Decisão:** `pipeline/stage_spec.py` com:
+
+```python
+@dataclass(frozen=True)
+class StageSpec:
+    name: str
+    reads: tuple[str, ...]     # stages de input
+    writes: tuple[str, ...]    # stages de output
+    is_llm: bool = False
+    tier: str = "free" | "premium"
+
+STAGE_REGISTRY: dict[str, StageSpec] = { ... }  # Nomes legados nas Fases 1-8
+VIRTUAL_ARTIFACT_STAGES = frozenset({"E5-revised"})  # não executáveis
+FULL_ORDER = [...]                                   # decisão explícita do orquestrador
+DETERMINISTIC_ORDER = [s for s in FULL_ORDER if not STAGE_REGISTRY[s].is_llm]
+```
+
+- `build_from_map(order)` deriva `FROM_MAP` sem manutenção manual.
+- `validate_full_order(FULL_ORDER)` é chamado no import — falha rápido
+  (`AssertionError`) se uma dependência é consumida antes de ser produzida.
+- `validate_artifact_stage(stage)` aceita executável + virtual, rejeita
+  desconhecido.
+- `E2-faturas`/`E2-extratos` têm wrappers separados (`e2_faturas.py`/`e2_extratos.py`)
+  que chamam `e2.run(ctx, faturas_only=True)` / `extratos_only=True`.
+
+**Consequências:**
+- ✅ Adicionar stage = uma linha no REGISTRY + uma posição no FULL_ORDER.
+- ✅ Inconsistências de ordem são detectadas no startup, não em runtime.
+- ✅ Três artifact stages distintos para E2 (`extract_statements`/`extract_invoices`/`extract_with_llm`)
+  evitam colisão de `UNIQUE(run, stage, key)` quando o mesmo documento é
+  processado por extrator determinístico + LLM fallback.
+- ⚠️ Nomes legados `"E2"`, `"E3"`, `"E5"` permanecem até Fase 9 (renaming em
+  bloco via `STAGE_RENAME_MAP`).
+
+**Arquivos:** `pipeline/stage_spec.py`, `pipeline/orchestrator.py`,
+`pipeline/stages/e2_faturas.py`, `pipeline/stages/e2_extratos.py`,
+`tests/unit/pipeline/test_stage_spec.py`.
+
+---
+
+## ADR-088 — StageConfig: configuração imutável por parâmetro
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Fase 1.5.5
+
+**Contexto:** `scripts/pipeline_common._init_config(base_dir)` reescrevia 12+
+variáveis globais a cada reinicialização. Celery com processos separados é
+seguro hoje, mas é uma bomba-relógio para qualquer mudança de topologia de
+workers (multi-thread, async). Além disso, `from_context` silenciava
+config faltante (`or {}` silenciava bugs de deploy).
+
+**Decisão:** `pipeline/stage_config.py` com Pydantic `BaseModel` +
+`ConfigDict(frozen=True)`:
+
+```python
+class StageConfig(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    family_members: dict = {}
+    pipeline: dict = {}
+    institutions: dict = {}
+    categorization: dict = {}
+    goals: dict = {}
+    scoring: dict = {}
+    fiscal: dict = {}
+
+    REQUIRED = frozenset({"family_members", "pipeline", "institutions", "categorization"})
+```
+
+- Pydantic frozen **deep-copia** na construção — imutabilidade verdadeira
+  mesmo com campos dict/list (dataclass frozen só proíbe reassignment).
+- `from_context(ctx)` **falha rápido** com `ConfigError` quando um dos 4
+  `REQUIRED` está ausente. Campos opcionais (`goals`, `scoring`, `fiscal`)
+  degradam para `{}` silenciosamente.
+- `empty()` é o factory para testes que não precisam de config real.
+- Thread-safe por construção — pode ser compartilhada entre workers.
+
+**Regra geral de imutabilidade no plano (R11):**
+
+| Tipo de objeto | Padrão | Motivo |
+|---------------|--------|--------|
+| Campos primitivos (str, int, Decimal, date) | `@dataclass(frozen=True)` | Sem dep extra |
+| Campos dict/list (StageConfig) | Pydantic frozen | Deep-copy real |
+| Campos `list[ValueObject]` que mutam (BankStatement.transactions) | dataclass não-frozen com invariante | Mutação restrita |
+
+**Consequências:**
+- ✅ `_init_config()` global removível na Fase 9.6.
+- ✅ Config ausente quebra deploy imediatamente em vez de produzir output
+  silenciosamente degradado.
+- ⚠️ Todos os stages recebem o `StageConfig` completo mesmo quando só usam
+  um subset — ISP é aplicado nos **domain services** (ADR-089).
+
+**Arquivos:** `pipeline/stage_config.py`,
+`tests/unit/pipeline/test_stage_config.py`.
+
+---
+
+## ADR-089 — pipeline/domain/: camada de domínio isolada de I/O
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Fase 5
+
+**Contexto:** Transações, extratos, patrimônio viviam como `dict` genéricos.
+Mudar a estrutura de uma transação exigia grep em múltiplos scripts. Lógica
+de reconciliação, categorização e análise estava acoplada a I/O de disco —
+testar "transações de mesmo valor em ±3 dias são duplicatas" exigia montar
+fixtures de arquivo.
+
+**Decisão:** Nova camada `pipeline/domain/`:
+
+```
+pipeline/domain/
+  models/
+    transaction.py     Money, Transaction
+    document.py        BankStatement, Investment, InvestmentStatement, BaselinePatrimonial
+  services/
+    reconciliation_service.py  ReconciliationService(ReconciliationConfig)
+    categorization_service.py  CategorizationService(CategorizationRules)
+    calculators.py             CashFlowAggregator, PatrimonioCalculator,
+                               EmergencyReserveCalculator, FinancialScoreCalculator
+```
+
+- **Value objects** (`Money`, `Transaction`, `Investment`, `Baseline`) são
+  frozen dataclasses — "modificar" produz novo objeto via
+  `dataclasses.replace`. `BankStatement.transactions` é `list` mutável
+  restrito ao pipeline de reconciliação (invariante documentado).
+- **Services** são **puros** — sem I/O de disco, sem globals. Recebem
+  `(config_value_object, input_value_objects)`, retornam output.
+- Services NÃO recebem `StageConfig` inteiro (R9 / Interface Segregation):
+  `ReconciliationService(ReconciliationConfig)`,
+  `CategorizationService(CategorizationRules)`.
+- Services são testáveis com `InMemoryArtifactStore` + fixtures de 3 linhas.
+
+**Consequências:**
+- ✅ Lógica de domínio testável em isolamento — fixtures não são arquivos.
+- ✅ Contrato tipado expõe o modelo mental do domínio financeiro.
+- ✅ Extensões futuras (reconciliação multi-moeda, novo tipo de ativo)
+  ficam localizadas no domínio.
+- ⚠️ Scripts legados (Caminho A) continuam trabalhando com `dict` até migração.
+
+**Arquivos:** `pipeline/domain/**`,
+`tests/unit/pipeline/test_domain_money.py`,
+`tests/unit/pipeline/test_domain_transaction_document.py`,
+`tests/unit/pipeline/test_reconciliation_service.py`,
+`tests/unit/pipeline/test_categorization_service.py`,
+`tests/unit/pipeline/test_calculators.py`.
+
+---
+
+## ADR-090 — Decimal para valores monetários
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Fase 5.2
+
+**Contexto:** `float` tem imprecisão binária — `0.1 + 0.2` é
+`0.30000000000000004`. Somas de centenas de transações acumulam erro.
+Valores financeiros exigem precisão exata.
+
+**Decisão:** `Money` (frozen dataclass) com `amount: Decimal` + `currency: str`.
+
+Regras firmes:
+- **Construtor** rejeita `float` com `TypeError`. `Money(0.1, "BRL")` quebra.
+- **Factory** `Money.of(value, currency)` aceita `str | Decimal | int` — também
+  rejeita `float`. Dev com float deve converter explicitamente:
+  `Decimal(str(v))` no call-site.
+- **Precisão por moeda** via `CURRENCY_PRECISION: dict[str, int]`:
+  BRL=2, USD=2, EUR=2, JPY=0. `Money.of("1.234", "BRL")` → `Decimal("1.23")`.
+- **Operadores** `+`, `-`, `neg`, `*` (rejeita float), `<`, `<=`, `==`. Moedas
+  incompatíveis levantam `ValueError`.
+- **Serialização:** `to_float()` existe apenas para JSON legado — documentado
+  como "não usar em cálculos".
+
+**Consequências:**
+- ✅ `Money.brl("0.1") + Money.brl("0.2") == Money.brl("0.3")` (exato).
+- ✅ Erros de arredondamento localizados no serializador, não acumulados.
+- ✅ Moedas multi-precisão funcionam — JPY tem 0 casas, BRL 2.
+- ⚠️ Conversão de `float` → `Decimal(str(v))` no call-site é carga de
+  adoção — intencional, para que o dev veja o trade-off.
+- ❌ Schemas JSON existentes continuam com `float` — adaptadores usam
+  `to_float` / `Decimal(str(v))`.
+
+---
+
+## ADR-091 — Pydantic para domain objects com coleções
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Fase 5 / R11
+
+**Contexto:** Python dataclasses frozen só proíbem reassignment — mutação
+interna de campos `dict`/`list` ainda é possível (`obj.rules["new"] = "x"`).
+Para `StageConfig` (com 7 campos dict), isso é inaceitável.
+
+**Decisão:** Regra de imutabilidade por tipo de objeto:
+
+| Objeto | Escolha | Motivo |
+|---|---|---|
+| `Money`, `Transaction`, `Investment`, `Baseline`, `ReconciliationConfig`, `CategorizationRules`, `StageSpec` | `@dataclass(frozen=True)` | Campos primitivos + tuples — dataclass suficiente |
+| `StageConfig` | `pydantic.BaseModel` + `ConfigDict(frozen=True)` | Campos dict — pydantic deep-copia na construção |
+| `BankStatement` | `@dataclass` (não-frozen) | `transactions: list` muta pela lógica do pipeline; invariante documentado |
+
+Services domain (`ReconciliationService`, `CategorizationService`, calculadoras)
+consomem os value objects e retornam `@dataclass(frozen=True)` para reports
+(`CashFlowReport`, `PatrimonioReport`, etc.).
+
+**Consequências:**
+- ✅ Tipos em `pipeline/domain/models/` e `pipeline/domain/services/calculators.py`
+  são seguros para compartilhar entre threads.
+- ✅ Pydantic frozen bloqueia `model.pipeline = {}` em runtime — `ValidationError`.
+- ⚠️ Pydantic adiciona overhead (~100μs/construção) — irrelevante em workloads
+  de pipeline (segundos-minutos por stage).
+
+---
+
+## ADR-092 — Renomear scripts para nomes descritivos de domínio
+
+**Status:** Proposto (execução na Fase 9 pós-Caminho B dos stages) • **Data:** 2026-04-19 • **Plano:** Fase 9.4
+
+**Contexto:** Scripts em `scripts/` usam o padrão `eN_nome.py` (ex: `e3_reconcile.py`,
+`e5_analyze.py`). O número implica posição na fila — responsabilidade do
+orquestrador, não do arquivo. Conflita com o rename de stage identifiers
+(ADR-093) e acopla o nome do arquivo à ordem de execução, dificultando
+refactor.
+
+**Decisão:** Renomear os scripts para nomes descritivos de domínio usando
+`git mv` (preserva histórico):
+
+| Antes | Depois |
+|---|---|
+| `scripts/e0_audit.py` | `scripts/document_auditor.py` |
+| `scripts/e0_route.py` | `scripts/document_router.py` |
+| `scripts/e0_unlock.py` | `scripts/document_unlocker.py` |
+| `scripts/e15_consolidate.py` | `scripts/baseline_consolidator.py` |
+| `scripts/e2_extract.py` | `scripts/transaction_extractor.py` |
+| `scripts/e3_reconcile.py` | `scripts/transaction_reconciler.py` |
+| `scripts/e4_categorize.py` | `scripts/transaction_categorizer.py` |
+| `scripts/e5_analyze.py` | `scripts/financial_analyzer.py` |
+| `scripts/e5n_narrativas.py` | `scripts/narrative_generator.py` |
+| `scripts/e6_render.py` | `scripts/report_renderer.py` |
+| `scripts/e7_review.py` | `scripts/quality_reviewer.py` |
+
+Wrappers em `pipeline/stages/` também são renomeados (ver ADR-093).
+
+**Pré-requisito:** Fases 5-8 completas (stages em Caminho B). Renomear antes
+mantém o sistema consistente, rename antecipado cria estado misto perigoso.
+
+**Consequências:**
+- ✅ Nomes descrevem a operação de domínio, não a posição na fila.
+- ✅ `git mv` preserva histórico — blame funciona.
+- ⚠️ Imports em todo o codebase precisam ser atualizados (guardrail: grep
+  survivors no CI da Fase 9.5).
+- ❌ Scripts de automação externos (cron, CI externo) que invocam
+  `python scripts/eN_*.py` quebram — 1 release de alias em `e_reset.py`
+  mitiga parcialmente.
+
+---
+
+## ADR-093 — Rename completo de identificadores de stage (Opção A)
+
+**Status:** Infraestrutura pronta • **Execução:** pós-Fases 5-8 completas
+**Data:** 2026-04-19 • **Plano:** Fase 9 inteira
+
+**Contexto:** Os identificadores legados (`"E0-audit"`, `"E1.5c"`, `"E2-faturas"`,
+`"E5"`, `"E7-apply"`…) são posicionais e opacos sem contexto. Aparecem em
+código (strings literais), DB (coluna `pipeline_artifacts.stage`), logs,
+flags de CLI (`--from E3`), dashboards. O mapeamento para nomes descritivos
+é 1:1, documentado em `STAGE_RENAME_MAP` (ADR-087) — mas renomear em produção
+exige coordenação entre código, DB, dev-ops e docs.
+
+**Decisão:** Aplicar **Opção A — rename em bloco** em 7 sub-fases (Fase 9 do plano):
+
+1. **9.0** — Auditoria: `_scratch/audit_stage_references.py` lista ocorrências;
+   teste `test_rename_map_covers_all_legacy_names` garante `STAGE_RENAME_MAP` exaustivo.
+2. **9.1** — `git mv pipeline/stages/e*.py → *descriptive*.py` (17 wrappers).
+3. **9.2** — Substituir strings literais em Python um arquivo por vez,
+   com `pytest` entre cada.
+4. **9.3** — Alembic migration `q5r6s7t8u9v0_rename_stage_identifiers`:
+   `UPDATE pipeline_artifacts SET stage = <new> WHERE stage = <old>` +
+   idem para `pipeline_stage_logs`. Upgrade+downgrade testados
+   (`test_stage_rename_migration.py`, 5 testes).
+5. **9.4** — `git mv scripts/e*.py → *descriptive*.py` + `e_reset.py --from X`
+   alias de compat por 1 release.
+6. **9.5** — Guardrail: `tests/unit/pipeline/test_no_legacy_stage_names.py`
+   (parametrizado por todos os legados) com soft-fail default + hard-fail
+   via `MATHOMS_ENFORCE_STAGE_RENAME=1`.
+7. **9.6** — Remover `MaterializationBridge`, `_init_config()` global, aliases.
+
+**Mapa canônico** (fonte de verdade: `pipeline.stage_spec.STAGE_RENAME_MAP`):
+
+```
+E0-audit    → audit_documents        E2-extratos → extract_statements
+E0-unlock   → unlock_documents       E2-llm      → extract_with_llm
+E0-route    → route_documents        E3          → reconcile_transactions
+E1          → extract_members        E4          → categorize_transactions
+E1.5        → extract_baseline       E5          → analyze_finances
+E1.5c       → consolidate_baseline   E5.N        → generate_narratives
+E2-faturas  → extract_invoices       E6          → render_report
+                                     E7-crossval → validate_cross
+                                     E7-review   → review_finances
+                                     E7-apply    → apply_review
+                                     E6-final    → render_final_report
+                                     E5-revised  → analyze_finances_revised
+```
+
+**Procedimento em produção** (pré-migration):
+1. Backup obrigatório (`sqlite3 mathoms.db .dump > backup.sql`).
+2. Verificar: `SELECT DISTINCT stage FROM pipeline_artifacts` — nenhum
+   nome fora do mapa (investigar antes de prosseguir).
+3. Deploy do código pós-Fase 9.2 com alias compat.
+4. `alembic upgrade head`.
+
+**Consequências:**
+- ✅ Nomes descritivos em logs/dashboards — engenheiro novo entende sem consultar tabela.
+- ✅ Mapa exaustivo testado bloqueia divergência silenciosa.
+- ⚠️ Queries hardcoded externas (Grafana, Retool) quebram — comunicar antes.
+- ⚠️ Uma janela de manutenção para migration — `pipeline_artifacts` pode ser grande.
+- ❌ Aliases de compat em `e_reset.py` são técnica-debt temporária.
+
+**Artefatos:** `pipeline/stage_spec.py::STAGE_RENAME_MAP`,
+`backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py`,
+`backend/tests/test_stage_rename_migration.py`,
+`tests/unit/pipeline/test_no_legacy_stage_names.py`,
+`_scratch/audit_stage_references.py`.
+
+---
+
+## ADR-094 — Report: single-active vs. versionado
+
+**Status:** Decidido (single-active para F9; evolução planejada) • **Data:** 2026-04-19 • **Plano:** §4.5
+
+**Contexto:** Com artefatos migrando para `pipeline_artifacts` (ADR-082),
+a coluna `Report.analysis_json_path` (string apontando para arquivo) passa
+a ser `Report.artifact_id` (FK opcional para o E5 da run). Re-run do pipeline
+cria um novo `PipelineArtifact` E5; precisamos decidir se o Report aponta
+para o **novo** (overwrite) ou mantém **histórico versionado**.
+
+**Alternativas:**
+1. **Single-active** (escolhida para F9): um relatório ativo por workspace;
+   re-run sobrescreve o ponteiro.
+2. **Versionado** (iteração futura): nova tabela `ReportVersion` com FK para
+   Report + pipeline_run_id; UI pode mostrar múltiplas versões.
+
+**Decisão:** **Single-active** na Fase 4 do plano de migração. Justificativas:
+
+- Simplicidade: Report.artifact_id é a única FK de relatório.
+- UI sem decisão "qual versão mostrar" (atual sempre válida).
+- Os `PipelineArtifact`s históricos permanecem no banco — não há perda
+  de dados, apenas ausência de apresentação.
+- Menor peso no DB: um ponteiro ativo por workspace.
+
+**Caminho evolutivo previsto (não este sprint):**
+
+1. Fase 4: single-active entregue.
+2. Sprint futuro: introduzir `ReportVersion(report_id, pipeline_run_id, artifact_id, created_at)`
+   — todos os dados necessários já existem em `pipeline_artifacts`.
+3. Decisão guiada por métrica de produto: % de usuários que consultam
+   relatórios anteriores via workarounds (export HTML, screenshots).
+
+**Consequências:**
+- ✅ Fase 4 cabe num sprint (~5 dias).
+- ✅ UI inalterada — migração transparente para o usuário.
+- ⚠️ Histórico só acessível via query/script até ReportVersion existir.
+- ❌ Usuários que re-rodam e querem comparar com versão anterior precisam
+  exportar HTML antes do re-run (documentado em release notes).
+
+---
+
+## ADR-095 — Segurança de `content_json` (LGPD)
+
+**Status:** Proposto (execução distribuída em Fases 1-4 do plano) • **Data:** 2026-04-19 • **Plano:** §15
+
+**Contexto:** `pipeline_artifacts.content_json` armazena dados financeiros
+pessoais — saldos, transações, CPFs (via membros), posições de investimento.
+Postgres TDE protege contra roubo de disco físico, **não** contra SQL
+injection ou leak de backup lógico. LGPD Art. 18 exige direito ao
+esquecimento em até 24h úteis. A v3.3 do plano não endereçava — v3.4 formaliza
+em §15.
+
+**Decisão:** Cinco políticas complementares:
+
+**D1 — Criptografia app-level em campos de PII.** CPF e nome completo em
+`content_json` são armazenados como `enc:<base64>` via `cryptography.fernet`.
+Chave em `MATHOMS_PII_ENCRYPTION_KEY` (secret manager). Read path:
+`PipelineArtifactRepository.read_decrypted` faz decrypt on-demand. Deploy
+sem a chave em produção **falha**.
+
+**D2 — Não criptografar valores monetários.** Criptografar `amount` quebra
+agregações SQL e torna relatórios O(n) em memória. Risco aceitável: valores
+sem nome/CPF têm baixa identificabilidade isolada. Proteger via controles
+de acesso (D3).
+
+**D3 — Audit log em acesso a `pipeline_artifacts`.** Toda leitura via API
+(`GET /reports/{id}/data`, etc.) registra em `access_audit_log`
+(tabela nova): `user_id, workspace_id, artifact_id, timestamp, ip`.
+Retenção: 1 ano. Consultado em incident response.
+
+**D4 — Política de retenção.** Artefatos ativos: indefinido (user pode
+deletar via `/workspace/delete`). Artefatos de runs não-ativas: 2 anos →
+soft delete. Direito ao esquecimento: `DELETE /workspace/{id}/artifacts`
+remove TODOS os `pipeline_artifacts` + `documents.*_content` em até 24h úteis.
+
+**D5 — Masking em logs.** `DBArtifactStore.read/write` log sem `content_json`
+em nível INFO; nível DEBUG só em dev. Nomes de membros viram `member_<hash[:6]>`
+em logs estruturados.
+
+**Implementação por fase:**
+
+| Fase | Entregável |
+|------|-----------|
+| Fase 1 | `PipelineArtifact.content_json` JSONB + `schema_version`; sem crypto ainda ✅ |
+| Fase 2 | `PipelineArtifactRepository` encapsula queries; crypto hooks preparados (no-op default) ✅ |
+| Fase 3 | Crypto ativa para `extract_members` (piloto com CPF mascarado) — **pendente** |
+| Fase 4 | Audit log em 100% dos GETs; endpoint esquecimento — **pendente** |
+| Fase 4+ | Estender crypto para demais stages conforme volume — **pendente** |
+
+**Consequências:**
+- ✅ LGPD Art. 18/46 atendidos explicitamente.
+- ✅ Defense-in-depth: crypto app-level + TDE (prod) + audit log.
+- ⚠️ Deploy exige gestão segura de chave (secret manager, KMS em prod).
+- ❌ Crypto quebra queries `JSON_EXTRACT` em campos PII — mitigado por
+  indexação separada (hash searchable quando necessário).
+
+---
+
+## ADR-096 — Observabilidade de cutover
+
+**Status:** Proposto (execução paralela à Fase 2) • **Data:** 2026-04-19 • **Plano:** §16
+
+**Contexto:** §4.6 do plano descreve o **procedimento** de cutover, mas não
+**como detectar** que deu errado. Ativar `MATHOMS_USE_DB_ARTIFACTS=True` em
+workspace com dados históricos precisa de validação contínua — ficaria
+invisível se diferenças estruturais aparecessem no output.
+
+**Decisão:** Kit operacional de 4 peças:
+
+**1. Script de comparação disk-vs-db** — `_scratch/compare_disk_vs_db.py`:
+
+```
+python compare_disk_vs_db.py --workspace-id <uuid> [--stage STAGE] [--strict]
+
+Saída:
+  - 0: sem diff estrutural
+  - 1: diff detectado (com detalhes)
+  - 2: erro de leitura (um dos stores não tem o artifact)
+```
+
+Lista `(stage, key)` em cada store; para cada par presente nos dois, compara
+estruturalmente com tolerância para floats. Reporta: artefatos só em disk,
+só em DB, diferentes, idênticos.
+
+**2. Métricas em produção** (`backend/app/observability/cutover_metrics.py`):
+
+| Métrica | Tipo | Uso |
+|---------|------|-----|
+| `pipeline_run_duration_seconds{store="disk\|db"}` | Histogram | Regressão perf |
+| `artifact_write_count{stage, store}` | Counter | Saúde de escrita |
+| `artifact_read_missing{stage}` | Counter | Detectar cutover incompleto |
+| `artifact_diff_count{stage}` | Counter | Incrementado pelo compare em job nightly |
+| `pipeline_run_failed_total{stage, use_db}` | Counter | Taxa de falha por modo |
+
+Expostas em `/metrics` (Prometheus). Dashboard durante janela de cutover
+com os 5 painéis.
+
+**3. Alertas**:
+
+| Alerta | Condição | Ação |
+|--------|----------|------|
+| `CutoverRegression` | p95(duration_db) > baseline × 1.5 por 15min | Reverter deploy ou flag |
+| `ArtifactReadMissing` | rate(read_missing) > 0 | Investigar |
+| `DiskDbDiffDetected` | diff_count > 0 por stage | Pausar cutover |
+| `PipelineFailureSpike` | rate(failed{use_db=True}) > 2× rate({use_db=False}) | Flip back |
+
+**4. Runbook** — `docs/RUNBOOKS/cutover.md` com procedimento T-24h / T-0 / T+48h.
+
+**Status de implementação:**
+
+- Fase 1 entregou baseline placeholder em `tests/pipeline/perf/`.
+- Scripts `compare_disk_vs_db.py`, métricas Prometheus, dashboard Grafana:
+  **pendentes** — devem ser entregues antes de qualquer cutover em produção
+  (pré-Fase 4.6).
+
+**Consequências:**
+- ✅ Cutover reversível com sinal claro de problema.
+- ✅ Métricas contínuas validam paridade em background.
+- ⚠️ Requer stack Prometheus/Grafana (não existe em dev hoje).
+- ❌ Alertas dependem de receiver configurado (PagerDuty/Slack).
+
+---
+
+## ADR-097 — Extract-then-refactor: estratégia de decomposição de `e3_reconcile.py`
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Fase 6 · Sessão A1 · ADR-089 (domain layer)
+
+**Contexto:** `scripts/e3_reconcile.py` tem 1193 linhas com 30+ globals, lógica
+bank-specific (faturas, CDBs), validações (saldo, gap temporal, baseline IRPF)
+e orquestração misturadas. A estratégia "big-bang rewrite" — reescrever o
+`main()` inteiro consumindo `ReconciliationService` — tem risco alto:
+
+1. Bugs sutis em validações bank-specific só aparecem em produção.
+2. Golden fixture cobre output final, não cada validator isoladamente.
+3. Um sprint inteiro bloqueado sem entregar código testável em memória.
+
+A alternativa — extrair validators/helpers **primeiro**, deixando o `main()`
+legado intacto — permite progresso incremental com zero risco de regressão.
+
+**Decisão:** Adotar **extract-then-refactor** como padrão para decomposição de
+scripts legados grandes (E3, E4, E5). Ordem de trabalho:
+
+1. **Extract**: mover cada responsabilidade para um domain service puro em
+   `pipeline/domain/{models,services}/`, com:
+   - Value objects tipados para config (ISP — R9) e warnings estruturados.
+   - Testes unitários exaustivos com `InMemoryArtifactStore` (nenhuma fixture de arquivo).
+   - Zero mudança em `scripts/e3_reconcile.py::main()` — script legado continua
+     rodando via Caminho A (bridge).
+2. **Compose**: `E3ReconcilerAdapter` (ou análogo) integra os services extraídos
+   — testado end-to-end contra fixtures sintéticas.
+3. **Refactor**: quando todos os blocos estiverem extraídos e testados, o
+   `main_with_store(config, store)` substitui o legado. Golden fixture valida
+   paridade. `MaterializationBridge` desliga para o stage.
+
+**Sessão A1 (2026-04-19)** entregou Extract para E3 — 7 artefatos novos, **92
+testes**, zero linha alterada em `e3_reconcile.py::main()`:
+
+| Arquivo | Responsabilidade | Extraído de | Testes |
+|---------|------------------|-------------|--------|
+| `pipeline/domain/models/bank.py` | `BankCanonicalizer` + `canonicalize_bank()` — índice explícito `normalized_form → canonical_code`, strip acento/espaço/`/&` | `_BANCO_DISPLAY_TO_CANONICAL` dict-global em `_init_config` | 21 |
+| `pipeline/domain/services/reconciliation_validators.py` | `SaldoContinuityValidator` (1ª metade de `validate_saldo_and_gaps`) + `TemporalGapDetector` (2ª metade); cada um com `*Config` dataclass ISP; retorna `SaldoGapWarning`/`TemporalGapWarning` estruturados | `validate_saldo_and_gaps()` | 32 |
+| `pipeline/domain/services/baseline_validator.py` | `BaselineValidator` — compara `closing_balance` de `BankStatement` contra saldos IRPF 31/12 via `BankCanonicalizer`; value object `BaselineAccountSaldo` com factory `from_baseline_dict` (aceita `members`/`membros`, dict ou list) | `validate_against_baseline()` | 39 |
+| `pipeline/domain/services/account_grouper.py` | `AccountGrouper` — skip rules + chave de conta canônica com `account_type_equivalences` | `group_by_account()` + skip logic | — |
+| `pipeline/domain/services/statement_preprocessor.py` | `StatementPeriodNormalizer` (sintetiza período para faturas sem `periodo`) + `AnachronicTransactionDropper` (>180d antes do início) | Fatura period adjustment + anachronic guard | — |
+| `pipeline/domain/services/e3_reconciler_adapter.py` (estendido) | Integra todos os services acima; `ReconciliationStoreResult` com warnings tipados + acesso dict-like retro-compat | — | — |
+
+**Princípios fixados por esta ADR:**
+
+- **D1. Warnings como dataclasses, não strings.** `SaldoGapWarning(account_key, expected, actual, diff)`
+  tem `.format()` para render. Strings fazem parsing reverso em testes.
+- **D2. Services não recebem `Path` nem `dict`.** Recebem `list[BankStatement]`
+  ou value objects. Conversão `dict → BankStatement` é responsabilidade do
+  adapter (`E3ReconcilerAdapter.load_bank_statements_with_warnings`).
+- **D3. Config por service, não `StageConfig` inteiro.** Cada validator tem
+  seu `*Config` dataclass frozen (ISP). Fixture de teste é uma linha.
+- **D4. Zero mudança no script legado durante a fase Extract.** O `main()`
+  segue intacto; golden fixture valida na fase Refactor.
+- **D5. `E3ReconcilerAdapter` é mutável por injeção.** Todos os collaborators
+  têm default seguro (`or default_factory()`), permitindo teste com subset.
+
+**Consequências:**
+- ✅ Sessão A1 entregou +92 testes em uma session sem risco de regressão em
+  produção (719 pipeline passando, 0 regressão).
+- ✅ Padrão reusável para Fases 7 (E4) e 8 (E5).
+- ✅ Cada validator tem cobertura granular — bugs aparecem em unit test, não
+  em golden fixture rodando 5 minutos.
+- ⚠️ Existe uma janela onde services novos **coexistem** com lógica legada no
+  script — o adapter é o único consumidor. Durante a janela, mudanças em
+  ambos os lados exigem coordenação.
+- ❌ Fase Refactor (substituir `main()` legado) ainda não foi feita — esta
+  ADR cobre apenas a fase Extract. O golden fixture e o `main_with_store`
+  ficam para sessão subsequente.
+
+**Ordem de execução restante para completar Fase 6 (Caminho B):**
+1. Implementar `reconcile_account()` equivalente em
+   `E3ReconcilerAdapter.reconcile_via_store()` — hoje faz merge simples;
+   precisa incorporar lógica fatura-specific legada.
+2. Extrair `generate_output_filename()` para `BankCanonicalizer.output_filename(statement)`.
+3. Capturar golden fixture do E3 legado em `tests/pipeline/goldens/e3/`.
+4. Implementar `main_with_store(config, store)` em `scripts/e3_reconcile.py`.
+5. Atualizar `pipeline/stages/e3.py` para não usar `run_legacy_with_bridge_if_db`.
+6. Validar: golden fixture passa; zero regressão em 719+ testes.
+
+**Artefatos:** `pipeline/domain/models/bank.py`,
+`pipeline/domain/services/{reconciliation_validators,baseline_validator,account_grouper,statement_preprocessor,e3_reconciler_adapter}.py`,
+`tests/unit/pipeline/test_{bank_canonicalizer,reconciliation_validators,baseline_validator,account_grouper,statement_preprocessor,e3_reconciler_adapter}.py`.
+
+---
+
+## ADR-098 — Caminho B pragmático vs puro: nomenclatura oficial
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Fase 8 pós-A5e · §17.2.5
+
+**Contexto:** A proposta original de "Caminho B" (§3.2 do plano, linha 1190)
+definia "script refatorado: recebe `StageConfig` + `ArtifactStore`, **sem I/O
+de disco**". Isso implicava remover `_init_config`, eliminar globals de módulo
+e fazer funções puras de `analyze_*`. Na prática, as sessões A2 (E3), A4b (E4),
+A5d (E5), A5e (E5.N+E7) entregaram **duas variantes distintas** sem
+formalizar a distinção.
+
+**E3 (A2)** seguiu a proposta original: `E3ReconcilerAdapter` integra 8
+domain services (`BankCanonicalizer`, `SaldoContinuityValidator`, etc.),
+helpers extraídos, lazy init dos globais (A3b).
+
+**E4/E5/E5.N/E7** optaram por reutilizar as funções `analyze_*` legadas
+dentro de `main_with_store(ctx)`, preservando globals (`_init_config`,
+`_TITULAR_KEY`, `FAMILY_CONFIG`, `_MEMBROS`, `_TITULAR_NOME`, `_CONJUGE_NOME`,
+`GOALS_CONFIG`, `SCORING_CONFIG`, `FISCAL_CONFIG`, `METRICS`). Trade-off:
+paridade 100% garantida em golden, mas testabilidade e thread-safety dos
+scripts não mudaram. Os 14+ domain services extraídos em A1/A3c/A5a/A5b/A5c
+ficam em prateleira — 1200+ testes cobrindo código que não é invocado por
+`main_with_store`.
+
+**Decisão:** Formalizar duas variantes no plano:
+
+| Variante | Stages | Características |
+|---|---|---|
+| **Caminho B puro** | E3 (A2) | Refactor com domain services integrados, helpers extraídos, lazy init |
+| **Caminho B pragmático** | E4, E5, E5.N, E7 | I/O via `ArtifactStore` ✅ · Wrapper limpo sem `stage_runner_compat` ✅ · **Mantém** `_init_config` + globals + `analyze_*` legadas · Domain services em prateleira |
+
+O Caminho B pragmático **não é débito técnico definitivo** — ADR-100 fixa
+A6d como commitment de converter os 5 stages pragmáticos para puros.
+
+**Consequências:**
+- ✅ Documentação honesta evita que próximo dev pense que services estão integrados.
+- ✅ Nomenclatura comum para referência cross-team.
+- ⚠️ Reconhece dívida técnica pendente nos 5 stages pragmáticos.
+- ❌ Aceita que ~3500 linhas de domain services + testes ficam em prateleira
+  até A6d executar.
+
+**Artefatos:** `_scratch/plano_migracao_artifacts_db.md` §17.2.5; `CLAUDE.md`
+"Caminho B puro vs pragmático"; `docs/CHANGELOG.md` entry Sessão A5e.
+
+---
+
+## ADR-099 — Reuse de `analyze_*` legadas em `main_with_store` (decisão de A5d/A5e)
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Sessões A4b, A5d, A5e
+**Contexto de ADR-098** (Caminho B pragmático)
+
+**Contexto:** Em A5d (E5), A4b (E4), A5e (E5.N+E7), o escopo de cada sessão
+era "fechar Caminho B para este stage". A abordagem purista — reescrever
+`analyze_patrimonio`, `analyze_fluxo_caixa`, `calculate_score`,
+`build_narrativas`, `run_cross_validation` usando os domain services já
+extraídos — teria custo estimado de 5-8 sessões adicionais por stage,
+inviabilizando a fase dentro do sprint.
+
+A alternativa pragmática: `main_with_store(ctx)` lê E4 + baseline via
+`ArtifactStore`, invoca as funções `analyze_*` legadas (preservando globals),
+serializa output via helpers novos (`e5_serialization.build_e5_output`),
+escreve via `store.write(...)`. Paridade 100% garantida no golden.
+
+**Decisão:** Aceitar o padrão "`main_with_store` reutiliza `analyze_*`
+legadas" como trade-off explícito. Ganhos imediatos:
+
+1. **Bridge eliminado** — `pipeline/stages/e5.py`, `e4.py`, `e5n.py`, `e7.py`
+   não importam mais `stage_runner_compat`.
+2. **I/O abstraído** — `ArtifactStore.read/write` em todos os stages.
+3. **Golden de paridade garantido** — bugs sutis em funções legadas
+   permanecem reproduzíveis.
+4. **Domain services preservados como foundation** — testados, sem cliente.
+   Serão integrados em A6d (ver ADR-100).
+
+**Princípios fixados:**
+- **D6. `main_with_store` pode chamar funções legadas.** Não é violação da
+  arquitetura; é estratégia de transição.
+- **D7. Serialização via helpers novos** — output shape controlado por
+  `e5_serialization.py`, não por dict inline em `main()`.
+- **D8. Globais via `_init_config(ctx.root)`** — `main_with_store` reinicia
+  globals do módulo antes de invocar legados; preserva thread-safety por
+  processo Celery (fork-based).
+
+**Consequências:**
+- ✅ Fase 8 fechada em cronograma realista (3 sessões: A5a, A5b, A5c, A5d, A5e).
+- ✅ Testes de paridade rigorosos (tolerância 0.01 BRL) garantem
+  equivalência semântica ao legado.
+- ⚠️ Globais continuam existindo — thread-unsafety por processo (Celery fork
+  workers mitiga, mas `gunicorn --threads` ou `asyncio.run_in_executor` seriam
+  problemáticos).
+- ❌ Testes dos `analyze_*` continuam exigindo fixtures de disco
+  (`life_plan_goals.md`, `tarefas.md`, `milhas.md`, `methodology.md`).
+- ❌ 14+ domain services em prateleira até A6d.
+
+**Artefatos:** `scripts/e4_categorize.main_with_store`,
+`scripts/e5_analyze.main_with_store`, `scripts/e5n_narrativas.main_with_store`,
+`scripts/e7_review.main_with_store`; goldens de paridade
+`tests/test_e4_main_with_store_parity.py`,
+`tests/test_e5_main_with_store_parity.py`,
+`tests/test_e5n_e7_main_with_store_parity.py`.
+
+---
+
+## ADR-100 — A6d commitment: fechar Caminho B puro nos 5 stages pragmáticos
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** §18 A6d
+**Supersedes:** nota original de A6d como "opcional" no plano inicial
+
+**Contexto:** ADR-099 deixa explícito que Caminho B pragmático é trade-off
+temporário. A questão: converter ou não para puro?
+
+Hoje 14+ domain services estão testados (1200+ testes) mas não invocados.
+Custo de manter é baixo (já estáveis); custo de deletar seria perder
+trabalho que tem valor arquitetural conhecido. Mas manter sem integrar é
+**trabalho morto** — nunca paga seu custo.
+
+Alternativas avaliadas:
+- **Opção X** (integrar): executa A6d em 3-5 sessões grandes; fecha Caminho
+  B puro; services passam a ser invocados. Valor arquitetural real.
+- **Opção Y** (manter em prateleira indefinidamente): custo baixo, valor zero.
+- **Opção Z** (deletar services): libera ~3500 linhas, mas perde
+  investimento + bloqueia testabilidade futura.
+
+**Decisão:** Executar **Opção X** (A6d) como commitment, não opcional.
+
+Escopo de A6d dividido em 3 sub-fases:
+
+**A6d.1 — Eliminação de globals nos 5 scripts** (padrão A3b replicado em
+`e4_categorize`, `e5_analyze`, `e5n_narrativas`, `e7_review`,
+`e15_consolidate`). Globais recebem defaults sensatos no módulo;
+`_init_config(base_dir)` é opt-in via `main(root_dir=...)`. Teste estrutural
+AST bloqueia regressão. ~1 sessão, ~20-30 testes.
+
+**A6d.2 — Testabilidade dos `analyze_*` sem disco**. Extrair reads de
+`life_plan_goals.md`, `tarefas.md`, `milhas.md`, `methodology.md` para shell;
+funções ficam puras (recebem dict, retornam dict). Critério: `analyze_*`
+testáveis com `{dict_input}` sem criar arquivo. ~2 sessões, ~60-80 testes.
+
+**A6d.3 — Integração dos 14+ domain services em `main_with_store`**.
+Refactor **por stage** (não big bang):
+1. E4: `process_transactions` → composição `TransactionClassifier` +
+   `CashFlowBuilder` + `BaselineNormalizer` + `InvestmentsConsolidator` +
+   `E4CategorizerAdapter`.
+2. E5.N: `build_narrativas` → composição (ou aceitar que E5.N é templating
+   e manter legado).
+3. E5: 13 `analyze_*` → `E5AnalyzerAdapter` (já existe desde A5c).
+Cada refactor preserva golden de paridade. ~2-3 sessões grandes, ~200+ testes.
+
+Ordem: A6d.1 → A6d.2 → A6d.3 (dependências: .2 depende de .1; .3 depende de .1+.2).
+
+**Consequências:**
+- ✅ Paga o investimento em foundation (A1/A3c/A5a/A5b/A5c).
+- ✅ Testabilidade dos `analyze_*` habilita TDD futuro em mudanças de
+  fórmulas financeiras.
+- ✅ Elimina thread-unsafety dos globais — worker topology changes
+  (gunicorn threads, asyncio pools) deixam de ser risco.
+- ⚠️ Estimativa 3-5 sessões grandes — maior sessão continua sendo E5
+  (1-2 sessões sozinha).
+- ❌ Durante execução de A6d, risco de bug sutil em refactor (mitigado
+  por golden de paridade).
+- ❌ Bloqueia operacionalmente apenas LGPD/Obs **se** refactor quebrar —
+  por isso A6d é independente de A6a-c e de §15/§16.
+
+**Relação com A6a-e**: independente. Pode rodar em paralelo com cutover DB.
+§15 (LGPD) e §16 (Observabilidade) não dependem de A6d.
+
+**Artefatos:** `_scratch/plano_migracao_artifacts_db.md` §18 A6d.
+
+---
+
+## ADR-101 — Princípios R12-R17: DDD/SOLID no backend API (A6e)
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** §18 A6e
+
+**Contexto:** O plano P3 original focou em `pipeline/` + `scripts/`.
+`backend/app/` seguiu padrões razoáveis de Python profissional, mas não
+passou pela disciplina DDD/SOLID do pipeline. Auditoria (2026-04-19) mostra:
+
+| Sintoma | Evidência |
+|---|---|
+| Routers pesados com lógica inline | `api/config.py` 935 linhas · `api/documents.py` 794 · `api/tasks.py` 481 · `api/goals.py` 468 · `api/pipeline.py` 421 |
+| Repositórios quase ausentes | Apenas `PipelineArtifactRepository`; 10+ aggregates com queries SQLAlchemy espalhadas |
+| DTOs confundidos com ORM | Endpoints retornam Pydantic espelhando SQLAlchemy |
+| Sem camada de use cases | Services organizados por entidade, não por caso de uso |
+| API sem versionamento | `/workspaces/...` direto, sem `/v1/` |
+| Domain events ad-hoc | Notificações, task_progress inline em múltiplos lugares |
+
+**Decisão:** Adicionar A6e como extensão formal do plano P3, com princípios
+**R12–R17** (estendem R9-R11 do pipeline):
+
+- **R12 (ISP no backend)** — endpoints retornam DTO dedicado, não ORM model.
+- **R13 (Repositórios por aggregate)** — todo acesso a DB via
+  `repositories/<aggregate>_repository.py`; routers não importam SQLAlchemy.
+- **R14 (Routers finos)** — ≤50 linhas por router (teste estrutural
+  enforça).
+- **R15 (Application layer por use case)** — `backend/app/application/`
+  com 1 módulo por caso de uso; testável sem DB via fakes.
+- **R16 (Versionamento explícito)** — `/api/v1/` prefix; breaking changes
+  coexistem em `/v2/`.
+- **R17 (Domain events tipados)** — `backend/app/events/` com `Event` base
+  + handlers registrados; side-effects desacoplados.
+
+Escopo em 6 sub-fases (A6e.1 Repos → A6e.2 DTOs → A6e.3 Use cases → A6e.4
+Routers finos → A6e.5 Versioning → A6e.6 Events). Estimativa: 5-7 sessões
+grandes, ~400+ testes novos.
+
+**Consequências:**
+- ✅ Backend ganha a mesma disciplina do pipeline. Qualquer feature nova
+  segue padrão consistente.
+- ✅ Repository pattern protege cutover DB — múltiplos backends de storage
+  convivem sem fricção.
+- ✅ Routers finos + codegen (A6f.2) reduzem bugs de integração frontend.
+- ⚠️ Refactor de 4900 linhas de routers — trabalho mecânico mas demorado.
+- ❌ Adiciona 2 diretórios novos (`application/`, mais repositories) —
+  aumenta mental load para devs novos no repo.
+
+**Relação com A6a-d/f**: independente. Recomendado depois de A6b (cutover
+DB) para repository pattern entregar valor máximo.
+
+**Artefatos:** `_scratch/plano_migracao_artifacts_db.md` §18 A6e.
+
+---
+
+## ADR-102 — Princípios R18-R20: language-neutral boundaries (A6f)
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** §18 A6f
+
+**Contexto:** Discussão estratégica (2026-04-19) sobre cenário hipotético
+plausível: backend eventualmente migrado para Go, mantendo Python em
+parsers (`scripts/e2/banks/`), LLM (`pipeline/llm/`) e domain services.
+
+Hoje o backend Python importa funções do pipeline diretamente
+(`from scripts.e3_reconcile import main_with_store`) — incompatível com
+processos de linguagens diferentes. A fronteira entre backend e pipeline
+precisa virar **contrato de rede ou mensageria**.
+
+Alternativas avaliadas (3 categorias):
+- **Categoria 1 — "no regret"** (valor independente de Go): pipeline-service
+  HTTP, OpenAPI exaustivo, structured logs + OTel, DB schema review, Fernet
+  → AES-GCM.
+- **Categoria 2 — Go-specific com valor marginal**: contract tests, stateless
+  rigoroso, broker neutro (substituir Celery), gRPC.
+- **Categoria 3 — not yet**: port de domain services para Go, microserviços.
+
+**Decisão:** Adicionar A6f com Categoria 1 + Categoria 2.4 (stateless
+rigoroso). Princípios **R18–R20**:
+
+- **R18 (Wire formats explícitos)** — zero pickle cross-process; JSON Schema/
+  OpenAPI/Protobuf versionados em toda fronteira.
+- **R19 (Stateless-ready)** — zero estado in-memory que impeça múltiplos
+  workers concorrentes.
+- **R20 (Language-neutral data)** — DB schema, JSON artifacts e message
+  envelopes sem features Python-only.
+
+**NÃO adotado nesta rodada**:
+- Broker neutro (Celery mantido) — risco alto, ganho condicionado à Go real.
+- gRPC — HTTP JSON + OpenAPI é suficiente para monolito→serviços separados.
+- Port de domain services para Go — só durante migração real, não antes.
+
+6 sub-fases (A6f.1 Pipeline-service → A6f.2 OpenAPI → A6f.3 OTel → A6f.4 DB
+schema → A6f.5 Auth → A6f.6 Stateless). Estimativa: 6-8 sessões grandes.
+
+**Consequências:**
+- ✅ Todas as entregas têm valor independente (escala pipeline, debug real,
+  best-practice cripto, horizontal scale).
+- ✅ Migração Go futura sem retrabalho grande — fronteiras HTTP + OpenAPI
+  prontas.
+- ⚠️ Custo operacional em prod: +1 container (`pipeline-service`) +
+  OTel collector.
+- ⚠️ Fernet → AES-GCM exige data migration (mitigado: pouco PII hoje
+  encriptado via Fernet).
+- ❌ Adiciona latência HTTP ao pipeline (1 hop extra).
+
+**Relação com A6a-e**: independente. Recomendado depois de A6b (cutover DB)
+— pipeline-service precisa de DB como fonte de verdade.
+
+**Artefatos:** `_scratch/plano_migracao_artifacts_db.md` §18 A6f.
+
+---
+
+## ADR-103 — Teste manual como gate antes de remoção do bridge (A6b.5 + A6-human)
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** §18 A6b.5/A6-human
+
+**Contexto:** A sequência original do plano era A6b (cutover DB validado
+tecnicamente) → A6c (deletar bridge). Na auditoria de 2026-04-19 surgiram
+2 pontos críticos:
+
+1. **`USE_DB_ARTIFACTS=False` em produção** — `DBArtifactStore` nunca
+   instanciado pelo backend; cutover DB é teórico, validação técnica de A6b
+   não garante que **uso real** funciona.
+2. **LLM stages escrevem direto em disco** (ADR-099 mitiga parcial, A6a
+   resolve) — mesmo após A6a, só teste humano em workflow real valida.
+
+Deletar bridge (A6c) sem teste humano é arriscado: se o pipeline quebrar
+em cenário real (ex.: upload de 50 docs com LLM premium, pipeline
+incremental), rollback do bridge removido exige revert.
+
+**Decisão:** Adicionar 2 etapas obrigatórias entre A6b e A6c:
+
+**A6b.5 — Preparação para teste humano**:
+- `docker-compose.smoke.yml` + `Makefile` smoke-up/seed/reset/logs
+- Seed de dados (2 workspaces, 2 users) + fixtures comitadas em
+  `tests/fixtures/smoke_inbox/` (extratos, faturas, IRPFs, ambíguos,
+  duplicatas, PDF com senha, life plan)
+- `docs/SMOKE_TEST_HUMAN.md` exaustivo (setup + matriz features + cenários
+  parametrizados + template bug report + troubleshooting)
+- Observabilidade mínima (health check, admin console, logs agregados,
+  indicador visual "Artifact store: DB/Disk")
+- Modo free-tier funcional (sem LLM key → `skipped: true` com banners)
+
+**A6-human — Teste manual pelo David**:
+- Checklist de ~70 verificações cobrindo auth, multi-tenancy, documentos,
+  pipeline full+incremental, cada stage E0-E7, relatório, goals, cutover
+  DB, edge cases.
+- Template de bug report inline no runbook.
+- Decisão **explícita** de aprovar A6c ou bloquear até correções.
+
+**A6c (deletar bridge) depende de aprovação humana documentada.**
+
+**Consequências:**
+- ✅ Remoção do bridge só acontece com confiança real do sistema em uso.
+- ✅ Runbook serve como onboarding para novos devs + operação contínua.
+- ✅ Fixtures comitadas permitem reprodução de bugs reportados pelo tester.
+- ⚠️ Adiciona 1-2 sessões de preparação + janela de teste manual (pode ser
+  dias até semanas).
+- ⚠️ Custo operacional: manter `docker-compose.smoke.yml` funcional ao longo
+  do projeto (CI pode validar).
+- ❌ Aceita que A6c (remover bridge) é bloqueado se teste humano revelar
+  regressões.
+
+**Artefatos:** `_scratch/plano_migracao_artifacts_db.md` §18 A6b.5 + A6-human.
+
+---
+
+## ADR-104 — E1.5c em Caminho B pragmático (Sessão A5f)
+
+**Status:** Decidido (A5f) • **Data:** 2026-04-19
+
+**Contexto:** Após A5e, E1.5c era o único stage determinístico fora do
+Caminho B — usava `stage_runner_compat` + `MaterializationBridge` no wrapper
+`pipeline/stages/e15c.py`. A consolidação de baseline é um script simples
+(lê JSON, enriquece com chaves consolidadas, grava de volta), sem domain
+services adicionais a extrair — candidato natural ao padrão pragmático já
+adotado em E4/E5/E5.N/E7.
+
+**Decisao:** Aplicar Caminho B pragmático (padrão ADR-097/A4b, ADR-099/A5d):
+`main_with_store(ctx)` reutiliza `consolidate()` legado; wrapper limpo sem
+bridge. `main(root_dir)` legado coexiste para CLI direto e testes existentes.
+
+**Consequencias:**
+- ✅ 7 de 7 stages determinísticos no Caminho B — `stage_runner_compat`
+  sem clientes vivos em `pipeline/stages/`.
+- ✅ Caminho A6c (remoção definitiva do bridge) desbloqueado assim que
+  A6a+A6b+A6-human concluídos.
+- ✅ Paridade comprovada por golden (cenários `itens[]` e `declarations[]`).
+- ⚠️ `_init_config` e globals de módulo permanecem — remoção em A6d.1.
+- ⚠️ Bridge e `stage_runner_compat` **não são removidos** aqui; aguardam
+  A6a (LLM stages) + A6b (cutover DB) + A6-human (validação end-to-end).
+
+---
+
+## ADR-105 — LLM stages escrevem via ArtifactStore; E1 e E7-review LLM não migram (A6a)
+
+**Status:** Decidido (A6a) • **Data:** 2026-04-19
+
+**Contexto:** Antes de A6a, E1.5 e E2-llm escreviam artefatos do pipeline
+direto em disco (`.write_text`), bypassando o `ArtifactStore`. Com
+`MATHOMS_USE_DB_ARTIFACTS=true`, o pipeline quebraria: E3 buscaria esses
+artefatos no DB e não os encontraria. Dois outros LLM stages existem: E1
+(produz `family_members.json`, que é config do workspace, não artefato do
+pipeline) e E7-review-LLM (produz um JSON de review ad-hoc consumido por
+E7-apply; já persiste no path correto via disco).
+
+**Decisao:**
+1. E1.5 (`pipeline/stages/e15.py`): troca `out_path.write_text(...)` por
+   `store.write("E1.5", "baseline_patrimonial", baseline_json)` → produz
+   `baseline_patrimonial-1.5_baseline.json`. E1.5c lê via fallback.
+2. E2-llm (`pipeline/stages/e2_llm.py`): troca `out_path.write_text(...)` por
+   `store.write("E2-llm", safe_stem, e2_json)`. `_find_unprocessed_docs`
+   migrada para `store.list_keys(stage)` em vez de glob de disco.
+3. **E1 não migra**: `family_members.json` é configuração do workspace, não
+   artefato do pipeline. Escrita em `ctx.members_dir/` é correta.
+4. **E7-review LLM não migra**: o reviewer externo (humano ou automação)
+   escreve o arquivo de review; E7-apply já lê via path convencional. Não é
+   stage de produção contínua — é input ad-hoc fora do loop determinístico.
+
+**Consequencias:**
+- ✅ `MATHOMS_USE_DB_ARTIFACTS=true` pode ser ativado sem quebrar E3→E7.
+- ✅ E1.5c lê corretamente via `store.read("E1.5", ...)` (fallback já em A5f).
+- ✅ E2-llm: `_find_unprocessed_docs` via `store.list_keys` funciona em modo Disk e DB.
+- ✅ Critérios estruturais enforçados por testes (`store.write` presente; `write_text` ausente).
+- ⚠️ E1.5: filename em disco mudou de `-1.5_consolidated.json` para `-1.5_baseline.json`
+  para novos workspaces. Workspaces existentes com arquivo no caminho antigo continuam
+  funcionando (E1.5c lê E1.5c key primeiro → encontra o consolidated existente).
+- ⚠️ E7-review LLM: se `MATHOMS_USE_DB_ARTIFACTS=true` e o arquivo de review foi
+  escrito via disco, E7-apply pode não encontrá-lo em DB store. Documentado como
+  limitação conhecida — review LLM é input ad-hoc, não stage automatizado.
+
+---
+
+## ADR-106 — Opt-in DB artifacts por workspace + DBArtifactStore no Celery task (A6b)
+
+**Status:** Decidido (A6b) • **Data:** 2026-04-19
+
+**Contexto:** Após A6a, todos os stages escrevem via `ArtifactStore` — mas o
+pipeline web (`pipeline_task.py`) sempre criava um `DiskArtifactStore` via
+`WorkspaceContext.for_tenant` (default). O flag global `MATHOMS_USE_DB_ARTIFACTS`
+existia na config mas nunca era consultado pelo task. Ativar o modo DB globalmente
+de uma vez é arriscado — prefere-se opt-in por workspace para piloto controlado.
+
+**Decisão:**
+1. **Coluna `workspaces.use_db_artifacts_override: bool | None`** (migration
+   `r6s7t8u9v0w1`): `None` → global flag; `True` → força DB; `False` → força Disk.
+2. **`pipeline_task.run_pipeline_task`**: antes de iniciar os stages, verifica
+   `_resolve_use_db_artifacts(ws_id)` (workspace override > global flag). Se `True`,
+   abre uma sessão longa (`SyncSessionLocal()`), cria `DBArtifactStore`, injeta em
+   `ctx.artifact_store`. Sessão sofre `commit()` após cada stage com sucesso.
+   `finally` fecha a sessão mesmo em caso de falha/pausa.
+3. **`dev/compare_disk_vs_db.py`**: script operacional que compara artefatos em
+   disco vs DB para um workspace + run. Gate ≥99% de paridade. Ignora `_meta`,
+   `created_at`, `updated_at` (diferenças esperadas).
+
+**Por que sessão longa no Celery task (e não uma por stage)?**
+`DBArtifactStore.write` faz `flush()`, não `commit()`. O commit ocorre após cada
+stage para persistir progressivamente — se o pipeline falhar no stage N, os
+artefatos dos stages 1..N-1 já estão no DB. Uma sessão por stage criaria N
+transações sem o benefício de leitura cross-stage (E3 lê artefatos do E2 que
+foram escritos na mesma run).
+
+**Discrepâncias esperadas entre disco e DB (não são bugs):**
+- `_meta.confidence`, `_meta.notes` — presentes em E2-llm, sem equivalente no DB.
+- `created_at` no DB vs timestamp no path do disco — ignorado pelo script.
+- Ordem de listas JSON (transações, investimentos) — SQLite/Postgres não garante
+  ordem de inserção nas queries sem `ORDER BY` explícito. E3→E7 são insensíveis
+  à ordem; o compare script ignora ordem de listas de top-level.
+- `byte_size`, `schema_version` no `pipeline_artifacts` — não têm equivalente
+  em disco; ignorados na comparação.
+
+**Consequências:**
+- ✅ Ativação gradual: piloto por workspace sem impacto em outros.
+- ✅ `_resolve_use_db_artifacts` é um ponto único de decisão — fácil de remover em A6c.
+- ✅ Script de paridade operacional; gate ≥99% mensurável.
+- ⚠️ Sessão longa no Celery worker: para pipelines com muitos stages, a sessão
+  pode ficar aberta por minutos. Aceitável para SQLite (dev) e PostgreSQL com
+  pool_size adequado.
+- ⚠️ A6b.3 (validação em workspace real) ainda pendente — depende de teste humano
+  com dataset real (A6-human.8).
 
 ---
 

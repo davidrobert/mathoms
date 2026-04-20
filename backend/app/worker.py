@@ -18,8 +18,8 @@ _project_root = str(Path(__file__).resolve().parent.parent.parent)
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
-# scripts.pipeline_common needs FIN_WORKSPACE_ROOT; per-run tasks may override to tenant.
-os.environ.setdefault("FIN_WORKSPACE_ROOT", _project_root)
+# scripts.pipeline_common needs MATHOMS_WORKSPACE_ROOT; per-run tasks may override to tenant.
+os.environ.setdefault("MATHOMS_WORKSPACE_ROOT", _project_root)
 
 celery_app = Celery("fin")
 

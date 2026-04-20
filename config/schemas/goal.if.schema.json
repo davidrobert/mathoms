@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "fin://schemas/goal.if.v1",
+  "$id": "mathoms://schemas/goal.if.v1",
   "title": "Goal — Independência Financeira (v1)",
   "description": "Schema canônico para inputs e derivados do Goal do tipo INDEPENDENCIA_FINANCEIRA. Referência: ADR-073. Usado por backend (validação), pipeline (adapter) e frontend (codegen de tipos).",
   "type": "object",

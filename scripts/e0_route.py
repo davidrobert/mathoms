@@ -540,13 +540,25 @@ def file_hash(filepath: Path) -> str:
     return h.hexdigest()
 
 
-def build_final_name(classification: dict, original_ext: str) -> str:
-    """Build the standardized filename from classification result."""
+def build_final_name(
+    classification: dict,
+    original_ext: str,
+    content_hash: str | None = None,
+) -> str:
+    """Build the standardized filename from classification result.
+
+    When ``content_hash`` is provided (sha256 hexdigest, at least 12 chars), the
+    first 12 characters are prepended to the filename as ``{hash12}_`` (ADR-084).
+    This makes uploads content-addressed: distinct files with the same canonical
+    name map to distinct paths, eliminating silent overwrite.
+    """
+    prefix = f"{content_hash[:12]}_" if content_hash else ""
+
     # If LLM gave a final_name, sanitize and use it
     if classification.get("source") == "llm" and classification.get("final_name"):
         sanitized = Path(classification["final_name"]).name
         if sanitized and ".." not in sanitized:
-            return sanitized
+            return f"{prefix}{sanitized}"
 
     parts = []
     dest_group = classification["dest_group"]
@@ -576,7 +588,7 @@ def build_final_name(classification: dict, original_ext: str) -> str:
         else:
             parts = [f"{institution}_{doc_type}_{period}-0_original{original_ext}"]
 
-    return parts[0]
+    return f"{prefix}{parts[0]}"
 
 
 def resolve_collision(dest_path: Path, src_hash: str) -> Path | None:
@@ -730,14 +742,14 @@ def route_file(filepath: Path, base: Path, *, dry_run: bool = False,
         log("WARN", f"NÃO IDENTIFICADO: '{filename}' → nao_identificados/")
         return {"file": filename, "status": "unidentified", "dest": "nao_identificados/"}
 
-    # Build final name
-    final_name = build_final_name(classification, ext)
+    # Hash for collision detection AND content-addressed filename (ADR-084)
+    src_hash = file_hash(filepath)
+
+    # Build final name (prefixed with sha256[:12] for content-addressing)
+    final_name = build_final_name(classification, ext, content_hash=src_hash)
     dest_group = classification["dest_group"]
     dest_directory = dest_dir_for_group(base, dest_group)
     dest_path = dest_directory / final_name
-
-    # Hash for collision detection
-    src_hash = file_hash(filepath)
 
     # Resolve collisions
     resolved = resolve_collision(dest_path, src_hash)

@@ -28,8 +28,8 @@ const fontMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Fin — Relatório Financeiro",
-  description: "Sistema de consolidação financeira familiar",
+  title: "Mathoms AI — Análise Patrimonial",
+  description: "Plataforma de análise e consolidação financeira patrimonial",
 };
 
 export default function RootLayout({

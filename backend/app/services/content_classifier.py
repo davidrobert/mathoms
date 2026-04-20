@@ -31,6 +31,24 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # Order matters only for disambiguation; first match wins.
 INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
+    # Receita Federal — deve vir PRIMEIRO: declarações de IRPF listam contas bancárias
+    # em "Bens e Direitos", então o texto contém "BRADESCO", "C6 BANK", etc. como dados
+    # do contribuinte. Se RFB não fosse avaliada primeiro, o banco seria detectado antes.
+    # Usamos âncoras institucionais fortes que NÃO aparecem em informes bancários:
+    # "Receita Federal do Brasil" (cabeçalho do órgão), "DIRPF" (software de declaração),
+    # CNPJ oficial da RFB. Excluídos: "Imposto de Renda da Pessoa Física" e "Declaração
+    # de Ajuste Anual" — esses aparecem em informes de rendimentos emitidos por bancos.
+    (
+        re.compile(
+            r"Receita\s*Federal\s*do\s*Brasil"
+            r"|Secretaria\s*(Especial\s*)?da\s*Receita\s*Federal"
+            r"|RFB\s*[-–]\s*Receita"
+            r"|\bDIRPF\s*20\d{2}\b"
+            r"|00\.?394\.?460[/.]0058-?87",
+            re.I,
+        ),
+        "receitafederal",
+    ),
     # C6 Bank: razão social, marca Carbon, CNPJ 31.872.495, C6 Invest (app de CDB).
     # Também detecta o formato CSV de exportação da fatura Carbon: a combinação
     # "Valor (em US$)" + "Cotação (em R$)" é exclusiva desse extrato — o cartão
@@ -118,24 +136,6 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
     ),
     # Binance
     (re.compile(r"Binance", re.I), "binance"),
-    # Receita Federal — marcadores canônicos em declarações e recibos da RFB.
-    # NÃO usar siglas soltas (\bIRPF\b / \bDAA\b): informes bancários
-    # mencionam "IRPF 20XX" como ano-calendário e seriam atribuídos à RFB
-    # indevidamente. Exigimos âncoras institucionais (razão social, "DIRPF",
-    # "Declaração de Ajuste Anual", CNPJ oficial).
-    (
-        re.compile(
-            r"Receita\s*Federal\s*do\s*Brasil"
-            r"|Secretaria\s*(Especial\s*)?da\s*Receita\s*Federal"
-            r"|RFB\s*[-–]\s*Receita"
-            r"|\bDIRPF\s*20\d{2}\b"
-            r"|Imposto\s*de\s*Renda\s*(da\s*)?Pessoa\s*F[ií]sica"
-            r"|Declara[çc][ãa]o\s*de\s*Ajuste\s*Anual"
-            r"|00\.?394\.?460[/.]0058-?87",
-            re.I,
-        ),
-        "receitafederal",
-    ),
 ]
 
 
@@ -585,6 +585,12 @@ def classify_text(text: str) -> ContentClassification:
             period=period, confidence=0.0,
             matched_required=0, matched_supporting=0,
         )
+
+    # IRPF/tax documents always belong to Receita Federal, regardless of what
+    # detect_institution_by_content() matched (IRPF PDFs list all bank accounts
+    # in "Bens e Direitos", which makes bank patterns match first).
+    if rule.dest_group == "income_tax_br":
+        institution = "receitafederal"
 
     return ContentClassification(
         doc_type=rule.code,

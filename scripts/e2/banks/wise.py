@@ -31,6 +31,7 @@ def parse_wise(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
     log(LOG_PREFIX, "INFO", f"Parsing Wise ({moeda}): {filename}")
     result = make_result_template(BANCO_WISE, tipo, moeda)
+    result["tipo_conta"] = "corrente"
 
     periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
     result["periodo"]["inicio"] = periodo_inicio

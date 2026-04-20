@@ -73,6 +73,7 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 
     log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing Santander XLS: {filename}")
     result = make_result_template(BANCO_SANTANDER, "extratoconta", "BRL")
+    result["tipo_conta"] = "corrente"
 
     periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
     result["periodo"]["inicio"] = periodo_inicio
@@ -96,11 +97,14 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
             nome_raw = str(sh.cell(_st_r, _st_c).value).strip()
             result["titular"] = detect_member_from_text(nome_raw)
 
-            # Conta — "Conta: 1652-01.001341.6"
+            # Conta — "Conta: 1652-01.001341.6" (agencia é o prefixo antes do primeiro hífen)
             conta_raw = str(sh.cell(_sc_r, _sc_c).value).strip()
             m = re.search(r'Conta:\s*([\d\-\.]+)', conta_raw)
             if m:
                 result["numero_conta"] = m.group(1)
+                ag_m = re.match(r'(\d+)', m.group(1))
+                if ag_m:
+                    result["agencia"] = ag_m.group(1)
 
         # --- Period ---
         if sh.nrows >= _sp_r + 1:
@@ -225,9 +229,11 @@ def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
         "instituicao": BANCO_SANTANDER,
         "tipo": "cdbresumo",
         "tipo_produto": "CDB",
+        "tipo_conta": "investimento",
         "membro": None,
         "moeda": "BRL",
         "numero_conta": None,
+        "agencia": None,
         "data_referencia": None,
         "periodo": {"inicio": None, "fim": None},
         "saldo_anterior": None,
@@ -332,6 +338,7 @@ def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Santander bank account statement."""
     log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing Santander Conta: {filename}")
     result = make_result_template(BANCO_SANTANDER, "extratoconta", "BRL")
+    result["tipo_conta"] = "corrente"
 
     periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
     result["periodo"]["inicio"] = periodo_inicio
@@ -349,7 +356,11 @@ def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
             # Account: "Agência e Conta: 1652 / 01001341-6"
             m = re.search(r'Ag[êe]ncia\s+e\s+Conta[:\s]+([\d\s/\-]+)', all_text)
             if m:
-                result["numero_conta"] = m.group(1).strip()
+                raw_conta = m.group(1).strip()
+                result["numero_conta"] = raw_conta
+                ag_m = re.match(r'(\d+)', raw_conta)
+                if ag_m:
+                    result["agencia"] = ag_m.group(1)
 
             # Periodo: "Período: DD/MM/YYYY a DD/MM/YYYY"
             pm = re.search(r'Per[ií]odo[:\s]+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', all_text)

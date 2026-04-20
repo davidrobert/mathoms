@@ -34,7 +34,13 @@
       }
     },
     "periodo_inicio": {"type": "string"},
-    "periodo_fim": {"type": "string"}
+    "periodo_fim": {"type": "string"},
+    "agencia": {"type": ["string", "null"]},
+    "tipo_conta": {
+      "type": ["string", "null"],
+      "enum": ["corrente", "poupanca", "pj", "investimento", null]
+    },
+    "documento_titular": {"type": ["string", "null"]}
   },
   "additionalProperties": true
 }

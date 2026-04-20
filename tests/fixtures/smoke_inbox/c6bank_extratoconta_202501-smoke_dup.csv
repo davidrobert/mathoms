@@ -1,0 +1,15 @@
+EXTRATO DE CONTA CORRENTE C6 BANK
+
+Agência: 1 / Conta: 987654321
+Extrato gerado em 31/01/2025 - as 12:00:00
+
+Extrato de 01/01/2025 a 31/01/2025
+
+Data Lançamento,Data Contábil,Título,Descrição,Entrada,Saída,Saldo
+01/01/2025,01/01/2025,CRÉDITO,Salário Janeiro,5000.00,,5000.00
+05/01/2025,05/01/2025,DÉBITO,Supermercado Extra,,450.00,4550.00
+10/01/2025,10/01/2025,DÉBITO,Aluguel Apartamento,,1800.00,2750.00
+15/01/2025,15/01/2025,DÉBITO,Conta de luz,,120.00,2630.00
+20/01/2025,20/01/2025,DÉBITO,Internet,,99.90,2530.10
+25/01/2025,25/01/2025,CRÉDITO,Transferência recebida,500.00,,3030.10
+28/01/2025,28/01/2025,DÉBITO,Restaurante,,85.00,2945.10

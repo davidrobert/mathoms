@@ -43,10 +43,15 @@ function fmtFull(n: number): string {
  * Substitui o canvas `chart-waterfall-if`. Mostra 3 barras:
  * atual (investível), gap até a meta, meta total.
  */
+interface WaterfallIfChartPropsExt extends WaterfallIfChartProps {
+  conclusion?: string;
+}
+
 export function WaterfallIfChart({
   patrimonio,
   goals,
-}: WaterfallIfChartProps) {
+  conclusion,
+}: WaterfallIfChartPropsExt) {
   const atual = patrimonio?.investivel ?? 0;
   const meta = goals?.if_meta ?? 0;
   const gap = goals?.if_gap ?? Math.max(0, meta - atual);
@@ -69,7 +74,7 @@ export function WaterfallIfChart({
   ];
 
   return (
-    <ReportCard variant="neutral" title="Caminho para Independência Financeira">
+    <ReportCard variant="neutral" title="Caminho para Independência Financeira" conclusion={conclusion}>
       <p className="mb-3 text-sm text-[var(--surface-muted-foreground)]">
         Progresso atual:{" "}
         <span className="font-mono font-semibold text-[var(--brand-primary)] tabular-nums">

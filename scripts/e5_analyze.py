@@ -2586,6 +2586,184 @@ def main(root_dir: Path = None):
     print(f"\n" + "="*70 + "\n")
 
 
+def main_with_store(ctx) -> Dict[str, Any]:
+    """E5 Caminho B (Sessão A5d da Fase 8) — orquestra a análise financeira
+    sobre ``ArtifactStore`` em vez de disco direto.
+
+    Coexiste com ``main(root_dir)`` legado. Wrapper ``pipeline/stages/e5.py``
+    chama esta função direto, sem ``MaterializationBridge``.
+
+    Estratégia pragmática: lê inputs E4 via ``ArtifactStore``, reutiliza as
+    funções ``analyze_*`` legadas (que estão isoladas e testadas) para
+    garantir paridade com ``main()`` no golden. Os domain services das
+    sessões A1/A3c/A5a/A5b/A5c ficam como **foundation para refactor futuro**
+    — integração completa deles no Caminho B é A6+.
+
+    Writes via ``ArtifactStore``:
+    - ``store.write("E5", "analise_financeira", ...)`` — output principal.
+
+    Args:
+        ctx: ``pipeline.context.WorkspaceContext``.
+
+    Returns:
+        Dict com ``files_created``, ``total``, contagens.
+    """
+    from pipeline.artifact_store import DiskArtifactStore
+    from pipeline.domain.services.e5_serialization import (
+        E5_ARTIFACT_FILENAME,
+        E5_ARTIFACT_KEY,
+        E5OutputInputs,
+        build_e5_output,
+        run_sanity_checks,
+    )
+
+    print("=" * 70)
+    print("E5 ANALYSIS — Caminho B (main_with_store)")
+    print("=" * 70)
+
+    # 1. Configs via ctx.root — reinicializa globals do módulo legado +
+    #    pipeline_common para leituras consistentes.
+    if _pc is not None:
+        _pc._init_config(ctx.root)
+    _init_config(ctx.root)
+    # Garante diretório de output (paridade com main_with_store de outros stages).
+    E5_ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
+
+    store = ctx.get_artifact_store()
+    print(f"[E5.0] Workspace root: {ctx.root}")
+    print(f"[E5.0] Store impl:     {type(store).__name__}")
+
+    # 2. Inputs via ``ArtifactStore`` — lê E4 + baseline (E1.5c).
+    receitas = store.read("E4", "receitas") or {}
+    despesas = store.read("E4", "despesas") or {}
+    fluxo_mensal = store.read("E4", "fluxo_mensal_detalhado") or {}
+    patrimonio_input = store.read("E4", "patrimonio") or {}
+    investimentos = store.read("E4", "investimentos") or {}
+    baseline = store.read("E1.5c", "baseline_patrimonial") or {}
+
+    if not receitas:
+        raise ValueError("E5: receitas-4_unified.json ausente ou vazio")
+    if not despesas:
+        raise ValueError("E5: despesas-4_unified.json ausente ou vazio")
+    if not fluxo_mensal:
+        raise ValueError("E5: fluxo_mensal_detalhado-4_unified.json ausente ou vazio")
+
+    if not baseline:
+        print("  [CRITICAL] Baseline patrimonial vazio — patrimônio será reportado como R$ 0!")
+
+    # 3. Preserva narrativas de run anterior (E5.N).
+    existing_output = store.read("E5", E5_ARTIFACT_KEY) or {}
+    existing_narrativas = existing_output.get("narrativas")
+
+    print(f"  ✓ Receitas: {receitas.get('total_geral', 0):.2f}")
+    print(f"  ✓ Despesas: {despesas.get('total_geral', 0):.2f}")
+
+    # 4. Computa todas as análises via funções legadas (paridade garantida).
+    patrimonio = analyze_patrimonio(baseline, investimentos_atuais=investimentos)
+    investimentos_classes = analyze_investimentos_classes(baseline)
+
+    periodo_dados = receitas.get("periodo", "")
+    if not periodo_dados:
+        meses = fluxo_mensal.get("meses_ordenados", [])
+        if meses:
+            periodo_dados = f"{meses[0]} a {meses[-1]}"
+        else:
+            periodo_dados = f"{TODAY.strftime('%Y-%m')} a {TODAY.strftime('%Y-%m')}"
+
+    goals = analyze_goals(patrimonio)
+    fluxo = analyze_fluxo_caixa(receitas, despesas, fluxo_mensal)
+    ratios = analyze_ratios(fluxo, patrimonio, goals)
+    score = calculate_score(ratios, patrimonio, goals, fluxo)
+
+    orcamento = analyze_orcamento_prospectivo(fluxo)
+    reserva = analyze_reserva_emergencia(fluxo, patrimonio)
+    endividamento = analyze_endividamento(patrimonio, baseline)
+    previdencia = analyze_previdencia_pgbl(fluxo)
+
+    pontos_fortes = analyze_pontos_fortes(score, ratios, patrimonio, fluxo, reserva, goals)
+    pontos_urgentes = analyze_pontos_urgentes(ratios, reserva, patrimonio)
+    consumo = analyze_consumo_consciente(fluxo, despesas)
+    diagnostico = analyze_diagnostico_comportamental(fluxo, ratios)
+    cenarios_conjuge = analyze_cenarios_conjuge(patrimonio, goals, fluxo)
+    cerbasi = analyze_equilibrio_cerbasi(fluxo)
+
+    tarefas_parsed, tarefas_status_parsed = parse_tarefas_md()
+    programa_milhas = parse_milhas_md()
+
+    # 5. Sanity checks (paridade com main() legado linhas 2489-2523).
+    warnings = run_sanity_checks(
+        patrimonio=patrimonio,
+        fluxo=fluxo,
+        ratios=ratios,
+        goals=goals,
+        score=score,
+    )
+    if warnings:
+        print("\n  ⚠️  SANITY CHECK WARNINGS (possível corrupção de input):")
+        for w in warnings:
+            print(f"     • {w.message}")
+        print("  Pipeline continua, mas revise os dados de entrada.\n")
+
+    # 6. Monta output via serializer tipado.
+    output_inputs = E5OutputInputs(
+        periodo_dados=periodo_dados,
+        data_analise=TODAY.isoformat(),
+        patrimonio=patrimonio,
+        goals=goals,
+        fluxo=fluxo,
+        ratios=ratios,
+        score=score,
+        orcamento=orcamento,
+        reserva=reserva,
+        endividamento=endividamento,
+        previdencia=previdencia,
+        pontos_fortes=pontos_fortes,
+        pontos_urgentes=pontos_urgentes,
+        investimentos_classes=investimentos_classes,
+        equilibrio_cerbasi=cerbasi,
+        consumo=consumo,
+        diagnostico=diagnostico,
+        cenarios_conjuge=cenarios_conjuge,
+        cenarios_conjuge_key=_KEY_CENARIOS_CONJUGE,
+        programa_milhas=programa_milhas,
+        tarefas=tarefas_parsed if tarefas_parsed else None,
+        tarefas_status=tarefas_status_parsed if tarefas_status_parsed else None,
+        existing_narrativas=existing_narrativas,
+    )
+    output = build_e5_output(output_inputs)
+
+    # 7. Escreve via ``ArtifactStore`` + valida contra schema em Disk.
+    store.write("E5", E5_ARTIFACT_KEY, output)
+    if isinstance(store, DiskArtifactStore) and _pc is not None:
+        target = ctx.e5_dir / E5_ARTIFACT_FILENAME
+        if target.exists():
+            _pc.validate_artifact(target, "e5_analysis.schema.json")
+
+    print(f"\n[E5.FINAL] Analysis complete!")
+    print(f"  ✓ Stored: E5/{E5_ARTIFACT_KEY}")
+    print(f"\n  === SUMMARY ===")
+    print(f"  Score: {score['valor']}/10 ({score['classificacao']})")
+    print(f"  Taxa Poupança: {ratios['taxa_poupanca_recorrente_pct']:.1f}%")
+    print(f"  Patrimônio Bruto: R$ {patrimonio['bruto']:,.2f}")
+    print(f"  Patrimônio Investível: R$ {patrimonio['investivel']:,.2f}")
+    print(f"  IF Meta: R$ {goals['if_meta']:,.2f}")
+    print(f"  IF Progresso: {goals['if_pct']:.1f}%")
+    print(f"  Prazo IF (realista): {goals['prazo_anos_realista']:.1f} anos → {goals['ano_if']}")
+    print("=" * 70)
+
+    return {
+        "files_created": [E5_ARTIFACT_FILENAME],
+        "total": 1,
+        "score_valor": score.get("valor"),
+        "score_classificacao": score.get("classificacao"),
+        "patrimonio_bruto": patrimonio.get("bruto"),
+        "patrimonio_investivel": patrimonio.get("investivel"),
+        "if_pct": goals.get("if_pct"),
+        "if_prazo_anos": goals.get("prazo_anos_realista"),
+        "sanity_warnings": [w.message for w in warnings],
+    }
+
+
 if __name__ == "__main__":
     try:
         main()

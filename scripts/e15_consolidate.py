@@ -530,5 +530,70 @@ def main(root_dir: Path = None):
     print("=" * 60)
 
 
+def main_with_store(ctx) -> dict:
+    """E1.5c Caminho B (Sessão A5f da Fase 8) — consolida baseline patrimonial
+    via ``ArtifactStore`` em vez de disco direto.
+
+    Coexiste com ``main(root_dir)`` legado. O wrapper
+    ``pipeline/stages/e15c.py`` chama esta função direto, sem
+    ``stage_runner_compat`` nem ``MaterializationBridge``.
+
+    Estratégia pragmática (padrão A4b/A5d): reutiliza ``consolidate()`` legado
+    para paridade garantida no golden. Lê/escreve baseline via ArtifactStore.
+
+    Skip gracioso quando E1.5 não rodou (free tier) — sem baseline, retorna
+    ``{"success": True, "skipped": True}``.
+
+    Paridade comprovada por golden em
+    ``tests/test_e15c_main_with_store_parity.py``.
+
+    Args:
+        ctx: ``pipeline.context.WorkspaceContext``.
+
+    Returns:
+        Dict com ``success``, ``files_created`` e contagens de itens consolidados.
+    """
+    _init_config(ctx.root)
+
+    store = ctx.get_artifact_store()
+
+    # 1. Carrega baseline — tenta E1.5c (re-run / já consolidado) e depois
+    #    E1.5 bruto. Ambos ficam em E2_extracts/ (convenção aceita — ver CLAUDE.md).
+    baseline = store.read("E1.5c", "baseline_patrimonial")
+    if baseline is None:
+        baseline = store.read("E1.5", "baseline_patrimonial")
+
+    if baseline is None:
+        return {
+            "success": True,
+            "skipped": True,
+            "reason": "No baseline artifact — E1.5 not run (free tier)",
+        }
+
+    print("=" * 60)
+    print("  E1.5 Consolidate — Enriquecimento do baseline (Caminho B)")
+    print("=" * 60)
+
+    if baseline.get("imoveis_consolidados") and baseline.get("patrimonio_por_ano"):
+        print("  [INFO] Baseline já contém chaves consolidadas — serão regeneradas.")
+
+    # 2. Consolida (reutiliza lógica legada — paridade garantida).
+    consolidated = consolidate(baseline)
+
+    # 3. Persiste via store (write-back no artefato E1.5c).
+    store.write("E1.5c", "baseline_patrimonial", consolidated)
+    print(f"\n  [OK] Baseline consolidado e salvo via ArtifactStore (stage=E1.5c)")
+    print("=" * 60)
+
+    return {
+        "success": True,
+        "files_created": ["baseline_patrimonial-1.5_consolidated.json"],
+        "imoveis": len(consolidated.get("imoveis_consolidados", [])),
+        "veiculos": len(consolidated.get("veiculos_consolidados", [])),
+        "investimentos": len(consolidated.get("investimentos_consolidados", [])),
+        "dividas": len(consolidated.get("dividas", [])),
+    }
+
+
 if __name__ == "__main__":
     main()

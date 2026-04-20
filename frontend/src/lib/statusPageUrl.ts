@@ -1,9 +1,9 @@
 /**
  * URL pública da status page (7E.6). Definir em `.env.local`:
- * NEXT_PUBLIC_FIN_STATUS_PAGE_URL=https://status.exemplo.com
+ * NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL=https://status.exemplo.com
  */
 export function getStatusPageUrl(): string | undefined {
-  const raw = process.env.NEXT_PUBLIC_FIN_STATUS_PAGE_URL;
+  const raw = process.env.NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL;
   if (raw == null || String(raw).trim() === "") {
     return undefined;
   }

@@ -262,6 +262,8 @@ class LLMService:
         max_tokens: int | None = None,
         temperature: float | None = None,
         stage: str | None = None,
+        image_bytes: bytes | None = None,
+        image_media_type: str = "image/jpeg",
     ) -> LLMCallResult:
         """Call an LLM with structured output enforcement.
 
@@ -272,11 +274,17 @@ class LLMService:
             stage: Identificador do stage chamador (ex: "E7-review", "E1"). Aparece
                 em todos os logs desta chamada — essencial para debug quando múltiplos
                 stages disputam o worker.
+            image_bytes: quando fornecido, envia a imagem como content block multimodal
+                junto ao user_prompt (Anthropic vision). Apenas para providers que
+                suportam visão (anthropic, openai).
+            image_media_type: MIME type da imagem (ex: "image/jpeg", "image/png").
 
         Raises:
             LLMValidationError: if output fails validation after all retries
             LLMError: for non-retryable errors (auth, context_length)
         """
+        import base64
+
         self._ensure_client()
         model = self._get_model_string()
         effective_max_tokens = max_tokens or self._config.max_tokens
@@ -287,11 +295,30 @@ class LLMService:
         prompt_chars = len(system_prompt) + len(user_prompt)
         schema_name = getattr(output_schema, "__name__", str(output_schema))
 
+        is_multimodal = image_bytes is not None
         logger.info(
-            "%sLLM call START: model=%s max_tokens=%d temp=%.2f prompt_chars=%d schema=%s",
+            "%sLLM call START: model=%s max_tokens=%d temp=%.2f prompt_chars=%d schema=%s%s",
             tag, self._config.model_name, effective_max_tokens,
             effective_temperature, prompt_chars, schema_name,
+            f" image={len(image_bytes)}B" if is_multimodal else "",
         )
+
+        # Monta o conteúdo do user message: texto puro ou [imagem + texto] multimodal.
+        if is_multimodal:
+            b64 = base64.standard_b64encode(image_bytes).decode("ascii")
+            user_content: str | list = [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": image_media_type,
+                        "data": b64,
+                    },
+                },
+                {"type": "text", "text": user_prompt},
+            ]
+        else:
+            user_content = user_prompt
 
         last_exception = None
         retries_used = 0
@@ -309,7 +336,7 @@ class LLMService:
                     model=model,
                     messages=[
                         {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt},
+                        {"role": "user", "content": user_content},
                     ],
                     response_model=output_schema,
                     max_tokens=effective_max_tokens,

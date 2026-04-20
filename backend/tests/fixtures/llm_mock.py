@@ -20,7 +20,7 @@ async def test_with_mocked_llm(monkeypatch):
 ```
 
 Em E2E (Playwright + backend real), a ativação é via env var
-`FIN_LLM_MOCK=1` que o backend detecta e injeta fallback. Default
+`MATHOMS_LLM_MOCK=1` que o backend detecta e injeta fallback. Default
 em CI = ativado. Passar `PW_REAL_LLM=1` desliga.
 
 # Outputs mockados por stage
@@ -140,7 +140,7 @@ def mock_llm_service(monkeypatch) -> None:
             mock_llm_service(monkeypatch)
             # ... pipeline roda sem tocar provider real
 
-    Em E2E com backend real, ativação é via env var `FIN_LLM_MOCK=1`
+    Em E2E com backend real, ativação é via env var `MATHOMS_LLM_MOCK=1`
     que o próprio backend detecta (implementação em
     `pipeline/llm/service.py` a adicionar quando 6.5F.11 for formalizado
     como código, não só fixture).

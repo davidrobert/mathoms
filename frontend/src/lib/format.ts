@@ -142,6 +142,48 @@ export function docStatusLabel(status: DocumentStatus): StatusLabel {
   return DOC_STATUS_MAP[status] ?? { label: status, variant: "neutral" };
 }
 
+/**
+ * Estado efetivo do documento — derivado de status + pipeline_e2_extract_ok + needs_review.
+ *
+ * Sequência: Recebido → Aguarda senha → Revisar → Pronto → Extraído / Sem extrato
+ *
+ * Uso: substitui docStatusLabel() na listagem de documentos para comunicar
+ * ao usuário o que cada documento representa e qual ação (se houver) é necessária.
+ */
+export function docEffectiveStatus(doc: {
+  status: DocumentStatus;
+  pipeline_e2_extract_ok?: boolean | null;
+  needs_review?: boolean | null;
+}): StatusLabel {
+  const { status, pipeline_e2_extract_ok, needs_review } = doc;
+
+  if (status === "error") {
+    return { label: "Erro", variant: "error" };
+  }
+  if (status === "needs_password") {
+    return { label: "Aguarda senha", variant: "warning" };
+  }
+  if (status === "uploaded" || status === "unlocking" || status === "classifying") {
+    return { label: "Recebido", variant: "neutral" };
+  }
+  if (status === "processing") {
+    return { label: "Analisando", variant: "info" };
+  }
+  if (status === "ready") {
+    if (needs_review) return { label: "Revisar", variant: "warning" };
+    return { label: "Pronto", variant: "info" };
+  }
+  if (status === "processed") {
+    if (pipeline_e2_extract_ok) return { label: "Extraído", variant: "success" };
+    if (needs_review) return { label: "Revisar", variant: "warning" };
+    // pipeline_e2_extract_ok === false → ran but no extract found (e.g. parse failure)
+    // pipeline_e2_extract_ok === null  → N/A (IRPF, members JSON — no E2 extract expected)
+    if (pipeline_e2_extract_ok === false) return { label: "Sem extrato", variant: "neutral" };
+    return { label: "Processado", variant: "success" };
+  }
+  return { label: status, variant: "neutral" };
+}
+
 /** Classificação concluída: pode ir ao pipeline / relatório (antes ou depois de um run). */
 export function isDocumentClassifiedOk(status: DocumentStatus): boolean {
   return status === "ready" || status === "processed";

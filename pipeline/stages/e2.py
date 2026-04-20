@@ -1,4 +1,9 @@
-"""Stage wrapper for E2 Extraction."""
+"""Stage wrapper for E2 Extraction (Fase 3.2 — Caminho B).
+
+Agora escreve via ``ArtifactStore`` em vez de diretamente em
+``ctx.e2_dir``. ``DiskArtifactStore`` traduz writes para o layout legado
+``processed/E2_extracts/*-2_extract.json``, preservando backward compat.
+"""
 
 from __future__ import annotations
 
@@ -16,50 +21,53 @@ def _normalize_stem_for_incremental(stem: str) -> str:
     return stem
 
 
-def _incremental_stems(ctx: WorkspaceContext) -> set[str] | None:
+def _incremental_stems(ctx: "WorkspaceContext") -> set[str] | None:
     """Return set of filename stems for incremental filtering, or None if not incremental."""
     if not ctx.incremental or not ctx.incremental_doc_paths:
         return None
     stems = set()
     for p in ctx.incremental_doc_paths:
-        # stored_path is relative (e.g. "data/financial_statements/banco_extrato-0_original.pdf")
         stem = Path(p).stem
         stems.add(_normalize_stem_for_incremental(stem))
     return stems
 
 
-def _matches_incremental(filepath: Path, allowed_stems: set[str]) -> bool:
-    """True iff normalized disk stem equals one of the allowed normalized stems."""
-    stem = _normalize_stem_for_incremental(filepath.stem)
-    return stem in allowed_stems
-
-
-def run(ctx: WorkspaceContext, extratos_only: bool = False, faturas_only: bool = False) -> dict:
-    """Executa E2 extraction com contexto injetado."""
+def run(
+    ctx: "WorkspaceContext",
+    extratos_only: bool = False,
+    faturas_only: bool = False,
+) -> dict:
+    """Executa E2 extraction com contexto injetado (Caminho B)."""
     from scripts.e2.common import _init_config as _e2_init
     _e2_init(ctx.root)
 
-    from scripts.e2_extract import find_all_files, process_file, save_result
+    from scripts.e2_extract import run_with_store
 
-    files = find_all_files(extratos_only=extratos_only, faturas_only=faturas_only)
+    store = ctx.get_artifact_store()
 
-    # Incremental: filter to only new documents
-    allowed = _incremental_stems(ctx)
-    skipped = 0
-    if allowed is not None:
-        all_files = files
-        files = [f for f in all_files if _matches_incremental(f, allowed)]
-        skipped = len(all_files) - len(files)
+    # Determina target_stage pelo modo do wrapper (sempre conhecido aqui).
+    if faturas_only:
+        target_stage = "E2-faturas"
+    elif extratos_only:
+        target_stage = "E2-extratos"
+    else:
+        target_stage = None  # modo unificado (CLI) — stage decidido por arquivo
 
-    results = []
-    for f in files:
-        result = process_file(f)
-        if result and not result.get("requires_llm_fallback"):
-            out = save_result(result, f.name, ctx.e2_dir)
-            results.append(out.name)
+    stats = run_with_store(
+        store=store,
+        target_stage=target_stage,
+        extratos_only=extratos_only,
+        faturas_only=faturas_only,
+        incremental_allowed_stems=_incremental_stems(ctx),
+    )
 
-    detail: dict = {"success": True, "files_created": results, "total": len(results)}
-    if allowed is not None:
+    detail: dict = {
+        "success": stats["erros_validacao"] == 0,
+        "total": stats["processados"],
+        "transacoes_total": stats["transacoes_total"],
+        "llm_fallback": stats["llm_fallback"],
+        "warnings": stats["warnings"],
+    }
+    if _incremental_stems(ctx) is not None:
         detail["incremental"] = True
-        detail["skipped_existing"] = skipped
     return detail

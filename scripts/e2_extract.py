@@ -185,6 +185,139 @@ def save_result(result: Dict[str, Any], filename: str, output_dir: Path) -> Path
     return out_path
 
 
+def _target_stage_for_file(file_path: Path, *, extratos_only: bool, faturas_only: bool) -> str:
+    """Decide em qual artifact stage o output vai (Caminho B, Fase 3.2).
+
+    Decisão 1:1 com ``STAGE_REGISTRY``:
+    - ``E2-faturas``: arquivos de fatura de cartão
+    - ``E2-extratos``: extratos bancários + investimentos (CDBs)
+    - ``E2-llm``: fallback quando não há parser determinístico (set externamente)
+    """
+    if faturas_only:
+        return "E2-faturas"
+    if extratos_only:
+        return "E2-extratos"
+    # Modo unificado (CLI legacy): decide por filename.
+    if _is_fatura_file(file_path.name):
+        return "E2-faturas"
+    return "E2-extratos"
+
+
+def _artifact_key_for_file(file_path: Path) -> str:
+    """Stem do documento, sem ``-0_original`` nem extensão.
+
+    Espelha ``_normalize_stem_for_incremental`` em ``pipeline/stages/e2.py``.
+    """
+    stem = file_path.stem
+    if "-0_original" in stem:
+        stem = stem.split("-0_original")[0]
+    return stem
+
+
+def run_with_store(
+    *,
+    store,
+    target_stage: str | None = None,
+    extratos_only: bool = False,
+    faturas_only: bool = False,
+    incremental_allowed_stems: set[str] | None = None,
+    dry_run: bool = False,
+) -> dict:
+    """Caminho B (Fase 3.2): processa documentos e grava via ``ArtifactStore``.
+
+    Não toca ``processed/`` diretamente — ``DiskArtifactStore`` traduz writes
+    para o layout legado transparentemente.
+
+    Args:
+        store: ``ArtifactStore`` alvo (Disk ou DB).
+        target_stage: quando não-None, todos os outputs vão para este stage
+            (``"E2-extratos"``, ``"E2-faturas"``, ``"E2-llm"``). Quando ``None``,
+            o stage é decidido por arquivo (``_target_stage_for_file``).
+        extratos_only / faturas_only: filtra ``find_all_files``.
+        incremental_allowed_stems: se informado, processa apenas arquivos cujo
+            ``_artifact_key_for_file`` está no conjunto (modo incremental).
+        dry_run: se True, não escreve nada no store.
+
+    Returns:
+        Dict com estatísticas: ``processados``, ``transacoes_total``,
+        ``llm_fallback``, ``erros_validacao``, ``warnings``, ``skipped_overwrite``.
+    """
+    files = find_all_files(extratos_only=extratos_only, faturas_only=faturas_only)
+
+    if incremental_allowed_stems is not None:
+        files = [f for f in files if _artifact_key_for_file(f) in incremental_allowed_stems]
+
+    stats = {
+        "processados": 0,
+        "transacoes_total": 0,
+        "llm_fallback": 0,
+        "erros_validacao": 0,
+        "warnings": 0,
+        "skipped_overwrite": 0,
+    }
+
+    for file_path in files:
+        try:
+            result = process_file(file_path, dry_run=dry_run)
+            if result is None:
+                continue
+
+            key = _artifact_key_for_file(file_path)
+            is_llm = bool(result.get("requires_llm_fallback"))
+            if is_llm:
+                stats["llm_fallback"] += 1
+                stage = "E2-llm"
+                log(LOG_UNIFIED, "WARN", f"  → Requer LLM fallback: {file_path.name}")
+                # E2-llm costuma ser tratado pelo wrapper LLM separado; aqui só
+                # registramos o stub para rastreabilidade quando target_stage=None.
+                if target_stage is not None and not dry_run:
+                    # Se o chamador forçou um stage determinístico e o arquivo
+                    # precisa de LLM, não salvamos — esse arquivo será pego pelo
+                    # E2-llm wrapper.
+                    continue
+            else:
+                stage = target_stage or _target_stage_for_file(
+                    file_path, extratos_only=extratos_only, faturas_only=faturas_only
+                )
+
+            n_tx = len(result.get("transacoes", [])) + len(result.get("itens", []))
+            if not is_llm:
+                stats["processados"] += 1
+                stats["transacoes_total"] += n_tx
+
+            for note in result.get("notas", []):
+                if isinstance(note, str):
+                    if note.startswith("ERROR"):
+                        stats["erros_validacao"] += 1
+                    elif note.startswith("WARN"):
+                        stats["warnings"] += 1
+
+            if dry_run:
+                continue
+
+            # Overwrite protection: não sobrescrever extrato com 0 txns se já
+            # há artefato com txns (mesma lógica do main legado).
+            if n_tx == 0 and store.exists(stage, key):
+                existing = store.read(stage, key) or {}
+                existing_txns = len(existing.get("transacoes", [])) + len(existing.get("itens", []))
+                if existing_txns > 0:
+                    stats["skipped_overwrite"] += 1
+                    log(LOG_UNIFIED, "WARN",
+                        f"  SKIP: {stage}/{key} já tem {existing_txns} txns; "
+                        f"não sobrescrever com resultado de 0 txns")
+                    continue
+
+            store.write(stage, key, result)
+            log(LOG_UNIFIED, "INFO" if n_tx > 0 else "WARN",
+                f"  → store.write({stage}, {key}, {n_tx} tx)")
+
+        except Exception as e:
+            stats["erros_validacao"] += 1
+            log(LOG_UNIFIED, "ERROR", f"  Failed: {file_path.name} — {e}")
+
+    return stats
+
+
 def main(root_dir: Path = None):
     if root_dir:
         from scripts.e2.common import _init_config as _e2_init_config
@@ -273,17 +406,17 @@ def main(root_dir: Path = None):
                         stats["warnings"] += 1
 
             if not args.dry_run:
-                # Overwrite protection for faturas with 0 txns
+                # Overwrite protection: não sobrescrever extrato/fatura com dados por resultado vazio
                 is_fatura = _is_fatura_file(file_path.name)
                 out_name = make_output_name(file_path.name)
                 out_path = output_dir / out_name
 
-                if is_fatura and n_tx == 0 and out_path.exists():
+                if n_tx == 0 and out_path.exists():
                     try:
                         existing = json.loads(out_path.read_text(encoding='utf-8'))
-                        existing_txns = len(existing.get("transacoes", []))
+                        existing_txns = len(existing.get("transacoes", [])) + len(existing.get("itens", []))
                         if existing_txns > 0:
-                            log(LOG_FATURA, "WARN",
+                            log(LOG_UNIFIED, "WARN",
                                 f"  SKIP: {out_name} já tem {existing_txns} txns; "
                                 f"não sobrescrever com resultado de 0 txns")
                             continue
@@ -291,7 +424,8 @@ def main(root_dir: Path = None):
                         pass
 
                 out_path = save_result(result, file_path.name, output_dir)
-                log(LOG_UNIFIED, "INFO", f"  → Salvo: {out_path.name} ({n_tx} transações)")
+                log_level = "WARN" if n_tx == 0 else "INFO"
+                log(LOG_UNIFIED, log_level, f"  → Salvo: {out_path.name} ({n_tx} transações)")
 
         except Exception as e:
             stats["erros_validacao"] += 1

@@ -2,7 +2,9 @@
 
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
+import { MonetaryValue } from "../MonetaryValue";
 import type { ReportAnalysisData } from "@/lib/api";
+import type { FluxoCaixaSummary, OrcamentoProspectivoData, ConsumoConscienteData } from "@/types/report-analysis";
 
 /** F9 · F2.H — Seções T1–T6 do modo Tático (Dashboard Operacional).
  *
@@ -12,13 +14,46 @@ import type { ReportAnalysisData } from "@/lib/api";
  * placeholders para os que virão da integração tasks (F8.3).
  */
 
+function fmtBRL(v: number | undefined) {
+  if (v === undefined) return "—";
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(v);
+}
+
+function fmtPct(v: number | undefined) {
+  if (v === undefined) return "—";
+  return `${v.toFixed(1).replace(".", ",")}%`;
+}
+
 export function T1FluxoOperacionalSection({ data }: { data: ReportAnalysisData }) {
-  const fluxo = data.fluxo_caixa as Record<string, unknown> | undefined;
+  const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
+  const orcamento = data.orcamento_prospectivo as OrcamentoProspectivoData | undefined;
+  const consumo = data.consumo_consciente as ConsumoConscienteData | undefined;
+
+  const kpis = [
+    { label: "Receita Total", value: <MonetaryValue value={fluxo?.receita_total} /> },
+    { label: "Despesas Totais", value: <MonetaryValue value={fluxo?.despesa_total} /> },
+    { label: "Folga Mensal", value: <MonetaryValue value={consumo?.folga_mensal} /> },
+    { label: "Orçamento Mensal", value: <MonetaryValue value={orcamento?.total} /> },
+  ];
+
   const categorias = (fluxo?.despesas_por_categoria ?? {}) as Record<string, number>;
   const entries = Object.entries(categorias).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a);
 
   return (
     <ReportSection id="T1" title="Fluxo Operacional — Despesas vs Tetos">
+      {/* KPI row */}
+      <div className="md:col-span-2 mb-2 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {kpis.map(({ label, value }) => (
+          <div
+            key={label}
+            className="rounded-[var(--radius-card)] border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-sm)]"
+          >
+            <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">{label}</p>
+            <p className="mt-2 text-xl font-semibold leading-tight text-[var(--surface-foreground)]">{value}</p>
+          </div>
+        ))}
+      </div>
+
       <ReportCard variant="feature" title="Despesas Acumuladas por Categoria">
         {entries.length === 0 ? (
           <p className="text-sm text-[var(--surface-muted-foreground)]">Sem dados de despesas.</p>

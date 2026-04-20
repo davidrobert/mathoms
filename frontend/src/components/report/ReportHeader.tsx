@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -32,6 +33,12 @@ const MODE_LABELS: Record<ReportMode, string> = {
   estrategico: "Estratégico",
   tatico: "Tático",
   usa: "EUA",
+};
+
+const MODE_TOOLTIPS: Record<ReportMode, string> = {
+  estrategico: "Visão patrimonial e estratégica de longo prazo",
+  tatico: "Tarefas, aportes e fluxo operacional do período",
+  usa: "Cenários e planos para mudança aos EUA",
 };
 
 /** F9 · F1.1 — Header do relatório nativo.
@@ -85,19 +92,33 @@ export function ReportHeader({
           className="flex items-center gap-0.5 rounded-md border border-[var(--surface-border)] p-0.5 text-xs"
         >
           {(Object.keys(MODE_LABELS) as ReportMode[]).map((m) => (
-            <button
-              key={m}
-              role="tab"
-              aria-selected={mode === m}
-              onClick={() => setMode(m)}
-              className={
-                mode === m
-                  ? "rounded-sm bg-[var(--brand-primary)] px-2 py-1 font-medium text-[var(--brand-primary-foreground)]"
-                  : "rounded-sm px-2 py-1 text-[var(--surface-muted-foreground)] hover:bg-[var(--surface-muted)]"
-              }
-            >
-              {MODE_LABELS[m]}
-            </button>
+            <Fragment key={m}>
+              {m === "usa" && (
+                <span
+                  className="mx-0.5 h-4 w-px shrink-0 bg-[var(--surface-border)]"
+                  aria-hidden
+                />
+              )}
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <button
+                      role="tab"
+                      aria-selected={mode === m}
+                      onClick={() => setMode(m)}
+                      className={
+                        mode === m
+                          ? "rounded-sm bg-[var(--brand-primary)] px-2 py-1 font-medium text-[var(--brand-primary-foreground)]"
+                          : "rounded-sm px-2 py-1 text-[var(--surface-muted-foreground)] hover:bg-[var(--surface-muted)]"
+                      }
+                    />
+                  }
+                >
+                  {MODE_LABELS[m]}
+                </TooltipTrigger>
+                <TooltipContent>{MODE_TOOLTIPS[m]}</TooltipContent>
+              </Tooltip>
+            </Fragment>
           ))}
         </div>
 

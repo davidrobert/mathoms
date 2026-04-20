@@ -1,8 +1,8 @@
-# Fin — Arquitetura
+# Mathoms AI — Arquitetura
 
 > Documento técnico de referência. Atualizar quando stack ou modelo de dados mudar.
 >
-> **Última atualização:** 2026-04-17
+> **Última atualização:** 2026-04-19 (migração infra + domínio — fases 1-8 foundation)
 
 ---
 
@@ -66,9 +66,11 @@
 │                                                               │
 │  ┌─────────────────────────────────────────────────────────┐  │
 │  │         Pipeline Core (package Python)                   │  │
-│  │   e0/ e2/ e3/ e4/ e5/ e5n/ e6/ e7/ models/              │  │
-│  │   + llm/prompts/ + llm/validators/                       │  │
-│  │   + materialize_config()                                 │  │
+│  │   stage_spec.py (STAGE_REGISTRY)  stage_config.py        │  │
+│  │   artifact_store.py (Protocol + Disk/InMemory impls)     │  │
+│  │   materialization_bridge.py (temporário — removido F9)   │  │
+│  │   domain/ (models + services — Money, Reconciliation…)   │  │
+│  │   stages/ (wrappers) + llm/prompts/ + llm/validators/    │  │
 │  └─────────────────────────────────────────────────────────┘  │
 └──────────┬────────────────┬────────────────┬─────────────────┘
            │                │                │
@@ -100,7 +102,7 @@ Report layout (report_layout.yaml)
 
 ---
 
-## 4. Modelo de dados (20 models)
+## 4. Modelo de dados (21 models)
 
 ### Auth + Core
 
@@ -163,6 +165,20 @@ PipelineStageLog
   status (enum: pending|running|completed|failed|skipped|skipped_free_tier|
           needs_review)
   started_at, completed_at, output_json, error_message
+
+PipelineArtifact (ADR-082)
+  id (INTEGER PK autoincrement)
+  workspace_id (FK→Workspace, CASCADE, indexed)
+  pipeline_run_id (FK→PipelineRun, CASCADE, indexed)
+  stage (VARCHAR(50))           # "E2", "E3", "E5"... Fases 1-8
+                                # "reconcile_transactions"... pós-Fase 9
+  artifact_key (VARCHAR(255))   # stem do doc (E2) ou nome canônico (E3+)
+  document_id (FK→Document, SET NULL)  # nullable, só preenchido em E2-*
+  content_json (JSON/JSONB)
+  schema_version, byte_size, created_at
+  UNIQUE(pipeline_run_id, stage, artifact_key)
+  INDEX(workspace_id, stage, artifact_key)
+  INDEX(document_id)
 
 Report
   id (UUID), workspace_id (FK), pipeline_run_id (FK→PipelineRun, SET NULL)
@@ -296,6 +312,8 @@ FeatureFlag
 | --- | --- |
 | **pipeline_service** | Trigger, cancel, resume pipeline runs |
 | **pipeline_adapter** | DB ↔ pipeline JSON format (goals, tasks, family_members) |
+| **db_artifact_store** | Impl SQLAlchemy do `ArtifactStore` protocol (ADR-083) |
+| **pipeline_artifact_repository** | Queries cross-run em `pipeline_artifacts` (ADR-082) |
 | **document_processor** | Upload pipeline: unlock → classify → dedupe → route |
 | **content_classifier** | Content-first classification (regex + LLM fallback) |
 | **config_materializer** | Materializa 5 configs editáveis (DB → disco per-tenant) |
@@ -393,6 +411,202 @@ python -m pipeline.run_dev --root ./tenant --stages E3,E4,E5
 ```
 
 Fronteiras do pacote `pipeline/` (sem imports de FastAPI/Celery/SQLAlchemy) são verificadas por `python dev/check_pipeline_boundaries.py`. Artefatos JSON e schemas: [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md), [CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md).
+
+### Artefatos no banco + abstração de I/O (ADR-082, ADR-083)
+
+Desde a migração `plano_migracao_artifacts_db.md` (Fases 1-8 foundation), artefatos
+computacionais do pipeline (E2–E7) **são gravados em `pipeline_artifacts`** via a
+abstração `ArtifactStore`, em vez de exclusivamente em `storage/<ws>/processed/*.json`.
+
+**Tabela `pipeline_artifacts`** (ver ADR-082):
+
+```
+id                  INTEGER PK
+workspace_id        FK workspaces (CASCADE)
+pipeline_run_id     FK pipeline_runs (CASCADE)
+stage               VARCHAR(50)        -- "E2", "E3"... pré-F9; "reconcile_transactions"... pós-F9
+artifact_key        VARCHAR(255)        -- stem do doc (E2) ou nome canônico (E3+)
+document_id         FK documents        -- nullable; preenchido só em E2-*; SET NULL
+content_json        JSON (JSONB em PG)
+schema_version, byte_size, created_at
+UNIQUE(pipeline_run_id, stage, artifact_key)
+```
+
+**Protocolo `ArtifactStore`** (ADR-083) em `pipeline/artifact_store.py`:
+
+```python
+class ArtifactStore(Protocol):
+    def read(stage, key)  -> dict | None
+    def list_keys(stage)  -> list[str]
+    def exists(stage, key) -> bool
+    def write(stage, key, data, *, document_id=None) -> None
+    def delete(stage, key) -> None
+    def delete_stage(stage) -> int
+```
+
+Três implementações concretas:
+
+| Classe | Onde | Uso |
+|---|---|---|
+| `DiskArtifactStore` | `pipeline/artifact_store.py` | CLI dev, backward compat com `processed/` |
+| `InMemoryArtifactStore` | `pipeline/artifact_store.py` | **Obrigatória** em testes de domain services |
+| `DBArtifactStore` | `backend/app/services/db_artifact_store.py` | Web/Celery — sessão SQLAlchemy injetada pelo chamador |
+
+`DBArtifactStore` vive em `backend/` (não `pipeline/`) porque depende de SQLAlchemy —
+`dev/check_pipeline_boundaries.py` proíbe SQLAlchemy dentro de `pipeline/`.
+`PipelineArtifactRepository` em `backend/app/repositories/pipeline_artifact_repository.py`
+encapsula queries cross-run (`get_latest_for_workspace`, `get_by_document`,
+`delete_stages_for_run`).
+
+**Feature flag** `MATHOMS_USE_DB_ARTIFACTS` (default `False`) seleciona o store em
+produção durante a janela de cutover.
+
+### Orquestrador declarativo (ADR-087)
+
+`pipeline/stage_spec.py` substitui o `FROM_MAP` manual do orquestrador:
+
+```python
+@dataclass(frozen=True)
+class StageSpec:
+    name: str
+    reads: tuple[str, ...]     # stages de input
+    writes: tuple[str, ...]    # stages de output
+    is_llm: bool = False
+    tier: str = "free" | "premium"
+
+STAGE_REGISTRY: dict[str, StageSpec] = { "E2-extratos": ..., "E3": ..., ... }
+VIRTUAL_ARTIFACT_STAGES = frozenset({"E5-revised"})  # não executáveis
+FULL_ORDER = [...]  # decisão intencional
+```
+
+- `build_from_map(FULL_ORDER)` deriva o `FROM_MAP` (antes manual).
+- `validate_full_order()` chamado no import — falha rápido se uma dependência é
+  consumida antes de ser produzida.
+- `STAGE_RENAME_MAP`: fonte de verdade para o renaming descritivo pós-Fase 9
+  (`"E3"` → `"reconcile_transactions"`, etc.). ADR-093 documenta o plano.
+
+Durante a janela de transição (Fases 1-8), os identificadores permanecem
+**legados** (`"E2"`, `"E3"`, `"E5"`). A Fase 9 aplica o rename em bloco.
+
+### Configuração imutável: `StageConfig` (ADR-088)
+
+`pipeline/stage_config.py` substitui `_init_config(base_dir)` com globals:
+
+```python
+class StageConfig(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    family_members: dict = {}
+    pipeline: dict = {}
+    institutions: dict = {}
+    categorization: dict = {}
+    goals: dict = {}       # opcional
+    scoring: dict = {}     # opcional
+    fiscal: dict = {}      # opcional
+
+    REQUIRED = frozenset({"family_members", "pipeline", "institutions", "categorization"})
+```
+
+`from_context(ctx)` **falha rápido** com `ConfigError` quando um config
+obrigatório está ausente (vs. `or {}` silencioso).
+
+### `MaterializationBridge` — adapter temporário (ADR-086)
+
+`pipeline/materialization_bridge.py` permite que scripts legados (Caminho A)
+rodem com `DBArtifactStore` ativo — hidrata DB → `/tmp/fin_pipeline_{run_id}/`
+antes do stage e persiste o output de volta ao DB. Usado por
+`pipeline.stage_runner_compat.run_legacy_with_bridge_if_db` nos wrappers
+E4/E5/E5.N/E7. **E3 saiu do bridge na Sessão A2 (ADR-097)** — chama
+`scripts/e3_reconcile.main_with_store(ctx)` direto.
+
+Removido na Fase 9.6 quando todos os stages estiverem em Caminho B.
+
+### Camada de domínio `pipeline/domain/` (ADR-089-091)
+
+Value objects tipados e imutáveis + services puros (sem I/O de disco):
+
+```
+pipeline/domain/
+  models/
+    transaction.py       Money (Decimal, R4 precisão por moeda), Transaction
+    document.py          BankStatement, Investment, InvestmentStatement, BaselinePatrimonial
+    bank.py              BankCanonicalizer (display/code → canonical), canonicalize_bank
+  services/
+    reconciliation_service.py         ReconciliationService(ReconciliationConfig)
+    reconciliation_validators.py      SaldoContinuityValidator(SaldoContinuityConfig),
+                                      TemporalGapDetector(TemporalGapConfig) +
+                                      warnings estruturados (SaldoGapWarning,
+                                      TemporalGapWarning)
+    baseline_validator.py             BaselineValidator(BaselineValidatorConfig,
+                                      BankCanonicalizer); BaselineAccountSaldo
+                                      (+ from_baseline_dict), BaselineDiffWarning
+    account_grouper.py                AccountGrouper(AccountGrouperConfig); value
+                                      object AccountKey (bank, account_type,
+                                      currency) + should_skip (tipos inválidos /
+                                      faturas não-permitidas)
+    statement_preprocessor.py         StatementPeriodNormalizer (expande periodo
+                                      string / sintetiza para faturas →
+                                      NormalizationResult + PeriodDerivationWarning);
+                                      AnachronicTransactionDropper(AnachronicGuardConfig)
+                                      (drop tx > 180d pré-período →
+                                      AnachronicFilterResult + AnachronicTransactionWarning)
+    e3_reconciler_adapter.py          E3ReconcilerAdapter (orquestra normalize →
+                                      drop → group → reconcile → validate →
+                                      write via ArtifactStore);
+                                      ReconciliationStoreResult (saída tipada
+                                      com contagens + 5 tuplas de warnings)
+    e3_serialization.py               serialize_to_e3_legacy_format,
+                                      generate_legacy_filename,
+                                      generate_legacy_artifact_key (conversão
+                                      BankStatement → schema E3 legado)
+    categorization_service.py         CategorizationService(CategorizationRules)
+    calculators.py                    CashFlowAggregator, PatrimonioCalculator,
+                                      EmergencyReserveCalculator, FinancialScoreCalculator
+```
+
+- **`Money`** usa `Decimal` com precisão por moeda (BRL=2, JPY=0). Rejeita
+  `float` no construtor e em `Money.of()` — dev deve converter explicitamente
+  via `Decimal(str(v))` para tornar o risco visível (ADR-090).
+- **Frozen dataclasses** para objetos de campos primitivos; **Pydantic frozen**
+  para `StageConfig` (campos dict — deep-copy na construção); **dataclass não-frozen**
+  para `BankStatement` (campo `transactions: list` com invariante restrito a
+  pipeline de reconciliação) — regra R11 consolidada em ADR-091.
+- **Services seguem ISP** — recebem value objects de config tipados
+  (`ReconciliationConfig`, `SaldoContinuityConfig`, `TemporalGapConfig`,
+  `BaselineValidatorConfig`, `AccountGrouperConfig`, `AnachronicGuardConfig`,
+  `CategorizationRules`), não `StageConfig` inteiro. Fixtures de teste têm 3
+  linhas em vez de mock completo.
+- **Pipeline E3 como composição de services** — o `E3ReconcilerAdapter` encadeia
+  pré-processadores (`StatementPeriodNormalizer` → `AnachronicTransactionDropper`),
+  grouper (`AccountGrouper`), reconciliador (`ReconciliationService`) e
+  validadores (`SaldoContinuityValidator`, `TemporalGapDetector`,
+  `BaselineValidator`) sobre `ArtifactStore`. Saída tipada em
+  `ReconciliationStoreResult` com contagens e 5 tuplas de warnings
+  estruturados (`PeriodDerivationWarning`, `AnachronicTransactionWarning`,
+  `SaldoGapWarning`, `TemporalGapWarning`, `BaselineDiffWarning`). A
+  conversão para o schema E3 legado (`fontes`, `transacoes_duplicadas_removidas`,
+  etc.) vive em `e3_serialization.py` — o adapter aceita `serialize_fn` e
+  `output_key_fn` injetáveis via DI para permitir esse formato sem acoplar
+  o domínio ao schema legado.
+- **E3 em Caminho B (ADR-097, Sessão A2)** — `scripts/e3_reconcile.py` tem
+  dois entry points coexistindo: `main(root_dir)` (legado, disco direto, CLI
+  + testes legados) e `main_with_store(ctx)` (orquestra o `E3ReconcilerAdapter`
+  sobre `ctx.get_artifact_store()`). [pipeline/stages/e3.py](../pipeline/stages/e3.py)
+  chama `main_with_store` **direto** — não usa `MaterializationBridge`.
+  Paridade de output coberta por [tests/test_e3_main_with_store_parity.py](../tests/test_e3_main_with_store_parity.py)
+  (tolerância `0.01` BRL). Sidecar logs (`reconciliation.md` + `qa_log.md`
+  E3 section) continuam sendo escritos em `ctx.logs_dir`.
+- **Validadores de reconciliação** — `SaldoContinuityValidator` (continuidade de
+  saldo entre extratos consecutivos da mesma conta), `TemporalGapDetector` (gaps
+  em dias entre `period_end` e próximo `period_start`), `BaselineValidator`
+  (saldo 31/12 do extrato vs. IRPF, via `BankCanonicalizer` para evitar falsos
+  positivos de substring). Foundation extraído de `scripts/e3_reconcile.py`
+  para destravar o refactor completo (Caminho B) num sprint subsequente.
+
+### Fronteira `pipeline/` ↔ framework
+
+`dev/check_pipeline_boundaries.py` garante via AST que `pipeline/**/*.py` não
+importa `fastapi`, `celery`, nem `sqlalchemy`. Adaptadores DB (incluindo
+`DBArtifactStore`) vivem em `backend/app/services/` / `backend/app/repositories/`.
 
 ---
 
@@ -545,18 +759,26 @@ fin-current/
 │   │   └── regressions/       # Anti-regression bank (24 tests)
 │   └── requirements.txt
 │
-├── pipeline/                  # Pipeline core (package Python)
+├── pipeline/                  # Pipeline core (package Python — sem FastAPI/Celery/SQLAlchemy)
 │   ├── __init__.py            # API pública v0.2.0
-│   ├── context.py             # WorkspaceContext
+│   ├── context.py             # WorkspaceContext (+ get_artifact_store)
 │   ├── config_loader.py
-│   ├── orchestrator.py        # run_pipeline, run_from, run_stages
+│   ├── orchestrator.py        # run_pipeline, run_from, run_stages (FROM_MAP derivado)
+│   ├── stage_spec.py          # STAGE_REGISTRY + STAGE_RENAME_MAP + FULL_ORDER (ADR-087)
+│   ├── stage_config.py        # StageConfig (Pydantic frozen, ADR-088)
+│   ├── artifact_store.py      # Protocol + DiskArtifactStore + InMemoryArtifactStore (ADR-083)
+│   ├── materialization_bridge.py  # Adapter DB↔disk temporário (ADR-086)
+│   ├── stage_runner_compat.py # run_legacy_with_bridge_if_db helper
+│   ├── domain/                # Camada de domínio (ADR-089)
+│   │   ├── models/            # Money, Transaction, BankStatement, Investment, Baseline
+│   │   └── services/          # ReconciliationService, CategorizationService, calculators
 │   ├── llm/                   # LLM infrastructure
 │   │   ├── service.py         # LiteLLM + Instructor
 │   │   ├── text_extractor.py
 │   │   ├── validators.py
 │   │   ├── prompts/
 │   │   └── schemas/
-│   └── stages/                # Thin wrappers (4-15 lines cada)
+│   └── stages/                # Thin wrappers (4-20 linhas cada)
 │
 ├── scripts/                   # Pipeline scripts determinísticos (CLI + worker)
 │   ├── e0_audit.py, e0_route.py, e0_unlock.py
@@ -624,7 +846,7 @@ fin-current/
 ├── docker-compose.yml         # Redis (dev)
 ├── docker-compose.test.yml    # PG 5433 + Redis 6380 (test isolation)
 ├── .github/workflows/ci.yml   # 7 CI jobs + all-green gate
-└── pyproject.toml             # Package fin-pipeline v0.2.0
+└── pyproject.toml             # Package mathoms-pipeline v0.2.0
 ```
 
 ---
@@ -666,7 +888,7 @@ de ficheiros por workspace é `storage/<workspace_id>/` (gitignored por completo
 
 `.gitignore` também cobre nomes de pastas de **workspace legado na raiz do
 repo** (`data/`, `inbox/`, `inbox_processed/`, …) para quem corre o pipeline
-CLI com `FIN_WORKSPACE_ROOT` na raiz do projeto — essas pastas **não** são
+CLI com `MATHOMS_WORKSPACE_ROOT` na raiz do projeto — essas pastas **não** são
 obrigatórias no clone; criam-se só quando há esse uso local. Além disso:
 `*.db`, `.env`, `config/passwords.txt`, `_scratch/`. O `pre-commit`
 (`dev/check_forbidden_paths.py`) aplica regras alinhadas em nível de hook.
@@ -724,7 +946,7 @@ O dicionário completo permanece em `StageResult.detail` para a UI, logs e persi
 
 ### At-rest
 - **Fernet** (symmetric encryption) para CPFs, API keys LLM, senhas PDF
-- `FIN_FERNET_KEY` persistida em `.env` (nunca commitar)
+- `MATHOMS_FERNET_KEY` persistida em `.env` (nunca commitar)
 
 ### In-transit
 - HTTPS via Traefik (prod) — Let's Encrypt auto-SSL
@@ -759,7 +981,7 @@ CI: `.github/workflows/ci.yml` com 7 jobs (lint, PII lint, pipeline, backend+Red
 
 ## 15. Observabilidade (F7)
 
-- **Runbook + SLO + incidentes** — [RUNBOOK.md](RUNBOOK.md), [SLO.md](SLO.md), templates em [runbooks/incidents/](runbooks/incidents/); link público de status no app via `NEXT_PUBLIC_FIN_STATUS_PAGE_URL` (rodapé).
+- **Runbook + SLO + incidentes** — [RUNBOOK.md](RUNBOOK.md), [SLO.md](SLO.md), templates em [runbooks/incidents/](runbooks/incidents/); link público de status no app via `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL` (rodapé).
 - **Sentry** — backend + frontend (error tracking, performance 10%) — tarefa 7C.4
 - **Structured logging** — structlog JSON em prod, `request_id` UUID — 7C.5
 - **Uptime externo** — health check (UptimeRobot ou equivalente) — alinhado à status page
@@ -776,3 +998,143 @@ Aplicação **separada** do fluxo multi-tenant do cliente: autenticação própr
 - Plano por fases (IA-0 … IA-3): [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md)
 - Tasks: [BACKLOG.md — F7F](BACKLOG.md#f7f--console-interno-operadores)
 - Primeira entrega de UI alinhada: **7E.7** (business metrics em `/admin/metrics`)
+
+---
+
+## 17. Arquitetura alvo pós-A6 (migração infra+domínio)
+
+**Plano completo**: [_scratch/plano_migracao_artifacts_db.md](../_scratch/plano_migracao_artifacts_db.md).
+**ADRs formalizadoras**: 097-103 em [DECISIONS.md](DECISIONS.md).
+
+Esta seção descreve o **estado alvo** após a conclusão das sessões A5f+A6
+do plano transversal de migração. Reflete decisões arquiteturais já tomadas
+mas **ainda não implementadas** em partes (a maioria de A6d-f pendente).
+
+### 17.1 Caminho B: puro vs pragmático (estado atual e alvo)
+
+Pós-A5f, **7 de 7** stages determinísticos rodam em "Caminho B" (sem
+`MaterializationBridge` no wrapper). Dois sabores convivem:
+
+| Variante | Stages | I/O via store | Globals removidos | Domain services integrados |
+|---|---|---|---|---|
+| **Caminho B puro** | E3 | ✅ | ✅ (A3b) | ✅ (E3ReconcilerAdapter + 8 validators) |
+| **Caminho B pragmático** | E4, E5, E5.N, E7, **E1.5c** | ✅ | ❌ | ❌ (14+ services em prateleira) |
+
+**A6d fecha a diferença**: converte os 6 pragmáticos em puros (ADR-100).
+Estado final: 7 stages em Caminho B puro, zero globals de módulo, zero
+`stage_runner_compat`.
+
+### 17.2 Arquitetura alvo de processos e comunicação (pós-A6f)
+
+```
+┌─────────────────────────────┐    HTTP/JSON     ┌──────────────────────────────┐
+│ backend/app/ (hoje Python,  │ ───────────────▶ │ pipeline-service/            │
+│ eventualmente Go — A6f.1)   │                  │ FastAPI standalone           │
+│ · routers /api/v1/...       │                  │ · lê E2 via ArtifactStore    │
+│ · repositories por aggregate│                  │ · invoca stages E0-E7         │
+│ · use cases (application/)  │                  │ · chama LLM (pipeline/llm/)  │
+│ · DTOs (schemas/dto/)       │                  │ · escreve via ArtifactStore  │
+│ · eventos tipados (events/) │                  │                              │
+└─────────────────────────────┘                  └──────────────────────────────┘
+              │                                                 │
+              │ SQLAlchemy / pgx                                │ SQLAlchemy
+              ▼                                                 ▼
+        ┌──────────────────────────────────────────────────────────┐
+        │  Postgres                                                 │
+        │  · pipeline_artifacts (language-neutral JSON)             │
+        │  · workspaces, documents, goals, tasks, ...               │
+        │  · UUIDs + UTC-aware timestamps + JSON camelCase (A6f.4)  │
+        └──────────────────────────────────────────────────────────┘
+              │
+              │ pub/sub (Redis channels, A6f.6)
+              ▼
+        ┌──────────────────────────┐
+        │  WebSocket clients       │
+        │  (browser — live updates)│
+        └──────────────────────────┘
+```
+
+**Pontos-chave**:
+
+- **Backend fala com pipeline-service apenas via HTTP** (ADR-102 / R18).
+  Mesmo sendo Python hoje, o acoplamento por `import` desaparece. Isso
+  destrava escalar o pipeline independente do web tier e prepara
+  migração de linguagem futura.
+- **Repository pattern** em `backend/app/repositories/` (ADR-101 / R13)
+  encapsula todo acesso a DB. Routers não importam SQLAlchemy.
+- **Application layer** em `backend/app/application/` organiza use cases
+  explícitos (R15). Cada endpoint chama exatamente 1 use case.
+- **DTOs separados de models** (R12) — breaking changes no ORM não
+  quebram UI silenciosamente.
+- **Domain events** (R17) para side-effects desacoplados (notificações,
+  audit, WebSocket push via `register_handler(Event, handler)`).
+- **Stateless rigoroso** (R19) — WebSocket via Redis pub/sub; zero estado
+  in-memory que impeça múltiplos workers concorrentes.
+
+### 17.3 `ArtifactStore` como fronteira de storage (A6b ✅)
+
+`USE_DB_ARTIFACTS=False` continua o default — todos os stages rodam sobre
+`DiskArtifactStore` por default. **A6b entregou a infraestrutura de ativação
+opt-in por workspace** (`workspaces.use_db_artifacts_override`, ADR-106).
+Ativação por workspace:
+```sql
+UPDATE workspaces SET use_db_artifacts_override = TRUE WHERE id = '<ws_id>';
+```
+`pipeline_task._resolve_use_db_artifacts(ws_id)` verifica override do workspace
+> global `MATHOMS_USE_DB_ARTIFACTS`. Quando ativo, cria `DBArtifactStore` com
+sessão longa e injeta em `ctx.artifact_store`. Cutover global ativa em A6c
+(após A6-human). Gate de validação: `python dev/compare_disk_vs_db.py <ws_id> --strict`.
+
+```python
+class ArtifactStore(Protocol):
+    def read(self, stage: str, key: str) -> dict | None: ...
+    def list_keys(self, stage: str) -> list[str]: ...
+    def write(self, stage: str, key: str, payload: dict) -> None: ...
+```
+
+3 implementações:
+- **`DiskArtifactStore`** — CLI, dev, smoke test
+- **`InMemoryArtifactStore`** — testes unitários de domain services
+- **`DBArtifactStore`** — produção pós-A6b, usa tabela `pipeline_artifacts`
+
+A tabela `pipeline_artifacts` tem schema estável (`schema_version`), JSON
+`content` com keys em camelCase (ADR-102 / R20), foreign keys explícitas
+— legível por qualquer linguagem.
+
+### 17.4 Fronteira `pipeline/` ↔ framework (preservada)
+
+Regra original mantida e estendida:
+- `pipeline/**/*.py` **não importa** `fastapi`, `celery`, `sqlalchemy`
+  (enforçado por `dev/check_pipeline_boundaries.py`).
+- `pipeline-service/` (novo, A6f.1) é o **único** com acesso a framework;
+  `pipeline/` continua sendo lib pura.
+- `backend/app/services/db_artifact_store.py` (SQLAlchemy) fica em
+  `backend/`, não em `pipeline/` (preservando R1).
+
+### 17.5 Resumo de princípios (R1-R20)
+
+| ID | Princípio | ADR | Escopo |
+|---|---|---|---|
+| R1 | `pipeline/` sem framework | 083 | Estrutural |
+| R2 | `Money` com `Decimal`, rejeita `float` | 090 | Domain |
+| R3 | Value objects frozen | 089, 091 | Domain |
+| R4 | `InMemoryArtifactStore` para testes | 083 | Testes |
+| R5 | Stage rename via `STAGE_RENAME_MAP` | 093 | Stages |
+| R6 | `StageConfig` Pydantic frozen | 088 | Config |
+| R7 | `MaterializationBridge` temporário | 086 | Transição |
+| R8 | `STAGE_REGISTRY` fonte de verdade | 087 | Stages |
+| R9 | Services recebem value object de config (ISP) | 089 | Domain |
+| R10 | E2 parsers adaptados por stage, não ad-hoc | 089 | Domain |
+| R11 | Dataclass não-frozen para `BankStatement` com invariante documentado | 091 | Domain |
+| **R12** | **Endpoints retornam DTO dedicado, não ORM model** | **101** | **Backend API** |
+| **R13** | **Repositórios por aggregate; routers não importam SQLAlchemy** | **101** | **Backend API** |
+| **R14** | **Routers ≤50 linhas (enforçado por teste estrutural)** | **101** | **Backend API** |
+| **R15** | **Application layer por use case; 1 endpoint = 1 use case** | **101** | **Backend API** |
+| **R16** | **Versionamento `/api/v1/`; breaking changes em `/v2/` coexistem** | **101** | **Backend API** |
+| **R17** | **Domain events tipados; side-effects via `register_handler`** | **101** | **Backend API** |
+| **R18** | **Wire formats explícitos; zero pickle cross-process** | **102** | **Fronteiras** |
+| **R19** | **Stateless-ready; zero estado in-memory bloqueador de escala** | **102** | **Backend / pipeline-service** |
+| **R20** | **DB schema + JSON artifacts language-neutral (UUIDs, UTC, camelCase)** | **102** | **Storage** |
+
+Princípios **D1-D8** (domain-specific, restritos a domínio puro) em
+ADR-097 e ADR-099.

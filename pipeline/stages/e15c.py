@@ -1,4 +1,10 @@
-"""Stage wrapper for E1.5 Consolidate (baseline enrichment)."""
+"""Stage wrapper for E1.5c Consolidate — **Caminho B** (ADR-104, Sessão A5f).
+
+Chama ``scripts.e15_consolidate.main_with_store(ctx)`` direto, sem bridge.
+Lê e escreve baseline patrimonial via ``ctx.get_artifact_store()``.
+
+``main(root_dir)`` legado coexiste no script para CLI direto e testes legados.
+"""
 
 from __future__ import annotations
 
@@ -8,19 +14,9 @@ if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
 
 
-def run(ctx: WorkspaceContext) -> dict:
-    """Executa E1.5 consolidate com contexto injetado.
-
-    Skips gracefully if E1.5 baseline does not exist (free tier: E1.5 LLM is
-    skipped, so there is nothing to consolidate — this is not an error).
-    """
-    baseline_input = ctx.e2_dir / "baseline_patrimonial-1.5_consolidated.json"
-    raw_baseline = ctx.e2_dir / "baseline_patrimonial-1.5_baseline.json"
-
-    if not baseline_input.exists() and not raw_baseline.exists():
-        return {"success": True, "skipped": True, "reason": "No baseline file — E1.5 not run (free tier)"}
-
+def run(ctx: "WorkspaceContext") -> dict:
     from pipeline.live_progress import emit_stage_activity
+    from scripts.e15_consolidate import main_with_store
 
     emit_stage_activity(
         ctx.pipeline_run_id,
@@ -28,7 +24,4 @@ def run(ctx: WorkspaceContext) -> dict:
         message="Consolidando patrimônio inicial (enriquecimento determinístico)…",
     )
 
-    from scripts.e15_consolidate import main as e15c_main
-    e15c_main(root_dir=ctx.root)
-
-    return {"success": True, "baseline_exists": baseline_input.exists()}
+    return main_with_store(ctx)

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "fin://schemas/pipeline.v1",
+  "$id": "mathoms://schemas/pipeline.v1",
   "title": "Pipeline Configuration",
   "description": "Operational parameters for the financial consolidation pipeline (E0–E7).",
   "type": "object",

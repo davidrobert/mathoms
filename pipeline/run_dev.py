@@ -66,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     # Required before lazy-import of scripts.* (pipeline_common).
-    os.environ["FIN_WORKSPACE_ROOT"] = str(root)
+    os.environ["MATHOMS_WORKSPACE_ROOT"] = str(root)
 
     ctx = WorkspaceContext(root=root)
     ctx.ensure_dirs()

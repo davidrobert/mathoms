@@ -19,7 +19,7 @@ interface DataKeyDef {
   color: string;
 }
 
-interface FinAreaChartProps {
+interface MathomAreaChartProps {
   data: Record<string, unknown>[];
   dataKeys: DataKeyDef[];
   xAxisKey: string;
@@ -28,14 +28,14 @@ interface FinAreaChartProps {
   className?: string;
 }
 
-export function FinAreaChart({
+export function MathomAreaChart({
   data,
   dataKeys,
   xAxisKey,
   title,
   height = 300,
   className,
-}: FinAreaChartProps) {
+}: MathomAreaChartProps) {
   return (
     <div className={cn("w-full", className)}>
       {title && (

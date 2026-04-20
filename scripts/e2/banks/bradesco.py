@@ -40,6 +40,7 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
     log(LOG_PREFIX, "INFO", f"Parsing Bradesco ({tipo}): {filename}")
     result = make_result_template(BANCO_BRADESCO, tipo, "BRL")
+    result["tipo_conta"] = "poupanca" if is_poupanca else "corrente"
 
     if pdfplumber is None:
         log(LOG_PREFIX, "ERROR", "pdfplumber not installed. Run: pip install pdfplumber")
@@ -64,7 +65,8 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
             # Account: "Ag: 3221 | Conta: 77113-9"
             m = re.search(r'Ag[:\s]+(\d+)\s*\|\s*Conta[:\s]+([\d-]+)', all_text)
             if m:
-                result["numero_conta"] = f"Ag {m.group(1)} Conta {m.group(2)}"
+                result["agencia"] = m.group(1)
+                result["numero_conta"] = m.group(2)
 
             # Periodo: "Entre DD/MM/YYYY e DD/MM/YYYY"
             pm = re.search(r'Entre\s+(\d{2}/\d{2}/\d{4})\s+e\s+(\d{2}/\d{2}/\d{4})', all_text)

@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { MonetaryValue } from "../MonetaryValue";
+import { getScoreColorVar, getScoreLabel } from "../utils/scoreUtils";
 import type {
   PatrimonioData,
   RatiosData,
@@ -53,11 +54,14 @@ export function PatrimonioKpiRow({
       <Kpi
         label="Score Financeiro"
         value={
-          <span className="font-mono tabular-nums">
+          <span
+            className="font-mono tabular-nums"
+            style={score ? { color: getScoreColorVar(score.valor, score.max) } : undefined}
+          >
             {score ? `${score.valor.toFixed(1).replace(".", ",")}/${score.max}` : "—"}
           </span>
         }
-        hint={score?.classificacao}
+        hint={score ? (score.classificacao ?? getScoreLabel(score.valor, score.max)) : undefined}
       />
     </div>
   );

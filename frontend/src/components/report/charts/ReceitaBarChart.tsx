@@ -16,8 +16,10 @@ import type { FluxoCaixaSummary } from "@/types/report-analysis";
 /** F9 · F2.B · S2 — Chart "Receita por Fonte" (BarChart horizontal). */
 export function ReceitaBarChart({
   fluxo,
+  conclusion,
 }: {
   fluxo: FluxoCaixaSummary | undefined;
+  conclusion?: string;
 }) {
   const rows = fluxo?.tabela_receitas ?? [];
   const data = rows
@@ -27,7 +29,7 @@ export function ReceitaBarChart({
   if (data.length === 0) return null;
 
   return (
-    <ReportCard variant="neutral" title="Receita por Fonte">
+    <ReportCard variant="neutral" title="Receita por Fonte" conclusion={conclusion}>
       <div className="w-full">
         <ResponsiveContainer width="100%" height={224}>
           <BarChart

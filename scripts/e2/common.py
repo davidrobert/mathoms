@@ -371,6 +371,9 @@ def make_result_template(banco: str, tipo: str, moeda: str = "BRL") -> Dict[str,
         "tipo": tipo,
         "moeda": moeda,
         "numero_conta": None,
+        "agencia": None,             # branch/agency number (digits only)
+        "tipo_conta": None,          # "corrente" | "poupanca" | "pj" | "investimento"
+        "documento_titular": None,   # CPF or CNPJ of the account holder
         "titular": None,
         "periodo": {"inicio": None, "fim": None},
         "saldo_inicial": None,

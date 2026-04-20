@@ -1221,6 +1221,84 @@ def main(root_dir: Path = None):
     return True
 
 
+def main_with_store(ctx) -> dict:
+    """E5.N Caminho B (Sessão A5e da Fase 8) — enriquece E5 com narrativas
+    sobre ``ArtifactStore`` em vez de disco direto.
+
+    Coexiste com ``main(root_dir)`` legado. Wrapper ``pipeline/stages/e5n.py``
+    chama esta função direto, sem ``MaterializationBridge``.
+
+    Estratégia pragmática (mesma de A5d): reutiliza ``load_metrics_from_e5``
+    + ``build_narrativas`` + ``validate_narrativas`` legados para paridade
+    garantida no golden. Lê/escreve E5 via ``ArtifactStore``.
+
+    Args:
+        ctx: ``pipeline.context.WorkspaceContext``.
+
+    Returns:
+        Dict com ``success``, ``narrativas_section_count``, ``files_created``.
+    """
+    import scripts.pipeline_common as _pc
+
+    # Reinicializa globals do módulo + pipeline_common.
+    _pc._init_config(ctx.root)
+    _init_config(ctx.root)
+
+    print("=" * 80)
+    print("E5.N NARRATIVAS GENERATOR — Caminho B (main_with_store)")
+    print("=" * 80)
+    print()
+
+    store = ctx.get_artifact_store()
+    print(f"[E5.N.0] Workspace root: {ctx.root}")
+    print(f"[E5.N.0] Store impl:     {type(store).__name__}")
+
+    # 1. Lê E5 via store.
+    e5_data = store.read("E5", "analise_financeira") or {}
+    if not e5_data:
+        print("✗ E5 artifact 'analise_financeira' não encontrado. Execute E5 primeiro.")
+        return {"success": False, "reason": "e5_not_found"}
+
+    print(f"✓ Loaded E5 artifact with {len(e5_data)} top-level keys")
+
+    # 2. Carrega métricas + constrói narrativas via funções legadas.
+    global METRICS
+    METRICS = load_metrics_from_e5(e5_data)
+    none_count = sum(1 for v in METRICS.values() if v is None)
+    if none_count > 0:
+        print(f"  [WARN] {none_count} métricas com valor None após carregamento do E5")
+    print(f"✓ Loaded {len(METRICS)} metrics from E5")
+
+    narrativas = build_narrativas()
+    print(f"✓ Built narrativas with {len(narrativas)} main sections")
+
+    # 3. Valida.
+    is_valid, errors = validate_narrativas(narrativas)
+    if not is_valid:
+        print(f"✗ Validation failed with {len(errors)} error(s):")
+        for error in errors:
+            print(f"  - {error}")
+        return {"success": False, "reason": "validation_failed", "errors": errors}
+
+    print("✓ Validation passed")
+
+    # 4. Injeta narrativas no E5 e re-escreve via store.
+    e5_data["narrativas"] = narrativas
+    store.write("E5", "analise_financeira", e5_data)
+
+    print(f"\n[E5.N.FINAL] Narrativas enriched!")
+    print(f"  ✓ Stored: E5/analise_financeira (with narrativas)")
+    print("=" * 80)
+
+    return {
+        "success": True,
+        "narrativas_section_count": len(narrativas),
+        "summaries_count": len(narrativas.get("summaries", {})),
+        "charts_count": len(narrativas.get("charts", {})),
+        "files_created": ["analise_financeira-5_analysis.json"],
+    }
+
+
 if __name__ == "__main__":
     success = main()
     exit(0 if success else 1)

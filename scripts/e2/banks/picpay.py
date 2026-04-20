@@ -27,6 +27,7 @@ def parse_picpay(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse PicPay bank statement."""
     log(LOG_PREFIX, "INFO", f"Parsing PicPay: {filename}")
     result = make_result_template(BANCO_PICPAY, "extratoconta", "BRL")
+    result["tipo_conta"] = "corrente"
 
     periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
     result["periodo"]["inicio"] = periodo_inicio

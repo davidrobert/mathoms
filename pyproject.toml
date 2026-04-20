@@ -1,7 +1,7 @@
 [project]
-name = "fin-pipeline"
+name = "mathoms-pipeline"
 version = "0.2.0"
-description = "Pipeline de consolidação financeira familiar"
+description = "Pipeline de análise e consolidação patrimonial — mathoms.ai"
 requires-python = ">=3.11"
 dependencies = [
     "pdfplumber>=0.10",

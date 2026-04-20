@@ -1,6 +1,6 @@
 # Design Tokens — Ferreira Campos Editorial
 
-Fonte única de tokens de design do produto Fin. Ver **ADR-076** em [../docs/DECISIONS.md](../docs/DECISIONS.md).
+Fonte única de tokens de design do produto Mathoms AI. Ver **ADR-076** em [../docs/DECISIONS.md](../docs/DECISIONS.md).
 
 ## Estrutura
 

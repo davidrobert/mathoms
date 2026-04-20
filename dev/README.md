@@ -1,6 +1,6 @@
 # `dev/` — Tooling de desenvolvimento
 
-Esta pasta contém **ferramentas de engenharia** do repositório Fin.
+Esta pasta contém **ferramentas de engenharia** do repositório Mathoms AI.
 **Não é código de produto** nem etapa do pipeline — são atalhos e hooks
 usados por desenvolvedores e pelo CI para manter o repo saudável.
 
@@ -22,7 +22,7 @@ Diferença conceitual:
 - **`data/`**, **`inbox/`**, **`inbox_processed/`** (e pastas irmãs como
   **`processed/`**, **`output/`**, **`logs/`**, **`members/`**, **`life_plan/`**)
   **só** aparecem na raiz do repo se alguém usar o pipeline CLI com
-  `FIN_WORKSPACE_ROOT` apontando para a raiz do projeto — são artefactos
+  `MATHOMS_WORKSPACE_ROOT` apontando para a raiz do projeto — são artefactos
   locais opcionais, **não** fazem parte do repositório nem são necessários para
   a app. O `.gitignore` cobre os nomes habituais na raiz; o fluxo canónico é
   tudo sob `storage/<uuid>/`.
@@ -43,7 +43,7 @@ staging de paths sensíveis para evitar vazamento acidental de dados.
   ```
 
 - **`check_forbidden_paths.py`** — hook de `pre-commit` que bloqueia staging
-  de `storage/`, `data/`, `inbox/`, `fin.db`, `.env`, etc. Protege contra
+  de `storage/`, `data/`, `inbox/`, `mathoms.db`, `.env`, etc. Protege contra
   vazamento de dados de usuário para o GitHub caso o `.gitignore` seja
   alterado sem querer.
 

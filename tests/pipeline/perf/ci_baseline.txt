@@ -1,0 +1,14 @@
+# CI baseline (Fase 1.4 · R13)
+#
+# Registre aqui o tempo médio de `pytest tests/` ANTES da Fase 2 para que
+# a regressão de CI seja detectável. Formato livre (ex.: "pytest: 184s").
+#
+# Sugestão: 3 execuções consecutivas em cold cache + média + desvio padrão.
+# Atualizar no fim da Fase 4 (marco infra) e da Fase 9 (marco domínio).
+#
+# captured_at:
+# runner:
+# python:
+# pytest_version:
+# total_time_s:
+# notes:

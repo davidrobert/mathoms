@@ -1,4 +1,4 @@
-# Fin — Backlog
+# Mathoms AI — Backlog
 
 > Fonte de verdade operacional. Atualizar semanalmente.
 >
@@ -6,7 +6,7 @@
 >
 > **Legenda de prioridade:** **P0** bloqueante • **P1** importante • **P2** nice-to-have
 >
-> **Última atualização:** 2026-04-17 (F11.6a premissas nas metas; P2.5 observabilidade; F11.4a agregado; F11.2b; F11.7/6/3/1/8 entregas de produto; login/register Suspense)
+> **Última atualização:** 2026-04-19 (A6b.5 entregue: docker-compose.smoke.yml + Makefile + seed_smoke.py + fixtures + SMOKE_TEST_HUMAN.md + health indicator; ADR-103; 1214 testes pipeline)
 
 ---
 
@@ -16,7 +16,8 @@
 - [F6.5 — Frontend Testing & QA](#f65--frontend-testing--qa) ✅
 - [P0/P1 — Motor canônico e pipeline](#p0p1--motor-canônico-e-pipeline-2026-04)
 - [P2 — Unificação da classificação de documentos](#p2--unificação-da-classificação-de-documentos)
-- [F7 — Produção + LGPD](#f7--produção--lgpd) ← **próxima fase numerada**
+- [Sprint A6 — Migração Infra+Domínio](#sprint-a6--migração-infradomínio-plano-transversal) ← **sprint atual (transversal)**
+- [F7 — Produção + LGPD](#f7--produção--lgpd) ← **integra §15 LGPD + §16 Obs do plano A6**
 - [F7F — Console interno (operadores)](#f7f--console-interno-operadores)
 - [F11 — Confiança, transparência e excelência de relatório](#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)
 - [F8 — Growth (Futuro)](#f8--growth-futuro)
@@ -31,7 +32,7 @@ Objetivo: **inventário de drift**, **fronteira motor × adaptadores**, **contra
 | --- | --- | --- | --- |
 | P0.1 | Inventário de duplicação / convergência | ✅ | [CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md) §1 |
 | P0.2 | Fronteira motor canônico × adaptadores | ✅ | Mesmo doc §2 |
-| P0.3 | Contratos entre estágios + override strict | ✅ | `FIN_PIPELINE_SCHEMA_MODE` + `validate_artifact`; testes em `tests/test_schema_validation.py` |
+| P0.3 | Contratos entre estágios + override strict | ✅ | `MATHOMS_PIPELINE_SCHEMA_MODE` + `validate_artifact`; testes em `tests/test_schema_validation.py` |
 | P0.4 | Golden / snapshot — estado e gaps | ✅ | Mesmo doc §4; full E0→E6 ainda deferido |
 | P1-A | Layout de pacotes + regras de import | ✅ | `dev/check_pipeline_boundaries.py` + teste import |
 | P1-B | Runner offline reproduzível | ✅ | `python -m pipeline.run_dev` — `pipeline/run_dev.py` |
@@ -198,8 +199,8 @@ Bloco zero da reordenação CTO (ver discussão em conselho 2026-04-15): toda a 
 Segundo bloco da reordenação CTO: blindar a fronteira DB → pipeline contra a classe de bugs do BUG-015 antes de ataque ao frontend. Itens entregues:
 
 - **6.5E.4** Fix cwd-sensitivity:
-  - [`backend/alembic.ini`](../backend/alembic.ini): URL agora usa `%(here)s/../fin.db` (absoluto)
-  - [`backend/alembic/env.py`](../backend/alembic/env.py): guard que rejeita SQLite com path relativo (com bypass `FIN_ALEMBIC_ALLOW_RELATIVE_SQLITE=1` para tests)
+  - [`backend/alembic.ini`](../backend/alembic.ini): URL agora usa `%(here)s/../mathoms.db` (absoluto)
+  - [`backend/alembic/env.py`](../backend/alembic/env.py): guard que rejeita SQLite com path relativo (com bypass `MATHOMS_ALEMBIC_ALLOW_RELATIVE_SQLITE=1` para tests)
   - [`backend/app/core/config.py`](../backend/app/core/config.py): `DATABASE_URL` default agora absoluto via `_PROJECT_ROOT`
   - [`docs/SETUP.md`](SETUP.md): seção "Migrations (Alembic)" documentando políticas
 - **6.5E.1 + 6.5E.5** [`backend/tests/test_serializers_round_trip.py`](../backend/tests/test_serializers_round_trip.py) — **15 testes** cobrindo:
@@ -421,7 +422,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
   - `actions/github-script@v7` posta comment em PRs com link para o artifact
   - Tabela de artifacts em [`TESTING.md#como-debugar-falha-em-ci`](TESTING.md#como-debugar-falha-em-ci)
 - **6.5F.10** Snapshot review em [`.github/CODEOWNERS`](../.github/CODEOWNERS) — review obrigatório em `/frontend/tests/e2e/__snapshots__/`, `/backend/alembic/versions/`, `/tests/fixtures/`, `/docs/DECISIONS.md`. Workflow completo em [`TESTING.md#como-atualizar-snapshot-visual-regression--f65f10`](TESTING.md#como-atualizar-snapshot-visual-regression--f65f10) com PR template checklist.
-- **6.5F.11** [ADR-070 Premium LLM E2E](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in) + [`backend/tests/fixtures/llm_mock.py`](../backend/tests/fixtures/llm_mock.py) — fixtures válidas por stage (E1, E1.5, E2-llm, E7-review); `FIN_LLM_MOCK=1` default em CI; nightly workflow `nightly-e2e-real-llm.yml` com `PW_REAL_LLM=1` + ANTHROPIC_API_KEY em secret (scaffold documentado, workflow de CI a ativar pós-primeiro-run).
+- **6.5F.11** [ADR-070 Premium LLM E2E](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in) + [`backend/tests/fixtures/llm_mock.py`](../backend/tests/fixtures/llm_mock.py) — fixtures válidas por stage (E1, E1.5, E2-llm, E7-review); `MATHOMS_LLM_MOCK=1` default em CI; nightly workflow `nightly-e2e-real-llm.yml` com `PW_REAL_LLM=1` + ANTHROPIC_API_KEY em secret (scaffold documentado, workflow de CI a ativar pós-primeiro-run).
 - **6.5F.14** Pre-commit hooks (já entregues em commit `a7a055d`): `.pre-commit-config.yaml` + `dev/check_forbidden_paths.py` + `dev/validate_commit_msg.py`.
 
 **3 novas ADRs** registradas: [ADR-069](DECISIONS.md#adr-069--msw-sync-strategy-manual--lint-ci-não-codegen), [ADR-070](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in), [ADR-071](DECISIONS.md#adr-071--playwright-workspace-isolation-email-unique-por-worker). Índice de ADRs na seção "Testing" atualizado.
@@ -550,7 +551,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | 6.5E.1  | **Round-trip tests para os 6 serializers** do `config_materializer` (family_members, categorization, pipeline, institutions, report_layout, llm_config): DB seed → materialize → ler JSON → assert todos os campos preservados (inclui `familia.sobrenome` após BUG-015) | P0 | 6h | ✅ Bloco 1 |
 | 6.5E.2  | **Golden file pipeline com PDFs 100% sintéticos** (zero dado real): fixture completa de workspace + PDFs → orchestrator → E6 HTML → assert estrutura + valores esperados. Reutilizável como base do 6.5C.0 E2E | P0 | 4h | ✅ Bloco 1 (caminho crítico — full E2E pipeline deferido com test skip + docs) |
 | 6.5E.3  | **Alembic CI guardrails**: `alembic check` detecta drift entre models e migrations; idempotency test (`upgrade → downgrade → upgrade` = mesmo schema); `alembic upgrade head --sql` preview em PR | P0 | 3h | ✅ Bloco 1 (drift catalog ativo — 4 itens conhecidos a regenerar) |
-| 6.5E.4  | **Fix cwd-sensitivity em alembic.ini**: caminho absoluto ou env var `FIN_DB_URL` obrigatória; documentar em SETUP.md que alembic roda da raiz; adicionar guard no `env.py` que rejeita paths relativos ambíguos | P0 | 1h | ✅ Bloco 1 |
+| 6.5E.4  | **Fix cwd-sensitivity em alembic.ini**: caminho absoluto ou env var `MATHOMS_DATABASE_URL` obrigatória; documentar em SETUP.md que alembic roda da raiz; adicionar guard no `env.py` que rejeita paths relativos ambíguos | P0 | 1h | ✅ Bloco 1 |
 | 6.5E.5  | **Test anti-regressão BUG-015**: workspace com `FamilyMember` no DB mas sem `family_surname` definido → materialized `family_members.json` NÃO contém `familia.sobrenome` do global (`"Ferreira Campos"` do founder) | P0 | 1h | ✅ Bloco 1 (incluso em 6.5E.1) |
 | 6.5E.6  | **Systemic fix para fallback-leak class**: políticas "neutral global defaults" (strip identity fields do `config/family_members.json` antes de copiar pro tenant quando workspace tem membros) + test que cobre cada config | P1 | 4h | ✅ Bloco 2 (extension de BUG-004: full_name/short_name/birth_date neutralizados em GET /config/members fallback + GET /config/export para tenant vazio; 3 tests) |
 | 6.5E.7  | **Concurrency test para `_init_config` pattern** (thread-safe em Celery fork pool + múltiplas runs paralelas): 2 workspaces materializando ao mesmo tempo não corrompem configs um do outro | P1 | 3h | ✅ Bloco 6 ([`test_materialize_concurrency.py`](../backend/tests/test_materialize_concurrency.py) — 3 tests: 2 workspaces paralelos, idempotency mesmo ws, 10 workspaces simultâneos com `ThreadPoolExecutor`) |
@@ -586,7 +587,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | 6.5F.8  | **Flaky test policy**: Playwright `retries: 2` em CI/0 em local; quarentena via `test.skip(true, "flaky: TODO BUG-XXX")`; CI gera report de testes flaky semanal  | P0 | 2h | ✅ Bloco 6 (seção em [`docs/TESTING.md`](TESTING.md#flaky-test-policy--f65f8) — `retries: 2` já configurado em `playwright.config.ts`; pattern de quarentena documentado) |
 | 6.5F.9  | **CI test reporter + artifacts**: HTML report, vídeo + trace on failure, JUnit XML, retention 30 dias, link automático em PR comment via GH Actions               | P0 | 3h | ✅ Bloco 6 ([`ci.yml`](../.github/workflows/ci.yml) com `actions/upload-artifact@v4` retention=30d + `actions/github-script@v7` posting comentário automático em PR com link; tabela de artifacts em [`TESTING.md`](TESTING.md#como-debugar-falha-em-ci)) |
 | 6.5F.10 | **Snapshot review process**: seção em `TESTING.md` "Visual regression updates"; PR template com checkbox "snapshots intencionais? screenshot do diff?"; CODEOWNERS para `tests/__snapshots__/` | P1 | 2h | ✅ Bloco 6 ([`.github/CODEOWNERS`](../.github/CODEOWNERS) com `/frontend/tests/e2e/__snapshots__/` + seção em [`TESTING.md`](TESTING.md#como-atualizar-snapshot-visual-regression--f65f10)) |
-| 6.5F.11 | **Premium tier LLM E2E decisão**: ADR + impl (mock LiteLLM em CI default; `--real-llm` flag para nightly opt-in com Anthropic key em secret); custo monitorado | P0 | 3h | ✅ Bloco 6 ([ADR-070](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in) + [`backend/tests/fixtures/llm_mock.py`](../backend/tests/fixtures/llm_mock.py) com fixtures por stage + `FIN_LLM_MOCK=1` env no CI + nightly opt-in documentado em TESTING.md) |
+| 6.5F.11 | **Premium tier LLM E2E decisão**: ADR + impl (mock LiteLLM em CI default; `--real-llm` flag para nightly opt-in com Anthropic key em secret); custo monitorado | P0 | 3h | ✅ Bloco 6 ([ADR-070](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in) + [`backend/tests/fixtures/llm_mock.py`](../backend/tests/fixtures/llm_mock.py) com fixtures por stage + `MATHOMS_LLM_MOCK=1` env no CI + nightly opt-in documentado em TESTING.md) |
 
 #### 6.5F.D — Documentação + tooling
 
@@ -597,6 +598,166 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | 6.5F.14 | **Pre-commit hooks** (`pre-commit` + `husky`): lint + format obrigatórios; opcional: rodar unit tests rápidos (<5s); opt-out via `--no-verify` documentado mas desencorajado | P1 | 2h | ✅ Entregue em commit `a7a055d` (`.pre-commit-config.yaml` + `dev/check_forbidden_paths.py` + `dev/validate_commit_msg.py` — paths proibidos, prefixos, trailing whitespace, merge conflict, private key detection) |
 
 **Checkpoint:** DB isolation green • factories adotadas em 100% novos tests • backend-real CI roda em <3min • CI artifacts com vídeo+trace acessíveis em PR • `TESTING.md` cobre 100% dos cenários de novo contributor • PDFs sintéticos para 11 bancos versionados • premium LLM E2E definido (mock + nightly real) • snapshot review processado.
+
+---
+
+## Sprint A6 — Migração Infra+Domínio (plano transversal)
+
+**Plano completo:** [_scratch/plano_migracao_artifacts_db.md](../_scratch/plano_migracao_artifacts_db.md) §17-§19
+**ADRs:** 097 (extract-then-refactor), **098** (Caminho B puro vs pragmático), **099** (reuse de `analyze_*` em `main_with_store`), **100** (A6d commitment), **101** (R12-R17 backend DDD/SOLID), **102** (R18-R20 language-neutral), **103** (teste humano como gate)
+**Status global (2026-04-19):** Fase 8 do plano fechada (A5a-A5f · 1210 testes pipeline · 664 backend · zero regressão). 7 de 7 stages determinísticos no Caminho B.
+
+### A5f — E1.5c Caminho B ✅ entregue 2026-04-19
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A5f.1 | `scripts/e15_consolidate.main_with_store(ctx)` lê baseline via store, invoca `consolidate()` legado, grava E1.5c via store | P0 | ~30min | ✅ |
+| A5f.2 | `pipeline/stages/e15c.py` chama `main_with_store` direto, sem `stage_runner_compat`; preserva skip gracioso free tier | P0 | 15min | ✅ |
+| A5f.3 | Golden de paridade `main(root_dir)` vs `main_with_store(ctx)` em workspace sintético | P0 | 20min | ✅ |
+| A5f.4 | Critério estrutural: `grep stage_runner_compat pipeline/stages/` = zero | P0 | 5min | ✅ |
+
+**Checkpoint A5f:** ✅ todos os 7 stages determinísticos no Caminho B; bridge com zero clientes vivos no wrapper.
+
+### A6a — LLM stages escrevendo via `ArtifactStore` ✅ entregue 2026-04-19
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6a.1 | `pipeline/stages/e15.py` troca `out_path.write_text` por `store.write("E1.5", "baseline_patrimonial", ...)` → produz `-1.5_baseline.json` | P0 | 1h | ✅ |
+| A6a.2 | `pipeline/stages/e2_llm.py` troca `out_path.write_text` por `store.write("E2-llm", stem, e2_json)`; `_find_unprocessed_docs` via `store.list_keys` | P0 | 1h | ✅ |
+| A6a.3 | Critérios estruturais + integration tests com DiskArtifactStore em `tests/test_llm_stages.py` (4 testes novos) | P0 | 1h | ✅ |
+| A6a.4 | ADR-105: E1 (config, não artefato) e E7-review LLM (ad-hoc) **não migram** — decisão documentada | P2 | 15min | ✅ |
+
+**Checkpoint A6a:** ✅ `MATHOMS_USE_DB_ARTIFACTS=true` pode ser ativado sem quebrar E3→E7.
+
+### A6b — Ativar `USE_DB_ARTIFACTS=true` + validar end-to-end ✅ entregue 2026-04-19
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6b.1 | Coluna `workspaces.use_db_artifacts_override: bool \| None` (opt-in por workspace) | P0 | 1h | ✅ |
+| A6b.2 | `pipeline_task.py` instancia `DBArtifactStore` quando flag ativa; sessão longa com commit após cada stage | P0 | 2h | ✅ |
+| A6b.3 | Pipeline completo em workspace piloto com DB ativado; comparar outputs vs disk baseline | P0 | 1-2 dias | ☐ |
+| A6b.4 | Script `dev/compare_disk_vs_db.py` — gate ≥99% paridade (disk vs DB, ignora timestamps/order) | P0 | 1 dia | ✅ |
+| A6b.5 | Discrepâncias esperadas documentadas em ADR-106: `_meta`, `created_at`, ordem de listas | P0 | 2h | ✅ |
+
+**Checkpoint A6b.1+2+4+5:** ✅ Infraestrutura de ativação pronta. A6b.3 (validação em workspace real) fica para teste humano A6-human.
+
+**Estimativa remanescente:** A6b.3 (1-2 dias de debugging em workspace real).
+
+### A6b.5 — Preparação para teste humano (ADR-103) ✅ entregue 2026-04-19
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6b.5.1 | `docker-compose.smoke.yml` (Redis) + `Makefile` (`smoke-up/down/reset/seed/logs` + `test/lint/format`) | P0 | 4h | ✅ |
+| A6b.5.2 | `backend/app/scripts/seed_smoke.py` (2 users + 2 workspaces + copia fixtures p/ inbox) | P0 | 3h | ✅ |
+| A6b.5.3 | `tests/fixtures/smoke_inbox/` (5 CSVs: 2 extratos C6, 1 dup, 1 Nubank extrato, 1 Nubank fatura + `life_plan_goals.md` + `ambiguous_document-smoke.txt` + README) | P0 | 6h | ✅ |
+| A6b.5.4 | `docs/SMOKE_TEST_HUMAN.md` — runbook completo (setup + 46 checks + troubleshooting + template decisão A6c) | P0 | 4h | ✅ |
+| A6b.5.5 | `GET /health` inclui `artifact_store_mode: "disk"\|"db"` (A6b indicator) | P0 | 3h | ✅ |
+| A6b.5.6 | Free-tier: pipeline já emite `skipped_free_tier` nos stages LLM; banner na UI pendente (F7B) | P0 | 2h | 🚧 |
+
+**Checkpoint A6b.5:** ✅ `make smoke-up && make smoke-seed` → sistema utilizável em <2min.
+
+**Nota A6b.5.6**: Logs de `skipped_free_tier` já existem no pipeline desde F5. Banner visual na UI fica para F7B (security hardening) junto com outros elementos de UX de produção.
+
+### A6-human — Teste manual end-to-end (David)
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6-human.1 | Auth + multi-tenancy (5 checks) | P0 | 30min | ☐ |
+| A6-human.2 | Documentos + classificação (10 checks) | P0 | 1h | ☐ |
+| A6-human.3 | Pipeline full + incremental + erro + histórico (7 checks) | P0 | 1h | ☐ |
+| A6-human.4 | Cada stage E0-E7 (6 checks) | P0 | 1h | ☐ |
+| A6-human.5 | Relatório completo (10 checks — seções, KPIs, linhagem, print, PDF, narrativas) | P0 | 1h | ☐ |
+| A6-human.6 | Goals/Plano (7 checks — dashboard + 4 wizards + premissas) | P0 | 1h | ☐ |
+| A6-human.7 | Configuração + admin + WS (8 checks) | P0 | 1h | ☐ |
+| A6-human.8 | Cutover DB específico (5 checks — `pipeline_artifacts` + paridade disk/DB) | P0 | 1h | ☐ |
+| A6-human.9 | Edge cases (5 checks — workspace sem baseline, fatura sem período, transf interna, etc.) | P0 | 1h | ☐ |
+| A6-human.10 | Relatório final: checklist + lista de bugs + **decisão explícita** aprovar A6c ou bloquear | P0 | 30min | ☐ |
+
+**Gate:** A6c **depende** de aprovação humana documentada.
+
+### A6c — Deletar bridge + legados
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6c.1 | Deletar `pipeline/stage_runner_compat.py` | P0 | 30min | ☐ |
+| A6c.2 | Deletar `pipeline/materialization_bridge.py` | P0 | 30min | ☐ |
+| A6c.3 | Deletar `main(root_dir)` legado dos 7 scripts determinísticos (E1.5c, E3, E4, E5, E5.N, E7) — manter helpers reutilizados | P0 | 2h | ☐ |
+| A6c.4 | Atualizar docs (`ARCHITECTURE.md`, `CHANGELOG.md`, `CLAUDE.md`) | P0 | 1h | ☐ |
+
+**Estimativa:** 1 sessão pequena (~20 testes ajustados).
+
+### A6d — Fechar Caminho B puro nos 5 stages pragmáticos (ADR-100)
+
+**Commitment — não opcional.** Converte E4/E5/E5.N/E7/E1.5c de pragmático para puro.
+
+#### A6d.1 — Eliminação de globals nos 5 scripts
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6d.1.1 | Padrão A3b replicado em `e4_categorize.py` | P1 | 1h | ☐ |
+| A6d.1.2 | Padrão A3b em `e5_analyze.py` | P1 | 2h | ☐ |
+| A6d.1.3 | Padrão A3b em `e5n_narrativas.py` | P1 | 1h | ☐ |
+| A6d.1.4 | Padrão A3b em `e7_review.py` | P1 | 1h | ☐ |
+| A6d.1.5 | Padrão A3b em `e15_consolidate.py` | P1 | 1h | ☐ |
+| A6d.1.6 | Teste estrutural AST: `_init_config` não invocado em top-level dos 5 scripts | P1 | 30min | ☐ |
+
+#### A6d.2 — Testabilidade dos `analyze_*` sem disco
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6d.2.1 | Extrair read de `life_plan_goals.md` para shell; helpers puros já existem em A5a | P1 | 2h | ☐ |
+| A6d.2.2 | `TarefasParser.parse(content)` + loader no shell (substitui `parse_tarefas_md` com side-effect) | P1 | 2h | ☐ |
+| A6d.2.3 | `MilhasParser.parse(content)` análogo | P1 | 1h | ☐ |
+| A6d.2.4 | `load_methodology` → shell; `extract_persona_from_methodology` já é puro | P1 | 1h | ☐ |
+| A6d.2.5 | Cada `analyze_*` testável com `{dict_input}` sem criar arquivo (teste explícito) | P1 | 3h | ☐ |
+
+#### A6d.3 — Integração dos 14+ domain services em `main_with_store`
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6d.3.1 | E4: `process_transactions` → composição dos services de A4a; golden paridade | P1 | 1 sessão | ☐ |
+| A6d.3.2 | E5.N: avaliar se manter legado ou decompor `build_narrativas` | P2 | 0.5 sessão | ☐ |
+| A6d.3.3 | E5: 13 `analyze_*` → `E5AnalyzerAdapter` (já existe desde A5c); golden paridade | P1 | 1-2 sessões | ☐ |
+
+**Estimativa total A6d:** 3-5 sessões grandes (~200+ testes).
+
+### A6e — DDD/SOLID no backend API (ADR-101, R12-R17)
+
+| # | Sub-fase | Entrega | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6e.1 | Repos por aggregate | User, Workspace, Document, Goal, PipelineRun, Task, Notification, Invitation, AuditLog repositories; `grep sqlalchemy backend/app/api/` = zero | 1-2 sessões | ☐ |
+| A6e.2 | DTO ↔ Model | `schemas/dto/<aggregate>/response.py` + `command.py` + `query.py` + `mapper.py`; zero `Model.from_orm` em endpoints | 1 sessão | ☐ |
+| A6e.3 | Application layer | `backend/app/application/<aggregate>/<use_case>.py`; 1 endpoint = 1 use case; testável sem DB via fakes | 2 sessões | ☐ |
+| A6e.4 | Routers finos | Refactor 4900→800 linhas (17 routers × ≤50); teste AST enforça | 1-2 sessões | ☐ |
+| A6e.5 | Versionamento `/api/v1/` | Prefixo + aliases durante window; OpenAPI 3.1 versionado; `lib/api.ts` atualizado | 1 sessão | ☐ |
+| A6e.6 | Domain events tipados | `backend/app/events/` com `Event` base + `register_handler`; zero side-effect inline em use cases | 1 sessão | ☐ |
+
+**Estimativa total A6e:** 5-7 sessões grandes, ~400+ testes novos.
+
+### A6f — Language-neutral boundaries (ADR-102, R18-R20)
+
+| # | Sub-fase | Entrega | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6f.1 | Pipeline-as-service | `pipeline-service/` FastAPI standalone; endpoints `/api/v1/pipeline/runs`, `/stages/{stage}/execute`, WS `/events`; backend fala por HTTP, nunca por import | 2-3 sessões | ☐ |
+| A6f.2 | OpenAPI + codegen | OpenAPI 3.1 exaustivo; `openapi-typescript` ou `orval` para frontend; schemas committed em `docs/api/v1/openapi.json`; CI diff | 1 sessão | ☐ |
+| A6f.3 | Structured logs JSON + OTel | `fin.pipeline` em JSON lines; OTLP traces cross-service; correlation IDs propagados | 1 sessão | ☐ |
+| A6f.4 | DB schema language-neutral | UUIDs everywhere; `TIMESTAMP WITH TIME ZONE`; enums como `VARCHAR + CHECK`; JSON keys camelCase; `docs/DB_SCHEMA_REFERENCE.md` gerado | 1 sessão | ☐ |
+| A6f.5 | Auth portátil | Fernet → AES-GCM com HKDF-SHA256; JWT RS256/HS256; session Redis JSON explícito; migration de data encriptada | 1 sessão | ☐ |
+| A6f.6 | Stateless rigoroso | WebSocket via Redis pub/sub; rate limiting Redis; zero `@lru_cache` mutable; `tests/integration/test_multi_worker_concurrency.py` | 1-2 sessões | ☐ |
+
+**Estimativa total A6f:** 6-8 sessões grandes.
+
+### Resumo de dependências entre sessões A6
+
+```
+A5f ──▶ A6a ──▶ A6b ──▶ A6b.5 ──▶ A6-human ──▶ A6c (✅ bridge removido)
+                         │
+                         ├─▶ A6d (paralelo) — fechar Caminho B puro
+                         ├─▶ A6e (paralelo) — DDD/SOLID backend
+                         └─▶ A6f (paralelo) — Language-neutral
+
+Após A6a+A6b+A6c: §15 (LGPD) e §16 (Observabilidade) habilitados (integram F7)
+```
 
 ---
 
@@ -698,7 +859,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | #     | Tarefa                                                                                                                                                                                                          | Prio | Est. | Status |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 7E.6  | **Status page público** (`uptime-kuma` self-hosted ou `instatus.com` free tier): incidentes manuais + uptime auto; link na footer do app                                                                       | P1 | 3h | ✅ Sprint A: `NEXT_PUBLIC_FIN_STATUS_PAGE_URL` + `StatusPageFooter` (login, register, invite, AppShell); provisão da ferramenta continua no deploy — ver [RUNBOOK.md](RUNBOOK.md#2-status-page-7e6) |
+| 7E.6  | **Status page público** (`uptime-kuma` self-hosted ou `instatus.com` free tier): incidentes manuais + uptime auto; link na footer do app                                                                       | P1 | 3h | ✅ Sprint A: `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL` + `StatusPageFooter` (login, register, invite, AppShell); provisão da ferramenta continua no deploy — ver [RUNBOOK.md](RUNBOOK.md#2-status-page-7e6) |
 | 7E.7  | **Business metrics dashboard**: query simples + página interna `/admin/metrics`: runs/day, success rate trend (7d/30d), p95 duration, custo médio LLM por run, documents uploaded/day, active workspaces — integra **IA-2** do [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md) (protegida por **7F.2–7F.4**) | P1 | 6h | ☐ |
 | 7E.8  | **SLOs/SLAs declarados** em `docs/SLO.md`: uptime 99% beta / 99.5% GA; p95 API <1s; p95 pipeline free <5min, premium <15min; alertas Sentry quando burn rate >2x                                                | P0 | 1h | ✅ Sprint A: [SLO.md](SLO.md) (alvos + SLA comunicação incidente); burn rate Sentry continua em 7C |
 

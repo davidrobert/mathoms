@@ -31,8 +31,10 @@ function fmtBRL(n: number): string {
  */
 export function PatrimonioDoughnutChart({
   patrimonio,
+  conclusion,
 }: {
   patrimonio: PatrimonioData | undefined;
+  conclusion?: string;
 }) {
   const rows =
     patrimonio?.composicao ?? patrimonio?.tabela_categorias ?? [];
@@ -51,7 +53,7 @@ export function PatrimonioDoughnutChart({
   }
 
   return (
-    <ReportCard variant="neutral" title="Composição Patrimonial">
+    <ReportCard variant="neutral" title="Composição Patrimonial" conclusion={conclusion}>
       <div className="w-full">
         <ResponsiveContainer width="100%" height={288}>
           <PieChart>

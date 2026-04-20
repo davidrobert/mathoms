@@ -9,14 +9,16 @@ import {
   retryUnlock,
   reclassifyDocuments,
   fetchDocumentFile,
+  fetchDocumentExtractJson,
   type DocumentResponse,
+  type ExtractJsonResponse,
   ApiError,
 } from "@/lib/api";
 import {
   formatBytes,
   formatDate,
   formatDocPeriod,
-  docStatusLabel,
+  docEffectiveStatus,
   docTypeLabel,
   institutionLabel,
   pipelineE2TouchLabel,
@@ -31,6 +33,12 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EditDocumentDialog } from "@/components/EditDocumentDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -58,12 +66,14 @@ import {
   KeyRound,
   Pencil,
   RefreshCw,
+  Braces,
   Eye,
   Download,
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
   AlertTriangle,
+  AlertCircle,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import type { UserWorkspace } from "@/lib/api";
@@ -102,6 +112,8 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
   const [sortKey, setSortKey] = useState<SortKey>("uploaded_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [reviewFilter, setReviewFilter] = useState<"all" | "uncertain">("all");
+  const [extractModal, setExtractModal] = useState<{ doc: DocumentResponse; result: ExtractJsonResponse } | null>(null);
+  const [loadingExtractId, setLoadingExtractId] = useState<string | null>(null);
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
@@ -257,6 +269,20 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
       setError(err instanceof ApiError ? err.detail : "Erro ao abrir o documento.");
     } finally {
       setViewingId(null);
+    }
+  }
+
+  async function handleViewExtract(doc: DocumentResponse) {
+    if (loadingExtractId) return;
+    setLoadingExtractId(doc.id);
+    setError("");
+    try {
+      const result = await fetchDocumentExtractJson(workspace.id, doc.id);
+      setExtractModal({ doc, result });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.detail : "Erro ao carregar extrato JSON.");
+    } finally {
+      setLoadingExtractId(null);
     }
   }
 
@@ -469,7 +495,7 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
               </TableHeader>
               <TableBody>
                 {displayedDocs.map((doc) => {
-                  const st = docStatusLabel(doc.status);
+                  const st = docEffectiveStatus(doc);
                   const uncertain = isClassificationUncertain(doc);
                   const pipelineLabel = pipelineE2TouchLabel(
                     doc.pipeline_last_run_at,
@@ -570,6 +596,16 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
                               <TooltipContent>{doc.error_message}</TooltipContent>
                             </Tooltip>
                           )}
+                          {doc.pipeline_extract_notes && (
+                            <Tooltip>
+                              <TooltipTrigger className="cursor-help text-destructive/70">
+                                <AlertCircle className="inline h-3.5 w-3.5" aria-label="Notas de extração" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs whitespace-pre-wrap text-left text-xs">
+                                {doc.pipeline_extract_notes}
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="align-middle">
@@ -596,6 +632,25 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
                               <Download className="h-4 w-4" />
                             )}
                           </Button>
+                          {doc.pipeline_e2_extract_ok ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewExtract(doc)}
+                              disabled={loadingExtractId === doc.id}
+                              className="text-muted-foreground hover:text-foreground"
+                              aria-label={`Ver JSON extraído de ${doc.original_name}`}
+                              title="Ver JSON extraído (E2)"
+                            >
+                              {loadingExtractId === doc.id ? (
+                                <Spinner size="sm" />
+                              ) : (
+                                <Braces className="h-4 w-4" />
+                              )}
+                            </Button>
+                          ) : (
+                            <span className="inline-flex h-8 w-8" aria-hidden />
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
@@ -646,6 +701,30 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
           setSuccessMsg("Classificação atualizada.");
         }}
       />
+
+      <Dialog open={!!extractModal} onOpenChange={(open) => !open && setExtractModal(null)}>
+        <DialogContent className="max-h-[90vh] w-[90vw] !max-w-[90vw] sm:!max-w-[90vw] flex flex-col">
+          <DialogHeader className="shrink-0">
+            <DialogTitle className="flex items-center gap-2 font-mono text-sm">
+              <Braces className="h-4 w-4 shrink-0" />
+              <span className="truncate">{extractModal?.result.filename}</span>
+            </DialogTitle>
+            {extractModal && extractModal.result.all_candidates.length > 1 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {extractModal.result.all_candidates.length} extratos disponíveis —
+                exibindo melhor correspondência para{" "}
+                <span className="font-mono">{extractModal.doc.bank_code ?? "—"}</span>
+                {extractModal.doc.period ? ` · ${extractModal.doc.period}` : ""}
+              </p>
+            )}
+          </DialogHeader>
+          <div className="flex-1 overflow-auto rounded border bg-muted/40 p-3">
+            <pre className="text-xs font-mono whitespace-pre-wrap break-all leading-relaxed">
+              {extractModal ? JSON.stringify(extractModal.result.data, null, 2) : ""}
+            </pre>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

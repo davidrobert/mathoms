@@ -39,7 +39,7 @@ from pathlib import Path
 import scripts.pipeline_common as _pc
 
 # =============================================================================
-# Paths — aligned with FIN_WORKSPACE_ROOT (see scripts.pipeline_common)
+# Paths — aligned with MATHOMS_WORKSPACE_ROOT (see scripts.pipeline_common)
 # =============================================================================
 SCRIPTS_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = _pc.PROJECT_DIR

@@ -35,8 +35,10 @@ const CATEGORY_LABELS: Record<string, string> = {
 /** F9 · F2.B · S2 — Chart "Despesas por Categoria" (PieChart). */
 export function DespesasDoughnutChart({
   fluxo,
+  conclusion,
 }: {
   fluxo: FluxoCaixaSummary | undefined;
+  conclusion?: string;
 }) {
   const raw = fluxo?.despesas_por_categoria ?? {};
   const data = Object.entries(raw)
@@ -50,7 +52,7 @@ export function DespesasDoughnutChart({
   if (data.length === 0) return null;
 
   return (
-    <ReportCard variant="neutral" title="Despesas por Categoria">
+    <ReportCard variant="neutral" title="Despesas por Categoria" conclusion={conclusion}>
       <div className="w-full">
         <ResponsiveContainer width="100%" height={288}>
           <PieChart>

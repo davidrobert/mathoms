@@ -1,3 +1,3 @@
-export { FinAreaChart } from "./FinAreaChart";
-export { FinBarChart } from "./FinBarChart";
-export { FinPieChart } from "./FinPieChart";
+export { MathomAreaChart } from "./MathomAreaChart";
+export { MathomBarChart } from "./MathomBarChart";
+export { MathomPieChart } from "./MathomPieChart";

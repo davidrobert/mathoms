@@ -33,7 +33,7 @@ FORBIDDEN_DIRS = (
 FORBIDDEN_FILES = (
     ".env",
     ".env.test",
-    "fin.db",
+    "mathoms.db",
     "config/passwords.txt",
 )
 

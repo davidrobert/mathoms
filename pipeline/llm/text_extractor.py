@@ -1,6 +1,7 @@
 """DocumentTextExtractor — extract text from PDFs and spreadsheets for LLM input.
 
 Supports: PDF (via pdfplumber), XLSX/XLS (via openpyxl), CSV (stdlib).
+Images (JPG, JPEG, PNG) are returned as raw bytes via extract_image_bytes().
 """
 
 from __future__ import annotations
@@ -12,6 +13,14 @@ from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger(__name__)
+
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+
+_MEDIA_TYPE_MAP = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+}
 
 
 class DocumentTextExtractor:
@@ -25,6 +34,15 @@ class DocumentTextExtractor:
     def __init__(self, max_chars: int = 100_000, max_pages: int = 50):
         self.max_chars = max_chars
         self.max_pages = max_pages
+
+    @staticmethod
+    def is_image(path: Path) -> bool:
+        return path.suffix.lower() in IMAGE_EXTENSIONS
+
+    def extract_image_bytes(self, path: Path) -> tuple[bytes, str]:
+        """Return raw bytes and MIME type for an image file."""
+        media_type = _MEDIA_TYPE_MAP.get(path.suffix.lower(), "image/jpeg")
+        return path.read_bytes(), media_type
 
     def extract(self, path: Path) -> str:
         """Extract text from a file. Returns empty string on failure."""
@@ -41,6 +59,9 @@ class DocumentTextExtractor:
                 return path.read_text(encoding="utf-8")[:self.max_chars]
             elif suffix in (".txt", ".md"):
                 return path.read_text(encoding="utf-8")[:self.max_chars]
+            elif suffix in IMAGE_EXTENSIONS:
+                logger.debug("Image file %s — use extract_image_bytes() instead", path.name)
+                return ""
             else:
                 logger.warning("Unsupported file type: %s", suffix)
                 return ""

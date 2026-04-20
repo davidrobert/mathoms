@@ -1164,7 +1164,7 @@ npm run dev
 
 # Abrir no browser: http://localhost:3000
 # → Redireciona para /login
-# → Registrar usuário ou usar admin@fin.app / admin123 (se seed_db.py foi executado)
+# → Registrar usuário ou usar admin@mathoms.ai / admin123 (se seed_db.py foi executado)
 # → Após login: lista de relatórios
 # → Clicar em relatório: visualização em iframe
 
@@ -1193,7 +1193,7 @@ cd backend && pytest tests/ -v  # Backend (174 tests)
 
 O script `backend/seed_db.py` cria:
 
-- **Usuário:** `admin@fin.app` / `admin123`
+- **Usuário:** `admin@mathoms.ai` / `admin123`
 - **Workspace:** "Workspace de Admin Fin"
 - **Relatórios:** Importa todos os `relatorio_financeiro_*.html` de `output/`
 
@@ -1309,7 +1309,7 @@ frontend/
 | ----------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------- |
 | `passlib` + `bcrypt` 4.x: `ValueError: password > 72 bytes` | passlib não atualizado para bcrypt 4.x API | Usar `bcrypt.hashpw()`/`checkpw()` diretamente |
 | `IntegrityError: owner_id NULL` ao criar Workspace          | SQLAlchemy async não faz auto-flush        | `await db.flush()` após `db.add(user)`         |
-| Pydantic rejeita `admin@fin.local`                          | `EmailStr` valida domínio real             | Usar `admin@fin.app`                           |
+| Pydantic rejeita `admin@fin.local`                          | `EmailStr` valida domínio real             | Usar `admin@mathoms.ai`                           |
 | `greenlet` not found                                        | SQLAlchemy async requer greenlet           | `pip install greenlet>=3.0`                    |
 | `email-validator` not found                                 | `pydantic[email]` não instalado            | `pip install "pydantic[email]"`                |
 | Next.js build: `CommonJs vs EcmaScript Modules`             | `"type": "commonjs"` em package.json       | Remover `"type": "commonjs"`                   |
@@ -1525,7 +1525,7 @@ def _run_pipeline_thread(run_id, ws_id, tenant_root, config_dir, stages, ...):
 
 - **Sync session:** Pipeline é código 100% síncrono. `asyncio.run()` dentro da thread adicionaria complexidade sem benefício.
 - `**config_dir` override:** Aponta para `config/` global do projeto. Na Fase 3, `materialize_config()` gera tenant config antes de cada run (✅ implementado).
-- `**STORAGE_ROOT`:** Configurável via env var `FIN_STORAGE_ROOT`. Default: `fin-current/storage/`.
+- `**STORAGE_ROOT`:** Configurável via env var `MATHOMS_STORAGE_ROOT`. Default: `fin-current/storage/`.
 - **Cancel cooperativo:** `threading.Event` verificado entre stages. O frontend pode chamar `POST /api/pipeline/runs/{id}/cancel`.
 - **Concorrência:** Máximo 1 run ativo por workspace (409 Conflict). Registry `_active_runs` com lock.
 
@@ -1627,16 +1627,16 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "dev-secret-key-change-in-production"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
     ALGORITHM: str = "HS256"
-    DATABASE_URL: str = "sqlite+aiosqlite:///./fin.db"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./mathoms.db"
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
     # Fase 2
-    STORAGE_ROOT: Path = _PROJECT_ROOT / "storage"       # FIN_STORAGE_ROOT env var
+    STORAGE_ROOT: Path = _PROJECT_ROOT / "storage"       # MATHOMS_STORAGE_ROOT env var
     PIPELINE_ROOT: Path = _PROJECT_ROOT                   # Para localizar config/
     MAX_UPLOAD_SIZE_MB: int = 50
     MAX_STORAGE_PER_WORKSPACE_MB: int = 500
     MAX_UPLOAD_BATCH_SIZE: int = 20
-    FERNET_KEY: str = ""  # FIN_FERNET_KEY env var. Gerar via: Fernet.generate_key()
+    FERNET_KEY: str = ""  # MATHOMS_FERNET_KEY env var. Gerar via: Fernet.generate_key()
 
     model_config = {"env_prefix": "FIN_", "env_file": ".env"}
 
@@ -3876,7 +3876,7 @@ pip install -r backend/requirements.txt
 
 # Variáveis de ambiente (opcional — defaults funcionam para dev)
 # Criar backend/.env se necessário:
-#   DATABASE_URL=sqlite+aiosqlite:///./fin.db
+#   DATABASE_URL=sqlite+aiosqlite:///./mathoms.db
 #   SECRET_KEY=uma-chave-secreta-longa
 #   REDIS_URL=redis://localhost:6379/0
 #   STORAGE_ROOT=./storage
@@ -4023,7 +4023,7 @@ python scripts/e_save.py -m "mensagem"
 
 | Variável       | Default                               | Descrição                                  |
 | -------------- | ------------------------------------- | ------------------------------------------ |
-| `DATABASE_URL` | `sqlite+aiosqlite:///./fin.db`        | URL do banco (SQLite dev, PostgreSQL prod) |
+| `DATABASE_URL` | `sqlite+aiosqlite:///./mathoms.db`        | URL do banco (SQLite dev, PostgreSQL prod) |
 | `SECRET_KEY`   | `dev-secret-key-change-in-production` | Chave para JWT signing                     |
 | `REDIS_URL`    | `redis://localhost:6379/0`            | URL do Redis (Celery broker + Pub/Sub)     |
 | `STORAGE_ROOT` | `./storage`                           | Diretório raiz de storage por tenant       |

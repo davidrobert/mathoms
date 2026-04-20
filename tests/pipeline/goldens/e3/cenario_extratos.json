@@ -1,0 +1,60 @@
+{
+  "description": "Dois extratos da mesma conta Itaú BRL janeiro/2026 com transação duplicada cross-file. Após reconciliar e merge, deve produzir 1 artefato com 3 transações únicas.",
+  "institutions": {
+    "banco_canonical": {
+      "itau": "Itaú",
+      "c6bank": "C6 Bank"
+    }
+  },
+  "e2_extracts": [
+    {
+      "stage": "E2-extratos",
+      "key": "itau_jan_a",
+      "payload": {
+        "pipeline_stage": "E2",
+        "banco": "Itaú",
+        "tipo": "extratoconta",
+        "moeda": "BRL",
+        "documento_titular": "david",
+        "periodo_inicio": "2026-01-01",
+        "periodo_fim": "2026-01-31",
+        "saldo_inicial": 1000.00,
+        "saldo_final": 870.00,
+        "transacoes": [
+          {"data": "2026-01-05", "descricao": "MERCADO PAO ACUCAR", "valor": -100.00},
+          {"data": "2026-01-10", "descricao": "UBER 2026-01-10", "valor": -30.00}
+        ]
+      }
+    },
+    {
+      "stage": "E2-extratos",
+      "key": "itau_jan_b",
+      "payload": {
+        "pipeline_stage": "E2",
+        "banco": "Itaú",
+        "tipo": "extratoconta",
+        "moeda": "BRL",
+        "documento_titular": "david",
+        "periodo_inicio": "2026-01-01",
+        "periodo_fim": "2026-01-31",
+        "saldo_inicial": 1000.00,
+        "saldo_final": 790.00,
+        "transacoes": [
+          {"data": "2026-01-05", "descricao": "MERCADO PAO ACUCAR", "valor": -100.00},
+          {"data": "2026-01-15", "descricao": "RESTAURANTE OUTRO", "valor": -80.00}
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "statements_loaded": 2,
+    "artifacts_written": 1,
+    "skipped_inputs": 0,
+    "output_keys": ["itau_BRL_202601_202601"],
+    "merged_transaction_count": 3,
+    "_note_saldo": "Extratos sobrepostos no mesmo período disparam 1 saldo gap (closing[a]=870 vs opening[b]=1000) — paridade com legado.",
+    "saldo_warnings_count": 1,
+    "temporal_warnings_count": 0,
+    "baseline_warnings_count": 0
+  }
+}

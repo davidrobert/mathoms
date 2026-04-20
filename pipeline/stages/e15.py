@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -128,9 +127,11 @@ def run(ctx: WorkspaceContext) -> dict:
 
     baseline_json = _output_to_baseline_json(output)
 
-    ctx.e2_dir.mkdir(parents=True, exist_ok=True)
-    out_path = ctx.e2_dir / "baseline_patrimonial-1.5_consolidated.json"
-    out_path.write_text(json.dumps(baseline_json, ensure_ascii=False, indent=2), encoding="utf-8")
+    # A6a (ADR-105): escreve via ArtifactStore em vez de disco direto.
+    # Stage "E1.5" → E2_extracts/baseline_patrimonial-1.5_baseline.json
+    # E1.5c lê este artefato e produz baseline_patrimonial-1.5_consolidated.json.
+    store = ctx.get_artifact_store()
+    store.write("E1.5", "baseline_patrimonial", baseline_json)
 
     logger.info(
         "E1.5: %d items, net_worth=%.2f, confidence=%.2f",
@@ -142,7 +143,7 @@ def run(ctx: WorkspaceContext) -> dict:
         "items_extracted": len(output.items),
         "net_worth_brl": output.net_worth_brl,
         "confidence": output.confidence,
-        "output_file": out_path.name,
+        "output_file": "baseline_patrimonial-1.5_baseline.json",
         "tokens": {"in": result.tokens_in, "out": result.tokens_out},
         "cost_usd": result.cost_estimate_usd,
         "validation": validation.to_dict(),

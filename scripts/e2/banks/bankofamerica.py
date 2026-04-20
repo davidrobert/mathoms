@@ -28,6 +28,7 @@ def parse_bankofamerica(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Bank of America statement."""
     log(LOG_PREFIX, "INFO", f"Parsing Bank of America: {filename}")
     result = make_result_template(BANCO_BOA, "extratoconta", "USD")
+    result["tipo_conta"] = "corrente"
 
     periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
     result["periodo"]["inicio"] = periodo_inicio

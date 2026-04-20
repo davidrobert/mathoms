@@ -27,6 +27,7 @@ class DocumentResponse(BaseModel):
     uploaded_at: datetime
     pipeline_last_run_at: Optional[datetime] = None
     pipeline_e2_extract_ok: Optional[bool] = None
+    pipeline_extract_notes: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

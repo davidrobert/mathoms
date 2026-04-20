@@ -343,6 +343,7 @@ def parse_caixa(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """
     log(LOG_PREFIX, "INFO", f"Parsing Caixa Econômica Federal: {filename}")
     result = make_result_template(BANCO_CAIXA, "extratoconta", "BRL")
+    result["tipo_conta"] = "corrente"
 
     periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
     result["periodo"]["inicio"] = periodo_inicio

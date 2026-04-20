@@ -1,6 +1,7 @@
 "use client";
 
 import { ReportSection } from "../ReportSection";
+import { SectionSummary } from "../SectionSummary";
 import { PatrimonioKpiRow } from "../kpi/PatrimonioKpiRow";
 import { PatrimonioCategoriasCard } from "../cards/PatrimonioCategoriasCard";
 import { ReceitasFonteCard } from "../cards/ReceitasFonteCard";
@@ -36,9 +37,16 @@ export function S1PatrimonioSection({ data }: S1Props) {
   const score = data.score as ScoreData | undefined;
   const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
+  const narrativas = data.narrativas as
+    | Record<string, { context?: string; conclusion?: string }>
+    | undefined;
+
+  const getConclusion = (id: string) => narrativas?.[id]?.conclusion;
 
   return (
     <ReportSection id="S1" title="Patrimônio — Estrutura e Composição">
+      <SectionSummary narrativas={narrativas} sectionId="S1" />
+
       {/* KPI row fora do grid 2-col (full width) */}
       <div className="md:col-span-2">
         <PatrimonioKpiRow
@@ -49,8 +57,15 @@ export function S1PatrimonioSection({ data }: S1Props) {
       </div>
 
       {/* Charts */}
-      <PatrimonioDoughnutChart patrimonio={patrimonio} />
-      <WaterfallIfChart patrimonio={patrimonio} goals={goals} />
+      <PatrimonioDoughnutChart
+        patrimonio={patrimonio}
+        conclusion={getConclusion("patrimonio_doughnut")}
+      />
+      <WaterfallIfChart
+        patrimonio={patrimonio}
+        goals={goals}
+        conclusion={getConclusion("waterfall_if")}
+      />
       <div className="md:col-span-2">
         <ScoreGaugeChart score={score} />
       </div>

@@ -1,4 +1,4 @@
-# Fin — Objetivos de nível de serviço (SLO)
+# Mathoms AI — Objetivos de nível de serviço (SLO)
 
 > Referência para beta e GA. Alertas (ex.: Sentry) devem respeitar margem em relação a estes alvos. Ver [RUNBOOK.md](RUNBOOK.md).
 

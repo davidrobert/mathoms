@@ -67,12 +67,12 @@ async def ensure_seed_user(db: AsyncSession) -> tuple[User, Workspace]:
     """Get or create the default seed user + workspace for CLI-generated reports."""
     from backend.app.core.security import hash_password
 
-    result = await db.execute(select(User).where(User.email == "admin@fin.app"))
+    result = await db.execute(select(User).where(User.email == "admin@mathoms.ai"))
     user = result.scalar_one_or_none()
 
     if not user:
         user = User(
-            email="admin@fin.app",
+            email="admin@mathoms.ai",
             hashed_password=hash_password("admin"),
             full_name="Admin (Seed)",
         )

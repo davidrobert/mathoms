@@ -8,6 +8,25 @@ import { LAYOUT, type SectionSpec } from "@/generated/report-layout";
 import { type UseReportDataState } from "@/hooks/useReportData";
 import type { ReportAnalysisData } from "@/lib/api";
 import { formatDate } from "@/lib/format";
+
+const MONTHS_PT = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+/**
+ * Converte `periodo_dados` (ex: "2023-01 a 2026-04") em título legível
+ * (ex: "Fechamento Abril 2026"). Retorna null se o formato não for reconhecido.
+ */
+function formatReportPeriod(periodo: string): string | null {
+  const parts = periodo.split(" a ");
+  const endPart = parts[parts.length - 1].trim();
+  const [yearStr, monthStr] = endPart.split("-");
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStr, 10);
+  if (isNaN(year) || isNaN(month) || month < 1 || month > 12) return null;
+  return `Fechamento ${MONTHS_PT[month - 1]} ${year}`;
+}
 import { ReportHeader } from "./ReportHeader";
 import { ReportPremissasBlock } from "./ReportPremissasBlock";
 import { ReportSourceStrip } from "./ReportSourceStrip";
@@ -23,6 +42,8 @@ import { S7IndependenciaSection } from "./sections/S7IndependenciaSection";
 import { S8PrevidenciaSection } from "./sections/S8PrevidenciaSection";
 import { S9RiscosSection } from "./sections/S9RiscosSection";
 import { S10SinteseSection } from "./sections/S10SinteseSection";
+import { ApendiceASection } from "./sections/ApendiceASection";
+import { PerfilFamiliaCard } from "./cards/PerfilFamiliaCard";
 import {
   U1MudancaEuaSection,
   U2GreenCardSection,
@@ -38,7 +59,7 @@ import {
   T6NotasSection,
 } from "./sections/TaticoSections";
 
-/** Todas as seções de todos os modos estão migradas (F2.A–H). */
+/** Todas as seções de todos os modos estão migradas (F2.A–H + Fase D). */
 const MIGRATED_SECTIONS = new Set([
   // Estratégico
   "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10",
@@ -46,6 +67,8 @@ const MIGRATED_SECTIONS = new Set([
   "U1", "U2", "U3", "U4",
   // Tático
   "T1", "T2", "T3", "T4", "T5", "T6",
+  // Apêndices
+  "APP_A",
 ]);
 
 interface ReportShellProps {
@@ -98,6 +121,14 @@ export function ReportShell({
           : undefined)
       : undefined;
 
+  const displayTitle = useMemo(() => {
+    if (analysisPeriodFromSnapshot) {
+      const formatted = formatReportPeriod(String(analysisPeriodFromSnapshot));
+      if (formatted) return formatted;
+    }
+    return reportTitle;
+  }, [analysisPeriodFromSnapshot, reportTitle]);
+
   const enabledSections = useMemo<SectionSpec[]>(
     () => selectSections(mode).filter((s) => s.enabled),
     [mode],
@@ -112,7 +143,7 @@ export function ReportShell({
     <div className="flex h-[calc(100vh-3.5rem)] flex-col lg:h-screen">
       <ReportHeader
         reportId={reportId}
-        title={reportTitle}
+        title={displayTitle}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((v) => !v)}
       />
@@ -166,7 +197,7 @@ export function ReportShell({
                   {dataState.data.periodo_dados ?? "Período não informado"}
                 </p>
                 <h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-[var(--surface-foreground)]">
-                  {reportTitle}
+                  {displayTitle}
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm text-[var(--surface-muted-foreground)]">
                   Relatório deste período (operacional). Metas e cenários de longo prazo ficam em{" "}
@@ -181,6 +212,13 @@ export function ReportShell({
               </header>
 
               <ReportPremissasBlock data={dataState.data} />
+
+              {/* Perfil da Família — modo estratégico, acima das seções */}
+              {mode === "estrategico" && (
+                <PerfilFamiliaCard
+                  narrativas={dataState.data.narrativas as Record<string, unknown> | undefined}
+                />
+              )}
 
               {enabledSections.map((section) =>
                 MIGRATED_SECTIONS.has(section.id) ? (
@@ -207,6 +245,20 @@ export function ReportShell({
                   </ReportSection>
                 ),
               )}
+
+              {/* Apêndices — modo estratégico */}
+              {mode === "estrategico" &&
+                (LAYOUT.estrategico.appendices ?? [])
+                  .filter((a) => a.enabled)
+                  .map((a) =>
+                    MIGRATED_SECTIONS.has(a.id) ? (
+                      <MigratedSection
+                        key={a.id}
+                        sectionId={a.id}
+                        data={dataState.data}
+                      />
+                    ) : null,
+                  )}
             </article>
           )}
         </main>
@@ -262,6 +314,9 @@ function MigratedSection({
       return <T5ProximosPassosSection />;
     case "T6":
       return <T6NotasSection />;
+    // Apêndices
+    case "APP_A":
+      return <ApendiceASection />;
     default:
       return null;
   }

@@ -1,19 +1,20 @@
-# Fin — Planejamento Financeiro Inteligente
+# Mathoms AI — Planejamento Financeiro Inteligente
 
 > Envie extratos e documentos financeiros. Obtenha um retrato consolidado da família em minutos — não em semanas de planilha.
 
-**Status:** Dogfood interno · **F9 concluída** (relatório nativo React, design tokens, workspace sharing) · Próxima fase planejada: **F7** (produção, LGPD, ops) — ver [docs/ROADMAP.md](docs/ROADMAP.md).
+**Status:** Dogfood interno · **F9 concluída** (relatório nativo React, design tokens, workspace sharing) · **Migração infra + domínio** em curso (fases 1-8 foundation entregues; plano em [_scratch/plano_migracao_artifacts_db.md](_scratch/plano_migracao_artifacts_db.md)) · Próxima fase planejada: **F7** (produção, LGPD, ops) — ver [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ---
 
 ## O que é
 
-Fin consolida extratos, faturas, investimentos e IRPFs de múltiplas instituições, gerando análise com score financeiro, visão patrimonial, fluxo de caixa e recomendações.
+Mathoms AI consolida extratos, faturas, investimentos e IRPFs de múltiplas instituições, gerando análise com score financeiro, visão patrimonial, fluxo de caixa e recomendações.
 
 - **10 parsers bancários determinísticos** (`scripts/e2/banks/`): C6, Itaú, Santander, Bradesco, BTG, Rico, PicPay, Wise, Bank of America, QuintoAndar. Outras fontes (ex.: cripto/exchanges) entram via **E2-LLM** ou extensão futura do E2.
 - **LLM opcional (BYOK)** para etapas que não têm parser fixo (E1, E1.5, E2-llm, E7-review, etc.).
 - **Multi-tenant** com isolamento por workspace.
 - **Contratos type-safe** na API (FastAPI / OpenAPI) e tipagem forte no frontend (TypeScript).
+- **Camada de domínio isolada de I/O** (ADR-089) — `Money` com `Decimal` (ADR-090), services puros testáveis em memória; artefatos do pipeline no banco via `ArtifactStore` (ADR-082, ADR-083). Decomposição de E3 (1193 linhas) via **extract-then-refactor** (ADR-097): 7 validators/preprocessors extraídos (`BankCanonicalizer`, `SaldoContinuityValidator`, `TemporalGapDetector`, `BaselineValidator`, etc.) sem tocar o `main()` legado.
 
 ---
 
@@ -66,7 +67,7 @@ cd frontend && npm install && cd ..
 python3 design-tokens/build.py
 python3 dev/codegen_report_layout.py
 
-# Banco e usuário dev (SQLite em ./fin.db por padrão)
+# Banco e usuário dev (SQLite em ./mathoms.db por padrão)
 cd backend && python seed_db.py && cd ..
 ```
 
@@ -86,7 +87,7 @@ celery -A backend.app.worker worker -l info -c 2
 cd frontend && npm run dev
 ```
 
-Abrir **http://localhost:3000** · API: **http://localhost:8000/docs** · Login após `seed_db.py`: `admin@fin.app` / `admin123`.
+Abrir **http://localhost:3000** · API: **http://localhost:8000/docs** · Login após `seed_db.py`: `admin@mathoms.ai` / `admin123`.
 
 Detalhes (Fernet, migrations Alembic, Playwright/PDF, troubleshooting): **[docs/SETUP.md](docs/SETUP.md)**.
 

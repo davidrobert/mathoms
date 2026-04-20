@@ -1,6 +1,7 @@
 "use client";
 
 import { ReportSection } from "../ReportSection";
+import { SectionSummary } from "../SectionSummary";
 import { PrevidenciaPgblCard } from "../cards/PrevidenciaPgblCard";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { MonetaryValue } from "../MonetaryValue";
@@ -8,12 +9,14 @@ import type { ReportAnalysisData } from "@/lib/api";
 
 /** F9 · F2.E — Seção S7 (Independência Financeira). */
 export function S7IndependenciaSection({ data }: { data: ReportAnalysisData }) {
-  const charts = (data.narrativas as Record<string, unknown> | undefined)?.charts as Record<string, unknown> | undefined;
+  const narrativas = data.narrativas as Record<string, unknown> | undefined;
+  const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const previdencia = data.previdencia_pgbl as Record<string, unknown> | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
 
   return (
     <ReportSection id="S7" title="Independência Financeira — Projeção de Longo Prazo">
+      <SectionSummary narrativas={narrativas} sectionId="S7" />
       <NarrativeChartCard chartId="projecao_3cenarios" title="Projeção Patrimonial — 3 Cenários" narratives={charts} />
       <NarrativeChartCard chartId="renda_passiva" title="Renda Passiva — Progresso até a Meta" narratives={charts} />
 

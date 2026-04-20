@@ -1,0 +1,25 @@
+{
+  "_comment": "Baseline de performance do pipeline E0→E7 com DiskArtifactStore (ADR-082 · Fase 1.4). Capturado antes da introdução do DBArtifactStore + MaterializationBridge (Fase 2). Critério de aceite da Fase 2: regressão ≤ 15% em duração total e ≤ 20% em peak RSS. Fixture recomendada: workspace `ferreira_campos`. Valores null sinalizam baseline AINDA NÃO CAPTURADO — preencher antes de iniciar a Fase 2 via `python -m pipeline.run_dev --root storage/<ws> --profile disk`.",
+  "captured_at": null,
+  "workspace_id": null,
+  "workspace_label": "ferreira_campos",
+  "machine": null,
+  "total_duration_ms": null,
+  "peak_rss_mb": null,
+  "total_io_bytes": null,
+  "per_stage_duration_ms": {
+    "E0-audit": null,
+    "E1.5c": null,
+    "E2-extratos": null,
+    "E2-faturas": null,
+    "E2-llm": null,
+    "E3": null,
+    "E4": null,
+    "E5": null,
+    "E5.N": null,
+    "E6": null,
+    "E7-crossval": null,
+    "E7-apply": null,
+    "E6-final": null
+  }
+}

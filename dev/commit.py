@@ -33,7 +33,7 @@ Flags:
 Safety-checks:
   1. Confirma que estamos num repo git
   2. Bloqueia staging de diretórios sensíveis (storage/, data/, inbox/, …)
-  3. Bloqueia arquivos sensíveis por nome (.env, fin.db, passwords.txt, …)
+  3. Bloqueia arquivos sensíveis por nome (.env, mathoms.db, passwords.txt, …)
   4. Valida formato da mensagem (prefixo convencional)
   5. Mostra diff stat antes do commit
 """
@@ -71,12 +71,12 @@ FORBIDDEN_DIRS = (
 )
 
 # Arquivos individuais que nunca devem ir pro repo.
-# `fin.db` é o SQLite de dev com dados de vários workspaces; `.env`/`.env.test`
+# `mathoms.db` é o SQLite de dev com dados de vários workspaces; `.env`/`.env.test`
 # podem ter secrets; `passwords.txt` tem senhas de PDF.
 FORBIDDEN_FILES = (
     ".env",
     ".env.test",
-    "fin.db",
+    "mathoms.db",
     "config/passwords.txt",
 )
 

@@ -1,4 +1,4 @@
-# Fin — Setup Local
+# Mathoms AI — Setup Local
 
 > Guia para rodar o projeto em desenvolvimento local.
 
@@ -68,7 +68,7 @@ Na raiz do repositório existe **`.env.example`** com todas as variáveis docume
 
 ```bash
 # Na raiz, com dependências Python do backend instaladas (cryptography).
-# Cria .env a partir de .env.example e preenche FIN_FERNET_KEY + FIN_SECRET_KEY (falha se .env já existir).
+# Cria .env a partir de .env.example e preenche MATHOMS_FERNET_KEY + MATHOMS_SECRET_KEY (falha se .env já existir).
 ./scripts/gen-secrets.sh --init-env
 ```
 
@@ -85,22 +85,27 @@ Bloco equivalente (trecho mínimo — ver `.env.example` para o restante):
 ```bash
 # Fernet key — CRÍTICO. Gerar uma vez, NUNCA mudar sem re-encriptar dados.
 # Preferência: ./scripts/gen-secrets.sh
-FIN_FERNET_KEY=sua-chave-fernet-aqui
+MATHOMS_FERNET_KEY=sua-chave-fernet-aqui
 
 # JWT secret (dev pode ser qualquer string, prod tem que ser forte)
-FIN_SECRET_KEY=dev-secret-change-in-production
+MATHOMS_SECRET_KEY=dev-secret-change-in-production
 
 # Redis (default local)
-FIN_REDIS_URL=redis://localhost:6379/0
+MATHOMS_REDIS_URL=redis://localhost:6379/0
 
 # Storage (default: ./storage/)
-FIN_STORAGE_ROOT=./storage
+MATHOMS_STORAGE_ROOT=./storage
 
 # DB (default: SQLite)
-FIN_DATABASE_URL=sqlite+aiosqlite:///./fin.db
+MATHOMS_DATABASE_URL=sqlite+aiosqlite:///./mathoms.db
 
 # CORS (default: localhost:3000)
-FIN_CORS_ORIGINS=["http://localhost:3000"]
+MATHOMS_CORS_ORIGINS=["http://localhost:3000"]
+
+# Feature flag — artefatos do pipeline no banco (ADR-083, cutover em curso)
+# Default False: scripts legados gravam em storage/<ws>/processed/*.json
+# True: DBArtifactStore ativo — pipeline_artifacts é fonte de verdade
+MATHOMS_USE_DB_ARTIFACTS=false
 ```
 
 > **⚠️ Fernet key:** Se você perder essa chave ou gerá-la novamente, **todos os CPFs, API keys LLM e senhas PDF encriptadas ficam irrecuperáveis**. O user precisaria re-cadastrar.
@@ -115,13 +120,13 @@ python seed_db.py
 ```
 
 Isso cria:
-- Usuário dev: `admin@fin.app` / `admin123`
+- Usuário dev: `admin@mathoms.ai` / `admin123`
 - Workspace default para esse usuário
 - Importa relatórios HTML existentes em `output/` (se houver)
 
 ### Migrations (Alembic)
 
-> **F6.5E.4 — cwd safety:** o `backend/alembic.ini` usa `%(here)s/../fin.db` (caminho absoluto resolvido a partir do diretório do .ini), e `env.py` tem um guard que **rejeita** SQLite com path relativo. Resultado: você pode rodar `alembic` de qualquer pasta sem risco de aplicar a migration na DB errada.
+> **F6.5E.4 — cwd safety:** o `backend/alembic.ini` usa `%(here)s/../mathoms.db` (caminho absoluto resolvido a partir do diretório do .ini), e `env.py` tem um guard que **rejeita** SQLite com path relativo. Resultado: você pode rodar `alembic` de qualquer pasta sem risco de aplicar a migration na DB errada.
 
 ```bash
 # Da raiz do repo:
@@ -133,11 +138,11 @@ cd backend && alembic current
 cd backend && alembic upgrade head
 ```
 
-Em **CI/produção** sempre setar `FIN_DATABASE_URL` com path absoluto (ou URL Postgres). O guard só permite SQLite relativo se você setar `FIN_ALEMBIC_ALLOW_RELATIVE_SQLITE=1` — use **apenas** em testes do próprio guard.
+Em **CI/produção** sempre setar `MATHOMS_DATABASE_URL` com path absoluto (ou URL Postgres). O guard só permite SQLite relativo se você setar `MATHOMS_ALEMBIC_ALLOW_RELATIVE_SQLITE=1` — use **apenas** em testes do próprio guard.
 
 ### Reset completo da plataforma (CLI)
 
-Use **apenas em dev/staging** (ou base descartável). Apaga **todos** os utilizadores e dados em cascata no SQL, remove o conteúdo de `FIN_STORAGE_ROOT` (ex.: `./storage/`) e, por defeito, executa `FLUSHDB` no Redis de `FIN_REDIS_URL`.
+Use **apenas em dev/staging** (ou base descartável). Apaga **todos** os utilizadores e dados em cascata no SQL, remove o conteúdo de `MATHOMS_STORAGE_ROOT` (ex.: `./storage/`) e, por defeito, executa `FLUSHDB` no Redis de `MATHOMS_REDIS_URL`.
 
 | Comando | Efeito |
 | --- | --- |
@@ -193,14 +198,14 @@ npm run dev
 
 Acessar: http://localhost:3000
 
-**Status page (opcional, 7E.6):** crie `frontend/.env.local` com `NEXT_PUBLIC_FIN_STATUS_PAGE_URL=https://…` para exibir o link **Status e incidentes** no rodapé (login, cadastro, convite e área logada). Ver [RUNBOOK.md](RUNBOOK.md).
+**Status page (opcional, 7E.6):** crie `frontend/.env.local` com `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL=https://…` para exibir o link **Status e incidentes** no rodapé (login, cadastro, convite e área logada). Ver [RUNBOOK.md](RUNBOOK.md).
 
 ---
 
 ## 5. Primeiro login
 
 1. Abrir http://localhost:3000
-2. Login: `admin@fin.app` / `admin123`
+2. Login: `admin@mathoms.ai` / `admin123`
 3. Navegar para **Documentos** → arrastar PDFs/XLSX/CSVs
 4. Navegar para **Pipeline** → clicar **Processar documentos**
 5. Aguardar conclusão (~3-15min dependendo da quantidade de docs e se LLM está habilitado)
@@ -242,13 +247,13 @@ open htmlcov/index.html
 
 ## 8. Pipeline CLI (sem web)
 
-Os scripts em `scripts/` partilham `scripts.pipeline_common`, que exige a variável de ambiente **`FIN_WORKSPACE_ROOT`**: deve apontar para a **raiz do workspace** (pasta com `config/`, `data/`, `inbox/`, …), em geral `storage/<workspace_id>/`. **Não** há mais default silencioso para `./data/` na raiz do repositório.
+Os scripts em `scripts/` partilham `scripts.pipeline_common`, que exige a variável de ambiente **`MATHOMS_WORKSPACE_ROOT`**: deve apontar para a **raiz do workspace** (pasta com `config/`, `data/`, `inbox/`, …), em geral `storage/<workspace_id>/`. **Não** há mais default silencioso para `./data/` na raiz do repositório.
 
 ```bash
 source .venv/bin/activate
-export FIN_WORKSPACE_ROOT="$PWD/storage/<workspace_id>"
+export MATHOMS_WORKSPACE_ROOT="$PWD/storage/<workspace_id>"
 # ou, para desenvolvimento com configs na raiz do repo:
-export FIN_WORKSPACE_ROOT="$PWD"
+export MATHOMS_WORKSPACE_ROOT="$PWD"
 
 # Extração de faturas
 python scripts/e2_extract.py --faturas-only
@@ -256,23 +261,23 @@ python scripts/e2_extract.py --faturas-only
 # Reconciliação
 python scripts/e3_reconcile.py
 
-# Relatório completo (orquestra E0→E6; precisa FIN_WORKSPACE_ROOT)
+# Relatório completo (orquestra E0→E6; precisa MATHOMS_WORKSPACE_ROOT)
 python scripts/e_reset.py
 
-# Orquestrador (define FIN_WORKSPACE_ROOT a partir de --root)
+# Orquestrador (define MATHOMS_WORKSPACE_ROOT a partir de --root)
 python -m pipeline.run_dev --root /caminho/para/tenant
 ```
 
-O arranque da API (`uvicorn`), o worker Celery e os `conftest` de pytest fazem `setdefault` de `FIN_WORKSPACE_ROOT` para a raiz do repositório, para carregar `config/` global em desenvolvimento.
+O arranque da API (`uvicorn`), o worker Celery e os `conftest` de pytest fazem `setdefault` de `MATHOMS_WORKSPACE_ROOT` para a raiz do repositório, para carregar `config/` global em desenvolvimento.
 
 **Directórios na raiz do repo:** não é obrigatório existir `data/`, `inbox/`,
 `inbox_processed/`, `processed/`, `output/`, `logs/`, `members/` ou `life_plan/`
 na raiz do clone. Esses nomes são **subpastas do workspace** (por defeito
 `storage/<workspace_id>/…`). Só aparecem na raiz do projeto se alguém apontar
-`FIN_WORKSPACE_ROOT` para a raiz do repositório e correr o pipeline CLI aí; a app
+`MATHOMS_WORKSPACE_ROOT` para a raiz do repositório e correr o pipeline CLI aí; a app
 web não depende dessas pastas na raiz.
 
-Após cada run, artefatos JSON críticos são validados contra schemas (`warn` por padrão; ver `FIN_PIPELINE_SCHEMA_MODE` e [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md)).
+Após cada run, artefatos JSON críticos são validados contra schemas (`warn` por padrão; ver `MATHOMS_PIPELINE_SCHEMA_MODE` e [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md)).
 
 ---
 
@@ -311,7 +316,7 @@ ls storage/{workspace_id}/data/*/
 
 ### LLM stages são skippados mesmo com API key configurada
 
-Provavelmente a `FIN_FERNET_KEY` mudou entre o save e o pipeline run. Re-salvar a API key em **Configurações → LLM** resolve. Para evitar no futuro: persistir `FIN_FERNET_KEY` no `.env` (nunca gerar uma nova).
+Provavelmente a `MATHOMS_FERNET_KEY` mudou entre o save e o pipeline run. Re-salvar a API key em **Configurações → LLM** resolve. Para evitar no futuro: persistir `MATHOMS_FERNET_KEY` no `.env` (nunca gerar uma nova).
 
 ### "openpyxl does not support old .xls format"
 
@@ -350,3 +355,34 @@ O backend FastAPI tem hot reload com `--reload`, mas o worker não.
 Para entender a arquitetura completa antes de contribuir, ler **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
 Para o fluxo de trabalho atual e tarefas em andamento, ver **[ROADMAP.md](ROADMAP.md)** e **[BACKLOG.md](BACKLOG.md)**.
+
+### Migração em curso — infra + domínio
+
+Plano completo: [`_scratch/plano_migracao_artifacts_db.md`](../_scratch/plano_migracao_artifacts_db.md).
+Principais mudanças já em código (fases 1-8 foundation):
+
+- **Artefatos do pipeline no banco** (tabela `pipeline_artifacts`, ADR-082) com feature flag
+  `MATHOMS_USE_DB_ARTIFACTS` (default `False`).
+- **Abstração `ArtifactStore`** em [`pipeline/artifact_store.py`](../pipeline/artifact_store.py)
+  (ADR-083) — Disk, InMemory, DB (em `backend/`).
+- **Orquestrador declarativo** via [`pipeline/stage_spec.py`](../pipeline/stage_spec.py)
+  (`STAGE_REGISTRY`, `STAGE_RENAME_MAP`, ADR-087).
+- **Camada de domínio** em [`pipeline/domain/`](../pipeline/domain/) (ADRs 089-091) —
+  `Money`, `Transaction`, `BankStatement`, services puros testáveis em memória.
+
+**Cutover operacional** (pós-Fase 4) — workspaces existentes:
+
+```bash
+# Backfill idempotente de processed/*.json → pipeline_artifacts
+.venv/bin/python -m backend.app.scripts.backfill_artifacts_from_disk --dry-run
+.venv/bin/python -m backend.app.scripts.backfill_artifacts_from_disk --apply
+# Opcional: por workspace
+.venv/bin/python -m backend.app.scripts.backfill_artifacts_from_disk --apply --workspace-id <uuid>
+```
+
+**Auditoria de identificadores legados (Fase 9):**
+
+```bash
+.venv/bin/python _scratch/audit_stage_references.py          # lista ocorrências
+.venv/bin/python _scratch/audit_stage_references.py --strict # exit 1 se houver leak
+```

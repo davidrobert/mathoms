@@ -62,7 +62,7 @@ def tmp_sqlite_db():
 def alembic_cfg(tmp_sqlite_db, monkeypatch):
     """Config alembic apontando para o DB tmp via env var."""
     url = f"sqlite+aiosqlite:///{tmp_sqlite_db}"
-    monkeypatch.setenv("FIN_DATABASE_URL", url)
+    monkeypatch.setenv("MATHOMS_DATABASE_URL", url)
     # Recarrega settings (cached em config.py após primeiro import)
     from backend.app.core import config as core_config
     core_config.settings.DATABASE_URL = url

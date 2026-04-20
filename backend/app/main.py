@@ -1,11 +1,11 @@
-"""Fin API — FastAPI application entry point."""
+"""Mathoms AI — FastAPI application entry point."""
 
 import os
 from pathlib import Path
 
 # Before any import of scripts.* (e0_route → pipeline_common): workspace path model.
 _repo_root = Path(__file__).resolve().parent.parent.parent
-os.environ.setdefault("FIN_WORKSPACE_ROOT", str(_repo_root))
+os.environ.setdefault("MATHOMS_WORKSPACE_ROOT", str(_repo_root))
 
 import logging
 from contextlib import asynccontextmanager
@@ -110,7 +110,11 @@ async def health():
     except Exception as exc:
         checks["database"] = f"error: {exc}"
 
-    overall = "ok" if all(v == "ok" for k, v in checks.items() if k not in ("version",)) else "degraded"
+    # A6b (ADR-106): indica o modo de artefatos ativo (global).
+    # Por workspace usa _resolve_use_db_artifacts — aqui reporta o default global.
+    checks["artifact_store_mode"] = "db" if settings.USE_DB_ARTIFACTS else "disk"
+
+    overall = "ok" if all(v == "ok" for k, v in checks.items() if k not in ("version", "artifact_store_mode")) else "degraded"
     checks["status"] = overall
 
     return checks

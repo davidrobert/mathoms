@@ -41,10 +41,15 @@ def parse_btg(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 all_text += text + "\n"
 
             result["titular"] = detect_member_from_text(all_text)
+            result["tipo_conta"] = "corrente"
 
             m = re.search(r'Conta Corrente[:\s]+([\d]+)', all_text)
             if m:
                 result["numero_conta"] = m.group(1)
+
+            m_cpf = re.search(r'CPF[:\s]+([\d.\-]+)', all_text)
+            if m_cpf:
+                result["documento_titular"] = m_cpf.group(1).strip()
 
             m = re.search(r'CPF[:\s]+([\d.\-]+)', all_text)
 

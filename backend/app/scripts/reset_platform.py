@@ -9,7 +9,7 @@ antes de executar qualquer operação destrutiva.
 Passos (com ``--apply``):
     1. ``DELETE FROM users`` (cascata para workspaces, documentos, relatórios, etc.)
     2. Remover todo o conteúdo de ``STORAGE_ROOT`` (directórios por tenant)
-    3. Opcional: ``FLUSHDB`` no Redis apontado por ``FIN_REDIS_URL``
+    3. Opcional: ``FLUSHDB`` no Redis apontado por ``MATHOMS_REDIS_URL``
 
 Usage:
     .venv/bin/python -m backend.app.scripts.reset_platform --dry-run

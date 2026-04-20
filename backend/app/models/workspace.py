@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import String, DateTime, ForeignKey
+from sqlalchemy import Boolean, String, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -24,6 +24,12 @@ class Workspace(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+    # A6b (ADR-106): opt-in por workspace para usar DBArtifactStore.
+    # None → usa flag global MATHOMS_USE_DB_ARTIFACTS; True → força DB; False → força Disk.
+    use_db_artifacts_override: Mapped[Optional[bool]] = mapped_column(
+        Boolean, nullable=True, default=None
+    )
+
     # Soft-delete (P1.2 · ADR-072). When not null, workspace is in "deleted"
     # state — hard-delete happens via janitor job after grace period (30 days).
     # Tenancy dependency (`get_current_workspace`) filters these out.

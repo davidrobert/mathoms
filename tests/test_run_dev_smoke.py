@@ -40,7 +40,7 @@ def test_run_dev_e3_empty_tenant(minimal_tenant: Path, capsys):
     try:
         code = main(["--root", str(minimal_tenant), "--stages", "E3"])
     finally:
-        os.environ["FIN_WORKSPACE_ROOT"] = str(_REPO_ROOT)
+        os.environ["MATHOMS_WORKSPACE_ROOT"] = str(_REPO_ROOT)
         pc_init(_REPO_ROOT)
         e3_init(_REPO_ROOT)
 

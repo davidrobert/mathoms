@@ -23,11 +23,11 @@ class VaultService:
         fernet_key = key or settings.FERNET_KEY
         if not fernet_key:
             raise RuntimeError(
-                "FIN_FERNET_KEY não configurada. Gere uma key estável e "
+                "MATHOMS_FERNET_KEY não configurada. Gere uma key estável e "
                 "adicione ao .env do backend:\n"
                 "  python -c \"from cryptography.fernet import Fernet; "
                 "print(Fernet.generate_key().decode())\"\n"
-                "Depois: FIN_FERNET_KEY=<valor> em .env e reinicie o backend."
+                "Depois: MATHOMS_FERNET_KEY=<valor> em .env e reinicie o backend."
             )
         self._fernet = Fernet(
             fernet_key.encode() if isinstance(fernet_key, str) else fernet_key

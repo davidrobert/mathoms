@@ -1,0 +1,90 @@
+{
+  "description": "Baseline IRPF no formato v2 (membros_familia, resumo_patrimonial) + 2 posições E2 (BTG/Rico). Valida normalização do baseline e consolidação de investimentos. Sem transações E3 (foco no baseline/invs).",
+  "categorization": {
+    "expense_keywords": {},
+    "income_keywords": {},
+    "internal_transfer_patterns": [],
+    "clt_source_mapping": {},
+    "pj_source_mapping": {}
+  },
+  "family": {
+    "banco_membro": {
+      "btgpactual": "david",
+      "rico": "mariana"
+    }
+  },
+  "e3_accounts": [],
+  "baseline": {
+    "data_consolidacao": "2025-06-30T12:00:00",
+    "membros_familia": [
+      {"nome": "David", "cpf": "111.111.111-11"},
+      {"nome": "Mariana", "cpf": "222.222.222-22"}
+    ],
+    "resumo_patrimonial": {
+      "31_12_2024": {"total": 1500000.0, "dividas": 200000.0},
+      "31_12_2023": {"bens_imoveis": 1200000.0, "dividas": 150000.0}
+    },
+    "bens_imoveis_consolidados": [
+      {
+        "endereco": "Rua X, 100",
+        "proprietarios": ["David", "Mariana"],
+        "valor_31_12_ano_base": 800000.0
+      }
+    ],
+    "investimentos_financeiros_consolidados": {
+      "david_2024": {"tesouro": 100000, "cdb": 50000, "total": 150000}
+    },
+    "dividas_consolidados": [
+      {"descricao": "Financiamento imóvel", "valor": 200000.0}
+    ]
+  },
+  "e2_positions": [
+    {
+      "stage": "E2-llm",
+      "key": "btg_investimentosposicao_202603",
+      "payload": {
+        "banco": "BTG Pactual",
+        "instituicao": "BTG Pactual",
+        "tipo": "investimentosposicao",
+        "membro": "david",
+        "data_referencia": "2026-03-31",
+        "saldo_atual": 150000.0,
+        "posicoes": [
+          {"nome": "Tesouro Selic 2030", "tipo": "tesouro", "valor_total": 100000.0},
+          {"nome": "CDB XPTO", "tipo": "cdb", "valor_total": 50000.0}
+        ]
+      }
+    },
+    {
+      "stage": "E2-llm",
+      "key": "rico_carteirarendafixa_202603",
+      "payload": {
+        "banco": "Rico",
+        "instituicao": "Rico",
+        "tipo": "carteirarendafixa",
+        "membro": "mariana",
+        "data_referencia": "2026-03-31",
+        "saldo_atual": 80000.0,
+        "posicoes": [
+          {"nome": "LCI Rico", "tipo": "lci", "valor_total": 80000.0}
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "classified_count": 0,
+    "receitas_count": 0,
+    "despesas_count": 0,
+    "baseline_fixes_min_count": 5,
+    "baseline_has_patrimonio_por_ano": true,
+    "baseline_has_imoveis_consolidados": true,
+    "baseline_imovel_descricao": "Rua X, 100",
+    "baseline_imovel_proprietario": "David, Mariana",
+    "investments_n_posicoes": 3,
+    "investments_total_por_membro": {
+      "david": 150000.0,
+      "mariana": 80000.0
+    },
+    "investments_total_geral": 230000.0
+  }
+}

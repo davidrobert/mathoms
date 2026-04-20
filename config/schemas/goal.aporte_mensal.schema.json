@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "fin://schemas/goal.aporte_mensal.v1",
+  "$id": "mathoms://schemas/goal.aporte_mensal.v1",
   "title": "Goal — Aporte Mensal (v1)",
   "description": "Meta de aporte mensal total + distribuição por destino. Migrada de `goals.json:aportes`. ADR-075 §F8.4.",
   "type": "object",

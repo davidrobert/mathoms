@@ -127,6 +127,7 @@ export interface DocumentResponse {
   uploaded_at: string;
   pipeline_last_run_at?: string | null;
   pipeline_e2_extract_ok?: boolean | null;
+  pipeline_extract_notes?: string | null;
 }
 
 export interface DocumentListResponse {
@@ -488,6 +489,20 @@ export async function fetchDocumentFile(
   const filename = nameMatch ? nameMatch[1] : "documento";
   const blob = await res.blob();
   return { blob, filename, contentType: res.headers.get("content-type") ?? "" };
+}
+
+export interface ExtractJsonResponse {
+  filename: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
+  all_candidates: string[];
+}
+
+export async function fetchDocumentExtractJson(
+  workspaceId: string,
+  documentId: string,
+): Promise<ExtractJsonResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/documents/${documentId}/extract-json`);
 }
 
 export interface ReclassifyResponse {

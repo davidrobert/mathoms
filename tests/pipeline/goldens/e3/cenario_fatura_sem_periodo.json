@@ -1,0 +1,39 @@
+{
+  "description": "Fatura Nubank sem campo `periodo`, com `data_vencimento`=2026-04-15 e duas transações dentro da janela 30-dias. Adapter deve sintetizar o período e produzir 1 artefato com 2 transações. Paridade com legado: o ajuste de `inicio` para min(tx_dates) anula o anachronic guard quando o período é sintetizado de fatura — por isso este cenário não testa anachronic (ver `test_anachronic_guard_in_extract_with_fixed_period` para esse caso).",
+  "institutions": {
+    "banco_canonical": {
+      "nubank": "Nubank"
+    }
+  },
+  "e2_extracts": [
+    {
+      "stage": "E2-faturas",
+      "key": "nubank_fat_abr",
+      "payload": {
+        "pipeline_stage": "E2",
+        "banco": "Nubank",
+        "tipo": "faturacarbon",
+        "documento_titular": "david",
+        "data_vencimento": "2026-04-15",
+        "saldo_anterior": 0,
+        "saldo_atual": -150.00,
+        "transacoes": [
+          {"data": "2026-04-01", "descricao": "AMAZON", "valor": -50.00},
+          {"data": "2026-04-10", "descricao": "IFOOD", "valor": -100.00}
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "statements_loaded": 1,
+    "artifacts_written": 1,
+    "skipped_inputs": 0,
+    "output_keys": ["nubank_BRL_202603_202604"],
+    "merged_transaction_count": 2,
+    "period_warnings_min_count": 1,
+    "anachronic_warnings_count": 0,
+    "saldo_warnings_count": 0,
+    "temporal_warnings_count": 0,
+    "baseline_warnings_count": 0
+  }
+}

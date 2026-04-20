@@ -21,7 +21,7 @@ import re
 import sys
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 from collections import defaultdict
 
 try:
@@ -1051,6 +1051,208 @@ def main(root_dir: Path = None):
     print(f"Output directory: {output_dir}")
     print("="*70)
     print("[E4.9] E4 Categorization Stage COMPLETE")
+
+
+def main_with_store(ctx) -> Dict[str, Any]:
+    """E4 Caminho B (Sessão A4b da Fase 7) — orquestra o pipeline E4 sobre
+    ``ArtifactStore`` em vez de disco direto.
+
+    Coexiste com ``main(root_dir)`` legado — não substitui. O wrapper
+    ``pipeline/stages/e4.py`` chama esta função direto, sem
+    ``MaterializationBridge``.
+
+    Diferenças vs ``main(root_dir)``:
+    - Lê E3/E2/baseline e escreve E4 via ``ctx.get_artifact_store()`` (Disk em
+      CLI, DB-backed em Web).
+    - Usa ``E4CategorizerAdapter`` (A4a) + ``serialize_e4_artifacts`` (A4b),
+      orquestrados pelos domain services puros extraídos nas Sessões A1/A3a/A4a.
+    - Sidecar ``qa_log.md`` em ``ctx.logs_dir`` quando existir.
+    - Validação JSON-schema em cada artefato escrito (modo warn).
+
+    Paridade comprovada por golden em
+    ``tests/test_e4_main_with_store_parity.py``.
+
+    Args:
+        ctx: ``pipeline.context.WorkspaceContext``.
+
+    Returns:
+        Dict com ``files_created``, ``total`` e contagens; consumido pelo
+        worker Celery para exibir na UI.
+    """
+    from pipeline.artifact_store import DiskArtifactStore
+    from pipeline.domain.services.e4_categorizer_adapter import E4CategorizerAdapter
+    from pipeline.domain.services.e4_serialization import (
+        all_filenames,
+        filename_for,
+        serialize_e4_artifacts,
+    )
+
+    print("=" * 80)
+    print("E4 CATEGORIZATION STAGE — Caminho B (main_with_store)")
+    print("=" * 80)
+
+    # 1. Configs via WorkspaceContext (CLI ou DB-overrides).
+    categorization_cfg = ctx.load_config("categorization.json")
+    family_cfg = ctx.load_config("family_members.json")
+    pipeline_cfg = ctx.load_config("pipeline.json")
+
+    # 2. Adapter com clocks padrão (datetime.now); determinismo em testes
+    #    é controlado pelo golden via normalização dos campos variáveis.
+    adapter = E4CategorizerAdapter.from_configs(
+        categorization=categorization_cfg,
+        family=family_cfg,
+    )
+
+    store = ctx.get_artifact_store()
+
+    print(f"[E4.0] Workspace root: {ctx.root}")
+    print(f"[E4.0] Store impl:     {type(store).__name__}")
+
+    # 3. Pipeline: E3 → classify → aggregate + baseline + investimentos.
+    result = adapter.categorize_via_store(store)
+
+    print(
+        f"[E4.2] Processed: {result.cash_flow.receitas.total_transacoes} receitas, "
+        f"{result.cash_flow.despesas.total_transacoes} despesas, "
+        f"{result.cash_flow.transferencias_count} internal transfers"
+    )
+
+    # 4. Serializa e escreve os 7 artefatos via store.
+    payloads = serialize_e4_artifacts(result)
+    written_filenames: List[str] = []
+    for key, payload in payloads.items():
+        store.write("E4", key, payload)
+        written_filenames.append(filename_for(key))
+        # Validate cada payload contra schema quando em disco.
+        if isinstance(store, DiskArtifactStore) and _pc is not None:
+            target = ctx.processed_dir / "E4_unified" / filename_for(key)
+            if target.exists():
+                _pc.validate_artifact(target, "e4_unified.schema.json")
+
+    for filename in written_filenames:
+        print(f"[E4.3] Wrote {filename}")
+
+    # 5. QA log sidecar — despesas não identificadas para review manual.
+    logs_dir = ctx.logs_dir
+    try:
+        logs_dir.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
+
+    if logs_dir.exists():
+        despesas_legacy = [
+            t.to_legacy_dict()
+            for t in result.classified
+            if t.kind == "despesa"
+        ]
+        _write_qa_log_e4(
+            logs_dir / "qa_log.md",
+            despesas=despesas_legacy,
+            pipeline_cfg=pipeline_cfg,
+            categorization_cfg=categorization_cfg,
+        )
+
+    # 6. Log de avisos de validação de investimentos (paridade com
+    #    ``build_investimentos_unified`` que hoje só `print`-ava).
+    for aviso in result.investments.avisos_validacao:
+        print(f"  {aviso}")
+
+    # 7. Summary (paridade com ``main(root_dir)`` linhas 1040-1053).
+    receitas = result.cash_flow.receitas
+    despesas = result.cash_flow.despesas
+    inv = result.investments
+    print("\n" + "=" * 70)
+    print("E4 CATEGORIZATION SUMMARY — Caminho B")
+    print("=" * 70)
+    print(f"Total receitas categorized: {receitas.total_transacoes}")
+    print(f"Total despesas categorized: {despesas.total_transacoes}")
+    print(f"Total internal transfers:   {result.cash_flow.transferencias_count}")
+    print(f"Receita categories:         {receitas.total_categorias}")
+    print(f"Despesa categories:         {despesas.total_categorias}")
+    print(f"Total receita geral:        R$ {receitas.total_geral:,.2f}")
+    print(f"Total despesa geral:        R$ {despesas.total_geral:,.2f}")
+    print(f"Investimentos:              {inv.n_posicoes} posições, R$ {inv.total_geral:,.2f}")
+    print("=" * 70)
+    print("[E4.9] E4 Categorization Stage COMPLETE — Caminho B")
+
+    return {
+        "files_created": written_filenames,
+        "total": len(written_filenames),
+        "accounts_loaded": result.accounts_loaded,
+        "n_receitas": receitas.total_transacoes,
+        "n_despesas": despesas.total_transacoes,
+        "n_transferencias": result.cash_flow.transferencias_count,
+        "total_receita": receitas.total_geral,
+        "total_despesa": despesas.total_geral,
+        "n_posicoes_investimento": inv.n_posicoes,
+        "total_investimentos": inv.total_geral,
+        "avisos_validacao_investimentos": list(inv.avisos_validacao),
+    }
+
+
+def _write_qa_log_e4(
+    path: Path,
+    *,
+    despesas: List[Dict[str, Any]],
+    pipeline_cfg: Dict[str, Any],
+    categorization_cfg: Dict[str, Any],
+) -> None:
+    """Escreve ``qa_log.md`` com despesas ``nao_identificado`` (paridade com
+    ``generate_qa_log`` linha 893)."""
+    nao_id = [tx for tx in despesas if tx.get("categoria") == "nao_identificado"]
+    total = len(despesas)
+    taxa = (len(nao_id) / total * 100) if total > 0 else 0.0
+
+    lines: List[str] = []
+    lines.append("# QA Log — E4 Categorização")
+    lines.append(f"## Execução: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    lines.append("")
+    lines.append(f"### Transações não identificadas: {len(nao_id)}")
+    lines.append("")
+    lines.append("| Data | Descrição | Valor | Banco | Fonte |")
+    lines.append("|---|---|---|---|---|")
+
+    for tx in sorted(nao_id, key=lambda x: x.get("data", "")):
+        data = tx.get("data", "")
+        desc = tx.get("descricao", "")
+        valor = tx.get("valor", 0.0)
+        banco = tx.get("banco", "")
+        fonte = tx.get("tipo_conta", "")
+        lines.append(f"| {data} | {desc} | R${valor:,.2f} | {banco} | {fonte} |")
+
+    lines.append("")
+    qa_target = (pipeline_cfg or {}).get("qa_thresholds", {}).get(
+        "qa_unidentified_target_pct", 10.0
+    )
+    meta_status = (
+        "✅ DENTRO DA META" if taxa < qa_target else f"⚠️ ACIMA DA META (<{qa_target:.0f}%)"
+    )
+    lines.append(f"### Taxa: {taxa:.1f}% {meta_status}")
+    lines.append("")
+
+    qa_patterns = (categorization_cfg or {}).get("qa_investigation_patterns", [])
+    notas: List[str] = []
+    for tx in nao_id:
+        desc_up = (tx.get("descricao") or "").upper()
+        for patt in qa_patterns:
+            if (patt.get("pattern") or "").upper() in desc_up:
+                notas.append(
+                    f"- **{patt['pattern']}** (R${tx['valor']:,.2f}, {tx['banco']}): "
+                    f"{patt.get('note', 'Investigar')}"
+                )
+    if notas:
+        lines.append("### Notas para investigação")
+        lines.append("")
+        for nota in sorted(set(notas)):
+            lines.append(nota)
+        lines.append("")
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+    except OSError as exc:
+        print(f"  [E4.5] ERROR: Failed to write qa_log: {exc}", file=sys.stderr)
 
 
 if __name__ == "__main__":

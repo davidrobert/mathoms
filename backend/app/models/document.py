@@ -171,6 +171,9 @@ class Document(Base):
         DateTime(timezone=True), nullable=True
     )
     pipeline_e2_extract_ok: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    # Notes/warnings from the E2 extract JSON (notas[] field). Stored as newline-separated
+    # text so the listing can surface errors without reading files on every request.
+    pipeline_extract_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     workspace = relationship("Workspace", back_populates="documents")
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -23,19 +22,25 @@ def _e2_extract_stem(path: Path) -> str:
     return path.stem.split("-0_original")[0]
 
 
-def _find_unprocessed_docs(ctx: WorkspaceContext) -> list[Path]:
+def _find_unprocessed_docs(ctx: WorkspaceContext, store=None) -> list[Path]:
     """Find documents in data/ that don't have corresponding E2 extract JSONs.
 
     These are docs that the deterministic E2 parsers couldn't handle —
     e.g. investment reports, informes de rendimentos, unusual bank formats.
+
+    A6a: usa ``store.list_keys`` em vez de glob direto para ser compatível com
+    DB-backed store (A6b+). Fallback para glob se store não fornecido.
     """
-    e2_existing = set()
-    if ctx.e2_dir.exists():
+    e2_existing: set[str] = set()
+    if store is not None:
+        for stage_key in ("E2", "E2-extratos", "E2-faturas", "E2-llm"):
+            e2_existing.update(store.list_keys(stage_key))
+    elif ctx.e2_dir.exists():
         for f in ctx.e2_dir.glob("*-2_extract.json"):
             stem = f.stem.replace("-2_extract", "")
             e2_existing.add(stem)
 
-    extensions = {".pdf", ".xlsx", ".xls", ".csv"}
+    extensions = {".pdf", ".xlsx", ".xls", ".csv", ".jpg", ".jpeg", ".png"}
     candidates = []
 
     search_dir = ctx.data_dir / "financial_statements"
@@ -94,7 +99,7 @@ def _llm_config_from_runtime(data: dict) -> Any:
 def _e2_llm_perf_settings(ctx: "WorkspaceContext") -> dict[str, Any]:
     """Concurrency and PDF/text limits — from ``pipeline.json`` ``e2_llm`` + env override.
 
-    ``FIN_E2_LLM_CONCURRENCY`` (1–8) overrides ``pipeline.json`` when set.
+    ``MATHOMS_E2_LLM_CONCURRENCY`` (1–8) overrides ``pipeline.json`` when set.
     Smaller inputs reduce latency; defaults are tuned for informes/IRPF-style PDFs.
     """
     out: dict[str, Any] = {
@@ -125,7 +130,7 @@ def _e2_llm_perf_settings(ctx: "WorkspaceContext") -> dict[str, Any]:
             except (TypeError, ValueError):
                 pass
 
-    env = os.environ.get("FIN_E2_LLM_CONCURRENCY", "").strip()
+    env = os.environ.get("MATHOMS_E2_LLM_CONCURRENCY", "").strip()
     if env:
         try:
             out["concurrency"] = max(1, min(8, int(env)))
@@ -137,13 +142,17 @@ def _e2_llm_perf_settings(ctx: "WorkspaceContext") -> dict[str, Any]:
 
 def _process_one_e2_llm_document(
     doc: Path,
-    e2_dir: Path,
+    store: Any,
     llm_config_data: dict[str, Any],
     max_chars: int,
     max_pages: int,
     pipeline_run_id: str | None,
 ) -> tuple[dict[str, Any] | None, dict[str, str] | None, Any]:
-    """Extract + one LLM call for a single file. Returns (processed, error, run_summary)."""
+    """Extract + one LLM call for a single file. Returns (processed, error, run_summary).
+
+    A6a: escreve via ``store.write("E2-llm", safe_stem, e2_json)`` em vez de
+    disco direto — compatível com DiskArtifactStore e DBArtifactStore (A6b+).
+    """
     from pipeline.live_progress import emit_stage_activity
     from pipeline.llm.service import LLMService, LLMRunSummary
     from pipeline.llm.text_extractor import DocumentTextExtractor
@@ -156,10 +165,20 @@ def _process_one_e2_llm_document(
     service = LLMService(cfg)
     extractor = DocumentTextExtractor(max_chars=max_chars, max_pages=max_pages)
 
-    text = extractor.extract(doc)
-    if not text.strip():
-        logger.warning("E2-llm: empty text for %s, skipping", doc.name)
-        return None, None, empty_summary
+    # Imagens são enviadas como conteúdo multimodal; demais formatos via extração de texto.
+    image_bytes: bytes | None = None
+    image_media_type: str = "image/jpeg"
+    if extractor.is_image(doc):
+        image_bytes, image_media_type = extractor.extract_image_bytes(doc)
+        if not image_bytes:
+            logger.warning("E2-llm: imagem vazia para %s, pulando", doc.name)
+            return None, None, empty_summary
+        text = ""
+    else:
+        text = extractor.extract(doc)
+        if not text.strip():
+            logger.warning("E2-llm: texto vazio para %s, pulando", doc.name)
+            return None, None, empty_summary
 
     emit_stage_activity(
         pipeline_run_id,
@@ -170,11 +189,12 @@ def _process_one_e2_llm_document(
 
     try:
         # Valores em str.format(**kwargs) são inseridos literalmente; chaves no texto do PDF/JSON não conflitam.
+        # Para imagens, document_text fica vazio — o conteúdo visual é enviado como image content block.
         user_prompt = USER_PROMPT_TEMPLATE.format(
             filename=doc.name,
             doc_type="unknown",
             institution="unknown",
-            document_text=text,
+            document_text=text or "[imagem — conteúdo enviado como anexo visual]",
         )
 
         min_out = max(cfg.max_tokens, _E2_LLM_MIN_COMPLETION_TOKENS)
@@ -185,6 +205,8 @@ def _process_one_e2_llm_document(
             max_retries=2,
             max_tokens=min_out,
             stage=f"E2-llm:{doc.name}",
+            image_bytes=image_bytes,
+            image_media_type=image_media_type,
         )
         output: LLMExtractOutput = result.output
 
@@ -195,19 +217,30 @@ def _process_one_e2_llm_document(
         e2_json = _output_to_e2_json(output)
 
         safe_stem = _e2_extract_stem(doc).replace(" ", "_")[:80]
-        out_path = e2_dir / f"{safe_stem}-2_extract.json"
-        out_path.write_text(json.dumps(e2_json, ensure_ascii=False, indent=2), encoding="utf-8")
+        # A6a: escreve via store em vez de disco direto.
+        store.write("E2-llm", safe_stem, e2_json)
 
+        # Validação JSON-schema apenas com DiskArtifactStore (em DB mode, o
+        # schema é validado no momento da leitura pelo E3).
         try:
+            from pipeline.artifact_store import DiskArtifactStore
             from scripts.pipeline_common import validate_artifact
 
-            validate_artifact(out_path, "e2_extract.schema.json")
+            if isinstance(store, DiskArtifactStore):
+                from pipeline.artifact_store import stage_dir_name, stage_suffix as _suffix
+                out_path = (
+                    store.processed_dir
+                    / stage_dir_name("E2-llm")
+                    / f"{safe_stem}{_suffix('E2-llm')}"
+                )
+                validate_artifact(out_path, "e2_extract.schema.json")
         except ImportError:
             pass
 
+        out_filename = f"{safe_stem}-2_extract.json"
         processed = {
             "file": doc.name,
-            "output": out_path.name,
+            "output": out_filename,
             "transactions": len(output.transactions),
             "investments": len(output.investments),
             "confidence": output.confidence,
@@ -319,7 +352,8 @@ def run(ctx: WorkspaceContext) -> dict:
     if not llm_config_data or not llm_config_data.get("api_key"):
         return {"skipped": True, "reason": "No LLM config — free tier"}
 
-    docs = _find_unprocessed_docs(ctx)
+    store = ctx.get_artifact_store()
+    docs = _find_unprocessed_docs(ctx, store)
     if not docs:
         return {"skipped": True, "reason": "No unprocessed documents for LLM extraction"}
 
@@ -355,8 +389,6 @@ def run(ctx: WorkspaceContext) -> dict:
         else:
             logger.debug("E2-llm: queued file names: %s", names)
 
-    ctx.e2_dir.mkdir(parents=True, exist_ok=True)
-
     processed: list[dict[str, Any]] = []
     errors: list[dict[str, str]] = []
     summary_parts: list[Any] = []
@@ -369,7 +401,7 @@ def run(ctx: WorkspaceContext) -> dict:
             pool.submit(
                 _process_one_e2_llm_document,
                 doc,
-                ctx.e2_dir,
+                store,
                 llm_config_data,
                 max_chars,
                 max_pages,

@@ -62,46 +62,37 @@ class PipelineResult:
         }
 
 
-LLM_STAGES = {"E1", "E1.5", "E2-llm", "E7-review"}
+from pipeline.stage_spec import (
+    DETERMINISTIC_ORDER,
+    FULL_ORDER,
+    LEGACY_FROM_ALIASES,
+    STAGE_REGISTRY,
+    build_from_map,
+)
 
-DETERMINISTIC_ORDER = [
-    "E0-audit",
-    "E1.5c",
-    "E2-faturas", "E2-extratos",
-    "E3", "E4", "E5", "E5.N",
-    "E6",
-    "E7-crossval",
-    "E7-apply",
-    "E6-final",
-]
 
-FULL_ORDER = [
-    "E0-unlock", "E0-audit", "E0-route",
-    "E1", "E1.5",
-    "E1.5c",
-    # Deterministic E2 first — creates *-2_extract.json for extratos/faturas conhecidos.
-    # E2-llm só processa o que ainda não tem extrato (investimentos, formatos sem parser).
-    "E2-faturas", "E2-extratos",
-    "E2-llm",
-    "E3", "E4", "E5", "E5.N",
-    "E6",
-    "E7-crossval",
-    "E7-review",
-    "E7-apply",
-    "E6-final",
-]
-
-FROM_MAP = {
-    "E0":  FULL_ORDER[:],
-    "E1":  [s for s in FULL_ORDER if s not in ("E0-unlock", "E0-audit", "E0-route")],
-    "E2":  [s for s in FULL_ORDER if s not in ("E0-unlock", "E0-audit", "E0-route", "E1", "E1.5", "E1.5c")],
-    "E3":  [s for s in FULL_ORDER if FULL_ORDER.index(s) >= FULL_ORDER.index("E3")],
-    "E4":  [s for s in FULL_ORDER if FULL_ORDER.index(s) >= FULL_ORDER.index("E4")],
-    "E5":  [s for s in FULL_ORDER if FULL_ORDER.index(s) >= FULL_ORDER.index("E5")],
-    "E5.N": [s for s in FULL_ORDER if FULL_ORDER.index(s) >= FULL_ORDER.index("E5.N")],
-    "E6":  [s for s in FULL_ORDER if FULL_ORDER.index(s) >= FULL_ORDER.index("E6")],
-    "E7":  [s for s in FULL_ORDER if FULL_ORDER.index(s) >= FULL_ORDER.index("E7-crossval")],
+LLM_STAGES = {
+    name for name, spec in STAGE_REGISTRY.items() if spec.is_llm
 }
+
+
+def _build_from_map_with_aliases() -> Dict[str, List[str]]:
+    """``FROM_MAP`` derivado de ``FULL_ORDER`` + aliases legados.
+
+    Os aliases (``"E0"``, ``"E2"``, ``"E7"``) mapeiam para o primeiro stage do
+    grupo (``"E0-unlock"``, ``"E2-faturas"``, ``"E7-crossval"``). Aceitos por
+    retrocompatibilidade com call-sites que passam o prefixo da família.
+    """
+    base = build_from_map(FULL_ORDER)
+    for alias, target in LEGACY_FROM_ALIASES.items():
+        base[alias] = base[target][:]
+    # E1 alias: inclui E1 em diante
+    if "E1" in base:
+        pass  # já presente
+    return base
+
+
+FROM_MAP: Dict[str, List[str]] = _build_from_map_with_aliases()
 
 
 def _get_stage_runner(stage: str) -> Callable:
@@ -127,8 +118,11 @@ def _get_stage_runner(stage: str) -> Callable:
     if stage == "E2-llm":
         from pipeline.stages.e2_llm import run
         return run
-    if stage in ("E2-faturas", "E2-extratos"):
-        from pipeline.stages.e2 import run
+    if stage == "E2-faturas":
+        from pipeline.stages.e2_faturas import run
+        return run
+    if stage == "E2-extratos":
+        from pipeline.stages.e2_extratos import run
         return run
     if stage == "E3":
         from pipeline.stages.e3 import run

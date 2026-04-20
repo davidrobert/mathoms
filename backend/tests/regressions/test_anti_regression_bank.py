@@ -359,7 +359,7 @@ class TestOp008FernetPersistence:
         # Em CI: FERNET_KEY é setada via env (conftest faz isso)
         assert settings.FERNET_KEY, (
             "OP-008 REGRESSION: FERNET_KEY vazia. Verifique que .env tem a key "
-            "ou que FIN_FERNET_KEY está exportada."
+            "ou que MATHOMS_FERNET_KEY está exportada."
         )
 
 

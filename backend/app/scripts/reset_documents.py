@@ -32,6 +32,7 @@ from sqlalchemy import delete, func, select
 from backend.app.core.config import settings
 from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.models.document import Document
+from backend.app.models.pipeline_artifact import PipelineArtifact
 
 
 PRESERVE_DIRS = {"config"}
@@ -81,10 +82,19 @@ async def reset(apply: bool) -> int:
         total_docs = int(result.scalar_one())
         print(f"[info] {total_docs} documents in DB will be deleted", flush=True)
 
+        total_artifacts = int(
+            (await db.execute(select(func.count(PipelineArtifact.id)))).scalar_one()
+        )
+        print(
+            f"[info] {total_artifacts} pipeline_artifacts in DB will be deleted (Fase 4.2)",
+            flush=True,
+        )
+
         if apply:
+            await db.execute(delete(PipelineArtifact))
             await db.execute(delete(Document))
             await db.commit()
-            print("[done] documents deleted from DB", flush=True)
+            print("[done] documents + pipeline_artifacts deleted from DB", flush=True)
 
     root = _storage_root()
     if not root.exists():

@@ -1,0 +1,34 @@
+# docker-compose.smoke.yml — Stack de smoke test local (A6b.5)
+#
+# Inicia apenas o Redis (dependência externa). Backend, Celery worker
+# e frontend são iniciados via Makefile como processos locais (sem Docker
+# para app — Dockerfiles chegam em F7).
+#
+# Uso preferido:
+#   make smoke-up    → Redis + backend + worker + frontend em background
+#   make smoke-seed  → seed DB com usuários/workspace/fixtures
+#   make smoke-down  → para tudo
+#
+# Ou só o Redis:
+#   docker compose -f docker-compose.smoke.yml up -d
+#   docker compose -f docker-compose.smoke.yml down
+
+services:
+  redis-smoke:
+    image: redis:7-alpine
+    container_name: mathoms-smoke-redis
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --save ""
+      --appendonly no
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+# Sem volumes nomeados — smoke data é efêmera; `make smoke-reset` limpa tudo.

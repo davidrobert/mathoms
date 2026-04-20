@@ -90,6 +90,7 @@ def rename_to_canonical(
     institution: str | None,
     period: str | None,
     classification_meta: dict[str, Any] | None,
+    content_hash: str | None = None,
 ) -> tuple[Path, str] | None:
     """Rename/move a file (already in ``data/``) to its new canonical name.
 
@@ -101,6 +102,10 @@ def rename_to_canonical(
     - Source can be anywhere under ``tenant_root`` (not just ``inbox/``)
     - If the canonical name is unchanged the file is left in place and the
       existing path is returned as-is (no-op).
+
+    The ``content_hash`` (sha256 hexdigest) is prepended as ``{hash[:12]}_`` to
+    the canonical filename (ADR-084). When not provided it is computed from the
+    file on disk.
 
     Returns ``(absolute_path, path_relative_to_tenant)`` or ``None`` on error.
     """
@@ -124,7 +129,8 @@ def rename_to_canonical(
         period=period,
         classification_meta=classification_meta,
     )
-    final_name = build_final_name(classification, ext)
+    src_hash = content_hash or file_hash(current_path)
+    final_name = build_final_name(classification, ext, content_hash=src_hash)
     dest_directory = dest_dir_for_group(tenant_root, dest_group)
     dest_path = dest_directory / final_name
 
@@ -138,7 +144,6 @@ def rename_to_canonical(
             rel = current_path
         return current_path, str(rel).replace("\\", "/")
 
-    src_hash = file_hash(current_path)
     resolved = resolve_collision(dest_path, src_hash)
 
     if resolved is None:
@@ -167,8 +172,13 @@ def route_inbox_to_canonical_data(
     institution: str | None,
     period: str | None,
     classification_meta: dict[str, Any] | None,
+    content_hash: str | None = None,
 ) -> tuple[Path, str] | None:
     """Move file from inbox to ``data/{dest}/`` with E0 canonical name.
+
+    The ``content_hash`` (sha256 hexdigest of the uploaded bytes) is prepended as
+    ``{hash[:12]}_`` to the canonical filename (ADR-084 — content-addressed
+    uploads). When not provided it is computed from the file on disk.
 
     Returns ``(absolute_path, path_relative_to_tenant)`` or ``None`` if inputs invalid.
     Mirrors collision handling from ``e0_route.route_file``.
@@ -193,10 +203,10 @@ def route_inbox_to_canonical_data(
         period=period,
         classification_meta=classification_meta,
     )
-    final_name = build_final_name(classification, ext)
+    src_hash = content_hash or file_hash(inbox_path)
+    final_name = build_final_name(classification, ext, content_hash=src_hash)
     dest_directory = dest_dir_for_group(tenant_root, dest_group)
     dest_path = dest_directory / final_name
-    src_hash = file_hash(inbox_path)
 
     resolved = resolve_collision(dest_path, src_hash)
     tenant_root = tenant_root.resolve()

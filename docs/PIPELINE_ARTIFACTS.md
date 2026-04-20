@@ -1,6 +1,6 @@
 # Artefatos do pipeline — validação JSON (checklist P1-D3)
 
-> Referência para cobertura de `validate_artifact` e do modo **strict** (`FIN_PIPELINE_SCHEMA_MODE`).
+> Referência para cobertura de `validate_artifact` e do modo **strict** (`MATHOMS_PIPELINE_SCHEMA_MODE`).
 
 ## Schemas em `config/schemas/`
 
@@ -12,7 +12,7 @@
 | `e5_analysis.schema.json` | `processed/E5_analysis/analise_financeira-5_analysis.json` | `scripts/e5_analyze.py` (write principal) |
 | `baseline_patrimonial.schema.json` | baseline E1.5 | `e4_categorize` (baseline) — validação dedicada pode evoluir |
 
-**Política:** modo default **warn** (`pipeline.json`); CI roda subset com `FIN_PIPELINE_SCHEMA_MODE=strict` nos testes de `validate_artifact`. Stubs E2 só para LLM (`requires_llm_fallback`) não passam por schema para evitar ruído.
+**Política:** modo default **warn** (`pipeline.json`); CI roda subset com `MATHOMS_PIPELINE_SCHEMA_MODE=strict` nos testes de `validate_artifact`. Stubs E2 só para LLM (`requires_llm_fallback`) não passam por schema para evitar ruído.
 
 ## Fixtures golden
 

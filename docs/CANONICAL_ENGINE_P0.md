@@ -51,7 +51,7 @@
 | Mecanismo | Estado atual |
 | --- | --- |
 | `config/pipeline.json` → `schema_validation` | `enabled: true`, **`mode: "warn"`** — invalidação loga aviso e **não bloqueia** o estágio |
-| Override | `FIN_PIPELINE_SCHEMA_MODE=strict` \| `warn` — força o modo sem editar `pipeline.json` (`scripts/pipeline_common.py`) |
+| Override | `MATHOMS_PIPELINE_SCHEMA_MODE=strict` \| `warn` — força o modo sem editar `pipeline.json` (`scripts/pipeline_common.py`) |
 | Schemas | `config/schemas/*.schema.json` |
 | Testes de `validate_artifact` | `tests/test_schema_validation.py` (inclui caso strict) |
 | Validação LLM | Pydantic/Instructor nos stages |

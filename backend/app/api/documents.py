@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse
@@ -34,6 +35,7 @@ from backend.app.services.document_duplicates import rebuild_fuzzy_duplicate_poi
 from backend.app.services.storage import StorageService, detect_actual_mime
 from backend.app.services.vault import get_vault
 from backend.app.services.document_processor import process_uploaded_document
+from backend.app.services.document_pipeline_sync import _find_e2_extract
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/documents",
@@ -169,6 +171,7 @@ async def upload_documents(
                 config_dir,
                 tenant_root=tenant_root,
                 workspace_id=workspace.id,
+                content_hash=content_hash,
             )
             doc.status = result["status"]
             doc.doc_type = result["doc_type"]
@@ -332,6 +335,10 @@ async def update_document_classification(
         "period": doc.period,
     }
 
+    # Campos que afetam qual parser/LLM é usado na extração E2 — mudança invalida extrato anterior.
+    EXTRACTION_AFFECTING = {"doc_type", "bank_code"}
+    extraction_changed = bool(updates.keys() & EXTRACTION_AFFECTING)
+
     if "doc_type" in updates:
         doc.doc_type = updates["doc_type"]
     if "bank_code" in updates:
@@ -348,6 +355,13 @@ async def update_document_classification(
     doc.classification_meta = meta
     doc.classification_confidence = 1.0
     doc.needs_review = False
+
+    if extraction_changed:
+        # Invalida extrato anterior e recoloca o doc na fila do pipeline incremental.
+        doc.pipeline_last_run_at = None
+        doc.pipeline_e2_extract_ok = None
+        if doc.status == DocumentStatus.processed:
+            doc.status = DocumentStatus.ready
 
     await audit_log(
         db,
@@ -456,6 +470,7 @@ async def retry_unlock(
                 config_dir,
                 tenant_root=tenant_root,
                 workspace_id=workspace.id,
+                content_hash=doc.content_hash,
             )
             doc.status = proc_result["status"]
             doc.doc_type = proc_result["doc_type"]
@@ -533,6 +548,77 @@ async def get_document_file(
             "Cache-Control": "private, max-age=3600",
         },
     )
+
+
+class ExtractJsonResponse(BaseModel):
+    filename: str
+    data: Any
+    all_candidates: list[str]
+
+
+@router.get("/{document_id}/extract-json", response_model=ExtractJsonResponse)
+async def get_document_extract_json(
+    document_id: str,
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retorna o JSON extraído pelo E2 para um documento processado (dev/debug)."""
+    result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.workspace_id == workspace.id,
+        )
+    )
+    doc = result.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Documento não encontrado")
+
+    e2_dir = _storage.tenant_root(workspace.id) / "processed" / "E2_extracts"
+    if not e2_dir.exists():
+        raise HTTPException(status_code=404, detail="Nenhum extrato E2 disponível")
+
+    all_candidates = sorted(f.name for f in e2_dir.glob("*-2_extract.json"))
+    if not all_candidates:
+        raise HTTPException(status_code=404, detail="Nenhum extrato E2 encontrado")
+
+    # Estratégia 1: correspondência exata via stored_path (mesmo algoritmo do sync)
+    target = None
+    if doc.stored_path:
+        source_filename = Path(doc.stored_path).name
+        target = _find_e2_extract(e2_dir, source_filename)
+
+    # Estratégia 2: fallback por bank_code + doc_type + period (sem stored_path)
+    if target is None:
+        matches = list(e2_dir.glob("*-2_extract.json"))
+        if doc.bank_code:
+            bank_matches = [f for f in matches if doc.bank_code.lower() in f.name.lower()]
+            if bank_matches:
+                matches = bank_matches
+        # Filtra por tipo de documento antes do período para evitar confusão extrato×fatura
+        _DOC_TYPE_KEYWORDS = {
+            DocumentType.credit_card_bill: ["fatura"],
+            DocumentType.bank_statement: ["extrato"],
+        }
+        if doc.doc_type in _DOC_TYPE_KEYWORDS:
+            kws = _DOC_TYPE_KEYWORDS[doc.doc_type]
+            type_matches = [f for f in matches if any(kw in f.name.lower() for kw in kws)]
+            if type_matches:
+                matches = type_matches
+        if doc.period:
+            period_prefix = doc.period.split("_")[0]
+            period_matches = [f for f in matches if period_prefix in f.name]
+            if period_matches:
+                matches = period_matches
+        target = sorted(matches)[0] if matches else None
+
+    if target is None:
+        raise HTTPException(status_code=404, detail="Extrato E2 não encontrado para este documento")
+    try:
+        data = json.loads(target.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Erro ao ler extrato: {exc}") from exc
+
+    return ExtractJsonResponse(filename=target.name, data=data, all_candidates=all_candidates)
 
 
 class ReclassifyResponse(BaseModel):
@@ -672,6 +758,7 @@ async def reclassify_documents(
                         institution=clf.get("bank_code"),
                         period=clf.get("period"),
                         classification_meta=meta,
+                        content_hash=doc.content_hash,
                     ),
                 )
                 if rename_result is not None:

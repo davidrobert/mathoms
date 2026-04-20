@@ -42,7 +42,7 @@ class TestValidateArtifact:
         assert "banco" in caplog.text
 
     def test_invalid_e2_strict_mode_returns_false(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("FIN_PIPELINE_SCHEMA_MODE", "strict")
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
         data = {
             "pipeline_stage": "E2",
             "tipo": "extratoconta",

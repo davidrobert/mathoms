@@ -12,7 +12,10 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
+if TYPE_CHECKING:
+    from pipeline.artifact_store import ArtifactStore
 
 
 @dataclass
@@ -50,6 +53,12 @@ class WorkspaceContext:
     incremental: bool = False
     #: Stored paths of new documents (relative to tenant root). Used by E0/E2 to filter.
     incremental_doc_paths: List[str] = field(default_factory=list)
+
+    #: ArtifactStore injetável (ADR-083). Se ``None``, ``get_artifact_store()``
+    #: devolve um :class:`DiskArtifactStore` apontando para ``self.root``.
+    #: Stages devem usar ``ctx.get_artifact_store()`` em vez de acessar este
+    #: campo diretamente, para manter a resolução lazy.
+    artifact_store: Optional["ArtifactStore"] = field(default=None, repr=False)
 
     def __post_init__(self):
         self.root = Path(self.root).resolve()
@@ -97,6 +106,22 @@ class WorkspaceContext:
                 raise
             return {}
 
+    def get_artifact_store(self) -> "ArtifactStore":
+        """Retorna o ``ArtifactStore`` ativo para esta run.
+
+        Default: :class:`DiskArtifactStore` apontando para ``self.root``.
+        Web/Celery: injetar um :class:`DBArtifactStore` via ``for_tenant`` ou
+        pós-construção, antes de chamar os stages.
+
+        Idempotente: a primeira chamada sem store pré-injetado cria um
+        :class:`DiskArtifactStore` e o memoriza em ``self.artifact_store``.
+        """
+        if self.artifact_store is None:
+            from pipeline.artifact_store import DiskArtifactStore
+
+            self.artifact_store = DiskArtifactStore(self.root)
+        return self.artifact_store
+
     def ensure_dirs(self) -> None:
         """Cria diretórios de output se não existirem."""
         for d in (
@@ -127,6 +152,7 @@ class WorkspaceContext:
         config: Optional[Dict[str, Any]] = None,
         config_dir: Optional[Path] = None,
         pipeline_run_id: Optional[str] = None,
+        artifact_store: Optional["ArtifactStore"] = None,
     ) -> WorkspaceContext:
         """Contexto para tenant web com config do banco de dados.
 
@@ -136,10 +162,14 @@ class WorkspaceContext:
             config_dir: External config directory (e.g. global project config/).
                         If None, defaults to tenant_root/config/.
             pipeline_run_id: Active pipeline run id — enables live ``stage_activity`` events.
+            artifact_store: ``ArtifactStore`` pré-construído (ADR-083). ``None``
+                faz ``get_artifact_store()`` instanciar um ``DiskArtifactStore``
+                lazy na primeira chamada.
         """
         return cls(
             root=tenant_root,
             _config_dir_override=config_dir,
             config_overrides=config,
             pipeline_run_id=pipeline_run_id,
+            artifact_store=artifact_store,
         )

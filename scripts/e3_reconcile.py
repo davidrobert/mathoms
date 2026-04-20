@@ -35,6 +35,44 @@ import scripts.pipeline_common as _pc
 
 _DEFAULT_BASE_DIR = _pc._REPO_ROOT
 
+# =============================================================================
+# Module-level defaults (Sessão A3b — eliminado side-effect no import)
+# =============================================================================
+#
+# Antes da Sessão A3b: o módulo invocava ``_init_config(_pc.PROJECT_DIR)`` no
+# nível de módulo, lendo ``config/family_members.json`` etc. no momento do
+# import. Isso quebrava em ambientes sem config (CI mínimo) e tornava o módulo
+# *não-importável puro*.
+#
+# Agora: globals começam com defaults sensatos (equivalentes ao branch ``or {…}``
+# de ``_init_config``). ``_init_config(base_dir)`` continua disponível para
+# popular do disco quando explicitamente chamado por ``main(root_dir=...)``
+# ou por testes (que ainda fazem ``_init_config(_DEFAULT_BASE_DIR)`` em
+# ``finally`` para resetar entre runs).
+
+_BASE_DIR: Path = _DEFAULT_BASE_DIR
+PIPE_CONFIG: Dict[str, Any] = {}
+ACCOUNT_TYPE_EQUIVALENCES: Dict[str, str] = {}
+_BANCO_DISPLAY_TO_CANONICAL: Dict[str, str] = {}
+SKIP_TYPES: set = {
+    'investimentosposicao', 'carteirarendafixa', 'cdbdetalhes', 'cdbresumo',
+    'faturaaluguel', 'informerendimentos', 'irpf',
+}
+SKIP_FILES: set = {
+    'baseline_patrimonial-1.5_consolidated.json',
+    'dados_imoveis-2_extract.json',
+}
+TIPO_CANONICAL: Dict[str, str] = {
+    'extratoconta': 'extratoconta', 'extratocontapj': 'extratocontapj',
+    'extratocontapersonnalite': 'extratocontapersonnalite',
+    'extratopoupanca': 'extratopoupanca', 'extratocontaglobal': 'extratocontaglobal',
+    'extratocontaglobalusd': 'extratocontaglobalusd', 'extratocontaglobaleur': 'extratocontaglobaleur',
+    'faturacarbon': 'faturacarbon', 'faturaunique': 'faturaunique', 'faturapaoacucar': 'faturapaoacucar',
+}
+_TOLERANCE_SALDO_DIFF: float = 0.01
+_TOLERANCE_GAP_DAYS: int = 4
+_TOLERANCE_BASELINE_DIFF: float = 1.0
+
 
 def _load_json_safe(path: Path) -> dict:
     """Load a JSON file safely, returning {} on any error."""
@@ -95,8 +133,11 @@ def _init_config(base_dir: Path) -> None:
     _TOLERANCE_BASELINE_DIFF = _tolerances.get("baseline_irpf_diff", 1.0)
 
 
-# Module level: carrega defaults (retrocompat com import e CLI direto)
-_init_config(_pc.PROJECT_DIR)
+# Module level: NÃO chamar _init_config no import (Sessão A3b — eliminado
+# side-effect). ``main(root_dir=...)`` invoca ``_init_config`` explicitamente
+# quando precisa dos paths/configs. Para imports puros (CLI ou testes que só
+# usam helpers como ``transaction_signature``), os defaults módulo-level acima
+# são suficientes.
 
 
 # =============================================================================
@@ -1181,6 +1222,249 @@ def main(root_dir: Path = None):
         n_errs = len(write_errors) + len(reconciliation_errors)
         log_progress("E3", f"FALHOU com {n_errs} erro(s) — exit code 1")
         sys.exit(1)
+
+
+def main_with_store(ctx) -> Dict[str, Any]:
+    """E3 Caminho B (Sessão A2 da Fase 6) — orquestra o pipeline E3 sobre
+    ``ArtifactStore`` em vez de disco direto.
+
+    Não substitui ``main(root_dir)`` legado — coexiste. O wrapper
+    ``pipeline/stages/e3.py`` chama esta função; CLI direto e testes legados
+    continuam usando ``main(root_dir)``.
+
+    Diferenças vs ``main(root_dir)``:
+    - Lê E2 e escreve E3 via ``ctx.get_artifact_store()`` (in-memory ou DB-backed
+      em testes; disco no caminho normal).
+    - Usa os domain services extraídos na Sessão A1 (canonicalizer, grouper,
+      preprocessor, validators) — paridade comprovada por golden no
+      ``tests/unit/pipeline/test_e3_main_with_store_parity.py``.
+    - ``cleanup_e3_directory`` continua sendo chamado em modo Disk para
+      paridade com o legado.
+    - Sidecar logs (``reconciliation.md``, ``qa_log.md``) continuam em
+      ``ctx.logs_dir`` quando o diretório existe ou pode ser criado.
+
+    Args:
+        ctx: ``pipeline.context.WorkspaceContext`` com ``logs_dir`` e config.
+
+    Returns:
+        Dict com ``files_created``, ``total``, contagens e mensagens de
+        warning prontas para log.
+    """
+    # Imports lazy — `pipeline/` importa de `scripts/`? Não.
+    # Mas `scripts/` pode importar de `pipeline/` (sem boundary issue).
+    from pipeline.artifact_store import DiskArtifactStore
+    from pipeline.domain.models.bank import BankCanonicalizer
+    from pipeline.domain.services.account_grouper import (
+        AccountGrouper,
+        AccountGrouperConfig,
+    )
+    from pipeline.domain.services.baseline_validator import (
+        BaselineValidator,
+        BaselineValidatorConfig,
+    )
+    from pipeline.domain.services.e3_reconciler_adapter import E3ReconcilerAdapter
+    from pipeline.domain.services.e3_serialization import (
+        generate_legacy_artifact_key,
+        generate_legacy_filename,
+        serialize_to_e3_legacy_format,
+    )
+    from pipeline.domain.services.reconciliation_service import (
+        ReconciliationConfig,
+        ReconciliationService,
+    )
+    from pipeline.domain.services.reconciliation_validators import (
+        SaldoContinuityConfig,
+        SaldoContinuityValidator,
+        TemporalGapConfig,
+        TemporalGapDetector,
+    )
+
+    print("=" * 80)
+    print("E3 RECONCILIATION STAGE — Caminho B (main_with_store)")
+    print("=" * 80)
+
+    # 1. Configs vindo do workspace context (CLI ou DB-overrides).
+    institutions = ctx.load_config("institutions.json")
+    family = ctx.load_config("family_members.json")
+    pipeline_cfg = ctx.load_config("pipeline.json")
+
+    # 2. Domain services com configs tipadas.
+    canon = BankCanonicalizer.from_institutions(institutions)
+    grouper = AccountGrouper(
+        AccountGrouperConfig.from_pipeline_config(family=family, pipeline=pipeline_cfg)
+    )
+    saldo_validator = SaldoContinuityValidator(
+        SaldoContinuityConfig.from_pipeline_config(pipeline_cfg)
+    )
+    temporal_detector = TemporalGapDetector(
+        TemporalGapConfig.from_pipeline_config(pipeline_cfg)
+    )
+    baseline_validator = BaselineValidator(
+        BaselineValidatorConfig.from_pipeline_config(pipeline_cfg),
+        canonicalizer=canon,
+    )
+    recon_cfg = ReconciliationConfig.from_pipeline_config(pipeline_cfg)
+    adapter = E3ReconcilerAdapter(
+        recon_cfg,
+        canonicalizer=canon,
+        grouper=grouper,
+        saldo_validator=saldo_validator,
+        temporal_detector=temporal_detector,
+        baseline_validator=baseline_validator,
+    )
+
+    store = ctx.get_artifact_store()
+
+    # 3. Cleanup E3 — só em modo Disk (paridade com legado #1).
+    if isinstance(store, DiskArtifactStore):
+        cleanup_e3_directory(ctx.e3_dir)
+
+    log_progress("E3.0", f"Workspace root: {ctx.root}")
+    log_progress("E3.0", f"Store impl:     {type(store).__name__}")
+
+    # 4. Pipeline end-to-end via adapter, com filename + serializer legados.
+    serialize_fn = lambda stmt, sources, dup: serialize_to_e3_legacy_format(
+        stmt, sources=sources, duplicates_removed=dup
+    )
+    output_key_fn = lambda stmt: generate_legacy_artifact_key(stmt, canonicalizer=canon)
+
+    result = adapter.reconcile_via_store(
+        store,
+        output_stage="E3",
+        output_key_fn=output_key_fn,
+        serialize_fn=serialize_fn,
+    )
+
+    # 5. Validate cada payload escrito contra o schema E3.
+    written_filenames: List[str] = []
+    for key in store.list_keys("E3"):
+        filename = f"{key}-3_reconciled.json"
+        written_filenames.append(filename)
+        if isinstance(store, DiskArtifactStore):
+            target = ctx.e3_dir / filename
+            if target.exists():
+                _pc.validate_artifact(target, "e3_reconciled.schema.json")
+
+    # 6. Sidecar logs — paridade com legado (reconciliation.md + qa_log E3 section).
+    logs_dir = ctx.logs_dir
+    try:
+        logs_dir.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
+
+    if logs_dir.exists():
+        _write_reconciliation_summary(
+            logs_dir / "reconciliation.md",
+            written_filenames=written_filenames,
+            result=result,
+        )
+        if result.temporal_warnings:
+            _write_qa_log_e3_section(
+                logs_dir / "qa_log.md",
+                temporal_warnings=result.temporal_warnings,
+            )
+
+    # 7. Logs de warnings (formato compatível com legado, via .format() do warning).
+    for w in result.saldo_warnings:
+        log_progress("E3.2", f"WARNING ({w.account_key[0]}): {w.format()}")
+    for w in result.temporal_warnings:
+        log_progress("E3.2", f"TEMPORAL ({w.account_key[0]}): {w.format()}")
+    for w in result.baseline_warnings:
+        log_progress("E3.6", f"BASELINE WARNING: {w.format()}")
+    for w in result.period_warnings:
+        log_progress("E3.1", w.format())
+    for w in result.anachronic_warnings:
+        log_progress("E3.1", f"WARNING: {w.format()}")
+
+    print("\n" + "=" * 80)
+    print("E3 RECONCILIATION COMPLETE — Caminho B")
+    print("=" * 80)
+    print(f"Statements loaded:          {result.statements_loaded}")
+    print(f"Statements reconciled:      {result.statements_reconciled}")
+    print(f"Files written:              {result.artifacts_written}")
+    print(f"Skipped inputs:             {result.skipped_inputs}")
+    if result.saldo_warnings:
+        print(f"Saldo gap warnings:         {len(result.saldo_warnings)}")
+    if result.temporal_warnings:
+        print(f"Temporal gap warnings:      {len(result.temporal_warnings)}")
+    if result.baseline_warnings:
+        print(f"Baseline diff warnings:     {len(result.baseline_warnings)}")
+    print("=" * 80)
+
+    return {
+        "files_created": written_filenames,
+        "total": result.artifacts_written,
+        "statements_loaded": result.statements_loaded,
+        "statements_reconciled": result.statements_reconciled,
+        "skipped_inputs": result.skipped_inputs,
+        "saldo_warnings": [w.format() for w in result.saldo_warnings],
+        "temporal_warnings": [w.format() for w in result.temporal_warnings],
+        "baseline_warnings": [w.format() for w in result.baseline_warnings],
+        "period_warnings": [w.format() for w in result.period_warnings],
+        "anachronic_warnings": [w.format() for w in result.anachronic_warnings],
+    }
+
+
+def _write_reconciliation_summary(path: Path, *, written_filenames: List[str], result) -> None:
+    """Escreve ``reconciliation.md`` no formato do legado (sem o detalhe
+    por-conta, que dependia dos dicts originais — registramos só contagens
+    + warnings)."""
+    lines = [
+        "# E3 Reconciliation Summary",
+        f"Generated: {datetime.now().isoformat()}",
+        "",
+        "## Statistics",
+        f"- Statements loaded: {result.statements_loaded}",
+        f"- Files written: {result.artifacts_written}",
+        f"- Skipped inputs: {result.skipped_inputs}",
+        "",
+    ]
+    if result.saldo_warnings or result.temporal_warnings:
+        lines.append("## Saldo Continuity & Temporal Warnings")
+        for w in result.saldo_warnings:
+            lines.append(f"- {w.format()}")
+        for w in result.temporal_warnings:
+            lines.append(f"- {w.format()}")
+        lines.append("")
+    if result.baseline_warnings:
+        lines.append("## Baseline Validation Warnings")
+        for w in result.baseline_warnings:
+            lines.append(f"- {w.format()}")
+        lines.append("")
+    if written_filenames:
+        lines.append("## Files Written")
+        for f in sorted(written_filenames):
+            lines.append(f"- {f}")
+        lines.append("")
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+    except OSError as exc:
+        log_progress("E3.5", f"ERROR: Failed to write reconciliation log: {exc}")
+
+
+def _write_qa_log_e3_section(path: Path, *, temporal_warnings) -> None:
+    """Reescreve a seção ``## E3 Temporal Gaps`` do ``qa_log.md`` (paridade
+    com o legado linha 1128-1157: limpa seção antiga antes de gravar a nova)."""
+    try:
+        old = path.read_text(encoding="utf-8") if path.exists() else ""
+        cleaned = re.sub(
+            r"\n*## E3 Temporal Gaps[^\n]*\n(?:- [^\n]*\n)*",
+            "",
+            old,
+        )
+        with open(path, "w", encoding="utf-8") as f:
+            if not cleaned.strip().startswith("# QA Log"):
+                f.write("# QA Log\n\n")
+                if cleaned.strip():
+                    f.write(cleaned.strip() + "\n")
+            else:
+                f.write(cleaned.rstrip() + "\n")
+            f.write(f"\n## E3 Temporal Gaps ({datetime.now().isoformat()})\n")
+            for w in temporal_warnings:
+                f.write(f"- {w.format()}\n")
+    except OSError as exc:
+        log_progress("E3.5", f"ERROR: Failed to write qa_log: {exc}")
 
 
 if __name__ == '__main__':

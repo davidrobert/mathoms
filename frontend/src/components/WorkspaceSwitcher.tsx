@@ -23,6 +23,8 @@ import {
 
 const STORAGE_KEY = "fin.currentWorkspaceId";
 
+const sanitizeName = (name: string) => name.replace(/[!?]+$/, "").trim();
+
 function RoleBadge({ role }: { role: "owner" | "member" | "viewer" }) {
   return (
     <span
@@ -44,7 +46,7 @@ export function WorkspaceSwitcher() {
     return (
       <div className="hidden items-center gap-2.5 sm:flex">
         <span className="text-style-heading-sm truncate max-w-[260px]">
-          {workspace.name}
+          {sanitizeName(workspace.name)}
         </span>
         <RoleBadge role={workspace.role} />
       </div>
@@ -63,7 +65,7 @@ export function WorkspaceSwitcher() {
         <SelectValue>
           <span className="inline-flex items-center gap-2.5">
             <span className="text-style-heading-sm truncate max-w-[200px]">
-              {workspace.name}
+              {sanitizeName(workspace.name)}
             </span>
             <RoleBadge role={workspace.role} />
           </span>
@@ -73,7 +75,7 @@ export function WorkspaceSwitcher() {
         {workspaces.map((w) => (
           <SelectItem key={w.id} value={w.id}>
             <span className="inline-flex items-center gap-2">
-              <span className="truncate max-w-[200px]">{w.name}</span>
+              <span className="truncate max-w-[200px]">{sanitizeName(w.name)}</span>
               <RoleBadge role={w.role} />
             </span>
           </SelectItem>

@@ -540,8 +540,13 @@ class TestE15Stage:
         assert result["net_worth_brl"] == 550000.00
         assert result["validation"]["valid"] is True
 
-        out_path = ctx.e2_dir / "baseline_patrimonial-1.5_consolidated.json"
-        assert out_path.exists()
+        # A6a: E1.5 agora escreve via store → baseline_patrimonial-1.5_baseline.json
+        # E1.5c lerá esse artefato e produzirá baseline_patrimonial-1.5_consolidated.json.
+        out_path = ctx.e2_dir / "baseline_patrimonial-1.5_baseline.json"
+        assert out_path.exists(), (
+            f"E1.5 deveria ter escrito via store no path {out_path} — "
+            "verificar que store.write('E1.5', 'baseline_patrimonial', ...) foi chamado."
+        )
 
         data = json.loads(out_path.read_text())
         assert data["resumo"]["patrimonio_liquido"] == 550000.00
@@ -625,11 +630,12 @@ class TestE2LLMStage:
         (stmts_dir / "itau_extrato-0_original.csv").write_text("x")
         (stmts_dir / "btg_informe.pdf").write_text("x")
 
-        ctx.e2_dir.mkdir(parents=True)
-        (ctx.e2_dir / "itau_extrato-2_extract.json").write_text("{}")
+        # A6a: usa store.write para criar o artefato existente.
+        store = ctx.get_artifact_store()
+        store.write("E2", "itau_extrato", {"dummy": True})
 
         from pipeline.stages.e2_llm import _find_unprocessed_docs
-        docs = _find_unprocessed_docs(ctx)
+        docs = _find_unprocessed_docs(ctx, store)
         names = [d.name for d in docs]
         assert "btg_informe.pdf" in names
         assert "itau_extrato-0_original.csv" not in names
@@ -641,13 +647,104 @@ class TestE2LLMStage:
         irpf_dir.mkdir(parents=True)
         (irpf_dir / "irpf_2024.pdf").write_text("x")
 
-        ctx.e2_dir.mkdir(parents=True)
-        (ctx.e2_dir / "irpf_2024-2_extract.json").write_text("{}")
+        # A6a: usa store.write para criar o artefato existente.
+        store = ctx.get_artifact_store()
+        store.write("E2-llm", "irpf_2024", {"dummy": True})
 
         from pipeline.stages.e2_llm import _find_unprocessed_docs
 
-        docs = _find_unprocessed_docs(ctx)
+        docs = _find_unprocessed_docs(ctx, store)
         assert docs == []
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# A6a — CRITÉRIOS ESTRUTURAIS (ADR-105)
+# ══════════════════════════════════════════════════════════════════════════
+
+_REPO = Path(__file__).resolve().parents[1]
+
+
+class TestA6aStructural:
+    """Verifica que E1.5 e E2-llm escrevem via ArtifactStore (não disco direto)."""
+
+    def test_e15_does_not_write_text_directly(self):
+        src = (_REPO / "pipeline" / "stages" / "e15.py").read_text(encoding="utf-8")
+        assert "write_text" not in src, (
+            "pipeline/stages/e15.py não deve escrever direto em disco — "
+            "A6a migrou para store.write('E1.5', ...)."
+        )
+        assert "store.write" in src, (
+            "pipeline/stages/e15.py deve chamar store.write após A6a."
+        )
+
+    def test_e2_llm_does_not_write_text_directly_in_process_one(self):
+        src = (_REPO / "pipeline" / "stages" / "e2_llm.py").read_text(encoding="utf-8")
+        # O bloco de write dentro de _process_one_e2_llm_document não deve ter write_text
+        assert "out_path.write_text" not in src, (
+            "pipeline/stages/e2_llm.py não deve usar out_path.write_text — "
+            "A6a migrou para store.write('E2-llm', ...)."
+        )
+        assert "store.write" in src, (
+            "pipeline/stages/e2_llm.py deve chamar store.write após A6a."
+        )
+
+    def test_e15_writes_to_e15_stage_key(self, tmp_path):
+        """Com DiskArtifactStore, E1.5 deve produzir baseline_patrimonial-1.5_baseline.json."""
+        import json
+        from unittest.mock import patch
+
+        ctx = _make_ctx(tmp_path)
+        (tmp_path / "data" / "income_tax_br").mkdir(parents=True)
+        (tmp_path / "data" / "income_tax_br" / "irpf.pdf").write_text("x")
+
+        with (
+            patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract", return_value="x"),
+            patch("pipeline.llm.service.LLMService._ensure_client"),
+            patch("pipeline.llm.service.LLMService.call",
+                  return_value=_mock_call_result(_mock_e15_output())),
+        ):
+            from pipeline.stages.e15 import run
+            result = run(ctx)
+
+        assert result["success"] is True
+        # A6a: arquivo correto via store
+        baseline_path = ctx.e2_dir / "baseline_patrimonial-1.5_baseline.json"
+        assert baseline_path.exists(), "E1.5 deve escrever baseline_patrimonial-1.5_baseline.json"
+        # Arquivo E1.5c NÃO deve existir ainda (E1.5c ainda não rodou)
+        consolidated = ctx.e2_dir / "baseline_patrimonial-1.5_consolidated.json"
+        assert not consolidated.exists(), (
+            "E1.5 não deve mais escrever _consolidated.json — isso é responsabilidade do E1.5c."
+        )
+        data = json.loads(baseline_path.read_text())
+        assert data["resumo"]["patrimonio_liquido"] == 550000.00
+
+    def test_e2_llm_writes_via_store(self, tmp_path):
+        """Com DiskArtifactStore, E2-llm deve produzir {stem}-2_extract.json no path correto."""
+        import json
+        from unittest.mock import patch
+
+        ctx = _make_ctx(tmp_path)
+        stmts_dir = tmp_path / "data" / "financial_statements"
+        stmts_dir.mkdir(parents=True)
+        (stmts_dir / "btg_informe_2024.pdf").write_text("x")
+
+        with (
+            patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract",
+                  return_value="Investment content"),
+            patch("pipeline.llm.service.LLMService._ensure_client"),
+            patch("pipeline.llm.service.LLMService.call",
+                  return_value=_mock_call_result(_mock_e2_llm_output())),
+        ):
+            from pipeline.stages.e2_llm import run
+            result = run(ctx)
+
+        assert result["success"] is True
+        assert result["total_processed"] == 1
+        # A6a: arquivo deve existir no path esperado do store
+        out_file = ctx.e2_dir / "btg_informe_2024-2_extract.json"
+        assert out_file.exists(), f"E2-llm deve escrever {out_file.name} via store"
+        data = json.loads(out_file.read_text())
+        assert data["extraido_por"] == "llm"
 
 
 # ══════════════════════════════════════════════════════════════════════════

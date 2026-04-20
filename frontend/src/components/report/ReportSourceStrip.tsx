@@ -16,7 +16,10 @@ interface ReportSourceStripProps {
 }
 
 /**
- * F11.4 — Faixa discreta de origem dos dados (sem novo endpoint: usa metadados + snapshot).
+ * F11.4 — Faixa discreta de origem dos dados.
+ *
+ * Linha principal: período + data de geração (info relevante ao usuário).
+ * Detalhes técnicos (run ID, contagem de docs) ficam colapsados sob "Auditoria".
  */
 function shortRunId(id: string): string {
   const t = id.trim();
@@ -36,72 +39,75 @@ export function ReportSourceStrip({
     reportPeriod ||
     "—";
 
+  const hasAuditDetails = !!(pipelineRunId || (sourceDocumentCount != null && sourceDocumentCount > 0));
+
   return (
     <div
-      className="no-print border-b border-[var(--surface-border)] bg-[color-mix(in_srgb,var(--surface-muted)_45%,transparent)] px-4 py-2.5 text-xs leading-relaxed text-[var(--surface-muted-foreground)]"
+      className="no-print border-b border-[var(--surface-border)] bg-[color-mix(in_srgb,var(--surface-muted)_45%,transparent)] px-4 py-2 text-xs leading-relaxed text-[var(--surface-muted-foreground)]"
       role="note"
       aria-label="Origem dos dados do relatório"
     >
-      <p>
-        <span className="font-medium text-[var(--surface-foreground)]">
-          Origem dos dados:
-        </span>{" "}
-        consolidados a partir dos documentos deste workspace após o último
-        processamento concluído. Gerencie entradas em{" "}
-        <Link
-          href="/documents"
-          className="font-medium text-[var(--brand-primary)] underline-offset-2 hover:underline"
-        >
-          Documentos
-        </Link>{" "}
-        e acompanhe execuções em{" "}
-        <Link
-          href="/pipeline"
-          className="font-medium text-[var(--brand-primary)] underline-offset-2 hover:underline"
-        >
-          Pipeline
-        </Link>
-        .
-      </p>
-      {pipelineRunId ? (
-        <p className="mt-1.5">
-          <span className="font-medium text-[var(--surface-foreground)]">
-            Execução do pipeline:
-          </span>{" "}
-          <Link
-            href={`/pipeline?run=${encodeURIComponent(pipelineRunId)}`}
-            className="font-mono text-[var(--surface-foreground)] tabular-nums underline-offset-2 hover:underline"
-            title={pipelineRunId}
-          >
-            {shortRunId(pipelineRunId)}
-          </Link>
-          <span className="text-[var(--surface-muted-foreground)]">
-            {" "}
-            (detalhes em Pipeline)
-          </span>
-        </p>
-      ) : null}
-      {sourceDocumentCount != null && sourceDocumentCount > 0 ? (
-        <p className="mt-1.5 font-mono text-[11px] tabular-nums text-[var(--surface-muted-foreground)]">
-          Base de documentos no workspace:{" "}
-          <span className="text-[var(--surface-foreground)]">{sourceDocumentCount}</span> pronto(s)
-          — gerencie em{" "}
+      {/* Linha principal — sempre visível */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono tabular-nums">
+        <span>
+          <span className="text-[var(--surface-foreground)]">Período:</span>{" "}
+          {period}
+        </span>
+        <span className="text-[var(--surface-border)]" aria-hidden>·</span>
+        <span>
+          <span className="text-[var(--surface-foreground)]">Gerado em:</span>{" "}
+          {generatedAtLabel}
+        </span>
+        <span className="text-[var(--surface-border)]" aria-hidden>·</span>
+        <span className="font-sans">
+          Dados em{" "}
           <Link
             href="/documents"
-            className="font-medium text-[var(--brand-primary)] underline-offset-2 hover:underline"
+            className="text-[var(--brand-primary)] underline-offset-2 hover:underline"
           >
             Documentos
           </Link>
-          .
-        </p>
-      ) : null}
-      <p className="mt-1.5 font-mono tabular-nums">
-        Período referenciado: {period}
-        <span className="mx-1.5 text-[var(--surface-border)]" aria-hidden>
-          ·
+          {" "}e{" "}
+          <Link
+            href="/pipeline"
+            className="text-[var(--brand-primary)] underline-offset-2 hover:underline"
+          >
+            Pipeline
+          </Link>
         </span>
-        Relatório gerado em {generatedAtLabel}
-      </p>
+
+        {hasAuditDetails && (
+          <>
+            <span className="text-[var(--surface-border)]" aria-hidden>·</span>
+            <details className="group inline">
+              <summary className="cursor-pointer list-none font-sans text-[var(--surface-muted-foreground)] hover:text-[var(--surface-foreground)] select-none">
+                Auditoria{" "}
+                <span className="inline-block transition-transform group-open:rotate-180" aria-hidden>▾</span>
+              </summary>
+              <div className="mt-1.5 space-y-1 pl-0 font-sans">
+                {pipelineRunId && (
+                  <p>
+                    <span className="text-[var(--surface-foreground)]">Execução:</span>{" "}
+                    <Link
+                      href={`/pipeline?run=${encodeURIComponent(pipelineRunId)}`}
+                      className="font-mono text-[var(--surface-foreground)] tabular-nums underline-offset-2 hover:underline"
+                      title={pipelineRunId}
+                    >
+                      {shortRunId(pipelineRunId)}
+                    </Link>
+                  </p>
+                )}
+                {sourceDocumentCount != null && sourceDocumentCount > 0 && (
+                  <p>
+                    <span className="text-[var(--surface-foreground)]">Documentos:</span>{" "}
+                    <span className="font-mono tabular-nums">{sourceDocumentCount}</span> pronto(s) no workspace
+                  </p>
+                )}
+              </div>
+            </details>
+          </>
+        )}
+      </div>
     </div>
   );
 }

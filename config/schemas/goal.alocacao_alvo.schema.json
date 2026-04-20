@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "fin://schemas/goal.alocacao_alvo.v1",
+  "$id": "mathoms://schemas/goal.alocacao_alvo.v1",
   "title": "Goal — Alocação-alvo (v1)",
   "description": "Percentuais-alvo de alocação da carteira (RF, RV, imóveis, liquidez USD). Migrada de `goals.json:alocacao_alvo`. ADR-075 §F8.4. Soma de %s deve ser 100.",
   "type": "object",

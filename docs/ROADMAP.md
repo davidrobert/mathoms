@@ -1,9 +1,9 @@
-# Fin — Roadmap
+# Mathoms AI — Roadmap
 
 > Visão de alto nível das fases do projeto. Atualizar mensalmente ou ao mudar de fase.
 >
-> **Última atualização:** 2026-04-17
-> **Fase atual:** F9 concluída • próxima: **F7 (Produção + LGPD + Ops)**
+> **Última atualização:** 2026-04-19
+> **Fase atual:** F9 concluída • **Plano transversal de migração infra+domínio**: Fase 8 fechada (A5a-A5e), próximas sessões A5f · A6a-f (ver [_scratch/plano_migracao_artifacts_db.md](../_scratch/plano_migracao_artifacts_db.md)) • F7 (Produção + LGPD + Ops) agendada após estabilidade do A6.
 
 ---
 
@@ -151,7 +151,7 @@ Trabalho técnico para **uma fonte de verdade** na lógica E0–E7, **testes off
 | --- | --- | --- |
 | P0 — inventário, fronteira motor × adaptadores, contratos, gaps golden | [docs/CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md) | Concluído |
 | P1 — runner offline, fronteiras de import, CI strict, goldens mínimos, checklist artefatos | [docs/P1_STRUCTURAL_PLAN.md](P1_STRUCTURAL_PLAN.md), [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) | Concluído |
-| Override `FIN_PIPELINE_SCHEMA_MODE` em `validate_artifact` | `scripts/pipeline_common.py` | Concluído |
+| Override `MATHOMS_PIPELINE_SCHEMA_MODE` em `validate_artifact` | `scripts/pipeline_common.py` | Concluído |
 | `python -m pipeline.run_dev` | `pipeline/run_dev.py` | Concluído |
 | Lint fronteiras `pipeline/` | `dev/check_pipeline_boundaries.py` | Concluído |
 
@@ -163,7 +163,7 @@ Trabalho técnico para **uma fonte de verdade** na lógica E0–E7, **testes off
 
 ### F7 — Produção + Security + LGPD + Operational Readiness (próxima)
 
-**Objetivo:** Levar o Fin a produção com a menor superfície de risco possível, fluxos de auth completos para suportar usuários reais, e maturidade operacional para sobreviver ao primeiro incidente.
+**Objetivo:** Levar o Mathoms AI a produção com a menor superfície de risco possível, fluxos de auth completos para suportar usuários reais, e maturidade operacional para sobreviver ao primeiro incidente.
 
 **Duração estimada:** 8-10 semanas (5 sub-fases + 2 semanas de dogfood validado)
 
@@ -283,13 +283,45 @@ Política de cobertura (Python backend + pipeline):
 
 ---
 
+## Sprint transversal A6 — Migração infra+domínio (pós-F9)
+
+**Plano completo**: [_scratch/plano_migracao_artifacts_db.md](../_scratch/plano_migracao_artifacts_db.md)
+(§17-§19). ADRs formalizadoras: 097 (extract-then-refactor), **098** (Caminho B
+puro vs pragmático), **099** (reuse de `analyze_*` legadas), **100** (A6d
+commitment), **101** (R12-R17: backend DDD/SOLID), **102** (R18-R20:
+language-neutral), **103** (teste humano como gate).
+
+**Status atual (2026-04-19)**: **Fase 8 fechada**. 6 de 7 stages determinísticos
+no Caminho B (E3·E4·E5·E5.N·E7-crossval·E7-apply). 1206 testes pipeline · 664
+backend · zero regressão.
+
+**Sessões pendentes**:
+
+| Sessão | Escopo | Estimativa | Dependências |
+|---|---|---|---|
+| **A5f** | E1.5c Caminho B (último determinístico pendente) | 1 sessão pequena | — |
+| **A6a** | LLM stages (E1.5, E2-llm) escrevendo via `ArtifactStore` | 1 sessão média | A5f |
+| **A6b** | Ativar `USE_DB_ARTIFACTS=true` + validar end-to-end | 1-2 semanas | A6a |
+| **A6b.5** | Preparação teste humano (smoke infra + fixtures + runbook) | 1-2 sessões | A6b |
+| **A6-human** | Teste manual pelo David (~70 checks) | Janela humana | A6b.5 |
+| **A6c** | Deletar bridge + `stage_runner_compat` + legacy `main(root_dir)` | 1 sessão | A6-human aprovado |
+| **A6d** | Caminho B puro nos 5 stages pragmáticos (3 sub-fases) | 3-5 sessões grandes | Paralelo A6a-c |
+| **A6e** | DDD/SOLID no backend API (6 sub-fases, R12-R17) | 5-7 sessões grandes | Paralelo, recomendado pós-A6b |
+| **A6f** | Language-neutral boundaries (6 sub-fases, R18-R20) | 6-8 sessões grandes | Paralelo, recomendado pós-A6b |
+
+**Após A6**: sprints dedicados §15 (LGPD) e §16 (Observabilidade) —
+incorporados ao escopo de F7 (Produção + LGPD + Ops).
+
+---
+
 ## Timeline geral estimada
 
 | Período              | Milestone                                        |
 | -------------------- | ------------------------------------------------ |
 | Q1 2026              | F0-F4 ✅ (Core → LLM)                            |
-| Q2 2026 (Abr)        | F4.5, F5, F6, F6.5, F8, F9 ✅ — feature-complete pré-produção |
-| Q2-Q3 2026 (Mai-Jul) | F7 (8-10 sem) → Dogfood validado → Beta fechado  |
+| Q2 2026 (Abr)        | F4.5, F5, F6, F6.5, F8, F9 ✅ — feature-complete pré-produção + **Plano transversal A5a-A5e concluído** (Fase 8 do plano de migração infra+domínio) |
+| Q2-Q3 2026 (Mai-Jul) | **Sprint A6** (A5f · A6a-c · A6b.5 · A6-human) → cutover DB validado + teste humano + bridge removido → **A6d/A6e/A6f em paralelo** |
+| Q3 2026              | F7 (Produção + LGPD + Ops, integrando §15 LGPD + §16 Observabilidade do plano) → Dogfood → Beta fechado |
 | Q3-Q4 2026           | Beta → F11 (confiança / transparência) → preparação GA + F10 (Growth) |
 | 2027+                | GA + features de growth                          |
 

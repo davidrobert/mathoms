@@ -19,7 +19,7 @@ interface DataKeyDef {
   color: string;
 }
 
-interface FinBarChartProps {
+interface MathomBarChartProps {
   data: Record<string, unknown>[];
   dataKeys: DataKeyDef[];
   xAxisKey: string;
@@ -29,7 +29,7 @@ interface FinBarChartProps {
   className?: string;
 }
 
-export function FinBarChart({
+export function MathomBarChart({
   data,
   dataKeys,
   xAxisKey,
@@ -37,7 +37,7 @@ export function FinBarChart({
   stacked = false,
   height = 300,
   className,
-}: FinBarChartProps) {
+}: MathomBarChartProps) {
   return (
     <div className={cn("w-full", className)}>
       {title && (

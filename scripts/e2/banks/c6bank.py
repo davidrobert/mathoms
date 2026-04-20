@@ -140,16 +140,19 @@ def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 
     log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing C6 Bank CSV ({tipo}): {filename}")
     result = make_result_template(BANCO_C6, tipo, moeda)
+    result["tipo_conta"] = "pj" if is_pj else "corrente"
 
     raw_text = csv_path.read_text(encoding="utf-8-sig")
     lines = raw_text.splitlines()
 
     # --- Parse header metadata ---
     for line in lines[:6]:
+        ag_m = re.search(r'Ag[êe]ncia:\s*(\d+)', line)
+        if ag_m:
+            result["agencia"] = ag_m.group(1)
         conta_m = re.search(r'Conta:\s*(\d+)', line)
         if conta_m:
             result["numero_conta"] = conta_m.group(1)
-            break
 
     for line in lines[:10]:
         periodo_m = re.search(
@@ -261,6 +264,11 @@ def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 
     n_tx = len(result["transacoes"])
     log(LOG_PREFIX_EXTRATO, "INFO", f"  Extraídas {n_tx} transações do CSV")
+    if n_tx == 0:
+        # CSV estruturalmente válido mas sem linhas de dado — conta possivelmente inativa no período.
+        msg = "WARN: Nenhuma transação encontrada no CSV — verifique se o extrato exportado está completo"
+        result["notas"].append(msg)
+        log(LOG_PREFIX_EXTRATO, "WARN", f"  {msg}")
     if result["saldo_inicial"] is not None:
         log(LOG_PREFIX_EXTRATO, "INFO", f"  Saldo inicial: {result['saldo_inicial']:.2f}")
     if result["saldo_final"] is not None:
@@ -294,6 +302,7 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
     log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing C6 Bank ({tipo}): {filename}")
     result = make_result_template(BANCO_C6, tipo, moeda)
+    result["tipo_conta"] = "pj" if is_pj else "corrente"
 
     periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
     result["periodo"]["inicio"] = periodo_inicio
@@ -304,6 +313,9 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
             first_text = pdf.pages[0].extract_text() or ""
             result["titular"] = detect_member_from_text(first_text)
             result["numero_conta"] = extract_account_number(first_text, "c6bank")
+            ag_m = re.search(r'Ag[êe]ncia[:\s•]+(\d+)', first_text)
+            if ag_m:
+                result["agencia"] = ag_m.group(1)
 
             periodo_pat = re.compile(
                 r'Período\s*•?\s*(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})\s+'

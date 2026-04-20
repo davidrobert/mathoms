@@ -4,22 +4,22 @@
 
 Bug histórico (durante fix de BUG-015): `alembic upgrade head` foi rodado da
 raiz e aplicou migration na DB errada porque `sqlalchemy.url` em alembic.ini
-era relativa (`sqlite:///./fin.db`) e o `cwd` do momento determinava qual
-arquivo `fin.db` recebia o schema novo.
+era relativa (`sqlite:///./mathoms.db`) e o `cwd` do momento determinava qual
+arquivo `mathoms.db` recebia o schema novo.
 
 **Política aplicada (F6.5E.4):**
-- Se `FIN_DATABASE_URL` estiver setada via env, ela vence (Pydantic Settings
+- Se `MATHOMS_DATABASE_URL` estiver setada via env, ela vence (Pydantic Settings
   já injeta em `settings.DATABASE_URL`).
-- Caso contrário, a URL vem do `alembic.ini` que agora usa `%(here)s/../fin.db`
+- Caso contrário, a URL vem do `alembic.ini` que agora usa `%(here)s/../mathoms.db`
   (caminho absoluto resolvido a partir do diretório do .ini).
 - O guard abaixo **rejeita explicitamente** SQLite com path relativo
-  (`sqlite:///./...` ou `sqlite:///fin.db` sem prefixo absoluto), forçando
+  (`sqlite:///./...` ou `sqlite:///mathoms.db` sem prefixo absoluto), forçando
   o operador a corrigir antes de rodar.
 
-Para sair do guard em CI/prod: defina `FIN_DATABASE_URL` apontando para o
+Para sair do guard em CI/prod: defina `MATHOMS_DATABASE_URL` apontando para o
 banco real (PostgreSQL recomendado).
 
-Bypass para uso programático em testes: `FIN_ALEMBIC_ALLOW_RELATIVE_SQLITE=1`
+Bypass para uso programático em testes: `MATHOMS_ALEMBIC_ALLOW_RELATIVE_SQLITE=1`
 (NÃO use em produção — somente em tests que provam o próprio guard).
 """
 
@@ -50,7 +50,7 @@ def _resolve_db_url() -> str:
         is_absolute = path_part.startswith("/") or (
             len(path_part) >= 3 and path_part[1:3] == ":\\"  # Windows
         )
-        if not is_absolute and not os.environ.get("FIN_ALEMBIC_ALLOW_RELATIVE_SQLITE"):
+        if not is_absolute and not os.environ.get("MATHOMS_ALEMBIC_ALLOW_RELATIVE_SQLITE"):
             resolved = Path(os.getcwd()) / path_part
             sys.stderr.write(
                 "\n"
@@ -61,11 +61,11 @@ def _resolve_db_url() -> str:
                 "\n"
                 "Migrations relativas podem aplicar na DB errada por acidente.\n"
                 "Conserte de uma das formas:\n"
-                "  • Setar FIN_DATABASE_URL com path absoluto:\n"
-                "      export FIN_DATABASE_URL='sqlite+aiosqlite:////caminho/abs/fin.db'\n"
+                "  • Setar MATHOMS_DATABASE_URL com path absoluto:\n"
+                "      export MATHOMS_DATABASE_URL='sqlite+aiosqlite:////caminho/abs/mathoms.db'\n"
                 "  • Ou rodar a partir da raiz do repo (alembic.ini agora usa %(here)s).\n"
                 "  • Bypass apenas para testes do próprio guard:\n"
-                "      FIN_ALEMBIC_ALLOW_RELATIVE_SQLITE=1\n\n"
+                "      MATHOMS_ALEMBIC_ALLOW_RELATIVE_SQLITE=1\n\n"
             )
             raise SystemExit(2)
 

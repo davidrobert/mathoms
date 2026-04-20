@@ -50,7 +50,7 @@
 
 | Etapa | Status |
 | --- | --- |
-| D1 `FIN_PIPELINE_SCHEMA_MODE` | ✅ (P0) |
+| D1 `MATHOMS_PIPELINE_SCHEMA_MODE` | ✅ (P0) |
 | D2 Job CI strict | ✅ `.github/workflows/ci.yml` — passo *Pipeline JSON schema strict* |
 | D3 Checklist de artefatos | ✅ [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) |
 

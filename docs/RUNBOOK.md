@@ -1,4 +1,4 @@
-# Fin — Runbook operacional
+# Mathoms AI — Runbook operacional
 
 > Procedimentos para deploy, incidentes e recuperação. Complementa [SETUP.md](SETUP.md). **Sprint A (2026-04-17):** templates de incidente, status page no app, drill documentado.
 
@@ -8,9 +8,9 @@
 
 | Recurso | Onde |
 | --- | --- |
-| API + OpenAPI | `FIN_*` em `.env`, uvicorn, ver SETUP |
+| API + OpenAPI | `MATHOMS_*` em `.env`, uvicorn, ver SETUP |
 | Worker | Celery + Redis |
-| Frontend | Next.js; variável opcional `NEXT_PUBLIC_FIN_STATUS_PAGE_URL` |
+| Frontend | Next.js; variável opcional `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL` |
 | Status page pública | Ferramenta externa (ex.: Uptime Kuma, Instatus) — URL configurada no frontend |
 
 ---
@@ -34,7 +34,7 @@ Definir no build do frontend:
 
 ```bash
 # frontend/.env.local (não commitar)
-NEXT_PUBLIC_FIN_STATUS_PAGE_URL=https://status.seudominio.com
+NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL=https://status.seudominio.com
 ```
 
 Com isso, o rodapé de **login**, **cadastro** e **área logada** exibe **“Status e incidentes”** (abre em nova aba). Sem a variável, o link não aparece.
@@ -67,7 +67,7 @@ Checklist **Sprint A** — execução pode ser em **staging** ou **produção** 
 
 | # | Passo | Feito |
 | --- | --- | --- |
-| 1 | Status page acessível e URL configurada em `NEXT_PUBLIC_FIN_STATUS_PAGE_URL` | ☐ |
+| 1 | Status page acessível e URL configurada em `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL` | ☐ |
 | 2 | Criar incidente **fictício** (título ex.: `[DRILL] Teste de processo — ignorar`) | ☐ |
 | 3 | Publicar texto baseado em **initial_report** (pode ser cópia do exemplo preenchido) | ☐ |
 | 4 | Publicar **update** fictício com template **update_in_progress** | ☐ |

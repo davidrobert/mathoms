@@ -110,6 +110,7 @@ def process_uploaded_document(
     config_dir: Path,
     tenant_root: Path | None = None,
     workspace_id: str | None = None,
+    content_hash: str | None = None,
 ) -> dict:
     """Full processing pipeline for a single uploaded document.
 
@@ -117,6 +118,11 @@ def process_uploaded_document(
     2. Classify content-first (same pipeline as E0-route when backend is available)
     3. If JSON → detect E1/E1.5 type
     4. Route classified file from inbox/ to data/{dest_group}/
+
+    When ``content_hash`` is provided it is threaded through to
+    ``route_inbox_to_canonical_data`` so the canonical filename gets the
+    ``{hash[:12]}_`` prefix (ADR-084). Caller typically supplies the sha256 of
+    the pre-unlock bytes (matching ``Document.content_hash``).
 
     Returns dict with: status, doc_type, bank_code, period, classification_meta, error_message.
     """
@@ -214,6 +220,7 @@ def process_uploaded_document(
             institution=classification.get("bank_code"),
             period=classification.get("period"),
             classification_meta=classification.get("classification_meta"),
+            content_hash=content_hash,
         )
         if routed:
             abs_dest, stored_rel = routed

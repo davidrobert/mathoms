@@ -14,10 +14,12 @@ from backend.app.models.document import Document, DocumentStatus, DocumentType
 _PROC = "backend.app.api.documents.process_uploaded_document"
 
 
-def _mock_process(file_path, passwords, config_dir, tenant_root=None, workspace_id=None):
+def _mock_process(file_path, passwords, config_dir, tenant_root=None,
+                  workspace_id=None, content_hash=None):
     """Deterministic mock for process_uploaded_document that classifies by extension/content.
 
-    Kwargs ``tenant_root`` / ``workspace_id`` kept for parity with the real signature.
+    Kwargs ``tenant_root`` / ``workspace_id`` / ``content_hash`` kept for parity
+    with the real signature.
     """
     ext = Path(file_path).suffix.lower()
     base = {

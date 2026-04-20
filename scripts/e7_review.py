@@ -36,7 +36,7 @@ from pathlib import Path
 import scripts.pipeline_common as _pc
 
 # =============================================================================
-# Paths — all relative to workspace root (FIN_WORKSPACE_ROOT)
+# Paths — all relative to workspace root (MATHOMS_WORKSPACE_ROOT)
 # =============================================================================
 _DEFAULT_BASE_DIR = _pc._REPO_ROOT
 
@@ -939,6 +939,144 @@ Exemplos:
     print()
 
     return True
+
+
+def main_with_store(ctx, *, mode: str = "crossval", review_path: str | None = None) -> dict:
+    """E7 Caminho B (Sessão A5e da Fase 8) — cross-validation + apply sobre
+    ``ArtifactStore`` em vez de disco direto.
+
+    Modos:
+    - ``"crossval"`` (default) — roda 14 checks CV1-CV14 sobre o E5, gera
+      template para LLM em ``store.write("E7-crossval", "template", ...)``.
+    - ``"apply"`` — aplica review LLM ao E5 e escreve ``E5-revised`` no store.
+
+    O modo ``review`` (geração do template LLM) é parte do ``crossval`` —
+    não é um stage separado. O passo LLM propriamente dito é externo ao
+    pipeline (operador lê o template, roda LLM, salva review.json).
+
+    Coexiste com ``main(root_dir)`` legado. Wrappers
+    ``pipeline/stages/e7.py::run_crossval`` e ``run_apply`` chamam esta
+    função direto.
+
+    Args:
+        ctx: ``pipeline.context.WorkspaceContext``.
+        mode: ``"crossval"`` ou ``"apply"``.
+        review_path: caminho para review JSON (obrigatório em ``apply``).
+
+    Returns:
+        Dict com resumo do modo executado.
+    """
+    import scripts.pipeline_common as _pc
+
+    _pc._init_config(ctx.root)
+    _init_config(ctx.root)
+
+    store = ctx.get_artifact_store()
+    print("=" * 70)
+    print(f"  E7 REVIEW & REFINE — Caminho B (mode={mode})")
+    print("=" * 70)
+    print(f"[E7.0] Workspace root: {ctx.root}")
+    print(f"[E7.0] Store impl:     {type(store).__name__}")
+
+    # 1. Lê E5 via store.
+    e5 = store.read("E5", "analise_financeira") or {}
+    if not e5:
+        print("  [ERRO] E5 artifact 'analise_financeira' não encontrado.")
+        return {"success": False, "reason": "e5_not_found"}
+
+    # Valida narrativas presentes (pré-requisito E5.N).
+    narr = e5.get("narrativas", {})
+    has_narrativas = bool(narr.get("summaries")) and bool(narr.get("charts"))
+    if not has_narrativas:
+        print("  [ERRO] E5 sem narrativas. Execute E5.N antes de E7.")
+        return {"success": False, "reason": "missing_narrativas"}
+
+    print(f"  ✓ E5 JSON: {len(e5)} top-level keys, narrativas presentes")
+
+    # 2. Modo apply — aplica review ao E5.
+    if mode == "apply":
+        if not review_path:
+            print("  [SKIP] Modo apply sem review_path — nada a fazer.")
+            return {"success": True, "skipped": True, "reason": "no_review_path"}
+
+        review_file = Path(review_path)
+        if not review_file.is_absolute():
+            review_file = ctx.root / review_path
+        if not review_file.exists():
+            print(f"  [ERRO] Review file não encontrado: {review_file}")
+            return {"success": False, "reason": "review_not_found"}
+
+        with open(review_file, "r", encoding="utf-8") as f:
+            review = json.load(f)
+
+        is_valid, errors = validate_review(review)
+        if not is_valid:
+            print("  [ERRO] Review inválido:")
+            for e in errors:
+                print(f"    - {e}")
+            return {"success": False, "reason": "review_invalid", "errors": errors}
+
+        updated_e5 = apply_review(e5, review, dry_run=False)
+        store.write("E5", "analise_financeira", updated_e5)
+
+        changes = review.get("refinements", {})
+        change_count = sum(
+            1 for k, v in changes.items()
+            if not k.startswith("_") and v and v != {} and v != []
+        )
+        print(f"  ✓ Aplicados {change_count} refinamento(s) ao E5")
+        return {
+            "success": True,
+            "mode": "apply",
+            "refinements_applied": change_count,
+            "files_created": ["analise_financeira-5_analysis.json"],
+        }
+
+    # 3. Modo crossval — 14 checks + gera template.
+    if mode != "crossval":
+        return {"success": False, "reason": f"unknown_mode:{mode}"}
+
+    methodology_text = load_methodology()
+    persona = extract_persona_from_methodology(methodology_text)
+    print(f"  Methodology: {'carregado' if methodology_text else 'não encontrado'}")
+
+    cv_results = run_cross_validation(e5)
+    passed = sum(1 for r in cv_results if r.passed)
+    failed = sum(1 for r in cv_results if not r.passed)
+    errors_list = [r for r in cv_results if not r.passed and r.severity == "error"]
+    warnings_list = [r for r in cv_results if not r.passed and r.severity == "warning"]
+
+    print(f"  Checks: {len(cv_results)} total, {passed} passed, {failed} failed")
+    if errors_list:
+        print(f"\n  ERROS ({len(errors_list)}):")
+        for r in errors_list:
+            print(f"    [{r.check_id}] {r.name}: {r.details}")
+    if warnings_list:
+        print(f"\n  AVISOS ({len(warnings_list)}):")
+        for r in warnings_list:
+            print(f"    [{r.check_id}] {r.name}: {r.details}")
+
+    # Gera template — grava em disco via path legado para paridade 100% com
+    # ``main()``. O template é consumido pelo operador que roda o LLM; não é
+    # artifact padrão via ``ArtifactStore``. Apenas o E5 revisado (modo apply)
+    # passa pelo store.
+    template = build_review_template(e5, cv_results, persona)
+    REVIEW_TEMPLATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _pc.write_json_atomic(REVIEW_TEMPLATE_PATH, template)
+
+    print(f"  ✓ Template gravado em {REVIEW_TEMPLATE_PATH.relative_to(ctx.root)}")
+    print("=" * 70)
+
+    return {
+        "success": True,
+        "mode": "crossval",
+        "checks_total": len(cv_results),
+        "checks_passed": passed,
+        "checks_failed": failed,
+        "errors_count": len(errors_list),
+        "warnings_count": len(warnings_list),
+        "files_created": ["e7_review_template.json"],
+    }
 
 
 if __name__ == "__main__":

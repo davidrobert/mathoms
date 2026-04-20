@@ -21,8 +21,10 @@ import type { FluxoCaixaSummary } from "@/types/report-analysis";
  */
 export function FluxoMensalChart({
   fluxo,
+  conclusion,
 }: {
   fluxo: FluxoCaixaSummary | undefined;
+  conclusion?: string;
 }) {
   const det = fluxo?.receita_despesa_mensal_detalhado;
   if (!det?.labels?.length) return null;
@@ -39,7 +41,7 @@ export function FluxoMensalChart({
   });
 
   return (
-    <ReportCard variant="neutral" title="Fluxo de Caixa Mensal">
+    <ReportCard variant="neutral" title="Fluxo de Caixa Mensal" conclusion={conclusion}>
       <div className="w-full">
         <ResponsiveContainer width="100%" height={256}>
           <BarChart data={data} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>

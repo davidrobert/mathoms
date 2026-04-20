@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "fin://schemas/goal.dolarizacao.v1",
+  "$id": "mathoms://schemas/goal.dolarizacao.v1",
   "title": "Goal — Dolarização (v1)",
   "description": "Meta de acumulação em USD. Migrada de `goals.json:dolarizacao`. ADR-075 §F8.4.",
   "type": "object",

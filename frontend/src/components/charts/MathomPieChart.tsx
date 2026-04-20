@@ -19,19 +19,19 @@ interface PieDataItem {
   color?: string;
 }
 
-interface FinPieChartProps {
+interface MathomPieChartProps {
   data: PieDataItem[];
   title?: string;
   height?: number;
   className?: string;
 }
 
-export function FinPieChart({
+export function MathomPieChart({
   data,
   title,
   height = 300,
   className,
-}: FinPieChartProps) {
+}: MathomPieChartProps) {
   return (
     <div className={cn("w-full", className)}>
       {title && (

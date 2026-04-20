@@ -1,6 +1,7 @@
 "use client";
 
 import { ReportSection } from "../ReportSection";
+import { SectionSummary } from "../SectionSummary";
 import { OrcamentoProspectivoCard } from "../cards/OrcamentoProspectivoCard";
 import { ConsumoConscienteCard } from "../cards/ConsumoConscienteCard";
 import { DiagnosticoComportamentalCard } from "../cards/DiagnosticoComportamentalCard";
@@ -42,15 +43,22 @@ export function S2FluxoCaixaSection({
   const equilibrio = data.equilibrio_cerbasi as
     | EquilibrioCerbasiData
     | undefined;
+  const narrativas = data.narrativas as
+    | Record<string, { context?: string; conclusion?: string }>
+    | undefined;
+
+  const getConclusion = (id: string) => narrativas?.[id]?.conclusion;
 
   return (
     <ReportSection id="S2" title="Fluxo de Caixa — Receitas e Despesas">
+      <SectionSummary narrativas={narrativas} sectionId="S2" />
+
       {/* Charts */}
       <div className="md:col-span-2">
-        <FluxoMensalChart fluxo={fluxo} />
+        <FluxoMensalChart fluxo={fluxo} conclusion={getConclusion("fluxo_mensal")} />
       </div>
-      <ReceitaBarChart fluxo={fluxo} />
-      <DespesasDoughnutChart fluxo={fluxo} />
+      <ReceitaBarChart fluxo={fluxo} conclusion={getConclusion("receita_fonte")} />
+      <DespesasDoughnutChart fluxo={fluxo} conclusion={getConclusion("despesas_categoria")} />
       <div className="md:col-span-2">
         <ReceitaDespesaMensalChart fluxo={fluxo} />
       </div>

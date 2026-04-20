@@ -38,6 +38,7 @@ from backend.app.models.task import (
     VALID_SUGGESTION_SOURCES,
 )
 from backend.app.models.feature_flag import FeatureFlag
+from backend.app.models.pipeline_artifact import PipelineArtifact
 
 __all__ = [
     "User",
@@ -82,4 +83,5 @@ __all__ = [
     "TransactionOverride",
     "Notification",
     "AuditLog",
+    "PipelineArtifact",
 ]

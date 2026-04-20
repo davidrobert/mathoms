@@ -7,6 +7,7 @@ import {
   PolarAngleAxis,
 } from "recharts";
 import { ReportCard } from "../ReportCard";
+import { getScoreColorVar, getScoreLabel } from "../utils/scoreUtils";
 import type { ScoreData } from "@/types/report-analysis";
 
 /** F9 · F2.A · S1 — Gauge do Score Financeiro (0–10).
@@ -29,12 +30,7 @@ export function ScoreGaugeChart({ score }: { score: ScoreData | undefined }) {
   const valor = Math.max(0, Math.min(score.max, score.valor));
   const pct = (valor / score.max) * 100;
 
-  const color =
-    valor < score.max * 0.4
-      ? "var(--semantic-loss)"
-      : valor < score.max * 0.6
-        ? "var(--semantic-alert)"
-        : "var(--semantic-gain)";
+  const color = getScoreColorVar(valor, score.max);
 
   const data = [{ name: "score", value: pct, fill: color }];
 
@@ -78,14 +74,12 @@ export function ScoreGaugeChart({ score }: { score: ScoreData | undefined }) {
             </p>
           </div>
         </div>
-        {score.classificacao && (
-          <p
-            className="mt-2 font-display text-sm font-semibold"
-            style={{ color }}
-          >
-            {score.classificacao}
-          </p>
-        )}
+        <p
+          className="mt-2 font-display text-sm font-semibold"
+          style={{ color }}
+        >
+          {score.classificacao ?? getScoreLabel(valor, score.max)}
+        </p>
       </div>
     </ReportCard>
   );

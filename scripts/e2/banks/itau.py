@@ -76,6 +76,7 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 
     log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing Itaú XLS ({tipo}): {filename}")
     result = make_result_template(BANCO_ITAU, tipo, "BRL")
+    result["tipo_conta"] = "corrente"
 
     periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
     result["periodo"]["inicio"] = periodo_inicio
@@ -114,6 +115,7 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 
             ag_val = sh.cell(_ag_r, _ag_c).value
             agencia = str(int(ag_val)) if isinstance(ag_val, float) else str(ag_val).strip()
+            result["agencia"] = agencia
 
             conta_val = str(sh.cell(_conta_r, _conta_c).value).strip()
             result["numero_conta"] = conta_val
@@ -246,6 +248,7 @@ def parse_itau(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
     log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing Itaú ({tipo}): {filename}")
     result = make_result_template(BANCO_ITAU, tipo, "BRL")
+    result["tipo_conta"] = "corrente"
 
     periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
     result["periodo"]["inicio"] = periodo_inicio
@@ -256,6 +259,9 @@ def parse_itau(pdf_path: Path, filename: str) -> Dict[str, Any]:
             first_text = pdf.pages[0].extract_text() or ""
             result["titular"] = detect_member_from_text(first_text)
             result["numero_conta"] = extract_account_number(first_text, "itau")
+            ag_m = re.search(r'Ag[êe]ncia[:\s]+(\d+)', first_text)
+            if ag_m:
+                result["agencia"] = ag_m.group(1)
 
             pm = re.search(r'Per[ií]odo[:\s]+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', first_text)
             if pm:
@@ -349,9 +355,11 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
         "instituicao": BANCO_ITAU,
         "tipo": "cdbresumo",
         "tipo_produto": None,
+        "tipo_conta": "investimento",
         "membro": None,
         "moeda": "BRL",
         "numero_conta": None,
+        "agencia": None,
         "data_referencia": None,
         "periodo": {"inicio": None, "fim": None},
         "saldo_anterior": None,
@@ -397,6 +405,7 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
                 result["membro"] = detect_member_from_text(nome)
 
             if len(cells) >= 5 and cells[1] == "Agência:" and cells[3] == "Conta:":
+                result["agencia"] = cells[2]
                 result["numero_conta"] = cells[4]
 
             if len(cells) >= 3 and cells[1] == "Período:":

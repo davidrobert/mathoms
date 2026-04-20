@@ -1,0 +1,74 @@
+{
+  "description": "2 extratos E3 (Itaú jan + Nubank fatura jan) — 1 receita CLT + 3 despesas (mercado, uber, farmácia) sem transferências.",
+  "categorization": {
+    "expense_keywords": {
+      "mercado": ["mercado"],
+      "uber": ["uber"],
+      "saude": ["farmacia"]
+    },
+    "income_keywords": {
+      "receita_clt": ["salario"]
+    },
+    "internal_transfer_patterns": [],
+    "clt_source_mapping": {
+      "empresa x": "Empresa X CLT"
+    },
+    "pj_source_mapping": {}
+  },
+  "family": {},
+  "e3_accounts": [
+    {
+      "key": "itau_extratoconta_BRL_202601_202601",
+      "payload": {
+        "banco": "Itaú",
+        "tipo_conta": "extratoconta",
+        "titular": "david",
+        "moeda": "BRL",
+        "periodo_cobertura": {"inicio": "2026-01-01", "fim": "2026-01-31"},
+        "saldo_inicial": 1000.0,
+        "saldo_inicial_unknown": false,
+        "saldo_final": 5970.0,
+        "saldo_final_unknown": false,
+        "fontes": ["itau_202601-2_extract.json"],
+        "transacoes_total": 3,
+        "transacoes_duplicadas_removidas": 0,
+        "transacoes": [
+          {"data": "2026-01-05", "descricao": "SALARIO EMPRESA X", "valor": 5000.0, "tipo": "credito"},
+          {"data": "2026-01-10", "descricao": "MERCADO PAO ACUCAR", "valor": -150.0, "tipo": "debito"},
+          {"data": "2026-01-15", "descricao": "FARMACIA DROGASIL", "valor": -80.0, "tipo": "debito"}
+        ]
+      }
+    },
+    {
+      "key": "nubank_faturacarbon_202601_202601",
+      "payload": {
+        "banco": "Nubank",
+        "tipo_conta": "faturacarbon",
+        "titular": "david",
+        "moeda": "BRL",
+        "periodo_cobertura": {"inicio": "2026-01-01", "fim": "2026-01-31"},
+        "saldo_inicial": 0.0,
+        "saldo_inicial_unknown": false,
+        "saldo_final": -100.0,
+        "saldo_final_unknown": false,
+        "fontes": ["nubank_202601-2_extract.json"],
+        "transacoes_total": 1,
+        "transacoes_duplicadas_removidas": 0,
+        "transacoes": [
+          {"data": "2026-01-20", "descricao": "UBER 2026-01-20", "valor": 100.0}
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "classified_count": 4,
+    "receitas_count": 1,
+    "despesas_count": 3,
+    "transferencias_count": 0,
+    "receitas_total": 5000.0,
+    "despesas_total": 330.0,
+    "receita_categorias": ["receita_clt"],
+    "despesa_categorias": ["mercado", "saude", "uber"],
+    "receita_origem_esperada": "Empresa X CLT"
+  }
+}

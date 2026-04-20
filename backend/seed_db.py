@@ -17,7 +17,7 @@ from backend.app.services.seed import ensure_seed_user, seed_existing_reports
 
 async def main():
     print("=" * 60)
-    print("  Fin — Database Seed")
+    print("  Mathoms AI — Database Seed")
     print("=" * 60)
 
     await init_db()
@@ -37,7 +37,7 @@ async def main():
 
     print("=" * 60)
     print("  Seed complete!")
-    print(f"  Login: admin@fin.app / admin")
+    print(f"  Login: admin@mathoms.ai / admin")
     print("=" * 60)
 
 

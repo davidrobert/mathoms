@@ -1,0 +1,54 @@
+{
+  "description": "Extrato C6 Bank conta corrente cobrindo todo 2024 (fechando em 2024-12-31 com saldo R$ 5.000), baseline IRPF declara saldo R$ 4.500 para C6 em 2024. Adapter deve emitir 1 BaselineDiffWarning de R$ 500.",
+  "institutions": {
+    "banco_canonical": {
+      "c6bank": "C6 Bank",
+      "itau": "Itaú"
+    }
+  },
+  "e2_extracts": [
+    {
+      "stage": "E2-extratos",
+      "key": "c6_2024",
+      "payload": {
+        "pipeline_stage": "E2",
+        "banco": "C6 Bank",
+        "tipo": "extratoconta",
+        "moeda": "BRL",
+        "documento_titular": "david",
+        "periodo_inicio": "2024-01-01",
+        "periodo_fim": "2024-12-31",
+        "saldo_inicial": 4000.00,
+        "saldo_final": 5000.00,
+        "transacoes": [
+          {"data": "2024-06-15", "descricao": "PIX RECEBIDO", "valor": 1000.00}
+        ]
+      }
+    }
+  ],
+  "baseline": {
+    "members": {
+      "David": {
+        "nome": "David",
+        "contas_bancarias": [
+          {
+            "banco": "C6 Bank",
+            "tipo": "conta corrente",
+            "ano_base": 2024,
+            "saldo_31_12": 4500.00
+          }
+        ]
+      }
+    }
+  },
+  "expected": {
+    "statements_loaded": 1,
+    "artifacts_written": 1,
+    "skipped_inputs": 0,
+    "output_keys": ["c6bank_BRL_202401_202412"],
+    "saldo_warnings_count": 0,
+    "temporal_warnings_count": 0,
+    "baseline_warnings_count": 1,
+    "baseline_diff_amount_brl": 500.00
+  }
+}

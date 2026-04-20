@@ -85,7 +85,7 @@
   },
 
   "e2_llm": {
-    "_comment": "E2-llm: uma chamada LLM por arquivo; concurrency reduz tempo total (ajuste se a API limitar). FIN_E2_LLM_CONCURRENCY (1–8) sobrescreve só concurrency.",
+    "_comment": "E2-llm: uma chamada LLM por arquivo; concurrency reduz tempo total (ajuste se a API limitar). MATHOMS_E2_LLM_CONCURRENCY (1–8) sobrescreve só concurrency.",
     "concurrency": 4,
     "max_input_chars": 40000,
     "max_pdf_pages": 35

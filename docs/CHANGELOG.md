@@ -1,4 +1,4 @@
-# Fin — Changelog
+# Mathoms AI — Changelog
 
 > Log cronológico reverso do que foi entregue. Atualizar por sprint/milestone.
 
@@ -8,7 +8,806 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
-- **Pipeline paths (2026-04-17):** `FIN_WORKSPACE_ROOT` obrigatória para `scripts.pipeline_common` (sem default para `data/` na raiz do git). `python -m pipeline.run_dev --root …` e a task Celery definem a variável; API/worker/pytest usam `setdefault` para a raiz do repo em dev. Docs: [SETUP.md §8](SETUP.md#8-pipeline-cli-sem-web), `scripts/__init__.py`.
+- **Rename do produto: Fin → Mathoms AI (2026-04-19):**
+  Renomeação completa do produto em toda a base de código.
+  - `env_prefix` do pydantic-settings: `FIN_` → `MATHOMS_` (19 variáveis de ambiente)
+  - `PROJECT_NAME`: `"Fin API"` → `"Mathoms AI"` em `backend/app/core/config.py`
+  - Banco de dados de dev: `fin.db` → `mathoms.db` (config, alembic.ini, alembic/env.py)
+  - Email de seed: `admin@fin.app` → `admin@mathoms.ai`
+  - Package Python: `fin-pipeline` → `mathoms-pipeline` em `pyproject.toml`
+  - Componentes React: `FinBarChart` / `FinPieChart` / `FinAreaChart` → `MathomBarChart` / `MathomPieChart` / `MathomAreaChart`
+  - Schema `$id` URIs: `fin://schemas/...` → `mathoms://schemas/...` (5 schemas em `config/schemas/`)
+  - Docstring `backend/app/main.py`: `"Fin API —"` → `"Mathoms AI —"`
+  - Todos os cabeçalhos de documentação: `# Fin —` → `# Mathoms AI —`
+  - `CLAUDE.md`: produto renomeado de "Fin" para "Mathoms AI"
+  - `.env.example`: todas as vars `FIN_*` → `MATHOMS_*` com comentários atualizados
+
+- **Migração infra + domínio — Fases 1-5 completas + 6-8 foundation (2026-04-19):**
+  Plano [`_scratch/plano_migracao_artifacts_db.md`](../_scratch/plano_migracao_artifacts_db.md)
+  (ADRs 082-096 em [DECISIONS.md](DECISIONS.md)).
+  - **Fase 1** — `PipelineArtifact` model + migration `p4q5r6s7t8u9`; `ArtifactStore`
+    protocol (`DiskArtifactStore`, `InMemoryArtifactStore`) em `pipeline/artifact_store.py`;
+    `DBArtifactStore` em `backend/app/services/db_artifact_store.py` (respeita boundary
+    `pipeline/` sem SQLAlchemy); `WorkspaceContext.get_artifact_store()`.
+  - **Fase 1.5** — `pipeline/stage_spec.py` (`StageSpec`, `STAGE_REGISTRY`,
+    `STAGE_RENAME_MAP`, `FULL_ORDER`, `build_from_map`, `validate_full_order`);
+    `pipeline/stage_config.py` (Pydantic frozen, fail-fast); wrappers separados
+    `e2_faturas.py` / `e2_extratos.py` (fix de flags); `init_workspace_paths_from_env`
+    non-strict no import.
+  - **Fase 2** — `MaterializationBridge` context manager (hydrate/persist);
+    `PipelineArtifactRepository`; feature flag `MATHOMS_USE_DB_ARTIFACTS` (default `False`).
+  - **Fase 3** — `pipeline.stage_runner_compat.run_legacy_with_bridge_if_db` —
+    wrappers E3/E4/E5/E5.N/E7/E1.5c rodam via bridge quando store é DB-backed.
+  - **Fase 3.2 Caminho B (E2)** — `BankStatement.from_e2_dict()` / `to_e2_dict()`;
+    `scripts/e2_extract.run_with_store()` escreve direto via `ArtifactStore`;
+    `pipeline/stages/e2.py` refatorado.
+  - **Fase 4** — `backend/app/scripts/backfill_artifacts_from_disk.py` (idempotente);
+    `reset_documents.py` apaga `pipeline_artifacts`.
+  - **Fase 5** — Domain layer `pipeline/domain/` (`Money` com `Decimal` +
+    `CURRENCY_PRECISION` rejeitando `float`; `Transaction`, `BankStatement`,
+    `Investment`, `InvestmentStatement`, `BaselinePatrimonial`).
+  - **Fase 6-7 foundation** — `ReconciliationService(ReconciliationConfig)`,
+    `CategorizationService(CategorizationRules)` puros, testáveis sem I/O.
+  - **Fase 8 foundation** — 4 calculadoras: `CashFlowAggregator`,
+    `PatrimonioCalculator`, `EmergencyReserveCalculator`, `FinancialScoreCalculator`.
+    (Faltam `IndependenciaFinanceiraProjector` + `MemberAnalyzer` + refactor real
+    do `e5_analyze.py`.)
+  - **Fase 9 infra** — Migration Alembic `q5r6s7t8u9v0_rename_stage_identifiers`
+    com `apply_rename(bind, mapping)` testável (5 testes); audit script
+    `_scratch/audit_stage_references.py`; guardrail
+    `tests/unit/pipeline/test_no_legacy_stage_names.py` (soft-fail default,
+    hard-fail com `MATHOMS_ENFORCE_STAGE_RENAME=1`). **Não aplicado**: rename físico
+    de arquivos em `pipeline/stages/` e `scripts/` (pré-req: Fases 6-8 completas).
+  - **Docs** — ADRs 082-096 em [DECISIONS.md](DECISIONS.md); [ARCHITECTURE.md](ARCHITECTURE.md)
+    §7 atualizado com abstrações (Pipeline + Domínio); [CLAUDE.md](../CLAUDE.md) com
+    tabela de etapas incluindo coluna `Identificador pós-F9`; [README.md](../README.md)
+    com status da migração; [SETUP.md](SETUP.md) §10 com instruções de cutover.
+  - **Não entregue nesta onda** (planejado para sprint seguinte):
+    - Fase 6 Caminho B completo (E3 refactor — 1193 linhas com lógica bank-specific);
+    - Fase 7 Caminho B (E4);
+    - Fase 8 decomposição completa de `e5_analyze.py` (2598 linhas — estimado 5-8 sem);
+    - §15 LGPD (crypto em PII, `access_audit_log`, retention, endpoint esquecimento);
+    - §16 Observabilidade (`compare_disk_vs_db.py`, métricas Prometheus, alertas,
+      dashboard Grafana).
+  - **Fase 6 foundation (Caminho B gradual para E3)** — `E3ReconcilerAdapter`
+    em `pipeline/domain/services/e3_reconciler_adapter.py`: lê E2 artifacts do
+    store, converte via `BankStatement.from_e2_dict`, aplica `ReconciliationService`,
+    persiste E3 no store. Cobre caso simples (extratos de conta); lógica
+    bank-specific legada (faturas, CDB, baseline validation, saldo continuity,
+    temporal gaps) continua no script via `MaterializationBridge`.
+  - **Docs complementares (2026-04-19)** — ADRs 092-096 escritas; [TESTING.md](TESTING.md)
+    com seção de testes de domínio e `InMemoryArtifactStore`; [runbooks/cutover.md](runbooks/cutover.md)
+    com procedimento T-24h/T-0/T+48h (§16.4 do plano).
+  - **Tests** — 1240 testes passando (572 pipeline + 668 backend, zero regressão).
+
+- **A6b.5 — Preparação para smoke test humano (2026-04-19):**
+  Infraestrutura para teste end-to-end antes da remoção do bridge (A6c). ADR-103.
+  - `docker-compose.smoke.yml`: stack Redis isolada para smoke (`make smoke-up`).
+  - `Makefile`: targets `smoke-up/down/reset/seed/logs` + `test/lint/format/check-boundaries`.
+    Backend + worker + frontend sobem como processos locais com PIDs em `_smoke_pids/`.
+  - `backend/app/scripts/seed_smoke.py`: cria `smoke@mathoms.ai` + `viewer@mathoms.ai`
+    com workspaces e copia fixtures para inbox. Idempotente; `--force` recria.
+  - `tests/fixtures/smoke_inbox/`: 7 fixtures sintéticos — 2 extratos C6 CSV, 1 duplicata,
+    1 extrato Nubank, 1 fatura Nubank, 1 `ambiguous_document-smoke.txt`, 1 `life_plan_goals.md`.
+    README descreve cenários cobertos e arquivos que precisam ser adicionados manualmente.
+  - `docs/SMOKE_TEST_HUMAN.md`: runbook com 46 checks em 8 categorias
+    (auth, docs, pipeline, LLM free-tier, relatório, goals, cutover DB, edge cases) +
+    template de decisão A6c + troubleshooting.
+  - `GET /health`: inclui `artifact_store_mode: "disk"|"db"` para verificar flag ativa.
+
+- **A6b — Opt-in DB artifacts por workspace + DBArtifactStore no Celery task (2026-04-19):**
+  Infraestrutura para ativar `DBArtifactStore` de forma gradual por workspace,
+  sem cutover global. ADR-106.
+  - `backend/app/models/workspace.py`: campo `use_db_artifacts_override: bool | None`.
+    `None` → global flag; `True` → força DB; `False` → força Disk.
+  - `backend/alembic/versions/r6s7t8u9v0w1_...py`: migration Alembic.
+  - `backend/app/tasks/pipeline_task.py`: `_resolve_use_db_artifacts(ws_id)` verifica
+    override do workspace > global flag. Quando DB ativo: abre sessão longa
+    (`SyncSessionLocal`), cria `DBArtifactStore`, injeta em `ctx.artifact_store`.
+    Commit após cada stage com sucesso; `finally` fecha a sessão.
+  - `dev/compare_disk_vs_db.py`: script de paridade — carrega artefatos de disco e
+    DB, reporta keys ausentes + conteúdo divergente, gate ≥99%. Ignora `_meta`,
+    `created_at`, `updated_at` (diferenças esperadas). Uso: `python dev/compare_disk_vs_db.py <ws_id>`.
+  - Discrepâncias esperadas documentadas em ADR-106: timestamps, ordem de listas.
+  - A6b.3 (validação em workspace real) fica para A6-human.
+
+- **A6a — LLM stages via ArtifactStore — desbloqueio cutover DB (2026-04-19):**
+  E1.5 e E2-llm deixam de escrever artefatos direto em disco e passam a usar
+  ``ArtifactStore``. Pré-requisito para ``MATHOMS_USE_DB_ARTIFACTS=true``.
+  - `pipeline/stages/e15.py`: `out_path.write_text(...)` → `store.write("E1.5",
+    "baseline_patrimonial", baseline_json)`. Artefato produzido: `baseline_patrimonial-
+    1.5_baseline.json` (antes: `_consolidated.json`). E1.5c já lê via fallback
+    `store.read("E1.5", ...)` (A5f). Workspaces existentes continuam funcionando.
+  - `pipeline/stages/e2_llm.py`: `out_path.write_text(...)` → `store.write("E2-llm",
+    safe_stem, e2_json)`. `_find_unprocessed_docs` migrada para `store.list_keys(stage)`
+    em vez de glob de disco (necessário para DB mode).
+  - **E1 e E7-review LLM não migram** (ADR-105): E1 escreve `family_members.json`
+    (config do workspace, não artefato de pipeline); E7-review LLM é input ad-hoc
+    externo ao loop determinístico.
+  - `tests/test_llm_stages.py` — +4 testes (critérios estruturais A6a.3 +
+    integration tests com DiskArtifactStore). 52 testes no arquivo.
+  - **ADR-105** em [DECISIONS.md](DECISIONS.md).
+  - **Tests** — +4 testes (1214 total) · zero regressão.
+
+- **Fase 8 Sessão A5f — E1.5c em Caminho B pragmático (2026-04-19):**
+  **Fecha os 7 de 7 stages determinísticos no Caminho B.** `E1.5c`
+  (consolidação de baseline patrimonial) era o único stage determinístico
+  ainda usando `stage_runner_compat` + `MaterializationBridge` no wrapper.
+  - `scripts/e15_consolidate.main_with_store(ctx)` — lê baseline via
+    `store.read("E1.5c", "baseline_patrimonial")` (fallback para
+    `store.read("E1.5", ...)` quando é a primeira consolidação), invoca
+    `consolidate()` legado (paridade 100%), grava resultado via
+    `store.write("E1.5c", "baseline_patrimonial", ...)`. Skip gracioso
+    quando nenhum baseline encontrado (free tier sem LLM). Coexiste com
+    `main(root_dir)` legado.
+  - `pipeline/stages/e15c.py` — refatorado para chamar `main_with_store(ctx)`
+    direto, via `emit_stage_activity` + delegação. Zero referências a
+    `stage_runner_compat` ou `MaterializationBridge`.
+  - `tests/test_e15c_main_with_store_parity.py` — **4 testes**: golden de
+    paridade com 2 cenários sintéticos (formato `itens[]` atual + formato
+    `declarations[]` legado), teste de skip gracioso (free tier sem
+    baseline), critério estrutural (wrapper sem bridge).
+  - **ADR-104** em [DECISIONS.md](DECISIONS.md): "E1.5c em Caminho B pragmático".
+  - **Tests** — +4 testes pipeline (1210 total) · zero regressão.
+  - **Status pós-A5f**: `MaterializationBridge` e `stage_runner_compat`
+    ficam **sem clientes vivos no Caminho B** (remoção definitiva aguarda
+    A6a cutover LLM stages + A6b cutover DB + A6-human). Caminho A6c
+    desbloqueado assim que A6a+A6b+A6-human forem concluídos.
+
+- **Fase 8 Sessão A5e — Caminho B ativo para E5.N + E7 (2026-04-19):**
+  **Fecha todos os stages determinísticos do pipeline no Caminho B.** E5.N
+  (narrativas) e E7 (crossval + apply) saem do bridge. O modo E7-review LLM
+  permanece fora do Caminho B — é passo externo/humano, não determinístico.
+  - `scripts/e5n_narrativas.main_with_store(ctx)` — lê E5 via `ArtifactStore`,
+    invoca `load_metrics_from_e5` + `build_narrativas` + `validate_narrativas`
+    legados (paridade 100%), injeta `narrativas` no E5 e grava via
+    `store.write("E5", "analise_financeira", ...)`. Coexiste com
+    `main(root_dir)` legado.
+  - `scripts/e7_review.main_with_store(ctx, mode=...)` com 2 modos:
+    - `mode="crossval"` — 14 checks CV1-CV14, extrai persona de
+      `methodology.md`, gera template em
+      `processed/E7_review/e7_review_template.json` via disco direto
+      (paridade com filename legado).
+    - `mode="apply"` — valida review JSON, aplica refinamentos ao E5, grava
+      E5 atualizado via `store.write(...)`. Skip gracioso quando
+      `review_path` ausente + sem template no workspace (free tier).
+  - `pipeline/stages/e5n.py` e `pipeline/stages/e7.py` — **não importam
+    mais `stage_runner_compat`**. Wrappers chamam `main_with_store(ctx)`
+    direto. Critérios estruturais enforçados por testes.
+  - `tests/test_e5n_e7_main_with_store_parity.py` — **6 testes**:
+    - Golden E5.N: roda E4+E5+E5.N legado e novo sobre mesmo workspace,
+      compara `narrativas` campo-a-campo (deve ser idêntico — funções puras).
+    - E7 crossval: grava template no path correto, chaves esperadas presentes.
+    - E7 apply: skip gracioso sem review_path; rejeita review malformado.
+    - 2 critérios estruturais (wrappers sem `stage_runner_compat`).
+  - **Tests** — +6 testes pipeline (1206 total, vs 1200 pós-A5d) · backend
+    inalterado · boundary check verde · zero regressão.
+  - **Status da migração pós-A5e** (revisado após auditoria 2026-04-19):
+    - **Caminho B ativo (6 de 7 stages determinísticos)**: E3 (A2) ·
+      E4 (A4b) · E5 (A5d) · **E5.N (A5e)** · **E7-crossval (A5e)** ·
+      **E7-apply (A5e)**.
+    - **Pendente — A5f**: `E1.5c` (`pipeline/stages/e15c.py`) ainda importa
+      `stage_runner_compat`. Stage **determinístico** que foi omitido da
+      lista da rodada original; corrigido em sessão A5f (ver
+      `_scratch/plano_migracao_artifacts_db.md` §18).
+    - **LLM stages (5)**: E0-route · E1 · E1.5 · E2-llm · E7-review-LLM
+      **não migram para `main_with_store`** (padrão incompatível — invocam
+      LLM, não orquestrar stage-to-stage). Mas 3 deles (E1.5, E2-llm) hoje
+      escrevem artefatos do pipeline **direto em disco**, bypassando
+      `ArtifactStore`. Precisa ajuste separado antes do cutover DB — ver
+      **A6a** no plano.
+  - **Descoberta crítica na auditoria pós-A5e**: `USE_DB_ARTIFACTS=False`
+    em produção; `DBArtifactStore` nunca instanciado pelo backend.
+    **Cutover para DB é teórico** — todos os stages rodam sobre
+    `DiskArtifactStore` hoje. A migração infra está 100% no código e nos
+    testes; falta validação end-to-end em workspace real.
+  - **Consequência**: `MaterializationBridge` e `stage_runner_compat`
+    ainda têm **1 cliente vivo** (E1.5c). Remoção condicional ao
+    completar A5f + A6a + A6b — não "automática" como antes declarado.
+    Ver `_scratch/plano_migracao_artifacts_db.md` §17-§19 para plano
+    revisado.
+  - **Nomenclatura revisada** (§17.2.5 do plano): os 6 stages entregues
+    em A2–A5e dividem-se em 2 variantes:
+    - **Caminho B puro** (E3, A2): refactor com domain services integrados,
+      helpers extraídos, lazy init dos globais.
+    - **Caminho B pragmático** (E4, E5, E5.N, E7): I/O via `ArtifactStore`
+      + wrapper limpo, mas **mantém** `_init_config`, globals de módulo e
+      funções `analyze_*` legadas acopladas a disco. Domain services
+      extraídos em A1/A3c/A5a/A5b/A5c (14+ services, 1200+ testes) ficam
+      em prateleira — documentação executável sem integração.
+  - **A6b.5 + A6-human adicionados** como gate obrigatório antes de
+    A6c (remoção do bridge): infraestrutura smoke
+    (`docker-compose.smoke.yml`, `Makefile smoke-*`, seed de dados,
+    fixtures de documentos, runbook `docs/SMOKE_TEST_HUMAN.md`,
+    observabilidade mínima, modo free-tier testável) + **teste manual
+    end-to-end pelo David** cobrindo todas as features (auth,
+    multi-tenancy, documentos, pipeline, relatório, plano, cutover DB,
+    edge cases). Decisão de deletar bridge **depende de aprovação
+    humana explícita**.
+  - **A6f adicionado ao plano** (commitment): Language-neutral boundaries
+    — preparação para eventual migração Go do backend, mantendo Python
+    apenas em parsers (`scripts/e2/banks/`), LLM (`pipeline/llm/`) e
+    domain services. 6 sub-fases com princípios novos **R18-R20** (wire
+    formats explícitos via JSON Schema/OpenAPI, stateless-ready,
+    language-neutral data):
+    - **A6f.1** — Pipeline como serviço HTTP standalone
+      (`pipeline-service/` FastAPI com endpoints `/api/v1/pipeline/...`);
+      backend fala com pipeline só via HTTP, nunca por import.
+    - **A6f.2** — OpenAPI 3.1 exaustivo + codegen frontend (extensão
+      natural de A6e.5).
+    - **A6f.3** — Structured logging JSON + OpenTelemetry (traces
+      cross-service via OTLP).
+    - **A6f.4** — DB schema language-neutral (UUIDs, UTC-aware
+      timestamps, enums como VARCHAR + CHECK, JSON columns com keys
+      camelCase, sem TypeDecorator exótico).
+    - **A6f.5** — Auth portátil (Fernet → AES-GCM; JWT RS256/HS256;
+      session store Redis com schema JSON explícito).
+    - **A6f.6** — Stateless rigoroso (WebSocket via Redis pub/sub,
+      rate limiting em Redis, zero cache in-memory mutable; teste
+      multi-worker).
+    Estimativa: 6-8 sessões grandes. Independente de A6a-e (pode rodar
+    em paralelo). **Valor imediato mesmo se migração Go não acontecer**:
+    escala pipeline independente, zero bugs de integração frontend,
+    observabilidade real, best-practice de criptografia.
+  - **A6e adicionado ao plano** (commitment): DDD/SOLID no backend API
+    em 6 sub-fases — traz a disciplina do `pipeline/` para
+    `backend/app/` inteiro. Princípios novos R12-R17 (ISP no backend,
+    repositórios por aggregate, routers ≤50 linhas, application layer
+    por use case, versionamento `/api/v1/`, domain events tipados).
+    Escopo: extrair queries SQLAlchemy dos routers (~4900 linhas hoje)
+    para repositories; separar DTOs ↔ ORM models; criar
+    `backend/app/application/` com use cases explícitos; padronizar
+    side-effects via events. Estimativa: 5-7 sessões grandes.
+    Independente de A6a-d (pode rodar em paralelo; recomendado depois
+    de A6b para validar repository pattern com múltiplos storage
+    backends).
+  - **A6d confirmado como commitment** (não mais opcional): fechar
+    Caminho B puro nos 5 stages pragmáticos em 3 sub-fases:
+    - **A6d.1** — Eliminação de globals nos 5 scripts (padrão A3b
+      aplicado a `e4_categorize`, `e5_analyze`, `e5n_narrativas`,
+      `e7_review`, `e15_consolidate`).
+    - **A6d.2** — Testabilidade dos `analyze_*` sem disco (extrair
+      reads de `life_plan_goals.md`, `tarefas.md`, `milhas.md`,
+      `methodology.md` para shell; funções ficam puras).
+    - **A6d.3** — Integração dos 14+ domain services em `main_with_store`
+      (E4, E5.N, E5), com golden de paridade por stage.
+    Estimativa total: 3-5 sessões grandes. Independente de A6a/b/c
+    (cutover DB) — pode rodar em paralelo.
+
+- **Fase 8 Sessão A5d — Caminho B ativo para E5 + golden de paridade (2026-04-19):**
+  Fecha a **Fase 8**. E5 sai do bridge e passa ao Caminho B. Estratégia
+  pragmática: reutiliza as funções ``analyze_*`` legadas (já testadas,
+  isoladas, sem dependências de disco) no ``main_with_store`` para garantir
+  paridade 100% no golden — domain services extraídos em A1/A3c/A5a/A5b/A5c
+  ficam como foundation para refactor completo num sprint futuro.
+  - `pipeline/domain/services/e5_serialization.py` — helpers para montar
+    o output `analise_financeira-5_analysis.json`: `build_e5_output`,
+    `run_sanity_checks` (7 checks do legado), `build_default_tarefas`,
+    `build_default_tarefas_status`, `build_alertas`. Value object
+    `E5OutputInputs` consolida os 20+ sub-resultados. **24 testes**.
+  - `scripts/e5_analyze.main_with_store(ctx)` — lê E4 + baseline via
+    `ArtifactStore`, invoca as 13 funções `analyze_*` legadas, aplica
+    sanity checks, preserva `narrativas` de run anterior, escreve via
+    `store.write("E5", "analise_financeira", ...)`, valida contra schema
+    em Disk. **Coexiste com `main(root_dir)` legado**.
+  - `pipeline/stages/e5.py` — **não importa mais `stage_runner_compat`**.
+    Chama `main_with_store(ctx)` direto. Critério estrutural enforçado por
+    `test_pipeline_stages_e5_does_not_import_stage_runner_compat`.
+  - `tests/test_e5_main_with_store_parity.py` — golden de paridade real:
+    roda E4+E5 legados vs E4+E5 `main_with_store` sobre **o mesmo** workspace
+    sintético, compara `analise_financeira-5_analysis.json` campo-a-campo
+    (tolerância 0.01 BRL em whitelist de monetários, ordem-insensitive em
+    listas de dicts, normalização de timestamps). **2 testes** (paridade +
+    critério estrutural).
+  - **Tests** — +26 testes pipeline (1200 total, vs 1174 pós-A5c) · backend
+    inalterado · boundary check verde · zero regressão.
+  - **Decisão arquitetural documentada**: o `main_with_store` do E5 **não**
+    reescreve `analyze_*` com os domain services foundation. Dois motivos:
+    (1) `analyze_patrimonio` e `calculate_score` têm lógica complexa
+    acoplada a globals (`_TITULAR_KEY`, `_MEMBROS`, etc.) que exigiria um
+    sprint dedicado de refactor; (2) paridade 100% com o golden é mais
+    importante agora do que puritanismo arquitetural. Os 14+ services
+    extraídos em A1/A3c/A5a/A5b/A5c ficam como foundation documentada e
+    testada para esse refactor futuro (sprint A6+).
+  - **Fase 8 fechada**: E3 + E4 + E5 no Caminho B. Restam E5.N e E7 via
+    bridge (sessão A5e).
+
+- **Fase 8 Sessão A5c — 7 analyzers complementares + E5AnalyzerAdapter (2026-04-19):**
+  Fecha a **foundation** completa do E5 (todos os analyzers do `e5_analyze.py`
+  extraídos). `scripts/e5_analyze.py` e `pipeline/stages/e5.py` **inalterados**
+  — bridge ativo. A5d (serializer + `main_with_store` + switch + golden de
+  paridade) fica para sessão dedicada (escopo comparável a A4b).
+  - `pipeline/domain/services/diagnostico_comportamental_analyzer.py` —
+    `DiagnosticoComportamentalAnalyzer` + `DiagnosticoComportamentalConfig`
+    + `DiagnosticoItem`. Extrai `analyze_diagnostico_comportamental`
+    (e5_analyze.py:2130). Detecta: disciplina poupança, poupança abaixo
+    ideal, alta dependência receita pontual. **12 testes**.
+  - `pipeline/domain/services/pontos_urgentes_analyzer.py` —
+    `PontosUrgentesAnalyzer` + `PontosUrgentesConfig` + `PontoUrgenteItem`.
+    Extrai `analyze_pontos_urgentes` (e5_analyze.py:1990). Checks: reserva
+    < mínimo, endividamento > max, seguro sempre, rentabilidade N/D.
+    **10 testes**.
+  - `pipeline/domain/services/equilibrio_cerbasi_analyzer.py` —
+    `EquilibrioCerbasiAnalyzer` + `EquilibrioCerbasiConfig` +
+    `EquilibrioCerbasi` + `ClassificacaoFaixa`. Extrai
+    `analyze_equilibrio_cerbasi` (e5_analyze.py:2351). Classifica perfil
+    em Investidor/Equilibrado/Endividado consciente/Gastador a partir do
+    % de gastos em categorias "futuro" vs "presente". **14 testes**.
+  - `pipeline/domain/services/pontos_fortes_analyzer.py` —
+    `PontosFortesAnalyzer` + `PontosFortesConfig` + `PontoForteItem`.
+    Extrai `analyze_pontos_fortes` (e5_analyze.py:1694). 8 checks +
+    fallback "Análise em Andamento". **19 testes**.
+  - `pipeline/domain/services/e5_member_resolver.py` — `E5MemberResolver`
+    + `MemberResolverConfig` + `ResolvedMembers`. Extrai
+    `_resolve_members` + `_build_members_from_declarations` +
+    `_build_members_from_consolidated` (e5_analyze.py:274/311/429). 4
+    formatos suportados (dict, list-of-dicts, declarations IRPF,
+    consolidado v1.5). **16 testes**.
+  - `pipeline/domain/services/fluxo_caixa_enricher.py` —
+    `FluxoCaixaEnricher` + `FluxoEnricherConfig` + `FluxoCaixaEnriched` +
+    `Janela12m`. Extrai `analyze_fluxo_caixa` (e5_analyze.py:1050).
+    Complementa `CashFlowBuilder` (A4a) com one-time vs recorrente,
+    janela de 12 meses (rolling), datasets Chart.js. **19 testes**.
+  - `pipeline/domain/services/cenarios_conjuge_analyzer.py` —
+    `CenariosConjugeAnalyzer` + `CenariosConjugeConfig` +
+    `CenariosConjugeResult` + `CenarioItem`. Extrai
+    `analyze_cenarios_conjuge` (e5_analyze.py:2181). 3 cenários (Sem
+    Trabalhar, Com NCLEX, Com NCLEX + Green Card) com juros compostos.
+    **17 testes**.
+  - `pipeline/domain/services/e5_analyzer_adapter.py` — `E5AnalyzerAdapter`
+    + `E5AnalysisResult`. **Orquestrador** que compõe todos os 13+
+    services (A1/A3c/A5a/A5b/A5c). Lê E4 artifacts do store, compõe
+    análises, retorna `E5AnalysisResult` frozen. **Não escreve em E5**
+    — escrita fica para A5d com `main_with_store`. Factory `from_configs`
+    para reduzir boilerplate. **17 testes**.
+  - **Tests** — +124 testes pipeline (1174 total) · backend inalterado ·
+    boundary check verde · zero regressão.
+  - **Pendente para A5d** (próxima — fecha Fase 8):
+    - `pipeline/domain/services/e5_serialization.py` — produz
+      `analise_financeira-5_analysis.json` a partir de `E5AnalysisResult`.
+    - `scripts/e5_analyze.main_with_store(ctx)` coexistindo com
+      `main(root_dir)` legado.
+    - `pipeline/stages/e5.py` sem `stage_runner_compat`.
+    - Golden de paridade `main()` vs `main_with_store()`.
+
+- **Fase 8 Sessões A5a + A5b — 7 analyzers E5 extraídos (2026-04-19):**
+  Foundation da Fase 8 (E5 Caminho B). Domain services puros para 7 funções
+  `analyze_*` de `scripts/e5_analyze.py` (2598 linhas). **Nenhum toque** em
+  `e5_analyze.py` nem em `pipeline/stages/e5.py` — bridge ativo.
+  **Sessão A5a — 3 analyzers centrais:**
+  - `pipeline/domain/services/if_projector.py` — `IFProjector` +
+    `IFProjection` + `IFProjectorConfig`. Extrai `analyze_goals`
+    (e5_analyze.py:971) + `extract_if_target_from_life_plan` +
+    `extract_if_trs` + `extract_renda_passiva_from_life_plan` +
+    `calculate_edad`. Resolve prazo via juros compostos
+    `FV = PV·(1+r)^n + PMT·((1+r)^n − 1)/r`. Config tipada recebe
+    DOBs, aporte mensal, TRS, retorno real anual. Helpers regex puros
+    para `life_plan_goals.md`. **23 testes**.
+  - `pipeline/domain/services/ratios_calculator.py` — `RatiosCalculator` +
+    `FinancialRatios`. Extrai `analyze_ratios` (e5_analyze.py:1262):
+    taxa poupança (recorrente/total), endividamento, cobertura de despesas.
+    Prefere janela 12m. Sem config externa. **11 testes**.
+  - `pipeline/domain/services/orcamento_calculator.py` —
+    `OrcamentoProspectivoCalculator` + `OrcamentoProspectivo`. Extrai
+    `analyze_orcamento_prospectivo` (e5_analyze.py:1428) — média mensal por
+    categoria. **7 testes**.
+  **Sessão A5b — 4 analyzers complementares:**
+  - `pipeline/domain/services/endividamento_analyzer.py` —
+    `EndividamentoAnalyzer` + `EndividamentoAnalysis` + `DividaItem`.
+    Extrai `analyze_endividamento` (e5_analyze.py:1602). Recebe lista de
+    membros já resolvidos (desacoplado de `_resolve_members`). **11 testes**.
+  - `pipeline/domain/services/previdencia_analyzer.py` — `PrevidenciaAnalyzer`
+    + `PrevidenciaAnalysis` + `PrevidenciaConfig` + `IRPFBracket`. Extrai
+    `analyze_previdencia_pgbl` (e5_analyze.py:1632): lucro presumido → base
+    tributável → limite PGBL → economia IR. Tabela IRPF progressiva via
+    config. Paridade com legado documentada (loop sem break sempre pega
+    última faixa `None`). **15 testes**.
+  - `pipeline/domain/services/investimentos_classes_analyzer.py` —
+    `InvestimentosClassesAnalyzer` + `InvestimentosClassesAnalysis` +
+    `InvestimentosClassesConfig` + `ClasseAtivo`. Extrai
+    `analyze_investimentos_classes` (e5_analyze.py:1516): classifica em 6
+    classes (Ações, Renda Fixa, Imóveis Investimento, Cripto, Contas
+    Bancárias, Outros) por keywords configuráveis. Residência principal
+    identificada por keyword. **20 testes**.
+  - `pipeline/domain/services/consumo_consciente_calculator.py` —
+    `ConsumoConscienteCalculator` + `ConsumoConsciente` +
+    `ConsumoConscienteConfig` + `GastoPontualItem`. Extrai
+    `analyze_consumo_consciente` (e5_analyze.py:2039): identifica gastos
+    pontuais ≥ threshold (default R$ 2000) fora de categorias recorrentes,
+    calcula folga mensal + teto sugerido + equivalente-meses-aporte.
+    **23 testes**.
+  - **Tests** — +110 testes pipeline (1050 total) · backend inalterado ·
+    boundary check verde · zero regressão.
+  - **Achado documentado (A5b)**: `analyze_previdencia_pgbl` no legado tem
+    loop sem `break` — para qualquer renda com tabela IRPF que termina em
+    faixa `None`, a alíquota efetiva vira a da faixa `None` (geralmente
+    27.5%). Paridade preservada; comportamento pode ser revisto em sprint
+    dedicado.
+  - **Pendente para A5c**: `DiagnosticoComportamentalAnalyzer`,
+    `PontosFortesAnalyzer`, `PontosUrgentesAnalyzer`, `CenariosAnalyzer`,
+    `EquilibrioCerbasiAnalyzer`, `FluxoCaixaEnricher` (extensão do
+    `CashFlowBuilder`), + `E5AnalyzerAdapter` orquestrador + `_resolve_members`.
+  - **Pendente para A5d**: `e5_serialization.py` + `main_with_store(ctx)` +
+    switch do wrapper `pipeline/stages/e5.py` + golden de paridade.
+  - **Pendente para A5e**: E5.N + E7 (mais simples, viriam depois).
+
+- **Fase 7 Sessão A4b — Caminho B ativo para E4 + golden de paridade (2026-04-19):**
+  Fecha a Fase 7. E4 sai do bridge (`MaterializationBridge`) e passa ao
+  Caminho B real. `scripts/e4_categorize.main(root_dir)` legado **inalterado**
+  — coexiste para CLI e testes existentes. Segundo stage rodando Caminho B
+  (primeiro foi E3 na A2).
+  - `pipeline/domain/services/e4_serialization.py` — `serialize_e4_artifacts(result)`
+    produz mapping `{artifact_key: payload}` para os 7 arquivos E4 legados
+    (`receitas`, `despesas`, `fluxo_mensal_detalhado`, `patrimonio`,
+    `investimentos`, `seguros`, `pontos_milhas`); `build_patrimonio_artifact`
+    trata ausência de baseline (`{"dados": []}` paridade); helpers
+    `filename_for` / `all_filenames` / `payloads_to_files`. **16 testes**.
+  - `scripts/e4_categorize.main_with_store(ctx)` — orquestra
+    `E4CategorizerAdapter` + `serialize_e4_artifacts`, escreve os 7
+    artefatos via `store.write("E4", key, payload)`, valida cada um contra
+    `e4_unified.schema.json`, gera sidecar `qa_log.md` (helper
+    `_write_qa_log_e4` replica `generate_qa_log`). **Coexiste com
+    `main(root_dir)` legado**.
+  - `pipeline/stages/e4.py` — **não importa mais `stage_runner_compat`**.
+    Chama `main_with_store(ctx)` direto. Critério estrutural enforçado por
+    `test_pipeline_stages_e4_does_not_import_stage_runner_compat`.
+  - `tests/test_e4_main_with_store_parity.py` — golden de paridade real:
+    roda `main(root_dir)` legado e `main_with_store(ctx)` sobre **o mesmo**
+    workspace sintético em `tmp_path`, compara os 7 artefatos campo a campo
+    (tolerância 0.01 BRL; normalização de `consolidation_date`/
+    `data_consolidacao`/`data_processamento`). **2 cenários** parametrizados
+    (receitas+despesas simples; baseline + investimentos) + 1 critério estrutural.
+  - **Achado durante a paridade** — `e4_categorize._init_config(root_dir)`
+    atualiza os globals do módulo mas **não** reinicializa
+    `pipeline_common.CONFIG_DIR`, que o helper `_load_json_config_from` usa
+    via `_pc.load_json_config`. O legado então lia configs do repo global
+    em vez do workspace passado. O runner do golden chama
+    `pipeline_common._init_config(workspace)` explicitamente para forçar a
+    paridade; a inconsistência do legado persiste (não vale a pena mexer
+    agora — A5+ vai remover `_init_config` global por completo).
+  - **Tests** — +19 testes pipeline (940 total, vs 921 pós-A4a) · backend
+    inalterado · boundary check verde · zero regressão.
+  - **Fase 7 fechada**: E3 + E4 no Caminho B; só E5/E5.N/E7 restam via bridge.
+
+- **Fase 7 Sessão A4a — E4 Caminho B foundation (2026-04-19):**
+  Domain services puros do E4 extraídos **sem** tocar `scripts/e4_categorize.py`
+  nem `pipeline/stages/e4.py`. Bridge continua ativo. Prepara o
+  `main_with_store(ctx)` do E4 e switch do wrapper (Sessão A4b).
+  - `pipeline/domain/services/keyword_matcher.py` —
+    `find_longest_matching_keyword` + `KeywordMatcher` com suporte a
+    wildcards prefix/suffix (`PIX*`, `*BOLETO`) e longest-match wins.
+    Paridade direta com `find_longest_matching_keyword` do legado
+    (e4_categorize.py:110). **14 testes**.
+  - `pipeline/domain/services/transaction_classifier.py` —
+    `TransactionClassifier(ClassifierConfig)` + value object frozen
+    `ClassifiedTransaction` com `kind in {receita, despesa, transferencia}`,
+    normalização de `tipo`, inferência por sinal, coerção de `valor`
+    BR, fallbacks (`outras_receitas` / `nao_identificado`). Compõe
+    `KeywordMatcher` + `InternalTransferDetector` (A3a) +
+    `IncomeOriginResolver` (A3a). Decompõe `process_transactions`
+    (e4_categorize.py:589-730). **22 testes**.
+  - `pipeline/domain/services/cash_flow_builder.py` —
+    `CashFlowBuilder` + value objects frozen `ReceitasUnified`,
+    `DespesasUnified`, `FluxoMensal`, `CashFlow`. Paridade com
+    `build_receitas_unified` / `build_despesas_unified` /
+    `build_fluxo_mensal_detalhado` (linhas 741/767/793). Clock
+    injetável (`now`) para testes determinísticos. **10 testes**.
+  - `pipeline/domain/services/baseline_normalizer.py` —
+    `BaselineNormalizer` + `NormalizedBaseline`. Canoniza baseline v2
+    → v1 (7 transformações: `pipeline_stage`, `data_processamento`,
+    `membros`, `patrimonio_por_ano` derivado de `resumo_patrimonial`,
+    enriquecimento de `imoveis_consolidados`, conversão dict→list de
+    investimentos, alias de `dividas`). Não muta input. **21 testes**.
+  - `pipeline/domain/services/investments_consolidator.py` —
+    `InvestmentsConsolidator(InvestmentsConsolidatorConfig)` +
+    `ConsolidatedInvestments`. Decompõe `build_investimentos_unified`
+    (linha 260): filtra candidates válidos, dedup por
+    (instituição, membro) mantendo o mais recente, agrega posições,
+    infere membro via `banco_membro`, valida divergência entre
+    `saldo_atual` e soma de itens. **14 testes**.
+  - `pipeline/domain/services/e4_categorizer_adapter.py` —
+    `E4CategorizerAdapter` orquestra E3 → classify → aggregate sobre
+    `ArtifactStore`. Factory `from_configs(categorization, family)` reduz
+    boilerplate. Lê baseline (E1.5c) e posições (E2-*) com dedup por key
+    entre stages. **Não escreve em E4 ainda** — serialização fica para
+    A4b. Retorna `CategorizationResult` frozen com `classified`,
+    `cash_flow`, `baseline`, `investments`. **13 testes**.
+  - `tests/pipeline/goldens/e4/` — 3 fixtures sintéticas + README:
+    `cenario_receitas_despesas_simples.json` (1 CLT + 3 despesas),
+    `cenario_transferencia_interna.json` (transferências PIX excluídas
+    de receitas/despesas), `cenario_baseline_investimentos.json`
+    (baseline v2 + 2 posições BTG/Rico).
+  - **Tests** — +94 testes pipeline (921 total) · backend inalterado ·
+    boundary check verde · zero regressão.
+  - **Fora de escopo desta iteração (A4b — próxima)**:
+    - `pipeline/domain/services/e4_serialization.py` com os 7 artefatos
+      legados (`receitas`, `despesas`, `fluxo_mensal_detalhado`,
+      `patrimonio`, `investimentos`, `seguros` placeholder,
+      `pontos_milhas` placeholder).
+    - `scripts/e4_categorize.main_with_store(ctx)` coexistindo com `main(root_dir)`.
+    - `pipeline/stages/e4.py` sem `stage_runner_compat`.
+    - Golden de paridade `main()` vs `main_with_store()` no mesmo workspace.
+
+- **Fase 6/7/8 Sessão A3 — cleanup E3 + foundations E4 e E5 (2026-04-19):**
+  Sessão combinada A3a + A3b + A3c em escopos mínimos viáveis. Zero mudança
+  em `main()` legado de E3/E4/E5 — toda extração é foundation pura.
+  - **A3b (cleanup E3 pós-A2)** — `scripts/e3_reconcile.py` não chama mais
+    `_init_config(_pc.PROJECT_DIR)` no top-level do módulo. Globals agora
+    recebem defaults sensatos no nível de módulo; `_init_config(base_dir)`
+    continua disponível para popular do disco quando explicitamente
+    chamado por `main(root_dir=…)` ou por testes. Remove side-effect no
+    import — o módulo é agora importável puro. Teste estrutural (AST)
+    bloqueia regressão. **7 testes**.
+  - **A3c (Fase 8 foundation — `MemberAnalyzer`)** —
+    `pipeline/domain/services/member_analyzer.py` com value object
+    `MemberPatrimonio` (frozen, `Decimal`) e service puro `MemberAnalyzer`.
+    Extrai `_get_bens`, `_imovel_valor`, `_imovel_desc`, `_veiculo_valor`,
+    `_investimento_valor` (e5_analyze.py:644-692) + a fatia per-member de
+    `analyze_patrimonio`: classificação de imóvel como residência por
+    keyword, soma de veículos/investimentos/contas-bancárias-extras,
+    extração de `total_bens_irpf` e `total_dividas`. Helper
+    `aggregate(members)` para soma cross-membro. `to_legacy_floats()` para
+    serialização compatível com output atual do E5 (que usa `float`).
+    **31 testes**.
+  - **A3a (Fase 7 foundation — 2 services)** — preparando o Caminho B do E4
+    sem tocar `main()` legado:
+    - `pipeline/domain/services/income_origin_resolver.py` —
+      `IncomeOriginResolver` + `IncomeOriginConfig`. Extrai `get_pj_origin`,
+      `get_clt_origin` e a classificação estática de origem em
+      `process_transactions` (e4_categorize.py:660-679).
+      `resolve_for_category(category, description)` roteia para PJ, CLT, ou
+      tabela estática (`receita_aluguel → "Aluguéis"`, etc.). Fallbacks
+      tipados. **17 testes**.
+    - `pipeline/domain/services/internal_transfer_detector.py` —
+      `InternalTransferDetector` + `InternalTransferConfig`. Extrai
+      `is_internal_transfer` (e4_categorize.py:144) com 4 camadas
+      (`internal_patterns` substring, `internal_recipients`,
+      `bank_specific_patterns` com **match exato**, `global_transfer_patterns`
+      substring). Zero configs globais. **15 testes**.
+  - **Tests** — +70 testes pipeline (827 total) · backend inalterado ·
+    boundary check verde · zero regressão.
+  - **Fora de escopo desta iteração** (futuras sessões):
+    - A4 (E4 `main_with_store` + switch do wrapper E4) — depende de
+      `CashFlowBuilder` + `BaselineNormalizer` + `E4CategorizerAdapter`
+      que não couberam em A3.
+    - A5 (E5 `main_with_store`) — depende de 4 outras calculadoras
+      faltantes em `e5_analyze.py` (`IndependenciaFinanceiraProjector`,
+      `RatiosCalculator`, `OrcamentoProspectivoCalculator`,
+      `ConsumoConscienteCalculator`).
+    - Deletar `main(root_dir)` legado de `e3_reconcile.py` — adiado até
+      deprecation comprovada.
+
+- **Fase 6 Sessão A2 — Caminho B ativo para E3 (2026-04-19):** E3 passa a ser
+  o **primeiro stage em Caminho B completo**. `scripts/e3_reconcile.main(root_dir)`
+  continua intacto (CLI direto e testes legados); o wrapper web delega ao
+  novo entry point.
+  - `pipeline/domain/services/e3_serialization.py` (145 linhas, novo módulo)
+    — conversão `BankStatement` → schema E3 legado (`e3_reconciled.schema.json`).
+    Funções puras, sem I/O: `serialize_to_e3_legacy_format(stmt, sources, dup)`
+    → dict aderente ao schema; `generate_legacy_filename(stmt, canonicalizer)`
+    → `{banco}_{tipo_conta}_{moeda}_{YYYYMM}_{YYYYMM}-3_reconciled.json`
+    (para faturas: sem moeda); `generate_legacy_artifact_key(stmt,
+    canonicalizer)` → key sem sufixo para `ArtifactStore`.
+    Banco canonicalizado via `BankCanonicalizer` com fallback
+    `lower().replace(" ", "")` (paridade com `generate_output_filename` legado).
+  - `scripts/e3_reconcile.main_with_store(ctx)` (linha 1186, ~180 linhas)
+    — entry point Caminho B. Lê configs via `ctx.load_config`, instancia
+    todos os domain services com configs tipadas
+    (`AccountGrouperConfig.from_pipeline_config`,
+    `SaldoContinuityConfig.from_pipeline_config`, etc.), monta
+    `E3ReconcilerAdapter` com `serialize_fn` e `output_key_fn` wireados ao
+    `e3_serialization`, chama `reconcile_via_store`, valida schema de cada
+    payload escrito (`validate_artifact`), gera sidecar logs
+    (`reconciliation.md` + `qa_log.md` E3 section) em `ctx.logs_dir` e
+    loga warnings estruturados via `log_progress`. Em mode Disk, faz
+    `cleanup_e3_directory` antes de escrever (paridade legado).
+  - `pipeline/stages/e3.py` **reescrito** (33 → 22 linhas) — importa
+    `main_with_store` direto. **Zero uso** de `stage_runner_compat` ou
+    `MaterializationBridge`. Docstring marca como "Caminho B (ADR-097,
+    Sessão A2)".
+  - `tests/test_e3_main_with_store_parity.py` (253 linhas, 3 testes) —
+    rede de segurança: roda `main(root_dir)` legado e `main_with_store(ctx)`
+    sobre o **mesmo** workspace sintético em `tmp_path` e compara payload a
+    payload (tolerância `0.01` BRL em monetários; ordem-insensitive em
+    `fontes`/`transacoes`). 2 cenários parametrizados: extrato simples
+    sem dups, 2 extratos sobrepostos com dup cross-file. Terceiro teste
+    é guard formal da Sessão A2 — asserta que `pipeline/stages/e3.py` não
+    importa `stage_runner_compat` e **chama** `main_with_store`.
+  - **Pendente (sessões seguintes):**
+    - Fase 7 Caminho B (E4) — mesmo padrão, `E4ReconcilerAdapter`
+      (`CategorizationService` já existe como foundation).
+    - Decomposição completa de `e5_analyze.py` (Fase 8, 5-8 sem, timebox
+      4sem/sprint).
+    - Remoção de `_init_config()` global do `e3_reconcile.py` — só após
+      todos os stages em Caminho B, para não quebrar coexistência com
+      `main(root_dir)` legado.
+    - Fase 9 (rename físico + remoção do bridge) — bloqueada até E4/E5
+      em Caminho B.
+  - **Tests** — +3 testes no pipeline (**757 total**) · backend inalterado ·
+    boundary check verde · zero regressão.
+
+- **Fase 6 Sessão A2 — `main_with_store` + switch do wrapper + golden de paridade (2026-04-19):**
+  Fecha a Fase 6 do plano: E3 sai do bridge (`MaterializationBridge`) e passa
+  ao Caminho B real. `scripts/e3_reconcile.main(root_dir)` legado
+  **inalterado** — coexiste para CLI e testes existentes.
+  - `pipeline/domain/services/e3_serialization.py` —
+    `serialize_to_e3_legacy_format(stmt, sources, dup_count) → dict` aderente
+    a `config/schemas/e3_reconciled.schema.json` (banco, tipo_conta,
+    periodo_cobertura, fontes, transacoes_total,
+    transacoes_duplicadas_removidas, etc.) e
+    `generate_legacy_filename(stmt, *, canonicalizer)` /
+    `generate_legacy_artifact_key(stmt, ...)` com paridade ao
+    `generate_output_filename` legado (fatura sem moeda, conta com moeda).
+    **18 testes**.
+  - `pipeline/domain/models/document.py` — `BankStatement` ganha campo
+    opcional `account_type: str | None`. `from_e2_dict` popula com `tipo`;
+    `to_e2_dict` propaga (substitui hardcoded `"tipo": "extrato"`).
+    `ReconciliationService._reconcile_group` propaga o campo.
+  - `pipeline/domain/services/e3_reconciler_adapter.py` —
+    `reconcile_via_store` agora aceita `output_key_fn` e `serialize_fn`
+    opcionais (defaults preservam comportamento). `_load_with_outcome`
+    deduplica keys por stage (DiskArtifactStore mapeia E2-extratos /
+    E2-faturas / E2-llm para o mesmo dir → key apareceria 3x sem dedup) e
+    popula `BankStatement.source_document` com filename legado
+    (`key + stage_suffix(stage)`) — essencial para `fontes` no output E3.
+  - `scripts/e3_reconcile.py` — nova função `main_with_store(ctx)` que
+    constrói canonicalizer + grouper + 3 validators + adapter, roda o
+    pipeline via `ArtifactStore`, valida cada payload contra o schema,
+    e escreve sidecar `reconciliation.md` + `qa_log.md` (E3 Temporal Gaps)
+    quando `ctx.logs_dir` existe. **Coexiste com `main(root_dir)` legado.**
+  - `pipeline/stages/e3.py` — **não importa mais `stage_runner_compat`**.
+    Chama `main_with_store(ctx)` direto. Test
+    `test_pipeline_stages_e3_does_not_import_stage_runner_compat`
+    enforça o critério.
+  - `tests/test_e3_main_with_store_parity.py` — golden de paridade real:
+    roda `main(root_dir)` legado e `main_with_store(ctx)` sobre **o mesmo**
+    workspace sintético em `tmp_path`, compara payloads E3 campo-a-campo
+    (tolerância 0.01 BRL para saldos; ordem-insensitive em fontes/transacoes).
+    **2 cenários** parametrizados (extrato simples; extratos sobrepostos com
+    duplicata cross-file) + 1 critério estrutural.
+  - **Achados durante a paridade**:
+    - `DiskArtifactStore` mapeia 3 stages E2 ao mesmo dir — adapter precisa
+      dedup por key.
+    - `account_type` precisa ser preservado em `_reconcile_group` (cria
+      `BankStatement` novo) — esquecido inicialmente; pego pelo golden.
+    - `source_document` precisa do sufixo do stage (`-2_extract.json`)
+      para casar `fontes` do legado.
+  - **Tests** — +21 testes pipeline (757 total) · backend 664 inalterado ·
+    boundary check verde · zero regressão.
+  - **Fora de escopo (Sessão A3+)**: remoção de `_init_config()` global e
+    tolerâncias módulo-level de `e3_reconcile.py` (E4 ainda depende de
+    padrão similar; vamos remover juntos no Caminho B do E4); deletar
+    `main(root_dir)` legado (mantém-se até deprecation comprovada).
+
+- **Fase 6 Sessão A1 — pre-extraction E3 + adapter completo + goldens (2026-04-19):**
+  Continuação direta da Fase 6 foundation estendida. Zero mudança em
+  `scripts/e3_reconcile.py` ou em `pipeline/stages/e3.py` — bridge continua
+  ativo. Prepara o `main_with_store(config, store)` da Sessão A2.
+  - `pipeline/domain/services/statement_preprocessor.py` —
+    `StatementPeriodNormalizer` (4 casos: schema oficial `periodo_inicio/fim`,
+    `periodo` dict, `periodo` string `YYYYMM`/`YYYY-MM-DD`, fatura sintetizada
+    com chain `data_vencimento → tx_dates → fallback`) e
+    `AnachronicTransactionDropper` (drop de tx >180d antes de
+    `periodo.inicio`, paridade com guard de `e3_reconcile.py:772-795`).
+    Warnings frozen (`PeriodDerivationWarning`,
+    `AnachronicTransactionWarning`) — nunca strings. Aceita formato dict E
+    formato plano `periodo_inicio`/`periodo_fim`. Não muta input.
+    **27 testes**.
+  - `pipeline/domain/services/account_grouper.py` — `AccountGrouper` com
+    value object `AccountKey` (frozen) e `AccountGrouperConfig` injetável
+    (R9/ISP). Substitui `get_account_key` + `should_skip_extract` +
+    `ACCOUNT_TYPE_EQUIVALENCES` inline do legado. **25 testes**.
+  - `pipeline/domain/services/e3_reconciler_adapter.py` extendido —
+    integra `BankCanonicalizer` (output_key estável), `AccountGrouper`
+    (skip de IRPF/posições), `StatementPeriodNormalizer`,
+    `AnachronicTransactionDropper`, `SaldoContinuityValidator`,
+    `TemporalGapDetector`, `BaselineValidator` (todos opcionais via DI).
+    Novo `ReconciliationStoreResult` (frozen dataclass com acesso dict-like
+    para retro-compat com testes legados). Novos
+    `load_bank_statements_with_warnings()` e `load_baseline_accounts()`.
+    **+15 testes** (23 total no arquivo).
+  - `tests/pipeline/goldens/e3/` — 3 fixtures sintéticas autocontidas
+    (`cenario_extratos.json`, `cenario_fatura_sem_periodo.json`,
+    `cenario_baseline_diff.json`) + README. Testes de golden cobrem dedup
+    cross-file, síntese de período em fatura, e diff baseline IRPF vs
+    `closing_balance` em 31/12.
+  - **Achado documentado** — o ajuste de `inicio` para `min(tx_dates)` em
+    fatura sintetizada **anula** o anachronic guard (paridade com legado).
+    O guard só dispara em extratos com período fixo. Documentado no golden
+    de fatura e via teste explícito em `TestLoadBankStatementsWithWarnings`.
+  - **Docs** — `docs/TESTING.md` com seção goldens E3.
+  - **Tests** — +69 testes no pipeline (736 total) · backend inalterado ·
+    boundary check verde · zero regressão.
+  - **Fora de escopo desta iteração** (Sessão A2): `main_with_store`,
+    refactor de `pipeline/stages/e3.py` para parar de usar bridge, golden
+    de paridade real contra `main()` legado, remoção de `_init_config()`
+    global do `e3_reconcile.py`.
+
+- **Fase 6 foundation estendida (2026-04-19):** 4 domain services extraídos
+  de `scripts/e3_reconcile.py` (1193 linhas) sem tocar `main()` legado — zero
+  risco de regressão; prepara o terreno para o refactor real de E3 (Caminho B)
+  num sprint subsequente.
+  - `pipeline/domain/models/bank.py` — `BankCanonicalizer.from_institutions()`
+    + `canonicalize_bank()` + `_normalize()` (strip acento/espaço/`/&`).
+    Substitui o dict-global `_BANCO_DISPLAY_TO_CANONICAL` em
+    `scripts/e3_reconcile.py::_init_config`. Elimina falsos positivos de
+    substring (fix 4.4) via índice explícito `normalized_form → canonical_code`.
+    **21 testes**.
+  - `pipeline/domain/services/reconciliation_validators.py` —
+    `SaldoContinuityValidator` (substitui primeira metade de
+    `validate_saldo_and_gaps`, usa `Money`/`Decimal`) e
+    `TemporalGapDetector` (substitui segunda metade). Cada um com
+    `*Config` dataclass (ISP/R9), ambos recebem `list[BankStatement]`
+    (nunca `Path`/`dict`), ordenam internamente, retornam warnings
+    estruturados (`SaldoGapWarning`, `TemporalGapWarning`) — não strings.
+    **32 testes**.
+  - `pipeline/domain/services/baseline_validator.py` — `BaselineValidator`
+    substitui `validate_against_baseline()`. Compara `closing_balance` de
+    `BankStatement` contra saldos IRPF 31/12 via `BankCanonicalizer`.
+    Inclui value object `BaselineAccountSaldo` + factory
+    `from_baseline_dict` (aceita `members`/`membros`, dict ou list,
+    aliases de field names). Retorna `list[BaselineDiffWarning]` com
+    `percent_diff: Decimal`. **39 testes**.
+  - **Fora de escopo desta iteração** (intencional): fatura period
+    adjustment, `reconcile_account`, `main_with_store(config, store)`,
+    golden fixture E3 via workspace real, refactor de `pipeline/stages/e3.py`.
+    `e3_reconcile.py` continua rodando via Caminho A (bridge) — zero mudança
+    em produção.
+  - **Tests** — +92 testes no pipeline (667 total) · backend inalterado ·
+    boundary check verde · zero regressão.
+
+- **Fase 6 foundation — Sessão A1 (2026-04-19):** segunda onda de extração de
+  domain services a partir de `scripts/e3_reconcile.py`. A foundation agora
+  cobre o caminho end-to-end que o `E3ReconcilerAdapter` precisa para orquestrar
+  a reconciliação inteira; o `main_with_store(config, store)` e o switch de
+  `pipeline/stages/e3.py` para Caminho B ficam para a Sessão A2.
+  - `pipeline/domain/services/account_grouper.py` (~200 linhas) —
+    `AccountGrouper` + `AccountGrouperConfig` (R9/ISP) + value object
+    `AccountKey` (frozen, `is_fatura`/`to_tuple`). Substitui `get_account_key`
+    (`e3_reconcile.py:245`) e `should_skip_extract` (`e3_reconcile.py:219`).
+    `from_pipeline_config(family, pipeline)` lê `account_type_equivalences` +
+    `skip_types`; faturas têm `currency=None` (paridade com legado); defaults
+    `_DEFAULT_SKIP_TYPES` e `_DEFAULT_FATURA_ALLOWED` alinhados ao `_init_config`
+    do script.
+  - `pipeline/domain/services/statement_preprocessor.py` (~440 linhas) —
+    duas responsabilidades extraídas de `load_and_group_e2_extracts`
+    (`e3_reconcile.py:655-795`):
+    - `StatementPeriodNormalizer` — garante `data["periodo"]` como dict
+      `{inicio, fim}`. Expande `YYYYMM`/`YYYY-MM-DD`; sintetiza período para
+      faturas sem `periodo` via chain `data_vencimento → tx dates`; ajusta
+      `inicio` para min de `transacoes[].data` quando anterior ao sintetizado.
+      Retorna `NormalizationResult(data, skip, warnings)` com
+      `PeriodDerivationWarning` estruturados + `PeriodDerivationReason`
+      (enum-like string constants).
+    - `AnachronicTransactionDropper` — descarta transações com `data > N dias`
+      antes de `periodo.inicio` (guard #4 do legado, default 180 via
+      `AnachronicGuardConfig`). Retorna `AnachronicFilterResult(data, warning?)`.
+  - `pipeline/domain/services/e3_reconciler_adapter.py` **reescrito**
+    (142 → 365 linhas) — agora orquestra, em sequência: normalize period →
+    drop anachronic → group (skip + `AccountKey`) →
+    `BankStatement.from_e2_dict` → `ReconciliationService.reconcile` →
+    `SaldoContinuityValidator` / `TemporalGapDetector` /
+    `BaselineValidator` → write via `store`. Saída tipada em
+    `ReconciliationStoreResult` (frozen dataclass: `statements_loaded`,
+    `statements_reconciled`, `artifacts_written`, `skipped_inputs`, mais
+    5 tuplas de warnings estruturados; `to_dict()` + `__getitem__` para
+    retro-compat dos testes). Lógica residual (geração de
+    `reconciliation.md` summary, `qa_log.md` rewriting, exit codes,
+    `cleanup_e3_directory`) **continua** no script legado via bridge até
+    a Sessão A2.
+  - **Testes novos** — `tests/unit/pipeline/test_account_grouper.py` +
+    `tests/unit/pipeline/test_statement_preprocessor.py` (~680 linhas
+    combinadas, +52 testes).
+  - **Pendente (Sessão A2 ou subsequente):**
+    `scripts/e3_reconcile.main_with_store(config, store)`; refactor de
+    `pipeline/stages/e3.py` para chamar direto (eliminar
+    `run_legacy_with_bridge_if_db`); golden fixture E3; extração de
+    `reconciliation.md` summary + `qa_log.md` rewriting para domain output
+    layer; remoção de `_init_config()` global.
+  - **Tests** — +52 testes no pipeline (**719 total**) · backend inalterado ·
+    boundary check verde · zero regressão.
+
+- **Pipeline paths (2026-04-17):** `MATHOMS_WORKSPACE_ROOT` obrigatória para `scripts.pipeline_common` (sem default para `data/` na raiz do git). `python -m pipeline.run_dev --root …` e a task Celery definem a variável; API/worker/pytest usam `setdefault` para a raiz do repo em dev. Docs: [SETUP.md §8](SETUP.md#8-pipeline-cli-sem-web), `scripts/__init__.py`.
 
 - **Docs — estrutura de pastas (2026-04-17):** [CLAUDE.md](../CLAUDE.md), [dev/README.md](../dev/README.md), [ARCHITECTURE.md](ARCHITECTURE.md) §11 e [SETUP.md](SETUP.md) §8: árvore canónica sob `storage/<workspace_id>/`; pastas de dados na raiz do clone são opcionais (CLI com workspace = repo).
 
@@ -32,13 +831,13 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
 - **P2.1–P2.4 — Unificação da classificação de documentos (2026-04-17):** Módulo `backend/app/services/document_classification.py` (contrato Pydantic + `classify_document`); E0-route, upload (`document_processor`), reclassify API e script passam a usar o mesmo código; testes `test_document_classification.py` e `test_classification_parity.py`; ADR-081; `ARCHITECTURE.md` §9. UI Documentos: banner e avisos por linha para classificação incerta (`needs_review` ou confiança < 0,7) com CTA para `EditDocumentDialog`.
 
-- **Sprint A — Ops leve (7E.6 / 7E.9 / 7E.8, 2026-04-17):** `docs/RUNBOOK.md` (status page, resposta a incidentes, checklist de drill); `docs/SLO.md` (alvos de uptime/latência/pipeline + SLA de comunicação de incidente); `docs/runbooks/incidents/*.pt-BR.md` (templates initial / update / resolved com exemplos); link **Status e incidentes** no rodapé quando `NEXT_PUBLIC_FIN_STATUS_PAGE_URL` está definido (`StatusPageFooter` em login, cadastro, convite, AppShell); `frontend/src/lib/statusPageUrl.ts` + testes; `.env.example` documentando a variável. BACKLOG: 7E.6, 7E.8, 7E.9 marcados concluídos (provisão da ferramenta de uptime continua no deploy).
+- **Sprint A — Ops leve (7E.6 / 7E.9 / 7E.8, 2026-04-17):** `docs/RUNBOOK.md` (status page, resposta a incidentes, checklist de drill); `docs/SLO.md` (alvos de uptime/latência/pipeline + SLA de comunicação de incidente); `docs/runbooks/incidents/*.pt-BR.md` (templates initial / update / resolved com exemplos); link **Status e incidentes** no rodapé quando `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL` está definido (`StatusPageFooter` em login, cadastro, convite, AppShell); `frontend/src/lib/statusPageUrl.ts` + testes; `.env.example` documentando a variável. BACKLOG: 7E.6, 7E.8, 7E.9 marcados concluídos (provisão da ferramenta de uptime continua no deploy).
 
 - **Sprint C — Linhagem do relatório + hierarquia numérica (F11.4a + F11.2a, 2026-04-17):** `ReportResponse.pipeline_run_id` no backend (`schemas/report.py`, `_serialize_report`); `ReportSourceStrip` com link para a execução (`/pipeline?run=<uuid>`); página Pipeline: âncoras `id="pipeline-run-…"` em cartões ativos / falha / `needs_review` / histórico + `useEffect` que rola até o run e remove o query param; MSW: `GET /api/workspaces/:workspaceId/reports` e `/:id` + fixture com `pipeline_run_id`. Transactions: `tabular-nums` em data, cabeçalho Valor e linha de paginação. Relatório: período no hero com `tabular-nums`. Testes: `test_get_report_includes_pipeline_run_id`, `ReportShell` (link da execução).
 
 - **Sprint B — Confiança na UI (F11.5 / F11.4 / fatia F11.2, 2026-04-17):** `frontend/src/lib/pipelineTransparency.ts` (`reviewPauseImpactHint`, `stageLlmFootnote`); página Pipeline: banner `needs_review` e notas por etapa LLM; remoção de códigos E* na linha de etapa; `pipelineE2TouchLabel` em `format.ts` sem “E2” na face do usuário. Relatório: `ReportSourceStrip` + `reportPeriod` / `reportCreatedAt` em `ReportShell` e `[id]/page`. Dashboard: eixos e tooltips de gráficos com `tabular-nums` / `font-mono`. Testes: `pipelineTransparency.test.ts`, ajustes em `format.test`, `ReportShell.test`; `tests/pages/pipeline.test.tsx` com mock de `WorkspaceProvider` + handlers MSW em `/api/workspaces/:workspaceId/...` (alinhado ao client). BACKLOG: F11.5a–c e F11.4b–c concluídos; F11.4a (API por seção) e F11.2a (auditoria completa) em progresso.
 
-- **P1 motor canônico (2026-04-17):** `python -m pipeline.run_dev` (`pipeline/run_dev.py`) — mesmo orquestrador do worker sobre `--root` tenant; `dev/check_pipeline_boundaries.py` (sem imports fastapi/celery/sqlalchemy em `pipeline/`); CI com `FIN_PIPELINE_SCHEMA_MODE=strict` + boundaries; fixtures `tests/fixtures/pipeline_golden/` (E2/E4) + testes jsonschema; docs `CANONICAL_ENGINE_P0`, `P1_STRUCTURAL_PLAN`, `PIPELINE_ARTIFACTS`, atualizações em ARCHITECTURE/ROADMAP/BACKLOG/TESTING.
+- **P1 motor canônico (2026-04-17):** `python -m pipeline.run_dev` (`pipeline/run_dev.py`) — mesmo orquestrador do worker sobre `--root` tenant; `dev/check_pipeline_boundaries.py` (sem imports fastapi/celery/sqlalchemy em `pipeline/`); CI com `MATHOMS_PIPELINE_SCHEMA_MODE=strict` + boundaries; fixtures `tests/fixtures/pipeline_golden/` (E2/E4) + testes jsonschema; docs `CANONICAL_ENGINE_P0`, `P1_STRUCTURAL_PLAN`, `PIPELINE_ARTIFACTS`, atualizações em ARCHITECTURE/ROADMAP/BACKLOG/TESTING.
 - **Validação pós-write (2026-04-17):** `validate_artifact` após gravar JSON em E2 (`e2_extract.py`, `e2_llm.py`, exceto fallback LLM stub), E4 (`save_json` → `e4_unified.schema.json`), E5 (`e5_analysis.schema.json`). Testes `test_e3_dedup` / `test_pipeline_common` alinhados ao retorno `(list, int, details)` de `deduplicate_transactions` e ao logging via `caplog` em `safe_float`.
 - **E3 schema (2026-04-17):** `config/schemas/e3_reconciled.schema.json` + `validate_artifact` em `e3_reconcile.py` após cada `*-3_reconciled.json`; fixture `tests/fixtures/pipeline_golden/e3/minimal-conta-3_reconciled.json`; testes `test_valid_e3_reconciled` e golden parametrizado.
 - **E3 golden execução (2026-04-17):** `tests/test_e3_golden_execution.py` — tenant mínimo, E2 `minimal-extrato` + saldos, `e3_reconcile.main`, assert no JSON + schema.
@@ -61,7 +860,7 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 - **E2 PDF Quinto Andar layout (2026-04-17):** `pdf_generator` — `_draw_quintoandar_fatura` (`Faturas de aluguel`, `Total de`/`Receber até`, linhas item + `R$` alinhadas a `parse_quintoandar`); `test_quintoandar_synthetic_extracts_items` (≥1 item, `total_recebido`).
 - **E2 PDF C6 + Bradesco layouts (2026-04-17):** `pdf_generator` — `_draw_c6_extrato` (tabela 5 colunas + `Saldo do dia` / `Período •` para `parse_c6bank`) e `_draw_bradesco_extrato` (`Ag | Conta`, `Entre`, `SALDO ANTERIOR`, lançamentos DD/MM/YY, `Total` para `parse_bradesco`); `test_c6bank_synthetic_extracts_transactions`, `test_bradesco_synthetic_extracts_transactions` (Bradesco: `_BRADESCO_TX` com crédito compatível com heurística do parser). Docs: `PIPELINE_ARTIFACTS`, `ROADMAP`, `BACKLOG`, `CANONICAL_ENGINE_P0` §4, `P1_STRUCTURAL_PLAN`, `TESTING`, `tests/fixtures/pipeline_golden/README.md`. Fase 1 só sintética para `BANK_MODULES` fechada; próximo: fixtures LLM (CANONICAL_ENGINE_P0 §4 item 3) ou PDF real anonimizado.
 
-- **F7 / 7A.5:** `.env.example` na raiz (todas as `FIN_*` documentadas + opcionais comentadas); `scripts/gen-secrets.sh` para gerar `FIN_FERNET_KEY` / `FIN_SECRET_KEY` (modo imprimir ou `--init-env` a partir do example); `docs/SETUP.md` e README atualizados.
+- **F7 / 7A.5:** `.env.example` na raiz (todas as `MATHOMS_*` documentadas + opcionais comentadas); `scripts/gen-secrets.sh` para gerar `MATHOMS_FERNET_KEY` / `MATHOMS_SECRET_KEY` (modo imprimir ou `--init-env` a partir do example); `docs/SETUP.md` e README atualizados.
 
 **F8.5 · Multi-tenant Goals completo (ADR-079):**
 - **Backend**: API completa para APORTE_MENSAL, DOLARIZACAO e ALOCACAO_ALVO (12 novos endpoints: POST compute, GET current, GET history, PUT upsert por tipo)
@@ -345,7 +1144,7 @@ Fundação de teste consumida por todos os blocos seguintes:
 
 ### Bloco 1 — Backend Hardening (6.5E)
 
-- **Fix alembic cwd-sensitivity:** `%(here)s/../fin.db` absoluto + guard em `env.py` rejeita SQLite relativo + `DATABASE_URL` default absoluto via `_PROJECT_ROOT`
+- **Fix alembic cwd-sensitivity:** `%(here)s/../mathoms.db` absoluto + guard em `env.py` rejeita SQLite relativo + `DATABASE_URL` default absoluto via `_PROJECT_ROOT`
 - **Round-trip tests para 6 serializers** (`family_members`, `categorization`, `pipeline_config`, `institution_config`, `report_layout`, `llm_config`) — 15 tests incluindo 4 cenários anti-regressão BUG-015
 - **Alembic guardrails:** drift detection model↔migration (catálogo `KNOWN_PRE_EXISTING_DRIFT` com 4 itens conhecidos), idempotency upgrade→downgrade→upgrade, linearidade do histórico, offline SQL preview
 - **Golden file pipeline:** workspace fixture → materialize → 13 PDFs sintéticos parseáveis por pdfplumber → token `{{COVER_FAMILIA}}` substituído (full E2E pipeline deferido documentadamente)
@@ -396,7 +1195,7 @@ Fundação de teste consumida por todos os blocos seguintes:
 
 - **Concurrency test `materialize_config`:** 3 tests (2 workspaces paralelos, idempotency do mesmo ws, 10 workspaces simultâneos com `ThreadPoolExecutor`) — SQLite file-based + `check_same_thread=False` para thread-safety
 - **MSW sync lint** (`frontend/scripts/msw-lint.mjs`): AST regex sobre handlers.ts vs `openapi.json` do backend
-- **LLM mock fixtures** (`backend/tests/fixtures/llm_mock.py`): outputs Pydantic válidos por stage (E1, E1.5, E2-llm, E7-review) — `FIN_LLM_MOCK=1` default em CI
+- **LLM mock fixtures** (`backend/tests/fixtures/llm_mock.py`): outputs Pydantic válidos por stage (E1, E1.5, E2-llm, E7-review) — `MATHOMS_LLM_MOCK=1` default em CI
 - **`.github/CODEOWNERS`:** review obrigatório em `__snapshots__/`, `alembic/versions/`, `tests/fixtures/`, `DECISIONS.md`
 - **`docs/TESTING.md` expandido:** debug CI (tabela de artifacts), flaky test policy, snapshot review process, premium LLM E2E mock/nightly
 - **CI reporter expandido:** `actions/upload-artifact@v4` retention 30d + `actions/github-script@v7` PR comment automático
@@ -532,7 +1331,7 @@ Pendente: testes E2E (movidos para F6.5).
 - 12 scripts wrappados com `_init_config(base_dir)` + `main(root_dir=None)`:
   `e0_audit`, `e0_route`, `e0_unlock`, `e15_consolidate`, `e2_extract`, `e2/common`, `e3_reconcile`, `e4_categorize`, `e5_analyze`, `e5n_narrativas`, `e6_render`, `e7_review`, `pipeline_common`
 - `pipeline/orchestrator.py` com `run_pipeline`, `run_from`, `run_stages`
-- `pyproject.toml` com package `fin-pipeline` v0.2.0
+- `pyproject.toml` com package `mathoms-pipeline` v0.2.0
 - Golden files para regression tests
 - 136 testes passando
 

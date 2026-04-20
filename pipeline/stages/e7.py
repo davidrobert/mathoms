@@ -1,4 +1,18 @@
-"""Stage wrapper for E7 Review & Cross-validation."""
+"""Stage wrapper for E7 Review & Cross-validation — **Caminho B**
+(ADR-097, Sessão A5e).
+
+Chama ``scripts.e7_review.main_with_store(ctx, mode=...)`` direto, sem
+``MaterializationBridge``. Dois modos determinísticos:
+
+- ``run_crossval(ctx)`` — 14 checks CV1-CV14 + gera template para LLM em
+  ``processed/E7_review/e7_review_template.json``.
+- ``run_apply(ctx, review_path)`` — aplica review LLM ao E5 (grava E5
+  atualizado via ``ArtifactStore``); skip gracioso se ``review_path``
+  ausente + sem template no workspace (free tier, sem LLM).
+
+O modo ``E7-review`` (LLM) **não migra** — é passo humano/externo, não
+determinístico. ``main(root_dir)`` legado continua no script para CLI.
+"""
 
 from __future__ import annotations
 
@@ -8,26 +22,45 @@ if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
 
 
-def run_crossval(ctx: WorkspaceContext) -> dict:
-    """Executa E7 cross-validation com contexto injetado."""
-    from scripts.e7_review import main as e7_main
-    e7_main(root_dir=ctx.root)
-    return {"success": True, "stage": "E7-crossval"}
+def run_crossval(ctx: "WorkspaceContext") -> dict:
+    from scripts.e7_review import main_with_store
+
+    result = main_with_store(ctx, mode="crossval")
+    result["stage"] = "E7-crossval"
+    return result
 
 
-def run_apply(ctx: WorkspaceContext, review_path: str = None) -> dict:
-    """Aplica review LLM ao E5 JSON.
+def run_apply(ctx: "WorkspaceContext", review_path: str = None) -> dict:
+    """Aplica review LLM ao E5.
 
-    Skips gracefully if no E7-review output exists (free tier: E7-review LLM
-    is skipped, so there is nothing to apply).
+    Skip gracioso quando:
+    - `review_path` não fornecido, E
+    - não existe template E7-review no workspace (free tier, sem LLM).
     """
-    review_dir = ctx.root / "processed" / "E7_review"
-    if not review_path and (not review_dir.exists() or not list(review_dir.glob("*.json"))):
-        return {"success": True, "skipped": True, "reason": "No E7-review output — E7-review not run (free tier)"}
+    from pipeline.artifact_store import DiskArtifactStore
 
-    import sys
-    if review_path:
-        sys.argv = ["e7_review.py", "--apply", review_path]
-    from scripts.e7_review import main as e7_main
-    e7_main(root_dir=ctx.root)
-    return {"success": True, "stage": "E7-apply"}
+    store = ctx.get_artifact_store()
+    if not review_path:
+        if isinstance(store, DiskArtifactStore):
+            review_dir = ctx.root / "processed" / "E7_review"
+            if not review_dir.exists() or not list(review_dir.glob("*.json")):
+                return {
+                    "success": True,
+                    "skipped": True,
+                    "reason": "No E7-review output — E7-review not run (free tier)",
+                    "stage": "E7-apply",
+                }
+        else:
+            if not store.list_keys("E7-review"):
+                return {
+                    "success": True,
+                    "skipped": True,
+                    "reason": "No E7-review artifact — E7-review not run (free tier)",
+                    "stage": "E7-apply",
+                }
+
+    from scripts.e7_review import main_with_store
+
+    result = main_with_store(ctx, mode="apply", review_path=review_path)
+    result["stage"] = "E7-apply"
+    return result

@@ -1,4 +1,4 @@
-# Fin — Produto
+# Mathoms AI — Produto
 
 > Documento de produto. Evergreen. Atualizar só quando visão/estratégia mudar.
 
@@ -6,7 +6,7 @@
 
 ## 1. Visão
 
-**Fin** é um planejador financeiro pessoal inteligente que consolida automaticamente extratos, faturas, investimentos e declarações de IRPF de múltiplos bancos brasileiros, gerando um relatório profissional unificado com score financeiro, análise patrimonial, fluxo de caixa e recomendações.
+**Mathoms AI** é um planejador financeiro pessoal inteligente que consolida automaticamente extratos, faturas, investimentos e declarações de IRPF de múltiplos bancos brasileiros, gerando um relatório profissional unificado com score financeiro, análise patrimonial, fluxo de caixa e recomendações.
 
 ### Proposta de valor
 

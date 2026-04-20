@@ -2,7 +2,7 @@
 
 > **Status:** Esqueleto inicial criado em F6.5 Bootstrap • será completado ao longo de 6.5F.13 conforme as suítes ficam prontas.
 >
-> **Objetivo:** dar a um contribuidor novo tudo que ele precisa para rodar, escrever, debugar e atualizar testes do Fin — sem chamar ninguém. Onboarding em horas, não dias (ADR-067).
+> **Objetivo:** dar a um contribuidor novo tudo que ele precisa para rodar, escrever, debugar e atualizar testes do Mathoms AI — sem chamar ninguém. Onboarding em horas, não dias (ADR-067).
 
 ---
 
@@ -12,10 +12,10 @@
 # Backend (pytest)
 source .venv/bin/activate
 pip install -r requirements-dev.txt
-FIN_FERNET_KEY="NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" pytest backend/tests/ -q
+MATHOMS_FERNET_KEY="NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" pytest backend/tests/ -q
 
 # Pipeline (pytest)
-FIN_FERNET_KEY="NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" pytest tests/ -q
+MATHOMS_FERNET_KEY="NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" pytest tests/ -q
 
 # Pipeline offline (mesmo orquestrador do worker) — tenant com config/ materializado
 python -m pipeline.run_dev --root /path/to/storage/<workspace_id>
@@ -25,7 +25,7 @@ python -m pipeline.run_dev --root ./tenant --stages E3,E4
 python dev/check_pipeline_boundaries.py --verbose
 
 # Schema JSON strict (mesmo gate do CI)
-FIN_PIPELINE_SCHEMA_MODE=strict pytest tests/test_schema_validation.py -q
+MATHOMS_PIPELINE_SCHEMA_MODE=strict pytest tests/test_schema_validation.py -q
 
 # Frontend unit + integration (Vitest)
 cd frontend
@@ -104,7 +104,7 @@ frontend/tests/hooks/useReportData.test.tsx  # F9 — 6 tests (hook)
 
 ```bash
 source .venv/bin/activate
-FIN_FERNET_KEY="<chave>" pytest backend/tests/test_<modulo>.py -q
+MATHOMS_FERNET_KEY="<chave>" pytest backend/tests/test_<modulo>.py -q
 ```
 
 **DB isolation strategy:** *recreate-per-test* sobre SQLite in-memory. Documentado em [`backend/tests/conftest.py`](../backend/tests/conftest.py). Cada test vê schema limpo.
@@ -112,8 +112,89 @@ FIN_FERNET_KEY="<chave>" pytest backend/tests/test_<modulo>.py -q
 ### Pipeline
 
 ```bash
-FIN_FERNET_KEY="<chave>" pytest tests/test_<modulo>.py -q
+MATHOMS_FERNET_KEY="<chave>" pytest tests/test_<modulo>.py -q
 ```
+
+### Testes unitários de domínio — `tests/unit/pipeline/`
+
+Desde a migração infra + domínio (ADRs 082-091), a camada
+`pipeline/domain/` é testável **sem disco e sem banco** via
+`InMemoryArtifactStore`. Exemplos:
+
+```bash
+# Roda apenas os domain tests (rápido, sem DB)
+pytest tests/unit/pipeline/ -q
+
+# Testes específicos do Money / Decimal invariants
+pytest tests/unit/pipeline/test_domain_money.py -q
+
+# ReconciliationService com fixture de 3 linhas
+pytest tests/unit/pipeline/test_reconciliation_service.py -q
+```
+
+**Regra de uso (ADR-089):**
+- Testes de `ReconciliationService`, `CategorizationService` e calculadoras
+  (`CashFlowAggregator`, `PatrimonioCalculator`, etc.) **devem usar
+  `InMemoryArtifactStore`** — sem fixtures de arquivo.
+- Testes de integração que verificam paridade DB ↔ Disk usam
+  `DBArtifactStore` + sync fixture factory (ver
+  [backend/tests/test_db_artifact_store.py](../backend/tests/test_db_artifact_store.py)).
+- `DiskArtifactStore` **não é usado** em testes automatizados — apenas em
+  CLI dev.
+
+**Pattern** — fixture típica de domain service:
+
+```python
+from pipeline.artifact_store import InMemoryArtifactStore
+from pipeline.domain.models import Money, Transaction, BankStatement
+from pipeline.domain.services import ReconciliationConfig, ReconciliationService
+
+def test_reconciliation_removes_exact_duplicates():
+    cfg = ReconciliationConfig(tolerance_days=3)
+    svc = ReconciliationService(cfg)
+    stmt = BankStatement(
+        institution="itau", member_key="david",
+        period_start=date(2026, 1, 1), period_end=date(2026, 1, 31),
+        currency="BRL",
+        transactions=[
+            Transaction(date(2026, 1, 5), "MERCADO", Money.brl("-100")),
+            Transaction(date(2026, 1, 5), "MERCADO", Money.brl("-100")),  # dup
+        ],
+    )
+    out = svc.reconcile([stmt])
+    assert len(out[0].transactions) == 1
+```
+
+**Goldens E3** — fixtures sintéticas em `tests/pipeline/goldens/e3/`
+(Sessão A1 da Fase 6):
+
+```bash
+pytest tests/unit/pipeline/test_e3_reconciler_adapter.py -q
+```
+
+Cada golden é um JSON autocontido com:
+- `description` — o que o cenário cobre.
+- `e2_extracts` — lista de `{stage, key, payload}` para `store.seed`.
+- `baseline` (opcional) — payload de E1.5c.
+- `institutions` — `banco_canonical` para `BankCanonicalizer`.
+- `expected` — contagens (`statements_loaded`, `artifacts_written`,
+  `output_keys`, `*_warnings_count`) para asserts.
+
+Cenários atuais cobrem dedup cross-file em extratos sobrepostos, síntese
+de período em fatura sem `periodo` (`data_vencimento` → tx dates), e
+diff de saldo IRPF vs `closing_balance` em 31/12. Estes goldens **não** são
+paridade contra `scripts/e3_reconcile.py::main()` — esse golden vem na
+Sessão A2 quando `main_with_store(config, store)` for introduzido. Aqui
+só validamos comportamento do `E3ReconcilerAdapter` (Caminho B foundation).
+
+**Guardrails de migração** (CI):
+- `tests/unit/pipeline/test_no_legacy_stage_names.py` — bloqueia reintrodução
+  de identificadores `"E3"`, `"E5"`… em código de produção (pós-Fase 9).
+  Default soft-fail; ativar `MATHOMS_ENFORCE_STAGE_RENAME=1` para hard-fail.
+- `tests/unit/pipeline/test_stage_spec.py` — garante `STAGE_RENAME_MAP`
+  exaustivo e bijetivo.
+- `tests/unit/pipeline/test_materialization_bridge.py::TestMappingsComplete`
+  — `_STAGE_TO_DIR`/`_STAGE_TO_SUFFIX` cobrem todos os stages relevantes.
 
 ### Frontend (Vitest)
 
