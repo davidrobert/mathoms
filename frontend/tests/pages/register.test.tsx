@@ -21,21 +21,21 @@ beforeEach(() => pushMock.mockClear());
 describe("RegisterPage", () => {
   it("renderiza form completo", () => {
     render(<RegisterPage />);
-    expect(screen.getByLabelText(/nome completo/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/seu nome/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/senha/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /criar conta/i })).toBeInTheDocument();
   });
 
-  it("happy path → token salvo + push /documents", async () => {
+  it("happy path → token salvo + push /plano (nextUrl default)", async () => {
     const user = userEvent.setup();
     render(<RegisterPage />);
-    await user.type(screen.getByLabelText(/nome/i), "Novo User");
+    await user.type(screen.getByLabelText(/seu nome/i), "Novo User");
     await user.type(screen.getByLabelText(/email/i), "novo@test.com");
     await user.type(screen.getByLabelText(/senha/i), "senha123");
     await user.click(screen.getByRole("button", { name: /criar conta/i }));
 
-    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/documents"));
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/plano"));
     expect(localStorage.getItem("fin_token")).toBe("test-token");
   });
 
@@ -77,8 +77,11 @@ describe("RegisterPage", () => {
     expect(pw.minLength).toBe(6);
   });
 
-  it("link 'Entrar' aponta para /login", () => {
+  it("link 'Entrar' aponta para /login?next=/plano (preserva destino default)", () => {
     render(<RegisterPage />);
-    expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute(
+      "href",
+      "/login?next=%2Fplano",
+    );
   });
 });

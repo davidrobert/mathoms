@@ -69,7 +69,7 @@ describe("ReportShell", () => {
     expect(screen.getAllByText("Relatório Família Teste").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/202601-202604/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("note", { name: /Origem dos dados do relatório/i })).toBeInTheDocument();
-    expect(screen.getByText(/Origem dos dados:/)).toBeInTheDocument();
+    expect(screen.getByText(/Período:/)).toBeInTheDocument();
   });
 
   it("mostra link da execução do pipeline quando pipelineRunId está definido (F11.4a)", () => {

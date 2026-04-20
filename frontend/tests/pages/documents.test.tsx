@@ -69,9 +69,9 @@ describe("DocumentsPage", () => {
     render(<DocumentsPage />);
     expect(await screen.findByText("extrato_jan.pdf")).toBeInTheDocument();
     expect(screen.getByText("fatura.pdf")).toBeInTheDocument();
-    // Status badges visíveis
+    // Status badges visíveis (labels do docEffectiveStatus, não docStatusLabel)
     expect(screen.getByText("Pronto")).toBeInTheDocument();
-    expect(screen.getByText("Precisa de senha")).toBeInTheDocument();
+    expect(screen.getByText("Aguarda senha")).toBeInTheDocument();
   });
 
   it("banner needs_password aparece quando há docs bloqueados", async () => {

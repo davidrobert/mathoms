@@ -52,9 +52,9 @@ describe("Form validation — Login", () => {
 });
 
 describe("Form validation — Register", () => {
-  it("input nome completo tem required", () => {
+  it("input 'Seu nome' tem required", () => {
     render(<RegisterPage />);
-    const name = screen.getByLabelText(/nome completo/i) as HTMLInputElement;
+    const name = screen.getByLabelText(/seu nome/i) as HTMLInputElement;
     expect(name.required).toBe(true);
   });
 
