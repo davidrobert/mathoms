@@ -558,6 +558,7 @@ python scripts/e2_extract.py --faturas-only            # Apenas faturas de cart�
 - **Idioma padrão:** português brasileiro, salvo quando arquivos, APIs ou convenções técnicas exigirem inglês.
 - **Dados sensíveis:** nunca expor CPFs, valores monetários reais, senhas, documentos pessoais ou conteúdo financeiro bruto em commits, logs, exemplos ou saídas de console.
 - **Não crie arquivos temporários na raiz** — use `_scratch/` (ver seção acima).
+- **Tarefa só conclui quando mergeada em `main`** — commit local, push em branch, ou PR aberto **não** contam como concluído. Ver §"Definição de 'concluído' (Definition of Done)" acima. Sem exceção.
 - **Git autônomo autorizado** (atualizado 2026-04-20). Agentes **podem e devem** abrir branches, fazer commits organizados e dar push — inclusive em `main` se a suite de testes estiver verde. **Não é necessário pedir aprovação**, mas **é obrigatório anunciar** toda ação git (branch criada, commit criado, push feito) em 1-2 linhas no turno — ver §"Git e commits" abaixo para o protocolo completo.
 - **Preserve compatibilidade** com o pipeline existente, convenções de naming e estrutura multi-tenant/web quando a mudança tocar backend/frontend.
 - **UI financeira:** priorizar legibilidade, confiança, clareza de dados monetários, consistência visual e aderência ao design system/tokens.
@@ -566,6 +567,8 @@ python scripts/e2_extract.py --faturas-only            # Apenas faturas de cart�
 - **Perguntas técnicas ou de produto:** não apenas listar opções — **recomendar um caminho** com justificativa.
 
 ### Git e commits
+
+**Merge em `main` é o único marco de conclusão de tarefa** — ver §"Definição de 'concluído' (Definition of Done)". Enquanto o commit não aparece em `origin/main` com CI verde, a tarefa continua **em andamento**, independentemente do estado da branch local.
 
 **Política de autonomia (atualizada 2026-04-20):** agentes têm autonomia para
 criar branches, fazer commits e dar push (inclusive em `main` com a suite verde).
