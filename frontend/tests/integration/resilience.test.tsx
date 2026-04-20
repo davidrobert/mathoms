@@ -27,7 +27,7 @@ describe("Resilience — backend 5xx handling", () => {
 
   it("503 Service Unavailable → ApiError com detail", async () => {
     server.use(
-      http.get("/api/documents", () =>
+      http.get("/api/workspaces/:workspaceId/documents", () =>
         HttpResponse.json({ detail: "Manutenção" }, { status: 503 }),
       ),
     );

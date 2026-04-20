@@ -27,14 +27,14 @@ beforeEach(() => {
 
 describe("TransactionsPage", () => {
   it("loading: spinner inicial", () => {
-    server.use(http.get("/api/transactions", () => new Promise(() => {})));
+    server.use(http.get("/api/workspaces/:workspaceId/transactions", () => new Promise(() => {})));
     const { container } = render(<TransactionsPage />);
     expect(container.querySelector("svg.animate-spin")).toBeInTheDocument();
   });
 
   it("renderiza transações + summary", async () => {
     server.use(
-      http.get("/api/transactions", () =>
+      http.get("/api/workspaces/:workspaceId/transactions", () =>
         HttpResponse.json({
           transactions: [
             makeTransaction({ descricao: "Mercado XYZ", valor: -250.5 }),
@@ -61,7 +61,7 @@ describe("TransactionsPage", () => {
 
   it("erro 500 mostra mensagem", async () => {
     server.use(
-      http.get("/api/transactions", () =>
+      http.get("/api/workspaces/:workspaceId/transactions", () =>
         HttpResponse.json({ detail: "boom" }, { status: 500 }),
       ),
     );
@@ -74,7 +74,7 @@ describe("TransactionsPage", () => {
     const xssPayload = "<script>window.__pwned=true</script>Mercado";
     const xssImg = '<img src=x onerror="window.__pwned2=true">';
     server.use(
-      http.get("/api/transactions", () =>
+      http.get("/api/workspaces/:workspaceId/transactions", () =>
         HttpResponse.json({
           transactions: [
             makeTransaction({ descricao: xssPayload }),

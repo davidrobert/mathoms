@@ -64,10 +64,10 @@ describe("XSS smoke — F6.5D.6", () => {
 
   it("member.full_name com <script> renderiza escapado (não executa)", async () => {
     server.use(
-      http.get("/api/config/workspace", () =>
+      http.get("/api/workspaces/:workspaceId/config/workspace", () =>
         HttpResponse.json({ name: "x", family_surname: null }),
       ),
-      http.get("/api/config/members", () =>
+      http.get("/api/workspaces/:workspaceId/config/members", () =>
         HttpResponse.json({
           members: [makeMember({ full_name: XSS_PAYLOAD })],
           total: 1,
@@ -90,7 +90,7 @@ describe("XSS smoke — F6.5D.6", () => {
 
   it("category.name com <img onerror> renderiza escapado", async () => {
     server.use(
-      http.get("/api/config/categories", () =>
+      http.get("/api/workspaces/:workspaceId/config/categories", () =>
         HttpResponse.json({
           categories: [makeCategory({ name: XSS_IMG })],
           total: 1,
@@ -111,7 +111,7 @@ describe("XSS smoke — F6.5D.6", () => {
 
   it("vault.label com <script> renderiza escapado", async () => {
     server.use(
-      http.get("/api/vault/passwords", () =>
+      http.get("/api/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({
           passwords: [makeVaultPassword({ label: XSS_PAYLOAD })],
           total: 1,

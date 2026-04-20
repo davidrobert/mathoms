@@ -42,7 +42,7 @@ beforeEach(() => {
 
 describe("DashboardPage", () => {
   it("loading: 4 skeletons de KPICard inicial", () => {
-    server.use(http.get("/api/dashboard", () => new Promise(() => {})));
+    server.use(http.get("/api/workspaces/:workspaceId/dashboard", () => new Promise(() => {})));
     render(<DashboardPage />);
     const skeletons = document.querySelectorAll('[data-slot="skeleton"]');
     expect(skeletons.length).toBeGreaterThan(0);
@@ -50,7 +50,7 @@ describe("DashboardPage", () => {
 
   it("empty: 'Nenhuma análise disponível' com CTA Pipeline (F6.5D.12)", async () => {
     server.use(
-      http.get("/api/dashboard", () =>
+      http.get("/api/workspaces/:workspaceId/dashboard", () =>
         HttpResponse.json(makeDashboard({ kpis: [], charts: [] })),
       ),
     );
@@ -62,7 +62,7 @@ describe("DashboardPage", () => {
 
   it("error: EmptyState 'Erro ao carregar' + Tentar novamente", async () => {
     server.use(
-      http.get("/api/dashboard", () =>
+      http.get("/api/workspaces/:workspaceId/dashboard", () =>
         HttpResponse.json({ detail: "boom" }, { status: 500 }),
       ),
     );
@@ -73,7 +73,7 @@ describe("DashboardPage", () => {
 
   it("renderiza KPIs", async () => {
     server.use(
-      http.get("/api/dashboard", () =>
+      http.get("/api/workspaces/:workspaceId/dashboard", () =>
         HttpResponse.json(
           makeDashboard({
             kpis: [
@@ -92,7 +92,7 @@ describe("DashboardPage", () => {
 
   it("data_freshness null → badge 'Sem dados'", async () => {
     server.use(
-      http.get("/api/dashboard", () =>
+      http.get("/api/workspaces/:workspaceId/dashboard", () =>
         HttpResponse.json(
           makeDashboard({
             kpis: [makeKPI({ label: "x", value: "y" })],
@@ -108,7 +108,7 @@ describe("DashboardPage", () => {
   it("botão refresh recarrega (chama API novamente)", async () => {
     let callCount = 0;
     server.use(
-      http.get("/api/dashboard", () => {
+      http.get("/api/workspaces/:workspaceId/dashboard", () => {
         callCount++;
         return HttpResponse.json(
           makeDashboard({ kpis: [makeKPI({ label: "Saldo", value: "R$ 1" })] }),
@@ -128,7 +128,7 @@ describe("DashboardPage", () => {
   it("retry após erro chama API e mostra dados", async () => {
     let attempt = 0;
     server.use(
-      http.get("/api/dashboard", () => {
+      http.get("/api/workspaces/:workspaceId/dashboard", () => {
         attempt++;
         if (attempt === 1) {
           return HttpResponse.json({ detail: "x" }, { status: 500 });
