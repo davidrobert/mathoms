@@ -8,6 +8,51 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6f.6 — Stateless-rigoroso: audit + multi-worker integration test (2026-04-20) — ADR-111:**
+  Terceira entrega da A6f (language-neutral boundaries). Prova empírica que
+  o backend já é multi-worker-safe e formaliza a regra arquitetural que
+  proíbe estado mutável in-memory de processo.
+
+  - **Novo: `docs/STATELESS_AUDIT.md`** — 214 linhas, 10 seções auditando o
+    backend para R19 (stateless-ready): `@lru_cache` (zero), globals de
+    módulo (17 catalogados — todos imutáveis ou idempotentes), sessões
+    WebSocket (já via Redis pub/sub desde P5), rate limits (DB-backed),
+    background tasks (zero `asyncio.create_task`), file locks (zero),
+    contextvars (request-scoped), settings (imutáveis), Celery globals
+    (zero), Vault (idempotente). **Conclusão: zero gaps críticos.**
+  - **Novo: `backend/tests/integration/test_multi_worker_concurrency.py`** —
+    5 tests de integração rodando **dois `httpx.AsyncClient` simultâneos**
+    sobre `ASGITransport` (simula dois workers uvicorn) com `fakeredis.FakeServer`
+    compartilhado entre `fakeredis.FakeRedis` (sync, publisher Celery) e
+    `fakeredis.aioredis.FakeRedis` (async, subscriber FastAPI WebSocket):
+    1. JWT válido em worker A → worker B aceita (prova statelessness de auth).
+    2. Workspace criado via worker A → visível em worker B via
+       `/api/me/workspaces` (prova DB como única fonte de verdade).
+    3. Rate limit de invitations (`MAX_PENDING_PER_WORKSPACE=10`) alternando
+       criações entre A e B → 11ª retorna 429 `{code: "limit_reached"}`
+       (prova contador DB-backed).
+    4. Evento `stage.started` publicado por Celery (sync Redis) → WebSocket
+       conectado em worker B recebe via subscriber async (prova canal
+       `pipeline:{run_id}` como única ponte cross-process).
+    5. Evento `run.completed` cross-worker → WS fecha graciosamente.
+    Tempo de suite: ~1.05s. Fixture `shared_redis` injeta FakeServer em
+    `redis.Redis.from_url` + `redis.asyncio.from_url`.
+  - **Novo: ADR-111** — formaliza **R19 (stateless-rigoroso)**: zero estado
+    mutável in-memory de processo; exceções (constantes/settings/singletons
+    idempotentes) catalogadas em `docs/STATELESS_AUDIT.md`; proíbe
+    `asyncio.create_task` para estado, `@lru_cache` em hot-path com
+    invalidação, file locks cross-process, dicts globais mutáveis.
+    `publish_event` é a **única** ponte cross-worker; canal
+    `pipeline:{run_id}` é contrato.
+  - **CLAUDE.md**: nova seção `### Stateless rigoroso (ADR-111 · A6f.6 · R19)`
+    em §"Auth portability" — referência canônica para agentes que vão
+    adicionar endpoints/tasks novos.
+  - **Impact**: 740 pass / 12 fail (+5 tests novos vs 735 baseline A6f.3;
+    mesmo 12 fail pré-existentes; zero regressão). A6f.6 desbloqueia
+    escalonamento horizontal (K8s/ECS) sem mudanças de código.
+
+  Commits: `9881135` (audit), `817f447` (test), `52c252d` (docs ADR/etc).
+
 - **A6f.4 — DB Schema Reference auto-gerado + snapshot test (2026-04-20) — ADR-102 R20:**
   Segunda entrega da A6f (language-neutral boundaries). Formaliza o schema
   do banco como referência canônica e detecta regressões de portabilidade.
@@ -155,6 +200,45 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
   - **Pendente (próxima sessão)**: switch ``scripts/e5_analyze.main_with_store``
     para usar o adapter + golden parity E5 + decomposição ``build_narrativas``
     (A6d.3.2) + docs finais. Branch: ``agent/a6d3-close-caminho-b/20260420-1223``.
+- **A6f.3 — Structured JSON logging + OpenTelemetry bootstrap (2026-04-20) — ADR-110:**
+  Logs estruturados + tracing opt-in para API e worker. Essencial para
+  qualquer investigação cross-service e pré-requisito para A6f.1 (pipeline-
+  service) e A6f.6 (multi-worker stateless).
+
+  - **Novo: `backend/app/core/logging.py`** — `MathomsJsonFormatter`
+    (extende `python-json-logger`) com campos `timestamp` (UTC ISO 8601 `Z`),
+    `level`, `logger`, `message`, `trace_id`, `workspace_id`, `user_id`,
+    `pipeline_run_id`. `setup_logging()` idempotente, respeita
+    `MATHOMS_LOG_LEVEL` e `MATHOMS_LOG_FORMAT=json|text`.
+    `get_logger(name)` força namespace `mathoms.*`.
+  - **Novo: `backend/app/middleware/correlation.py`** —
+    `CorrelationIdMiddleware` (Starlette) lê/gera header `X-Trace-Id`
+    e reflete no response. Contextvars `_trace_id`, `_workspace_id`,
+    `_user_id`, `_pipeline_run_id` com setters/getters tipados.
+  - **Novo: `backend/app/core/otel.py`** — `setup_otel(service_name)`
+    idempotente; `LoggingInstrumentor` sempre liga (popula
+    `otelTraceID`/`otelSpanID` nos records); `OTLPSpanExporter` opt-in
+    via `OTEL_EXPORTER_OTLP_ENDPOINT`. `instrument_fastapi(app)` instala
+    FastAPI + SQLAlchemy instrumentation no lifespan; `instrument_celery()`
+    no `worker_process_init` signal (fork-safe).
+  - **Wire-up**: `backend/app/main.py` chama `setup_logging()` +
+    `setup_otel("mathoms-api")` no módulo; lifespan chama
+    `instrument_fastapi(app)` antes de `init_db()`;
+    `CorrelationIdMiddleware` registrado antes do CORS.
+    `backend/app/worker.py` adiciona `@worker_process_init.connect` que
+    chama `setup_logging` + `setup_otel("mathoms-worker")` +
+    `instrument_celery` em cada worker process.
+  - **Dependências**: `python-json-logger>=3.2`, `opentelemetry-api/sdk>=1.30`,
+    `opentelemetry-exporter-otlp-proto-http>=1.30`,
+    `opentelemetry-instrumentation-{fastapi,sqlalchemy,celery,logging}>=0.50b0`.
+  - **Tests**: [`test_structured_logging.py`](../backend/tests/test_structured_logging.py)
+    com 8 tests — formatter JSON parseável, correlation context,
+    omit-when-unset, idempotência, middleware generate+reflect trace_id,
+    middleware honor incoming header, OTel opt-in, jq-compat.
+  - **Env vars novas**: `MATHOMS_LOG_LEVEL` (INFO), `MATHOMS_LOG_FORMAT`
+    (json), `OTEL_EXPORTER_OTLP_ENDPOINT` (unset).
+  - **Impacto**: 735 pass / 12 fail — zero regressão vs. baseline
+    origin/main (727 pass / 12 fail; as 12 falhas são pré-existentes).
 
 - **A6f.2 + A6f.5a — OpenAPI completo + Auth portability (2026-04-20) — ADR-109:**
   Primeira sessão da A6f (language-neutral boundaries, ADR-102 · R18-R20).

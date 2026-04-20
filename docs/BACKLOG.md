@@ -755,7 +755,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | --- | --- | --- | --- | --- |
 | A6f.1 | Pipeline-as-service | `pipeline-service/` FastAPI standalone; endpoints `/api/v1/pipeline/runs`, `/stages/{stage}/execute`, WS `/events`; backend fala por HTTP, nunca por import | 2-3 sessões | ☐ |
 | A6f.2 | OpenAPI + codegen | ✅ ~12 DTOs novos; snapshot em `docs/api/v1/openapi.json` (12856 linhas); `make update-openapi-snapshot`; teste estrutural + snapshot diff | 1 sessão | ✅ 2026-04-20 |
-| A6f.3 | Structured logs JSON + OTel | `fin.pipeline` em JSON lines; OTLP traces cross-service; correlation IDs propagados | 1 sessão | ☐ |
+| A6f.3 | Structured logs JSON + OTel | ✅ `MathomsJsonFormatter` + `CorrelationIdMiddleware` (trace_id/workspace_id/user_id/pipeline_run_id via contextvars); `setup_otel()` opt-in via `OTEL_EXPORTER_OTLP_ENDPOINT`; FastAPI+SQLAlchemy+Celery instrumentation fork-safe; 8 tests em `test_structured_logging.py`; env vars `MATHOMS_LOG_LEVEL`, `MATHOMS_LOG_FORMAT`; ADR-110 | 1 sessão | ✅ 2026-04-20 |
 | A6f.4 | DB schema language-neutral | ✅ `docs/DB_SCHEMA_REFERENCE.md` auto-gerado (27 tabelas, 1193 linhas); `dev/generate_db_schema_reference.py` determinístico; snapshot test + `make update-db-schema-reference`; auditoria zero `PickleType` e zero `DateTime` naive; Go struct tags equivalentes | 1 sessão | ✅ 2026-04-20 |
 | A6f.5a | Auth portability documentada | JWT HS256 `{sub, exp, tv}` + Fernet mantidos; ADR-109; `test_auth_portability.py` (12 testes JWT+Fernet parity) | 1 sessão | ✅ 2026-04-20 |
 | A6f.5b | Fernet → AES-GCM (deferido) | AES-256-GCM + HKDF-SHA256; migration de `LLMConfig.api_key_encrypted` + vault_entries; decrypt fallback para Fernet durante cutover | 1 sessão | ⏸️ deferido (ADR-109) |

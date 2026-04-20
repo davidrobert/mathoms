@@ -1023,7 +1023,12 @@ CI: `.github/workflows/ci.yml` com 7 jobs (lint, PII lint, pipeline, backend+Red
 
 - **Runbook + SLO + incidentes** — [RUNBOOK.md](RUNBOOK.md), [SLO.md](SLO.md), templates em [runbooks/incidents/](runbooks/incidents/); link público de status no app via `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL` (rodapé).
 - **Sentry** — backend + frontend (error tracking, performance 10%) — tarefa 7C.4
-- **Structured logging** — structlog JSON em prod, `request_id` UUID — 7C.5
+- **Structured logging + OpenTelemetry** (ADR-110 · A6f.3 · entregue 2026-04-20):
+  - `backend/app/core/logging.py` — `MathomsJsonFormatter` (wraps `python-json-logger`). Formato JSON por linha, jq-compatível. Campos: `timestamp` (UTC ISO 8601 `Z`), `level`, `logger`, `message`, `trace_id`, `workspace_id`, `user_id`, `pipeline_run_id`, opcional `otelTraceID`/`otelSpanID`.
+  - `backend/app/middleware/correlation.py` — `CorrelationIdMiddleware` gera/reflete `X-Trace-Id` por request. Contextvars tipados (`_trace_id`, `_workspace_id`, `_user_id`, `_pipeline_run_id`) propagam ID através de asyncio + Celery. Setters usados em `api.auth` (depois de authenticate), Celery task (antes de run).
+  - `backend/app/core/otel.py` — `setup_otel(service_name)` idempotente. `LoggingInstrumentor` sempre liga (custo desprezível, popula trace context). `OTLPSpanExporter` opt-in via env `OTEL_EXPORTER_OTLP_ENDPOINT` — aponta para collector OTLP-compliant (Tempo, Jaeger, Honeycomb, DataDog). `instrument_fastapi(app)` liga no lifespan; `instrument_celery()` no `worker_process_init` signal (fork-safe).
+  - **Env vars**: `MATHOMS_LOG_LEVEL` (default INFO), `MATHOMS_LOG_FORMAT` (default `json`; `text` volta para humano com `[trace=XXXXXXXX]`), `OTEL_EXPORTER_OTLP_ENDPOINT` (opt-in).
+  - **Por que importa cross-service**: backend, worker e (futuro A6f.1) pipeline-service gravam no mesmo formato. Qualquer Go/TS/Rust service futuro exporta OTLP idêntico — sem vendor lock-in.
 - **Uptime externo** — health check (UptimeRobot ou equivalente) — alinhado à status page
 - **Custom telemetry** — UsageMetric (privacy-first) — 7D.9
 

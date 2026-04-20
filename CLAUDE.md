@@ -182,7 +182,10 @@ rebase, PR abandonado). Outros agentes só podem confiar que o trabalho
 ### Logging
 
 - **JSON estruturado** para observabilidade (backend API, Celery, pipeline
-  em prod). Alvo: OpenTelemetry + OTLP (A6f.3).
+  em prod). **Entregue em A6f.3 (ADR-110)**: `backend/app/core/logging.py`
+  (`MathomsJsonFormatter` + `get_logger`), `backend/app/middleware/correlation.py`
+  (`CorrelationIdMiddleware` + contextvars), `backend/app/core/otel.py`
+  (OTLP opt-in via `OTEL_EXPORTER_OTLP_ENDPOINT`). Namespace `mathoms.*`.
 - **Texto plano** apenas em CLI user-facing (`scripts/e*.py` prints de
   progresso, `dev/commit.py`).
 - **Nunca logue dados sensíveis**: CPF, valores reais, senhas, conteúdo de
@@ -267,6 +270,27 @@ Mudanças em `backend/app/core/security.py` (payload JWT, algoritmo) ou
 `backend/app/services/vault.py` (Fernet) são **breaking** e exigem nova
 ADR (A6f.5b ou A6f.5c). Parity enforçada por
 `backend/tests/test_auth_portability.py`.
+
+### Stateless rigoroso (ADR-111 · A6f.6 · R19)
+
+**Zero estado mutável in-memory** em nível de módulo/classe em
+`backend/app/` e `pipeline/`. Exceções aceitas:
+(a) constantes imutáveis (regex compilados, mappings de domínio, thresholds);
+(b) singletons lazy **idempotentes** — mesma key produz mesmo objeto em
+qualquer worker (ex.: `engine` SQLAlchemy, `_redis_client`, `_singleton` Vault).
+
+**Proibido:** cache por-request, counter compartilhado, `set[X]`/`dict[...]`
+que acumula entre requests, `@lru_cache`/`@functools.cache`/`cached_property`
+em código de aplicação, `asyncio.create_task`/`BackgroundTasks`/`threading.Thread`
+fora do Celery, file lock (`fcntl`/`flock`/`filelock`/`portalocker`).
+
+Cache vai para Redis; rate limit vai para DB (padrão `invitation_service`)
+ou Redis `SET NX + TTL` — nunca token bucket em memória.
+
+Ao adicionar global novo, registre entrada em
+[docs/STATELESS_AUDIT.md](docs/STATELESS_AUDIT.md) §2 — se não couber em
+(a) ou (b), **não** adicione. Gate empírico:
+`backend/tests/integration/test_multi_worker_concurrency.py`.
 
 ### Feature flag `MATHOMS_USE_DB_ARTIFACTS`
 
