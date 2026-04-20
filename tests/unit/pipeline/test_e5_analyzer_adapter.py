@@ -47,6 +47,9 @@ def _seed_minimal(store: InMemoryArtifactStore) -> None:
         "imoveis_consolidados": [
             {"descricao": "Casa Vila Madalena", "valores_31_12": {"2024": 800_000}},
         ],
+        "dividas": [
+            {"proprietario": "david", "saldo_31_12": {"2024": 200_000}},
+        ],
     })
     store.seed("E4", "investimentos", {
         "total_geral": 500_000,
@@ -234,3 +237,159 @@ class TestResultType:
         # Frozen dataclass — não permite atribuição.
         with pytest.raises(Exception):
             result.receitas = {}  # type: ignore[misc]
+
+
+class TestA6d33Wiring:
+    """Testes das integrações A6d.3.3 (sem placeholders)."""
+
+    def test_patrimonio_full_has_full_fidelity_keys(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        adapter = E5AnalyzerAdapter()
+        result = adapter.analyze_via_store(store)
+
+        # Todas as chaves do legado ``analyze_patrimonio`` devem aparecer.
+        required = {
+            "bruto", "dividas", "liquido", "residencia", "imoveis_investimento",
+            "caixa_moeda_estrangeira", "caixa_detalhes", "investivel", "veiculos",
+            "composicao", "tabela_categorias", "fonte_investimentos",
+            "investimentos_david", "investimentos_mariana",
+        }
+        assert required.issubset(result.patrimonio_full.keys())
+
+    def test_reserva_has_paridade_keys(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        adapter = E5AnalyzerAdapter()
+        result = adapter.analyze_via_store(store)
+
+        required = {
+            "despesas_mensais", "nivel_6_meses", "nivel_12_meses",
+            "composicao_liquida", "total_liquida", "cobertura_meses",
+            "avaliacao_liquidity", "niveis",
+        }
+        assert required.issubset(result.reserva.keys())
+
+    def test_score_has_paridade_keys(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        adapter = E5AnalyzerAdapter()
+        result = adapter.analyze_via_store(store)
+
+        assert set(result.score.keys()) == {"valor", "max", "classificacao", "componentes"}
+        assert result.score["max"] == 10
+        assert len(result.score["componentes"]) == 5
+
+    def test_no_placeholders_in_adapter(self):
+        """Garantia estrutural: nenhuma string 'placeholder' no módulo."""
+        from pathlib import Path
+        src = Path("pipeline/domain/services/e5_analyzer_adapter.py").read_text()
+        # Menção em comentário é OK (evidência histórica); identificadores não.
+        assert "_placeholder" not in src
+        assert "score_placeholder" not in src
+        assert "reserva_placeholder" not in src
+
+    def test_load_caixa_from_e3_returns_zero_when_no_keys(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        adapter = E5AnalyzerAdapter()
+        total, detalhes = adapter._load_caixa_from_e3(store)
+        assert total == 0.0
+        assert detalhes == []
+
+    def test_load_caixa_from_e3_sums_brl_cc(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        store.seed("E3", "bradesco_cc_BRL_202601_202612", {
+            "tipo_conta": "conta_corrente",
+            "banco": "Bradesco",
+            "moeda": "BRL",
+            "saldo_final": 5000.0,
+        })
+        adapter = E5AnalyzerAdapter()
+        total, detalhes = adapter._load_caixa_from_e3(store)
+        assert total == 5000.0
+        assert len(detalhes) == 1
+        assert detalhes[0].tipo == "caixa"
+        assert detalhes[0].moeda == "BRL"
+
+    def test_load_caixa_from_e3_converts_usd_via_taxas(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        store.seed("E3", "bofa_cc_USD_202601_202612", {
+            "tipo_conta": "conta_corrente",
+            "banco": "Bank of America",
+            "moeda": "USD",
+            "saldo_final": 1000.0,
+        })
+        adapter = E5AnalyzerAdapter(taxas={"cambio_usd_brl": 5.50})
+        total, detalhes = adapter._load_caixa_from_e3(store)
+        assert total == 5500.0
+        assert detalhes[0].tipo == "moeda_estrangeira"
+        assert detalhes[0].moeda == "USD"
+
+    def test_load_caixa_skips_fatura_poupanca_pj(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        store.seed("E3", "itau_fatura", {"tipo_conta": "fatura", "saldo_final": 999})
+        store.seed("E3", "itau_poupanca", {"tipo_conta": "poupanca", "saldo_final": 999})
+        store.seed("E3", "itau_pj", {"tipo_conta": "pj_corrente", "saldo_final": 999})
+        adapter = E5AnalyzerAdapter()
+        total, _ = adapter._load_caixa_from_e3(store)
+        assert total == 0.0
+
+    def test_load_caixa_skips_investment_banks(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        store.seed("E3", "btg", {
+            "tipo_conta": "cc", "banco": "BTG Pactual",
+            "moeda": "BRL", "saldo_final": 999,
+        })
+        adapter = E5AnalyzerAdapter()
+        total, _ = adapter._load_caixa_from_e3(store)
+        assert total == 0.0
+
+    def test_load_caixa_skips_unknown_saldo(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        store.seed("E3", "unknown", {
+            "tipo_conta": "cc", "banco": "Bradesco",
+            "moeda": "BRL", "saldo_final": None, "saldo_final_unknown": True,
+        })
+        adapter = E5AnalyzerAdapter()
+        total, _ = adapter._load_caixa_from_e3(store)
+        assert total == 0.0
+
+    def test_identity_from_family_with_nome_curto(self):
+        """``from_configs`` extrai nome_curto do family config."""
+        family = {
+            "titular": "carlos",
+            "membros": {
+                "carlos": {"nome_curto": "Carlão"},
+                "ana": {"papel": "conjuge", "nome_curto": "Aninha"},
+            },
+        }
+        adapter = E5AnalyzerAdapter.from_configs(family=family)
+        assert adapter._identity.titular_nome == "Carlão"
+        assert adapter._identity.conjuge_nome == "Aninha"
+        assert adapter._identity.titular_key == "carlos"
+        assert adapter._identity.conjuge_key == "ana"
+
+    def test_residencia_keyword_extracted(self):
+        family = {
+            "titular": "david",
+            "membros": {"david": {"residencia_principal_keyword": "Rua das Flores"}},
+        }
+        adapter = E5AnalyzerAdapter.from_configs(family=family)
+        # PatrimonioCalculator recebeu config com keyword lowercase
+        assert adapter._patrimonio._config.residencia_keyword == "rua das flores"
+
+    def test_investment_banks_from_institutions(self):
+        institutions = {"investment_banks": ["Custom Broker", "Another Bank"]}
+        adapter = E5AnalyzerAdapter.from_configs(institutions=institutions)
+        assert "custom broker" in adapter._investment_banks
+        assert "another bank" in adapter._investment_banks
+
+    def test_investment_banks_default_when_institutions_empty(self):
+        adapter = E5AnalyzerAdapter.from_configs()
+        assert "btg pactual" in adapter._investment_banks
