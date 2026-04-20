@@ -1,10 +1,11 @@
 """Config API — CRUD for the 5 editable configs, import/export, fallback to disk defaults.
 
-**A6e (ADR-101)** — endpoints do agregado ``FamilyMember`` (members/accounts)
-delegam persistência para ``FamilyMemberRepository`` e retornam DTOs de
-``schemas/dto/family_member/``. Restante do router (categories, config blobs,
-import/export) ainda acessa o ORM direto — será migrado nas sessões
-seguintes (Category repo + ConfigBlob repo).
+**A6e (ADR-101)** — endpoints dos agregados ``FamilyMember`` (A6e.1+.2) e
+``Category`` (A6e.3) delegam persistência aos respectivos repositórios
+(``FamilyMemberRepository`` / ``CategoryRepository``) e retornam DTOs de
+``schemas/dto/{family_member,category}/``. Config blobs (pipeline,
+institutions, report_layout) e helpers de import/export ainda acessam o
+ORM direto — serão migrados em A6e.4+.
 """
 
 from __future__ import annotations
@@ -28,12 +29,9 @@ from backend.app.models.category import Category, CategoryKeyword
 from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
 from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.workspace import Workspace
+from backend.app.repositories.category_repository import CategoryRepository
 from backend.app.repositories.family_member_repository import FamilyMemberRepository
 from backend.app.schemas.config import (
-    CategoryCreateRequest,
-    CategoryListResponse,
-    CategorySchema,
-    CategoryUpdateRequest,
     ConfigExportResponse,
     ConfigImportRequest,
     ConfigImportResponse,
@@ -45,6 +43,19 @@ from backend.app.schemas.config import (
     ReportLayoutUpdateRequest,
     WorkspaceSettingsSchema,
     WorkspaceSettingsUpdateRequest,
+)
+from backend.app.schemas.dto.category import (
+    CategoryCreateCommand,
+    CategoryListResponse,
+    CategoryResponse,
+    CategoryUpdateCommand,
+    category_to_response,
+)
+from backend.app.schemas.dto.category import (
+    convert_global_defaults_to_responses as convert_category_defaults_to_responses,
+)
+from backend.app.schemas.dto.category import (
+    count_defaults as count_category_defaults,
 )
 from backend.app.schemas.dto.family_member import (
     BankAccountCreateCommand,
@@ -72,6 +83,13 @@ def _get_member_repo(
 ) -> FamilyMemberRepository:
     """DI helper — injeta o repositório no endpoint."""
     return FamilyMemberRepository(db)
+
+
+def _get_category_repo(
+    db: AsyncSession = Depends(get_db),
+) -> CategoryRepository:
+    """DI helper — injeta o ``CategoryRepository`` no endpoint (A6e.3)."""
+    return CategoryRepository(db)
 
 
 def _slug_member_key_from_full_name(full_name: str, max_len: int = 50) -> str:
@@ -147,14 +165,6 @@ def _load_global_yaml(name: str) -> dict[str, Any]:
         return {}
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
-
-
-def _category_to_schema(c: Category) -> CategorySchema:
-    keywords = [kw.keyword for kw in c.keywords] if c.keywords else []
-    return CategorySchema(
-        id=c.id, code=c.code, name=c.name, category_type=c.category_type,
-        monthly_cap=c.monthly_cap, order=c.order, keywords=keywords,
-    )
 
 
 # =============================================================================
@@ -387,106 +397,85 @@ async def _ensure_member(
 @router.get("/categories", response_model=CategoryListResponse)
 async def list_categories(
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: CategoryRepository = Depends(_get_category_repo),
 ):
-    result = await db.execute(
-        select(Category)
-        .where(Category.workspace_id == workspace.id)
-        .options(selectinload(Category.keywords))
-        .order_by(Category.order, Category.code)
-    )
-    cats = result.scalars().all()
+    cats = await repo.list_by_workspace(workspace.id)
     if cats:
-        schemas = [_category_to_schema(c) for c in cats]
-        return CategoryListResponse(categories=schemas, total=len(schemas))
+        responses = [category_to_response(c) for c in cats]
+        return CategoryListResponse(categories=responses, total=len(responses))
 
     defaults = _load_global_json("categorization.json")
     return CategoryListResponse(
-        categories=_convert_categorization_json_to_schemas(defaults),
-        total=len(defaults.get("expense_keywords", {})) + len(defaults.get("income_keywords", {})),
+        categories=convert_category_defaults_to_responses(defaults),
+        total=count_category_defaults(defaults),
     )
 
 
-@router.post("/categories", response_model=CategorySchema, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/categories",
+    response_model=CategoryResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_category(
-    body: CategoryCreateRequest,
+    body: CategoryCreateCommand,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: CategoryRepository = Depends(_get_category_repo),
 ):
-    existing = await db.execute(
-        select(Category).where(Category.workspace_id == workspace.id, Category.code == body.code)
+    if await repo.code_exists(workspace.id, body.code):
+        raise HTTPException(
+            status_code=409,
+            detail=f"Categoria com code '{body.code}' já existe",
+        )
+    cat = await repo.create(
+        workspace.id,
+        code=body.code,
+        name=body.name,
+        category_type=body.category_type,
+        monthly_cap=body.monthly_cap,
+        order=body.order,
+        keywords=body.keywords,
     )
-    if existing.scalar_one_or_none():
-        raise HTTPException(status_code=409, detail=f"Categoria com code '{body.code}' já existe")
-
-    cat = Category(
-        workspace_id=workspace.id, code=body.code, name=body.name,
-        category_type=body.category_type, monthly_cap=body.monthly_cap, order=body.order,
-    )
-    db.add(cat)
-    await db.flush()
-
-    for kw_text in body.keywords:
-        db.add(CategoryKeyword(category_id=cat.id, keyword=kw_text))
-    await db.commit()
-
-    result = await db.execute(
-        select(Category).where(Category.id == cat.id).options(selectinload(Category.keywords))
-    )
-    return _category_to_schema(result.scalar_one())
+    return category_to_response(cat)
 
 
-@router.put("/categories/{category_id}", response_model=CategorySchema)
+@router.put("/categories/{category_id}", response_model=CategoryResponse)
 async def update_category(
     category_id: str,
-    body: CategoryUpdateRequest,
+    body: CategoryUpdateCommand,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: CategoryRepository = Depends(_get_category_repo),
 ):
-    result = await db.execute(
-        select(Category).where(Category.id == category_id, Category.workspace_id == workspace.id)
-    )
-    cat = result.scalar_one_or_none()
+    cat = await repo.get_by_id_with_keywords(workspace.id, category_id)
     if not cat:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
 
     update_data = body.model_dump(exclude_unset=True)
     keywords_update = update_data.pop("keywords", None)
 
-    for field, value in update_data.items():
-        setattr(cat, field, value)
+    new_code = update_data.get("code")
+    if new_code is not None and new_code != cat.code:
+        if await repo.code_exists(
+            workspace.id, new_code, exclude_id=cat.id
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=f"Categoria com code '{new_code}' já existe",
+            )
 
-    if keywords_update is not None:
-        old_kws = (await db.execute(
-            select(CategoryKeyword).where(CategoryKeyword.category_id == cat.id)
-        )).scalars().all()
-        for kw in old_kws:
-            await db.delete(kw)
-        await db.flush()
-        for kw_text in keywords_update:
-            db.add(CategoryKeyword(category_id=cat.id, keyword=kw_text))
-
-    await db.commit()
-    result = await db.execute(
-        select(Category).where(Category.id == cat.id).options(selectinload(Category.keywords))
-    )
-    return _category_to_schema(result.scalar_one())
+    cat = await repo.update(cat, updates=update_data, keywords=keywords_update)
+    return category_to_response(cat)
 
 
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_category(
     category_id: str,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: CategoryRepository = Depends(_get_category_repo),
 ):
-    result = await db.execute(
-        select(Category).where(Category.id == category_id, Category.workspace_id == workspace.id)
-    )
-    cat = result.scalar_one_or_none()
+    cat = await repo.get_by_id(workspace.id, category_id)
     if not cat:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
-    await db.delete(cat)
-    await db.commit()
+    await repo.delete(cat)
 
 
 # =============================================================================
@@ -843,22 +832,11 @@ async def _export_report_layout(ws_id: str, db: AsyncSession) -> dict[str, Any]:
 # =============================================================================
 
 # ``family_members`` fallback: ``convert_global_defaults_to_responses`` vive
-# em ``schemas/dto/family_member/mapper`` (A6e). Os outros fallbacks
-# (categorization, pipeline, institutions, report_layout) seguem aqui até
-# migrarem para seus próprios pacotes DTO.
-
-
-def _convert_categorization_json_to_schemas(data: dict[str, Any]) -> list[CategorySchema]:
-    schemas = []
-    order = 0
-    for cat_type, key in [("expense", "expense_keywords"), ("income", "income_keywords")]:
-        for code, keywords in data.get(key, {}).items():
-            schemas.append(CategorySchema(
-                code=code, name=code.replace("_", " ").title(),
-                category_type=cat_type, order=order, keywords=keywords,
-            ))
-            order += 1
-    return schemas
+# em ``schemas/dto/family_member/mapper`` (A6e.1+.2).
+# ``categorization`` fallback: ``convert_global_defaults_to_responses`` +
+# ``count_defaults`` vivem em ``schemas/dto/category/mapper`` (A6e.3).
+# Os demais fallbacks (pipeline, institutions, report_layout) ainda não
+# têm pacote DTO — migram em A6e.4+.
 
 
 def _deep_merge(base: dict, override: dict) -> dict:

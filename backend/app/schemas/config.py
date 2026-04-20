@@ -1,7 +1,8 @@
 """Pydantic schemas for the 5 editable configs: members, categories, pipeline, institutions, report_layout.
 
-**A6e (ADR-101)** — os DTOs de ``FamilyMember`` / ``BankAccount`` migraram
-para ``backend.app.schemas.dto.family_member``. Os nomes legados aqui são
+**A6e (ADR-101)** — os DTOs dos agregados ``FamilyMember`` / ``BankAccount``
+(A6e.1+.2) e ``Category`` / ``CategoryKeyword`` (A6e.3) migraram para
+``backend.app.schemas.dto.{agregado}``. Os nomes legados aqui são
 **aliases** durante a janela de transição (tests e imports antigos
 continuam funcionando). Use os DTOs novos em código novo.
 """
@@ -13,6 +14,14 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 # A6e aliases (preservam nomes legados apontando para os DTOs canônicos).
+from backend.app.schemas.dto.category.command import (
+    CategoryCreateCommand as CategoryCreateRequest,
+    CategoryUpdateCommand as CategoryUpdateRequest,
+)
+from backend.app.schemas.dto.category.response import (
+    CategoryListResponse as _CategoryListResponse,
+    CategoryResponse as CategorySchema,
+)
 from backend.app.schemas.dto.family_member.command import (
     BankAccountCreateCommand as BankAccountCreateRequest,
     FamilyMemberCreateCommand as FamilyMemberCreateRequest,
@@ -24,44 +33,9 @@ from backend.app.schemas.dto.family_member.response import (
     FamilyMemberResponse as FamilyMemberSchema,
 )
 
-# Alias legado — mantém o nome ``FamilyMemberListResponse`` servindo o mesmo
-# shape do DTO novo.
+# Aliases legados — mantêm os nomes servindo o mesmo shape dos DTOs novos.
 FamilyMemberListResponse = _FamilyMemberListResponse
-
-
-# =============================================================================
-# Categories (expense_keywords + income_keywords)
-# =============================================================================
-
-class CategorySchema(BaseModel):
-    """A categorization category with its keywords."""
-    id: Optional[str] = None
-    code: str = Field(..., min_length=1, max_length=50, description="Unique code (e.g. 'moradia', 'receita_pj')")
-    name: str = Field(..., min_length=1, max_length=100)
-    category_type: str = Field(..., pattern=r"^(expense|income)$")
-    monthly_cap: Optional[float] = Field(None, ge=0, description="Monthly spending cap for budgeting alerts")
-    order: int = Field(default=0, ge=0)
-    keywords: list[str] = Field(default_factory=list)
-
-    model_config = {"from_attributes": True}
-
-
-class CategoryCreateRequest(BaseModel):
-    code: str = Field(..., min_length=1, max_length=50)
-    name: str = Field(..., min_length=1, max_length=100)
-    category_type: str = Field(..., pattern=r"^(expense|income)$")
-    monthly_cap: Optional[float] = Field(None, ge=0)
-    order: int = Field(default=0, ge=0)
-    keywords: list[str] = Field(default_factory=list)
-
-
-class CategoryUpdateRequest(BaseModel):
-    code: Optional[str] = Field(None, min_length=1, max_length=50)
-    name: Optional[str] = Field(None, min_length=1, max_length=100)
-    category_type: Optional[str] = Field(None, pattern=r"^(expense|income)$")
-    monthly_cap: Optional[float] = Field(None, ge=0)
-    order: Optional[int] = Field(None, ge=0)
-    keywords: Optional[list[str]] = None
+CategoryListResponse = _CategoryListResponse
 
 
 # =============================================================================
@@ -179,20 +153,6 @@ class ConfigExportResponse(BaseModel):
 class ConfigImportResponse(BaseModel):
     """Retorno de ``POST /config/import`` — reporta quais seções foram importadas."""
     imported: list[str]
-    total: int
-
-
-# =============================================================================
-# List wrappers
-# =============================================================================
-
-class FamilyMemberListResponse(BaseModel):
-    members: list[FamilyMemberSchema]
-    total: int
-
-
-class CategoryListResponse(BaseModel):
-    categories: list[CategorySchema]
     total: int
 
 
