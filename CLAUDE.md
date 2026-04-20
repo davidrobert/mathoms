@@ -581,13 +581,42 @@ criar branches, fazer commits e dar push (inclusive em `main` com a suite verde)
 
 #### Múltiplos agentes simultâneos (coordenação)
 
-Vários agentes podem estar trabalhando em paralelo no mesmo repo. Para evitar
-race conditions e conflitos:
+Vários agentes podem estar trabalhando em paralelo no mesmo repo **e no mesmo
+working tree local**. Regras abaixo evitam perda de trabalho e conflitos.
+
+##### Protocolo de início de sessão (OBRIGATÓRIO)
+
+Executar **antes** de qualquer edit/write/commit. Quatro comandos:
+
+```bash
+git fetch origin                                    # sincroniza refs remotos
+git status                                          # fotografa working tree
+git log --oneline origin/main..HEAD -10             # commits locais ainda não-pushed
+git log --oneline -10 -- CLAUDE.md                  # mudanças recentes em CLAUDE.md
+git reflog | head -5                                # resets recentes (sinal de concorrência)
+```
+
+Então:
+
+- **Se `git status` mostra arquivos modificados** — eles pertencem a outro
+  agente ou sessão anterior. **NÃO edite** esses arquivos sem antes
+  identificar o dono. Opções: (a) trabalhe em arquivos disjuntos; (b) se
+  precisa tocar os mesmos, anuncie no chat e coordene com o usuário;
+  (c) `git stash push -- <arquivos>` se vai mexer e restaurar depois.
+- **Se CLAUDE.md mudou nos últimos commits** — releia a seção relevante
+  antes de agir. A política pode ter sido atualizada.
+- **Se a branch atual não é `main` nem `agent/*`** — investigue. Pode ser
+  branch de outro agente que não foi mergeada.
+- **Se reflog mostra `reset: moving to HEAD` recente** — outro agente fez
+  reset destrutivo. Considere trabalhar em `git worktree add ../fin-<slug>`
+  isolado (working tree novo, branch própria) se o trabalho é longo.
 
 5. **Cada agente trabalha em sua própria branch** — nunca editar direto em
    `main` local. Naming convencional:
    - `agent/<slug-kebab>/<yyyyMMdd-HHmm>` — ex.: `agent/a6d1-globals-e4/20260420-1430`
    - Slug descritivo curto (≤40 chars). Timestamp evita colisão entre agentes.
+   - **Criar a branch antes da primeira edição**, não depois. Edits em
+     `main` local podem ser destruídos por `git reset --hard` de outro agente.
 6. **Antes do push para `main`**: **sempre** `git fetch origin && git rebase
    origin/main` na branch do trabalho. Resolver conflitos localmente. Rodar
    suíte de testes **depois** do rebase (não antes). Se a suíte quebra
@@ -602,6 +631,41 @@ race conditions e conflitos:
    - Se outro agente acabou de commitar no arquivo que você vai tocar,
      considere esperar ou coordenar com o usuário.
 
+##### Cadência de commit (defensivo contra resets)
+
+Um agente que acumula horas de trabalho no working tree está **uma
+distração de perder tudo**. Reset acidental, outro agente dando
+`git reset`, fechamento da sessão sem aviso — todos destroem working tree.
+Commits são baratos e salvam.
+
+- **Commite a cada marco atômico** (ex.: "criou repo", "criou DTOs",
+  "refatorou endpoint"). Cada commit é um *anchor* que sobrevive a
+  `git reset --hard HEAD` (só morre em `reset HEAD~N` com N>0).
+- **Trabalhe em sua branch** (§5). Outro agente fazendo `reset` em `main`
+  não toca seus commits da sua branch.
+- **Se vai pausar, delegar, ou fechar a sessão** — commit antes, mesmo que
+  seja WIP (`chore(wip): ponto de parada A6e.3 — use cases pendentes`).
+  Push opcional; o commit local já é seguro.
+- **Regra de bolso**: se `git diff --stat` já passa de ~150 linhas sem
+  commit, faça commit agora.
+
+##### Hotspots de documentação (CHANGELOG.md / BACKLOG.md / DECISIONS.md)
+
+Esses três arquivos são editados por praticamente toda sessão de trabalho
+— colisão entre agentes é garantida se todos concorrem no mesmo arquivo.
+
+- **Commite docs separado do código** (commit dedicado `docs(<slice>): ...`).
+  Diminui a janela em que o arquivo está uncommitted.
+- **Commite docs por último na sessão**, depois do push dos commits de código
+  (se possível). Reduz a chance de outro agente adicionar conteúdo
+  concorrente no mesmo arquivo.
+- **Se achar conflito ao dar `git stash pop` nesses arquivos** — resolva
+  mantendo **todas** as adições (seus e dos outros agentes). Nunca descarte
+  conteúdo alheio: cada bloco pertence a alguém e precisa continuar no
+  histórico.
+- **Não edite `CLAUDE.md` em paralelo com outro agente.** Se precisar,
+  anuncie no chat antes e faça edit + commit atômico (≤5 min).
+
 #### O que continua proibido (segurança, não autonomia)
 
 9. **Nunca** `git push --force` ou `--force-with-lease` em `main`. Em
@@ -612,9 +676,13 @@ race conditions e conflitos:
     a causa**; nunca bypasse.
 11. **Nunca** `git commit --amend` em commits já pushados. Para corrigir,
     crie novo commit (`fix:` ou `chore: correct X`).
-12. **Nunca** `git reset --hard` em branch compartilhada. Em `main` local é
-    aceitável para ressincronizar com remoto (`git reset --hard origin/main`
-    após `fetch`).
+12. **Nunca** `git reset --hard` em branch compartilhada, **incluindo `main`
+    local quando outros agentes podem estar ativos no mesmo working tree**.
+    Reset no main local é aceitável **apenas** se você for o único agente
+    rodando (verifique no chat antes). Caso contrário, seu reset apaga o
+    working tree de outros agentes. Para ressincronizar com remoto sem
+    destruir, prefira `git pull --ff-only origin main` — falha seguramente
+    se houver divergência.
 13. **Nunca** `git config` — NÃO alterar configuração global/local do git.
 14. **Paths proibidos no staging** (enforçados por `dev/check_forbidden_paths.py`):
     `storage/`, `data/`, `inbox/`, `inbox_processed/`, `_scratch/`, `.env`,
