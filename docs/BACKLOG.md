@@ -6,7 +6,7 @@
 >
 > **Legenda de prioridade:** **P0** bloqueante • **P1** importante • **P2** nice-to-have
 >
-> **Última atualização:** 2026-04-19 (A6b.5 entregue: docker-compose.smoke.yml + Makefile + seed_smoke.py + fixtures + SMOKE_TEST_HUMAN.md + health indicator; ADR-103; 1214 testes pipeline)
+> **Última atualização:** 2026-04-20 (A6g — Code Style Sweep adicionado ao Sprint A6; CLAUDE.md §Code style incorporada)
 
 ---
 
@@ -773,6 +773,35 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 - Separação real entre emissor e validador (ex: A6f.1 pipeline-service
   validando tokens emitidos pelo backend) — até lá HS256 é suficiente.
 
+### A6g — Code Style Sweep (CLAUDE.md §Code style)
+
+**Objetivo:** revisar e aplicar o `## Code style` de [CLAUDE.md](../CLAUDE.md) em todo o código existente — Python (`pipeline/`, `scripts/`, `backend/`), TypeScript (`frontend/`) e preparatório para Go (A6f). Corrige drift acumulado antes que vire convenção implícita.
+
+**Premissa:** drift existe e é silencioso. Sem um sweep deliberado, o estilo novo vale só para código futuro; código legado continua ofendendo (funções gigantes em `e5_analyze.py`, `Dict[str, Any]` em boundaries antigos, nomes genéricos sobreviventes, docstrings multi-parágrafo, comentários WHAT). Sweep + enforcement automatizado congelam o estilo como contrato.
+
+| # | Sub-fase | Entrega | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6g.1 | **Auditoria inicial** — script `dev/audit_code_style.py` que mede drift: funções >20 linhas, arquivos >500 linhas, usos de `Dict[str, Any]` / `any` / `interface{}`, nomes proibidos (`data`, `handler`, `Manager`, `Helper`, `Utils`, `Service` sozinho), `float` em contexto monetário, docstrings multi-parágrafo, comentários WHAT heurísticos. Output: `_scratch/code_style_audit_<date>.json` com ranking por severidade + `.md` com top-50 ofensores | 1 sessão | ☐ |
+| A6g.2 | **Pipeline Python** (`pipeline/`, `scripts/`) — aplicar code style no motor canônico. Prioridade: top-20 ofensores do audit. Excluir `scripts/e*.py` já no Caminho B puro (A6d fecha). Cada commit ≤300 linhas, isolado de lógica | 2-3 sessões | ☐ |
+| A6g.3 | **Backend Python** (`backend/app/`) — integra com A6e (nomes, DTOs, routers finos). A6e.4 (routers ≤50 linhas) é o chute maior; A6g.3 cobre restante (services, repos, helpers, typing) | 2 sessões | ☐ |
+| A6g.4 | **Frontend TypeScript** (`frontend/src/`) — eliminar `any` residual (`grep -rn "\\bany\\b" frontend/src/`), nomes genéricos (`data.ts`, `helpers.ts`), componentes >500 linhas, hooks >20 linhas. Respeitar codegen em `frontend/src/generated/` (não editar) | 1-2 sessões | ☐ |
+| A6g.5 | **Testes** (`tests/`, `backend/tests/`, `frontend/tests/`) — aplicar code style também em teste: fakes nomeados > `MagicMock` inline, fixtures <20 linhas, nomes descritivos (`test_reconcile_drops_duplicate_when_same_hash` > `test_dedupe_1`). Não relaxa o padrão em teste | 1 sessão | ☐ |
+| A6g.6 | **Enforcement automatizado** — onde fizer sentido, transformar regra em gate: (a) `ruff` rules ativadas (`PLR0915` max-statements, `C901` complexity, `E501` line length já ativo); (b) teste AST que falha se `from typing import Dict, Any` cruzar boundary HTTP; (c) pre-commit hook que grep-bloqueia nomes proibidos em filenames novos; (d) ESLint rule `@typescript-eslint/no-explicit-any` como `error`. Documentar exceções com `# noqa: REGRA — motivo` citando ADR ou issue | 1 sessão | ☐ |
+| A6g.7 | **Go prep** (só quando A6f.1 for iniciada) — config `golangci-lint.yml` com `funlen`, `gocyclo`, `gocognit`, `revive` (nomes) alinhados ao code style. Regras vivem no repo antes do primeiro commit Go | 0.5 sessão | ⏸ blocked-by-A6f.1 |
+
+**Estimativa total A6g:** 7-10 sessões médias. Pode rodar em paralelo a A6d/A6e/A6f — mas A6g.3 se beneficia de vir **depois** de A6e.4 (routers finos), e A6g.2 ignora o que A6d está fechando.
+
+**Critérios de aceite globais:**
+- Audit A6g.1 roda em <30s e é executado no CI como informativo (não bloqueante inicialmente).
+- Cada sweep (A6g.2-.5) deixa o audit com **melhora mensurável** (contador de ofensores cai por categoria). Sem regressão em outras categorias.
+- Enforcement A6g.6 bloqueia **apenas código novo**; legado fica em allowlist decrescente com TODO.
+- Zero regressão funcional — todos os goldens, testes unit/integração/E2E continuam verdes em cada commit do sweep.
+
+**Exceções aceitas (documentar em ADR se recorrente):**
+- Parsers bank-specific em `scripts/e2/banks/` podem ter funções 25-40 linhas quando a alternativa é decomposição que prejudica leitura sequencial do formato.
+- Generated files (`frontend/src/generated/`, OpenAPI snapshot, Pydantic models via codegen) — fora do escopo, nunca editar.
+- Testes de paridade golden que comparam estruturas grandes inline — mantidos como estão.
+
 ### Resumo de dependências entre sessões A6
 
 ```
@@ -780,7 +809,10 @@ A5f ──▶ A6a ──▶ A6b ──▶ A6b.5 ──▶ A6-human ──▶ A6c
                          │
                          ├─▶ A6d (paralelo) — fechar Caminho B puro
                          ├─▶ A6e (paralelo) — DDD/SOLID backend
-                         └─▶ A6f (paralelo) — Language-neutral
+                         ├─▶ A6f (paralelo) — Language-neutral
+                         └─▶ A6g (paralelo) — Code style sweep
+                                    (A6g.3 preferencialmente pós-A6e.4;
+                                     A6g.7 gatilhada por A6f.1)
 
 Após A6a+A6b+A6c: §15 (LGPD) e §16 (Observabilidade) habilitados (integram F7)
 ```
