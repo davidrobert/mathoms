@@ -725,14 +725,27 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | # | Sub-fase | Entrega | Esforço | Status |
 | --- | --- | --- | --- | --- |
-| A6e.1 | Repos por aggregate | User, Workspace, Document, Goal, PipelineRun, Task, Notification, Invitation, AuditLog repositories; `grep sqlalchemy backend/app/api/` = zero | 1-2 sessões | ☐ |
-| A6e.2 | DTO ↔ Model | `schemas/dto/<aggregate>/response.py` + `command.py` + `query.py` + `mapper.py`; zero `Model.from_orm` em endpoints | 1 sessão | ☐ |
+| A6e.1 | Repos por aggregate | User, Workspace, Document, Goal, PipelineRun, Task, Notification, Invitation, AuditLog repositories; `grep sqlalchemy backend/app/api/` = zero | 1-2 sessões | 🚧 parcial — **FamilyMember** ✅ |
+| A6e.2 | DTO ↔ Model | `schemas/dto/<aggregate>/response.py` + `command.py` + `query.py` + `mapper.py`; zero `Model.from_orm` em endpoints | 1 sessão | 🚧 parcial — **family_member** ✅ |
 | A6e.3 | Application layer | `backend/app/application/<aggregate>/<use_case>.py`; 1 endpoint = 1 use case; testável sem DB via fakes | 2 sessões | ☐ |
 | A6e.4 | Routers finos | Refactor 4900→800 linhas (17 routers × ≤50); teste AST enforça | 1-2 sessões | ☐ |
 | A6e.5 | Versionamento `/api/v1/` | Prefixo + aliases durante window; OpenAPI 3.1 versionado; `lib/api.ts` atualizado | 1 sessão | ☐ |
 | A6e.6 | Domain events tipados | `backend/app/events/` com `Event` base + `register_handler`; zero side-effect inline em use cases | 1 sessão | ☐ |
 
 **Estimativa total A6e:** 5-7 sessões grandes, ~400+ testes novos.
+
+#### Slice entregue — **FamilyMember aggregate** (branch `a6e/family-member-slice`, 2026-04-20)
+
+| Entrega | Detalhes | Commit |
+| --- | --- | --- |
+| `FamilyMemberRepository` async | 13 métodos; BankAccount como sub-entidade; cascade delete explícito (SQLite compat); `populate_existing=True` em eager-load | c84af46 |
+| DTOs em `schemas/dto/family_member/` | response/command/mapper; mapper recebe vault via Protocol; `convert_global_defaults_to_responses` preserva F6.5E.6 | 2d9074b |
+| Refactor `config.py` members/accounts | 5 endpoints delegam ao repo e retornam DTOs; ~130 linhas duplicadas removidas; compat binária via aliases em `schemas/config.py` | 13ece89 |
+| Tests + regression gate | 10 unit tests mapper (puros) + 13 repo tests (DB real); BUG-004 sentinela migrada para mapper.py | 4167fa5 |
+
+**Próximos slices recomendados (ordem):** Category (sessão 2) → ConfigBlob/Pipeline/Institution/ReportLayout (sessão 3) → Document (sessão 4, grande) → Goal (sessão 5) → Task (sessão 6).
+
+**Pré-existente fora de escopo (reportado):** `test_alembic_guardrails::test_offline_sql_generation_works` falha por migration A6b `r6s7t8u9v0w1` usando `batch_alter_table` sem `copy_from`; `test_documents.py` x9 falha por schema drift em `workspaces.use_db_artifacts_override`. Nenhum dos dois tocado pelo slice A6e.1+.2.
 
 ### A6f — Language-neutral boundaries (ADR-102, R18-R20)
 

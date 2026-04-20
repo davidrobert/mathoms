@@ -8,6 +8,86 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6f.2 + A6f.5a — OpenAPI completo + Auth portability (2026-04-20) — ADR-109:**
+  Primeira sessão da A6f (language-neutral boundaries, ADR-102 · R18-R20).
+  Fecha gap de contrato explícito para clients em outras linguagens
+  (Go, TS, Rust hipotéticos) sem mexer em dados produtivos.
+
+  - **A6f.2 — OpenAPI completo**:
+    - ~12 DTOs novos cobrindo endpoints que retornavam `dict` genérico:
+      `HealthResponse`, `NewDocCountResponse`, `RunActionResponse`,
+      `NotificationsMarkedReadResponse`, `ScanDeadlinesResponse`,
+      `ConfigImportResponse`, `ReportTasksResponse` +
+      `ReportTaskSnapshotItem`.
+    - 4 endpoints de file streaming (`/reports/{id}/download.html`,
+      `/reports/{id}/download.pdf`, `/transactions/export`,
+      `/documents/{id}/file`) ganham `response_class=` explícito.
+    - `/reports/{id}/data` recebe `response_class=JSONResponse` com
+      `responses` OpenAPI documentando o shape dinâmico do E5.
+    - Snapshot committed em [`docs/api/v1/openapi.json`](api/v1/openapi.json)
+      (12856 linhas, sorted keys). README em [`docs/api/v1/README.md`](api/v1/README.md).
+    - `make update-openapi-snapshot` regenera com um comando.
+    - Teste estrutural [`test_openapi_response_models.py`](../backend/tests/test_openapi_response_models.py)
+      falha se novo endpoint for mergeado sem contrato explícito.
+    - Teste de snapshot [`test_openapi_snapshot.py`](../backend/tests/test_openapi_snapshot.py)
+      com diff determinístico em caso de drift.
+
+  - **A6f.5a — Auth portability documentada** (ADR-109):
+    - JWT **mantido em HS256** com payload canônico `{sub, exp, tv}` —
+      qualquer lib Go/TS/Rust lê sem ajuste.
+    - Fernet **mantido** para secrets — spec público (version byte 0x80),
+      existe lib Go (`fernet-go`).
+    - [`test_auth_portability.py`](../backend/tests/test_auth_portability.py)
+      com 12 testes de parity: JWT (algoritmo + claims + expiração +
+      tamper + encode externo) e Fernet (roundtrip + formato estável
+      + tamper + Unicode + edge cases).
+    - AES-GCM + HKDF **deferido** para sub-fase nova **A6f.5b** com
+      gatilho explícito (requisito compliance / migração Go real / CVE).
+    - RS256 também deferido (**A6f.5c**) — só com separação real entre
+      emissor e validador.
+
+  - **Impacto**: Zero breaking change em produção; zero dados
+    re-encriptados; contrato de 118 endpoints formalizado em JSON.
+    14 tests novos passando, zero regressão nos 691+ tests originais.
+
+- **A6e.1+.2 — Slice vertical `FamilyMember` (2026-04-20) — ADR-101:**
+  Primeiro agregado migrado para o padrão DDD/SOLID do backend (R12-R13).
+  Estabelece o trilho que sessões A6e seguintes replicam para outros
+  agregados (Category, Document, Goal, Task, PipelineRun).
+  - **Novo: `FamilyMemberRepository` async** ([family_member_repository.py](../backend/app/repositories/family_member_repository.py))
+    — 13 métodos (list_by_workspace, get_by_id[_with_accounts], get_by_key,
+    key_exists com exclude_id, create, update, delete, delete_all_in_workspace,
+    list_accounts, get_account, add_account, update_account, delete_account).
+    `BankAccount` é sub-entidade do mesmo agregado (sem repo separado,
+    cascade delete explícito para funcionar em SQLite + PostgreSQL).
+  - **Novo: DTOs canônicos em `schemas/dto/family_member/`** (R12 ISP)
+    — `response.py` (FamilyMemberResponse, BankAccountResponse,
+    FamilyMemberListResponse), `command.py` (Create/Update Commands com
+    validação de slug e CPF), `mapper.py` (member_to_response faz CPF
+    decrypt via Vault Protocol + birth_name unpack;
+    convert_global_defaults_to_responses preserva F6.5E.6 neutralização).
+  - **Refactor: [`config.py`](../backend/app/api/config.py) endpoints members/accounts**
+    — 5 endpoints (list/create/update/delete membros + 4 nested accounts)
+    delegam ao repositório e retornam DTOs; zero `select(FamilyMember)` ou
+    `select(BankAccount)` nos endpoints (os imports/exports ainda acessam
+    ORM direto — migram junto com ConfigBlob aggregate).
+  - **Compat binária:** [`schemas/config.py`](../backend/app/schemas/config.py)
+    preserva nomes legados (`FamilyMemberSchema`, `FamilyMemberCreateRequest`,
+    etc.) como aliases dos novos DTOs — `test_config_api.py` e
+    `test_config_models.py` passam sem modificação. ~130 linhas de
+    duplicação removidas.
+  - **Testes novos:**
+    [test_family_member_dto_mapper.py](../backend/tests/test_family_member_dto_mapper.py)
+    (10 testes, puros, sem DB; usam vault fake via Protocol) +
+    [test_family_member_repository.py](../backend/tests/test_family_member_repository.py)
+    (13 testes com DB real — isolamento multi-tenant, key unicity com
+    exclude_id, cascade explícito, get_by_id_with_accounts com
+    populate_existing).
+  - **Regression gate:** `test_anti_regression_bank.py::TestBug004FallbackCPFLeak`
+    aponta agora para `schemas/dto/family_member/mapper.py` (novo lar do
+    `cpf=None` sentinel).
+  - Delivered on branch `a6e/family-member-slice` — 4 commits ancorados.
+
 - **Rename do produto: Fin → Mathoms AI (2026-04-19):**
   Renomeação completa do produto em toda a base de código.
   - `env_prefix` do pydantic-settings: `FIN_` → `MATHOMS_` (19 variáveis de ambiente)
