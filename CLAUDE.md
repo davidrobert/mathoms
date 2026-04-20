@@ -32,9 +32,9 @@ Ao analisar qualquer problema — bug, feature, arquitetura, decisão:
 - **recomende um caminho com justificativa** — não liste opções sem decidir
 - **não invente regras de domínio** — consulte `config/` e docs antes de decidir
 
-Para tarefas não-triviais, estruture como
-**premissas → recomendação → trade-offs → próximos passos** e entregue
-abordagem + plano + testes + critério de aceite.
+Para tarefas não-triviais, estruture a resposta como
+**premissas → recomendação → trade-offs → próximos passos**, com
+critério de aceite explícito.
 
 ---
 
