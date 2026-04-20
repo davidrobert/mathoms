@@ -156,13 +156,23 @@ class TestBug004FallbackCPFLeak:
     """
 
     def test_config_api_strips_cpf_in_fallback(self):
-        api_file = PROJECT_ROOT / "backend" / "app" / "api" / "config.py"
-        text = api_file.read_text(encoding="utf-8")
-        # Comentário do fix deve estar lá; se removeram o comentário,
-        # tudo bem, mas a sentinela `cpf=None` precisa estar próxima
-        # do fallback global.
+        # A6e: conversão de fallback global → DTOs migrou para
+        # ``schemas/dto/family_member/mapper.py``
+        # (``convert_global_defaults_to_responses``). A sentinela
+        # ``cpf=None`` agora mora lá.
+        mapper_file = (
+            PROJECT_ROOT
+            / "backend"
+            / "app"
+            / "schemas"
+            / "dto"
+            / "family_member"
+            / "mapper.py"
+        )
+        text = mapper_file.read_text(encoding="utf-8")
         assert "cpf=None" in text, (
-            "BUG-004 REGRESSION: `cpf=None` removido do fallback de members. "
+            "BUG-004 REGRESSION: `cpf=None` removido do fallback de members "
+            "(schemas/dto/family_member/mapper.py). "
             "CPFs reais do founder vão vazar para tenants novos."
         )
 

@@ -64,7 +64,13 @@ class FamilyMemberRepository:
     async def get_by_id_with_accounts(
         self, workspace_id: str, member_id: str
     ) -> Optional[FamilyMember]:
-        """Retorna membro com ``accounts`` eager-loaded."""
+        """Retorna membro com ``accounts`` eager-loaded.
+
+        ``execution_options(populate_existing=True)`` evita que instâncias já
+        no identity map da sessão sirvam ``accounts`` stale (caso típico:
+        caller acabou de criar o membro, adicionou contas, e quer reler o
+        agregado com estado atual).
+        """
         result = await self._session.execute(
             select(FamilyMember)
             .where(
@@ -72,6 +78,7 @@ class FamilyMemberRepository:
                 FamilyMember.workspace_id == workspace_id,
             )
             .options(selectinload(FamilyMember.accounts))
+            .execution_options(populate_existing=True)
         )
         return result.scalar_one_or_none()
 
@@ -169,7 +176,19 @@ class FamilyMemberRepository:
         return result.scalar_one()
 
     async def delete(self, member: FamilyMember) -> None:
-        """Remove o membro (cascade elimina accounts via ondelete='CASCADE')."""
+        """Remove o membro e suas contas bancárias.
+
+        Apaga contas explicitamente antes do membro — não depende de
+        ``ondelete='CASCADE'`` (inativo em SQLite de testes) nem de
+        ``cascade='all, delete-orphan'`` (exige accounts eager). Idempotente
+        em termos de comportamento: resultado final é membro + contas fora
+        do DB.
+        """
+        from sqlalchemy import delete as sql_delete
+
+        await self._session.execute(
+            sql_delete(BankAccount).where(BankAccount.member_id == member.id)
+        )
         await self._session.delete(member)
         await self._session.commit()
 
