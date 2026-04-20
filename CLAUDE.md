@@ -63,21 +63,6 @@ rebase, PR abandonado). Outros agentes só podem confiar que o trabalho
 
 ---
 
-## Princípios de implementação
-
-- Entenda o problema e as restrições **antes** de codar.
-- Proponha a solução mais simples que preserve qualidade de longo prazo.
-- Siga SOLID e Clean Code; DDD e TDD quando aplicável.
-- Evite complexidade desnecessária, abstrações prematuras e "engenharia para
-  o futuro hipotético".
-- Prefira mudanças pequenas, coesas e fáceis de revisar.
-- Preserve consistência com o padrão já existente no projeto.
-- Não adicione error handling / fallbacks / validação para cenários que não
-  podem acontecer. Confie nas garantias de tipo internas. Valide só em
-  boundaries (user input, external APIs).
-
----
-
 ## Code style
 
 ### Funções e módulos
