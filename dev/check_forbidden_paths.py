@@ -31,10 +31,15 @@ FORBIDDEN_DIRS = (
 )
 
 FORBIDDEN_FILES = (
-    ".env",
-    ".env.test",
     "mathoms.db",
     "config/passwords.txt",
+)
+
+# Basenames bloqueados em qualquer diretório (regressão: backend/.env vazou
+# porque o match era exato; .env no root era pego, subdirs passavam).
+FORBIDDEN_BASENAMES = (
+    ".env",
+    ".env.test",
 )
 
 FORBIDDEN_SUFFIXES = (
@@ -73,6 +78,11 @@ def check(path: str, *, staged_deletions: set[str] | None = None) -> str | None:
     for forbidden in FORBIDDEN_DIRS:
         if path.startswith(forbidden):
             return f"diretório proibido: {forbidden}"
+    basename = path.rsplit("/", 1)[-1]
+    if basename in FORBIDDEN_BASENAMES:
+        if staged_deletions is not None and path in staged_deletions:
+            return None
+        return f"arquivo proibido: {basename} (em {path})"
     if path in FORBIDDEN_FILES:
         if staged_deletions is not None and path in staged_deletions:
             return None

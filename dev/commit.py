@@ -71,13 +71,19 @@ FORBIDDEN_DIRS = (
 )
 
 # Arquivos individuais que nunca devem ir pro repo.
-# `mathoms.db` é o SQLite de dev com dados de vários workspaces; `.env`/`.env.test`
-# podem ter secrets; `passwords.txt` tem senhas de PDF.
+# `mathoms.db` é o SQLite de dev com dados de vários workspaces;
+# `passwords.txt` tem senhas de PDF.
 FORBIDDEN_FILES = (
-    ".env",
-    ".env.test",
     "mathoms.db",
     "config/passwords.txt",
+)
+
+# Basenames bloqueados em qualquer diretório — .env/.env.test podem ter secrets
+# (FIN_FERNET_KEY, API keys). Regressão: backend/.env vazou pra origin/main
+# porque o match era exato e só pegava .env na raiz.
+FORBIDDEN_BASENAMES = (
+    ".env",
+    ".env.test",
 )
 
 # Padrões glob-like por sufixo — qualquer *.db é suspeito (backups locais, etc.)
@@ -163,21 +169,26 @@ def _parse_status_short_line(line: str) -> tuple[str, str, str] | None:
 
 
 def check_forbidden_paths(status_output: str) -> list[tuple[str, str]]:
-    """Retorna lista de (path, motivo) violando FORBIDDEN_{DIRS,FILES,SUFFIXES}."""
+    """Retorna lista de (path, motivo) violando FORBIDDEN_{DIRS,FILES,BASENAMES,SUFFIXES}."""
     violations: list[tuple[str, str]] = []
     for line in status_output.strip().splitlines():
         parsed = _parse_status_short_line(line)
         if parsed is None:
             continue
         path, idx, wt = parsed
-        # Remover `.env`/etc. do repositório é desejável — não bloquear deletes.
-        if path in FORBIDDEN_FILES and (idx == "D" or wt == "D"):
+        basename = path.rsplit("/", 1)[-1]
+        is_deletion = idx == "D" or wt == "D"
+        # Remover arquivo proibido do repositório é desejável — não bloquear deletes.
+        if is_deletion and (path in FORBIDDEN_FILES or basename in FORBIDDEN_BASENAMES):
             continue
         for forbidden in FORBIDDEN_DIRS:
             if path.startswith(forbidden):
                 violations.append((path, f"diretório proibido: {forbidden}"))
                 break
         else:
+            if basename in FORBIDDEN_BASENAMES:
+                violations.append((path, f"arquivo proibido: {basename} (em {path})"))
+                continue
             if path in FORBIDDEN_FILES:
                 violations.append((path, f"arquivo proibido: {path}"))
                 continue

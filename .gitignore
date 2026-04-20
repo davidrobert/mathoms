@@ -45,6 +45,9 @@ frontend/.next/
 *_prev.*
 *_pre_fix.*
 
+# Secrets — aplicam em qualquer diretório (sem leading slash = basename match).
+# `.env.example` continua versionado (é template).
+.env
 .env.test
 
 # Smoke test — estado local efêmero (A6b.5)
