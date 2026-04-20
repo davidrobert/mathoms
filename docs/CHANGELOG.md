@@ -8,6 +8,46 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6d.3.3 (parcial) — Calculadoras puras + adapter sem placeholders (2026-04-20) — ADR-100:**
+  Foundation definitiva para fechar Caminho B puro no E5. Três calculadoras
+  de domínio novas substituem a lógica inline de ``scripts/e5_analyze.py``:
+
+  - **``pipeline/domain/services/patrimonio_types.py``** — value objects puros
+    (``MemberIdentity``, ``PatrimonioConfig``, ``CaixaDetalhe``,
+    ``PatrimonioInputs``) + extractors triviais (``imovel_valor``,
+    ``imovel_desc``, ``veiculo_valor``, ``investimento_valor``, ``get_bens``,
+    ``safe_float``). Zero globals.
+  - **``pipeline/domain/services/patrimonio_resolvers.py``** — 4 formatos de
+    baseline (dict members, list-of-dicts, E1.5 declarations com G01-G99,
+    v1.5 consolidated com aliased keys E1.5 v2). Helpers privados
+    ``_classify_bens_by_grupo``, ``_resolve_ano_ref``, ``_is_conjuge_exclusive``.
+  - **``pipeline/domain/services/patrimonio_calculator.py``** — orquestração
+    com paridade byte-a-byte vs ``analyze_patrimonio`` legado (residência via
+    keyword, investimentos atuais vs IRPF fallback, caixa E3 vs residual,
+    largest-remainder method para percentuais soma=100%, chaves dinâmicas
+    ``investimentos_<titular>``/``<conjuge>`` via ``MemberIdentity``).
+  - **``pipeline/domain/services/reserva_emergencia_calculator.py``** —
+    ``EmergencyReserveCalculator`` + ``ReservaEmergenciaConfig.from_scoring_json``.
+    Paridade com ``analyze_reserva_emergencia``.
+  - **``pipeline/domain/services/financial_score_calculator.py``** —
+    ``FinancialScoreCalculator`` + 5 componentes configuráveis (taxa_poupanca,
+    cobertura, endividamento com flag ``invertido``, progresso_if,
+    diversificacao). Paridade com ``calculate_score``.
+
+  - **``E5AnalyzerAdapter`` refatorado** — remove ``_extract_patrimonio_for_ratios``,
+    ``score_placeholder``, ``reserva_placeholder``. ``analyze_via_store``
+    agora produz ``patrimonio_full``/``reserva``/``score`` com dados completos
+    via os 3 calculadores injetados. Novo helper ``_load_caixa_from_e3``
+    (shell I/O via ``store.list_keys("E3")``).
+
+  - **Testes**: +178 unit tests novos (45 types + 59 resolvers + 23 calculator
+    + 12 reserva + 25 score + 14 wiring). Suite ``tests/unit/pipeline/``
+    total: 1003 passando, zero regressão.
+
+  - **Pendente (próxima sessão)**: switch ``scripts/e5_analyze.main_with_store``
+    para usar o adapter + golden parity E5 + decomposição ``build_narrativas``
+    (A6d.3.2) + docs finais. Branch: ``agent/a6d3-close-caminho-b/20260420-1223``.
+
 - **A6f.2 + A6f.5a — OpenAPI completo + Auth portability (2026-04-20) — ADR-109:**
   Primeira sessão da A6f (language-neutral boundaries, ADR-102 · R18-R20).
   Fecha gap de contrato explícito para clients em outras linguagens
