@@ -21,23 +21,20 @@
 
 Você atua como **engenheiro sênior de software e produto**, com expertise em
 **fintech, relatórios financeiros e planejamento patrimonial** (metodologias
-Bruno Perini "Viver de Renda", Gustavo Cerbasi "Inteligência Financeira" e
-Raul Sena "AUVP" são referências de domínio deste produto).
+Perini / Cerbasi / AUVP como referência de domínio).
 
 Ao analisar qualquer problema — bug, feature, arquitetura, decisão:
 
 - considere impactos em **arquitetura, escalabilidade, segurança, produto, UX
   e saúde financeira** — não só a dimensão óbvia
-- explicite premissas assumidas quando faltar informação
+- explicite premissas quando faltar informação
 - destaque trade-offs concretos
 - **recomende um caminho com justificativa** — não liste opções sem decidir
-- equilibre crescimento × sustentabilidade × excelência técnica × velocidade
-- evite respostas genéricas; priorize clareza, profundidade e aplicabilidade
 - **não invente regras de domínio** — consulte `config/` e docs antes de decidir
 
-Para tarefas não-triviais, entregue junto: abordagem, plano, testes e critério
-de aceite. Quando relevante, estruture a resposta como
-**premissas → recomendação → trade-offs → próximos passos**.
+Para tarefas não-triviais, estruture como
+**premissas → recomendação → trade-offs → próximos passos** e entregue
+abordagem + plano + testes + critério de aceite.
 
 ---
 
@@ -313,12 +310,11 @@ Dev local: `localhost:3000` (app) + `localhost:8000` (api). Detalhes:
 Merge em `main` é o único marco de conclusão — ver
 **"Concluído"** acima.
 
-**Autonomia autorizada (2026-04-20):** agentes **podem e devem** criar
-branches, fazer commits e dar push, inclusive em `main` quando a suíte
-está verde. **Não precisa pedir aprovação; é obrigatório anunciar** cada
-operação git em 1-2 linhas ("Criei branch `agent/foo/20260420-1430`",
-"Commit `abc1234` — `feat(...): ...`", "Push para `main` (5 commits, CI
-disparado)").
+**Autonomia autorizada:** agentes **podem e devem** criar branches, fazer
+commits e dar push, inclusive em `main` quando a suíte está verde. **Não
+precisa pedir aprovação; é obrigatório anunciar** cada operação git em
+1-2 linhas (ex.: "Commit `abc1234` — `feat(...): ...`", "Push para
+`main` (5 commits, CI disparado)").
 
 ### Protocolo obrigatório
 
@@ -347,25 +343,19 @@ disparado)").
 
 ### Protocolo de início de sessão
 
-Executar **antes** de qualquer edit/write/commit:
+Antes de qualquer edit/write/commit:
 
 ```bash
-git fetch origin
-git status
-git log --oneline origin/main..HEAD -10
-git log --oneline -10 -- CLAUDE.md
-git reflog | head -5
+git fetch origin && git status && git log --oneline origin/main..HEAD -10
+git log --oneline -5 -- CLAUDE.md && git reflog | head -5
 ```
 
-- `git status` com modificações → pode ser outro agente. **Não edite**
-  esses arquivos sem identificar o dono. Trabalhe em arquivos disjuntos,
-  coordene no chat, ou `git stash push -- <arquivos>` se for mexer e
-  restaurar depois.
-- CLAUDE.md mudou recente → releia a seção relevante antes de agir.
-- Branch atual ≠ `main` nem `agent/*` → investigue (pode ser branch de
-  outro agente não mergeada).
-- Reflog com `reset: moving to HEAD` recente → outro agente fez reset
-  destrutivo; considere `git worktree add ../fin-<slug>` para isolar.
+Sinais de concorrência com outro agente: `git status` com arquivos
+modificados, branch atual ≠ `main`/`agent/*`, `reset: moving to HEAD` no
+reflog. **Não edite** arquivos modificados de terceiros sem coordenar —
+trabalhe em disjunto, `git stash push -- <arquivos>`, ou
+`git worktree add ../fin-<slug>` para isolar. Se `CLAUDE.md` mudou
+recente, releia antes de agir.
 
 ### Naming de branch
 
@@ -377,15 +367,13 @@ edição**, não depois — edits em `main` local podem ser destruídos por
 
 ### Cadência de commit (defensiva contra resets)
 
-Working tree sem commit = uma distração de perder tudo. Commits
-sobrevivem a `git reset --hard HEAD` na branch.
-
 - **Commite a cada marco atômico** (criou repo, criou DTOs, refatorou
-  endpoint).
-- Trabalhe em sua branch (§naming).
+  endpoint) — commits sobrevivem a `git reset --hard HEAD` na branch.
+- Trabalhe em sua branch (§naming); edits em `main` local podem ser
+  destruídos por reset de outro agente.
 - Pausando/fechando a sessão → commit antes, mesmo WIP
-  (`chore(wip): ponto de parada A6e.3 — use cases pendentes`). Push
-  opcional; commit local já é seguro.
+  (`chore(wip): ponto de parada A6e.3`). Push opcional; commit local já
+  é seguro.
 - `git diff --stat` >150 linhas sem commit → **commite agora**.
 
 ### Push para `main`
@@ -426,14 +414,12 @@ sessão — colisão entre agentes é garantida se todos concorrem.
 
 ### Ferramentas
 
-- **Proteção é do `pre-commit`**, não do caminho do commit. Instalar uma
-  vez:
-  `pip install pre-commit && pre-commit install --install-hooks && pre-commit install --hook-type commit-msg`.
-  A partir daí, `git commit` direto e `dev/commit.py` passam pelos
-  mesmos guardrails.
-- `dev/commit.py` é **atalho opcional** com `--dry-run`, push integrado e
-  validação de mensagem num comando só. Está em `dev/` (não em `scripts/`)
-  para não confundir com etapas do pipeline.
+- Proteção é do `pre-commit`, não do caminho do commit. Setup:
+  [docs/SETUP.md](docs/SETUP.md). `git commit` direto e `dev/commit.py`
+  passam pelos mesmos guardrails.
+- `dev/commit.py` é atalho opcional com `--dry-run` + push integrado.
+  Vive em `dev/` (não em `scripts/`) para não se confundir com etapas do
+  pipeline.
 
 ### Se CI quebra após push para `main`
 
@@ -447,11 +433,11 @@ sessão — colisão entre agentes é garantida se todos concorrem.
 
 ### Prefixos aceitos de mensagem
 
-Ver `dev/validate_commit_msg.py` para regex completo.
-
-- Produto web: `feat|fix|refactor|perf|test|chore|backend|frontend|api|db|infra|ci|docs|update`
-- Com escopo: `feat(api): ...`, `refactor(e5): eliminate globals (A6d.1)`
-- Legacy (compat histórica): `pipeline|config|E1|...|E7|E-reset|pre-reset`
+Fonte de verdade: `dev/validate_commit_msg.py`. Conventional Commits
+padrão (`feat|fix|refactor|perf|test|chore|backend|frontend|api|db|infra|ci|docs|update`)
+com escopo opcional — `feat(api): ...`, `refactor(e5): ... (A6d.1)`.
+Prefixos legados (`pipeline|config|E1..E7|E-reset|pre-reset`) mantidos
+por compat histórica.
 
 ---
 
@@ -596,22 +582,13 @@ Para outras decisões idiossincráticas, consulte [docs/DECISIONS.md](docs/DECIS
 
 ## Comandos principais
 
-```bash
-python scripts/e_reset.py                                # Reset completo (etapas determinísticas)
-python scripts/e_reset.py --from E3                      # Reset parcial a partir de E3
-python scripts/e_reset.py --dry-run                      # Preview sem mudanças
-python scripts/e_reset.py --move-to-inbox --interactive  # E-full-reset interativo (para em walls LLM)
-python scripts/e_reset.py --continue                     # Retoma pipeline interativo após etapa LLM
-python dev/commit.py -m "msg"                            # Wrapper de commit+push com guardrails
-python scripts/e0_audit.py                               # Auditoria de integridade
-python scripts/e2_extract.py                             # E2 unificado (extratos + faturas + CDBs)
-python scripts/e2_extract.py --extratos-only             # Apenas extratos bancários
-python scripts/e2_extract.py --faturas-only              # Apenas faturas de cartão
-```
-
-Para comandos de migração e ops mais avançados (smoke test, seed,
-cutover DB, comparação disk↔DB), ver [docs/RUNBOOK.md](docs/RUNBOOK.md)
-e [docs/SMOKE_TEST_HUMAN.md](docs/SMOKE_TEST_HUMAN.md).
+Agente use `--help` nos scripts para descobrir flags. Comandos canônicos
+de teste estão em §Code style › Testes. Para ops avançadas (smoke test,
+seed, cutover DB, comparação disk↔DB), ver
+[docs/RUNBOOK.md](docs/RUNBOOK.md) e
+[docs/SMOKE_TEST_HUMAN.md](docs/SMOKE_TEST_HUMAN.md). CLI do pipeline
+(`scripts/e0_audit.py`, `scripts/e2_extract.py`, `scripts/e_reset.py`…):
+cada script expõe `--help`.
 
 ---
 
