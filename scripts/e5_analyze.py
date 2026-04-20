@@ -2615,18 +2615,44 @@ def main(root_dir: Path = None):
     print(f"\n" + "="*70 + "\n")
 
 
+def _merge_life_plan_into_goals(
+    goals: Dict[str, Any], life_plan_content: str | None
+) -> Dict[str, Any]:
+    """Enriquece ``goals.independencia_financeira`` com overrides extraídos do
+    ``life_plan_goals.md`` quando goals.json não tem ``if_meta``/``trs_pct``.
+
+    Paridade com ``extract_if_target_from_life_plan`` / ``extract_if_trs`` do
+    legado — prioridade goals.json > life_plan regex. Sem mutação do input.
+    """
+    from pipeline.domain.services.if_projector import (
+        extract_if_meta_from_text,
+        extract_if_trs_from_text,
+    )
+
+    enriched = dict(goals or {})
+    inner = dict(enriched.get("independencia_financeira") or {})
+    if life_plan_content:
+        if inner.get("if_meta") is None:
+            meta = extract_if_meta_from_text(life_plan_content)
+            if meta:
+                inner["if_meta"] = meta
+        if inner.get("trs_pct") is None:
+            trs = extract_if_trs_from_text(life_plan_content)
+            if trs:
+                inner["trs_pct"] = trs
+    enriched["independencia_financeira"] = inner
+    return enriched
+
+
 def main_with_store(ctx) -> Dict[str, Any]:
-    """E5 Caminho B (Sessão A5d da Fase 8) — orquestra a análise financeira
-    sobre ``ArtifactStore`` em vez de disco direto.
+    """E5 Caminho B puro (A6d.3.3) — análise financeira via
+    :class:`E5AnalyzerAdapter` orquestrando os 14+ domain services extraídos
+    em A1/A3c/A5a/A5b/A5c.
 
-    Coexiste com ``main(root_dir)`` legado. Wrapper ``pipeline/stages/e5.py``
-    chama esta função direto, sem ``MaterializationBridge``.
-
-    Estratégia pragmática: lê inputs E4 via ``ArtifactStore``, reutiliza as
-    funções ``analyze_*`` legadas (que estão isoladas e testadas) para
-    garantir paridade com ``main()`` no golden. Os domain services das
-    sessões A1/A3c/A5a/A5b/A5c ficam como **foundation para refactor futuro**
-    — integração completa deles no Caminho B é A6+.
+    Lê E4 artifacts via ``ArtifactStore``; os ``analyze_*`` legados coexistem
+    no módulo para compat com ``main(root_dir)`` CLI mas **não são chamados**
+    por este entrypoint. Golden ``tests/test_e5_main_with_store_parity.py``
+    garante paridade com ``main(root_dir)`` (tolerância 0.01 BRL em monetários).
 
     Writes via ``ArtifactStore``:
     - ``store.write("E5", "analise_financeira", ...)`` — output principal.
@@ -2638,6 +2664,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         Dict com ``files_created``, ``total``, contagens.
     """
     from pipeline.artifact_store import DiskArtifactStore
+    from pipeline.domain.services.e5_analyzer_adapter import E5AnalyzerAdapter
     from pipeline.domain.services.e5_serialization import (
         E5_ARTIFACT_FILENAME,
         E5_ARTIFACT_KEY,
@@ -2647,36 +2674,28 @@ def main_with_store(ctx) -> Dict[str, Any]:
     )
 
     print("=" * 70)
-    print("E5 ANALYSIS — Caminho B (main_with_store)")
+    print("E5 ANALYSIS — Caminho B puro (via E5AnalyzerAdapter)")
     print("=" * 70)
 
-    # 1. Configs via ctx.root — reinicializa globals do módulo legado +
-    #    pipeline_common para leituras consistentes.
+    # 1. Configs — reinicializa globals do módulo + pipeline_common.
     if _pc is not None:
         _pc._init_config(ctx.root)
     _init_config(ctx.root)
-    # Garante diretório de output (paridade com main_with_store de outros stages).
     E5_ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
 
     store = ctx.get_artifact_store()
     print(f"[E5.0] Workspace root: {ctx.root}")
     print(f"[E5.0] Store impl:     {type(store).__name__}")
 
-    # 2. MD content lido uma vez no shell (A6d.2) — repassado às funções
-    #    puras. Evita múltiplas leituras + torna o pipeline testável sem
-    #    disco quando content é injetado.
+    # 2. MD content lido uma vez no shell (A6d.2).
     life_plan_content = _read_life_plan_content()
     tarefas_content = CONFIG_TAREFAS.read_text(encoding="utf-8") if CONFIG_TAREFAS.exists() else None
     milhas_content = CONFIG_MILHAS.read_text(encoding="utf-8") if CONFIG_MILHAS.exists() else None
 
-    # 3. Inputs via ``ArtifactStore`` — lê E4 + baseline (E1.5c).
+    # 3. Sanity check dos inputs E4 antes de delegar ao adapter.
     receitas = store.read("E4", "receitas") or {}
     despesas = store.read("E4", "despesas") or {}
     fluxo_mensal = store.read("E4", "fluxo_mensal_detalhado") or {}
-    patrimonio_input = store.read("E4", "patrimonio") or {}
-    investimentos = store.read("E4", "investimentos") or {}
-    baseline = store.read("E1.5c", "baseline_patrimonial") or {}
-
     if not receitas:
         raise ValueError("E5: receitas-4_unified.json ausente ou vazio")
     if not despesas:
@@ -2684,20 +2703,66 @@ def main_with_store(ctx) -> Dict[str, Any]:
     if not fluxo_mensal:
         raise ValueError("E5: fluxo_mensal_detalhado-4_unified.json ausente ou vazio")
 
-    if not baseline:
+    baseline_check = store.read("E1.5c", "baseline_patrimonial") or {}
+    if not baseline_check:
         print("  [CRITICAL] Baseline patrimonial vazio — patrimônio será reportado como R$ 0!")
-
-    # 3. Preserva narrativas de run anterior (E5.N).
-    existing_output = store.read("E5", E5_ARTIFACT_KEY) or {}
-    existing_narrativas = existing_output.get("narrativas")
 
     print(f"  ✓ Receitas: {receitas.get('total_geral', 0):.2f}")
     print(f"  ✓ Despesas: {despesas.get('total_geral', 0):.2f}")
 
-    # 4. Computa todas as análises via funções legadas (paridade garantida).
-    patrimonio = analyze_patrimonio(baseline, investimentos_atuais=investimentos)
-    investimentos_classes = analyze_investimentos_classes(baseline)
+    # 4. Preserva narrativas de run anterior (E5.N).
+    existing_output = store.read("E5", E5_ARTIFACT_KEY) or {}
+    existing_narrativas = existing_output.get("narrativas")
 
+    # 5. Carrega configs auxiliares (CATEGORIZATION, TAXAS, INSTITUTIONS) — o
+    #    adapter consome todos via from_configs. GOALS_CONFIG/SCORING_CONFIG/
+    #    FISCAL_CONFIG/FAMILY_CONFIG já estão em globals via _init_config.
+    categorization_cfg = _load_json_config(PROJECT_DIR / "config" / "categorization.json")
+    taxas_cfg = _load_json_config(CONFIG_TAXAS)
+    institutions_cfg = _load_json_config(PROJECT_DIR / "config" / "institutions.json")
+
+    # 6. Merge life_plan overrides (paridade com extract_if_target_from_life_plan
+    #    legado — goals.json tem prioridade; regex em life_plan é fallback).
+    goals_enriched = _merge_life_plan_into_goals(GOALS_CONFIG, life_plan_content)
+
+    # 7. Compõe adapter com todos os configs + DOBs (extraídos em _init_config).
+    adapter = E5AnalyzerAdapter.from_configs(
+        categorization=categorization_cfg,
+        family=FAMILY_CONFIG,
+        scoring=SCORING_CONFIG,
+        goals=goals_enriched,
+        fiscal=FISCAL_CONFIG,
+        taxas=taxas_cfg,
+        institutions=institutions_cfg,
+        titular_dob=_TITULAR_DOB,
+        conjuge_dob=_CONJUGE_DOB,
+        reference_date=TODAY,
+    )
+    result = adapter.analyze_via_store(store)
+
+    # 8. Extrai dicts legacy-shaped dos sub-resultados tipados.
+    patrimonio = result.patrimonio_full
+    investimentos_classes = result.investimentos_classes.to_legacy_dict()
+    fluxo = result.fluxo_enriched.to_legacy_dict()
+    goals = (
+        result.if_projection.to_legacy_dict() if result.if_projection else {}
+    )
+    ratios = result.ratios.to_legacy_dict()
+    score = result.score
+    orcamento = result.orcamento.to_legacy_dict()
+    reserva = result.reserva
+    endividamento = result.endividamento.to_legacy_dict()
+    previdencia = result.previdencia.to_legacy_dict()
+    pontos_fortes = [p.to_dict() for p in result.pontos_fortes]
+    pontos_urgentes = [p.to_dict() for p in result.pontos_urgentes]
+    consumo = result.consumo_consciente.to_legacy_dict()
+    diagnostico = [d.to_dict() for d in result.diagnosticos]
+    cenarios_conjuge = (
+        result.cenarios_conjuge.to_legacy_dict() if result.cenarios_conjuge else {}
+    )
+    cerbasi = result.equilibrio_cerbasi.to_legacy_dict()
+
+    # 9. periodo_dados — derivado de receitas/fluxo no shell (não vem do adapter).
     periodo_dados = receitas.get("periodo", "")
     if not periodo_dados:
         meses = fluxo_mensal.get("meses_ordenados", [])
@@ -2706,23 +2771,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         else:
             periodo_dados = f"{TODAY.strftime('%Y-%m')} a {TODAY.strftime('%Y-%m')}"
 
-    goals = analyze_goals(patrimonio, life_plan_content=life_plan_content)
-    fluxo = analyze_fluxo_caixa(receitas, despesas, fluxo_mensal)
-    ratios = analyze_ratios(fluxo, patrimonio, goals)
-    score = calculate_score(ratios, patrimonio, goals, fluxo)
-
-    orcamento = analyze_orcamento_prospectivo(fluxo)
-    reserva = analyze_reserva_emergencia(fluxo, patrimonio)
-    endividamento = analyze_endividamento(patrimonio, baseline)
-    previdencia = analyze_previdencia_pgbl(fluxo)
-
-    pontos_fortes = analyze_pontos_fortes(score, ratios, patrimonio, fluxo, reserva, goals)
-    pontos_urgentes = analyze_pontos_urgentes(ratios, reserva, patrimonio)
-    consumo = analyze_consumo_consciente(fluxo, despesas)
-    diagnostico = analyze_diagnostico_comportamental(fluxo, ratios)
-    cenarios_conjuge = analyze_cenarios_conjuge(patrimonio, goals, fluxo)
-    cerbasi = analyze_equilibrio_cerbasi(fluxo)
-
+    # 10. tarefas / milhas — parse de markdown, shell (adapter não lê).
     tarefas_parsed, tarefas_status_parsed = parse_tarefas_md(tarefas_content)
     programa_milhas = parse_milhas_md(milhas_content)
 

@@ -313,13 +313,17 @@ class E5AnalyzerAdapter:
 
         cenarios_analyzer: CenariosConjugeAnalyzer | None = None
         if titular_dob is not None:
+            # Paridade com legado: quando family_members.json não declara
+            # cônjuge, ``conjuge_key``/``conjuge_nome`` ficam vazios — o que
+            # reflete nas chaves ``salario__clt_brl`` etc. Não impomos
+            # default ``"mariana"`` aqui para preservar o output do legado.
             cenarios_cfg = CenariosConjugeConfig.from_configs(
                 goals=goals,
                 taxas=taxas,
                 titular_dob=titular_dob,
                 titular_key=member_cfg.titular_key,
-                conjuge_key=member_cfg.conjuge_key or "mariana",
-                conjuge_nome=(member_cfg.conjuge_key or "mariana").title(),
+                conjuge_key=member_cfg.conjuge_key,
+                conjuge_nome=(member_cfg.conjuge_key or "").title(),
                 reference_date=reference_date,
             )
             cenarios_analyzer = CenariosConjugeAnalyzer(cenarios_cfg)
@@ -431,10 +435,12 @@ class E5AnalyzerAdapter:
             num_months=num_months,
         )
 
-        # 11. Endividamento.
+        # 11. Endividamento — usa nomes de exibição (titular_nome/conjuge_nome)
+        #     para paridade com legado ``analyze_endividamento`` que formata
+        #     "Financiamento imobiliário (David)" (capitalizado).
         endiv_members = [
-            {"nome": members.titular_key, "data": members.titular_data},
-            {"nome": members.conjuge_key, "data": members.conjuge_data},
+            {"nome": self._identity.titular_nome, "data": members.titular_data},
+            {"nome": self._identity.conjuge_nome, "data": members.conjuge_data},
         ]
         endividamento = self._endividamento.analyze(patrimonio_full, endiv_members)
 
@@ -467,13 +473,18 @@ class E5AnalyzerAdapter:
         diagnosticos = self._diagnostico.analyze(fluxo_legacy, ratios_dict)
 
         # 18. Pontos fortes + urgentes (agora com score/reserva REAIS).
+        #     Paridade com legado: ``analyze_pontos_fortes`` lê
+        #     ``goals["progresso_pct"]`` mas ``analyze_goals`` emite
+        #     ``if_pct`` (não ``progresso_pct``), então na prática o check
+        #     sempre usa fallback ``0``. Espelhamos esse comportamento
+        #     passando ``goals={}`` até que o analyzer novo aceite ``if_pct``.
         pontos_fortes = self._pontos_fortes.analyze(
             score=score,
             ratios=ratios_dict,
             patrimonio=patrimonio_full,
             fluxo=fluxo_legacy,
             reserva=reserva,
-            goals={"progresso_pct": (if_projection.if_pct if if_projection else 0)},
+            goals={},
         )
         pontos_urgentes = self._pontos_urgentes.analyze(
             ratios_dict, reserva, patrimonio_full

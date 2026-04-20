@@ -287,7 +287,10 @@ class CenariosConjugeAnalyzer:
             if denominator > 0 and numerator / denominator > 0:
                 n_meses = math.log(numerator / denominator) / math.log(1 + r)
                 return max(0.0, n_meses / 12)
-        return 999.0
+        # Paridade: legado emite ``999`` (int) como sentinela.
+        # ``round(int, 1)`` preserva o int, essencial para o golden
+        # golden comparador por ``json.dumps`` (``999`` ≠ ``"999.0"``).
+        return 999
 
     def _build_cenario(
         self,
