@@ -89,6 +89,27 @@ Ao implementar qualquer tarefa:
   - testes
   - critérios de aceite
 
+## Definição de "concluído" (Definition of Done)
+
+**Uma tarefa só pode ser marcada como concluída quando a mudança está mergeada em `main`.** Sem exceção.
+
+Não conta como concluída:
+
+- Código apenas commitado localmente, mesmo que a suíte esteja verde.
+- Branch pushed para `origin` sem merge (ex.: aguardando review, CI rodando, PR aberto).
+- Mudança aplicada em worktree/branch de agente que ainda não foi integrada a `main`.
+- Trabalho "pronto para merge" — enquanto não há fast-forward em `origin/main`, a tarefa continua **em andamento**.
+
+Checklist antes de declarar concluída:
+
+1. `git fetch origin && git log origin/main --oneline | head -5` — confirmar que o commit final da tarefa aparece em `origin/main`.
+2. CI em `origin/main` verde para esse commit (não basta o CI da branch de feature).
+3. Se o usuário rastreia a tarefa em lugar externo (BACKLOG.md, issue, TodoWrite, plano `_scratch/`), atualizar o status **somente depois** de (1) e (2).
+
+**Why:** commits locais e branches pendentes podem ser perdidos (reset, conflito de rebase, PR abandonado). Outros agentes e o próprio usuário só podem confiar que o trabalho "existe" se está em `main`. Marcar como concluído antes disso cria dívida de status invisível e quebra coordenação multi-agente.
+
+**How to apply:** ao reportar ao usuário ("pronto", "feito", "concluído"), sempre dizer explicitamente o estado real — "commitado e pushed na branch X, aguardando merge" vs. "mergeado em `main` (commit `abc1234`)". Se a tarefa está em TodoWrite, só marque `completed` após o merge confirmado; até lá, `in_progress`.
+
 ## Projeto
 
 **Mathoms AI** é o produto web (multi-tenant por workspace) que evoluiu a partir do pipeline de consolidação financeira da família Ferreira Campos. O pipeline processa documentos (PDFs, XLSX, CSVs, imagens) em etapas sequenciais (E0→E7) e produz análise consolidada; o relatório HTML exportável (E6) coexiste com o **relatório nativo** na aplicação (`/reports/[id]`).
