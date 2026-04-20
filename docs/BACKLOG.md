@@ -701,25 +701,27 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | A6d.1.5 | Padrão A3b em `e15_consolidate.py` | P1 | 1h | ☐ |
 | A6d.1.6 | Teste estrutural AST: `_init_config` não invocado em top-level dos 5 scripts | P1 | 30min | ☐ |
 
-#### A6d.2 — Testabilidade dos `analyze_*` sem disco
+#### A6d.2 — Testabilidade dos `analyze_*` sem disco ✅ entregue 2026-04-20
 
 | # | Entrega | Prio | Esforço | Status |
 | --- | --- | --- | --- | --- |
-| A6d.2.1 | Extrair read de `life_plan_goals.md` para shell; helpers puros já existem em A5a | P1 | 2h | ☐ |
-| A6d.2.2 | `TarefasParser.parse(content)` + loader no shell (substitui `parse_tarefas_md` com side-effect) | P1 | 2h | ☐ |
-| A6d.2.3 | `MilhasParser.parse(content)` análogo | P1 | 1h | ☐ |
-| A6d.2.4 | `load_methodology` → shell; `extract_persona_from_methodology` já é puro | P1 | 1h | ☐ |
-| A6d.2.5 | Cada `analyze_*` testável com `{dict_input}` sem criar arquivo (teste explícito) | P1 | 3h | ☐ |
+| A6d.2.1 | `extract_if_target_from_life_plan(content=None)` / `extract_if_trs(content=None)` / `extract_renda_passiva_from_life_plan(content=None)` aceitam content string; `_read_life_plan_content()` centraliza o I/O | P1 | 2h | ✅ |
+| A6d.2.2 | `parse_tarefas_md_content(text)` puro + wrapper `parse_tarefas_md(content=None)` com shell loader fino | P1 | 2h | ✅ |
+| A6d.2.3 | `parse_milhas_md_content(text)` puro + wrapper `parse_milhas_md(content=None)` análogo | P1 | 1h | ✅ |
+| A6d.2.4 | `load_methodology` já era shell-loader fino; `extract_persona_from_methodology(content)` já é puro — docstring formaliza separação em `scripts/e7_review.py` | P1 | 1h | ✅ |
+| A6d.2.5 | `tests/unit/pipeline/test_e5_content_parsers.py` — 26 testes cobrindo parsers + extract_if_* sem `tmp_path`; shell loaders testados com `monkeypatch` de paths | P1 | 3h | ✅ |
+
+**Checkpoint A6d.2:** ✅ MD content (`life_plan_goals.md`, `tarefas.md`, `milhas.md`) é lido uma única vez no shell (`scripts/e5_analyze.main_with_store(ctx)`) e repassado aos helpers puros. `analyze_goals(patrimonio, life_plan_content=None)` propaga content para os extractors. 1240 testes passando, zero regressão nos goldens (E3/E4/E5/E5.N/E6/E7).
 
 #### A6d.3 — Integração dos 14+ domain services em `main_with_store`
 
 | # | Entrega | Prio | Esforço | Status |
 | --- | --- | --- | --- | --- |
-| A6d.3.1 | E4: `process_transactions` → composição dos services de A4a; golden paridade | P1 | 1 sessão | ☐ |
-| A6d.3.2 | E5.N: avaliar se manter legado ou decompor `build_narrativas` | P2 | 0.5 sessão | ☐ |
-| A6d.3.3 | E5: 13 `analyze_*` → `E5AnalyzerAdapter` (já existe desde A5c); golden paridade | P1 | 1-2 sessões | ☐ |
+| A6d.3.1 | E4: auditoria confirmou que `main_with_store` já usa `E4CategorizerAdapter.from_configs` + `categorize_via_store` + `serialize_e4_artifacts` (entregue em A4b). Zero uso de `process_transactions`/`build_*_unified` dentro de `main_with_store` — funções legadas permanecem apenas em `main(root_dir)` CLI legado | P1 | 1 sessão | ✅ (verificado 2026-04-20) |
+| A6d.3.2 | E5.N: decisão explícita — manter `build_narrativas` legado por enquanto; decompor é P2 sem ganho relevante de cobertura | P2 | 0.5 sessão | ⏸ deferred |
+| A6d.3.3 | E5: `E5AnalyzerAdapter` (A5c) existe mas com placeholders (`_extract_patrimonio_for_ratios` simplificado, `score`/`reserva` placeholder). Usá-lo diretamente quebraria paridade do golden. **Plano estendido**: completar o adapter integrando `PatrimonioCalculator` + `EmergencyReserveCalculator` + `FinancialScoreCalculator` nos resultados tipados **antes** do switch | P1 | 1-2 sessões | ⏸ blocked-by-adapter-completion |
 
-**Estimativa total A6d:** 3-5 sessões grandes (~200+ testes).
+**Estimativa total A6d:** 3-5 sessões grandes (~200+ testes). **Realizado até aqui:** A6d.1 + A6d.2 + A6d.3.1 (~3 sessões equivalentes). **Resta:** A6d.3.3 (completar `E5AnalyzerAdapter` + switch em `main_with_store` + golden paridade).
 
 ### A6e — DDD/SOLID no backend API (ADR-101, R12-R17)
 
@@ -752,13 +754,24 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | # | Sub-fase | Entrega | Esforço | Status |
 | --- | --- | --- | --- | --- |
 | A6f.1 | Pipeline-as-service | `pipeline-service/` FastAPI standalone; endpoints `/api/v1/pipeline/runs`, `/stages/{stage}/execute`, WS `/events`; backend fala por HTTP, nunca por import | 2-3 sessões | ☐ |
-| A6f.2 | OpenAPI + codegen | OpenAPI 3.1 exaustivo; `openapi-typescript` ou `orval` para frontend; schemas committed em `docs/api/v1/openapi.json`; CI diff | 1 sessão | ☐ |
+| A6f.2 | OpenAPI + codegen | ✅ ~12 DTOs novos; snapshot em `docs/api/v1/openapi.json` (12856 linhas); `make update-openapi-snapshot`; teste estrutural + snapshot diff | 1 sessão | ✅ 2026-04-20 |
 | A6f.3 | Structured logs JSON + OTel | `fin.pipeline` em JSON lines; OTLP traces cross-service; correlation IDs propagados | 1 sessão | ☐ |
 | A6f.4 | DB schema language-neutral | UUIDs everywhere; `TIMESTAMP WITH TIME ZONE`; enums como `VARCHAR + CHECK`; JSON keys camelCase; `docs/DB_SCHEMA_REFERENCE.md` gerado | 1 sessão | ☐ |
-| A6f.5 | Auth portátil | Fernet → AES-GCM com HKDF-SHA256; JWT RS256/HS256; session Redis JSON explícito; migration de data encriptada | 1 sessão | ☐ |
+| A6f.5a | Auth portability documentada | JWT HS256 `{sub, exp, tv}` + Fernet mantidos; ADR-109; `test_auth_portability.py` (12 testes JWT+Fernet parity) | 1 sessão | ✅ 2026-04-20 |
+| A6f.5b | Fernet → AES-GCM (deferido) | AES-256-GCM + HKDF-SHA256; migration de `LLMConfig.api_key_encrypted` + vault_entries; decrypt fallback para Fernet durante cutover | 1 sessão | ⏸️ deferido (ADR-109) |
+| A6f.5c | JWT HS256 → RS256 (deferido) | Só se houver separação real entre emissor e validador (ex: pipeline-service valida tokens do backend) | 1 sessão | ⏸️ deferido (ADR-109) |
 | A6f.6 | Stateless rigoroso | WebSocket via Redis pub/sub; rate limiting Redis; zero `@lru_cache` mutable; `tests/integration/test_multi_worker_concurrency.py` | 1-2 sessões | ☐ |
 
-**Estimativa total A6f:** 6-8 sessões grandes.
+**Estimativa total A6f:** 6-8 sessões grandes (A6f.5b e .5c só contam se gatilho acionar).
+
+**Gatilhos para A6f.5b (Fernet → AES-GCM)**, qualquer um:
+- Requisito de compliance (SOC 2 type II, ISO 27001 exigindo AEAD moderno).
+- Migração Go real em curso (aproveita janela de re-encrypt).
+- CVE publicado contra Fernet format ou `cryptography.fernet`.
+
+**Gatilho para A6f.5c (JWT RS256)**:
+- Separação real entre emissor e validador (ex: A6f.1 pipeline-service
+  validando tokens emitidos pelo backend) — até lá HS256 é suficiente.
 
 ### Resumo de dependências entre sessões A6
 
@@ -782,21 +795,29 @@ Após A6a+A6b+A6c: §15 (LGPD) e §16 (Observabilidade) habilitados (integram F7
 
 ### 7A — Docker + Deploy + HTTPS (semana 1-2)
 
+**URLs canônicas (ADR-108):** `app.mathoms.ai` (produto) · `api.mathoms.ai/v1/...` (backend + WS) · `ops.mathoms.ai` (console interno F7F) · `docs.mathoms.ai` · `status.mathoms.ai` · apex `mathoms.ai` (landing). Staging: `*.staging.mathoms.ai`. Domínio em **Cloudflare Domains**. Ver [ARCHITECTURE.md §18](ARCHITECTURE.md#18-domínios-e-urls-públicas-f7a).
+
 | #     | Tarefa                                                                               | Prio | Est. | Status |
 | ----- | ------------------------------------------------------------------------------------ | ---- | ---- | ------ |
 | 7A.1  | Dockerfile backend (multi-stage, entrypoints api/worker, ~200MB, non-root)           | P0   | 4h   | ☐      |
 | 7A.2  | Dockerfile frontend (multi-stage, Next.js standalone, ~100MB)                        | P0   | 3h   | ☐      |
 | 7A.3  | `docker-compose.dev.yml` (PG + Redis + hot reload)                                   | P0   | 3h   | ☐      |
-| 7A.4  | `docker-compose.prod.yml` (API + Worker + Frontend + PG + Redis + Traefik)           | P0   | 5h   | ☐      |
+| 7A.4  | `docker-compose.prod.yml` (API + Worker + Frontend + Ops + PG + Redis + Traefik) com labels Traefik para `app`/`api`/`ops`/`docs` | P0 | 6h | ☐ |
 | 7A.5  | `.env.example` + env management + `scripts/gen-secrets.sh`                           | P0   | 2h   | ✅     |
 | 7A.6  | VPS provisioning (Hetzner CX32, UFW, SSH keys, fail2ban, Docker)                     | P0   | 3h   | ☐      |
-| 7A.7  | Traefik config (auto-SSL, HTTP→HTTPS, TLS 1.2+, WebSocket pass-through)              | P0   | 3h   | ☐      |
-| 7A.8  | Domínio + DNS (A record, TTL curto)                                                  | P0   | 1h   | ☐      |
+| 7A.7  | Traefik config (auto-SSL via **DNS-01 Cloudflare**, HTTP→HTTPS, TLS 1.3+, WebSocket pass-through, wildcard `*.mathoms.ai` + `*.staging.mathoms.ai`) | P0 | 5h | ☐ |
+| 7A.7b | **Middleware `ipAllowList` em Traefik para `ops.mathoms.ai`** (IPs do time) + middleware CORS estrito em `api.mathoms.ai` | P0 | 2h | ☐ |
+| 7A.8  | **DNS Cloudflare** — configurar records: apex A (proxy ON), `www` CNAME (proxy ON), `app/api/ops` A (proxy OFF), `docs/status` (proxy ON), `*.staging` A (proxy OFF). Criar API token `Zone:DNS:Edit` (scope apenas `mathoms.ai`) para Traefik. | P0 | 2h | ☐ |
+| 7A.8b | **MX records + SPF + DKIM + DMARC** em Cloudflare para `mathoms.ai`; provider transacional (Postmark ou Resend) configurado | P0 | 3h | ☐ |
+| 7A.8c | **Emails institucionais** (`noreply@`, `support@`, `hello@`, `ops@`, `security@`) — Google Workspace ou Fastmail | P0 | 1h | ☐ |
 | 7A.9  | PostgreSQL prod (DB + user dedicado, Alembic upgrade, pool_size)                     | P0   | 3h   | ☐      |
 | 7A.10 | Backup automático (pg_dump diário, rotação 7 dias, script restore testado)           | P0   | 3h   | ☐      |
 | 7A.11 | Smoke test completo local (prod compose, health checks, SSL, login, upload)          | P0   | 3h   | ☐      |
+| 7A.11b | **Teste cookie leakage** (Playwright): validar que session de `app.mathoms.ai` não é aceita em `ops.mathoms.ai` e vice-versa | P0 | 2h | ☐ |
 | 7A.12 | Data migration plan (`scripts/seed-prod.sh`, procedimento import via API)            | P0   | 3h   | ☐      |
-| 7A.13 | First deploy real → Produto no ar                                                    | P0   | 2h   | ☐      |
+| 7A.13 | First deploy real → Produto no ar em `app.mathoms.ai`; ops em `ops.mathoms.ai`       | P0   | 2h   | ☐      |
+
+**Meta 7A:** TLS 1.3 em 100% dos endpoints · Lighthouse `app.mathoms.ai` > 90 · Zero cookie leakage entre `app.` e `ops.` · Time-to-setup novo subdomain < 5 min.
 
 ### 7B — Security Hardening + LGPD (semana 2-3)
 

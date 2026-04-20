@@ -26,3 +26,9 @@ class NotificationListResponse(BaseModel):
 
 class NotificationMarkReadRequest(BaseModel):
     notification_ids: list[str]
+
+
+class NotificationsMarkedReadResponse(BaseModel):
+    """Resposta de ``PATCH /notifications/read`` — contador de atualizadas."""
+
+    updated: int

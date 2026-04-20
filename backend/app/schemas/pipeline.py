@@ -106,3 +106,16 @@ class PipelineRunResponse(BaseModel):
 class PipelineRunListResponse(BaseModel):
     runs: list[PipelineRunResponse]
     total: int
+
+
+class NewDocCountResponse(BaseModel):
+    """Resposta de ``GET /pipeline/new-doc-count`` — docs nunca processados."""
+
+    new_count: int
+
+
+class RunActionResponse(BaseModel):
+    """Resposta genérica de ações no run (cancel/resume)."""
+
+    detail: str
+    run_id: str

@@ -20,6 +20,7 @@ from backend.app.core.tenancy import get_current_workspace
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.task import (
+    ScanDeadlinesResponse,
     TaskAttachmentListResponse,
     TaskAttachmentResponse,
     TaskCreate,
@@ -120,11 +121,11 @@ async def export_tasks_md(
     return PlainTextResponse(content, media_type="text/markdown")
 
 
-@router.post("/tasks/scan-deadlines")
+@router.post("/tasks/scan-deadlines", response_model=ScanDeadlinesResponse)
 async def scan_deadlines(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
+) -> ScanDeadlinesResponse:
     """Dispara o scan de prazos e cria notifications para tasks vencidas
     ou próximas (≤7 dias). Idempotente via dedup por title.
 
@@ -136,7 +137,7 @@ async def scan_deadlines(
         workspace.id, db=db
     )
     await db.commit()
-    return stats
+    return ScanDeadlinesResponse(**stats)
 
 
 @router.get("/tasks/{task_id}", response_model=TaskResponse)

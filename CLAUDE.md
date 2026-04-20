@@ -93,6 +93,8 @@ Ao implementar qualquer tarefa:
 
 **Mathoms AI** é o produto web (multi-tenant por workspace) que evoluiu a partir do pipeline de consolidação financeira da família Ferreira Campos. O pipeline processa documentos (PDFs, XLSX, CSVs, imagens) em etapas sequenciais (E0→E7) e produz análise consolidada; o relatório HTML exportável (E6) coexiste com o **relatório nativo** na aplicação (`/reports/[id]`).
 
+**URLs canônicas (ADR-108):** produto em `app.mathoms.ai` · API em `api.mathoms.ai/v1/...` · console interno em `ops.mathoms.ai` (IP allowlist + MFA) · landing em `mathoms.ai` apex. Staging: `*.staging.mathoms.ai`. Dev local: `localhost:3000` (app) + `localhost:8000` (api). Domínio em Cloudflare Domains. Ver [docs/ARCHITECTURE.md §18](docs/ARCHITECTURE.md#18-domínios-e-urls-públicas-f7a).
+
 Documentação de apoio: [README.md](README.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/SETUP.md](docs/SETUP.md), [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ### Migração em curso — Infraestrutura + Domínio (ver `_scratch/plano_migracao_artifacts_db.md`)
@@ -476,15 +478,21 @@ Cenário hipotético: backend eventualmente em Go, mantendo Python em parsers (`
 - **R19** (Stateless-ready) — zero estado in-memory que impeça múltiplos workers concorrentes.
 - **R20** (Language-neutral data) — DB schema, JSON artifacts e message envelopes sem features Python-only.
 
-**6 sub-fases**:
-- **A6f.1** — Pipeline-as-service (`pipeline-service/` FastAPI standalone); backend fala via `/api/v1/pipeline/...`, nunca por import.
-- **A6f.2** — OpenAPI 3.1 exaustivo + codegen (incremental sobre A6e.5).
-- **A6f.3** — Structured JSON logs + OpenTelemetry (OTLP traces cross-service).
-- **A6f.4** — DB schema review (UUIDs, UTC-aware, enums como VARCHAR+CHECK, JSON keys camelCase).
-- **A6f.5** — Auth portátil (Fernet → AES-GCM; JWT standard; session Redis JSON).
-- **A6f.6** — Stateless rigoroso (WebSocket via Redis pub/sub; teste multi-worker obrigatório).
+**6 sub-fases** (mais 2 deferidas):
+- **A6f.1** — Pipeline-as-service (`pipeline-service/` FastAPI standalone); backend fala via `/api/v1/pipeline/...`, nunca por import. ☐
+- **A6f.2** — OpenAPI 3.1 exaustivo + codegen (incremental sobre A6e.5). ✅ 2026-04-20
+- **A6f.3** — Structured JSON logs + OpenTelemetry (OTLP traces cross-service). ☐
+- **A6f.4** — DB schema review (UUIDs, UTC-aware, enums como VARCHAR+CHECK, JSON keys camelCase). ☐
+- **A6f.5a** — Auth portability documentada (JWT HS256 canônico + Fernet portátil; ADR-109). ✅ 2026-04-20
+- **A6f.5b** — Fernet → AES-GCM + HKDF (deferido, gatilho compliance/Go/CVE). ⏸️
+- **A6f.5c** — JWT HS256 → RS256 (deferido, gatilho: separação emissor/validador). ⏸️
+- **A6f.6** — Stateless rigoroso (WebSocket via Redis pub/sub; teste multi-worker obrigatório). ☐
 
-Estimativa: 6-8 sessões grandes. Independente de A6a-e. Valor mesmo sem migração Go: escala pipeline, zero bugs de integração frontend, observabilidade real, best-practice de cripto, horizontal scale habilitado.
+**Entregue em A6f.2** (ADR-109): `docs/api/v1/openapi.json` (snapshot committed, 12856 linhas), `make update-openapi-snapshot`, `backend/tests/test_openapi_response_models.py` (estrutural) e `backend/tests/test_openapi_snapshot.py` (diff determinístico).
+
+**Entregue em A6f.5a** (ADR-109): `backend/tests/test_auth_portability.py` (12 tests de parity JWT + Fernet). Stack cripto documentada como portável — AES-GCM e RS256 aguardam gatilho.
+
+Estimativa: 6-8 sessões grandes (A6f.5b/.5c só contam se gatilho acionar). Independente de A6a-e. Valor mesmo sem migração Go: escala pipeline, zero bugs de integração frontend, observabilidade real, best-practice de cripto, horizontal scale habilitado.
 
 **Regras operacionais:**
 
@@ -494,6 +502,8 @@ Estimativa: 6-8 sessões grandes. Independente de A6a-e. Valor mesmo sem migraç
 - **Warnings de domínio são dataclasses, não strings** (ADR-097 D1). `SaldoGapWarning(account_key, expected, actual, diff)` tem `.format()` para render.
 - **Services não recebem `Path` nem `dict`** (ADR-097 D2). Aceitam `list[BankStatement]` ou value objects; conversão é responsabilidade do adapter.
 - **Feature flag `MATHOMS_USE_DB_ARTIFACTS`** (default `False`) controla cutover DB. Durante janela de transição, `MaterializationBridge` permite scripts legados rodarem com DB-backed store.
+- **Endpoint JSON tem `response_model` ou `response_class` explícito** (ADR-102 R18 · ADR-109 · A6f.2) — enforçado por [backend/tests/test_openapi_response_models.py](backend/tests/test_openapi_response_models.py). Endpoints com `204 No Content` estão isentos. Ao adicionar endpoint novo: se retorna JSON, declare `response_model=MyDTO`; se retorna file/stream/HTML/CSV/PDF, declare `response_class=FileResponse|StreamingResponse|HTMLResponse|PlainTextResponse|Response`. Após mudança, rode `make update-openapi-snapshot` e comite o diff — [test_openapi_snapshot.py](backend/tests/test_openapi_snapshot.py) falha se não.
+- **Auth portability** (ADR-109 · A6f.5a) — mudanças em `backend/app/core/security.py` (JWT payload, algorithm) ou `backend/app/services/vault.py` (Fernet) são **breaking** e exigem nova ADR (A6f.5b ou A6f.5c). Parity enforçada por [backend/tests/test_auth_portability.py](backend/tests/test_auth_portability.py).
 
 ### Modo incremental (ADR-080)
 
@@ -527,7 +537,7 @@ python scripts/e2_extract.py --faturas-only            # Apenas faturas de cart�
 - **Idioma padrão:** português brasileiro, salvo quando arquivos, APIs ou convenções técnicas exigirem inglês.
 - **Dados sensíveis:** nunca expor CPFs, valores monetários reais, senhas, documentos pessoais ou conteúdo financeiro bruto em commits, logs, exemplos ou saídas de console.
 - **Não crie arquivos temporários na raiz** — use `_scratch/` (ver seção acima).
-- **Não comite automaticamente.** Só comite quando houver pedido explícito do usuário.
+- **Git autônomo autorizado** (atualizado 2026-04-20). Agentes **podem e devem** abrir branches, fazer commits organizados e dar push — inclusive em `main` se a suite de testes estiver verde. **Não é necessário pedir aprovação**, mas **é obrigatório anunciar** toda ação git (branch criada, commit criado, push feito) em 1-2 linhas no turno — ver §"Git e commits" abaixo para o protocolo completo.
 - **Preserve compatibilidade** com o pipeline existente, convenções de naming e estrutura multi-tenant/web quando a mudança tocar backend/frontend.
 - **UI financeira:** priorizar legibilidade, confiança, clareza de dados monetários, consistência visual e aderência ao design system/tokens.
 - **Mudanças de arquitetura:** considerar o pipeline CLI legado e a aplicação web atual, evitando duplicação desnecessária de regra de negócio.
@@ -536,22 +546,116 @@ python scripts/e2_extract.py --faturas-only            # Apenas faturas de cart�
 
 ### Git e commits
 
-- **Proteção é responsabilidade do `pre-commit`**, não do caminho do commit. Instalar uma vez:
-  `pip install pre-commit && pre-commit install --install-hooks && pre-commit install --hook-type commit-msg`.
-  A partir daí, tanto `git commit` direto quanto `dev/commit.py` passam pelos mesmos guardrails
-  (paths proibidos, prefixo de mensagem, segredos, etc.).
-- `dev/commit.py` é **atalho opcional** (dev-tooling), não obrigatório. Use quando quiser
-  dry-run, push automático e mensagens validadas num único comando. Está em `dev/` — não em
-  `scripts/` — justamente para não confundir com etapas do pipeline.
-- **Paths nunca commitados** (enforçados por `dev/check_forbidden_paths.py` e pelo hook):
-  `storage/`, `data/`, `inbox/`, `inbox_processed/`, `_scratch/`, `.env`, `.env.test`,
-  `mathoms.db`, `config/passwords.txt`, qualquer `*.db`/`*.sqlite`.
-- Prefixos aceitos de mensagem (ver `dev/validate_commit_msg.py` para lista completa):
-  - Produto web: `feat:`, `fix:`, `refactor:`, `perf:`, `test:`, `chore:`, `backend:`,
-    `frontend:`, `api:`, `db:`, `infra:`, `ci:`, `docs:`, `update:`.
-  - Com escopo: `feat(api): ...`, `fix(backend/storage): ...`.
-  - Legacy (mantidos por compat com histórico): `pipeline:`, `config:`, `E1:`...`E7:`,
-    `E-reset:`, `pre-reset:`.
+**Política de autonomia (atualizada 2026-04-20):** agentes têm autonomia para
+criar branches, fazer commits e dar push (inclusive em `main` com a suite verde).
+**Não é necessário pedir aprovação**; é obrigatório **anunciar** cada ação.
+
+#### Protocolo obrigatório (todos os agentes)
+
+1. **Anunciar em 1-2 linhas** — antes (ou imediatamente após) cada operação git,
+   comunicar no chat: "Criei a branch `agent/refactor-e5-globals/20260420-1430`",
+   "Commit `abc1234` — `refactor(e5): ...`", "Push para `main` (5 commits, CI
+   disparado)".
+2. **Mensagens de commit seguem Conventional Commits** (enforçadas por
+   `dev/validate_commit_msg.py` — ver prefixos mais abaixo). Corpo da mensagem
+   explica o **porquê**, não o o quê. Referenciar ADR ou sessão A6 quando
+   aplicável (ex.: `(ADR-108)`, `(A6d.1)`).
+3. **Commits pequenos e coesos** — 1 mudança lógica por commit. Nunca misturar
+   refactor com feature. Se o diff passou de ~300 linhas ou toca 3+ camadas
+   (backend/frontend/pipeline), **quebre** em commits sequenciais.
+4. **Gate de testes antes do push** — obrigatório executar **ANTES** de
+   `git push` (local, não confiar só no CI):
+
+   ```bash
+   pre-commit run --all-files           # hooks de lint/PII/paths/msg
+   pytest backend/tests -q              # backend
+   pytest tests -q                      # pipeline
+   # se tocou frontend/:
+   cd frontend && npm test -- --run     # Vitest
+   # se tocou fluxos @critical:
+   cd frontend && npm run test:e2e      # Playwright (lento — opt-in)
+   ```
+
+   **Se qualquer teste falha → não faz push.** Corrige antes. Dev/commit.py
+   tem `--dry-run` útil para validar tudo antes de commitar.
+
+#### Múltiplos agentes simultâneos (coordenação)
+
+Vários agentes podem estar trabalhando em paralelo no mesmo repo. Para evitar
+race conditions e conflitos:
+
+5. **Cada agente trabalha em sua própria branch** — nunca editar direto em
+   `main` local. Naming convencional:
+   - `agent/<slug-kebab>/<yyyyMMdd-HHmm>` — ex.: `agent/a6d1-globals-e4/20260420-1430`
+   - Slug descritivo curto (≤40 chars). Timestamp evita colisão entre agentes.
+6. **Antes do push para `main`**: **sempre** `git fetch origin && git rebase
+   origin/main` na branch do trabalho. Resolver conflitos localmente. Rodar
+   suíte de testes **depois** do rebase (não antes). Se a suíte quebra
+   pós-rebase → investigar e corrigir antes de push.
+7. **Fast-forward only** para `main` — `git push origin main` só deve ter
+   sucesso se você está fast-forward (o rebase do item 6 garante isso).
+   Se `push` falhar por non-fast-forward, **não force** — refaça o rebase.
+8. **Nunca dois agentes escrevendo no mesmo arquivo ao mesmo tempo**.
+   Antes de começar, o agente deve:
+   - `git fetch origin && git log origin/main --oneline -10` para ver
+     atividade recente.
+   - Se outro agente acabou de commitar no arquivo que você vai tocar,
+     considere esperar ou coordenar com o usuário.
+
+#### O que continua proibido (segurança, não autonomia)
+
+9. **Nunca** `git push --force` ou `--force-with-lease` em `main`. Em
+   branches de feature próprias, aceitável para limpar histórico antes do
+   push inicial.
+10. **Nunca** `git commit --no-verify` ou skip de hooks — os hooks existem
+    para bloquear dados sensíveis. Se um hook falha legitimamente, **corrija
+    a causa**; nunca bypasse.
+11. **Nunca** `git commit --amend` em commits já pushados. Para corrigir,
+    crie novo commit (`fix:` ou `chore: correct X`).
+12. **Nunca** `git reset --hard` em branch compartilhada. Em `main` local é
+    aceitável para ressincronizar com remoto (`git reset --hard origin/main`
+    após `fetch`).
+13. **Nunca** `git config` — NÃO alterar configuração global/local do git.
+14. **Paths proibidos no staging** (enforçados por `dev/check_forbidden_paths.py`):
+    `storage/`, `data/`, `inbox/`, `inbox_processed/`, `_scratch/`, `.env`,
+    `.env.test`, `mathoms.db`, `config/passwords.txt`, qualquer `*.db`/`*.sqlite`.
+    Hook bloqueia antes do commit.
+15. **Dados sensíveis** — segue regra geral (§"Princípios gerais" acima):
+    nunca commit CPFs, valores reais, senhas, conteúdo financeiro bruto,
+    mesmo em docstrings ou fixtures.
+
+#### Ferramentas de commit
+
+16. **Proteção é responsabilidade do `pre-commit`**, não do caminho do
+    commit. Instalar uma vez:
+    `pip install pre-commit && pre-commit install --install-hooks && pre-commit install --hook-type commit-msg`.
+    A partir daí, tanto `git commit` direto quanto `dev/commit.py` passam
+    pelos mesmos guardrails.
+17. `dev/commit.py` é **atalho opcional** com `--dry-run`, push integrado e
+    validação de mensagem num comando só. Está em `dev/` — não em `scripts/`
+    — justamente para não confundir com etapas do pipeline.
+
+#### Prefixos aceitos de mensagem
+
+Ver `dev/validate_commit_msg.py` para lista completa (regex `^(feat|fix|refactor|...)(\(.+\))?:`).
+
+- **Produto web**: `feat:`, `fix:`, `refactor:`, `perf:`, `test:`, `chore:`,
+  `backend:`, `frontend:`, `api:`, `db:`, `infra:`, `ci:`, `docs:`, `update:`.
+- **Com escopo**: `feat(api): ...`, `fix(backend/storage): ...`,
+  `refactor(e5): eliminate globals (A6d.1)`.
+- **Legacy** (mantidos por compat com histórico): `pipeline:`, `config:`,
+  `E1:`...`E7:`, `E-reset:`, `pre-reset:`.
+
+#### Se CI quebra após push para main
+
+Push local verde mas CI vermelho acontece (diferença de ambiente, pipeline lento,
+flaky test). Protocolo:
+1. **Anuncie imediatamente** — "CI quebrou no commit `abc1234` (job X). Investigando."
+2. **Fix-forward** (novo commit que corrige) é preferível a revert. Se a
+   correção é trivial (<10 min), fixe na mesma branch e push novamente.
+3. **Revert** se a correção vai demorar — `git revert abc1234` + push. Deixa
+   `main` verde. Depois crie branch nova para a correção real.
+4. **Nunca** deixe `main` quebrada overnight sem comunicar.
 
 ### Dados sensíveis
 

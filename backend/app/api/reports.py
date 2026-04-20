@@ -15,7 +15,12 @@ from backend.app.core.tenancy import get_current_workspace
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.models.report import Report
-from backend.app.schemas.report import ReportResponse, ReportListResponse
+from backend.app.schemas.report import (
+    ReportAnalysisResponse,
+    ReportListResponse,
+    ReportResponse,
+    ReportTasksResponse,
+)
 from backend.app.services.report_lineage import lineage_payload, workspace_ready_documents_summary
 from backend.app.services import report_tasks_snapshot_service, task_service
 from backend.app.schemas.task import TaskFilters, TaskResponse
@@ -123,7 +128,7 @@ def _sanitize_filename(raw: str) -> str:
     return cleaned or "relatorio.html"
 
 
-@router.get("/{report_id}/download.html")
+@router.get("/{report_id}/download.html", response_class=FileResponse)
 async def download_report_html(
     report_id: str,
     workspace: Workspace = Depends(get_current_workspace),
@@ -158,7 +163,21 @@ async def download_report_html(
     )
 
 
-@router.get("/{report_id}/data")
+@router.get(
+    "/{report_id}/data",
+    response_class=JSONResponse,
+    responses={
+        200: {
+            "description": (
+                "Snapshot E5 JSON (24+ chaves top-level). Schema dinâmico — "
+                "consumidores devem usar esquema frouxo (``map[string]any`` / "
+                "``Record<string, unknown>``). Campos injetados: "
+                "``_report_lineage``, ``goals.premissas_snapshot``."
+            ),
+            "content": {"application/json": {"schema": {"type": "object"}}},
+        },
+    },
+)
 async def get_report_data(
     report_id: str,
     workspace: Workspace = Depends(get_current_workspace),
@@ -219,7 +238,16 @@ async def get_report_data(
     return JSONResponse(content=payload)
 
 
-@router.get("/{report_id}/download.pdf")
+@router.get(
+    "/{report_id}/download.pdf",
+    response_class=Response,
+    responses={
+        200: {
+            "description": "PDF binary (application/pdf).",
+            "content": {"application/pdf": {}},
+        },
+    },
+)
 async def download_report_pdf(
     report_id: str,
     workspace: Workspace = Depends(get_current_workspace),
@@ -284,7 +312,7 @@ async def download_report_pdf(
     )
 
 
-@router.get("/{report_id}/tasks")
+@router.get("/{report_id}/tasks", response_model=ReportTasksResponse)
 async def get_report_tasks(
     report_id: str,
     workspace: Workspace = Depends(get_current_workspace),

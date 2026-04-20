@@ -509,7 +509,20 @@ async def retry_unlock(
     return [DocumentResponse.model_validate(d) for d in updated]
 
 
-@router.get("/{document_id}/file")
+@router.get(
+    "/{document_id}/file",
+    response_class=FileResponse,
+    responses={
+        200: {
+            "description": (
+                "Arquivo original (PDF, CSV, XLSX, imagem...). "
+                "``Content-Disposition`` é ``inline`` para PDFs/imagens, "
+                "``attachment`` caso contrário."
+            ),
+            "content": {"application/octet-stream": {}},
+        },
+    },
+)
 async def get_document_file(
     document_id: str,
     workspace: Workspace = Depends(get_current_workspace),

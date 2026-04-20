@@ -19,9 +19,11 @@ from backend.app.models.report import Report as ReportModel
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.pipeline import (
+    NewDocCountResponse,
     PipelineRunListResponse,
     PipelineRunRequest,
     PipelineRunResponse,
+    RunActionResponse,
     StageReviewActionRequest,
     StageReviewResponse,
 )
@@ -206,11 +208,11 @@ async def trigger_pipeline(
     return PipelineRunResponse.model_validate(run)
 
 
-@router.get("/new-doc-count")
+@router.get("/new-doc-count", response_model=NewDocCountResponse)
 async def new_doc_count(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
+) -> NewDocCountResponse:
     """Count documents never processed by the pipeline (pipeline_last_run_at IS NULL)."""
     result = await db.execute(
         select(func.count()).select_from(Document).where(
@@ -219,7 +221,7 @@ async def new_doc_count(
             Document.pipeline_last_run_at.is_(None),
         )
     )
-    return {"new_count": result.scalar() or 0}
+    return NewDocCountResponse(new_count=result.scalar() or 0)
 
 
 def _run_to_response(run: PipelineRun) -> PipelineRunResponse:
@@ -267,6 +269,7 @@ async def get_run(
 
 @router.post(
     "/runs/{run_id}/cancel",
+    response_model=RunActionResponse,
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(require_write_role)],
 )
@@ -274,7 +277,7 @@ async def cancel_run(
     run_id: str,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
+) -> RunActionResponse:
     """Cancel an active pipeline run (stage-boundary cancellation)."""
     result = await db.execute(
         select(PipelineRun).where(
@@ -293,11 +296,15 @@ async def cancel_run(
 
     cancel_pipeline_run(run_id)
 
-    return {"detail": "Cancelamento solicitado. Pipeline parará após a etapa atual.", "run_id": run_id}
+    return RunActionResponse(
+        detail="Cancelamento solicitado. Pipeline parará após a etapa atual.",
+        run_id=run_id,
+    )
 
 
 @router.post(
     "/runs/{run_id}/resume",
+    response_model=RunActionResponse,
     status_code=status.HTTP_202_ACCEPTED,
     dependencies=[Depends(require_write_role)],
 )
@@ -305,7 +312,7 @@ async def resume_run(
     run_id: str,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
+) -> RunActionResponse:
     """Resume a pipeline run paused for review (needs_review status)."""
     result = await db.execute(
         select(PipelineRun).where(
@@ -339,7 +346,7 @@ async def resume_run(
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc))
 
-    return {"detail": "Pipeline retomado", "run_id": run_id}
+    return RunActionResponse(detail="Pipeline retomado", run_id=run_id)
 
 
 @router.get("/runs/{run_id}/reviews", response_model=list[StageReviewResponse])

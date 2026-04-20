@@ -93,7 +93,7 @@ smoke-dirs:
 # Dev helpers
 # ---------------------------------------------------------------------------
 
-.PHONY: test lint format check-boundaries
+.PHONY: test lint format check-boundaries update-openapi-snapshot
 
 ## test: Roda pytest com cobertura
 test:
@@ -111,3 +111,12 @@ format:
 ## check-boundaries: Verifica que pipeline/ não importa framework
 check-boundaries:
 	$(PYTHON) dev/check_pipeline_boundaries.py
+
+## update-openapi-snapshot: Regenera docs/api/v1/openapi.json a partir do FastAPI app (A6f.2 · ADR-102)
+update-openapi-snapshot:
+	@mkdir -p docs/api/v1
+	@MATHOMS_FERNET_KEY=$${MATHOMS_FERNET_KEY:-NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=} \
+	  $(PYTHON) -c 'import json; from backend.app.main import app; \
+	    print(json.dumps(app.openapi(), indent=2, sort_keys=True))' \
+	  > docs/api/v1/openapi.json
+	@echo "✓ docs/api/v1/openapi.json regenerado. Comite o diff."

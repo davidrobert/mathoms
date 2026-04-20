@@ -16,6 +16,7 @@ from backend.app.schemas.notifications import (
     NotificationListResponse,
     NotificationMarkReadRequest,
     NotificationResponse,
+    NotificationsMarkedReadResponse,
 )
 
 router = APIRouter(
@@ -64,12 +65,16 @@ async def list_notifications(
     )
 
 
-@router.patch("/read", status_code=status.HTTP_200_OK)
+@router.patch(
+    "/read",
+    response_model=NotificationsMarkedReadResponse,
+    status_code=status.HTTP_200_OK,
+)
 async def mark_read(
     body: NotificationMarkReadRequest,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
+) -> NotificationsMarkedReadResponse:
     result = await db.execute(
         select(Notification).where(
             Notification.workspace_id == workspace.id,
@@ -83,7 +88,7 @@ async def mark_read(
             notif.is_read = True
             updated += 1
     await db.commit()
-    return {"updated": updated}
+    return NotificationsMarkedReadResponse(updated=updated)
 
 
 @router.delete("/{notification_id}", status_code=status.HTTP_204_NO_CONTENT)

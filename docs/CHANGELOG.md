@@ -88,6 +88,96 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     `cpf=None` sentinel).
   - Delivered on branch `a6e/family-member-slice` — 4 commits ancorados.
 
+- **Estratégia de subdomínios `mathoms.ai` (2026-04-20) — ADR-108:**
+  Domínio `mathoms.ai` adquirido via Cloudflare Domains. URLs canônicas
+  definidas para F7A:
+  - **Produção:** `app.mathoms.ai` (produto) · `api.mathoms.ai/v1/...`
+    (backend + WS) · `ops.mathoms.ai` (console interno F7F) ·
+    `docs.mathoms.ai` · `status.mathoms.ai` · apex `mathoms.ai` (landing).
+  - **Staging:** `*.staging.mathoms.ai`.
+  - **Dev local:** `localhost:3000` / `localhost:8000`.
+  - Multi-tenancy via path (`app.mathoms.ai/w/<slug>/...`), subdomain-
+    per-tenant reservado para enterprise.
+  - DNS em Cloudflare (proxy ON para apex/docs/status, OFF para
+    app/api/ops). TLS via Let's Encrypt DNS-01 challenge + Traefik
+    provider `cloudflare`.
+  - Console interno `ops.` com IP allowlist + MFA; session cookie
+    separado de `app.` (zero-trust).
+  - Rotas internas do backend em `api.mathoms.ai/v1/internal/*`.
+  - Emails institucionais: `noreply@`, `support@`, `hello@`, `ops@`,
+    `security@` com SPF+DKIM+DMARC obrigatório.
+  - **Docs atualizados:** [ADR-108](DECISIONS.md#adr-108--estratégia-de-subdomínios-mathomsai--cloudflare-dns),
+    [ARCHITECTURE.md §18](ARCHITECTURE.md#18-domínios-e-urls-públicas-f7a),
+    [ROADMAP.md F7A](ROADMAP.md#f7--produção--security--lgpd--operational-readiness-próxima),
+    [BACKLOG.md 7A](BACKLOG.md#7a--docker--deploy--https-semana-1-2) (+4 tasks
+    novas: 7A.7b CORS/ipAllowList, 7A.8b SPF/DKIM/DMARC, 7A.8c emails,
+    7A.11b cookie leakage test), INTERNAL_ADMIN_ROADMAP (P1/P4),
+    `_scratch/plano_migracao_artifacts_db.md` (A6f.1 → pipeline-service
+    em rede privada, **sem** subdomain público).
+  - **Esforço agregado em F7A:** +4h sobre o planejado original (DNS
+    Cloudflare 30min + Traefik DNS-01 1-2h + migração CORS/cookies/env 2h).
+
+- **A6d.2 — Testabilidade dos `analyze_*` sem disco (2026-04-20):**
+  Parsers de arquivos MD (`life_plan_goals.md`, `tarefas.md`, `milhas.md`)
+  extraídos em funções **content-based puras**, com shell loaders finos
+  para back-compat. Fecha o primeiro pilar do A6d.
+  - `scripts/e5_analyze.py`:
+    - `parse_tarefas_md_content(text)` + `parse_milhas_md_content(text)` —
+      puras, sem I/O, testáveis sem `tmp_path`. Os wrappers
+      `parse_tarefas_md(content=None)` e `parse_milhas_md(content=None)`
+      aceitam `content` para delegação direta; quando `None`, delegam ao
+      shell loader (lê `CONFIG_TAREFAS` / `CONFIG_MILHAS` do disco).
+    - `extract_if_target_from_life_plan(life_plan_content=None)`,
+      `extract_if_trs(life_plan_content=None)`,
+      `extract_renda_passiva_from_life_plan(life_plan_content=None)` —
+      agora aceitam content string opcional. `_read_life_plan_content()` é
+      o único ponto de I/O para `LIFE_PLAN_GOALS`.
+    - `analyze_goals(patrimonio, life_plan_content=None)` — propaga
+      `life_plan_content` para os extractors. Paridade preservada (None →
+      comportamento legado de disco).
+    - `main_with_store(ctx)` lê os 3 MDs uma única vez no shell e repassa
+      aos helpers puros (evita múltiplas leituras + torna o pipeline
+      testável sem disco quando content é injetado).
+  - `scripts/e7_review.py::load_methodology()` — docstring formaliza a
+    separação shell↔parser (a função já era um shell loader fino;
+    `extract_persona_from_methodology(content)` sempre foi pura).
+  - `tests/unit/pipeline/test_e5_content_parsers.py` — **26 testes** cobrindo
+    parsers content-based (tarefas: sections, priorities, status, invalid
+    rows; milhas: programas, filtros, totais; extract_if_*: priority
+    `goals.json > content > raise`; shell loaders tolerando arquivos
+    ausentes). Zero uso de `tmp_path` nos casos puros.
+  - **ADR-100** (A6d commitment): A6d.2 delivered; A6d.3 partialmente
+    delivered (§ abaixo).
+  - **Tests** — 1240 passam, 2 skips, 1 deselect (teste pré-existente
+    unrelated) · zero regressão nos goldens (E3/E4/E5/E5.N/E6/E7).
+
+- **A6d.3.1 — E4 já em Caminho B puro (verificado 2026-04-20):**
+  Auditoria confirmou que `scripts/e4_categorize.main_with_store(ctx)` **já
+  usa** `E4CategorizerAdapter.from_configs(...)` +
+  `adapter.categorize_via_store(store)` + `serialize_e4_artifacts(result)`.
+  Zero uso das funções legadas `process_transactions`,
+  `build_receitas_unified`, `build_despesas_unified`, `build_fluxo_mensal_detalhado`
+  dentro de `main_with_store`. Essas funções permanecem em uso apenas no
+  legado `main(root_dir)` (CLI / back-compat). **A6d.3.1 marcado como ✅.**
+
+- **A6d.3.2 / A6d.3.3 — E5.N e E5 permanecem em Caminho B pragmático (deferred):**
+  A decisão de manter `main_with_store` desses stages reutilizando funções
+  legadas foi **mantida explicitamente** após auditoria:
+  - **E5.N**: `build_narrativas()` legado ainda é o único caminho completo;
+    decompor para domain service é P2 no backlog e aumenta risco sem ganho
+    de cobertura relevante.
+  - **E5**: `E5AnalyzerAdapter` (A5c) existe mas é **incompleto para paridade**
+    — `_extract_patrimonio_for_ratios` é simplificado vs `analyze_patrimonio`
+    (muitos campos ausentes), `score`/`reserva` usam placeholders, e a API
+    de pontos-fortes/urgentes depende de score real. Reescrever
+    `main_with_store` usando-o diretamente quebraria o golden de paridade.
+    O plano para A6d.3.3 fica estendido: completar os placeholders do adapter
+    (integrar `PatrimonioCalculator`, `EmergencyReserveCalculator`,
+    `FinancialScoreCalculator` nos resultados tipados) antes do switch.
+  - Ambos stages já atingem o critério estrutural: zero `_init_config` em
+    `pipeline/stages/` para E5/E5.N (apenas `pipeline/stages/e2.py:41`
+    mantém, por E2 ter estrutura multi-módulo separada).
+
 - **Rename do produto: Fin → Mathoms AI (2026-04-19):**
   Renomeação completa do produto em toda a base de código.
   - `env_prefix` do pydantic-settings: `FIN_` → `MATHOMS_` (19 variáveis de ambiente)

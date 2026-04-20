@@ -608,6 +608,46 @@ pipeline/domain/
 importa `fastapi`, `celery`, nem `sqlalchemy`. Adaptadores DB (incluindo
 `DBArtifactStore`) vivem em `backend/app/services/` / `backend/app/repositories/`.
 
+### Auth e fronteiras de processo (A6f · ADR-102 · ADR-109)
+
+O backend expõe contratos **portáveis** na fronteira entre processos
+(browser, Celery worker, pipeline, clients hipotéticos Go/Rust). Princípios
+R18-R20 (ADR-102):
+
+**Contratos de rede**:
+- Toda resposta JSON de endpoint tem schema declarado via `response_model`
+  (Pydantic) ou `response_class` explícito (`FileResponse`,
+  `StreamingResponse`, `HTMLResponse`, `PlainTextResponse`, `Response`).
+- Snapshot completo em [`docs/api/v1/openapi.json`](api/v1/openapi.json) —
+  committed e validado por [`test_openapi_snapshot.py`](../backend/tests/test_openapi_snapshot.py)
+  (A6f.2).
+- Estrutural [`test_openapi_response_models.py`](../backend/tests/test_openapi_response_models.py)
+  bloqueia merge de endpoint novo sem contrato.
+
+**JWT**:
+- Algoritmo HS256 (RFC 7519 padrão — qualquer lib Go/TS/Rust lê sem ajuste).
+- Payload canônico `{sub: str, exp: int, tv: int}` — `tv` = token version
+  para revogação bulk via incremento em `User.token_version`.
+- Refresh tokens httpOnly (F7B.4) — estado pode viver em Redis (A6f.6)
+  quando multi-worker for exigência.
+
+**Fernet** (simétrica, `cryptography.fernet`):
+- Usada para `LLMConfig.api_key_encrypted` e futuros vault entries.
+- Spec público (version byte 0x80 + 8-byte timestamp + 16-byte IV +
+  ciphertext + 32-byte HMAC-SHA256) — existe `fernet-go`, `fernet`
+  (TS/Rust).
+- `VaultService` é singleton process-wide com key de `settings.FERNET_KEY`
+  (ADR-060 prevê dual-key para rotation).
+
+**Teste de portabilidade**: [`test_auth_portability.py`](../backend/tests/test_auth_portability.py)
+roda 12 parity tests — se algum falhar, a mudança é breaking e exige
+nova ADR (A6f.5b para AES-GCM, A6f.5c para RS256).
+
+**O que não é portátil hoje (ciente)**:
+- Celery usa JSON para args/results (OK), mas o broker é Redis — compat Go
+  via `redis/go-redis`. Broker neutro (gRPC/NATS) não está no escopo.
+- Logs ainda em formato texto — A6f.3 migra para JSON Lines + OpenTelemetry.
+
 ---
 
 ## 8. Frontend — Rotas e componentes
@@ -1138,3 +1178,109 @@ Regra original mantida e estendida:
 
 Princípios **D1-D8** (domain-specific, restritos a domínio puro) em
 ADR-097 e ADR-099.
+
+---
+
+## 18. Domínios e URLs públicas (F7A)
+
+**Decisão:** [ADR-108](DECISIONS.md#adr-108--estratégia-de-subdomínios-mathomsai--cloudflare-dns) (2026-04-20).
+**Domínio:** `mathoms.ai` (registrado em Cloudflare Domains).
+
+### 18.1 Estrutura canônica de URLs
+
+| Papel | Produção | Staging | Dev local |
+|---|---|---|---|
+| Landing marketing | `https://mathoms.ai` | `https://staging.mathoms.ai` | — |
+| Produto (Next.js) | `https://app.mathoms.ai` | `https://app.staging.mathoms.ai` | `http://localhost:3000` |
+| API (FastAPI + WS) | `https://api.mathoms.ai` | `https://api.staging.mathoms.ai` | `http://localhost:8000` |
+| Console interno | `https://ops.mathoms.ai` | `https://ops.staging.mathoms.ai` | `http://localhost:3000/ops` |
+| Docs do produto | `https://docs.mathoms.ai` | — | — |
+| Status page | `https://status.mathoms.ai` | — | — |
+| Sharing público | `https://share.mathoms.ai` (reservado, F10+) | — | — |
+| Previews (opt) | `https://<branch>.preview.mathoms.ai` | — | — |
+
+**Multi-tenancy via path**, não subdomain: `app.mathoms.ai/w/<workspace-slug>/reports/<id>`.
+Subdomain-per-tenant (`<slug>.mathoms.ai`) reservado para enterprise tier futuro.
+
+### 18.2 Versionamento de API
+
+`api.mathoms.ai/v1/...` — sem `/api/` redundante (o subdomain já declara).
+Breaking changes vão para `/v2/...` coexistindo, não sobrescrevendo. Alinha
+com R16 (ADR-101).
+
+### 18.3 Cookies e sessão
+
+- Sempre com prefix `__Host-` (força `Secure`, `HttpOnly`, `Path=/`, sem `Domain`).
+- `app.mathoms.ai` e `ops.mathoms.ai` **nunca** compartilham cookies —
+  session scope estritamente por subdomain.
+- Nenhum cookie com `Domain=mathoms.ai` (vazaria entre todos os subdomínios).
+
+### 18.4 CORS e isolamento
+
+`api.mathoms.ai` aceita apenas origins explícitos:
+```
+https://app.mathoms.ai
+https://ops.mathoms.ai
+https://app.staging.mathoms.ai
+https://ops.staging.mathoms.ai
+```
+Nenhum `*`. Nenhum wildcard. Preflight obrigatório para mutações.
+
+### 18.5 DNS e TLS (Cloudflare + Traefik)
+
+**DNS provider:** Cloudflare (domínio registrado lá — zero fricção).
+
+| Record | Tipo | Proxy Cloudflare | Destino |
+|---|---|---|---|
+| `mathoms.ai` (apex) | A | 🟠 ON (CDN + WAF) | VPS Hetzner |
+| `www.mathoms.ai` | CNAME → apex | 🟠 ON | (redirect 301) |
+| `docs.mathoms.ai` | CNAME → apex ou A | 🟠 ON (CDN) | VPS / Pages |
+| `app.mathoms.ai` | A | ⚪ OFF | VPS Hetzner |
+| `api.mathoms.ai` | A | ⚪ OFF | VPS Hetzner |
+| `ops.mathoms.ai` | A | ⚪ OFF | VPS Hetzner |
+| `status.mathoms.ai` | CNAME | — | BetterStack / Statuspage |
+| `*.staging.mathoms.ai` | A | ⚪ OFF | VPS Hetzner (ou staging dedicado) |
+
+**Proxy Cloudflare OFF para app/api/ops:** evita double-TLS, WebSocket
+proxying issues e latência extra. Landing e docs ganham proxy ON para
+CDN/WAF grátis.
+
+**TLS:** Let's Encrypt via **DNS-01 challenge** (não HTTP-01) — permite
+wildcard `*.mathoms.ai`. Traefik provider `cloudflare` com API token de
+permissão `Zone:DNS:Edit` apenas para zona `mathoms.ai`.
+
+### 18.6 Segurança do console interno (`ops.mathoms.ai`)
+
+- **IP allowlist** via Traefik middleware `ipAllowList` — apenas IPs do
+  time (VPN / escritório / IPs pessoais autorizados).
+- **MFA obrigatório** (TOTP mínimo; evoluir para WebAuthn em F7E).
+- **Rotas sensíveis do backend** sob `api.mathoms.ai/v1/internal/*`
+  com middleware próprio de auth de ops (diferente do `get_current_user`
+  de produto).
+- **Session cookie separado** de `app.mathoms.ai` (zero-trust entre
+  produto e ops).
+- **Audit log obrigatório** para toda operação de ops (F7B.5 + F7F).
+
+### 18.7 Emails institucionais
+
+| Endereço | Uso |
+|---|---|
+| `noreply@mathoms.ai` | Transacionais (verify, reset, invite) |
+| `support@mathoms.ai` | Suporte a usuários |
+| `hello@mathoms.ai` | Marketing / comercial |
+| `ops@mathoms.ai` | Operações internas |
+| `security@mathoms.ai` | Disclosure responsável |
+
+SPF + DKIM + DMARC obrigatórios antes do launch. Provider recomendado:
+Postmark (transacionais) ou Resend. **Não self-hosted.**
+
+### 18.8 Upgrade path para enterprise custom-domain
+
+Backend já usa header `Host` como chave de tenancy. Para oferecer custom
+domain por cliente (enterprise tier futuro):
+
+1. Cliente configura CNAME `<customer-domain>` → `app.mathoms.ai`.
+2. Cloudflare for SaaS (ou equivalente) emite cert para o domínio do cliente.
+3. Traefik roteia por `Host` header para o workspace correto.
+
+Nenhum refactor de código necessário.

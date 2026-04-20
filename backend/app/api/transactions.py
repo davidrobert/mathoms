@@ -87,7 +87,16 @@ async def list_transactions(
     )
 
 
-@router.get("/export")
+@router.get(
+    "/export",
+    response_class=StreamingResponse,
+    responses={
+        200: {
+            "description": "CSV com BOM (UTF-8) — transações filtradas.",
+            "content": {"text/csv": {}},
+        },
+    },
+)
 async def export_transactions(
     member: Optional[str] = Query(None),
     bank: Optional[str] = Query(None),

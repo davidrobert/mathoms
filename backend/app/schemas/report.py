@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 
 class ReportResponse(BaseModel):
@@ -51,3 +51,47 @@ class ReportAnalysisResponse(BaseModel):
     """
 
     data: dict[str, Any]
+
+
+class ReportTaskSnapshotItem(BaseModel):
+    """Item do array ``tasks`` no snapshot/live fallback.
+
+    Campos obrigatórios refletem o schema v1 em
+    ``report_tasks_snapshot_service.SNAPSHOT_VERSION``. ``extra="allow"`` evita
+    quebras quando a versão do snapshot for incrementada (v2+).
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    id: Optional[str] = None
+    number: Optional[int] = None
+    title: str
+    description: Optional[str] = None
+    category: Optional[str] = None
+    priority: Optional[str] = None
+    status: Optional[str] = None
+    ref: Optional[str] = None
+    deadline_kind: Optional[str] = None
+    deadline_date: Optional[str] = None
+    deadline_label: Optional[str] = None
+    parent_task_id: Optional[str] = None
+
+
+class ReportTasksResponse(BaseModel):
+    """Payload do endpoint ``GET /reports/{id}/tasks``.
+
+    Cobre duas variantes (ADR-074 §F8.3):
+    - Snapshot imutável (``is_live_fallback=False``) — estado do momento da geração.
+    - Fallback live (``is_live_fallback=True``) — relatórios pré-F8.3.
+
+    Ambas compartilham a mesma shape; ``version`` e ``captured_at`` podem ser
+    ``None`` no caminho live.
+    """
+
+    is_live_fallback: bool
+    version: Optional[int] = None
+    captured_at: Optional[str] = None
+    total: int
+    counts_by_status: dict[str, int] = Field(default_factory=dict)
+    counts_by_priority: dict[str, int] = Field(default_factory=dict)
+    tasks: list[ReportTaskSnapshotItem] = Field(default_factory=list)

@@ -36,6 +36,7 @@ from backend.app.schemas.config import (
     CategoryUpdateRequest,
     ConfigExportResponse,
     ConfigImportRequest,
+    ConfigImportResponse,
     InstitutionConfigSchema,
     InstitutionConfigUpdateRequest,
     PipelineConfigSchema,
@@ -599,13 +600,17 @@ async def update_report_layout(
 # =============================================================================
 
 
-@router.post("/import", status_code=status.HTTP_200_OK)
+@router.post(
+    "/import",
+    response_model=ConfigImportResponse,
+    status_code=status.HTTP_200_OK,
+)
 async def import_config(
     body: ConfigImportRequest,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    imported = []
+) -> ConfigImportResponse:
+    imported: list[str] = []
 
     if body.family_members:
         await _import_family_members(workspace.id, body.family_members, db)
@@ -628,7 +633,7 @@ async def import_config(
         imported.append("report_layout")
 
     await db.commit()
-    return {"imported": imported, "total": len(imported)}
+    return ConfigImportResponse(imported=imported, total=len(imported))
 
 
 @router.get("/export", response_model=ConfigExportResponse)

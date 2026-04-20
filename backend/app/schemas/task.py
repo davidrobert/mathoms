@@ -221,3 +221,11 @@ class TaskAttachmentResponse(BaseModel):
 class TaskAttachmentListResponse(BaseModel):
     attachments: list[TaskAttachmentResponse]
     total: int
+
+
+class ScanDeadlinesResponse(BaseModel):
+    """Resposta de ``POST /tasks/scan-deadlines`` — estatísticas do scan."""
+
+    created: int
+    skipped_existing: int
+    evaluated: int

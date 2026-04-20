@@ -35,6 +35,7 @@ from backend.app.api.workspaces import (
 from backend.app.api.invitations import router as invitations_router
 from backend.app.api.tasks import router as tasks_router
 from backend.app.api.feature_flags import router as feature_flags_router
+from backend.app.schemas.health import HealthResponse
 
 logger = logging.getLogger(__name__)
 
@@ -80,10 +81,10 @@ app.include_router(tasks_router, prefix=settings.API_PREFIX)
 app.include_router(feature_flags_router, prefix=settings.API_PREFIX)
 
 
-@app.get("/health")
-async def health():
+@app.get("/health", response_model=HealthResponse)
+async def health() -> dict:
     """Health check — reports Redis, Celery worker, and DB status."""
-    checks = {"api": "ok", "version": "0.6.0"}
+    checks: dict = {"api": "ok", "version": "0.6.0"}
 
     try:
         import redis.asyncio as aioredis
