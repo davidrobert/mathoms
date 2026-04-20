@@ -60,7 +60,7 @@ Sempre que relevante, organize a resposta em:
 7. **Trade-offs e prioridades**
 8. **Métricas de sucesso**
 
-## Regras para implementação de código
+## Princípios de implementação
 
 Ao implementar qualquer tarefa:
 
@@ -88,6 +88,80 @@ Ao implementar qualquer tarefa:
   - plano de implementação
   - testes
   - critérios de aceite
+
+## Code style
+
+### Funções e módulos
+- Funções: **4-20 linhas**. Passou, extraia. Vale para Python, TypeScript e Go.
+- Arquivos: **≤500 linhas**. Divida por responsabilidade (`bank_parser.py`, não `extractors.py` gigante). O `e5_analyze.py` de 108KB é o anti-exemplo; a decomposição em `pipeline/domain/services/` (sessões A5a-A5c) é o padrão.
+- **Uma coisa por função, uma responsabilidade por módulo** (SRP). Complementa R9/R12 (ISP) já ativos.
+- Early returns > ifs aninhados. Máximo **2 níveis de indentação** em lógica; 3 aceitável só em parsing.
+- **Nomes específicos e únicos.** Evite `data`, `handler`, `Manager`, `Service` (sozinho), `Utils`, `Helpers`. Prefira nomes que retornem **<5 hits em `grep -r`**. `EmergencyReserveCalculator` > `ReserveHelper`; `reconcile_bank_statements` > `process`.
+
+### Tipos
+- **Python**: type hints obrigatórios em toda API pública. Pydantic `BaseModel` em boundaries (HTTP, JSON, config). `Dict[str, Any]` só em código interno quando o shape é genuinamente dinâmico (JSON bruto antes de validar). Evite `Optional` sem motivo — prefira constructors que exijam o campo.
+- **TypeScript**: **sem `any`**. `unknown` + narrow para input externo. Tipos do codegen (`frontend/src/generated/`) são fonte de verdade para API ↔ UI.
+- **Go** (futuro A6f): **sem `interface{}`/`any`** fora de util genérico. Tipos concretos em assinaturas. Errors tipados (`var ErrNotFound = errors.New(...)` ou struct com `Error()`), nunca `errors.New("...")` espalhado inline.
+- **Dinheiro nunca é `float`** (ADR-090): `Money` em Python, `Decimal` string no wire, `int64` em cents em Go.
+
+### Erros e validação
+- Mensagens incluem **valor ofensor + shape esperado**: `f"expected Money.brl, got {type(v).__name__}={v!r}"` > `"invalid type"`.
+- Fail-fast em boundaries (`StageConfig` frozen, Pydantic valida, config loading aborta cedo).
+- Não revalide entre camadas internas — confie nas garantias de tipo do boundary.
+- Warnings de domínio são **dataclasses tipadas** com `.format()` (ADR-097 D1), não strings.
+
+### Sem duplicação
+- Lógica repetida **3×** → função/módulo compartilhado. Antes disso, três linhas similares é melhor que abstração prematura.
+- Domain logic mora em `pipeline/domain/services/` ou `backend/app/application/<aggregate>/` (pós-A6e.3). Não replique em routers/stages.
+
+### Comentários
+- **Default: nenhum comentário.** Nomes bons dispensam-nos.
+- Escreva comentário **somente quando o *porquê* é não-óbvio**: constraint oculto, workaround de bug, invariante sutil. Cite a referência:
+  `# paridade com legado: fatura sintetizada anula anachronic guard (ADR-097)`
+- Nunca: `# increment counter`, `# used by X`, `# added for Y flow`, `# removed in refactor Z`.
+- **Preserve comentários existentes em refactor.** Eles carregam histórico que você não viveu.
+- Docstrings apenas em APIs públicas de domínio e endpoints externos. **Uma linha** de intent; exemplo só se o uso for não-óbvio. Sem docstrings multi-parágrafo.
+
+### Testes
+- Comandos canônicos:
+  - Pipeline: `pytest tests -q`
+  - Backend: `pytest backend/tests -q`
+  - Frontend unit: `cd frontend && npm test -- --run` (Vitest)
+  - Frontend E2E: `cd frontend && npm run test:e2e` (Playwright, fluxos `@critical`)
+  - Pre-commit: `pre-commit run --all-files`
+  - Go (futuro): `go test ./... -race`
+- **Função nova → teste.** Bug fix → **teste de regressão antes do fix**.
+- F.I.R.S.T: Fast, Independent, Repeatable, Self-validating, Timely.
+- **Mocks de I/O externo** via fakes nomeados (`tests/fakes/`, `InMemoryArtifactStore`), não `MagicMock` inline.
+- **DB em testes: nunca mocar.** SQLite em memória ou fixtures Alembic-aware (incidente histórico: mock/prod drift mascarou migration quebrada).
+- **Goldens de paridade** (Caminho B): legado ↔ novo, tolerância `0.01` BRL em whitelist monetária. Padrão: `tests/test_e3_main_with_store_parity.py`.
+- Endpoint JSON novo → teste + rodar `make update-openapi-snapshot` (ADR-109).
+
+### Dependências
+- Injeção por **construtor/parâmetro**, não global nem import-side-effect.
+- Config via **value object tipado** (`ReconciliationConfig`, `CategorizationRules`, `StageConfig`), nunca `dict` ou global mutável (reforço R9).
+- Third-party cruzando boundary de domínio fica atrás de adapter próprio. Ex.: `ArtifactStore` protocol > SQLAlchemy em `pipeline/`.
+- `pipeline/**` **não importa** `fastapi`/`celery`/`sqlalchemy` (enforçado por `dev/check_pipeline_boundaries.py`).
+- Em Go (A6f): interfaces pequenas definidas no **consumer**, não no producer. Injete `io.Reader`, não `*os.File`.
+
+### Estrutura
+- Siga a convenção do framework: FastAPI em `backend/app/api/` + `application/` + `repositories/`; Next.js em `frontend/src/app/` + `components/`; pipeline em `scripts/` + `pipeline/domain/`; Go (futuro) em `cmd/` + `internal/<aggregate>/`.
+- Módulos pequenos e focados > god files.
+- Paths previsíveis: repo → repo, service → service, DTO → DTO, handler → handler.
+
+### Formatação
+- Use o formatter default e **não discuta estilo além disso**:
+  - Python: `ruff format` + `ruff check`
+  - TypeScript: `prettier` + `eslint`
+  - Go: `gofmt -s` + `go vet` + `staticcheck`
+- Formatter roda no `pre-commit`. Diff "formatter-only" nunca mistura com mudança de lógica — commits separados.
+
+### Logging
+- **JSON estruturado** para observabilidade (backend API, Celery, pipeline em prod). Alvo: OpenTelemetry + OTLP (A6f.3).
+- **Texto plano** apenas em CLI user-facing (`scripts/e*.py` prints de progresso, `dev/commit.py`).
+- **Nunca logue dados sensíveis**: CPF, valores reais, senhas, conteúdo de extrato/fatura. Sidecar logs (`qa_log.md`, `reconciliation.md`) são exceção controlada em `storage/<workspace>/logs/` (fora do git).
+- Severidades: `DEBUG` (dev), `INFO` (evento de negócio), `WARNING` (anomalia recuperável, ex.: `SaldoGapWarning`), `ERROR` (falha abortiva), `CRITICAL` (incidente).
+- Em Go: `log/slog` com handler JSON, contexto propagado (`slog.With("workspace_id", id)`). Nada de `fmt.Println` fora de CLI.
 
 ## Definição de "concluído" (Definition of Done)
 
