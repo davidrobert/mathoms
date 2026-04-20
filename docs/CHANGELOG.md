@@ -8,6 +8,41 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6f.4 — DB Schema Reference auto-gerado + snapshot test (2026-04-20) — ADR-102 R20:**
+  Segunda entrega da A6f (language-neutral boundaries). Formaliza o schema
+  do banco como referência canônica e detecta regressões de portabilidade.
+
+  - **`dev/generate_db_schema_reference.py`** — gerador idempotente que
+    introspecciona `Base.metadata` (todos os 27 models via
+    `backend/app/models/__init__.py`) e produz markdown determinístico:
+    - Tabelas em ordem alfabética; colunas com tipo SQL literal
+      (`str(col.type)`), nullability, default, PK/FK/UNIQUE/INDEX tags.
+    - Constraints formais (PK multi-col, FK com ON DELETE/UPDATE, UK, CHECK)
+      agrupadas e sorted; indexes sorted by name.
+    - Auditoria em 3 categorias de risco:
+      1. `PickleType` / `TypeDecorator` exótico (bloqueante).
+      2. `DateTime` naive (sem `timezone=True`).
+      3. Enums nativos vs `VARCHAR + CHECK` (informativo).
+    - Inventário de colunas JSON (hotspot para schemas explícitos).
+    - Bloco Go struct por tabela com tags `db:"..." json:"..."` para
+      servir de referência em migração futura.
+  - **`docs/DB_SCHEMA_REFERENCE.md`** — 1193 linhas, committed, atualizado
+    via `make update-db-schema-reference`.
+  - **`backend/tests/test_db_schema_reference_snapshot.py`** — compara
+    byte-a-byte o `.md` committed com o output atual do gerador; falha
+    com diff unified em caso de drift.
+  - **`Makefile`** — target `update-db-schema-reference` (padrão A6f.2).
+
+  Resultado da auditoria no schema atual (27 tabelas):
+  - ✅ **Zero `PickleType` / `TypeDecorator`** — schema 100% nativo SQL.
+  - ✅ **Zero `DateTime` naive** — todos usam `timezone=True`.
+  - 5 Enums nativos (`documents.doc_type`/`status`, `pipeline_runs.status`,
+    `pipeline_stage_logs.status`, `stage_reviews.status`) — portáveis
+    para Go via `type Status string` + constantes.
+  - 18 colunas JSON inventariadas.
+
+  Commit: `1e4ab08` em `main` (2026-04-20).
+
 - **A6d.3.3 (parcial) — Calculadoras puras + adapter sem placeholders (2026-04-20) — ADR-100:**
   Foundation definitiva para fechar Caminho B puro no E5. Três calculadoras
   de domínio novas substituem a lógica inline de ``scripts/e5_analyze.py``:
