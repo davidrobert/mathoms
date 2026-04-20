@@ -179,69 +179,76 @@ def load_json(path: Path, required: bool = False) -> Dict[str, Any]:
         return {}
 
 
-def extract_if_target_from_life_plan() -> float:
-    """Extract IF meta from goals.json → life_plan_goals.md → hardcoded fallback."""
-    # Priority 1: goals.json (structured, canonical)
+# A6d.2: extract_* helpers aceitam ``life_plan_content`` como parâmetro
+# (None → shell loader lê ``LIFE_PLAN_GOALS`` via disco como fallback).
+# Isso torna ``analyze_goals`` testável sem tocar em arquivo real.
+
+def _read_life_plan_content() -> str:
+    """Shell loader — lê ``LIFE_PLAN_GOALS`` do disco se existir. Apenas I/O."""
+    if LIFE_PLAN_GOALS.exists():
+        try:
+            return LIFE_PLAN_GOALS.read_text(encoding="utf-8")
+        except Exception as e:
+            print(f"  ⚠️  Error reading life_plan_goals.md: {e}")
+    return ""
+
+
+def extract_if_target_from_life_plan(life_plan_content: str | None = None) -> float:
+    """Extract IF meta: goals.json → life_plan_goals.md regex → ValueError.
+
+    Se ``life_plan_content`` for fornecido, usa-o em vez de ler do disco
+    (A6d.2 — permite testes sem arquivo real).
+    """
     goals_if = GOALS_CONFIG.get("independencia_financeira", {}).get("if_meta")
     if goals_if is not None:
         return safe_float(goals_if)
 
-    # Priority 2: life_plan_goals.md (regex)
-    if LIFE_PLAN_GOALS.exists():
-        try:
-            content = LIFE_PLAN_GOALS.read_text(encoding="utf-8")
-            match = re.search(r'\*\*R\$\s*([\d.,]+)', content)
-            if match:
-                val_str = match.group(1).replace(".", "").replace(",", ".")
-                return safe_float(val_str)
-        except Exception as e:
-            print(f"  ⚠️  Error reading life_plan_goals.md: {e}")
+    content = life_plan_content if life_plan_content is not None else _read_life_plan_content()
+    if content:
+        match = re.search(r'\*\*R\$\s*([\d.,]+)', content)
+        if match:
+            val_str = match.group(1).replace(".", "").replace(",", ".")
+            return safe_float(val_str)
 
-    # Priority 3: fail — no hardcoded fallback
     raise ValueError("IF meta não encontrada em goals.json nem life_plan_goals.md. Configure 'independencia_financeira.if_meta' em config/goals.json.")
 
 
-def extract_if_trs() -> float:
-    """Extract TRS from goals.json → life_plan_goals.md → hardcoded fallback."""
-    # Priority 1: goals.json
+def extract_if_trs(life_plan_content: str | None = None) -> float:
+    """Extract TRS: goals.json → life_plan_goals.md regex → ValueError.
+
+    Aceita ``life_plan_content`` para evitar I/O em testes (A6d.2).
+    """
     goals_trs = GOALS_CONFIG.get("independencia_financeira", {}).get("trs_pct")
     if goals_trs is not None:
         return safe_float(goals_trs)
 
-    # Priority 2: life_plan_goals.md (regex)
-    if LIFE_PLAN_GOALS.exists():
-        try:
-            content = LIFE_PLAN_GOALS.read_text(encoding="utf-8")
-            match = re.search(r'TRS.*?(\d+(?:[.,]\d+)?)\s*%', content, re.IGNORECASE)
-            if match:
-                val_str = match.group(1).replace(",", ".")
-                return safe_float(val_str)
-        except Exception:
-            pass
+    content = life_plan_content if life_plan_content is not None else _read_life_plan_content()
+    if content:
+        match = re.search(r'TRS.*?(\d+(?:[.,]\d+)?)\s*%', content, re.IGNORECASE)
+        if match:
+            val_str = match.group(1).replace(",", ".")
+            return safe_float(val_str)
 
-    # Priority 3: fail — no hardcoded fallback
     raise ValueError("TRS não encontrado em goals.json nem life_plan_goals.md. Configure 'independencia_financeira.trs_pct' em config/goals.json.")
 
 
-def extract_renda_passiva_from_life_plan() -> float:
-    """Extract current renda passiva from life_plan."""
-    if not LIFE_PLAN_GOALS.exists():
+def extract_renda_passiva_from_life_plan(life_plan_content: str | None = None) -> float:
+    """Extract current renda passiva from life_plan. Zero se ausente.
+
+    Aceita ``life_plan_content`` para evitar I/O em testes (A6d.2).
+    """
+    content = life_plan_content if life_plan_content is not None else _read_life_plan_content()
+    if not content:
         return 0.0
 
-    try:
-        content = LIFE_PLAN_GOALS.read_text(encoding="utf-8")
-        # Find "Renda passiva atual:"
-        match = re.search(
-            r'Renda passiva atual:\s*R\$\s*([\d.,]+)',
-            content,
-            re.IGNORECASE
-        )
-        if match:
-            val_str = match.group(1).replace(".", "").replace(",", ".")
-            return safe_float(val_str)
-    except Exception:
-        pass
-
+    match = re.search(
+        r'Renda passiva atual:\s*R\$\s*([\d.,]+)',
+        content,
+        re.IGNORECASE
+    )
+    if match:
+        val_str = match.group(1).replace(".", "").replace(",", ".")
+        return safe_float(val_str)
     return 0.0
 
 
@@ -968,12 +975,20 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
 # GOALS & IF ANALYSIS
 # ============================================================================
 
-def analyze_goals(patrimonio: Dict[str, Any]) -> Dict[str, Any]:
-    """Analyze IF goals."""
+def analyze_goals(
+    patrimonio: Dict[str, Any],
+    life_plan_content: str | None = None,
+) -> Dict[str, Any]:
+    """Analyze IF goals.
+
+    A6d.2: ``life_plan_content`` é o conteúdo de ``life_plan_goals.md``
+    lido uma vez pelo shell. Quando ``None``, os helpers ``extract_if_*``
+    caem para leitura direta do disco (back-compat).
+    """
     print("[E5.2] Analyzing IF goals...")
 
-    if_meta = extract_if_target_from_life_plan()
-    if_trs = extract_if_trs()
+    if_meta = extract_if_target_from_life_plan(life_plan_content)
+    if_trs = extract_if_trs(life_plan_content)
     investivel = patrimonio["investivel"]
 
     # IF monthly target (assuming TRS, derive monthly)
@@ -1818,36 +1833,22 @@ def analyze_pontos_fortes(
     return pontos
 
 
-def parse_tarefas_md() -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
-    """Parse config/tarefas.md into structured task list.
+def parse_tarefas_md_content(text: str) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
+    """Parse content of ``config/tarefas.md`` — **função pura, sem I/O**.
 
-    Returns:
-        (tarefas, tarefas_status) where:
-        - tarefas: list of {n, t, p, e, categoria, impacto, ref} for template JS
-        - tarefas_status: dict {str(n): "pendente"|"feito"|"cancelado"}
+    A6d.2: extraída de ``parse_tarefas_md`` para permitir testes unitários
+    sem criar arquivo real. O wrapper ``parse_tarefas_md`` mantém o
+    shell-loader compatível.
     """
-    print("[E5.10a] Parsing config/tarefas.md...")
-
-    if not CONFIG_TAREFAS.exists():
-        print("  ⚠ config/tarefas.md not found — falling back to dynamic generation")
-        return [], {}
-
-    text = CONFIG_TAREFAS.read_text(encoding="utf-8")
-
-    # Priority mapping: S=alta, R=media, O=baixa
     prio_map = {"S": "alta", "R": "media", "O": "baixa"}
 
-    tarefas = []
-    tarefas_status = {}
+    tarefas: List[Dict[str, Any]] = []
+    tarefas_status: Dict[str, str] = {}
 
-    # Parse each section (Essenciais, Recomendadas, Opcionais)
-    # Match table rows: | # | Tarefa | Categoria | Prazo | Status | Ref |
-    # Skip header rows (containing "---" or "Tarefa")
     section_prio = None
     for line in text.split("\n"):
         line = line.strip()
 
-        # Detect section headers for priority
         if line.startswith("## Essenciais"):
             section_prio = "S"
         elif line.startswith("## Recomendadas"):
@@ -1855,17 +1856,15 @@ def parse_tarefas_md() -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
         elif line.startswith("## Opcionais"):
             section_prio = "O"
         elif line.startswith("## Concluídas") or line.startswith("## Canceladas") or line.startswith("## Notas"):
-            section_prio = None  # Stop parsing active tasks
+            section_prio = None
 
         if section_prio is None:
             continue
 
-        # Parse table row
         if not line.startswith("|") or "---" in line or "Tarefa" in line:
             continue
 
         parts = [p.strip() for p in line.split("|")]
-        # parts[0] = "" (before first |), parts[1] = #, parts[2] = Tarefa, ...
         if len(parts) < 7:
             continue
 
@@ -1892,6 +1891,28 @@ def parse_tarefas_md() -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
         })
         tarefas_status[str(num)] = status if status in ("pendente", "feito", "cancelado") else "pendente"
 
+    return tarefas, tarefas_status
+
+
+def parse_tarefas_md(content: str | None = None) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
+    """Shell loader: lê ``CONFIG_TAREFAS`` do disco se ``content`` for ``None``,
+    senão delega direto para :func:`parse_tarefas_md_content`.
+
+    A6d.2: aceita ``content`` para testes; back-compat preservada via ``None``.
+    """
+    print("[E5.10a] Parsing config/tarefas.md...")
+
+    if content is None:
+        if not CONFIG_TAREFAS.exists():
+            print("  ⚠ config/tarefas.md not found — falling back to dynamic generation")
+            return [], {}
+        content = CONFIG_TAREFAS.read_text(encoding="utf-8")
+
+    if not content:
+        return [], {}
+
+    tarefas, tarefas_status = parse_tarefas_md_content(content)
+
     print(f"  ✓ Parsed {len(tarefas)} tasks from tarefas.md")
     essenciais = sum(1 for t in tarefas if t["p"] == "alta")
     recomendadas = sum(1 for t in tarefas if t["p"] == "media")
@@ -1903,29 +1924,18 @@ def parse_tarefas_md() -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
     return tarefas, tarefas_status
 
 
-def parse_milhas_md() -> Dict[str, Any]:
-    """Parse config/milhas.md into structured programa_milhas data.
+def parse_milhas_md_content(text: str) -> Dict[str, Any]:
+    """Parse content of ``config/milhas.md`` — **função pura, sem I/O**.
 
-    Returns dict with:
-      - programas: [{programa, titular, saldo_pontos, custo_medio_ponto_brl,
-                     valor_estimado_brl, economia_periodo_brl, resgates}]
-      - total_valor_estimado_brl, total_economia_periodo_brl, total_pontos_resgatados
+    A6d.2: extraída de ``parse_milhas_md`` para permitir testes unitários
+    sem arquivo real.
     """
-    print("[E5.15] Parsing config/milhas.md...")
-
-    if not CONFIG_MILHAS.exists():
-        print("  ⚠ config/milhas.md not found — milhas card will be empty")
-        return {}
-
-    text = CONFIG_MILHAS.read_text(encoding="utf-8")
-
-    programas = []
-    current_prog = None
+    programas: List[Dict[str, Any]] = []
+    current_prog: Dict[str, Any] | None = None
 
     for line in text.split("\n"):
         stripped = line.strip()
 
-        # Detect program headers: ### Livelo — David
         if stripped.startswith("### ") and "—" in stripped:
             if current_prog is not None:
                 programas.append(current_prog)
@@ -1946,7 +1956,6 @@ def parse_milhas_md() -> Dict[str, Any]:
         if current_prog is None:
             continue
 
-        # Parse table rows: | campo | valor |
         if stripped.startswith("|") and "---" not in stripped and "Campo" not in stripped:
             cells = [c.strip() for c in stripped.split("|")]
             if len(cells) >= 3:
@@ -1972,7 +1981,7 @@ def parse_milhas_md() -> Dict[str, Any]:
         for p in display_programas
     )
 
-    result = {
+    return {
         "programas": display_programas,
         "programas_registrados": registered_names,
         "total_valor_estimado_brl": total_valor,
@@ -1980,7 +1989,27 @@ def parse_milhas_md() -> Dict[str, Any]:
         "total_pontos_resgatados": total_resgatados,
     }
 
-    print(f"  ✓ Parsed {len(display_programas)} programa(s) de milhas com saldo ({len(programas)} registrados)")
+
+def parse_milhas_md(content: str | None = None) -> Dict[str, Any]:
+    """Shell loader: lê ``CONFIG_MILHAS`` do disco se ``content`` for ``None``.
+
+    A6d.2: aceita ``content`` para testes; back-compat preservada via ``None``.
+    """
+    print("[E5.15] Parsing config/milhas.md...")
+
+    if content is None:
+        if not CONFIG_MILHAS.exists():
+            print("  ⚠ config/milhas.md not found — milhas card will be empty")
+            return {}
+        content = CONFIG_MILHAS.read_text(encoding="utf-8")
+
+    if not content:
+        return {}
+
+    result = parse_milhas_md_content(content)
+    display_programas = result.get("programas", [])
+
+    print(f"  ✓ Parsed {len(display_programas)} programa(s) de milhas com saldo ({len(result.get('programas_registrados', []))} registrados)")
     for p in display_programas:
         print(f"    {p['programa']} ({p['titular']}): {p['saldo_pontos']:,.0f} pts, est. R$ {p['valor_estimado_brl']:,.2f}")
 
@@ -2633,7 +2662,14 @@ def main_with_store(ctx) -> Dict[str, Any]:
     print(f"[E5.0] Workspace root: {ctx.root}")
     print(f"[E5.0] Store impl:     {type(store).__name__}")
 
-    # 2. Inputs via ``ArtifactStore`` — lê E4 + baseline (E1.5c).
+    # 2. MD content lido uma vez no shell (A6d.2) — repassado às funções
+    #    puras. Evita múltiplas leituras + torna o pipeline testável sem
+    #    disco quando content é injetado.
+    life_plan_content = _read_life_plan_content()
+    tarefas_content = CONFIG_TAREFAS.read_text(encoding="utf-8") if CONFIG_TAREFAS.exists() else None
+    milhas_content = CONFIG_MILHAS.read_text(encoding="utf-8") if CONFIG_MILHAS.exists() else None
+
+    # 3. Inputs via ``ArtifactStore`` — lê E4 + baseline (E1.5c).
     receitas = store.read("E4", "receitas") or {}
     despesas = store.read("E4", "despesas") or {}
     fluxo_mensal = store.read("E4", "fluxo_mensal_detalhado") or {}
@@ -2670,7 +2706,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         else:
             periodo_dados = f"{TODAY.strftime('%Y-%m')} a {TODAY.strftime('%Y-%m')}"
 
-    goals = analyze_goals(patrimonio)
+    goals = analyze_goals(patrimonio, life_plan_content=life_plan_content)
     fluxo = analyze_fluxo_caixa(receitas, despesas, fluxo_mensal)
     ratios = analyze_ratios(fluxo, patrimonio, goals)
     score = calculate_score(ratios, patrimonio, goals, fluxo)
@@ -2687,8 +2723,8 @@ def main_with_store(ctx) -> Dict[str, Any]:
     cenarios_conjuge = analyze_cenarios_conjuge(patrimonio, goals, fluxo)
     cerbasi = analyze_equilibrio_cerbasi(fluxo)
 
-    tarefas_parsed, tarefas_status_parsed = parse_tarefas_md()
-    programa_milhas = parse_milhas_md()
+    tarefas_parsed, tarefas_status_parsed = parse_tarefas_md(tarefas_content)
+    programa_milhas = parse_milhas_md(milhas_content)
 
     # 5. Sanity checks (paridade com main() legado linhas 2489-2523).
     warnings = run_sanity_checks(

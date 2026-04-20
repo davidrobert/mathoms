@@ -105,7 +105,12 @@ def load_family_config() -> dict:
 
 
 def load_methodology() -> str:
-    """Load methodology.md content for persona reference."""
+    """Shell loader: lê ``METHODOLOGY_PATH`` se existir, senão string vazia.
+
+    A6d.2: esta é a única função que toca disco para metodologia; o parser
+    puro :func:`extract_persona_from_methodology` consome o conteúdo como
+    parâmetro. Separação shell↔parser já estava correta — documentada aqui.
+    """
     if METHODOLOGY_PATH.exists():
         with open(METHODOLOGY_PATH, "r", encoding="utf-8") as f:
             return f.read()
