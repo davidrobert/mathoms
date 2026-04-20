@@ -807,7 +807,8 @@
         "title": "Body_upload_task_attachment_api_workspaces__workspace_id__tasks__task_id__attachments_post",
         "type": "object"
       },
-      "CategoryCreateRequest": {
+      "CategoryCreateCommand": {
+        "description": "Input do ``POST /categories``.",
         "properties": {
           "category_type": {
             "pattern": "^(expense|income)$",
@@ -857,14 +858,15 @@
           "name",
           "category_type"
         ],
-        "title": "CategoryCreateRequest",
+        "title": "CategoryCreateCommand",
         "type": "object"
       },
       "CategoryListResponse": {
+        "description": "Wrapper pagina\u00e7\u00e3o-ready para ``GET /categories``.",
         "properties": {
           "categories": {
             "items": {
-              "$ref": "#/components/schemas/CategorySchema"
+              "$ref": "#/components/schemas/CategoryResponse"
             },
             "title": "Categories",
             "type": "array"
@@ -881,16 +883,17 @@
         "title": "CategoryListResponse",
         "type": "object"
       },
-      "CategorySchema": {
-        "description": "A categorization category with its keywords.",
+      "CategoryResponse": {
+        "description": "Categoria de classifica\u00e7\u00e3o com suas keywords.",
         "properties": {
           "category_type": {
+            "description": "Tipo \u2014 'expense' (despesa) ou 'income' (receita).",
             "pattern": "^(expense|income)$",
             "title": "Category Type",
             "type": "string"
           },
           "code": {
-            "description": "Unique code (e.g. 'moradia', 'receita_pj')",
+            "description": "C\u00f3digo can\u00f4nico \u00fanico no workspace (ex.: 'moradia', 'receita_pj').",
             "maxLength": 50,
             "minLength": 1,
             "title": "Code",
@@ -924,7 +927,7 @@
                 "type": "null"
               }
             ],
-            "description": "Monthly spending cap for budgeting alerts",
+            "description": "Teto mensal de gasto (alertas de or\u00e7amento).",
             "title": "Monthly Cap"
           },
           "name": {
@@ -945,10 +948,11 @@
           "name",
           "category_type"
         ],
-        "title": "CategorySchema",
+        "title": "CategoryResponse",
         "type": "object"
       },
-      "CategoryUpdateRequest": {
+      "CategoryUpdateCommand": {
+        "description": "Input do ``PUT /categories/{id}`` \u2014 campos opcionais (partial update).\n\nPara ``keywords``:\n\n- ``None`` / ausente \u2192 n\u00e3o altera a lista existente.\n- ``[]`` \u2192 **apaga** todas as keywords.\n- lista com itens \u2192 **substitui** a lista inteira pelos itens novos.",
         "properties": {
           "category_type": {
             "anyOf": [
@@ -1027,7 +1031,7 @@
             "title": "Order"
           }
         },
-        "title": "CategoryUpdateRequest",
+        "title": "CategoryUpdateCommand",
         "type": "object"
       },
       "ConfigExportResponse": {
@@ -6610,7 +6614,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CategoryCreateRequest"
+                "$ref": "#/components/schemas/CategoryCreateCommand"
               }
             }
           },
@@ -6621,7 +6625,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategorySchema"
+                  "$ref": "#/components/schemas/CategoryResponse"
                 }
               }
             },
@@ -6723,7 +6727,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CategoryUpdateRequest"
+                "$ref": "#/components/schemas/CategoryUpdateCommand"
               }
             }
           },
@@ -6734,7 +6738,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategorySchema"
+                  "$ref": "#/components/schemas/CategoryResponse"
                 }
               }
             },
