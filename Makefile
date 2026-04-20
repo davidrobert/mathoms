@@ -93,7 +93,7 @@ smoke-dirs:
 # Dev helpers
 # ---------------------------------------------------------------------------
 
-.PHONY: test lint format check-boundaries update-openapi-snapshot
+.PHONY: test lint format check-boundaries update-openapi-snapshot update-db-schema-reference
 
 ## test: Roda pytest com cobertura
 test:
@@ -120,3 +120,9 @@ update-openapi-snapshot:
 	    print(json.dumps(app.openapi(), indent=2, sort_keys=True))' \
 	  > docs/api/v1/openapi.json
 	@echo "✓ docs/api/v1/openapi.json regenerado. Comite o diff."
+
+## update-db-schema-reference: Regenera docs/DB_SCHEMA_REFERENCE.md a partir de Base.metadata (A6f.4 · ADR-102 R20)
+update-db-schema-reference:
+	@MATHOMS_FERNET_KEY=$${MATHOMS_FERNET_KEY:-NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=} \
+	  $(PYTHON) dev/generate_db_schema_reference.py > docs/DB_SCHEMA_REFERENCE.md
+	@echo "✓ docs/DB_SCHEMA_REFERENCE.md regenerado. Comite o diff."
