@@ -146,14 +146,9 @@ class CategoryRepository:
             category_type=category_type,
             monthly_cap=monthly_cap,
             order=order,
+            keywords=[CategoryKeyword(keyword=kw) for kw in (keywords or [])],
         )
         self._session.add(cat)
-        await self._session.flush()
-
-        for kw_text in keywords or []:
-            self._session.add(
-                CategoryKeyword(category_id=cat.id, keyword=kw_text)
-            )
         await self._session.commit()
 
         # Refresh com keywords eager para manter invariante (agregado completo).
@@ -197,31 +192,40 @@ class CategoryRepository:
     async def delete(self, category: Category) -> None:
         """Remove a categoria e suas keywords.
 
-        Apaga keywords explicitamente antes da categoria — não depende de
-        ``ondelete='CASCADE'`` (inativo em SQLite de testes) nem de
-        ``cascade='all, delete-orphan'`` (exige keywords eager).
+        Apaga keywords explicitamente via SQL bulk antes da categoria — não
+        depende de ``ondelete='CASCADE'`` (inativo em SQLite de testes) nem
+        de ``cascade='all, delete-orphan'`` (exige keywords eager). Depois
+        expira o estado da sessão para evitar conflito do identity map com
+        o cascade orphan declarado no relationship.
         """
         await self._session.execute(
             sql_delete(CategoryKeyword).where(
                 CategoryKeyword.category_id == category.id
             )
         )
+        # Expira as keywords do identity map: o bulk DELETE acima removeu as
+        # rows e, sem isso, o cascade orphan re-emite DELETEs que não casam
+        # com 0 rows (warning ruidoso, mas inofensivo).
+        self._session.expire(category, ["keywords"])
         await self._session.delete(category)
         await self._session.commit()
 
     async def delete_all_in_workspace(self, workspace_id: str) -> int:
         """Remove todas as categorias de um workspace. Usado em import/replace.
 
-        Keywords são deletadas antes via SQL bulk para evitar N queries. Não
+        Carrega cada categoria **com keywords eager** antes do delete para
+        que o cascade ``delete-orphan`` declarado no relationship remova as
+        keywords naturalmente — evita o conflito identity-map/bulk-SQL que
+        emite ``SAWarning: DELETE expected N rows, 0 were matched``. Não
         faz commit — deixa a cargo do caller (padrão do
         ``_import_categorization`` que chama delete + create em uma só txn).
         """
         cats = (
             (
                 await self._session.execute(
-                    select(Category).where(
-                        Category.workspace_id == workspace_id
-                    )
+                    select(Category)
+                    .where(Category.workspace_id == workspace_id)
+                    .options(selectinload(Category.keywords))
                 )
             )
             .scalars()
@@ -229,11 +233,6 @@ class CategoryRepository:
         )
         count = 0
         for cat in cats:
-            await self._session.execute(
-                sql_delete(CategoryKeyword).where(
-                    CategoryKeyword.category_id == cat.id
-                )
-            )
             await self._session.delete(cat)
             count += 1
         await self._session.flush()
@@ -248,16 +247,18 @@ class CategoryRepository:
     ) -> None:
         """Substitui todas as keywords da categoria pelo conteúdo de ``keywords``.
 
-        Usado em PUT /categories/{id} quando caller quer semântica de replace
-        total. Não faz commit — o caller (``update``) decide o boundary.
+        Pré-condição: ``category.keywords`` já está eager-loaded (caller
+        obteve o agregado via :meth:`get_by_id_with_keywords` ou
+        :meth:`create`). Implementação opera na coleção ORM para acionar
+        o cascade ``delete-orphan`` declarado no relationship — isso evita
+        conflitos de identity map que surgem ao fazer bulk SQL DELETE em
+        coleções com cascade.
+
+        Não faz commit — o caller (``update``) decide o boundary
+        transacional.
         """
-        await self._session.execute(
-            sql_delete(CategoryKeyword).where(
-                CategoryKeyword.category_id == category.id
-            )
-        )
-        await self._session.flush()
+        # ``clear()`` marca os antigos como orphans → delete-orphan remove.
+        category.keywords.clear()
         for kw_text in keywords:
-            self._session.add(
-                CategoryKeyword(category_id=category.id, keyword=kw_text)
-            )
+            category.keywords.append(CategoryKeyword(keyword=kw_text))
+        await self._session.flush()
