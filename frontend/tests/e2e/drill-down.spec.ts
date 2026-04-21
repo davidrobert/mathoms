@@ -39,8 +39,11 @@ test.describe("Drill-down Dashboard → Transactions", () => {
     await ensureLoggedIn(page, request, info);
     await page.goto("/dashboard");
     // Dashboard pode mostrar empty state (sem pipeline rodou) ou KPIs
-    await expect(page.getByText(/Dashboard|Nenhuma análise disponível/)).toBeVisible(
-      { timeout: 10_000 },
-    );
+    // Usar heading (single match) — "Dashboard" aparece no nav link + heading.
+    await expect(
+      page
+        .getByRole("heading", { name: "Dashboard" })
+        .or(page.getByText("Nenhuma análise disponível")),
+    ).toBeVisible({ timeout: 10_000 });
   });
 });

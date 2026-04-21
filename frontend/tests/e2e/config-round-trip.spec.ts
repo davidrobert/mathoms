@@ -14,7 +14,9 @@ test.describe("Config round-trip", () => {
     await ensureLoggedIn(page, request, info);
 
     await page.goto("/config");
-    await expect(page.getByText("Configurações")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Configurações" }),
+    ).toBeVisible();
 
     // Abre tab Membros (default, mas garantindo)
     await page.getByRole("tab", { name: /Membros/ }).click();

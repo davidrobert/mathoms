@@ -13,7 +13,7 @@ import { test, expect } from "@playwright/test";
 const STAMP = Date.now();
 
 test.describe("Onboarding @critical", () => {
-  test("happy path: registro → login automático → /documents", async ({ page }) => {
+  test("happy path: registro → login automático → /plano", async ({ page }) => {
     const email = `onboarding-${STAMP}@test.com`;
     await page.goto("/register");
 
@@ -22,9 +22,9 @@ test.describe("Onboarding @critical", () => {
     await page.getByLabel(/senha/i).fill("SenhaForte123!");
     await page.getByRole("button", { name: /criar conta/i }).click();
 
-    // Redirecionamento para /documents
-    await expect(page).toHaveURL(/\/documents/, { timeout: 10_000 });
-    await expect(page.getByText("Documentos")).toBeVisible();
+    // Default pós-login é /plano (ver lib/nextUrl.ts)
+    await expect(page).toHaveURL(/\/plano/, { timeout: 10_000 });
+    await expect(page.getByText(/Meu Plano|Plano de vida/)).toBeVisible();
   });
 
   test("email duplicado mostra mensagem clara", async ({ page, request }) => {
