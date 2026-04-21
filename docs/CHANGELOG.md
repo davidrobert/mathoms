@@ -8,6 +8,27 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.5 — tests sweep Tier 3 (2026-04-21):** Decomposição das 3
+  fixtures in-scope >30 linhas via helpers privados nomeados. Zero
+  mudança semântica; mesmo contador de tests.
+  - `tenants` (69 → 11 linhas) em `test_multi_tenant_isolation.py`:
+    `_TenantSpec` dataclass congelado + `_TENANT_A`/`_TENANT_B`
+    constantes + helper `_seed_full_tenant(db, spec)`. Elimina
+    duplicação ~30 linhas entre tenants A e B.
+  - `workspace_with_run` (70 → 24 linhas) em `test_pipeline_task.py`:
+    split em `_build_file_backed_engines(db_file)` (cria async+sync
+    engines + metadata no mesmo SQLite file) e `_seed_pending_run`
+    (user+workspace+run). Fixture body agora só orquestra.
+  - `golden_workspace` (70 → 12 linhas) em `test_golden_pipeline.py`:
+    split em 3 helpers com responsabilidade única
+    (`_seed_golden_user_and_workspace`,
+    `_seed_golden_titular_with_account`,
+    `_seed_golden_categories_with_keywords`).
+
+  Suítes: `pytest backend/tests` 926 passed/4 skipped (baseline
+  preservado). A6g.5 agora entrega Tiers 1 + 2 + 3 — Tier 4 (split de
+  arquivos >500 linhas) segue opcional e fora do escopo executado.
+
 - **A6g.5 — tests sweep Tier 1 + 2 (2026-04-21):** Aplicação do `§Code
   style › Testes` aos arquivos não-golden de `backend/tests/` +
   `tests/unit/pipeline/`. Zero lógica de negócio tocada.
@@ -30,11 +51,10 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     `TestClassifyFileWithInjectedExtractor.test_happy_path` →
     `test_classifies_from_injected_extractor_content`;
     `TestTemporalGapConfig.test_default` → `test_default_tolerance_is_4_days`.
-  - **Tier 3 (fixtures >30l)** não entregue — baseline só tem 3
-    fixtures in-scope acima do limiar (abaixo do threshold ≥5 que o
-    prompt exigia). `tenants` em `test_multi_tenant_isolation.py`,
-    `workspace_with_run` em `test_pipeline_task.py` e `golden_workspace`
-    em `test_golden_pipeline.py` ficam para follow-up.
+  - **Tier 3 (fixtures >30l)** — inicialmente adiada (só 3 fixtures
+    in-scope, abaixo do threshold ≥5 do prompt); entregue na mesma
+    data em commit separado (ver entrada "A6g.5 — tests sweep Tier 3"
+    acima).
   - **Fora de escopo (inalterado):** 16 arquivos golden/paridade,
     `tests/fixtures/**` (A6g.2), `frontend/tests/**` (A6g.4),
     enforcement em pre-commit (A6g.6). Suítes: `pytest backend/tests`
