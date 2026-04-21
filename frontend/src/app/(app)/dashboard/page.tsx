@@ -44,22 +44,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import Link from "next/link";
 
-// ─── Chart Palette ───
+// ─── Chart Palette — ADR-076 (tokens.json → --chart-1..12) ───
 
-const CHART_COLORS = [
-  "#3b82f6",
-  "#22c55e",
-  "#ef4444",
-  "#f59e0b",
-  "#8b5cf6",
-  "#06b6d4",
-  "#ec4899",
-  "#6366f1",
-  "#14b8a6",
-  "#f97316",
-  "#64748b",
-  "#84cc16",
-];
+const CHART_COLORS = Array.from({ length: 12 }, (_, i) => `var(--chart-${i + 1})`);
 
 const KPI_ICONS: LucideIcon[] = [TrendingUp, Wallet, PiggyBank, ArrowUpDown];
 
