@@ -5,16 +5,17 @@
 ``ReportLayout`` (A6e.4) delegam persistência aos respectivos repositórios
 (``FamilyMemberRepository`` / ``CategoryRepository`` /
 ``ConfigBlobRepository``) e retornam DTOs de
-``schemas/dto/{family_member,category,config_blob}/``. Helpers de import/
-export ainda chamam acesso direto ao ORM para membros e categorias —
-migram em A6e.5+.
+``schemas/dto/{family_member,category,config_blob}/``.
+
+**A6e.3 slice 1** — CRUD de ``FamilyMember`` + ``BankAccount`` migrou para
+``backend/app/api/family_members.py`` (router fino delegando a use cases
+em ``backend/app/application/family_member/``). Helpers ``_import_family_members``
+/ ``_export_family_members`` usam o repo — sem ``select(FamilyMember)`` aqui.
 """
 
 from __future__ import annotations
 
 import json
-import re
-import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -29,7 +30,6 @@ from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.category import Category, CategoryKeyword
 from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
-from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.workspace import Workspace
 from backend.app.repositories.category_repository import CategoryRepository
 from backend.app.repositories.config_blob_repository import ConfigBlobRepository
@@ -66,17 +66,6 @@ from backend.app.schemas.dto.category import (
 from backend.app.schemas.dto.category import (
     count_defaults as count_category_defaults,
 )
-from backend.app.schemas.dto.family_member import (
-    BankAccountCreateCommand,
-    BankAccountResponse,
-    BankAccountUpdateCommand,
-    FamilyMemberCreateCommand,
-    FamilyMemberListResponse,
-    FamilyMemberResponse,
-    FamilyMemberUpdateCommand,
-    convert_global_defaults_to_responses,
-    member_to_response,
-)
 from backend.app.services.vault import get_vault
 
 router = APIRouter(
@@ -85,13 +74,6 @@ router = APIRouter(
 )
 
 _vault = get_vault()
-
-
-def _get_member_repo(
-    db: AsyncSession = Depends(get_db),
-) -> FamilyMemberRepository:
-    """DI helper — injeta o repositório no endpoint."""
-    return FamilyMemberRepository(db)
 
 
 def _get_category_repo(
@@ -112,54 +94,9 @@ def _get_config_blob_repo(
     return ConfigBlobRepository(db)
 
 
-def _slug_member_key_from_full_name(full_name: str, max_len: int = 50) -> str:
-    s = unicodedata.normalize("NFKD", (full_name or "").strip().lower())
-    s = "".join(c for c in s if not unicodedata.combining(c))
-    s = re.sub(r"[^a-z0-9]+", "_", s)
-    s = s.strip("_") or "membro"
-    if len(s) > max_len:
-        s = s[:max_len].rstrip("_") or "membro"
-    return s
-
-
-async def _allocate_unique_member_key(
-    repo: FamilyMemberRepository,
-    workspace_id: str,
-    base: str,
-    max_len: int = 50,
-) -> str:
-    base = (base or "membro")[:max_len].rstrip("_") or "membro"
-    for n in range(0, 10_000):
-        candidate = base if n == 0 else f"{base}_{n}"
-        if len(candidate) > max_len:
-            candidate = candidate[:max_len]
-        if not await repo.key_exists(workspace_id, candidate):
-            return candidate
-    raise HTTPException(
-        status_code=500,
-        detail="Não foi possível gerar um identificador interno único; tente informar o identificador manualmente.",
-    )
-
-
-def _extra_with_birth_name(
-    current: dict[str, Any] | None,
-    birth_name: str | None,
-) -> dict[str, Any] | None:
-    """Aplica ``birth_name`` ao dict ``extra``, preservando outras chaves.
-
-    - ``birth_name`` ``None`` **não muda** extra (campo ausente = sem update).
-    - ``birth_name`` string não-vazia → seta ``extra['nome_nascimento']``.
-    - ``birth_name`` string vazia ou só-whitespace → remove ``nome_nascimento``.
-    """
-    extra = dict(current or {})
-    if birth_name is None:
-        return extra or None
-    s = birth_name.strip()
-    if s:
-        extra["nome_nascimento"] = s
-    else:
-        extra.pop("nome_nascimento", None)
-    return extra or None
+def _get_family_repo(db: AsyncSession = Depends(get_db)) -> FamilyMemberRepository:
+    """DI helper — usado apenas por import/export (CRUD migrou para family_members.py)."""
+    return FamilyMemberRepository(db)
 
 
 # =============================================================================
@@ -216,197 +153,6 @@ async def update_workspace_settings(
     await db.commit()
     await db.refresh(workspace)
     return WorkspaceSettingsSchema(name=workspace.name, family_surname=workspace.family_surname)
-
-
-# =============================================================================
-# Family Members — CRUD (3B.1)
-# =============================================================================
-
-
-@router.get("/members", response_model=FamilyMemberListResponse)
-async def list_members(
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: FamilyMemberRepository = Depends(_get_member_repo),
-):
-    members = await repo.list_by_workspace(workspace.id)
-    if members:
-        responses = [member_to_response(m, vault=_vault) for m in members]
-        return FamilyMemberListResponse(members=responses, total=len(responses))
-
-    defaults = _load_global_json("family_members.json")
-    return FamilyMemberListResponse(
-        members=convert_global_defaults_to_responses(defaults),
-        total=len(defaults.get("membros", {})),
-    )
-
-
-@router.post("/members", response_model=FamilyMemberResponse, status_code=status.HTTP_201_CREATED)
-async def create_member(
-    body: FamilyMemberCreateCommand,
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: FamilyMemberRepository = Depends(_get_member_repo),
-):
-    if body.key:
-        if await repo.key_exists(workspace.id, body.key):
-            raise HTTPException(
-                status_code=409,
-                detail=f"Já existe um membro com o identificador interno '{body.key}' neste workspace",
-            )
-        key = body.key
-    else:
-        slug = _slug_member_key_from_full_name(body.full_name)
-        key = await _allocate_unique_member_key(repo, workspace.id, slug)
-
-    extra = _extra_with_birth_name(body.extra, body.birth_name)
-    cpf_enc = _vault.encrypt(body.cpf) if body.cpf else None
-
-    member = await repo.create(
-        workspace.id,
-        key=key,
-        full_name=body.full_name,
-        short_name=body.short_name,
-        role=body.role,
-        order=body.order,
-        cpf_encrypted=cpf_enc,
-        birth_date=body.birth_date,
-        extra=extra,
-    )
-    return member_to_response(member, vault=_vault)
-
-
-@router.put("/members/{member_id}", response_model=FamilyMemberResponse)
-async def update_member(
-    member_id: str,
-    body: FamilyMemberUpdateCommand,
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: FamilyMemberRepository = Depends(_get_member_repo),
-):
-    member = await repo.get_by_id_with_accounts(workspace.id, member_id)
-    if not member:
-        raise HTTPException(status_code=404, detail="Membro não encontrado")
-
-    update_data = body.model_dump(exclude_unset=True)
-
-    # Derivações que o repo não faz (vault, extra.nome_nascimento, key collision).
-    if "cpf" in update_data:
-        cpf_val = update_data.pop("cpf")
-        update_data["cpf_encrypted"] = _vault.encrypt(cpf_val) if cpf_val else None
-    if "birth_name" in update_data:
-        birth_val = update_data.pop("birth_name")
-        update_data["extra"] = _extra_with_birth_name(member.extra, birth_val)
-    if update_data.get("key") is None:
-        update_data.pop("key", None)
-    new_key = update_data.get("key")
-    if new_key is not None and new_key != member.key:
-        if await repo.key_exists(workspace.id, new_key, exclude_id=member_id):
-            raise HTTPException(
-                status_code=409,
-                detail=f"Já existe um membro com o identificador interno '{new_key}' neste workspace",
-            )
-
-    updated = await repo.update(member, updates=update_data)
-    return member_to_response(updated, vault=_vault)
-
-
-@router.delete("/members/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_member(
-    member_id: str,
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: FamilyMemberRepository = Depends(_get_member_repo),
-):
-    member = await repo.get_by_id(workspace.id, member_id)
-    if not member:
-        raise HTTPException(status_code=404, detail="Membro não encontrado")
-    await repo.delete(member)
-
-
-# =============================================================================
-# Bank Accounts — CRUD nested under members (3B.2)
-# =============================================================================
-
-
-@router.get("/members/{member_id}/accounts", response_model=list[BankAccountResponse])
-async def list_accounts(
-    member_id: str,
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: FamilyMemberRepository = Depends(_get_member_repo),
-):
-    await _ensure_member(repo, workspace.id, member_id)
-    accounts = await repo.list_accounts(member_id)
-    return [BankAccountResponse.model_validate(a) for a in accounts]
-
-
-@router.post(
-    "/members/{member_id}/accounts",
-    response_model=BankAccountResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_account(
-    member_id: str,
-    body: BankAccountCreateCommand,
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: FamilyMemberRepository = Depends(_get_member_repo),
-):
-    await _ensure_member(repo, workspace.id, member_id)
-    account = await repo.add_account(
-        member_id,
-        institution_code=body.institution_code,
-        account_type=body.account_type,
-        agency=body.agency,
-        account_number=body.account_number,
-        label=body.label,
-    )
-    return BankAccountResponse.model_validate(account)
-
-
-@router.put("/members/{member_id}/accounts/{account_id}", response_model=BankAccountResponse)
-async def update_account(
-    member_id: str,
-    account_id: str,
-    body: BankAccountUpdateCommand,
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: FamilyMemberRepository = Depends(_get_member_repo),
-):
-    await _ensure_member(repo, workspace.id, member_id)
-    account = await repo.get_account(member_id, account_id)
-    if not account:
-        raise HTTPException(status_code=404, detail="Conta bancária não encontrada")
-    updated = await repo.update_account(
-        account,
-        institution_code=body.institution_code,
-        account_type=body.account_type,
-        agency=body.agency,
-        account_number=body.account_number,
-        label=body.label,
-    )
-    return BankAccountResponse.model_validate(updated)
-
-
-@router.delete(
-    "/members/{member_id}/accounts/{account_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
-async def delete_account(
-    member_id: str,
-    account_id: str,
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: FamilyMemberRepository = Depends(_get_member_repo),
-):
-    await _ensure_member(repo, workspace.id, member_id)
-    account = await repo.get_account(member_id, account_id)
-    if not account:
-        raise HTTPException(status_code=404, detail="Conta bancária não encontrada")
-    await repo.delete_account(account)
-
-
-async def _ensure_member(
-    repo: FamilyMemberRepository, workspace_id: str, member_id: str
-) -> FamilyMember:
-    """Valida que o membro existe e pertence ao workspace; caso contrário 404."""
-    member = await repo.get_by_id(workspace_id, member_id)
-    if not member:
-        raise HTTPException(status_code=404, detail="Membro não encontrado")
-    return member
 
 
 # =============================================================================
@@ -600,11 +346,12 @@ async def import_config(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
     blob_repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
+    family_repo: FamilyMemberRepository = Depends(_get_family_repo),
 ) -> ConfigImportResponse:
     imported: list[str] = []
 
     if body.family_members:
-        await _import_family_members(workspace.id, body.family_members, db)
+        await _import_family_members(workspace.id, body.family_members, db, family_repo)
         imported.append("family_members")
 
     if body.categorization:
@@ -632,9 +379,10 @@ async def export_config(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
     blob_repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
+    family_repo: FamilyMemberRepository = Depends(_get_family_repo),
 ):
 
-    members_data = await _export_family_members(workspace.id, db)
+    members_data = await _export_family_members(workspace.id, db, family_repo)
     categorization_data = await _export_categorization(workspace.id, db)
     pipeline_data = await _export_blob_or_default(
         blob_repo, workspace.id, PipelineConfig, "pipeline.json", yaml_source=False
@@ -660,19 +408,24 @@ async def export_config(
 # =============================================================================
 
 
-async def _import_family_members(ws_id: str, data: dict[str, Any], db: AsyncSession) -> None:
-    await db.execute(select(FamilyMember).where(FamilyMember.workspace_id == ws_id))
-    existing = (await db.execute(select(FamilyMember).where(FamilyMember.workspace_id == ws_id))).scalars().all()
-    for m in existing:
-        await db.delete(m)
-    await db.flush()
+async def _import_family_members(
+    ws_id: str,
+    data: dict[str, Any],
+    db: AsyncSession,
+    repo: FamilyMemberRepository,
+) -> None:
+    await repo.delete_all_in_workspace(ws_id)
 
-    family_surname = data.get("familia", {}).get("sobrenome") if isinstance(data.get("familia"), dict) else None
+    family_surname = (
+        data.get("familia", {}).get("sobrenome")
+        if isinstance(data.get("familia"), dict)
+        else None
+    )
     if family_surname is not None:
         ws_result = await db.execute(select(Workspace).where(Workspace.id == ws_id))
         ws = ws_result.scalar_one_or_none()
         if ws is not None:
-            ws.family_surname = family_surname or None  # empty string → None
+            ws.family_surname = family_surname or None
 
     membros = data.get("membros", {})
     banco_membro = data.get("banco_membro", {})
@@ -686,20 +439,23 @@ async def _import_family_members(ws_id: str, data: dict[str, Any], db: AsyncSess
         extra = {k: v for k, v in info.items() if k not in (
             "nome_completo", "nome_curto", "cpf", "data_nascimento", "papel"
         )}
-        member = FamilyMember(
-            workspace_id=ws_id, key=key,
+        member = await repo.create(
+            ws_id,
+            key=key,
             full_name=info.get("nome_completo", key),
             short_name=info.get("nome_curto", key),
             cpf_encrypted=cpf_enc,
             birth_date=info.get("data_nascimento"),
             role=info.get("papel", "titular"),
-            order=order, extra=extra or None,
+            order=order,
+            extra=extra or None,
         )
-        db.add(member)
-        await db.flush()
-
         for bank_code in account_map.get(key, []):
-            db.add(BankAccount(member_id=member.id, institution_code=bank_code, account_type="extratoconta"))
+            await repo.add_account(
+                member.id,
+                institution_code=bank_code,
+                account_type="extratoconta",
+            )
 
 
 async def _import_categorization(ws_id: str, data: dict[str, Any], db: AsyncSession) -> None:
@@ -753,14 +509,12 @@ async def _export_blob_or_default(
 # =============================================================================
 
 
-async def _export_family_members(ws_id: str, db: AsyncSession) -> dict[str, Any]:
-    result = await db.execute(
-        select(FamilyMember)
-        .where(FamilyMember.workspace_id == ws_id)
-        .options(selectinload(FamilyMember.accounts))
-        .order_by(FamilyMember.order)
-    )
-    members = result.scalars().all()
+async def _export_family_members(
+    ws_id: str,
+    db: AsyncSession,
+    repo: FamilyMemberRepository,
+) -> dict[str, Any]:
+    members = await repo.list_by_workspace(ws_id)
 
     ws_result = await db.execute(select(Workspace).where(Workspace.id == ws_id))
     workspace = ws_result.scalar_one_or_none()

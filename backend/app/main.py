@@ -10,9 +10,15 @@ os.environ.setdefault("MATHOMS_WORKSPACE_ROOT", str(_repo_root))
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from backend.app.application.base.errors import (
+    ConflictError,
+    NotFoundError,
+    ValidationError as DomainValidationError,
+)
 from backend.app.core.config import settings
 from backend.app.core.database import init_db
 from backend.app.core.logging import setup_logging
@@ -24,6 +30,7 @@ from backend.app.api.vault import router as vault_router
 from backend.app.api.documents import router as documents_router
 from backend.app.api.pipeline import router as pipeline_router
 from backend.app.api.config import router as config_router
+from backend.app.api.family_members import router as family_members_router
 from backend.app.api.llm import router as llm_router
 from backend.app.api.ws import router as ws_router
 from backend.app.api.transactions import router as transactions_router
@@ -70,12 +77,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# A6e.3 · ADR-101 R15 — use cases levantam erros de domínio tipados;
+# tradução para HTTP acontece aqui, não em cada router.
+@app.exception_handler(NotFoundError)
+async def _handle_not_found(request: Request, exc: NotFoundError) -> JSONResponse:
+    return JSONResponse(status_code=404, content={"detail": str(exc)})
+
+
+@app.exception_handler(ConflictError)
+async def _handle_conflict(request: Request, exc: ConflictError) -> JSONResponse:
+    return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+
+@app.exception_handler(DomainValidationError)
+async def _handle_validation(
+    request: Request, exc: DomainValidationError
+) -> JSONResponse:
+    return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+
 app.include_router(auth_router, prefix=settings.API_PREFIX)
 app.include_router(reports_router, prefix=settings.API_PREFIX)
 app.include_router(vault_router, prefix=settings.API_PREFIX)
 app.include_router(documents_router, prefix=settings.API_PREFIX)
 app.include_router(pipeline_router, prefix=settings.API_PREFIX)
 app.include_router(config_router, prefix=settings.API_PREFIX)
+app.include_router(family_members_router, prefix=settings.API_PREFIX)
 app.include_router(llm_router, prefix=settings.API_PREFIX)
 app.include_router(ws_router, prefix=settings.API_PREFIX)
 app.include_router(transactions_router, prefix=settings.API_PREFIX)
