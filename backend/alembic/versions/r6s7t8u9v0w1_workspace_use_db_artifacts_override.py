@@ -25,17 +25,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    with op.batch_alter_table("workspaces") as batch_op:
-        batch_op.add_column(
-            sa.Column(
-                "use_db_artifacts_override",
-                sa.Boolean(),
-                nullable=True,
-                server_default=sa.text("NULL"),
-            )
-        )
+    op.add_column(
+        "workspaces",
+        sa.Column("use_db_artifacts_override", sa.Boolean(), nullable=True),
+    )
 
 
 def downgrade() -> None:
-    with op.batch_alter_table("workspaces") as batch_op:
-        batch_op.drop_column("use_db_artifacts_override")
+    op.drop_column("workspaces", "use_db_artifacts_override")
