@@ -353,6 +353,335 @@ def _on_pipeline_task_failure(self, exc, task_id, args, kwargs, einfo):
     soft_time_limit=3000,
     on_failure=_on_pipeline_task_failure,
 )
+def _bootstrap_pipeline_sys_path() -> None:
+    """Garante que `pipeline.*` seja importável no worker Celery."""
+    import sys
+    _root = str(Path(__file__).resolve().parent.parent.parent.parent)
+    if _root not in sys.path:
+        sys.path.insert(0, _root)
+
+
+def _setup_run_context(
+    run_id: str, ws_id: str, tenant_root: Path, config_dir: Path,
+    incremental: bool, incremental_doc_paths: list[str] | None,
+):
+    """Cria WorkspaceContext + opcional DBArtifactStore session.
+
+    Também seta ``MATHOMS_WORKSPACE_ROOT`` para scripts E0–E7 lazy-imported.
+    Retorna ``(ctx, artifact_session)`` — artifact_session é None quando a
+    flag DB está desligada.
+    """
+    import os
+
+    from pipeline.context import WorkspaceContext
+
+    ctx = WorkspaceContext.for_tenant(
+        tenant_root, config_dir=config_dir, pipeline_run_id=run_id
+    )
+    ctx.incremental = incremental
+    ctx.incremental_doc_paths = incremental_doc_paths or []
+    ctx.ensure_dirs()
+
+    # A6b (ADR-106): injetar DBArtifactStore quando flag ativa.
+    # Abre sessão de longa duração para o store; commits após cada stage.
+    # Session é fechada em _close_artifact_session — stages não gerenciam sua própria sessão.
+    artifact_session = None
+    if _resolve_use_db_artifacts(ws_id):
+        from backend.app.services.db_artifact_store import DBArtifactStore
+
+        artifact_session = SyncSessionLocal()
+        ctx.artifact_store = DBArtifactStore(
+            artifact_session, workspace_id=ws_id, pipeline_run_id=run_id
+        )
+        logger.info(
+            "pipeline_start using DBArtifactStore for run_id=%s ws_id=%s", run_id, ws_id
+        )
+
+    # Lazy-imported scripts (E0–E7) load pipeline_common — tenant-scoped paths.
+    os.environ["MATHOMS_WORKSPACE_ROOT"] = str(tenant_root.resolve())
+    return ctx, artifact_session
+
+
+def _mark_run_started(run_id: str, tier: str, celery_task_id: str) -> bool:
+    """Muda ``PipelineRun.status`` para ``running``. Retorna ``False`` se
+    o run não existe — caller deve abortar."""
+    with SyncSessionLocal() as db:
+        run = db.get(PipelineRun, run_id)
+        if not run:
+            return False
+        run.status = PipelineRunStatus.running
+        run.tier_at_run = tier
+        run.celery_task_id = celery_task_id
+        db.commit()
+    return True
+
+
+def _record_stage_skip(
+    run_id: str, stage_name: str, log_id: str,
+    stage_started_at, should_skip_free: bool, progress_pct: int,
+) -> None:
+    skip_status = (
+        PipelineStageStatus.skipped_free_tier if should_skip_free
+        else PipelineStageStatus.skipped
+    )
+    skip_reason = (
+        "LLM stage skipped — free tier (no API key)" if should_skip_free
+        else "LLM stage skipped"
+    )
+    with SyncSessionLocal() as db:
+        run = db.get(PipelineRun, run_id)
+        run.current_stage = stage_name
+        db.add(PipelineStageLog(
+            id=log_id, pipeline_run_id=run_id, stage=stage_name,
+            status=skip_status, started_at=stage_started_at,
+            completed_at=stage_started_at,
+            output_summary={"skipped": True, "reason": skip_reason},
+        ))
+        db.commit()
+    publish_stage_skipped(run_id, stage_name, skip_reason, progress_pct)
+
+
+def _record_stage_running(
+    run_id: str, stage_name: str, log_id: str, stage_started_at, progress_pct: int,
+) -> None:
+    with SyncSessionLocal() as db:
+        run = db.get(PipelineRun, run_id)
+        run.current_stage = stage_name
+        db.add(PipelineStageLog(
+            id=log_id, pipeline_run_id=run_id, stage=stage_name,
+            status=PipelineStageStatus.running, started_at=stage_started_at,
+        ))
+        db.commit()
+    publish_stage_started(run_id, stage_name, progress_pct)
+
+
+def _record_stage_exception(
+    run_id: str, stage_name: str, log_id: str, attempts: int,
+    exc_error: str | None, exc_tb: str | None, elapsed_ms: int, progress_pct: int,
+) -> None:
+    error_msg = (
+        f"{exc_error} (after {attempts} attempt(s))" if attempts > 1 else exc_error
+    )
+    with SyncSessionLocal() as db:
+        stage_log = db.get(PipelineStageLog, log_id)
+        stage_log.status = PipelineStageStatus.failed
+        stage_log.duration_ms = elapsed_ms
+        stage_log.completed_at = datetime.now(timezone.utc)
+        stage_log.errors = error_msg
+        stage_log.output_summary = {
+            "error_type": exc_error.split(":")[0].strip() if exc_error else "Exception",
+            "traceback": exc_tb,
+            "attempt_count": attempts,
+        }
+        run = db.get(PipelineRun, run_id)
+        run.failed_at_stage = stage_name
+        db.commit()
+    publish_stage_failed(run_id, stage_name, exc_error or "Unknown error", progress_pct)
+
+
+def _record_stage_needs_review(
+    run_id: str, stage_name: str, log_id: str, result, elapsed_ms: int,
+) -> None:
+    with SyncSessionLocal() as db:
+        stage_log = db.get(PipelineStageLog, log_id)
+        stage_log.status = PipelineStageStatus.needs_review
+        stage_log.duration_ms = elapsed_ms
+        stage_log.completed_at = datetime.now(timezone.utc)
+        stage_log.output_summary = result.detail
+        db.add(StageReview(
+            pipeline_run_id=run_id, stage=stage_name,
+            status=StageReviewStatus.pending,
+            original_output_json=result.detail,
+            validation_errors="\n".join(result.detail["validation"].get("errors", [])),
+        ))
+        run = db.get(PipelineRun, run_id)
+        run.status = PipelineRunStatus.needs_review
+        run.paused_at_stage = stage_name
+        run.current_stage = None
+        db.commit()
+    publish_needs_review(run_id, stage_name)
+
+
+def _record_stage_result(
+    run_id: str, stage_name: str, log_id: str, result,
+    elapsed_ms: int, completed_pct: int, artifact_session,
+) -> bool:
+    """Persiste resultado final do stage + publica evento. Retorna ``True``
+    se o stage completou com sucesso."""
+    with SyncSessionLocal() as db:
+        stage_log = db.get(PipelineStageLog, log_id)
+        stage_log.status = (
+            PipelineStageStatus.completed if result.success
+            else PipelineStageStatus.failed
+        )
+        stage_log.duration_ms = elapsed_ms
+        stage_log.completed_at = datetime.now(timezone.utc)
+        stage_log.output_summary = result.detail
+        if result.error:
+            stage_log.errors = result.error
+        db.commit()
+
+    if result.success:
+        # A6b: commit artefatos do stage antes de avançar para o próximo.
+        if artifact_session is not None:
+            artifact_session.commit()
+        publish_stage_completed(run_id, stage_name, completed_pct)
+        return True
+
+    publish_stage_failed(run_id, stage_name, result.error or "Unknown error", completed_pct)
+    with SyncSessionLocal() as db:
+        run = db.get(PipelineRun, run_id)
+        run.failed_at_stage = stage_name
+        db.commit()
+    return False
+
+
+def _has_validation_errors(result) -> bool:
+    return bool(
+        result.detail
+        and isinstance(result.detail, dict)
+        and isinstance(result.detail.get("validation"), dict)
+        and not result.detail["validation"].get("valid", True)
+    )
+
+
+def _execute_stages_loop(
+    ctx, stages: list[str], run_id: str,
+    skip_llm: bool, stop_on_error: bool, tier: str,
+    llm_stages, run_stage_fn, artifact_session,
+) -> tuple[bool, bool]:
+    """Executa o loop principal de stages.
+
+    Retorna ``(has_failure, paused_for_review)``.
+    """
+    has_failure = False
+    paused_for_review = False
+    total_stages = len(stages)
+
+    for stage_idx, stage_name in enumerate(stages):
+        if _is_cancelled(run_id):
+            publish_run_cancelled(run_id)
+            break
+
+        is_llm = stage_name in llm_stages
+        should_skip_llm = skip_llm and is_llm
+        should_skip_free = tier == "free" and is_llm and not skip_llm
+
+        log_id = str(uuid.uuid4())
+        stage_started_at = datetime.now(timezone.utc)
+        progress_pct = int((stage_idx / total_stages) * 100)
+
+        if should_skip_llm or should_skip_free:
+            _record_stage_skip(
+                run_id, stage_name, log_id, stage_started_at,
+                should_skip_free, progress_pct,
+            )
+            continue
+
+        _record_stage_running(run_id, stage_name, log_id, stage_started_at, progress_pct)
+
+        start_mono = time.monotonic()
+        result, attempts, exc_error, exc_tb = _run_stage_with_retry(ctx, stage_name, run_stage_fn)
+        elapsed_ms = int((time.monotonic() - start_mono) * 1000)
+        completed_pct = int(((stage_idx + 1) / total_stages) * 100)
+
+        # Exception during stage (all retries exhausted)
+        if result is None:
+            _record_stage_exception(
+                run_id, stage_name, log_id, attempts, exc_error, exc_tb,
+                elapsed_ms, progress_pct,
+            )
+            has_failure = True
+            if stop_on_error:
+                break
+            continue
+
+        if result.success and is_llm and _has_validation_errors(result):
+            _record_stage_needs_review(run_id, stage_name, log_id, result, elapsed_ms)
+            paused_for_review = True
+            break
+
+        succeeded = _record_stage_result(
+            run_id, stage_name, log_id, result, elapsed_ms, completed_pct, artifact_session,
+        )
+        if not succeeded:
+            has_failure = True
+            if stop_on_error:
+                break
+
+    return has_failure, paused_for_review
+
+
+def _finalize_run(run_id: str, has_failure: bool) -> None:
+    """Seta ``PipelineRun`` para ``completed`` ou ``failed`` e publica evento."""
+    with SyncSessionLocal() as db:
+        run = db.get(PipelineRun, run_id)
+        if run.status in (PipelineRunStatus.cancelled, PipelineRunStatus.needs_review):
+            return
+        if has_failure:
+            run.status = PipelineRunStatus.failed
+            publish_run_failed(run_id)
+        else:
+            run.status = PipelineRunStatus.completed
+            publish_run_completed(run_id)
+        run.completed_at = datetime.now(timezone.utc)
+        run.current_stage = None
+        db.commit()
+
+
+def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
+    """Passos pós-sucesso: sync documents, gerar report, persistir sugestões.
+
+    Cada passo é best-effort — falha só gera warning, não aborta o run.
+    """
+    import logging as _logging
+    post_logger = _logging.getLogger("pipeline_task.post")
+
+    try:
+        from backend.app.services.document_pipeline_sync import (
+            sync_documents_pipeline_e2_status,
+        )
+
+        with SyncSessionLocal() as db:
+            run_row = db.get(PipelineRun, run_id)
+            touch_ts = (
+                run_row.completed_at
+                if run_row and run_row.completed_at
+                else datetime.now(timezone.utc)
+            )
+        sync_documents_pipeline_e2_status(ws_id, tenant_root, touch_ts)
+    except Exception as exc:
+        post_logger.warning("Failed to sync document E2 status: %s", exc)
+
+    try:
+        _create_report_from_output(ws_id, run_id, tenant_root)
+    except Exception as exc:
+        post_logger.warning("Failed to create report from output: %s", exc)
+
+    # ADR-074 / F8.4: persiste tarefas_sugeridas do E5.N no DB
+    # (se existirem no JSON de análise).
+    try:
+        _persist_llm_suggestions(ws_id, run_id, tenant_root)
+    except Exception as exc:
+        post_logger.warning("Failed to persist LLM suggestions: %s", exc)
+
+
+def _close_artifact_session(artifact_session, run_id: str) -> None:
+    """Commit+close da sessão DBArtifactStore após todo o pipeline.
+
+    Cobre artefatos pendentes de stages em ``needs_review`` ou runs cancelados.
+    """
+    if artifact_session is None:
+        return
+    try:
+        artifact_session.commit()
+    except Exception:
+        artifact_session.rollback()
+    finally:
+        artifact_session.close()
+        logger.debug("artifact_session closed for run_id=%s", run_id)
+
+
 def run_pipeline_task(
     self,
     run_id: str,
@@ -372,53 +701,20 @@ def run_pipeline_task(
     - free tier: LLM stages auto-skipped
     - premium: LLM stages run; validation failures → StageReview + pause
     """
-    import os
-    import sys
-    _root = str(Path(__file__).resolve().parent.parent.parent.parent)
-    if _root not in sys.path:
-        sys.path.insert(0, _root)
-
-    from pipeline.context import WorkspaceContext
+    _bootstrap_pipeline_sys_path()
     from pipeline.orchestrator import LLM_STAGES, _run_stage
 
     tenant_root = Path(tenant_root_str)
     config_dir = Path(config_dir_str)
 
-    ctx = WorkspaceContext.for_tenant(
-        tenant_root, config_dir=config_dir, pipeline_run_id=run_id
+    ctx, artifact_session = _setup_run_context(
+        run_id, ws_id, tenant_root, config_dir, incremental, incremental_doc_paths,
     )
-    ctx.incremental = incremental
-    ctx.incremental_doc_paths = incremental_doc_paths or []
-    ctx.ensure_dirs()
-
-    # A6b (ADR-106): injetar DBArtifactStore quando flag ativa.
-    # Abre sessão de longa duração para o store; commits após cada stage.
-    # Session é fechada no finally abaixo — stages não gerenciam sua própria sessão.
-    _artifact_session = None
-    use_db = _resolve_use_db_artifacts(ws_id)
-    if use_db:
-        from backend.app.services.db_artifact_store import DBArtifactStore
-
-        _artifact_session = SyncSessionLocal()
-        ctx.artifact_store = DBArtifactStore(
-            _artifact_session, workspace_id=ws_id, pipeline_run_id=run_id
-        )
-        logger.info(
-            "pipeline_start using DBArtifactStore for run_id=%s ws_id=%s", run_id, ws_id
-        )
-
-    # Lazy-imported scripts (E0–E7) load pipeline_common — tenant-scoped paths.
-    os.environ["MATHOMS_WORKSPACE_ROOT"] = str(tenant_root.resolve())
-
     logger.info(
         "pipeline_start run_id=%s workspace_id=%s incremental=%s "
         "incremental_paths=%d stages=%d tier=%s",
-        run_id,
-        ws_id,
-        incremental,
-        len(incremental_doc_paths or []),
-        len(stages),
-        tier,
+        run_id, ws_id, incremental, len(incremental_doc_paths or []),
+        len(stages), tier,
     )
 
     # ADR-077 / F8.4: materializa payloads do adapter como arquivos no
@@ -427,202 +723,20 @@ def run_pipeline_task(
     # gera o mesmo formato de `goals.json` e `tarefas.md` a partir do DB.
     _materialize_adapter_configs(ws_id, ctx, config_dir)
 
-    with SyncSessionLocal() as db:
-        run = db.get(PipelineRun, run_id)
-        if not run:
-            return {"status": "error", "detail": "Run not found"}
-        run.status = PipelineRunStatus.running
-        run.tier_at_run = tier
-        run.celery_task_id = self.request.id
-        db.commit()
+    if not _mark_run_started(run_id, tier, self.request.id):
+        _close_artifact_session(artifact_session, run_id)
+        return {"status": "error", "detail": "Run not found"}
 
-    has_failure = False
-    paused_for_review = False
-    total_stages = len(stages)
+    has_failure, paused_for_review = _execute_stages_loop(
+        ctx, stages, run_id, skip_llm, stop_on_error, tier,
+        LLM_STAGES, _run_stage, artifact_session,
+    )
 
-    for stage_idx, stage_name in enumerate(stages):
-        if _is_cancelled(run_id):
-            publish_run_cancelled(run_id)
-            break
-
-        is_llm = stage_name in LLM_STAGES
-        should_skip_llm = skip_llm and is_llm
-        should_skip_free = tier == "free" and is_llm and not skip_llm
-
-        log_id = str(uuid.uuid4())
-        stage_started_at = datetime.now(timezone.utc)
-        progress_pct = int((stage_idx / total_stages) * 100)
-
-        # --- Skip LLM stages for free tier or when explicitly skipped ---
-        if should_skip_llm or should_skip_free:
-            skip_status = PipelineStageStatus.skipped_free_tier if should_skip_free else PipelineStageStatus.skipped
-            skip_reason = "LLM stage skipped — free tier (no API key)" if should_skip_free else "LLM stage skipped"
-            with SyncSessionLocal() as db:
-                run = db.get(PipelineRun, run_id)
-                run.current_stage = stage_name
-                db.add(PipelineStageLog(
-                    id=log_id, pipeline_run_id=run_id, stage=stage_name,
-                    status=skip_status, started_at=stage_started_at,
-                    completed_at=stage_started_at,
-                    output_summary={"skipped": True, "reason": skip_reason},
-                ))
-                db.commit()
-            publish_stage_skipped(run_id, stage_name, skip_reason, progress_pct)
-            continue
-
-        # --- Mark stage as running ---
-        with SyncSessionLocal() as db:
-            run = db.get(PipelineRun, run_id)
-            run.current_stage = stage_name
-            db.add(PipelineStageLog(
-                id=log_id, pipeline_run_id=run_id, stage=stage_name,
-                status=PipelineStageStatus.running, started_at=stage_started_at,
-            ))
-            db.commit()
-
-        publish_stage_started(run_id, stage_name, progress_pct)
-
-        # --- Execute with retry ---
-        start_mono = time.monotonic()
-        result, attempts, exc_error, exc_tb = _run_stage_with_retry(ctx, stage_name, _run_stage)
-        elapsed_ms = int((time.monotonic() - start_mono) * 1000)
-        completed_pct = int(((stage_idx + 1) / total_stages) * 100)
-
-        # Exception during stage (all retries exhausted)
-        if result is None:
-            error_msg = f"{exc_error} (after {attempts} attempt(s))" if attempts > 1 else exc_error
-            with SyncSessionLocal() as db:
-                stage_log = db.get(PipelineStageLog, log_id)
-                stage_log.status = PipelineStageStatus.failed
-                stage_log.duration_ms = elapsed_ms
-                stage_log.completed_at = datetime.now(timezone.utc)
-                stage_log.errors = error_msg
-                stage_log.output_summary = {
-                    "error_type": exc_error.split(":")[0].strip() if exc_error else "Exception",
-                    "traceback": exc_tb,
-                    "attempt_count": attempts,
-                }
-                run = db.get(PipelineRun, run_id)
-                run.failed_at_stage = stage_name
-                db.commit()
-            has_failure = True
-            publish_stage_failed(run_id, stage_name, exc_error or "Unknown error", progress_pct)
-            if stop_on_error:
-                break
-            continue
-
-        # --- Validation-based needs_review (LLM stages only) ---
-        validation_has_errors = (
-            result.detail
-            and isinstance(result.detail, dict)
-            and isinstance(result.detail.get("validation"), dict)
-            and not result.detail["validation"].get("valid", True)
-        )
-
-        if result.success and validation_has_errors and is_llm:
-            with SyncSessionLocal() as db:
-                stage_log = db.get(PipelineStageLog, log_id)
-                stage_log.status = PipelineStageStatus.needs_review
-                stage_log.duration_ms = elapsed_ms
-                stage_log.completed_at = datetime.now(timezone.utc)
-                stage_log.output_summary = result.detail
-                db.add(StageReview(
-                    pipeline_run_id=run_id, stage=stage_name,
-                    status=StageReviewStatus.pending,
-                    original_output_json=result.detail,
-                    validation_errors="\n".join(result.detail["validation"].get("errors", [])),
-                ))
-                run = db.get(PipelineRun, run_id)
-                run.status = PipelineRunStatus.needs_review
-                run.paused_at_stage = stage_name
-                run.current_stage = None
-                db.commit()
-            publish_needs_review(run_id, stage_name)
-            paused_for_review = True
-            break
-
-        # --- Normal completion or failure ---
-        with SyncSessionLocal() as db:
-            stage_log = db.get(PipelineStageLog, log_id)
-            stage_log.status = PipelineStageStatus.completed if result.success else PipelineStageStatus.failed
-            stage_log.duration_ms = elapsed_ms
-            stage_log.completed_at = datetime.now(timezone.utc)
-            stage_log.output_summary = result.detail
-            if result.error:
-                stage_log.errors = result.error
-            db.commit()
-
-        if result.success:
-            # A6b: commit artefatos do stage antes de avançar para o próximo.
-            if _artifact_session is not None:
-                _artifact_session.commit()
-            publish_stage_completed(run_id, stage_name, completed_pct)
-        else:
-            publish_stage_failed(run_id, stage_name, result.error or "Unknown error", completed_pct)
-            has_failure = True
-            with SyncSessionLocal() as db:
-                run = db.get(PipelineRun, run_id)
-                run.failed_at_stage = stage_name
-                db.commit()
-            if stop_on_error:
-                break
-
-    # --- Finalize run ---
     if not paused_for_review:
-        with SyncSessionLocal() as db:
-            run = db.get(PipelineRun, run_id)
-            if run.status not in (PipelineRunStatus.cancelled, PipelineRunStatus.needs_review):
-                if has_failure:
-                    run.status = PipelineRunStatus.failed
-                    publish_run_failed(run_id)
-                else:
-                    run.status = PipelineRunStatus.completed
-                    publish_run_completed(run_id)
-                run.completed_at = datetime.now(timezone.utc)
-                run.current_stage = None
-                db.commit()
-
+        _finalize_run(run_id, has_failure)
         if not has_failure:
-            import logging as _logging
-            _post_logger = _logging.getLogger("pipeline_task.post")
+            _run_post_processing(ws_id, run_id, tenant_root)
 
-            try:
-                from backend.app.services.document_pipeline_sync import (
-                    sync_documents_pipeline_e2_status,
-                )
-
-                with SyncSessionLocal() as db:
-                    run_row = db.get(PipelineRun, run_id)
-                    touch_ts = (
-                        run_row.completed_at
-                        if run_row and run_row.completed_at
-                        else datetime.now(timezone.utc)
-                    )
-                sync_documents_pipeline_e2_status(ws_id, tenant_root, touch_ts)
-            except Exception as exc:
-                _post_logger.warning("Failed to sync document E2 status: %s", exc)
-
-            try:
-                _create_report_from_output(ws_id, run_id, tenant_root)
-            except Exception as exc:
-                _post_logger.warning("Failed to create report from output: %s", exc)
-
-            # ADR-074 / F8.4: persiste tarefas_sugeridas do E5.N no DB
-            # (se existirem no JSON de análise).
-            try:
-                _persist_llm_suggestions(ws_id, run_id, tenant_root)
-            except Exception as exc:
-                _post_logger.warning("Failed to persist LLM suggestions: %s", exc)
-
-    # A6b: fecha a sessão de artefatos após todo o pipeline (sucesso, falha ou pausa).
-    # Commit final cobre artefatos de stages em needs_review / run cancelado.
-    if _artifact_session is not None:
-        try:
-            _artifact_session.commit()
-        except Exception:
-            _artifact_session.rollback()
-        finally:
-            _artifact_session.close()
-            logger.debug("artifact_session closed for run_id=%s", run_id)
+    _close_artifact_session(artifact_session, run_id)
 
     return {"status": "completed" if not has_failure else "failed", "run_id": run_id}
