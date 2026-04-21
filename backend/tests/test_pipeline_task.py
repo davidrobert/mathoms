@@ -5,8 +5,10 @@ stage execution, event publishing, cancellation, and needs_review flows.
 """
 
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
+from typing import Any
+from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
@@ -20,6 +22,22 @@ from backend.app.models.pipeline_run import (
 )
 from backend.app.models.workspace import Workspace
 from backend.app.models.user import User
+from backend.tests.fakes.fake_sync_session import (
+    FakeSyncDbSession,
+    FakeSyncSessionFactory,
+)
+
+
+@dataclass
+class FakeLLMConfigRow:
+    api_key_encrypted: str | None = None
+
+
+@dataclass
+class FakePipelineRunRow:
+    status: Any
+    celery_task_id: str | None = None
+    completed_at: datetime | None = None
 
 
 @pytest_asyncio.fixture
@@ -211,39 +229,27 @@ class TestPipelineService:
 
     def test_detect_tier_free(self):
         from backend.app.services.pipeline_service import detect_tier
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal") as mock_session:
-            mock_db = MagicMock()
-            mock_session.return_value.__enter__ = MagicMock(return_value=mock_db)
-            mock_session.return_value.__exit__ = MagicMock(return_value=False)
-            mock_db.query.return_value.filter.return_value.first.return_value = None
+        factory = FakeSyncSessionFactory(FakeSyncDbSession(query_first=None))
+        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
             assert detect_tier("ws-1") == "free"
 
     def test_detect_tier_premium(self):
         from backend.app.services.pipeline_service import detect_tier
-        mock_config = MagicMock()
-        mock_config.api_key_encrypted = "encrypted-key"
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal") as mock_session, patch(
+        factory = FakeSyncSessionFactory(
+            FakeSyncDbSession(query_first=FakeLLMConfigRow(api_key_encrypted="encrypted-key"))
+        )
+        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory), patch(
             "backend.app.services.pipeline_service._vault.decrypt", return_value="sk-real-key"
         ):
-            mock_db = MagicMock()
-            mock_session.return_value.__enter__ = MagicMock(return_value=mock_db)
-            mock_session.return_value.__exit__ = MagicMock(return_value=False)
-            mock_db.query.return_value.filter.return_value.first.return_value = mock_config
             assert detect_tier("ws-1") == "premium"
 
     def test_cancel_publishes_event(self):
         """cancel_pipeline_run should publish run_cancelled event."""
-        mock_run = MagicMock()
-        mock_run.status = PipelineRunStatus.running
-        mock_run.celery_task_id = None
+        run_row = FakePipelineRunRow(status=PipelineRunStatus.running, celery_task_id=None)
+        factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=run_row))
 
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal") as mock_session, \
+        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory), \
              patch("backend.app.services.pipeline_service.publish_run_cancelled") as mock_publish:
-            mock_db = MagicMock()
-            mock_session.return_value.__enter__ = MagicMock(return_value=mock_db)
-            mock_session.return_value.__exit__ = MagicMock(return_value=False)
-            mock_db.get.return_value = mock_run
-
             from backend.app.services.pipeline_service import cancel_pipeline_run
             result = cancel_pipeline_run("run-1")
 
@@ -251,37 +257,21 @@ class TestPipelineService:
             mock_publish.assert_called_once_with("run-1")
 
     def test_cancel_nonexistent_run(self):
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal") as mock_session:
-            mock_db = MagicMock()
-            mock_session.return_value.__enter__ = MagicMock(return_value=mock_db)
-            mock_session.return_value.__exit__ = MagicMock(return_value=False)
-            mock_db.get.return_value = None
-
+        factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=None))
+        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
             from backend.app.services.pipeline_service import cancel_pipeline_run
             assert cancel_pipeline_run("nonexistent") is False
 
     def test_is_run_active_running(self):
-        mock_run = MagicMock()
-        mock_run.status = PipelineRunStatus.running
-
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal") as mock_session:
-            mock_db = MagicMock()
-            mock_session.return_value.__enter__ = MagicMock(return_value=mock_db)
-            mock_session.return_value.__exit__ = MagicMock(return_value=False)
-            mock_db.get.return_value = mock_run
-
+        run_row = FakePipelineRunRow(status=PipelineRunStatus.running)
+        factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=run_row))
+        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
             from backend.app.services.pipeline_service import is_run_active
             assert is_run_active("run-1") is True
 
     def test_is_run_active_completed(self):
-        mock_run = MagicMock()
-        mock_run.status = PipelineRunStatus.completed
-
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal") as mock_session:
-            mock_db = MagicMock()
-            mock_session.return_value.__enter__ = MagicMock(return_value=mock_db)
-            mock_session.return_value.__exit__ = MagicMock(return_value=False)
-            mock_db.get.return_value = mock_run
-
+        run_row = FakePipelineRunRow(status=PipelineRunStatus.completed)
+        factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=run_row))
+        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
             from backend.app.services.pipeline_service import is_run_active
             assert is_run_active("run-1") is False

@@ -3,7 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -18,6 +18,7 @@ from pipeline.llm.service import (
     _classify_error,
 )
 from pipeline.llm.text_extractor import DocumentTextExtractor
+from backend.tests.fakes.fake_llm_client import FakeLLMClient
 
 
 # =============================================================================
@@ -155,8 +156,7 @@ class TestLLMServiceWithMock:
             value: str
 
         svc = LLMService(LLMConfig(api_key="bad-key"))
-        svc._client = MagicMock()
-        svc._client.chat.completions.create.side_effect = Exception("Invalid API key")
+        svc._client = FakeLLMClient(raises=Exception("Invalid API key"))
 
         with pytest.raises(LLMError) as exc_info:
             svc.call("sys", "user", SimpleOutput)
