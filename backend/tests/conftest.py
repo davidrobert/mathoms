@@ -36,7 +36,10 @@ ADR resumido (registro completo em `docs/DECISIONS.md` quando F6.5F formal):
 """
 
 import asyncio
+import atexit
 import os
+import tempfile
+import uuid as _uuid
 from pathlib import Path
 from typing import AsyncGenerator
 
@@ -50,9 +53,11 @@ os.environ.setdefault("MATHOMS_WORKSPACE_ROOT", str(_REPO_ROOT))
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import pool
+from sqlalchemy import create_engine, pool
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
+import backend.app.core.database as _database_module
 from backend.app.core.database import Base, get_db
 import backend.app.models  # noqa: F401 — ensure ALL models register with Base.metadata
 from backend.app.core.config import settings
@@ -61,7 +66,16 @@ from backend.app.main import app
 if not settings.FERNET_KEY:
     settings.FERNET_KEY = _TEST_FERNET_KEY
 
-TEST_DB_URL = "sqlite+aiosqlite://"
+# File-backed SQLite so the async engine (aiosqlite) and the sync engine
+# (SyncSessionLocal, used by code paths reached through endpoints — e.g.
+# config_materializer.ensure_tenant_pipeline_config, pipeline_service.*)
+# share the same schema and data. Pure in-memory would require shared raw
+# connections across drivers, which SQLAlchemy doesn't support.
+_TEST_DB_FILE = Path(tempfile.gettempdir()) / f"mathoms_test_{_uuid.uuid4().hex}.db"
+atexit.register(lambda: _TEST_DB_FILE.unlink(missing_ok=True))
+
+TEST_DB_URL = f"sqlite+aiosqlite:///{_TEST_DB_FILE}"
+TEST_SYNC_DB_URL = f"sqlite:///{_TEST_DB_FILE}"
 
 engine = create_async_engine(
     TEST_DB_URL,
@@ -70,6 +84,34 @@ engine = create_async_engine(
     connect_args={"check_same_thread": False},
 )
 TestSession = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+_sync_test_engine = create_engine(
+    TEST_SYNC_DB_URL,
+    echo=False,
+    poolclass=pool.StaticPool,
+    connect_args={"check_same_thread": False},
+)
+TestSyncSession = sessionmaker(bind=_sync_test_engine, expire_on_commit=False)
+
+# Patch every module that imported SyncSessionLocal at top-level — their local
+# binding is independent and won't see a module-level mutation otherwise.
+_database_module.SyncSessionLocal = TestSyncSession
+_database_module.sync_engine = _sync_test_engine
+
+from backend.app.tasks import pipeline_task as _pipeline_task_module  # noqa: E402
+from backend.app.tasks import periodic_tasks as _periodic_tasks_module  # noqa: E402
+from backend.app.services import pipeline_service as _pipeline_service_module  # noqa: E402
+from backend.app.services import document_pipeline_sync as _document_pipeline_sync_module  # noqa: E402
+from backend.app.scripts import backfill_artifacts_from_disk as _backfill_module  # noqa: E402
+
+for _mod in (
+    _pipeline_task_module,
+    _periodic_tasks_module,
+    _pipeline_service_module,
+    _document_pipeline_sync_module,
+    _backfill_module,
+):
+    _mod.SyncSessionLocal = TestSyncSession
 
 
 @pytest.fixture(scope="session")
@@ -90,6 +132,10 @@ async def setup_db():
     yield
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+    # Invalidate the sync engine's pooled connection so the next test sees the
+    # fresh schema — StaticPool would otherwise hold a connection that still
+    # references the dropped tables.
+    _sync_test_engine.dispose()
 
 
 async def _override_get_db() -> AsyncGenerator[AsyncSession, None]:
