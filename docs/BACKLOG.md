@@ -635,7 +635,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | **A6e.5** /api/v1/ prefix | `a6e5-v1-prefix` | Prefixo + aliases; OpenAPI 3.1 versionado | A6e.3 ou paralelo | 2 | ☐ aberta |
 | **A6e.6** domain events | `a6e6-domain-events` | `backend/app/events/` + handlers tipados | A6e.3 (preferencial) | 2 | ⏸ preferencial pós-A6e.3 |
 | **A6f.1** pipeline-as-service | `a6f1-pipeline-service` | [track_a6f1_pipeline_service.md](agent_prompts/track_a6f1_pipeline_service.md) — FastAPI standalone, backend fala por HTTP | A6e per-aggregate ✅ | 2 | ☐ aberta (greenfield, isolado) |
-| **A6g.5** tests sweep | `a6g5-tests-sweep` | [track_a6g5_tests_sweep.md](agent_prompts/track_a6g5_tests_sweep.md) — Fakes nomeados > MagicMock; nomes descritivos | — | 2 | ☐ aberta |
+| **A6g.5** tests sweep | `a6g5-tests-sweep` | [track_a6g5_tests_sweep.md](agent_prompts/track_a6g5_tests_sweep.md) — Fakes nomeados > MagicMock; nomes descritivos | — | 2 | ✅ 2026-04-21 |
 | **A6g.3** backend sweep | `a6g3-backend-style` | Services, repos, helpers, typing | A6e.4 ✅ | 3 | ⏸ blocked-by A6e.4 |
 | **A6g.6** enforcement | `a6g6-enforcement` | Ruff rules + ESLint errors + pre-commit grep | A6g.2/.4/.5 ✅ | 3 | ⏸ blocked-by sweeps |
 | **A6g.7** Go prep | `a6g7-go-prep` | `golangci-lint.yml` | A6f.1 iniciada | 3 | ⏸ blocked-by A6f.1 |

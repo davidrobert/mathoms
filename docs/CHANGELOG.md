@@ -8,6 +8,38 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.5 — tests sweep Tier 1 + 2 (2026-04-21):** Aplicação do `§Code
+  style › Testes` aos arquivos não-golden de `backend/tests/` +
+  `tests/unit/pipeline/`. Zero lógica de negócio tocada.
+  - **Tier 1 — fakes nomeados > `MagicMock` inline** (commit `cf8a4a5`):
+    39 ofensores zerados em 4 arquivos. Novo diretório
+    `backend/tests/fakes/` com 4 fakes:
+    - `FakeRedisPublisher` (substitui 13 `MagicMock` em `test_events.py`;
+      captura `publish(channel, payload)` em lista inspecionável).
+    - `FakeSyncDbSession` + `FakeSyncSessionFactory` (substituem 22
+      `MagicMock` em `test_pipeline_task.py::TestPipelineService`; drop-in
+      para `SyncSessionLocal()` + `db.query(...).filter(...).first()` +
+      `db.get(...)`).
+    - `FakeScalarSession` (substitui 3 `MagicMock` em
+      `test_premissas_snapshot.py`; `scalars(stmt).all()` com rows
+      pré-populadas).
+    - `FakeLLMClient` (substitui 1 `MagicMock` em `test_llm_service.py`;
+      shape `.chat.completions.create(...)` como LiteLLM client).
+  - **Tier 2 — nomes descritivos** (commit `e35837e`, 3 renames):
+    `TestSafeFilename.test_basic` → `test_plain_pdf_name_is_preserved`;
+    `TestClassifyFileWithInjectedExtractor.test_happy_path` →
+    `test_classifies_from_injected_extractor_content`;
+    `TestTemporalGapConfig.test_default` → `test_default_tolerance_is_4_days`.
+  - **Tier 3 (fixtures >30l)** não entregue — baseline só tem 3
+    fixtures in-scope acima do limiar (abaixo do threshold ≥5 que o
+    prompt exigia). `tenants` em `test_multi_tenant_isolation.py`,
+    `workspace_with_run` em `test_pipeline_task.py` e `golden_workspace`
+    em `test_golden_pipeline.py` ficam para follow-up.
+  - **Fora de escopo (inalterado):** 16 arquivos golden/paridade,
+    `tests/fixtures/**` (A6g.2), `frontend/tests/**` (A6g.4),
+    enforcement em pre-commit (A6g.6). Suítes: `pytest backend/tests`
+    926 passed/4 skipped; `pytest tests` 1461 passed/2 skipped.
+
 - **Agent prompts — 3 novas lanes paralelas da Onda 2 (2026-04-21):**
   Prompts self-contained para as 3 próximas lanes que podem ser
   executadas em paralelo agora, sem esperar A6g.4 (🚧 ocupada com 2
