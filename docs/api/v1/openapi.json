@@ -228,7 +228,8 @@
         "title": "AlocacaoGoalResponse",
         "type": "object"
       },
-      "AlocacaoGoalUpsertRequest": {
+      "AlocacaoGoalUpsertCommand": {
+        "description": "Comando para criar nova vers\u00e3o da aloca\u00e7\u00e3o-alvo.",
         "properties": {
           "inputs": {
             "$ref": "#/components/schemas/AlocacaoGoalInputs"
@@ -249,7 +250,7 @@
         "required": [
           "inputs"
         ],
-        "title": "AlocacaoGoalUpsertRequest",
+        "title": "AlocacaoGoalUpsertCommand",
         "type": "object"
       },
       "AporteGoalComputeRequest": {
@@ -465,7 +466,8 @@
         "title": "AporteGoalResponse",
         "type": "object"
       },
-      "AporteGoalUpsertRequest": {
+      "AporteGoalUpsertCommand": {
+        "description": "Comando para criar nova vers\u00e3o da meta de aportes.",
         "properties": {
           "inputs": {
             "$ref": "#/components/schemas/AporteGoalInputs"
@@ -486,7 +488,7 @@
         "required": [
           "inputs"
         ],
-        "title": "AporteGoalUpsertRequest",
+        "title": "AporteGoalUpsertCommand",
         "type": "object"
       },
       "AuditLogEntry": {
@@ -1881,7 +1883,8 @@
         "title": "DolarGoalResponse",
         "type": "object"
       },
-      "DolarGoalUpsertRequest": {
+      "DolarGoalUpsertCommand": {
+        "description": "Comando para criar nova vers\u00e3o da meta de dolariza\u00e7\u00e3o.",
         "properties": {
           "inputs": {
             "$ref": "#/components/schemas/DolarGoalInputs"
@@ -1902,7 +1905,7 @@
         "required": [
           "inputs"
         ],
-        "title": "DolarGoalUpsertRequest",
+        "title": "DolarGoalUpsertCommand",
         "type": "object"
       },
       "FamilyMemberCreateCommand": {
@@ -2388,7 +2391,7 @@
         "type": "object"
       },
       "IFGoalComputeRequest": {
-        "description": "Request do endpoint dry-run `/goals/if/compute`. N\u00e3o persiste.",
+        "description": "Request do endpoint dry-run ``/goals/if/compute``. N\u00e3o persiste.",
         "properties": {
           "inputs": {
             "$ref": "#/components/schemas/IFGoalInputs"
@@ -2403,7 +2406,7 @@
                 "type": "null"
               }
             ],
-            "description": "Opcional. Se fornecido: progresso (percentual e faltante) e `aporte_mensal_com_patrimonio_atual_brl` nos derivados.",
+            "description": "Opcional. Se fornecido: progresso (percentual e faltante) e ``aporte_mensal_com_patrimonio_atual_brl`` nos derivados.",
             "title": "Patrimonio Atual Brl"
           }
         },
@@ -2439,7 +2442,7 @@
                 "type": "null"
               }
             ],
-            "description": "S\u00f3 presente se `patrimonio_atual_brl` foi enviado.",
+            "description": "S\u00f3 presente se ``patrimonio_atual_brl`` foi enviado.",
             "title": "Percentual Conquistado"
           }
         },
@@ -2450,7 +2453,7 @@
         "type": "object"
       },
       "IFGoalDerived": {
-        "description": "Valores derivados pela fun\u00e7\u00e3o pura `compute_if_derived`. Nunca\ndigitados pelo usu\u00e1rio \u2014 sempre calculados server-side.",
+        "description": "Valores derivados pela fun\u00e7\u00e3o pura ``compute_if_derived``.\n\nNunca digitados pelo usu\u00e1rio \u2014 sempre calculados server-side.",
         "properties": {
           "aporte_mensal_com_patrimonio_atual_brl": {
             "anyOf": [
@@ -2462,7 +2465,7 @@
                 "type": "null"
               }
             ],
-            "description": "Preenchido quando `patrimonio_atual_brl` \u00e9 conhecido: aporte mensal para fechar a meta considerando o patrim\u00f4nio hoje projetado at\u00e9 o fim do horizonte. UI deve preferir este valor ao baseline quando presente.",
+            "description": "Preenchido quando ``patrimonio_atual_brl`` \u00e9 conhecido: aporte mensal para fechar a meta considerando o patrim\u00f4nio hoje projetado at\u00e9 o fim do horizonte. UI deve preferir este valor ao baseline quando presente.",
             "title": "Aporte Mensal Com Patrimonio Atual Brl"
           },
           "aporte_necessario_mensal_brl": {
@@ -2491,7 +2494,7 @@
                 "type": "null"
               }
             ],
-            "description": "Patrim\u00f4nio usado no c\u00e1lculo de `aporte_mensal_com_patrimonio_atual_brl`.",
+            "description": "Patrim\u00f4nio usado no c\u00e1lculo de ``aporte_mensal_com_patrimonio_atual_brl``.",
             "title": "Patrimonio Atual Utilizado Brl"
           }
         },
@@ -2526,7 +2529,7 @@
         "type": "object"
       },
       "IFGoalInputs": {
-        "description": "Inputs que o usu\u00e1rio fornece para a meta de Independ\u00eancia\nFinanceira. Corresponde a `params_json.inputs` no DB.",
+        "description": "Inputs do usu\u00e1rio para a meta de Independ\u00eancia Financeira.\n\nCorresponde a ``params_json.inputs`` no DB.",
         "properties": {
           "horizonte_anos": {
             "description": "Horizonte em anos para atingir a meta.",
@@ -2682,8 +2685,8 @@
         "title": "IFGoalResponse",
         "type": "object"
       },
-      "IFGoalUpsertRequest": {
-        "description": "Request para criar nova vers\u00e3o do Goal IF (PUT).",
+      "IFGoalUpsertCommand": {
+        "description": "Comando para criar nova vers\u00e3o do Goal IF (``PUT /goals/if``).",
         "properties": {
           "inputs": {
             "$ref": "#/components/schemas/IFGoalInputs"
@@ -2705,7 +2708,7 @@
         "required": [
           "inputs"
         ],
-        "title": "IFGoalUpsertRequest",
+        "title": "IFGoalUpsertCommand",
         "type": "object"
       },
       "InstitutionConfigResponse": {
@@ -8772,7 +8775,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AlocacaoGoalUpsertRequest"
+                "$ref": "#/components/schemas/AlocacaoGoalUpsertCommand"
               }
             }
           },
@@ -8978,7 +8981,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AporteGoalUpsertRequest"
+                "$ref": "#/components/schemas/AporteGoalUpsertCommand"
               }
             }
           },
@@ -9184,7 +9187,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DolarGoalUpsertRequest"
+                "$ref": "#/components/schemas/DolarGoalUpsertCommand"
               }
             }
           },
@@ -9392,7 +9395,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/IFGoalUpsertRequest"
+                "$ref": "#/components/schemas/IFGoalUpsertCommand"
               }
             }
           },
