@@ -8,6 +8,40 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6f.3 — follow-up: redaction + pipeline stage spans (2026-04-21) — ADR-110:**
+  Fecha dois gaps do track original de A6f.3 que haviam ficado fora da
+  primeira entrega (2026-04-20).
+
+  - **Gap 9 — redaction no `MathomsJsonFormatter`** (`backend/app/core/logging.py`):
+    `SENSITIVE_FIELD_SUBSTRINGS` + `_redact()` recursivo substituem por
+    `***` qualquer campo cujo nome contenha `password`, `secret`, `token`,
+    `api_key`, `authorization`, `cpf`, `cnpj`, `valor`, `value_brl`,
+    `amount_brl`, `saldo`. Match case-insensitive em substring (ex.: cobre
+    `anthropic_api_key`, `Authorization` header). Aplica também em dicts
+    e listas aninhadas passadas via `extra=`. Defesa em profundidade
+    contra vazamento de credenciais e PII monetária para Loki/Datadog/
+    CloudWatch — complementa CLAUDE.md §"Regras críticas" (proibição de
+    logar dinheiro real).
+  - **Gap 7 — spans OTel custom por stage** (`pipeline/orchestrator.py`):
+    `_run_stage` envolve o runner em `tracer.start_as_current_span("pipeline.{stage}")`
+    com atributos `pipeline.stage`, `pipeline.run_id`,
+    `pipeline.workspace_root`, `pipeline.is_llm`. Branches de falha
+    (`SystemExit`, `Exception`) marcam `pipeline.success=False` e, no
+    caso de exceção genérica, chamam `span.record_exception(exc)`.
+    Import via `try/except ImportError` com fallback `nullcontext()` —
+    preserva boundary ADR (`opentelemetry-api` é framework-neutral;
+    `dev/check_pipeline_boundaries.py` OK). Sem provider configurado,
+    `get_tracer` retorna `NoOpTracer` — zero overhead em CLI/testes.
+  - **Novo: `backend/tests/test_otel_traces.py`** — 6 tests com
+    `InMemorySpanExporter`: idempotência de `setup_otel`, success path
+    de stage span, `SystemExit(1)` fecha span com atributos de falha,
+    exceção genérica registra `record_exception`, FastAPI emite span
+    `GET /ping`, fallback quando `_TRACER is None`.
+  - **Impact**: backend pass +6 (test_otel_traces.py), pipeline
+    inalterado, boundary check OK. `test_structured_logging.py`
+    cresce de 8 → 11 tests (top-level redaction, nested redaction,
+    cobertura de lista).
+
 - **A6g.1 — Auditoria inicial de code style drift (2026-04-21):**
   Entrega o gate que destrava as sub-fases A6g.2-.5. Script
   [`dev/audit_code_style.py`](../dev/audit_code_style.py) (CLI fino) +
@@ -140,7 +174,6 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     regressão). Commits: `9cbcf2f` (repo), `16ef59c` (dto),
     `4958d9a` (router + shim), `ab240aa` (testes),
     `2c5c134` (openapi snapshot).
-
 - **A6f.6 — Stateless-rigoroso: audit + multi-worker integration test (2026-04-20) — ADR-111:**
   Terceira entrega da A6f (language-neutral boundaries). Prova empírica que
   o backend já é multi-worker-safe e formaliza a regra arquitetural que
