@@ -1308,7 +1308,34 @@
         "title": "DashboardResponse",
         "type": "object"
       },
+      "DocumentExtractJsonResponse": {
+        "description": "Resposta do endpoint de debug ``GET /documents/{id}/extract-json``.",
+        "properties": {
+          "all_candidates": {
+            "items": {
+              "type": "string"
+            },
+            "title": "All Candidates",
+            "type": "array"
+          },
+          "data": {
+            "title": "Data"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filename",
+          "data",
+          "all_candidates"
+        ],
+        "title": "DocumentExtractJsonResponse",
+        "type": "object"
+      },
       "DocumentListResponse": {
+        "description": "Wrapper pagina\u00e7\u00e3o-ready para ``GET /documents``.",
         "properties": {
           "documents": {
             "items": {
@@ -1329,7 +1356,37 @@
         "title": "DocumentListResponse",
         "type": "object"
       },
+      "DocumentReclassifyResponse": {
+        "description": "Resposta do ``POST /documents/reclassify`` (batch reclassify).",
+        "properties": {
+          "errors": {
+            "title": "Errors",
+            "type": "integer"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "updated": {
+            "title": "Updated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "updated",
+          "skipped",
+          "errors"
+        ],
+        "title": "DocumentReclassifyResponse",
+        "type": "object"
+      },
       "DocumentResponse": {
+        "description": "Documento enviado ao workspace, com metadata de classifica\u00e7\u00e3o.",
         "properties": {
           "bank_code": {
             "anyOf": [
@@ -1538,8 +1595,8 @@
         "title": "DocumentType",
         "type": "string"
       },
-      "DocumentUpdateRequest": {
-        "description": "Corre\u00e7\u00e3o manual de classifica\u00e7\u00e3o pelo usu\u00e1rio.\n\nTodos os campos s\u00e3o opcionais \u2014 atualiza apenas os enviados (PATCH).\nEnvie `null` expl\u00edcito para limpar um campo.",
+      "DocumentUpdateCommand": {
+        "description": "Corre\u00e7\u00e3o manual de classifica\u00e7\u00e3o pelo usu\u00e1rio (``PATCH /documents/{id}``).\n\nTodos os campos s\u00e3o opcionais \u2014 atualiza apenas os enviados (sem\u00e2ntica\nPATCH). Envie ``null`` expl\u00edcito para limpar um campo escalar.\n``bank_code`` e ``period`` vazios (string de espa\u00e7os) viram ``None``\nautomaticamente \u2014 paridade com o comportamento legado.",
         "properties": {
           "bank_code": {
             "anyOf": [
@@ -1576,10 +1633,11 @@
             "title": "Period"
           }
         },
-        "title": "DocumentUpdateRequest",
+        "title": "DocumentUpdateCommand",
         "type": "object"
       },
       "DocumentUploadResponse": {
+        "description": "Resposta do ``POST /documents/upload`` (multi-file).\n\n``skipped_duplicates`` \u00e9 a lista de nomes de arquivo que ca\u00edram na\nunique index de ``content_hash`` \u2014 n\u00e3o geraram row nova, mas o caller\nquer saber para dar feedback na UI.",
         "properties": {
           "documents": {
             "items": {
@@ -1845,31 +1903,6 @@
           "inputs"
         ],
         "title": "DolarGoalUpsertRequest",
-        "type": "object"
-      },
-      "ExtractJsonResponse": {
-        "properties": {
-          "all_candidates": {
-            "items": {
-              "type": "string"
-            },
-            "title": "All Candidates",
-            "type": "array"
-          },
-          "data": {
-            "title": "Data"
-          },
-          "filename": {
-            "title": "Filename",
-            "type": "string"
-          }
-        },
-        "required": [
-          "filename",
-          "data",
-          "all_candidates"
-        ],
-        "title": "ExtractJsonResponse",
         "type": "object"
       },
       "FamilyMemberCreateCommand": {
@@ -3994,34 +4027,6 @@
           }
         },
         "title": "QAThresholdsSchema",
-        "type": "object"
-      },
-      "ReclassifyResponse": {
-        "properties": {
-          "errors": {
-            "title": "Errors",
-            "type": "integer"
-          },
-          "skipped": {
-            "title": "Skipped",
-            "type": "integer"
-          },
-          "total": {
-            "title": "Total",
-            "type": "integer"
-          },
-          "updated": {
-            "title": "Updated",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "total",
-          "updated",
-          "skipped",
-          "errors"
-        ],
-        "title": "ReclassifyResponse",
         "type": "object"
       },
       "RegisterRequest": {
@@ -8227,7 +8232,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ReclassifyResponse"
+                  "$ref": "#/components/schemas/DocumentReclassifyResponse"
                 }
               }
             },
@@ -8441,7 +8446,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DocumentUpdateRequest"
+                "$ref": "#/components/schemas/DocumentUpdateCommand"
               }
             }
           },
@@ -8509,7 +8514,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ExtractJsonResponse"
+                  "$ref": "#/components/schemas/DocumentExtractJsonResponse"
                 }
               }
             },
