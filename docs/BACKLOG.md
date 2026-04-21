@@ -607,11 +607,11 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 **ADRs:** 097 (extract-then-refactor), **098** (Caminho B puro vs pragmático), **099** (reuse de `analyze_*` em `main_with_store`), **100** (A6d commitment), **101** (R12-R17 backend DDD/SOLID), **102** (R18-R20 language-neutral), **103** (teste humano como gate), **109** (auth portability), **110** (structured logs + OTel), **111** (stateless rigoroso)
 **Status global (2026-04-21):**
 - **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (fechada completa 2026-04-20) · A6f.2/.3/.4/.5a/.6 · **A6g.1** (audit baseline 2026-04-21: 2047 ofensores catalogados).
-- **A6e 🚧 parcial (5 de N+ agregados):** FamilyMember + Category + ConfigBlob + Document + Goal com repos+DTOs. Próximo: Task.
+- **A6e 🚧 parcial (6 de N+ agregados — per-aggregate track **concluído**):** FamilyMember + Category + ConfigBlob + Document + Goal + Task (com 3 sub-agregados) com repos+DTOs. Próximos passos A6e são transversais (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events).
 - **Restante:** A6e (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events) · A6f.1 (pipeline-as-service) · A6g.2-.7 (sweeps + enforcement) · F7 (7A-7F + LGPD).
-- **Caminho crítico (serial):** A6e Task → A6e.3/.4 → F7A → F7B → F7D+dogfood → GA.
-- **Lanes paralelizáveis agora (Onda 1):** A6e Task · A6g.2-.5 sweeps — ver "Próximas etapas — ondas paralelas" abaixo.
-- **Testes:** ~1184 pipeline + 884 backend passing (zero regressão).
+- **Caminho crítico (serial):** A6e.3 (use cases) → A6e.4 (routers finos) → F7A → F7B → F7D+dogfood → GA.
+- **Lanes paralelizáveis agora (Onda 2 — pós-per-aggregate):** A6e.3/.4/.5/.6 transversais · A6f.1 pipeline-service · A6g.2-.5 sweeps.
+- **Testes:** ~1184 pipeline + 926 backend passing (zero regressão).
 
 ### A5f — E1.5c Caminho B ✅ entregue 2026-04-19
 
@@ -733,8 +733,8 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | # | Sub-fase | Entrega | Esforço | Status |
 | --- | --- | --- | --- | --- |
-| A6e.1 | Repos por aggregate | User, Workspace, Document, Goal, PipelineRun, Task, Notification, Invitation, AuditLog repositories; `grep sqlalchemy backend/app/api/` = zero | 1-2 sessões | 🚧 parcial — **FamilyMember + Category + ConfigBlob + Document + Goal** ✅ |
-| A6e.2 | DTO ↔ Model | `schemas/dto/<aggregate>/response.py` + `command.py` + `query.py` + `mapper.py`; zero `Model.from_orm` em endpoints | 1 sessão | 🚧 parcial — **family_member + category + config_blob + document + goal** ✅ |
+| A6e.1 | Repos por aggregate | User, Workspace, Document, Goal, PipelineRun, Task, Notification, Invitation, AuditLog repositories; `grep sqlalchemy backend/app/api/` = zero | 1-2 sessões | 🚧 parcial — **FamilyMember + Category + ConfigBlob + Document + Goal + Task** ✅ |
+| A6e.2 | DTO ↔ Model | `schemas/dto/<aggregate>/response.py` + `command.py` + `query.py` + `mapper.py`; zero `Model.from_orm` em endpoints | 1 sessão | 🚧 parcial — **family_member + category + config_blob + document + goal + task** ✅ |
 | A6e.3 | Application layer | `backend/app/application/<aggregate>/<use_case>.py`; 1 endpoint = 1 use case; testável sem DB via fakes | 2 sessões | ☐ |
 | A6e.4 | Routers finos | Refactor 4900→800 linhas (17 routers × ≤50); teste AST enforça | 1-2 sessões | ☐ |
 | A6e.5 | Versionamento `/api/v1/` | Prefixo + aliases durante window; OpenAPI 3.1 versionado; `lib/api.ts` atualizado | 1 sessão | ☐ |
@@ -779,10 +779,25 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 **Escopo deixado para frente:** `goal_compute_*.py` são domain logic pura (decisão consciente — não migra); Report lookup (`get_latest_report_patrimonio_liquido`) fica em goal_service até Report virar agregado próprio (slice futuro).
 
-**Próximo slice de agregado recomendado (branch sugerida):**
-- `agent/a6e-task/*` — **Task** aggregate (3 sub-agregados: tarefas financeiras + milhas + rotina; fonte MD + DB). Último do trilho per-aggregate.
+#### Slice entregue — **Task aggregate** (branch `agent/a6e7-task/*`, 2026-04-21)
 
-Depois dos slices de agregado restantes, destrava A6e.3 (use cases), A6e.4 (routers finos), A6e.5 (/api/v1/ prefix) e A6e.6 (domain events) — transversais a todos os agregados migrados.
+Último do trilho per-aggregate. 3 sub-agregados: Task + TaskAttachment + TaskSuggestion.
+
+| Entrega | Detalhes | Commit |
+| --- | --- | --- |
+| 3 repositórios separados | `TaskRepository` (list com filtros + priority_rank CASE S<R<O, list_all, get_by_id/number, list_by_parent subtasks, next_number atômico, add/save/delete); `TaskAttachmentRepository` (só DB — storage fica no service); `TaskSuggestionRepository` (list_by_status default pending, add/save) | `daddb8d` |
+| DTOs em `schemas/dto/task/` | 9 módulos especializados: types/response/command/filters/progress/attachment/suggestion/mapper. `*Request` → `*Command`; `TaskProgress` → `TaskProgressResponse` | `93cef55` |
+| Refactor services + router + shim | `task_service` + `task_attachment_service` + `task_suggestion_service` delegam aos repos; `api/tasks.py` 17 endpoints com `grep "select(Task\|TaskAttachment\|TaskSuggestion" = zero`; shim em `schemas/task.py` preserva compat binária | `c05e51b` |
+| Tests | 18 mapper tests (puros) + 24 repo tests (DB real; filtros, ordenação, isolamento multi-tenant em 3 repos, cross-tenant safety, next_number por workspace) | `0c8fd11` |
+| OpenAPI snapshot | 7 renames `*Request`→`*Command` + `TaskProgress`→`TaskProgressResponse` | `042c6ed` |
+
+**Impact:** 926 passed / 4 skipped (+42 vs 884 pós-A6e.6; zero regressão).
+
+**Escopo deixado para frente:** nenhum aggregate residual — per-aggregate track concluído.
+
+---
+
+**Trilho per-aggregate CONCLUÍDO.** Destrava agora **A6e.3** (use cases — application layer R15), **A6e.4** (routers finos ≤50 linhas R16), **A6e.5** (/api/v1/ prefix), **A6e.6** (domain events tipados) — todas **transversais** a todos os 6 agregados migrados.
 
 **Pré-existente fora de escopo (reportado):** `test_alembic_guardrails::test_offline_sql_generation_works` falha por migration A6b `r6s7t8u9v0w1` usando `batch_alter_table` sem `copy_from`; `test_documents.py` x9 falha por schema drift em `workspaces.use_db_artifacts_override`. Nenhum dos dois tocado pelo slice A6e.1+.2.
 

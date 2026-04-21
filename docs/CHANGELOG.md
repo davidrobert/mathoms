@@ -42,6 +42,73 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     cresce de 8 → 11 tests (top-level redaction, nested redaction,
     cobertura de lista).
 
+- **A6e.7 — Slice vertical `Task` (2026-04-21) — ADR-101:**
+  Oitavo e **último** agregado per-slice do trilho A6e. Último também
+  em complexidade (3 sub-agregados: Task + TaskAttachment +
+  TaskSuggestion). Fecha a migração por agregado; próximos passos A6e
+  são transversais (use cases R15, routers finos R16, /v1 prefix,
+  domain events).
+  - **Novo: 3 repositórios separados** (decisão do prompt — agregados
+    relacionados mas com ciclos de vida distintos):
+    - [`TaskRepository`](../backend/app/repositories/task_repository.py):
+      `list` (com `TaskFilters` + priority_rank CASE S<R<O), `list_all`
+      (inclui done/cancelled para export), `get_by_id`,
+      `get_by_number`, `list_by_parent` (subtasks), `next_number`
+      (max+1 atômico), `add` (flush-opt-in), `save` (dirty flush),
+      `delete`.
+    - [`TaskAttachmentRepository`](../backend/app/repositories/task_attachment_repository.py):
+      `list_by_task` (DESC created_at), `get_by_id`, `add`, `delete`.
+      **Só DB** — storage (FS/MinIO) fica no service que compõe.
+    - [`TaskSuggestionRepository`](../backend/app/repositories/task_suggestion_repository.py):
+      `list_by_status` (default pending, `status=None` retorna todas),
+      `get_by_id`, `add`, `save` (approve/reject flow).
+  - **Novo: DTOs canônicos em [`schemas/dto/task/`](../backend/app/schemas/dto/task/)**
+    (R12 ISP) — 9 módulos especializados: `types.py` (Literals
+    compartilhados), `response.py` (TaskBase + TaskResponse +
+    ScanDeadlinesResponse), `command.py` (Create/Update/StatusTransition
+    — todos `*Command`), `filters.py` (TaskFilters), `progress.py`
+    (TaskProgressResponse), `attachment.py` (sub-agregado),
+    `suggestion.py` (sub-agregado), `mapper.py` (3 funções
+    `*_to_response` puras, testáveis sem DB).
+  - **Refactor: services** (net -200 linhas):
+    - `task_service.py` delega persistência ao TaskRepository;
+      regras de domínio intactas (ALLOWED_TRANSITIONS, dependency
+      check de parent, vocab validation de categoria).
+    - `task_attachment_service.py` compõe StorageService +
+      TaskAttachmentRepository; binário fica fora do repo.
+    - `task_suggestion_service.py` workflow approve/reject/merge com
+      transação única (materializa Task via task_service na aprovação).
+  - **Refactor: [`api/tasks.py`](../backend/app/api/tasks.py)**
+    (17 endpoints) — `grep "select(Task|TaskAttachment|TaskSuggestion"
+    = zero`; todos os retornos via mapper (`task_to_response`,
+    `task_attachment_to_response`, `task_suggestion_to_response`);
+    commands em todos os PATCH/POST bodies.
+  - **Compat binária:** [`schemas/task.py`](../backend/app/schemas/task.py)
+    vira shim re-exportando todos os nomes legados: `TaskCreate`,
+    `TaskUpdate`, `TaskStatusTransition`, `TaskProgress`,
+    `TaskSuggestionCreate/Approve/Reject`, `TaskFilters`, etc.
+    `task_notification_service`, `task_progress_service`, seed
+    scripts e `test_task_service.py`/`test_tasks_api.py` passam sem
+    modificação.
+  - **Testes novos:**
+    [test_task_dto_mapper.py](../backend/tests/test_task_dto_mapper.py)
+    (18 testes, puros) +
+    [test_task_repository.py](../backend/tests/test_task_repository.py)
+    (24 testes com DB real — filtros, ordenação S→R→O + deadline asc,
+    isolamento multi-tenant em 3 repos, cross-tenant safety em
+    attachments/suggestions, `next_number` por workspace,
+    `list_by_parent` para subtasks).
+  - **OpenAPI snapshot atualizado:** 7 renames `*Request`→`*Command`
+    + `TaskProgress`→`TaskProgressResponse`; descrições populadas dos
+    docstrings dos DTOs.
+  - **Escopo deixado para frente:** nenhum aggregate residual. O trilho
+    A6e per-aggregate está completo — próximos slices A6e (.3 use cases,
+    .4 routers finos, .5 /v1 prefix, .6 events) são transversais.
+  - **Impact**: 926 passed / 4 skipped (+42 tests vs 884 pós-A6e.6;
+    zero regressão). Commits: `daddb8d` (3 repos), `93cef55` (dto),
+    `c05e51b` (services+router+shim), `0c8fd11` (testes),
+    `042c6ed` (openapi snapshot).
+
 - **A6g.1 — Auditoria inicial de code style drift (2026-04-21):**
   Entrega o gate que destrava as sub-fases A6g.2-.5. Script
   [`dev/audit_code_style.py`](../dev/audit_code_style.py) (CLI fino) +
