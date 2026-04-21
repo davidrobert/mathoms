@@ -17,7 +17,7 @@ test.describe("Onboarding @critical", () => {
     const email = `onboarding-${STAMP}@test.com`;
     await page.goto("/register");
 
-    await page.getByLabel(/nome completo/i).fill("Novo User");
+    await page.getByLabel(/seu nome/i).fill("Novo User");
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/senha/i).fill("SenhaForte123!");
     await page.getByRole("button", { name: /criar conta/i }).click();
@@ -36,7 +36,7 @@ test.describe("Onboarding @critical", () => {
     });
 
     await page.goto("/register");
-    await page.getByLabel(/nome completo/i).fill("Segundo Tentativa");
+    await page.getByLabel(/seu nome/i).fill("Segundo Tentativa");
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/senha/i).fill("senha456def");
     await page.getByRole("button", { name: /criar conta/i }).click();
@@ -49,7 +49,7 @@ test.describe("Onboarding @critical", () => {
 
   test("senha curta: HTML5 minLength=6 bloqueia submit", async ({ page }) => {
     await page.goto("/register");
-    await page.getByLabel(/nome completo/i).fill("X");
+    await page.getByLabel(/seu nome/i).fill("X");
     await page.getByLabel(/email/i).fill(`short-${STAMP}@test.com`);
     await page.getByLabel(/senha/i).fill("abc"); // 3 chars
     await page.getByRole("button", { name: /criar conta/i }).click();
