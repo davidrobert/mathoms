@@ -29,6 +29,7 @@ from backend.app.api.reports import router as reports_router
 from backend.app.api.vault import router as vault_router
 from backend.app.api.documents import router as documents_router
 from backend.app.api.pipeline import router as pipeline_router
+from backend.app.api.categories import router as categories_router
 from backend.app.api.config import router as config_router
 from backend.app.api.family_members import router as family_members_router
 from backend.app.api.llm import router as llm_router
@@ -104,6 +105,7 @@ app.include_router(documents_router, prefix=settings.API_PREFIX)
 app.include_router(pipeline_router, prefix=settings.API_PREFIX)
 app.include_router(config_router, prefix=settings.API_PREFIX)
 app.include_router(family_members_router, prefix=settings.API_PREFIX)
+app.include_router(categories_router, prefix=settings.API_PREFIX)
 app.include_router(llm_router, prefix=settings.API_PREFIX)
 app.include_router(ws_router, prefix=settings.API_PREFIX)
 app.include_router(transactions_router, prefix=settings.API_PREFIX)

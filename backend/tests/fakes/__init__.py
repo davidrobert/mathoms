@@ -12,12 +12,14 @@ o repo SQLAlchemy real. Uso típico::
     await use_case(..., repo=repo)
 """
 
+from backend.tests.fakes.category import FakeCategoryRepository
 from backend.tests.fakes.family_member import (
     FakeFamilyMemberRepository,
     FakeVault,
 )
 
 __all__ = [
+    "FakeCategoryRepository",
     "FakeFamilyMemberRepository",
     "FakeVault",
 ]

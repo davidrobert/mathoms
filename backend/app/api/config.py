@@ -1,34 +1,26 @@
-"""Config API — CRUD for the 5 editable configs, import/export, fallback to disk defaults.
+"""Config API — config blobs + workspace settings + import/export.
 
-**A6e (ADR-101)** — endpoints dos agregados ``FamilyMember`` (A6e.1+.2),
-``Category`` (A6e.3) e dos 3 blobs de config ``Pipeline``/``Institution``/
-``ReportLayout`` (A6e.4) delegam persistência aos respectivos repositórios
-(``FamilyMemberRepository`` / ``CategoryRepository`` /
-``ConfigBlobRepository``) e retornam DTOs de
-``schemas/dto/{family_member,category,config_blob}/``.
+**A6e.3 slices 1+2** — CRUD de ``FamilyMember`` e ``Category`` migrou para
+``backend/app/api/family_members.py`` e ``backend/app/api/categories.py``
+(routers finos delegando a use cases em ``backend/app/application/``).
+Este módulo retém apenas: (a) workspace settings, (b) blobs de config
+(pipeline/institutions/report_layout), (c) endpoints ``/import``+``/export``.
 
-**A6e.3 slice 1** — CRUD de ``FamilyMember`` + ``BankAccount`` migrou para
-``backend/app/api/family_members.py`` (router fino delegando a use cases
-em ``backend/app/application/family_member/``). Helpers ``_import_family_members``
-/ ``_export_family_members`` usam o repo — sem ``select(FamilyMember)`` aqui.
+Helpers ``_import_family_members``/``_export_family_members`` e
+``_import_categorization``/``_export_categorization`` usam os repos —
+sem ``select(FamilyMember)``/``select(Category)`` no API layer.
 """
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from typing import Any
 
-import yaml
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace, require_write_role
-from backend.app.models.category import Category, CategoryKeyword
 from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
 from backend.app.models.workspace import Workspace
 from backend.app.repositories.category_repository import CategoryRepository
@@ -53,19 +45,7 @@ from backend.app.schemas.dto.config_blob import (
     pipeline_blob_to_response,
     report_layout_to_response,
 )
-from backend.app.schemas.dto.category import (
-    CategoryCreateCommand,
-    CategoryListResponse,
-    CategoryResponse,
-    CategoryUpdateCommand,
-    category_to_response,
-)
-from backend.app.schemas.dto.category import (
-    convert_global_defaults_to_responses as convert_category_defaults_to_responses,
-)
-from backend.app.schemas.dto.category import (
-    count_defaults as count_category_defaults,
-)
+from backend.app.services.config_defaults import load_global_json, load_global_yaml
 from backend.app.services.vault import get_vault
 
 router = APIRouter(
@@ -74,13 +54,6 @@ router = APIRouter(
 )
 
 _vault = get_vault()
-
-
-def _get_category_repo(
-    db: AsyncSession = Depends(get_db),
-) -> CategoryRepository:
-    """DI helper — injeta o ``CategoryRepository`` no endpoint (A6e.3)."""
-    return CategoryRepository(db)
 
 
 def _get_config_blob_repo(
@@ -99,29 +72,9 @@ def _get_family_repo(db: AsyncSession = Depends(get_db)) -> FamilyMemberReposito
     return FamilyMemberRepository(db)
 
 
-# =============================================================================
-# Helpers
-# =============================================================================
-
-
-def _global_config_dir() -> Path:
-    return settings.PIPELINE_ROOT / "config"
-
-
-def _load_global_json(name: str) -> dict[str, Any]:
-    path = _global_config_dir() / name
-    if not path.exists():
-        return {}
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def _load_global_yaml(name: str) -> dict[str, Any]:
-    path = _global_config_dir() / name
-    if not path.exists():
-        return {}
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+def _get_category_repo(db: AsyncSession = Depends(get_db)) -> CategoryRepository:
+    """DI helper — usado apenas por import/export (CRUD migrou para categories.py)."""
+    return CategoryRepository(db)
 
 
 # =============================================================================
@@ -156,95 +109,6 @@ async def update_workspace_settings(
 
 
 # =============================================================================
-# Categories — CRUD with nested keywords (3B.3)
-# =============================================================================
-
-
-@router.get("/categories", response_model=CategoryListResponse)
-async def list_categories(
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: CategoryRepository = Depends(_get_category_repo),
-):
-    cats = await repo.list_by_workspace(workspace.id)
-    if cats:
-        responses = [category_to_response(c) for c in cats]
-        return CategoryListResponse(categories=responses, total=len(responses))
-
-    defaults = _load_global_json("categorization.json")
-    return CategoryListResponse(
-        categories=convert_category_defaults_to_responses(defaults),
-        total=count_category_defaults(defaults),
-    )
-
-
-@router.post(
-    "/categories",
-    response_model=CategoryResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_category(
-    body: CategoryCreateCommand,
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: CategoryRepository = Depends(_get_category_repo),
-):
-    if await repo.code_exists(workspace.id, body.code):
-        raise HTTPException(
-            status_code=409,
-            detail=f"Categoria com code '{body.code}' já existe",
-        )
-    cat = await repo.create(
-        workspace.id,
-        code=body.code,
-        name=body.name,
-        category_type=body.category_type,
-        monthly_cap=body.monthly_cap,
-        order=body.order,
-        keywords=body.keywords,
-    )
-    return category_to_response(cat)
-
-
-@router.put("/categories/{category_id}", response_model=CategoryResponse)
-async def update_category(
-    category_id: str,
-    body: CategoryUpdateCommand,
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: CategoryRepository = Depends(_get_category_repo),
-):
-    cat = await repo.get_by_id_with_keywords(workspace.id, category_id)
-    if not cat:
-        raise HTTPException(status_code=404, detail="Categoria não encontrada")
-
-    update_data = body.model_dump(exclude_unset=True)
-    keywords_update = update_data.pop("keywords", None)
-
-    new_code = update_data.get("code")
-    if new_code is not None and new_code != cat.code:
-        if await repo.code_exists(
-            workspace.id, new_code, exclude_id=cat.id
-        ):
-            raise HTTPException(
-                status_code=409,
-                detail=f"Categoria com code '{new_code}' já existe",
-            )
-
-    cat = await repo.update(cat, updates=update_data, keywords=keywords_update)
-    return category_to_response(cat)
-
-
-@router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_category(
-    category_id: str,
-    workspace: Workspace = Depends(get_current_workspace),
-    repo: CategoryRepository = Depends(_get_category_repo),
-):
-    cat = await repo.get_by_id(workspace.id, category_id)
-    if not cat:
-        raise HTTPException(status_code=404, detail="Categoria não encontrada")
-    await repo.delete(cat)
-
-
-# =============================================================================
 # Pipeline Config — GET/PUT (3B.4) · A6e.4
 # =============================================================================
 
@@ -256,7 +120,7 @@ async def get_pipeline_config(
 ):
     cfg_json = await repo.get_config_json(workspace.id, PipelineConfig)
     if cfg_json is None:
-        cfg_json = _load_global_json("pipeline.json")
+        cfg_json = load_global_json("pipeline.json")
     return pipeline_blob_to_response(cfg_json)
 
 
@@ -268,7 +132,7 @@ async def update_pipeline_config(
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ):
     existing = await repo.get_config_json(workspace.id, PipelineConfig)
-    base = existing if existing is not None else _load_global_json("pipeline.json")
+    base = existing if existing is not None else load_global_json("pipeline.json")
     merged = deep_merge(base, body.model_dump(exclude_unset=True))
     await repo.upsert(workspace.id, PipelineConfig, merged)
     await db.commit()
@@ -287,7 +151,7 @@ async def get_institution_config(
 ):
     cfg_json = await repo.get_config_json(workspace.id, InstitutionConfig)
     if cfg_json is None:
-        cfg_json = _load_global_json("institutions.json")
+        cfg_json = load_global_json("institutions.json")
     return institution_blob_to_response(cfg_json)
 
 
@@ -315,7 +179,7 @@ async def get_report_layout(
 ):
     cfg_json = await repo.get_config_json(workspace.id, ReportLayout)
     if cfg_json is None:
-        cfg_json = _load_global_yaml("report_layout.yaml")
+        cfg_json = load_global_yaml("report_layout.yaml")
     return report_layout_to_response(cfg_json)
 
 
@@ -347,6 +211,7 @@ async def import_config(
     db: AsyncSession = Depends(get_db),
     blob_repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
     family_repo: FamilyMemberRepository = Depends(_get_family_repo),
+    category_repo: CategoryRepository = Depends(_get_category_repo),
 ) -> ConfigImportResponse:
     imported: list[str] = []
 
@@ -355,7 +220,7 @@ async def import_config(
         imported.append("family_members")
 
     if body.categorization:
-        await _import_categorization(workspace.id, body.categorization, db)
+        await _import_categorization(workspace.id, body.categorization, category_repo)
         imported.append("categorization")
 
     if body.pipeline:
@@ -380,10 +245,11 @@ async def export_config(
     db: AsyncSession = Depends(get_db),
     blob_repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
     family_repo: FamilyMemberRepository = Depends(_get_family_repo),
+    category_repo: CategoryRepository = Depends(_get_category_repo),
 ):
 
     members_data = await _export_family_members(workspace.id, db, family_repo)
-    categorization_data = await _export_categorization(workspace.id, db)
+    categorization_data = await _export_categorization(workspace.id, category_repo)
     pipeline_data = await _export_blob_or_default(
         blob_repo, workspace.id, PipelineConfig, "pipeline.json", yaml_source=False
     )
@@ -458,24 +324,25 @@ async def _import_family_members(
             )
 
 
-async def _import_categorization(ws_id: str, data: dict[str, Any], db: AsyncSession) -> None:
-    existing = (await db.execute(select(Category).where(Category.workspace_id == ws_id))).scalars().all()
-    for c in existing:
-        await db.delete(c)
-    await db.flush()
+async def _import_categorization(
+    ws_id: str,
+    data: dict[str, Any],
+    repo: CategoryRepository,
+) -> None:
+    await repo.delete_all_in_workspace(ws_id)
 
     order = 0
     for cat_type, key in [("expense", "expense_keywords"), ("income", "income_keywords")]:
         keywords_map = data.get(key, {})
         for code, keywords in keywords_map.items():
-            cat = Category(
-                workspace_id=ws_id, code=code, name=code.replace("_", " ").title(),
-                category_type=cat_type, order=order,
+            await repo.create(
+                ws_id,
+                code=code,
+                name=code.replace("_", " ").title(),
+                category_type=cat_type,
+                order=order,
+                keywords=list(keywords),
             )
-            db.add(cat)
-            await db.flush()
-            for kw_text in keywords:
-                db.add(CategoryKeyword(category_id=cat.id, keyword=kw_text))
             order += 1
 
 
@@ -498,9 +365,9 @@ async def _export_blob_or_default(
     if cfg_json is not None:
         return cfg_json
     return (
-        _load_global_yaml(default_filename)
+        load_global_yaml(default_filename)
         if yaml_source
-        else _load_global_json(default_filename)
+        else load_global_json(default_filename)
     )
 
 
@@ -563,16 +430,13 @@ async def _export_family_members(
     return result_dict
 
 
-async def _export_categorization(ws_id: str, db: AsyncSession) -> dict[str, Any]:
-    result = await db.execute(
-        select(Category)
-        .where(Category.workspace_id == ws_id)
-        .options(selectinload(Category.keywords))
-        .order_by(Category.order)
-    )
-    cats = result.scalars().all()
+async def _export_categorization(
+    ws_id: str,
+    repo: CategoryRepository,
+) -> dict[str, Any]:
+    cats = await repo.list_by_workspace(ws_id)
     if not cats:
-        return _load_global_json("categorization.json")
+        return load_global_json("categorization.json")
 
     expense_keywords: dict[str, list[str]] = {}
     income_keywords: dict[str, list[str]] = {}

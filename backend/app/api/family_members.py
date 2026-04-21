@@ -8,10 +8,6 @@ Erros de domínio são traduzidos para HTTP por handlers globais em
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-from typing import Any
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,7 +21,6 @@ from backend.app.application.family_member import (
     update_bank_account,
     update_family_member,
 )
-from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace
 from backend.app.models.workspace import Workspace
@@ -39,6 +34,7 @@ from backend.app.schemas.dto.family_member import (
     FamilyMemberResponse,
     FamilyMemberUpdateCommand,
 )
+from backend.app.services.config_defaults import load_global_json
 from backend.app.services.vault import get_vault
 
 router = APIRouter(prefix="/workspaces/{workspace_id}/config", tags=["config"])
@@ -49,21 +45,16 @@ def _get_repo(db: AsyncSession = Depends(get_db)) -> FamilyMemberRepository:
     return FamilyMemberRepository(db)
 
 
-def _load_defaults() -> dict[str, Any]:
-    path: Path = settings.PIPELINE_ROOT / "config" / "family_members.json"
-    if not path.exists():
-        return {}
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
 @router.get("/members", response_model=FamilyMemberListResponse)
 async def list_members(
     workspace: Workspace = Depends(get_current_workspace),
     repo: FamilyMemberRepository = Depends(_get_repo),
 ) -> FamilyMemberListResponse:
     return await list_family_members(
-        workspace.id, repo=repo, vault=_vault, global_defaults=_load_defaults()
+        workspace.id,
+        repo=repo,
+        vault=_vault,
+        global_defaults=load_global_json("family_members.json"),
     )
 
 
