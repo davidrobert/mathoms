@@ -1,49 +1,54 @@
 """Goal service — ADR-073.
 
 Contém:
-- `compute_if_derived(inputs, patrimonio_atual_brl=None)` — função pura,
-  fonte única dos valores derivados. Chamada pelo endpoint `/goals/if/compute`
-  (preview live do frontend) e pelo pipeline adapter. Com patrimônio atual,
-  calcula também o aporte mensal ajustado (gap até a meta).
-- CRUD + versionamento append-only (edição cria novo registro, fecha o
-  anterior com `effective_to = ontem`).
 
-**Regra invariante**: para cada (workspace_id, type), existe no máximo
-um registro com `effective_to IS NULL`. Garantido por unique index
-parcial em [b1c2d3e4f5a6_f8_goals.py].
+- **Compute services puros** (``compute_if_derived``,
+  ``compute_aporte_derived``, ``compute_dolar_derived``,
+  ``compute_alocacao_derived``): função única que deriva valores
+  server-side. Chamados pelos endpoints ``/compute`` (preview live)
+  e pelos adapters do pipeline. Domain logic — **zero dependência
+  de DB**.
+- **Orquestração de alto-nível** (CRUD versionado): delega persistência
+  ao ``GoalRepository`` e conversão entity→response ao mapper DTO
+  (``schemas/dto/goal/mapper.py``).
+
+**Regra invariante**: para cada ``(workspace_id, type)`` existe no
+máximo um registro com ``effective_to IS NULL``. Garantido pelo
+unique index parcial ``ux_goals_current_ws_type`` (ver migration
+``b1c2d3e4f5a6_f8_goals.py``) + fluxo ``close active + flush + insert``
+dentro de ``GoalRepository.create_new_version``.
 """
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date
 from typing import Optional
 
-from pydantic import BaseModel as BaseModel
-
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.goal import Goal, VALID_GOAL_TYPES
+from backend.app.models.goal import Goal
 from backend.app.models.report import Report
 from backend.app.models.user import User
-from backend.app.schemas.goal import (
+from backend.app.repositories.goal_repository import GoalRepository
+from backend.app.schemas.dto.goal import (
+    AlocacaoGoalDerived,
+    AlocacaoGoalInputs,
+    AporteGoalDerived,
+    AporteGoalInputs,
+    DolarGoalDerived,
+    DolarGoalInputs,
+    GoalResponseBase,
     IFGoalDerived,
     IFGoalInputs,
     IFGoalResponse,
-    AporteGoalDerived,
-    AporteGoalInputs,
-    AporteGoalResponse,
-    DolarGoalDerived,
-    DolarGoalInputs,
-    DolarGoalResponse,
-    AlocacaoGoalDerived,
-    AlocacaoGoalInputs,
-    AlocacaoGoalResponse,
-    _GoalResponseBase,
+    goal_to_if_response,
+    goal_to_typed_response,
 )
 
 
-# ─── Função pura de derivação ──────────────────────────────────────────
+# ─── Compute services (puros) ─────────────────────────────────────────
 
 
 def _pmt_constante_ate_fv(
@@ -114,8 +119,6 @@ def compute_if_derived(
     )
 
 
-# ─── Funções puras de derivação — Aporte, Dólar, Alocação ────────────
-
 DEFAULT_CAMBIO_BRL_USD = 5.70  # MVP — override via compute request
 
 
@@ -161,80 +164,52 @@ def compute_alocacao_derived(inputs: AlocacaoGoalInputs) -> AlocacaoGoalDerived:
     return AlocacaoGoalDerived(soma_percentuais=round(soma, 2))
 
 
-# ─── CRUD versionado ──────────────────────────────────────────────────
-
-
-def _meta_version_from_params(params_json: dict) -> int:
-    v = params_json.get("meta_version", 1)
-    try:
-        return int(v) if v is not None else 1
-    except (TypeError, ValueError):
-        return 1
-
-
-def _goal_to_typed_response(
-    goal: Goal,
-    *,
-    response_cls: type[_GoalResponseBase],
-    inputs_cls: type,
-    derived_cls: type,
-    created_by_name: Optional[str] = None,
-) -> _GoalResponseBase:
-    """Conversor genérico entity → response Pydantic (qualquer goal type)."""
-    return response_cls(
-        id=goal.id,
-        workspace_id=goal.workspace_id,
-        type=goal.type,  # type: ignore[arg-type]
-        meta_version=_meta_version_from_params(goal.params_json),
-        inputs=inputs_cls(**goal.params_json["inputs"]),
-        derived=derived_cls(**goal.derived_json),
-        effective_from=goal.effective_from,
-        effective_to=goal.effective_to,
-        is_template=goal.is_template,
-        notes=goal.notes,
-        created_by=goal.created_by,
-        created_by_name=created_by_name,
-        created_at=goal.created_at,
-        updated_at=goal.updated_at,
-    )
-
-
-def _goal_to_response(
-    goal: Goal, *, created_by_name: Optional[str] = None
-) -> IFGoalResponse:
-    """Converte entity → response Pydantic, re-parseando os JSON blobs.
-
-    `created_by_name` é resolvido pelos callers que tenham uma `db` session
-    à mão (ver `get_current_goal_with_author` / `get_goal_history_with_authors`).
-    """
-    return IFGoalResponse(
-        id=goal.id,
-        workspace_id=goal.workspace_id,
-        type=goal.type,  # type: ignore[arg-type]
-        meta_version=_meta_version_from_params(goal.params_json),
-        inputs=IFGoalInputs(**goal.params_json["inputs"]),
-        derived=IFGoalDerived(**goal.derived_json),
-        effective_from=goal.effective_from,
-        effective_to=goal.effective_to,
-        is_template=goal.is_template,
-        notes=goal.notes,
-        created_by=goal.created_by,
-        created_by_name=created_by_name,
-        created_at=goal.created_at,
-        updated_at=goal.updated_at,
-    )
+# ─── Enriquecimento de respostas (autor, patrimônio) ─────────────────
 
 
 async def _resolve_author_names(
     user_ids: set[str], *, db: AsyncSession
 ) -> dict[str, str]:
-    """Batch lookup de `user_id → full_name`. Usado para authorship nos
-    goals. Retorna dict vazio se user_ids vazio."""
+    """Batch lookup ``user_id → full_name``. Usado para authorship nos goals.
+
+    Tenancy: ``User`` é auth-level (não tenant-scoped), então a query
+    não inclui ``workspace_id``. Retorna dict vazio se ``user_ids``
+    vazio.
+    """
     if not user_ids:
         return {}
-    # tenancy: global — User é auth-level, não tenant-scoped
     rows = await db.execute(select(User).where(User.id.in_(list(user_ids))))
     return {u.id: u.full_name for u in rows.scalars().all()}
+
+
+async def get_latest_report_patrimonio_liquido(
+    workspace_id: str,
+    *,
+    db: AsyncSession,
+) -> Optional[float]:
+    """Último ``patrimonio_liquido`` não nulo do workspace (por ``created_at``).
+
+    Usado pelo endpoint IF para enriquecer a resposta com o valor real
+    do patrimônio, permitindo UI de progresso (percentual conquistado,
+    aporte ajustado). ``Report`` é outro agregado — query fica no
+    service porque é composição cross-agregado.
+    """
+    stmt = (
+        select(Report.patrimonio_liquido)
+        .where(
+            Report.workspace_id == workspace_id,
+            Report.patrimonio_liquido.isnot(None),
+        )
+        .order_by(Report.created_at.desc())
+        .limit(1)
+    )
+    row = (await db.execute(stmt)).scalar_one_or_none()
+    if row is None:
+        return None
+    return float(row)
+
+
+# ─── Orquestração (leitura + criação versionada) ─────────────────────
 
 
 async def get_current_goal_with_author(
@@ -243,15 +218,18 @@ async def get_current_goal_with_author(
     *,
     db: AsyncSession,
 ) -> Optional[IFGoalResponse]:
-    """Versão que já popula `created_by_name` — use em endpoints de leitura
-    para expor autoria na UI (F9)."""
-    goal = await get_current_goal(workspace_id, goal_type, db=db)
+    """Versão IF que já popula ``created_by_name`` — use em endpoints
+    de leitura para expor autoria na UI (F9)."""
+    repo = GoalRepository(db)
+    goal = await repo.get_active_by_type(workspace_id, goal_type)
     if goal is None:
         return None
     names = await _resolve_author_names(
         {goal.created_by} if goal.created_by else set(), db=db
     )
-    return _goal_to_response(goal, created_by_name=names.get(goal.created_by or ""))
+    return goal_to_if_response(
+        goal, created_by_name=names.get(goal.created_by or "")
+    )
 
 
 async def get_goal_history_with_authors(
@@ -260,58 +238,52 @@ async def get_goal_history_with_authors(
     *,
     db: AsyncSession,
 ) -> list[IFGoalResponse]:
-    goals = await get_goal_history(workspace_id, goal_type, db=db)
+    repo = GoalRepository(db)
+    goals = await repo.list_by_workspace_and_type(workspace_id, goal_type)
     ids = {g.created_by for g in goals if g.created_by}
     names = await _resolve_author_names(ids, db=db)
     return [
-        _goal_to_response(g, created_by_name=names.get(g.created_by or ""))
+        goal_to_if_response(g, created_by_name=names.get(g.created_by or ""))
         for g in goals
     ]
 
 
-async def get_current_goal(
+async def get_current_goal_typed(
     workspace_id: str,
     goal_type: str,
     *,
     db: AsyncSession,
-) -> Optional[Goal]:
-    """Retorna o Goal vigente (effective_to IS NULL) ou None.
-
-    Uso de `workspace_id` como primeiro filtro — obrigatório por ADR-072.
-    """
-    if goal_type not in VALID_GOAL_TYPES:
-        raise ValueError(f"Tipo de goal inválido: {goal_type}")
-
-    stmt = select(Goal).where(
-        Goal.workspace_id == workspace_id,
-        Goal.type == goal_type,
-        Goal.effective_to.is_(None),
+) -> Optional[GoalResponseBase]:
+    """Retorna o Goal vigente como response tipada (qualquer goal type)."""
+    repo = GoalRepository(db)
+    goal = await repo.get_active_by_type(workspace_id, goal_type)
+    if goal is None:
+        return None
+    names = await _resolve_author_names(
+        {goal.created_by} if goal.created_by else set(), db=db
     )
-    result = await db.execute(stmt)
-    return result.scalar_one_or_none()
+    return goal_to_typed_response(
+        goal, created_by_name=names.get(goal.created_by or "")
+    )
 
 
-async def get_goal_history(
+async def get_goal_history_typed(
     workspace_id: str,
     goal_type: str,
     *,
     db: AsyncSession,
-) -> list[Goal]:
-    """Histórico completo ordenado cronologicamente (mais recente
-    primeiro). Útil para gráficos de evolução da meta."""
-    if goal_type not in VALID_GOAL_TYPES:
-        raise ValueError(f"Tipo de goal inválido: {goal_type}")
-
-    stmt = (
-        select(Goal)
-        .where(
-            Goal.workspace_id == workspace_id,
-            Goal.type == goal_type,
+) -> list[GoalResponseBase]:
+    """Histórico tipado de qualquer goal type."""
+    repo = GoalRepository(db)
+    goals = await repo.list_by_workspace_and_type(workspace_id, goal_type)
+    ids = {g.created_by for g in goals if g.created_by}
+    names = await _resolve_author_names(ids, db=db)
+    return [
+        goal_to_typed_response(
+            g, created_by_name=names.get(g.created_by or "")
         )
-        .order_by(Goal.effective_from.desc())
-    )
-    result = await db.execute(stmt)
-    return list(result.scalars().all())
+        for g in goals
+    ]
 
 
 async def create_if_goal_version(
@@ -324,46 +296,27 @@ async def create_if_goal_version(
     is_template: bool = False,
     effective_from: Optional[date] = None,
 ) -> Goal:
-    """Cria nova versão da meta IF. Se já existir registro vigente,
-    fecha-o com `effective_to = effective_from - 1 dia` antes.
+    """Cria nova versão da meta IF.
 
-    A atomicidade é importante: o unique index parcial
-    `ux_goals_current_ws_type` **rejeitaria** o INSERT se houvesse dois
-    vigentes simultaneamente. Fazemos UPDATE antes do INSERT dentro da
-    mesma transação — caller deve chamar `db.commit()` depois.
+    Deriva os valores via ``compute_if_derived`` e delega persistência
+    ao ``GoalRepository.create_new_version`` (fecha vigente + insert
+    dentro da mesma transação). Caller faz ``db.commit()``.
     """
-    eff_from = effective_from or date.today()
-
-    # Fecha vigente anterior (se existir) — mesma transação
-    current = await get_current_goal(
-        workspace_id, "INDEPENDENCIA_FINANCEIRA", db=db
-    )
-    if current is not None:
-        # effective_to = um dia antes do novo effective_from, para manter
-        # histórico sem gaps nem sobreposição
-        current.effective_to = eff_from - timedelta(days=1)
-        db.add(current)
-        await db.flush()
-
     derived = compute_if_derived(inputs)
-
-    goal = Goal(
-        workspace_id=workspace_id,
-        type="INDEPENDENCIA_FINANCEIRA",
+    repo = GoalRepository(db)
+    return await repo.create_new_version(
+        workspace_id,
+        "INDEPENDENCIA_FINANCEIRA",
         params_json={
             "inputs": inputs.model_dump(),
             "meta_version": 1,
         },
         derived_json=derived.model_dump(exclude_none=True),
-        effective_from=eff_from,
-        effective_to=None,
         created_by=created_by,
         notes=notes,
         is_template=is_template,
+        effective_from=effective_from,
     )
-    db.add(goal)
-    await db.flush()
-    return goal
 
 
 async def create_goal_version(
@@ -380,134 +333,80 @@ async def create_goal_version(
 ) -> Goal:
     """Cria nova versão de qualquer goal type (genérico).
 
-    Mesma lógica append-only que `create_if_goal_version`: fecha o vigente
-    anterior antes de inserir o novo.
+    O caller já computou ``derived`` via ``compute_*_derived`` — evita
+    acoplamento do service com a tabela de compute functions por tipo.
     """
-    if goal_type not in VALID_GOAL_TYPES:
-        raise ValueError(f"Tipo de goal inválido: {goal_type}")
-
-    eff_from = effective_from or date.today()
-
-    current = await get_current_goal(workspace_id, goal_type, db=db)
-    if current is not None:
-        current.effective_to = eff_from - timedelta(days=1)
-        db.add(current)
-        await db.flush()
-
-    goal = Goal(
-        workspace_id=workspace_id,
-        type=goal_type,
+    repo = GoalRepository(db)
+    return await repo.create_new_version(
+        workspace_id,
+        goal_type,
         params_json={
             "inputs": inputs.model_dump(),
             "meta_version": 1,
         },
         derived_json=derived.model_dump(exclude_none=True),
-        effective_from=eff_from,
-        effective_to=None,
         created_by=created_by,
         notes=notes,
         is_template=is_template,
+        effective_from=effective_from,
     )
-    db.add(goal)
-    await db.flush()
-    return goal
 
 
-# Mapeia goal_type → (response_cls, inputs_cls, derived_cls) para helpers
-_GOAL_TYPE_CLASSES: dict[str, tuple[type, type, type]] = {
-    "INDEPENDENCIA_FINANCEIRA": (IFGoalResponse, IFGoalInputs, IFGoalDerived),
-    "APORTE_MENSAL": (AporteGoalResponse, AporteGoalInputs, AporteGoalDerived),
-    "DOLARIZACAO": (DolarGoalResponse, DolarGoalInputs, DolarGoalDerived),
-    "ALOCACAO_ALVO": (AlocacaoGoalResponse, AlocacaoGoalInputs, AlocacaoGoalDerived),
-}
+# ─── Compat com chamadores legados (migrarão gradualmente) ───────────
 
 
-async def get_current_goal_typed(
+async def get_current_goal(
     workspace_id: str,
     goal_type: str,
     *,
     db: AsyncSession,
-):
-    """Retorna o Goal vigente como response tipada (qualquer goal type)."""
-    goal = await get_current_goal(workspace_id, goal_type, db=db)
-    if goal is None:
-        return None
-    cls = _GOAL_TYPE_CLASSES.get(goal_type)
-    if cls is None:
-        return None
-    resp_cls, inp_cls, der_cls = cls
-    names = await _resolve_author_names(
-        {goal.created_by} if goal.created_by else set(), db=db
-    )
-    return _goal_to_typed_response(
-        goal,
-        response_cls=resp_cls,
-        inputs_cls=inp_cls,
-        derived_cls=der_cls,
-        created_by_name=names.get(goal.created_by or ""),
-    )
+) -> Optional[Goal]:
+    """Retorna o Goal vigente (entity ORM) ou None.
+
+    Preservado por compat — prefira ``get_current_goal_typed`` /
+    ``get_current_goal_with_author`` que devolvem DTOs prontos.
+    """
+    repo = GoalRepository(db)
+    return await repo.get_active_by_type(workspace_id, goal_type)
 
 
-async def get_goal_history_typed(
+async def get_goal_history(
     workspace_id: str,
     goal_type: str,
     *,
     db: AsyncSession,
-) -> list:
-    """Histórico tipado de qualquer goal type."""
-    goals = await get_goal_history(workspace_id, goal_type, db=db)
-    cls = _GOAL_TYPE_CLASSES.get(goal_type)
-    if cls is None:
-        return []
-    resp_cls, inp_cls, der_cls = cls
-    ids = {g.created_by for g in goals if g.created_by}
-    names = await _resolve_author_names(ids, db=db)
-    return [
-        _goal_to_typed_response(
-            g,
-            response_cls=resp_cls,
-            inputs_cls=inp_cls,
-            derived_cls=der_cls,
-            created_by_name=names.get(g.created_by or ""),
-        )
-        for g in goals
-    ]
+) -> list[Goal]:
+    """Histórico (entities ORM) mais recente primeiro.
+
+    Preservado por compat — prefira ``get_goal_history_typed`` que
+    devolve DTOs prontos.
+    """
+    repo = GoalRepository(db)
+    return await repo.list_by_workspace_and_type(workspace_id, goal_type)
 
 
-async def get_latest_report_patrimonio_liquido(
-    workspace_id: str,
-    *,
-    db: AsyncSession,
-) -> Optional[float]:
-    """Último `patrimonio_liquido` não nulo do workspace (por `created_at`)."""
-    stmt = (
-        select(Report.patrimonio_liquido)
-        .where(
-            Report.workspace_id == workspace_id,
-            Report.patrimonio_liquido.isnot(None),
-        )
-        .order_by(Report.created_at.desc())
-        .limit(1)
-    )
-    row = (await db.execute(stmt)).scalar_one_or_none()
-    if row is None:
-        return None
-    return float(row)
+# Mapper legado — ``_goal_to_response`` / ``_goal_to_typed_response`` —
+# migraram para ``schemas/dto/goal/mapper.py``. Re-exports abaixo por
+# compat binária (callers legados, ex.: router em migração gradual).
+_goal_to_response = goal_to_if_response
+_goal_to_typed_response = goal_to_typed_response
 
 
 __all__ = [
-    "compute_if_derived",
+    "DEFAULT_CAMBIO_BRL_USD",
+    "compute_alocacao_derived",
     "compute_aporte_derived",
     "compute_dolar_derived",
-    "compute_alocacao_derived",
-    "get_current_goal",
-    "get_goal_history",
-    "create_if_goal_version",
+    "compute_if_derived",
     "create_goal_version",
+    "create_if_goal_version",
+    "get_current_goal",
     "get_current_goal_typed",
+    "get_current_goal_with_author",
+    "get_goal_history",
     "get_goal_history_typed",
+    "get_goal_history_with_authors",
     "get_latest_report_patrimonio_liquido",
     "_goal_to_response",
     "_goal_to_typed_response",
-    "DEFAULT_CAMBIO_BRL_USD",
 ]

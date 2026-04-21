@@ -17,27 +17,29 @@ from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
-from backend.app.schemas.goal import (
-    IFGoalComputeRequest,
-    IFGoalComputeResponse,
-    IFGoalHistoryResponse,
-    IFGoalResponse,
-    IFGoalUpsertRequest,
-    AporteGoalComputeRequest,
-    AporteGoalComputeResponse,
-    AporteGoalHistoryResponse,
-    AporteGoalResponse,
-    AporteGoalUpsertRequest,
-    DolarGoalComputeRequest,
-    DolarGoalComputeResponse,
-    DolarGoalHistoryResponse,
-    DolarGoalResponse,
-    DolarGoalUpsertRequest,
+from backend.app.schemas.dto.goal import (
     AlocacaoGoalComputeRequest,
     AlocacaoGoalComputeResponse,
     AlocacaoGoalHistoryResponse,
     AlocacaoGoalResponse,
-    AlocacaoGoalUpsertRequest,
+    AlocacaoGoalUpsertCommand,
+    AporteGoalComputeRequest,
+    AporteGoalComputeResponse,
+    AporteGoalHistoryResponse,
+    AporteGoalResponse,
+    AporteGoalUpsertCommand,
+    DolarGoalComputeRequest,
+    DolarGoalComputeResponse,
+    DolarGoalHistoryResponse,
+    DolarGoalResponse,
+    DolarGoalUpsertCommand,
+    IFGoalComputeRequest,
+    IFGoalComputeResponse,
+    IFGoalHistoryResponse,
+    IFGoalResponse,
+    IFGoalUpsertCommand,
+    goal_to_if_response,
+    goal_to_typed_response,
 )
 from backend.app.schemas.task import (
     TaskFilters,
@@ -175,7 +177,7 @@ async def list_tasks_for_goal(
     dependencies=[Depends(require_write_role)],
 )
 async def upsert_if_goal(
-    body: IFGoalUpsertRequest,
+    body: IFGoalUpsertCommand,
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -194,7 +196,7 @@ async def upsert_if_goal(
     )
     await db.commit()
     await db.refresh(goal)
-    base = goal_service._goal_to_response(goal, created_by_name=user.full_name)
+    base = goal_to_if_response(goal, created_by_name=user.full_name)
     return await _enrich_if_goal_with_latest_patrimonio(
         base, workspace.id, db=db
     )
@@ -262,7 +264,7 @@ async def get_aporte_goal_history(
     dependencies=[Depends(require_write_role)],
 )
 async def upsert_aporte_goal(
-    body: AporteGoalUpsertRequest,
+    body: AporteGoalUpsertCommand,
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -279,13 +281,7 @@ async def upsert_aporte_goal(
     )
     await db.commit()
     await db.refresh(goal)
-    return goal_service._goal_to_typed_response(
-        goal,
-        response_cls=AporteGoalResponse,
-        inputs_cls=goal_service.AporteGoalInputs,
-        derived_cls=goal_service.AporteGoalDerived,
-        created_by_name=user.full_name,
-    )
+    return goal_to_typed_response(goal, created_by_name=user.full_name)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -351,7 +347,7 @@ async def get_dolar_goal_history(
     dependencies=[Depends(require_write_role)],
 )
 async def upsert_dolar_goal(
-    body: DolarGoalUpsertRequest,
+    body: DolarGoalUpsertCommand,
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -368,13 +364,7 @@ async def upsert_dolar_goal(
     )
     await db.commit()
     await db.refresh(goal)
-    return goal_service._goal_to_typed_response(
-        goal,
-        response_cls=DolarGoalResponse,
-        inputs_cls=goal_service.DolarGoalInputs,
-        derived_cls=goal_service.DolarGoalDerived,
-        created_by_name=user.full_name,
-    )
+    return goal_to_typed_response(goal, created_by_name=user.full_name)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -442,7 +432,7 @@ async def get_alocacao_goal_history(
     dependencies=[Depends(require_write_role)],
 )
 async def upsert_alocacao_goal(
-    body: AlocacaoGoalUpsertRequest,
+    body: AlocacaoGoalUpsertCommand,
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -459,10 +449,4 @@ async def upsert_alocacao_goal(
     )
     await db.commit()
     await db.refresh(goal)
-    return goal_service._goal_to_typed_response(
-        goal,
-        response_cls=AlocacaoGoalResponse,
-        inputs_cls=goal_service.AlocacaoGoalInputs,
-        derived_cls=goal_service.AlocacaoGoalDerived,
-        created_by_name=user.full_name,
-    )
+    return goal_to_typed_response(goal, created_by_name=user.full_name)
