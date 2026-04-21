@@ -40,42 +40,32 @@ class FakePipelineRunRow:
     completed_at: datetime | None = None
 
 
-@pytest_asyncio.fixture
-async def workspace_with_run(tmp_path, monkeypatch, db: AsyncSession):
-    """Create user + workspace + pending pipeline run.
-
-    Backed by a temp SQLite FILE (not in-memory) so that the sync
-    ``SyncSessionLocal`` used by ``_is_cancelled`` and friends sees the
-    same data we write here. The default conftest engine is in-memory
-    (``sqlite+aiosqlite://``) which is invisible to a parallel sync
-    engine — that's why these tests previously failed.
-    """
+async def _build_file_backed_engines(db_file):
+    """Async + sync engines compartilhando o mesmo arquivo SQLite (+ metadata)."""
     from sqlalchemy import create_engine
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from sqlalchemy.orm import sessionmaker
 
     from backend.app.core.database import Base
-    from backend.app.core.security import hash_password
     import backend.app.models  # noqa: F401 — register all models on Base
-    import backend.app.tasks.pipeline_task as task_module
 
-    db_file = tmp_path / "pipeline_task.db"
-    async_url = f"sqlite+aiosqlite:///{db_file}"
-    sync_url = f"sqlite:///{db_file}"
-
-    async_engine = create_async_engine(async_url)
-    sync_engine = create_engine(sync_url)
-    AsyncTestSession = async_sessionmaker(
+    async_engine = create_async_engine(f"sqlite+aiosqlite:///{db_file}")
+    sync_engine = create_engine(f"sqlite:///{db_file}")
+    async_session = async_sessionmaker(
         async_engine, class_=AsyncSession, expire_on_commit=False
     )
-    SyncTestSession = sessionmaker(bind=sync_engine, expire_on_commit=False)
+    sync_session = sessionmaker(bind=sync_engine, expire_on_commit=False)
 
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    monkeypatch.setattr(task_module, "SyncSessionLocal", SyncTestSession)
+    return async_engine, sync_engine, async_session, sync_session
 
-    async with AsyncTestSession() as session:
+
+async def _seed_pending_run(async_session_factory) -> dict:
+    from backend.app.core.security import hash_password
+
+    async with async_session_factory() as session:
         user = User(
             id=str(uuid.uuid4()),
             email="task_test@test.com",
@@ -98,16 +88,34 @@ async def workspace_with_run(tmp_path, monkeypatch, db: AsyncSession):
         session.add(run)
         await session.commit()
 
-        # Re-attach to the conftest db session so existing tests that read
-        # the run via the ``db`` fixture keep working.
-        # We use the IDs only — actual reads happen against AsyncTestSession.
-        result = {
+        return {
             "user_id": user.id, "workspace_id": ws.id, "run_id": run.id,
-            "session": AsyncTestSession,
             "user": user, "workspace": ws, "run": run,
         }
 
-    yield result
+
+@pytest_asyncio.fixture
+async def workspace_with_run(tmp_path, monkeypatch, db: AsyncSession):
+    """Create user + workspace + pending pipeline run.
+
+    Backed by a temp SQLite FILE (not in-memory) so that the sync
+    ``SyncSessionLocal`` used by ``_is_cancelled`` and friends sees the
+    same data we write here. The default conftest engine is in-memory
+    (``sqlite+aiosqlite://``) which is invisible to a parallel sync
+    engine — that's why these tests previously failed.
+    """
+    import backend.app.tasks.pipeline_task as task_module
+
+    db_file = tmp_path / "pipeline_task.db"
+    async_engine, sync_engine, async_session, sync_session = (
+        await _build_file_backed_engines(db_file)
+    )
+    monkeypatch.setattr(task_module, "SyncSessionLocal", sync_session)
+
+    seeded = await _seed_pending_run(async_session)
+    seeded["session"] = async_session
+
+    yield seeded
 
     await async_engine.dispose()
     sync_engine.dispose()

@@ -49,6 +49,7 @@ Cada classe `TestIsolation<Domain>` segue o mesmo padrão:
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 import pytest
@@ -77,6 +78,83 @@ from backend.tests.factories import (
 # ─────────────────────────────────────────────────────────────────────
 
 
+@dataclass(frozen=True)
+class _TenantSpec:
+    user_email: str
+    user_full_name: str
+    ws_name: str
+    family_surname: str
+    member_key: str
+    member_full_name: str
+    institution_code: str
+    category_code: str
+    category_name: str
+    document_name: str
+    vault_label: str
+    report_title: str
+    llm_model: str
+    notif_title: str
+    notif_message: str
+
+
+_TENANT_A = _TenantSpec(
+    user_email="alice@test.com",
+    user_full_name="Alice A",
+    ws_name="Família A",
+    family_surname="Alves",
+    member_key="alice_titular",
+    member_full_name="Alice Alves",
+    institution_code="c6bank",
+    category_code="alimentacao_a",
+    category_name="Alimentação A",
+    document_name="extrato_a.pdf",
+    vault_label="Senha A",
+    report_title="Relatório A",
+    llm_model="claude-opus-4-6",
+    notif_title="Notif A",
+    notif_message="Mensagem A",
+)
+
+# LLMConfig tem unique constraint em workspace_id — cada tenant tem o seu.
+_TENANT_B = _TenantSpec(
+    user_email="bob@test.com",
+    user_full_name="Bob B",
+    ws_name="Família B",
+    family_surname="Brito",
+    member_key="bob_titular",
+    member_full_name="Bob Brito",
+    institution_code="itau",
+    category_code="alimentacao_b",
+    category_name="Alimentação B",
+    document_name="extrato_b.pdf",
+    vault_label="Senha B",
+    report_title="Relatório B",
+    llm_model="claude-haiku-4-5",
+    notif_title="Notif B",
+    notif_message="Mensagem B",
+)
+
+
+async def _seed_full_tenant(db: AsyncSession, spec: _TenantSpec) -> dict[str, Any]:
+    user = await make_user(db, email=spec.user_email, full_name=spec.user_full_name)
+    ws = await make_workspace(db, owner=user, name=spec.ws_name, family_surname=spec.family_surname)
+    member = await make_member(db, workspace=ws, key=spec.member_key, full_name=spec.member_full_name)
+    account = await make_bank_account(db, member=member, institution_code=spec.institution_code)
+    category = await make_category(db, workspace=ws, code=spec.category_code, name=spec.category_name)
+    document = await make_document(db, workspace=ws, original_name=spec.document_name)
+    vault = await make_vault_password(db, workspace=ws, label=spec.vault_label)
+    run = await make_run(db, workspace=ws)
+    report = await make_report(db, workspace=ws, pipeline_run=run, title=spec.report_title)
+    llm = await make_llm_config(db, workspace=ws, model_name=spec.llm_model)
+    notif = await make_notification(db, workspace=ws, title=spec.notif_title, message=spec.notif_message)
+    return {
+        "user": user, "ws": ws, "member": member, "account": account,
+        "category": category, "document": document, "vault": vault,
+        "run": run, "report": report, "llm": llm, "notification": notif,
+        "token": create_access_token(user.id),
+    }
+
+
 @pytest_asyncio.fixture
 async def tenants(db: AsyncSession) -> dict[str, Any]:
     """Cria 2 universos paralelos: tenant A e tenant B.
@@ -84,69 +162,11 @@ async def tenants(db: AsyncSession) -> dict[str, Any]:
     Cada um tem: user, workspace (com family_surname distinto), member,
     category, document, vault password, pipeline run, report, llm config,
     notification.
-
-    Retorna dict com tudo o que os tests precisam.
     """
-    # Tenant A
-    user_a = await make_user(db, email="alice@test.com", full_name="Alice A")
-    ws_a = await make_workspace(db, owner=user_a, name="Família A", family_surname="Alves")
-    member_a = await make_member(db, workspace=ws_a, key="alice_titular", full_name="Alice Alves")
-    acc_a = await make_bank_account(db, member=member_a, institution_code="c6bank")
-    cat_a = await make_category(db, workspace=ws_a, code="alimentacao_a", name="Alimentação A")
-    doc_a = await make_document(db, workspace=ws_a, original_name="extrato_a.pdf")
-    vault_a = await make_vault_password(db, workspace=ws_a, label="Senha A")
-    run_a = await make_run(db, workspace=ws_a)
-    report_a = await make_report(db, workspace=ws_a, pipeline_run=run_a, title="Relatório A")
-    llm_a = await make_llm_config(db, workspace=ws_a, model_name="claude-opus-4-6")
-    notif_a = await make_notification(db, workspace=ws_a, title="Notif A", message="Mensagem A")
-
-    # Tenant B
-    user_b = await make_user(db, email="bob@test.com", full_name="Bob B")
-    ws_b = await make_workspace(db, owner=user_b, name="Família B", family_surname="Brito")
-    member_b = await make_member(db, workspace=ws_b, key="bob_titular", full_name="Bob Brito")
-    acc_b = await make_bank_account(db, member=member_b, institution_code="itau")
-    cat_b = await make_category(db, workspace=ws_b, code="alimentacao_b", name="Alimentação B")
-    doc_b = await make_document(db, workspace=ws_b, original_name="extrato_b.pdf")
-    vault_b = await make_vault_password(db, workspace=ws_b, label="Senha B")
-    run_b = await make_run(db, workspace=ws_b)
-    report_b = await make_report(db, workspace=ws_b, pipeline_run=run_b, title="Relatório B")
-    # NOTE: LLMConfig tem unique constraint em workspace_id — só 1 por workspace.
-    # Já criamos um para A; criamos outro para B (workspace_id diferente, OK).
-    llm_b = await make_llm_config(db, workspace=ws_b, model_name="claude-haiku-4-5")
-    notif_b = await make_notification(db, workspace=ws_b, title="Notif B", message="Mensagem B")
-
+    a = await _seed_full_tenant(db, _TENANT_A)
+    b = await _seed_full_tenant(db, _TENANT_B)
     await db.commit()
-
-    return {
-        "a": {
-            "user": user_a,
-            "ws": ws_a,
-            "member": member_a,
-            "account": acc_a,
-            "category": cat_a,
-            "document": doc_a,
-            "vault": vault_a,
-            "run": run_a,
-            "report": report_a,
-            "llm": llm_a,
-            "notification": notif_a,
-            "token": create_access_token(user_a.id),
-        },
-        "b": {
-            "user": user_b,
-            "ws": ws_b,
-            "member": member_b,
-            "account": acc_b,
-            "category": cat_b,
-            "document": doc_b,
-            "vault": vault_b,
-            "run": run_b,
-            "report": report_b,
-            "llm": llm_b,
-            "notification": notif_b,
-            "token": create_access_token(user_b.id),
-        },
-    }
+    return {"a": a, "b": b}
 
 
 def _auth(token: str) -> dict[str, str]:

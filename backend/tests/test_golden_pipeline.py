@@ -89,14 +89,7 @@ def db():
     s.close()
 
 
-@pytest.fixture
-def golden_workspace(db) -> Workspace:
-    """Workspace canônico para o golden test:
-    - 1 user
-    - 1 workspace com family_surname='Silva Souza' (BUG-015 anti-regression)
-    - 1 titular com 1 conta C6Bank
-    - 1 categoria de despesa + 1 de receita com keywords
-    """
+def _seed_golden_user_and_workspace(db) -> Workspace:
     u = User(
         email="golden@test.com",
         hashed_password=hash_password("x"),
@@ -112,7 +105,10 @@ def golden_workspace(db) -> Workspace:
     )
     db.add(ws)
     db.flush()
+    return ws
 
+
+def _seed_golden_titular_with_account(db, ws: Workspace) -> FamilyMember:
     titular = FamilyMember(
         workspace_id=ws.id,
         key="founder",
@@ -123,7 +119,6 @@ def golden_workspace(db) -> Workspace:
     )
     db.add(titular)
     db.flush()
-
     db.add(
         BankAccount(
             member_id=titular.id,
@@ -133,8 +128,10 @@ def golden_workspace(db) -> Workspace:
             account_number="12345-6",
         )
     )
+    return titular
 
-    # Categorias mínimas
+
+def _seed_golden_categories_with_keywords(db, ws: Workspace) -> None:
     cat_ali = Category(
         workspace_id=ws.id,
         code="alimentacao",
@@ -158,6 +155,19 @@ def golden_workspace(db) -> Workspace:
             CategoryKeyword(category_id=cat_sal.id, keyword="folha"),
         ]
     )
+
+
+@pytest.fixture
+def golden_workspace(db) -> Workspace:
+    """Workspace canônico para o golden test:
+    - 1 user
+    - 1 workspace com family_surname='Silva Souza' (BUG-015 anti-regression)
+    - 1 titular com 1 conta C6Bank
+    - 1 categoria de despesa + 1 de receita com keywords
+    """
+    ws = _seed_golden_user_and_workspace(db)
+    _seed_golden_titular_with_account(db, ws)
+    _seed_golden_categories_with_keywords(db, ws)
     db.commit()
     return ws
 
