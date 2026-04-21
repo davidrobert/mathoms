@@ -210,7 +210,7 @@ class TestSaldoContinuityValidator:
 
 
 class TestTemporalGapConfig:
-    def test_default(self):
+    def test_default_tolerance_is_4_days(self):
         assert TemporalGapConfig().tolerance_gap_days == 4
 
     def test_from_pipeline_config_custom(self):

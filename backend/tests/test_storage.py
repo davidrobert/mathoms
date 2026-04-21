@@ -9,7 +9,7 @@ from backend.app.services.storage import StorageService, _safe_filename, TENANT_
 
 
 class TestSafeFilename:
-    def test_basic(self):
+    def test_plain_pdf_name_is_preserved(self):
         assert _safe_filename("extrato.pdf") == "extrato.pdf"
 
     def test_spaces_replaced(self):

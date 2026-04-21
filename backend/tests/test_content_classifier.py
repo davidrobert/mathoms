@@ -373,7 +373,7 @@ class TestClassifyText:
 class TestClassifyFileWithInjectedExtractor:
     """classify_file accepts a preview_extractor — perfect for stubbing."""
 
-    def test_happy_path(self, tmp_path):
+    def test_classifies_from_injected_extractor_content(self, tmp_path):
         f = tmp_path / "whatever_name.pdf"
         f.write_text("dummy")
 
