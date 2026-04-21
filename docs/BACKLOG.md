@@ -612,19 +612,24 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 - **A6e 🚧 parcial (6 de N+ agregados — per-aggregate track **concluído**):** FamilyMember + Category + ConfigBlob + Document + Goal + Task (com 3 sub-agregados) com repos+DTOs. Próximos passos A6e são transversais (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events).
 - **Restante:** A6e (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events) · A6f.1 (pipeline-as-service) · A6g.2-.7 (sweeps + enforcement) · F7 (7A-7F + LGPD).
 - **Caminho crítico (serial):** A6e.3 (use cases) → A6e.4 (routers finos) → F7A → F7B → F7D+dogfood → GA.
-- **Lanes abertas agora:** Onda 1 (A6g.2 pipeline sweep · A6g.4 frontend sweep) + Onda 2 destravada (A6e.3/.4/.5/.6 · A6f.1 · A6g.5). Ver tabela e diagrama abaixo.
+- **Lanes abertas agora:** Onda 1 (A6g.2 pipeline sweep ☐ · ~~A6g.4 frontend sweep~~ 🚧 ocupada 2026-04-21) + Onda 2 destravada (A6e.3/.4/.5/.6 · A6f.1 · A6g.5). Ver tabela e diagrama abaixo. **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
 - **Testes:** ~1184 pipeline + 926 backend passing (zero regressão).
 
 ### Lanes abertas agora — pickup table
 
-> **Pickup protocol** (CLAUDE.md §Antes de pegar uma task): antes de escolher uma lane, rode
-> `git for-each-ref --sort=-committerdate --format='%(committerdate:iso) %(refname:short)' refs/remotes/origin/agent/ | head -15`.
-> Se a lane que você quer já tem branch `<slug>-*` com commit nas últimas 24h, **pegue outra** — não duplique.
+> **Pickup protocol** (CLAUDE.md §Antes de pegar uma task): antes de escolher uma lane, rode **os dois** comandos:
+> ```bash
+> git worktree list                           # detecta agentes locais (ainda não pusharam)
+> git for-each-ref --sort=-committerdate \    # detecta agentes remotos
+>   --format='%(committerdate:iso) %(refname:short)' \
+>   refs/remotes/origin/agent/ | head -15
+> ```
+> Se aparece worktree com `agent/<slug>-*` em path diferente do seu **OU** branch remota com commit <24h, **pegue outra lane**. Esta tabela é dica, não fonte de verdade — os 2 comandos são.
 
 | Lane | Branch slug | Prompt / detalhe | Depende de | Onda | Status |
 | --- | --- | --- | --- | --- | --- |
 | **A6g.2** pipeline sweep | `a6g2-pipeline-style` | [track_a6g2_pipeline_style_sweep.md](agent_prompts/track_a6g2_pipeline_style_sweep.md) | A6g.1 ✅ | 1 | ☐ aberta |
-| **A6g.4** frontend sweep | `a6g4-frontend-style` | [track_a6g4_frontend_style_sweep.md](agent_prompts/track_a6g4_frontend_style_sweep.md) | A6g.1 ✅ | 1 | ☐ aberta |
+| **A6g.4** frontend sweep | `a6g4-frontend-style` | [track_a6g4_frontend_style_sweep.md](agent_prompts/track_a6g4_frontend_style_sweep.md) | A6g.1 ✅ | 1 | 🚧 ocupada — 2 worktrees locais ativos (`a6g4-frontend-style/20260421-1137` e `/20260421-1313`, confirmar com `git worktree list`) |
 | **A6e.3** use cases | `a6e3-use-cases` | Application layer R15 — 1 endpoint = 1 use case; [§A6e](#a6e--ddd-solid-no-backend-api-adr-101-r12-r17) | per-aggregate ✅ | 2 | ☐ aberta |
 | **A6e.4** routers finos | `a6e4-thin-routers` | 4900→800 linhas (17 routers × ≤50); teste AST | A6e.3 | 2 | ⏸ blocked-by A6e.3 |
 | **A6e.5** /api/v1/ prefix | `a6e5-v1-prefix` | Prefixo + aliases; OpenAPI 3.1 versionado | A6e.3 ou paralelo | 2 | ☐ aberta |
