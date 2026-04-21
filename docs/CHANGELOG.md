@@ -43,6 +43,79 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
   Commit: `1e4ab08` em `main` (2026-04-20).
 
+- **A6d.3 (fechada) — Caminho B puro para E5 + E5.N (2026-04-20) — ADR-100 · ADR-097:**
+  Fecha a promessa de A6d (commitment não-opcional) para os dois últimos
+  stages que rodavam em Caminho B pragmático:
+
+  - **A6d.3.3 Etapa 2+3 — E5 via adapter**: ``scripts/e5_analyze.main_with_store``
+    agora delega para ``E5AnalyzerAdapter.from_configs(...).analyze_via_store(store)``
+    (+143/-54 locs). 14+ domain services (``PatrimonioCalculator``,
+    ``EmergencyReserveCalculator``, ``FinancialScoreCalculator``,
+    ``RatiosCalculator``, ``IFProjector``, ``CenariosConjugeAnalyzer``,
+    ``FluxoCaixaEnricher``, 7 analyzers A5a/b/c) passam a compor o E5.
+    Helper ``_merge_life_plan_into_goals`` extrai metas de
+    ``life_plan_goals.md`` (regex) e injeta em ``goals.json`` no Caminho B.
+    Dois ajustes de paridade em ``E5AnalyzerAdapter``:
+    ``conjuge_key=""`` quando não há cônjuge (não força ``"mariana"``);
+    ``goals={}`` ao instanciar ``PontosFortesAnalyzer`` (legado omite
+    ``progresso_pct``). Bug de tipo corrigido em
+    ``CenariosConjugeAnalyzer._compute_prazo`` — fallback ``999`` (int)
+    ao invés de ``999.0`` (float) para paridade JSON-string.
+    Golden: ``tests/test_e5_main_with_store_parity.py`` (2 cenários,
+    tolerância 0.01 BRL em whitelist monetária).
+
+  - **A6d.3.2 — Decomposição E5.N ``build_narrativas``**: 425 locs inline em
+    ``scripts/e5n_narrativas.build_narrativas`` extraídos para novo pacote
+    ``pipeline/domain/services/narrativas/`` com arquitetura ISP/R9 limpa:
+
+    - ``context.py`` — ``NarrativasContext`` (dataclass frozen) concentra
+      titular_key/conjuge_key/nomes + 10 ``key_*`` strings derivadas
+      (``key_inv_titular``, ``key_cenarios_section``, etc.), substituindo
+      globals ``_KEY_*`` de módulo. Factory ``from_family_config(family)``.
+    - ``format_helpers.py`` — ``fmt_currency``, ``fmt_percent``, ``fmt_num``,
+      ``fmt_usd``, ``validate_narrativas`` (aceita override de
+      ``cenarios_section_key`` para contexto dinâmico).
+    - ``perfil_familia_narrator.py`` — ``PerfilFamiliaNarrator(ctx).narrate()``
+      produz ``{left, right}`` com 4 ``<p>`` cada (≤300 chars, enforçado
+      pelo validator).
+    - ``summaries_narrator.py`` — ``SummariesNarrator(ctx).narrate()``
+      produz ``{s1..s10}`` (dimensões patrimônio, score, carteira, imóveis,
+      EUA, cambial, IF, PJ, riscos, decisões).
+    - ``charts_narrator.py`` — ``ChartsNarrator(ctx).narrate()`` produz 20
+      blocos ``{context, conclusion}`` para os charts do relatório,
+      incluindo bloco dinâmico ``<conjuge>_cenarios`` (chave via
+      ``ctx.key_cenarios_section``).
+    - ``builder.py`` — ``E5NarrativasBuilder(ctx)`` orquestra os 3
+      narradores + extrai ``riscos_prioritarios`` / ``decisoes_prioritarias``
+      de ``metrics`` com guards de tipo (``isinstance``). Factory
+      ``from_family_config(family)``.
+
+    ``scripts.e5n_narrativas.build_narrativas()`` vira delegate de 2 linhas.
+    ``validate_narrativas`` legado vira wrapper que injeta
+    ``_KEY_CENARIOS_SECTION`` para o helper. Aliases
+    ``fmt_currency``/``fmt_percent``/``fmt_num``/``fmt_usd`` mantidos em
+    ``scripts.e5n_narrativas`` via re-export para backward-compat.
+
+    **Golden**: ``tests/test_e5n_builder_decomposition.py`` — 10 tests
+    cobrindo (1) output estrutural (3 sections, s1-s10, 20 charts,
+    validator pass), (2) keys dinâmicas (substituir ``bob``→``yolanda``
+    propaga em ``<conjuge>_cenarios``), (3) delegação bit-a-bit
+    (``scripts.build_narrativas`` == ``builder.build``), (4) back-compat
+    de format helpers, (5) exposição pública dos 3 narradores.
+    Parity legado↔novo continua coberto por
+    ``tests/test_e5n_e7_main_with_store_parity.py``.
+
+  - **Caminho B puro — estado final pós-A6d.3**: E3 (A2), E4 (A6d.3 refactor
+    pendente), **E5 (A6d.3.3)**, **E5.N (A6d.3.2)**, E7 (pragmático — LLM-bound,
+    não migra), E1.5c (pragmático — stage trivial, não justifica refactor).
+    Scripts ``e5_analyze.py`` e ``e5n_narrativas.py`` mantêm ``_init_config``
+    globals para CLI direto (``main(root_dir)`` legado), mas ``main_with_store``
+    não depende deles no hot-path — domain services consomem value objects de
+    config tipados.
+
+  - **Testes**: 1427 tests passando (+80 vs baseline A6d.3.3), zero
+    regressão. Suite tempo: 15.2s.
+
 - **A6d.3.3 (parcial) — Calculadoras puras + adapter sem placeholders (2026-04-20) — ADR-100:**
   Foundation definitiva para fechar Caminho B puro no E5. Três calculadoras
   de domínio novas substituem a lógica inline de ``scripts/e5_analyze.py``:

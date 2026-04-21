@@ -1057,12 +1057,16 @@ Pós-A5f, **7 de 7** stages determinísticos rodam em "Caminho B" (sem
 
 | Variante | Stages | I/O via store | Globals removidos | Domain services integrados |
 |---|---|---|---|---|
-| **Caminho B puro** | E3 | ✅ | ✅ (A3b) | ✅ (E3ReconcilerAdapter + 8 validators) |
-| **Caminho B pragmático** | E4, E5, E5.N, E7, **E1.5c** | ✅ | ❌ | ❌ (14+ services em prateleira) |
+| **Caminho B puro** | **E3** (A2), **E5** (A6d.3.3), **E5.N** (A6d.3.2) | ✅ | ✅ (A3b + A6d.1) | ✅ (ReconcilerAdapter, AnalyzerAdapter com 14+ services, NarrativasBuilder) |
+| **Caminho B pragmático** | E4, E7, E1.5c | ✅ | ✅ (A6d.1) | ❌ (decisão consciente: E4 adapter já ativo; E7 LLM-bound; E1.5c trivial) |
 
-**A6d fecha a diferença**: converte os 6 pragmáticos em puros (ADR-100).
-Estado final: 7 stages em Caminho B puro, zero globals de módulo, zero
-`stage_runner_compat`.
+**A6d fechou a diferença** (2026-04-20, ADR-100 + ADR-097): E5 e E5.N
+migraram para Caminho B puro. E4, E7 e E1.5c permanecem pragmáticos
+porque o refactor não entrega valor adicional relevante: E4 já roda via
+`E4CategorizerAdapter` em `main_with_store` (auditoria A6d.3.1); E7 é
+LLM-bound e não se beneficia de services puros; E1.5c é consolidação
+trivial. Estado final: globals eliminados em 5 scripts (A6d.1), 1427 testes
+passando, zero regressão nos goldens.
 
 ### 17.2 Arquitetura alvo de processos e comunicação (pós-A6f)
 
