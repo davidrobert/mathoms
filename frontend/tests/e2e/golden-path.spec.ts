@@ -33,55 +33,45 @@
  *   servido através de fixtures locais embutidas no test
  */
 import { test, expect, type APIRequestContext } from "@playwright/test";
+import { generateFixturePdfs } from "./helpers/pdf-fixtures";
 
 const FAMILY_SURNAME = "Silva Souza E2E";
 const STAMP = Date.now();
 
-// ─── PDFs sintéticos mínimos inline (PDF válido de 1 página com texto) ─
-// Gera um PDF mínimo via PDFium-compatible byte sequence. Em CI real,
-// usar `tests/fixtures/pdf_generator.py` via endpoint ou pre-gerado.
-// Aqui: PDF MINIMAL válido (header + body + xref + trailer) com o texto
-// necessário para o E0-route classificar como extrato C6 e ser parseável.
+// ─── PDFs via tests/fixtures/pdf_generator.py (reportlab) ────────────
+// Bytes inline mínimos anteriores eram detectados como "password-protected"
+// por pikepdf no backend, falhando o pipeline após ~20s. A6g.1: usamos o
+// generator determinístico Python que produz PDF realista + parseável pelo
+// E2 do banco-alvo.
+let FIXTURE_PDFS: Record<string, Buffer> = {};
 
-function minimalPdfBytes(title: string): Buffer {
-  // PDF 1.4 minimal com texto embutido — o parser de E2 vai requerer layout
-  // bancário real; em CI usar o generator Python via API/artifact.
-  const content = `%PDF-1.4
-1 0 obj
-<</Type /Catalog /Pages 2 0 R>>
-endobj
-2 0 obj
-<</Type /Pages /Kids [3 0 R] /Count 1>>
-endobj
-3 0 obj
-<</Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R
-/Resources <</Font <</F1 5 0 R>>>>>>
-endobj
-4 0 obj
-<</Length 80>>
-stream
-BT /F1 12 Tf 72 720 Td (${title}) Tj ET
-BT /F1 10 Tf 72 700 Td (Periodo: 2026-04) Tj ET
-endstream
-endobj
-5 0 obj
-<</Type /Font /Subtype /Type1 /BaseFont /Helvetica>>
-endobj
-xref
-0 6
-0000000000 65535 f
-0000000010 00000 n
-0000000057 00000 n
-0000000108 00000 n
-0000000200 00000 n
-0000000310 00000 n
-trailer
-<</Size 6 /Root 1 0 R>>
-startxref
-370
-%%EOF`;
-  return Buffer.from(content, "binary");
-}
+test.beforeAll(() => {
+  FIXTURE_PDFS = generateFixturePdfs([
+    {
+      bank: "c6bank",
+      kind: "extrato",
+      period: "2026-04",
+      outfile: "extrato_c6_202604.pdf",
+      transactions: [
+        { date: "2026-04-05", description: "Mercado XYZ", amount: -250.5 },
+        { date: "2026-04-10", description: "Pagto Folha", amount: 12500.0 },
+        { date: "2026-04-15", description: "Transferencia recebida", amount: 500.0 },
+      ],
+    },
+    {
+      bank: "bradesco",
+      kind: "fatura",
+      period: "2026-04",
+      outfile: "fatura_bradesco_202604.pdf",
+      transactions: [
+        { date: "2026-04-03", description: "Farmacia Popular", amount: -87.2 },
+        { date: "2026-04-12", description: "Posto Shell", amount: -180.0 },
+        { date: "2026-04-20", description: "Restaurante Bom Paladar", amount: -95.5 },
+      ],
+    },
+  ]);
+});
+
 
 // Auth helpers dedicados ao Golden Path (não compartilha com `helpers/auth.ts`
 // porque aqui precisamos controlar o registro completo, sem reuso de user).
@@ -148,10 +138,11 @@ test.describe("Golden Path — smoke do produto inteiro @critical", () => {
     await expect(page.getByText("Documentos")).toBeVisible({ timeout: 10_000 });
 
     // ─── 4. Upload de PDFs sintéticos ──────────────────────────────
-    const extratoBytes = minimalPdfBytes(
-      "Extrato C6 Bank - Conta Corrente - 12345-6",
-    );
-    const faturaBytes = minimalPdfBytes("Fatura Bradesco Cartao - Mes 04/2026");
+    // PDFs gerados no beforeAll via tests/fixtures/pdf_generator.py (reportlab).
+    const extratoBytes = FIXTURE_PDFS["extrato_c6_202604.pdf"];
+    const faturaBytes = FIXTURE_PDFS["fatura_bradesco_202604.pdf"];
+    expect(extratoBytes?.length, "fixture PDF c6 ausente").toBeGreaterThan(0);
+    expect(faturaBytes?.length, "fixture PDF bradesco ausente").toBeGreaterThan(0);
 
     // Locate hidden file input (agora com aria-label após 6.5D.1)
     const fileInput = page.getByLabel("Selecionar arquivos para upload");
