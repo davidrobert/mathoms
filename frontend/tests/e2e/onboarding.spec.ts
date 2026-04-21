@@ -24,7 +24,9 @@ test.describe("Onboarding @critical", () => {
 
     // Default pós-login é /plano (ver lib/nextUrl.ts)
     await expect(page).toHaveURL(/\/plano/, { timeout: 10_000 });
-    await expect(page.getByText(/Meu Plano|Plano de vida/)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Meu Plano" }),
+    ).toBeVisible();
   });
 
   test("email duplicado mostra mensagem clara", async ({ page, request }) => {

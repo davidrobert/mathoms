@@ -19,7 +19,9 @@ test.describe("Drill-down Dashboard → Transactions", () => {
 
     await page.goto("/transactions?category=alimentacao");
     await expect(page).toHaveURL(/category=alimentacao/);
-    await expect(page.getByText(/Transações/)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Transações" }),
+    ).toBeVisible();
   });
 
   test("filtros de URL persistem em /transactions", async ({ page, request }, info) => {
