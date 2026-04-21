@@ -118,7 +118,7 @@ class BankStatementExtractor:
                 self._extract_period(full_text, result)
                 self._extract_balances(full_text, result)
                 self._extract_account_number(full_text, result)
-                
+
                 # Try tables first, then text
                 if tables:
                     self._extract_from_tables(tables, result)
@@ -186,7 +186,7 @@ class BankStatementExtractor:
             header = table[0]
             data_col, descricao_col = 0, 1
             valor_col, debito_col, credito_col, saldo_col = None, None, None, None
-            
+
             for i, h in enumerate(header):
                 h_lower = str(h or '').lower()
                 if 'descr' in h_lower or 'histórico' in h_lower:
@@ -199,7 +199,7 @@ class BankStatementExtractor:
                     saldo_col = i
                 elif 'valor' in h_lower and valor_col is None:
                     valor_col = i
-            
+
             for row in table[1:]:
                 if not row or not any(row):
                     continue
@@ -209,7 +209,7 @@ class BankStatementExtractor:
                     if not data:
                         continue
                     descricao = str(row[descricao_col] or '').strip() if descricao_col < len(row) else ''
-                    
+
                     valor = None
                     if valor_col is not None and valor_col < len(row):
                         valor = self.normalize_currency(str(row[valor_col] or ''))
@@ -221,14 +221,14 @@ class BankStatementExtractor:
                         deb = self.normalize_currency(str(row[debito_col] or ''))
                         if deb and deb != 0:
                             valor = -deb
-                    
+
                     if valor is None:
                         continue
-                    
+
                     saldo_apos = None
                     if saldo_col is not None and saldo_col < len(row):
                         saldo_apos = self.normalize_currency(str(row[saldo_col] or ''))
-                    
+
                     transactions.append({
                         'data': data,
                         'descricao': descricao,
@@ -238,7 +238,7 @@ class BankStatementExtractor:
                 except Exception as e:
                     logger.debug(f"Row error: {e}")
                     continue
-        
+
         result['transacoes'] = transactions
 
     def _extract_from_text(self, text: str, result: Dict):
@@ -284,7 +284,7 @@ class BankStatementExtractor:
 
 def main():
     base_dir = Path('/sessions/magical-elegant-mendel/mnt/Financas Familia/financas-familia')
-    extractor = BankStatementExtractor(base_dir / 'data' / 'financial_statements', 
+    extractor = BankStatementExtractor(base_dir / 'data' / 'financial_statements',
                                       base_dir / 'processed' / 'E2_extracts')
     results = extractor.process_all_files()
     logger.info("\n=== SUMMARY ===")

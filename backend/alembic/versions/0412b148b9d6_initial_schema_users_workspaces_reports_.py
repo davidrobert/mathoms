@@ -1,7 +1,7 @@
 """initial schema: users, workspaces, reports, documents, vault, pipeline_runs
 
 Revision ID: 0412b148b9d6
-Revises: 
+Revises:
 Create Date: 2026-04-14 06:28:57.965756
 """
 from typing import Sequence, Union

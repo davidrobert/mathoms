@@ -69,7 +69,7 @@ class BankStatementExtractor:
         value_str = str(value_str).strip()
         if not value_str:
             return None
-            
+
         # Remove currency symbols and spaces
         value_str = re.sub(r'[R$\s]', '', value_str)
 
@@ -137,10 +137,10 @@ class BankStatementExtractor:
             with pdfplumber.open(pdf_path) as pdf:
                 full_text = ''
                 tables = []
-                
+
                 for page_num, page in enumerate(pdf.pages):
                     full_text += page.extract_text() or ''
-                    
+
                     page_tables = page.extract_tables()
                     if page_tables:
                         for table in page_tables:
@@ -149,10 +149,10 @@ class BankStatementExtractor:
                 self._extract_period(full_text, result)
                 self._extract_balances(full_text, result)
                 self._extract_account_number(full_text, result)
-                
+
                 # Use bank-specific extraction
                 bank = result['banco'].lower()
-                
+
                 if 'bradesco' in bank:
                     self._extract_bradesco_transactions(full_text, tables, result)
                 elif 'itau' in bank:
@@ -236,65 +236,65 @@ class BankStatementExtractor:
         """Extract Bradesco transactions from text."""
         transactions = []
         lines = text.split('\n')
-        
+
         # Pattern: DATE | DESCRIPTION (multi-line) | CREDIT | DEBIT | BALANCE
         # Lines with dates at start are transaction start lines
         i = 0
         while i < len(lines):
             line = lines[i].strip()
-            
+
             # Look for date pattern at start
             date_match = re.match(r'^(\d{2}/\d{2}/\d{2})\s+', line)
             if date_match:
                 data_str = date_match.group(1)
                 data = self.parse_date(data_str)
-                
+
                 if data:
                     # Extract the rest of the line
                     rest = line[len(date_match.group(0)):].strip()
-                    
+
                     # Try to parse remaining fields
                     # Format: DESCRIPTION VALUE(S) SALDO
                     # Values can be on same line or next line
-                    
+
                     # Look for currency values
                     credit = None
                     debit = None
-                    
+
                     # Simple heuristic: last number is balance, second to last might be amount
                     parts = rest.split()
-                    
+
                     # Try to find values in current and next lines
                     current_text = rest
                     j = i + 1
                     while j < len(lines) and not re.match(r'^\d{2}/\d{2}/\d{2}\s+', lines[j]):
                         current_text += ' ' + lines[j].strip()
                         j += 1
-                    
+
                     # Extract values from text
                     value_pattern = r'([-\d.,]+)'
                     values = re.findall(value_pattern, current_text)
-                    
+
                     if len(values) >= 1:
                         # Last value is balance
                         valor = None
-                        
+
                         # Try to find credit/debit in pattern
                         if len(values) >= 2:
                             # Check for credit/debit pattern
                             val1 = self.normalize_currency(values[-2])
                             val2 = self.normalize_currency(values[-1])
-                            
+
                             if val1 is not None:
                                 valor = val1
-                        
+
                         if valor is None and len(values) >= 1:
                             valor = self.normalize_currency(values[-1])
-                        
+
                         if valor is not None and valor != 0:
                             # Description is everything except the values
                             descricao = re.sub(r'[-\d.,]+\s*$', '', current_text).strip()
-                            
+
                             if descricao and len(descricao) > 2:
                                 transactions.append({
                                     'data': data,
@@ -302,7 +302,7 @@ class BankStatementExtractor:
                                     'valor': valor,
                                     'saldo_apos': self.normalize_currency(values[-1]) if len(values) >= 1 else None
                                 })
-                        
+
                         i = j
                     else:
                         i += 1
@@ -310,43 +310,43 @@ class BankStatementExtractor:
                     i += 1
             else:
                 i += 1
-        
+
         result['transacoes'] = transactions
 
     def _extract_itau_transactions(self, text: str, tables: List[Tuple], result: Dict):
         """Extract Itau transactions from text."""
         transactions = []
         lines = text.split('\n')
-        
+
         i = 0
         while i < len(lines):
             line = lines[i].strip()
-            
+
             # Itau format: DATE | DESCRIPTION | VALUE | BALANCE
             date_match = re.match(r'^(\d{2}/\d{2}/\d{4})\s+', line)
             if date_match:
                 data_str = date_match.group(1)
                 data = self.parse_date(data_str)
-                
+
                 if data:
                     rest = line[len(date_match.group(0)):].strip()
-                    
+
                     # Find monetary values in remaining text and next lines
                     current_text = rest
                     j = i + 1
                     while j < len(lines) and not re.match(r'^\d{2}/\d{2}/\d{4}\s+', lines[j]):
                         current_text += ' ' + lines[j].strip()
                         j += 1
-                    
+
                     # Extract values
                     values = re.findall(r'([-\d.,]+)', current_text)
-                    
+
                     if len(values) >= 1:
                         valor = self.normalize_currency(values[-1])
-                        
+
                         if valor is not None and valor != 0:
                             descricao = re.sub(r'[-\d.,]+\s*$', '', current_text).strip()
-                            
+
                             if descricao:
                                 transactions.append({
                                     'data': data,
@@ -354,7 +354,7 @@ class BankStatementExtractor:
                                     'valor': valor,
                                     'saldo_apos': None
                                 })
-                        
+
                         i = j
                     else:
                         i += 1
@@ -362,7 +362,7 @@ class BankStatementExtractor:
                     i += 1
             else:
                 i += 1
-        
+
         result['transacoes'] = transactions
 
     def _extract_santander_transactions(self, text: str, tables: List[Tuple], result: Dict):
@@ -372,14 +372,14 @@ class BankStatementExtractor:
         else:
             transactions = []
             lines = text.split('\n')
-            
+
             for line in lines:
                 match = re.match(r'(\d{1,2}/\d{1,2}/\d{4})\s+(.+?)\s+([-\d.,]+)\s*$', line)
                 if match:
                     data = self.parse_date(match.group(1))
                     descricao = match.group(2).strip()
                     valor = self.normalize_currency(match.group(3))
-                    
+
                     if data and descricao and valor is not None:
                         transactions.append({
                             'data': data,
@@ -387,7 +387,7 @@ class BankStatementExtractor:
                             'valor': valor,
                             'saldo_apos': None
                         })
-            
+
             result['transacoes'] = transactions
 
     def _extract_c6_transactions(self, text: str, tables: List[Tuple], result: Dict):
@@ -397,14 +397,14 @@ class BankStatementExtractor:
         else:
             transactions = []
             lines = text.split('\n')
-            
+
             for line in lines:
                 match = re.match(r'(\d{1,2}/\d{1,2})\s+(\d{1,2}/\d{1,2})\s+(.+?)\s+([-R$\d.,]+)\s*$', line)
                 if match:
                     data = self.parse_date(match.group(1) + '/2025')
                     descricao = match.group(3).strip()
                     valor = self.normalize_currency(match.group(4))
-                    
+
                     if data and descricao and valor is not None:
                         transactions.append({
                             'data': data,
@@ -412,7 +412,7 @@ class BankStatementExtractor:
                             'valor': valor,
                             'saldo_apos': None
                         })
-            
+
             result['transacoes'] = transactions
 
     def _extract_transactions_from_tables(self, tables: List[Tuple], full_text: str, result: Dict):
@@ -424,7 +424,7 @@ class BankStatementExtractor:
                 continue
 
             header = table[0]
-            
+
             data_col = None
             descricao_col = None
             debito_col = None
@@ -459,22 +459,22 @@ class BankStatementExtractor:
                 try:
                     data_str = str(row[data_col] or '').strip() if data_col < len(row) else ''
                     data = self.parse_date(data_str)
-                    
+
                     if not data:
                         continue
 
                     descricao = str(row[descricao_col] or '').strip() if descricao_col is not None and descricao_col < len(row) else ''
-                    
+
                     valor = None
-                    
+
                     if valor_col is not None and valor_col < len(row):
                         valor = self.normalize_currency(str(row[valor_col] or ''))
-                    
+
                     if valor is None and credito_col is not None and credito_col < len(row):
                         cred = self.normalize_currency(str(row[credito_col] or ''))
                         if cred and cred != 0:
                             valor = cred
-                    
+
                     if valor is None and debito_col is not None and debito_col < len(row):
                         deb = self.normalize_currency(str(row[debito_col] or ''))
                         if deb and deb != 0:
@@ -570,7 +570,7 @@ def main():
             total_transactions += info['transacoes']
         else:
             logger.info(f"✗ {file}: {info.get('error', 'Unknown error')}")
-    
+
     logger.info(f"\nTotal: {success_count} files, {total_transactions} transactions")
 
 

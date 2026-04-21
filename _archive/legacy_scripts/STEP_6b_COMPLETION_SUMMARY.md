@@ -1,9 +1,9 @@
 # STEP 6b: E1.5 - Baseline Patrimonial Extraction
 ## Completion Report
 
-**Status:** ✅ COMPLETE  
-**Date:** 2026-04-08  
-**Pipeline Stage:** E1.5_Baseline_Patrimonial  
+**Status:** ✅ COMPLETE
+**Date:** 2026-04-08
+**Pipeline Stage:** E1.5_Baseline_Patrimonial
 **Output Directory:** `/processed/E2_extracts/`
 
 ---

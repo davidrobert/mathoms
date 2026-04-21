@@ -143,7 +143,7 @@ Exemplo antes:
 Exemplo depois:
 ```python
 f"Imóveis respondem por {fmt_percent(M['pct_imoveis_bruto'])} do patrimônio"
-+ (f" — acima do ideal de {fmt_percent(THRESHOLDS['imovel_alvo_pct'])}." 
++ (f" — acima do ideal de {fmt_percent(THRESHOLDS['imovel_alvo_pct'])}."
    if M['pct_imoveis_bruto'] > THRESHOLDS['imovel_alvo_pct'] else ".")
 ```
 
@@ -156,7 +156,7 @@ O LLM recebe o dict de METRICS + FACTS e gera os textos de `charts.*.conclusion`
 ```python
 def build_narrativas(e5_data, llm_texts=None):
     # ...template perfil (parametrizado, sem LLM)...
-    
+
     if llm_texts:
         # LLM gerou os texts — usar diretamente (já validados)
         narrativas["summaries"] = llm_texts["summaries"]

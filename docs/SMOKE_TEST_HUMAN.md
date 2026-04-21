@@ -1,8 +1,8 @@
 # Smoke Test — Runbook Humano (A6b.5 · ADR-103)
 
-> **Quem executa:** David Robert (owner do projeto)  
-> **Objetivo:** Validar end-to-end o sistema antes da remoção do bridge (A6c).  
-> **Bloqueante para:** A6c (deletar `MaterializationBridge` + `stage_runner_compat`).  
+> **Quem executa:** David Robert (owner do projeto)
+> **Objetivo:** Validar end-to-end o sistema antes da remoção do bridge (A6c).
+> **Bloqueante para:** A6c (deletar `MaterializationBridge` + `stage_runner_compat`).
 > **Resultado esperado:** Todos os checks passam → decisão explícita: "Aprovado para A6c" ou "Bloqueado — bug #X".
 
 ---

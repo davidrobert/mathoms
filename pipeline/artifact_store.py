@@ -304,5 +304,3 @@ class InMemoryArtifactStore:
     def document_id_for(self, stage: str, key: str) -> Optional[str]:
         """Expõe ``document_id`` armazenado — útil para assertions em testes."""
         return self._document_ids.get((stage, key))
-
-

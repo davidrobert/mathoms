@@ -120,12 +120,12 @@ Key Fields:
   - data_processamento: ISO timestamp of extraction
   - membros: ["David", "Mariana"]
   - anos_base: [2023, 2024, 2025]
-  
+
 Nested Arrays:
   - declarations[]: 3 items with full bens_direitos[] structure
   - receipts[]: 2 items with fiscal data
   - properties[]: 32 items (30 from XLSX + 2 from QuintoAndar)
-  
+
 Summary Object:
   - total_declarations: 3
   - total_receipts: 2

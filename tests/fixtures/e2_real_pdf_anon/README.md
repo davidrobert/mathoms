@@ -8,10 +8,10 @@ No inventário típico de `data/financial_statements/`, os PDFs C6 costumam ser 
 
 **Fluxo (você executa no seu clone):**
 
-1. **Escolher** um original, ex.:  
+1. **Escolher** um original, ex.:
    `data/financial_statements/c6bank_extratocontaglobalusd_202601_202604-0_original.pdf`
 2. **Redigir o corpo do PDF** (obrigatório): nomes, contas, valores identificáveis, etc. — Preview, Adobe Acrobat, ou ferramenta equivalente. Só limpar metadados **não** anonimiza o extrato.
-3. **Salvar** com nome canônico + sufixo, mantendo o tipo no meio do nome, por exemplo:  
+3. **Salvar** com nome canônico + sufixo, mantendo o tipo no meio do nome, por exemplo:
    `c6bank_extratocontaglobalusd_202601_202604_redacted.pdf`
 4. **Remover só metadados** (passo extra, não substitui o passo 2):
 
@@ -27,7 +27,7 @@ No inventário típico de `data/financial_statements/`, os PDFs C6 costumam ser 
 1. **Redação:** nenhum nome, conta, agência, CPF/CNPJ, endereço ou valor identificável de terceiros; metadados do PDF revisados.
 2. **Nome do arquivo** alinhado ao contrato E0/registry para o parser desejado, ex.:
    - `itau_extratoconta_202604_redacted.pdf`
-   - `c6bank_extratoconta_202604_redacted.pdf`  
+   - `c6bank_extratoconta_202604_redacted.pdf`
    O sufixo `_redacted` (ou `anon`) deixa explícito que passou por revisão.
 3. **PR:** inclusão de PDF real exige revisão explícita no PR.
 4. **Lint PII:** o lint de CPF (`tests/utils/lint_no_real_pii.py`) atinge `.py`/`.json`/`.md` em `tests/` — não varre bytes do PDF; a responsabilidade da redação é humana + review.

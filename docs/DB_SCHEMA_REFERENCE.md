@@ -1190,4 +1190,3 @@ type Workspace struct {
 	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
 }
 ```
-

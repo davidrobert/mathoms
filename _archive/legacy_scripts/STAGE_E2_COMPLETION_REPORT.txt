@@ -32,7 +32,7 @@ PROCESSED FILES BY CATEGORY
    Period Coverage: 2025-01 to 2026-03
    Structure:
      - banco, tipo, moeda, periodo, saldo_inicial, saldo_final, transacoes
-   
+
    Files:
      ✓ bradesco_extratopoupanca_202501_202502-2_extract.json
      ✓ bradesco_extratopoupanca_202503_202504-2_extract.json
@@ -49,7 +49,7 @@ PROCESSED FILES BY CATEGORY
    Period Coverage: 2025-05 to 2026-04
    Structure:
      - banco, tipo, moeda, periodo, saldo_inicial, saldo_final, transacoes
-   
+
    Files:
      ✓ c6bank_extratocontaglobaleur_202511_202512-2_extract.json
      ✓ c6bank_extratocontaglobaleur_202601_202603-2_extract.json
@@ -67,7 +67,7 @@ PROCESSED FILES BY CATEGORY
    Reference Date: 2026-03 (March 2026)
    Structure:
      - banco, tipo, data_posicao, saldo_total, composicao
-   
+
    Files:
      ✓ btgpactual_investimentosposicao_202603-2_extract.json
      ✓ itau_investimentosposicao_202603-2_extract.json
@@ -81,7 +81,7 @@ PROCESSED FILES BY CATEGORY
    Reference Date: 2026-03 (March 2026)
    Structure:
      - banco, tipo, produtos
-   
+
    Files:
      ✓ santander_cdbdetalhesdi1_202603-2_extract.json
      ✓ santander_cdbdetalhesdi2_202603-2_extract.json
@@ -98,7 +98,7 @@ PROCESSED FILES BY CATEGORY
      - Positions: BTC, ETH, ADA, AXS, SUSHI, ALICE, USDT, ETHW
    Structure:
      - banco, tipo, moeda, data, saldo_total_estimado, pnl_24h, posicoes
-   
+
    Files:
      ✓ binance_extratoconta_202603a-2_extract.json
      ✓ binance_extratoconta_202603b-2_extract.json
@@ -116,7 +116,7 @@ PROCESSED FILES BY CATEGORY
      - Income tax: R$ 4,122.02
    Structure:
      - banco, tipo, moeda, data, saldo_guardado, rendimento_bruto, detalhes
-   
+
    Files:
      ✓ itau_extratocontapersonnalite_202603a-2_extract.json
      ✓ itau_extratocontapersonnalite_202603b-2_extract.json

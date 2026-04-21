@@ -1,6 +1,6 @@
 # P0 — Motor canônico e pipeline (executado)
 
-> **Data:** 2026-04-17  
+> **Data:** 2026-04-17
 > **Objetivo:** Inventário de duplicação, fronteira motor × adaptadores, estado dos contratos entre estágios e da suíte golden — base para P1 estrutural.
 
 ---

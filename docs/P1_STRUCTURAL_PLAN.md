@@ -1,7 +1,7 @@
 # P1 — Plano estrutural (motor canônico + pipeline offline)
 
-> **Escopo:** apenas decisões **estruturais** (pacotes, runners, CI, fronteiras). Regras de negócio novas ficam fora deste documento.  
-> **Pré-requisito:** [CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md)  
+> **Escopo:** apenas decisões **estruturais** (pacotes, runners, CI, fronteiras). Regras de negócio novas ficam fora deste documento.
+> **Pré-requisito:** [CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md)
 > **Status geral:** **concluído** (2026-04-17) — melhorias incrementais (mais goldens, `validate_artifact` em cada write) continuam no [BACKLOG.md](BACKLOG.md).
 
 ---
@@ -93,7 +93,7 @@
 
 ## Referências
 
-- [CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md)  
-- [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md)  
-- [ARCHITECTURE.md](ARCHITECTURE.md) §7  
+- [CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md)
+- [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md)
+- [ARCHITECTURE.md](ARCHITECTURE.md) §7
 - [DECISIONS.md](DECISIONS.md) ADR-013, 075, 077

@@ -106,24 +106,24 @@ def analyze_financials():
     # Report any sources not in either list
     if unknown_sources:
         print(f"  [WARN] Fontes de receita não classificadas (defaulting para CLT+Alugueis): {unknown_sources}")
-    
+
     # ===== DESPESAS ANALYSIS =====
     por_categoria = despesas.get('por_categoria', {})
     monthly_despesas = {}
-    
+
     for categoria, cat_data in por_categoria.items():
         por_mes = cat_data.get('por_mes', {})
         for month, value in por_mes.items():
             if month not in monthly_despesas:
                 monthly_despesas[month] = 0
             monthly_despesas[month] += value
-    
+
     # ===== OUTPUT =====
     period_label = f"{months_list[0]} TO {months_list[-1]}" if months_list else "NO DATA"
     print("=" * 120)
     print(f"E4 UNIFIED FINANCIAL ANALYSIS - {period_label}")
     print("=" * 120)
-    
+
     print(f"\n{'Mês':<12} {'Receita '+_LABEL_PJ:<18} {_LABEL_NON_PJ:<18} {'Total Receita':<18} {'Despesas':<18} {'Saldo':<18}")
     print("-" * 110)
 
@@ -141,15 +141,15 @@ def analyze_financials():
         total_pj += pj
         total_aluguel += clt_aluguel
         total_despesas += desp
-        
+
         if total_rec > 0 or desp > 0:
             print(f"{month:<12} R$ {pj:>14,.2f}   R$ {clt_aluguel:>14,.2f}   R$ {total_rec:>14,.2f}   R$ {desp:>14,.2f}   R$ {saldo:>14,.2f}")
-    
+
     print("-" * 110)
     total_rec = total_pj + total_aluguel
     saldo_total = total_rec - total_despesas
     print(f"{'TOTAL':<12} R$ {total_pj:>14,.2f}   R$ {total_aluguel:>14,.2f}   R$ {total_rec:>14,.2f}   R$ {total_despesas:>14,.2f}   R$ {saldo_total:>14,.2f}")
-    
+
     # Return as dict for programmatic access
     return {
         'months': months_list,
