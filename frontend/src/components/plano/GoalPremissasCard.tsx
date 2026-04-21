@@ -146,6 +146,45 @@ function metaAndVigencia(props: GoalPremissasCardProps): {
   };
 }
 
+function PremissasHeader({
+  metaVersion,
+  vigenciaLine,
+}: {
+  metaVersion: number;
+  vigenciaLine: string;
+}) {
+  return (
+    <CardHeader className="space-y-1 pb-2">
+      <CardTitle className="flex items-center gap-2 text-base font-semibold">
+        <ClipboardList className="h-4 w-4 text-muted-foreground" />
+        Premissas desta meta
+      </CardTitle>
+      <p className="text-xs text-muted-foreground">{vigenciaLine}</p>
+      <p className="text-xs text-muted-foreground">Versão do schema: {metaVersion}</p>
+    </CardHeader>
+  );
+}
+
+function PremissasRows({ rows }: { rows: PremissaRow[] }) {
+  return (
+    <CardContent className="pt-0">
+      <dl className="space-y-2">
+        {rows.map((row) => (
+          <div
+            key={row.label}
+            className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4"
+          >
+            <dt className="text-muted-foreground shrink-0">{row.label}</dt>
+            <dd className="font-mono text-xs tabular-nums text-right sm:max-w-[70%] sm:text-sm">
+              {row.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </CardContent>
+  );
+}
+
 export function GoalPremissasCard(props: GoalPremissasCardProps) {
   const { className, existingEffectiveFrom, ...rest } = props;
   const rows = rowsForProps(rest as GoalPremissasCardProps);
@@ -155,37 +194,9 @@ export function GoalPremissasCard(props: GoalPremissasCardProps) {
   } as GoalPremissasCardProps);
 
   return (
-    <Card
-      className={cn(
-        "border-dashed bg-muted/30 text-sm shadow-none",
-        className
-      )}
-    >
-      <CardHeader className="space-y-1 pb-2">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <ClipboardList className="h-4 w-4 text-muted-foreground" />
-          Premissas desta meta
-        </CardTitle>
-        <p className="text-xs text-muted-foreground">{vigenciaLine}</p>
-        <p className="text-xs text-muted-foreground">
-          Versão do schema: {metaVersion}
-        </p>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <dl className="space-y-2">
-          {rows.map((row) => (
-            <div
-              key={row.label}
-              className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4"
-            >
-              <dt className="text-muted-foreground shrink-0">{row.label}</dt>
-              <dd className="font-mono text-xs tabular-nums text-right sm:max-w-[70%] sm:text-sm">
-                {row.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </CardContent>
+    <Card className={cn("border-dashed bg-muted/30 text-sm shadow-none", className)}>
+      <PremissasHeader metaVersion={metaVersion} vigenciaLine={vigenciaLine} />
+      <PremissasRows rows={rows} />
     </Card>
   );
 }

@@ -29,6 +29,25 @@ interface UseCurrentWorkspaceResult {
   refresh: () => Promise<void>;
 }
 
+function readStoredWorkspaceId(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(STORAGE_KEY);
+}
+
+function persistWorkspaceId(id: string) {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(STORAGE_KEY, id);
+  }
+}
+
+function resolveSelected(list: UserWorkspace[]): UserWorkspace | null {
+  if (list.length === 0) return null;
+  const storedId = readStoredWorkspaceId();
+  const selected = list.find((w) => w.id === storedId) ?? list[0];
+  persistWorkspaceId(selected.id);
+  return selected;
+}
+
 export function useCurrentWorkspace(): UseCurrentWorkspaceResult {
   const [workspaces, setWorkspaces] = useState<UserWorkspace[]>([]);
   const [workspace, setWorkspace] = useState<UserWorkspace | null>(null);
@@ -41,20 +60,7 @@ export function useCurrentWorkspace(): UseCurrentWorkspaceResult {
     try {
       const { workspaces: list } = await listMyWorkspaces();
       setWorkspaces(list);
-      if (list.length === 0) {
-        setWorkspace(null);
-        return;
-      }
-      const storedId =
-        typeof window !== "undefined"
-          ? window.localStorage.getItem(STORAGE_KEY)
-          : null;
-      const selected =
-        list.find((w) => w.id === storedId) ?? list[0];
-      setWorkspace(selected);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(STORAGE_KEY, selected.id);
-      }
+      setWorkspace(resolveSelected(list));
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
@@ -67,11 +73,5 @@ export function useCurrentWorkspace(): UseCurrentWorkspaceResult {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return {
-    workspace,
-    workspaces,
-    isLoading,
-    error,
-    refresh: load,
-  };
+  return { workspace, workspaces, isLoading, error, refresh: load };
 }

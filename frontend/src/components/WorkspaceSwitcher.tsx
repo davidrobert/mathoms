@@ -13,6 +13,7 @@
 
 import { ROLE_COLOR_CLASSES, roleLabel } from "@/lib/roleLabels";
 import { useCurrentWorkspace } from "@/lib/useCurrentWorkspace";
+import type { WorkspaceRole, UserWorkspace } from "@/lib/api";
 import {
   Select,
   SelectContent,
@@ -25,7 +26,7 @@ const STORAGE_KEY = "fin.currentWorkspaceId";
 
 const sanitizeName = (name: string) => name.replace(/[!?]+$/, "").trim();
 
-function RoleBadge({ role }: { role: "owner" | "member" | "viewer" }) {
+function RoleBadge({ role }: { role: WorkspaceRole }) {
   return (
     <span
       className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider leading-none ${ROLE_COLOR_CLASSES[role]}`}
@@ -35,32 +36,32 @@ function RoleBadge({ role }: { role: "owner" | "member" | "viewer" }) {
   );
 }
 
-export function WorkspaceSwitcher() {
-  const { workspace, workspaces, isLoading } = useCurrentWorkspace();
-
-  if (isLoading || !workspace) return null;
-
-  const hasMultiple = workspaces.length > 1;
-
-  if (!hasMultiple) {
-    return (
-      <div className="hidden items-center gap-2.5 sm:flex">
-        <span className="text-style-heading-sm truncate max-w-[260px]">
-          {sanitizeName(workspace.name)}
-        </span>
-        <RoleBadge role={workspace.role} />
-      </div>
-    );
-  }
-
-  function switchTo(id: string | null) {
-    if (!id || id === workspace?.id) return;
-    window.localStorage.setItem(STORAGE_KEY, id);
-    window.location.reload();
-  }
-
+function SingleWorkspace({ workspace }: { workspace: UserWorkspace }) {
   return (
-    <Select value={workspace.id} onValueChange={switchTo}>
+    <div className="hidden items-center gap-2.5 sm:flex">
+      <span className="text-style-heading-sm truncate max-w-[260px]">
+        {sanitizeName(workspace.name)}
+      </span>
+      <RoleBadge role={workspace.role} />
+    </div>
+  );
+}
+
+function switchToWorkspace(currentId: string, id: string | null) {
+  if (!id || id === currentId) return;
+  window.localStorage.setItem(STORAGE_KEY, id);
+  window.location.reload();
+}
+
+function WorkspaceSelect({
+  workspace,
+  workspaces,
+}: {
+  workspace: UserWorkspace;
+  workspaces: UserWorkspace[];
+}) {
+  return (
+    <Select value={workspace.id} onValueChange={(id) => switchToWorkspace(workspace.id, id)}>
       <SelectTrigger className="h-9 w-auto min-w-[200px] gap-2 border-none bg-transparent shadow-none focus:ring-0">
         <SelectValue>
           <span className="inline-flex items-center gap-2.5">
@@ -83,4 +84,11 @@ export function WorkspaceSwitcher() {
       </SelectContent>
     </Select>
   );
+}
+
+export function WorkspaceSwitcher() {
+  const { workspace, workspaces, isLoading } = useCurrentWorkspace();
+  if (isLoading || !workspace) return null;
+  if (workspaces.length <= 1) return <SingleWorkspace workspace={workspace} />;
+  return <WorkspaceSelect workspace={workspace} workspaces={workspaces} />;
 }

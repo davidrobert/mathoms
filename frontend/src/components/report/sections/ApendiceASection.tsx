@@ -44,6 +44,43 @@ const CATEGORIAS_PATRIMONIAIS: Array<{ categoria: string; descricao: string }> =
   { categoria: "Reserva de Emergência", descricao: "Parcela líquida (resgate D+0 a D+2) destinada a cobrir 6–12 meses de despesas." },
 ];
 
+function DefinitionTable({
+  title,
+  header,
+  keyWidth,
+  rows,
+}: {
+  title: string;
+  header: string;
+  keyWidth: string;
+  rows: Array<{ key: string; value: string }>;
+}) {
+  return (
+    <div className="md:col-span-2">
+      <ReportCard variant="neutral" title={title}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--surface-border)] text-left text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
+                <th className="pb-2 font-semibold" style={{ width: keyWidth }}>{header}</th>
+                <th className="pb-2 font-semibold">Definição</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(({ key, value }) => (
+                <tr key={key} className="border-b border-[var(--surface-border)]/40 last:border-0">
+                  <td className="py-2 pr-4 font-semibold text-[var(--surface-foreground)]">{key}</td>
+                  <td className="py-2 text-[var(--surface-muted-foreground)]">{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ReportCard>
+    </div>
+  );
+}
+
 /** F9 · Fase D — Apêndice A: Definições e Siglas.
  *  Glossário de termos financeiros + categorias patrimoniais.
  *  Conteúdo estático — válido para qualquer workspace.
@@ -51,61 +88,18 @@ const CATEGORIAS_PATRIMONIAIS: Array<{ categoria: string; descricao: string }> =
 export function ApendiceASection() {
   return (
     <ReportSection id="APP_A" title="Apêndice A — Definições e Siglas">
-      {/* Glossário de Termos */}
-      <div className="md:col-span-2">
-        <ReportCard variant="neutral" title="Glossário de Termos Financeiros">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--surface-border)] text-left text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-                  <th className="pb-2 font-semibold" style={{ width: "20%" }}>Sigla / Termo</th>
-                  <th className="pb-2 font-semibold">Definição</th>
-                </tr>
-              </thead>
-              <tbody>
-                {GLOSSARIO.map(({ termo, definicao }) => (
-                  <tr key={termo} className="border-b border-[var(--surface-border)]/40 last:border-0">
-                    <td className="py-2 pr-4 font-semibold text-[var(--surface-foreground)]">
-                      {termo}
-                    </td>
-                    <td className="py-2 text-[var(--surface-muted-foreground)]">
-                      {definicao}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </ReportCard>
-      </div>
-
-      {/* Categorias Patrimoniais */}
-      <div className="md:col-span-2">
-        <ReportCard variant="neutral" title="Categorias Patrimoniais">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--surface-border)] text-left text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-                  <th className="pb-2 font-semibold" style={{ width: "30%" }}>Categoria</th>
-                  <th className="pb-2 font-semibold">O que inclui</th>
-                </tr>
-              </thead>
-              <tbody>
-                {CATEGORIAS_PATRIMONIAIS.map(({ categoria, descricao }) => (
-                  <tr key={categoria} className="border-b border-[var(--surface-border)]/40 last:border-0">
-                    <td className="py-2 pr-4 font-semibold text-[var(--surface-foreground)]">
-                      {categoria}
-                    </td>
-                    <td className="py-2 text-[var(--surface-muted-foreground)]">
-                      {descricao}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </ReportCard>
-      </div>
+      <DefinitionTable
+        title="Glossário de Termos Financeiros"
+        header="Sigla / Termo"
+        keyWidth="20%"
+        rows={GLOSSARIO.map((g) => ({ key: g.termo, value: g.definicao }))}
+      />
+      <DefinitionTable
+        title="Categorias Patrimoniais"
+        header="Categoria"
+        keyWidth="30%"
+        rows={CATEGORIAS_PATRIMONIAIS.map((c) => ({ key: c.categoria, value: c.descricao }))}
+      />
     </ReportSection>
   );
 }

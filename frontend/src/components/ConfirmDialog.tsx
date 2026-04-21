@@ -12,13 +12,18 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface ConfirmDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+type ConfirmVariant = "destructive" | "default";
+
+interface ConfirmOptions {
   title: string;
   description?: string;
   confirmLabel?: string;
-  variant?: "destructive" | "default";
+  variant?: ConfirmVariant;
+}
+
+interface ConfirmDialogProps extends ConfirmOptions {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onConfirm: () => void | Promise<void>;
 }
 
@@ -57,51 +62,32 @@ export function ConfirmDialog({
   );
 }
 
+interface ConfirmState extends ConfirmOptions {
+  open: boolean;
+  onConfirm: () => void | Promise<void>;
+}
+
+const INITIAL_STATE: ConfirmState = {
+  open: false,
+  title: "",
+  onConfirm: () => {},
+};
+
 export function useConfirmDialog() {
-  const [state, setState] = useState<{
-    open: boolean;
-    title: string;
-    description?: string;
-    confirmLabel?: string;
-    variant?: "destructive" | "default";
-    onConfirm: () => void | Promise<void>;
-  }>({
-    open: false,
-    title: "",
-    onConfirm: () => {},
-  });
+  const [state, setState] = useState<ConfirmState>(INITIAL_STATE);
 
   const confirm = useCallback(
-    (opts: {
-      title: string;
-      description?: string;
-      confirmLabel?: string;
-      variant?: "destructive" | "default";
-    }): Promise<boolean> => {
-      return new Promise((resolve) => {
-        setState({
-          ...opts,
-          open: true,
-          onConfirm: () => resolve(true),
-        });
-      });
-    },
-    []
+    (opts: ConfirmOptions): Promise<boolean> =>
+      new Promise((resolve) => {
+        setState({ ...opts, open: true, onConfirm: () => resolve(true) });
+      }),
+    [],
   );
 
-  const dialog = (
-    <ConfirmDialog
-      open={state.open}
-      onOpenChange={(open) => {
-        if (!open) setState((prev) => ({ ...prev, open: false }));
-      }}
-      title={state.title}
-      description={state.description}
-      confirmLabel={state.confirmLabel}
-      variant={state.variant}
-      onConfirm={state.onConfirm}
-    />
-  );
+  const handleOpenChange = (open: boolean) => {
+    if (!open) setState((prev) => ({ ...prev, open: false }));
+  };
 
+  const dialog = <ConfirmDialog {...state} onOpenChange={handleOpenChange} />;
   return { confirm, dialog };
 }

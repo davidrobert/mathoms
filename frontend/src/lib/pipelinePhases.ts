@@ -118,6 +118,31 @@ interface StageLike {
   status: string;
 }
 
+interface PhaseContext {
+  activePhaseId: string | null;
+  failedPhaseId: string | null;
+  isFailed: boolean;
+  needsReview: boolean;
+  runStatus: string;
+}
+
+function phaseStatusFor(
+  phaseId: string,
+  completedStages: number,
+  totalStages: number,
+  ctx: PhaseContext,
+): PhaseStatus {
+  if (ctx.failedPhaseId === phaseId) return "failed";
+  if (ctx.needsReview && ctx.activePhaseId === phaseId) return "needs_review";
+  if (ctx.activePhaseId === phaseId) return "active";
+  if (totalStages > 0 && completedStages === totalStages && !ctx.isFailed) {
+    return "completed";
+  }
+  // fase anterior à atual e sem logs ainda → considerar concluída se run completo
+  if (ctx.runStatus === "completed" && totalStages === 0) return "completed";
+  return "pending";
+}
+
 /**
  * Dado a lista de stage_logs de uma execução e a etapa corrente, retorna o
  * estado consolidado de cada uma das 4 fases. Usado pelo stepper.
@@ -127,13 +152,14 @@ export function computePhaseStates(
   currentStage: string | null | undefined,
   runStatus: string,
 ): PhaseState[] {
-  const activePhaseId = currentStage ? phaseOfStage(currentStage) : null;
-  const isFailed = runStatus === "failed" || runStatus === "partial_failure";
-  const needsReview = runStatus === "needs_review";
-
-  // Qual fase alberga a etapa que falhou?
   const failedStage = stageLogs.find((s) => s.status === "failed");
-  const failedPhaseId = failedStage ? phaseOfStage(failedStage.stage) : null;
+  const ctx: PhaseContext = {
+    activePhaseId: currentStage ? phaseOfStage(currentStage) : null,
+    failedPhaseId: failedStage ? phaseOfStage(failedStage.stage) : null,
+    isFailed: runStatus === "failed" || runStatus === "partial_failure",
+    needsReview: runStatus === "needs_review",
+    runStatus,
+  };
 
   return PIPELINE_PHASES.map((phase) => {
     const logsForPhase = stageLogs.filter((s) => phase.stages.includes(s.stage));
@@ -141,28 +167,7 @@ export function computePhaseStates(
       ["completed", "skipped", "skipped_free_tier"].includes(s.status),
     ).length;
     const totalStages = logsForPhase.length;
-
-    let status: PhaseStatus = "pending";
-    if (failedPhaseId === phase.id) {
-      status = "failed";
-    } else if (needsReview && activePhaseId === phase.id) {
-      status = "needs_review";
-    } else if (activePhaseId === phase.id) {
-      status = "active";
-    } else if (
-      totalStages > 0 &&
-      completedStages === totalStages &&
-      !isFailed
-    ) {
-      status = "completed";
-    } else if (
-      // fase anterior à atual e sem logs ainda → considerar concluída se run completo
-      runStatus === "completed" &&
-      totalStages === 0
-    ) {
-      status = "completed";
-    }
-
+    const status = phaseStatusFor(phase.id, completedStages, totalStages, ctx);
     return { phase, status, completedStages, totalStages };
   });
 }

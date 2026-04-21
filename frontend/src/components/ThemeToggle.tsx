@@ -29,24 +29,23 @@ const ICONS: Record<string, typeof Sun> = {
   system: Monitor,
 };
 
-export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+function DisabledPlaceholder() {
+  return (
+    <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+      <Monitor className="h-4 w-4" />
+    </Button>
+  );
+}
 
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted) {
-    return (
-      <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
-        <Monitor className="h-4 w-4" />
-      </Button>
-    );
-  }
-
-  const current = theme ?? "system";
+function ThemeButton({
+  current,
+  onClick,
+}: {
+  current: string;
+  onClick: () => void;
+}) {
   const Icon = ICONS[current] ?? Monitor;
   const next = CYCLE[current] ?? "light";
-
   return (
     <TooltipProvider delay={300}>
       <Tooltip>
@@ -56,7 +55,7 @@ export function ThemeToggle() {
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={() => setTheme(next)}
+              onClick={onClick}
               aria-label={`Tema: ${LABELS[current]}. Clique para ${LABELS[next]}`}
             />
           }
@@ -69,4 +68,13 @@ export function ThemeToggle() {
       </Tooltip>
     </TooltipProvider>
   );
+}
+
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return <DisabledPlaceholder />;
+  const current = theme ?? "system";
+  return <ThemeButton current={current} onClick={() => setTheme(CYCLE[current] ?? "light")} />;
 }

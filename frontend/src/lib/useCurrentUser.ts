@@ -23,6 +23,30 @@ function resetCache() {
   inflight = null;
 }
 
+interface LoadCallbacks {
+  onUser: (u: UserResponse) => void;
+  onError: (e: Error) => void;
+  onDone: () => void;
+  isCancelled: () => boolean;
+}
+
+async function fetchCurrentUser(cb: LoadCallbacks): Promise<void> {
+  try {
+    const promise = inflight ?? getMe();
+    inflight = promise;
+    const me = await promise;
+    if (cb.isCancelled()) return;
+    cachedUser = me;
+    cb.onUser(me);
+  } catch (err) {
+    if (cb.isCancelled()) return;
+    cb.onError(err instanceof Error ? err : new Error(String(err)));
+  } finally {
+    inflight = null;
+    if (!cb.isCancelled()) cb.onDone();
+  }
+}
+
 export function useCurrentUser() {
   const [user, setUser] = useState<UserResponse | null>(cachedUser);
   const [loading, setLoading] = useState(cachedUser === null);
@@ -39,24 +63,12 @@ export function useCurrentUser() {
       return;
     }
     let cancelled = false;
-    (async () => {
-      try {
-        const promise = inflight ?? getMe();
-        inflight = promise;
-        const me = await promise;
-        if (!cancelled) {
-          cachedUser = me;
-          setUser(me);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err : new Error(String(err)));
-        }
-      } finally {
-        inflight = null;
-        if (!cancelled) setLoading(false);
-      }
-    })();
+    fetchCurrentUser({
+      onUser: setUser,
+      onError: setError,
+      onDone: () => setLoading(false),
+      isCancelled: () => cancelled,
+    });
     return () => {
       cancelled = true;
     };
