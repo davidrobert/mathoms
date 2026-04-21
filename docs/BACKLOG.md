@@ -607,11 +607,11 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 **ADRs:** 097 (extract-then-refactor), **098** (Caminho B puro vs pragmático), **099** (reuse de `analyze_*` em `main_with_store`), **100** (A6d commitment), **101** (R12-R17 backend DDD/SOLID), **102** (R18-R20 language-neutral), **103** (teste humano como gate), **109** (auth portability), **110** (structured logs + OTel), **111** (stateless rigoroso)
 **Status global (2026-04-21):**
 - **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (fechada completa 2026-04-20) · A6f.2/.3/.4/.5a/.6.
-- **A6e 🚧 parcial (4 de N+ agregados):** FamilyMember + Category + ConfigBlob + Document com repos+DTOs. Próximos: Goal → Task.
+- **A6e 🚧 parcial (5 de N+ agregados):** FamilyMember + Category + ConfigBlob + Document + Goal com repos+DTOs. Próximo: Task.
 - **Restante:** A6e (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events) · A6f.1 (pipeline-as-service) · A6g (7 sub-fases) · F7 (7A-7F + LGPD).
-- **Caminho crítico (serial):** A6e Goal/Task → A6e.3/.4 → F7A → F7B → F7D+dogfood → GA.
-- **Lanes paralelizáveis agora (Onda 1):** A6e Goal · A6e Task · A6g.1 audit — ver "Próximas etapas — ondas paralelas" abaixo.
-- **Testes:** ~1184 pipeline + 847 backend passing (zero regressão).
+- **Caminho crítico (serial):** A6e Task → A6e.3/.4 → F7A → F7B → F7D+dogfood → GA.
+- **Lanes paralelizáveis agora (Onda 1):** A6e Task · A6g.2-.5 sweeps — ver "Próximas etapas — ondas paralelas" abaixo.
+- **Testes:** ~1184 pipeline + 884 backend passing (zero regressão).
 
 ### A5f — E1.5c Caminho B ✅ entregue 2026-04-19
 
@@ -733,8 +733,8 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | # | Sub-fase | Entrega | Esforço | Status |
 | --- | --- | --- | --- | --- |
-| A6e.1 | Repos por aggregate | User, Workspace, Document, Goal, PipelineRun, Task, Notification, Invitation, AuditLog repositories; `grep sqlalchemy backend/app/api/` = zero | 1-2 sessões | 🚧 parcial — **FamilyMember + Category + ConfigBlob + Document** ✅ |
-| A6e.2 | DTO ↔ Model | `schemas/dto/<aggregate>/response.py` + `command.py` + `query.py` + `mapper.py`; zero `Model.from_orm` em endpoints | 1 sessão | 🚧 parcial — **family_member + category + config_blob + document** ✅ |
+| A6e.1 | Repos por aggregate | User, Workspace, Document, Goal, PipelineRun, Task, Notification, Invitation, AuditLog repositories; `grep sqlalchemy backend/app/api/` = zero | 1-2 sessões | 🚧 parcial — **FamilyMember + Category + ConfigBlob + Document + Goal** ✅ |
+| A6e.2 | DTO ↔ Model | `schemas/dto/<aggregate>/response.py` + `command.py` + `query.py` + `mapper.py`; zero `Model.from_orm` em endpoints | 1 sessão | 🚧 parcial — **family_member + category + config_blob + document + goal** ✅ |
 | A6e.3 | Application layer | `backend/app/application/<aggregate>/<use_case>.py`; 1 endpoint = 1 use case; testável sem DB via fakes | 2 sessões | ☐ |
 | A6e.4 | Routers finos | Refactor 4900→800 linhas (17 routers × ≤50); teste AST enforça | 1-2 sessões | ☐ |
 | A6e.5 | Versionamento `/api/v1/` | Prefixo + aliases durante window; OpenAPI 3.1 versionado; `lib/api.ts` atualizado | 1 sessão | ☐ |
@@ -765,9 +765,22 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 **Escopo deixado para frente:** `document_processor.py`, `document_pipeline_sync.py` e `tasks/pipeline_task.py` continuam com ORM direto — migração é R15 (use-case layer) em slice futuro.
 
-**Próximos slices de agregado recomendados (branches sugeridas, paralelizáveis — agregados disjuntos):**
-- `agent/a6e-goal/*` — **Goal** aggregate (multi-type: reserva de emergência, renda passiva, PF/PJ, curto/longo prazo; ~8 endpoints em `goals.py`).
-- `agent/a6e-task/*` — **Task** aggregate (3 sub-agregados: tarefas financeiras + milhas + rotina; fonte MD + DB).
+#### Slice entregue — **Goal aggregate** (branch `agent/a6e6-goal/*`, 2026-04-21)
+
+| Entrega | Detalhes | Commit |
+| --- | --- | --- |
+| `GoalRepository` async | 4 métodos para semântica versionada: `get_active_by_type` (vigente), `get_by_id`, `list_by_workspace_and_type` (DESC), `create_new_version` (close active + flush + insert atômico). Validação de `VALID_GOAL_TYPES` em toda op; R13 no predicado; não commita | `41fa878` |
+| DTOs em `schemas/dto/goal/` | 4 módulos por tipo (`if_goal.py`, `aporte.py`, `dolar.py`, `alocacao.py`) com 7 DTOs cada + `base.py` (shared response base) + `mapper.py` (`goal_to_typed_response` resolve classe via `GOAL_TYPE_DTO_CLASSES`) | `b2e1f90` |
+| Refactor service + router + shim | `goal_service.py` -200 linhas (compute services permanecem puros); `api/goals.py` 16 endpoints com `grep "select(Goal" = zero`; `*UpsertRequest` → `*UpsertCommand`; shim em `schemas/goal.py` preserva compat binária | `eca59b0` |
+| Tests | 16 mapper tests (dispatch por tipo, fallbacks de `meta_version`, narrow IF) + 12 repo tests (DB real; `create_new_version` fecha vigente ANTES; cross-tenant safety) | `1c8ecfb` |
+| OpenAPI snapshot | 4 renames `*UpsertRequest` → `*UpsertCommand` + docstring descriptions | `8760d7e` |
+
+**Impact:** 884 passed / 4 skipped (+28 vs 856 pós-A6e.5; zero regressão).
+
+**Escopo deixado para frente:** `goal_compute_*.py` são domain logic pura (decisão consciente — não migra); Report lookup (`get_latest_report_patrimonio_liquido`) fica em goal_service até Report virar agregado próprio (slice futuro).
+
+**Próximo slice de agregado recomendado (branch sugerida):**
+- `agent/a6e-task/*` — **Task** aggregate (3 sub-agregados: tarefas financeiras + milhas + rotina; fonte MD + DB). Último do trilho per-aggregate.
 
 Depois dos slices de agregado restantes, destrava A6e.3 (use cases), A6e.4 (routers finos), A6e.5 (/api/v1/ prefix) e A6e.6 (domain events) — transversais a todos os agregados migrados.
 

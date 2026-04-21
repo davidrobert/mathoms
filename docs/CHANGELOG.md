@@ -29,6 +29,66 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
   `dev/check_pipeline_boundaries.py` para P10 (sem duplicação). BACKLOG
   §A6g.1 ✅.
 
+- **A6e.6 — Slice vertical `Goal` (2026-04-21) — ADR-101:**
+  Sétimo agregado migrado para o padrão DDD/SOLID do backend API
+  (R12-R14). Goal é o único agregado multi-tipo (4 types: IF,
+  APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO) — testa a estrutura de
+  DTOs separados por tipo com mapper paramétrico.
+  - **Novo: [`GoalRepository`](../backend/app/repositories/goal_repository.py)**
+    async (170 linhas) — 4 métodos encapsulando a semântica versionada
+    (ADR-073): `get_active_by_type` (vigente — `effective_to IS NULL`),
+    `get_by_id`, `list_by_workspace_and_type` (histórico DESC por
+    `effective_from`), `create_new_version` (atômico `close active +
+    flush + insert` — o flush intermediário resolve o unique index
+    parcial `ux_goals_current_ws_type` antes do insert).
+    Validação de `goal_type` contra `VALID_GOAL_TYPES` em todas as
+    operações; R13 em todo predicado; não commita (R14) — caller é
+    dono do boundary transacional.
+  - **Novo: DTOs canônicos em [`schemas/dto/goal/`](../backend/app/schemas/dto/goal/)**
+    (R12 ISP) — 4 módulos por tipo (`if_goal.py`, `aporte.py`,
+    `dolar.py`, `alocacao.py`), cada um com 7 DTOs (Inputs, Derived,
+    ComputeRequest/Response, UpsertCommand, Response, HistoryResponse).
+    `base.py` (`GoalResponseBase`, ex-`_GoalResponseBase`) com campos
+    comuns. `mapper.py` (`goal_to_typed_response`) resolve a classe
+    correta por `goal.type` via `GOAL_TYPE_DTO_CLASSES` — ponto único
+    de extensão. `goal_to_if_response` atalho narrow para IF.
+    `meta_version_from_params` migra do service para o mapper.
+  - **Refactor: [`goal_service.py`](../backend/app/services/goal_service.py)**
+    (-200 linhas) — persistência delegada ao repo; compute services
+    (`compute_if/aporte/dolar/alocacao_derived`) **intocados** (domain
+    logic puro, ficam no service por design); helpers cross-aggregate
+    (`_resolve_author_names` para User lookup,
+    `get_latest_report_patrimonio_liquido` para Report) permanecem
+    por serem composição fora do agregado Goal.
+  - **Refactor: [`api/goals.py`](../backend/app/api/goals.py)**
+    (16 endpoints) — `grep "select(Goal" = zero`; chamadas de mapper
+    passam apenas `created_by_name` (sem mais 3 kwargs de classes);
+    `*UpsertRequest` → `*UpsertCommand`.
+  - **Compat binária:** [`schemas/goal.py`](../backend/app/schemas/goal.py)
+    vira shim re-exportando todos os DTOs com nomes legados
+    (`*UpsertCommand` alias `*UpsertRequest`, `GoalResponseBase` alias
+    `_GoalResponseBase`). Seed scripts (`seed_goals_*`), factory
+    builder `make_if_goal` e `test_goal_service.py` passam sem
+    modificação.
+  - **Testes novos:**
+    [test_goal_dto_mapper.py](../backend/tests/test_goal_dto_mapper.py)
+    (16 testes, puros — dispatch por tipo, fallbacks de `meta_version`,
+    `goal_to_if_response` narrow) +
+    [test_goal_repository.py](../backend/tests/test_goal_repository.py)
+    (12 testes com DB real — vigente scoped ao ws, histórico ordenado,
+    `create_new_version` fecha vigente ANTES do insert e cross-tenant
+    safety garantida).
+  - **OpenAPI snapshot atualizado:** 4 renames `*UpsertRequest` →
+    `*UpsertCommand` + descrições de docstrings reformatados.
+  - **Escopo deixado para frente:** `goal_compute_*.py` services são
+    domain logic e permanecem; Report lookup
+    (`get_latest_report_patrimonio_liquido`) fica em goal_service
+    até Report virar agregado próprio (slice futuro).
+  - **Impact**: 884 passed / 4 skipped (+28 tests vs 856 pós-A6e.5;
+    zero regressão). Commits: `41fa878` (repo), `b2e1f90` (dto),
+    `eca59b0` (service+router+shim), `1c8ecfb` (testes),
+    `8760d7e` (openapi snapshot).
+
 - **A6e.5 — Slice vertical `Document` (2026-04-21) — ADR-101:**
   Sexto agregado migrado para o padrão DDD/SOLID do backend API (R12-R14).
   Continua o trilho iniciado em A6e.1+.2 (FamilyMember) e seguido por
