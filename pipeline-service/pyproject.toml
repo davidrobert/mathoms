@@ -1,0 +1,32 @@
+[project]
+name = "mathoms-pipeline-service"
+version = "0.1.0"
+description = "HTTP boundary for Mathoms pipeline execution (A6f.1 · ADR-112)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "redis>=5.0",
+    "httpx>=0.27",
+    "pydantic>=2.6",
+    "python-json-logger>=2.0",
+    "websockets>=12.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "fakeredis>=2.21",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app", "app.api", "app.contracts", "app.services"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
