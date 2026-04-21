@@ -42,24 +42,47 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     `ALL_CHECKS` + `_init_config` wrapper que rebina globais para
     preservar contrato de `test_stage_wrappers.py`. Gate: JSON output
     idêntico antes/depois; `tests/test_stage_wrappers.py` = 29 passed.
+  - **T2.b — `backend/app/tasks/pipeline_task.py::run_pipeline_task`:**
+    273 → 58 linhas (orchestrator incluindo signature + docstring;
+    corpo efetivo ~30 linhas). Extraídos 11 helpers nomeados por fase
+    do ciclo de vida de um ``PipelineRun``:
+    `_bootstrap_pipeline_sys_path`, `_setup_run_context` (ctx +
+    DBArtifactStore session), `_mark_run_started` (status → running),
+    `_execute_stages_loop` (loop principal, retorna
+    `(has_failure, paused_for_review)`), `_record_stage_{skip,running,
+    exception,needs_review,result}` (5 snapshots de persistência +
+    publish_* de eventos), `_has_validation_errors` (predicate sobre
+    `result.detail`), `_finalize_run` (status final),
+    `_run_post_processing` (sync docs, report, sugestões LLM — cada um
+    best-effort), `_close_artifact_session` (commit+close DB).
+    Gate: `pytest backend/tests/test_pipeline_task.py -q` = 13 passed;
+    `pytest backend/tests/test_openapi_snapshot.py -q` = 1 passed
+    (sem mudança de wire contract).
   - **Fora de escopo nesta rodada (documentado):**
     - Scripts com goldens (e3/e4/e5/e5n/e6/e7) — 11 ofensores P2 + ~250
       P1 ficam para **A6g.2b** pós-A6c.3 (quando `main(root_dir)`
       legados forem deletados).
-    - `ChartsNarrator.narrate` (T2.a) e `run_pipeline_task` (T2.b) —
-      opcionais, skipped nesta rodada; paridade de narrativas tem
-      tolerância zero e exige baseline focado.
+    - `ChartsNarrator.narrate` (T2.a) skipped — paridade de narrativas
+      tem tolerância zero e o `return {...}` dict literal com locals
+      compartilhados força passagem de 15+ argumentos por método
+      extraído; pouco ganho vs. risco de rollback em golden. Volta
+      junto com A6g.2b.
   - **Impact numérico nos targets:**
-    - `long_functions` P1: `e_reset.main` 372 → 27 (removido da lista
-      high-severity); `e0_audit.main` 140 → <25 após split.
+    - `long_functions` P1: `e_reset.main` 372 → 27; `e0_audit.main`
+      140 → <25; `run_pipeline_task` 273 → 58 — todas removidas da
+      lista high-severity (>40 linhas).
     - `long_files` P2: `pdf_generator.py` 1067 → 29 (remove da lista);
       `e_reset.py` 1332 → 1379 (stretch — targets extraídos mas main
       file ainda >1000; consolidação em módulos separados planejada
-      para A6g.2b); `e0_audit.py` 948 → 238 (remove da lista).
+      para A6g.2b); `e0_audit.py` 948 → 238 (remove da lista);
+      `pipeline_task.py` 628 → 742 (+114 por framing de helpers — file
+      ainda >500 mas função principal cai 78%).
   - **Gates consolidados:**
     - `pytest tests -q` = 1461 passed, 2 skipped (igual baseline).
     - `pytest backend/tests/test_golden_pipeline.py -q` = 19 passed,
       1 skipped.
+    - `pytest backend/tests/test_pipeline_task.py -q` = 13 passed.
+    - `pytest backend/tests/test_openapi_snapshot.py -q` = 1 passed.
     - `python scripts/e_reset.py --help` output idêntico.
     - `python scripts/e0_audit.py --json` output idêntico.
     - `pre-commit run` passa nos arquivos tocados.
