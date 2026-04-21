@@ -1048,12 +1048,51 @@ Aplicação **separada** do fluxo multi-tenant do cliente: autenticação própr
 
 ## 17. Arquitetura alvo pós-A6 (migração infra+domínio)
 
-**Plano completo**: [_scratch/plano_migracao_artifacts_db.md](../_scratch/plano_migracao_artifacts_db.md).
-**ADRs formalizadoras**: 097-103 em [DECISIONS.md](DECISIONS.md).
+**ADRs formalizadoras**: 097-111 em [DECISIONS.md](DECISIONS.md) ·
+**Status de execução + lanes abertas**: [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal) ·
+**Critérios de aceite por fase**: [TESTING §Critérios de aceite por fase](TESTING.md#critérios-de-aceite-por-fase-da-migração-a6) ·
+**Runbook de cutover**: [runbooks/cutover.md](runbooks/cutover.md)
+
+### 17.0 Motivação — por que migrar
+
+A migração A6 resolve 2 classes de problemas acumuladas no sistema
+legado, cada um já endereçado por ADR individual — esta §17 descreve o
+**estado alvo**; cada ADR explica o porquê específico e a estratégia de
+transição:
+
+- **Infraestrutura (artefatos + orquestrador):** acoplamento frágil
+  por nome de arquivo (regex em `document_pipeline_sync.py`), ambiguidade
+  de modo incremental (stem matching que colide em re-extração), estado
+  global mutável em `pipeline_common._init_config()` (bomba-relógio
+  multi-worker), `FROM_MAP` manual em `FULL_ORDER`, `init_workspace_paths_from_env()`
+  em nível de módulo que levanta `SystemExit` sem `FIN_WORKSPACE_ROOT`.
+  → ADRs **082** (PipelineArtifact), **083** (ArtifactStore), **086**
+  (MaterializationBridge), **087** (StageSpec declarativo), **093**
+  (stage rename Fase 9), **096** (observabilidade de cutover).
+- **Domínio (modelo + design):** ausência de modelo — tudo é `dict`
+  genérico; `float` para dinheiro (drift binário acumula em relatórios);
+  scripts god-object com 30+ globals (`e5_analyze.py` 108KB); lógica
+  acoplada a disco, intestável em isolamento; nomes `eN_*.py`
+  acoplados à ordem de execução (responsabilidade do orquestrador).
+  → ADRs **089** (ISP services), **090** (Money value object),
+  **097** (extract-then-refactor de domain services), **098** (Caminho
+  B puro vs pragmático), **101** (backend DDD/SOLID R12-R17).
+- **Language-neutral boundary (preparação Go):** backend importa
+  `pipeline.*` por Python, prendendo stack de execução à linguagem.
+  Structured logs + DB schema precisam ser legíveis fora de Python.
+  → ADRs **102** (R18-R20 language-neutral), **109** (auth portability),
+  **110** (JSON logs + OTel), **111** (stateless rigoroso).
+
+O plano de execução histórico (v3.0→v3.6, 2026-04-02 a 2026-04-21)
+viveu em `_scratch/plano_migracao_artifacts_db.md` e foi absorvido nas
+fontes canônicas listadas no topo em 2026-04-21. Conteúdo único
+(checklist de testes §7 → `TESTING.md`, LGPD D1-D5 §15 → `BACKLOG F7B`,
+runbook de cutover §16 → `runbooks/cutover.md`) migrado; o resto estava
+duplicado com ADRs, `BACKLOG` e o código real em `pipeline/**`.
 
 Esta seção descreve o **estado alvo** após a conclusão das sessões A5f+A6
 do plano transversal de migração. Reflete decisões arquiteturais já tomadas
-mas **ainda não implementadas** em partes (a maioria de A6d-f pendente).
+mas **ainda não implementadas** em partes (A6e.3-.6 + A6f.1 pendentes).
 
 ### 17.1 Caminho B: puro vs pragmático (estado atual e alvo)
 
