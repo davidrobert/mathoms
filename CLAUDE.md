@@ -388,6 +388,35 @@ trabalhe em disjunto, `git stash push -- <arquivos>`, ou
 `git worktree add ../fin-<slug>` para isolar. Se `CLAUDE.md` mudou
 recente, releia antes de agir.
 
+### Antes de pegar uma task do BACKLOG
+
+Agentes trabalham em branches `agent/<slug>/<timestamp>`. Dois agentes na
+mesma lane = merge hell garantido. **Antes de escolher qualquer task:**
+
+```bash
+git fetch origin
+# 1. Lista branches de agentes ativos (atividade <24h) ordenadas por recência
+git for-each-ref --sort=-committerdate \
+  --format='%(committerdate:iso) %(refname:short) %(subject)' \
+  refs/remotes/origin/agent/ | head -15
+
+# 2. Se a lane que você quer (ex.: a6g.2) já aparece acima com commit
+#    nas últimas 24h → pegue OUTRA lane. Consulte docs/BACKLOG.md
+#    §Sprint A6 → tabela "Lanes abertas agora".
+```
+
+Regras de pickup:
+
+- **Slug de branch = slug da lane** (`a6g2-*`, `a6e3-*`). Se já existe
+  `origin/agent/<slug>-*` com commit nas últimas 24h, a lane está
+  **tomada** — não duplique; escolha outra.
+- Stale (>24h sem commit) pode ser retomado — anuncie, faça `git log`
+  na branch para entender onde parou, e continue OU abra nova branch
+  (`agent/<slug>/<novo-ts>`) partindo de `origin/main`.
+- **Sprint atual + lanes abertas**: [docs/BACKLOG.md §Sprint A6](docs/BACKLOG.md)
+  tem o diagrama de ondas e a tabela de lanes. Essa é a fonte única;
+  ROADMAP aponta para lá.
+
 ### Naming de branch
 
 `agent/<slug-kebab>/<yyyyMMdd-HHmm>` — ex.:
