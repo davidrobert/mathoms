@@ -1,22 +1,39 @@
-"""Goals API — F8.1 + F8.5 (ADR-073).
+"""Goals API — router fino (A6e.3 slice 3 · ADR-101 R15/R16 · ADR-073).
 
-Tipos implementados:
-- INDEPENDENCIA_FINANCEIRA (F8.1)
-- APORTE_MENSAL (F8.5)
-- DOLARIZACAO (F8.5)
-- ALOCACAO_ALVO (F8.5)
+Endpoints sob ``/workspaces/{workspace_id}/goals/...`` delegam a use
+cases em :mod:`backend.app.application.goal`. Erros de domínio traduzidos
+para HTTP por handlers globais em ``main.py``.
+
+4 tipos versionados append-only: IF, aportes, dolarização, alocação.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
+
+from fastapi import APIRouter, Depends, status
+from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.application.goal import (
+    compute_alocacao_projection,
+    compute_aporte_projection,
+    compute_dolar_projection,
+    compute_if_projection,
+    create_if_goal_version,
+    create_typed_goal_version,
+    get_active_if_goal,
+    get_active_typed_goal,
+    list_if_goal_versions,
+    list_typed_goal_versions,
+)
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
+from backend.app.repositories.goal_repository import GoalRepository
 from backend.app.schemas.dto.goal import (
     AlocacaoGoalComputeRequest,
     AlocacaoGoalComputeResponse,
@@ -38,20 +55,87 @@ from backend.app.schemas.dto.goal import (
     IFGoalHistoryResponse,
     IFGoalResponse,
     IFGoalUpsertCommand,
-    goal_to_if_response,
-    goal_to_typed_response,
 )
-from backend.app.schemas.task import (
-    TaskFilters,
-    TaskListResponse,
-    TaskResponse,
-)
-from backend.app.services import goal_service, task_service
+from backend.app.schemas.task import TaskFilters, TaskListResponse, TaskResponse
+from backend.app.services import task_service
+from backend.app.services.goal_service import get_latest_report_patrimonio_liquido
 
-router = APIRouter(
-    prefix="/workspaces/{workspace_id}/goals",
-    tags=["goals"],
-)
+router = APIRouter(prefix="/workspaces/{workspace_id}/goals", tags=["goals"])
+
+
+def _get_repo(db: AsyncSession = Depends(get_db)) -> GoalRepository:
+    return GoalRepository(db)
+
+
+async def _author_names(user_ids: set[str], *, db: AsyncSession) -> dict[str, str]:
+    if not user_ids:
+        return {}
+    rows = await db.execute(select(User).where(User.id.in_(list(user_ids))))
+    return {u.id: u.full_name for u in rows.scalars().all()}
+
+
+async def _with_author(resp: BaseModel, *, db: AsyncSession) -> BaseModel:
+    """Enriquece ``created_by_name`` se ``created_by`` presente na resposta."""
+    created_by = getattr(resp, "created_by", None)
+    if not created_by:
+        return resp
+    names = await _author_names({created_by}, db=db)
+    return resp.model_copy(update={"created_by_name": names.get(created_by)})
+
+
+async def _read_active_typed(
+    goal_type: str,
+    workspace_id: str,
+    *,
+    repo: GoalRepository,
+    db: AsyncSession,
+) -> BaseModel:
+    resp = await get_active_typed_goal(workspace_id, goal_type, repo=repo)
+    return await _with_author(resp, db=db)
+
+
+async def _history_typed(
+    goal_type: str,
+    workspace_id: str,
+    *,
+    repo: GoalRepository,
+    db: AsyncSession,
+):
+    goals = await repo.list_by_workspace_and_type(workspace_id, goal_type)
+    names = await _author_names(
+        {g.created_by for g in goals if g.created_by}, db=db
+    )
+    return await list_typed_goal_versions(
+        workspace_id, goal_type, repo=repo, author_names=names
+    )
+
+
+async def _write_typed(
+    goal_type: str,
+    inputs: BaseModel,
+    notes: Optional[str],
+    *,
+    workspace: Workspace,
+    user: User,
+    repo: GoalRepository,
+    db: AsyncSession,
+) -> BaseModel:
+    resp = await create_typed_goal_version(
+        goal_type,
+        inputs,
+        notes,
+        workspace_id=workspace.id,
+        created_by=user.id,
+        repo=repo,
+        created_by_name=user.full_name,
+    )
+    await db.commit()
+    return resp
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# INDEPENDENCIA_FINANCEIRA (F8.1)
+# ═══════════════════════════════════════════════════════════════════════
 
 
 @router.post(
@@ -63,47 +147,13 @@ async def compute_if_goal(
     body: IFGoalComputeRequest,
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
-):
+) -> IFGoalComputeResponse:
     """Preview live do frontend. Não toca o banco.
 
     Se `patrimonio_atual_brl` for enviado, inclui `percentual_conquistado`
     e `faltante_brl` para UI de progresso.
     """
-    derived = goal_service.compute_if_derived(
-        body.inputs, body.patrimonio_atual_brl
-    )
-
-    pct = None
-    falt = None
-    if body.patrimonio_atual_brl is not None and derived.if_meta_brl > 0:
-        pct = round(
-            100.0 * body.patrimonio_atual_brl / derived.if_meta_brl, 2
-        )
-        falt = round(
-            max(0.0, derived.if_meta_brl - body.patrimonio_atual_brl), 2
-        )
-
-    return IFGoalComputeResponse(
-        derived=derived,
-        percentual_conquistado=pct,
-        faltante_brl=falt,
-    )
-
-
-async def _enrich_if_goal_with_latest_patrimonio(
-    response: IFGoalResponse,
-    workspace_id: str,
-    *,
-    db: AsyncSession,
-) -> IFGoalResponse:
-    pat = await goal_service.get_latest_report_patrimonio_liquido(
-        workspace_id, db=db
-    )
-    return response.model_copy(
-        update={
-            "derived": goal_service.compute_if_derived(response.inputs, pat),
-        }
-    )
+    return compute_if_projection(body)
 
 
 @router.get(
@@ -114,20 +164,15 @@ async def _enrich_if_goal_with_latest_patrimonio(
 async def get_if_goal(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
+    repo: GoalRepository = Depends(_get_repo),
+) -> IFGoalResponse:
     """404 se workspace ainda não tem meta IF persistida
     (frontend deve mostrar wizard nesse caso)."""
-    response = await goal_service.get_current_goal_with_author(
-        workspace.id, "INDEPENDENCIA_FINANCEIRA", db=db
+    patrimonio = await get_latest_report_patrimonio_liquido(workspace.id, db=db)
+    resp = await get_active_if_goal(
+        workspace.id, repo=repo, patrimonio_atual_brl=patrimonio
     )
-    if response is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Workspace ainda não tem meta IF configurada",
-        )
-    return await _enrich_if_goal_with_latest_patrimonio(
-        response, workspace.id, db=db
-    )
+    return await _with_author(resp, db=db)  # type: ignore[return-value]
 
 
 @router.get(
@@ -138,41 +183,18 @@ async def get_if_goal(
 async def get_if_goal_history(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    responses = await goal_service.get_goal_history_with_authors(
-        workspace.id, "INDEPENDENCIA_FINANCEIRA", db=db
+    repo: GoalRepository = Depends(_get_repo),
+) -> IFGoalHistoryResponse:
+    goals = await repo.list_by_workspace_and_type(
+        workspace.id, "INDEPENDENCIA_FINANCEIRA"
     )
-    return IFGoalHistoryResponse(goals=responses, total=len(responses))
-
-
-@router.get(
-    "/{goal_id}/tasks",
-    response_model=TaskListResponse,
-    summary="Tarefas vinculadas a esta meta",
-)
-async def list_tasks_for_goal(
-    goal_id: str,
-    workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
-    include_done: bool = False,
-):
-    """Lista tasks com `related_goal_id == goal_id` dentro do workspace.
-
-    Útil para a view `/plano/meta-if`: seção "Tarefas que destravam esta
-    meta" com % completude.
-    """
-    filters = TaskFilters(related_goal_id=goal_id, include_done=include_done)
-    tasks = await task_service.list_tasks(workspace.id, filters, db=db)
-    return TaskListResponse(
-        tasks=[TaskResponse.model_validate(t) for t in tasks],
-        total=len(tasks),
-    )
+    names = await _author_names({g.created_by for g in goals if g.created_by}, db=db)
+    return await list_if_goal_versions(workspace.id, repo=repo, author_names=names)
 
 
 @router.put(
     "/if",
     response_model=IFGoalResponse,
-    status_code=status.HTTP_200_OK,
     summary="Cria nova versão da meta IF (fecha a anterior)",
     dependencies=[Depends(require_write_role)],
 )
@@ -181,25 +203,24 @@ async def upsert_if_goal(
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
+    repo: GoalRepository = Depends(_get_repo),
+) -> IFGoalResponse:
     """Edição é append-only: cria novo registro com `effective_from = hoje`
     e fecha o anterior com `effective_to = ontem`. Histórico é preservado.
 
     RBAC (F9): `viewer` recebe 403 — apenas `owner` e `member` editam.
     """
-    goal = await goal_service.create_if_goal_version(
-        workspace.id,
-        body.inputs,
-        db=db,
+    patrimonio = await get_latest_report_patrimonio_liquido(workspace.id, db=db)
+    resp = await create_if_goal_version(
+        body,
+        workspace_id=workspace.id,
         created_by=user.id,
-        notes=body.notes,
+        repo=repo,
+        patrimonio_atual_brl=patrimonio,
+        created_by_name=user.full_name,
     )
     await db.commit()
-    await db.refresh(goal)
-    base = goal_to_if_response(goal, created_by_name=user.full_name)
-    return await _enrich_if_goal_with_latest_patrimonio(
-        base, workspace.id, db=db
-    )
+    return resp
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -216,9 +237,8 @@ async def compute_aporte_goal(
     body: AporteGoalComputeRequest,
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
-):
-    derived = goal_service.compute_aporte_derived(body.inputs)
-    return AporteGoalComputeResponse(derived=derived)
+) -> AporteGoalComputeResponse:
+    return compute_aporte_projection(body)
 
 
 @router.get(
@@ -229,16 +249,9 @@ async def compute_aporte_goal(
 async def get_aporte_goal(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    response = await goal_service.get_current_goal_typed(
-        workspace.id, "APORTE_MENSAL", db=db
-    )
-    if response is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Workspace ainda não tem meta de aportes configurada",
-        )
-    return response
+    repo: GoalRepository = Depends(_get_repo),
+) -> AporteGoalResponse:
+    return await _read_active_typed("APORTE_MENSAL", workspace.id, repo=repo, db=db)  # type: ignore[return-value]
 
 
 @router.get(
@@ -249,17 +262,15 @@ async def get_aporte_goal(
 async def get_aporte_goal_history(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    responses = await goal_service.get_goal_history_typed(
-        workspace.id, "APORTE_MENSAL", db=db
-    )
-    return AporteGoalHistoryResponse(goals=responses, total=len(responses))
+    repo: GoalRepository = Depends(_get_repo),
+) -> AporteGoalHistoryResponse:
+    responses = await _history_typed("APORTE_MENSAL", workspace.id, repo=repo, db=db)
+    return AporteGoalHistoryResponse(goals=responses, total=len(responses))  # type: ignore[arg-type]
 
 
 @router.put(
     "/aportes",
     response_model=AporteGoalResponse,
-    status_code=status.HTTP_200_OK,
     summary="Cria nova versão da meta de aportes",
     dependencies=[Depends(require_write_role)],
 )
@@ -268,20 +279,12 @@ async def upsert_aporte_goal(
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
-    derived = goal_service.compute_aporte_derived(body.inputs)
-    goal = await goal_service.create_goal_version(
-        workspace.id,
-        "APORTE_MENSAL",
-        body.inputs,
-        derived,
-        db=db,
-        created_by=user.id,
-        notes=body.notes,
+    repo: GoalRepository = Depends(_get_repo),
+) -> AporteGoalResponse:
+    return await _write_typed(  # type: ignore[return-value]
+        "APORTE_MENSAL", body.inputs, body.notes,
+        workspace=workspace, user=user, repo=repo, db=db,
     )
-    await db.commit()
-    await db.refresh(goal)
-    return goal_to_typed_response(goal, created_by_name=user.full_name)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -298,10 +301,8 @@ async def compute_dolar_goal(
     body: DolarGoalComputeRequest,
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
-):
-    cambio = body.cambio_brl_usd or goal_service.DEFAULT_CAMBIO_BRL_USD
-    derived = goal_service.compute_dolar_derived(body.inputs, cambio)
-    return DolarGoalComputeResponse(derived=derived, cambio_utilizado=cambio)
+) -> DolarGoalComputeResponse:
+    return compute_dolar_projection(body)
 
 
 @router.get(
@@ -312,16 +313,9 @@ async def compute_dolar_goal(
 async def get_dolar_goal(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    response = await goal_service.get_current_goal_typed(
-        workspace.id, "DOLARIZACAO", db=db
-    )
-    if response is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Workspace ainda não tem meta de dolarização configurada",
-        )
-    return response
+    repo: GoalRepository = Depends(_get_repo),
+) -> DolarGoalResponse:
+    return await _read_active_typed("DOLARIZACAO", workspace.id, repo=repo, db=db)  # type: ignore[return-value]
 
 
 @router.get(
@@ -332,17 +326,15 @@ async def get_dolar_goal(
 async def get_dolar_goal_history(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    responses = await goal_service.get_goal_history_typed(
-        workspace.id, "DOLARIZACAO", db=db
-    )
-    return DolarGoalHistoryResponse(goals=responses, total=len(responses))
+    repo: GoalRepository = Depends(_get_repo),
+) -> DolarGoalHistoryResponse:
+    responses = await _history_typed("DOLARIZACAO", workspace.id, repo=repo, db=db)
+    return DolarGoalHistoryResponse(goals=responses, total=len(responses))  # type: ignore[arg-type]
 
 
 @router.put(
     "/dolarizacao",
     response_model=DolarGoalResponse,
-    status_code=status.HTTP_200_OK,
     summary="Cria nova versão da meta de dolarização",
     dependencies=[Depends(require_write_role)],
 )
@@ -351,20 +343,12 @@ async def upsert_dolar_goal(
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
-    derived = goal_service.compute_dolar_derived(body.inputs)
-    goal = await goal_service.create_goal_version(
-        workspace.id,
-        "DOLARIZACAO",
-        body.inputs,
-        derived,
-        db=db,
-        created_by=user.id,
-        notes=body.notes,
+    repo: GoalRepository = Depends(_get_repo),
+) -> DolarGoalResponse:
+    return await _write_typed(  # type: ignore[return-value]
+        "DOLARIZACAO", body.inputs, body.notes,
+        workspace=workspace, user=user, repo=repo, db=db,
     )
-    await db.commit()
-    await db.refresh(goal)
-    return goal_to_typed_response(goal, created_by_name=user.full_name)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -381,12 +365,8 @@ async def compute_alocacao_goal(
     body: AlocacaoGoalComputeRequest,
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
-):
-    derived = goal_service.compute_alocacao_derived(body.inputs)
-    return AlocacaoGoalComputeResponse(
-        derived=derived,
-        valido=abs(derived.soma_percentuais - 100.0) < 0.01,
-    )
+) -> AlocacaoGoalComputeResponse:
+    return compute_alocacao_projection(body)
 
 
 @router.get(
@@ -397,16 +377,9 @@ async def compute_alocacao_goal(
 async def get_alocacao_goal(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    response = await goal_service.get_current_goal_typed(
-        workspace.id, "ALOCACAO_ALVO", db=db
-    )
-    if response is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Workspace ainda não tem alocação-alvo configurada",
-        )
-    return response
+    repo: GoalRepository = Depends(_get_repo),
+) -> AlocacaoGoalResponse:
+    return await _read_active_typed("ALOCACAO_ALVO", workspace.id, repo=repo, db=db)  # type: ignore[return-value]
 
 
 @router.get(
@@ -417,17 +390,15 @@ async def get_alocacao_goal(
 async def get_alocacao_goal_history(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    responses = await goal_service.get_goal_history_typed(
-        workspace.id, "ALOCACAO_ALVO", db=db
-    )
-    return AlocacaoGoalHistoryResponse(goals=responses, total=len(responses))
+    repo: GoalRepository = Depends(_get_repo),
+) -> AlocacaoGoalHistoryResponse:
+    responses = await _history_typed("ALOCACAO_ALVO", workspace.id, repo=repo, db=db)
+    return AlocacaoGoalHistoryResponse(goals=responses, total=len(responses))  # type: ignore[arg-type]
 
 
 @router.put(
     "/alocacao",
     response_model=AlocacaoGoalResponse,
-    status_code=status.HTTP_200_OK,
     summary="Cria nova versão da alocação-alvo",
     dependencies=[Depends(require_write_role)],
 )
@@ -436,17 +407,38 @@ async def upsert_alocacao_goal(
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
-    derived = goal_service.compute_alocacao_derived(body.inputs)
-    goal = await goal_service.create_goal_version(
-        workspace.id,
-        "ALOCACAO_ALVO",
-        body.inputs,
-        derived,
-        db=db,
-        created_by=user.id,
-        notes=body.notes,
+    repo: GoalRepository = Depends(_get_repo),
+) -> AlocacaoGoalResponse:
+    return await _write_typed(  # type: ignore[return-value]
+        "ALOCACAO_ALVO", body.inputs, body.notes,
+        workspace=workspace, user=user, repo=repo, db=db,
     )
-    await db.commit()
-    await db.refresh(goal)
-    return goal_to_typed_response(goal, created_by_name=user.full_name)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Tasks linked to a goal (cross-aggregate read)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+@router.get(
+    "/{goal_id}/tasks",
+    response_model=TaskListResponse,
+    summary="Tarefas vinculadas a esta meta",
+)
+async def list_tasks_for_goal(
+    goal_id: str,
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    include_done: bool = False,
+) -> TaskListResponse:
+    """Lista tasks com `related_goal_id == goal_id` dentro do workspace.
+
+    Útil para a view `/plano/meta-if`: seção "Tarefas que destravam esta
+    meta" com % completude.
+    """
+    filters = TaskFilters(related_goal_id=goal_id, include_done=include_done)
+    tasks = await task_service.list_tasks(workspace.id, filters, db=db)
+    return TaskListResponse(
+        tasks=[TaskResponse.model_validate(t) for t in tasks],
+        total=len(tasks),
+    )

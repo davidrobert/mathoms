@@ -17,9 +17,11 @@ from backend.tests.fakes.family_member import (
     FakeFamilyMemberRepository,
     FakeVault,
 )
+from backend.tests.fakes.goal import FakeGoalRepository
 
 __all__ = [
     "FakeCategoryRepository",
     "FakeFamilyMemberRepository",
+    "FakeGoalRepository",
     "FakeVault",
 ]
