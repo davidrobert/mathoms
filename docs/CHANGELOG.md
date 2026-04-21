@@ -8,6 +8,45 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.4 — 1ª rodada frontend style sweep (2026-04-21):**
+  Aplica `## Code style` do CLAUDE.md a `frontend/src/`, consumindo o
+  baseline T1-T5 de [`docs/audits/code_style_audit_20260421.md`](audits/code_style_audit_20260421.md).
+  Delta por categoria:
+  - **T1 `ts_any`:** 9 → 0. Cards (`InvestimentosClasseCard`,
+    `EstrategiaAporteCard`, `ContrafluxoCard`, `PrevidenciaPgblCard`)
+    passam a exportar seus `*Data` interfaces; S3/S7 sections narrow
+    via `as unknown as <CardData>` em vez de `as any`.
+    `ExtractJsonResponse.data: any` → `unknown`. `dashboard` Bar
+    onClick callback vira `(entry: unknown)` + narrow inline.
+  - **T2 `ts_long_files`:** 7 → 6. `frontend/src/lib/api.ts` (1880 linhas)
+    decomposto em 14 módulos por domínio (`lib/api/{core,auth,reports,
+    documents,vault,pipeline,config,transactions,dashboard,notifications,
+    workspaces,goals,tasks,feature-flags}.ts`). `lib/api.ts` vira barrel
+    re-export de 19 linhas — imports existentes seguem intactos. Páginas
+    >500 linhas (`pipeline/page.tsx`, `documents/page.tsx`,
+    `transactions/page.tsx`, `plano/page.tsx`, `plano/alocacao/wizard/page.tsx`,
+    `dashboard/page.tsx`) ficam para 2ª rodada.
+  - **T3 `ts_long_functions`:** 24 → 18 (high severity: 12 → 0). 10
+    componentes/hooks decompostos:
+    `NotificationCenter` (164→11, extrai hook + 3 sub-componentes),
+    `CommandPalette` (111→31), `RegisterPageInner` (130→24),
+    `LoginPageInner` (108→20), `UpcomingTasksWidget` (94→25),
+    `ApendiceASection` (61→10), `WorkspaceSwitcher` (49→5),
+    `useConfirmDialog` (48→<20), `useCurrentUser` (41→<20),
+    `useCurrentWorkspace` (46→16), `computePhaseStates` (44→16),
+    `ThemeToggle` (41→8), `GoalPremissasCard` (43→14).
+  - **T4 `ts_forbidden_filename`:** 1 → 0. `frontend/src/lib/utils.ts`
+    renomeado para `lib/cn.ts` (único export era o helper `cn()`);
+    49 imports atualizados mecanicamente.
+  - **T5 `ts_hex_colors`:** 12 → 0. Paleta inline de 12 hex no
+    `dashboard/page.tsx` → `var(--chart-1..12)` (ADR-076). Vars já
+    emitidas pelo build de `design-tokens/tokens.json`.
+  - **Impact:** frontend offenders 53 → 30 (redução 43%). Zero regressão
+    — 397 vitest tests passam. Zero mudança funcional/visual (sweep
+    puramente organizacional + tipagem). Próximos passos A6g.4b (2ª
+    rodada) atacam 6 páginas ainda >500 linhas + 18 funções
+    remanescentes de média severidade.
+
 - **A6e.3 — application layer: 3 slices (2026-04-21):** Primeira
   entrega do trilho "1 endpoint = 1 use case" (ADR-101 R15) com escopo
   restrito a 3 agregados sem acoplamento ao pipeline. 22 use cases
