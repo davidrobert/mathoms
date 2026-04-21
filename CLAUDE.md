@@ -391,31 +391,45 @@ recente, releia antes de agir.
 ### Antes de pegar uma task do BACKLOG
 
 Agentes trabalham em branches `agent/<slug>/<timestamp>`. Dois agentes na
-mesma lane = merge hell garantido. **Antes de escolher qualquer task:**
+mesma lane = merge hell garantido. **Antes de escolher qualquer task,
+rode os DOIS checks:**
 
 ```bash
 git fetch origin
-# 1. Lista branches de agentes ativos (atividade <24h) ordenadas por recência
+
+# 1. Worktrees locais — detecta agentes que ainda NÃO pusharam
+#    (criaram branch há 30min, estão codando, sem commit remoto ainda)
+git worktree list
+
+# 2. Branches remotas — detecta agentes que já pusharam, ordenadas por
+#    recência. Inclui branches órfãs (worktree deletado, branch viva).
 git for-each-ref --sort=-committerdate \
   --format='%(committerdate:iso) %(refname:short) %(subject)' \
   refs/remotes/origin/agent/ | head -15
-
-# 2. Se a lane que você quer (ex.: a6g.2) já aparece acima com commit
-#    nas últimas 24h → pegue OUTRA lane. Consulte docs/BACKLOG.md
-#    §Sprint A6 → tabela "Lanes abertas agora".
 ```
 
 Regras de pickup:
 
-- **Slug de branch = slug da lane** (`a6g2-*`, `a6e3-*`). Se já existe
-  `origin/agent/<slug>-*` com commit nas últimas 24h, a lane está
-  **tomada** — não duplique; escolha outra.
-- Stale (>24h sem commit) pode ser retomado — anuncie, faça `git log`
-  na branch para entender onde parou, e continue OU abra nova branch
-  (`agent/<slug>/<novo-ts>`) partindo de `origin/main`.
+- **Slug de branch = slug da lane** (`a6g2-*`, `a6e3-*`, `a6f1-*`). Se
+  aparece em `git worktree list` com path diferente do seu **OU** em
+  `origin/agent/<slug>-*` com commit <24h, a lane está **tomada** —
+  não duplique; escolha outra.
+- **Por que checar worktree antes do remoto:** agente que começou agora
+  tem branch **local** mas ainda não pushou; só `git worktree list` o
+  revela. Primeiro commit pode demorar 30-60min; nesse intervalo o
+  check remoto dá falso-negativo. Em setup multi-worktree (este repo),
+  worktrees compartilham `.git/refs/` — `git worktree list` mostra
+  agentes rodando em paralelo no mesmo clone.
+- **Stale** (>24h sem commit em remoto **E** worktree sem activity
+  recente) pode ser retomado — anuncie, faça `git log <branch>` +
+  `git diff origin/main...<branch>` para entender onde parou, e
+  continue OU abra nova branch (`agent/<slug>/<novo-ts>`) partindo de
+  `origin/main`.
 - **Sprint atual + lanes abertas**: [docs/BACKLOG.md §Sprint A6](docs/BACKLOG.md)
   tem o diagrama de ondas e a tabela de lanes. Essa é a fonte única;
-  ROADMAP aponta para lá.
+  ROADMAP aponta para lá. A tabela marca lanes 🚧 ocupadas com o slug
+  da branch ativa — mas **não confie só nela**: confirme com os 2
+  comandos acima (a tabela pode estar desatualizada).
 
 ### Naming de branch
 
