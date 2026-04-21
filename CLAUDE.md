@@ -349,6 +349,28 @@ precisa pedir aprovação; é obrigatório anunciar** cada operação git em
 
    **Qualquer falha → não faz push.** Corrige antes. `dev/commit.py
    --dry-run` valida tudo antes de commitar.
+5. **Pre-push drift check** — imediatamente antes de `git push origin main`:
+
+   ```bash
+   git fetch origin
+   BEHIND=$(git rev-list --count HEAD..origin/main)
+   if [ "$BEHIND" -gt 0 ]; then
+     git rebase origin/main            # re-sincroniza
+     pytest backend/tests -q           # regressão silenciosa de rebase
+   fi
+   ```
+
+   Pushar sem esse check produz (a) `push` rejeitado por non-fast-forward
+   ou (b) tentação de `--force` — ambos proibidos em `main`. Enforçado
+   também como hook pre-push em `dev/check_main_drift.py`.
+6. **Sync periódico em sessão longa** — em sessão >1h de trabalho ativo,
+   rode `git fetch origin && git log --oneline HEAD..origin/main` a cada
+   ~30min. Se `origin/main` moveu ≥1 commit, rebase incremental na sua
+   branch **antes** de continuar (1 commit por vez resolve em segundos;
+   6 acumulados exigem `rebase -i` e produzem conflitos cross-cutting).
+   Se algum commit em main tocou `CLAUDE.md` / `docs/CHANGELOG.md` /
+   `docs/BACKLOG.md` / `docs/DECISIONS.md`, **releia** a parte relevante
+   antes de continuar editando — política ou histórico pode ter mudado.
 
 ### Protocolo de início de sessão
 
@@ -395,8 +417,23 @@ edição**, não depois — edits em `main` local podem ser destruídos por
 
 ### Hotspots de documentação
 
-`CHANGELOG.md`, `BACKLOG.md`, `DECISIONS.md` são editados em quase toda
-sessão — colisão entre agentes é garantida se todos concorrem.
+`CLAUDE.md`, `CHANGELOG.md`, `BACKLOG.md`, `DECISIONS.md` são editados em
+quase toda sessão — colisão entre agentes é garantida se todos concorrem.
+
+**Pre-flight obrigatório antes de tocar qualquer hotspot:**
+
+```bash
+git fetch origin
+git log -5 --oneline origin/main -- <arquivo>
+```
+
+Se o último commit no arquivo é de outro autor/agente e <30min atrás,
+**pause**: anuncie no chat ("vou editar CLAUDE.md §X por ~Y min"), espere
+2min, então edite + commite + push **no mesmo turno** (janela ≤5min). Se
+`git log` mostra atividade recente em 2+ hotspots, outro agente está num
+pacote de docs maior — **adie seu edit** para depois do push dele.
+
+Demais regras:
 
 - Commite docs **separado** do código (`docs(<slice>): ...`).
 - Commite docs **por último na sessão**, depois do push do código.
@@ -429,6 +466,29 @@ sessão — colisão entre agentes é garantida se todos concorrem.
 - `dev/commit.py` é atalho opcional com `--dry-run` + push integrado.
   Vive em `dev/` (não em `scripts/`) para não se confundir com etapas do
   pipeline.
+
+### Rebase com múltiplos commits pendentes
+
+Quando `git rebase origin/main` para numa série de N commits a replay,
+**antes de resolver o primeiro conflito**:
+
+```bash
+cat .git/rebase-merge/git-rebase-todo
+# worktrees: .git/worktrees/<name>/rebase-merge/git-rebase-todo
+```
+
+Leia **todos** os commits pendentes (`git show <hash>` se precisar ver
+o diff). Se um commit mais à frente na lista já traz o conteúdo que
+você ia adicionar numa resolução anterior:
+
+- **Não pré-adicione.** Resolva o conflito atual com o mínimo necessário
+  (normalmente mantendo o lado `HEAD` e removendo os marcadores) e deixe
+  o commit futuro aplicar o conteúdo dele sozinho.
+- **Pré-adicionar produz auto-conflito** — o commit futuro tenta inserir
+  o que você já pôs; git vê como divergência e quebra.
+
+Se os commits pendentes têm sobreposição ruim (ex.: C3 duplica C1+C2),
+use `git rebase -i` e faça `squash`/`fixup` **antes** de continuar.
 
 ### Se CI quebra após push para `main`
 
