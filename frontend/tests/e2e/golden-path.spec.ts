@@ -121,11 +121,27 @@ test.describe("Golden Path — smoke do produto inteiro @critical", () => {
 
     // ─── 3. Definir sobrenome da família ───────────────────────────
     // Via API (UI pode ser coberta em 6.5C.2 Onboarding)
-    const patchResp = await request.patch("/api/config/workspace", {
+    // ADR-072: rotas são scoped por workspace; precisamos resolver o
+    // workspace auto-criado no register via /api/me/workspaces.
+    const wsListResp = await request.get("/api/me/workspaces", {
       headers: { Authorization: `Bearer ${token}` },
-      data: { family_surname: FAMILY_SURNAME },
     });
-    expect(patchResp.ok(), "PATCH /config/workspace deve 200").toBeTruthy();
+    expect(wsListResp.ok(), "GET /me/workspaces deve 200").toBeTruthy();
+    const wsList = await wsListResp.json();
+    const workspaceId = wsList.workspaces?.[0]?.id;
+    expect(workspaceId, "workspace auto-criado ausente").toBeTruthy();
+
+    const patchResp = await request.patch(
+      `/api/workspaces/${workspaceId}/config/workspace`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { family_surname: FAMILY_SURNAME },
+      },
+    );
+    expect(
+      patchResp.ok(),
+      `PATCH /workspaces/{id}/config/workspace deve 200 (got ${patchResp.status()})`,
+    ).toBeTruthy();
 
     // Abre /documents (o default após login)
     await page.goto("/documents");

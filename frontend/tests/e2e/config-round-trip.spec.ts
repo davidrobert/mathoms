@@ -63,11 +63,17 @@ test.describe("Config round-trip", () => {
       // Aguarda save automático ou clica Save
       await page.waitForTimeout(1500);
 
-      // Valida via API
+      // Valida via API (ADR-072: rotas workspace-scoped)
       const token = await page.evaluate(() => localStorage.getItem("fin_token"));
-      const resp = await request.get("/api/config/workspace", {
+      const wsListResp = await request.get("/api/me/workspaces", {
         headers: { Authorization: `Bearer ${token}` },
       });
+      const wsList = await wsListResp.json();
+      const workspaceId = wsList.workspaces?.[0]?.id;
+      const resp = await request.get(
+        `/api/workspaces/${workspaceId}/config/workspace`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
       const data = await resp.json();
       expect(data.family_surname).toMatch(/Surname-\d+/);
     }
