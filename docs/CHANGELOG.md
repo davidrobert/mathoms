@@ -195,6 +195,55 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     `test_e3_reconciler_adapter.py` (545l) seguem fora do escopo
     (prompt pediu só `test_llm_stages.py`).
 
+- **A6f.1 — Pipeline-as-Service HTTP boundary (2026-04-21 · ADR-112):**
+  Primeira fronteira language-neutral real. Nasce o serviço standalone
+  `pipeline-service/` (FastAPI, 3 rotas + WS) que envolve
+  `pipeline.orchestrator` atrás de HTTP. Backend passa a consumir via
+  `PipelineServiceClient` (Protocol) com duas implementações
+  intercambiáveis: `HttpPipelineClient` (quando `MATHOMS_PIPELINE_SERVICE_URL`
+  está setada) e `InProcessPipelineClient` (default — zero regressão em
+  dev/test/single-process). **`backend/app/tasks/pipeline_task.py` zero
+  `from pipeline.orchestrator` imports** (gate verificável por grep).
+  Três slices:
+
+  1. **Bootstrap FastAPI standalone** — 23 arquivos novos em
+     `pipeline-service/` (app/api + contracts + services); 11 tests
+     greenfield (executor com monkeypatch do orchestrator, coordinator
+     com stop_on_error/skip_llm, event publisher com fakeredis, health).
+  2. **Backend adapter** — `backend/app/services/pipeline_client.py`
+     com Protocol + 2 implementações + factory idempotente singleton
+     (stateless-safe, ADR-111). `pipeline_task.py` usa
+     `client.execute_stage(...)` via closure que injeta `workspace_id`;
+     `client.is_llm_stage(stage)` substitui `LLM_STAGES`. 8 novos tests
+     em `test_pipeline_client.py` (MockTransport round-trip HTTP,
+     factory switching, protocol compliance).
+  3. **Smoke + docker-compose + OpenAPI snapshot** —
+     `docker-compose.pipeline-service.yml` compõe sobre o smoke.yml
+     (porta 8001, healthcheck, mount ro de `pipeline/`).
+     `backend /health` passa a reportar `pipeline_service_url` +
+     `pipeline_service_reachable` (informational). Novo snapshot
+     `docs/api/v1/pipeline-service.openapi.json` + snapshot test
+     espelhando o do backend. `make update-openapi-snapshot` agora
+     depende de `update-pipeline-service-openapi`.
+
+  **Stateless rigoroso (ADR-111):** pipeline-service **sem DB** — backend
+  permanece dono do `DBArtifactStore`; artefatos cruzam a fronteira via
+  `workspace_root` em disco. Redis singleton é lazy+idempotente.
+
+  **Escopo deferido explícito** (anotado em ADR-112 + commit messages):
+  extração de `_materialize_adapter_configs`/`_persist_llm_suggestions`/
+  `_create_report_from_output` para services dedicados e redução de
+  `pipeline_task.py` para ≤100 linhas ficam em slice próprio
+  (comportamento-preservante). Go rewrite do pipeline-service é sprint
+  A6f seguinte — contrato HTTP já está fixado.
+
+  **Testes verdes:** `pytest pipeline-service/tests -q` (12) + backend
+  934 passed / 4 skipped (baseline 926 + 8 tests novos) + pipeline 1461
+  passed. `dev/check_pipeline_boundaries.py` passa. OpenAPI snapshot
+  regenerado com 22 linhas novas (dois campos de health).
+
+  **Commits:** `7ee9703` (slice 1) · `bacb218` (slice 2) · `d4c4361` (slice 3).
+
 - **A6g.5 — tests sweep Tier 3 (2026-04-21):** Decomposição das 3
   fixtures in-scope >30 linhas via helpers privados nomeados. Zero
   mudança semântica; mesmo contador de tests.
