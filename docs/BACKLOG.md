@@ -605,7 +605,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 ## Sprint A6 — Migração Infra+Domínio (plano transversal)
 
-**Plano completo:** [_scratch/plano_migracao_artifacts_db.md](../_scratch/plano_migracao_artifacts_db.md) §17-§19
+**Fontes canônicas** (plano mestre A6 absorvido 2026-04-21): ADRs 097-111 em [DECISIONS.md](DECISIONS.md); arquitetura alvo em [ARCHITECTURE.md §17](ARCHITECTURE.md); critérios de aceite por fase em [TESTING.md](TESTING.md); runbook de cutover em [runbooks/cutover.md](runbooks/cutover.md); LGPD em §7B abaixo.
 **ADRs:** 097 (extract-then-refactor), **098** (Caminho B puro vs pragmático), **099** (reuse de `analyze_*` em `main_with_store`), **100** (A6d commitment), **101** (R12-R17 backend DDD/SOLID), **102** (R18-R20 language-neutral), **103** (teste humano como gate), **109** (auth portability), **110** (structured logs + OTel), **111** (stateless rigoroso)
 **Status global (2026-04-21):**
 - **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (fechada completa 2026-04-20) · A6f.2/.3/.4/.5a/.6 · **A6g.1** (audit baseline 2026-04-21: 2047 ofensores catalogados).
@@ -1007,9 +1007,67 @@ convergir em `origin/main`.
 
 ### 7B — Security Hardening + LGPD (semana 2-3)
 
+#### Decisões arquiteturais LGPD (D1–D5)
+
+Estas decisões moldam as tasks 7B.* abaixo. Absorvidas em 2026-04-21 do
+plano-mestre A6 §15 (antes em `_scratch/`, agora canônico aqui).
+**Motivação:** `pipeline_artifacts.content_json` armazena dados
+financeiros pessoais (saldos, transações) + membros (CPF, nome, data
+nascimento, ocupação). Postgres TDE protege disco físico, não leaks
+lógicos — a defesa é app-level + audit + retenção.
+
+**D1 — Criptografia app-level em campos de PII**
+- Campos com PII (CPF, nome completo) cifrados via `cryptography.fernet`; chave em `FIN_PII_ENCRYPTION_KEY` (secret manager, obrigatória em prod — deploy falha se ausente).
+- Campos em `content_json` armazenados como string `enc:<base64_ciphertext>`; `PipelineArtifact.content_json` JSONB preserva chave original, valor é o ciphertext.
+- Leitura: decrypt on-demand em `PipelineArtifactRepository.read_decrypted()` — nunca retorna ciphertext ao caller.
+- **Tasks relacionadas:** 7B.1 expande a utility `encrypt_field()` / `decrypt_field()`.
+
+**D2 — Não criptografar valores monetários**
+- Cifrar `amount` quebra agregações SQL e força O(n) em memória para relatórios.
+- Risco aceitável: valores sem nome/CPF têm baixa identificabilidade isolada.
+- Proteção via controles de acesso (D3) + retenção (D4), não criptografia.
+
+**D3 — Audit log em acesso de leitura a `pipeline_artifacts`**
+- Toda leitura via API (`GET /reports/{id}/data`, `GET /pipeline/artifacts/*`) registra em `access_audit_log`: `user_id`, `workspace_id`, `artifact_id`, `timestamp`, `ip`.
+- Retenção: 1 ano. Consultado em incident response.
+- **Tasks relacionadas:** 7B.5 audit log — estender middleware para incluir READ ops em artefatos (hoje cobre só write).
+
+**D4 — Política de retenção + direito ao esquecimento (LGPD Art. 18)**
+- Artefatos ativos: mantidos indefinidamente; usuário pode deletar via `/workspace/delete`.
+- Artefatos de runs não-ativas (histórico): 2 anos → arquivados (soft delete).
+- Direito ao esquecimento: endpoint `DELETE /workspace/{id}/artifacts` remove **todos** `pipeline_artifacts` + `documents.*_content` do workspace em ≤24h úteis.
+- **Tasks relacionadas:** 7B.7 (LGPD Exclusão), 7B.9 (Storage cleanup), 7B.17 (Soft-delete 30d), 7B.18 (DSAR SLA 15d).
+
+**D5 — Masking em logs estruturados**
+- ADR-110 já cobre redaction no `MathomsJsonFormatter` para campos sensíveis (password, secret, token, api_key, cpf, cnpj, valor, saldo). **Estender:**
+- Nomes de membros viram `member_<hash[:6]>` em logs estruturados (hash determinístico com salt por workspace — permite correlação de eventos sem expor nome real).
+- Níveis: `INFO` nunca inclui `content_json` de `DBArtifactStore.read/write`; `DEBUG` pode incluir (apenas dev).
+- **Tasks relacionadas:** 7B.5 (audit log também respeita masking).
+
+#### Implementação por fase
+
+| Marco | Entregável |
+|-------|-----------|
+| Pré-F7B | `PipelineArtifact.content_json` JSONB + `schema_version`; sem crypto ainda (entregue em A6a) |
+| F7B.1 | `encrypt_field()` / `decrypt_field()` utilities; `PipelineArtifactRepository.read_decrypted()` hook (no-op se chave ausente em dev) |
+| F7B.1+ | Crypto ativa em `extract_members` (piloto com CPF mascarado) |
+| F7B.5 | Audit log cobrindo todas leituras via API (D3); retenção 1 ano configurada |
+| F7B.7 | `DELETE /workspace/{id}/artifacts` (D4, direito ao esquecimento) + soft-delete 30d + DSAR 15d |
+| F7B.9 | Retenção de 2 anos em runs não-ativas (D4) via Celery periodic task |
+
+#### Critérios de aceite globais (F7B → produção)
+
+- [ ] `FIN_PII_ENCRYPTION_KEY` obrigatória em produção (deploy falha se ausente)
+- [ ] `extract_members` em produção armazena CPF criptografado em `content_json`
+- [ ] `access_audit_log` populado em 100% dos GETs de `/reports/{id}/data`
+- [ ] `DELETE /workspace/{id}/artifacts` remove todos artefatos e confirma via count
+- [ ] Logs INFO não contêm CPF, nome completo ou valores monetários totais (validar via `dev/scan_logs_for_pii.py`)
+
+---
+
 | #     | Tarefa                                                                                               | Prio | Est. | Status |
 | ----- | ---------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 7B.1  | Fernet expandido (CPFs + dados financeiros sensíveis + utility `encrypt_field()`/`decrypt_field()`)  | P0   | 6h   | ☐      |
+| 7B.1  | Fernet expandido (CPFs + dados financeiros sensíveis + utility `encrypt_field()`/`decrypt_field()`) — implementa **D1** | P0   | 6h   | ☐      |
 | 7B.2  | Rate limiting (slowapi: auth 5/min, upload 10/min, pipeline 2/min, geral 100/min)                    | P0   | 3h   | ☐      |
 | 7B.3  | Security headers (CORS restritivo, HSTS, CSP, X-Frame-Options, X-Content-Type-Options)               | P0   | 3h   | ☐      |
 | 7B.4  | Session security (JWT 15min + refresh 7d httpOnly, rotation, revogação on password change, frontend interceptor) | P0 | 16h | ☐ |
