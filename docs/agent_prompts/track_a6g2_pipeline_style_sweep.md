@@ -448,7 +448,10 @@ git fetch origin && git log --oneline HEAD..origin/main
 - Regras de style: `CLAUDE.md §## Code style`
 - Modelo de prompt frontend paralelo:
   `docs/agent_prompts/track_a6g4_frontend_style_sweep.md`
-- Plano mestre A6: `_scratch/plano_migracao_artifacts_db.md` (gitignored,
-  local)
+- Plano mestre A6: absorvido em 2026-04-21 nas fontes canônicas
+  ([BACKLOG §Sprint A6](../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal),
+  [ARCHITECTURE §17](../ARCHITECTURE.md#17-arquitetura-alvo-pós-a6-migração-infradomínio),
+  [TESTING §Critérios de aceite](../TESTING.md#critérios-de-aceite-por-fase-da-migração-a6),
+  [runbooks/cutover.md](../runbooks/cutover.md))
 - ADRs relevantes: ADR-089 (ISP services), ADR-090 (Money), ADR-097
   (domain types), ADR-101 (per-aggregate DDD), ADR-111 (stateless)

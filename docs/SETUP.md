@@ -368,7 +368,7 @@ Para o fluxo de trabalho atual e tarefas em andamento, ver **[ROADMAP.md](ROADMA
 
 ### Migração em curso — infra + domínio
 
-Plano completo: [`_scratch/plano_migracao_artifacts_db.md`](../_scratch/plano_migracao_artifacts_db.md).
+Status + lanes abertas em [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal); arquitetura alvo em [ARCHITECTURE §17](ARCHITECTURE.md#17-arquitetura-alvo-pós-a6-migração-infradomínio); decisões em ADRs 097-111 de [DECISIONS.md](DECISIONS.md).
 Principais mudanças já em código (fases 1-8 foundation):
 
 - **Artefatos do pipeline no banco** (tabela `pipeline_artifacts`, ADR-082) com feature flag

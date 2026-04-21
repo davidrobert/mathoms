@@ -1632,7 +1632,7 @@ Após F8.1 (ADR-073), apenas `INDEPENDENCIA_FINANCEIRA` tinha API + UI; os outro
 
 ## ADR-082 — PipelineArtifact: artefatos computacionais no banco
 
-**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** `_scratch/plano_migracao_artifacts_db.md` (Fase 1)
+**Status:** Decidido • **Data:** 2026-04-19 • **Status de execução:** [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal)
 
 **Contexto:** Artefatos intermediários do pipeline (E2–E7) viviam em
 `storage/<ws>/processed/*.json` e o backend se referia a eles por convenção de
@@ -2470,8 +2470,7 @@ A6d como commitment de converter os 5 stages pragmáticos para puros.
 - ❌ Aceita que ~3500 linhas de domain services + testes ficam em prateleira
   até A6d executar.
 
-**Artefatos:** `_scratch/plano_migracao_artifacts_db.md` §17.2.5; `CLAUDE.md`
-"Caminho B puro vs pragmático"; `docs/CHANGELOG.md` entry Sessão A5e.
+**Artefatos:** [ARCHITECTURE.md §17.1](ARCHITECTURE.md#171-caminho-b-puro-vs-pragmático-estado-atual-e-alvo) (Caminho B puro vs pragmático); `CLAUDE.md` "Caminho B puro vs pragmático"; `docs/CHANGELOG.md` entry Sessão A5e.
 
 ---
 
@@ -2595,7 +2594,7 @@ Ordem: A6d.1 → A6d.2 → A6d.3 (dependências: .2 depende de .1; .3 depende de
 **Relação com A6a-e**: independente. Pode rodar em paralelo com cutover DB.
 §15 (LGPD) e §16 (Observabilidade) não dependem de A6d.
 
-**Artefatos:** `_scratch/plano_migracao_artifacts_db.md` §18 A6d.
+**Artefatos:** [BACKLOG §A6d](BACKLOG.md#a6d--fechar-caminho-b-puro-nos-5-stages-pragmáticos-adr-100).
 
 ---
 
@@ -2648,7 +2647,7 @@ grandes, ~400+ testes novos.
 **Relação com A6a-d/f**: independente. Recomendado depois de A6b (cutover
 DB) para repository pattern entregar valor máximo.
 
-**Artefatos:** `_scratch/plano_migracao_artifacts_db.md` §18 A6e.
+**Artefatos:** [BACKLOG §A6e](BACKLOG.md#a6e--ddd-solid-no-backend-api-adr-101-r12-r17).
 
 ---
 
@@ -2705,7 +2704,7 @@ schema → A6f.5 Auth → A6f.6 Stateless). Estimativa: 6-8 sessões grandes.
 **Relação com A6a-e**: independente. Recomendado depois de A6b (cutover DB)
 — pipeline-service precisa de DB como fonte de verdade.
 
-**Artefatos:** `_scratch/plano_migracao_artifacts_db.md` §18 A6f.
+**Artefatos:** [BACKLOG §A6f](BACKLOG.md#a6f--language-neutral-boundaries-adr-102-r18-r20).
 
 ---
 
@@ -2760,7 +2759,7 @@ incremental), rollback do bridge removido exige revert.
 - ❌ Aceita que A6c (remover bridge) é bloqueado se teste humano revelar
   regressões.
 
-**Artefatos:** `_scratch/plano_migracao_artifacts_db.md` §18 A6b.5 + A6-human.
+**Artefatos:** [BACKLOG §A6b.5](BACKLOG.md#a6b5--preparação-para-teste-humano-adr-103) + [§A6-human](BACKLOG.md#a6-human--teste-manual-end-to-end-david).
 
 ---
 
@@ -3079,7 +3078,7 @@ Três caminhos considerados:
 
 - ADR por sub-fase com decisão não-trivial.
 - Entrada em `docs/CHANGELOG.md`.
-- Status atualizado em `docs/BACKLOG.md` + `_scratch/plano_migracao_artifacts_db.md`.
+- Status atualizado em `docs/BACKLOG.md`.
 - Regra operacional nova em `CLAUDE.md` se afetar dia-a-dia.
 
 **Consequências:**
@@ -3096,7 +3095,7 @@ Três caminhos considerados:
 
 **Artefatos:**
 
-- `_scratch/plano_migracao_artifacts_db.md` §18 A6f.5 (+A6f.5b/.5c).
+- [BACKLOG §A6f.5](BACKLOG.md#a6f--language-neutral-boundaries-adr-102-r18-r20) (A6f.5a entregue, A6f.5b/.5c deferidos).
 - `backend/tests/test_auth_portability.py` (parity tests).
 - `docs/api/v1/openapi.json` (snapshot que qualquer codegen consome).
 

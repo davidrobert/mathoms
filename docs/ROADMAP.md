@@ -291,8 +291,8 @@ Política de cobertura (Python backend + pipeline):
 
 ## Sprint transversal A6 — Migração infra+domínio (pós-F9)
 
-**Plano completo**: [_scratch/plano_migracao_artifacts_db.md](../_scratch/plano_migracao_artifacts_db.md)
-(§17-§19). ADRs formalizadoras: 097-103 + 109-111 (ver BACKLOG).
+**ADRs formalizadoras**: 097-111 em [DECISIONS.md](DECISIONS.md) ·
+**Arquitetura alvo + motivação**: [ARCHITECTURE §17](ARCHITECTURE.md).
 
 **Fonte única de status, sessões pendentes, lanes abertas e diagrama de
 ondas paralelas**: [BACKLOG.md §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal).
