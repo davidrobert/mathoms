@@ -404,7 +404,9 @@ def generate() -> str:
     for table in tables:
         out.write(_render_go_block(table))
 
-    return out.getvalue()
+    # Normaliza EOF: um único '\n' final (paridade com end-of-file-fixer do
+    # pre-commit; sem isso, o snapshot test oscila entre gerar/comitar).
+    return out.getvalue().rstrip("\n") + "\n"
 
 
 def main() -> int:
