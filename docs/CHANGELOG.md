@@ -8,6 +8,27 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.1 — Auditoria inicial de code style drift (2026-04-21):**
+  Entrega o gate que destrava as sub-fases A6g.2-.5. Script
+  [`dev/audit_code_style.py`](../dev/audit_code_style.py) (CLI fino) +
+  pacote interno [`dev/_audit_cs_internals/`](../dev/_audit_cs_internals/)
+  (models, walker, detectores Python/TS, renderers, runner — todos
+  arquivos ≤360 linhas, funções ≤20 linhas, sem `Dict[str, Any]` nos
+  boundaries). Mede **10 categorias Python (P1-P10)** e **5 TypeScript
+  (T1-T5)** com severidade `critical/high/med/low/info` e IDs estáveis
+  (`P1-0001`...) para diff entre rodadas. Primeira rodada em
+  `_scratch/code_style_audit_20260421.{json,md}`: **467 py + 159 ts
+  escaneados, 2047 ofensores** (462 high, 556 med, 1001 low, 28 info).
+  Top alvos de sweep: `scripts/e6_render.py` (3875 linhas — anti-exemplo
+  acima do e5_analyze.py), `scripts/e_reset.py::main` (372 linhas),
+  `backend/app/api/config.py` (7 `Dict[str, Any]` em boundary). Dogfood:
+  `python dev/audit_code_style.py --path dev/audit_code_style.py
+  --category P1,P2,P6 --severity high,med --strict` → 0 ofensores. Tempo
+  total: ~2s (alvo <30s). Flag `--strict` exit 1 se houver ofensor
+  ≥ med (default exit 0 — informativo). Reaproveita
+  `dev/check_pipeline_boundaries.py` para P10 (sem duplicação). BACKLOG
+  §A6g.1 ✅.
+
 - **A6e.5 — Slice vertical `Document` (2026-04-21) — ADR-101:**
   Sexto agregado migrado para o padrão DDD/SOLID do backend API (R12-R14).
   Continua o trilho iniciado em A6e.1+.2 (FamilyMember) e seguido por
