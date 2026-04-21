@@ -608,12 +608,12 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 **Fontes canônicas** (plano mestre A6 absorvido 2026-04-21): ADRs 097-111 em [DECISIONS.md](DECISIONS.md); arquitetura alvo em [ARCHITECTURE.md §17](ARCHITECTURE.md); critérios de aceite por fase em [TESTING.md](TESTING.md); runbook de cutover em [runbooks/cutover.md](runbooks/cutover.md); LGPD em §7B abaixo.
 **ADRs:** 097 (extract-then-refactor), **098** (Caminho B puro vs pragmático), **099** (reuse de `analyze_*` em `main_with_store`), **100** (A6d commitment), **101** (R12-R17 backend DDD/SOLID), **102** (R18-R20 language-neutral), **103** (teste humano como gate), **109** (auth portability), **110** (structured logs + OTel), **111** (stateless rigoroso)
 **Status global (2026-04-21):**
-- **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (fechada completa 2026-04-20) · A6f.2/.3/.4/.5a/.6 · **A6g.1** (audit baseline 2026-04-21: 2047 ofensores catalogados).
+- **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (fechada completa 2026-04-20) · A6f.2/.3/.4/.5a/.6 · **A6g.1** (audit baseline 2026-04-21: 2047 ofensores catalogados) · **A6g.5** (tests sweep Tiers 1+2+3+4, 2026-04-21).
 - **A6e 🚧 parcial (6 de N+ agregados — per-aggregate track **concluído**):** FamilyMember + Category + ConfigBlob + Document + Goal + Task (com 3 sub-agregados) com repos+DTOs. Próximos passos A6e são transversais (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events).
-- **Restante:** A6e (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events) · A6f.1 (pipeline-as-service) · A6g.2-.7 (sweeps + enforcement) · F7 (7A-7F + LGPD).
+- **Restante:** A6e (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events) · A6f.1 (pipeline-as-service) · A6g.2/.3/.4/.6/.7 (sweeps restantes + enforcement) · F7 (7A-7F + LGPD).
 - **Caminho crítico (serial):** A6e.3 (use cases) → A6e.4 (routers finos) → F7A → F7B → F7D+dogfood → GA.
-- **Lanes abertas agora:** Onda 1 (A6g.2 pipeline sweep ☐ · ~~A6g.4 frontend sweep~~ 🚧 ocupada 2026-04-21) + Onda 2 destravada (A6e.3/.4/.5/.6 · A6f.1 · A6g.5). Ver tabela e diagrama abaixo. **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
-- **Testes:** ~1184 pipeline + 926 backend passing (zero regressão).
+- **Lanes abertas agora:** Onda 1 (A6g.2 pipeline sweep ☐ · ~~A6g.4 frontend sweep~~ 🚧 ocupada 2026-04-21) + Onda 2 destravada (A6e.3/.4/.5/.6 · A6f.1). Ver tabela e diagrama abaixo. **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
+- **Testes:** 1461 pipeline + 926 backend passing (zero regressão).
 
 ### Lanes abertas agora — pickup table
 
@@ -678,7 +678,7 @@ convergir em `origin/main`.
 ║  Lane B2: A6e.5 /api/v1/ prefix  — pode rodar depois de B1 ou junto  ║
 ║  Lane B3: A6f.1 pipeline-service — FastAPI standalone + HTTP client  ║
 ║           └─ 2-3 sessões, independente de A6e                         ║
-║  Lane B4: A6g.5 tests sweep      — nomes descritivos + fakes         ║
+║  (A6g.5 tests sweep ✅ 2026-04-21 — fora da Onda)                    ║
 ║                                                                       ║
 ║  A6e.6 (domain events) prefere vir depois de B1 (use cases).         ║
 ║  A6g.3 (backend sweep) rodará pós-A6e.4 (B1) — mesclar em Onda 3.    ║
