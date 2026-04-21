@@ -261,4 +261,10 @@ class TestContextIntegration:
 
     def test_default_has_processed_dirs(self):
         ctx = WorkspaceContext.default()
+        # `processed/` não é tracked em git — num checkout fresco (CI) o
+        # diretório só existe após `ensure_dirs()`. O invariante real do
+        # teste é que o factory aponta ao layout correto e `ensure_dirs`
+        # materializa-o; existência pré-execução não é garantida.
+        assert ctx.e2_dir == ctx.processed_dir / "E2_extracts"
+        ctx.ensure_dirs()
         assert ctx.e2_dir.exists()
