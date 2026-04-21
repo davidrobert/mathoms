@@ -25,6 +25,8 @@ from starlette.routing import Route
 from starlette.testclient import TestClient
 
 from backend.app.core.logging import (
+    REDACTED_PLACEHOLDER,
+    SENSITIVE_FIELD_SUBSTRINGS,
     MathomsJsonFormatter,
     get_logger,
     setup_logging,
@@ -174,6 +176,60 @@ def test_json_lines_are_jq_compatible():
     for line in buf.getvalue().splitlines():
         if line.strip():
             json.loads(line)  # would raise if not valid JSON
+
+
+def test_formatter_redacts_sensitive_top_level_fields():
+    with _captured_root_handler() as buf:
+        get_logger("redact.top").info(
+            "login attempt",
+            extra={
+                "password": "hunter2",
+                "api_key": "sk-live-xxx",
+                "authorization": "Bearer abc",
+                "cpf": "123.456.789-00",
+                "value_brl": 1234.56,
+                "saldo": 9999.99,
+                "user_id_safe": "usr-42",
+            },
+        )
+    r = _lines(buf)[0]
+    assert r["password"] == REDACTED_PLACEHOLDER
+    assert r["api_key"] == REDACTED_PLACEHOLDER
+    assert r["authorization"] == REDACTED_PLACEHOLDER
+    assert r["cpf"] == REDACTED_PLACEHOLDER
+    assert r["value_brl"] == REDACTED_PLACEHOLDER
+    assert r["saldo"] == REDACTED_PLACEHOLDER
+    assert r["user_id_safe"] == "usr-42"
+
+
+def test_formatter_redacts_nested_sensitive_fields():
+    with _captured_root_handler() as buf:
+        get_logger("redact.nested").info(
+            "payload",
+            extra={
+                "request": {
+                    "headers": {"Authorization": "Bearer xyz"},
+                    "body": {"password": "s3cret", "email": "a@b.com"},
+                },
+                "items": [
+                    {"cpf": "111", "name": "Alice"},
+                    {"token": "jwt", "ok": True},
+                ],
+            },
+        )
+    r = _lines(buf)[0]
+    assert r["request"]["headers"]["Authorization"] == REDACTED_PLACEHOLDER
+    assert r["request"]["body"]["password"] == REDACTED_PLACEHOLDER
+    assert r["request"]["body"]["email"] == "a@b.com"
+    assert r["items"][0]["cpf"] == REDACTED_PLACEHOLDER
+    assert r["items"][0]["name"] == "Alice"
+    assert r["items"][1]["token"] == REDACTED_PLACEHOLDER
+    assert r["items"][1]["ok"] is True
+
+
+def test_sensitive_list_covers_documented_fields():
+    for needle in ("password", "secret", "token", "cpf", "api_key", "value_brl"):
+        assert needle in SENSITIVE_FIELD_SUBSTRINGS
 
 
 if __name__ == "__main__":

@@ -25,6 +25,50 @@ from backend.app.middleware.correlation import (
     get_workspace_id,
 )
 
+#: Campos cujo *valor* é mascarado em qualquer linha de log JSON.
+#: Inclui credenciais, PII e valores monetários (CLAUDE.md §"Regras críticas").
+#: Match é case-insensitive e cobre substrings (ex.: ``api_key`` cobre ``anthropic_api_key``).
+SENSITIVE_FIELD_SUBSTRINGS: tuple[str, ...] = (
+    "password",
+    "passwd",
+    "secret",
+    "token",
+    "api_key",
+    "apikey",
+    "authorization",
+    "cpf",
+    "cnpj",
+    "value_brl",
+    "valor",
+    "amount_brl",
+    "saldo",
+)
+
+REDACTED_PLACEHOLDER = "***"
+
+
+def _is_sensitive_key(key: str) -> bool:
+    lowered = key.lower()
+    return any(needle in lowered for needle in SENSITIVE_FIELD_SUBSTRINGS)
+
+
+def _redact(value: Any) -> Any:
+    """Recursively replace sensitive field values with ``***``.
+
+    Keys are matched against :data:`SENSITIVE_FIELD_SUBSTRINGS` (case-insensitive
+    substring). Non-dict/list scalars are returned unchanged — redaction only
+    fires when the *key* matches. Strings/numbers/bool at the value level are
+    left alone; callers are expected not to put raw secrets into log messages.
+    """
+    if isinstance(value, dict):
+        return {
+            k: (REDACTED_PLACEHOLDER if _is_sensitive_key(k) else _redact(v))
+            for k, v in value.items()
+        }
+    if isinstance(value, list):
+        return [_redact(item) for item in value]
+    return value
+
 
 class MathomsJsonFormatter(JsonFormatter):
     """JSON formatter with ISO 8601 UTC timestamps and correlation context."""
@@ -67,6 +111,12 @@ class MathomsJsonFormatter(JsonFormatter):
             log_record["otel_span_id"] = otel_span_id
 
         log_record.pop("color_message", None)
+
+        for key in list(log_record.keys()):
+            if _is_sensitive_key(key):
+                log_record[key] = REDACTED_PLACEHOLDER
+            else:
+                log_record[key] = _redact(log_record[key])
 
 
 class _TextFormatter(logging.Formatter):
