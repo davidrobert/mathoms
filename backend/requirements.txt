@@ -10,6 +10,10 @@ python-multipart>=0.0.7
 pydantic[email]>=2.0
 pydantic-settings>=2.0
 aiosqlite>=0.20
+# Sync driver para sync_engine (backend/app/core/database.py:21). URL postgres
+# sem driver explícito resolve para psycopg2 — sem ele, `alembic upgrade head`
+# com MATHOMS_DATABASE_URL=postgresql+asyncpg://... falha no import-time.
+psycopg2-binary>=2.9
 greenlet>=3.0
 httpx>=0.27
 pyyaml>=6.0
