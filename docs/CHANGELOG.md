@@ -40,6 +40,50 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     enforcement em pre-commit (A6g.6). Suítes: `pytest backend/tests`
     926 passed/4 skipped; `pytest tests` 1461 passed/2 skipped.
 
+- **Plano-mestre A6 absorvido em fontes canônicas (2026-04-21):** O
+  `_scratch/plano_migracao_artifacts_db.md` (4146 linhas, v3.6) que
+  vivia gitignored na máquina do founder foi absorvido nas fontes
+  versionadas. Motivação: 20+ refs em canônicos (ROADMAP, BACKLOG,
+  ARCHITECTURE, SETUP, DECISIONS, runbooks, prompts) apontavam para
+  arquivo que não existia em clones frescos — agentes LLM batiam em
+  404. Também: drift silencioso entre o plano (detalhado) e BACKLOG/
+  ROADMAP (resumidos).
+
+  Conteúdo único migrado:
+  - **§7 Checklist de testes por fase** (92 linhas, 8 fases + métricas
+    de sucesso) → `docs/TESTING.md §Critérios de aceite por fase`.
+  - **§15 LGPD D1-D5** (5 decisões arquiteturais: crypto app-level,
+    audit log, retenção 2 anos, masking de logs) → `docs/BACKLOG.md
+    §F7B — Decisões arquiteturais LGPD`, com link para tasks 7B.1/.5/
+    .7/.9/.17/.18 que as implementam.
+  - **§16 Observabilidade de cutover** (5 métricas Prometheus + 4
+    alertas + runbook T-24h/T-0/T+48h) → `docs/runbooks/cutover.md`
+    (nova §2.5 e §2.6; fix de 6 refs a `_scratch/compare_disk_vs_db.py`
+    → `dev/compare_disk_vs_db.py` onde o script realmente vive).
+  - **§1 Motivação P1-P11** → `docs/ARCHITECTURE.md §17.0` em 3
+    bullets consolidados com links para as ADRs individuais que
+    formalizam cada problema.
+
+  Refs removidas/fixadas (5 commits no trilho de absorção):
+  - `ROADMAP.md §Sprint A6`, `SETUP.md §10`: substituídas por
+    pointers para BACKLOG + ARCHITECTURE + DECISIONS.
+  - `BACKLOG.md §Sprint A6` cabeçalho: nova linha "Fontes canônicas"
+    listando os 4 targets.
+  - `ARCHITECTURE.md §17`: removido "Plano completo" broken link.
+  - `DECISIONS.md`: 7 refs em ADRs 082/098/100/101/102/103/109
+    substituídas por links para as subseções respectivas do BACKLOG.
+  - `docs/agent_prompts/track_a6g2...`: ref em "Referências" aponta
+    para as 4 fontes canônicas.
+
+  Refs intencionalmente preservadas: 4 entradas históricas em
+  CHANGELOG.md (registros temporais das sessões A5a-A6f); 1 em
+  ARCHITECTURE.md §17.0 (narrativa histórica "plano viveu em
+  _scratch...", não link clicável).
+
+  `_scratch/plano_migracao_artifacts_db.md` deletado localmente —
+  tudo de único foi migrado; o restante estava duplicado com ADRs
+  082-111, BACKLOG §Sprint A6, e código real em `pipeline/**`.
+
 - **Agent prompts — 3 novas lanes paralelas da Onda 2 (2026-04-21):**
   Prompts self-contained para as 3 próximas lanes que podem ser
   executadas em paralelo agora, sem esperar A6g.4 (🚧 ocupada com 2
