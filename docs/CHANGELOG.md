@@ -8,6 +8,58 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6e.5 — Slice vertical `Document` (2026-04-21) — ADR-101:**
+  Sexto agregado migrado para o padrão DDD/SOLID do backend API (R12-R14).
+  Continua o trilho iniciado em A6e.1+.2 (FamilyMember) e seguido por
+  A6e.3 (Category) + A6e.4 (ConfigBlob). Document é o maior router do
+  backend (~794 linhas, 13 endpoints) e destrava A6e.6/.7.
+  - **Novo: [`DocumentRepository`](../backend/app/repositories/document_repository.py)**
+    async (190 linhas) — 7 métodos com `workspace_id` no predicado (R13):
+    `list` (filtros `statuses` [=, IN, lista vazia early-return] +
+    `doc_type`), `get_by_id`, `get_by_content_hash`,
+    `find_fuzzy_duplicate_id` (dedupe por triplo doc_type+bank_code+period
+    com `exclude_id`), `list_non_error`, `add` (flush controlado),
+    `delete`. **Não commita** — caller é dono do boundary transacional
+    (R14), essencial para o upload que usa savepoint por arquivo para
+    tratar `IntegrityError` da unique index `content_hash`.
+  - **Novo: DTOs canônicos em [`schemas/dto/document/`](../backend/app/schemas/dto/document/)**
+    (R12 ISP) — `response.py` (`DocumentResponse`, `DocumentListResponse`,
+    `DocumentUploadResponse`, `DocumentExtractJsonResponse` e
+    `DocumentReclassifyResponse` — os 2 últimos migram classes inline do
+    router), `command.py` (`DocumentUpdateCommand` com empty-string → None
+    validator, paridade com legado), `mapper.py` (`document_to_response`
+    puro, testável sem DB).
+  - **Refactor: [`api/documents.py`](../backend/app/api/documents.py)**
+    (-67 linhas líquidas) — todos os 8 endpoints recebem
+    `repo = Depends(_get_document_repo)`; `grep "select(Document"` vazio.
+    Upload flow preservado em todos os detalhes (savepoint, fuzzy-dedupe
+    cross-referencial via `repo.find_fuzzy_duplicate_id`, audit log
+    seletivo, cleanup de arquivo órfão).
+  - **Compat binária:** [`schemas/document.py`](../backend/app/schemas/document.py)
+    vira shim re-exportando `DocumentResponse`, `DocumentListResponse`,
+    `DocumentUploadResponse` e `DocumentUpdateRequest` (alias para
+    `DocumentUpdateCommand`) — `test_documents.py` e demais testes
+    legados passam sem modificação.
+  - **Testes novos:**
+    [test_document_dto_mapper.py](../backend/tests/test_document_dto_mapper.py)
+    (15 testes, puros) + [test_document_repository.py](../backend/tests/test_document_repository.py)
+    (16 testes com DB real — isolamento multi-tenant em todos os métodos,
+    `statuses=[]` early-return, ordenação por `uploaded_at` DESC, fuzzy
+    dedupe cross-tenant safety).
+  - **OpenAPI snapshot atualizado:** 3 renames (`DocumentUpdateRequest`
+    → `DocumentUpdateCommand`, inline `ExtractJsonResponse` →
+    `DocumentExtractJsonResponse`, inline `ReclassifyResponse` →
+    `DocumentReclassifyResponse`) + descrições populadas dos docstrings
+    dos DTOs.
+  - **Escopo deixado para frente:** `document_processor.py`,
+    `document_pipeline_sync.py` e `tasks/pipeline_task.py` continuam
+    acessando ORM direto — migração é R15 (use-case layer) em slice
+    futuro, conforme planejado no prompt da track.
+  - **Impact**: 847 passed / 4 skipped (+31 tests vs 816 baseline; zero
+    regressão). Commits: `9cbcf2f` (repo), `16ef59c` (dto),
+    `4958d9a` (router + shim), `ab240aa` (testes),
+    `2c5c134` (openapi snapshot).
+
 - **A6f.6 — Stateless-rigoroso: audit + multi-worker integration test (2026-04-20) — ADR-111:**
   Terceira entrega da A6f (language-neutral boundaries). Prova empírica que
   o backend já é multi-worker-safe e formaliza a regra arquitetural que

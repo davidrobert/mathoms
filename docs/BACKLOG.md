@@ -727,8 +727,8 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | # | Sub-fase | Entrega | Esforço | Status |
 | --- | --- | --- | --- | --- |
-| A6e.1 | Repos por aggregate | User, Workspace, Document, Goal, PipelineRun, Task, Notification, Invitation, AuditLog repositories; `grep sqlalchemy backend/app/api/` = zero | 1-2 sessões | 🚧 parcial — **FamilyMember** ✅ |
-| A6e.2 | DTO ↔ Model | `schemas/dto/<aggregate>/response.py` + `command.py` + `query.py` + `mapper.py`; zero `Model.from_orm` em endpoints | 1 sessão | 🚧 parcial — **family_member** ✅ |
+| A6e.1 | Repos por aggregate | User, Workspace, Document, Goal, PipelineRun, Task, Notification, Invitation, AuditLog repositories; `grep sqlalchemy backend/app/api/` = zero | 1-2 sessões | 🚧 parcial — **FamilyMember + Category + ConfigBlob + Document** ✅ |
+| A6e.2 | DTO ↔ Model | `schemas/dto/<aggregate>/response.py` + `command.py` + `query.py` + `mapper.py`; zero `Model.from_orm` em endpoints | 1 sessão | 🚧 parcial — **family_member + category + config_blob + document** ✅ |
 | A6e.3 | Application layer | `backend/app/application/<aggregate>/<use_case>.py`; 1 endpoint = 1 use case; testável sem DB via fakes | 2 sessões | ☐ |
 | A6e.4 | Routers finos | Refactor 4900→800 linhas (17 routers × ≤50); teste AST enforça | 1-2 sessões | ☐ |
 | A6e.5 | Versionamento `/api/v1/` | Prefixo + aliases durante window; OpenAPI 3.1 versionado; `lib/api.ts` atualizado | 1 sessão | ☐ |
@@ -745,7 +745,21 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | Refactor `config.py` members/accounts | 5 endpoints delegam ao repo e retornam DTOs; ~130 linhas duplicadas removidas; compat binária via aliases em `schemas/config.py` | 13ece89 |
 | Tests + regression gate | 10 unit tests mapper (puros) + 13 repo tests (DB real); BUG-004 sentinela migrada para mapper.py | 4167fa5 |
 
-**Próximos slices recomendados (ordem):** Category (sessão 2) → ConfigBlob/Pipeline/Institution/ReportLayout (sessão 3) → Document (sessão 4, grande) → Goal (sessão 5) → Task (sessão 6).
+#### Slice entregue — **Document aggregate** (branch `agent/a6e5-document/*`, 2026-04-21)
+
+| Entrega | Detalhes | Commit |
+| --- | --- | --- |
+| `DocumentRepository` async | 7 métodos (`list` com filtros, `get_by_id`, `get_by_content_hash`, `find_fuzzy_duplicate_id`, `list_non_error`, `add` flush-opt-out, `delete`); R13 no predicado; não commita (boundary = caller, necessário para savepoint de upload) | `9cbcf2f` |
+| DTOs em `schemas/dto/document/` | response (5 DTOs, incluindo `DocumentExtractJsonResponse` e `DocumentReclassifyResponse` que migraram classes inline do router) + command (`DocumentUpdateCommand`) + mapper puro | `16ef59c` |
+| Refactor `api/documents.py` | 8 endpoints delegam ao repo; `grep "select(Document" = zero`; upload flow preservado (savepoint + fuzzy-dedupe cross-referencial + cleanup + audit log); compat binária via shim em `schemas/document.py` | `4958d9a` |
+| Tests | 15 unit tests mapper (puros, sem DB) + 16 repo tests (DB real; isolamento multi-tenant em todos os métodos; ordenação por `uploaded_at` DESC; fuzzy dedupe cross-tenant safety) | `ab240aa` |
+| OpenAPI snapshot | 3 renames (`DocumentUpdateRequest`→`Command`, inline `ExtractJsonResponse`→`DocumentExtractJsonResponse`, inline `ReclassifyResponse`→`DocumentReclassifyResponse`) + descrições populadas | `2c5c134` |
+
+**Impact:** 847 passed / 4 skipped (+31 vs 816 baseline; zero regressão).
+
+**Escopo deixado para frente:** `document_processor.py`, `document_pipeline_sync.py` e `tasks/pipeline_task.py` continuam com ORM direto — migração é R15 (use-case layer) em slice futuro.
+
+**Próximos slices recomendados (ordem):** Goal (A6e.6, multi-type) → Task (A6e.7, 3 sub-agregados). Podem paralelizar — agregados disjuntos.
 
 **Pré-existente fora de escopo (reportado):** `test_alembic_guardrails::test_offline_sql_generation_works` falha por migration A6b `r6s7t8u9v0w1` usando `batch_alter_table` sem `copy_from`; `test_documents.py` x9 falha por schema drift em `workspaces.use_db_artifacts_override`. Nenhum dos dois tocado pelo slice A6e.1+.2.
 
