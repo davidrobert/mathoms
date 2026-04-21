@@ -1,6 +1,6 @@
 # Runbook — Cutover `MATHOMS_USE_DB_ARTIFACTS` para workspaces existentes
 
-> ADR-082, ADR-083, ADR-096 · Plano de migração §4.6 + §16
+> ADR-082, ADR-083, ADR-096 · Complementa [BACKLOG §Sprint A6 — A6b](../BACKLOG.md#a6b--ativar-use_db_artifactstrue--validar-end-to-end) e [TESTING §Fase 4](../TESTING.md#infra--fase-4-cleanup--cutover)
 > Objetivo: migrar workspaces de `DiskArtifactStore` para `DBArtifactStore` sem perda de dados nem regressão de performance.
 
 ---
@@ -9,16 +9,16 @@
 
 Antes de qualquer cutover:
 
-1. **Fases 1-4 do plano completas e em produção** ([_scratch/plano_migracao_artifacts_db.md](../../_scratch/plano_migracao_artifacts_db.md)):
+1. **Infra A6a/A6b entregue e em produção** (ver [BACKLOG §Sprint A6](../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal)):
    - Tabela `pipeline_artifacts` existe (migration `p4q5r6s7t8u9`).
    - `DBArtifactStore` testado (660+ testes backend verdes).
    - `backfill_artifacts_from_disk.py` testado em workspace de staging.
-   - Feature flag `MATHOMS_USE_DB_ARTIFACTS` exposta no `backend/app/core/config.py`.
-2. **Observabilidade** (ADR-096, §16 do plano):
-   - `_scratch/compare_disk_vs_db.py` funcionando.
-   - Métricas Prometheus expostas em `/metrics`.
+   - Feature flag `MATHOMS_USE_DB_ARTIFACTS` exposta em `backend/app/core/config.py`.
+2. **Observabilidade** (§2.5 abaixo):
+   - `dev/compare_disk_vs_db.py` funcionando.
+   - Métricas Prometheus expostas em `/metrics` (5 métricas em §2.5).
    - Dashboard Grafana (ou equivalente) carregando os 5 painéis.
-   - Alertas configurados e testados (fire + resolve).
+   - Alertas configurados e testados (fire + resolve — §2.6).
 3. **Backup recente** do DB de produção (`pg_dump` ou `sqlite3 mathoms.db .dump`).
 4. **Runbook lido pelo oncall** — esta página.
 
@@ -36,6 +36,29 @@ T+48h  → job nightly compare ativo + monitorar alertas
 T+1sem → se nenhum alerta, expandir para próximos workspaces
 T+30d  → remover processed/ em disco (fallback expira)
 ```
+
+### 2.5. Métricas Prometheus durante cutover
+
+Capturadas em `backend/app/observability/cutover_metrics.py` (a implementar em F7C — Observabilidade). Expostas via `/metrics`:
+
+| Métrica | Tipo | Uso |
+|---------|------|-----|
+| `pipeline_run_duration_seconds{store="disk\|db"}` | Histogram | Regressão de performance |
+| `artifact_write_count{stage, store}` | Counter | Saúde de escrita |
+| `artifact_read_missing{stage}` | Counter | Detectar cutover incompleto |
+| `artifact_diff_count{stage}` | Counter | Incrementado pelo `dev/compare_disk_vs_db.py` em job nightly |
+| `pipeline_run_failed_total{stage, use_db}` | Counter | Taxa de falha por modo |
+
+Dashboard Grafana com os 5 painéis **obrigatório** durante a janela de cutover.
+
+### 2.6. Alertas (configurar antes de T-24h)
+
+| Alerta | Condição | Ação |
+|--------|----------|------|
+| `CutoverRegression` | p95(`pipeline_run_duration_seconds{store="db"}`) > baseline × 1.5 por 15min | Reverter deploy ou `MATHOMS_USE_DB_ARTIFACTS=false` |
+| `ArtifactReadMissing` | rate(`artifact_read_missing`) > 0 | Investigar: cutover incompleto ou backfill faltante |
+| `DiskDbDiffDetected` | `artifact_diff_count` > 0 por stage | Pausar cutover; investigar diff |
+| `PipelineFailureSpike` | rate(`pipeline_run_failed_total{use_db="true"}`) > 2× rate(`{use_db="false"}`) por 1h | Flip de volta; investigar |
 
 ---
 
@@ -59,7 +82,7 @@ sqlite3 mathoms.db ".dump" > _scratch/backup_pre_cutover_$(date +%Y%m%d).sql
     --apply --workspace-id <uuid-piloto>
 
 # 4. Verificar paridade disk ↔ DB
-.venv/bin/python _scratch/compare_disk_vs_db.py \
+.venv/bin/python dev/compare_disk_vs_db.py \
     --workspace-id <uuid-piloto> --strict
 
 # Deve retornar 0 (sem diffs estruturais).
@@ -97,7 +120,7 @@ curl -X POST "https://fin/api/workspaces/<uuid-piloto>/pipeline/run" \
 # - artifact_read_missing: 0
 
 # 4. Comparação pós-run
-.venv/bin/python _scratch/compare_disk_vs_db.py \
+.venv/bin/python dev/compare_disk_vs_db.py \
     --workspace-id <uuid-piloto> --strict
 ```
 
@@ -135,7 +158,7 @@ Se T-0 + 48h sem alertas:
 ```bash
 # 1. Agendar job nightly de paridade
 # Exemplo: cron no servidor (ou Celery beat)
-# 0 3 * * * .venv/bin/python _scratch/compare_disk_vs_db.py --workspace-id <uuid> | mail -s "cutover-diff" oncall@...
+# 0 3 * * * .venv/bin/python dev/compare_disk_vs_db.py --workspace-id <uuid> | mail -s "cutover-diff" oncall@...
 
 # 2. Se 7 dias consecutivos sem diff: marcar workspace como "migrado"
 # 3. Repetir processo para próximo workspace (escalar tamanho aos poucos)
@@ -221,7 +244,8 @@ Ação: aceitável — a run sintética é marcada `completed` e não afeta UI.
 
 ## 8. Referências
 
-- [plano_migracao_artifacts_db.md §4.6 + §16](../../_scratch/plano_migracao_artifacts_db.md)
+- [BACKLOG §Sprint A6 — A6b / A6c](../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal) — status de execução
+- [TESTING §Fase 4 — cleanup + cutover](../TESTING.md#infra--fase-4-cleanup--cutover) — critérios de aceite
 - [ADR-082 — PipelineArtifact](../DECISIONS.md#adr-082--pipelineartifact-artefatos-computacionais-no-banco)
 - [ADR-083 — ArtifactStore](../DECISIONS.md#adr-083--artifactstore-abstração-de-io-para-artefatos)
 - [ADR-096 — Observabilidade de cutover](../DECISIONS.md#adr-096--observabilidade-de-cutover)
