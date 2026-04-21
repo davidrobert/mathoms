@@ -2,8 +2,8 @@
 
 > Visão de alto nível das fases do projeto. Atualizar mensalmente ou ao mudar de fase.
 >
-> **Última atualização:** 2026-04-19
-> **Fase atual:** F9 concluída • **Plano transversal de migração infra+domínio**: Fase 8 fechada (A5a-A5e), próximas sessões A5f · A6a-f (ver [_scratch/plano_migracao_artifacts_db.md](../_scratch/plano_migracao_artifacts_db.md)) • F7 (Produção + LGPD + Ops) agendada após estabilidade do A6.
+> **Última atualização:** 2026-04-21
+> **Fase atual:** F9 concluída • **Sprint transversal A6**: A5a-A5f · A6a-c · A6d · A6f.2/.3/.4/.5a/.6 · A6g.1 fechados; A6e parcial (per-aggregate concluído) • Status de sessão + lanes abertas em [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal) (fonte única) • F7 (Produção + LGPD + Ops) agendada após estabilidade do A6.
 
 ---
 
@@ -292,28 +292,18 @@ Política de cobertura (Python backend + pipeline):
 ## Sprint transversal A6 — Migração infra+domínio (pós-F9)
 
 **Plano completo**: [_scratch/plano_migracao_artifacts_db.md](../_scratch/plano_migracao_artifacts_db.md)
-(§17-§19). ADRs formalizadoras: 097 (extract-then-refactor), **098** (Caminho B
-puro vs pragmático), **099** (reuse de `analyze_*` legadas), **100** (A6d
-commitment), **101** (R12-R17: backend DDD/SOLID), **102** (R18-R20:
-language-neutral), **103** (teste humano como gate).
+(§17-§19). ADRs formalizadoras: 097-103 + 109-111 (ver BACKLOG).
 
-**Status atual (2026-04-19)**: **Fase 8 fechada**. 6 de 7 stages determinísticos
-no Caminho B (E3·E4·E5·E5.N·E7-crossval·E7-apply). 1206 testes pipeline · 664
-backend · zero regressão.
+**Fonte única de status, sessões pendentes, lanes abertas e diagrama de
+ondas paralelas**: [BACKLOG.md §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal).
+ROADMAP cobre apenas a visão de fases e timeline macro — não duplique
+status de sessão aqui (vira drift).
 
-**Sessões pendentes**:
-
-| Sessão | Escopo | Estimativa | Dependências |
-|---|---|---|---|
-| **A5f** | E1.5c Caminho B (último determinístico pendente) | 1 sessão pequena | — |
-| **A6a** | LLM stages (E1.5, E2-llm) escrevendo via `ArtifactStore` | 1 sessão média | A5f |
-| **A6b** | Ativar `USE_DB_ARTIFACTS=true` + validar end-to-end | 1-2 semanas | A6a |
-| **A6b.5** | Preparação teste humano (smoke infra + fixtures + runbook) | 1-2 sessões | A6b |
-| **A6-human** | Teste manual pelo David (~70 checks) | Janela humana | A6b.5 |
-| **A6c** | Deletar bridge + `stage_runner_compat` + legacy `main(root_dir)` | 1 sessão | A6-human aprovado |
-| **A6d** | Caminho B puro nos 5 stages pragmáticos (3 sub-fases) | 3-5 sessões grandes | Paralelo A6a-c |
-| **A6e** | DDD/SOLID no backend API (6 sub-fases, R12-R17) | 5-7 sessões grandes | Paralelo, recomendado pós-A6b |
-| **A6f** | Language-neutral boundaries (6 sub-fases, R18-R20) | 6-8 sessões grandes | Paralelo, recomendado pós-A6b |
+**Resumo (snapshot 2026-04-21)**:
+- **Entregues ✅:** A5a-A5f · A6a-c · A6d · A6f.2/.3/.4/.5a/.6 · A6g.1.
+- **Parcial 🚧:** A6e (6 agregados com repos+DTOs — per-aggregate track concluído).
+- **Lanes abertas agora:** Onda 1 (A6g.2 pipeline sweep · A6g.4 frontend sweep) + Onda 2 destravada (A6e.3-.6 · A6f.1 · A6g.5). Ver tabela em BACKLOG.
+- **Caminho crítico (serial):** A6e.3 (use cases) → A6e.4 (routers finos) → F7A → F7B → F7D+dogfood → GA.
 
 **Após A6**: sprints dedicados §15 (LGPD) e §16 (Observabilidade) —
 incorporados ao escopo de F7 (Produção + LGPD + Ops).
