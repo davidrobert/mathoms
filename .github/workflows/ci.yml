@@ -34,7 +34,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FIN_FERNET_KEY: "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
+  MATHOMS_FERNET_KEY: "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
   PYTHONDONTWRITEBYTECODE: "1"
 
 jobs:
@@ -107,9 +107,9 @@ jobs:
       - name: Run pipeline tests
         run: pytest tests/ -q --tb=short
 
-      - name: Pipeline JSON schema strict (FIN_PIPELINE_SCHEMA_MODE)
+      - name: Pipeline JSON schema strict (MATHOMS_PIPELINE_SCHEMA_MODE)
         env:
-          FIN_PIPELINE_SCHEMA_MODE: strict
+          MATHOMS_PIPELINE_SCHEMA_MODE: strict
         run: pytest tests/test_schema_validation.py -q --tb=short
 
       - name: Pipeline package import boundaries (P1)
@@ -231,13 +231,13 @@ jobs:
 
       - name: Run alembic migrations
         env:
-          FIN_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
+          MATHOMS_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
         run: |
           cd backend && alembic upgrade head
 
       - name: Start backend (uvicorn)
         env:
-          FIN_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
+          MATHOMS_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
           REDIS_URL: redis://localhost:6380/0
         run: |
           uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 &
@@ -254,7 +254,7 @@ jobs:
         env:
           PW_CROSS_BROWSER: "1"
           # F6.5F.11 (ADR-070): mock LLM em CI default; PW_REAL_LLM=1 no nightly
-          FIN_LLM_MOCK: "1"
+          MATHOMS_LLM_MOCK: "1"
         run: |
           cd frontend
           npm run test:e2e

@@ -25,9 +25,12 @@ class TestValidateArtifact:
         path.write_text(json.dumps(data))
         assert validate_artifact(path, "e2_extract.schema.json") is True
 
-    def test_invalid_e2_missing_banco(self, tmp_path, caplog):
+    def test_invalid_e2_missing_banco(self, tmp_path, caplog, monkeypatch):
         import logging
 
+        # Força warn explicitamente — CI roda o módulo com
+        # MATHOMS_PIPELINE_SCHEMA_MODE=strict para cobrir o caminho strict.
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "warn")
         caplog.set_level(logging.WARNING)
         data = {
             "pipeline_stage": "E2",
@@ -36,7 +39,7 @@ class TestValidateArtifact:
         }
         path = tmp_path / "test.json"
         path.write_text(json.dumps(data))
-        # Default mode is 'warn' — should return True but log warning
+        # warn mode: should return True but log warning
         result = validate_artifact(path, "e2_extract.schema.json")
         assert result is True
         assert "banco" in caplog.text
