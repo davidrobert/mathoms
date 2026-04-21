@@ -32,6 +32,9 @@ storage/
 # Frontend
 frontend/node_modules/
 frontend/.next/
+frontend/coverage/
+frontend/tsconfig.tsbuildinfo
+node_modules/
 
 # Testing
 .pytest_cache/
