@@ -701,8 +701,19 @@ def run_pipeline_task(
     - free tier: LLM stages auto-skipped
     - premium: LLM stages run; validation failures → StageReview + pause
     """
+    # A6f.1 · ADR-112 — pipeline execution goes through PipelineServiceClient
+    # (InProcess default, Http when MATHOMS_PIPELINE_SERVICE_URL is set).
+    # `_execute_stages_loop` keeps its shape; we derive llm_stages from
+    # STAGE_REGISTRY and pass a closure binding workspace_id.
     _bootstrap_pipeline_sys_path()
-    from pipeline.orchestrator import LLM_STAGES, _run_stage
+    from pipeline.stage_spec import STAGE_REGISTRY
+    from backend.app.services.pipeline_client import get_pipeline_client
+
+    pipeline_client = get_pipeline_client()
+    llm_stages = {name for name, spec in STAGE_REGISTRY.items() if spec.is_llm}
+
+    def _exec_stage(c, s):
+        return pipeline_client.execute_stage(c, s, workspace_id=ws_id)
 
     tenant_root = Path(tenant_root_str)
     config_dir = Path(config_dir_str)
@@ -729,7 +740,7 @@ def run_pipeline_task(
 
     has_failure, paused_for_review = _execute_stages_loop(
         ctx, stages, run_id, skip_llm, stop_on_error, tier,
-        LLM_STAGES, _run_stage, artifact_session,
+        llm_stages, _exec_stage, artifact_session,
     )
 
     if not paused_for_review:
