@@ -6,7 +6,7 @@ Contract explícito e language-neutral (A6f.2 · ADR-102 R18): qualquer cliente
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -30,4 +30,9 @@ class HealthResponse(BaseModel):
     celery: str
     database: str
     artifact_store_mode: Literal["db", "disk"]
+    # A6f.1 (ADR-112): pipeline-service HTTP boundary. Ambos campos são
+    # ``None`` quando ``MATHOMS_PIPELINE_SERVICE_URL`` não está setada
+    # (fallback para InProcessPipelineClient).
+    pipeline_service_url: Optional[str] = None
+    pipeline_service_reachable: Optional[bool] = None
     status: Literal["ok", "degraded"]

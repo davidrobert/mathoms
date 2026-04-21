@@ -1,0 +1,38 @@
+# docker-compose.pipeline-service.yml — adds pipeline-service on the smoke net
+#
+# Composes with docker-compose.smoke.yml:
+#   docker compose -f docker-compose.smoke.yml -f docker-compose.pipeline-service.yml up -d
+#
+# The service mounts the repo read-only so `pipeline/` edits are picked up
+# without rebuild. For production use, the Dockerfile copies the sources.
+#
+# Backend opt-in to HTTP boundary: set
+#   MATHOMS_PIPELINE_SERVICE_URL=http://localhost:8001
+# on the API + worker (Makefile targets). Unset = InProcessPipelineClient.
+
+services:
+  pipeline-service:
+    build:
+      context: .
+      dockerfile: pipeline-service/Dockerfile
+    container_name: mathoms-pipeline-service
+    ports:
+      - "8001:8001"
+    environment:
+      PIPELINE_SERVICE_HOST: 0.0.0.0
+      PIPELINE_SERVICE_PORT: 8001
+      REDIS_URL: redis://redis-smoke:6379/0
+      MATHOMS_LOG_FORMAT: json
+      MATHOMS_LOG_LEVEL: INFO
+    depends_on:
+      redis-smoke:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8001/health\")' || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - ./pipeline:/repo/pipeline:ro
+      - ./pipeline-service:/repo/pipeline-service:ro

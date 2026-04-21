@@ -154,7 +154,31 @@ async def health() -> dict:
     # Por workspace usa _resolve_use_db_artifacts — aqui reporta o default global.
     checks["artifact_store_mode"] = "db" if settings.USE_DB_ARTIFACTS else "disk"
 
-    overall = "ok" if all(v == "ok" for k, v in checks.items() if k not in ("version", "artifact_store_mode")) else "degraded"
+    # A6f.1 (ADR-112): pipeline-service HTTP boundary. URL só aparece quando
+    # setada (cutover HTTP); ausente = InProcessPipelineClient em uso.
+    pipeline_service_url = os.environ.get("MATHOMS_PIPELINE_SERVICE_URL", "").strip()
+    checks["pipeline_service_url"] = pipeline_service_url or None
+    checks["pipeline_service_reachable"] = (
+        await _probe_pipeline_service(pipeline_service_url)
+        if pipeline_service_url
+        else None
+    )
+
+    informational = {"version", "artifact_store_mode", "pipeline_service_url",
+                     "pipeline_service_reachable"}
+    overall = "ok" if all(
+        v == "ok" for k, v in checks.items() if k not in informational
+    ) else "degraded"
     checks["status"] = overall
 
     return checks
+
+
+async def _probe_pipeline_service(url: str) -> bool:
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as http:
+            r = await http.get(f"{url.rstrip('/')}/health")
+            return r.status_code == 200
+    except Exception:
+        return False

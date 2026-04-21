@@ -2361,6 +2361,28 @@
             "title": "Database",
             "type": "string"
           },
+          "pipeline_service_reachable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pipeline Service Reachable"
+          },
+          "pipeline_service_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pipeline Service Url"
+          },
           "redis": {
             "title": "Redis",
             "type": "string"

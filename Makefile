@@ -93,7 +93,7 @@ smoke-dirs:
 # Dev helpers
 # ---------------------------------------------------------------------------
 
-.PHONY: test lint format check-boundaries update-openapi-snapshot update-db-schema-reference
+.PHONY: test lint format check-boundaries update-openapi-snapshot update-pipeline-service-openapi update-db-schema-reference
 
 ## test: Roda pytest com cobertura
 test:
@@ -113,13 +113,21 @@ check-boundaries:
 	$(PYTHON) dev/check_pipeline_boundaries.py
 
 ## update-openapi-snapshot: Regenera docs/api/v1/openapi.json a partir do FastAPI app (A6f.2 · ADR-102)
-update-openapi-snapshot:
+update-openapi-snapshot: update-pipeline-service-openapi
 	@mkdir -p docs/api/v1
 	@MATHOMS_FERNET_KEY=$${MATHOMS_FERNET_KEY:-NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=} \
 	  $(PYTHON) -c 'import json; from backend.app.main import app; \
 	    print(json.dumps(app.openapi(), indent=2, sort_keys=True))' \
 	  > docs/api/v1/openapi.json
 	@echo "✓ docs/api/v1/openapi.json regenerado. Comite o diff."
+
+## update-pipeline-service-openapi: Regenera docs/api/v1/pipeline-service.openapi.json (A6f.1 · ADR-112)
+update-pipeline-service-openapi:
+	@mkdir -p docs/api/v1
+	@cd pipeline-service && $(CURDIR)/$(PYTHON) -c 'import json, sys; sys.path.insert(0, "."); sys.path.insert(0, ".."); from app.main import create_app; \
+	    print(json.dumps(create_app().openapi(), indent=2, sort_keys=True))' \
+	  > $(CURDIR)/docs/api/v1/pipeline-service.openapi.json
+	@echo "✓ docs/api/v1/pipeline-service.openapi.json regenerado. Comite o diff."
 
 ## update-db-schema-reference: Regenera docs/DB_SCHEMA_REFERENCE.md a partir de Base.metadata (A6f.4 · ADR-102 R20)
 update-db-schema-reference:

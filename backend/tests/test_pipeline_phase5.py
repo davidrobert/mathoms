@@ -355,3 +355,7 @@ class TestHealthCheck:
         assert "celery" in data
         assert "database" in data
         assert "status" in data
+        # A6f.1 · ADR-112 — pipeline-service URL + reachability visible even
+        # when unset (both None → InProcessPipelineClient in use).
+        assert "pipeline_service_url" in data
+        assert "pipeline_service_reachable" in data
