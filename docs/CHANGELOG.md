@@ -8,6 +8,24 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **Agent prompts — 3 novas lanes paralelas da Onda 2 (2026-04-21):**
+  Prompts self-contained para as 3 próximas lanes que podem ser
+  executadas em paralelo agora, sem esperar A6g.4 (🚧 ocupada com 2
+  worktrees). Cada prompt segue o cabeçalho padrão da README
+  (`Lane ID`, `Branch prefix`, `Paralelo com`, `Conflita com`, `Onda`)
+  + estrutura tiers/gates/rollback/coordenação.
+
+  - **[track_a6f1_pipeline_service.md](agent_prompts/track_a6f1_pipeline_service.md)** — Pipeline-as-service (HTTP boundary, ADR-102). **Greenfield** em `pipeline-service/`; 3 slices (bootstrap FastAPI standalone → backend `PipelineServiceClient` adapter com fallback `InProcessPipelineClient` → smoke + OpenAPI + docker-compose). Mapeado ~2200 linhas core afetadas; 2-3 sessões estimadas.
+  - **[track_a6g5_tests_sweep.md](agent_prompts/track_a6g5_tests_sweep.md)** — Tests sweep em `tests/`, `tests/unit/pipeline/`, `backend/tests/` (excluindo 16 goldens + fixtures A6g.2). Tier 1 `MagicMock` → fake nomeado (39 ofensores; top 2 em `test_events.py` + `test_pipeline_task.py`). Tier 2 nomes descritivos. Tier 3+4 opcionais.
+  - **[track_a6e3_use_cases.md](agent_prompts/track_a6e3_use_cases.md)** — Application layer R15 (ADR-101) com **scope slicing** para evitar overlap com A6f.1: cobre apenas FamilyMember + Category + Goal (3 agregados sem imports de `PipelineRun`). ConfigBlob/Document/Task ficam para A6e.3b pós-A6f.1 merge.
+
+  **Mapeamento de overlap** (documentado em cada prompt):
+  - A6f.1 + A6g.5 podem colidir em `backend/tests/test_pipeline_task.py` — resolvido por precedência de merge.
+  - A6e.3 scope reduzido evita `backend/app/api/pipeline.py` e deps → zero conflito com A6f.1.
+  - A6g.5 cria testes novos em `backend/tests/application/` (novo dir) → zero conflito com A6e.3.
+
+  **README + BACKLOG atualizados**: `docs/agent_prompts/README.md` ganha 3 linhas no índice; tabela "Lanes abertas agora" no BACKLOG agora linka os 3 prompts.
+
 - **Docs — pickup-protocol + fonte única de ondas (2026-04-21):** Reorganização
   dos 4 artefatos de orientação (CLAUDE.md, ROADMAP.md, BACKLOG.md,
   docs/agent_prompts/) para resolver dois gaps que vinham causando

@@ -630,12 +630,12 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | --- | --- | --- | --- | --- | --- |
 | **A6g.2** pipeline sweep | `a6g2-pipeline-style` | [track_a6g2_pipeline_style_sweep.md](agent_prompts/track_a6g2_pipeline_style_sweep.md) | A6g.1 ✅ | 1 | ☐ aberta |
 | **A6g.4** frontend sweep | `a6g4-frontend-style` | [track_a6g4_frontend_style_sweep.md](agent_prompts/track_a6g4_frontend_style_sweep.md) | A6g.1 ✅ | 1 | 🚧 ocupada — 2 worktrees locais ativos (`a6g4-frontend-style/20260421-1137` e `/20260421-1313`, confirmar com `git worktree list`) |
-| **A6e.3** use cases | `a6e3-use-cases` | Application layer R15 — 1 endpoint = 1 use case; [§A6e](#a6e--ddd-solid-no-backend-api-adr-101-r12-r17) | per-aggregate ✅ | 2 | ☐ aberta |
+| **A6e.3** use cases (slice FamilyMember+Category+Goal) | `a6e3-use-cases` | [track_a6e3_use_cases.md](agent_prompts/track_a6e3_use_cases.md) — Application layer R15 scoped a agregados não-pipeline | per-aggregate ✅ | 2 | ☐ aberta |
 | **A6e.4** routers finos | `a6e4-thin-routers` | 4900→800 linhas (17 routers × ≤50); teste AST | A6e.3 | 2 | ⏸ blocked-by A6e.3 |
 | **A6e.5** /api/v1/ prefix | `a6e5-v1-prefix` | Prefixo + aliases; OpenAPI 3.1 versionado | A6e.3 ou paralelo | 2 | ☐ aberta |
 | **A6e.6** domain events | `a6e6-domain-events` | `backend/app/events/` + handlers tipados | A6e.3 (preferencial) | 2 | ⏸ preferencial pós-A6e.3 |
-| **A6f.1** pipeline-as-service | `a6f1-pipeline-service` | FastAPI standalone; backend fala por HTTP; [§A6f](#a6f--language-neutral-boundaries-adr-102-r18-r20) | Onda 1 mergeada | 2 | ☐ aberta (greenfield, isolado) |
-| **A6g.5** tests sweep | `a6g5-tests-sweep` | Fakes nomeados > MagicMock; nomes descritivos | — | 2 | ☐ aberta |
+| **A6f.1** pipeline-as-service | `a6f1-pipeline-service` | [track_a6f1_pipeline_service.md](agent_prompts/track_a6f1_pipeline_service.md) — FastAPI standalone, backend fala por HTTP | A6e per-aggregate ✅ | 2 | ☐ aberta (greenfield, isolado) |
+| **A6g.5** tests sweep | `a6g5-tests-sweep` | [track_a6g5_tests_sweep.md](agent_prompts/track_a6g5_tests_sweep.md) — Fakes nomeados > MagicMock; nomes descritivos | — | 2 | ☐ aberta |
 | **A6g.3** backend sweep | `a6g3-backend-style` | Services, repos, helpers, typing | A6e.4 ✅ | 3 | ⏸ blocked-by A6e.4 |
 | **A6g.6** enforcement | `a6g6-enforcement` | Ruff rules + ESLint errors + pre-commit grep | A6g.2/.4/.5 ✅ | 3 | ⏸ blocked-by sweeps |
 | **A6g.7** Go prep | `a6g7-go-prep` | `golangci-lint.yml` | A6f.1 iniciada | 3 | ⏸ blocked-by A6f.1 |

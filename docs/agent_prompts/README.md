@@ -11,7 +11,10 @@ inteiro.
 | Lane | Arquivo | Status | Branch prefix |
 | --- | --- | --- | --- |
 | A6g.2 Pipeline Code Style Sweep | [track_a6g2_pipeline_style_sweep.md](track_a6g2_pipeline_style_sweep.md) | ☐ aberta (Onda 1) | `agent/a6g2-pipeline-style/*` |
-| A6g.4 Frontend Code Style Sweep | [track_a6g4_frontend_style_sweep.md](track_a6g4_frontend_style_sweep.md) | ☐ aberta (Onda 1) | `agent/a6g4-frontend-style/*` |
+| A6g.4 Frontend Code Style Sweep | [track_a6g4_frontend_style_sweep.md](track_a6g4_frontend_style_sweep.md) | 🚧 ocupada (Onda 1) | `agent/a6g4-frontend-style/*` |
+| A6f.1 Pipeline-as-Service (HTTP boundary) | [track_a6f1_pipeline_service.md](track_a6f1_pipeline_service.md) | ☐ aberta (Onda 2, greenfield) | `agent/a6f1-pipeline-service/*` |
+| A6g.5 Tests Sweep (fakes + nomes descritivos) | [track_a6g5_tests_sweep.md](track_a6g5_tests_sweep.md) | ☐ aberta (Onda 2) | `agent/a6g5-tests-sweep/*` |
+| A6e.3 Application Layer (use cases — slice FamilyMember+Category+Goal) | [track_a6e3_use_cases.md](track_a6e3_use_cases.md) | ☐ aberta (Onda 2) | `agent/a6e3-use-cases/*` |
 
 **Status + dependências + ondas**: sempre em
 [../BACKLOG.md §Sprint A6](../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal)
