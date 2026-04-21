@@ -834,9 +834,9 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | # | Sub-fase | Entrega | Esforço | Status |
 | --- | --- | --- | --- | --- |
 | A6g.1 | **Auditoria inicial** — script `dev/audit_code_style.py` + pacote `dev/_audit_cs_internals/`. Mede drift em P1-P10 (Python) e T1-T5 (TypeScript). Output: `_scratch/code_style_audit_<date>.{json,md}`. Primeira rodada 2026-04-21: **2047 ofensores** (462 high, 556 med, 1001 low, 28 info) em 467 py + 159 ts. Top alvos: `scripts/e6_render.py` (3875 linhas), `scripts/e5_analyze.py` (2862), `scripts/e_reset.py::main` (372 linhas). Dogfood passa `--strict`. Roda em ~2s | 1 sessão | ✅ (2026-04-21) |
-| A6g.2 | **Pipeline Python** (`pipeline/`, `scripts/`) — aplicar code style no motor canônico. Prioridade: top-20 ofensores do audit. Excluir `scripts/e*.py` já no Caminho B puro (A6d fecha). Cada commit ≤300 linhas, isolado de lógica | 2-3 sessões | ☐ |
+| A6g.2 | **Pipeline Python** (`pipeline/`, `scripts/`, `tests/fixtures/`) — aplicar code style. **1ª rodada defensiva** (`docs/agent_prompts/track_a6g2_pipeline_style_sweep.md`): Tier 1 (`e_reset::main`, `pdf_generator.py`, `e0_audit.py`) sem goldens; Tier 2 opcional (`charts_narrator.narrate`, `pipeline_task.run_pipeline_task`). **Fora de escopo:** `e3/e4/e5/e5n/e6/e7_*.py` (goldens) e `main(root_dir)` legado (A6c.3 vai deletar) → 2ª rodada (A6g.2b) pós-A6c.3 | 1-2 sessões (rodada 1) + 2 sessões (rodada 2) | ☐ |
 | A6g.3 | **Backend Python** (`backend/app/`) — integra com A6e (nomes, DTOs, routers finos). A6e.4 (routers ≤50 linhas) é o chute maior; A6g.3 cobre restante (services, repos, helpers, typing) | 2 sessões | ☐ |
-| A6g.4 | **Frontend TypeScript** (`frontend/src/`) — eliminar `any` residual (`grep -rn "\\bany\\b" frontend/src/`), nomes genéricos (`data.ts`, `helpers.ts`), componentes >500 linhas, hooks >20 linhas. Respeitar codegen em `frontend/src/generated/` (não editar) | 1-2 sessões | ☐ |
+| A6g.4 | **Frontend TypeScript** (`frontend/src/`) — eliminar `any` residual, nomes genéricos (`utils.ts`), arquivos >500 linhas (`api.ts` 1880, `pipeline/page.tsx` 1195), hex colors, componentes/hooks >40 linhas. Prompt: `docs/agent_prompts/track_a6g4_frontend_style_sweep.md`. Respeitar codegen em `frontend/src/generated/` (não editar) | 1-2 sessões | ☐ |
 | A6g.5 | **Testes** (`tests/`, `backend/tests/`, `frontend/tests/`) — aplicar code style também em teste: fakes nomeados > `MagicMock` inline, fixtures <20 linhas, nomes descritivos (`test_reconcile_drops_duplicate_when_same_hash` > `test_dedupe_1`). Não relaxa o padrão em teste | 1 sessão | ☐ |
 | A6g.6 | **Enforcement automatizado** — onde fizer sentido, transformar regra em gate: (a) `ruff` rules ativadas (`PLR0915` max-statements, `C901` complexity, `E501` line length já ativo); (b) teste AST que falha se `from typing import Dict, Any` cruzar boundary HTTP; (c) pre-commit hook que grep-bloqueia nomes proibidos em filenames novos; (d) ESLint rule `@typescript-eslint/no-explicit-any` como `error`. Documentar exceções com `# noqa: REGRA — motivo` citando ADR ou issue | 1 sessão | ☐ |
 | A6g.7 | **Go prep** (só quando A6f.1 for iniciada) — config `golangci-lint.yml` com `funlen`, `gocyclo`, `gocognit`, `revive` (nomes) alinhados ao code style. Regras vivem no repo antes do primeiro commit Go | 0.5 sessão | ⏸ blocked-by-A6f.1 |
@@ -863,25 +863,26 @@ disjuntos, branches distintas, zero overlap de arquivos):
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════╗
-║ ONDA 1 — paralelizável agora (3 lanes independentes)                 ║
+║ ONDA 1 — paralelizável agora (2 lanes independentes)                 ║
 ╠═══════════════════════════════════════════════════════════════════════╣
-║  Lane A1: A6e Task slice         (agent/a6e-task/*)                  ║
-║           └─ 3 sub-agregados (tarefas+milhas+rotina), fonte MD+DB     ║
-║  Lane A2: A6g.2 pipeline sweep   (agent/a6g2-pipeline-style/*)       ║
-║           └─ consome baseline 2026-04-21; alvos top: e6_render.py    ║
-║             (3875 l), e5_analyze.py (2862 l), e_reset::main (372 l)  ║
-║  Lane A3: A6g.4 frontend sweep   (agent/a6g4-frontend-style/*)       ║
-║           └─ consome baseline; alvos T1-T5 (any, arquivos >500, etc) ║
+║  Lane A1: A6g.2 pipeline sweep   (agent/a6g2-pipeline-style/*)       ║
+║           └─ prompt: docs/agent_prompts/track_a6g2_pipeline_style_  ║
+║             sweep.md; 1ª rodada defensiva (Tier 1: e_reset::main,    ║
+║             pdf_generator, e0_audit; Tier 2 opc.); Tier 3 em A6g.2b  ║
+║  Lane A2: A6g.4 frontend sweep   (agent/a6g4-frontend-style/*)       ║
+║           └─ prompt: docs/agent_prompts/track_a6g4_frontend_style_  ║
+║             sweep.md; alvos T1-T5 (any, api.ts 1880 l, utils.ts,     ║
+║             hex colors, componentes >40 l)                           ║
 ║                                                                       ║
-║  [A6e Goal] ✅ entregue 2026-04-21 — último aggregate slice antes    ║
-║  das transversais. Task é o remanescente isolado.                    ║
+║  [A6e Task] ✅ entregue 2026-04-21 (A6e.7) — 3 sub-agregados         ║
+║  [A6e Goal] ✅ entregue 2026-04-21                                   ║
+║  [A6g.1 audit] ✅ entregue — baseline em docs/audits/                ║
 ║  [A6f.1 pipeline-service] NÃO entra aqui — maior item isolado,       ║
 ║  começar antes de A6e convergir aumenta merge hell. Fica na Onda 2.  ║
 ║  [A6g.3 backend sweep] prefere pós-A6e.4 (routers finos). Onda 2.    ║
-║  [A6g.1 audit] ✅ entregue — baseline em docs/audits/.               ║
 ╚═══════════════════════════════════════════════════════════════════════╝
                               │
-                              ▼  (após A6e Task merged — Goal já ✅)
+                              ▼  (após Onda 1 convergir)
 ╔═══════════════════════════════════════════════════════════════════════╗
 ║ ONDA 2 — paralelizável (4 lanes, A6e transversais + infra)           ║
 ╠═══════════════════════════════════════════════════════════════════════╣
@@ -925,11 +926,10 @@ disjuntos, branches distintas, zero overlap de arquivos):
 
 | Situação                                                     | Pegar          |
 | ------------------------------------------------------------ | -------------- |
-| Sessão curta (≤2h), familiar com backend DDD + parsers MD    | A6e Task       |
 | Sessão curta, gosta de refactor cirúrgico em Python          | A6g.2 pipeline |
 | Sessão curta, familiar com TS/React                          | A6g.4 frontend |
 | Sessão longa (≥3h), appetite por greenfield infra            | A6f.1 (Onda 2) |
-| Já tem agente em A6e Task — não competir                     | A6g.2 ou .4    |
+| Já tem agente em A6g.2 ou .4 — não competir                  | a outra lane   |
 | Onda 1 concluída e quer destravar tudo                       | B1 ou B3       |
 
 **Regras de coordenação (aplicam a todas as ondas):**
