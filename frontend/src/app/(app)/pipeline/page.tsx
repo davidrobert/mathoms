@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { toast } from "sonner";
 import {
   triggerPipeline,
@@ -15,81 +14,30 @@ import {
   getLLMTier,
   getToken,
   type PipelineRunResponse,
-  type PipelineStageLog,
   type PipelineEvent,
   type PipelineStageActivity,
   ApiError,
 } from "@/lib/api";
 import { usePipelineWS } from "@/lib/usePipelineWS";
-import {
-  formatDate,
-  formatDuration,
-  formatElapsed,
-  runStatusLabel,
-  stageStatusLabel,
-  stageName,
-} from "@/lib/format";
-import {
-  computePhaseStates,
-  PIPELINE_PHASES,
-  getPhase,
-} from "@/lib/pipelinePhases";
-import { buildUserFacingError } from "@/lib/pipelineErrorMessages";
-import { isPipelineLlmStage } from "@/lib/pipelineLlmStages";
-import {
-  reviewPauseImpactHint,
-  stageLlmFootnote,
-} from "@/lib/pipelineTransparency";
 import { PageHeader } from "@/components/PageHeader";
-import { PhaseStepper } from "@/components/PhaseStepper";
-import { StatusBadge } from "@/components/StatusBadge";
 import { Spinner } from "@/components/Spinner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import {
-  ChevronDown,
-  ChevronUp,
-  AlertTriangle,
-  XCircle,
-  RefreshCw,
-  Clock,
-  Wifi,
-  WifiOff,
-  Loader2,
-} from "lucide-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import type { UserWorkspace } from "@/lib/api";
 
+import { FailedRunCard } from "./_components/FailedRunCard";
+import { ActiveRunCard } from "./_components/ActiveRunCard";
+import { TriggerCard } from "./_components/TriggerCard";
+import { NeedsReviewCard } from "./_components/NeedsReviewCard";
+import { RunHistoryList } from "./_components/RunHistoryList";
+import { useDeepLinkScroll } from "./_components/useDeepLinkScroll";
+import {
+  getDismissedFailedRunId,
+  setDismissedFailedRunId,
+} from "./_components/dismissedFailedRun";
+
 const ACTIVE_STATUSES = new Set(["pending", "running", "resuming"]);
-const STALL_PENDING_MS = 30_000;
-const STALL_RUNNING_MS = 60_000;
-const DISMISSED_FAILED_RUN_KEY = "pipeline:dismissedFailedRunId";
-
-function getDismissedFailedRunId(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage.getItem(DISMISSED_FAILED_RUN_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function setDismissedFailedRunId(id: string | null) {
-  if (typeof window === "undefined") return;
-  try {
-    if (id) window.localStorage.setItem(DISMISSED_FAILED_RUN_KEY, id);
-    else window.localStorage.removeItem(DISMISSED_FAILED_RUN_KEY);
-  } catch {
-    /* ignore */
-  }
-}
 
 export default function PipelinePage() {
   const { workspace } = useWorkspace();
@@ -148,20 +96,17 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
     }
 
     if (activeRun && event.run_id === activeRun.id) {
-      getPipelineRun(workspace!.id, activeRun.id).then((updated) => {
+      getPipelineRun(workspace.id, activeRun.id).then((updated) => {
         setActiveRun(updated);
         setRuns((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
       }).catch(() => {});
     }
-  }, [activeRun]);
+  }, [activeRun, workspace.id]);
 
   const handleRunFinished = useCallback((event: PipelineEvent) => {
     if (event.event === "run_completed") {
       toast.success("Relatório gerado com sucesso!", {
-        action: {
-          label: "Ver relatórios",
-          onClick: () => router.push("/reports"),
-        },
+        action: { label: "Ver relatórios", onClick: () => router.push("/reports") },
         duration: 8000,
       });
       setTimeout(() => router.push("/reports"), 2000);
@@ -175,7 +120,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
     }
 
     if (activeRun) {
-      getPipelineRun(workspace!.id, activeRun.id).then((updated) => {
+      getPipelineRun(workspace.id, activeRun.id).then((updated) => {
         if (updated.status === "failed" || updated.status === "partial_failure") {
           setLastFailedRun(updated);
         }
@@ -183,7 +128,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
         setRuns((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
       }).catch(() => setActiveRun(null));
     }
-  }, [activeRun, router]);
+  }, [activeRun, router, workspace.id]);
 
   const bumpWsLiveness = useCallback(() => {
     lastWsEventRef.current = Date.now();
@@ -243,27 +188,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
     reload();
   }, [reload]);
 
-  const [highlightedRunId, setHighlightedRunId] = useState<string | null>(null);
-
-  /** F11.4a — deep link desde o relatório: `/pipeline?run=<uuid>`. */
-  useEffect(() => {
-    if (loading) return;
-    const params = new URLSearchParams(window.location.search);
-    const runParam = params.get("run");
-    if (!runParam) return;
-    requestAnimationFrame(() => {
-      const el = document.getElementById(`pipeline-run-${runParam}`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        setHighlightedRunId(runParam);
-        setTimeout(() => setHighlightedRunId(null), 3000);
-        const url = new URL(window.location.href);
-        url.searchParams.delete("run");
-        const next = url.pathname + (url.search ? url.search : "");
-        window.history.replaceState({}, "", next);
-      }
-    });
-  }, [loading, runs]);
+  const highlightedRunId = useDeepLinkScroll(runs, loading);
 
   useEffect(() => {
     if (!activeRun) setLiveStageActivity(null);
@@ -278,7 +203,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
     async function poll() {
       if (!activeRun) return;
       try {
-        const updated = await getPipelineRun(workspace!.id, activeRun.id);
+        const updated = await getPipelineRun(workspace.id, activeRun.id);
         setActiveRun(ACTIVE_STATUSES.has(updated.status) ? updated : null);
         setRuns((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
 
@@ -301,14 +226,14 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [activeRun?.id, activeRun?.status, wsStatus, router]);
+  }, [activeRun?.id, activeRun?.status, wsStatus, router, workspace.id]);
 
   async function handleTrigger(fromStage?: string, incremental?: boolean) {
     setError("");
     setLastFailedRun(null);
     setTriggering(true);
     try {
-      const run = await triggerPipeline(workspace!.id, { from_stage: fromStage, skip_llm: !isPremium, incremental });
+      const run = await triggerPipeline(workspace.id, { from_stage: fromStage, skip_llm: !isPremium, incremental });
       setActiveRun(run);
       setRuns((prev) => [run, ...prev]);
       lastWsEventRef.current = Date.now();
@@ -322,12 +247,26 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   async function handleCancel() {
     if (!activeRun) return;
     try {
-      await cancelPipelineRun(workspace!.id, activeRun.id);
-      const updated = await getPipelineRun(workspace!.id, activeRun.id);
+      await cancelPipelineRun(workspace.id, activeRun.id);
+      const updated = await getPipelineRun(workspace.id, activeRun.id);
       setActiveRun(ACTIVE_STATUSES.has(updated.status) ? updated : null);
       setRuns((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
     } catch {
       setError("Erro ao cancelar");
+    }
+  }
+
+  async function handleResume() {
+    if (!activeRun) return;
+    setResuming(true);
+    try {
+      await resumePipelineRun(workspace.id, activeRun.id);
+      toast.success("Pipeline retomado", { duration: 3000 });
+      await reload();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.detail : "Erro ao retomar pipeline");
+    } finally {
+      setResuming(false);
     }
   }
 
@@ -356,7 +295,6 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
           </div>
         )}
 
-        {/* Failed Run Card — prominent error with retry CTAs */}
         {!activeRun && lastFailedRun && (
           <FailedRunCard
             run={lastFailedRun}
@@ -370,90 +308,17 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
           />
         )}
 
-        {/* Trigger Section */}
         {showTrigger && (
-          <Card className="mb-8">
-            <CardContent>
-              <h2 className="mb-2 font-medium">Gerar Relatório</h2>
-              {!listDataOk ? (
-                <div className="text-sm text-muted-foreground">
-                  <p>Não foi possível carregar o status dos documentos e da fila.</p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() => void reload()}
-                  >
-                    Tentar novamente
-                  </Button>
-                </div>
-              ) : readyCount === 0 ? (
-                <div className="text-sm text-muted-foreground">
-                  <p>Nenhum documento pronto para processar.</p>
-                  <Link href="/documents" className="mt-2 inline-block text-primary hover:underline">
-                    Enviar documentos →
-                  </Link>
-                </div>
-              ) : (
-                <>
-                  <p className="mb-4 text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">{readyCount}</span>{" "}
-                    documento(s) pronto(s) para processamento
-                    {newCount > 0 && newCount < readyCount && (
-                      <> · <span className="font-medium text-primary">{newCount}</span> novo(s) desde última execução</>
-                    )}
-                    .
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    {/* Primary: "Processar novos" when there are new docs and it's not the first run */}
-                    {newCount > 0 && newCount < readyCount ? (
-                      <>
-                        <Button onClick={() => handleTrigger(undefined, true)} disabled={triggering}>
-                          {triggering ? (
-                            <span className="inline-flex items-center gap-2">
-                              <Spinner size="sm" className="text-primary-foreground" />
-                              Iniciando...
-                            </span>
-                          ) : (
-                            `Processar ${newCount} novo(s)`
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => handleTrigger()}
-                          disabled={triggering}
-                        >
-                          Processar todos ({readyCount})
-                        </Button>
-                      </>
-                    ) : (
-                      <Button onClick={() => handleTrigger()} disabled={triggering}>
-                        {triggering ? (
-                          <span className="inline-flex items-center gap-2">
-                            <Spinner size="sm" className="text-primary-foreground" />
-                            Iniciando...
-                          </span>
-                        ) : (
-                          "Processar documentos"
-                        )}
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleTrigger("E3")}
-                      disabled={triggering}
-                    >
-                      Reprocessar a partir de {stageName("E3")}
-                    </Button>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+          <TriggerCard
+            readyCount={readyCount}
+            newCount={newCount}
+            triggering={triggering}
+            listDataOk={listDataOk}
+            onReload={() => void reload()}
+            onTrigger={handleTrigger}
+          />
         )}
 
-        {/* Active Run Progress */}
         {activeRun && ACTIVE_STATUSES.has(activeRun.status) && (
           <ActiveRunCard
             run={activeRun}
@@ -464,99 +329,29 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
           />
         )}
 
-        {/* needs_review banner */}
         {activeRun?.status === "needs_review" && (
-          <Card
-            id={`pipeline-run-${activeRun.id}`}
-            className="mb-8 border-warning/50"
-          >
-            <CardContent>
-              <div className="flex items-center gap-3 mb-3">
-                <AlertTriangle className="h-5 w-5 text-warning" />
-                <h2 className="font-medium text-warning">Aguardando sua confirmação</h2>
-              </div>
-              <p className="text-sm text-muted-foreground mb-2">
-                Pausamos o processamento na etapa{" "}
-                <span className="font-medium text-foreground">
-                  {stageName(activeRun.paused_at_stage ?? "")}
-                </span>{" "}
-                para que você revise antes de continuar.
-              </p>
-              <p className="text-sm text-muted-foreground mb-3">
-                {reviewPauseImpactHint(activeRun.paused_at_stage)}
-              </p>
-              {activeRun.paused_at_stage &&
-                isPipelineLlmStage(activeRun.paused_at_stage) && (
-                  <p className="text-xs text-muted-foreground mb-3 rounded-md border border-border/60 bg-muted/40 px-3 py-2">
-                    Esta etapa usa leitura assistida por IA. Confira valores e
-                    categorias antes de aprovar.
-                  </p>
-                )}
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    if (!activeRun) return;
-                    setResuming(true);
-                    try {
-                      await resumePipelineRun(workspace!.id, activeRun.id);
-                      toast.success("Pipeline retomado", { duration: 3000 });
-                      await reload();
-                    } catch (err) {
-                      toast.error(
-                        err instanceof ApiError ? err.detail : "Erro ao retomar pipeline"
-                      );
-                    } finally {
-                      setResuming(false);
-                    }
-                  }}
-                  disabled={resuming}
-                >
-                  {resuming ? (
-                    <span className="inline-flex items-center gap-2">
-                      <Spinner size="sm" className="text-primary-foreground" />
-                      Retomando...
-                    </span>
-                  ) : (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Aprovar e Continuar
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <NeedsReviewCard
+            runId={activeRun.id}
+            pausedAtStage={activeRun.paused_at_stage}
+            resuming={resuming}
+            onResume={handleResume}
+          />
         )}
 
-        {/* Completed Run: redirect message */}
         {activeRun?.status === "completed" && (
           <div className="mb-6 rounded-lg bg-gain/10 p-4 text-center text-sm text-gain">
             Relatório gerado com sucesso! Redirecionando...
           </div>
         )}
 
-        {/* Run History */}
-        {runs.length > 0 && (
-          <div>
-            <h2 className="mb-3 text-lg font-medium">Histórico</h2>
-            <div className="space-y-2">
-              {runs
-                .filter((r) => r.id !== activeRun?.id || !ACTIVE_STATUSES.has(r.status))
-                .filter((r) => r.id !== lastFailedRun?.id || activeRun != null)
-                .map((run) => (
-                  <HistoryRow
-                    key={run.id}
-                    run={run}
-                    highlighted={highlightedRunId === run.id}
-                    onRetry={() => handleTrigger()}
-                    onRetryFrom={run.failed_at_stage ? () => handleTrigger(run.failed_at_stage!) : undefined}
-                    triggering={triggering}
-                  />
-                ))}
-            </div>
-          </div>
-        )}
+        <RunHistoryList
+          runs={runs}
+          activeRun={activeRun}
+          lastFailedRun={lastFailedRun}
+          highlightedRunId={highlightedRunId}
+          triggering={triggering}
+          onTrigger={handleTrigger}
+        />
 
         <ConfirmDialog
           open={cancelOpen}
@@ -569,626 +364,5 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
         />
       </div>
     </TooltipProvider>
-  );
-}
-
-// ─── Failed Run Card ───
-
-function FailedRunCard({
-  run,
-  onRetry,
-  onRetryFrom,
-  onDismiss,
-  triggering,
-}: {
-  run: PipelineRunResponse;
-  onRetry: () => void;
-  onRetryFrom?: () => void;
-  onDismiss: () => void;
-  triggering: boolean;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const failedStage = run.stage_logs.find((s) => s.status === "failed");
-  const duration = run.completed_at
-    ? new Date(run.completed_at).getTime() - new Date(run.started_at).getTime()
-    : null;
-
-  // Mensagem user-facing centrada em impacto + próximo passo (ADR-068)
-  const userError = buildUserFacingError(
-    failedStage?.errors,
-    run.failed_at_stage,
-  );
-
-  return (
-    <Card
-      id={`pipeline-run-${run.id}`}
-      className="mb-8 border-loss/40 bg-loss/[0.03]"
-    >
-      <CardContent>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-loss/10">
-              <XCircle className="h-5 w-5 text-loss" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="font-medium text-loss">{userError.headline}</h2>
-              {userError.hint && (
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {userError.hint}
-                </p>
-              )}
-              {duration != null && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Falhou após {formatDuration(duration)}
-                </p>
-              )}
-            </div>
-          </div>
-          <button
-            onClick={onDismiss}
-            className="text-muted-foreground hover:text-foreground p-1 rounded transition-colors"
-            aria-label="Fechar"
-          >
-            <XCircle className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Error details */}
-        {(failedStage?.errors || failedStage?.output_summary) && (
-          <div className="mt-3">
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1.5 text-xs font-medium text-loss hover:underline"
-            >
-              {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              {expanded ? "Ocultar detalhes" : "Ver detalhes técnicos"}
-            </button>
-            {expanded && (
-              <div className="mt-2 rounded-lg bg-loss/5 border border-loss/10 overflow-hidden text-xs font-mono">
-                {/* Metadata row */}
-                <div className="flex flex-wrap gap-x-4 gap-y-1 px-3 py-2 border-b border-loss/10 text-muted-foreground">
-                  {failedStage && (
-                    <span>
-                      <span className="text-loss/60">etapa</span>{" "}
-                      <span className="text-foreground">{failedStage.stage}</span>
-                    </span>
-                  )}
-                  {failedStage?.duration_ms != null && (
-                    <span>
-                      <span className="text-loss/60">duração</span>{" "}
-                      <span className="text-foreground">{(failedStage.duration_ms / 1000).toFixed(1)}s</span>
-                    </span>
-                  )}
-                  {typeof (failedStage?.output_summary as Record<string, unknown> | null)?.attempt_count === "number" && (
-                    <span>
-                      <span className="text-loss/60">tentativas</span>{" "}
-                      <span className="text-foreground">{(failedStage!.output_summary as Record<string, unknown>).attempt_count as number}</span>
-                    </span>
-                  )}
-                  {typeof (failedStage?.output_summary as Record<string, unknown> | null)?.error_type === "string" && (
-                    <span>
-                      <span className="text-loss/60">tipo</span>{" "}
-                      <span className="text-foreground">{(failedStage!.output_summary as Record<string, unknown>).error_type as string}</span>
-                    </span>
-                  )}
-                </div>
-                {/* Error message */}
-                {failedStage?.errors && (
-                  <pre className="px-3 py-2 text-loss whitespace-pre-wrap break-all border-b border-loss/10">
-                    {failedStage.errors}
-                  </pre>
-                )}
-                {/* Traceback */}
-                {typeof (failedStage?.output_summary as Record<string, unknown> | null)?.traceback === "string" && (
-                  <pre className="max-h-64 overflow-auto px-3 py-2 text-muted-foreground whitespace-pre-wrap break-all">
-                    {(failedStage!.output_summary as Record<string, unknown>).traceback as string}
-                  </pre>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Retry CTAs */}
-        <div className="mt-4 flex gap-3">
-          <Button size="sm" onClick={onRetry} disabled={triggering}>
-            <RefreshCw className="mr-2 h-3.5 w-3.5" />
-            {triggering ? "Iniciando..." : "Tentar novamente"}
-          </Button>
-          {onRetryFrom && run.failed_at_stage && (
-            <Button size="sm" variant="outline" onClick={onRetryFrom} disabled={triggering}>
-              Reprocessar a partir de {stageName(run.failed_at_stage)}
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ─── Active Run Card ───
-
-function ActiveRunCard({
-  run,
-  wsStatus,
-  lastWsEventRef,
-  liveStageActivity,
-  onCancel,
-}: {
-  run: PipelineRunResponse;
-  wsStatus: string;
-  lastWsEventRef: React.RefObject<number>;
-  liveStageActivity: PipelineStageActivity | null;
-  onCancel: () => void;
-}) {
-  const completedCount = run.stage_logs.filter(
-    (s) => s.status === "completed" || s.status === "skipped" || s.status === "skipped_free_tier"
-  ).length;
-  const totalStages = run.stage_logs.length;
-  /** Só etapas já finalizadas — evita “80%” no início de uma etapa longa (o WS reporta % ao entrar na etapa). */
-  const pct = totalStages > 0 ? Math.round((completedCount / totalStages) * 100) : 0;
-  const isPending = run.status === "pending";
-  const isRunning = run.status === "running" || run.status === "resuming";
-  const hasNoStages = totalStages === 0;
-
-  const [elapsed, setElapsed] = useState(() => formatElapsed(run.started_at));
-  const [stallWarning, setStallWarning] = useState<string | null>(null);
-  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setElapsed(formatElapsed(run.started_at));
-
-      const now = Date.now();
-      const runAge = now - new Date(run.started_at).getTime();
-      const sinceLastWs = now - lastWsEventRef.current;
-
-      if (isPending && hasNoStages && runAge > STALL_PENDING_MS) {
-        setStallWarning(
-          "O processamento está aguardando há mais de 30s. Pode haver um problema na fila de execução."
-        );
-      } else if (isRunning && sinceLastWs > STALL_RUNNING_MS) {
-        setStallWarning(
-          wsStatus === "connected"
-            ? "Sem sinal do servidor há mais de 1 min. Se o indicador mostrar “Tempo real”, aguarde; caso contrário, verifique a conexão."
-            : "Sem atualizações recentes. O processamento pode estar lento."
-        );
-      } else {
-        setStallWarning(null);
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [run.started_at, isPending, isRunning, hasNoStages, lastWsEventRef, wsStatus]);
-
-  // Agrupamento em 4 fases narrativas (ADR-068)
-  const phaseStates = computePhaseStates(run.stage_logs, run.current_stage, run.status);
-  const activePhase = run.current_stage
-    ? getPhase(run.current_stage)
-    : isPending
-      ? PIPELINE_PHASES[0]
-      : null;
-
-  const title = isPending
-    ? "Iniciando processamento..."
-    : activePhase
-      ? activePhase.title
-      : "Processando seus documentos...";
-
-  const subtitle = isPending
-    ? "Conectando ao serviço de processamento..."
-    : activePhase
-      ? activePhase.activeMessage
-      : null;
-
-  const llmStageActive =
-    isRunning &&
-    run.current_stage != null &&
-    isPipelineLlmStage(run.current_stage);
-
-  return (
-    <Card
-      id={`pipeline-run-${run.id}`}
-      className={`mb-8 ${stallWarning ? "border-alert/50" : "border-primary/30"}`}
-    >
-      <CardContent>
-        {/* Header */}
-        <div className="mb-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {isPending ? (
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            ) : (
-              <div className="relative flex h-5 w-5 items-center justify-center">
-                <div className="absolute h-3 w-3 animate-ping rounded-full bg-primary/30" />
-                <div className="h-2.5 w-2.5 rounded-full bg-primary" />
-              </div>
-            )}
-            <div>
-              <h2 className="font-medium">{title}</h2>
-              {subtitle && (
-                <p className="text-xs text-muted-foreground">{subtitle}</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <ConnectionChip status={wsStatus} />
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              {elapsed}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-destructive border-destructive/30 hover:bg-destructive/10"
-              onClick={onCancel}
-            >
-              Cancelar
-            </Button>
-          </div>
-        </div>
-
-        {/* Stall Warning */}
-        {stallWarning && (
-          <div className="mb-4 flex items-start gap-2 rounded-lg bg-alert/10 px-3 py-2.5 text-sm text-alert">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{stallWarning}</span>
-          </div>
-        )}
-
-        {/* Phase Stepper — macro view (4 fases narrativas) */}
-        <div className="mb-5">
-          <PhaseStepper states={phaseStates} />
-        </div>
-
-        {/* Progress Bar (quando já temos etapas logadas) */}
-        <div className="mb-3">
-          {isPending && hasNoStages ? (
-            <div className="h-2 overflow-hidden rounded-full bg-muted">
-              <div className="h-full w-[40%] rounded-full bg-primary/60 animate-indeterminate" />
-            </div>
-          ) : (
-            <>
-              <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                <span>Progresso geral</span>
-                <span>{pct}%</span>
-              </div>
-              <p className="mb-2 text-[11px] leading-snug text-muted-foreground">
-                {llmStageActive ? (
-                  <>
-                    Etapa com IA em andamento: a parte sólida é o que já foi concluído; a faixa ao lado com movimento
-                    indica processamento ativo (sem percentual fixo dentro desta etapa).
-                  </>
-                ) : (
-                  <>
-                    O percentual só avança quando uma etapa termina. Etapas longas podem levar vários minutos sem
-                    mudar o número — use o tempo na lista abaixo para acompanhar a etapa atual.
-                  </>
-                )}
-              </p>
-              <div
-                className="flex h-2 w-full overflow-hidden rounded-full bg-muted"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={pct}
-                aria-label={
-                  llmStageActive
-                    ? `Progresso: ${pct} por cento das etapas concluídas, etapa com IA em execução`
-                    : `Progresso: ${pct} por cento das etapas concluídas`
-                }
-              >
-                <div
-                  className={`h-full shrink-0 rounded-l-full transition-all duration-700 ease-out ${
-                    run.status === "failed" || run.status === "partial_failure"
-                      ? "bg-loss"
-                      : run.status === "completed"
-                        ? "bg-gain"
-                        : run.status === "needs_review"
-                          ? "bg-warning"
-                          : "bg-primary"
-                  }`}
-                  style={{ width: `${pct}%` }}
-                />
-                {llmStageActive && pct < 100 ? (
-                  <div className="relative h-full min-w-0 flex-1 overflow-hidden rounded-r-full">
-                    <div className="h-full w-[42%] max-w-[min(12rem,100%)] rounded-full bg-primary/55 animate-indeterminate" />
-                  </div>
-                ) : (
-                  <div className="h-full min-w-0 flex-1 bg-muted" aria-hidden />
-                )}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Disclosure: detalhes técnicos (etapas individuais) */}
-        {totalStages > 0 && (
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={() => setShowTechnicalDetails((v) => !v)}
-              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-              aria-expanded={showTechnicalDetails}
-            >
-              {showTechnicalDetails ? (
-                <ChevronUp className="h-3 w-3" />
-              ) : (
-                <ChevronDown className="h-3 w-3" />
-              )}
-              {showTechnicalDetails
-                ? "Ocultar detalhes técnicos"
-                : `Ver detalhes técnicos (${completedCount}/${totalStages} etapas)`}
-            </button>
-            {showTechnicalDetails && (
-              <div className="mt-3 space-y-0.5 rounded-lg border border-border/60 bg-muted/30 p-2">
-                {run.stage_logs.map((stage) => (
-                  <StageRow
-                    key={stage.id}
-                    stage={stage}
-                    liveActivity={
-                      liveStageActivity?.stage === stage.stage
-                        ? liveStageActivity
-                        : undefined
-                    }
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Elapsed Time (completed) */}
-        {run.completed_at && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Tempo total:{" "}
-            {formatDuration(
-              new Date(run.completed_at).getTime() -
-                new Date(run.started_at).getTime()
-            )}
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// ─── Connection Chip ───
-
-function ConnectionChip({ status }: { status: string }) {
-  if (status === "connected") {
-    return (
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <span className="inline-flex items-center gap-1 rounded-full bg-gain/10 px-2 py-0.5 text-[10px] font-medium text-gain cursor-default" />
-          }
-        >
-          <Wifi className="h-2.5 w-2.5" />
-          Tempo real
-        </TooltipTrigger>
-        <TooltipContent>Conectado via WebSocket — atualizações instantâneas</TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  if (status === "connecting") {
-    return (
-      <span className="inline-flex animate-pulse items-center gap-1 rounded-full bg-alert/10 px-2 py-0.5 text-[10px] font-medium text-alert">
-        <Wifi className="h-2.5 w-2.5" />
-        Conectando...
-      </span>
-    );
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground cursor-default" />
-        }
-      >
-        <WifiOff className="h-2.5 w-2.5" />
-        Polling
-      </TooltipTrigger>
-      <TooltipContent>Sem conexão em tempo real — atualizando a cada 2s</TooltipContent>
-    </Tooltip>
-  );
-}
-
-function useNowInterval(active: boolean, ms: number) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (!active) return;
-    const id = setInterval(() => setNow(Date.now()), ms);
-    return () => clearInterval(id);
-  }, [active, ms]);
-  return now;
-}
-
-// ─── Stage Row ───
-
-function StageRow({
-  stage,
-  liveActivity,
-}: {
-  stage: PipelineStageLog;
-  liveActivity?: PipelineStageActivity;
-}) {
-  const st = stageStatusLabel(stage.status);
-  const [expanded, setExpanded] = useState(false);
-  const running = stage.status === "running";
-  const now = useNowInterval(running, 1000);
-  const displayMs = running
-    ? Math.max(0, now - new Date(stage.started_at).getTime())
-    : stage.duration_ms;
-
-  const variantColors: Record<string, string> = {
-    neutral: "text-muted-foreground",
-    info: "text-info-financial",
-    success: "text-gain",
-    error: "text-loss",
-    warning: "text-warning",
-    muted: "text-muted-foreground",
-  };
-
-  const llmNote = stageLlmFootnote(stage.stage);
-
-  return (
-    <div>
-      <div
-        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-          stage.status === "running"
-            ? "bg-primary/5"
-            : stage.status === "needs_review"
-              ? "bg-warning/5"
-              : ""
-        }`}
-      >
-        <span className={`text-base ${variantColors[st.variant] ?? "text-muted-foreground"} ${stage.status === "running" ? "animate-pulse" : ""}`}>
-          {st.icon}
-        </span>
-        <span className={`flex-1 ${stage.status === "running" ? "font-medium" : ""}`}>
-          <span className="block">
-            {stageName(stage.stage)}
-            {llmNote && (
-              <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
-                {llmNote}
-              </span>
-            )}
-          </span>
-          {stage.status === "running" && (
-            <span className="ml-2 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-          )}
-          {stage.status === "needs_review" && (
-            <span className="ml-2 text-xs text-warning">(revisão)</span>
-          )}
-        </span>
-        <span className="text-xs text-muted-foreground font-mono">
-          {formatDuration(displayMs)}
-        </span>
-        {stage.errors && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setExpanded(!expanded)}
-            className="h-auto px-1.5 py-0.5 text-xs text-loss"
-          >
-            {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            {expanded ? "ocultar" : "ver erro"}
-          </Button>
-        )}
-      </div>
-      {expanded && stage.errors && (
-        <pre className="mx-3 mb-1 max-h-40 overflow-auto rounded bg-loss/5 p-3 text-xs text-loss font-mono">
-          {stage.errors}
-        </pre>
-      )}
-      {stage.status === "running" && liveActivity && (liveActivity.message || liveActivity.file) && (
-        <div className="mx-3 mb-1 rounded-md border border-border/50 bg-muted/40 px-3 py-2 text-xs">
-          {liveActivity.message && (
-            <p className="text-muted-foreground leading-snug">{liveActivity.message}</p>
-          )}
-          {liveActivity.file && (
-            <p
-              className="mt-1 font-mono text-[11px] text-foreground/90 truncate"
-              title={liveActivity.file}
-            >
-              Arquivo: {liveActivity.file}
-            </p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── History Row ───
-
-function HistoryRow({
-  run,
-  highlighted,
-  onRetry,
-  onRetryFrom,
-  triggering,
-}: {
-  run: PipelineRunResponse;
-  highlighted?: boolean;
-  onRetry: () => void;
-  onRetryFrom?: () => void;
-  triggering: boolean;
-}) {
-  const st = runStatusLabel(run.status);
-  const isFailed = run.status === "failed" || run.status === "partial_failure";
-  const duration = run.completed_at
-    ? new Date(run.completed_at).getTime() - new Date(run.started_at).getTime()
-    : null;
-
-  return (
-    <div
-      id={`pipeline-run-${run.id}`}
-      className={`group flex items-center justify-between rounded-lg border bg-card px-4 py-3 transition-colors ${
-        highlighted
-          ? "border-primary ring-1 ring-primary/40"
-          : isFailed
-            ? "border-loss/20"
-            : "border-border"
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <StatusBadge variant={st.variant}>{st.label}</StatusBadge>
-        <span className="text-sm text-muted-foreground">
-          {run.stage_logs.length} etapa(s)
-        </span>
-        {run.failed_at_stage && (
-          <span className="text-sm text-loss">
-            Falhou em {stageName(run.failed_at_stage)}
-          </span>
-        )}
-        {run.status === "needs_review" && (
-          <span className="text-xs text-warning flex items-center gap-1">
-            <AlertTriangle className="h-3 w-3" />
-            Revisão pendente
-          </span>
-        )}
-        {duration != null && (
-          <span className="text-xs text-muted-foreground">{formatDuration(duration)}</span>
-        )}
-      </div>
-      <div className="flex items-center gap-3">
-        {isFailed && (
-          <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 text-xs"
-              onClick={onRetry}
-              disabled={triggering}
-            >
-              <RefreshCw className="mr-1 h-3 w-3" />
-              Reprocessar
-            </Button>
-            {onRetryFrom && run.failed_at_stage && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 text-xs"
-                onClick={onRetryFrom}
-                disabled={triggering}
-              >
-                A partir de {stageName(run.failed_at_stage)}
-              </Button>
-            )}
-          </div>
-        )}
-        {run.report_id && (
-          <Link
-            href={`/reports/${run.report_id}`}
-            className="text-xs text-primary underline-offset-2 hover:underline opacity-0 transition-opacity group-hover:opacity-100"
-          >
-            Ver relatório
-          </Link>
-        )}
-        <span className="text-sm text-muted-foreground">{formatDate(run.started_at)}</span>
-      </div>
-    </div>
   );
 }
