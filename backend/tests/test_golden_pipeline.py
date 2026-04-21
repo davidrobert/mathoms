@@ -255,10 +255,14 @@ class TestSyntheticPDFsAreParseable:
         with pdfplumber.open(path) as pdf:
             assert len(pdf.pages) >= 1
             text = pdf.pages[0].extract_text() or ""
-            # Smoke assertions: header do banco + transações aparecem
-            assert "Periodo" in text or "Per" in text
-            assert "Mercado Sintetico" in text
-            assert "Pagto Folha" in text
+            # Smoke assertions: header do banco + transações aparecem.
+            # Case-insensitive porque santander faz `.upper()` nas descrições
+            # (paridade com output real do banco, consumido por
+            # `scripts/e2/banks/santander.py`).
+            text_lower = text.lower()
+            assert "periodo" in text_lower or "per" in text_lower
+            assert "mercado sintetico" in text_lower
+            assert "pagto folha" in text_lower
 
 
 # ─────────────────────────────────────────────────────────────────────
