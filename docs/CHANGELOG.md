@@ -8,6 +8,29 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.5 — tests sweep Tier 4 (2026-04-21):** Split de
+  `tests/test_llm_stages.py` (920 linhas, maior arquivo in-scope da
+  sweep) em 3 arquivos de teste + 1 módulo de helpers compartilhados.
+  Os 52 tests coletados permaneceram idênticos ao baseline.
+  - `tests/_llm_stage_fixtures.py` (201l, prefixo `_` mantém fora da
+    coleção pytest): `make_llm_ctx`, `make_llm_ctx_no_llm`,
+    `make_e{1,15,2_llm,7_review}_output`, `make_llm_call_result`.
+    Ex-`_mock_*` privados viraram API pública do suite.
+  - `tests/test_llm_stages.py` (920 → 384l): validadores (E1/E1.5/E2),
+    `TestValidationResult`, `TestOutputConverters`,
+    `TestOrchestratorLLMStages`.
+  - `tests/test_llm_stages_per_stage.py` (328l, novo): `TestE1Stage`,
+    `TestE15Stage`, `TestE2LLMStage`, `TestA6aStructural` (ADR-105).
+  - `tests/test_llm_stages_e7.py` (84l, novo): `TestE7ReviewStage`,
+    `TestE7ReviewOutputConverter`.
+  - Suíte `pytest tests` 1461 passed / 2 skipped (baseline preservado).
+  - A6g.5 agora entrega **todos os 4 tiers**; nenhum arquivo in-scope
+    acima de 500 linhas em `tests/`. `backend/tests/test_content_classifier.py`
+    (655l), `test_task_repository.py` (532l), `test_multi_tenant_isolation.py`
+    (537l) e `tests/unit/pipeline/test_patrimonio_resolvers.py` (705l) /
+    `test_e3_reconciler_adapter.py` (545l) seguem fora do escopo
+    (prompt pediu só `test_llm_stages.py`).
+
 - **A6g.5 — tests sweep Tier 3 (2026-04-21):** Decomposição das 3
   fixtures in-scope >30 linhas via helpers privados nomeados. Zero
   mudança semântica; mesmo contador de tests.
