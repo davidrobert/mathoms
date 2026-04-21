@@ -760,7 +760,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | A6f.5a | Auth portability documentada | JWT HS256 `{sub, exp, tv}` + Fernet mantidos; ADR-109; `test_auth_portability.py` (12 testes JWT+Fernet parity) | 1 sessão | ✅ 2026-04-20 |
 | A6f.5b | Fernet → AES-GCM (deferido) | AES-256-GCM + HKDF-SHA256; migration de `LLMConfig.api_key_encrypted` + vault_entries; decrypt fallback para Fernet durante cutover | 1 sessão | ⏸️ deferido (ADR-109) |
 | A6f.5c | JWT HS256 → RS256 (deferido) | Só se houver separação real entre emissor e validador (ex: pipeline-service valida tokens do backend) | 1 sessão | ⏸️ deferido (ADR-109) |
-| A6f.6 | Stateless rigoroso | WebSocket via Redis pub/sub; rate limiting Redis; zero `@lru_cache` mutable; `tests/integration/test_multi_worker_concurrency.py` | 1-2 sessões | ☐ |
+| A6f.6 | Stateless rigoroso | WebSocket via Redis pub/sub; rate limiting Redis; zero `@lru_cache` mutable; `tests/integration/test_multi_worker_concurrency.py` | 1-2 sessões | ✅ 2026-04-20 · ADR-111 · audit em `docs/STATELESS_AUDIT.md` (gaps críticos: 0) + 5 tests multi-worker empíricos. Nenhum refactor de código necessário — backend já era multi-worker-safe desde P5 (WS pub/sub + DB rate limit + zero `asyncio.create_task`). Regra operacional R19 formalizada em CLAUDE.md. |
 
 **Estimativa total A6f:** 6-8 sessões grandes (A6f.5b e .5c só contam se gatilho acionar).
 
