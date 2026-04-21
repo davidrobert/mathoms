@@ -604,8 +604,13 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 ## Sprint A6 — Migração Infra+Domínio (plano transversal)
 
 **Plano completo:** [_scratch/plano_migracao_artifacts_db.md](../_scratch/plano_migracao_artifacts_db.md) §17-§19
-**ADRs:** 097 (extract-then-refactor), **098** (Caminho B puro vs pragmático), **099** (reuse de `analyze_*` em `main_with_store`), **100** (A6d commitment), **101** (R12-R17 backend DDD/SOLID), **102** (R18-R20 language-neutral), **103** (teste humano como gate)
-**Status global (2026-04-19):** Fase 8 do plano fechada (A5a-A5f · 1210 testes pipeline · 664 backend · zero regressão). 7 de 7 stages determinísticos no Caminho B.
+**ADRs:** 097 (extract-then-refactor), **098** (Caminho B puro vs pragmático), **099** (reuse de `analyze_*` em `main_with_store`), **100** (A6d commitment), **101** (R12-R17 backend DDD/SOLID), **102** (R18-R20 language-neutral), **103** (teste humano como gate), **109** (auth portability), **110** (structured logs + OTel), **111** (stateless rigoroso)
+**Status global (2026-04-21):**
+- **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (fechada completa 2026-04-20) · A6f.2/.3/.4/.5a/.6.
+- **A6e 🚧 parcial (4 de N+ agregados):** FamilyMember + Category + ConfigBlob + Document com repos+DTOs. Próximos: Goal → Task.
+- **Restante:** A6e (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events) · A6f.1 (pipeline-as-service) · A6g (7 sub-fases) · F7 (7A-7F + LGPD).
+- **Caminho crítico:** A6e Goal/Task → A6e.3/.4/.5/.6 → A6f.1 → F7A → F7B → F7D+dogfood → GA.
+- **Testes:** ~1184 pipeline + 847 backend passing (zero regressão).
 
 ### A5f — E1.5c Caminho B ✅ entregue 2026-04-19
 
@@ -759,7 +764,11 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 **Escopo deixado para frente:** `document_processor.py`, `document_pipeline_sync.py` e `tasks/pipeline_task.py` continuam com ORM direto — migração é R15 (use-case layer) em slice futuro.
 
-**Próximos slices recomendados (ordem):** Goal (A6e.6, multi-type) → Task (A6e.7, 3 sub-agregados). Podem paralelizar — agregados disjuntos.
+**Próximos slices de agregado recomendados (branches sugeridas, paralelizáveis — agregados disjuntos):**
+- `agent/a6e-goal/*` — **Goal** aggregate (multi-type: reserva de emergência, renda passiva, PF/PJ, curto/longo prazo; ~8 endpoints em `goals.py`).
+- `agent/a6e-task/*` — **Task** aggregate (3 sub-agregados: tarefas financeiras + milhas + rotina; fonte MD + DB).
+
+Depois dos slices de agregado restantes, destrava A6e.3 (use cases), A6e.4 (routers finos), A6e.5 (/api/v1/ prefix) e A6e.6 (domain events) — transversais a todos os agregados migrados.
 
 **Pré-existente fora de escopo (reportado):** `test_alembic_guardrails::test_offline_sql_generation_works` falha por migration A6b `r6s7t8u9v0w1` usando `batch_alter_table` sem `copy_from`; `test_documents.py` x9 falha por schema drift em `workspaces.use_db_artifacts_override`. Nenhum dos dois tocado pelo slice A6e.1+.2.
 
