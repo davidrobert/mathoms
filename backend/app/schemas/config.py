@@ -1,7 +1,8 @@
 """Pydantic schemas for the 5 editable configs: members, categories, pipeline, institutions, report_layout.
 
 **A6e (ADR-101)** — os DTOs dos agregados ``FamilyMember`` / ``BankAccount``
-(A6e.1+.2) e ``Category`` / ``CategoryKeyword`` (A6e.3) migraram para
+(A6e.1+.2), ``Category`` / ``CategoryKeyword`` (A6e.3) e dos 3 blobs de
+config ``Pipeline``/``Institution``/``ReportLayout`` (A6e.4) migraram para
 ``backend.app.schemas.dto.{agregado}``. Os nomes legados aqui são
 **aliases** durante a janela de transição (tests e imports antigos
 continuam funcionando). Use os DTOs novos em código novo.
@@ -22,6 +23,20 @@ from backend.app.schemas.dto.category.response import (
     CategoryListResponse as _CategoryListResponse,
     CategoryResponse as CategorySchema,
 )
+from backend.app.schemas.dto.config_blob.command import (
+    InstitutionConfigUpdateCommand as InstitutionConfigUpdateRequest,
+    PipelineConfigUpdateCommand as PipelineConfigUpdateRequest,
+    ReportLayoutUpdateCommand as ReportLayoutUpdateRequest,
+)
+from backend.app.schemas.dto.config_blob.response import (
+    FileLimitsSchema as _FileLimitsSchema,
+    InstitutionConfigResponse as InstitutionConfigSchema,
+    LLMConfigSchema as _LLMConfigSchema,
+    PipelineConfigResponse as PipelineConfigSchema,
+    QAThresholdsSchema as _QAThresholdsSchema,
+    ReconciliationTolerancesSchema as _ReconciliationTolerancesSchema,
+    ReportLayoutResponse as ReportLayoutSchema,
+)
 from backend.app.schemas.dto.family_member.command import (
     BankAccountCreateCommand as BankAccountCreateRequest,
     FamilyMemberCreateCommand as FamilyMemberCreateRequest,
@@ -37,95 +52,13 @@ from backend.app.schemas.dto.family_member.response import (
 FamilyMemberListResponse = _FamilyMemberListResponse
 CategoryListResponse = _CategoryListResponse
 
-
-# =============================================================================
-# Pipeline Config (JSON blob — tolerances, thresholds, formatting)
-# =============================================================================
-
-class ReconciliationTolerancesSchema(BaseModel):
-    saldo_diff: float = Field(default=0.01, ge=0)
-    temporal_gap_days: int = Field(default=2, ge=0)
-    baseline_irpf_diff: float = Field(default=1.0, ge=0)
-
-
-class QAThresholdsSchema(BaseModel):
-    score_diff_max: float = Field(default=0.5, ge=0)
-    patrimonio_composicao_diff_pct_max: float = Field(default=5, ge=0)
-    cv_fluxo_diff_max: float = Field(default=100, ge=0)
-    cv_taxa_poupanca_diff_pp_max: float = Field(default=5, ge=0)
-    cv_if_monthly_diff_max: float = Field(default=500, ge=0)
-    cv_if_progress_diff_pct_max: float = Field(default=2, ge=0)
-    cv_endividamento_diff_pct_max: float = Field(default=1, ge=0)
-    cv_reserva_cobertura_diff_max: float = Field(default=1, ge=0)
-    qa_unidentified_target_pct: float = Field(default=10.0, ge=0, le=100)
-
-
-class LLMConfigSchema(BaseModel):
-    model: str = Field(default="claude-sonnet-4-20250514", min_length=1)
-    max_tokens: int = Field(default=500, ge=1, le=200000)
-    confidence_threshold: float = Field(default=0.7, ge=0, le=1)
-
-
-class FileLimitsSchema(BaseModel):
-    preview_max_chars: int = Field(default=2000, ge=100)
-    preview_max_rows: int = Field(default=20, ge=1)
-    min_pdf_bytes: int = Field(default=1024, ge=0)
-    min_xls_bytes: int = Field(default=40000, ge=0)
-    min_csv_bytes: int = Field(default=500, ge=0)
-
-
-class PipelineConfigSchema(BaseModel):
-    """Full pipeline.json configuration — validated as a structured blob."""
-    llm: Optional[LLMConfigSchema] = None
-    file_limits: Optional[FileLimitsSchema] = None
-    reconciliation: Optional[dict[str, Any]] = None
-    qa_thresholds: Optional[QAThresholdsSchema] = None
-    artifact_names: Optional[dict[str, str]] = None
-    log_files: Optional[dict[str, Any]] = None
-    period_regex: Optional[dict[str, str]] = None
-
-    model_config = {"from_attributes": True}
-
-
-class PipelineConfigUpdateRequest(BaseModel):
-    """Partial update — only provided fields are merged."""
-    llm: Optional[LLMConfigSchema] = None
-    file_limits: Optional[FileLimitsSchema] = None
-    reconciliation: Optional[dict[str, Any]] = None
-    qa_thresholds: Optional[QAThresholdsSchema] = None
-    artifact_names: Optional[dict[str, str]] = None
-    log_files: Optional[dict[str, Any]] = None
-    period_regex: Optional[dict[str, str]] = None
-
-
-# =============================================================================
-# Institution Config (JSON blob — patterns, layouts, cartoes)
-# =============================================================================
-
-class InstitutionConfigSchema(BaseModel):
-    """Full institutions.json — stored as JSON blob due to deep/variable structure."""
-    config_json: dict[str, Any]
-
-    model_config = {"from_attributes": True}
-
-
-class InstitutionConfigUpdateRequest(BaseModel):
-    config_json: dict[str, Any]
-
-
-# =============================================================================
-# Report Layout (YAML→JSON blob — sections, cards, charts toggles)
-# =============================================================================
-
-class ReportLayoutSchema(BaseModel):
-    """Full report_layout.yaml content — stored as JSON blob."""
-    config_json: dict[str, Any]
-
-    model_config = {"from_attributes": True}
-
-
-class ReportLayoutUpdateRequest(BaseModel):
-    config_json: dict[str, Any]
+# Sub-schemas tipados do Pipeline também re-exportados sem underscore, para
+# manter imports legados (`from backend.app.schemas.config import LLMConfigSchema`)
+# funcionando durante a janela A6e.
+FileLimitsSchema = _FileLimitsSchema
+LLMConfigSchema = _LLMConfigSchema
+QAThresholdsSchema = _QAThresholdsSchema
+ReconciliationTolerancesSchema = _ReconciliationTolerancesSchema
 
 
 # =============================================================================

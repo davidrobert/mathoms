@@ -1,11 +1,13 @@
 """Config API — CRUD for the 5 editable configs, import/export, fallback to disk defaults.
 
-**A6e (ADR-101)** — endpoints dos agregados ``FamilyMember`` (A6e.1+.2) e
-``Category`` (A6e.3) delegam persistência aos respectivos repositórios
-(``FamilyMemberRepository`` / ``CategoryRepository``) e retornam DTOs de
-``schemas/dto/{family_member,category}/``. Config blobs (pipeline,
-institutions, report_layout) e helpers de import/export ainda acessam o
-ORM direto — serão migrados em A6e.4+.
+**A6e (ADR-101)** — endpoints dos agregados ``FamilyMember`` (A6e.1+.2),
+``Category`` (A6e.3) e dos 3 blobs de config ``Pipeline``/``Institution``/
+``ReportLayout`` (A6e.4) delegam persistência aos respectivos repositórios
+(``FamilyMemberRepository`` / ``CategoryRepository`` /
+``ConfigBlobRepository``) e retornam DTOs de
+``schemas/dto/{family_member,category,config_blob}/``. Helpers de import/
+export ainda chamam acesso direto ao ORM para membros e categorias —
+migram em A6e.5+.
 """
 
 from __future__ import annotations
@@ -30,19 +32,26 @@ from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, Re
 from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.workspace import Workspace
 from backend.app.repositories.category_repository import CategoryRepository
+from backend.app.repositories.config_blob_repository import ConfigBlobRepository
 from backend.app.repositories.family_member_repository import FamilyMemberRepository
 from backend.app.schemas.config import (
     ConfigExportResponse,
     ConfigImportRequest,
     ConfigImportResponse,
-    InstitutionConfigSchema,
-    InstitutionConfigUpdateRequest,
-    PipelineConfigSchema,
-    PipelineConfigUpdateRequest,
-    ReportLayoutSchema,
-    ReportLayoutUpdateRequest,
     WorkspaceSettingsSchema,
     WorkspaceSettingsUpdateRequest,
+)
+from backend.app.schemas.dto.config_blob import (
+    InstitutionConfigResponse,
+    InstitutionConfigUpdateCommand,
+    PipelineConfigResponse,
+    PipelineConfigUpdateCommand,
+    ReportLayoutResponse,
+    ReportLayoutUpdateCommand,
+    deep_merge,
+    institution_blob_to_response,
+    pipeline_blob_to_response,
+    report_layout_to_response,
 )
 from backend.app.schemas.dto.category import (
     CategoryCreateCommand,
@@ -90,6 +99,17 @@ def _get_category_repo(
 ) -> CategoryRepository:
     """DI helper — injeta o ``CategoryRepository`` no endpoint (A6e.3)."""
     return CategoryRepository(db)
+
+
+def _get_config_blob_repo(
+    db: AsyncSession = Depends(get_db),
+) -> ConfigBlobRepository:
+    """DI helper — injeta o ``ConfigBlobRepository`` no endpoint (A6e.4).
+
+    Um repo paramétrico atende os 3 blobs (pipeline/institutions/
+    report-layout); o endpoint passa a classe do modelo nos métodos.
+    """
+    return ConfigBlobRepository(db)
 
 
 def _slug_member_key_from_full_name(full_name: str, max_len: int = 50) -> str:
@@ -479,109 +499,90 @@ async def delete_category(
 
 
 # =============================================================================
-# Pipeline Config — GET/PUT (3B.4)
+# Pipeline Config — GET/PUT (3B.4) · A6e.4
 # =============================================================================
 
 
-@router.get("/pipeline", response_model=PipelineConfigSchema)
+@router.get("/pipeline", response_model=PipelineConfigResponse)
 async def get_pipeline_config(
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ):
-    result = await db.execute(select(PipelineConfig).where(PipelineConfig.workspace_id == workspace.id))
-    cfg = result.scalar_one_or_none()
-    if cfg:
-        return PipelineConfigSchema(**cfg.config_json)
-    return PipelineConfigSchema(**_load_global_json("pipeline.json"))
+    cfg_json = await repo.get_config_json(workspace.id, PipelineConfig)
+    if cfg_json is None:
+        cfg_json = _load_global_json("pipeline.json")
+    return pipeline_blob_to_response(cfg_json)
 
 
-@router.put("/pipeline", response_model=PipelineConfigSchema)
+@router.put("/pipeline", response_model=PipelineConfigResponse)
 async def update_pipeline_config(
-    body: PipelineConfigUpdateRequest,
+    body: PipelineConfigUpdateCommand,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
+    repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ):
-    result = await db.execute(select(PipelineConfig).where(PipelineConfig.workspace_id == workspace.id))
-    cfg = result.scalar_one_or_none()
-
-    new_data = body.model_dump(exclude_unset=True)
-    merged = _deep_merge(cfg.config_json if cfg else _load_global_json("pipeline.json"), new_data)
-
-    if cfg:
-        cfg.config_json = merged
-    else:
-        cfg = PipelineConfig(workspace_id=workspace.id, config_json=merged)
-        db.add(cfg)
+    existing = await repo.get_config_json(workspace.id, PipelineConfig)
+    base = existing if existing is not None else _load_global_json("pipeline.json")
+    merged = deep_merge(base, body.model_dump(exclude_unset=True))
+    await repo.upsert(workspace.id, PipelineConfig, merged)
     await db.commit()
-    return PipelineConfigSchema(**merged)
+    return pipeline_blob_to_response(merged)
 
 
 # =============================================================================
-# Institution Config — GET/PUT (3B.5)
+# Institution Config — GET/PUT (3B.5) · A6e.4
 # =============================================================================
 
 
-@router.get("/institutions", response_model=InstitutionConfigSchema)
+@router.get("/institutions", response_model=InstitutionConfigResponse)
 async def get_institution_config(
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ):
-    result = await db.execute(select(InstitutionConfig).where(InstitutionConfig.workspace_id == workspace.id))
-    cfg = result.scalar_one_or_none()
-    if cfg:
-        return InstitutionConfigSchema(config_json=cfg.config_json)
-    return InstitutionConfigSchema(config_json=_load_global_json("institutions.json"))
+    cfg_json = await repo.get_config_json(workspace.id, InstitutionConfig)
+    if cfg_json is None:
+        cfg_json = _load_global_json("institutions.json")
+    return institution_blob_to_response(cfg_json)
 
 
-@router.put("/institutions", response_model=InstitutionConfigSchema)
+@router.put("/institutions", response_model=InstitutionConfigResponse)
 async def update_institution_config(
-    body: InstitutionConfigUpdateRequest,
+    body: InstitutionConfigUpdateCommand,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
+    repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ):
-    result = await db.execute(select(InstitutionConfig).where(InstitutionConfig.workspace_id == workspace.id))
-    cfg = result.scalar_one_or_none()
-    if cfg:
-        cfg.config_json = body.config_json
-    else:
-        cfg = InstitutionConfig(workspace_id=workspace.id, config_json=body.config_json)
-        db.add(cfg)
+    cfg = await repo.upsert(workspace.id, InstitutionConfig, body.config_json)
     await db.commit()
-    return InstitutionConfigSchema(config_json=cfg.config_json)
+    return institution_blob_to_response(cfg.config_json)
 
 
 # =============================================================================
-# Report Layout — GET/PUT (3B.6)
+# Report Layout — GET/PUT (3B.6) · A6e.4
 # =============================================================================
 
 
-@router.get("/report-layout", response_model=ReportLayoutSchema)
+@router.get("/report-layout", response_model=ReportLayoutResponse)
 async def get_report_layout(
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ):
-    result = await db.execute(select(ReportLayout).where(ReportLayout.workspace_id == workspace.id))
-    cfg = result.scalar_one_or_none()
-    if cfg:
-        return ReportLayoutSchema(config_json=cfg.config_json)
-    return ReportLayoutSchema(config_json=_load_global_yaml("report_layout.yaml"))
+    cfg_json = await repo.get_config_json(workspace.id, ReportLayout)
+    if cfg_json is None:
+        cfg_json = _load_global_yaml("report_layout.yaml")
+    return report_layout_to_response(cfg_json)
 
 
-@router.put("/report-layout", response_model=ReportLayoutSchema)
+@router.put("/report-layout", response_model=ReportLayoutResponse)
 async def update_report_layout(
-    body: ReportLayoutUpdateRequest,
+    body: ReportLayoutUpdateCommand,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
+    repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ):
-    result = await db.execute(select(ReportLayout).where(ReportLayout.workspace_id == workspace.id))
-    cfg = result.scalar_one_or_none()
-    if cfg:
-        cfg.config_json = body.config_json
-    else:
-        cfg = ReportLayout(workspace_id=workspace.id, config_json=body.config_json)
-        db.add(cfg)
+    cfg = await repo.upsert(workspace.id, ReportLayout, body.config_json)
     await db.commit()
-    return ReportLayoutSchema(config_json=cfg.config_json)
+    return report_layout_to_response(cfg.config_json)
 
 
 # =============================================================================
@@ -598,6 +599,7 @@ async def import_config(
     body: ConfigImportRequest,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
+    blob_repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ) -> ConfigImportResponse:
     imported: list[str] = []
 
@@ -610,15 +612,15 @@ async def import_config(
         imported.append("categorization")
 
     if body.pipeline:
-        await _import_blob(workspace.id, PipelineConfig, body.pipeline, db)
+        await blob_repo.upsert(workspace.id, PipelineConfig, body.pipeline)
         imported.append("pipeline")
 
     if body.institutions:
-        await _import_blob(workspace.id, InstitutionConfig, body.institutions, db)
+        await blob_repo.upsert(workspace.id, InstitutionConfig, body.institutions)
         imported.append("institutions")
 
     if body.report_layout:
-        await _import_blob(workspace.id, ReportLayout, body.report_layout, db)
+        await blob_repo.upsert(workspace.id, ReportLayout, body.report_layout)
         imported.append("report_layout")
 
     await db.commit()
@@ -629,13 +631,20 @@ async def import_config(
 async def export_config(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
+    blob_repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ):
 
     members_data = await _export_family_members(workspace.id, db)
     categorization_data = await _export_categorization(workspace.id, db)
-    pipeline_data = await _export_pipeline(workspace.id, db)
-    institutions_data = await _export_institutions(workspace.id, db)
-    layout_data = await _export_report_layout(workspace.id, db)
+    pipeline_data = await _export_blob_or_default(
+        blob_repo, workspace.id, PipelineConfig, "pipeline.json", yaml_source=False
+    )
+    institutions_data = await _export_blob_or_default(
+        blob_repo, workspace.id, InstitutionConfig, "institutions.json", yaml_source=False
+    )
+    layout_data = await _export_blob_or_default(
+        blob_repo, workspace.id, ReportLayout, "report_layout.yaml", yaml_source=True
+    )
 
     return ConfigExportResponse(
         family_members=members_data,
@@ -714,14 +723,29 @@ async def _import_categorization(ws_id: str, data: dict[str, Any], db: AsyncSess
             order += 1
 
 
-async def _import_blob(ws_id: str, model_class: type, data: dict[str, Any], db: AsyncSession) -> None:
-    result = await db.execute(select(model_class).where(model_class.workspace_id == ws_id))
-    cfg = result.scalar_one_or_none()
-    if cfg:
-        cfg.config_json = data
-    else:
-        cfg = model_class(workspace_id=ws_id, config_json=data)
-        db.add(cfg)
+async def _export_blob_or_default(
+    repo: ConfigBlobRepository,
+    ws_id: str,
+    model_class: type,
+    default_filename: str,
+    *,
+    yaml_source: bool,
+) -> dict[str, Any]:
+    """Retorna o blob do DB ou o default do disco.
+
+    ``yaml_source=True`` lê ``config/report_layout.yaml``; ``False`` lê um
+    JSON do mesmo diretório. Export precisa do shape dict — os DTOs
+    ``pipeline_blob_to_response`` etc. não cabem aqui (``ConfigExportResponse``
+    espera ``dict[str, Any]``).
+    """
+    cfg_json = await repo.get_config_json(ws_id, model_class)
+    if cfg_json is not None:
+        return cfg_json
+    return (
+        _load_global_yaml(default_filename)
+        if yaml_source
+        else _load_global_json(default_filename)
+    )
 
 
 # =============================================================================
@@ -809,42 +833,14 @@ async def _export_categorization(ws_id: str, db: AsyncSession) -> dict[str, Any]
     return {"expense_keywords": expense_keywords, "income_keywords": income_keywords}
 
 
-async def _export_pipeline(ws_id: str, db: AsyncSession) -> dict[str, Any]:
-    result = await db.execute(select(PipelineConfig).where(PipelineConfig.workspace_id == ws_id))
-    cfg = result.scalar_one_or_none()
-    return cfg.config_json if cfg else _load_global_json("pipeline.json")
-
-
-async def _export_institutions(ws_id: str, db: AsyncSession) -> dict[str, Any]:
-    result = await db.execute(select(InstitutionConfig).where(InstitutionConfig.workspace_id == ws_id))
-    cfg = result.scalar_one_or_none()
-    return cfg.config_json if cfg else _load_global_json("institutions.json")
-
-
-async def _export_report_layout(ws_id: str, db: AsyncSession) -> dict[str, Any]:
-    result = await db.execute(select(ReportLayout).where(ReportLayout.workspace_id == ws_id))
-    cfg = result.scalar_one_or_none()
-    return cfg.config_json if cfg else _load_global_yaml("report_layout.yaml")
-
-
 # =============================================================================
-# Conversion helpers — global config JSON → Pydantic schemas (for fallback)
+# Conversion helpers — global config JSON → Pydantic DTOs (for fallback)
 # =============================================================================
 
 # ``family_members`` fallback: ``convert_global_defaults_to_responses`` vive
 # em ``schemas/dto/family_member/mapper`` (A6e.1+.2).
 # ``categorization`` fallback: ``convert_global_defaults_to_responses`` +
 # ``count_defaults`` vivem em ``schemas/dto/category/mapper`` (A6e.3).
-# Os demais fallbacks (pipeline, institutions, report_layout) ainda não
-# têm pacote DTO — migram em A6e.4+.
-
-
-def _deep_merge(base: dict, override: dict) -> dict:
-    """Recursively merge override into base (override wins at leaf level)."""
-    result = base.copy()
-    for key, value in override.items():
-        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-            result[key] = _deep_merge(result[key], value)
-        else:
-            result[key] = value
-    return result
+# ``pipeline``/``institutions``/``report_layout`` fallback: respectivos
+# ``*_blob_to_response`` + ``deep_merge`` vivem em
+# ``schemas/dto/config_blob/mapper`` (A6e.4).
