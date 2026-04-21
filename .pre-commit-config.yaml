@@ -59,3 +59,11 @@ repos:
         language: system
         pass_filenames: false
         files: '^(config/report_layout\.yaml|config/schemas/report_layout\.schema\.json|frontend/src/generated/report-layout\.ts|backend/app/generated/report_layout\.py)$'
+
+      - id: main-drift-check
+        name: "pre-push: bloqueia push para main se origin/main avançou"
+        entry: python3 dev/check_main_drift.py
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true
