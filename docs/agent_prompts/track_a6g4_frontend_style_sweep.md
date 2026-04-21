@@ -1,5 +1,14 @@
 # Track A6g.4 — Frontend Code Style Sweep
 
+> **Lane ID:** A6g.4
+> **Branch prefix:** `agent/a6g4-frontend-style/*`
+> **Depende de:** A6g.1 ✅ (baseline de ofensores em `docs/audits/`)
+> **Paralelo com:** A6g.2 pipeline sweep (zero overlap — toca só `scripts/` + `pipeline/`)
+> **Conflita com:** commits simultâneos em `frontend/src/`
+> **Onda:** 1
+> **Índice de prompts:** [docs/agent_prompts/README.md](README.md)
+> **Fonte de verdade das regras:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style)
+
 > **Objetivo:** aplicar o `## Code style` do CLAUDE.md ao TypeScript em
 > `frontend/src/`, consumindo o baseline de ofensores já catalogado em
 > `docs/audits/code_style_audit_20260421.md` (A6g.1 ✅).

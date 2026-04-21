@@ -1,5 +1,14 @@
 # Track A6g.2 — Pipeline Code Style Sweep
 
+> **Lane ID:** A6g.2
+> **Branch prefix:** `agent/a6g2-pipeline-style/*`
+> **Depende de:** A6g.1 ✅ (baseline de ofensores em `docs/audits/`)
+> **Paralelo com:** A6g.4 frontend sweep (zero overlap — toca só `frontend/src/`)
+> **Conflita com:** commits simultâneos em `scripts/`, `pipeline/`, `tests/fixtures/`
+> **Onda:** 1
+> **Índice de prompts:** [docs/agent_prompts/README.md](README.md)
+> **Fonte de verdade das regras:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style)
+
 > **Objetivo:** aplicar o `## Code style` do CLAUDE.md ao Python em
 > `scripts/`, `pipeline/` e `tests/fixtures/`, consumindo o baseline de
 > ofensores já catalogado em `docs/audits/code_style_audit_20260421.md`

@@ -1,0 +1,85 @@
+# Agent Prompts — índice e convenções
+
+Pasta contém **prompts self-contained** para rodar uma task específica do
+Sprint A6 (ou outra sprint transversal). Cada prompt é consumido por um
+agente LLM rodando em branch `agent/<slug>/<timestamp>` — deve conter
+contexto suficiente para a task começar sem precisar ler o BACKLOG
+inteiro.
+
+## Índice de prompts
+
+| Lane | Arquivo | Status | Branch prefix |
+| --- | --- | --- | --- |
+| A6g.2 Pipeline Code Style Sweep | [track_a6g2_pipeline_style_sweep.md](track_a6g2_pipeline_style_sweep.md) | ☐ aberta (Onda 1) | `agent/a6g2-pipeline-style/*` |
+| A6g.4 Frontend Code Style Sweep | [track_a6g4_frontend_style_sweep.md](track_a6g4_frontend_style_sweep.md) | ☐ aberta (Onda 1) | `agent/a6g4-frontend-style/*` |
+
+**Status + dependências + ondas**: sempre em
+[../BACKLOG.md §Sprint A6](../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal)
+(tabela "Lanes abertas agora"). Este índice lista só **o que tem prompt
+escrito**; lanes sem prompt (A6e.3, A6e.4, A6f.1, etc.) são descritas
+direto no BACKLOG.
+
+## Antes de começar — pickup protocol
+
+1. Verifique a lane na tabela "Lanes abertas agora" do BACKLOG.
+2. Rode o check de colisão (CLAUDE.md §Antes de pegar uma task):
+
+   ```bash
+   git fetch origin
+   git for-each-ref --sort=-committerdate \
+     --format='%(committerdate:iso) %(refname:short) %(subject)' \
+     refs/remotes/origin/agent/ | head -15
+   ```
+
+3. Se já existe `origin/agent/<slug>-*` com commit <24h → pegue **outra**
+   lane. Se stale >24h → anuncie retomada e continue OU abra nova
+   branch.
+4. Crie branch **antes** da primeira edição:
+   `git checkout -b agent/<slug>/$(date +%Y%m%d-%H%M)`.
+
+## Cabeçalho padrão de um prompt
+
+Todo prompt novo deve começar com este bloco — permite ao agente decidir
+em 10s se essa é a lane dele:
+
+```markdown
+# Track <Lane ID> — <Título curto>
+
+> **Lane ID:** A6g.2 (exemplo)
+> **Branch prefix:** `agent/a6g2-pipeline-style/*`
+> **Depende de:** A6g.1 ✅ (baseline de ofensores)
+> **Paralelo com:** A6g.4 frontend sweep (zero overlap de arquivos)
+> **Conflita com:** qualquer commit ativo em `scripts/` ou `pipeline/`
+> **Onda:** 1
+> **Objetivo (1 frase):** aplicar §Code style do CLAUDE.md em X, Y, Z.
+> **Fonte de verdade das regras:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style)
+```
+
+Depois do cabeçalho, o corpo livre (regras, targets, tiers, gates,
+rollback). Ver `track_a6g2_*.md` e `track_a6g4_*.md` como modelo.
+
+## Criando um novo prompt
+
+1. Nome: `track_<lane>_<descricao-curta>.md` (ex.:
+   `track_a6e3_use_cases.md`). Lane em lowercase + pontos substituídos
+   por nada (`a6e.3` → `a6e3`).
+2. Comece com o cabeçalho padrão acima.
+3. Inclua pelo menos: **Regras inegociáveis** (do CLAUDE.md), **Targets
+   por tier** (tier 1 seguro, tier 2 opcional, tier 3 fora de escopo),
+   **Sequência de commits** sugerida, **Gates de push** (pytest, lint,
+   drift check), **Rollback criteria**, **Coordenação com outros
+   agentes** (paralelos vs conflitantes), **O que NÃO entrega**.
+4. Adicione linha na tabela "Índice de prompts" acima.
+5. Adicione entrada na tabela "Lanes abertas agora" do BACKLOG.
+6. Commit separado: `docs(agent-prompts): add track_<lane>_<desc> (<motivo>)`.
+
+## Por que prompts dedicados?
+
+- **Onboarding em 5 minutos**: agente lê 1 arquivo, não 3 (BACKLOG +
+  CLAUDE + ADR relevante).
+- **Contexto cristalizado**: gates, rollback criteria, o que **não**
+  tocar. Reduz oscilação entre sessões do mesmo agente.
+- **Anti-colisão**: branch prefix + lane ID explícitos permitem grep
+  rápido ao decidir pickup.
+- **Rastreio**: commits no slice citam Lane ID (`(A6g.2 — T1.a)`),
+  fácil correlacionar com prompt original.
