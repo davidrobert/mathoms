@@ -8,6 +8,62 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.2 — 1ª rodada pipeline style sweep (2026-04-21):**
+  Aplica `## Code style` do CLAUDE.md a `scripts/`, `pipeline/` e
+  `tests/fixtures/`, consumindo o baseline P1/P2 de
+  [`docs/audits/code_style_audit_20260421.md`](audits/code_style_audit_20260421.md).
+  Escopo: **Tier 1 seguro** (zero goldens expostos). Tier 3 (scripts
+  `e3/e4/e5/e5n/e6/e7` com goldens) volta como **A6g.2b** pós-A6c.3.
+  - **T1.a — `scripts/e_reset.py::main`:** 372 → 27 linhas. Extraídos 18
+    helpers nomeados (`_build_arg_parser`, `_print_reset_header`,
+    `_phase_{move_to_inbox,unlock_pdfs,audit,route,clean_artifacts,
+    clean_narrativas_review}`, `_detect_leading_llm`,
+    `_execute_non_interactive`, `_run_interactive_mode`, …).
+    `LLM_DESCRIPTIONS` promovida a constante de módulo. Gate: `--help`
+    idêntico byte-a-byte; `pytest tests -q` = 1461 passed (baseline).
+  - **T1.b — `tests/fixtures/pdf_generator.py`:** 1067 → 29 linhas (shim
+    self-contained). Novo pacote `tests/fixtures/pdf/` com
+    `formatters.py` (helpers BRL/USD + meses) + 11 módulos por banco
+    (`btg.py`, `rico.py`, `wise.py`, `picpay.py`, `bankofamerica.py`,
+    `santander.py`, `itau.py`, `c6.py`, `bradesco.py`, `caixa.py`,
+    `quintoandar.py`) + `generator.py` (306 linhas, dispatcher
+    `generate_statement`). Shim tem fallback de `importlib.util` para
+    `backend/tests/test_golden_pipeline.py` (que carrega por path para
+    evitar namespace conflict com `backend/tests/`). Gate:
+    `tests/test_e2_synthetic_pdf_parsers.py` = 22 passed;
+    `backend/tests/test_golden_pipeline.py` = 19 passed, 1 skipped.
+  - **T1.c — `scripts/e0_audit.py`:** 948 → 238 linhas. Checks movidos
+    para novo pacote `scripts/e0/`:
+    `audit_helpers.py` (`normalize`, `parse_data_filename`,
+    `parse_e2_filename`, globais + `init_config`),
+    `audit_filename.py` (checks 1, 7, 8, 9 + `fix_extract_naming`),
+    `audit_integrity.py` (checks 2, 3, 6),
+    `audit_ledger.py` (checks 4, 5). `e0_audit.py` fica só com CLI +
+    `ALL_CHECKS` + `_init_config` wrapper que rebina globais para
+    preservar contrato de `test_stage_wrappers.py`. Gate: JSON output
+    idêntico antes/depois; `tests/test_stage_wrappers.py` = 29 passed.
+  - **Fora de escopo nesta rodada (documentado):**
+    - Scripts com goldens (e3/e4/e5/e5n/e6/e7) — 11 ofensores P2 + ~250
+      P1 ficam para **A6g.2b** pós-A6c.3 (quando `main(root_dir)`
+      legados forem deletados).
+    - `ChartsNarrator.narrate` (T2.a) e `run_pipeline_task` (T2.b) —
+      opcionais, skipped nesta rodada; paridade de narrativas tem
+      tolerância zero e exige baseline focado.
+  - **Impact numérico nos targets:**
+    - `long_functions` P1: `e_reset.main` 372 → 27 (removido da lista
+      high-severity); `e0_audit.main` 140 → <25 após split.
+    - `long_files` P2: `pdf_generator.py` 1067 → 29 (remove da lista);
+      `e_reset.py` 1332 → 1379 (stretch — targets extraídos mas main
+      file ainda >1000; consolidação em módulos separados planejada
+      para A6g.2b); `e0_audit.py` 948 → 238 (remove da lista).
+  - **Gates consolidados:**
+    - `pytest tests -q` = 1461 passed, 2 skipped (igual baseline).
+    - `pytest backend/tests/test_golden_pipeline.py -q` = 19 passed,
+      1 skipped.
+    - `python scripts/e_reset.py --help` output idêntico.
+    - `python scripts/e0_audit.py --json` output idêntico.
+    - `pre-commit run` passa nos arquivos tocados.
+
 - **A6g.4 — 1ª rodada frontend style sweep (2026-04-21):**
   Aplica `## Code style` do CLAUDE.md a `frontend/src/`, consumindo o
   baseline T1-T5 de [`docs/audits/code_style_audit_20260421.md`](audits/code_style_audit_20260421.md).
