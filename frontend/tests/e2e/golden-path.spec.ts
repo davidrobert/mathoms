@@ -175,14 +175,47 @@ test.describe("Golden Path — smoke do produto inteiro @critical", () => {
     await expect(triggerBtn).toBeVisible({ timeout: 20_000 });
     await triggerBtn.click();
 
-    // ─── 6. Aguardar pipeline completar ────────────────────────────
-    // Via UI observation: esperar pelo status "Concluído" no card do run
-    // OU redirect para /reports quando termina (toast + setTimeout(2000))
+    // ─── 6. Aguardar pipeline completar (polling via API) ──────────
+    // Preferimos observar a API em vez de só o UI: (a) diagnóstico preciso
+    // quando falha — logamos `failed_at_stage` + `errors` do stage_logs;
+    // (b) falha rápido (~60s) em vez de esperar o timeout full de 4min.
+    const pollRuns = async () => {
+      const r = await request.get(
+        `/api/workspaces/${workspaceId}/pipeline/runs`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (!r.ok()) return null;
+      const body = await r.json();
+      return body.runs?.[0] ?? null;
+    };
+
+    const deadline = Date.now() + 3 * 60_000;
+    let lastRun: any = null;
+    while (Date.now() < deadline) {
+      lastRun = await pollRuns();
+      if (lastRun?.status === "completed") break;
+      if (lastRun?.status === "failed") {
+        const failedLog = (lastRun.stage_logs ?? []).find(
+          (s: any) => s.status === "failed",
+        );
+        const diag = failedLog
+          ? `stage=${failedLog.stage} errors=${failedLog.errors?.slice(0, 500)}`
+          : `failed_at_stage=${lastRun.failed_at_stage}`;
+        throw new Error(`Pipeline falhou: ${diag}`);
+      }
+      await page.waitForTimeout(2_000);
+    }
+    expect(
+      lastRun?.status,
+      `Pipeline não completou em 3min (status=${lastRun?.status}, stage=${lastRun?.current_stage})`,
+    ).toBe("completed");
+
+    // UI deve refletir estado final (concluído OU já redirecionou p/ /reports)
     await expect(
       page.getByText(/Concluído|Relatório gerado com sucesso/, {
         exact: false,
       }).or(page.getByRole("heading", { name: /Relatórios/ })),
-    ).toBeVisible({ timeout: 4 * 60_000 });
+    ).toBeVisible({ timeout: 30_000 });
 
     // ─── 7. Abrir relatório gerado ─────────────────────────────────
     await page.goto("/reports");
