@@ -1,63 +1,36 @@
-"""Pydantic schemas for Document endpoints."""
+"""Legacy shim para ``schemas.document``.
 
-from datetime import datetime
-from typing import Optional
+Os DTOs canônicos do agregado ``Document`` vivem em
+``backend/app/schemas/dto/document/`` (A6e.5 — ADR-101). Este módulo
+re-exporta com os nomes antigos para que:
 
-from pydantic import BaseModel, Field, field_validator
+- testes legados (``from backend.app.schemas.document import DocumentResponse``)
+  continuem passando sem modificação;
+- integrações externas que possam ter importado esses símbolos não
+  quebrem durante a janela de migração.
 
-from backend.app.models.document import DocumentStatus, DocumentType
+Preferir nas chamadas novas::
 
+    from backend.app.schemas.dto.document import (
+        DocumentResponse, DocumentListResponse, DocumentUploadResponse,
+        DocumentUpdateCommand,
+    )
+"""
 
-class DocumentResponse(BaseModel):
-    id: str
-    workspace_id: str
-    original_name: str
-    stored_path: Optional[str] = None
-    doc_type: Optional[DocumentType] = None
-    bank_code: Optional[str] = None
-    period: Optional[str] = None
-    status: DocumentStatus
-    classification_meta: Optional[dict] = None
-    classification_confidence: Optional[float] = None
-    needs_review: bool = False
-    possible_duplicate_of_id: Optional[str] = None
-    file_size_bytes: Optional[int] = None
-    content_type: Optional[str] = None
-    error_message: Optional[str] = None
-    uploaded_at: datetime
-    pipeline_last_run_at: Optional[datetime] = None
-    pipeline_e2_extract_ok: Optional[bool] = None
-    pipeline_extract_notes: Optional[str] = None
+from __future__ import annotations
 
-    model_config = {"from_attributes": True}
+from backend.app.schemas.dto.document.command import (
+    DocumentUpdateCommand as DocumentUpdateRequest,
+)
+from backend.app.schemas.dto.document.response import (
+    DocumentListResponse,
+    DocumentResponse,
+    DocumentUploadResponse,
+)
 
-
-class DocumentListResponse(BaseModel):
-    documents: list[DocumentResponse]
-    total: int
-
-
-class DocumentUploadResponse(BaseModel):
-    documents: list[DocumentResponse]
-    skipped_duplicates: list[str] = []
-    total_uploaded: int = 0
-    total_skipped: int = 0
-
-
-class DocumentUpdateRequest(BaseModel):
-    """Correção manual de classificação pelo usuário.
-
-    Todos os campos são opcionais — atualiza apenas os enviados (PATCH).
-    Envie `null` explícito para limpar um campo.
-    """
-
-    doc_type: Optional[DocumentType] = Field(default=None)
-    bank_code: Optional[str] = Field(default=None, max_length=50)
-    period: Optional[str] = Field(default=None, max_length=50)
-
-    @field_validator("bank_code", "period", mode="before")
-    @classmethod
-    def _empty_str_to_none(cls, v):
-        if isinstance(v, str) and v.strip() == "":
-            return None
-        return v
+__all__ = [
+    "DocumentListResponse",
+    "DocumentResponse",
+    "DocumentUpdateRequest",
+    "DocumentUploadResponse",
+]

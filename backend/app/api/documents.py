@@ -6,11 +6,10 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,25 +22,36 @@ from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.models.password_vault import PasswordVault
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
-from backend.app.schemas.document import (
+from backend.app.repositories.document_repository import DocumentRepository
+from backend.app.schemas.dto.document import (
+    DocumentExtractJsonResponse,
     DocumentListResponse,
+    DocumentReclassifyResponse,
     DocumentResponse,
-    DocumentUpdateRequest,
+    DocumentUpdateCommand,
     DocumentUploadResponse,
+    document_to_response,
 )
 from backend.app.services.audit import AuditAction, audit_log
 from backend.app.services.config_materializer import ensure_tenant_pipeline_config
 from backend.app.services.document_duplicates import rebuild_fuzzy_duplicate_pointers
+from backend.app.services.document_pipeline_sync import _find_e2_extract
+from backend.app.services.document_processor import process_uploaded_document
 from backend.app.services.storage import StorageService, detect_actual_mime
 from backend.app.services.vault import get_vault
-from backend.app.services.document_processor import process_uploaded_document
-from backend.app.services.document_pipeline_sync import _find_e2_extract
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/documents",
     tags=["documents"],
 )
 _storage = StorageService()
+
+
+def _get_document_repo(
+    db: AsyncSession = Depends(get_db),
+) -> DocumentRepository:
+    """FastAPI dependency: DocumentRepository bound à sessão do request."""
+    return DocumentRepository(db)
 
 
 async def _get_vault_passwords(ws_id: str, db: AsyncSession) -> list[str]:
@@ -73,6 +83,7 @@ async def upload_documents(
     workspace: Workspace = Depends(get_current_workspace),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    repo: DocumentRepository = Depends(_get_document_repo),
 ):
     """Upload one or more documents. Each is saved, validated, unlocked (if PDF), and classified."""
     if len(files) > settings.MAX_UPLOAD_BATCH_SIZE:
@@ -115,7 +126,7 @@ async def upload_documents(
                 content_type=actual_mime,
                 error_message=err_msg,
             )
-            db.add(doc)
+            await repo.add(doc, flush=False)
             created_docs.append(doc)
             continue
 
@@ -128,7 +139,7 @@ async def upload_documents(
                 content_type=actual_mime,
                 error_message="Arquivo vazio",
             )
-            db.add(doc)
+            await repo.add(doc, flush=False)
             created_docs.append(doc)
             continue
 
@@ -151,8 +162,7 @@ async def upload_documents(
                 content_hash=content_hash,
                 status=DocumentStatus.classifying,
             )
-            db.add(doc)
-            await db.flush()
+            await repo.add(doc)
         except IntegrityError:
             await savepoint.rollback()
             # Best-effort cleanup of orphaned file on disk
@@ -204,18 +214,13 @@ async def upload_documents(
                 and doc.bank_code
                 and doc.period
             ):
-                fuzzy = await db.execute(
-                    select(Document.id)
-                    .where(
-                        Document.workspace_id == workspace.id,
-                        Document.doc_type == doc.doc_type,
-                        Document.bank_code == doc.bank_code,
-                        Document.period == doc.period,
-                        Document.id != doc.id,
-                    )
-                    .limit(1)
+                existing_id = await repo.find_fuzzy_duplicate_id(
+                    workspace.id,
+                    doc_type=doc.doc_type,
+                    bank_code=doc.bank_code,
+                    period=doc.period,
+                    exclude_id=doc.id,
                 )
-                existing_id = fuzzy.scalar_one_or_none()
                 if existing_id:
                     doc.possible_duplicate_of_id = existing_id
                     doc.needs_review = True
@@ -250,7 +255,7 @@ async def upload_documents(
         await db.refresh(doc)
 
     return DocumentUploadResponse(
-        documents=[DocumentResponse.model_validate(d) for d in created_docs],
+        documents=[document_to_response(d) for d in created_docs],
         skipped_duplicates=skipped_duplicates,
         total_uploaded=len(created_docs),
         total_skipped=len(skipped_duplicates),
@@ -262,11 +267,10 @@ async def list_documents(
     status_filter: Optional[str] = Query(None, alias="status"),
     doc_type_filter: Optional[str] = Query(None, alias="doc_type"),
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: DocumentRepository = Depends(_get_document_repo),
 ):
     """List documents in the workspace, optionally filtered by status or doc_type."""
-    query = select(Document).where(Document.workspace_id == workspace.id)
-
+    statuses: Optional[list[DocumentStatus]] = None
     if status_filter:
         # Suporta um valor ou lista separada por vírgula: ``status=ready,processed``.
         parts = [p.strip() for p in status_filter.split(",") if p.strip()]
@@ -275,24 +279,22 @@ async def list_documents(
             if p not in allowed:
                 raise HTTPException(status_code=400, detail=f"Status inválido: {p}")
         statuses = [DocumentStatus(p) for p in parts]
-        if len(statuses) == 1:
-            query = query.where(Document.status == statuses[0])
-        else:
-            query = query.where(Document.status.in_(statuses))
 
+    doc_type_enum: Optional[DocumentType] = None
     if doc_type_filter:
         try:
-            DocumentType(doc_type_filter)
+            doc_type_enum = DocumentType(doc_type_filter)
         except ValueError:
             raise HTTPException(status_code=400, detail=f"Tipo inválido: {doc_type_filter}")
-        query = query.where(Document.doc_type == doc_type_filter)
 
-    query = query.order_by(Document.uploaded_at.desc())
-    result = await db.execute(query)
-    docs = result.scalars().all()
+    docs = await repo.list(
+        workspace.id,
+        statuses=statuses,
+        doc_type=doc_type_enum,
+    )
 
     return DocumentListResponse(
-        documents=[DocumentResponse.model_validate(d) for d in docs],
+        documents=[document_to_response(d) for d in docs],
         total=len(docs),
     )
 
@@ -304,11 +306,12 @@ async def list_documents(
 )
 async def update_document_classification(
     document_id: str,
-    payload: DocumentUpdateRequest,
+    payload: DocumentUpdateCommand,
     request: Request,
     workspace: Workspace = Depends(get_current_workspace),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    repo: DocumentRepository = Depends(_get_document_repo),
 ):
     """Correção manual de classificação (tipo, instituição, período).
 
@@ -316,12 +319,7 @@ async def update_document_classification(
     ``classification_meta.manual_override`` e zera ``needs_review`` porque
     o usuário confirmou o valor explicitamente.
     """
-    result = await db.execute(
-        select(Document).where(
-            Document.id == document_id, Document.workspace_id == workspace.id
-        )
-    )
-    doc = result.scalar_one_or_none()
+    doc = await repo.get_by_id(workspace.id, document_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Documento não encontrado")
 
@@ -376,7 +374,7 @@ async def update_document_classification(
 
     await db.commit()
     await db.refresh(doc)
-    return DocumentResponse.model_validate(doc)
+    return document_to_response(doc)
 
 
 @router.delete(
@@ -390,12 +388,10 @@ async def delete_document(
     workspace: Workspace = Depends(get_current_workspace),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    repo: DocumentRepository = Depends(_get_document_repo),
 ):
     """Delete a document and its file from storage."""
-    result = await db.execute(
-        select(Document).where(Document.id == document_id, Document.workspace_id == workspace.id)
-    )
-    doc = result.scalar_one_or_none()
+    doc = await repo.get_by_id(workspace.id, document_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Documento não encontrado")
 
@@ -409,7 +405,7 @@ async def delete_document(
     if abs_stored and abs_stored.exists():
         abs_stored.unlink(missing_ok=True)
 
-    await db.delete(doc)
+    await repo.delete(doc)
 
     await audit_log(
         db,
@@ -435,19 +431,17 @@ async def retry_unlock(
     workspace: Workspace = Depends(get_current_workspace),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    repo: DocumentRepository = Depends(_get_document_repo),
 ):
     """Re-attempt unlock on all documents with status 'needs_password' using current vault."""
     passwords = await _get_vault_passwords(workspace.id, db)
     if not passwords:
         raise HTTPException(status_code=400, detail="Nenhuma senha cadastrada no vault")
 
-    result = await db.execute(
-        select(Document).where(
-            Document.workspace_id == workspace.id,
-            Document.status == DocumentStatus.needs_password,
-        )
+    docs = await repo.list(
+        workspace.id,
+        statuses=[DocumentStatus.needs_password],
     )
-    docs = result.scalars().all()
     if not docs:
         raise HTTPException(status_code=404, detail="Nenhum documento pendente de senha")
 
@@ -506,7 +500,7 @@ async def retry_unlock(
     for doc in updated:
         await db.refresh(doc)
 
-    return [DocumentResponse.model_validate(d) for d in updated]
+    return [document_to_response(d) for d in updated]
 
 
 @router.get(
@@ -526,7 +520,7 @@ async def retry_unlock(
 async def get_document_file(
     document_id: str,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: DocumentRepository = Depends(_get_document_repo),
 ):
     """Serve o arquivo original de um documento para visualização ou download.
 
@@ -534,13 +528,7 @@ async def get_document_file(
     os abra diretamente. Outros formatos recebem ``attachment`` e são baixados.
     Requer autenticação Bearer (igual a todos os outros endpoints).
     """
-    result = await db.execute(
-        select(Document).where(
-            Document.id == document_id,
-            Document.workspace_id == workspace.id,
-        )
-    )
-    doc = result.scalar_one_or_none()
+    doc = await repo.get_by_id(workspace.id, document_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Documento não encontrado")
 
@@ -563,26 +551,14 @@ async def get_document_file(
     )
 
 
-class ExtractJsonResponse(BaseModel):
-    filename: str
-    data: Any
-    all_candidates: list[str]
-
-
-@router.get("/{document_id}/extract-json", response_model=ExtractJsonResponse)
+@router.get("/{document_id}/extract-json", response_model=DocumentExtractJsonResponse)
 async def get_document_extract_json(
     document_id: str,
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
+    repo: DocumentRepository = Depends(_get_document_repo),
 ):
     """Retorna o JSON extraído pelo E2 para um documento processado (dev/debug)."""
-    result = await db.execute(
-        select(Document).where(
-            Document.id == document_id,
-            Document.workspace_id == workspace.id,
-        )
-    )
-    doc = result.scalar_one_or_none()
+    doc = await repo.get_by_id(workspace.id, document_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Documento não encontrado")
 
@@ -631,19 +607,12 @@ async def get_document_extract_json(
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Erro ao ler extrato: {exc}") from exc
 
-    return ExtractJsonResponse(filename=target.name, data=data, all_candidates=all_candidates)
-
-
-class ReclassifyResponse(BaseModel):
-    total: int
-    updated: int
-    skipped: int
-    errors: int
+    return DocumentExtractJsonResponse(filename=target.name, data=data, all_candidates=all_candidates)
 
 
 @router.post(
     "/reclassify",
-    response_model=ReclassifyResponse,
+    response_model=DocumentReclassifyResponse,
     dependencies=[Depends(require_write_role)],
 )
 async def reclassify_documents(
@@ -651,6 +620,7 @@ async def reclassify_documents(
     workspace: Workspace = Depends(get_current_workspace),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    repo: DocumentRepository = Depends(_get_document_repo),
     skip_manual_overrides: bool = True,
 ):
     """Re-run content-first classifier on all (or non-manually-overridden) documents.
@@ -680,10 +650,7 @@ async def reclassify_documents(
     ensure_tenant_pipeline_config(workspace.id, tenant_root)
     classification_base = resolve_classification_base(settings.PIPELINE_ROOT / "config", tenant_root)
 
-    result_all = await db.execute(
-        select(Document).where(Document.workspace_id == workspace.id)
-    )
-    docs = result_all.scalars().all()
+    docs = await repo.list(workspace.id)
 
     total = len(docs)
     n_updated = 0
@@ -784,13 +751,8 @@ async def reclassify_documents(
             doc.error_message = f"Reclassify error: {str(exc)[:200]}"
             n_errors += 1
 
-    dup_rows = await db.execute(
-        select(Document).where(
-            Document.workspace_id == workspace.id,
-            Document.status != DocumentStatus.error,
-        )
-    )
-    rebuild_fuzzy_duplicate_pointers(list(dup_rows.scalars().all()))
+    dup_rows = await repo.list_non_error(workspace.id)
+    rebuild_fuzzy_duplicate_pointers(dup_rows)
 
     await audit_log(
         db,
@@ -804,4 +766,4 @@ async def reclassify_documents(
     )
 
     await db.commit()
-    return ReclassifyResponse(total=total, updated=n_updated, skipped=n_skipped, errors=n_errors)
+    return DocumentReclassifyResponse(total=total, updated=n_updated, skipped=n_skipped, errors=n_errors)
