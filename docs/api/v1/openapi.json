@@ -4598,6 +4598,7 @@
         "type": "string"
       },
       "TaskAttachmentListResponse": {
+        "description": "Wrapper pagina\u00e7\u00e3o-ready para ``GET /tasks/{id}/attachments``.",
         "properties": {
           "attachments": {
             "items": {
@@ -4619,7 +4620,7 @@
         "type": "object"
       },
       "TaskAttachmentResponse": {
-        "description": "Metadados de um anexo. O bin\u00e1rio \u00e9 servido por `GET /download`.",
+        "description": "Metadados de um anexo de task.",
         "properties": {
           "content_type": {
             "anyOf": [
@@ -4686,8 +4687,8 @@
         "title": "TaskAttachmentResponse",
         "type": "object"
       },
-      "TaskCreate": {
-        "description": "Body do POST \u2014 number \u00e9 auto-atribu\u00eddo pelo service.",
+      "TaskCreateCommand": {
+        "description": "Body do ``POST /tasks``.",
         "properties": {
           "assigned_to": {
             "anyOf": [
@@ -4830,10 +4831,11 @@
           "category",
           "priority"
         ],
-        "title": "TaskCreate",
+        "title": "TaskCreateCommand",
         "type": "object"
       },
       "TaskListResponse": {
+        "description": "Wrapper pagina\u00e7\u00e3o-ready para ``GET /tasks``.",
         "properties": {
           "tasks": {
             "items": {
@@ -4854,8 +4856,8 @@
         "title": "TaskListResponse",
         "type": "object"
       },
-      "TaskProgress": {
-        "description": "Progresso de execu\u00e7\u00e3o de uma tarefa, derivado de transa\u00e7\u00f5es do m\u00eas.\n\nS\u00f3 faz sentido para tasks acion\u00e1veis recorrentes (ex: \"Configurar\naporte R$20k/m\u00eas\"). Para tasks bin\u00e1rias (sem m\u00e9trica), todos os\ncampos s\u00e3o None.",
+      "TaskProgressResponse": {
+        "description": "Progresso de execu\u00e7\u00e3o de uma tarefa recorrente.",
         "properties": {
           "executed_brl": {
             "anyOf": [
@@ -4939,10 +4941,11 @@
         "required": [
           "is_trackable"
         ],
-        "title": "TaskProgress",
+        "title": "TaskProgressResponse",
         "type": "object"
       },
       "TaskResponse": {
+        "description": "Task persistida com metadata de estado e autoria.",
         "properties": {
           "assigned_to": {
             "anyOf": [
@@ -5183,8 +5186,8 @@
         "title": "TaskResponse",
         "type": "object"
       },
-      "TaskStatusTransition": {
-        "description": "Body dedicado para transi\u00e7\u00e3o de status \u2014 permite rastrear motivo.",
+      "TaskStatusTransitionCommand": {
+        "description": "``POST /tasks/{id}/status`` \u2014 transi\u00e7\u00e3o com motivo expl\u00edcito.\n\nSeparado do PATCH para audit trail mais claro em Swagger/logs.",
         "properties": {
           "status": {
             "enum": [
@@ -5213,11 +5216,11 @@
         "required": [
           "status"
         ],
-        "title": "TaskStatusTransition",
+        "title": "TaskStatusTransitionCommand",
         "type": "object"
       },
-      "TaskSuggestionApprove": {
-        "description": "Body do POST /approve \u2014 opcionalmente usu\u00e1rio edita antes de aceitar.",
+      "TaskSuggestionApproveCommand": {
+        "description": "``POST /task-suggestions/{id}/approve``.\n\n``edited_payload`` permite o usu\u00e1rio ajustar os campos antes de\naceitar \u2014 se fornecido, sobrescreve ``proposed_payload`` ao\nmaterializar a Task.",
         "properties": {
           "edited_payload": {
             "anyOf": [
@@ -5230,11 +5233,11 @@
             ]
           }
         },
-        "title": "TaskSuggestionApprove",
+        "title": "TaskSuggestionApproveCommand",
         "type": "object"
       },
-      "TaskSuggestionCreate": {
-        "description": "Body do POST interno (E5.N\u2192DB).",
+      "TaskSuggestionCreateCommand": {
+        "description": "``POST /task-suggestions`` \u2014 chamado pelo E5.N (ADR-074).",
         "properties": {
           "proposed_payload": {
             "$ref": "#/components/schemas/TaskSuggestionProposed"
@@ -5264,10 +5267,11 @@
           "proposed_payload",
           "source"
         ],
-        "title": "TaskSuggestionCreate",
+        "title": "TaskSuggestionCreateCommand",
         "type": "object"
       },
       "TaskSuggestionListResponse": {
+        "description": "Wrapper pagina\u00e7\u00e3o-ready para ``GET /task-suggestions``.",
         "properties": {
           "suggestions": {
             "items": {
@@ -5289,7 +5293,7 @@
         "type": "object"
       },
       "TaskSuggestionProposed": {
-        "description": "Shape do payload proposto pela LLM. Id\u00eantico a TaskCreate exceto\npor n\u00e3o aceitar `number` (importer-only).",
+        "description": "Shape do payload proposto pela LLM.\n\nId\u00eantico a ``TaskCreateCommand`` exceto por n\u00e3o aceitar ``number``\n(importer-only).",
         "properties": {
           "assigned_to": {
             "anyOf": [
@@ -5424,7 +5428,8 @@
         "title": "TaskSuggestionProposed",
         "type": "object"
       },
-      "TaskSuggestionReject": {
+      "TaskSuggestionRejectCommand": {
+        "description": "``POST /task-suggestions/{id}/reject``.",
         "properties": {
           "reason": {
             "anyOf": [
@@ -5439,10 +5444,11 @@
             "title": "Reason"
           }
         },
-        "title": "TaskSuggestionReject",
+        "title": "TaskSuggestionRejectCommand",
         "type": "object"
       },
       "TaskSuggestionResponse": {
+        "description": "Sugest\u00e3o persistida.",
         "properties": {
           "approved_task_id": {
             "anyOf": [
@@ -5549,8 +5555,8 @@
         "title": "TaskSuggestionResponse",
         "type": "object"
       },
-      "TaskUpdate": {
-        "description": "PATCH parcial. Todos os campos opcionais.",
+      "TaskUpdateCommand": {
+        "description": "``PATCH /tasks/{id}`` \u2014 todos os campos opcionais.",
         "properties": {
           "assigned_to": {
             "anyOf": [
@@ -5733,7 +5739,7 @@
             "title": "Title"
           }
         },
-        "title": "TaskUpdate",
+        "title": "TaskUpdateCommand",
         "type": "object"
       },
       "TokenResponse": {
@@ -11034,7 +11040,7 @@
         ]
       },
       "post": {
-        "description": "Cria uma sugest\u00e3o pending. Endpoint usado pelo E5.N (ADR-074) \u2014\npipeline LLM invoca via HTTP para gravar sugest\u00f5es ap\u00f3s rodar.\n\nAlternativa: chamar `task_suggestion_service.bulk_create` direto do\nPython dentro do worker. Este endpoint existe para workers em outros\nprocessos/linguagens (ex: pipeline CLI em transi\u00e7\u00e3o).",
+        "description": "Cria uma sugest\u00e3o pending. Endpoint usado pelo E5.N (ADR-074) \u2014\npipeline LLM invoca via HTTP para gravar sugest\u00f5es ap\u00f3s rodar.\n\nAlternativa: chamar ``task_suggestion_service.bulk_create`` direto do\nPython dentro do worker. Este endpoint existe para workers em outros\nprocessos/linguagens (ex: pipeline CLI em transi\u00e7\u00e3o).",
         "operationId": "create_suggestion_api_workspaces__workspace_id__task_suggestions_post",
         "parameters": [
           {
@@ -11051,7 +11057,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TaskSuggestionCreate"
+                "$ref": "#/components/schemas/TaskSuggestionCreateCommand"
               }
             }
           },
@@ -11117,7 +11123,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TaskSuggestionApprove"
+                "$ref": "#/components/schemas/TaskSuggestionApproveCommand"
               }
             }
           },
@@ -11248,7 +11254,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TaskSuggestionReject"
+                "$ref": "#/components/schemas/TaskSuggestionRejectCommand"
               }
             }
           },
@@ -11484,7 +11490,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TaskCreate"
+                "$ref": "#/components/schemas/TaskCreateCommand"
               }
             }
           },
@@ -11525,7 +11531,7 @@
     },
     "/api/workspaces/{workspace_id}/tasks/export.md": {
       "get": {
-        "description": "Export do `tarefas.md` on-demand (compat pipeline legado \u2014 ADR-075).",
+        "description": "Export do ``tarefas.md`` on-demand (compat pipeline legado \u2014 ADR-075).",
         "operationId": "export_tasks_md_api_workspaces__workspace_id__tasks_export_md_get",
         "parameters": [
           {
@@ -11621,7 +11627,7 @@
     },
     "/api/workspaces/{workspace_id}/tasks/upcoming": {
       "get": {
-        "description": "Tarefas com deadline_date nos pr\u00f3ximos N dias, ativas.\nUsado pelo widget do dashboard.",
+        "description": "Tarefas com ``deadline_date`` nos pr\u00f3ximos N dias, ativas.\n\nUsado pelo widget do dashboard.",
         "operationId": "upcoming_tasks_api_workspaces__workspace_id__tasks_upcoming_get",
         "parameters": [
           {
@@ -11679,7 +11685,7 @@
     },
     "/api/workspaces/{workspace_id}/tasks/{task_id}": {
       "delete": {
-        "description": "Soft-delete: move para status='cancelled' preservando hist\u00f3rico.\nPara remo\u00e7\u00e3o f\u00edsica (raro, admin-only), fora do MVP.",
+        "description": "Soft-delete: move para ``status='cancelled'`` preservando hist\u00f3rico.\n\nPara remo\u00e7\u00e3o f\u00edsica (raro, admin-only), fora do MVP.",
         "operationId": "cancel_task_api_workspaces__workspace_id__tasks__task_id__delete",
         "parameters": [
           {
@@ -11806,7 +11812,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TaskUpdate"
+                "$ref": "#/components/schemas/TaskUpdateCommand"
               }
             }
           },
@@ -11901,7 +11907,7 @@
         ]
       },
       "post": {
-        "description": "Upload multipart de um anexo. Valida extens\u00e3o e tamanho via\n`StorageService.validate_file` (reusa o mesmo whitelist de documentos).",
+        "description": "Upload multipart de um anexo. Valida extens\u00e3o e tamanho via\n``StorageService.validate_file`` (reusa o mesmo whitelist de documentos).",
         "operationId": "upload_task_attachment_api_workspaces__workspace_id__tasks__task_id__attachments_post",
         "parameters": [
           {
@@ -12026,7 +12032,7 @@
     },
     "/api/workspaces/{workspace_id}/tasks/{task_id}/attachments/{attachment_id}/download": {
       "get": {
-        "description": "Serve bin\u00e1rio. Tenancy validado duas vezes: (1) get_current_workspace,\n(2) get_attachment filtra por workspace_id.",
+        "description": "Serve bin\u00e1rio. Tenancy validado duas vezes: (1) ``get_current_workspace``,\n(2) ``get_attachment`` filtra por ``workspace_id``.",
         "operationId": "download_task_attachment_api_workspaces__workspace_id__tasks__task_id__attachments__attachment_id__download_get",
         "parameters": [
           {
@@ -12085,7 +12091,7 @@
     },
     "/api/workspaces/{workspace_id}/tasks/{task_id}/progress": {
       "get": {
-        "description": "% executado no m\u00eas corrente para tasks de aporte (heur\u00edstica).\n\nRetorna `is_trackable=False` se a task n\u00e3o \u00e9 do tipo \"aporte mensal\".\nA UI (TaskDrawer) esconde o card de progresso nesse caso.",
+        "description": "% executado no m\u00eas corrente para tasks de aporte (heur\u00edstica).\n\nRetorna ``is_trackable=False`` se a task n\u00e3o \u00e9 do tipo \"aporte mensal\".\nA UI (TaskDrawer) esconde o card de progresso nesse caso.",
         "operationId": "get_task_progress_api_workspaces__workspace_id__tasks__task_id__progress_get",
         "parameters": [
           {
@@ -12112,7 +12118,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskProgress"
+                  "$ref": "#/components/schemas/TaskProgressResponse"
                 }
               }
             },
@@ -12168,7 +12174,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TaskStatusTransition"
+                "$ref": "#/components/schemas/TaskStatusTransitionCommand"
               }
             }
           },
