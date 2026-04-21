@@ -70,6 +70,14 @@ from pipeline.stage_spec import (
     build_from_map,
 )
 
+# OTel API é framework-neutral (ADR-110) e seguro importar em pipeline/.
+# Sem provider configurado, chamadas são no-op (zero overhead em CLI/tests).
+try:
+    from opentelemetry import trace as _otel_trace
+    _TRACER = _otel_trace.get_tracer("mathoms.pipeline.orchestrator")
+except ImportError:  # pragma: no cover — OTel é dep do backend, não do pipeline CLI isolado.
+    _TRACER = None
+
 
 LLM_STAGES = {
     name for name, spec in STAGE_REGISTRY.items() if spec.is_llm
@@ -179,10 +187,26 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
     import io
     import sys
     import time
+    from contextlib import nullcontext
 
     runner = _get_stage_runner(stage)
     if runner is None:
         return StageResult(stage=stage, success=False, error=f"No runner found for {stage}")
+
+    # OTel span por stage (ADR-110). No-op quando provider não configurado —
+    # zero overhead em CLI e testes de pipeline sem backend.
+    if _TRACER is not None:
+        span_cm = _TRACER.start_as_current_span(
+            f"pipeline.{stage}",
+            attributes={
+                "pipeline.stage": stage,
+                "pipeline.workspace_root": str(ctx.root),
+                "pipeline.run_id": ctx.pipeline_run_id or "",
+                "pipeline.is_llm": STAGE_REGISTRY[stage].is_llm if stage in STAGE_REGISTRY else False,
+            },
+        )
+    else:
+        span_cm = nullcontext()
 
     # Capture stderr to extract error messages from legacy scripts
     original_stderr = sys.stderr
@@ -194,25 +218,34 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
 
     start = time.monotonic()
     try:
-        detail = runner(ctx)
-        elapsed = (time.monotonic() - start) * 1000
-        # Wrappers que retornam dict podem sinalizar falha parcial/total sem exceção
-        # (ex.: E2-llm com erros em alguns arquivos, E5.N sem output).
-        ok = True
-        if isinstance(detail, dict) and "success" in detail:
-            ok = bool(detail.get("success"))
-        return StageResult(stage=stage, success=ok, duration_ms=elapsed, detail=detail)
-    except SystemExit as exc:
-        elapsed = (time.monotonic() - start) * 1000
-        code = exc.code if exc.code is not None else 0
-        if code == 0:
-            return StageResult(stage=stage, success=True, duration_ms=elapsed, detail={"exit_code": 0})
-        # Extract last meaningful error lines from captured output
-        error_msg = _extract_error_message(captured_stderr.getvalue(), captured_stdout.getvalue(), code)
-        return StageResult(stage=stage, success=False, duration_ms=elapsed, error=error_msg)
-    except Exception as exc:
-        elapsed = (time.monotonic() - start) * 1000
-        return StageResult(stage=stage, success=False, duration_ms=elapsed, error=str(exc))
+        with span_cm as span:
+            try:
+                detail = runner(ctx)
+                elapsed = (time.monotonic() - start) * 1000
+                # Wrappers que retornam dict podem sinalizar falha parcial/total sem exceção
+                # (ex.: E2-llm com erros em alguns arquivos, E5.N sem output).
+                ok = True
+                if isinstance(detail, dict) and "success" in detail:
+                    ok = bool(detail.get("success"))
+                if span is not None and not ok:
+                    span.set_attribute("pipeline.success", False)
+                return StageResult(stage=stage, success=ok, duration_ms=elapsed, detail=detail)
+            except SystemExit as exc:
+                elapsed = (time.monotonic() - start) * 1000
+                code = exc.code if exc.code is not None else 0
+                if code == 0:
+                    return StageResult(stage=stage, success=True, duration_ms=elapsed, detail={"exit_code": 0})
+                if span is not None:
+                    span.set_attribute("pipeline.success", False)
+                    span.set_attribute("pipeline.exit_code", code)
+                error_msg = _extract_error_message(captured_stderr.getvalue(), captured_stdout.getvalue(), code)
+                return StageResult(stage=stage, success=False, duration_ms=elapsed, error=error_msg)
+            except Exception as exc:
+                elapsed = (time.monotonic() - start) * 1000
+                if span is not None:
+                    span.record_exception(exc)
+                    span.set_attribute("pipeline.success", False)
+                return StageResult(stage=stage, success=False, duration_ms=elapsed, error=str(exc))
     finally:
         sys.stderr = original_stderr
         sys.stdout = original_stdout
