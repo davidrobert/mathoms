@@ -8,7 +8,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 
 const CHART_COLORS = Array.from({ length: 12 }, (_, i) => `var(--chart-${i + 1})`);

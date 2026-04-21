@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { formatDelta as fmtDelta } from "@/lib/format";
 

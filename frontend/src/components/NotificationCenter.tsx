@@ -24,7 +24,7 @@ import {
   CheckCheck,
   X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 const SEVERITY_CONFIG: Record<

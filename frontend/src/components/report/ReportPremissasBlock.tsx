@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { ReportAnalysisData } from "@/lib/api";
 import { REPORT_FORMULA_CATALOG } from "@/lib/reportFormulas";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 
 /** F11.6c + F11.7 — bloco colapsável de premissas e referência a regras. */
 export function ReportPremissasBlock({ data }: { data: ReportAnalysisData }) {

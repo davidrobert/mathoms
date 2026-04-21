@@ -10,7 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 
 interface DataKeyDef {

@@ -12,7 +12,7 @@ import { Download, Paperclip, Trash2, Upload, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import {
   deleteTaskAttachment,
   listTaskAttachments,

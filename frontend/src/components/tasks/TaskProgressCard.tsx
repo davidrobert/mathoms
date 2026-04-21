@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { TrendingUp } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 import {
   getTaskProgress,

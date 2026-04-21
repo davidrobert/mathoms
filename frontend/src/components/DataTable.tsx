@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,

@@ -27,7 +27,7 @@ import type {
   IFGoalInputs,
   IFGoalDerived,
 } from "@/lib/api";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 
 export type GoalPremissasCardProps = {
   className?: string;

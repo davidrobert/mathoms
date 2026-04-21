@@ -1,5 +1,5 @@
 import { CheckCircle2, CircleDashed, Circle, XCircle, Lock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import type { TaskStatus } from "@/lib/api";
 
 const LABEL: Record<TaskStatus, string> = {

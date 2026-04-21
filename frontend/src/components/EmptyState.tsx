@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { FileText, BarChart3, Inbox, AlertCircle, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

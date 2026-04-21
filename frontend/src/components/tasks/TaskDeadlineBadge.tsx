@@ -1,5 +1,5 @@
 import { Calendar, AlertCircle, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import type { TaskResponse } from "@/lib/api";
 
 /** Dias entre hoje e a data (ignora timezone). */

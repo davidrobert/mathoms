@@ -1,10 +1,10 @@
 /**
- * Unit tests — `lib/utils.ts` (`cn()` helper)
+ * Unit tests — `lib/cn.ts` (`cn()` helper)
  * F6.5A.6 — combina clsx + tailwind-merge para resolver conflitos de classes
  * Tailwind (`px-2 px-4` → mantém só `px-4`).
  */
 import { describe, expect, it } from "vitest";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 
 describe("cn()", () => {
   it("concatena classes simples", () => {

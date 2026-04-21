@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 
 interface SectionSummaryProps {
   narrativas: Record<string, unknown> | undefined;

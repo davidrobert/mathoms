@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Activity } from "lucide-react";
 import { getStatusPageUrl } from "@/lib/statusPageUrl";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 
 type Props = {
   /** `app` = borda superior (área logada); `auth` = login/cadastro */

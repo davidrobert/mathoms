@@ -18,7 +18,7 @@ import {
   ApiError,
 } from "@/lib/api";
 import { formatCurrency, formatDateShort, bankLabel } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { Spinner } from "@/components/Spinner";

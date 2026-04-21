@@ -77,7 +77,7 @@ import {
 } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import type { UserWorkspace } from "@/lib/api";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 
 /** Alinhado a ``_REVIEW_CONFIDENCE_THRESHOLD`` no backend (document_classification). */
 const CLASSIFICATION_LOW_CONFIDENCE = 0.7;

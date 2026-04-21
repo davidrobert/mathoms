@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { type Period, PERIOD_LABELS } from "@/lib/periodUtils";
 
 const PERIODS: Period[] = ["3m", "6m", "12m", "ytd"];
