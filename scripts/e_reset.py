@@ -776,7 +776,15 @@ def validate(from_stage: str | None) -> list[str]:
 VALID_FROM_STAGES = ["E0", "E1", "E2-faturas", "E3", "E4", "E5", "E5.N", "E6", "E7"]
 
 
-def main():
+LLM_DESCRIPTIONS = {
+    "E1":       "Extração de dados dos membros (holerite, docs pessoais)",
+    "E1.5":     "Baseline patrimonial (IRPF, XLSX imóveis/veículos)",
+    "E2-llm":   "Extração LLM de investimentos/CDBs sem parser determinístico",
+    "E7-review": "Review holístico pós-relatório (preencher template com persona)",
+}
+
+
+def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Reprocessamento completo do pipeline financeiro (E0→E6)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -840,314 +848,353 @@ Estágios válidos para --from: {', '.join(VALID_FROM_STAGES)}
         help="Retomar pipeline interativo a partir do state file (_scratch/.e_reset_state.json). "
              "Usar após concluir a etapa LLM indicada na wall anterior.",
     )
+    return parser
 
-    args = parser.parse_args()
-    dry_run = args.dry_run
-    from_stage = args.from_stage
-    interactive = args.interactive
-    continue_mode = args.continue_from_state
 
-    # --- Handle --continue: resume from state file ---
-    if continue_mode:
-        return _main_continue(args)
+def _build_mode_string(args) -> str:
+    if args.from_stage:
+        return f"Reprocessamento a partir de {args.from_stage}"
+    if args.interactive:
+        return "Reprocessamento INTERATIVO completo (E0→E6, com walls LLM)"
+    return "Reprocessamento completo (E0→E6)"
 
-    # Header
-    if from_stage:
-        mode = f"Reprocessamento a partir de {from_stage}"
-    elif interactive:
-        mode = "Reprocessamento INTERATIVO completo (E0→E6, com walls LLM)"
-    else:
-        mode = "Reprocessamento completo (E0→E6)"
 
+def _print_reset_header(mode: str, args) -> None:
     print("=" * 60)
     print(f"  {mode}")
-    if dry_run:
+    if args.dry_run:
         print("  MODO: --dry-run (nenhuma mudança será feita)")
-    if interactive:
+    if args.interactive:
         print("  MODO: --interactive (pipeline para em etapas LLM)")
     print(f"  Projeto: {PROJECT_DIR}")
     print("=" * 60)
 
-    # Initialize interactive state
-    state: dict | None = None
-    if interactive:
-        state = {
-            "started_at": datetime.now().isoformat(),
-            "flags": {
-                "move_to_inbox": args.move_to_inbox,
-                "interactive": True,
-                "dry_run": dry_run,
-                "from_stage": from_stage,
-                "no_validate": args.no_validate,
-            },
-            "completed_stages": [],
-            "next_stage": None,
-            "wall_hit": None,
-        }
-        _save_state(state)
 
-    # --- Phase -1: Move data/ + members/ originals back to inbox/ ---
-    if args.move_to_inbox:
-        print(f"\n--- Fase -1: Movendo arquivos de data/ e members/ → inbox/ ---")
-        moved = move_data_and_members_to_inbox(dry_run)
-        print(f"  Total: {moved} arquivo(s) {'identificados' if dry_run else 'movidos'} para inbox/")
+def _init_interactive_state(args) -> dict:
+    state = {
+        "started_at": datetime.now().isoformat(),
+        "flags": {
+            "move_to_inbox": args.move_to_inbox,
+            "interactive": True,
+            "dry_run": args.dry_run,
+            "from_stage": args.from_stage,
+            "no_validate": args.no_validate,
+        },
+        "completed_stages": [],
+        "next_stage": None,
+        "wall_hit": None,
+    }
+    _save_state(state)
+    return state
 
-        # Also clean E1 artifacts from members/ (extract, unified, enriched)
-        # since originals are gone and E1 must be re-executed
-        if not dry_run:
-            e1_artifacts = []
-            if MEMBERS_DIR.is_dir():
-                for child in MEMBERS_DIR.iterdir():
-                    if child.is_file() and child.name != ".DS_Store" and "-0_original." not in child.name:
-                        e1_artifacts.append(child)
-            if e1_artifacts:
-                print(f"\n  Limpando {len(e1_artifacts)} artefato(s) E1 em members/ (serão recriados):")
-                for f in e1_artifacts:
-                    try:
-                        f.unlink()
-                        print(f"    Removido: members/{f.name}")
-                    except Exception:
-                        try:
-                            f.write_text("")
-                            print(f"    Truncado: members/{f.name}")
-                        except Exception as e2:
-                            print(f"    [AVISO] Não removeu: members/{f.name} ({e2})")
-        else:
-            e1_count = 0
-            if MEMBERS_DIR.is_dir():
-                for child in MEMBERS_DIR.iterdir():
-                    if child.is_file() and child.name != ".DS_Store" and "-0_original." not in child.name:
-                        print(f"  [DRY-RUN] Removeria artefato E1: members/{child.name}")
-                        e1_count += 1
-            if e1_count:
-                print(f"  Total: {e1_count} artefato(s) E1 seriam removidos")
 
-    # --- Fix #10: Warn about --clean-only with E5.N ---
-    if args.clean_only and from_stage == "E5.N":
-        print("\n  ⚠️  AVISO: --clean-only com --from E5.N")
-        print("     Narrativas são internas ao JSON do E5 — não há artefatos de arquivo para limpar.")
-        print("     Apenas output/relatorio_*.html será removido.")
-        print("     Para limpar narrativas + re-executar, rode sem --clean-only.")
-        print()
+def _collect_orphan_e1_artifacts() -> list[Path]:
+    if not MEMBERS_DIR.is_dir():
+        return []
+    return [
+        child for child in MEMBERS_DIR.iterdir()
+        if child.is_file() and child.name != ".DS_Store" and "-0_original." not in child.name
+    ]
 
-    # --- Phase 0.0: Unlock password-protected PDFs in inbox ---
+
+def _clean_e1_artifacts(dry_run: bool) -> None:
+    orphans = _collect_orphan_e1_artifacts()
+    if dry_run:
+        for child in orphans:
+            print(f"  [DRY-RUN] Removeria artefato E1: members/{child.name}")
+        if orphans:
+            print(f"  Total: {len(orphans)} artefato(s) E1 seriam removidos")
+        return
+    if not orphans:
+        return
+    print(f"\n  Limpando {len(orphans)} artefato(s) E1 em members/ (serão recriados):")
+    for f in orphans:
+        try:
+            f.unlink()
+            print(f"    Removido: members/{f.name}")
+        except Exception:
+            try:
+                f.write_text("")
+                print(f"    Truncado: members/{f.name}")
+            except Exception as e2:
+                print(f"    [AVISO] Não removeu: members/{f.name} ({e2})")
+
+
+def _phase_move_to_inbox(args) -> None:
+    if not args.move_to_inbox:
+        return
+    dry_run = args.dry_run
+    print("\n--- Fase -1: Movendo arquivos de data/ e members/ → inbox/ ---")
+    moved = move_data_and_members_to_inbox(dry_run)
+    print(f"  Total: {moved} arquivo(s) {'identificados' if dry_run else 'movidos'} para inbox/")
+    _clean_e1_artifacts(dry_run)
+
+
+def _warn_clean_only_e5n(args) -> None:
+    if not (args.clean_only and args.from_stage == "E5.N"):
+        return
+    print("\n  ⚠️  AVISO: --clean-only com --from E5.N")
+    print("     Narrativas são internas ao JSON do E5 — não há artefatos de arquivo para limpar.")
+    print("     Apenas output/relatorio_*.html será removido.")
+    print("     Para limpar narrativas + re-executar, rode sem --clean-only.")
+    print()
+
+
+def _phase_unlock_pdfs(args) -> None:
+    if args.no_unlock:
+        return
     unlock_script = SCRIPTS_DIR / "e0_unlock.py"
     passwords_file = PROJECT_DIR / "config" / "passwords.txt"
-    inbox_dir = PROJECT_DIR / "inbox"
-    if not args.no_unlock and unlock_script.exists() and passwords_file.exists() and inbox_dir.exists():
-        inbox_pdfs = list(inbox_dir.glob("*.pdf"))
-        if inbox_pdfs:
-            print(f"\n--- Fase 0.0: Desbloqueio de PDFs no inbox ({len(inbox_pdfs)} PDFs) ---")
-            if dry_run:
-                print("  [DRY-RUN] Executaria: python e0_unlock.py --dry-run")
-                subprocess.run(
-                    [sys.executable, str(unlock_script), "--dry-run"],
-                    cwd=str(PROJECT_DIR),
-                    capture_output=False,
-                )
-            else:
-                result = subprocess.run(
-                    [sys.executable, str(unlock_script)],
-                    cwd=str(PROJECT_DIR),
-                    capture_output=False,
-                )
-                if result.returncode == 2:
-                    # Exit 2 = PDFs protegidos sem senha válida (alerta, não fatal)
-                    print("\n  [ALERTA] Alguns PDFs não puderam ser desbloqueados.")
-                    print("  O pipeline prosseguirá, mas esses arquivos serão ignorados em E2.")
-                    print("  Veja logs/qa_log.md para detalhes.\n")
-                elif result.returncode != 0:
-                    print("  [AVISO] e0_unlock falhou inesperadamente. Prosseguindo.")
-        else:
-            print(f"\n--- Fase 0.0: Inbox vazio, pulando unlock ---")
+    if not (unlock_script.exists() and passwords_file.exists() and INBOX_DIR.exists()):
+        return
+    inbox_pdfs = list(INBOX_DIR.glob("*.pdf"))
+    if not inbox_pdfs:
+        print("\n--- Fase 0.0: Inbox vazio, pulando unlock ---")
+        return
+    print(f"\n--- Fase 0.0: Desbloqueio de PDFs no inbox ({len(inbox_pdfs)} PDFs) ---")
+    if args.dry_run:
+        print("  [DRY-RUN] Executaria: python e0_unlock.py --dry-run")
+        subprocess.run(
+            [sys.executable, str(unlock_script), "--dry-run"],
+            cwd=str(PROJECT_DIR),
+            capture_output=False,
+        )
+        return
+    result = subprocess.run(
+        [sys.executable, str(unlock_script)],
+        cwd=str(PROJECT_DIR),
+        capture_output=False,
+    )
+    if result.returncode == 2:
+        # Exit 2 = PDFs protegidos sem senha válida (alerta, não fatal)
+        print("\n  [ALERTA] Alguns PDFs não puderam ser desbloqueados.")
+        print("  O pipeline prosseguirá, mas esses arquivos serão ignorados em E2.")
+        print("  Veja logs/qa_log.md para detalhes.\n")
+    elif result.returncode != 0:
+        print("  [AVISO] e0_unlock falhou inesperadamente. Prosseguindo.")
 
-    # --- Phase 0: Pre-audit (e0_audit) ---
+
+def _print_audit_issues(audit: dict, severity: str) -> None:
+    for check_data in audit.get("checks", {}).values():
+        for issue in check_data.get("issues", []):
+            if issue["severity"] == severity:
+                print(f"    - {issue['file']}: {issue['issue']}")
+
+
+def _phase_audit(args) -> None:
+    if args.no_audit:
+        return
     audit_script = SCRIPTS_DIR / "e0_audit.py"
-    if not args.no_audit and audit_script.exists():
-        print(f"\n--- Fase 0: Auditoria de integridade (e0_audit) ---")
-        if dry_run:
-            print("  [DRY-RUN] Executaria: python e0_audit.py --json")
-        else:
-            result = subprocess.run(
-                [sys.executable, str(audit_script), "--json"],
-                cwd=str(PROJECT_DIR),
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode == 0:
-                try:
-                    audit = json.loads(result.stdout)
-                    summary = audit.get("summary", {})
-                    errors = summary.get("errors", 0)
-                    warnings_count = summary.get("warnings", 0)
-                    info = summary.get("info", 0)
+    if not audit_script.exists():
+        return
+    print("\n--- Fase 0: Auditoria de integridade (e0_audit) ---")
+    if args.dry_run:
+        print("  [DRY-RUN] Executaria: python e0_audit.py --json")
+        return
+    result = subprocess.run(
+        [sys.executable, str(audit_script), "--json"],
+        cwd=str(PROJECT_DIR),
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        print(f"  [AVISO] e0_audit falhou (exit {result.returncode}). Prosseguindo.")
+        return
+    try:
+        audit = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        print("  [AVISO] Não foi possível parsear saída do e0_audit. Prosseguindo.")
+        return
+    summary = audit.get("summary", {})
+    errors = summary.get("errors", 0)
+    warnings_count = summary.get("warnings", 0)
+    info = summary.get("info", 0)
+    if errors > 0:
+        print(f"  [ERRO] Auditoria encontrou {errors} erro(s)!")
+        _print_audit_issues(audit, "ERROR")
+        print("\n  Corrija os erros acima antes de rodar o reset.")
+        print("  Para detalhes: python scripts/e0_audit.py")
+        print("  Para ignorar: adicione --no-audit")
+        sys.exit(1)
+    if warnings_count > 0:
+        print(f"  [AVISO] {warnings_count} aviso(s), {info} info(s)")
+        _print_audit_issues(audit, "WARNING")
+        print("  Prosseguindo (avisos não bloqueiam o reset).")
+        return
+    print(f"  [OK] Nenhum problema significativo ({info} info).")
 
-                    if errors > 0:
-                        print(f"  [ERRO] Auditoria encontrou {errors} erro(s)!")
-                        # Show the issues
-                        for check_data in audit.get("checks", {}).values():
-                            for issue in check_data.get("issues", []):
-                                if issue["severity"] == "ERROR":
-                                    print(f"    - {issue['file']}: {issue['issue']}")
-                        print(f"\n  Corrija os erros acima antes de rodar o reset.")
-                        print(f"  Para detalhes: python scripts/e0_audit.py")
-                        print(f"  Para ignorar: adicione --no-audit")
-                        sys.exit(1)
-                    elif warnings_count > 0:
-                        print(f"  [AVISO] {warnings_count} aviso(s), {info} info(s)")
-                        for check_data in audit.get("checks", {}).values():
-                            for issue in check_data.get("issues", []):
-                                if issue["severity"] == "WARNING":
-                                    print(f"    - {issue['file']}: {issue['issue']}")
-                        print(f"  Prosseguindo (avisos não bloqueiam o reset).")
-                    else:
-                        print(f"  [OK] Nenhum problema significativo ({info} info).")
-                except json.JSONDecodeError:
-                    print("  [AVISO] Não foi possível parsear saída do e0_audit. Prosseguindo.")
-            else:
-                print(f"  [AVISO] e0_audit falhou (exit {result.returncode}). Prosseguindo.")
 
-    # --- Phase 0.5: Auto-route inbox files (e0_route) ---
+def _phase_route(args) -> None:
+    if args.no_route:
+        return
     route_script = SCRIPTS_DIR / "e0_route.py"
-    if not args.no_route and route_script.exists() and inbox_dir.exists():
-        inbox_files = [f for f in inbox_dir.iterdir() if f.is_file() and not f.name.startswith(".")]
-        if inbox_files:
-            print(f"\n--- Fase 0.5: Roteamento automático do inbox ({len(inbox_files)} arquivos) ---")
-            try:
-                from e0_route import route_all as e0_route_all
-                route_stats = e0_route_all(base=PROJECT_DIR, dry_run=dry_run, use_llm=True)
-                routed = route_stats.get("routed", 0)
-                unid = route_stats.get("unidentified", 0)
-                print(f"  Roteados: {routed} | Não identificados: {unid} | Duplicatas: {route_stats.get('duplicates', 0)}")
-                if unid > 0:
-                    print(f"  [AVISO] {unid} arquivo(s) não identificado(s) — verificar nao_identificados/")
-            except Exception as e:
-                print(f"  [AVISO] e0_route falhou: {e}. Prosseguindo.")
-        else:
-            print(f"\n--- Fase 0.5: Inbox vazio, pulando roteamento ---")
+    if not (route_script.exists() and INBOX_DIR.exists()):
+        return
+    inbox_files = [f for f in INBOX_DIR.iterdir() if f.is_file() and not f.name.startswith(".")]
+    if not inbox_files:
+        print("\n--- Fase 0.5: Inbox vazio, pulando roteamento ---")
+        return
+    print(f"\n--- Fase 0.5: Roteamento automático do inbox ({len(inbox_files)} arquivos) ---")
+    try:
+        from e0_route import route_all as e0_route_all
+        route_stats = e0_route_all(base=PROJECT_DIR, dry_run=args.dry_run, use_llm=True)
+        routed = route_stats.get("routed", 0)
+        unid = route_stats.get("unidentified", 0)
+        print(f"  Roteados: {routed} | Não identificados: {unid} | Duplicatas: {route_stats.get('duplicates', 0)}")
+        if unid > 0:
+            print(f"  [AVISO] {unid} arquivo(s) não identificado(s) — verificar nao_identificados/")
+    except Exception as e:
+        print(f"  [AVISO] e0_route falhou: {e}. Prosseguindo.")
 
-    # --- Fix #5: Pre-check dependencies before any destructive action ---
-    if from_stage:
-        stages = EXECUTION_ORDER_FROM[from_stage]
-    else:
-        stages = EXECUTION_ORDER_FULL
 
-    if not args.clean_only:
-        det_stages = [s for s in stages if s in DETERMINISTIC_SCRIPTS]
-        missing_deps = check_dependencies(det_stages)
-        if missing_deps:
-            print("\n  [ERRO] Dependências Python faltando:")
-            for dep in missing_deps:
-                print(f"    {dep}")
-            print("\n  Instale as dependências antes de rodar o reset.")
-            sys.exit(1)
+def _check_deps_or_exit(stages: list[str]) -> None:
+    det_stages = [s for s in stages if s in DETERMINISTIC_SCRIPTS]
+    missing_deps = check_dependencies(det_stages)
+    if not missing_deps:
+        return
+    print("\n  [ERRO] Dependências Python faltando:")
+    for dep in missing_deps:
+        print(f"    {dep}")
+    print("\n  Instale as dependências antes de rodar o reset.")
+    sys.exit(1)
 
-    # --- Phase 1: Clean artifacts ---
-    print(f"\n--- Fase 1: Limpeza de artefatos ---")
-    if from_stage:
-        files = artifacts_from(from_stage)
-    else:
-        files = artifacts_full_reset()
 
+def _phase_clean_artifacts(from_stage: str | None, dry_run: bool) -> None:
+    print("\n--- Fase 1: Limpeza de artefatos ---")
+    files = artifacts_from(from_stage) if from_stage else artifacts_full_reset()
     count = delete_artifacts(files, dry_run)
     print(f"  Total: {count} item(s) {'identificados' if dry_run else 'removidos'}")
 
-    # --- Fix #3: Strip narrativas from E5 JSON when E5.N is in cascade ---
+
+def _phase_clean_narrativas_review(stages: list[str], dry_run: bool) -> None:
     if "E5.N" in stages:
-        print(f"\n--- Fase 1.5: Limpeza de narrativas (E5.N) ---")
+        print("\n--- Fase 1.5: Limpeza de narrativas (E5.N) ---")
         stripped = strip_narrativas_from_e5_files(dry_run)
         if stripped:
             print(f"  Total: {stripped} arquivo(s) com narrativas {'identificados' if dry_run else 'limpos'}")
         else:
             print("  Nenhum arquivo E5 com narrativas encontrado.")
 
-    # --- Strip E7 review data when E7-crossval or E7-review is in cascade ---
     if "E7-crossval" in stages or "E7-review" in stages:
-        print(f"\n--- Fase 1.6: Limpeza de review E7 ---")
+        print("\n--- Fase 1.6: Limpeza de review E7 ---")
         stripped_r = strip_review_from_e5_files(dry_run)
         if stripped_r:
             print(f"  Total: {stripped_r} arquivo(s) com review {'identificados' if dry_run else 'limpos'}")
         else:
             print("  Nenhum dado de review E7 encontrado.")
 
-    if args.clean_only:
-        print("\n--clean-only: pulando re-execução do pipeline.")
-        print("Concluído.")
-        return
 
-    llm_descriptions = {
-        "E1":       "Extração de dados dos membros (holerite, docs pessoais)",
-        "E1.5":     "Baseline patrimonial (IRPF, XLSX imóveis/veículos)",
-        "E2-llm":   "Extração LLM de investimentos/CDBs sem parser determinístico",
-        "E7-review": "Review holístico pós-relatório (preencher template com persona)",
-    }
-
-    # --- Pre-flight: detect if LLM stages must run before deterministic ones ---
-    leading_llm = []
-    first_det = None
+def _detect_leading_llm(stages: list[str]) -> tuple[list[str], str | None]:
+    leading_llm: list[str] = []
     for s in stages:
-        if s in LLM_STAGES and first_det is None:
+        if s in LLM_STAGES:
             leading_llm.append(s)
-        elif s in DETERMINISTIC_SCRIPTS and first_det is None:
-            first_det = s
-            break
+            continue
+        if s in DETERMINISTIC_SCRIPTS:
+            return leading_llm, s
+    return leading_llm, None
 
-    if not interactive:
-        # Non-interactive mode: same behavior as before (skip LLM, run det)
-        needs_llm_first = False
-        if leading_llm and first_det and not dry_run:
-            if first_det in ("E1.5c", "E2-faturas"):
-                data_fs = PROJECT_DIR / "data" / "financial_statements"
-                has_inputs = data_fs.is_dir() and any(data_fs.glob("*fatura*-0_original.pdf"))
-                if not has_inputs:
-                    needs_llm_first = True
-            elif first_det == "E3":
-                has_inputs = E2_EXTRACTS.is_dir() and any(E2_EXTRACTS.glob("*-2_extract.json"))
-                if not has_inputs:
-                    needs_llm_first = True
 
-        if needs_llm_first:
-            print(f"\n--- Fase 2: Etapas LLM necessárias primeiro ---")
-            print(f"\n  Os inputs para {first_det} não existem ainda.")
-            print(f"  As etapas LLM abaixo precisam ser executadas primeiro:\n")
-            for s in leading_llm:
-                desc = llm_descriptions.get(s, "")
-                print(f"    {s}: {desc}" if desc else f"    {s}")
-            print(f"\n  Após concluir essas etapas, continue o pipeline com:")
-            print(f"    python scripts/e_reset.py --from {first_det}")
-            print(f"\n  Ou use --interactive para orquestrar o pipeline completo:")
-            print(f"    python scripts/e_reset.py --move-to-inbox --interactive")
-            print(f"\n{'=' * 60}")
-            print(f"  {mode} — limpeza concluída, aguardando etapas LLM")
-            print("=" * 60)
-            return
+def _leading_llm_needed(first_det: str, leading_llm: list[str], dry_run: bool) -> bool:
+    if not leading_llm or dry_run:
+        return False
+    if first_det in ("E1.5c", "E2-faturas"):
+        data_fs = PROJECT_DIR / "data" / "financial_statements"
+        return not (data_fs.is_dir() and any(data_fs.glob("*fatura*-0_original.pdf")))
+    if first_det == "E3":
+        return not (E2_EXTRACTS.is_dir() and any(E2_EXTRACTS.glob("*-2_extract.json")))
+    return False
 
-        # Non-interactive execution: skip LLM, run deterministic
-        print(f"\n--- Fase 2: Re-execução do pipeline ---")
 
-        llm_pending = []
-        for s in stages:
-            if s in LLM_STAGES:
-                desc = llm_descriptions.get(s, "")
-                print(f"\n  [{s}] ⏭  REQUER LLM — pulado" + (f" ({desc})" if desc else ""))
-                llm_pending.append(s)
-            elif s in DETERMINISTIC_SCRIPTS:
-                print(f"\n  [{s}]")
-                ok = run_script(s, dry_run)
-                if not ok and not dry_run:
-                    print(f"\n  [ABORTADO] Falha em {s}. Pipeline parado.")
-                    sys.exit(1)
+def _print_leading_llm_notice(first_det: str, leading_llm: list[str], mode: str) -> None:
+    print("\n--- Fase 2: Etapas LLM necessárias primeiro ---")
+    print(f"\n  Os inputs para {first_det} não existem ainda.")
+    print("  As etapas LLM abaixo precisam ser executadas primeiro:\n")
+    for s in leading_llm:
+        desc = LLM_DESCRIPTIONS.get(s, "")
+        print(f"    {s}: {desc}" if desc else f"    {s}")
+    print("\n  Após concluir essas etapas, continue o pipeline com:")
+    print(f"    python scripts/e_reset.py --from {first_det}")
+    print("\n  Ou use --interactive para orquestrar o pipeline completo:")
+    print("    python scripts/e_reset.py --move-to-inbox --interactive")
+    print(f"\n{'=' * 60}")
+    print(f"  {mode} — limpeza concluída, aguardando etapas LLM")
+    print("=" * 60)
 
-        _run_validation_and_summary(args, from_stage, mode, dry_run, llm_pending, leading_llm, llm_descriptions)
+
+def _execute_non_interactive(
+    stages: list[str], args, from_stage: str | None, mode: str,
+    leading_llm: list[str], first_det: str | None,
+) -> None:
+    dry_run = args.dry_run
+    if first_det and _leading_llm_needed(first_det, leading_llm, dry_run):
+        _print_leading_llm_notice(first_det, leading_llm, mode)
         return
 
-    # =========================================================================
-    # INTERACTIVE MODE: run stages, stop at LLM walls
-    # =========================================================================
-    assert state is not None
-    print(f"\n--- Fase 2: Execução interativa do pipeline ---")
+    print("\n--- Fase 2: Re-execução do pipeline ---")
+    llm_pending: list[str] = []
+    for s in stages:
+        if s in LLM_STAGES:
+            desc = LLM_DESCRIPTIONS.get(s, "")
+            print(f"\n  [{s}] ⏭  REQUER LLM — pulado" + (f" ({desc})" if desc else ""))
+            llm_pending.append(s)
+            continue
+        if s in DETERMINISTIC_SCRIPTS:
+            print(f"\n  [{s}]")
+            ok = run_script(s, dry_run)
+            if not ok and not dry_run:
+                print(f"\n  [ABORTADO] Falha em {s}. Pipeline parado.")
+                sys.exit(1)
 
-    _run_interactive_stages(stages, state, dry_run, args, from_stage, mode)
+    _run_validation_and_summary(args, from_stage, mode, dry_run, llm_pending, leading_llm, LLM_DESCRIPTIONS)
+
+
+def _finish_clean_only() -> None:
+    print("\n--clean-only: pulando re-execução do pipeline.")
+    print("Concluído.")
+
+
+def _run_interactive_mode(stages: list[str], state: dict | None, args, mode: str) -> None:
+    assert state is not None
+    print("\n--- Fase 2: Execução interativa do pipeline ---")
+    _run_interactive_stages(stages, state, args.dry_run, args, args.from_stage, mode)
+
+
+def _run_preflight(args) -> None:
+    _phase_move_to_inbox(args)
+    _warn_clean_only_e5n(args)
+    _phase_unlock_pdfs(args)
+    _phase_audit(args)
+    _phase_route(args)
+
+
+def main():
+    args = _build_arg_parser().parse_args()
+    if args.continue_from_state:
+        return _main_continue(args)
+
+    mode = _build_mode_string(args)
+    _print_reset_header(mode, args)
+    state = _init_interactive_state(args) if args.interactive else None
+
+    _run_preflight(args)
+
+    stages = EXECUTION_ORDER_FROM[args.from_stage] if args.from_stage else EXECUTION_ORDER_FULL
+    if not args.clean_only:
+        _check_deps_or_exit(stages)
+
+    _phase_clean_artifacts(args.from_stage, args.dry_run)
+    _phase_clean_narrativas_review(stages, args.dry_run)
+
+    if args.clean_only:
+        _finish_clean_only()
+        return
+
+    leading_llm, first_det = _detect_leading_llm(stages)
+    if args.interactive:
+        _run_interactive_mode(stages, state, args, mode)
+        return
+    _execute_non_interactive(stages, args, args.from_stage, mode, leading_llm, first_det)
 
 
 def _run_validation_and_summary(
