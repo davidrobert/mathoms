@@ -11,7 +11,9 @@ humana. Workflow:
     5. Merge (opcional): anexa sugestão a Task existente sem criar
        duplicata (status=merged, approved_task_id = task_existente)
 
-Todas as funções recebem `workspace_id` como primeiro argumento.
+Persistência delegada ao ``TaskSuggestionRepository``. Criação da Task
+na aprovação passa pelo ``task_service.create_task`` (mesma validação
++ numeração atômica).
 """
 
 from __future__ import annotations
@@ -20,15 +22,16 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import HTTPException, status as http_status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.task import Task, TaskSuggestion
-from backend.app.schemas.task import (
-    TaskCreate,
-    TaskSuggestionApprove,
-    TaskSuggestionCreate,
-    TaskSuggestionProposed,
+from backend.app.repositories.task_suggestion_repository import (
+    TaskSuggestionRepository,
+)
+from backend.app.schemas.dto.task import (
+    TaskCreateCommand,
+    TaskSuggestionApproveCommand,
+    TaskSuggestionCreateCommand,
 )
 from backend.app.services import task_service
 
@@ -39,14 +42,8 @@ async def list_pending(
     db: AsyncSession,
     status: Optional[str] = "pending",
 ) -> list[TaskSuggestion]:
-    stmt = select(TaskSuggestion).where(
-        TaskSuggestion.workspace_id == workspace_id,
-    )
-    if status is not None:
-        stmt = stmt.where(TaskSuggestion.status == status)
-    stmt = stmt.order_by(TaskSuggestion.created_at.desc())
-    result = await db.execute(stmt)
-    return list(result.scalars().all())
+    repo = TaskSuggestionRepository(db)
+    return await repo.list_by_status(workspace_id, status=status)
 
 
 async def get_suggestion(
@@ -55,12 +52,8 @@ async def get_suggestion(
     *,
     db: AsyncSession,
 ) -> TaskSuggestion:
-    stmt = select(TaskSuggestion).where(
-        TaskSuggestion.workspace_id == workspace_id,
-        TaskSuggestion.id == suggestion_id,
-    )
-    result = await db.execute(stmt)
-    sugg = result.scalar_one_or_none()
+    repo = TaskSuggestionRepository(db)
+    sugg = await repo.get_by_id(workspace_id, suggestion_id)
     if sugg is None:
         raise HTTPException(
             status_code=http_status.HTTP_404_NOT_FOUND,
@@ -71,7 +64,7 @@ async def get_suggestion(
 
 async def create_suggestion(
     workspace_id: str,
-    payload: TaskSuggestionCreate,
+    payload: TaskSuggestionCreateCommand,
     *,
     db: AsyncSession,
 ) -> TaskSuggestion:
@@ -82,14 +75,13 @@ async def create_suggestion(
         source_run_id=payload.source_run_id,
         status="pending",
     )
-    db.add(sugg)
-    await db.flush()
-    return sugg
+    repo = TaskSuggestionRepository(db)
+    return await repo.add(sugg)
 
 
 async def bulk_create(
     workspace_id: str,
-    suggestions: list[TaskSuggestionCreate],
+    suggestions: list[TaskSuggestionCreateCommand],
     *,
     db: AsyncSession,
 ) -> list[TaskSuggestion]:
@@ -106,12 +98,12 @@ async def approve(
     *,
     db: AsyncSession,
     reviewed_by: Optional[str] = None,
-    body: Optional[TaskSuggestionApprove] = None,
+    body: Optional[TaskSuggestionApproveCommand] = None,
 ) -> tuple[TaskSuggestion, Task]:
     """Aprova sugestão: materializa Task + marca suggestion como approved.
 
     Body opcional permite o usuário editar o payload antes de aceitar —
-    se fornecido, sobrescreve `proposed_payload`.
+    se fornecido, sobrescreve ``proposed_payload``.
     """
     sugg = await get_suggestion(workspace_id, suggestion_id, db=db)
     if sugg.status != "pending":
@@ -126,8 +118,8 @@ async def approve(
     else:
         task_payload = sugg.proposed_payload
 
-    # Converte para TaskCreate (reusa validação)
-    task_create = TaskCreate(**task_payload)
+    # Converte para TaskCreateCommand (reusa validação)
+    task_create = TaskCreateCommand(**task_payload)
 
     task = await task_service.create_task(
         workspace_id,
@@ -142,8 +134,8 @@ async def approve(
     sugg.reviewed_by = reviewed_by
     sugg.reviewed_at = datetime.now(timezone.utc)
     sugg.approved_task_id = task.id
-    db.add(sugg)
-    await db.flush()
+    repo = TaskSuggestionRepository(db)
+    await repo.save(sugg)
     return sugg, task
 
 
@@ -165,9 +157,8 @@ async def reject(
     sugg.rejection_reason = reason
     sugg.reviewed_by = reviewed_by
     sugg.reviewed_at = datetime.now(timezone.utc)
-    db.add(sugg)
-    await db.flush()
-    return sugg
+    repo = TaskSuggestionRepository(db)
+    return await repo.save(sugg)
 
 
 async def merge_into(
@@ -178,31 +169,33 @@ async def merge_into(
     db: AsyncSession,
     reviewed_by: Optional[str] = None,
 ) -> TaskSuggestion:
-    """Anexa sugestão a task existente (não cria nova). Útil quando E5.N
-    sugere "revisar taxa PGBL" mas já existe task #18 para isso."""
+    """Anexa sugestão a task existente (não cria nova).
+
+    Útil quando E5.N sugere "revisar taxa PGBL" mas já existe task #18
+    para isso.
+    """
     sugg = await get_suggestion(workspace_id, suggestion_id, db=db)
     if sugg.status != "pending":
         raise HTTPException(
             status_code=http_status.HTTP_409_CONFLICT,
             detail=f"Sugestão já foi processada (status={sugg.status})",
         )
-    # Valida que a task alvo pertence ao mesmo workspace
+    # Valida que a task alvo pertence ao mesmo workspace.
     target = await task_service.get_task(workspace_id, target_task_id, db=db)
     sugg.status = "merged"
     sugg.approved_task_id = target.id
     sugg.reviewed_by = reviewed_by
     sugg.reviewed_at = datetime.now(timezone.utc)
-    db.add(sugg)
-    await db.flush()
-    return sugg
+    repo = TaskSuggestionRepository(db)
+    return await repo.save(sugg)
 
 
 __all__ = [
-    "list_pending",
-    "get_suggestion",
-    "create_suggestion",
-    "bulk_create",
     "approve",
-    "reject",
+    "bulk_create",
+    "create_suggestion",
+    "get_suggestion",
+    "list_pending",
     "merge_into",
+    "reject",
 ]

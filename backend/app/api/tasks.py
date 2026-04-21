@@ -1,8 +1,8 @@
 """Tasks API — F8.2 (ADR-074).
 
-Endpoints no padrão F8+: prefix `/api/workspaces/{workspace_id}/...`
-usando `get_current_workspace`. Tenancy lint (ADR-072) passa porque
-todas as queries em task_service filtram por `workspace_id`.
+Endpoints no padrão F8+: prefix ``/api/workspaces/{workspace_id}/...``
+usando ``get_current_workspace``. Tenancy lint (ADR-072) passa porque
+todas as queries do repo filtram por ``workspace_id``.
 """
 
 from __future__ import annotations
@@ -19,22 +19,25 @@ from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
-from backend.app.schemas.task import (
+from backend.app.schemas.dto.task import (
     ScanDeadlinesResponse,
     TaskAttachmentListResponse,
     TaskAttachmentResponse,
-    TaskCreate,
+    TaskCreateCommand,
     TaskFilters,
     TaskListResponse,
-    TaskProgress,
+    TaskProgressResponse,
     TaskResponse,
-    TaskStatusTransition,
-    TaskSuggestionApprove,
-    TaskSuggestionCreate,
+    TaskStatusTransitionCommand,
+    TaskSuggestionApproveCommand,
+    TaskSuggestionCreateCommand,
     TaskSuggestionListResponse,
-    TaskSuggestionReject,
+    TaskSuggestionRejectCommand,
     TaskSuggestionResponse,
-    TaskUpdate,
+    TaskUpdateCommand,
+    task_attachment_to_response,
+    task_suggestion_to_response,
+    task_to_response,
 )
 from backend.app.services import (
     task_attachment_service,
@@ -83,7 +86,7 @@ async def list_tasks(
     )
     tasks = await task_service.list_tasks(workspace.id, filters, db=db)
     return TaskListResponse(
-        tasks=[TaskResponse.model_validate(t) for t in tasks],
+        tasks=[task_to_response(t) for t in tasks],
         total=len(tasks),
     )
 
@@ -94,8 +97,10 @@ async def upcoming_tasks(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    """Tarefas com deadline_date nos próximos N dias, ativas.
-    Usado pelo widget do dashboard."""
+    """Tarefas com ``deadline_date`` nos próximos N dias, ativas.
+
+    Usado pelo widget do dashboard.
+    """
     from datetime import timedelta, date as _date
 
     filters = TaskFilters(
@@ -106,7 +111,7 @@ async def upcoming_tasks(
     )
     tasks = await task_service.list_tasks(workspace.id, filters, db=db)
     return TaskListResponse(
-        tasks=[TaskResponse.model_validate(t) for t in tasks],
+        tasks=[task_to_response(t) for t in tasks],
         total=len(tasks),
     )
 
@@ -116,7 +121,7 @@ async def export_tasks_md(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    """Export do `tarefas.md` on-demand (compat pipeline legado — ADR-075)."""
+    """Export do ``tarefas.md`` on-demand (compat pipeline legado — ADR-075)."""
     content = await task_service.export_markdown(workspace.id, db=db)
     return PlainTextResponse(content, media_type="text/markdown")
 
@@ -147,10 +152,10 @@ async def get_task(
     db: AsyncSession = Depends(get_db),
 ):
     task = await task_service.get_task(workspace.id, task_id, db=db)
-    return TaskResponse.model_validate(task)
+    return task_to_response(task)
 
 
-@router.get("/tasks/{task_id}/progress", response_model=TaskProgress)
+@router.get("/tasks/{task_id}/progress", response_model=TaskProgressResponse)
 async def get_task_progress(
     task_id: str,
     workspace: Workspace = Depends(get_current_workspace),
@@ -158,7 +163,7 @@ async def get_task_progress(
 ):
     """% executado no mês corrente para tasks de aporte (heurística).
 
-    Retorna `is_trackable=False` se a task não é do tipo "aporte mensal".
+    Retorna ``is_trackable=False`` se a task não é do tipo "aporte mensal".
     A UI (TaskDrawer) esconde o card de progresso nesse caso.
     """
     task = await task_service.get_task(workspace.id, task_id, db=db)
@@ -173,7 +178,7 @@ async def get_task_progress(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_task(
-    payload: TaskCreate,
+    payload: TaskCreateCommand,
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -183,13 +188,13 @@ async def create_task(
     )
     await db.commit()
     await db.refresh(task)
-    return TaskResponse.model_validate(task)
+    return task_to_response(task)
 
 
 @router.patch("/tasks/{task_id}", response_model=TaskResponse)
 async def update_task(
     task_id: str,
-    payload: TaskUpdate,
+    payload: TaskUpdateCommand,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
@@ -198,7 +203,7 @@ async def update_task(
     )
     await db.commit()
     await db.refresh(task)
-    return TaskResponse.model_validate(task)
+    return task_to_response(task)
 
 
 @router.post(
@@ -207,7 +212,7 @@ async def update_task(
 )
 async def transition_task_status(
     task_id: str,
-    payload: TaskStatusTransition,
+    payload: TaskStatusTransitionCommand,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
@@ -222,7 +227,7 @@ async def transition_task_status(
     )
     await db.commit()
     await db.refresh(task)
-    return TaskResponse.model_validate(task)
+    return task_to_response(task)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -243,7 +248,7 @@ async def list_task_attachments(
         workspace.id, task_id, db=db
     )
     return TaskAttachmentListResponse(
-        attachments=[TaskAttachmentResponse.model_validate(a) for a in items],
+        attachments=[task_attachment_to_response(a) for a in items],
         total=len(items),
     )
 
@@ -261,7 +266,7 @@ async def upload_task_attachment(
     db: AsyncSession = Depends(get_db),
 ):
     """Upload multipart de um anexo. Valida extensão e tamanho via
-    `StorageService.validate_file` (reusa o mesmo whitelist de documentos)."""
+    ``StorageService.validate_file`` (reusa o mesmo whitelist de documentos)."""
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -279,7 +284,7 @@ async def upload_task_attachment(
     )
     await db.commit()
     await db.refresh(attachment)
-    return TaskAttachmentResponse.model_validate(attachment)
+    return task_attachment_to_response(attachment)
 
 
 @router.get(
@@ -292,8 +297,8 @@ async def download_task_attachment(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    """Serve binário. Tenancy validado duas vezes: (1) get_current_workspace,
-    (2) get_attachment filtra por workspace_id."""
+    """Serve binário. Tenancy validado duas vezes: (1) ``get_current_workspace``,
+    (2) ``get_attachment`` filtra por ``workspace_id``."""
     attachment = await task_attachment_service.get_attachment(
         workspace.id, attachment_id, db=db
     )
@@ -351,8 +356,10 @@ async def cancel_task(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    """Soft-delete: move para status='cancelled' preservando histórico.
-    Para remoção física (raro, admin-only), fora do MVP."""
+    """Soft-delete: move para ``status='cancelled'`` preservando histórico.
+
+    Para remoção física (raro, admin-only), fora do MVP.
+    """
     await task_service.transition_status(
         workspace.id,
         task_id,
@@ -382,9 +389,7 @@ async def list_suggestions(
         workspace.id, db=db, status=status_filter
     )
     return TaskSuggestionListResponse(
-        suggestions=[
-            TaskSuggestionResponse.model_validate(s) for s in suggestions
-        ],
+        suggestions=[task_suggestion_to_response(s) for s in suggestions],
         total=len(suggestions),
     )
 
@@ -395,14 +400,14 @@ async def list_suggestions(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_suggestion(
-    body: TaskSuggestionCreate,
+    body: TaskSuggestionCreateCommand,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
     """Cria uma sugestão pending. Endpoint usado pelo E5.N (ADR-074) —
     pipeline LLM invoca via HTTP para gravar sugestões após rodar.
 
-    Alternativa: chamar `task_suggestion_service.bulk_create` direto do
+    Alternativa: chamar ``task_suggestion_service.bulk_create`` direto do
     Python dentro do worker. Este endpoint existe para workers em outros
     processos/linguagens (ex: pipeline CLI em transição)."""
     sugg = await task_suggestion_service.create_suggestion(
@@ -410,7 +415,7 @@ async def create_suggestion(
     )
     await db.commit()
     await db.refresh(sugg)
-    return TaskSuggestionResponse.model_validate(sugg)
+    return task_suggestion_to_response(sugg)
 
 
 @router.post(
@@ -419,7 +424,7 @@ async def create_suggestion(
 )
 async def approve_suggestion(
     suggestion_id: str,
-    body: TaskSuggestionApprove,
+    body: TaskSuggestionApproveCommand,
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -433,7 +438,7 @@ async def approve_suggestion(
     )
     await db.commit()
     await db.refresh(task)
-    return TaskResponse.model_validate(task)
+    return task_to_response(task)
 
 
 @router.post(
@@ -442,7 +447,7 @@ async def approve_suggestion(
 )
 async def reject_suggestion(
     suggestion_id: str,
-    body: TaskSuggestionReject,
+    body: TaskSuggestionRejectCommand,
     workspace: Workspace = Depends(get_current_workspace),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -456,7 +461,7 @@ async def reject_suggestion(
     )
     await db.commit()
     await db.refresh(sugg)
-    return TaskSuggestionResponse.model_validate(sugg)
+    return task_suggestion_to_response(sugg)
 
 
 @router.post(
@@ -479,4 +484,4 @@ async def merge_suggestion_into(
     )
     await db.commit()
     await db.refresh(sugg)
-    return TaskSuggestionResponse.model_validate(sugg)
+    return task_suggestion_to_response(sugg)

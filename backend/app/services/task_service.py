@@ -1,14 +1,15 @@
 """Task service — ADR-074.
 
-Responsabilidades:
-- CRUD de `Task` (criação com auto-número, update parcial)
-- Transições de status validadas (pending↔in_progress↔done/cancelled/blocked)
-- Enforcement de dependência: `status=done` bloqueado se parent ainda pendente
-- Listagem filtrada
-- Export para markdown (compat pipeline legado, ADR-075)
+Orquestração de regras de domínio:
+- CRUD de ``Task`` (criação com auto-número via repo, update parcial).
+- Transições de status validadas (grafo ``ALLOWED_TRANSITIONS``).
+- Enforcement de dependência: ``status=done`` bloqueado se parent
+  ainda está pending/in_progress/blocked.
+- Listagem filtrada (delegada ao repo + TaskFilters).
+- Export para markdown (compat pipeline legado, ADR-075).
 
-Todas as funções recebem `workspace_id` como primeiro argumento —
-padrão ADR-072.
+Persistência vive em ``TaskRepository``. Todas as funções recebem
+``workspace_id`` como primeiro argumento — padrão ADR-072.
 """
 
 from __future__ import annotations
@@ -17,19 +18,18 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import HTTPException, status as http_status
-from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.task import (
     Task,
     VALID_CATEGORIES,
-    VALID_PRIORITIES,
     VALID_STATUSES,
 )
-from backend.app.schemas.task import (
-    TaskCreate,
+from backend.app.repositories.task_repository import TaskRepository
+from backend.app.schemas.dto.task import (
+    TaskCreateCommand,
     TaskFilters,
-    TaskUpdate,
+    TaskUpdateCommand,
 )
 
 
@@ -47,22 +47,15 @@ ALLOWED_TRANSITIONS: dict[str, frozenset[str]] = {
 }
 
 
-# ─── Helpers ───────────────────────────────────────────────────────────
+# ─── Validações de domínio ─────────────────────────────────────────────
 
 
-async def _next_task_number(workspace_id: str, db: AsyncSession) -> int:
-    """max(number)+1 por workspace — chamada dentro da mesma transação
-    que o INSERT para evitar race."""
-    stmt = select(func.max(Task.number)).where(Task.workspace_id == workspace_id)
-    result = await db.execute(stmt)
-    current_max = result.scalar_one_or_none()
-    return (current_max or 0) + 1
+def _validate_vocab(payload: TaskCreateCommand | TaskUpdateCommand) -> None:
+    """Valida ``category`` contra ``VALID_CATEGORIES`` (string livre no
+    Pydantic, enum no domínio).
 
-
-def _validate_vocab(payload: TaskCreate | TaskUpdate) -> None:
-    """Valida campos de vocabulário (category, priority, status) contra
-    os sets do model. Pydantic já valida Literal types, mas `category`
-    é string livre — aqui rejeitamos out-of-vocab."""
+    ``priority`` e ``status`` já são ``Literal`` — Pydantic rejeita antes.
+    """
     cat = getattr(payload, "category", None)
     if cat is not None and cat not in VALID_CATEGORIES:
         raise HTTPException(
@@ -83,54 +76,9 @@ async def list_tasks(
     *,
     db: AsyncSession,
 ) -> list[Task]:
-    """Lista tasks filtradas. Ordena por priority (S→R→O) + deadline_date."""
-    stmt = select(Task).where(Task.workspace_id == workspace_id)
-
-    if filters.status is not None:
-        stmt = stmt.where(Task.status == filters.status)
-    else:
-        # Default: não mostra done/cancelled exceto se solicitado
-        excluded: list[str] = []
-        if not filters.include_done:
-            excluded.append("done")
-        if not filters.include_cancelled:
-            excluded.append("cancelled")
-        if excluded:
-            stmt = stmt.where(Task.status.not_in(excluded))
-
-    if filters.priority is not None:
-        stmt = stmt.where(Task.priority == filters.priority)
-    if filters.category is not None:
-        stmt = stmt.where(Task.category == filters.category)
-    if filters.deadline_before is not None:
-        stmt = stmt.where(Task.deadline_date <= filters.deadline_before)
-    if filters.deadline_after is not None:
-        stmt = stmt.where(Task.deadline_date >= filters.deadline_after)
-    if filters.assigned_to is not None:
-        stmt = stmt.where(Task.assigned_to == filters.assigned_to)
-    if filters.related_goal_id is not None:
-        stmt = stmt.where(Task.related_goal_id == filters.related_goal_id)
-
-    # Ordenação: S antes de R antes de O; depois deadline_date ascendente
-    # Order by priority (S < R < O semanticamente), depois por deadline,
-    # depois por número. ``func.upper`` produz ordem alfabética O<R<S, que
-    # é o INVERSO do que queremos. Usamos CASE para mapear a ordem correta:
-    # S=1 (Standard, mais importante) → R=2 → O=3 (Optional, último).
-    priority_rank = case(
-        (func.upper(Task.priority) == "S", 1),
-        (func.upper(Task.priority) == "R", 2),
-        (func.upper(Task.priority) == "O", 3),
-        else_=99,
-    )
-    stmt = stmt.order_by(
-        priority_rank,
-        Task.deadline_date.is_(None),  # False (tem data) vem antes
-        Task.deadline_date.asc(),
-        Task.number.asc(),
-    )
-
-    result = await db.execute(stmt)
-    return list(result.scalars().all())
+    """Lista tasks filtradas. Ordenação S→R→O + deadline asc + number asc."""
+    repo = TaskRepository(db)
+    return await repo.list(workspace_id, filters)
 
 
 async def get_task(
@@ -140,11 +88,8 @@ async def get_task(
     db: AsyncSession,
 ) -> Task:
     """Retorna uma Task do workspace ou 404."""
-    stmt = select(Task).where(
-        Task.workspace_id == workspace_id, Task.id == task_id
-    )
-    result = await db.execute(stmt)
-    task = result.scalar_one_or_none()
+    repo = TaskRepository(db)
+    task = await repo.get_by_id(workspace_id, task_id)
     if task is None:
         raise HTTPException(
             status_code=http_status.HTTP_404_NOT_FOUND,
@@ -155,7 +100,7 @@ async def get_task(
 
 async def create_task(
     workspace_id: str,
-    payload: TaskCreate,
+    payload: TaskCreateCommand,
     *,
     db: AsyncSession,
     created_by: Optional[str] = None,
@@ -163,21 +108,18 @@ async def create_task(
     source_suggestion_id: Optional[str] = None,
 ) -> Task:
     _validate_vocab(payload)
+    repo = TaskRepository(db)
 
-    # Validação: parent_task_id, se informado, deve pertencer ao mesmo workspace
+    # Parent, se informado, tem que pertencer ao mesmo workspace.
     if payload.parent_task_id:
-        parent_stmt = select(Task).where(
-            Task.workspace_id == workspace_id,
-            Task.id == payload.parent_task_id,
-        )
-        parent = (await db.execute(parent_stmt)).scalar_one_or_none()
+        parent = await repo.get_by_id(workspace_id, payload.parent_task_id)
         if parent is None:
             raise HTTPException(
                 status_code=http_status.HTTP_400_BAD_REQUEST,
                 detail="parent_task_id inválido (não pertence ao workspace)",
             )
 
-    number = payload.number or await _next_task_number(workspace_id, db)
+    number = payload.number or await repo.next_number(workspace_id)
 
     task = Task(
         workspace_id=workspace_id,
@@ -199,20 +141,19 @@ async def create_task(
         source_suggestion_id=source_suggestion_id,
         status="pending",
     )
-    db.add(task)
-    await db.flush()
-    return task
+    return await repo.add(task)
 
 
 async def update_task(
     workspace_id: str,
     task_id: str,
-    payload: TaskUpdate,
+    payload: TaskUpdateCommand,
     *,
     db: AsyncSession,
 ) -> Task:
     _validate_vocab(payload)
     task = await get_task(workspace_id, task_id, db=db)
+    repo = TaskRepository(db)
 
     # Mudança de status passa pela função dedicada (validação + timestamp)
     if payload.status is not None and payload.status != task.status:
@@ -226,12 +167,12 @@ async def update_task(
         # Re-lê para pegar campos timestamp atualizados
         await db.refresh(task)
 
-    data = payload.model_dump(exclude_unset=True, exclude={"status", "status_reason"})
+    data = payload.model_dump(
+        exclude_unset=True, exclude={"status", "status_reason"}
+    )
     for key, value in data.items():
         setattr(task, key, value)
-    db.add(task)
-    await db.flush()
-    return task
+    return await repo.save(task)
 
 
 async def transition_status(
@@ -243,9 +184,11 @@ async def transition_status(
     reason: Optional[str] = None,
 ) -> Task:
     """Transição validada de status. Enforça:
-    - status de destino é válido (VALID_STATUSES)
-    - transição é aceita (ALLOWED_TRANSITIONS)
-    - se `done` e há parent_task_id, parent precisa estar em {done, cancelled}
+
+    - status de destino é válido (``VALID_STATUSES``)
+    - transição é aceita (``ALLOWED_TRANSITIONS``)
+    - se ``done`` e há ``parent_task_id``, parent precisa estar em
+      ``{done, cancelled}``
     """
     if new_status not in VALID_STATUSES:
         raise HTTPException(
@@ -253,6 +196,7 @@ async def transition_status(
             detail=f"Status inválido: {new_status}",
         )
 
+    repo = TaskRepository(db)
     task = await get_task(workspace_id, task_id, db=db)
     if task.status == new_status:
         return task
@@ -268,11 +212,7 @@ async def transition_status(
         )
 
     if new_status == "done" and task.parent_task_id:
-        parent_stmt = select(Task).where(
-            Task.workspace_id == workspace_id,
-            Task.id == task.parent_task_id,
-        )
-        parent = (await db.execute(parent_stmt)).scalar_one_or_none()
+        parent = await repo.get_by_id(workspace_id, task.parent_task_id)
         if parent is not None and parent.status not in ("done", "cancelled"):
             raise HTTPException(
                 status_code=http_status.HTTP_409_CONFLICT,
@@ -294,9 +234,7 @@ async def transition_status(
         task.completed_at = None
         task.cancelled_at = None
 
-    db.add(task)
-    await db.flush()
-    return task
+    return await repo.save(task)
 
 
 # ─── Export markdown (compat pipeline legado — ADR-075) ────────────────
@@ -324,15 +262,10 @@ async def export_markdown(
     *,
     db: AsyncSession,
 ) -> str:
-    """Gera o conteúdo de `tarefas.md` a partir do DB, preservando o
+    """Gera o conteúdo de ``tarefas.md`` a partir do DB, preservando o
     formato do arquivo legado (tabelas por prioridade + histórico)."""
-    # tenancy garantida na query — list_tasks filtra por workspace_id
-    stmt = (
-        select(Task)
-        .where(Task.workspace_id == workspace_id)
-        .order_by(Task.number.asc())
-    )
-    all_tasks = list((await db.execute(stmt)).scalars().all())
+    repo = TaskRepository(db)
+    all_tasks = await repo.list_all(workspace_id)
 
     lines: list[str] = []
     lines.append("# Tarefas — Pipeline (export do DB)")
@@ -392,10 +325,10 @@ async def export_markdown(
 
 __all__ = [
     "ALLOWED_TRANSITIONS",
-    "list_tasks",
-    "get_task",
     "create_task",
-    "update_task",
-    "transition_status",
     "export_markdown",
+    "get_task",
+    "list_tasks",
+    "transition_status",
+    "update_task",
 ]
