@@ -8,6 +8,52 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6e.3 — application layer: 3 slices (2026-04-21):** Primeira
+  entrega do trilho "1 endpoint = 1 use case" (ADR-101 R15) com escopo
+  restrito a 3 agregados sem acoplamento ao pipeline. 22 use cases
+  testáveis sem DB, 56 tests novos em `backend/tests/application/`
+  rodando em ~8s com fakes em memória.
+  - **Base compartilhada:** `backend/app/application/base/errors.py`
+    (`DomainError`/`NotFoundError`/`ConflictError`/`ValidationError`
+    tipadas); exception handlers globais em `main.py` traduzem para
+    HTTP (404/409/422) — routers não têm try/except.
+  - **Slice 1 (FamilyMember · commit `46a704c`):** 8 use cases
+    (`create_family_member`, `list_family_members`, `update_family_member`,
+    `delete_family_member` + `create_bank_account`, `list_bank_accounts`,
+    `update_bank_account`, `delete_bank_account`). Router novo
+    `backend/app/api/family_members.py` (160l, 8 endpoints).
+    `backend/app/api/config.py` encolheu 846 → 600 linhas; helpers
+    `_import_family_members`/`_export_family_members` usam
+    `FamilyMemberRepository` (zero `select(FamilyMember)` no api/).
+    25 tests puros com `FakeFamilyMemberRepository` + `FakeVault`.
+  - **Slice 2 (Category · commit `39c6711`):** 4 use cases
+    (`create_category`, `list_categories`, `update_category`,
+    `delete_category`). Router novo `backend/app/api/categories.py`
+    (87l). `config.py` 600 → 464 linhas; `_import_categorization`/
+    `_export_categorization` usam `CategoryRepository`. Helper
+    compartilhado `backend/app/services/config_defaults.py`
+    (`load_global_json`/`load_global_yaml`) evita duplicar I/O de
+    defaults em 3 routers. 12 tests puros.
+  - **Slice 3 (Goal · commit `3b4c306`):** 10 use cases cobrindo os
+    4 tipos (IF, aportes, dólar, alocação) versionados append-only
+    (ADR-073): 4 `compute_*_projection` (dry-run), 2 read
+    (`get_active_if_goal`/`get_active_typed_goal`), 2 list
+    (`list_if_goal_versions`/`list_typed_goal_versions`), 2 write
+    (`create_if_goal_version`/`create_typed_goal_version` genérica).
+    Router `backend/app/api/goals.py` reescrito com helpers internos
+    `_read_active_typed`/`_history_typed`/`_write_typed`/`_with_author`
+    — User lookup permanece no router como cross-aggregate.
+    `FakeGoalRepository` replica a semântica append-only (tiebreak por
+    contador de inserção evita ordenação não-determinística em testes
+    com 2 versões no mesmo dia). `goal_service.py` intocado (compute
+    functions continuam domain-pure). 19 tests puros.
+  - **OpenAPI snapshot inalterado** nos 3 slices — operationIds
+    preservados via nomes idênticos dos endpoints (FamilyMember/Goal)
+    ou alias de import (Category: `uc_list_categories` etc.).
+  - **Fora do escopo (explícito):** ConfigBlob (ficou em `config.py`),
+    Document, Task, `/api/v1/` prefix, domain events tipados — todos
+    esperam A6e.3b (pós-A6f.1) ou slices subsequentes (A6e.4/.5/.6).
+
 - **A6g.5 — tests sweep Tier 4 (2026-04-21):** Split de
   `tests/test_llm_stages.py` (920 linhas, maior arquivo in-scope da
   sweep) em 3 arquivos de teste + 1 módulo de helpers compartilhados.

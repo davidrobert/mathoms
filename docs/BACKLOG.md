@@ -630,7 +630,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | --- | --- | --- | --- | --- | --- |
 | **A6g.2** pipeline sweep | `a6g2-pipeline-style` | [track_a6g2_pipeline_style_sweep.md](agent_prompts/track_a6g2_pipeline_style_sweep.md) | A6g.1 ✅ | 1 | ☐ aberta |
 | **A6g.4** frontend sweep | `a6g4-frontend-style` | [track_a6g4_frontend_style_sweep.md](agent_prompts/track_a6g4_frontend_style_sweep.md) | A6g.1 ✅ | 1 | 🚧 ocupada — 2 worktrees locais ativos (`a6g4-frontend-style/20260421-1137` e `/20260421-1313`, confirmar com `git worktree list`) |
-| **A6e.3** use cases (slice FamilyMember+Category+Goal) | `a6e3-use-cases` | [track_a6e3_use_cases.md](agent_prompts/track_a6e3_use_cases.md) — Application layer R15 scoped a agregados não-pipeline | per-aggregate ✅ | 2 | ☐ aberta |
+| **A6e.3** use cases (slice FamilyMember+Category+Goal) | `a6e3-use-cases` | [track_a6e3_use_cases.md](agent_prompts/track_a6e3_use_cases.md) — Application layer R15 scoped a agregados não-pipeline | per-aggregate ✅ | 2 | 🚧 parcial — slices 1+2+3 entregues 2026-04-21 (22 use cases, 56 tests puros); ConfigBlob/Document/Task ficam para A6e.3b pós-A6f.1 |
 | **A6e.4** routers finos | `a6e4-thin-routers` | 4900→800 linhas (17 routers × ≤50); teste AST | A6e.3 | 2 | ⏸ blocked-by A6e.3 |
 | **A6e.5** /api/v1/ prefix | `a6e5-v1-prefix` | Prefixo + aliases; OpenAPI 3.1 versionado | A6e.3 ou paralelo | 2 | ☐ aberta |
 | **A6e.6** domain events | `a6e6-domain-events` | `backend/app/events/` + handlers tipados | A6e.3 (preferencial) | 2 | ⏸ preferencial pós-A6e.3 |
@@ -848,7 +848,7 @@ convergir em `origin/main`.
 | --- | --- | --- | --- | --- |
 | A6e.1 | Repos por aggregate | User, Workspace, Document, Goal, PipelineRun, Task, Notification, Invitation, AuditLog repositories; `grep sqlalchemy backend/app/api/` = zero | 1-2 sessões | 🚧 parcial — **FamilyMember + Category + ConfigBlob + Document + Goal + Task** ✅ |
 | A6e.2 | DTO ↔ Model | `schemas/dto/<aggregate>/response.py` + `command.py` + `query.py` + `mapper.py`; zero `Model.from_orm` em endpoints | 1 sessão | 🚧 parcial — **family_member + category + config_blob + document + goal + task** ✅ |
-| A6e.3 | Application layer | `backend/app/application/<aggregate>/<use_case>.py`; 1 endpoint = 1 use case; testável sem DB via fakes | 2 sessões | ☐ |
+| A6e.3 | Application layer | `backend/app/application/<aggregate>/<use_case>.py`; 1 endpoint = 1 use case; testável sem DB via fakes | 2 sessões | 🚧 parcial — **FamilyMember + Category + Goal** (22 use cases) ✅ 2026-04-21 |
 | A6e.4 | Routers finos | Refactor 4900→800 linhas (17 routers × ≤50); teste AST enforça | 1-2 sessões | ☐ |
 | A6e.5 | Versionamento `/api/v1/` | Prefixo + aliases durante window; OpenAPI 3.1 versionado; `lib/api.ts` atualizado | 1 sessão | ☐ |
 | A6e.6 | Domain events tipados | `backend/app/events/` com `Event` base + `register_handler`; zero side-effect inline em use cases | 1 sessão | ☐ |
