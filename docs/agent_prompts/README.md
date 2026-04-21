@@ -8,19 +8,17 @@ inteiro.
 
 ## Índice de prompts
 
-| Lane | Arquivo | Status | Branch prefix |
-| --- | --- | --- | --- |
-| A6g.2 Pipeline Code Style Sweep | [track_a6g2_pipeline_style_sweep.md](track_a6g2_pipeline_style_sweep.md) | ☐ aberta (Onda 1) | `agent/a6g2-pipeline-style/*` |
-| A6g.4 Frontend Code Style Sweep | [track_a6g4_frontend_style_sweep.md](track_a6g4_frontend_style_sweep.md) | 🚧 ocupada (Onda 1) | `agent/a6g4-frontend-style/*` |
-| A6f.1 Pipeline-as-Service (HTTP boundary) | [track_a6f1_pipeline_service.md](track_a6f1_pipeline_service.md) | ☐ aberta (Onda 2, greenfield) | `agent/a6f1-pipeline-service/*` |
-| A6g.5 Tests Sweep (fakes + nomes descritivos) | [track_a6g5_tests_sweep.md](track_a6g5_tests_sweep.md) | ☐ aberta (Onda 2) | `agent/a6g5-tests-sweep/*` |
-| A6e.3 Application Layer (use cases — slice FamilyMember+Category+Goal) | [track_a6e3_use_cases.md](track_a6e3_use_cases.md) | ☐ aberta (Onda 2) | `agent/a6e3-use-cases/*` |
+> **Fonte única de status/ocupação:** [../BACKLOG.md §Lanes abertas agora](../BACKLOG.md#lanes-abertas-agora--pickup-table). Este índice lista apenas **o que tem prompt escrito** — status omitido de propósito para evitar drift entre dois lugares.
 
-**Status + dependências + ondas**: sempre em
-[../BACKLOG.md §Sprint A6](../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal)
-(tabela "Lanes abertas agora"). Este índice lista só **o que tem prompt
-escrito**; lanes sem prompt (A6e.3, A6e.4, A6f.1, etc.) são descritas
-direto no BACKLOG.
+| Lane | Arquivo | Onda | Branch prefix |
+| --- | --- | --- | --- |
+| A6g.2 Pipeline Code Style Sweep | [track_a6g2_pipeline_style_sweep.md](track_a6g2_pipeline_style_sweep.md) | 1 | `agent/a6g2-pipeline-style/*` |
+| A6g.4 Frontend Code Style Sweep | [track_a6g4_frontend_style_sweep.md](track_a6g4_frontend_style_sweep.md) | 1 | `agent/a6g4-frontend-style/*` |
+| A6f.1 Pipeline-as-Service (HTTP boundary) | [track_a6f1_pipeline_service.md](track_a6f1_pipeline_service.md) | 2 (greenfield) | `agent/a6f1-pipeline-service/*` |
+| A6g.5 Tests Sweep (fakes + nomes descritivos) | [track_a6g5_tests_sweep.md](track_a6g5_tests_sweep.md) | 2 | `agent/a6g5-tests-sweep/*` |
+| A6e.3 Application Layer (use cases — slice FamilyMember+Category+Goal) | [track_a6e3_use_cases.md](track_a6e3_use_cases.md) | 2 | `agent/a6e3-use-cases/*` |
+
+Lanes sem prompt dedicado (A6e.3b, A6e.4, A6e.5, A6e.6, A6g.3, A6g.6, A6g.7) são descritas direto no BACKLOG.
 
 ## Antes de começar — pickup protocol
 

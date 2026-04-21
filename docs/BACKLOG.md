@@ -610,9 +610,9 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 **Status global (2026-04-21):**
 - **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (fechada completa 2026-04-20) · A6f.2/.3/.4/.5a/.6 · **A6g.1** (audit baseline 2026-04-21: 2047 ofensores catalogados) · **A6g.5** (tests sweep Tiers 1+2+3+4, 2026-04-21).
 - **A6e 🚧 parcial (6 de N+ agregados — per-aggregate track **concluído**):** FamilyMember + Category + ConfigBlob + Document + Goal + Task (com 3 sub-agregados) com repos+DTOs. Próximos passos A6e são transversais (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events).
-- **Restante:** A6e (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events) · A6f.1 (pipeline-as-service) · A6g.2/.3/.4/.6/.7 (sweeps restantes + enforcement) · F7 (7A-7F + LGPD).
+- **Restante:** A6e (.3 use cases 🚧 · .3b ConfigBlob+Document+Task ⏸ · .4 routers finos · .5 /v1 prefix · .6 events) · A6f.1 🚧 (pipeline-as-service) · A6g.2 🚧 / .3 / .4 🚧 / .6 / .7 (sweeps + enforcement) · F7 (7A-7F + LGPD).
 - **Caminho crítico (serial):** A6e.3 (use cases) → A6e.4 (routers finos) → F7A → F7B → F7D+dogfood → GA.
-- **Lanes abertas agora:** Onda 1 (A6g.2 pipeline sweep ☐ · ~~A6g.4 frontend sweep~~ 🚧 ocupada 2026-04-21) + Onda 2 destravada (A6e.3/.4/.5/.6 · A6f.1). Ver tabela e diagrama abaixo. **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
+- **Lanes abertas agora (2026-04-21 — sync pós-34-commits):** Onda 1 toda ocupada (A6g.2 + A6g.4 🚧); Onda 2 com A6e.3 + A6f.1 🚧; **livres:** A6e.5 (/v1 prefix), A6e.6 (domain events, preferencial pós-A6e.3), A6e.3b (⏸ blocked), A6-human (gate manual). Ver tabela e diagrama abaixo. **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
 - **Testes:** 1461 pipeline + 926 backend passing (zero regressão).
 
 ### Lanes abertas agora — pickup table
@@ -628,13 +628,14 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | Lane | Branch slug | Prompt / detalhe | Depende de | Onda | Status |
 | --- | --- | --- | --- | --- | --- |
-| **A6g.2** pipeline sweep | `a6g2-pipeline-style` | [track_a6g2_pipeline_style_sweep.md](agent_prompts/track_a6g2_pipeline_style_sweep.md) | A6g.1 ✅ | 1 | ☐ aberta |
-| **A6g.4** frontend sweep | `a6g4-frontend-style` | [track_a6g4_frontend_style_sweep.md](agent_prompts/track_a6g4_frontend_style_sweep.md) | A6g.1 ✅ | 1 | 🚧 ocupada — 2 worktrees locais ativos (`a6g4-frontend-style/20260421-1137` e `/20260421-1313`, confirmar com `git worktree list`) |
-| **A6e.3** use cases (slice FamilyMember+Category+Goal) | `a6e3-use-cases` | [track_a6e3_use_cases.md](agent_prompts/track_a6e3_use_cases.md) — Application layer R15 scoped a agregados não-pipeline | per-aggregate ✅ | 2 | 🚧 parcial — slices 1+2+3 entregues 2026-04-21 (22 use cases, 56 tests puros); ConfigBlob/Document/Task ficam para A6e.3b pós-A6f.1 |
+| **A6g.2** pipeline sweep | `a6g2-pipeline-style` | [track_a6g2_pipeline_style_sweep.md](agent_prompts/track_a6g2_pipeline_style_sweep.md) | A6g.1 ✅ | 1 | 🚧 ocupada — worktree ativo `agent/a6g2-pipeline-style/20260421-1516` (confirmar com `git worktree list`) |
+| **A6g.4** frontend sweep | `a6g4-frontend-style` | [track_a6g4_frontend_style_sweep.md](agent_prompts/track_a6g4_frontend_style_sweep.md) | A6g.1 ✅ | 1 | 🚧 ocupada — worktree ativo `agent/a6g4-frontend-style/20260421-1313` (confirmar com `git worktree list`; branch `/20260421-1137` foi abortada, detached HEAD) |
+| **A6e.3** use cases (slice FamilyMember+Category+Goal) | `a6e3-use-cases` | [track_a6e3_use_cases.md](agent_prompts/track_a6e3_use_cases.md) — Application layer R15 scoped a agregados não-pipeline | per-aggregate ✅ | 2 | 🚧 parcial — slices 1+2+3 entregues 2026-04-21 (22 use cases, 56 tests puros). **Branch ativa** `agent/a6e3-use-cases/20260421-1422` pode estar preparando merge final ou seguindo para A6e.4. ConfigBlob/Document/Task deferidos para A6e.3b (ver linha abaixo). |
+| **A6e.3b** use cases remanescentes (ConfigBlob+Document+Task) | `a6e3b-use-cases-rest` | Aplicar padrão de A6e.3 aos 3 agregados restantes. Prompt ainda não escrito — se copiar [track_a6e3_use_cases.md](agent_prompts/track_a6e3_use_cases.md) ajustando o escopo. | A6f.1 iniciada ou A6e.4 começar (decisão consciente do time — deixar estabilizar o HTTP boundary primeiro) | 2 | ⏸ blocked-by A6f.1 iniciada |
 | **A6e.4** routers finos | `a6e4-thin-routers` | 4900→800 linhas (17 routers × ≤50); teste AST | A6e.3 | 2 | ⏸ blocked-by A6e.3 |
 | **A6e.5** /api/v1/ prefix | `a6e5-v1-prefix` | Prefixo + aliases; OpenAPI 3.1 versionado | A6e.3 ou paralelo | 2 | ☐ aberta |
 | **A6e.6** domain events | `a6e6-domain-events` | `backend/app/events/` + handlers tipados | A6e.3 (preferencial) | 2 | ⏸ preferencial pós-A6e.3 |
-| **A6f.1** pipeline-as-service | `a6f1-pipeline-service` | [track_a6f1_pipeline_service.md](agent_prompts/track_a6f1_pipeline_service.md) — FastAPI standalone, backend fala por HTTP | A6e per-aggregate ✅ | 2 | ☐ aberta (greenfield, isolado) |
+| **A6f.1** pipeline-as-service | `a6f1-pipeline-service` | [track_a6f1_pipeline_service.md](agent_prompts/track_a6f1_pipeline_service.md) — FastAPI standalone, backend fala por HTTP | A6e per-aggregate ✅ | 2 | 🚧 ocupada — worktree ativo `agent/a6f1-pipeline-service/20260421-1436` (confirmar com `git worktree list`) |
 | **A6g.5** tests sweep | `a6g5-tests-sweep` | [track_a6g5_tests_sweep.md](agent_prompts/track_a6g5_tests_sweep.md) — Fakes nomeados > MagicMock; nomes descritivos | — | 2 | ✅ 2026-04-21 |
 | **A6g.3** backend sweep | `a6g3-backend-style` | Services, repos, helpers, typing | A6e.4 ✅ | 3 | ⏸ blocked-by A6e.4 |
 | **A6g.6** enforcement | `a6g6-enforcement` | Ruff rules + ESLint errors + pre-commit grep | A6g.2/.4/.5 ✅ | 3 | ⏸ blocked-by sweeps |
@@ -650,7 +651,8 @@ convergir em `origin/main`.
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════╗
-║ ONDA 1 — paralelizável agora (2 lanes independentes)                 ║
+║ ONDA 1 — estrutura (2 lanes independentes; ocupação em §Lanes       ║
+║         abertas acima — o diagrama mostra dependências, não status) ║
 ╠═══════════════════════════════════════════════════════════════════════╣
 ║  Lane A1: A6g.2 pipeline sweep   (agent/a6g2-pipeline-style/*)       ║
 ║           └─ prompt: docs/agent_prompts/track_a6g2_pipeline_style_  ║
@@ -711,14 +713,16 @@ convergir em `origin/main`.
 
 **Como escolher a próxima lane (para agente ou humano):**
 
-| Situação                                                     | Pegar          |
-| ------------------------------------------------------------ | -------------- |
-| Sessão curta, gosta de refactor cirúrgico em Python          | A6g.2 pipeline |
-| Sessão curta, familiar com TS/React                          | A6g.4 frontend |
-| Sessão longa (≥3h), appetite por greenfield infra            | A6f.1 (Onda 2) |
-| Sessão longa, foco em backend DDD                            | A6e.3 + A6e.4  |
-| Já tem agente em A6g.2 ou .4 — não competir                  | a outra lane   |
-| Onda 1 concluída e quer destravar tudo                       | B1 ou B3       |
+> **Heurística por perfil de sessão — cruze com §Lanes abertas agora antes de começar.** Se a lane sugerida aparece 🚧 na tabela acima ou no `git worktree list`, pule para a linha seguinte da tabela.
+
+| Situação                                                     | Preferência (se livre) |
+| ------------------------------------------------------------ | ----------------------- |
+| Sessão curta, refactor cirúrgico em Python                   | A6g.2 pipeline → A6e.5 /v1 prefix |
+| Sessão curta, familiar com TS/React                          | A6g.4 frontend          |
+| Sessão longa (≥3h), greenfield infra                         | A6f.1 pipeline-service  |
+| Sessão longa, foco em backend DDD                            | A6e.3/.4/.6 (quando desbloqueados) |
+| Toda Onda 1 ocupada (caso atual 2026-04-21)                  | A6e.5 (paralelo a .3) ou A6-human smoke |
+| Onda 2 inteira fechada e quer destravar F7                   | F7A Docker (C1, Onda 3) |
 
 **Regras de coordenação (aplicam a todas as ondas):**
 - Uma lane = uma branch `agent/<slug>/<timestamp>`. Nunca 2 agentes na mesma lane — rode o pickup check em CLAUDE.md §Antes de pegar uma task.
