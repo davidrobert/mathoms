@@ -28,9 +28,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # CAST force comparação por string — em Postgres o enum documentstatus
+    # não tem 'classified' (é o lixo legado que queremos limpar); sem o
+    # cast, `status = 'classified'` falha ao tentar castar para o enum.
     op.execute(
         sa.text(
-            "UPDATE documents SET status = 'ready' WHERE status = 'classified'"
+            "UPDATE documents SET status = 'ready' "
+            "WHERE CAST(status AS VARCHAR) = 'classified'"
         )
     )
 
