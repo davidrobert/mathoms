@@ -606,9 +606,9 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 **Plano completo:** [_scratch/plano_migracao_artifacts_db.md](../_scratch/plano_migracao_artifacts_db.md) §17-§19
 **ADRs:** 097 (extract-then-refactor), **098** (Caminho B puro vs pragmático), **099** (reuse de `analyze_*` em `main_with_store`), **100** (A6d commitment), **101** (R12-R17 backend DDD/SOLID), **102** (R18-R20 language-neutral), **103** (teste humano como gate), **109** (auth portability), **110** (structured logs + OTel), **111** (stateless rigoroso)
 **Status global (2026-04-21):**
-- **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (fechada completa 2026-04-20) · A6f.2/.3/.4/.5a/.6.
+- **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (fechada completa 2026-04-20) · A6f.2/.3/.4/.5a/.6 · **A6g.1** (audit baseline 2026-04-21: 2047 ofensores catalogados).
 - **A6e 🚧 parcial (5 de N+ agregados):** FamilyMember + Category + ConfigBlob + Document + Goal com repos+DTOs. Próximo: Task.
-- **Restante:** A6e (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events) · A6f.1 (pipeline-as-service) · A6g (7 sub-fases) · F7 (7A-7F + LGPD).
+- **Restante:** A6e (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events) · A6f.1 (pipeline-as-service) · A6g.2-.7 (sweeps + enforcement) · F7 (7A-7F + LGPD).
 - **Caminho crítico (serial):** A6e Task → A6e.3/.4 → F7A → F7B → F7D+dogfood → GA.
 - **Lanes paralelizáveis agora (Onda 1):** A6e Task · A6g.2-.5 sweeps — ver "Próximas etapas — ondas paralelas" abaixo.
 - **Testes:** ~1184 pipeline + 884 backend passing (zero regressão).
@@ -841,38 +841,44 @@ Depois dos slices de agregado restantes, destrava A6e.3 (use cases), A6e.4 (rout
 
 ### Próximas etapas — ondas paralelas (pós-2026-04-21)
 
-Com A5f · A6a-c · A6d · A6f.2/.3/.4/.5a/.6 ✅ e A6e 🚧 parcial (4 agregados),
-o que resta se decompõe em **4 ondas** — itens dentro da mesma onda rodam
-em paralelo (agentes disjuntos, branches distintas, zero overlap de arquivos):
+Com A5f · A6a-c · A6d · A6f.2/.3/.4/.5a/.6 · **A6g.1** ✅ e A6e 🚧 parcial
+(5 agregados, Goal fechado 2026-04-21), o que resta se decompõe em
+**4 ondas** — itens dentro da mesma onda rodam em paralelo (agentes
+disjuntos, branches distintas, zero overlap de arquivos):
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════╗
 ║ ONDA 1 — paralelizável agora (3 lanes independentes)                 ║
 ╠═══════════════════════════════════════════════════════════════════════╣
-║  Lane A1: A6e Goal slice         (agent/a6e-goal/*)                  ║
-║           └─ 8 endpoints goals.py, multi-type                         ║
-║  Lane A2: A6e Task slice         (agent/a6e-task/*)                  ║
+║  Lane A1: A6e Task slice         (agent/a6e-task/*)                  ║
 ║           └─ 3 sub-agregados (tarefas+milhas+rotina), fonte MD+DB     ║
-║  Lane A3: A6g.1 audit script     (agent/a6g1-audit/*)                ║
-║           └─ dev/audit_code_style.py + baseline top-50                ║
+║  Lane A2: A6g.2 pipeline sweep   (agent/a6g2-pipeline-style/*)       ║
+║           └─ consome baseline 2026-04-21; alvos top: e6_render.py    ║
+║             (3875 l), e5_analyze.py (2862 l), e_reset::main (372 l)  ║
+║  Lane A3: A6g.4 frontend sweep   (agent/a6g4-frontend-style/*)       ║
+║           └─ consome baseline; alvos T1-T5 (any, arquivos >500, etc) ║
 ║                                                                       ║
+║  [A6e Goal] ✅ entregue 2026-04-21 — último aggregate slice antes    ║
+║  das transversais. Task é o remanescente isolado.                    ║
 ║  [A6f.1 pipeline-service] NÃO entra aqui — maior item isolado,       ║
 ║  começar antes de A6e convergir aumenta merge hell. Fica na Onda 2.  ║
+║  [A6g.3 backend sweep] prefere pós-A6e.4 (routers finos). Onda 2.    ║
+║  [A6g.1 audit] ✅ entregue — baseline em docs/audits/.               ║
 ╚═══════════════════════════════════════════════════════════════════════╝
                               │
-                              ▼  (após pelo menos A6e Goal + Task merged)
+                              ▼  (após A6e Task merged — Goal já ✅)
 ╔═══════════════════════════════════════════════════════════════════════╗
-║ ONDA 2 — paralelizável (3 lanes, A6e transversais + infra)           ║
+║ ONDA 2 — paralelizável (4 lanes, A6e transversais + infra)           ║
 ╠═══════════════════════════════════════════════════════════════════════╣
 ║  Lane B1: A6e.3 + A6e.4          — use cases + routers finos          ║
 ║           └─ Transversal: requer todos slices Onda 1 mergeados        ║
 ║  Lane B2: A6e.5 /api/v1/ prefix  — pode rodar depois de B1 ou junto  ║
 ║  Lane B3: A6f.1 pipeline-service — FastAPI standalone + HTTP client  ║
 ║           └─ 2-3 sessões, independente de A6e                         ║
-║  Lane B4: A6g.2 pipeline sweep   — aplica style em pipeline/+scripts/ ║
+║  Lane B4: A6g.5 tests sweep      — nomes descritivos + fakes         ║
 ║                                                                       ║
 ║  A6e.6 (domain events) prefere vir depois de B1 (use cases).         ║
-║  A6g.3 (backend sweep) prefere vir depois de A6e.4 (B1).             ║
+║  A6g.3 (backend sweep) rodará pós-A6e.4 (B1) — mesclar em Onda 3.    ║
 ╚═══════════════════════════════════════════════════════════════════════╝
                               │
                               ▼  (após A6e.3/.4/.5 fechados + A6f.1 merged)
@@ -883,7 +889,8 @@ em paralelo (agentes disjuntos, branches distintas, zero overlap de arquivos):
 ║  Lane C2: F7B Security + LGPD              (segurança)                ║
 ║  Lane C3: F7C CI/CD + Observability        (DevOps)                   ║
 ║  Lane C4: F7E Legal + termos               (jurídico, sem código)    ║
-║  Lane C5: A6g.3-.6 + A6g.7 (Go prep pós-A6f.1)                       ║
+║  Lane C5: A6g.3 backend sweep (pós-A6e.4) + A6g.6 enforcement +      ║
+║           A6g.7 Go prep (pós-A6f.1)                                   ║
 ║                                                                       ║
 ║  F7A precede F7B (HTTPS antes de hardening). F7D (monitoring) e      ║
 ║  F7F (support console) vêm após F7A+B+C estabilizarem.                ║
@@ -901,14 +908,14 @@ em paralelo (agentes disjuntos, branches distintas, zero overlap de arquivos):
 
 **Como escolher a próxima lane (para agente ou humano):**
 
-| Situação                                                     | Pegar    |
-| ------------------------------------------------------------ | -------- |
-| Sessão curta (≤2h), familiar com backend DDD                 | A6e Goal |
-| Sessão curta, gosta de parsers de texto                      | A6e Task |
-| Sessão solo, análise estática em Python/AST                  | A6g.1    |
-| Sessão longa (≥3h), appetite por greenfield infra            | A6f.1    |
-| Já tem 2+ agentes em A6e na Onda 1 — não competir            | A6g.1    |
-| Onda 1 concluída e quer destravar tudo                       | B1 ou B3 |
+| Situação                                                     | Pegar          |
+| ------------------------------------------------------------ | -------------- |
+| Sessão curta (≤2h), familiar com backend DDD + parsers MD    | A6e Task       |
+| Sessão curta, gosta de refactor cirúrgico em Python          | A6g.2 pipeline |
+| Sessão curta, familiar com TS/React                          | A6g.4 frontend |
+| Sessão longa (≥3h), appetite por greenfield infra            | A6f.1 (Onda 2) |
+| Já tem agente em A6e Task — não competir                     | A6g.2 ou .4    |
+| Onda 1 concluída e quer destravar tudo                       | B1 ou B3       |
 
 **Regras de coordenação (aplicam a todas as ondas):**
 - Uma lane = uma branch `agent/<slug>/<timestamp>`. Nunca 2 agentes na mesma lane.
