@@ -2222,6 +2222,7 @@
         "type": "object"
       },
       "FileLimitsSchema": {
+        "description": "Limites de upload/preview por tipo de arquivo.",
         "properties": {
           "min_csv_bytes": {
             "default": 500,
@@ -2674,8 +2675,8 @@
         "title": "IFGoalUpsertRequest",
         "type": "object"
       },
-      "InstitutionConfigSchema": {
-        "description": "Full institutions.json \u2014 stored as JSON blob due to deep/variable structure.",
+      "InstitutionConfigResponse": {
+        "description": "Resposta do ``GET /config/institutions``.\n\n``config_json`` hospeda ``institutions.json`` inteiro: padr\u00f5es regex por\nbanco, mapeamento doc_type \u2192 parser, cart\u00f5es, etc. Estrutura varia e\ncresce com novos bancos \u2014 tipar aqui seria retrabalho a cada parser novo.",
         "properties": {
           "config_json": {
             "additionalProperties": true,
@@ -2686,13 +2687,15 @@
         "required": [
           "config_json"
         ],
-        "title": "InstitutionConfigSchema",
+        "title": "InstitutionConfigResponse",
         "type": "object"
       },
-      "InstitutionConfigUpdateRequest": {
+      "InstitutionConfigUpdateCommand": {
+        "description": "Input do ``PUT /config/institutions`` \u2014 replace total.\n\n``config_json`` inteiro substitui o existente. Para adicionar um banco\nnovo, o caller envia o blob completo com o novo banco inclu\u00eddo.",
         "properties": {
           "config_json": {
             "additionalProperties": true,
+            "description": "Conte\u00fado inteiro de institutions.json \u2014 substitui o atual.",
             "title": "Config Json",
             "type": "object"
           }
@@ -2700,7 +2703,7 @@
         "required": [
           "config_json"
         ],
-        "title": "InstitutionConfigUpdateRequest",
+        "title": "InstitutionConfigUpdateCommand",
         "type": "object"
       },
       "InvitationAcceptResponse": {
@@ -3068,6 +3071,7 @@
         "type": "object"
       },
       "LLMConfigSchema": {
+        "description": "Configura\u00e7\u00e3o do LLM usado em E0-route/E1/E1.5/E2-llm/E7-review.",
         "properties": {
           "confidence_threshold": {
             "default": 0.7,
@@ -3464,8 +3468,8 @@
         "title": "NotificationsMarkedReadResponse",
         "type": "object"
       },
-      "PipelineConfigSchema": {
-        "description": "Full pipeline.json configuration \u2014 validated as a structured blob.",
+      "PipelineConfigResponse": {
+        "description": "Resposta do ``GET /config/pipeline``.\n\nTodos os campos s\u00e3o ``Optional`` para que blobs incompletos (novos ou\nmigrados de vers\u00f5es antigas) continuem validando \u2014 o pipeline tem\ndefaults pr\u00f3prios em ``pipeline_common.py`` para chaves ausentes.",
         "properties": {
           "artifact_names": {
             "anyOf": [
@@ -3550,11 +3554,11 @@
             "title": "Reconciliation"
           }
         },
-        "title": "PipelineConfigSchema",
+        "title": "PipelineConfigResponse",
         "type": "object"
       },
-      "PipelineConfigUpdateRequest": {
-        "description": "Partial update \u2014 only provided fields are merged.",
+      "PipelineConfigUpdateCommand": {
+        "description": "Input do ``PUT /config/pipeline`` \u2014 partial update (deep merge).\n\nCampos ausentes **n\u00e3o** s\u00e3o mesclados (preservam o valor atual).\nCampos presentes substituem o valor atual. Para dicts aninhados\n(``reconciliation``, ``log_files``, ``artifact_names``,\n``period_regex``) o merge \u00e9 **recursivo** (ver ``_deep_merge`` no\nrouter).",
         "properties": {
           "artifact_names": {
             "anyOf": [
@@ -3639,7 +3643,7 @@
             "title": "Reconciliation"
           }
         },
-        "title": "PipelineConfigUpdateRequest",
+        "title": "PipelineConfigUpdateCommand",
         "type": "object"
       },
       "PipelineRunListResponse": {
@@ -3931,6 +3935,7 @@
         "type": "string"
       },
       "QAThresholdsSchema": {
+        "description": "Limiares de QA para cross-validation E7 (CV1-CV14).",
         "properties": {
           "cv_endividamento_diff_pct_max": {
             "default": 1,
@@ -4043,8 +4048,8 @@
         "title": "RegisterRequest",
         "type": "object"
       },
-      "ReportLayoutSchema": {
-        "description": "Full report_layout.yaml content \u2014 stored as JSON blob.",
+      "ReportLayoutResponse": {
+        "description": "Resposta do ``GET /config/report-layout``.\n\n``config_json`` \u00e9 o conte\u00fado de ``report_layout.yaml`` convertido para\ndict (se\u00e7\u00f5es, cards, charts toggles do relat\u00f3rio E6). \u00danico YAML do\nprojeto \u2014 justificativa documentada em CLAUDE.md (preserva coment\u00e1rios\ninline extensos na edi\u00e7\u00e3o).",
         "properties": {
           "config_json": {
             "additionalProperties": true,
@@ -4055,13 +4060,15 @@
         "required": [
           "config_json"
         ],
-        "title": "ReportLayoutSchema",
+        "title": "ReportLayoutResponse",
         "type": "object"
       },
-      "ReportLayoutUpdateRequest": {
+      "ReportLayoutUpdateCommand": {
+        "description": "Input do ``PUT /config/report-layout`` \u2014 replace total.\n\n``config_json`` inteiro substitui o existente (se\u00e7\u00f5es, cards, charts\ntoggles do relat\u00f3rio E6).",
         "properties": {
           "config_json": {
             "additionalProperties": true,
+            "description": "Conte\u00fado inteiro de report_layout.yaml \u2014 substitui o atual.",
             "title": "Config Json",
             "type": "object"
           }
@@ -4069,7 +4076,7 @@
         "required": [
           "config_json"
         ],
-        "title": "ReportLayoutUpdateRequest",
+        "title": "ReportLayoutUpdateCommand",
         "type": "object"
       },
       "ReportListResponse": {
@@ -6889,7 +6896,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InstitutionConfigSchema"
+                  "$ref": "#/components/schemas/InstitutionConfigResponse"
                 }
               }
             },
@@ -6933,7 +6940,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/InstitutionConfigUpdateRequest"
+                "$ref": "#/components/schemas/InstitutionConfigUpdateCommand"
               }
             }
           },
@@ -6944,7 +6951,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InstitutionConfigSchema"
+                  "$ref": "#/components/schemas/InstitutionConfigResponse"
                 }
               }
             },
@@ -7725,7 +7732,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PipelineConfigSchema"
+                  "$ref": "#/components/schemas/PipelineConfigResponse"
                 }
               }
             },
@@ -7769,7 +7776,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PipelineConfigUpdateRequest"
+                "$ref": "#/components/schemas/PipelineConfigUpdateCommand"
               }
             }
           },
@@ -7780,7 +7787,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PipelineConfigSchema"
+                  "$ref": "#/components/schemas/PipelineConfigResponse"
                 }
               }
             },
@@ -7827,7 +7834,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ReportLayoutSchema"
+                  "$ref": "#/components/schemas/ReportLayoutResponse"
                 }
               }
             },
@@ -7871,7 +7878,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReportLayoutUpdateRequest"
+                "$ref": "#/components/schemas/ReportLayoutUpdateCommand"
               }
             }
           },
@@ -7882,7 +7889,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ReportLayoutSchema"
+                  "$ref": "#/components/schemas/ReportLayoutResponse"
                 }
               }
             },
