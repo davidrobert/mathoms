@@ -1,7 +1,7 @@
 # Code Style Audit — 2026-04-21
 
-Commit: `66016b2`  
-Files scanned: 467 Python + 159 TypeScript  
+Commit: `66016b2`
+Files scanned: 467 Python + 159 TypeScript
 Total offenders: 2047
 
 ## Sumário por categoria
