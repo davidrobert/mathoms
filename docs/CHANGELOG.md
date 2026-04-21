@@ -8,6 +8,40 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **Docs — pickup-protocol + fonte única de ondas (2026-04-21):** Reorganização
+  dos 4 artefatos de orientação (CLAUDE.md, ROADMAP.md, BACKLOG.md,
+  docs/agent_prompts/) para resolver dois gaps que vinham causando
+  drift entre ROADMAP e BACKLOG e colisão esporádica entre agentes:
+
+  - **CLAUDE.md §Antes de pegar uma task** (nova subseção entre
+    §Protocolo de início de sessão e §Naming de branch): comando
+    `git for-each-ref refs/remotes/origin/agent/` para listar branches
+    ativas por recência + regra "slug de branch == slug de lane; se
+    já há commit <24h, pegue outra lane".
+  - **BACKLOG §Sprint A6** ganhou no topo (logo após o Status global)
+    as subseções **"Lanes abertas agora — pickup table"** (Lane, branch
+    slug, prompt, dependências, onda, status) e **"Ondas paralelas —
+    mapa de dependências"** (diagrama ASCII movido do final de §A6g).
+    Bloco duplicado removido. Índice do BACKLOG aponta para as 2 novas
+    subseções com "← agente começa aqui".
+  - **ROADMAP §Sprint A6** enxugado — tabela detalhada de sessões foi
+    removida; ROADMAP agora traz só snapshot curto + link para BACKLOG
+    como fonte única. Elimina drift (ROADMAP ficava parado em
+    2026-04-19 enquanto BACKLOG avançava).
+  - **docs/agent_prompts/README.md** (novo): índice de prompts
+    disponíveis + pickup protocol + cabeçalho padrão recomendado
+    (`Lane ID`, `Branch prefix`, `Depende de`, `Paralelo com`,
+    `Conflita com`, `Onda`). Retrofita o cabeçalho em
+    `track_a6g2_pipeline_style_sweep.md` e
+    `track_a6g4_frontend_style_sweep.md`.
+
+  **Motivação**: o diagrama de ondas estava 250+ linhas depois do
+  início de §Sprint A6 no BACKLOG (agente raramente chegava nele);
+  CLAUDE.md §Protocolo de início de sessão só checava working tree
+  local, sem instruir agentes a olharem branches `agent/*` remotas
+  antes de pegar task. Mudança cirúrgica — nenhum código tocado,
+  só documentação.
+
 - **A6f.3 — follow-up: redaction + pipeline stage spans (2026-04-21) — ADR-110:**
   Fecha dois gaps do track original de A6f.3 que haviam ficado fora da
   primeira entrega (2026-04-20).
