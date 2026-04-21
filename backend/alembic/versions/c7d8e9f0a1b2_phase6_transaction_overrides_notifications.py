@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column('original_category', sa.String(length=255), nullable=False),
         sa.Column('new_category', sa.String(length=255), nullable=False),
         sa.Column('notes', sa.Text(), nullable=True),
-        sa.Column('reviewed', sa.Boolean(), nullable=False, server_default=sa.text('1')),
+        sa.Column('reviewed', sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=True),
         sa.UniqueConstraint('workspace_id', 'transaction_hash', name='uq_override_ws_hash'),
     )
@@ -38,7 +38,7 @@ def upgrade() -> None:
         sa.Column('title', sa.String(length=500), nullable=False),
         sa.Column('message', sa.Text(), nullable=False),
         sa.Column('source', sa.String(length=50), nullable=True),
-        sa.Column('is_read', sa.Boolean(), nullable=False, server_default=sa.text('0')),
+        sa.Column('is_read', sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=True),
     )
 

@@ -49,7 +49,7 @@ def upgrade() -> None:
             "needs_review",
             sa.Boolean(),
             nullable=False,
-            server_default=sa.text("0"),
+            server_default=sa.false(),
         ),
     )
     op.add_column(

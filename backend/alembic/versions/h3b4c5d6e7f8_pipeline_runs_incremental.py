@@ -19,7 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.add_column(
         "pipeline_runs",
-        sa.Column("incremental", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("incremental", sa.Boolean(), nullable=False, server_default=sa.false()),
     )
     op.add_column(
         "pipeline_runs",
