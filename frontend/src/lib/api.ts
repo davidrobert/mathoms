@@ -493,8 +493,7 @@ export async function fetchDocumentFile(
 
 export interface ExtractJsonResponse {
   filename: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
+  data: unknown;
   all_candidates: string[];
 }
 

@@ -224,9 +224,12 @@ function BarChartCard({
                 cursor={onBarClick ? "pointer" : undefined}
                 onClick={
                   onBarClick
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    ? (entry: any) => {
-                        const label = entry?.month ?? entry?.payload?.month;
+                    ? (entry: unknown) => {
+                        const e = entry as
+                          | { month?: unknown; payload?: { month?: unknown } }
+                          | null
+                          | undefined;
+                        const label = e?.month ?? e?.payload?.month;
                         if (typeof label === "string") onBarClick(label);
                       }
                     : undefined
