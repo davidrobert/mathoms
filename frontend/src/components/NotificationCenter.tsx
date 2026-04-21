@@ -1,13 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
-import {
-  listNotifications,
-  markNotificationsRead,
-  deleteNotification,
-  type NotificationItem,
-} from "@/lib/api";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -16,110 +9,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Bell,
-  AlertTriangle,
-  AlertCircle,
-  Info,
-  CheckCheck,
-  X,
-} from "lucide-react";
-import { cn } from "@/lib/cn";
-import { useWorkspace } from "@/lib/WorkspaceProvider";
-
-const SEVERITY_CONFIG: Record<
-  string,
-  { icon: typeof AlertCircle; color: string; bg: string }
-> = {
-  critical: {
-    icon: AlertCircle,
-    color: "text-destructive",
-    bg: "bg-destructive/10",
-  },
-  warning: {
-    icon: AlertTriangle,
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-500/10",
-  },
-  info: {
-    icon: Info,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-500/10",
-  },
-};
-
-function formatRelativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return "agora";
-  if (minutes < 60) return `${minutes}min`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.floor(hours / 24);
-  return `${days}d`;
-}
+import { Bell, CheckCheck } from "lucide-react";
+import { useNotifications } from "./notifications/useNotifications";
+import { NotificationListItem } from "./notifications/NotificationListItem";
 
 export function NotificationCenter() {
-  const { workspace } = useWorkspace();
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<NotificationItem[]>([]);
-  const [unread, setUnread] = useState(0);
-  const [loading, setLoading] = useState(false);
-
-  const fetchNotifications = useCallback(async () => {
-    if (!workspace) return;
-    try {
-      const data = await listNotifications(workspace.id, { limit: 50 });
-      setItems(data.notifications);
-      setUnread(data.unread_count);
-    } catch {
-      // Only toast when user explicitly opened the panel (not background polling)
-      if (open) {
-        toast.error("Erro ao carregar notificações");
-      }
-    }
-  }, [open, workspace]);
-
-  useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30_000);
-    return () => clearInterval(interval);
-  }, [fetchNotifications]);
-
-  useEffect(() => {
-    if (open) fetchNotifications();
-  }, [open, fetchNotifications]);
-
-  const handleMarkAllRead = async () => {
-    if (!workspace) return;
-    const unreadIds = items.filter((n) => !n.is_read).map((n) => n.id);
-    if (unreadIds.length === 0) return;
-    setLoading(true);
-    try {
-      await markNotificationsRead(workspace.id, unreadIds);
-      setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
-      setUnread(0);
-    } catch {
-      toast.error("Erro ao marcar notificações como lidas");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!workspace) return;
-    try {
-      await deleteNotification(workspace.id, id);
-      setItems((prev) => prev.filter((n) => n.id !== id));
-      setUnread((prev) => {
-        const wasUnread = items.find((n) => n.id === id && !n.is_read);
-        return wasUnread ? Math.max(0, prev - 1) : prev;
-      });
-    } catch {
-      toast.error("Erro ao remover notificação");
-    }
-  };
-
+  const { items, unread, loading, markAllRead, remove } = useNotifications({ open });
   const displayCount = unread > 9 ? "9+" : String(unread);
 
   return (
@@ -150,7 +46,7 @@ export function NotificationCenter() {
               variant="ghost"
               size="sm"
               className="h-8 text-xs"
-              onClick={handleMarkAllRead}
+              onClick={markAllRead}
               disabled={loading}
             >
               <CheckCheck className="mr-1.5 h-3.5 w-3.5" />
@@ -167,55 +63,9 @@ export function NotificationCenter() {
             </div>
           ) : (
             <ul className="space-y-1" role="list">
-              {items.map((item) => {
-                const cfg = SEVERITY_CONFIG[item.severity] ?? SEVERITY_CONFIG.info;
-                const SeverityIcon = cfg.icon;
-                return (
-                  <li
-                    key={item.id}
-                    className={cn(
-                      "group/item flex gap-3 rounded-lg p-3 transition-colors",
-                      !item.is_read && "bg-accent/50"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
-                        cfg.bg
-                      )}
-                    >
-                      <SeverityIcon className={cn("h-3.5 w-3.5", cfg.color)} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <p
-                          className={cn(
-                            "text-sm leading-tight",
-                            !item.is_read && "font-medium"
-                          )}
-                        >
-                          {item.title}
-                        </p>
-                        <div className="flex shrink-0 items-center gap-1.5">
-                          <span className="text-xs text-muted-foreground">
-                            {formatRelativeTime(item.created_at)}
-                          </span>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover/item:opacity-100"
-                            aria-label="Remover notificação"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      </div>
-                      <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
-                        {item.message}
-                      </p>
-                    </div>
-                  </li>
-                );
-              })}
+              {items.map((item) => (
+                <NotificationListItem key={item.id} item={item} onRemove={remove} />
+              ))}
             </ul>
           )}
         </div>
