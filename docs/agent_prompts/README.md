@@ -17,8 +17,9 @@ inteiro.
 | A6f.1 Pipeline-as-Service (HTTP boundary) | [track_a6f1_pipeline_service.md](track_a6f1_pipeline_service.md) | 2 (greenfield) | `agent/a6f1-pipeline-service/*` |
 | A6g.5 Tests Sweep (fakes + nomes descritivos) | [track_a6g5_tests_sweep.md](track_a6g5_tests_sweep.md) | 2 | `agent/a6g5-tests-sweep/*` |
 | A6e.3 Application Layer (use cases — slice FamilyMember+Category+Goal) | [track_a6e3_use_cases.md](track_a6e3_use_cases.md) | 2 | `agent/a6e3-use-cases/*` |
+| A6e.5 `/api/v1/` prefix + aliases + OpenAPI versionado | [track_a6e5_v1_prefix.md](track_a6e5_v1_prefix.md) | 2 | `agent/a6e5-v1-prefix/*` |
 
-Lanes sem prompt dedicado (A6e.3b, A6e.4, A6e.5, A6e.6, A6g.3, A6g.6, A6g.7) são descritas direto no BACKLOG.
+Lanes sem prompt dedicado (A6e.3b, A6e.4, A6e.6, A6g.3, A6g.6, A6g.7) são descritas direto no BACKLOG.
 
 ## Antes de começar — pickup protocol
 
