@@ -1,7 +1,7 @@
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 
-interface PrevidenciaPgblData {
+export interface PrevidenciaPgblData {
   status?: string;
   nota?: string;
   renda_tributavel_anual?: number;

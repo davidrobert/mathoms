@@ -2,7 +2,10 @@
 
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
-import { PrevidenciaPgblCard } from "../cards/PrevidenciaPgblCard";
+import {
+  PrevidenciaPgblCard,
+  type PrevidenciaPgblData,
+} from "../cards/PrevidenciaPgblCard";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { MonetaryValue } from "../MonetaryValue";
 import type { ReportAnalysisData } from "@/lib/api";
@@ -11,7 +14,7 @@ import type { ReportAnalysisData } from "@/lib/api";
 export function S7IndependenciaSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
-  const previdencia = data.previdencia_pgbl as Record<string, unknown> | undefined;
+  const previdencia = data.previdencia_pgbl as unknown as PrevidenciaPgblData | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
 
   return (
@@ -30,7 +33,7 @@ export function S7IndependenciaSection({ data }: { data: ReportAnalysisData }) {
       )}
 
       <div className="md:col-span-2">
-        <PrevidenciaPgblCard previdencia={previdencia as any} />
+        <PrevidenciaPgblCard previdencia={previdencia} />
       </div>
     </ReportSection>
   );

@@ -10,7 +10,7 @@ interface DestinoAporte {
   moeda?: "BRL" | "USD" | string;
 }
 
-interface EstrategiaAporteData {
+export interface EstrategiaAporteData {
   total_aporte?: number;
   dia_aporte?: number;
   periodo_inicio?: string;

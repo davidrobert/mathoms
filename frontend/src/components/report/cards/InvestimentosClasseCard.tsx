@@ -1,8 +1,13 @@
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 
+export interface InvestimentosClasseData {
+  tabela_classes?: Array<{ classe: string; valor: number; pct: number }>;
+  total?: number;
+}
+
 interface InvestimentosClasseCardProps {
-  investimentos: { tabela_classes?: Array<{ classe: string; valor: number; pct: number }>; total?: number } | undefined;
+  investimentos: InvestimentosClasseData | undefined;
 }
 
 /** F9 · F2.C · S3 — Card "Investimentos por Classe de Ativo". */

@@ -1,6 +1,6 @@
 import { ReportCard } from "../ReportCard";
 
-interface ContrafluxoData {
+export interface ContrafluxoData {
   selic_atual?: number;
   cenarios?: {
     pessimista?: { selic?: number; cdi?: number };
