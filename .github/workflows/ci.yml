@@ -235,14 +235,21 @@ jobs:
         run: |
           cd backend && alembic upgrade head
 
-      - name: Start backend (uvicorn)
+      - name: Start backend (uvicorn + celery worker)
         env:
           MATHOMS_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
           REDIS_URL: redis://localhost:6380/0
+          MATHOMS_LLM_MOCK: "1"
         run: |
-          uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 &
+          uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 \
+            > /tmp/uvicorn.log 2>&1 &
+          # Worker Celery consome a fila do PipelineRun. Sem ele a task
+          # fica "pending" indefinido (ADR-074 — pipeline assíncrono).
+          celery -A backend.app.worker worker --loglevel=INFO --concurrency=2 \
+            > /tmp/celery.log 2>&1 &
           sleep 5
-          curl -sf http://127.0.0.1:8000/health || (echo "backend não subiu" && exit 1)
+          curl -sf http://127.0.0.1:8000/health \
+            || (echo "backend não subiu" && tail -50 /tmp/uvicorn.log && exit 1)
 
       - name: Install frontend deps + Playwright
         run: |
@@ -258,6 +265,17 @@ jobs:
         run: |
           cd frontend
           npm run test:e2e
+
+      - name: Upload backend + celery logs (diagnóstico E2E)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-logs
+          path: |
+            /tmp/uvicorn.log
+            /tmp/celery.log
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Upload Playwright report + trace + vídeo (F6.5F.9)
         if: always()
