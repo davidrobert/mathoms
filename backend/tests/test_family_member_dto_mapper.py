@@ -29,7 +29,7 @@ class _FakeVault:
     def decrypt(self, ciphertext: str) -> str | None:
         self.calls.append(ciphertext)
         # CPF válido (11 dígitos) — respeita constraint max_length=14 do DTO.
-        return "123.456.789-00"
+        return "123.456.789-09"
 
 
 def _fake_account(**overrides) -> SimpleNamespace:
@@ -83,7 +83,7 @@ class TestMemberToResponse:
         resp = member_to_response(member, vault=vault)
 
         # CPF plain veio do fake vault; ver _FakeVault.decrypt.
-        assert resp.cpf == "123.456.789-00"
+        assert resp.cpf == "123.456.789-09"
         assert vault.calls == ["gAAAA...ciphered"]
 
     def test_birth_name_extracted_from_extra(self):
@@ -136,7 +136,7 @@ class TestConvertGlobalDefaultsToResponses:
                     "nome_completo": "David Robert Camargo",
                     "nome_curto": "David",
                     "data_nascimento": "1981-09-05",
-                    "cpf": "910.428.398-01",
+                    "cpf": "000.000.000-00",
                     "papel": "titular",
                 }
             }

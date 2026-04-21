@@ -186,7 +186,7 @@ def test_formatter_redacts_sensitive_top_level_fields():
                 "password": "hunter2",
                 "api_key": "sk-live-xxx",
                 "authorization": "Bearer abc",
-                "cpf": "123.456.789-00",
+                "cpf": "123.456.789-09",
                 "value_brl": 1234.56,
                 "saldo": 9999.99,
                 "user_id_safe": "usr-42",

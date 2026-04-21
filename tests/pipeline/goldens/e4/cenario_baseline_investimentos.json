@@ -18,7 +18,7 @@
     "data_consolidacao": "2025-06-30T12:00:00",
     "membros_familia": [
       {"nome": "David", "cpf": "111.111.111-11"},
-      {"nome": "Mariana", "cpf": "222.222.222-22"}
+      {"nome": "Mariana", "cpf": "000.000.000-00"}
     ],
     "resumo_patrimonial": {
       "31_12_2024": {"total": 1500000.0, "dividas": 200000.0},
