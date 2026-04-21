@@ -464,6 +464,135 @@ A: 1) tente reproduzir local com `--repeat-each=10`. 2) se confirmado, quarenten
 
 ---
 
+## Critérios de aceite por fase da migração A6
+
+Checklist canônico de gates de teste para cada fase do Sprint A6
+(migração infra+domínio). Usado como referência durante PR review de
+qualquer slice; cópia viva do que foi sendo entregue em `CHANGELOG` e
+validado em CI. Origem: plano mestre de migração A6 §7 (absorvido aqui
+em 2026-04-21).
+
+### Infra — Fase 1.5 (StageSpec + orchestrator limpo)
+
+- [ ] `validate_full_order(FULL_ORDER)` passa sem exceção
+- [ ] `validate_full_order` falha com `AssertionError` se um stage é inserido depois do seu consumidor
+- [ ] `test_materialization_bridge_mappings_complete` passa (todos os stages em `_STAGE_TO_DIR` e `_STAGE_TO_SUFFIX`)
+- [ ] E2-faturas processa apenas faturas; E2-extratos processa apenas extratos (flags corretas)
+- [ ] `import scripts.pipeline_common` sem `FIN_WORKSPACE_ROOT` não levanta `SystemExit`
+
+### Infra — Fase 2 (DBArtifactStore + MaterializationBridge)
+
+- [ ] `DBArtifactStore` round-trip preserva dados exatos (read ∘ write = identity)
+- [ ] Sessão SQLAlchemy injetada no `__init__`; store nunca cria sessão própria
+- [ ] Celery task: commit só após run completa; sem sessão órfã em caso de exception
+- [ ] Pipeline E2→E5 com `MATHOMS_USE_DB_ARTIFACTS=true` produz E5 idêntico ao caminho disco (golden)
+- [ ] `MaterializationBridge` como context manager: `tmp_dir` limpo após `__exit__` (inclusive em exception)
+- [ ] `MaterializationBridge._STAGE_TO_DIR` e `_STAGE_TO_SUFFIX` cobrem todos os stages com artefatos em disco
+- [ ] `MATHOMS_USE_DB_ARTIFACTS` é setting global (env var); override per-workspace é temporário e documentado
+- [ ] Regressão de perf (R8): tempo total ≤ baseline × 1.15, peak RSS ≤ baseline × 1.20
+- [ ] `dev/compare_disk_vs_db.py` reporta 0 diffs estruturais em workspace piloto
+
+### Infra — Fase 3 (stages no Caminho B, per sub-fase)
+
+- [ ] `document_pipeline_sync.py` sem regex em nome de arquivo
+- [ ] Modo incremental usa `pipeline_last_run_at IS NULL` — sem stem matching
+- [ ] `DBArtifactStore.write()` recebe `document_id` FK correto do document row
+- [ ] Todos os parsers em `scripts/e2/banks/*.py` retornam `BankStatement` (não `dict`) — R10
+- [ ] Extract stages distintos: `extract_statements`, `extract_invoices`, `extract_with_llm` têm UNIQUE constraint independente
+- [ ] Teste de colisão: mesmo documento processado por extrator determinístico + LLM fallback não viola UNIQUE
+- [ ] Cada stage: golden fixture passa com artefatos no banco
+- [ ] E5: `pipeline_artifacts` tem `analise_financeira` com FK válida à run
+- [ ] `apply_review` escreve para artifact stage `analyze_finances_revised` (categoria em `VIRTUAL_ARTIFACT_STAGES`)
+- [ ] `render_final_report` lê de `analyze_finances_revised`; pipeline completo sem erro de constraint
+- [ ] `validate_artifact_stage("analyze_finances_revised")` passa; `validate_artifact_stage("foo")` levanta
+
+### Infra — Fase 4 (cleanup + cutover)
+
+- [ ] `processed/` não é criado em runs web com `use_db_artifacts=True`
+- [ ] `e_reset.py` limpa artefatos de `pipeline_artifacts` no DB (não apenas disco)
+- [ ] `GET /reports/{id}/data` lê do DB via `artifact_id`
+- [ ] CLI continua funcionando com `DiskArtifactStore` (sem regressão)
+- [ ] Procedimento de cutover ([runbook](runbooks/cutover.md)) executado em pelo menos um workspace de teste
+- [ ] `backend/app/scripts/backfill_artifacts_from_disk.py --dry-run` lista artefatos a migrar sem erro
+
+### Domínio — Fase 5 (Money + dataclasses)
+
+- [ ] `Money.brl("0.1") + Money.brl("0.2") == Money.brl("0.3")` (sem erro de float)
+- [ ] `Money(amount=0.1)` levanta `TypeError` (ADR-090)
+- [ ] `Money.of(0.1, "BRL")` levanta `TypeError` (factory também rejeita float)
+- [ ] `Money.of("1", "JPY").amount == Decimal("1")` (0 casas — respeita `CURRENCY_PRECISION`)
+- [ ] `Money.of("1.234", "BRL").amount == Decimal("1.23")` (2 casas, quantização)
+- [ ] `Money(amount=Decimal("1"), currency="XYZ")` levanta `ValueError` (moeda não registrada)
+- [ ] Round-trip: `Transaction.from_dict(t.to_dict()) == t`
+- [ ] `dataclasses.replace(t, category=c)` funciona; nenhum uso de `Transaction(**{**t.__dict__, ...})`
+- [ ] `InvestmentStatement` e `BankStatement` são value objects: `frozen=True`, testáveis sem disco
+- [ ] Property-based tests em `Money` passam (soma associativa, sem drift acumulado)
+
+### Domínio — Fases 6/7 (Reconciliation + Categorization services, ISP)
+
+- [ ] `ReconciliationService(ReconciliationConfig(...)).reconcile(statements)` sem I/O de disco (ADR-089)
+- [ ] Service NÃO importa `StageConfig` (teste estático: grep em `reconciliation_service.py`)
+- [ ] Testes unitários cobrem: duplicata exata, duplicata por proximidade (±3 dias), transferência interna, gap temporal
+- [ ] Fixture de teste: `ReconciliationConfig(tolerance_days=3, ...)` em uma linha (sem mock de StageConfig)
+- [ ] Testes de integração do stage usam `InMemoryArtifactStore` — sem fixtures de arquivo
+- [ ] `CategorizationService(CategorizationRules(...)).categorize(transactions)` sem disco
+- [ ] Golden: output novo == output legado (mesmo workspace de referência)
+
+### Domínio — Fase 8 (FinancialAnalyzer decomposto)
+
+- [ ] Cada uma das 6 calculadoras tem testes unitários independentes (sem disco, sem globals)
+- [ ] `financial_analyzer.main(config, store)` sem disco
+- [ ] `StageConfig.from_context(ctx)` produz objeto imutável; mutação levanta `ValidationError` (Pydantic frozen)
+- [ ] `StageConfig.empty()` disponível para testes que não precisam de config real
+- [ ] Sprint timebox respeitado: cada sprint ≤ 4 semanas com calculadora completa e testada
+- [ ] Golden: output novo == output legado
+
+### Domínio — Fase 9 (stage renaming completo, pós-A6d)
+
+- [ ] `test_rename_map_covers_all_legacy_names` passa antes de qualquer rename
+- [ ] `test_rename_map_targets_exist_in_registry` passa
+- [ ] `test_rename_map_is_bijective` passa
+- [ ] `test_migration_upgrade_renames_all_known_stages` passa
+- [ ] `test_migration_downgrade_restores_legacy_names` passa
+- [ ] `test_no_legacy_stage_name_in_code` passa para todos os nomes legados
+- [ ] `alembic upgrade head` → `alembic downgrade -1` sem erro
+- [ ] Backup do banco criado antes da migration em produção
+- [ ] Grep de sobrevivência retorna zero ocorrências para identificadores legados (incluindo `.md` files)
+- [ ] `pipeline/stages/` e `scripts/` contêm apenas arquivos com novos nomes descritivos
+- [ ] `MaterializationBridge` removido (zero usos confirmados por grep antes de remover)
+- [ ] `_init_config()` global removido de todos os scripts (zero chamadas confirmadas)
+- [ ] CLAUDE.md sem menções a `e*_` como convenção de naming de stage
+- [ ] `docs/ARCHITECTURE.md` reflete estado final (stages com novos nomes)
+- [ ] ADR-093 formalizado em `docs/DECISIONS.md`
+- [ ] Zero regressão em CI
+
+### Métricas de sucesso — fim de Fase 4 (marco infra)
+
+| Métrica | Meta |
+|---------|------|
+| `processed/` criados em novas runs web | 0 |
+| Regex de nome de arquivo em `document_pipeline_sync.py` | 0 ocorrências |
+| Sessões SQLAlchemy sem `close()` ou context manager | 0 |
+| Testes de protocolo `ArtifactStore` passando | 100% |
+| Tempo de CI (suite completa) | ≤ baseline atual × 1.5 |
+| Golden fixtures passando (E2→E5) | 100% |
+| Workspaces em produção com `use_db_artifacts=True` | ≥ 1 (piloto) |
+
+### Métricas de sucesso — fim de Fase 9 (marco domínio)
+
+| Métrica | Meta |
+|---------|------|
+| Identificadores legados (`"E2"`, `"E3"`, etc.) em código Python | 0 |
+| Identificadores legados em valores de DB (`pipeline_artifacts.stage`) | 0 |
+| `float` em cálculos monetários (`pipeline/domain/`) | 0 |
+| Cobertura de testes em `pipeline/domain/` | ≥ 80% |
+| Cobertura de testes em services (Reconciliation, Categorization, FinancialAnalyzer) | ≥ 80% |
+| Scripts com `_init_config()` global | 0 |
+| Tempo médio de pipeline E2→E5 (benchmarked) | ≤ baseline ± 5% |
+| `MaterializationBridge` usos | 0 |
+
+---
+
 ## Ver também
 
 - [`docs/BACKLOG.md#f65--frontend-testing--qa`](BACKLOG.md#f65--frontend-testing--qa) — tasks de F6.5
