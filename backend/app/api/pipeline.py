@@ -189,7 +189,7 @@ async def trigger_pipeline(
 
     result = await db.execute(
         select(PipelineRun)
-        .where(PipelineRun.id == run.id)
+        .where(PipelineRun.workspace_id == workspace.id, PipelineRun.id == run.id)
         .options(selectinload(PipelineRun.stage_logs))
     )
     run = result.scalar_one()
