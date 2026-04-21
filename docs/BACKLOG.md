@@ -6,7 +6,7 @@
 >
 > **Legenda de prioridade:** **P0** bloqueante • **P1** importante • **P2** nice-to-have
 >
-> **Última atualização:** 2026-04-20 (A6g — Code Style Sweep adicionado ao Sprint A6; CLAUDE.md §Code style incorporada)
+> **Última atualização:** 2026-04-21 (Sprint A6 reorganizado: "Lanes abertas agora" + "Ondas paralelas" movidos para o topo como fonte única de pickup; CLAUDE.md ganhou §Antes de pegar uma task)
 
 ---
 
@@ -17,6 +17,8 @@
 - [P0/P1 — Motor canônico e pipeline](#p0p1--motor-canônico-e-pipeline-2026-04)
 - [P2 — Unificação da classificação de documentos](#p2--unificação-da-classificação-de-documentos)
 - [Sprint A6 — Migração Infra+Domínio](#sprint-a6--migração-infradomínio-plano-transversal) ← **sprint atual (transversal)**
+  - [Lanes abertas agora — pickup table](#lanes-abertas-agora--pickup-table) ← **agente começa aqui**
+  - [Ondas paralelas — mapa de dependências](#ondas-paralelas--mapa-de-dependências)
 - [F7 — Produção + LGPD](#f7--produção--lgpd) ← **integra §15 LGPD + §16 Obs do plano A6**
 - [F7F — Console interno (operadores)](#f7f--console-interno-operadores)
 - [F11 — Confiança, transparência e excelência de relatório](#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)
@@ -610,8 +612,114 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 - **A6e 🚧 parcial (6 de N+ agregados — per-aggregate track **concluído**):** FamilyMember + Category + ConfigBlob + Document + Goal + Task (com 3 sub-agregados) com repos+DTOs. Próximos passos A6e são transversais (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events).
 - **Restante:** A6e (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events) · A6f.1 (pipeline-as-service) · A6g.2-.7 (sweeps + enforcement) · F7 (7A-7F + LGPD).
 - **Caminho crítico (serial):** A6e.3 (use cases) → A6e.4 (routers finos) → F7A → F7B → F7D+dogfood → GA.
-- **Lanes paralelizáveis agora (Onda 2 — pós-per-aggregate):** A6e.3/.4/.5/.6 transversais · A6f.1 pipeline-service · A6g.2-.5 sweeps.
+- **Lanes abertas agora:** Onda 1 (A6g.2 pipeline sweep · A6g.4 frontend sweep) + Onda 2 destravada (A6e.3/.4/.5/.6 · A6f.1 · A6g.5). Ver tabela e diagrama abaixo.
 - **Testes:** ~1184 pipeline + 926 backend passing (zero regressão).
+
+### Lanes abertas agora — pickup table
+
+> **Pickup protocol** (CLAUDE.md §Antes de pegar uma task): antes de escolher uma lane, rode
+> `git for-each-ref --sort=-committerdate --format='%(committerdate:iso) %(refname:short)' refs/remotes/origin/agent/ | head -15`.
+> Se a lane que você quer já tem branch `<slug>-*` com commit nas últimas 24h, **pegue outra** — não duplique.
+
+| Lane | Branch slug | Prompt / detalhe | Depende de | Onda | Status |
+| --- | --- | --- | --- | --- | --- |
+| **A6g.2** pipeline sweep | `a6g2-pipeline-style` | [track_a6g2_pipeline_style_sweep.md](agent_prompts/track_a6g2_pipeline_style_sweep.md) | A6g.1 ✅ | 1 | ☐ aberta |
+| **A6g.4** frontend sweep | `a6g4-frontend-style` | [track_a6g4_frontend_style_sweep.md](agent_prompts/track_a6g4_frontend_style_sweep.md) | A6g.1 ✅ | 1 | ☐ aberta |
+| **A6e.3** use cases | `a6e3-use-cases` | Application layer R15 — 1 endpoint = 1 use case; [§A6e](#a6e--ddd-solid-no-backend-api-adr-101-r12-r17) | per-aggregate ✅ | 2 | ☐ aberta |
+| **A6e.4** routers finos | `a6e4-thin-routers` | 4900→800 linhas (17 routers × ≤50); teste AST | A6e.3 | 2 | ⏸ blocked-by A6e.3 |
+| **A6e.5** /api/v1/ prefix | `a6e5-v1-prefix` | Prefixo + aliases; OpenAPI 3.1 versionado | A6e.3 ou paralelo | 2 | ☐ aberta |
+| **A6e.6** domain events | `a6e6-domain-events` | `backend/app/events/` + handlers tipados | A6e.3 (preferencial) | 2 | ⏸ preferencial pós-A6e.3 |
+| **A6f.1** pipeline-as-service | `a6f1-pipeline-service` | FastAPI standalone; backend fala por HTTP; [§A6f](#a6f--language-neutral-boundaries-adr-102-r18-r20) | Onda 1 mergeada | 2 | ☐ aberta (greenfield, isolado) |
+| **A6g.5** tests sweep | `a6g5-tests-sweep` | Fakes nomeados > MagicMock; nomes descritivos | — | 2 | ☐ aberta |
+| **A6g.3** backend sweep | `a6g3-backend-style` | Services, repos, helpers, typing | A6e.4 ✅ | 3 | ⏸ blocked-by A6e.4 |
+| **A6g.6** enforcement | `a6g6-enforcement` | Ruff rules + ESLint errors + pre-commit grep | A6g.2/.4/.5 ✅ | 3 | ⏸ blocked-by sweeps |
+| **A6g.7** Go prep | `a6g7-go-prep` | `golangci-lint.yml` | A6f.1 iniciada | 3 | ⏸ blocked-by A6f.1 |
+| **A6-human** smoke | _(manual)_ | [SMOKE_TEST_HUMAN.md](SMOKE_TEST_HUMAN.md) — 46 checks | A6b.5 ✅ | — | ☐ gate humano |
+| **A6c** deletar bridge | `a6c-delete-bridge` | Remove `stage_runner_compat` + `materialization_bridge` + `main(root_dir)` legados | A6-human aprovado | — | ⏸ blocked-by A6-human |
+
+### Ondas paralelas — mapa de dependências
+
+Itens dentro da mesma onda rodam em paralelo (agentes disjuntos, branches
+distintas, zero overlap de arquivos). Onda N só começa quando Onda N-1
+convergir em `origin/main`.
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║ ONDA 1 — paralelizável agora (2 lanes independentes)                 ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  Lane A1: A6g.2 pipeline sweep   (agent/a6g2-pipeline-style/*)       ║
+║           └─ prompt: docs/agent_prompts/track_a6g2_pipeline_style_  ║
+║             sweep.md; 1ª rodada defensiva (Tier 1: e_reset::main,    ║
+║             pdf_generator, e0_audit; Tier 2 opc.); Tier 3 em A6g.2b  ║
+║  Lane A2: A6g.4 frontend sweep   (agent/a6g4-frontend-style/*)       ║
+║           └─ prompt: docs/agent_prompts/track_a6g4_frontend_style_  ║
+║             sweep.md; alvos T1-T5 (any, api.ts 1880 l, utils.ts,     ║
+║             hex colors, componentes >40 l)                           ║
+║                                                                       ║
+║  [A6e Task] ✅ entregue 2026-04-21 (A6e.7) — 3 sub-agregados         ║
+║  [A6e Goal] ✅ entregue 2026-04-21                                   ║
+║  [A6g.1 audit] ✅ entregue — baseline em docs/audits/                ║
+║  [A6f.1 pipeline-service] NÃO entra aqui — maior item isolado,       ║
+║  começar antes de A6e convergir aumenta merge hell. Fica na Onda 2.  ║
+║  [A6g.3 backend sweep] prefere pós-A6e.4 (routers finos). Onda 2.    ║
+╚═══════════════════════════════════════════════════════════════════════╝
+                              │
+                              ▼  (após Onda 1 convergir)
+╔═══════════════════════════════════════════════════════════════════════╗
+║ ONDA 2 — paralelizável (4 lanes, A6e transversais + infra)           ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  Lane B1: A6e.3 + A6e.4          — use cases + routers finos          ║
+║           └─ Transversal: requer todos slices Onda 1 mergeados        ║
+║  Lane B2: A6e.5 /api/v1/ prefix  — pode rodar depois de B1 ou junto  ║
+║  Lane B3: A6f.1 pipeline-service — FastAPI standalone + HTTP client  ║
+║           └─ 2-3 sessões, independente de A6e                         ║
+║  Lane B4: A6g.5 tests sweep      — nomes descritivos + fakes         ║
+║                                                                       ║
+║  A6e.6 (domain events) prefere vir depois de B1 (use cases).         ║
+║  A6g.3 (backend sweep) rodará pós-A6e.4 (B1) — mesclar em Onda 3.    ║
+╚═══════════════════════════════════════════════════════════════════════╝
+                              │
+                              ▼  (após A6e.3/.4/.5 fechados + A6f.1 merged)
+╔═══════════════════════════════════════════════════════════════════════╗
+║ ONDA 3 — F7 produção + LGPD (paralelizável dentro)                   ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  Lane C1: F7A Docker + Deploy + HTTPS      (infra)                   ║
+║  Lane C2: F7B Security + LGPD              (segurança)                ║
+║  Lane C3: F7C CI/CD + Observability        (DevOps)                   ║
+║  Lane C4: F7E Legal + termos               (jurídico, sem código)    ║
+║  Lane C5: A6g.3 backend sweep (pós-A6e.4) + A6g.6 enforcement +      ║
+║           A6g.7 Go prep (pós-A6f.1)                                   ║
+║                                                                       ║
+║  F7A precede F7B (HTTPS antes de hardening). F7D (monitoring) e      ║
+║  F7F (support console) vêm após F7A+B+C estabilizarem.                ║
+╚═══════════════════════════════════════════════════════════════════════╝
+                              │
+                              ▼
+╔═══════════════════════════════════════════════════════════════════════╗
+║ ONDA 4 — dogfood + GA                                                 ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  F7D monitoring + dogfood (2 semanas com dados reais)                ║
+║  F7F support console (ops.mathoms.ai)                                ║
+║  GA release                                                           ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+**Como escolher a próxima lane (para agente ou humano):**
+
+| Situação                                                     | Pegar          |
+| ------------------------------------------------------------ | -------------- |
+| Sessão curta, gosta de refactor cirúrgico em Python          | A6g.2 pipeline |
+| Sessão curta, familiar com TS/React                          | A6g.4 frontend |
+| Sessão longa (≥3h), appetite por greenfield infra            | A6f.1 (Onda 2) |
+| Sessão longa, foco em backend DDD                            | A6e.3 + A6e.4  |
+| Já tem agente em A6g.2 ou .4 — não competir                  | a outra lane   |
+| Onda 1 concluída e quer destravar tudo                       | B1 ou B3       |
+
+**Regras de coordenação (aplicam a todas as ondas):**
+- Uma lane = uma branch `agent/<slug>/<timestamp>`. Nunca 2 agentes na mesma lane — rode o pickup check em CLAUDE.md §Antes de pegar uma task.
+- `git fetch origin` a cada ~30min em sessão longa; rebase incremental.
+- Hotspots (`CLAUDE.md`, `docs/BACKLOG.md`, `docs/CHANGELOG.md`, `docs/DECISIONS.md`) — anunciar antes, commit atômico ≤5min.
+- A6g.7 (Go prep) fica **bloqueada** até A6f.1 começar — só faz sentido quando houver código Go real.
 
 ### A5f — E1.5c Caminho B ✅ entregue 2026-04-19
 
@@ -854,89 +962,9 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 - Generated files (`frontend/src/generated/`, OpenAPI snapshot, Pydantic models via codegen) — fora do escopo, nunca editar.
 - Testes de paridade golden que comparam estruturas grandes inline — mantidos como estão.
 
-### Próximas etapas — ondas paralelas (pós-2026-04-21)
-
-Com A5f · A6a-c · A6d · A6f.2/.3/.4/.5a/.6 · **A6g.1** ✅ e A6e 🚧 parcial
-(5 agregados, Goal fechado 2026-04-21), o que resta se decompõe em
-**4 ondas** — itens dentro da mesma onda rodam em paralelo (agentes
-disjuntos, branches distintas, zero overlap de arquivos):
-
-```
-╔═══════════════════════════════════════════════════════════════════════╗
-║ ONDA 1 — paralelizável agora (2 lanes independentes)                 ║
-╠═══════════════════════════════════════════════════════════════════════╣
-║  Lane A1: A6g.2 pipeline sweep   (agent/a6g2-pipeline-style/*)       ║
-║           └─ prompt: docs/agent_prompts/track_a6g2_pipeline_style_  ║
-║             sweep.md; 1ª rodada defensiva (Tier 1: e_reset::main,    ║
-║             pdf_generator, e0_audit; Tier 2 opc.); Tier 3 em A6g.2b  ║
-║  Lane A2: A6g.4 frontend sweep   (agent/a6g4-frontend-style/*)       ║
-║           └─ prompt: docs/agent_prompts/track_a6g4_frontend_style_  ║
-║             sweep.md; alvos T1-T5 (any, api.ts 1880 l, utils.ts,     ║
-║             hex colors, componentes >40 l)                           ║
-║                                                                       ║
-║  [A6e Task] ✅ entregue 2026-04-21 (A6e.7) — 3 sub-agregados         ║
-║  [A6e Goal] ✅ entregue 2026-04-21                                   ║
-║  [A6g.1 audit] ✅ entregue — baseline em docs/audits/                ║
-║  [A6f.1 pipeline-service] NÃO entra aqui — maior item isolado,       ║
-║  começar antes de A6e convergir aumenta merge hell. Fica na Onda 2.  ║
-║  [A6g.3 backend sweep] prefere pós-A6e.4 (routers finos). Onda 2.    ║
-╚═══════════════════════════════════════════════════════════════════════╝
-                              │
-                              ▼  (após Onda 1 convergir)
-╔═══════════════════════════════════════════════════════════════════════╗
-║ ONDA 2 — paralelizável (4 lanes, A6e transversais + infra)           ║
-╠═══════════════════════════════════════════════════════════════════════╣
-║  Lane B1: A6e.3 + A6e.4          — use cases + routers finos          ║
-║           └─ Transversal: requer todos slices Onda 1 mergeados        ║
-║  Lane B2: A6e.5 /api/v1/ prefix  — pode rodar depois de B1 ou junto  ║
-║  Lane B3: A6f.1 pipeline-service — FastAPI standalone + HTTP client  ║
-║           └─ 2-3 sessões, independente de A6e                         ║
-║  Lane B4: A6g.5 tests sweep      — nomes descritivos + fakes         ║
-║                                                                       ║
-║  A6e.6 (domain events) prefere vir depois de B1 (use cases).         ║
-║  A6g.3 (backend sweep) rodará pós-A6e.4 (B1) — mesclar em Onda 3.    ║
-╚═══════════════════════════════════════════════════════════════════════╝
-                              │
-                              ▼  (após A6e.3/.4/.5 fechados + A6f.1 merged)
-╔═══════════════════════════════════════════════════════════════════════╗
-║ ONDA 3 — F7 produção + LGPD (paralelizável dentro)                   ║
-╠═══════════════════════════════════════════════════════════════════════╣
-║  Lane C1: F7A Docker + Deploy + HTTPS      (infra)                   ║
-║  Lane C2: F7B Security + LGPD              (segurança)                ║
-║  Lane C3: F7C CI/CD + Observability        (DevOps)                   ║
-║  Lane C4: F7E Legal + termos               (jurídico, sem código)    ║
-║  Lane C5: A6g.3 backend sweep (pós-A6e.4) + A6g.6 enforcement +      ║
-║           A6g.7 Go prep (pós-A6f.1)                                   ║
-║                                                                       ║
-║  F7A precede F7B (HTTPS antes de hardening). F7D (monitoring) e      ║
-║  F7F (support console) vêm após F7A+B+C estabilizarem.                ║
-╚═══════════════════════════════════════════════════════════════════════╝
-                              │
-                              ▼
-╔═══════════════════════════════════════════════════════════════════════╗
-║ ONDA 4 — dogfood + GA                                                 ║
-╠═══════════════════════════════════════════════════════════════════════╣
-║  F7D monitoring + dogfood (2 semanas com dados reais)                ║
-║  F7F support console (ops.mathoms.ai)                                ║
-║  GA release                                                           ║
-╚═══════════════════════════════════════════════════════════════════════╝
-```
-
-**Como escolher a próxima lane (para agente ou humano):**
-
-| Situação                                                     | Pegar          |
-| ------------------------------------------------------------ | -------------- |
-| Sessão curta, gosta de refactor cirúrgico em Python          | A6g.2 pipeline |
-| Sessão curta, familiar com TS/React                          | A6g.4 frontend |
-| Sessão longa (≥3h), appetite por greenfield infra            | A6f.1 (Onda 2) |
-| Já tem agente em A6g.2 ou .4 — não competir                  | a outra lane   |
-| Onda 1 concluída e quer destravar tudo                       | B1 ou B3       |
-
-**Regras de coordenação (aplicam a todas as ondas):**
-- Uma lane = uma branch `agent/<slug>/<timestamp>`. Nunca 2 agentes na mesma lane.
-- `git fetch origin` a cada ~30min em sessão longa; rebase incremental.
-- Hotspots (`CLAUDE.md`, `docs/BACKLOG.md`, `docs/CHANGELOG.md`, `docs/DECISIONS.md`) — anunciar antes, commit atômico ≤5min.
-- A6g.7 (Go prep) fica **bloqueada** até A6f.1 começar — só faz sentido quando houver código Go real.
+> **Pickup de task / diagrama de ondas / lanes abertas:** fonte única no
+> topo de [§Sprint A6](#sprint-a6--migração-infradomínio-plano-transversal) —
+> subseções "Lanes abertas agora" e "Ondas paralelas — mapa de dependências".
 
 ---
 
