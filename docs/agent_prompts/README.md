@@ -24,6 +24,7 @@ inteiro.
 | A6e.events Domain events tipados (ADR-101 R17) — ex-`A6e.6` | [track_a6e_events_domain_events.md](track_a6e_events_domain_events.md) | 2 | `agent/a6e-events/*` |
 | A6g.6 Enforcement automatizado (Ruff + ESLint + pre-commit + testes AST) | [track_a6g6_enforcement.md](track_a6g6_enforcement.md) | 3 | `agent/a6g6-enforcement/*` |
 | A6g.3 Backend Python code style sweep (services, repos, models, schemas) | [track_a6g3_backend_style_sweep.md](track_a6g3_backend_style_sweep.md) | 3 | `agent/a6g3-backend-style/*` |
+| F7F-Local Console interno pré-produção (IA-0) — UI Next separada + anonimização + auth yaml | [track_f7f_local.md](track_f7f_local.md) | 3 (Lane C6, independente de 7A/B/C) | `agent/f7f-local/*` |
 
 Lanes com prompt inline (escopo documentado direto na linha da tabela "Lanes abertas agora" do BACKLOG, sem prompt dedicado): A6g.6b, A6g.2c, A6e.3c, A6e.events-migration, A6e.events-followup, A6g.2b, A6c.
 
