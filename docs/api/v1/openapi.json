@@ -778,7 +778,7 @@
         "title": "BankAccountUpdateCommand",
         "type": "object"
       },
-      "Body_upload_documents_api_workspaces__workspace_id__documents_upload_post": {
+      "Body_upload_documents_api_v1_workspaces__workspace_id__documents_upload_post": {
         "properties": {
           "files": {
             "items": {
@@ -792,10 +792,10 @@
         "required": [
           "files"
         ],
-        "title": "Body_upload_documents_api_workspaces__workspace_id__documents_upload_post",
+        "title": "Body_upload_documents_api_v1_workspaces__workspace_id__documents_upload_post",
         "type": "object"
       },
-      "Body_upload_task_attachment_api_workspaces__workspace_id__tasks__task_id__attachments_post": {
+      "Body_upload_task_attachment_api_v1_workspaces__workspace_id__tasks__task_id__attachments_post": {
         "properties": {
           "file": {
             "contentMediaType": "application/octet-stream",
@@ -806,7 +806,7 @@
         "required": [
           "file"
         ],
-        "title": "Body_upload_task_attachment_api_workspaces__workspace_id__tasks__task_id__attachments_post",
+        "title": "Body_upload_task_attachment_api_v1_workspaces__workspace_id__tasks__task_id__attachments_post",
         "type": "object"
       },
       "CategoryCreateCommand": {
@@ -6286,13 +6286,13 @@
   },
   "info": {
     "title": "Mathoms AI",
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "openapi": "3.1.0",
   "paths": {
-    "/api/auth/login": {
+    "/api/v1/auth/login": {
       "post": {
-        "operationId": "login_api_auth_login_post",
+        "operationId": "login_api_v1_auth_login_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -6331,9 +6331,9 @@
         ]
       }
     },
-    "/api/auth/me": {
+    "/api/v1/auth/me": {
       "get": {
-        "operationId": "get_me_api_auth_me_get",
+        "operationId": "get_me_api_v1_auth_me_get",
         "responses": {
           "200": {
             "content": {
@@ -6357,9 +6357,9 @@
         ]
       }
     },
-    "/api/auth/register": {
+    "/api/v1/auth/register": {
       "post": {
-        "operationId": "register_api_auth_register_post",
+        "operationId": "register_api_v1_auth_register_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -6398,10 +6398,10 @@
         ]
       }
     },
-    "/api/invitations/{token}": {
+    "/api/v1/invitations/{token}": {
       "get": {
         "description": "Rota P\u00daBLICA (sem auth). O convidado pode nem ter conta ainda;\nesta rota serve para a landing `/invite/{token}` mostrar o contexto\nantes de pedir login/signup.\n\nRevela apenas campos do workspace e do inviter \u2014 nada sobre outros\nmembros ou dados financeiros.",
-        "operationId": "preview_invitation_api_invitations__token__get",
+        "operationId": "preview_invitation_api_v1_invitations__token__get",
         "parameters": [
           {
             "in": "path",
@@ -6441,10 +6441,10 @@
         ]
       }
     },
-    "/api/invitations/{token}/accept": {
+    "/api/v1/invitations/{token}/accept": {
       "post": {
         "description": "Exige login. O email do user logado precisa bater com o email\nconvidado (case-insensitive).",
-        "operationId": "accept_invitation_endpoint_api_invitations__token__accept_post",
+        "operationId": "accept_invitation_endpoint_api_v1_invitations__token__accept_post",
         "parameters": [
           {
             "in": "path",
@@ -6489,10 +6489,10 @@
         ]
       }
     },
-    "/api/me/workspaces": {
+    "/api/v1/me/workspaces": {
       "get": {
         "description": "Lista memberships do usu\u00e1rio. Ordenado por joined_at (mais antigo\nprimeiro \u2014 workspace \"prim\u00e1rio\" fica em primeiro lugar).",
-        "operationId": "list_my_workspaces_api_me_workspaces_get",
+        "operationId": "list_my_workspaces_api_v1_me_workspaces_get",
         "responses": {
           "200": {
             "content": {
@@ -6516,10 +6516,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/audit": {
+    "/api/v1/workspaces/{workspace_id}/audit": {
       "get": {
         "description": "Lista os audit logs do workspace.",
-        "operationId": "list_audit_logs_api_workspaces__workspace_id__audit_get",
+        "operationId": "list_audit_logs_api_v1_workspaces__workspace_id__audit_get",
         "parameters": [
           {
             "in": "path",
@@ -6594,9 +6594,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/categories": {
+    "/api/v1/workspaces/{workspace_id}/config/categories": {
       "get": {
-        "operationId": "list_categories_api_workspaces__workspace_id__config_categories_get",
+        "operationId": "list_categories_api_v1_workspaces__workspace_id__config_categories_get",
         "parameters": [
           {
             "in": "path",
@@ -6641,7 +6641,7 @@
         ]
       },
       "post": {
-        "operationId": "create_category_api_workspaces__workspace_id__config_categories_post",
+        "operationId": "create_category_api_v1_workspaces__workspace_id__config_categories_post",
         "parameters": [
           {
             "in": "path",
@@ -6696,9 +6696,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/categories/{category_id}": {
+    "/api/v1/workspaces/{workspace_id}/config/categories/{category_id}": {
       "delete": {
-        "operationId": "delete_category_api_workspaces__workspace_id__config_categories__category_id__delete",
+        "operationId": "delete_category_api_v1_workspaces__workspace_id__config_categories__category_id__delete",
         "parameters": [
           {
             "in": "path",
@@ -6745,7 +6745,7 @@
         ]
       },
       "put": {
-        "operationId": "update_category_api_workspaces__workspace_id__config_categories__category_id__put",
+        "operationId": "update_category_api_v1_workspaces__workspace_id__config_categories__category_id__put",
         "parameters": [
           {
             "in": "path",
@@ -6809,9 +6809,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/export": {
+    "/api/v1/workspaces/{workspace_id}/config/export": {
       "get": {
-        "operationId": "export_config_api_workspaces__workspace_id__config_export_get",
+        "operationId": "export_config_api_v1_workspaces__workspace_id__config_export_get",
         "parameters": [
           {
             "in": "path",
@@ -6856,9 +6856,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/import": {
+    "/api/v1/workspaces/{workspace_id}/config/import": {
       "post": {
-        "operationId": "import_config_api_workspaces__workspace_id__config_import_post",
+        "operationId": "import_config_api_v1_workspaces__workspace_id__config_import_post",
         "parameters": [
           {
             "in": "path",
@@ -6913,9 +6913,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/institutions": {
+    "/api/v1/workspaces/{workspace_id}/config/institutions": {
       "get": {
-        "operationId": "get_institution_config_api_workspaces__workspace_id__config_institutions_get",
+        "operationId": "get_institution_config_api_v1_workspaces__workspace_id__config_institutions_get",
         "parameters": [
           {
             "in": "path",
@@ -6960,7 +6960,7 @@
         ]
       },
       "put": {
-        "operationId": "update_institution_config_api_workspaces__workspace_id__config_institutions_put",
+        "operationId": "update_institution_config_api_v1_workspaces__workspace_id__config_institutions_put",
         "parameters": [
           {
             "in": "path",
@@ -7015,10 +7015,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/llm": {
+    "/api/v1/workspaces/{workspace_id}/config/llm": {
       "delete": {
         "description": "Delete LLM configuration (reverts workspace to free tier).",
-        "operationId": "delete_llm_config_api_workspaces__workspace_id__config_llm_delete",
+        "operationId": "delete_llm_config_api_v1_workspaces__workspace_id__config_llm_delete",
         "parameters": [
           {
             "in": "path",
@@ -7057,7 +7057,7 @@
       },
       "get": {
         "description": "Get current LLM configuration (API key masked).",
-        "operationId": "get_llm_config_api_workspaces__workspace_id__config_llm_get",
+        "operationId": "get_llm_config_api_v1_workspaces__workspace_id__config_llm_get",
         "parameters": [
           {
             "in": "path",
@@ -7082,7 +7082,7 @@
                       "type": "null"
                     }
                   ],
-                  "title": "Response Get Llm Config Api Workspaces  Workspace Id  Config Llm Get"
+                  "title": "Response Get Llm Config Api V1 Workspaces  Workspace Id  Config Llm Get"
                 }
               }
             },
@@ -7111,7 +7111,7 @@
       },
       "put": {
         "description": "Create or update LLM configuration. API key is encrypted at rest via Fernet.",
-        "operationId": "save_llm_config_api_workspaces__workspace_id__config_llm_put",
+        "operationId": "save_llm_config_api_v1_workspaces__workspace_id__config_llm_put",
         "parameters": [
           {
             "in": "path",
@@ -7166,10 +7166,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/llm/test": {
+    "/api/v1/workspaces/{workspace_id}/config/llm/test": {
       "post": {
         "description": "Test connectivity with the LLM provider. Uses saved config or override params.",
-        "operationId": "test_llm_connection_api_workspaces__workspace_id__config_llm_test_post",
+        "operationId": "test_llm_connection_api_v1_workspaces__workspace_id__config_llm_test_post",
         "parameters": [
           {
             "in": "path",
@@ -7231,10 +7231,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/llm/tier": {
+    "/api/v1/workspaces/{workspace_id}/config/llm/tier": {
       "get": {
         "description": "Check current workspace tier (free or premium based on valid LLM config).",
-        "operationId": "get_tier_api_workspaces__workspace_id__config_llm_tier_get",
+        "operationId": "get_tier_api_v1_workspaces__workspace_id__config_llm_tier_get",
         "parameters": [
           {
             "in": "path",
@@ -7279,9 +7279,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/members": {
+    "/api/v1/workspaces/{workspace_id}/config/members": {
       "get": {
-        "operationId": "list_members_api_workspaces__workspace_id__config_members_get",
+        "operationId": "list_members_api_v1_workspaces__workspace_id__config_members_get",
         "parameters": [
           {
             "in": "path",
@@ -7326,7 +7326,7 @@
         ]
       },
       "post": {
-        "operationId": "create_member_api_workspaces__workspace_id__config_members_post",
+        "operationId": "create_member_api_v1_workspaces__workspace_id__config_members_post",
         "parameters": [
           {
             "in": "path",
@@ -7381,9 +7381,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/members/{member_id}": {
+    "/api/v1/workspaces/{workspace_id}/config/members/{member_id}": {
       "delete": {
-        "operationId": "delete_member_api_workspaces__workspace_id__config_members__member_id__delete",
+        "operationId": "delete_member_api_v1_workspaces__workspace_id__config_members__member_id__delete",
         "parameters": [
           {
             "in": "path",
@@ -7430,7 +7430,7 @@
         ]
       },
       "put": {
-        "operationId": "update_member_api_workspaces__workspace_id__config_members__member_id__put",
+        "operationId": "update_member_api_v1_workspaces__workspace_id__config_members__member_id__put",
         "parameters": [
           {
             "in": "path",
@@ -7494,9 +7494,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/members/{member_id}/accounts": {
+    "/api/v1/workspaces/{workspace_id}/config/members/{member_id}/accounts": {
       "get": {
-        "operationId": "list_accounts_api_workspaces__workspace_id__config_members__member_id__accounts_get",
+        "operationId": "list_accounts_api_v1_workspaces__workspace_id__config_members__member_id__accounts_get",
         "parameters": [
           {
             "in": "path",
@@ -7525,7 +7525,7 @@
                   "items": {
                     "$ref": "#/components/schemas/BankAccountResponse"
                   },
-                  "title": "Response List Accounts Api Workspaces  Workspace Id  Config Members  Member Id  Accounts Get",
+                  "title": "Response List Accounts Api V1 Workspaces  Workspace Id  Config Members  Member Id  Accounts Get",
                   "type": "array"
                 }
               }
@@ -7554,7 +7554,7 @@
         ]
       },
       "post": {
-        "operationId": "create_account_api_workspaces__workspace_id__config_members__member_id__accounts_post",
+        "operationId": "create_account_api_v1_workspaces__workspace_id__config_members__member_id__accounts_post",
         "parameters": [
           {
             "in": "path",
@@ -7618,9 +7618,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/members/{member_id}/accounts/{account_id}": {
+    "/api/v1/workspaces/{workspace_id}/config/members/{member_id}/accounts/{account_id}": {
       "delete": {
-        "operationId": "delete_account_api_workspaces__workspace_id__config_members__member_id__accounts__account_id__delete",
+        "operationId": "delete_account_api_v1_workspaces__workspace_id__config_members__member_id__accounts__account_id__delete",
         "parameters": [
           {
             "in": "path",
@@ -7676,7 +7676,7 @@
         ]
       },
       "put": {
-        "operationId": "update_account_api_workspaces__workspace_id__config_members__member_id__accounts__account_id__put",
+        "operationId": "update_account_api_v1_workspaces__workspace_id__config_members__member_id__accounts__account_id__put",
         "parameters": [
           {
             "in": "path",
@@ -7749,9 +7749,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/pipeline": {
+    "/api/v1/workspaces/{workspace_id}/config/pipeline": {
       "get": {
-        "operationId": "get_pipeline_config_api_workspaces__workspace_id__config_pipeline_get",
+        "operationId": "get_pipeline_config_api_v1_workspaces__workspace_id__config_pipeline_get",
         "parameters": [
           {
             "in": "path",
@@ -7796,7 +7796,7 @@
         ]
       },
       "put": {
-        "operationId": "update_pipeline_config_api_workspaces__workspace_id__config_pipeline_put",
+        "operationId": "update_pipeline_config_api_v1_workspaces__workspace_id__config_pipeline_put",
         "parameters": [
           {
             "in": "path",
@@ -7851,9 +7851,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/report-layout": {
+    "/api/v1/workspaces/{workspace_id}/config/report-layout": {
       "get": {
-        "operationId": "get_report_layout_api_workspaces__workspace_id__config_report_layout_get",
+        "operationId": "get_report_layout_api_v1_workspaces__workspace_id__config_report_layout_get",
         "parameters": [
           {
             "in": "path",
@@ -7898,7 +7898,7 @@
         ]
       },
       "put": {
-        "operationId": "update_report_layout_api_workspaces__workspace_id__config_report_layout_put",
+        "operationId": "update_report_layout_api_v1_workspaces__workspace_id__config_report_layout_put",
         "parameters": [
           {
             "in": "path",
@@ -7953,9 +7953,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/config/workspace": {
+    "/api/v1/workspaces/{workspace_id}/config/workspace": {
       "get": {
-        "operationId": "get_workspace_settings_api_workspaces__workspace_id__config_workspace_get",
+        "operationId": "get_workspace_settings_api_v1_workspaces__workspace_id__config_workspace_get",
         "parameters": [
           {
             "in": "path",
@@ -8000,7 +8000,7 @@
         ]
       },
       "patch": {
-        "operationId": "update_workspace_settings_api_workspaces__workspace_id__config_workspace_patch",
+        "operationId": "update_workspace_settings_api_v1_workspaces__workspace_id__config_workspace_patch",
         "parameters": [
           {
             "in": "path",
@@ -8055,9 +8055,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/dashboard": {
+    "/api/v1/workspaces/{workspace_id}/dashboard": {
       "get": {
-        "operationId": "get_dashboard_api_workspaces__workspace_id__dashboard_get",
+        "operationId": "get_dashboard_api_v1_workspaces__workspace_id__dashboard_get",
         "parameters": [
           {
             "in": "path",
@@ -8102,9 +8102,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/dashboard/alerts": {
+    "/api/v1/workspaces/{workspace_id}/dashboard/alerts": {
       "get": {
-        "operationId": "get_alerts_api_workspaces__workspace_id__dashboard_alerts_get",
+        "operationId": "get_alerts_api_v1_workspaces__workspace_id__dashboard_alerts_get",
         "parameters": [
           {
             "in": "path",
@@ -8124,7 +8124,7 @@
                   "items": {
                     "$ref": "#/components/schemas/DashboardAlert"
                   },
-                  "title": "Response Get Alerts Api Workspaces  Workspace Id  Dashboard Alerts Get",
+                  "title": "Response Get Alerts Api V1 Workspaces  Workspace Id  Dashboard Alerts Get",
                   "type": "array"
                 }
               }
@@ -8153,10 +8153,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/documents": {
+    "/api/v1/workspaces/{workspace_id}/documents": {
       "get": {
         "description": "List documents in the workspace, optionally filtered by status or doc_type.",
-        "operationId": "list_documents_api_workspaces__workspace_id__documents_get",
+        "operationId": "list_documents_api_v1_workspaces__workspace_id__documents_get",
         "parameters": [
           {
             "in": "path",
@@ -8233,10 +8233,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/documents/reclassify": {
+    "/api/v1/workspaces/{workspace_id}/documents/reclassify": {
       "post": {
         "description": "Re-run content-first classifier on all (or non-manually-overridden) documents.\n\nUseful when classifier rules are updated or when documents were uploaded with\nwrong extensions and got misclassified. Documents with ``manual_override`` in\n``classification_meta`` are skipped by default (pass ``skip_manual_overrides=false``\nto force reclassification of those too).\n\nDoes NOT reprocess JSON members/baseline files (those are deterministic and\nclassified by structure, not content regex).",
-        "operationId": "reclassify_documents_api_workspaces__workspace_id__documents_reclassify_post",
+        "operationId": "reclassify_documents_api_v1_workspaces__workspace_id__documents_reclassify_post",
         "parameters": [
           {
             "in": "path",
@@ -8291,10 +8291,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/documents/retry-unlock": {
+    "/api/v1/workspaces/{workspace_id}/documents/retry-unlock": {
       "post": {
         "description": "Re-attempt unlock on all documents with status 'needs_password' using current vault.",
-        "operationId": "retry_unlock_api_workspaces__workspace_id__documents_retry_unlock_post",
+        "operationId": "retry_unlock_api_v1_workspaces__workspace_id__documents_retry_unlock_post",
         "parameters": [
           {
             "in": "path",
@@ -8314,7 +8314,7 @@
                   "items": {
                     "$ref": "#/components/schemas/DocumentResponse"
                   },
-                  "title": "Response Retry Unlock Api Workspaces  Workspace Id  Documents Retry Unlock Post",
+                  "title": "Response Retry Unlock Api V1 Workspaces  Workspace Id  Documents Retry Unlock Post",
                   "type": "array"
                 }
               }
@@ -8343,10 +8343,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/documents/upload": {
+    "/api/v1/workspaces/{workspace_id}/documents/upload": {
       "post": {
         "description": "Upload one or more documents. Each is saved, validated, unlocked (if PDF), and classified.",
-        "operationId": "upload_documents_api_workspaces__workspace_id__documents_upload_post",
+        "operationId": "upload_documents_api_v1_workspaces__workspace_id__documents_upload_post",
         "parameters": [
           {
             "in": "path",
@@ -8362,7 +8362,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_upload_documents_api_workspaces__workspace_id__documents_upload_post"
+                "$ref": "#/components/schemas/Body_upload_documents_api_v1_workspaces__workspace_id__documents_upload_post"
               }
             }
           },
@@ -8401,10 +8401,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/documents/{document_id}": {
+    "/api/v1/workspaces/{workspace_id}/documents/{document_id}": {
       "delete": {
         "description": "Delete a document and its file from storage.",
-        "operationId": "delete_document_api_workspaces__workspace_id__documents__document_id__delete",
+        "operationId": "delete_document_api_v1_workspaces__workspace_id__documents__document_id__delete",
         "parameters": [
           {
             "in": "path",
@@ -8452,7 +8452,7 @@
       },
       "patch": {
         "description": "Corre\u00e7\u00e3o manual de classifica\u00e7\u00e3o (tipo, institui\u00e7\u00e3o, per\u00edodo).\n\nAceita envio parcial \u2014 s\u00f3 atualiza os campos presentes no body. Marca\n``classification_meta.manual_override`` e zera ``needs_review`` porque\no usu\u00e1rio confirmou o valor explicitamente.",
-        "operationId": "update_document_classification_api_workspaces__workspace_id__documents__document_id__patch",
+        "operationId": "update_document_classification_api_v1_workspaces__workspace_id__documents__document_id__patch",
         "parameters": [
           {
             "in": "path",
@@ -8516,10 +8516,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/documents/{document_id}/extract-json": {
+    "/api/v1/workspaces/{workspace_id}/documents/{document_id}/extract-json": {
       "get": {
         "description": "Retorna o JSON extra\u00eddo pelo E2 para um documento processado (dev/debug).",
-        "operationId": "get_document_extract_json_api_workspaces__workspace_id__documents__document_id__extract_json_get",
+        "operationId": "get_document_extract_json_api_v1_workspaces__workspace_id__documents__document_id__extract_json_get",
         "parameters": [
           {
             "in": "path",
@@ -8573,10 +8573,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/documents/{document_id}/file": {
+    "/api/v1/workspaces/{workspace_id}/documents/{document_id}/file": {
       "get": {
         "description": "Serve o arquivo original de um documento para visualiza\u00e7\u00e3o ou download.\n\nPDFs s\u00e3o servidos com ``Content-Disposition: inline`` para que o navegador\nos abra diretamente. Outros formatos recebem ``attachment`` e s\u00e3o baixados.\nRequer autentica\u00e7\u00e3o Bearer (igual a todos os outros endpoints).",
-        "operationId": "get_document_file_api_workspaces__workspace_id__documents__document_id__file_get",
+        "operationId": "get_document_file_api_v1_workspaces__workspace_id__documents__document_id__file_get",
         "parameters": [
           {
             "in": "path",
@@ -8626,9 +8626,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/feature-flags": {
+    "/api/v1/workspaces/{workspace_id}/feature-flags": {
       "get": {
-        "operationId": "read_flags_api_workspaces__workspace_id__feature_flags_get",
+        "operationId": "read_flags_api_v1_workspaces__workspace_id__feature_flags_get",
         "parameters": [
           {
             "in": "path",
@@ -8673,10 +8673,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/feature-flags/{flag}": {
+    "/api/v1/workspaces/{workspace_id}/feature-flags/{flag}": {
       "put": {
         "description": "Set override workspace-level para uma flag.\n\nNota: este endpoint N\u00c3O tem `require_member_admin_role` por enquanto\npara manter compatibilidade com o padr\u00e3o dos outros endpoints F8.x.\nEm F9+ (RBAC granular completo), pode exigir role='owner' para\nevitar que coadministradores desabilitem recursos.",
-        "operationId": "update_flag_api_workspaces__workspace_id__feature_flags__flag__put",
+        "operationId": "update_flag_api_v1_workspaces__workspace_id__feature_flags__flag__put",
         "parameters": [
           {
             "in": "path",
@@ -8740,9 +8740,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/alocacao": {
+    "/api/v1/workspaces/{workspace_id}/goals/alocacao": {
       "get": {
-        "operationId": "get_alocacao_goal_api_workspaces__workspace_id__goals_alocacao_get",
+        "operationId": "get_alocacao_goal_api_v1_workspaces__workspace_id__goals_alocacao_get",
         "parameters": [
           {
             "in": "path",
@@ -8787,7 +8787,7 @@
         ]
       },
       "put": {
-        "operationId": "upsert_alocacao_goal_api_workspaces__workspace_id__goals_alocacao_put",
+        "operationId": "upsert_alocacao_goal_api_v1_workspaces__workspace_id__goals_alocacao_put",
         "parameters": [
           {
             "in": "path",
@@ -8842,9 +8842,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/alocacao/compute": {
+    "/api/v1/workspaces/{workspace_id}/goals/alocacao/compute": {
       "post": {
-        "operationId": "compute_alocacao_goal_api_workspaces__workspace_id__goals_alocacao_compute_post",
+        "operationId": "compute_alocacao_goal_api_v1_workspaces__workspace_id__goals_alocacao_compute_post",
         "parameters": [
           {
             "in": "path",
@@ -8899,9 +8899,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/alocacao/history": {
+    "/api/v1/workspaces/{workspace_id}/goals/alocacao/history": {
       "get": {
-        "operationId": "get_alocacao_goal_history_api_workspaces__workspace_id__goals_alocacao_history_get",
+        "operationId": "get_alocacao_goal_history_api_v1_workspaces__workspace_id__goals_alocacao_history_get",
         "parameters": [
           {
             "in": "path",
@@ -8946,9 +8946,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/aportes": {
+    "/api/v1/workspaces/{workspace_id}/goals/aportes": {
       "get": {
-        "operationId": "get_aporte_goal_api_workspaces__workspace_id__goals_aportes_get",
+        "operationId": "get_aporte_goal_api_v1_workspaces__workspace_id__goals_aportes_get",
         "parameters": [
           {
             "in": "path",
@@ -8993,7 +8993,7 @@
         ]
       },
       "put": {
-        "operationId": "upsert_aporte_goal_api_workspaces__workspace_id__goals_aportes_put",
+        "operationId": "upsert_aporte_goal_api_v1_workspaces__workspace_id__goals_aportes_put",
         "parameters": [
           {
             "in": "path",
@@ -9048,9 +9048,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/aportes/compute": {
+    "/api/v1/workspaces/{workspace_id}/goals/aportes/compute": {
       "post": {
-        "operationId": "compute_aporte_goal_api_workspaces__workspace_id__goals_aportes_compute_post",
+        "operationId": "compute_aporte_goal_api_v1_workspaces__workspace_id__goals_aportes_compute_post",
         "parameters": [
           {
             "in": "path",
@@ -9105,9 +9105,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/aportes/history": {
+    "/api/v1/workspaces/{workspace_id}/goals/aportes/history": {
       "get": {
-        "operationId": "get_aporte_goal_history_api_workspaces__workspace_id__goals_aportes_history_get",
+        "operationId": "get_aporte_goal_history_api_v1_workspaces__workspace_id__goals_aportes_history_get",
         "parameters": [
           {
             "in": "path",
@@ -9152,9 +9152,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/dolarizacao": {
+    "/api/v1/workspaces/{workspace_id}/goals/dolarizacao": {
       "get": {
-        "operationId": "get_dolar_goal_api_workspaces__workspace_id__goals_dolarizacao_get",
+        "operationId": "get_dolar_goal_api_v1_workspaces__workspace_id__goals_dolarizacao_get",
         "parameters": [
           {
             "in": "path",
@@ -9199,7 +9199,7 @@
         ]
       },
       "put": {
-        "operationId": "upsert_dolar_goal_api_workspaces__workspace_id__goals_dolarizacao_put",
+        "operationId": "upsert_dolar_goal_api_v1_workspaces__workspace_id__goals_dolarizacao_put",
         "parameters": [
           {
             "in": "path",
@@ -9254,9 +9254,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/dolarizacao/compute": {
+    "/api/v1/workspaces/{workspace_id}/goals/dolarizacao/compute": {
       "post": {
-        "operationId": "compute_dolar_goal_api_workspaces__workspace_id__goals_dolarizacao_compute_post",
+        "operationId": "compute_dolar_goal_api_v1_workspaces__workspace_id__goals_dolarizacao_compute_post",
         "parameters": [
           {
             "in": "path",
@@ -9311,9 +9311,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/dolarizacao/history": {
+    "/api/v1/workspaces/{workspace_id}/goals/dolarizacao/history": {
       "get": {
-        "operationId": "get_dolar_goal_history_api_workspaces__workspace_id__goals_dolarizacao_history_get",
+        "operationId": "get_dolar_goal_history_api_v1_workspaces__workspace_id__goals_dolarizacao_history_get",
         "parameters": [
           {
             "in": "path",
@@ -9358,10 +9358,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/if": {
+    "/api/v1/workspaces/{workspace_id}/goals/if": {
       "get": {
         "description": "404 se workspace ainda n\u00e3o tem meta IF persistida\n(frontend deve mostrar wizard nesse caso).",
-        "operationId": "get_if_goal_api_workspaces__workspace_id__goals_if_get",
+        "operationId": "get_if_goal_api_v1_workspaces__workspace_id__goals_if_get",
         "parameters": [
           {
             "in": "path",
@@ -9407,7 +9407,7 @@
       },
       "put": {
         "description": "Edi\u00e7\u00e3o \u00e9 append-only: cria novo registro com `effective_from = hoje`\ne fecha o anterior com `effective_to = ontem`. Hist\u00f3rico \u00e9 preservado.\n\nRBAC (F9): `viewer` recebe 403 \u2014 apenas `owner` e `member` editam.",
-        "operationId": "upsert_if_goal_api_workspaces__workspace_id__goals_if_put",
+        "operationId": "upsert_if_goal_api_v1_workspaces__workspace_id__goals_if_put",
         "parameters": [
           {
             "in": "path",
@@ -9462,10 +9462,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/if/compute": {
+    "/api/v1/workspaces/{workspace_id}/goals/if/compute": {
       "post": {
         "description": "Preview live do frontend. N\u00e3o toca o banco.\n\nSe `patrimonio_atual_brl` for enviado, inclui `percentual_conquistado`\ne `faltante_brl` para UI de progresso.",
-        "operationId": "compute_if_goal_api_workspaces__workspace_id__goals_if_compute_post",
+        "operationId": "compute_if_goal_api_v1_workspaces__workspace_id__goals_if_compute_post",
         "parameters": [
           {
             "in": "path",
@@ -9520,9 +9520,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/if/history": {
+    "/api/v1/workspaces/{workspace_id}/goals/if/history": {
       "get": {
-        "operationId": "get_if_goal_history_api_workspaces__workspace_id__goals_if_history_get",
+        "operationId": "get_if_goal_history_api_v1_workspaces__workspace_id__goals_if_history_get",
         "parameters": [
           {
             "in": "path",
@@ -9567,10 +9567,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/goals/{goal_id}/tasks": {
+    "/api/v1/workspaces/{workspace_id}/goals/{goal_id}/tasks": {
       "get": {
         "description": "Lista tasks com `related_goal_id == goal_id` dentro do workspace.\n\n\u00datil para a view `/plano/meta-if`: se\u00e7\u00e3o \"Tarefas que destravam esta\nmeta\" com % completude.",
-        "operationId": "list_tasks_for_goal_api_workspaces__workspace_id__goals__goal_id__tasks_get",
+        "operationId": "list_tasks_for_goal_api_v1_workspaces__workspace_id__goals__goal_id__tasks_get",
         "parameters": [
           {
             "in": "path",
@@ -9634,10 +9634,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/invitations": {
+    "/api/v1/workspaces/{workspace_id}/invitations": {
       "get": {
         "description": "Lista convites do workspace. Owner-only (s\u00f3 quem convida precisa\nver convites em andamento).",
-        "operationId": "list_invitations_endpoint_api_workspaces__workspace_id__invitations_get",
+        "operationId": "list_invitations_endpoint_api_v1_workspaces__workspace_id__invitations_get",
         "parameters": [
           {
             "in": "path",
@@ -9695,7 +9695,7 @@
       },
       "post": {
         "description": "Cria um convite. Owner-only.\n\nRetorna o **token cru** na resposta \u2014 esse \u00e9 o \u00fanico momento em que\nele fica vis\u00edvel. Inclua em `/invite/{token}` e envie o link ao\nconvidado (WhatsApp, SMS, pessoalmente). F9.8 ligar\u00e1 envio por\nemail.",
-        "operationId": "create_invitation_endpoint_api_workspaces__workspace_id__invitations_post",
+        "operationId": "create_invitation_endpoint_api_v1_workspaces__workspace_id__invitations_post",
         "parameters": [
           {
             "in": "path",
@@ -9750,10 +9750,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/invitations/{invitation_id}": {
+    "/api/v1/workspaces/{workspace_id}/invitations/{invitation_id}": {
       "delete": {
         "description": "Revoga um convite pendente. Owner-only. Idempotente.",
-        "operationId": "revoke_invitation_endpoint_api_workspaces__workspace_id__invitations__invitation_id__delete",
+        "operationId": "revoke_invitation_endpoint_api_v1_workspaces__workspace_id__invitations__invitation_id__delete",
         "parameters": [
           {
             "in": "path",
@@ -9800,10 +9800,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/members": {
+    "/api/v1/workspaces/{workspace_id}/members": {
       "get": {
         "description": "Lista membros do workspace. Qualquer membro (incluindo viewer) pode\nver \u2014 saber quem mais tem acesso \u00e9 informa\u00e7\u00e3o b\u00e1sica de confian\u00e7a.",
-        "operationId": "list_members_endpoint_api_workspaces__workspace_id__members_get",
+        "operationId": "list_members_endpoint_api_v1_workspaces__workspace_id__members_get",
         "parameters": [
           {
             "in": "path",
@@ -9848,10 +9848,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/members/{user_id}": {
+    "/api/v1/workspaces/{workspace_id}/members/{user_id}": {
       "delete": {
         "description": "Remove um membro. Owner-only. N\u00e3o permite remover o pr\u00f3prio owner.",
-        "operationId": "remove_member_endpoint_api_workspaces__workspace_id__members__user_id__delete",
+        "operationId": "remove_member_endpoint_api_v1_workspaces__workspace_id__members__user_id__delete",
         "parameters": [
           {
             "in": "path",
@@ -9899,7 +9899,7 @@
       },
       "patch": {
         "description": "Muda o role de um membro. Owner-only. N\u00e3o pode mudar o role de um\nowner (use transfer\u00eancia de ownership \u2014 n\u00e3o dispon\u00edvel ainda).",
-        "operationId": "update_member_role_endpoint_api_workspaces__workspace_id__members__user_id__patch",
+        "operationId": "update_member_role_endpoint_api_v1_workspaces__workspace_id__members__user_id__patch",
         "parameters": [
           {
             "in": "path",
@@ -9963,9 +9963,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/notifications": {
+    "/api/v1/workspaces/{workspace_id}/notifications": {
       "get": {
-        "operationId": "list_notifications_api_workspaces__workspace_id__notifications_get",
+        "operationId": "list_notifications_api_v1_workspaces__workspace_id__notifications_get",
         "parameters": [
           {
             "in": "path",
@@ -10054,9 +10054,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/notifications/read": {
+    "/api/v1/workspaces/{workspace_id}/notifications/read": {
       "patch": {
-        "operationId": "mark_read_api_workspaces__workspace_id__notifications_read_patch",
+        "operationId": "mark_read_api_v1_workspaces__workspace_id__notifications_read_patch",
         "parameters": [
           {
             "in": "path",
@@ -10111,9 +10111,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/notifications/{notification_id}": {
+    "/api/v1/workspaces/{workspace_id}/notifications/{notification_id}": {
       "delete": {
-        "operationId": "delete_notification_api_workspaces__workspace_id__notifications__notification_id__delete",
+        "operationId": "delete_notification_api_v1_workspaces__workspace_id__notifications__notification_id__delete",
         "parameters": [
           {
             "in": "path",
@@ -10160,10 +10160,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/pipeline/new-doc-count": {
+    "/api/v1/workspaces/{workspace_id}/pipeline/new-doc-count": {
       "get": {
         "description": "Count documents never processed by the pipeline (pipeline_last_run_at IS NULL).",
-        "operationId": "new_doc_count_api_workspaces__workspace_id__pipeline_new_doc_count_get",
+        "operationId": "new_doc_count_api_v1_workspaces__workspace_id__pipeline_new_doc_count_get",
         "parameters": [
           {
             "in": "path",
@@ -10208,10 +10208,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/pipeline/run": {
+    "/api/v1/workspaces/{workspace_id}/pipeline/run": {
       "post": {
         "description": "Start a pipeline execution (deterministic stages by default).",
-        "operationId": "trigger_pipeline_api_workspaces__workspace_id__pipeline_run_post",
+        "operationId": "trigger_pipeline_api_v1_workspaces__workspace_id__pipeline_run_post",
         "parameters": [
           {
             "in": "path",
@@ -10266,10 +10266,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/pipeline/runs": {
+    "/api/v1/workspaces/{workspace_id}/pipeline/runs": {
       "get": {
         "description": "List all pipeline runs for the workspace, most recent first.",
-        "operationId": "list_runs_api_workspaces__workspace_id__pipeline_runs_get",
+        "operationId": "list_runs_api_v1_workspaces__workspace_id__pipeline_runs_get",
         "parameters": [
           {
             "in": "path",
@@ -10314,10 +10314,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/pipeline/runs/{run_id}": {
+    "/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}": {
       "get": {
         "description": "Get detailed status of a pipeline run including all stage logs.",
-        "operationId": "get_run_api_workspaces__workspace_id__pipeline_runs__run_id__get",
+        "operationId": "get_run_api_v1_workspaces__workspace_id__pipeline_runs__run_id__get",
         "parameters": [
           {
             "in": "path",
@@ -10371,10 +10371,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/pipeline/runs/{run_id}/cancel": {
+    "/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/cancel": {
       "post": {
         "description": "Cancel an active pipeline run (stage-boundary cancellation).",
-        "operationId": "cancel_run_api_workspaces__workspace_id__pipeline_runs__run_id__cancel_post",
+        "operationId": "cancel_run_api_v1_workspaces__workspace_id__pipeline_runs__run_id__cancel_post",
         "parameters": [
           {
             "in": "path",
@@ -10428,10 +10428,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/pipeline/runs/{run_id}/resume": {
+    "/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/resume": {
       "post": {
         "description": "Resume a pipeline run paused for review (needs_review status).",
-        "operationId": "resume_run_api_workspaces__workspace_id__pipeline_runs__run_id__resume_post",
+        "operationId": "resume_run_api_v1_workspaces__workspace_id__pipeline_runs__run_id__resume_post",
         "parameters": [
           {
             "in": "path",
@@ -10485,10 +10485,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/pipeline/runs/{run_id}/reviews": {
+    "/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/reviews": {
       "get": {
         "description": "List all stage reviews for a pipeline run.",
-        "operationId": "list_reviews_api_workspaces__workspace_id__pipeline_runs__run_id__reviews_get",
+        "operationId": "list_reviews_api_v1_workspaces__workspace_id__pipeline_runs__run_id__reviews_get",
         "parameters": [
           {
             "in": "path",
@@ -10517,7 +10517,7 @@
                   "items": {
                     "$ref": "#/components/schemas/StageReviewResponse"
                   },
-                  "title": "Response List Reviews Api Workspaces  Workspace Id  Pipeline Runs  Run Id  Reviews Get",
+                  "title": "Response List Reviews Api V1 Workspaces  Workspace Id  Pipeline Runs  Run Id  Reviews Get",
                   "type": "array"
                 }
               }
@@ -10546,10 +10546,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/pipeline/runs/{run_id}/reviews/{review_id}": {
+    "/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/reviews/{review_id}": {
       "post": {
         "description": "Approve or edit a stage review.",
-        "operationId": "action_review_api_workspaces__workspace_id__pipeline_runs__run_id__reviews__review_id__post",
+        "operationId": "action_review_api_v1_workspaces__workspace_id__pipeline_runs__run_id__reviews__review_id__post",
         "parameters": [
           {
             "in": "path",
@@ -10622,9 +10622,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/reports": {
+    "/api/v1/workspaces/{workspace_id}/reports": {
       "get": {
-        "operationId": "list_reports_api_workspaces__workspace_id__reports_get",
+        "operationId": "list_reports_api_v1_workspaces__workspace_id__reports_get",
         "parameters": [
           {
             "in": "path",
@@ -10669,9 +10669,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/reports/{report_id}": {
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}": {
       "get": {
-        "operationId": "get_report_api_workspaces__workspace_id__reports__report_id__get",
+        "operationId": "get_report_api_v1_workspaces__workspace_id__reports__report_id__get",
         "parameters": [
           {
             "in": "path",
@@ -10725,10 +10725,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/reports/{report_id}/data": {
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}/data": {
       "get": {
         "description": "Serve o snapshot E5 JSON do relat\u00f3rio para o render nativo React (F9 \u00b7 F0.4).\n\nADR-076: o render nativo consome o JSON estruturado ao inv\u00e9s de parsear\no HTML do iframe. Relat\u00f3rios pr\u00e9-F9 (sem analysis_json_path) retornam 404.",
-        "operationId": "get_report_data_api_workspaces__workspace_id__reports__report_id__data_get",
+        "operationId": "get_report_data_api_v1_workspaces__workspace_id__reports__report_id__data_get",
         "parameters": [
           {
             "in": "path",
@@ -10782,10 +10782,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/reports/{report_id}/download.html": {
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}/download.html": {
       "get": {
         "description": "Download do relat\u00f3rio HTML standalone (F9 \u00b7 F1.5).\n\nEndpoint substitui GET /{id}/html quando o objetivo \u00e9 preservar o artefato\n(ex: compartilhar com contador, anexo de e-mail, backup). O HTML standalone\ncontinua sendo gerado pelo E6 e mora em `report.html_path`.",
-        "operationId": "download_report_html_api_workspaces__workspace_id__reports__report_id__download_html_get",
+        "operationId": "download_report_html_api_v1_workspaces__workspace_id__reports__report_id__download_html_get",
         "parameters": [
           {
             "in": "path",
@@ -10832,10 +10832,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/reports/{report_id}/download.pdf": {
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}/download.pdf": {
       "get": {
         "description": "Gera PDF server-side via Playwright (F9 \u00b7 ADR-076 \u00b7 F4.2).\n\nRenderiza a rota nativa React (/reports/{id}) em headless Chromium\ne retorna o PDF como download. Recharts SVG imprime nativamente\n(sem fallback Canvas\u2192PNG).",
-        "operationId": "download_report_pdf_api_workspaces__workspace_id__reports__report_id__download_pdf_get",
+        "operationId": "download_report_pdf_api_v1_workspaces__workspace_id__reports__report_id__download_pdf_get",
         "parameters": [
           {
             "in": "path",
@@ -10885,9 +10885,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/reports/{report_id}/html": {
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}/html": {
       "get": {
-        "operationId": "get_report_html_api_workspaces__workspace_id__reports__report_id__html_get",
+        "operationId": "get_report_html_api_v1_workspaces__workspace_id__reports__report_id__html_get",
         "parameters": [
           {
             "in": "path",
@@ -10941,10 +10941,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/reports/{report_id}/tasks": {
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}/tasks": {
       "get": {
         "description": "Tasks do relat\u00f3rio (ADR-074 \u00a7F8.3 \u2014 snapshot imut\u00e1vel).\n\n- Se `tasks_snapshot_json` est\u00e1 populado: retorna a foto do momento\n  da gera\u00e7\u00e3o (imut\u00e1vel).\n- Se n\u00e3o (relat\u00f3rios pr\u00e9-F8.3): fallback para estado live do backlog\n  no workspace, marcado com `is_live_fallback: true` para a UI\n  mostrar aviso.",
-        "operationId": "get_report_tasks_api_workspaces__workspace_id__reports__report_id__tasks_get",
+        "operationId": "get_report_tasks_api_v1_workspaces__workspace_id__reports__report_id__tasks_get",
         "parameters": [
           {
             "in": "path",
@@ -10998,9 +10998,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/task-suggestions": {
+    "/api/v1/workspaces/{workspace_id}/task-suggestions": {
       "get": {
-        "operationId": "list_suggestions_api_workspaces__workspace_id__task_suggestions_get",
+        "operationId": "list_suggestions_api_v1_workspaces__workspace_id__task_suggestions_get",
         "parameters": [
           {
             "in": "path",
@@ -11063,7 +11063,7 @@
       },
       "post": {
         "description": "Cria uma sugest\u00e3o pending. Endpoint usado pelo E5.N (ADR-074) \u2014\npipeline LLM invoca via HTTP para gravar sugest\u00f5es ap\u00f3s rodar.\n\nAlternativa: chamar ``task_suggestion_service.bulk_create`` direto do\nPython dentro do worker. Este endpoint existe para workers em outros\nprocessos/linguagens (ex: pipeline CLI em transi\u00e7\u00e3o).",
-        "operationId": "create_suggestion_api_workspaces__workspace_id__task_suggestions_post",
+        "operationId": "create_suggestion_api_v1_workspaces__workspace_id__task_suggestions_post",
         "parameters": [
           {
             "in": "path",
@@ -11118,9 +11118,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/task-suggestions/{suggestion_id}/approve": {
+    "/api/v1/workspaces/{workspace_id}/task-suggestions/{suggestion_id}/approve": {
       "post": {
-        "operationId": "approve_suggestion_api_workspaces__workspace_id__task_suggestions__suggestion_id__approve_post",
+        "operationId": "approve_suggestion_api_v1_workspaces__workspace_id__task_suggestions__suggestion_id__approve_post",
         "parameters": [
           {
             "in": "path",
@@ -11184,9 +11184,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/task-suggestions/{suggestion_id}/merge-into/{target_task_id}": {
+    "/api/v1/workspaces/{workspace_id}/task-suggestions/{suggestion_id}/merge-into/{target_task_id}": {
       "post": {
-        "operationId": "merge_suggestion_into_api_workspaces__workspace_id__task_suggestions__suggestion_id__merge_into__target_task_id__post",
+        "operationId": "merge_suggestion_into_api_v1_workspaces__workspace_id__task_suggestions__suggestion_id__merge_into__target_task_id__post",
         "parameters": [
           {
             "in": "path",
@@ -11249,9 +11249,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/task-suggestions/{suggestion_id}/reject": {
+    "/api/v1/workspaces/{workspace_id}/task-suggestions/{suggestion_id}/reject": {
       "post": {
-        "operationId": "reject_suggestion_api_workspaces__workspace_id__task_suggestions__suggestion_id__reject_post",
+        "operationId": "reject_suggestion_api_v1_workspaces__workspace_id__task_suggestions__suggestion_id__reject_post",
         "parameters": [
           {
             "in": "path",
@@ -11315,9 +11315,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/tasks": {
+    "/api/v1/workspaces/{workspace_id}/tasks": {
       "get": {
-        "operationId": "list_tasks_api_workspaces__workspace_id__tasks_get",
+        "operationId": "list_tasks_api_v1_workspaces__workspace_id__tasks_get",
         "parameters": [
           {
             "in": "path",
@@ -11496,7 +11496,7 @@
         ]
       },
       "post": {
-        "operationId": "create_task_api_workspaces__workspace_id__tasks_post",
+        "operationId": "create_task_api_v1_workspaces__workspace_id__tasks_post",
         "parameters": [
           {
             "in": "path",
@@ -11551,10 +11551,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/tasks/export.md": {
+    "/api/v1/workspaces/{workspace_id}/tasks/export.md": {
       "get": {
         "description": "Export do ``tarefas.md`` on-demand (compat pipeline legado \u2014 ADR-075).",
-        "operationId": "export_tasks_md_api_workspaces__workspace_id__tasks_export_md_get",
+        "operationId": "export_tasks_md_api_v1_workspaces__workspace_id__tasks_export_md_get",
         "parameters": [
           {
             "in": "path",
@@ -11599,10 +11599,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/tasks/scan-deadlines": {
+    "/api/v1/workspaces/{workspace_id}/tasks/scan-deadlines": {
       "post": {
         "description": "Dispara o scan de prazos e cria notifications para tasks vencidas\nou pr\u00f3ximas (\u22647 dias). Idempotente via dedup por title.\n\nUsado por:\n- Cron externo (ex: worker Celery beat em F8.3+)\n- UI: bot\u00e3o \"Verificar alertas de prazo\" (admin)",
-        "operationId": "scan_deadlines_api_workspaces__workspace_id__tasks_scan_deadlines_post",
+        "operationId": "scan_deadlines_api_v1_workspaces__workspace_id__tasks_scan_deadlines_post",
         "parameters": [
           {
             "in": "path",
@@ -11647,10 +11647,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/tasks/upcoming": {
+    "/api/v1/workspaces/{workspace_id}/tasks/upcoming": {
       "get": {
         "description": "Tarefas com ``deadline_date`` nos pr\u00f3ximos N dias, ativas.\n\nUsado pelo widget do dashboard.",
-        "operationId": "upcoming_tasks_api_workspaces__workspace_id__tasks_upcoming_get",
+        "operationId": "upcoming_tasks_api_v1_workspaces__workspace_id__tasks_upcoming_get",
         "parameters": [
           {
             "in": "path",
@@ -11705,10 +11705,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/tasks/{task_id}": {
+    "/api/v1/workspaces/{workspace_id}/tasks/{task_id}": {
       "delete": {
         "description": "Soft-delete: move para ``status='cancelled'`` preservando hist\u00f3rico.\n\nPara remo\u00e7\u00e3o f\u00edsica (raro, admin-only), fora do MVP.",
-        "operationId": "cancel_task_api_workspaces__workspace_id__tasks__task_id__delete",
+        "operationId": "cancel_task_api_v1_workspaces__workspace_id__tasks__task_id__delete",
         "parameters": [
           {
             "in": "path",
@@ -11755,7 +11755,7 @@
         ]
       },
       "get": {
-        "operationId": "get_task_api_workspaces__workspace_id__tasks__task_id__get",
+        "operationId": "get_task_api_v1_workspaces__workspace_id__tasks__task_id__get",
         "parameters": [
           {
             "in": "path",
@@ -11809,7 +11809,7 @@
         ]
       },
       "patch": {
-        "operationId": "update_task_api_workspaces__workspace_id__tasks__task_id__patch",
+        "operationId": "update_task_api_v1_workspaces__workspace_id__tasks__task_id__patch",
         "parameters": [
           {
             "in": "path",
@@ -11873,9 +11873,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/tasks/{task_id}/attachments": {
+    "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/attachments": {
       "get": {
-        "operationId": "list_task_attachments_api_workspaces__workspace_id__tasks__task_id__attachments_get",
+        "operationId": "list_task_attachments_api_v1_workspaces__workspace_id__tasks__task_id__attachments_get",
         "parameters": [
           {
             "in": "path",
@@ -11930,7 +11930,7 @@
       },
       "post": {
         "description": "Upload multipart de um anexo. Valida extens\u00e3o e tamanho via\n``StorageService.validate_file`` (reusa o mesmo whitelist de documentos).",
-        "operationId": "upload_task_attachment_api_workspaces__workspace_id__tasks__task_id__attachments_post",
+        "operationId": "upload_task_attachment_api_v1_workspaces__workspace_id__tasks__task_id__attachments_post",
         "parameters": [
           {
             "in": "path",
@@ -11955,7 +11955,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_upload_task_attachment_api_workspaces__workspace_id__tasks__task_id__attachments_post"
+                "$ref": "#/components/schemas/Body_upload_task_attachment_api_v1_workspaces__workspace_id__tasks__task_id__attachments_post"
               }
             }
           },
@@ -11994,9 +11994,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/tasks/{task_id}/attachments/{attachment_id}": {
+    "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/attachments/{attachment_id}": {
       "delete": {
-        "operationId": "delete_task_attachment_api_workspaces__workspace_id__tasks__task_id__attachments__attachment_id__delete",
+        "operationId": "delete_task_attachment_api_v1_workspaces__workspace_id__tasks__task_id__attachments__attachment_id__delete",
         "parameters": [
           {
             "in": "path",
@@ -12052,10 +12052,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/tasks/{task_id}/attachments/{attachment_id}/download": {
+    "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/attachments/{attachment_id}/download": {
       "get": {
         "description": "Serve bin\u00e1rio. Tenancy validado duas vezes: (1) ``get_current_workspace``,\n(2) ``get_attachment`` filtra por ``workspace_id``.",
-        "operationId": "download_task_attachment_api_workspaces__workspace_id__tasks__task_id__attachments__attachment_id__download_get",
+        "operationId": "download_task_attachment_api_v1_workspaces__workspace_id__tasks__task_id__attachments__attachment_id__download_get",
         "parameters": [
           {
             "in": "path",
@@ -12111,10 +12111,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/tasks/{task_id}/progress": {
+    "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/progress": {
       "get": {
         "description": "% executado no m\u00eas corrente para tasks de aporte (heur\u00edstica).\n\nRetorna ``is_trackable=False`` se a task n\u00e3o \u00e9 do tipo \"aporte mensal\".\nA UI (TaskDrawer) esconde o card de progresso nesse caso.",
-        "operationId": "get_task_progress_api_workspaces__workspace_id__tasks__task_id__progress_get",
+        "operationId": "get_task_progress_api_v1_workspaces__workspace_id__tasks__task_id__progress_get",
         "parameters": [
           {
             "in": "path",
@@ -12168,10 +12168,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/tasks/{task_id}/status": {
+    "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/status": {
       "post": {
         "description": "Endpoint dedicado para transi\u00e7\u00e3o de status. Separado do PATCH para\ndeixar a audit-trail mais clara no Swagger / logs.",
-        "operationId": "transition_task_status_api_workspaces__workspace_id__tasks__task_id__status_post",
+        "operationId": "transition_task_status_api_v1_workspaces__workspace_id__tasks__task_id__status_post",
         "parameters": [
           {
             "in": "path",
@@ -12235,9 +12235,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/transactions": {
+    "/api/v1/workspaces/{workspace_id}/transactions": {
       "get": {
-        "operationId": "list_transactions_api_workspaces__workspace_id__transactions_get",
+        "operationId": "list_transactions_api_v1_workspaces__workspace_id__transactions_get",
         "parameters": [
           {
             "in": "path",
@@ -12433,10 +12433,10 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/transactions/export": {
+    "/api/v1/workspaces/{workspace_id}/transactions/export": {
       "get": {
         "description": "BUG-009 fix: export ALL filtered transactions server-side (no pagination).\n\nReturns a CSV download with BOM for Excel compatibility.",
-        "operationId": "export_transactions_api_workspaces__workspace_id__transactions_export_get",
+        "operationId": "export_transactions_api_v1_workspaces__workspace_id__transactions_export_get",
         "parameters": [
           {
             "in": "path",
@@ -12616,9 +12616,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/transactions/{transaction_hash}/override": {
+    "/api/v1/workspaces/{workspace_id}/transactions/{transaction_hash}/override": {
       "delete": {
-        "operationId": "delete_override_api_workspaces__workspace_id__transactions__transaction_hash__override_delete",
+        "operationId": "delete_override_api_v1_workspaces__workspace_id__transactions__transaction_hash__override_delete",
         "parameters": [
           {
             "in": "path",
@@ -12665,7 +12665,7 @@
         ]
       },
       "post": {
-        "operationId": "create_override_api_workspaces__workspace_id__transactions__transaction_hash__override_post",
+        "operationId": "create_override_api_v1_workspaces__workspace_id__transactions__transaction_hash__override_post",
         "parameters": [
           {
             "in": "path",
@@ -12729,9 +12729,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/vault/passwords": {
+    "/api/v1/workspaces/{workspace_id}/vault/passwords": {
       "get": {
-        "operationId": "list_passwords_api_workspaces__workspace_id__vault_passwords_get",
+        "operationId": "list_passwords_api_v1_workspaces__workspace_id__vault_passwords_get",
         "parameters": [
           {
             "in": "path",
@@ -12776,7 +12776,7 @@
         ]
       },
       "post": {
-        "operationId": "create_password_api_workspaces__workspace_id__vault_passwords_post",
+        "operationId": "create_password_api_v1_workspaces__workspace_id__vault_passwords_post",
         "parameters": [
           {
             "in": "path",
@@ -12831,9 +12831,9 @@
         ]
       }
     },
-    "/api/workspaces/{workspace_id}/vault/passwords/{password_id}": {
+    "/api/v1/workspaces/{workspace_id}/vault/passwords/{password_id}": {
       "delete": {
-        "operationId": "delete_password_api_workspaces__workspace_id__vault_passwords__password_id__delete",
+        "operationId": "delete_password_api_v1_workspaces__workspace_id__vault_passwords__password_id__delete",
         "parameters": [
           {
             "in": "path",
@@ -12899,5 +12899,11 @@
         "summary": "Health"
       }
     }
-  }
+  },
+  "servers": [
+    {
+      "description": "Canonical v1",
+      "url": "/api/v1"
+    }
+  ]
 }
