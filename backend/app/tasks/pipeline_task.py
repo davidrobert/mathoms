@@ -165,7 +165,6 @@ def _persist_llm_suggestions(
     from backend.app.models.task import TaskSuggestion
 
     with SyncSessionLocal() as db:
-        # Check idempotência: se já existem suggestions desse run, pula
         existing = db.execute(
             select(TaskSuggestion).where(
                 TaskSuggestion.workspace_id == ws_id,

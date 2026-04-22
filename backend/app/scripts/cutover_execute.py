@@ -117,7 +117,6 @@ async def cutover(*, apply: bool) -> int:
     logger.info("=== Cutover CLI → Web (ADR-077) ===")
     logger.info("")
 
-    # Check pré-condições
     logger.info("Verificando pré-condições...")
     failures = await _check_preconditions()
     if failures:

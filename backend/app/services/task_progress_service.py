@@ -46,7 +46,7 @@ _DEFAULT_APORTE_KEYWORDS: list[str] = [
 ]
 
 
-def _load_aporte_keywords_from_config(tenant_root: Optional[str]) -> list[str]:
+def _load_aporte_keywords_from_config(tenant_root: Optional[str] = None) -> list[str]:
     """Tenta ler config/goals.json do tenant. Se ausente ou malformado,
     volta para default."""
     if not tenant_root:

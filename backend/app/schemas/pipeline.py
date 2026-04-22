@@ -19,7 +19,7 @@ class PipelineRunRequest(BaseModel):
 
     @field_validator("from_stage")
     @classmethod
-    def validate_from_stage(cls, v: Optional[str]) -> Optional[str]:
+    def validate_from_stage(cls, v: Optional[str] = None) -> Optional[str]:
         if v is not None and v not in VALID_FROM_STAGES:
             raise ValueError(f"from_stage inválido: {v}. Válidos: {sorted(VALID_FROM_STAGES)}")
         return v

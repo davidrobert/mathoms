@@ -55,7 +55,7 @@ GOAL_TYPE_DTO_CLASSES: dict[str, tuple[type, type, type]] = {
 }
 
 
-def meta_version_from_params(params_json: Optional[dict]) -> int:
+def meta_version_from_params(params_json: Optional[dict] = None) -> int:
     """Extrai ``meta_version`` do ``params_json`` com fallback para 1.
 
     Tolera:

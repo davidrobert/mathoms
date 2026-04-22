@@ -52,7 +52,7 @@ _MIGRATED_STAGES = [
 ]
 
 
-def _iter_workspaces(workspace_id: Optional[str]) -> Iterable[Workspace]:
+def _iter_workspaces(workspace_id: Optional[str] = None) -> Iterable[Workspace]:
     with _session_factory() as session:
         q = select(Workspace)
         if workspace_id:

@@ -63,7 +63,7 @@ class AuditAction(str, enum.Enum):
     vault_password_delete = "vault.password.delete"
 
 
-def _client_meta(request: Optional[Request]) -> tuple[Optional[str], Optional[str]]:
+def _client_meta(request: Optional[Request] = None) -> tuple[Optional[str], Optional[str]]:
     if request is None:
         return None, None
     # Respeita X-Forwarded-For se presente (Traefik / reverse proxy)
