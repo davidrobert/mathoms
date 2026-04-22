@@ -8,6 +8,54 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.3 — backend style sweep (2ª rodada) (2026-04-22):**
+  Continuação do sweep backend — 4 slices adicionais reduzindo P1 em
+  services pesadamente acoplados. **Impacto real:** funções ≥40
+  linhas (high severity) caem de 72 → 68 (−4 no escopo `backend/app/`).
+  Ofensores P1 contados sobem +5 porque decomposição introduz
+  helpers ≤39 linhas cada (acima do threshold 20l mas muito abaixo
+  das monstras originais); trade-off aceito — legibilidade >
+  contagem.
+  - **Slice 3a — `services/invitation_service.py` P1 4→2:**
+    `create_invitation` 69 → 28 linhas via `_validate_role_for_
+    invitation` (guard de role + owner rule), `_assert_not_already_
+    member` (join user×member via email), `_assert_pending_quota`
+    (rate limit MAX_PENDING). `accept_invitation` 68 → 23 linhas
+    via `_assert_invitation_is_acceptable` (4 checks:
+    revoked/accepted/expired/email_mismatch) + `_get_or_create_
+    member` (idempotência). 12 tests verdes.
+  - **Slice 3b — `services/document_processor.py` P1 2→1:**
+    `process_uploaded_document` 151 → 25 linhas via
+    `_process_json_document` (E1/E1.5 canonical copy),
+    `_locked_pdf_response` (telemetry + payload), e
+    `_route_classified_file` (decide route vs inbox-stays,
+    delegando a `_move_and_record_routed` + `_inbox_rel_path`).
+    Constante `_JSON_TYPE_DEST_SUBDIR` elimina if-else paralelo.
+    25 tests verdes.
+  - **Slice 3c — `services/canonical_routing.py` P1 3→1:**
+    Elimina duplicação de 15 linhas entre `rename_to_canonical`
+    e `route_inbox_to_canonical_data` via
+    `_compute_canonical_dest_path(source_path, tenant_root,
+    project_root, ...)` (init_config + ext correction +
+    classification + hash + final_name + dest_dir) e
+    `_rel_path_str` (POSIX relative path com fallback).
+    `rename_to_canonical` 80 → 37 linhas; `route_inbox` 66 → 29.
+    26 tests verdes.
+  - **Slice 3d — `services/tarefas_md_parser.py` P1 2→1:**
+    `parse_tarefas_md` 93 → 35 linhas via `_parse_concluidas_row`,
+    `_parse_active_row`, `_apply_dependency_pass`, `_is_table_row`.
+    Main loop agora é switch de seção + delegate + 2ª passe de
+    dependências. 11 tests verdes.
+  - **Zero mudança funcional:** 1150 backend + 1461 pipeline;
+    funções >100 linhas (monstras) eliminadas em todos os 4
+    services. Sobraram ≤28 linhas cada helper; audit regression
+    refletida no baseline atualizado (2263 → 2270, net +7
+    collateral de P1 helper-count).
+  - **Deixado para próxima rodada:** `content_classifier.py`
+    (621 l, P1×3), `services/pipeline_service.py` P1×4,
+    `models/task.py` P1×2, repositories P1×5. Continuação após
+    A6e.4 fechar fase 4a.
+
 - **A6g.3 — backend style sweep (1ª rodada parcial) (2026-04-22):**
   Primeira rodada do sweep `backend/app/` (fora de `api/` + `application/`).
   Reduz P4/P8/P1 sem tocar wire format. **P5 float money (12) deferido
