@@ -17,6 +17,10 @@ from backend.tests.fakes.config_blob import (
     FakeConfigBlobRepository,
     FakeGlobalDefaultsLoader,
 )
+from backend.tests.fakes.document import (
+    FakeClassificationService,
+    FakeDocumentRepository,
+)
 from backend.tests.fakes.family_member import (
     FakeFamilyMemberRepository,
     FakeVault,
@@ -30,7 +34,9 @@ from backend.tests.fakes.task import (
 
 __all__ = [
     "FakeCategoryRepository",
+    "FakeClassificationService",
     "FakeConfigBlobRepository",
+    "FakeDocumentRepository",
     "FakeFamilyMemberRepository",
     "FakeGlobalDefaultsLoader",
     "FakeGoalRepository",
