@@ -36,3 +36,20 @@ def load_global_yaml(name: str) -> dict[str, Any]:
         return {}
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
+
+
+class ConfigDefaultsLoader:
+    """Adapter que implementa ``GlobalDefaultsLoaderProtocol`` (A6e.3b).
+
+    Envolve ``load_global_json``/``load_global_yaml`` nos nomes esperados
+    pelo Protocol (``load_json``/``load_yaml``) — evita renomear os
+    module-level helpers (múltiplos call-sites fora deste pacote).
+    """
+
+    @staticmethod
+    def load_json(name: str) -> dict[str, Any]:
+        return load_global_json(name)
+
+    @staticmethod
+    def load_yaml(name: str) -> dict[str, Any]:
+        return load_global_yaml(name)

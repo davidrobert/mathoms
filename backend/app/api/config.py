@@ -1,14 +1,12 @@
-"""Config API — config blobs + workspace settings + import/export.
+"""Config API — thin router (A6e.4 slice · ADR-101 R15/R16).
 
-**A6e.3 slices 1+2** — CRUD de ``FamilyMember`` e ``Category`` migrou para
-``backend/app/api/family_members.py`` e ``backend/app/api/categories.py``
-(routers finos delegando a use cases em ``backend/app/application/``).
-Este módulo retém apenas: (a) workspace settings, (b) blobs de config
-(pipeline/institutions/report_layout), (c) endpoints ``/import``+``/export``.
+Handlers delegam a use cases em ``backend/app/application/config_blob/``
+quando possível (3 blobs: pipeline/institutions/report-layout).
 
-Helpers ``_import_family_members``/``_export_family_members`` e
-``_import_categorization``/``_export_categorization`` usam os repos —
-sem ``select(FamilyMember)``/``select(Category)`` no API layer.
+Composites (``/import``, ``/export``, ``/workspace`` settings) permanecem
+no router porque cruzam agregados (FamilyMember + Category + 3 ConfigBlobs)
+— por ADR-112 §rollback, multi-aggregate composites só viram use case
+quando ganham caso de uso genuíno reusado por outro endpoint.
 """
 
 from __future__ import annotations
@@ -16,12 +14,23 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.application.config_blob import (
+    get_institution_config as _uc_get_institution_config,
+    get_pipeline_config as _uc_get_pipeline_config,
+    get_report_layout as _uc_get_report_layout,
+    update_institution_config as _uc_update_institution_config,
+    update_pipeline_config as _uc_update_pipeline_config,
+    update_report_layout as _uc_update_report_layout,
+)
 from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace, require_write_role
-from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
+from backend.app.models.config_blob import (
+    InstitutionConfig,
+    PipelineConfig,
+    ReportLayout,
+)
 from backend.app.models.workspace import Workspace
 from backend.app.repositories.category_repository import CategoryRepository
 from backend.app.repositories.config_blob_repository import ConfigBlobRepository
@@ -40,54 +49,46 @@ from backend.app.schemas.dto.config_blob import (
     PipelineConfigUpdateCommand,
     ReportLayoutResponse,
     ReportLayoutUpdateCommand,
-    deep_merge,
-    institution_blob_to_response,
-    pipeline_blob_to_response,
-    report_layout_to_response,
 )
-from backend.app.services.config_defaults import load_global_json, load_global_yaml
+from backend.app.services.config_defaults import (
+    ConfigDefaultsLoader,
+    load_global_json,
+    load_global_yaml,
+)
 from backend.app.services.vault import get_vault
 
-router = APIRouter(
-    prefix="/workspaces/{workspace_id}/config",
-    tags=["config"],
-)
+router = APIRouter(prefix="/workspaces/{workspace_id}/config", tags=["config"])
 
 _vault = get_vault()
+_defaults = ConfigDefaultsLoader()
 
 
 def _get_config_blob_repo(
     db: AsyncSession = Depends(get_db),
 ) -> ConfigBlobRepository:
-    """DI helper — injeta o ``ConfigBlobRepository`` no endpoint (A6e.4).
-
-    Um repo paramétrico atende os 3 blobs (pipeline/institutions/
-    report-layout); o endpoint passa a classe do modelo nos métodos.
-    """
     return ConfigBlobRepository(db)
 
 
 def _get_family_repo(db: AsyncSession = Depends(get_db)) -> FamilyMemberRepository:
-    """DI helper — usado apenas por import/export (CRUD migrou para family_members.py)."""
     return FamilyMemberRepository(db)
 
 
 def _get_category_repo(db: AsyncSession = Depends(get_db)) -> CategoryRepository:
-    """DI helper — usado apenas por import/export (CRUD migrou para categories.py)."""
     return CategoryRepository(db)
 
 
 # =============================================================================
-# Workspace settings (family_surname — exibido no relatório E6)
+# Workspace settings
 # =============================================================================
 
 
 @router.get("/workspace", response_model=WorkspaceSettingsSchema)
 async def get_workspace_settings(
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
-):
-    return WorkspaceSettingsSchema(name=workspace.name, family_surname=workspace.family_surname)
+) -> WorkspaceSettingsSchema:
+    return WorkspaceSettingsSchema(
+        name=workspace.name, family_surname=workspace.family_surname
+    )
 
 
 @router.patch(
@@ -99,17 +100,18 @@ async def update_workspace_settings(
     body: WorkspaceSettingsUpdateRequest,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    # Tratamento explícito: empty string → None (limpa o campo)
+) -> WorkspaceSettingsSchema:
     if body.family_surname is not None:
         workspace.family_surname = body.family_surname.strip() or None
     await db.commit()
     await db.refresh(workspace)
-    return WorkspaceSettingsSchema(name=workspace.name, family_surname=workspace.family_surname)
+    return WorkspaceSettingsSchema(
+        name=workspace.name, family_surname=workspace.family_surname
+    )
 
 
 # =============================================================================
-# Pipeline Config — GET/PUT (3B.4) · A6e.4
+# Pipeline Config
 # =============================================================================
 
 
@@ -117,11 +119,10 @@ async def update_workspace_settings(
 async def get_pipeline_config(
     workspace: Workspace = Depends(get_current_workspace),
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
-):
-    cfg_json = await repo.get_config_json(workspace.id, PipelineConfig)
-    if cfg_json is None:
-        cfg_json = load_global_json("pipeline.json")
-    return pipeline_blob_to_response(cfg_json)
+) -> PipelineConfigResponse:
+    return await _uc_get_pipeline_config(
+        workspace.id, repo=repo, defaults=_defaults
+    )
 
 
 @router.put("/pipeline", response_model=PipelineConfigResponse)
@@ -130,17 +131,16 @@ async def update_pipeline_config(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
-):
-    existing = await repo.get_config_json(workspace.id, PipelineConfig)
-    base = existing if existing is not None else load_global_json("pipeline.json")
-    merged = deep_merge(base, body.model_dump(exclude_unset=True))
-    await repo.upsert(workspace.id, PipelineConfig, merged)
+) -> PipelineConfigResponse:
+    response = await _uc_update_pipeline_config(
+        body, workspace_id=workspace.id, repo=repo, defaults=_defaults
+    )
     await db.commit()
-    return pipeline_blob_to_response(merged)
+    return response
 
 
 # =============================================================================
-# Institution Config — GET/PUT (3B.5) · A6e.4
+# Institution Config
 # =============================================================================
 
 
@@ -148,11 +148,10 @@ async def update_pipeline_config(
 async def get_institution_config(
     workspace: Workspace = Depends(get_current_workspace),
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
-):
-    cfg_json = await repo.get_config_json(workspace.id, InstitutionConfig)
-    if cfg_json is None:
-        cfg_json = load_global_json("institutions.json")
-    return institution_blob_to_response(cfg_json)
+) -> InstitutionConfigResponse:
+    return await _uc_get_institution_config(
+        workspace.id, repo=repo, defaults=_defaults
+    )
 
 
 @router.put("/institutions", response_model=InstitutionConfigResponse)
@@ -161,14 +160,16 @@ async def update_institution_config(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
-):
-    cfg = await repo.upsert(workspace.id, InstitutionConfig, body.config_json)
+) -> InstitutionConfigResponse:
+    response = await _uc_update_institution_config(
+        body, workspace_id=workspace.id, repo=repo
+    )
     await db.commit()
-    return institution_blob_to_response(cfg.config_json)
+    return response
 
 
 # =============================================================================
-# Report Layout — GET/PUT (3B.6) · A6e.4
+# Report Layout
 # =============================================================================
 
 
@@ -176,11 +177,10 @@ async def update_institution_config(
 async def get_report_layout(
     workspace: Workspace = Depends(get_current_workspace),
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
-):
-    cfg_json = await repo.get_config_json(workspace.id, ReportLayout)
-    if cfg_json is None:
-        cfg_json = load_global_yaml("report_layout.yaml")
-    return report_layout_to_response(cfg_json)
+) -> ReportLayoutResponse:
+    return await _uc_get_report_layout(
+        workspace.id, repo=repo, defaults=_defaults
+    )
 
 
 @router.put("/report-layout", response_model=ReportLayoutResponse)
@@ -189,14 +189,16 @@ async def update_report_layout(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
-):
-    cfg = await repo.upsert(workspace.id, ReportLayout, body.config_json)
+) -> ReportLayoutResponse:
+    response = await _uc_update_report_layout(
+        body, workspace_id=workspace.id, repo=repo
+    )
     await db.commit()
-    return report_layout_to_response(cfg.config_json)
+    return response
 
 
 # =============================================================================
-# Import / Export (3B.8, 3B.9)
+# Import / Export — composites (multi-aggregate; mantidos no router)
 # =============================================================================
 
 
@@ -214,27 +216,21 @@ async def import_config(
     category_repo: CategoryRepository = Depends(_get_category_repo),
 ) -> ConfigImportResponse:
     imported: list[str] = []
-
     if body.family_members:
-        await _import_family_members(workspace.id, body.family_members, db, family_repo)
+        await _import_family_members(workspace, body.family_members, family_repo)
         imported.append("family_members")
-
     if body.categorization:
         await _import_categorization(workspace.id, body.categorization, category_repo)
         imported.append("categorization")
-
     if body.pipeline:
         await blob_repo.upsert(workspace.id, PipelineConfig, body.pipeline)
         imported.append("pipeline")
-
     if body.institutions:
         await blob_repo.upsert(workspace.id, InstitutionConfig, body.institutions)
         imported.append("institutions")
-
     if body.report_layout:
         await blob_repo.upsert(workspace.id, ReportLayout, body.report_layout)
         imported.append("report_layout")
-
     await db.commit()
     return ConfigImportResponse(imported=imported, total=len(imported))
 
@@ -242,45 +238,36 @@ async def import_config(
 @router.get("/export", response_model=ConfigExportResponse)
 async def export_config(
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
     blob_repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
     family_repo: FamilyMemberRepository = Depends(_get_family_repo),
     category_repo: CategoryRepository = Depends(_get_category_repo),
-):
-
-    members_data = await _export_family_members(workspace.id, db, family_repo)
-    categorization_data = await _export_categorization(workspace.id, category_repo)
-    pipeline_data = await _export_blob_or_default(
-        blob_repo, workspace.id, PipelineConfig, "pipeline.json", yaml_source=False
-    )
-    institutions_data = await _export_blob_or_default(
-        blob_repo, workspace.id, InstitutionConfig, "institutions.json", yaml_source=False
-    )
-    layout_data = await _export_blob_or_default(
-        blob_repo, workspace.id, ReportLayout, "report_layout.yaml", yaml_source=True
-    )
-
+) -> ConfigExportResponse:
     return ConfigExportResponse(
-        family_members=members_data,
-        categorization=categorization_data,
-        pipeline=pipeline_data,
-        institutions=institutions_data,
-        report_layout=layout_data,
+        family_members=await _export_family_members(workspace, family_repo),
+        categorization=await _export_categorization(workspace.id, category_repo),
+        pipeline=await _export_blob_or_default(
+            blob_repo, workspace.id, PipelineConfig, "pipeline.json", yaml_source=False
+        ),
+        institutions=await _export_blob_or_default(
+            blob_repo, workspace.id, InstitutionConfig, "institutions.json", yaml_source=False
+        ),
+        report_layout=await _export_blob_or_default(
+            blob_repo, workspace.id, ReportLayout, "report_layout.yaml", yaml_source=True
+        ),
     )
 
 
 # =============================================================================
-# Private helpers — import
+# Private helpers — import/export composites
 # =============================================================================
 
 
 async def _import_family_members(
-    ws_id: str,
+    workspace: Workspace,
     data: dict[str, Any],
-    db: AsyncSession,
     repo: FamilyMemberRepository,
 ) -> None:
-    await repo.delete_all_in_workspace(ws_id)
+    await repo.delete_all_in_workspace(workspace.id)
 
     family_surname = (
         data.get("familia", {}).get("sobrenome")
@@ -288,10 +275,7 @@ async def _import_family_members(
         else None
     )
     if family_surname is not None:
-        ws_result = await db.execute(select(Workspace).where(Workspace.id == ws_id))
-        ws = ws_result.scalar_one_or_none()
-        if ws is not None:
-            ws.family_surname = family_surname or None
+        workspace.family_surname = family_surname or None
 
     membros = data.get("membros", {})
     banco_membro = data.get("banco_membro", {})
@@ -302,11 +286,13 @@ async def _import_family_members(
 
     for order, (key, info) in enumerate(membros.items()):
         cpf_enc = _vault.encrypt(info.get("cpf")) if info.get("cpf") else None
-        extra = {k: v for k, v in info.items() if k not in (
-            "nome_completo", "nome_curto", "cpf", "data_nascimento", "papel"
-        )}
+        extra = {
+            k: v
+            for k, v in info.items()
+            if k not in ("nome_completo", "nome_curto", "cpf", "data_nascimento", "papel")
+        }
         member = await repo.create(
-            ws_id,
+            workspace.id,
             key=key,
             full_name=info.get("nome_completo", key),
             short_name=info.get("nome_curto", key),
@@ -330,7 +316,6 @@ async def _import_categorization(
     repo: CategoryRepository,
 ) -> None:
     await repo.delete_all_in_workspace(ws_id)
-
     order = 0
     for cat_type, key in [("expense", "expense_keywords"), ("income", "income_keywords")]:
         keywords_map = data.get(key, {})
@@ -354,13 +339,7 @@ async def _export_blob_or_default(
     *,
     yaml_source: bool,
 ) -> dict[str, Any]:
-    """Retorna o blob do DB ou o default do disco.
-
-    ``yaml_source=True`` lê ``config/report_layout.yaml``; ``False`` lê um
-    JSON do mesmo diretório. Export precisa do shape dict — os DTOs
-    ``pipeline_blob_to_response`` etc. não cabem aqui (``ConfigExportResponse``
-    espera ``dict[str, Any]``).
-    """
+    """Retorna o blob do DB ou o default do disco (dict, não DTO)."""
     cfg_json = await repo.get_config_json(ws_id, model_class)
     if cfg_json is not None:
         return cfg_json
@@ -371,30 +350,19 @@ async def _export_blob_or_default(
     )
 
 
-# =============================================================================
-# Private helpers — export (DB → pipeline-compatible JSON format)
-# =============================================================================
-
-
 async def _export_family_members(
-    ws_id: str,
-    db: AsyncSession,
+    workspace: Workspace,
     repo: FamilyMemberRepository,
 ) -> dict[str, Any]:
-    members = await repo.list_by_workspace(ws_id)
-
-    ws_result = await db.execute(select(Workspace).where(Workspace.id == ws_id))
-    workspace = ws_result.scalar_one_or_none()
-    family_surname = workspace.family_surname if workspace else None
+    members = await repo.list_by_workspace(workspace.id)
+    family_surname = workspace.family_surname
 
     if not members:
         # F6.5E.6: NÃO retornar global cru (vaza identidade do founder).
-        # Em vez disso, retornar a estrutura mínima esperada — vazia se o
-        # workspace ainda não tem nada. Surname só vai se o user setou.
-        result_dict: dict[str, Any] = {"membros": {}}
+        result: dict[str, Any] = {"membros": {}}
         if family_surname:
-            result_dict["familia"] = {"sobrenome": family_surname}
-        return result_dict
+            result["familia"] = {"sobrenome": family_surname}
+        return result
 
     membros: dict[str, Any] = {}
     banco_membro: dict[str, str] = {}
@@ -420,14 +388,14 @@ async def _export_family_members(
         for acc in m.accounts:
             banco_membro[acc.institution_code] = m.key
 
-    result_dict: dict[str, Any] = {"membros": membros}
+    result: dict[str, Any] = {"membros": membros}
     if family_surname:
-        result_dict["familia"] = {"sobrenome": family_surname}
+        result["familia"] = {"sobrenome": family_surname}
     if banco_membro:
-        result_dict["banco_membro"] = banco_membro
+        result["banco_membro"] = banco_membro
     if titular:
-        result_dict["titular"] = titular
-    return result_dict
+        result["titular"] = titular
+    return result
 
 
 async def _export_categorization(
@@ -440,25 +408,10 @@ async def _export_categorization(
 
     expense_keywords: dict[str, list[str]] = {}
     income_keywords: dict[str, list[str]] = {}
-
     for cat in cats:
         kws = [kw.keyword for kw in cat.keywords]
         if cat.category_type == "expense":
             expense_keywords[cat.code] = kws
         else:
             income_keywords[cat.code] = kws
-
     return {"expense_keywords": expense_keywords, "income_keywords": income_keywords}
-
-
-# =============================================================================
-# Conversion helpers — global config JSON → Pydantic DTOs (for fallback)
-# =============================================================================
-
-# ``family_members`` fallback: ``convert_global_defaults_to_responses`` vive
-# em ``schemas/dto/family_member/mapper`` (A6e.1+.2).
-# ``categorization`` fallback: ``convert_global_defaults_to_responses`` +
-# ``count_defaults`` vivem em ``schemas/dto/category/mapper`` (A6e.3).
-# ``pipeline``/``institutions``/``report_layout`` fallback: respectivos
-# ``*_blob_to_response`` + ``deep_merge`` vivem em
-# ``schemas/dto/config_blob/mapper`` (A6e.4).
