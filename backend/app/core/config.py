@@ -54,6 +54,13 @@ class Settings(BaseSettings):
     # removido na Fase 4.6 após cutover completo.
     USE_DB_ARTIFACTS: bool = False
 
+    # ADR-115 · A6e.events: quando True, handler reativo para TaskCreated/
+    # Updated cria Notification na transação do use case. Enquanto False
+    # (default), o cron ``scan_and_create_notifications`` continua sendo
+    # fonte única — coexistência segura durante validação em produção.
+    # Remover o cron + flag após gate humano verde (A6e.events-followup).
+    USE_EVENT_DRIVEN_TASK_NOTIFICATIONS: bool = False
+
     # env_file resolvido em ABSOLUTO e com múltiplas localizações — evita que o
     # backend carregue config diferente conforme cwd (bug onde `.env` em
     # `backend/.env` não era lido quando uvicorn rodava da raiz do repo).

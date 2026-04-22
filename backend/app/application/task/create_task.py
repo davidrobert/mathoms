@@ -2,16 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from backend.app.application.base.errors import ValidationError
 from backend.app.application.task._protocols import TaskRepositoryProtocol
+from backend.app.events import dispatch_sync
+from backend.app.events.domain import TaskCreatedEvent
 from backend.app.models.task import VALID_CATEGORIES, Task
 from backend.app.schemas.dto.task import (
     TaskCreateCommand,
     TaskResponse,
     task_to_response,
 )
+
+if TYPE_CHECKING:  # pragma: no cover - só para type hints
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def create_task(
@@ -22,6 +27,7 @@ async def create_task(
     created_by: Optional[str] = None,
     created_from: str = "manual",
     source_suggestion_id: Optional[str] = None,
+    db: "AsyncSession | None" = None,
 ) -> TaskResponse:
     """``_number`` vem de ``repo.next_number`` se o cmd não especifica —
     repo é responsável por atomicidade (flush pré-commit detecta colisão
@@ -52,6 +58,24 @@ async def create_task(
         status="pending",
     )
     added = await repo.add(task)
+
+    if db is not None:
+        await dispatch_sync(
+            TaskCreatedEvent(
+                aggregate_id=added.id,
+                aggregate_type="task",
+                workspace_id=workspace_id,
+                task_id=added.id,
+                task_number=added.number,
+                task_title=added.title,
+                deadline_kind=added.deadline_kind,
+                deadline_date=added.deadline_date,
+                assigned_to=added.assigned_to,
+                actor_user_id=created_by,
+            ),
+            {"db": db},
+        )
+
     return task_to_response(added)
 
 

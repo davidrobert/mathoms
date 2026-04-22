@@ -10,6 +10,7 @@ colidir com a regra "defaulted fields must follow non-defaulted".
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from typing import Any
 
 from backend.app.events.base import Event
@@ -47,3 +48,41 @@ class FamilyMemberCreatedEvent(Event):
     member_key: str = ""
     member_name: str = ""
     actor_user_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class TaskCreatedEvent(Event):
+    """Task recém-criada (status ``pending``).
+
+    Consumido por ``task_notification_handler`` para criar Notification
+    reativa quando o prazo está dentro do horizonte de alerta. Substitui
+    (gradualmente) o ``scan_and_create_notifications`` cron.
+    """
+
+    task_id: str = ""
+    task_number: int = 0
+    task_title: str = ""
+    deadline_kind: str | None = None
+    deadline_date: date | None = None
+    assigned_to: str | None = None
+    actor_user_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class TaskUpdatedEvent(Event):
+    """Task editada (título, prazo, assignee etc).
+
+    Emitido após salvar. Handler re-avalia horizonte de prazo e cria
+    Notification nova se o deadline entrou em bucket (se já havia para
+    o mesmo bucket, ``_SOURCE`` deduplication em
+    ``task_notification_service`` evita duplicata).
+    """
+
+    task_id: str = ""
+    task_number: int = 0
+    task_title: str = ""
+    deadline_kind: str | None = None
+    deadline_date: date | None = None
+    assigned_to: str | None = None
+    actor_user_id: str | None = None
+    changed_fields: tuple[str, ...] = ()
