@@ -58,27 +58,46 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     Gate: `pytest backend/tests/test_pipeline_task.py -q` = 13 passed;
     `pytest backend/tests/test_openapi_snapshot.py -q` = 1 passed
     (sem mudança de wire contract).
+  - **T2.a — `pipeline/domain/services/narrativas/charts_narrator.py::narrate`:**
+    284 → 36 linhas (corpo ~23, assinatura spans 7 linhas). Extraídos
+    6 métodos privados por grupo de charts, preservando ordem de
+    inserção e strings byte-a-byte:
+    `_narrate_patrimonio_aloc` (charts 1-4: score_gauge,
+    patrimonio_doughnut, alocacao_atual, alocacao_alvo),
+    `_narrate_fluxo_receita` (5-8: fluxo_mensal, receita_bar,
+    receita_despesa_mensal, despesas_doughnut),
+    `_narrate_projecao_if` (9-14: projecao_3cenarios, waterfall_if,
+    renda_passiva, yield_imoveis, top15_ativos, impostos_pj),
+    `_narrate_cenarios_conjuge` (15, chave dinâmica
+    `ctx.key_cenarios_section`), `_narrate_fase_eua` (16-18:
+    custos_f1f2, viagens, cenarios_cambiais),
+    `_narrate_riscos_decisoes` (19-20: bubble_riscos, top5_decisoes).
+    `narrate()` computa locals compartilhados (`_fontes_receita`,
+    `_riscos_top3`, `_imovel_acima`, `_cm_*`) e faz merge via `**`.
+    Gate: `pytest tests/test_e5n_golden_execution.py
+    tests/test_e5n_builder_decomposition.py -q` = 12 passed (paridade
+    de narrativas em TODAS as strings).
   - **Fora de escopo nesta rodada (documentado):**
     - Scripts com goldens (e3/e4/e5/e5n/e6/e7) — 11 ofensores P2 + ~250
       P1 ficam para **A6g.2b** pós-A6c.3 (quando `main(root_dir)`
       legados forem deletados).
-    - `ChartsNarrator.narrate` (T2.a) skipped — paridade de narrativas
-      tem tolerância zero e o `return {...}` dict literal com locals
-      compartilhados força passagem de 15+ argumentos por método
-      extraído; pouco ganho vs. risco de rollback em golden. Volta
-      junto com A6g.2b.
   - **Impact numérico nos targets:**
     - `long_functions` P1: `e_reset.main` 372 → 27; `e0_audit.main`
-      140 → <25; `run_pipeline_task` 273 → 58 — todas removidas da
-      lista high-severity (>40 linhas).
+      140 → <25; `run_pipeline_task` 273 → 58; `ChartsNarrator.narrate`
+      284 → 36 — todas removidas da lista high-severity (>40 linhas).
+      Helper mais longo criado: `_narrate_projecao_if` (69 linhas,
+      6 charts agrupados).
     - `long_files` P2: `pdf_generator.py` 1067 → 29 (remove da lista);
       `e_reset.py` 1332 → 1379 (stretch — targets extraídos mas main
       file ainda >1000; consolidação em módulos separados planejada
       para A6g.2b); `e0_audit.py` 948 → 238 (remove da lista);
       `pipeline_task.py` 628 → 742 (+114 por framing de helpers — file
-      ainda >500 mas função principal cai 78%).
+      ainda >500 mas função principal cai 78%);
+      `charts_narrator.py` 312 → 359 (+47 por framing de métodos;
+      função principal cai 87%).
   - **Gates consolidados:**
     - `pytest tests -q` = 1461 passed, 2 skipped (igual baseline).
+    - `pytest tests/test_e5n_golden_execution.py tests/test_e5n_builder_decomposition.py -q` = 12 passed (paridade byte-a-byte preservada).
     - `pytest backend/tests/test_golden_pipeline.py -q` = 19 passed,
       1 skipped.
     - `pytest backend/tests/test_pipeline_task.py -q` = 13 passed.
