@@ -359,9 +359,23 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     `list_notifications` (filtros severity/is_read + counters de
     badge), `mark_notifications_read`, `delete_notification`. Queries
     SQLAlchemy saem do router.
-  - **Allowlist atual `THIN_ROUTERS` (9):** `audit`, `auth`,
-    `categories`, `dashboard`, `family_members`, `feature_flags`,
-    `goals`, `notifications`, `vault`.
+  - **`config.py`** (slice 8 · fase 4b · `d6cd3b3`): 464 → 417 linhas,
+    6 handlers de ConfigBlob (pipeline/institutions/report-layout GET+PUT)
+    delegam aos use cases de `application/config_blob/`. Novo adapter
+    `ConfigDefaultsLoader` em `services/config_defaults.py` implementa
+    `GlobalDefaultsLoaderProtocol` (wraps `load_global_*` nos nomes
+    `load_json`/`load_yaml` esperados pelo Protocol). Use cases importadas
+    com alias `_uc_*` para preservar `operationId` no OpenAPI (zero diff
+    no snapshot). Helpers `_import_family_members`/`_export_family_members`
+    aceitam `workspace: Workspace` em vez de `ws_id` — elimina
+    `select(Workspace)` + `db.execute` inline. Composites
+    `/import`+`/export` permanecem no router (multi-aggregate, ADR-112).
+    Workspace settings (GET/PATCH) continuam inline (não há use case e
+    são triviais). 2 routers de fase 4b ainda pendentes (`documents.py`,
+    `tasks.py`).
+  - **Allowlist atual `THIN_ROUTERS` (10):** `audit`, `auth`,
+    `categories`, `config`, `dashboard`, `family_members`,
+    `feature_flags`, `goals`, `notifications`, `vault`.
   - **Openapi snapshot** regenerado: apenas `FlagUpdateRequest` →
     `FlagUpdateCommand` (rename) + descrições deletadas de docstrings
     de handler. Zero path/method/response_model mudou — contrato
