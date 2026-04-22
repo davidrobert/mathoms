@@ -40,10 +40,6 @@ LEGACY_FILES: dict[str, str] = {
     "dto/config_blob/response.py": "OPAQUE: config blob response",
     "config.py": "OPAQUE: MaterializedConfig blobs",
     # Legado que SAI com migração prevista — gate progressivo via audit.
-    "dto/family_member/command.py": "A6e.3c: extra=Mapped[T]",
-    "dto/family_member/mapper.py": "A6e.3c: tipar dict parsing",
-    "dto/family_member/response.py": "A6e.3c: extra=Mapped[T]",
-    "dto/category/mapper.py": "A6e.3c: tipar defaults dict",
     "events.py": "A6e.events: payload tipado",
     "dashboard.py": "A6g.6b: dashboard response",
     "report.py": "A6g.6b: report response schemas",

@@ -15,10 +15,22 @@ hidratada — isso torna o mapper testável sem DB.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TypedDict
 
 from backend.app.models.category import Category
 from backend.app.schemas.dto.category.response import CategoryResponse
+
+
+class _CategorizationConfig(TypedDict, total=False):
+    """Shape de ``config/categorization.json`` lido pelo mapper.
+
+    ``expense_keywords`` / ``income_keywords`` mapeiam ``code → keywords``
+    onde ``keywords`` é lista de strings. Outras chaves legadas (se
+    existirem) passam direto (``total=False`` permite ausências).
+    """
+
+    expense_keywords: dict[str, list[str]]
+    income_keywords: dict[str, list[str]]
 
 
 def category_to_response(category: Category) -> CategoryResponse:
@@ -44,7 +56,7 @@ def category_to_response(category: Category) -> CategoryResponse:
 
 
 def convert_global_defaults_to_responses(
-    data: dict[str, Any],
+    data: _CategorizationConfig,
 ) -> list[CategoryResponse]:
     """Converte ``config/categorization.json`` global → lista de DTOs.
 
@@ -68,11 +80,10 @@ def convert_global_defaults_to_responses(
     """
     responses: list[CategoryResponse] = []
     order = 0
-    for cat_type, key in (
-        ("expense", "expense_keywords"),
-        ("income", "income_keywords"),
+    for cat_type, section in (
+        ("expense", data.get("expense_keywords") or {}),
+        ("income", data.get("income_keywords") or {}),
     ):
-        section = data.get(key, {}) or {}
         for code, keywords in section.items():
             responses.append(
                 CategoryResponse(
@@ -87,13 +98,13 @@ def convert_global_defaults_to_responses(
     return responses
 
 
-def count_defaults(data: dict[str, Any]) -> int:
+def count_defaults(data: _CategorizationConfig) -> int:
     """Total de categorias no fallback (expense + income).
 
     Usado pela API para popular ``CategoryListResponse.total`` quando o
     workspace está usando os defaults (paridade com comportamento legado:
     ``len(expense_keywords) + len(income_keywords)``).
     """
-    expense = data.get("expense_keywords", {}) or {}
-    income = data.get("income_keywords", {}) or {}
+    expense = data.get("expense_keywords") or {}
+    income = data.get("income_keywords") or {}
     return len(expense) + len(income)

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 from datetime import date
-from typing import Any, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -71,7 +71,7 @@ class FamilyMemberCreateCommand(BaseModel):
     birth_date: Optional[date] = None
     role: str = Field(..., pattern=r"^(titular|conjuge|filho|dependente)$")
     order: int = Field(default=0, ge=0)
-    extra: Optional[dict[str, Any]] = None
+    extra: Optional[dict[str, object]] = None
 
     @field_validator("key")
     @classmethod
@@ -95,7 +95,7 @@ class FamilyMemberUpdateCommand(BaseModel):
     birth_date: Optional[date] = None
     role: Optional[str] = Field(None, pattern=r"^(titular|conjuge|filho|dependente)$")
     order: Optional[int] = Field(None, ge=0)
-    extra: Optional[dict[str, Any]] = None
+    extra: Optional[dict[str, object]] = None
 
     @field_validator("key")
     @classmethod

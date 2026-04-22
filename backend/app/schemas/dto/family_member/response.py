@@ -9,7 +9,7 @@ legado re-exporta estes durante a janela de transição.
 from __future__ import annotations
 
 from datetime import date
-from typing import Any, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -55,7 +55,7 @@ class FamilyMemberResponse(BaseModel):
     birth_date: Optional[date] = None
     role: str = Field(..., pattern=r"^(titular|conjuge|filho|dependente)$")
     order: int = Field(default=0, ge=0)
-    extra: Optional[dict[str, Any]] = Field(
+    extra: Optional[dict[str, object]] = Field(
         None,
         description=(
             "Campos extras arbitrários (variantes_nome, regex_nome_fatura, "

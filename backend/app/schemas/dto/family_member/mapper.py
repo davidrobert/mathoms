@@ -16,7 +16,7 @@ hidratada e o ``VaultService``. Isso torna o mapper testável sem DB.
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Protocol, TypedDict
 
 from backend.app.models.family_member import FamilyMember
 from backend.app.schemas.dto.family_member.response import (
@@ -32,6 +32,24 @@ class _VaultLike(Protocol):
         ...
 
 
+class _FamilyMemberDefault(TypedDict, total=False):
+    """Shape parcial de ``config/family_members.json::membros[<key>]``.
+
+    Apenas ``papel`` é lido pelo mapper; outras chaves (``variantes_nome``,
+    ``regex_nome_fatura``, ``profissao`…) existem no JSON mas passam direto
+    — TypedDict com ``total=False`` + ausência da chave é no-op, preserva
+    compat.
+    """
+
+    papel: str
+
+
+class _FamilyMembersConfig(TypedDict, total=False):
+    """Shape raiz de ``config/family_members.json``."""
+
+    membros: dict[str, _FamilyMemberDefault]
+
+
 # F6.5E.6 / BUG-004: placeholders que substituem identidade real em fallbacks.
 # Originalmente apenas CPF era stripado (BUG-004); F6.5E.6 estendeu para
 # nome/sobrenome/data_nascimento.
@@ -43,7 +61,7 @@ _NEUTRAL_PLACEHOLDER_NAMES: dict[str, tuple[str, str]] = {
 }
 
 
-def _birth_name_from_extra(extra: dict[str, Any] | None) -> str | None:
+def _birth_name_from_extra(extra: dict[str, object] | None) -> str | None:
     """Extrai ``birth_name`` do dict ``extra`` (aceita variações legadas)."""
     if not extra:
         return None
@@ -90,7 +108,7 @@ def member_to_response(
 
 
 def convert_global_defaults_to_responses(
-    data: dict[str, Any],
+    data: _FamilyMembersConfig,
 ) -> list[FamilyMemberResponse]:
     """Converte ``config/family_members.json`` global → DTOs **neutros**.
 
