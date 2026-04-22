@@ -67,6 +67,33 @@ def _pmt_constante_ate_fv(
     return fv_alvo * retorno_mensal / fator
 
 
+def _if_meta_targets(inputs: IFGoalInputs) -> tuple[float, float]:
+    """Calcula `if_meta_brl` operacional (TRS) e conservadora (4% Trinity)."""
+    renda_mensal = inputs.renda_passiva_mensal_brl
+    if_meta = renda_mensal * 12.0 / (inputs.trs_pct / 100.0)
+    if_meta_conservadora = (
+        renda_mensal * 12.0 / (inputs.taxa_retirada_conservadora_pct / 100.0)
+    )
+    return if_meta, if_meta_conservadora
+
+
+def _aporte_cobrindo_gap_com_patrimonio(
+    if_meta: float,
+    n_meses: int,
+    retorno_mensal: float,
+    patrimonio_atual_brl: float,
+) -> tuple[float, float]:
+    """FV do patrimônio atual leva parte da meta; calcula PMT do gap restante.
+
+    Retorna (aporte_com_pat_arredondado, patrimonio_utilizado_arredondado).
+    """
+    pat_util = max(0.0, float(patrimonio_atual_brl))
+    fv_patrimonio_hoje = pat_util * ((1 + retorno_mensal) ** n_meses)
+    gap = max(0.0, if_meta - fv_patrimonio_hoje)
+    aporte = round(_pmt_constante_ate_fv(gap, n_meses, retorno_mensal), 2)
+    return aporte, round(pat_util, 2)
+
+
 def compute_if_derived(
     inputs: IFGoalInputs,
     patrimonio_atual_brl: Optional[float] = None,
@@ -79,24 +106,15 @@ def compute_if_derived(
         aporte_necessario_mensal_brl = PMT para atingir if_meta **partindo de zero**
             (mesma fórmula de anuidade que antes — preserva persistência e testes).
         Se `patrimonio_atual_brl` é informado (ex.: patrimônio líquido do último
-        relatório), também calcula `aporte_mensal_com_patrimonio_atual_brl`:
-            FV do patrimônio hoje = PV × (1+r)^n
-            gap = max(0, if_meta − FV_patrimonio)
-            PMT_gap = PMT para acumular `gap` em n meses (mesma taxa).
+        relatório), também calcula `aporte_mensal_com_patrimonio_atual_brl` via
+        `_aporte_cobrindo_gap_com_patrimonio`.
 
-    Casos especiais:
-        - retorno_real_anual_pct == 0: aporte = meta / n_meses (sem juros)
+    Casos especiais: retorno_real_anual_pct == 0 → aporte = meta / n_meses.
 
     É **função pura**: mesmos inputs → mesmos outputs. Sem side-effects.
     Testada exaustivamente em `test_goal_service.py`.
     """
-    renda_mensal = inputs.renda_passiva_mensal_brl
-    trs_decimal = inputs.trs_pct / 100.0
-    taxa_conserv_decimal = inputs.taxa_retirada_conservadora_pct / 100.0
-
-    if_meta = renda_mensal * 12.0 / trs_decimal
-    if_meta_conservadora = renda_mensal * 12.0 / taxa_conserv_decimal
-
+    if_meta, if_meta_conservadora = _if_meta_targets(inputs)
     n_meses = inputs.horizonte_anos * 12
     retorno_mensal = (1 + inputs.retorno_real_anual_pct / 100.0) ** (1 / 12) - 1
 
@@ -105,17 +123,16 @@ def compute_if_derived(
     aporte_com_pat: Optional[float] = None
     pat_util: Optional[float] = None
     if patrimonio_atual_brl is not None:
-        pat_util = max(0.0, float(patrimonio_atual_brl))
-        fv_patrimonio_hoje = pat_util * ((1 + retorno_mensal) ** n_meses)
-        gap = max(0.0, if_meta - fv_patrimonio_hoje)
-        aporte_com_pat = round(_pmt_constante_ate_fv(gap, n_meses, retorno_mensal), 2)
+        aporte_com_pat, pat_util = _aporte_cobrindo_gap_com_patrimonio(
+            if_meta, n_meses, retorno_mensal, patrimonio_atual_brl
+        )
 
     return IFGoalDerived(
         if_meta_brl=round(if_meta, 2),
         aporte_necessario_mensal_brl=round(aporte_partindo_zero, 2),
         if_meta_conservadora_brl=round(if_meta_conservadora, 2),
         aporte_mensal_com_patrimonio_atual_brl=aporte_com_pat,
-        patrimonio_atual_utilizado_brl=round(pat_util, 2) if pat_util is not None else None,
+        patrimonio_atual_utilizado_brl=pat_util,
     )
 
 
