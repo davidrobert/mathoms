@@ -8,6 +8,49 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.7 — Go prep: `.golangci.yml` + CI job + skeleton (2026-04-22 · ADR-113):**
+  Guardrails infra para a primeira reescrita Go (candidato natural:
+  `pipeline-service/` destravado por A6f.1 · ADR-112). Zero `.go`
+  produtivo — apenas skeleton + config + CI workflow + ADR rastreável.
+  - **`.golangci.yml`** conservador: `errcheck`, `staticcheck`,
+    `gocritic`, `revive` (exported + error-* + var-naming +
+    package-comments + unused-parameter), `bodyclose`, `noctx`,
+    `sqlclosecheck`, `rowserrcheck`, `errorlint` (errorf + asserts +
+    comparison), `gocyclo` (min-complexity=15), `goconst`, `prealloc`,
+    `unparam`, `unconvert`, `misspell`, `govet --enable-all`.
+    `forbidigo`/`depguard` ficam para A6g.6 — precisam de código real
+    para calibrar sem ruído de false-positives.
+  - **`go.work`** na raiz com `go 1.22` + comentário-guia. Sem `use`
+    directive por ora — `use ./services/<nome>` entra no mesmo PR do
+    primeiro módulo (`go work sync` com `use` apontando para dir sem
+    `go.mod` aborta). `services/README.md` documenta a sequência
+    exata de passos para o primeiro serviço.
+  - **`services/`** skeleton com `README.md` (convenções consolidadas
+    do `CLAUDE.md` §Code style › Go — `int64` cents, `log/slog` JSON,
+    errors tipados, interfaces pequenas no consumer) + `.gitkeep`.
+    `services/pipeline-service-go/` é mencionado como candidato, sem
+    entrar no escopo desta lane.
+  - **`.github/workflows/go.yml`** com step `detect` que seta
+    `has_go=true|false` via `find . -type f -name "*.go"`. Todos os
+    jobs subsequentes gateados por `if: steps.detect.outputs.has_go ==
+    'true'`; caso contrário, emitem "Skip notice". Resultado:
+    workflow vacuously true em CI enquanto não há `.go`; quando o
+    primeiro entrar, ativa `go work sync` + `gofmt -s -l` + `go vet
+    ./...` + `golangci-lint v1.60` + `go test ./... -race` sem edição
+    do workflow.
+  - **`Makefile`** ganha `go-fmt`, `go-lint`, `go-test`, `go-all` com
+    skip defensivo (`GO_FILES` vazio ou sem `go.work` → no-op +
+    mensagem informativa). `make go-all` retorna 0 num repo sem Go.
+  - **`CLAUDE.md`** §Code style › Go ganha link inline para ADR-113 —
+    zero duplicação de regras.
+  - **Gate local:** `python -c "import yaml; yaml.safe_load(...)"`
+    valida `.golangci.yml` e `.github/workflows/go.yml` sem erro de
+    sintaxe; `make go-fmt`/`go-lint`/`go-test`/`go-all` retornam 0.
+  - **Out of scope (explícito):** código Go produtivo, reescrita de
+    `pipeline-service/`, ativação de `forbidigo`/`depguard`, codegen
+    `oapi-codegen`, hook pre-commit Go. Cada item tem dependência
+    específica e ADR própria quando chegar.
+
 - **A6e.5 — `/api/v1/` prefix + alias deprecated + OpenAPI versionado (2026-04-22 · ADR-108):**
   Versionamento da API pública. Rotas canônicas passam para `/api/v1/*`;
   alias `/api/*` continua funcional via `LegacyApiDeprecationMiddleware`

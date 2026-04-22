@@ -88,8 +88,9 @@ rebase, PR abandonado). Outros agentes só podem confiar que o trabalho
 - **TypeScript**: **sem `any`**. `unknown` + narrow para input externo.
   Tipos do codegen (`frontend/src/generated/`) são fonte de verdade para
   API ↔ UI.
-- **Go** (futuro A6f): **sem `interface{}`/`any`** fora de util genérico.
-  Tipos concretos em assinaturas. Errors tipados
+- **Go** (skeleton + linter prontos em A6g.7 · [ADR-113](docs/DECISIONS.md#adr-113);
+  primeiro serviço entra em `services/<name>/`): **sem `interface{}`/`any`**
+  fora de util genérico. Tipos concretos em assinaturas. Errors tipados
   (`var ErrNotFound = errors.New(...)` ou struct com `Error()`), nunca
   `errors.New("...")` espalhado inline.
 - **Dinheiro nunca é `float`** (ADR-090): `Money` em Python, `Decimal`
