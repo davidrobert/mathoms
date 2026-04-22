@@ -77,6 +77,48 @@ def _generate_token() -> tuple[str, str]:
 # ─── Create ────────────────────────────────────────────────────────────
 
 
+def _validate_role_for_invitation(role: str) -> str:
+    """Normaliza + valida role. Owner não pode ser convidado (ADR de tenancy)."""
+    role = role.strip()
+    if role not in VALID_ROLES:
+        raise InvitationError("invalid_role", f"Papel inválido: {role}")
+    if role == "owner":
+        raise InvitationError(
+            "invalid_role",
+            "Não é possível convidar um novo owner. Transferência de "
+            "ownership é uma ação separada (não disponível ainda).",
+        )
+    return role
+
+
+async def _assert_not_already_member(
+    db: AsyncSession, *, workspace_id: str, email: str
+) -> None:
+    existing = await db.execute(
+        select(WorkspaceMember)
+        .join(User, User.id == WorkspaceMember.user_id)
+        .where(
+            WorkspaceMember.workspace_id == workspace_id,
+            func.lower(User.email) == email,
+        )
+    )
+    if existing.scalar_one_or_none() is not None:
+        raise InvitationError(
+            "already_member", f"{email} já é membro deste workspace."
+        )
+
+
+async def _assert_pending_quota(
+    db: AsyncSession, *, workspace_id: str, now: datetime
+) -> None:
+    pending_count = await _count_pending(db, workspace_id=workspace_id, now=now)
+    if pending_count >= MAX_PENDING_PER_WORKSPACE:
+        raise InvitationError(
+            "limit_reached",
+            f"Limite de {MAX_PENDING_PER_WORKSPACE} convites pendentes atingido.",
+        )
+
+
 async def create_invitation(
     workspace_id: str,
     *,
@@ -95,46 +137,14 @@ async def create_invitation(
             - `already_member`   — user com esse email já é membro
             - `limit_reached`    — workspace atingiu MAX_PENDING_PER_WORKSPACE
     """
-    role = role.strip()
+    role = _validate_role_for_invitation(role)
     email = email.strip().lower()
+    await _assert_not_already_member(db, workspace_id=workspace_id, email=email)
 
-    if role not in VALID_ROLES:
-        raise InvitationError("invalid_role", f"Papel inválido: {role}")
-
-    # Owner só pode ser atribuído na criação do workspace — não por convite.
-    if role == "owner":
-        raise InvitationError(
-            "invalid_role",
-            "Não é possível convidar um novo owner. Transferência de "
-            "ownership é uma ação separada (não disponível ainda).",
-        )
-
-    # Já é membro? Olhamos via join user.email → workspace_members.
-    existing_member = await db.execute(
-        select(WorkspaceMember)
-        .join(User, User.id == WorkspaceMember.user_id)
-        .where(
-            WorkspaceMember.workspace_id == workspace_id,
-            func.lower(User.email) == email,
-        )
-    )
-    if existing_member.scalar_one_or_none() is not None:
-        raise InvitationError(
-            "already_member",
-            f"{email} já é membro deste workspace.",
-        )
-
-    # Rate limit de pendentes.
     now = datetime.now(timezone.utc)
-    pending_count = await _count_pending(db, workspace_id=workspace_id, now=now)
-    if pending_count >= MAX_PENDING_PER_WORKSPACE:
-        raise InvitationError(
-            "limit_reached",
-            f"Limite de {MAX_PENDING_PER_WORKSPACE} convites pendentes atingido.",
-        )
+    await _assert_pending_quota(db, workspace_id=workspace_id, now=now)
 
     raw, token_hash = _generate_token()
-
     invitation = WorkspaceInvitation(
         workspace_id=workspace_id,
         email=email,
@@ -247,6 +257,53 @@ async def get_by_token(
     return result.scalar_one_or_none()
 
 
+def _assert_invitation_is_acceptable(
+    inv: WorkspaceInvitation, *, acceptor: User, now: datetime
+) -> None:
+    """Checa revoked/accepted/expired/email_mismatch. Raise InvitationError."""
+    if inv.revoked_at is not None:
+        raise InvitationError("revoked", "Este convite foi revogado.")
+    if inv.accepted_at is not None:
+        raise InvitationError("already_accepted", "Este convite já foi aceito.")
+
+    exp = inv.expires_at
+    if exp.tzinfo is None:
+        exp = exp.replace(tzinfo=timezone.utc)
+    if exp <= now:
+        raise InvitationError("expired", "Este convite expirou.")
+
+    if acceptor.email.strip().lower() != inv.email.strip().lower():
+        raise InvitationError(
+            "email_mismatch",
+            "Este convite é para outro email. Entre com a conta certa.",
+        )
+
+
+async def _get_or_create_member(
+    db: AsyncSession, *, inv: WorkspaceInvitation, acceptor: User
+) -> WorkspaceMember:
+    """Reutiliza membership existente ou cria nova. Idempotente."""
+    # tenancy: (workspace_id, user_id) é ws-scoped (workspace_id vem do invite).
+    existing = await db.execute(
+        select(WorkspaceMember).where(
+            WorkspaceMember.workspace_id == inv.workspace_id,
+            WorkspaceMember.user_id == acceptor.id,
+        )
+    )
+    member = existing.scalar_one_or_none()
+    if member is not None:
+        return member
+    member = WorkspaceMember(
+        workspace_id=inv.workspace_id,
+        user_id=acceptor.id,
+        role=inv.role,
+        invited_by=inv.invited_by,
+    )
+    db.add(member)
+    await db.flush()
+    return member
+
+
 async def accept_invitation(
     raw_token: str,
     *,
@@ -271,45 +328,10 @@ async def accept_invitation(
     if inv is None:
         raise InvitationError("not_found", "Convite não encontrado ou token inválido.")
 
-    if inv.revoked_at is not None:
-        raise InvitationError("revoked", "Este convite foi revogado.")
-    if inv.accepted_at is not None:
-        raise InvitationError("already_accepted", "Este convite já foi aceito.")
-
     now = datetime.now(timezone.utc)
-    exp = inv.expires_at
-    if exp.tzinfo is None:
-        exp = exp.replace(tzinfo=timezone.utc)
-    if exp <= now:
-        raise InvitationError("expired", "Este convite expirou.")
+    _assert_invitation_is_acceptable(inv, acceptor=acceptor, now=now)
 
-    if acceptor.email.strip().lower() != inv.email.strip().lower():
-        raise InvitationError(
-            "email_mismatch",
-            "Este convite é para outro email. Entre com a conta certa.",
-        )
-
-    # Cria membership (ou reutiliza se já existe — idempotência).
-    # tenancy: global — lookup by (workspace_id, user_id) é ws-scoped,
-    # mas não envolve `workspace_id` no .where explícito porque pegamos
-    # pelo invite (já com ws scope). Para o lint, adicionamos abaixo:
-    existing = await db.execute(
-        select(WorkspaceMember).where(
-            WorkspaceMember.workspace_id == inv.workspace_id,
-            WorkspaceMember.user_id == acceptor.id,
-        )
-    )
-    member = existing.scalar_one_or_none()
-    if member is None:
-        member = WorkspaceMember(
-            workspace_id=inv.workspace_id,
-            user_id=acceptor.id,
-            role=inv.role,
-            invited_by=inv.invited_by,
-        )
-        db.add(member)
-        await db.flush()
-
+    member = await _get_or_create_member(db, inv=inv, acceptor=acceptor)
     inv.accepted_at = now
     inv.accepted_by_user_id = acceptor.id
     db.add(inv)
