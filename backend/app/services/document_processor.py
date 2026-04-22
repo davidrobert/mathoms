@@ -104,6 +104,138 @@ def resolve_classification_base(config_dir: Path, tenant_root: Path | None) -> P
     return global_root.resolve()
 
 
+_JSON_TYPE_DEST_SUBDIR: dict[DocumentType, tuple[str, ...]] = {
+    DocumentType.e1_members_json: ("members",),
+    DocumentType.e1_5_baseline_json: ("processed", "E2_extracts"),
+}
+
+
+def _copy_json_to_canonical(
+    file_path: Path, tenant_root: Path, dest_parts: tuple[str, ...]
+) -> str | None:
+    """Copia JSON para subdir canônica + renomeia para `*-0_original.json`.
+    Retorna caminho relativo ao `tenant_root` (POSIX) ou None em erro.
+    """
+    import shutil
+
+    dest_dir = tenant_root.joinpath(*dest_parts)
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    final_name = ensure_minus_zero_original_filename(file_path.name)
+    dest = dest_dir / final_name
+    shutil.copy2(str(file_path), str(dest))
+    try:
+        rel = dest.resolve().relative_to(tenant_root.resolve())
+        return str(rel).replace("\\", "/")
+    except ValueError:
+        return None
+
+
+def _process_json_document(
+    file_path: Path,
+    *,
+    tenant_root: Path | None,
+    workspace_id: str | None,
+) -> dict | None:
+    """Se o arquivo for JSON E1/E1.5 conhecido, copia para subdir canônica e
+    retorna payload pronto. Retorna None se não for JSON conhecido."""
+    json_type = _detect_json_type(file_path)
+    if json_type is None:
+        return None
+    stored_rel: str | None = None
+    dest_parts = _JSON_TYPE_DEST_SUBDIR.get(json_type)
+    if tenant_root and dest_parts:
+        stored_rel = _copy_json_to_canonical(file_path, tenant_root, dest_parts)
+    out = {
+        "status": DocumentStatus.ready,
+        "doc_type": json_type,
+        "bank_code": None,
+        "period": None,
+        "classification_meta": {"source": "json_structure", "type": json_type.value},
+        "confidence": 1.0,
+        "needs_review": False,
+        "error_message": None,
+        "stored_path_relative": stored_rel,
+    }
+    emit_classification_outcome(
+        context="upload",
+        classification=out,
+        workspace_id=workspace_id,
+        outcome="json_structure",
+    )
+    return out
+
+
+def _locked_pdf_response(workspace_id: str | None) -> dict:
+    """Payload de resposta para PDF protegido por senha não desbloqueado."""
+    emit_classification_outcome(
+        context="upload",
+        classification={
+            "doc_type": None,
+            "confidence": 0.0,
+            "needs_review": True,
+            "classification_meta": {"encrypted": True},
+        },
+        workspace_id=workspace_id,
+        outcome="needs_password",
+    )
+    return {
+        "status": DocumentStatus.needs_password,
+        "doc_type": None,
+        "bank_code": None,
+        "period": None,
+        "classification_meta": {"encrypted": True, "unlock_attempted": True},
+        "confidence": 0.0,
+        "needs_review": True,
+        "error_message": "PDF protegido por senha. Nenhuma senha do vault funcionou.",
+        "stored_path_relative": None,
+    }
+
+
+def _route_classified_file(
+    file_path: Path,
+    classification: dict,
+    *,
+    tenant_root: Path | None,
+    classification_root: Path,
+    content_hash: str | None,
+) -> str | None:
+    """Se pode rotear (needs_review=False), move inbox → data/; senão fica
+    onde está e computa caminho relativo. Mutaciona `classification` com
+    `routed_path`. Retorna `stored_path_relative`."""
+    # REGRA: só renomeamos/roteamos quando a classificação é confiante o
+    # suficiente (needs_review=False). Arquivos com baixa confiança —
+    # imagens não identificadas, PDFs somente-imagem sem ANTHROPIC_API_KEY,
+    # etc. — ficam no inbox com o nome original para revisão manual na UI.
+    # Isso evita nomes como "unknown_other_None-0_original.jpg".
+    if tenant_root and classification_can_route_to_data(classification):
+        routed = route_inbox_to_canonical_data(
+            file_path,
+            tenant_root,
+            classification_root,
+            dest_group=classification["dest_group"],
+            e0_doc_type=classification["e0_doc_type"],
+            institution=classification.get("bank_code"),
+            period=classification.get("period"),
+            classification_meta=classification.get("classification_meta"),
+            content_hash=content_hash,
+        )
+        if routed:
+            abs_dest, stored_rel = routed
+            classification["routed_path"] = str(abs_dest)
+            return stored_rel
+        classification["routed_path"] = None
+        return None
+    if tenant_root:
+        classification["routed_path"] = None
+        try:
+            return str(
+                file_path.resolve().relative_to(tenant_root.resolve())
+            ).replace("\\", "/")
+        except ValueError:
+            return None
+    return None
+
+
 def process_uploaded_document(
     file_path: Path,
     passwords: list[str],
@@ -129,114 +261,26 @@ def process_uploaded_document(
     ext = file_path.suffix.lower()
 
     if ext == ".json":
-        json_type = _detect_json_type(file_path)
-        if json_type:
-            import shutil
-
-            stored_rel: str | None = None  # remains None if tenant_root missing
-            # JSON files (E1/E1.5) go to specific dirs — use *-0_original.* for E2/pipeline parity
-            if tenant_root and json_type == DocumentType.e1_members_json:
-                members_dir = tenant_root / "members"
-                members_dir.mkdir(parents=True, exist_ok=True)
-                final_name = ensure_minus_zero_original_filename(file_path.name)
-                dest = members_dir / final_name
-                shutil.copy2(str(file_path), str(dest))
-                rel = dest.resolve().relative_to(tenant_root.resolve())
-                stored_rel = str(rel).replace("\\", "/")
-            elif tenant_root and json_type == DocumentType.e1_5_baseline_json:
-                e2_dir = tenant_root / "processed" / "E2_extracts"
-                e2_dir.mkdir(parents=True, exist_ok=True)
-                final_name = ensure_minus_zero_original_filename(file_path.name)
-                dest = e2_dir / final_name
-                shutil.copy2(str(file_path), str(dest))
-                rel = dest.resolve().relative_to(tenant_root.resolve())
-                stored_rel = str(rel).replace("\\", "/")
-            out = {
-                "status": DocumentStatus.ready,
-                "doc_type": json_type,
-                "bank_code": None,
-                "period": None,
-                "classification_meta": {"source": "json_structure", "type": json_type.value},
-                "confidence": 1.0,
-                "needs_review": False,
-                "error_message": None,
-                "stored_path_relative": stored_rel,
-            }
-            emit_classification_outcome(
-                context="upload",
-                classification=out,
-                workspace_id=workspace_id,
-                outcome="json_structure",
-            )
-            return out
+        json_result = _process_json_document(
+            file_path, tenant_root=tenant_root, workspace_id=workspace_id
+        )
+        if json_result is not None:
+            return json_result
 
     if ext == ".pdf" and passwords:
         is_encrypted, was_unlocked = try_unlock_pdf(file_path, passwords)
         if is_encrypted and not was_unlocked:
-            emit_classification_outcome(
-                context="upload",
-                classification={
-                    "doc_type": None,
-                    "confidence": 0.0,
-                    "needs_review": True,
-                    "classification_meta": {"encrypted": True},
-                },
-                workspace_id=workspace_id,
-                outcome="needs_password",
-            )
-            return {
-                "status": DocumentStatus.needs_password,
-                "doc_type": None,
-                "bank_code": None,
-                "period": None,
-                "classification_meta": {"encrypted": True, "unlock_attempted": True},
-                "confidence": 0.0,
-                "needs_review": True,
-                "error_message": "PDF protegido por senha. Nenhuma senha do vault funcionou.",
-                "stored_path_relative": None,
-            }
+            return _locked_pdf_response(workspace_id)
 
     classification_root = resolve_classification_base(config_dir, tenant_root)
     classification = classify_document(file_path, classification_root)
-
-    stored_rel: str | None = None
-    # Move inbox → data/... with E0 canonical filename (*-0_original.*).
-    #
-    # REGRA: só renomeamos/roteamos quando a classificação é confiante o
-    # suficiente (needs_review=False). Arquivos com baixa confiança — imagens
-    # não identificadas, PDFs somente-imagem sem ANTHROPIC_API_KEY, etc. —
-    # ficam no inbox com o nome original para revisão manual na UI.
-    #
-    # Isso evita nomes como "unknown_other_None-0_original.jpg" que não
-    # agregam informação e dificultam a auditoria.
-    _can_route = tenant_root and classification_can_route_to_data(classification)
-    if _can_route:
-        routed = route_inbox_to_canonical_data(
-            file_path,
-            tenant_root,
-            classification_root,
-            dest_group=classification["dest_group"],
-            e0_doc_type=classification["e0_doc_type"],
-            institution=classification.get("bank_code"),
-            period=classification.get("period"),
-            classification_meta=classification.get("classification_meta"),
-            content_hash=content_hash,
-        )
-        if routed:
-            abs_dest, stored_rel = routed
-            classification["routed_path"] = str(abs_dest)
-        else:
-            classification["routed_path"] = None
-    elif tenant_root:
-        # Arquivo fica onde está (inbox) — computa caminho relativo para o
-        # DB (evita caminhos absolutos que quebram ao mover o servidor).
-        classification["routed_path"] = None
-        try:
-            stored_rel = str(
-                file_path.resolve().relative_to(tenant_root.resolve())
-            ).replace("\\", "/")
-        except ValueError:
-            stored_rel = None  # fora de tenant_root — ficará como caminho absoluto
+    stored_rel = _route_classified_file(
+        file_path,
+        classification,
+        tenant_root=tenant_root,
+        classification_root=classification_root,
+        content_hash=content_hash,
+    )
 
     emit_classification_outcome(
         context="upload",
