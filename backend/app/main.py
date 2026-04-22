@@ -24,6 +24,7 @@ from backend.app.core.database import init_db
 from backend.app.core.logging import setup_logging
 from backend.app.core.otel import instrument_fastapi, setup_otel
 from backend.app.middleware.correlation import CorrelationIdMiddleware
+from backend.app.middleware.legacy_deprecation import LegacyApiDeprecationMiddleware
 from backend.app.api.auth import router as auth_router
 from backend.app.api.reports import router as reports_router
 from backend.app.api.vault import router as vault_router
@@ -72,6 +73,7 @@ app = FastAPI(
 )
 
 app.add_middleware(CorrelationIdMiddleware)
+app.add_middleware(LegacyApiDeprecationMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
