@@ -38,6 +38,14 @@ interface UsePlanoOverviewResult {
   error: string | null;
 }
 
+interface PlanoSetters {
+  setGoals: (g: PlanoGoals) => void;
+  setLinkedTasks: (t: TaskResponse[]) => void;
+  setProgress: (p: IFProgress | null) => void;
+  setLoading: (b: boolean) => void;
+  setError: (s: string | null) => void;
+}
+
 const EMPTY_GOALS: PlanoGoals = {
   ifGoal: null,
   aporteGoal: null,
@@ -57,43 +65,54 @@ export function usePlanoOverview(
   useEffect(() => {
     if (!workspaceId) return;
     let cancelled = false;
-
-    async function load(wsId: string) {
-      setLoading(true);
-      setError(null);
-      try {
-        const loadedGoals = await loadAllGoals(wsId);
-        if (cancelled) return;
-        setGoals(loadedGoals);
-
-        if (loadedGoals.ifGoal) {
-          const [tasks, ifProgress] = await loadIFExtras(
-            wsId,
-            loadedGoals.ifGoal
-          );
-          if (cancelled) return;
-          setLinkedTasks(tasks);
-          setProgress(ifProgress);
-        }
-      } catch (err: unknown) {
-        if (cancelled) return;
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Erro ao carregar o plano. Tente novamente."
-        );
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load(workspaceId);
+    const setters: PlanoSetters = {
+      setGoals,
+      setLinkedTasks,
+      setProgress,
+      setLoading,
+      setError,
+    };
+    runPlanoLoad(workspaceId, setters, () => cancelled);
     return () => {
       cancelled = true;
     };
   }, [workspaceId]);
 
   return { goals, linkedTasks, progress, loading, error };
+}
+
+async function runPlanoLoad(
+  wsId: string,
+  setters: PlanoSetters,
+  isCancelled: () => boolean
+) {
+  setters.setLoading(true);
+  setters.setError(null);
+  try {
+    const loadedGoals = await loadAllGoals(wsId);
+    if (isCancelled()) return;
+    setters.setGoals(loadedGoals);
+
+    if (loadedGoals.ifGoal) {
+      const [tasks, ifProgress] = await loadIFExtras(
+        wsId,
+        loadedGoals.ifGoal
+      );
+      if (isCancelled()) return;
+      setters.setLinkedTasks(tasks);
+      setters.setProgress(ifProgress);
+    }
+  } catch (err: unknown) {
+    if (!isCancelled()) setters.setError(errorMessage(err));
+  } finally {
+    if (!isCancelled()) setters.setLoading(false);
+  }
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error
+    ? err.message
+    : "Erro ao carregar o plano. Tente novamente.";
 }
 
 async function loadAllGoals(wsId: string): Promise<PlanoGoals> {
@@ -138,24 +157,27 @@ async function loadIFProgress(
     const { reports } = await listReports(wsId);
     const latest = reports.find((r) => r.patrimonio_liquido != null);
     if (!latest?.patrimonio_liquido) return null;
-
-    const result = await computeIFGoal(wsId, {
-      inputs: goalData.inputs,
-      patrimonio_atual_brl: latest.patrimonio_liquido,
-    });
-
-    if (
-      result.percentual_conquistado != null &&
-      result.faltante_brl != null
-    ) {
-      return {
-        pct: result.percentual_conquistado,
-        faltante: result.faltante_brl,
-        patrimonio: latest.patrimonio_liquido,
-      };
-    }
+    return await computeIFProgress(wsId, goalData, latest.patrimonio_liquido);
   } catch {
-    // Progresso is nice-to-have
+    return null;
   }
-  return null;
+}
+
+async function computeIFProgress(
+  wsId: string,
+  goalData: IFGoalResponse,
+  patrimonio: number
+): Promise<IFProgress | null> {
+  const result = await computeIFGoal(wsId, {
+    inputs: goalData.inputs,
+    patrimonio_atual_brl: patrimonio,
+  });
+  if (result.percentual_conquistado == null || result.faltante_brl == null) {
+    return null;
+  }
+  return {
+    pct: result.percentual_conquistado,
+    faltante: result.faltante_brl,
+    patrimonio,
+  };
 }
