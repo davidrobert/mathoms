@@ -2,7 +2,6 @@
 
 import { Suspense, useCallback, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";

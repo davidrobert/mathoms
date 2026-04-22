@@ -39,7 +39,7 @@ export function U2GreenCardSection({ data }: { data: ReportAnalysisData }) {
 }
 
 /** F9 · F2.H — U3 (NCLEX Roadmap). */
-export function U3NclexSection({ data }: { data: ReportAnalysisData }) {
+export function U3NclexSection({ data: _data }: { data: ReportAnalysisData }) {
   return (
     <ReportSection id="U3" title="NCLEX Roadmap — Licenciamento RN">
       <ReportCard variant="feature" title="NCLEX Roadmap">

@@ -31,9 +31,7 @@ export function formatDelta(
   value: number,
   opts?: { percent?: number; currency?: "BRL" | "USD"; invert?: boolean }
 ): string {
-  const sign = value >= 0 ? "+" : "";
   const formatted = formatCurrency(value, opts?.currency);
-  const prefix = sign + (value >= 0 ? "" : "");
   let result = value >= 0 ? `+${formatted}` : formatted;
   if (opts?.percent != null) {
     const pctSign = opts.percent >= 0 ? "+" : "";

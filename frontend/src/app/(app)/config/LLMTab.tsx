@@ -39,7 +39,6 @@ import {
   Trash2,
   Zap,
   CheckCircle2,
-  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/lib/WorkspaceProvider";

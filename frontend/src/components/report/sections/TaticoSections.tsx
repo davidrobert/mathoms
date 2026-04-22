@@ -14,16 +14,6 @@ import type { FluxoCaixaSummary, OrcamentoProspectivoData, ConsumoConscienteData
  * placeholders para os que virão da integração tasks (F8.3).
  */
 
-function fmtBRL(v: number | undefined) {
-  if (v === undefined) return "—";
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(v);
-}
-
-function fmtPct(v: number | undefined) {
-  if (v === undefined) return "—";
-  return `${v.toFixed(1).replace(".", ",")}%`;
-}
-
 export function T1FluxoOperacionalSection({ data }: { data: ReportAnalysisData }) {
   const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
   const orcamento = data.orcamento_prospectivo as OrcamentoProspectivoData | undefined;
@@ -84,7 +74,7 @@ export function T1FluxoOperacionalSection({ data }: { data: ReportAnalysisData }
   );
 }
 
-export function T2AportesSection({ data }: { data: ReportAnalysisData }) {
+export function T2AportesSection({ data: _data }: { data: ReportAnalysisData }) {
   return (
     <ReportSection id="T2" title="Aportes e Investimentos">
       <ReportCard variant="feature" title="Aportes e Variação Patrimonial">

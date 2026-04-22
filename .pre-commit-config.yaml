@@ -46,6 +46,16 @@ repos:
   # ----------------------------------------------------------------------
   - repo: local
     hooks:
+      - id: eslint-frontend
+        # A6g.6 slice 2, ADR-114: gate @typescript-eslint/no-explicit-any.
+        # Wrapper em dev/ pula limpo se frontend/node_modules não existe
+        # (dev pode não ter rodado npm install).
+        name: "ESLint: frontend/src (no-explicit-any)"
+        entry: bash dev/run_eslint_frontend.sh
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx)$
+        pass_filenames: false
+
       - id: forbidden-paths
         name: "Bloqueia paths sensíveis (storage/, .env, *.db, …)"
         entry: python dev/check_forbidden_paths.py
