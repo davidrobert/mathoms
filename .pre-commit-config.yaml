@@ -56,6 +56,23 @@ repos:
         files: ^frontend/src/.*\.(ts|tsx)$
         pass_filenames: false
 
+      - id: forbidden-names
+        # A6g.6 slice 3, ADR-114: bloqueia filenames genéricos.
+        name: "Proíbe filenames genéricos (utils, helpers, manager, handler)"
+        entry: python3 dev/check_forbidden_names.py
+        language: system
+        pass_filenames: true
+        files: \.(py|ts|tsx)$
+
+      - id: float-money
+        # A6g.6 slice 3, ADR-114: bloqueia `: float` em campo monetário
+        # (ADR-090). Checa apenas linhas adicionadas — legado fica.
+        name: "Proíbe float em campo monetário (ADR-090)"
+        entry: python3 dev/check_float_money.py
+        language: system
+        pass_filenames: true
+        types: [python]
+
       - id: forbidden-paths
         name: "Bloqueia paths sensíveis (storage/, .env, *.db, …)"
         entry: python dev/check_forbidden_paths.py
