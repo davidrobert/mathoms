@@ -36,14 +36,16 @@ A6g.3b (`docs/agent_prompts/track_a6g3b_decimal_money_migration.md`).
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Annotated, Any
+from typing import Annotated
 
 from pydantic import BeforeValidator, PlainSerializer
 
 
-def _coerce_to_decimal(v: Any) -> Decimal:
+def _coerce_to_decimal(v: object) -> Decimal:
     """Converte input do usuário para Decimal. Rejeita tipos inesperados
-    via `ValueError` (Pydantic wraps em `ValidationError`).
+    via `ValueError` (Pydantic wraps em `ValidationError`). `object` em
+    vez de `Any` — top type, aceita tudo, sem flaggar no gate `no_any_in_
+    boundary` (CLAUDE.md §Tipos).
     """
     if isinstance(v, Decimal):
         return v
