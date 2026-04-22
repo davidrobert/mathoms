@@ -1,21 +1,23 @@
-"""Notifications API — CRUD for workspace notifications (tenant-scoped, ADR-072)."""
+"""Notifications router fino — CRUD por workspace (A6e.4 · ADR-072 · ADR-101 R15/R16)."""
 
 from __future__ import annotations
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.application.notification import (
+    delete_notification as _delete_notification,
+    list_notifications as _list_notifications,
+    mark_notifications_read as _mark_notifications_read,
+)
 from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace
-from backend.app.models.notification import Notification
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.notifications import (
     NotificationListResponse,
     NotificationMarkReadRequest,
-    NotificationResponse,
     NotificationsMarkedReadResponse,
 )
 
@@ -32,36 +34,13 @@ async def list_notifications(
     limit: int = Query(50, ge=1, le=200),
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    query = select(Notification).where(Notification.workspace_id == workspace.id)
-
-    if severity:
-        query = query.where(Notification.severity == severity)
-    if is_read is not None:
-        query = query.where(Notification.is_read == is_read)
-
-    query = query.order_by(Notification.created_at.desc()).limit(limit)
-    result = await db.execute(query)
-    items = result.scalars().all()
-
-    unread_result = await db.execute(
-        select(func.count())
-        .select_from(Notification)
-        .where(Notification.workspace_id == workspace.id, Notification.is_read == False)  # noqa: E712
-    )
-    unread_count = unread_result.scalar() or 0
-
-    total_result = await db.execute(
-        select(func.count())
-        .select_from(Notification)
-        .where(Notification.workspace_id == workspace.id)
-    )
-    total = total_result.scalar() or 0
-
-    return NotificationListResponse(
-        notifications=[NotificationResponse.model_validate(n) for n in items],
-        total=total,
-        unread_count=unread_count,
+) -> NotificationListResponse:
+    return await _list_notifications(
+        workspace.id,
+        db=db,
+        severity=severity,
+        is_read=is_read,
+        limit=limit,
     )
 
 
@@ -75,20 +54,7 @@ async def mark_read(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ) -> NotificationsMarkedReadResponse:
-    result = await db.execute(
-        select(Notification).where(
-            Notification.workspace_id == workspace.id,
-            Notification.id.in_(body.notification_ids),
-        )
-    )
-    notifications = result.scalars().all()
-    updated = 0
-    for notif in notifications:
-        if not notif.is_read:
-            notif.is_read = True
-            updated += 1
-    await db.commit()
-    return NotificationsMarkedReadResponse(updated=updated)
+    return await _mark_notifications_read(workspace.id, body, db=db)
 
 
 @router.delete("/{notification_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -96,15 +62,5 @@ async def delete_notification(
     notification_id: str,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    result = await db.execute(
-        select(Notification).where(
-            Notification.id == notification_id,
-            Notification.workspace_id == workspace.id,
-        )
-    )
-    notif = result.scalar_one_or_none()
-    if not notif:
-        raise HTTPException(status_code=404, detail="Notificação não encontrada")
-    await db.delete(notif)
-    await db.commit()
+) -> None:
+    await _delete_notification(workspace.id, notification_id, db=db)
