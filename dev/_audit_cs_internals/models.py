@@ -20,7 +20,7 @@ EXCLUDE_PY_PATH_PREFIXES = (
 EXCLUDE_TS_PATH_PREFIXES = ("frontend/src/generated/",)
 
 EXCLUDE_DIR_NAMES = frozenset({
-    "__pycache__", "node_modules", ".venv", "venv", "dist", "build",
+    "__pycache__", "node_modules", ".venv", ".venv-lint", "venv", "dist", "build",
     ".next", "_scratch", "_archive", "storage", "data", "inbox",
     "inbox_processed", ".git",
 })
