@@ -268,7 +268,7 @@ Em rollback: `git reset --hard origin/main` na branch; anunciar no chat (`A6g.3 
 | **A6e.4** thin routers | 🚧 9/14 parcial | **Zero** — você não toca `api/*`. Se A6e.4 agente ainda está ativo com rebases, comunique via commit pequeno em hotspot (CHANGELOG/BACKLOG). |
 | **A6e.3c** tipar DTOs | ☐ aberta | **Overlap real** em 4 arquivos (`schemas/dto/family_member/*` + `category/mapper.py`). **Pegar ambos** (incluir no seu slice 1) OR **evitar** esses 4 arquivos (deixa para quem pegar A6e.3c). |
 | **A6g.6b** ruff auto-fix + format | ☐ aberta | **Overlap pesado** — `ruff format .` reformata ~422 arquivos incluindo backend/. Se A6g.6b mergear **antes** de A6g.3, você só precisa rebasear e trabalhar sobre código já formatado (bom). Se A6g.6b mergear **durante** seu slice, rebase vai ser grande — coordene sequencial. |
-| **A6g.2c** rename `pipeline/llm/service.py` | ☐ aberta | **Zero** — toca `pipeline/`, não `backend/app/`. |
+| **A6g.2c** rename `pipeline/llm/service.py` → `litellm_client.py` | ✅ 2026-04-22 | **Zero overlap** — mergeada em `main` (commit `8e115ec`); nenhuma ação necessária. |
 | **A6e.events-migration** | ☐ aberta | **Overlap moderado** em `services/audit.py` + use cases. Se a migration rodar antes, você trabalha sobre código pós-evento. Coordene via commit order. |
 
 **Recomendação de ordem:** A6g.6b **primeiro** (ruff format reformata tudo) → A6g.3 trabalha em código já formatado. Se impossível coordenar, rode `ruff format .` você mesmo em slice inicial como "sync".
@@ -303,7 +303,7 @@ git fetch origin && git log --oneline HEAD..origin/main
 - **Use cases** — A6e.3/.3b ✅.
 - **DTOs `family_member/*` + `category/mapper`** — A6e.3c (pode sobrepor; ver coordenação).
 - **Auto-fix ruff I001/F541 + format** — A6g.6b (provavelmente antes desta lane).
-- **Rename `pipeline/llm/service.py`** — A6g.2c.
+- **Rename `pipeline/llm/service.py`** — A6g.2c ✅ (mergeada 2026-04-22).
 - **Scripts `backend/app/scripts/`** — deferido (65 ofensores P7 low).
 - **P7 multiparagraph_docstring massa** — 254 ofensores; osmose quando tocar arquivo; nunca commit dedicado.
 - **Decomposição de `pipeline_task.py` 753 l** em múltiplos módulos — ADR dedicada; fora de style sweep.

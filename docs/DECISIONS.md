@@ -3610,13 +3610,18 @@ código novo; regras progressivas decrementam via baseline auditado.
 - **Filenames genéricos** (`dev/check_forbidden_names.py`): bloqueia
   `utils.py/ts(x)`, `helpers.py/ts(x)`, `manager.py/ts(x)`,
   `handler.py/ts(x)`, `service.py/ts` — match exato, não prefixo.
-  ALLOWLIST aceita `pipeline/llm/service.py` (rename em A6g.2c).
+  ALLOWLIST vazia desde A6g.2c ✅ (2026-04-22) que renomeou
+  `pipeline/llm/service.py` → `pipeline/llm/litellm_client.py`.
 - **Float monetário** (`dev/check_float_money.py`, ADR-090): bloqueia
   `: float` em campo cujo nome contém
   `amount|valor|brl|saldo|money|total|price|cost|despesa|receita|
   aporte|patrimonio|capital|dinheiro|preco`. Detecta apenas linhas
   **adicionadas** (`git diff --cached`) — 79 legados passam. Skip
-  explícito para `tolerance|rate|percentage|ratio`.
+  explícito para `tolerance|rate|percentage|ratio`. `_is_rename()`
+  (adicionado pós-A6g.2c) consulta `git diff --name-status
+  --find-renames=90%` para pular arquivos renomeados (git trata todas
+  as linhas como adicionadas em rename puro, produzindo false positive
+  em campos legados).
 - **Test AST `test_no_any_in_boundary.py`**: varre
   `backend/app/schemas/**/*.py`; 12 arquivos em `LEGACY_FILES` (4
   OPAQUE permanentes — config blob / opaque responses; 8 com track
@@ -3680,9 +3685,11 @@ P9_deep_nesting=239, T3_ts_long_functions=29.
   ativa I001/F541 no gate + promove `max-lines*` de warn para error.
 - **A6g.6c** (opcional): ativa rules `UP` (pyupgrade), `B` (bugbear),
   `C90` (mccabe complexity=10) no ruff após sweep.
-- **A6g.2c** (sweep): renomeia `pipeline/llm/service.py` para nome
-  específico (ex.: `llm_client.py`, `llm_provider.py`) — remove única
-  entry da ALLOWLIST `forbidden-names`.
+- **A6g.2c** ✅ 2026-04-22: renomeou `pipeline/llm/service.py` →
+  `pipeline/llm/litellm_client.py`; ALLOWLIST do `forbidden-names`
+  zerada; hook `check_float_money.py` ganhou `_is_rename()` para não
+  disparar em renames puros (`git mv` faz git ver todas as linhas
+  como adicionadas, triggering false positive em campos legados).
 - **A6e.3c** (sweep): elimina `dict[str, Any]` em DTOs não-OPAQUE
   (`family_member/*`, `category/mapper.py`), promove 4 arquivos de
   LEGACY_FILES para CLEAN_FILES em `test_no_any_in_boundary.py`.

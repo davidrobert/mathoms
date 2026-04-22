@@ -142,7 +142,7 @@ def mock_llm_service(monkeypatch) -> None:
 
     Em E2E com backend real, ativação é via env var `MATHOMS_LLM_MOCK=1`
     que o próprio backend detecta (implementação em
-    `pipeline/llm/service.py` a adicionar quando 6.5F.11 for formalizado
+    `pipeline/llm/litellm_client.py` a adicionar quando 6.5F.11 for formalizado
     como código, não só fixture).
     """
     from pipeline.llm import litellm_client as llm_service
@@ -153,7 +153,7 @@ def mock_llm_service(monkeypatch) -> None:
     # Exemplo de override — a assinatura exata do LLMService pode variar;
     # este scaffold cobre o pattern. Implementação real em 6.5F.11 follow-up.
     if hasattr(llm_service, "LLMService"):
-        # Intercepta método principal (a confirmar qual — ver pipeline/llm/service.py)
+        # Intercepta método principal (a confirmar qual — ver pipeline/llm/litellm_client.py)
         original = getattr(llm_service.LLMService, "call", None)
         if original:
             def _mock(self, stage, *args, **kwargs):
