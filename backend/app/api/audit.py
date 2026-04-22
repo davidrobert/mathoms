@@ -1,69 +1,47 @@
-"""Audit API — expõe o audit log do workspace (tenant-scoped, ADR-072).
+"""Audit API — router fino (A6e.4 · ADR-101 R15/R16 · ADR-072).
 
-Rota read-only. Não há endpoint de delete/edit — audit logs são imutáveis
-por definição (integridade).
-
-Em produção com volume alto, adicionar: paginação server-side adequada,
-filtro por janela de tempo, export CSV. Por ora mantemos simples: últimos
-N eventos ordenados por data desc.
+Audit logs são imutáveis (read-only). Lógica de query vive em
+:mod:`backend.app.application.audit`.
 """
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.application.audit import list_audit_logs as _list_audit_logs
+from backend.app.application.audit.list_audit_logs import (
+    AuditLogEntry,
+    AuditLogListResponse,
+)
 from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace
-from backend.app.models.audit_log import AuditLog
 from backend.app.models.workspace import Workspace
+from backend.app.repositories.audit_log_repository import AuditLogRepository
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/audit",
     tags=["audit"],
 )
 
-
-class AuditLogEntry(BaseModel):
-    id: str
-    action: str
-    resource_type: str
-    resource_id: Optional[str]
-    ip_address: Optional[str]
-    user_agent: Optional[str]
-    details: Optional[dict]
-    created_at: datetime
-
-    model_config = {"from_attributes": True}
+__all__ = ["router", "AuditLogEntry", "AuditLogListResponse"]
 
 
-class AuditLogListResponse(BaseModel):
-    entries: list[AuditLogEntry]
-    total: int
+def _get_repo(db: AsyncSession = Depends(get_db)) -> AuditLogRepository:
+    return AuditLogRepository(db)
 
 
 @router.get("", response_model=AuditLogListResponse)
 async def list_audit_logs(
     limit: int = Query(100, ge=1, le=500),
-    action: Optional[str] = Query(None, description="Filtrar por ação exata, ex.: document.upload"),
+    action: Optional[str] = Query(
+        None, description="Filtrar por ação exata, ex.: document.upload"
+    ),
     workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
-):
-    """Lista os audit logs do workspace."""
-    query = select(AuditLog).where(AuditLog.workspace_id == workspace.id)
-    if action:
-        query = query.where(AuditLog.action == action)
-    query = query.order_by(AuditLog.created_at.desc()).limit(limit)
-
-    result = await db.execute(query)
-    entries = result.scalars().all()
-
-    return AuditLogListResponse(
-        entries=[AuditLogEntry.model_validate(e) for e in entries],
-        total=len(entries),
+    repo: AuditLogRepository = Depends(_get_repo),
+) -> AuditLogListResponse:
+    return await _list_audit_logs(
+        workspace.id, repo=repo, limit=limit, action=action
     )

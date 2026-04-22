@@ -6518,7 +6518,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/audit": {
       "get": {
-        "description": "Lista os audit logs do workspace.",
         "operationId": "list_audit_logs_api_v1_workspaces__workspace_id__audit_get",
         "parameters": [
           {
@@ -9360,7 +9359,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/goals/if": {
       "get": {
-        "description": "404 se workspace ainda n\u00e3o tem meta IF persistida\n(frontend deve mostrar wizard nesse caso).",
         "operationId": "get_if_goal_api_v1_workspaces__workspace_id__goals_if_get",
         "parameters": [
           {
@@ -9406,7 +9404,6 @@
         ]
       },
       "put": {
-        "description": "Edi\u00e7\u00e3o \u00e9 append-only: cria novo registro com `effective_from = hoje`\ne fecha o anterior com `effective_to = ontem`. Hist\u00f3rico \u00e9 preservado.\n\nRBAC (F9): `viewer` recebe 403 \u2014 apenas `owner` e `member` editam.",
         "operationId": "upsert_if_goal_api_v1_workspaces__workspace_id__goals_if_put",
         "parameters": [
           {
@@ -9464,7 +9461,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/goals/if/compute": {
       "post": {
-        "description": "Preview live do frontend. N\u00e3o toca o banco.\n\nSe `patrimonio_atual_brl` for enviado, inclui `percentual_conquistado`\ne `faltante_brl` para UI de progresso.",
         "operationId": "compute_if_goal_api_v1_workspaces__workspace_id__goals_if_compute_post",
         "parameters": [
           {
@@ -9569,7 +9565,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/goals/{goal_id}/tasks": {
       "get": {
-        "description": "Lista tasks com `related_goal_id == goal_id` dentro do workspace.\n\n\u00datil para a view `/plano/meta-if`: se\u00e7\u00e3o \"Tarefas que destravam esta\nmeta\" com % completude.",
         "operationId": "list_tasks_for_goal_api_v1_workspaces__workspace_id__goals__goal_id__tasks_get",
         "parameters": [
           {
