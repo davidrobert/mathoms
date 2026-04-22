@@ -14,6 +14,7 @@ from backend.app.events import (
     enqueue_async,
     register_handler,
 )
+from backend.app.events.registry import _HANDLERS
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -27,10 +28,13 @@ class _UnregisteredEvent(Event):
 
 
 @pytest.fixture(autouse=True)
-def _clean_registry():
+def _isolate_registry():
+    """Save/restore — preserva handlers reais registrados via import."""
+    snapshot = {k: list(v) for k, v in _HANDLERS.items()}
     clear_handlers()
     yield
-    clear_handlers()
+    _HANDLERS.clear()
+    _HANDLERS.update({k: list(v) for k, v in snapshot.items()})
 
 
 @pytest.mark.asyncio

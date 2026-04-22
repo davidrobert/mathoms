@@ -22,7 +22,9 @@ from backend.app.application.family_member import (
     update_family_member,
 )
 from backend.app.core.database import get_db
+from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace
+from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.repositories.family_member_repository import FamilyMemberRepository
 from backend.app.schemas.dto.family_member import (
@@ -67,9 +69,16 @@ async def create_member(
     body: FamilyMemberCreateCommand,
     workspace: Workspace = Depends(get_current_workspace),
     repo: FamilyMemberRepository = Depends(_get_repo),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> FamilyMemberResponse:
     return await create_family_member(
-        body, workspace_id=workspace.id, repo=repo, vault=_vault
+        body,
+        workspace_id=workspace.id,
+        repo=repo,
+        vault=_vault,
+        db=db,
+        actor_user_id=current_user.id,
     )
 
 

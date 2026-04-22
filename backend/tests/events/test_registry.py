@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import pytest
 
 from backend.app.events import Event, clear_handlers, register_handler
-from backend.app.events.registry import handlers_for
+from backend.app.events.registry import _HANDLERS, handlers_for
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -21,10 +21,18 @@ class _EventB(Event):
 
 
 @pytest.fixture(autouse=True)
-def _clean_registry():
+def _isolate_registry():
+    """Salva o estado atual do registro antes do teste e restaura depois.
+
+    ``clear_handlers`` apagaria os handlers reais registrados via import —
+    outros testes no mesmo run os perderiam. Save+restore isola sem efeito
+    colateral global.
+    """
+    snapshot = {k: list(v) for k, v in _HANDLERS.items()}
     clear_handlers()
     yield
-    clear_handlers()
+    _HANDLERS.clear()
+    _HANDLERS.update({k: list(v) for k, v in snapshot.items()})
 
 
 def test_register_handler_stores_callable_under_event_class():
