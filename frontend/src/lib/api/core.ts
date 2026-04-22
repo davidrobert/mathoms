@@ -1,4 +1,6 @@
-export const API_BASE = "/api";
+// A6e.5 · ADR-108 — prefix canônico. Alias /api/* continua funcional no
+// backend até F7A (LegacyApiDeprecationMiddleware anuncia Deprecation).
+export const API_BASE = "/api/v1";
 
 // ─── Token Management ───
 

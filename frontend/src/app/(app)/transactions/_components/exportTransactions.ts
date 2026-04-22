@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import type { TransactionItem } from "@/lib/api";
-import { getToken } from "@/lib/api";
+import { API_BASE, getToken } from "@/lib/api";
 import { bankLabel } from "@/lib/format";
 import type { FilterState } from "./FiltersPanel";
 
@@ -24,7 +24,7 @@ function exportCsvServerSide(search: string, filters: FilterState) {
   const params = buildFilterQuery(search, filters);
   params.set("format", "csv");
   const token = getToken();
-  const url = `/api/transactions/export?${params.toString()}`;
+  const url = `${API_BASE}/transactions/export?${params.toString()}`;
 
   fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
     .then((res) => {

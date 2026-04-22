@@ -81,7 +81,7 @@ test.describe("Upload → Pipeline → Report @critical", () => {
 
     // Configura LLM no backend (via API, seeding)
     const token = await page.evaluate(() => localStorage.getItem("fin_token"));
-    await request.put("/api/config/llm", {
+    await request.put("/api/v1/config/llm", {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         provider: "anthropic",
@@ -92,9 +92,9 @@ test.describe("Upload → Pipeline → Report @critical", () => {
       },
     });
 
-    // Intercepta POST /api/pipeline/run para capturar skip_llm value
+    // Intercepta POST /api/v1/pipeline/run para capturar skip_llm value
     let capturedSkipLlm: boolean | null = null;
-    await page.route("**/api/pipeline/run", async (route) => {
+    await page.route("**/api/v1/pipeline/run", async (route) => {
       const postData = route.request().postDataJSON();
       capturedSkipLlm = postData?.skip_llm;
       await route.continue();

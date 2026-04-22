@@ -5,7 +5,7 @@
  * 1. Vitest + jsdom (renderiza React 19 sem crash)
  * 2. @testing-library/react (queries por role/text)
  * 3. @testing-library/jest-dom (matchers)
- * 4. MSW interceptando /api/* (handlers default)
+ * 4. MSW interceptando /api/v1/* (handlers default)
  * 5. Factories type-safe (compilação + valores sane)
  * 6. Path alias `@/lib/...` resolvendo
  *
@@ -35,8 +35,8 @@ describe("Bootstrap smoke", () => {
     });
   });
 
-  describe("MSW intercepta /api/*", () => {
-    it("GET /api/auth/me retorna user do handler default", async () => {
+  describe("MSW intercepta /api/v1/*", () => {
+    it("GET /api/v1/auth/me retorna user do handler default", async () => {
       setToken("test-token");
       const me = await getMe();
       expect(me.email).toBe("founder@test.com");

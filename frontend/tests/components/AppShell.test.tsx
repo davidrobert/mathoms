@@ -53,14 +53,14 @@ beforeEach(() => {
 
 describe("AppShell", () => {
   it("loading: spinner enquanto getMe carrega", () => {
-    server.use(http.get("/api/auth/me", () => new Promise(() => {})));
+    server.use(http.get("/api/v1/auth/me", () => new Promise(() => {})));
     const { container } = render(<AppShell>conteudo</AppShell>);
     expect(container.querySelector("svg.animate-spin")).toBeInTheDocument();
   });
 
   it("auth gate: getMe falha → clearToken + replace /login", async () => {
     server.use(
-      http.get("/api/auth/me", () =>
+      http.get("/api/v1/auth/me", () =>
         HttpResponse.json({ detail: "x" }, { status: 401 }),
       ),
     );
@@ -117,7 +117,7 @@ describe("AppShell", () => {
 
   it("mostra nome + email do user", async () => {
     server.use(
-      http.get("/api/auth/me", () =>
+      http.get("/api/v1/auth/me", () =>
         HttpResponse.json({
           id: "u1",
           email: "real@user.com",

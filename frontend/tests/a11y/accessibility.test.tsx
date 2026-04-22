@@ -150,7 +150,7 @@ describe("a11y — pages", () => {
 
   it("VaultPage (empty state) é acessível", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/vault/passwords", () =>
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({ passwords: [], total: 0 }),
       ),
     );
@@ -163,7 +163,7 @@ describe("a11y — pages", () => {
 
   it("VaultPage (com senhas) é acessível", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/vault/passwords", () =>
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({
           passwords: [
             makeVaultPassword({ label: "Itaú" }),
@@ -182,7 +182,7 @@ describe("a11y — pages", () => {
 
   it("DocumentsPage (com docs) é acessível", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/documents", () =>
+      http.get("/api/v1/workspaces/:workspaceId/documents", () =>
         HttpResponse.json({
           documents: [makeDocument({ original_name: "extrato.pdf", status: "ready" })],
           total: 1,
@@ -198,7 +198,7 @@ describe("a11y — pages", () => {
 
   it("DashboardPage (com KPIs) é acessível", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/dashboard", () =>
+      http.get("/api/v1/workspaces/:workspaceId/dashboard", () =>
         HttpResponse.json(
           makeDashboard({
             kpis: [

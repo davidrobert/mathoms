@@ -5,7 +5,7 @@
  *
  * Estratégia:
  * - Token: localStorage do shim (tests/setup.ts)
- * - apiFetch: MSW intercepta /api/* (handlers.ts default OK) — overrides via server.use
+ * - apiFetch: MSW intercepta /api/v1/* (handlers.ts default OK) — overrides via server.use
  * - Erros 4xx/5xx: server.use com HttpResponse.json + status
  * - Upload XHR (uploadDocuments): mock XMLHttpRequest manualmente
  */
@@ -91,7 +91,7 @@ describe("Authorization header", () => {
     setToken("my-token-xyz");
     let captured: string | null = null;
     server.use(
-      http.get("/api/auth/me", ({ request }) => {
+      http.get("/api/v1/auth/me", ({ request }) => {
         captured = request.headers.get("authorization");
         return HttpResponse.json({
           id: "u1",
@@ -108,7 +108,7 @@ describe("Authorization header", () => {
   it("omite header quando token ausente", async () => {
     let captured: string | null = "INITIAL";
     server.use(
-      http.post("/api/auth/login", ({ request }) => {
+      http.post("/api/v1/auth/login", ({ request }) => {
         captured = request.headers.get("authorization");
         return HttpResponse.json({ access_token: "t", token_type: "bearer" });
       }),
@@ -124,7 +124,7 @@ describe("Content-Type handling", () => {
   it("seta application/json para body JSON", async () => {
     let captured: string | null = null;
     server.use(
-      http.post("/api/auth/login", ({ request }) => {
+      http.post("/api/v1/auth/login", ({ request }) => {
         captured = request.headers.get("content-type");
         return HttpResponse.json({ access_token: "t", token_type: "bearer" });
       }),
@@ -148,7 +148,7 @@ describe("ApiError", () => {
 
   it("apiFetch lança ApiError em 401 com detail do body", async () => {
     server.use(
-      http.get("/api/auth/me", () =>
+      http.get("/api/v1/auth/me", () =>
         HttpResponse.json({ detail: "Token expirado" }, { status: 401 }),
       ),
     );
@@ -160,7 +160,7 @@ describe("ApiError", () => {
 
   it("apiFetch lança ApiError em 500 com fallback de detail", async () => {
     server.use(
-      http.get("/api/auth/me", () =>
+      http.get("/api/v1/auth/me", () =>
         new HttpResponse("not json", { status: 500 }),
       ),
     );
@@ -173,7 +173,7 @@ describe("ApiError", () => {
 
   it("apiFetch lança ApiError em 422 (validation)", async () => {
     server.use(
-      http.post("/api/auth/login", () =>
+      http.post("/api/v1/auth/login", () =>
         HttpResponse.json({ detail: "Senha curta" }, { status: 422 }),
       ),
     );
@@ -254,7 +254,7 @@ describe("uploadDocuments (XHR upload com progress)", () => {
       });
 
       expect(sentMethod).toBe("POST");
-      expect(sentURL).toContain("/api/workspaces/ws-1/documents/upload");
+      expect(sentURL).toContain("/api/v1/workspaces/ws-1/documents/upload");
       expect(sentBody).toBeInstanceOf(FormData);
       expect(events).toEqual([
         { loaded: 50, total: 100 },

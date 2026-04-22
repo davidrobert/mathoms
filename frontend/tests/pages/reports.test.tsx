@@ -24,14 +24,14 @@ beforeEach(() => {
 
 describe("ReportsPage (list)", () => {
   it("loading: spinner inicial", () => {
-    server.use(http.get("/api/workspaces/:workspaceId/reports", () => new Promise(() => {})));
+    server.use(http.get("/api/v1/workspaces/:workspaceId/reports", () => new Promise(() => {})));
     const { container } = render(<ReportsPage />);
     expect(container.querySelector("svg.animate-spin")).toBeInTheDocument();
   });
 
   it("empty state com CTA para /documents (F6.5D.12)", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/reports", () =>
+      http.get("/api/v1/workspaces/:workspaceId/reports", () =>
         HttpResponse.json({ reports: [], total: 0 }),
       ),
     );
@@ -43,7 +43,7 @@ describe("ReportsPage (list)", () => {
 
   it("erro 500 mostra mensagem", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/reports", () =>
+      http.get("/api/v1/workspaces/:workspaceId/reports", () =>
         HttpResponse.json({ detail: "x" }, { status: 500 }),
       ),
     );
@@ -53,7 +53,7 @@ describe("ReportsPage (list)", () => {
 
   it("renderiza cards de relatórios com link e size", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/reports", () =>
+      http.get("/api/v1/workspaces/:workspaceId/reports", () =>
         HttpResponse.json({
           reports: [
             makeReport({ id: "r1", title: "Relatório Q1", period: "2026-01", size_bytes: 524288 }),
@@ -74,7 +74,7 @@ describe("ReportsPage (list)", () => {
 
   it("botão 'Gerar novo relatório' aponta para /pipeline", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/reports", () =>
+      http.get("/api/v1/workspaces/:workspaceId/reports", () =>
         HttpResponse.json({ reports: [], total: 0 }),
       ),
     );

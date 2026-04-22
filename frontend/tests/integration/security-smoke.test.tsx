@@ -64,10 +64,10 @@ describe("XSS smoke — F6.5D.6", () => {
 
   it("member.full_name com <script> renderiza escapado (não executa)", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/config/workspace", () =>
+      http.get("/api/v1/workspaces/:workspaceId/config/workspace", () =>
         HttpResponse.json({ name: "x", family_surname: null }),
       ),
-      http.get("/api/workspaces/:workspaceId/config/members", () =>
+      http.get("/api/v1/workspaces/:workspaceId/config/members", () =>
         HttpResponse.json({
           members: [makeMember({ full_name: XSS_PAYLOAD })],
           total: 1,
@@ -90,7 +90,7 @@ describe("XSS smoke — F6.5D.6", () => {
 
   it("category.name com <img onerror> renderiza escapado", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/config/categories", () =>
+      http.get("/api/v1/workspaces/:workspaceId/config/categories", () =>
         HttpResponse.json({
           categories: [makeCategory({ name: XSS_IMG })],
           total: 1,
@@ -111,7 +111,7 @@ describe("XSS smoke — F6.5D.6", () => {
 
   it("vault.label com <script> renderiza escapado", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/vault/passwords", () =>
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({
           passwords: [makeVaultPassword({ label: XSS_PAYLOAD })],
           total: 1,
@@ -132,7 +132,7 @@ describe("XSS smoke — F6.5D.6", () => {
 describe("JWT expiry mid-session — F6.5D.6", () => {
   it("401 em API causa apiFetch a lançar ApiError com status=401", async () => {
     server.use(
-      http.get("/api/auth/me", () =>
+      http.get("/api/v1/auth/me", () =>
         HttpResponse.json({ detail: "Token expirado" }, { status: 401 }),
       ),
     );
@@ -142,7 +142,7 @@ describe("JWT expiry mid-session — F6.5D.6", () => {
 
   it("AppShell em 401 chama clearToken + router.replace('/login')", async () => {
     server.use(
-      http.get("/api/auth/me", () =>
+      http.get("/api/v1/auth/me", () =>
         HttpResponse.json({ detail: "x" }, { status: 401 }),
       ),
     );
@@ -176,7 +176,7 @@ describe("Logout cleanup — F6.5D.6", () => {
 
   it("logout via AppShell remove token e redireciona", async () => {
     server.use(
-      http.get("/api/auth/me", () =>
+      http.get("/api/v1/auth/me", () =>
         HttpResponse.json({
           id: "u1",
           email: "x@test.com",

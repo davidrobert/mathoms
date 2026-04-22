@@ -35,7 +35,7 @@ test.describe("Config round-trip", () => {
 
     // Via API, exportar JSON
     const token = await page.evaluate(() => localStorage.getItem("fin_token"));
-    const exportResp = await request.get("/api/config/export", {
+    const exportResp = await request.get("/api/v1/config/export", {
       headers: { Authorization: `Bearer ${token}` },
     });
     expect(exportResp.ok()).toBeTruthy();
@@ -65,13 +65,13 @@ test.describe("Config round-trip", () => {
 
       // Valida via API (ADR-072: rotas workspace-scoped)
       const token = await page.evaluate(() => localStorage.getItem("fin_token"));
-      const wsListResp = await request.get("/api/me/workspaces", {
+      const wsListResp = await request.get("/api/v1/me/workspaces", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const wsList = await wsListResp.json();
       const workspaceId = wsList.workspaces?.[0]?.id;
       const resp = await request.get(
-        `/api/workspaces/${workspaceId}/config/workspace`,
+        `/api/v1/workspaces/${workspaceId}/config/workspace`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
       const data = await resp.json();

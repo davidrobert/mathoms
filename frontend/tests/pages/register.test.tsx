@@ -41,7 +41,7 @@ describe("RegisterPage", () => {
 
   it("409 mostra mensagem custom 'já cadastrado'", async () => {
     server.use(
-      http.post("/api/auth/register", () =>
+      http.post("/api/v1/auth/register", () =>
         HttpResponse.json({ detail: "x" }, { status: 409 }),
       ),
     );
@@ -58,7 +58,7 @@ describe("RegisterPage", () => {
 
   it("422 mostra detail da validação", async () => {
     server.use(
-      http.post("/api/auth/register", () =>
+      http.post("/api/v1/auth/register", () =>
         HttpResponse.json({ detail: "Senha fraca" }, { status: 422 }),
       ),
     );

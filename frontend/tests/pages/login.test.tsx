@@ -7,7 +7,7 @@
  *
  * Mocks:
  * - next/navigation (router.push)
- * - MSW intercepta /api/auth/login
+ * - MSW intercepta /api/v1/auth/login
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -55,7 +55,7 @@ describe("LoginPage", () => {
 
   it("401 mostra mensagem 'Email ou senha incorretos'", async () => {
     server.use(
-      http.post("/api/auth/login", () =>
+      http.post("/api/v1/auth/login", () =>
         HttpResponse.json({ detail: "x" }, { status: 401 }),
       ),
     );
@@ -73,7 +73,7 @@ describe("LoginPage", () => {
 
   it("500 mostra detail do servidor", async () => {
     server.use(
-      http.post("/api/auth/login", () =>
+      http.post("/api/v1/auth/login", () =>
         HttpResponse.json({ detail: "Servidor indisponível" }, { status: 500 }),
       ),
     );
@@ -89,7 +89,7 @@ describe("LoginPage", () => {
   });
 
   it("erro de rede mostra 'Erro de conexão'", async () => {
-    server.use(http.post("/api/auth/login", () => HttpResponse.error()));
+    server.use(http.post("/api/v1/auth/login", () => HttpResponse.error()));
     const user = userEvent.setup();
     render(<LoginPage />);
     await user.type(screen.getByLabelText(/email/i), "u@test.com");
@@ -105,7 +105,7 @@ describe("LoginPage", () => {
     let resolveResponse: (() => void) | null = null;
     server.use(
       http.post(
-        "/api/auth/login",
+        "/api/v1/auth/login",
         () =>
           new Promise<Response>((resolve) => {
             resolveResponse = () =>
@@ -142,7 +142,7 @@ describe("LoginPage", () => {
   it("submit sem preencher email/senha não dispara fetch (browser HTML5 validation)", async () => {
     let captured = false;
     server.use(
-      http.post("/api/auth/login", () => {
+      http.post("/api/v1/auth/login", () => {
         captured = true;
         return HttpResponse.json({ access_token: "t", token_type: "b" });
       }),

@@ -77,7 +77,7 @@ test.beforeAll(() => {
 // porque aqui precisamos controlar o registro completo, sem reuso de user).
 async function registerGoldenUser(request: APIRequestContext) {
   const email = `golden-${STAMP}@test.com`;
-  const resp = await request.post("/api/auth/register", {
+  const resp = await request.post("/api/v1/auth/register", {
     data: {
       email,
       password: "GoldenPass123!",
@@ -112,8 +112,8 @@ test.describe("Golden Path — smoke do produto inteiro @critical", () => {
     // ─── 3. Definir sobrenome da família ───────────────────────────
     // Via API (UI pode ser coberta em 6.5C.2 Onboarding)
     // ADR-072: rotas são scoped por workspace; precisamos resolver o
-    // workspace auto-criado no register via /api/me/workspaces.
-    const wsListResp = await request.get("/api/me/workspaces", {
+    // workspace auto-criado no register via /api/v1/me/workspaces.
+    const wsListResp = await request.get("/api/v1/me/workspaces", {
       headers: { Authorization: `Bearer ${token}` },
     });
     expect(wsListResp.ok(), "GET /me/workspaces deve 200").toBeTruthy();
@@ -122,7 +122,7 @@ test.describe("Golden Path — smoke do produto inteiro @critical", () => {
     expect(workspaceId, "workspace auto-criado ausente").toBeTruthy();
 
     const patchResp = await request.patch(
-      `/api/workspaces/${workspaceId}/config/workspace`,
+      `/api/v1/workspaces/${workspaceId}/config/workspace`,
       {
         headers: { Authorization: `Bearer ${token}` },
         data: { family_surname: FAMILY_SURNAME },
@@ -181,7 +181,7 @@ test.describe("Golden Path — smoke do produto inteiro @critical", () => {
     // (b) falha rápido (~60s) em vez de esperar o timeout full de 4min.
     const pollRuns = async () => {
       const r = await request.get(
-        `/api/workspaces/${workspaceId}/pipeline/runs`,
+        `/api/v1/workspaces/${workspaceId}/pipeline/runs`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
       if (!r.ok()) return null;
@@ -246,7 +246,7 @@ test.describe("Golden Path — smoke do produto inteiro @critical", () => {
       ).toContain(FAMILY_SURNAME);
     }).toPass({ timeout: 20_000 });
 
-    // (5) URL do relatório (geralmente /api/reports/{id}/html) via
+    // (5) URL do relatório (geralmente /api/v1/reports/{id}/html) via
     // href ou data attribute. O nome do arquivo HTML inclui o surname
     // — cobertura secundária aqui (foco em cover text já validado).
     const reportUrl = page.url();

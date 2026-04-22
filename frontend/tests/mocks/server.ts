@@ -11,7 +11,7 @@
  *   import { server } from "../mocks/server";
  *   import { http, HttpResponse } from "msw";
  *   server.use(
- *     http.get("/api/dashboard", () => HttpResponse.json({ ... }))
+ *     http.get("/api/v1/dashboard", () => HttpResponse.json({ ... }))
  *   );
  */
 import { setupServer } from "msw/node";

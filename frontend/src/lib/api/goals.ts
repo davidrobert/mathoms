@@ -2,7 +2,7 @@ import { apiFetch } from "./core";
 
 // ═══════════════════════════════════════════════════════════════════════
 // Goals — Meta IF (ADR-073, F8.1)
-// Padrão F8+: endpoints escopados por /api/workspaces/{ws_id}/...
+// Padrão F8+: endpoints escopados por {API_BASE}/workspaces/{ws_id}/...
 // ═══════════════════════════════════════════════════════════════════════
 
 export interface IFGoalInputs {

@@ -5,7 +5,8 @@
  * Tests específicos sobrescrevem via `server.use(...)`.
  *
  * Convenções:
- * - URLs absolutas com /api/* (mesmo prefixo do rewrite em next.config.ts).
+ * - URLs absolutas com /api/v1/* (A6e.5 · ADR-108 — mesmo prefixo canônico
+ *   que `API_BASE` em `src/lib/api/core.ts` e o rewrite em `next.config.ts`).
  * - Respostas usam fixtures (`./fixtures/`) ou factories (`../factories/`)
  *   para garantir shape alinhado com types do backend.
  * - Códigos não-2xx são opt-in via `server.use()` no teste — defaults nunca
@@ -18,7 +19,7 @@ import { http, HttpResponse } from "msw";
 
 import { fixtures } from "./fixtures";
 
-const API = "/api";
+const API = "/api/v1";
 
 export const handlers = [
   // ─── Auth ───
@@ -101,7 +102,7 @@ export const handlers = [
     });
   }),
 
-  // ─── Documents (legado `/api/documents` + rotas por workspace usadas pelo cliente) ───
+  // ─── Documents (legado `/api/v1/documents` + rotas por workspace usadas pelo cliente) ───
   http.get(`${API}/documents`, () =>
     HttpResponse.json({ documents: fixtures.documents, total: fixtures.documents.length }),
   ),

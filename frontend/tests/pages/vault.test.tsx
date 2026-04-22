@@ -35,7 +35,7 @@ describe("VaultPage", () => {
 
   it("loading: spinner enquanto carrega lista", () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/vault/passwords", () => new Promise(() => {})), // never resolve
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () => new Promise(() => {})), // never resolve
     );
     const { container } = render(<VaultPage />);
     // Spinner SVG renderizado (Loader2) com animate-spin
@@ -44,7 +44,7 @@ describe("VaultPage", () => {
 
   it("empty state: 'Nenhuma senha cadastrada'", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/vault/passwords", () =>
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({ passwords: [], total: 0 }),
       ),
     );
@@ -54,7 +54,7 @@ describe("VaultPage", () => {
 
   it("renderiza lista de senhas existentes", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/vault/passwords", () =>
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({
           passwords: [
             makeVaultPassword({ label: "Itaú IRPF" }),
@@ -71,7 +71,7 @@ describe("VaultPage", () => {
 
   it("erro ao carregar mostra mensagem", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/vault/passwords", () =>
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({ detail: "x" }, { status: 500 }),
       ),
     );
@@ -82,13 +82,13 @@ describe("VaultPage", () => {
   it("adicionar senha → reload + mostra success", async () => {
     let added = false;
     server.use(
-      http.get("/api/workspaces/:workspaceId/vault/passwords", () =>
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({
           passwords: added ? [makeVaultPassword({ label: "Nova" })] : [],
           total: added ? 1 : 0,
         }),
       ),
-      http.post("/api/workspaces/:workspaceId/vault/passwords", () => {
+      http.post("/api/v1/workspaces/:workspaceId/vault/passwords", () => {
         added = true;
         return HttpResponse.json(makeVaultPassword({ label: "Nova" }));
       }),
@@ -107,10 +107,10 @@ describe("VaultPage", () => {
 
   it("erro 400 ao adicionar mostra detail", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/vault/passwords", () =>
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({ passwords: [], total: 0 }),
       ),
-      http.post("/api/workspaces/:workspaceId/vault/passwords", () =>
+      http.post("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({ detail: "Senha muito curta" }, { status: 400 }),
       ),
     );
@@ -127,10 +127,10 @@ describe("VaultPage", () => {
 
   it("retry-unlock com 0 desbloqueios mostra mensagem 'nenhum'", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/vault/passwords", () =>
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({ passwords: [makeVaultPassword({ label: "X" })], total: 1 }),
       ),
-      http.post("/api/workspaces/:workspaceId/documents/retry-unlock", () => HttpResponse.json([])),
+      http.post("/api/v1/workspaces/:workspaceId/documents/retry-unlock", () => HttpResponse.json([])),
     );
     const user = userEvent.setup();
     render(<VaultPage />);
@@ -143,10 +143,10 @@ describe("VaultPage", () => {
 
   it("retry-unlock bem-sucedido mostra contador", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/vault/passwords", () =>
+      http.get("/api/v1/workspaces/:workspaceId/vault/passwords", () =>
         HttpResponse.json({ passwords: [makeVaultPassword({ label: "X" })], total: 1 }),
       ),
-      http.post("/api/workspaces/:workspaceId/documents/retry-unlock", () =>
+      http.post("/api/v1/workspaces/:workspaceId/documents/retry-unlock", () =>
         HttpResponse.json([
           { id: "d1", status: "ready" },
           { id: "d2", status: "ready" },

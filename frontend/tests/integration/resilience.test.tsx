@@ -18,7 +18,7 @@ beforeEach(() => {
 describe("Resilience — backend 5xx handling", () => {
   it("502 Bad Gateway → ApiError status=502", async () => {
     server.use(
-      http.get("/api/auth/me", () =>
+      http.get("/api/v1/auth/me", () =>
         HttpResponse.json({ detail: "upstream down" }, { status: 502 }),
       ),
     );
@@ -27,7 +27,7 @@ describe("Resilience — backend 5xx handling", () => {
 
   it("503 Service Unavailable → ApiError com detail", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/documents", () =>
+      http.get("/api/v1/workspaces/:workspaceId/documents", () =>
         HttpResponse.json({ detail: "Manutenção" }, { status: 503 }),
       ),
     );
@@ -39,7 +39,7 @@ describe("Resilience — backend 5xx handling", () => {
 
   it("504 Gateway Timeout → ApiError", async () => {
     server.use(
-      http.get("/api/auth/me", () =>
+      http.get("/api/v1/auth/me", () =>
         HttpResponse.json({ detail: "timeout" }, { status: 504 }),
       ),
     );
@@ -47,7 +47,7 @@ describe("Resilience — backend 5xx handling", () => {
   });
 
   it("network error (sem response) → Error não-ApiError", async () => {
-    server.use(http.get("/api/auth/me", () => HttpResponse.error()));
+    server.use(http.get("/api/v1/auth/me", () => HttpResponse.error()));
     await expect(getMe()).rejects.toThrow();
     // NÃO deve ser ApiError (não tem status HTTP)
     try {
@@ -62,7 +62,7 @@ describe("Resilience — retry após sucesso", () => {
   it("usuário pode retentar após 5xx e receber 200 OK", async () => {
     let attempt = 0;
     server.use(
-      http.get("/api/auth/me", () => {
+      http.get("/api/v1/auth/me", () => {
         attempt++;
         if (attempt === 1) {
           return HttpResponse.json({ detail: "x" }, { status: 500 });
@@ -125,7 +125,7 @@ describe("Resilience — slow response tolerance", () => {
   it("timeout longo não crasha, apenas demora", async () => {
     let resolved = false;
     server.use(
-      http.get("/api/auth/me", async () => {
+      http.get("/api/v1/auth/me", async () => {
         await new Promise((r) => setTimeout(r, 50));
         resolved = true;
         return HttpResponse.json({

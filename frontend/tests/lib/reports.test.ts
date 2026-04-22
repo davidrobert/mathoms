@@ -16,7 +16,7 @@ import {
 } from "@/lib/api";
 import { server } from "../mocks/server";
 
-const API = "/api";
+const API = "/api/v1";
 
 beforeEach(() => {
   clearToken();

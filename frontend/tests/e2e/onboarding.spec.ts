@@ -33,7 +33,7 @@ test.describe("Onboarding @critical", () => {
     const email = `dup-${STAMP}@test.com`;
 
     // Pré-registra o email via API
-    await request.post("/api/auth/register", {
+    await request.post("/api/v1/auth/register", {
       data: { email, password: "pre123abc", full_name: "Pre User" },
     });
 

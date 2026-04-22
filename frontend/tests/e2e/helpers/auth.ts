@@ -41,7 +41,7 @@ async function registerOrLogin(
   request: APIRequestContext,
   user: E2EUser,
 ): Promise<string> {
-  const reg = await request.post("/api/auth/register", {
+  const reg = await request.post("/api/v1/auth/register", {
     data: {
       email: user.email,
       password: user.password,
@@ -54,7 +54,7 @@ async function registerOrLogin(
   }
 
   // Já existe (registro bate 400/409 dependendo da API) → faz login.
-  const login = await request.post("/api/auth/login", {
+  const login = await request.post("/api/v1/auth/login", {
     data: { email: user.email, password: user.password },
   });
   if (!login.ok()) {

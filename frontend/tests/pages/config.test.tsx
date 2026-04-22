@@ -33,10 +33,10 @@ beforeEach(() => {
 describe("ConfigPage", () => {
   beforeEach(() => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/config/workspace", () =>
+      http.get("/api/v1/workspaces/:workspaceId/config/workspace", () =>
         HttpResponse.json({ name: "Família", family_surname: "Teste" }),
       ),
-      http.get("/api/workspaces/:workspaceId/config/members", () =>
+      http.get("/api/v1/workspaces/:workspaceId/config/members", () =>
         HttpResponse.json({
           members: [makeMember({ full_name: "Membro Inicial" })],
           total: 1,
@@ -71,7 +71,7 @@ describe("ConfigPage", () => {
 
   it("trocar de tab → outra tab vira ativa", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/config/categories", () =>
+      http.get("/api/v1/workspaces/:workspaceId/config/categories", () =>
         HttpResponse.json({ categories: [], total: 0 }),
       ),
     );
@@ -91,7 +91,7 @@ describe("ConfigPage", () => {
 
   it("membros template (sem id) mostram Editar e explicam ao expandir", async () => {
     server.use(
-      http.get("/api/workspaces/:workspaceId/config/members", () =>
+      http.get("/api/v1/workspaces/:workspaceId/config/members", () =>
         HttpResponse.json({
           members: [
             {
@@ -120,11 +120,11 @@ describe("ConfigPage", () => {
   it("F6.5B.7: navegação para LLM tab carrega seu endpoint", async () => {
     let called = false;
     server.use(
-      http.get("/api/workspaces/:workspaceId/config/llm", () => {
+      http.get("/api/v1/workspaces/:workspaceId/config/llm", () => {
         called = true;
         return HttpResponse.json(null);
       }),
-      http.get("/api/config/llm/tier", () =>
+      http.get("/api/v1/config/llm/tier", () =>
         HttpResponse.json({ tier: "free", has_llm_config: false }),
       ),
     );

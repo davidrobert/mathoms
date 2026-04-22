@@ -61,7 +61,8 @@ async function loadOpenApiSpec() {
     }
     return JSON.parse(readFileSync(specPath, "utf-8"));
   }
-  const url = `${BACKEND_URL}/openapi.json`;
+  // A6e.5 · ADR-108 — openapi servido sob prefix canônico /api/v1.
+  const url = `${BACKEND_URL}/api/v1/openapi.json`;
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);

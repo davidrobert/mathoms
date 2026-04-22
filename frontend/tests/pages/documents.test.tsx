@@ -23,7 +23,7 @@ beforeEach(() => {
   localStorage.setItem("fin_token", "t");
 });
 
-const WS_DOCUMENTS = "/api/workspaces/:workspaceId/documents";
+const WS_DOCUMENTS = "/api/v1/workspaces/:workspaceId/documents";
 
 describe("DocumentsPage", () => {
   it("renderiza header + drop zone", async () => {
@@ -151,7 +151,7 @@ describe("DocumentsPage", () => {
           total: deleted ? 0 : 1,
         }),
       ),
-      http.delete("/api/workspaces/:workspaceId/documents/:id", () => {
+      http.delete("/api/v1/workspaces/:workspaceId/documents/:id", () => {
         deleted = true;
         return new HttpResponse(null, { status: 204 });
       }),
