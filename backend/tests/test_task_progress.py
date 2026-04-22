@@ -10,6 +10,7 @@ Cobre:
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -22,22 +23,24 @@ from backend.app.services.task_progress_service import (
 from backend.tests import factories
 
 # ─── Parsing de target BRL ──────────────────────────────────────────────
+# Retorno é Decimal (A6g.3b slice 3); comparamos com Decimal literal para
+# evitar `Decimal == float` retornar False.
 
 
 def test_parse_brl_target_with_k_suffix():
-    assert _parse_brl_target("Configurar aporte R$20k/mês") == 20000.0
+    assert _parse_brl_target("Configurar aporte R$20k/mês") == Decimal("20000")
 
 
 def test_parse_brl_target_with_full_number():
-    assert _parse_brl_target("Aporte R$ 20.000/mês") == 20000.0
+    assert _parse_brl_target("Aporte R$ 20.000/mês") == Decimal("20000")
 
 
 def test_parse_brl_target_with_decimal_brl():
-    assert _parse_brl_target("Aporte R$ 1.234,56") == 1234.56
+    assert _parse_brl_target("Aporte R$ 1.234,56") == Decimal("1234.56")
 
 
 def test_parse_brl_target_with_short_k_no_dollar():
-    assert _parse_brl_target("aportar 50k no mês") == 50000.0
+    assert _parse_brl_target("aportar 50k no mês") == Decimal("50000")
 
 
 def test_parse_brl_target_returns_none_without_value():
@@ -47,19 +50,19 @@ def test_parse_brl_target_returns_none_without_value():
 def test_parse_brl_target_treats_dot_thousand_correctly():
     """Bug guard: 'R$ 1.800' é formato BRL (ponto=milhar), deve ser 1800 e
     não 1.8. Descoberto na validação contra tarefas reais da Ferreira Campos."""
-    assert _parse_brl_target("Iniciar aportes PGBL R$1.800/mês") == 1800.0
-    assert _parse_brl_target("PGBL R$ 1.800,00 mensal") == 1800.0
+    assert _parse_brl_target("Iniciar aportes PGBL R$1.800/mês") == Decimal("1800")
+    assert _parse_brl_target("PGBL R$ 1.800,00 mensal") == Decimal("1800")
 
 
 def test_parse_brl_target_preserves_decimal_with_non_3_digit_suffix():
     """'R$ 1.5' tem só 1 dígito após o ponto → decimal genuíno."""
-    assert _parse_brl_target("Compra R$ 1.5 milhão") == 1.5
+    assert _parse_brl_target("Compra R$ 1.5 milhão") == Decimal("1.5")
 
 
 def test_parse_brl_target_picks_first_value():
     """Task com múltiplos valores — pega o primeiro (geralmente o alvo)."""
     title = "Configurar aporte R$ 20.000/mês (R$10k Cofrinhos + R$5k IPCA)"
-    assert _parse_brl_target(title) == 20000.0
+    assert _parse_brl_target(title) == Decimal("20000")
 
 
 # ─── Period helpers ─────────────────────────────────────────────────────

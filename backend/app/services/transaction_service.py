@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from decimal import Decimal
 from pathlib import Path
 from typing import Any, Optional
 
@@ -55,7 +56,7 @@ def load_transactions(tenant_root: str) -> list[TransactionItem]:
             TransactionItem(
                 data=tx.get("data", ""),
                 descricao=tx.get("descricao", ""),
-                valor=float(tx.get("valor", 0)),
+                valor=Decimal(str(tx.get("valor", 0))),
                 banco=tx.get("banco", ""),
                 categoria=tx.get("categoria", ""),
                 origem=tx.get("origem"),
@@ -113,9 +114,11 @@ def filter_transactions(
     if date_to:
         filtered = [t for t in filtered if t.data <= date_to]
     if value_min is not None:
-        filtered = [t for t in filtered if abs(t.valor) >= value_min]
+        vmin = Decimal(str(value_min))
+        filtered = [t for t in filtered if abs(t.valor) >= vmin]
     if value_max is not None:
-        filtered = [t for t in filtered if abs(t.valor) <= value_max]
+        vmax = Decimal(str(value_max))
+        filtered = [t for t in filtered if abs(t.valor) <= vmax]
     if search:
         q = search.lower()
         filtered = [t for t in filtered if q in t.descricao.lower() or q in t.categoria.lower()]
@@ -130,8 +133,9 @@ def paginate_transactions(
 ) -> tuple[list[TransactionItem], TransactionSummary]:
     sorted_txs = sorted(transactions, key=lambda t: t.data, reverse=True)
 
-    receitas = sum(t.valor for t in sorted_txs if t.origem is not None)
-    despesas = sum(t.valor for t in sorted_txs if t.origem is None)
+    zero = Decimal("0")
+    receitas = sum((t.valor for t in sorted_txs if t.origem is not None), zero)
+    despesas = sum((t.valor for t in sorted_txs if t.origem is None), zero)
     dates = [t.data for t in sorted_txs if t.data]
 
     summary = TransactionSummary(

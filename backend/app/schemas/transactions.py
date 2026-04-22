@@ -1,15 +1,24 @@
-"""Pydantic schemas for Transaction endpoints."""
+"""Pydantic schemas for Transaction endpoints.
+
+Valores monetários (`valor`, `total_receitas`, `total_despesas`, `saldo`)
+usam ``MoneyBRL`` (ADR-090) — Decimal em memória, number no JSON.
+Campo ``moeda`` distingue transações USD no streaming, mas interno
+usa MoneyBRL para precisão uniforme (ADR-090 aplica a qualquer money,
+a semântica da moeda fica no label).
+"""
 
 from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
 
+from backend.app.schemas.money import MoneyBRL
+
 
 class TransactionItem(BaseModel):
     data: str
     descricao: str
-    valor: float
+    valor: MoneyBRL
     banco: str
     categoria: str
     origem: Optional[str] = None
@@ -21,9 +30,9 @@ class TransactionItem(BaseModel):
 
 
 class TransactionSummary(BaseModel):
-    total_receitas: float
-    total_despesas: float
-    saldo: float
+    total_receitas: MoneyBRL
+    total_despesas: MoneyBRL
+    saldo: MoneyBRL
     count: int
     periodo_inicio: Optional[str] = None
     periodo_fim: Optional[str] = None

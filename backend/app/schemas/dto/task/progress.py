@@ -12,6 +12,8 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from backend.app.schemas.money import MoneyBRL
+
 
 class TaskProgressResponse(BaseModel):
     """Progresso de execução de uma tarefa recorrente."""
@@ -22,11 +24,11 @@ class TaskProgressResponse(BaseModel):
     )
     period_start: Optional[date] = None
     period_end: Optional[date] = None
-    target_brl: Optional[float] = Field(
+    target_brl: Optional[MoneyBRL] = Field(
         None,
         description="Valor-alvo do período (ex: aporte mensal R$ 20.000).",
     )
-    executed_brl: Optional[float] = Field(
+    executed_brl: Optional[MoneyBRL] = Field(
         None,
         description="Valor efetivamente movimentado no período (abs).",
     )

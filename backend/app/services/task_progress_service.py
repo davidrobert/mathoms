@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import re
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 from typing import Optional
 
@@ -80,21 +81,24 @@ _BRL_RE = re.compile(
 _SHORT_BRL_RE = re.compile(r"(\d+)k(?:\W|$)", re.IGNORECASE)
 
 
-def _parse_brl_target(title: str) -> Optional[float]:
+def _parse_brl_target(title: str) -> Optional[Decimal]:
     """Melhor esforço: extrai primeiro valor em reais do título. Retorna
-    float (BRL) ou None. Trata "R$ 20k" como 20.000."""
+    Decimal (BRL) ou None. Trata "R$ 20k" como 20.000."""
     m = _BRL_RE.search(title)
     if m:
         raw, k_suffix = m.group(1), m.group(2)
         value = _raw_to_float(raw)
-        if value is not None and k_suffix:
-            value *= 1000
-        return value
+        if value is None:
+            return None
+        d = Decimal(str(value))
+        if k_suffix:
+            d *= Decimal("1000")
+        return d
     m = _SHORT_BRL_RE.search(title)
     if m:
         try:
-            return float(m.group(1)) * 1000
-        except ValueError:
+            return Decimal(m.group(1)) * Decimal("1000")
+        except (ValueError, ArithmeticError):
             return None
     return None
 
@@ -182,7 +186,7 @@ def _match_transactions_by_keyword(
     keywords: list[str],
     period_start: date,
     period_end: date,
-) -> tuple[float, int, set[str]]:
+) -> tuple[Decimal, int, set[str]]:
     """Soma `abs(valor)` de transações no período cujo `descricao` contém
     uma das keywords. Retorna (executed, count, keywords_matched).
 
@@ -191,9 +195,9 @@ def _match_transactions_by_keyword(
     try:
         txs = load_transactions(tenant_root)
     except Exception:  # noqa: BLE001 — best-effort, nunca quebra endpoint
-        return 0.0, 0, set()
+        return Decimal("0"), 0, set()
 
-    executed = 0.0
+    executed = Decimal("0")
     matched_count = 0
     matched_keywords: set[str] = set()
     for tx in txs:
@@ -232,17 +236,19 @@ def compute_progress(
     executed, matched_count, matched_keywords_set = (
         _match_transactions_by_keyword(tenant_root, keywords, period_start, period_end)
         if tenant_root
-        else (0.0, 0, set())
+        else (Decimal("0"), 0, set())
     )
 
-    percent = round(100.0 * executed / target, 1) if target and target > 0 else None
+    percent: Optional[float] = None
+    if target and target > 0:
+        percent = round(float(Decimal("100") * executed / target), 1)
 
     return TaskProgress(
         is_trackable=True,
         period_start=period_start,
         period_end=period_end,
         target_brl=target,
-        executed_brl=round(executed, 2),
+        executed_brl=executed.quantize(Decimal("0.01")),
         percent_executed=percent,
         matched_keywords=sorted(matched_keywords_set),
         matched_transactions_count=matched_count,
