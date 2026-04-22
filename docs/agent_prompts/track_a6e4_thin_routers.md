@@ -2,9 +2,9 @@
 
 > **Lane ID:** A6e.4
 > **Branch prefix:** `agent/a6e4-thin-routers/*`
-> **Depende de:** A6e.3 ✅ (FamilyMember+Category+Goal use cases em main); **A6e.3b** (ConfigBlob+Document+Task) é pré-requisito **apenas** para fase 4b.
-> **Paralelo com:** A6e.3b, A6e.5, A6e.events, A6g.2, A6g.4, A6g.7 — zero overlap **se** respeitar a lista de arquivos por fase abaixo.
-> **Conflita com:** commits simultâneos em `backend/app/api/*.py` por outras lanes. A6e.5 só toca `main.py` (registry) e não o corpo dos routers — coexistir é seguro com rebase. A6e.events emissão de eventos **dentro** dos routers: evitar (eventos vivem em use cases).
+> **Depende de:** A6e.3 ✅ + A6e.3b ✅ (todos os 8 aggregates com use cases em main: audit, category, config_blob, document, family_member, goal, task + base). **Fase 4b destravada.**
+> **Paralelo com:** A6e.events, A6g.2, A6g.6 — zero overlap **se** respeitar a lista de arquivos por fase abaixo.
+> **Conflita com:** commits simultâneos em `backend/app/api/*.py` por outras lanes. A6e.events emissão de eventos **dentro** dos routers: evitar (eventos vivem em use cases).
 > **Onda:** 2
 > **Índice de prompts:** [README.md](README.md)
 > **Fonte de verdade:** [ADR-101 R15/R16 (routers finos)](../DECISIONS.md), [ADR-109 response_model](../DECISIONS.md), [CLAUDE.md §Code style](../../CLAUDE.md#code-style), [BACKLOG §A6e](../BACKLOG.md)
@@ -14,8 +14,43 @@
 > linhas (17 × ≤50). Handlers viram 3-8 linhas: valida dependência via
 > `Depends`, chama use case, retorna DTO. Exception handling global
 > traduz erros de domínio para HTTP. Adicionar teste AST que enforça
-> o limite. **Escopo bifurcado:** fase **4a** (14 routers, pickable agora)
-> + fase **4b** (3 routers pipeline-adjacentes, aguarda A6e.3b).
+> o limite. **Escopo bifurcado:** fase **4a** (14 routers) + fase **4b**
+> (3 routers pipeline-adjacentes, agora destravados por A6e.3b ✅).
+
+---
+
+## ⚠️ Estado atual — LEIA ANTES DE COMEÇAR (2026-04-22)
+
+### Já feito em slice anterior (NÃO refazer)
+
+Commits em `origin/main`:
+- `9608058` — **goals.py** 444→333 (23 handlers thin + helpers em `application/goal/_author_enrichment.py`)
+- `579aabc` — **audit.py** 69→47 (1 handler thin + `application/audit/`)
+- `3327986` — **test AST criado** em `backend/tests/architecture/test_routers_thin.py` com `THIN_ROUTERS={audit, categories, dashboard, family_members, goals}` e regra `max 15 stmts/endpoint`
+- `b600231` — CHANGELOG + BACKLOG "2/14 thin routers + AST enforcement"
+
+Progresso: **2/14 slices feitos.**
+
+### Já existente no repo (reuse; não recriar)
+
+- **Application layer aggregates em `backend/app/application/`:** `audit/`, `base/`, `category/`, `config_blob/`, `document/`, `family_member/`, `goal/`, `task/` (8 diretórios). **Todos os use cases da A6e.3 + A6e.3b estão em main** — este slice consome deles nos respectivos routers.
+- **Exception handlers globais em `backend/app/main.py:88-98`:** `NotFoundError → 404`, `ConflictError → 409`, `DomainValidationError → 422`. Routers novos **não precisam** `try/except` para esses; apenas propagam.
+- **Test AST** `backend/tests/architecture/test_routers_thin.py` — enforce `≤15 stmts/endpoint` + `sem select(...)` + `sem session.commit()` para cada router em `THIN_ROUTERS` set. **Expandir o set** conforme refatora.
+
+### Ambiguidade histórica do ID `(A6e.4)`
+
+5 commits de **2026-04-20** com tag `(A6e.4)` referem ao **ConfigBlob per-aggregate slice** (track anterior), NÃO a esta lane transversal:
+```
+f48f06b backend(repos): ConfigBlobRepository async (A6e.4 — ADR-101)
+f2b0319 backend(dto): config_blob DTOs (A6e.4 — ADR-101)
+840b74c backend(api): config.py usa ConfigBlobRepository + DTOs (A6e.4 — ADR-101)
+eaa6370 test(backend): ConfigBlob DTO mapper + repository (A6e.4 — 33 testes)
+1d7562f docs(api): openapi snapshot — rename schemas ConfigBlob (A6e.4)
+```
+
+Filtre com `git log --grep "A6e.4 slice"` para ver **só** commits desta lane transversal. Use em commit messages **desta lane**: `(A6e.4 slice N)` ou `(A6e.4 — slice N)` — sem esses tokens você cai na ambiguidade.
+
+---
 
 ---
 
@@ -45,65 +80,71 @@ Do CLAUDE.md + ADR-101 R15/R16:
 
 ---
 
-## Fase 4a — Pickable agora (14 routers)
+## Fase 4a — 12 routers restantes (pickable agora)
 
-**Pré-requisitos:** A6e.3 ✅ + A6f.1 ✅ (ambos em main).
+**Pré-requisitos:** A6e.3 ✅ + A6e.3b ✅ + A6f.1 ✅ (todos em main).
 
-### Routers alvo (14)
+### Routers — estado atual (tamanhos **vivos** verificados em `backend/app/api/*.py`)
 
-| Router | Hoje | Target | Handlers | Estratégia |
-|---|---|---|---|---|
-| `goals.py` | 444 | ≤80 | 23 | Use cases já existem; mover `_author_names`/`_with_author` p/ `application/goal/_author_enrichment.py` |
-| `pipeline.py` | 428 | ≤80 | 10 | Usar `HttpPipelineClient` (A6f.1 slice 2) — router vira proxy fino |
-| `workspaces.py` | 375 | ≤60 | 8 | Extrair `workspace_use_cases` (create/list/update/delete/switch) em `application/workspace/` |
-| `reports.py` | 363 | ≤60 | 9 | Use cases `generate_report`, `list_reports`, `get_report_html/pdf` em `application/report/` |
-| `transactions.py` | 226 | ≤50 | 6 | Use cases `list/update/reconcile_transaction` em `application/transaction/` |
-| `llm.py` | 176 | ≤50 | 7 | Use cases `configure_llm`, `test_llm_connection` em `application/llm_config/` |
-| `family_members.py` | 151 | ≤50 | — | **Já thin (A6e.3)** — revisar só se helpers ficaram no router |
-| `invitations.py` | 131 | ≤50 | 2 | Use cases `create_invitation`, `accept_invitation` em `application/invitation/` |
-| `notifications.py` | 110 | ≤40 | 3 | Use cases `list/mark_read` em `application/notification/` |
-| `ws.py` | 100 | ≤50 | 2 | WebSocket: lógica vai p/ `application/realtime/subscribe_workspace.py` |
-| `categories.py` | 87 | — | — | **Já thin (A6e.3)** |
-| `vault.py` | 80 | ≤40 | 3 | Use cases `rotate_key`, `get_status` em `application/vault/` |
-| `auth.py` | 72 | ≤40 | 3 | Use cases `login`, `refresh_token`, `logout` em `application/auth/` |
-| `audit.py` | 69 | ≤40 | 1 | Use case `list_audit_events` em `application/audit/` |
-| `feature_flags.py` | 68 | ≤40 | 2 | Use cases `get_flag`, `set_flag` em `application/feature_flags/` |
-| `dashboard.py` | 61 | ≤40 | 3 | Use cases `get_summary`, `get_metrics` em `application/dashboard/` |
+| Router | Hoje | Target | Handlers | Status | Estratégia |
+|---|---|---|---|---|---|
+| `goals.py` | **333** | — | 23 | ✅ **slice 1 feito** (`9608058`) | `_author_enrichment.py` em `application/goal/` |
+| `audit.py` | **47** | — | 1 | ✅ **slice 2 feito** (`579aabc`) | `application/audit/` criado |
+| `family_members.py` | 151 | — | 9 | ✅ **já thin** (A6e.3) | — |
+| `categories.py` | 87 | — | 5 | ✅ **já thin** (A6e.3) | — |
+| `dashboard.py` | 61 | — | 3 | ✅ **naturalmente thin** (já em `THIN_ROUTERS`) | — |
+| `pipeline.py` | 428 | ≤80 | 10 | ☐ **pendente** | Usar `HttpPipelineClient` (A6f.1) — proxy fino |
+| `workspaces.py` | 375 | ≤60 | 8 | ☐ **pendente** | `application/workspace/` (CRUD + switch) |
+| `reports.py` | 363 | ≤60 | 9 | ☐ **pendente** | `application/report/` |
+| `transactions.py` | 226 | ≤50 | 6 | ☐ **pendente** | `application/transaction/` |
+| `llm.py` | 176 | ≤50 | 7 | ☐ **pendente** | `application/llm_config/` |
+| `invitations.py` | 131 | ≤50 | 2 | ☐ **pendente** | `application/invitation/` |
+| `notifications.py` | 110 | ≤40 | 3 | ☐ **pendente** | `application/notification/` |
+| `ws.py` | 100 | ≤50 | 2 | ☐ **pendente** | `application/realtime/` (WebSocket) |
+| `vault.py` | 80 | ≤40 | 3 | ☐ **pendente** | `application/vault/` |
+| `auth.py` | 72 | ≤40 | 3 | ☐ **pendente** | `application/auth/` (login/refresh/logout) |
+| `feature_flags.py` | 68 | ≤40 | 2 | ☐ **pendente** | `application/feature_flag/` |
 
-**Total 4a:** 2780 → ~770 linhas. Criação de use cases onde ainda não existem (9 aggregates novos: workspace, report, transaction, llm_config, invitation, notification, realtime, audit, feature_flags, dashboard, vault, auth).
+**Fase 4a: 12 routers pendentes** para thin. Total atual desses 12 = 2500 → target ~690 linhas.
 
-### Sequência de commits (4a)
+**Aggregates de application/ a criar (11 novos):** workspace, report, transaction, llm_config, invitation, notification, realtime, vault, auth, feature_flag, + outro conforme padrão da lane.
 
-**Commit 1 — `goals.py`** (maior ganho, use cases existem):
-- Mover `_author_names`/`_with_author` para `backend/app/application/goal/_author_enrichment.py` (helper interno, `_` prefix).
-- Cada handler ≤8 linhas. 444 → ≤80.
-- `refactor(backend): thin goals router — 444→<80 (A6e.4 slice 1)`
+### Sequência de commits (4a) — a partir do estado atual
 
-**Commit 2 — `pipeline.py`** (usa A6f.1 client):
-- Handler chama `HttpPipelineClient.start_run(...)` / `.get_status(...)` / `.cancel(...)`.
-- Logic de retry/backoff fica no client, não no router.
-- `refactor(backend): thin pipeline router via HttpPipelineClient — 428→<80 (A6e.4 slice 2)`
+**Slice convention:** todo commit cita `(A6e.4 slice N)` para desambiguar dos 5 commits históricos de 2026-04-20 com `(A6e.4)` soltos.
 
-**Commits 3-N — Aggregate simples** (workspaces, reports, transactions, llm, invitations, notifications, vault, auth, audit, feature_flags, dashboard, ws):
-- **1 commit por aggregate**. Se aggregate é CRUD trivial (ex.: feature_flags = get/set), use cases podem ser finas (5-10 linhas cada). Não force ceremony onde não agrega.
-- Padrão: criar `backend/app/application/<aggregate>/` com use cases (nome específico, não `manage_*`), criar `backend/tests/application/<aggregate>/` com fakes + testes puros, reescrever router.
-- Ordem por tamanho (maior primeiro): workspaces → reports → transactions → llm → invitations → notifications → ws → vault → auth → audit → feature_flags → dashboard.
+**Slices 1-3 já feitos** (em main): goals (`9608058`), audit (`579aabc`), test AST (`3327986`).
 
-**Commit N+1 — Exception handlers globais**:
-- `backend/app/core/exception_handlers.py` (novo ou ampliar existente): mapeia `NotFoundError`, `ConflictError`, `ValidationError`, `ForbiddenError` para HTTP.
-- Registra em `main.py` via `app.add_exception_handler(...)`.
-- Remove `try/except HTTPException` duplicado dos routers (grep reveals todos).
-- `refactor(backend): global domain exception handlers (A6e.4 slice N)`
+**Slice 4+ — 1 commit por router pendente**, ordem sugerida por tamanho:
 
-**Commit N+2 — Teste AST** (enforçamento):
-- `backend/tests/architecture/test_routers_thin.py` — parseia cada `backend/app/api/*.py`, para cada `async def endpoint`, conta statements; falha se `> 15`.
-- Também valida que nenhum `backend/app/api/*.py` importa `sqlalchemy` ou `session` diretamente.
-- `test(architecture): AST enforcement de routers finos — ≤15 stmts/handler, sem SQLAlchemy (A6e.4)`
+1. **`pipeline.py`** (428 → ≤80) — usa `HttpPipelineClient` (A6f.1). Handler chama `client.start_run(...)` / `.get_status(...)` / `.cancel(...)`. Logic de retry no client.
+2. **`workspaces.py`** (375 → ≤60) — CRUD + switch.
+3. **`reports.py`** (363 → ≤60) — generate/list/get_html/get_pdf.
+4. **`transactions.py`** (226 → ≤50) — list/update/reconcile.
+5. **`llm.py`** (176 → ≤50) — configure/test_connection.
+6. **`invitations.py`** (131 → ≤50) — create/accept.
+7. **`notifications.py`** (110 → ≤40) — list/mark_read.
+8. **`ws.py`** (100 → ≤50) — WebSocket subscribe.
+9. **`vault.py`** (80 → ≤40) — rotate_key/status.
+10. **`auth.py`** (72 → ≤40) — login/refresh/logout.
+11. **`feature_flags.py`** (68 → ≤40) — get/set.
 
-**Commit N+3 — Docs** (hotspot, ≤5 min):
-- `docs/CHANGELOG.md [Unreleased]`: A6e.4 4a — 14 routers reescritos, Xk linhas → Yk.
-- `docs/BACKLOG.md`: A6e.4 ⏸ → 🚧 parcial (4a done, 4b pendente).
-- ADR-114 opcional: "thin routers + domain exception handlers".
+**Padrão de cada slice:**
+- Criar `backend/app/application/<aggregate>/` (se não existe) com use cases em arquivos curtos (nome específico: `list_workspaces`, não `manage`).
+- Criar `backend/tests/application/<aggregate>/` com fakes + testes puros (sem DB).
+- Reescrever router: cada handler ≤15 statements (teste AST enforça).
+- **Adicionar nome do router ao `THIN_ROUTERS` set** em `backend/tests/architecture/test_routers_thin.py` — enforce imediato após refactor.
+- Remover `try/except` duplicado no router: os 3 handlers globais já em `main.py:88-98` cobrem `NotFoundError` / `ConflictError` / `DomainValidationError`.
+- Commit message: `refactor(backend): thin <router> — N→M (A6e.4 slice N)`
+
+**Não precisa mais commit dedicado para:**
+- ~~Exception handlers globais~~ — **já existem** em `backend/app/main.py:88-98`.
+- ~~Test AST inicial~~ — **já existe**; slices apenas expandem `THIN_ROUTERS` set.
+
+**Commit final (4a) — Docs** (hotspot, ≤5 min):
+- `docs/CHANGELOG.md [Unreleased]`: A6e.4 fase 4a completa — 14/14 routers thin, X linhas → Y.
+- `docs/BACKLOG.md`: linha A6e.4 → "🚧 parcial (4a ✅, 4b pendente)" ou "✅" se fase 4b fizer no mesmo slice.
+- ADR-114 opcional: só se padrão de use cases novos se desviou das ADRs 101/109 (provável que não).
 
 ### Gate 4a
 
@@ -117,9 +158,9 @@ Do CLAUDE.md + ADR-101 R15/R16:
 
 ---
 
-## Fase 4b — Aguarda A6e.3b (3 routers pipeline-adjacentes)
+## Fase 4b — DESTRAVADA (3 routers pipeline-adjacentes)
 
-**Pré-requisito:** A6e.3b ✅ (use cases de ConfigBlob + Document + Task em main).
+**Pré-requisito:** A6e.3b ✅ **mergeada 2026-04-22** — use cases de ConfigBlob + Document + Task em main (`application/config_blob/`, `application/document/`, `application/task/` existem).
 
 ### Routers alvo (3)
 
@@ -146,13 +187,17 @@ Mesmo padrão de 4a. 1 commit por router após use cases de A6e.3b existirem. Ga
 
 ## Critérios de aceite consolidados (binários)
 
-### 4a
-- [ ] 14 routers listados na tabela ≤ target de linhas.
-- [ ] `backend/app/application/<aggregate>/` existe para 11+ aggregates novos (workspace, report, transaction, llm_config, invitation, notification, realtime, audit, feature_flags, dashboard, vault, auth).
-- [ ] `backend/app/core/exception_handlers.py` registra ≥4 handlers globais.
-- [ ] `backend/tests/architecture/test_routers_thin.py` existe e passa.
+### 4a (estado atual: 2/14 feitos)
+- [x] goals.py ≤target — ✅ (`9608058`)
+- [x] audit.py ≤target — ✅ (`579aabc`)
+- [x] `backend/tests/architecture/test_routers_thin.py` existe — ✅ (`3327986`)
+- [x] Exception handlers globais em `backend/app/main.py:88-98` — ✅ pré-existente (NotFoundError, ConflictError, DomainValidationError)
+- [ ] 11 routers restantes da fase 4a ≤ target de linhas.
+- [ ] `backend/app/application/<aggregate>/` existe para 11 aggregates novos (workspace, report, transaction, llm_config, invitation, notification, realtime, vault, auth, feature_flag + 1).
+- [ ] `THIN_ROUTERS` set cobre todos os 14 routers da fase 4a.
 - [ ] `grep -rn "session.commit\|\.execute(select" backend/app/api/` = 0.
-- [ ] `pytest backend/tests/ -q` — zero regressão, ≥950 testes.
+- [ ] `grep -rn "try:" backend/app/api/` ≤5 (só upload/streaming; hoje baseline = 24 — limpar conforme refatora).
+- [ ] `pytest backend/tests/ -q` — zero regressão, ≥988 testes (baseline pós-A6e.3b).
 - [ ] OpenAPI snapshot diff apenas em descrição/ordem; zero breaking.
 - [ ] `pre-commit run --all-files` passa.
 
@@ -195,13 +240,16 @@ Em rollback: `git reset --hard origin/main` na branch local, anuncia, deixa slic
 
 Lanes ativas ou recentemente mergeadas (confirme com `git worktree list` + `git for-each-ref`):
 
-- `agent/a6e3b-use-cases-rest/*` (quando iniciar) — **hotspot direto** em `documents.py`, `tasks.py`, `config.py`. Sua fase 4b aguarda essa lane mergear.
-- `agent/a6e5-v1-prefix/*` — toca `backend/app/main.py` (registry de routers) + `core/config.py`. **Overlap potencial** em `main.py` (você adiciona `app.add_exception_handler`). Resolva: commite exception handlers em arquivo separado (`backend/app/core/exception_handlers.py`), registre em `main.py` com 1-2 linhas. A6e.5 registra routers; convivem.
 - `agent/a6e-events/*` — events vivem em `backend/app/events/` + emitidos de **use cases**, não routers. Zero overlap com seus commits de router. Overlap potencial em `backend/app/application/*/` se A6e.events adiciona emissão de evento em use case que você criou — rebase e concatene.
 - `agent/a6g2-pipeline-style/*` — `scripts/`, `pipeline/`, `tests/fixtures/`. Zero overlap.
+- `agent/a6g6-enforcement/*` — `pyproject.toml`, `.pre-commit-config.yaml`, CI config. Pode mexer em `backend/tests/architecture/` adicionando testes irmãos (`test_no_any_in_boundary.py`, `test_no_forbidden_names.py`) — não em `test_routers_thin.py`. Zero overlap real.
 - `agent/a6g3-backend-style/*` (quando iniciar pós-A6e.4) — `backend/app/services/`, `backend/app/repositories/`. A6g.3 aguarda você; sem conflito.
-- `agent/a6g4-frontend-style/*` — frontend. Zero overlap.
-- `agent/a6g7-go-prep/*` — Go infra. Zero overlap.
+
+**Lanes já mergeadas** (baseline):
+- A6e.3 ✅, A6e.3b ✅ — 8 aggregates em `backend/app/application/`.
+- A6e.5 ✅ — `/api/v1/` prefix; não afeta esta lane.
+- A6f.1 ✅ — `HttpPipelineClient` pronto para usar em `pipeline.py`.
+- A6g.4 ✅, A6g.5 ✅, A6g.7 ✅.
 
 **Hotspots compartilhados:**
 
@@ -209,12 +257,12 @@ Lanes ativas ou recentemente mergeadas (confirme com `git worktree list` + `git 
 git fetch origin
 git log -5 --oneline origin/main -- \
   backend/app/main.py \
-  backend/app/api/goals.py \
-  backend/app/api/pipeline.py \
-  backend/app/application/
+  backend/app/api/ \
+  backend/app/application/ \
+  backend/tests/architecture/test_routers_thin.py
 ```
 
-Se A6e.5 ou A6e.events mergearam hotspot <30min, espere 2min, anuncie seu slice, commite **no mesmo turno** (≤5min).
+Se A6e.events mergeou hotspot <30min, espere 2min, anuncie seu slice, commite **no mesmo turno** (≤5min). **Branch stale** `agent/a6e4-thin-routers/20260422-2020` sem atividade desde 08:20 de 2026-04-22 — você pode retomá-la (`git checkout` + continuar) ou criar branch nova partindo de `origin/main`.
 
 **Sync periódico (sessão >1h):**
 
