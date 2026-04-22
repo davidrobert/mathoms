@@ -56,6 +56,47 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     `models/task.py` P1×2, repositories P1×5. Continuação após
     A6e.4 fechar fase 4a.
 
+- **A6g.6b — sweep ruff I001/F541 + `ruff format .` + `max-lines` warn→error (2026-04-22 · ADR-114):**
+  Follow-up de A6g.6 que esvazia os ignores temporários em `pyproject.toml`
+  e ativa o gate de formatação. Bloco único porque quebrar em slices
+  intercalados de code-style criaria N cascatas de rebase nas lanes
+  ativas (a6e4-thin-routers, a6g3-backend-style-r2).
+  - **Slice 1 — `ruff check --fix --select I001,F541 .`:** 361 fixes
+    (290 I001 unsorted-imports + 71 F541 f-string-missing-placeholders)
+    em 263 arquivos. `ignore = ["I001", "F541"]` removido de
+    `[tool.ruff.lint]`.
+  - **Slice 2 — `ruff format .`:** 435 arquivos reformatados (287 já
+    estavam no padrão). Quote-style `"double"`, indent-style `"space"`,
+    line-ending `"auto"` (config pré-existente em `[tool.ruff.format]`,
+    só o hook não rodava).
+  - **Slice 3 — hook `ruff-format` no pre-commit:** `.pre-commit-config.yaml`
+    ganha `ruff-format --check` no bloco `ruff-pre-commit`. Dev roda
+    `ruff format .` manual; commit bloqueia se alguém fugir do padrão.
+  - **Slice 4 — ESLint `max-lines` warn→error:** zero ofensores hoje
+    (A6g.4 zerou T2), promoção direta. `max-lines-per-function` **fica
+    em warn** — 64 offenders em 59 arquivos de `components/tasks/`,
+    `components/report/`, `app/(app)/config/` (React components JSX
+    naturalmente pushando 60 linhas); promoção depende de sweep
+    refactor dedicado (lane futura, fora de escopo A6g.6b).
+  - **Coordenação com lanes ativas:** a6e4-thin-routers e
+    a6g3-backend-style-r2 rodam em worktrees separados. Ambas precisarão
+    rebase através deste merge, mas os conflitos são mecânicos
+    (formatação). Feito em turno único (anúncio → commit → push ≤15min)
+    para minimizar janela de colisão.
+  - **Baseline code-style atualizado:** `dev/code_style_baseline.json`
+    regenerado via `python3 dev/check_code_style_regression.py
+    --save-baseline`. P1_long_functions 883 → 917 (**+34**) — artefato
+    de `ruff format` quebrando linhas longas (function signatures
+    multi-line, dicts expandidos); mesmo código, mais linhas físicas
+    contadas. Outras categorias inalteradas (I001/F541 já estavam fora
+    do audit; `ruff format` só afeta P1).
+  - **Gates pós-sweep:** `ruff check .` ✅ "All checks passed";
+    `ruff format --check .` ✅ "722 files already formatted";
+    `pytest tests -q` ✅ 1461 passed + 2 skipped; `pytest backend/tests
+    -q` ✅ 1159 passed + 4 skipped (zero regressão); `cd frontend &&
+    npm test -- --run` ✅ 397 passed + 1 skipped; `cd frontend && npx
+    eslint src/` ✅ zero errors.
+
 - **A6g.3 — backend style sweep (1ª rodada parcial) (2026-04-22):**
   Primeira rodada do sweep `backend/app/` (fora de `api/` + `application/`).
   Reduz P4/P8/P1 sem tocar wire format. **P5 float money (12) deferido
