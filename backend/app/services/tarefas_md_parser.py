@@ -149,98 +149,111 @@ _DEP_RE = re.compile(
 )
 
 
+_PRIORITY_FROM_MD_LABEL: dict[str, str] = {
+    "Essenciais": "S",
+    "Recomendadas": "R",
+    "Opcionais": "O",
+}
+
+
+def _parse_concluidas_row(line: str) -> Optional[ParsedTask]:
+    """Parseia linha da tabela Concluídas. Retorna None se linha não bate."""
+    m = _DONE_ROW_RE.match(line)
+    if not m:
+        return None
+    num, title, data_concl, detail = m.groups()
+    completed_at = _parse_deadline(data_concl.strip())[1]
+    return ParsedTask(
+        number=int(num),
+        title=title.strip(),
+        category="Financeiro",  # default — MD não tem categoria em concluídas
+        priority="S",  # default — status=done sobrescreve visibilidade
+        status="done",
+        deadline_kind="HARD_DATE" if completed_at else "UNSCHEDULED",
+        deadline_date=completed_at,
+        deadline_label=data_concl.strip() or None,
+        completion_detail=detail.strip() or None,
+    )
+
+
+def _parse_active_row(line: str, current_priority: str) -> Optional[ParsedTask]:
+    """Parseia linha de tabela S/R/O. Retorna None se linha não bate."""
+    m = _ROW_RE.match(line)
+    if not m:
+        return None
+    num, title, cat, prazo, status, ref = m.groups()
+    status_key = status.strip().lower()
+    kind, d, label = _parse_deadline(prazo)
+    return ParsedTask(
+        number=int(num),
+        title=title.strip(),
+        category=_normalize_category(cat),
+        priority=current_priority,
+        status=_STATUS_FROM_MD.get(status_key, "pending"),
+        deadline_kind=kind,
+        deadline_date=d,
+        deadline_label=label,
+        ref=(ref.strip() if ref.strip() not in ("", "—") else None),
+    )
+
+
+def _apply_dependency_pass(parsed: dict[int, ParsedTask]) -> None:
+    """Varre `title` procurando "#N depende de #M" e seta `parent_number`."""
+    for p in parsed.values():
+        m = _DEP_RE.search(p.title)
+        if not m:
+            continue
+        nums = [int(g) for g in m.groups() if g]
+        candidates = [n for n in nums if n != p.number]
+        if candidates:
+            p.parent_number = candidates[0]
+
+
+def _is_table_row(line: str) -> bool:
+    """True se é linha de dados de tabela MD (não header nem separador)."""
+    return (
+        line.startswith("|")
+        and not line.startswith("|-")
+        and not line.startswith("| #")
+    )
+
+
 def parse_tarefas_md(content: str) -> list[ParsedTask]:
     """Parseia o MD e retorna lista ordenada por `number`.
 
-    Duas passes: 1. tabelas por prioridade + Concluídas; 2. Notas para
+    Duas passes: 1. tabelas por prioridade + Concluídas; 2. títulos para
     inferir `parent_number` (dependências).
     """
-    lines = content.splitlines()
-
     current_priority: Optional[str] = None
     in_concluidas = False
-    in_notas = False
-
     parsed: dict[int, ParsedTask] = {}
 
-    priority_map = {
-        "Essenciais": "S",
-        "Recomendadas": "R",
-        "Opcionais": "O",
-    }
-
-    for line in lines:
-        m = _PRIORITY_SECTION_RE.match(line)
-        if m:
-            current_priority = priority_map[m.group(1)]
+    for line in content.splitlines():
+        section = _PRIORITY_SECTION_RE.match(line)
+        if section:
+            current_priority = _PRIORITY_FROM_MD_LABEL[section.group(1)]
             in_concluidas = False
-            in_notas = False
             continue
         if _CONCLUIDAS_RE.match(line):
             current_priority = None
             in_concluidas = True
-            in_notas = False
             continue
         if _NOTAS_RE.match(line):
             current_priority = None
             in_concluidas = False
-            in_notas = True
             continue
-        # Pula linhas não-tabela
-        if not line.startswith("|") or line.startswith("|-") or line.startswith("| #"):
+        if not _is_table_row(line):
             continue
 
+        task: Optional[ParsedTask] = None
         if in_concluidas:
-            m = _DONE_ROW_RE.match(line)
-            if not m:
-                continue
-            num, title, data_concl, detail = m.groups()
-            completed_at = _parse_deadline(data_concl.strip())[1]
-            parsed[int(num)] = ParsedTask(
-                number=int(num),
-                title=title.strip(),
-                category="Financeiro",  # default — MD não tem categoria em concluídas
-                priority="S",  # default — status=done sobrescreve visibilidade
-                status="done",
-                deadline_kind="HARD_DATE" if completed_at else "UNSCHEDULED",
-                deadline_date=completed_at,
-                deadline_label=data_concl.strip() or None,
-                completion_detail=detail.strip() or None,
-            )
-            continue
+            task = _parse_concluidas_row(line)
+        elif current_priority is not None:
+            task = _parse_active_row(line, current_priority)
+        if task is not None:
+            parsed[task.number] = task
 
-        if current_priority is not None:
-            m = _ROW_RE.match(line)
-            if not m:
-                continue
-            num, title, cat, prazo, status, ref = m.groups()
-            num_int = int(num)
-            status_key = status.strip().lower()
-            canonical_status = _STATUS_FROM_MD.get(status_key, "pending")
-            kind, d, label = _parse_deadline(prazo)
-            parsed[num_int] = ParsedTask(
-                number=num_int,
-                title=title.strip(),
-                category=_normalize_category(cat),
-                priority=current_priority,
-                status=canonical_status,
-                deadline_kind=kind,
-                deadline_date=d,
-                deadline_label=label,
-                ref=(ref.strip() if ref.strip() not in ("", "—") else None),
-            )
-
-    # Segunda passe: varre todas as descrições procurando "#N depende de #M"
-    for p in parsed.values():
-        m = _DEP_RE.search(p.title)
-        if m:
-            # Tenta extrair os dois números possíveis (padrões variados)
-            nums = [int(g) for g in m.groups() if g]
-            # Filtra: primeiro = child (o próprio), segundo = parent
-            candidates = [n for n in nums if n != p.number]
-            if candidates:
-                p.parent_number = candidates[0]
-
+    _apply_dependency_pass(parsed)
     return sorted(parsed.values(), key=lambda x: x.number)
 
 
