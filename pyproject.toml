@@ -27,3 +27,53 @@ include = ["pipeline*", "scripts*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+# ---------------------------------------------------------------------------
+# Ruff — linter + formatter (A6g.6 slice 1, ADR-114)
+# ---------------------------------------------------------------------------
+# Seleção conservadora: regras que já passam hoje em quase todo repo
+# (E/F/I/W/UP) + complexidade legado-friendly via per-file-ignores.
+# Regras adicionais (B bugbear, C90 mccabe, N naming) ficam para A6g.6b.
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [
+    "backend/app/generated",
+    "frontend/src/generated",
+    "_archive",
+    "_scratch",
+    ".venv-lint",
+    "alembic/versions",
+]
+
+[tool.ruff.lint]
+# Seleção inicial conservadora (A6g.6 slice 1). Rules adicionais (B, UP, C90, N)
+# entram em A6g.6b com sweep dedicado. Meta aqui é estabelecer gate bloqueante
+# sem forçar refactor massivo agora.
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "W",   # pycodestyle warnings
+]
+ignore = [
+    "E501",  # line-length já controlado pelo line-length acima
+    "E402",  # module-level import not at top — comum em scripts com sys.path hack
+    "E741",  # ambiguous variable name — comum em matemática (l, I)
+    "E721",  # type comparison — scripts legacy usam isinstance alt
+    "E701",  # multiple statements on one line (colon) — permitido em stubs
+    "E702",  # multiple statements on one line (semicolon) — scripts curtos
+    "E731",  # lambda assignment — aceitável em configs
+    "F841",  # unused variable — comum em testes (placeholder)
+    "F401",  # unused imports — regulado por editors
+    "F811",  # redefinition — comum em testes com pytest fixtures
+    "F541",  # f-string missing placeholders — sweep dedicado em A6g.6b
+    "I001",  # unsorted imports — sweep dedicado em A6g.6b (auto-fix toca 285 arquivos, conflita com agentes paralelos)
+]
+
+# ruff format disponível via `ruff format .` mas NÃO no pre-commit hook
+# (422 arquivos reformatariam agora — sweep dedicado em A6g.6b).
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

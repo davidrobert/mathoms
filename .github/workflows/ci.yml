@@ -57,6 +57,24 @@ jobs:
       - name: Run pre-commit on all files
         run: pre-commit run --all-files
 
+  ruff:
+    # Gate dedicado de ruff check (A6g.6 slice 1, ADR-114). Redundante com
+    # o job `lint` (via pre-commit hook), mas dá feedback explícito se ruff
+    # quebra sem depender da matrix de pre-commit. ruff-format fica fora —
+    # sweep dedicado em A6g.6b.
+    name: Ruff check
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install ruff
+        run: pip install ruff==0.6.0
+      - name: Ruff check
+        run: ruff check .
+
   lint-pii:
     name: Lint anti-PII em fixtures (F6.5D.7)
     runs-on: ubuntu-latest

@@ -228,7 +228,7 @@ backend/tests/architecture/
      language: system
      pass_filenames: true
      types: [python]
-     
+
    - id: float-money
      name: "Proíbe float em campo monetário (ADR-090)"
      entry: python dev/check_float_money.py

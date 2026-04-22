@@ -41,6 +41,7 @@ node_modules/
 
 # Virtual environment
 .venv/
+.venv-lint/
 
 # Backups legados — substituídos pelo histórico Git
 *.bak
