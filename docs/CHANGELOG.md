@@ -8,6 +8,34 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.2c — rename `pipeline/llm/service.py` → `litellm_client.py` (2026-04-22):**
+  Follow-up de A6g.6 — fecha a única entry da ALLOWLIST de
+  `dev/check_forbidden_names.py`. Nome explicita a tech underlying
+  (LiteLLM + Instructor) e distingue de outros clients (`pipeline_client`,
+  `fake_llm_client`). Classes públicas (LLMService, LLMConfig etc.)
+  mantidas — prefixo `LLM` já as torna específicas.
+  - **11 imports atualizados:** `pipeline/llm/__init__.py` (re-export);
+    `pipeline/stages/{e1,e15,e2_llm,e7_review_llm}.py` (5 imports
+    lazy); `backend/app/api/llm.py` (1 lazy); `backend/tests/fixtures/
+    llm_mock.py` (docstring + import); `backend/tests/test_llm_service.py`
+    (import + 1 `@patch`); `tests/_llm_stage_fixtures.py`;
+    `tests/test_llm_stages_per_stage.py` (10 `@patch` strings);
+    `tests/test_llm_stages_e7.py` (2 `@patch` strings).
+  - **ALLOWLISTs zeradas** em `dev/check_forbidden_names.py` e
+    `backend/tests/architecture/test_no_forbidden_names.py` — gate
+    `forbidden-names` agora 100% limpo, qualquer novo `service.py`
+    solto é bloqueado sem exceção.
+  - **Fix colateral `check_float_money.py`:** git mv puro fazia git
+    ver todas as linhas como 'adicionadas', disparando false positive
+    em `cost_estimate_usd: float` pré-existente. `_is_rename()`
+    consulta `git diff --name-status --find-renames=90%` e pula
+    arquivos com status R — gate continua bloqueando novos floats
+    monetários, não renames.
+  - **Gates:** pre-commit verde; 51 architecture tests, 31 LLM
+    backend tests, 22 LLM pipeline tests, 1461 pipeline, 1145 backend
+    (1 flaky pré-existente em `test_auth_portability` passa
+    isoladamente). Zero regressão funcional.
+
 - **A6g.6 — enforcement automatizado de code style (2026-04-22 · ADR-114):**
   Transforma as regras do `CLAUDE.md` §Code style em gates de CI para
   impedir regressão dos sweeps A6g.2/.4/.5. Bicameral — gates imediatos
