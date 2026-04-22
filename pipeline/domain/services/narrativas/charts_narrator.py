@@ -5,6 +5,10 @@ do legado). Produz narrativas de ``context`` + ``conclusion`` para 20
 charts do relatório — paridade 100% com legado.
 
 Função pura sobre ``metrics`` + ``family`` + ``NarrativasContext``.
+
+A6g.2 — T2.a: ``narrate()`` 284 → 23 linhas via extração de 6 métodos
+privados por grupo de charts. Strings preservadas byte-a-byte; ordem
+de inserção no dict final mantida (insertion-order do Python 3.7+).
 """
 
 from __future__ import annotations
@@ -38,8 +42,6 @@ class ChartsNarrator:
         fm = family.get("membros", {}) or {}
         _conj = fm.get(ctx.conjuge_key, {}) or {}
         _riscos_top3 = riscos[:3] if isinstance(riscos, list) else []
-
-        # Helper — imóvel concentration conditional.
         _imovel_acima = M["pct_imoveis_bruto"] > M["threshold_imovel_pct"]
 
         # Dominant revenue sources (ordenado por valor).
@@ -49,55 +51,26 @@ class ChartsNarrator:
             ("aluguel", M["receita_aluguel"], M["pct_receita_aluguel"]),
         ]
         _fontes_receita.sort(key=lambda x: x[1], reverse=True)
-        _top_fonte_nome, _top_fonte_valor, _top_fonte_pct = _fontes_receita[0]
-        _sec_fonte_nome, _sec_fonte_valor, _sec_fonte_pct = _fontes_receita[1]
-        _ter_fonte_nome, _ter_fonte_valor, _ter_fonte_pct = _fontes_receita[2]
 
-        # Cenários cônjuge — lambda preserved for paridade com legado.
-        _cm_cenarios = M.get("cm_cenarios", [])
         _cm_prazos = M.get("cm_prazos", [])
         _cm_aportes = M.get("cm_aportes", [])
         _cm_anos = M.get("cm_anos_if", [])
 
-        cenarios_section = {
-            "context": (
-                f"Três cenários projetam o impacto da carreira de {ctx.conjuge_nome} no prazo para independência financeira. "
-                f"Premissas: meta IF de {fmt_currency(M['if_meta'])}, patrimônio investível de {fmt_currency(M['patrimonio_investivel'])}, "
-                f"retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. e câmbio de R$ {fmt_num(M['cambio_usd_brl'], 2)}/USD. "
-                f"Atualmente {ctx.conjuge_nome} ganha {fmt_currency(M['cm_salario_clt_brl'])}/mês ({_conj.get('regime', 'CLT')} {_conj.get('empregador_curto', '')}); "
-                f"a renda nos EUA como RN ({fmt_usd(M['cm_renda_nclex_usd'])}-{fmt_usd(M['cm_renda_gc_usd'])}/mês = "
-                f"{fmt_currency(M['cm_renda_nclex_brl'])}-{fmt_currency(M['cm_renda_gc_brl'])}/mês) "
-                + (
-                    f"supera a renda CLT atual em {fmt_num(M['cm_renda_nclex_brl'] / M['cm_salario_clt_brl'], 1)}x a {fmt_num(M['cm_renda_gc_brl'] / M['cm_salario_clt_brl'], 1)}x, "
-                    "permitindo aportes acima da meta-base."
-                    if M["cm_salario_clt_brl"] > 0
-                    and M["cm_renda_nclex_brl"] > M["cm_salario_clt_brl"]
-                    else f"repõe {fmt_num(M['cm_recovery_nclex_pct'], 0)}-{fmt_num(M['cm_recovery_gc_pct'], 0)}% da renda CLT atual."
-                )
+        return {
+            **self._narrate_patrimonio_aloc(M, ctx, _imovel_acima),
+            **self._narrate_fluxo_receita(M, _fontes_receita),
+            **self._narrate_projecao_if(M, ctx),
+            ctx.key_cenarios_section: self._narrate_cenarios_conjuge(
+                M, ctx, _conj, _cm_prazos, _cm_aportes, _cm_anos,
             ),
-            "conclusion": (
-                (
-                    f"<strong>Cenário 1 — Sem Trabalhar:</strong> aporte reduzido para {fmt_currency(_cm_aportes[0])}/mês "
-                    f"({fmt_num(M['cm_fator_reduzido'] * 100, 0)}% do aporte-base). IF em {fmt_num(_cm_prazos[0], 0)} anos ({_cm_anos[0]}). "
-                    f"Cenário mais conservador — custo de oportunidade de +{fmt_num(_cm_prazos[0] - M['if_prazo_anos'], 0)} anos em relação ao cenário-base.<br>"
-                    f"<strong>Cenário 2 — Com NCLEX (RN nos EUA):</strong> renda de {fmt_usd(M['cm_renda_nclex_usd'])}/mês "
-                    f"({fmt_currency(M['cm_renda_nclex_brl'])}/mês), "
-                    f"aporte sobe para {fmt_currency(_cm_aportes[1])}/mês. IF em {fmt_num(_cm_prazos[1], 0)} anos ({_cm_anos[1]}). "
-                    f"A aprovação no NCLEX é o divisor de águas — a renda americana supera o CLT atual e permite aportes acima da meta-base.<br>"
-                    f"<strong>Cenário 3 — NCLEX + Green Card:</strong> potencial pleno de {fmt_usd(M['cm_renda_gc_usd'])}/mês "
-                    f"({fmt_currency(M['cm_renda_gc_brl'])}/mês), "
-                    f"aporte de {fmt_currency(_cm_aportes[2])}/mês. IF em {fmt_num(_cm_prazos[2], 0)} anos ({_cm_anos[2]}). "
-                    f"Acelera a IF em {fmt_num(_cm_prazos[0] - _cm_prazos[2], 0)} anos vs cenário sem trabalhar. "
-                    f"Crescimento salarial de {M['f1f2_crescimento_salarial']}%/ano pode fechar o gap de renda em poucos anos."
-                )
-                if len(_cm_prazos) >= 3
-                else (
-                    f"Cenário EUA com {fmt_usd(M[ctx.key_renda_conjuge_eua_proj])}/mês = {fmt_currency(M['renda_eua_projetada_brl'])}/mês. "
-                    f"Compensado por: integração com patrimônio de {ctx.titular_nome}, renda PJ remota e aluguel em BRL."
-                )
-            ),
+            **self._narrate_fase_eua(M),
+            **self._narrate_riscos_decisoes(M, riscos, _riscos_top3, decisoes),
         }
 
+    # ── Grupo 1: Score + patrimônio + alocação (charts 1-4) ────────────
+    def _narrate_patrimonio_aloc(
+        self, M: dict[str, Any], ctx: NarrativasContext, _imovel_acima: bool,
+    ) -> dict[str, Any]:
         return {
             "score_gauge": {
                 "context": (
@@ -144,6 +117,16 @@ class ChartsNarrator:
                     f"Aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês priorizarão renda fixa, com rebalanceamento {M['aloc_rebalanceamento']}."
                 ),
             },
+        }
+
+    # ── Grupo 2: Fluxo + receita + despesa (charts 5-8) ────────────────
+    def _narrate_fluxo_receita(
+        self, M: dict[str, Any], _fontes_receita: list[tuple[str, float, float]],
+    ) -> dict[str, Any]:
+        _top_fonte_nome, _top_fonte_valor, _top_fonte_pct = _fontes_receita[0]
+        _sec_fonte_nome, _sec_fonte_valor, _sec_fonte_pct = _fontes_receita[1]
+        _ter_fonte_nome, _ter_fonte_valor, _ter_fonte_pct = _fontes_receita[2]
+        return {
             "fluxo_mensal": {
                 "context": (
                     f"Visão consolidada do fluxo de caixa mensal: receita recorrente de {fmt_currency(M['receita_recorrente_mensal'])}/mês "
@@ -189,6 +172,13 @@ class ChartsNarrator:
                     f"({fmt_currency(M['despesas_serv_dom'])}). Prioridade: reclassificar 'não identificado' via melhor rastreamento."
                 ),
             },
+        }
+
+    # ── Grupo 3: Projeção IF + renda passiva + impostos (charts 9-14) ──
+    def _narrate_projecao_if(
+        self, M: dict[str, Any], ctx: NarrativasContext,
+    ) -> dict[str, Any]:
+        return {
             "projecao_3cenarios": {
                 "context": (
                     f"Projeção do patrimônio investível até atingir a meta de {fmt_currency(M['if_meta'])}, "
@@ -253,7 +243,56 @@ class ChartsNarrator:
                     f"Avaliação de holding patrimonial pendente para {M['holding_prazo']}."
                 ),
             },
-            ctx.key_cenarios_section: cenarios_section,
+        }
+
+    # ── Cenários cônjuge (chart 15, chave dinâmica ctx.key_cenarios_section) ─
+    def _narrate_cenarios_conjuge(
+        self, M: dict[str, Any], ctx: NarrativasContext, _conj: dict[str, Any],
+        _cm_prazos: list, _cm_aportes: list, _cm_anos: list,
+    ) -> dict[str, Any]:
+        # Cenários cônjuge — lambda preserved for paridade com legado.
+        return {
+            "context": (
+                f"Três cenários projetam o impacto da carreira de {ctx.conjuge_nome} no prazo para independência financeira. "
+                f"Premissas: meta IF de {fmt_currency(M['if_meta'])}, patrimônio investível de {fmt_currency(M['patrimonio_investivel'])}, "
+                f"retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. e câmbio de R$ {fmt_num(M['cambio_usd_brl'], 2)}/USD. "
+                f"Atualmente {ctx.conjuge_nome} ganha {fmt_currency(M['cm_salario_clt_brl'])}/mês ({_conj.get('regime', 'CLT')} {_conj.get('empregador_curto', '')}); "
+                f"a renda nos EUA como RN ({fmt_usd(M['cm_renda_nclex_usd'])}-{fmt_usd(M['cm_renda_gc_usd'])}/mês = "
+                f"{fmt_currency(M['cm_renda_nclex_brl'])}-{fmt_currency(M['cm_renda_gc_brl'])}/mês) "
+                + (
+                    f"supera a renda CLT atual em {fmt_num(M['cm_renda_nclex_brl'] / M['cm_salario_clt_brl'], 1)}x a {fmt_num(M['cm_renda_gc_brl'] / M['cm_salario_clt_brl'], 1)}x, "
+                    "permitindo aportes acima da meta-base."
+                    if M["cm_salario_clt_brl"] > 0
+                    and M["cm_renda_nclex_brl"] > M["cm_salario_clt_brl"]
+                    else f"repõe {fmt_num(M['cm_recovery_nclex_pct'], 0)}-{fmt_num(M['cm_recovery_gc_pct'], 0)}% da renda CLT atual."
+                )
+            ),
+            "conclusion": (
+                (
+                    f"<strong>Cenário 1 — Sem Trabalhar:</strong> aporte reduzido para {fmt_currency(_cm_aportes[0])}/mês "
+                    f"({fmt_num(M['cm_fator_reduzido'] * 100, 0)}% do aporte-base). IF em {fmt_num(_cm_prazos[0], 0)} anos ({_cm_anos[0]}). "
+                    f"Cenário mais conservador — custo de oportunidade de +{fmt_num(_cm_prazos[0] - M['if_prazo_anos'], 0)} anos em relação ao cenário-base.<br>"
+                    f"<strong>Cenário 2 — Com NCLEX (RN nos EUA):</strong> renda de {fmt_usd(M['cm_renda_nclex_usd'])}/mês "
+                    f"({fmt_currency(M['cm_renda_nclex_brl'])}/mês), "
+                    f"aporte sobe para {fmt_currency(_cm_aportes[1])}/mês. IF em {fmt_num(_cm_prazos[1], 0)} anos ({_cm_anos[1]}). "
+                    f"A aprovação no NCLEX é o divisor de águas — a renda americana supera o CLT atual e permite aportes acima da meta-base.<br>"
+                    f"<strong>Cenário 3 — NCLEX + Green Card:</strong> potencial pleno de {fmt_usd(M['cm_renda_gc_usd'])}/mês "
+                    f"({fmt_currency(M['cm_renda_gc_brl'])}/mês), "
+                    f"aporte de {fmt_currency(_cm_aportes[2])}/mês. IF em {fmt_num(_cm_prazos[2], 0)} anos ({_cm_anos[2]}). "
+                    f"Acelera a IF em {fmt_num(_cm_prazos[0] - _cm_prazos[2], 0)} anos vs cenário sem trabalhar. "
+                    f"Crescimento salarial de {M['f1f2_crescimento_salarial']}%/ano pode fechar o gap de renda em poucos anos."
+                )
+                if len(_cm_prazos) >= 3
+                else (
+                    f"Cenário EUA com {fmt_usd(M[ctx.key_renda_conjuge_eua_proj])}/mês = {fmt_currency(M['renda_eua_projetada_brl'])}/mês. "
+                    f"Compensado por: integração com patrimônio de {ctx.titular_nome}, renda PJ remota e aluguel em BRL."
+                )
+            ),
+        }
+
+    # ── Grupo 4: Fase F1/F2 nos EUA (charts 16-18) ─────────────────────
+    def _narrate_fase_eua(self, M: dict[str, Any]) -> dict[str, Any]:
+        return {
             "custos_f1f2": {
                 "context": (
                     f"Estimativa de custos mensais na fase {M['f1f2_visto']} nos EUA: tuition + living + viagens BR = {fmt_currency(M['custo_fase_f1f2'])}/mês."
@@ -282,6 +321,14 @@ class ChartsNarrator:
                     "Risco mitigado por diversificação USD/EUR, renda PJ em BRL e flexibilidade de data de mudança."
                 ),
             },
+        }
+
+    # ── Grupo 5: Riscos + decisões (charts 19-20) ──────────────────────
+    def _narrate_riscos_decisoes(
+        self, M: dict[str, Any], riscos: list[dict[str, Any]],
+        _riscos_top3: list[dict[str, Any]], decisoes: list[str],
+    ) -> dict[str, Any]:
+        return {
             "bubble_riscos": {
                 "context": (
                     f"Identificação de {len(riscos)} riscos críticos de compliance e proteção ao plano IF, com probabilidade e impacto."
