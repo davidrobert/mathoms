@@ -433,9 +433,23 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     Workspace settings (GET/PATCH) continuam inline (não há use case e
     são triviais). 2 routers de fase 4b ainda pendentes (`documents.py`,
     `tasks.py`).
-  - **Allowlist atual `THIN_ROUTERS` (10):** `audit`, `auth`,
+  - **`tasks.py`** (slice 9 · fase 4b · `09bcc9c`): 487 → 509 linhas
+    (cresce 22 linhas em troca de aliases explícitos + DI helpers +
+    response types anotados; endpoint bodies encolhem de 5-15 stmts
+    para 1-6 stmts). 13 dos 19 handlers delegam aos use cases de
+    `application/task/` (7 Task CRUD + 5 TaskSuggestion + 1
+    list_attachments + 1 delete_attachment). 6 composites permanecem:
+    `export.md` (compat pipeline), `scan-deadlines` (cross-aggregate
+    Notification — reativo em A6e.events-followup), `progress`
+    (Storage + heurística), `upload`/`download`/`get_attachment` (side-
+    effect filesystem). 3 DI helpers `_get_task_repo` /
+    `_get_suggestion_repo` / `_get_attachment_repo`. `delete_attachment`
+    fica thin-composite: use case retorna entidade → router resolve
+    path → commit → unlink filesystem. Aliases `_uc_*` preservam
+    operationIds (snapshot só diff em descriptions).
+  - **Allowlist atual `THIN_ROUTERS` (11):** `audit`, `auth`,
     `categories`, `config`, `dashboard`, `family_members`,
-    `feature_flags`, `goals`, `notifications`, `vault`.
+    `feature_flags`, `goals`, `notifications`, `tasks`, `vault`.
   - **Openapi snapshot** regenerado: apenas `FlagUpdateRequest` →
     `FlagUpdateCommand` (rename) + descrições deletadas de docstrings
     de handler. Zero path/method/response_model mudou — contrato
