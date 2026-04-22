@@ -45,25 +45,31 @@ from backend.app.models.task import Task
 from backend.app.services import task_service
 
 
+# Status traduzido do vocabulário interno para o usado pelo E5 legado (MD).
+_TASK_STATUS_LEGACY_LABEL: dict[str, str] = {
+    "pending": "pendente",
+    "in_progress": "em andamento",
+    "done": "feito",
+    "cancelled": "cancelado",
+    "blocked": "bloqueado",
+}
+
+# Nota acadêmica sobre taxa de retirada — parte do payload `independencia_financeira`.
+# Extraída do serializador para manter função curta (ADR-097 + CLAUDE.md §Code style).
+_IF_GOAL_TAXA_RETIRADA_NOTA = (
+    "TRS operacional = trs_pct (5%). A 'regra dos 4%' clássica "
+    "(Trinity Study) é referência acadêmica conservadora. Cálculo "
+    "IF: investivel * trs_pct / 12."
+)
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # Goals payload (compatível com `config/goals.json`)
 # ═══════════════════════════════════════════════════════════════════════
 
 
 def _serialize_if_goal(goal: Goal) -> dict[str, Any]:
-    """Extrai o sub-dict `independencia_financeira` do formato legado.
-
-    Campo legado (goals.json):
-      "independencia_financeira": {
-        "_ref": "D15",
-        "if_meta": 7200000.0,
-        "trs_pct": 5.0,
-        "renda_passiva_meta_mensal": 30000,
-        "retorno_real_anual_pct": 6.0,
-        "taxa_retirada_segura_classica_pct": 4.0,
-        "_nota_taxa_retirada": "..."
-      }
-    """
+    """Extrai o sub-dict `independencia_financeira` do formato legado (D15)."""
     inputs = goal.params_json.get("inputs", {})
     derived = goal.derived_json or {}
     return {
@@ -75,11 +81,7 @@ def _serialize_if_goal(goal: Goal) -> dict[str, Any]:
         "taxa_retirada_segura_classica_pct": inputs.get(
             "taxa_retirada_conservadora_pct", 4.0
         ),
-        "_nota_taxa_retirada": (
-            "TRS operacional = trs_pct (5%). A 'regra dos 4%' clássica "
-            "(Trinity Study) é referência acadêmica conservadora. Cálculo "
-            "IF: investivel * trs_pct / 12."
-        ),
+        "_nota_taxa_retirada": _IF_GOAL_TAXA_RETIRADA_NOTA,
         "_source": "db:goals (ADR-075 adapter)",
     }
 
@@ -202,6 +204,34 @@ def build_goals_payload_sync(
     return payload
 
 
+async def _goals_by_type_async(
+    workspace_id: str, *, db: AsyncSession
+) -> dict[str, Goal]:
+    """Busca todos goals ativos do workspace em uma query e indexa por type."""
+    stmt = select(Goal).where(
+        Goal.workspace_id == workspace_id,
+        Goal.effective_to.is_(None),
+    )
+    all_goals = list((await db.execute(stmt)).scalars().all())
+    return {g.type: g for g in all_goals}
+
+
+def _apply_goals_to_payload(
+    payload: dict[str, Any], goals_by_type: dict[str, Goal]
+) -> None:
+    """Serializa goals conhecidos + merge PLANNING_CONTEXT no payload."""
+    for goal_type, (key, serializer) in _GOAL_TYPE_MAP.items():
+        goal = goals_by_type.get(goal_type)
+        if goal is not None:
+            payload[key] = serializer(goal)
+    ctx_goal = goals_by_type.get("PLANNING_CONTEXT")
+    if ctx_goal and ctx_goal.params_json:
+        ctx_data = ctx_goal.params_json.get("inputs", ctx_goal.params_json)
+        for k, v in ctx_data.items():
+            if k not in payload and not k.startswith("_"):
+                payload[k] = v
+
+
 async def build_goals_payload(
     workspace_id: str,
     *,
@@ -210,33 +240,8 @@ async def build_goals_payload(
 ) -> dict[str, Any]:
     """Versão async. Mesmo contrato que a versão sync."""
     payload: dict[str, Any] = dict(legacy_extras or {})
-
-    async def _getter(ws, gtype):
-        return await _current_goal_async(ws, gtype, db=db)
-
-    # Precisa de adaptação: _merge_goals_into_payload é sync.
-    # Para evitar refatorar para await, buscamos todos os goals de uma vez.
-    from sqlalchemy import select as _sel
-
-    all_goals_stmt = _sel(Goal).where(
-        Goal.workspace_id == workspace_id,
-        Goal.effective_to.is_(None),
-    )
-    all_goals = list((await db.execute(all_goals_stmt)).scalars().all())
-    goals_by_type = {g.type: g for g in all_goals}
-
-    for goal_type, (key, serializer) in _GOAL_TYPE_MAP.items():
-        goal = goals_by_type.get(goal_type)
-        if goal is not None:
-            payload[key] = serializer(goal)
-
-    ctx_goal = goals_by_type.get("PLANNING_CONTEXT")
-    if ctx_goal and ctx_goal.params_json:
-        ctx_data = ctx_goal.params_json.get("inputs", ctx_goal.params_json)
-        for k, v in ctx_data.items():
-            if k not in payload and not k.startswith("_"):
-                payload[k] = v
-
+    goals_by_type = await _goals_by_type_async(workspace_id, db=db)
+    _apply_goals_to_payload(payload, goals_by_type)
     payload["_adapter_version"] = 2
     return payload
 
@@ -247,22 +252,7 @@ async def build_goals_payload(
 
 
 def _serialize_task_for_pipeline(task: Task) -> dict[str, Any]:
-    """Formato esperado pelo E5 legado:
-      {
-        "num": 1, "tarefa": "...", "categoria": "Invest",
-        "prazo": "Abr/2026", "prioridade": "S", "status": "pendente",
-        "ref": "D01"
-      }
-    Status é traduzido de volta para o vocabulário original do MD.
-    """
-    status_label = {
-        "pending": "pendente",
-        "in_progress": "em andamento",
-        "done": "feito",
-        "cancelled": "cancelado",
-        "blocked": "bloqueado",
-    }.get(task.status, task.status)
-
+    """Formato esperado pelo E5 legado. Status traduzido para vocabulário MD."""
     prazo = task.deadline_label or (
         task.deadline_date.isoformat() if task.deadline_date else "—"
     )
@@ -272,7 +262,7 @@ def _serialize_task_for_pipeline(task: Task) -> dict[str, Any]:
         "categoria": task.category,
         "prazo": prazo,
         "prioridade": task.priority,
-        "status": status_label,
+        "status": _TASK_STATUS_LEGACY_LABEL.get(task.status, task.status),
         "ref": task.ref or "—",
     }
 
@@ -352,6 +342,69 @@ async def build_tarefas_md(
     return await task_service.export_markdown(workspace_id, db=db)
 
 
+_PRIORITY_SECTION_TITLE: dict[str, str] = {
+    "S": "Essenciais (S)",
+    "R": "Recomendadas (R)",
+    "O": "Opcionais (O)",
+}
+
+
+def _md_header_lines() -> list[str]:
+    return [
+        "# Tarefas — Pipeline (export do DB)",
+        "",
+        "> Gerado por `pipeline_adapter.build_tarefas_md_sync`. "
+        "Fonte de verdade: tabela `tasks` (ADR-074/075).",
+        "",
+        "---",
+        "",
+    ]
+
+
+def _md_priority_section_lines(priority: str, tasks: list[Task]) -> list[str]:
+    """Bloco MD de uma seção de prioridade (S/R/O). Vazio se não há tasks."""
+    if not tasks:
+        return []
+    lines = [
+        f"## {_PRIORITY_SECTION_TITLE[priority]}",
+        "",
+        "| # | Tarefa | Categoria | Prazo | Status | Ref |",
+        "|---|---|---|---|---|---|",
+    ]
+    for t in tasks:
+        prazo = t.deadline_label or (
+            t.deadline_date.isoformat() if t.deadline_date else "—"
+        )
+        status = _TASK_STATUS_LEGACY_LABEL.get(t.status, t.status)
+        title = t.title.replace("|", "\\|")
+        lines.append(
+            f"| {t.number} | {title} | {t.category} | {prazo} | "
+            f"{status} | {t.ref or '—'} |"
+        )
+    lines.extend(["", "---", ""])
+    return lines
+
+
+def _md_done_section_lines(done_tasks: list[Task]) -> list[str]:
+    """Bloco MD do histórico de concluídas. Vazio se não há."""
+    if not done_tasks:
+        return []
+    lines = [
+        "## Concluídas (histórico)",
+        "",
+        "| # | Tarefa | Data conclusão | Detalhe |",
+        "|---|---|---|---|",
+    ]
+    for t in done_tasks:
+        completed = t.completed_at.date().isoformat() if t.completed_at else "—"
+        title = t.title.replace("|", "\\|")
+        lines.append(
+            f"| {t.number} | {title} | {completed} | {t.status_reason or '—'} |"
+        )
+    lines.append("")
+    return lines
+
+
 def build_tarefas_md_sync(
     workspace_id: str,
     *,
@@ -361,71 +414,14 @@ def build_tarefas_md_sync(
     Replica a lógica de `task_service.export_markdown` com sync queries.
     """
     tasks = _all_tasks_ordered_sync(workspace_id, db=db)
-
-    _priority_section = {
-        "S": "Essenciais (S)",
-        "R": "Recomendadas (R)",
-        "O": "Opcionais (O)",
-    }
-    _status_md = {
-        "pending": "pendente",
-        "in_progress": "em andamento",
-        "done": "feito",
-        "cancelled": "cancelado",
-        "blocked": "bloqueado",
-    }
-
-    lines: list[str] = []
-    lines.append("# Tarefas — Pipeline (export do DB)")
-    lines.append("")
-    lines.append(
-        "> Gerado por `pipeline_adapter.build_tarefas_md_sync`. "
-        "Fonte de verdade: tabela `tasks` (ADR-074/075)."
-    )
-    lines.append("")
-    lines.append("---")
-    lines.append("")
-
     active = [t for t in tasks if t.status not in ("done", "cancelled")]
     done = [t for t in tasks if t.status == "done"]
 
+    lines: list[str] = _md_header_lines()
     for prio in ("S", "R", "O"):
         section_tasks = [t for t in active if t.priority == prio]
-        if not section_tasks:
-            continue
-        lines.append(f"## {_priority_section[prio]}")
-        lines.append("")
-        lines.append("| # | Tarefa | Categoria | Prazo | Status | Ref |")
-        lines.append("|---|---|---|---|---|---|")
-        for t in section_tasks:
-            prazo = t.deadline_label or (
-                t.deadline_date.isoformat() if t.deadline_date else "—"
-            )
-            ref = t.ref or "—"
-            title = t.title.replace("|", "\\|")
-            lines.append(
-                f"| {t.number} | {title} | {t.category} | {prazo} | "
-                f"{_status_md.get(t.status, t.status)} | {ref} |"
-            )
-        lines.append("")
-        lines.append("---")
-        lines.append("")
-
-    if done:
-        lines.append("## Concluídas (histórico)")
-        lines.append("")
-        lines.append("| # | Tarefa | Data conclusão | Detalhe |")
-        lines.append("|---|---|---|---|")
-        for t in done:
-            completed = (
-                t.completed_at.date().isoformat() if t.completed_at else "—"
-            )
-            title = t.title.replace("|", "\\|")
-            lines.append(
-                f"| {t.number} | {title} | {completed} | "
-                f"{t.status_reason or '—'} |"
-            )
-        lines.append("")
+        lines.extend(_md_priority_section_lines(prio, section_tasks))
+    lines.extend(_md_done_section_lines(done))
 
     return "\n".join(lines) + "\n"
 
