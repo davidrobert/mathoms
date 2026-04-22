@@ -113,9 +113,10 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     emissão de domain events (A6e.6), refactor de services (A6g.3),
     enforcement AST (A6e.4).
 
-- **A6e.4 — Routers finos (início, 2026-04-22 · ADR-101 R15/R16):**
-  Primeiros 2 routers convertidos para padrão thin (delegação pura a
-  use case) + teste AST que enforça o padrão.
+- **A6e.4 — Routers finos (parcial, 2026-04-22 · ADR-101 R15/R16):**
+  **9/14 da fase 4a entregues** (slices 1-7): padrão thin (delegação
+  pura a use case) + teste AST que enforça o padrão + 4 novos
+  aggregates na application layer.
   - **`goals.py`** (slice 1): 444 → 333 linhas, 17 handlers com 1-4
     statements cada. `_author_names`/`_with_author` migram para
     `backend/app/application/goal/_author_enrichment.py` (helper
@@ -133,19 +134,46 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     router do `THIN_ROUTERS` set e falha se endpoint tem > 15
     statements ou importa `sqlalchemy.select/delete/update/insert/func`
     ou contém `session.commit(` / `.execute(select` no source.
-    Allowlist atual (5): `audit`, `categories`, `dashboard`,
-    `family_members`, `goals`. Próximos slices A6e.4 adicionam os
-    demais 12 routers.
-  - **Openapi snapshot** regenerado (apenas `description` removidas
-    em docstrings deletadas — zero path/method/response_model mudou,
-    conforme gate).
-  - **Não entrega nesta fatia:** 12 routers restantes
+  - **`feature_flags.py`** (slice 4): 68 → 47 linhas, 2 handlers × 1
+    stmt. Novo `backend/app/application/feature_flag/` com
+    `get_feature_flags` / `set_feature_flag`; schema renomeado
+    `FlagUpdateRequest` → `FlagUpdateCommand` (convenção Command).
+    Flag desconhecida: antes `HTTPException(400)` inline; agora
+    `ValidationError` → 422 (padrão global ADR-101 R15).
+  - **`auth.py`** (slice 5): 72 → 48 linhas, 3 handlers × 1 stmt.
+    Novo `backend/app/application/auth/` com `register_user` /
+    `login_user`. `/me` continua no router (dependency
+    `get_current_user` já responde 401 antes do handler). **Novo erro
+    tipado `AuthenticationError`** em `application/base/errors.py` +
+    handler global → 401 (substitui `HTTPException(401)` inline).
+  - **`vault.py`** (slice 6): 80 → 61 linhas, 3 handlers × 1 stmt.
+    Novo `backend/app/application/vault/` com `list_passwords` /
+    `create_password` / `delete_password`. Crypto continua delegada
+    ao singleton `VaultService`; use cases injetam-no via parâmetro
+    para testabilidade. `NotFoundError` → 404 substitui
+    `HTTPException(404)` inline.
+  - **`notifications.py`** (slice 7): 110 → 66 linhas, 3 handlers × 1
+    stmt. Novo `backend/app/application/notification/` com
+    `list_notifications` (filtros severity/is_read + counters de
+    badge), `mark_notifications_read`, `delete_notification`. Queries
+    SQLAlchemy saem do router.
+  - **Allowlist atual `THIN_ROUTERS` (9):** `audit`, `auth`,
+    `categories`, `dashboard`, `family_members`, `feature_flags`,
+    `goals`, `notifications`, `vault`.
+  - **Openapi snapshot** regenerado: apenas `FlagUpdateRequest` →
+    `FlagUpdateCommand` (rename) + descrições deletadas de docstrings
+    de handler. Zero path/method/response_model mudou — contrato
+    preservado (aliased imports nos routers com nomes ambíguos).
+  - **Gates empíricos:** `pytest backend/tests -q` 1085 passed + 4
+    skipped (baseline pós-A6e.events: 1064; +21 novos testes de use
+    case rodando <10s sem DB externo); AST enforcer verde para os 9
+    routers finos; zero `HTTPException` nos 4 routers dos slices 4-7.
+  - **Não entrega nesta fatia:** 7 routers restantes da fase 4a
     (`pipeline`, `workspaces`, `reports`, `transactions`, `llm`,
-    `invitations`, `notifications`, `ws`, `vault`, `auth`,
-    `feature_flags`, `config`/`documents`/`tasks` — os últimos 3
-    destravados por A6e.3b ✅). Exception handlers globais
-    (`NotFoundError`/`ConflictError`/`ValidationError`) já em
-    `main.py` desde A6e.3 — esta lane apenas usa.
+    `invitations`, `ws`) + 3 da fase 4b (`documents`, `tasks`,
+    `config`, já destravados por A6e.3b ✅). Domain events nos use
+    cases novos (feature_flag/auth/vault/notification) ficam para
+    A6e.events expandir.
 
 - **A6g.7 — Go prep: `.golangci.yml` + CI job + skeleton (2026-04-22 · ADR-113):**
   Guardrails infra para a primeira reescrita Go (candidato natural:
