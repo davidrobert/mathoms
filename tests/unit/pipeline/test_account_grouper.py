@@ -17,7 +17,6 @@ from pipeline.domain.services.account_grouper import (  # noqa: E402
     AccountKey,
 )
 
-
 # =============================================================================
 # Helpers
 # =============================================================================
@@ -73,9 +72,7 @@ class TestConfig:
         }
         cfg = AccountGrouperConfig.from_pipeline_config(family=family)
 
-        assert cfg.account_type_equivalences == {
-            "extratocontapersonnalite": "extratoconta"
-        }
+        assert cfg.account_type_equivalences == {"extratocontapersonnalite": "extratoconta"}
 
     def test_from_pipeline_config_overrides_skip_types_when_present(self) -> None:
         pipeline = {"reconciliation": {"skip_types": ["custom_skip"]}}

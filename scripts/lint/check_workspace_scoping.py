@@ -68,7 +68,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 BASELINE_PATH = REPO_ROOT / "scripts" / "lint" / "tenancy_baseline.txt"
 
@@ -274,7 +273,11 @@ def check_file(path: Path, tenant_models: set[str]) -> list[Violation]:
             inner = call
             while isinstance(inner, ast.Call) and isinstance(inner.func, ast.Attribute):
                 inner = inner.func.value
-            if not (isinstance(inner, ast.Call) and isinstance(inner.func, ast.Name) and inner.func.id == "select"):
+            if not (
+                isinstance(inner, ast.Call)
+                and isinstance(inner.func, ast.Name)
+                and inner.func.id == "select"
+            ):
                 self.generic_visit(call)
                 return
             if not inner.args or not isinstance(inner.args[0], ast.Name):
@@ -325,9 +328,7 @@ def check_file(path: Path, tenant_models: set[str]) -> list[Violation]:
                 return
 
             snippet = lines[line_no - 1].strip() if line_no - 1 < len(lines) else ""
-            violations.append(
-                Violation(file=path, line=line_no, model=model_name, snippet=snippet)
-            )
+            violations.append(Violation(file=path, line=line_no, model=model_name, snippet=snippet))
 
     # Helper para achar o Call externo na mesma chain. Usa map parent↔child.
     _parents: dict[int, ast.AST] = {}
@@ -339,7 +340,11 @@ def check_file(path: Path, tenant_models: set[str]) -> list[Violation]:
         current: ast.AST = call
         while True:
             parent = _parents.get(id(current))
-            if isinstance(parent, ast.Call) and isinstance(parent.func, ast.Attribute) and parent.func.value is current:
+            if (
+                isinstance(parent, ast.Call)
+                and isinstance(parent.func, ast.Attribute)
+                and parent.func.value is current
+            ):
                 current = parent
                 continue
             # Ou: parent é Call cujo receiver é este (chained)

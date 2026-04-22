@@ -37,20 +37,24 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 # Stage → disk directory + suffix mapping (espelha DiskArtifactStore)
 # ---------------------------------------------------------------------------
 
+
 def _disk_stage_dir(stage: str, processed_dir: Path) -> Path:
     """Retorna o diretório de disco para um stage (mesma lógica do DiskArtifactStore)."""
     from pipeline.artifact_store import stage_dir_name
+
     return processed_dir / stage_dir_name(stage)
 
 
 def _disk_stage_suffix(stage: str) -> str:
     from pipeline.artifact_store import stage_suffix
+
     return stage_suffix(stage)
 
 
 # ---------------------------------------------------------------------------
 # Leitura de artefatos em disco
 # ---------------------------------------------------------------------------
+
 
 def _load_disk_artifacts(workspace_root: Path, stages: list[str]) -> dict[tuple[str, str], dict]:
     """Retorna {(stage, key): content_json} para todos os artefatos em disco."""
@@ -77,6 +81,7 @@ def _load_disk_artifacts(workspace_root: Path, stages: list[str]) -> dict[tuple[
 # Leitura de artefatos no DB
 # ---------------------------------------------------------------------------
 
+
 def _load_db_artifacts(
     workspace_id: str,
     run_id: str | None,
@@ -87,10 +92,11 @@ def _load_db_artifacts(
     Se run_id não fornecido, usa o último run completo do workspace.
     Retorna (artifacts, resolved_run_id).
     """
+    from sqlalchemy import select
+
     from backend.app.core.database import SyncSessionLocal
     from backend.app.models.pipeline_artifact import PipelineArtifact
     from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
-    from sqlalchemy import select
 
     with SyncSessionLocal() as db:
         if run_id is None:
@@ -138,6 +144,7 @@ _IGNORED_TOP_KEYS = {"_meta", "created_at", "updated_at", "generated_at"}
 
 def _content_match(disk: dict, db: dict) -> bool:
     """True se os conteúdos são equivalentes (ignora _meta e timestamps)."""
+
     def _strip(d: dict) -> dict:
         return {k: v for k, v in d.items() if k not in _IGNORED_TOP_KEYS}
 
@@ -153,7 +160,8 @@ def _compare(
     only_disk = sorted(k for k in disk_artifacts if k not in db_artifacts)
     only_db = sorted(k for k in db_artifacts if k not in disk_artifacts)
     divergent = sorted(
-        k for k in disk_artifacts
+        k
+        for k in disk_artifacts
         if k in db_artifacts and not _content_match(disk_artifacts[k], db_artifacts[k])
     )
 
@@ -177,11 +185,16 @@ def _compare(
 # ---------------------------------------------------------------------------
 
 _PIPELINE_STAGES = [
-    "E1.5", "E1.5c",
-    "E2", "E2-extratos", "E2-faturas", "E2-llm",
+    "E1.5",
+    "E1.5c",
+    "E2",
+    "E2-extratos",
+    "E2-faturas",
+    "E2-llm",
     "E3",
     "E4",
-    "E5", "E5-revised",
+    "E5",
+    "E5-revised",
     "E5.N",
     "E7-crossval",
 ]
@@ -189,6 +202,7 @@ _PIPELINE_STAGES = [
 
 def _resolve_workspace_root(workspace_id: str) -> Path:
     from backend.app.core.config import settings
+
     return Path(settings.STORAGE_ROOT) / workspace_id
 
 
@@ -240,7 +254,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  Só no disco:  {len(report['only_on_disk'])}")
         print(f"  Só no DB:     {len(report['only_in_db'])}")
         print(f"  Divergentes:  {len(report['divergent'])}")
-        print(f"  Paridade:     {report['parity_pct']:.1f}%  {'✅ GATE OK' if report['gate_passed'] else '❌ GATE FALHOU'}")
+        print(
+            f"  Paridade:     {report['parity_pct']:.1f}%  {'✅ GATE OK' if report['gate_passed'] else '❌ GATE FALHOU'}"
+        )
         print()
 
         if report["only_on_disk"]:

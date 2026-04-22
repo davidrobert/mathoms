@@ -14,6 +14,7 @@ def fake_redis(monkeypatch):
 
     client = fakeredis.FakeRedis(decode_responses=True)
     from app.services import event_publisher
+
     monkeypatch.setattr(event_publisher, "_client", client)
     return client
 
@@ -39,6 +40,7 @@ def test_publish_emits_envelope_on_channel(fake_redis):
 def test_publish_noop_when_redis_unavailable(monkeypatch):
     """With _client=None and no env → publish is silent, never raises."""
     from app.services import event_publisher
+
     monkeypatch.setattr(event_publisher, "_client", None)
     monkeypatch.delenv("REDIS_URL", raising=False)
 

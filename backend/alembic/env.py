@@ -33,11 +33,10 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from backend.app.core.config import settings
-from backend.app.core.database import Base
-
 # Import all models so Base.metadata knows about them
 import backend.app.models  # noqa: F401
+from backend.app.core.config import settings
+from backend.app.core.database import Base
 
 
 def _resolve_db_url() -> str:

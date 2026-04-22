@@ -38,9 +38,8 @@ from alembic.runtime.migration import MigrationContext
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine import Engine
 
-from backend.app.core.database import Base
 import backend.app.models  # noqa: F401 — register all models
-
+from backend.app.core.database import Base
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ALEMBIC_INI = PROJECT_ROOT / "backend" / "alembic.ini"
@@ -65,6 +64,7 @@ def alembic_cfg(tmp_sqlite_db, monkeypatch):
     monkeypatch.setenv("MATHOMS_DATABASE_URL", url)
     # Recarrega settings (cached em config.py após primeiro import)
     from backend.app.core import config as core_config
+
     core_config.settings.DATABASE_URL = url
 
     cfg = Config(str(ALEMBIC_INI))
@@ -171,8 +171,9 @@ def test_no_drift_between_models_and_migrations(alembic_cfg, tmp_sqlite_db):
         formatted = "\n".join(f"  - {s}" for s in sorted(fixed_drift))
         pytest.fail(
             "Drift catalogado foi CORRIGIDO mas não removido de "
-            "KNOWN_PRE_EXISTING_DRIFT:\n" + formatted +
-            "\n\nRemova essas entradas para manter a lista limpa."
+            "KNOWN_PRE_EXISTING_DRIFT:\n"
+            + formatted
+            + "\n\nRemova essas entradas para manter a lista limpa."
         )
 
 
@@ -225,8 +226,7 @@ def test_migrations_are_idempotent(alembic_cfg, tmp_sqlite_db):
 
     assert snap_a == snap_b, (
         "Schema após upgrade→downgrade→upgrade DIFERE do upgrade inicial.\n"
-        "Algum revision não é idempotente. Diffs:\n"
-        + _format_schema_diff(snap_a, snap_b)
+        "Algum revision não é idempotente. Diffs:\n" + _format_schema_diff(snap_a, snap_b)
     )
 
 

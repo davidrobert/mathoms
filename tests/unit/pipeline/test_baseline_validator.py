@@ -17,7 +17,6 @@ from pipeline.domain.services.baseline_validator import (  # noqa: E402
     BaselineValidatorConfig,
 )
 
-
 INSTITUTIONS = {
     "banco_canonical": {
         "itau": "Itaú",
@@ -44,9 +43,7 @@ def _stmt(
         currency=currency,
         transactions=[],
         opening_balance=None,
-        closing_balance=(
-            Money.of(closing, currency) if closing is not None else None
-        ),
+        closing_balance=(Money.of(closing, currency) if closing is not None else None),
     )
 
 

@@ -17,7 +17,6 @@ from pipeline.domain.services.income_origin_resolver import (  # noqa: E402
     IncomeOriginResolver,
 )
 
-
 # =============================================================================
 # Config
 # =============================================================================
@@ -25,11 +24,7 @@ from pipeline.domain.services.income_origin_resolver import (  # noqa: E402
 
 class TestConfig:
     def test_from_categorization_handles_nested_pj_format(self):
-        cat = {
-            "pj_source_mapping": {
-                "receita_pj": {"acme inc": "Acme Inc"}
-            }
-        }
+        cat = {"pj_source_mapping": {"receita_pj": {"acme inc": "Acme Inc"}}}
         cfg = IncomeOriginConfig.from_categorization(cat)
         assert cfg.pj_source_mapping == {"acme inc": "Acme Inc"}
 
@@ -70,9 +65,7 @@ class TestResolvePJ:
         assert resolver.resolve_pj("Pagamento ACME LTDA") == "Acme Corp"
 
     def test_falls_back_to_default(self):
-        resolver = IncomeOriginResolver(
-            IncomeOriginConfig(pj_source_mapping={"acme": "Acme"})
-        )
+        resolver = IncomeOriginResolver(IncomeOriginConfig(pj_source_mapping={"acme": "Acme"}))
 
         assert resolver.resolve_pj("Cliente Desconhecido") == "Outras Receitas PJ"
 
@@ -91,9 +84,7 @@ class TestResolveCLT:
         assert resolver.resolve_clt("SALARIO ACME") == "Acme CLT"
 
     def test_falls_back_to_first_mapping_value_when_no_match(self):
-        cfg = IncomeOriginConfig(
-            clt_source_mapping={"a": "Primeira", "b": "Segunda"}
-        )
+        cfg = IncomeOriginConfig(clt_source_mapping={"a": "Primeira", "b": "Segunda"})
         resolver = IncomeOriginResolver(cfg)
 
         assert resolver.resolve_clt("Outra coisa") == "Primeira"
@@ -144,17 +135,12 @@ class TestResolveForCategory:
     def test_uses_static_origin_for_outras_receitas(self):
         resolver = IncomeOriginResolver(IncomeOriginConfig())
 
-        assert (
-            resolver.resolve_for_category("outras_receitas", "any") == "Outras Receitas"
-        )
+        assert resolver.resolve_for_category("outras_receitas", "any") == "Outras Receitas"
 
     def test_unknown_category_falls_back_to_outras_receitas(self):
         resolver = IncomeOriginResolver(IncomeOriginConfig())
 
-        assert (
-            resolver.resolve_for_category("categoria_inexistente", "any")
-            == "Outras Receitas"
-        )
+        assert resolver.resolve_for_category("categoria_inexistente", "any") == "Outras Receitas"
 
     def test_known_categories_includes_pj_clt_and_static(self):
         kc = IncomeOriginResolver.known_categories()

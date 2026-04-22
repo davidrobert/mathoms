@@ -40,7 +40,6 @@ from pipeline.domain.services.transaction_classifier import (
     TransactionClassifier,
 )
 
-
 # =============================================================================
 # Config do adapter
 # =============================================================================
@@ -108,9 +107,7 @@ class E4CategorizerAdapter:
         self._classifier = classifier
         self._cash_flow_builder = cash_flow_builder or CashFlowBuilder()
         self._baseline_normalizer = baseline_normalizer or BaselineNormalizer()
-        self._investments_consolidator = (
-            investments_consolidator or InvestmentsConsolidator()
-        )
+        self._investments_consolidator = investments_consolidator or InvestmentsConsolidator()
 
     # -- Factory (conveniência p/ main_with_store na Sessão A4b) --
 
@@ -140,9 +137,7 @@ class E4CategorizerAdapter:
 
     # -- Loading --
 
-    def load_reconciled_accounts(
-        self, store: ArtifactStore
-    ) -> list[dict]:
+    def load_reconciled_accounts(self, store: ArtifactStore) -> list[dict]:
         """Lê todos os extratos E3 reconciliados do store."""
         out: list[dict] = []
         for key in store.list_keys("E3"):
@@ -180,6 +175,7 @@ class E4CategorizerAdapter:
                     continue
                 # Injeta source name para o consolidador.
                 from pipeline.artifact_store import stage_suffix
+
                 try:
                     source = key + stage_suffix(stage)
                 except KeyError:
@@ -189,9 +185,7 @@ class E4CategorizerAdapter:
 
     # -- Orquestração --
 
-    def categorize_via_store(
-        self, store: ArtifactStore
-    ) -> CategorizationResult:
+    def categorize_via_store(self, store: ArtifactStore) -> CategorizationResult:
         """Pipeline E4 end-to-end em memória:
 
         1. Lê todos os E3.

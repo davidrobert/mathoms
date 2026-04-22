@@ -46,9 +46,7 @@ async def backfill(apply: bool) -> tuple[int, int, int]:
     """Return (total_missing, hashed_ok, hash_failed)."""
     total = ok = failed = 0
     async with AsyncSessionLocal() as db:
-        result = await db.execute(
-            select(Document).where(Document.content_hash.is_(None))
-        )
+        result = await db.execute(select(Document).where(Document.content_hash.is_(None)))
         docs = list(result.scalars().all())
         total = len(docs)
         print(f"[info] {total} documents without content_hash", flush=True)
@@ -61,7 +59,10 @@ async def backfill(apply: bool) -> tuple[int, int, int]:
             path = _storage.abs_stored_file(doc.workspace_id, doc.stored_path)
             if path is None:
                 failed += 1
-                print(f"  [skip] {doc.id}: stored_path not resolvable — {doc.stored_path!r}", flush=True)
+                print(
+                    f"  [skip] {doc.id}: stored_path not resolvable — {doc.stored_path!r}",
+                    flush=True,
+                )
                 continue
             digest = _sha256_of(path)
             if digest is None:

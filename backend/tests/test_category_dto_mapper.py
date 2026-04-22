@@ -105,9 +105,7 @@ class TestConvertGlobalDefaultsToResponses:
     def test_empty_config_returns_empty_list(self):
         assert convert_global_defaults_to_responses({}) == []
         assert (
-            convert_global_defaults_to_responses(
-                {"expense_keywords": {}, "income_keywords": {}}
-            )
+            convert_global_defaults_to_responses({"expense_keywords": {}, "income_keywords": {}})
             == []
         )
 
@@ -202,12 +200,7 @@ class TestConvertGlobalDefaultsToResponses:
 class TestCountDefaults:
     def test_empty(self):
         assert count_defaults({}) == 0
-        assert (
-            count_defaults(
-                {"expense_keywords": {}, "income_keywords": {}}
-            )
-            == 0
-        )
+        assert count_defaults({"expense_keywords": {}, "income_keywords": {}}) == 0
 
     def test_sum_of_sections(self):
         cfg = {

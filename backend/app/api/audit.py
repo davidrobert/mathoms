@@ -36,12 +36,8 @@ def _get_repo(db: AsyncSession = Depends(get_db)) -> AuditLogRepository:
 @router.get("", response_model=AuditLogListResponse)
 async def list_audit_logs(
     limit: int = Query(100, ge=1, le=500),
-    action: Optional[str] = Query(
-        None, description="Filtrar por ação exata, ex.: document.upload"
-    ),
+    action: Optional[str] = Query(None, description="Filtrar por ação exata, ex.: document.upload"),
     workspace: Workspace = Depends(get_current_workspace),
     repo: AuditLogRepository = Depends(_get_repo),
 ) -> AuditLogListResponse:
-    return await _list_audit_logs(
-        workspace.id, repo=repo, limit=limit, action=action
-    )
+    return await _list_audit_logs(workspace.id, repo=repo, limit=limit, action=action)

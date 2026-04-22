@@ -4,6 +4,7 @@
 Validates that the tokens.json → CSS generation is deterministic, complete,
 and produces syntactically valid CSS for both site and E6 standalone.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -55,9 +56,9 @@ class TestTokensJson:
         light = tokens["modes"]["light"]
         dark = tokens["modes"]["dark"]
         for category in ("brand", "surface", "semantic", "sidebar"):
-            assert set(light[category].keys()) == set(dark[category].keys()), (
-                f"mode parity broken in category: {category}"
-            )
+            assert set(light[category].keys()) == set(
+                dark[category].keys()
+            ), f"mode parity broken in category: {category}"
 
     def test_chart_palette_has_12_colors(self, tokens):
         assert len(tokens["modes"]["light"]["chart"]) == 12
@@ -91,15 +92,15 @@ class TestBuild:
 
     def test_frontend_has_theme_inline(self):
         frontend_css, _ = build()
-        assert "@theme inline" in frontend_css, (
-            "frontend CSS must include Tailwind v4 @theme inline block"
-        )
+        assert (
+            "@theme inline" in frontend_css
+        ), "frontend CSS must include Tailwind v4 @theme inline block"
 
     def test_template_has_no_theme_inline(self):
         _, template_css = build()
-        assert "@theme inline" not in template_css, (
-            "E6 standalone template must NOT include Tailwind-specific block"
-        )
+        assert (
+            "@theme inline" not in template_css
+        ), "E6 standalone template must NOT include Tailwind-specific block"
 
     def test_both_outputs_have_light_and_dark(self):
         frontend_css, template_css = build()
@@ -115,6 +116,7 @@ class TestBuild:
             idx = css.index("Card variants")
             rest = css[idx:]
             import re
+
             hex_matches = re.findall(r"#[0-9A-Fa-f]{6}", rest)
             assert not hex_matches, f"hex literal found in utility section: {hex_matches}"
 
@@ -146,9 +148,9 @@ class TestBuild:
     def test_card_variants_all_emitted(self, tokens):
         frontend_css, _ = build()
         for variant in tokens["card_variants"]:
-            assert f".card-variant-{variant}" in frontend_css, (
-                f"missing utility for variant: {variant}"
-            )
+            assert (
+                f".card-variant-{variant}" in frontend_css
+            ), f"missing utility for variant: {variant}"
 
     def test_render_is_deterministic(self):
         """Same input → byte-identical output."""
@@ -165,14 +167,14 @@ class TestGeneratedFilesOnDisk:
         )
         expected, _ = build()
         actual = FRONTEND_OUTPUT.read_text(encoding="utf-8")
-        assert actual == expected, (
-            "frontend tokens.css out of sync — run `python3 design-tokens/build.py`"
-        )
+        assert (
+            actual == expected
+        ), "frontend tokens.css out of sync — run `python3 design-tokens/build.py`"
 
     def test_template_file_exists_and_in_sync(self):
         assert TEMPLATE_OUTPUT.exists()
         _, expected = build()
         actual = TEMPLATE_OUTPUT.read_text(encoding="utf-8")
-        assert actual == expected, (
-            "config/templates/_tokens.css out of sync — run `python3 design-tokens/build.py`"
-        )
+        assert (
+            actual == expected
+        ), "config/templates/_tokens.css out of sync — run `python3 design-tokens/build.py`"

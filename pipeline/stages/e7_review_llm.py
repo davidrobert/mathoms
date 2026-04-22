@@ -27,10 +27,16 @@ def _load_json_file(path) -> str:
 # Tabelas mensais, lista de transações, 41 tarefas e programa de milhas são
 # descartados — o consultor decide com base em indicadores agregados.
 _E5_COMPACT_TOP_KEYS = (
-    "periodo_dados", "data_analise",
-    "goals", "ratios", "score",
-    "pontos_fortes", "pontos_urgentes", "alertas",
-    "equilibrio_cerbasi", "previdencia_pgbl",
+    "periodo_dados",
+    "data_analise",
+    "goals",
+    "ratios",
+    "score",
+    "pontos_fortes",
+    "pontos_urgentes",
+    "alertas",
+    "equilibrio_cerbasi",
+    "previdencia_pgbl",
     "diagnostico_comportamental",
 )
 
@@ -38,13 +44,18 @@ _E5_COMPACT_TOP_KEYS = (
 _E5_SUBKEYS = {
     "patrimonio": ("bruto", "dividas", "liquido", "investivel", "composicao"),
     "fluxo_caixa": (
-        "receita_total", "receita_recorrente_mensal",
-        "despesa_total", "despesa_mensal_media",
-        "fluxo_liquido", "despesas_por_categoria",
+        "receita_total",
+        "receita_recorrente_mensal",
+        "despesa_total",
+        "despesa_mensal_media",
+        "fluxo_liquido",
+        "despesas_por_categoria",
     ),
     "reserva_emergencia": (
-        "despesas_mensais", "cobertura_meses",
-        "total_liquida", "avaliacao_liquidity",
+        "despesas_mensais",
+        "cobertura_meses",
+        "total_liquida",
+        "avaliacao_liquidity",
     ),
     "endividamento": ("total_dividas", "percentual_patrimonio", "dividas"),
     "investimentos": ("total", "tabela_classes"),
@@ -135,9 +146,9 @@ def run(ctx: WorkspaceContext) -> dict:
     Reads E5 analysis JSON and E7-crossval results, sends to LLM,
     saves review JSON in E7_review/.
     """
-    from pipeline.llm.litellm_client import LLMService, LLMConfig
-    from pipeline.llm.schemas.e7_review import E7ReviewOutput
+    from pipeline.llm.litellm_client import LLMConfig, LLMService
     from pipeline.llm.prompts.e7_review import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+    from pipeline.llm.schemas.e7_review import E7ReviewOutput
 
     llm_config_data = ctx.load_config("llm_config.json")
     if not llm_config_data or not llm_config_data.get("api_key"):
@@ -155,7 +166,9 @@ def run(ctx: WorkspaceContext) -> dict:
         e7_crossval_json = _load_json_file(crossval_files[0])
 
     family_config = ctx.load_config("family_members.json")
-    family_config_str = json.dumps(family_config, ensure_ascii=False, indent=2) if family_config else "{}"
+    family_config_str = (
+        json.dumps(family_config, ensure_ascii=False, indent=2) if family_config else "{}"
+    )
 
     # JSON aninhado pode conter `{`/`}` — em kwargs do str.format o valor é inserido literalmente.
     user_prompt = USER_PROMPT_TEMPLATE.format(
@@ -187,8 +200,10 @@ def run(ctx: WorkspaceContext) -> dict:
 
     logger.info(
         "E7-review: %d insights, %d recommendations, risk=%s, confidence=%.2f",
-        len(output.insights), len(output.recommendations),
-        output.risk_level, output.confidence,
+        len(output.insights),
+        len(output.recommendations),
+        output.risk_level,
+        output.confidence,
     )
 
     return {

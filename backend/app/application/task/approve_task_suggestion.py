@@ -34,9 +34,7 @@ async def approve_task_suggestion(
     """
     sugg = await suggestion_repo.get_by_id(workspace_id, suggestion_id)
     if sugg is None:
-        raise NotFoundError(
-            "Sugestão não encontrada", code="suggestion_not_found"
-        )
+        raise NotFoundError("Sugestão não encontrada", code="suggestion_not_found")
     if sugg.status != "pending":
         raise ConflictError(
             f"Sugestão já foi processada (status={sugg.status})",
@@ -44,9 +42,7 @@ async def approve_task_suggestion(
         )
 
     payload = (
-        body.edited_payload.model_dump()
-        if body and body.edited_payload
-        else sugg.proposed_payload
+        body.edited_payload.model_dump() if body and body.edited_payload else sugg.proposed_payload
     )
     task_cmd = TaskCreateCommand(**payload)
     task_resp = await create_task(

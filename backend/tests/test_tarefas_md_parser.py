@@ -10,7 +10,6 @@ from backend.app.services.tarefas_md_parser import (
     parse_tarefas_md,
 )
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 TAREFAS_MD_PATH = REPO_ROOT / "config" / "tarefas.md"
 
@@ -132,6 +131,7 @@ def test_parse_real_tarefas_md_expected_counts():
         # Tarefas.md só existe no ambiente Ferreira Campos (é dados de usuário)
         # No CI genérico o arquivo pode estar ausente — skip gracefully.
         import pytest
+
         pytest.skip("config/tarefas.md ausente (não aplicável nesse ambiente)")
 
     parsed = parse_tarefas_md(TAREFAS_MD_PATH.read_text(encoding="utf-8"))
@@ -148,11 +148,10 @@ def test_parse_real_tarefas_md_expected_counts():
 def test_parse_real_detects_concluidas_statuses():
     if not TAREFAS_MD_PATH.exists():
         import pytest
+
         pytest.skip("config/tarefas.md ausente")
 
-    parsed = {p.number: p for p in parse_tarefas_md(
-        TAREFAS_MD_PATH.read_text(encoding="utf-8")
-    )}
+    parsed = {p.number: p for p in parse_tarefas_md(TAREFAS_MD_PATH.read_text(encoding="utf-8"))}
     assert parsed[2].status == "done"
     assert parsed[12].status == "done"
     # As demais são pendentes ou estão em prioridades S/R/O

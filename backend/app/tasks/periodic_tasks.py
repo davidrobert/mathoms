@@ -24,7 +24,6 @@ from backend.app.services.task_notification_service import (
 )
 from backend.app.worker import celery_app
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -45,10 +44,7 @@ def scan_all_deadlines(self) -> dict[str, int]:
     # sync session — beat tasks rodam fora do event loop async
     with SyncSessionLocal() as db:
         # tenancy: global — admin job que varre todos os workspaces
-        ws_ids = [
-            row[0]
-            for row in db.execute(select(Workspace.id)).fetchall()
-        ]
+        ws_ids = [row[0] for row in db.execute(select(Workspace.id)).fetchall()]
 
     for ws_id in ws_ids:
         try:

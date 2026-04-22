@@ -22,14 +22,14 @@ def sanitize_monetary_format(text: str) -> str:
         return text
 
     # Fix decimal point in R$ values with k/M suffix: R$ 2.5k → R$ 2,5k
-    text = re.sub(r'(R\$\s*\d+)\.(\d+)([kKmM])', r'\1,\2\3', text)
+    text = re.sub(r"(R\$\s*\d+)\.(\d+)([kKmM])", r"\1,\2\3", text)
 
     # Fix standalone numeric values with dot+suffix (without R$): 2.5k → 2,5k
     # But only when preceded by space/start to avoid matching things like URLs
-    text = re.sub(r'(?<=\s)(\d+)\.(\d+)([kK])(?!\w)', r'\1,\2\3', text)
+    text = re.sub(r"(?<=\s)(\d+)\.(\d+)([kK])(?!\w)", r"\1,\2\3", text)
 
     # Fix "KM" suffix → proper format (R$ 2,3KM is wrong)
-    text = re.sub(r'(R\$\s*[\d.,]+)\s*KM\b', r'\1k', text)
+    text = re.sub(r"(R\$\s*[\d.,]+)\s*KM\b", r"\1k", text)
 
     return text
 

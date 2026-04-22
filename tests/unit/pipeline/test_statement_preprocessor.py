@@ -26,7 +26,6 @@ from pipeline.domain.services.statement_preprocessor import (  # noqa: E402
     StatementPeriodNormalizer,
 )
 
-
 # =============================================================================
 # Helpers
 # =============================================================================

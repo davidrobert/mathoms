@@ -41,7 +41,6 @@ from pipeline.domain.services.narrativas import (
     validate_narrativas,
 )
 
-
 # ----------------------------------------------------------------------
 # Fixtures mínimas (só o que o builder precisa — M + FAMILY)
 # ----------------------------------------------------------------------
@@ -237,9 +236,7 @@ def test_builder_returns_three_top_level_sections():
 
 def test_builder_summaries_has_s1_through_s10():
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
-    out = builder.build(
-        _build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20)
-    )
+    out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
     assert list(out["summaries"].keys()) == [f"s{i}" for i in range(1, 11)]
     for key, text in out["summaries"].items():
         assert isinstance(text, str) and text, f"{key} vazio"
@@ -247,9 +244,7 @@ def test_builder_summaries_has_s1_through_s10():
 
 def test_builder_perfil_familia_has_left_and_right():
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
-    out = builder.build(
-        _build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20)
-    )
+    out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
     pf = out["perfil_familia"]
     assert set(pf.keys()) == {"left", "right"}
     assert "<p>" in pf["left"] and "<p>" in pf["right"]
@@ -262,9 +257,7 @@ def test_builder_perfil_familia_has_left_and_right():
 def test_builder_charts_has_all_20_required_keys():
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
     ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
-    out = builder.build(
-        _build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20)
-    )
+    out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
     expected = {
         "score_gauge",
         "patrimonio_doughnut",
@@ -296,12 +289,8 @@ def test_builder_charts_has_all_20_required_keys():
 def test_builder_output_passes_validator():
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
     ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
-    out = builder.build(
-        _build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20)
-    )
-    is_valid, errors = validate_narrativas(
-        out, cenarios_section_key=ctx.key_cenarios_section
-    )
+    out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
+    is_valid, errors = validate_narrativas(out, cenarios_section_key=ctx.key_cenarios_section)
     assert is_valid, f"Validação falhou: {errors}"
 
 
@@ -331,9 +320,7 @@ def test_context_dynamic_keys_change_with_family():
 def test_builder_charts_key_cenarios_uses_conjuge_name():
     """Bloco de cenários cônjuge recebe chave ``<conjuge>_cenarios``."""
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
-    out = builder.build(
-        _build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20)
-    )
+    out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
     # conjuge_key = "bob" → bloco deve ser "bob_cenarios".
     assert "bob_cenarios" in out["charts"]
     assert out["charts"]["bob_cenarios"]["context"]
@@ -356,12 +343,8 @@ def test_legacy_build_narrativas_delegates_to_builder(monkeypatch, tmp_path):
     (tmp_path / "config" / "family_members.json").write_text(
         __import__("json").dumps(_FAMILY_BASE), encoding="utf-8"
     )
-    (tmp_path / "config" / "categorization.json").write_text(
-        "{}", encoding="utf-8"
-    )
-    (tmp_path / "config" / "pipeline.json").write_text(
-        "{}", encoding="utf-8"
-    )
+    (tmp_path / "config" / "categorization.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "config" / "pipeline.json").write_text("{}", encoding="utf-8")
 
     _pc._init_config(tmp_path)
     try:
@@ -414,9 +397,7 @@ def test_sub_narrators_are_exported():
     """Cada narrador é acessível individualmente (composição flexível)."""
     ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
 
-    pf = PerfilFamiliaNarrator(ctx).narrate(
-        _build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20)
-    )
+    pf = PerfilFamiliaNarrator(ctx).narrate(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
     assert "left" in pf and "right" in pf
 
     sm = SummariesNarrator(ctx).narrate(

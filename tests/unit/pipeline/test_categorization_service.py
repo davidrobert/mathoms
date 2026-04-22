@@ -21,15 +21,11 @@ def _tx(desc: str, amount: str = "-10") -> Transaction:
 
 class TestRulesCompilation:
     def test_uppercases_keywords(self):
-        rules = CategorizationRules.from_config(
-            {"Alimentacao": ["mercado", "Restaurante"]}
-        )
+        rules = CategorizationRules.from_config({"Alimentacao": ["mercado", "Restaurante"]})
         assert rules.rules == {"Alimentacao": ("MERCADO", "RESTAURANTE")}
 
     def test_accepts_dict_structure(self):
-        rules = CategorizationRules.from_config(
-            {"Transporte": {"keywords": ["uber", "99"]}}
-        )
+        rules = CategorizationRules.from_config({"Transporte": {"keywords": ["uber", "99"]}})
         assert rules.rules == {"Transporte": ("UBER", "99")}
 
     def test_empty_config_yields_empty_rules(self):

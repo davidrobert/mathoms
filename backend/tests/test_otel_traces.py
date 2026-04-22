@@ -20,13 +20,13 @@ from pathlib import Path
 import pytest
 from fastapi import FastAPI
 from opentelemetry import trace
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
     InMemorySpanExporter,
 )
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from starlette.testclient import TestClient
 
 from pipeline.context import WorkspaceContext
@@ -37,9 +37,7 @@ from pipeline.orchestrator import _run_stage
 def in_memory_exporter(monkeypatch):
     """Install a fresh TracerProvider + InMemorySpanExporter for the test."""
     exporter = InMemorySpanExporter()
-    provider = TracerProvider(
-        resource=Resource.create({SERVICE_NAME: "mathoms-test"})
-    )
+    provider = TracerProvider(resource=Resource.create({SERVICE_NAME: "mathoms-test"}))
     provider.add_span_processor(SimpleSpanProcessor(exporter))
 
     trace._TRACER_PROVIDER_SET_ONCE._done = False  # type: ignore[attr-defined]

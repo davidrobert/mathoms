@@ -22,6 +22,7 @@ def test_run_sequences_stages_and_aggregates(client, tmp_path, monkeypatch):
 
     def fake_run_stage(ctx, stage):
         from pipeline.orchestrator import StageResult
+
         calls.append(stage)
         return StageResult(stage=stage, success=True, duration_ms=1.0)
 
@@ -48,6 +49,7 @@ def test_run_sequences_stages_and_aggregates(client, tmp_path, monkeypatch):
 def test_run_stops_on_error_by_default(client, tmp_path, monkeypatch):
     def fake_run_stage(ctx, stage):
         from pipeline.orchestrator import StageResult
+
         ok = stage != "E4"
         return StageResult(stage=stage, success=ok, error=None if ok else "x")
 
@@ -74,6 +76,7 @@ def test_run_skips_llm_stages_when_requested(client, tmp_path, monkeypatch):
 
     def fake_run_stage(ctx, stage):
         from pipeline.orchestrator import StageResult
+
         executed.append(stage)
         return StageResult(stage=stage, success=True)
 

@@ -15,6 +15,7 @@ NOTA: Playwright consome ~200MB de RAM por renderização. Em produção,
 limitar concorrência (semaphore ou fila dedicada). Para MVP/beta,
 renderização síncrona é aceitável.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -32,6 +33,7 @@ def _check_playwright() -> bool:
     if _PLAYWRIGHT_AVAILABLE is None:
         try:
             import playwright  # noqa: F401
+
             _PLAYWRIGHT_AVAILABLE = True
         except ImportError:
             _PLAYWRIGHT_AVAILABLE = False
@@ -80,9 +82,11 @@ async def render_pdf(
             page = await browser.new_page()
 
             # Injeta Bearer token no header de todas as requisições da page
-            await page.set_extra_http_headers({
-                "Authorization": f"Bearer {bearer_token}",
-            })
+            await page.set_extra_http_headers(
+                {
+                    "Authorization": f"Bearer {bearer_token}",
+                }
+            )
 
             # Navega para a rota de relatório com query ?print=1 para ativar
             # o modo print do frontend (se implementado; caso contrário, o

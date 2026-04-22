@@ -18,13 +18,14 @@ from pipeline.domain.services.member_analyzer import (  # noqa: E402
     MemberPatrimonio,
 )
 
-
 # =============================================================================
 # Helpers
 # =============================================================================
 
 
-def _imovel(*, valor_irpf=None, valor_31_12=None, valor=None, descricao=None, endereco=None) -> dict:
+def _imovel(
+    *, valor_irpf=None, valor_31_12=None, valor=None, descricao=None, endereco=None
+) -> dict:
     out: dict = {}
     if valor_31_12 is not None:
         out["valor_31_12_ano_base"] = valor_31_12
@@ -46,7 +47,9 @@ def _imovel(*, valor_irpf=None, valor_31_12=None, valor=None, descricao=None, en
 
 class TestImovelValor:
     def test_prefers_valor_31_12_over_others(self):
-        v = MemberAnalyzer.imovel_valor(_imovel(valor_31_12=500_000, valor_irpf=400_000, valor=300_000))
+        v = MemberAnalyzer.imovel_valor(
+            _imovel(valor_31_12=500_000, valor_irpf=400_000, valor=300_000)
+        )
         assert v == Decimal("500000")
 
     def test_falls_back_to_valor_irpf(self):
@@ -67,7 +70,10 @@ class TestImovelValor:
 
 class TestImovelDescricao:
     def test_uses_descricao_field(self):
-        assert MemberAnalyzer.imovel_descricao({"descricao": "Casa Vila Madalena"}) == "casa vila madalena"
+        assert (
+            MemberAnalyzer.imovel_descricao({"descricao": "Casa Vila Madalena"})
+            == "casa vila madalena"
+        )
 
     def test_falls_back_to_endereco(self):
         assert MemberAnalyzer.imovel_descricao({"endereco": "Rua X"}) == "rua x"
@@ -85,7 +91,9 @@ class TestImovelDescricao:
 
 class TestVeiculoValor:
     def test_prefers_valor_31_12(self):
-        assert MemberAnalyzer.veiculo_valor({"valor_31_12_ano_base": 50_000, "valor": 100_000}) == Decimal("50000")
+        assert MemberAnalyzer.veiculo_valor(
+            {"valor_31_12_ano_base": 50_000, "valor": 100_000}
+        ) == Decimal("50000")
 
     def test_returns_zero_when_no_field(self):
         assert MemberAnalyzer.veiculo_valor({"modelo": "Civic"}) == Decimal(0)
@@ -93,7 +101,9 @@ class TestVeiculoValor:
 
 class TestInvestimentoValor:
     def test_dict_with_valor_31_12(self):
-        assert MemberAnalyzer.investimento_valor({"valor_31_12_ano_base": 100_000}) == Decimal("100000")
+        assert MemberAnalyzer.investimento_valor({"valor_31_12_ano_base": 100_000}) == Decimal(
+            "100000"
+        )
 
     def test_dict_with_valor_only(self):
         assert MemberAnalyzer.investimento_valor({"valor": 5_000}) == Decimal("5000")
@@ -218,9 +228,7 @@ class TestAnalyze:
             "investimentos": [{"valor": 100_000}],
         }
 
-        mp = MemberAnalyzer().analyze(
-            member, member_key="x", residencia_keyword="vila"
-        )
+        mp = MemberAnalyzer().analyze(member, member_key="x", residencia_keyword="vila")
 
         # 500k residência + 0 imov inv + 50k veículos + 100k investimentos = 650k
         assert mp.total_bens_calculado == Decimal("650000")

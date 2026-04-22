@@ -74,8 +74,12 @@ class TestCashFlowAggregator:
     def test_raises_on_mixed_currency(self):
         brl = _stmt(_tx(2026, 1, 5, "A", "10"))
         usd = BankStatement(
-            "x", None, date(2026, 1, 1), date(2026, 1, 31),
-            "USD", [Transaction(date(2026, 1, 5), "A", Money.of("10", "USD"))],
+            "x",
+            None,
+            date(2026, 1, 1),
+            date(2026, 1, 31),
+            "USD",
+            [Transaction(date(2026, 1, 5), "A", Money.of("10", "USD"))],
         )
         with pytest.raises(ValueError, match="mesma moeda"):
             CashFlowAggregator().aggregate([brl, usd])
@@ -148,15 +152,13 @@ class TestFinancialScoreCalculator:
         )
         cash = CashFlowAggregator().aggregate([stmt])
         pat = PatrimonioCalculator().calculate([stmt], baseline)
-        reserve = EmergencyReserveCalculator(
-            EmergencyReserveConfig(target_months=6)
-        ).calculate([stmt])
+        reserve = EmergencyReserveCalculator(EmergencyReserveConfig(target_months=6)).calculate(
+            [stmt]
+        )
         return pat, reserve, cash
 
     def test_high_score(self):
-        pat, reserve, cash = self._ctx(
-            patrimonio="500000", balance="60000", expenses="-5000"
-        )
+        pat, reserve, cash = self._ctx(patrimonio="500000", balance="60000", expenses="-5000")
         score = FinancialScoreCalculator().calculate(pat, reserve, cash)
         # Patrimônio > 0 (40) + reserva suficiente (30) + fluxo negativo (0) = 70
         assert 60 <= score <= 70
@@ -168,9 +170,7 @@ class TestFinancialScoreCalculator:
         assert score == 0
 
     def test_score_clamped_to_100(self):
-        pat, reserve, cash = self._ctx(
-            patrimonio="1000000", balance="1000000", expenses="-100"
-        )
+        pat, reserve, cash = self._ctx(patrimonio="1000000", balance="1000000", expenses="-100")
         svc = FinancialScoreCalculator(
             ScoreConfig(weight_patrimonio=50, weight_reserve=50, weight_positive_flow=50)
         )

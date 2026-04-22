@@ -165,7 +165,7 @@ async def main(force: bool = False) -> None:
                 elif not SMOKE_FIXTURES_DIR.exists():
                     print(f"    ⚠  Fixtures não encontrados em {SMOKE_FIXTURES_DIR}")
                 else:
-                    print(f"    Inbox: já populado (sem novos arquivos)")
+                    print("    Inbox: já populado (sem novos arquivos)")
 
         await db.commit()
 

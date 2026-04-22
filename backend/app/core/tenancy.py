@@ -40,7 +40,7 @@ async def get_if_goal(
 
 from __future__ import annotations
 
-from typing import Callable, Coroutine, Any
+from typing import Any, Callable, Coroutine
 
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
@@ -51,9 +51,9 @@ from backend.app.core.deps import get_current_user
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.models.workspace_member import (
-    WorkspaceMember,
-    WRITE_ROLES,
     MEMBER_ADMIN_ROLES,
+    WRITE_ROLES,
+    WorkspaceMember,
 )
 
 
@@ -132,9 +132,7 @@ def require_role(
         request: Request,
         workspace: Workspace = Depends(get_current_workspace),
     ) -> Workspace:
-        member: WorkspaceMember | None = getattr(
-            request.state, "workspace_member", None
-        )
+        member: WorkspaceMember | None = getattr(request.state, "workspace_member", None)
         if member is None or member.role not in allowed:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

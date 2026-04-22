@@ -10,7 +10,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from pipeline.domain.models import BankCanonicalizer, canonicalize_bank  # noqa: E402
 from pipeline.domain.models.bank import _normalize  # noqa: E402
 
-
 INSTITUTIONS = {
     "banco_canonical": {
         "itau": "Itaú",

@@ -39,17 +39,19 @@ class TestConfig:
         assert cfg.irpf_faixas == ()
 
     def test_from_fiscal_parses_faixas(self):
-        cfg = PrevidenciaConfig.from_fiscal({
-            "lucro_presumido": {"percentual_servicos_pct": 32.0},
-            "pgbl": {"limite_deducao_pct": 12.0},
-            "irpf_tabela_progressiva": {
-                "faixas": [
-                    {"limite_anual": 24_000, "aliquota_pct": 7.5},
-                    {"limite_anual": 48_000, "aliquota_pct": 15.0},
-                    {"limite_anual": None, "aliquota_pct": 27.5},
-                ]
+        cfg = PrevidenciaConfig.from_fiscal(
+            {
+                "lucro_presumido": {"percentual_servicos_pct": 32.0},
+                "pgbl": {"limite_deducao_pct": 12.0},
+                "irpf_tabela_progressiva": {
+                    "faixas": [
+                        {"limite_anual": 24_000, "aliquota_pct": 7.5},
+                        {"limite_anual": 48_000, "aliquota_pct": 15.0},
+                        {"limite_anual": None, "aliquota_pct": 27.5},
+                    ]
+                },
             }
-        })
+        )
         assert len(cfg.irpf_faixas) == 3
         assert cfg.irpf_faixas[-1].limite_anual is None
         assert cfg.irpf_faixas[-1].aliquota_pct == 27.5
@@ -126,15 +128,17 @@ class TestAliquotaMarginal:
         sobrescreve a alíquota. Efetivamente, qualquer renda com tabela que
         tenha faixa ``None`` como última, recebe a alíquota dela.
         """
-        cfg = PrevidenciaConfig.from_fiscal({
-            "irpf_tabela_progressiva": {
-                "faixas": [
-                    {"limite_anual": 24_000, "aliquota_pct": 7.5},
-                    {"limite_anual": 48_000, "aliquota_pct": 15.0},
-                    {"limite_anual": None, "aliquota_pct": 27.5},
-                ]
+        cfg = PrevidenciaConfig.from_fiscal(
+            {
+                "irpf_tabela_progressiva": {
+                    "faixas": [
+                        {"limite_anual": 24_000, "aliquota_pct": 7.5},
+                        {"limite_anual": 48_000, "aliquota_pct": 15.0},
+                        {"limite_anual": None, "aliquota_pct": 27.5},
+                    ]
+                }
             }
-        })
+        )
         # Base tributável 38.4k — última faixa (None, 27.5%) vence.
         r = PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=120_000, num_months=12))
 
@@ -143,28 +147,32 @@ class TestAliquotaMarginal:
     def test_faixas_sem_ultima_none_usa_ultima_aplicavel(self):
         """Quando não há faixa ``None``, comportamento é o esperado: a
         última faixa cujo ``limite_anual < renda`` vence."""
-        cfg = PrevidenciaConfig.from_fiscal({
-            "irpf_tabela_progressiva": {
-                "faixas": [
-                    {"limite_anual": 24_000, "aliquota_pct": 7.5},
-                    {"limite_anual": 48_000, "aliquota_pct": 15.0},
-                ]
+        cfg = PrevidenciaConfig.from_fiscal(
+            {
+                "irpf_tabela_progressiva": {
+                    "faixas": [
+                        {"limite_anual": 24_000, "aliquota_pct": 7.5},
+                        {"limite_anual": 48_000, "aliquota_pct": 15.0},
+                    ]
+                }
             }
-        })
+        )
         # Base 38.4k > 24k mas < 48k → última faixa aplicável = 7.5%
         r = PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=120_000, num_months=12))
 
         assert r.aliquota_marginal == 7.5
 
     def test_ultima_faixa_sem_limite_captura_alta_renda(self):
-        cfg = PrevidenciaConfig.from_fiscal({
-            "irpf_tabela_progressiva": {
-                "faixas": [
-                    {"limite_anual": 24_000, "aliquota_pct": 7.5},
-                    {"limite_anual": None, "aliquota_pct": 27.5},
-                ]
+        cfg = PrevidenciaConfig.from_fiscal(
+            {
+                "irpf_tabela_progressiva": {
+                    "faixas": [
+                        {"limite_anual": 24_000, "aliquota_pct": 7.5},
+                        {"limite_anual": None, "aliquota_pct": 27.5},
+                    ]
+                }
             }
-        })
+        )
         # Base 38.4k > 24k → última faixa (sem teto) 27.5%.
         r = PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=120_000, num_months=12))
 
@@ -178,11 +186,9 @@ class TestAliquotaMarginal:
 
 class TestEconomiaIR:
     def test_economia_eh_limite_vezes_aliquota(self):
-        cfg = PrevidenciaConfig.from_fiscal({
-            "irpf_tabela_progressiva": {
-                "faixas": [{"limite_anual": None, "aliquota_pct": 27.5}]
-            }
-        })
+        cfg = PrevidenciaConfig.from_fiscal(
+            {"irpf_tabela_progressiva": {"faixas": [{"limite_anual": None, "aliquota_pct": 27.5}]}}
+        )
         r = PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=120_000, num_months=12))
 
         # limite 4608 × 27.5% ≈ 1267.2
@@ -200,9 +206,13 @@ class TestLegacyDict:
         d = r.to_legacy_dict()
 
         required = {
-            "status", "nota",
-            "renda_tributavel_anual", "limite_pgbl_anual",
-            "aporte_mensal", "aliquota_marginal", "economia_ir_anual",
+            "status",
+            "nota",
+            "renda_tributavel_anual",
+            "limite_pgbl_anual",
+            "aporte_mensal",
+            "aliquota_marginal",
+            "economia_ir_anual",
         }
         assert required.issubset(d.keys())
 

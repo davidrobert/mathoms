@@ -15,13 +15,13 @@ Isso permite:
 
 Nullable para backward-compat com relatórios pré-F8.3.
 """
+
 from __future__ import annotations
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "d4e5f6a7b8c9"
 down_revision: Union[str, None] = "c2d3e4f5a6b7"
@@ -31,9 +31,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     with op.batch_alter_table("reports", schema=None) as batch_op:
-        batch_op.add_column(
-            sa.Column("tasks_snapshot_json", sa.JSON(), nullable=True)
-        )
+        batch_op.add_column(sa.Column("tasks_snapshot_json", sa.JSON(), nullable=True))
 
 
 def downgrade() -> None:

@@ -47,7 +47,6 @@ from backend.app.services import (
 from backend.app.services.invitation_service import InvitationError
 from backend.app.services.membership_service import MembershipError
 
-
 # ─── /me/workspaces (me-centric) ────────────────────────────────────
 
 router = APIRouter(prefix="/me", tags=["workspaces"])
@@ -226,9 +225,7 @@ async def remove_member_endpoint(
 ):
     """Remove um membro. Owner-only. Não permite remover o próprio owner."""
     try:
-        removed = await membership_service.remove_member(
-            workspace.id, user_id, db=db
-        )
+        removed = await membership_service.remove_member(workspace.id, user_id, db=db)
     except MembershipError as exc:
         code_to_status = {
             "not_found": status.HTTP_404_NOT_FOUND,
@@ -349,9 +346,7 @@ async def revoke_invitation_endpoint(
 ):
     """Revoga um convite pendente. Owner-only. Idempotente."""
     try:
-        inv = await invitation_service.revoke_invitation(
-            workspace.id, invitation_id, db=db
-        )
+        inv = await invitation_service.revoke_invitation(workspace.id, invitation_id, db=db)
     except InvitationError as exc:
         code_to_status = {
             "not_found": status.HTTP_404_NOT_FOUND,

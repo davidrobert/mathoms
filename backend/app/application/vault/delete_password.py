@@ -9,9 +9,7 @@ from backend.app.application.base import NotFoundError
 from backend.app.models.password_vault import PasswordVault
 
 
-async def delete_password(
-    workspace_id: str, password_id: str, *, db: AsyncSession
-) -> None:
+async def delete_password(workspace_id: str, password_id: str, *, db: AsyncSession) -> None:
     result = await db.execute(
         select(PasswordVault).where(
             PasswordVault.id == password_id,

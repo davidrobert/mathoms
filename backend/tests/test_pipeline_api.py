@@ -1,7 +1,7 @@
 """Tests for Pipeline API — trigger, status, list, cancel."""
 
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from httpx import AsyncClient
@@ -17,6 +17,7 @@ _CANCEL = "backend.app.api.pipeline.cancel_pipeline_run"
 # ---------------------------------------------------------------------------
 # Trigger
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_trigger_incremental_rejects_when_no_stored_paths(
@@ -49,7 +50,10 @@ async def test_trigger_incremental_rejects_when_no_stored_paths(
             json={"incremental": True, "skip_llm": True},
         )
     assert resp.status_code == 400
-    assert "incremental" in resp.json()["detail"].lower() or "armazenamento" in resp.json()["detail"].lower()
+    assert (
+        "incremental" in resp.json()["detail"].lower()
+        or "armazenamento" in resp.json()["detail"].lower()
+    )
 
 
 @pytest.mark.asyncio
@@ -73,7 +77,9 @@ async def test_trigger_pipeline_default(auth_client_with_doc: AsyncClient):
 async def test_trigger_pipeline_from_stage(auth_client_with_doc: AsyncClient):
     auth_client = auth_client_with_doc
     with patch(_START) as mock_start:
-        resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/pipeline/run", json={"from_stage": "E3", "skip_llm": True}
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/run",
+            json={"from_stage": "E3", "skip_llm": True},
         )
     assert resp.status_code == 202
     args = mock_start.call_args
@@ -84,7 +90,8 @@ async def test_trigger_pipeline_from_stage(auth_client_with_doc: AsyncClient):
 @pytest.mark.asyncio
 async def test_trigger_pipeline_invalid_from_stage(auth_client: AsyncClient):
     with patch(_START):
-        resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/pipeline/run", json={"from_stage": "E99"}
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/run", json={"from_stage": "E99"}
         )
     assert resp.status_code == 422
 
@@ -105,6 +112,7 @@ async def test_trigger_pipeline_concurrent_blocked(auth_client_with_doc: AsyncCl
 # ---------------------------------------------------------------------------
 # List runs
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_list_runs_empty(auth_client: AsyncClient):
@@ -129,11 +137,14 @@ async def test_list_runs_after_trigger(auth_client_with_doc: AsyncClient):
 # Get run detail
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_get_run_detail(auth_client_with_doc: AsyncClient):
     auth_client = auth_client_with_doc
     with patch(_START):
-        trigger_resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/pipeline/run", json={})
+        trigger_resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/run", json={}
+        )
     run_id = trigger_resp.json()["id"]
 
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/pipeline/runs/{run_id}")
@@ -153,15 +164,20 @@ async def test_get_run_not_found(auth_client: AsyncClient):
 # Cancel
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_cancel_active_run(auth_client_with_doc: AsyncClient):
     auth_client = auth_client_with_doc
     with patch(_START):
-        trigger_resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/pipeline/run", json={})
+        trigger_resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/run", json={}
+        )
     run_id = trigger_resp.json()["id"]
 
     with patch(_CANCEL, return_value=True):
-        resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/pipeline/runs/{run_id}/cancel")
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/runs/{run_id}/cancel"
+        )
     assert resp.status_code == 200
     assert "cancelamento" in resp.json()["detail"].lower()
 
@@ -169,7 +185,9 @@ async def test_cancel_active_run(auth_client_with_doc: AsyncClient):
 @pytest.mark.asyncio
 async def test_cancel_not_found(auth_client: AsyncClient):
     with patch(_CANCEL, return_value=False):
-        resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/pipeline/runs/nonexistent/cancel")
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/runs/nonexistent/cancel"
+        )
     assert resp.status_code == 404
 
 
@@ -177,16 +195,20 @@ async def test_cancel_not_found(auth_client: AsyncClient):
 async def test_cancel_already_completed(auth_client_with_doc: AsyncClient):
     auth_client = auth_client_with_doc
     with patch(_START):
-        trigger_resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/pipeline/run", json={})
+        trigger_resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/run", json={}
+        )
     run_id = trigger_resp.json()["id"]
 
-    from backend.app.models.pipeline_run import PipelineRunStatus
     from backend.app.core.database import get_db
     from backend.app.main import app
+    from backend.app.models.pipeline_run import PipelineRunStatus
 
     async for db in app.dependency_overrides[get_db]():
         from sqlalchemy import update
+
         from backend.app.models.pipeline_run import PipelineRun
+
         await db.execute(
             update(PipelineRun)
             .where(PipelineRun.id == run_id)
@@ -195,7 +217,9 @@ async def test_cancel_already_completed(auth_client_with_doc: AsyncClient):
         await db.commit()
 
     with patch(_CANCEL, return_value=False):
-        resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/pipeline/runs/{run_id}/cancel")
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/runs/{run_id}/cancel"
+        )
     assert resp.status_code == 409
 
 
@@ -203,13 +227,16 @@ async def test_cancel_already_completed(auth_client_with_doc: AsyncClient):
 # Auth
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_pipeline_unauthorized(client: AsyncClient):
-    resp = await client.post(f"/api/workspaces/00000000-0000-0000-0000-000000000000/pipeline/run", json={})
+    resp = await client.post(
+        "/api/workspaces/00000000-0000-0000-0000-000000000000/pipeline/run", json={}
+    )
     assert resp.status_code in (401, 403)
 
 
 @pytest.mark.asyncio
 async def test_list_runs_unauthorized(client: AsyncClient):
-    resp = await client.get(f"/api/workspaces/00000000-0000-0000-0000-000000000000/pipeline/runs")
+    resp = await client.get("/api/workspaces/00000000-0000-0000-0000-000000000000/pipeline/runs")
     assert resp.status_code in (401, 403)

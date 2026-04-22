@@ -7,7 +7,6 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-
 # Roles aceitas na API pública. `owner` só aparece em respostas, nunca
 # em request — criar owner é responsabilidade do fluxo de criação de
 # workspace, não de convite.

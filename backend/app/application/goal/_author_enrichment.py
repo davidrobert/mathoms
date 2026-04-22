@@ -16,9 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.models.user import User
 
 
-async def resolve_author_names(
-    user_ids: Iterable[str], *, db: AsyncSession
-) -> dict[str, str]:
+async def resolve_author_names(user_ids: Iterable[str], *, db: AsyncSession) -> dict[str, str]:
     ids = [uid for uid in user_ids if uid]
     if not ids:
         return {}

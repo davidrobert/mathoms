@@ -15,7 +15,9 @@ def check_inbox_log() -> list[dict[str, Any]]:
     issues: list[dict[str, Any]] = []
 
     if not _h.INBOX_LOG.exists():
-        issues.append({"file": "inbox_log.md", "issue": "Arquivo não encontrado", "severity": "INFO"})
+        issues.append(
+            {"file": "inbox_log.md", "issue": "Arquivo não encontrado", "severity": "INFO"}
+        )
         return issues
 
     text = _h.INBOX_LOG.read_text(encoding="utf-8")
@@ -34,13 +36,15 @@ def check_inbox_log() -> list[dict[str, Any]]:
         final = final.strip()
 
         if original != final:
-            issues.append({
-                "file": final,
-                "issue": f"Renomeado no inbox: '{original}' → '{final}'",
-                "severity": "INFO",
-                "original_name": original,
-                "final_name": final,
-            })
+            issues.append(
+                {
+                    "file": final,
+                    "issue": f"Renomeado no inbox: '{original}' → '{final}'",
+                    "severity": "INFO",
+                    "original_name": original,
+                    "final_name": final,
+                }
+            )
 
     return issues
 
@@ -81,13 +85,15 @@ def check_saldo_gaps() -> list[dict[str, Any]]:
             continue
 
         key = (_h.normalize(banco), _h.normalize(tipo), _h.normalize(moeda))
-        accounts[key].append({
-            "file": fpath.name,
-            "inicio": periodo.get("inicio", ""),
-            "fim": periodo.get("fim", ""),
-            "saldo_inicial": saldo_i,
-            "saldo_final": saldo_f,
-        })
+        accounts[key].append(
+            {
+                "file": fpath.name,
+                "inicio": periodo.get("inicio", ""),
+                "fim": periodo.get("fim", ""),
+                "saldo_inicial": saldo_i,
+                "saldo_final": saldo_f,
+            }
+        )
 
     # For each account, sort by period start and check continuity
     for key, entries in sorted(accounts.items()):
@@ -106,16 +112,18 @@ def check_saldo_gaps() -> list[dict[str, Any]]:
                 continue
 
             if diff > 0.01:  # tolerance for rounding
-                issues.append({
-                    "file": f"{curr['file']} → {nxt['file']}",
-                    "issue": (
-                        f"Gap de saldo: {key[0]}/{key[1]} ({key[2]}) — "
-                        f"fim {curr['fim']} = {curr['saldo_final']}, "
-                        f"início {nxt['inicio']} = {nxt['saldo_inicial']} "
-                        f"(diff: {diff:.2f})"
-                    ),
-                    "severity": "WARNING",
-                })
+                issues.append(
+                    {
+                        "file": f"{curr['file']} → {nxt['file']}",
+                        "issue": (
+                            f"Gap de saldo: {key[0]}/{key[1]} ({key[2]}) — "
+                            f"fim {curr['fim']} = {curr['saldo_final']}, "
+                            f"início {nxt['inicio']} = {nxt['saldo_inicial']} "
+                            f"(diff: {diff:.2f})"
+                        ),
+                        "severity": "WARNING",
+                    }
+                )
 
     return issues
 

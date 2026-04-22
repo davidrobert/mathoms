@@ -21,8 +21,6 @@ async def delete_document(
     """
     doc = await repo.get_by_id(workspace_id, document_id)
     if doc is None:
-        raise NotFoundError(
-            "Documento não encontrado", code="document_not_found"
-        )
+        raise NotFoundError("Documento não encontrado", code="document_not_found")
     await repo.delete(doc)
     return doc

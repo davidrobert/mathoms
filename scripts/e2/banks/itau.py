@@ -12,26 +12,37 @@ except ImportError:
     pdfplumber = None
 
 from scripts.e2.common import (
-    BANCO_ITAU, CARTAO_PDA, VENC_PDA, ITAU_XLS_LAYOUT,
-    FAMILY, TITULAR, MEMBROS,
-    detect_member_from_text, detect_member_from_card_name,
-    extract_account_number, infer_periodo_from_filename,
-    infer_year_from_filename, log, make_result_template,
-    parse_brl, safe_date, resolve_date_ddmm,
+    BANCO_ITAU,
+    CARTAO_PDA,
+    FAMILY,
+    ITAU_XLS_LAYOUT,
+    MEMBROS,
+    TITULAR,
+    VENC_PDA,
+    detect_member_from_card_name,
+    detect_member_from_text,
+    extract_account_number,
+    infer_periodo_from_filename,
+    infer_year_from_filename,
+    log,
+    make_result_template,
+    parse_brl,
+    resolve_date_ddmm,
+    safe_date,
 )
 
 LOG_PREFIX_EXTRATO = "E2-EXTRATO"
 LOG_PREFIX_FATURA = "E2-FATURA"
 
 PARSERS = [
-    (r'^itau_extratocontapersonnalite_.*\.xls$', "parse_itau_xls"),
-    (r'^itau_extratoconta_.*\.xls$', "parse_itau_xls"),
-    (r'^itau_extratocontapersonnalite_', "parse_itau"),
-    (r'^itau_extratoconta_', "parse_itau"),
-    (r'^itau_cdbresumo_.*\.xls$', "parse_itau_cdb_html_xls"),
-    (r'^itau_cdbdetalhes_.*\.xls$', "parse_itau_cdb_html_xls"),
-    (r'itau_faturapaoacucar.*\.csv$', "parse_itau_paoacucar_csv"),
-    (r'itau_faturapaoacucar', "parse_itau_paoacucar"),
+    (r"^itau_extratocontapersonnalite_.*\.xls$", "parse_itau_xls"),
+    (r"^itau_extratoconta_.*\.xls$", "parse_itau_xls"),
+    (r"^itau_extratocontapersonnalite_", "parse_itau"),
+    (r"^itau_extratoconta_", "parse_itau"),
+    (r"^itau_cdbresumo_.*\.xls$", "parse_itau_cdb_html_xls"),
+    (r"^itau_cdbdetalhes_.*\.xls$", "parse_itau_cdb_html_xls"),
+    (r"itau_faturapaoacucar.*\.csv$", "parse_itau_paoacucar_csv"),
+    (r"itau_faturapaoacucar", "parse_itau_paoacucar"),
 ]
 
 
@@ -39,12 +50,13 @@ PARSERS = [
 # Helper
 # ---------------------------------------------------------------------------
 
+
 def _fix_itau_xls_encoding(text: str) -> str:
     """Fix mojibake in Itaú XLS files (UTF-8 decoded as latin-1)."""
     if not text or not isinstance(text, str):
         return text or ""
     try:
-        fixed = text.encode('latin-1').decode('utf-8')
+        fixed = text.encode("latin-1").decode("utf-8")
         return fixed
     except (UnicodeDecodeError, UnicodeEncodeError):
         return text
@@ -53,6 +65,7 @@ def _fix_itau_xls_encoding(text: str) -> str:
 # ---------------------------------------------------------------------------
 # Extrato conta — XLS
 # ---------------------------------------------------------------------------
+
 
 def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Itaú XLS bank statement exported from internet banking.
@@ -88,9 +101,15 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
         # --- Sheet: Lançamentos ---
         if "Lançamentos" not in wb.sheet_names():
             sheet_names_lower = {s.lower(): s for s in wb.sheet_names()}
-            lancamentos_name = sheet_names_lower.get("lançamentos") or sheet_names_lower.get("lancamentos")
+            lancamentos_name = sheet_names_lower.get("lançamentos") or sheet_names_lower.get(
+                "lancamentos"
+            )
             if not lancamentos_name:
-                log(LOG_PREFIX_EXTRATO, "WARN", f"  Sheet 'Lançamentos' não encontrada em {filename}")
+                log(
+                    LOG_PREFIX_EXTRATO,
+                    "WARN",
+                    f"  Sheet 'Lançamentos' não encontrada em {filename}",
+                )
                 result["notas"].append("Sheet Lançamentos não encontrada")
                 result["requires_llm_fallback"] = True
                 return result
@@ -144,9 +163,14 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 
             desc_lower = cell_desc.lower()
             date_lower = cell_date.lower()
-            if ("lançamentos futuros" in date_lower or "lançamentos futuros" in desc_lower
-                    or "lancamentos futuros" in date_lower or "lancamentos futuros" in desc_lower
-                    or "saídas futuras" in date_lower or "saidas futuras" in date_lower):
+            if (
+                "lançamentos futuros" in date_lower
+                or "lançamentos futuros" in desc_lower
+                or "lancamentos futuros" in date_lower
+                or "lancamentos futuros" in desc_lower
+                or "saídas futuras" in date_lower
+                or "saidas futuras" in date_lower
+            ):
                 in_future_section = True
                 continue
 
@@ -156,7 +180,7 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
             if not cell_date or cell_date.lower() in ("lançamentos", "lancamentos", ""):
                 continue
 
-            date_match = re.match(r'(\d{2})/(\d{2})/(\d{4})', cell_date)
+            date_match = re.match(r"(\d{2})/(\d{2})/(\d{4})", cell_date)
             if not date_match:
                 continue
 
@@ -165,7 +189,11 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 
             # --- SALDO ANTERIOR ---
             if "SALDO ANTERIOR" in cell_desc.upper():
-                saldo_val = cell_saldo if isinstance(cell_saldo, (int, float)) and cell_saldo != "" else None
+                saldo_val = (
+                    cell_saldo
+                    if isinstance(cell_saldo, (int, float)) and cell_saldo != ""
+                    else None
+                )
                 if saldo_val is not None and saldo_val != "":
                     saldo_anterior = float(saldo_val)
                     first_tx_date = iso_date
@@ -173,10 +201,17 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 
             # --- SALDO TOTAL DISPONÍVEL DIA ---
             desc_upper = cell_desc.upper()
-            if ("SALDO TOTAL DISPON" in desc_upper or "SALDO DO DIA" in desc_upper
-                    or "SALDO TOTAL DISPONÍVEL DIA" in desc_upper
-                    or "SALDO TOTAL DISPONIVEL DIA" in desc_upper):
-                saldo_val = cell_saldo if isinstance(cell_saldo, (int, float)) and cell_saldo != "" else None
+            if (
+                "SALDO TOTAL DISPON" in desc_upper
+                or "SALDO DO DIA" in desc_upper
+                or "SALDO TOTAL DISPONÍVEL DIA" in desc_upper
+                or "SALDO TOTAL DISPONIVEL DIA" in desc_upper
+            ):
+                saldo_val = (
+                    cell_saldo
+                    if isinstance(cell_saldo, (int, float)) and cell_saldo != ""
+                    else None
+                )
                 if saldo_val is not None and saldo_val != "":
                     saldo_final = float(saldo_val)
                     last_tx_date = iso_date
@@ -193,11 +228,13 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
             if valor is None:
                 continue
 
-            result["transacoes"].append({
-                "data": iso_date,
-                "descricao": cell_desc,
-                "valor": valor,
-            })
+            result["transacoes"].append(
+                {
+                    "data": iso_date,
+                    "descricao": cell_desc,
+                    "valor": valor,
+                }
+            )
 
             if first_tx_date is None:
                 first_tx_date = iso_date
@@ -210,9 +247,13 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
             result["saldo_final"] = saldo_final
 
         # --- Derive periodo from actual transaction dates ---
-        if first_tx_date and (not result["periodo"]["inicio"] or result["periodo"]["inicio"] > first_tx_date):
+        if first_tx_date and (
+            not result["periodo"]["inicio"] or result["periodo"]["inicio"] > first_tx_date
+        ):
             result["periodo"]["inicio"] = first_tx_date
-        if last_tx_date and (not result["periodo"]["fim"] or result["periodo"]["fim"] < last_tx_date):
+        if last_tx_date and (
+            not result["periodo"]["fim"] or result["periodo"]["fim"] < last_tx_date
+        ):
             result["periodo"]["fim"] = last_tx_date
 
         # --- Sheet: Posição Consolidada (optional enrichment) ---
@@ -241,6 +282,7 @@ def parse_itau_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 # Extrato conta — PDF
 # ---------------------------------------------------------------------------
 
+
 def parse_itau(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Itaú bank statement."""
     is_personnalite = "personnalite" in filename.lower()
@@ -259,11 +301,13 @@ def parse_itau(pdf_path: Path, filename: str) -> Dict[str, Any]:
             first_text = pdf.pages[0].extract_text() or ""
             result["titular"] = detect_member_from_text(first_text)
             result["numero_conta"] = extract_account_number(first_text, "itau")
-            ag_m = re.search(r'Ag[êe]ncia[:\s]+(\d+)', first_text)
+            ag_m = re.search(r"Ag[êe]ncia[:\s]+(\d+)", first_text)
             if ag_m:
                 result["agencia"] = ag_m.group(1)
 
-            pm = re.search(r'Per[ií]odo[:\s]+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', first_text)
+            pm = re.search(
+                r"Per[ií]odo[:\s]+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})", first_text
+            )
             if pm:
                 parts1 = pm.group(1).split("/")
                 parts2 = pm.group(2).split("/")
@@ -295,7 +339,7 @@ def parse_itau(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 if not date_str and not descricao:
                     continue
 
-                date_match = re.match(r'(\d{2}/\d{2}/\d{4})', date_str)
+                date_match = re.match(r"(\d{2}/\d{2}/\d{4})", date_str)
                 if not date_match:
                     continue
 
@@ -312,11 +356,13 @@ def parse_itau(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 if valor is None:
                     continue
 
-                result["transacoes"].append({
-                    "data": iso_date,
-                    "descricao": descricao,
-                    "valor": valor,
-                })
+                result["transacoes"].append(
+                    {
+                        "data": iso_date,
+                        "descricao": descricao,
+                        "valor": valor,
+                    }
+                )
 
             if saldo_values:
                 saldo_values.sort(key=lambda x: x[0])
@@ -336,6 +382,7 @@ def parse_itau(pdf_path: Path, filename: str) -> Dict[str, Any]:
 # CDB investment — HTML-as-XLS
 # ---------------------------------------------------------------------------
 
+
 def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Itaú CDB investment extract from HTML-as-XLS export.
 
@@ -346,7 +393,11 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
     try:
         from bs4 import BeautifulSoup
     except ImportError:
-        log(LOG_PREFIX_EXTRATO, "ERROR", "beautifulsoup4 not installed. Run: pip install beautifulsoup4")
+        log(
+            LOG_PREFIX_EXTRATO,
+            "ERROR",
+            "beautifulsoup4 not installed. Run: pip install beautifulsoup4",
+        )
         return {"requires_llm_fallback": True, "tipo": "cdbresumo"}
 
     log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing Itaú CDB HTML-XLS: {filename}")
@@ -370,11 +421,11 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
     }
 
     try:
-        with open(xls_path, 'r', encoding='windows-1252') as f:
+        with open(xls_path, "r", encoding="windows-1252") as f:
             html = f.read()
 
-        soup = BeautifulSoup(html, 'html.parser')
-        tables = soup.find_all('table')
+        soup = BeautifulSoup(html, "html.parser")
+        tables = soup.find_all("table")
 
         if not tables:
             result["notas"].append("Nenhuma tabela encontrada no HTML")
@@ -382,11 +433,11 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
             return result
 
         main_table = tables[0]
-        rows = main_table.find_all('tr')
+        rows = main_table.find_all("tr")
 
         def get_cells(row):
             """Extract text from all cells in a row."""
-            return [c.get_text(strip=True) for c in row.find_all(['td', 'th'])]
+            return [c.get_text(strip=True) for c in row.find_all(["td", "th"])]
 
         # --- Parse structured data by scanning rows ---
         for i, row in enumerate(rows):
@@ -398,7 +449,7 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
                 title = cells[0]
                 dash_idx = title.find(" - ")
                 if dash_idx >= 0:
-                    result["tipo_produto"] = title[dash_idx + 3:].strip()
+                    result["tipo_produto"] = title[dash_idx + 3 :].strip()
 
             if len(cells) >= 3 and cells[1] == "Nome:":
                 nome = cells[2]
@@ -410,7 +461,7 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 
             if len(cells) >= 3 and cells[1] == "Período:":
                 periodo_str = cells[2]
-                m = re.search(r'(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', periodo_str)
+                m = re.search(r"(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})", periodo_str)
                 if m:
                     p1, p2 = m.group(1).split("/"), m.group(2).split("/")
                     result["periodo"]["inicio"] = f"{p1[2]}-{p1[1]}-{p1[0]}"
@@ -437,7 +488,7 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
                     "saldo_final_liquido": parse_brl(cells[8]),
                 }
 
-            if len(cells) >= 8 and re.match(r'^\d{10,}$', cells[0]):
+            if len(cells) >= 8 and re.match(r"^\d{10,}$", cells[0]):
                 n_operacao = cells[0]
                 data_vencimento_raw = cells[1]
                 data_aplicacao_raw = cells[2]
@@ -448,7 +499,7 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
                 rentab_periodo = parse_brl(cells[7])
 
                 def convert_date(d):
-                    m = re.match(r'(\d{2})/(\d{2})/(\d{4})', d)
+                    m = re.match(r"(\d{2})/(\d{2})/(\d{4})", d)
                     return f"{m.group(3)}-{m.group(2)}-{m.group(1)}" if m else d
 
                 posicao = {
@@ -481,6 +532,7 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 # Fatura Pão de Açúcar — PDF
 # ---------------------------------------------------------------------------
 
+
 def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Itaú Pão de Açúcar credit card invoice.
 
@@ -493,7 +545,7 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
     ref_year = infer_year_from_filename(filename)
     ref_month = None
-    m = re.search(r'(\d{4})(\d{2})', filename)
+    m = re.search(r"(\d{4})(\d{2})", filename)
     if m:
         ref_year = int(m.group(1))
         ref_month = int(m.group(2))
@@ -529,73 +581,81 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
         if m:
             result["titular"] = m.group(1)
 
-        m = re.search(r'Vencimento:\s*(\d{2}/\d{2}/\d{4})', full_text)
+        m = re.search(r"Vencimento:\s*(\d{2}/\d{2}/\d{4})", full_text)
         if m:
             parts = m.group(1).split("/")
             result["data_vencimento"] = f"{parts[2]}-{parts[1]}-{parts[0]}"
 
-        m = re.search(r'Total desta fatura\s+([\d.,]+)', full_text)
+        m = re.search(r"Total desta fatura\s+([\d.,]+)", full_text)
         if m:
             result["saldo_atual"] = parse_brl(m.group(1))
 
-        m = re.search(r'Total da fatura anterior\s+([\d.,]+)', full_text)
+        m = re.search(r"Total da fatura anterior\s+([\d.,]+)", full_text)
         if m:
             result["saldo_anterior"] = parse_brl(m.group(1))
 
-        m = re.search(r'Pagamento efetuado em \d+/\d+/\d+\s+(-?\s*[\d.,]+)', full_text)
+        m = re.search(r"Pagamento efetuado em \d+/\d+/\d+\s+(-?\s*[\d.,]+)", full_text)
         if m:
             val = parse_brl(m.group(1))
             result["pagamentos"] = -abs(val) if val else None
 
-        m = re.search(r'Lançamentos atuais\s+([\d.,]+)', full_text)
+        m = re.search(r"Lançamentos atuais\s+([\d.,]+)", full_text)
         if m:
             result["total_compras"] = parse_brl(m.group(1))
 
-        m = re.search(r'Cartão\s+([\d.X]+)', full_text)
+        m = re.search(r"Cartão\s+([\d.X]+)", full_text)
         if m:
             result["numero_cartao"] = m.group(1)
 
         # --- Transactions ---
         tx_pattern = re.compile(
-            r'(?:@\s*)?(\d{2}/\d{2})\s+'                  # date
-            r'(.+?)\s+'                                     # description (lazy)
-            r'(\d{1,2}/\d{1,2})\s+'                        # parcela (NN/NN)
-            r'([\d.,]+)'                                    # value
+            r"(?:@\s*)?(\d{2}/\d{2})\s+"  # date
+            r"(.+?)\s+"  # description (lazy)
+            r"(\d{1,2}/\d{1,2})\s+"  # parcela (NN/NN)
+            r"([\d.,]+)"  # value
         )
         tx_simple = re.compile(
-            r'(?:@\s*)?(\d{2}/\d{2})\s+'                  # date
-            r'(.+?)\s+'                                     # description (lazy)
-            r'([\d.,]+)'                                    # value
+            r"(?:@\s*)?(\d{2}/\d{2})\s+"  # date
+            r"(.+?)\s+"  # description (lazy)
+            r"([\d.,]+)"  # value
         )
 
         current_card = None
         in_lancamentos = False
         in_parceladas = False
 
-        for line in full_text.split('\n'):
-            if 'Lançamentos: compras e saques' in line or 'Lançamentos:compras e saques' in line:
+        for line in full_text.split("\n"):
+            if "Lançamentos: compras e saques" in line or "Lançamentos:compras e saques" in line:
                 in_lancamentos = True
                 in_parceladas = False
                 continue
-            if 'Lançamentos internacionais' in line:
+            if "Lançamentos internacionais" in line:
                 in_lancamentos = True
                 in_parceladas = False
                 continue
-            if 'Compras parceladas' in line and 'próximas faturas' in line:
+            if "Compras parceladas" in line and "próximas faturas" in line:
                 in_lancamentos = False
                 in_parceladas = True
                 continue
-            has_card_header = bool(re.search(r'\(final\s+\d+\)', line))
-            has_tx_date = bool(re.match(r'\s*(?:@\s*)?\d{2}/\d{2}\s', line.strip()))
+            has_card_header = bool(re.search(r"\(final\s+\d+\)", line))
+            has_tx_date = bool(re.match(r"\s*(?:@\s*)?\d{2}/\d{2}\s", line.strip()))
             if not has_card_header and not has_tx_date:
-                if any(s in line for s in ['Fique atento', 'Continua...',
-                                            'Pagamentos em', 'lojas são aceitos',
-                                            'apenas em dinheiro',
-                                            'cartão de débito', 'Não são aceitos']):
+                if any(
+                    s in line
+                    for s in [
+                        "Fique atento",
+                        "Continua...",
+                        "Pagamentos em",
+                        "lojas são aceitos",
+                        "apenas em dinheiro",
+                        "cartão de débito",
+                        "Não são aceitos",
+                    ]
+                ):
                     in_lancamentos = False
                     in_parceladas = False
                     continue
-                if re.match(r'^\s*Limites de crédito\s*$', line):
+                if re.match(r"^\s*Limites de crédito\s*$", line):
                     in_lancamentos = False
                     in_parceladas = False
                     continue
@@ -603,7 +663,7 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
             if not (in_lancamentos or in_parceladas):
                 continue
 
-            card_m = re.search(r'([A-Z][\w\s]+)\(final\s+(\d+)\)', line)
+            card_m = re.search(r"([A-Z][\w\s]+)\(final\s+(\d+)\)", line)
             if card_m:
                 current_card = f"{card_m.group(1).strip()} (final {card_m.group(2)})"
 
@@ -650,7 +710,11 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
                         else:
                             result["transacoes"].append(tx)
 
-        log(LOG_PREFIX_FATURA, "INFO", f"  → {len(result['transacoes'])} transações, {len(result['compras_parceladas_futuras'])} parceladas futuras")
+        log(
+            LOG_PREFIX_FATURA,
+            "INFO",
+            f"  → {len(result['transacoes'])} transações, {len(result['compras_parceladas_futuras'])} parceladas futuras",
+        )
     except Exception as e:
         log(LOG_PREFIX_FATURA, "ERROR", f"  Falha ao abrir PDF {pdf_path.name}: {e}")
         return {"erro": str(e), "requires_llm_fallback": True, "tipo": "fatura"}
@@ -661,6 +725,7 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Fatura Pão de Açúcar — CSV
 # ---------------------------------------------------------------------------
+
 
 def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Itaú Pão de Açúcar credit card invoice from CSV export.
@@ -677,7 +742,7 @@ def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
     data_vencimento = None
     is_fatura_aberta = False
 
-    m = re.search(r'fatura-(\d{8})', filename)
+    m = re.search(r"fatura-(\d{8})", filename)
     if m:
         date_str = m.group(1)
         if date_str == "99999999":
@@ -687,7 +752,7 @@ def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
             data_vencimento = f"{y}-{mo}-{d}"
 
     if not data_vencimento and not is_fatura_aberta:
-        m = re.search(r'(\d{4})(\d{2})', filename)
+        m = re.search(r"(\d{4})(\d{2})", filename)
         if m:
             ref_year, ref_month = int(m.group(1)), int(m.group(2))
             data_vencimento = f"{ref_year}-{ref_month:02d}-{VENC_PDA:02d}"
@@ -711,7 +776,7 @@ def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         result["notas"] = ["Fatura aberta (em aberto, ainda não fechada)"]
 
     try:
-        with open(csv_path, 'r', encoding='utf-8-sig') as f:
+        with open(csv_path, "r", encoding="utf-8-sig") as f:
             lines = f.readlines()
 
         if not lines:
@@ -719,7 +784,7 @@ def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
             return result
 
         header = lines[0].strip().lower()
-        if 'data' not in header or 'valor' not in header:
+        if "data" not in header or "valor" not in header:
             log(LOG_PREFIX_FATURA, "WARN", f"  Header CSV inesperado: {header}")
             result["notas"] = result.get("notas", []) + [f"Header inesperado: {header}"]
             return result
@@ -732,15 +797,15 @@ def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
             if not line:
                 continue
 
-            parts = line.split(',')
+            parts = line.split(",")
             if len(parts) < 3:
                 continue
 
             data = parts[0].strip()
             valor_str = parts[-1].strip()
-            descricao = ','.join(parts[1:-1]).strip()
+            descricao = ",".join(parts[1:-1]).strip()
 
-            if not re.match(r'\d{4}-\d{2}-\d{2}$', data):
+            if not re.match(r"\d{4}-\d{2}-\d{2}$", data):
                 continue
 
             try:
@@ -751,7 +816,7 @@ def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
                     continue
 
             parcela = None
-            parcela_m = re.search(r'(\d{1,2}/\d{1,2})$', descricao)
+            parcela_m = re.search(r"(\d{1,2}/\d{1,2})$", descricao)
             if parcela_m:
                 parcela = parcela_m.group(1)
 
@@ -781,7 +846,9 @@ def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         if total_compras != 0:
             result["total_compras"] = total_compras
 
-        result["saldo_atual"] = round(total_compras + total_pagamentos, 2) if result["transacoes"] else None
+        result["saldo_atual"] = (
+            round(total_compras + total_pagamentos, 2) if result["transacoes"] else None
+        )
 
         if not result["titular"]:
             result["titular"] = TITULAR.get("variantes_nome", [TITULAR.get("nome_completo")])[0]

@@ -26,6 +26,7 @@ async def seed_existing_reports(
     """
     if output_dir is None:
         from backend.app.core.config import settings
+
         output_dir = Path(settings.PIPELINE_ROOT) / "output"
 
     if not output_dir.is_dir():
@@ -37,9 +38,7 @@ async def seed_existing_reports(
 
     imported = []
     for html_path in html_files:
-        existing = await db.execute(
-            select(Report).where(Report.html_path == str(html_path))
-        )
+        existing = await db.execute(select(Report).where(Report.html_path == str(html_path)))
         if existing.scalar_one_or_none():
             continue
 
@@ -84,9 +83,7 @@ async def ensure_seed_user(db: AsyncSession) -> tuple[User, Workspace]:
         await db.commit()
         await db.refresh(user)
     else:
-        ws_result = await db.execute(
-            select(Workspace).where(Workspace.owner_id == user.id)
-        )
+        ws_result = await db.execute(select(Workspace).where(Workspace.owner_id == user.id))
         ws = ws_result.scalar_one_or_none()
 
     return user, ws

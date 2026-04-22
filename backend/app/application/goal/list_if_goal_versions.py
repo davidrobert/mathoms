@@ -19,12 +19,9 @@ async def list_if_goal_versions(
     Mantém o use case isento do ``User`` repo — cross-aggregate fica no
     boundary HTTP.
     """
-    goals = await repo.list_by_workspace_and_type(
-        workspace_id, "INDEPENDENCIA_FINANCEIRA"
-    )
+    goals = await repo.list_by_workspace_and_type(workspace_id, "INDEPENDENCIA_FINANCEIRA")
     lookup = dict(author_names or {})
     responses = [
-        goal_to_if_response(g, created_by_name=lookup.get(g.created_by or ""))
-        for g in goals
+        goal_to_if_response(g, created_by_name=lookup.get(g.created_by or "")) for g in goals
     ]
     return IFGoalHistoryResponse(goals=responses, total=len(responses))

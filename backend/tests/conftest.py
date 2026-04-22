@@ -58,9 +58,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.orm import sessionmaker
 
 import backend.app.core.database as _database_module
-from backend.app.core.database import Base, get_db
 import backend.app.models  # noqa: F401 — ensure ALL models register with Base.metadata
 from backend.app.core.config import settings
+from backend.app.core.database import Base, get_db
 from backend.app.main import app
 
 if not settings.FERNET_KEY:
@@ -98,11 +98,13 @@ TestSyncSession = sessionmaker(bind=_sync_test_engine, expire_on_commit=False)
 _database_module.SyncSessionLocal = TestSyncSession
 _database_module.sync_engine = _sync_test_engine
 
-from backend.app.tasks import pipeline_task as _pipeline_task_module  # noqa: E402
-from backend.app.tasks import periodic_tasks as _periodic_tasks_module  # noqa: E402
-from backend.app.services import pipeline_service as _pipeline_service_module  # noqa: E402
-from backend.app.services import document_pipeline_sync as _document_pipeline_sync_module  # noqa: E402
 from backend.app.scripts import backfill_artifacts_from_disk as _backfill_module  # noqa: E402
+from backend.app.services import (
+    document_pipeline_sync as _document_pipeline_sync_module,  # noqa: E402
+)
+from backend.app.services import pipeline_service as _pipeline_service_module  # noqa: E402
+from backend.app.tasks import periodic_tasks as _periodic_tasks_module  # noqa: E402
+from backend.app.tasks import pipeline_task as _pipeline_task_module  # noqa: E402
 
 for _mod in (
     _pipeline_task_module,
@@ -177,13 +179,17 @@ async def auth_client(client: AsyncClient) -> AsyncClient:
     colidir nesse fixture pré-fabricado.
     """
     from sqlalchemy import select
+
     from backend.app.models.workspace import Workspace
 
-    resp = await client.post("/api/auth/register", json={
-        "email": "fixture@test.com",
-        "password": "testpass123",
-        "full_name": "Fixture User",
-    })
+    resp = await client.post(
+        "/api/auth/register",
+        json={
+            "email": "fixture@test.com",
+            "password": "testpass123",
+            "full_name": "Fixture User",
+        },
+    )
     token = resp.json()["access_token"]
     client.headers["Authorization"] = f"Bearer {token}"
 

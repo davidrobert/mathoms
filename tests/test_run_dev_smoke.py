@@ -35,7 +35,8 @@ def test_run_dev_e3_empty_tenant(minimal_tenant: Path, capsys):
 
     # Restore cwd-sensitive scripts after stage (e3 + pipeline_common globals)
     from scripts.e3_reconcile import _init_config as e3_init
-    from scripts.pipeline_common import _REPO_ROOT, _init_config as pc_init
+    from scripts.pipeline_common import _REPO_ROOT
+    from scripts.pipeline_common import _init_config as pc_init
 
     try:
         code = main(["--root", str(minimal_tenant), "--stages", "E3"])

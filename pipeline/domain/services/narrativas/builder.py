@@ -60,24 +60,14 @@ class E5NarrativasBuilder:
         estruturas malformadas sem quebrar.
         """
         riscos_raw = metrics.get("riscos_prioritarios", [])
-        riscos: list[dict[str, Any]] = (
-            riscos_raw if isinstance(riscos_raw, list) else []
-        )
-        riscos_nomes: list[str] = [
-            r.get("nome", "") for r in riscos if isinstance(r, dict)
-        ]
+        riscos: list[dict[str, Any]] = riscos_raw if isinstance(riscos_raw, list) else []
+        riscos_nomes: list[str] = [r.get("nome", "") for r in riscos if isinstance(r, dict)]
 
         decisoes_raw = metrics.get("decisoes_prioritarias", [])
-        decisoes: list[str] = (
-            list(decisoes_raw) if isinstance(decisoes_raw, list) else []
-        )
+        decisoes: list[str] = list(decisoes_raw) if isinstance(decisoes_raw, list) else []
 
         return {
-            "perfil_familia": self._perfil.narrate(
-                metrics, family, today=today
-            ),
-            "summaries": self._summaries.narrate(
-                metrics, family, riscos_nomes, decisoes
-            ),
+            "perfil_familia": self._perfil.narrate(metrics, family, today=today),
+            "summaries": self._summaries.narrate(metrics, family, riscos_nomes, decisoes),
             "charts": self._charts.narrate(metrics, family, riscos, decisoes),
         }

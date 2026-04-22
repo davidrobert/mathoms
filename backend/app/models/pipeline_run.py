@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -34,9 +34,7 @@ class PipelineStageStatus(str, enum.Enum):
 class PipelineRun(Base):
     __tablename__ = "pipeline_runs"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -55,30 +53,30 @@ class PipelineRun(Base):
     )
     completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    tier_at_run: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="free"
-    )
+    tier_at_run: Mapped[str] = mapped_column(String(20), nullable=False, default="free")
     paused_at_stage: Mapped[str] = mapped_column(String(50), nullable=True)
     celery_task_id: Mapped[str] = mapped_column(String(255), nullable=True)
 
     workspace = relationship("Workspace", back_populates="pipeline_runs")
     stage_logs = relationship(
-        "PipelineStageLog", back_populates="pipeline_run",
-        cascade="all, delete-orphan", order_by="PipelineStageLog.started_at",
+        "PipelineStageLog",
+        back_populates="pipeline_run",
+        cascade="all, delete-orphan",
+        order_by="PipelineStageLog.started_at",
     )
     report = relationship("Report", back_populates="pipeline_run", uselist=False)
     stage_reviews = relationship(
-        "StageReview", back_populates="pipeline_run",
-        cascade="all, delete-orphan", order_by="StageReview.created_at",
+        "StageReview",
+        back_populates="pipeline_run",
+        cascade="all, delete-orphan",
+        order_by="StageReview.created_at",
     )
 
 
 class PipelineStageLog(Base):
     __tablename__ = "pipeline_stage_logs"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     pipeline_run_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("pipeline_runs.id", ondelete="CASCADE"), nullable=False, index=True
     )

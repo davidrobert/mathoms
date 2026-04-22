@@ -18,7 +18,6 @@ from typing import Sequence, Union
 
 from alembic import op
 
-
 revision: str = "i4c5d6e7f8a9"
 down_revision: Union[str, Sequence[str], None] = "h3b4c5d6e7f8"
 branch_labels: Union[str, Sequence[str], None] = None

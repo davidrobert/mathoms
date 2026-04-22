@@ -18,6 +18,7 @@ o exemplo canônico — mora em scripts/ e consolida paths + config I/O
 Exit 0 se todos os staged passam; exit 1 com listagem dos ofensores
 caso contrário. Chamado via pre-commit com `pass_filenames: true`.
 """
+
 from __future__ import annotations
 
 import sys

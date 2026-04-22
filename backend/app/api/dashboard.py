@@ -36,7 +36,11 @@ async def get_dashboard(
 
     if not e5:
         return DashboardResponse(
-            kpis=[], charts=[], alerts=[], data_freshness=None, periodo=None,
+            kpis=[],
+            charts=[],
+            alerts=[],
+            data_freshness=None,
+            periodo=None,
         )
 
     return DashboardResponse(

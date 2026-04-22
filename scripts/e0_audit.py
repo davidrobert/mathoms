@@ -53,7 +53,6 @@ from scripts.e0.audit_integrity import (
 )
 from scripts.e0.audit_ledger import check_inbox_log, check_saldo_gaps
 
-
 # Re-export para compat — tests/test_stage_wrappers.py importa _init_config
 # e os globais ``PROJECT_DIR``/``DATA_DIR`` daqui. Mantemos ambos bindings
 # sincronizados com ``_h``.
@@ -111,15 +110,19 @@ Exemplos:
         """,
     )
     parser.add_argument(
-        "--check", type=str, default=None,
+        "--check",
+        type=str,
+        default=None,
         help="Checagens específicas (separadas por vírgula). Ex: --check 1,3",
     )
     parser.add_argument(
-        "--json", action="store_true",
+        "--json",
+        action="store_true",
         help="Saída em formato JSON (para processamento automático).",
     )
     parser.add_argument(
-        "--fix-names", action="store_true",
+        "--fix-names",
+        action="store_true",
         help="Corrige automaticamente nomes incorretos de extracts E2 (check 9).",
     )
     return parser
@@ -195,7 +198,9 @@ def _emit_json(all_issues: dict[int, list[dict]], errors: int, warnings: int, in
 def _emit_text_report(
     check_ids: list[int],
     all_issues: dict[int, list[dict]],
-    errors: int, warnings: int, info: int,
+    errors: int,
+    warnings: int,
+    info: int,
 ) -> None:
     print("=" * 60)
     print("  E0-audit — Relatório de integridade")

@@ -7,9 +7,10 @@ from unittest.mock import patch
 
 import pytest
 
+from backend.tests.fakes.fake_llm_client import FakeLLMClient
 from pipeline.llm.litellm_client import (
-    LLMConfig,
     LLMCallResult,
+    LLMConfig,
     LLMError,
     LLMErrorType,
     LLMRunSummary,
@@ -18,8 +19,6 @@ from pipeline.llm.litellm_client import (
     _classify_error,
 )
 from pipeline.llm.text_extractor import DocumentTextExtractor
-from backend.tests.fakes.fake_llm_client import FakeLLMClient
-
 
 # =============================================================================
 # Error classification tests
@@ -42,7 +41,10 @@ class TestErrorClassification:
 
     def test_context_length_error(self):
         assert _classify_error(Exception("Context length exceeded")) == LLMErrorType.context_length
-        assert _classify_error(Exception("Input too long for maximum context")) == LLMErrorType.context_length
+        assert (
+            _classify_error(Exception("Input too long for maximum context"))
+            == LLMErrorType.context_length
+        )
 
     def test_validation_error(self):
         assert _classify_error(Exception("Pydantic validation failed")) == LLMErrorType.validation
@@ -65,7 +67,13 @@ class TestLLMConfig:
         assert cfg.temperature == 0.1
 
     def test_custom_values(self):
-        cfg = LLMConfig(provider="openai", api_key="sk-test", model_name="gpt-4o", max_tokens=8192, temperature=0.5)
+        cfg = LLMConfig(
+            provider="openai",
+            api_key="sk-test",
+            model_name="gpt-4o",
+            max_tokens=8192,
+            temperature=0.5,
+        )
         assert cfg.provider == "openai"
         assert cfg.api_key == "sk-test"
         assert cfg.model_name == "gpt-4o"
@@ -87,10 +95,28 @@ class TestLLMRunSummary:
         assert d["total_calls"] == 0
 
     def test_aggregation(self):
-        s = LLMRunSummary(calls=[
-            LLMCallResult(output=None, provider="anthropic", model="claude", tokens_in=100, tokens_out=50, cost_estimate_usd=0.001, duration_ms=500),
-            LLMCallResult(output=None, provider="anthropic", model="claude", tokens_in=200, tokens_out=100, cost_estimate_usd=0.002, duration_ms=800),
-        ])
+        s = LLMRunSummary(
+            calls=[
+                LLMCallResult(
+                    output=None,
+                    provider="anthropic",
+                    model="claude",
+                    tokens_in=100,
+                    tokens_out=50,
+                    cost_estimate_usd=0.001,
+                    duration_ms=500,
+                ),
+                LLMCallResult(
+                    output=None,
+                    provider="anthropic",
+                    model="claude",
+                    tokens_in=200,
+                    tokens_out=100,
+                    cost_estimate_usd=0.002,
+                    duration_ms=800,
+                ),
+            ]
+        )
         assert s.total_tokens_in == 300
         assert s.total_tokens_out == 150
         assert abs(s.total_cost_usd - 0.003) < 0.0001
@@ -258,10 +284,14 @@ class TestDocumentTextExtractor:
 
 class TestOutputSchemas:
     def test_members_extract_schema(self):
-        from pipeline.llm.schemas.e1_members import MembersExtractOutput, ExtractedMember
+        from pipeline.llm.schemas.e1_members import ExtractedMember, MembersExtractOutput
 
         output = MembersExtractOutput(
-            members=[ExtractedMember(key="david", full_name="David R", short_name="David", role="titular")],
+            members=[
+                ExtractedMember(
+                    key="david", full_name="David R", short_name="David", role="titular"
+                )
+            ],
             titular_key="david",
             confidence=0.95,
         )
@@ -269,8 +299,9 @@ class TestOutputSchemas:
         assert output.confidence == 0.95
 
     def test_members_extract_requires_at_least_one(self):
-        from pipeline.llm.schemas.e1_members import MembersExtractOutput
         from pydantic import ValidationError
+
+        from pipeline.llm.schemas.e1_members import MembersExtractOutput
 
         with pytest.raises(ValidationError):
             MembersExtractOutput(members=[], confidence=0.5)
@@ -279,10 +310,16 @@ class TestOutputSchemas:
         from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput, PatrimonialItem
 
         output = BaselinePatrimonialOutput(
-            items=[PatrimonialItem(
-                code="01", description="Apartamento", category="imovel",
-                value_brl=500000.0, member_key="david", year=2025,
-            )],
+            items=[
+                PatrimonialItem(
+                    code="01",
+                    description="Apartamento",
+                    category="imovel",
+                    value_brl=500000.0,
+                    member_key="david",
+                    year=2025,
+                )
+            ],
             total_assets_brl=500000.0,
             net_worth_brl=500000.0,
             reference_year=2025,
@@ -291,13 +328,15 @@ class TestOutputSchemas:
         assert output.total_assets_brl == 500000.0
 
     def test_llm_extract_schema(self):
-        from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput, ExtractedTransaction
+        from pipeline.llm.schemas.e2_llm_extract import ExtractedTransaction, LLMExtractOutput
 
         output = LLMExtractOutput(
             source_file="extrato.pdf",
             institution="itau",
             document_type="extrato",
-            transactions=[ExtractedTransaction(date="2024-01-15", description="PIX", amount=-150.0)],
+            transactions=[
+                ExtractedTransaction(date="2024-01-15", description="PIX", amount=-150.0)
+            ],
             confidence=0.85,
         )
         assert len(output.transactions) == 1
@@ -307,11 +346,14 @@ class TestOutputSchemas:
         from pipeline.llm.schemas.e7_review import E7ReviewOutput, ReviewInsight
 
         output = E7ReviewOutput(
-            insights=[ReviewInsight(
-                category="patrimonio", severity="info",
-                title="Patrimônio diversificado",
-                description="Boa distribuição entre classes de ativos",
-            )],
+            insights=[
+                ReviewInsight(
+                    category="patrimonio",
+                    severity="info",
+                    title="Patrimônio diversificado",
+                    description="Boa distribuição entre classes de ativos",
+                )
+            ],
             recommendations=["Aumentar reserva de emergência"],
             overall_assessment="Saúde financeira boa, com pontos de atenção em investimentos.",
             risk_level="low",
@@ -321,8 +363,9 @@ class TestOutputSchemas:
         assert len(output.insights) == 1
 
     def test_confidence_bounds(self):
-        from pipeline.llm.schemas.e1_members import MembersExtractOutput, ExtractedMember
         from pydantic import ValidationError
+
+        from pipeline.llm.schemas.e1_members import ExtractedMember, MembersExtractOutput
 
         with pytest.raises(ValidationError):
             MembersExtractOutput(

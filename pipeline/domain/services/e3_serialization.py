@@ -140,6 +140,6 @@ def generate_legacy_artifact_key(
     """Versão sem o sufixo ``-3_reconciled.json`` para usar como
     ``ArtifactStore`` key (o store anexa o sufixo via ``stage_suffix``).
     """
-    return generate_legacy_filename(
-        statement, canonicalizer=canonicalizer
-    ).removesuffix("-3_reconciled.json")
+    return generate_legacy_filename(statement, canonicalizer=canonicalizer).removesuffix(
+        "-3_reconciled.json"
+    )

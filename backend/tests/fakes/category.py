@@ -21,9 +21,7 @@ class FakeCategoryRepository:
         cats.sort(key=lambda c: (c.order, c.code))
         return cats
 
-    async def get_by_id(
-        self, workspace_id: str, category_id: str
-    ) -> Optional[Category]:
+    async def get_by_id(self, workspace_id: str, category_id: str) -> Optional[Category]:
         c = self._cats.get(category_id)
         if c is None or c.workspace_id != workspace_id:
             return None
@@ -87,9 +85,7 @@ class FakeCategoryRepository:
             setattr(category, field, value)
         if keywords is not None:
             category.keywords = [
-                CategoryKeyword(
-                    id=str(uuid.uuid4()), category_id=category.id, keyword=kw
-                )
+                CategoryKeyword(id=str(uuid.uuid4()), category_id=category.id, keyword=kw)
                 for kw in keywords
             ]
         return category

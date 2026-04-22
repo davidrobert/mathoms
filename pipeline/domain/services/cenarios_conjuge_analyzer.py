@@ -22,7 +22,6 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
-
 _TODAY_FALLBACK = date(2026, 4, 19)
 
 
@@ -98,9 +97,7 @@ class CenariosConjugeConfig:
 
         return cls(
             titular_dob=titular_dob,
-            retorno_real_anual_pct=_safe_float(
-                if_cfg.get("retorno_real_anual_pct", 6.0)
-            ),
+            retorno_real_anual_pct=_safe_float(if_cfg.get("retorno_real_anual_pct", 6.0)),
             aporte_base=_safe_float(aportes.get("meta_aporte_mensal", 0)),
             fator_reduzido=_safe_float(sim.get("aporte_reduzido_fator", 0.66)),
             cambio_usd_brl=_safe_float(taxas_d.get("cambio_usd_brl", 5.80)),
@@ -216,25 +213,33 @@ class CenariosConjugeAnalyzer:
         aportes = (aporte_s1, aporte_s2, aporte_s3)
         anos_if = tuple(cfg.reference_date.year + int(p) for p in prazos)
         idade_titular = tuple(
-            _calculate_age(cfg.titular_dob, cfg.reference_date) + int(p)
-            for p in prazos
+            _calculate_age(cfg.titular_dob, cfg.reference_date) + int(p) for p in prazos
         )
 
         cenarios = (
             self._build_cenario(
-                0, aportes, prazos, anos_if, idade_titular, resumo=self._resumo_s1(
-                    aportes[0], prazos[0], anos_if[0]
-                ),
+                0,
+                aportes,
+                prazos,
+                anos_if,
+                idade_titular,
+                resumo=self._resumo_s1(aportes[0], prazos[0], anos_if[0]),
             ),
             self._build_cenario(
-                1, aportes, prazos, anos_if, idade_titular, resumo=self._resumo_s2(
-                    aportes[1], prazos[1], anos_if[1]
-                ),
+                1,
+                aportes,
+                prazos,
+                anos_if,
+                idade_titular,
+                resumo=self._resumo_s2(aportes[1], prazos[1], anos_if[1]),
             ),
             self._build_cenario(
-                2, aportes, prazos, anos_if, idade_titular, resumo=self._resumo_s3(
-                    aportes[2], prazos[2], anos_if[2]
-                ),
+                2,
+                aportes,
+                prazos,
+                anos_if,
+                idade_titular,
+                resumo=self._resumo_s3(aportes[2], prazos[2], anos_if[2]),
             ),
         )
 
@@ -276,9 +281,7 @@ class CenariosConjugeAnalyzer:
         return 0.0
 
     @staticmethod
-    def _compute_prazo(
-        investivel: float, meta: float, r: float, aporte: float
-    ) -> float:
+    def _compute_prazo(investivel: float, meta: float, r: float, aporte: float) -> float:
         if investivel >= meta:
             return 0.0
         if r > 0 and aporte > 0:

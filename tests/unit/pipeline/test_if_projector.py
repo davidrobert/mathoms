@@ -19,7 +19,6 @@ from pipeline.domain.services.if_projector import (  # noqa: E402
     extract_renda_passiva_from_text,
 )
 
-
 _REF_DATE = date(2026, 4, 19)
 _DAVID_DOB = date(1985, 6, 15)
 _MARIANA_DOB = date(1987, 3, 20)
@@ -81,9 +80,7 @@ class TestConfigFromConfigs:
             IFProjectorConfig.from_configs(goals=goals, titular_dob=_DAVID_DOB)
 
     def test_defaults_when_optional_absent(self):
-        goals = {
-            "independencia_financeira": {"if_meta": 1_000_000, "trs_pct": 4.0}
-        }
+        goals = {"independencia_financeira": {"if_meta": 1_000_000, "trs_pct": 4.0}}
         cfg = IFProjectorConfig.from_configs(goals=goals, titular_dob=_DAVID_DOB)
 
         assert cfg.taxa_retirada_segura_pct == 4.0
@@ -202,9 +199,15 @@ class TestLegacyDict:
         d = p.to_legacy_dict()
 
         required = {
-            "if_meta", "if_trs", "if_trs_monthly_value",
-            "if_pct", "if_gap", "prazo_anos_realista",
-            "idade_david_if", "david_idade_if", "ano_if",
+            "if_meta",
+            "if_trs",
+            "if_trs_monthly_value",
+            "if_pct",
+            "if_gap",
+            "prazo_anos_realista",
+            "idade_david_if",
+            "david_idade_if",
+            "ano_if",
             "renda_passiva_estimada_4pct",
         }
         assert required.issubset(d.keys())
@@ -222,4 +225,6 @@ class TestLegacyDict:
 
         d = p.to_legacy_dict()
 
-        assert not any(k.startswith("idade_") and k.endswith("_if") and k != "idade_david_if" for k in d)
+        assert not any(
+            k.startswith("idade_") and k.endswith("_if") and k != "idade_david_if" for k in d
+        )

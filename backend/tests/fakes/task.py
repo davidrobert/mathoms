@@ -68,26 +68,21 @@ class FakeTaskRepository:
             task.created_at = now
         task.updated_at = now
 
-    async def list(
-        self, workspace_id: str, filters: TaskFilters
-    ) -> list[Task]:
+    async def list(self, workspace_id: str, filters: TaskFilters) -> list[Task]:
         tasks = [
-            t for t in self._tasks.values()
+            t
+            for t in self._tasks.values()
             if t.workspace_id == workspace_id and _matches_filter(t, filters)
         ]
         tasks.sort(key=_sort_key)
         return tasks
 
     async def list_all(self, workspace_id: str) -> list[Task]:
-        tasks = [
-            t for t in self._tasks.values() if t.workspace_id == workspace_id
-        ]
+        tasks = [t for t in self._tasks.values() if t.workspace_id == workspace_id]
         tasks.sort(key=lambda t: t.number)
         return tasks
 
-    async def get_by_id(
-        self, workspace_id: str, task_id: str
-    ) -> Optional[Task]:
+    async def get_by_id(self, workspace_id: str, task_id: str) -> Optional[Task]:
         t = self._tasks.get(task_id)
         if t is None or t.workspace_id != workspace_id:
             return None
@@ -95,7 +90,8 @@ class FakeTaskRepository:
 
     async def next_number(self, workspace_id: str) -> int:
         numbers = [
-            t.number for t in self._tasks.values()
+            t.number
+            for t in self._tasks.values()
             if t.workspace_id == workspace_id and t.number is not None
         ]
         return (max(numbers) + 1) if numbers else 1
@@ -108,9 +104,7 @@ class FakeTaskRepository:
             for t in self._tasks.values()
         )
         if collision:
-            raise RuntimeError(
-                f"duplicate number {task.number} for workspace {task.workspace_id}"
-            )
+            raise RuntimeError(f"duplicate number {task.number} for workspace {task.workspace_id}")
         self._tasks[task.id] = task
         return task
 
@@ -134,24 +128,20 @@ class FakeTaskSuggestionRepository:
         self, workspace_id: str, status: Optional[str] = "pending"
     ) -> list[TaskSuggestion]:
         items = [
-            s for s in self._suggestions.values()
-            if s.workspace_id == workspace_id
-            and (status is None or s.status == status)
+            s
+            for s in self._suggestions.values()
+            if s.workspace_id == workspace_id and (status is None or s.status == status)
         ]
         items.sort(key=lambda s: s.created_at, reverse=True)
         return items
 
-    async def get_by_id(
-        self, workspace_id: str, suggestion_id: str
-    ) -> Optional[TaskSuggestion]:
+    async def get_by_id(self, workspace_id: str, suggestion_id: str) -> Optional[TaskSuggestion]:
         s = self._suggestions.get(suggestion_id)
         if s is None or s.workspace_id != workspace_id:
             return None
         return s
 
-    async def add(
-        self, suggestion: TaskSuggestion, *, flush: bool = True
-    ) -> TaskSuggestion:
+    async def add(self, suggestion: TaskSuggestion, *, flush: bool = True) -> TaskSuggestion:
         self._ensure_defaults(suggestion)
         self._suggestions[suggestion.id] = suggestion
         return suggestion
@@ -172,27 +162,22 @@ class FakeTaskAttachmentRepository:
         if att.created_at is None:
             att.created_at = datetime.now(timezone.utc)
 
-    async def list_by_task(
-        self, workspace_id: str, task_id: str
-    ) -> list[TaskAttachment]:
+    async def list_by_task(self, workspace_id: str, task_id: str) -> list[TaskAttachment]:
         items = [
-            a for a in self._attachments.values()
+            a
+            for a in self._attachments.values()
             if a.workspace_id == workspace_id and a.task_id == task_id
         ]
         items.sort(key=lambda a: a.created_at, reverse=True)
         return items
 
-    async def get_by_id(
-        self, workspace_id: str, attachment_id: str
-    ) -> Optional[TaskAttachment]:
+    async def get_by_id(self, workspace_id: str, attachment_id: str) -> Optional[TaskAttachment]:
         a = self._attachments.get(attachment_id)
         if a is None or a.workspace_id != workspace_id:
             return None
         return a
 
-    async def add(
-        self, attachment: TaskAttachment, *, flush: bool = True
-    ) -> TaskAttachment:
+    async def add(self, attachment: TaskAttachment, *, flush: bool = True) -> TaskAttachment:
         self._ensure_defaults(attachment)
         self._attachments[attachment.id] = attachment
         return attachment

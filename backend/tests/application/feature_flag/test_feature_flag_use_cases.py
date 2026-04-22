@@ -35,6 +35,4 @@ async def test_set_persists_override_and_commits(db):
 async def test_set_raises_validation_error_on_unknown_flag(db):
     ws = await factories.make_workspace(db)
     with pytest.raises(ValidationError):
-        await set_feature_flag(
-            ws.id, "flag_inexistente", FlagUpdateCommand(enabled=True), db=db
-        )
+        await set_feature_flag(ws.id, "flag_inexistente", FlagUpdateCommand(enabled=True), db=db)

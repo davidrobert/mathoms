@@ -33,7 +33,11 @@ from backend.app.schemas.dto.task.attachment import (
 )
 from backend.app.schemas.dto.task.command import (
     TaskCreateCommand as TaskCreate,
+)
+from backend.app.schemas.dto.task.command import (
     TaskStatusTransitionCommand as TaskStatusTransition,
+)
+from backend.app.schemas.dto.task.command import (
     TaskUpdateCommand as TaskUpdate,
 )
 from backend.app.schemas.dto.task.filters import TaskFilters
@@ -48,11 +52,17 @@ from backend.app.schemas.dto.task.response import (
 )
 from backend.app.schemas.dto.task.suggestion import (
     TaskSuggestionApproveCommand as TaskSuggestionApprove,
+)
+from backend.app.schemas.dto.task.suggestion import (
     TaskSuggestionCreateCommand as TaskSuggestionCreate,
+)
+from backend.app.schemas.dto.task.suggestion import (
     TaskSuggestionListResponse,
     TaskSuggestionProposed,
-    TaskSuggestionRejectCommand as TaskSuggestionReject,
     TaskSuggestionResponse,
+)
+from backend.app.schemas.dto.task.suggestion import (
+    TaskSuggestionRejectCommand as TaskSuggestionReject,
 )
 from backend.app.schemas.dto.task.types import (
     CreatedFrom,

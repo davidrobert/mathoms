@@ -41,8 +41,6 @@ class TestValidateReview:
         assert errs == []
 
     def test_summary_must_be_string(self):
-        ok, errs = e7.validate_review(
-            {"refinements": {"summaries": {"s1": 123}}}
-        )
+        ok, errs = e7.validate_review({"refinements": {"summaries": {"s1": 123}}})
         assert ok is False
         assert any("summaries.s1" in e for e in errs)

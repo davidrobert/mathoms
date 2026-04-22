@@ -92,12 +92,14 @@ class TestIsTransferPair:
 class TestReconcile:
     def test_removes_duplicates_in_single_statement(self):
         stmt = BankStatement(
-            institution="itau", member_key="david",
-            period_start=date(2026, 1, 1), period_end=date(2026, 1, 31),
+            institution="itau",
+            member_key="david",
+            period_start=date(2026, 1, 1),
+            period_end=date(2026, 1, 31),
             currency="BRL",
             transactions=[
                 _tx(5, "MERCADO", "-100"),
-                _tx(5, "MERCADO", "-100"),   # duplicata
+                _tx(5, "MERCADO", "-100"),  # duplicata
                 _tx(10, "UBER", "-30"),
             ],
         )
@@ -107,8 +109,10 @@ class TestReconcile:
 
     def test_preserves_unique_transactions(self):
         stmt = BankStatement(
-            institution="itau", member_key="david",
-            period_start=date(2026, 1, 1), period_end=date(2026, 1, 31),
+            institution="itau",
+            member_key="david",
+            period_start=date(2026, 1, 1),
+            period_end=date(2026, 1, 31),
             currency="BRL",
             transactions=[
                 _tx(5, "A", "-10"),
@@ -121,8 +125,10 @@ class TestReconcile:
 
     def test_original_statement_not_mutated(self):
         stmt = BankStatement(
-            institution="x", member_key=None,
-            period_start=date(2026, 1, 1), period_end=date(2026, 1, 31),
+            institution="x",
+            member_key=None,
+            period_start=date(2026, 1, 1),
+            period_end=date(2026, 1, 31),
             currency="BRL",
             transactions=[_tx(5, "A", "-10"), _tx(5, "A", "-10")],
         )
@@ -132,10 +138,12 @@ class TestReconcile:
 
     def test_groups_by_institution(self):
         stmts = [
-            BankStatement("itau", None, date(2026, 1, 1), date(2026, 1, 31), "BRL",
-                          [_tx(5, "A", "-10")]),
-            BankStatement("nubank", None, date(2026, 1, 1), date(2026, 1, 31), "BRL",
-                          [_tx(5, "A", "-10")]),
+            BankStatement(
+                "itau", None, date(2026, 1, 1), date(2026, 1, 31), "BRL", [_tx(5, "A", "-10")]
+            ),
+            BankStatement(
+                "nubank", None, date(2026, 1, 1), date(2026, 1, 31), "BRL", [_tx(5, "A", "-10")]
+            ),
         ]
         out = ReconciliationService(ReconciliationConfig()).reconcile(stmts)
         assert len(out) == 2
@@ -149,7 +157,8 @@ class TestZeroIOContract:
         # Fixture de 3 linhas
         cfg = ReconciliationConfig(tolerance_days=3, tolerance_amount=Decimal("0.01"))
         svc = ReconciliationService(cfg)
-        stmt = BankStatement("x", None, date(2026, 1, 1), date(2026, 1, 31), "BRL",
-                             [_tx(5, "A", "-10")])
+        stmt = BankStatement(
+            "x", None, date(2026, 1, 1), date(2026, 1, 31), "BRL", [_tx(5, "A", "-10")]
+        )
         out = svc.reconcile([stmt])
         assert out[0].transactions == stmt.transactions

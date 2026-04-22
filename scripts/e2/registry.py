@@ -26,14 +26,15 @@ BANK_MODULES = [
 
 # Types that are NOT bank statements and should not be matched by generic patterns
 NON_STATEMENT_TYPES = re.compile(
-    r'(investimentosposicao|carteirarendafixa|'
-    r'informerendimentos|irpf|curriculo|holerite|baseline|dados_)'
+    r"(investimentosposicao|carteirarendafixa|"
+    r"informerendimentos|irpf|curriculo|holerite|baseline|dados_)"
 )
 
 # Built at module load time
 _ALL_PARSERS: List[Tuple[re.Pattern, Callable]] = []
 _INVESTMENT_PATTERNS: List[str] = [
-    r'cdbresumo', r'cdbdetalhes',
+    r"cdbresumo",
+    r"cdbdetalhes",
 ]
 
 

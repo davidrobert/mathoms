@@ -18,7 +18,6 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Iterable
 
-
 # =============================================================================
 # Helper de normalização (paridade com `normalize_text` de e4_categorize)
 # =============================================================================
@@ -74,16 +73,12 @@ class IncomeOriginConfig:
 
     pj_source_mapping: dict[str, str] = field(default_factory=dict)
     clt_source_mapping: dict[str, str] = field(default_factory=dict)
-    static_origins: dict[str, str] = field(
-        default_factory=lambda: dict(_DEFAULT_STATIC_ORIGINS)
-    )
+    static_origins: dict[str, str] = field(default_factory=lambda: dict(_DEFAULT_STATIC_ORIGINS))
     default_pj_origin: str = "Outras Receitas PJ"
     default_clt_origin: str | None = None  # None = fallback ao primeiro do mapping
 
     @classmethod
-    def from_categorization(
-        cls, categorization: dict | None = None
-    ) -> "IncomeOriginConfig":
+    def from_categorization(cls, categorization: dict | None = None) -> "IncomeOriginConfig":
         """Constrói a partir do dict ``categorization.json`` completo.
 
         Aceita ambos os layouts:
@@ -147,9 +142,7 @@ class IncomeOriginResolver:
             return next(iter(self._config.clt_source_mapping.values()))
         return "Receita CLT"
 
-    def resolve_for_category(
-        self, category: str, description: str
-    ) -> str:
+    def resolve_for_category(self, category: str, description: str) -> str:
         """Resolve origem dado (category, description). Roteia:
 
         - ``"receita_pj"`` → :meth:`resolve_pj`

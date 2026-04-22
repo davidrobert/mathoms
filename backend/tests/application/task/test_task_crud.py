@@ -57,9 +57,7 @@ async def test_create_task_auto_assigns_number():
 async def test_create_task_respects_explicit_number():
     repo = FakeTaskRepository()
 
-    resp = await create_task(
-        _cmd(number=42), workspace_id="ws-1", repo=repo
-    )
+    resp = await create_task(_cmd(number=42), workspace_id="ws-1", repo=repo)
 
     assert resp.number == 42
 
@@ -106,9 +104,7 @@ async def test_list_workspace_tasks_filters_and_sorts():
     await create_task(_cmd(title="Essencial", priority="S"), workspace_id="ws-1", repo=repo)
     await create_task(_cmd(title="Recomendada", priority="R"), workspace_id="ws-1", repo=repo)
 
-    resp = await list_workspace_tasks(
-        "ws-1", TaskFilters(), repo=repo
-    )
+    resp = await list_workspace_tasks("ws-1", TaskFilters(), repo=repo)
 
     # Ordem S → R → O
     assert [t.priority for t in resp.tasks] == ["S", "R", "O"]
@@ -119,20 +115,14 @@ async def test_list_workspace_tasks_filters_and_sorts():
 async def test_list_workspace_tasks_excludes_done_by_default():
     repo = FakeTaskRepository()
     done = await create_task(_cmd(), workspace_id="ws-1", repo=repo)
-    await transition_task_status(
-        "ws-1", done.id, new_status="done", repo=repo
-    )
-    await create_task(
-        _cmd(title="Ativa", category="Orcamento"), workspace_id="ws-1", repo=repo
-    )
+    await transition_task_status("ws-1", done.id, new_status="done", repo=repo)
+    await create_task(_cmd(title="Ativa", category="Orcamento"), workspace_id="ws-1", repo=repo)
 
     resp = await list_workspace_tasks("ws-1", TaskFilters(), repo=repo)
     assert resp.total == 1
     assert resp.tasks[0].title == "Ativa"
 
-    resp_with_done = await list_workspace_tasks(
-        "ws-1", TaskFilters(include_done=True), repo=repo
-    )
+    resp_with_done = await list_workspace_tasks("ws-1", TaskFilters(include_done=True), repo=repo)
     assert resp_with_done.total == 2
 
 
@@ -187,9 +177,7 @@ async def test_transition_rejects_invalid_status():
     created = await create_task(_cmd(), workspace_id="ws-1", repo=repo)
 
     with pytest.raises(ValidationError) as exc:
-        await transition_task_status(
-            "ws-1", created.id, new_status="foo", repo=repo
-        )
+        await transition_task_status("ws-1", created.id, new_status="foo", repo=repo)
     assert exc.value.code == "invalid_status"
 
 
@@ -198,14 +186,10 @@ async def test_transition_rejects_disallowed_path():
     repo = FakeTaskRepository()
     created = await create_task(_cmd(), workspace_id="ws-1", repo=repo)
     # pending não vai direto para blocked-cancel paths inválidos
-    await transition_task_status(
-        "ws-1", created.id, new_status="done", repo=repo
-    )
+    await transition_task_status("ws-1", created.id, new_status="done", repo=repo)
     # done → blocked é inválido (done aceita apenas pending/in_progress)
     with pytest.raises(ConflictError) as exc:
-        await transition_task_status(
-            "ws-1", created.id, new_status="blocked", repo=repo
-        )
+        await transition_task_status("ws-1", created.id, new_status="blocked", repo=repo)
     assert exc.value.code == "invalid_transition"
 
 
@@ -220,9 +204,7 @@ async def test_transition_done_blocked_by_pending_parent():
     )
 
     with pytest.raises(ConflictError) as exc:
-        await transition_task_status(
-            "ws-1", child.id, new_status="done", repo=repo
-        )
+        await transition_task_status("ws-1", child.id, new_status="done", repo=repo)
     assert exc.value.code == "parent_not_done"
 
 
@@ -235,13 +217,9 @@ async def test_transition_done_succeeds_when_parent_done():
         workspace_id="ws-1",
         repo=repo,
     )
-    await transition_task_status(
-        "ws-1", parent.id, new_status="done", repo=repo
-    )
+    await transition_task_status("ws-1", parent.id, new_status="done", repo=repo)
 
-    resp = await transition_task_status(
-        "ws-1", child.id, new_status="done", repo=repo
-    )
+    resp = await transition_task_status("ws-1", child.id, new_status="done", repo=repo)
     assert resp.status == "done"
 
 
@@ -249,13 +227,9 @@ async def test_transition_done_succeeds_when_parent_done():
 async def test_transition_reopen_from_done_zeroes_timestamps():
     repo = FakeTaskRepository()
     created = await create_task(_cmd(), workspace_id="ws-1", repo=repo)
-    await transition_task_status(
-        "ws-1", created.id, new_status="done", repo=repo
-    )
+    await transition_task_status("ws-1", created.id, new_status="done", repo=repo)
 
-    resp = await transition_task_status(
-        "ws-1", created.id, new_status="pending", repo=repo
-    )
+    resp = await transition_task_status("ws-1", created.id, new_status="pending", repo=repo)
     assert resp.status == "pending"
     assert resp.completed_at is None
 

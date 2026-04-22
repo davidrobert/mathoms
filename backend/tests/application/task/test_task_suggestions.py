@@ -42,9 +42,7 @@ def _create_cmd(**overrides) -> TaskSuggestionCreateCommand:
 async def test_create_suggestion_starts_pending():
     repo = FakeTaskSuggestionRepository()
 
-    resp = await create_task_suggestion(
-        _create_cmd(), workspace_id="ws-1", repo=repo
-    )
+    resp = await create_task_suggestion(_create_cmd(), workspace_id="ws-1", repo=repo)
 
     assert resp.status == "pending"
     assert resp.proposed_payload["title"] == "Revisar taxa PGBL"
@@ -62,12 +60,9 @@ async def test_list_pending_orders_newest_first():
 
     # Força ordem cronológica no fake
     import datetime as _dt
-    repo._suggestions[first.id].created_at = _dt.datetime(
-        2026, 4, 1, tzinfo=_dt.timezone.utc
-    )
-    repo._suggestions[second.id].created_at = _dt.datetime(
-        2026, 4, 15, tzinfo=_dt.timezone.utc
-    )
+
+    repo._suggestions[first.id].created_at = _dt.datetime(2026, 4, 1, tzinfo=_dt.timezone.utc)
+    repo._suggestions[second.id].created_at = _dt.datetime(2026, 4, 15, tzinfo=_dt.timezone.utc)
 
     resp = await list_task_suggestions("ws-1", repo=repo)
     assert resp.total == 2
@@ -78,9 +73,7 @@ async def test_list_pending_orders_newest_first():
 async def test_approve_materializes_task_and_marks_approved():
     sugg_repo = FakeTaskSuggestionRepository()
     task_repo = FakeTaskRepository()
-    created = await create_task_suggestion(
-        _create_cmd(), workspace_id="ws-1", repo=sugg_repo
-    )
+    created = await create_task_suggestion(_create_cmd(), workspace_id="ws-1", repo=sugg_repo)
 
     sugg_resp, task_resp = await approve_task_suggestion(
         "ws-1",
@@ -100,13 +93,9 @@ async def test_approve_materializes_task_and_marks_approved():
 async def test_approve_with_edited_payload_overrides():
     sugg_repo = FakeTaskSuggestionRepository()
     task_repo = FakeTaskRepository()
-    created = await create_task_suggestion(
-        _create_cmd(), workspace_id="ws-1", repo=sugg_repo
-    )
+    created = await create_task_suggestion(_create_cmd(), workspace_id="ws-1", repo=sugg_repo)
 
-    body = TaskSuggestionApproveCommand(
-        edited_payload=_proposed(title="Editado pelo usuário")
-    )
+    body = TaskSuggestionApproveCommand(edited_payload=_proposed(title="Editado pelo usuário"))
     _, task_resp = await approve_task_suggestion(
         "ws-1",
         created.id,
@@ -121,9 +110,7 @@ async def test_approve_with_edited_payload_overrides():
 async def test_approve_already_processed_raises_conflict():
     sugg_repo = FakeTaskSuggestionRepository()
     task_repo = FakeTaskRepository()
-    created = await create_task_suggestion(
-        _create_cmd(), workspace_id="ws-1", repo=sugg_repo
-    )
+    created = await create_task_suggestion(_create_cmd(), workspace_id="ws-1", repo=sugg_repo)
     await approve_task_suggestion(
         "ws-1",
         created.id,
@@ -158,9 +145,7 @@ async def test_approve_missing_raises_not_found():
 @pytest.mark.asyncio
 async def test_reject_records_reason():
     repo = FakeTaskSuggestionRepository()
-    created = await create_task_suggestion(
-        _create_cmd(), workspace_id="ws-1", repo=repo
-    )
+    created = await create_task_suggestion(_create_cmd(), workspace_id="ws-1", repo=repo)
 
     resp = await reject_task_suggestion(
         "ws-1",
@@ -182,9 +167,7 @@ async def test_merge_attaches_to_existing_task():
         workspace_id="ws-1",
         repo=task_repo,
     )
-    sugg = await create_task_suggestion(
-        _create_cmd(), workspace_id="ws-1", repo=sugg_repo
-    )
+    sugg = await create_task_suggestion(_create_cmd(), workspace_id="ws-1", repo=sugg_repo)
 
     resp = await merge_suggestion_into_task(
         "ws-1",
@@ -201,9 +184,7 @@ async def test_merge_attaches_to_existing_task():
 async def test_merge_rejects_unknown_target_task():
     sugg_repo = FakeTaskSuggestionRepository()
     task_repo = FakeTaskRepository()
-    sugg = await create_task_suggestion(
-        _create_cmd(), workspace_id="ws-1", repo=sugg_repo
-    )
+    sugg = await create_task_suggestion(_create_cmd(), workspace_id="ws-1", repo=sugg_repo)
 
     with pytest.raises(NotFoundError) as exc:
         await merge_suggestion_into_task(

@@ -39,31 +39,23 @@ async def two_workspaces(db: AsyncSession) -> tuple[Workspace, Workspace]:
 
 
 @pytest.mark.asyncio
-async def test_get_active_by_type_returns_none_when_no_goal(
-    db: AsyncSession, two_workspaces
-):
+async def test_get_active_by_type_returns_none_when_no_goal(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     repo = GoalRepository(db)
 
-    result = await repo.get_active_by_type(
-        ws_a.id, "INDEPENDENCIA_FINANCEIRA"
-    )
+    result = await repo.get_active_by_type(ws_a.id, "INDEPENDENCIA_FINANCEIRA")
 
     assert result is None
 
 
 @pytest.mark.asyncio
-async def test_get_active_by_type_returns_current_version(
-    db: AsyncSession, two_workspaces
-):
+async def test_get_active_by_type_returns_current_version(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     goal = await make_if_goal(db, workspace=ws_a, renda_passiva_mensal_brl=25000)
     await db.commit()
 
     repo = GoalRepository(db)
-    result = await repo.get_active_by_type(
-        ws_a.id, "INDEPENDENCIA_FINANCEIRA"
-    )
+    result = await repo.get_active_by_type(ws_a.id, "INDEPENDENCIA_FINANCEIRA")
 
     assert result is not None
     assert result.id == goal.id
@@ -71,25 +63,18 @@ async def test_get_active_by_type_returns_current_version(
 
 
 @pytest.mark.asyncio
-async def test_get_active_by_type_is_workspace_isolated(
-    db: AsyncSession, two_workspaces
-):
+async def test_get_active_by_type_is_workspace_isolated(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
     await make_if_goal(db, workspace=ws_a)
     await db.commit()
 
     repo = GoalRepository(db)
     # ws_b não tem goal — isolamento multi-tenant.
-    assert (
-        await repo.get_active_by_type(ws_b.id, "INDEPENDENCIA_FINANCEIRA")
-        is None
-    )
+    assert await repo.get_active_by_type(ws_b.id, "INDEPENDENCIA_FINANCEIRA") is None
 
 
 @pytest.mark.asyncio
-async def test_get_active_by_type_invalid_type_raises(
-    db: AsyncSession, two_workspaces
-):
+async def test_get_active_by_type_invalid_type_raises(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     repo = GoalRepository(db)
 
@@ -103,9 +88,7 @@ async def test_get_active_by_type_invalid_type_raises(
 
 
 @pytest.mark.asyncio
-async def test_get_by_id_scoped_to_workspace(
-    db: AsyncSession, two_workspaces
-):
+async def test_get_by_id_scoped_to_workspace(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
     goal = await make_if_goal(db, workspace=ws_a)
     await db.commit()
@@ -124,15 +107,11 @@ async def test_get_by_id_scoped_to_workspace(
 
 
 @pytest.mark.asyncio
-async def test_list_by_workspace_and_type_empty(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_by_workspace_and_type_empty(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     repo = GoalRepository(db)
 
-    result = await repo.list_by_workspace_and_type(
-        ws_a.id, "INDEPENDENCIA_FINANCEIRA"
-    )
+    result = await repo.list_by_workspace_and_type(ws_a.id, "INDEPENDENCIA_FINANCEIRA")
 
     assert result == []
 
@@ -144,44 +123,30 @@ async def test_list_by_workspace_and_type_orders_by_effective_from_desc(
     ws_a, _ = two_workspaces
 
     # Cria 3 versões (vigente é a de effective_from=2026-03-01)
-    older = await make_if_goal(
-        db, workspace=ws_a, effective_from=date(2026, 1, 1)
-    )
+    older = await make_if_goal(db, workspace=ws_a, effective_from=date(2026, 1, 1))
     older.effective_to = date(2026, 1, 31)
-    middle = await make_if_goal(
-        db, workspace=ws_a, effective_from=date(2026, 2, 1)
-    )
+    middle = await make_if_goal(db, workspace=ws_a, effective_from=date(2026, 2, 1))
     middle.effective_to = date(2026, 2, 28)
-    newest = await make_if_goal(
-        db, workspace=ws_a, effective_from=date(2026, 3, 1)
-    )
+    newest = await make_if_goal(db, workspace=ws_a, effective_from=date(2026, 3, 1))
     # newest permanece vigente (effective_to = None)
     await db.commit()
 
     repo = GoalRepository(db)
-    history = await repo.list_by_workspace_and_type(
-        ws_a.id, "INDEPENDENCIA_FINANCEIRA"
-    )
+    history = await repo.list_by_workspace_and_type(ws_a.id, "INDEPENDENCIA_FINANCEIRA")
 
     assert [g.id for g in history] == [newest.id, middle.id, older.id]
 
 
 @pytest.mark.asyncio
-async def test_list_by_workspace_and_type_is_tenant_isolated(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_by_workspace_and_type_is_tenant_isolated(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
     await make_if_goal(db, workspace=ws_a)
     await make_if_goal(db, workspace=ws_b)
     await db.commit()
 
     repo = GoalRepository(db)
-    a_list = await repo.list_by_workspace_and_type(
-        ws_a.id, "INDEPENDENCIA_FINANCEIRA"
-    )
-    b_list = await repo.list_by_workspace_and_type(
-        ws_b.id, "INDEPENDENCIA_FINANCEIRA"
-    )
+    a_list = await repo.list_by_workspace_and_type(ws_a.id, "INDEPENDENCIA_FINANCEIRA")
+    b_list = await repo.list_by_workspace_and_type(ws_b.id, "INDEPENDENCIA_FINANCEIRA")
 
     assert len(a_list) == 1
     assert len(b_list) == 1
@@ -195,9 +160,7 @@ async def test_list_by_workspace_and_type_is_tenant_isolated(
 
 
 @pytest.mark.asyncio
-async def test_create_new_version_inserts_when_no_prior(
-    db: AsyncSession, two_workspaces
-):
+async def test_create_new_version_inserts_when_no_prior(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     repo = GoalRepository(db)
 
@@ -219,9 +182,7 @@ async def test_create_new_version_inserts_when_no_prior(
 
 
 @pytest.mark.asyncio
-async def test_create_new_version_closes_prior_active(
-    db: AsyncSession, two_workspaces
-):
+async def test_create_new_version_closes_prior_active(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     prior = await make_if_goal(db, workspace=ws_a, renda_passiva_mensal_brl=20000)
     await db.commit()
@@ -258,16 +219,12 @@ async def test_create_new_version_closes_prior_active(
     assert prior_refreshed.effective_to == eff_from - timedelta(days=1)
     assert new_goal.effective_to is None
     # História ordenada DESC
-    history = await repo.list_by_workspace_and_type(
-        ws_a.id, "INDEPENDENCIA_FINANCEIRA"
-    )
+    history = await repo.list_by_workspace_and_type(ws_a.id, "INDEPENDENCIA_FINANCEIRA")
     assert [g.id for g in history] == [new_goal.id, prior_id]
 
 
 @pytest.mark.asyncio
-async def test_create_new_version_invalid_type_raises(
-    db: AsyncSession, two_workspaces
-):
+async def test_create_new_version_invalid_type_raises(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     repo = GoalRepository(db)
 
@@ -281,9 +238,7 @@ async def test_create_new_version_invalid_type_raises(
 
 
 @pytest.mark.asyncio
-async def test_create_new_version_is_tenant_isolated(
-    db: AsyncSession, two_workspaces
-):
+async def test_create_new_version_is_tenant_isolated(db: AsyncSession, two_workspaces):
     """Goal em ws_a não fecha goal de ws_b (mesmo tipo)."""
     ws_a, ws_b = two_workspaces
 
@@ -313,9 +268,7 @@ async def test_create_new_version_is_tenant_isolated(
     await db.commit()
 
     # Goal de ws_b deve continuar vigente.
-    b_active = await repo.get_active_by_type(
-        ws_b.id, "INDEPENDENCIA_FINANCEIRA"
-    )
+    b_active = await repo.get_active_by_type(ws_b.id, "INDEPENDENCIA_FINANCEIRA")
     assert b_active is not None
     assert b_active.id == goal_b.id
     assert b_active.effective_to is None

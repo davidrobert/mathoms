@@ -30,9 +30,7 @@ async def test_delete_removes_member_and_accounts():
     repo = FakeFamilyMemberRepository()
     vault = FakeVault()
     member = await create_family_member(
-        FamilyMemberCreateCommand(
-            full_name="David", short_name="David", role="titular"
-        ),
+        FamilyMemberCreateCommand(full_name="David", short_name="David", role="titular"),
         workspace_id="ws-1",
         repo=repo,
         vault=vault,
@@ -55,9 +53,7 @@ async def test_delete_other_workspace_raises_not_found():
     repo = FakeFamilyMemberRepository()
     vault = FakeVault()
     member = await create_family_member(
-        FamilyMemberCreateCommand(
-            full_name="David", short_name="David", role="titular"
-        ),
+        FamilyMemberCreateCommand(full_name="David", short_name="David", role="titular"),
         workspace_id="ws-1",
         repo=repo,
         vault=vault,

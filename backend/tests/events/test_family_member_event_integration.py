@@ -25,13 +25,17 @@ async def test_create_family_member_via_api_writes_audit_entry(auth_client, db):
     member_id = resp.json()["id"]
 
     rows = (
-        await db.execute(
-            select(AuditLog).where(
-                AuditLog.workspace_id == auth_client.ws_id,
-                AuditLog.action == "family_member.created",
+        (
+            await db.execute(
+                select(AuditLog).where(
+                    AuditLog.workspace_id == auth_client.ws_id,
+                    AuditLog.action == "family_member.created",
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     assert len(rows) == 1
     entry = rows[0]
@@ -66,9 +70,7 @@ async def test_create_family_member_with_fake_db_stays_side_effect_free():
         repo = FakeFamilyMemberRepository()
         vault = FakeVault()
         await create_family_member(
-            FamilyMemberCreateCommand(
-                full_name="Alice", short_name="A", role="titular"
-            ),
+            FamilyMemberCreateCommand(full_name="Alice", short_name="A", role="titular"),
             workspace_id="ws-1",
             repo=repo,
             vault=vault,

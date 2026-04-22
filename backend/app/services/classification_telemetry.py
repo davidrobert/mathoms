@@ -41,16 +41,12 @@ def emit_classification_outcome(
         dt = _doc_type_str(classification.get("doc_type"))
         payload["doc_type"] = dt
         payload["bank_present"] = bool(classification.get("bank_code"))
-        payload["confidence_bucket"] = (
-            "low" if conf < 0.5 else ("medium" if conf < 0.7 else "high")
-        )
+        payload["confidence_bucket"] = "low" if conf < 0.5 else ("medium" if conf < 0.7 else "high")
         payload["needs_review"] = bool(classification.get("needs_review"))
         meta = classification.get("classification_meta")
         if isinstance(meta, dict):
             payload["source"] = meta.get("source", "unknown")
         prior_s = _doc_type_str(prior_doc_type)
-        payload["type_changed_vs_prior"] = bool(
-            prior_s and dt and prior_s != dt
-        )
+        payload["type_changed_vs_prior"] = bool(prior_s and dt and prior_s != dt)
     line = json.dumps(payload, sort_keys=True, ensure_ascii=False)
     logger.info("classification_outcome %s", line)

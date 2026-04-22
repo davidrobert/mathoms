@@ -15,11 +15,10 @@ import pytest
 
 from backend.app.services.pipeline_adapter import (
     build_goals_payload,
-    build_tasks_payload,
     build_tarefas_md,
+    build_tasks_payload,
 )
 from backend.tests import factories
-
 
 # ═══════════════════════════════════════════════════════════════════════
 # Goals payload

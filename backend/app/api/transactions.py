@@ -134,18 +134,22 @@ async def export_transactions(
     # UTF-8 BOM for Excel
     buf.write("\ufeff")
     writer = csv.writer(buf)
-    writer.writerow(["Data", "Descrição", "Categoria", "Valor", "Membro", "Banco", "Origem", "Editado"])
+    writer.writerow(
+        ["Data", "Descrição", "Categoria", "Valor", "Membro", "Banco", "Origem", "Editado"]
+    )
     for tx in transactions:
-        writer.writerow([
-            tx.data,
-            tx.descricao,
-            tx.categoria,
-            tx.valor,
-            tx.membro,
-            tx.banco,
-            tx.origem,
-            "Sim" if tx.reviewed else "",
-        ])
+        writer.writerow(
+            [
+                tx.data,
+                tx.descricao,
+                tx.categoria,
+                tx.valor,
+                tx.membro,
+                tx.banco,
+                tx.origem,
+                "Sim" if tx.reviewed else "",
+            ]
+        )
 
     buf.seek(0)
     return StreamingResponse(

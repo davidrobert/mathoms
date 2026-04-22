@@ -27,7 +27,6 @@ from backend.app.schemas.task import (
 from backend.app.services import task_service, task_suggestion_service
 from backend.tests import factories
 
-
 # ════════════════════════════════════════════════════════════════════
 # Criação e unicidade de number
 # ════════════════════════════════════════════════════════════════════
@@ -125,9 +124,7 @@ async def test_create_rejects_parent_from_other_workspace(db):
 async def test_transition_pending_to_done_sets_completed_at(db):
     ws = await factories.make_workspace(db)
     t = await factories.make_task(db, workspace=ws, status="pending")
-    updated = await task_service.transition_status(
-        ws.id, t.id, new_status="done", db=db
-    )
+    updated = await task_service.transition_status(ws.id, t.id, new_status="done", db=db)
     assert updated.status == "done"
     assert updated.completed_at is not None
 
@@ -149,9 +146,7 @@ async def test_reopen_done_clears_completed_at(db):
     ws = await factories.make_workspace(db)
     t = await factories.make_task(db, workspace=ws, status="pending")
     await task_service.transition_status(ws.id, t.id, new_status="done", db=db)
-    reopened = await task_service.transition_status(
-        ws.id, t.id, new_status="pending", db=db
-    )
+    reopened = await task_service.transition_status(ws.id, t.id, new_status="pending", db=db)
     assert reopened.status == "pending"
     assert reopened.completed_at is None
 
@@ -162,9 +157,7 @@ async def test_invalid_transition_raises_409(db):
     t = await factories.make_task(db, workspace=ws, status="cancelled")
     # cancelled → blocked não é aceito
     with pytest.raises(HTTPException) as exc:
-        await task_service.transition_status(
-            ws.id, t.id, new_status="blocked", db=db
-        )
+        await task_service.transition_status(ws.id, t.id, new_status="blocked", db=db)
     assert exc.value.status_code == 409
 
 
@@ -172,13 +165,9 @@ async def test_invalid_transition_raises_409(db):
 async def test_done_blocked_by_pending_parent(db):
     ws = await factories.make_workspace(db)
     parent = await factories.make_task(db, workspace=ws, status="pending")
-    child = await factories.make_task(
-        db, workspace=ws, status="pending", parent_task_id=parent.id
-    )
+    child = await factories.make_task(db, workspace=ws, status="pending", parent_task_id=parent.id)
     with pytest.raises(HTTPException) as exc:
-        await task_service.transition_status(
-            ws.id, child.id, new_status="done", db=db
-        )
+        await task_service.transition_status(ws.id, child.id, new_status="done", db=db)
     assert exc.value.status_code == 409
     assert "dependência" in exc.value.detail.lower() or "parent" in exc.value.detail.lower()
 
@@ -187,12 +176,8 @@ async def test_done_blocked_by_pending_parent(db):
 async def test_done_allowed_when_parent_done(db):
     ws = await factories.make_workspace(db)
     parent = await factories.make_task(db, workspace=ws, status="done")
-    child = await factories.make_task(
-        db, workspace=ws, status="pending", parent_task_id=parent.id
-    )
-    updated = await task_service.transition_status(
-        ws.id, child.id, new_status="done", db=db
-    )
+    child = await factories.make_task(db, workspace=ws, status="pending", parent_task_id=parent.id)
+    updated = await task_service.transition_status(ws.id, child.id, new_status="done", db=db)
     assert updated.status == "done"
 
 
@@ -201,12 +186,8 @@ async def test_done_allowed_when_parent_cancelled(db):
     """Se parent foi cancelada, child pode ser concluída."""
     ws = await factories.make_workspace(db)
     parent = await factories.make_task(db, workspace=ws, status="cancelled")
-    child = await factories.make_task(
-        db, workspace=ws, status="pending", parent_task_id=parent.id
-    )
-    updated = await task_service.transition_status(
-        ws.id, child.id, new_status="done", db=db
-    )
+    child = await factories.make_task(db, workspace=ws, status="pending", parent_task_id=parent.id)
+    updated = await task_service.transition_status(ws.id, child.id, new_status="done", db=db)
     assert updated.status == "done"
 
 
@@ -225,9 +206,7 @@ async def test_list_excludes_done_by_default(db):
     assert len(active) == 1
     assert active[0].status == "pending"
 
-    with_done = await task_service.list_tasks(
-        ws.id, TaskFilters(include_done=True), db=db
-    )
+    with_done = await task_service.list_tasks(ws.id, TaskFilters(include_done=True), db=db)
     assert len(with_done) == 2
 
 
@@ -238,9 +217,7 @@ async def test_list_filters_by_priority(db):
     await factories.make_task(db, workspace=ws, priority="R")
     await factories.make_task(db, workspace=ws, priority="O")
 
-    only_s = await task_service.list_tasks(
-        ws.id, TaskFilters(priority="S"), db=db
-    )
+    only_s = await task_service.list_tasks(ws.id, TaskFilters(priority="S"), db=db)
     assert len(only_s) == 1
     assert only_s[0].priority == "S"
 
@@ -305,12 +282,8 @@ async def test_list_filters_by_deadline_window(db):
 @pytest.mark.asyncio
 async def test_update_partial_preserves_other_fields(db):
     ws = await factories.make_workspace(db)
-    t = await factories.make_task(
-        db, workspace=ws, title="Antigo", priority="R", category="Invest"
-    )
-    updated = await task_service.update_task(
-        ws.id, t.id, TaskUpdate(title="Novo"), db=db
-    )
+    t = await factories.make_task(db, workspace=ws, title="Antigo", priority="R", category="Invest")
+    updated = await task_service.update_task(ws.id, t.id, TaskUpdate(title="Novo"), db=db)
     assert updated.title == "Novo"
     assert updated.priority == "R"
     assert updated.category == "Invest"
@@ -378,9 +351,7 @@ async def test_approve_with_edited_payload_uses_edit(db):
     ws = await factories.make_workspace(db)
     user = await factories.make_user(db)
 
-    original = TaskSuggestionProposed(
-        title="Original", category="Orcamento", priority="R"
-    )
+    original = TaskSuggestionProposed(title="Original", category="Orcamento", priority="R")
     sugg = await task_suggestion_service.create_suggestion(
         ws.id,
         TaskSuggestionCreate(proposed_payload=original, source="e5n_llm"),
@@ -434,9 +405,7 @@ async def test_approve_already_processed_raises_409(db):
     user = await factories.make_user(db)
     sugg = await factories.make_task_suggestion(db, workspace=ws, status="approved")
     with pytest.raises(HTTPException) as exc:
-        await task_suggestion_service.approve(
-            ws.id, sugg.id, db=db, reviewed_by=user.id
-        )
+        await task_suggestion_service.approve(ws.id, sugg.id, db=db, reviewed_by=user.id)
     assert exc.value.status_code == 409
 
 

@@ -108,11 +108,7 @@ class EndividamentoAnalyzer:
                 )
 
         detalhe_parts = [d.descricao for d in items]
-        detalhe = (
-            "; ".join(detalhe_parts)
-            if detalhe_parts
-            else "Sem dívidas identificadas"
-        )
+        detalhe = "; ".join(detalhe_parts) if detalhe_parts else "Sem dívidas identificadas"
 
         return EndividamentoAnalysis(
             total_dividas=dividas_total,

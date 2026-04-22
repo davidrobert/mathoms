@@ -10,14 +10,9 @@ from __future__ import annotations
 
 from typing import Literal
 
+DeadlineKind = Literal["HARD_DATE", "MONTH", "QUARTER", "CONDITIONAL", "UNSCHEDULED"]
 
-DeadlineKind = Literal[
-    "HARD_DATE", "MONTH", "QUARTER", "CONDITIONAL", "UNSCHEDULED"
-]
-
-TaskStatus = Literal[
-    "pending", "in_progress", "done", "cancelled", "blocked"
-]
+TaskStatus = Literal["pending", "in_progress", "done", "cancelled", "blocked"]
 
 Priority = Literal["S", "R", "O"]
 

@@ -12,14 +12,20 @@ except ImportError:
     pdfplumber = None
 
 from scripts.e2.common import (
-    BANCO_PICPAY, MESES_BR_INT, detect_member_from_text,
-    infer_periodo_from_filename, log, make_result_template, parse_brl, safe_date,
+    BANCO_PICPAY,
+    MESES_BR_INT,
+    detect_member_from_text,
+    infer_periodo_from_filename,
+    log,
+    make_result_template,
+    parse_brl,
+    safe_date,
 )
 
 LOG_PREFIX = "E2-EXTRATO"
 
 PARSERS = [
-    (r'^picpay_extratoconta_', "parse_picpay"),
+    (r"^picpay_extratoconta_", "parse_picpay"),
 ]
 
 
@@ -38,14 +44,15 @@ def parse_picpay(pdf_path: Path, filename: str) -> Dict[str, Any]:
             first_text = pdf.pages[0].extract_text() or ""
             result["titular"] = detect_member_from_text(first_text)
 
-            m = re.search(r'Conta[:\s]+(\d+)', first_text)
+            m = re.search(r"Conta[:\s]+(\d+)", first_text)
             if m:
                 result["numero_conta"] = m.group(1)
 
             pm = re.search(
-                r'MOVIMENTA[ÇC][ÕO]ES\s+(\d{1,2})\s+DE\s+(\w+)\s+DE\s+(\d{4})\s+A\s+'
-                r'(\d{1,2})\s+DE\s+(\w+)\s+DE\s+(\d{4})',
-                first_text, re.IGNORECASE
+                r"MOVIMENTA[ÇC][ÕO]ES\s+(\d{1,2})\s+DE\s+(\w+)\s+DE\s+(\d{4})\s+A\s+"
+                r"(\d{1,2})\s+DE\s+(\w+)\s+DE\s+(\d{4})",
+                first_text,
+                re.IGNORECASE,
             )
             if pm:
                 d1, m1_name, y1 = int(pm.group(1)), pm.group(2).lower(), int(pm.group(3))
@@ -70,7 +77,7 @@ def parse_picpay(pdf_path: Path, filename: str) -> Dict[str, Any]:
                         if "Data/Hora" in cols[0] or "Descrição" in cols[1]:
                             continue
 
-                        date_match = re.match(r'(\d{2}/\d{2}/\d{4})', cols[0])
+                        date_match = re.match(r"(\d{2}/\d{2}/\d{4})", cols[0])
                         if not date_match:
                             continue
 
@@ -83,11 +90,13 @@ def parse_picpay(pdf_path: Path, filename: str) -> Dict[str, Any]:
                         if valor is None:
                             continue
 
-                        result["transacoes"].append({
-                            "data": iso_date,
-                            "descricao": descricao,
-                            "valor": valor,
-                        })
+                        result["transacoes"].append(
+                            {
+                                "data": iso_date,
+                                "descricao": descricao,
+                                "valor": valor,
+                            }
+                        )
 
                         if saldo is not None:
                             if saldo_first is None:

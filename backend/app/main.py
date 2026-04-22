@@ -14,10 +14,36 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from backend.app.api.audit import router as audit_router
+from backend.app.api.auth import router as auth_router
+from backend.app.api.categories import router as categories_router
+from backend.app.api.config import router as config_router
+from backend.app.api.dashboard import router as dashboard_router
+from backend.app.api.documents import router as documents_router
+from backend.app.api.family_members import router as family_members_router
+from backend.app.api.feature_flags import router as feature_flags_router
+from backend.app.api.goals import router as goals_router
+from backend.app.api.invitations import router as invitations_router
+from backend.app.api.llm import router as llm_router
+from backend.app.api.notifications import router as notifications_router
+from backend.app.api.pipeline import router as pipeline_router
+from backend.app.api.reports import router as reports_router
+from backend.app.api.tasks import router as tasks_router
+from backend.app.api.transactions import router as transactions_router
+from backend.app.api.vault import router as vault_router
+from backend.app.api.workspaces import (
+    router as workspaces_router,
+)
+from backend.app.api.workspaces import (
+    tenant_router as workspaces_tenant_router,
+)
+from backend.app.api.ws import router as ws_router
 from backend.app.application.base.errors import (
     AuthenticationError,
     ConflictError,
     NotFoundError,
+)
+from backend.app.application.base.errors import (
     ValidationError as DomainValidationError,
 )
 from backend.app.core.config import settings
@@ -26,28 +52,6 @@ from backend.app.core.logging import setup_logging
 from backend.app.core.otel import instrument_fastapi, setup_otel
 from backend.app.middleware.correlation import CorrelationIdMiddleware
 from backend.app.middleware.legacy_deprecation import LegacyApiDeprecationMiddleware
-from backend.app.api.auth import router as auth_router
-from backend.app.api.reports import router as reports_router
-from backend.app.api.vault import router as vault_router
-from backend.app.api.documents import router as documents_router
-from backend.app.api.pipeline import router as pipeline_router
-from backend.app.api.categories import router as categories_router
-from backend.app.api.config import router as config_router
-from backend.app.api.family_members import router as family_members_router
-from backend.app.api.llm import router as llm_router
-from backend.app.api.ws import router as ws_router
-from backend.app.api.transactions import router as transactions_router
-from backend.app.api.dashboard import router as dashboard_router
-from backend.app.api.notifications import router as notifications_router
-from backend.app.api.audit import router as audit_router
-from backend.app.api.goals import router as goals_router
-from backend.app.api.workspaces import (
-    router as workspaces_router,
-    tenant_router as workspaces_tenant_router,
-)
-from backend.app.api.invitations import router as invitations_router
-from backend.app.api.tasks import router as tasks_router
-from backend.app.api.feature_flags import router as feature_flags_router
 from backend.app.schemas.health import HealthResponse
 
 logger = logging.getLogger(__name__)
@@ -97,9 +101,7 @@ async def _handle_conflict(request: Request, exc: ConflictError) -> JSONResponse
 
 
 @app.exception_handler(DomainValidationError)
-async def _handle_validation(
-    request: Request, exc: DomainValidationError
-) -> JSONResponse:
+async def _handle_validation(request: Request, exc: DomainValidationError) -> JSONResponse:
     return JSONResponse(status_code=422, content={"detail": str(exc)})
 
 
@@ -153,6 +155,7 @@ async def health() -> dict:
 
     try:
         import redis.asyncio as aioredis
+
         r = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
         await r.ping()
         checks["redis"] = "ok"
@@ -162,6 +165,7 @@ async def health() -> dict:
 
     try:
         from backend.app.worker import celery_app
+
         inspect = celery_app.control.inspect(timeout=2.0)
         active = inspect.active()
         checks["celery"] = "ok" if active else "no_workers"
@@ -170,6 +174,7 @@ async def health() -> dict:
 
     try:
         from backend.app.core.database import engine
+
         async with engine.connect() as conn:
             await conn.execute(__import__("sqlalchemy").text("SELECT 1"))
         checks["database"] = "ok"
@@ -185,16 +190,18 @@ async def health() -> dict:
     pipeline_service_url = os.environ.get("MATHOMS_PIPELINE_SERVICE_URL", "").strip()
     checks["pipeline_service_url"] = pipeline_service_url or None
     checks["pipeline_service_reachable"] = (
-        await _probe_pipeline_service(pipeline_service_url)
-        if pipeline_service_url
-        else None
+        await _probe_pipeline_service(pipeline_service_url) if pipeline_service_url else None
     )
 
-    informational = {"version", "artifact_store_mode", "pipeline_service_url",
-                     "pipeline_service_reachable"}
-    overall = "ok" if all(
-        v == "ok" for k, v in checks.items() if k not in informational
-    ) else "degraded"
+    informational = {
+        "version",
+        "artifact_store_mode",
+        "pipeline_service_url",
+        "pipeline_service_reachable",
+    }
+    overall = (
+        "ok" if all(v == "ok" for k, v in checks.items() if k not in informational) else "degraded"
+    )
     checks["status"] = overall
 
     return checks
@@ -202,6 +209,7 @@ async def health() -> dict:
 
 async def _probe_pipeline_service(url: str) -> bool:
     import httpx
+
     try:
         async with httpx.AsyncClient(timeout=2.0) as http:
             r = await http.get(f"{url.rstrip('/')}/health")

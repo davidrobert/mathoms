@@ -6,11 +6,11 @@ from pathlib import Path
 
 from dev._audit_cs_internals.models import (
     FORBIDDEN_TS_FILENAMES,
-    Offender,
     REPO_ROOT,
     TS_ANY_PATTERN,
     TS_FUNC_PATTERN,
     TS_HEX_PATTERN,
+    Offender,
 )
 
 
@@ -26,12 +26,19 @@ def detect_ts_any(path: Path, src: str) -> list[Offender]:
         if _is_disabled_line(line):
             continue
         if TS_ANY_PATTERN.search(line):
-            out.append(Offender(
-                id="", category="T1_ts_any", severity="high", file=rel,
-                line_start=i, line_end=i, length=1,
-                identifier=line.strip()[:80],
-                message="any explícito; use unknown+narrow ou tipo concreto",
-            ))
+            out.append(
+                Offender(
+                    id="",
+                    category="T1_ts_any",
+                    severity="high",
+                    file=rel,
+                    line_start=i,
+                    line_end=i,
+                    length=1,
+                    identifier=line.strip()[:80],
+                    message="any explícito; use unknown+narrow ou tipo concreto",
+                )
+            )
     return out
 
 
@@ -46,11 +53,19 @@ def detect_ts_long_file(path: Path, src: str) -> list[Offender]:
         return []
     rel = _rel(path)
     severity = "high" if lines > 1000 else "med"
-    return [Offender(
-        id="", category="T2_ts_long_files", severity=severity, file=rel,
-        line_start=1, line_end=lines, length=lines, identifier=Path(rel).name,
-        message=f"TS file {lines} lines; max 500",
-    )]
+    return [
+        Offender(
+            id="",
+            category="T2_ts_long_files",
+            severity=severity,
+            file=rel,
+            line_start=1,
+            line_end=lines,
+            length=lines,
+            identifier=Path(rel).name,
+            message=f"TS file {lines} lines; max 500",
+        )
+    ]
 
 
 def detect_ts_long_functions(path: Path, src: str) -> list[Offender]:
@@ -67,7 +82,7 @@ def detect_ts_long_functions(path: Path, src: str) -> list[Offender]:
 
 def _ts_long_fn_offender(match, src: str, lines: list[str], rel: str) -> Offender | None:
     name = match.group(1) or match.group(2) or "<anon>"
-    start_line = src[:match.start()].count("\n") + 1
+    start_line = src[: match.start()].count("\n") + 1
     end_line = _find_body_end(lines, start_line - 1)
     if end_line is None:
         return None
@@ -76,8 +91,14 @@ def _ts_long_fn_offender(match, src: str, lines: list[str], rel: str) -> Offende
         return None
     severity = "high" if length > 40 else "med"
     return Offender(
-        id="", category="T3_ts_long_functions", severity=severity, file=rel,
-        line_start=start_line, line_end=end_line, length=length, identifier=name,
+        id="",
+        category="T3_ts_long_functions",
+        severity=severity,
+        file=rel,
+        line_start=start_line,
+        line_end=end_line,
+        length=length,
+        identifier=name,
         message=f"TS function {length} lines; max 20 (heurística brace-matched)",
     )
 
@@ -104,11 +125,19 @@ def detect_ts_forbidden_filename(path: Path) -> list[Offender]:
     name = Path(rel).name
     if name not in FORBIDDEN_TS_FILENAMES:
         return []
-    return [Offender(
-        id="", category="T4_ts_forbidden_filename", severity="med", file=rel,
-        line_start=1, line_end=1, length=1, identifier=name,
-        message=f"Filename '{name}' é genérico; use nome específico",
-    )]
+    return [
+        Offender(
+            id="",
+            category="T4_ts_forbidden_filename",
+            severity="med",
+            file=rel,
+            line_start=1,
+            line_end=1,
+            length=1,
+            identifier=name,
+            message=f"Filename '{name}' é genérico; use nome específico",
+        )
+    ]
 
 
 def detect_ts_hex_colors(path: Path, src: str) -> list[Offender]:
@@ -124,11 +153,19 @@ def detect_ts_hex_colors(path: Path, src: str) -> list[Offender]:
             hex_val = match.group(0)
             if len(hex_val) not in (4, 5, 7, 9):
                 continue
-            out.append(Offender(
-                id="", category="T5_ts_hex_colors", severity="med", file=rel,
-                line_start=i, line_end=i, length=1, identifier=hex_val,
-                message=f"Hex color '{hex_val}'; use var(--brand-*) (ADR-076)",
-            ))
+            out.append(
+                Offender(
+                    id="",
+                    category="T5_ts_hex_colors",
+                    severity="med",
+                    file=rel,
+                    line_start=i,
+                    line_end=i,
+                    length=1,
+                    identifier=hex_val,
+                    message=f"Hex color '{hex_val}'; use var(--brand-*) (ADR-076)",
+                )
+            )
     return out
 
 

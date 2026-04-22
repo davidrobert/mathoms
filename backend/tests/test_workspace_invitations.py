@@ -138,9 +138,7 @@ async def test_cannot_invite_as_owner(db, client):
 async def test_cannot_invite_existing_member(db, client):
     owner, ws = await _make_owner(db, client)
     existing = await factories.make_user(db, email="existing@test.com")
-    await factories.make_workspace_member(
-        db, workspace=ws, user=existing, role="member"
-    )
+    await factories.make_workspace_member(db, workspace=ws, user=existing, role="member")
     await db.commit()
 
     resp = await client.post(
@@ -227,9 +225,7 @@ async def test_non_owner_cannot_create_invitation(db, client):
     owner = await factories.make_user(db, email="owner@test.com")
     ws = await factories.make_workspace(db, owner=owner)
     other = await factories.make_user(db, email="other@test.com")
-    await factories.make_workspace_member(
-        db, workspace=ws, user=other, role="member"
-    )
+    await factories.make_workspace_member(db, workspace=ws, user=other, role="member")
     await db.commit()
 
     client.headers["Authorization"] = f"Bearer {create_access_token(other.id)}"
@@ -295,9 +291,7 @@ async def test_invitation_lifecycle_writes_audit_logs(db, client):
     await client.post(f"/api/invitations/{raw_token}/accept")
 
     rows = await db.execute(
-        select(AuditLog).where(AuditLog.workspace_id == ws.id).order_by(
-            AuditLog.created_at.asc()
-        )
+        select(AuditLog).where(AuditLog.workspace_id == ws.id).order_by(AuditLog.created_at.asc())
     )
     actions = [r.action for r in rows.scalars().all()]
     assert "workspace.member.invite" in actions

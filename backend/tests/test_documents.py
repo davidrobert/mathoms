@@ -14,8 +14,9 @@ from backend.app.models.document import Document, DocumentStatus, DocumentType
 _PROC = "backend.app.api.documents.process_uploaded_document"
 
 
-def _mock_process(file_path, passwords, config_dir, tenant_root=None,
-                  workspace_id=None, content_hash=None):
+def _mock_process(
+    file_path, passwords, config_dir, tenant_root=None, workspace_id=None, content_hash=None
+):
     """Deterministic mock for process_uploaded_document that classifies by extension/content.
 
     Kwargs ``tenant_root`` / ``workspace_id`` / ``content_hash`` kept for parity
@@ -23,8 +24,10 @@ def _mock_process(file_path, passwords, config_dir, tenant_root=None,
     """
     ext = Path(file_path).suffix.lower()
     base = {
-        "bank_code": None, "period": None,
-        "confidence": 1.0, "needs_review": False,
+        "bank_code": None,
+        "period": None,
+        "confidence": 1.0,
+        "needs_review": False,
         "error_message": None,
         "stored_path_relative": None,
     }
@@ -62,11 +65,13 @@ def _mock_process(file_path, passwords, config_dir, tenant_root=None,
 # Upload
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_upload_csv_file(auth_client: AsyncClient):
     content = b"date,description,value\n2026-01-01,Test,100.00\n"
     with patch(_PROC, side_effect=_mock_process):
-        resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/documents/upload",
             files=[("files", ("extrato_itau_202601.csv", io.BytesIO(content), "text/csv"))],
         )
     assert resp.status_code == 201
@@ -86,7 +91,9 @@ async def test_upload_multiple_files(auth_client: AsyncClient):
         ("files", ("file3.csv", io.BytesIO(b"data3"), "text/csv")),
     ]
     with patch(_PROC, side_effect=_mock_process):
-        resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/upload", files=files)
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/documents/upload", files=files
+        )
     assert resp.status_code == 201
     data = resp.json()
     assert data["total_uploaded"] == 3
@@ -95,7 +102,8 @@ async def test_upload_multiple_files(auth_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_upload_invalid_extension(auth_client: AsyncClient):
-    resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+    resp = await auth_client.post(
+        f"/api/workspaces/{auth_client.ws_id}/documents/upload",
         files=[("files", ("virus.exe", io.BytesIO(b"malware"), "application/octet-stream"))],
     )
     assert resp.status_code == 201
@@ -106,7 +114,8 @@ async def test_upload_invalid_extension(auth_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_upload_empty_file(auth_client: AsyncClient):
-    resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+    resp = await auth_client.post(
+        f"/api/workspaces/{auth_client.ws_id}/documents/upload",
         files=[("files", ("empty.csv", io.BytesIO(b""), "text/csv"))],
     )
     assert resp.status_code == 201
@@ -119,7 +128,8 @@ async def test_upload_empty_file(auth_client: AsyncClient):
 async def test_upload_json_e1_members(auth_client: AsyncClient):
     members_json = json.dumps({"membros": [{"nome": "David", "cpf": "123"}]}).encode()
     with patch(_PROC, side_effect=_mock_process):
-        resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/documents/upload",
             files=[("files", ("members.json", io.BytesIO(members_json), "application/json"))],
         )
     assert resp.status_code == 201
@@ -132,7 +142,8 @@ async def test_upload_json_e1_members(auth_client: AsyncClient):
 async def test_upload_json_e15_baseline(auth_client: AsyncClient):
     baseline_json = json.dumps({"patrimonio": {"total": 100000}}).encode()
     with patch(_PROC, side_effect=_mock_process):
-        resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/documents/upload",
             files=[("files", ("baseline.json", io.BytesIO(baseline_json), "application/json"))],
         )
     assert resp.status_code == 201
@@ -144,6 +155,7 @@ async def test_upload_json_e15_baseline(auth_client: AsyncClient):
 # ---------------------------------------------------------------------------
 # List
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_list_documents_empty(auth_client: AsyncClient):
@@ -157,7 +169,8 @@ async def test_list_documents_empty(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_list_documents_after_upload(auth_client: AsyncClient):
     with patch(_PROC, side_effect=_mock_process):
-        await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+        await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/documents/upload",
             files=[("files", ("test.csv", io.BytesIO(b"data"), "text/csv"))],
         )
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/documents")
@@ -168,14 +181,18 @@ async def test_list_documents_after_upload(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_list_documents_filter_by_status(auth_client: AsyncClient):
     with patch(_PROC, side_effect=_mock_process):
-        await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+        await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/documents/upload",
             files=[("files", ("good.csv", io.BytesIO(b"data"), "text/csv"))],
         )
-    await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+    await auth_client.post(
+        f"/api/workspaces/{auth_client.ws_id}/documents/upload",
         files=[("files", ("bad.exe", io.BytesIO(b"data"), "application/octet-stream"))],
     )
 
-    resp_error = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/documents?status=error")
+    resp_error = await auth_client.get(
+        f"/api/workspaces/{auth_client.ws_id}/documents?status=error"
+    )
     assert resp_error.status_code == 200
     for doc in resp_error.json()["documents"]:
         assert doc["status"] == "error"
@@ -188,7 +205,9 @@ async def test_list_documents_invalid_status_filter(auth_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_list_documents_filter_ready_comma_processed(auth_client: AsyncClient, db: AsyncSession):
+async def test_list_documents_filter_ready_comma_processed(
+    auth_client: AsyncClient, db: AsyncSession
+):
     ws_id = auth_client.ws_id
     db.add(
         Document(
@@ -202,9 +221,7 @@ async def test_list_documents_filter_ready_comma_processed(auth_client: AsyncCli
     )
     await db.commit()
 
-    resp = await auth_client.get(
-        f"/api/workspaces/{ws_id}/documents?status=ready,processed"
-    )
+    resp = await auth_client.get(f"/api/workspaces/{ws_id}/documents?status=ready,processed")
     assert resp.status_code == 200
     bodies = resp.json()["documents"]
     assert any(d["status"] == "processed" for d in bodies)
@@ -214,10 +231,12 @@ async def test_list_documents_filter_ready_comma_processed(auth_client: AsyncCli
 # Delete
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_delete_document(auth_client: AsyncClient):
     with patch(_PROC, side_effect=_mock_process):
-        resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/documents/upload",
             files=[("files", ("delete_me.csv", io.BytesIO(b"data"), "text/csv"))],
         )
     doc_id = resp.json()["documents"][0]["id"]
@@ -240,6 +259,7 @@ async def test_delete_document_not_found(auth_client: AsyncClient):
 # Retry-unlock
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_retry_unlock_no_passwords(auth_client: AsyncClient):
     resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/retry-unlock")
@@ -249,7 +269,10 @@ async def test_retry_unlock_no_passwords(auth_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_retry_unlock_no_pending_docs(auth_client: AsyncClient):
-    await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/vault/passwords", json={"label": "test", "password": "pw"})
+    await auth_client.post(
+        f"/api/workspaces/{auth_client.ws_id}/vault/passwords",
+        json={"label": "test", "password": "pw"},
+    )
     resp = await auth_client.post(f"/api/workspaces/{auth_client.ws_id}/documents/retry-unlock")
     assert resp.status_code == 404
 
@@ -258,9 +281,11 @@ async def test_retry_unlock_no_pending_docs(auth_client: AsyncClient):
 # Auth
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_upload_unauthorized(client: AsyncClient):
-    resp = await client.post(f"/api/workspaces/00000000-0000-0000-0000-000000000000/documents/upload",
+    resp = await client.post(
+        "/api/workspaces/00000000-0000-0000-0000-000000000000/documents/upload",
         files=[("files", ("test.csv", io.BytesIO(b"data"), "text/csv"))],
     )
     assert resp.status_code in (401, 403)
@@ -274,5 +299,7 @@ async def test_list_unauthorized(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_delete_unauthorized(client: AsyncClient):
-    resp = await client.delete(f"/api/workspaces/00000000-0000-0000-0000-000000000000/documents/some-id")
+    resp = await client.delete(
+        "/api/workspaces/00000000-0000-0000-0000-000000000000/documents/some-id"
+    )
     assert resp.status_code in (401, 403)

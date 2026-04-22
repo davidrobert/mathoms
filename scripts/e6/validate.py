@@ -36,12 +36,15 @@ def validate_report(html: str, report_data_json: str) -> dict:
         "V16": {"name": "CSS rule: .card has .card-title first child", "passed": True},
         "V17": {"name": "CSS rule: no hardcoded hex colors in HTML", "passed": True},
         "V18": {"name": "CSS rule: tr.total-row for total rows", "passed": True},
-        "V19": {"name": "No invalid monetary formats (KM, k M, ponto decimal em R$)", "passed": True},
+        "V19": {
+            "name": "No invalid monetary formats (KM, k M, ponto decimal em R$)",
+            "passed": True,
+        },
     }
 
     # V1: No {{...}} outside comments (ignore {{PLACEHOLDERS}} in comments)
-    html_no_comments = re.sub(r'<!--.*?-->', '', html, flags=re.DOTALL)
-    placeholders = re.findall(r'\{\{[A-Z_]+\}\}', html_no_comments)
+    html_no_comments = re.sub(r"<!--.*?-->", "", html, flags=re.DOTALL)
+    placeholders = re.findall(r"\{\{[A-Z_]+\}\}", html_no_comments)
     if placeholders:
         results["V1"]["passed"] = False
         results["V1"]["detail"] = f"Found {len(placeholders)} unreplaced: {placeholders[:5]}"
@@ -71,7 +74,9 @@ def validate_report(html: str, report_data_json: str) -> dict:
     total_sections = section_count + usa_section_count
     if total_sections < 9:
         results["V5"]["passed"] = False
-        results["V5"]["detail"] = f"Found {total_sections} sections (S:{section_count} + U:{usa_section_count}), expected 9+"
+        results["V5"]["detail"] = (
+            f"Found {total_sections} sections (S:{section_count} + U:{usa_section_count}), expected 9+"
+        )
 
     # V6: Appendices
     app_count = len(re.findall(r'id="apendice-[a-e]"', html))
@@ -87,27 +92,35 @@ def validate_report(html: str, report_data_json: str) -> dict:
             results[v_key]["warning"] = "Validação pendente de implementação"
 
     # V16: Every <div class="card ..."> must have <div class="card-title"> as first meaningful child
-    _html_body = re.sub(r'<script[^>]*>.*?</script>', '', html_no_comments, flags=re.DOTALL)
-    _html_body = re.sub(r'<style[^>]*>.*?</style>', '', _html_body, flags=re.DOTALL)
+    _html_body = re.sub(r"<script[^>]*>.*?</script>", "", html_no_comments, flags=re.DOTALL)
+    _html_body = re.sub(r"<style[^>]*>.*?</style>", "", _html_body, flags=re.DOTALL)
     card_pattern = re.findall(r'<div\s+class="card[^"]*"[^>]*>\s*\n?\s*(<[^>]+>)', _html_body)
-    cards_without_title = [m for m in card_pattern if 'card-title' not in m and 'card-compact-icon' not in m and 'notas-card-header' not in m]
+    cards_without_title = [
+        m
+        for m in card_pattern
+        if "card-title" not in m and "card-compact-icon" not in m and "notas-card-header" not in m
+    ]
     if cards_without_title:
         results["V16"]["passed"] = False
-        results["V16"]["detail"] = f"{len(cards_without_title)} card(s) sem .card-title como primeiro filho: {cards_without_title[:3]}"
+        results["V16"]["detail"] = (
+            f"{len(cards_without_title)} card(s) sem .card-title como primeiro filho: {cards_without_title[:3]}"
+        )
 
     # V15: Inline styles count (warn if excessive)
     inline_styles = re.findall(r'\sstyle="[^"]*"', html_no_comments)
-    safe_patterns = ['grid-template-columns', 'display:none', 'display: none']
+    safe_patterns = ["grid-template-columns", "display:none", "display: none"]
     unsafe_count = sum(1 for s in inline_styles if not any(sp in s for sp in safe_patterns))
     if unsafe_count > 30:
         results["V15"]["passed"] = False
-        results["V15"]["detail"] = f"Found {unsafe_count} inline styles (limit: 30). Migrate to CSS classes."
+        results["V15"]["detail"] = (
+            f"Found {unsafe_count} inline styles (limit: 30). Migrate to CSS classes."
+        )
     else:
         results["V15"]["detail"] = f"{unsafe_count} inline styles (OK, ≤30)"
 
     # V17: Hardcoded hex colors in HTML body (outside <style> blocks)
-    body_html = re.sub(r'<style[^>]*>.*?</style>', '', html_no_comments, flags=re.DOTALL)
-    body_html = re.sub(r'<script[^>]*>.*?</script>', '', body_html, flags=re.DOTALL)
+    body_html = re.sub(r"<style[^>]*>.*?</style>", "", html_no_comments, flags=re.DOTALL)
+    body_html = re.sub(r"<script[^>]*>.*?</script>", "", body_html, flags=re.DOTALL)
     hex_colors = re.findall(r'(?:color|background|border)[^"]*#[0-9a-fA-F]{3,8}', body_html)
     if len(hex_colors) > 10:
         results["V17"]["passed"] = False
@@ -115,28 +128,32 @@ def validate_report(html: str, report_data_json: str) -> dict:
 
     # V18: total-row class for total rows
     total_rows_ok = len(re.findall(r'class="total-row"', html_no_comments))
-    total_strong_rows = len(re.findall(r'<tr[^>]*><td><strong>Total', html_no_comments))
+    total_strong_rows = len(re.findall(r"<tr[^>]*><td><strong>Total", html_no_comments))
     if total_strong_rows > total_rows_ok + 2:
         results["V18"]["passed"] = False
-        results["V18"]["detail"] = f"Found {total_strong_rows} total rows but only {total_rows_ok} with .total-row class"
+        results["V18"]["detail"] = (
+            f"Found {total_strong_rows} total rows but only {total_rows_ok} with .total-row class"
+        )
 
     # V14: Size > 100KB
-    if len(html.encode('utf-8')) < 100000:
+    if len(html.encode("utf-8")) < 100000:
         results["V14"]["passed"] = False
-        results["V14"]["detail"] = f"HTML is {len(html.encode('utf-8')) / 1024:.1f}KB, expected > 100KB"
+        results["V14"]["detail"] = (
+            f"HTML is {len(html.encode('utf-8')) / 1024:.1f}KB, expected > 100KB"
+        )
 
     # V19: No invalid monetary formats in visible content
-    visible = re.sub(r'<!--.*?-->', '', html, flags=re.DOTALL)
-    visible = re.sub(r'<script[^>]*>.*?</script>', '', visible, flags=re.DOTALL)
-    visible = re.sub(r'<style[^>]*>.*?</style>', '', visible, flags=re.DOTALL)
+    visible = re.sub(r"<!--.*?-->", "", html, flags=re.DOTALL)
+    visible = re.sub(r"<script[^>]*>.*?</script>", "", visible, flags=re.DOTALL)
+    visible = re.sub(r"<style[^>]*>.*?</style>", "", visible, flags=re.DOTALL)
     v19_errors = []
-    km_matches = re.findall(r'R\$\s*[\d.,]+\s*KM|[\d.,]+\s*KM(?!\d|[A-Z])', visible)
+    km_matches = re.findall(r"R\$\s*[\d.,]+\s*KM|[\d.,]+\s*KM(?!\d|[A-Z])", visible)
     if km_matches:
         v19_errors.append(f"KM suffix: {km_matches[:5]}")
-    km_sep = re.findall(r'R\$\s*[\d.,]+\s*[kK]\s+M', visible)
+    km_sep = re.findall(r"R\$\s*[\d.,]+\s*[kK]\s+M", visible)
     if km_sep:
         v19_errors.append(f"k M separated: {km_sep[:5]}")
-    ponto_matches = re.findall(r'R\$\s*\d+\.\d+[MmKk]', visible)
+    ponto_matches = re.findall(r"R\$\s*\d+\.\d+[MmKk]", visible)
     if ponto_matches:
         v19_errors.append(f"ponto decimal (deveria ser vírgula): {ponto_matches[:5]}")
     if v19_errors:

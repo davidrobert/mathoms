@@ -18,9 +18,8 @@ for p in (_SERVICE_ROOT, _REPO_ROOT):
         sys.path.insert(0, sp)
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.main import create_app  # noqa: E402
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture
@@ -33,6 +32,7 @@ def client() -> TestClient:
 def _reset_event_client():
     """Reset Redis singleton between tests to avoid fixture bleed."""
     from app.services import event_publisher
+
     event_publisher.reset_client()
     yield
     event_publisher.reset_client()

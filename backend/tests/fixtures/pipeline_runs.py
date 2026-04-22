@@ -58,7 +58,6 @@ from backend.app.models import (
     Workspace,
 )
 
-
 # Stages que compõem uma run free tier (DETERMINISTIC_ORDER)
 _DEFAULT_FREE_STAGES: list[tuple[str, str, int]] = [
     # (stage, status, duration_ms)
@@ -127,9 +126,7 @@ async def seed_completed_run(
 
     # HTML stub mínimo — em fixtures reais, substituir por HTML E6 real
     # copiado de um run verdadeiro. Aqui cobrimos o contrato de arquivo.
-    surname_slug = (family_surname or workspace.family_surname or "fixture").replace(
-        " ", "_"
-    )
+    surname_slug = (family_surname or workspace.family_surname or "fixture").replace(" ", "_")
     html_dir = Path(settings.STORAGE_ROOT) / str(workspace.id) / "output"
     html_dir.mkdir(parents=True, exist_ok=True)
     html_path = html_dir / f"relatorio_{surname_slug}_{period}.html"

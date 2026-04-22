@@ -13,9 +13,7 @@ from backend.app.core.database import Base
 class Category(Base):
     __tablename__ = "categories"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -30,16 +28,17 @@ class Category(Base):
 
     workspace = relationship("Workspace", back_populates="categories")
     keywords: Mapped[list["CategoryKeyword"]] = relationship(
-        "CategoryKeyword", back_populates="category", cascade="all, delete-orphan", order_by="CategoryKeyword.id"
+        "CategoryKeyword",
+        back_populates="category",
+        cascade="all, delete-orphan",
+        order_by="CategoryKeyword.id",
     )
 
 
 class CategoryKeyword(Base):
     __tablename__ = "category_keywords"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     category_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("categories.id", ondelete="CASCADE"), nullable=False, index=True
     )

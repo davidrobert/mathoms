@@ -2,7 +2,11 @@
 
 import pytest
 
-from backend.app.services.retry_config import StageRetryConfig, get_retry_config, STAGE_RETRY_CONFIGS
+from backend.app.services.retry_config import (
+    STAGE_RETRY_CONFIGS,
+    StageRetryConfig,
+    get_retry_config,
+)
 
 
 class TestStageRetryConfig:

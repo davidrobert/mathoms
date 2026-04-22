@@ -19,35 +19,26 @@ class FakeGoalRepository:
         self._goals: dict[str, Goal] = {}
         self._insertion_counter = 0  # garante tiebreak estável no histórico
 
-    async def get_active_by_type(
-        self, workspace_id: str, goal_type: str
-    ) -> Optional[Goal]:
+    async def get_active_by_type(self, workspace_id: str, goal_type: str) -> Optional[Goal]:
         if goal_type not in VALID_GOAL_TYPES:
             raise ValueError(f"Tipo de goal inválido: {goal_type}")
         for g in self._goals.values():
-            if (
-                g.workspace_id == workspace_id
-                and g.type == goal_type
-                and g.effective_to is None
-            ):
+            if g.workspace_id == workspace_id and g.type == goal_type and g.effective_to is None:
                 return g
         return None
 
-    async def get_by_id(
-        self, workspace_id: str, goal_id: str
-    ) -> Optional[Goal]:
+    async def get_by_id(self, workspace_id: str, goal_id: str) -> Optional[Goal]:
         g = self._goals.get(goal_id)
         if g is None or g.workspace_id != workspace_id:
             return None
         return g
 
-    async def list_by_workspace_and_type(
-        self, workspace_id: str, goal_type: str
-    ) -> list[Goal]:
+    async def list_by_workspace_and_type(self, workspace_id: str, goal_type: str) -> list[Goal]:
         if goal_type not in VALID_GOAL_TYPES:
             raise ValueError(f"Tipo de goal inválido: {goal_type}")
         goals = [
-            g for g in self._goals.values()
+            g
+            for g in self._goals.values()
             if g.workspace_id == workspace_id and g.type == goal_type
         ]
         # Desempate por ordem de inserção quando ``effective_from`` coincide

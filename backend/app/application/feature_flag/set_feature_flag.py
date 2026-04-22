@@ -26,9 +26,7 @@ async def set_feature_flag(
     db: AsyncSession,
 ) -> FlagsResponse:
     try:
-        flags = await feature_flags_service.set_flag(
-            workspace_id, flag, command.enabled, db=db
-        )
+        flags = await feature_flags_service.set_flag(workspace_id, flag, command.enabled, db=db)
     except ValueError as exc:
         raise ValidationError(str(exc)) from exc
     await db.commit()

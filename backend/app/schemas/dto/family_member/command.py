@@ -59,10 +59,7 @@ class FamilyMemberCreateCommand(BaseModel):
         None,
         min_length=1,
         max_length=50,
-        description=(
-            "Opcional; se omitido, backend gera slug único a partir de "
-            "``full_name``."
-        ),
+        description=("Opcional; se omitido, backend gera slug único a partir de " "``full_name``."),
     )
     full_name: str = Field(..., min_length=1, max_length=255)
     short_name: str = Field(..., min_length=1, max_length=100)

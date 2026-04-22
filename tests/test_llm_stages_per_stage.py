@@ -12,14 +12,13 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from tests._llm_stage_fixtures import (
-    make_e15_output,
     make_e1_output,
     make_e2_llm_output,
+    make_e15_output,
     make_llm_call_result,
     make_llm_ctx,
     make_llm_ctx_no_llm,
 )
-
 
 # ══════════════════════════════════════════════════════════════════════════
 # E1 STAGE RUNNER
@@ -30,6 +29,7 @@ class TestE1Stage:
     def test_skips_without_llm_config(self, tmp_path):
         ctx = make_llm_ctx_no_llm(tmp_path)
         from pipeline.stages.e1 import run
+
         result = run(ctx)
         assert result["skipped"] is True
         assert "free tier" in result["reason"]
@@ -37,6 +37,7 @@ class TestE1Stage:
     def test_skips_without_documents(self, tmp_path):
         ctx = make_llm_ctx(tmp_path)
         from pipeline.stages.e1 import run
+
         result = run(ctx)
         assert result["skipped"] is True
         assert "No personal documents" in result["reason"]
@@ -53,6 +54,7 @@ class TestE1Stage:
         mock_call.return_value = make_llm_call_result(make_e1_output())
 
         from pipeline.stages.e1 import run
+
         result = run(ctx)
 
         assert result["success"] is True
@@ -73,10 +75,13 @@ class TestE1Stage:
         ctx = make_llm_ctx(tmp_path)
         (tmp_path / "data" / "income_tax_br").mkdir(parents=True)
         (tmp_path / "data" / "income_tax_br" / "irpf.pdf").write_text("x")
-        (tmp_path / "data" / "income_tax_br" / "readme.md").write_text("x")  # .md not in initial search
+        (tmp_path / "data" / "income_tax_br" / "readme.md").write_text(
+            "x"
+        )  # .md not in initial search
         (tmp_path / "data" / "income_tax_br" / "image.png").write_text("x")  # not matching
 
         from pipeline.stages.e1 import _find_personal_docs
+
         docs = _find_personal_docs(ctx)
         names = {d.name for d in docs}
         assert "irpf.pdf" in names
@@ -92,12 +97,14 @@ class TestE15Stage:
     def test_skips_without_llm_config(self, tmp_path):
         ctx = make_llm_ctx_no_llm(tmp_path)
         from pipeline.stages.e15 import run
+
         result = run(ctx)
         assert result["skipped"] is True
 
     def test_skips_without_documents(self, tmp_path):
         ctx = make_llm_ctx(tmp_path)
         from pipeline.stages.e15 import run
+
         result = run(ctx)
         assert result["skipped"] is True
         assert "No IRPF" in result["reason"]
@@ -114,6 +121,7 @@ class TestE15Stage:
         mock_call.return_value = make_llm_call_result(make_e15_output())
 
         from pipeline.stages.e15 import run
+
         result = run(ctx)
 
         assert result["success"] is True
@@ -143,12 +151,14 @@ class TestE2LLMStage:
     def test_skips_without_llm_config(self, tmp_path):
         ctx = make_llm_ctx_no_llm(tmp_path)
         from pipeline.stages.e2_llm import run
+
         result = run(ctx)
         assert result["skipped"] is True
 
     def test_skips_without_unprocessed_docs(self, tmp_path):
         ctx = make_llm_ctx(tmp_path)
         from pipeline.stages.e2_llm import run
+
         result = run(ctx)
         assert result["skipped"] is True
         assert "No unprocessed documents" in result["reason"]
@@ -166,6 +176,7 @@ class TestE2LLMStage:
         mock_call.return_value = make_llm_call_result(make_e2_llm_output())
 
         from pipeline.stages.e2_llm import run
+
         result = run(ctx)
 
         assert result["success"] is True
@@ -216,6 +227,7 @@ class TestE2LLMStage:
         store.write("E2", "itau_extrato", {"dummy": True})
 
         from pipeline.stages.e2_llm import _find_unprocessed_docs
+
         docs = _find_unprocessed_docs(ctx, store)
         names = [d.name for d in docs]
         assert "btg_informe.pdf" in names
@@ -254,9 +266,7 @@ class TestA6aStructural:
             "pipeline/stages/e15.py não deve escrever direto em disco — "
             "A6a migrou para store.write('E1.5', ...)."
         )
-        assert "store.write" in src, (
-            "pipeline/stages/e15.py deve chamar store.write após A6a."
-        )
+        assert "store.write" in src, "pipeline/stages/e15.py deve chamar store.write após A6a."
 
     def test_e2_llm_does_not_write_text_directly_in_process_one(self):
         src = (_REPO / "pipeline" / "stages" / "e2_llm.py").read_text(encoding="utf-8")
@@ -265,9 +275,7 @@ class TestA6aStructural:
             "pipeline/stages/e2_llm.py não deve usar out_path.write_text — "
             "A6a migrou para store.write('E2-llm', ...)."
         )
-        assert "store.write" in src, (
-            "pipeline/stages/e2_llm.py deve chamar store.write após A6a."
-        )
+        assert "store.write" in src, "pipeline/stages/e2_llm.py deve chamar store.write após A6a."
 
     def test_e15_writes_to_e15_stage_key(self, tmp_path):
         """Com DiskArtifactStore, E1.5 deve produzir baseline_patrimonial-1.5_baseline.json."""
@@ -281,10 +289,13 @@ class TestA6aStructural:
         with (
             patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract", return_value="x"),
             patch("pipeline.llm.litellm_client.LLMService._ensure_client"),
-            patch("pipeline.llm.litellm_client.LLMService.call",
-                  return_value=make_llm_call_result(make_e15_output())),
+            patch(
+                "pipeline.llm.litellm_client.LLMService.call",
+                return_value=make_llm_call_result(make_e15_output()),
+            ),
         ):
             from pipeline.stages.e15 import run
+
             result = run(ctx)
 
         assert result["success"] is True
@@ -293,9 +304,9 @@ class TestA6aStructural:
         assert baseline_path.exists(), "E1.5 deve escrever baseline_patrimonial-1.5_baseline.json"
         # Arquivo E1.5c NÃO deve existir ainda (E1.5c ainda não rodou)
         consolidated = ctx.e2_dir / "baseline_patrimonial-1.5_consolidated.json"
-        assert not consolidated.exists(), (
-            "E1.5 não deve mais escrever _consolidated.json — isso é responsabilidade do E1.5c."
-        )
+        assert (
+            not consolidated.exists()
+        ), "E1.5 não deve mais escrever _consolidated.json — isso é responsabilidade do E1.5c."
         data = json.loads(baseline_path.read_text())
         assert data["resumo"]["patrimonio_liquido"] == 550000.00
 
@@ -310,13 +321,18 @@ class TestA6aStructural:
         (stmts_dir / "btg_informe_2024.pdf").write_text("x")
 
         with (
-            patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract",
-                  return_value="Investment content"),
+            patch(
+                "pipeline.llm.text_extractor.DocumentTextExtractor.extract",
+                return_value="Investment content",
+            ),
             patch("pipeline.llm.litellm_client.LLMService._ensure_client"),
-            patch("pipeline.llm.litellm_client.LLMService.call",
-                  return_value=make_llm_call_result(make_e2_llm_output())),
+            patch(
+                "pipeline.llm.litellm_client.LLMService.call",
+                return_value=make_llm_call_result(make_e2_llm_output()),
+            ),
         ):
             from pipeline.stages.e2_llm import run
+
             result = run(ctx)
 
         assert result["success"] is True

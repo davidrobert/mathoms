@@ -123,9 +123,7 @@ async def test_update_mutates_fields(db: AsyncSession, workspace_ids):
 
 
 @pytest.mark.asyncio
-async def test_get_by_id_returns_none_when_cross_workspace(
-    db: AsyncSession, workspace_ids
-):
+async def test_get_by_id_returns_none_when_cross_workspace(db: AsyncSession, workspace_ids):
     ws_a, ws_b = workspace_ids
     repo = FamilyMemberRepository(db)
 
@@ -141,12 +139,8 @@ async def test_delete_cascades_to_accounts(db: AsyncSession, workspace_ids):
     repo = FamilyMemberRepository(db)
 
     m = await repo.create(ws_id, key="acc_owner", full_name="A", short_name="A", role="titular")
-    await repo.add_account(
-        m.id, institution_code="itau", account_type="extratoconta"
-    )
-    await repo.add_account(
-        m.id, institution_code="c6bank", account_type="faturaunique"
-    )
+    await repo.add_account(m.id, institution_code="itau", account_type="extratoconta")
+    await repo.add_account(m.id, institution_code="c6bank", account_type="faturaunique")
 
     accounts_before = await repo.list_accounts(m.id)
     assert len(accounts_before) == 2
@@ -199,9 +193,7 @@ async def test_get_account_is_scoped_to_member(db: AsyncSession, workspace_ids):
 
 
 @pytest.mark.asyncio
-async def test_get_by_id_with_accounts_eager_loads(
-    db: AsyncSession, workspace_ids
-):
+async def test_get_by_id_with_accounts_eager_loads(db: AsyncSession, workspace_ids):
     """Garantia do invariante: repo não retorna instância sem accounts carregadas."""
     ws_id, _ = workspace_ids
     repo = FamilyMemberRepository(db)

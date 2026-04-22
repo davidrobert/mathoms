@@ -18,7 +18,6 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-
 revision: str = "j5d6e7f8a9b0"
 down_revision: Union[str, Sequence[str], None] = "i4c5d6e7f8a9"
 branch_labels: Union[str, Sequence[str], None] = None
@@ -27,12 +26,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     with op.batch_alter_table("workspaces") as batch_op:
-        batch_op.add_column(
-            sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True)
-        )
-        batch_op.create_index(
-            "ix_workspaces_deleted_at", ["deleted_at"], unique=False
-        )
+        batch_op.add_column(sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True))
+        batch_op.create_index("ix_workspaces_deleted_at", ["deleted_at"], unique=False)
 
 
 def downgrade() -> None:

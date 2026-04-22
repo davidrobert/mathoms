@@ -214,13 +214,28 @@ class TestBuildOutput:
 
         # Campos obrigatórios do schema + legado.
         for field in (
-            "periodo_dados", "data_analise", "patrimonio", "goals",
-            "fluxo_caixa", "ratios", "score", "orcamento_prospectivo",
-            "reserva_emergencia", "endividamento", "previdencia_pgbl",
-            "pontos_fortes", "pontos_urgentes", "investimentos",
-            "equilibrio_cerbasi", "tarefas", "tarefas_status", "alertas",
-            "consumo_consciente", "diagnostico_comportamental",
-            "cenarios_conjuge", "programa_milhas",
+            "periodo_dados",
+            "data_analise",
+            "patrimonio",
+            "goals",
+            "fluxo_caixa",
+            "ratios",
+            "score",
+            "orcamento_prospectivo",
+            "reserva_emergencia",
+            "endividamento",
+            "previdencia_pgbl",
+            "pontos_fortes",
+            "pontos_urgentes",
+            "investimentos",
+            "equilibrio_cerbasi",
+            "tarefas",
+            "tarefas_status",
+            "alertas",
+            "consumo_consciente",
+            "diagnostico_comportamental",
+            "cenarios_conjuge",
+            "programa_milhas",
         ):
             assert field in out
 

@@ -28,7 +28,6 @@ from typing import Iterable
 from pipeline.domain.models.document import BankStatement
 from pipeline.domain.models.transaction import Money
 
-
 # =============================================================================
 # Config dataclasses (R9 — cada service recebe seu value object de config)
 # =============================================================================
@@ -125,7 +124,7 @@ class TemporalGapWarning:
     next_source: str | None
     days_gap: int
     previous_end: str  # ISO date
-    next_start: str    # ISO date
+    next_start: str  # ISO date
 
     def format(self) -> str:
         inst, member, currency = self.account_key
@@ -167,9 +166,7 @@ class SaldoContinuityValidator:
             warnings.extend(self._validate_group(key, group_sorted))
         return warnings
 
-    def _validate_group(
-        self, key: AccountKey, group: list[BankStatement]
-    ) -> list[SaldoGapWarning]:
+    def _validate_group(self, key: AccountKey, group: list[BankStatement]) -> list[SaldoGapWarning]:
         out: list[SaldoGapWarning] = []
         for prev, curr in zip(group, group[1:]):
             if prev.closing_balance is None or curr.opening_balance is None:

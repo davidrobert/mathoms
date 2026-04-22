@@ -17,23 +17,27 @@ from typing import Iterable
 from backend.app.main import app
 
 # Rotas built-in do FastAPI (docs/redoc/openapi-spec) — não são nosso contrato.
-_FASTAPI_BUILTIN_PATHS = frozenset({
-    "/api/v1/openapi.json",
-    "/api/v1/docs",
-    "/api/v1/docs/oauth2-redirect",
-    "/redoc",
-    "/docs/oauth2-redirect",
-})
+_FASTAPI_BUILTIN_PATHS = frozenset(
+    {
+        "/api/v1/openapi.json",
+        "/api/v1/docs",
+        "/api/v1/docs/oauth2-redirect",
+        "/redoc",
+        "/docs/oauth2-redirect",
+    }
+)
 
 # response_class aceitos como "não-JSON, declaração explícita suficiente".
-_NON_JSON_RESPONSE_CLASSES = frozenset({
-    "HTMLResponse",
-    "PlainTextResponse",
-    "FileResponse",
-    "StreamingResponse",
-    "Response",
-    "JSONResponse",
-})
+_NON_JSON_RESPONSE_CLASSES = frozenset(
+    {
+        "HTMLResponse",
+        "PlainTextResponse",
+        "FileResponse",
+        "StreamingResponse",
+        "Response",
+        "JSONResponse",
+    }
+)
 
 # Status codes que não carregam body.
 _NO_CONTENT_STATUS = frozenset({204, 205, 304})

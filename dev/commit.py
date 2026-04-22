@@ -44,8 +44,8 @@ import argparse
 import re
 import subprocess
 import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 # =============================================================================
 # Paths
@@ -98,13 +98,37 @@ FORBIDDEN_SUFFIXES = (
 # Aceita também escopo opcional entre parênteses: "feat(api): …".
 VALID_PREFIXES = [
     # Produto web (atual)
-    "feat:", "fix:", "refactor:", "perf:", "style:", "test:", "chore:",
-    "backend:", "frontend:", "api:", "db:", "infra:", "ci:",
-    "docs:", "update:",
+    "feat:",
+    "fix:",
+    "refactor:",
+    "perf:",
+    "style:",
+    "test:",
+    "chore:",
+    "backend:",
+    "frontend:",
+    "api:",
+    "db:",
+    "infra:",
+    "ci:",
+    "docs:",
+    "update:",
     # Pipeline / CLI legacy (mantidos para histórico e scripts antigos)
-    "pipeline:", "config:",
-    "pre-update:", "pre-reset:", "E-reset:", "E-reset-from-",
-    "E1:", "E2:", "E3:", "E4:", "E5:", "E5.N:", "E6:", "E6-regen:", "E7:",
+    "pipeline:",
+    "config:",
+    "pre-update:",
+    "pre-reset:",
+    "E-reset:",
+    "E-reset-from-",
+    "E1:",
+    "E2:",
+    "E3:",
+    "E4:",
+    "E5:",
+    "E5.N:",
+    "E6:",
+    "E6-regen:",
+    "E7:",
     "init:",
 ]
 
@@ -238,7 +262,15 @@ def commit(message: str) -> bool:
         return True
     except subprocess.CalledProcessError as e:
         text = (e.stdout or "") + (e.stderr or "")
-        if any(s in text for s in ("nothing to commit", "nada para submeter", "nada a submeter", "nothing added to commit")):
+        if any(
+            s in text
+            for s in (
+                "nothing to commit",
+                "nada para submeter",
+                "nada a submeter",
+                "nothing added to commit",
+            )
+        ):
             log("WARN", "Nada para comitar — working tree limpa")
             return False
         log("ERROR", f"Commit falhou: {e.stderr or e.stdout}")

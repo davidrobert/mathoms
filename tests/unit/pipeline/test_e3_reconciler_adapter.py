@@ -34,7 +34,6 @@ from pipeline.domain.services import (  # noqa: E402
     TemporalGapDetector,
 )
 
-
 GOLDENS_DIR = Path(__file__).resolve().parents[2] / "pipeline" / "goldens" / "e3"
 
 
@@ -73,11 +72,13 @@ class TestLoadBankStatements:
     def test_reads_all_e2_stages(self):
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-extratos", "itau_a",
+            "E2-extratos",
+            "itau_a",
             _e2_extract("itau", "BRL", "2026-01-01", "2026-01-31", [_tx(5, "A", -100)]),
         )
         store.seed(
-            "E2-faturas", "nubank_fat",
+            "E2-faturas",
+            "nubank_fat",
             _e2_extract("nubank", "BRL", "2026-01-01", "2026-01-31", [_tx(10, "F", -50)]),
         )
         adapter = E3ReconcilerAdapter(ReconciliationConfig())
@@ -89,7 +90,8 @@ class TestLoadBankStatements:
     def test_skips_llm_fallback_stubs(self):
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-llm", "unknown_x",
+            "E2-llm",
+            "unknown_x",
             {"banco": "unknown", "requires_llm_fallback": True, "transacoes": []},
         )
         statements = E3ReconcilerAdapter(ReconciliationConfig()).load_bank_statements(store)
@@ -99,7 +101,8 @@ class TestLoadBankStatements:
         store = InMemoryArtifactStore()
         # Um CDB position não tem período nem transações — load deve pular
         store.seed(
-            "E2-extratos", "cdb_posicao",
+            "E2-extratos",
+            "cdb_posicao",
             {"tipo": "cdb_posicao", "posicoes": [{"valor": 1000}]},
         )
         statements = E3ReconcilerAdapter(ReconciliationConfig()).load_bank_statements(store)
@@ -112,18 +115,32 @@ class TestReconcileViaStore:
         store = InMemoryArtifactStore()
         # Dois extratos do mesmo banco+moeda+período com transação duplicada entre eles
         store.seed(
-            "E2-extratos", "itau_jan_a",
-            _e2_extract("itau", "BRL", "2026-01-01", "2026-01-31", [
-                _tx(5, "MERCADO", -100),
-                _tx(10, "UBER", -30),
-            ]),
+            "E2-extratos",
+            "itau_jan_a",
+            _e2_extract(
+                "itau",
+                "BRL",
+                "2026-01-01",
+                "2026-01-31",
+                [
+                    _tx(5, "MERCADO", -100),
+                    _tx(10, "UBER", -30),
+                ],
+            ),
         )
         store.seed(
-            "E2-extratos", "itau_jan_b",
-            _e2_extract("itau", "BRL", "2026-01-01", "2026-01-31", [
-                _tx(5, "MERCADO", -100),   # duplicata cross-file
-                _tx(15, "RESTAURANTE", -80),
-            ]),
+            "E2-extratos",
+            "itau_jan_b",
+            _e2_extract(
+                "itau",
+                "BRL",
+                "2026-01-01",
+                "2026-01-31",
+                [
+                    _tx(5, "MERCADO", -100),  # duplicata cross-file
+                    _tx(15, "RESTAURANTE", -80),
+                ],
+            ),
         )
         adapter = E3ReconcilerAdapter(ReconciliationConfig(tolerance_days=3))
         result = adapter.reconcile_via_store(store)
@@ -140,11 +157,13 @@ class TestReconcileViaStore:
     def test_separate_currencies_produce_separate_artifacts(self):
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-extratos", "a",
+            "E2-extratos",
+            "a",
             _e2_extract("bankofamerica", "USD", "2026-01-01", "2026-01-31", [_tx(5, "X", 100)]),
         )
         store.seed(
-            "E2-extratos", "b",
+            "E2-extratos",
+            "b",
             _e2_extract("itau", "BRL", "2026-01-01", "2026-01-31", [_tx(5, "Y", 500)]),
         )
         result = E3ReconcilerAdapter(ReconciliationConfig()).reconcile_via_store(store)
@@ -172,7 +191,8 @@ class TestReconcileViaStore:
         em ``tmp_path``, esse teste falharia com IOError em outro contexto."""
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-extratos", "a",
+            "E2-extratos",
+            "a",
             _e2_extract("itau", "BRL", "2026-01-01", "2026-01-31", [_tx(5, "X", -10)]),
         )
         E3ReconcilerAdapter(ReconciliationConfig()).reconcile_via_store(store)
@@ -189,7 +209,8 @@ class TestReconciliationStoreResult:
     def test_result_is_frozen_dataclass(self):
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-extratos", "a",
+            "E2-extratos",
+            "a",
             _e2_extract("itau", "BRL", "2026-01-01", "2026-01-31", [_tx(5, "X", -10)]),
         )
 
@@ -203,7 +224,8 @@ class TestReconciliationStoreResult:
     def test_result_supports_dict_subscript_for_legacy_callers(self):
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-extratos", "a",
+            "E2-extratos",
+            "a",
             _e2_extract("itau", "BRL", "2026-01-01", "2026-01-31", [_tx(5, "X", -10)]),
         )
 
@@ -218,7 +240,8 @@ class TestSkipBehavior:
     def test_skips_irpf_extracts(self):
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-extratos", "irpf",
+            "E2-extratos",
+            "irpf",
             {
                 "tipo": "irpf",
                 "banco": "fazenda",
@@ -228,7 +251,8 @@ class TestSkipBehavior:
             },
         )
         store.seed(
-            "E2-extratos", "itau",
+            "E2-extratos",
+            "itau",
             _e2_extract("itau", "BRL", "2026-01-01", "2026-01-31", [_tx(5, "X", -10)]),
         )
 
@@ -240,7 +264,8 @@ class TestSkipBehavior:
     def test_skips_disallowed_fatura_types(self):
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-faturas", "f1",
+            "E2-faturas",
+            "f1",
             {
                 "tipo": "faturasecundaria",
                 "banco": "Outro",
@@ -261,7 +286,8 @@ class TestSaldoTemporalIntegration:
         """Conta Itaú com dois extratos consecutivos cujos saldos não casam."""
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-extratos", "jan",
+            "E2-extratos",
+            "jan",
             {
                 "pipeline_stage": "E2",
                 "banco": "itau",
@@ -275,7 +301,8 @@ class TestSaldoTemporalIntegration:
             },
         )
         store.seed(
-            "E2-extratos", "fev",
+            "E2-extratos",
+            "fev",
             {
                 "pipeline_stage": "E2",
                 "banco": "itau",
@@ -302,12 +329,14 @@ class TestSaldoTemporalIntegration:
     def test_temporal_detector_reports_gap_in_days(self):
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-extratos", "jan",
+            "E2-extratos",
+            "jan",
             _e2_extract("itau", "BRL", "2026-01-01", "2026-01-31", [_tx(5, "X", -10)]),
         )
         # Gap de 28 dias entre 2026-01-31 e 2026-03-01.
         store.seed(
-            "E2-extratos", "mar",
+            "E2-extratos",
+            "mar",
             _e2_extract("itau", "BRL", "2026-03-01", "2026-03-31", [_tx(5, "Y", -10, month=3)]),
         )
         adapter = E3ReconcilerAdapter(
@@ -323,7 +352,8 @@ class TestSaldoTemporalIntegration:
     def test_validators_are_optional(self):
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-extratos", "a",
+            "E2-extratos",
+            "a",
             _e2_extract("itau", "BRL", "2026-01-01", "2026-01-31", [_tx(5, "X", -10)]),
         )
 
@@ -336,9 +366,9 @@ class TestSaldoTemporalIntegration:
 
 class TestCanonicalizerIntegration:
     def test_output_key_uses_canonicalizer_when_provided(self):
-        canon = BankCanonicalizer.from_institutions({
-            "banco_canonical": {"itau": "Itaú", "c6bank": "C6 Bank"}
-        })
+        canon = BankCanonicalizer.from_institutions(
+            {"banco_canonical": {"itau": "Itaú", "c6bank": "C6 Bank"}}
+        )
         adapter = E3ReconcilerAdapter(ReconciliationConfig(), canonicalizer=canon)
         stmt = BankStatement(
             institution="Itaú Unibanco",  # nome diferente do display canônico
@@ -354,9 +384,7 @@ class TestCanonicalizerIntegration:
         assert adapter.output_key(stmt) == "itauunibanco_BRL_202601_202603"
 
     def test_output_key_canonical_match_uses_code(self):
-        canon = BankCanonicalizer.from_institutions({
-            "banco_canonical": {"itau": "Itaú"}
-        })
+        canon = BankCanonicalizer.from_institutions({"banco_canonical": {"itau": "Itaú"}})
         adapter = E3ReconcilerAdapter(ReconciliationConfig(), canonicalizer=canon)
         stmt = BankStatement(
             institution="Itaú",
@@ -466,7 +494,8 @@ class TestGoldenBaselineDiff:
     def test_baseline_validator_skipped_when_no_baseline_in_store(self):
         store = InMemoryArtifactStore()
         store.seed(
-            "E2-extratos", "a",
+            "E2-extratos",
+            "a",
             _e2_extract("itau", "BRL", "2024-01-01", "2024-12-31", [_tx(5, "X", 100)]),
         )
         canon = BankCanonicalizer.from_institutions({"banco_canonical": {"itau": "Itaú"}})
@@ -484,16 +513,20 @@ class TestGoldenBaselineDiff:
 class TestLoadBaselineAccounts:
     def test_loads_from_store_when_baseline_present(self):
         store = InMemoryArtifactStore()
-        store.seed("E1.5c", "baseline_patrimonial", {
-            "members": {
-                "David": {
-                    "nome": "David",
-                    "contas_bancarias": [
-                        {"banco": "Itaú", "ano_base": 2024, "saldo_31_12": 1000.00},
-                    ],
+        store.seed(
+            "E1.5c",
+            "baseline_patrimonial",
+            {
+                "members": {
+                    "David": {
+                        "nome": "David",
+                        "contas_bancarias": [
+                            {"banco": "Itaú", "ano_base": 2024, "saldo_31_12": 1000.00},
+                        ],
+                    }
                 }
-            }
-        })
+            },
+        )
 
         accounts = E3ReconcilerAdapter(ReconciliationConfig()).load_baseline_accounts(store)
 
@@ -518,24 +551,28 @@ class TestLoadBankStatementsWithWarnings:
         (paridade com legado).
         """
         store = InMemoryArtifactStore()
-        store.seed("E2-extratos", "ext", {
-            "pipeline_stage": "E2",
-            "banco": "Itaú",
-            "tipo": "extratoconta",
-            "moeda": "BRL",
-            "periodo_inicio": "2026-04-01",
-            "periodo_fim": "2026-04-30",
-            "saldo_inicial": 1000.00,
-            "saldo_final": 940.00,
-            "transacoes": [
-                {"data": "2024-09-01", "descricao": "OLD", "valor": -10.00},
-                {"data": "2026-04-10", "descricao": "NEW", "valor": -60.00},
-            ],
-        })
-
-        statements, period_warnings, anach_warnings, skipped = (
-            E3ReconcilerAdapter(ReconciliationConfig()).load_bank_statements_with_warnings(store)
+        store.seed(
+            "E2-extratos",
+            "ext",
+            {
+                "pipeline_stage": "E2",
+                "banco": "Itaú",
+                "tipo": "extratoconta",
+                "moeda": "BRL",
+                "periodo_inicio": "2026-04-01",
+                "periodo_fim": "2026-04-30",
+                "saldo_inicial": 1000.00,
+                "saldo_final": 940.00,
+                "transacoes": [
+                    {"data": "2024-09-01", "descricao": "OLD", "valor": -10.00},
+                    {"data": "2026-04-10", "descricao": "NEW", "valor": -60.00},
+                ],
+            },
         )
+
+        statements, period_warnings, anach_warnings, skipped = E3ReconcilerAdapter(
+            ReconciliationConfig()
+        ).load_bank_statements_with_warnings(store)
 
         assert len(statements) == 1
         assert len(statements[0].transactions) == 1  # OLD removida

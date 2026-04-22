@@ -72,7 +72,6 @@ from backend.tests.factories import (
     make_workspace,
 )
 
-
 # ─────────────────────────────────────────────────────────────────────
 # Fixtures: 2 tenants completos
 # ─────────────────────────────────────────────────────────────────────
@@ -138,19 +137,33 @@ _TENANT_B = _TenantSpec(
 async def _seed_full_tenant(db: AsyncSession, spec: _TenantSpec) -> dict[str, Any]:
     user = await make_user(db, email=spec.user_email, full_name=spec.user_full_name)
     ws = await make_workspace(db, owner=user, name=spec.ws_name, family_surname=spec.family_surname)
-    member = await make_member(db, workspace=ws, key=spec.member_key, full_name=spec.member_full_name)
+    member = await make_member(
+        db, workspace=ws, key=spec.member_key, full_name=spec.member_full_name
+    )
     account = await make_bank_account(db, member=member, institution_code=spec.institution_code)
-    category = await make_category(db, workspace=ws, code=spec.category_code, name=spec.category_name)
+    category = await make_category(
+        db, workspace=ws, code=spec.category_code, name=spec.category_name
+    )
     document = await make_document(db, workspace=ws, original_name=spec.document_name)
     vault = await make_vault_password(db, workspace=ws, label=spec.vault_label)
     run = await make_run(db, workspace=ws)
     report = await make_report(db, workspace=ws, pipeline_run=run, title=spec.report_title)
     llm = await make_llm_config(db, workspace=ws, model_name=spec.llm_model)
-    notif = await make_notification(db, workspace=ws, title=spec.notif_title, message=spec.notif_message)
+    notif = await make_notification(
+        db, workspace=ws, title=spec.notif_title, message=spec.notif_message
+    )
     return {
-        "user": user, "ws": ws, "member": member, "account": account,
-        "category": category, "document": document, "vault": vault,
-        "run": run, "report": report, "llm": llm, "notification": notif,
+        "user": user,
+        "ws": ws,
+        "member": member,
+        "account": account,
+        "category": category,
+        "document": document,
+        "vault": vault,
+        "run": run,
+        "report": report,
+        "llm": llm,
+        "notification": notif,
         "token": create_access_token(user.id),
     }
 
@@ -218,7 +231,10 @@ def _assert_no_b_leak(payload: Any, tenants: dict, where: str) -> None:
 class TestIsolationWorkspaceSettings:
     @pytest.mark.asyncio
     async def test_get_workspace_returns_only_a(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['a']['ws'].id}/config/workspace", headers=_auth(tenants["a"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['a']['ws'].id}/config/workspace",
+            headers=_auth(tenants["a"]["token"]),
+        )
         assert r.status_code == 200, r.text
         body = r.json()
         assert body["family_surname"] == "Alves"
@@ -233,7 +249,10 @@ class TestIsolationWorkspaceSettings:
 class TestIsolationMembers:
     @pytest.mark.asyncio
     async def test_list_members_only_a(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['a']['ws'].id}/config/members", headers=_auth(tenants["a"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['a']['ws'].id}/config/members",
+            headers=_auth(tenants["a"]["token"]),
+        )
         assert r.status_code == 200, r.text
         body = r.json()
         assert body["total"] == 1
@@ -247,9 +266,9 @@ class TestIsolationMembers:
             headers=_auth(tenants["a"]["token"]),
             json={"role": "conjuge"},
         )
-        assert r.status_code == 404, (
-            f"LEAK: A conseguiu modificar member de B (status={r.status_code})"
-        )
+        assert (
+            r.status_code == 404
+        ), f"LEAK: A conseguiu modificar member de B (status={r.status_code})"
 
     @pytest.mark.asyncio
     async def test_delete_member_of_b_returns_404(self, client: AsyncClient, tenants):
@@ -257,14 +276,12 @@ class TestIsolationMembers:
             f"/api/workspaces/{tenants['a']['ws'].id}/config/members/{tenants['b']['member'].id}",
             headers=_auth(tenants["a"]["token"]),
         )
-        assert r.status_code == 404, (
-            f"LEAK: A conseguiu deletar member de B (status={r.status_code})"
-        )
+        assert (
+            r.status_code == 404
+        ), f"LEAK: A conseguiu deletar member de B (status={r.status_code})"
 
     @pytest.mark.asyncio
-    async def test_list_accounts_of_b_member_returns_404(
-        self, client: AsyncClient, tenants
-    ):
+    async def test_list_accounts_of_b_member_returns_404(self, client: AsyncClient, tenants):
         r = await client.get(
             f"/api/workspaces/{tenants['a']['ws'].id}/config/members/{tenants['b']['member'].id}/accounts",
             headers=_auth(tenants["a"]["token"]),
@@ -280,7 +297,9 @@ class TestIsolationMembers:
 class TestIsolationCategories:
     @pytest.mark.asyncio
     async def test_list_categories_only_a(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['a']['ws'].id}/config/categories", headers=_auth(tenants["a"]["token"])
+        r = await client.get(
+            f"/api/workspaces/{tenants['a']['ws'].id}/config/categories",
+            headers=_auth(tenants["a"]["token"]),
         )
         assert r.status_code == 200, r.text
         body = r.json()
@@ -314,7 +333,10 @@ class TestIsolationCategories:
 class TestIsolationDocuments:
     @pytest.mark.asyncio
     async def test_list_documents_only_a(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['a']['ws'].id}/documents", headers=_auth(tenants["a"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['a']['ws'].id}/documents",
+            headers=_auth(tenants["a"]["token"]),
+        )
         assert r.status_code == 200, r.text
         body = r.json()
         assert body["total"] == 1
@@ -338,7 +360,10 @@ class TestIsolationDocuments:
 class TestIsolationVault:
     @pytest.mark.asyncio
     async def test_list_passwords_only_a(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['a']['ws'].id}/vault/passwords", headers=_auth(tenants["a"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['a']['ws'].id}/vault/passwords",
+            headers=_auth(tenants["a"]["token"]),
+        )
         assert r.status_code == 200, r.text
         body = r.json()
         assert body["total"] == 1
@@ -362,7 +387,10 @@ class TestIsolationVault:
 class TestIsolationPipelineRuns:
     @pytest.mark.asyncio
     async def test_list_runs_only_a(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['a']['ws'].id}/pipeline/runs", headers=_auth(tenants["a"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['a']['ws'].id}/pipeline/runs",
+            headers=_auth(tenants["a"]["token"]),
+        )
         assert r.status_code == 200, r.text
         body = r.json()
         assert body["total"] == 1
@@ -402,7 +430,9 @@ class TestIsolationPipelineRuns:
 class TestIsolationReports:
     @pytest.mark.asyncio
     async def test_list_reports_only_a(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['a']['ws'].id}/reports", headers=_auth(tenants["a"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['a']['ws'].id}/reports", headers=_auth(tenants["a"]["token"])
+        )
         assert r.status_code == 200, r.text
         body = r.json()
         assert body["total"] == 1
@@ -434,7 +464,10 @@ class TestIsolationReports:
 class TestIsolationTransactions:
     @pytest.mark.asyncio
     async def test_list_transactions_only_a(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['a']['ws'].id}/transactions", headers=_auth(tenants["a"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['a']['ws'].id}/transactions",
+            headers=_auth(tenants["a"]["token"]),
+        )
         # endpoint pode retornar 200 com lista vazia (sem transactions reais
         # nas factories) — o que importa é não vazar nada de B
         assert r.status_code == 200, r.text
@@ -449,7 +482,10 @@ class TestIsolationTransactions:
 class TestIsolationLLMConfig:
     @pytest.mark.asyncio
     async def test_get_llm_returns_only_a(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['a']['ws'].id}/config/llm", headers=_auth(tenants["a"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['a']['ws'].id}/config/llm",
+            headers=_auth(tenants["a"]["token"]),
+        )
         assert r.status_code == 200, r.text
         body = r.json()
         if body is None:
@@ -460,7 +496,10 @@ class TestIsolationLLMConfig:
 
     @pytest.mark.asyncio
     async def test_get_llm_tier_does_not_leak(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['a']['ws'].id}/config/llm/tier", headers=_auth(tenants["a"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['a']['ws'].id}/config/llm/tier",
+            headers=_auth(tenants["a"]["token"]),
+        )
         assert r.status_code == 200, r.text
         _assert_no_b_leak(r.json(), tenants, "GET /config/llm/tier")
 
@@ -473,7 +512,10 @@ class TestIsolationLLMConfig:
 class TestIsolationNotifications:
     @pytest.mark.asyncio
     async def test_list_notifications_only_a(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['a']['ws'].id}/notifications", headers=_auth(tenants["a"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['a']['ws'].id}/notifications",
+            headers=_auth(tenants["a"]["token"]),
+        )
         assert r.status_code == 200, r.text
         body = r.json()
         assert body["total"] == 1
@@ -481,9 +523,7 @@ class TestIsolationNotifications:
         _assert_no_b_leak(body, tenants, "GET /notifications")
 
     @pytest.mark.asyncio
-    async def test_delete_notification_of_b_returns_404(
-        self, client: AsyncClient, tenants
-    ):
+    async def test_delete_notification_of_b_returns_404(self, client: AsyncClient, tenants):
         r = await client.delete(
             f"/api/workspaces/{tenants['a']['ws'].id}/notifications/{tenants['b']['notification'].id}",
             headers=_auth(tenants["a"]["token"]),
@@ -491,10 +531,9 @@ class TestIsolationNotifications:
         assert r.status_code == 404, r.text
 
     @pytest.mark.asyncio
-    async def test_mark_b_notification_read_does_nothing(
-        self, client: AsyncClient, tenants
-    ):
-        r = await client.patch(f"/api/workspaces/{tenants['a']['ws'].id}/notifications/read",
+    async def test_mark_b_notification_read_does_nothing(self, client: AsyncClient, tenants):
+        r = await client.patch(
+            f"/api/workspaces/{tenants['a']['ws'].id}/notifications/read",
             headers=_auth(tenants["a"]["token"]),
             json={"notification_ids": [tenants["b"]["notification"].id]},
         )
@@ -524,7 +563,10 @@ class TestSanityBSeesOwnData:
 
     @pytest.mark.asyncio
     async def test_b_sees_own_documents(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['b']['ws'].id}/documents", headers=_auth(tenants["b"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['b']['ws'].id}/documents",
+            headers=_auth(tenants["b"]["token"]),
+        )
         assert r.status_code == 200, r.text
         body = r.json()
         assert body["total"] == 1
@@ -532,6 +574,9 @@ class TestSanityBSeesOwnData:
 
     @pytest.mark.asyncio
     async def test_b_sees_own_workspace_surname(self, client: AsyncClient, tenants):
-        r = await client.get(f"/api/workspaces/{tenants['b']['ws'].id}/config/workspace", headers=_auth(tenants["b"]["token"]))
+        r = await client.get(
+            f"/api/workspaces/{tenants['b']['ws'].id}/config/workspace",
+            headers=_auth(tenants["b"]["token"]),
+        )
         assert r.status_code == 200, r.text
         assert r.json()["family_surname"] == "Brito"

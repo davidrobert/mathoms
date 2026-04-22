@@ -56,9 +56,7 @@ def draw_caixa_extrato(
         last_iso = str(txs[-1].get("date", f"{period}-01"))
         yp, mp, dp = last_iso.split("-")
         last_br = f"{dp}/{mp}/{yp}"
-        data.append(
-            [last_br, "", "SALDO DIA", "", "", "", f"{format_brl(running)} C"]
-        )
+        data.append([last_br, "", "SALDO DIA", "", "", "", f"{format_brl(running)} C"])
 
     table = Table(
         data,

@@ -25,9 +25,7 @@ async def reject_task_suggestion(
 ) -> TaskSuggestionResponse:
     sugg = await repo.get_by_id(workspace_id, suggestion_id)
     if sugg is None:
-        raise NotFoundError(
-            "Sugestão não encontrada", code="suggestion_not_found"
-        )
+        raise NotFoundError("Sugestão não encontrada", code="suggestion_not_found")
     if sugg.status != "pending":
         raise ConflictError(
             f"Sugestão já foi processada (status={sugg.status})",

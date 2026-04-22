@@ -15,7 +15,6 @@ from datetime import date
 from decimal import Decimal
 from typing import Union
 
-
 # Precisão decimal por moeda. Expandir quando suportarmos multi-moeda de fato.
 CURRENCY_PRECISION: dict[str, int] = {
     "BRL": 2,
@@ -45,9 +44,7 @@ class Money:
                 f"os riscos de precisão."
             )
         if self.currency not in CURRENCY_PRECISION:
-            raise ValueError(
-                f"Currency '{self.currency}' não registrada em CURRENCY_PRECISION"
-            )
+            raise ValueError(f"Currency '{self.currency}' não registrada em CURRENCY_PRECISION")
 
     # -- Operadores --
 
@@ -78,9 +75,7 @@ class Money:
 
     def _assert_same_currency(self, other: "Money") -> None:
         if self.currency != other.currency:
-            raise ValueError(
-                f"Moedas incompatíveis: {self.currency} vs {other.currency}"
-            )
+            raise ValueError(f"Moedas incompatíveis: {self.currency} vs {other.currency}")
 
     # -- Factories --
 
@@ -93,9 +88,7 @@ class Money:
                 "Decimal(str(v)) se você entende os riscos de precisão."
             )
         if currency not in CURRENCY_PRECISION:
-            raise ValueError(
-                f"Currency '{currency}' não registrada em CURRENCY_PRECISION"
-            )
+            raise ValueError(f"Currency '{currency}' não registrada em CURRENCY_PRECISION")
         precision = CURRENCY_PRECISION[currency]
         quantum = Decimal(10) ** -precision
         return cls(Decimal(value).quantize(quantum), currency)

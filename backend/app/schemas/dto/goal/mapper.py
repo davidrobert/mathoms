@@ -43,7 +43,6 @@ from backend.app.schemas.dto.goal.if_goal import (
     IFGoalResponse,
 )
 
-
 # Mapeia ``goal.type`` → (response_cls, inputs_cls, derived_cls).
 # Ponto único de extensão: novo tipo → adiciona linha aqui + módulo
 # correspondente em ``schemas/dto/goal/``.
@@ -125,7 +124,7 @@ def goal_to_if_response(
     assinatura.
     """
     response = goal_to_typed_response(goal, created_by_name=created_by_name)
-    assert isinstance(response, IFGoalResponse), (
-        f"Expected IFGoalResponse, got {type(response).__name__}"
-    )
+    assert isinstance(
+        response, IFGoalResponse
+    ), f"Expected IFGoalResponse, got {type(response).__name__}"
     return response

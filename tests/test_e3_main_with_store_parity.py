@@ -92,9 +92,9 @@ def _assert_payloads_parity(legacy: dict, new: dict) -> None:
 
     # Campos textuais exatos.
     for field in ("banco", "tipo_conta", "moeda"):
-        assert a.get(field) == b.get(field), (
-            f"field {field!r} divergiu: legacy={a.get(field)!r} new={b.get(field)!r}"
-        )
+        assert a.get(field) == b.get(
+            field
+        ), f"field {field!r} divergiu: legacy={a.get(field)!r} new={b.get(field)!r}"
 
     assert a["periodo_cobertura"] == b["periodo_cobertura"], (
         f"periodo_cobertura divergiu: legacy={a['periodo_cobertura']} "
@@ -124,7 +124,8 @@ def _assert_payloads_parity(legacy: dict, new: dict) -> None:
 
 def _run_legacy(workspace: Path) -> None:
     """Executa o ``main(root_dir)`` legado, restaurando globals depois."""
-    from scripts.e3_reconcile import _DEFAULT_BASE_DIR, _init_config, main as e3_main
+    from scripts.e3_reconcile import _DEFAULT_BASE_DIR, _init_config
+    from scripts.e3_reconcile import main as e3_main
 
     try:
         e3_main(root_dir=workspace)
@@ -248,6 +249,6 @@ def test_pipeline_stages_e3_does_not_import_stage_runner_compat():
         "pipeline/stages/e3.py ainda referencia stage_runner_compat — "
         "Sessão A2 deveria ter migrado para chamada direta a main_with_store."
     )
-    assert "main_with_store" in src, (
-        "pipeline/stages/e3.py deveria chamar main_with_store após Sessão A2."
-    )
+    assert (
+        "main_with_store" in src
+    ), "pipeline/stages/e3.py deveria chamar main_with_store após Sessão A2."

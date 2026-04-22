@@ -45,22 +45,6 @@ from pipeline.domain.services.cenarios_conjuge_analyzer import (
     CenariosConjugeConfig,
     CenariosConjugeResult,
 )
-from pipeline.domain.services.financial_score_calculator import (
-    FinancialScoreCalculator,
-    FinancialScoreConfig,
-)
-from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
-from pipeline.domain.services.patrimonio_types import (
-    CaixaDetalhe,
-    MemberIdentity,
-    PatrimonioConfig,
-    PatrimonioInputs,
-    safe_float,
-)
-from pipeline.domain.services.reserva_emergencia_calculator import (
-    EmergencyReserveCalculator,
-    ReservaEmergenciaConfig,
-)
 from pipeline.domain.services.consumo_consciente_calculator import (
     ConsumoConsciente,
     ConsumoConscienteCalculator,
@@ -85,9 +69,13 @@ from pipeline.domain.services.equilibrio_cerbasi_analyzer import (
     EquilibrioCerbasiAnalyzer,
     EquilibrioCerbasiConfig,
 )
+from pipeline.domain.services.financial_score_calculator import (
+    FinancialScoreCalculator,
+    FinancialScoreConfig,
+)
 from pipeline.domain.services.fluxo_caixa_enricher import (
-    FluxoCaixaEnricher,
     FluxoCaixaEnriched,
+    FluxoCaixaEnricher,
     FluxoEnricherConfig,
 )
 from pipeline.domain.services.if_projector import (
@@ -104,15 +92,23 @@ from pipeline.domain.services.orcamento_calculator import (
     OrcamentoProspectivo,
     OrcamentoProspectivoCalculator,
 )
+from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
+from pipeline.domain.services.patrimonio_types import (
+    CaixaDetalhe,
+    MemberIdentity,
+    PatrimonioConfig,
+    PatrimonioInputs,
+    safe_float,
+)
 from pipeline.domain.services.pontos_fortes_analyzer import (
     PontoForteItem,
     PontosFortesAnalyzer,
     PontosFortesConfig,
 )
 from pipeline.domain.services.pontos_urgentes_analyzer import (
-    PontoUrgenteItem,
     PontosUrgentesAnalyzer,
     PontosUrgentesConfig,
+    PontoUrgenteItem,
 )
 from pipeline.domain.services.previdencia_analyzer import (
     PrevidenciaAnalysis,
@@ -123,7 +119,10 @@ from pipeline.domain.services.ratios_calculator import (
     FinancialRatios,
     RatiosCalculator,
 )
-
+from pipeline.domain.services.reserva_emergencia_calculator import (
+    EmergencyReserveCalculator,
+    ReservaEmergenciaConfig,
+)
 
 # =============================================================================
 # Stage keys
@@ -226,8 +225,10 @@ class E5AnalyzerAdapter:
         pontos_urgentes_analyzer: PontosUrgentesAnalyzer | None = None,
     ) -> None:
         self._identity = member_identity or MemberIdentity(
-            titular_key="david", conjuge_key="mariana",
-            titular_nome="David", conjuge_nome="Mariana",
+            titular_key="david",
+            conjuge_key="mariana",
+            titular_nome="David",
+            conjuge_nome="Mariana",
         )
         self._patrimonio = patrimonio_calculator or PatrimonioCalculator(
             PatrimonioConfig(members=self._identity, residencia_keyword="")
@@ -235,13 +236,17 @@ class E5AnalyzerAdapter:
         self._reserva = reserva_calculator or EmergencyReserveCalculator(
             ReservaEmergenciaConfig(members=self._identity)
         )
-        self._score = score_calculator or FinancialScoreCalculator(
-            FinancialScoreConfig.default()
-        )
+        self._score = score_calculator or FinancialScoreCalculator(FinancialScoreConfig.default())
         self._taxas = taxas or {}
-        self._investment_banks = investment_banks or frozenset({
-            "btg pactual", "rico", "picpay", "binance", "xp",
-        })
+        self._investment_banks = investment_banks or frozenset(
+            {
+                "btg pactual",
+                "rico",
+                "picpay",
+                "binance",
+                "xp",
+            }
+        )
         self._member_resolver = member_resolver or E5MemberResolver()
         self._fluxo_enricher = fluxo_enricher or FluxoCaixaEnricher()
         self._if_projector = if_projector
@@ -249,9 +254,7 @@ class E5AnalyzerAdapter:
         self._orcamento = orcamento_calculator or OrcamentoProspectivoCalculator()
         self._endividamento = endividamento_analyzer or EndividamentoAnalyzer()
         self._previdencia = previdencia_analyzer or PrevidenciaAnalyzer()
-        self._inv_classes = (
-            investimentos_classes_analyzer or InvestimentosClassesAnalyzer()
-        )
+        self._inv_classes = investimentos_classes_analyzer or InvestimentosClassesAnalyzer()
         self._consumo = consumo_calculator or ConsumoConscienteCalculator()
         self._equilibrio = equilibrio_analyzer or EquilibrioCerbasiAnalyzer()
         self._cenarios = cenarios_analyzer
@@ -341,9 +344,7 @@ class E5AnalyzerAdapter:
             ),
             if_projector=if_projector,
             endividamento_analyzer=EndividamentoAnalyzer(),
-            previdencia_analyzer=PrevidenciaAnalyzer(
-                PrevidenciaConfig.from_fiscal(fiscal)
-            ),
+            previdencia_analyzer=PrevidenciaAnalyzer(PrevidenciaConfig.from_fiscal(fiscal)),
             investimentos_classes_analyzer=InvestimentosClassesAnalyzer(
                 InvestimentosClassesConfig.from_configs(scoring=scoring)
             ),
@@ -357,9 +358,7 @@ class E5AnalyzerAdapter:
             diagnostico_analyzer=DiagnosticoComportamentalAnalyzer(
                 DiagnosticoComportamentalConfig.from_scoring(scoring)
             ),
-            pontos_fortes_analyzer=PontosFortesAnalyzer(
-                PontosFortesConfig.from_scoring(scoring)
-            ),
+            pontos_fortes_analyzer=PontosFortesAnalyzer(PontosFortesConfig.from_scoring(scoring)),
             pontos_urgentes_analyzer=PontosUrgentesAnalyzer(
                 PontosUrgentesConfig.from_scoring(scoring)
             ),
@@ -486,9 +485,7 @@ class E5AnalyzerAdapter:
             reserva=reserva,
             goals={},
         )
-        pontos_urgentes = self._pontos_urgentes.analyze(
-            ratios_dict, reserva, patrimonio_full
-        )
+        pontos_urgentes = self._pontos_urgentes.analyze(ratios_dict, reserva, patrimonio_full)
 
         return E5AnalysisResult(
             members=members,
@@ -518,9 +515,7 @@ class E5AnalyzerAdapter:
     # -- Helpers de config --
 
     @staticmethod
-    def _build_identity(
-        family: dict | None, member_cfg: MemberResolverConfig
-    ) -> MemberIdentity:
+    def _build_identity(family: dict | None, member_cfg: MemberResolverConfig) -> MemberIdentity:
         """Extrai nomes de exibição (nome_curto) do ``family_members.json``."""
         fam = family or {}
         membros = fam.get("membros", {}) or {}
@@ -544,16 +539,13 @@ class E5AnalyzerAdapter:
         )
 
     @staticmethod
-    def _extract_residencia_keyword(
-        family: dict | None, member_cfg: MemberResolverConfig
-    ) -> str:
+    def _extract_residencia_keyword(family: dict | None, member_cfg: MemberResolverConfig) -> str:
         """Keyword para identificar residência principal na composição."""
         fam = family or {}
         membros = fam.get("membros", {}) or {}
         if isinstance(membros, dict):
             return (
-                membros.get(member_cfg.titular_key, {})
-                .get("residencia_principal_keyword", "")
+                membros.get(member_cfg.titular_key, {}).get("residencia_principal_keyword", "")
                 or ""
             ).lower()
         return ""
@@ -569,9 +561,7 @@ class E5AnalyzerAdapter:
 
     # -- Helper de I/O (shell) --
 
-    def _load_caixa_from_e3(
-        self, store: ArtifactStore
-    ) -> tuple[float, list[CaixaDetalhe]]:
+    def _load_caixa_from_e3(self, store: ArtifactStore) -> tuple[float, list[CaixaDetalhe]]:
         """Carrega saldos de caixa + moeda estrangeira de todos os E3 artifacts.
 
         Classificação (paridade com ``_load_caixa_from_e3_saldos`` legado):

@@ -46,7 +46,6 @@ from backend.app.services import events as events_module
 from backend.app.services.invitation_service import MAX_PENDING_PER_WORKSPACE
 from backend.tests import factories
 
-
 # ─── Fixtures — dois clients simulando dois uvicorn workers ─────────
 
 
@@ -188,9 +187,9 @@ async def test_invitation_rate_limit_counts_across_workers(
             f"/api/workspaces/{ws.id}/invitations",
             json={"email": f"inv{i}@test.com", "role": "viewer"},
         )
-        assert resp.status_code == 201, (
-            f"convite #{i} via {c.base_url} falhou: {resp.status_code} {resp.text}"
-        )
+        assert (
+            resp.status_code == 201
+        ), f"convite #{i} via {c.base_url} falhou: {resp.status_code} {resp.text}"
 
     # (N+1)-ésimo convite — não importa qual worker envie, deve 429.
     over = await worker_b.post(
@@ -219,9 +218,7 @@ def test_ws_on_worker_a_receives_event_from_celery_worker(shared_redis):
     token = create_access_token(user_id)
 
     client = TestClient(app)
-    with client.websocket_connect(
-        f"/api/pipeline/runs/{run_id}/ws?token={token}"
-    ) as ws:
+    with client.websocket_connect(f"/api/pipeline/runs/{run_id}/ws?token={token}") as ws:
         # "Celery worker" publica via events.publish_event — usa
         # redis.Redis.from_url (sync) que foi patchado para FakeRedis.
         events_module.publish_stage_started(run_id, "E3", 30)
@@ -253,9 +250,7 @@ def test_ws_terminal_event_closes_connection_cross_worker(shared_redis):
 
     client = TestClient(app)
     with pytest.raises(WebSocketDisconnect):
-        with client.websocket_connect(
-            f"/api/pipeline/runs/{run_id}/ws?token={token}"
-        ) as ws:
+        with client.websocket_connect(f"/api/pipeline/runs/{run_id}/ws?token={token}") as ws:
             events_module.publish_run_completed(run_id)
             # Drena até receber run_completed (ou WebSocketDisconnect).
             for _ in range(5):

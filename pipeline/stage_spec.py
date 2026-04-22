@@ -66,24 +66,28 @@ class StageSpec:
 #     executável) — ver VIRTUAL_ARTIFACT_STAGES.
 
 STAGE_REGISTRY: dict[str, StageSpec] = {
-    "E0-audit":    StageSpec("E0-audit",                                           ),
-    "E0-unlock":   StageSpec("E0-unlock",                                          tier="premium"),
-    "E0-route":    StageSpec("E0-route",                                           tier="premium"),
-    "E1":          StageSpec("E1",          writes=("E1",),                         is_llm=True, tier="premium"),
-    "E1.5":        StageSpec("E1.5",        writes=("E1.5",),                       is_llm=True, tier="premium"),
-    "E1.5c":       StageSpec("E1.5c",       reads=("E1.5",),        writes=("E1.5c",)),
-    "E2-faturas":  StageSpec("E2-faturas",                          writes=("E2-faturas",)),
-    "E2-extratos": StageSpec("E2-extratos",                         writes=("E2-extratos",)),
-    "E2-llm":      StageSpec("E2-llm",                              writes=("E2-llm",),      is_llm=True, tier="premium"),
-    "E3":          StageSpec("E3",          reads=("E2-extratos", "E2-faturas", "E2-llm"), writes=("E3",)),
-    "E4":          StageSpec("E4",          reads=("E3",),          writes=("E4",)),
-    "E5":          StageSpec("E5",          reads=("E4", "E1.5c"),  writes=("E5",)),
-    "E5.N":        StageSpec("E5.N",        reads=("E5",),          writes=("E5.N",)),
-    "E6":          StageSpec("E6",          reads=("E5",),          writes=("E6",)),
-    "E7-crossval": StageSpec("E7-crossval", reads=("E5",),          writes=("E7-crossval",)),
-    "E7-review":   StageSpec("E7-review",   reads=("E5",),          writes=("E7-review",), is_llm=True, tier="premium"),
-    "E7-apply":    StageSpec("E7-apply",    reads=("E7-review", "E5"), writes=("E5-revised",)),
-    "E6-final":    StageSpec("E6-final",    reads=("E5-revised",),  writes=("E6-final",)),
+    "E0-audit": StageSpec(
+        "E0-audit",
+    ),
+    "E0-unlock": StageSpec("E0-unlock", tier="premium"),
+    "E0-route": StageSpec("E0-route", tier="premium"),
+    "E1": StageSpec("E1", writes=("E1",), is_llm=True, tier="premium"),
+    "E1.5": StageSpec("E1.5", writes=("E1.5",), is_llm=True, tier="premium"),
+    "E1.5c": StageSpec("E1.5c", reads=("E1.5",), writes=("E1.5c",)),
+    "E2-faturas": StageSpec("E2-faturas", writes=("E2-faturas",)),
+    "E2-extratos": StageSpec("E2-extratos", writes=("E2-extratos",)),
+    "E2-llm": StageSpec("E2-llm", writes=("E2-llm",), is_llm=True, tier="premium"),
+    "E3": StageSpec("E3", reads=("E2-extratos", "E2-faturas", "E2-llm"), writes=("E3",)),
+    "E4": StageSpec("E4", reads=("E3",), writes=("E4",)),
+    "E5": StageSpec("E5", reads=("E4", "E1.5c"), writes=("E5",)),
+    "E5.N": StageSpec("E5.N", reads=("E5",), writes=("E5.N",)),
+    "E6": StageSpec("E6", reads=("E5",), writes=("E6",)),
+    "E7-crossval": StageSpec("E7-crossval", reads=("E5",), writes=("E7-crossval",)),
+    "E7-review": StageSpec(
+        "E7-review", reads=("E5",), writes=("E7-review",), is_llm=True, tier="premium"
+    ),
+    "E7-apply": StageSpec("E7-apply", reads=("E7-review", "E5"), writes=("E5-revised",)),
+    "E6-final": StageSpec("E6-final", reads=("E5-revised",), writes=("E6-final",)),
 }
 
 
@@ -97,20 +101,29 @@ VIRTUAL_ARTIFACT_STAGES: frozenset[str] = frozenset({"E5-revised"})
 # ``reads``/``writes`` — é uma decisão do orquestrador. ``validate_full_order``
 # apenas verifica consistência com as dependências declaradas.
 FULL_ORDER: list[str] = [
-    "E0-unlock", "E0-audit", "E0-route",
-    "E1", "E1.5", "E1.5c",
-    "E2-faturas", "E2-extratos", "E2-llm",
-    "E3", "E4", "E5", "E5.N",
+    "E0-unlock",
+    "E0-audit",
+    "E0-route",
+    "E1",
+    "E1.5",
+    "E1.5c",
+    "E2-faturas",
+    "E2-extratos",
+    "E2-llm",
+    "E3",
+    "E4",
+    "E5",
+    "E5.N",
     "E6",
-    "E7-crossval", "E7-review", "E7-apply",
+    "E7-crossval",
+    "E7-review",
+    "E7-apply",
     "E6-final",
 ]
 
 
 # Sequência determinística (pula stages LLM). Derivada do ``STAGE_REGISTRY``.
-DETERMINISTIC_ORDER: list[str] = [
-    s for s in FULL_ORDER if not STAGE_REGISTRY[s].is_llm
-]
+DETERMINISTIC_ORDER: list[str] = [s for s in FULL_ORDER if not STAGE_REGISTRY[s].is_llm]
 
 
 # =============================================================================
@@ -118,25 +131,25 @@ DETERMINISTIC_ORDER: list[str] = [
 # =============================================================================
 
 STAGE_RENAME_MAP: dict[str, str] = {
-    "E0-audit":    "audit_documents",
-    "E0-unlock":   "unlock_documents",
-    "E0-route":    "route_documents",
-    "E1":          "extract_members",
-    "E1.5":        "extract_baseline",
-    "E1.5c":       "consolidate_baseline",
-    "E2-faturas":  "extract_invoices",
+    "E0-audit": "audit_documents",
+    "E0-unlock": "unlock_documents",
+    "E0-route": "route_documents",
+    "E1": "extract_members",
+    "E1.5": "extract_baseline",
+    "E1.5c": "consolidate_baseline",
+    "E2-faturas": "extract_invoices",
     "E2-extratos": "extract_statements",
-    "E2-llm":      "extract_with_llm",
-    "E3":          "reconcile_transactions",
-    "E4":          "categorize_transactions",
-    "E5":          "analyze_finances",
-    "E5.N":        "generate_narratives",
-    "E6":          "render_report",
+    "E2-llm": "extract_with_llm",
+    "E3": "reconcile_transactions",
+    "E4": "categorize_transactions",
+    "E5": "analyze_finances",
+    "E5.N": "generate_narratives",
+    "E6": "render_report",
     "E7-crossval": "validate_cross",
-    "E7-review":   "review_finances",
-    "E7-apply":    "apply_review",
-    "E6-final":    "render_final_report",
-    "E5-revised":  "analyze_finances_revised",  # virtual artifact stage
+    "E7-review": "review_finances",
+    "E7-apply": "apply_review",
+    "E6-final": "render_final_report",
+    "E5-revised": "analyze_finances_revised",  # virtual artifact stage
 }
 
 
@@ -174,9 +187,7 @@ def validate_full_order(order: list[str]) -> None:
     produced_by_prefix: set[str] = set()
     for i, stage in enumerate(order):
         if stage not in STAGE_REGISTRY:
-            raise ValueError(
-                f"Stage '{stage}' em order não está no STAGE_REGISTRY"
-            )
+            raise ValueError(f"Stage '{stage}' em order não está no STAGE_REGISTRY")
         spec = STAGE_REGISTRY[stage]
         for dep in spec.reads:
             if dep not in produced_by_prefix:
@@ -215,7 +226,7 @@ validate_full_order(FULL_ORDER)
 # atalhos de "a partir daqui, inclui todos os subvariantes". Preservado em
 # ``build_from_map_with_legacy_aliases`` para o orchestrator.
 LEGACY_FROM_ALIASES: dict[str, str] = {
-    "E0": "E0-unlock",       # "a partir de E0" = rodar todo E0-*
-    "E2": "E2-faturas",      # "a partir de E2" = rodar todo E2-*
-    "E7": "E7-crossval",     # "a partir de E7" = rodar todo E7-*
+    "E0": "E0-unlock",  # "a partir de E0" = rodar todo E0-*
+    "E2": "E2-faturas",  # "a partir de E2" = rodar todo E2-*
+    "E7": "E7-crossval",  # "a partir de E7" = rodar todo E7-*
 }

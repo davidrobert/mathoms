@@ -26,7 +26,10 @@ def run(ctx: WorkspaceContext) -> dict:
         if code == 2:
             # Partial success: documentos não identificados ficam em inbox para revisão.
             # Não interrompe o pipeline — documentos roteados prosseguem normalmente.
-            return {"success": True, "warning": "1 ou mais documentos não identificados permanecerão no inbox para revisão manual."}
+            return {
+                "success": True,
+                "warning": "1 ou mais documentos não identificados permanecerão no inbox para revisão manual.",
+            }
         # code == 1 ou outro: erro real — re-lança para o orquestrador tratar como falha
         raise
 

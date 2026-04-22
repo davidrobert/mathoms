@@ -28,7 +28,6 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from pipeline.stage_spec import STAGE_RENAME_MAP  # noqa: E402
 
-
 LEGACY_NAMES = sorted(STAGE_RENAME_MAP.keys())
 
 # Ilhas permitidas: contratos de transição, fontes de verdade e testes do map
@@ -37,17 +36,17 @@ ALLOWED_PREFIXES = (
     "pipeline/artifact_store.py",
     "pipeline/materialization_bridge.py",
     "pipeline/stage_runner_compat.py",
-    "pipeline/stages/",          # wrappers que ainda usam nomes legados
+    "pipeline/stages/",  # wrappers que ainda usam nomes legados
     "pipeline/orchestrator.py",  # LEGACY_FROM_ALIASES
-    "backend/alembic/versions/", # migrations (STAGE_RENAME, imports, comentários)
-    "backend/app/scripts/",      # backfill usa strings legadas
-    "backend/tests/",             # testes de migration, DBArtifactStore, etc.
-    "tests/unit/pipeline/",       # testes do registry/map
-    "tests/",                      # fixtures golden podem conter strings legadas
-    "scripts/",                    # scripts legados E2/E3/E5
-    "_scratch/",                   # scripts de auditoria
-    "config/",                     # schemas JSON mencionam nomes de stage
-    "docs/",                       # ADRs históricos
+    "backend/alembic/versions/",  # migrations (STAGE_RENAME, imports, comentários)
+    "backend/app/scripts/",  # backfill usa strings legadas
+    "backend/tests/",  # testes de migration, DBArtifactStore, etc.
+    "tests/unit/pipeline/",  # testes do registry/map
+    "tests/",  # fixtures golden podem conter strings legadas
+    "scripts/",  # scripts legados E2/E3/E5
+    "_scratch/",  # scripts de auditoria
+    "config/",  # schemas JSON mencionam nomes de stage
+    "docs/",  # ADRs históricos
 )
 
 
@@ -71,7 +70,7 @@ def _is_allowed(rel_path: str) -> bool:
 
 def _find_occurrences() -> dict[str, list[tuple[str, int, str]]]:
     patterns = {
-        name: re.compile(rf'(?<![A-Za-z0-9_\-\.]){re.escape(name)}(?![A-Za-z0-9_])')
+        name: re.compile(rf"(?<![A-Za-z0-9_\-\.]){re.escape(name)}(?![A-Za-z0-9_])")
         for name in LEGACY_NAMES
     }
     out: dict[str, list[tuple[str, int, str]]] = {}
@@ -92,11 +91,7 @@ def _find_occurrences() -> dict[str, list[tuple[str, int, str]]]:
 def test_legacy_name_only_in_allowed_files(legacy_name: str):
     hard_fail = os.environ.get("MATHOMS_ENFORCE_STAGE_RENAME", "0") == "1"
     occurrences = _find_occurrences().get(legacy_name, [])
-    leaks = [
-        (path, line, snippet)
-        for path, line, snippet in occurrences
-        if not _is_allowed(path)
-    ]
+    leaks = [(path, line, snippet) for path, line, snippet in occurrences if not _is_allowed(path)]
     if leaks:
         msg = (
             f"Identificador legado '{legacy_name}' vazou para {len(leaks)} localização(ões):\n"

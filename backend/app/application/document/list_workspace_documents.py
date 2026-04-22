@@ -42,9 +42,7 @@ def _parse_statuses(raw: Optional[str]) -> Optional[list[DocumentStatus]]:
     allowed = {m.value for m in DocumentStatus}
     for p in parts:
         if p not in allowed:
-            raise ValidationError(
-                f"Status inválido: {p}", code="invalid_status"
-            )
+            raise ValidationError(f"Status inválido: {p}", code="invalid_status")
     return [DocumentStatus(p) for p in parts]
 
 
@@ -54,6 +52,4 @@ def _parse_doc_type(raw: Optional[str]) -> Optional[DocumentType]:
     try:
         return DocumentType(raw)
     except ValueError as exc:
-        raise ValidationError(
-            f"Tipo inválido: {raw}", code="invalid_doc_type"
-        ) from exc
+        raise ValidationError(f"Tipo inválido: {raw}", code="invalid_doc_type") from exc

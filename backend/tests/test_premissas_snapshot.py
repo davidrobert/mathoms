@@ -25,9 +25,7 @@ def empty_goals_session() -> FakeScalarSession:
 def test_snapshot_none_when_no_goals_file_and_no_active_goals(
     tmp_path: Path, empty_goals_session: FakeScalarSession
 ):
-    assert (
-        build_premissas_snapshot_sync("ws-1", tmp_path, empty_goals_session) is None
-    )
+    assert build_premissas_snapshot_sync("ws-1", tmp_path, empty_goals_session) is None
 
 
 def test_snapshot_includes_goals_json_sha256(

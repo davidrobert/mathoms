@@ -14,7 +14,6 @@ import pytest
 from backend.app.core.security import create_access_token
 from backend.tests import factories
 
-
 # ─── Helpers ────────────────────────────────────────────────────────────
 
 
@@ -70,19 +69,14 @@ async def test_compute_if_dry_run_with_patrimonio_returns_progress(db, client):
     assert data["faltante_brl"] == 5_400_000.0
     der = data["derived"]
     assert der["aporte_mensal_com_patrimonio_atual_brl"] is not None
-    assert (
-        der["aporte_mensal_com_patrimonio_atual_brl"]
-        < der["aporte_necessario_mensal_brl"]
-    )
+    assert der["aporte_mensal_com_patrimonio_atual_brl"] < der["aporte_necessario_mensal_brl"]
 
 
 @pytest.mark.asyncio
 async def test_compute_if_rejects_invalid_inputs(db, client):
     _, ws = await _make_auth(db, client)
     bad = dict(IF_INPUTS, renda_passiva_mensal_brl=-1)
-    resp = await client.post(
-        f"/api/workspaces/{ws.id}/goals/if/compute", json={"inputs": bad}
-    )
+    resp = await client.post(f"/api/workspaces/{ws.id}/goals/if/compute", json={"inputs": bad})
     assert resp.status_code == 422
 
 
@@ -107,10 +101,7 @@ async def test_get_if_goal_enriches_aporte_with_latest_report(db, client):
     assert resp.status_code == 200
     der = resp.json()["derived"]
     assert der["aporte_mensal_com_patrimonio_atual_brl"] is not None
-    assert (
-        der["aporte_mensal_com_patrimonio_atual_brl"]
-        < der["aporte_necessario_mensal_brl"]
-    )
+    assert der["aporte_mensal_com_patrimonio_atual_brl"] < der["aporte_necessario_mensal_brl"]
 
 
 @pytest.mark.asyncio
@@ -189,9 +180,7 @@ async def test_cross_tenant_put_returns_403(db, client):
     token_a = create_access_token(user_a.id)
     client.headers["Authorization"] = f"Bearer {token_a}"
 
-    resp = await client.put(
-        f"/api/workspaces/{ws_b.id}/goals/if", json={"inputs": IF_INPUTS}
-    )
+    resp = await client.put(f"/api/workspaces/{ws_b.id}/goals/if", json={"inputs": IF_INPUTS})
     assert resp.status_code == 403
 
 
@@ -215,9 +204,7 @@ async def test_workspace_id_does_not_exist_returns_403(db, client):
     token = create_access_token(user.id)
     client.headers["Authorization"] = f"Bearer {token}"
 
-    resp = await client.get(
-        "/api/workspaces/00000000-0000-0000-0000-000000000000/goals/if"
-    )
+    resp = await client.get("/api/workspaces/00000000-0000-0000-0000-000000000000/goals/if")
     assert resp.status_code == 403
 
 

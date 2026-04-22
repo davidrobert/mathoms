@@ -25,25 +25,24 @@ Campos-chave:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone, date
+from datetime import date, datetime, timezone
 from typing import Optional
 
 from sqlalchemy import (
-    String,
-    DateTime,
-    Date,
-    Boolean,
-    Integer,
-    ForeignKey,
-    Text,
-    Index,
-    UniqueConstraint,
     JSON,
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
-
 
 # Vocabulários — mantidos como frozenset para evitar migrations ao
 # adicionar categorias. Validação no service layer.
@@ -74,17 +73,11 @@ VALID_DEADLINE_KINDS: frozenset[str] = frozenset(
     {"HARD_DATE", "MONTH", "QUARTER", "CONDITIONAL", "UNSCHEDULED"}
 )
 
-VALID_CREATED_FROM: frozenset[str] = frozenset(
-    {"manual", "seed", "llm_suggestion"}
-)
+VALID_CREATED_FROM: frozenset[str] = frozenset({"manual", "seed", "llm_suggestion"})
 
-VALID_SUGGESTION_STATUSES: frozenset[str] = frozenset(
-    {"pending", "approved", "rejected", "merged"}
-)
+VALID_SUGGESTION_STATUSES: frozenset[str] = frozenset({"pending", "approved", "rejected", "merged"})
 
-VALID_SUGGESTION_SOURCES: frozenset[str] = frozenset(
-    {"e5n_llm", "cross_validation", "system_rule"}
-)
+VALID_SUGGESTION_SOURCES: frozenset[str] = frozenset({"e5n_llm", "cross_validation", "system_rule"})
 
 
 class Task(Base):
@@ -92,9 +85,7 @@ class Task(Base):
 
     __tablename__ = "tasks"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("workspaces.id", ondelete="CASCADE"),
@@ -111,19 +102,11 @@ class Task(Base):
     category: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     priority: Mapped[str] = mapped_column(String(1), nullable=False, index=True)
 
-    deadline_kind: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="UNSCHEDULED"
-    )
-    deadline_date: Mapped[Optional[date]] = mapped_column(
-        Date, nullable=True, index=True
-    )
-    deadline_label: Mapped[Optional[str]] = mapped_column(
-        String(128), nullable=True
-    )
+    deadline_kind: Mapped[str] = mapped_column(String(32), nullable=False, default="UNSCHEDULED")
+    deadline_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True, index=True)
+    deadline_label: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
 
-    status: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="pending", index=True
-    )
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending", index=True)
     status_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     ref: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
@@ -138,9 +121,7 @@ class Task(Base):
     # Links opcionais (F8.3+) — não criam FK real a transactions/goals por
     # ora porque essas tabelas também estão evoluindo; guardamos IDs
     # livres para serem tipados/validados via service.
-    related_transaction_id: Mapped[Optional[str]] = mapped_column(
-        String(36), nullable=True
-    )
+    related_transaction_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     related_goal_id: Mapped[Optional[str]] = mapped_column(
         String(36),
         ForeignKey("goals.id", ondelete="SET NULL"),
@@ -153,19 +134,11 @@ class Task(Base):
         nullable=True,
     )
 
-    created_from: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="manual"
-    )
-    source_suggestion_id: Mapped[Optional[str]] = mapped_column(
-        String(36), nullable=True
-    )
+    created_from: Mapped[str] = mapped_column(String(32), nullable=False, default="manual")
+    source_suggestion_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
 
-    completed_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    cancelled_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    cancelled_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_by: Mapped[Optional[str]] = mapped_column(
         String(36),
@@ -208,9 +181,7 @@ class TaskSuggestion(Base):
 
     __tablename__ = "task_suggestions"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("workspaces.id", ondelete="CASCADE"),
@@ -222,13 +193,9 @@ class TaskSuggestion(Base):
     proposed_payload: Mapped[dict] = mapped_column(JSON, nullable=False)
 
     source: Mapped[str] = mapped_column(String(32), nullable=False)
-    source_run_id: Mapped[Optional[str]] = mapped_column(
-        String(36), nullable=True
-    )
+    source_run_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
 
-    status: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="pending", index=True
-    )
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending", index=True)
     rejection_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Populado ao aprovar (FK para a Task criada)
@@ -243,9 +210,7 @@ class TaskSuggestion(Base):
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    reviewed_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -257,9 +222,7 @@ class TaskSuggestion(Base):
     approved_task = relationship("Task", foreign_keys=[approved_task_id])
     reviewer = relationship("User", foreign_keys=[reviewed_by])
 
-    __table_args__ = (
-        Index("ix_suggestions_ws_status", "workspace_id", "status"),
-    )
+    __table_args__ = (Index("ix_suggestions_ws_status", "workspace_id", "status"),)
 
 
 class TaskAttachment(Base):
@@ -271,9 +234,7 @@ class TaskAttachment(Base):
 
     __tablename__ = "task_attachments"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     task_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("tasks.id", ondelete="CASCADE"),

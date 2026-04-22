@@ -24,9 +24,7 @@ class DocumentRepositoryProtocol(Protocol):
         doc_type: Optional[DocumentType] = None,
     ) -> list[Document]: ...
 
-    async def get_by_id(
-        self, workspace_id: str, document_id: str
-    ) -> Optional[Document]: ...
+    async def get_by_id(self, workspace_id: str, document_id: str) -> Optional[Document]: ...
 
     async def find_fuzzy_duplicate_id(
         self,
@@ -50,6 +48,4 @@ class ClassificationServiceProtocol(Protocol):
     documentado em ADR-081. Fake pode devolver valor fixo.
     """
 
-    def classify(
-        self, file_path: Path, classification_base: Path
-    ) -> dict[str, Any]: ...
+    def classify(self, file_path: Path, classification_base: Path) -> dict[str, Any]: ...

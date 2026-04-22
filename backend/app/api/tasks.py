@@ -101,7 +101,8 @@ async def upcoming_tasks(
 
     Usado pelo widget do dashboard.
     """
-    from datetime import timedelta, date as _date
+    from datetime import date as _date
+    from datetime import timedelta
 
     filters = TaskFilters(
         deadline_before=_date.today() + timedelta(days=days),
@@ -138,9 +139,7 @@ async def scan_deadlines(
     - Cron externo (ex: worker Celery beat em F8.3+)
     - UI: botão "Verificar alertas de prazo" (admin)
     """
-    stats = await task_notification_service.scan_and_create_notifications(
-        workspace.id, db=db
-    )
+    stats = await task_notification_service.scan_and_create_notifications(workspace.id, db=db)
     await db.commit()
     return ScanDeadlinesResponse(**stats)
 
@@ -183,9 +182,7 @@ async def create_task(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    task = await task_service.create_task(
-        workspace.id, payload, db=db, created_by=user.id
-    )
+    task = await task_service.create_task(workspace.id, payload, db=db, created_by=user.id)
     await db.commit()
     await db.refresh(task)
     return task_to_response(task)
@@ -198,9 +195,7 @@ async def update_task(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    task = await task_service.update_task(
-        workspace.id, task_id, payload, db=db
-    )
+    task = await task_service.update_task(workspace.id, task_id, payload, db=db)
     await db.commit()
     await db.refresh(task)
     return task_to_response(task)
@@ -244,9 +239,7 @@ async def list_task_attachments(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    items = await task_attachment_service.list_attachments(
-        workspace.id, task_id, db=db
-    )
+    items = await task_attachment_service.list_attachments(workspace.id, task_id, db=db)
     return TaskAttachmentListResponse(
         attachments=[task_attachment_to_response(a) for a in items],
         total=len(items),
@@ -299,17 +292,13 @@ async def download_task_attachment(
 ):
     """Serve binário. Tenancy validado duas vezes: (1) ``get_current_workspace``,
     (2) ``get_attachment`` filtra por ``workspace_id``."""
-    attachment = await task_attachment_service.get_attachment(
-        workspace.id, attachment_id, db=db
-    )
+    attachment = await task_attachment_service.get_attachment(workspace.id, attachment_id, db=db)
     if attachment.task_id != task_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Anexo não pertence à task informada",
         )
-    path = task_attachment_service.resolve_attachment_file(
-        workspace.id, attachment
-    )
+    path = task_attachment_service.resolve_attachment_file(workspace.id, attachment)
     if path is None or not path.is_file():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -332,17 +321,13 @@ async def delete_task_attachment(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    attachment = await task_attachment_service.get_attachment(
-        workspace.id, attachment_id, db=db
-    )
+    attachment = await task_attachment_service.get_attachment(workspace.id, attachment_id, db=db)
     if attachment.task_id != task_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Anexo não pertence à task informada",
         )
-    await task_attachment_service.delete_attachment(
-        workspace.id, attachment_id, db=db
-    )
+    await task_attachment_service.delete_attachment(workspace.id, attachment_id, db=db)
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -410,9 +395,7 @@ async def create_suggestion(
     Alternativa: chamar ``task_suggestion_service.bulk_create`` direto do
     Python dentro do worker. Este endpoint existe para workers em outros
     processos/linguagens (ex: pipeline CLI em transição)."""
-    sugg = await task_suggestion_service.create_suggestion(
-        workspace.id, body, db=db
-    )
+    sugg = await task_suggestion_service.create_suggestion(workspace.id, body, db=db)
     await db.commit()
     await db.refresh(sugg)
     return task_suggestion_to_response(sugg)

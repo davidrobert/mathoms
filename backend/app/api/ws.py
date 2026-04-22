@@ -52,15 +52,18 @@ async def ws_pipeline_progress(
     redis_sub = None
     try:
         import redis.asyncio as aioredis
+
         redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
         redis_sub = redis_client.pubsub()
         await redis_sub.subscribe(f"pipeline:{run_id}")
     except Exception as exc:
         logger.warning("Redis unavailable for WS subscription: %s", exc)
-        await websocket.send_json({
-            "event": "error",
-            "detail": "Real-time updates unavailable. Use polling.",
-        })
+        await websocket.send_json(
+            {
+                "event": "error",
+                "detail": "Real-time updates unavailable. Use polling.",
+            }
+        )
         await websocket.close(code=1011, reason="Redis unavailable")
         return
 

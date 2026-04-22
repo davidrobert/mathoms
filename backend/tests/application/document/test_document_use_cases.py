@@ -61,9 +61,7 @@ async def test_list_filters_by_status_csv():
     await repo.add(_doc(status=DocumentStatus.processed))
     await repo.add(_doc(status=DocumentStatus.error))
 
-    resp = await list_workspace_documents(
-        "ws-1", repo=repo, status_filter="ready,processed"
-    )
+    resp = await list_workspace_documents("ws-1", repo=repo, status_filter="ready,processed")
     assert resp.total == 2
 
 
@@ -91,9 +89,7 @@ async def test_list_filters_by_doc_type():
     await repo.add(_doc(doc_type=DocumentType.bank_statement))
     await repo.add(_doc(doc_type=DocumentType.credit_card_bill))
 
-    resp = await list_workspace_documents(
-        "ws-1", repo=repo, doc_type_filter="credit_card_bill"
-    )
+    resp = await list_workspace_documents("ws-1", repo=repo, doc_type_filter="credit_card_bill")
     assert resp.total == 1
 
 

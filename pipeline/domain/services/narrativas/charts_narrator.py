@@ -61,7 +61,12 @@ class ChartsNarrator:
             **self._narrate_fluxo_receita(M, _fontes_receita),
             **self._narrate_projecao_if(M, ctx),
             ctx.key_cenarios_section: self._narrate_cenarios_conjuge(
-                M, ctx, _conj, _cm_prazos, _cm_aportes, _cm_anos,
+                M,
+                ctx,
+                _conj,
+                _cm_prazos,
+                _cm_aportes,
+                _cm_anos,
             ),
             **self._narrate_fase_eua(M),
             **self._narrate_riscos_decisoes(M, riscos, _riscos_top3, decisoes),
@@ -69,7 +74,10 @@ class ChartsNarrator:
 
     # ── Grupo 1: Score + patrimônio + alocação (charts 1-4) ────────────
     def _narrate_patrimonio_aloc(
-        self, M: dict[str, Any], ctx: NarrativasContext, _imovel_acima: bool,
+        self,
+        M: dict[str, Any],
+        ctx: NarrativasContext,
+        _imovel_acima: bool,
     ) -> dict[str, Any]:
         return {
             "score_gauge": {
@@ -121,7 +129,9 @@ class ChartsNarrator:
 
     # ── Grupo 2: Fluxo + receita + despesa (charts 5-8) ────────────────
     def _narrate_fluxo_receita(
-        self, M: dict[str, Any], _fontes_receita: list[tuple[str, float, float]],
+        self,
+        M: dict[str, Any],
+        _fontes_receita: list[tuple[str, float, float]],
     ) -> dict[str, Any]:
         _top_fonte_nome, _top_fonte_valor, _top_fonte_pct = _fontes_receita[0]
         _sec_fonte_nome, _sec_fonte_valor, _sec_fonte_pct = _fontes_receita[1]
@@ -176,7 +186,9 @@ class ChartsNarrator:
 
     # ── Grupo 3: Projeção IF + renda passiva + impostos (charts 9-14) ──
     def _narrate_projecao_if(
-        self, M: dict[str, Any], ctx: NarrativasContext,
+        self,
+        M: dict[str, Any],
+        ctx: NarrativasContext,
     ) -> dict[str, Any]:
         return {
             "projecao_3cenarios": {
@@ -247,8 +259,13 @@ class ChartsNarrator:
 
     # ── Cenários cônjuge (chart 15, chave dinâmica ctx.key_cenarios_section) ─
     def _narrate_cenarios_conjuge(
-        self, M: dict[str, Any], ctx: NarrativasContext, _conj: dict[str, Any],
-        _cm_prazos: list, _cm_aportes: list, _cm_anos: list,
+        self,
+        M: dict[str, Any],
+        ctx: NarrativasContext,
+        _conj: dict[str, Any],
+        _cm_prazos: list,
+        _cm_aportes: list,
+        _cm_anos: list,
     ) -> dict[str, Any]:
         # Cenários cônjuge — lambda preserved for paridade com legado.
         return {
@@ -325,8 +342,11 @@ class ChartsNarrator:
 
     # ── Grupo 5: Riscos + decisões (charts 19-20) ──────────────────────
     def _narrate_riscos_decisoes(
-        self, M: dict[str, Any], riscos: list[dict[str, Any]],
-        _riscos_top3: list[dict[str, Any]], decisoes: list[str],
+        self,
+        M: dict[str, Any],
+        riscos: list[dict[str, Any]],
+        _riscos_top3: list[dict[str, Any]],
+        decisoes: list[str],
     ) -> dict[str, Any]:
         return {
             "bubble_riscos": {
@@ -350,9 +370,7 @@ class ChartsNarrator:
                     f"Prioridade 1: Aporte mensal {fmt_currency(M['meta_aporte_mensal'])} com divisão "
                     f"({fmt_currency(M['aporte_cofrinhos'])} Cofrinhos, {fmt_currency(M['aporte_ipca_plus'])} IPCA+, "
                     f"{fmt_currency(M['aporte_ivvb11'])} IVVB11, {fmt_currency(M['aporte_wise_usd'])} Wise USD). "
-                    + ". ".join(
-                        f"Prioridade {i+2}: {d}" for i, d in enumerate(decisoes[1:5])
-                    )
+                    + ". ".join(f"Prioridade {i+2}: {d}" for i, d in enumerate(decisoes[1:5]))
                     + "."
                 ),
             },

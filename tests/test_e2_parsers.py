@@ -6,16 +6,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.e2.registry import route_to_parser, is_processable, is_non_statement_type
 from scripts.e2.common import (
-    parse_brl, parse_usd, safe_date, infer_periodo_from_filename,
     _valid_ym,
+    infer_periodo_from_filename,
+    parse_brl,
+    parse_usd,
+    safe_date,
 )
-
+from scripts.e2.registry import is_non_statement_type, is_processable, route_to_parser
 
 # =============================================================================
 # Registry routing tests
 # =============================================================================
+
 
 class TestParserRegistry:
     """Verify that known filenames route to the correct parser."""
@@ -27,7 +30,9 @@ class TestParserRegistry:
         assert route_to_parser("c6bank_extratocontapj_202601_202601-0_original.csv") is not None
 
     def test_c6bank_global_usd(self):
-        assert route_to_parser("c6bank_extratocontaglobalusd_202601_202601-0_original.pdf") is not None
+        assert (
+            route_to_parser("c6bank_extratocontaglobalusd_202601_202601-0_original.pdf") is not None
+        )
 
     def test_c6bank_carbon_csv(self):
         assert route_to_parser("c6bank_faturacarbon_202603-0_original.csv") is not None
@@ -39,7 +44,10 @@ class TestParserRegistry:
         assert route_to_parser("itau_extratoconta_202601_202604-0_original.xls") is not None
 
     def test_itau_personnalite_xls(self):
-        assert route_to_parser("itau_extratocontapersonnalite_202601_202604-0_original.xls") is not None
+        assert (
+            route_to_parser("itau_extratocontapersonnalite_202601_202604-0_original.xls")
+            is not None
+        )
 
     def test_itau_paoacucar_csv(self):
         assert route_to_parser("itau_faturapaoacucar_202603-0_original.csv") is not None
@@ -59,7 +67,9 @@ class TestParserRegistry:
         assert parser is not None
 
     def test_wise_pdf(self):
-        assert route_to_parser("wise_extratocontaglobalusd_202601_202604-0_original.pdf") is not None
+        assert (
+            route_to_parser("wise_extratocontaglobalusd_202601_202604-0_original.pdf") is not None
+        )
 
     def test_picpay_pdf(self):
         assert route_to_parser("picpay_extratoconta_202601_202604-0_original.pdf") is not None
@@ -93,6 +103,7 @@ class TestIsNonStatementType:
 # =============================================================================
 # Period validation tests (P5)
 # =============================================================================
+
 
 class TestValidYM:
     def test_valid(self):
@@ -133,6 +144,7 @@ class TestInferPeriodoValidation:
 # =============================================================================
 # Edge cases in value parsing
 # =============================================================================
+
 
 class TestParseBRLEdgeCases:
     def test_very_large_number(self):

@@ -33,8 +33,7 @@ def upgrade() -> None:
     # cast, `status = 'classified'` falha ao tentar castar para o enum.
     op.execute(
         sa.text(
-            "UPDATE documents SET status = 'ready' "
-            "WHERE CAST(status AS VARCHAR) = 'classified'"
+            "UPDATE documents SET status = 'ready' " "WHERE CAST(status AS VARCHAR) = 'classified'"
         )
     )
 

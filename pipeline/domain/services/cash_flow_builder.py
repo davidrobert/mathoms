@@ -19,7 +19,6 @@ from typing import Iterable
 
 from pipeline.domain.services.transaction_classifier import ClassifiedTransaction
 
-
 _BRT = timezone(timedelta(hours=-3))
 
 
@@ -142,9 +141,7 @@ class CashFlowBuilder:
 
     # -- API --
 
-    def build(
-        self, transactions: Iterable[ClassifiedTransaction]
-    ) -> CashFlow:
+    def build(self, transactions: Iterable[ClassifiedTransaction]) -> CashFlow:
         txs = list(transactions)
         receitas = [t for t in txs if t.kind == "receita"]
         despesas = [t for t in txs if t.kind == "despesa"]
@@ -157,9 +154,7 @@ class CashFlowBuilder:
             transferencias_count=len(transferencias),
         )
 
-    def build_receitas_unified(
-        self, receitas: list[ClassifiedTransaction]
-    ) -> ReceitasUnified:
+    def build_receitas_unified(self, receitas: list[ClassifiedTransaction]) -> ReceitasUnified:
         """Paridade direta com ``build_receitas_unified`` do legado."""
         by_category: dict[str, list[dict]] = defaultdict(list)
         totais: dict[str, float] = defaultdict(float)
@@ -185,9 +180,7 @@ class CashFlowBuilder:
             consolidation_date=self._iso_now(),
         )
 
-    def build_despesas_unified(
-        self, despesas: list[ClassifiedTransaction]
-    ) -> DespesasUnified:
+    def build_despesas_unified(self, despesas: list[ClassifiedTransaction]) -> DespesasUnified:
         """Paridade direta com ``build_despesas_unified`` do legado."""
         by_category: dict[str, list[dict]] = defaultdict(list)
         totais: dict[str, float] = defaultdict(float)
@@ -231,9 +224,7 @@ class CashFlowBuilder:
             mes = t.data[:7]
             origem = t.origem or ""
             origens.add(origem)
-            receita_por_mes[mes][origem] = (
-                receita_por_mes[mes].get(origem, 0.0) + t.valor
-            )
+            receita_por_mes[mes][origem] = receita_por_mes[mes].get(origem, 0.0) + t.valor
         # Fill zeros + _total.
         for m in months:
             for orig in origens:
@@ -253,9 +244,7 @@ class CashFlowBuilder:
             mes = t.data[:7]
             cat = t.categoria or ""
             categorias.add(cat)
-            despesa_por_mes[mes][cat] = (
-                despesa_por_mes[mes].get(cat, 0.0) + t.valor
-            )
+            despesa_por_mes[mes][cat] = despesa_por_mes[mes].get(cat, 0.0) + t.valor
         for m in months:
             for c in categorias:
                 despesa_por_mes[m].setdefault(c, 0.0)

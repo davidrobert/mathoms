@@ -22,9 +22,7 @@ from backend.app.core.database import Base
 class FeatureFlag(Base):
     __tablename__ = "feature_flags"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("workspaces.id", ondelete="CASCADE"),
@@ -41,6 +39,4 @@ class FeatureFlag(Base):
 
     workspace = relationship("Workspace")
 
-    __table_args__ = (
-        UniqueConstraint("workspace_id", name="uq_feature_flags_workspace"),
-    )
+    __table_args__ = (UniqueConstraint("workspace_id", name="uq_feature_flags_workspace"),)

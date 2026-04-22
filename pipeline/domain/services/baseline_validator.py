@@ -30,7 +30,6 @@ from pipeline.domain.models.document import BankStatement
 from pipeline.domain.models.transaction import Money
 from pipeline.domain.services.reconciliation_validators import AccountKey
 
-
 # =============================================================================
 # Config
 # =============================================================================
@@ -69,7 +68,7 @@ class BaselineAccountSaldo:
     formato ``members: dict`` quanto ``members: list`` do schema legado.
     """
 
-    bank: str            # forma livre; será canonicalizada no validator
+    bank: str  # forma livre; será canonicalizada no validator
     year: int
     saldo: Money
     member: str
@@ -122,9 +121,7 @@ class BaselineAccountSaldo:
             for conta in contas:
                 if not isinstance(conta, dict):
                     continue
-                bank_raw = (
-                    conta.get("banco") or conta.get("banco_origem") or ""
-                ).strip()
+                bank_raw = (conta.get("banco") or conta.get("banco_origem") or "").strip()
                 saldo_raw = conta.get("saldo_31_12")
                 if saldo_raw is None:
                     saldo_raw = conta.get("saldo_31_12_ano_base")
@@ -160,7 +157,7 @@ class BaselineDiffWarning:
     reference_date: date
     baseline_saldo: Money
     statement_closing: Money
-    diff: Money                    # valor absoluto
+    diff: Money  # valor absoluto
     baseline_member: str
     account_type: str = ""
 
@@ -238,9 +235,7 @@ class BaselineValidator:
                 # ``period_end`` == data-base.
                 if stmt.period_end != ref:
                     continue
-                diff_amount = abs(
-                    stmt.closing_balance.amount - bl.saldo.amount
-                )
+                diff_amount = abs(stmt.closing_balance.amount - bl.saldo.amount)
                 if diff_amount > self._config.tolerance_amount:
                     warnings.append(
                         BaselineDiffWarning(

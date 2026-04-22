@@ -43,19 +43,11 @@ class NarrativasContext:
         membros = family.get("membros", {}) or {}
         titular_key = family.get("titular", "") or ""
         conjuge_key = next(
-            (
-                k
-                for k, v in membros.items()
-                if isinstance(v, dict) and v.get("papel") == "conjuge"
-            ),
+            (k for k, v in membros.items() if isinstance(v, dict) and v.get("papel") == "conjuge"),
             "",
         )
-        titular_nome = (
-            membros.get(titular_key, {}).get("nome_curto") or titular_key.title()
-        )
-        conjuge_nome = (
-            membros.get(conjuge_key, {}).get("nome_curto") or conjuge_key.title()
-        )
+        titular_nome = membros.get(titular_key, {}).get("nome_curto") or titular_key.title()
+        conjuge_nome = membros.get(conjuge_key, {}).get("nome_curto") or conjuge_key.title()
 
         return cls(
             titular_key=titular_key,

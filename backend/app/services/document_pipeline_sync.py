@@ -95,7 +95,9 @@ def apply_pipeline_e2_sync_to_documents(
 
         # IRPF and member JSON types are not processed by the deterministic E2
         # extractor — clear any stale extract flag so they don't show as "Sem extrato".
-        doc_type_val = doc.doc_type.value if hasattr(doc.doc_type, "value") else str(doc.doc_type or "")
+        doc_type_val = (
+            doc.doc_type.value if hasattr(doc.doc_type, "value") else str(doc.doc_type or "")
+        )
         if doc_type_val in _NO_E2_EXTRACT_TYPE_VALUES:
             doc.pipeline_e2_extract_ok = None
             doc.pipeline_extract_notes = None
@@ -123,13 +125,17 @@ def sync_documents_pipeline_e2_status(
     Documents in ``ready`` are transitioned to ``processed`` (pipeline concluiu para o workspace).
     """
     with SyncSessionLocal() as db:
-        rows = db.execute(
-            select(Document).where(
-                Document.workspace_id == workspace_id,
-                Document.stored_path.isnot(None),
-                Document.status != DocumentStatus.error,
+        rows = (
+            db.execute(
+                select(Document).where(
+                    Document.workspace_id == workspace_id,
+                    Document.stored_path.isnot(None),
+                    Document.status != DocumentStatus.error,
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
 
         apply_pipeline_e2_sync_to_documents(rows, tenant_root, completed_at)
 

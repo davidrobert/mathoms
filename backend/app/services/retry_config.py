@@ -35,7 +35,7 @@ class StageRetryConfig:
         return any(_normalize(p) in error_norm for p in self.retryable_errors)
 
     def delay_for_attempt(self, attempt: int) -> float:
-        return self.retry_delay_seconds * (self.backoff_factor ** attempt)
+        return self.retry_delay_seconds * (self.backoff_factor**attempt)
 
 
 STAGE_RETRY_CONFIGS: dict[str, StageRetryConfig] = {

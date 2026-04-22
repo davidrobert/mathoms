@@ -14,7 +14,6 @@ from pipeline.domain.services.investments_consolidator import (  # noqa: E402
     InvestmentsConsolidatorConfig,
 )
 
-
 _FIXED_NOW = datetime(2026, 4, 19)
 
 
@@ -116,12 +115,18 @@ class TestDedup:
     def test_different_institutions_not_deduped(self):
         c = _consolidator()
         btg = _extract(
-            source="btg.json", instituicao="BTG", membro="david",
-            total=100_000, posicoes=[_posicao("A", 100_000)],
+            source="btg.json",
+            instituicao="BTG",
+            membro="david",
+            total=100_000,
+            posicoes=[_posicao("A", 100_000)],
         )
         rico = _extract(
-            source="rico.json", instituicao="Rico", membro="david",
-            total=50_000, posicoes=[_posicao("B", 50_000)],
+            source="rico.json",
+            instituicao="Rico",
+            membro="david",
+            total=50_000,
+            posicoes=[_posicao("B", 50_000)],
         )
 
         out = c.consolidate([btg, rico])
@@ -134,8 +139,11 @@ class TestMemberInference:
     def test_infers_member_from_banco_membro_config(self):
         c = _consolidator(family={"banco_membro": {"btgpactual": "david"}})
         e = _extract(
-            source="btg.json", instituicao="BTG Pactual", membro="",
-            total=100_000, posicoes=[_posicao("A", 100_000)],
+            source="btg.json",
+            instituicao="BTG Pactual",
+            membro="",
+            total=100_000,
+            posicoes=[_posicao("A", 100_000)],
         )
 
         out = c.consolidate([e])
@@ -145,8 +153,11 @@ class TestMemberInference:
     def test_empty_member_when_no_config_match(self):
         c = _consolidator()
         e = _extract(
-            source="x.json", instituicao="Unknown Bank", membro="",
-            total=100_000, posicoes=[_posicao("A", 100_000)],
+            source="x.json",
+            instituicao="Unknown Bank",
+            membro="",
+            total=100_000,
+            posicoes=[_posicao("A", 100_000)],
         )
 
         out = c.consolidate([e])
@@ -159,7 +170,9 @@ class TestValidationWarnings:
     def test_warns_when_saldo_diverges_from_sum_of_positions(self):
         c = _consolidator()
         e = _extract(
-            source="x.json", instituicao="BTG", membro="david",
+            source="x.json",
+            instituicao="BTG",
+            membro="david",
             total=200_000,  # declarado
             posicoes=[
                 _posicao("A", 100_000),
@@ -175,7 +188,9 @@ class TestValidationWarnings:
     def test_no_warning_when_within_tolerance(self):
         c = _consolidator()
         e = _extract(
-            source="x.json", instituicao="BTG", membro="david",
+            source="x.json",
+            instituicao="BTG",
+            membro="david",
             total=150_000.50,
             posicoes=[_posicao("A", 150_000)],  # gap 0.50 < 1.00 default
         )
@@ -188,7 +203,9 @@ class TestValidationWarnings:
         cfg = InvestmentsConsolidatorConfig(divergence_tolerance=100.0)
         c = InvestmentsConsolidator(cfg, now=_FIXED_NOW)
         e = _extract(
-            source="x.json", instituicao="BTG", membro="david",
+            source="x.json",
+            instituicao="BTG",
+            membro="david",
             total=150_000,
             posicoes=[_posicao("A", 149_950)],  # gap 50, dentro de 100
         )
@@ -202,7 +219,9 @@ class TestPositionFieldFallbacks:
     def test_valor_fallback_chain(self):
         c = _consolidator()
         e = _extract(
-            source="x.json", instituicao="X", membro="m",
+            source="x.json",
+            instituicao="X",
+            membro="m",
             posicoes=[
                 {"nome": "A", "valor_atual": 1000},  # sem valor_total
                 {"nome": "B", "current_value": 2000},  # inglês
@@ -217,7 +236,9 @@ class TestPositionFieldFallbacks:
     def test_preserves_extra_position_fields(self):
         c = _consolidator()
         e = _extract(
-            source="x.json", instituicao="X", membro="m",
+            source="x.json",
+            instituicao="X",
+            membro="m",
             posicoes=[
                 _posicao(
                     "Tesouro",
@@ -241,15 +262,22 @@ class TestLegacyDict:
     def test_to_legacy_dict_matches_shape(self):
         c = _consolidator()
         e = _extract(
-            source="x.json", instituicao="BTG", membro="david",
-            total=100_000, posicoes=[_posicao("A", 100_000)],
+            source="x.json",
+            instituicao="BTG",
+            membro="david",
+            total=100_000,
+            posicoes=[_posicao("A", 100_000)],
         )
 
         out = c.consolidate([e]).to_legacy_dict()
 
         assert set(out.keys()) >= {
-            "dados", "total_por_membro", "total_geral",
-            "fontes", "data_consolidacao", "n_posicoes",
+            "dados",
+            "total_por_membro",
+            "total_geral",
+            "fontes",
+            "data_consolidacao",
+            "n_posicoes",
         }
         assert out["data_consolidacao"] == "2026-04-19"
 

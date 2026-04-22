@@ -42,13 +42,11 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+import backend.app.models  # noqa: F401
 from backend.app.core.database import Base
 from backend.app.core.security import hash_password
 from backend.app.models import FamilyMember, User, Workspace
 from backend.app.services.config_materializer import materialize_config
-
-import backend.app.models  # noqa: F401
-
 
 # SQLite file-based (tmp dir) + check_same_thread=False para permitir uso
 # em múltiplas threads simultâneas. NÃO usar in-memory aqui (não é thread-safe).
@@ -148,12 +146,10 @@ class TestMaterializeConcurrency:
         assert "titular_beta" in data_b["membros"]
 
         # CRUZAMENTO NÃO PODE ACONTECER (regressão de isolation)
-        assert "titular_beta" not in data_a["membros"], (
-            "LEAK: workspace Alfa vê dados de Beta no JSON materializado"
-        )
-        assert "titular_alfa" not in data_b["membros"], (
-            "LEAK: workspace Beta vê dados de Alfa"
-        )
+        assert (
+            "titular_beta" not in data_a["membros"]
+        ), "LEAK: workspace Alfa vê dados de Beta no JSON materializado"
+        assert "titular_alfa" not in data_b["membros"], "LEAK: workspace Beta vê dados de Alfa"
         assert data_a["familia"]["sobrenome"] != surname_b
         assert data_b["familia"]["sobrenome"] != surname_a
 
@@ -181,6 +177,7 @@ class TestMaterializeConcurrency:
         family_json = tenant_root / "config" / "family_members.json"
         assert family_json.exists()
         import json
+
         data = json.loads(family_json.read_text())
         assert data["familia"]["sobrenome"] == surname
         # Se houve race errors, devem ser relacionados a filesystem
@@ -196,10 +193,7 @@ class TestMaterializeConcurrency:
             ws_id, surname = _seed_workspace(f"T{i}")
             ws_surnames.append((ws_id, surname))
 
-        tenant_roots = {
-            ws_id: tmp_path / f"tenant_{i}"
-            for i, (ws_id, _) in enumerate(ws_surnames)
-        }
+        tenant_roots = {ws_id: tmp_path / f"tenant_{i}" for i, (ws_id, _) in enumerate(ws_surnames)}
 
         with ThreadPoolExecutor(max_workers=10) as pool:
             futs = {
@@ -211,6 +205,7 @@ class TestMaterializeConcurrency:
 
         # Valida cada tenant_root tem exatamente seus próprios dados
         import json
+
         for ws_id, surname in ws_surnames:
             family_json = tenant_roots[ws_id] / "config" / "family_members.json"
             assert family_json.exists(), f"tenant {ws_id} sem family_members.json"
@@ -221,6 +216,6 @@ class TestMaterializeConcurrency:
             for other_ws_id, other_surname in ws_surnames:
                 if other_ws_id == ws_id:
                     continue
-                assert other_surname not in json.dumps(data), (
-                    f"LEAK: tenant {ws_id} contém sobrenome de {other_ws_id}"
-                )
+                assert other_surname not in json.dumps(
+                    data
+                ), f"LEAK: tenant {ws_id} contém sobrenome de {other_ws_id}"

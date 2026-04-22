@@ -90,9 +90,7 @@ def _llm_config_from_runtime(data: dict) -> Any:
         api_key=str(data.get("api_key") or ""),
         model_name=str(data.get("model_name") or "claude-sonnet-4-20250514"),
         max_tokens=int(data.get("max_tokens") or 4096),
-        temperature=float(
-            data["temperature"] if data.get("temperature") is not None else 0.1
-        ),
+        temperature=float(data["temperature"] if data.get("temperature") is not None else 0.1),
     )
 
 
@@ -154,10 +152,10 @@ def _process_one_e2_llm_document(
     disco direto — compatível com DiskArtifactStore e DBArtifactStore (A6b+).
     """
     from pipeline.live_progress import emit_stage_activity
-    from pipeline.llm.litellm_client import LLMService, LLMRunSummary
-    from pipeline.llm.text_extractor import DocumentTextExtractor
-    from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
+    from pipeline.llm.litellm_client import LLMRunSummary, LLMService
     from pipeline.llm.prompts.e2_llm import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+    from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
+    from pipeline.llm.text_extractor import DocumentTextExtractor
     from pipeline.llm.validators import validate_e2_llm_output
 
     empty_summary = LLMRunSummary()
@@ -227,7 +225,9 @@ def _process_one_e2_llm_document(
             from scripts.pipeline_common import validate_artifact
 
             if isinstance(store, DiskArtifactStore):
-                from pipeline.artifact_store import stage_dir_name, stage_suffix as _suffix
+                from pipeline.artifact_store import stage_dir_name
+                from pipeline.artifact_store import stage_suffix as _suffix
+
                 out_path = (
                     store.processed_dir
                     / stage_dir_name("E2-llm")

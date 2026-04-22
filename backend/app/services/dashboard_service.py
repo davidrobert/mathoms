@@ -43,29 +43,35 @@ def build_kpis(e5: dict[str, Any]) -> list[DashboardKPI]:
     if score:
         score_val = score.get("valor", 0)
         score_max = score.get("max", 100)
-        kpis.append(DashboardKPI(
-            label="Score Financeiro",
-            value=f"{score_val}/{score_max}",
-            raw_value=float(score_val),
-        ))
+        kpis.append(
+            DashboardKPI(
+                label="Score Financeiro",
+                value=f"{score_val}/{score_max}",
+                raw_value=float(score_val),
+            )
+        )
 
     patrimonio = e5.get("patrimonio", {})
     if patrimonio:
         liquido = patrimonio.get("liquido", 0)
-        kpis.append(DashboardKPI(
-            label="Patrimônio Líquido",
-            value=_fmt_brl(liquido),
-            raw_value=float(liquido),
-        ))
+        kpis.append(
+            DashboardKPI(
+                label="Patrimônio Líquido",
+                value=_fmt_brl(liquido),
+                raw_value=float(liquido),
+            )
+        )
 
     ratios = e5.get("ratios", {})
     if ratios:
         taxa_poup = ratios.get("taxa_poupanca", 0)
-        kpis.append(DashboardKPI(
-            label="Taxa de Poupança",
-            value=_fmt_pct(taxa_poup),
-            raw_value=float(taxa_poup),
-        ))
+        kpis.append(
+            DashboardKPI(
+                label="Taxa de Poupança",
+                value=_fmt_pct(taxa_poup),
+                raw_value=float(taxa_poup),
+            )
+        )
 
     fluxo = e5.get("fluxo_caixa", {})
     if fluxo:
@@ -75,11 +81,13 @@ def build_kpis(e5: dict[str, Any]) -> list[DashboardKPI]:
             receita_total = sum(datasets[0].get("data", []))
             despesa_total = sum(datasets[1].get("data", []))
             if receita_total > 0 or despesa_total > 0:
-                kpis.append(DashboardKPI(
-                    label="Receita vs Despesa",
-                    value=f"{_fmt_brl(receita_total)} / {_fmt_brl(despesa_total)}",
-                    raw_value=receita_total - despesa_total,
-                ))
+                kpis.append(
+                    DashboardKPI(
+                        label="Receita vs Despesa",
+                        value=f"{_fmt_brl(receita_total)} / {_fmt_brl(despesa_total)}",
+                        raw_value=receita_total - despesa_total,
+                    )
+                )
 
     return kpis
 
@@ -90,38 +98,46 @@ def build_charts(e5: dict[str, Any]) -> list[DashboardChart]:
     fluxo = e5.get("fluxo_caixa", {})
     receita_desp = fluxo.get("receita_despesa_mensal_detalhado", {})
     if receita_desp.get("labels") and receita_desp.get("datasets"):
-        charts.append(DashboardChart(
-            chart_type="bar",
-            title="Receita vs Despesa Mensal",
-            data=receita_desp,
-        ))
+        charts.append(
+            DashboardChart(
+                chart_type="bar",
+                title="Receita vs Despesa Mensal",
+                data=receita_desp,
+            )
+        )
 
     despesas_cat = fluxo.get("despesas_por_categoria", {})
     if despesas_cat:
-        charts.append(DashboardChart(
-            chart_type="pie",
-            title="Despesas por Categoria",
-            data=despesas_cat,
-        ))
+        charts.append(
+            DashboardChart(
+                chart_type="pie",
+                title="Despesas por Categoria",
+                data=despesas_cat,
+            )
+        )
 
     patrimonio = e5.get("patrimonio", {})
     composicao = patrimonio.get("composicao", {})
     if composicao:
         composicao_data = composicao if isinstance(composicao, dict) else {"items": composicao}
-        charts.append(DashboardChart(
-            chart_type="pie",
-            title="Composição Patrimonial",
-            data=composicao_data,
-        ))
+        charts.append(
+            DashboardChart(
+                chart_type="pie",
+                title="Composição Patrimonial",
+                data=composicao_data,
+            )
+        )
 
     investimentos = e5.get("investimentos", {})
     tabela_classes = investimentos.get("tabela_classes", [])
     if tabela_classes:
-        charts.append(DashboardChart(
-            chart_type="bar",
-            title="Investimentos por Classe",
-            data={"classes": tabela_classes, "total": investimentos.get("total", 0)},
-        ))
+        charts.append(
+            DashboardChart(
+                chart_type="bar",
+                title="Investimentos por Classe",
+                data={"classes": tabela_classes, "total": investimentos.get("total", 0)},
+            )
+        )
 
     return charts
 
@@ -130,11 +146,13 @@ def build_alerts(e5: dict[str, Any]) -> list[DashboardAlert]:
     alerts: list[DashboardAlert] = []
 
     for alerta_msg in e5.get("alertas", []):
-        alerts.append(DashboardAlert(
-            severity="warning",
-            title="Alerta",
-            message=alerta_msg,
-        ))
+        alerts.append(
+            DashboardAlert(
+                severity="warning",
+                title="Alerta",
+                message=alerta_msg,
+            )
+        )
 
     for ponto in e5.get("pontos_urgentes", []):
         if isinstance(ponto, dict):
@@ -148,11 +166,13 @@ def build_alerts(e5: dict[str, Any]) -> list[DashboardAlert]:
                 msg += f" ({prazo})"
         else:
             msg = str(ponto)
-        alerts.append(DashboardAlert(
-            severity="critical",
-            title="Ponto Urgente",
-            message=msg,
-        ))
+        alerts.append(
+            DashboardAlert(
+                severity="critical",
+                title="Ponto Urgente",
+                message=msg,
+            )
+        )
 
     return alerts
 

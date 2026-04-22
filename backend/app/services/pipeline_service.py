@@ -41,9 +41,7 @@ def detect_tier(ws_id: str) -> str:
 
 async def resolve_llm_tier_async(db: AsyncSession, workspace_id: str) -> str:
     """Async variant of :func:`detect_tier` for FastAPI handlers (same rules)."""
-    result = await db.execute(
-        select(LLMConfig).where(LLMConfig.workspace_id == workspace_id)
-    )
+    result = await db.execute(select(LLMConfig).where(LLMConfig.workspace_id == workspace_id))
     cfg = result.scalar_one_or_none()
     if not cfg or not (cfg.api_key_encrypted or "").strip():
         return "free"
@@ -84,6 +82,7 @@ def start_pipeline_run(
 
     try:
         from backend.app.tasks.pipeline_task import run_pipeline_task
+
         result = run_pipeline_task.delay(
             run_id=run_id,
             ws_id=ws_id,
@@ -106,15 +105,39 @@ def start_pipeline_run(
     except Exception as exc:
         logger.warning(
             "Celery unavailable (%s), falling back to background thread for run %s",
-            exc, run_id,
+            exc,
+            run_id,
         )
-        _start_fallback_thread(run_id, ws_id, tenant_root, config_dir, stages, skip_llm, stop_on_error, tier, incremental, incremental_doc_paths)
+        _start_fallback_thread(
+            run_id,
+            ws_id,
+            tenant_root,
+            config_dir,
+            stages,
+            skip_llm,
+            stop_on_error,
+            tier,
+            incremental,
+            incremental_doc_paths,
+        )
         return None
 
 
-def _start_fallback_thread(run_id, ws_id, tenant_root, config_dir, stages, skip_llm, stop_on_error, tier, incremental=False, incremental_doc_paths=None):
+def _start_fallback_thread(
+    run_id,
+    ws_id,
+    tenant_root,
+    config_dir,
+    stages,
+    skip_llm,
+    stop_on_error,
+    tier,
+    incremental=False,
+    incremental_doc_paths=None,
+):
     """Fallback: run pipeline in a daemon thread when Celery/Redis is unavailable."""
     import threading
+
     from backend.app.tasks.pipeline_task import run_pipeline_task
 
     def _thread_target():
@@ -158,7 +181,7 @@ def resume_pipeline_run(run_id: str, ws_id: str) -> None:
 
     if paused_stage and paused_stage in FULL_ORDER:
         idx = FULL_ORDER.index(paused_stage)
-        remaining_stages = FULL_ORDER[idx + 1:]
+        remaining_stages = FULL_ORDER[idx + 1 :]
     else:
         remaining_stages = []
 
@@ -202,6 +225,7 @@ def cancel_pipeline_run(run_id: str) -> bool:
     if celery_task_id:
         try:
             from backend.app.worker import celery_app
+
             celery_app.control.revoke(celery_task_id, terminate=False)
         except Exception:
             pass
@@ -216,4 +240,8 @@ def is_run_active(run_id: str) -> bool:
         run = db.get(PipelineRun, run_id)
         if not run:
             return False
-        return run.status in (PipelineRunStatus.pending, PipelineRunStatus.running, PipelineRunStatus.resuming)
+        return run.status in (
+            PipelineRunStatus.pending,
+            PipelineRunStatus.running,
+            PipelineRunStatus.resuming,
+        )

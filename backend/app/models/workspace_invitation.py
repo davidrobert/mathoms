@@ -29,7 +29,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import String, DateTime, ForeignKey, Index
+from sqlalchemy import DateTime, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -40,9 +40,7 @@ class WorkspaceInvitation(Base):
 
     __tablename__ = "workspace_invitations"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("workspaces.id", ondelete="CASCADE"),
@@ -55,29 +53,21 @@ class WorkspaceInvitation(Base):
     # Armazenamos SHA-256 hex (64 chars) do token; o token cru existe só
     # no corpo da resposta de criação e no link. Se vazar o DB, convites
     # não viram vetor de ataque.
-    token_hash: Mapped[str] = mapped_column(
-        String(64), nullable=False, unique=True, index=True
-    )
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
 
     invited_by: Mapped[Optional[str]] = mapped_column(
         String(36),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    expires_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
-    accepted_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    accepted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     accepted_by_user_id: Mapped[Optional[str]] = mapped_column(
         String(36),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    revoked_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -88,9 +78,7 @@ class WorkspaceInvitation(Base):
     inviter = relationship("User", foreign_keys=[invited_by])
     acceptor = relationship("User", foreign_keys=[accepted_by_user_id])
 
-    __table_args__ = (
-        Index("ix_workspace_invitations_ws_email", "workspace_id", "email"),
-    )
+    __table_args__ = (Index("ix_workspace_invitations_ws_email", "workspace_id", "email"),)
 
     def is_pending(self, now: Optional[datetime] = None) -> bool:
         """True se o convite ainda é utilizável (não aceito, não revogado,
@@ -101,11 +89,7 @@ class WorkspaceInvitation(Base):
         exp = self.expires_at
         if exp.tzinfo is None:
             exp = exp.replace(tzinfo=timezone.utc)
-        return (
-            self.accepted_at is None
-            and self.revoked_at is None
-            and exp > now
-        )
+        return self.accepted_at is None and self.revoked_at is None and exp > now
 
     def status(self, now: Optional[datetime] = None) -> str:
         """Retorna `'pending' | 'accepted' | 'revoked' | 'expired'`."""

@@ -38,7 +38,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 # ─── Fixture outputs por stage ────────────────────────────────────────
 
 _E1_OUTPUT: dict[str, Any] = {
@@ -156,8 +155,10 @@ def mock_llm_service(monkeypatch) -> None:
         # Intercepta método principal (a confirmar qual — ver pipeline/llm/litellm_client.py)
         original = getattr(llm_service.LLMService, "call", None)
         if original:
+
             def _mock(self, stage, *args, **kwargs):
                 return get_mock_output(stage)
+
             monkeypatch.setattr(llm_service.LLMService, "call", _mock)
 
 

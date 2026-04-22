@@ -10,14 +10,15 @@ Uso: python3 scripts/e6_regen.py [--source arquivo_base.html]
      Se --source não for especificado, modifica o relatório atual in-place.
 """
 
-import re
 import os
-import sys
+import re
 import shutil
-from datetime import datetime, timezone, timedelta
+import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 # ---------------------------------------------------------------------------
 # Config loader — report_layout.yaml (dark mode, chart theme, version)
@@ -37,6 +38,7 @@ def _load_report_layout() -> dict:
             print(f"  ⚠️  Error loading report_layout.yaml: {e}")
     return {}
 
+
 _LAYOUT = _load_report_layout()
 _DM = _LAYOUT.get("dark_mode", {})
 
@@ -47,36 +49,42 @@ _CT_DARK_GRID = _CT.get("dark", {}).get("grid_color", "#334155")
 _CT_LIGHT_TEXT = _CT.get("light", {}).get("text_color", "#64748B")
 _CT_LIGHT_GRID = _CT.get("light", {}).get("grid_color", "#E2E8F0")
 
+
 def _extract_version_from_config():
     """Extrai versão do pipeline.json."""
     pipeline_path = Path(__file__).resolve().parent.parent / "config" / "pipeline.json"
     if pipeline_path.exists():
         import json as _json
-        with open(pipeline_path, 'r', encoding='utf-8') as f:
+
+        with open(pipeline_path, "r", encoding="utf-8") as f:
             cfg = _json.load(f)
         v = cfg.get("report_version")
         if v:
             return f"v{v}"
     return _DM.get("version_fallback", "v5.3")
 
+
 def _load_output_glob():
-    fm_path = os.path.join(BASE, 'config', 'family_members.json')
+    fm_path = os.path.join(BASE, "config", "family_members.json")
     if os.path.exists(fm_path):
         import json as _json
-        with open(fm_path, 'r', encoding='utf-8') as f:
+
+        with open(fm_path, "r", encoding="utf-8") as f:
             fm = _json.load(f)
         pattern = fm.get("output_filename_pattern", "")
         if pattern:
             return pattern.replace("{date}", "*")
     return "relatorio_financeiro_*.html"
 
+
 def _find_report():
-    output_dir = os.path.join(BASE, 'output')
+    output_dir = os.path.join(BASE, "output")
     import glob
+
     _glob_pattern = _load_output_glob()
     candidates = sorted(glob.glob(os.path.join(output_dir, _glob_pattern)), reverse=True)
     # Filter out archive files (those with _pre_regen_ in name)
-    candidates = [c for c in candidates if '_pre_regen_' not in c]
+    candidates = [c for c in candidates if "_pre_regen_" not in c]
     if candidates:
         result_path = candidates[0]
     else:
@@ -86,29 +94,30 @@ def _find_report():
     # Check if path exists before returning
     if not os.path.exists(result_path):
         print(f"  [ERROR] Relatório não encontrado: {result_path}")
-        print(f"  Execute e6_render.py primeiro para gerar o relatório.")
+        print("  Execute e6_render.py primeiro para gerar o relatório.")
         sys.exit(1)
 
     return result_path
+
 
 REPORT = _find_report()
 
 # Parse optional --source argument
 source = REPORT
-if '--source' in sys.argv:
-    idx = sys.argv.index('--source')
+if "--source" in sys.argv:
+    idx = sys.argv.index("--source")
     if idx + 1 < len(sys.argv):
         source = sys.argv[idx + 1]
         if not os.path.isabs(source):
             source = os.path.join(BASE, source)
 
-with open(source, 'r', encoding='utf-8') as f:
+with open(source, "r", encoding="utf-8") as f:
     html = f.read()
 
 # Archive before modifying
 BRT = timezone(timedelta(hours=-3))
-ts = datetime.now(BRT).strftime('%Y%m%d_%H%M%S')
-archive = REPORT.replace('.html', f'_pre_regen_{ts}.html')
+ts = datetime.now(BRT).strftime("%Y%m%d_%H%M%S")
+archive = REPORT.replace(".html", f"_pre_regen_{ts}.html")
 if os.path.exists(REPORT):
     shutil.copy2(REPORT, archive)
     print(f"[OK] Archived: {os.path.basename(archive)}")
@@ -122,8 +131,8 @@ if 'cover-meta-label">Titular' in html:
     print("[OK] Titular → Família")
 
 # ─── 2. COVER: "Versão do Prompt" → "Versão Manual Operações" ───────
-if 'Versão do Prompt' in html:
-    html = html.replace('Versão do Prompt', 'Versão Manual Operações')
+if "Versão do Prompt" in html:
+    html = html.replace("Versão do Prompt", "Versão Manual Operações")
     changes += 1
     print("[OK] Versão do Prompt → Versão Manual Operações")
 
@@ -132,46 +141,54 @@ _version = _extract_version_from_config()
 html_before = html
 html = re.sub(
     r'(Versão Manual Operações</div>\s*<div class="cover-meta-value">)[^<]*(</div>)',
-    rf'\g<1>{_version}\2', html, count=1
+    rf"\g<1>{_version}\2",
+    html,
+    count=1,
 )
 if html != html_before:
     changes += 1
     print(f"[OK] Version: {_version}")
 
 # ─── 4. COVER: Family name (from config) ──────────────────────────────
-_fm_path = os.path.join(BASE, 'config', 'family_members.json')
+_fm_path = os.path.join(BASE, "config", "family_members.json")
 _family_sobrenome = ""
 if os.path.exists(_fm_path):
     import json as _json
-    with open(_fm_path, 'r', encoding='utf-8') as _f:
+
+    with open(_fm_path, "r", encoding="utf-8") as _f:
         _fm = _json.load(_f)
     _family_sobrenome = _fm.get("familia", {}).get("sobrenome", _family_sobrenome)
 
 html_before = html
 html = re.sub(
     r'(cover-meta-label">Família</div>\s*<div class="cover-meta-value">)[^<]*(</div>)',
-    rf'\g<1>{_family_sobrenome}\2', html, count=1
+    rf"\g<1>{_family_sobrenome}\2",
+    html,
+    count=1,
 )
 if html != html_before:
     changes += 1
     print(f"[OK] Cover family name: {_family_sobrenome}")
 else:
-    print(f"  [WARN] Regex não fez match: cover-meta-label familia...")
+    print("  [WARN] Regex não fez match: cover-meta-label familia...")
 
 # ─── 5. COVER: Update timestamp (São Paulo timezone) ──────────────────
 BRT = timezone(timedelta(hours=-3))
 now = datetime.now(BRT)
-data_hora = now.strftime('%d/%m/%Y — %H:%M')
+data_hora = now.strftime("%d/%m/%Y — %H:%M")
 html_before = html
 html = re.sub(
     r'(Data e Hora de Geração</div>\s*<div class="cover-meta-value">)[^<]*(</div>)',
-    rf'\g<1>{data_hora}\2', html, count=1
+    rf"\g<1>{data_hora}\2",
+    html,
+    count=1,
 )
 if html != html_before:
     changes += 1
     print(f"[OK] Timestamp (BRT): {data_hora}")
 else:
-    print(f"  [WARN] Regex não fez match: Data e Hora de Geração...")
+    print("  [WARN] Regex não fez match: Data e Hora de Geração...")
+
 
 # ─── 6. DARK MODE CSS — from config/report_layout.yaml ──────────────
 def _build_dark_css() -> str:
@@ -200,16 +217,24 @@ def _build_dark_css() -> str:
     td_border = tb.get("td_border", "#334155")
 
     # Alerts
-    da_bg = al.get("danger_bg", "#2D1B1B"); da_c = al.get("danger_color", "#FCA5A5")
-    wa_bg = al.get("warning_bg", "#2D2410"); wa_c = al.get("warning_color", "#FCD34D")
-    su_bg = al.get("success_bg", "#1A2D1A"); su_c = al.get("success_color", "#86EFAC")
-    in_bg = al.get("info_bg", "#1A2440"); in_c = al.get("info_color", "#93C5FD")
+    da_bg = al.get("danger_bg", "#2D1B1B")
+    da_c = al.get("danger_color", "#FCA5A5")
+    wa_bg = al.get("warning_bg", "#2D2410")
+    wa_c = al.get("warning_color", "#FCD34D")
+    su_bg = al.get("success_bg", "#1A2D1A")
+    su_c = al.get("success_color", "#86EFAC")
+    in_bg = al.get("info_bg", "#1A2440")
+    in_c = al.get("info_color", "#93C5FD")
 
     # Badges
-    bg_g = bd.get("green_bg", "#16533480"); bc_g = bd.get("green_color", "#86EFAC")
-    bg_r = bd.get("red_bg", "#991B1B80"); bc_r = bd.get("red_color", "#FCA5A5")
-    bg_y = bd.get("yellow_bg", "#92400E80"); bc_y = bd.get("yellow_color", "#FCD34D")
-    bg_b = bd.get("blue_bg", "#1E40AF80"); bc_b = bd.get("blue_color", "#93C5FD")
+    bg_g = bd.get("green_bg", "#16533480")
+    bc_g = bd.get("green_color", "#86EFAC")
+    bg_r = bd.get("red_bg", "#991B1B80")
+    bc_r = bd.get("red_color", "#FCA5A5")
+    bg_y = bd.get("yellow_bg", "#92400E80")
+    bc_y = bd.get("yellow_color", "#FCD34D")
+    bg_b = bd.get("blue_bg", "#1E40AF80")
+    bc_b = bd.get("blue_color", "#93C5FD")
 
     # KPI colors
     kp_blue = kp.get("blue", "#60A5FA")
@@ -292,23 +317,25 @@ def _build_dark_css() -> str:
 [data-theme="dark"] table.table-compare td:nth-child(3) {{ background: {cmp3} !important; }}
 """
 
+
 DARK_CSS = _build_dark_css()
 
 # Remove existing dark mode CSS block if present, then always inject fresh
 if '[data-theme="dark"]' in html:
     # Remove old dark mode blocks (including multi-line rules)
-    html = re.sub(r'\[data-theme="dark"\][^{]*\{[^}]*\}', '', html, flags=re.DOTALL)
+    html = re.sub(r'\[data-theme="dark"\][^{]*\{[^}]*\}', "", html, flags=re.DOTALL)
     # Also remove @media (prefers-color-scheme: dark) blocks
-    html = re.sub(r'@media\s*\(prefers-color-scheme:\s*dark\)\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}', '', html, flags=re.DOTALL)
+    html = re.sub(
+        r"@media\s*\(prefers-color-scheme:\s*dark\)\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}",
+        "",
+        html,
+        flags=re.DOTALL,
+    )
     print("[OK] Removed old dark mode CSS")
 
 # Insert after :root { ... } block
 html_before = html
-html = re.sub(
-    r'(--font-body:[^}]+\})',
-    r'\1\n' + DARK_CSS,
-    html, count=1
-)
+html = re.sub(r"(--font-body:[^}]+\})", r"\1\n" + DARK_CSS, html, count=1)
 if html != html_before:
     changes += 1
     print("[OK] Dark mode CSS injected (fresh)")
@@ -324,8 +351,8 @@ COLLAPSE_CSS = """
 .section-content.collapsed { max-height: 0; overflow: hidden; padding: 0; }
 """
 
-if 'collapse-icon' not in html:
-    html = html.replace('</style>', COLLAPSE_CSS + '\n</style>', 1)
+if "collapse-icon" not in html:
+    html = html.replace("</style>", COLLAPSE_CSS + "\n</style>", 1)
     changes += 1
     print("[OK] Collapse CSS injected")
 
@@ -337,8 +364,8 @@ THEME_CSS = """
 .theme-btn.active { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.3); }
 """
 
-if 'theme-toggle' not in html:
-    html = html.replace('</style>', THEME_CSS + '\n</style>', 1)
+if "theme-toggle" not in html:
+    html = html.replace("</style>", THEME_CSS + "\n</style>", 1)
     changes += 1
     print("[OK] Theme toggle CSS injected")
 
@@ -355,18 +382,18 @@ CHART_CONTAINER_CSS = """
 """
 
 # Check if chart-container already has card styling (box-shadow)
-existing_cc = re.findall(r'\.chart-container\s*\{[^}]+\}', html)
+existing_cc = re.findall(r"\.chart-container\s*\{[^}]+\}", html)
 needs_fix = True
 if existing_cc:
-    if 'box-shadow' in existing_cc[0]:
+    if "box-shadow" in existing_cc[0]:
         needs_fix = False
         print("[SKIP] Chart container card styling already present")
 
 if needs_fix:
     # Remove existing minimal .chart-container rule if present
     if existing_cc:
-        html = html.replace(existing_cc[0], '')
-    html = html.replace('</style>', CHART_CONTAINER_CSS + '\n</style>', 1)
+        html = html.replace(existing_cc[0], "")
+    html = html.replace("</style>", CHART_CONTAINER_CSS + "\n</style>", 1)
     changes += 1
     print("[OK] Chart container card styling injected")
 
@@ -385,21 +412,21 @@ CARD_TITLE_CSS = """
 """
 
 # Check for light-mode .card h3 (has font-family, unlike dark mode variant)
-style_block = html.split('</style>')[0]
-has_card_h3_light = bool(re.search(r'\.card h3\s*\{[^}]*font-family', style_block))
+style_block = html.split("</style>")[0]
+has_card_h3_light = bool(re.search(r"\.card h3\s*\{[^}]*font-family", style_block))
 if not has_card_h3_light:
-    html = html.replace('</style>', CARD_TITLE_CSS + '\n</style>', 1)
+    html = html.replace("</style>", CARD_TITLE_CSS + "\n</style>", 1)
     changes += 1
     print("[OK] Card title styling (.card h3, .chart-context, .chart-conclusion) injected")
 else:
     print("[SKIP] Card title styling already present")
 
 # ─── 11. MODE: Dashboard → Tático ────────────────────────────────────
-if 'mode-dashboard' in html:
-    html = html.replace('mode-dashboard', 'mode-tactical')
-    html = html.replace("data-mode=\"dashboard\"", "data-mode=\"tactical\"")
-    html = re.sub(r'Dashboard</button>', '⚡ Tático</button>', html)
-    html = re.sub(r"data-target=\"dashboard\"", "data-target=\"tactical\"", html)
+if "mode-dashboard" in html:
+    html = html.replace("mode-dashboard", "mode-tactical")
+    html = html.replace('data-mode="dashboard"', 'data-mode="tactical"')
+    html = re.sub(r"Dashboard</button>", "⚡ Tático</button>", html)
+    html = re.sub(r"data-target=\"dashboard\"", 'data-target="tactical"', html)
     html = re.sub(r"setMode\('dashboard'\)", "setMode('tactical')", html)
     changes += 1
     print("[OK] Dashboard → Tático")
@@ -409,28 +436,27 @@ if 'mode-dashboard' in html:
 html = re.sub(
     r'(<!-- PERFIL DA FAMÍLIA -->\s*<div )data-mode="both"',
     r'\1data-mode="strategic"',
-    html, count=1
+    html,
+    count=1,
 )
 changes += 1
 
 # ─── 12. Fix family card broken HTML ────────────────────────────────
 # Fix: <div class="card" ...> data-mode="strategic" (text leak)
-html = re.sub(
-    r'(<div class="card"[^>]*>)\s*data-mode="strategic"',
-    r'\1',
-    html
-)
+html = re.sub(r'(<div class="card"[^>]*>)\s*data-mode="strategic"', r"\1", html)
 
 # Ensure family card has title and class
-if 'familia-card' not in html:
+if "familia-card" not in html:
     html = re.sub(
         r'(<!-- PERFIL DA FAMÍLIA -->.*?<div class="card")([^>]*>)',
         rf'\1 familia-card"\2\n  <div class="card-title" style="font-size:16px;">👨‍👩‍👦 A Família {_family_sobrenome}</div>',
-        html, count=1, flags=re.DOTALL
+        html,
+        count=1,
+        flags=re.DOTALL,
     )
 
 # ─── 13. "vs quinzena anterior" → "vs último período" ───────────────
-html = html.replace('vs quinzena anterior', 'vs último período')
+html = html.replace("vs quinzena anterior", "vs último período")
 
 # ─── 14. THEME TOGGLE BUTTONS in nav ────────────────────────────────
 THEME_BUTTONS = """<div class="theme-toggle" data-mode="both">
@@ -439,28 +465,30 @@ THEME_BUTTONS = """<div class="theme-toggle" data-mode="both">
     <button class="theme-btn active" data-theme="system" onclick="setTheme('system')" title="Sistema">⚙️</button>
   </div>"""
 
-if 'theme-toggle' not in html or 'theme-btn' not in html.split('<script')[0]:
+if "theme-toggle" not in html or "theme-btn" not in html.split("<script")[0]:
     # Find the mode-toggle div end and insert after it
     html_before = html
     html = re.sub(
-        r'(</div>\s*)(</div>\s*<!-- /nav-sticky -->)',
-        r'\1' + THEME_BUTTONS + r'\n\2',
-        html, count=1
+        r"(</div>\s*)(</div>\s*<!-- /nav-sticky -->)",
+        r"\1" + THEME_BUTTONS + r"\n\2",
+        html,
+        count=1,
     )
-    if html != html_before and 'theme-toggle' in html.split('<script')[0]:
+    if html != html_before and "theme-toggle" in html.split("<script")[0]:
         changes += 1
         print("[OK] Theme toggle buttons injected in nav")
     elif html == html_before:
         print("  [WARN] Regex não fez match: nav-sticky...")
 
 # ─── 15. Remove Export Prompt button ─────────────────────────────────
-html = re.sub(r'<button[^>]*onclick="exportPrompt\(\)"[^>]*>.*?</button>', '', html)
-html = re.sub(r'window\.exportPrompt\s*=\s*function\(\)\s*\{.*?\};', '', html, flags=re.DOTALL)
+html = re.sub(r'<button[^>]*onclick="exportPrompt\(\)"[^>]*>.*?</button>', "", html)
+html = re.sub(r"window\.exportPrompt\s*=\s*function\(\)\s*\{.*?\};", "", html, flags=re.DOTALL)
 # Also remove base64 prompt data if present
-html = re.sub(r"var\s+PROMPT_B64\s*=\s*'[^']*';", '', html)
+html = re.sub(r"var\s+PROMPT_B64\s*=\s*'[^']*';", "", html)
 
 # ─── 16. THEME JS ───────────────────────────────────────────────────
-THEME_JS = """
+THEME_JS = (
+    """
 <script>
 var _currentThemePref = 'system';
 function setTheme(theme) {
@@ -501,15 +529,16 @@ function setTheme(theme) {
   });
 })();
 </script>
-""".replace('__CT_DARK_TEXT__', _CT_DARK_TEXT) \
-   .replace('__CT_LIGHT_TEXT__', _CT_LIGHT_TEXT) \
-   .replace('__CT_DARK_GRID__', _CT_DARK_GRID) \
-   .replace('__CT_LIGHT_GRID__', _CT_LIGHT_GRID)
+""".replace("__CT_DARK_TEXT__", _CT_DARK_TEXT)
+    .replace("__CT_LIGHT_TEXT__", _CT_LIGHT_TEXT)
+    .replace("__CT_DARK_GRID__", _CT_DARK_GRID)
+    .replace("__CT_LIGHT_GRID__", _CT_LIGHT_GRID)
+)
 
 # Remove existing setTheme if present, then inject fresh
-html = re.sub(r'<script>\s*var _currentThemePref.*?</script>', '', html, flags=re.DOTALL)
-html = re.sub(r'<script>\s*function setTheme.*?</script>', '', html, flags=re.DOTALL)
-html = html.replace('</body>', THEME_JS + '\n</body>')
+html = re.sub(r"<script>\s*var _currentThemePref.*?</script>", "", html, flags=re.DOTALL)
+html = re.sub(r"<script>\s*function setTheme.*?</script>", "", html, flags=re.DOTALL)
+html = html.replace("</body>", THEME_JS + "\n</body>")
 changes += 1
 print("[OK] Theme JS injected")
 
@@ -541,24 +570,26 @@ document.querySelectorAll('.section-header').forEach(function(header) {
 </script>
 """
 
-if 'collapse-icon' not in html.split('</style>')[-1] or 'initializeCollapsibleSections' not in html:
+if "collapse-icon" not in html.split("</style>")[-1] or "initializeCollapsibleSections" not in html:
     # Remove any existing collapse JS
-    html = re.sub(r'<script>\s*document\.querySelectorAll\(\'.section-header\'\)\.forEach.*?</script>', '', html, flags=re.DOTALL)
-    html = html.replace('</body>', COLLAPSE_JS + '\n</body>')
+    html = re.sub(
+        r"<script>\s*document\.querySelectorAll\(\'.section-header\'\)\.forEach.*?</script>",
+        "",
+        html,
+        flags=re.DOTALL,
+    )
+    html = html.replace("</body>", COLLAPSE_JS + "\n</body>")
     changes += 1
     print("[OK] Collapse JS injected")
 
 # ─── 18. Make DATA global ───────────────────────────────────────────
-if 'const DATA = JSON.parse' in html:
-    html = html.replace(
-        'const DATA = JSON.parse',
-        'var DATA = JSON.parse'
-    )
+if "const DATA = JSON.parse" in html:
+    html = html.replace("const DATA = JSON.parse", "var DATA = JSON.parse")
     changes += 1
     print("[OK] const DATA → var DATA (global)")
 
 # ─── WRITE OUTPUT ────────────────────────────────────────────────────
-with open(REPORT, 'w', encoding='utf-8') as f:
+with open(REPORT, "w", encoding="utf-8") as f:
     f.write(html)
 
 size_kb = os.path.getsize(REPORT) / 1024

@@ -5,6 +5,7 @@ Foco em:
 - Extractors triviais (imovel_valor, imovel_desc, veiculo_valor, investimento_valor, get_bens).
 - safe_float utility.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -21,7 +22,6 @@ from pipeline.domain.services.patrimonio_types import (
     safe_float,
     veiculo_valor,
 )
-
 
 # =============================================================================
 # safe_float
@@ -66,18 +66,24 @@ def test_safe_float_dict_returns_default():
 
 
 def test_member_identity_is_frozen():
-    m = MemberIdentity(titular_key="david", conjuge_key="mariana", titular_nome="David", conjuge_nome="Mariana")
+    m = MemberIdentity(
+        titular_key="david", conjuge_key="mariana", titular_nome="David", conjuge_nome="Mariana"
+    )
     with pytest.raises(Exception):
         m.titular_key = "other"  # type: ignore[misc]
 
 
 def test_member_identity_key_inv_titular():
-    m = MemberIdentity(titular_key="david", conjuge_key="mariana", titular_nome="David", conjuge_nome="Mariana")
+    m = MemberIdentity(
+        titular_key="david", conjuge_key="mariana", titular_nome="David", conjuge_nome="Mariana"
+    )
     assert m.key_inv_titular == "investimentos_david"
 
 
 def test_member_identity_key_inv_conjuge():
-    m = MemberIdentity(titular_key="david", conjuge_key="mariana", titular_nome="David", conjuge_nome="Mariana")
+    m = MemberIdentity(
+        titular_key="david", conjuge_key="mariana", titular_nome="David", conjuge_nome="Mariana"
+    )
     assert m.key_inv_conjuge == "investimentos_mariana"
 
 

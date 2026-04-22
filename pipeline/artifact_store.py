@@ -32,7 +32,6 @@ import json
 from pathlib import Path
 from typing import Optional, Protocol, runtime_checkable
 
-
 # =============================================================================
 # Mapeamentos stage → diretório/sufixo (convenção atual do ``processed/``)
 # =============================================================================
@@ -45,37 +44,37 @@ from typing import Optional, Protocol, runtime_checkable
 #   produz artefato em disco DEVE ter entrada aqui.
 
 _STAGE_TO_DIR: dict[str, str] = {
-    "E1.5c": "E2_extracts",        # baseline vive em E2_extracts (convenção aceita)
-    "E1.5":  "E2_extracts",        # baseline bruto também
-    "E2":    "E2_extracts",        # extratos + faturas compartilham pasta
-    "E2-faturas":  "E2_extracts",
+    "E1.5c": "E2_extracts",  # baseline vive em E2_extracts (convenção aceita)
+    "E1.5": "E2_extracts",  # baseline bruto também
+    "E2": "E2_extracts",  # extratos + faturas compartilham pasta
+    "E2-faturas": "E2_extracts",
     "E2-extratos": "E2_extracts",
     "E2-llm": "E2_extracts",
-    "E3":    "E3_reconciled",
-    "E4":    "E4_unified",
-    "E5":    "E5_analysis",
-    "E5.N":  "E5_analysis",        # narrativas ficam junto da análise
-    "E7":    "E7_review",          # crossval + review
+    "E3": "E3_reconciled",
+    "E4": "E4_unified",
+    "E5": "E5_analysis",
+    "E5.N": "E5_analysis",  # narrativas ficam junto da análise
+    "E7": "E7_review",  # crossval + review
     "E7-crossval": "E7_review",
-    "E7-review":   "E7_review",
-    "E7-apply":    "E7_review",
+    "E7-review": "E7_review",
+    "E7-apply": "E7_review",
 }
 
 _STAGE_TO_SUFFIX: dict[str, str] = {
     "E1.5c": "-1.5_consolidated.json",
-    "E1.5":  "-1.5_baseline.json",
-    "E2":    "-2_extract.json",
-    "E2-faturas":  "-2_extract.json",
+    "E1.5": "-1.5_baseline.json",
+    "E2": "-2_extract.json",
+    "E2-faturas": "-2_extract.json",
     "E2-extratos": "-2_extract.json",
     "E2-llm": "-2_extract.json",
-    "E3":    "-3_reconciled.json",
-    "E4":    "-4_unified.json",
-    "E5":    "-5_analysis.json",
-    "E5.N":  "-5n_narrativas.json",
-    "E7":    "-7_review.json",
+    "E3": "-3_reconciled.json",
+    "E4": "-4_unified.json",
+    "E5": "-5_analysis.json",
+    "E5.N": "-5n_narrativas.json",
+    "E7": "-7_review.json",
     "E7-crossval": "-7_crossval.json",
-    "E7-review":   "-7_review.json",
-    "E7-apply":    "-7_apply.json",
+    "E7-review": "-7_review.json",
+    "E7-apply": "-7_apply.json",
 }
 
 
@@ -96,6 +95,7 @@ def stage_suffix(stage: str) -> str:
 # =============================================================================
 # Protocols (Interface Segregation — R9)
 # =============================================================================
+
 
 @runtime_checkable
 class ReadableArtifactStore(Protocol):

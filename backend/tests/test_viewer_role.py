@@ -24,9 +24,7 @@ async def _viewer_setup(db, client):
     owner_user = await factories.make_user(db, email="owner@test.com")
     ws = await factories.make_workspace(db, owner=owner_user)
     viewer_user = await factories.make_user(db, email="viewer@test.com")
-    await factories.make_workspace_member(
-        db, workspace=ws, user=viewer_user, role="viewer"
-    )
+    await factories.make_workspace_member(db, workspace=ws, user=viewer_user, role="viewer")
     await db.commit()
     return viewer_user, owner_user, ws
 
@@ -59,9 +57,7 @@ async def test_viewer_cannot_put_goal(db, client):
     `require_write_role` em `PUT /goals/if`."""
     viewer, owner, ws = await _viewer_setup(db, client)
     client.headers["Authorization"] = f"Bearer {create_access_token(viewer.id)}"
-    resp = await client.put(
-        f"/api/workspaces/{ws.id}/goals/if", json={"inputs": IF_INPUTS}
-    )
+    resp = await client.put(f"/api/workspaces/{ws.id}/goals/if", json={"inputs": IF_INPUTS})
     assert resp.status_code == 403
 
 
@@ -72,14 +68,10 @@ async def test_member_can_put_goal(db, client):
     owner = await factories.make_user(db, email="owner@test.com")
     ws = await factories.make_workspace(db, owner=owner)
     mem = await factories.make_user(db, email="mem@test.com")
-    await factories.make_workspace_member(
-        db, workspace=ws, user=mem, role="member"
-    )
+    await factories.make_workspace_member(db, workspace=ws, user=mem, role="member")
     await db.commit()
     client.headers["Authorization"] = f"Bearer {create_access_token(mem.id)}"
-    resp = await client.put(
-        f"/api/workspaces/{ws.id}/goals/if", json={"inputs": IF_INPUTS}
-    )
+    resp = await client.put(f"/api/workspaces/{ws.id}/goals/if", json={"inputs": IF_INPUTS})
     assert resp.status_code == 200
 
 
@@ -101,9 +93,7 @@ async def test_viewer_cannot_invite(db, client):
 async def test_viewer_cannot_remove_members(db, client):
     viewer, owner, ws = await _viewer_setup(db, client)
     victim = await factories.make_user(db, email="victim@test.com")
-    await factories.make_workspace_member(
-        db, workspace=ws, user=victim, role="member"
-    )
+    await factories.make_workspace_member(db, workspace=ws, user=victim, role="member")
     await db.commit()
     client.headers["Authorization"] = f"Bearer {create_access_token(viewer.id)}"
     resp = await client.delete(f"/api/workspaces/{ws.id}/members/{victim.id}")

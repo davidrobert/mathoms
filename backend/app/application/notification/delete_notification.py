@@ -9,9 +9,7 @@ from backend.app.application.base import NotFoundError
 from backend.app.models.notification import Notification
 
 
-async def delete_notification(
-    workspace_id: str, notification_id: str, *, db: AsyncSession
-) -> None:
+async def delete_notification(workspace_id: str, notification_id: str, *, db: AsyncSession) -> None:
     result = await db.execute(
         select(Notification).where(
             Notification.id == notification_id,

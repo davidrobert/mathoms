@@ -81,9 +81,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         result = run_stages(ctx, stages, skip_llm=skip_llm, stop_on_error=stop_on_error)
     elif args.from_stage:
-        result = run_from(
-            ctx, args.from_stage, skip_llm=skip_llm, stop_on_error=stop_on_error
-        )
+        result = run_from(ctx, args.from_stage, skip_llm=skip_llm, stop_on_error=stop_on_error)
     else:
         # Default: full deterministic pipeline (same as orchestrator.run_pipeline)
         result = run_pipeline(ctx, skip_llm=skip_llm, stop_on_error=stop_on_error)

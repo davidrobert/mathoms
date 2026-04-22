@@ -10,11 +10,11 @@ Date: 2026-04-05
 
 import json
 import math
-import sys
-from pathlib import Path
-from datetime import datetime, date
-from typing import Dict, Any, List, Tuple
 import re
+import sys
+from datetime import date, datetime
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
 
 import scripts.pipeline_common as _pc
 
@@ -95,7 +95,9 @@ def _init_config(base_dir: Path) -> None:
         print("  ⚠️  data_nascimento do titular não encontrada — usando placeholder")
         _TITULAR_DOB = date(date.today().year - 40, 1, 1)
 
-    conjuge_key = next((k for k, v in fm.get("membros", {}).items() if v.get("papel") == "conjuge"), "")
+    conjuge_key = next(
+        (k for k, v in fm.get("membros", {}).items() if v.get("papel") == "conjuge"), ""
+    )
     _CONJUGE_DOB = _load_dob(fm, conjuge_key) if conjuge_key else None
 
     TODAY = date.today()
@@ -109,7 +111,12 @@ def _init_config(base_dir: Path) -> None:
         ONE_TIME_INCOME_KEYWORDS, ONE_TIME_INCOME_CATEGORIES = kw, set(cats)
     else:
         ONE_TIME_INCOME_KEYWORDS = ["fgts", "restituicao", "bolsa", "bonus", "venda"]
-        ONE_TIME_INCOME_CATEGORIES = {"receita_venda_ativo", "receita_resgate", "receita_fgts", "receita_restituicao"}
+        ONE_TIME_INCOME_CATEGORIES = {
+            "receita_venda_ativo",
+            "receita_resgate",
+            "receita_fgts",
+            "receita_restituicao",
+        }
 
     GOALS_CONFIG = _load_json_config(CONFIG_GOALS)
     SCORING_CONFIG = _load_json_config(CONFIG_SCORING)
@@ -133,6 +140,7 @@ _init_config(_pc.PROJECT_DIR)
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
+
 
 def safe_float(val: Any) -> float:
     """Convert value to float, default to 0.0 if fails."""
@@ -183,6 +191,7 @@ def load_json(path: Path, required: bool = False) -> Dict[str, Any]:
 # (None → shell loader lê ``LIFE_PLAN_GOALS`` via disco como fallback).
 # Isso torna ``analyze_goals`` testável sem tocar em arquivo real.
 
+
 def _read_life_plan_content() -> str:
     """Shell loader — lê ``LIFE_PLAN_GOALS`` do disco se existir. Apenas I/O."""
     if LIFE_PLAN_GOALS.exists():
@@ -205,12 +214,14 @@ def extract_if_target_from_life_plan(life_plan_content: str | None = None) -> fl
 
     content = life_plan_content if life_plan_content is not None else _read_life_plan_content()
     if content:
-        match = re.search(r'\*\*R\$\s*([\d.,]+)', content)
+        match = re.search(r"\*\*R\$\s*([\d.,]+)", content)
         if match:
             val_str = match.group(1).replace(".", "").replace(",", ".")
             return safe_float(val_str)
 
-    raise ValueError("IF meta não encontrada em goals.json nem life_plan_goals.md. Configure 'independencia_financeira.if_meta' em config/goals.json.")
+    raise ValueError(
+        "IF meta não encontrada em goals.json nem life_plan_goals.md. Configure 'independencia_financeira.if_meta' em config/goals.json."
+    )
 
 
 def extract_if_trs(life_plan_content: str | None = None) -> float:
@@ -224,12 +235,14 @@ def extract_if_trs(life_plan_content: str | None = None) -> float:
 
     content = life_plan_content if life_plan_content is not None else _read_life_plan_content()
     if content:
-        match = re.search(r'TRS.*?(\d+(?:[.,]\d+)?)\s*%', content, re.IGNORECASE)
+        match = re.search(r"TRS.*?(\d+(?:[.,]\d+)?)\s*%", content, re.IGNORECASE)
         if match:
             val_str = match.group(1).replace(",", ".")
             return safe_float(val_str)
 
-    raise ValueError("TRS não encontrado em goals.json nem life_plan_goals.md. Configure 'independencia_financeira.trs_pct' em config/goals.json.")
+    raise ValueError(
+        "TRS não encontrado em goals.json nem life_plan_goals.md. Configure 'independencia_financeira.trs_pct' em config/goals.json."
+    )
 
 
 def extract_renda_passiva_from_life_plan(life_plan_content: str | None = None) -> float:
@@ -241,11 +254,7 @@ def extract_renda_passiva_from_life_plan(life_plan_content: str | None = None) -
     if not content:
         return 0.0
 
-    match = re.search(
-        r'Renda passiva atual:\s*R\$\s*([\d.,]+)',
-        content,
-        re.IGNORECASE
-    )
+    match = re.search(r"Renda passiva atual:\s*R\$\s*([\d.,]+)", content, re.IGNORECASE)
     if match:
         val_str = match.group(1).replace(".", "").replace(",", ".")
         return safe_float(val_str)
@@ -278,6 +287,7 @@ def linear_interpolate(val: float, min_val: float, max_val: float) -> float:
 # PATRIMONIO ANALYSIS
 # ============================================================================
 
+
 def _resolve_members(baseline: Dict[str, Any]) -> tuple:
     """Resolve members from baseline, handling multiple formats:
     1. Dict format: members/membros as dict with titular/conjuge sub-dicts
@@ -306,7 +316,9 @@ def _resolve_members(baseline: Dict[str, Any]) -> tuple:
             print("  [INFO] Baseline com chaves consolidadas — usando path consolidado.")
             return _build_members_from_consolidated(baseline)
         if baseline.get("declarations"):
-            print("  [WARN] Baseline em formato E1.5 declarations sem chaves consolidadas — usando fallback. Execute: python scripts/e15_consolidate.py")
+            print(
+                "  [WARN] Baseline em formato E1.5 declarations sem chaves consolidadas — usando fallback. Execute: python scripts/e15_consolidate.py"
+            )
             return _build_members_from_declarations(baseline)
     if members and isinstance(members, dict):
         return members.get(_TITULAR_KEY, {}), members.get(_CONJUGE_KEY, {})
@@ -344,12 +356,19 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
         # If ano_base missing, try to infer from source_file name
         if not ano:
             import re as _re
+
             src = decl.get("source_file", "")
             if isinstance(src, str):
-                _m = _re.search(r'(\d{4})', src.split("/")[-1] if "/" in src else src)
+                _m = _re.search(r"(\d{4})", src.split("/")[-1] if "/" in src else src)
                 if _m:
                     ano = int(_m.group(1))
-        key = _TITULAR_KEY if _TITULAR_KEY in membro else _CONJUGE_KEY if _CONJUGE_KEY in membro else None
+        key = (
+            _TITULAR_KEY
+            if _TITULAR_KEY in membro
+            else _CONJUGE_KEY
+            if _CONJUGE_KEY in membro
+            else None
+        )
         if key is None:
             continue
         if key not in member_decls or ano > member_decls[key].get("ano_base", 0):
@@ -369,10 +388,7 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
                 raw_grupo = raw_grupo[1:]
             grupo = raw_grupo.zfill(2)
             # Value field: try situacao_atual first (IRPF format), then valor_31_12_atual
-            valor = safe_float(
-                bem.get("situacao_atual",
-                    bem.get("valor_31_12_atual", 0))
-            )
+            valor = safe_float(bem.get("situacao_atual", bem.get("valor_31_12_atual", 0)))
             descricao = bem.get("descricao", "")
             entry = {"descricao": descricao, "valor_31_12_ano_base": valor}
 
@@ -414,14 +430,14 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
 
         # Synthetic total from classified bens
         synthetic_total = sum(
-            safe_float(b.get("valor_31_12_ano_base", 0))
-            for cat in bens.values()
-            for b in cat
+            safe_float(b.get("valor_31_12_ano_base", 0)) for cat in bens.values() for b in cat
         )
 
         # Use declaration total_bens as authoritative if available
         if total_bens > 0 and abs(synthetic_total - total_bens) > 1.0:
-            print(f"  [INFO] {key}: synthetic bens (R$ {synthetic_total:,.2f}) vs declaration total_bens (R$ {total_bens:,.2f})")
+            print(
+                f"  [INFO] {key}: synthetic bens (R$ {synthetic_total:,.2f}) vs declaration total_bens (R$ {total_bens:,.2f})"
+            )
 
         results[key] = {
             "total_bens": total_bens if total_bens > 0 else synthetic_total,
@@ -429,7 +445,9 @@ def _build_members_from_declarations(baseline: Dict[str, Any]) -> tuple:
             "bens": bens,
         }
 
-    print(f"  [E5.1] Built members from declarations: {_TITULAR_KEY} R$ {results.get(_TITULAR_KEY, {}).get('total_bens', 0):,.2f}, {_CONJUGE_KEY} R$ {results.get(_CONJUGE_KEY, {}).get('total_bens', 0):,.2f}")
+    print(
+        f"  [E5.1] Built members from declarations: {_TITULAR_KEY} R$ {results.get(_TITULAR_KEY, {}).get('total_bens', 0):,.2f}, {_CONJUGE_KEY} R$ {results.get(_CONJUGE_KEY, {}).get('total_bens', 0):,.2f}"
+    )
     return results.get(_TITULAR_KEY, {}), results.get(_CONJUGE_KEY, {})
 
 
@@ -463,11 +481,13 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
     else:
         # E1.5 v2: use resumo_patrimonial and cálculo_patrimonio_liquido
         resumo = baseline.get("resumo_patrimonial", {})
-        calculo = baseline.get("cálculo_patrimonio_liquido", baseline.get("calculo_patrimonio_liquido", {}))
+        calculo = baseline.get(
+            "cálculo_patrimonio_liquido", baseline.get("calculo_patrimonio_liquido", {})
+        )
 
         ano_ref = str(date.today().year - 1)
         for key in sorted(resumo.keys()):
-            m = re.search(r'(\d{4})$', key)
+            m = re.search(r"(\d{4})$", key)
             if m and not key.startswith("variacao_"):
                 ano_ref = m.group(1)
 
@@ -478,7 +498,9 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
             total_bens = safe_float(calculo.get(ano_ref, {}).get("ativo_total", 0))
         total_dividas = safe_float(calculo.get(ano_ref, {}).get("passivo_total", 0))
 
-    print(f"  [E5.1] ano_ref={ano_ref}, total_bens from summary=R$ {total_bens:,.2f}, total_dividas=R$ {total_dividas:,.2f}")
+    print(
+        f"  [E5.1] ano_ref={ano_ref}, total_bens from summary=R$ {total_bens:,.2f}, total_dividas=R$ {total_dividas:,.2f}"
+    )
 
     def _resolve_valor(item: dict, ano: str) -> float:
         """Resolve value from item, trying multiple field names."""
@@ -498,7 +520,11 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
     def _is_conjuge_exclusive(item: dict) -> bool:
         """Check if item belongs exclusively to the conjuge (not titular)."""
         prop = item.get("proprietario", "")
-        if isinstance(prop, str) and _CONJUGE_KEY in prop.lower() and _TITULAR_KEY not in prop.lower():
+        if (
+            isinstance(prop, str)
+            and _CONJUGE_KEY in prop.lower()
+            and _TITULAR_KEY not in prop.lower()
+        ):
             return True
         props = item.get("proprietarios", [])
         if isinstance(props, list):
@@ -509,7 +535,9 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
 
     # --- Split imoveis by proprietario ---
     # Accept both key names
-    imoveis_list = baseline.get("imoveis_consolidados", baseline.get("bens_imoveis_consolidados", []))
+    imoveis_list = baseline.get(
+        "imoveis_consolidados", baseline.get("bens_imoveis_consolidados", [])
+    )
     david_imoveis, mariana_imoveis = [], []
     for im in imoveis_list:
         val = _resolve_valor(im, ano_ref)
@@ -535,8 +563,9 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
     # Handle both formats:
     #   Original: list of {proprietario, descricao, valores_31_12}
     #   E1.5 v2: dict {david_YYYY: {category: value}, mariana_YYYY: {category: value}}
-    inv_raw = baseline.get("investimentos_consolidados",
-                           baseline.get("investimentos_financeiros_consolidados", {}))
+    inv_raw = baseline.get(
+        "investimentos_consolidados", baseline.get("investimentos_financeiros_consolidados", {})
+    )
 
     david_inv, mariana_inv = [], []
     if isinstance(inv_raw, list):
@@ -636,11 +665,15 @@ def _build_members_from_consolidated(baseline: Dict[str, Any]) -> tuple:
 
     # Sanity check: synthetic totals vs summary totals
     synthetic_total = david_bens_total + mariana_bens_total
-    print(f"  [E5.1] Synthetic total_bens: R$ {synthetic_total:,.2f} ({_TITULAR_NOME}: R$ {david_bens_total:,.2f}, {_CONJUGE_NOME}: R$ {mariana_bens_total:,.2f})")
+    print(
+        f"  [E5.1] Synthetic total_bens: R$ {synthetic_total:,.2f} ({_TITULAR_NOME}: R$ {david_bens_total:,.2f}, {_CONJUGE_NOME}: R$ {mariana_bens_total:,.2f})"
+    )
 
     if total_bens > 0 and abs(synthetic_total - total_bens) > 1.0:
-        print(f"  [INFO] Synthetic total_bens (R$ {synthetic_total:,.2f}) vs resumo_patrimonial (R$ {total_bens:,.2f})")
-        print(f"  [INFO] Using resumo_patrimonial total_bens as authoritative")
+        print(
+            f"  [INFO] Synthetic total_bens (R$ {synthetic_total:,.2f}) vs resumo_patrimonial (R$ {total_bens:,.2f})"
+        )
+        print("  [INFO] Using resumo_patrimonial total_bens as authoritative")
         # Distribute the difference proportionally or assign to david
         diff = total_bens - synthetic_total
         david_data["total_bens"] += diff
@@ -712,6 +745,7 @@ def _load_investment_banks() -> set:
             pass
     return {"btg pactual", "rico", "picpay", "binance", "xp"}
 
+
 _BANCOS_INVESTIMENTO = _load_investment_banks()
 
 
@@ -774,18 +808,22 @@ def _load_caixa_from_e3_saldos() -> Tuple[float, List[Dict[str, Any]]]:
         categoria = "moeda_estrangeira" if moeda != "BRL" else "caixa"
         total_brl += valor_brl
 
-        detalhes.append({
-            "conta": f"{data.get('banco', '?')} ({tipo_conta})",
-            "moeda": moeda,
-            "saldo_original": round(saldo, 2),
-            "valor_brl": round(valor_brl, 2),
-            "tipo": categoria,
-        })
+        detalhes.append(
+            {
+                "conta": f"{data.get('banco', '?')} ({tipo_conta})",
+                "moeda": moeda,
+                "saldo_original": round(saldo, 2),
+                "valor_brl": round(valor_brl, 2),
+                "tipo": categoria,
+            }
+        )
 
     return round(total_brl, 2), detalhes
 
 
-def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str, Any] = None) -> Dict[str, Any]:
+def analyze_patrimonio(
+    baseline: Dict[str, Any], investimentos_atuais: Dict[str, Any] = None
+) -> Dict[str, Any]:
     """Analyze patrimonio from baseline data, optionally enriched with current
     investment positions from investimentos-4_unified.json.
 
@@ -800,15 +838,22 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
 
     david, mariana = _resolve_members(baseline)
 
-    total_bens_irpf = safe_float(david.get("total_bens", 0)) + safe_float(mariana.get("total_bens", 0))
-    total_dividas = safe_float(david.get("total_dividas", david.get("dividas", 0))) + safe_float(mariana.get("total_dividas", mariana.get("dividas", 0)))
+    total_bens_irpf = safe_float(david.get("total_bens", 0)) + safe_float(
+        mariana.get("total_bens", 0)
+    )
+    total_dividas = safe_float(david.get("total_dividas", david.get("dividas", 0))) + safe_float(
+        mariana.get("total_dividas", mariana.get("dividas", 0))
+    )
 
     david_bens = _get_bens(david)
     mariana_bens = _get_bens(mariana)
 
-    _residencia_kw = FAMILY_CONFIG.get("membros", {}).get(_TITULAR_KEY, {}).get(
-        "residencia_principal_keyword", ""
-    ).lower()
+    _residencia_kw = (
+        FAMILY_CONFIG.get("membros", {})
+        .get(_TITULAR_KEY, {})
+        .get("residencia_principal_keyword", "")
+        .lower()
+    )
     residencia = 0.0
     imoveis_investimento = 0.0
 
@@ -849,11 +894,15 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
         unattributed = safe_float(totais.get("", 0))
         if unattributed > 0:
             investimentos_david += unattributed
-            print(f"  [INFO] R$ {unattributed:,.2f} sem membro atribuído → alocado ao titular ({_TITULAR_KEY})")
+            print(
+                f"  [INFO] R$ {unattributed:,.2f} sem membro atribuído → alocado ao titular ({_TITULAR_KEY})"
+            )
         n_pos = investimentos_atuais.get("n_posicoes", 0)
         data_ref = investimentos_atuais.get("data_consolidacao", "?")
         print(f"  [INFO] Usando posições atuais ({n_pos} posições, ref: {data_ref})")
-        print(f"  [INFO] {_TITULAR_NOME}: R$ {investimentos_david:,.2f}, {_CONJUGE_NOME}: R$ {investimentos_mariana:,.2f}")
+        print(
+            f"  [INFO] {_TITULAR_NOME}: R$ {investimentos_david:,.2f}, {_CONJUGE_NOME}: R$ {investimentos_mariana:,.2f}"
+        )
     else:
         # Fallback to IRPF baseline
         for inv in david_bens.get("investimentos", []):
@@ -877,16 +926,20 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
             investimentos_mariana += safe_float(contas_m)
         for extra_key in ("outros",):
             investimentos_mariana += safe_float(mariana_bens.get(extra_key, 0))
-        print(f"  [INFO] Usando investimentos do IRPF (fallback)")
+        print("  [INFO] Usando investimentos do IRPF (fallback)")
 
     # Caixa e moeda estrangeira — from E3 reconciled saldos (CC + FX)
     if has_current_positions:
         caixa_moeda_estrangeira, caixa_detalhes = _load_caixa_from_e3_saldos()
         caixa_moeda_estrangeira = max(0.0, caixa_moeda_estrangeira)
         if caixa_detalhes:
-            print(f"  [INFO] Caixa e Moeda Estrangeira (E3 saldos): R$ {caixa_moeda_estrangeira:,.2f}")
+            print(
+                f"  [INFO] Caixa e Moeda Estrangeira (E3 saldos): R$ {caixa_moeda_estrangeira:,.2f}"
+            )
             for d in caixa_detalhes:
-                print(f"    • {d['conta']}: {d['moeda']} {d['saldo_original']:,.2f} → R$ {d['valor_brl']:,.2f} ({d['tipo']})")
+                print(
+                    f"    • {d['conta']}: {d['moeda']} {d['saldo_original']:,.2f} → R$ {d['valor_brl']:,.2f} ({d['tipo']})"
+                )
         else:
             print("  [WARN] Nenhum saldo de CC/ME encontrado em E3 — caixa = R$ 0")
     else:
@@ -913,7 +966,7 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
             + caixa_moeda_estrangeira
         )
         print(f"  [INFO] Patrimônio recalculado com fontes mistas: R$ {patrimonio_bruto:,.2f}")
-        print(f"         (IRPF imóveis+veículos + posições atuais + E3 caixa/ME)")
+        print("         (IRPF imóveis+veículos + posições atuais + E3 caixa/ME)")
     else:
         patrimonio_bruto = total_bens_irpf
 
@@ -923,7 +976,9 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
     investivel = patrimonio_bruto - residencia - veiculos
     investivel = max(0, investivel)
     if investivel >= patrimonio_bruto and patrimonio_bruto > 0:
-        print(f"  [WARN] patrimonio_investivel ({investivel}) >= patrimonio_bruto ({patrimonio_bruto})")
+        print(
+            f"  [WARN] patrimonio_investivel ({investivel}) >= patrimonio_bruto ({patrimonio_bruto})"
+        )
 
     # Composition breakdown (sorted by value desc)
     composicao = [
@@ -974,6 +1029,7 @@ def analyze_patrimonio(baseline: Dict[str, Any], investimentos_atuais: Dict[str,
 # ============================================================================
 # GOALS & IF ANALYSIS
 # ============================================================================
+
 
 def analyze_goals(
     patrimonio: Dict[str, Any],
@@ -1062,10 +1118,9 @@ def analyze_goals(
 # FLUXO DE CAIXA ANALYSIS
 # ============================================================================
 
+
 def analyze_fluxo_caixa(
-    receitas: Dict[str, Any],
-    despesas: Dict[str, Any],
-    fluxo_mensal: Dict[str, Any]
+    receitas: Dict[str, Any], despesas: Dict[str, Any], fluxo_mensal: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Analyze cash flow."""
     print("[E5.3] Analyzing fluxo de caixa...")
@@ -1129,10 +1184,12 @@ def analyze_fluxo_caixa(
     for source in sorted(receita_sources):
         data = [safe_float(receita_por_mes.get(mes, {}).get(source, 0)) for mes in meses]
         if any(d > 0 for d in data):
-            receita_datasets.append({
-                "label": source,
-                "data": data,
-            })
+            receita_datasets.append(
+                {
+                    "label": source,
+                    "data": data,
+                }
+            )
 
     # Gather all despesa categories dynamically
     despesa_categories = set()
@@ -1143,10 +1200,12 @@ def analyze_fluxo_caixa(
     for cat in sorted(despesa_categories):
         data = [safe_float(despesa_por_mes.get(mes, {}).get(cat, 0)) for mes in meses]
         if any(d > 0 for d in data):
-            despesa_datasets.append({
-                "label": cat.replace("_", " ").title(),
-                "data": data,
-            })
+            despesa_datasets.append(
+                {
+                    "label": cat.replace("_", " ").title(),
+                    "data": data,
+                }
+            )
 
     # Totals by month
     totais_receita = [safe_float(receita_por_mes.get(mes, {}).get("_total", 0)) for mes in meses]
@@ -1157,11 +1216,15 @@ def analyze_fluxo_caixa(
     tabela_receitas = []
     for cat, val in sorted(por_fonte.items(), key=lambda x: x[1], reverse=True):
         if val > 0:
-            tabela_receitas.append({
-                "categoria": cat.replace("_", " ").title(),
-                "valor": round(val, 2),
-                "pct": round((val / total_receita_por_fonte) * 100, 2) if total_receita_por_fonte > 0 else 0,
-            })
+            tabela_receitas.append(
+                {
+                    "categoria": cat.replace("_", " ").title(),
+                    "valor": round(val, 2),
+                    "pct": round((val / total_receita_por_fonte) * 100, 2)
+                    if total_receita_por_fonte > 0
+                    else 0,
+                }
+            )
 
     # =====================================================================
     # 12-MONTH ROLLING WINDOW — used for ratios / score / taxa poupança
@@ -1260,11 +1323,15 @@ def analyze_fluxo_caixa(
             "fluxo_liquido": round(fluxo_12m_liquido, 2),
             "taxa_poupanca_recorrente": round(
                 ((receita_12m_recorrente - despesa_12m_total) / receita_12m_recorrente * 100)
-                if receita_12m_recorrente > 0 else 0.0, 2
+                if receita_12m_recorrente > 0
+                else 0.0,
+                2,
             ),
             "taxa_poupanca_total": round(
                 ((receita_12m_total - despesa_12m_total) / receita_12m_total * 100)
-                if receita_12m_total > 0 else 0.0, 2
+                if receita_12m_total > 0
+                else 0.0,
+                2,
             ),
         },
     }
@@ -1274,10 +1341,9 @@ def analyze_fluxo_caixa(
 # RATIOS & FINANCIAL METRICS
 # ============================================================================
 
+
 def analyze_ratios(
-    fluxo: Dict[str, Any],
-    patrimonio: Dict[str, Any],
-    goals: Dict[str, Any]
+    fluxo: Dict[str, Any], patrimonio: Dict[str, Any], goals: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Compute financial ratios.
 
@@ -1309,7 +1375,9 @@ def analyze_ratios(
     # Taxa poupança recorrente (12m)
     taxa_poupanca_recorrente_pct = 0.0
     if receita_recorrente > 0:
-        taxa_poupanca_recorrente_pct = ((receita_recorrente - despesa_total) / receita_recorrente) * 100
+        taxa_poupanca_recorrente_pct = (
+            (receita_recorrente - despesa_total) / receita_recorrente
+        ) * 100
 
     # Taxa poupança total (12m)
     taxa_poupanca_total_pct = 0.0
@@ -1351,11 +1419,9 @@ def analyze_ratios(
 # SCORE CALCULATION
 # ============================================================================
 
+
 def calculate_score(
-    ratios: Dict[str, Any],
-    patrimonio: Dict[str, Any],
-    goals: Dict[str, Any],
-    fluxo: Dict[str, Any]
+    ratios: Dict[str, Any], patrimonio: Dict[str, Any], goals: Dict[str, Any], fluxo: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Calculate financial score (0-10 scale). Parameters loaded from config/scoring.json."""
     print("[E5.5] Computing score...")
@@ -1389,7 +1455,11 @@ def calculate_score(
 
     endiv = safe_float(ratios["taxa_endividamento_pct"])
     # Inverted: high value → low score (swap min/max)
-    score_endiv = linear_interpolate(endiv, en_max, en_min) if en_inv else linear_interpolate(endiv, en_min, en_max)
+    score_endiv = (
+        linear_interpolate(endiv, en_max, en_min)
+        if en_inv
+        else linear_interpolate(endiv, en_min, en_max)
+    )
 
     if_pct = safe_float(goals["if_pct"])
     score_if = linear_interpolate(if_pct, if_min, if_max)
@@ -1400,21 +1470,40 @@ def calculate_score(
 
     # Weighted average
     componentes = [
-        {"nome": tp_nome, "valor": round(taxa_poup, 2), "peso": tp_peso, "nota": round(score_poup, 1)},
-        {"nome": co_nome, "valor": round(cobertura, 2), "peso": co_peso, "nota": round(score_cobertura, 1)},
+        {
+            "nome": tp_nome,
+            "valor": round(taxa_poup, 2),
+            "peso": tp_peso,
+            "nota": round(score_poup, 1),
+        },
+        {
+            "nome": co_nome,
+            "valor": round(cobertura, 2),
+            "peso": co_peso,
+            "nota": round(score_cobertura, 1),
+        },
         {"nome": en_nome, "valor": round(endiv, 2), "peso": en_peso, "nota": round(score_endiv, 1)},
         {"nome": if_nome, "valor": round(if_pct, 2), "peso": if_peso, "nota": round(score_if, 1)},
-        {"nome": di_nome, "valor": num_categorias, "peso": di_peso, "nota": round(score_diversif, 1)},
+        {
+            "nome": di_nome,
+            "valor": num_categorias,
+            "peso": di_peso,
+            "nota": round(score_diversif, 1),
+        },
     ]
 
     total_peso = sum(c["peso"] for c in componentes)
-    valor_score = sum(c["nota"] * c["peso"] for c in componentes) / total_peso if total_peso > 0 else 0
+    valor_score = (
+        sum(c["nota"] * c["peso"] for c in componentes) / total_peso if total_peso > 0 else 0
+    )
     valor_score = round(valor_score, 1)
 
     # Classification from config/scoring.json
     classificacao = "N/D"
     for faixa in SCORING_CONFIG.get("score_classificacao", []):
-        if valor_score >= safe_float(faixa.get("min", 0)) and valor_score < safe_float(faixa.get("max", 10)):
+        if valor_score >= safe_float(faixa.get("min", 0)) and valor_score < safe_float(
+            faixa.get("max", 10)
+        ):
             classificacao = faixa["label"]
     # Handle edge: score == 10 → last band
     if valor_score >= 10:
@@ -1422,11 +1511,16 @@ def calculate_score(
         classificacao = bands[-1]["label"] if bands else "Excelente"
     # Fallback if config missing
     if classificacao == "N/D":
-        if valor_score < 2: classificacao = "Crítico"
-        elif valor_score < 4: classificacao = "Atenção"
-        elif valor_score < 6: classificacao = "Regular"
-        elif valor_score < 8: classificacao = "Bom"
-        else: classificacao = "Excelente"
+        if valor_score < 2:
+            classificacao = "Crítico"
+        elif valor_score < 4:
+            classificacao = "Atenção"
+        elif valor_score < 6:
+            classificacao = "Regular"
+        elif valor_score < 8:
+            classificacao = "Bom"
+        else:
+            classificacao = "Excelente"
 
     return {
         "valor": valor_score,
@@ -1439,6 +1533,7 @@ def calculate_score(
 # ============================================================================
 # ADDITIONAL ANALYSIS SECTIONS
 # ============================================================================
+
 
 def analyze_orcamento_prospectivo(fluxo: Dict[str, Any]) -> Dict[str, Any]:
     """Analyze budgeting & categories."""
@@ -1467,10 +1562,7 @@ def analyze_orcamento_prospectivo(fluxo: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def analyze_reserva_emergencia(
-    fluxo: Dict[str, Any],
-    patrimonio: Dict[str, Any]
-) -> Dict[str, Any]:
+def analyze_reserva_emergencia(fluxo: Dict[str, Any], patrimonio: Dict[str, Any]) -> Dict[str, Any]:
     """Analyze emergency reserve."""
     print("[E5.7] Analyzing reserva emergencia...")
 
@@ -1480,11 +1572,14 @@ def analyze_reserva_emergencia(
     # Níveis de reserva carregados de scoring.json
     _reserva_cfg = SCORING_CONFIG.get("reserva_emergencia", {})
     _niveis = _reserva_cfg.get("niveis_meses", [6, 12])
-    _classif = _reserva_cfg.get("classificacao", [
-        {"minimo_meses": 12, "label": "Excelente"},
-        {"minimo_meses": 6,  "label": "Adequada"},
-        {"minimo_meses": 0,  "label": "Insuficiente"},
-    ])
+    _classif = _reserva_cfg.get(
+        "classificacao",
+        [
+            {"minimo_meses": 12, "label": "Excelente"},
+            {"minimo_meses": 6, "label": "Adequada"},
+            {"minimo_meses": 0, "label": "Insuficiente"},
+        ],
+    )
 
     niveis_calc = {}
     for n in _niveis:
@@ -1539,7 +1634,19 @@ def analyze_investimentos_classes(baseline: Dict[str, Any]) -> Dict[str, Any]:
     # Asset class keywords loaded from scoring.json
     _acl_kw = SCORING_CONFIG.get("asset_class_keywords", {})
     _kw_acoes = _acl_kw.get("Ações", ["acoes", "ações", "itsa", "brkm", "petr", "etf", "ivvb"])
-    _kw_rf = _acl_kw.get("Renda Fixa", ["renda fixa", "cdb", "rdb", "lci", "lca", "tesouro", "debenture", "certificado de deposito"])
+    _kw_rf = _acl_kw.get(
+        "Renda Fixa",
+        [
+            "renda fixa",
+            "cdb",
+            "rdb",
+            "lci",
+            "lca",
+            "tesouro",
+            "debenture",
+            "certificado de deposito",
+        ],
+    )
     _kw_cripto = _acl_kw.get("Cripto", ["cripto", "bitcoin", "ethereum", "binance"])
     _kw_contas = _acl_kw.get("Contas Bancárias", ["banco", "picpay", "nubank", "saldo", "conta"])
 
@@ -1589,9 +1696,12 @@ def analyze_investimentos_classes(baseline: Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(contas_m, (int, float)):
         classes["Contas Bancárias"] += safe_float(contas_m)
 
-    _residencia_kw2 = FAMILY_CONFIG.get("membros", {}).get(_TITULAR_KEY, {}).get(
-        "residencia_principal_keyword", ""
-    ).lower()
+    _residencia_kw2 = (
+        FAMILY_CONFIG.get("membros", {})
+        .get(_TITULAR_KEY, {})
+        .get("residencia_principal_keyword", "")
+        .lower()
+    )
     for imovel in david_bens.get("imoveis", []):
         if not _residencia_kw2 or _residencia_kw2 not in _imovel_desc(imovel):
             classes["Imóveis Investimento"] += _imovel_valor(imovel)
@@ -1602,11 +1712,13 @@ def analyze_investimentos_classes(baseline: Dict[str, Any]) -> Dict[str, Any]:
     tabela_classes = []
     for cat, val in sorted(classes.items(), key=lambda x: x[1], reverse=True):
         if val > 0:
-            tabela_classes.append({
-                "categoria": cat,
-                "valor": round(val, 2),
-                "pct": round((val / total) * 100, 2) if total > 0 else 0,
-            })
+            tabela_classes.append(
+                {
+                    "categoria": cat,
+                    "valor": round(val, 2),
+                    "pct": round((val / total) * 100, 2) if total > 0 else 0,
+                }
+            )
 
     return {
         "tabela_classes": tabela_classes,
@@ -1625,19 +1737,20 @@ def analyze_endividamento(patrimonio: Dict[str, Any], baseline: Dict[str, Any]) 
     for member, nome in [(david, _TITULAR_NOME), (mariana, _CONJUGE_NOME)]:
         divida_val = safe_float(member.get("total_dividas", member.get("dividas", 0)))
         if divida_val > 0:
-            dividas_lista.append({
-                "descricao": f"Financiamento imobiliário ({nome})",
-                "saldo_devedor": round(divida_val, 2),
-                "parcela_mensal": 0,
-                "taxa_juros": "N/D",
-            })
+            dividas_lista.append(
+                {
+                    "descricao": f"Financiamento imobiliário ({nome})",
+                    "saldo_devedor": round(divida_val, 2),
+                    "parcela_mensal": 0,
+                    "taxa_juros": "N/D",
+                }
+            )
 
     detalhe_parts = [d["descricao"] for d in dividas_lista]
     return {
         "total_dividas": patrimonio["dividas"],
         "percentual_patrimonio": round(
-            (patrimonio["dividas"] / patrimonio["bruto"] * 100) if patrimonio["bruto"] > 0 else 0,
-            2
+            (patrimonio["dividas"] / patrimonio["bruto"] * 100) if patrimonio["bruto"] > 0 else 0, 2
         ),
         "dividas": dividas_lista,
         "detalhe": "; ".join(detalhe_parts) if detalhe_parts else "Sem dívidas identificadas",
@@ -1724,110 +1837,136 @@ def analyze_pontos_fortes(
     classificacao = score.get("classificacao", "")
     score_val = safe_float(score.get("valor", 0))
     if classificacao in ["Excelente", "Bom"]:
-        pontos.append({
-            "titulo": "Score Financeiro Positivo",
-            "descricao": f"Classificação «{classificacao}» ({score_val:.1f}/10) indica solidez financeira geral.",
-            "icone": "trophy",
-        })
+        pontos.append(
+            {
+                "titulo": "Score Financeiro Positivo",
+                "descricao": f"Classificação «{classificacao}» ({score_val:.1f}/10) indica solidez financeira geral.",
+                "icone": "trophy",
+            }
+        )
 
     # 2. Taxa de poupança saudável
     taxa_poup = safe_float(ratios["taxa_poupanca_recorrente_pct"])
     _poup_forte_min = safe_float(_alertas_cfg.get("pontos_fortes_taxa_poupanca_min_pct", 30))
     if taxa_poup > _poup_forte_min:
-        pontos.append({
-            "titulo": "Taxa de Poupança Elevada",
-            "descricao": f"Poupança recorrente de {taxa_poup:.1f}% da renda — acima da referência de {_poup_forte_min:.0f}%.",
-            "icone": "savings",
-        })
+        pontos.append(
+            {
+                "titulo": "Taxa de Poupança Elevada",
+                "descricao": f"Poupança recorrente de {taxa_poup:.1f}% da renda — acima da referência de {_poup_forte_min:.0f}%.",
+                "icone": "savings",
+            }
+        )
     elif taxa_poup > 15:
-        pontos.append({
-            "titulo": "Disciplina de Poupança",
-            "descricao": f"Taxa de poupança de {taxa_poup:.1f}% demonstra hábito consistente de guardar dinheiro.",
-            "icone": "savings",
-        })
+        pontos.append(
+            {
+                "titulo": "Disciplina de Poupança",
+                "descricao": f"Taxa de poupança de {taxa_poup:.1f}% demonstra hábito consistente de guardar dinheiro.",
+                "icone": "savings",
+            }
+        )
 
     # 3. Baixo endividamento
     endiv = safe_float(ratios.get("taxa_endividamento_pct", 0))
     _endiv_max = safe_float(_alertas_cfg.get("endividamento_maximo_pct", 20))
     if endiv < _endiv_max:
         if endiv < 5:
-            pontos.append({
-                "titulo": "Endividamento Mínimo",
-                "descricao": f"Taxa de endividamento de apenas {endiv:.1f}% do patrimônio bruto — excelente controle de dívidas.",
-                "icone": "shield",
-            })
+            pontos.append(
+                {
+                    "titulo": "Endividamento Mínimo",
+                    "descricao": f"Taxa de endividamento de apenas {endiv:.1f}% do patrimônio bruto — excelente controle de dívidas.",
+                    "icone": "shield",
+                }
+            )
         else:
-            pontos.append({
-                "titulo": "Endividamento Controlado",
-                "descricao": f"Taxa de endividamento de {endiv:.1f}% — abaixo do teto de {_endiv_max:.0f}%.",
-                "icone": "shield",
-            })
+            pontos.append(
+                {
+                    "titulo": "Endividamento Controlado",
+                    "descricao": f"Taxa de endividamento de {endiv:.1f}% — abaixo do teto de {_endiv_max:.0f}%.",
+                    "icone": "shield",
+                }
+            )
 
     # 4. Reserva de emergência
     cobertura_meses = safe_float(reserva.get("cobertura_meses", 0))
     if cobertura_meses >= 12:
-        pontos.append({
-            "titulo": "Reserva de Emergência Excelente",
-            "descricao": f"Cobertura de {cobertura_meses:.0f} meses de despesas — acima dos 12 meses recomendados.",
-            "icone": "emergency",
-        })
+        pontos.append(
+            {
+                "titulo": "Reserva de Emergência Excelente",
+                "descricao": f"Cobertura de {cobertura_meses:.0f} meses de despesas — acima dos 12 meses recomendados.",
+                "icone": "emergency",
+            }
+        )
     elif cobertura_meses >= 6:
-        pontos.append({
-            "titulo": "Reserva de Emergência Adequada",
-            "descricao": f"Cobertura de {cobertura_meses:.0f} meses protege contra imprevistos.",
-            "icone": "emergency",
-        })
+        pontos.append(
+            {
+                "titulo": "Reserva de Emergência Adequada",
+                "descricao": f"Cobertura de {cobertura_meses:.0f} meses protege contra imprevistos.",
+                "icone": "emergency",
+            }
+        )
 
     # 5. Patrimônio diversificado (múltiplas categorias)
     categorias = patrimonio.get("categorias", [])
     n_categorias = len([c for c in categorias if safe_float(c.get("valor", 0)) > 0])
     if n_categorias >= 4:
-        pontos.append({
-            "titulo": "Patrimônio Diversificado",
-            "descricao": f"Patrimônio distribuído em {n_categorias} categorias — reduz risco de concentração.",
-            "icone": "diversification",
-        })
+        pontos.append(
+            {
+                "titulo": "Patrimônio Diversificado",
+                "descricao": f"Patrimônio distribuído em {n_categorias} categorias — reduz risco de concentração.",
+                "icone": "diversification",
+            }
+        )
 
     # 6. Cobertura de despesas alta (patrimônio investível / despesa mensal)
     cobertura_desp = safe_float(ratios.get("cobertura_despesas_meses", 0))
     if cobertura_desp >= 24:
-        pontos.append({
-            "titulo": "Colchão Patrimonial Robusto",
-            "descricao": f"Patrimônio investível cobre {cobertura_desp:.0f} meses de despesas — margem de segurança ampla.",
-            "icone": "patrimony",
-        })
+        pontos.append(
+            {
+                "titulo": "Colchão Patrimonial Robusto",
+                "descricao": f"Patrimônio investível cobre {cobertura_desp:.0f} meses de despesas — margem de segurança ampla.",
+                "icone": "patrimony",
+            }
+        )
     elif cobertura_desp >= 12:
-        pontos.append({
-            "titulo": "Patrimônio Investível Sólido",
-            "descricao": f"Patrimônio investível cobre {cobertura_desp:.0f} meses de despesas correntes.",
-            "icone": "patrimony",
-        })
+        pontos.append(
+            {
+                "titulo": "Patrimônio Investível Sólido",
+                "descricao": f"Patrimônio investível cobre {cobertura_desp:.0f} meses de despesas correntes.",
+                "icone": "patrimony",
+            }
+        )
 
     # 7. Progresso em direção à IF
     progresso_if = safe_float(goals.get("progresso_pct", 0))
     if progresso_if >= 20:
-        pontos.append({
-            "titulo": "Caminho para Independência Financeira",
-            "descricao": f"Já atingiu {progresso_if:.0f}% da meta de independência financeira.",
-            "icone": "target",
-        })
+        pontos.append(
+            {
+                "titulo": "Caminho para Independência Financeira",
+                "descricao": f"Já atingiu {progresso_if:.0f}% da meta de independência financeira.",
+                "icone": "target",
+            }
+        )
 
     # 8. Patrimônio bruto relevante
     bruto = safe_float(patrimonio.get("bruto", 0))
     if bruto >= 1_000_000:
-        pontos.append({
-            "titulo": "Patrimônio Acima de R$ 1M",
-            "descricao": f"Patrimônio bruto consolidado acima de R$ 1 milhão demonstra trajetória de acumulação consistente.",
-            "icone": "patrimony",
-        })
+        pontos.append(
+            {
+                "titulo": "Patrimônio Acima de R$ 1M",
+                "descricao": "Patrimônio bruto consolidado acima de R$ 1 milhão demonstra trajetória de acumulação consistente.",
+                "icone": "patrimony",
+            }
+        )
 
     # Fallback
     if not pontos:
-        pontos.append({
-            "titulo": "Análise em Andamento",
-            "descricao": "Pontos fortes serão identificados após consolidação de dados.",
-            "icone": "info",
-        })
+        pontos.append(
+            {
+                "titulo": "Análise em Andamento",
+                "descricao": "Pontos fortes serão identificados após consolidação de dados.",
+                "icone": "info",
+            }
+        )
 
     print(f"  [E5.10] {len(pontos)} pontos fortes identificados")
     return pontos
@@ -1855,7 +1994,11 @@ def parse_tarefas_md_content(text: str) -> Tuple[List[Dict[str, Any]], Dict[str,
             section_prio = "R"
         elif line.startswith("## Opcionais"):
             section_prio = "O"
-        elif line.startswith("## Concluídas") or line.startswith("## Canceladas") or line.startswith("## Notas"):
+        elif (
+            line.startswith("## Concluídas")
+            or line.startswith("## Canceladas")
+            or line.startswith("## Notas")
+        ):
             section_prio = None
 
         if section_prio is None:
@@ -1881,15 +2024,19 @@ def parse_tarefas_md_content(text: str) -> Tuple[List[Dict[str, Any]], Dict[str,
 
         prio = prio_map.get(section_prio, "media")
 
-        tarefas.append({
-            "n": num,
-            "t": tarefa_text,
-            "p": prio,
-            "e": prazo,
-            "categoria": categoria,
-            "ref": ref,
-        })
-        tarefas_status[str(num)] = status if status in ("pendente", "feito", "cancelado") else "pendente"
+        tarefas.append(
+            {
+                "n": num,
+                "t": tarefa_text,
+                "p": prio,
+                "e": prazo,
+                "categoria": categoria,
+                "ref": ref,
+            }
+        )
+        tarefas_status[str(num)] = (
+            status if status in ("pendente", "feito", "cancelado") else "pendente"
+        )
 
     return tarefas, tarefas_status
 
@@ -1971,14 +2118,15 @@ def parse_milhas_md_content(text: str) -> Dict[str, Any]:
     if current_prog is not None:
         programas.append(current_prog)
 
-    display_programas = [p for p in programas if p["saldo_pontos"] > 0 or p["valor_estimado_brl"] > 0]
+    display_programas = [
+        p for p in programas if p["saldo_pontos"] > 0 or p["valor_estimado_brl"] > 0
+    ]
     registered_names = [f'{p["programa"]} ({p["titular"]})' for p in programas]
 
     total_valor = sum(p["valor_estimado_brl"] for p in display_programas)
     total_economia = sum(p["economia_periodo_brl"] for p in display_programas)
     total_resgatados = sum(
-        sum(r.get("pontos_usados", 0) for r in p.get("resgates", []))
-        for p in display_programas
+        sum(r.get("pontos_usados", 0) for r in p.get("resgates", [])) for p in display_programas
     )
 
     return {
@@ -2009,14 +2157,20 @@ def parse_milhas_md(content: str | None = None) -> Dict[str, Any]:
     result = parse_milhas_md_content(content)
     display_programas = result.get("programas", [])
 
-    print(f"  ✓ Parsed {len(display_programas)} programa(s) de milhas com saldo ({len(result.get('programas_registrados', []))} registrados)")
+    print(
+        f"  ✓ Parsed {len(display_programas)} programa(s) de milhas com saldo ({len(result.get('programas_registrados', []))} registrados)"
+    )
     for p in display_programas:
-        print(f"    {p['programa']} ({p['titular']}): {p['saldo_pontos']:,.0f} pts, est. R$ {p['valor_estimado_brl']:,.2f}")
+        print(
+            f"    {p['programa']} ({p['titular']}): {p['saldo_pontos']:,.0f} pts, est. R$ {p['valor_estimado_brl']:,.2f}"
+        )
 
     return result
 
 
-def analyze_pontos_urgentes(ratios: Dict[str, Any], reserva: Dict[str, Any], patrimonio: Dict[str, Any]) -> List[Dict[str, str]]:
+def analyze_pontos_urgentes(
+    ratios: Dict[str, Any], reserva: Dict[str, Any], patrimonio: Dict[str, Any]
+) -> List[Dict[str, str]]:
     """Generate urgent action points based on real metrics."""
     print("[E5.11] Identifying pontos urgentes...")
 
@@ -2028,39 +2182,47 @@ def analyze_pontos_urgentes(ratios: Dict[str, Any], reserva: Dict[str, Any], pat
     # Check: emergency reserve below minimum
     cobertura = reserva.get("cobertura_meses", 0)
     if cobertura < _reserva_min:
-        urgentes.append({
-            "prioridade": "Alta",
-            "acao": "Reforçar reserva de emergência",
-            "impacto": f"Cobertura atual de {cobertura:.0f} meses — abaixo do mínimo de {_reserva_min:.0f}",
-            "prazo": "Imediato",
-        })
+        urgentes.append(
+            {
+                "prioridade": "Alta",
+                "acao": "Reforçar reserva de emergência",
+                "impacto": f"Cobertura atual de {cobertura:.0f} meses — abaixo do mínimo de {_reserva_min:.0f}",
+                "prazo": "Imediato",
+            }
+        )
 
     # Check: high debt ratio
     endiv = safe_float(ratios.get("taxa_endividamento_pct", 0))
     if endiv > _endiv_max:
-        urgentes.append({
-            "prioridade": "Alta",
-            "acao": "Reduzir endividamento",
-            "impacto": f"Taxa de endividamento em {endiv:.1f}% — meta < {_endiv_max:.0f}%",
-            "prazo": "Próximo trimestre",
-        })
+        urgentes.append(
+            {
+                "prioridade": "Alta",
+                "acao": "Reduzir endividamento",
+                "impacto": f"Taxa de endividamento em {endiv:.1f}% — meta < {_endiv_max:.0f}%",
+                "prazo": "Próximo trimestre",
+            }
+        )
 
     # Check: no insurance data found
-    urgentes.append({
-        "prioridade": "Alta",
-        "acao": "Contratar seguro de vida e invalidez",
-        "impacto": "Proteção patrimonial da família — nenhuma apólice identificada",
-        "prazo": "Imediato",
-    })
+    urgentes.append(
+        {
+            "prioridade": "Alta",
+            "acao": "Contratar seguro de vida e invalidez",
+            "impacto": "Proteção patrimonial da família — nenhuma apólice identificada",
+            "prazo": "Imediato",
+        }
+    )
 
     # Check: rentabilidade not measured
     if ratios.get("rentabilidade_pct") == "N/D":
-        urgentes.append({
-            "prioridade": "Média",
-            "acao": "Consolidar dados de rentabilidade dos investimentos",
-            "impacto": "Sem dados de performance, impossível otimizar alocação",
-            "prazo": "Próximo trimestre",
-        })
+        urgentes.append(
+            {
+                "prioridade": "Média",
+                "acao": "Consolidar dados de rentabilidade dos investimentos",
+                "impacto": "Sem dados de performance, impossível otimizar alocação",
+                "prazo": "Próximo trimestre",
+            }
+        )
 
     return urgentes
 
@@ -2078,8 +2240,12 @@ def analyze_consumo_consciente(fluxo: Dict[str, Any], despesas: Dict[str, Any]) 
     _consumo_min = safe_float(_alertas_cfg.get("consumo_consciente_min", 2000))
 
     RECURRENT_CATEGORIES = {
-        "moradia", "financiamentos", "seguros", "assinaturas",
-        "impostos", "servicos_domesticos",
+        "moradia",
+        "financiamentos",
+        "seguros",
+        "assinaturas",
+        "impostos",
+        "servicos_domesticos",
     }
 
     dados = despesas.get("dados", {})
@@ -2098,15 +2264,17 @@ def analyze_consumo_consciente(fluxo: Dict[str, Any], despesas: Dict[str, Any]) 
                 tipo_conta = txn.get("tipo_conta", "")
                 conta_cartao = f"{banco} ({tipo_conta})" if tipo_conta else banco
 
-                pontual_candidates.append({
-                    "descricao": txn.get("descricao", "N/D"),
-                    "conta_cartao": conta_cartao,
-                    "data": txn.get("data", ""),
-                    "mes": mes,
-                    "valor": round(valor, 2),
-                    "categoria": cat,
-                    "observacao": "",
-                })
+                pontual_candidates.append(
+                    {
+                        "descricao": txn.get("descricao", "N/D"),
+                        "conta_cartao": conta_cartao,
+                        "data": txn.get("data", ""),
+                        "mes": mes,
+                        "valor": round(valor, 2),
+                        "categoria": cat,
+                        "observacao": "",
+                    }
+                )
 
     pontual_candidates.sort(key=lambda x: x["valor"], reverse=True)
     total_pontuais = round(sum(c["valor"] for c in pontual_candidates), 2)
@@ -2114,7 +2282,9 @@ def analyze_consumo_consciente(fluxo: Dict[str, Any], despesas: Dict[str, Any]) 
 
     _aportes_cfg = GOALS_CONFIG.get("aportes", {})
     aporte_mensal = safe_float(_aportes_cfg.get("meta_aporte_mensal", 0))
-    equivalente_meses_aporte = round(total_pontuais / aporte_mensal, 1) if aporte_mensal > 0 else 0.0
+    equivalente_meses_aporte = (
+        round(total_pontuais / aporte_mensal, 1) if aporte_mensal > 0 else 0.0
+    )
 
     j12m = fluxo.get("janela_12m", {})
     if j12m:
@@ -2156,7 +2326,9 @@ def analyze_consumo_consciente(fluxo: Dict[str, Any], despesas: Dict[str, Any]) 
     }
 
 
-def analyze_diagnostico_comportamental(fluxo: Dict[str, Any], ratios: Dict[str, Any]) -> List[Dict[str, str]]:
+def analyze_diagnostico_comportamental(
+    fluxo: Dict[str, Any], ratios: Dict[str, Any]
+) -> List[Dict[str, str]]:
     """Generate behavioral diagnostics from financial data.
 
     Uses janela_12m (12-month rolling window) consistently for all checks,
@@ -2173,36 +2345,52 @@ def analyze_diagnostico_comportamental(fluxo: Dict[str, Any], ratios: Dict[str, 
     _taxa_str = f"{taxa_poup:.1f}".replace(".", ",")
     _ref_str = f"{_poup_ref:.0f}"
     if taxa_poup > _poup_ref:
-        diagnosticos.append({
-            "padrao": "Disciplina de poupança",
-            "evidencia": f"Taxa de poupança recorrente de {_taxa_str}% — acima da referência de {_ref_str}%",
-            "mudanca_sugerida": "Manter e automatizar aportes mensais",
-        })
+        diagnosticos.append(
+            {
+                "padrao": "Disciplina de poupança",
+                "evidencia": f"Taxa de poupança recorrente de {_taxa_str}% — acima da referência de {_ref_str}%",
+                "mudanca_sugerida": "Manter e automatizar aportes mensais",
+            }
+        )
     elif taxa_poup > 0:
-        diagnosticos.append({
-            "padrao": "Poupança abaixo do ideal",
-            "evidencia": f"Taxa de {_taxa_str}% — referência mínima: {_ref_str}%",
-            "mudanca_sugerida": "Revisar despesas variáveis e aumentar aporte",
-        })
+        diagnosticos.append(
+            {
+                "padrao": "Poupança abaixo do ideal",
+                "evidencia": f"Taxa de {_taxa_str}% — referência mínima: {_ref_str}%",
+                "mudanca_sugerida": "Revisar despesas variáveis e aumentar aporte",
+            }
+        )
 
     j12m = fluxo.get("janela_12m", {})
-    receita_total = safe_float(j12m.get("receita_total", 0)) if j12m else safe_float(fluxo.get("receita_total", 0))
-    receita_one_time = safe_float(j12m.get("receita_one_time", 0)) if j12m else safe_float(fluxo.get("receita_one_time", 0))
+    receita_total = (
+        safe_float(j12m.get("receita_total", 0))
+        if j12m
+        else safe_float(fluxo.get("receita_total", 0))
+    )
+    receita_one_time = (
+        safe_float(j12m.get("receita_one_time", 0))
+        if j12m
+        else safe_float(fluxo.get("receita_one_time", 0))
+    )
     if receita_total > 0:
         one_time_pct = receita_one_time / receita_total * 100
         if one_time_pct > _one_time_alerta:
-            diagnosticos.append({
-                "padrao": "Alta dependência de receita pontual",
-                "evidencia": f"{one_time_pct:.0f}% da receita é não-recorrente (resgates, vendas)",
-                "mudanca_sugerida": "Não contar com receita pontual para orçamento; alocar direto para investimentos",
-            })
+            diagnosticos.append(
+                {
+                    "padrao": "Alta dependência de receita pontual",
+                    "evidencia": f"{one_time_pct:.0f}% da receita é não-recorrente (resgates, vendas)",
+                    "mudanca_sugerida": "Não contar com receita pontual para orçamento; alocar direto para investimentos",
+                }
+            )
 
     if not diagnosticos:
-        diagnosticos.append({
-            "padrao": "Análise em andamento",
-            "evidencia": "Dados insuficientes para diagnóstico comportamental",
-            "mudanca_sugerida": "Consolidar mais meses de dados",
-        })
+        diagnosticos.append(
+            {
+                "padrao": "Análise em andamento",
+                "evidencia": "Dados insuficientes para diagnóstico comportamental",
+                "mudanca_sugerida": "Consolidar mais meses de dados",
+            }
+        )
 
     return diagnosticos
 
@@ -2370,9 +2558,11 @@ def analyze_cenarios_conjuge(
         ],
     }
 
-    print(f"  ✓ 3 cenários computados:")
+    print("  ✓ 3 cenários computados:")
     for c in result["cenarios"]:
-        print(f"    {c['nome']}: aporte R$ {c['aporte_mensal']:,.0f}/mês → IF {c['prazo_if_anos']:.1f} anos ({c['ano_if']})")
+        print(
+            f"    {c['nome']}: aporte R$ {c['aporte_mensal']:,.0f}/mês → IF {c['prazo_if_anos']:.1f} anos ({c['ano_if']})"
+        )
 
     return result
 
@@ -2385,23 +2575,47 @@ def analyze_equilibrio_cerbasi(fluxo: Dict[str, Any]) -> Dict[str, Any]:
 
     # Categorias carregadas de scoring.json
     _cerbasi_cfg = SCORING_CONFIG.get("cerbasi", {})
-    cats_presente = set(_cerbasi_cfg.get("categorias_presente", [
-        "moradia", "alimentacao", "transporte", "saude", "lazer",
-        "servicos_domesticos", "pets", "cuidados_pessoais",
-        "assinaturas", "vestuario", "compras_online"
-    ]))
-    cats_futuro = set(_cerbasi_cfg.get("categorias_futuro", [
-        "educacao", "investimentos", "previdencia", "financeiro",
-        "reserva_desejos", "poupanca", "aportes"
-    ]))
+    cats_presente = set(
+        _cerbasi_cfg.get(
+            "categorias_presente",
+            [
+                "moradia",
+                "alimentacao",
+                "transporte",
+                "saude",
+                "lazer",
+                "servicos_domesticos",
+                "pets",
+                "cuidados_pessoais",
+                "assinaturas",
+                "vestuario",
+                "compras_online",
+            ],
+        )
+    )
+    cats_futuro = set(
+        _cerbasi_cfg.get(
+            "categorias_futuro",
+            [
+                "educacao",
+                "investimentos",
+                "previdencia",
+                "financeiro",
+                "reserva_desejos",
+                "poupanca",
+                "aportes",
+            ],
+        )
+    )
 
     gasto_presente = sum(v for k, v in despesas.items() if k in cats_presente)
     gasto_futuro = sum(v for k, v in despesas.items() if k in cats_futuro)
     gasto_total = gasto_presente + gasto_futuro
 
     # Add uncategorized to presente
-    gasto_nao_classificado = sum(v for k, v in despesas.items()
-                                  if k not in cats_presente and k not in cats_futuro)
+    gasto_nao_classificado = sum(
+        v for k, v in despesas.items() if k not in cats_presente and k not in cats_futuro
+    )
     gasto_presente += gasto_nao_classificado
     gasto_total += gasto_nao_classificado
 
@@ -2409,14 +2623,19 @@ def analyze_equilibrio_cerbasi(fluxo: Dict[str, Any]) -> Dict[str, Any]:
     pct_futuro = round((gasto_futuro / gasto_total * 100), 1) if gasto_total > 0 else 0
 
     # Cerbasi classification from scoring.json
-    _cerbasi_classif = _cerbasi_cfg.get("classificacao", [
-        {"minimo_futuro_pct": 30, "label": "Investidor"},
-        {"minimo_futuro_pct": 20, "label": "Equilibrado"},
-        {"minimo_futuro_pct": 10, "label": "Endividado consciente"},
-        {"minimo_futuro_pct": 0,  "label": "Gastador"},
-    ])
+    _cerbasi_classif = _cerbasi_cfg.get(
+        "classificacao",
+        [
+            {"minimo_futuro_pct": 30, "label": "Investidor"},
+            {"minimo_futuro_pct": 20, "label": "Equilibrado"},
+            {"minimo_futuro_pct": 10, "label": "Endividado consciente"},
+            {"minimo_futuro_pct": 0, "label": "Gastador"},
+        ],
+    )
     classificacao = "Gastador"
-    for faixa in sorted(_cerbasi_classif, key=lambda x: x.get("minimo_futuro_pct", 0), reverse=True):
+    for faixa in sorted(
+        _cerbasi_classif, key=lambda x: x.get("minimo_futuro_pct", 0), reverse=True
+    ):
         if pct_futuro >= safe_float(faixa.get("minimo_futuro_pct", 0)):
             classificacao = faixa["label"]
             break
@@ -2434,13 +2653,14 @@ def analyze_equilibrio_cerbasi(fluxo: Dict[str, Any]) -> Dict[str, Any]:
 # MAIN ANALYSIS ORCHESTRATION
 # ============================================================================
 
+
 def main(root_dir: Path = None):
     """Main orchestration."""
     if root_dir:
         _init_config(root_dir)
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("E5 ANALYSIS — NUMERIC PORTIONS")
-    print("="*70)
+    print("=" * 70)
     print(f"[E5.0] Starting analysis at {datetime.now().isoformat()}")
 
     # Create output directory
@@ -2457,7 +2677,9 @@ def main(root_dir: Path = None):
 
     # Validate baseline
     if not baseline:
-        print("  [CRITICAL] Baseline patrimonial vazio ou ausente — patrimônio será reportado como R$ 0!")
+        print(
+            "  [CRITICAL] Baseline patrimonial vazio ou ausente — patrimônio será reportado como R$ 0!"
+        )
 
     # Load existing output if present (to preserve narrativas)
     existing_output = {}
@@ -2483,7 +2705,9 @@ def main(root_dir: Path = None):
             periodo_dados = f"{meses[0]} a {meses[-1]}"
         else:
             periodo_dados = f"{TODAY.strftime('%Y-%m')} a {TODAY.strftime('%Y-%m')}"
-            print(f"  WARN: periodo not found in receitas nor fluxo_mensal, using today: {periodo_dados}")
+            print(
+                f"  WARN: periodo not found in receitas nor fluxo_mensal, using today: {periodo_dados}"
+            )
 
     goals = analyze_goals(patrimonio)
     fluxo = analyze_fluxo_caixa(receitas, despesas, fluxo_mensal)
@@ -2568,15 +2792,30 @@ def main(root_dir: Path = None):
         "investimentos": investimentos_classes,
         "equilibrio_cerbasi": cerbasi,
         # tarefas: from tarefas.md (curated) or fallback to pontos_urgentes (dynamic)
-        "tarefas": tarefas_parsed if tarefas_parsed else [
-            {"n": i + 1, "t": pu.get("acao", str(pu)), "p": pu.get("prioridade", "media").lower(), "e": pu.get("prazo", "—"), "impacto": pu.get("impacto", "")}
+        "tarefas": tarefas_parsed
+        if tarefas_parsed
+        else [
+            {
+                "n": i + 1,
+                "t": pu.get("acao", str(pu)),
+                "p": pu.get("prioridade", "media").lower(),
+                "e": pu.get("prazo", "—"),
+                "impacto": pu.get("impacto", ""),
+            }
             for i, pu in enumerate(pontos_urgentes)
         ],
-        "tarefas_status": tarefas_status_parsed if tarefas_status_parsed else {str(i + 1): "pendente" for i in range(len(pontos_urgentes))},
+        "tarefas_status": tarefas_status_parsed
+        if tarefas_status_parsed
+        else {str(i + 1): "pendente" for i in range(len(pontos_urgentes))},
         # alertas: array of strings expected by template JS
         "alertas": [
             f"Score financeiro: {score['valor']}/10 ({score['classificacao']})",
-        ] + ([f"Rentabilidade: {ratios['rentabilidade_pct']}"] if ratios['rentabilidade_pct'] == 'N/D' else []),
+        ]
+        + (
+            [f"Rentabilidade: {ratios['rentabilidade_pct']}"]
+            if ratios["rentabilidade_pct"] == "N/D"
+            else []
+        ),
         "consumo_consciente": consumo,
         "diagnostico_comportamental": diagnostico,
         _KEY_CENARIOS_CONJUGE: cenarios_conjuge,
@@ -2595,6 +2834,7 @@ def main(root_dir: Path = None):
     FILE_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     try:
         import scripts.pipeline_common as _pc
+
         _pc.write_json_atomic(FILE_OUTPUT, output, fsync=True)
         _pc.validate_artifact(FILE_OUTPUT, "e5_analysis.schema.json")
     except (ImportError, Exception):
@@ -2602,9 +2842,9 @@ def main(root_dir: Path = None):
         with open(FILE_OUTPUT, "w", encoding="utf-8") as f:
             json.dump(output, f, indent=2, ensure_ascii=False)
 
-    print(f"\n[E5.FINAL] Analysis complete!")
+    print("\n[E5.FINAL] Analysis complete!")
     print(f"  ✓ Output saved to: {FILE_OUTPUT}")
-    print(f"\n  === SUMMARY ===")
+    print("\n  === SUMMARY ===")
     print(f"  Score: {score['valor']}/10 ({score['classificacao']})")
     print(f"  Taxa Poupança: {ratios['taxa_poupanca_recorrente_pct']:.1f}%")
     print(f"  Patrimônio Bruto: R$ {patrimonio['bruto']:,.2f}")
@@ -2612,7 +2852,7 @@ def main(root_dir: Path = None):
     print(f"  IF Meta: R$ {goals['if_meta']:,.2f}")
     print(f"  IF Progresso: {goals['if_pct']:.1f}%")
     print(f"  Prazo IF (realista): {goals['prazo_anos_realista']:.1f} anos → {goals['ano_if']}")
-    print(f"\n" + "="*70 + "\n")
+    print("\n" + "=" * 70 + "\n")
 
 
 def _merge_life_plan_into_goals(
@@ -2689,7 +2929,9 @@ def main_with_store(ctx) -> Dict[str, Any]:
 
     # 2. MD content lido uma vez no shell (A6d.2).
     life_plan_content = _read_life_plan_content()
-    tarefas_content = CONFIG_TAREFAS.read_text(encoding="utf-8") if CONFIG_TAREFAS.exists() else None
+    tarefas_content = (
+        CONFIG_TAREFAS.read_text(encoding="utf-8") if CONFIG_TAREFAS.exists() else None
+    )
     milhas_content = CONFIG_MILHAS.read_text(encoding="utf-8") if CONFIG_MILHAS.exists() else None
 
     # 3. Sanity check dos inputs E4 antes de delegar ao adapter.
@@ -2744,9 +2986,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
     patrimonio = result.patrimonio_full
     investimentos_classes = result.investimentos_classes.to_legacy_dict()
     fluxo = result.fluxo_enriched.to_legacy_dict()
-    goals = (
-        result.if_projection.to_legacy_dict() if result.if_projection else {}
-    )
+    goals = result.if_projection.to_legacy_dict() if result.if_projection else {}
     ratios = result.ratios.to_legacy_dict()
     score = result.score
     orcamento = result.orcamento.to_legacy_dict()
@@ -2757,9 +2997,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
     pontos_urgentes = [p.to_dict() for p in result.pontos_urgentes]
     consumo = result.consumo_consciente.to_legacy_dict()
     diagnostico = [d.to_dict() for d in result.diagnosticos]
-    cenarios_conjuge = (
-        result.cenarios_conjuge.to_legacy_dict() if result.cenarios_conjuge else {}
-    )
+    cenarios_conjuge = result.cenarios_conjuge.to_legacy_dict() if result.cenarios_conjuge else {}
     cerbasi = result.equilibrio_cerbasi.to_legacy_dict()
 
     # 9. periodo_dados — derivado de receitas/fluxo no shell (não vem do adapter).
@@ -2824,9 +3062,9 @@ def main_with_store(ctx) -> Dict[str, Any]:
         if target.exists():
             _pc.validate_artifact(target, "e5_analysis.schema.json")
 
-    print(f"\n[E5.FINAL] Analysis complete!")
+    print("\n[E5.FINAL] Analysis complete!")
     print(f"  ✓ Stored: E5/{E5_ARTIFACT_KEY}")
-    print(f"\n  === SUMMARY ===")
+    print("\n  === SUMMARY ===")
     print(f"  Score: {score['valor']}/10 ({score['classificacao']})")
     print(f"  Taxa Poupança: {ratios['taxa_poupanca_recorrente_pct']:.1f}%")
     print(f"  Patrimônio Bruto: R$ {patrimonio['bruto']:,.2f}")
@@ -2857,5 +3095,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n[E5] FATAL: {e}", file=sys.stderr)
         import traceback
+
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)

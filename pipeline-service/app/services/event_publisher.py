@@ -30,6 +30,7 @@ def _get_client():
         return None
     try:
         import redis
+
         _client = redis.Redis.from_url(redis_url, decode_responses=True)
         _client.ping()
     except Exception as exc:

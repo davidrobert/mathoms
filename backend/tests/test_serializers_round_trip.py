@@ -40,6 +40,7 @@ import yaml
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+import backend.app.models  # noqa: F401 — ensure model registry
 from backend.app.core.database import Base
 from backend.app.core.security import hash_password
 from backend.app.models import (
@@ -64,8 +65,6 @@ from backend.app.services.config_materializer import (
     serialize_report_layout,
 )
 from backend.app.services.vault import VaultService
-
-import backend.app.models  # noqa: F401 — ensure model registry
 
 _engine = create_engine("sqlite://", echo=False)
 _Session = sessionmaker(bind=_engine)

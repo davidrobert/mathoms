@@ -74,14 +74,13 @@ from pipeline.stage_spec import (
 # Sem provider configurado, chamadas são no-op (zero overhead em CLI/tests).
 try:
     from opentelemetry import trace as _otel_trace
+
     _TRACER = _otel_trace.get_tracer("mathoms.pipeline.orchestrator")
 except ImportError:  # pragma: no cover — OTel é dep do backend, não do pipeline CLI isolado.
     _TRACER = None
 
 
-LLM_STAGES = {
-    name for name, spec in STAGE_REGISTRY.items() if spec.is_llm
-}
+LLM_STAGES = {name for name, spec in STAGE_REGISTRY.items() if spec.is_llm}
 
 
 def _build_from_map_with_aliases() -> Dict[str, List[str]]:
@@ -107,54 +106,71 @@ def _get_stage_runner(stage: str) -> Callable:
     """Lazy-import do runner correto para cada stage."""
     if stage == "E0-unlock":
         from pipeline.stages.e0_unlock import run
+
         return run
     if stage == "E0-audit":
         from pipeline.stages.e0_audit import run
+
         return run
     if stage == "E0-route":
         from pipeline.stages.e0_route import run
+
         return run
     if stage == "E1":
         from pipeline.stages.e1 import run
+
         return run
     if stage == "E1.5":
         from pipeline.stages.e15 import run
+
         return run
     if stage == "E1.5c":
         from pipeline.stages.e15c import run
+
         return run
     if stage == "E2-llm":
         from pipeline.stages.e2_llm import run
+
         return run
     if stage == "E2-faturas":
         from pipeline.stages.e2_faturas import run
+
         return run
     if stage == "E2-extratos":
         from pipeline.stages.e2_extratos import run
+
         return run
     if stage == "E3":
         from pipeline.stages.e3 import run
+
         return run
     if stage == "E4":
         from pipeline.stages.e4 import run
+
         return run
     if stage == "E5":
         from pipeline.stages.e5 import run
+
         return run
     if stage == "E5.N":
         from pipeline.stages.e5n import run
+
         return run
     if stage in ("E6", "E6-final"):
         from pipeline.stages.e6 import run
+
         return run
     if stage == "E7-crossval":
         from pipeline.stages.e7 import run_crossval
+
         return run_crossval
     if stage == "E7-review":
         from pipeline.stages.e7_review_llm import run
+
         return run
     if stage == "E7-apply":
         from pipeline.stages.e7 import run_apply
+
         return run_apply
     return None
 
@@ -202,7 +218,9 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                 "pipeline.stage": stage,
                 "pipeline.workspace_root": str(ctx.root),
                 "pipeline.run_id": ctx.pipeline_run_id or "",
-                "pipeline.is_llm": STAGE_REGISTRY[stage].is_llm if stage in STAGE_REGISTRY else False,
+                "pipeline.is_llm": STAGE_REGISTRY[stage].is_llm
+                if stage in STAGE_REGISTRY
+                else False,
             },
         )
     else:
@@ -234,11 +252,15 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                 elapsed = (time.monotonic() - start) * 1000
                 code = exc.code if exc.code is not None else 0
                 if code == 0:
-                    return StageResult(stage=stage, success=True, duration_ms=elapsed, detail={"exit_code": 0})
+                    return StageResult(
+                        stage=stage, success=True, duration_ms=elapsed, detail={"exit_code": 0}
+                    )
                 if span is not None:
                     span.set_attribute("pipeline.success", False)
                     span.set_attribute("pipeline.exit_code", code)
-                error_msg = _extract_error_message(captured_stderr.getvalue(), captured_stdout.getvalue(), code)
+                error_msg = _extract_error_message(
+                    captured_stderr.getvalue(), captured_stdout.getvalue(), code
+                )
                 return StageResult(stage=stage, success=False, duration_ms=elapsed, error=error_msg)
             except Exception as exc:
                 elapsed = (time.monotonic() - start) * 1000
@@ -283,11 +305,13 @@ def run_stages(
 
     for stage in stages:
         if skip_llm and stage in LLM_STAGES:
-            result.stages.append(StageResult(
-                stage=stage,
-                success=True,
-                detail={"skipped": True, "reason": "LLM stage skipped"},
-            ))
+            result.stages.append(
+                StageResult(
+                    stage=stage,
+                    success=True,
+                    detail={"skipped": True, "reason": "LLM stage skipped"},
+                )
+            )
             continue
 
         sr = _run_stage(ctx, stage)
@@ -323,10 +347,13 @@ def run_from(
     stages = FROM_MAP.get(from_stage)
     if stages is None:
         result = PipelineResult(started_at=datetime.now().isoformat())
-        result.stages.append(StageResult(
-            stage=from_stage, success=False,
-            error=f"Invalid from_stage: {from_stage}. Valid: {list(FROM_MAP.keys())}",
-        ))
+        result.stages.append(
+            StageResult(
+                stage=from_stage,
+                success=False,
+                error=f"Invalid from_stage: {from_stage}. Valid: {list(FROM_MAP.keys())}",
+            )
+        )
         result.finished_at = datetime.now().isoformat()
         return result
 

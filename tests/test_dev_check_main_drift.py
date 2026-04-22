@@ -35,12 +35,14 @@ _C = "c" * 40
 
 def _stub_run(script: dict[tuple, tuple[int, str]]):
     """Factory de fake subprocess.run que consulta dict (args_tuple → (rc, stdout))."""
+
     def _fake(cmd_args, capture_output=False, text=False):
         key = tuple(cmd_args)
         if key not in script:
             raise AssertionError(f"Unexpected git call: {key}")
         rc, out = script[key]
         return subprocess.CompletedProcess(cmd_args, rc, stdout=out, stderr="")
+
     return _fake
 
 
@@ -50,6 +52,7 @@ def _clear_bypass_env(monkeypatch):
 
 
 # ─── Bypass ─────────────────────────────────────────────────────────────
+
 
 def test_bypass_env_skips_entirely(monkeypatch, capsys):
     monkeypatch.setenv("MATHOMS_SKIP_DRIFT_CHECK", "1")
@@ -62,6 +65,7 @@ def test_bypass_env_skips_entirely(monkeypatch, capsys):
 
 # ─── Empty stdin ────────────────────────────────────────────────────────
 
+
 def test_empty_stdin_returns_zero(monkeypatch):
     monkeypatch.setattr("sys.stdin", io.StringIO(""))
     with patch("subprocess.run", side_effect=AssertionError("should not be called")):
@@ -69,6 +73,7 @@ def test_empty_stdin_returns_zero(monkeypatch):
 
 
 # ─── Push para main ─────────────────────────────────────────────────────
+
 
 def test_push_main_with_zero_drift_passes(monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", io.StringIO(f"refs/heads/main {_A} refs/heads/main {_B}\n"))
@@ -97,6 +102,7 @@ def test_push_main_with_drift_blocks(monkeypatch, capsys):
 
 
 # ─── Push para branch feature ───────────────────────────────────────────
+
 
 def test_push_feature_branch_small_drift_silent(monkeypatch, capsys):
     monkeypatch.setattr(
@@ -129,6 +135,7 @@ def test_push_feature_branch_large_drift_warns(monkeypatch, capsys):
 
 
 # ─── Edge cases ─────────────────────────────────────────────────────────
+
 
 def test_delete_branch_is_skipped(monkeypatch, capsys):
     """local_sha = 0000...0000 significa delete — não deve chamar rev-list."""

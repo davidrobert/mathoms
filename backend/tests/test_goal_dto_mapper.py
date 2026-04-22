@@ -18,10 +18,10 @@ from types import SimpleNamespace
 import pytest
 
 from backend.app.schemas.dto.goal import (
+    GOAL_TYPE_DTO_CLASSES,
     AlocacaoGoalResponse,
     AporteGoalResponse,
     DolarGoalResponse,
-    GOAL_TYPE_DTO_CLASSES,
     IFGoalResponse,
     goal_to_if_response,
     goal_to_typed_response,

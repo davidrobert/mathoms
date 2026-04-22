@@ -4,11 +4,11 @@ Revision ID: g2a3b4c5d6e7
 Revises: f1a2b3c4d5e6
 Create Date: 2026-04-16
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "g2a3b4c5d6e7"
 # Merge: content_first (f1…) e bank_accounts label (e6…) divergiram — une os dois heads.

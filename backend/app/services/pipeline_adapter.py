@@ -44,7 +44,6 @@ from backend.app.models.goal import Goal
 from backend.app.models.task import Task
 from backend.app.services import task_service
 
-
 # Status traduzido do vocabulário interno para o usado pelo E5 legado (MD).
 _TASK_STATUS_LEGACY_LABEL: dict[str, str] = {
     "pending": "pendente",
@@ -78,9 +77,7 @@ def _serialize_if_goal(goal: Goal) -> dict[str, Any]:
         "trs_pct": inputs.get("trs_pct"),
         "renda_passiva_meta_mensal": inputs.get("renda_passiva_mensal_brl"),
         "retorno_real_anual_pct": inputs.get("retorno_real_anual_pct"),
-        "taxa_retirada_segura_classica_pct": inputs.get(
-            "taxa_retirada_conservadora_pct", 4.0
-        ),
+        "taxa_retirada_segura_classica_pct": inputs.get("taxa_retirada_conservadora_pct", 4.0),
         "_nota_taxa_retirada": _IF_GOAL_TAXA_RETIRADA_NOTA,
         "_source": "db:goals (ADR-075 adapter)",
     }
@@ -204,9 +201,7 @@ def build_goals_payload_sync(
     return payload
 
 
-async def _goals_by_type_async(
-    workspace_id: str, *, db: AsyncSession
-) -> dict[str, Goal]:
+async def _goals_by_type_async(workspace_id: str, *, db: AsyncSession) -> dict[str, Goal]:
     """Busca todos goals ativos do workspace em uma query e indexa por type."""
     stmt = select(Goal).where(
         Goal.workspace_id == workspace_id,
@@ -216,9 +211,7 @@ async def _goals_by_type_async(
     return {g.type: g for g in all_goals}
 
 
-def _apply_goals_to_payload(
-    payload: dict[str, Any], goals_by_type: dict[str, Goal]
-) -> None:
+def _apply_goals_to_payload(payload: dict[str, Any], goals_by_type: dict[str, Goal]) -> None:
     """Serializa goals conhecidos + merge PLANNING_CONTEXT no payload."""
     for goal_type, (key, serializer) in _GOAL_TYPE_MAP.items():
         goal = goals_by_type.get(goal_type)
@@ -253,9 +246,7 @@ async def build_goals_payload(
 
 def _serialize_task_for_pipeline(task: Task) -> dict[str, Any]:
     """Formato esperado pelo E5 legado. Status traduzido para vocabulário MD."""
-    prazo = task.deadline_label or (
-        task.deadline_date.isoformat() if task.deadline_date else "—"
-    )
+    prazo = task.deadline_label or (task.deadline_date.isoformat() if task.deadline_date else "—")
     return {
         "num": task.number,
         "tarefa": task.title,
@@ -272,11 +263,7 @@ def _all_tasks_ordered_sync(
     *,
     db: SyncSession,
 ) -> list[Task]:
-    stmt = (
-        select(Task)
-        .where(Task.workspace_id == workspace_id)
-        .order_by(Task.number.asc())
-    )
+    stmt = select(Task).where(Task.workspace_id == workspace_id).order_by(Task.number.asc())
     return list(db.execute(stmt).scalars().all())
 
 
@@ -285,11 +272,7 @@ async def _all_tasks_ordered_async(
     *,
     db: AsyncSession,
 ) -> list[Task]:
-    stmt = (
-        select(Task)
-        .where(Task.workspace_id == workspace_id)
-        .order_by(Task.number.asc())
-    )
+    stmt = select(Task).where(Task.workspace_id == workspace_id).order_by(Task.number.asc())
     return list((await db.execute(stmt)).scalars().all())
 
 
@@ -372,14 +355,11 @@ def _md_priority_section_lines(priority: str, tasks: list[Task]) -> list[str]:
         "|---|---|---|---|---|---|",
     ]
     for t in tasks:
-        prazo = t.deadline_label or (
-            t.deadline_date.isoformat() if t.deadline_date else "—"
-        )
+        prazo = t.deadline_label or (t.deadline_date.isoformat() if t.deadline_date else "—")
         status = _TASK_STATUS_LEGACY_LABEL.get(t.status, t.status)
         title = t.title.replace("|", "\\|")
         lines.append(
-            f"| {t.number} | {title} | {t.category} | {prazo} | "
-            f"{status} | {t.ref or '—'} |"
+            f"| {t.number} | {title} | {t.category} | {prazo} | " f"{status} | {t.ref or '—'} |"
         )
     lines.extend(["", "---", ""])
     return lines
@@ -398,9 +378,7 @@ def _md_done_section_lines(done_tasks: list[Task]) -> list[str]:
     for t in done_tasks:
         completed = t.completed_at.date().isoformat() if t.completed_at else "—"
         title = t.title.replace("|", "\\|")
-        lines.append(
-            f"| {t.number} | {title} | {completed} | {t.status_reason or '—'} |"
-        )
+        lines.append(f"| {t.number} | {title} | {completed} | {t.status_reason or '—'} |")
     lines.append("")
     return lines
 

@@ -27,7 +27,9 @@ async def test_audit_log_event_persists_row(db):
     await dispatch_sync(event, {"db": db})
     await db.commit()
 
-    rows = (await db.execute(select(AuditLog).where(AuditLog.workspace_id == ws.id))).scalars().all()
+    rows = (
+        (await db.execute(select(AuditLog).where(AuditLog.workspace_id == ws.id))).scalars().all()
+    )
     assert len(rows) == 1
     entry = rows[0]
     assert entry.action == "test.event"
@@ -110,6 +112,6 @@ async def test_rollback_discards_audit_on_use_case_failure(db):
 
     # Nova transação implícita — lê direto do DB (o row flushed foi descartado).
     rows = (
-        await db.execute(select(AuditLog).where(AuditLog.workspace_id == ws_id))
-    ).scalars().all()
+        (await db.execute(select(AuditLog).where(AuditLog.workspace_id == ws_id))).scalars().all()
+    )
     assert rows == []

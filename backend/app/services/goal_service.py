@@ -47,7 +47,6 @@ from backend.app.schemas.dto.goal import (
     goal_to_typed_response,
 )
 
-
 # ─── Compute services (puros) ─────────────────────────────────────────
 
 
@@ -71,9 +70,7 @@ def _if_meta_targets(inputs: IFGoalInputs) -> tuple[float, float]:
     """Calcula `if_meta_brl` operacional (TRS) e conservadora (4% Trinity)."""
     renda_mensal = inputs.renda_passiva_mensal_brl
     if_meta = renda_mensal * 12.0 / (inputs.trs_pct / 100.0)
-    if_meta_conservadora = (
-        renda_mensal * 12.0 / (inputs.taxa_retirada_conservadora_pct / 100.0)
-    )
+    if_meta_conservadora = renda_mensal * 12.0 / (inputs.taxa_retirada_conservadora_pct / 100.0)
     return if_meta, if_meta_conservadora
 
 
@@ -184,9 +181,7 @@ def compute_alocacao_derived(inputs: AlocacaoGoalInputs) -> AlocacaoGoalDerived:
 # ─── Enriquecimento de respostas (autor, patrimônio) ─────────────────
 
 
-async def _resolve_author_names(
-    user_ids: set[str], *, db: AsyncSession
-) -> dict[str, str]:
+async def _resolve_author_names(user_ids: set[str], *, db: AsyncSession) -> dict[str, str]:
     """Batch lookup ``user_id → full_name``. Usado para authorship nos goals.
 
     Tenancy: ``User`` é auth-level (não tenant-scoped), então a query
@@ -241,12 +236,8 @@ async def get_current_goal_with_author(
     goal = await repo.get_active_by_type(workspace_id, goal_type)
     if goal is None:
         return None
-    names = await _resolve_author_names(
-        {goal.created_by} if goal.created_by else set(), db=db
-    )
-    return goal_to_if_response(
-        goal, created_by_name=names.get(goal.created_by or "")
-    )
+    names = await _resolve_author_names({goal.created_by} if goal.created_by else set(), db=db)
+    return goal_to_if_response(goal, created_by_name=names.get(goal.created_by or ""))
 
 
 async def get_goal_history_with_authors(
@@ -259,10 +250,7 @@ async def get_goal_history_with_authors(
     goals = await repo.list_by_workspace_and_type(workspace_id, goal_type)
     ids = {g.created_by for g in goals if g.created_by}
     names = await _resolve_author_names(ids, db=db)
-    return [
-        goal_to_if_response(g, created_by_name=names.get(g.created_by or ""))
-        for g in goals
-    ]
+    return [goal_to_if_response(g, created_by_name=names.get(g.created_by or "")) for g in goals]
 
 
 async def get_current_goal_typed(
@@ -276,12 +264,8 @@ async def get_current_goal_typed(
     goal = await repo.get_active_by_type(workspace_id, goal_type)
     if goal is None:
         return None
-    names = await _resolve_author_names(
-        {goal.created_by} if goal.created_by else set(), db=db
-    )
-    return goal_to_typed_response(
-        goal, created_by_name=names.get(goal.created_by or "")
-    )
+    names = await _resolve_author_names({goal.created_by} if goal.created_by else set(), db=db)
+    return goal_to_typed_response(goal, created_by_name=names.get(goal.created_by or ""))
 
 
 async def get_goal_history_typed(
@@ -295,12 +279,7 @@ async def get_goal_history_typed(
     goals = await repo.list_by_workspace_and_type(workspace_id, goal_type)
     ids = {g.created_by for g in goals if g.created_by}
     names = await _resolve_author_names(ids, db=db)
-    return [
-        goal_to_typed_response(
-            g, created_by_name=names.get(g.created_by or "")
-        )
-        for g in goals
-    ]
+    return [goal_to_typed_response(g, created_by_name=names.get(g.created_by or "")) for g in goals]
 
 
 async def create_if_goal_version(

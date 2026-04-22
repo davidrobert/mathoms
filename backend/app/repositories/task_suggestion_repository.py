@@ -57,9 +57,7 @@ class TaskSuggestionRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_id(
-        self, workspace_id: str, suggestion_id: str
-    ) -> Optional[TaskSuggestion]:
+    async def get_by_id(self, workspace_id: str, suggestion_id: str) -> Optional[TaskSuggestion]:
         """Retorna sugestão por id dentro do workspace, ou ``None``."""
         result = await self._session.execute(
             select(TaskSuggestion).where(
@@ -73,9 +71,7 @@ class TaskSuggestionRepository:
     # Commands
     # -------------------------------------------------------------------
 
-    async def add(
-        self, suggestion: TaskSuggestion, *, flush: bool = True
-    ) -> TaskSuggestion:
+    async def add(self, suggestion: TaskSuggestion, *, flush: bool = True) -> TaskSuggestion:
         """Registra ``suggestion`` na sessão. Caller commita."""
         self._session.add(suggestion)
         if flush:

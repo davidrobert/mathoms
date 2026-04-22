@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """
 E-reset / E-reset-from — Pipeline completo: reset + reprocessamento
 
@@ -45,20 +46,21 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = _pc.PROJECT_DIR
 
 PROCESSED_DIR = PROJECT_DIR / "processed"
-E2_EXTRACTS   = PROCESSED_DIR / "E2_extracts"
+E2_EXTRACTS = PROCESSED_DIR / "E2_extracts"
 E3_RECONCILED = PROCESSED_DIR / "E3_reconciled"
-E4_UNIFIED    = PROCESSED_DIR / "E4_unified"
-E5_ANALYSIS   = PROCESSED_DIR / "E5_analysis"
+E4_UNIFIED = PROCESSED_DIR / "E4_unified"
+E5_ANALYSIS = PROCESSED_DIR / "E5_analysis"
 
-MEMBERS_DIR   = PROJECT_DIR / "members"
-DATA_DIR      = PROJECT_DIR / "data"
-INBOX_DIR     = PROJECT_DIR / "inbox"
-OUTPUT_DIR    = PROJECT_DIR / "output"
-LOGS_DIR      = PROJECT_DIR / "logs"
-SCRATCH_DIR   = PROJECT_DIR / "_scratch"
-STATE_FILE    = SCRATCH_DIR / ".e_reset_state.json"
-E7_REVIEW    = PROCESSED_DIR / "E7_review"
+MEMBERS_DIR = PROJECT_DIR / "members"
+DATA_DIR = PROJECT_DIR / "data"
+INBOX_DIR = PROJECT_DIR / "inbox"
+OUTPUT_DIR = PROJECT_DIR / "output"
+LOGS_DIR = PROJECT_DIR / "logs"
+SCRATCH_DIR = PROJECT_DIR / "_scratch"
+STATE_FILE = SCRATCH_DIR / ".e_reset_state.json"
+E7_REVIEW = PROCESSED_DIR / "E7_review"
 REVIEW_TEMPLATE_PATH = E7_REVIEW / "e7_review_template.json"
+
 
 def _load_json_config(path: Path) -> dict:
     if path.exists():
@@ -66,8 +68,10 @@ def _load_json_config(path: Path) -> dict:
             return json.load(f)
     return {}
 
+
 _PIPELINE_CONFIG = _load_json_config(PROJECT_DIR / "config" / "pipeline.json")
 _LOG_FILES_CONFIG = _PIPELINE_CONFIG.get("log_files", {})
+
 
 def _load_output_glob() -> str:
     """Build output HTML glob from family_members.json config."""
@@ -80,20 +84,38 @@ def _load_output_glob() -> str:
             return pattern.replace("{date}", "*")
     return "relatorio_financeiro_*.html"
 
+
 _OUTPUT_HTML_GLOB = _load_output_glob()
 
 # =============================================================================
 # Artifact definitions — what to delete at each stage
 # =============================================================================
 
-OPERATIONAL_LOGS = [LOGS_DIR / name for name in _LOG_FILES_CONFIG.get("operational", [
-    "run_log.md", "reconciliation.md", "divergences.md",
-    "e3_e4_execution_report.md", "quick_reference.txt",
-])]
+OPERATIONAL_LOGS = [
+    LOGS_DIR / name
+    for name in _LOG_FILES_CONFIG.get(
+        "operational",
+        [
+            "run_log.md",
+            "reconciliation.md",
+            "divergences.md",
+            "e3_e4_execution_report.md",
+            "quick_reference.txt",
+        ],
+    )
+]
 
-PRESERVED_LOGS = {LOGS_DIR / name for name in _LOG_FILES_CONFIG.get("preserved", [
-    "inbox_log.md", "qa_log.md",
-])}
+PRESERVED_LOGS = {
+    LOGS_DIR / name
+    for name in _LOG_FILES_CONFIG.get(
+        "preserved",
+        [
+            "inbox_log.md",
+            "qa_log.md",
+        ],
+    )
+}
+
 
 def _glob(pattern: str) -> list[Path]:
     """Resolve glob pattern relative to PROJECT_DIR."""
@@ -148,7 +170,9 @@ def move_data_and_members_to_inbox(dry_run: bool = False) -> int:
                         dest = INBOX_DIR / f"{stem}_dup{i}{suffix}"
                         i += 1
                 if dry_run:
-                    print(f"  [DRY-RUN] Moveria: data/{child.relative_to(DATA_DIR)} → inbox/{dest.name}")
+                    print(
+                        f"  [DRY-RUN] Moveria: data/{child.relative_to(DATA_DIR)} → inbox/{dest.name}"
+                    )
                 else:
                     try:
                         shutil.move(str(child), str(dest))
@@ -158,12 +182,14 @@ def move_data_and_members_to_inbox(dry_run: bool = False) -> int:
                         try:
                             shutil.copy2(str(child), str(dest))
                             # Write valid empty JSON instead of empty bytes to prevent parsing errors
-                            if child.suffix.lower() == '.json':
+                            if child.suffix.lower() == ".json":
                                 child.write_text("{}")
                             else:
                                 child.write_bytes(b"")
                             child.unlink()
-                            print(f"  Movido (copy+del): data/{child.relative_to(DATA_DIR)} → inbox/{dest.name}")
+                            print(
+                                f"  Movido (copy+del): data/{child.relative_to(DATA_DIR)} → inbox/{dest.name}"
+                            )
                         except Exception as e2:
                             print(f"  [ERRO] Não conseguiu mover {child.name}: {e2}")
                             continue
@@ -235,15 +261,15 @@ def artifacts_from(stage: str) -> list[Path]:
     files: list[Path] = []
 
     stages_cascade = {
-        "E0":         ["E2-all", "E3", "E4", "E5", "E7", "E6"],   # Limpa TODOS E2 (extratos + faturas)
-        "E1":         ["E2-all", "E3", "E4", "E5", "E7", "E6"],   # Limpa TODOS E2 (extratos + faturas)
+        "E0": ["E2-all", "E3", "E4", "E5", "E7", "E6"],  # Limpa TODOS E2 (extratos + faturas)
+        "E1": ["E2-all", "E3", "E4", "E5", "E7", "E6"],  # Limpa TODOS E2 (extratos + faturas)
         "E2-faturas": ["E2-faturas", "E3", "E4", "E5", "E7", "E6"],
-        "E3":         ["E3", "E4", "E5", "E7", "E6"],
-        "E4":         ["E4", "E5", "E7", "E6"],
-        "E5":         ["E5", "E7", "E6"],
-        "E5.N":       ["E5.N", "E7", "E6"],
-        "E6":         ["E7", "E6"],
-        "E7":         ["E7", "E6"],
+        "E3": ["E3", "E4", "E5", "E7", "E6"],
+        "E4": ["E4", "E5", "E7", "E6"],
+        "E5": ["E5", "E7", "E6"],
+        "E5.N": ["E5.N", "E7", "E6"],
+        "E6": ["E7", "E6"],
+        "E7": ["E7", "E6"],
     }
 
     cascade = stages_cascade[stage]
@@ -305,15 +331,15 @@ def artifacts_from(stage: str) -> list[Path]:
 # Pre-checks (Fix #5)
 # =============================================================================
 
+
 def check_dependencies(stages: list[str]) -> list[str]:
     """Pre-check Python dependencies required by the stages that will run.
     Returns list of missing packages (empty = all OK)."""
     # Map stages to their required non-stdlib packages
     stage_deps: dict[str, list[tuple[str, str]]] = {
-        "E2-faturas":  [("pdfplumber", "pip install pdfplumber")],
-        "E2-extratos": [("pdfplumber", "pip install pdfplumber"),
-                        ("xlrd", "pip install xlrd")],
-        "E6":          [("pytz", "pip install pytz")],
+        "E2-faturas": [("pdfplumber", "pip install pdfplumber")],
+        "E2-extratos": [("pdfplumber", "pip install pdfplumber"), ("xlrd", "pip install xlrd")],
+        "E6": [("pytz", "pip install pytz")],
     }
 
     missing = []
@@ -334,6 +360,7 @@ def check_dependencies(stages: list[str]) -> list[str]:
 # =============================================================================
 # Narrativas cleanup (Fix #3)
 # =============================================================================
+
 
 def strip_review_from_e5_files(dry_run: bool = False) -> int:
     """Remove 'review_metadata', 'strategic_insights', and 'inconsistencies_review'
@@ -406,52 +433,100 @@ def strip_narrativas_from_e5_files(dry_run: bool = False) -> int:
 # =============================================================================
 
 DETERMINISTIC_SCRIPTS = {
-    "E1.5c":       SCRIPTS_DIR / "e15_consolidate.py",
-    "E2-faturas":  SCRIPTS_DIR / "e2_extract.py",
+    "E1.5c": SCRIPTS_DIR / "e15_consolidate.py",
+    "E2-faturas": SCRIPTS_DIR / "e2_extract.py",
     "E2-extratos": SCRIPTS_DIR / "e2_extract.py",
-    "E3":          SCRIPTS_DIR / "e3_reconcile.py",
-    "E4":          SCRIPTS_DIR / "e4_categorize.py",
-    "E5":          SCRIPTS_DIR / "e5_analyze.py",
-    "E5.N":        SCRIPTS_DIR / "e5n_narrativas.py",
-    "E6":          SCRIPTS_DIR / "e6_render.py",
+    "E3": SCRIPTS_DIR / "e3_reconcile.py",
+    "E4": SCRIPTS_DIR / "e4_categorize.py",
+    "E5": SCRIPTS_DIR / "e5_analyze.py",
+    "E5.N": SCRIPTS_DIR / "e5n_narrativas.py",
+    "E6": SCRIPTS_DIR / "e6_render.py",
     "E7-crossval": SCRIPTS_DIR / "e7_review.py",
-    "E7-apply":    SCRIPTS_DIR / "e7_review.py",
-    "E6-final":    SCRIPTS_DIR / "e6_render.py",
+    "E7-apply": SCRIPTS_DIR / "e7_review.py",
+    "E6-final": SCRIPTS_DIR / "e6_render.py",
 }
 
 LLM_STAGES = {"E1", "E1.5", "E2-llm", "E7-review"}
 
 EXECUTION_ORDER_FULL = [
-    "E1", "E1.5",                              # Wall 1 (LLM)
-    "E1.5c",                                    # Deterministic consolidation
-    "E2-faturas", "E2-extratos",               # E2 determinístico primeiro
-    "E2-llm",                                   # Wall 2 (LLM) — só docs sem parser
-    "E3", "E4", "E5",
-    "E5.N",                                     # Deterministic (narrativas)
+    "E1",
+    "E1.5",  # Wall 1 (LLM)
+    "E1.5c",  # Deterministic consolidation
+    "E2-faturas",
+    "E2-extratos",  # E2 determinístico primeiro
+    "E2-llm",  # Wall 2 (LLM) — só docs sem parser
+    "E3",
+    "E4",
+    "E5",
+    "E5.N",  # Deterministic (narrativas)
     "E6",
-    "E7-crossval",                              # Deterministic (cross-validation)
-    "E7-review",                                # Wall 3 (LLM)
-    "E7-apply",                                 # Deterministic (apply review)
+    "E7-crossval",  # Deterministic (cross-validation)
+    "E7-review",  # Wall 3 (LLM)
+    "E7-apply",  # Deterministic (apply review)
     "E6-final",
 ]
 EXECUTION_ORDER_FROM = {
-    "E0":          ["E1", "E1.5", "E1.5c", "E2-faturas", "E2-extratos", "E2-llm", "E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E1":          ["E1", "E1.5", "E1.5c", "E2-faturas", "E2-extratos", "E2-llm", "E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E2-faturas":  ["E2-faturas", "E2-extratos", "E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E3":          ["E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E4":          ["E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E5":          ["E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E5.N":        ["E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E6":          ["E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E7":          ["E7-crossval", "E7-review", "E7-apply", "E6-final"],
+    "E0": [
+        "E1",
+        "E1.5",
+        "E1.5c",
+        "E2-faturas",
+        "E2-extratos",
+        "E2-llm",
+        "E3",
+        "E4",
+        "E5",
+        "E5.N",
+        "E6",
+        "E7-crossval",
+        "E7-review",
+        "E7-apply",
+        "E6-final",
+    ],
+    "E1": [
+        "E1",
+        "E1.5",
+        "E1.5c",
+        "E2-faturas",
+        "E2-extratos",
+        "E2-llm",
+        "E3",
+        "E4",
+        "E5",
+        "E5.N",
+        "E6",
+        "E7-crossval",
+        "E7-review",
+        "E7-apply",
+        "E6-final",
+    ],
+    "E2-faturas": [
+        "E2-faturas",
+        "E2-extratos",
+        "E3",
+        "E4",
+        "E5",
+        "E5.N",
+        "E6",
+        "E7-crossval",
+        "E7-review",
+        "E7-apply",
+        "E6-final",
+    ],
+    "E3": ["E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
+    "E4": ["E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
+    "E5": ["E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
+    "E5.N": ["E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
+    "E6": ["E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
+    "E7": ["E7-crossval", "E7-review", "E7-apply", "E6-final"],
 }
 
 
 STAGE_EXTRA_ARGS = {
-    "E2-faturas":  ["--faturas-only"],
+    "E2-faturas": ["--faturas-only"],
     "E2-extratos": ["--extratos-only"],
     "E7-crossval": [],
-    "E7-apply":    ["--apply"],  # review JSON path appended dynamically
+    "E7-apply": ["--apply"],  # review JSON path appended dynamically
 }
 
 
@@ -474,8 +549,8 @@ def run_script(stage: str, dry_run: bool, state: dict | None = None) -> bool:
             if candidates:
                 review_path = str(candidates[0])
             elif not dry_run:
-                print(f"  [ERRO] E7-apply: nenhum review JSON encontrado.")
-                print(f"         Salve o review preenchido em _scratch/e7_review_filled.json")
+                print("  [ERRO] E7-apply: nenhum review JSON encontrado.")
+                print("         Salve o review preenchido em _scratch/e7_review_filled.json")
                 return False
             else:
                 review_path = "_scratch/e7_review_filled.json"
@@ -508,6 +583,7 @@ def run_script(stage: str, dry_run: bool, state: dict | None = None) -> bool:
 # Delete artifacts
 # =============================================================================
 
+
 def delete_artifacts(files: list[Path], dry_run: bool) -> int:
     """Delete artifact files. Returns count of items deleted."""
     # Safety check: never delete preserved files
@@ -524,6 +600,7 @@ def delete_artifacts(files: list[Path], dry_run: bool) -> int:
                 print(f"  [DRY-RUN] Removeria diretório: {f.relative_to(PROJECT_DIR)}")
             else:
                 import shutil
+
                 try:
                     shutil.rmtree(f)
                     print(f"  Removido dir: {f.relative_to(PROJECT_DIR)}")
@@ -533,13 +610,15 @@ def delete_artifacts(files: list[Path], dry_run: bool) -> int:
                     for child in f.rglob("*"):
                         if child.is_file():
                             try:
-                                if child.suffix.lower() == '.json':
+                                if child.suffix.lower() == ".json":
                                     child.write_text("{}")
                                 else:
                                     child.write_text("")
                             except Exception:
                                 pass
-                    print(f"  Truncado conteúdo dir (sem permissão p/ deletar): {f.relative_to(PROJECT_DIR)}")
+                    print(
+                        f"  Truncado conteúdo dir (sem permissão p/ deletar): {f.relative_to(PROJECT_DIR)}"
+                    )
             count += 1
         elif f.is_file():
             if dry_run:
@@ -552,13 +631,17 @@ def delete_artifacts(files: list[Path], dry_run: bool) -> int:
                     # Fallback: truncate file when delete is not permitted (mounted FS)
                     # Use valid empty JSON for .json files to prevent parsing errors
                     try:
-                        if f.suffix.lower() == '.json':
+                        if f.suffix.lower() == ".json":
                             f.write_text("{}")
                         else:
                             f.write_text("")
-                        print(f"  Truncado (sem permissão p/ deletar): {f.relative_to(PROJECT_DIR)}")
+                        print(
+                            f"  Truncado (sem permissão p/ deletar): {f.relative_to(PROJECT_DIR)}"
+                        )
                     except Exception as e2:
-                        print(f"  [AVISO] Não foi possível remover/truncar: {f.relative_to(PROJECT_DIR)} ({e2})")
+                        print(
+                            f"  [AVISO] Não foi possível remover/truncar: {f.relative_to(PROJECT_DIR)} ({e2})"
+                        )
             count += 1
 
     return count
@@ -695,6 +778,7 @@ def _validate_wall_artifacts(wall_info: dict) -> list[str]:
 # Validation
 # =============================================================================
 
+
 def _check_json_content(fpath: Path, required_keys: list[str]) -> str | None:
     """Check that a JSON file is parseable and has non-empty required keys.
     Returns warning string or None if OK."""
@@ -777,9 +861,9 @@ VALID_FROM_STAGES = ["E0", "E1", "E2-faturas", "E3", "E4", "E5", "E5.N", "E6", "
 
 
 LLM_DESCRIPTIONS = {
-    "E1":       "Extração de dados dos membros (holerite, docs pessoais)",
-    "E1.5":     "Baseline patrimonial (IRPF, XLSX imóveis/veículos)",
-    "E2-llm":   "Extração LLM de investimentos/CDBs sem parser determinístico",
+    "E1": "Extração de dados dos membros (holerite, docs pessoais)",
+    "E1.5": "Baseline patrimonial (IRPF, XLSX imóveis/veículos)",
+    "E2-llm": "Extração LLM de investimentos/CDBs sem parser determinístico",
     "E7-review": "Review holístico pós-relatório (preencher template com persona)",
 }
 
@@ -806,47 +890,60 @@ Estágios válidos para --from: {', '.join(VALID_FROM_STAGES)}
         """,
     )
     parser.add_argument(
-        "--from", dest="from_stage", choices=VALID_FROM_STAGES, default=None,
+        "--from",
+        dest="from_stage",
+        choices=VALID_FROM_STAGES,
+        default=None,
         help="Etapa inicial para reset parcial (E-reset-from). Sem este flag = reset completo.",
     )
     parser.add_argument(
-        "--dry-run", action="store_true",
+        "--dry-run",
+        action="store_true",
         help="Mostrar o que seria feito sem executar nenhuma mudança.",
     )
     parser.add_argument(
-        "--clean-only", action="store_true",
+        "--clean-only",
+        action="store_true",
         help="Apenas apagar artefatos, sem re-executar o pipeline.",
     )
     parser.add_argument(
-        "--no-validate", action="store_true",
+        "--no-validate",
+        action="store_true",
         help="Pular validação pós-execução.",
     )
     parser.add_argument(
-        "--no-audit", action="store_true",
+        "--no-audit",
+        action="store_true",
         help="Pular auditoria de integridade (e0_audit) antes do reset.",
     )
     parser.add_argument(
-        "--no-unlock", action="store_true",
+        "--no-unlock",
+        action="store_true",
         help="Pular desbloqueio de PDFs protegidos por senha (e0_unlock) antes do reset.",
     )
     parser.add_argument(
-        "--no-route", action="store_true",
+        "--no-route",
+        action="store_true",
         help="Pular roteamento automático do inbox (e0_route) antes do reset.",
     )
     parser.add_argument(
-        "--move-to-inbox", action="store_true",
+        "--move-to-inbox",
+        action="store_true",
         help="Mover TODOS os arquivos de data/ e originais de members/ de volta para inbox/ "
-             "antes do reset, permitindo re-roteamento completo (usado por E-full-reset).",
+        "antes do reset, permitindo re-roteamento completo (usado por E-full-reset).",
     )
     parser.add_argument(
-        "--interactive", action="store_true",
+        "--interactive",
+        action="store_true",
         help="Modo interativo: pipeline PARA em etapas LLM (exit code 10) e retoma com --continue. "
-             "Permite orquestrar o pipeline completo incluindo etapas LLM.",
+        "Permite orquestrar o pipeline completo incluindo etapas LLM.",
     )
     parser.add_argument(
-        "--continue", dest="continue_from_state", action="store_true",
+        "--continue",
+        dest="continue_from_state",
+        action="store_true",
         help="Retomar pipeline interativo a partir do state file (_scratch/.e_reset_state.json). "
-             "Usar após concluir a etapa LLM indicada na wall anterior.",
+        "Usar após concluir a etapa LLM indicada na wall anterior.",
     )
     return parser
 
@@ -892,7 +989,8 @@ def _collect_orphan_e1_artifacts() -> list[Path]:
     if not MEMBERS_DIR.is_dir():
         return []
     return [
-        child for child in MEMBERS_DIR.iterdir()
+        child
+        for child in MEMBERS_DIR.iterdir()
         if child.is_file() and child.name != ".DS_Store" and "-0_original." not in child.name
     ]
 
@@ -1037,10 +1135,13 @@ def _phase_route(args) -> None:
     print(f"\n--- Fase 0.5: Roteamento automático do inbox ({len(inbox_files)} arquivos) ---")
     try:
         from e0_route import route_all as e0_route_all
+
         route_stats = e0_route_all(base=PROJECT_DIR, dry_run=args.dry_run, use_llm=True)
         routed = route_stats.get("routed", 0)
         unid = route_stats.get("unidentified", 0)
-        print(f"  Roteados: {routed} | Não identificados: {unid} | Duplicatas: {route_stats.get('duplicates', 0)}")
+        print(
+            f"  Roteados: {routed} | Não identificados: {unid} | Duplicatas: {route_stats.get('duplicates', 0)}"
+        )
         if unid > 0:
             print(f"  [AVISO] {unid} arquivo(s) não identificado(s) — verificar nao_identificados/")
     except Exception as e:
@@ -1071,7 +1172,9 @@ def _phase_clean_narrativas_review(stages: list[str], dry_run: bool) -> None:
         print("\n--- Fase 1.5: Limpeza de narrativas (E5.N) ---")
         stripped = strip_narrativas_from_e5_files(dry_run)
         if stripped:
-            print(f"  Total: {stripped} arquivo(s) com narrativas {'identificados' if dry_run else 'limpos'}")
+            print(
+                f"  Total: {stripped} arquivo(s) com narrativas {'identificados' if dry_run else 'limpos'}"
+            )
         else:
             print("  Nenhum arquivo E5 com narrativas encontrado.")
 
@@ -1079,7 +1182,9 @@ def _phase_clean_narrativas_review(stages: list[str], dry_run: bool) -> None:
         print("\n--- Fase 1.6: Limpeza de review E7 ---")
         stripped_r = strip_review_from_e5_files(dry_run)
         if stripped_r:
-            print(f"  Total: {stripped_r} arquivo(s) com review {'identificados' if dry_run else 'limpos'}")
+            print(
+                f"  Total: {stripped_r} arquivo(s) com review {'identificados' if dry_run else 'limpos'}"
+            )
         else:
             print("  Nenhum dado de review E7 encontrado.")
 
@@ -1123,8 +1228,12 @@ def _print_leading_llm_notice(first_det: str, leading_llm: list[str], mode: str)
 
 
 def _execute_non_interactive(
-    stages: list[str], args, from_stage: str | None, mode: str,
-    leading_llm: list[str], first_det: str | None,
+    stages: list[str],
+    args,
+    from_stage: str | None,
+    mode: str,
+    leading_llm: list[str],
+    first_det: str | None,
 ) -> None:
     dry_run = args.dry_run
     if first_det and _leading_llm_needed(first_det, leading_llm, dry_run):
@@ -1146,7 +1255,9 @@ def _execute_non_interactive(
                 print(f"\n  [ABORTADO] Falha em {s}. Pipeline parado.")
                 sys.exit(1)
 
-    _run_validation_and_summary(args, from_stage, mode, dry_run, llm_pending, leading_llm, LLM_DESCRIPTIONS)
+    _run_validation_and_summary(
+        args, from_stage, mode, dry_run, llm_pending, leading_llm, LLM_DESCRIPTIONS
+    )
 
 
 def _finish_clean_only() -> None:
@@ -1198,12 +1309,17 @@ def main():
 
 
 def _run_validation_and_summary(
-    args, from_stage: str | None, mode: str, dry_run: bool,
-    llm_pending: list[str], leading_llm: list[str], llm_descriptions: dict[str, str],
+    args,
+    from_stage: str | None,
+    mode: str,
+    dry_run: bool,
+    llm_pending: list[str],
+    leading_llm: list[str],
+    llm_descriptions: dict[str, str],
 ) -> None:
     """Run post-pipeline validation and print summary (non-interactive mode)."""
     if not args.no_validate and not dry_run:
-        print(f"\n--- Fase 3: Validação ---")
+        print("\n--- Fase 3: Validação ---")
         warnings_list = validate(from_stage)
         if warnings_list:
             print("  Avisos:")
@@ -1217,19 +1333,23 @@ def _run_validation_and_summary(
     if llm_pending:
         trailing_llm = [s for s in llm_pending if s not in leading_llm]
         if trailing_llm:
-            print(f"\n  AÇÃO REQUERIDA — etapas LLM pendentes:")
+            print("\n  AÇÃO REQUERIDA — etapas LLM pendentes:")
             for s in trailing_llm:
                 desc = llm_descriptions.get(s, "")
                 print(f"    - {s}" + (f": {desc}" if desc else ""))
-            print(f"\n  Após concluir as etapas LLM acima, re-rode E6 para")
-            print(f"  gerar o relatório final com narrativas:")
-            print(f"    python scripts/e6_render.py")
+            print("\n  Após concluir as etapas LLM acima, re-rode E6 para")
+            print("  gerar o relatório final com narrativas:")
+            print("    python scripts/e6_render.py")
     print("=" * 60)
 
 
 def _run_interactive_stages(
-    stages: list[str], state: dict, dry_run: bool,
-    args, from_stage: str | None, mode: str,
+    stages: list[str],
+    state: dict,
+    dry_run: bool,
+    args,
+    from_stage: str | None,
+    mode: str,
 ) -> None:
     """Execute stages in interactive mode, stopping at LLM walls."""
     # Map stages that are grouped into another stage's wall
@@ -1277,7 +1397,7 @@ def _run_interactive_stages(
 
     # All stages completed
     if not args.no_validate and not dry_run:
-        print(f"\n--- Fase 3: Validação ---")
+        print("\n--- Fase 3: Validação ---")
         warnings_list = validate(from_stage)
         if warnings_list:
             print("  Avisos:")
@@ -1290,7 +1410,7 @@ def _run_interactive_stages(
 
     print(f"\n{'=' * 60}")
     print(f"  {mode} — {'simulação concluída' if dry_run else 'PIPELINE COMPLETO'}")
-    print(f"  Todas as etapas (determinísticas + LLM) foram concluídas.")
+    print("  Todas as etapas (determinísticas + LLM) foram concluídas.")
     print("=" * 60)
 
 
@@ -1340,7 +1460,7 @@ def _main_continue(args) -> None:
                 print(f"\n  [AVISO] Validação pós-wall ({wall_info['wall']}):")
                 for w in warnings:
                     print(f"    - {w}")
-                print(f"  Prosseguindo mesmo assim (artefatos podem ter nomes diferentes).")
+                print("  Prosseguindo mesmo assim (artefatos podem ter nomes diferentes).")
             else:
                 expected = wall_info.get("artifacts_expected", [])
                 if expected:

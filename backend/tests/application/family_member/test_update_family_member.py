@@ -18,9 +18,7 @@ from backend.tests.fakes import FakeFamilyMemberRepository, FakeVault
 
 async def _seed(repo, vault, **extras):
     return await create_family_member(
-        FamilyMemberCreateCommand(
-            full_name="David", short_name="David", role="titular", **extras
-        ),
+        FamilyMemberCreateCommand(full_name="David", short_name="David", role="titular", **extras),
         workspace_id="ws-1",
         repo=repo,
         vault=vault,

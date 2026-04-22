@@ -4,14 +4,19 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models import (
-    Document, DocumentStatus, DocumentType,
-    PasswordVault,
-    PipelineRun, PipelineRunStatus,
-    PipelineStageLog, PipelineStageStatus,
-    User, Workspace,
-)
 from backend.app.core.security import hash_password
+from backend.app.models import (
+    Document,
+    DocumentStatus,
+    DocumentType,
+    PasswordVault,
+    PipelineRun,
+    PipelineRunStatus,
+    PipelineStageLog,
+    PipelineStageStatus,
+    User,
+    Workspace,
+)
 
 
 async def _make_workspace(db: AsyncSession) -> tuple[str, str]:
@@ -84,9 +89,7 @@ async def test_pipeline_run_with_stage_logs(db: AsyncSession):
     log1 = PipelineStageLog(
         pipeline_run_id=run.id, stage="E2", status=PipelineStageStatus.completed, duration_ms=1500
     )
-    log2 = PipelineStageLog(
-        pipeline_run_id=run.id, stage="E3", status=PipelineStageStatus.running
-    )
+    log2 = PipelineStageLog(pipeline_run_id=run.id, stage="E3", status=PipelineStageStatus.running)
     db.add_all([log1, log2])
     await db.flush()
 

@@ -61,9 +61,7 @@ class ConfigBlobRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get(
-        self, workspace_id: str, model_class: type[_T]
-    ) -> Optional[_T]:
+    async def get(self, workspace_id: str, model_class: type[_T]) -> Optional[_T]:
         """Retorna a row de config para o workspace, ou ``None`` se não existir.
 
         Retornar ``None`` é o sinal para o caller carregar o default do
@@ -110,9 +108,7 @@ class ConfigBlobRepository:
         await self._session.flush()
         return cfg
 
-    async def delete(
-        self, workspace_id: str, model_class: type[_T]
-    ) -> bool:
+    async def delete(self, workspace_id: str, model_class: type[_T]) -> bool:
         """Remove o blob do workspace (idempotente).
 
         Retorna ``True`` se algo foi apagado, ``False`` se não havia blob

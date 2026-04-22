@@ -28,13 +28,10 @@ from backend.app.repositories.task_attachment_repository import (
 from backend.app.services import task_service
 from backend.app.services.storage import StorageService
 
-
 _SUBDIR = "task_attachments"
 
 
-def _attachment_dir(
-    storage: StorageService, workspace_id: str, task_id: str
-) -> Path:
+def _attachment_dir(storage: StorageService, workspace_id: str, task_id: str) -> Path:
     return storage.tenant_root(workspace_id) / _SUBDIR / task_id
 
 
@@ -75,9 +72,7 @@ async def save_attachment(
     storage = StorageService()
     ok, error = storage.validate_file(filename, len(content))
     if not ok:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=error
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
 
     dest_dir = _attachment_dir(storage, workspace_id, task_id)
     dest_dir.mkdir(parents=True, exist_ok=True)

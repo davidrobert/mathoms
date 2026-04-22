@@ -18,10 +18,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.config_blob import (
     get_institution_config as _uc_get_institution_config,
+)
+from backend.app.application.config_blob import (
     get_pipeline_config as _uc_get_pipeline_config,
+)
+from backend.app.application.config_blob import (
     get_report_layout as _uc_get_report_layout,
+)
+from backend.app.application.config_blob import (
     update_institution_config as _uc_update_institution_config,
+)
+from backend.app.application.config_blob import (
     update_pipeline_config as _uc_update_pipeline_config,
+)
+from backend.app.application.config_blob import (
     update_report_layout as _uc_update_report_layout,
 )
 from backend.app.core.database import get_db
@@ -86,9 +96,7 @@ def _get_category_repo(db: AsyncSession = Depends(get_db)) -> CategoryRepository
 async def get_workspace_settings(
     workspace: Workspace = Depends(get_current_workspace),
 ) -> WorkspaceSettingsSchema:
-    return WorkspaceSettingsSchema(
-        name=workspace.name, family_surname=workspace.family_surname
-    )
+    return WorkspaceSettingsSchema(name=workspace.name, family_surname=workspace.family_surname)
 
 
 @router.patch(
@@ -105,9 +113,7 @@ async def update_workspace_settings(
         workspace.family_surname = body.family_surname.strip() or None
     await db.commit()
     await db.refresh(workspace)
-    return WorkspaceSettingsSchema(
-        name=workspace.name, family_surname=workspace.family_surname
-    )
+    return WorkspaceSettingsSchema(name=workspace.name, family_surname=workspace.family_surname)
 
 
 # =============================================================================
@@ -120,9 +126,7 @@ async def get_pipeline_config(
     workspace: Workspace = Depends(get_current_workspace),
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ) -> PipelineConfigResponse:
-    return await _uc_get_pipeline_config(
-        workspace.id, repo=repo, defaults=_defaults
-    )
+    return await _uc_get_pipeline_config(workspace.id, repo=repo, defaults=_defaults)
 
 
 @router.put("/pipeline", response_model=PipelineConfigResponse)
@@ -149,9 +153,7 @@ async def get_institution_config(
     workspace: Workspace = Depends(get_current_workspace),
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ) -> InstitutionConfigResponse:
-    return await _uc_get_institution_config(
-        workspace.id, repo=repo, defaults=_defaults
-    )
+    return await _uc_get_institution_config(workspace.id, repo=repo, defaults=_defaults)
 
 
 @router.put("/institutions", response_model=InstitutionConfigResponse)
@@ -161,9 +163,7 @@ async def update_institution_config(
     db: AsyncSession = Depends(get_db),
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ) -> InstitutionConfigResponse:
-    response = await _uc_update_institution_config(
-        body, workspace_id=workspace.id, repo=repo
-    )
+    response = await _uc_update_institution_config(body, workspace_id=workspace.id, repo=repo)
     await db.commit()
     return response
 
@@ -178,9 +178,7 @@ async def get_report_layout(
     workspace: Workspace = Depends(get_current_workspace),
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ) -> ReportLayoutResponse:
-    return await _uc_get_report_layout(
-        workspace.id, repo=repo, defaults=_defaults
-    )
+    return await _uc_get_report_layout(workspace.id, repo=repo, defaults=_defaults)
 
 
 @router.put("/report-layout", response_model=ReportLayoutResponse)
@@ -190,9 +188,7 @@ async def update_report_layout(
     db: AsyncSession = Depends(get_db),
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ) -> ReportLayoutResponse:
-    response = await _uc_update_report_layout(
-        body, workspace_id=workspace.id, repo=repo
-    )
+    response = await _uc_update_report_layout(body, workspace_id=workspace.id, repo=repo)
     await db.commit()
     return response
 
@@ -270,9 +266,7 @@ async def _import_family_members(
     await repo.delete_all_in_workspace(workspace.id)
 
     family_surname = (
-        data.get("familia", {}).get("sobrenome")
-        if isinstance(data.get("familia"), dict)
-        else None
+        data.get("familia", {}).get("sobrenome") if isinstance(data.get("familia"), dict) else None
     )
     if family_surname is not None:
         workspace.family_surname = family_surname or None
@@ -343,11 +337,7 @@ async def _export_blob_or_default(
     cfg_json = await repo.get_config_json(ws_id, model_class)
     if cfg_json is not None:
         return cfg_json
-    return (
-        load_global_yaml(default_filename)
-        if yaml_source
-        else load_global_json(default_filename)
-    )
+    return load_global_yaml(default_filename) if yaml_source else load_global_json(default_filename)
 
 
 async def _export_family_members(

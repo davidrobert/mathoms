@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine, select
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import sessionmaker
 
 from backend.app.core.database import Base
 from backend.app.core.security import hash_password
@@ -29,9 +29,7 @@ def _seed_disk(storage_root: Path, workspace_id: str) -> None:
         json.dumps({"net": 100})
     )
     (processed / "E4_unified").mkdir(parents=True)
-    (processed / "E4_unified" / "despesas-4_unified.json").write_text(
-        json.dumps({"total": 500})
-    )
+    (processed / "E4_unified" / "despesas-4_unified.json").write_text(json.dumps({"total": 500}))
     (processed / "E5_analysis").mkdir(parents=True)
     (processed / "E5_analysis" / "analise_financeira-5_analysis.json").write_text(
         json.dumps({"score": 80})

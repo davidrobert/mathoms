@@ -34,7 +34,6 @@ from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.models.document import Document
 from backend.app.models.pipeline_artifact import PipelineArtifact
 
-
 PRESERVE_DIRS = {"config"}
 WIPE_DIRS = {
     "inbox",

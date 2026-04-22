@@ -21,7 +21,9 @@ def check_filename_vs_content() -> list[dict[str, Any]]:
     issues: list[dict[str, Any]] = []
 
     if not _h.E2_DIR.is_dir():
-        issues.append({"file": "E2_extracts/", "issue": "Diretório não existe", "severity": "ERROR"})
+        issues.append(
+            {"file": "E2_extracts/", "issue": "Diretório não existe", "severity": "ERROR"}
+        )
         return issues
 
     for fpath in sorted(_h.E2_DIR.glob("*-2_extract.json")):
@@ -30,33 +32,39 @@ def check_filename_vs_content() -> list[dict[str, Any]]:
 
         # Skip 0-byte files (truncated by e-reset on FS without delete)
         if fpath.stat().st_size == 0:
-            issues.append({
-                "file": fpath.name,
-                "issue": "Arquivo 0 bytes (truncado por e-reset) — skip",
-                "severity": "INFO",
-            })
+            issues.append(
+                {
+                    "file": fpath.name,
+                    "issue": "Arquivo 0 bytes (truncado por e-reset) — skip",
+                    "severity": "INFO",
+                }
+            )
             continue
 
         try:
             with open(fpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
         except (json.JSONDecodeError, Exception) as e:
-            issues.append({
-                "file": fpath.name,
-                "issue": f"JSON inválido: {e}",
-                "severity": "ERROR",
-            })
+            issues.append(
+                {
+                    "file": fpath.name,
+                    "issue": f"JSON inválido: {e}",
+                    "severity": "ERROR",
+                }
+            )
             continue
 
         # Skip non-dict E2 files (e.g., fatura arrays, tombstones, 0-byte)
         if not isinstance(data, dict):
             if isinstance(data, list) and len(data) == 0:
                 continue  # empty array from truncated file — silent skip
-            issues.append({
-                "file": fpath.name,
-                "issue": f"JSON é {type(data).__name__} (esperado dict) — skip",
-                "severity": "INFO",
-            })
+            issues.append(
+                {
+                    "file": fpath.name,
+                    "issue": f"JSON é {type(data).__name__} (esperado dict) — skip",
+                    "severity": "INFO",
+                }
+            )
             continue
 
         if "_tombstone" in data:
@@ -67,14 +75,21 @@ def check_filename_vs_content() -> list[dict[str, Any]]:
         canonical = _h.BANCO_CANONICAL.get(fname_banco, fname_banco)
         canonical_norm = _h.normalize(canonical)
 
-        if json_banco and canonical_norm and canonical_norm not in json_banco and json_banco not in canonical_norm:
-            issues.append({
-                "file": fpath.name,
-                "issue": f"Banco no filename '{fname_parts['banco']}' (→ '{canonical}') ≠ JSON '{data.get('banco')}'",
-                "severity": "WARNING",
-                "filename_banco": fname_parts["banco"],
-                "json_banco": data.get("banco"),
-            })
+        if (
+            json_banco
+            and canonical_norm
+            and canonical_norm not in json_banco
+            and json_banco not in canonical_norm
+        ):
+            issues.append(
+                {
+                    "file": fpath.name,
+                    "issue": f"Banco no filename '{fname_parts['banco']}' (→ '{canonical}') ≠ JSON '{data.get('banco')}'",
+                    "severity": "WARNING",
+                    "filename_banco": fname_parts["banco"],
+                    "json_banco": data.get("banco"),
+                }
+            )
 
         # --- Check tipo ---
         json_tipo = _h.normalize(data.get("tipo", ""))
@@ -85,13 +100,15 @@ def check_filename_vs_content() -> list[dict[str, Any]]:
             aliases = _h.TIPO_ALIASES.get(fname_tipo_norm, [fname_tipo_norm])
             aliases_norm = [_h.normalize(a) for a in aliases]
             if not any(a in json_tipo or json_tipo in a for a in aliases_norm):
-                issues.append({
-                    "file": fpath.name,
-                    "issue": f"Tipo no filename '{fname_tipo}' ≠ JSON '{data.get('tipo')}'",
-                    "severity": "WARNING",
-                    "filename_tipo": fname_tipo,
-                    "json_tipo": data.get("tipo"),
-                })
+                issues.append(
+                    {
+                        "file": fpath.name,
+                        "issue": f"Tipo no filename '{fname_tipo}' ≠ JSON '{data.get('tipo')}'",
+                        "severity": "WARNING",
+                        "filename_tipo": fname_tipo,
+                        "json_tipo": data.get("tipo"),
+                    }
+                )
 
     return issues
 
@@ -144,23 +161,29 @@ def check_name_collisions() -> list[dict[str, Any]]:
 
         # Different content, same dest name → COLLISION
         file_names = [f.name for f, _ in entries]
-        issues.append({
-            "file": ", ".join(file_names),
-            "issue": (
-                f"COLISÃO: {len(entries)} arquivos no inbox/ gerariam o mesmo nome "
-                f"'{dest_name}' mas têm conteúdo diferente ({len(unique_hashes)} hashes distintos). "
-                f"Necessário sufixo de letra (a, b, c...)."
-            ),
-            "severity": "ERROR",
-            "dest_name": dest_name,
-            "files": file_names,
-        })
+        issues.append(
+            {
+                "file": ", ".join(file_names),
+                "issue": (
+                    f"COLISÃO: {len(entries)} arquivos no inbox/ gerariam o mesmo nome "
+                    f"'{dest_name}' mas têm conteúdo diferente ({len(unique_hashes)} hashes distintos). "
+                    f"Necessário sufixo de letra (a, b, c...)."
+                ),
+                "severity": "ERROR",
+                "dest_name": dest_name,
+                "files": file_names,
+            }
+        )
 
     # Also check inbox files against existing data/ files
     data_files: dict[str, str] = {}  # name → hash
-    for scan_dir in [_h.DATA_DIR / "financial_statements", _h.DATA_DIR / "income_tax_br",
-                     _h.DATA_DIR / "real_estate", _h.DATA_DIR / "vehicles",
-                     _h.PROJECT_DIR / "members"]:
+    for scan_dir in [
+        _h.DATA_DIR / "financial_statements",
+        _h.DATA_DIR / "income_tax_br",
+        _h.DATA_DIR / "real_estate",
+        _h.DATA_DIR / "vehicles",
+        _h.PROJECT_DIR / "members",
+    ]:
         if not scan_dir.is_dir():
             continue
         for f in scan_dir.iterdir():
@@ -175,16 +198,18 @@ def check_name_collisions() -> list[dict[str, Any]]:
         if dest_name in data_files:
             existing_hash = data_files[dest_name]
             if inbox_hash != existing_hash:
-                issues.append({
-                    "file": inbox_file.name,
-                    "issue": (
-                        f"COLISÃO com data/: '{dest_name}' já existe em data/ com conteúdo "
-                        f"diferente. Inbox hash: {inbox_hash[:12]}..., data/ hash: {existing_hash[:12]}... "
-                        f"Necessário sufixo de letra."
-                    ),
-                    "severity": "ERROR",
-                    "dest_name": dest_name,
-                })
+                issues.append(
+                    {
+                        "file": inbox_file.name,
+                        "issue": (
+                            f"COLISÃO com data/: '{dest_name}' já existe em data/ com conteúdo "
+                            f"diferente. Inbox hash: {inbox_hash[:12]}..., data/ hash: {existing_hash[:12]}... "
+                            f"Necessário sufixo de letra."
+                        ),
+                        "severity": "ERROR",
+                        "dest_name": dest_name,
+                    }
+                )
 
     return issues
 
@@ -204,13 +229,13 @@ def check_html_as_xls() -> list[dict[str, Any]]:
         _h.PROJECT_DIR / "inbox",
     ]
 
-    html_signatures = [b'<html', b'<!doctype', b'<!DOCTYPE', b'<HTML', b'<?xml']
+    html_signatures = [b"<html", b"<!doctype", b"<!DOCTYPE", b"<HTML", b"<?xml"]
 
     for scan_dir in scan_dirs:
         if not scan_dir.is_dir():
             continue
         for f in sorted(scan_dir.iterdir()):
-            if not f.is_file() or not f.name.lower().endswith('.xls'):
+            if not f.is_file() or not f.name.lower().endswith(".xls"):
                 continue
             if f.stat().st_size == 0:
                 continue
@@ -227,21 +252,25 @@ def check_html_as_xls() -> list[dict[str, Any]]:
                     except ValueError:
                         rel = f.name
 
-                    issues.append({
-                        "file": str(rel),
-                        "issue": (
-                            f"HTML disfarçado de XLS: '{f.name}' tem extensão .xls mas é "
-                            f"na verdade um arquivo HTML. xlrd não consegue ler este formato. "
-                            f"Necessário converter via BeautifulSoup ou usar parser HTML dedicado."
-                        ),
-                        "severity": "WARNING",
-                    })
+                    issues.append(
+                        {
+                            "file": str(rel),
+                            "issue": (
+                                f"HTML disfarçado de XLS: '{f.name}' tem extensão .xls mas é "
+                                f"na verdade um arquivo HTML. xlrd não consegue ler este formato. "
+                                f"Necessário converter via BeautifulSoup ou usar parser HTML dedicado."
+                            ),
+                            "severity": "WARNING",
+                        }
+                    )
             except Exception as e:
-                issues.append({
-                    "file": f.name,
-                    "issue": f"Erro ao verificar formato de '{f.name}': {e}",
-                    "severity": "INFO",
-                })
+                issues.append(
+                    {
+                        "file": f.name,
+                        "issue": f"Erro ao verificar formato de '{f.name}': {e}",
+                        "severity": "INFO",
+                    }
+                )
 
     return issues
 
@@ -276,48 +305,56 @@ def check_extract_naming() -> list[dict[str, Any]]:
             correct_name = re.sub(r"-0_extract\.json$", "-2_extract.json", name)
             correct_path = _h.E2_DIR / correct_name
             if correct_path.exists() and correct_path.stat().st_size > 10:
-                issues.append({
-                    "file": name,
-                    "issue": (
-                        f"Nome incorreto: '{name}' usa sufixo '-0_extract' em vez de '-2_extract'. "
-                        f"Arquivo correto '{correct_name}' já existe — este pode ser removido."
-                    ),
-                    "severity": "WARNING",
-                })
+                issues.append(
+                    {
+                        "file": name,
+                        "issue": (
+                            f"Nome incorreto: '{name}' usa sufixo '-0_extract' em vez de '-2_extract'. "
+                            f"Arquivo correto '{correct_name}' já existe — este pode ser removido."
+                        ),
+                        "severity": "WARNING",
+                    }
+                )
             else:
-                issues.append({
-                    "file": name,
-                    "issue": (
-                        f"Nome incorreto: '{name}' usa sufixo '-0_extract' em vez de '-2_extract'. "
-                        f"Renomear para '{correct_name}'."
-                    ),
-                    "severity": "ERROR",
-                    "auto_fix": {"action": "rename", "from": name, "to": correct_name},
-                })
+                issues.append(
+                    {
+                        "file": name,
+                        "issue": (
+                            f"Nome incorreto: '{name}' usa sufixo '-0_extract' em vez de '-2_extract'. "
+                            f"Renomear para '{correct_name}'."
+                        ),
+                        "severity": "ERROR",
+                        "auto_fix": {"action": "rename", "from": name, "to": correct_name},
+                    }
+                )
 
         # Detect -0-0_original (double zero — LLM naming bug)
         if "-0-0_original-" in name:
             correct_name = name.replace("-0-0_original-", "-0_original-")
             correct_path = _h.E2_DIR / correct_name
             if correct_path.exists() and correct_path.stat().st_size > 10:
-                issues.append({
-                    "file": name,
-                    "issue": (
-                        f"Nome duplicado: '{name}' tem '-0-0_original' (zero duplicado). "
-                        f"Arquivo correto '{correct_name}' já existe — este pode ser removido."
-                    ),
-                    "severity": "WARNING",
-                })
+                issues.append(
+                    {
+                        "file": name,
+                        "issue": (
+                            f"Nome duplicado: '{name}' tem '-0-0_original' (zero duplicado). "
+                            f"Arquivo correto '{correct_name}' já existe — este pode ser removido."
+                        ),
+                        "severity": "WARNING",
+                    }
+                )
             else:
-                issues.append({
-                    "file": name,
-                    "issue": (
-                        f"Nome duplicado: '{name}' tem '-0-0_original' (zero duplicado). "
-                        f"Renomear para '{correct_name}'."
-                    ),
-                    "severity": "ERROR",
-                    "auto_fix": {"action": "rename", "from": name, "to": correct_name},
-                })
+                issues.append(
+                    {
+                        "file": name,
+                        "issue": (
+                            f"Nome duplicado: '{name}' tem '-0-0_original' (zero duplicado). "
+                            f"Renomear para '{correct_name}'."
+                        ),
+                        "severity": "ERROR",
+                        "auto_fix": {"action": "rename", "from": name, "to": correct_name},
+                    }
+                )
 
     return issues
 

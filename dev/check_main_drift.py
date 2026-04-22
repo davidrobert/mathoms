@@ -27,7 +27,6 @@ import os
 import subprocess
 import sys
 
-
 MAIN_REF = "refs/heads/main"
 DRIFT_WARN_THRESHOLD = 5  # branches feature: aviso informativo acima disso
 
@@ -59,8 +58,7 @@ def _check_push_to_main(local_sha: str) -> int:
         return 0
 
     print(
-        "\n🛑 pre-push bloqueado: origin/main avançou "
-        f"{drift} commit(s) além do HEAD local.",
+        "\n🛑 pre-push bloqueado: origin/main avançou " f"{drift} commit(s) além do HEAD local.",
         file=sys.stderr,
     )
     print(
@@ -103,8 +101,7 @@ def main() -> int:
 
     if not _fetch_origin():
         print(
-            "⚠️  pre-push drift check: git fetch origin falhou; "
-            "pulando validação.",
+            "⚠️  pre-push drift check: git fetch origin falhou; " "pulando validação.",
             file=sys.stderr,
         )
         return 0

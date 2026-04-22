@@ -14,8 +14,8 @@ from backend.app.services.canonical_routing import (
 )
 from backend.app.services.classification_telemetry import emit_classification_outcome
 from backend.app.services.document_classification import (
-    classify_document,
     classification_can_route_to_data,
+    classify_document,
 )
 
 
@@ -222,9 +222,7 @@ def _move_and_record_routed(
 def _inbox_rel_path(file_path: Path, tenant_root: Path) -> str | None:
     """Caminho relativo do arquivo ainda no inbox (fallback sem rotear)."""
     try:
-        return str(
-            file_path.resolve().relative_to(tenant_root.resolve())
-        ).replace("\\", "/")
+        return str(file_path.resolve().relative_to(tenant_root.resolve())).replace("\\", "/")
     except ValueError:
         return None
 
@@ -250,7 +248,8 @@ def _route_classified_file(
         return None
     if classification_can_route_to_data(classification):
         return _move_and_record_routed(
-            file_path, classification,
+            file_path,
+            classification,
             tenant_root=tenant_root,
             classification_root=classification_root,
             content_hash=content_hash,

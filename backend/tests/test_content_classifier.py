@@ -14,7 +14,6 @@ from backend.app.services.content_classifier import (
     extract_period_from_content,
 )
 
-
 # ---------------------------------------------------------------------------
 # Realistic content fixtures — based on actual bank export headers
 # (see scripts/e2/banks/*.py for the parsers that confirm these markers)
@@ -291,10 +290,7 @@ class TestTypeDetection:
 
 class TestPeriodExtraction:
     def test_date_range(self):
-        assert (
-            extract_period_from_content("Período: 01/01/2026 a 31/01/2026")
-            == "202601_202601"
-        )
+        assert extract_period_from_content("Período: 01/01/2026 a 31/01/2026") == "202601_202601"
 
     def test_month_year_br(self):
         assert extract_period_from_content("Fatura de março/2026") == "202603"
@@ -335,7 +331,9 @@ class TestClassifyText:
         result = classify_text(C6_FATURA_CARBON_CSV)
         assert result.doc_type == "faturacarbon"
         assert result.institution == "c6bank"
-        assert result.confidence == 1.0  # required (USD+BRL cols) + supporting (Data de Compra, Final do Cartão)
+        assert (
+            result.confidence == 1.0
+        )  # required (USD+BRL cols) + supporting (Data de Compra, Final do Cartão)
 
     def test_high_confidence_itau_xls(self):
         """XLS do Itaú sem 'EXTRATO': confidence 1.0 via Logotipo Itaú + Atualização."""
@@ -365,8 +363,12 @@ class TestClassifyText:
         result = classify_text(BRADESCO_EXTRATO_POUPANCA)
         d = result.to_dict()
         assert set(d.keys()) >= {
-            "institution", "doc_type", "dest_group", "period",
-            "confidence", "source",
+            "institution",
+            "doc_type",
+            "dest_group",
+            "period",
+            "confidence",
+            "source",
         }
 
 

@@ -20,7 +20,6 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
-
 # ---------------------------------------------------------------------------
 # Pipeline — sub-schemas tipados (superfície editada pelo usuário)
 # ---------------------------------------------------------------------------

@@ -30,9 +30,7 @@ async def merge_suggestion_into_task(
     """
     sugg = await suggestion_repo.get_by_id(workspace_id, suggestion_id)
     if sugg is None:
-        raise NotFoundError(
-            "Sugestão não encontrada", code="suggestion_not_found"
-        )
+        raise NotFoundError("Sugestão não encontrada", code="suggestion_not_found")
     if sugg.status != "pending":
         raise ConflictError(
             f"Sugestão já foi processada (status={sugg.status})",
@@ -41,9 +39,7 @@ async def merge_suggestion_into_task(
 
     target = await task_repo.get_by_id(workspace_id, target_task_id)
     if target is None:
-        raise NotFoundError(
-            "Tarefa alvo não encontrada", code="task_not_found"
-        )
+        raise NotFoundError("Tarefa alvo não encontrada", code="task_not_found")
 
     sugg.status = "merged"
     sugg.approved_task_id = target.id

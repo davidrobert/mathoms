@@ -86,7 +86,5 @@ class TestKeywordMatcherClass:
 
 class TestNormalizationWhitespaceCollapsing:
     def test_multiple_spaces_collapse_to_single(self):
-        cat, _ = find_longest_matching_keyword(
-            "MERCADO     PAO", {"pa": ["mercado pao"]}
-        )
+        cat, _ = find_longest_matching_keyword("MERCADO     PAO", {"pa": ["mercado pao"]})
         assert cat == "pa"

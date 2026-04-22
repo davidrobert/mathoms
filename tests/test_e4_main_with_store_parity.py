@@ -41,12 +41,25 @@ _CATEGORIZATION = {
     "clt_source_mapping": {"empresa": "Empresa X CLT"},
 }
 
-_FAMILY: dict = {"transferencias_internas": {"patterns_pix": [], "recipients": [], "patterns_bank_specific": {}, "patterns_global": []}}
+_FAMILY: dict = {
+    "transferencias_internas": {
+        "patterns_pix": [],
+        "recipients": [],
+        "patterns_bank_specific": {},
+        "patterns_global": [],
+    }
+}
 
 _PIPELINE = {"reconciliation": {}}
 
 
-def _build_workspace(root: Path, *, e3_accounts: dict[str, dict], baseline: dict | None = None, e2_positions: dict[str, dict] | None = None) -> None:
+def _build_workspace(
+    root: Path,
+    *,
+    e3_accounts: dict[str, dict],
+    baseline: dict | None = None,
+    e2_positions: dict[str, dict] | None = None,
+) -> None:
     """Monta workspace com configs + E3 + opcional baseline + opcional posições."""
     cfg = root / "config"
     cfg.mkdir(parents=True)
@@ -114,8 +127,7 @@ def _assert_payloads_parity(legacy: dict, new: dict, *, path: str = "") -> None:
     b = _normalize_payload(new)
 
     assert set(a.keys()) == set(b.keys()), (
-        f"chaves divergiram em {path}: "
-        f"only_legacy={set(a) - set(b)} only_new={set(b) - set(a)}"
+        f"chaves divergiram em {path}: " f"only_legacy={set(a) - set(b)} only_new={set(b) - set(a)}"
     )
 
     for k in a:
@@ -144,11 +156,15 @@ def _compare_values(a, b, *, path: str) -> None:
             # Compara por cardinalidade de JSON-serialized (ignora ordem
             # de chaves dentro do dict).
             serialized_a = sorted(
-                json.dumps(_normalize_payload(x) if isinstance(x, dict) else x, sort_keys=True, default=str)
+                json.dumps(
+                    _normalize_payload(x) if isinstance(x, dict) else x, sort_keys=True, default=str
+                )
                 for x in a
             )
             serialized_b = sorted(
-                json.dumps(_normalize_payload(x) if isinstance(x, dict) else x, sort_keys=True, default=str)
+                json.dumps(
+                    _normalize_payload(x) if isinstance(x, dict) else x, sort_keys=True, default=str
+                )
                 for x in b
             )
             assert serialized_a == serialized_b, f"lista de dicts divergiu em {path}"
@@ -161,7 +177,8 @@ def _compare_values(a, b, *, path: str) -> None:
 
 def _run_legacy(workspace: Path) -> None:
     from scripts import pipeline_common as _pc
-    from scripts.e4_categorize import _init_config, main as e4_main
+    from scripts.e4_categorize import _init_config
+    from scripts.e4_categorize import main as e4_main
 
     # O `e4_categorize._init_config(workspace)` configura globals do próprio
     # módulo, mas NÃO reinicializa `pipeline_common.CONFIG_DIR` — que
@@ -179,6 +196,7 @@ def _run_legacy(workspace: Path) -> None:
         # Restaurar pipeline_common + e4 globals para o estado default.
         _pc._init_config(original_pc_root)
         from scripts import e4_categorize as _e4
+
         _init_config(_e4._DEFAULT_BASE_DIR)
 
 
@@ -212,9 +230,24 @@ def _cenario_receitas_despesas_simples() -> dict:
                 "transacoes_total": 3,
                 "transacoes_duplicadas_removidas": 0,
                 "transacoes": [
-                    {"data": "2026-01-05", "descricao": "SALARIO EMPRESA", "valor": 5000.0, "tipo": "credito"},
-                    {"data": "2026-01-10", "descricao": "MERCADO PAO", "valor": -200.0, "tipo": "debito"},
-                    {"data": "2026-01-15", "descricao": "UBER 2026-01", "valor": -100.0, "tipo": "debito"},
+                    {
+                        "data": "2026-01-05",
+                        "descricao": "SALARIO EMPRESA",
+                        "valor": 5000.0,
+                        "tipo": "credito",
+                    },
+                    {
+                        "data": "2026-01-10",
+                        "descricao": "MERCADO PAO",
+                        "valor": -200.0,
+                        "tipo": "debito",
+                    },
+                    {
+                        "data": "2026-01-15",
+                        "descricao": "UBER 2026-01",
+                        "valor": -100.0,
+                        "tipo": "debito",
+                    },
                 ],
             },
         },
@@ -238,7 +271,12 @@ def _cenario_com_baseline_e_investimentos() -> dict:
                 "transacoes_total": 1,
                 "transacoes_duplicadas_removidas": 0,
                 "transacoes": [
-                    {"data": "2026-01-05", "descricao": "SALARIO EMPRESA", "valor": 5000.0, "tipo": "credito"},
+                    {
+                        "data": "2026-01-05",
+                        "descricao": "SALARIO EMPRESA",
+                        "valor": 5000.0,
+                        "tipo": "credito",
+                    },
                 ],
             },
         },
@@ -246,9 +284,7 @@ def _cenario_com_baseline_e_investimentos() -> dict:
             "pipeline_stage": "E1.5_Baseline_Patrimonial",
             "data_processamento": "2025-06-30",
             "membros": ["David"],
-            "patrimonio_por_ano": {
-                "2024": {"total_bens": 1_000_000.0, "total_dividas": 100_000.0}
-            },
+            "patrimonio_por_ano": {"2024": {"total_bens": 1_000_000.0, "total_dividas": 100_000.0}},
         },
         "e2_positions": {
             "btg_investimentosposicao_202603": {
@@ -292,14 +328,12 @@ def test_main_with_store_parity_against_legacy(tmp_path: Path, scenario_name: st
     legacy_outputs = _read_e4_outputs(legacy_root)
     new_outputs = _read_e4_outputs(new_root)
 
-    assert sorted(legacy_outputs.keys()) == sorted(new_outputs.keys()), (
-        f"filenames divergiram: legacy={sorted(legacy_outputs)} new={sorted(new_outputs)}"
-    )
+    assert sorted(legacy_outputs.keys()) == sorted(
+        new_outputs.keys()
+    ), f"filenames divergiram: legacy={sorted(legacy_outputs)} new={sorted(new_outputs)}"
 
     for filename in legacy_outputs:
-        _assert_payloads_parity(
-            legacy_outputs[filename], new_outputs[filename], path=filename
-        )
+        _assert_payloads_parity(legacy_outputs[filename], new_outputs[filename], path=filename)
 
 
 def test_pipeline_stages_e4_does_not_import_stage_runner_compat():
@@ -310,6 +344,6 @@ def test_pipeline_stages_e4_does_not_import_stage_runner_compat():
         "pipeline/stages/e4.py ainda referencia stage_runner_compat — "
         "Sessão A4b deveria ter migrado para chamada direta a main_with_store."
     )
-    assert "main_with_store" in src, (
-        "pipeline/stages/e4.py deveria chamar main_with_store após Sessão A4b."
-    )
+    assert (
+        "main_with_store" in src
+    ), "pipeline/stages/e4.py deveria chamar main_with_store após Sessão A4b."

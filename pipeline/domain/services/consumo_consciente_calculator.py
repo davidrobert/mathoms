@@ -33,14 +33,16 @@ def _safe_float(val) -> float:
 # =============================================================================
 
 
-_DEFAULT_RECURRENT = frozenset({
-    "moradia",
-    "financiamentos",
-    "seguros",
-    "assinaturas",
-    "impostos",
-    "servicos_domesticos",
-})
+_DEFAULT_RECURRENT = frozenset(
+    {
+        "moradia",
+        "financiamentos",
+        "seguros",
+        "assinaturas",
+        "impostos",
+        "servicos_domesticos",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -147,11 +149,7 @@ class ConsumoConscienteCalculator:
         candidates.sort(key=lambda x: x.valor, reverse=True)
         total_pontuais = sum(c.valor for c in candidates)
 
-        equivalente = (
-            round(total_pontuais / cfg.aporte_mensal, 1)
-            if cfg.aporte_mensal > 0
-            else 0.0
-        )
+        equivalente = round(total_pontuais / cfg.aporte_mensal, 1) if cfg.aporte_mensal > 0 else 0.0
 
         receita_rec_mensal, despesa_mensal_media, n_meses = self._resolve_janela(fluxo)
 
@@ -159,9 +157,7 @@ class ConsumoConscienteCalculator:
         despesas_recorrentes_mensal = despesa_mensal_media - pontual_mensal
         folga_mensal = receita_rec_mensal - despesas_recorrentes_mensal
         folga_pct = (
-            round((folga_mensal / receita_rec_mensal * 100), 1)
-            if receita_rec_mensal > 0
-            else 0.0
+            round((folga_mensal / receita_rec_mensal * 100), 1) if receita_rec_mensal > 0 else 0.0
         )
         teto_sugerido = despesas_recorrentes_mensal * cfg.teto_multiplier
 
@@ -183,9 +179,7 @@ class ConsumoConscienteCalculator:
 
     # -- Helpers --
 
-    def _collect_candidates(
-        self, dados: dict[str, Any]
-    ) -> list[GastoPontualItem]:
+    def _collect_candidates(self, dados: dict[str, Any]) -> list[GastoPontualItem]:
         cfg = self._config
         out: list[GastoPontualItem] = []
         for cat, transacoes in dados.items():
@@ -215,9 +209,7 @@ class ConsumoConscienteCalculator:
                 )
         return out
 
-    def _resolve_janela(
-        self, fluxo: dict[str, Any]
-    ) -> tuple[float, float, float]:
+    def _resolve_janela(self, fluxo: dict[str, Any]) -> tuple[float, float, float]:
         j12m = fluxo.get("janela_12m") if isinstance(fluxo, dict) else None
         if j12m:
             return (

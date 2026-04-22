@@ -22,14 +22,13 @@ import deste pacote dispara o registro (ver ``handlers.__init__``).
 
 from __future__ import annotations
 
+# Import handlers para disparar registros. NÃO remover — sem isto, os
+# decoradores nunca rodam e os handlers ficam invisíveis ao dispatcher.
+from backend.app.events import handlers as _handlers  # noqa: F401,E402
 from backend.app.events.base import Event
 from backend.app.events.dispatcher import dispatch_sync, enqueue_async
 from backend.app.events.protocols import EventHandlerDeps
 from backend.app.events.registry import clear_handlers, register_handler
-
-# Import handlers para disparar registros. NÃO remover — sem isto, os
-# decoradores nunca rodam e os handlers ficam invisíveis ao dispatcher.
-from backend.app.events import handlers as _handlers  # noqa: F401,E402
 
 __all__ = [
     "Event",

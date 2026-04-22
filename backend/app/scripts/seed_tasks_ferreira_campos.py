@@ -31,15 +31,12 @@ from backend.app.models.task import Task
 from backend.app.models.workspace import Workspace
 from backend.app.services.tarefas_md_parser import parse_file
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 TAREFAS_MD_PATH = REPO_ROOT / "config" / "tarefas.md"
 FAMILY_SURNAME_MATCH = "Ferreira Campos"
 
 logger = logging.getLogger("seed_tasks_fc")
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
 async def seed(
@@ -67,9 +64,7 @@ async def seed(
             stmt = select(Workspace).where(Workspace.id == workspace_id)
         else:
             # tenancy: global — seed CLI
-            stmt = select(Workspace).where(
-                Workspace.family_surname == FAMILY_SURNAME_MATCH
-            )
+            stmt = select(Workspace).where(Workspace.family_surname == FAMILY_SURNAME_MATCH)
         result = await db.execute(stmt)
         workspaces = list(result.scalars().all())
 
@@ -88,8 +83,7 @@ async def seed(
 
             if existing and not force_replace:
                 logger.info(
-                    "[skip] workspace %s já tem %d tasks. "
-                    "Use --force-replace para recriar.",
+                    "[skip] workspace %s já tem %d tasks. " "Use --force-replace para recriar.",
                     ws.id,
                     len(existing),
                 )
@@ -164,8 +158,7 @@ async def seed(
             )
         else:
             logger.info(
-                "[dry-run] nada persistido. Processáveis=%d, Skipped=%d. "
-                "Use --apply.",
+                "[dry-run] nada persistido. Processáveis=%d, Skipped=%d. " "Use --apply.",
                 processed,
                 skipped,
             )

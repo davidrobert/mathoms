@@ -66,9 +66,15 @@ async def run(dry_run: bool, tz_name: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Corrige títulos de relatórios de UTC → horário local")
-    parser.add_argument("--apply", action="store_true", help="Aplica as alterações (padrão: dry-run)")
-    parser.add_argument("--tz", default="America/Sao_Paulo", help="Fuso-horário alvo (padrão: America/Sao_Paulo)")
+    parser = argparse.ArgumentParser(
+        description="Corrige títulos de relatórios de UTC → horário local"
+    )
+    parser.add_argument(
+        "--apply", action="store_true", help="Aplica as alterações (padrão: dry-run)"
+    )
+    parser.add_argument(
+        "--tz", default="America/Sao_Paulo", help="Fuso-horário alvo (padrão: America/Sao_Paulo)"
+    )
     args = parser.parse_args()
 
     asyncio.run(run(dry_run=not args.apply, tz_name=args.tz))

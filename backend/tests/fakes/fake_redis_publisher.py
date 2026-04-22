@@ -42,7 +42,5 @@ class FakeRedisPublisher:
 
     def assert_published_once(self) -> PublishedMessage:
         if len(self.messages) != 1:
-            raise AssertionError(
-                f"expected exactly 1 publish, got {len(self.messages)}"
-            )
+            raise AssertionError(f"expected exactly 1 publish, got {len(self.messages)}")
         return self.messages[0]

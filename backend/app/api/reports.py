@@ -12,18 +12,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace
+from backend.app.models.report import Report
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
-from backend.app.models.report import Report
 from backend.app.schemas.report import (
     ReportAnalysisResponse,
     ReportListResponse,
     ReportResponse,
     ReportTasksResponse,
 )
-from backend.app.services.report_lineage import lineage_payload, workspace_ready_documents_summary
-from backend.app.services import report_tasks_snapshot_service, task_service
 from backend.app.schemas.task import TaskFilters, TaskResponse
+from backend.app.services import report_tasks_snapshot_service, task_service
+from backend.app.services.report_lineage import lineage_payload, workspace_ready_documents_summary
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/reports",
@@ -62,9 +62,7 @@ async def list_reports(
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(Report)
-        .where(Report.workspace_id == workspace.id)
-        .order_by(Report.created_at.desc())
+        select(Report).where(Report.workspace_id == workspace.id).order_by(Report.created_at.desc())
     )
     reports = list(result.scalars().all())
     doc_total, doc_ids = await workspace_ready_documents_summary(db, workspace.id)
@@ -276,9 +274,7 @@ async def download_report_pdf(
     # durante o render).
     from datetime import timedelta
 
-    ephemeral_token = create_access_token(
-        current_user.id, expires_delta=timedelta(minutes=1)
-    )
+    ephemeral_token = create_access_token(current_user.id, expires_delta=timedelta(minutes=1))
 
     frontend_base = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
     report_url = f"{frontend_base}/reports/{report_id}?print=1"
@@ -300,9 +296,7 @@ async def download_report_pdf(
             detail=f"Falha ao gerar PDF: {exc}",
         )
 
-    filename = _sanitize_filename(
-        f"relatorio-{report_id[:8]}.pdf"
-    )
+    filename = _sanitize_filename(f"relatorio-{report_id[:8]}.pdf")
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
@@ -335,9 +329,7 @@ async def get_report_tasks(
     # Fallback: estado live (para relatórios pré-F8.3 OU geração inicial sem snapshot)
     # Valida que o relatório existe no workspace antes de vazar tasks
     result = await db.execute(
-        select(Report).where(
-            Report.id == report_id, Report.workspace_id == workspace.id
-        )
+        select(Report).where(Report.id == report_id, Report.workspace_id == workspace.id)
     )
     if result.scalar_one_or_none() is None:
         raise HTTPException(
@@ -355,9 +347,6 @@ async def get_report_tasks(
             "total": len(live_tasks),
             "counts_by_status": {},
             "counts_by_priority": {},
-            "tasks": [
-                TaskResponse.model_validate(t).model_dump(mode="json")
-                for t in live_tasks
-            ],
+            "tasks": [TaskResponse.model_validate(t).model_dump(mode="json") for t in live_tasks],
         }
     )

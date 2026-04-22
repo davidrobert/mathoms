@@ -32,7 +32,6 @@ from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.models.workspace import Workspace
 from backend.app.services.pipeline_adapter import build_goals_payload
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 GOALS_JSON_PATH = REPO_ROOT / "config" / "goals.json"
 FAMILY_SURNAME_MATCH = "Ferreira Campos"
@@ -80,13 +79,9 @@ def _deep_compare(
             _deep_compare(f"{path}[{i}]", o, a, diffs)
     elif isinstance(original, (int, float)) and isinstance(adapted, (int, float)):
         if abs(original - adapted) > 0.01:
-            diffs.append(
-                f"VALUE DIFF: {path} — original={original}, adapter={adapted}"
-            )
+            diffs.append(f"VALUE DIFF: {path} — original={original}, adapter={adapted}")
     elif original != adapted:
-        diffs.append(
-            f"VALUE DIFF: {path} — original={repr(original)}, adapter={repr(adapted)}"
-        )
+        diffs.append(f"VALUE DIFF: {path} — original={repr(original)}, adapter={repr(adapted)}")
 
 
 async def validate(workspace_id: str | None) -> int:
@@ -104,9 +99,7 @@ async def validate(workspace_id: str | None) -> int:
         if workspace_id:
             stmt = select(Workspace).where(Workspace.id == workspace_id)
         else:
-            stmt = select(Workspace).where(
-                Workspace.family_surname == FAMILY_SURNAME_MATCH
-            )
+            stmt = select(Workspace).where(Workspace.family_surname == FAMILY_SURNAME_MATCH)
         ws = (await db.execute(stmt)).scalar_one_or_none()
         if not ws:
             logger.error("Workspace não encontrada")

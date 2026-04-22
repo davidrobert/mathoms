@@ -21,7 +21,6 @@ from backend.app.services.task_progress_service import (
 )
 from backend.tests import factories
 
-
 # ─── Parsing de target BRL ──────────────────────────────────────────────
 
 
@@ -211,13 +210,9 @@ async def test_progress_matches_transactions_with_keywords(db, tmp_path: Path):
             ]
         }
     }
-    (e4_dir / "despesas-4_unified.json").write_text(
-        json.dumps(despesas), encoding="utf-8"
-    )
+    (e4_dir / "despesas-4_unified.json").write_text(json.dumps(despesas), encoding="utf-8")
     # Arquivo de receitas vazio (esperado pelo loader)
-    (e4_dir / "receitas-4_unified.json").write_text(
-        json.dumps({"dados": {}}), encoding="utf-8"
-    )
+    (e4_dir / "receitas-4_unified.json").write_text(json.dumps({"dados": {}}), encoding="utf-8")
 
     progress = compute_progress(task, tenant_root=str(tmp_path))
     assert progress.is_trackable is True

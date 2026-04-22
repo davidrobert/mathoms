@@ -33,7 +33,6 @@ from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 
-
 CONFIRM_PHRASE_1 = "DELETE ALL DATA"
 CONFIRM_PHRASE_2 = "RESET PLATFORM IRREVERSIBLE"
 
@@ -159,7 +158,10 @@ async def run(*, apply: bool, skip_redis: bool) -> int:
     print(f"  storage:    {n_st_items} entradas, ~{_human(st_bytes)}", flush=True)
 
     if not apply:
-        print("\n[dry-run] Nada foi alterado. Use --apply para executar (com confirmações).", flush=True)
+        print(
+            "\n[dry-run] Nada foi alterado. Use --apply para executar (com confirmações).",
+            flush=True,
+        )
         return 0
 
     print("\n*** ATENÇÃO: vai apagar TODOS os utilizadores e ficheiros de storage. ***", flush=True)

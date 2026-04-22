@@ -15,7 +15,6 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Optional
 
-
 # Mapeamento bidirecional entre labels do MD e categorias canônicas do model.
 _MD_TO_CATEGORY = {
     "Invest.": "Invest",
@@ -40,8 +39,18 @@ _MD_TO_CATEGORY = {
 
 
 _MONTH_PT = {
-    "jan": 1, "fev": 2, "mar": 3, "abr": 4, "mai": 5, "jun": 6,
-    "jul": 7, "ago": 8, "set": 9, "out": 10, "nov": 11, "dez": 12,
+    "jan": 1,
+    "fev": 2,
+    "mar": 3,
+    "abr": 4,
+    "mai": 5,
+    "jun": 6,
+    "jul": 7,
+    "ago": 8,
+    "set": 9,
+    "out": 10,
+    "nov": 11,
+    "dez": 12,
 }
 
 
@@ -121,27 +130,18 @@ def _parse_deadline(raw: str) -> tuple[str, Optional[date], Optional[str]]:
 
     # Palavras-chave condicionais
     lower = raw.lower()
-    if any(
-        k in lower
-        for k in ("antes eua", "após mudança", "apos mudanca", "imediato", "quando")
-    ):
+    if any(k in lower for k in ("antes eua", "após mudança", "apos mudanca", "imediato", "quando")):
         return ("CONDITIONAL", None, raw)
 
     # Fallback: preserva o texto bruto como label
     return ("CONDITIONAL", None, raw)
 
 
-_PRIORITY_SECTION_RE = re.compile(
-    r"^## (Essenciais|Recomendadas|Opcionais)"
-)
+_PRIORITY_SECTION_RE = re.compile(r"^## (Essenciais|Recomendadas|Opcionais)")
 _CONCLUIDAS_RE = re.compile(r"^## Concluídas")
 _NOTAS_RE = re.compile(r"^## Notas")
-_ROW_RE = re.compile(
-    r"^\|\s*(\d+)\s*\|(.+?)\|(.+?)\|(.+?)\|(.+?)\|(.*?)\|$"
-)
-_DONE_ROW_RE = re.compile(
-    r"^\|\s*(\d+)\s*\|(.+?)\|(.+?)\|(.+?)\|$"
-)
+_ROW_RE = re.compile(r"^\|\s*(\d+)\s*\|(.+?)\|(.+?)\|(.+?)\|(.+?)\|(.*?)\|$")
+_DONE_ROW_RE = re.compile(r"^\|\s*(\d+)\s*\|(.+?)\|(.+?)\|(.+?)\|$")
 # Casa "#19 depende de #18", "Depende de #18", "(depende de #18)"
 _DEP_RE = re.compile(
     r"#?(\d+)\s*(?:depende|dependência)[^0-9]*(\d+)|depende.*?#(\d+)",
@@ -211,11 +211,7 @@ def _apply_dependency_pass(parsed: dict[int, ParsedTask]) -> None:
 
 def _is_table_row(line: str) -> bool:
     """True se é linha de dados de tabela MD (não header nem separador)."""
-    return (
-        line.startswith("|")
-        and not line.startswith("|-")
-        and not line.startswith("| #")
-    )
+    return line.startswith("|") and not line.startswith("|-") and not line.startswith("| #")
 
 
 def parse_tarefas_md(content: str) -> list[ParsedTask]:

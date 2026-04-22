@@ -38,9 +38,7 @@ def _build_context(req: StageExecuteRequest):
 
     root = Path(req.workspace_root)
     cfg = Path(req.config_dir) if req.config_dir else None
-    ctx = WorkspaceContext.for_tenant(
-        root, config_dir=cfg, pipeline_run_id=req.run_id
-    )
+    ctx = WorkspaceContext.for_tenant(root, config_dir=cfg, pipeline_run_id=req.run_id)
     ctx.incremental = req.incremental
     ctx.incremental_doc_paths = list(req.incremental_doc_paths)
     return ctx

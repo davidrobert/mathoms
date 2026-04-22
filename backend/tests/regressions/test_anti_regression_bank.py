@@ -57,18 +57,16 @@ class TestBug001CeleryTaskDiscovery:
         )
 
     def test_pipeline_run_task_is_registered(self):
-        from backend.app import worker
-
         # Force-import do módulo de tasks (Celery `include` é lazy — só roda
         # quando o worker bootstrapa). Em test, importamos explicitamente
         # para popular o registry.
         import backend.app.tasks.pipeline_task  # noqa: F401
+        from backend.app import worker
 
         names = list(worker.celery_app.tasks.keys())
         # nome canônico definido via @celery_app.task(name="...") em pipeline_task.py
         assert any("pipeline" in n.lower() for n in names), (
-            f"Nenhuma task contendo 'pipeline' registrada após import explícito. "
-            f"Tasks: {names}"
+            f"Nenhuma task contendo 'pipeline' registrada após import explícito. " f"Tasks: {names}"
         )
 
 
@@ -161,13 +159,7 @@ class TestBug004FallbackCPFLeak:
         # (``convert_global_defaults_to_responses``). A sentinela
         # ``cpf=None`` agora mora lá.
         mapper_file = (
-            PROJECT_ROOT
-            / "backend"
-            / "app"
-            / "schemas"
-            / "dto"
-            / "family_member"
-            / "mapper.py"
+            PROJECT_ROOT / "backend" / "app" / "schemas" / "dto" / "family_member" / "mapper.py"
         )
         text = mapper_file.read_text(encoding="utf-8")
         assert "cpf=None" in text, (
@@ -363,9 +355,9 @@ class TestOp008FernetPersistence:
 
         # No mínimo, settings tem que EXPOR a key (não pode ser hardcoded
         # como "" sem fallback)
-        assert hasattr(settings, "FERNET_KEY"), (
-            "OP-008 REGRESSION: FERNET_KEY removida de Settings."
-        )
+        assert hasattr(
+            settings, "FERNET_KEY"
+        ), "OP-008 REGRESSION: FERNET_KEY removida de Settings."
         # Em CI: FERNET_KEY é setada via env (conftest faz isso)
         assert settings.FERNET_KEY, (
             "OP-008 REGRESSION: FERNET_KEY vazia. Verifique que .env tem a key "

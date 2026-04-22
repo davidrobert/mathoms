@@ -7,6 +7,7 @@ Cobertura:
 
 Todos os testes são puros — zero I/O, zero config global.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -38,9 +39,7 @@ def identity() -> MemberIdentity:
 @pytest.fixture
 def identity_solo() -> MemberIdentity:
     """Titular sem cônjuge."""
-    return MemberIdentity(
-        titular_key="joao", conjuge_key="", titular_nome="João", conjuge_nome=""
-    )
+    return MemberIdentity(titular_key="joao", conjuge_key="", titular_nome="João", conjuge_nome="")
 
 
 # =============================================================================
@@ -102,9 +101,7 @@ def test_resolve_members_list_of_strings_with_declarations(
                 "membro": "david",
                 "ano_base": 2024,
                 "total_bens": 500000,
-                "bens_direitos": [
-                    {"grupo": "01", "situacao_atual": 300000, "descricao": "Apt"}
-                ],
+                "bens_direitos": [{"grupo": "01", "situacao_atual": 300000, "descricao": "Apt"}],
             }
         ],
     }
@@ -120,9 +117,7 @@ def test_resolve_members_list_of_strings_with_consolidated(
     """Membros como lista + imoveis_consolidados → consolidated path."""
     baseline = {
         "membros": ["david", "mariana"],
-        "imoveis_consolidados": [
-            {"proprietario": "david", "valor": 300000}
-        ],
+        "imoveis_consolidados": [{"proprietario": "david", "valor": 300000}],
         "patrimonio_por_ano": {"2024": {"total_bens": 300000}},
     }
     titular, _ = resolve_members(baseline, identity)
@@ -260,10 +255,7 @@ def test_infer_ano_base_from_source_file():
 
 def test_infer_ano_base_from_nested_filename():
     """Apenas o último segmento do path é inspecionado (paridade com legado)."""
-    assert (
-        _infer_ano_base({"source_file": "/tmp/irpf/2022/decl_2024.pdf"})
-        == 2024
-    )
+    assert _infer_ano_base({"source_file": "/tmp/irpf/2022/decl_2024.pdf"}) == 2024
 
 
 def test_infer_ano_base_nested_path_without_year_in_filename_returns_zero():
@@ -422,9 +414,7 @@ def test_resolve_ano_ref_e15_v2_resumo():
             "31_12_2024": {"total": 1_000_000},
             "variacao_2023_2024": {"pct": 10},
         },
-        "cálculo_patrimonio_liquido": {
-            "2024": {"ativo_total": 1_000_000, "passivo_total": 50_000}
-        },
+        "cálculo_patrimonio_liquido": {"2024": {"ativo_total": 1_000_000, "passivo_total": 50_000}},
     }
     ano, bens, div = _resolve_ano_ref(baseline)
     assert ano == "2024"
@@ -439,9 +429,7 @@ def test_resolve_ano_ref_e15_v2_calculo_fallback_when_resumo_total_zero():
             "31_12_2024": {"total": 0},  # zero → fallback
             "variacao_2023_2024": {},  # filtrada (starts with variacao_)
         },
-        "cálculo_patrimonio_liquido": {
-            "2024": {"ativo_total": 999, "passivo_total": 11}
-        },
+        "cálculo_patrimonio_liquido": {"2024": {"ativo_total": 999, "passivo_total": 11}},
     }
     ano, bens, div = _resolve_ano_ref(baseline)
     assert ano == "2024"
@@ -453,9 +441,7 @@ def test_resolve_ano_ref_calculo_sem_cedilha_aceito():
     """Aceita ``calculo_patrimonio_liquido`` sem cedilha."""
     baseline = {
         "resumo_patrimonial": {"31_12_2024": {}},
-        "calculo_patrimonio_liquido": {
-            "2024": {"ativo_total": 42, "passivo_total": 7}
-        },
+        "calculo_patrimonio_liquido": {"2024": {"ativo_total": 42, "passivo_total": 7}},
     }
     ano, bens, div = _resolve_ano_ref(baseline)
     assert ano == "2024"
@@ -503,29 +489,20 @@ def test_conjuge_exclusive_string_positive(identity: MemberIdentity):
 
 
 def test_conjuge_exclusive_string_shared_with_titular(identity: MemberIdentity):
-    assert (
-        _is_conjuge_exclusive({"proprietario": "David & Mariana"}, identity) is False
-    )
+    assert _is_conjuge_exclusive({"proprietario": "David & Mariana"}, identity) is False
 
 
 def test_conjuge_exclusive_list_positive(identity: MemberIdentity):
-    assert (
-        _is_conjuge_exclusive({"proprietarios": ["Mariana"]}, identity) is True
-    )
+    assert _is_conjuge_exclusive({"proprietarios": ["Mariana"]}, identity) is True
 
 
 def test_conjuge_exclusive_list_shared(identity: MemberIdentity):
-    assert (
-        _is_conjuge_exclusive({"proprietarios": ["David", "Mariana"]}, identity)
-        is False
-    )
+    assert _is_conjuge_exclusive({"proprietarios": ["David", "Mariana"]}, identity) is False
 
 
 def test_conjuge_exclusive_false_for_solo_identity(identity_solo: MemberIdentity):
     """Solo identity nunca marca como exclusivo do cônjuge."""
-    assert (
-        _is_conjuge_exclusive({"proprietario": "mariana"}, identity_solo) is False
-    )
+    assert _is_conjuge_exclusive({"proprietario": "mariana"}, identity_solo) is False
 
 
 def test_conjuge_exclusive_false_when_titular(identity: MemberIdentity):
@@ -619,9 +596,7 @@ def test_consolidated_investments_as_dict_e15v2(identity: MemberIdentity):
 def test_consolidated_investments_dict_skips_zero_values(identity: MemberIdentity):
     baseline = {
         "patrimonio_por_ano": {"2024": {}},
-        "investimentos_financeiros_consolidados": {
-            "david_2024": {"acoes": 0, "renda_fixa": 100}
-        },
+        "investimentos_financeiros_consolidados": {"david_2024": {"acoes": 0, "renda_fixa": 100}},
     }
     titular, _ = build_members_from_consolidated(baseline, identity)
     assert len(titular["bens"]["investimentos"]) == 1
@@ -696,9 +671,7 @@ def test_consolidated_diff_allocated_to_titular(identity: MemberIdentity):
 def test_consolidated_solo_identity_conjuge_empty(identity_solo: MemberIdentity):
     baseline = {
         "patrimonio_por_ano": {"2024": {}},
-        "imoveis_consolidados": [
-            {"proprietario": "joao", "descricao": "Apt", "valor_2024": 100}
-        ],
+        "imoveis_consolidados": [{"proprietario": "joao", "descricao": "Apt", "valor_2024": 100}],
     }
     titular, conjuge = build_members_from_consolidated(baseline, identity_solo)
     assert titular["total_bens"] == 100

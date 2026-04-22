@@ -24,7 +24,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-
 # =============================================================================
 # Config
 # =============================================================================
@@ -39,11 +38,7 @@ class InvestmentsConsolidatorConfig:
     def from_family(cls, family: dict | None = None) -> "InvestmentsConsolidatorConfig":
         fam = family or {}
         raw = fam.get("banco_membro") or {}
-        clean = {
-            str(k): str(v)
-            for k, v in raw.items()
-            if not str(k).startswith("_")
-        }
+        clean = {str(k): str(v) for k, v in raw.items() if not str(k).startswith("_")}
         return cls(banco_membro=clean)
 
 
@@ -145,22 +140,23 @@ class InvestmentsConsolidator:
                 inst_key = str(instituicao).lower().replace(" ", "")
                 membro = self._config.banco_membro.get(inst_key, "")
             data_ref = (
-                data.get("data_referencia")
-                or data.get("data_posicao")
-                or data.get("periodo")
-                or ""
+                data.get("data_referencia") or data.get("data_posicao") or data.get("periodo") or ""
             )
-            total_fonte = data.get("total") or data.get("saldo_atual") or data.get("saldo_total") or 0
+            total_fonte = (
+                data.get("total") or data.get("saldo_atual") or data.get("saldo_total") or 0
+            )
 
-            valid.append({
-                "_source": src,
-                "_data": data,
-                "_posicoes": posicoes,
-                "instituicao": instituicao,
-                "membro": membro,
-                "data_ref": data_ref,
-                "total_fonte": total_fonte,
-            })
+            valid.append(
+                {
+                    "_source": src,
+                    "_data": data,
+                    "_posicoes": posicoes,
+                    "instituicao": instituicao,
+                    "membro": membro,
+                    "data_ref": data_ref,
+                    "total_fonte": total_fonte,
+                }
+            )
 
         # Phase 2: dedup por (inst, membro) — mantém o mais recente.
         best_by_key: dict[tuple[str, str], dict[str, Any]] = {}
@@ -188,28 +184,35 @@ class InvestmentsConsolidator:
             for pos in posicoes:
                 if not isinstance(pos, dict):
                     continue
-                valor = pos.get("valor_total") or pos.get("valor_atual") or pos.get("current_value") or 0
+                valor = (
+                    pos.get("valor_total")
+                    or pos.get("valor_atual")
+                    or pos.get("current_value")
+                    or 0
+                )
                 try:
                     valor = float(valor) if valor else 0.0
                 except (ValueError, TypeError):
                     valor = 0.0
                 positions_sum += valor
 
-                all_positions.append({
-                    "nome": pos.get("nome") or pos.get("name") or "",
-                    "tipo": (
-                        pos.get("tipo")
-                        or pos.get("tipo_produto")
-                        or pos.get("product_type")
-                        or ""
-                    ),
-                    "instituicao": instituicao,
-                    "membro": membro,
-                    "valor_atual": valor,
-                    "data_referencia": data_ref,
-                    "taxa": pos.get("taxa") or pos.get("rentabilidade") or "",
-                    "vencimento": pos.get("vencimento", ""),
-                })
+                all_positions.append(
+                    {
+                        "nome": pos.get("nome") or pos.get("name") or "",
+                        "tipo": (
+                            pos.get("tipo")
+                            or pos.get("tipo_produto")
+                            or pos.get("product_type")
+                            or ""
+                        ),
+                        "instituicao": instituicao,
+                        "membro": membro,
+                        "valor_atual": valor,
+                        "data_referencia": data_ref,
+                        "taxa": pos.get("taxa") or pos.get("rentabilidade") or "",
+                        "vencimento": pos.get("vencimento", ""),
+                    }
+                )
 
             try:
                 total_f = float(total_fonte) if total_fonte else 0.0

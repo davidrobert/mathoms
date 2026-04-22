@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from backend.app.core.database import Base
@@ -30,6 +30,7 @@ class DocumentStatus(str, enum.Enum):
         na UI, sinalizando que precisa de atenção sem bloquear os demais.
         """
         import logging
+
         logging.getLogger(__name__).warning(
             "DocumentStatus desconhecido '%s' lido do banco — tratado como 'error'", value
         )
@@ -55,36 +56,66 @@ DOCUMENT_CLASSIFIED_OK: frozenset[DocumentStatus] = frozenset(
 #   - processed: pipeline completed; can be rerun.
 #   - error: recoverable via manual reclassify or retry-unlock.
 _ALLOWED_TRANSITIONS: "dict[DocumentStatus, frozenset[DocumentStatus]]" = {
-    DocumentStatus.uploaded: frozenset({
-        DocumentStatus.unlocking, DocumentStatus.classifying,
-        DocumentStatus.needs_password, DocumentStatus.error,
-    }),
-    DocumentStatus.unlocking: frozenset({
-        DocumentStatus.classifying, DocumentStatus.needs_password,
-        DocumentStatus.ready, DocumentStatus.error,
-    }),
-    DocumentStatus.classifying: frozenset({
-        DocumentStatus.ready, DocumentStatus.needs_password, DocumentStatus.error,
-    }),
-    DocumentStatus.needs_password: frozenset({
-        DocumentStatus.classifying, DocumentStatus.ready, DocumentStatus.error,
-    }),
-    DocumentStatus.ready: frozenset({
-        DocumentStatus.processing,
-        DocumentStatus.classifying,
-        DocumentStatus.error,
-        DocumentStatus.processed,
-    }),
-    DocumentStatus.processing: frozenset({
-        DocumentStatus.processed, DocumentStatus.ready, DocumentStatus.error,
-    }),
-    DocumentStatus.processed: frozenset({
-        DocumentStatus.processing, DocumentStatus.ready, DocumentStatus.error,
-    }),
-    DocumentStatus.error: frozenset({
-        DocumentStatus.classifying, DocumentStatus.unlocking,
-        DocumentStatus.ready, DocumentStatus.needs_password,
-    }),
+    DocumentStatus.uploaded: frozenset(
+        {
+            DocumentStatus.unlocking,
+            DocumentStatus.classifying,
+            DocumentStatus.needs_password,
+            DocumentStatus.error,
+        }
+    ),
+    DocumentStatus.unlocking: frozenset(
+        {
+            DocumentStatus.classifying,
+            DocumentStatus.needs_password,
+            DocumentStatus.ready,
+            DocumentStatus.error,
+        }
+    ),
+    DocumentStatus.classifying: frozenset(
+        {
+            DocumentStatus.ready,
+            DocumentStatus.needs_password,
+            DocumentStatus.error,
+        }
+    ),
+    DocumentStatus.needs_password: frozenset(
+        {
+            DocumentStatus.classifying,
+            DocumentStatus.ready,
+            DocumentStatus.error,
+        }
+    ),
+    DocumentStatus.ready: frozenset(
+        {
+            DocumentStatus.processing,
+            DocumentStatus.classifying,
+            DocumentStatus.error,
+            DocumentStatus.processed,
+        }
+    ),
+    DocumentStatus.processing: frozenset(
+        {
+            DocumentStatus.processed,
+            DocumentStatus.ready,
+            DocumentStatus.error,
+        }
+    ),
+    DocumentStatus.processed: frozenset(
+        {
+            DocumentStatus.processing,
+            DocumentStatus.ready,
+            DocumentStatus.error,
+        }
+    ),
+    DocumentStatus.error: frozenset(
+        {
+            DocumentStatus.classifying,
+            DocumentStatus.unlocking,
+            DocumentStatus.ready,
+            DocumentStatus.needs_password,
+        }
+    ),
 }
 
 
@@ -92,25 +123,19 @@ class InvalidDocumentStatusTransition(ValueError):
     """Raised when an invalid DocumentStatus transition is attempted."""
 
     def __init__(self, current: DocumentStatus, target: DocumentStatus):
-        super().__init__(
-            f"Invalid DocumentStatus transition: {current.value} → {target.value}"
-        )
+        super().__init__(f"Invalid DocumentStatus transition: {current.value} → {target.value}")
         self.current = current
         self.target = target
 
 
-def is_valid_document_transition(
-    current: DocumentStatus, target: DocumentStatus
-) -> bool:
+def is_valid_document_transition(current: DocumentStatus, target: DocumentStatus) -> bool:
     """Return True iff `current → target` is allowed (same-state is idempotent)."""
     if current == target:
         return True
     return target in _ALLOWED_TRANSITIONS.get(current, frozenset())
 
 
-def assert_document_transition(
-    current: DocumentStatus, target: DocumentStatus
-) -> None:
+def assert_document_transition(current: DocumentStatus, target: DocumentStatus) -> None:
     """Raise InvalidDocumentStatusTransition if transition is not allowed."""
     if not is_valid_document_transition(current, target):
         raise InvalidDocumentStatusTransition(current, target)
@@ -129,9 +154,7 @@ class DocumentType(str, enum.Enum):
 class Document(Base):
     __tablename__ = "documents"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -160,9 +183,7 @@ class Document(Base):
     # block the upload; UI surfaces it for user review.
     # Soft reference (no FK constraint) to keep the migration compatible with
     # alembic's offline --sql mode on SQLite (see ADR in the migration).
-    possible_duplicate_of_id: Mapped[str] = mapped_column(
-        String(36), nullable=True, index=True
-    )
+    possible_duplicate_of_id: Mapped[str] = mapped_column(String(36), nullable=True, index=True)
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

@@ -16,7 +16,6 @@ from collections.abc import Callable
 from backend.app.events.base import Event
 from backend.app.events.protocols import AnyHandler
 
-
 _HANDLERS: dict[type[Event], list[AnyHandler]] = {}
 
 

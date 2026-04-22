@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """
 E0-unlock — Descriptografa PDFs protegidos por senha e descompacta ZIPs
 com senha no inbox.
@@ -155,20 +156,20 @@ def try_unlock(pdf_path: Path, passwords: list[str], dry_run: bool = False) -> b
                     tmp.unlink()
                 print(f"  ERRO ao substituir {pdf_path.name}: {e_replace}")
                 return False
-            print(f"  ✓ Desbloqueado com sucesso")
+            print("  ✓ Desbloqueado com sucesso")
             return True
         except pikepdf.PasswordError:
             continue
         except Exception as e:
             print(f"  ERRO ao salvar {pdf_path.name}: {e}")
             return False
-    print(f"  ✗ Nenhuma senha funcionou")
+    print("  ✗ Nenhuma senha funcionou")
     return False
 
 
 # ---------- ZIP functions ----------
 
-MAX_EXTRACT_FILE_SIZE = 500 * 1024 * 1024       # 500 MB per member
+MAX_EXTRACT_FILE_SIZE = 500 * 1024 * 1024  # 500 MB per member
 MAX_EXTRACT_TOTAL_SIZE = 2 * 1024 * 1024 * 1024  # 2 GB total
 
 
@@ -206,6 +207,7 @@ def _safe_extractall(zf: zipfile.ZipFile, dest_dir: Path, pwd: bytes | None = No
 
     for member in members_to_extract:
         zf.extract(member, dest_dir, pwd=pwd)
+
 
 def is_zip_encrypted(zip_path: Path) -> bool:
     """Verifica se o ZIP está protegido por senha."""
@@ -268,7 +270,9 @@ def try_extract_zip(zip_path: Path, passwords: list[str], dry_run: bool = False)
                     zf.read(file_list[0].filename, pwd=pw_bytes)
                     # Senha funciona
                     if dry_run:
-                        print(f"  ✓ Senha encontrada (senha: {'*' * len(pw)}) — {len(file_list)} arquivo(s)")
+                        print(
+                            f"  ✓ Senha encontrada (senha: {'*' * len(pw)}) — {len(file_list)} arquivo(s)"
+                        )
                         for info in file_list:
                             print(f"      → {info.filename}")
                         return True
@@ -281,7 +285,7 @@ def try_extract_zip(zip_path: Path, passwords: list[str], dry_run: bool = False)
                 except RuntimeError:
                     continue
 
-            print(f"  ✗ Nenhuma senha funcionou para o ZIP")
+            print("  ✗ Nenhuma senha funcionou para o ZIP")
             return False
 
     except zipfile.BadZipFile:
@@ -309,6 +313,7 @@ def _move_zip_to_processed(zip_path: Path) -> None:
 
 
 # ---------- check-destinations ----------
+
 
 def check_destinations(passwords: list[str], dry_run: bool = False) -> int:
     """Varre diretórios de destino por PDFs encriptados e desbloqueia in-place.
@@ -367,7 +372,7 @@ def check_destinations(passwords: list[str], dry_run: bool = False) -> int:
 
     if not dry_run and qa_entries:
         append_qa_log(qa_entries)
-        print(f"Registrado em logs/qa_log.md")
+        print("Registrado em logs/qa_log.md")
 
     return failed
 
@@ -380,8 +385,11 @@ def main(root_dir: Path = None):
     )
     parser.add_argument("--file", type=str, help="Processar apenas este arquivo (nome no inbox)")
     parser.add_argument("--dry-run", action="store_true", help="Apenas mostra status, sem alterar")
-    parser.add_argument("--check-destinations", action="store_true",
-                        help="Varre data/ e members/ por PDFs encriptados e desbloqueia in-place")
+    parser.add_argument(
+        "--check-destinations",
+        action="store_true",
+        help="Varre data/ e members/ por PDFs encriptados e desbloqueia in-place",
+    )
     args = parser.parse_args([] if root_dir else None)
 
     passwords = load_passwords()
@@ -534,7 +542,7 @@ def main(root_dir: Path = None):
                     f"Conteúdo não foi extraído para o inbox."
                 )
             append_qa_log(qa_entries)
-            print(f"\n  Registrado em logs/qa_log.md")
+            print("\n  Registrado em logs/qa_log.md")
 
         # Exit code 2 = parcialmente bem-sucedido (diferente de 1 = erro fatal)
         sys.exit(2)

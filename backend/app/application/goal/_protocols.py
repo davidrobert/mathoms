@@ -14,17 +14,11 @@ from backend.app.models.goal import Goal
 
 
 class GoalRepositoryProtocol(Protocol):
-    async def get_active_by_type(
-        self, workspace_id: str, goal_type: str
-    ) -> Optional[Goal]: ...
+    async def get_active_by_type(self, workspace_id: str, goal_type: str) -> Optional[Goal]: ...
 
-    async def get_by_id(
-        self, workspace_id: str, goal_id: str
-    ) -> Optional[Goal]: ...
+    async def get_by_id(self, workspace_id: str, goal_id: str) -> Optional[Goal]: ...
 
-    async def list_by_workspace_and_type(
-        self, workspace_id: str, goal_type: str
-    ) -> list[Goal]: ...
+    async def list_by_workspace_and_type(self, workspace_id: str, goal_type: str) -> list[Goal]: ...
 
     async def create_new_version(
         self,

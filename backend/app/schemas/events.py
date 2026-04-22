@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 class PipelineEvent(BaseModel):
     """Base event sent over WebSocket / Redis Pub/Sub."""
+
     event: str
     run_id: str
     timestamp: datetime
@@ -20,14 +21,17 @@ class PipelineEvent(BaseModel):
 
 class StageEvent(PipelineEvent):
     """Event for stage-level changes (started, completed, failed, skipped, needs_review)."""
+
     stage: str
 
 
 class RunEvent(PipelineEvent):
     """Event for run-level changes (run_completed, run_failed, run_cancelled)."""
+
     pass
 
 
 class ErrorEvent(PipelineEvent):
     """Event for error conditions."""
+
     error: str

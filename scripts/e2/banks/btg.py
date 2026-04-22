@@ -13,14 +13,17 @@ except ImportError:
 
 from scripts.e2.common import (
     BANCO_BTG,
-    detect_member_from_text, infer_periodo_from_filename,
-    log, make_result_template, parse_brl,
+    detect_member_from_text,
+    infer_periodo_from_filename,
+    log,
+    make_result_template,
+    parse_brl,
 )
 
 LOG_PREFIX = "E2-EXTRATO"
 
 PARSERS = [
-    (r'^btgpactual_extratoconta_', "parse_btg"),
+    (r"^btgpactual_extratoconta_", "parse_btg"),
 ]
 
 
@@ -43,17 +46,19 @@ def parse_btg(pdf_path: Path, filename: str) -> Dict[str, Any]:
             result["titular"] = detect_member_from_text(all_text)
             result["tipo_conta"] = "corrente"
 
-            m = re.search(r'Conta Corrente[:\s]+([\d]+)', all_text)
+            m = re.search(r"Conta Corrente[:\s]+([\d]+)", all_text)
             if m:
                 result["numero_conta"] = m.group(1)
 
-            m_cpf = re.search(r'CPF[:\s]+([\d.\-]+)', all_text)
+            m_cpf = re.search(r"CPF[:\s]+([\d.\-]+)", all_text)
             if m_cpf:
                 result["documento_titular"] = m_cpf.group(1).strip()
 
-            m = re.search(r'CPF[:\s]+([\d.\-]+)', all_text)
+            m = re.search(r"CPF[:\s]+([\d.\-]+)", all_text)
 
-            pm = re.search(r'Per[ií]odo\s+de\s+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', all_text)
+            pm = re.search(
+                r"Per[ií]odo\s+de\s+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})", all_text
+            )
             if pm:
                 p1 = pm.group(1).split("/")
                 p2 = pm.group(2).split("/")
@@ -76,12 +81,12 @@ def parse_btg(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 if line.startswith("Data") and "Descrição" in line:
                     continue
 
-                si_match = re.match(r'(\d{2}/\d{2}/\d{4})\s+Saldo Inicial\s+([\d.,]+)', line)
+                si_match = re.match(r"(\d{2}/\d{2}/\d{4})\s+Saldo Inicial\s+([\d.,]+)", line)
                 if si_match:
                     result["saldo_inicial"] = parse_brl(si_match.group(2))
                     continue
 
-                sf_match = re.match(r'(\d{2}/\d{2}/\d{4})\s+Saldo Final\s+([\d.,]+)', line)
+                sf_match = re.match(r"(\d{2}/\d{2}/\d{4})\s+Saldo Final\s+([\d.,]+)", line)
                 if sf_match:
                     result["saldo_final"] = parse_brl(sf_match.group(2))
                     continue
@@ -90,11 +95,7 @@ def parse_btg(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     continue
 
                 tx_match = re.match(
-                    r'(\d{2}/\d{2}/\d{4})\s+'
-                    r'(.+?)\s+'
-                    r'([\d.,]+)\s+'
-                    r'([\d.,]+)\s*$',
-                    line
+                    r"(\d{2}/\d{2}/\d{4})\s+" r"(.+?)\s+" r"([\d.,]+)\s+" r"([\d.,]+)\s*$", line
                 )
                 if tx_match:
                     date_parts = tx_match.group(1).split("/")
@@ -107,9 +108,16 @@ def parse_btg(pdf_path: Path, filename: str) -> Dict[str, Any]:
                         continue
 
                     credit_keywords = [
-                        "RESGATE", "REMUNERAÇÃO", "CREDITO", "CRÉDITO",
-                        "RECEBIMENTO", "CUPOM", "DIVIDENDO", "Rendimento",
-                        "RENDIMENT", "FRAÇÕES",
+                        "RESGATE",
+                        "REMUNERAÇÃO",
+                        "CREDITO",
+                        "CRÉDITO",
+                        "RECEBIMENTO",
+                        "CUPOM",
+                        "DIVIDENDO",
+                        "Rendimento",
+                        "RENDIMENT",
+                        "FRAÇÕES",
                     ]
                     desc_upper = descricao.upper()
                     is_credit = any(kw.upper() in desc_upper for kw in credit_keywords)
@@ -119,18 +127,16 @@ def parse_btg(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     else:
                         valor = -valor_raw
 
-                    result["transacoes"].append({
-                        "data": iso_date,
-                        "descricao": descricao,
-                        "valor": valor,
-                    })
+                    result["transacoes"].append(
+                        {
+                            "data": iso_date,
+                            "descricao": descricao,
+                            "valor": valor,
+                        }
+                    )
 
                 tx_match2 = re.match(
-                    r'(\d{2}/\d{2}/\d{4})\s+'
-                    r'(.+?)\s+-\s+'
-                    r'([\d.,]+)\s+'
-                    r'([\d.,]+)\s*$',
-                    line
+                    r"(\d{2}/\d{2}/\d{4})\s+" r"(.+?)\s+-\s+" r"([\d.,]+)\s+" r"([\d.,]+)\s*$", line
                 )
                 if tx_match2 and not tx_match:
                     date_parts = tx_match2.group(1).split("/")
@@ -138,11 +144,13 @@ def parse_btg(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     descricao = tx_match2.group(2).strip()
                     valor_raw = parse_brl(tx_match2.group(3))
                     if valor_raw is not None:
-                        result["transacoes"].append({
-                            "data": iso_date,
-                            "descricao": descricao,
-                            "valor": valor_raw,
-                        })
+                        result["transacoes"].append(
+                            {
+                                "data": iso_date,
+                                "descricao": descricao,
+                                "valor": valor_raw,
+                            }
+                        )
 
     except Exception as e:
         log(LOG_PREFIX, "ERROR", f"  Falha ao processar {filename}: {e}")

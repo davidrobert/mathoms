@@ -7,10 +7,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.e3_reconcile import (
-    transaction_signature,
-    deduplicate_transactions,
     _normalize_description_for_dedup,
+    deduplicate_transactions,
     normalize_periodo_in_extract,
+    transaction_signature,
 )
 
 
@@ -46,9 +46,7 @@ class TestNormalizeDescription:
             "Pix enviado para João — TRANSF ENVIADA PIX"
         ) or _normalize_description_for_dedup(
             "Pix enviado para João — TRANSF ENVIADA PIX"
-        ) == _normalize_description_for_dedup(
-            "Pix enviado para João"
-        )
+        ) == _normalize_description_for_dedup("Pix enviado para João")
 
     def test_uppercase_and_whitespace_collapse(self):
         result = _normalize_description_for_dedup("  pix  enviado  ")

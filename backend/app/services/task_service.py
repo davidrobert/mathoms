@@ -17,13 +17,14 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import HTTPException, status as http_status
+from fastapi import HTTPException
+from fastapi import status as http_status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.task import (
-    Task,
     VALID_CATEGORIES,
     VALID_STATUSES,
+    Task,
 )
 from backend.app.repositories.task_repository import TaskRepository
 from backend.app.schemas.dto.task import (
@@ -31,7 +32,6 @@ from backend.app.schemas.dto.task import (
     TaskFilters,
     TaskUpdateCommand,
 )
-
 
 # ─── Transições válidas ────────────────────────────────────────────────
 
@@ -60,10 +60,7 @@ def _validate_vocab(payload: TaskCreateCommand | TaskUpdateCommand) -> None:
     if cat is not None and cat not in VALID_CATEGORIES:
         raise HTTPException(
             status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=(
-                f"Categoria inválida: '{cat}'. "
-                f"Aceitas: {sorted(VALID_CATEGORIES)}"
-            ),
+            detail=(f"Categoria inválida: '{cat}'. " f"Aceitas: {sorted(VALID_CATEGORIES)}"),
         )
 
 
@@ -167,9 +164,7 @@ async def update_task(
         # Re-lê para pegar campos timestamp atualizados
         await db.refresh(task)
 
-    data = payload.model_dump(
-        exclude_unset=True, exclude={"status", "status_reason"}
-    )
+    data = payload.model_dump(exclude_unset=True, exclude={"status", "status_reason"})
     for key, value in data.items():
         setattr(task, key, value)
     return await repo.save(task)
@@ -243,9 +238,7 @@ async def transition_status(
 
     _validate_transition(task.status, new_status)
     if new_status == "done":
-        await _assert_parent_done_before_completing(
-            task, repo=repo, workspace_id=workspace_id
-        )
+        await _assert_parent_done_before_completing(task, repo=repo, workspace_id=workspace_id)
 
     task.status = new_status
     task.status_reason = reason
@@ -296,9 +289,7 @@ def _md_priority_block_lines(priority: str, tasks: list[Task]) -> list[str]:
         "|---|---|---|---|---|---|",
     ]
     for t in tasks:
-        prazo = t.deadline_label or (
-            t.deadline_date.isoformat() if t.deadline_date else "—"
-        )
+        prazo = t.deadline_label or (t.deadline_date.isoformat() if t.deadline_date else "—")
         title = t.title.replace("|", "\\|")
         lines.append(
             f"| {t.number} | {title} | {t.category} | {prazo} | "
@@ -321,9 +312,7 @@ def _md_done_block_lines(done_tasks: list[Task]) -> list[str]:
     for t in done_tasks:
         completed = t.completed_at.date().isoformat() if t.completed_at else "—"
         title = t.title.replace("|", "\\|")
-        lines.append(
-            f"| {t.number} | {title} | {completed} | {t.status_reason or '—'} |"
-        )
+        lines.append(f"| {t.number} | {title} | {completed} | {t.status_reason or '—'} |")
     lines.append("")
     return lines
 

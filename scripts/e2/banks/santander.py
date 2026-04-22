@@ -43,18 +43,19 @@ LOG_PREFIX_EXTRATO = "E2-EXTRATO"
 LOG_PREFIX_FATURA = "E2-FATURA"
 
 PARSERS = [
-    (r'^santander_extratoconta_.*\.xls$', "parse_santander_xls"),
-    (r'^santander_extratoconta_', "parse_santander_conta"),
-    (r'^santander_cdbresumo_.*\.xlsx$', "parse_santander_cdb_xlsx"),
-    (r'^santander_cdbdetalhes_.*\.xlsx$', "parse_santander_cdb_xlsx"),
-    (r'santander_faturaunique.*\.csv$', "parse_santander_fatura_csv"),
-    (r'santander_faturaunique', "parse_santander_unique"),
+    (r"^santander_extratoconta_.*\.xls$", "parse_santander_xls"),
+    (r"^santander_extratoconta_", "parse_santander_conta"),
+    (r"^santander_cdbresumo_.*\.xlsx$", "parse_santander_cdb_xlsx"),
+    (r"^santander_cdbdetalhes_.*\.xlsx$", "parse_santander_cdb_xlsx"),
+    (r"santander_faturaunique.*\.csv$", "parse_santander_fatura_csv"),
+    (r"santander_faturaunique", "parse_santander_unique"),
 ]
 
 
 # ---------------------------------------------------------------------------
 # Extrato: XLS (xlrd)
 # ---------------------------------------------------------------------------
+
 
 def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Santander XLS bank statement exported from internet banking.
@@ -99,17 +100,19 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 
             # Conta — "Conta: 1652-01.001341.6" (agencia é o prefixo antes do primeiro hífen)
             conta_raw = str(sh.cell(_sc_r, _sc_c).value).strip()
-            m = re.search(r'Conta:\s*([\d\-\.]+)', conta_raw)
+            m = re.search(r"Conta:\s*([\d\-\.]+)", conta_raw)
             if m:
                 result["numero_conta"] = m.group(1)
-                ag_m = re.match(r'(\d+)', m.group(1))
+                ag_m = re.match(r"(\d+)", m.group(1))
                 if ag_m:
                     result["agencia"] = ag_m.group(1)
 
         # --- Period ---
         if sh.nrows >= _sp_r + 1:
             periodo_raw = str(sh.cell(_sp_r, _sp_c).value).strip()
-            pm = re.search(r'Extrato de\s+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', periodo_raw)
+            pm = re.search(
+                r"Extrato de\s+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})", periodo_raw
+            )
             if pm:
                 p1 = pm.group(1).split("/")
                 p2 = pm.group(2).split("/")
@@ -146,11 +149,11 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
                 break
 
             # Skip empty rows
-            if not cell_date or cell_date == ' ':
+            if not cell_date or cell_date == " ":
                 continue
 
             # Parse date
-            date_match = re.match(r'(\d{2})/(\d{2})/(\d{4})', cell_date)
+            date_match = re.match(r"(\d{2})/(\d{2})/(\d{4})", cell_date)
             if not date_match:
                 continue
 
@@ -172,15 +175,19 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
             if credito is not None and credito != 0:
                 valor = abs(credito)  # Credits are positive
             elif debito is not None and debito != 0:
-                valor = -abs(debito) if debito > 0 else debito  # Debits shown as negative or need to be negated
+                valor = (
+                    -abs(debito) if debito > 0 else debito
+                )  # Debits shown as negative or need to be negated
             else:
                 continue
 
-            result["transacoes"].append({
-                "data": iso_date,
-                "descricao": cell_desc,
-                "valor": valor,
-            })
+            result["transacoes"].append(
+                {
+                    "data": iso_date,
+                    "descricao": cell_desc,
+                    "valor": valor,
+                }
+            )
 
             if saldo is not None:
                 saldo_values.append((iso_date, saldo))
@@ -197,7 +204,9 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
         elif saldo_anterior is not None and not result["transacoes"]:
             # Period with no transactions — saldo final = saldo anterior
             result["saldo_final"] = saldo_anterior
-            result["notas"].append("Conta sem movimentação no período (apenas saldo anterior registrado)")
+            result["notas"].append(
+                "Conta sem movimentação no período (apenas saldo anterior registrado)"
+            )
 
     except Exception as e:
         log(LOG_PREFIX_EXTRATO, "ERROR", f"  Falha ao processar Santander XLS {filename}: {e}")
@@ -211,6 +220,7 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Extrato: CDB XLSX (openpyxl)
 # ---------------------------------------------------------------------------
+
 
 def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Santander CDB investment position from XLSX export.
@@ -250,11 +260,11 @@ def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
         # Row 1: total header — "CDB" | "Valor Total: R$300.444,46" | "Valores Referentes a: DD/MM/YYYY"
         row1 = [str(sh.cell(1, c).value or "").strip() for c in range(1, sh.max_column + 1)]
         if len(row1) >= 2:
-            total_m = re.search(r'Valor Total:\s*R\$\s*([\d.,]+)', row1[1])
+            total_m = re.search(r"Valor Total:\s*R\$\s*([\d.,]+)", row1[1])
             if total_m:
                 result["saldo_atual"] = parse_brl(total_m.group(1))
         if len(row1) >= 3:
-            date_m = re.search(r'Valores Referentes a:\s*(\d{2}/\d{2}/\d{4})', row1[2])
+            date_m = re.search(r"Valores Referentes a:\s*(\d{2}/\d{2}/\d{4})", row1[2])
             if date_m:
                 parts = date_m.group(1).split("/")
                 result["data_referencia"] = f"{parts[2]}-{parts[1]}-{parts[0]}"
@@ -281,11 +291,21 @@ def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
                 continue
 
             # Product header: "CDB DI SANTANDER" | "Valor Total: R$..." | "Disponível para Resgate: R$..."
-            if vals[0] and "CDB" in vals[0].upper() and "Valor Total:" in (vals[1] if len(vals) > 1 else ""):
+            if (
+                vals[0]
+                and "CDB" in vals[0].upper()
+                and "Valor Total:" in (vals[1] if len(vals) > 1 else "")
+            ):
                 current_product = vals[0]
-                vt_m = re.search(r'Valor Total:\s*R\$\s*([\d.,]+)', vals[1]) if len(vals) > 1 else None
+                vt_m = (
+                    re.search(r"Valor Total:\s*R\$\s*([\d.,]+)", vals[1]) if len(vals) > 1 else None
+                )
                 current_valor_total = parse_brl(vt_m.group(1)) if vt_m else None
-                dr_m = re.search(r'Dispon[ií]vel para Resgate:\s*R\$\s*([\d.,]+)', vals[2]) if len(vals) > 2 else None
+                dr_m = (
+                    re.search(r"Dispon[ií]vel para Resgate:\s*R\$\s*([\d.,]+)", vals[2])
+                    if len(vals) > 2
+                    else None
+                )
                 current_resgate = parse_brl(dr_m.group(1)) if dr_m else None
                 r += 1
                 continue
@@ -296,13 +316,13 @@ def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
                 continue
 
             # Data row: operation number | "R$NNN.NNN,NN" | "R$NNN.NNN,NN"
-            if current_product and vals[0] and re.match(r'^\d{15,}$', vals[0]):
+            if current_product and vals[0] and re.match(r"^\d{15,}$", vals[0]):
                 n_operacao = vals[0]
                 valor_str = vals[1] if len(vals) > 1 else ""
                 resgate_str = vals[2] if len(vals) > 2 else ""
 
-                valor_m = re.search(r'R\$\s*([\d.,]+)', valor_str)
-                resgate_m = re.search(r'R\$\s*([\d.,]+)', resgate_str)
+                valor_m = re.search(r"R\$\s*([\d.,]+)", valor_str)
+                resgate_m = re.search(r"R\$\s*([\d.,]+)", resgate_str)
 
                 valor = parse_brl(valor_m.group(1)) if valor_m else current_valor_total
                 resgate = parse_brl(resgate_m.group(1)) if resgate_m else current_resgate
@@ -334,6 +354,7 @@ def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
 # Extrato: Conta corrente PDF (pdfplumber)
 # ---------------------------------------------------------------------------
 
+
 def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Santander bank account statement."""
     log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing Santander Conta: {filename}")
@@ -354,16 +375,18 @@ def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
             result["titular"] = detect_member_from_text(all_text)
 
             # Account: "Agência e Conta: 1652 / 01001341-6"
-            m = re.search(r'Ag[êe]ncia\s+e\s+Conta[:\s]+([\d\s/\-]+)', all_text)
+            m = re.search(r"Ag[êe]ncia\s+e\s+Conta[:\s]+([\d\s/\-]+)", all_text)
             if m:
                 raw_conta = m.group(1).strip()
                 result["numero_conta"] = raw_conta
-                ag_m = re.match(r'(\d+)', raw_conta)
+                ag_m = re.match(r"(\d+)", raw_conta)
                 if ag_m:
                     result["agencia"] = ag_m.group(1)
 
             # Periodo: "Período: DD/MM/YYYY a DD/MM/YYYY"
-            pm = re.search(r'Per[ií]odo[:\s]+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', all_text)
+            pm = re.search(
+                r"Per[ií]odo[:\s]+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})", all_text
+            )
             if pm:
                 p1 = pm.group(1).split("/")
                 p2 = pm.group(2).split("/")
@@ -372,8 +395,7 @@ def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
             # Check for "SALDO ANTERIOR" only with no transactions
             saldo_ant_match = re.search(
-                r'(\d{2}/\d{2}/\d{4})\s+SALDO ANTERIOR\s+(-?[\d.,]+)',
-                all_text
+                r"(\d{2}/\d{2}/\d{4})\s+SALDO ANTERIOR\s+(-?[\d.,]+)", all_text
             )
             if saldo_ant_match:
                 result["saldo_inicial"] = parse_brl(saldo_ant_match.group(2))
@@ -385,12 +407,12 @@ def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
             # Example: "06/02/2026 DEBITO AUT. TELEFONE... 000000 -338,00 -4.881,66"
 
             tx_pattern = re.compile(
-                r'^(\d{2}/\d{2}/\d{4})\s+'  # Date
-                r'(.+?)\s+'                   # Description
-                r'(\d{6})\s*'                 # Docto (6 digits)
-                r'(-?[\d.,]+)\s+'             # Value (credit positive, debit negative)
-                r'(-?[\d.,]+)\s*$',           # Saldo
-                re.MULTILINE
+                r"^(\d{2}/\d{2}/\d{4})\s+"  # Date
+                r"(.+?)\s+"  # Description
+                r"(\d{6})\s*"  # Docto (6 digits)
+                r"(-?[\d.,]+)\s+"  # Value (credit positive, debit negative)
+                r"(-?[\d.,]+)\s*$",  # Saldo
+                re.MULTILINE,
             )
 
             saldo_values: List[Tuple[str, float]] = []
@@ -405,11 +427,13 @@ def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 if valor is None:
                     continue
 
-                result["transacoes"].append({
-                    "data": iso_date,
-                    "descricao": descricao,
-                    "valor": valor,
-                })
+                result["transacoes"].append(
+                    {
+                        "data": iso_date,
+                        "descricao": descricao,
+                        "valor": valor,
+                    }
+                )
 
                 if saldo is not None:
                     saldo_values.append((iso_date, saldo))
@@ -426,14 +450,17 @@ def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
             # Saldo anterior from previous search
             sa_pattern = re.search(
-                r'Saldo anterior.*?Saldo \(R\$\)\s*\n\s*(\d{2}/\d{2}/\d{4})\s+(-?[\d.,]+)',
-                all_text, re.DOTALL
+                r"Saldo anterior.*?Saldo \(R\$\)\s*\n\s*(\d{2}/\d{2}/\d{4})\s+(-?[\d.,]+)",
+                all_text,
+                re.DOTALL,
             )
             if sa_pattern:
                 result["saldo_inicial"] = parse_brl(sa_pattern.group(2))
             elif saldo_values:
                 # Earliest saldo minus earliest transaction = initial
-                result["saldo_inicial"] = saldo_values[0][1] - (result["transacoes"][0]["valor"] if result["transacoes"] else 0)
+                result["saldo_inicial"] = saldo_values[0][1] - (
+                    result["transacoes"][0]["valor"] if result["transacoes"] else 0
+                )
 
             if saldo_values:
                 result["saldo_final"] = saldo_values[-1][1]
@@ -450,6 +477,7 @@ def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Fatura: Unique CSV
 # ---------------------------------------------------------------------------
+
 
 def parse_santander_fatura_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Santander Unique credit card invoice from CSV export.
@@ -485,7 +513,7 @@ def parse_santander_fatura_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
     # Infer vencimento from filename: santander_faturaunique_YYYYMM-0_original.csv
     ref_year = infer_year_from_filename(filename)
     ref_month = None
-    m = re.search(r'(\d{4})(\d{2})', filename)
+    m = re.search(r"(\d{4})(\d{2})", filename)
     if m:
         ref_year = int(m.group(1))
         ref_month = int(m.group(2))
@@ -516,10 +544,10 @@ def parse_santander_fatura_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
             continue
 
         # Parse date (YYYY-MM-DD format)
-        date_match = re.match(r'(\d{4})-(\d{2})-(\d{2})', data_str)
+        date_match = re.match(r"(\d{4})-(\d{2})-(\d{2})", data_str)
         if not date_match:
             # Try DD/MM/YYYY fallback
-            date_match2 = re.match(r'(\d{2})/(\d{2})/(\d{4})', data_str)
+            date_match2 = re.match(r"(\d{2})/(\d{2})/(\d{4})", data_str)
             if date_match2:
                 iso_date = f"{date_match2.group(3)}-{date_match2.group(2)}-{date_match2.group(1)}"
             else:
@@ -587,13 +615,14 @@ def parse_santander_fatura_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 # Fatura: Unique PDF (pdfplumber)
 # ---------------------------------------------------------------------------
 
+
 def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Santander Unique credit card invoice."""
     log(LOG_PREFIX_FATURA, "INFO", f"Parsing Santander Unique: {filename}")
 
     ref_year = infer_year_from_filename(filename)
     ref_month = None
-    m = re.search(r'(\d{4})(\d{2})', filename)
+    m = re.search(r"(\d{4})(\d{2})", filename)
     if m:
         ref_year = int(m.group(1))
         ref_month = int(m.group(2))
@@ -632,7 +661,7 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
             # Total a Pagar + Vencimento: Santander layout has headers on one line,
             # values on another: "Total a Pagar  Vencimento  Melhor Data..."
             #                    "R$ 372,85      15/01/2026  10/02/2026"
-            m = re.search(r'R\$\s*([\d.,]+)\s+(\d{2}/\d{2}/\d{4})\s+\d{2}/\d{2}/\d{4}', full_text)
+            m = re.search(r"R\$\s*([\d.,]+)\s+(\d{2}/\d{2}/\d{4})\s+\d{2}/\d{2}/\d{4}", full_text)
         if m:
             result["saldo_atual"] = parse_brl(m.group(1))
             venc_parts = m.group(2).split("/")
@@ -641,16 +670,16 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
         # Fallback: try simpler patterns
         if result["saldo_atual"] is None:
-            m = re.search(r'R\$\s*([\d.,]+)\s+\d{2}/\d{2}/\d{4}', full_text)
+            m = re.search(r"R\$\s*([\d.,]+)\s+\d{2}/\d{2}/\d{4}", full_text)
             if m:
                 result["saldo_atual"] = parse_brl(m.group(1))
         if result["saldo_atual"] is None:
-            m = re.search(r'Total a Pagar\s*\n?\s*R\$\s*([\d.,]+)', full_text)
+            m = re.search(r"Total a Pagar\s*\n?\s*R\$\s*([\d.,]+)", full_text)
             if m:
                 result["saldo_atual"] = parse_brl(m.group(1))
         if result["data_vencimento"] is None and ref_year and ref_month:
             # Fallback: buscar data DD/MM/YYYY que seja coerente com ref_year/ref_month
-            candidates = re.findall(r'(\d{2})/(\d{2})/(\d{4})', full_text)
+            candidates = re.findall(r"(\d{2})/(\d{2})/(\d{4})", full_text)
             for dd, mm, yyyy in candidates:
                 if int(yyyy) == ref_year and int(mm) == ref_month:
                     result["data_vencimento"] = f"{yyyy}-{mm}-{dd}"
@@ -658,20 +687,24 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
             # Se nenhuma data do mês correto, usar ref_year-ref_month-15 como estimativa
             if result["data_vencimento"] is None:
                 result["data_vencimento"] = f"{ref_year}-{ref_month:02d}-15"
-                log(LOG_PREFIX_FATURA, "WARN", f"  Vencimento estimado (sem match exato): {result['data_vencimento']}")
+                log(
+                    LOG_PREFIX_FATURA,
+                    "WARN",
+                    f"  Vencimento estimado (sem match exato): {result['data_vencimento']}",
+                )
 
         # Saldo Anterior
-        m = re.search(r'Saldo Anterior\s+([\d.,]+)', full_text)
+        m = re.search(r"Saldo Anterior\s+([\d.,]+)", full_text)
         if m:
             result["saldo_anterior"] = parse_brl(m.group(1))
 
         # Total Despesas
-        m = re.search(r'Total Despesas/Débitos no Brasil\s+([\d.,]+)', full_text)
+        m = re.search(r"Total Despesas/Débitos no Brasil\s+([\d.,]+)", full_text)
         if m:
             result["total_compras"] = parse_brl(m.group(1))
 
         # Total pagamentos (sempre negativo por convenção — reduzem saldo da fatura)
-        m = re.search(r'Total de pagamentos\s+([\d.,]+)', full_text)
+        m = re.search(r"Total de pagamentos\s+([\d.,]+)", full_text)
         if m:
             val = parse_brl(m.group(1))
             result["pagamentos"] = -abs(val) if val else None
@@ -685,13 +718,13 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
         # Prefix can be "1 " or "□ " from checkbox icons
 
         card_section_pattern = re.compile(
-            r'(?:@ )?([A-ZÇÃÕÉ][A-ZÇÃÕÉ\s]+?)\s*-\s*(\d{4}\s+XXXX\s+XXXX\s+\d{4})',
+            r"(?:@ )?([A-ZÇÃÕÉ][A-ZÇÃÕÉ\s]+?)\s*-\s*(\d{4}\s+XXXX\s+XXXX\s+\d{4})",
         )
 
         # Transaction pattern — allows optional leading "1 " or similar prefix,
         # optional negative sign, and trailing junk from right column
         tx_pattern = re.compile(
-            r'^\s*(?:\d\s+)?(\d{2}/\d{2})\s+(.+?)\s+(-?[\d.,]+)(?:\s+([\d.,]+))?\s*(?:\s+\(\+\).*|\s+\(\-\).*|\s+\(=\).*)?$'
+            r"^\s*(?:\d\s+)?(\d{2}/\d{2})\s+(.+?)\s+(-?[\d.,]+)(?:\s+([\d.,]+))?\s*(?:\s+\(\+\).*|\s+\(\-\).*|\s+\(=\).*)?$"
         )
 
         detail_start = full_text.find("Detalhamento da Fatura")
@@ -702,24 +735,24 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
         current_card = None
         current_section_type = None
 
-        for line in detail_text.split('\n'):
+        for line in detail_text.split("\n"):
             # Check for card header
             card_m = card_section_pattern.search(line)
             if card_m:
                 current_card = f"{card_m.group(1).strip()} - {card_m.group(2).strip()}"
 
             # Check section type
-            if 'Pagamento' in line and ('Créditos' in line or 'pagamentos' in line.lower()):
+            if "Pagamento" in line and ("Créditos" in line or "pagamentos" in line.lower()):
                 current_section_type = "pagamento"
-            elif re.match(r'^\s*Despesas\s*$', line):
+            elif re.match(r"^\s*Despesas\s*$", line):
                 current_section_type = "despesas"
 
             if not current_card:
                 continue
 
             # IOF DESPESA NO EXTERIOR (standalone line, no date)
-            if 'IOF DESPESA NO EXTERIOR' in line and not re.match(r'\s*\d{2}/\d{2}', line):
-                iof_m = re.search(r'IOF DESPESA NO EXTERIOR\s+([\d.,]+)', line)
+            if "IOF DESPESA NO EXTERIOR" in line and not re.match(r"\s*\d{2}/\d{2}", line):
+                iof_m = re.search(r"IOF DESPESA NO EXTERIOR\s+([\d.,]+)", line)
                 if iof_m:
                     # IOF has no date in the PDF; prefer date of preceding transaction
                     iof_date = result.get("data_vencimento")
@@ -727,13 +760,15 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
                         last_tx = result["transacoes"][-1]
                         if last_tx.get("data"):
                             iof_date = last_tx["data"]
-                    result["transacoes"].append({
-                        "data": iof_date,
-                        "descricao": "IOF DESPESA NO EXTERIOR",
-                        "valor": parse_brl(iof_m.group(1)),
-                        "cartao": current_card,
-                        "tipo_lancamento": "iof",
-                    })
+                    result["transacoes"].append(
+                        {
+                            "data": iof_date,
+                            "descricao": "IOF DESPESA NO EXTERIOR",
+                            "valor": parse_brl(iof_m.group(1)),
+                            "cartao": current_card,
+                            "tipo_lancamento": "iof",
+                        }
+                    )
                 continue
 
             # TRY TRANSACTION MATCH FIRST (before skips), because pdfplumber
@@ -747,14 +782,16 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 raw_desc = tx_m.group(2).strip()
                 valor_str = tx_m.group(3).strip()
                 valor_brl = parse_brl(valor_str)
-                valor_usd = parse_brl(tx_m.group(4)) if tx_m.group(4) and tx_m.group(4).strip() else None
+                valor_usd = (
+                    parse_brl(tx_m.group(4)) if tx_m.group(4) and tx_m.group(4).strip() else None
+                )
 
                 if valor_brl is None:
                     continue
 
                 # Clean right-column junk from description
                 # e.g. "SCP COMPLETO- DEZ/25 26,34 (+) Total Despesas..." → chop at "(+)"
-                for junk in [' (+)', ' (-)', ' (=)', ' Saldo', ' Total']:
+                for junk in [" (+)", " (-)", " (=)", " Saldo", " Total"]:
                     idx = raw_desc.find(junk)
                     if idx > 0:
                         raw_desc = raw_desc[:idx].strip()

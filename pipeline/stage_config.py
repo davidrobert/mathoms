@@ -57,9 +57,14 @@ class StageConfig(BaseModel):
     fiscal: dict = {}
 
     # Configs cuja ausência levanta ``ConfigError`` em ``from_context``.
-    REQUIRED: ClassVar[frozenset[str]] = frozenset({
-        "family_members", "pipeline", "institutions", "categorization",
-    })
+    REQUIRED: ClassVar[frozenset[str]] = frozenset(
+        {
+            "family_members",
+            "pipeline",
+            "institutions",
+            "categorization",
+        }
+    )
 
     @classmethod
     def from_context(cls, ctx: "WorkspaceContext") -> "StageConfig":
@@ -68,6 +73,7 @@ class StageConfig(BaseModel):
         Campos obrigatórios (:attr:`REQUIRED`) ausentes → ``ConfigError``.
         Campos opcionais ausentes → ``{}``.
         """
+
         def _load(name: str, *, required: bool) -> dict:
             data = ctx.load_config(f"{name}.json")
             if not data and required:

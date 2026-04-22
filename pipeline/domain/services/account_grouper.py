@@ -20,7 +20,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # =============================================================================
 # Defaults — alinhados ao legado (e3_reconcile.py::_init_config)
 # =============================================================================
@@ -106,16 +105,10 @@ class AccountGrouperConfig:
         pipeline = pipeline or {}
         equiv = family.get("account_type_equivalences") or {}
         # Strip linhas de comentário tipo "_comment".
-        equiv_clean = {
-            str(k): str(v)
-            for k, v in equiv.items()
-            if not str(k).startswith("_")
-        }
+        equiv_clean = {str(k): str(v) for k, v in equiv.items() if not str(k).startswith("_")}
         recon = pipeline.get("reconciliation") or {}
         skip_types_raw = recon.get("skip_types")
-        skip_types = (
-            frozenset(skip_types_raw) if skip_types_raw else _DEFAULT_SKIP_TYPES
-        )
+        skip_types = frozenset(skip_types_raw) if skip_types_raw else _DEFAULT_SKIP_TYPES
         return cls(
             account_type_equivalences=equiv_clean,
             skip_types=skip_types,
@@ -191,9 +184,7 @@ class AccountGrouper:
         if not moeda:
             moeda = self._config.default_currency
 
-        return AccountKey(
-            bank=bank, account_type=tipo_normalized, currency=moeda.upper()
-        )
+        return AccountKey(bank=bank, account_type=tipo_normalized, currency=moeda.upper())
 
     # -- Convenience --
 

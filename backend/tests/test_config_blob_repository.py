@@ -43,9 +43,7 @@ async def workspace_ids(db: AsyncSession) -> tuple[str, str]:
 
 
 @pytest.mark.asyncio
-async def test_get_returns_none_when_no_blob(
-    db: AsyncSession, workspace_ids
-):
+async def test_get_returns_none_when_no_blob(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = ConfigBlobRepository(db)
 
@@ -56,9 +54,7 @@ async def test_get_returns_none_when_no_blob(
 
 
 @pytest.mark.asyncio
-async def test_get_config_json_returns_none_when_no_blob(
-    db: AsyncSession, workspace_ids
-):
+async def test_get_config_json_returns_none_when_no_blob(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = ConfigBlobRepository(db)
     assert await repo.get_config_json(ws_id, PipelineConfig) is None
@@ -68,9 +64,7 @@ async def test_get_config_json_returns_none_when_no_blob(
 
 
 @pytest.mark.asyncio
-async def test_upsert_creates_pipeline_blob(
-    db: AsyncSession, workspace_ids
-):
+async def test_upsert_creates_pipeline_blob(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = ConfigBlobRepository(db)
 
@@ -89,9 +83,7 @@ async def test_upsert_creates_pipeline_blob(
 
 
 @pytest.mark.asyncio
-async def test_upsert_creates_institution_blob(
-    db: AsyncSession, workspace_ids
-):
+async def test_upsert_creates_institution_blob(db: AsyncSession, workspace_ids):
     """Mesmo repo paramétrico atende outro modelo — semântica idêntica."""
     ws_id, _ = workspace_ids
     repo = ConfigBlobRepository(db)
@@ -106,9 +98,7 @@ async def test_upsert_creates_institution_blob(
 
 
 @pytest.mark.asyncio
-async def test_upsert_creates_report_layout_blob(
-    db: AsyncSession, workspace_ids
-):
+async def test_upsert_creates_report_layout_blob(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = ConfigBlobRepository(db)
 
@@ -125,9 +115,7 @@ async def test_upsert_creates_report_layout_blob(
 
 
 @pytest.mark.asyncio
-async def test_upsert_replaces_existing_config_json_fully(
-    db: AsyncSession, workspace_ids
-):
+async def test_upsert_replaces_existing_config_json_fully(db: AsyncSession, workspace_ids):
     """Upsert NÃO faz merge — substitui o ``config_json`` inteiro.
 
     Merge é responsabilidade do caller (``deep_merge`` no mapper).
@@ -143,9 +131,7 @@ async def test_upsert_replaces_existing_config_json_fully(
     await db.commit()
 
     # Upsert com shape diferente — substituição total.
-    await repo.upsert(
-        ws_id, PipelineConfig, {"qa_thresholds": {"score_diff_max": 0.5}}
-    )
+    await repo.upsert(ws_id, PipelineConfig, {"qa_thresholds": {"score_diff_max": 0.5}})
     await db.commit()
 
     fetched = await repo.get(ws_id, PipelineConfig)
@@ -155,9 +141,7 @@ async def test_upsert_replaces_existing_config_json_fully(
 
 
 @pytest.mark.asyncio
-async def test_upsert_preserves_id_on_update(
-    db: AsyncSession, workspace_ids
-):
+async def test_upsert_preserves_id_on_update(db: AsyncSession, workspace_ids):
     """Update mantém o mesmo PK — não deleta+insere."""
     ws_id, _ = workspace_ids
     repo = ConfigBlobRepository(db)
@@ -176,9 +160,7 @@ async def test_upsert_preserves_id_on_update(
 
 
 @pytest.mark.asyncio
-async def test_upsert_isolated_across_workspaces(
-    db: AsyncSession, workspace_ids
-):
+async def test_upsert_isolated_across_workspaces(db: AsyncSession, workspace_ids):
     """Unique index em workspace_id permite uma linha por ws por tipo."""
     ws_a, ws_b = workspace_ids
     repo = ConfigBlobRepository(db)
@@ -195,9 +177,7 @@ async def test_upsert_isolated_across_workspaces(
 
 
 @pytest.mark.asyncio
-async def test_get_returns_none_for_other_workspace(
-    db: AsyncSession, workspace_ids
-):
+async def test_get_returns_none_for_other_workspace(db: AsyncSession, workspace_ids):
     ws_a, ws_b = workspace_ids
     repo = ConfigBlobRepository(db)
 
@@ -212,9 +192,7 @@ async def test_get_returns_none_for_other_workspace(
 
 
 @pytest.mark.asyncio
-async def test_upsert_isolated_across_blob_types(
-    db: AsyncSession, workspace_ids
-):
+async def test_upsert_isolated_across_blob_types(db: AsyncSession, workspace_ids):
     """3 modelos vivem em tabelas separadas — upsert em um não escreve
     em outro."""
     ws_id, _ = workspace_ids
@@ -238,9 +216,7 @@ async def test_upsert_isolated_across_blob_types(
 
 
 @pytest.mark.asyncio
-async def test_get_config_json_returns_dict(
-    db: AsyncSession, workspace_ids
-):
+async def test_get_config_json_returns_dict(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = ConfigBlobRepository(db)
 
@@ -255,9 +231,7 @@ async def test_get_config_json_returns_dict(
 
 
 @pytest.mark.asyncio
-async def test_delete_returns_true_when_deleted(
-    db: AsyncSession, workspace_ids
-):
+async def test_delete_returns_true_when_deleted(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = ConfigBlobRepository(db)
 
@@ -272,9 +246,7 @@ async def test_delete_returns_true_when_deleted(
 
 
 @pytest.mark.asyncio
-async def test_delete_returns_false_when_nothing_to_delete(
-    db: AsyncSession, workspace_ids
-):
+async def test_delete_returns_false_when_nothing_to_delete(db: AsyncSession, workspace_ids):
     """Delete é idempotente: sem linha para apagar, retorna ``False``."""
     ws_id, _ = workspace_ids
     repo = ConfigBlobRepository(db)
@@ -283,9 +255,7 @@ async def test_delete_returns_false_when_nothing_to_delete(
 
 
 @pytest.mark.asyncio
-async def test_delete_scoped_to_workspace(
-    db: AsyncSession, workspace_ids
-):
+async def test_delete_scoped_to_workspace(db: AsyncSession, workspace_ids):
     """Delete em ws_a não toca no blob do ws_b (invariante multi-tenant)."""
     ws_a, ws_b = workspace_ids
     repo = ConfigBlobRepository(db)
@@ -305,9 +275,7 @@ async def test_delete_scoped_to_workspace(
 
 
 @pytest.mark.asyncio
-async def test_delete_scoped_to_blob_type(
-    db: AsyncSession, workspace_ids
-):
+async def test_delete_scoped_to_blob_type(db: AsyncSession, workspace_ids):
     """Delete de PipelineConfig não toca em InstitutionConfig."""
     ws_id, _ = workspace_ids
     repo = ConfigBlobRepository(db)

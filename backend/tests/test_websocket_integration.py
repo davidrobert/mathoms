@@ -26,7 +26,6 @@ from fastapi.testclient import TestClient
 from backend.app.core.security import create_access_token
 from backend.app.main import app
 
-
 # ─── Fake Redis fixture (process-wide) ───────────────────────────────
 
 

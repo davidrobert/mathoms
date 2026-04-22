@@ -31,7 +31,8 @@ class TaskProgressResponse(BaseModel):
         description="Valor efetivamente movimentado no período (abs).",
     )
     percent_executed: Optional[float] = Field(
-        None, description="0..100+ (pode passar de 100 se superou).",
+        None,
+        description="0..100+ (pode passar de 100 se superou).",
     )
     matched_keywords: list[str] = Field(
         default_factory=list,

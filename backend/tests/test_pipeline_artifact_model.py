@@ -126,9 +126,7 @@ async def test_document_fk_declares_set_null(db: AsyncSession):
     def _check(sync_conn):
         insp = inspect(sync_conn)
         fks = insp.get_foreign_keys("pipeline_artifacts")
-        doc_fk = next(
-            (fk for fk in fks if fk["referred_table"] == "documents"), None
-        )
+        doc_fk = next((fk for fk in fks if fk["referred_table"] == "documents"), None)
         assert doc_fk is not None, "FK para documents não encontrada"
         options = doc_fk.get("options") or {}
         assert options.get("ondelete", "").upper() == "SET NULL"
@@ -144,9 +142,7 @@ async def test_pipeline_run_fk_declares_cascade(db: AsyncSession):
     def _check(sync_conn):
         insp = inspect(sync_conn)
         fks = insp.get_foreign_keys("pipeline_artifacts")
-        run_fk = next(
-            (fk for fk in fks if fk["referred_table"] == "pipeline_runs"), None
-        )
+        run_fk = next((fk for fk in fks if fk["referred_table"] == "pipeline_runs"), None)
         assert run_fk is not None
         options = run_fk.get("options") or {}
         assert options.get("ondelete", "").upper() == "CASCADE"

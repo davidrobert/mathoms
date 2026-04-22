@@ -10,7 +10,6 @@ import pytest
 
 from backend.app.events import Event
 
-
 _UUID_HEX = re.compile(r"^[0-9a-f]{32}$")
 
 

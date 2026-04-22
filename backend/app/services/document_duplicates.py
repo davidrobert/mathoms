@@ -16,12 +16,7 @@ def rebuild_fuzzy_duplicate_pointers(docs: list[Document]) -> int:
     """
     groups: dict[tuple, list[Document]] = {}
     for d in docs:
-        if (
-            d.doc_type
-            and d.doc_type != DocumentType.other
-            and d.bank_code
-            and d.period
-        ):
+        if d.doc_type and d.doc_type != DocumentType.other and d.bank_code and d.period:
             key = (d.workspace_id, d.doc_type, d.bank_code, d.period)
             groups.setdefault(key, []).append(d)
 

@@ -114,9 +114,8 @@ class E5MemberResolver:
             if has_dicts:
                 return self._from_list_of_dicts(members)
             # Lista de strings → tenta consolidado ou declarations.
-            if (
-                baseline.get("imoveis_consolidados") is not None
-                or baseline.get("patrimonio_por_ano")
+            if baseline.get("imoveis_consolidados") is not None or baseline.get(
+                "patrimonio_por_ano"
             ):
                 return self._from_consolidated(baseline)
             if baseline.get("declarations"):
@@ -187,8 +186,10 @@ class E5MemberResolver:
                     if m:
                         ano = float(m.group(1))
             key = (
-                cfg.titular_key if cfg.titular_key and cfg.titular_key in membro
-                else cfg.conjuge_key if cfg.conjuge_key and cfg.conjuge_key in membro
+                cfg.titular_key
+                if cfg.titular_key and cfg.titular_key in membro
+                else cfg.conjuge_key
+                if cfg.conjuge_key and cfg.conjuge_key in membro
                 else None
             )
             if key is None:
@@ -209,9 +210,7 @@ class E5MemberResolver:
                 if raw.startswith("G"):
                     raw = raw[1:]
                 grupo = raw.zfill(2)
-                valor = _safe_float(
-                    bem.get("situacao_atual", bem.get("valor_31_12_atual", 0))
-                )
+                valor = _safe_float(bem.get("situacao_atual", bem.get("valor_31_12_atual", 0)))
                 entry = {
                     "descricao": bem.get("descricao", ""),
                     "valor_31_12_ano_base": valor,
@@ -249,9 +248,7 @@ class E5MemberResolver:
                 if key in prop_lower:
                     total_dividas += _safe_float(dv.get("saldo_31_12", 0))
             synthetic = sum(
-                _safe_float(b.get("valor_31_12_ano_base", 0))
-                for cat in bens.values()
-                for b in cat
+                _safe_float(b.get("valor_31_12_ano_base", 0)) for cat in bens.values() for b in cat
             )
             results[key] = {
                 "total_bens": total_bens_decl if total_bens_decl > 0 else synthetic,
@@ -272,9 +269,7 @@ class E5MemberResolver:
         exclusivo do cônjuge.
         """
         cfg = self._config
-        ano_ref, total_bens, total_dividas_summary = self._resolve_ano_ref_and_totals(
-            baseline
-        )
+        ano_ref, total_bens, total_dividas_summary = self._resolve_ano_ref_and_totals(baseline)
 
         # Imóveis.
         imoveis_list = baseline.get(
@@ -304,12 +299,8 @@ class E5MemberResolver:
             ano_ref,
         )
 
-        titular_bens_total = self._sum_bens_val(
-            titular_imoveis, titular_inv, titular_veiculos
-        )
-        conjuge_bens_total = self._sum_bens_val(
-            conjuge_imoveis, conjuge_inv, conjuge_veiculos
-        )
+        titular_bens_total = self._sum_bens_val(titular_imoveis, titular_inv, titular_veiculos)
+        conjuge_bens_total = self._sum_bens_val(conjuge_imoveis, conjuge_inv, conjuge_veiculos)
 
         titular_data = {
             "total_bens": titular_bens_total,
@@ -348,9 +339,7 @@ class E5MemberResolver:
             source_format="consolidated",
         )
 
-    def _resolve_ano_ref_and_totals(
-        self, baseline: dict
-    ) -> tuple[str, float, float]:
+    def _resolve_ano_ref_and_totals(self, baseline: dict) -> tuple[str, float, float]:
         pat_ano = baseline.get("patrimonio_por_ano", {}) or {}
         if pat_ano:
             anos = sorted(pat_ano.keys())
@@ -375,12 +364,8 @@ class E5MemberResolver:
         resumo_key = f"31_12_{ano_ref}"
         total_bens = _safe_float(resumo.get(resumo_key, {}).get("total", 0))
         if not total_bens and calculo:
-            total_bens = _safe_float(
-                (calculo.get(ano_ref, {}) or {}).get("ativo_total", 0)
-            )
-        total_dividas = _safe_float(
-            (calculo.get(ano_ref, {}) or {}).get("passivo_total", 0)
-        )
+            total_bens = _safe_float((calculo.get(ano_ref, {}) or {}).get("ativo_total", 0))
+        total_dividas = _safe_float((calculo.get(ano_ref, {}) or {}).get("passivo_total", 0))
         return ano_ref, total_bens, total_dividas
 
     @staticmethod
@@ -432,8 +417,10 @@ class E5MemberResolver:
             if enrich_descricao and not descricao:
                 dc = item.get("dados_completos", {})
                 descricao = (
-                    dc.get("imovel", "") if isinstance(dc, dict) else ""
-                ) or item.get("endereco", "") or ""
+                    (dc.get("imovel", "") if isinstance(dc, dict) else "")
+                    or item.get("endereco", "")
+                    or ""
+                )
             entry: dict = {"descricao": descricao, "valor_31_12_ano_base": val}
             if enrich_descricao:
                 entry["endereco"] = item.get("endereco", "")
@@ -444,9 +431,7 @@ class E5MemberResolver:
                 titular.append(entry)
         return titular, conjuge
 
-    def _split_investimentos(
-        self, inv_raw, ano_ref: str
-    ) -> tuple[list, list]:
+    def _split_investimentos(self, inv_raw, ano_ref: str) -> tuple[list, list]:
         cfg = self._config
         titular, conjuge = [], []
         if isinstance(inv_raw, list):
@@ -456,9 +441,7 @@ class E5MemberResolver:
                 if not isinstance(categories, dict):
                     continue
                 member_lower = str(member_key).lower()
-                is_conjuge = bool(
-                    cfg.conjuge_key and cfg.conjuge_key in member_lower
-                )
+                is_conjuge = bool(cfg.conjuge_key and cfg.conjuge_key in member_lower)
                 for cat_name, cat_value in categories.items():
                     if cat_name == "total":
                         continue
@@ -476,9 +459,7 @@ class E5MemberResolver:
                         titular.append(entry)
         return titular, conjuge
 
-    def _split_dividas(
-        self, dividas_list: list, ano_ref: str
-    ) -> tuple[float, float]:
+    def _split_dividas(self, dividas_list: list, ano_ref: str) -> tuple[float, float]:
         cfg = self._config
         titular_dividas = 0.0
         conjuge_dividas = 0.0
@@ -491,11 +472,7 @@ class E5MemberResolver:
             else:
                 val = self._resolve_valor(dv, ano_ref)
             prop = str(dv.get("proprietario", "")).lower()
-            if (
-                cfg.conjuge_key
-                and cfg.conjuge_key in prop
-                and cfg.titular_key not in prop
-            ):
+            if cfg.conjuge_key and cfg.conjuge_key in prop and cfg.titular_key not in prop:
                 conjuge_dividas += val
             else:
                 titular_dividas += val

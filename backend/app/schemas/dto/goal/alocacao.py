@@ -22,33 +22,30 @@ class AlocacaoGoalInputs(BaseModel):
     imoveis_reits_pct: float = Field(..., ge=0, le=100)
     liquidez_usd_pct: float = Field(..., ge=0, le=100)
     instrumentos_rf: str = Field(
-        "", description="Instrumentos de renda fixa preferidos.",
+        "",
+        description="Instrumentos de renda fixa preferidos.",
     )
     instrumentos_rv: str = Field(
-        "", description="Instrumentos de renda variável preferidos.",
+        "",
+        description="Instrumentos de renda variável preferidos.",
     )
     rebalanceamento: str = Field(
-        "anual", description="Frequência de rebalanceamento.",
+        "anual",
+        description="Frequência de rebalanceamento.",
     )
 
     @model_validator(mode="after")
     def _validar_soma_100(self):
-        soma = (
-            self.renda_fixa_pct
-            + self.acoes_pct
-            + self.imoveis_reits_pct
-            + self.liquidez_usd_pct
-        )
+        soma = self.renda_fixa_pct + self.acoes_pct + self.imoveis_reits_pct + self.liquidez_usd_pct
         if abs(soma - 100.0) > 0.01:
-            raise ValueError(
-                f"Percentuais devem somar 100% (atual: {soma:.2f}%)."
-            )
+            raise ValueError(f"Percentuais devem somar 100% (atual: {soma:.2f}%).")
         return self
 
 
 class AlocacaoGoalDerived(BaseModel):
     soma_percentuais: float = Field(
-        ..., description="Soma dos 4 percentuais (deve ser 100).",
+        ...,
+        description="Soma dos 4 percentuais (deve ser 100).",
     )
 
 
@@ -59,7 +56,8 @@ class AlocacaoGoalComputeRequest(BaseModel):
 class AlocacaoGoalComputeResponse(BaseModel):
     derived: AlocacaoGoalDerived
     valido: bool = Field(
-        ..., description="True se soma_percentuais == 100.",
+        ...,
+        description="True se soma_percentuais == 100.",
     )
 
 

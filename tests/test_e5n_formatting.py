@@ -7,7 +7,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.e5n_narrativas import (
-    fmt_currency, fmt_percent, fmt_num, fmt_usd, _MetricsProxy,
+    _MetricsProxy,
+    fmt_currency,
+    fmt_num,
+    fmt_percent,
+    fmt_usd,
 )
 
 

@@ -6,15 +6,16 @@ from pathlib import Path
 import pytest
 import yaml
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, selectinload
+from sqlalchemy.orm import selectinload, sessionmaker
 
+import backend.app.models  # noqa: F401
 from backend.app.core.database import Base
-from backend.app.models.family_member import FamilyMember, BankAccount
-from backend.app.models.category import Category, CategoryKeyword
-from backend.app.models.config_blob import PipelineConfig, InstitutionConfig, ReportLayout
-from backend.app.models.workspace import Workspace
-from backend.app.models.user import User
 from backend.app.core.security import hash_password
+from backend.app.models.category import Category, CategoryKeyword
+from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
+from backend.app.models.family_member import BankAccount, FamilyMember
+from backend.app.models.user import User
+from backend.app.models.workspace import Workspace
 from backend.app.services.config_materializer import (
     materialize_config,
     serialize_categorization,
@@ -25,8 +26,6 @@ from backend.app.services.config_materializer import (
     serialize_report_layout,
 )
 from backend.app.services.vault import VaultService
-
-import backend.app.models  # noqa: F401
 
 sync_engine = create_engine("sqlite://", echo=False)
 SyncTestSession = sessionmaker(bind=sync_engine)
@@ -72,8 +71,13 @@ class TestSerializeFamilyMembers:
         # CPF gerado por tests/utils/cpf.py seed=42  # noqa: PII-ok
         cpf_enc = _vault.encrypt("910.428.398-01")  # noqa: PII-ok
         m = FamilyMember(
-            workspace_id=workspace.id, key="david", full_name="David Robert",
-            short_name="David", cpf_encrypted=cpf_enc, role="titular", order=0,
+            workspace_id=workspace.id,
+            key="david",
+            full_name="David Robert",
+            short_name="David",
+            cpf_encrypted=cpf_enc,
+            role="titular",
+            order=0,
             extra={"profissao": "CTO"},
         )
         db.add(m)
@@ -90,12 +94,26 @@ class TestSerializeFamilyMembers:
         assert result["titular"] == "david"
 
     def test_multiple_members(self, db, workspace):
-        db.add(FamilyMember(
-            workspace_id=workspace.id, key="a", full_name="A", short_name="A", role="titular", order=0,
-        ))
-        db.add(FamilyMember(
-            workspace_id=workspace.id, key="b", full_name="B", short_name="B", role="conjuge", order=1,
-        ))
+        db.add(
+            FamilyMember(
+                workspace_id=workspace.id,
+                key="a",
+                full_name="A",
+                short_name="A",
+                role="titular",
+                order=0,
+            )
+        )
+        db.add(
+            FamilyMember(
+                workspace_id=workspace.id,
+                key="b",
+                full_name="B",
+                short_name="B",
+                role="conjuge",
+                order=1,
+            )
+        )
         db.commit()
 
         result = serialize_family_members(workspace.id, db)
@@ -107,12 +125,24 @@ class TestSerializeCategorization:
         assert serialize_categorization(workspace.id, db) is None
 
     def test_basic_serialization(self, db, workspace):
-        cat = Category(workspace_id=workspace.id, code="moradia", name="Moradia", category_type="expense", order=0)
+        cat = Category(
+            workspace_id=workspace.id,
+            code="moradia",
+            name="Moradia",
+            category_type="expense",
+            order=0,
+        )
         db.add(cat)
         db.flush()
         db.add(CategoryKeyword(category_id=cat.id, keyword="ENEL"))
         db.add(CategoryKeyword(category_id=cat.id, keyword="SABESP"))
-        income = Category(workspace_id=workspace.id, code="receita_pj", name="Receita PJ", category_type="income", order=1)
+        income = Category(
+            workspace_id=workspace.id,
+            code="receita_pj",
+            name="Receita PJ",
+            category_type="income",
+            order=1,
+        )
         db.add(income)
         db.flush()
         db.add(CategoryKeyword(category_id=income.id, keyword="ARVO"))
@@ -135,7 +165,11 @@ class TestSerializeBlobs:
 
     def test_institution_config(self, db, workspace):
         assert serialize_institution_config(workspace.id, db) is None
-        db.add(InstitutionConfig(workspace_id=workspace.id, config_json={"banco_canonical": {"itau": "Itaú"}}))
+        db.add(
+            InstitutionConfig(
+                workspace_id=workspace.id, config_json={"banco_canonical": {"itau": "Itaú"}}
+            )
+        )
         db.commit()
         result = serialize_institution_config(workspace.id, db)
         assert result["banco_canonical"]["itau"] == "Itaú"
@@ -170,10 +204,16 @@ class TestMaterializeConfig:
         assert (config_dir / "definitions.md").exists()
 
     def test_overrides_family_members(self, db, workspace, tmp_path):
-        db.add(FamilyMember(
-            workspace_id=workspace.id, key="custom", full_name="Custom User",
-            short_name="Custom", role="titular", order=0,
-        ))
+        db.add(
+            FamilyMember(
+                workspace_id=workspace.id,
+                key="custom",
+                full_name="Custom User",
+                short_name="Custom",
+                role="titular",
+                order=0,
+            )
+        )
         db.commit()
 
         tenant_root = tmp_path / "tenant"
@@ -186,7 +226,9 @@ class TestMaterializeConfig:
         assert "david" not in data["membros"]
 
     def test_overrides_pipeline_json(self, db, workspace, tmp_path):
-        db.add(PipelineConfig(workspace_id=workspace.id, config_json={"custom_key": "custom_value"}))
+        db.add(
+            PipelineConfig(workspace_id=workspace.id, config_json={"custom_key": "custom_value"})
+        )
         db.commit()
 
         tenant_root = tmp_path / "tenant"
@@ -198,7 +240,11 @@ class TestMaterializeConfig:
         assert data["custom_key"] == "custom_value"
 
     def test_overrides_report_layout_yaml(self, db, workspace, tmp_path):
-        db.add(ReportLayout(workspace_id=workspace.id, config_json={"version": "custom", "sections": []}))
+        db.add(
+            ReportLayout(
+                workspace_id=workspace.id, config_json={"version": "custom", "sections": []}
+            )
+        )
         db.commit()
 
         tenant_root = tmp_path / "tenant"

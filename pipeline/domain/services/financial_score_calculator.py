@@ -23,7 +23,6 @@ from dataclasses import dataclass
 
 from pipeline.domain.services.patrimonio_types import safe_float
 
-
 # =============================================================================
 # Utilities
 # =============================================================================
@@ -68,27 +67,38 @@ class ScoreClassificacao:
 _DEFAULT_COMPONENTS: tuple[ScoreComponent, ...] = (
     ScoreComponent(
         key="taxa_poupanca_recorrente",
-        range_min=0, range_max=50, peso=2.0,
+        range_min=0,
+        range_max=50,
+        peso=2.0,
         nome_display="taxa_poupanca_recorrente",
     ),
     ScoreComponent(
         key="cobertura_despesas",
-        range_min=3, range_max=24, peso=1.5,
+        range_min=3,
+        range_max=24,
+        peso=1.5,
         nome_display="cobertura_despesas",
     ),
     ScoreComponent(
         key="taxa_endividamento",
-        range_min=5, range_max=50, peso=1.5,
-        nome_display="taxa_endividamento", invertido=False,
+        range_min=5,
+        range_max=50,
+        peso=1.5,
+        nome_display="taxa_endividamento",
+        invertido=False,
     ),
     ScoreComponent(
         key="progresso_if",
-        range_min=5, range_max=80, peso=2.0,
+        range_min=5,
+        range_max=80,
+        peso=2.0,
         nome_display="progresso_if",
     ),
     ScoreComponent(
         key="diversificacao",
-        range_min=1, range_max=6, peso=1.0,
+        range_min=1,
+        range_max=6,
+        peso=1.0,
         nome_display="diversificacao",
     ),
 )
@@ -223,9 +233,7 @@ class FinancialScoreCalculator:
 
         total_peso = sum(c["peso"] for c in componentes)
         valor_score = (
-            sum(c["nota"] * c["peso"] for c in componentes) / total_peso
-            if total_peso > 0
-            else 0.0
+            sum(c["nota"] * c["peso"] for c in componentes) / total_peso if total_peso > 0 else 0.0
         )
         valor_score = round(valor_score, 1)
 

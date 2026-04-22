@@ -46,9 +46,7 @@ class ReservaEmergenciaConfig:
     )
 
     @classmethod
-    def from_scoring_json(
-        cls, scoring: dict, members: MemberIdentity
-    ) -> "ReservaEmergenciaConfig":
+    def from_scoring_json(cls, scoring: dict, members: MemberIdentity) -> "ReservaEmergenciaConfig":
         """Constrói config a partir de ``config/scoring.json`` (estrutura legada)."""
         reserva_cfg = scoring.get("reserva_emergencia", {}) or {}
         niveis = reserva_cfg.get("niveis_meses") or [6, 12]
@@ -90,16 +88,12 @@ class EmergencyReserveCalculator:
 
         inv_titular = safe_float(patrimonio.get(identity.key_inv_titular, 0))
         inv_conjuge = (
-            safe_float(patrimonio.get(identity.key_inv_conjuge, 0))
-            if identity.conjuge_key
-            else 0.0
+            safe_float(patrimonio.get(identity.key_inv_conjuge, 0)) if identity.conjuge_key else 0.0
         )
         caixa = safe_float(patrimonio.get("caixa_moeda_estrangeira", 0))
         total_liquida = inv_titular + inv_conjuge + caixa
 
-        cobertura_meses = (
-            total_liquida / despesa_mensal if despesa_mensal > 0 else 0.0
-        )
+        cobertura_meses = total_liquida / despesa_mensal if despesa_mensal > 0 else 0.0
 
         niveis_calc = {n: despesa_mensal * n for n in self._config.niveis_meses}
         nivel_keys = sorted(niveis_calc.keys())
@@ -118,9 +112,7 @@ class EmergencyReserveCalculator:
             "despesas_mensais": round(despesa_mensal, 2),
             "nivel_6_meses": round(niveis_calc.get(6, despesa_mensal * 6), 2),
             "nivel_12_meses": round(niveis_calc.get(12, despesa_mensal * 12), 2),
-            "composicao_liquida": {
-                k: round(v, 2) for k, v in composicao_liquida.items()
-            },
+            "composicao_liquida": {k: round(v, 2) for k, v in composicao_liquida.items()},
             "total_liquida": round(total_liquida, 2),
             "cobertura_meses": round(cobertura_meses, 1),
             "avaliacao_liquidity": avaliacao,

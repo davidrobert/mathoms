@@ -65,9 +65,7 @@ class ReconciliationService:
             out.extend(self._reconcile_group(bundle))
         return out
 
-    def find_duplicates(
-        self, transactions: list[Transaction]
-    ) -> list[tuple[int, int]]:
+    def find_duplicates(self, transactions: list[Transaction]) -> list[tuple[int, int]]:
         """Pares de índices ``(i, j)`` considerados duplicatas (i < j)."""
         pairs: list[tuple[int, int]] = []
         for i in range(len(transactions)):
@@ -100,9 +98,7 @@ class ReconciliationService:
 
     # -- Implementação --
 
-    def _reconcile_group(
-        self, stmts: list[BankStatement]
-    ) -> list[BankStatement]:
+    def _reconcile_group(self, stmts: list[BankStatement]) -> list[BankStatement]:
         reconciled: list[BankStatement] = []
         for stmt in stmts:
             transactions = self._dedup(stmt.transactions)

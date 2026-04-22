@@ -60,15 +60,9 @@ async def test_list_by_workspace_is_isolated(db: AsyncSession, workspace_ids):
     ws_a, ws_b = workspace_ids
     repo = CategoryRepository(db)
 
-    await repo.create(
-        ws_a, code="moradia", name="Moradia", category_type="expense"
-    )
-    await repo.create(
-        ws_a, code="transporte", name="Transporte", category_type="expense"
-    )
-    await repo.create(
-        ws_b, code="moradia", name="Moradia", category_type="expense"
-    )
+    await repo.create(ws_a, code="moradia", name="Moradia", category_type="expense")
+    await repo.create(ws_a, code="transporte", name="Transporte", category_type="expense")
+    await repo.create(ws_b, code="moradia", name="Moradia", category_type="expense")
 
     cats_a = await repo.list_by_workspace(ws_a)
     cats_b = await repo.list_by_workspace(ws_b)
@@ -78,21 +72,13 @@ async def test_list_by_workspace_is_isolated(db: AsyncSession, workspace_ids):
 
 
 @pytest.mark.asyncio
-async def test_list_orders_by_order_then_code(
-    db: AsyncSession, workspace_ids
-):
+async def test_list_orders_by_order_then_code(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = CategoryRepository(db)
 
-    await repo.create(
-        ws_id, code="zeta", name="Z", category_type="expense", order=2
-    )
-    await repo.create(
-        ws_id, code="alpha", name="A", category_type="expense", order=0
-    )
-    await repo.create(
-        ws_id, code="beta", name="B", category_type="expense", order=0
-    )
+    await repo.create(ws_id, code="zeta", name="Z", category_type="expense", order=2)
+    await repo.create(ws_id, code="alpha", name="A", category_type="expense", order=0)
+    await repo.create(ws_id, code="beta", name="B", category_type="expense", order=0)
 
     cats = await repo.list_by_workspace(ws_id)
 
@@ -101,15 +87,11 @@ async def test_list_orders_by_order_then_code(
 
 
 @pytest.mark.asyncio
-async def test_code_exists_scoped_to_workspace(
-    db: AsyncSession, workspace_ids
-):
+async def test_code_exists_scoped_to_workspace(db: AsyncSession, workspace_ids):
     ws_a, ws_b = workspace_ids
     repo = CategoryRepository(db)
 
-    await repo.create(
-        ws_a, code="shared", name="S", category_type="expense"
-    )
+    await repo.create(ws_a, code="shared", name="S", category_type="expense")
 
     assert await repo.code_exists(ws_a, "shared") is True
     # mesmo code em outro workspace → não colide (isolation multi-tenant)
@@ -121,12 +103,8 @@ async def test_code_exists_with_exclude_id(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = CategoryRepository(db)
 
-    c1 = await repo.create(
-        ws_id, code="c1", name="C1", category_type="expense"
-    )
-    c2 = await repo.create(
-        ws_id, code="c2", name="C2", category_type="expense"
-    )
+    c1 = await repo.create(ws_id, code="c1", name="C1", category_type="expense")
+    c2 = await repo.create(ws_id, code="c2", name="C2", category_type="expense")
 
     # c1.code existe no ws, mas excluindo ele mesmo: não existe (simula
     # update que mantém a chave atual).
@@ -139,9 +117,7 @@ async def test_code_exists_with_exclude_id(db: AsyncSession, workspace_ids):
 async def test_get_by_code(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = CategoryRepository(db)
-    created = await repo.create(
-        ws_id, code="moradia", name="Moradia", category_type="expense"
-    )
+    created = await repo.create(ws_id, code="moradia", name="Moradia", category_type="expense")
 
     fetched = await repo.get_by_code(ws_id, "moradia")
     assert fetched is not None
@@ -151,24 +127,18 @@ async def test_get_by_code(db: AsyncSession, workspace_ids):
 
 
 @pytest.mark.asyncio
-async def test_get_by_id_returns_none_when_cross_workspace(
-    db: AsyncSession, workspace_ids
-):
+async def test_get_by_id_returns_none_when_cross_workspace(db: AsyncSession, workspace_ids):
     ws_a, ws_b = workspace_ids
     repo = CategoryRepository(db)
 
-    cat = await repo.create(
-        ws_a, code="x", name="X", category_type="expense"
-    )
+    cat = await repo.create(ws_a, code="x", name="X", category_type="expense")
 
     # Consulta com workspace errado retorna None (invariante multi-tenant).
     assert await repo.get_by_id(ws_b, cat.id) is None
 
 
 @pytest.mark.asyncio
-async def test_get_by_id_with_keywords_eager_loads(
-    db: AsyncSession, workspace_ids
-):
+async def test_get_by_id_with_keywords_eager_loads(db: AsyncSession, workspace_ids):
     """Garantia do invariante: repo retorna agregado com keywords eager."""
     ws_id, _ = workspace_ids
     repo = CategoryRepository(db)
@@ -191,9 +161,7 @@ async def test_get_by_id_with_keywords_eager_loads(
 
 
 @pytest.mark.asyncio
-async def test_update_mutates_fields_and_preserves_keywords(
-    db: AsyncSession, workspace_ids
-):
+async def test_update_mutates_fields_and_preserves_keywords(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = CategoryRepository(db)
     cat = await repo.create(
@@ -204,9 +172,7 @@ async def test_update_mutates_fields_and_preserves_keywords(
         keywords=["a", "b"],
     )
 
-    updated = await repo.update(
-        cat, updates={"name": "New", "order": 5}, keywords=None
-    )
+    updated = await repo.update(cat, updates={"name": "New", "order": 5}, keywords=None)
 
     assert updated.name == "New"
     assert updated.order == 5
@@ -216,9 +182,7 @@ async def test_update_mutates_fields_and_preserves_keywords(
 
 
 @pytest.mark.asyncio
-async def test_update_empty_keywords_clears_all(
-    db: AsyncSession, workspace_ids
-):
+async def test_update_empty_keywords_clears_all(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = CategoryRepository(db)
     cat = await repo.create(
@@ -236,9 +200,7 @@ async def test_update_empty_keywords_clears_all(
 
 
 @pytest.mark.asyncio
-async def test_update_replaces_keyword_list(
-    db: AsyncSession, workspace_ids
-):
+async def test_update_replaces_keyword_list(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = CategoryRepository(db)
     cat = await repo.create(
@@ -249,9 +211,7 @@ async def test_update_replaces_keyword_list(
         keywords=["antigo1", "antigo2"],
     )
 
-    updated = await repo.update(
-        cat, updates={}, keywords=["novo1", "novo2", "novo3"]
-    )
+    updated = await repo.update(cat, updates={}, keywords=["novo1", "novo2", "novo3"])
 
     assert {kw.keyword for kw in updated.keywords} == {
         "novo1",
@@ -274,12 +234,10 @@ async def test_delete_cascades_to_keywords(db: AsyncSession, workspace_ids):
 
     # Keywords presentes antes do delete
     kws_before = (
-        await db.execute(
-            select(CategoryKeyword).where(
-                CategoryKeyword.category_id == cat.id
-            )
-        )
-    ).scalars().all()
+        (await db.execute(select(CategoryKeyword).where(CategoryKeyword.category_id == cat.id)))
+        .scalars()
+        .all()
+    )
     assert len(kws_before) == 2
 
     await repo.delete(cat)
@@ -289,19 +247,15 @@ async def test_delete_cascades_to_keywords(db: AsyncSession, workspace_ids):
     # Keywords também foram apagadas (delete explícito no repo, não confia
     # em ondelete='CASCADE' do SQLite em testes)
     kws_after = (
-        await db.execute(
-            select(CategoryKeyword).where(
-                CategoryKeyword.category_id == cat.id
-            )
-        )
-    ).scalars().all()
+        (await db.execute(select(CategoryKeyword).where(CategoryKeyword.category_id == cat.id)))
+        .scalars()
+        .all()
+    )
     assert kws_after == []
 
 
 @pytest.mark.asyncio
-async def test_replace_keywords_without_commit(
-    db: AsyncSession, workspace_ids
-):
+async def test_replace_keywords_without_commit(db: AsyncSession, workspace_ids):
     """``replace_keywords`` não faz commit — caller é responsável.
 
     A ordem das keywords vem do ``order_by=CategoryKeyword.id`` no
@@ -335,15 +289,9 @@ async def test_delete_all_in_workspace(db: AsyncSession, workspace_ids):
     ws_a, ws_b = workspace_ids
     repo = CategoryRepository(db)
 
-    await repo.create(
-        ws_a, code="a1", name="A1", category_type="expense", keywords=["x"]
-    )
-    await repo.create(
-        ws_a, code="a2", name="A2", category_type="income"
-    )
-    await repo.create(
-        ws_b, code="b1", name="B1", category_type="expense"
-    )
+    await repo.create(ws_a, code="a1", name="A1", category_type="expense", keywords=["x"])
+    await repo.create(ws_a, code="a2", name="A2", category_type="income")
+    await repo.create(ws_b, code="b1", name="B1", category_type="expense")
 
     count = await repo.delete_all_in_workspace(ws_a)
     await db.commit()  # método usa flush — caller faz o commit.

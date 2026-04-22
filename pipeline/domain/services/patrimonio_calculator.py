@@ -134,13 +134,9 @@ class PatrimonioCalculator:
     def _sum_dividas(titular_data: dict, conjuge_data: dict) -> float:
         return safe_float(
             titular_data.get("total_dividas", titular_data.get("dividas", 0))
-        ) + safe_float(
-            conjuge_data.get("total_dividas", conjuge_data.get("dividas", 0))
-        )
+        ) + safe_float(conjuge_data.get("total_dividas", conjuge_data.get("dividas", 0)))
 
-    def _split_imoveis(
-        self, titular_bens: dict, conjuge_bens: dict
-    ) -> tuple[float, float]:
+    def _split_imoveis(self, titular_bens: dict, conjuge_bens: dict) -> tuple[float, float]:
         """Separa imóveis em residência principal (via keyword) vs investimento."""
         residencia = 0.0
         imoveis_investimento = 0.0
@@ -186,9 +182,7 @@ class PatrimonioCalculator:
             totais = inputs.investimentos_atuais.get("total_por_membro", {}) or {}
             titular_val = safe_float(totais.get(identity.titular_key, 0))
             conjuge_val = (
-                safe_float(totais.get(identity.conjuge_key, 0))
-                if identity.conjuge_key
-                else 0.0
+                safe_float(totais.get(identity.conjuge_key, 0)) if identity.conjuge_key else 0.0
             )
             unattributed = safe_float(totais.get("", 0))
             if unattributed > 0:
@@ -321,9 +315,7 @@ class PatrimonioCalculator:
 
         raw_pcts = [(c["valor"] / total_nonzero) * 100 for c in composicao]
         floored = [int(p * 100) / 100.0 for p in raw_pcts]
-        remainders = [
-            (raw_pcts[i] - floored[i], i) for i in range(len(composicao))
-        ]
+        remainders = [(raw_pcts[i] - floored[i], i) for i in range(len(composicao))]
         remainder_sum = round(100.0 - sum(floored), 2)
         steps = int(round(remainder_sum / 0.01))
         remainders.sort(key=lambda x: -x[0])

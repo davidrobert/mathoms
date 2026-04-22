@@ -7,11 +7,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.e4_categorize import (
-    normalize_text,
-    find_longest_matching_keyword,
-    is_internal_transfer,
     categorize_expense,
     categorize_income,
+    find_longest_matching_keyword,
+    is_internal_transfer,
+    normalize_text,
 )
 
 

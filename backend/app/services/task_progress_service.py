@@ -27,7 +27,6 @@ from backend.app.models.task import Task
 from backend.app.schemas.task import TaskProgress
 from backend.app.services.transaction_service import load_transactions
 
-
 # Keywords default caso `config/goals.json` não esteja acessível.
 _DEFAULT_APORTE_KEYWORDS: list[str] = [
     "aporte",
@@ -60,9 +59,7 @@ def _load_aporte_keywords_from_config(tenant_root: Optional[str] = None) -> list
         path = repo_path
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        buckets = (
-            data.get("dashboard", {}).get("aporte_match_keywords", {}) or {}
-        )
+        buckets = data.get("dashboard", {}).get("aporte_match_keywords", {}) or {}
         if not buckets:
             return _DEFAULT_APORTE_KEYWORDS
         out: list[str] = []
@@ -114,7 +111,7 @@ def _normalize_single_separator(raw: str, sep: str) -> str:
     ≠3 → decimal (padroniza para ponto)."""
     if sep == "." and raw.count(".") > 1:
         return raw.replace(".", "")  # múltiplos pontos → todos milhares
-    after = raw[raw.rfind(sep) + 1:]
+    after = raw[raw.rfind(sep) + 1 :]
     if len(after) == 3 and after.isdigit():
         return raw.replace(sep, "")  # milhar
     return raw.replace(",", ".") if sep == "," else raw  # decimal
@@ -233,9 +230,7 @@ def compute_progress(
     keywords = _load_aporte_keywords_from_config(tenant_root)
 
     executed, matched_count, matched_keywords_set = (
-        _match_transactions_by_keyword(
-            tenant_root, keywords, period_start, period_end
-        )
+        _match_transactions_by_keyword(tenant_root, keywords, period_start, period_end)
         if tenant_root
         else (0.0, 0, set())
     )

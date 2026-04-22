@@ -52,13 +52,14 @@ _LLM_MAX_TOKENS = 2048
 # Helpers de parsing
 # =============================================================================
 
+
 def _parse_valor_cd(text: str) -> Optional[float]:
     """Parse valor Caixa: '20.000,00 D' → -20000.0 | '127.651,19 C' → 127651.19."""
     if not text:
         return None
     text = str(text).strip()
     negative = text.upper().endswith("D")
-    text = re.sub(r'\s*[CDcd]\s*$', '', text).strip()
+    text = re.sub(r"\s*[CDcd]\s*$", "", text).strip()
     val = parse_brl(text)
     if val is None:
         return None
@@ -108,7 +109,7 @@ def _classify(historico: str) -> str:
 
 def _date_iso(date_str: str) -> Optional[str]:
     """Converte 'DD/MM/YYYY' (com ou sem ' - HH:MM:SS') para 'YYYY-MM-DD'."""
-    m = re.match(r'(\d{2})/(\d{2})/(\d{4})', date_str)
+    m = re.match(r"(\d{2})/(\d{2})/(\d{4})", date_str)
     if not m:
         return None
     return f"{m.group(3)}-{m.group(2)}-{m.group(1)}"
@@ -118,23 +119,24 @@ def _date_iso(date_str: str) -> Optional[str]:
 # Extração determinística (PDF com camada de texto)
 # =============================================================================
 
+
 def _extract_from_text(all_text: str, result: Dict[str, Any]) -> None:
     """Preenche result com dados extraídos do texto do PDF."""
     result["titular"] = detect_member_from_text(all_text)
 
-    m = re.search(r'Conta\s+([\d]+\s*/\s*[\d.]+[-\d]*)', all_text)
+    m = re.search(r"Conta\s+([\d]+\s*/\s*[\d.]+[-\d]*)", all_text)
     if m:
         result["numero_conta"] = m.group(1).strip()
 
     pm = re.search(
-        r'Per[íi]odo dos lan[çc]amentos\s+(\d{2}/\d{2}/\d{4})\s+at[ée]\s+(\d{2}/\d{2}/\d{4})',
+        r"Per[íi]odo dos lan[çc]amentos\s+(\d{2}/\d{2}/\d{4})\s+at[ée]\s+(\d{2}/\d{2}/\d{4})",
         all_text,
     )
     if pm:
         result["periodo"]["inicio"] = _date_iso(pm.group(1))
         result["periodo"]["fim"] = _date_iso(pm.group(2))
 
-    sm = re.search(r'SALDO ANTERIOR\s+R\$\s*([\d.,]+)\s*([CD])', all_text)
+    sm = re.search(r"SALDO ANTERIOR\s+R\$\s*([\d.,]+)\s*([CD])", all_text)
     if sm:
         saldo_ant = parse_brl(sm.group(1))
         if sm.group(2).upper() == "D" and saldo_ant is not None:
@@ -154,7 +156,7 @@ def _row_to_tx(cells: List[str]) -> Optional[Dict[str, Any]]:
     valor_str = cells[_COL_VALOR] if len(cells) > _COL_VALOR else ""
     saldo_str = cells[_COL_SALDO] if len(cells) > _COL_SALDO else ""
 
-    if not re.match(r'\d{2}/\d{2}/\d{4}', date_raw):
+    if not re.match(r"\d{2}/\d{2}/\d{4}", date_raw):
         return None
 
     if historico.upper().strip() == "SALDO DIA":
@@ -188,10 +190,10 @@ def _parse_text_fallback(all_text: str) -> List[Dict[str, Any]]:
     """Fallback linha-a-linha quando extract_tables() não retorna dados."""
     transactions = []
     pat = re.compile(
-        r'(\d{2}/\d{2}/\d{4})\s*-\s*\d{2}:\d{2}:\d{2}\s+'
-        r'(\d+)\s+'
-        r'([A-ZÁÉÍÓÚÃÕÇ][A-ZÁÉÍÓÚÃÕÇa-záéíóúãõç /\-]+?)\s+'
-        r'([\d.]+,\d{2})\s+([CD])'
+        r"(\d{2}/\d{2}/\d{4})\s*-\s*\d{2}:\d{2}:\d{2}\s+"
+        r"(\d+)\s+"
+        r"([A-ZÁÉÍÓÚÃÕÇ][A-ZÁÉÍÓÚÃÕÇa-záéíóúãõç /\-]+?)\s+"
+        r"([\d.]+,\d{2})\s+([CD])"
     )
     for m in pat.finditer(all_text):
         historico = m.group(3).strip()
@@ -205,12 +207,14 @@ def _parse_text_fallback(all_text: str) -> List[Dict[str, Any]]:
         data_iso = _date_iso(m.group(1))
         if not data_iso:
             continue
-        transactions.append({
-            "data": data_iso,
-            "descricao": historico,
-            "valor": val,
-            "tipo_lancamento": _classify(historico),
-        })
+        transactions.append(
+            {
+                "data": data_iso,
+                "descricao": historico,
+                "valor": val,
+                "tipo_lancamento": _classify(historico),
+            }
+        )
     return transactions
 
 
@@ -273,20 +277,22 @@ def _extract_via_llm(pdf_path: Path, result: Dict[str, Any]) -> bool:
         response = client.messages.create(
             model=_LLM_MODEL,
             max_tokens=_LLM_MAX_TOKENS,
-            messages=[{
-                "role": "user",
-                "content": [
-                    {
-                        "type": "document",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "application/pdf",
-                            "data": pdf_b64,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "document",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "application/pdf",
+                                "data": pdf_b64,
+                            },
                         },
-                    },
-                    {"type": "text", "text": _LLM_PROMPT},
-                ],
-            }],
+                        {"type": "text", "text": _LLM_PROMPT},
+                    ],
+                }
+            ],
         )
         raw = response.content[0].text.strip()
 
@@ -319,12 +325,14 @@ def _extract_via_llm(pdf_path: Path, result: Dict[str, Any]) -> bool:
     for tx in data.get("transacoes", []):
         if not tx.get("data") or tx.get("valor") is None:
             continue
-        result["transacoes"].append({
-            "data": tx["data"],
-            "descricao": tx.get("descricao", ""),
-            "valor": float(tx["valor"]),
-            "tipo_lancamento": tx.get("tipo_lancamento", "Outros"),
-        })
+        result["transacoes"].append(
+            {
+                "data": tx["data"],
+                "descricao": tx.get("descricao", ""),
+                "valor": float(tx["valor"]),
+                "tipo_lancamento": tx.get("tipo_lancamento", "Outros"),
+            }
+        )
 
     result["notas"].append("Transações extraídas via LLM (PDF somente-imagem)")
     log(LOG_PREFIX, "INFO", f"  LLM extraiu {len(result['transacoes'])} transações")
@@ -334,6 +342,7 @@ def _extract_via_llm(pdf_path: Path, result: Dict[str, Any]) -> bool:
 # =============================================================================
 # Parser principal
 # =============================================================================
+
 
 def parse_caixa(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Caixa Econômica Federal 'Extrato por período' PDF.

@@ -31,7 +31,6 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Iterable
 
-
 # =============================================================================
 # Helpers internos
 # =============================================================================
@@ -248,9 +247,7 @@ class MemberAnalyzer:
                 contas_extras += _safe_decimal(v)
 
         total_bens = _safe_decimal(member.get("total_bens", 0))
-        total_dividas = _safe_decimal(
-            member.get("total_dividas", member.get("dividas", 0))
-        )
+        total_dividas = _safe_decimal(member.get("total_dividas", member.get("dividas", 0)))
 
         return MemberPatrimonio(
             member_key=member_key,
@@ -263,9 +260,7 @@ class MemberAnalyzer:
             total_dividas=total_dividas,
         )
 
-    def aggregate(
-        self, members: Iterable[MemberPatrimonio]
-    ) -> dict[str, Decimal]:
+    def aggregate(self, members: Iterable[MemberPatrimonio]) -> dict[str, Decimal]:
         """Agrega vários ``MemberPatrimonio`` somando componentes.
 
         Útil para o caller que precisa do patrimônio consolidado da família

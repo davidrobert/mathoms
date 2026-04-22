@@ -16,47 +16,78 @@ from pipeline.domain.services.e5_analyzer_adapter import (  # noqa: E402
     E5AnalyzerAdapter,
 )
 
-
 _DAVID_DOB = date(1985, 6, 15)
 
 
 def _seed_minimal(store: InMemoryArtifactStore) -> None:
-    store.seed("E4", "receitas", {
-        "total_geral": 120_000,
-        "totais_por_categoria": {"receita_clt": 120_000},
-        "dados": {"receita_clt": [{"data": "2026-01-05", "descricao": "SALARIO", "valor": 10_000}]},
-        "periodo": "2026-01 a 2026-12",
-    })
-    store.seed("E4", "despesas", {
-        "total_geral": 60_000,
-        "totais_por_categoria": {"mercado": 40_000, "uber": 20_000},
-        "dados": {
-            "mercado": [{"data": "2026-01-10", "descricao": "MERCADO", "valor": 5000}],
-            "uber": [{"data": "2026-01-15", "descricao": "UBER", "valor": 3000}],
+    store.seed(
+        "E4",
+        "receitas",
+        {
+            "total_geral": 120_000,
+            "totais_por_categoria": {"receita_clt": 120_000},
+            "dados": {
+                "receita_clt": [{"data": "2026-01-05", "descricao": "SALARIO", "valor": 10_000}]
+            },
+            "periodo": "2026-01 a 2026-12",
         },
-    })
-    store.seed("E4", "fluxo_mensal_detalhado", {
-        "meses_ordenados": [f"2026-{m:02d}" for m in range(1, 13)],
-        "receitas": {"por_mes": {f"2026-{m:02d}": {"Empregador A": 10_000, "_total": 10_000} for m in range(1, 13)}},
-        "despesas": {"por_mes": {f"2026-{m:02d}": {"mercado": 3_333, "uber": 1_667, "_total": 5_000} for m in range(1, 13)}},
-    })
-    store.seed("E4", "patrimonio", {
-        "pipeline_stage": "E1.5",
-        "patrimonio_por_ano": {"2024": {"total_bens": 1_500_000, "total_dividas": 200_000}},
-        "membros": ["David", "Mariana"],
-        "imoveis_consolidados": [
-            {"descricao": "Casa Vila Madalena", "valores_31_12": {"2024": 800_000}},
-        ],
-        "dividas": [
-            {"proprietario": "david", "saldo_31_12": {"2024": 200_000}},
-        ],
-    })
-    store.seed("E4", "investimentos", {
-        "total_geral": 500_000,
-        "n_posicoes": 3,
-        "total_por_membro": {"david": 300_000, "mariana": 200_000},
-        "dados": [],
-    })
+    )
+    store.seed(
+        "E4",
+        "despesas",
+        {
+            "total_geral": 60_000,
+            "totais_por_categoria": {"mercado": 40_000, "uber": 20_000},
+            "dados": {
+                "mercado": [{"data": "2026-01-10", "descricao": "MERCADO", "valor": 5000}],
+                "uber": [{"data": "2026-01-15", "descricao": "UBER", "valor": 3000}],
+            },
+        },
+    )
+    store.seed(
+        "E4",
+        "fluxo_mensal_detalhado",
+        {
+            "meses_ordenados": [f"2026-{m:02d}" for m in range(1, 13)],
+            "receitas": {
+                "por_mes": {
+                    f"2026-{m:02d}": {"Empregador A": 10_000, "_total": 10_000}
+                    for m in range(1, 13)
+                }
+            },
+            "despesas": {
+                "por_mes": {
+                    f"2026-{m:02d}": {"mercado": 3_333, "uber": 1_667, "_total": 5_000}
+                    for m in range(1, 13)
+                }
+            },
+        },
+    )
+    store.seed(
+        "E4",
+        "patrimonio",
+        {
+            "pipeline_stage": "E1.5",
+            "patrimonio_por_ano": {"2024": {"total_bens": 1_500_000, "total_dividas": 200_000}},
+            "membros": ["David", "Mariana"],
+            "imoveis_consolidados": [
+                {"descricao": "Casa Vila Madalena", "valores_31_12": {"2024": 800_000}},
+            ],
+            "dividas": [
+                {"proprietario": "david", "saldo_31_12": {"2024": 200_000}},
+            ],
+        },
+    )
+    store.seed(
+        "E4",
+        "investimentos",
+        {
+            "total_geral": 500_000,
+            "n_posicoes": 3,
+            "total_por_membro": {"david": 300_000, "mariana": 200_000},
+            "dados": [],
+        },
+    )
 
 
 class TestAdapterConstruction:
@@ -250,10 +281,20 @@ class TestA6d33Wiring:
 
         # Todas as chaves do legado ``analyze_patrimonio`` devem aparecer.
         required = {
-            "bruto", "dividas", "liquido", "residencia", "imoveis_investimento",
-            "caixa_moeda_estrangeira", "caixa_detalhes", "investivel", "veiculos",
-            "composicao", "tabela_categorias", "fonte_investimentos",
-            "investimentos_david", "investimentos_mariana",
+            "bruto",
+            "dividas",
+            "liquido",
+            "residencia",
+            "imoveis_investimento",
+            "caixa_moeda_estrangeira",
+            "caixa_detalhes",
+            "investivel",
+            "veiculos",
+            "composicao",
+            "tabela_categorias",
+            "fonte_investimentos",
+            "investimentos_david",
+            "investimentos_mariana",
         }
         assert required.issubset(result.patrimonio_full.keys())
 
@@ -264,9 +305,14 @@ class TestA6d33Wiring:
         result = adapter.analyze_via_store(store)
 
         required = {
-            "despesas_mensais", "nivel_6_meses", "nivel_12_meses",
-            "composicao_liquida", "total_liquida", "cobertura_meses",
-            "avaliacao_liquidity", "niveis",
+            "despesas_mensais",
+            "nivel_6_meses",
+            "nivel_12_meses",
+            "composicao_liquida",
+            "total_liquida",
+            "cobertura_meses",
+            "avaliacao_liquidity",
+            "niveis",
         }
         assert required.issubset(result.reserva.keys())
 
@@ -283,6 +329,7 @@ class TestA6d33Wiring:
     def test_no_placeholders_in_adapter(self):
         """Garantia estrutural: nenhuma string 'placeholder' no módulo."""
         from pathlib import Path
+
         src = Path("pipeline/domain/services/e5_analyzer_adapter.py").read_text()
         # Menção em comentário é OK (evidência histórica); identificadores não.
         assert "_placeholder" not in src
@@ -300,12 +347,16 @@ class TestA6d33Wiring:
     def test_load_caixa_from_e3_sums_brl_cc(self):
         store = InMemoryArtifactStore()
         _seed_minimal(store)
-        store.seed("E3", "bradesco_cc_BRL_202601_202612", {
-            "tipo_conta": "conta_corrente",
-            "banco": "Bradesco",
-            "moeda": "BRL",
-            "saldo_final": 5000.0,
-        })
+        store.seed(
+            "E3",
+            "bradesco_cc_BRL_202601_202612",
+            {
+                "tipo_conta": "conta_corrente",
+                "banco": "Bradesco",
+                "moeda": "BRL",
+                "saldo_final": 5000.0,
+            },
+        )
         adapter = E5AnalyzerAdapter()
         total, detalhes = adapter._load_caixa_from_e3(store)
         assert total == 5000.0
@@ -316,12 +367,16 @@ class TestA6d33Wiring:
     def test_load_caixa_from_e3_converts_usd_via_taxas(self):
         store = InMemoryArtifactStore()
         _seed_minimal(store)
-        store.seed("E3", "bofa_cc_USD_202601_202612", {
-            "tipo_conta": "conta_corrente",
-            "banco": "Bank of America",
-            "moeda": "USD",
-            "saldo_final": 1000.0,
-        })
+        store.seed(
+            "E3",
+            "bofa_cc_USD_202601_202612",
+            {
+                "tipo_conta": "conta_corrente",
+                "banco": "Bank of America",
+                "moeda": "USD",
+                "saldo_final": 1000.0,
+            },
+        )
         adapter = E5AnalyzerAdapter(taxas={"cambio_usd_brl": 5.50})
         total, detalhes = adapter._load_caixa_from_e3(store)
         assert total == 5500.0
@@ -341,10 +396,16 @@ class TestA6d33Wiring:
     def test_load_caixa_skips_investment_banks(self):
         store = InMemoryArtifactStore()
         _seed_minimal(store)
-        store.seed("E3", "btg", {
-            "tipo_conta": "cc", "banco": "BTG Pactual",
-            "moeda": "BRL", "saldo_final": 999,
-        })
+        store.seed(
+            "E3",
+            "btg",
+            {
+                "tipo_conta": "cc",
+                "banco": "BTG Pactual",
+                "moeda": "BRL",
+                "saldo_final": 999,
+            },
+        )
         adapter = E5AnalyzerAdapter()
         total, _ = adapter._load_caixa_from_e3(store)
         assert total == 0.0
@@ -352,10 +413,17 @@ class TestA6d33Wiring:
     def test_load_caixa_skips_unknown_saldo(self):
         store = InMemoryArtifactStore()
         _seed_minimal(store)
-        store.seed("E3", "unknown", {
-            "tipo_conta": "cc", "banco": "Bradesco",
-            "moeda": "BRL", "saldo_final": None, "saldo_final_unknown": True,
-        })
+        store.seed(
+            "E3",
+            "unknown",
+            {
+                "tipo_conta": "cc",
+                "banco": "Bradesco",
+                "moeda": "BRL",
+                "saldo_final": None,
+                "saldo_final_unknown": True,
+            },
+        )
         adapter = E5AnalyzerAdapter()
         total, _ = adapter._load_caixa_from_e3(store)
         assert total == 0.0

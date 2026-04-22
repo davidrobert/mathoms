@@ -12,7 +12,6 @@ from backend.app.services.report_tasks_snapshot_service import (
 )
 from backend.tests import factories
 
-
 # ─── build_snapshot ────────────────────────────────────────────────────
 
 
@@ -102,9 +101,7 @@ async def test_get_report_snapshot_returns_stored_json(db):
 @pytest.mark.asyncio
 async def test_get_report_snapshot_returns_none_for_missing_report(db):
     ws = await factories.make_workspace(db)
-    result = await get_report_snapshot(
-        ws.id, "00000000-0000-0000-0000-000000000000", db=db
-    )
+    result = await get_report_snapshot(ws.id, "00000000-0000-0000-0000-000000000000", db=db)
     assert result is None
 
 

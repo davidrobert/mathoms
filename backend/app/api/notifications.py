@@ -9,7 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.notification import (
     delete_notification as _delete_notification,
+)
+from backend.app.application.notification import (
     list_notifications as _list_notifications,
+)
+from backend.app.application.notification import (
     mark_notifications_read as _mark_notifications_read,
 )
 from backend.app.core.database import get_db

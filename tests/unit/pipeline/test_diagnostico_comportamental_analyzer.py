@@ -102,10 +102,12 @@ class TestJanelaFallback:
 class TestConfig:
     def test_from_scoring_overrides_defaults(self):
         cfg = DiagnosticoComportamentalConfig.from_scoring(
-            {"thresholds_alertas": {
-                "poupanca_referencia_pct": 30,
-                "receita_one_time_alerta_pct": 50,
-            }}
+            {
+                "thresholds_alertas": {
+                    "poupanca_referencia_pct": 30,
+                    "receita_one_time_alerta_pct": 50,
+                }
+            }
         )
         assert cfg.poupanca_ref_pct == 30.0
         assert cfg.receita_one_time_alerta_pct == 50.0

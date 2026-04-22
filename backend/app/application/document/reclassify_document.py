@@ -33,13 +33,9 @@ async def reclassify_document(
     """
     doc = await repo.get_by_id(workspace_id, document_id)
     if doc is None:
-        raise NotFoundError(
-            "Documento não encontrado", code="document_not_found"
-        )
+        raise NotFoundError("Documento não encontrado", code="document_not_found")
     if not abs_path.exists():
-        raise ValidationError(
-            "Arquivo ausente no storage", code="stored_file_missing"
-        )
+        raise ValidationError("Arquivo ausente no storage", code="stored_file_missing")
 
     clf = classifier.classify(abs_path, classification_base)
     _apply_classification(doc, clf)

@@ -85,9 +85,7 @@ def _imports_sqlalchemy_query_helpers(tree: ast.AST) -> list[str]:
     return bad
 
 
-@pytest.mark.parametrize(
-    "router_file", sorted(THIN_ROUTERS), ids=lambda p: p
-)
+@pytest.mark.parametrize("router_file", sorted(THIN_ROUTERS), ids=lambda p: p)
 def test_thin_router_has_no_fat_endpoints(router_file: str) -> None:
     path = API_DIR / router_file
     assert path.exists(), f"router {router_file} listed in THIN_ROUTERS not found"
@@ -105,9 +103,7 @@ def test_thin_router_has_no_fat_endpoints(router_file: str) -> None:
     )
 
 
-@pytest.mark.parametrize(
-    "router_file", sorted(THIN_ROUTERS), ids=lambda p: p
-)
+@pytest.mark.parametrize("router_file", sorted(THIN_ROUTERS), ids=lambda p: p)
 def test_thin_router_has_no_sqlalchemy_queries(router_file: str) -> None:
     path = API_DIR / router_file
     src = path.read_text()

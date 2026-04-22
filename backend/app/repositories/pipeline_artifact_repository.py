@@ -43,22 +43,17 @@ class PipelineArtifactRepository:
             q = q.where(PipelineArtifact.artifact_key == artifact_key)
         return self._session.execute(q.limit(1)).scalar_one_or_none()
 
-    def list_latest_keys(
-        self, workspace_id: str, *, stage: str
-    ) -> list[str]:
+    def list_latest_keys(self, workspace_id: str, *, stage: str) -> list[str]:
         """Lista distinct ``artifact_key`` para o workspace+stage (ordenada)."""
-        rows = (
-            self._session.execute(
-                select(PipelineArtifact.artifact_key)
-                .where(
-                    PipelineArtifact.workspace_id == workspace_id,
-                    PipelineArtifact.stage == stage,
-                )
-                .distinct()
-                .order_by(PipelineArtifact.artifact_key.asc())
+        rows = self._session.execute(
+            select(PipelineArtifact.artifact_key)
+            .where(
+                PipelineArtifact.workspace_id == workspace_id,
+                PipelineArtifact.stage == stage,
             )
-            .all()
-        )
+            .distinct()
+            .order_by(PipelineArtifact.artifact_key.asc())
+        ).all()
         return [r[0] for r in rows]
 
     def get_by_document(
@@ -70,9 +65,7 @@ class PipelineArtifactRepository:
             q = q.where(PipelineArtifact.stage == stage)
         return list(self._session.execute(q).scalars().all())
 
-    def delete_stage_for_run(
-        self, pipeline_run_id: str, *, stage: str
-    ) -> int:
+    def delete_stage_for_run(self, pipeline_run_id: str, *, stage: str) -> int:
         """Remove artefatos do stage na run. Retorna contagem removida."""
         stmt = delete(PipelineArtifact).where(
             PipelineArtifact.pipeline_run_id == pipeline_run_id,
@@ -82,9 +75,7 @@ class PipelineArtifactRepository:
         self._session.flush()
         return int(result.rowcount or 0)
 
-    def delete_stages_for_run(
-        self, pipeline_run_id: str, *, stages: list[str]
-    ) -> int:
+    def delete_stages_for_run(self, pipeline_run_id: str, *, stages: list[str]) -> int:
         """Remove artefatos dos stages informados. Retorna total removido."""
         if not stages:
             return 0
@@ -98,9 +89,7 @@ class PipelineArtifactRepository:
 
     def delete_all_for_workspace(self, workspace_id: str) -> int:
         """Remove todos os artefatos de um workspace — usado em reset total."""
-        stmt = delete(PipelineArtifact).where(
-            PipelineArtifact.workspace_id == workspace_id
-        )
+        stmt = delete(PipelineArtifact).where(PipelineArtifact.workspace_id == workspace_id)
         result = self._session.execute(stmt)
         self._session.flush()
         return int(result.rowcount or 0)

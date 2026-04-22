@@ -49,9 +49,7 @@ class FamilyMemberRepository:
         )
         return list(result.scalars().all())
 
-    async def get_by_id(
-        self, workspace_id: str, member_id: str
-    ) -> Optional[FamilyMember]:
+    async def get_by_id(self, workspace_id: str, member_id: str) -> Optional[FamilyMember]:
         """Retorna membro por id dentro do workspace (sem accounts)."""
         result = await self._session.execute(
             select(FamilyMember).where(
@@ -82,9 +80,7 @@ class FamilyMemberRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_by_key(
-        self, workspace_id: str, key: str
-    ) -> Optional[FamilyMember]:
+    async def get_by_key(self, workspace_id: str, key: str) -> Optional[FamilyMember]:
         """Retorna membro por ``key`` (único dentro do workspace)."""
         result = await self._session.execute(
             select(FamilyMember).where(
@@ -213,9 +209,7 @@ class FamilyMemberRepository:
         )
         return list(result.scalars().all())
 
-    async def get_account(
-        self, member_id: str, account_id: str
-    ) -> Optional[BankAccount]:
+    async def get_account(self, member_id: str, account_id: str) -> Optional[BankAccount]:
         """Conta por id (validando pertence ao ``member_id``)."""
         result = await self._session.execute(
             select(BankAccount).where(

@@ -19,23 +19,51 @@ EXCLUDE_PY_PATH_PREFIXES = (
 )
 EXCLUDE_TS_PATH_PREFIXES = ("frontend/src/generated/",)
 
-EXCLUDE_DIR_NAMES = frozenset({
-    "__pycache__", "node_modules", ".venv", ".venv-lint", "venv", "dist", "build",
-    ".next", "_scratch", "_archive", "storage", "data", "inbox",
-    "inbox_processed", ".git",
-})
+EXCLUDE_DIR_NAMES = frozenset(
+    {
+        "__pycache__",
+        "node_modules",
+        ".venv",
+        ".venv-lint",
+        "venv",
+        "dist",
+        "build",
+        ".next",
+        "_scratch",
+        "_archive",
+        "storage",
+        "data",
+        "inbox",
+        "inbox_processed",
+        ".git",
+    }
+)
 
-FORBIDDEN_IDENTIFIERS = frozenset({"data", "handler", "Manager", "Helper", "Helpers", "Utils", "Service"})
+FORBIDDEN_IDENTIFIERS = frozenset(
+    {"data", "handler", "Manager", "Helper", "Helpers", "Utils", "Service"}
+)
 
-FORBIDDEN_TS_FILENAMES = frozenset({
-    "data.ts", "helpers.ts", "utils.ts", "manager.ts", "service.ts",
-    "data.tsx", "helpers.tsx", "utils.tsx", "manager.tsx", "service.tsx",
-})
+FORBIDDEN_TS_FILENAMES = frozenset(
+    {
+        "data.ts",
+        "helpers.ts",
+        "utils.ts",
+        "manager.ts",
+        "service.ts",
+        "data.tsx",
+        "helpers.tsx",
+        "utils.tsx",
+        "manager.tsx",
+        "service.tsx",
+    }
+)
 
 MONEY_NAME_PATTERN = re.compile(r"(amount|valor|brl|price|cost|saldo|money|total)", re.IGNORECASE)
 
 WHAT_COMMENT_PATTERNS = (
-    re.compile(r"^\s*#\s*(increment|set|get|add|remove|return|check|update|delete)\s+\w", re.IGNORECASE),
+    re.compile(
+        r"^\s*#\s*(increment|set|get|add|remove|return|check|update|delete)\s+\w", re.IGNORECASE
+    ),
     re.compile(r"^\s*#\s*used by\b", re.IGNORECASE),
     re.compile(r"^\s*#\s*added for\b", re.IGNORECASE),
     re.compile(r"^\s*#\s*removed in\b", re.IGNORECASE),

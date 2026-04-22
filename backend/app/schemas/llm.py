@@ -6,13 +6,15 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-
 VALID_PROVIDERS = ("anthropic", "openai", "ollama", "groq", "deepseek", "together_ai")
 
 
 class LLMConfigCreateRequest(BaseModel):
     """Create or update LLM configuration for a workspace."""
-    provider: str = Field(..., description="LLM provider (anthropic, openai, ollama, groq, deepseek, together_ai)")
+
+    provider: str = Field(
+        ..., description="LLM provider (anthropic, openai, ollama, groq, deepseek, together_ai)"
+    )
     api_key: str = Field(..., min_length=1, description="API key (will be encrypted at rest)")
     model_name: str = Field(default="claude-sonnet-4-20250514", min_length=1, max_length=100)
     max_tokens: int = Field(default=4096, ge=1, le=200000)
@@ -28,6 +30,7 @@ class LLMConfigCreateRequest(BaseModel):
 
 class LLMConfigResponse(BaseModel):
     """LLM config response — API key is masked."""
+
     id: str
     provider: str
     api_key_masked: str = Field(..., description="Masked API key (first 4 + last 4 chars)")
@@ -42,6 +45,7 @@ class LLMConfigResponse(BaseModel):
 
 class LLMConfigTestRequest(BaseModel):
     """Test LLM connectivity with current config or override params."""
+
     provider: Optional[str] = None
     api_key: Optional[str] = None
     model_name: Optional[str] = None
@@ -59,6 +63,7 @@ class LLMConfigTestResponse(BaseModel):
 
 class LLMTierResponse(BaseModel):
     """Current tier based on LLM config validity."""
+
     tier: str = Field(..., description="'free' or 'premium'")
     has_llm_config: bool
     provider: Optional[str] = None

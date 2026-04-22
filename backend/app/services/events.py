@@ -22,10 +22,10 @@ def _get_redis():
     if _redis_client is None:
         try:
             import redis
+
             from backend.app.core.config import settings
-            _redis_client = redis.Redis.from_url(
-                settings.REDIS_URL, decode_responses=True
-            )
+
+            _redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
             _redis_client.ping()
         except Exception as exc:
             logger.warning("Redis unavailable, events will be no-ops: %s", exc)
@@ -76,15 +76,26 @@ def publish_stage_started(run_id: str, stage: str, progress_pct: int) -> None:
 
 
 def publish_stage_completed(run_id: str, stage: str, progress_pct: int) -> None:
-    publish_event(run_id, "stage_completed", stage=stage, status="completed", progress_pct=progress_pct)
+    publish_event(
+        run_id, "stage_completed", stage=stage, status="completed", progress_pct=progress_pct
+    )
 
 
 def publish_stage_failed(run_id: str, stage: str, error: str, progress_pct: int) -> None:
-    publish_event(run_id, "stage_failed", stage=stage, status="failed", error=error, progress_pct=progress_pct)
+    publish_event(
+        run_id, "stage_failed", stage=stage, status="failed", error=error, progress_pct=progress_pct
+    )
 
 
 def publish_stage_skipped(run_id: str, stage: str, reason: str, progress_pct: int) -> None:
-    publish_event(run_id, "stage_skipped", stage=stage, status="skipped", progress_pct=progress_pct, detail={"reason": reason})
+    publish_event(
+        run_id,
+        "stage_skipped",
+        stage=stage,
+        status="skipped",
+        progress_pct=progress_pct,
+        detail={"reason": reason},
+    )
 
 
 def publish_stage_activity(

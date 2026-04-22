@@ -38,20 +38,21 @@ LOG_PREFIX_EXTRATO = "E2-EXTRATO"
 LOG_PREFIX_FATURA = "E2-FATURA"
 
 PARSERS = [
-    (r'^c6bank_extratocontapj_.*\.csv$', "parse_c6bank_csv"),
-    (r'^c6bank_extratoconta_.*\.csv$', "parse_c6bank_csv"),
-    (r'^c6bank_extratocontaglobalusd_', "parse_c6bank"),
-    (r'^c6bank_extratocontaglobaleur_', "parse_c6bank"),
-    (r'^c6bank_extratocontapj_', "parse_c6bank"),
-    (r'^c6bank_extratoconta_', "parse_c6bank"),
-    (r'c6bank_faturacarbon.*\.csv$', "parse_c6_carbon_csv"),
-    (r'c6bank_faturacarbon', "parse_c6_carbon"),
+    (r"^c6bank_extratocontapj_.*\.csv$", "parse_c6bank_csv"),
+    (r"^c6bank_extratoconta_.*\.csv$", "parse_c6bank_csv"),
+    (r"^c6bank_extratocontaglobalusd_", "parse_c6bank"),
+    (r"^c6bank_extratocontaglobaleur_", "parse_c6bank"),
+    (r"^c6bank_extratocontapj_", "parse_c6bank"),
+    (r"^c6bank_extratoconta_", "parse_c6bank"),
+    (r"c6bank_faturacarbon.*\.csv$", "parse_c6_carbon_csv"),
+    (r"c6bank_faturacarbon", "parse_c6_carbon"),
 ]
 
 
 # =============================================================================
 # Helpers — extrato CSV
 # =============================================================================
+
 
 def _parse_csv_number(text: str) -> Optional[float]:
     """Parse a number from C6 CSV format. Handles '1234.56', '-1234.56', empty strings."""
@@ -102,6 +103,7 @@ def _classify_c6_csv_lancamento(titulo: str, descricao: str) -> str:
 # Helpers — fatura CSV
 # =============================================================================
 
+
 def _parse_fatura_csv_number(text: str) -> Optional[float]:
     """Parse number from C6 fatura CSV. Handles '1234.56', '-1234.56', '0'."""
     if not text or not text.strip():
@@ -117,6 +119,7 @@ def _parse_fatura_csv_number(text: str) -> Optional[float]:
 # =============================================================================
 # Parser: C6 Bank extrato conta CSV
 # =============================================================================
+
 
 def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
     """Parse C6 Bank CSV statement (conta or contapj).
@@ -147,17 +150,15 @@ def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 
     # --- Parse header metadata ---
     for line in lines[:6]:
-        ag_m = re.search(r'Ag[êe]ncia:\s*(\d+)', line)
+        ag_m = re.search(r"Ag[êe]ncia:\s*(\d+)", line)
         if ag_m:
             result["agencia"] = ag_m.group(1)
-        conta_m = re.search(r'Conta:\s*(\d+)', line)
+        conta_m = re.search(r"Conta:\s*(\d+)", line)
         if conta_m:
             result["numero_conta"] = conta_m.group(1)
 
     for line in lines[:10]:
-        periodo_m = re.search(
-            r'Extrato de\s+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', line
-        )
+        periodo_m = re.search(r"Extrato de\s+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})", line)
         if periodo_m:
             d1 = datetime.strptime(periodo_m.group(1), "%d/%m/%Y")
             d2 = datetime.strptime(periodo_m.group(2), "%d/%m/%Y")
@@ -176,7 +177,9 @@ def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
     # --- Find the CSV header row and parse transactions ---
     csv_header_idx = None
     for i, line in enumerate(lines):
-        if line.strip().startswith("Data Lançamento,") or line.strip().startswith("Data Lancamento,"):
+        if line.strip().startswith("Data Lançamento,") or line.strip().startswith(
+            "Data Lancamento,"
+        ):
             csv_header_idx = i
             break
 
@@ -212,7 +215,7 @@ def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         saida_str = row[5].strip()
         saldo_str = row[6].strip()
 
-        if not re.match(r'\d{2}/\d{2}/\d{4}$', data_lanc_str):
+        if not re.match(r"\d{2}/\d{2}/\d{4}$", data_lanc_str):
             continue
 
         try:
@@ -281,6 +284,7 @@ def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 # Parser: C6 Bank extrato conta/PJ/global PDF
 # =============================================================================
 
+
 def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse C6 Bank statement (conta, contapj, contaglobal)."""
     is_global_usd = "extratocontaglobalusd" in filename
@@ -313,14 +317,14 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
             first_text = pdf.pages[0].extract_text() or ""
             result["titular"] = detect_member_from_text(first_text)
             result["numero_conta"] = extract_account_number(first_text, "c6bank")
-            ag_m = re.search(r'Ag[êe]ncia[:\s•]+(\d+)', first_text)
+            ag_m = re.search(r"Ag[êe]ncia[:\s•]+(\d+)", first_text)
             if ag_m:
                 result["agencia"] = ag_m.group(1)
 
             periodo_pat = re.compile(
-                r'Período\s*•?\s*(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})\s+'
-                r'até\s+(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})',
-                re.IGNORECASE
+                r"Período\s*•?\s*(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})\s+"
+                r"até\s+(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})",
+                re.IGNORECASE,
             )
             pm = periodo_pat.search(first_text)
             if pm:
@@ -334,14 +338,9 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     result["periodo"]["inicio"] = safe_date(y1, m1, d1)
                     result["periodo"]["fim"] = safe_date(y2, m2, d2)
 
-            saldo_header = re.search(
-                r'Saldo do dia.*?[•\s]+(R\$|US\$|EUR)\s*([\d.,]+)',
-                first_text
-            )
+            saldo_header = re.search(r"Saldo do dia.*?[•\s]+(R\$|US\$|EUR)\s*([\d.,]+)", first_text)
 
-            full_text = "\n".join(
-                (p.extract_text() or "") for p in pdf.pages
-            )
+            full_text = "\n".join((p.extract_text() or "") for p in pdf.pages)
             if "Sem lançamentos no mês" in full_text or "sem lançamentos" in full_text.lower():
                 empty_months = full_text.lower().count("sem lançamentos")
                 result["notas"].append(
@@ -350,7 +349,7 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
             if is_global_usd or is_global_eur:
                 saldo_text_match = re.search(
-                    r'Saldo do dia.*?(?:US\$|€|EUR\s*)\s*([\d.,]+)',
+                    r"Saldo do dia.*?(?:US\$|€|EUR\s*)\s*([\d.,]+)",
                     full_text,
                 )
                 if saldo_text_match:
@@ -376,7 +375,7 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
             _c6g = C6_CSV_LAYOUT.get("global_format", {})
             _c6cp = C6_CSV_LAYOUT.get("conta_pj_format", {})
             _c6_min_cols = C6_CSV_LAYOUT.get("min_columns", 5)
-            _c6_saldo_re = C6_CSV_LAYOUT.get("saldo_regex", r'Saldo do dia\s+(\d{2}/\d{2}/\d{2,4})')
+            _c6_saldo_re = C6_CSV_LAYOUT.get("saldo_regex", r"Saldo do dia\s+(\d{2}/\d{2}/\d{2,4})")
 
             for row in all_rows:
                 cols = list(row) + [""] * (_c6_min_cols - len(row))
@@ -405,7 +404,7 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
                         pending_tx = None
                     continue
 
-                date_match = re.match(r'(\d{2}/\d{2})', col0.strip())
+                date_match = re.match(r"(\d{2}/\d{2})", col0.strip())
                 has_value = valor_col.strip() and parse_brl(valor_col) is not None
 
                 if date_match and has_value:
@@ -415,9 +414,10 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     dd, mm_str = date_match.group(1).split("/")
                     dd_i, mm_i = int(dd), int(mm_str)
                     year = resolve_year_from_period(
-                        dd_i, mm_i,
+                        dd_i,
+                        mm_i,
                         result["periodo"]["inicio"] or "",
-                        result["periodo"]["fim"] or ""
+                        result["periodo"]["fim"] or "",
                     )
                     valor = parse_brl(valor_col)
 
@@ -436,9 +436,10 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     dd, mm_str = date_match.group(1).split("/")
                     dd_i, mm_i = int(dd), int(mm_str)
                     year = resolve_year_from_period(
-                        dd_i, mm_i,
+                        dd_i,
+                        mm_i,
                         result["periodo"]["inicio"] or "",
-                        result["periodo"]["fim"] or ""
+                        result["periodo"]["fim"] or "",
                     )
                     pending_tx = {
                         "data": safe_date(year, mm_i, dd_i),
@@ -459,14 +460,18 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     elif val is not None:
                         if pending_tx:
                             result["transacoes"].append(pending_tx)
-                        prev_date = result["transacoes"][-1]["data"] if result["transacoes"] else None
+                        prev_date = (
+                            result["transacoes"][-1]["data"] if result["transacoes"] else None
+                        )
                         pending_tx = None
-                        result["transacoes"].append({
-                            "data": prev_date,
-                            "descricao": desc_col.strip(),
-                            "valor": val,
-                            "tipo_lancamento": tipo_col.strip() if tipo_col.strip() else None,
-                        })
+                        result["transacoes"].append(
+                            {
+                                "data": prev_date,
+                                "descricao": desc_col.strip(),
+                                "valor": val,
+                                "tipo_lancamento": tipo_col.strip() if tipo_col.strip() else None,
+                            }
+                        )
                     elif pending_tx and desc_col.strip():
                         pending_tx["descricao"] += " " + desc_col.strip()
 
@@ -491,6 +496,7 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
 # =============================================================================
 # Parser: C6 Carbon fatura CSV
 # =============================================================================
+
 
 def parse_c6_carbon_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
     """Parse C6 Bank Carbon credit card invoice from CSV export.
@@ -529,7 +535,7 @@ def parse_c6_carbon_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 
     ref_year = infer_year_from_filename(filename)
     ref_month = None
-    m = re.search(r'(\d{4})(\d{2})', filename)
+    m = re.search(r"(\d{4})(\d{2})", filename)
     if m:
         ref_year = int(m.group(1))
         ref_month = int(m.group(2))
@@ -562,7 +568,7 @@ def parse_c6_carbon_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         cotacao_str = row[7].strip()
         valor_brl_str = row[8].strip()
 
-        if not re.match(r'\d{2}/\d{2}/\d{4}$', data_str):
+        if not re.match(r"\d{2}/\d{2}/\d{4}$", data_str):
             continue
 
         try:
@@ -623,17 +629,21 @@ def parse_c6_carbon_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         result["transacoes"].append(tx)
 
     result["total_compras_nacionais"] = round(total_nacionais, 2) if total_nacionais else None
-    result["total_compras_internacionais"] = round(total_internacionais, 2) if total_internacionais else None
+    result["total_compras_internacionais"] = (
+        round(total_internacionais, 2) if total_internacionais else None
+    )
     result["pagamentos"] = round(total_pagamentos, 2) if total_pagamentos else None
 
     if result["transacoes"]:
         result["saldo_atual"] = round(sum(t["valor"] for t in result["transacoes"]), 2)
 
     for card_name, subtotal in cards_seen.items():
-        result["cartoes"].append({
-            "cartao": card_name,
-            "subtotal": round(subtotal, 2),
-        })
+        result["cartoes"].append(
+            {
+                "cartao": card_name,
+                "subtotal": round(subtotal, 2),
+            }
+        )
 
     log(LOG_PREFIX_FATURA, "INFO", f"  → {len(result['transacoes'])} transações extraídas do CSV")
     if result["saldo_atual"] is not None:
@@ -646,6 +656,7 @@ def parse_c6_carbon_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 # =============================================================================
 # Parser: C6 Carbon fatura PDF
 # =============================================================================
+
 
 def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse C6 Bank Carbon credit card invoice."""
@@ -670,7 +681,7 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
     ref_year = infer_year_from_filename(filename)
     ref_month = None
-    m = re.search(r'(\d{4})(\d{2})', filename)
+    m = re.search(r"(\d{4})(\d{2})", filename)
     if m:
         ref_year = int(m.group(1))
         ref_month = int(m.group(2))
@@ -689,9 +700,11 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
             _c6_regex = TITULAR.get("regex_nome_fatura", {}).get("c6_carbon", "")
             m = re.search(_c6_regex, full_text) if _c6_regex else None
             if m:
-                result["titular"] = TITULAR.get("variantes_nome", [TITULAR.get("nome_completo", "")])[0]
+                result["titular"] = TITULAR.get(
+                    "variantes_nome", [TITULAR.get("nome_completo", "")]
+                )[0]
 
-            m = re.search(r'[Vv]encimento[:\s]+(\d{1,2})\s+de\s+(\w+)', full_text)
+            m = re.search(r"[Vv]encimento[:\s]+(\d{1,2})\s+de\s+(\w+)", full_text)
             if m and ref_year:
                 day = int(m.group(1))
                 month_name = m.group(2).lower()
@@ -699,22 +712,22 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 if month_num:
                     result["data_vencimento"] = f"{ref_year}-{month_num}-{day:02d}"
 
-            m = re.search(r'Valor da fatura:\s*R\$\s*([\d.,]+)', full_text)
+            m = re.search(r"Valor da fatura:\s*R\$\s*([\d.,]+)", full_text)
             if m:
                 result["saldo_atual"] = parse_brl(m.group(1))
 
-            m = re.search(r'Limite total:\s*R\$\s*([\d.,]+)', full_text)
+            m = re.search(r"Limite total:\s*R\$\s*([\d.,]+)", full_text)
             if m:
                 result["limite_total"] = parse_brl(m.group(1))
 
-            m = re.search(r'Compras nacionais\s+([\d.,]+)', full_text)
+            m = re.search(r"Compras nacionais\s+([\d.,]+)", full_text)
             if m:
                 result["total_compras_nacionais"] = parse_brl(m.group(1))
-            m = re.search(r'Compras internacionais\s+([\d.,]+)', full_text)
+            m = re.search(r"Compras internacionais\s+([\d.,]+)", full_text)
             if m:
                 result["total_compras_internacionais"] = parse_brl(m.group(1))
 
-            m = re.search(r'Estornos\s*/\s*Crédito na Fatura\s+\(?\-?\)?\s*([\d.,]+)', full_text)
+            m = re.search(r"Estornos\s*/\s*Crédito na Fatura\s+\(?\-?\)?\s*([\d.,]+)", full_text)
             if m:
                 result["pagamentos"] = -parse_brl(m.group(1))
 
@@ -723,31 +736,30 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
             current_card_subtotal = None
 
             tx_pattern = re.compile(
-                r'^(\d{1,2})\s+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s+'
-                r'(.+?)\s+'
-                r'([\d.,]+)\s*$',
-                re.MULTILINE
+                r"^(\d{1,2})\s+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s+"
+                r"(.+?)\s+"
+                r"([\d.,]+)\s*$",
+                re.MULTILINE,
             )
 
             card_pattern = re.compile(
-                r'C6 Carbon\s+(?:Virtual\s+)?Final\s+(\d{4})\s*-\s*(.+?)(?:\s+Cartão|\s+Subtotal)',
-                re.IGNORECASE
+                r"C6 Carbon\s+(?:Virtual\s+)?Final\s+(\d{4})\s*-\s*(.+?)(?:\s+Cartão|\s+Subtotal)",
+                re.IGNORECASE,
             )
 
-            subtotal_pattern = re.compile(
-                r'Subtotal deste cartão\s+R\$\s*([\d.,]+)',
-                re.IGNORECASE
-            )
+            subtotal_pattern = re.compile(r"Subtotal deste cartão\s+R\$\s*([\d.,]+)", re.IGNORECASE)
 
             cards_seen = {}
 
             for page in all_text:
-                lines = page.split('\n')
+                lines = page.split("\n")
 
                 for line in lines:
                     card_m = card_pattern.search(line)
                     if card_m:
-                        current_card_name = f"C6 Carbon Final {card_m.group(1)} - {card_m.group(2).strip()}"
+                        current_card_name = (
+                            f"C6 Carbon Final {card_m.group(1)} - {card_m.group(2).strip()}"
+                        )
 
                     sub_m = subtotal_pattern.search(line)
                     if sub_m and current_card_name:
@@ -772,8 +784,8 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
                         descricao = raw_desc
 
                         forex_m = re.search(
-                            r'(USD|EUR)\s+([\d.,]+)\s*\|\s*Cotação\s+\w+:\s*R\$\s*([\d.,]+)',
-                            raw_desc
+                            r"(USD|EUR)\s+([\d.,]+)\s*\|\s*Cotação\s+\w+:\s*R\$\s*([\d.,]+)",
+                            raw_desc,
                         )
                         if forex_m:
                             forex_info = {
@@ -781,18 +793,18 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
                                 "valor_original": parse_brl(forex_m.group(2)),
                                 "cotacao": parse_brl(forex_m.group(3)),
                             }
-                            descricao = raw_desc[:forex_m.start()].strip()
+                            descricao = raw_desc[: forex_m.start()].strip()
 
-                        iof_m = re.search(r'IOF Transações Exterior', raw_desc)
+                        iof_m = re.search(r"IOF Transações Exterior", raw_desc)
                         if iof_m:
-                            descricao = raw_desc[:iof_m.start()].strip()
+                            descricao = raw_desc[: iof_m.start()].strip()
                             if not descricao:
                                 descricao = "IOF Transações Exterior"
 
-                        parcela_m = re.search(r'-\s*Parcela\s+(\d+/\d+)', raw_desc)
+                        parcela_m = re.search(r"-\s*Parcela\s+(\d+/\d+)", raw_desc)
                         if parcela_m:
                             parcela = parcela_m.group(1)
-                            descricao = raw_desc[:parcela_m.start()].strip()
+                            descricao = raw_desc[: parcela_m.start()].strip()
 
                         tx = {
                             "data": date_str,
@@ -810,10 +822,12 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
                         result["transacoes"].append(tx)
 
             for card_name, subtotal in cards_seen.items():
-                result["cartoes"].append({
-                    "cartao": card_name,
-                    "subtotal": subtotal,
-                })
+                result["cartoes"].append(
+                    {
+                        "cartao": card_name,
+                        "subtotal": subtotal,
+                    }
+                )
 
         log(LOG_PREFIX_FATURA, "INFO", f"  → {len(result['transacoes'])} transações extraídas")
     except Exception as e:

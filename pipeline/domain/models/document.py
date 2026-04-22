@@ -88,11 +88,13 @@ class BankStatement:
             transactions=[Transaction.from_dict(t) for t in d.get("transactions", [])],
             opening_balance=(
                 Money.of(str(d["opening_balance"]), currency)
-                if d.get("opening_balance") is not None else None
+                if d.get("opening_balance") is not None
+                else None
             ),
             closing_balance=(
                 Money.of(str(d["closing_balance"]), currency)
-                if d.get("closing_balance") is not None else None
+                if d.get("closing_balance") is not None
+                else None
             ),
             source_document=d.get("source_document"),
             notes=list(d.get("notes", [])),
@@ -133,8 +135,14 @@ class BankStatement:
                     source_document=d.get("arquivo_origem") or d.get("source_document"),
                 )
             )
-        opening = d.get("saldo_inicial") if d.get("saldo_inicial") is not None else d.get("opening_balance")
-        closing = d.get("saldo_final") if d.get("saldo_final") is not None else d.get("closing_balance")
+        opening = (
+            d.get("saldo_inicial")
+            if d.get("saldo_inicial") is not None
+            else d.get("opening_balance")
+        )
+        closing = (
+            d.get("saldo_final") if d.get("saldo_final") is not None else d.get("closing_balance")
+        )
         return cls(
             institution=d.get("banco") or d.get("institution") or "",
             member_key=d.get("documento_titular") or d.get("member_key"),
@@ -209,8 +217,12 @@ class Investment:
             description=d.get("descricao", ""),
             value_brl=Money.of(str(d.get("valor_brl", 0)), "BRL"),
             member_key=d.get("membro"),
-            applied_date=date.fromisoformat(d["data_aplicacao"]) if d.get("data_aplicacao") else None,
-            maturity_date=date.fromisoformat(d["data_vencimento"]) if d.get("data_vencimento") else None,
+            applied_date=date.fromisoformat(d["data_aplicacao"])
+            if d.get("data_aplicacao")
+            else None,
+            maturity_date=date.fromisoformat(d["data_vencimento"])
+            if d.get("data_vencimento")
+            else None,
             rate=d.get("taxa"),
             source_document=d.get("source_document"),
         )
@@ -275,11 +287,6 @@ class BaselinePatrimonial:
     def from_dict(cls, d: dict) -> "BaselinePatrimonial":
         return cls(
             total_brl=Money.of(str(d.get("total_brl", 0)), "BRL"),
-            members={
-                k: Money.of(str(v), "BRL")
-                for k, v in (d.get("members") or {}).items()
-            },
-            reference_date=date.fromisoformat(
-                d.get("reference_date") or date.today().isoformat()
-            ),
+            members={k: Money.of(str(v), "BRL") for k, v in (d.get("members") or {}).items()},
+            reference_date=date.fromisoformat(d.get("reference_date") or date.today().isoformat()),
         )

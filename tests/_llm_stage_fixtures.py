@@ -12,14 +12,11 @@ import json
 from pathlib import Path
 
 from pipeline.context import WorkspaceContext
+from pipeline.llm.litellm_client import LLMCallResult
 from pipeline.llm.schemas.e1_members import (
     ExtractedAccount,
     ExtractedMember,
     MembersExtractOutput,
-)
-from pipeline.llm.schemas.e15_baseline import (
-    BaselinePatrimonialOutput,
-    PatrimonialItem,
 )
 from pipeline.llm.schemas.e2_llm_extract import (
     ExtractedInvestment,
@@ -32,7 +29,10 @@ from pipeline.llm.schemas.e7_review import (
     ReviewInsight,
     ScoreAdjustment,
 )
-from pipeline.llm.litellm_client import LLMCallResult
+from pipeline.llm.schemas.e15_baseline import (
+    BaselinePatrimonialOutput,
+    PatrimonialItem,
+)
 
 
 def make_llm_ctx(tmp_path: Path) -> WorkspaceContext:

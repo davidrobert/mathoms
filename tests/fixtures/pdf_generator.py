@@ -36,8 +36,17 @@ def _bootstrap_from_path():
     # Ordem de dependência: formatters → banks → generator.
     order = [
         "formatters",
-        "btg", "rico", "wise", "picpay", "bankofamerica",
-        "santander", "itau", "c6", "bradesco", "caixa", "quintoandar",
+        "btg",
+        "rico",
+        "wise",
+        "picpay",
+        "bankofamerica",
+        "santander",
+        "itau",
+        "c6",
+        "bradesco",
+        "caixa",
+        "quintoandar",
         "generator",
     ]
     # Registra o pacote pai virtual para que ``from tests.fixtures.pdf.X
@@ -45,7 +54,8 @@ def _bootstrap_from_path():
     pkg_name = "tests.fixtures.pdf"
     if pkg_name not in _sys.modules:
         pkg_spec = _ilu.spec_from_file_location(
-            pkg_name, here / "__init__.py",
+            pkg_name,
+            here / "__init__.py",
             submodule_search_locations=[str(here)],
         )
         pkg = _ilu.module_from_spec(pkg_spec)

@@ -17,7 +17,6 @@ from pipeline.domain.services.cenarios_conjuge_analyzer import (  # noqa: E402
     CenariosConjugeResult,
 )
 
-
 _DAVID_DOB = date(1985, 6, 15)
 _REF_DATE = date(2026, 4, 19)
 
@@ -244,11 +243,18 @@ class TestResult:
         p = r.premissas
 
         for k in (
-            "meta_if", "investivel_atual", "retorno_real_anual_pct",
-            "cambio_usd_brl", "aporte_base", "fator_reduzido",
-            "renda_nclex_usd", "renda_nclex_brl",
-            "renda_gc_usd", "renda_gc_brl",
+            "meta_if",
+            "investivel_atual",
+            "retorno_real_anual_pct",
+            "cambio_usd_brl",
+            "aporte_base",
+            "fator_reduzido",
+            "renda_nclex_usd",
+            "renda_nclex_brl",
+            "renda_gc_usd",
+            "renda_gc_brl",
             "salario_mariana_clt_brl",
-            "recovery_nclex_pct", "recovery_gc_pct",
+            "recovery_nclex_pct",
+            "recovery_gc_pct",
         ):
             assert k in p

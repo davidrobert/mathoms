@@ -19,7 +19,6 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # JWT — contrato canônico RFC 7519 + HS256
 # ═══════════════════════════════════════════════════════════════════════
@@ -36,15 +35,13 @@ def test_jwt_algorithm_and_payload_claims_are_canonical() -> None:
 
     # Header: apenas ``alg`` e ``typ`` — sem kid nem x5c (portável).
     header = jwt.get_unverified_header(token)
-    assert header["alg"] == "HS256", (
-        "ADR-109: algoritmo JWT deve ser HS256 para compat Go/TS sem config extra."
-    )
+    assert (
+        header["alg"] == "HS256"
+    ), "ADR-109: algoritmo JWT deve ser HS256 para compat Go/TS sem config extra."
     assert header.get("typ") in ("JWT", None), "typ inesperado"
 
     # Payload: contrato ``{sub: str, exp: int (unix seconds), tv: int}``.
-    payload = jwt.decode(
-        token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-    )
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     assert set(payload.keys()) == {"sub", "exp", "tv"}, (
         f"ADR-109: claims devem ser exatamente {{sub, exp, tv}}. Encontrado: "
         f"{sorted(payload.keys())}. Novos claims exigem bump de contrato."
@@ -176,21 +173,22 @@ def test_fernet_rejects_tampered_ciphertext() -> None:
     original_char = token[mid]
     # Escolhe um substituto válido em base64url alfabeto.
     substitute = "A" if original_char != "A" else "B"
-    tampered = token[:mid] + substitute + token[mid + 1:]
+    tampered = token[:mid] + substitute + token[mid + 1 :]
 
     recovered = vault.decrypt(tampered)
-    assert recovered is None, (
-        "Fernet deve rejeitar ciphertext adulterado — HMAC-SHA256 guard."
-    )
+    assert recovered is None, "Fernet deve rejeitar ciphertext adulterado — HMAC-SHA256 guard."
 
 
-@pytest.mark.parametrize("plaintext", [
-    "ascii-simple",
-    "com acentuação portuguesa: ção, ã, é, ü",
-    "emoji 🔐 e símbolos: €£¥",
-    "x" * 4096,  # payload grande (4KB)
-    "",  # string vazia
-])
+@pytest.mark.parametrize(
+    "plaintext",
+    [
+        "ascii-simple",
+        "com acentuação portuguesa: ção, ã, é, ü",
+        "emoji 🔐 e símbolos: €£¥",
+        "x" * 4096,  # payload grande (4KB)
+        "",  # string vazia
+    ],
+)
 def test_fernet_roundtrip_unicode_and_edge_cases(plaintext: str) -> None:
     """Qualquer lib Fernet-compatível deve preservar UTF-8 + edge cases."""
     from backend.app.services.vault import VaultService

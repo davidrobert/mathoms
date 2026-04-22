@@ -18,13 +18,19 @@ class AporteGoalInputs(BaseModel):
     """Inputs do usuário para estratégia de aportes mensais."""
 
     meta_aporte_mensal_brl: float = Field(
-        ..., gt=0, description="Meta de aporte mensal total em BRL.",
+        ...,
+        gt=0,
+        description="Meta de aporte mensal total em BRL.",
     )
     dia_aporte: int = Field(
-        5, ge=1, le=28, description="Dia do mês para o aporte (1-28).",
+        5,
+        ge=1,
+        le=28,
+        description="Dia do mês para o aporte (1-28).",
     )
     periodo_inicio: str = Field(
-        "Imediato", description="Quando iniciar (ex: 'Imediato', 'Mai/2026').",
+        "Imediato",
+        description="Quando iniciar (ex: 'Imediato', 'Mai/2026').",
     )
     distribuicao: dict[str, float] = Field(
         default_factory=dict,
@@ -47,7 +53,8 @@ class AporteGoalDerived(BaseModel):
     """Valores derivados de aportes."""
 
     aporte_anual_brl: float = Field(
-        ..., description="Meta anualizada (meta_mensal × 12).",
+        ...,
+        description="Meta anualizada (meta_mensal × 12).",
     )
     distribuicao_pct: dict[str, float] = Field(
         default_factory=dict,

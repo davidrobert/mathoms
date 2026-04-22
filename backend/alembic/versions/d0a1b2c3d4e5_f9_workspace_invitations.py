@@ -11,13 +11,13 @@ validação em Python, não DDL).
 Reusa `audit_logs` existente (F6.5) para eventos de membership —
 nenhuma tabela nova de audit necessária.
 """
+
 from __future__ import annotations
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "d0a1b2c3d4e5"
 # Cabeça atual: d3e4f5a6b7c8 (f9_report_analysis_json_path).

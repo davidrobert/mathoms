@@ -15,11 +15,11 @@ Revision ID: f1a2b3c4d5e6
 Revises: e7f8a9b0c1d2
 Create Date: 2026-04-15
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "f1a2b3c4d5e6"
 down_revision: Union[str, None] = "e7f8a9b0c1d2"
@@ -56,9 +56,7 @@ def upgrade() -> None:
         "documents",
         sa.Column("possible_duplicate_of_id", sa.String(length=36), nullable=True),
     )
-    op.create_index(
-        "ix_documents_needs_review", "documents", ["needs_review"], unique=False
-    )
+    op.create_index("ix_documents_needs_review", "documents", ["needs_review"], unique=False)
     op.create_index(
         "ix_documents_possible_duplicate_of_id",
         "documents",

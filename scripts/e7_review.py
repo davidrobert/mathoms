@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """
 E7 Review & Refine — Post-report holistic review with persona-driven analysis
 
@@ -51,6 +52,7 @@ REPORT_SPEC_PATH: Path
 OUTPUT_DIR: Path
 REVIEW_TEMPLATE_PATH: Path
 
+
 def _load_json_config(path: Path) -> dict:
     if path.exists():
         with open(path, "r", encoding="utf-8") as f:
@@ -86,6 +88,7 @@ _init_config(_pc.PROJECT_DIR)
 # =============================================================================
 # Data loading — everything from files, nothing hardcoded
 # =============================================================================
+
 
 def load_e5_json() -> dict:
     """Load E5 analysis JSON. Returns empty dict if not found."""
@@ -169,10 +172,19 @@ def extract_persona_from_methodology(methodology_text: str) -> dict:
 # Cross-validation checks — 100% deterministic, data-driven
 # =============================================================================
 
+
 class CrossValidationResult:
     """Holds results of a single cross-validation check."""
-    def __init__(self, check_id: str, name: str, severity: str, passed: bool,
-                 details: str, sections: list[str] | None = None):
+
+    def __init__(
+        self,
+        check_id: str,
+        name: str,
+        severity: str,
+        passed: bool,
+        details: str,
+        sections: list[str] | None = None,
+    ):
         self.check_id = check_id
         self.name = name
         self.severity = severity  # "error", "warning", "info"
@@ -206,12 +218,16 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
             calculated_score = round(weighted_sum / total_weight, 1)
             reported_score = score_data.get("valor", 0)
             diff = abs(calculated_score - reported_score)
-            results.append(CrossValidationResult(
-                "CV1", "Score formula consistency", "error" if diff > _score_diff_max else "info",
-                diff <= _score_diff_max,
-                f"Score reportado: {reported_score}, calculado: {calculated_score}, diff: {diff:.1f}",
-                ["score"],
-            ))
+            results.append(
+                CrossValidationResult(
+                    "CV1",
+                    "Score formula consistency",
+                    "error" if diff > _score_diff_max else "info",
+                    diff <= _score_diff_max,
+                    f"Score reportado: {reported_score}, calculado: {calculated_score}, diff: {diff:.1f}",
+                    ["score"],
+                )
+            )
 
     # --- CV2: Patrimônio composition sum ---
     _pat_diff_max = _QA_THRESHOLDS.get("patrimonio_composicao_diff_pct_max", 5)
@@ -222,12 +238,16 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
         bruto = pat.get("bruto", 0)
         if bruto > 0:
             diff_pct = abs(comp_sum - bruto) / bruto * 100
-            results.append(CrossValidationResult(
-                "CV2", "Patrimônio composição vs bruto", "warning" if diff_pct > _pat_diff_max else "info",
-                diff_pct <= _pat_diff_max,
-                f"Soma composição: R$ {comp_sum:,.0f}, bruto: R$ {bruto:,.0f}, diff: {diff_pct:.1f}%",
-                ["patrimonio"],
-            ))
+            results.append(
+                CrossValidationResult(
+                    "CV2",
+                    "Patrimônio composição vs bruto",
+                    "warning" if diff_pct > _pat_diff_max else "info",
+                    diff_pct <= _pat_diff_max,
+                    f"Soma composição: R$ {comp_sum:,.0f}, bruto: R$ {bruto:,.0f}, diff: {diff_pct:.1f}%",
+                    ["patrimonio"],
+                )
+            )
 
     # --- CV3: Fluxo de caixa arithmetic ---
     _cv_fluxo_max = _QA_THRESHOLDS.get("cv_fluxo_diff_max", 100)
@@ -238,12 +258,16 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
     if receita > 0 or despesa > 0:
         expected_fluxo = receita - despesa
         diff = abs(expected_fluxo - fluxo_liq)
-        results.append(CrossValidationResult(
-            "CV3", "Fluxo de caixa aritmética", "warning" if diff > _cv_fluxo_max else "info",
-            diff <= _cv_fluxo_max,
-            f"Receita ({receita:,.0f}) - Despesa ({despesa:,.0f}) = {expected_fluxo:,.0f}, reportado: {fluxo_liq:,.0f}",
-            ["fluxo_caixa"],
-        ))
+        results.append(
+            CrossValidationResult(
+                "CV3",
+                "Fluxo de caixa aritmética",
+                "warning" if diff > _cv_fluxo_max else "info",
+                diff <= _cv_fluxo_max,
+                f"Receita ({receita:,.0f}) - Despesa ({despesa:,.0f}) = {expected_fluxo:,.0f}, reportado: {fluxo_liq:,.0f}",
+                ["fluxo_caixa"],
+            )
+        )
 
     # --- CV4: Taxa de poupança consistency ---
     _cv_tp_max = _QA_THRESHOLDS.get("cv_taxa_poupanca_diff_pp_max", 5)
@@ -253,12 +277,16 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
     if tp_pct is not None and rec_recorrente > 0:
         calculated_tp = ((rec_recorrente - despesa) / rec_recorrente) * 100
         diff = abs(calculated_tp - tp_pct)
-        results.append(CrossValidationResult(
-            "CV4", "Taxa poupança recorrente", "warning" if diff > _cv_tp_max else "info",
-            diff <= _cv_tp_max,
-            f"Calculada: {calculated_tp:.1f}%, reportada: {tp_pct:.1f}%, diff: {diff:.1f}pp",
-            ["ratios", "fluxo_caixa"],
-        ))
+        results.append(
+            CrossValidationResult(
+                "CV4",
+                "Taxa poupança recorrente",
+                "warning" if diff > _cv_tp_max else "info",
+                diff <= _cv_tp_max,
+                f"Calculada: {calculated_tp:.1f}%, reportada: {tp_pct:.1f}%, diff: {diff:.1f}pp",
+                ["ratios", "fluxo_caixa"],
+            )
+        )
 
     # --- CV5: IF goal coherence ---
     _cv_if_monthly_max = _QA_THRESHOLDS.get("cv_if_monthly_diff_max", 500)
@@ -269,14 +297,17 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
     if if_meta > 0 and if_trs > 0:
         expected_monthly = (if_meta * if_trs / 100) / 12
         diff = abs(expected_monthly - if_monthly)
-        results.append(CrossValidationResult(
-            "CV5", "IF meta × TRS = renda mensal",
-            "warning" if diff > _cv_if_monthly_max else "info",
-            diff <= _cv_if_monthly_max,
-            f"Meta R$ {if_meta:,.0f} × {if_trs}% / 12 = R$ {expected_monthly:,.0f}/mês, "
-            f"reportado: R$ {if_monthly:,.0f}/mês",
-            ["goals"],
-        ))
+        results.append(
+            CrossValidationResult(
+                "CV5",
+                "IF meta × TRS = renda mensal",
+                "warning" if diff > _cv_if_monthly_max else "info",
+                diff <= _cv_if_monthly_max,
+                f"Meta R$ {if_meta:,.0f} × {if_trs}% / 12 = R$ {expected_monthly:,.0f}/mês, "
+                f"reportado: R$ {if_monthly:,.0f}/mês",
+                ["goals"],
+            )
+        )
 
     # --- CV6: IF progress consistency ---
     _cv_if_pct_max = _QA_THRESHOLDS.get("cv_if_progress_diff_pct_max", 2)
@@ -285,13 +316,16 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
     if if_meta > 0:
         calculated_pct = (pat_investivel / if_meta) * 100
         diff = abs(calculated_pct - if_pct)
-        results.append(CrossValidationResult(
-            "CV6", "Progresso IF vs patrimônio investível",
-            "warning" if diff > _cv_if_pct_max else "info",
-            diff <= _cv_if_pct_max,
-            f"Investível/Meta = {calculated_pct:.1f}%, reportado: {if_pct:.1f}%",
-            ["goals", "patrimonio"],
-        ))
+        results.append(
+            CrossValidationResult(
+                "CV6",
+                "Progresso IF vs patrimônio investível",
+                "warning" if diff > _cv_if_pct_max else "info",
+                diff <= _cv_if_pct_max,
+                f"Investível/Meta = {calculated_pct:.1f}%, reportado: {if_pct:.1f}%",
+                ["goals", "patrimonio"],
+            )
+        )
 
     # --- CV7: Endividamento ratio ---
     _cv_endiv_max = _QA_THRESHOLDS.get("cv_endividamento_diff_pct_max", 1)
@@ -302,13 +336,16 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
     if bruto > 0:
         calculated_endiv = (total_dividas / bruto) * 100
         diff = abs(calculated_endiv - endiv_pct)
-        results.append(CrossValidationResult(
-            "CV7", "Taxa endividamento vs patrimônio",
-            "warning" if diff > _cv_endiv_max else "info",
-            diff <= _cv_endiv_max,
-            f"Dívidas/Bruto = {calculated_endiv:.1f}%, reportado: {endiv_pct:.1f}%",
-            ["endividamento", "patrimonio"],
-        ))
+        results.append(
+            CrossValidationResult(
+                "CV7",
+                "Taxa endividamento vs patrimônio",
+                "warning" if diff > _cv_endiv_max else "info",
+                diff <= _cv_endiv_max,
+                f"Dívidas/Bruto = {calculated_endiv:.1f}%, reportado: {endiv_pct:.1f}%",
+                ["endividamento", "patrimonio"],
+            )
+        )
 
     # --- CV8: Reserva de emergência coverage ---
     reserva = e5.get("reserva_emergencia", {})
@@ -318,13 +355,16 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
     if despesas_mensais > 0:
         calculated_cob = total_liquida / despesas_mensais
         diff = abs(calculated_cob - cobertura)
-        results.append(CrossValidationResult(
-            "CV8", "Cobertura reserva emergência",
-            "warning" if diff > 1 else "info",
-            diff <= 1,
-            f"Líquida/Despesas = {calculated_cob:.1f} meses, reportado: {cobertura:.1f}",
-            ["reserva_emergencia"],
-        ))
+        results.append(
+            CrossValidationResult(
+                "CV8",
+                "Cobertura reserva emergência",
+                "warning" if diff > 1 else "info",
+                diff <= 1,
+                f"Líquida/Despesas = {calculated_cob:.1f} meses, reportado: {cobertura:.1f}",
+                ["reserva_emergencia"],
+            )
+        )
 
     # --- CV9: Narrativas completeness ---
     narr = e5.get("narrativas", {})
@@ -332,18 +372,27 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
     charts = narr.get("charts", {})
     missing_summaries = [f"s{i}" for i in range(1, 11) if f"s{i}" not in summaries]
     empty_summaries = [k for k, v in summaries.items() if not v or not v.strip()]
-    results.append(CrossValidationResult(
-        "CV9", "Narrativas completeness (summaries)",
-        "error" if missing_summaries else ("warning" if empty_summaries else "info"),
-        not missing_summaries and not empty_summaries,
-        f"Missing: {missing_summaries or 'nenhum'}, Empty: {empty_summaries or 'nenhum'}",
-        ["narrativas"],
-    ))
+    results.append(
+        CrossValidationResult(
+            "CV9",
+            "Narrativas completeness (summaries)",
+            "error" if missing_summaries else ("warning" if empty_summaries else "info"),
+            not missing_summaries and not empty_summaries,
+            f"Missing: {missing_summaries or 'nenhum'}, Empty: {empty_summaries or 'nenhum'}",
+            ["narrativas"],
+        )
+    )
 
     # --- CV10: Charts completeness ---
     required_charts = [
-        "score_gauge", "patrimonio_doughnut", "alocacao_atual", "alocacao_alvo",
-        "fluxo_mensal", "receita_bar", "receita_despesa_mensal", "despesas_doughnut",
+        "score_gauge",
+        "patrimonio_doughnut",
+        "alocacao_atual",
+        "alocacao_alvo",
+        "fluxo_mensal",
+        "receita_bar",
+        "receita_despesa_mensal",
+        "despesas_doughnut",
     ]
     missing_charts = [c for c in required_charts if c not in charts]
     incomplete_charts = []
@@ -351,60 +400,78 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
         if isinstance(cv, dict):
             if not cv.get("context") or not cv.get("conclusion"):
                 incomplete_charts.append(ck)
-    results.append(CrossValidationResult(
-        "CV10", "Charts completeness",
-        "error" if missing_charts else ("warning" if incomplete_charts else "info"),
-        not missing_charts and not incomplete_charts,
-        f"Missing: {missing_charts or 'nenhum'}, Incomplete: {incomplete_charts or 'nenhum'}",
-        ["narrativas"],
-    ))
+    results.append(
+        CrossValidationResult(
+            "CV10",
+            "Charts completeness",
+            "error" if missing_charts else ("warning" if incomplete_charts else "info"),
+            not missing_charts and not incomplete_charts,
+            f"Missing: {missing_charts or 'nenhum'}, Incomplete: {incomplete_charts or 'nenhum'}",
+            ["narrativas"],
+        )
+    )
 
     # --- CV11: Tarefas exist and have structure ---
     tarefas = e5.get("tarefas", [])
-    tarefas_ok = all(
-        isinstance(t, dict) and "t" in t and "p" in t
-        for t in tarefas
-    ) if tarefas else False
-    results.append(CrossValidationResult(
-        "CV11", "Tarefas structure",
-        "warning" if not tarefas_ok else "info",
-        tarefas_ok,
-        f"{len(tarefas)} tarefas encontradas, structure OK: {tarefas_ok}",
-        ["tarefas"],
-    ))
+    tarefas_ok = (
+        all(isinstance(t, dict) and "t" in t and "p" in t for t in tarefas) if tarefas else False
+    )
+    results.append(
+        CrossValidationResult(
+            "CV11",
+            "Tarefas structure",
+            "warning" if not tarefas_ok else "info",
+            tarefas_ok,
+            f"{len(tarefas)} tarefas encontradas, structure OK: {tarefas_ok}",
+            ["tarefas"],
+        )
+    )
 
     # --- CV12: Diagnóstico comportamental exists ---
     diag = e5.get("diagnostico_comportamental", [])
-    results.append(CrossValidationResult(
-        "CV12", "Diagnóstico comportamental presente",
-        "warning" if not diag else "info",
-        bool(diag),
-        f"{len(diag)} padrão(ões) detectado(s)" if diag else "Nenhum padrão — verificar se intencional",
-        ["diagnostico_comportamental"],
-    ))
+    results.append(
+        CrossValidationResult(
+            "CV12",
+            "Diagnóstico comportamental presente",
+            "warning" if not diag else "info",
+            bool(diag),
+            f"{len(diag)} padrão(ões) detectado(s)"
+            if diag
+            else "Nenhum padrão — verificar se intencional",
+            ["diagnostico_comportamental"],
+        )
+    )
 
     # --- CV13: Score classification label ---
     score_val = score_data.get("valor", 0)
     score_label = score_data.get("classificacao", "")
     expected_label = _score_classification(score_val)
     label_match = expected_label.lower() == score_label.lower()
-    results.append(CrossValidationResult(
-        "CV13", "Score classification label",
-        "warning" if not label_match else "info",
-        label_match,
-        f"Score {score_val} → esperado: '{expected_label}', reportado: '{score_label}'",
-        ["score"],
-    ))
+    results.append(
+        CrossValidationResult(
+            "CV13",
+            "Score classification label",
+            "warning" if not label_match else "info",
+            label_match,
+            f"Score {score_val} → esperado: '{expected_label}', reportado: '{score_label}'",
+            ["score"],
+        )
+    )
 
     # --- CV14: Monetary format in narrativas ---
     format_issues = _check_narrativas_monetary_format(narr)
-    results.append(CrossValidationResult(
-        "CV14", "Monetary format in narrativas",
-        "warning" if format_issues else "info",
-        not format_issues,
-        f"{len(format_issues)} issue(s): {format_issues[:3]}" if format_issues else "Formato OK",
-        ["narrativas"],
-    ))
+    results.append(
+        CrossValidationResult(
+            "CV14",
+            "Monetary format in narrativas",
+            "warning" if format_issues else "info",
+            not format_issues,
+            f"{len(format_issues)} issue(s): {format_issues[:3]}"
+            if format_issues
+            else "Formato OK",
+            ["narrativas"],
+        )
+    )
 
     return results
 
@@ -466,8 +533,8 @@ def _check_narrativas_monetary_format(narr: dict) -> list[str]:
 # Review template generation
 # =============================================================================
 
-def build_review_template(e5: dict, cv_results: list[CrossValidationResult],
-                          persona: dict) -> dict:
+
+def build_review_template(e5: dict, cv_results: list[CrossValidationResult], persona: dict) -> dict:
     """Build a review template that the LLM will fill in.
 
     The template contains:
@@ -565,6 +632,7 @@ def build_review_template(e5: dict, cv_results: list[CrossValidationResult],
 # =============================================================================
 # Apply review refinements
 # =============================================================================
+
 
 def validate_review(review: dict) -> tuple[bool, list[str]]:
     """Validate review JSON structure before applying."""
@@ -737,10 +805,11 @@ def apply_review(e5: dict, review: dict, dry_run: bool = False) -> dict:
 # Strip review from E5 JSON
 # =============================================================================
 
+
 def strip_review_from_e5(dry_run: bool = False) -> int:
     """Remove review-related keys from E5 JSON. Returns count of files modified."""
     if not E5_JSON_PATH.exists():
-        print(f"  [WARN] E5 JSON não encontrado")
+        print("  [WARN] E5 JSON não encontrado")
         return 0
 
     with open(E5_JSON_PATH, "r", encoding="utf-8") as f:
@@ -778,6 +847,7 @@ def strip_review_from_e5(dry_run: bool = False) -> int:
 # Main
 # =============================================================================
 
+
 def main(root_dir: Path = None):
     if root_dir:
         _init_config(root_dir)
@@ -794,15 +864,20 @@ Exemplos:
         """,
     )
     parser.add_argument(
-        "--apply", dest="apply_path", type=str, default=None,
+        "--apply",
+        dest="apply_path",
+        type=str,
+        default=None,
         help="Path to review JSON file to apply to E5.",
     )
     parser.add_argument(
-        "--strip", action="store_true",
+        "--strip",
+        action="store_true",
         help="Remove review-related keys from E5 JSON.",
     )
     parser.add_argument(
-        "--dry-run", action="store_true",
+        "--dry-run",
+        action="store_true",
         help="Preview without making changes.",
     )
 
@@ -837,7 +912,11 @@ Exemplos:
     methodology_text = load_methodology()
     persona = extract_persona_from_methodology(methodology_text)
     print(f"  Methodology: {'carregado' if methodology_text else 'não encontrado'}")
-    print(f"  Persona: {persona['description'][:80]}..." if persona['description'] else "  Persona: não extraída")
+    print(
+        f"  Persona: {persona['description'][:80]}..."
+        if persona["description"]
+        else "  Persona: não extraída"
+    )
 
     narr = e5.get("narrativas", {})
     has_narrativas = bool(narr.get("summaries")) and bool(narr.get("charts"))
@@ -868,7 +947,7 @@ Exemplos:
         # Validate
         is_valid, errors = validate_review(review)
         if not is_valid:
-            print(f"  [ERRO] Review inválido:")
+            print("  [ERRO] Review inválido:")
             for e in errors:
                 print(f"    - {e}")
             sys.exit(1)
@@ -877,15 +956,16 @@ Exemplos:
         # Apply
         updated_e5 = apply_review(e5, review, dry_run)
         changes = review.get("refinements", {})
-        change_count = sum(1 for k, v in changes.items()
-                          if not k.startswith("_") and v and v != {} and v != [])
+        change_count = sum(
+            1 for k, v in changes.items() if not k.startswith("_") and v and v != {} and v != []
+        )
 
         if not dry_run:
             with open(E5_JSON_PATH, "w", encoding="utf-8") as f:
                 json.dump(updated_e5, f, indent=2, ensure_ascii=False)
-            print(f"  E5 JSON atualizado com refinamentos")
-            print(f"\n  Próximo passo: re-renderizar o relatório:")
-            print(f"    python scripts/e6_render.py")
+            print("  E5 JSON atualizado com refinamentos")
+            print("\n  Próximo passo: re-renderizar o relatório:")
+            print("    python scripts/e6_render.py")
         else:
             print(f"  [DRY-RUN] {change_count} seção(ões) seriam refinadas")
 
@@ -1026,8 +1106,7 @@ def main_with_store(ctx, *, mode: str = "crossval", review_path: str | None = No
 
         changes = review.get("refinements", {})
         change_count = sum(
-            1 for k, v in changes.items()
-            if not k.startswith("_") and v and v != {} and v != []
+            1 for k, v in changes.items() if not k.startswith("_") and v and v != {} and v != []
         )
         print(f"  ✓ Aplicados {change_count} refinamento(s) ao E5")
         return {

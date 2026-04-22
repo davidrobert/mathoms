@@ -101,16 +101,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index(
-        "ix_pipeline_artifacts_document_id", table_name="pipeline_artifacts"
-    )
-    op.drop_index(
-        "ix_pipeline_artifacts_workspace_stage_key", table_name="pipeline_artifacts"
-    )
-    op.drop_index(
-        "ix_pipeline_artifacts_pipeline_run_id", table_name="pipeline_artifacts"
-    )
-    op.drop_index(
-        "ix_pipeline_artifacts_workspace_id", table_name="pipeline_artifacts"
-    )
+    op.drop_index("ix_pipeline_artifacts_document_id", table_name="pipeline_artifacts")
+    op.drop_index("ix_pipeline_artifacts_workspace_stage_key", table_name="pipeline_artifacts")
+    op.drop_index("ix_pipeline_artifacts_pipeline_run_id", table_name="pipeline_artifacts")
+    op.drop_index("ix_pipeline_artifacts_workspace_id", table_name="pipeline_artifacts")
     op.drop_table("pipeline_artifacts")

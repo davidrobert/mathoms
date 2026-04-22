@@ -53,9 +53,7 @@ class DiagnosticoComportamentalConfig:
         cfg = (scoring or {}).get("thresholds_alertas") or {}
         return cls(
             poupanca_ref_pct=_safe_float(cfg.get("poupanca_referencia_pct", 25)),
-            receita_one_time_alerta_pct=_safe_float(
-                cfg.get("receita_one_time_alerta_pct", 30)
-            ),
+            receita_one_time_alerta_pct=_safe_float(cfg.get("receita_one_time_alerta_pct", 30)),
         )
 
 
@@ -86,9 +84,7 @@ class DiagnosticoItem:
 class DiagnosticoComportamentalAnalyzer:
     """Gera lista de :class:`DiagnosticoItem` a partir de fluxo + ratios."""
 
-    def __init__(
-        self, config: DiagnosticoComportamentalConfig | None = None
-    ) -> None:
+    def __init__(self, config: DiagnosticoComportamentalConfig | None = None) -> None:
         self._config = config or DiagnosticoComportamentalConfig()
 
     def analyze(
@@ -118,9 +114,7 @@ class DiagnosticoComportamentalAnalyzer:
             out.append(
                 DiagnosticoItem(
                     padrao="Poupança abaixo do ideal",
-                    evidencia=(
-                        f"Taxa de {taxa_str}% — referência mínima: {ref_str}%"
-                    ),
+                    evidencia=(f"Taxa de {taxa_str}% — referência mínima: {ref_str}%"),
                     mudanca_sugerida="Revisar despesas variáveis e aumentar aporte",
                 )
             )
@@ -141,8 +135,7 @@ class DiagnosticoComportamentalAnalyzer:
                     DiagnosticoItem(
                         padrao="Alta dependência de receita pontual",
                         evidencia=(
-                            f"{one_time_pct:.0f}% da receita é não-recorrente "
-                            "(resgates, vendas)"
+                            f"{one_time_pct:.0f}% da receita é não-recorrente " "(resgates, vendas)"
                         ),
                         mudanca_sugerida=(
                             "Não contar com receita pontual para orçamento; "

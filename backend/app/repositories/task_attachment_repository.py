@@ -38,9 +38,7 @@ class TaskAttachmentRepository:
     # Queries
     # -------------------------------------------------------------------
 
-    async def list_by_task(
-        self, workspace_id: str, task_id: str
-    ) -> list[TaskAttachment]:
+    async def list_by_task(self, workspace_id: str, task_id: str) -> list[TaskAttachment]:
         """Lista anexos de uma task, mais recentes primeiro."""
         result = await self._session.execute(
             select(TaskAttachment)
@@ -52,9 +50,7 @@ class TaskAttachmentRepository:
         )
         return list(result.scalars().all())
 
-    async def get_by_id(
-        self, workspace_id: str, attachment_id: str
-    ) -> Optional[TaskAttachment]:
+    async def get_by_id(self, workspace_id: str, attachment_id: str) -> Optional[TaskAttachment]:
         """Retorna anexo por id dentro do workspace, ou ``None``."""
         result = await self._session.execute(
             select(TaskAttachment).where(
@@ -68,9 +64,7 @@ class TaskAttachmentRepository:
     # Commands
     # -------------------------------------------------------------------
 
-    async def add(
-        self, attachment: TaskAttachment, *, flush: bool = True
-    ) -> TaskAttachment:
+    async def add(self, attachment: TaskAttachment, *, flush: bool = True) -> TaskAttachment:
         """Registra ``attachment`` na sessão. Caller commita."""
         self._session.add(attachment)
         if flush:

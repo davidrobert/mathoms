@@ -18,10 +18,14 @@ class DolarGoalInputs(BaseModel):
     """Inputs do usuário para meta de dolarização."""
 
     meta_usd: float = Field(
-        ..., gt=0, description="Meta de acumulação em USD.",
+        ...,
+        gt=0,
+        description="Meta de acumulação em USD.",
     )
     aporte_mensal_brl: float = Field(
-        ..., gt=0, description="Aporte mensal em BRL para conversão.",
+        ...,
+        gt=0,
+        description="Aporte mensal em BRL para conversão.",
     )
 
 
@@ -29,14 +33,17 @@ class DolarGoalDerived(BaseModel):
     """Valores derivados de dolarização."""
 
     horizonte_estimado_meses: float = Field(
-        ..., ge=0, description="Meses estimados para atingir meta_usd.",
+        ...,
+        ge=0,
+        description="Meses estimados para atingir meta_usd.",
     )
 
 
 class DolarGoalComputeRequest(BaseModel):
     inputs: DolarGoalInputs
     cambio_brl_usd: Optional[float] = Field(
-        None, gt=0,
+        None,
+        gt=0,
         description="Câmbio BRL/USD override. Se omitido, usa default (5.70).",
     )
 
@@ -44,7 +51,8 @@ class DolarGoalComputeRequest(BaseModel):
 class DolarGoalComputeResponse(BaseModel):
     derived: DolarGoalDerived
     cambio_utilizado: float = Field(
-        ..., description="Câmbio BRL/USD efetivamente usado no cálculo.",
+        ...,
+        description="Câmbio BRL/USD efetivamente usado no cálculo.",
     )
 
 

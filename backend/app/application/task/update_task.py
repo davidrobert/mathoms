@@ -36,8 +36,7 @@ async def update_task(
     """
     if cmd.category is not None and cmd.category not in VALID_CATEGORIES:
         raise ValidationError(
-            f"Categoria inválida: '{cmd.category}'. "
-            f"Aceitas: {sorted(VALID_CATEGORIES)}",
+            f"Categoria inválida: '{cmd.category}'. " f"Aceitas: {sorted(VALID_CATEGORIES)}",
             code="invalid_category",
         )
 

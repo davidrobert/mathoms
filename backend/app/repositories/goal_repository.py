@@ -45,7 +45,7 @@ from typing import Any, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.goal import Goal, VALID_GOAL_TYPES
+from backend.app.models.goal import VALID_GOAL_TYPES, Goal
 
 
 class GoalRepository:
@@ -58,9 +58,7 @@ class GoalRepository:
     # Queries
     # -------------------------------------------------------------------
 
-    async def get_active_by_type(
-        self, workspace_id: str, goal_type: str
-    ) -> Optional[Goal]:
+    async def get_active_by_type(self, workspace_id: str, goal_type: str) -> Optional[Goal]:
         """Retorna a versão vigente para ``(workspace_id, goal_type)``.
 
         Vigente = ``effective_to IS NULL``. Pelo unique index parcial
@@ -78,9 +76,7 @@ class GoalRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_by_id(
-        self, workspace_id: str, goal_id: str
-    ) -> Optional[Goal]:
+    async def get_by_id(self, workspace_id: str, goal_id: str) -> Optional[Goal]:
         """Retorna goal por id dentro do workspace (qualquer versão, ou ``None``)."""
         result = await self._session.execute(
             select(Goal).where(
@@ -90,9 +86,7 @@ class GoalRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list_by_workspace_and_type(
-        self, workspace_id: str, goal_type: str
-    ) -> list[Goal]:
+    async def list_by_workspace_and_type(self, workspace_id: str, goal_type: str) -> list[Goal]:
         """Histórico completo do tipo, mais recente primeiro.
 
         Ordenação: ``effective_from DESC`` — a vigente é sempre a

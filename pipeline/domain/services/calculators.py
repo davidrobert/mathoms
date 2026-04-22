@@ -22,7 +22,6 @@ from typing import Iterable
 from pipeline.domain.models.document import BankStatement, BaselinePatrimonial
 from pipeline.domain.models.transaction import Money, Transaction
 
-
 # =============================================================================
 # Config dataclasses (R9 — services não recebem StageConfig inteiro)
 # =============================================================================
@@ -125,9 +124,7 @@ class EmergencyReserveReport:
 class CashFlowAggregator:
     """Agrega fluxo de caixa mensal a partir de statements."""
 
-    def aggregate(
-        self, statements: Iterable[BankStatement]
-    ) -> CashFlowReport:
+    def aggregate(self, statements: Iterable[BankStatement]) -> CashFlowReport:
         stmts = list(statements)
         if not stmts:
             return CashFlowReport(currency="BRL", months=())
@@ -200,9 +197,7 @@ class EmergencyReserveCalculator:
     def __init__(self, config: EmergencyReserveConfig = EmergencyReserveConfig()) -> None:
         self._config = config
 
-    def calculate(
-        self, statements: Iterable[BankStatement]
-    ) -> EmergencyReserveReport:
+    def calculate(self, statements: Iterable[BankStatement]) -> EmergencyReserveReport:
         stmts = list(statements)
         if not stmts:
             return EmergencyReserveReport(
@@ -226,13 +221,13 @@ class EmergencyReserveCalculator:
         expense_total = Money.zero(currency)
         for m in report.months:
             expense_total = expense_total + m.expenses
-        avg = Money(
-            expense_total.amount / Decimal(n_months), currency
-        ) if n_months > 0 else Money.zero(currency)
-        target = avg * self._config.target_months
-        months_of_coverage = (
-            current.amount / avg.amount if avg.amount != Decimal(0) else Decimal(0)
+        avg = (
+            Money(expense_total.amount / Decimal(n_months), currency)
+            if n_months > 0
+            else Money.zero(currency)
         )
+        target = avg * self._config.target_months
+        months_of_coverage = current.amount / avg.amount if avg.amount != Decimal(0) else Decimal(0)
         return EmergencyReserveReport(
             current_balance=current,
             monthly_avg_expenses=avg,

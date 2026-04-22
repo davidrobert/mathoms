@@ -38,13 +38,9 @@ def _normalize(raw: str) -> str:
         return ""
     # NFKD separa acento do caractere base; mantemos apenas o base.
     stripped = "".join(
-        c for c in unicodedata.normalize("NFKD", raw)
-        if not unicodedata.combining(c)
+        c for c in unicodedata.normalize("NFKD", raw) if not unicodedata.combining(c)
     )
-    return "".join(
-        c for c in stripped.lower().strip()
-        if c.isalnum()
-    )
+    return "".join(c for c in stripped.lower().strip() if c.isalnum())
 
 
 @dataclass(frozen=True)

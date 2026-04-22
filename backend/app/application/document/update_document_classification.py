@@ -15,7 +15,6 @@ from backend.app.schemas.dto.document import (
     document_to_response,
 )
 
-
 # Campos que afetam qual parser/LLM é usado na extração E2 — mudança
 # invalida o extrato anterior e recoloca o doc na fila do pipeline.
 _EXTRACTION_AFFECTING: frozenset[str] = frozenset({"doc_type", "bank_code"})
@@ -35,15 +34,11 @@ async def update_document_classification(
     """
     updates = cmd.model_dump(exclude_unset=True)
     if not updates:
-        raise ValidationError(
-            "Nenhum campo para atualizar", code="empty_update"
-        )
+        raise ValidationError("Nenhum campo para atualizar", code="empty_update")
 
     doc = await repo.get_by_id(workspace_id, document_id)
     if doc is None:
-        raise NotFoundError(
-            "Documento não encontrado", code="document_not_found"
-        )
+        raise NotFoundError("Documento não encontrado", code="document_not_found")
 
     for field in ("doc_type", "bank_code", "period"):
         if field in updates:

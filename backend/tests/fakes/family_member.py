@@ -31,9 +31,7 @@ class FakeFamilyMemberRepository:
             m.accounts = [a for a in self._accounts.values() if a.member_id == m.id]
         return members
 
-    async def get_by_id(
-        self, workspace_id: str, member_id: str
-    ) -> Optional[FamilyMember]:
+    async def get_by_id(self, workspace_id: str, member_id: str) -> Optional[FamilyMember]:
         m = self._members.get(member_id)
         if m is None or m.workspace_id != workspace_id:
             return None
@@ -110,9 +108,7 @@ class FakeFamilyMemberRepository:
     async def list_accounts(self, member_id: str) -> list[BankAccount]:
         return [a for a in self._accounts.values() if a.member_id == member_id]
 
-    async def get_account(
-        self, member_id: str, account_id: str
-    ) -> Optional[BankAccount]:
+    async def get_account(self, member_id: str, account_id: str) -> Optional[BankAccount]:
         acc = self._accounts.get(account_id)
         if acc is None or acc.member_id != member_id:
             return None

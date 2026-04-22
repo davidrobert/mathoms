@@ -30,16 +30,15 @@ from httpx import AsyncClient
 from backend.app.core.security import create_access_token
 from backend.tests.factories import make_user, make_workspace
 
-
 # Sinais identitários conhecidos do `config/family_members.json` global do projeto.
 # Se algum desses aparecer em payload servido para tenant novo, é leak.
 _FOUNDER_LEAK_SIGNALS = {
-    "David Robert",                      # nome do founder no global
+    "David Robert",  # nome do founder no global
     "David Robert Camargo Ferreira Campos",
     "Mariana Ferreira Campos",
     "Theo Ferreira Campos",
-    "Ferreira Campos",                   # familia.sobrenome
-    "1981-09-05",                        # data_nascimento founder
+    "Ferreira Campos",  # familia.sobrenome
+    "1981-09-05",  # data_nascimento founder
     "1986-08-30",
     "2025-07-18",
 }
@@ -63,9 +62,7 @@ def _assert_no_founder_leak(payload, where: str) -> None:
 
     s = json.dumps(payload, ensure_ascii=False, default=str)
     leaks = {sig for sig in _FOUNDER_LEAK_SIGNALS if sig in s}
-    assert not leaks, (
-        f"FOUNDER LEAK em {where}: payload contém identidade do founder: {leaks}"
-    )
+    assert not leaks, f"FOUNDER LEAK em {where}: payload contém identidade do founder: {leaks}"
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -79,7 +76,8 @@ class TestMembersFallbackNeutral:
         self, client: AsyncClient, fresh_user_and_token
     ):
         _, token, ws_id = fresh_user_and_token
-        r = await client.get(f"/api/workspaces/{ws_id}/config/members",
+        r = await client.get(
+            f"/api/workspaces/{ws_id}/config/members",
             headers={"Authorization": f"Bearer {token}"},
         )
         assert r.status_code == 200, r.text
@@ -90,13 +88,11 @@ class TestMembersFallbackNeutral:
         if body["total"] > 0:
             for m in body["members"]:
                 # Nomes devem ser claramente "Exemplo" — nunca founder
-                assert "Exemplo" in m["full_name"], (
-                    f"Esperava nome placeholder com 'Exemplo', got {m['full_name']!r}"
-                )
+                assert (
+                    "Exemplo" in m["full_name"]
+                ), f"Esperava nome placeholder com 'Exemplo', got {m['full_name']!r}"
                 assert m["cpf"] is None, "CPF não pode ser exposto via fallback"
-                assert m["birth_date"] is None, (
-                    "data_nascimento não pode ser exposta via fallback"
-                )
+                assert m["birth_date"] is None, "data_nascimento não pode ser exposta via fallback"
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -110,7 +106,8 @@ class TestExportFallbackNeutral:
         self, client: AsyncClient, fresh_user_and_token
     ):
         _, token, ws_id = fresh_user_and_token
-        r = await client.get(f"/api/workspaces/{ws_id}/config/export",
+        r = await client.get(
+            f"/api/workspaces/{ws_id}/config/export",
             headers={"Authorization": f"Bearer {token}"},
         )
         assert r.status_code == 200, r.text
@@ -119,9 +116,9 @@ class TestExportFallbackNeutral:
 
         # Estrutural: family_members deve ser objeto com `membros: {}`
         fm = body.get("family_members") or {}
-        assert fm.get("membros", {}) == {}, (
-            f"Export para tenant vazio deveria ter membros={{}}, got {fm.get('membros')!r}"
-        )
+        assert (
+            fm.get("membros", {}) == {}
+        ), f"Export para tenant vazio deveria ter membros={{}}, got {fm.get('membros')!r}"
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -142,7 +139,8 @@ class TestPopulatedTenantStillWorks:
         await db.commit()
         token = create_access_token(u.id)
 
-        r = await client.get(f"/api/workspaces/{ws.id}/config/members",
+        r = await client.get(
+            f"/api/workspaces/{ws.id}/config/members",
             headers={"Authorization": f"Bearer {token}"},
         )
         assert r.status_code == 200, r.text

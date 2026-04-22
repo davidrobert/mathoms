@@ -150,9 +150,7 @@ def setup_logging() -> None:
     handler._mathoms_managed = True  # type: ignore[attr-defined]
 
     if _resolve_log_format() == "text":
-        handler.setFormatter(
-            _TextFormatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
-        )
+        handler.setFormatter(_TextFormatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
     else:
         handler.setFormatter(MathomsJsonFormatter())
 

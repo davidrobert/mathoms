@@ -21,14 +21,13 @@ continuam sendo servidos pelo adapter a partir de `config/goals.json`.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone, date
+from datetime import date, datetime, timezone
 from typing import Optional
 
-from sqlalchemy import String, DateTime, Date, ForeignKey, JSON, Text, Index
+from sqlalchemy import JSON, Date, DateTime, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
-
 
 # Tipos aceitos. Mantido como frozenset para permitir adicionar novos
 # valores sem migration (só adicionar a literal aqui + validar no service).
@@ -56,9 +55,7 @@ class Goal(Base):
 
     __tablename__ = "goals"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("workspaces.id", ondelete="CASCADE"),
@@ -81,9 +78,7 @@ class Goal(Base):
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Flag indicando seed template (força wizard no onboarding)
-    is_template: Mapped[bool] = mapped_column(
-        default=False, nullable=False
-    )
+    is_template: Mapped[bool] = mapped_column(default=False, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

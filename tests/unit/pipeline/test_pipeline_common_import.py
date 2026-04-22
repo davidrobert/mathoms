@@ -12,17 +12,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 def test_import_without_workspace_root_does_not_exit(tmp_path):
     """Importar o módulo num subprocesso sem ``MATHOMS_WORKSPACE_ROOT`` retorna 0."""
-    env = {
-        k: v
-        for k, v in os.environ.items()
-        if k not in {"MATHOMS_WORKSPACE_ROOT"}
-    }
+    env = {k: v for k, v in os.environ.items() if k not in {"MATHOMS_WORKSPACE_ROOT"}}
     env["PYTHONPATH"] = str(REPO_ROOT)
     result = subprocess.run(
         [sys.executable, "-c", "import scripts.pipeline_common"],
@@ -31,9 +26,9 @@ def test_import_without_workspace_root_does_not_exit(tmp_path):
         env=env,
         cwd=str(REPO_ROOT),
     )
-    assert result.returncode == 0, (
-        f"import failed — stderr:\n{result.stderr}\nstdout:\n{result.stdout}"
-    )
+    assert (
+        result.returncode == 0
+    ), f"import failed — stderr:\n{result.stderr}\nstdout:\n{result.stdout}"
 
 
 def test_strict_mode_still_fails_without_env(tmp_path):

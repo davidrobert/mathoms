@@ -15,6 +15,7 @@ Skip explícito: docstring/comentário inline dizendo "percentage", "rate",
 Chamado via pre-commit `pass_filenames: true`; exit 0 se não há staged
 ou nenhum viola. Exit 1 mostrando arquivo + linha ofensora.
 """
+
 from __future__ import annotations
 
 import re
@@ -32,8 +33,7 @@ MONEY_TOKENS = re.compile(
 FIELD_FLOAT = re.compile(r"^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*:\s*float\b(?!\s*\|)")
 # Exceções (tolerâncias, taxas, percentuais) — skip se linha contém esses tokens.
 SKIP_TOKENS = re.compile(
-    r"(percentage|percentual|rate|taxa|tolerance|tolera|threshold|limite|"
-    r"ratio|fator|factor)",
+    r"(percentage|percentual|rate|taxa|tolerance|tolera|threshold|limite|" r"ratio|fator|factor)",
     re.IGNORECASE,
 )
 

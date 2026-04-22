@@ -74,9 +74,7 @@ async def test_delete_attachment_strips_row():
     repo = FakeTaskAttachmentRepository()
     att = await repo.add(_attachment("task-1"))
 
-    returned = await delete_task_attachment(
-        "ws-1", "task-1", att.id, repo=repo
-    )
+    returned = await delete_task_attachment("ws-1", "task-1", att.id, repo=repo)
     assert returned.id == att.id
     remaining = await repo.list_by_task("ws-1", "task-1")
     assert remaining == []
@@ -97,7 +95,5 @@ async def test_delete_attachment_task_mismatch():
     att = await repo.add(_attachment("task-1"))
 
     with pytest.raises(NotFoundError) as exc:
-        await delete_task_attachment(
-            "ws-1", "task-DIFFERENT", att.id, repo=repo
-        )
+        await delete_task_attachment("ws-1", "task-DIFFERENT", att.id, repo=repo)
     assert exc.value.code == "attachment_task_mismatch"

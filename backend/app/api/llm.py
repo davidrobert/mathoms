@@ -129,7 +129,8 @@ async def test_llm_connection(
     db: AsyncSession = Depends(get_db),
 ):
     """Test connectivity with the LLM provider. Uses saved config or override params."""
-    from pipeline.llm.litellm_client import LLMService, LLMConfig as LLMServiceConfig
+    from pipeline.llm.litellm_client import LLMConfig as LLMServiceConfig
+    from pipeline.llm.litellm_client import LLMService
 
     result = await db.execute(select(LLMConfig).where(LLMConfig.workspace_id == workspace.id))
     cfg = result.scalar_one_or_none()
@@ -142,11 +143,16 @@ async def test_llm_connection(
         provider = body.provider if body and body.provider else cfg.provider
         api_key_plain = _vault.decrypt(cfg.api_key_encrypted)
         if not api_key_plain:
-            raise HTTPException(status_code=400, detail="Não foi possível descriptografar a API key")
+            raise HTTPException(
+                status_code=400, detail="Não foi possível descriptografar a API key"
+            )
         api_key = api_key_plain
         model_name = body.model_name if body and body.model_name else cfg.model_name
     else:
-        raise HTTPException(status_code=404, detail="Nenhuma configuração LLM encontrada. Salve uma configuração primeiro ou forneça api_key no request.")
+        raise HTTPException(
+            status_code=404,
+            detail="Nenhuma configuração LLM encontrada. Salve uma configuração primeiro ou forneça api_key no request.",
+        )
 
     svc_config = LLMServiceConfig(
         provider=provider,

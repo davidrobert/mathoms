@@ -12,7 +12,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from pipeline.domain.models import BankCanonicalizer, BankStatement, Money, Transaction  # noqa: E402
+from pipeline.domain.models import (  # noqa: E402
+    BankCanonicalizer,
+    BankStatement,
+    Money,
+    Transaction,
+)
 from pipeline.domain.services.e3_serialization import (  # noqa: E402
     generate_legacy_artifact_key,
     generate_legacy_filename,
@@ -62,7 +67,10 @@ class TestGenerateLegacyFilename:
 
         # Sem canonicalizer: fallback lower().replace(" ", "") → "itaú"
         # (preserva acento — paridade com legado).
-        assert generate_legacy_filename(stmt) == "itaú_extratoconta_BRL_202601_202603-3_reconciled.json"
+        assert (
+            generate_legacy_filename(stmt)
+            == "itaú_extratoconta_BRL_202601_202603-3_reconciled.json"
+        )
 
     def test_fatura_excludes_currency(self):
         stmt = _stmt(
@@ -72,12 +80,12 @@ class TestGenerateLegacyFilename:
             period_end=date(2026, 4, 30),
         )
 
-        assert generate_legacy_filename(stmt) == "nubank_faturacarbon_202604_202604-3_reconciled.json"
+        assert (
+            generate_legacy_filename(stmt) == "nubank_faturacarbon_202604_202604-3_reconciled.json"
+        )
 
     def test_uses_canonicalizer_when_provided(self):
-        canon = BankCanonicalizer.from_institutions({
-            "banco_canonical": {"itau": "Itaú"}
-        })
+        canon = BankCanonicalizer.from_institutions({"banco_canonical": {"itau": "Itaú"}})
         stmt = _stmt(
             institution="Itaú",
             account_type="extratoconta",
@@ -93,9 +101,7 @@ class TestGenerateLegacyFilename:
         )
 
     def test_canonicalizer_strips_spaces_in_bank_name(self):
-        canon = BankCanonicalizer.from_institutions({
-            "banco_canonical": {"c6bank": "C6 Bank"}
-        })
+        canon = BankCanonicalizer.from_institutions({"banco_canonical": {"c6bank": "C6 Bank"}})
         stmt = _stmt(
             institution="C6 Bank",
             account_type="extratoconta",
@@ -137,17 +143,22 @@ class TestSerialize:
     def test_produces_required_schema_fields(self):
         stmt = _stmt()
 
-        out = serialize_to_e3_legacy_format(
-            stmt, sources=["src1.json"], duplicates_removed=0
-        )
+        out = serialize_to_e3_legacy_format(stmt, sources=["src1.json"], duplicates_removed=0)
 
         # Campos obrigatórios do schema (e3_reconciled.schema.json)
         for field in (
-            "banco", "tipo_conta", "moeda", "periodo_cobertura",
-            "saldo_inicial", "saldo_inicial_unknown",
-            "saldo_final", "saldo_final_unknown",
-            "fontes", "transacoes_total",
-            "transacoes_duplicadas_removidas", "transacoes",
+            "banco",
+            "tipo_conta",
+            "moeda",
+            "periodo_cobertura",
+            "saldo_inicial",
+            "saldo_inicial_unknown",
+            "saldo_final",
+            "saldo_final_unknown",
+            "fontes",
+            "transacoes_total",
+            "transacoes_duplicadas_removidas",
+            "transacoes",
         ):
             assert field in out, f"missing required field: {field}"
 
@@ -184,9 +195,7 @@ class TestSerialize:
     def test_fontes_preserves_order(self):
         stmt = _stmt()
 
-        out = serialize_to_e3_legacy_format(
-            stmt, sources=["b.json", "a.json", "c.json"]
-        )
+        out = serialize_to_e3_legacy_format(stmt, sources=["b.json", "a.json", "c.json"])
 
         assert out["fontes"] == ["b.json", "a.json", "c.json"]
 
@@ -197,9 +206,7 @@ class TestSerialize:
         ]
         stmt = _stmt(transactions=tx)
 
-        out = serialize_to_e3_legacy_format(
-            stmt, sources=["s"], duplicates_removed=2
-        )
+        out = serialize_to_e3_legacy_format(stmt, sources=["s"], duplicates_removed=2)
 
         assert out["transacoes_total"] == 2
         assert out["transacoes_duplicadas_removidas"] == 2
@@ -218,14 +225,16 @@ class TestSerialize:
         }
 
     def test_transacao_includes_optional_fields_when_present(self):
-        tx = [Transaction(
-            date=date(2026, 1, 5),
-            description="X",
-            amount=Money.brl("10"),
-            category="receita_outro",
-            member_key="ana",
-            source_document="extrato.pdf",
-        )]
+        tx = [
+            Transaction(
+                date=date(2026, 1, 5),
+                description="X",
+                amount=Money.brl("10"),
+                category="receita_outro",
+                member_key="ana",
+                source_document="extrato.pdf",
+            )
+        ]
         stmt = _stmt(transactions=tx)
 
         out = serialize_to_e3_legacy_format(stmt, sources=[])
@@ -244,9 +253,7 @@ class TestSerialize:
     def test_titular_explicit_overrides_member_key(self):
         stmt = _stmt(member_key="david")
 
-        out = serialize_to_e3_legacy_format(
-            stmt, sources=[], titular="cartao_familia"
-        )
+        out = serialize_to_e3_legacy_format(stmt, sources=[], titular="cartao_familia")
 
         assert out["titular"] == "cartao_familia"
 

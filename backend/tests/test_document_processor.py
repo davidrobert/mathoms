@@ -7,7 +7,9 @@ from pathlib import Path
 import pytest
 
 from backend.app.models.document import DocumentStatus, DocumentType
-from backend.app.services.document_classification import map_e0_doc_type_to_document_type as _map_doc_type
+from backend.app.services.document_classification import (
+    map_e0_doc_type_to_document_type as _map_doc_type,
+)
 from backend.app.services.document_processor import (
     _detect_json_type,
     process_uploaded_document,

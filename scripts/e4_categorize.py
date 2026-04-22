@@ -19,10 +19,10 @@ import json
 import os
 import re
 import sys
-from pathlib import Path
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Tuple, Optional
 from collections import defaultdict
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import scripts.pipeline_common as _pc
@@ -75,8 +75,12 @@ def _init_config(base_dir: Path) -> None:
     INTERNAL_TRANSFER_PATTERNS += _family.get("transferencias_internas", {}).get("patterns_pix", [])
 
     INTERNAL_TRANSFER_RECIPIENTS = _family.get("transferencias_internas", {}).get("recipients", [])
-    _BANK_SPECIFIC_PATTERNS = _family.get("transferencias_internas", {}).get("patterns_bank_specific", {})
-    _GLOBAL_TRANSFER_PATTERNS = _family.get("transferencias_internas", {}).get("patterns_global", [])
+    _BANK_SPECIFIC_PATTERNS = _family.get("transferencias_internas", {}).get(
+        "patterns_bank_specific", {}
+    )
+    _GLOBAL_TRANSFER_PATTERNS = _family.get("transferencias_internas", {}).get(
+        "patterns_global", []
+    )
 
     BANCO_MEMBRO = {k: v for k, v in _family.get("banco_membro", {}).items() if k != "_comment"}
     PJ_SOURCE_MAPPING = {"receita_pj": _categorization["pj_source_mapping"]}
@@ -98,16 +102,19 @@ def normalize_text(text: str) -> str:
     if not text:
         return ""
     import unicodedata
+
     text = text.upper().strip()
     # Remove accents (NFD decomposes, then strip combining marks)
-    text = unicodedata.normalize('NFD', text)
-    text = ''.join(c for c in text if unicodedata.category(c) != 'Mn')
+    text = unicodedata.normalize("NFD", text)
+    text = "".join(c for c in text if unicodedata.category(c) != "Mn")
     # Collapse multiple whitespace into single space (fixes C6 Bank formatting)
-    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r"\s+", " ", text)
     return text
 
 
-def find_longest_matching_keyword(description: str, keywords_dict: Dict[str, List[str]]) -> Tuple[Optional[str], Optional[str]]:
+def find_longest_matching_keyword(
+    description: str, keywords_dict: Dict[str, List[str]]
+) -> Tuple[Optional[str], Optional[str]]:
     """
     Find the longest matching keyword in description for a category.
     Returns (category, matched_keyword) or (None, None) if no match.
@@ -186,8 +193,9 @@ def categorize_expense(description: str) -> Optional[str]:
     return category
 
 
-def categorize_income(description: str, _account_type: str = "",
-                      _banco: str = "", _titular: str = "") -> Optional[str]:
+def categorize_income(
+    description: str, _account_type: str = "", _banco: str = "", _titular: str = ""
+) -> Optional[str]:
     """Categorize a credit transaction as income."""
     category, _ = find_longest_matching_keyword(description, INCOME_KEYWORDS)
     return category
@@ -233,6 +241,7 @@ def format_periodo(start_date: str, end_date: str) -> str:
 # MAIN PROCESSING FUNCTIONS
 # ============================================================================
 
+
 def load_reconciled_files(input_dir: Path) -> List[Dict]:
     """Load all *-3_reconciled.json files from E3 output directory."""
     files = list(input_dir.glob("*-3_reconciled.json"))
@@ -240,12 +249,12 @@ def load_reconciled_files(input_dir: Path) -> List[Dict]:
 
     for file_path in files:
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 # Skip tombstoned files from E3 cleanup
-                if data.get('_tombstone'):
+                if data.get("_tombstone"):
                     continue
-                transacoes = data.get('transacoes_total', data.get('transacoes'))
+                transacoes = data.get("transacoes_total", data.get("transacoes"))
                 if transacoes is None:
                     print(f"  [WARN] {file_path.name}: campo transacoes ausente — pulando")
                     continue
@@ -302,18 +311,22 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
             if not membro and instituicao:
                 inst_key = instituicao.lower().replace(" ", "")
                 membro = BANCO_MEMBRO.get(inst_key, "")
-            data_ref = data.get("data_referencia", data.get("data_posicao", data.get("periodo", "")))
+            data_ref = data.get(
+                "data_referencia", data.get("data_posicao", data.get("periodo", ""))
+            )
             total_fonte = data.get("total", data.get("saldo_atual", data.get("saldo_total", 0)))
 
-            candidates.append({
-                "_fpath": fpath,
-                "_data": data,
-                "_posicoes": posicoes,
-                "instituicao": instituicao,
-                "membro": membro,
-                "data_ref": data_ref,
-                "total_fonte": total_fonte,
-            })
+            candidates.append(
+                {
+                    "_fpath": fpath,
+                    "_data": data,
+                    "_posicoes": posicoes,
+                    "instituicao": instituicao,
+                    "membro": membro,
+                    "data_ref": data_ref,
+                    "total_fonte": total_fonte,
+                }
+            )
 
     # Phase 2: Deduplicate — keep only the most recent extract per (institution, member)
     best_by_key: Dict[str, Dict] = {}
@@ -326,12 +339,16 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
             if str(cand["data_ref"]) > str(existing["data_ref"]):
                 old_name = existing["_fpath"].name
                 new_name = cand["_fpath"].name
-                print(f"  [E4.INV] Dedup: {key[0]}/{key[1]} — descartando {old_name} (ref {existing['data_ref']}), mantendo {new_name} (ref {cand['data_ref']})")
+                print(
+                    f"  [E4.INV] Dedup: {key[0]}/{key[1]} — descartando {old_name} (ref {existing['data_ref']}), mantendo {new_name} (ref {cand['data_ref']})"
+                )
                 best_by_key[key] = cand
             else:
                 old_name = cand["_fpath"].name
                 kept_name = existing["_fpath"].name
-                print(f"  [E4.INV] Dedup: {key[0]}/{key[1]} — descartando {old_name} (ref {cand['data_ref']}), mantendo {kept_name} (ref {existing['data_ref']})")
+                print(
+                    f"  [E4.INV] Dedup: {key[0]}/{key[1]} — descartando {old_name} (ref {cand['data_ref']}), mantendo {kept_name} (ref {existing['data_ref']})"
+                )
 
     # Phase 3: Build unified positions from deduplicated extracts
     all_positions = []
@@ -358,16 +375,18 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
                 valor = 0.0
             positions_sum += valor
 
-            all_positions.append({
-                "nome": pos.get("nome", pos.get("name", "")),
-                "tipo": pos.get("tipo", pos.get("tipo_produto", pos.get("product_type", ""))),
-                "instituicao": instituicao,
-                "membro": membro,
-                "valor_atual": valor,
-                "data_referencia": data_ref,
-                "taxa": pos.get("taxa", pos.get("rentabilidade", "")),
-                "vencimento": pos.get("vencimento", ""),
-            })
+            all_positions.append(
+                {
+                    "nome": pos.get("nome", pos.get("name", "")),
+                    "tipo": pos.get("tipo", pos.get("tipo_produto", pos.get("product_type", ""))),
+                    "instituicao": instituicao,
+                    "membro": membro,
+                    "valor_atual": valor,
+                    "data_referencia": data_ref,
+                    "taxa": pos.get("taxa", pos.get("rentabilidade", "")),
+                    "vencimento": pos.get("vencimento", ""),
+                }
+            )
 
         try:
             total_f = float(total_fonte) if total_fonte else 0.0
@@ -388,12 +407,7 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
         sources.append(fpath.name)
 
     # Phase 4: Coverage check — warn about known institutions without extracts
-    _expected_institutions = {
-        m_key: inst_list
-        for m_key, inst_list in (
-            BANCO_MEMBRO.items()
-        )
-    }
+    _expected_institutions = {m_key: inst_list for m_key, inst_list in (BANCO_MEMBRO.items())}
 
     for w in warnings:
         print(f"  {w}")
@@ -449,6 +463,7 @@ def normalize_baseline(data: Dict) -> Dict:
             fixes.append("data_processamento ← data_consolidacao")
         else:
             from datetime import date
+
             data["data_processamento"] = date.today().isoformat()
             fixes.append("data_processamento set to today")
 
@@ -461,8 +476,7 @@ def normalize_baseline(data: Dict) -> Dict:
     if "membros" not in data and "membros_familia" in data:
         # Extract just names for schema compliance (identification only)
         data["membros"] = [
-            m.get("nome", m) if isinstance(m, dict) else m
-            for m in data["membros_familia"]
+            m.get("nome", m) if isinstance(m, dict) else m for m in data["membros_familia"]
         ]
         fixes.append("membros ← membros_familia (names only, not for _resolve_members)")
 
@@ -473,7 +487,8 @@ def normalize_baseline(data: Dict) -> Dict:
         for key, val in resumo.items():
             # Keys like "31_12_2024" → "2024"
             import re
-            m = re.search(r'(\d{4})$', key)
+
+            m = re.search(r"(\d{4})$", key)
             if m and isinstance(val, dict):
                 ano = m.group(1)
                 pat_ano[ano] = {
@@ -500,10 +515,15 @@ def normalize_baseline(data: Dict) -> Dict:
                 props = im["proprietarios"]
                 im["proprietario"] = ", ".join(props) if isinstance(props, list) else str(props)
         data["imoveis_consolidados"] = imoveis
-        fixes.append(f"imoveis_consolidados ← bens_imoveis_consolidados ({len(imoveis)} imóveis, descricao enriched)")
+        fixes.append(
+            f"imoveis_consolidados ← bens_imoveis_consolidados ({len(imoveis)} imóveis, descricao enriched)"
+        )
 
     # investimentos_consolidados ← investimentos_financeiros_consolidados
-    if "investimentos_consolidados" not in data and "investimentos_financeiros_consolidados" in data:
+    if (
+        "investimentos_consolidados" not in data
+        and "investimentos_financeiros_consolidados" in data
+    ):
         inv_raw = data["investimentos_financeiros_consolidados"]
         if isinstance(inv_raw, dict):
             # v2 dict format {member_year: {category: value}} → list format
@@ -516,17 +536,23 @@ def normalize_baseline(data: Dict) -> Dict:
                 for cat_name, cat_value in categories.items():
                     if cat_name in ("total",):
                         continue
-                    inv_list.append({
-                        "descricao": cat_name.replace("_", " ").title(),
-                        "tipo": cat_name,
-                        "proprietario": prop,
-                        "valores_31_12": {member_key.split("_")[-1]: cat_value},
-                    })
+                    inv_list.append(
+                        {
+                            "descricao": cat_name.replace("_", " ").title(),
+                            "tipo": cat_name,
+                            "proprietario": prop,
+                            "valores_31_12": {member_key.split("_")[-1]: cat_value},
+                        }
+                    )
             data["investimentos_consolidados"] = inv_list
-            fixes.append(f"investimentos_consolidados ← investimentos_financeiros_consolidados (dict→list, {len(inv_list)} entries)")
+            fixes.append(
+                f"investimentos_consolidados ← investimentos_financeiros_consolidados (dict→list, {len(inv_list)} entries)"
+            )
         else:
             data["investimentos_consolidados"] = inv_raw
-            fixes.append("investimentos_consolidados ← investimentos_financeiros_consolidados (list)")
+            fixes.append(
+                "investimentos_consolidados ← investimentos_financeiros_consolidados (list)"
+            )
 
     # dividas ← dividas_consolidados
     if "dividas" not in data and "dividas_consolidados" in data:
@@ -552,7 +578,8 @@ def validate_baseline_schema(data: Dict, schema_path: Path) -> bool:
         return True
     try:
         import jsonschema
-        with open(schema_path, 'r', encoding='utf-8') as f:
+
+        with open(schema_path, "r", encoding="utf-8") as f:
             schema = json.load(f)
         jsonschema.validate(data, schema)
         print("[E4.0] ✓ Baseline schema validation passed")
@@ -573,12 +600,17 @@ def load_patrimonio(baseline_path: Path) -> Dict:
     """
     if baseline_path.exists():
         try:
-            with open(baseline_path, 'r', encoding='utf-8') as f:
+            with open(baseline_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             # Normalize v2 → canonical format
             data = normalize_baseline(data)
             # Validate schema if available
-            schema_path = baseline_path.parent.parent.parent / "config" / "schemas" / "baseline_patrimonial.schema.json"
+            schema_path = (
+                baseline_path.parent.parent.parent
+                / "config"
+                / "schemas"
+                / "baseline_patrimonial.schema.json"
+            )
             validate_baseline_schema(data, schema_path)
             return data
         except Exception as e:
@@ -586,7 +618,9 @@ def load_patrimonio(baseline_path: Path) -> Dict:
     return {}
 
 
-def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[Dict], List[Dict], int, int, int]:
+def process_transactions(
+    reconciled_data: List[Dict],
+) -> Tuple[List[Dict], List[Dict], List[Dict], int, int, int]:
     """
     Process all transactions: categorize, detect transfers.
     Returns (receitas, despesas, transferencias, count_receitas, count_despesas, count_transfers)
@@ -612,7 +646,9 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
         for tx in account_data["transacoes"]:
             data = tx.get("data", "")
             descricao_raw = tx.get("descricao", "")
-            descricao = descricao_raw  # keep original for output; normalize_text used in matching fns
+            descricao = (
+                descricao_raw  # keep original for output; normalize_text used in matching fns
+            )
             valor = tx.get("valor", 0.0)
             # Type validation for valor
             if isinstance(valor, str):
@@ -638,16 +674,18 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
             # Detect internal transfers first
             # (is_internal_transfer already normalizes internally)
             if is_internal_transfer(descricao, tipo):
-                transferencias.append({
-                    "data": data,
-                    "descricao": descricao,
-                    "valor": valor,
-                    "banco": banco_raw,
-                    "tipo_conta": tipo_conta_raw,
-                    "titular": titular,
-                    "tipo": tipo or "debito",
-                    "moeda": moeda
-                })
+                transferencias.append(
+                    {
+                        "data": data,
+                        "descricao": descricao,
+                        "valor": valor,
+                        "banco": banco_raw,
+                        "tipo_conta": tipo_conta_raw,
+                        "titular": titular,
+                        "tipo": tipo or "debito",
+                        "moeda": moeda,
+                    }
+                )
                 continue
 
             # Categorize based on tipo (credito/debito)
@@ -678,33 +716,37 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
                 elif category == "outras_receitas":
                     origin = "Outras Receitas"
 
-                receitas.append({
-                    "data": data,
-                    "descricao": descricao,
-                    "valor": valor,
-                    "banco": banco_raw,
-                    "categoria": category,
-                    "origem": origin,
-                    "tipo_conta": tipo_conta_raw,
-                    "titular": titular,
-                    "moeda": moeda
-                })
+                receitas.append(
+                    {
+                        "data": data,
+                        "descricao": descricao,
+                        "valor": valor,
+                        "banco": banco_raw,
+                        "categoria": category,
+                        "origem": origin,
+                        "tipo_conta": tipo_conta_raw,
+                        "titular": titular,
+                        "moeda": moeda,
+                    }
+                )
             else:  # debito or fatura (no tipo field)
                 category = categorize_expense(descricao)
                 if category is None:
                     # categorize_expense returns None for internal transfers too
                     # Check if it's a known internal transfer
                     if is_internal_transfer(descricao, tipo, banco):
-                        transferencias.append({
-                            "data": data,
-                            "descricao": descricao,
-                            "valor": valor,
-                            "banco": banco_raw,
-                            "tipo_conta": tipo_conta_raw,
-                            "titular": titular,
-                            "tipo": tipo or "debito",
-                            "moeda": moeda
-                        })
+                        transferencias.append(
+                            {
+                                "data": data,
+                                "descricao": descricao,
+                                "valor": valor,
+                                "banco": banco_raw,
+                                "tipo_conta": tipo_conta_raw,
+                                "titular": titular,
+                                "tipo": tipo or "debito",
+                                "moeda": moeda,
+                            }
+                        )
                         continue
                     # Fix 3.2: explicit fallback + logging for uncategorized expenses
                     category = "nao_identificado"
@@ -716,16 +758,18 @@ def process_transactions(reconciled_data: List[Dict]) -> Tuple[List[Dict], List[
 
                 # Use absolute value for expenses (debits often stored as negative)
                 valor_abs = abs(valor)
-                despesas.append({
-                    "data": data,
-                    "descricao": descricao,
-                    "valor": valor_abs,
-                    "banco": banco_raw,
-                    "categoria": category,
-                    "tipo_conta": tipo_conta_raw,
-                    "titular": titular,
-                    "moeda": moeda
-                })
+                despesas.append(
+                    {
+                        "data": data,
+                        "descricao": descricao,
+                        "valor": valor_abs,
+                        "banco": banco_raw,
+                        "categoria": category,
+                        "tipo_conta": tipo_conta_raw,
+                        "titular": titular,
+                        "moeda": moeda,
+                    }
+                )
 
     return receitas, despesas, transferencias, len(receitas), len(despesas), len(transferencias)
 
@@ -760,7 +804,7 @@ def build_receitas_unified(receitas: List[Dict]) -> Dict:
         "total_transacoes": len(receitas),
         "totais_por_categoria": dict(totals_por_categoria),
         "total_geral": round(total_geral, 2),
-        "dados": {cat: sorted(txs, key=lambda x: x["data"]) for cat, txs in by_category.items()}
+        "dados": {cat: sorted(txs, key=lambda x: x["data"]) for cat, txs in by_category.items()},
     }
 
 
@@ -786,7 +830,7 @@ def build_despesas_unified(despesas: List[Dict]) -> Dict:
         "total_transacoes": len(despesas),
         "totais_por_categoria": dict(totals_por_categoria),
         "total_geral": round(total_geral, 2),
-        "dados": {cat: sorted(txs, key=lambda x: x["data"]) for cat, txs in by_category.items()}
+        "dados": {cat: sorted(txs, key=lambda x: x["data"]) for cat, txs in by_category.items()},
     }
 
 
@@ -822,7 +866,9 @@ def build_fluxo_mensal_detalhado(receitas: List[Dict], despesas: List[Dict]) -> 
                 receita_por_mes[month][origem] = 0.0
             else:
                 receita_por_mes[month][origem] = round(receita_por_mes[month][origem], 2)
-        receita_por_mes[month]["_total"] = round(sum(v for k, v in receita_por_mes[month].items() if k != "_total"), 2)
+        receita_por_mes[month]["_total"] = round(
+            sum(v for k, v in receita_por_mes[month].items() if k != "_total"), 2
+        )
 
     # Build despesas by category and month
     despesa_categorias = set()
@@ -846,19 +892,15 @@ def build_fluxo_mensal_detalhado(receitas: List[Dict], despesas: List[Dict]) -> 
                 despesa_por_mes[month][categoria] = 0.0
             else:
                 despesa_por_mes[month][categoria] = round(despesa_por_mes[month][categoria], 2)
-        despesa_por_mes[month]["_total"] = round(sum(v for k, v in despesa_por_mes[month].items() if k != "_total"), 2)
+        despesa_por_mes[month]["_total"] = round(
+            sum(v for k, v in despesa_por_mes[month].items() if k != "_total"), 2
+        )
 
     return {
         "periodo": compute_periodo(receitas + despesas),
         "meses_ordenados": months_sorted,
-        "receitas": {
-            "origens": sorted(receita_origens),
-            "por_mes": receita_por_mes
-        },
-        "despesas": {
-            "categorias": sorted(despesa_categorias),
-            "por_mes": despesa_por_mes
-        }
+        "receitas": {"origens": sorted(receita_origens), "por_mes": receita_por_mes},
+        "despesas": {"categorias": sorted(despesa_categorias), "por_mes": despesa_por_mes},
     }
 
 
@@ -871,7 +913,7 @@ def save_json(file_path: Path, data: Dict) -> None:
         return
     try:
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
     except (IOError, OSError) as e:
         print(f"  [ERROR] Falha ao salvar {file_path}: {e}", file=sys.stderr)
@@ -889,6 +931,7 @@ def preserve_existing_file(file_path: Path) -> bool:
 # ============================================================================
 # QA LOG GENERATION
 # ============================================================================
+
 
 def generate_qa_log(despesas: List[Dict], log_path: Path) -> None:
     """Generate qa_log.md with unidentified transactions for manual review."""
@@ -915,7 +958,11 @@ def generate_qa_log(despesas: List[Dict], log_path: Path) -> None:
 
     lines.append("")
     _qa_target_pct = _pipeline_cfg.get("qa_thresholds", {}).get("qa_unidentified_target_pct", 10.0)
-    meta_status = "✅ DENTRO DA META" if taxa < _qa_target_pct else f"⚠️ ACIMA DA META (<{_qa_target_pct:.0f}%)"
+    meta_status = (
+        "✅ DENTRO DA META"
+        if taxa < _qa_target_pct
+        else f"⚠️ ACIMA DA META (<{_qa_target_pct:.0f}%)"
+    )
     lines.append(f"### Taxa: {taxa:.1f}% {meta_status}")
     lines.append("")
 
@@ -925,7 +972,9 @@ def generate_qa_log(despesas: List[Dict], log_path: Path) -> None:
         desc_up = tx.get("descricao", "").upper()
         for patt in _qa_patterns:
             if patt.get("pattern", "").upper() in desc_up:
-                notas.append(f"- **{patt['pattern']}** (R${tx['valor']:,.2f}, {tx['banco']}): {patt.get('note', 'Investigar')}")
+                notas.append(
+                    f"- **{patt['pattern']}** (R${tx['valor']:,.2f}, {tx['banco']}): {patt.get('note', 'Investigar')}"
+                )
     if notas:
         lines.append("### Notas para investigação")
         lines.append("")
@@ -935,13 +984,14 @@ def generate_qa_log(despesas: List[Dict], log_path: Path) -> None:
         lines.append("")
 
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(log_path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(lines))
+    with open(log_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
 
 
 # ============================================================================
 # MAIN ENTRY POINT
 # ============================================================================
+
 
 def main(root_dir: Path = None):
     """Main processing function."""
@@ -983,8 +1033,12 @@ def main(root_dir: Path = None):
             sys.exit(1)
 
     print("[E4.2] Processing transactions...")
-    receitas, despesas, transferencias, n_receitas, n_despesas, n_transfers = process_transactions(reconciled_data)
-    print(f"[E4.2] Processed: {n_receitas} receitas, {n_despesas} despesas, {n_transfers} internal transfers")
+    receitas, despesas, transferencias, n_receitas, n_despesas, n_transfers = process_transactions(
+        reconciled_data
+    )
+    print(
+        f"[E4.2] Processed: {n_receitas} receitas, {n_despesas} despesas, {n_transfers} internal transfers"
+    )
 
     # Build output files
     print("[E4.3] Building unified output files...")
@@ -1022,7 +1076,9 @@ def main(root_dir: Path = None):
     if n_pos > 0:
         totais_m = investimentos.get("total_por_membro", {})
         detail = ", ".join(f"{m}: R$ {v:,.2f}" for m, v in totais_m.items())
-        print(f"[E4.4] Saved investimentos-4_unified.json ({n_pos} posições, total R$ {total_inv:,.2f} — {detail})")
+        print(
+            f"[E4.4] Saved investimentos-4_unified.json ({n_pos} posições, total R$ {total_inv:,.2f} — {detail})"
+        )
     else:
         print("[E4.4] Saved investimentos-4_unified.json (nenhum extrato de posição encontrado)")
 
@@ -1035,12 +1091,12 @@ def main(root_dir: Path = None):
     # Generate QA log
     qa_log_path = base_dir / "logs" / "qa_log.md"
     generate_qa_log(despesas, qa_log_path)
-    print(f"[E4.5] Generated qa_log.md")
+    print("[E4.5] Generated qa_log.md")
 
     # Summary
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("E4 CATEGORIZATION SUMMARY")
-    print("="*70)
+    print("=" * 70)
     print(f"Total receitas categorized: {n_receitas}")
     print(f"Total despesas categorized: {n_despesas}")
     print(f"Total internal transfers: {n_transfers}")
@@ -1049,7 +1105,7 @@ def main(root_dir: Path = None):
     print(f"Total receita geral: R$ {receitas_unified['total_geral']:,.2f}")
     print(f"Total despesa geral: R$ {despesas_unified['total_geral']:,.2f}")
     print(f"Output directory: {output_dir}")
-    print("="*70)
+    print("=" * 70)
     print("[E4.9] E4 Categorization Stage COMPLETE")
 
 
@@ -1140,11 +1196,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         pass
 
     if logs_dir.exists():
-        despesas_legacy = [
-            t.to_legacy_dict()
-            for t in result.classified
-            if t.kind == "despesa"
-        ]
+        despesas_legacy = [t.to_legacy_dict() for t in result.classified if t.kind == "despesa"]
         _write_qa_log_e4(
             logs_dir / "qa_log.md",
             despesas=despesas_legacy,
@@ -1221,8 +1273,8 @@ def _write_qa_log_e4(
         lines.append(f"| {data} | {desc} | R${valor:,.2f} | {banco} | {fonte} |")
 
     lines.append("")
-    qa_target = (pipeline_cfg or {}).get("qa_thresholds", {}).get(
-        "qa_unidentified_target_pct", 10.0
+    qa_target = (
+        (pipeline_cfg or {}).get("qa_thresholds", {}).get("qa_unidentified_target_pct", 10.0)
     )
     meta_status = (
         "✅ DENTRO DA META" if taxa < qa_target else f"⚠️ ACIMA DA META (<{qa_target:.0f}%)"
@@ -1263,5 +1315,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"[E4] FATAL: {e}", file=sys.stderr)
         import traceback
+
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)

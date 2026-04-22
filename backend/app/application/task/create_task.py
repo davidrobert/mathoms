@@ -82,8 +82,7 @@ async def create_task(
 def _validate_category(category: Optional[str]) -> None:
     if category is not None and category not in VALID_CATEGORIES:
         raise ValidationError(
-            f"Categoria inválida: '{category}'. "
-            f"Aceitas: {sorted(VALID_CATEGORIES)}",
+            f"Categoria inválida: '{category}'. " f"Aceitas: {sorted(VALID_CATEGORIES)}",
             code="invalid_category",
         )
 

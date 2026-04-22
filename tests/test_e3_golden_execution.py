@@ -8,7 +8,9 @@ from pathlib import Path
 import pytest
 
 _REPO = Path(__file__).resolve().parents[1]
-_E2_FIXTURE = _REPO / "tests" / "fixtures" / "pipeline_golden" / "e2" / "minimal-extrato-2_extract.json"
+_E2_FIXTURE = (
+    _REPO / "tests" / "fixtures" / "pipeline_golden" / "e2" / "minimal-extrato-2_extract.json"
+)
 
 
 @pytest.fixture
@@ -39,7 +41,8 @@ def e3_tenant_minimal(tmp_path: Path) -> Path:
 
 def test_e3_execution_produces_reconciled_json(e3_tenant_minimal: Path):
     """Roda e3_reconcile.main em tenant isolado; restaura globals do script."""
-    from scripts.e3_reconcile import _DEFAULT_BASE_DIR, _init_config, main as e3_main
+    from scripts.e3_reconcile import _DEFAULT_BASE_DIR, _init_config
+    from scripts.e3_reconcile import main as e3_main
 
     try:
         e3_main(root_dir=e3_tenant_minimal)

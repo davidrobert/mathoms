@@ -22,10 +22,10 @@ import json
 import re
 import sys
 from calendar import monthrange
-from pathlib import Path
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional, Any
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 import scripts.pipeline_common as _pc
 
@@ -55,19 +55,29 @@ PIPE_CONFIG: Dict[str, Any] = {}
 ACCOUNT_TYPE_EQUIVALENCES: Dict[str, str] = {}
 _BANCO_DISPLAY_TO_CANONICAL: Dict[str, str] = {}
 SKIP_TYPES: set = {
-    'investimentosposicao', 'carteirarendafixa', 'cdbdetalhes', 'cdbresumo',
-    'faturaaluguel', 'informerendimentos', 'irpf',
+    "investimentosposicao",
+    "carteirarendafixa",
+    "cdbdetalhes",
+    "cdbresumo",
+    "faturaaluguel",
+    "informerendimentos",
+    "irpf",
 }
 SKIP_FILES: set = {
-    'baseline_patrimonial-1.5_consolidated.json',
-    'dados_imoveis-2_extract.json',
+    "baseline_patrimonial-1.5_consolidated.json",
+    "dados_imoveis-2_extract.json",
 }
 TIPO_CANONICAL: Dict[str, str] = {
-    'extratoconta': 'extratoconta', 'extratocontapj': 'extratocontapj',
-    'extratocontapersonnalite': 'extratocontapersonnalite',
-    'extratopoupanca': 'extratopoupanca', 'extratocontaglobal': 'extratocontaglobal',
-    'extratocontaglobalusd': 'extratocontaglobalusd', 'extratocontaglobaleur': 'extratocontaglobaleur',
-    'faturacarbon': 'faturacarbon', 'faturaunique': 'faturaunique', 'faturapaoacucar': 'faturapaoacucar',
+    "extratoconta": "extratoconta",
+    "extratocontapj": "extratocontapj",
+    "extratocontapersonnalite": "extratocontapersonnalite",
+    "extratopoupanca": "extratopoupanca",
+    "extratocontaglobal": "extratocontaglobal",
+    "extratocontaglobalusd": "extratocontaglobalusd",
+    "extratocontaglobaleur": "extratocontaglobaleur",
+    "faturacarbon": "faturacarbon",
+    "faturaunique": "faturaunique",
+    "faturapaoacucar": "faturapaoacucar",
 }
 _TOLERANCE_SALDO_DIFF: float = 0.01
 _TOLERANCE_GAP_DAYS: int = 4
@@ -111,19 +121,29 @@ def _init_config(base_dir: Path) -> None:
     _recon_cfg = PIPE_CONFIG.get("reconciliation", {})
 
     SKIP_TYPES = set(_recon_cfg.get("skip_types", [])) or {
-        'investimentosposicao', 'carteirarendafixa', 'cdbdetalhes', 'cdbresumo',
-        'faturaaluguel', 'informerendimentos', 'irpf',
+        "investimentosposicao",
+        "carteirarendafixa",
+        "cdbdetalhes",
+        "cdbresumo",
+        "faturaaluguel",
+        "informerendimentos",
+        "irpf",
     }
     SKIP_FILES = set(_recon_cfg.get("skip_files", [])) or {
-        'baseline_patrimonial-1.5_consolidated.json',
-        'dados_imoveis-2_extract.json',
+        "baseline_patrimonial-1.5_consolidated.json",
+        "dados_imoveis-2_extract.json",
     }
     TIPO_CANONICAL = _recon_cfg.get("tipo_canonical", {}) or {
-        'extratoconta': 'extratoconta', 'extratocontapj': 'extratocontapj',
-        'extratocontapersonnalite': 'extratocontapersonnalite',
-        'extratopoupanca': 'extratopoupanca', 'extratocontaglobal': 'extratocontaglobal',
-        'extratocontaglobalusd': 'extratocontaglobalusd', 'extratocontaglobaleur': 'extratocontaglobaleur',
-        'faturacarbon': 'faturacarbon', 'faturaunique': 'faturaunique', 'faturapaoacucar': 'faturapaoacucar',
+        "extratoconta": "extratoconta",
+        "extratocontapj": "extratocontapj",
+        "extratocontapersonnalite": "extratocontapersonnalite",
+        "extratopoupanca": "extratopoupanca",
+        "extratocontaglobal": "extratocontaglobal",
+        "extratocontaglobalusd": "extratocontaglobalusd",
+        "extratocontaglobaleur": "extratocontaglobaleur",
+        "faturacarbon": "faturacarbon",
+        "faturaunique": "faturaunique",
+        "faturapaoacucar": "faturapaoacucar",
     }
 
     _tolerances = _recon_cfg.get("tolerances", {})
@@ -144,6 +164,7 @@ def _init_config(base_dir: Path) -> None:
 # Logging & Progress
 # =============================================================================
 
+
 def log_progress(stage: str, message: str) -> None:
     """Delegate to pipeline_common structured logger."""
     _pc.log_stage(stage, message)
@@ -152,6 +173,7 @@ def log_progress(stage: str, message: str) -> None:
 # =============================================================================
 # File I/O Helpers — delegated to pipeline_common (Fix 2.1)
 # =============================================================================
+
 
 def read_json(path: Path) -> Optional[Dict[str, Any]]:
     """Safely read a JSON file."""
@@ -206,6 +228,7 @@ def normalize_periodo_in_extract(data: Dict[str, Any]) -> None:
 # Directory Cleanup (#1)
 # =============================================================================
 
+
 def cleanup_e3_directory(e3_dir: Path) -> int:
     """
     Remove all existing JSON files from E3_reconciled directory.
@@ -217,14 +240,14 @@ def cleanup_e3_directory(e3_dir: Path) -> int:
         return 0
 
     cleaned = 0
-    for file_path in e3_dir.glob('*.json'):
+    for file_path in e3_dir.glob("*.json"):
         try:
             file_path.unlink()
             cleaned += 1
         except PermissionError:
             # Filesystem doesn't allow delete — overwrite with tombstone
             try:
-                with open(file_path, 'w', encoding='utf-8') as f:
+                with open(file_path, "w", encoding="utf-8") as f:
                     json.dump({"_tombstone": True}, f)
                 cleaned += 1
             except Exception as e:
@@ -242,6 +265,7 @@ def cleanup_e3_directory(e3_dir: Path) -> int:
 # Account Grouping Logic
 # =============================================================================
 
+
 def should_skip_file(filename: str) -> bool:
     """Check if a file should be skipped based on filename rules.
 
@@ -252,7 +276,7 @@ def should_skip_file(filename: str) -> bool:
     if filename in SKIP_FILES:
         return True
     # Skip -0_original backup files (#2)
-    if '-0_original' in filename:
+    if "-0_original" in filename:
         return True
     return False
 
@@ -262,7 +286,7 @@ def should_skip_extract(data: Dict[str, Any]) -> bool:
     if not isinstance(data, dict):
         return True
 
-    tipo = data.get('tipo', '')
+    tipo = data.get("tipo", "")
 
     # Check for exact skip types
     if tipo in SKIP_TYPES:
@@ -275,8 +299,10 @@ def should_skip_extract(data: Dict[str, Any]) -> bool:
         return True
 
     # Check if tipo is a fatura that starts with "fatura"
-    if tipo.startswith('fatura') and tipo not in {
-        'faturacarbon', 'faturaunique', 'faturapaoacucar'
+    if tipo.startswith("fatura") and tipo not in {
+        "faturacarbon",
+        "faturaunique",
+        "faturapaoacucar",
     }:
         return True
 
@@ -295,8 +321,8 @@ def get_account_key(data: Dict[str, Any]) -> Optional[Tuple]:
     (e.g., extratocontapersonnalite → extratoconta) so that overlapping
     extracts from the same bank account are grouped and deduplicated.
     """
-    banco = (data.get('banco') or data.get('instituicao') or '').strip()
-    tipo = (data.get('tipo') or '').strip()
+    banco = (data.get("banco") or data.get("instituicao") or "").strip()
+    tipo = (data.get("tipo") or "").strip()
 
     if not banco or not tipo:
         return None
@@ -305,18 +331,18 @@ def get_account_key(data: Dict[str, Any]) -> Optional[Tuple]:
     tipo_normalized = ACCOUNT_TYPE_EQUIVALENCES.get(tipo, tipo)
 
     # Fatura types group by (banco, tipo) only
-    if tipo_normalized.startswith('fatura'):
+    if tipo_normalized.startswith("fatura"):
         return (banco, tipo_normalized)
 
     # Conta types group by (banco, tipo, moeda)
-    moeda = (data.get('moeda') or '').strip()
+    moeda = (data.get("moeda") or "").strip()
     if not moeda:
         # Also check nested conta.moeda
-        conta = data.get('conta', {})
+        conta = data.get("conta", {})
         if isinstance(conta, dict):
-            moeda = (conta.get('moeda') or 'BRL').strip()
+            moeda = (conta.get("moeda") or "BRL").strip()
         else:
-            moeda = 'BRL'
+            moeda = "BRL"
     return (banco, tipo_normalized, moeda)
 
 
@@ -324,11 +350,12 @@ def get_account_key(data: Dict[str, Any]) -> Optional[Tuple]:
 # Date Parsing Helper for Sorting
 # =============================================================================
 
+
 def _parse_date_for_sort(date_str: str) -> datetime:
     """Parse date string for sorting, handling various formats."""
     if not date_str:
         return datetime.min
-    for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d'):
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%Y/%m/%d"):
         try:
             return datetime.strptime(date_str, fmt)
         except (ValueError, TypeError):
@@ -346,18 +373,14 @@ def _parse_date_for_sort(date_str: str) -> datetime:
 #   CSV: "— 13 Salário", "— Salários PJ", "— NF 26", "— NFS 25", etc.
 # These are annotations that differ between CSV and PDF exports of the SAME transaction.
 # Stripping everything after "—" makes signatures match across formats.
-_DEDUP_SUFFIX_RE = re.compile(
-    r'\s*—\s*.*$',
-    re.IGNORECASE
-)
+_DEDUP_SUFFIX_RE = re.compile(r"\s*—\s*.*$", re.IGNORECASE)
 
 # Regex to truncate concatenated PIX descriptions at the second "Pix" occurrence.
 # C6 Bank sometimes merges consecutive PIX ops into one description in certain exports
 # (e.g., "Pix enviado para X Pix enviado para Y") while other exports list them separately.
 # For dedup, we keep only the first PIX segment.
 _DEDUP_PIX_CONCAT_RE = re.compile(
-    r'(Pix\s+(?:enviado|recebido)\s+.*?)\s+Pix\s+(?:enviado|recebido)\s+',
-    re.IGNORECASE
+    r"(Pix\s+(?:enviado|recebido)\s+.*?)\s+Pix\s+(?:enviado|recebido)\s+", re.IGNORECASE
 )
 
 # v5.7.2: C6 Bank CSV concatenation — the CSV export sometimes merges the description
@@ -372,17 +395,17 @@ _DEDUP_PIX_CONCAT_RE = re.compile(
 #   "Pix enviado para X Pix estornado"
 # We detect known "next-transaction start" markers and truncate there.
 _DEDUP_CSV_CONCAT_MARKERS = [
-    'C6TAG',
-    'Pix enviado',
-    'Pix recebido',
-    'Belt Academy',
-    'SEGURO CONTA C6',
-    'IOF CHEQUE ESPECIAL',
-    'IOF DESPESA',
-    'Boleto',
-    'Pix estornado',
-    'Pix recusado',
-    'Anuidade Diferenciada',
+    "C6TAG",
+    "Pix enviado",
+    "Pix recebido",
+    "Belt Academy",
+    "SEGURO CONTA C6",
+    "IOF CHEQUE ESPECIAL",
+    "IOF DESPESA",
+    "Boleto",
+    "Pix estornado",
+    "Pix recusado",
+    "Anuidade Diferenciada",
 ]
 
 
@@ -397,7 +420,7 @@ def _normalize_description_for_dedup(descricao: str) -> str:
     5. Collapse multiple whitespace and uppercase
     """
     # Step 1: Remove "—" suffix (PDF export annotations)
-    descricao = _DEDUP_SUFFIX_RE.sub('', descricao)
+    descricao = _DEDUP_SUFFIX_RE.sub("", descricao)
 
     # Step 2: Truncate at second PIX operation (CSV merges consecutive PIX)
     m = _DEDUP_PIX_CONCAT_RE.match(descricao)
@@ -431,10 +454,10 @@ def _normalize_description_for_dedup(descricao: str) -> str:
     #   - Real accents: "í" → dropped, "ã" → dropped (acceptable for dedup)
     #   - Mojibake artifacts: "Ã" (from broken UTF-8) → dropped
     # Since both sides of a duplicate lose the same accent chars, signatures still match.
-    descricao = descricao.encode('ascii', 'ignore').decode('ascii')
+    descricao = descricao.encode("ascii", "ignore").decode("ascii")
 
     # Step 5: Collapse whitespace and uppercase
-    descricao = re.sub(r'\s+', ' ', descricao).strip().upper()
+    descricao = re.sub(r"\s+", " ", descricao).strip().upper()
     return descricao
 
 
@@ -443,17 +466,17 @@ def transaction_signature(txn: Dict[str, Any]) -> Tuple:
     Create a normalized signature for deduplication.
     Signature = (data, valor_rounded, descricao_normalized)
     """
-    data = (txn.get('data') or '').strip()
-    valor = txn.get('valor', 0)
+    data = (txn.get("data") or "").strip()
+    valor = txn.get("valor", 0)
     if isinstance(valor, float):
         valor = round(valor, 2)
-    descricao = _normalize_description_for_dedup(txn.get('descricao', ''))
+    descricao = _normalize_description_for_dedup(txn.get("descricao", ""))
 
     return (data, valor, descricao)
 
 
 def deduplicate_transactions(
-    transactions_with_sources: List[Tuple[Dict[str, Any], str]]
+    transactions_with_sources: List[Tuple[Dict[str, Any], str]],
 ) -> Tuple[List[Dict[str, Any]], int, List[str]]:
     """
     Remove duplicate transactions by signature, but ONLY across different files.
@@ -473,7 +496,9 @@ def deduplicate_transactions(
 
     # Group by (signature, source_file) to count per-file occurrences
     per_file_counts: Dict[Tuple, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    per_file_txns: Dict[Tuple, Dict[str, List[Dict[str, Any]]]] = defaultdict(lambda: defaultdict(list))
+    per_file_txns: Dict[Tuple, Dict[str, List[Dict[str, Any]]]] = defaultdict(
+        lambda: defaultdict(list)
+    )
 
     for txn, source_file in transactions_with_sources:
         sig = transaction_signature(txn)
@@ -498,10 +523,10 @@ def deduplicate_transactions(
             if removed_count > 0:
                 date_str, valor, desc_norm = sig
                 # Recover original descriptions for audit trail
-                kept_descs = [t.get('descricao', '')[:60] for t in file_map[first_source][:1]]
+                kept_descs = [t.get("descricao", "")[:60] for t in file_map[first_source][:1]]
                 removed_descs = []
                 for src in removed_sources:
-                    removed_descs.extend(t.get('descricao', '')[:60] for t in file_map[src][:1])
+                    removed_descs.extend(t.get("descricao", "")[:60] for t in file_map[src][:1])
                 dedup_details.append(
                     f"DEDUP: {date_str} R${valor} "
                     f"kept='{kept_descs[0] if kept_descs else '?'}' from {first_source}, "
@@ -516,8 +541,9 @@ def deduplicate_transactions(
 # Saldo Continuity & Temporal Gap Validation (#8)
 # =============================================================================
 
+
 def validate_saldo_and_gaps(
-    file_groups: Dict[str, List[Tuple[Path, Dict[str, Any]]]]
+    file_groups: Dict[str, List[Tuple[Path, Dict[str, Any]]]],
 ) -> Tuple[Dict[str, List[str]], List[str]]:
     """
     Validate saldo continuity and detect temporal gaps across files.
@@ -529,21 +555,18 @@ def validate_saldo_and_gaps(
 
     for account_key_str, group in file_groups.items():
         # Sort by period start date
-        sorted_group = sorted(
-            group,
-            key=lambda x: x[1].get('periodo', {}).get('inicio') or ''
-        )
+        sorted_group = sorted(group, key=lambda x: x[1].get("periodo", {}).get("inicio") or "")
 
         prev_final_saldo = None
         prev_fim = None
         prev_name = None
 
         for path, data in sorted_group:
-            periodo = data.get('periodo', {})
-            inicio = periodo.get('inicio', '')
-            fim = periodo.get('fim', '')
-            saldo_inicial = data.get('saldo_inicial')
-            saldo_final = data.get('saldo_final')
+            periodo = data.get("periodo", {})
+            inicio = periodo.get("inicio", "")
+            fim = periodo.get("fim", "")
+            saldo_inicial = data.get("saldo_inicial")
+            saldo_final = data.get("saldo_final")
 
             # Saldo continuity check
             if prev_final_saldo is not None and saldo_inicial is not None:
@@ -559,8 +582,8 @@ def validate_saldo_and_gaps(
             # Temporal gap detection (#8)
             if prev_fim and inicio:
                 try:
-                    prev_fim_dt = datetime.strptime(prev_fim, '%Y-%m-%d')
-                    current_inicio_dt = datetime.strptime(inicio, '%Y-%m-%d')
+                    prev_fim_dt = datetime.strptime(prev_fim, "%Y-%m-%d")
+                    current_inicio_dt = datetime.strptime(inicio, "%Y-%m-%d")
                     days_gap = (current_inicio_dt - prev_fim_dt).days
 
                     # Allow up to N days gap (weekends, processing delays)
@@ -576,7 +599,9 @@ def validate_saldo_and_gaps(
                         )
                         temporal_gaps.append(gap_msg)
                 except ValueError as e:
-                    log_progress("WARN", f"Date parsing failed for gap check: {prev_fim} → {inicio}: {e}")
+                    log_progress(
+                        "WARN", f"Date parsing failed for gap check: {prev_fim} → {inicio}: {e}"
+                    )
 
             prev_final_saldo = saldo_final
             prev_fim = fim
@@ -589,9 +614,9 @@ def validate_saldo_and_gaps(
 # Baseline Patrimonial Validation (#7)
 # =============================================================================
 
+
 def validate_against_baseline(
-    reconciled_accounts: List[Dict[str, Any]],
-    baseline_file: Path
+    reconciled_accounts: List[Dict[str, Any]], baseline_file: Path
 ) -> Dict[str, List[str]]:
     """
     Validate account saldos against IRPF baseline data on 31/12 dates.
@@ -611,31 +636,33 @@ def validate_against_baseline(
 
     # Extract baseline saldos per account from members' contas_bancarias
     baseline_saldos = {}
-    members = baseline_data.get('members', baseline_data.get('membros', {}))
+    members = baseline_data.get("members", baseline_data.get("membros", {}))
 
     # Normalize: if members is a list, convert to dict keyed by nome
     if isinstance(members, list):
-        members = {m.get('nome', f'member_{i}'): m for i, m in enumerate(members) if isinstance(m, dict)}
+        members = {
+            m.get("nome", f"member_{i}"): m for i, m in enumerate(members) if isinstance(m, dict)
+        }
 
     for member_name, member_data in members.items():
         if not isinstance(member_data, dict):
             continue
-        contas = member_data.get('contas_bancarias', [])
+        contas = member_data.get("contas_bancarias", [])
         if not isinstance(contas, list):
             continue
         for conta in contas:
             if not isinstance(conta, dict):
                 continue
-            banco = (conta.get('banco') or conta.get('banco_origem') or '').strip().lower()
-            saldo = conta.get('saldo_31_12', conta.get('saldo_31_12_ano_base'))
-            ano_base = conta.get('ano_base', '')
+            banco = (conta.get("banco") or conta.get("banco_origem") or "").strip().lower()
+            saldo = conta.get("saldo_31_12", conta.get("saldo_31_12_ano_base"))
+            ano_base = conta.get("ano_base", "")
 
             if saldo is not None and banco:
                 key = (banco, str(ano_base))
                 baseline_saldos[key] = {
-                    'saldo': saldo,
-                    'member': member_name,
-                    'tipo': conta.get('tipo', ''),
+                    "saldo": saldo,
+                    "member": member_name,
+                    "tipo": conta.get("tipo", ""),
                 }
 
     if not baseline_saldos:
@@ -646,11 +673,11 @@ def validate_against_baseline(
 
     # Check each reconciled account for transactions around 31/12 dates
     for account in reconciled_accounts:
-        banco = (account.get('banco') or '').strip().lower()
-        tipo = account.get('tipo_conta', '')
-        periodo = account.get('periodo_cobertura', {})
-        inicio = periodo.get('inicio', '')
-        fim = periodo.get('fim', '')
+        banco = (account.get("banco") or "").strip().lower()
+        tipo = account.get("tipo_conta", "")
+        periodo = account.get("periodo_cobertura", {})
+        inicio = periodo.get("inicio", "")
+        fim = periodo.get("fim", "")
 
         # Check if this account covers any 31/12 date
         for (bl_banco, bl_ano), bl_info in baseline_saldos.items():
@@ -670,12 +697,12 @@ def validate_against_baseline(
 
                 # Check if saldo_final is exactly on 31/12
                 if fim == target_date:
-                    account_saldo_on_date = account.get('saldo_final')
+                    account_saldo_on_date = account.get("saldo_final")
 
                 if account_saldo_on_date is not None:
-                    bl_saldo = bl_info['saldo']
+                    bl_saldo = bl_info["saldo"]
                     diff = abs(bl_saldo - account_saldo_on_date)
-                    pct = (diff / abs(bl_saldo) * 100) if bl_saldo != 0 else float('inf')
+                    pct = (diff / abs(bl_saldo) * 100) if bl_saldo != 0 else float("inf")
 
                     if diff > _TOLERANCE_BASELINE_DIFF:  # More than threshold difference
                         account_desc = f"{account['banco']} {tipo}"
@@ -693,6 +720,7 @@ def validate_against_baseline(
 # Main Reconciliation Logic
 # =============================================================================
 
+
 def load_and_group_e2_extracts(e2_dir: Path) -> Tuple[Dict, List[Tuple]]:
     """
     Load all E2 extract files and group by account.
@@ -709,7 +737,7 @@ def load_and_group_e2_extracts(e2_dir: Path) -> Tuple[Dict, List[Tuple]]:
 
     log_progress("E3.1", f"Scanning {e2_dir.name} for E2 extracts...")
 
-    extract_files = sorted([f for f in e2_dir.glob('*-2_extract.json')])
+    extract_files = sorted([f for f in e2_dir.glob("*-2_extract.json")])
     log_progress("E3.1", f"Found {len(extract_files)} potential extract files")
 
     for fpath in extract_files:
@@ -729,109 +757,101 @@ def load_and_group_e2_extracts(e2_dir: Path) -> Tuple[Dict, List[Tuple]]:
             continue
 
         # Check for transacoes
-        if 'transacoes' not in data:
+        if "transacoes" not in data:
             log_progress("E3.1", f"Skipping {fpath.name} (no transacoes field)")
             continue
 
         # Faturas have data_vencimento instead of periodo — synthesize periodo
-        if 'periodo' not in data and data.get('tipo', '').startswith('fatura'):
-            venc = (data.get('data_vencimento') or '').strip()
+        if "periodo" not in data and data.get("tipo", "").startswith("fatura"):
+            venc = (data.get("data_vencimento") or "").strip()
 
             # (#10) Explicit logging for faturas without data_vencimento
             if not venc:
-                txns = data.get('transacoes', [])
-                txn_dates = [t.get('data', '') for t in txns if t.get('data')]
+                txns = data.get("transacoes", [])
+                txn_dates = [t.get("data", "") for t in txns if t.get("data")]
                 if not txn_dates:
                     log_progress(
                         "E3.1",
                         f"Skipping {fpath.name}: fatura with empty data_vencimento "
-                        f"and no transactions"
+                        f"and no transactions",
                     )
                     continue
                 else:
                     log_progress(
                         "E3.1",
                         f"Fatura {fpath.name} has empty data_vencimento, "
-                        f"deriving periodo from {len(txns)} transactions"
+                        f"deriving periodo from {len(txns)} transactions",
                     )
-                    data['periodo'] = {
-                        'inicio': min(txn_dates),
-                        'fim': max(txn_dates)
-                    }
-                    data['saldo_inicial'] = data.get('saldo_anterior') or 0
-                    data['saldo_final'] = data.get('saldo_atual') or 0
+                    data["periodo"] = {"inicio": min(txn_dates), "fim": max(txn_dates)}
+                    data["saldo_inicial"] = data.get("saldo_anterior") or 0
+                    data["saldo_final"] = data.get("saldo_atual") or 0
 
-            if venc and 'periodo' not in data:
+            if venc and "periodo" not in data:
                 # Derive periodo from data_vencimento (fatura covers ~30 days before)
                 try:
-                    dt_venc = datetime.strptime(venc, '%Y-%m-%d')
+                    dt_venc = datetime.strptime(venc, "%Y-%m-%d")
                     # Use vencimento minus 30 days as a better approximation
                     dt_start = dt_venc - timedelta(days=30)
-                    synth_inicio = dt_start.strftime('%Y-%m-%d')
+                    synth_inicio = dt_start.strftime("%Y-%m-%d")
 
-                    data['periodo'] = {
-                        'inicio': synth_inicio,
-                        'fim': venc
-                    }
-                    data['saldo_inicial'] = data.get('saldo_anterior') or 0
-                    data['saldo_final'] = data.get('saldo_atual') or 0
+                    data["periodo"] = {"inicio": synth_inicio, "fim": venc}
+                    data["saldo_inicial"] = data.get("saldo_anterior") or 0
+                    data["saldo_final"] = data.get("saldo_atual") or 0
                 except ValueError:
                     pass
 
                 # (#4) Adjust periodo.inicio if actual transactions start earlier
-                if 'periodo' in data:
-                    txns = data.get('transacoes', [])
-                    txn_dates = [t.get('data', '') for t in txns if t.get('data')]
+                if "periodo" in data:
+                    txns = data.get("transacoes", [])
+                    txn_dates = [t.get("data", "") for t in txns if t.get("data")]
 
                     if txn_dates:
                         actual_min_date = min(txn_dates)
-                        current_inicio = data['periodo'].get('inicio', '')
+                        current_inicio = data["periodo"].get("inicio", "")
 
                         if actual_min_date and actual_min_date < current_inicio:
                             log_progress(
                                 "E3.1",
                                 f"Adjusted fatura periodo for {fpath.name}: "
-                                f"synth={current_inicio} -> actual={actual_min_date}"
+                                f"synth={current_inicio} -> actual={actual_min_date}",
                             )
-                            data['periodo']['inicio'] = actual_min_date
+                            data["periodo"]["inicio"] = actual_min_date
 
             # Final fallback: derive from transaction dates
-            if 'periodo' not in data:
-                txns = data.get('transacoes', [])
-                dates = [t.get('data', '') for t in txns if t.get('data')]
+            if "periodo" not in data:
+                txns = data.get("transacoes", [])
+                dates = [t.get("data", "") for t in txns if t.get("data")]
                 if dates:
-                    data['periodo'] = {
-                        'inicio': min(dates),
-                        'fim': max(dates)
-                    }
+                    data["periodo"] = {"inicio": min(dates), "fim": max(dates)}
 
         # Check for periodo (some files might not have it)
-        if 'periodo' not in data:
+        if "periodo" not in data:
             log_progress("E3.1", f"Skipping {fpath.name} (no periodo field)")
             continue
 
         # Guard: warn and drop transactions whose dates are >6 months
         # before the extract's periodo.inicio (likely misclassified data,
         # e.g. investment position screenshots mistakenly typed as extracts)
-        periodo_inicio = data.get('periodo', {}).get('inicio', '')
+        periodo_inicio = data.get("periodo", {}).get("inicio", "")
         if periodo_inicio:
             try:
-                dt_inicio = datetime.strptime(periodo_inicio[:10], '%Y-%m-%d')
+                dt_inicio = datetime.strptime(periodo_inicio[:10], "%Y-%m-%d")
                 cutoff = dt_inicio - timedelta(days=180)
-                txns = data.get('transacoes', [])
+                txns = data.get("transacoes", [])
                 anachronic = [
-                    t for t in txns
-                    if t.get('data', '') and t['data'][:10] < cutoff.strftime('%Y-%m-%d')
+                    t
+                    for t in txns
+                    if t.get("data", "") and t["data"][:10] < cutoff.strftime("%Y-%m-%d")
                 ]
                 if anachronic:
                     log_progress(
                         "E3.1",
                         f"WARNING: {fpath.name} has {len(anachronic)} transaction(s) "
                         f">6 months before periodo.inicio ({periodo_inicio}). "
-                        f"Dropping anachronic transactions (likely duplicate/misclassified)."
+                        f"Dropping anachronic transactions (likely duplicate/misclassified).",
                     )
                     kept = [t for t in txns if t not in anachronic]
-                    data['transacoes'] = kept
+                    data["transacoes"] = kept
             except (ValueError, TypeError):
                 pass
 
@@ -855,8 +875,7 @@ def load_and_group_e2_extracts(e2_dir: Path) -> Tuple[Dict, List[Tuple]]:
 
 
 def reconcile_account(
-    account_key: str,
-    file_group: List[Tuple[Path, Dict[str, Any]]]
+    account_key: str, file_group: List[Tuple[Path, Dict[str, Any]]]
 ) -> Optional[Dict[str, Any]]:
     """
     Reconcile a single account:
@@ -870,39 +889,36 @@ def reconcile_account(
         return None
 
     # Sort by period start
-    sorted_group = sorted(
-        file_group,
-        key=lambda x: x[1].get('periodo', {}).get('inicio') or ''
-    )
+    sorted_group = sorted(file_group, key=lambda x: x[1].get("periodo", {}).get("inicio") or "")
 
     # Collect metadata from first file
     first_path, first_data = sorted_group[0]
-    banco = (first_data.get('banco') or first_data.get('instituicao') or '').strip()
-    tipo = (first_data.get('tipo') or '').strip()
+    banco = (first_data.get("banco") or first_data.get("instituicao") or "").strip()
+    tipo = (first_data.get("tipo") or "").strip()
     # Normalize tipo using config equivalences (same as get_account_key)
     tipo = ACCOUNT_TYPE_EQUIVALENCES.get(tipo, tipo)
     # v2.1: Use same moeda resolution as get_account_key() — check conta.moeda fallback
-    moeda = (first_data.get('moeda') or '').strip()
+    moeda = (first_data.get("moeda") or "").strip()
     if not moeda:
-        conta = first_data.get('conta', {})
+        conta = first_data.get("conta", {})
         if isinstance(conta, dict):
-            moeda = (conta.get('moeda') or '').strip()
+            moeda = (conta.get("moeda") or "").strip()
     if not moeda:
         log_progress("E3.3", f"[WARN] moeda ausente em {first_path.name}, usando default BRL")
-        moeda = 'BRL'
+        moeda = "BRL"
 
     # Use canonical tipo for output
     tipo_conta = TIPO_CANONICAL.get(tipo, tipo)
 
     # For faturas, get titular from any file (they should all match)
-    titular = first_data.get('titular') or first_data.get('cartao')
+    titular = first_data.get("titular") or first_data.get("cartao")
     if isinstance(titular, str):
         titular = titular.strip()
 
     # Collect all transactions across files, tracking source (#3)
     all_transactions_with_sources = []
     for path, data in sorted_group:
-        transacoes = data.get('transacoes', [])
+        transacoes = data.get("transacoes", [])
         source_name = path.name
         if isinstance(transacoes, list):
             for txn in transacoes:
@@ -915,33 +931,27 @@ def reconcile_account(
         log_progress("E3.3", detail)
 
     # Sort chronologically with proper date parsing
-    dedup_txns.sort(key=lambda x: _parse_date_for_sort(x.get('data') or ''))
+    dedup_txns.sort(key=lambda x: _parse_date_for_sort(x.get("data") or ""))
 
     # Determine period coverage (v2.1: also try data_inicio/data_fim keys from E2)
-    periodo_obj_first = sorted_group[0][1].get('periodo', {})
-    periodo_inicio = periodo_obj_first.get('inicio', '') or periodo_obj_first.get('data_inicio', '')
-    periodo_obj_last = sorted_group[-1][1].get('periodo', {})
-    periodo_fim = periodo_obj_last.get('fim', '') or periodo_obj_last.get('data_fim', '')
+    periodo_obj_first = sorted_group[0][1].get("periodo", {})
+    periodo_inicio = periodo_obj_first.get("inicio", "") or periodo_obj_first.get("data_inicio", "")
+    periodo_obj_last = sorted_group[-1][1].get("periodo", {})
+    periodo_fim = periodo_obj_last.get("fim", "") or periodo_obj_last.get("data_fim", "")
 
     # Use first file's saldo_inicial and last file's saldo_final (#9)
-    saldo_inicial = first_data.get('saldo_inicial')
-    saldo_final = sorted_group[-1][1].get('saldo_final')
+    saldo_inicial = first_data.get("saldo_inicial")
+    saldo_final = sorted_group[-1][1].get("saldo_final")
 
     saldo_inicial_unknown = False
     saldo_final_unknown = False
 
     if saldo_inicial is None:
-        log_progress(
-            "E3.3",
-            f"WARNING: {banco} {tipo} has saldo_inicial=None, using 0"
-        )
+        log_progress("E3.3", f"WARNING: {banco} {tipo} has saldo_inicial=None, using 0")
         saldo_inicial = 0
         saldo_inicial_unknown = True
     if saldo_final is None:
-        log_progress(
-            "E3.3",
-            f"WARNING: {banco} {tipo} has saldo_final=None, using 0"
-        )
+        log_progress("E3.3", f"WARNING: {banco} {tipo} has saldo_final=None, using 0")
         saldo_final = 0
         saldo_final_unknown = True
 
@@ -949,22 +959,19 @@ def reconcile_account(
     fontes = [path.name for path, _ in sorted_group]
 
     reconciled = {
-        'banco': banco,
-        'tipo_conta': tipo_conta,
-        'titular': titular,
-        'moeda': moeda,
-        'periodo_cobertura': {
-            'inicio': periodo_inicio,
-            'fim': periodo_fim
-        },
-        'saldo_inicial': saldo_inicial,
-        'saldo_inicial_unknown': saldo_inicial_unknown,
-        'saldo_final': saldo_final,
-        'saldo_final_unknown': saldo_final_unknown,
-        'fontes': fontes,
-        'transacoes_total': len(dedup_txns),
-        'transacoes_duplicadas_removidas': dup_count,
-        'transacoes': dedup_txns
+        "banco": banco,
+        "tipo_conta": tipo_conta,
+        "titular": titular,
+        "moeda": moeda,
+        "periodo_cobertura": {"inicio": periodo_inicio, "fim": periodo_fim},
+        "saldo_inicial": saldo_inicial,
+        "saldo_inicial_unknown": saldo_inicial_unknown,
+        "saldo_final": saldo_final,
+        "saldo_final_unknown": saldo_final_unknown,
+        "fontes": fontes,
+        "transacoes_total": len(dedup_txns),
+        "transacoes_duplicadas_removidas": dup_count,
+        "transacoes": dedup_txns,
     }
 
     return reconciled
@@ -977,20 +984,20 @@ def generate_output_filename(reconciled: Dict[str, Any]) -> str:
     For conta types: {banco}_{tipo_conta}_{moeda}_{YYYYMM}_{YYYYMM}-3_reconciled.json
     For fatura types: {banco}_{tipo_conta}_{YYYYMM}_{YYYYMM}-3_reconciled.json
     """
-    banco_raw = (reconciled.get('banco') or '').strip()
-    banco = _BANCO_DISPLAY_TO_CANONICAL.get(banco_raw.lower(), banco_raw.lower().replace(' ', ''))
-    tipo_conta = reconciled['tipo_conta'].lower()
-    moeda = reconciled['moeda'].upper()
+    banco_raw = (reconciled.get("banco") or "").strip()
+    banco = _BANCO_DISPLAY_TO_CANONICAL.get(banco_raw.lower(), banco_raw.lower().replace(" ", ""))
+    tipo_conta = reconciled["tipo_conta"].lower()
+    moeda = reconciled["moeda"].upper()
 
-    periodo = reconciled['periodo_cobertura']
-    inicio = periodo['inicio']  # YYYY-MM-DD
-    fim = periodo['fim']
+    periodo = reconciled["periodo_cobertura"]
+    inicio = periodo["inicio"]  # YYYY-MM-DD
+    fim = periodo["fim"]
 
     # Extract YYYYMM from ISO date
-    inicio_ym = inicio[:7].replace('-', '')  # YYYY-MM -> YYYYMM
-    fim_ym = fim[:7].replace('-', '')
+    inicio_ym = inicio[:7].replace("-", "")  # YYYY-MM -> YYYYMM
+    fim_ym = fim[:7].replace("-", "")
 
-    if tipo_conta.startswith('fatura'):
+    if tipo_conta.startswith("fatura"):
         # Faturas: no moeda field
         filename = f"{banco}_{tipo_conta}_{inicio_ym}_{fim_ym}-3_reconciled.json"
     else:
@@ -1012,9 +1019,9 @@ def main(root_dir: Path = None):
     print("=" * 80)
 
     # Paths
-    e2_dir = base_dir / 'processed' / 'E2_extracts'
-    e3_dir = base_dir / 'processed' / 'E3_reconciled'
-    logs_dir = base_dir / 'logs'
+    e2_dir = base_dir / "processed" / "E2_extracts"
+    e3_dir = base_dir / "processed" / "E3_reconciled"
+    logs_dir = base_dir / "logs"
 
     log_progress("E3.0", f"Base directory: {base_dir}")
     log_progress("E3.0", f"E2 input: {e2_dir}")
@@ -1048,7 +1055,9 @@ def main(root_dir: Path = None):
         sys.exit(1)
 
     # Step 2: Validate saldo continuity and detect temporal gaps (#8)
-    log_progress("E3.2", f"Validating saldo continuity and temporal gaps across {len(grouped)} accounts...")
+    log_progress(
+        "E3.2", f"Validating saldo continuity and temporal gaps across {len(grouped)} accounts..."
+    )
     continuity_warnings, temporal_gaps = validate_saldo_and_gaps(file_groups)
 
     for account_key, warnings_list in continuity_warnings.items():
@@ -1069,7 +1078,7 @@ def main(root_dir: Path = None):
                     "E3.3",
                     f"Reconciled {reconciled['banco']} {reconciled['tipo_conta']} "
                     f"({reconciled['transacoes_total']} txns, "
-                    f"{reconciled['transacoes_duplicadas_removidas']} duplicates)"
+                    f"{reconciled['transacoes_duplicadas_removidas']} duplicates)",
                 )
         except Exception as e:
             msg = f"Error reconciling {account_key_str}: {e}"
@@ -1100,7 +1109,7 @@ def main(root_dir: Path = None):
 
     # Step 5: Validate against baseline (#7)
     log_progress("E3.6", "Validating accounts against IRPF baseline...")
-    baseline_file = e2_dir / 'baseline_patrimonial-1.5_consolidated.json'
+    baseline_file = e2_dir / "baseline_patrimonial-1.5_consolidated.json"
     baseline_warnings = validate_against_baseline(reconciled_accounts, baseline_file)
 
     for account_name, warnings_list in baseline_warnings.items():
@@ -1157,34 +1166,30 @@ def main(root_dir: Path = None):
             f"{reconciled['transacoes_total']} txns"
         )
 
-    log_file = logs_dir / 'reconciliation.md'
+    log_file = logs_dir / "reconciliation.md"
     try:
         logs_dir.mkdir(parents=True, exist_ok=True)
-        with open(log_file, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(summary_lines))
+        with open(log_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(summary_lines))
         log_progress("E3.5", f"Wrote reconciliation log to {log_file.name}")
     except Exception as e:
         log_progress("E3.5", f"ERROR: Failed to write log: {e}")
 
     # Write temporal gaps to qa_log.md (#8, Fix #9: clean old E3 sections first)
     if temporal_gaps:
-        qa_log_file = logs_dir / 'qa_log.md'
+        qa_log_file = logs_dir / "qa_log.md"
         try:
             # Read existing content and remove old E3 sections to avoid accumulation
             old_content = ""
             if qa_log_file.exists():
-                with open(qa_log_file, 'r', encoding='utf-8') as f:
+                with open(qa_log_file, "r", encoding="utf-8") as f:
                     old_content = f.read()
 
             # Strip previous E3 Temporal Gaps sections (everything from header to next ## or EOF)
-            cleaned = re.sub(
-                r'\n*## E3 Temporal Gaps[^\n]*\n(?:- [^\n]*\n)*',
-                '',
-                old_content
-            )
+            cleaned = re.sub(r"\n*## E3 Temporal Gaps[^\n]*\n(?:- [^\n]*\n)*", "", old_content)
 
             # Write back with new E3 section
-            with open(qa_log_file, 'w', encoding='utf-8') as f:
+            with open(qa_log_file, "w", encoding="utf-8") as f:
                 if not cleaned.strip().startswith("# QA Log"):
                     f.write("# QA Log\n\n")
                     f.write(cleaned.strip() + "\n")
@@ -1193,7 +1198,10 @@ def main(root_dir: Path = None):
                 f.write(f"\n## E3 Temporal Gaps ({datetime.now().isoformat()})\n")
                 for gap in temporal_gaps:
                     f.write(f"- {gap}\n")
-            log_progress("E3.5", f"Wrote {len(temporal_gaps)} temporal gaps to {qa_log_file.name} (replaced old E3 section)")
+            log_progress(
+                "E3.5",
+                f"Wrote {len(temporal_gaps)} temporal gaps to {qa_log_file.name} (replaced old E3 section)",
+            )
         except Exception as e:
             log_progress("E3.5", f"ERROR: Failed to write qa_log: {e}")
 
@@ -1203,7 +1211,9 @@ def main(root_dir: Path = None):
     print("=" * 80)
     print(f"Accounts reconciled:        {len(reconciled_accounts)}")
     print(f"Total transactions:         {sum(a['transacoes_total'] for a in reconciled_accounts)}")
-    print(f"Total duplicates removed:   {sum(a['transacoes_duplicadas_removidas'] for a in reconciled_accounts)}")
+    print(
+        f"Total duplicates removed:   {sum(a['transacoes_duplicadas_removidas'] for a in reconciled_accounts)}"
+    )
     print(f"Files written:              {len(written_files)}")
     if write_errors:
         print(f"Write errors:               {len(write_errors)}")
@@ -1296,9 +1306,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
     saldo_validator = SaldoContinuityValidator(
         SaldoContinuityConfig.from_pipeline_config(pipeline_cfg)
     )
-    temporal_detector = TemporalGapDetector(
-        TemporalGapConfig.from_pipeline_config(pipeline_cfg)
-    )
+    temporal_detector = TemporalGapDetector(TemporalGapConfig.from_pipeline_config(pipeline_cfg))
     baseline_validator = BaselineValidator(
         BaselineValidatorConfig.from_pipeline_config(pipeline_cfg),
         canonicalizer=canon,
@@ -1467,11 +1475,12 @@ def _write_qa_log_e3_section(path: Path, *, temporal_warnings) -> None:
         log_progress("E3.5", f"ERROR: Failed to write qa_log: {exc}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         main()
     except Exception as e:
         log_progress("E3", f"FATAL: {e}")
         import traceback
+
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)

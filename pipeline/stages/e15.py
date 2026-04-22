@@ -70,10 +70,10 @@ def run(ctx: WorkspaceContext) -> dict:
 
     Reads IRPF docs, sends to LLM, saves baseline JSON in E2_extracts/.
     """
-    from pipeline.llm.litellm_client import LLMService, LLMConfig
-    from pipeline.llm.text_extractor import DocumentTextExtractor
-    from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
+    from pipeline.llm.litellm_client import LLMConfig, LLMService
     from pipeline.llm.prompts.e15_baseline import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+    from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
+    from pipeline.llm.text_extractor import DocumentTextExtractor
 
     llm_config_data = ctx.load_config("llm_config.json")
     if not llm_config_data or not llm_config_data.get("api_key"):
@@ -119,6 +119,7 @@ def run(ctx: WorkspaceContext) -> dict:
     output: BaselinePatrimonialOutput = result.output
 
     from pipeline.llm.validators import validate_e15_output
+
     validation = validate_e15_output(output)
     if not validation.valid:
         logger.warning("E1.5: validation errors: %s", validation.errors)
@@ -135,7 +136,9 @@ def run(ctx: WorkspaceContext) -> dict:
 
     logger.info(
         "E1.5: %d items, net_worth=%.2f, confidence=%.2f",
-        len(output.items), output.net_worth_brl, output.confidence,
+        len(output.items),
+        output.net_worth_brl,
+        output.confidence,
     )
 
     return {

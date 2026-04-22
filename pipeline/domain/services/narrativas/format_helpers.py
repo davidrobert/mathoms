@@ -45,9 +45,7 @@ def fmt_currency(value) -> str:
         formatted = f"{thousands:.1f}".replace(".", ",")
         return f"R$ {sign}{formatted}k"
     else:
-        formatted = (
-            f"{abs_val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-        )
+        formatted = f"{abs_val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
         return f"R$ {sign}{formatted}"
 
 
@@ -127,8 +125,7 @@ def validate_narrativas(
                     plain = re.sub(r"<[^>]+>", "", p_html).strip()
                     if len(plain) > _MAX:
                         errors.append(
-                            f"perfil_familia.{side} P{idx+1}: {len(plain)} chars "
-                            f"(max {_MAX})"
+                            f"perfil_familia.{side} P{idx+1}: {len(plain)} chars " f"(max {_MAX})"
                         )
 
     if "summaries" in narrativas_obj:
@@ -177,15 +174,12 @@ def validate_narrativas(
 
     def check_monetary_format(text: str, field_name: str) -> None:
         if re.search(r"R\$\s*[\d.,]+\s*KM", text, re.IGNORECASE):
-            errors.append(
-                f"{field_name}: Invalid 'KM' suffix found (use either k or M, not KM)"
-            )
+            errors.append(f"{field_name}: Invalid 'KM' suffix found (use either k or M, not KM)")
         if re.search(r"R\$\s*[\d.,]+\s+[kM]", text):
             errors.append(f"{field_name}: Invalid space between value and k/M suffix")
         if re.search(r"R\$\s*\d+\.\d+[kM]", text):
             errors.append(
-                f"{field_name}: Possível ponto decimal em valor monetário "
-                "(deveria usar vírgula)"
+                f"{field_name}: Possível ponto decimal em valor monetário " "(deveria usar vírgula)"
             )
 
     if "perfil_familia" in narrativas_obj:
@@ -204,8 +198,6 @@ def validate_narrativas(
         for chart_key, chart in narrativas_obj["charts"].items():
             for field in ["context", "conclusion"]:
                 if field in chart and chart[field]:
-                    check_monetary_format(
-                        chart[field], f"charts.{chart_key}.{field}"
-                    )
+                    check_monetary_format(chart[field], f"charts.{chart_key}.{field}")
 
     return len(errors) == 0, errors

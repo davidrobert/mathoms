@@ -123,10 +123,7 @@ class PontosUrgentesAnalyzer:
             PontoUrgenteItem(
                 prioridade="Alta",
                 acao="Contratar seguro de vida e invalidez",
-                impacto=(
-                    "Proteção patrimonial da família — "
-                    "nenhuma apólice identificada"
-                ),
+                impacto=("Proteção patrimonial da família — " "nenhuma apólice identificada"),
                 prazo="Imediato",
             )
         )
@@ -137,9 +134,7 @@ class PontosUrgentesAnalyzer:
                 PontoUrgenteItem(
                     prioridade="Média",
                     acao="Consolidar dados de rentabilidade dos investimentos",
-                    impacto=(
-                        "Sem dados de performance, impossível otimizar alocação"
-                    ),
+                    impacto=("Sem dados de performance, impossível otimizar alocação"),
                     prazo="Próximo trimestre",
                 )
             )

@@ -27,7 +27,6 @@ from backend.tests.fakes import (
     FakeGlobalDefaultsLoader,
 )
 
-
 _PIPELINE_DEFAULT = {
     "llm": {
         "model": "claude-opus-4",
@@ -93,9 +92,7 @@ async def test_update_pipeline_merges_on_top_of_default_when_no_override():
     repo = FakeConfigBlobRepository()
     cmd = PipelineConfigUpdateCommand(qa_thresholds={"score_diff_max": 0.9})
 
-    resp = await update_pipeline_config(
-        cmd, workspace_id="ws-1", repo=repo, defaults=_defaults()
-    )
+    resp = await update_pipeline_config(cmd, workspace_id="ws-1", repo=repo, defaults=_defaults())
 
     assert resp.qa_thresholds.score_diff_max == 0.9
     # Campos não fornecidos preservam o default
@@ -117,9 +114,7 @@ async def test_update_pipeline_deep_merges_nested_dicts():
     )
 
     cmd = PipelineConfigUpdateCommand(reconciliation={"saldo_diff": 0.10})
-    resp = await update_pipeline_config(
-        cmd, workspace_id="ws-1", repo=repo, defaults=_defaults()
-    )
+    resp = await update_pipeline_config(cmd, workspace_id="ws-1", repo=repo, defaults=_defaults())
 
     # Deep merge: saldo_diff atualiza, mode preserva
     persisted = await repo.get_config_json("ws-1", PipelineConfig)

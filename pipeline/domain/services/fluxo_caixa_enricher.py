@@ -37,12 +37,14 @@ def _safe_float(val) -> float:
 # =============================================================================
 
 
-_DEFAULT_ONE_TIME_CATEGORIES = frozenset({
-    "receita_venda_ativo",
-    "receita_resgate",
-    "receita_fgts",
-    "receita_restituicao",
-})
+_DEFAULT_ONE_TIME_CATEGORIES = frozenset(
+    {
+        "receita_venda_ativo",
+        "receita_resgate",
+        "receita_fgts",
+        "receita_restituicao",
+    }
+)
 
 _DEFAULT_ONE_TIME_KEYWORDS = (
     "venda",
@@ -52,12 +54,14 @@ _DEFAULT_ONE_TIME_KEYWORDS = (
     "restituição",
 )
 
-_DEFAULT_ONE_TIME_ORIGIN_NAMES = frozenset({
-    "Resgates",
-    "Restituições",
-    "Venda de Ativo",
-    "FGTS",
-})
+_DEFAULT_ONE_TIME_ORIGIN_NAMES = frozenset(
+    {
+        "Resgates",
+        "Restituições",
+        "Venda de Ativo",
+        "FGTS",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -77,22 +81,16 @@ class FluxoEnricherConfig:
     janela_meses: int = 12
 
     @classmethod
-    def from_categorization(
-        cls, categorization: dict | None = None
-    ) -> "FluxoEnricherConfig":
+    def from_categorization(cls, categorization: dict | None = None) -> "FluxoEnricherConfig":
         cat = categorization or {}
         cats_raw = cat.get("one_time_income_categories")
         kws_raw = cat.get("one_time_income_keywords")
         return cls(
             one_time_categories=(
-                frozenset(str(c) for c in cats_raw)
-                if cats_raw
-                else _DEFAULT_ONE_TIME_CATEGORIES
+                frozenset(str(c) for c in cats_raw) if cats_raw else _DEFAULT_ONE_TIME_CATEGORIES
             ),
             one_time_keywords=(
-                tuple(str(k).lower() for k in kws_raw)
-                if kws_raw
-                else _DEFAULT_ONE_TIME_KEYWORDS
+                tuple(str(k).lower() for k in kws_raw) if kws_raw else _DEFAULT_ONE_TIME_KEYWORDS
             ),
         )
 
@@ -162,9 +160,7 @@ class FluxoCaixaEnriched:
             "despesa_mensal_media": round(self.despesa_mensal_media, 2),
             "fluxo_liquido": round(self.fluxo_liquido, 2),
             "por_fonte": {k: round(v, 2) for k, v in self.por_fonte.items()},
-            "por_fonte_detalhado": {
-                k: round(v, 2) for k, v in self.por_fonte_detalhado.items()
-            },
+            "por_fonte_detalhado": {k: round(v, 2) for k, v in self.por_fonte_detalhado.items()},
             "despesas_por_categoria": {
                 k: round(v, 2) for k, v in self.despesas_por_categoria.items()
             },
@@ -201,23 +197,17 @@ class FluxoCaixaEnricher:
         despesa_total = _safe_float((despesas or {}).get("total_geral", 0))
 
         # Split one-time vs recorrente.
-        receita_one_time, receita_recorrente = self._split_receita(
-            receita_total, receitas
-        )
+        receita_one_time, receita_recorrente = self._split_receita(receita_total, receitas)
 
         meses = list((fluxo_mensal or {}).get("meses_ordenados", []) or [])
         num_months = len(meses) or 1  # paridade com fallback do legado.
 
-        receita_recorrente_mensal = (
-            receita_recorrente / num_months if num_months > 0 else 0.0
-        )
+        receita_recorrente_mensal = receita_recorrente / num_months if num_months > 0 else 0.0
         despesa_mensal_media = despesa_total / num_months if num_months > 0 else 0.0
         fluxo_liquido = receita_total - despesa_total
 
         por_fonte = dict((receitas or {}).get("totais_por_categoria", {}) or {})
-        despesas_por_categoria = dict(
-            (despesas or {}).get("totais_por_categoria", {}) or {}
-        )
+        despesas_por_categoria = dict((despesas or {}).get("totais_por_categoria", {}) or {})
 
         # Chart.js datasets.
         chart_data = self._build_chart_datasets(fluxo_mensal, meses)
@@ -253,9 +243,7 @@ class FluxoCaixaEnricher:
 
     # -- Helpers --
 
-    def _split_receita(
-        self, receita_total: float, receitas: dict
-    ) -> tuple[float, float]:
+    def _split_receita(self, receita_total: float, receitas: dict) -> tuple[float, float]:
         cfg = self._config
         one_time = 0.0
         recorrente = receita_total
@@ -274,30 +262,26 @@ class FluxoCaixaEnricher:
                     recorrente -= val
         return one_time, recorrente
 
-    def _build_tabela_receitas(
-        self, por_fonte: dict[str, float]
-    ) -> tuple[dict, ...]:
+    def _build_tabela_receitas(self, por_fonte: dict[str, float]) -> tuple[dict, ...]:
         total = sum(v for v in por_fonte.values() if v > 0)
         items: list[dict] = []
         for cat, val in sorted(por_fonte.items(), key=lambda x: x[1], reverse=True):
             if val > 0:
-                items.append({
-                    "categoria": str(cat).replace("_", " ").title(),
-                    "valor": round(val, 2),
-                    "pct": round(val / total * 100, 2) if total > 0 else 0,
-                })
+                items.append(
+                    {
+                        "categoria": str(cat).replace("_", " ").title(),
+                        "valor": round(val, 2),
+                        "pct": round(val / total * 100, 2) if total > 0 else 0,
+                    }
+                )
         return tuple(items)
 
-    def _build_chart_datasets(
-        self, fluxo_mensal: dict, meses: list[str]
-    ) -> dict:
+    def _build_chart_datasets(self, fluxo_mensal: dict, meses: list[str]) -> dict:
         receita_por_mes = (fluxo_mensal or {}).get("receitas", {}).get("por_mes", {}) or {}
         despesa_por_mes = (fluxo_mensal or {}).get("despesas", {}).get("por_mes", {}) or {}
 
         # labels "YY/MM" from "YYYY-MM".
-        labels = tuple(
-            f"{m[:4][-2:]}/{m[-2:]}" if len(m) >= 7 else m for m in meses
-        )
+        labels = tuple(f"{m[:4][-2:]}/{m[-2:]}" if len(m) >= 7 else m for m in meses)
 
         # Receita datasets por origem.
         receita_sources: set[str] = set()
@@ -307,8 +291,7 @@ class FluxoCaixaEnricher:
         receita_datasets: list[dict] = []
         for source in sorted(receita_sources):
             data = [
-                _safe_float((receita_por_mes.get(mes, {}) or {}).get(source, 0))
-                for mes in meses
+                _safe_float((receita_por_mes.get(mes, {}) or {}).get(source, 0)) for mes in meses
             ]
             if any(d > 0 for d in data):
                 receita_datasets.append({"label": source, "data": data})
@@ -320,23 +303,20 @@ class FluxoCaixaEnricher:
 
         despesa_datasets: list[dict] = []
         for cat in sorted(despesa_categories):
-            data = [
-                _safe_float((despesa_por_mes.get(mes, {}) or {}).get(cat, 0))
-                for mes in meses
-            ]
+            data = [_safe_float((despesa_por_mes.get(mes, {}) or {}).get(cat, 0)) for mes in meses]
             if any(d > 0 for d in data):
-                despesa_datasets.append({
-                    "label": str(cat).replace("_", " ").title(),
-                    "data": data,
-                })
+                despesa_datasets.append(
+                    {
+                        "label": str(cat).replace("_", " ").title(),
+                        "data": data,
+                    }
+                )
 
         totais_receita = tuple(
-            _safe_float((receita_por_mes.get(mes, {}) or {}).get("_total", 0))
-            for mes in meses
+            _safe_float((receita_por_mes.get(mes, {}) or {}).get("_total", 0)) for mes in meses
         )
         totais_despesa = tuple(
-            _safe_float((despesa_por_mes.get(mes, {}) or {}).get("_total", 0))
-            for mes in meses
+            _safe_float((despesa_por_mes.get(mes, {}) or {}).get("_total", 0)) for mes in meses
         )
 
         return {
@@ -347,9 +327,7 @@ class FluxoCaixaEnricher:
             "totais_despesa": totais_despesa,
         }
 
-    def _compute_janela_12m(
-        self, fluxo_mensal: dict, meses: list[str]
-    ) -> Janela12m:
+    def _compute_janela_12m(self, fluxo_mensal: dict, meses: list[str]) -> Janela12m:
         cfg = self._config
         n_janela = min(cfg.janela_meses, len(meses))
         meses_12m = meses[-n_janela:] if n_janela > 0 else []
@@ -384,11 +362,11 @@ class FluxoCaixaEnricher:
 
         taxa_rec = (
             ((receita_recorrente - despesa_total) / receita_recorrente * 100)
-            if receita_recorrente > 0 else 0.0
+            if receita_recorrente > 0
+            else 0.0
         )
         taxa_tot = (
-            ((receita_total - despesa_total) / receita_total * 100)
-            if receita_total > 0 else 0.0
+            ((receita_total - despesa_total) / receita_total * 100) if receita_total > 0 else 0.0
         )
 
         return Janela12m(

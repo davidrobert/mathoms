@@ -29,9 +29,7 @@ class TestCalculate:
         assert r.media_mensal == pytest.approx(150.0)
 
     def test_zero_months_returns_empty(self):
-        r = OrcamentoProspectivoCalculator().calculate(
-            {"mercado": 1200}, num_months=0
-        )
+        r = OrcamentoProspectivoCalculator().calculate({"mercado": 1200}, num_months=0)
 
         assert r.categorias == {}
         assert r.total == 0.0
@@ -44,16 +42,12 @@ class TestCalculate:
         assert r.total == 0.0
 
     def test_legenda_mentions_num_months(self):
-        r = OrcamentoProspectivoCalculator().calculate(
-            {"mercado": 600}, num_months=6
-        )
+        r = OrcamentoProspectivoCalculator().calculate({"mercado": 600}, num_months=6)
 
         assert "6 meses" in r.legenda
 
     def test_legacy_dict_rounds_values(self):
-        r = OrcamentoProspectivoCalculator().calculate(
-            {"cat": 100.123}, num_months=3
-        )
+        r = OrcamentoProspectivoCalculator().calculate({"cat": 100.123}, num_months=3)
         d = r.to_legacy_dict()
 
         assert d["categorias"]["cat"] == 33.37  # round(33.37099..., 2)

@@ -22,7 +22,6 @@ from backend.app.services.goal_service import (
 )
 from backend.tests import factories
 
-
 # ════════════════════════════════════════════════════════════════════
 # Testes da função pura compute_if_derived
 # ════════════════════════════════════════════════════════════════════
@@ -80,10 +79,7 @@ def test_aporte_com_patrimonio_reduz_vs_partindo_de_zero():
     baseline = compute_if_derived(inp)
     ajustado = compute_if_derived(inp, 2_800_000.0)
     assert ajustado.aporte_mensal_com_patrimonio_atual_brl is not None
-    assert (
-        ajustado.aporte_mensal_com_patrimonio_atual_brl
-        < baseline.aporte_necessario_mensal_brl
-    )
+    assert ajustado.aporte_mensal_com_patrimonio_atual_brl < baseline.aporte_necessario_mensal_brl
     assert ajustado.patrimonio_atual_utilizado_brl == 2_800_000.0
 
 
@@ -227,9 +223,7 @@ async def test_editing_creates_new_version_and_closes_old(db):
     user = await factories.make_user(db)
     ws = await factories.make_workspace(db, owner=user)
 
-    g1 = await create_if_goal_version(
-        ws.id, _inputs(renda=20000), db=db, created_by=user.id
-    )
+    g1 = await create_if_goal_version(ws.id, _inputs(renda=20000), db=db, created_by=user.id)
     await db.commit()
 
     # Segunda edição um dia depois
@@ -263,14 +257,10 @@ async def test_get_current_goal_returns_only_active(db):
     await db.commit()
 
     eff2 = date.today() + timedelta(days=1)
-    await create_if_goal_version(
-        ws.id, _inputs(renda=20000), db=db, effective_from=eff2
-    )
+    await create_if_goal_version(ws.id, _inputs(renda=20000), db=db, effective_from=eff2)
     await db.commit()
 
-    current = await get_current_goal(
-        ws.id, "INDEPENDENCIA_FINANCEIRA", db=db
-    )
+    current = await get_current_goal(ws.id, "INDEPENDENCIA_FINANCEIRA", db=db)
     assert current is not None
     assert current.derived_json["if_meta_brl"] == 4_800_000.0
 
@@ -295,9 +285,7 @@ async def test_history_ordered_newest_first(db):
     )
     await db.commit()
 
-    hist = await get_goal_history(
-        ws.id, "INDEPENDENCIA_FINANCEIRA", db=db
-    )
+    hist = await get_goal_history(ws.id, "INDEPENDENCIA_FINANCEIRA", db=db)
     assert len(hist) == 2
     # Mais recente primeiro
     assert hist[0].effective_from == date(2026, 1, 1)
@@ -324,12 +312,8 @@ async def test_tenant_isolation_of_goals(db):
     await create_if_goal_version(ws_b.id, _inputs(renda=50000), db=db)
     await db.commit()
 
-    current_a = await get_current_goal(
-        ws_a.id, "INDEPENDENCIA_FINANCEIRA", db=db
-    )
-    current_b = await get_current_goal(
-        ws_b.id, "INDEPENDENCIA_FINANCEIRA", db=db
-    )
+    current_a = await get_current_goal(ws_a.id, "INDEPENDENCIA_FINANCEIRA", db=db)
+    current_b = await get_current_goal(ws_b.id, "INDEPENDENCIA_FINANCEIRA", db=db)
 
     assert current_a.derived_json["if_meta_brl"] == 2_400_000.0
     assert current_b.derived_json["if_meta_brl"] == 12_000_000.0

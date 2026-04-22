@@ -9,8 +9,13 @@ from typing import Optional
 from backend.app.core.config import settings
 
 ALLOWED_EXTENSIONS = {
-    ".pdf", ".xlsx", ".xls", ".csv",
-    ".jpg", ".jpeg", ".png",
+    ".pdf",
+    ".xlsx",
+    ".xls",
+    ".csv",
+    ".jpg",
+    ".jpeg",
+    ".png",
     ".json",
 }
 
@@ -25,12 +30,12 @@ ALLOWED_EXTENSIONS = {
 #   JPEG: ISO/IEC 10918-1 ("\\xff\\xd8\\xff")
 #   PNG: RFC 2083 ("\\x89PNG\\r\\n\\x1a\\n")
 _MAGIC_SIGNATURES: "dict[str, tuple[bytes, ...]]" = {
-    ".pdf":  (b"%PDF-",),
+    ".pdf": (b"%PDF-",),
     ".xlsx": (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08"),
-    ".xls":  (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1", b"PK\x03\x04"),  # OLE2 or ZIP (xlsx renamed)
-    ".jpg":  (b"\xff\xd8\xff",),
+    ".xls": (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1", b"PK\x03\x04"),  # OLE2 or ZIP (xlsx renamed)
+    ".jpg": (b"\xff\xd8\xff",),
     ".jpeg": (b"\xff\xd8\xff",),
-    ".png":  (b"\x89PNG\r\n\x1a\n",),
+    ".png": (b"\x89PNG\r\n\x1a\n",),
 }
 
 
@@ -76,10 +81,8 @@ def _validate_magic_number(filename: str, content: bytes) -> tuple[bool, str]:
             return True, ""
     # Hex preview of first few bytes to aid debugging without leaking content
     preview = content[:8].hex()
-    return False, (
-        f"Conteúdo não corresponde à extensão {ext} "
-        f"(bytes iniciais: {preview})"
-    )
+    return False, (f"Conteúdo não corresponde à extensão {ext} " f"(bytes iniciais: {preview})")
+
 
 TENANT_SUBDIRS = [
     "inbox",
@@ -102,10 +105,10 @@ TENANT_SUBDIRS = [
 def _safe_filename(name: str) -> str:
     """Sanitize filename: keep alphanumeric, dots, hyphens, underscores."""
     name = os.path.basename(name)
-    name = re.sub(r'[^\w\-.]', '_', name)
-    name = re.sub(r'__+', '_', name)
-    if name.startswith('.'):
-        name = '_' + name
+    name = re.sub(r"[^\w\-.]", "_", name)
+    name = re.sub(r"__+", "_", name)
+    if name.startswith("."):
+        name = "_" + name
     return name[:255]
 
 
@@ -144,7 +147,10 @@ class StorageService:
         """
         ext = Path(filename).suffix.lower()
         if ext not in ALLOWED_EXTENSIONS:
-            return False, f"Tipo de arquivo não permitido: {ext}. Aceitos: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
+            return (
+                False,
+                f"Tipo de arquivo não permitido: {ext}. Aceitos: {', '.join(sorted(ALLOWED_EXTENSIONS))}",
+            )
         max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
         if size_bytes > max_bytes:
             return False, f"Arquivo excede limite de {settings.MAX_UPLOAD_SIZE_MB}MB"
@@ -179,7 +185,9 @@ class StorageService:
         dest.write_bytes(content)
         return dest
 
-    def move_to_data(self, workspace_id: str, inbox_path: Path, data_subdir: str, new_name: str) -> Path:
+    def move_to_data(
+        self, workspace_id: str, inbox_path: Path, data_subdir: str, new_name: str
+    ) -> Path:
         """Move file from inbox to the correct data/ subdirectory after classification."""
         dest_dir = self.tenant_root(workspace_id) / "data" / data_subdir
         dest_dir.mkdir(parents=True, exist_ok=True)

@@ -40,9 +40,13 @@ class TestBankStatementFromE2Dict:
 
     def test_preserves_opening_closing_balance(self):
         d = {
-            "banco": "bradesco", "tipo": "extrato", "moeda": "BRL",
-            "periodo_inicio": "2026-01-01", "periodo_fim": "2026-01-31",
-            "saldo_inicial": 1000.0, "saldo_final": 2500.0,
+            "banco": "bradesco",
+            "tipo": "extrato",
+            "moeda": "BRL",
+            "periodo_inicio": "2026-01-01",
+            "periodo_fim": "2026-01-31",
+            "saldo_inicial": 1000.0,
+            "saldo_final": 2500.0,
             "transacoes": [],
         }
         stmt = BankStatement.from_e2_dict(d)
@@ -51,8 +55,11 @@ class TestBankStatementFromE2Dict:
 
     def test_transfers_notes(self):
         d = {
-            "banco": "santander", "tipo": "extrato", "moeda": "BRL",
-            "periodo_inicio": "2026-01-01", "periodo_fim": "2026-01-31",
+            "banco": "santander",
+            "tipo": "extrato",
+            "moeda": "BRL",
+            "periodo_inicio": "2026-01-01",
+            "periodo_fim": "2026-01-31",
             "transacoes": [],
             "notas": ["WARN: saldo inconsistente", "INFO: extracted from CSV"],
         }
@@ -61,9 +68,13 @@ class TestBankStatementFromE2Dict:
 
     def test_round_trip_via_to_e2_dict(self):
         d1 = {
-            "banco": "c6bank", "tipo": "extrato", "moeda": "BRL",
-            "periodo_inicio": "2026-02-01", "periodo_fim": "2026-02-28",
-            "saldo_inicial": 500.0, "saldo_final": 600.0,
+            "banco": "c6bank",
+            "tipo": "extrato",
+            "moeda": "BRL",
+            "periodo_inicio": "2026-02-01",
+            "periodo_fim": "2026-02-28",
+            "saldo_inicial": 500.0,
+            "saldo_final": 600.0,
             "transacoes": [
                 {"data": "2026-02-10", "descricao": "X", "valor": 100.0},
             ],
@@ -92,8 +103,10 @@ class TestRunWithStoreNoFiles:
 
         # Reinit paths
         import scripts.pipeline_common as _pc
+
         _pc.init_workspace_paths_from_env(strict=False)
         from scripts.e2.common import _init_config as _e2_init
+
         _e2_init(tmp_path)
 
         from scripts.e2_extract import run_with_store
@@ -139,5 +152,10 @@ class TestTargetStageSelection:
 
         fatura = Path("/x/c6bank_fatura_202601-0_original.pdf")
         extrato = Path("/x/c6bank_extratoconta_202601-0_original.pdf")
-        assert _target_stage_for_file(fatura, extratos_only=False, faturas_only=False) == "E2-faturas"
-        assert _target_stage_for_file(extrato, extratos_only=False, faturas_only=False) == "E2-extratos"
+        assert (
+            _target_stage_for_file(fatura, extratos_only=False, faturas_only=False) == "E2-faturas"
+        )
+        assert (
+            _target_stage_for_file(extrato, extratos_only=False, faturas_only=False)
+            == "E2-extratos"
+        )

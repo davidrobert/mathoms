@@ -20,7 +20,6 @@ from pipeline.domain.services.transaction_classifier import (  # noqa: E402
     TransactionClassifier,
 )
 
-
 # =============================================================================
 # Helpers
 # =============================================================================
@@ -60,7 +59,9 @@ def _default_config(**overrides) -> ClassifierConfig:
     """Config mínimo para testes — keywords simples, sem transferências."""
     return ClassifierConfig.from_configs(
         categorization={
-            "expense_keywords": overrides.get("expense_kw", {"mercado": ["mercado"], "uber": ["uber"]}),
+            "expense_keywords": overrides.get(
+                "expense_kw", {"mercado": ["mercado"], "uber": ["uber"]}
+            ),
             "income_keywords": overrides.get("income_kw", {"receita_clt": ["salario"]}),
             "internal_transfer_patterns": overrides.get("transfer_patterns", []),
             "clt_source_mapping": overrides.get("clt", {"empregador": "Empregador Principal"}),
@@ -117,9 +118,7 @@ class TestCreditClassification:
         cfg = _default_config()
         classifier = TransactionClassifier(cfg)
 
-        acc = _account(
-            transacoes=[_tx("2026-01-05", "SALARIO EMPREGADOR", 5000, tipo="credito")]
-        )
+        acc = _account(transacoes=[_tx("2026-01-05", "SALARIO EMPREGADOR", 5000, tipo="credito")])
         results = classifier.classify_account(acc)
 
         assert len(results) == 1
@@ -133,9 +132,7 @@ class TestCreditClassification:
         cfg = _default_config(income_kw={"receita_clt": ["salario"]})
         classifier = TransactionClassifier(cfg)
 
-        acc = _account(
-            transacoes=[_tx("2026-01-05", "RECEBIDO ALGUEM", 200, tipo="credito")]
-        )
+        acc = _account(transacoes=[_tx("2026-01-05", "RECEBIDO ALGUEM", 200, tipo="credito")])
         results = classifier.classify_account(acc)
 
         assert results[0].categoria == "outras_receitas"
@@ -170,9 +167,7 @@ class TestDebitClassification:
         cfg = _default_config()
         classifier = TransactionClassifier(cfg)
 
-        acc = _account(
-            transacoes=[_tx("2026-01-05", "MERCADO PAO", -100, tipo="debito")]
-        )
+        acc = _account(transacoes=[_tx("2026-01-05", "MERCADO PAO", -100, tipo="debito")])
         results = classifier.classify_account(acc)
 
         assert len(results) == 1
@@ -186,9 +181,7 @@ class TestDebitClassification:
         cfg = _default_config()
         classifier = TransactionClassifier(cfg)
 
-        acc = _account(
-            transacoes=[_tx("2026-01-05", "Algo desconhecido", -50, tipo="debito")]
-        )
+        acc = _account(transacoes=[_tx("2026-01-05", "Algo desconhecido", -50, tipo="debito")])
         results = classifier.classify_account(acc)
 
         assert results[0].categoria == "nao_identificado"
@@ -214,9 +207,7 @@ class TestInternalTransfer:
         cfg = _default_config(transfer_patterns=["TRANSF MARIANA"])
         classifier = TransactionClassifier(cfg)
 
-        acc = _account(
-            transacoes=[_tx("2026-01-05", "PIX TRANSF MARIANA", -1000, tipo="debito")]
-        )
+        acc = _account(transacoes=[_tx("2026-01-05", "PIX TRANSF MARIANA", -1000, tipo="debito")])
         results = classifier.classify_account(acc)
 
         assert results[0].kind == "transferencia"
@@ -226,9 +217,7 @@ class TestInternalTransfer:
         cfg = _default_config(transfer_patterns=["TRANSF DAVID"])
         classifier = TransactionClassifier(cfg)
 
-        acc = _account(
-            transacoes=[_tx("2026-01-05", "PIX TRANSF DAVID", 1000, tipo="credito")]
-        )
+        acc = _account(transacoes=[_tx("2026-01-05", "PIX TRANSF DAVID", 1000, tipo="credito")])
         results = classifier.classify_account(acc)
 
         assert results[0].kind == "transferencia"
@@ -301,7 +290,11 @@ class TestValorCoercion:
         cfg = _default_config()
         classifier = TransactionClassifier(cfg)
 
-        acc = _account(transacoes=[{"data": "2026-01-05", "descricao": "UBER", "valor": "1.234,56", "tipo": "debito"}])
+        acc = _account(
+            transacoes=[
+                {"data": "2026-01-05", "descricao": "UBER", "valor": "1.234,56", "tipo": "debito"}
+            ]
+        )
         results = classifier.classify_account(acc)
 
         assert results[0].valor == 1234.56
@@ -310,7 +303,11 @@ class TestValorCoercion:
         cfg = _default_config()
         classifier = TransactionClassifier(cfg)
 
-        acc = _account(transacoes=[{"data": "2026-01-05", "descricao": "UBER", "valor": "nonsense", "tipo": "debito"}])
+        acc = _account(
+            transacoes=[
+                {"data": "2026-01-05", "descricao": "UBER", "valor": "nonsense", "tipo": "debito"}
+            ]
+        )
         results = classifier.classify_account(acc)
 
         assert results[0].valor == 0.0
@@ -394,6 +391,12 @@ class TestDefensive:
         cfg = _default_config()
         classifier = TransactionClassifier(cfg)
 
-        acc = _account(transacoes=[None, "string", {"data": "2026-01-05", "descricao": "MERCADO", "valor": -100, "tipo": "debito"}])
+        acc = _account(
+            transacoes=[
+                None,
+                "string",
+                {"data": "2026-01-05", "descricao": "MERCADO", "valor": -100, "tipo": "debito"},
+            ]
+        )
         results = classifier.classify_account(acc)
         assert len(results) == 1

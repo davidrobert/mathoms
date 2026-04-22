@@ -6,7 +6,7 @@ import json
 from dataclasses import asdict
 from datetime import datetime, timezone
 
-from dev._audit_cs_internals.models import Offender, REPO_ROOT, SEVERITY_RANK, Summary
+from dev._audit_cs_internals.models import REPO_ROOT, SEVERITY_RANK, Offender, Summary
 
 
 def _now_iso() -> str:
@@ -27,7 +27,9 @@ def render_json(offenders: list[Offender], summary: Summary, commit: str) -> str
 
 
 def _summary_dict(summary: Summary) -> dict[str, object]:
-    sev = dict(sorted(summary.offenders_by_severity.items(), key=lambda kv: SEVERITY_RANK.get(kv[0], 99)))
+    sev = dict(
+        sorted(summary.offenders_by_severity.items(), key=lambda kv: SEVERITY_RANK.get(kv[0], 99))
+    )
     by_dir = {k: dict(sorted(v.items())) for k, v in sorted(summary.offenders_by_directory.items())}
     return {
         "files_scanned": {
@@ -66,7 +68,9 @@ def _md_header(offenders: list[Offender], summary: Summary, commit: str) -> list
 def _render_category_table(offenders: list[Offender], summary: Summary) -> str:
     rows = ["| Categoria | Count | High+ |", "|---|---|---|"]
     for cat, count in sorted(summary.offenders_by_category.items()):
-        high_plus = sum(1 for o in offenders if o.category == cat and SEVERITY_RANK[o.severity] <= 1)
+        high_plus = sum(
+            1 for o in offenders if o.category == cat and SEVERITY_RANK[o.severity] <= 1
+        )
         rows.append(f"| {cat} | {count} | {high_plus} |")
     return "\n".join(rows)
 
@@ -86,10 +90,14 @@ def _render_top_offenders(offenders: list[Offender]) -> str:
     for cat in sorted(groups.keys()):
         chunks.append(f"### {cat}")
         chunks.append("")
-        items = sorted(groups[cat], key=lambda o: (SEVERITY_RANK[o.severity], -o.length, o.file))[:10]
+        items = sorted(groups[cat], key=lambda o: (SEVERITY_RANK[o.severity], -o.length, o.file))[
+            :10
+        ]
         for off in items:
             mark = " *(allowlisted)*" if off.allowlisted else ""
-            chunks.append(f"- `{off.file}:{off.line_start}` **{off.severity}** · `{off.identifier}` · len={off.length}{mark}")
+            chunks.append(
+                f"- `{off.file}:{off.line_start}` **{off.severity}** · `{off.identifier}` · len={off.length}{mark}"
+            )
         chunks.append("")
     return "\n".join(chunks)
 

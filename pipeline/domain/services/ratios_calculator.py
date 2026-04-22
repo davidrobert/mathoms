@@ -82,9 +82,7 @@ class RatiosCalculator:
       service atual).
     """
 
-    def calculate(
-        self, fluxo: dict[str, Any], patrimonio: dict[str, Any]
-    ) -> FinancialRatios:
+    def calculate(self, fluxo: dict[str, Any], patrimonio: dict[str, Any]) -> FinancialRatios:
         j12m = fluxo.get("janela_12m", {}) if isinstance(fluxo, dict) else {}
 
         if j12m:
@@ -112,9 +110,7 @@ class RatiosCalculator:
         # Taxa poupança total (12m).
         taxa_poupanca_total = 0.0
         if receita_total > 0:
-            taxa_poupanca_total = (
-                (receita_total - despesa_total) / receita_total
-            ) * 100
+            taxa_poupanca_total = ((receita_total - despesa_total) / receita_total) * 100
 
         # Endividamento — sem janela (patrimônio).
         bruto = _safe_float(patrimonio.get("bruto", 0))
@@ -123,9 +119,7 @@ class RatiosCalculator:
 
         # Cobertura despesas (meses).
         investivel = _safe_float(patrimonio.get("investivel", 0))
-        cobertura_meses = (
-            investivel / despesa_mensal_media if despesa_mensal_media > 0 else 0.0
-        )
+        cobertura_meses = investivel / despesa_mensal_media if despesa_mensal_media > 0 else 0.0
 
         return FinancialRatios(
             taxa_poupanca_recorrente_pct=taxa_poupanca_recorrente,

@@ -40,9 +40,7 @@ def _build_workspace(root: Path, *, baseline: dict) -> None:
     """Monta workspace mínimo com config + baseline no caminho E1.5c."""
     cfg = root / "config"
     cfg.mkdir(parents=True)
-    (cfg / "family_members.json").write_text(
-        json.dumps(_FAMILY), encoding="utf-8"
-    )
+    (cfg / "family_members.json").write_text(json.dumps(_FAMILY), encoding="utf-8")
     (cfg / "pipeline.json").write_text(json.dumps(_PIPELINE), encoding="utf-8")
 
     e2_dir = root / "processed" / "E2_extracts"
@@ -55,12 +53,7 @@ def _build_workspace(root: Path, *, baseline: dict) -> None:
 
 
 def _read_consolidated(root: Path) -> dict:
-    path = (
-        root
-        / "processed"
-        / "E2_extracts"
-        / "baseline_patrimonial-1.5_consolidated.json"
-    )
+    path = root / "processed" / "E2_extracts" / "baseline_patrimonial-1.5_consolidated.json"
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -93,19 +86,11 @@ def _compare_values(a, b, *, path: str) -> None:
         return
 
     if isinstance(a, list) and isinstance(b, list):
-        assert len(a) == len(b), (
-            f"tamanho de lista divergiu em {path!r}: {len(a)} vs {len(b)}"
-        )
+        assert len(a) == len(b), f"tamanho de lista divergiu em {path!r}: {len(a)} vs {len(b)}"
         if a and all(isinstance(x, dict) for x in a):
-            serialized_a = sorted(
-                json.dumps(x, sort_keys=True, default=str) for x in a
-            )
-            serialized_b = sorted(
-                json.dumps(x, sort_keys=True, default=str) for x in b
-            )
-            assert serialized_a == serialized_b, (
-                f"lista de dicts divergiu em {path!r}"
-            )
+            serialized_a = sorted(json.dumps(x, sort_keys=True, default=str) for x in a)
+            serialized_b = sorted(json.dumps(x, sort_keys=True, default=str) for x in b)
+            assert serialized_a == serialized_b, f"lista de dicts divergiu em {path!r}"
             return
         assert a == b, f"lista divergiu em {path!r}: {a} vs {b}"
         return
@@ -224,9 +209,7 @@ def _cenario_declarations_legado() -> dict:
         ("declarations_legado", _cenario_declarations_legado),
     ],
 )
-def test_main_with_store_parity_against_legacy(
-    tmp_path: Path, scenario_name: str, build_baseline
-):
+def test_main_with_store_parity_against_legacy(tmp_path: Path, scenario_name: str, build_baseline):
     legacy_root = tmp_path / "legacy"
     new_root = tmp_path / "new"
 
@@ -251,12 +234,8 @@ def test_main_with_store_skip_when_no_baseline(tmp_path: Path) -> None:
     root = tmp_path / "empty"
     root.mkdir()
     (root / "config").mkdir()
-    (root / "config" / "family_members.json").write_text(
-        json.dumps(_FAMILY), encoding="utf-8"
-    )
-    (root / "config" / "pipeline.json").write_text(
-        json.dumps(_PIPELINE), encoding="utf-8"
-    )
+    (root / "config" / "family_members.json").write_text(json.dumps(_FAMILY), encoding="utf-8")
+    (root / "config" / "pipeline.json").write_text(json.dumps(_PIPELINE), encoding="utf-8")
 
     ctx = WorkspaceContext(root=root)
     result = main_with_store(ctx)
@@ -282,6 +261,6 @@ def test_pipeline_stages_e15c_does_not_import_stage_runner_compat():
         "pipeline/stages/e15c.py ainda referencia MaterializationBridge — "
         "Sessão A5f deveria ter removido o bridge."
     )
-    assert "main_with_store" in src, (
-        "pipeline/stages/e15c.py deveria chamar main_with_store após Sessão A5f."
-    )
+    assert (
+        "main_with_store" in src
+    ), "pipeline/stages/e15c.py deveria chamar main_with_store após Sessão A5f."

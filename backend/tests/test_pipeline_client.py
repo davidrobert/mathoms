@@ -68,6 +68,7 @@ def test_inprocess_execute_stage_delegates_to_orchestrator(tmp_path, monkeypatch
     monkeypatch.setattr(orch, "_run_stage", fake)
 
     from pipeline.context import WorkspaceContext
+
     ctx = WorkspaceContext.for_tenant(tmp_path, pipeline_run_id="r")
     result = InProcessPipelineClient().execute_stage(ctx, "E3", workspace_id="ws")
     assert isinstance(result, StageResult)
@@ -83,14 +84,17 @@ def test_http_execute_stage_translates_payload_and_response(tmp_path):
     def handler(req: httpx.Request) -> httpx.Response:
         captured["url"] = str(req.url)
         captured["body"] = req.content.decode()
-        return httpx.Response(200, json={
-            "stage": "E3",
-            "success": True,
-            "duration_ms": 12.3,
-            "detail": {"touched": 2},
-            "error": None,
-            "attempts": 1,
-        })
+        return httpx.Response(
+            200,
+            json={
+                "stage": "E3",
+                "success": True,
+                "duration_ms": 12.3,
+                "detail": {"touched": 2},
+                "error": None,
+                "attempts": 1,
+            },
+        )
 
     transport = httpx.MockTransport(handler)
     http = httpx.Client(transport=transport)
@@ -104,6 +108,7 @@ def test_http_execute_stage_translates_payload_and_response(tmp_path):
     assert result.detail == {"touched": 2}
     assert "/api/v1/pipeline/stages/E3/execute" in captured["url"]
     import json as _json
+
     body = _json.loads(captured["body"])
     assert body["workspace_id"] == "ws-1"
     assert body["run_id"] == "run-xyz"
@@ -112,14 +117,17 @@ def test_http_execute_stage_translates_payload_and_response(tmp_path):
 
 def test_http_execute_stage_translates_failure(tmp_path):
     def handler(req: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json={
-            "stage": "E4",
-            "success": False,
-            "duration_ms": 5.0,
-            "detail": None,
-            "error": "boom",
-            "attempts": 1,
-        })
+        return httpx.Response(
+            200,
+            json={
+                "stage": "E4",
+                "success": False,
+                "duration_ms": 5.0,
+                "detail": None,
+                "error": "boom",
+                "attempts": 1,
+            },
+        )
 
     http = httpx.Client(transport=httpx.MockTransport(handler))
     client = HttpPipelineClient("http://ps.local", http=http)

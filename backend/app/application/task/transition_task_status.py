@@ -46,9 +46,7 @@ async def transition_task_status(
     return task_to_response(saved)
 
 
-async def _load_task(
-    repo: TaskRepositoryProtocol, workspace_id: str, task_id: str
-) -> Task:
+async def _load_task(repo: TaskRepositoryProtocol, workspace_id: str, task_id: str) -> Task:
     task = await repo.get_by_id(workspace_id, task_id)
     if task is None:
         raise NotFoundError("Tarefa não encontrada", code="task_not_found")

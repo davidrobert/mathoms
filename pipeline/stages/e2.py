@@ -39,6 +39,7 @@ def run(
 ) -> dict:
     """Executa E2 extraction com contexto injetado (Caminho B)."""
     from scripts.e2.common import _init_config as _e2_init
+
     _e2_init(ctx.root)
 
     from scripts.e2_extract import run_with_store

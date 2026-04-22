@@ -23,6 +23,7 @@ class TestE1GoldenFile:
 
     def test_schema_parses(self, golden_data):
         from pipeline.llm.schemas.e1_members import MembersExtractOutput
+
         output = MembersExtractOutput(**golden_data)
         assert len(output.members) == 2
         assert output.titular_key == "david"
@@ -31,6 +32,7 @@ class TestE1GoldenFile:
     def test_validator_accepts(self, golden_data):
         from pipeline.llm.schemas.e1_members import MembersExtractOutput
         from pipeline.llm.validators import validate_e1_output
+
         output = MembersExtractOutput(**golden_data)
         result = validate_e1_output(output)
         assert result.valid, f"Errors: {result.errors}"
@@ -39,6 +41,7 @@ class TestE1GoldenFile:
     def test_output_converter(self, golden_data):
         from pipeline.llm.schemas.e1_members import MembersExtractOutput
         from pipeline.stages.e1 import _output_to_family_members_json
+
         output = MembersExtractOutput(**golden_data)
         fmj = _output_to_family_members_json(output)
 
@@ -62,6 +65,7 @@ class TestE15GoldenFile:
 
     def test_schema_parses(self, golden_data):
         from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
+
         output = BaselinePatrimonialOutput(**golden_data)
         assert len(output.items) == 5
         assert output.net_worth_brl == 897000.00
@@ -70,6 +74,7 @@ class TestE15GoldenFile:
     def test_validator_accepts(self, golden_data):
         from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
         from pipeline.llm.validators import validate_e15_output
+
         output = BaselinePatrimonialOutput(**golden_data)
         result = validate_e15_output(output)
         assert result.valid, f"Errors: {result.errors}"
@@ -77,6 +82,7 @@ class TestE15GoldenFile:
     def test_output_converter(self, golden_data):
         from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
         from pipeline.stages.e15 import _output_to_baseline_json
+
         output = BaselinePatrimonialOutput(**golden_data)
         baseline = _output_to_baseline_json(output)
 
@@ -97,6 +103,7 @@ class TestE2LLMGoldenFile:
 
     def test_schema_parses(self, golden_data):
         from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
+
         output = LLMExtractOutput(**golden_data)
         assert len(output.transactions) == 2
         assert len(output.investments) == 3
@@ -105,6 +112,7 @@ class TestE2LLMGoldenFile:
     def test_validator_accepts(self, golden_data):
         from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
         from pipeline.llm.validators import validate_e2_llm_output
+
         output = LLMExtractOutput(**golden_data)
         result = validate_e2_llm_output(output)
         assert result.valid, f"Errors: {result.errors}"
@@ -112,6 +120,7 @@ class TestE2LLMGoldenFile:
     def test_output_converter(self, golden_data):
         from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
         from pipeline.stages.e2_llm import _output_to_e2_json
+
         output = LLMExtractOutput(**golden_data)
         e2 = _output_to_e2_json(output)
 
@@ -124,6 +133,7 @@ class TestE2LLMGoldenFile:
 
     def test_transactions_have_valid_dates(self, golden_data):
         import re
+
         date_re = re.compile(r"^\d{4}-\d{2}-\d{2}$")
         for t in golden_data["transactions"]:
             assert date_re.match(t["date"]), f"Invalid date: {t['date']}"
@@ -140,6 +150,7 @@ class TestE7ReviewGoldenFile:
 
     def test_schema_parses(self, golden_data):
         from pipeline.llm.schemas.e7_review import E7ReviewOutput
+
         output = E7ReviewOutput(**golden_data)
         assert len(output.insights) == 3
         assert len(output.recommendations) == 3
@@ -149,6 +160,7 @@ class TestE7ReviewGoldenFile:
     def test_output_converter(self, golden_data):
         from pipeline.llm.schemas.e7_review import E7ReviewOutput
         from pipeline.stages.e7_review_llm import _output_to_review_json
+
         output = E7ReviewOutput(**golden_data)
         result = _output_to_review_json(output)
 
@@ -160,7 +172,14 @@ class TestE7ReviewGoldenFile:
         assert "patrimonio_analise" in result["narrativas"]
 
     def test_insights_have_valid_categories(self, golden_data):
-        valid = {"patrimonio", "fluxo_caixa", "investimentos", "endividamento", "planejamento", "score"}
+        valid = {
+            "patrimonio",
+            "fluxo_caixa",
+            "investimentos",
+            "endividamento",
+            "planejamento",
+            "score",
+        }
         for ins in golden_data["insights"]:
             assert ins["category"] in valid, f"Invalid category: {ins['category']}"
 

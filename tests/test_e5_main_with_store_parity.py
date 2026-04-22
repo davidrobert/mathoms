@@ -28,10 +28,20 @@ _REPO = Path(__file__).resolve().parents[1]
 
 
 _E3_FIXTURE = (
-    _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-com-despesa-3_reconciled.json"
+    _REPO
+    / "tests"
+    / "fixtures"
+    / "pipeline_golden"
+    / "e3"
+    / "minimal-conta-com-despesa-3_reconciled.json"
 )
 _BASELINE_MIN = (
-    _REPO / "tests" / "fixtures" / "pipeline_golden" / "e2" / "minimal-baseline-1.5_consolidated.json"
+    _REPO
+    / "tests"
+    / "fixtures"
+    / "pipeline_golden"
+    / "e2"
+    / "minimal-baseline-1.5_consolidated.json"
 )
 
 _GOALS_MIN = {
@@ -107,13 +117,30 @@ def _read_e5_output(root: Path) -> dict:
 
 
 _MONETARY_FIELDS = {
-    "bruto", "liquido", "dividas", "residencia", "imoveis_investimento",
-    "veiculos", "caixa_moeda_estrangeira", "investivel",
-    "receita_total", "receita_recorrente", "receita_one_time",
-    "despesa_total", "despesa_mensal_media", "fluxo_liquido",
-    "if_meta", "if_gap", "if_trs_monthly_value",
-    "total_dividas", "total_pontuais", "folga_mensal",
-    "aporte_mensal", "total_liquida", "nivel_6_meses", "nivel_12_meses",
+    "bruto",
+    "liquido",
+    "dividas",
+    "residencia",
+    "imoveis_investimento",
+    "veiculos",
+    "caixa_moeda_estrangeira",
+    "investivel",
+    "receita_total",
+    "receita_recorrente",
+    "receita_one_time",
+    "despesa_total",
+    "despesa_mensal_media",
+    "fluxo_liquido",
+    "if_meta",
+    "if_gap",
+    "if_trs_monthly_value",
+    "total_dividas",
+    "total_pontuais",
+    "folga_mensal",
+    "aporte_mensal",
+    "total_liquida",
+    "nivel_6_meses",
+    "nivel_12_meses",
 }
 
 
@@ -140,8 +167,7 @@ def _assert_payloads_parity(a: dict, b: dict, *, path: str = "") -> None:
     b = _normalize_payload(b)
 
     assert set(a.keys()) == set(b.keys()), (
-        f"chaves divergiram em {path!r}: "
-        f"only_a={set(a) - set(b)} only_b={set(b) - set(a)}"
+        f"chaves divergiram em {path!r}: " f"only_a={set(a) - set(b)} only_b={set(b) - set(a)}"
     )
 
     for k in a:
@@ -183,14 +209,8 @@ def _compare_values(a, b, *, path: str) -> None:
     if isinstance(a, list) and isinstance(b, list):
         assert len(a) == len(b), f"tamanho divergiu em {path}: {len(a)} vs {len(b)}"
         if a and all(isinstance(x, dict) for x in a):
-            sa = sorted(
-                json.dumps(_normalize_payload(x), sort_keys=True, default=str)
-                for x in a
-            )
-            sb = sorted(
-                json.dumps(_normalize_payload(x), sort_keys=True, default=str)
-                for x in b
-            )
+            sa = sorted(json.dumps(_normalize_payload(x), sort_keys=True, default=str) for x in a)
+            sb = sorted(json.dumps(_normalize_payload(x), sort_keys=True, default=str) for x in b)
             assert sa == sb, f"lista de dicts divergiu em {path}"
             return
         assert a == b, f"lista divergiu em {path}: {a} vs {b}"
@@ -209,12 +229,20 @@ def _run_legacy_full_pipeline(workspace: Path) -> None:
     from scripts import pipeline_common as _pc
     from scripts.e4_categorize import (
         _DEFAULT_BASE_DIR as E4_DEFAULT,
+    )
+    from scripts.e4_categorize import (
         _init_config as e4_init,
+    )
+    from scripts.e4_categorize import (
         main as e4_main,
     )
     from scripts.e5_analyze import (
         _DEFAULT_BASE_DIR as E5_DEFAULT,
+    )
+    from scripts.e5_analyze import (
         _init_config as e5_init,
+    )
+    from scripts.e5_analyze import (
         main as e5_main,
     )
 

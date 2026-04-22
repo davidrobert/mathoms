@@ -33,7 +33,6 @@ from pipeline.domain.services.transaction_classifier import (  # noqa: E402
     TransactionClassifier,
 )
 
-
 _FIXED_NOW = datetime(2026, 4, 19, 10, 0, 0, tzinfo=timezone(timedelta(hours=-3)))
 _FIXED_DATE = date(2026, 4, 19)
 
@@ -120,14 +119,25 @@ class TestPlaceholders:
 class TestSerializeE4Artifacts:
     def test_produces_all_seven_keys(self):
         store = InMemoryArtifactStore()
-        store.seed("E3", "a", {
-            "banco": "Itaú", "tipo_conta": "extratoconta",
-            "moeda": "BRL", "titular": "david",
-            "transacoes": [
-                {"data": "2026-01-05", "descricao": "SALARIO EMP", "valor": 5000, "tipo": "credito"},
-                {"data": "2026-01-10", "descricao": "MERCADO", "valor": -100, "tipo": "debito"},
-            ],
-        })
+        store.seed(
+            "E3",
+            "a",
+            {
+                "banco": "Itaú",
+                "tipo_conta": "extratoconta",
+                "moeda": "BRL",
+                "titular": "david",
+                "transacoes": [
+                    {
+                        "data": "2026-01-05",
+                        "descricao": "SALARIO EMP",
+                        "valor": 5000,
+                        "tipo": "credito",
+                    },
+                    {"data": "2026-01-10", "descricao": "MERCADO", "valor": -100, "tipo": "debito"},
+                ],
+            },
+        )
         result = _adapter().categorize_via_store(store)
 
         payloads = serialize_e4_artifacts(result)
@@ -136,13 +146,24 @@ class TestSerializeE4Artifacts:
 
     def test_receitas_payload_matches_legacy_shape(self):
         store = InMemoryArtifactStore()
-        store.seed("E3", "a", {
-            "banco": "Itaú", "tipo_conta": "extratoconta",
-            "moeda": "BRL", "titular": "david",
-            "transacoes": [
-                {"data": "2026-01-05", "descricao": "SALARIO EMP", "valor": 5000, "tipo": "credito"},
-            ],
-        })
+        store.seed(
+            "E3",
+            "a",
+            {
+                "banco": "Itaú",
+                "tipo_conta": "extratoconta",
+                "moeda": "BRL",
+                "titular": "david",
+                "transacoes": [
+                    {
+                        "data": "2026-01-05",
+                        "descricao": "SALARIO EMP",
+                        "valor": 5000,
+                        "tipo": "credito",
+                    },
+                ],
+            },
+        )
         result = _adapter().categorize_via_store(store)
 
         payloads = serialize_e4_artifacts(result)
@@ -155,13 +176,19 @@ class TestSerializeE4Artifacts:
 
     def test_despesas_payload_has_absolute_values(self):
         store = InMemoryArtifactStore()
-        store.seed("E3", "a", {
-            "banco": "Itaú", "tipo_conta": "extratoconta",
-            "moeda": "BRL", "titular": "david",
-            "transacoes": [
-                {"data": "2026-01-10", "descricao": "MERCADO", "valor": -100, "tipo": "debito"},
-            ],
-        })
+        store.seed(
+            "E3",
+            "a",
+            {
+                "banco": "Itaú",
+                "tipo_conta": "extratoconta",
+                "moeda": "BRL",
+                "titular": "david",
+                "transacoes": [
+                    {"data": "2026-01-10", "descricao": "MERCADO", "valor": -100, "tipo": "debito"},
+                ],
+            },
+        )
         result = _adapter().categorize_via_store(store)
 
         payloads = serialize_e4_artifacts(result)
@@ -179,10 +206,14 @@ class TestSerializeE4Artifacts:
 
     def test_patrimonio_uses_normalized_baseline_when_present(self):
         store = InMemoryArtifactStore()
-        store.seed("E1.5c", "baseline_patrimonial", {
-            "data_consolidacao": "2025-06-30",
-            "membros_familia": [{"nome": "David"}],
-        })
+        store.seed(
+            "E1.5c",
+            "baseline_patrimonial",
+            {
+                "data_consolidacao": "2025-06-30",
+                "membros_familia": [{"nome": "David"}],
+            },
+        )
         result = _adapter().categorize_via_store(store)
 
         payloads = serialize_e4_artifacts(result)
@@ -193,11 +224,17 @@ class TestSerializeE4Artifacts:
 
     def test_investimentos_has_totals(self):
         store = InMemoryArtifactStore()
-        store.seed("E2-llm", "btg", {
-            "instituicao": "BTG", "tipo": "investimentosposicao",
-            "membro": "david", "data_referencia": "2026-03-31",
-            "posicoes": [{"nome": "Tesouro", "valor_total": 100_000}],
-        })
+        store.seed(
+            "E2-llm",
+            "btg",
+            {
+                "instituicao": "BTG",
+                "tipo": "investimentosposicao",
+                "membro": "david",
+                "data_referencia": "2026-03-31",
+                "posicoes": [{"nome": "Tesouro", "valor_total": 100_000}],
+            },
+        )
         result = _adapter().categorize_via_store(store)
 
         payloads = serialize_e4_artifacts(result)

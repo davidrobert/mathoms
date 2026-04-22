@@ -1,4 +1,5 @@
 """Testes para :class:`EmergencyReserveCalculator` (A6d.3.3 — ADR-100)."""
+
 from __future__ import annotations
 
 import pytest
@@ -190,9 +191,7 @@ def test_output_shape(config: ReservaEmergenciaConfig):
 
 def test_composicao_liquida_keys_dynamic(identity: MemberIdentity):
     """composicao_liquida usa identity dinâmica."""
-    solo = MemberIdentity(
-        titular_key="joao", conjuge_key="", titular_nome="João", conjuge_nome=""
-    )
+    solo = MemberIdentity(titular_key="joao", conjuge_key="", titular_nome="João", conjuge_nome="")
     cfg = ReservaEmergenciaConfig(members=solo)
     calc = EmergencyReserveCalculator(cfg)
     result = calc.calculate(

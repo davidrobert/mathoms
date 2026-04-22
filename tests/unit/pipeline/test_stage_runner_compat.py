@@ -28,9 +28,7 @@ class TestDiskPathSkipsBridge:
             out_dir.mkdir(parents=True, exist_ok=True)
             (out_dir / "k-3_reconciled.json").write_text('{"ok": 1}')
 
-        result = run_legacy_with_bridge_if_db(
-            ctx, stage="E3", legacy_runner=runner
-        )
+        result = run_legacy_with_bridge_if_db(ctx, stage="E3", legacy_runner=runner)
         assert result["success"] is True
         assert captured == [ctx.root]
 
@@ -57,9 +55,7 @@ class TestDBBackedUsesBridge:
             out_dir.mkdir(parents=True, exist_ok=True)
             (out_dir / "itau_BRL-3_reconciled.json").write_text('{"net": 42}')
 
-        result = run_legacy_with_bridge_if_db(
-            ctx, stage="E3", legacy_runner=runner
-        )
+        result = run_legacy_with_bridge_if_db(ctx, stage="E3", legacy_runner=runner)
         assert result["success"] is True
         assert result["bridge_persisted"] == 1
         assert len(captured) == 1
@@ -72,9 +68,7 @@ class TestDBBackedUsesBridge:
         store = InMemoryArtifactStore()
         ctx = WorkspaceContext(root=tmp_path, artifact_store=store)
         with pytest.raises(RuntimeError, match="pipeline_run_id"):
-            run_legacy_with_bridge_if_db(
-                ctx, stage="E3", legacy_runner=lambda _r: None
-            )
+            run_legacy_with_bridge_if_db(ctx, stage="E3", legacy_runner=lambda _r: None)
 
 
 class TestCollectCallback:

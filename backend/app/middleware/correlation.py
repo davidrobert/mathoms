@@ -21,13 +21,9 @@ from starlette.types import ASGIApp
 TRACE_ID_HEADER = "X-Trace-Id"
 
 _trace_id: ContextVar[str | None] = ContextVar("mathoms_trace_id", default=None)
-_workspace_id: ContextVar[str | None] = ContextVar(
-    "mathoms_workspace_id", default=None
-)
+_workspace_id: ContextVar[str | None] = ContextVar("mathoms_workspace_id", default=None)
 _user_id: ContextVar[str | None] = ContextVar("mathoms_user_id", default=None)
-_pipeline_run_id: ContextVar[str | None] = ContextVar(
-    "mathoms_pipeline_run_id", default=None
-)
+_pipeline_run_id: ContextVar[str | None] = ContextVar("mathoms_pipeline_run_id", default=None)
 
 
 def get_trace_id() -> str | None:

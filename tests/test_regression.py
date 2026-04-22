@@ -45,7 +45,8 @@ def _build_manifest() -> dict:
         if not dir_path.exists():
             continue
         files = sorted(
-            f for f in dir_path.iterdir()
+            f
+            for f in dir_path.iterdir()
             if f.is_file() and f.suffix in (".json", ".html") and f.name != ".DS_Store"
         )
         for f in files:
@@ -78,11 +79,13 @@ def capture_golden():
 
 # ---- Pytest tests ----
 
+
 class TestRegression:
     def test_golden_manifest_exists(self):
         """Verifica se golden files foram capturados."""
         if not GOLDEN_MANIFEST.exists():
             import pytest
+
             pytest.skip(
                 "Golden manifest não encontrado. "
                 "Execute: python tests/test_regression.py --capture"
@@ -92,6 +95,7 @@ class TestRegression:
         """Compara outputs atuais com golden files."""
         if not GOLDEN_MANIFEST.exists():
             import pytest
+
             pytest.skip("Golden manifest não encontrado.")
 
         with open(GOLDEN_MANIFEST, "r") as f:
@@ -99,6 +103,7 @@ class TestRegression:
 
         if not golden:
             import pytest
+
             pytest.skip("Golden manifest está vazio.")
 
         current = _build_manifest()
@@ -120,9 +125,7 @@ class TestRegression:
                 errors.append(f"NEW: {key} (não existia no golden)")
 
         if errors:
-            msg = f"{len(errors)} diferenças encontradas:\n" + "\n".join(
-                f"  - {e}" for e in errors
-            )
+            msg = f"{len(errors)} diferenças encontradas:\n" + "\n".join(f"  - {e}" for e in errors)
             assert False, msg
 
 

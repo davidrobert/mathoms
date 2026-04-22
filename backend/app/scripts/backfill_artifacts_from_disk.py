@@ -30,7 +30,6 @@ from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.models.workspace import Workspace
 from pipeline.artifact_store import _STAGE_TO_DIR, _STAGE_TO_SUFFIX
 
-
 # Injeção opcional para testes — default usa ``SyncSessionLocal``.
 _session_factory: callable = SyncSessionLocal
 
@@ -40,15 +39,21 @@ def set_session_factory(factory: callable) -> None:
     global _session_factory
     _session_factory = factory
 
+
 # Stages cujos artefatos em disco são migrados. Excluímos stages que não
 # produzem JSON em ``processed/`` (ver MaterializationBridge.test_mappings_complete).
 _MIGRATED_STAGES = [
     "E1.5c",
-    "E2-extratos", "E2-faturas", "E2-llm",
+    "E2-extratos",
+    "E2-faturas",
+    "E2-llm",
     "E3",
     "E4",
-    "E5", "E5.N",
-    "E7-crossval", "E7-review", "E7-apply",
+    "E5",
+    "E5.N",
+    "E7-crossval",
+    "E7-review",
+    "E7-apply",
 ]
 
 
@@ -70,15 +75,12 @@ def _get_or_create_synthetic_run(session, workspace_id: str) -> PipelineRun:
     Backfill precisa de uma ``pipeline_run_id`` válida (FK). Em workspaces sem
     runs, uma run sintética marcada ``completed`` é criada como placeholder.
     """
-    run = (
-        session.execute(
-            select(PipelineRun)
-            .where(PipelineRun.workspace_id == workspace_id)
-            .order_by(PipelineRun.started_at.desc())
-            .limit(1)
-        )
-        .scalar_one_or_none()
-    )
+    run = session.execute(
+        select(PipelineRun)
+        .where(PipelineRun.workspace_id == workspace_id)
+        .order_by(PipelineRun.started_at.desc())
+        .limit(1)
+    ).scalar_one_or_none()
     if run is not None:
         return run
     run = PipelineRun(
@@ -118,16 +120,15 @@ def _backfill_one_workspace(workspace: Workspace, *, apply: bool) -> dict:
                     continue
                 key = f.name[: -len(suffix)]
                 found += 1
-                exists = (
-                    session.execute(
-                        select(PipelineArtifact).where(
-                            PipelineArtifact.workspace_id == workspace.id,
-                            PipelineArtifact.stage == stage,
-                            PipelineArtifact.artifact_key == key,
-                        ).limit(1)
+                exists = session.execute(
+                    select(PipelineArtifact)
+                    .where(
+                        PipelineArtifact.workspace_id == workspace.id,
+                        PipelineArtifact.stage == stage,
+                        PipelineArtifact.artifact_key == key,
                     )
-                    .scalar_one_or_none()
-                )
+                    .limit(1)
+                ).scalar_one_or_none()
                 if exists is not None:
                     skipped += 1
                     continue
@@ -167,9 +168,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--dry-run", action="store_true", help="Lista o que seria migrado")
     group.add_argument("--apply", action="store_true", help="Aplica a migração no banco")
-    parser.add_argument(
-        "--workspace-id", help="Processa apenas um workspace específico (UUID)"
-    )
+    parser.add_argument("--workspace-id", help="Processa apenas um workspace específico (UUID)")
     args = parser.parse_args(argv)
 
     any_action = False

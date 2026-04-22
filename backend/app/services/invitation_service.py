@@ -43,7 +43,6 @@ from backend.app.models.workspace import Workspace
 from backend.app.models.workspace_invitation import WorkspaceInvitation
 from backend.app.models.workspace_member import VALID_ROLES, WorkspaceMember
 
-
 # ─── Configuração ──────────────────────────────────────────────────────
 
 INVITATION_TTL = timedelta(hours=72)
@@ -91,9 +90,7 @@ def _validate_role_for_invitation(role: str) -> str:
     return role
 
 
-async def _assert_not_already_member(
-    db: AsyncSession, *, workspace_id: str, email: str
-) -> None:
+async def _assert_not_already_member(db: AsyncSession, *, workspace_id: str, email: str) -> None:
     existing = await db.execute(
         select(WorkspaceMember)
         .join(User, User.id == WorkspaceMember.user_id)
@@ -103,14 +100,10 @@ async def _assert_not_already_member(
         )
     )
     if existing.scalar_one_or_none() is not None:
-        raise InvitationError(
-            "already_member", f"{email} já é membro deste workspace."
-        )
+        raise InvitationError("already_member", f"{email} já é membro deste workspace.")
 
 
-async def _assert_pending_quota(
-    db: AsyncSession, *, workspace_id: str, now: datetime
-) -> None:
+async def _assert_pending_quota(db: AsyncSession, *, workspace_id: str, now: datetime) -> None:
     pending_count = await _count_pending(db, workspace_id=workspace_id, now=now)
     if pending_count >= MAX_PENDING_PER_WORKSPACE:
         raise InvitationError(
@@ -158,9 +151,7 @@ async def create_invitation(
     return invitation, raw
 
 
-async def _count_pending(
-    db: AsyncSession, *, workspace_id: str, now: datetime
-) -> int:
+async def _count_pending(db: AsyncSession, *, workspace_id: str, now: datetime) -> int:
     """Conta convites em estado `pending` (não aceito, não revogado, não expirado)."""
     stmt = (
         select(func.count())
@@ -250,9 +241,7 @@ async def get_by_token(
     """
     token_hash = _hash_token(raw_token)
     # tenancy: global — token lookup é auth-level, workspace_id vem do convite
-    stmt = select(WorkspaceInvitation).where(
-        WorkspaceInvitation.token_hash == token_hash
-    )
+    stmt = select(WorkspaceInvitation).where(WorkspaceInvitation.token_hash == token_hash)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 

@@ -23,7 +23,6 @@ from backend.app.events.protocols import EventHandlerDeps
 from backend.app.events.registry import register_handler
 from backend.app.models.notification import Notification
 
-
 _SOURCE = "task_deadline"
 
 
@@ -62,9 +61,7 @@ def _message(task_title: str, deadline: date, bucket: str, today: date) -> str:
             f'"{task_title}" vence em {days} '
             f"dia{'s' if days != 1 else ''} ({deadline.isoformat()})."
         )
-    return (
-        f'"{task_title}" vence em {days} dias ({deadline.isoformat()}).'
-    )
+    return f'"{task_title}" vence em {days} dias ({deadline.isoformat()}).'
 
 
 async def _maybe_create_notification(

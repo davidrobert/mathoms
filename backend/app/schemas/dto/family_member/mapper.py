@@ -88,9 +88,7 @@ def member_to_response(
     """
     cpf_plain = vault.decrypt(member.cpf_encrypted) if member.cpf_encrypted else None
     accounts = (
-        [BankAccountResponse.model_validate(a) for a in member.accounts]
-        if member.accounts
-        else []
+        [BankAccountResponse.model_validate(a) for a in member.accounts] if member.accounts else []
     )
     return FamilyMemberResponse(
         id=member.id,

@@ -86,12 +86,9 @@ class BaselineNormalizer:
         if "membros" not in data and "membros_familia" in data:
             raw_list = data["membros_familia"]
             data["membros"] = [
-                m.get("nome", m) if isinstance(m, dict) else m
-                for m in (raw_list or [])
+                m.get("nome", m) if isinstance(m, dict) else m for m in (raw_list or [])
             ]
-            fixes.append(
-                "membros ← membros_familia (names only, not for _resolve_members)"
-            )
+            fixes.append("membros ← membros_familia (names only, not for _resolve_members)")
 
         # 4. patrimonio_por_ano ← resumo_patrimonial
         if "patrimonio_por_ano" not in data and "resumo_patrimonial" in data:
@@ -107,15 +104,10 @@ class BaselineNormalizer:
                     }
             if pat_ano:
                 data["patrimonio_por_ano"] = pat_ano
-                fixes.append(
-                    f"patrimonio_por_ano ← resumo_patrimonial ({len(pat_ano)} anos)"
-                )
+                fixes.append(f"patrimonio_por_ano ← resumo_patrimonial ({len(pat_ano)} anos)")
 
         # 5. imoveis_consolidados ← bens_imoveis_consolidados (+ enriquecimento)
-        if (
-            "imoveis_consolidados" not in data
-            and "bens_imoveis_consolidados" in data
-        ):
+        if "imoveis_consolidados" not in data and "bens_imoveis_consolidados" in data:
             imoveis = list(data["bens_imoveis_consolidados"] or [])
             for im in imoveis:
                 if not isinstance(im, dict):
@@ -130,11 +122,7 @@ class BaselineNormalizer:
                     im["descricao"] = desc
                 if "proprietario" not in im and "proprietarios" in im:
                     props = im["proprietarios"]
-                    im["proprietario"] = (
-                        ", ".join(props)
-                        if isinstance(props, list)
-                        else str(props)
-                    )
+                    im["proprietario"] = ", ".join(props) if isinstance(props, list) else str(props)
             data["imoveis_consolidados"] = imoveis
             fixes.append(
                 f"imoveis_consolidados ← bens_imoveis_consolidados ({len(imoveis)} imóveis, descricao enriched)"
@@ -156,12 +144,14 @@ class BaselineNormalizer:
                     for cat_name, cat_value in categories.items():
                         if cat_name in ("total",):
                             continue
-                        inv_list.append({
-                            "descricao": str(cat_name).replace("_", " ").title(),
-                            "tipo": cat_name,
-                            "proprietario": prop,
-                            "valores_31_12": {year: cat_value},
-                        })
+                        inv_list.append(
+                            {
+                                "descricao": str(cat_name).replace("_", " ").title(),
+                                "tipo": cat_name,
+                                "proprietario": prop,
+                                "valores_31_12": {year: cat_value},
+                            }
+                        )
                 data["investimentos_consolidados"] = inv_list
                 fixes.append(
                     f"investimentos_consolidados ← investimentos_financeiros_consolidados (dict→list, {len(inv_list)} entries)"

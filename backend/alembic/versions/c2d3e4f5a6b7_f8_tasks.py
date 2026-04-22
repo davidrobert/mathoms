@@ -14,13 +14,13 @@ Cria 3 tabelas:
 Migração one-shot do `config/tarefas.md` (43 tarefas + 2 concluídas)
 roda separadamente via `backend/app/scripts/seed_tasks_ferreira_campos.py`.
 """
+
 from __future__ import annotations
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "c2d3e4f5a6b7"
 down_revision: Union[str, None] = "b1c2d3e4f5a6"
@@ -165,9 +165,7 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
     )
-    op.create_index(
-        "ix_suggestions_workspace_id", "task_suggestions", ["workspace_id"]
-    )
+    op.create_index("ix_suggestions_workspace_id", "task_suggestions", ["workspace_id"])
     op.create_index(
         "ix_suggestions_ws_status",
         "task_suggestions",
@@ -207,9 +205,7 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
     )
-    op.create_index(
-        "ix_task_attachments_task_id", "task_attachments", ["task_id"]
-    )
+    op.create_index("ix_task_attachments_task_id", "task_attachments", ["task_id"])
     op.create_index(
         "ix_task_attachments_workspace_id",
         "task_attachments",

@@ -11,7 +11,9 @@ import pytest
 from tests.pipeline_golden_asserts import assert_qa_log_md
 
 _REPO = Path(__file__).resolve().parents[1]
-_E3_FIXTURE = _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-3_reconciled.json"
+_E3_FIXTURE = (
+    _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-3_reconciled.json"
+)
 
 _GOALS_MIN = {
     "independencia_financeira": {
@@ -81,9 +83,15 @@ def e6_tenant_minimal(tmp_path: Path) -> Path:
 
 def test_e6_execution_produces_html(e6_tenant_minimal: Path):
     """Roda E4, E5 e `render_report` isoladamente; restaura globals."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT, _init_config as e4_init, main as e4_main
-    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT, _init_config as e5_init, main as e5_main
-    from scripts.e6_render import _DEFAULT_BASE_DIR as E6_DEFAULT, _init_config as e6_init, render_report
+    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT
+    from scripts.e4_categorize import _init_config as e4_init
+    from scripts.e4_categorize import main as e4_main
+    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT
+    from scripts.e5_analyze import _init_config as e5_init
+    from scripts.e5_analyze import main as e5_main
+    from scripts.e6_render import _DEFAULT_BASE_DIR as E6_DEFAULT
+    from scripts.e6_render import _init_config as e6_init
+    from scripts.e6_render import render_report
     from scripts.pipeline_common import _init_config as pc_init
 
     try:

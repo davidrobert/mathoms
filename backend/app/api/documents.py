@@ -56,9 +56,7 @@ def _get_document_repo(
 
 async def _get_vault_passwords(ws_id: str, db: AsyncSession) -> list[str]:
     """Decrypt all vault passwords for a workspace."""
-    result = await db.execute(
-        select(PasswordVault).where(PasswordVault.workspace_id == ws_id)
-    )
+    result = await db.execute(select(PasswordVault).where(PasswordVault.workspace_id == ws_id))
     entries = result.scalars().all()
     if not entries:
         return []
@@ -167,7 +165,7 @@ async def upload_documents(
             await savepoint.rollback()
             # Best-effort cleanup of orphaned file on disk
             try:
-                if 'stored_path' in locals() and stored_path and Path(stored_path).exists():
+                if "stored_path" in locals() and stored_path and Path(stored_path).exists():
                     Path(stored_path).unlink(missing_ok=True)
             except OSError:
                 pass
@@ -201,19 +199,13 @@ async def upload_documents(
             # a weakly-confident classification. Transient errors don't
             # force review because retry-unlock will naturally retry.
             meta = result.get("classification_meta") or {}
-            if (meta.get("llm_error_kind") == "permanent"
-                    and doc.status != DocumentStatus.error):
+            if meta.get("llm_error_kind") == "permanent" and doc.status != DocumentStatus.error:
                 doc.needs_review = True
 
             # Fuzzy dedupe: if another doc in this workspace has the same
             # (doc_type, bank_code, period) but a different content_hash, flag
             # this one as a possible duplicate. We don't block — user decides.
-            if (
-                doc.doc_type
-                and doc.doc_type != DocumentType.other
-                and doc.bank_code
-                and doc.period
-            ):
+            if doc.doc_type and doc.doc_type != DocumentType.other and doc.bank_code and doc.period:
                 existing_id = await repo.find_fuzzy_duplicate_id(
                     workspace.id,
                     doc_type=doc.doc_type,
@@ -538,7 +530,9 @@ async def get_document_file(
 
     content_type = doc.content_type or "application/octet-stream"
     # PDFs e imagens renderizam inline no browser; demais formatos são baixados.
-    disposition = "inline" if ("pdf" in content_type or content_type.startswith("image/")) else "attachment"
+    disposition = (
+        "inline" if ("pdf" in content_type or content_type.startswith("image/")) else "attachment"
+    )
     safe_name = doc.original_name.replace('"', "'")
 
     return FileResponse(
@@ -607,7 +601,9 @@ async def get_document_extract_json(
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Erro ao ler extrato: {exc}") from exc
 
-    return DocumentExtractJsonResponse(filename=target.name, data=data, all_candidates=all_candidates)
+    return DocumentExtractJsonResponse(
+        filename=target.name, data=data, all_candidates=all_candidates
+    )
 
 
 @router.post(
@@ -635,20 +631,23 @@ async def reclassify_documents(
     """
     import asyncio
     from functools import partial
+
+    from backend.app.services.canonical_routing import rename_to_canonical
     from backend.app.services.classification_telemetry import emit_classification_outcome
     from backend.app.services.document_classification import (
-        classify_document,
         classification_can_route_to_data,
+        classify_document,
     )
     from backend.app.services.document_processor import (
         _detect_json_type,
         resolve_classification_base,
     )
-    from backend.app.services.canonical_routing import rename_to_canonical
 
     tenant_root = _storage.ensure_tenant_dirs(workspace.id)
     ensure_tenant_pipeline_config(workspace.id, tenant_root)
-    classification_base = resolve_classification_base(settings.PIPELINE_ROOT / "config", tenant_root)
+    classification_base = resolve_classification_base(
+        settings.PIPELINE_ROOT / "config", tenant_root
+    )
 
     docs = await repo.list(workspace.id)
 
@@ -766,4 +765,6 @@ async def reclassify_documents(
     )
 
     await db.commit()
-    return DocumentReclassifyResponse(total=total, updated=n_updated, skipped=n_skipped, errors=n_errors)
+    return DocumentReclassifyResponse(
+        total=total, updated=n_updated, skipped=n_skipped, errors=n_errors
+    )

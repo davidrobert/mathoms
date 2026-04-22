@@ -55,7 +55,6 @@ from pipeline.domain.services.statement_preprocessor import (
     StatementPeriodNormalizer,
 )
 
-
 # =============================================================================
 # Result container
 # =============================================================================
@@ -219,9 +218,7 @@ class E3ReconcilerAdapter:
                     continue
 
                 # Normaliza/sintetiza periodo (faturas, strings YYYYMM, etc.)
-                norm_result = self._period_normalizer.normalize(
-                    data, source_name=key
-                )
+                norm_result = self._period_normalizer.normalize(data, source_name=key)
                 outcome.period_warnings.extend(norm_result.warnings)
                 if norm_result.skip:
                     outcome.skipped += 1
@@ -229,9 +226,7 @@ class E3ReconcilerAdapter:
                 normalized = norm_result.data
 
                 # Drop anachronic transactions antes da conversão.
-                anach_result = self._anachronic_dropper.filter(
-                    normalized, source_name=key
-                )
+                anach_result = self._anachronic_dropper.filter(normalized, source_name=key)
                 if anach_result.warning is not None:
                     outcome.anachronic_warnings.append(anach_result.warning)
                 normalized = anach_result.data
@@ -256,9 +251,7 @@ class E3ReconcilerAdapter:
 
     # -- Baseline --
 
-    def load_baseline_accounts(
-        self, store: ArtifactStore
-    ) -> list[BaselineAccountSaldo]:
+    def load_baseline_accounts(self, store: ArtifactStore) -> list[BaselineAccountSaldo]:
         """Lê o baseline (E1.5c) do store e extrai contas para validação.
 
         Retorna lista vazia se baseline não está no store.
@@ -391,9 +384,7 @@ class E3ReconcilerAdapter:
             baseline_accounts = self.load_baseline_accounts(store)
             if baseline_accounts:
                 baseline_warnings = tuple(
-                    self._baseline_validator.validate(
-                        merged_statements, baseline_accounts
-                    )
+                    self._baseline_validator.validate(merged_statements, baseline_accounts)
                 )
 
         return ReconciliationStoreResult(

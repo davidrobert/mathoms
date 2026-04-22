@@ -52,9 +52,7 @@ class FakeDocumentRepository:
         docs.sort(key=lambda d: d.uploaded_at, reverse=True)
         return docs
 
-    async def get_by_id(
-        self, workspace_id: str, document_id: str
-    ) -> Optional[Document]:
+    async def get_by_id(self, workspace_id: str, document_id: str) -> Optional[Document]:
         d = self._docs.get(document_id)
         if d is None or d.workspace_id != workspace_id:
             return None
@@ -74,24 +72,18 @@ class FakeDocumentRepository:
                 continue
             if d.id == exclude_id:
                 continue
-            if (
-                d.doc_type == doc_type
-                and d.bank_code == bank_code
-                and d.period == period
-            ):
+            if d.doc_type == doc_type and d.bank_code == bank_code and d.period == period:
                 return d.id
         return None
 
     async def list_non_error(self, workspace_id: str) -> list[Document]:
         return [
-            d for d in self._docs.values()
-            if d.workspace_id == workspace_id
-            and d.status != DocumentStatus.error
+            d
+            for d in self._docs.values()
+            if d.workspace_id == workspace_id and d.status != DocumentStatus.error
         ]
 
-    async def add(
-        self, document: Document, *, flush: bool = True
-    ) -> Document:
+    async def add(self, document: Document, *, flush: bool = True) -> Document:
         self._ensure_defaults(document)
         self._docs[document.id] = document
         return document
@@ -110,9 +102,7 @@ class FakeClassificationService:
         self._result = result
         self.calls: list[tuple[Path, Path]] = []
 
-    def classify(
-        self, file_path: Path, classification_base: Path
-    ) -> dict[str, Any]:
+    def classify(self, file_path: Path, classification_base: Path) -> dict[str, Any]:
         self.calls.append((file_path, classification_base))
         return dict(self._result)
 

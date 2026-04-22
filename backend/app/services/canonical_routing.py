@@ -98,6 +98,8 @@ def _compute_canonical_dest_path(
     """
     from scripts.e0_route import (
         _init_config as route_init_config,
+    )
+    from scripts.e0_route import (
         build_final_name,
         dest_dir_for_group,
         file_hash,
@@ -162,10 +164,15 @@ def rename_to_canonical(
     from scripts.e0_route import resolve_collision
 
     computed = _compute_canonical_dest_path(
-        current_path, tenant_root, project_root,
-        dest_group=dest_group, e0_doc_type=e0_doc_type,
-        institution=institution, period=period,
-        classification_meta=classification_meta, content_hash=content_hash,
+        current_path,
+        tenant_root,
+        project_root,
+        dest_group=dest_group,
+        e0_doc_type=e0_doc_type,
+        institution=institution,
+        period=period,
+        classification_meta=classification_meta,
+        content_hash=content_hash,
     )
     if computed is None:
         return None
@@ -213,10 +220,15 @@ def route_inbox_to_canonical_data(
     from scripts.e0_route import resolve_collision
 
     computed = _compute_canonical_dest_path(
-        inbox_path, tenant_root, project_root,
-        dest_group=dest_group, e0_doc_type=e0_doc_type,
-        institution=institution, period=period,
-        classification_meta=classification_meta, content_hash=content_hash,
+        inbox_path,
+        tenant_root,
+        project_root,
+        dest_group=dest_group,
+        e0_doc_type=e0_doc_type,
+        institution=institution,
+        period=period,
+        classification_meta=classification_meta,
+        content_hash=content_hash,
     )
     if computed is None:
         return None

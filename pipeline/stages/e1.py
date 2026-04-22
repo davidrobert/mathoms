@@ -69,10 +69,10 @@ def run(ctx: WorkspaceContext) -> dict:
     Reads personal documents, sends to LLM, saves members JSON.
     Requires llm_config.json in ctx.config_dir.
     """
-    from pipeline.llm.litellm_client import LLMService, LLMConfig
-    from pipeline.llm.text_extractor import DocumentTextExtractor
-    from pipeline.llm.schemas.e1_members import MembersExtractOutput
+    from pipeline.llm.litellm_client import LLMConfig, LLMService
     from pipeline.llm.prompts.e1_members import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+    from pipeline.llm.schemas.e1_members import MembersExtractOutput
+    from pipeline.llm.text_extractor import DocumentTextExtractor
 
     llm_config_data = ctx.load_config("llm_config.json")
     if not llm_config_data or not llm_config_data.get("api_key"):
@@ -118,6 +118,7 @@ def run(ctx: WorkspaceContext) -> dict:
     output: MembersExtractOutput = result.output
 
     from pipeline.llm.validators import validate_e1_output
+
     validation = validate_e1_output(output)
     if not validation.valid:
         logger.warning("E1: validation errors: %s", validation.errors)

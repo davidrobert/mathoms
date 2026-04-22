@@ -26,7 +26,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.feature_flag import FeatureFlag
 
-
 # Defaults de produto. Flags definidas aqui têm efeito imediato no CI
 # e em qualquer workspace que ainda não tenha a row persistida.
 DEFAULTS: dict[str, bool] = {
@@ -44,9 +43,7 @@ DEFAULTS: dict[str, bool] = {
 }
 
 
-async def _get_flags_row(
-    workspace_id: str, *, db: AsyncSession
-) -> FeatureFlag | None:
+async def _get_flags_row(workspace_id: str, *, db: AsyncSession) -> FeatureFlag | None:
     stmt = select(FeatureFlag).where(
         FeatureFlag.workspace_id == workspace_id,
     )

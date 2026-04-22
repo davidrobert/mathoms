@@ -20,8 +20,8 @@ from backend.app.models.pipeline_run import (
     PipelineStageLog,
     PipelineStageStatus,
 )
-from backend.app.models.workspace import Workspace
 from backend.app.models.user import User
+from backend.app.models.workspace import Workspace
 from backend.tests.fakes.fake_sync_session import (
     FakeSyncDbSession,
     FakeSyncSessionFactory,
@@ -43,17 +43,15 @@ class FakePipelineRunRow:
 async def _build_file_backed_engines(db_file):
     """Async + sync engines compartilhando o mesmo arquivo SQLite (+ metadata)."""
     from sqlalchemy import create_engine
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
     from sqlalchemy.orm import sessionmaker
 
-    from backend.app.core.database import Base
     import backend.app.models  # noqa: F401 — register all models on Base
+    from backend.app.core.database import Base
 
     async_engine = create_async_engine(f"sqlite+aiosqlite:///{db_file}")
     sync_engine = create_engine(f"sqlite:///{db_file}")
-    async_session = async_sessionmaker(
-        async_engine, class_=AsyncSession, expire_on_commit=False
-    )
+    async_session = async_sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
     sync_session = sessionmaker(bind=sync_engine, expire_on_commit=False)
 
     async with async_engine.begin() as conn:
@@ -89,8 +87,12 @@ async def _seed_pending_run(async_session_factory) -> dict:
         await session.commit()
 
         return {
-            "user_id": user.id, "workspace_id": ws.id, "run_id": run.id,
-            "user": user, "workspace": ws, "run": run,
+            "user_id": user.id,
+            "workspace_id": ws.id,
+            "run_id": run.id,
+            "user": user,
+            "workspace": ws,
+            "run": run,
         }
 
 
@@ -107,8 +109,8 @@ async def workspace_with_run(tmp_path, monkeypatch, db: AsyncSession):
     import backend.app.tasks.pipeline_task as task_module
 
     db_file = tmp_path / "pipeline_task.db"
-    async_engine, sync_engine, async_session, sync_session = (
-        await _build_file_backed_engines(db_file)
+    async_engine, sync_engine, async_session, sync_session = await _build_file_backed_engines(
+        db_file
     )
     monkeypatch.setattr(task_module, "SyncSessionLocal", sync_session)
 
@@ -130,6 +132,7 @@ class TestPipelineRunModel:
         run_id = workspace_with_run["run_id"]
         Session = workspace_with_run["session"]
         from sqlalchemy import select
+
         async with Session() as db:
             result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
             run = result.scalar_one()
@@ -154,6 +157,7 @@ class TestCancellationFlag:
         Session = workspace_with_run["session"]
 
         from sqlalchemy import select
+
         async with Session() as db:
             result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
             run = result.scalar_one()
@@ -161,6 +165,7 @@ class TestCancellationFlag:
             await db.commit()
 
         from backend.app.tasks.pipeline_task import _is_cancelled
+
         assert _is_cancelled(run_id) is True
 
     @pytest.mark.asyncio
@@ -170,6 +175,7 @@ class TestCancellationFlag:
         Session = workspace_with_run["session"]
 
         from sqlalchemy import select
+
         async with Session() as db:
             result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
             run = result.scalar_one()
@@ -177,6 +183,7 @@ class TestCancellationFlag:
             await db.commit()
 
         from backend.app.tasks.pipeline_task import _is_cancelled
+
         assert _is_cancelled(run_id) is False
 
 
@@ -185,6 +192,7 @@ class TestEventSchemas:
 
     def test_pipeline_event_serialization(self):
         from backend.app.schemas.events import PipelineEvent
+
         event = PipelineEvent(
             event="stage_completed",
             run_id="run-1",
@@ -200,6 +208,7 @@ class TestEventSchemas:
 
     def test_stage_event(self):
         from backend.app.schemas.events import StageEvent
+
         event = StageEvent(
             event="stage_started",
             run_id="run-1",
@@ -211,6 +220,7 @@ class TestEventSchemas:
 
     def test_run_event(self):
         from backend.app.schemas.events import RunEvent
+
         event = RunEvent(
             event="run_completed",
             run_id="run-1",
@@ -222,6 +232,7 @@ class TestEventSchemas:
 
     def test_error_event(self):
         from backend.app.schemas.events import ErrorEvent
+
         event = ErrorEvent(
             event="stage_failed",
             run_id="run-1",
@@ -237,17 +248,22 @@ class TestPipelineService:
 
     def test_detect_tier_free(self):
         from backend.app.services.pipeline_service import detect_tier
+
         factory = FakeSyncSessionFactory(FakeSyncDbSession(query_first=None))
         with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
             assert detect_tier("ws-1") == "free"
 
     def test_detect_tier_premium(self):
         from backend.app.services.pipeline_service import detect_tier
+
         factory = FakeSyncSessionFactory(
             FakeSyncDbSession(query_first=FakeLLMConfigRow(api_key_encrypted="encrypted-key"))
         )
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory), patch(
-            "backend.app.services.pipeline_service._vault.decrypt", return_value="sk-real-key"
+        with (
+            patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
+            patch(
+                "backend.app.services.pipeline_service._vault.decrypt", return_value="sk-real-key"
+            ),
         ):
             assert detect_tier("ws-1") == "premium"
 
@@ -256,9 +272,12 @@ class TestPipelineService:
         run_row = FakePipelineRunRow(status=PipelineRunStatus.running, celery_task_id=None)
         factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=run_row))
 
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory), \
-             patch("backend.app.services.pipeline_service.publish_run_cancelled") as mock_publish:
+        with (
+            patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
+            patch("backend.app.services.pipeline_service.publish_run_cancelled") as mock_publish,
+        ):
             from backend.app.services.pipeline_service import cancel_pipeline_run
+
             result = cancel_pipeline_run("run-1")
 
             assert result is True
@@ -268,6 +287,7 @@ class TestPipelineService:
         factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=None))
         with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
             from backend.app.services.pipeline_service import cancel_pipeline_run
+
             assert cancel_pipeline_run("nonexistent") is False
 
     def test_is_run_active_running(self):
@@ -275,6 +295,7 @@ class TestPipelineService:
         factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=run_row))
         with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
             from backend.app.services.pipeline_service import is_run_active
+
             assert is_run_active("run-1") is True
 
     def test_is_run_active_completed(self):
@@ -282,4 +303,5 @@ class TestPipelineService:
         factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=run_row))
         with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
             from backend.app.services.pipeline_service import is_run_active
+
             assert is_run_active("run-1") is False

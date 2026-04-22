@@ -33,7 +33,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
 
-
 # =============================================================================
 # Reasons (enum-like — mantém warnings type-safe)
 # =============================================================================
@@ -88,9 +87,7 @@ class PeriodDerivationWarning:
         if self.source:
             parts.append(f"src={self.source}")
         if self.derived_inicio or self.derived_fim:
-            parts.append(
-                f"derived={self.derived_inicio or '?'}..{self.derived_fim or '?'}"
-            )
+            parts.append(f"derived={self.derived_inicio or '?'}..{self.derived_fim or '?'}")
         if self.raw_value:
             parts.append(f"raw={self.raw_value!r}")
         return " ".join(parts)
@@ -310,9 +307,7 @@ class StatementPeriodNormalizer:
         warnings: list[PeriodDerivationWarning] = []
         venc_raw = (data.get("data_vencimento") or "").strip()
         txns = data.get("transacoes") or []
-        tx_dates = sorted(
-            (str(t.get("data") or "")[:10] for t in txns if t.get("data"))
-        )
+        tx_dates = sorted((str(t.get("data") or "")[:10] for t in txns if t.get("data")))
 
         # Caso 3a: sem data_vencimento.
         if not venc_raw:
@@ -419,11 +414,7 @@ class AnachronicTransactionDropper:
         out = copy.deepcopy(data)
         # Aceita formato dict (`periodo: {inicio, fim}`) usado pelo legado
         # ``e3_reconcile`` E formato plano (`periodo_inicio`) do schema E2.
-        periodo_inicio = (
-            (out.get("periodo") or {}).get("inicio")
-            or out.get("periodo_inicio")
-            or ""
-        )
+        periodo_inicio = (out.get("periodo") or {}).get("inicio") or out.get("periodo_inicio") or ""
         periodo_inicio = str(periodo_inicio)[:10]
         if not periodo_inicio:
             return AnachronicFilterResult(out, warning=None)

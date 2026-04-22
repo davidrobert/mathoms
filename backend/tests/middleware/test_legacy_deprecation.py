@@ -26,9 +26,7 @@ async def test_legacy_prefix_emits_deprecation_headers(client: AsyncClient):
     resp = await client.get(f"{settings.LEGACY_API_PREFIX}/auth/me")
     assert resp.headers.get("Deprecation") == "true"
     assert resp.headers.get("Sunset") == settings.LEGACY_SUNSET_DATE
-    assert resp.headers.get("Link") == (
-        f'<{settings.API_PREFIX}>; rel="successor-version"'
-    )
+    assert resp.headers.get("Link") == (f'<{settings.API_PREFIX}>; rel="successor-version"')
 
 
 @pytest.mark.asyncio

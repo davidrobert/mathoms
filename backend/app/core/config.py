@@ -1,6 +1,7 @@
 """Application settings — loaded from environment variables."""
 
 from pathlib import Path
+
 from pydantic_settings import BaseSettings
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent

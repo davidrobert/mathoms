@@ -56,9 +56,9 @@ class DocumentTextExtractor:
             elif suffix == ".csv":
                 return self._extract_csv(path)
             elif suffix == ".json":
-                return path.read_text(encoding="utf-8")[:self.max_chars]
+                return path.read_text(encoding="utf-8")[: self.max_chars]
             elif suffix in (".txt", ".md"):
-                return path.read_text(encoding="utf-8")[:self.max_chars]
+                return path.read_text(encoding="utf-8")[: self.max_chars]
             elif suffix in IMAGE_EXTENSIONS:
                 logger.debug("Image file %s — use extract_image_bytes() instead", path.name)
                 return ""
@@ -144,7 +144,7 @@ class DocumentTextExtractor:
         """Extract text from CSV file."""
         text = path.read_text(encoding="utf-8", errors="replace")
         if len(text) > self.max_chars:
-            text = text[:self.max_chars] + "\n[... truncated ...]"
+            text = text[: self.max_chars] + "\n[... truncated ...]"
         return text
 
     @staticmethod

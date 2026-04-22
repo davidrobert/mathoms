@@ -7,8 +7,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from pipeline.context import WorkspaceContext
 from pipeline import config_loader
+from pipeline.context import WorkspaceContext
 
 
 class TestWorkspaceContextDefault:
@@ -123,9 +123,7 @@ class TestConfigLoader:
 
     def test_required_raises(self, tmp_path):
         try:
-            config_loader.load_config(
-                "nope.json", config_dir=tmp_path, required=True
-            )
+            config_loader.load_config("nope.json", config_dir=tmp_path, required=True)
             assert False, "Should have raised"
         except FileNotFoundError:
             pass

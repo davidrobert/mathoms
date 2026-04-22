@@ -95,7 +95,10 @@ class TestBankStatementAggregates:
         assert rebuilt.opening_balance == stmt.opening_balance
         assert rebuilt.closing_balance == stmt.closing_balance
         assert [t.description for t in rebuilt.transactions] == [
-            "Salário", "Mercado", "Restaurante", "Devolução"
+            "Salário",
+            "Mercado",
+            "Restaurante",
+            "Devolução",
         ]
 
 
@@ -115,7 +118,9 @@ class TestInvestmentStatement:
     def test_round_trip_dict(self):
         inv = Investment("FII", "xpi", "KNRI11", Money.brl("1500"))
         stmt = InvestmentStatement(
-            institution="xpi", member_key="elena", currency="BRL",
+            institution="xpi",
+            member_key="elena",
+            currency="BRL",
             investments=[inv],
         )
         rebuilt = InvestmentStatement.from_dict(stmt.to_dict())

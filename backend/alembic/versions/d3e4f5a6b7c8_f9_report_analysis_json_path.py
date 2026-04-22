@@ -12,11 +12,11 @@ NOTA: Originalmente esta migration tinha revision="c2d3e4f5a6b7" colidindo
 com c2d3e4f5a6b7_f8_tasks.py (mesmo ID gerado por engano). Renumerada para
 d3e4f5a6b7c8 e re-pendurada após c2d3e4f5a6b7 (F8 tasks).
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "d3e4f5a6b7c8"
 down_revision: Union[str, None] = "e5f6a7b8c9d0"

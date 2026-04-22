@@ -44,6 +44,4 @@ def enqueue_async(event: Event) -> None:
     Chamar agora levanta ``NotImplementedError`` para forçar decisão
     explícita antes de ativar o caminho async.
     """
-    raise NotImplementedError(
-        "enqueue_async pendente de slice dedicado (ADR-115 §Escopo futuro)"
-    )
+    raise NotImplementedError("enqueue_async pendente de slice dedicado (ADR-115 §Escopo futuro)")

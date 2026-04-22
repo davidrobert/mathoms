@@ -30,9 +30,7 @@ class LegacyApiDeprecationMiddleware(BaseHTTPMiddleware):
         if _is_legacy_path(request.url.path):
             response.headers["Deprecation"] = "true"
             response.headers["Sunset"] = settings.LEGACY_SUNSET_DATE
-            response.headers["Link"] = (
-                f'<{settings.API_PREFIX}>; rel="successor-version"'
-            )
+            response.headers["Link"] = f'<{settings.API_PREFIX}>; rel="successor-version"'
         return response
 
 

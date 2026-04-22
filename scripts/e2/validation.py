@@ -16,10 +16,12 @@ try:
 except ImportError:
     pdfplumber = None
 
-from scripts.e2.common import MIN_XLS_BYTES, MIN_CSV_BYTES
+from scripts.e2.common import MIN_CSV_BYTES, MIN_XLS_BYTES
 
 
-def validate_extrato_result(result: Dict[str, Any], file_path: Path, is_csv: bool = False) -> List[str]:
+def validate_extrato_result(
+    result: Dict[str, Any], file_path: Path, is_csv: bool = False
+) -> List[str]:
     """Validate extraction result for extratos. Returns list of warnings/errors."""
     issues = []
 
@@ -43,8 +45,7 @@ def validate_extrato_result(result: Dict[str, Any], file_path: Path, is_csv: boo
         if n_tx == 0 and total_chars > size_threshold:
             notas_lower = [n.lower() for n in result.get("notas", [])]
             is_empty_period = any(
-                "sem lançamentos" in n or "sem movimentação" in n
-                for n in notas_lower
+                "sem lançamentos" in n or "sem movimentação" in n for n in notas_lower
             )
             if not is_empty_period:
                 issues.append(
@@ -66,10 +67,7 @@ def validate_extrato_result(result: Dict[str, Any], file_path: Path, is_csv: boo
 
         if n_tx == 0 and total_chars > 500 and n_pages > 0:
             notas_lower = [n.lower() for n in result.get("notas", [])]
-            is_dormant = any(
-                "sem movimentação" in n or "sem lançamentos" in n
-                for n in notas_lower
-            )
+            is_dormant = any("sem movimentação" in n or "sem lançamentos" in n for n in notas_lower)
             if not is_dormant:
                 issues.append(
                     f"ERROR: 0 transações extraídas de PDF com {total_chars} chars / "
@@ -106,7 +104,9 @@ def validate_fatura_result(result: Dict[str, Any], filename: str) -> Dict[str, A
 
     if saldo == 0 and txns == 0 and itens == 0 and not venc:
         result["parse_quality"] = "empty_result"
-        issues.append(f"ERROR: fatura vazia — saldo=0, transacoes=0, sem data_vencimento ({filename})")
+        issues.append(
+            f"ERROR: fatura vazia — saldo=0, transacoes=0, sem data_vencimento ({filename})"
+        )
     elif saldo > 0 and txns == 0 and itens == 0:
         result["parse_quality"] = "missing_transactions"
         issues.append(

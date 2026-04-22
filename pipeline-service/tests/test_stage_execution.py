@@ -29,22 +29,25 @@ def test_stage_executor_delegates_to_orchestrator(client, tmp_path, monkeypatch)
 
     def fake_run_stage(ctx, stage):
         from pipeline.orchestrator import StageResult
+
         captured["stage"] = stage
         captured["root"] = ctx.root
         captured["run_id"] = ctx.pipeline_run_id
         captured["incremental"] = ctx.incremental
         return StageResult(
-            stage=stage, success=True, duration_ms=42.0,
+            stage=stage,
+            success=True,
+            duration_ms=42.0,
             detail={"processed": 3},
         )
 
     import pipeline.orchestrator as orch
+
     monkeypatch.setattr(orch, "_run_stage", fake_run_stage)
     # Router imports the symbol lazily; patch the already-imported copy too.
     import app.services.stage_executor as se_mod
-    monkeypatch.setattr(
-        "pipeline.orchestrator._run_stage", fake_run_stage, raising=True
-    )
+
+    monkeypatch.setattr("pipeline.orchestrator._run_stage", fake_run_stage, raising=True)
 
     r = client.post(
         "/api/v1/pipeline/stages/E3/execute",
@@ -75,6 +78,7 @@ def test_stage_executor_delegates_to_orchestrator(client, tmp_path, monkeypatch)
 def test_stage_executor_propagates_failure(client, tmp_path, monkeypatch):
     def failing(ctx, stage):
         from pipeline.orchestrator import StageResult
+
         return StageResult(stage=stage, success=False, error="boom")
 
     monkeypatch.setattr("pipeline.orchestrator._run_stage", failing, raising=True)

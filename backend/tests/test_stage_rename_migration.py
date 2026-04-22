@@ -29,7 +29,6 @@ from backend.app.models import (
     Workspace,
 )
 
-
 MIGRATION_PATH = (
     Path(__file__).resolve().parents[1]
     / "alembic"
@@ -39,9 +38,7 @@ MIGRATION_PATH = (
 
 
 def _load_migration():
-    spec = importlib.util.spec_from_file_location(
-        "q5r6s7t8u9v0_rename", MIGRATION_PATH
-    )
+    spec = importlib.util.spec_from_file_location("q5r6s7t8u9v0_rename", MIGRATION_PATH)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)  # type: ignore[union-attr]
     return mod
@@ -68,14 +65,18 @@ async def test_upgrade_renames_all_known_stages(db: AsyncSession):
     for i, old in enumerate(mod.STAGE_RENAME):
         db.add(
             PipelineArtifact(
-                workspace_id=ws_id, pipeline_run_id=run_id,
-                stage=old, artifact_key=f"k{i}", content_json={"i": i},
+                workspace_id=ws_id,
+                pipeline_run_id=run_id,
+                stage=old,
+                artifact_key=f"k{i}",
+                content_json={"i": i},
             )
         )
         if old != "E5-revised":
             db.add(
                 PipelineStageLog(
-                    pipeline_run_id=run_id, stage=old,
+                    pipeline_run_id=run_id,
+                    stage=old,
                     status=PipelineStageStatus.completed,
                 )
             )
@@ -89,16 +90,16 @@ async def test_upgrade_renames_all_known_stages(db: AsyncSession):
 
     for old, new in mod.STAGE_RENAME.items():
         rows_old = (
-            await db.execute(
-                select(PipelineArtifact).where(PipelineArtifact.stage == old)
-            )
-        ).scalars().all()
+            (await db.execute(select(PipelineArtifact).where(PipelineArtifact.stage == old)))
+            .scalars()
+            .all()
+        )
         assert rows_old == [], f"Sobrevivente '{old}'"
         rows_new = (
-            await db.execute(
-                select(PipelineArtifact).where(PipelineArtifact.stage == new)
-            )
-        ).scalars().all()
+            (await db.execute(select(PipelineArtifact).where(PipelineArtifact.stage == new)))
+            .scalars()
+            .all()
+        )
         assert len(rows_new) == 1
 
 
@@ -110,8 +111,11 @@ async def test_downgrade_restores_legacy_names(db: AsyncSession):
     for i, (old, new) in enumerate(mod.STAGE_RENAME.items()):
         db.add(
             PipelineArtifact(
-                workspace_id=ws_id, pipeline_run_id=run_id,
-                stage=new, artifact_key=f"k{i}", content_json={},
+                workspace_id=ws_id,
+                pipeline_run_id=run_id,
+                stage=new,
+                artifact_key=f"k{i}",
+                content_json={},
             )
         )
     await db.commit()
@@ -125,16 +129,16 @@ async def test_downgrade_restores_legacy_names(db: AsyncSession):
 
     for old, new in mod.STAGE_RENAME.items():
         rows_new = (
-            await db.execute(
-                select(PipelineArtifact).where(PipelineArtifact.stage == new)
-            )
-        ).scalars().all()
+            (await db.execute(select(PipelineArtifact).where(PipelineArtifact.stage == new)))
+            .scalars()
+            .all()
+        )
         assert rows_new == []
         rows_old = (
-            await db.execute(
-                select(PipelineArtifact).where(PipelineArtifact.stage == old)
-            )
-        ).scalars().all()
+            (await db.execute(select(PipelineArtifact).where(PipelineArtifact.stage == old)))
+            .scalars()
+            .all()
+        )
         assert len(rows_old) == 1
 
 
@@ -144,8 +148,11 @@ async def test_migration_is_idempotent(db: AsyncSession):
     ws_id, run_id = await _seed_ws_and_run(db, email="mig3@test.com")
     db.add(
         PipelineArtifact(
-            workspace_id=ws_id, pipeline_run_id=run_id,
-            stage="E3", artifact_key="k", content_json={},
+            workspace_id=ws_id,
+            pipeline_run_id=run_id,
+            stage="E3",
+            artifact_key="k",
+            content_json={},
         )
     )
     await db.commit()
@@ -182,8 +189,10 @@ async def test_migration_preserves_non_stage_columns(db: AsyncSession):
     ws_id, run_id = await _seed_ws_and_run(db, email="mig5@test.com")
     db.add(
         PipelineArtifact(
-            workspace_id=ws_id, pipeline_run_id=run_id,
-            stage="E5", artifact_key="analise",
+            workspace_id=ws_id,
+            pipeline_run_id=run_id,
+            stage="E5",
+            artifact_key="analise",
             content_json={"score": 82, "detail": [1, 2, 3]},
             schema_version="v1",
             byte_size=1234,

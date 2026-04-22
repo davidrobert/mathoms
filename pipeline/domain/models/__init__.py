@@ -4,16 +4,16 @@ from pipeline.domain.models.bank import (
     BankCanonicalizer,
     canonicalize_bank,
 )
-from pipeline.domain.models.transaction import (
-    CURRENCY_PRECISION,
-    Money,
-    Transaction,
-)
 from pipeline.domain.models.document import (
     BankStatement,
     BaselinePatrimonial,
     Investment,
     InvestmentStatement,
+)
+from pipeline.domain.models.transaction import (
+    CURRENCY_PRECISION,
+    Money,
+    Transaction,
 )
 
 __all__ = [

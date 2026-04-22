@@ -11,6 +11,7 @@ Exit 0 se todos os counts <= baseline. Se count < baseline, avisa
 Usado em CI para impedir regressão dos sweeps A6g.2/.4/.5 sem forçar
 sweep de todas as ~2200 ocorrências restantes agora.
 """
+
 from __future__ import annotations
 
 import argparse

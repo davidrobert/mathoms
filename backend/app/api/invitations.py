@@ -49,9 +49,7 @@ async def preview_invitation(token: str, db: AsyncSession = Depends(get_db)):
         )
 
     # tenancy: global — lookup do workspace a partir do invite
-    ws_row = await db.execute(
-        select(Workspace).where(Workspace.id == inv.workspace_id)
-    )
+    ws_row = await db.execute(select(Workspace).where(Workspace.id == inv.workspace_id))
     workspace = ws_row.scalar_one_or_none()
     if workspace is None:
         raise HTTPException(
@@ -96,9 +94,7 @@ async def accept_invitation_endpoint(
     """Exige login. O email do user logado precisa bater com o email
     convidado (case-insensitive)."""
     try:
-        member = await invitation_service.accept_invitation(
-            token, acceptor=user, db=db
-        )
+        member = await invitation_service.accept_invitation(token, acceptor=user, db=db)
     except InvitationError as exc:
         code_to_status = {
             "not_found": status.HTTP_404_NOT_FOUND,

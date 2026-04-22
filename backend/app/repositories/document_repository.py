@@ -81,9 +81,7 @@ class DocumentRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_id(
-        self, workspace_id: str, document_id: str
-    ) -> Optional[Document]:
+    async def get_by_id(self, workspace_id: str, document_id: str) -> Optional[Document]:
         """Retorna documento por id dentro do workspace (ou ``None``)."""
         result = await self._session.execute(
             select(Document).where(
@@ -93,9 +91,7 @@ class DocumentRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_by_content_hash(
-        self, workspace_id: str, content_hash: str
-    ) -> Optional[Document]:
+    async def get_by_content_hash(self, workspace_id: str, content_hash: str) -> Optional[Document]:
         """Retorna documento com o hash exato no workspace (ou ``None``).
 
         Usado para dedupe exato — o ``ux_documents_workspace_content_hash``

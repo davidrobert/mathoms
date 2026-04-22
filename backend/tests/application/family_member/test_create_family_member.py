@@ -25,9 +25,7 @@ async def test_create_allocates_slug_when_key_missing():
     repo = FakeFamilyMemberRepository()
     vault = FakeVault()
 
-    resp = await create_family_member(
-        _cmd(), workspace_id="ws-1", repo=repo, vault=vault
-    )
+    resp = await create_family_member(_cmd(), workspace_id="ws-1", repo=repo, vault=vault)
 
     assert resp.key == "david_roberto"
     assert resp.full_name == "David Roberto"
@@ -50,9 +48,7 @@ async def test_create_uses_explicit_key_when_provided():
 async def test_create_conflict_on_duplicate_explicit_key():
     repo = FakeFamilyMemberRepository()
     vault = FakeVault()
-    await create_family_member(
-        _cmd(key="david"), workspace_id="ws-1", repo=repo, vault=vault
-    )
+    await create_family_member(_cmd(key="david"), workspace_id="ws-1", repo=repo, vault=vault)
 
     with pytest.raises(ConflictError) as exc:
         await create_family_member(
@@ -68,12 +64,8 @@ async def test_create_conflict_on_duplicate_explicit_key():
 async def test_create_auto_suffixes_slug_on_collision():
     repo = FakeFamilyMemberRepository()
     vault = FakeVault()
-    await create_family_member(
-        _cmd(), workspace_id="ws-1", repo=repo, vault=vault
-    )
-    resp = await create_family_member(
-        _cmd(), workspace_id="ws-1", repo=repo, vault=vault
-    )
+    await create_family_member(_cmd(), workspace_id="ws-1", repo=repo, vault=vault)
+    resp = await create_family_member(_cmd(), workspace_id="ws-1", repo=repo, vault=vault)
 
     assert resp.key == "david_roberto_1"
 
@@ -118,9 +110,7 @@ async def test_create_places_birth_name_in_extra():
 async def test_create_isolates_by_workspace():
     repo = FakeFamilyMemberRepository()
     vault = FakeVault()
-    await create_family_member(
-        _cmd(key="david"), workspace_id="ws-1", repo=repo, vault=vault
-    )
+    await create_family_member(_cmd(key="david"), workspace_id="ws-1", repo=repo, vault=vault)
     resp = await create_family_member(
         _cmd(key="david"), workspace_id="ws-2", repo=repo, vault=vault
     )

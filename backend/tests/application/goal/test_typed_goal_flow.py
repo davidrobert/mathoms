@@ -103,9 +103,7 @@ async def test_get_active_typed_returns_persisted_goal():
         repo=repo,
     )
 
-    resp = await get_active_typed_goal(
-        "ws-1", "APORTE_MENSAL", repo=repo, created_by_name="Ana"
-    )
+    resp = await get_active_typed_goal("ws-1", "APORTE_MENSAL", repo=repo, created_by_name="Ana")
 
     assert resp.type == "APORTE_MENSAL"
     assert resp.created_by_name == "Ana"

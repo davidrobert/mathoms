@@ -45,8 +45,7 @@ async def create_family_member(
     if cmd.key:
         if await repo.key_exists(workspace_id, cmd.key):
             raise ConflictError(
-                f"Já existe um membro com o identificador interno '{cmd.key}' "
-                "neste workspace",
+                f"Já existe um membro com o identificador interno '{cmd.key}' " "neste workspace",
                 code="duplicate_key",
             )
         key = cmd.key

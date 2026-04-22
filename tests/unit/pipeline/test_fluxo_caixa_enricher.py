@@ -51,10 +51,12 @@ class TestConfig:
         assert "receita_fgts" in cfg.one_time_categories
 
     def test_from_categorization_overrides(self):
-        cfg = FluxoEnricherConfig.from_categorization({
-            "one_time_income_categories": ["custom"],
-            "one_time_income_keywords": ["CUSTOMKW"],
-        })
+        cfg = FluxoEnricherConfig.from_categorization(
+            {
+                "one_time_income_categories": ["custom"],
+                "one_time_income_keywords": ["CUSTOMKW"],
+            }
+        )
         assert cfg.one_time_categories == frozenset({"custom"})
         assert cfg.one_time_keywords == ("customkw",)
 
@@ -193,9 +195,7 @@ class TestChartDatasets:
 
 class TestJanela12m:
     def test_cap_em_12_meses(self):
-        meses = [f"2024-{m:02d}" for m in range(1, 13)] + [
-            f"2025-{m:02d}" for m in range(1, 13)
-        ]
+        meses = [f"2024-{m:02d}" for m in range(1, 13)] + [f"2025-{m:02d}" for m in range(1, 13)]
         # 24 meses → janela deve pegar só os últimos 12.
         receita_por_mes = {m: {"Empregador A": 5000, "_total": 5000} for m in meses}
         r = FluxoCaixaEnricher().enrich(
@@ -274,10 +274,18 @@ class TestResult:
         )
         d = r.to_legacy_dict()
         required = {
-            "receita_total", "receita_recorrente", "receita_one_time",
-            "receita_recorrente_mensal", "despesa_total", "despesa_mensal_media",
-            "fluxo_liquido", "por_fonte", "por_fonte_detalhado",
-            "despesas_por_categoria", "tabela_receitas",
-            "receita_despesa_mensal_detalhado", "janela_12m",
+            "receita_total",
+            "receita_recorrente",
+            "receita_one_time",
+            "receita_recorrente_mensal",
+            "despesa_total",
+            "despesa_mensal_media",
+            "fluxo_liquido",
+            "por_fonte",
+            "por_fonte_detalhado",
+            "despesas_por_categoria",
+            "tabela_receitas",
+            "receita_despesa_mensal_detalhado",
+            "janela_12m",
         }
         assert required.issubset(d.keys())

@@ -6,17 +6,19 @@ from pathlib import Path
 from typing import Iterable
 
 from dev._audit_cs_internals.models import (
-    AuditConfig,
     EXCLUDE_DIR_NAMES,
     EXCLUDE_PY_PATH_PREFIXES,
     EXCLUDE_TS_PATH_PREFIXES,
     PY_INCLUDE_DIRS,
     REPO_ROOT,
     TS_INCLUDE_DIR,
+    AuditConfig,
 )
 
 
-def _iter_files(root: Path, suffixes: tuple[str, ...], exclude_prefixes: tuple[str, ...]) -> Iterable[Path]:
+def _iter_files(
+    root: Path, suffixes: tuple[str, ...], exclude_prefixes: tuple[str, ...]
+) -> Iterable[Path]:
     """Yield files under root matching suffixes, honoring excludes."""
     for path in root.rglob("*"):
         if not path.is_file() or path.suffix not in suffixes:
@@ -55,5 +57,7 @@ def collect_ts_files(config: AuditConfig) -> list[Path]:
     return sorted(_iter_files(base, (".ts", ".tsx"), EXCLUDE_TS_PATH_PREFIXES))
 
 
-def _collect_in_dir(dir_path: Path, suffixes: tuple[str, ...], excludes: tuple[str, ...]) -> list[Path]:
+def _collect_in_dir(
+    dir_path: Path, suffixes: tuple[str, ...], excludes: tuple[str, ...]
+) -> list[Path]:
     return sorted(_iter_files(dir_path, suffixes, excludes))

@@ -103,9 +103,7 @@ async def delete_member(
     await delete_family_member(member_id, workspace_id=workspace.id, repo=repo)
 
 
-@router.get(
-    "/members/{member_id}/accounts", response_model=list[BankAccountResponse]
-)
+@router.get("/members/{member_id}/accounts", response_model=list[BankAccountResponse])
 async def list_accounts(
     member_id: str,
     workspace: Workspace = Depends(get_current_workspace),
@@ -125,14 +123,10 @@ async def create_account(
     workspace: Workspace = Depends(get_current_workspace),
     repo: FamilyMemberRepository = Depends(_get_repo),
 ) -> BankAccountResponse:
-    return await create_bank_account(
-        member_id, body, workspace_id=workspace.id, repo=repo
-    )
+    return await create_bank_account(member_id, body, workspace_id=workspace.id, repo=repo)
 
 
-@router.put(
-    "/members/{member_id}/accounts/{account_id}", response_model=BankAccountResponse
-)
+@router.put("/members/{member_id}/accounts/{account_id}", response_model=BankAccountResponse)
 async def update_account(
     member_id: str,
     account_id: str,
@@ -155,6 +149,4 @@ async def delete_account(
     workspace: Workspace = Depends(get_current_workspace),
     repo: FamilyMemberRepository = Depends(_get_repo),
 ) -> None:
-    await delete_bank_account(
-        member_id, account_id, workspace_id=workspace.id, repo=repo
-    )
+    await delete_bank_account(member_id, account_id, workspace_id=workspace.id, repo=repo)

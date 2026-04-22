@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
@@ -15,7 +15,6 @@ from pipeline.domain.services.cash_flow_builder import (  # noqa: E402
     ReceitasUnified,
 )
 from pipeline.domain.services.transaction_classifier import ClassifiedTransaction  # noqa: E402
-
 
 # =============================================================================
 # Helpers

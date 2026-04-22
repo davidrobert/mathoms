@@ -10,9 +10,7 @@ from backend.app.models.category import Category
 class CategoryRepositoryProtocol(Protocol):
     async def list_by_workspace(self, workspace_id: str) -> list[Category]: ...
 
-    async def get_by_id(
-        self, workspace_id: str, category_id: str
-    ) -> Optional[Category]: ...
+    async def get_by_id(self, workspace_id: str, category_id: str) -> Optional[Category]: ...
 
     async def get_by_id_with_keywords(
         self, workspace_id: str, category_id: str

@@ -22,9 +22,7 @@ from backend.tests.fakes import FakeFamilyMemberRepository, FakeVault
 
 async def _seed_member(repo, vault, workspace_id="ws-1"):
     return await create_family_member(
-        FamilyMemberCreateCommand(
-            full_name="David", short_name="David", role="titular"
-        ),
+        FamilyMemberCreateCommand(full_name="David", short_name="David", role="titular"),
         workspace_id=workspace_id,
         repo=repo,
         vault=vault,
@@ -38,9 +36,7 @@ async def test_create_bank_account_404_when_member_missing():
     with pytest.raises(NotFoundError):
         await create_bank_account(
             "missing-member",
-            BankAccountCreateCommand(
-                institution_code="itau", account_type="extratoconta"
-            ),
+            BankAccountCreateCommand(institution_code="itau", account_type="extratoconta"),
             workspace_id="ws-1",
             repo=repo,
         )

@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 def run(ctx: WorkspaceContext) -> dict:
     """Executa E6 rendering com contexto injetado."""
     from scripts.e6_render import render_report
+
     output_path = render_report(root_dir=ctx.root)
 
     return {

@@ -24,8 +24,8 @@ import argparse
 import json
 import re
 import sys
-from pathlib import Path
 from datetime import date
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import scripts.pipeline_common as _pc
@@ -52,7 +52,9 @@ def _init_config(base_dir: Path) -> None:
     E2_DIR = PROJECT_DIR / "processed" / "E2_extracts"
     _PIPELINE_CONFIG = _load_json_config(PROJECT_DIR / "config" / "pipeline.json")
     _ARTIFACT_NAMES = _PIPELINE_CONFIG.get("artifact_names", {})
-    BASELINE_FILE = E2_DIR / _ARTIFACT_NAMES.get("baseline_patrimonial", "baseline_patrimonial-1.5_consolidated.json")
+    BASELINE_FILE = E2_DIR / _ARTIFACT_NAMES.get(
+        "baseline_patrimonial", "baseline_patrimonial-1.5_consolidated.json"
+    )
     _FAMILY = _load_json_config(PROJECT_DIR / "config" / "family_members.json")
     _TITULAR = _FAMILY.get("titular", "")
     _MEMBROS = _FAMILY.get("membros", {})
@@ -66,11 +68,11 @@ _init_config(_pc.PROJECT_DIR)
 GRUPO_MAP = {
     "01": "imovel",
     "02": "veiculo",
-    "03": "investimento",   # Participações societárias, ações
-    "04": "investimento",   # Aplicações de renda fixa
-    "06": "conta_bancaria", # Depósitos, contas, moeda estrangeira
-    "07": "investimento",   # Fundos de investimento
-    "99": "investimento",   # Outros bens
+    "03": "investimento",  # Participações societárias, ações
+    "04": "investimento",  # Aplicações de renda fixa
+    "06": "conta_bancaria",  # Depósitos, contas, moeda estrangeira
+    "07": "investimento",  # Fundos de investimento
+    "99": "investimento",  # Outros bens
 }
 
 
@@ -109,9 +111,9 @@ def _match_imovel_xlsx(descricao_irpf: str, imoveis_xlsx: List[dict]) -> Optiona
 
         # Score by keyword overlap
         score = 0
-        keywords_nome = set(re.findall(r'\w{4,}', nome))
-        keywords_end = set(re.findall(r'\w{4,}', endereco))
-        keywords_desc = set(re.findall(r'\w{4,}', desc_lower))
+        keywords_nome = set(re.findall(r"\w{4,}", nome))
+        keywords_end = set(re.findall(r"\w{4,}", endereco))
+        keywords_desc = set(re.findall(r"\w{4,}", desc_lower))
 
         score += len(keywords_nome & keywords_desc) * 3
         score += len(keywords_end & keywords_desc) * 2
@@ -123,19 +125,24 @@ def _match_imovel_xlsx(descricao_irpf: str, imoveis_xlsx: List[dict]) -> Optiona
         # Cross-match: IRPF building name ↔ XLSX street/nome
         # E.g., building name in IRPF matches street in XLSX if both
         # refer to same apt number
-        irpf_apt = re.search(r'apt[o]?\s*(\d+)', desc_lower)
-        xlsx_apt = re.search(r'apt[o]?\s*(\d+)', (nome + " " + endereco).lower())
+        irpf_apt = re.search(r"apt[o]?\s*(\d+)", desc_lower)
+        xlsx_apt = re.search(r"apt[o]?\s*(\d+)", (nome + " " + endereco).lower())
         if irpf_apt and xlsx_apt and irpf_apt.group(1) == xlsx_apt.group(1):
             score += 8
 
         # Date match: IRPF "ADQUIRIDO EM DD/MM/YYYY" ↔ XLSX data_compra (±7 days)
         xlsx_data = im.get("data_compra", "")
         if xlsx_data:
-            irpf_date_m = re.search(r'(\d{2})/(\d{2})/(\d{4})', desc_lower)
+            irpf_date_m = re.search(r"(\d{2})/(\d{2})/(\d{4})", desc_lower)
             if irpf_date_m:
                 try:
                     from datetime import date as _date
-                    irpf_d = _date(int(irpf_date_m.group(3)), int(irpf_date_m.group(2)), int(irpf_date_m.group(1)))
+
+                    irpf_d = _date(
+                        int(irpf_date_m.group(3)),
+                        int(irpf_date_m.group(2)),
+                        int(irpf_date_m.group(1)),
+                    )
                     xlsx_d = _date.fromisoformat(xlsx_data)
                     if abs((irpf_d - xlsx_d).days) <= 7:
                         score += 15  # Strong signal: same acquisition date (±7 days)
@@ -266,13 +273,15 @@ def consolidate(baseline: dict) -> dict:
             valor_anterior = safe_float(div.get("situacao_anterior", 0))
             member_dividas_total += valor_atual
 
-            dividas_consolidadas.append({
-                "descricao": div.get("descricao", ""),
-                "proprietario": member_key,
-                "saldo_31_12": {
-                    ano_str: valor_atual,
-                },
-            })
+            dividas_consolidadas.append(
+                {
+                    "descricao": div.get("descricao", ""),
+                    "proprietario": member_key,
+                    "saldo_31_12": {
+                        ano_str: valor_atual,
+                    },
+                }
+            )
             if valor_anterior > 0:
                 dividas_consolidadas[-1]["saldo_31_12"][str(ano - 1)] = valor_anterior
 
@@ -287,7 +296,9 @@ def consolidate(baseline: dict) -> dict:
     # =========================================================================
     for im in imoveis_xlsx:
         if id(im) not in used_xlsx_imoveis:
-            print(f"  [INFO] Imóvel XLSX sem match IRPF: {im.get('nome', '?')} (membro={im.get('membro', '?')})")
+            print(
+                f"  [INFO] Imóvel XLSX sem match IRPF: {im.get('nome', '?')} (membro={im.get('membro', '?')})"
+            )
             entry = {
                 "descricao": im.get("nome", ""),
                 "proprietario": im.get("membro", _TITULAR),
@@ -312,15 +323,17 @@ def consolidate(baseline: dict) -> dict:
     # 4. Add veiculos_xlsx entries
     # =========================================================================
     for v in veiculos_xlsx:
-        veiculos_consolidados.append({
-            "descricao": f"{v.get('marca', '')} {v.get('modelo', '')} {v.get('ano', '')}".strip(),
-            "proprietario": v.get("membro", _TITULAR),
-            "tipo": "veiculo",
-            "valores_31_12": {
-                str(ano_ref): safe_float(v.get("valor_aquisicao", 0)),
-            },
-            "fonte": "xlsx",
-        })
+        veiculos_consolidados.append(
+            {
+                "descricao": f"{v.get('marca', '')} {v.get('modelo', '')} {v.get('ano', '')}".strip(),
+                "proprietario": v.get("membro", _TITULAR),
+                "tipo": "veiculo",
+                "valores_31_12": {
+                    str(ano_ref): safe_float(v.get("valor_aquisicao", 0)),
+                },
+                "fonte": "xlsx",
+            }
+        )
 
     # =========================================================================
     # 5. Round patrimonio_por_ano
@@ -332,13 +345,15 @@ def consolidate(baseline: dict) -> dict:
     # =========================================================================
     # 6. Print summary
     # =========================================================================
-    print(f"  [E1.5] Consolidado:")
+    print("  [E1.5] Consolidado:")
     print(f"    Imóveis: {len(imoveis_consolidados)}")
     print(f"    Veículos: {len(veiculos_consolidados)}")
     print(f"    Investimentos/Contas: {len(investimentos_consolidados)}")
     print(f"    Dívidas: {len(dividas_consolidadas)}")
     for ano_str, data in sorted(patrimonio_por_ano.items()):
-        print(f"    Patrimônio {ano_str}: bens R$ {data['total_bens']:,.2f}, dívidas R$ {data['total_dividas']:,.2f}")
+        print(
+            f"    Patrimônio {ano_str}: bens R$ {data['total_bens']:,.2f}, dívidas R$ {data['total_dividas']:,.2f}"
+        )
 
     # =========================================================================
     # 7. Merge into baseline
@@ -388,11 +403,13 @@ def consolidate_from_itens(baseline: dict) -> dict:
 
         is_divida = categoria == "outros" and valor < 0
         if is_divida:
-            dividas_consolidadas.append({
-                "descricao": descricao,
-                "proprietario": membro,
-                "saldo_31_12": {ano_str: abs(valor)},
-            })
+            dividas_consolidadas.append(
+                {
+                    "descricao": descricao,
+                    "proprietario": membro,
+                    "saldo_31_12": {ano_str: abs(valor)},
+                }
+            )
             total_dividas += abs(valor)
             continue
 
@@ -491,11 +508,14 @@ def main(root_dir: Path = None):
         description="E1.5 Consolidate — Enriquece baseline com chaves consolidadas",
     )
     parser.add_argument(
-        "--dry-run", action="store_true",
+        "--dry-run",
+        action="store_true",
         help="Mostra resultado sem salvar.",
     )
     parser.add_argument(
-        "--baseline", type=str, default=str(BASELINE_FILE),
+        "--baseline",
+        type=str,
+        default=str(BASELINE_FILE),
         help=f"Caminho do baseline JSON (default: {BASELINE_FILE})",
     )
     args = parser.parse_args([] if root_dir else None)
@@ -582,7 +602,7 @@ def main_with_store(ctx) -> dict:
 
     # 3. Persiste via store (write-back no artefato E1.5c).
     store.write("E1.5c", "baseline_patrimonial", consolidated)
-    print(f"\n  [OK] Baseline consolidado e salvo via ArtifactStore (stage=E1.5c)")
+    print("\n  [OK] Baseline consolidado e salvo via ArtifactStore (stage=E1.5c)")
     print("=" * 60)
 
     return {

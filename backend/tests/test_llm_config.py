@@ -10,7 +10,6 @@ from backend.app.models.llm_config import LLMConfig
 from backend.app.models.workspace import Workspace
 from backend.app.services.vault import VaultService
 
-
 _vault = VaultService()
 
 
@@ -57,8 +56,9 @@ async def test_llm_config_model_creation(db: AsyncSession):
 @pytest.mark.asyncio
 async def test_llm_config_workspace_unique(db: AsyncSession):
     """Only one LLMConfig per workspace."""
-    from backend.app.models.user import User
     from sqlalchemy.exc import IntegrityError
+
+    from backend.app.models.user import User
 
     user = User(email="llm2@test.com", hashed_password="hash", full_name="LLM User 2")
     db.add(user)
@@ -68,11 +68,15 @@ async def test_llm_config_workspace_unique(db: AsyncSession):
     db.add(ws)
     await db.flush()
 
-    cfg1 = LLMConfig(workspace_id=ws.id, provider="anthropic", api_key_encrypted="enc1", model_name="m1")
+    cfg1 = LLMConfig(
+        workspace_id=ws.id, provider="anthropic", api_key_encrypted="enc1", model_name="m1"
+    )
     db.add(cfg1)
     await db.commit()
 
-    cfg2 = LLMConfig(workspace_id=ws.id, provider="openai", api_key_encrypted="enc2", model_name="m2")
+    cfg2 = LLMConfig(
+        workspace_id=ws.id, provider="openai", api_key_encrypted="enc2", model_name="m2"
+    )
     db.add(cfg2)
     with pytest.raises(IntegrityError):
         await db.commit()
@@ -86,9 +90,9 @@ async def test_llm_config_workspace_unique(db: AsyncSession):
 @pytest.mark.asyncio
 async def test_stage_review_model_creation(db: AsyncSession):
     """StageReview can be created linked to a PipelineRun."""
-    from backend.app.models.user import User
     from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
     from backend.app.models.stage_review import StageReview, StageReviewStatus
+    from backend.app.models.user import User
 
     user = User(email="sr@test.com", hashed_password="hash", full_name="SR User")
     db.add(user)
@@ -98,7 +102,9 @@ async def test_stage_review_model_creation(db: AsyncSession):
     db.add(ws)
     await db.flush()
 
-    run = PipelineRun(workspace_id=ws.id, status=PipelineRunStatus.needs_review, tier_at_run="premium")
+    run = PipelineRun(
+        workspace_id=ws.id, status=PipelineRunStatus.needs_review, tier_at_run="premium"
+    )
     db.add(run)
     await db.flush()
 
@@ -127,8 +133,8 @@ async def test_stage_review_model_creation(db: AsyncSession):
 @pytest.mark.asyncio
 async def test_pipeline_run_new_statuses(db: AsyncSession):
     """PipelineRun supports needs_review, resuming statuses and tier_at_run."""
-    from backend.app.models.user import User
     from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
+    from backend.app.models.user import User
 
     user = User(email="status@test.com", hashed_password="hash", full_name="Status User")
     db.add(user)
@@ -163,8 +169,8 @@ async def test_pipeline_run_new_statuses(db: AsyncSession):
 @pytest.mark.asyncio
 async def test_pipeline_stage_skipped_free_tier(db: AsyncSession):
     """PipelineStageLog supports skipped_free_tier status."""
-    from backend.app.models.user import User
     from backend.app.models.pipeline_run import PipelineRun, PipelineStageLog, PipelineStageStatus
+    from backend.app.models.user import User
 
     user = User(email="skip@test.com", hashed_password="hash", full_name="Skip User")
     db.add(user)
@@ -186,7 +192,9 @@ async def test_pipeline_stage_skipped_free_tier(db: AsyncSession):
     db.add(log)
     await db.commit()
 
-    result = await db.execute(select(PipelineStageLog).where(PipelineStageLog.pipeline_run_id == run.id))
+    result = await db.execute(
+        select(PipelineStageLog).where(PipelineStageLog.pipeline_run_id == run.id)
+    )
     saved = result.scalar_one()
     assert saved.status == PipelineStageStatus.skipped_free_tier
 
@@ -207,13 +215,16 @@ async def test_get_llm_config_empty(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_save_and_get_llm_config(auth_client: AsyncClient):
     """PUT /api/config/llm saves config with encrypted key, GET returns masked key."""
-    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
-        "provider": "anthropic",
-        "api_key": "sk-ant-api03-REAL-KEY-HERE-1234567890",
-        "model_name": "claude-sonnet-4-20250514",
-        "max_tokens": 8192,
-        "temperature": 0.2,
-    })
+    resp = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/config/llm",
+        json={
+            "provider": "anthropic",
+            "api_key": "sk-ant-api03-REAL-KEY-HERE-1234567890",
+            "model_name": "claude-sonnet-4-20250514",
+            "max_tokens": 8192,
+            "temperature": 0.2,
+        },
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["provider"] == "anthropic"
@@ -232,19 +243,25 @@ async def test_save_and_get_llm_config(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_update_llm_config(auth_client: AsyncClient):
     """PUT /api/config/llm updates existing config."""
-    await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
-        "provider": "anthropic",
-        "api_key": "sk-ant-first-key",
-        "model_name": "claude-sonnet-4-20250514",
-    })
+    await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/config/llm",
+        json={
+            "provider": "anthropic",
+            "api_key": "sk-ant-first-key",
+            "model_name": "claude-sonnet-4-20250514",
+        },
+    )
 
-    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
-        "provider": "openai",
-        "api_key": "sk-openai-new-key",
-        "model_name": "gpt-4o",
-        "max_tokens": 16384,
-        "temperature": 0.5,
-    })
+    resp = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/config/llm",
+        json={
+            "provider": "openai",
+            "api_key": "sk-openai-new-key",
+            "model_name": "gpt-4o",
+            "max_tokens": 16384,
+            "temperature": 0.5,
+        },
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["provider"] == "openai"
@@ -255,10 +272,13 @@ async def test_update_llm_config(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_delete_llm_config(auth_client: AsyncClient):
     """DELETE /api/config/llm removes config."""
-    await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
-        "provider": "anthropic",
-        "api_key": "sk-ant-delete-test",
-    })
+    await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/config/llm",
+        json={
+            "provider": "anthropic",
+            "api_key": "sk-ant-delete-test",
+        },
+    )
 
     resp = await auth_client.delete(f"/api/workspaces/{auth_client.ws_id}/config/llm")
     assert resp.status_code == 204
@@ -277,20 +297,26 @@ async def test_delete_llm_config_not_found(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_invalid_provider_rejected(auth_client: AsyncClient):
     """PUT /api/config/llm rejects invalid provider."""
-    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
-        "provider": "invalid_provider",
-        "api_key": "some-key",
-    })
+    resp = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/config/llm",
+        json={
+            "provider": "invalid_provider",
+            "api_key": "some-key",
+        },
+    )
     assert resp.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_empty_api_key_rejected(auth_client: AsyncClient):
     """PUT /api/config/llm rejects empty API key."""
-    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
-        "provider": "anthropic",
-        "api_key": "",
-    })
+    resp = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/config/llm",
+        json={
+            "provider": "anthropic",
+            "api_key": "",
+        },
+    )
     assert resp.status_code == 422
 
 
@@ -307,10 +333,13 @@ async def test_tier_free_by_default(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_tier_premium_with_config(auth_client: AsyncClient):
     """GET /api/config/llm/tier returns 'premium' when LLM config exists."""
-    await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
-        "provider": "anthropic",
-        "api_key": "sk-ant-test-key",
-    })
+    await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/config/llm",
+        json={
+            "provider": "anthropic",
+            "api_key": "sk-ant-test-key",
+        },
+    )
 
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/llm/tier")
     assert resp.status_code == 200
@@ -335,34 +364,46 @@ async def test_test_connection_no_config(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_max_tokens_bounds(auth_client: AsyncClient):
     """max_tokens must be between 1 and 200000."""
-    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
-        "provider": "anthropic",
-        "api_key": "sk-test",
-        "max_tokens": 0,
-    })
+    resp = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/config/llm",
+        json={
+            "provider": "anthropic",
+            "api_key": "sk-test",
+            "max_tokens": 0,
+        },
+    )
     assert resp.status_code == 422
 
-    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
-        "provider": "anthropic",
-        "api_key": "sk-test",
-        "max_tokens": 200001,
-    })
+    resp = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/config/llm",
+        json={
+            "provider": "anthropic",
+            "api_key": "sk-test",
+            "max_tokens": 200001,
+        },
+    )
     assert resp.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_temperature_bounds(auth_client: AsyncClient):
     """temperature must be between 0.0 and 2.0."""
-    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
-        "provider": "anthropic",
-        "api_key": "sk-test",
-        "temperature": -0.1,
-    })
+    resp = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/config/llm",
+        json={
+            "provider": "anthropic",
+            "api_key": "sk-test",
+            "temperature": -0.1,
+        },
+    )
     assert resp.status_code == 422
 
-    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json={
-        "provider": "anthropic",
-        "api_key": "sk-test",
-        "temperature": 2.1,
-    })
+    resp = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/config/llm",
+        json={
+            "provider": "anthropic",
+            "api_key": "sk-test",
+            "temperature": 2.1,
+        },
+    )
     assert resp.status_code == 422

@@ -4,6 +4,7 @@
 Valida que o YAML passa no schema, que codegen é determinístico,
 e que TS e Pydantic gerados são sintáticamente válidos.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -57,8 +58,15 @@ class TestCodegenYAML:
 
     def test_all_card_variants_valid(self, layout):
         allowed = {
-            "highlight", "feature", "success", "warn", "critical",
-            "primary", "neutral", "top-danger", "top-accent",
+            "highlight",
+            "feature",
+            "success",
+            "warn",
+            "critical",
+            "primary",
+            "neutral",
+            "top-danger",
+            "top-accent",
         }
         all_sections = (
             layout["estrategico"]["sections"]
@@ -68,9 +76,9 @@ class TestCodegenYAML:
         for section in all_sections:
             for card in section.get("cards", []) or []:
                 if "variant" in card:
-                    assert card["variant"] in allowed, (
-                        f"card {card['id']}: variant '{card['variant']}' not in design-tokens"
-                    )
+                    assert (
+                        card["variant"] in allowed
+                    ), f"card {card['id']}: variant '{card['variant']}' not in design-tokens"
 
     def test_card_variants_match_design_tokens(self, layout):
         """Variantes usadas no YAML devem existir em design-tokens/tokens.json."""
@@ -142,9 +150,7 @@ class TestGeneratedFilesOnDisk:
         )
         expected_ts, _ = codegen.build()
         actual = TS_OUTPUT.read_text(encoding="utf-8")
-        assert actual == expected_ts, (
-            "TS out of sync — run `python3 dev/codegen_report_layout.py`"
-        )
+        assert actual == expected_ts, "TS out of sync — run `python3 dev/codegen_report_layout.py`"
 
     def test_py_file_exists_and_in_sync(self):
         assert PY_OUTPUT.exists()

@@ -18,6 +18,5 @@ async def list_typed_goal_versions(
     goals = await repo.list_by_workspace_and_type(workspace_id, goal_type)
     lookup = dict(author_names or {})
     return [
-        goal_to_typed_response(g, created_by_name=lookup.get(g.created_by or ""))
-        for g in goals
+        goal_to_typed_response(g, created_by_name=lookup.get(g.created_by or "")) for g in goals
     ]

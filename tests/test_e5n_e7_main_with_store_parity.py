@@ -21,10 +21,20 @@ import pytest
 _REPO = Path(__file__).resolve().parents[1]
 
 _E3_FIXTURE = (
-    _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-com-despesa-3_reconciled.json"
+    _REPO
+    / "tests"
+    / "fixtures"
+    / "pipeline_golden"
+    / "e3"
+    / "minimal-conta-com-despesa-3_reconciled.json"
 )
 _BASELINE_MIN = (
-    _REPO / "tests" / "fixtures" / "pipeline_golden" / "e2" / "minimal-baseline-1.5_consolidated.json"
+    _REPO
+    / "tests"
+    / "fixtures"
+    / "pipeline_golden"
+    / "e2"
+    / "minimal-baseline-1.5_consolidated.json"
 )
 
 _GOALS_MIN = {
@@ -90,17 +100,29 @@ def _run_legacy_through_e5n(workspace: Path) -> None:
     from scripts import pipeline_common as _pc
     from scripts.e4_categorize import (
         _DEFAULT_BASE_DIR as E4_DEFAULT,
+    )
+    from scripts.e4_categorize import (
         _init_config as e4_init,
+    )
+    from scripts.e4_categorize import (
         main as e4_main,
     )
     from scripts.e5_analyze import (
         _DEFAULT_BASE_DIR as E5_DEFAULT,
+    )
+    from scripts.e5_analyze import (
         _init_config as e5_init,
+    )
+    from scripts.e5_analyze import (
         main as e5_main,
     )
     from scripts.e5n_narrativas import (
         _DEFAULT_BASE_DIR as E5N_DEFAULT,
+    )
+    from scripts.e5n_narrativas import (
         _init_config as e5n_init,
+    )
+    from scripts.e5n_narrativas import (
         main as e5n_main,
     )
 

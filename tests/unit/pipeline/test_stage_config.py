@@ -20,7 +20,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from pipeline.context import WorkspaceContext  # noqa: E402
 from pipeline.stage_config import ConfigError, StageConfig  # noqa: E402
 
-
 _MIN_OVERRIDES = {
     "family_members.json": {"titular": "x"},
     "pipeline.json": {"llm": {"model": "test"}},
@@ -54,7 +53,8 @@ class TestFromContext:
         assert cfg.fiscal == {"teto_irpf": 10000}
 
     @pytest.mark.parametrize(
-        "missing_key", ["family_members.json", "pipeline.json", "institutions.json", "categorization.json"],
+        "missing_key",
+        ["family_members.json", "pipeline.json", "institutions.json", "categorization.json"],
     )
     def test_missing_required_raises_config_error(self, tmp_path, missing_key):
         overrides = {k: v for k, v in _MIN_OVERRIDES.items() if k != missing_key}

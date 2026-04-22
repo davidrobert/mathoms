@@ -17,17 +17,13 @@ async def test_list_returns_workspace_members_when_present():
     repo = FakeFamilyMemberRepository()
     vault = FakeVault()
     await create_family_member(
-        FamilyMemberCreateCommand(
-            full_name="David", short_name="David", role="titular"
-        ),
+        FamilyMemberCreateCommand(full_name="David", short_name="David", role="titular"),
         workspace_id="ws-1",
         repo=repo,
         vault=vault,
     )
 
-    resp = await list_family_members(
-        "ws-1", repo=repo, vault=vault, global_defaults=None
-    )
+    resp = await list_family_members("ws-1", repo=repo, vault=vault, global_defaults=None)
 
     assert resp.total == 1
     assert resp.members[0].key == "david"
@@ -44,9 +40,7 @@ async def test_list_falls_back_to_global_defaults_when_empty():
         }
     }
 
-    resp = await list_family_members(
-        "ws-1", repo=repo, vault=vault, global_defaults=defaults
-    )
+    resp = await list_family_members("ws-1", repo=repo, vault=vault, global_defaults=defaults)
 
     assert resp.total == 2
     # F6.5E.6: fallback usa placeholders neutros.
@@ -59,9 +53,7 @@ async def test_list_returns_empty_when_no_workspace_and_no_defaults():
     repo = FakeFamilyMemberRepository()
     vault = FakeVault()
 
-    resp = await list_family_members(
-        "ws-1", repo=repo, vault=vault, global_defaults=None
-    )
+    resp = await list_family_members("ws-1", repo=repo, vault=vault, global_defaults=None)
 
     assert resp.total == 0
     assert resp.members == []

@@ -30,16 +30,12 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     response_model=TokenResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def register(
-    body: RegisterRequest, db: AsyncSession = Depends(get_db)
-) -> TokenResponse:
+async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     return await register_user(body, db=db)
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(
-    body: LoginRequest, db: AsyncSession = Depends(get_db)
-) -> TokenResponse:
+async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     return await login_user(body, db=db)
 
 

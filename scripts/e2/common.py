@@ -33,6 +33,7 @@ CONFIG_DIR = BASE_DIR / "config"
 # Config loading
 # =============================================================================
 
+
 def _load_json_config(path: Path, label: str = "") -> dict:
     if path.exists():
         try:
@@ -112,6 +113,7 @@ _init_config(_pc.PROJECT_DIR)
 # Display name helper
 # =============================================================================
 
+
 def banco_display(key: str) -> str:
     """Get display name for a bank from config, with title-case fallback."""
     name = BANCO_CANONICAL.get(key, key)
@@ -154,6 +156,7 @@ def log(prefix: str, level: str, msg: str) -> None:
 # =============================================================================
 # Value parsing
 # =============================================================================
+
 
 def parse_brl(text: str) -> Optional[float]:
     """Parse Brazilian currency string to float.
@@ -221,6 +224,7 @@ def parse_usd(text: str) -> Optional[float]:
 # Date helpers
 # =============================================================================
 
+
 def safe_date(year: int, month: int, day: int) -> str:
     """Return valid ISO date string, adjusting day if necessary."""
     year = max(1900, min(2100, year))
@@ -241,7 +245,7 @@ def _valid_ym(year: int, month: int) -> bool:
 
 def infer_periodo_from_filename(filename: str) -> Tuple[Optional[str], Optional[str]]:
     """Extract periodo start/end from filename patterns like _202501_202512 or _202603."""
-    m = re.search(r'_(\d{4})(\d{2})_(\d{4})(\d{2})', filename)
+    m = re.search(r"_(\d{4})(\d{2})_(\d{4})(\d{2})", filename)
     if m:
         y1, m1, y2, m2 = int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4))
         if not (_valid_ym(y1, m1) and _valid_ym(y2, m2)):
@@ -252,7 +256,7 @@ def infer_periodo_from_filename(filename: str) -> Tuple[Optional[str], Optional[
         fim = safe_date(y2, m2, fim_day)
         return inicio, fim
 
-    m = re.search(r'_(\d{4})(\d{2})(?:[a-z])?-', filename)
+    m = re.search(r"_(\d{4})(\d{2})(?:[a-z])?-", filename)
     if m:
         y, mo = int(m.group(1)), int(m.group(2))
         if not _valid_ym(y, mo):
@@ -268,7 +272,7 @@ def infer_periodo_from_filename(filename: str) -> Tuple[Optional[str], Optional[
 
 def infer_year_from_filename(filename: str) -> Optional[int]:
     """Extract year from filename like faturacarbon_202603."""
-    m = re.search(r'(\d{4})\d{2}', filename)
+    m = re.search(r"(\d{4})\d{2}", filename)
     if m:
         return int(m.group(1))
     return None
@@ -291,13 +295,13 @@ def resolve_year_from_period(dd: int, mm: int, periodo_inicio: str, periodo_fim:
 def resolve_date(day: int, month_str: str, ref_year: int, ref_month: int) -> str:
     """Resolve a date like '28 nov' given reference year/month of the fatura."""
     if ref_year is None or ref_month is None:
-        month_num = int(MESES_BR_STR.get(month_str.lower().strip(), '0'))
+        month_num = int(MESES_BR_STR.get(month_str.lower().strip(), "0"))
         if month_num == 0:
             return f"{ref_year or datetime.now().year}-01-{day:02d}"
         return safe_date(ref_year or datetime.now().year, month_num, day)
 
     month_str_lower = month_str.lower().strip()
-    month_num = int(MESES_BR_STR.get(month_str_lower, '0'))
+    month_num = int(MESES_BR_STR.get(month_str_lower, "0"))
     if month_num == 0:
         return safe_date(ref_year, ref_month, day)
 
@@ -323,6 +327,7 @@ def resolve_date_ddmm(dd: int, mm: int, ref_year: int, ref_month: int) -> str:
 # Member / account detection
 # =============================================================================
 
+
 def detect_member_from_text(text: str) -> Optional[str]:
     """Try to identify which family member owns this statement."""
     text_upper = text.upper()
@@ -339,9 +344,9 @@ def detect_member_from_text(text: str) -> Optional[str]:
 def extract_account_number(text: str, banco: str) -> Optional[str]:
     """Extract account number from statement text using common patterns."""
     patterns = [
-        r'[Cc]onta[:\s]+(\d[\d.\-/]+\d)',
-        r'[Aa]gência[:\s]+\d+\s*[\|/•]\s*[Cc]onta[:\s]+(\d[\d.\-]+\d)',
-        r'Account\s*(?:number|#)?[:\s]+(\d[\d\s]+\d)',
+        r"[Cc]onta[:\s]+(\d[\d.\-/]+\d)",
+        r"[Aa]gência[:\s]+\d+\s*[\|/•]\s*[Cc]onta[:\s]+(\d[\d.\-]+\d)",
+        r"Account\s*(?:number|#)?[:\s]+(\d[\d\s]+\d)",
     ]
     for pat in patterns:
         m = re.search(pat, text)
@@ -364,6 +369,7 @@ def detect_member_from_card_name(nome_cartao: str) -> Optional[str]:
 # Result templates
 # =============================================================================
 
+
 def make_result_template(banco: str, tipo: str, moeda: str = "BRL") -> Dict[str, Any]:
     """Create a standard E2 result dictionary."""
     return {
@@ -371,9 +377,9 @@ def make_result_template(banco: str, tipo: str, moeda: str = "BRL") -> Dict[str,
         "tipo": tipo,
         "moeda": moeda,
         "numero_conta": None,
-        "agencia": None,             # branch/agency number (digits only)
-        "tipo_conta": None,          # "corrente" | "poupanca" | "pj" | "investimento"
-        "documento_titular": None,   # CPF or CNPJ of the account holder
+        "agencia": None,  # branch/agency number (digits only)
+        "tipo_conta": None,  # "corrente" | "poupanca" | "pj" | "investimento"
+        "documento_titular": None,  # CPF or CNPJ of the account holder
         "titular": None,
         "periodo": {"inicio": None, "fim": None},
         "saldo_inicial": None,

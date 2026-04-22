@@ -45,7 +45,9 @@ class LLMErrorType(str, Enum):
 class LLMError(Exception):
     """Base error for LLM calls."""
 
-    def __init__(self, message: str, error_type: LLMErrorType = LLMErrorType.unknown, retryable: bool = False):
+    def __init__(
+        self, message: str, error_type: LLMErrorType = LLMErrorType.unknown, retryable: bool = False
+    ):
         super().__init__(message)
         self.error_type = error_type
         self.retryable = retryable
@@ -54,7 +56,9 @@ class LLMError(Exception):
 class LLMValidationError(LLMError):
     """Raised when LLM output fails schema validation after all retries."""
 
-    def __init__(self, message: str, last_output: Any = None, validation_errors: list[str] | None = None):
+    def __init__(
+        self, message: str, last_output: Any = None, validation_errors: list[str] | None = None
+    ):
         super().__init__(message, LLMErrorType.validation, retryable=False)
         self.last_output = last_output
         self.validation_errors = validation_errors or []
@@ -63,6 +67,7 @@ class LLMValidationError(LLMError):
 @dataclass
 class LLMCallResult:
     """Result of a single LLM call with usage metrics."""
+
     output: Any
     provider: str
     model: str
@@ -77,6 +82,7 @@ class LLMCallResult:
 @dataclass
 class LLMRunSummary:
     """Aggregated token usage for an entire pipeline run."""
+
     calls: list[LLMCallResult] = field(default_factory=list)
 
     @property
@@ -120,6 +126,7 @@ class LLMRunSummary:
 @dataclass
 class LLMConfig:
     """Configuration for LLM calls (from DB or dict)."""
+
     provider: str = "anthropic"
     api_key: str = ""
     model_name: str = "claude-sonnet-4-20250514"
@@ -133,8 +140,7 @@ def _is_completion_truncated_max_tokens(exc: Exception) -> bool:
     if not any(x in msg for x in ("max_tokens", "max output tokens", "maximum output")):
         return False
     return any(
-        x in msg
-        for x in ("incomplete", "length limit", "truncat", "cut off", "stopped before")
+        x in msg for x in ("incomplete", "length limit", "truncat", "cut off", "stopped before")
     )
 
 
@@ -298,8 +304,12 @@ class LLMService:
         is_multimodal = image_bytes is not None
         logger.info(
             "%sLLM call START: model=%s max_tokens=%d temp=%.2f prompt_chars=%d schema=%s%s",
-            tag, self._config.model_name, effective_max_tokens,
-            effective_temperature, prompt_chars, schema_name,
+            tag,
+            self._config.model_name,
+            effective_max_tokens,
+            effective_temperature,
+            prompt_chars,
+            schema_name,
             f" image={len(image_bytes)}B" if is_multimodal else "",
         )
 
@@ -371,8 +381,13 @@ class LLMService:
 
                 logger.info(
                     "%sLLM call OK: model=%s tokens=%d+%d cost=$%.4f duration=%dms retries=%d",
-                    tag, self._config.model_name,
-                    tokens_in, tokens_out, cost, elapsed, retries_used,
+                    tag,
+                    self._config.model_name,
+                    tokens_in,
+                    tokens_out,
+                    cost,
+                    elapsed,
+                    retries_used,
                 )
 
                 return result
@@ -387,7 +402,9 @@ class LLMService:
                         effective_max_tokens = bumped
                         logger.warning(
                             "%sLLM completion truncated at max_tokens=%d — retrying with max_tokens=%d",
-                            tag, prev_cap, effective_max_tokens,
+                            tag,
+                            prev_cap,
+                            effective_max_tokens,
                         )
                         continue
 
@@ -396,7 +413,11 @@ class LLMService:
 
                 logger.warning(
                     "%sLLM call attempt %d/%d failed: type=%s error=%s",
-                    tag, attempt + 1, max_retries + 1, error_type.value, str(exc)[:200],
+                    tag,
+                    attempt + 1,
+                    max_retries + 1,
+                    error_type.value,
+                    str(exc)[:200],
                 )
 
                 if error_type == LLMErrorType.auth:
@@ -406,7 +427,9 @@ class LLMService:
 
                 if error_type == LLMErrorType.context_length:
                     raise LLMError(
-                        f"Context length exceeded: {exc}", LLMErrorType.context_length, retryable=False
+                        f"Context length exceeded: {exc}",
+                        LLMErrorType.context_length,
+                        retryable=False,
                     ) from exc
 
                 if error_type not in _RETRYABLE_ERRORS and error_type != LLMErrorType.validation:

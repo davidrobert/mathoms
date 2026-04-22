@@ -15,9 +15,7 @@ async def _owner_and_member(db, client):
     owner = await factories.make_user(db, email="owner@test.com")
     ws = await factories.make_workspace(db, owner=owner)
     mem_user = await factories.make_user(db, email="mem@test.com")
-    mem = await factories.make_workspace_member(
-        db, workspace=ws, user=mem_user, role="member"
-    )
+    mem = await factories.make_workspace_member(db, workspace=ws, user=mem_user, role="member")
     await db.commit()
     client.headers["Authorization"] = f"Bearer {create_access_token(owner.id)}"
     return owner, ws, mem_user, mem
@@ -39,9 +37,7 @@ async def test_viewer_can_list_members(db, client):
     owner = await factories.make_user(db, email="owner@test.com")
     ws = await factories.make_workspace(db, owner=owner)
     viewer = await factories.make_user(db, email="viewer@test.com")
-    await factories.make_workspace_member(
-        db, workspace=ws, user=viewer, role="viewer"
-    )
+    await factories.make_workspace_member(db, workspace=ws, user=viewer, role="viewer")
     await db.commit()
 
     client.headers["Authorization"] = f"Bearer {create_access_token(viewer.id)}"
@@ -91,9 +87,7 @@ async def test_cannot_change_owner_role(db, client):
 @pytest.mark.asyncio
 async def test_remove_member(db, client):
     owner, ws, mem_user, _ = await _owner_and_member(db, client)
-    resp = await client.delete(
-        f"/api/workspaces/{ws.id}/members/{mem_user.id}"
-    )
+    resp = await client.delete(f"/api/workspaces/{ws.id}/members/{mem_user.id}")
     assert resp.status_code == 204
 
     # Confirma persistência via GET (mesmo motivo do teste anterior).
@@ -115,13 +109,9 @@ async def test_non_owner_cannot_remove_members(db, client):
     owner = await factories.make_user(db, email="owner@test.com")
     ws = await factories.make_workspace(db, owner=owner)
     member = await factories.make_user(db, email="mem@test.com")
-    await factories.make_workspace_member(
-        db, workspace=ws, user=member, role="member"
-    )
+    await factories.make_workspace_member(db, workspace=ws, user=member, role="member")
     third = await factories.make_user(db, email="third@test.com")
-    await factories.make_workspace_member(
-        db, workspace=ws, user=third, role="viewer"
-    )
+    await factories.make_workspace_member(db, workspace=ws, user=third, role="viewer")
     await db.commit()
 
     # member (não-owner) tenta remover o viewer
@@ -161,9 +151,7 @@ async def test_member_operations_are_audited(db, client):
     await client.delete(f"/api/workspaces/{ws.id}/members/{mem_user.id}")
 
     rows = await db.execute(
-        select(AuditLog)
-        .where(AuditLog.workspace_id == ws.id)
-        .order_by(AuditLog.created_at.asc())
+        select(AuditLog).where(AuditLog.workspace_id == ws.id).order_by(AuditLog.created_at.asc())
     )
     actions = [r.action for r in rows.scalars().all()]
     assert "workspace.member.role_change" in actions

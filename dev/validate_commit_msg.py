@@ -17,13 +17,37 @@ from pathlib import Path
 
 VALID_PREFIXES = (
     # Produto web (atual)
-    "feat:", "fix:", "refactor:", "perf:", "style:", "test:", "chore:",
-    "backend:", "frontend:", "api:", "db:", "infra:", "ci:",
-    "docs:", "update:",
+    "feat:",
+    "fix:",
+    "refactor:",
+    "perf:",
+    "style:",
+    "test:",
+    "chore:",
+    "backend:",
+    "frontend:",
+    "api:",
+    "db:",
+    "infra:",
+    "ci:",
+    "docs:",
+    "update:",
     # Pipeline / CLI legacy
-    "pipeline:", "config:",
-    "pre-update:", "pre-reset:", "E-reset:", "E-reset-from-",
-    "E1:", "E2:", "E3:", "E4:", "E5:", "E5.N:", "E6:", "E6-regen:", "E7:",
+    "pipeline:",
+    "config:",
+    "pre-update:",
+    "pre-reset:",
+    "E-reset:",
+    "E-reset-from-",
+    "E1:",
+    "E2:",
+    "E3:",
+    "E4:",
+    "E5:",
+    "E5.N:",
+    "E6:",
+    "E6-regen:",
+    "E7:",
     "init:",
 )
 
@@ -38,7 +62,11 @@ def main() -> int:
         return 1
 
     msg_file = Path(sys.argv[1])
-    first_line = msg_file.read_text(encoding="utf-8", errors="replace").splitlines()[0].strip() if msg_file.exists() else ""
+    first_line = (
+        msg_file.read_text(encoding="utf-8", errors="replace").splitlines()[0].strip()
+        if msg_file.exists()
+        else ""
+    )
 
     if not first_line or first_line.startswith("#"):
         # Mensagem vazia — git já cancela sozinho.

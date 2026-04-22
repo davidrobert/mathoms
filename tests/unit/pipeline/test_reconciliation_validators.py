@@ -80,9 +80,7 @@ class TestSaldoContinuityConfig:
 
 class TestSaldoContinuityValidator:
     def _svc(self, tolerance: str = "0.01") -> SaldoContinuityValidator:
-        return SaldoContinuityValidator(
-            SaldoContinuityConfig(tolerance_amount=Decimal(tolerance))
-        )
+        return SaldoContinuityValidator(SaldoContinuityConfig(tolerance_amount=Decimal(tolerance)))
 
     def test_no_statements_no_warnings(self):
         assert self._svc().validate([]) == []
@@ -153,12 +151,8 @@ class TestSaldoContinuityValidator:
 
     def test_different_members_do_not_compare(self):
         stmts = [
-            _stmt(
-                date(2026, 1, 1), date(2026, 1, 31), "0", "1000", member="david"
-            ),
-            _stmt(
-                date(2026, 2, 1), date(2026, 2, 28), "5000", "6000", member="carol"
-            ),
+            _stmt(date(2026, 1, 1), date(2026, 1, 31), "0", "1000", member="david"),
+            _stmt(date(2026, 2, 1), date(2026, 2, 28), "5000", "6000", member="carol"),
         ]
         assert self._svc().validate(stmts) == []
 
@@ -303,8 +297,8 @@ class TestTemporalGapDetector:
     def test_multiple_gaps_same_account(self):
         stmts = [
             _stmt(date(2026, 1, 1), date(2026, 1, 15)),
-            _stmt(date(2026, 2, 1), date(2026, 2, 15)),   # 17-day gap
-            _stmt(date(2026, 3, 1), date(2026, 3, 15)),   # 14-day gap
+            _stmt(date(2026, 2, 1), date(2026, 2, 15)),  # 17-day gap
+            _stmt(date(2026, 3, 1), date(2026, 3, 15)),  # 14-day gap
         ]
         warns = self._svc(days=4).detect(stmts)
         assert len(warns) == 2

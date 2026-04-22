@@ -18,9 +18,7 @@ class FamilyMemberRepositoryProtocol(Protocol):
 
     async def list_by_workspace(self, workspace_id: str) -> list[FamilyMember]: ...
 
-    async def get_by_id(
-        self, workspace_id: str, member_id: str
-    ) -> Optional[FamilyMember]: ...
+    async def get_by_id(self, workspace_id: str, member_id: str) -> Optional[FamilyMember]: ...
 
     async def get_by_id_with_accounts(
         self, workspace_id: str, member_id: str
@@ -59,9 +57,7 @@ class FamilyMemberRepositoryProtocol(Protocol):
 
     async def list_accounts(self, member_id: str) -> list[BankAccount]: ...
 
-    async def get_account(
-        self, member_id: str, account_id: str
-    ) -> Optional[BankAccount]: ...
+    async def get_account(self, member_id: str, account_id: str) -> Optional[BankAccount]: ...
 
     async def add_account(
         self,

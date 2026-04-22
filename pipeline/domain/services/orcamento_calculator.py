@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-
 # =============================================================================
 # Result
 # =============================================================================
@@ -65,14 +64,12 @@ class OrcamentoProspectivoCalculator:
                 total=0.0,
                 media_mensal=0.0,
                 legenda=(
-                    "Orçamento prospectivo não disponível — sem meses de "
-                    "dados (num_months=0)."
+                    "Orçamento prospectivo não disponível — sem meses de " "dados (num_months=0)."
                 ),
             )
 
         categorias = {
-            cat: float(total) / num_months
-            for cat, total in (despesas_por_categoria or {}).items()
+            cat: float(total) / num_months for cat, total in (despesas_por_categoria or {}).items()
         }
         total_mensal = sum(categorias.values())
 

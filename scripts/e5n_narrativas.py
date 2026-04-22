@@ -49,7 +49,9 @@ def _init_config(base_dir: Path) -> None:
 
     _TITULAR_KEY = FAMILY.get("titular", "")
     _MEMBROS = FAMILY.get("membros", {})
-    _CONJUGE_KEY = next((k for k, v in _MEMBROS.items() if isinstance(v, dict) and v.get("papel") == "conjuge"), "")
+    _CONJUGE_KEY = next(
+        (k for k, v in _MEMBROS.items() if isinstance(v, dict) and v.get("papel") == "conjuge"), ""
+    )
     _TITULAR_NOME = _MEMBROS.get(_TITULAR_KEY, {}).get("nome_curto", _TITULAR_KEY.title())
     _CONJUGE_NOME = _MEMBROS.get(_CONJUGE_KEY, {}).get("nome_curto", _CONJUGE_KEY.title())
 
@@ -77,16 +79,20 @@ def _load_fiscal():
     print(f"  [WARN] parametros_fiscais.json não encontrado em {FISCAL_CONFIG_PATH}")
     return {}
 
+
 FISCAL = _load_fiscal()
 _CLT_SOURCE_LABELS = list(_CATEGORIZATION.get("clt_source_mapping", {}).values())
+
 
 # METRICS will be loaded from E5 JSON at runtime (no more hardcoding)
 # Add a guard to prevent KeyError on import
 class _MetricsProxy(dict):
     """Dict that returns None for missing keys (distinguishes from 0)."""
+
     def __missing__(self, key):
         print(f"  [WARN] METRICS['{key}'] não encontrado, retornando None")
         return None
+
 
 METRICS = _MetricsProxy()
 
@@ -184,6 +190,7 @@ def _compute_usd_saldos_per_bank(e5_data: dict) -> dict:
     Returns dict: {'wise_usd': X, 'bofa_usd': Y, 'total_usd': Z, ...}
     """
     import glob
+
     saldos = {}
     total_usd = 0.0
     pattern = str(PROJECT_DIR / "processed" / "E3_reconciled" / "*-3_reconciled.json")
@@ -215,7 +222,11 @@ def _compute_salario_conjuge(e5_data: dict) -> float:
     datasets = rmd.get("receita_datasets", [])
     for ds in datasets:
         label = ds.get("label", "")
-        is_clt = any(src_label in label for src_label in _CLT_SOURCE_LABELS) if _CLT_SOURCE_LABELS else ("CLT" in label)
+        is_clt = (
+            any(src_label in label for src_label in _CLT_SOURCE_LABELS)
+            if _CLT_SOURCE_LABELS
+            else ("CLT" in label)
+        )
         if is_clt:
             nonzero = [v for v in ds.get("data", []) if v > 0]
             if nonzero:
@@ -261,7 +272,9 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
 
     # Diversificação: count non-zero composition categories
     composicao = pat.get("composicao", [])
-    diversificacao_count = len([c for c in composicao if isinstance(c, dict) and c.get("valor", 0) > 0]) or 5
+    diversificacao_count = (
+        len([c for c in composicao if isinstance(c, dict) and c.get("valor", 0) > 0]) or 5
+    )
 
     # --- Computed from E5 data ---
     receita_total = fluxo.get("receita_total", 0)
@@ -340,9 +353,11 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
     # Cônjuge EUA vs CLT computation
     renda_eua_projetada_usd = mar_eua.get("renda_rn_projetada_usd", 0)
     renda_eua_projetada_brl = renda_eua_projetada_usd * cambio
-    pct_renda_eua_vs_clt = round(
-        (1 - _safe_div(renda_eua_projetada_brl, salario_conjuge)) * 100, 0
-    ) if salario_conjuge else 0
+    pct_renda_eua_vs_clt = (
+        round((1 - _safe_div(renda_eua_projetada_brl, salario_conjuge)) * 100, 0)
+        if salario_conjuge
+        else 0
+    )
 
     # Accumulated contributions projection
     aportes_acum_prazo = meta_aporte_mensal * 12 * prazo_anos if prazo_anos else 0
@@ -363,7 +378,6 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "taxa_endividamento": ratios.get("taxa_endividamento_pct", 0),
         "progresso_if": goals.get("if_pct", 0),
         "diversificacao": diversificacao_count,
-
         # === E5 JSON: patrimônio ===
         "patrimonio_bruto": patrimonio_bruto,
         "patrimonio_investivel": patrimonio_investivel,
@@ -373,7 +387,6 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         _KEY_INV_CONJUGE: investimentos_conjuge,
         "veiculos": pat.get("veiculos", 0),
         "dividas": e5_data.get("endividamento", {}).get("total_dividas", 0),
-
         # === E5 JSON: fluxo de caixa ===
         "receita_total": receita_total,
         "receita_recorrente": fluxo.get("receita_recorrente", 0),
@@ -389,7 +402,6 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "receita_resgate": por_fonte.get("receita_resgate", 0),
         "receita_restituicao": por_fonte.get("receita_restituicao", 0),
         "n_meses_periodo": n_meses_periodo,
-
         # === E5 JSON: despesas por categoria ===
         "despesas_nao_id": despesas_nao_id,
         "despesas_impostos": desp_cat.get("impostos", 0) + desp_cat.get("das", 0),
@@ -399,7 +411,6 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "despesas_suporte": desp_cat.get("suporte_familiar", 0),
         "despesas_assinatura": desp_cat.get("assinaturas", 0),
         "n_desp_categorias": n_desp_categorias,
-
         # === E5 JSON: goals (IF) ===
         "if_meta": goals.get("if_meta", 0),
         "if_gap": goals.get("if_gap", 0),
@@ -407,7 +418,6 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "if_ano": goals.get("ano_if", 0),
         _KEY_IDADE_TITULAR_IF: goals.get(f"idade_{_TITULAR_KEY}_if", 0),
         "renda_passiva_4pct": renda_passiva_4pct,
-
         # === Computed percentages (Cat. A) ===
         "pct_investivel": pct_investivel,
         "pct_imoveis_bruto": pct_imoveis_bruto,
@@ -419,7 +429,6 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "pct_das_receita_pj": pct_das_receita_pj,
         "pct_renda_passiva_meta": pct_renda_passiva_meta,
         "pct_renda_eua_vs_clt": pct_renda_eua_vs_clt,
-
         # === Computed from E5 data ===
         _KEY_SAL_CONJUGE: salario_conjuge,
         "receita_aluguel_anual": round(receita_aluguel_anual, 2),
@@ -431,15 +440,17 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "anos_para_if_calculo": round(prazo_anos),
         "aportes_acum_prazo": round(aportes_acum_prazo, 0),
         "renda_eua_projetada_brl": round(renda_eua_projetada_brl, 0),
-
         # === Computed: top asset & institutions (from E4) ===
         "top_asset_nome": top_asset["nome"],
         "top_asset_valor": top_asset["valor"],
         "top_asset_membro": top_asset["membro"],
-        _KEY_INST_TITULAR: ", ".join(inst_data["titular_inst"]) if inst_data["titular_inst"] else "múltiplas instituições",
-        _KEY_INST_CONJUGE: ", ".join(inst_data["conjuge_inst"]) if inst_data["conjuge_inst"] else "não identificadas",
+        _KEY_INST_TITULAR: ", ".join(inst_data["titular_inst"])
+        if inst_data["titular_inst"]
+        else "múltiplas instituições",
+        _KEY_INST_CONJUGE: ", ".join(inst_data["conjuge_inst"])
+        if inst_data["conjuge_inst"]
+        else "não identificadas",
         "n_imoveis": inst_data["n_imoveis"],
-
         # === Computed: USD/EUR saldos per bank ===
         "wise_usd": round(usd_saldos.get("wise_usd", 0), 2),
         "bofa_usd": round(usd_saldos.get("bank_of_america_usd", 0), 2),
@@ -449,19 +460,16 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "aporte_cambial_mensal": aporte_cambial_brl,
         "meses_para_cambial": meses_cambial,
         "cambio_usd_brl": cambio,
-
         # === config/goals.json: aportes ===
         "meta_aporte_mensal": meta_aporte_mensal,
         "aporte_cofrinhos": dist.get("cofrinhos_itau", 0),
         "aporte_ipca_plus": dist.get("tesouro_ipca_plus", 0),
         "aporte_ivvb11": dist.get("ivvb11", 0),
         "aporte_wise_usd": dist.get("wise_usd", 0),
-
         # === config/goals.json: IF ===
         "if_trs_pct": if_cfg.get("trs_pct", 5.0),
         "if_renda_passiva_meta": renda_passiva_meta,
         "if_retorno_real_pct": if_cfg.get("retorno_real_anual_pct", 6.0),
-
         # === config/goals.json: F1/F2 phase ===
         "custo_fase_f1f2": custo_fase_f1f2,
         "custo_viagem_minimo": f1f2.get("custo_viagem_minimo", 0),
@@ -473,16 +481,13 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         _KEY_F1F2_TITULAR: f1f2.get(f"estrategia_{_TITULAR_KEY}", ""),
         _KEY_F1F2_CONJUGE: f1f2.get(f"estrategia_{_CONJUGE_KEY}", ""),
         "f1f2_crescimento_salarial": f1f2.get("crescimento_salarial_eua_pct", "3-4"),
-
         # === config/goals.json: seguros ===
         "seguro_vida_minimo": seguros.get("vida_term_minimo", 0),
         "seguro_vida_maximo": seguros.get("vida_term_maximo", 0),
-
         # === config/goals.json: cônjuge EUA ===
         f"renda_{_CONJUGE_KEY}_eua_minima": mar_eua.get("renda_rn_minima_usd", 0),
         f"renda_{_CONJUGE_KEY}_eua_maxima": mar_eua.get("renda_rn_maxima_usd", 0),
         _KEY_RENDA_CONJUGE_EUA_PROJ: renda_eua_projetada_usd,
-
         # === Tributário (calculado a partir de parametros_fiscais.json + dados reais) ===
         "das_mensal_estimado": round(das_mensal, 2),
         "contador_mensal": trib_cfg.get("contador_mensal", 0),
@@ -490,11 +495,9 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "contador_canal": trib_cfg.get("contador_canal_pagamento", ""),
         "regime_obs": trib_cfg.get("regime_obs", ""),
         "holding_prazo": trib_cfg.get("holding_avaliacao_prazo", ""),
-
         # === config/goals.json: imóveis ===
         "yield_imoveis_potencial_pct_min": imov_cfg.get("yield_potencial_pct_min", 0),
         "yield_imoveis_potencial_pct_max": imov_cfg.get("yield_potencial_pct_max", 0),
-
         # === config/goals.json: thresholds & alocação ===
         "threshold_imovel_pct": thresholds.get("imovel_pct_patrimonio_ideal", 50),
         "equity_alvo_min": thresholds.get("equity_pct_alvo_min", 20),
@@ -506,11 +509,9 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
         "aloc_instrumentos_rf": aloc_alvo.get("instrumentos_rf", ""),
         "aloc_instrumentos_rv": aloc_alvo.get("instrumentos_rv", ""),
         "aloc_rebalanceamento": aloc_alvo.get("rebalanceamento", "anual"),
-
         # === config/goals.json: riscos e decisões ===
         "riscos_prioritarios": riscos,
         "decisoes_prioritarias": decisoes,
-
         # === cenarios cônjuge (computed by E5) ===
         "cm_labels": cm.get("labels", []),
         "cm_aportes": cm.get("aportes", []),
@@ -553,9 +554,7 @@ def validate_narrativas(narrativas_obj):
     (``_KEY_CENARIOS_SECTION``, ex.: ``"mariana_cenarios"``), preservando
     paridade com o legado sem depender de globals no helper.
     """
-    return _validate_narrativas_impl(
-        narrativas_obj, cenarios_section_key=_KEY_CENARIOS_SECTION
-    )
+    return _validate_narrativas_impl(narrativas_obj, cenarios_section_key=_KEY_CENARIOS_SECTION)
 
 
 def build_narrativas():
@@ -591,7 +590,7 @@ def main(root_dir: Path = None):
         print("  Run e5_analyze.py first.")
         return False
 
-    with open(E5_JSON_PATH, 'r', encoding='utf-8') as f:
+    with open(E5_JSON_PATH, "r", encoding="utf-8") as f:
         e5_data = json.load(f)
 
     print(f"✓ Loaded E5 JSON with {len(e5_data)} top-level keys")
@@ -611,7 +610,7 @@ def main(root_dir: Path = None):
     print("Building narrativas object with metrics from E5 JSON...")
     narrativas = build_narrativas()
     print(f"✓ Built narrativas with {len(narrativas)} main sections")
-    print(f"  - perfil_familia: left and right sections")
+    print("  - perfil_familia: left and right sections")
     print(f"  - summaries: {len(narrativas['summaries'])} summaries (s1-s10)")
     print(f"  - charts: {len(narrativas['charts'])} chart descriptions")
     print()
@@ -639,7 +638,7 @@ def main(root_dir: Path = None):
 
     # Save updated JSON
     print(f"Saving updated E5 JSON to {E5_JSON_PATH}...")
-    with open(E5_JSON_PATH, 'w', encoding='utf-8') as f:
+    with open(E5_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(e5_data, f, ensure_ascii=False, indent=2)
     print("✓ Saved successfully")
     print()
@@ -729,8 +728,8 @@ def main_with_store(ctx) -> dict:
     e5_data["narrativas"] = narrativas
     store.write("E5", "analise_financeira", e5_data)
 
-    print(f"\n[E5.N.FINAL] Narrativas enriched!")
-    print(f"  ✓ Stored: E5/analise_financeira (with narrativas)")
+    print("\n[E5.N.FINAL] Narrativas enriched!")
+    print("  ✓ Stored: E5/analise_financeira (with narrativas)")
     print("=" * 80)
 
     return {

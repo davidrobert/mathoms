@@ -40,7 +40,6 @@ from backend.app.models import (
     WorkspaceMember,
 )
 
-
 # ─── Counters ─────────────────────────────────────────────────────────
 
 _counters = {
@@ -75,6 +74,7 @@ def _next(k: str) -> int:
 
 # ─── User ─────────────────────────────────────────────────────────────
 
+
 async def make_user(
     db: AsyncSession,
     *,
@@ -96,6 +96,7 @@ async def make_user(
 
 
 # ─── Workspace ────────────────────────────────────────────────────────
+
 
 async def make_workspace(
     db: AsyncSession,
@@ -122,13 +123,12 @@ async def make_workspace(
     await db.flush()
 
     if not skip_membership:
-        await make_workspace_member(
-            db, workspace=ws, user=owner, role="owner"
-        )
+        await make_workspace_member(db, workspace=ws, user=owner, role="owner")
     return ws
 
 
 # ─── WorkspaceMember (ADR-072) ────────────────────────────────────────
+
 
 async def make_workspace_member(
     db: AsyncSession,
@@ -151,6 +151,7 @@ async def make_workspace_member(
 
 
 # ─── WorkspaceInvitation (F9) ─────────────────────────────────────────
+
 
 async def make_invitation(
     db: AsyncSession,
@@ -178,9 +179,7 @@ async def make_invitation(
     now = datetime.now(timezone.utc)
 
     expires_at = (
-        now - timedelta(hours=1)
-        if already_expired
-        else now + timedelta(hours=expires_in_hours)
+        now - timedelta(hours=1) if already_expired else now + timedelta(hours=expires_in_hours)
     )
 
     inv = WorkspaceInvitation(
@@ -199,6 +198,7 @@ async def make_invitation(
 
 
 # ─── Goal (ADR-073) ───────────────────────────────────────────────────
+
 
 async def make_if_goal(
     db: AsyncSession,
@@ -241,6 +241,7 @@ async def make_if_goal(
 
 
 # ─── Task / TaskSuggestion (ADR-074) ──────────────────────────────────
+
 
 async def make_task(
     db: AsyncSession,
@@ -310,6 +311,7 @@ async def make_task_suggestion(
 
 # ─── FamilyMember + BankAccount ───────────────────────────────────────
 
+
 async def make_member(
     db: AsyncSession,
     *,
@@ -368,6 +370,7 @@ async def make_bank_account(
 
 # ─── Category ─────────────────────────────────────────────────────────
 
+
 async def make_category(
     db: AsyncSession,
     *,
@@ -392,7 +395,7 @@ async def make_category(
     )
     db.add(cat)
     await db.flush()
-    for kw in (keywords or []):
+    for kw in keywords or []:
         db.add(CategoryKeyword(category_id=cat.id, keyword=kw))
     if keywords:
         await db.flush()
@@ -400,6 +403,7 @@ async def make_category(
 
 
 # ─── Document ─────────────────────────────────────────────────────────
+
 
 async def make_document(
     db: AsyncSession,
@@ -437,6 +441,7 @@ async def make_document(
 
 # ─── Vault ────────────────────────────────────────────────────────────
 
+
 async def make_vault_password(
     db: AsyncSession,
     *,
@@ -458,6 +463,7 @@ async def make_vault_password(
 
 
 # ─── PipelineRun + StageLog ───────────────────────────────────────────
+
 
 async def make_run(
     db: AsyncSession,
@@ -523,6 +529,7 @@ async def make_stage_log(
 
 # ─── Report ───────────────────────────────────────────────────────────
 
+
 async def make_report(
     db: AsyncSession,
     *,
@@ -555,6 +562,7 @@ async def make_report(
 
 # ─── Notification ─────────────────────────────────────────────────────
 
+
 async def make_notification(
     db: AsyncSession,
     *,
@@ -582,6 +590,7 @@ async def make_notification(
 
 
 # ─── LLM Config ───────────────────────────────────────────────────────
+
 
 async def make_llm_config(
     db: AsyncSession,

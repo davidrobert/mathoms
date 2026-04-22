@@ -36,7 +36,9 @@ def _despesas(**categorias_to_txns) -> dict:
     return {"dados": categorias_to_txns}
 
 
-def _txn(data: str, descricao: str, valor: float, banco: str = "Itaú", tipo_conta: str = "extratoconta") -> dict:
+def _txn(
+    data: str, descricao: str, valor: float, banco: str = "Itaú", tipo_conta: str = "extratoconta"
+) -> dict:
     return {
         "data": data,
         "descricao": descricao,
@@ -129,11 +131,13 @@ class TestOrdering:
         cfg = ConsumoConscienteConfig(consumo_min=1000)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(),
-            _despesas(lazer=[
-                _txn("2026-01-05", "Médio", 3000),
-                _txn("2026-01-10", "Grande", 10_000),
-                _txn("2026-01-15", "Pequeno", 1500),
-            ]),
+            _despesas(
+                lazer=[
+                    _txn("2026-01-05", "Médio", 3000),
+                    _txn("2026-01-10", "Grande", 10_000),
+                    _txn("2026-01-15", "Pequeno", 1500),
+                ]
+            ),
         )
         valores = [i.valor for i in r.itens]
         assert valores == [10_000, 3000, 1500]
@@ -149,7 +153,9 @@ class TestContaCartao:
         cfg = ConsumoConscienteConfig(consumo_min=100)
         r = ConsumoConscienteCalculator(cfg).calculate(
             _fluxo(),
-            _despesas(lazer=[_txn("2026-03-05", "X", 500, banco="Nubank", tipo_conta="faturacarbon")]),
+            _despesas(
+                lazer=[_txn("2026-03-05", "X", 500, banco="Nubank", tipo_conta="faturacarbon")]
+            ),
         )
         assert r.itens[0].conta_cartao == "Nubank (faturacarbon)"
 
@@ -281,15 +287,32 @@ class TestResult:
         d = r.to_legacy_dict()
 
         required = {
-            "itens", "total_pontuais", "equivalente_meses_aporte",
-            "folga_mensal", "folga_pct", "teto_sugerido", "analise",
+            "itens",
+            "total_pontuais",
+            "equivalente_meses_aporte",
+            "folga_mensal",
+            "folga_pct",
+            "teto_sugerido",
+            "analise",
         }
         assert required.issubset(d.keys())
 
     def test_item_to_dict_has_all_fields(self):
         item = GastoPontualItem(
-            descricao="X", conta_cartao="Y", data="2026-01-01",
-            mes="2026-01", valor=1000, categoria="lazer",
+            descricao="X",
+            conta_cartao="Y",
+            data="2026-01-01",
+            mes="2026-01",
+            valor=1000,
+            categoria="lazer",
         )
         d = item.to_dict()
-        assert {"descricao", "conta_cartao", "data", "mes", "valor", "categoria", "observacao"}.issubset(d.keys())
+        assert {
+            "descricao",
+            "conta_cartao",
+            "data",
+            "mes",
+            "valor",
+            "categoria",
+            "observacao",
+        }.issubset(d.keys())

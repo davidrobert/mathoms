@@ -6,6 +6,7 @@ import pytest
 
 from backend.app.services.events import (
     publish_event,
+    publish_needs_review,
     publish_run_cancelled,
     publish_run_completed,
     publish_run_failed,
@@ -14,7 +15,6 @@ from backend.app.services.events import (
     publish_stage_failed,
     publish_stage_skipped,
     publish_stage_started,
-    publish_needs_review,
     reset_redis_client,
 )
 from backend.tests.fakes.fake_redis_publisher import FakeRedisPublisher

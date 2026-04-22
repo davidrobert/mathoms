@@ -206,9 +206,7 @@ def _render_table_block(table: Table) -> str:
         nullable = "yes" if col.nullable else "no"
         default = _column_default(col)
         tags = ", ".join(_column_tags(col, table)) or "—"
-        buf.write(
-            f"| `{col.name}` | `{typ}` | {nullable} | {default or '—'} | {tags} |\n"
-        )
+        buf.write(f"| `{col.name}` | `{typ}` | {nullable} | {default or '—'} | {tags} |\n")
     buf.write("\n")
 
     constraints = []

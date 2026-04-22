@@ -75,9 +75,7 @@ def find_longest_matching_keyword(
                 if norm_keyword in norm_desc:
                     matched = True
 
-            if matched and (
-                longest_match is None or len(norm_keyword) > len(longest_match)
-            ):
+            if matched and (longest_match is None or len(norm_keyword) > len(longest_match)):
                 longest_match = norm_keyword
                 longest_category = category
 

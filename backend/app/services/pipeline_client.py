@@ -90,9 +90,7 @@ class HttpPipelineClient:
             "workspace_root": str(ctx.root),
             "config_dir": str(ctx.config_dir) if ctx.config_dir else None,
             "incremental": bool(getattr(ctx, "incremental", False)),
-            "incremental_doc_paths": list(
-                getattr(ctx, "incremental_doc_paths", []) or []
-            ),
+            "incremental_doc_paths": list(getattr(ctx, "incremental_doc_paths", []) or []),
         }
         resp = self._http.post(
             f"{self._base_url}/api/v1/pipeline/stages/{stage}/execute",

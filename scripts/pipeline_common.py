@@ -33,7 +33,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-
 # =============================================================================
 # Structured logging — all pipeline scripts should use this logger
 # =============================================================================
@@ -42,10 +41,12 @@ _logger = logging.getLogger("fin.pipeline")
 
 if not _logger.handlers:
     _handler = logging.StreamHandler(sys.stderr)
-    _handler.setFormatter(logging.Formatter(
-        "[%(asctime)s] %(name)s.%(levelname)s: %(message)s",
-        datefmt="%H:%M:%S",
-    ))
+    _handler.setFormatter(
+        logging.Formatter(
+            "[%(asctime)s] %(name)s.%(levelname)s: %(message)s",
+            datefmt="%H:%M:%S",
+        )
+    )
     _logger.addHandler(_handler)
     _logger.setLevel(logging.DEBUG)
 
@@ -168,6 +169,7 @@ def load_json_config(name: str, *, required: bool = False) -> dict:
 # JSON I/O
 # =============================================================================
 
+
 def read_json(path: Path) -> Optional[Dict[str, Any]]:
     """Safely read a JSON file. Returns None on error."""
     try:
@@ -190,8 +192,9 @@ def write_json(path: Path, data: Dict[str, Any], *, indent: int = 2) -> bool:
         return False
 
 
-def write_json_atomic(path: Path, data: Dict[str, Any], *, indent: int = 2,
-                      fsync: bool = False) -> bool:
+def write_json_atomic(
+    path: Path, data: Dict[str, Any], *, indent: int = 2, fsync: bool = False
+) -> bool:
     """Write JSON atomically via temp file + rename.
 
     Prevents partial writes on crash: the file is either fully written
@@ -200,9 +203,7 @@ def write_json_atomic(path: Path, data: Dict[str, Any], *, indent: int = 2,
     """
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp = tempfile.mkstemp(
-            dir=str(path.parent), suffix=".tmp", prefix=f".{path.stem}_"
-        )
+        fd, tmp = tempfile.mkstemp(dir=str(path.parent), suffix=".tmp", prefix=f".{path.stem}_")
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=indent, ensure_ascii=False)
@@ -226,6 +227,7 @@ def write_json_atomic(path: Path, data: Dict[str, Any], *, indent: int = 2,
 # =============================================================================
 # Schema validation
 # =============================================================================
+
 
 def _effective_schema_validation_mode() -> str:
     """Return ``strict`` or ``warn``.
@@ -287,6 +289,7 @@ def validate_artifact(path: Path, schema_name: str) -> bool:
 # Numeric helpers
 # =============================================================================
 
+
 def safe_float(val: Any, default: float = 0.0, locale: str = "BRL") -> float:
     """Convert a value to float safely, respecting currency locale.
 
@@ -324,7 +327,10 @@ def safe_float(val: Any, default: float = 0.0, locale: str = "BRL") -> float:
                 return float(s.replace(".", "").replace(",", "."))
             except ValueError:
                 pass
-        log_stage("WARN", f"safe_float: não conseguiu converter '{s}' (locale={locale}) — usando {default}")
+        log_stage(
+            "WARN",
+            f"safe_float: não conseguiu converter '{s}' (locale={locale}) — usando {default}",
+        )
         return default
     return default
 
@@ -332,6 +338,7 @@ def safe_float(val: Any, default: float = 0.0, locale: str = "BRL") -> float:
 # =============================================================================
 # Logging
 # =============================================================================
+
 
 def log_stage(stage: str, message: str) -> None:
     """Log a timestamped progress message via structured logger.

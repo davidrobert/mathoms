@@ -59,9 +59,7 @@ async def two_workspaces(db: AsyncSession) -> tuple[Workspace, Workspace]:
 
 
 @pytest.mark.asyncio
-async def test_list_default_excludes_done_and_cancelled(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_default_excludes_done_and_cancelled(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_task(db, workspace=ws_a, status="pending", title="T1")
@@ -77,9 +75,7 @@ async def test_list_default_excludes_done_and_cancelled(
 
 
 @pytest.mark.asyncio
-async def test_list_include_done_and_cancelled(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_include_done_and_cancelled(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_task(db, workspace=ws_a, status="pending", title="T1")
@@ -88,17 +84,13 @@ async def test_list_include_done_and_cancelled(
     await db.commit()
 
     repo = TaskRepository(db)
-    tasks = await repo.list(
-        ws_a.id, TaskFilters(include_done=True, include_cancelled=True)
-    )
+    tasks = await repo.list(ws_a.id, TaskFilters(include_done=True, include_cancelled=True))
 
     assert {t.title for t in tasks} == {"T1", "T2", "T3"}
 
 
 @pytest.mark.asyncio
-async def test_list_filter_by_explicit_status(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_filter_by_explicit_status(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_task(db, workspace=ws_a, status="pending", title="P1")
@@ -113,9 +105,7 @@ async def test_list_filter_by_explicit_status(
 
 
 @pytest.mark.asyncio
-async def test_list_filter_by_priority_and_category(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_filter_by_priority_and_category(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_task(db, workspace=ws_a, priority="S", category="Invest", title="SI")
@@ -124,30 +114,35 @@ async def test_list_filter_by_priority_and_category(
     await db.commit()
 
     repo = TaskRepository(db)
-    tasks = await repo.list(
-        ws_a.id, TaskFilters(priority="S", category="Invest")
-    )
+    tasks = await repo.list(ws_a.id, TaskFilters(priority="S", category="Invest"))
 
     assert {t.title for t in tasks} == {"SI"}
 
 
 @pytest.mark.asyncio
-async def test_list_filter_by_deadline_range(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_filter_by_deadline_range(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_task(
-        db, workspace=ws_a, deadline_kind="HARD_DATE",
-        deadline_date=date(2026, 3, 15), title="Mar",
+        db,
+        workspace=ws_a,
+        deadline_kind="HARD_DATE",
+        deadline_date=date(2026, 3, 15),
+        title="Mar",
     )
     await make_task(
-        db, workspace=ws_a, deadline_kind="HARD_DATE",
-        deadline_date=date(2026, 5, 15), title="Mai",
+        db,
+        workspace=ws_a,
+        deadline_kind="HARD_DATE",
+        deadline_date=date(2026, 5, 15),
+        title="Mai",
     )
     await make_task(
-        db, workspace=ws_a, deadline_kind="HARD_DATE",
-        deadline_date=date(2026, 7, 15), title="Jul",
+        db,
+        workspace=ws_a,
+        deadline_kind="HARD_DATE",
+        deadline_date=date(2026, 7, 15),
+        title="Jul",
     )
     await db.commit()
 
@@ -164,9 +159,7 @@ async def test_list_filter_by_deadline_range(
 
 
 @pytest.mark.asyncio
-async def test_list_ordering_priority_s_before_r_before_o(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_ordering_priority_s_before_r_before_o(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_task(db, workspace=ws_a, priority="O", title="Op", number=1)
@@ -181,25 +174,35 @@ async def test_list_ordering_priority_s_before_r_before_o(
 
 
 @pytest.mark.asyncio
-async def test_list_ordering_deadline_asc_nulls_last(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_ordering_deadline_asc_nulls_last(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_task(
-        db, workspace=ws_a, priority="R",
-        deadline_kind="UNSCHEDULED", deadline_date=None,
-        title="NoDate", number=1,
+        db,
+        workspace=ws_a,
+        priority="R",
+        deadline_kind="UNSCHEDULED",
+        deadline_date=None,
+        title="NoDate",
+        number=1,
     )
     await make_task(
-        db, workspace=ws_a, priority="R",
-        deadline_kind="HARD_DATE", deadline_date=date(2026, 5, 1),
-        title="Early", number=2,
+        db,
+        workspace=ws_a,
+        priority="R",
+        deadline_kind="HARD_DATE",
+        deadline_date=date(2026, 5, 1),
+        title="Early",
+        number=2,
     )
     await make_task(
-        db, workspace=ws_a, priority="R",
-        deadline_kind="HARD_DATE", deadline_date=date(2026, 7, 1),
-        title="Late", number=3,
+        db,
+        workspace=ws_a,
+        priority="R",
+        deadline_kind="HARD_DATE",
+        deadline_date=date(2026, 7, 1),
+        title="Late",
+        number=3,
     )
     await db.commit()
 
@@ -211,9 +214,7 @@ async def test_list_ordering_deadline_asc_nulls_last(
 
 
 @pytest.mark.asyncio
-async def test_list_is_workspace_isolated(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_is_workspace_isolated(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
 
     await make_task(db, workspace=ws_a, title="A1")
@@ -231,9 +232,7 @@ async def test_list_is_workspace_isolated(
 
 
 @pytest.mark.asyncio
-async def test_get_by_id_scoped_to_workspace(
-    db: AsyncSession, two_workspaces
-):
+async def test_get_by_id_scoped_to_workspace(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
     task = await make_task(db, workspace=ws_a)
     await db.commit()
@@ -267,12 +266,8 @@ async def test_list_by_parent(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     parent = await make_task(db, workspace=ws_a, title="Parent", number=1)
-    await make_task(
-        db, workspace=ws_a, title="Child 1", number=2, parent_task_id=parent.id
-    )
-    await make_task(
-        db, workspace=ws_a, title="Child 2", number=3, parent_task_id=parent.id
-    )
+    await make_task(db, workspace=ws_a, title="Child 1", number=2, parent_task_id=parent.id)
+    await make_task(db, workspace=ws_a, title="Child 2", number=3, parent_task_id=parent.id)
     await make_task(db, workspace=ws_a, title="Orphan", number=4)
     await db.commit()
 
@@ -283,9 +278,7 @@ async def test_list_by_parent(db: AsyncSession, two_workspaces):
 
 
 @pytest.mark.asyncio
-async def test_next_number_empty_workspace(
-    db: AsyncSession, two_workspaces
-):
+async def test_next_number_empty_workspace(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     repo = TaskRepository(db)
 
@@ -293,9 +286,7 @@ async def test_next_number_empty_workspace(
 
 
 @pytest.mark.asyncio
-async def test_next_number_increments_max(
-    db: AsyncSession, two_workspaces
-):
+async def test_next_number_increments_max(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_task(db, workspace=ws_a, number=1)
@@ -308,9 +299,7 @@ async def test_next_number_increments_max(
 
 
 @pytest.mark.asyncio
-async def test_next_number_per_workspace(
-    db: AsyncSession, two_workspaces
-):
+async def test_next_number_per_workspace(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
 
     await make_task(db, workspace=ws_a, number=42)
@@ -322,9 +311,7 @@ async def test_next_number_per_workspace(
 
 
 @pytest.mark.asyncio
-async def test_list_all_includes_done_cancelled(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_all_includes_done_cancelled(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_task(db, workspace=ws_a, status="pending", title="P", number=1)
@@ -345,9 +332,7 @@ async def test_list_all_includes_done_cancelled(
 
 
 @pytest.mark.asyncio
-async def test_add_flushes_and_assigns_id(
-    db: AsyncSession, two_workspaces
-):
+async def test_add_flushes_and_assigns_id(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     task = Task(
@@ -386,9 +371,7 @@ async def test_delete_removes_row(db: AsyncSession, two_workspaces):
 
 
 @pytest.mark.asyncio
-async def test_attachment_list_by_task_ordered_desc(
-    db: AsyncSession, two_workspaces
-):
+async def test_attachment_list_by_task_ordered_desc(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     task = await make_task(db, workspace=ws_a)
 
@@ -418,9 +401,7 @@ async def test_attachment_list_by_task_ordered_desc(
 
 
 @pytest.mark.asyncio
-async def test_attachment_get_by_id_workspace_scoped(
-    db: AsyncSession, two_workspaces
-):
+async def test_attachment_get_by_id_workspace_scoped(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
     task = await make_task(db, workspace=ws_a)
 
@@ -466,9 +447,7 @@ async def test_attachment_delete(db: AsyncSession, two_workspaces):
 
 
 @pytest.mark.asyncio
-async def test_suggestion_list_default_pending(
-    db: AsyncSession, two_workspaces
-):
+async def test_suggestion_list_default_pending(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     p = await make_task_suggestion(db, workspace=ws_a, status="pending")
@@ -483,9 +462,7 @@ async def test_suggestion_list_default_pending(
 
 
 @pytest.mark.asyncio
-async def test_suggestion_list_all_when_status_none(
-    db: AsyncSession, two_workspaces
-):
+async def test_suggestion_list_all_when_status_none(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_task_suggestion(db, workspace=ws_a, status="pending")
@@ -500,9 +477,7 @@ async def test_suggestion_list_all_when_status_none(
 
 
 @pytest.mark.asyncio
-async def test_suggestion_is_workspace_isolated(
-    db: AsyncSession, two_workspaces
-):
+async def test_suggestion_is_workspace_isolated(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
     await make_task_suggestion(db, workspace=ws_a, status="pending")
     await db.commit()
@@ -513,9 +488,7 @@ async def test_suggestion_is_workspace_isolated(
 
 
 @pytest.mark.asyncio
-async def test_suggestion_save_after_mutation(
-    db: AsyncSession, two_workspaces
-):
+async def test_suggestion_save_after_mutation(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     sugg = await make_task_suggestion(db, workspace=ws_a, status="pending")
     await db.commit()

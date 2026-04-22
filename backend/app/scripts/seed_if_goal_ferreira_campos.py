@@ -44,7 +44,6 @@ from backend.app.services.goal_service import (
     get_current_goal,
 )
 
-
 logger = logging.getLogger("seed_if_ferreira_campos")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
@@ -92,16 +91,13 @@ async def seed(
             stmt = select(Workspace).where(Workspace.id == workspace_id)
         else:
             # tenancy: global — seed CLI: filtro por family_surname
-            stmt = select(Workspace).where(
-                Workspace.family_surname == FAMILY_SURNAME_MATCH
-            )
+            stmt = select(Workspace).where(Workspace.family_surname == FAMILY_SURNAME_MATCH)
         result = await db.execute(stmt)
         workspaces = list(result.scalars().all())
 
         if not workspaces:
             logger.warning(
-                "Nenhuma workspace encontrada (id=%s, family_surname=%s). "
-                "Nada a fazer.",
+                "Nenhuma workspace encontrada (id=%s, family_surname=%s). " "Nada a fazer.",
                 workspace_id,
                 FAMILY_SURNAME_MATCH,
             )
@@ -114,9 +110,7 @@ async def seed(
         processed = 0
         skipped = 0
         for ws in workspaces:
-            existing = await get_current_goal(
-                ws.id, "INDEPENDENCIA_FINANCEIRA", db=db
-            )
+            existing = await get_current_goal(ws.id, "INDEPENDENCIA_FINANCEIRA", db=db)
             if existing and not force_replace:
                 logger.info(
                     "[skip] workspace %s já tem Goal IF vigente "
@@ -129,8 +123,7 @@ async def seed(
 
             if not apply:
                 logger.info(
-                    "[dry-run] criaria Goal IF para workspace %s "
-                    "(if_meta=R$ %.2f)",
+                    "[dry-run] criaria Goal IF para workspace %s " "(if_meta=R$ %.2f)",
                     ws.id,
                     derived.if_meta_brl,
                 )
@@ -165,8 +158,7 @@ async def seed(
             )
         else:
             logger.info(
-                "[dry-run] nada foi persistido. "
-                "Processáveis=%d, Skipped=%d. Use --apply.",
+                "[dry-run] nada foi persistido. " "Processáveis=%d, Skipped=%d. Use --apply.",
                 processed,
                 skipped,
             )
@@ -182,8 +174,7 @@ def main() -> int:
         "--workspace-id",
         type=str,
         default=None,
-        help="UUID específico. Se omitido, busca por family_surname="
-        f"'{FAMILY_SURNAME_MATCH}'.",
+        help="UUID específico. Se omitido, busca por family_surname=" f"'{FAMILY_SURNAME_MATCH}'.",
     )
     parser.add_argument(
         "--force-replace",

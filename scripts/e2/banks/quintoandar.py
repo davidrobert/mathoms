@@ -12,13 +12,16 @@ except ImportError:
     pdfplumber = None
 
 from scripts.e2.common import (
-    BANCO_QUINTOANDAR, infer_year_from_filename, log, parse_brl,
+    BANCO_QUINTOANDAR,
+    infer_year_from_filename,
+    log,
+    parse_brl,
 )
 
 LOG_PREFIX = "E2-FATURA"
 
 PARSERS = [
-    (r'quintoandar_faturaaluguel', "parse_quintoandar"),
+    (r"quintoandar_faturaaluguel", "parse_quintoandar"),
 ]
 
 
@@ -28,12 +31,12 @@ def parse_quintoandar(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
     ref_year = infer_year_from_filename(filename)
     ref_month = None
-    m = re.search(r'(\d{4})(\d{2})', filename)
+    m = re.search(r"(\d{4})(\d{2})", filename)
     if m:
         ref_year = int(m.group(1))
         ref_month = int(m.group(2))
 
-    prop_m = re.search(r'faturaaluguel(\w+?)_\d{6}', filename)
+    prop_m = re.search(r"faturaaluguel(\w+?)_\d{6}", filename)
     propriedade = prop_m.group(1) if prop_m else "desconhecida"
 
     result = {
@@ -57,26 +60,26 @@ def parse_quintoandar(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
         full_text = "\n".join(all_text)
 
-        m = re.search(r'Faturas de aluguel\s*\n(.+)', full_text)
+        m = re.search(r"Faturas de aluguel\s*\n(.+)", full_text)
         if m:
             result["endereco"] = m.group(1).strip()
 
-        m = re.search(r'Total de\s*\n?\s*R\$\s*([\d.,]+)', full_text)
+        m = re.search(r"Total de\s*\n?\s*R\$\s*([\d.,]+)", full_text)
         if m:
             result["total_recebido"] = parse_brl(m.group(1))
 
-        m = re.search(r'[Rr]eceber até\s+(\d{2}/\d{2}/\d{4})', full_text)
+        m = re.search(r"[Rr]eceber até\s+(\d{2}/\d{2}/\d{4})", full_text)
         if m:
             parts = m.group(1).split("/")
             result["data_recebimento"] = f"{parts[2]}-{parts[1]}-{parts[0]}"
 
         item_pattern = re.compile(
-            r'(.+?)\s+(-?R\$\s*[\d.,]+)',
+            r"(.+?)\s+(-?R\$\s*[\d.,]+)",
         )
 
-        SKIP_EXACT = {'total de', 'subtotal', 'você recebe', 'recebido'}
+        SKIP_EXACT = {"total de", "subtotal", "você recebe", "recebido"}
 
-        for line in full_text.split('\n'):
+        for line in full_text.split("\n"):
             stripped = line.strip()
             item_m = item_pattern.match(stripped)
             if item_m:
@@ -87,10 +90,12 @@ def parse_quintoandar(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 if valor is not None and desc and len(desc) > 3:
                     if desc.lower().strip() in SKIP_EXACT:
                         continue
-                    result["itens"].append({
-                        "descricao": desc,
-                        "valor": valor,
-                    })
+                    result["itens"].append(
+                        {
+                            "descricao": desc,
+                            "valor": valor,
+                        }
+                    )
 
         log(LOG_PREFIX, "INFO", f"  → {len(result['itens'])} itens extraídos")
     except Exception as e:

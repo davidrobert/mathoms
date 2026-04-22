@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from backend.app.services.storage import StorageService, _safe_filename, TENANT_SUBDIRS
+from backend.app.services.storage import TENANT_SUBDIRS, StorageService, _safe_filename
 
 
 class TestSafeFilename:
@@ -137,8 +137,9 @@ class TestStorageService:
 
 class TestVaultService:
     def test_encrypt_decrypt_roundtrip(self):
-        from backend.app.services.vault import VaultService
         from cryptography.fernet import Fernet
+
+        from backend.app.services.vault import VaultService
 
         key = Fernet.generate_key().decode()
         svc = VaultService(key=key)
@@ -148,8 +149,9 @@ class TestVaultService:
         assert svc.decrypt(encrypted) == plaintext
 
     def test_decrypt_wrong_key_returns_none(self):
-        from backend.app.services.vault import VaultService
         from cryptography.fernet import Fernet
+
+        from backend.app.services.vault import VaultService
 
         svc1 = VaultService(key=Fernet.generate_key().decode())
         svc2 = VaultService(key=Fernet.generate_key().decode())
@@ -157,8 +159,9 @@ class TestVaultService:
         assert svc2.decrypt(encrypted) is None
 
     def test_decrypt_garbage_returns_none(self):
-        from backend.app.services.vault import VaultService
         from cryptography.fernet import Fernet
+
+        from backend.app.services.vault import VaultService
 
         svc = VaultService(key=Fernet.generate_key().decode())
         assert svc.decrypt("not-valid-ciphertext") is None

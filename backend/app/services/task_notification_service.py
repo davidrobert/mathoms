@@ -21,7 +21,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.models.notification import Notification
 from backend.app.models.task import Task
 
-
 _SOURCE = "task_deadline"
 
 
@@ -48,10 +47,7 @@ def _notification_message(task: Task, bucket: str, today: date) -> str:
             f'"{task.title}" vence em {days} '
             f"dia{'s' if days != 1 else ''} ({task.deadline_date.isoformat()})."
         )
-    return (
-        f'"{task.title}" vence em {days} dias '
-        f"({task.deadline_date.isoformat()})."
-    )
+    return f'"{task.title}" vence em {days} dias ' f"({task.deadline_date.isoformat()})."
 
 
 def _bucket_for(days_until_deadline: int) -> Optional[str]:
@@ -104,9 +100,7 @@ async def scan_and_create_notifications(
         Notification.workspace_id == workspace_id,
         Notification.source == _SOURCE,
     )
-    existing_titles = {
-        n.title for n in (await db.execute(existing_stmt)).scalars().all()
-    }
+    existing_titles = {n.title for n in (await db.execute(existing_stmt)).scalars().all()}
 
     created = 0
     skipped = 0

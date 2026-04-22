@@ -20,7 +20,6 @@ sys.path.insert(0, str(ROOT / "scripts" / "lint"))
 
 from check_workspace_scoping import check_file  # noqa: E402
 
-
 TENANT_MODELS = {"Task", "Goal", "FamilyMember"}
 
 

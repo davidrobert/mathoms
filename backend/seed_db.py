@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from backend.app.core.database import init_db, async_session
+from backend.app.core.database import async_session, init_db
 from backend.app.services.seed import ensure_seed_user, seed_existing_reports
 
 
@@ -37,7 +37,7 @@ async def main():
 
     print("=" * 60)
     print("  Seed complete!")
-    print(f"  Login: admin@mathoms.ai / admin")
+    print("  Login: admin@mathoms.ai / admin")
     print("=" * 60)
 
 

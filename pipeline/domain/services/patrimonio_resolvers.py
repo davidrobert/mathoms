@@ -29,15 +29,12 @@ from pipeline.domain.services.patrimonio_types import (
     safe_float,
 )
 
-
 # =============================================================================
 # resolve_members — dispatcher de 4 formatos
 # =============================================================================
 
 
-def resolve_members(
-    baseline: dict, identity: MemberIdentity
-) -> tuple[dict, dict]:
+def resolve_members(baseline: dict, identity: MemberIdentity) -> tuple[dict, dict]:
     """Resolve dicts de titular e cônjuge de qualquer baseline suportado.
 
     Retorna tupla ``(titular_data, conjuge_data)``. Se o formato não casar
@@ -60,10 +57,7 @@ def resolve_members(
             return titular_data, conjuge_data
 
         # Lista de strings → formato E1.5 declarations ou consolidated
-        if (
-            baseline.get("imoveis_consolidados") is not None
-            or baseline.get("patrimonio_por_ano")
-        ):
+        if baseline.get("imoveis_consolidados") is not None or baseline.get("patrimonio_por_ano"):
             return build_members_from_consolidated(baseline, identity)
         if baseline.get("declarations"):
             return build_members_from_declarations(baseline, identity)
@@ -112,9 +106,7 @@ def _classify_bens_by_grupo(bens_direitos: list) -> dict:
             raw_grupo = raw_grupo[1:]
         grupo = raw_grupo.zfill(2)
 
-        valor = safe_float(
-            bem.get("situacao_atual", bem.get("valor_31_12_atual", 0))
-        )
+        valor = safe_float(bem.get("situacao_atual", bem.get("valor_31_12_atual", 0)))
         descricao = bem.get("descricao", "")
         entry = {"descricao": descricao, "valor_31_12_ano_base": valor}
 
@@ -171,9 +163,7 @@ def _infer_ano_base(decl: dict) -> int:
     return 0
 
 
-def build_members_from_declarations(
-    baseline: dict, identity: MemberIdentity
-) -> tuple[dict, dict]:
+def build_members_from_declarations(baseline: dict, identity: MemberIdentity) -> tuple[dict, dict]:
     """Constrói titular/cônjuge a partir de ``declarations`` E1.5 (IRPF).
 
     Por membro, escolhe a declaração mais recente (maior ``ano_base``),
@@ -229,9 +219,7 @@ def build_members_from_declarations(
         total_dividas = _total_dividas_for(key)
 
         synthetic_total = sum(
-            safe_float(b.get("valor_31_12_ano_base", 0))
-            for cat in bens.values()
-            for b in cat
+            safe_float(b.get("valor_31_12_ano_base", 0)) for cat in bens.values() for b in cat
         )
         # Usa o total declarado como autoridade se > 0; senão fica com o synthetic.
         authoritative = total_bens_decl if total_bens_decl > 0 else synthetic_total
@@ -274,10 +262,13 @@ def _resolve_ano_ref(baseline: dict) -> tuple[str, float, float]:
 
     # Formato E1.5 v2
     resumo = baseline.get("resumo_patrimonial", {}) or {}
-    calculo = baseline.get(
-        "cálculo_patrimonio_liquido",
-        baseline.get("calculo_patrimonio_liquido", {}),
-    ) or {}
+    calculo = (
+        baseline.get(
+            "cálculo_patrimonio_liquido",
+            baseline.get("calculo_patrimonio_liquido", {}),
+        )
+        or {}
+    )
 
     ano_ref = str(date.today().year - 1)
     for key in sorted(resumo.keys()):
@@ -328,10 +319,7 @@ def _is_conjuge_exclusive(item: dict, identity: MemberIdentity) -> bool:
     props = item.get("proprietarios", [])
     if isinstance(props, list):
         names_lower = [p.lower() for p in props if isinstance(p, str)]
-        if (
-            identity.conjuge_key in names_lower
-            and identity.titular_key not in names_lower
-        ):
+        if identity.conjuge_key in names_lower and identity.titular_key not in names_lower:
             return True
 
     return False
@@ -354,13 +342,11 @@ def _imovel_entry_from_consolidated(item: dict, ano_ref: str) -> dict:
     }
 
 
-def _split_imoveis(
-    baseline: dict, identity: MemberIdentity, ano_ref: str
-) -> tuple[list, list]:
+def _split_imoveis(baseline: dict, identity: MemberIdentity, ano_ref: str) -> tuple[list, list]:
     """Divide imóveis consolidados entre titular e cônjuge."""
-    imoveis_list = baseline.get(
-        "imoveis_consolidados", baseline.get("bens_imoveis_consolidados", [])
-    ) or []
+    imoveis_list = (
+        baseline.get("imoveis_consolidados", baseline.get("bens_imoveis_consolidados", [])) or []
+    )
     titular_imoveis: list[dict] = []
     conjuge_imoveis: list[dict] = []
     for im in imoveis_list:
@@ -405,10 +391,7 @@ def _split_investimentos(
         for member_key, categories in inv_raw.items():
             if not isinstance(categories, dict):
                 continue
-            is_conjuge = (
-                identity.conjuge_key
-                and identity.conjuge_key in member_key.lower()
-            )
+            is_conjuge = identity.conjuge_key and identity.conjuge_key in member_key.lower()
             target = conjuge_inv if is_conjuge else titular_inv
             for cat_name, cat_value in categories.items():
                 if cat_name == "total":
@@ -416,18 +399,18 @@ def _split_investimentos(
                 val = safe_float(cat_value)
                 if val == 0:
                     continue
-                target.append({
-                    "descricao": cat_name.replace("_", " ").title(),
-                    "tipo": cat_name,
-                    "valor_31_12_ano_base": val,
-                })
+                target.append(
+                    {
+                        "descricao": cat_name.replace("_", " ").title(),
+                        "tipo": cat_name,
+                        "valor_31_12_ano_base": val,
+                    }
+                )
 
     return titular_inv, conjuge_inv
 
 
-def _split_veiculos(
-    baseline: dict, identity: MemberIdentity, ano_ref: str
-) -> tuple[list, list]:
+def _split_veiculos(baseline: dict, identity: MemberIdentity, ano_ref: str) -> tuple[list, list]:
     """Divide veículos consolidated entre titular e cônjuge."""
     titular: list[dict] = []
     conjuge: list[dict] = []
@@ -443,13 +426,9 @@ def _split_veiculos(
     return titular, conjuge
 
 
-def _split_dividas(
-    baseline: dict, identity: MemberIdentity, ano_ref: str
-) -> tuple[float, float]:
+def _split_dividas(baseline: dict, identity: MemberIdentity, ano_ref: str) -> tuple[float, float]:
     """Soma dívidas por membro. Dívidas compartilhadas → titular (para totalizar)."""
-    dividas_list = baseline.get(
-        "dividas", baseline.get("dividas_consolidadas", [])
-    ) or []
+    dividas_list = baseline.get("dividas", baseline.get("dividas_consolidadas", [])) or []
     titular_div = 0.0
     conjuge_div = 0.0
     for dv in dividas_list:
@@ -470,9 +449,7 @@ def _split_dividas(
     return titular_div, conjuge_div
 
 
-def build_members_from_consolidated(
-    baseline: dict, identity: MemberIdentity
-) -> tuple[dict, dict]:
+def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) -> tuple[dict, dict]:
     """Constrói titular/cônjuge a partir do formato v1.5 consolidated.
 
     Suporta duas convenções de nomes de chaves:
@@ -493,11 +470,7 @@ def build_members_from_consolidated(
     titular_div, conjuge_div = _split_dividas(baseline, identity, ano_ref)
 
     def _sum_items(*lists: list[dict]) -> float:
-        return sum(
-            safe_float(item.get("valor_31_12_ano_base", 0))
-            for lst in lists
-            for item in lst
-        )
+        return sum(safe_float(item.get("valor_31_12_ano_base", 0)) for lst in lists for item in lst)
 
     titular_total = _sum_items(titular_imoveis, titular_inv, titular_vei)
     conjuge_total = _sum_items(conjuge_imoveis, conjuge_inv, conjuge_vei)

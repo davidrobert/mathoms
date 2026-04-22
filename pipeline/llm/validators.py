@@ -10,19 +10,30 @@ import re
 from typing import Any
 
 from pipeline.llm.schemas.e1_members import MembersExtractOutput
-from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
 from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
-
+from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
 
 VALID_ROLES = {"titular", "conjuge", "filho", "dependente"}
 VALID_ACCOUNT_TYPES = {"extratoconta", "cartao_credito", "investimento", "poupanca"}
 VALID_CATEGORIES = {
-    "imovel", "veiculo", "investimento", "conta_corrente",
-    "poupanca", "previdencia", "outros",
+    "imovel",
+    "veiculo",
+    "investimento",
+    "conta_corrente",
+    "poupanca",
+    "previdencia",
+    "outros",
 }
 VALID_INVESTMENT_TYPES = {
-    "cdb", "lci", "lca", "fundo", "acao", "tesouro",
-    "poupanca", "previdencia", "outros",
+    "cdb",
+    "lci",
+    "lca",
+    "fundo",
+    "acao",
+    "tesouro",
+    "poupanca",
+    "previdencia",
+    "outros",
 }
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 PERIOD_RE = re.compile(r"^\d{6}$")
@@ -129,9 +140,11 @@ def validate_e15_output(output: BaselinePatrimonialOutput) -> ValidationResult:
             f"sum of positive items ({computed_assets})"
         )
 
-    if output.net_worth_brl != 0 and abs(
-        output.net_worth_brl - (output.total_assets_brl - output.total_liabilities_brl)
-    ) > 1.0:
+    if (
+        output.net_worth_brl != 0
+        and abs(output.net_worth_brl - (output.total_assets_brl - output.total_liabilities_brl))
+        > 1.0
+    ):
         r.warn("E1.5: net_worth_brl doesn't match total_assets - total_liabilities")
 
     if not output.reference_year or output.reference_year < 2000:

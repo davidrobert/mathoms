@@ -23,16 +23,15 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.artifact_store import (  # noqa: E402
+    _STAGE_TO_DIR,
+    _STAGE_TO_SUFFIX,
     ArtifactStore,
     DiskArtifactStore,
     InMemoryArtifactStore,
     ReadableArtifactStore,
-    _STAGE_TO_DIR,
-    _STAGE_TO_SUFFIX,
     stage_dir_name,
     stage_suffix,
 )
-
 
 # =============================================================================
 # InMemoryArtifactStore

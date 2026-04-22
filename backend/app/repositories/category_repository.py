@@ -53,9 +53,7 @@ class CategoryRepository:
         )
         return list(result.scalars().all())
 
-    async def get_by_id(
-        self, workspace_id: str, category_id: str
-    ) -> Optional[Category]:
+    async def get_by_id(self, workspace_id: str, category_id: str) -> Optional[Category]:
         """Retorna categoria por id dentro do workspace (sem keywords)."""
         result = await self._session.execute(
             select(Category).where(
@@ -86,9 +84,7 @@ class CategoryRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_by_code(
-        self, workspace_id: str, code: str
-    ) -> Optional[Category]:
+    async def get_by_code(self, workspace_id: str, code: str) -> Optional[Category]:
         """Retorna categoria por ``code`` dentro do workspace (único no ws)."""
         result = await self._session.execute(
             select(Category).where(
@@ -153,9 +149,7 @@ class CategoryRepository:
 
         # Refresh com keywords eager para manter invariante (agregado completo).
         result = await self._session.execute(
-            select(Category)
-            .where(Category.id == cat.id)
-            .options(selectinload(Category.keywords))
+            select(Category).where(Category.id == cat.id).options(selectinload(Category.keywords))
         )
         return result.scalar_one()
 
@@ -199,9 +193,7 @@ class CategoryRepository:
         o cascade orphan declarado no relationship.
         """
         await self._session.execute(
-            sql_delete(CategoryKeyword).where(
-                CategoryKeyword.category_id == category.id
-            )
+            sql_delete(CategoryKeyword).where(CategoryKeyword.category_id == category.id)
         )
         # Expira as keywords do identity map: o bulk DELETE acima removeu as
         # rows e, sem isso, o cascade orphan re-emite DELETEs que não casam
@@ -242,9 +234,7 @@ class CategoryRepository:
     # Keywords — sub-entidade do agregado
     # -------------------------------------------------------------------
 
-    async def replace_keywords(
-        self, category: Category, keywords: list[str]
-    ) -> None:
+    async def replace_keywords(self, category: Category, keywords: list[str]) -> None:
         """Substitui todas as keywords da categoria pelo conteúdo de ``keywords``.
 
         Pré-condição: ``category.keywords`` já está eager-loaded (caller

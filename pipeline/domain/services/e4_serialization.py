@@ -26,7 +26,6 @@ from typing import Mapping
 
 from pipeline.domain.services.e4_categorizer_adapter import CategorizationResult
 
-
 # Chaves de artifact aceitas pelo ``DiskArtifactStore`` para o stage ``E4``
 # (o store anexa ``-4_unified.json`` via ``stage_suffix``).
 ARTIFACT_KEYS: tuple[str, ...] = (

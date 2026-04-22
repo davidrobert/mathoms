@@ -42,20 +42,24 @@ def check_orphans() -> list[dict[str, Any]]:
         if any(stem_norm.startswith(_h.normalize(p)) for p in SYNTHESIZED_PREFIXES):
             continue
         if stem_norm not in data_stems:
-            issues.append({
-                "file": fpath.name,
-                "issue": f"E2 JSON sem arquivo original correspondente em data/financial_statements/",
-                "severity": "INFO",
-            })
+            issues.append(
+                {
+                    "file": fpath.name,
+                    "issue": "E2 JSON sem arquivo original correspondente em data/financial_statements/",
+                    "severity": "INFO",
+                }
+            )
 
     # Files in data/ with no E2 JSON (might just not have been processed yet)
     for stem_norm, fpath in sorted(data_stems.items()):
         if stem_norm not in e2_stems:
-            issues.append({
-                "file": fpath.name,
-                "issue": f"Arquivo em data/ sem E2 JSON correspondente — talvez não processado?",
-                "severity": "INFO",
-            })
+            issues.append(
+                {
+                    "file": fpath.name,
+                    "issue": "Arquivo em data/ sem E2 JSON correspondente — talvez não processado?",
+                    "severity": "INFO",
+                }
+            )
 
     return issues
 
@@ -95,11 +99,13 @@ def check_duplicates() -> list[dict[str, Any]]:
         for (start, end), count in period_counter.items():
             if count > 1:
                 dupes = [p[3] for p in periods if p[0] == start and p[1] == end]
-                issues.append({
-                    "file": ", ".join(dupes),
-                    "issue": f"Possível duplicata: {banco}/{tipo} período {start}-{end} aparece {count}x",
-                    "severity": "WARNING",
-                })
+                issues.append(
+                    {
+                        "file": ", ".join(dupes),
+                        "issue": f"Possível duplicata: {banco}/{tipo} período {start}-{end} aparece {count}x",
+                        "severity": "WARNING",
+                    }
+                )
 
         # Check for overlapping periods (one file contained inside another)
         for i, (s1, e1, _, f1) in enumerate(periods):
@@ -108,17 +114,21 @@ def check_duplicates() -> list[dict[str, Any]]:
                     continue
                 # Check if period2 is fully contained in period1 or vice-versa
                 if int(s1) <= int(s2) and int(e1) >= int(e2) and (s1, e1) != (s2, e2):
-                    issues.append({
-                        "file": f"{f1} vs {f2}",
-                        "issue": f"Período sobreposto: {f1} ({s1}-{e1}) contém {f2} ({s2}-{e2})",
-                        "severity": "INFO",
-                    })
+                    issues.append(
+                        {
+                            "file": f"{f1} vs {f2}",
+                            "issue": f"Período sobreposto: {f1} ({s1}-{e1}) contém {f2} ({s2}-{e2})",
+                            "severity": "INFO",
+                        }
+                    )
                 elif int(s2) <= int(s1) and int(e2) >= int(e1) and (s1, e1) != (s2, e2):
-                    issues.append({
-                        "file": f"{f2} vs {f1}",
-                        "issue": f"Período sobreposto: {f2} ({s2}-{e2}) contém {f1} ({s1}-{e1})",
-                        "severity": "INFO",
-                    })
+                    issues.append(
+                        {
+                            "file": f"{f2} vs {f1}",
+                            "issue": f"Período sobreposto: {f2} ({s2}-{e2}) contém {f1} ({s1}-{e1})",
+                            "severity": "INFO",
+                        }
+                    )
 
     return issues
 
@@ -153,11 +163,13 @@ def check_hash_duplicates() -> list[dict[str, Any]]:
             severity = "WARNING"
             msg = f"Conteúdo idêntico dentro de {dirs_involved.pop()}/ (SHA256: {h[:12]}...): {', '.join(names)}"
 
-        issues.append({
-            "file": ", ".join(f.name for f in files),
-            "issue": msg,
-            "severity": severity,
-        })
+        issues.append(
+            {
+                "file": ", ".join(f.name for f in files),
+                "issue": msg,
+                "severity": severity,
+            }
+        )
 
     return issues
 

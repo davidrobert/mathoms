@@ -58,9 +58,7 @@ class InternalTransferConfig:
     global_transfer_patterns: tuple[str, ...] = ()
 
     @classmethod
-    def from_categorization(
-        cls, categorization: dict | None = None
-    ) -> "InternalTransferConfig":
+    def from_categorization(cls, categorization: dict | None = None) -> "InternalTransferConfig":
         """Constrói a partir do dict ``categorization.json``.
 
         Esperado:
@@ -79,9 +77,7 @@ class InternalTransferConfig:
             if not str(k).startswith("_")
         }
         return cls(
-            internal_patterns=tuple(
-                str(p) for p in (cat.get("internal_transfer_patterns") or [])
-            ),
+            internal_patterns=tuple(str(p) for p in (cat.get("internal_transfer_patterns") or [])),
             internal_recipients=tuple(
                 str(r) for r in (cat.get("internal_transfer_recipients") or [])
             ),

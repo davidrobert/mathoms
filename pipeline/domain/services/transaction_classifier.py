@@ -44,7 +44,6 @@ from pipeline.domain.services.internal_transfer_detector import (
 )
 from pipeline.domain.services.keyword_matcher import KeywordMatcher
 
-
 # =============================================================================
 # Helpers
 # =============================================================================
@@ -120,9 +119,7 @@ class ClassifierConfig:
 
     expense_keywords: dict[str, list[str]] = field(default_factory=dict)
     income_keywords: dict[str, list[str]] = field(default_factory=dict)
-    transfer_config: InternalTransferConfig = field(
-        default_factory=InternalTransferConfig
-    )
+    transfer_config: InternalTransferConfig = field(default_factory=InternalTransferConfig)
     origin_config: IncomeOriginConfig = field(default_factory=IncomeOriginConfig)
     # Fallback de categoria quando keyword não bate (paridade com e4_categorize
     # v4.8/#3.2): receitas → "outras_receitas"; despesas → "nao_identificado".
@@ -145,15 +142,10 @@ class ClassifierConfig:
         # linhas 74-79 faz exatamente isso).
         transfers = fam.get("transferencias_internas", {}) or {}
         combined_cat = {
-            "internal_transfer_patterns": list(
-                cat.get("internal_transfer_patterns") or []
-            )
+            "internal_transfer_patterns": list(cat.get("internal_transfer_patterns") or [])
             + list(transfers.get("patterns_pix") or []),
             "internal_transfer_recipients": list(transfers.get("recipients") or []),
-            "bank_specific_transfer_patterns": transfers.get(
-                "patterns_bank_specific", {}
-            )
-            or {},
+            "bank_specific_transfer_patterns": transfers.get("patterns_bank_specific", {}) or {},
             "global_transfer_patterns": list(transfers.get("patterns_global") or []),
         }
 
@@ -232,9 +224,7 @@ class TransactionClassifier:
 
     # -- API --
 
-    def classify_account(
-        self, account: dict
-    ) -> list[ClassifiedTransaction]:
+    def classify_account(self, account: dict) -> list[ClassifiedTransaction]:
         """Processa todas as transações de um extrato reconciliado (E3).
 
         Formato de entrada: dict conforme ``*-3_reconciled.json`` (``banco``,
@@ -248,9 +238,7 @@ class TransactionClassifier:
         banco_raw = account.get("banco", "Unknown") or "Unknown"
         banco_norm = _normalize_text(banco_raw).lower() if banco_raw else "unknown"
         tipo_conta_raw = account.get("tipo_conta", "") or ""
-        tipo_conta = (
-            _normalize_text(tipo_conta_raw).lower() if tipo_conta_raw else ""
-        )
+        tipo_conta = _normalize_text(tipo_conta_raw).lower() if tipo_conta_raw else ""
         titular = account.get("titular", "") or ""
         moeda = account.get("moeda", "BRL") or "BRL"
 
@@ -258,20 +246,20 @@ class TransactionClassifier:
         for tx in account["transacoes"] or []:
             if not isinstance(tx, dict):
                 continue
-            results.append(self._classify_one(
-                tx,
-                banco_raw=banco_raw,
-                banco_norm=banco_norm,
-                tipo_conta=tipo_conta,
-                tipo_conta_raw=tipo_conta_raw,
-                titular=titular,
-                moeda=moeda,
-            ))
+            results.append(
+                self._classify_one(
+                    tx,
+                    banco_raw=banco_raw,
+                    banco_norm=banco_norm,
+                    tipo_conta=tipo_conta,
+                    tipo_conta_raw=tipo_conta_raw,
+                    titular=titular,
+                    moeda=moeda,
+                )
+            )
         return results
 
-    def classify_all(
-        self, accounts: Iterable[dict]
-    ) -> list[ClassifiedTransaction]:
+    def classify_all(self, accounts: Iterable[dict]) -> list[ClassifiedTransaction]:
         """Classifica todas as transações de múltiplos extratos reconciliados."""
         out: list[ClassifiedTransaction] = []
         for acc in accounts:
@@ -299,9 +287,7 @@ class TransactionClassifier:
         # 1. Detecção precoce de transferência interna (antes de decidir
         #    receita vs despesa). Paridade com `process_transactions`
         #    linhas 640-651.
-        if self._transfer_detector.is_internal_transfer(
-            descricao_raw, banco=banco_raw
-        ):
+        if self._transfer_detector.is_internal_transfer(descricao_raw, banco=banco_raw):
             return ClassifiedTransaction(
                 kind="transferencia",
                 data=data,
@@ -319,9 +305,7 @@ class TransactionClassifier:
             categoria = self._income_matcher.category_of(descricao_raw)
             if not categoria:
                 categoria = self._config.default_income_category
-            origem = self._origin_resolver.resolve_for_category(
-                categoria, descricao_raw
-            )
+            origem = self._origin_resolver.resolve_for_category(categoria, descricao_raw)
             return ClassifiedTransaction(
                 kind="receita",
                 data=data,
@@ -341,9 +325,7 @@ class TransactionClassifier:
         if categoria_exp is None:
             # Segundo check de transferência interna (paridade com v5.1, linha
             # 697): algumas descrições só batem em transferência via `banco`.
-            if self._transfer_detector.is_internal_transfer(
-                descricao_raw, banco=banco_norm
-            ):
+            if self._transfer_detector.is_internal_transfer(descricao_raw, banco=banco_norm):
                 return ClassifiedTransaction(
                     kind="transferencia",
                     data=data,

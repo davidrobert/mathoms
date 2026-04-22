@@ -17,9 +17,7 @@ class TestValidateArtifact:
             "banco": "itau",
             "tipo": "extratoconta",
             "moeda": "BRL",
-            "transacoes": [
-                {"data": "2026-01-15", "descricao": "PIX", "valor": -100.0}
-            ],
+            "transacoes": [{"data": "2026-01-15", "descricao": "PIX", "valor": -100.0}],
         }
         path = tmp_path / "test.json"
         path.write_text(json.dumps(data))

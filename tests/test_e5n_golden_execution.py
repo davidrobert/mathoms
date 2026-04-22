@@ -11,7 +11,9 @@ import pytest
 from tests.pipeline_golden_asserts import assert_qa_log_md
 
 _REPO = Path(__file__).resolve().parents[1]
-_E3_FIXTURE = _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-3_reconciled.json"
+_E3_FIXTURE = (
+    _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-3_reconciled.json"
+)
 
 _GOALS_MIN = {
     "independencia_financeira": {
@@ -96,9 +98,14 @@ def e5n_tenant_with_conjuge(tmp_path: Path) -> Path:
 
 def test_e5n_execution_injects_narrativas(e5_tenant_minimal: Path):
     """Após E5, `e5n_narrativas.main` injeta `narrativas` válidas (spec E5.N)."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT, _init_config as e4_init, main as e4_main
-    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT, _init_config as e5_init, main as e5_main
-    from scripts.e5n_narrativas import _DEFAULT_BASE_DIR as E5N_DEFAULT, _init_config as e5n_init
+    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT
+    from scripts.e4_categorize import _init_config as e4_init
+    from scripts.e4_categorize import main as e4_main
+    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT
+    from scripts.e5_analyze import _init_config as e5_init
+    from scripts.e5_analyze import main as e5_main
+    from scripts.e5n_narrativas import _DEFAULT_BASE_DIR as E5N_DEFAULT
+    from scripts.e5n_narrativas import _init_config as e5n_init
     from scripts.e5n_narrativas import main as e5n_main
     from scripts.e5n_narrativas import validate_narrativas
     from scripts.pipeline_common import _init_config as pc_init
@@ -139,9 +146,14 @@ def test_e5n_execution_injects_narrativas(e5_tenant_minimal: Path):
 
 def test_e5n_execution_narrativas_with_conjuge_chart(e5n_tenant_with_conjuge: Path):
     """Com cônjuge em `family_members`, o chart obrigatório passa a ser `ana_cenarios` (não só `_cenarios`)."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT, _init_config as e4_init, main as e4_main
-    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT, _init_config as e5_init, main as e5_main
-    from scripts.e5n_narrativas import _DEFAULT_BASE_DIR as E5N_DEFAULT, _init_config as e5n_init
+    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT
+    from scripts.e4_categorize import _init_config as e4_init
+    from scripts.e4_categorize import main as e4_main
+    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT
+    from scripts.e5_analyze import _init_config as e5_init
+    from scripts.e5_analyze import main as e5_main
+    from scripts.e5n_narrativas import _DEFAULT_BASE_DIR as E5N_DEFAULT
+    from scripts.e5n_narrativas import _init_config as e5n_init
     from scripts.e5n_narrativas import main as e5n_main
     from scripts.e5n_narrativas import validate_narrativas
     from scripts.pipeline_common import _init_config as pc_init
@@ -158,7 +170,12 @@ def test_e5n_execution_narrativas_with_conjuge_chart(e5n_tenant_with_conjuge: Pa
         pc_init(_REPO)
         ok = e5n_main(root_dir=e5n_tenant_with_conjuge)
 
-        out = e5n_tenant_with_conjuge / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+        out = (
+            e5n_tenant_with_conjuge
+            / "processed"
+            / "E5_analysis"
+            / "analise_financeira-5_analysis.json"
+        )
         payload = json.loads(out.read_text(encoding="utf-8"))
         narr = payload.get("narrativas")
         narr_ok, val_errors = validate_narrativas(narr or {})

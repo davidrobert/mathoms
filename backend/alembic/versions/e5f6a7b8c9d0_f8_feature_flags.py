@@ -10,13 +10,13 @@ Uma linha por workspace com dict JSON `{flag: bool}`. Defaults em código
 (`feature_flags_service.DEFAULTS`) — rows criadas sob demanda ao mudar
 uma flag.
 """
+
 from __future__ import annotations
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "e5f6a7b8c9d0"
 down_revision: Union[str, None] = "d4e5f6a7b8c9"
@@ -41,17 +41,11 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.func.now(),
         ),
-        sa.UniqueConstraint(
-            "workspace_id", name="uq_feature_flags_workspace"
-        ),
+        sa.UniqueConstraint("workspace_id", name="uq_feature_flags_workspace"),
     )
-    op.create_index(
-        "ix_feature_flags_workspace_id", "feature_flags", ["workspace_id"]
-    )
+    op.create_index("ix_feature_flags_workspace_id", "feature_flags", ["workspace_id"])
 
 
 def downgrade() -> None:
-    op.drop_index(
-        "ix_feature_flags_workspace_id", table_name="feature_flags"
-    )
+    op.drop_index("ix_feature_flags_workspace_id", table_name="feature_flags")
     op.drop_table("feature_flags")

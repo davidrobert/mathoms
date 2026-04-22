@@ -11,9 +11,25 @@ import pytest
 from tests.pipeline_golden_asserts import assert_qa_log_md
 
 _REPO = Path(__file__).resolve().parents[1]
-_E3_FIXTURE = _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-3_reconciled.json"
-_E3_MIXED = _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-com-despesa-3_reconciled.json"
-_BASELINE_MIN = _REPO / "tests" / "fixtures" / "pipeline_golden" / "e2" / "minimal-baseline-1.5_consolidated.json"
+_E3_FIXTURE = (
+    _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-3_reconciled.json"
+)
+_E3_MIXED = (
+    _REPO
+    / "tests"
+    / "fixtures"
+    / "pipeline_golden"
+    / "e3"
+    / "minimal-conta-com-despesa-3_reconciled.json"
+)
+_BASELINE_MIN = (
+    _REPO
+    / "tests"
+    / "fixtures"
+    / "pipeline_golden"
+    / "e2"
+    / "minimal-baseline-1.5_consolidated.json"
+)
 
 
 @pytest.fixture
@@ -103,7 +119,9 @@ def e4_tenant_with_baseline(tmp_path: Path) -> Path:
 
 def test_e4_execution_produces_unified_json(e4_tenant_minimal: Path):
     """Roda e4_categorize.main em tenant isolado; restaura globals."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR, _init_config as e4_init, main as e4_main
+    from scripts.e4_categorize import _DEFAULT_BASE_DIR
+    from scripts.e4_categorize import _init_config as e4_init
+    from scripts.e4_categorize import main as e4_main
     from scripts.pipeline_common import _init_config as pc_init
 
     try:
@@ -158,7 +176,9 @@ def test_e4_execution_produces_unified_json(e4_tenant_minimal: Path):
 
 def test_e4_execution_mixed_receita_despesa(e4_tenant_mixed_cashflow: Path):
     """Cenário com despesa categorizada (golden expandido)."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR, _init_config as e4_init, main as e4_main
+    from scripts.e4_categorize import _DEFAULT_BASE_DIR
+    from scripts.e4_categorize import _init_config as e4_init
+    from scripts.e4_categorize import main as e4_main
     from scripts.pipeline_common import _init_config as pc_init
 
     try:
@@ -189,7 +209,9 @@ def test_e4_execution_mixed_receita_despesa(e4_tenant_mixed_cashflow: Path):
 
 def test_e4_execution_with_baseline_patrimonial(e4_tenant_with_baseline: Path):
     """E4 com baseline: patrimonio-4_unified espelha o consolidado (schema baseline, não e4_unified)."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR, _init_config as e4_init, main as e4_main
+    from scripts.e4_categorize import _DEFAULT_BASE_DIR
+    from scripts.e4_categorize import _init_config as e4_init
+    from scripts.e4_categorize import main as e4_main
     from scripts.pipeline_common import _init_config as pc_init
 
     try:
@@ -209,7 +231,9 @@ def test_e4_execution_with_baseline_patrimonial(e4_tenant_with_baseline: Path):
 
     jsonschema = pytest.importorskip("jsonschema")
     baseline_schema = json.loads(
-        (_REPO / "config" / "schemas" / "baseline_patrimonial.schema.json").read_text(encoding="utf-8")
+        (_REPO / "config" / "schemas" / "baseline_patrimonial.schema.json").read_text(
+            encoding="utf-8"
+        )
     )
     e4_schema = json.loads(
         (_REPO / "config" / "schemas" / "e4_unified.schema.json").read_text(encoding="utf-8")

@@ -15,13 +15,13 @@ de acesso a workspace passa por `workspace_members`, não por
 A migration é idempotente: se executada duas vezes, não duplica backfill
 (INSERT condicional em linhas que ainda não existem).
 """
+
 from __future__ import annotations
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "a9b8c7d6e5f4"
 down_revision: Union[str, None] = "f1a2b3c4d5e6"
@@ -95,19 +95,14 @@ def upgrade() -> None:
         return
 
     conn = op.get_bind()
-    workspaces = conn.execute(
-        sa.text(
-            "SELECT id, owner_id, created_at FROM workspaces"
-        )
-    ).fetchall()
+    workspaces = conn.execute(sa.text("SELECT id, owner_id, created_at FROM workspaces")).fetchall()
     import uuid
 
     for ws in workspaces:
         ws_id, owner_id, created_at = ws
         existing = conn.execute(
             sa.text(
-                "SELECT 1 FROM workspace_members "
-                "WHERE workspace_id = :ws AND user_id = :uid"
+                "SELECT 1 FROM workspace_members " "WHERE workspace_id = :ws AND user_id = :uid"
             ),
             {"ws": ws_id, "uid": owner_id},
         ).fetchone()

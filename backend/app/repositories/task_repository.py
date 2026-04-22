@@ -115,15 +115,11 @@ class TaskRepository:
         para preservar ordem histórica do ``tarefas.md`` legado.
         """
         result = await self._session.execute(
-            select(Task)
-            .where(Task.workspace_id == workspace_id)
-            .order_by(Task.number.asc())
+            select(Task).where(Task.workspace_id == workspace_id).order_by(Task.number.asc())
         )
         return list(result.scalars().all())
 
-    async def get_by_id(
-        self, workspace_id: str, task_id: str
-    ) -> Optional[Task]:
+    async def get_by_id(self, workspace_id: str, task_id: str) -> Optional[Task]:
         """Retorna task por id dentro do workspace, ou ``None``."""
         result = await self._session.execute(
             select(Task).where(
@@ -133,9 +129,7 @@ class TaskRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_by_number(
-        self, workspace_id: str, number: int
-    ) -> Optional[Task]:
+    async def get_by_number(self, workspace_id: str, number: int) -> Optional[Task]:
         """Retorna task por ``number`` (único por workspace) ou ``None``."""
         result = await self._session.execute(
             select(Task).where(
@@ -145,9 +139,7 @@ class TaskRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list_by_parent(
-        self, workspace_id: str, parent_task_id: str
-    ) -> list[Task]:
+    async def list_by_parent(self, workspace_id: str, parent_task_id: str) -> list[Task]:
         """Retorna subtasks (filhos diretos) de uma task."""
         result = await self._session.execute(
             select(Task)
@@ -166,9 +158,7 @@ class TaskRepository:
         Retorna ``1`` se o workspace ainda não tem tasks.
         """
         result = await self._session.execute(
-            select(func.max(Task.number)).where(
-                Task.workspace_id == workspace_id
-            )
+            select(func.max(Task.number)).where(Task.workspace_id == workspace_id)
         )
         current_max = result.scalar_one_or_none()
         return (current_max or 0) + 1

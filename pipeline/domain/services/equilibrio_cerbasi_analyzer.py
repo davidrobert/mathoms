@@ -31,16 +31,33 @@ def _safe_float(val) -> float:
 # =============================================================================
 
 
-_DEFAULT_PRESENTE = frozenset({
-    "moradia", "alimentacao", "transporte", "saude", "lazer",
-    "servicos_domesticos", "pets", "cuidados_pessoais",
-    "assinaturas", "vestuario", "compras_online",
-})
+_DEFAULT_PRESENTE = frozenset(
+    {
+        "moradia",
+        "alimentacao",
+        "transporte",
+        "saude",
+        "lazer",
+        "servicos_domesticos",
+        "pets",
+        "cuidados_pessoais",
+        "assinaturas",
+        "vestuario",
+        "compras_online",
+    }
+)
 
-_DEFAULT_FUTURO = frozenset({
-    "educacao", "investimentos", "previdencia", "financeiro",
-    "reserva_desejos", "poupanca", "aportes",
-})
+_DEFAULT_FUTURO = frozenset(
+    {
+        "educacao",
+        "investimentos",
+        "previdencia",
+        "financeiro",
+        "reserva_desejos",
+        "poupanca",
+        "aportes",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -96,9 +113,7 @@ class EquilibrioCerbasiConfig:
             categorias_presente=(
                 frozenset(str(c) for c in presente) if presente else _DEFAULT_PRESENTE
             ),
-            categorias_futuro=(
-                frozenset(str(c) for c in futuro) if futuro else _DEFAULT_FUTURO
-            ),
+            categorias_futuro=(frozenset(str(c) for c in futuro) if futuro else _DEFAULT_FUTURO),
             classificacao=classif,
         )
 
@@ -158,12 +173,8 @@ class EquilibrioCerbasiAnalyzer:
         gasto_presente += gasto_nao_classificado
         gasto_total = gasto_presente + gasto_futuro
 
-        pct_presente = (
-            round(gasto_presente / gasto_total * 100, 1) if gasto_total > 0 else 0.0
-        )
-        pct_futuro = (
-            round(gasto_futuro / gasto_total * 100, 1) if gasto_total > 0 else 0.0
-        )
+        pct_presente = round(gasto_presente / gasto_total * 100, 1) if gasto_total > 0 else 0.0
+        pct_futuro = round(gasto_futuro / gasto_total * 100, 1) if gasto_total > 0 else 0.0
 
         classificacao = self._classify(pct_futuro)
 

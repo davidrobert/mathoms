@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """
 E0-route — Roteamento automático de arquivos do inbox para diretórios de destino.
 
@@ -65,10 +66,12 @@ _init_config(_pc.PROJECT_DIR)
 # ---------------------------------------------------------------------------
 _LOG_LINES: list[str] = []
 
+
 def log(level: str, msg: str) -> None:
     line = f"[{level}] {msg}"
     print(line)
     _LOG_LINES.append(line)
+
 
 # ---------------------------------------------------------------------------
 # Institution patterns  (Seção 3.1, Passo 2 do manual) — from config
@@ -77,24 +80,28 @@ def _build_institution_patterns() -> list[tuple[re.Pattern, str]]:
     cfg_list = INST_CONFIG.get("institution_patterns", [])
     if cfg_list:
         return [(re.compile(p["regex"], re.I), p["canonical"]) for p in cfg_list]
-    print("  [WARN] institution_patterns não encontrado em institutions.json — usando defaults hardcoded")
+    print(
+        "  [WARN] institution_patterns não encontrado em institutions.json — usando defaults hardcoded"
+    )
     return [
-        (re.compile(r"c6|carbon|c6bank", re.I),                   "c6bank"),
-        (re.compile(r"itau|itaú|personnalite|paoacucar", re.I),   "itau"),
-        (re.compile(r"santander|unique", re.I),                    "santander"),
-        (re.compile(r"bradesco", re.I),                            "bradesco"),
-        (re.compile(r"btg|btgpactual", re.I),                     "btgpactual"),
-        (re.compile(r"rico|xp", re.I),                              "rico"),
-        (re.compile(r"picpay", re.I),                              "picpay"),
-        (re.compile(r"wise|transferwise", re.I),                   "wise"),
+        (re.compile(r"c6|carbon|c6bank", re.I), "c6bank"),
+        (re.compile(r"itau|itaú|personnalite|paoacucar", re.I), "itau"),
+        (re.compile(r"santander|unique", re.I), "santander"),
+        (re.compile(r"bradesco", re.I), "bradesco"),
+        (re.compile(r"btg|btgpactual", re.I), "btgpactual"),
+        (re.compile(r"rico|xp", re.I), "rico"),
+        (re.compile(r"picpay", re.I), "picpay"),
+        (re.compile(r"wise|transferwise", re.I), "wise"),
         (re.compile(r"bofa|bankofamerica|bank.of.america", re.I), "bankofamerica"),
-        (re.compile(r"quintoandar|quinto.andar", re.I),           "quintoandar"),
-        (re.compile(r"binance", re.I),                             "binance"),
-        (re.compile(r"receita|rfb|irpf", re.I),                   "receitafederal"),
-        (re.compile(r"einstein|sociedade.beneficente", re.I),      "einstein"),
+        (re.compile(r"quintoandar|quinto.andar", re.I), "quintoandar"),
+        (re.compile(r"binance", re.I), "binance"),
+        (re.compile(r"receita|rfb|irpf", re.I), "receitafederal"),
+        (re.compile(r"einstein|sociedade.beneficente", re.I), "einstein"),
     ]
 
+
 INSTITUTION_PATTERNS = _build_institution_patterns()
+
 
 # ---------------------------------------------------------------------------
 # Document-type patterns  (Seção 3.1, Passo 3 do manual) — from config
@@ -103,51 +110,114 @@ def _build_doc_type_patterns() -> list[tuple[re.Pattern, str, str]]:
     cfg_list = INST_CONFIG.get("doc_type_patterns", [])
     if cfg_list:
         return [(re.compile(p["regex"], re.I), p["type"], p["group"]) for p in cfg_list]
-    print("  [WARN] doc_type_patterns não encontrado em institutions.json — usando defaults hardcoded")
+    print(
+        "  [WARN] doc_type_patterns não encontrado em institutions.json — usando defaults hardcoded"
+    )
     return [
-        (re.compile(r"irpf.*declara[cç]", re.I),               "irpfdeclaracao",       "income_tax_br"),
-        (re.compile(r"irpf.*recibo|recibo.*irpf", re.I),       "irpfrecibo",           "income_tax_br"),
-        (re.compile(r"informe.*rendimento.*aluguel", re.I),    "informerendimentosaluguel", "income_tax_br"),
-        (re.compile(r"informe.*rendimento", re.I),              "informerendimentos",   "income_tax_br"),
-        (re.compile(r"dados?.?im[oó]ve", re.I),                "dados_imoveis",        "real_estate"),
-        (re.compile(r"dados?.?ve[ií]culo|vehicles|carros", re.I), "dados_veiculos",    "vehicles"),
-        (re.compile(r"curriculo|resume|cv(?!\d)", re.I),       "curriculo",            "members"),
-        (re.compile(r"holerite|contracheque|folha.?pagamento", re.I), "holerite",      "members"),
-        (re.compile(r"\brg\b|registro.?geral|identidade", re.I), "rg",                "members"),
-        (re.compile(r"\bcpf\b|pessoa.?f[ií]sica", re.I),       "cpf",                 "members"),
-        (re.compile(r"passaporte|passport", re.I),              "passaporte",           "members"),
-        (re.compile(r"visto\b|visa\b", re.I),                   "visto",               "members"),
-        (re.compile(r"certid[aã]o.*nascimento", re.I),         "certidao_nascimento",  "members"),
-        (re.compile(r"certid[aã]o.*casamento", re.I),          "certidao_casamento",   "members"),
-        (re.compile(r"\bssn\b|social.?security", re.I),         "ssn",                 "members"),
-        (re.compile(r"driver|carteira.?motorista", re.I),       "drivers_license",      "members"),
-        (re.compile(r"green.?card|resident", re.I),             "green_card",           "members"),
-        (re.compile(r"(?:extrato.*)?personnalite", re.I),       "extratocontapersonnalite", "financial_statements"),
-        (re.compile(r"extrato.*pj|pj.*extrato", re.I),        "extratocontapj",       "financial_statements"),
-        (re.compile(r"extrato.*global.*usd|usd.*global", re.I), "extratocontaglobalusd", "financial_statements"),
-        (re.compile(r"extrato.*global.*eur|eur.*global", re.I), "extratocontaglobaleur", "financial_statements"),
-        (re.compile(r"extrato.*poupan[cç]a|caderneta|savings", re.I), "extratopoupanca", "financial_statements"),
-        (re.compile(r"extrato.*conta.*brl|extratocontabrl", re.I), "extratocontabrl", "financial_statements"),
-        (re.compile(r"extrato.*conta.*usd|extratocontausd", re.I), "extratocontausd", "financial_statements"),
-        (re.compile(r"extrato.*conta.*eur|extratocontaeur", re.I), "extratocontaeur", "financial_statements"),
-        (re.compile(r"extrato|lan[cç]amento|statement", re.I), "extratoconta",         "financial_statements"),
-        (re.compile(r"fatura.*carbon", re.I),                   "faturacarbon",         "financial_statements"),
-        (re.compile(r"fatura.*unique", re.I),                   "faturaunique",         "financial_statements"),
-        (re.compile(r"fatura.*p[aã]o.?a[cç][uú]car", re.I),   "faturapaoacucar",      "financial_statements"),
-        (re.compile(r"fatura.*aluguel.*\w+", re.I),              "faturaaluguel",        "financial_statements"),
-        (re.compile(r"fatura.*aluguel", re.I),                 "faturaaluguel",        "financial_statements"),
-        (re.compile(r"fatura", re.I),                          "fatura",               "financial_statements"),
-        (re.compile(r"posi[cç][aã]o|carteira.*invest", re.I), "investimentosposicao", "financial_statements"),
-        (re.compile(r"carteira.*renda.?fixa", re.I),           "carteirarendafixa",    "financial_statements"),
-        (re.compile(r"cdbdetalhesdi1|cdb.*detalhe.*di.?1", re.I), "cdbdetalhesdi1",  "financial_statements"),
-        (re.compile(r"cdbdetalhesdi2|cdb.*detalhe.*di.?2", re.I), "cdbdetalhesdi2",  "financial_statements"),
-        (re.compile(r"cdbdetalhesprog|cdb.*detalhe.*prog", re.I), "cdbdetalhesprog",  "financial_statements"),
-        (re.compile(r"cdbmetaservas|cdb.*meta.*servas", re.I), "cdbmetaservas",       "financial_statements"),
-        (re.compile(r"cdbdi|cdb.*\bdi\b", re.I),               "cdbdi",               "financial_statements"),
-        (re.compile(r"renda.?fixa|cdb.*detalhe", re.I),        "cdbdetalhes",         "financial_statements"),
-        (re.compile(r"cdb.*resumo|resumo.*cdb", re.I),         "cdbresumo",           "financial_statements"),
-        (re.compile(r"cdb", re.I),                              "cdb",                 "financial_statements"),
+        (re.compile(r"irpf.*declara[cç]", re.I), "irpfdeclaracao", "income_tax_br"),
+        (re.compile(r"irpf.*recibo|recibo.*irpf", re.I), "irpfrecibo", "income_tax_br"),
+        (
+            re.compile(r"informe.*rendimento.*aluguel", re.I),
+            "informerendimentosaluguel",
+            "income_tax_br",
+        ),
+        (re.compile(r"informe.*rendimento", re.I), "informerendimentos", "income_tax_br"),
+        (re.compile(r"dados?.?im[oó]ve", re.I), "dados_imoveis", "real_estate"),
+        (re.compile(r"dados?.?ve[ií]culo|vehicles|carros", re.I), "dados_veiculos", "vehicles"),
+        (re.compile(r"curriculo|resume|cv(?!\d)", re.I), "curriculo", "members"),
+        (re.compile(r"holerite|contracheque|folha.?pagamento", re.I), "holerite", "members"),
+        (re.compile(r"\brg\b|registro.?geral|identidade", re.I), "rg", "members"),
+        (re.compile(r"\bcpf\b|pessoa.?f[ií]sica", re.I), "cpf", "members"),
+        (re.compile(r"passaporte|passport", re.I), "passaporte", "members"),
+        (re.compile(r"visto\b|visa\b", re.I), "visto", "members"),
+        (re.compile(r"certid[aã]o.*nascimento", re.I), "certidao_nascimento", "members"),
+        (re.compile(r"certid[aã]o.*casamento", re.I), "certidao_casamento", "members"),
+        (re.compile(r"\bssn\b|social.?security", re.I), "ssn", "members"),
+        (re.compile(r"driver|carteira.?motorista", re.I), "drivers_license", "members"),
+        (re.compile(r"green.?card|resident", re.I), "green_card", "members"),
+        (
+            re.compile(r"(?:extrato.*)?personnalite", re.I),
+            "extratocontapersonnalite",
+            "financial_statements",
+        ),
+        (re.compile(r"extrato.*pj|pj.*extrato", re.I), "extratocontapj", "financial_statements"),
+        (
+            re.compile(r"extrato.*global.*usd|usd.*global", re.I),
+            "extratocontaglobalusd",
+            "financial_statements",
+        ),
+        (
+            re.compile(r"extrato.*global.*eur|eur.*global", re.I),
+            "extratocontaglobaleur",
+            "financial_statements",
+        ),
+        (
+            re.compile(r"extrato.*poupan[cç]a|caderneta|savings", re.I),
+            "extratopoupanca",
+            "financial_statements",
+        ),
+        (
+            re.compile(r"extrato.*conta.*brl|extratocontabrl", re.I),
+            "extratocontabrl",
+            "financial_statements",
+        ),
+        (
+            re.compile(r"extrato.*conta.*usd|extratocontausd", re.I),
+            "extratocontausd",
+            "financial_statements",
+        ),
+        (
+            re.compile(r"extrato.*conta.*eur|extratocontaeur", re.I),
+            "extratocontaeur",
+            "financial_statements",
+        ),
+        (
+            re.compile(r"extrato|lan[cç]amento|statement", re.I),
+            "extratoconta",
+            "financial_statements",
+        ),
+        (re.compile(r"fatura.*carbon", re.I), "faturacarbon", "financial_statements"),
+        (re.compile(r"fatura.*unique", re.I), "faturaunique", "financial_statements"),
+        (
+            re.compile(r"fatura.*p[aã]o.?a[cç][uú]car", re.I),
+            "faturapaoacucar",
+            "financial_statements",
+        ),
+        (re.compile(r"fatura.*aluguel.*\w+", re.I), "faturaaluguel", "financial_statements"),
+        (re.compile(r"fatura.*aluguel", re.I), "faturaaluguel", "financial_statements"),
+        (re.compile(r"fatura", re.I), "fatura", "financial_statements"),
+        (
+            re.compile(r"posi[cç][aã]o|carteira.*invest", re.I),
+            "investimentosposicao",
+            "financial_statements",
+        ),
+        (re.compile(r"carteira.*renda.?fixa", re.I), "carteirarendafixa", "financial_statements"),
+        (
+            re.compile(r"cdbdetalhesdi1|cdb.*detalhe.*di.?1", re.I),
+            "cdbdetalhesdi1",
+            "financial_statements",
+        ),
+        (
+            re.compile(r"cdbdetalhesdi2|cdb.*detalhe.*di.?2", re.I),
+            "cdbdetalhesdi2",
+            "financial_statements",
+        ),
+        (
+            re.compile(r"cdbdetalhesprog|cdb.*detalhe.*prog", re.I),
+            "cdbdetalhesprog",
+            "financial_statements",
+        ),
+        (
+            re.compile(r"cdbmetaservas|cdb.*meta.*servas", re.I),
+            "cdbmetaservas",
+            "financial_statements",
+        ),
+        (re.compile(r"cdbdi|cdb.*\bdi\b", re.I), "cdbdi", "financial_statements"),
+        (re.compile(r"renda.?fixa|cdb.*detalhe", re.I), "cdbdetalhes", "financial_statements"),
+        (re.compile(r"cdb.*resumo|resumo.*cdb", re.I), "cdbresumo", "financial_statements"),
+        (re.compile(r"cdb", re.I), "cdb", "financial_statements"),
     ]
+
 
 DOC_TYPE_PATTERNS = _build_doc_type_patterns()
 
@@ -159,7 +229,7 @@ _DOC_TYPE_LIST = ", ".join(_doc_type_examples)
 # Period extraction regex — from config
 _period_cfg = PIPE_CONFIG.get("period_regex", {})
 PERIOD_RE = re.compile(_period_cfg.get("period", r"(\d{6})(?:_(\d{6}))?"))
-YEAR_RE   = re.compile(_period_cfg.get("year_fallback", r"(20\d{2})"))
+YEAR_RE = re.compile(_period_cfg.get("year_fallback", r"(20\d{2})"))
 
 # Member name patterns (for GRUPO E routing) — from config
 MEMBER_NAMES = [k for k in FAMILY_CONFIG.get("membros", {}).keys() if not k.startswith("_")]
@@ -179,6 +249,7 @@ _LLM_CONFIDENCE_THRESHOLD = _llm_cfg.get("confidence_threshold", 0.7)
 # ---------------------------------------------------------------------------
 # Camada 1 — Classificação determinística por regex
 # ---------------------------------------------------------------------------
+
 
 def detect_institution(filename: str) -> str | None:
     """Detect institution from filename. Returns entity code or None."""
@@ -267,6 +338,7 @@ def classify_by_name(filename: str) -> dict | None:
 # Camada 2 — Classificação por LLM (fallback)
 # ---------------------------------------------------------------------------
 
+
 def _extract_file_preview(filepath: Path, max_chars: int = _PREVIEW_MAX_CHARS) -> str:
     """Extract text preview from file for LLM classification."""
     ext = filepath.suffix.lower()
@@ -274,6 +346,7 @@ def _extract_file_preview(filepath: Path, max_chars: int = _PREVIEW_MAX_CHARS) -
     if ext == ".pdf":
         try:
             import pdfplumber
+
             with pdfplumber.open(filepath) as pdf:
                 text = ""
                 for page in pdf.pages[:3]:
@@ -287,8 +360,10 @@ def _extract_file_preview(filepath: Path, max_chars: int = _PREVIEW_MAX_CHARS) -
     elif ext in (".xls", ".xlsx"):
         try:
             if ext == ".xlsx":
-                import openpyxl
                 import warnings as _warnings
+
+                import openpyxl
+
                 # Lemos sem read_only=True: arquivos com merged cells ou sem default style
                 # retornam conteúdo truncado/incorreto no modo read_only.
                 with _warnings.catch_warnings():
@@ -306,6 +381,7 @@ def _extract_file_preview(filepath: Path, max_chars: int = _PREVIEW_MAX_CHARS) -
                 return "\n".join(rows)[:max_chars]
             else:
                 import xlrd
+
                 wb = xlrd.open_workbook(filepath)
                 ws = wb.sheet_by_index(0)
                 rows = []
@@ -338,6 +414,7 @@ def _pdf_has_text_layer(filepath: Path) -> bool:
     """Return True if the PDF has extractable text (not image-only)."""
     try:
         import pdfplumber
+
         with pdfplumber.open(filepath) as pdf:
             for page in pdf.pages[:2]:
                 if page.extract_text():
@@ -363,20 +440,22 @@ def _build_llm_messages(filepath: Path, preview: str, prompt: str) -> list:
     if ext == ".pdf" and not preview.strip():
         try:
             pdf_b64 = base64.standard_b64encode(filepath.read_bytes()).decode("utf-8")
-            return [{
-                "role": "user",
-                "content": [
-                    {
-                        "type": "document",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "application/pdf",
-                            "data": pdf_b64,
+            return [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "document",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "application/pdf",
+                                "data": pdf_b64,
+                            },
                         },
-                    },
-                    {"type": "text", "text": prompt},
-                ],
-            }]
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ]
         except Exception:
             pass  # fall back to text-only
 
@@ -385,20 +464,22 @@ def _build_llm_messages(filepath: Path, preview: str, prompt: str) -> list:
         try:
             media_type = "image/jpeg" if ext in (".jpg", ".jpeg") else "image/png"
             img_b64 = base64.standard_b64encode(filepath.read_bytes()).decode("utf-8")
-            return [{
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": img_b64,
+            return [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": media_type,
+                                "data": img_b64,
+                            },
                         },
-                    },
-                    {"type": "text", "text": prompt},
-                ],
-            }]
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ]
         except Exception:
             pass  # fall back to text-only
 
@@ -506,10 +587,16 @@ Regras:
             confidence = result.get("confidence", 0)
 
             if confidence < _LLM_CONFIDENCE_THRESHOLD:
-                log("INFO", f"LLM classificou '{filename}' com confiança baixa ({confidence:.1%}) — nao_identificados/")
+                log(
+                    "INFO",
+                    f"LLM classificou '{filename}' com confiança baixa ({confidence:.1%}) — nao_identificados/",
+                )
                 return None
 
-            log("INFO", f"LLM classificou '{filename}' → {result.get('dest_group')}/{result.get('final_name')} (confiança {confidence:.0%})")
+            log(
+                "INFO",
+                f"LLM classificou '{filename}' → {result.get('dest_group')}/{result.get('final_name')} (confiança {confidence:.0%})",
+            )
             result["source"] = "llm"
             return result
 
@@ -519,10 +606,16 @@ Regras:
         except Exception as e:
             if attempt < max_retries - 1:
                 delay = backoff[attempt]
-                log("WARN", f"LLM tentativa {attempt + 1}/{max_retries} falhou para '{filename}': {e}. Retry em {delay}s...")
+                log(
+                    "WARN",
+                    f"LLM tentativa {attempt + 1}/{max_retries} falhou para '{filename}': {e}. Retry em {delay}s...",
+                )
                 time.sleep(delay)
             else:
-                log("ERROR", f"LLM fallback falhou após {max_retries} tentativas para '{filename}': {e}")
+                log(
+                    "ERROR",
+                    f"LLM fallback falhou após {max_retries} tentativas para '{filename}': {e}",
+                )
                 return None
     return None
 
@@ -530,6 +623,7 @@ Regras:
 # ---------------------------------------------------------------------------
 # File operations
 # ---------------------------------------------------------------------------
+
 
 def file_hash(filepath: Path) -> str:
     """SHA-256 hash of file content."""
@@ -652,6 +746,7 @@ def dest_dir_for_group(base: Path, group: str) -> Path:
 # Core routing
 # ---------------------------------------------------------------------------
 
+
 def _routing_dict_from_classify_document(clf: dict, filename: str) -> dict | None:
     """Map :func:`classify_document` output to ``build_final_name`` input, or None."""
     from backend.app.services.document_classification import classification_can_route_to_data
@@ -671,7 +766,9 @@ def _routing_dict_from_classify_document(clf: dict, filename: str) -> dict | Non
     if institution == "einstein" and doc_type == "holerite":
         dest_group = "members"
         institution = None
-    src = meta.get("source", "content_classifier") if isinstance(meta, dict) else "content_classifier"
+    src = (
+        meta.get("source", "content_classifier") if isinstance(meta, dict) else "content_classifier"
+    )
     return {
         "institution": institution,
         "doc_type": doc_type,
@@ -682,8 +779,14 @@ def _routing_dict_from_classify_document(clf: dict, filename: str) -> dict | Non
     }
 
 
-def route_file(filepath: Path, base: Path, *, dry_run: bool = False,
-               use_llm: bool = True, today: str | None = None) -> dict:
+def route_file(
+    filepath: Path,
+    base: Path,
+    *,
+    dry_run: bool = False,
+    use_llm: bool = True,
+    today: str | None = None,
+) -> dict:
     """Route a single file from inbox to its destination.
 
     When the Fin backend is importable, uses the same **content-first**
@@ -704,7 +807,9 @@ def route_file(filepath: Path, base: Path, *, dry_run: bool = False,
     classification = None
     classify_document = None
     try:
-        from backend.app.services.document_classification import classify_document as classify_document
+        from backend.app.services.document_classification import (
+            classify_document as classify_document,
+        )
     except ImportError:
         pass
 
@@ -766,9 +871,13 @@ def route_file(filepath: Path, base: Path, *, dry_run: bool = False,
     final_name = dest_path.name
 
     if dry_run:
-        log("INFO", f"[DRY-RUN] '{filename}' → {dest_group}/{final_name} ({classification['source']})")
+        log(
+            "INFO",
+            f"[DRY-RUN] '{filename}' → {dest_group}/{final_name} ({classification['source']})",
+        )
         return {
-            "file": filename, "status": "would_route",
+            "file": filename,
+            "status": "would_route",
             "dest": f"{dest_group}/{final_name}",
             "source": classification["source"],
         }
@@ -784,7 +893,8 @@ def route_file(filepath: Path, base: Path, *, dry_run: bool = False,
 
     log("INFO", f"ROTEADO: '{filename}' → {dest_group}/{final_name} ({classification['source']})")
     return {
-        "file": filename, "status": "routed",
+        "file": filename,
+        "status": "routed",
         "dest": f"{dest_group}/{final_name}",
         "source": classification["source"],
     }
@@ -794,8 +904,14 @@ def route_file(filepath: Path, base: Path, *, dry_run: bool = False,
 # Orchestrator
 # ---------------------------------------------------------------------------
 
-def route_all(base: Path | None = None, *, dry_run: bool = False,
-              use_llm: bool = True, file_filter: str | None = None) -> dict:
+
+def route_all(
+    base: Path | None = None,
+    *,
+    dry_run: bool = False,
+    use_llm: bool = True,
+    file_filter: str | None = None,
+) -> dict:
     """Route all files in inbox. Returns summary stats dict.
     Importable by e_reset.py."""
     base = base or BASE
@@ -826,13 +942,27 @@ def route_all(base: Path | None = None, *, dry_run: bool = False,
         log("INFO", "Inbox vazio — nada a rotear.")
         return {"total": 0, "routed": 0, "duplicates": 0, "unidentified": 0, "skipped": 0}
 
-    log("INFO", f"{'[DRY-RUN] ' if dry_run else ''}Iniciando roteamento de {len(files)} arquivo(s)...")
+    log(
+        "INFO",
+        f"{'[DRY-RUN] ' if dry_run else ''}Iniciando roteamento de {len(files)} arquivo(s)...",
+    )
 
-    stats = {"total": len(files), "routed": 0, "duplicates": 0, "unidentified": 0,
-             "skipped": 0, "details": [],
-             "by_dest": {"financial_statements": 0, "income_tax_br": 0,
-                         "real_estate": 0, "vehicles": 0, "members": 0,
-                         "income_tax_us": 0}}
+    stats = {
+        "total": len(files),
+        "routed": 0,
+        "duplicates": 0,
+        "unidentified": 0,
+        "skipped": 0,
+        "details": [],
+        "by_dest": {
+            "financial_statements": 0,
+            "income_tax_br": 0,
+            "real_estate": 0,
+            "vehicles": 0,
+            "members": 0,
+            "income_tax_us": 0,
+        },
+    }
 
     for filepath in files:
         result = route_file(filepath, base, dry_run=dry_run, use_llm=use_llm, today=today)
@@ -860,9 +990,12 @@ def route_all(base: Path | None = None, *, dry_run: bool = False,
 
     # Summary
     prefix = "[DRY-RUN] " if dry_run else ""
-    log("INFO", f"{prefix}Roteamento concluído: {stats['routed']} roteados, "
+    log(
+        "INFO",
+        f"{prefix}Roteamento concluído: {stats['routed']} roteados, "
         f"{stats['duplicates']} duplicatas, {stats['unidentified']} não identificados, "
-        f"{stats['skipped']} pulados")
+        f"{stats['skipped']} pulados",
+    )
 
     return stats
 
@@ -901,20 +1034,25 @@ def _write_inbox_log(base: Path, today: str, stats: dict) -> None:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def main(root_dir: Path = None):
     if root_dir:
         _init_config(root_dir)
     parser = argparse.ArgumentParser(
         description="E0-route — Roteamento automático de arquivos do inbox",
     )
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Apenas mostra o que faria, sem mover arquivos")
-    parser.add_argument("--no-llm", action="store_true",
-                        help="Desabilita fallback LLM (apenas regex)")
-    parser.add_argument("--file", type=str, default=None,
-                        help="Roteia um arquivo específico do inbox")
-    parser.add_argument("--base", type=str, default=None,
-                        help="Diretório base do projeto (default: auto-detect)")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Apenas mostra o que faria, sem mover arquivos"
+    )
+    parser.add_argument(
+        "--no-llm", action="store_true", help="Desabilita fallback LLM (apenas regex)"
+    )
+    parser.add_argument(
+        "--file", type=str, default=None, help="Roteia um arquivo específico do inbox"
+    )
+    parser.add_argument(
+        "--base", type=str, default=None, help="Diretório base do projeto (default: auto-detect)"
+    )
 
     args = parser.parse_args([] if root_dir else None)
     base = Path(args.base) if args.base else BASE

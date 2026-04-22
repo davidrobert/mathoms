@@ -21,11 +21,10 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import String, DateTime, ForeignKey, UniqueConstraint, Index
+from sqlalchemy import DateTime, ForeignKey, Index, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
-
 
 # Roles aceitas. Mantido como set literal (não Enum) para permitir
 # evolução sem migration; validação explícita no service layer.
@@ -48,9 +47,7 @@ class WorkspaceMember(Base):
 
     __tablename__ = "workspace_members"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("workspaces.id", ondelete="CASCADE"),

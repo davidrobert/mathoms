@@ -44,8 +44,14 @@ def _safe_float(val) -> float:
 _DEFAULT_KEYWORDS: dict[str, tuple[str, ...]] = {
     "Ações": ("acoes", "ações", "itsa", "brkm", "petr", "etf", "ivvb"),
     "Renda Fixa": (
-        "renda fixa", "cdb", "rdb", "lci", "lca", "tesouro",
-        "debenture", "certificado de deposito",
+        "renda fixa",
+        "cdb",
+        "rdb",
+        "lci",
+        "lca",
+        "tesouro",
+        "debenture",
+        "certificado de deposito",
     ),
     "Cripto": ("cripto", "bitcoin", "ethereum", "binance"),
     "Contas Bancárias": ("banco", "picpay", "nubank", "saldo", "conta"),
@@ -143,9 +149,7 @@ class InvestimentosClassesAnalyzer:
     def __init__(self, config: InvestimentosClassesConfig | None = None) -> None:
         self._config = config or InvestimentosClassesConfig.from_configs()
 
-    def analyze(
-        self, bens_por_membro: list[dict[str, Any]]
-    ) -> InvestimentosClassesAnalysis:
+    def analyze(self, bens_por_membro: list[dict[str, Any]]) -> InvestimentosClassesAnalysis:
         classes = {cat: 0.0 for cat in self.CATEGORIES}
 
         for bens in bens_por_membro or []:
@@ -170,23 +174,17 @@ class InvestimentosClassesAnalyzer:
 
     # -- Helpers internos --
 
-    def _classify_investments(
-        self, bens: dict[str, Any], classes: dict[str, float]
-    ) -> None:
+    def _classify_investments(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
         for inv in bens.get("investimentos", []) or []:
             if not isinstance(inv, dict):
                 continue
             tipo = str(inv.get("tipo") or "")
-            valor = _safe_float(
-                inv.get("valor", inv.get("valor_31_12_ano_base", 0))
-            )
+            valor = _safe_float(inv.get("valor", inv.get("valor_31_12_ano_base", 0)))
             if valor <= 0:
                 continue
             self._assign_to_class(tipo, valor, classes)
 
-    def _assign_to_class(
-        self, tipo: str, valor: float, classes: dict[str, float]
-    ) -> None:
+    def _assign_to_class(self, tipo: str, valor: float, classes: dict[str, float]) -> None:
         tipo_lower = tipo.lower()
         for classe in ("Ações", "Renda Fixa", "Cripto", "Contas Bancárias"):
             keywords = self._config.keywords_por_classe.get(classe, ())
@@ -195,23 +193,17 @@ class InvestimentosClassesAnalyzer:
                 return
         classes["Outros"] += valor
 
-    def _add_top_level_cripto(
-        self, bens: dict[str, Any], classes: dict[str, float]
-    ) -> None:
+    def _add_top_level_cripto(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
         classes["Cripto"] += _safe_float(bens.get("criptos", 0))
 
-    def _add_contas_bancarias_scalar(
-        self, bens: dict[str, Any], classes: dict[str, float]
-    ) -> None:
+    def _add_contas_bancarias_scalar(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
         """Legado aceita ``contas_bancarias`` como escalar (soma direta) ou
         lista (ignora aqui — tratado como investimento). Paridade exata."""
         contas = bens.get("contas_bancarias")
         if isinstance(contas, (int, float)):
             classes["Contas Bancárias"] += _safe_float(contas)
 
-    def _add_imoveis_investimento(
-        self, bens: dict[str, Any], classes: dict[str, float]
-    ) -> None:
+    def _add_imoveis_investimento(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
         """Imóveis não-residência entram em ``Imóveis Investimento``."""
         kw = self._config.residencia_keyword
         for imovel in bens.get("imoveis", []) or []:

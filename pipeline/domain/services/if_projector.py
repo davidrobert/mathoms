@@ -28,7 +28,6 @@ import re
 from dataclasses import dataclass
 from datetime import date
 
-
 _TODAY_FALLBACK = date(2026, 4, 19)
 
 
@@ -109,25 +108,17 @@ class IFProjectorConfig:
 
         if_meta = goals_cfg.get("if_meta")
         if if_meta is None:
-            raise ValueError(
-                "IF meta não encontrada em goals.independencia_financeira.if_meta"
-            )
+            raise ValueError("IF meta não encontrada em goals.independencia_financeira.if_meta")
         if_trs = goals_cfg.get("trs_pct")
         if if_trs is None:
-            raise ValueError(
-                "TRS não encontrado em goals.independencia_financeira.trs_pct"
-            )
+            raise ValueError("TRS não encontrado em goals.independencia_financeira.trs_pct")
 
         return cls(
             if_meta=_safe_float(if_meta),
             if_trs_pct=_safe_float(if_trs),
             titular_dob=titular_dob,
-            taxa_retirada_segura_pct=_safe_float(
-                goals_cfg.get("taxa_retirada_segura_pct", 4.0)
-            ),
-            retorno_real_anual_pct=_safe_float(
-                goals_cfg.get("retorno_real_anual_pct", 6.0)
-            ),
+            taxa_retirada_segura_pct=_safe_float(goals_cfg.get("taxa_retirada_segura_pct", 4.0)),
+            retorno_real_anual_pct=_safe_float(goals_cfg.get("retorno_real_anual_pct", 6.0)),
             aporte_mensal=_safe_float(aportes_cfg.get("meta_aporte_mensal", 0)),
             conjuge_dob=conjuge_dob,
             reference_date=reference_date or _TODAY_FALLBACK,
@@ -256,14 +247,10 @@ class IFProjector:
         )
 
         anos_restantes = int(prazo_anos)
-        idade_titular_if = (
-            _calculate_age(cfg.titular_dob, cfg.reference_date) + anos_restantes
-        )
+        idade_titular_if = _calculate_age(cfg.titular_dob, cfg.reference_date) + anos_restantes
         idade_conjuge_if: int | None = None
         if cfg.conjuge_dob is not None:
-            idade_conjuge_if = (
-                _calculate_age(cfg.conjuge_dob, cfg.reference_date) + anos_restantes
-            )
+            idade_conjuge_if = _calculate_age(cfg.conjuge_dob, cfg.reference_date) + anos_restantes
         ano_if = cfg.reference_date.year + anos_restantes
 
         taxa = cfg.taxa_retirada_segura_pct / 100.0

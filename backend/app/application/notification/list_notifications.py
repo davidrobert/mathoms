@@ -22,9 +22,7 @@ async def list_notifications(
     is_read: Optional[bool] = None,
     limit: int = 50,
 ) -> NotificationListResponse:
-    items = await _fetch_items(
-        workspace_id, db=db, severity=severity, is_read=is_read, limit=limit
-    )
+    items = await _fetch_items(workspace_id, db=db, severity=severity, is_read=is_read, limit=limit)
     unread = await _count(workspace_id, db=db, is_read=False)
     total = await _count(workspace_id, db=db)
     return NotificationListResponse(
@@ -58,8 +56,10 @@ async def _count(
     db: AsyncSession,
     is_read: Optional[bool] = None,
 ) -> int:
-    query = select(func.count()).select_from(Notification).where(
-        Notification.workspace_id == workspace_id
+    query = (
+        select(func.count())
+        .select_from(Notification)
+        .where(Notification.workspace_id == workspace_id)
     )
     if is_read is not None:
         query = query.where(Notification.is_read == is_read)

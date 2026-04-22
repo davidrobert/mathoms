@@ -25,7 +25,6 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-
 # ---------------------------------------------------------------------------
 # Institution markers — matched against file text content
 # ---------------------------------------------------------------------------
@@ -56,7 +55,7 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
     (
         re.compile(
             r"C6\s*CARBON|C6\s*BANK|BANCO\s*C6\s*S\.?A\.?|31\.?872\.?495"
-            r"|C6\s*Invest"                                             # app de investimentos C6
+            r"|C6\s*Invest"  # app de investimentos C6
             r"|Valor\s*\(em\s*US\$\).*Cota[çc][ãa]o\s*\(em\s*R\$\)",
             re.I,
         ),
@@ -75,11 +74,11 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
         re.compile(
             r"SANTANDER\s*(BRASIL|UNIQUE|S\.?A\.?)|BANCO\s*SANTANDER"
             r"|CDB\s+(?:DI|PROG|MASTER|MAIS|METASERVAS?)\s+SANTANDER"  # CDB products
-            r"|Central\s+de\s+Atendimento\s+Santander"                 # IB footer
-            r"|Seguro\s+do\s+limite\s+da\s+conta"                      # XLS rodapé
-            r"|Conta:\s*\d{4}-0[01]\.\d{4,8}\.\d"                     # conta Santander: 1234-01.001234.5
-            r"|JUROS\s+SALDO\s+UTILIZ\s+ATE\s+LIMITE"                  # Limite Facilitado
-            r"|^\ufeff?data,lan[çc]amento,valor\s*$",                  # CSV Santander Unique (com/sem BOM)
+            r"|Central\s+de\s+Atendimento\s+Santander"  # IB footer
+            r"|Seguro\s+do\s+limite\s+da\s+conta"  # XLS rodapé
+            r"|Conta:\s*\d{4}-0[01]\.\d{4,8}\.\d"  # conta Santander: 1234-01.001234.5
+            r"|JUROS\s+SALDO\s+UTILIZ\s+ATE\s+LIMITE"  # Limite Facilitado
+            r"|^\ufeff?data,lan[çc]amento,valor\s*$",  # CSV Santander Unique (com/sem BOM)
             re.I | re.MULTILINE,
         ),
         "santander",
@@ -94,8 +93,8 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
     (
         re.compile(
             r"BRADESCO|BANCO\s*BRADESCO"
-            r"|[AÁ]gora\s*Home\s*Broker"   # nav do IB Bradesco (dentro dos 2000 chars)
-            r"|Fone\s*F[aá]cil",           # marca registrada do atendimento Bradesco
+            r"|[AÁ]gora\s*Home\s*Broker"  # nav do IB Bradesco (dentro dos 2000 chars)
+            r"|Fone\s*F[aá]cil",  # marca registrada do atendimento Bradesco
             re.I,
         ),
         "bradesco",
@@ -105,7 +104,10 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
     # Bank of America
     (re.compile(r"Bank\s*of\s*America|BofA", re.I), "bankofamerica"),
     # PicPay — exige marca forte (evita match em menções promocionais)
-    (re.compile(r"PicPay\s*(?:Bank|Servi[çc]os|Institui[çc][ãa]o\s+de\s+Pagamento)", re.I), "picpay"),
+    (
+        re.compile(r"PicPay\s*(?:Bank|Servi[çc]os|Institui[çc][ãa]o\s+de\s+Pagamento)", re.I),
+        "picpay",
+    ),
     # Wise (TransferWise)
     (re.compile(r"\bWise\b|TransferWise", re.I), "wise"),
     # Rico / XP — inclui "Rico Corretora de Títulos..." (razão social completa nos PDFs de extrato).
@@ -114,7 +116,7 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
     (
         re.compile(
             r"Rico\s*(?:Investimentos|CTVM|Corretora)"
-            r"|RICO\s+CORRETORA"        # razão social em maiúsculas nos PDFs
+            r"|RICO\s+CORRETORA"  # razão social em maiúsculas nos PDFs
             r"|\bXP\s*Investimentos",
             re.I,
         ),
@@ -145,9 +147,10 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
 @dataclass(frozen=True)
 class TypeRule:
     """A content-based document-type matcher."""
+
     code: str
     dest_group: str
-    required: tuple[re.Pattern, ...]   # ALL must match
+    required: tuple[re.Pattern, ...]  # ALL must match
     supporting: tuple[re.Pattern, ...]  # at least one boosts confidence to 1.0
     priority: int = 100  # lower = evaluated first
 
@@ -208,7 +211,9 @@ TYPE_RULES: tuple[TypeRule, ...] = (
     TypeRule(
         code="informerendimentos",
         dest_group="income_tax_br",
-        required=(_c(r"Informe\s*de\s*Rendimentos\s*Financeiros|Informe\s*Anual\s*de\s*Rendimentos"),),
+        required=(
+            _c(r"Informe\s*de\s*Rendimentos\s*Financeiros|Informe\s*Anual\s*de\s*Rendimentos"),
+        ),
         supporting=(
             _c(r"Rendimentos\s*Tribut[aá]veis|Isentos\s*e\s*N[ãa]o\s*Tribut[aá]veis"),
             _c(r"Fonte\s*Pagadora"),
@@ -245,8 +250,8 @@ TYPE_RULES: tuple[TypeRule, ...] = (
             _c(r"Total\s*a\s*Pagar"),
             _c(r"Vencimento\s*(da)?\s*Fatura"),
             _c(r"Limite\s*(de)?\s*Cr[eé]dito"),
-            _c(r"PAGAMENTO EFETUADO"),               # entrada de pagamento no CSV
-            _c(r"\d{4}-\d{2}-\d{2},"),              # data no formato ISO no CSV
+            _c(r"PAGAMENTO EFETUADO"),  # entrada de pagamento no CSV
+            _c(r"\d{4}-\d{2}-\d{2},"),  # data no formato ISO no CSV
         ),
         priority=10,
     ),
@@ -257,18 +262,13 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         # (a) PDF de fatura: contém "C6 Carbon" no cabeçalho.
         # (b) CSV de exportação: colunas "Valor (em US$)" + "Cotação (em R$)"
         #     na mesma linha — exclusivo do extrato CSV do cartão Carbon.
-        required=(
-            _c(
-                r"C6\s*Carbon"
-                r"|Valor\s*\(em\s*US\$\).*Cota[çc][ãa]o\s*\(em\s*R\$\)"
-            ),
-        ),
+        required=(_c(r"C6\s*Carbon" r"|Valor\s*\(em\s*US\$\).*Cota[çc][ãa]o\s*\(em\s*R\$\)"),),
         supporting=(
             _c(r"Subtotal\s*deste\s*cart[ãa]o"),
             _c(r"Vencimento\s*da\s*Fatura"),
             _c(r"Total\s*desta\s*Fatura"),
-            _c(r"Data\s+de\s+Compra"),       # CSV: coluna de data da transação
-            _c(r"Final\s+do\s+Cart[ãa]o"),   # CSV: coluna com 4 últimos dígitos
+            _c(r"Data\s+de\s+Compra"),  # CSV: coluna de data da transação
+            _c(r"Final\s+do\s+Cart[ãa]o"),  # CSV: coluna com 4 últimos dígitos
         ),
         priority=10,
     ),
@@ -418,7 +418,7 @@ TYPE_RULES: tuple[TypeRule, ...] = (
             _c(r"SALDO\s*(ANTERIOR|DO\s*DIA|ATUAL)"),
             _c(r"Per[ií]odo\s*(dos\s*lan[çc]amentos)?"),
             _c(r"Conta\s*[:\-]?\s*\d"),  # "Conta: 00012345-6"
-            _c(r"0800\s*726"),            # central de atendimento CEF
+            _c(r"0800\s*726"),  # central de atendimento CEF
         ),
         priority=27,
     ),
@@ -436,8 +436,8 @@ TYPE_RULES: tuple[TypeRule, ...] = (
                 r"EXTRATO\s*(DA\s*CONTA|DE\s*CONTA|CORRENTE)?"
                 r"|Lan[çc]amentos\s*(da\s*)?Conta"
                 r"|Movimenta[çc][õo]es"
-                r"|Logotipo\s+Ita[uú]"             # Itaú XLS: cabeçalho fixo linha 0
-                r"|lan[çc]amento.*saldos?\s*\(R\$\)" # Itaú XLS: título da coluna "saldos (R$)"
+                r"|Logotipo\s+Ita[uú]"  # Itaú XLS: cabeçalho fixo linha 0
+                r"|lan[çc]amento.*saldos?\s*\(R\$\)"  # Itaú XLS: título da coluna "saldos (R$)"
             ),
         ),
         supporting=(
@@ -460,9 +460,19 @@ _PERIOD_RANGE_RE = re.compile(
 )
 _YYYYMM_RE = re.compile(r"\b(20\d{2})[-/](0?[1-9]|1[012])\b")
 _MESES = {
-    "janeiro": 1, "fevereiro": 2, "março": 3, "marco": 3, "abril": 4, "maio": 5,
-    "junho": 6, "julho": 7, "agosto": 8, "setembro": 9, "outubro": 10,
-    "novembro": 11, "dezembro": 12,
+    "janeiro": 1,
+    "fevereiro": 2,
+    "março": 3,
+    "marco": 3,
+    "abril": 4,
+    "maio": 5,
+    "junho": 6,
+    "julho": 7,
+    "agosto": 8,
+    "setembro": 9,
+    "outubro": 10,
+    "novembro": 11,
+    "dezembro": 12,
 }
 _MONTH_YEAR_BR_RE = re.compile(
     r"\b(jan(?:eiro)?|fev(?:ereiro)?|mar(?:[çc]o)?|abr(?:il)?|mai(?:o)?|jun(?:ho)?|"
@@ -571,8 +581,12 @@ def classify_text(text: str) -> ContentClassification:
     """Classify a preview text extracted from a financial document."""
     if not text or len(text.strip()) < 20:
         return ContentClassification(
-            doc_type=None, dest_group=None, institution=None,
-            period=None, confidence=0.0, source="content_regex_empty",
+            doc_type=None,
+            dest_group=None,
+            institution=None,
+            period=None,
+            confidence=0.0,
+            source="content_regex_empty",
         )
 
     institution = detect_institution_by_content(text)
@@ -581,9 +595,13 @@ def classify_text(text: str) -> ContentClassification:
 
     if rule is None:
         return ContentClassification(
-            doc_type=None, dest_group=None, institution=institution,
-            period=period, confidence=0.0,
-            matched_required=0, matched_supporting=0,
+            doc_type=None,
+            dest_group=None,
+            institution=institution,
+            period=period,
+            confidence=0.0,
+            matched_required=0,
+            matched_supporting=0,
         )
 
     # IRPF/tax documents always belong to Receita Federal, regardless of what
@@ -614,8 +632,11 @@ def classify_file(filepath: Path, preview_extractor) -> ContentClassification:
         text = preview_extractor(filepath)
     except Exception as exc:  # preview extraction failed — fall through
         return ContentClassification(
-            doc_type=None, dest_group=None, institution=None,
-            period=None, confidence=0.0,
+            doc_type=None,
+            dest_group=None,
+            institution=None,
+            period=None,
+            confidence=0.0,
             source=f"content_regex_preview_error:{type(exc).__name__}",
         )
     return classify_text(text or "")

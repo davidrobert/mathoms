@@ -74,12 +74,8 @@ async def _history_typed(
     goal_type: str, workspace_id: str, *, repo: GoalRepository, db: AsyncSession
 ) -> list[BaseModel]:
     goals = await repo.list_by_workspace_and_type(workspace_id, goal_type)
-    names = await resolve_author_names(
-        {g.created_by for g in goals if g.created_by}, db=db
-    )
-    return await list_typed_goal_versions(
-        workspace_id, goal_type, repo=repo, author_names=names
-    )
+    names = await resolve_author_names({g.created_by for g in goals if g.created_by}, db=db)
+    return await list_typed_goal_versions(workspace_id, goal_type, repo=repo, author_names=names)
 
 
 async def _read_typed(
@@ -90,12 +86,22 @@ async def _read_typed(
 
 
 async def _write_typed(
-    goal_type: str, inputs: BaseModel, notes: Optional[str], *,
-    workspace: Workspace, user: User, repo: GoalRepository, db: AsyncSession,
+    goal_type: str,
+    inputs: BaseModel,
+    notes: Optional[str],
+    *,
+    workspace: Workspace,
+    user: User,
+    repo: GoalRepository,
+    db: AsyncSession,
 ) -> BaseModel:
     resp = await create_typed_goal_version(
-        goal_type, inputs, notes,
-        workspace_id=workspace.id, created_by=user.id, repo=repo,
+        goal_type,
+        inputs,
+        notes,
+        workspace_id=workspace.id,
+        created_by=user.id,
+        repo=repo,
         created_by_name=user.full_name,
     )
     await db.commit()
@@ -105,8 +111,11 @@ async def _write_typed(
 # INDEPENDENCIA_FINANCEIRA (F8.1) ════════════════════════════════════════
 
 
-@router.post("/if/compute", response_model=IFGoalComputeResponse,
-             summary="Dry-run: calcula derivados sem persistir")
+@router.post(
+    "/if/compute",
+    response_model=IFGoalComputeResponse,
+    summary="Dry-run: calcula derivados sem persistir",
+)
 async def compute_if_goal(
     body: IFGoalComputeRequest,
     workspace: Workspace = Depends(get_current_workspace),
@@ -115,39 +124,38 @@ async def compute_if_goal(
     return compute_if_projection(body)
 
 
-@router.get("/if", response_model=IFGoalResponse,
-            summary="Retorna a meta IF vigente do workspace")
+@router.get("/if", response_model=IFGoalResponse, summary="Retorna a meta IF vigente do workspace")
 async def get_if_goal(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
     repo: GoalRepository = Depends(_get_repo),
 ) -> IFGoalResponse:
     patrimonio = await get_latest_report_patrimonio_liquido(workspace.id, db=db)
-    resp = await get_active_if_goal(
-        workspace.id, repo=repo, patrimonio_atual_brl=patrimonio
-    )
+    resp = await get_active_if_goal(workspace.id, repo=repo, patrimonio_atual_brl=patrimonio)
     return await attach_author_name(resp, db=db)  # type: ignore[return-value]
 
 
-@router.get("/if/history", response_model=IFGoalHistoryResponse,
-            summary="Histórico completo de versões da meta IF")
+@router.get(
+    "/if/history",
+    response_model=IFGoalHistoryResponse,
+    summary="Histórico completo de versões da meta IF",
+)
 async def get_if_goal_history(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
     repo: GoalRepository = Depends(_get_repo),
 ) -> IFGoalHistoryResponse:
-    goals = await repo.list_by_workspace_and_type(
-        workspace.id, "INDEPENDENCIA_FINANCEIRA"
-    )
-    names = await resolve_author_names(
-        {g.created_by for g in goals if g.created_by}, db=db
-    )
+    goals = await repo.list_by_workspace_and_type(workspace.id, "INDEPENDENCIA_FINANCEIRA")
+    names = await resolve_author_names({g.created_by for g in goals if g.created_by}, db=db)
     return await list_if_goal_versions(workspace.id, repo=repo, author_names=names)
 
 
-@router.put("/if", response_model=IFGoalResponse,
-            summary="Cria nova versão da meta IF (fecha a anterior)",
-            dependencies=[Depends(require_write_role)])
+@router.put(
+    "/if",
+    response_model=IFGoalResponse,
+    summary="Cria nova versão da meta IF (fecha a anterior)",
+    dependencies=[Depends(require_write_role)],
+)
 async def upsert_if_goal(
     body: IFGoalUpsertCommand,
     workspace: Workspace = Depends(get_current_workspace),
@@ -157,8 +165,12 @@ async def upsert_if_goal(
 ) -> IFGoalResponse:
     patrimonio = await get_latest_report_patrimonio_liquido(workspace.id, db=db)
     resp = await create_if_goal_version(
-        body, workspace_id=workspace.id, created_by=user.id, repo=repo,
-        patrimonio_atual_brl=patrimonio, created_by_name=user.full_name,
+        body,
+        workspace_id=workspace.id,
+        created_by=user.id,
+        repo=repo,
+        patrimonio_atual_brl=patrimonio,
+        created_by_name=user.full_name,
     )
     await db.commit()
     return resp
@@ -167,8 +179,11 @@ async def upsert_if_goal(
 # APORTE_MENSAL (F8.5) ═══════════════════════════════════════════════════
 
 
-@router.post("/aportes/compute", response_model=AporteGoalComputeResponse,
-             summary="Dry-run: calcula derivados de aportes")
+@router.post(
+    "/aportes/compute",
+    response_model=AporteGoalComputeResponse,
+    summary="Dry-run: calcula derivados de aportes",
+)
 async def compute_aporte_goal(
     body: AporteGoalComputeRequest,
     workspace: Workspace = Depends(get_current_workspace),
@@ -177,8 +192,7 @@ async def compute_aporte_goal(
     return compute_aporte_projection(body)
 
 
-@router.get("/aportes", response_model=AporteGoalResponse,
-            summary="Meta de aportes vigente")
+@router.get("/aportes", response_model=AporteGoalResponse, summary="Meta de aportes vigente")
 async def get_aporte_goal(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
@@ -187,8 +201,11 @@ async def get_aporte_goal(
     return await _read_typed("APORTE_MENSAL", workspace.id, repo=repo, db=db)  # type: ignore[return-value]
 
 
-@router.get("/aportes/history", response_model=AporteGoalHistoryResponse,
-            summary="Histórico de versões da meta de aportes")
+@router.get(
+    "/aportes/history",
+    response_model=AporteGoalHistoryResponse,
+    summary="Histórico de versões da meta de aportes",
+)
 async def get_aporte_goal_history(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
@@ -198,9 +215,12 @@ async def get_aporte_goal_history(
     return AporteGoalHistoryResponse(goals=responses, total=len(responses))  # type: ignore[arg-type]
 
 
-@router.put("/aportes", response_model=AporteGoalResponse,
-            summary="Cria nova versão da meta de aportes",
-            dependencies=[Depends(require_write_role)])
+@router.put(
+    "/aportes",
+    response_model=AporteGoalResponse,
+    summary="Cria nova versão da meta de aportes",
+    dependencies=[Depends(require_write_role)],
+)
 async def upsert_aporte_goal(
     body: AporteGoalUpsertCommand,
     workspace: Workspace = Depends(get_current_workspace),
@@ -209,16 +229,24 @@ async def upsert_aporte_goal(
     repo: GoalRepository = Depends(_get_repo),
 ) -> AporteGoalResponse:
     return await _write_typed(  # type: ignore[return-value]
-        "APORTE_MENSAL", body.inputs, body.notes,
-        workspace=workspace, user=user, repo=repo, db=db,
+        "APORTE_MENSAL",
+        body.inputs,
+        body.notes,
+        workspace=workspace,
+        user=user,
+        repo=repo,
+        db=db,
     )
 
 
 # DOLARIZACAO (F8.5) ═════════════════════════════════════════════════════
 
 
-@router.post("/dolarizacao/compute", response_model=DolarGoalComputeResponse,
-             summary="Dry-run: calcula derivados de dolarização")
+@router.post(
+    "/dolarizacao/compute",
+    response_model=DolarGoalComputeResponse,
+    summary="Dry-run: calcula derivados de dolarização",
+)
 async def compute_dolar_goal(
     body: DolarGoalComputeRequest,
     workspace: Workspace = Depends(get_current_workspace),
@@ -227,8 +255,7 @@ async def compute_dolar_goal(
     return compute_dolar_projection(body)
 
 
-@router.get("/dolarizacao", response_model=DolarGoalResponse,
-            summary="Meta de dolarização vigente")
+@router.get("/dolarizacao", response_model=DolarGoalResponse, summary="Meta de dolarização vigente")
 async def get_dolar_goal(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
@@ -237,8 +264,11 @@ async def get_dolar_goal(
     return await _read_typed("DOLARIZACAO", workspace.id, repo=repo, db=db)  # type: ignore[return-value]
 
 
-@router.get("/dolarizacao/history", response_model=DolarGoalHistoryResponse,
-            summary="Histórico de versões da meta de dolarização")
+@router.get(
+    "/dolarizacao/history",
+    response_model=DolarGoalHistoryResponse,
+    summary="Histórico de versões da meta de dolarização",
+)
 async def get_dolar_goal_history(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
@@ -248,9 +278,12 @@ async def get_dolar_goal_history(
     return DolarGoalHistoryResponse(goals=responses, total=len(responses))  # type: ignore[arg-type]
 
 
-@router.put("/dolarizacao", response_model=DolarGoalResponse,
-            summary="Cria nova versão da meta de dolarização",
-            dependencies=[Depends(require_write_role)])
+@router.put(
+    "/dolarizacao",
+    response_model=DolarGoalResponse,
+    summary="Cria nova versão da meta de dolarização",
+    dependencies=[Depends(require_write_role)],
+)
 async def upsert_dolar_goal(
     body: DolarGoalUpsertCommand,
     workspace: Workspace = Depends(get_current_workspace),
@@ -259,16 +292,24 @@ async def upsert_dolar_goal(
     repo: GoalRepository = Depends(_get_repo),
 ) -> DolarGoalResponse:
     return await _write_typed(  # type: ignore[return-value]
-        "DOLARIZACAO", body.inputs, body.notes,
-        workspace=workspace, user=user, repo=repo, db=db,
+        "DOLARIZACAO",
+        body.inputs,
+        body.notes,
+        workspace=workspace,
+        user=user,
+        repo=repo,
+        db=db,
     )
 
 
 # ALOCACAO_ALVO (F8.5) ═══════════════════════════════════════════════════
 
 
-@router.post("/alocacao/compute", response_model=AlocacaoGoalComputeResponse,
-             summary="Dry-run: valida alocação-alvo")
+@router.post(
+    "/alocacao/compute",
+    response_model=AlocacaoGoalComputeResponse,
+    summary="Dry-run: valida alocação-alvo",
+)
 async def compute_alocacao_goal(
     body: AlocacaoGoalComputeRequest,
     workspace: Workspace = Depends(get_current_workspace),
@@ -277,8 +318,7 @@ async def compute_alocacao_goal(
     return compute_alocacao_projection(body)
 
 
-@router.get("/alocacao", response_model=AlocacaoGoalResponse,
-            summary="Alocação-alvo vigente")
+@router.get("/alocacao", response_model=AlocacaoGoalResponse, summary="Alocação-alvo vigente")
 async def get_alocacao_goal(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
@@ -287,8 +327,11 @@ async def get_alocacao_goal(
     return await _read_typed("ALOCACAO_ALVO", workspace.id, repo=repo, db=db)  # type: ignore[return-value]
 
 
-@router.get("/alocacao/history", response_model=AlocacaoGoalHistoryResponse,
-            summary="Histórico de versões da alocação-alvo")
+@router.get(
+    "/alocacao/history",
+    response_model=AlocacaoGoalHistoryResponse,
+    summary="Histórico de versões da alocação-alvo",
+)
 async def get_alocacao_goal_history(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
@@ -298,9 +341,12 @@ async def get_alocacao_goal_history(
     return AlocacaoGoalHistoryResponse(goals=responses, total=len(responses))  # type: ignore[arg-type]
 
 
-@router.put("/alocacao", response_model=AlocacaoGoalResponse,
-            summary="Cria nova versão da alocação-alvo",
-            dependencies=[Depends(require_write_role)])
+@router.put(
+    "/alocacao",
+    response_model=AlocacaoGoalResponse,
+    summary="Cria nova versão da alocação-alvo",
+    dependencies=[Depends(require_write_role)],
+)
 async def upsert_alocacao_goal(
     body: AlocacaoGoalUpsertCommand,
     workspace: Workspace = Depends(get_current_workspace),
@@ -309,16 +355,22 @@ async def upsert_alocacao_goal(
     repo: GoalRepository = Depends(_get_repo),
 ) -> AlocacaoGoalResponse:
     return await _write_typed(  # type: ignore[return-value]
-        "ALOCACAO_ALVO", body.inputs, body.notes,
-        workspace=workspace, user=user, repo=repo, db=db,
+        "ALOCACAO_ALVO",
+        body.inputs,
+        body.notes,
+        workspace=workspace,
+        user=user,
+        repo=repo,
+        db=db,
     )
 
 
 # Tasks linked to a goal (cross-aggregate read) ══════════════════════════
 
 
-@router.get("/{goal_id}/tasks", response_model=TaskListResponse,
-            summary="Tarefas vinculadas a esta meta")
+@router.get(
+    "/{goal_id}/tasks", response_model=TaskListResponse, summary="Tarefas vinculadas a esta meta"
+)
 async def list_tasks_for_goal(
     goal_id: str,
     workspace: Workspace = Depends(get_current_workspace),

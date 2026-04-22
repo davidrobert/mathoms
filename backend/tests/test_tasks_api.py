@@ -7,7 +7,6 @@ import pytest
 from backend.app.core.security import create_access_token
 from backend.tests import factories
 
-
 TASK_BODY = {
     "title": "Cotar seguro vida",
     "category": "Seguros",
@@ -32,9 +31,7 @@ async def _make_auth(db, client):
 @pytest.mark.asyncio
 async def test_create_task_201(db, client):
     _, ws = await _make_auth(db, client)
-    resp = await client.post(
-        f"/api/workspaces/{ws.id}/tasks", json=TASK_BODY
-    )
+    resp = await client.post(f"/api/workspaces/{ws.id}/tasks", json=TASK_BODY)
     assert resp.status_code == 201
     data = resp.json()
     assert data["title"] == "Cotar seguro vida"
@@ -210,9 +207,7 @@ async def test_cross_tenant_create_returns_403(db, client):
 
     token_a = create_access_token(user_a.id)
     client.headers["Authorization"] = f"Bearer {token_a}"
-    resp = await client.post(
-        f"/api/workspaces/{ws_b.id}/tasks", json=TASK_BODY
-    )
+    resp = await client.post(f"/api/workspaces/{ws_b.id}/tasks", json=TASK_BODY)
     assert resp.status_code == 403
 
 
@@ -300,9 +295,7 @@ async def test_post_suggestion_creates_pending(db, client):
         "source": "e5n_llm",
         "source_run_id": "run-xyz-123",
     }
-    resp = await client.post(
-        f"/api/workspaces/{ws.id}/task-suggestions", json=body
-    )
+    resp = await client.post(f"/api/workspaces/{ws.id}/task-suggestions", json=body)
     assert resp.status_code == 201
     data = resp.json()
     assert data["status"] == "pending"
@@ -327,9 +320,7 @@ async def test_post_suggestion_cross_tenant_returns_403(db, client):
         },
         "source": "e5n_llm",
     }
-    resp = await client.post(
-        f"/api/workspaces/{ws_b.id}/task-suggestions", json=body
-    )
+    resp = await client.post(f"/api/workspaces/{ws_b.id}/task-suggestions", json=body)
     assert resp.status_code == 403
 
 
@@ -365,9 +356,7 @@ async def test_list_tasks_for_goal_returns_only_linked(db, client):
     _, ws = await _make_auth(db, client)
     goal = await factories.make_if_goal(db, workspace=ws)
     # Task ligada à meta
-    linked = await factories.make_task(
-        db, workspace=ws, title="Ligada à meta"
-    )
+    linked = await factories.make_task(db, workspace=ws, title="Ligada à meta")
     linked.related_goal_id = goal.id
     db.add(linked)
     # Task não-ligada
@@ -448,8 +437,6 @@ async def test_filter_tasks_by_related_goal_id(db, client):
     await factories.make_task(db, workspace=ws, title="Sem link")
     await db.commit()
 
-    resp = await client.get(
-        f"/api/workspaces/{ws.id}/tasks?related_goal_id={goal.id}"
-    )
+    resp = await client.get(f"/api/workspaces/{ws.id}/tasks?related_goal_id={goal.id}")
     assert resp.status_code == 200
     assert resp.json()["total"] == 1

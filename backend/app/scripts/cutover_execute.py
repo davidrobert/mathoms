@@ -33,7 +33,6 @@ from backend.app.models.goal import Goal
 from backend.app.models.task import Task
 from backend.app.models.workspace import Workspace
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 FAMILY_SURNAME_MATCH = "Ferreira Campos"
 
@@ -52,9 +51,7 @@ async def _check_preconditions() -> list[str]:
     failures: list[str] = []
 
     async with AsyncSessionLocal() as db:
-        stmt = select(Workspace).where(
-            Workspace.family_surname == FAMILY_SURNAME_MATCH
-        )
+        stmt = select(Workspace).where(Workspace.family_surname == FAMILY_SURNAME_MATCH)
         ws = (await db.execute(stmt)).scalar_one_or_none()
         if not ws:
             failures.append("Workspace Ferreira Campos não encontrada")
@@ -71,9 +68,7 @@ async def _check_preconditions() -> list[str]:
             failures.append("Goal IF vigente não encontrado no DB")
 
         # Tasks?
-        task_count_stmt = select(func.count()).select_from(Task).where(
-            Task.workspace_id == ws.id
-        )
+        task_count_stmt = select(func.count()).select_from(Task).where(Task.workspace_id == ws.id)
         task_count = (await db.execute(task_count_stmt)).scalar_one()
         if task_count == 0:
             failures.append("Nenhuma Task no DB (rode o seed primeiro)")
@@ -85,9 +80,7 @@ async def _check_preconditions() -> list[str]:
             Goal.effective_to.is_(None),
         )
         if (await db.execute(ctx_stmt)).scalar_one_or_none() is None:
-            failures.append(
-                "Goal PLANNING_CONTEXT não encontrado (rode seed_goals_full)"
-            )
+            failures.append("Goal PLANNING_CONTEXT não encontrado (rode seed_goals_full)")
 
     return failures
 
@@ -147,8 +140,7 @@ async def cutover(*, apply: bool) -> int:
         logger.info("Próximos passos:")
         logger.info("  1. git add -A")
         logger.info(
-            '  2. git commit -m "cutover: remove config/goals.json + '
-            'tarefas.md (ADR-077)"'
+            '  2. git commit -m "cutover: remove config/goals.json + ' 'tarefas.md (ADR-077)"'
         )
         logger.info("  3. Validar pipeline completo E0→E7 contra workspace de teste")
         logger.info("  4. git tag f8-cutover-complete")

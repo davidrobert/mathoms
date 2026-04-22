@@ -21,17 +21,32 @@ _CONTENT_CONFIDENCE_THRESHOLD = 0.8
 _REVIEW_CONFIDENCE_THRESHOLD = 0.7
 
 # P1.4 — classificação de erros do LLM (transiente vs permanente).
-_TRANSIENT_ERROR_NAMES = frozenset({
-    "APIConnectionError", "APITimeoutError", "ConnectionError",
-    "ReadTimeout", "ConnectTimeout", "Timeout", "RateLimitError",
-    "APIStatusError",
-    "InternalServerError", "ServiceUnavailableError",
-})
-_PERMANENT_ERROR_NAMES = frozenset({
-    "AuthenticationError", "PermissionDeniedError", "PermissionError",
-    "BadRequestError", "NotFoundError", "UnprocessableEntityError",
-    "InvalidRequestError", "APIKeyError",
-})
+_TRANSIENT_ERROR_NAMES = frozenset(
+    {
+        "APIConnectionError",
+        "APITimeoutError",
+        "ConnectionError",
+        "ReadTimeout",
+        "ConnectTimeout",
+        "Timeout",
+        "RateLimitError",
+        "APIStatusError",
+        "InternalServerError",
+        "ServiceUnavailableError",
+    }
+)
+_PERMANENT_ERROR_NAMES = frozenset(
+    {
+        "AuthenticationError",
+        "PermissionDeniedError",
+        "PermissionError",
+        "BadRequestError",
+        "NotFoundError",
+        "UnprocessableEntityError",
+        "InvalidRequestError",
+        "APIKeyError",
+    }
+)
 
 
 def _classify_llm_error(exc: BaseException) -> str:
@@ -112,10 +127,7 @@ def classification_can_route_to_data(classification: dict) -> bool:
     """Mesmo critério que inbox → ``data/`` no upload e ``POST /reclassify``."""
     if classification.get("needs_review", False):
         return False
-    return bool(
-        classification.get("dest_group")
-        and classification.get("e0_doc_type")
-    )
+    return bool(classification.get("dest_group") and classification.get("e0_doc_type"))
 
 
 def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) -> dict:
@@ -125,12 +137,14 @@ def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) 
     ``dest_group``, ``e0_doc_type``, ``routed_path``, ``classification_meta``,
     ``confidence``, ``needs_review``.
     """
+    from backend.app.services.content_classifier import classify_file
     from scripts.e0_route import (
-        _init_config as route_init_config,
         _extract_file_preview,
         classify_by_llm,
     )
-    from backend.app.services.content_classifier import classify_file
+    from scripts.e0_route import (
+        _init_config as route_init_config,
+    )
 
     route_init_config(base_dir)
 

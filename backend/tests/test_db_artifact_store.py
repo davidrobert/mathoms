@@ -85,14 +85,18 @@ async def test_write_is_upsert(db: AsyncSession):
     raw = await db.connection()
     await raw.run_sync(_do)
     rows = (
-        await db.execute(
-            select(PipelineArtifact).where(
-                PipelineArtifact.pipeline_run_id == run_id,
-                PipelineArtifact.stage == "E3",
-                PipelineArtifact.artifact_key == "k",
+        (
+            await db.execute(
+                select(PipelineArtifact).where(
+                    PipelineArtifact.pipeline_run_id == run_id,
+                    PipelineArtifact.stage == "E3",
+                    PipelineArtifact.artifact_key == "k",
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     assert len(rows) == 1
     assert rows[0].content_json == {"v": 2}
 
@@ -210,9 +214,7 @@ async def test_store_does_not_close_session(db: AsyncSession):
             store.write("E5", "analise", {"a": 1})
             s.commit()
             # A sessão ainda deve ser usável
-            count = s.query(PipelineArtifact).filter_by(
-                pipeline_run_id=run_id, stage="E5"
-            ).count()
+            count = s.query(PipelineArtifact).filter_by(pipeline_run_id=run_id, stage="E5").count()
             return count
         finally:
             s.close()

@@ -54,15 +54,19 @@ async def test_get_latest_for_workspace(db: AsyncSession):
             # run1 grava, depois run2 grava (mais recente)
             s.add(
                 PipelineArtifact(
-                    workspace_id=ws_id, pipeline_run_id=r1,
-                    stage="E5", artifact_key="analise",
+                    workspace_id=ws_id,
+                    pipeline_run_id=r1,
+                    stage="E5",
+                    artifact_key="analise",
                     content_json={"score": 10},
                 )
             )
             s.add(
                 PipelineArtifact(
-                    workspace_id=ws_id, pipeline_run_id=r2,
-                    stage="E5", artifact_key="analise",
+                    workspace_id=ws_id,
+                    pipeline_run_id=r2,
+                    stage="E5",
+                    artifact_key="analise",
                     content_json={"score": 20},
                 )
             )
@@ -87,8 +91,11 @@ async def test_list_latest_keys(db: AsyncSession):
             for key in ("itau_BRL", "nubank_BRL"):
                 s.add(
                     PipelineArtifact(
-                        workspace_id=ws_id, pipeline_run_id=r1,
-                        stage="E3", artifact_key=key, content_json={},
+                        workspace_id=ws_id,
+                        pipeline_run_id=r1,
+                        stage="E3",
+                        artifact_key=key,
+                        content_json={},
                     )
                 )
             s.commit()
@@ -109,16 +116,22 @@ async def test_get_by_document(db: AsyncSession):
         with Session(sync_conn) as s:
             s.add(
                 PipelineArtifact(
-                    workspace_id=ws_id, pipeline_run_id=r1,
-                    stage="E2-extratos", artifact_key="itau_202601",
-                    document_id=doc_id, content_json={},
+                    workspace_id=ws_id,
+                    pipeline_run_id=r1,
+                    stage="E2-extratos",
+                    artifact_key="itau_202601",
+                    document_id=doc_id,
+                    content_json={},
                 )
             )
             s.add(
                 PipelineArtifact(
-                    workspace_id=ws_id, pipeline_run_id=r1,
-                    stage="E2-extratos", artifact_key="other_202601",
-                    document_id=None, content_json={},
+                    workspace_id=ws_id,
+                    pipeline_run_id=r1,
+                    stage="E2-extratos",
+                    artifact_key="other_202601",
+                    document_id=None,
+                    content_json={},
                 )
             )
             s.commit()
@@ -139,8 +152,24 @@ async def test_delete_stage_for_run(db: AsyncSession):
         from sqlalchemy.orm import Session
 
         with Session(sync_conn) as s:
-            s.add(PipelineArtifact(workspace_id=ws_id, pipeline_run_id=r1, stage="E3", artifact_key="a", content_json={}))
-            s.add(PipelineArtifact(workspace_id=ws_id, pipeline_run_id=r2, stage="E3", artifact_key="a", content_json={}))
+            s.add(
+                PipelineArtifact(
+                    workspace_id=ws_id,
+                    pipeline_run_id=r1,
+                    stage="E3",
+                    artifact_key="a",
+                    content_json={},
+                )
+            )
+            s.add(
+                PipelineArtifact(
+                    workspace_id=ws_id,
+                    pipeline_run_id=r2,
+                    stage="E3",
+                    artifact_key="a",
+                    content_json={},
+                )
+            )
             s.commit()
             repo = PipelineArtifactRepository(s)
             removed = repo.delete_stage_for_run(r1, stage="E3")
@@ -163,7 +192,15 @@ async def test_delete_stages_for_run(db: AsyncSession):
 
         with Session(sync_conn) as s:
             for stage in ("E3", "E4", "E5"):
-                s.add(PipelineArtifact(workspace_id=ws_id, pipeline_run_id=r1, stage=stage, artifact_key="k", content_json={}))
+                s.add(
+                    PipelineArtifact(
+                        workspace_id=ws_id,
+                        pipeline_run_id=r1,
+                        stage=stage,
+                        artifact_key="k",
+                        content_json={},
+                    )
+                )
             s.commit()
             repo = PipelineArtifactRepository(s)
             removed = repo.delete_stages_for_run(r1, stages=["E3", "E4"])
@@ -185,8 +222,24 @@ async def test_delete_all_for_workspace(db: AsyncSession):
         from sqlalchemy.orm import Session
 
         with Session(sync_conn) as s:
-            s.add(PipelineArtifact(workspace_id=ws_id, pipeline_run_id=r1, stage="E3", artifact_key="a", content_json={}))
-            s.add(PipelineArtifact(workspace_id=ws_id, pipeline_run_id=r2, stage="E5", artifact_key="a", content_json={}))
+            s.add(
+                PipelineArtifact(
+                    workspace_id=ws_id,
+                    pipeline_run_id=r1,
+                    stage="E3",
+                    artifact_key="a",
+                    content_json={},
+                )
+            )
+            s.add(
+                PipelineArtifact(
+                    workspace_id=ws_id,
+                    pipeline_run_id=r2,
+                    stage="E5",
+                    artifact_key="a",
+                    content_json={},
+                )
+            )
             s.commit()
             repo = PipelineArtifactRepository(s)
             removed = repo.delete_all_for_workspace(ws_id)

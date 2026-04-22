@@ -8,6 +8,7 @@ Foca em:
 - Tratamento de posições unattributed (``""``) → titular.
 - Solo identity (sem cônjuge).
 """
+
 from __future__ import annotations
 
 import pytest
@@ -33,9 +34,7 @@ def identity() -> MemberIdentity:
 
 @pytest.fixture
 def identity_solo() -> MemberIdentity:
-    return MemberIdentity(
-        titular_key="joao", conjuge_key="", titular_nome="João", conjuge_nome=""
-    )
+    return MemberIdentity(titular_key="joao", conjuge_key="", titular_nome="João", conjuge_nome="")
 
 
 @pytest.fixture
@@ -169,9 +168,7 @@ def test_irpf_only_conjuge_imoveis_always_investimento(config: PatrimonioConfig)
             "david": {"total_bens": 0, "bens": {}},
             "mariana": {
                 "total_bens": 500_000,
-                "bens": {
-                    "imoveis": [{"descricao": "Apto residência nova", "valor": 500_000}]
-                },
+                "bens": {"imoveis": [{"descricao": "Apto residência nova", "valor": 500_000}]},
             },
         }
     }
@@ -313,9 +310,7 @@ def test_current_positions_unattributed_goes_to_titular(config: PatrimonioConfig
         "total_por_membro": {"david": 100, "mariana": 50, "": 30},
     }
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(
-        PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais)
-    )
+    result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
     assert result["investimentos_david"] == 130.0  # 100 + 30 unattributed
     assert result["investimentos_mariana"] == 50.0
 
@@ -361,9 +356,7 @@ def test_current_positions_empty_dados_treated_as_irpf(config: PatrimonioConfig)
     }
     inv_atuais = {"dados": [], "total_por_membro": {"david": 9999}}  # ignorado
     calc = PatrimonioCalculator(config)
-    result = calc.calculate(
-        PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais)
-    )
+    result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
     assert result["fonte_investimentos"] == "irpf"
     assert result["investimentos_david"] == 80.0
 
@@ -503,9 +496,7 @@ def test_solo_identity_no_conjuge_category(identity_solo: MemberIdentity):
     cfg = PatrimonioConfig(members=identity_solo, residencia_keyword="")
     calc = PatrimonioCalculator(cfg)
     result = calc.calculate(
-        PatrimonioInputs(
-            baseline={"members": {"joao": {"total_bens": 1000, "bens": {}}}}
-        )
+        PatrimonioInputs(baseline={"members": {"joao": {"total_bens": 1000, "bens": {}}}})
     )
     # Categoria do cônjuge existe mas com valor 0 + nome vazio
     cats = {c["categoria"] for c in result["composicao"]}

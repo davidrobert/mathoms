@@ -29,8 +29,8 @@ from backend.app.schemas.pipeline import (
 )
 from backend.app.services.pipeline_service import (
     cancel_pipeline_run,
-    resume_pipeline_run,
     resolve_llm_tier_async,
+    resume_pipeline_run,
     start_pipeline_run,
 )
 
@@ -53,7 +53,9 @@ async def _check_no_active_run(ws_id: str, db: AsyncSession) -> None:
          is converted to 409 inside ``trigger_pipeline``.
     """
     result = await db.execute(
-        select(func.count()).select_from(PipelineRun).where(
+        select(func.count())
+        .select_from(PipelineRun)
+        .where(
             PipelineRun.workspace_id == ws_id,
             PipelineRun.status.in_([PipelineRunStatus.pending, PipelineRunStatus.running]),
         )
@@ -81,7 +83,9 @@ async def trigger_pipeline(
     await _check_no_active_run(workspace.id, db)
 
     doc_count_result = await db.execute(
-        select(func.count()).select_from(Document).where(
+        select(func.count())
+        .select_from(Document)
+        .where(
             Document.workspace_id == workspace.id,
             Document.status.in_(DOCUMENT_CLASSIFIED_OK),
         )
@@ -90,7 +94,9 @@ async def trigger_pipeline(
 
     # Count new documents (never processed by pipeline)
     new_doc_count_result = await db.execute(
-        select(func.count()).select_from(Document).where(
+        select(func.count())
+        .select_from(Document)
+        .where(
             Document.workspace_id == workspace.id,
             Document.status == DocumentStatus.ready,
             Document.pipeline_last_run_at.is_(None),
@@ -150,7 +156,7 @@ async def trigger_pipeline(
                 ),
             )
 
-    from pipeline.orchestrator import DETERMINISTIC_ORDER, FULL_ORDER, FROM_MAP
+    from pipeline.orchestrator import DETERMINISTIC_ORDER, FROM_MAP, FULL_ORDER
 
     if body.from_stage:
         stages = FROM_MAP.get(body.from_stage)
@@ -215,7 +221,9 @@ async def new_doc_count(
 ) -> NewDocCountResponse:
     """Count documents never processed by the pipeline (pipeline_last_run_at IS NULL)."""
     result = await db.execute(
-        select(func.count()).select_from(Document).where(
+        select(func.count())
+        .select_from(Document)
+        .where(
             Document.workspace_id == workspace.id,
             Document.status == DocumentStatus.ready,
             Document.pipeline_last_run_at.is_(None),
@@ -330,7 +338,9 @@ async def resume_run(
         )
 
     pending_reviews = await db.execute(
-        select(func.count()).select_from(StageReview).where(
+        select(func.count())
+        .select_from(StageReview)
+        .where(
             StageReview.pipeline_run_id == run_id,
             StageReview.status == StageReviewStatus.pending,
         )

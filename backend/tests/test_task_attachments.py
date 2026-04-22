@@ -76,13 +76,9 @@ async def test_list_attachments_returns_uploaded(db, client, tmp_path, monkeypat
     task = await _make_task_in_ws(db, client, ws)
 
     files = {"file": ("nota.pdf", io.BytesIO(b"%PDF-1.4 x"), "application/pdf")}
-    await client.post(
-        f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments", files=files
-    )
+    await client.post(f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments", files=files)
 
-    resp = await client.get(
-        f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments"
-    )
+    resp = await client.get(f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments")
     assert resp.status_code == 200
     data = resp.json()
     assert data["total"] == 1
@@ -90,9 +86,7 @@ async def test_list_attachments_returns_uploaded(db, client, tmp_path, monkeypat
 
 
 @pytest.mark.asyncio
-async def test_upload_rejects_disallowed_extension(
-    db, client, tmp_path, monkeypatch
-):
+async def test_upload_rejects_disallowed_extension(db, client, tmp_path, monkeypatch):
     monkeypatch.setattr(
         "backend.app.core.config.settings.STORAGE_ROOT",
         str(tmp_path),
@@ -101,9 +95,7 @@ async def test_upload_rejects_disallowed_extension(
     task = await _make_task_in_ws(db, client, ws)
 
     files = {"file": ("malicioso.exe", io.BytesIO(b"MZ\x90\x00"), "application/x-msdownload")}
-    resp = await client.post(
-        f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments", files=files
-    )
+    resp = await client.post(f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments", files=files)
     assert resp.status_code == 400
     assert "não permitido" in resp.json()["detail"].lower()
 
@@ -122,9 +114,7 @@ async def test_download_returns_file_content(db, client, tmp_path, monkeypatch):
 
     body = b"%PDF-1.4\ntest payload abc"
     files = {"file": ("x.pdf", io.BytesIO(body), "application/pdf")}
-    up = await client.post(
-        f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments", files=files
-    )
+    up = await client.post(f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments", files=files)
     att_id = up.json()["id"]
 
     resp = await client.get(
@@ -147,9 +137,7 @@ async def test_delete_removes_row_and_file(db, client, tmp_path, monkeypatch):
     task = await _make_task_in_ws(db, client, ws)
 
     files = {"file": ("x.pdf", io.BytesIO(b"%PDF-1.4"), "application/pdf")}
-    up = await client.post(
-        f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments", files=files
-    )
+    up = await client.post(f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments", files=files)
     att_id = up.json()["id"]
 
     # File existe antes
@@ -158,15 +146,11 @@ async def test_delete_removes_row_and_file(db, client, tmp_path, monkeypatch):
     assert any(att_dir.iterdir())
 
     # Delete
-    resp = await client.delete(
-        f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments/{att_id}"
-    )
+    resp = await client.delete(f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments/{att_id}")
     assert resp.status_code == 204
 
     # List retorna vazio
-    resp = await client.get(
-        f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments"
-    )
+    resp = await client.get(f"/api/workspaces/{ws.id}/tasks/{task['id']}/attachments")
     assert resp.json()["total"] == 0
 
     # Arquivo removido do disco

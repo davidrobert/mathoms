@@ -15,7 +15,6 @@ from pipeline.domain.services.internal_transfer_detector import (  # noqa: E402
     InternalTransferDetector,
 )
 
-
 # =============================================================================
 # Config
 # =============================================================================
@@ -97,9 +96,7 @@ class TestInternalRecipients:
 
 class TestBankSpecificPatterns:
     def test_match_only_when_banco_matches(self):
-        cfg = InternalTransferConfig(
-            bank_specific_patterns={"c6": ("Pagamento",)}
-        )
+        cfg = InternalTransferConfig(bank_specific_patterns={"c6": ("Pagamento",)})
         detector = InternalTransferDetector(cfg)
 
         # Match com banco correto + descrição exata.
@@ -110,18 +107,11 @@ class TestBankSpecificPatterns:
     def test_requires_exact_match_not_substring(self):
         """Bank-specific exige igualdade exata (após normalize) para evitar
         falsos positivos com keywords muito genéricas."""
-        cfg = InternalTransferConfig(
-            bank_specific_patterns={"c6": ("Pagamento",)}
-        )
+        cfg = InternalTransferConfig(bank_specific_patterns={"c6": ("Pagamento",)})
         detector = InternalTransferDetector(cfg)
 
         # Substring "Pagamento" dentro de outra descrição NÃO deve match.
-        assert (
-            detector.is_internal_transfer(
-                "Pagamento boleto luz", banco="C6 Bank"
-            )
-            is False
-        )
+        assert detector.is_internal_transfer("Pagamento boleto luz", banco="C6 Bank") is False
 
 
 class TestGlobalPatterns:

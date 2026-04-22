@@ -4,7 +4,7 @@ import uuid
 from datetime import date, datetime, timezone
 from typing import Any, Optional
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import JSON, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -13,9 +13,7 @@ from backend.app.core.database import Base
 class FamilyMember(Base):
     __tablename__ = "family_members"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -33,16 +31,17 @@ class FamilyMember(Base):
 
     workspace = relationship("Workspace", back_populates="family_members")
     accounts: Mapped[list["BankAccount"]] = relationship(
-        "BankAccount", back_populates="member", cascade="all, delete-orphan", order_by="BankAccount.id"
+        "BankAccount",
+        back_populates="member",
+        cascade="all, delete-orphan",
+        order_by="BankAccount.id",
     )
 
 
 class BankAccount(Base):
     __tablename__ = "bank_accounts"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     member_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("family_members.id", ondelete="CASCADE"), nullable=False, index=True
     )

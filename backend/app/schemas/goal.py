@@ -28,6 +28,8 @@ from backend.app.schemas.dto.goal.alocacao import (
     AlocacaoGoalHistoryResponse,
     AlocacaoGoalInputs,
     AlocacaoGoalResponse,
+)
+from backend.app.schemas.dto.goal.alocacao import (
     AlocacaoGoalUpsertCommand as AlocacaoGoalUpsertRequest,
 )
 from backend.app.schemas.dto.goal.aporte import (
@@ -37,6 +39,8 @@ from backend.app.schemas.dto.goal.aporte import (
     AporteGoalHistoryResponse,
     AporteGoalInputs,
     AporteGoalResponse,
+)
+from backend.app.schemas.dto.goal.aporte import (
     AporteGoalUpsertCommand as AporteGoalUpsertRequest,
 )
 from backend.app.schemas.dto.goal.base import GoalResponseBase as _GoalResponseBase
@@ -47,6 +51,8 @@ from backend.app.schemas.dto.goal.dolar import (
     DolarGoalHistoryResponse,
     DolarGoalInputs,
     DolarGoalResponse,
+)
+from backend.app.schemas.dto.goal.dolar import (
     DolarGoalUpsertCommand as DolarGoalUpsertRequest,
 )
 from backend.app.schemas.dto.goal.if_goal import (
@@ -56,6 +62,8 @@ from backend.app.schemas.dto.goal.if_goal import (
     IFGoalHistoryResponse,
     IFGoalInputs,
     IFGoalResponse,
+)
+from backend.app.schemas.dto.goal.if_goal import (
     IFGoalUpsertCommand as IFGoalUpsertRequest,
 )
 

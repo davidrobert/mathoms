@@ -8,7 +8,6 @@ from backend.app.core.security import create_access_token
 from backend.app.services import feature_flags_service
 from backend.tests import factories
 
-
 # ─── Service ──────────────────────────────────────────────────────────
 
 
@@ -22,9 +21,7 @@ async def test_get_flags_returns_defaults_for_new_workspace(db):
 @pytest.mark.asyncio
 async def test_set_flag_persists_override(db):
     ws = await factories.make_workspace(db)
-    flags = await feature_flags_service.set_flag(
-        ws.id, "tasks_v2_enabled", False, db=db
-    )
+    flags = await feature_flags_service.set_flag(ws.id, "tasks_v2_enabled", False, db=db)
     await db.commit()
     assert flags["tasks_v2_enabled"] is False
     # Outras flags mantêm default
@@ -34,13 +31,9 @@ async def test_set_flag_persists_override(db):
 @pytest.mark.asyncio
 async def test_set_flag_twice_updates_in_place(db):
     ws = await factories.make_workspace(db)
-    await feature_flags_service.set_flag(
-        ws.id, "tasks_v2_enabled", False, db=db
-    )
+    await feature_flags_service.set_flag(ws.id, "tasks_v2_enabled", False, db=db)
     await db.commit()
-    flags = await feature_flags_service.set_flag(
-        ws.id, "tasks_v2_enabled", True, db=db
-    )
+    flags = await feature_flags_service.set_flag(ws.id, "tasks_v2_enabled", True, db=db)
     await db.commit()
     assert flags["tasks_v2_enabled"] is True
 
@@ -49,33 +42,21 @@ async def test_set_flag_twice_updates_in_place(db):
 async def test_set_flag_rejects_unknown_flag(db):
     ws = await factories.make_workspace(db)
     with pytest.raises(ValueError, match="desconhecida"):
-        await feature_flags_service.set_flag(
-            ws.id, "nonexistent_flag", True, db=db
-        )
+        await feature_flags_service.set_flag(ws.id, "nonexistent_flag", True, db=db)
 
 
 @pytest.mark.asyncio
 async def test_is_enabled_shortcut(db):
     ws = await factories.make_workspace(db)
-    assert (
-        await feature_flags_service.is_enabled(
-            ws.id, "tasks_v2_enabled", db=db
-        )
-        is True
-    )
-    assert (
-        await feature_flags_service.is_enabled(ws.id, "nonexistent", db=db)
-        is False
-    )
+    assert await feature_flags_service.is_enabled(ws.id, "tasks_v2_enabled", db=db) is True
+    assert await feature_flags_service.is_enabled(ws.id, "nonexistent", db=db) is False
 
 
 @pytest.mark.asyncio
 async def test_flags_isolated_between_workspaces(db):
     ws_a = await factories.make_workspace(db)
     ws_b = await factories.make_workspace(db)
-    await feature_flags_service.set_flag(
-        ws_a.id, "tasks_v2_enabled", False, db=db
-    )
+    await feature_flags_service.set_flag(ws_a.id, "tasks_v2_enabled", False, db=db)
     await db.commit()
 
     flags_a = await feature_flags_service.get_flags(ws_a.id, db=db)

@@ -75,6 +75,4 @@ def instrument_celery() -> None:
 
         CeleryInstrumentor().instrument()
     except Exception as exc:
-        logging.getLogger(__name__).warning(
-            "OTel Celery instrumentation skipped: %s", exc
-        )
+        logging.getLogger(__name__).warning("OTel Celery instrumentation skipped: %s", exc)

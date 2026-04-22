@@ -51,19 +51,21 @@ def load_transactions(tenant_root: str) -> list[TransactionItem]:
     items: list[TransactionItem] = []
     for tx in all_raw:
         tx_hash = generate_transaction_hash(tx)
-        items.append(TransactionItem(
-            data=tx.get("data", ""),
-            descricao=tx.get("descricao", ""),
-            valor=float(tx.get("valor", 0)),
-            banco=tx.get("banco", ""),
-            categoria=tx.get("categoria", ""),
-            origem=tx.get("origem"),
-            tipo_conta=tx.get("tipo_conta"),
-            titular=tx.get("titular"),
-            moeda=tx.get("moeda"),
-            transaction_hash=tx_hash,
-            is_overridden=False,
-        ))
+        items.append(
+            TransactionItem(
+                data=tx.get("data", ""),
+                descricao=tx.get("descricao", ""),
+                valor=float(tx.get("valor", 0)),
+                banco=tx.get("banco", ""),
+                categoria=tx.get("categoria", ""),
+                origem=tx.get("origem"),
+                tipo_conta=tx.get("tipo_conta"),
+                titular=tx.get("titular"),
+                moeda=tx.get("moeda"),
+                transaction_hash=tx_hash,
+                is_overridden=False,
+            )
+        )
     return items
 
 
@@ -76,10 +78,12 @@ def apply_overrides(
     for tx in transactions:
         if tx.transaction_hash in overrides_map:
             override = overrides_map[tx.transaction_hash]
-            tx = tx.model_copy(update={
-                "categoria": override.new_category,
-                "is_overridden": True,
-            })
+            tx = tx.model_copy(
+                update={
+                    "categoria": override.new_category,
+                    "is_overridden": True,
+                }
+            )
         result.append(tx)
     return result
 

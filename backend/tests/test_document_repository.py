@@ -43,9 +43,7 @@ async def two_workspaces(db: AsyncSession) -> tuple[Workspace, Workspace]:
 
 
 @pytest.mark.asyncio
-async def test_list_returns_empty_for_empty_workspace(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_returns_empty_for_empty_workspace(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     repo = DocumentRepository(db)
 
@@ -53,9 +51,7 @@ async def test_list_returns_empty_for_empty_workspace(
 
 
 @pytest.mark.asyncio
-async def test_list_is_isolated_per_workspace(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_is_isolated_per_workspace(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
 
     await make_document(db, workspace=ws_a, original_name="a1.pdf")
@@ -72,9 +68,7 @@ async def test_list_is_isolated_per_workspace(
 
 
 @pytest.mark.asyncio
-async def test_list_filters_by_single_status(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_filters_by_single_status(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_document(db, workspace=ws_a, status="ready", original_name="r.pdf")
@@ -89,9 +83,7 @@ async def test_list_filters_by_single_status(
 
 
 @pytest.mark.asyncio
-async def test_list_filters_by_status_in_clause(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_filters_by_status_in_clause(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_document(db, workspace=ws_a, status="ready", original_name="r.pdf")
@@ -100,17 +92,13 @@ async def test_list_filters_by_status_in_clause(
     await db.commit()
 
     repo = DocumentRepository(db)
-    docs = await repo.list(
-        ws_a.id, statuses=[DocumentStatus.ready, DocumentStatus.processed]
-    )
+    docs = await repo.list(ws_a.id, statuses=[DocumentStatus.ready, DocumentStatus.processed])
 
     assert {d.original_name for d in docs} == {"r.pdf", "p.pdf"}
 
 
 @pytest.mark.asyncio
-async def test_list_with_empty_statuses_returns_empty(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_with_empty_statuses_returns_empty(db: AsyncSession, two_workspaces):
     """``statuses=[]`` é interpretado como "filtro impossível", curto-circuita."""
     ws_a, _ = two_workspaces
     await make_document(db, workspace=ws_a)
@@ -137,9 +125,7 @@ async def test_list_filters_by_doc_type(db: AsyncSession, two_workspaces):
 
 
 @pytest.mark.asyncio
-async def test_list_orders_by_uploaded_at_desc(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_orders_by_uploaded_at_desc(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     older = await make_document(db, workspace=ws_a, original_name="older.pdf")
@@ -160,9 +146,7 @@ async def test_list_orders_by_uploaded_at_desc(
 
 
 @pytest.mark.asyncio
-async def test_get_by_id_scoped_to_workspace(
-    db: AsyncSession, two_workspaces
-):
+async def test_get_by_id_scoped_to_workspace(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
 
     doc = await make_document(db, workspace=ws_a)
@@ -178,9 +162,7 @@ async def test_get_by_id_scoped_to_workspace(
 
 
 @pytest.mark.asyncio
-async def test_get_by_content_hash_scoped_to_workspace(
-    db: AsyncSession, two_workspaces
-):
+async def test_get_by_content_hash_scoped_to_workspace(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
 
     await make_document(db, workspace=ws_a, content_hash="shared_hash_123")
@@ -198,9 +180,7 @@ async def test_get_by_content_hash_scoped_to_workspace(
 
 
 @pytest.mark.asyncio
-async def test_find_fuzzy_duplicate_id_matches_triplo(
-    db: AsyncSession, two_workspaces
-):
+async def test_find_fuzzy_duplicate_id_matches_triplo(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     original = await make_document(
@@ -235,9 +215,7 @@ async def test_find_fuzzy_duplicate_id_matches_triplo(
 
 
 @pytest.mark.asyncio
-async def test_find_fuzzy_duplicate_id_returns_none_without_match(
-    db: AsyncSession, two_workspaces
-):
+async def test_find_fuzzy_duplicate_id_returns_none_without_match(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     await make_document(
         db, workspace=ws_a, doc_type="bank_statement", bank_code="itau", period="202601"
@@ -255,9 +233,7 @@ async def test_find_fuzzy_duplicate_id_returns_none_without_match(
 
 
 @pytest.mark.asyncio
-async def test_find_fuzzy_duplicate_id_is_workspace_isolated(
-    db: AsyncSession, two_workspaces
-):
+async def test_find_fuzzy_duplicate_id_is_workspace_isolated(db: AsyncSession, two_workspaces):
     ws_a, ws_b = two_workspaces
     await make_document(
         db, workspace=ws_a, doc_type="bank_statement", bank_code="itau", period="202601"
@@ -280,9 +256,7 @@ async def test_find_fuzzy_duplicate_id_is_workspace_isolated(
 
 
 @pytest.mark.asyncio
-async def test_list_non_error_excludes_error_status(
-    db: AsyncSession, two_workspaces
-):
+async def test_list_non_error_excludes_error_status(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     await make_document(db, workspace=ws_a, status="ready", original_name="r.pdf")
@@ -302,9 +276,7 @@ async def test_list_non_error_excludes_error_status(
 
 
 @pytest.mark.asyncio
-async def test_add_flushes_and_assigns_id(
-    db: AsyncSession, two_workspaces
-):
+async def test_add_flushes_and_assigns_id(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     doc = Document(
@@ -322,9 +294,7 @@ async def test_add_flushes_and_assigns_id(
 
 
 @pytest.mark.asyncio
-async def test_add_with_flush_false_does_not_flush(
-    db: AsyncSession, two_workspaces
-):
+async def test_add_with_flush_false_does_not_flush(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
 
     doc = Document(

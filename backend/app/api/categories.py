@@ -73,9 +73,7 @@ async def update_category(
     workspace: Workspace = Depends(get_current_workspace),
     repo: CategoryRepository = Depends(_get_repo),
 ) -> CategoryResponse:
-    return await uc_update_category(
-        category_id, body, workspace_id=workspace.id, repo=repo
-    )
+    return await uc_update_category(category_id, body, workspace_id=workspace.id, repo=repo)
 
 
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)

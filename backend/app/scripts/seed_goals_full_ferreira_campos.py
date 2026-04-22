@@ -29,15 +29,14 @@ from pathlib import Path
 from sqlalchemy import select
 
 from backend.app.core.database import async_session as AsyncSessionLocal
-from backend.app.models.goal import Goal, VALID_GOAL_TYPES
+from backend.app.models.goal import VALID_GOAL_TYPES, Goal
 from backend.app.models.workspace import Workspace
+from backend.app.schemas.goal import IFGoalInputs
 from backend.app.services.goal_service import (
     compute_if_derived,
-    get_current_goal,
     create_if_goal_version,
+    get_current_goal,
 )
-from backend.app.schemas.goal import IFGoalInputs
-
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 GOALS_JSON_PATH = REPO_ROOT / "config" / "goals.json"
@@ -83,6 +82,7 @@ async def _create_goal_if_missing(
         return False
     if existing and force:
         from datetime import timedelta
+
         existing.effective_to = date.today() - timedelta(days=1)
         db.add(existing)
         await db.flush()
@@ -123,9 +123,7 @@ async def seed(
         if workspace_id:
             stmt = select(Workspace).where(Workspace.id == workspace_id)
         else:
-            stmt = select(Workspace).where(
-                Workspace.family_surname == FAMILY_SURNAME_MATCH
-            )
+            stmt = select(Workspace).where(Workspace.family_surname == FAMILY_SURNAME_MATCH)
         workspaces = list((await db.execute(stmt)).scalars().all())
         if not workspaces:
             logger.warning("Nenhuma workspace encontrada")
@@ -137,9 +135,7 @@ async def seed(
 
             # -- IF (reusa seed existente se já presente) --
             if_section = goals_data.get("independencia_financeira", {})
-            existing_if = await get_current_goal(
-                ws.id, "INDEPENDENCIA_FINANCEIRA", db=db
-            )
+            existing_if = await get_current_goal(ws.id, "INDEPENDENCIA_FINANCEIRA", db=db)
             if not existing_if:
                 if if_section.get("renda_passiva_meta_mensal"):
                     inputs = IFGoalInputs(
@@ -153,7 +149,9 @@ async def seed(
                     )
                     if apply:
                         await create_if_goal_version(
-                            ws.id, inputs, db=db,
+                            ws.id,
+                            inputs,
+                            db=db,
                             notes="Seed full F8.4 — from goals.json",
                         )
                     logger.info("  [ok] INDEPENDENCIA_FINANCEIRA criada")
@@ -171,8 +169,12 @@ async def seed(
                     "distribuicao": aportes.get("distribuicao", {}),
                 }
                 if await _create_goal_if_missing(
-                    ws.id, "APORTE_MENSAL", params, db=db,
-                    apply=apply, force=force_replace,
+                    ws.id,
+                    "APORTE_MENSAL",
+                    params,
+                    db=db,
+                    apply=apply,
+                    force=force_replace,
                     notes="Seed F8.4 — from goals.json:aportes",
                 ):
                     created += 1
@@ -185,8 +187,12 @@ async def seed(
                     "aporte_mensal_brl": dolar.get("aporte_mensal_brl", 2000),
                 }
                 if await _create_goal_if_missing(
-                    ws.id, "DOLARIZACAO", params, db=db,
-                    apply=apply, force=force_replace,
+                    ws.id,
+                    "DOLARIZACAO",
+                    params,
+                    db=db,
+                    apply=apply,
+                    force=force_replace,
                     notes="Seed F8.4 — from goals.json:dolarizacao",
                 ):
                     created += 1
@@ -196,8 +202,12 @@ async def seed(
             if aloc:
                 params = dict(aloc)
                 if await _create_goal_if_missing(
-                    ws.id, "ALOCACAO_ALVO", params, db=db,
-                    apply=apply, force=force_replace,
+                    ws.id,
+                    "ALOCACAO_ALVO",
+                    params,
+                    db=db,
+                    apply=apply,
+                    force=force_replace,
                     notes="Seed F8.4 — from goals.json:alocacao_alvo",
                 ):
                     created += 1
@@ -211,8 +221,12 @@ async def seed(
 
             if remaining:
                 if await _create_goal_if_missing(
-                    ws.id, "PLANNING_CONTEXT", remaining, db=db,
-                    apply=apply, force=force_replace,
+                    ws.id,
+                    "PLANNING_CONTEXT",
+                    remaining,
+                    db=db,
+                    apply=apply,
+                    force=force_replace,
                     notes=(
                         f"Seed F8.4 — {len(remaining)} seções restantes "
                         f"de goals.json: {', '.join(sorted(remaining.keys())[:5])}..."

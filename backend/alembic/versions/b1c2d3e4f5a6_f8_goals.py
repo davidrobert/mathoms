@@ -16,13 +16,13 @@ Não faz backfill automático. Seeds específicos (Ferreira Campos +
 template para novos workspaces) rodam por scripts em
 `backend/app/scripts/seed_*.py`.
 """
+
 from __future__ import annotations
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "b1c2d3e4f5a6"
 down_revision: Union[str, None] = "a9b8c7d6e5f4"

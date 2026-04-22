@@ -6,6 +6,7 @@ config, sem tmp_path.
 
 Exclui goldens (test_e5_golden_execution.py j\u00e1 cobre paridade com disco).
 """
+
 from __future__ import annotations
 
 import pytest
@@ -17,7 +18,6 @@ from scripts.e5_analyze import (
     parse_milhas_md_content,
     parse_tarefas_md_content,
 )
-
 
 # =============================================================================
 # parse_tarefas_md_content — fun\u00e7\u00e3o pura
@@ -349,9 +349,7 @@ def test_extract_renda_passiva_no_match_returns_zero():
 # =============================================================================
 
 
-def test_parse_tarefas_md_shell_loader_returns_empty_when_file_missing(
-    monkeypatch, tmp_path
-):
+def test_parse_tarefas_md_shell_loader_returns_empty_when_file_missing(monkeypatch, tmp_path):
     """Shell loader tolera CONFIG_TAREFAS ausente — back-compat."""
     import scripts.e5_analyze as e5
 
@@ -361,9 +359,7 @@ def test_parse_tarefas_md_shell_loader_returns_empty_when_file_missing(
     assert status == {}
 
 
-def test_parse_milhas_md_shell_loader_returns_empty_when_file_missing(
-    monkeypatch, tmp_path
-):
+def test_parse_milhas_md_shell_loader_returns_empty_when_file_missing(monkeypatch, tmp_path):
     import scripts.e5_analyze as e5
 
     monkeypatch.setattr(e5, "CONFIG_MILHAS", tmp_path / "nonexistent.md")

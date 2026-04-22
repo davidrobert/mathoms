@@ -37,8 +37,8 @@ from backend.app.core.config import settings
 from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.services.config_materializer import ensure_tenant_pipeline_config
-from backend.app.services.document_duplicates import rebuild_fuzzy_duplicate_pointers
 from backend.app.services.document_classification import classify_document
+from backend.app.services.document_duplicates import rebuild_fuzzy_duplicate_pointers
 from backend.app.services.document_processor import (
     _detect_json_type,
     resolve_classification_base,
@@ -76,7 +76,9 @@ async def _reclassify_one(doc: Document, *, use_llm: bool) -> dict:
     _storage.ensure_tenant_dirs(doc.workspace_id)
     tenant_root = _storage.tenant_root(doc.workspace_id)
     ensure_tenant_pipeline_config(doc.workspace_id, tenant_root)
-    classification_base = resolve_classification_base(settings.PIPELINE_ROOT / "config", tenant_root)
+    classification_base = resolve_classification_base(
+        settings.PIPELINE_ROOT / "config", tenant_root
+    )
     try:
         result = classify_document(path, classification_base, use_llm=use_llm)
     except Exception as exc:
@@ -172,20 +174,24 @@ def main():
     g.add_argument("--dry-run", action="store_true", help="Show what would change")
     g.add_argument("--apply", action="store_true", help="Actually write to DB")
     ap.add_argument(
-        "--no-llm", action="store_true",
-        help="Disable LLM fallback (regex only). Cheaper, less accurate."
+        "--no-llm",
+        action="store_true",
+        help="Disable LLM fallback (regex only). Cheaper, less accurate.",
     )
     ap.add_argument(
-        "--only-doc-type", default=None,
-        help="Restrict to documents currently classified as this type (e.g. 'other')."
+        "--only-doc-type",
+        default=None,
+        help="Restrict to documents currently classified as this type (e.g. 'other').",
     )
     args = ap.parse_args()
 
-    rc = asyncio.run(reclassify(
-        apply=args.apply,
-        use_llm=not args.no_llm,
-        only_doc_type=args.only_doc_type,
-    ))
+    rc = asyncio.run(
+        reclassify(
+            apply=args.apply,
+            use_llm=not args.no_llm,
+            only_doc_type=args.only_doc_type,
+        )
+    )
     sys.exit(rc)
 
 

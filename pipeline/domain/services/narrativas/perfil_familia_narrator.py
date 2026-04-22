@@ -19,7 +19,6 @@ from pipeline.domain.services.narrativas.format_helpers import (
     fmt_percent,
 )
 
-
 # Max chars per <p> — enforçado pelo validator E5.N (V_PERFIL_MAX_CHARS).
 PERFIL_MAX_CHARS = 300
 
@@ -30,9 +29,7 @@ def _age(dob_str: str | None, today: _date) -> str:
     try:
         parts = dob_str.split("-")
         dob = _date(int(parts[0]), int(parts[1]), int(parts[2]))
-        return str(
-            today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
-        )
+        return str(today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day)))
     except (ValueError, IndexError, TypeError) as e:
         print(f"  [WARN] Erro ao calcular idade de '{dob_str}': {e}")
         return "?"
@@ -60,11 +57,7 @@ class PerfilFamiliaNarrator:
         _tit = fm.get(ctx.titular_key, {}) or {}
         _conj = fm.get(ctx.conjuge_key, {}) or {}
         _filho_key = next(
-            (
-                k
-                for k, v in fm.items()
-                if isinstance(v, dict) and v.get("papel") == "filho"
-            ),
+            (k for k, v in fm.items() if isinstance(v, dict) and v.get("papel") == "filho"),
             "",
         )
         _filho = fm.get(_filho_key, {}) or {}
@@ -74,9 +67,7 @@ class PerfilFamiliaNarrator:
         _titular_age = _age(_tit.get("data_nascimento"), today)
         _conjuge_age = _age(_conj.get("data_nascimento"), today)
         _pets_str = (
-            ", ".join(_pets[:-1]) + " e " + _pets[-1]
-            if len(_pets) > 1
-            else ", ".join(_pets)
+            ", ".join(_pets[:-1]) + " e " + _pets[-1] if len(_pets) > 1 else ", ".join(_pets)
         )
 
         _carreira_inicio = _tit.get("carreira_inicio")

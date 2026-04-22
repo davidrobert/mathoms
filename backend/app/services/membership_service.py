@@ -75,9 +75,9 @@ async def update_member_role(
     db: AsyncSession,
 ) -> WorkspaceMember:
     """Atualiza o role. Raises `MembershipError` se:
-      - member não existe no workspace
-      - new_role é `owner` ou inválido
-      - member é o owner do workspace
+    - member não existe no workspace
+    - new_role é `owner` ou inválido
+    - member é o owner do workspace
     """
     new_role = new_role.strip()
     if new_role not in VALID_ROLES:

@@ -30,13 +30,25 @@ from pipeline.stage_spec import (  # noqa: E402
     validate_full_order,
 )
 
-
 EXPECTED_LEGACY_STAGES = {
-    "E0-audit", "E0-unlock", "E0-route",
-    "E1", "E1.5", "E1.5c",
-    "E2-faturas", "E2-extratos", "E2-llm",
-    "E3", "E4", "E5", "E5.N",
-    "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final",
+    "E0-audit",
+    "E0-unlock",
+    "E0-route",
+    "E1",
+    "E1.5",
+    "E1.5c",
+    "E2-faturas",
+    "E2-extratos",
+    "E2-llm",
+    "E3",
+    "E4",
+    "E5",
+    "E5.N",
+    "E6",
+    "E7-crossval",
+    "E7-review",
+    "E7-apply",
+    "E6-final",
 }
 
 

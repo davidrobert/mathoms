@@ -17,9 +17,15 @@ _SCHEMAS = _REPO / "config" / "schemas"
     [
         (_FIXTURES / "e2" / "minimal-extrato-2_extract.json", "e2_extract.schema.json"),
         (_FIXTURES / "e3" / "minimal-conta-3_reconciled.json", "e3_reconciled.schema.json"),
-        (_FIXTURES / "e3" / "minimal-conta-com-despesa-3_reconciled.json", "e3_reconciled.schema.json"),
+        (
+            _FIXTURES / "e3" / "minimal-conta-com-despesa-3_reconciled.json",
+            "e3_reconciled.schema.json",
+        ),
         (_FIXTURES / "e4" / "minimal-receitas-4_unified.json", "e4_unified.schema.json"),
-        (_FIXTURES / "e2" / "minimal-baseline-1.5_consolidated.json", "baseline_patrimonial.schema.json"),
+        (
+            _FIXTURES / "e2" / "minimal-baseline-1.5_consolidated.json",
+            "baseline_patrimonial.schema.json",
+        ),
     ],
 )
 def test_pipeline_golden_fixture_matches_schema(fixture_path: Path, schema_name: str):

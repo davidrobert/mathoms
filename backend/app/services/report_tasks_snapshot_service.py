@@ -40,7 +40,6 @@ from sqlalchemy.orm import Session as SyncSession
 
 from backend.app.models.task import Task
 
-
 SNAPSHOT_VERSION = 1
 
 
@@ -86,11 +85,7 @@ def build_snapshot_sync(
 
     Mantém a mesma shape do snapshot → compatível com `get_report_snapshot`.
     """
-    stmt = (
-        select(Task)
-        .where(Task.workspace_id == workspace_id)
-        .order_by(Task.number.asc())
-    )
+    stmt = select(Task).where(Task.workspace_id == workspace_id).order_by(Task.number.asc())
     tasks = list(db.execute(stmt).scalars().all())
     return _serialize_tasks(tasks)
 
@@ -101,11 +96,7 @@ async def build_snapshot(
     db: AsyncSession,
 ) -> dict[str, Any]:
     """Constrói o dict de snapshot a partir do estado atual do DB."""
-    stmt = (
-        select(Task)
-        .where(Task.workspace_id == workspace_id)
-        .order_by(Task.number.asc())
-    )
+    stmt = select(Task).where(Task.workspace_id == workspace_id).order_by(Task.number.asc())
     tasks = list((await db.execute(stmt)).scalars().all())
     return _serialize_tasks(tasks)
 
@@ -123,9 +114,7 @@ async def get_report_snapshot(
     """
     from backend.app.models.report import Report
 
-    stmt = select(Report).where(
-        Report.workspace_id == workspace_id, Report.id == report_id
-    )
+    stmt = select(Report).where(Report.workspace_id == workspace_id, Report.id == report_id)
     report = (await db.execute(stmt)).scalar_one_or_none()
     if report is None:
         return None

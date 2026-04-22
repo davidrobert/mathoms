@@ -55,11 +55,13 @@ class TestImportNoSideEffect:
 class TestDefaults:
     def test_skip_types_has_irpf_and_investimentos(self):
         from scripts.e3_reconcile import SKIP_TYPES
+
         assert "irpf" in SKIP_TYPES
         assert "investimentosposicao" in SKIP_TYPES
 
     def test_tipo_canonical_has_extratoconta(self):
         from scripts.e3_reconcile import TIPO_CANONICAL
+
         assert TIPO_CANONICAL["extratoconta"] == "extratoconta"
         assert TIPO_CANONICAL["faturacarbon"] == "faturacarbon"
 
@@ -71,6 +73,7 @@ class TestDefaults:
         if "scripts.e3_reconcile" in sys.modules:
             del sys.modules["scripts.e3_reconcile"]
         from scripts.e3_reconcile import ACCOUNT_TYPE_EQUIVALENCES
+
         # Nota: pode estar populado se _init_config foi chamado por outro
         # teste anterior (testes não são isolados). O importante é que
         # exista como dict (não None) e seja mutável.
@@ -78,16 +81,18 @@ class TestDefaults:
 
     def test_tolerances_have_sensible_defaults(self):
         from scripts.e3_reconcile import (
-            _TOLERANCE_SALDO_DIFF,
-            _TOLERANCE_GAP_DAYS,
             _TOLERANCE_BASELINE_DIFF,
+            _TOLERANCE_GAP_DAYS,
+            _TOLERANCE_SALDO_DIFF,
         )
+
         assert _TOLERANCE_SALDO_DIFF == 0.01
         assert _TOLERANCE_GAP_DAYS == 4
         assert _TOLERANCE_BASELINE_DIFF == 1.0
 
     def test_base_dir_is_repo_root(self):
         from scripts.e3_reconcile import _BASE_DIR, _DEFAULT_BASE_DIR
+
         # Sem _init_config explícito, _BASE_DIR == _DEFAULT_BASE_DIR.
         assert isinstance(_BASE_DIR, Path)
         assert _BASE_DIR == _DEFAULT_BASE_DIR
@@ -126,10 +131,11 @@ class TestInitConfigStillWorks:
         try:
             _init_config(tmp_path)
             from scripts.e3_reconcile import (
-                ACCOUNT_TYPE_EQUIVALENCES,
                 _BANCO_DISPLAY_TO_CANONICAL,
                 _TOLERANCE_SALDO_DIFF,
+                ACCOUNT_TYPE_EQUIVALENCES,
             )
+
             assert ACCOUNT_TYPE_EQUIVALENCES == {"alias": "real"}
             assert _BANCO_DISPLAY_TO_CANONICAL.get("itaú") == "itau"
             assert _TOLERANCE_SALDO_DIFF == 0.05

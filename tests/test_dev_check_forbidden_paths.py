@@ -25,6 +25,7 @@ _SPEC.loader.exec_module(cfp)
 
 # ─── Bloqueados ────────────────────────────────────────────────────────
 
+
 @pytest.mark.parametrize(
     "path",
     [
@@ -65,6 +66,7 @@ def test_blocks_db_suffixes(path: str) -> None:
 
 # ─── Permitidos (não confundir com proibidos) ──────────────────────────
 
+
 @pytest.mark.parametrize(
     "path",
     [
@@ -81,6 +83,7 @@ def test_allows_legit_paths(path: str) -> None:
 
 
 # ─── Delete staged é exceção (remover .env do repo é desejável) ────────
+
 
 def test_delete_of_env_is_allowed() -> None:
     """Se o commit está DELETANDO um arquivo proibido, passa (limpeza)."""

@@ -14,6 +14,7 @@ Saídas:
     frontend/src/generated/report-layout.ts
     backend/app/generated/report_layout.py
 """
+
 from __future__ import annotations
 
 import argparse
@@ -33,8 +34,10 @@ PY_OUTPUT = ROOT / "backend" / "app" / "generated" / "report_layout.py"
 # Load + validate
 # ---------------------------------------------------------------------------
 
+
 def load_yaml() -> dict[str, Any]:
     import yaml  # pyyaml
+
     return yaml.safe_load(YAML_PATH.read_text(encoding="utf-8"))
 
 
@@ -75,9 +78,7 @@ def _collect_ids(sections: list[dict[str, Any]], key: str) -> list[str]:
 
 def render_ts(layout: dict[str, Any]) -> str:
     all_sections = (
-        layout["estrategico"]["sections"]
-        + layout["tatico"]["sections"]
-        + layout["usa"]["sections"]
+        layout["estrategico"]["sections"] + layout["tatico"]["sections"] + layout["usa"]["sections"]
     )
     all_cards = _collect_ids(all_sections, "cards")
     all_charts = _collect_ids(all_sections, "charts")
@@ -267,9 +268,7 @@ class ReportLayout(BaseModel):
 
 def render_py(layout: dict[str, Any]) -> str:
     all_sections = (
-        layout["estrategico"]["sections"]
-        + layout["tatico"]["sections"]
-        + layout["usa"]["sections"]
+        layout["estrategico"]["sections"] + layout["tatico"]["sections"] + layout["usa"]["sections"]
     )
     all_cards = _collect_ids(all_sections, "cards")
     all_charts = _collect_ids(all_sections, "charts")
@@ -290,6 +289,7 @@ def render_py(layout: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def build() -> tuple[str, str]:
     layout = load_yaml()

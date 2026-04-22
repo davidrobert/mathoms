@@ -36,7 +36,9 @@ def _fluxo_with_janela(
     }
 
 
-def _patrimonio(bruto: float = 1_000_000, dividas: float = 200_000, investivel: float = 500_000) -> dict:
+def _patrimonio(
+    bruto: float = 1_000_000, dividas: float = 200_000, investivel: float = 500_000
+) -> dict:
     return {"bruto": bruto, "dividas": dividas, "investivel": investivel}
 
 
@@ -51,7 +53,9 @@ class TestTaxaPoupanca:
 
     def test_total_uses_receita_total_not_recorrente(self):
         r = RatiosCalculator().calculate(
-            _fluxo_with_janela(receita_recorrente=100_000, receita_total=120_000, despesa_total=60_000),
+            _fluxo_with_janela(
+                receita_recorrente=100_000, receita_total=120_000, despesa_total=60_000
+            ),
             _patrimonio(),
         )
         # (120k - 60k) / 120k = 50%

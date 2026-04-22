@@ -111,7 +111,10 @@ class TestReserva:
 class TestDiversificacao:
     def test_gera_com_4_categorias_ou_mais(self):
         categorias = [
-            {"valor": 100}, {"valor": 50}, {"valor": 25}, {"valor": 10},
+            {"valor": 100},
+            {"valor": 50},
+            {"valor": 25},
+            {"valor": 10},
         ]
         out = PontosFortesAnalyzer().analyze(
             **_args(patrimonio={"bruto": 500, "categorias": categorias})
@@ -153,28 +156,38 @@ class TestProgressoIF:
 
 class TestPatrimonio1M:
     def test_gera_quando_bruto_acima_1M(self):
-        out = PontosFortesAnalyzer().analyze(**_args(patrimonio={"bruto": 1_500_000, "categorias": []}))
+        out = PontosFortesAnalyzer().analyze(
+            **_args(patrimonio={"bruto": 1_500_000, "categorias": []})
+        )
         titulos = {p.titulo for p in out}
         assert "Patrimônio Acima de R$ 1M" in titulos
 
 
 class TestFallback:
     def test_fallback_quando_tudo_zero(self):
-        out = PontosFortesAnalyzer().analyze(**_args(
-            ratios={"taxa_poupanca_recorrente_pct": 0, "taxa_endividamento_pct": 50, "cobertura_despesas_meses": 0},
-        ))
+        out = PontosFortesAnalyzer().analyze(
+            **_args(
+                ratios={
+                    "taxa_poupanca_recorrente_pct": 0,
+                    "taxa_endividamento_pct": 50,
+                    "cobertura_despesas_meses": 0,
+                },
+            )
+        )
         titulos = {p.titulo for p in out}
         assert "Análise em Andamento" in titulos
 
 
 class TestConfig:
     def test_from_scoring(self):
-        cfg = PontosFortesConfig.from_scoring({
-            "thresholds_alertas": {
-                "pontos_fortes_taxa_poupanca_min_pct": 40,
-                "endividamento_maximo_pct": 15,
+        cfg = PontosFortesConfig.from_scoring(
+            {
+                "thresholds_alertas": {
+                    "pontos_fortes_taxa_poupanca_min_pct": 40,
+                    "endividamento_maximo_pct": 15,
+                }
             }
-        })
+        )
         assert cfg.poupanca_forte_min_pct == 40.0
         assert cfg.endividamento_max_pct == 15.0
 

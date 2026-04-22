@@ -9,9 +9,7 @@ from backend.app.models.password_vault import PasswordVault
 from backend.app.schemas.vault import VaultListResponse, VaultResponse
 
 
-async def list_passwords(
-    workspace_id: str, *, db: AsyncSession
-) -> VaultListResponse:
+async def list_passwords(workspace_id: str, *, db: AsyncSession) -> VaultListResponse:
     result = await db.execute(
         select(PasswordVault)
         .where(PasswordVault.workspace_id == workspace_id)

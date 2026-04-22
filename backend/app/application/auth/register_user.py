@@ -13,9 +13,7 @@ from backend.app.models.workspace_member import WorkspaceMember
 from backend.app.schemas.auth import RegisterRequest, TokenResponse
 
 
-async def register_user(
-    body: RegisterRequest, *, db: AsyncSession
-) -> TokenResponse:
+async def register_user(body: RegisterRequest, *, db: AsyncSession) -> TokenResponse:
     if await _email_exists(body.email, db=db):
         raise ConflictError("Email já cadastrado")
 

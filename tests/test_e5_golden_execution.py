@@ -11,9 +11,25 @@ import pytest
 from tests.pipeline_golden_asserts import assert_qa_log_md
 
 _REPO = Path(__file__).resolve().parents[1]
-_E3_FIXTURE = _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-3_reconciled.json"
-_E3_MIXED = _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-com-despesa-3_reconciled.json"
-_BASELINE_MIN = _REPO / "tests" / "fixtures" / "pipeline_golden" / "e2" / "minimal-baseline-1.5_consolidated.json"
+_E3_FIXTURE = (
+    _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-3_reconciled.json"
+)
+_E3_MIXED = (
+    _REPO
+    / "tests"
+    / "fixtures"
+    / "pipeline_golden"
+    / "e3"
+    / "minimal-conta-com-despesa-3_reconciled.json"
+)
+_BASELINE_MIN = (
+    _REPO
+    / "tests"
+    / "fixtures"
+    / "pipeline_golden"
+    / "e2"
+    / "minimal-baseline-1.5_consolidated.json"
+)
 
 _GOALS_MIN = {
     "independencia_financeira": {
@@ -147,8 +163,12 @@ def e5_tenant_with_baseline(tmp_path: Path) -> Path:
 
 def test_e5_execution_produces_analysis_json(e5_tenant_minimal: Path):
     """Roda E4 e E5 em tenant isolado; restaura globals dos scripts."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT, _init_config as e4_init, main as e4_main
-    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT, _init_config as e5_init, main as e5_main
+    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT
+    from scripts.e4_categorize import _init_config as e4_init
+    from scripts.e4_categorize import main as e4_main
+    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT
+    from scripts.e5_analyze import _init_config as e5_init
+    from scripts.e5_analyze import main as e5_main
     from scripts.pipeline_common import _init_config as pc_init
 
     try:
@@ -189,8 +209,12 @@ def test_e5_execution_produces_analysis_json(e5_tenant_minimal: Path):
 
 def test_e5_execution_mixed_receita_despesa(e5_tenant_mixed_cashflow: Path):
     """E5 com receitas e despesas não nulas no E4 (golden expandido)."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT, _init_config as e4_init, main as e4_main
-    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT, _init_config as e5_init, main as e5_main
+    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT
+    from scripts.e4_categorize import _init_config as e4_init
+    from scripts.e4_categorize import main as e4_main
+    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT
+    from scripts.e5_analyze import _init_config as e5_init
+    from scripts.e5_analyze import main as e5_main
     from scripts.pipeline_common import _init_config as pc_init
 
     try:
@@ -205,7 +229,12 @@ def test_e5_execution_mixed_receita_despesa(e5_tenant_mixed_cashflow: Path):
         e4_init(E4_DEFAULT)
         e5_init(E5_DEFAULT)
 
-    out = e5_tenant_mixed_cashflow / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+    out = (
+        e5_tenant_mixed_cashflow
+        / "processed"
+        / "E5_analysis"
+        / "analise_financeira-5_analysis.json"
+    )
     payload = json.loads(out.read_text(encoding="utf-8"))
     fc = payload["fluxo_caixa"]
     assert fc.get("receita_total", 0) > 0
@@ -222,8 +251,12 @@ def test_e5_execution_mixed_receita_despesa(e5_tenant_mixed_cashflow: Path):
 
 def test_e5_execution_with_baseline_patrimonial(e5_tenant_with_baseline: Path):
     """E5 lê baseline consolidado: patrimônio bruto/líquido refletem totais do IRPF sintético."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT, _init_config as e4_init, main as e4_main
-    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT, _init_config as e5_init, main as e5_main
+    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT
+    from scripts.e4_categorize import _init_config as e4_init
+    from scripts.e4_categorize import main as e4_main
+    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT
+    from scripts.e5_analyze import _init_config as e5_init
+    from scripts.e5_analyze import main as e5_main
     from scripts.pipeline_common import _init_config as pc_init
 
     try:
@@ -238,7 +271,9 @@ def test_e5_execution_with_baseline_patrimonial(e5_tenant_with_baseline: Path):
         e4_init(E4_DEFAULT)
         e5_init(E5_DEFAULT)
 
-    out = e5_tenant_with_baseline / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+    out = (
+        e5_tenant_with_baseline / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+    )
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["patrimonio"]["bruto"] == 500_000.0
     assert payload["patrimonio"]["liquido"] == 400_000.0

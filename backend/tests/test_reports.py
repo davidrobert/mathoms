@@ -74,6 +74,7 @@ async def _seed_report(
     # Falls back to TestSession if db not provided (compat).
     if db is None:
         from backend.tests.conftest import TestSession
+
         session_ctx = TestSession()
     else:
         # Wrap the db fixture in a no-op context manager so we can use the
@@ -200,7 +201,9 @@ async def test_list_reports_propagates_has_analysis_data(
 
 @pytest.mark.asyncio
 async def test_get_report_data_unauthorized(client: AsyncClient):
-    resp = await client.get(f"/api/workspaces/00000000-0000-0000-0000-000000000000/reports/any-id/data")
+    resp = await client.get(
+        "/api/workspaces/00000000-0000-0000-0000-000000000000/reports/any-id/data"
+    )
     assert resp.status_code in (401, 403)
 
 
@@ -272,9 +275,7 @@ async def test_get_report_data_404_when_file_missing_from_disk(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
     """Path persistido mas arquivo apagado → 404 (não 500)."""
-    rid = await _seed_report(
-        auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path, db=db
-    )
+    rid = await _seed_report(auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path, db=db)
     # Apaga o JSON do disco preservando a row do DB
     (tmp_path / "analysis.json").unlink()
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
@@ -285,9 +286,7 @@ async def test_get_report_data_404_when_file_missing_from_disk(
 async def test_get_report_data_500_when_json_corrupted(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
-    rid = await _seed_report(
-        auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path, db=db
-    )
+    rid = await _seed_report(auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path, db=db)
     # Corrompe o arquivo
     (tmp_path / "analysis.json").write_text("{invalid json", encoding="utf-8")
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
@@ -300,13 +299,17 @@ async def test_get_report_data_500_when_json_corrupted(
 
 @pytest.mark.asyncio
 async def test_download_html_unauthorized(client: AsyncClient):
-    resp = await client.get(f"/api/workspaces/00000000-0000-0000-0000-000000000000/reports/any-id/download.html")
+    resp = await client.get(
+        "/api/workspaces/00000000-0000-0000-0000-000000000000/reports/any-id/download.html"
+    )
     assert resp.status_code in (401, 403)
 
 
 @pytest.mark.asyncio
 async def test_download_html_not_found(auth_client: AsyncClient):
-    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/nonexistent-id/download.html")
+    resp = await auth_client.get(
+        f"/api/workspaces/{auth_client.ws_id}/reports/nonexistent-id/download.html"
+    )
     assert resp.status_code == 404
 
 
@@ -357,9 +360,7 @@ async def test_get_report_data_isolation_across_workspaces(
 ):
     """Garante scoping por workspace — user B não vê report de A."""
     # Cria o report no workspace do auth_client
-    rid = await _seed_report(
-        auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path, db=db
-    )
+    rid = await _seed_report(auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path, db=db)
     # User B separado
     resp_b = await client.post(
         "/api/auth/register",
@@ -374,12 +375,9 @@ async def test_get_report_data_isolation_across_workspaces(
     # that holds the report (seeded under auth_client's workspace).
     from backend.app.models.user import User as _User
     from backend.app.models.workspace import Workspace as _Ws
-    user_b = (await db.execute(
-        select(_User).where(_User.email == "user-b@test.com")
-    )).scalar_one()
-    ws_b = (await db.execute(
-        select(_Ws).where(_Ws.owner_id == user_b.id)
-    )).scalar_one()
+
+    user_b = (await db.execute(select(_User).where(_User.email == "user-b@test.com"))).scalar_one()
+    ws_b = (await db.execute(select(_Ws).where(_Ws.owner_id == user_b.id))).scalar_one()
     resp = await client.get(
         f"/api/workspaces/{ws_b.id}/reports/{rid}/data",
         headers={"Authorization": f"Bearer {token_b}"},

@@ -59,7 +59,6 @@ from tests.fixtures.pdf.rico import draw_rico_extrato
 from tests.fixtures.pdf.santander import draw_santander_extrato
 from tests.fixtures.pdf.wise import draw_wise_extrato
 
-
 BankCode = Literal[
     "c6bank",
     "itau",
@@ -115,7 +114,8 @@ def _draw_header(c, width, height, bank: str, kind: str, period: str) -> float:
     c.drawString(2 * cm, height - 2.5 * cm, f"CNPJ: {label['cnpj']}")
     c.drawString(2 * cm, height - 2.9 * cm, f"Periodo: {period}")
     c.drawString(
-        width - 6 * cm, height - 2 * cm,
+        width - 6 * cm,
+        height - 2 * cm,
         f"{'Extrato de Conta' if kind == 'extrato' else 'Fatura de Cartao'}",
     )
     return height - 4 * cm
@@ -187,14 +187,22 @@ def _draw_generic_table(c, width, height, y, transactions) -> tuple[float, float
     return y, running_balance
 
 
-def _draw_bank_body(c, width, height, y, bank, period, transactions,
-                    account_number, agency) -> tuple[float, float]:
+def _draw_bank_body(
+    c, width, height, y, bank, period, transactions, account_number, agency
+) -> tuple[float, float]:
     """Despacha para o layout dedicado do banco; fallback: tabela genérica."""
     if bank == "c6bank":
         return draw_c6_extrato(c, width, height, y, period, transactions, account_number)
     if bank == "bradesco":
         return draw_bradesco_extrato(
-            c, width, height, y, period, transactions, agency, account_number,
+            c,
+            width,
+            height,
+            y,
+            period,
+            transactions,
+            agency,
+            account_number,
         )
     if bank == "btgpactual":
         return draw_btgpactual_movimentacao(c, width, height, y, period, transactions)
@@ -207,17 +215,37 @@ def _draw_bank_body(c, width, height, y, bank, period, transactions,
         return draw_picpay_extrato(c, width, height, y, period, transactions, account_number)
     if bank == "bankofamerica":
         return draw_bankofamerica_extrato(
-            c, width, height, y, period, transactions, account_number,
+            c,
+            width,
+            height,
+            y,
+            period,
+            transactions,
+            account_number,
         )
     if bank == "santander":
         return draw_santander_extrato(
-            c, width, height, y, period, transactions, agency, account_number,
+            c,
+            width,
+            height,
+            y,
+            period,
+            transactions,
+            agency,
+            account_number,
         )
     if bank == "itau":
         return draw_itau_extrato(c, width, height, y, period, transactions, account_number)
     if bank == "caixa":
         return draw_caixa_extrato(
-            c, width, height, y, period, transactions, agency, account_number,
+            c,
+            width,
+            height,
+            y,
+            period,
+            transactions,
+            agency,
+            account_number,
         )
     if bank == "quintoandar":
         return draw_quintoandar_fatura(c, width, height, y, period, transactions)
@@ -227,7 +255,8 @@ def _draw_bank_body(c, width, height, y, bank, period, transactions,
 def _draw_footer(c, width, creation_date: datetime) -> None:
     c.setFont("Helvetica", 7)
     c.drawString(
-        2 * cm, 1.5 * cm,
+        2 * cm,
+        1.5 * cm,
         f"Documento sintetico de teste. Nao reflete dados reais. "
         f"Gerado em {creation_date.isoformat()} para fins de teste automatizado.",
     )
@@ -275,8 +304,7 @@ def generate_statement(
 
     y = _draw_header(c, width, height, bank, kind, period)
     y = _draw_account_block(c, y, account_holder, cpf, agency, account_number)
-    _draw_bank_body(c, width, height, y, bank, period, transactions,
-                    account_number, agency)
+    _draw_bank_body(c, width, height, y, bank, period, transactions, account_number, agency)
 
     _draw_footer(c, width, creation_date)
     c.showPage()

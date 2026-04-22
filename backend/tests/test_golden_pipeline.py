@@ -33,14 +33,21 @@ de produto pelo lado do usuário.
 
 from __future__ import annotations
 
+# ─── PDFs sintéticos ───
+# Import via path absoluto: pytest cria conflito de namespace entre
+# `backend/tests/` e o `tests/` da raiz (ambos têm __init__.py). Carregamento
+# manual evita o shadowing.
+import importlib.util as _ilu
 import json
 import re
+import sys as _sys
 from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+import backend.app.models  # noqa: F401
 from backend.app.core.database import Base
 from backend.app.core.security import hash_password
 from backend.app.models import (
@@ -52,15 +59,6 @@ from backend.app.models import (
     Workspace,
 )
 from backend.app.services.config_materializer import materialize_config
-
-import backend.app.models  # noqa: F401
-
-# ─── PDFs sintéticos ───
-# Import via path absoluto: pytest cria conflito de namespace entre
-# `backend/tests/` e o `tests/` da raiz (ambos têm __init__.py). Carregamento
-# manual evita o shadowing.
-import importlib.util as _ilu
-import sys as _sys
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _PDF_GEN_PATH = _PROJECT_ROOT / "tests" / "fixtures" / "pdf_generator.py"
@@ -289,10 +287,7 @@ class TestE6TemplateUsesFamilySurname:
     def test_template_has_cover_familia_token(self):
         """Sanity: o template do E6 ainda usa `{{COVER_FAMILIA}}`."""
         template_path = (
-            Path(__file__).resolve().parents[2]
-            / "config"
-            / "templates"
-            / "report_template.html"
+            Path(__file__).resolve().parents[2] / "config" / "templates" / "report_template.html"
         )
         if not template_path.exists():
             pytest.skip(f"Template não encontrado em {template_path}")
@@ -331,7 +326,9 @@ class TestE6TemplateUsesFamilySurname:
 
         # 4. Asserts: surname aparece, token não vazou
         assert surname in rendered, "Surname não foi inserido no HTML."
-        assert "{{COVER_FAMILIA}}" not in rendered, "Token {{COVER_FAMILIA}} ficou sem substituição."
+        assert (
+            "{{COVER_FAMILIA}}" not in rendered
+        ), "Token {{COVER_FAMILIA}} ficou sem substituição."
         # E o cover tem alguma estrutura mínima (não é string vazia)
         assert "<html" in rendered.lower() or "<!DOCTYPE" in rendered.lower()
 

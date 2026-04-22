@@ -24,7 +24,6 @@ from pipeline.domain.services.transaction_classifier import (  # noqa: E402
     TransactionClassifier,
 )
 
-
 GOLDENS_DIR = Path(__file__).resolve().parents[2] / "pipeline" / "goldens" / "e4"
 _FIXED_NOW = datetime(2026, 4, 19, 10, 0, 0, tzinfo=timezone(timedelta(hours=-3)))
 _FIXED_DATE = date(2026, 4, 19)
@@ -52,6 +51,7 @@ def _adapter_from_golden(golden: dict) -> E4CategorizerAdapter:
     from pipeline.domain.services.investments_consolidator import (
         InvestmentsConsolidatorConfig,
     )
+
     inv_cfg = InvestmentsConsolidatorConfig.from_family(golden.get("family"))
 
     return E4CategorizerAdapter(
@@ -107,8 +107,14 @@ class TestLoaders:
         """DiskArtifactStore mapeia os 3 stages E2 para o mesmo dir — dedup
         por key evita ler o mesmo artefato múltiplas vezes."""
         store = InMemoryArtifactStore()
-        store.seed("E2-llm", "btg", {"tipo": "investimentosposicao", "posicoes": [{"valor_total": 100}]})
-        store.seed("E2-extratos", "btg", {"tipo": "investimentosposicao", "posicoes": [{"valor_total": 999}]})
+        store.seed(
+            "E2-llm", "btg", {"tipo": "investimentosposicao", "posicoes": [{"valor_total": 100}]}
+        )
+        store.seed(
+            "E2-extratos",
+            "btg",
+            {"tipo": "investimentosposicao", "posicoes": [{"valor_total": 999}]},
+        )
 
         classifier_cfg = ClassifierConfig.from_configs()
         adapter = E4CategorizerAdapter(classifier=TransactionClassifier(classifier_cfg))
@@ -261,9 +267,14 @@ class TestSchemaConformance:
         d = result.cash_flow.receitas.to_legacy_dict()
 
         for field in (
-            "consolidation_date", "periodo", "categorias",
-            "total_categorias", "total_transacoes",
-            "totais_por_categoria", "total_geral", "dados",
+            "consolidation_date",
+            "periodo",
+            "categorias",
+            "total_categorias",
+            "total_transacoes",
+            "totais_por_categoria",
+            "total_geral",
+            "dados",
         ):
             assert field in d
 

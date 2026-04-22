@@ -1,28 +1,28 @@
 """Tests for Phase 3A: config models (DB) and Pydantic schemas (validation)."""
 
-import pytest
-import pytest_asyncio
 from datetime import date
 
+import pytest
+import pytest_asyncio
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.app.models.family_member import FamilyMember, BankAccount
 from backend.app.models.category import Category, CategoryKeyword
-from backend.app.models.config_blob import PipelineConfig, InstitutionConfig, ReportLayout
-from backend.app.models.workspace import Workspace
+from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
+from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.user import User
+from backend.app.models.workspace import Workspace
 from backend.app.schemas.config import (
-    FamilyMemberSchema,
-    FamilyMemberCreateRequest,
     BankAccountSchema,
-    CategorySchema,
     CategoryCreateRequest,
-    PipelineConfigSchema,
-    InstitutionConfigSchema,
-    ReportLayoutSchema,
+    CategorySchema,
     ConfigImportRequest,
+    FamilyMemberCreateRequest,
+    FamilyMemberSchema,
+    InstitutionConfigSchema,
+    PipelineConfigSchema,
+    ReportLayoutSchema,
 )
 
 
@@ -31,7 +31,9 @@ async def workspace(db: AsyncSession) -> Workspace:
     """Create a user + workspace for config tests."""
     from backend.app.core.security import hash_password
 
-    user = User(email="config@test.com", hashed_password=hash_password("test123"), full_name="Config Tester")
+    user = User(
+        email="config@test.com", hashed_password=hash_password("test123"), full_name="Config Tester"
+    )
     db.add(user)
     await db.flush()
     ws = Workspace(name="Test WS", owner_id=user.id)
@@ -81,8 +83,16 @@ class TestFamilyMemberModel:
         db.add(member)
         await db.flush()
 
-        acc1 = BankAccount(member_id=member.id, institution_code="bradesco", account_type="extratoconta")
-        acc2 = BankAccount(member_id=member.id, institution_code="btgpactual", account_type="investimentosposicao", agency="001", account_number="12345-6")
+        acc1 = BankAccount(
+            member_id=member.id, institution_code="bradesco", account_type="extratoconta"
+        )
+        acc2 = BankAccount(
+            member_id=member.id,
+            institution_code="btgpactual",
+            account_type="investimentosposicao",
+            agency="001",
+            account_number="12345-6",
+        )
         db.add_all([acc1, acc2])
         await db.commit()
 
@@ -99,11 +109,17 @@ class TestFamilyMemberModel:
     @pytest.mark.asyncio
     async def test_cascade_delete(self, db: AsyncSession, workspace: Workspace):
         member = FamilyMember(
-            workspace_id=workspace.id, key="theo", full_name="Theo FC", short_name="Theo", role="filho"
+            workspace_id=workspace.id,
+            key="theo",
+            full_name="Theo FC",
+            short_name="Theo",
+            role="filho",
         )
         db.add(member)
         await db.flush()
-        acc = BankAccount(member_id=member.id, institution_code="c6bank", account_type="extratoconta")
+        acc = BankAccount(
+            member_id=member.id, institution_code="c6bank", account_type="extratoconta"
+        )
         db.add(acc)
         await db.commit()
 
@@ -133,7 +149,10 @@ class TestCategoryModel:
         db.add(cat)
         await db.flush()
 
-        keywords = [CategoryKeyword(category_id=cat.id, keyword=kw) for kw in ["ELETROPAULO", "ENEL", "CONDOMINIO"]]
+        keywords = [
+            CategoryKeyword(category_id=cat.id, keyword=kw)
+            for kw in ["ELETROPAULO", "ENEL", "CONDOMINIO"]
+        ]
         db.add_all(keywords)
         await db.commit()
 
@@ -149,7 +168,9 @@ class TestCategoryModel:
     @pytest.mark.asyncio
     async def test_category_types(self, db: AsyncSession, workspace: Workspace):
         for ct in ("expense", "income"):
-            cat = Category(workspace_id=workspace.id, code=f"test_{ct}", name=f"Test {ct}", category_type=ct)
+            cat = Category(
+                workspace_id=workspace.id, code=f"test_{ct}", name=f"Test {ct}", category_type=ct
+            )
             db.add(cat)
         await db.commit()
 
@@ -169,7 +190,9 @@ class TestCategoryModel:
         await db.delete(cat)
         await db.commit()
 
-        result = await db.execute(select(CategoryKeyword).where(CategoryKeyword.category_id == cat.id))
+        result = await db.execute(
+            select(CategoryKeyword).where(CategoryKeyword.category_id == cat.id)
+        )
         assert result.scalars().all() == []
 
 
@@ -183,12 +206,17 @@ class TestConfigBlobModels:
     async def test_pipeline_config(self, db: AsyncSession, workspace: Workspace):
         cfg = PipelineConfig(
             workspace_id=workspace.id,
-            config_json={"llm": {"model": "gpt-4o", "max_tokens": 1000}, "qa_thresholds": {"score_diff_max": 1.0}},
+            config_json={
+                "llm": {"model": "gpt-4o", "max_tokens": 1000},
+                "qa_thresholds": {"score_diff_max": 1.0},
+            },
         )
         db.add(cfg)
         await db.commit()
 
-        result = await db.execute(select(PipelineConfig).where(PipelineConfig.workspace_id == workspace.id))
+        result = await db.execute(
+            select(PipelineConfig).where(PipelineConfig.workspace_id == workspace.id)
+        )
         loaded = result.scalar_one()
         assert loaded.config_json["llm"]["model"] == "gpt-4o"
         assert loaded.config_json["qa_thresholds"]["score_diff_max"] == 1.0
@@ -202,7 +230,9 @@ class TestConfigBlobModels:
         db.add(cfg)
         await db.commit()
 
-        result = await db.execute(select(InstitutionConfig).where(InstitutionConfig.workspace_id == workspace.id))
+        result = await db.execute(
+            select(InstitutionConfig).where(InstitutionConfig.workspace_id == workspace.id)
+        )
         loaded = result.scalar_one()
         assert loaded.config_json["banco_canonical"]["itau"] == "Itaú"
 
@@ -215,7 +245,9 @@ class TestConfigBlobModels:
         db.add(cfg)
         await db.commit()
 
-        result = await db.execute(select(ReportLayout).where(ReportLayout.workspace_id == workspace.id))
+        result = await db.execute(
+            select(ReportLayout).where(ReportLayout.workspace_id == workspace.id)
+        )
         loaded = result.scalar_one()
         assert loaded.config_json["version"] == "1.1"
 
@@ -242,7 +274,11 @@ class TestConfigBlobModels:
 class TestFamilyMemberSchema:
     def test_valid_member(self):
         schema = FamilyMemberCreateRequest(
-            key="david", full_name="David RC", short_name="David", role="titular", cpf="910.428.398-01"  # noqa: PII-ok (gerado por tests/utils/cpf.py seed=42)
+            key="david",
+            full_name="David RC",
+            short_name="David",
+            role="titular",
+            cpf="910.428.398-01",  # noqa: PII-ok (gerado por tests/utils/cpf.py seed=42)
         )
         assert schema.key == "david"
         assert schema.cpf == "910.428.398-01"  # noqa: PII-ok (gerado por tests/utils/cpf.py seed=42)
@@ -254,7 +290,9 @@ class TestFamilyMemberSchema:
             )
 
     def test_cpf_none_allowed(self):
-        schema = FamilyMemberCreateRequest(key="theo", full_name="Theo", short_name="Theo", role="filho")
+        schema = FamilyMemberCreateRequest(
+            key="theo", full_name="Theo", short_name="Theo", role="filho"
+        )
         assert schema.cpf is None
 
     def test_invalid_role(self):
@@ -267,15 +305,25 @@ class TestFamilyMemberSchema:
 
     def test_from_attributes(self):
         schema = FamilyMemberSchema(
-            id="abc", key="david", full_name="David", short_name="David",
-            role="titular", order=0, accounts=[]
+            id="abc",
+            key="david",
+            full_name="David",
+            short_name="David",
+            role="titular",
+            order=0,
+            accounts=[],
         )
         assert schema.id == "abc"
 
 
 class TestBankAccountSchema:
     def test_valid_account(self):
-        acc = BankAccountSchema(institution_code="itau", account_type="extratoconta", agency="001", account_number="12345")
+        acc = BankAccountSchema(
+            institution_code="itau",
+            account_type="extratoconta",
+            agency="001",
+            account_number="12345",
+        )
         assert acc.institution_code == "itau"
 
     def test_empty_institution_rejected(self):
@@ -285,7 +333,9 @@ class TestBankAccountSchema:
 
 class TestCategorySchema:
     def test_valid_expense(self):
-        schema = CategoryCreateRequest(code="moradia", name="Moradia", category_type="expense", keywords=["ENEL", "SABESP"])
+        schema = CategoryCreateRequest(
+            code="moradia", name="Moradia", category_type="expense", keywords=["ENEL", "SABESP"]
+        )
         assert schema.category_type == "expense"
         assert len(schema.keywords) == 2
 
@@ -312,7 +362,13 @@ class TestPipelineConfigSchema:
         assert schema.qa_thresholds.score_diff_max == 1.0
 
     def test_partial_valid(self):
-        schema = PipelineConfigSchema(llm={"model": "claude-sonnet-4-20250514", "max_tokens": 500, "confidence_threshold": 0.7})
+        schema = PipelineConfigSchema(
+            llm={
+                "model": "claude-sonnet-4-20250514",
+                "max_tokens": 500,
+                "confidence_threshold": 0.7,
+            }
+        )
         assert schema.qa_thresholds is None
 
     def test_llm_max_tokens_bounds(self):
@@ -351,4 +407,12 @@ class TestConfigImportRequest:
             institutions={"banco_canonical": {}},
             report_layout={"version": "1.1"},
         )
-        assert all([req.family_members, req.categorization, req.pipeline, req.institutions, req.report_layout])
+        assert all(
+            [
+                req.family_members,
+                req.categorization,
+                req.pipeline,
+                req.institutions,
+                req.report_layout,
+            ]
+        )

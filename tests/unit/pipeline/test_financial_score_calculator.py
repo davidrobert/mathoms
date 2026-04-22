@@ -1,4 +1,5 @@
 """Testes para :class:`FinancialScoreCalculator` (A6d.3.3 — ADR-100)."""
+
 from __future__ import annotations
 
 import pytest
@@ -10,7 +11,6 @@ from pipeline.domain.services.financial_score_calculator import (
     ScoreComponent,
     linear_interpolate,
 )
-
 
 # =============================================================================
 # linear_interpolate
@@ -71,11 +71,7 @@ def test_config_from_scoring_json_empty_uses_defaults():
 
 def test_config_from_scoring_json_partial_override():
     """Override parcial não zera campos ausentes."""
-    scoring = {
-        "score_componentes": {
-            "taxa_poupanca_recorrente": {"range_max": 100}
-        }
-    }
+    scoring = {"score_componentes": {"taxa_poupanca_recorrente": {"range_max": 100}}}
     cfg = FinancialScoreConfig.from_scoring_json(scoring)
     assert cfg.taxa_poupanca.range_max == 100
     assert cfg.taxa_poupanca.range_min == 0  # default preservado
@@ -83,11 +79,7 @@ def test_config_from_scoring_json_partial_override():
 
 
 def test_config_from_scoring_json_invertido_flag():
-    scoring = {
-        "score_componentes": {
-            "taxa_endividamento": {"invertido": True}
-        }
-    }
+    scoring = {"score_componentes": {"taxa_endividamento": {"invertido": True}}}
     cfg = FinancialScoreConfig.from_scoring_json(scoring)
     assert cfg.endividamento.invertido is True
 
@@ -117,7 +109,11 @@ def default_calc() -> FinancialScoreCalculator:
 
 def test_calculate_returns_all_5_components(default_calc: FinancialScoreCalculator):
     result = default_calc.calculate(
-        ratios={"taxa_poupanca_recorrente_pct": 0, "cobertura_despesas_meses": 0, "taxa_endividamento_pct": 0},
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "cobertura_despesas_meses": 0,
+            "taxa_endividamento_pct": 0,
+        },
         patrimonio={"composicao": []},
         goals={"if_pct": 0},
     )
@@ -126,7 +122,11 @@ def test_calculate_returns_all_5_components(default_calc: FinancialScoreCalculat
 
 def test_calculate_output_shape(default_calc: FinancialScoreCalculator):
     result = default_calc.calculate(
-        ratios={"taxa_poupanca_recorrente_pct": 10, "cobertura_despesas_meses": 6, "taxa_endividamento_pct": 20},
+        ratios={
+            "taxa_poupanca_recorrente_pct": 10,
+            "cobertura_despesas_meses": 6,
+            "taxa_endividamento_pct": 20,
+        },
         patrimonio={"composicao": [{"valor": 100}]},
         goals={"if_pct": 20},
     )
@@ -136,7 +136,11 @@ def test_calculate_output_shape(default_calc: FinancialScoreCalculator):
 
 def test_componentes_have_nome_valor_peso_nota(default_calc: FinancialScoreCalculator):
     result = default_calc.calculate(
-        ratios={"taxa_poupanca_recorrente_pct": 25, "cobertura_despesas_meses": 6, "taxa_endividamento_pct": 10},
+        ratios={
+            "taxa_poupanca_recorrente_pct": 25,
+            "cobertura_despesas_meses": 6,
+            "taxa_endividamento_pct": 10,
+        },
         patrimonio={"composicao": []},
         goals={"if_pct": 40},
     )
@@ -147,11 +151,18 @@ def test_componentes_have_nome_valor_peso_nota(default_calc: FinancialScoreCalcu
 def test_diversificacao_counts_positive_valor_only(default_calc: FinancialScoreCalculator):
     """Apenas categorias com valor > 0 contam para diversificação."""
     result = default_calc.calculate(
-        ratios={"taxa_poupanca_recorrente_pct": 0, "cobertura_despesas_meses": 0, "taxa_endividamento_pct": 0},
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "cobertura_despesas_meses": 0,
+            "taxa_endividamento_pct": 0,
+        },
         patrimonio={
             "composicao": [
-                {"valor": 100}, {"valor": 50}, {"valor": 0},
-                {"valor": 0}, {"valor": 200},
+                {"valor": 100},
+                {"valor": 50},
+                {"valor": 0},
+                {"valor": 0},
+                {"valor": 200},
             ]
         },
         goals={"if_pct": 0},
@@ -175,7 +186,11 @@ def test_endividamento_invertido_high_value_low_score():
     calc = FinancialScoreCalculator(cfg)
     # Endivid = 50 (max) com invertido → nota = 0
     result = calc.calculate(
-        ratios={"taxa_poupanca_recorrente_pct": 0, "cobertura_despesas_meses": 0, "taxa_endividamento_pct": 50},
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "cobertura_despesas_meses": 0,
+            "taxa_endividamento_pct": 50,
+        },
         patrimonio={"composicao": []},
         goals={"if_pct": 0},
     )
@@ -187,7 +202,11 @@ def test_endividamento_nao_invertido_high_value_high_score():
     """Default invertido=False: alto endividamento → alto score (não faz sentido mas é paridade)."""
     calc = FinancialScoreCalculator(FinancialScoreConfig.default())
     result = calc.calculate(
-        ratios={"taxa_poupanca_recorrente_pct": 0, "cobertura_despesas_meses": 0, "taxa_endividamento_pct": 50},
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "cobertura_despesas_meses": 0,
+            "taxa_endividamento_pct": 50,
+        },
         patrimonio={"composicao": []},
         goals={"if_pct": 0},
     )
@@ -200,7 +219,11 @@ def test_weighted_average_computed(default_calc: FinancialScoreCalculator):
     """Média ponderada dos 5 componentes."""
     # Todos em min (nota 0) → score 0
     result = default_calc.calculate(
-        ratios={"taxa_poupanca_recorrente_pct": 0, "cobertura_despesas_meses": 3, "taxa_endividamento_pct": 5},
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "cobertura_despesas_meses": 3,
+            "taxa_endividamento_pct": 5,
+        },
         patrimonio={"composicao": []},
         goals={"if_pct": 5},
     )
@@ -228,7 +251,11 @@ def test_weighted_average_max_when_all_at_top(default_calc: FinancialScoreCalcul
 def test_classify_fallback_critico():
     calc = FinancialScoreCalculator(FinancialScoreConfig.default())
     result = calc.calculate(
-        ratios={"taxa_poupanca_recorrente_pct": 0, "cobertura_despesas_meses": 3, "taxa_endividamento_pct": 5},
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "cobertura_despesas_meses": 3,
+            "taxa_endividamento_pct": 5,
+        },
         patrimonio={"composicao": []},
         goals={"if_pct": 5},
     )
@@ -279,7 +306,11 @@ def test_classify_custom_bands():
     )
     calc = FinancialScoreCalculator(cfg)
     result = calc.calculate(
-        ratios={"taxa_poupanca_recorrente_pct": 0, "cobertura_despesas_meses": 3, "taxa_endividamento_pct": 5},
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "cobertura_despesas_meses": 3,
+            "taxa_endividamento_pct": 5,
+        },
         patrimonio={"composicao": []},
         goals={"if_pct": 5},
     )

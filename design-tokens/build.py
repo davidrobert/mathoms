@@ -14,6 +14,7 @@ Saídas:
 
 Referência: ADR-076 (docs/DECISIONS.md).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -47,6 +48,7 @@ def load_tokens() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # CSS emitters
 # ---------------------------------------------------------------------------
+
 
 def _kebab(name: str) -> str:
     return name.replace("_", "-")
@@ -143,9 +145,9 @@ def _card_variants_block(tokens: dict[str, Any]) -> list[str]:
         lines.append(f".{class_name} {{")
         for css_prop, value in style.items():
             lines.append(f"    {_kebab(css_prop)}: {value};")
-        lines.append(f"    border-radius: var(--radius-card);")
-        lines.append(f"    padding: var(--space-2xl);")
-        lines.append(f"    background-clip: padding-box;")
+        lines.append("    border-radius: var(--radius-card);")
+        lines.append("    padding: var(--space-2xl);")
+        lines.append("    background-clip: padding-box;")
         lines.append("}")
     return lines
 
@@ -262,6 +264,7 @@ def render_css(tokens: dict[str, Any], *, include_tailwind_theme: bool) -> str:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def build() -> tuple[str, str]:
     tokens = load_tokens()
     frontend_css = render_css(tokens, include_tailwind_theme=True)
@@ -303,7 +306,9 @@ def check_in_sync() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build design tokens CSS artifacts.")
-    parser.add_argument("--check", action="store_true", help="Verify generated files are in sync with tokens.json")
+    parser.add_argument(
+        "--check", action="store_true", help="Verify generated files are in sync with tokens.json"
+    )
     args = parser.parse_args()
 
     if args.check:

@@ -27,10 +27,10 @@ from dev._audit_cs_internals.detectors_ts import (
     detect_ts_long_functions,
 )
 from dev._audit_cs_internals.models import (
-    AuditConfig,
-    Offender,
     REPO_ROOT,
     SEVERITY_RANK,
+    AuditConfig,
+    Offender,
     Summary,
 )
 from dev._audit_cs_internals.walker import collect_python_files, collect_ts_files
@@ -119,8 +119,12 @@ def _summarize(offenders: list[Offender], py_count: int, ts_count: int) -> Summa
 
 
 def _accumulate_offender(summary: Summary, off: Offender) -> None:
-    summary.offenders_by_category[off.category] = summary.offenders_by_category.get(off.category, 0) + 1
-    summary.offenders_by_severity[off.severity] = summary.offenders_by_severity.get(off.severity, 0) + 1
+    summary.offenders_by_category[off.category] = (
+        summary.offenders_by_category.get(off.category, 0) + 1
+    )
+    summary.offenders_by_severity[off.severity] = (
+        summary.offenders_by_severity.get(off.severity, 0) + 1
+    )
     top_dir = off.file.split("/", 1)[0] + "/"
     by_dir = summary.offenders_by_directory.setdefault(top_dir, {})
     by_dir[off.category] = by_dir.get(off.category, 0) + 1
@@ -131,7 +135,9 @@ def git_commit() -> str:
     try:
         proc = subprocess.run(
             ["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"],
-            capture_output=True, text=True, check=False,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         return proc.stdout.strip() if proc.returncode == 0 else "unknown"
     except (OSError, subprocess.SubprocessError):
@@ -156,6 +162,5 @@ def run_audit(config: AuditConfig) -> tuple[list[Offender], Summary]:
 def has_blocking(offenders: list[Offender]) -> bool:
     """True se há offender >= med não-allowlisted (para --strict)."""
     return any(
-        SEVERITY_RANK[o.severity] <= SEVERITY_RANK["med"] and not o.allowlisted
-        for o in offenders
+        SEVERITY_RANK[o.severity] <= SEVERITY_RANK["med"] and not o.allowlisted for o in offenders
     )
