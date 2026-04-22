@@ -106,7 +106,51 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     - `python scripts/e0_audit.py --json` output idêntico.
     - `pre-commit run` passa nos arquivos tocados.
 
-- **A6g.4 — 1ª rodada frontend style sweep (2026-04-21):**
+- **A6g.4b — 2ª rodada frontend style sweep (2026-04-22):**
+  Continuação de A6g.4 atacando as 6 páginas `>500` linhas ainda no
+  baseline + 1 orchestrator monolítico em `transactions/`. Convenção
+  Next.js `_components/` colocated (pasta com prefixo `_` é ignorada
+  pelo roteador) preserva localidade.
+  - **T2 `ts_long_files`:** 6 → 2.
+    - `pipeline/page.tsx` (1195 → 368): extrai `ActiveRunCard`
+      (360), `FailedRunCard` (169), `HistoryRow` (124), `StageRow`
+      (120), `TriggerCard` (119), `NeedsReviewCard` (58),
+      `ConnectionChip` (55), `RunHistoryList` (46), hooks
+      `useDeepLinkScroll`/`useNowInterval` e helper
+      `dismissedFailedRun` para localStorage.
+    - `documents/page.tsx` (801 → 347): extrai `DocumentRow`
+      (272), `FilterReclassifyBar` (103), `UploadZone` (83),
+      `DocumentsTable` (74), `ExtractJsonModal` (55),
+      `SortableHead` (53), helpers `sortDocs` (36) /
+      `fileFormat` (28) / `classificationHints` (12),
+      `NeedsPasswordBanner` (30).
+    - `transactions/page.tsx` (741 → 399): extrai `FiltersPanel`
+      (135), `TransactionRow` (149), `exportTransactions` (75),
+      `SummaryBar` (66), `TransactionsTable` (60), `Pagination`
+      (39), `bankOptions` (17), hooks `useTransactionsFetch` (67)
+      / `useCategoryOverride` (63) / `useCategoriesAndMembers` (22).
+    - `dashboard/page.tsx` (515 → 142): extrai `dashboardHelpers`
+      (101, inclui `monthLabelToDateRange` + normalizadores Bar/Pie),
+      `BarChartCard` (91), `PieChartCard` (81), `ChartsGrid` (62),
+      `KpiRow` (48), `HeaderActions` (40), `AlertCard` (24),
+      `ChartSkeleton` (17). Hook `useDashboardData` para load/reload.
+    - **Fora desta rodada:** `plano/page.tsx` (630) e
+      `plano/alocacao/wizard/page.tsx` (533). Ficam para A6g.4c.
+  - **T3 `ts_long_functions`:** 18 → 25 (high severity: 0 →
+    mantido). Sub-componentes criados pela decomposição ficam
+    em 25-40 linhas — severidade `med`, não `high`. Single HIGH
+    `TransactionsContent` (263→147) extraiu 3 hooks e segue como
+    orchestrator fino (state de UI + URL sync).
+  - **Impact:** frontend offenders (pós-rebase com main)
+    continuam em **27** (T2=2, T3=25). 4 das 6 páginas
+    monolíticas `>500 l` decompostas; apenas `plano/*` (2
+    arquivos) pendentes. Zero regressão — 397 vitest tests
+    passam, tsc limpo em `src/` (erros pré-existentes em
+    `tests/` preservados). Zero mudança funcional/visual
+    (sweep puramente físico). Próximo: A6g.4c ataca as duas
+    páginas `plano/*` remanescentes.
+
+
   Aplica `## Code style` do CLAUDE.md a `frontend/src/`, consumindo o
   baseline T1-T5 de [`docs/audits/code_style_audit_20260421.md`](audits/code_style_audit_20260421.md).
   Delta por categoria:
