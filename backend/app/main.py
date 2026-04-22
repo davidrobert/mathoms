@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.app.application.base.errors import (
+    AuthenticationError,
     ConflictError,
     NotFoundError,
     ValidationError as DomainValidationError,
@@ -100,6 +101,11 @@ async def _handle_validation(
     request: Request, exc: DomainValidationError
 ) -> JSONResponse:
     return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+
+@app.exception_handler(AuthenticationError)
+async def _handle_auth(request: Request, exc: AuthenticationError) -> JSONResponse:
+    return JSONResponse(status_code=401, content={"detail": str(exc)})
 
 
 # A6e.5 · ADR-108 — cada router é registrado 2×:

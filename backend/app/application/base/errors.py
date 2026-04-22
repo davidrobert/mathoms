@@ -33,3 +33,7 @@ class ConflictError(DomainError):
 
 class ValidationError(DomainError):
     """Input passou pela validação do DTO mas viola regra de negócio. Router → 422."""
+
+
+class AuthenticationError(DomainError):
+    """Credenciais inválidas ou ausentes. Router → 401."""

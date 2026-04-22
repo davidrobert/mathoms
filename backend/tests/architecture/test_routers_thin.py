@@ -33,6 +33,7 @@ API_DIR = Path(__file__).resolve().parent.parent.parent / "app" / "api"
 THIN_ROUTERS = frozenset(
     {
         "audit.py",
+        "auth.py",
         "categories.py",
         "dashboard.py",
         "family_members.py",
