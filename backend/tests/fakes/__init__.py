@@ -22,6 +22,11 @@ from backend.tests.fakes.family_member import (
     FakeVault,
 )
 from backend.tests.fakes.goal import FakeGoalRepository
+from backend.tests.fakes.task import (
+    FakeTaskAttachmentRepository,
+    FakeTaskRepository,
+    FakeTaskSuggestionRepository,
+)
 
 __all__ = [
     "FakeCategoryRepository",
@@ -29,5 +34,8 @@ __all__ = [
     "FakeFamilyMemberRepository",
     "FakeGlobalDefaultsLoader",
     "FakeGoalRepository",
+    "FakeTaskAttachmentRepository",
+    "FakeTaskRepository",
+    "FakeTaskSuggestionRepository",
     "FakeVault",
 ]
