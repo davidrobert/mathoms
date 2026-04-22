@@ -8,6 +8,57 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.3b — Decimal money: tipo `MoneyBRL`/`MoneyUSD` + transactions migrado (parcial) (2026-04-22):**
+  Executa slices 1+3 do track A6g.3b (goal DTOs + math `compute_if_derived`
+  ficam para sessão dedicada). Cria tipo money com Decimal em memória +
+  number no JSON wire, migra 4 campos de transactions + cascata em
+  services + OpenAPI snapshot intocado. 4 P5 eliminados sem wire break.
+  - **Slice 1 — `backend/app/schemas/money.py`:** `MoneyBRL =
+    Annotated[Decimal, BeforeValidator(_coerce_to_decimal), PlainSerializer
+    (lambda v: float(v), return_type=float, when_used='json')]`;
+    idem `MoneyUSD` (distinção semântica, sem cast entre moedas).
+    `_coerce_to_decimal(v: object)` — aceita int/float/str/Decimal via
+    `Decimal(str(v))` (evita IEEE-754 binary imprecision); rejeita outros
+    com ValueError (Pydantic → ValidationError). `object` em lugar de
+    `Any` satisfaz `test_no_any_in_boundary`.
+    `backend/tests/test_money_type.py` — 11 testes (inputs aceitos/
+    rejeitados, JSON emite number não string, roundtrip preservado
+    para valores típicos BRL 2 casas).
+  - **Slice 3 — transactions migrated:**
+    - `backend/app/schemas/transactions.py`: 4 campos `float` →
+      `MoneyBRL` (`TransactionItem.valor`, `TransactionSummary.
+      total_receitas/total_despesas/saldo`).
+    - `backend/app/schemas/dto/task/progress.py`:
+      `TaskProgressResponse.{target_brl, executed_brl}: Optional[MoneyBRL]`.
+    - `backend/app/services/transaction_service.py::load_transactions`:
+      `Decimal(str(tx.get("valor", 0)))` ao invés de `float(...)`.
+      Filter converte `value_min/value_max` (float da query string)
+      para Decimal antes de comparar. `paginate_transactions` usa
+      `sum(..., Decimal("0"))` start explícito.
+    - `backend/app/services/task_progress_service.py`: `_parse_brl_target`
+      retorna `Optional[Decimal]`; `_match_transactions_by_keyword`
+      retorna `tuple[Decimal, int, set]` (executed = Decimal("0"));
+      `compute_progress` calcula percent como `float(Decimal("100") *
+      executed / target)` (percent não é money) e `executed_brl =
+      executed.quantize(Decimal("0.01"))`.
+    - `backend/tests/test_task_progress.py`: 8 assertions de
+      `_parse_brl_target` migradas de float literal para `Decimal(...)`
+      — `Decimal == float` retorna False em Python.
+  - **Wire format preservado:** `make update-openapi-snapshot` zero
+    diff. `TransactionItem` só aparece em response schemas (serialization
+    mode emite `type: number`). Input mode emitiria `anyOf [number,
+    string]` mas não há endpoint que aceita `TransactionItem` como
+    body.
+  - **Gates verdes:** 1163 backend + 1461 pipeline + 397 frontend
+    vitest + frontend ESLint 0 errors + audit regression exit 0.
+  - **Deixado para slice 2 (sessão dedicada):** 7 campos goal DTOs
+    (`aporte.py`, `dolar.py`, `if_goal.py`) + refactor Decimal math
+    em `goal_service.py` (`_pmt_constante_ate_fv`, `_if_meta_targets`,
+    `_aporte_cobrindo_gap_com_patrimonio`, `compute_if_derived`,
+    `compute_aporte_derived`, `compute_dolar_derived`). Todo o plano
+    detalhado em `docs/agent_prompts/track_a6g3b_decimal_money_migration.md`
+    §Slice 2.
+
 - **A6g.3b — prompt de migração Decimal money criado (2026-04-22):**
   Documenta o full scope do follow-up diferido de A6g.3 para eliminar
   `P5_float_money` em `backend/app/` (13 ofensores). Prompt em
