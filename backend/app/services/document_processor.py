@@ -191,6 +191,44 @@ def _locked_pdf_response(workspace_id: str | None) -> dict:
     }
 
 
+def _move_and_record_routed(
+    file_path: Path,
+    classification: dict,
+    *,
+    tenant_root: Path,
+    classification_root: Path,
+    content_hash: str | None,
+) -> str | None:
+    """Executa route_inbox_to_canonical_data e atualiza classification['routed_path']."""
+    routed = route_inbox_to_canonical_data(
+        file_path,
+        tenant_root,
+        classification_root,
+        dest_group=classification["dest_group"],
+        e0_doc_type=classification["e0_doc_type"],
+        institution=classification.get("bank_code"),
+        period=classification.get("period"),
+        classification_meta=classification.get("classification_meta"),
+        content_hash=content_hash,
+    )
+    if not routed:
+        classification["routed_path"] = None
+        return None
+    abs_dest, stored_rel = routed
+    classification["routed_path"] = str(abs_dest)
+    return stored_rel
+
+
+def _inbox_rel_path(file_path: Path, tenant_root: Path) -> str | None:
+    """Caminho relativo do arquivo ainda no inbox (fallback sem rotear)."""
+    try:
+        return str(
+            file_path.resolve().relative_to(tenant_root.resolve())
+        ).replace("\\", "/")
+    except ValueError:
+        return None
+
+
 def _route_classified_file(
     file_path: Path,
     classification: dict,
@@ -201,39 +239,24 @@ def _route_classified_file(
 ) -> str | None:
     """Se pode rotear (needs_review=False), move inbox → data/; senão fica
     onde está e computa caminho relativo. Mutaciona `classification` com
-    `routed_path`. Retorna `stored_path_relative`."""
-    # REGRA: só renomeamos/roteamos quando a classificação é confiante o
-    # suficiente (needs_review=False). Arquivos com baixa confiança —
-    # imagens não identificadas, PDFs somente-imagem sem ANTHROPIC_API_KEY,
-    # etc. — ficam no inbox com o nome original para revisão manual na UI.
-    # Isso evita nomes como "unknown_other_None-0_original.jpg".
-    if tenant_root and classification_can_route_to_data(classification):
-        routed = route_inbox_to_canonical_data(
-            file_path,
-            tenant_root,
-            classification_root,
-            dest_group=classification["dest_group"],
-            e0_doc_type=classification["e0_doc_type"],
-            institution=classification.get("bank_code"),
-            period=classification.get("period"),
-            classification_meta=classification.get("classification_meta"),
+    `routed_path`. Retorna `stored_path_relative`.
+
+    Só renomeamos quando a classificação é confiante o suficiente. Arquivos
+    com baixa confiança (imagens, PDFs sem ANTHROPIC_API_KEY) ficam no
+    inbox com o nome original para revisão manual — evita
+    `unknown_other_None-0_original.jpg`.
+    """
+    if not tenant_root:
+        return None
+    if classification_can_route_to_data(classification):
+        return _move_and_record_routed(
+            file_path, classification,
+            tenant_root=tenant_root,
+            classification_root=classification_root,
             content_hash=content_hash,
         )
-        if routed:
-            abs_dest, stored_rel = routed
-            classification["routed_path"] = str(abs_dest)
-            return stored_rel
-        classification["routed_path"] = None
-        return None
-    if tenant_root:
-        classification["routed_path"] = None
-        try:
-            return str(
-                file_path.resolve().relative_to(tenant_root.resolve())
-            ).replace("\\", "/")
-        except ValueError:
-            return None
-    return None
+    classification["routed_path"] = None
+    return _inbox_rel_path(file_path, tenant_root)
 
 
 def process_uploaded_document(
