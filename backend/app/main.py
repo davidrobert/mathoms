@@ -64,9 +64,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
+    version=settings.API_VERSION,
     lifespan=lifespan,
     docs_url=f"{settings.API_PREFIX}/docs",
     openapi_url=f"{settings.API_PREFIX}/openapi.json",
+    servers=[{"url": settings.API_PREFIX, "description": "Canonical v1"}],
 )
 
 app.add_middleware(CorrelationIdMiddleware)
@@ -98,26 +100,42 @@ async def _handle_validation(
     return JSONResponse(status_code=422, content={"detail": str(exc)})
 
 
-app.include_router(auth_router, prefix=settings.API_PREFIX)
-app.include_router(reports_router, prefix=settings.API_PREFIX)
-app.include_router(vault_router, prefix=settings.API_PREFIX)
-app.include_router(documents_router, prefix=settings.API_PREFIX)
-app.include_router(pipeline_router, prefix=settings.API_PREFIX)
-app.include_router(config_router, prefix=settings.API_PREFIX)
-app.include_router(family_members_router, prefix=settings.API_PREFIX)
-app.include_router(categories_router, prefix=settings.API_PREFIX)
-app.include_router(llm_router, prefix=settings.API_PREFIX)
-app.include_router(ws_router, prefix=settings.API_PREFIX)
-app.include_router(transactions_router, prefix=settings.API_PREFIX)
-app.include_router(dashboard_router, prefix=settings.API_PREFIX)
-app.include_router(notifications_router, prefix=settings.API_PREFIX)
-app.include_router(audit_router, prefix=settings.API_PREFIX)
-app.include_router(goals_router, prefix=settings.API_PREFIX)
-app.include_router(workspaces_router, prefix=settings.API_PREFIX)
-app.include_router(workspaces_tenant_router, prefix=settings.API_PREFIX)
-app.include_router(invitations_router, prefix=settings.API_PREFIX)
-app.include_router(tasks_router, prefix=settings.API_PREFIX)
-app.include_router(feature_flags_router, prefix=settings.API_PREFIX)
+# A6e.5 · ADR-108 — cada router é registrado 2×:
+#   1. canônico em settings.API_PREFIX (/api/v1) — aparece no OpenAPI
+#   2. legado em settings.LEGACY_API_PREFIX (/api) — alias deprecated,
+#      include_in_schema=False para não poluir o snapshot. Remoção em F7A.
+_ALL_ROUTERS = (
+    auth_router,
+    reports_router,
+    vault_router,
+    documents_router,
+    pipeline_router,
+    config_router,
+    family_members_router,
+    categories_router,
+    llm_router,
+    ws_router,
+    transactions_router,
+    dashboard_router,
+    notifications_router,
+    audit_router,
+    goals_router,
+    workspaces_router,
+    workspaces_tenant_router,
+    invitations_router,
+    tasks_router,
+    feature_flags_router,
+)
+
+for _router in _ALL_ROUTERS:
+    app.include_router(_router, prefix=settings.API_PREFIX)
+
+for _router in _ALL_ROUTERS:
+    app.include_router(
+        _router,
+        prefix=settings.LEGACY_API_PREFIX,
+        include_in_schema=False,
+    )
 
 
 @app.get("/health", response_model=HealthResponse)

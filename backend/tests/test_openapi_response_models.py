@@ -18,9 +18,9 @@ from backend.app.main import app
 
 # Rotas built-in do FastAPI (docs/redoc/openapi-spec) — não são nosso contrato.
 _FASTAPI_BUILTIN_PATHS = frozenset({
-    "/api/openapi.json",
-    "/api/docs",
-    "/api/docs/oauth2-redirect",
+    "/api/v1/openapi.json",
+    "/api/v1/docs",
+    "/api/v1/docs/oauth2-redirect",
     "/redoc",
     "/docs/oauth2-redirect",
 })

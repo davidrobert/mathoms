@@ -8,7 +8,13 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Mathoms AI"
-    API_PREFIX: str = "/api"
+    # A6e.5 · ADR-108 — rotas canônicas sob /api/v1.
+    # Alias legado /api continua funcional via LegacyApiDeprecationMiddleware
+    # até F7A (remoção planejada quando reverse proxy estiver pronto).
+    API_PREFIX: str = "/api/v1"
+    LEGACY_API_PREFIX: str = "/api"
+    API_VERSION: str = "1.0.0"
+    LEGACY_SUNSET_DATE: str = "TBD F7A"
     DEBUG: bool = True
 
     # Auth
