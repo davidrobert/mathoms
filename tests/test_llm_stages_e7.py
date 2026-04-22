@@ -39,8 +39,8 @@ class TestE7ReviewStage:
         assert result["skipped"] is True
         assert "E5" in result["reason"]
 
-    @patch("pipeline.llm.service.LLMService.call")
-    @patch("pipeline.llm.service.LLMService._ensure_client")
+    @patch("pipeline.llm.litellm_client.LLMService.call")
+    @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
     def test_runs_successfully_with_mock(self, mock_ensure, mock_call, tmp_path):
         ctx = make_llm_ctx(tmp_path)
         ctx.e5_dir.mkdir(parents=True)

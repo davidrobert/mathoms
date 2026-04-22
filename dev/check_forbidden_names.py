@@ -42,10 +42,7 @@ FORBIDDEN_FILENAMES = {
 
 # Exceções históricas (com track documentado). Nunca adicionar novas entradas
 # sem ADR/track explícito — prefira renomear.
-ALLOWLIST = {
-    # Legado pipeline (A6g.6 baseline 2026-04-22). Renomear em A6g.2c.
-    "pipeline/llm/service.py",
-}
+ALLOWLIST: set[str] = set()
 
 
 def main(argv: list[str]) -> int:

@@ -8,7 +8,7 @@ quota). Nightly opt-in (`PW_REAL_LLM=1`) roda com API real.
 
 # Como
 
-Backend usa `pipeline.llm.service.LLMService` que chama LiteLLM via
+Backend usa `pipeline.llm.litellm_client.LLMService` que chama LiteLLM via
 Instructor. Em tests:
 
 ```python
@@ -145,7 +145,7 @@ def mock_llm_service(monkeypatch) -> None:
     `pipeline/llm/service.py` a adicionar quando 6.5F.11 for formalizado
     como código, não só fixture).
     """
-    from pipeline.llm import service as llm_service
+    from pipeline.llm import litellm_client as llm_service
 
     def _mock_call_stage(stage: str, **kwargs) -> dict:
         return get_mock_output(stage)

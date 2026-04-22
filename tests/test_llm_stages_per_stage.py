@@ -42,8 +42,8 @@ class TestE1Stage:
         assert "No personal documents" in result["reason"]
 
     @patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract")
-    @patch("pipeline.llm.service.LLMService.call")
-    @patch("pipeline.llm.service.LLMService._ensure_client")
+    @patch("pipeline.llm.litellm_client.LLMService.call")
+    @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
     def test_runs_successfully_with_mock(self, mock_ensure, mock_call, mock_extract, tmp_path):
         ctx = make_llm_ctx(tmp_path)
         (tmp_path / "data" / "income_tax_br").mkdir(parents=True)
@@ -103,8 +103,8 @@ class TestE15Stage:
         assert "No IRPF" in result["reason"]
 
     @patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract")
-    @patch("pipeline.llm.service.LLMService.call")
-    @patch("pipeline.llm.service.LLMService._ensure_client")
+    @patch("pipeline.llm.litellm_client.LLMService.call")
+    @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
     def test_runs_successfully_with_mock(self, mock_ensure, mock_call, mock_extract, tmp_path):
         ctx = make_llm_ctx(tmp_path)
         (tmp_path / "data" / "income_tax_br").mkdir(parents=True)
@@ -154,8 +154,8 @@ class TestE2LLMStage:
         assert "No unprocessed documents" in result["reason"]
 
     @patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract")
-    @patch("pipeline.llm.service.LLMService.call")
-    @patch("pipeline.llm.service.LLMService._ensure_client")
+    @patch("pipeline.llm.litellm_client.LLMService.call")
+    @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
     def test_runs_successfully_with_mock(self, mock_ensure, mock_call, mock_extract, tmp_path):
         ctx = make_llm_ctx(tmp_path)
         stmts_dir = tmp_path / "data" / "financial_statements"
@@ -280,8 +280,8 @@ class TestA6aStructural:
 
         with (
             patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract", return_value="x"),
-            patch("pipeline.llm.service.LLMService._ensure_client"),
-            patch("pipeline.llm.service.LLMService.call",
+            patch("pipeline.llm.litellm_client.LLMService._ensure_client"),
+            patch("pipeline.llm.litellm_client.LLMService.call",
                   return_value=make_llm_call_result(make_e15_output())),
         ):
             from pipeline.stages.e15 import run
@@ -312,8 +312,8 @@ class TestA6aStructural:
         with (
             patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract",
                   return_value="Investment content"),
-            patch("pipeline.llm.service.LLMService._ensure_client"),
-            patch("pipeline.llm.service.LLMService.call",
+            patch("pipeline.llm.litellm_client.LLMService._ensure_client"),
+            patch("pipeline.llm.litellm_client.LLMService.call",
                   return_value=make_llm_call_result(make_e2_llm_output())),
         ):
             from pipeline.stages.e2_llm import run

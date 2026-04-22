@@ -38,8 +38,32 @@ SKIP_TOKENS = re.compile(
 )
 
 
+def _is_rename(file_path: str) -> bool:
+    """True se o arquivo foi renomeado (status R) — git vê todas as linhas
+    como 'adicionadas' e o hook pega false positive em campos legados.
+    """
+    try:
+        out = subprocess.check_output(
+            ["git", "diff", "--cached", "--name-status", "--find-renames=90%"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except subprocess.CalledProcessError:
+        return False
+    for line in out.splitlines():
+        if not line:
+            continue
+        parts = line.split("\t")
+        status = parts[0]
+        if status.startswith("R") and len(parts) >= 3 and parts[2] == file_path:
+            return True
+    return False
+
+
 def get_added_lines_for(file_path: str) -> list[tuple[int, str]]:
     """Return [(line_no_new, content)] for lines ADDED in staged diff."""
+    if _is_rename(file_path):
+        return []
     try:
         out = subprocess.check_output(
             ["git", "diff", "--cached", "-U0", "--", file_path],

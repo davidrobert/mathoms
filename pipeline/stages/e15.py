@@ -70,7 +70,7 @@ def run(ctx: WorkspaceContext) -> dict:
 
     Reads IRPF docs, sends to LLM, saves baseline JSON in E2_extracts/.
     """
-    from pipeline.llm.service import LLMService, LLMConfig
+    from pipeline.llm.litellm_client import LLMService, LLMConfig
     from pipeline.llm.text_extractor import DocumentTextExtractor
     from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
     from pipeline.llm.prompts.e15_baseline import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE

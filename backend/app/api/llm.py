@@ -129,7 +129,7 @@ async def test_llm_connection(
     db: AsyncSession = Depends(get_db),
 ):
     """Test connectivity with the LLM provider. Uses saved config or override params."""
-    from pipeline.llm.service import LLMService, LLMConfig as LLMServiceConfig
+    from pipeline.llm.litellm_client import LLMService, LLMConfig as LLMServiceConfig
 
     result = await db.execute(select(LLMConfig).where(LLMConfig.workspace_id == workspace.id))
     cfg = result.scalar_one_or_none()

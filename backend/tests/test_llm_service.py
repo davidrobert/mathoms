@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from pipeline.llm.service import (
+from pipeline.llm.litellm_client import (
     LLMConfig,
     LLMCallResult,
     LLMError,
@@ -148,7 +148,7 @@ class TestCostEstimation:
 
 
 class TestLLMServiceWithMock:
-    @patch("pipeline.llm.service.LLMService._ensure_client")
+    @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
     def test_auth_error_no_retry(self, mock_ensure):
         from pydantic import BaseModel
 

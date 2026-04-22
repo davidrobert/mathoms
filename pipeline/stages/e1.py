@@ -69,7 +69,7 @@ def run(ctx: WorkspaceContext) -> dict:
     Reads personal documents, sends to LLM, saves members JSON.
     Requires llm_config.json in ctx.config_dir.
     """
-    from pipeline.llm.service import LLMService, LLMConfig
+    from pipeline.llm.litellm_client import LLMService, LLMConfig
     from pipeline.llm.text_extractor import DocumentTextExtractor
     from pipeline.llm.schemas.e1_members import MembersExtractOutput
     from pipeline.llm.prompts.e1_members import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE

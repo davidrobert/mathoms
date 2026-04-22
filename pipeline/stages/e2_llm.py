@@ -83,7 +83,7 @@ def _e2_llm_queue_stats(data_dir: Path, docs: list[Path]) -> dict[str, int]:
 
 def _llm_config_from_runtime(data: dict) -> Any:
     """Build ``LLMConfig`` from serialized llm_config.json (ignore unknown keys)."""
-    from pipeline.llm.service import LLMConfig
+    from pipeline.llm.litellm_client import LLMConfig
 
     return LLMConfig(
         provider=str(data.get("provider") or "anthropic"),
@@ -154,7 +154,7 @@ def _process_one_e2_llm_document(
     disco direto — compatível com DiskArtifactStore e DBArtifactStore (A6b+).
     """
     from pipeline.live_progress import emit_stage_activity
-    from pipeline.llm.service import LLMService, LLMRunSummary
+    from pipeline.llm.litellm_client import LLMService, LLMRunSummary
     from pipeline.llm.text_extractor import DocumentTextExtractor
     from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
     from pipeline.llm.prompts.e2_llm import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
@@ -262,7 +262,7 @@ def _process_one_e2_llm_document(
 
 
 def _merge_llm_run_summaries(parts: list[Any]) -> dict[str, Any]:
-    from pipeline.llm.service import LLMRunSummary
+    from pipeline.llm.litellm_client import LLMRunSummary
 
     merged = LLMRunSummary()
     for p in parts:

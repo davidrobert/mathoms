@@ -42,10 +42,7 @@ FORBIDDEN = {
     "service.ts",
 }
 
-ALLOWLIST = {
-    # Legado (A6g.6 baseline 2026-04-22). Renomear em A6g.2c.
-    "pipeline/llm/service.py",
-}
+ALLOWLIST: set[str] = set()
 
 SEARCH_DIRS = [BACKEND, PIPELINE, SCRIPTS, FRONTEND_SRC]
 

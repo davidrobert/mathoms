@@ -135,7 +135,7 @@ def run(ctx: WorkspaceContext) -> dict:
     Reads E5 analysis JSON and E7-crossval results, sends to LLM,
     saves review JSON in E7_review/.
     """
-    from pipeline.llm.service import LLMService, LLMConfig
+    from pipeline.llm.litellm_client import LLMService, LLMConfig
     from pipeline.llm.schemas.e7_review import E7ReviewOutput
     from pipeline.llm.prompts.e7_review import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
 

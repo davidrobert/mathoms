@@ -32,7 +32,7 @@ from pipeline.llm.schemas.e7_review import (
     ReviewInsight,
     ScoreAdjustment,
 )
-from pipeline.llm.service import LLMCallResult
+from pipeline.llm.litellm_client import LLMCallResult
 
 
 def make_llm_ctx(tmp_path: Path) -> WorkspaceContext:
