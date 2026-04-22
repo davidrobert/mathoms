@@ -41,6 +41,7 @@ THIN_ROUTERS = frozenset(
         "feature_flags.py",
         "goals.py",
         "notifications.py",
+        "tasks.py",
         "vault.py",
     }
 )

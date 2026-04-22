@@ -11056,7 +11056,7 @@
         ]
       },
       "post": {
-        "description": "Cria uma sugest\u00e3o pending. Endpoint usado pelo E5.N (ADR-074) \u2014\npipeline LLM invoca via HTTP para gravar sugest\u00f5es ap\u00f3s rodar.\n\nAlternativa: chamar ``task_suggestion_service.bulk_create`` direto do\nPython dentro do worker. Este endpoint existe para workers em outros\nprocessos/linguagens (ex: pipeline CLI em transi\u00e7\u00e3o).",
+        "description": "Cria sugest\u00e3o pending. Usado pelo E5.N (ADR-074) \u2014 pipeline LLM\ninvoca via HTTP para gravar propostas ap\u00f3s rodar.",
         "operationId": "create_suggestion_api_v1_workspaces__workspace_id__task_suggestions_post",
         "parameters": [
           {
@@ -11547,7 +11547,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/tasks/export.md": {
       "get": {
-        "description": "Export do ``tarefas.md`` on-demand (compat pipeline legado \u2014 ADR-075).",
+        "description": "Export do ``tarefas.md`` (compat pipeline legado \u2014 ADR-075).",
         "operationId": "export_tasks_md_api_v1_workspaces__workspace_id__tasks_export_md_get",
         "parameters": [
           {
@@ -11595,7 +11595,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/tasks/scan-deadlines": {
       "post": {
-        "description": "Dispara o scan de prazos e cria notifications para tasks vencidas\nou pr\u00f3ximas (\u22647 dias). Idempotente via dedup por title.\n\nUsado por:\n- Cron externo (ex: worker Celery beat em F8.3+)\n- UI: bot\u00e3o \"Verificar alertas de prazo\" (admin)",
+        "description": "Dispara scan de prazos + cria notifications para tasks vencidas ou \u22647 dias.\n\nComposite (cross-aggregate Notification). Migra\u00e7\u00e3o para evento reativo\nem A6e.events-followup (flag ``USE_EVENT_DRIVEN_TASK_NOTIFICATIONS``).",
         "operationId": "scan_deadlines_api_v1_workspaces__workspace_id__tasks_scan_deadlines_post",
         "parameters": [
           {
@@ -11643,7 +11643,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/tasks/upcoming": {
       "get": {
-        "description": "Tarefas com ``deadline_date`` nos pr\u00f3ximos N dias, ativas.\n\nUsado pelo widget do dashboard.",
+        "description": "Tarefas com ``deadline_date`` nos pr\u00f3ximos N dias, ativas. Widget do dashboard.",
         "operationId": "upcoming_tasks_api_v1_workspaces__workspace_id__tasks_upcoming_get",
         "parameters": [
           {
@@ -11701,7 +11701,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/tasks/{task_id}": {
       "delete": {
-        "description": "Soft-delete: move para ``status='cancelled'`` preservando hist\u00f3rico.\n\nPara remo\u00e7\u00e3o f\u00edsica (raro, admin-only), fora do MVP.",
+        "description": "Soft-delete: move para ``status='cancelled'`` preservando hist\u00f3rico.",
         "operationId": "cancel_task_api_v1_workspaces__workspace_id__tasks__task_id__delete",
         "parameters": [
           {
@@ -11923,7 +11923,7 @@
         ]
       },
       "post": {
-        "description": "Upload multipart de um anexo. Valida extens\u00e3o e tamanho via\n``StorageService.validate_file`` (reusa o mesmo whitelist de documentos).",
+        "description": "Upload multipart. Composite de Storage (valida extens\u00e3o + tamanho\nvia whitelist de documentos).",
         "operationId": "upload_task_attachment_api_v1_workspaces__workspace_id__tasks__task_id__attachments_post",
         "parameters": [
           {
@@ -11990,6 +11990,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/attachments/{attachment_id}": {
       "delete": {
+        "description": "Remove row + arquivo f\u00edsico. Use case retorna a entidade para o\nrouter resolver o path antes do commit e remover o arquivo depois.",
         "operationId": "delete_task_attachment_api_v1_workspaces__workspace_id__tasks__task_id__attachments__attachment_id__delete",
         "parameters": [
           {
@@ -12048,7 +12049,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/attachments/{attachment_id}/download": {
       "get": {
-        "description": "Serve bin\u00e1rio. Tenancy validado duas vezes: (1) ``get_current_workspace``,\n(2) ``get_attachment`` filtra por ``workspace_id``.",
+        "description": "Serve bin\u00e1rio. Composite de Storage (FileResponse do disco).\n\nTenancy validado duas vezes: (1) ``get_current_workspace``,\n(2) ``get_attachment`` filtra por ``workspace_id``.",
         "operationId": "download_task_attachment_api_v1_workspaces__workspace_id__tasks__task_id__attachments__attachment_id__download_get",
         "parameters": [
           {
@@ -12107,7 +12108,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/progress": {
       "get": {
-        "description": "% executado no m\u00eas corrente para tasks de aporte (heur\u00edstica).\n\nRetorna ``is_trackable=False`` se a task n\u00e3o \u00e9 do tipo \"aporte mensal\".\nA UI (TaskDrawer) esconde o card de progresso nesse caso.",
+        "description": "% executado no m\u00eas para tasks de aporte (heur\u00edstica).\n\nComposite \u2014 depende de Storage tenant root e do progress_service.\nUse case puro retorna s\u00f3 a Task; c\u00e1lculo fica aqui.",
         "operationId": "get_task_progress_api_v1_workspaces__workspace_id__tasks__task_id__progress_get",
         "parameters": [
           {
@@ -12164,7 +12165,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/status": {
       "post": {
-        "description": "Endpoint dedicado para transi\u00e7\u00e3o de status. Separado do PATCH para\ndeixar a audit-trail mais clara no Swagger / logs.",
+        "description": "Endpoint dedicado para transi\u00e7\u00e3o de status. Separado do PATCH para\naudit-trail mais clara em Swagger / logs.",
         "operationId": "transition_task_status_api_v1_workspaces__workspace_id__tasks__task_id__status_post",
         "parameters": [
           {
