@@ -196,6 +196,47 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     - `python scripts/e0_audit.py --json` output idêntico.
     - `pre-commit run` passa nos arquivos tocados.
 
+- **A6g.4c — 3ª rodada frontend style sweep: páginas `plano/*` (2026-04-22):**
+  Fechamento do ataque a T2 — as duas páginas `>500 l` remanescentes após
+  A6g.4b (`plano/page.tsx` 630 e `plano/alocacao/wizard/page.tsx` 533)
+  decompostas com a mesma convenção `_components/` colocated.
+  - **`plano/page.tsx` (630 → 152):** extrai `GoalCard` (66) reutilizável
+    pelo grid 2×2, `GoalsOverviewGrid` (97) como wrapper do grid,
+    `EmptyGoalsBanner` (33) para CTA de configuração inicial,
+    `IFProgressBar` (53), `IFKPIsRow` (57) com cenário partindo de zero,
+    `IFParamsCard` (62) com dl de parâmetros vigentes,
+    `LinkedTasksSection` (109) com header + empty state + row dedicados;
+    hook `usePlanoOverview` (161) consolida `Promise.allSettled` dos 4
+    goals + tasks IF + progresso IF. Estados `loading`/`error`/`no-workspace`
+    viram subfunções locais do orchestrator.
+  - **`plano/alocacao/wizard/page.tsx` (533 → 185):** extrai
+    `Step1Distribution` (150) com presets + inputs + sum indicator,
+    `Step2Instruments` (52), `Step3Rebalance` (55) + `AlocacaoSummary` (93),
+    `AlocacaoBar` (43) compartilhada entre passo 1 e passo 3 (remove
+    duplicação visual); `constants.ts` (40) agrega `PRESETS`,
+    `REBAL_OPTIONS`, `COLORS`, tipo `Pcts`; hook `useAlocacaoWizard` (111)
+    consolida estado dos 3 passos + derivados (soma, somaValida,
+    canAdvance, draftAlocacaoInputs/Derived para `GoalPremissasCard`) +
+    `handleSave`. `StepProgressBar` e `WizardNavigation` como subfunções
+    locais.
+  - **T2 `ts_long_files`:** 2 → **0** 🎯 (todas as páginas `>500 l`
+    decompostas).
+  - **T3 `ts_long_functions`:** 25 → 29. Sub-componentes novos (JSX puros
+    como `EmptyGoalsBanner` 25, `EmptyLinkedTasks` 30) ficam em severidade
+    `med`. Hook `usePlanoOverview` inicial caiu em severidade `high` (50
+    linhas) e foi tightened num terceiro commit extraindo `runPlanoLoad` +
+    `computeIFProgress` + `errorMessage` (50 → 27); `high` severity
+    frontend: 2 → **1** (só `TransactionsContent` pré-existente).
+  - **Impact:** frontend offenders 27 → 29 no total (líquido +2 por
+    granularidade JSX), mas **T2 zerado** e **T3 high -50%**. Zero
+    regressão — 397 vitest tests passam, `tsc --noEmit` limpo em
+    `src/` (erros pré-existentes em `tests/` preservados). Zero mudança
+    funcional/visual (sweep puramente organizacional + hook extraction).
+    Com A6g.4c fechada, a lane A6g.4 está cumprida para arquivos `>500 l`;
+    ataques adicionais a T3 med ficariam para A6g.6 (enforcement
+    automatizado: ESLint `@typescript-eslint/no-explicit-any` + lint
+    rule de function length).
+
 - **A6g.4b — 2ª rodada frontend style sweep (2026-04-22):**
   Continuação de A6g.4 atacando as 6 páginas `>500` linhas ainda no
   baseline + 1 orchestrator monolítico em `transactions/`. Convenção
