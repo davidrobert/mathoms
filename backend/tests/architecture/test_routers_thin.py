@@ -36,6 +36,7 @@ THIN_ROUTERS = frozenset(
         "categories.py",
         "dashboard.py",
         "family_members.py",
+        "feature_flags.py",
         "goals.py",
     }
 )

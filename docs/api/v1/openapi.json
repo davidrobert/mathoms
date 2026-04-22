@@ -2294,7 +2294,7 @@
         "title": "FileLimitsSchema",
         "type": "object"
       },
-      "FlagUpdateRequest": {
+      "FlagUpdateCommand": {
         "properties": {
           "enabled": {
             "title": "Enabled",
@@ -2304,7 +2304,7 @@
         "required": [
           "enabled"
         ],
-        "title": "FlagUpdateRequest",
+        "title": "FlagUpdateCommand",
         "type": "object"
       },
       "FlagsResponse": {
@@ -8674,7 +8674,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/feature-flags/{flag}": {
       "put": {
-        "description": "Set override workspace-level para uma flag.\n\nNota: este endpoint N\u00c3O tem `require_member_admin_role` por enquanto\npara manter compatibilidade com o padr\u00e3o dos outros endpoints F8.x.\nEm F9+ (RBAC granular completo), pode exigir role='owner' para\nevitar que coadministradores desabilitem recursos.",
         "operationId": "update_flag_api_v1_workspaces__workspace_id__feature_flags__flag__put",
         "parameters": [
           {
@@ -8700,7 +8699,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FlagUpdateRequest"
+                "$ref": "#/components/schemas/FlagUpdateCommand"
               }
             }
           },

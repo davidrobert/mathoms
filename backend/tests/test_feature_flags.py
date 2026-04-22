@@ -119,8 +119,10 @@ async def test_put_flag_endpoint(db, client):
     assert resp.json()["flags"]["tasks_v2_enabled"] is False
 
 
+# A6e.4 slice: flag desconhecida virou ValidationError → 422 (padrão global
+# ADR-101 R15). Antes era HTTPException(400) inline no router.
 @pytest.mark.asyncio
-async def test_put_unknown_flag_returns_400(db, client):
+async def test_put_unknown_flag_returns_422(db, client):
     user = await factories.make_user(db)
     ws = await factories.make_workspace(db, owner=user)
     await db.commit()
@@ -130,7 +132,7 @@ async def test_put_unknown_flag_returns_400(db, client):
         f"/api/workspaces/{ws.id}/feature-flags/made_up_flag",
         json={"enabled": True},
     )
-    assert resp.status_code == 400
+    assert resp.status_code == 422
 
 
 @pytest.mark.asyncio
