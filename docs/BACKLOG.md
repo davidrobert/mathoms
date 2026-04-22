@@ -607,13 +607,13 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 **Fontes canônicas** (plano mestre A6 absorvido 2026-04-21): ADRs 097-111 em [DECISIONS.md](DECISIONS.md); arquitetura alvo em [ARCHITECTURE.md §17](ARCHITECTURE.md); critérios de aceite por fase em [TESTING.md](TESTING.md); runbook de cutover em [runbooks/cutover.md](runbooks/cutover.md); LGPD em §7B abaixo.
 **ADRs:** 097 (extract-then-refactor), **098** (Caminho B puro vs pragmático), **099** (reuse de `analyze_*` em `main_with_store`), **100** (A6d commitment), **101** (R12-R17 backend DDD/SOLID), **102** (R18-R20 language-neutral), **103** (teste humano como gate), **109** (auth portability), **110** (structured logs + OTel), **111** (stateless rigoroso)
-**Status global (2026-04-21):**
-- **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (fechada completa 2026-04-20) · A6f.2/.3/.4/.5a/.6 · **A6g.1** (audit baseline 2026-04-21: 2047 ofensores catalogados) · **A6g.5** (tests sweep Tiers 1+2+3+4, 2026-04-21).
+**Status global (2026-04-22 — pós-merge A6f.1):**
+- **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (fechada completa 2026-04-20) · **A6f.1** (pipeline-as-service HTTP boundary, ADR-112, 2026-04-21) · A6f.2/.3/.4/.5a/.6 · **A6g.1** (audit baseline 2026-04-21: 2047 ofensores catalogados) · **A6g.5** (tests sweep Tiers 1+2+3+4, 2026-04-21).
 - **A6e 🚧 parcial (6 de N+ agregados — per-aggregate track **concluído**):** FamilyMember + Category + ConfigBlob + Document + Goal + Task (com 3 sub-agregados) com repos+DTOs. Próximos passos A6e são transversais (.3 use cases · .4 routers finos · .5 /v1 prefix · .6 events).
-- **Restante:** A6e (.3 use cases 🚧 parcial · .3b ConfigBlob+Document+Task ☐ · .4 routers finos ☐ 4a pickable · .5 /v1 prefix ☐ · .6 events ⏸) · A6g.2 🚧 / .3 / .4 🚧 / .6 / .7 ☐ (sweeps + enforcement + Go prep) · F7 (7A-7F + LGPD). **A6f.1 ✅ mergeada** (ADR-112, 2026-04-21) — destravou A6e.3b + A6g.7.
+- **Restante:** A6e (.3 use cases 🚧 parcial · .3b ConfigBlob+Document+Task ☐ · .4 routers finos ☐ 4a pickable · .5 /v1 prefix ☐ · .6 events ⏸) · A6g.2 🚧 / .3 / .4 🚧 / .6 / .7 ☐ (sweeps + enforcement + Go prep) · F7 (7A-7F + LGPD).
 - **Caminho crítico (serial):** A6e.3 (use cases) → A6e.4 (routers finos) → F7A → F7B → F7D+dogfood → GA.
-- **Lanes abertas agora (2026-04-21 — sync pós-A6f.1 merge):** Onda 1 toda ocupada (A6g.2 + A6g.4 🚧); Onda 2 com A6e.3 🚧; **livres com prompt pronto:** A6e.3b, A6e.4 (fase 4a), A6e.5, A6g.7, A6-human (gate manual). A6e.6 ⏸ preferencial pós-A6e.3. Ver tabela e diagrama abaixo. **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
-- **Testes:** 1461 pipeline + 926 backend passing (zero regressão).
+- **Lanes abertas agora (2026-04-22 — sync pós-A6f.1 merge):** Onda 1 toda ocupada (A6g.2 + A6g.4 🚧); Onda 2 com A6e.3 🚧; **livres com prompt pronto:** A6e.3b (destravada por A6f.1 ✅), A6e.4 (fase 4a), A6e.5 (/v1 prefix), A6g.7 Go prep (destravada por A6f.1 ✅), A6-human (gate manual). A6e.6 ⏸ preferencial pós-A6e.3. Ver tabela e diagrama abaixo. **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
+- **Testes:** 1461 pipeline + 934 backend + 12 pipeline-service passing (zero regressão).
 
 ### Lanes abertas agora — pickup table
 
@@ -719,16 +719,16 @@ convergir em `origin/main`.
 | ------------------------------------------------------------ | ----------------------- |
 | Sessão curta, refactor cirúrgico em Python                   | A6g.2 pipeline → A6e.5 /v1 prefix |
 | Sessão curta, familiar com TS/React                          | A6g.4 frontend          |
-| Sessão longa (≥3h), greenfield infra                         | A6f.1 pipeline-service  |
-| Sessão longa, foco em backend DDD                            | A6e.3/.4/.6 (quando desbloqueados) |
-| Toda Onda 1 ocupada (caso atual 2026-04-21)                  | A6e.5 (paralelo a .3) ou A6-human smoke |
+| Sessão longa (≥3h), greenfield infra                         | A6g.7 Go prep (pós-A6f.1 ✅) ou F7A Docker (Onda 3) |
+| Sessão longa, foco em backend DDD                            | A6e.3/.4/.6 (quando desbloqueados) ou A6e.3b |
+| Toda Onda 1 ocupada (caso atual 2026-04-22)                  | A6e.5 (paralelo a .3), A6e.3b ou A6-human smoke |
 | Onda 2 inteira fechada e quer destravar F7                   | F7A Docker (C1, Onda 3) |
 
 **Regras de coordenação (aplicam a todas as ondas):**
 - Uma lane = uma branch `agent/<slug>/<timestamp>`. Nunca 2 agentes na mesma lane — rode o pickup check em CLAUDE.md §Antes de pegar uma task.
 - `git fetch origin` a cada ~30min em sessão longa; rebase incremental.
 - Hotspots (`CLAUDE.md`, `docs/BACKLOG.md`, `docs/CHANGELOG.md`, `docs/DECISIONS.md`) — anunciar antes, commit atômico ≤5min.
-- A6g.7 (Go prep) fica **bloqueada** até A6f.1 começar — só faz sentido quando houver código Go real.
+- A6g.7 (Go prep) foi **destravada** pelo merge de A6f.1 (2026-04-21) — pode rodar agora; só faz sentido com o contrato HTTP estabelecido, que já está em `docs/api/v1/pipeline-service.openapi.json`.
 
 ### A5f — E1.5c Caminho B ✅ entregue 2026-04-19
 
@@ -956,7 +956,7 @@ convergir em `origin/main`.
 | A6g.4 | **Frontend TypeScript** (`frontend/src/`) — eliminar `any` residual, nomes genéricos (`utils.ts`), arquivos >500 linhas (`api.ts` 1880, `pipeline/page.tsx` 1195), hex colors, componentes/hooks >40 linhas. Prompt: `docs/agent_prompts/track_a6g4_frontend_style_sweep.md`. Respeitar codegen em `frontend/src/generated/` (não editar). **1ª rodada 2026-04-21:** T1 9→0, T2 7→6 (api.ts 1880→14 módulos), T3 24→18 (high severity 12→0), T4 1→0, T5 12→0. 53 ofensores → 30 (-43%). 2ª rodada pega páginas >500 linhas ainda pendentes | 1-2 sessões | 🚧 parcial (1ª rodada 2026-04-21) |
 | A6g.5 | **Testes** (`tests/`, `backend/tests/`, `frontend/tests/`) — aplicar code style também em teste: fakes nomeados > `MagicMock` inline, fixtures <20 linhas, nomes descritivos (`test_reconcile_drops_duplicate_when_same_hash` > `test_dedupe_1`). Não relaxa o padrão em teste | 1 sessão | ☐ |
 | A6g.6 | **Enforcement automatizado** — onde fizer sentido, transformar regra em gate: (a) `ruff` rules ativadas (`PLR0915` max-statements, `C901` complexity, `E501` line length já ativo); (b) teste AST que falha se `from typing import Dict, Any` cruzar boundary HTTP; (c) pre-commit hook que grep-bloqueia nomes proibidos em filenames novos; (d) ESLint rule `@typescript-eslint/no-explicit-any` como `error`. Documentar exceções com `# noqa: REGRA — motivo` citando ADR ou issue | 1 sessão | ☐ |
-| A6g.7 | **Go prep** (só quando A6f.1 for iniciada) — config `golangci-lint.yml` com `funlen`, `gocyclo`, `gocognit`, `revive` (nomes) alinhados ao code style. Regras vivem no repo antes do primeiro commit Go | 0.5 sessão | ⏸ blocked-by-A6f.1 |
+| A6g.7 | **Go prep** (A6f.1 ✅ 2026-04-21 destravou) — config `golangci-lint.yml` com `funlen`, `gocyclo`, `gocognit`, `revive` (nomes) alinhados ao code style. Regras vivem no repo antes do primeiro commit Go | 0.5 sessão | ☐ aberta |
 
 **Estimativa total A6g:** 7-10 sessões médias. Pode rodar em paralelo a A6d/A6e/A6f — mas A6g.3 se beneficia de vir **depois** de A6e.4 (routers finos), e A6g.2 ignora o que A6d está fechando.
 
