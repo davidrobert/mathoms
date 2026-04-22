@@ -2037,6 +2037,33 @@ Regras firmes:
 - ❌ Schemas JSON existentes continuam com `float` — adaptadores usam
   `to_float` / `Decimal(str(v))`.
 
+**Follow-ups (2026-04-22, pós-A6g.6 enforcement):**
+
+- **A6g.6** (ADR-114 ✅) instala `dev/check_float_money.py` + detector P5
+  no audit que catalogam os ofensores ainda em `float` (13 em
+  `backend/app/` no snapshot 2026-04-22: 7 goal DTOs + 4 transactions +
+  1 tolerance + 1 helper).
+- **A6g.3b** (☐ aberta, prompt `track_a6g3b_decimal_money_migration.md`)
+  migra os campos em DTO usando tipo `MoneyBRL = Annotated[Decimal,
+  BeforeValidator(_coerce_to_decimal), PlainSerializer(float,
+  when_used="json")]`. Estratégia: Decimal em memória + number no JSON
+  (via serializer), preservando wire-compat com frontend manual que
+  espera `number` em TS. Internal math em `goal_service.py` migra para
+  Decimal arithmetic com `.quantize(Decimal("0.01"))` nos returns.
+  Deferido de A6g.3 porque exige cascata de refactor de fórmulas
+  (compute_if_derived, compute_aporte_derived, compute_dolar_derived,
+  _pmt_constante_ate_fv) + revisão de OpenAPI snapshot (request schemas
+  ganham `anyOf [number, string]`) + frontend E2E re-cert em goal
+  flows.
+- **Tolerâncias** (`saldo_diff`, `baseline_irpf_diff`, `score_diff_max`,
+  `cv_*_diff_max`) NÃO são money — são deltas/thresholds. O audit
+  pode flaggar como false positive (nome contém "saldo"). Rename para
+  `_tolerance` suffix OU skip documentado em comentário (`# tolerance,
+  not money`).
+- **Pipeline legacy** (`pipeline/`, `scripts/e*`) continua `float` —
+  escopo fora de A6g.3b. Migração dele quando `main_with_store` for
+  deletado (pós-A6c) com refactor maior.
+
 ---
 
 ## ADR-091 — Pydantic para domain objects com coleções

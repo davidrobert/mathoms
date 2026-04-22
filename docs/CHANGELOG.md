@@ -8,6 +8,25 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.3b — prompt de migração Decimal money criado (2026-04-22):**
+  Documenta o full scope do follow-up diferido de A6g.3 para eliminar
+  `P5_float_money` em `backend/app/` (13 ofensores). Prompt em
+  `docs/agent_prompts/track_a6g3b_decimal_money_migration.md` cobre:
+  (a) tipo `MoneyBRL`/`MoneyUSD = Annotated[Decimal, BeforeValidator,
+  PlainSerializer(float, when_used='json')]` — Decimal em memória,
+  number no JSON; (b) migração de 7 campos goal DTOs (`aporte`,
+  `dolar`, `if_goal`) + 4 campos transactions; (c) refactor cascata
+  em `goal_service.py` (fórmulas compute_if_derived, _if_meta_targets,
+  _aporte_cobrindo_gap_com_patrimonio, _pmt_constante_ate_fv,
+  compute_aporte_derived, compute_dolar_derived) para Decimal
+  arithmetic com quantize; (d) `task_progress_service.py` +
+  `transaction_service.py` callers; (e) OpenAPI snapshot refresh
+  (request schemas ganham `anyOf [number, string]`); (f) frontend
+  sanity check — codegen manual em `goals.ts` permanece `number`
+  porque wire serializa como number. 6 slices atômicos com gates
+  separados; estimativa 1 sessão dedicada (~2.5h). ADR-090 atualizada
+  com §Follow-ups apontando para esta lane.
+
 - **A6g.3 — backend style sweep (2ª rodada) (2026-04-22):**
   Continuação do sweep backend — 4 slices adicionais reduzindo P1 em
   services pesadamente acoplados. **Impacto real:** funções ≥40
