@@ -8,6 +8,53 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6e.5 — `/api/v1/` prefix + alias deprecated + OpenAPI versionado (2026-04-22 · ADR-108):**
+  Versionamento da API pública. Rotas canônicas passam para `/api/v1/*`;
+  alias `/api/*` continua funcional via `LegacyApiDeprecationMiddleware`
+  (Deprecation + Sunset + Link rel="successor-version") até remoção em
+  F7A, quando reverse proxy estará pronto. OpenAPI declara
+  `info.version = "1.0.0"` + `servers: [{url: "/api/v1"}]`, habilitando
+  clients gerados com contrato congelado.
+  - **Backend:** `settings.API_PREFIX = "/api/v1"` (novo default),
+    `LEGACY_API_PREFIX = "/api"`, `API_VERSION = "1.0.0"`,
+    `LEGACY_SUNSET_DATE = "TBD F7A"`. `main.py` registra cada router
+    2× (canônico + alias, `include_in_schema=False` no legado) via
+    `_ALL_ROUTERS`. Handlers, DTOs e response models intocados
+    (ADR-109).
+  - **Middleware:** `backend/app/middleware/legacy_deprecation.py`
+    (≤45 linhas) — anexa 3 headers em responses do alias (RFC 8594 +
+    IETF draft-dalal-deprecation-header + RFC 8288). Guard evita
+    falso-positivo quando `API_PREFIX` é extensão do `LEGACY_API_PREFIX`.
+  - **OpenAPI snapshot** regenerado: 88 paths migram `/api/*` →
+    `/api/v1/*`, `info.version` 0.1.0 → 1.0.0, novo `servers` com
+    `/api/v1`. Alias fora do schema.
+  - **Frontend:** `API_BASE = "/api/v1"` em `src/lib/api/core.ts`
+    (ponto único). Literal `/api/transactions/export` em
+    `transactions/_components/exportTransactions.ts` trocado por
+    `${API_BASE}/...`. MSW handlers + 19 arquivos de teste
+    atualizados para `/api/v1/...`; constante `API` em
+    `tests/mocks/handlers.ts`, `tests/lib/reports.test.ts` e
+    `tests/hooks/useReportData.test.tsx` passa a valer `/api/v1`.
+    `msw-lint.mjs` aponta para `${BACKEND_URL}/api/v1/openapi.json`.
+  - **Gate:**
+    - `pytest backend/tests -q` = 984 passed, 4 skipped.
+    - `pytest backend/tests/middleware/test_legacy_deprecation.py -q`
+      = 3 passed (canônico sem headers; alias com 3 headers; `/health`
+      unaffected).
+    - `pytest backend/tests/test_openapi_snapshot.py
+      backend/tests/test_openapi_response_models.py -q` = 2 passed.
+    - `pytest pipeline-service/tests -q` = 12 passed (sem regressão).
+    - `cd frontend && npm test -- --run` = 397 passed, 1 skipped
+      (34 arquivos).
+    - `curl -I http://localhost:8000/api/v1/health` 200 sem
+      `Deprecation`; `/api/health` 200 + `Deprecation: true` +
+      `Sunset: TBD F7A` + `Link: </api/v1>; rel="successor-version"`.
+  - **Out of scope (explícito):** remoção do alias `/api/*` fica em
+    F7A (exige métricas de tráfego mostrando zero clientes legados +
+    reverse proxy configurado); `/api/v2/*` não criado (YAGNI);
+    clients SDK gerados (F7C/F7D). Rewrite em `frontend/next.config.ts`
+    segue `/api/:path*` — cobre ambos prefixes automaticamente.
+
 - **A6g.2 — 1ª rodada pipeline style sweep (2026-04-21):**
   Aplica `## Code style` do CLAUDE.md a `scripts/`, `pipeline/` e
   `tests/fixtures/`, consumindo o baseline P1/P2 de

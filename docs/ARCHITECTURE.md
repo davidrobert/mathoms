@@ -1256,6 +1256,21 @@ Subdomain-per-tenant (`<slug>.mathoms.ai`) reservado para enterprise tier futuro
 Breaking changes vão para `/v2/...` coexistindo, não sobrescrevendo. Alinha
 com R16 (ADR-101).
 
+**Implementação (A6e.5, 2026-04-22):** em dev e enquanto o reverse proxy
+de F7A não separa host de path, a app expõe:
+
+- **Canônico:** `/api/v1/*` — único registrado no OpenAPI (88 paths,
+  `info.version = "1.0.0"`, `servers: [{url: "/api/v1"}]`).
+- **Alias deprecated:** `/api/*` — mesmos handlers, `include_in_schema=False`.
+  Cada response carrega `Deprecation: true` + `Sunset: TBD F7A` +
+  `Link: </api/v1>; rel="successor-version"` via
+  `LegacyApiDeprecationMiddleware` (RFC 8594 + IETF
+  draft-dalal-deprecation-header + RFC 8288).
+- **Remoção:** F7A, quando reverse proxy (`api.mathoms.ai → /v1/*`) +
+  métricas de tráfego mostrando zero clientes legados estiverem prontos.
+
+Frontend consome `${API_BASE}` = `"/api/v1"` em `frontend/src/lib/api/core.ts`.
+
 ### 18.3 Cookies e sessão
 
 - Sempre com prefix `__Host-` (força `Secure`, `HttpOnly`, `Path=/`, sem `Domain`).
