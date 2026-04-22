@@ -80,6 +80,56 @@ def build_classification_for_final_name(
     return c
 
 
+def _compute_canonical_dest_path(
+    source_path: Path,
+    tenant_root: Path,
+    project_root: Path,
+    *,
+    dest_group: str,
+    e0_doc_type: str,
+    institution: str | None,
+    period: str | None,
+    classification_meta: dict[str, Any] | None,
+    content_hash: str | None,
+) -> tuple[Path, Path, str] | None:
+    """Inicializa config E0 + computa `(dest_directory, dest_path, src_hash)`.
+
+    Retorna None se inputs inválidos (arquivo ausente, dest_group/type vazios).
+    """
+    from scripts.e0_route import (
+        _init_config as route_init_config,
+        build_final_name,
+        dest_dir_for_group,
+        file_hash,
+    )
+
+    if not source_path.exists() or not dest_group or not e0_doc_type:
+        return None
+
+    route_init_config(project_root)
+    ext = _correct_extension(source_path)  # fixes wrong ext (PDF saved as .csv)
+    classification = build_classification_for_final_name(
+        dest_group=dest_group,
+        e0_doc_type=e0_doc_type,
+        institution=institution,
+        period=period,
+        classification_meta=classification_meta,
+    )
+    src_hash = content_hash or file_hash(source_path)
+    final_name = build_final_name(classification, ext, content_hash=src_hash)
+    dest_directory = dest_dir_for_group(tenant_root, dest_group)
+    return dest_directory, dest_directory / final_name, src_hash
+
+
+def _rel_path_str(path: Path, tenant_root_resolved: Path) -> str:
+    """Caminho relativo POSIX; cai para o absoluto se fora do tenant_root."""
+    try:
+        rel = path.relative_to(tenant_root_resolved)
+    except ValueError:
+        rel = path
+    return str(rel).replace("\\", "/")
+
+
 def rename_to_canonical(
     current_path: Path,
     tenant_root: Path,
@@ -109,45 +159,26 @@ def rename_to_canonical(
 
     Returns ``(absolute_path, path_relative_to_tenant)`` or ``None`` on error.
     """
-    from scripts.e0_route import (
-        _init_config as route_init_config,
-        build_final_name,
-        dest_dir_for_group,
-        file_hash,
-        resolve_collision,
-    )
+    from scripts.e0_route import resolve_collision
 
-    if not current_path.exists() or not dest_group or not e0_doc_type:
+    computed = _compute_canonical_dest_path(
+        current_path, tenant_root, project_root,
+        dest_group=dest_group, e0_doc_type=e0_doc_type,
+        institution=institution, period=period,
+        classification_meta=classification_meta, content_hash=content_hash,
+    )
+    if computed is None:
         return None
-
-    route_init_config(project_root)
-    ext = _correct_extension(current_path)  # fixes wrong extension (e.g. PDF saved as .csv)
-    classification = build_classification_for_final_name(
-        dest_group=dest_group,
-        e0_doc_type=e0_doc_type,
-        institution=institution,
-        period=period,
-        classification_meta=classification_meta,
-    )
-    src_hash = content_hash or file_hash(current_path)
-    final_name = build_final_name(classification, ext, content_hash=src_hash)
-    dest_directory = dest_dir_for_group(tenant_root, dest_group)
-    dest_path = dest_directory / final_name
-
+    dest_directory, dest_path, src_hash = computed
     tenant_root_resolved = tenant_root.resolve()
 
-    # No-op: file is already at the right canonical path
     if current_path.resolve() == dest_path.resolve():
-        try:
-            rel = current_path.resolve().relative_to(tenant_root_resolved)
-        except ValueError:
-            rel = current_path
-        return current_path, str(rel).replace("\\", "/")
+        # No-op: file já está no path canônico
+        return current_path, _rel_path_str(current_path.resolve(), tenant_root_resolved)
 
     resolved = resolve_collision(dest_path, src_hash)
-
     if resolved is None:
-        # dest_path already has the same content (exact duplicate) — remove src
+        # dest já tem mesmo conteúdo (dupe exato) — remove src
         current_path.unlink(missing_ok=True)
         abs_final = dest_path
     else:
@@ -155,11 +186,7 @@ def rename_to_canonical(
         shutil.move(str(current_path), str(resolved))
         abs_final = resolved
 
-    try:
-        rel = abs_final.relative_to(tenant_root_resolved)
-    except ValueError:
-        rel = abs_final
-    return abs_final, str(rel).replace("\\", "/")
+    return abs_final, _rel_path_str(abs_final, tenant_root_resolved)
 
 
 def route_inbox_to_canonical_data(
@@ -183,48 +210,28 @@ def route_inbox_to_canonical_data(
     Returns ``(absolute_path, path_relative_to_tenant)`` or ``None`` if inputs invalid.
     Mirrors collision handling from ``e0_route.route_file``.
     """
-    from scripts.e0_route import (
-        _init_config as route_init_config,
-        build_final_name,
-        dest_dir_for_group,
-        file_hash,
-        resolve_collision,
-    )
+    from scripts.e0_route import resolve_collision
 
-    if not inbox_path.exists() or not dest_group or not e0_doc_type:
+    computed = _compute_canonical_dest_path(
+        inbox_path, tenant_root, project_root,
+        dest_group=dest_group, e0_doc_type=e0_doc_type,
+        institution=institution, period=period,
+        classification_meta=classification_meta, content_hash=content_hash,
+    )
+    if computed is None:
         return None
-
-    route_init_config(project_root)
-    ext = _correct_extension(inbox_path)  # fixes wrong extension (e.g. PDF saved as .csv)
-    classification = build_classification_for_final_name(
-        dest_group=dest_group,
-        e0_doc_type=e0_doc_type,
-        institution=institution,
-        period=period,
-        classification_meta=classification_meta,
-    )
-    src_hash = content_hash or file_hash(inbox_path)
-    final_name = build_final_name(classification, ext, content_hash=src_hash)
-    dest_directory = dest_dir_for_group(tenant_root, dest_group)
-    dest_path = dest_directory / final_name
+    dest_directory, dest_path, src_hash = computed
+    tenant_root_resolved = tenant_root.resolve()
 
     resolved = resolve_collision(dest_path, src_hash)
-    tenant_root = tenant_root.resolve()
-
     if resolved is None:
         if not dest_path.exists():
             return None
         inbox_path.unlink(missing_ok=True)
         abs_final = dest_path
     else:
-        dest_path = resolved
         dest_directory.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(inbox_path), str(dest_path))
-        abs_final = dest_path
+        shutil.move(str(inbox_path), str(resolved))
+        abs_final = resolved
 
-    try:
-        rel = abs_final.relative_to(tenant_root)
-    except ValueError:
-        rel = abs_final
-    rel_str = str(rel).replace("\\", "/")
-    return abs_final, rel_str
+    return abs_final, _rel_path_str(abs_final, tenant_root_resolved)
