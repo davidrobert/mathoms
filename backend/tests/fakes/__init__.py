@@ -13,6 +13,10 @@ o repo SQLAlchemy real. Uso típico::
 """
 
 from backend.tests.fakes.category import FakeCategoryRepository
+from backend.tests.fakes.config_blob import (
+    FakeConfigBlobRepository,
+    FakeGlobalDefaultsLoader,
+)
 from backend.tests.fakes.family_member import (
     FakeFamilyMemberRepository,
     FakeVault,
@@ -21,7 +25,9 @@ from backend.tests.fakes.goal import FakeGoalRepository
 
 __all__ = [
     "FakeCategoryRepository",
+    "FakeConfigBlobRepository",
     "FakeFamilyMemberRepository",
+    "FakeGlobalDefaultsLoader",
     "FakeGoalRepository",
     "FakeVault",
 ]
