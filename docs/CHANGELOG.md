@@ -8,6 +8,40 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6e.4 — Routers finos (início, 2026-04-22 · ADR-101 R15/R16):**
+  Primeiros 2 routers convertidos para padrão thin (delegação pura a
+  use case) + teste AST que enforça o padrão.
+  - **`goals.py`** (slice 1): 444 → 333 linhas, 17 handlers com 1-4
+    statements cada. `_author_names`/`_with_author` migram para
+    `backend/app/application/goal/_author_enrichment.py` (helper
+    interno do agregado, prefixo `_`). Router remove
+    `from sqlalchemy import select`; query de `User.full_name` vive
+    no helper application-layer.
+  - **`audit.py`** (slice 2): 69 → 47 linhas, 1 handler × 1 stmt.
+    Novo `backend/app/application/audit/list_audit_logs.py` com DTOs
+    (`AuditLogEntry`/`AuditLogListResponse`); novo
+    `backend/app/repositories/audit_log_repository.py` (read-only —
+    audit log é imutável). Router re-exporta DTOs para backward-compat
+    de imports externos.
+  - **Teste AST** (slice 3):
+    `backend/tests/architecture/test_routers_thin.py` parseia cada
+    router do `THIN_ROUTERS` set e falha se endpoint tem > 15
+    statements ou importa `sqlalchemy.select/delete/update/insert/func`
+    ou contém `session.commit(` / `.execute(select` no source.
+    Allowlist atual (5): `audit`, `categories`, `dashboard`,
+    `family_members`, `goals`. Próximos slices A6e.4 adicionam os
+    demais 12 routers.
+  - **Openapi snapshot** regenerado (apenas `description` removidas
+    em docstrings deletadas — zero path/method/response_model mudou,
+    conforme gate).
+  - **Não entrega nesta fatia:** 12 routers restantes
+    (`pipeline`, `workspaces`, `reports`, `transactions`, `llm`,
+    `invitations`, `notifications`, `ws`, `vault`, `auth`,
+    `feature_flags`, `config`/`documents`/`tasks` — os últimos 3
+    aguardam A6e.3b). Exception handlers globais
+    (`NotFoundError`/`ConflictError`/`ValidationError`) já em
+    `main.py` desde A6e.3 — esta lane apenas usa.
+
 - **A6g.7 — Go prep: `.golangci.yml` + CI job + skeleton (2026-04-22 · ADR-113):**
   Guardrails infra para a primeira reescrita Go (candidato natural:
   `pipeline-service/` destravado por A6f.1 · ADR-112). Zero `.go`
