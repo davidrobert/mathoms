@@ -18,8 +18,11 @@ inteiro.
 | A6g.5 Tests Sweep (fakes + nomes descritivos) | [track_a6g5_tests_sweep.md](track_a6g5_tests_sweep.md) | 2 | `agent/a6g5-tests-sweep/*` |
 | A6e.3 Application Layer (use cases — slice FamilyMember+Category+Goal) | [track_a6e3_use_cases.md](track_a6e3_use_cases.md) | 2 | `agent/a6e3-use-cases/*` |
 | A6e.5 `/api/v1/` prefix + aliases + OpenAPI versionado | [track_a6e5_v1_prefix.md](track_a6e5_v1_prefix.md) | 2 | `agent/a6e5-v1-prefix/*` |
+| A6e.3b Use cases remanescentes (ConfigBlob+Document+Task) | [track_a6e3b_use_cases_rest.md](track_a6e3b_use_cases_rest.md) | 2 | `agent/a6e3b-use-cases-rest/*` |
+| A6e.4 Routers finos (≤50 linhas/endpoint) + teste AST | [track_a6e4_thin_routers.md](track_a6e4_thin_routers.md) | 2 | `agent/a6e4-thin-routers/*` |
+| A6g.7 Go prep (`.golangci.yml` + CI skip + `services/` skeleton + ADR-113) | [track_a6g7_go_prep.md](track_a6g7_go_prep.md) | 3 | `agent/a6g7-go-prep/*` |
 
-Lanes sem prompt dedicado (A6e.3b, A6e.4, A6e.6, A6g.3, A6g.6, A6g.7) são descritas direto no BACKLOG.
+Lanes sem prompt dedicado (A6e.6, A6g.3, A6g.6) são descritas direto no BACKLOG.
 
 ## Antes de começar — pickup protocol
 
