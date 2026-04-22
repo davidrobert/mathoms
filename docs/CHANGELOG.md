@@ -8,6 +8,55 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.3 — backend style sweep (1ª rodada parcial) (2026-04-22):**
+  Primeira rodada do sweep `backend/app/` (fora de `api/` + `application/`).
+  Reduz P4/P8/P1 sem tocar wire format. **P5 float money (12) deferido
+  como A6g.3b** — migração `float → Decimal` muda JSON wire (Pydantic
+  serializa Decimal como string); lane dedicada com frontend/codegen
+  sync é próximo passo.
+  - **Slice 1a — P4 + P8 (−7 ofensores):** 5 `Optional[...]` sem
+    default ganham `= None` (`goal/mapper.py::meta_version_from_params`,
+    `schemas/pipeline.py::validate_from_stage`,
+    `services/audit.py::_client_meta`,
+    `services/task_progress_service.py::_load_aporte_keywords_from_config`,
+    `scripts/backfill_artifacts_from_disk.py::_iter_workspaces`).
+    2 comentários WHAT removidos (`pipeline_task.py` "Check idempotência",
+    `cutover_execute.py` "Check pré-condições").
+  - **Slice 2a — `services/pipeline_adapter.py` P1 5→2:** extract
+    `_TASK_STATUS_LEGACY_LABEL`, `_IF_GOAL_TAXA_RETIRADA_NOTA`,
+    `_PRIORITY_SECTION_TITLE` const + helpers `_goals_by_type_async`,
+    `_apply_goals_to_payload`, `_md_header_lines`,
+    `_md_priority_section_lines`, `_md_done_section_lines`.
+    `build_tarefas_md_sync` 76 → 13 linhas; `build_goals_payload`
+    async 37 → 7 linhas (elimina duplicação com versão sync).
+  - **Slice 2b — `services/goal_service.py` P1 4→3:** extract
+    `_if_meta_targets(inputs)` e `_aporte_cobrindo_gap_com_patrimonio
+    (if_meta, n_meses, retorno_mensal, patrimonio_atual_brl)`;
+    `compute_if_derived` 50 → 23 linhas (orquestração clara de 3
+    passos). 23 tests verdes com fórmulas byte-a-byte preservadas.
+  - **Slice 2c — `services/task_service.py` P1 4→1 +
+    `task_progress_service.py` P1 3→0:** em `task_service`:
+    `transition_status` 60 → 18 linhas via
+    `_validate_transition`, `_assert_parent_done_before_completing`,
+    `_apply_status_timestamps`; `export_markdown` 64 → 13 linhas com
+    helpers `_md_export_header_lines`, `_md_priority_block_lines`,
+    `_md_done_block_lines`. Em `task_progress_service`:
+    `compute_progress` 61 → 23 linhas via
+    `_tx_date_in_period`, `_match_transactions_by_keyword`;
+    `_raw_to_float` 46 → 18 linhas via
+    `_normalize_both_separators`, `_normalize_single_separator`.
+  - **Zero mudança funcional:** 1146 backend tests + 1461 pipeline
+    tests + 9 `pipeline_adapter` + 23 `goal_service` + 25
+    `task_service` + 17 `task_progress_service` — todos verdes.
+    Baseline decresceu 2269 → 2263 (net −6; P4 −5, P8 −2, P5 +1
+    collateral por helper replicar `patrimonio_atual_brl: float` de
+    `compute_if_derived`).
+  - **Deixado para próxima rodada:** `services/invitation_service.py`
+    (P1×3 longos: `create_invitation` 69l, `accept_invitation` 68l),
+    `content_classifier.py` (621 l, P1×3), repositories P1×5,
+    `models/task.py` (308 l). Continuação pode vir após A6e.4
+    fechar fase 4a.
+
 - **A6e.3c — tipar DTOs de FamilyMember + Category (follow-up ADR-114) (2026-04-22 · `35c7502`):**
   Promove 4 arquivos de `LEGACY_FILES` → `CLEAN_FILES` em
   `backend/tests/architecture/test_no_any_in_boundary.py`. Gate AST
