@@ -8,6 +8,38 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6e.3c — tipar DTOs de FamilyMember + Category (follow-up ADR-114) (2026-04-22 · `35c7502`):**
+  Promove 4 arquivos de `LEGACY_FILES` → `CLEAN_FILES` em
+  `backend/tests/architecture/test_no_any_in_boundary.py`. Gate AST
+  passa de 31 → 35 clean files; regressão futura de `Any` nesses
+  arquivos fica bloqueada.
+  - **`dto/family_member/command.py`** (Create + Update):
+    `extra: Optional[dict[str, Any]]` → `dict[str, object]`. Campo é
+    genuinamente dinâmico (workspace-specific metadata: variantes_nome,
+    regex_nome_fatura, profissao…), mas `object` força callers a
+    narrow via isinstance em vez de propagar `Any` pela codebase.
+  - **`dto/family_member/response.py`**: mesmo tratamento em
+    `FamilyMemberResponse.extra`.
+  - **`dto/family_member/mapper.py`**: TypedDict `_FamilyMembersConfig`
+    + `_FamilyMemberDefault` descrevem shape de
+    `config/family_members.json`. Apenas `papel` é lido; `total=False`
+    permite chaves adicionais no JSON sem quebrar tipagem.
+    `_birth_name_from_extra` aceita `dict[str, object] | None`.
+  - **`dto/category/mapper.py`**: TypedDict `_CategorizationConfig`
+    para `config/categorization.json` com `expense_keywords` /
+    `income_keywords` tipados como `dict[str, list[str]]`.
+    `convert_global_defaults_to_responses` refatora o loop para
+    literal access (`data.get("expense_keywords")` em vez de variável
+    runtime `data.get(key)`) — compat com type-checker TypedDict.
+    `count_defaults` idem.
+  - **Restante em LEGACY_FILES:** `events.py` (track A6e.events),
+    `dashboard.py` + `report.py` (A6g.6b sweep), `dto/config_blob/*` +
+    `config.py` + `dto/document/response.py` marcados como OPAQUE
+    (config blob dinâmico + debug endpoint extract-json).
+  - **Gates empíricos:** `pytest backend/tests -q` 1159 passed + 4
+    skipped (zero regressão pré-A6e.3c: 1155); `pytest backend/tests/
+    architecture/test_no_any_in_boundary.py -q` 35 passed.
+
 - **A6g.2c — rename `pipeline/llm/service.py` → `litellm_client.py` (2026-04-22):**
   Follow-up de A6g.6 — fecha a única entry da ALLOWLIST de
   `dev/check_forbidden_names.py`. Nome explicita a tech underlying
