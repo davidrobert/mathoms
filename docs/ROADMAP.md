@@ -176,13 +176,13 @@ Trabalho técnico para **uma fonte de verdade** na lógica E0–E7, **testes off
 | 7C       | CI/CD + Observabilidade (GH Actions, Sentry, logs, uptime)                                                                                                        | 1-2 sem    |
 | 7D       | Quality Gate + Launch Readiness (gap-fill, baseline perf, checklist)                                                                                              | 2-3 sem    |
 | 7E       | **Operational Readiness** (stuck-run detector, restore drill, off-site backup, FERNET recovery, status page, business metrics, SLOs, incident comms templates, support runbook, LLM cost cap, API key validation, fallback model) | ~2 sem     |
-| 7F       | **Console interno** (auth/RBAC staff, APIs `/api/internal`, métricas agregadas, CS search/bundle; evolui com beta/billing) — ver [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md) | paralelo a 7D–7E |
+| 7F       | **Console interno** — dividido em duas partes: **F7F-Local** (IA-0, pré-produção): UI web em `127.0.0.1` + camada de serviço, sem OAuth staff; executa exclusão de conta, purge de documentos, reset de senha, leitura de relatórios e métricas localmente; CLI é atalho secundário/futuro. **F7F-Remote** (IA-1…IA-4, produção): `ops.mathoms.ai` com OAuth Google Workspace, RBAC interno, `/api/internal/*`, dashboard de negócio (**7E.7**), CS bundle, financeiro. Ver [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md). | F7F-Local: paralelo a Onda 2-3 (independente de 7A/B/C) · F7F-Remote: paralelo a 7D–7E |
 | Dogfood  | 2+ semanas de uso real antes de beta                                                                                                                              | 2+ sem     |
 
 **Deploy target:** VPS Hetzner CX32 (4 vCPU, 8GB, ~$8/mo) + Docker Compose + PostgreSQL + Traefik. DNS em **Cloudflare** (domínio `mathoms.ai` registrado lá). Backup off-site em S3 BR ou Backblaze B2.
 
 **URLs públicas (ADR-108):**
-- **Produto:** `app.mathoms.ai` · **API:** `api.mathoms.ai/v1/...` · **Console interno:** `ops.mathoms.ai` (F7F, IP allowlist + MFA)
+- **Produto:** `app.mathoms.ai` · **API:** `api.mathoms.ai/v1/...` · **Console interno:** `ops.mathoms.ai` (F7F-Remote, IP allowlist + MFA); **pré-produção:** UI web em `127.0.0.1` com flag de env (F7F-Local, IA-0, sem OAuth)
 - **Docs:** `docs.mathoms.ai` · **Status:** `status.mathoms.ai` · **Landing:** `mathoms.ai` (apex)
 - **Staging:** `*.staging.mathoms.ai` · **Dev local:** `localhost:3000`/`localhost:8000`
 - Multi-tenancy via path: `app.mathoms.ai/w/<workspace-slug>/...` (subdomain-per-tenant reservado para enterprise tier)

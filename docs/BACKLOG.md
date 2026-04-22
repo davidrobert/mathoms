@@ -20,7 +20,7 @@
   - [Lanes abertas agora — pickup table](#lanes-abertas-agora--pickup-table) ← **agente começa aqui**
   - [Ondas paralelas — mapa de dependências](#ondas-paralelas--mapa-de-dependências)
 - [F7 — Produção + LGPD](#f7--produção--lgpd) ← **integra §15 LGPD + §16 Obs do plano A6**
-- [F7F — Console interno (operadores)](#f7f--console-interno-operadores)
+- [F7F — Console interno (operadores)](#f7f--console-interno-operadores) — dividido em **F7F-Local** (UI web em `127.0.0.1`, sem OAuth, pré-produção) e **F7F-Remote** (`ops.mathoms.ai` com OAuth staff + RBAC + telemetria, produção)
 - [F11 — Confiança, transparência e excelência de relatório](#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)
 - [F8 — Growth (Futuro)](#f8--growth-futuro)
 
@@ -702,9 +702,15 @@ convergir em `origin/main`.
 ║  Lane C4: F7E Legal + termos               (jurídico, sem código)    ║
 ║  Lane C5: A6g.3 backend sweep (pós-A6e.4) + A6g.6 enforcement +      ║
 ║           A6g.7 Go prep (pós-A6f.1)                                   ║
+║  Lane C6: F7F-Local (IA-0) — UI web localhost (principal) +          ║
+║           camada de serviço; CLI vira atalho secundário/futuro;      ║
+║           sem OAuth; INDEPENDENTE de F7A/B/C (roda em dev/staging)   ║
 ║                                                                       ║
 ║  F7A precede F7B (HTTPS antes de hardening). F7D (monitoring) e      ║
-║  F7F (support console) vêm após F7A+B+C estabilizarem.                ║
+║  F7F-Remote (console hospedado) vêm após F7A+B+C estabilizarem.      ║
+║  F7F-Local NÃO espera Onda 3 convergir — pode começar quando          ║
+║  operador precisar das ferramentas de suporte (exclusão de conta,    ║
+║  purge, reset senha) antes do produto estar no ar.                    ║
 ╚═══════════════════════════════════════════════════════════════════════╝
                               │
                               ▼
@@ -712,7 +718,8 @@ convergir em `origin/main`.
 ║ ONDA 4 — dogfood + GA                                                 ║
 ╠═══════════════════════════════════════════════════════════════════════╣
 ║  F7D monitoring + dogfood (2 semanas com dados reais)                ║
-║  F7F support console (ops.mathoms.ai)                                ║
+║  F7F-Remote console interno em ops.mathoms.ai                        ║
+║          (OAuth staff, RBAC, /api/internal/*, dashboard 7E.7)        ║
 ║  GA release                                                           ║
 ╚═══════════════════════════════════════════════════════════════════════╝
 ```
@@ -729,6 +736,7 @@ convergir em `origin/main`.
 | Sessão longa, foco em backend DDD                            | A6e.4 (fases 4a+4b destravadas pela A6e.3b ✅) ou A6e.events |
 | Toda Onda 1 ocupada (caso atual 2026-04-22)                  | A6e.4 4a/4b, A6e.events ou A6-human smoke |
 | Onda 2 inteira fechada e quer destravar F7                   | F7A Docker (C1, Onda 3) |
+| Sessão curta, foco em ops/CS/LGPD, quer ferramenta já        | F7F-Local (C6, Onda 3 — independente de F7A/B/C; roda em dev) |
 
 **Regras de coordenação (aplicam a todas as ondas):**
 - Uma lane = uma branch `agent/<slug>/<timestamp>`. Nunca 2 agentes na mesma lane — rode o pickup check em CLAUDE.md §Antes de pegar uma task.
@@ -1186,11 +1194,47 @@ lógicos — a defesa é app-level + audit + retenção.
 
 ### F7F — Console interno (operadores)
 
-> Superfície para CEO, Ops, CS, Financeiro e Legal **operarem a plataforma** (não confundir com `/config` do workspace do cliente). Fases conceituais **IA-0 … IA-4** em [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md). **7F.9–7F.15** materializam a **IA-0** (CLI local + **7F.15** UI web só em **localhost**; executável antes de auth staff na rede). A entrega **7E.7** (`/admin/metrics`) é o núcleo da **IA-2**. **Ordem sugerida:** fechar **7F.9–7F.12** (P0) cedo; **7F.15** em paralelo ou logo após se a v1 incluir interface web local; **7F.1** (ADR) pode iniciar em paralelo; **7F.2–7F.4** quando for expor operações fora de localhost.
+> Superfície para CEO, Ops, CS, Financeiro e Legal **operarem a plataforma** (não confundir com `/config` do workspace do cliente). Fases conceituais **IA-0 … IA-4** em [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md).
+>
+> **Dividida em duas partes independentes:**
+>
+> - **[F7F-Local — Pré-produção (IA-0, sem OAuth)](#f7f-local--pré-produção-ia-0-sem-oauth)** — **UI web em `127.0.0.1` é a superfície principal** (consumindo uma camada de serviço compartilhada); CLI vira atalho secundário/futuro. Roda na máquina de desenvolvimento (backend + DB local ou túnel para staging). **Pode ser feita antes de F7A Docker/Deploy** — é a ferramenta que o operador usa enquanto o produto ainda não está no ar. Segurança vem de bind `127.0.0.1` + flag de env + sessão isolada + audit em arquivo, sem auth staff.
+> - **[F7F-Remote — Produção (IA-1…IA-4, com OAuth staff)](#f7f-remote--produção-ia-1ia-4-com-oauth-staff)** — console hospedado em `ops.mathoms.ai` com OAuth Google Workspace, RBAC interno, prefixo `/api/internal/`, dashboard de negócio (**7E.7**), CS bundle, financeiro. **Depende de F7A–F7C estabilizados.**
+>
+> **Ordem sugerida global:** F7F-Local P0 (7F.L1 serviço → 7F.L2 UI → 7F.10–7F.12 exclusão/senha/purge) → F7F-Local complementar (7F.13–7F.14 leituras → 7F.9 CLI secundário opcional) → F7F-Remote ADR (7F.1, pode iniciar em paralelo) → F7A/B/C → F7F-Remote auth + RBAC (7F.2–7F.4) → F7F-Remote CS/Financeiro (7F.5–7F.8).
+
+#### F7F-Local — Pré-produção (IA-0, sem OAuth)
+
+> **Meta:** operador executa tarefas de suporte e LGPD localmente (exclusão de conta, purge de documentos, reset de senha, leitura de relatórios, métricas agregadas) antes do produto estar no ar. Nenhuma dependência de F7A (deploy), F7B (auth prod) ou F7C (CI/CD). Guardrails locais: bind em `127.0.0.1`, flag de env explícita (`INTERNAL_OPS_UI_ENABLED=1`), bloqueio se `ENVIRONMENT=production` sem `--i-accept-production-risk`, audit em arquivo.
+>
+> **Decisão de superfície (atualizada 2026-04-22):** a **interface web local** é a **superfície principal** desta fase. A camada de serviço (business logic) é a fonte de verdade e fica escrita agnóstica a consumidor; **CLI entra como atalho secundário/futuro** para automação e operações batch, reutilizando a mesma camada de serviço da UI. Motivação: UI acelera onboarding de novos operadores (CS/Legal), dá confirmação visual para deletes (reduz risco de typo) e é base reaproveitada para `ops.mathoms.ai` na F7F-Remote.
+>
+> **Ordem sugerida:** 7F.L1 (camada de serviço) → 7F.L2 (UI web local — shell + auth mínimo) → 7F.10/7F.11/7F.12 (business logic por área, consumidas pela UI) → 7F.13/7F.14 (leituras) → 7F.9 (CLI secundário, opcional, depois da UI estabilizada).
 
 | #     | Tarefa | Prio | Est. | Status |
 | ----- | ------ | ---- | ---- | ------ |
-| 7F.1  | **ADR + política interna:** identidade staff vs `User` cliente; impersonation proibida por padrão ou “break glass” com TTL + audit + ADR em [DECISIONS.md](DECISIONS.md) | P0 | 3h | ☐ |
+| 7F.L1 | **Camada de serviço interna:** módulo `backend/app/services/internal_ops/` com funções puras (recebem DB session + args, retornam resultado + audit record); consumido tanto pela UI web (7F.L2) quanto pelo CLI futuro (7F.9); testes unitários com fixture SQLite | P0 | 4h | ☐ |
+| 7F.L2 | **UI web local (shell):** rotas FastAPI+HTMX ou páginas Next em **127.0.0.1** apenas, habilitadas por env explícito (`INTERNAL_OPS_UI_ENABLED=1`); login mínimo via token/senha de dev em `.env.local` (separado do JWT cliente); layout com navegação entre áreas; bloqueio se `ENVIRONMENT=production` sem flag; documentar URL e flag no runbook | P0 | 6h | ☐ |
+| 7F.10 | **Exclusão de usuário (UI + serviço):** cascata coerente no BD (memberships, convites, ownership de workspace conforme política); documentar hard delete vs anonimização; tela com confirmação dupla (`TYPE "delete"`); testes com fixture SQLite | P0 | 6h | ☐ |
+| 7F.11 | **Reset de senha manual (UI):** tela atualiza hash no modelo `User` (mesmo algoritmo do app); campo de nova senha com revelar opcional e geração de senha temporária copiável; não loga senha nem em claro nem mascarada | P0 | 2h | ☐ |
+| 7F.12 | **Purge de documentos (UI):** por `user_id` ou `workspace_id`, remove registros e blobs em storage (`stored_path` / [storage.py](../backend/app/services/storage.py)); modo "prévia" lista arquivos/linhas antes de confirmar; mesma confirmação dupla de 7F.10 | P0 | 6h | ☐ |
+| 7F.13 | **Métricas de utilização (UI):** dashboard simples agrega uploads/runs/workspaces/volume storage; cards + tabela; export CSV como ação secundária; base para **7D.9** telemetria e **7E.7** dashboard remoto | P1 | 4h | ☐ |
+| 7F.14 | **Relatórios read-only (UI):** lista dos últimos `Report` (ou pipeline runs) por conta com filtro por email/`user_id`; link abre JSON ou HTML exportado em aba separada; sem mutação nem reexecução de pipeline | P1 | 4h | ☐ |
+| 7F.9  | **CLI interno (secundário, pós-UI):** entrypoint documentado (ex.: `python -m app.scripts.internal_ops` ou target em `Makefile`) para automação/batch; **reutiliza a camada de serviço de 7F.L1** (zero duplicação de regra); `--dry-run` + confirmação explícita em deletes; mesmo audit em `logs/` que a UI | P1 | 3h | ☐ |
+
+**Audit (comum UI + CLI):** toda mutação escreve linha em `logs/internal_ops_audit.log` (JSON: operador, ação, alvo, timestamp, resultado) — ADR-110 masking aplica. Quando 7B.5 persistir, a camada de serviço passa a gravar na tabela de audit sem mudar UI/CLI (troca só do sink).
+
+**Checkpoint F7F-Local (IA-0):** 7F.L1 + 7F.L2 + 7F.10–7F.12 concluídos (operador executa exclusão de conta, purge e troca de senha pela **UI web local** com documentação no runbook) • 7F.13–7F.14 desejáveis antes de portar tudo para `/api/internal/` • 7F.9 (CLI) entregue quando houver demanda clara de automação, não bloqueia encerramento da fase • guardrails `ENVIRONMENT=production` + `INTERNAL_OPS_UI_ENABLED` + bind `127.0.0.1` testados • audit em `logs/` aparece em cada mutação.
+
+#### F7F-Remote — Produção (IA-1…IA-4, com OAuth staff)
+
+> **Meta:** console acessível em `ops.mathoms.ai` com auth staff separado do JWT cliente, RBAC, telemetria de negócio (IA-2), ferramentas de CS (IA-3) e financeiro/legal (IA-4). Exige deploy (F7A), hardening (F7B) e observability (F7C) estabilizados.
+>
+> **Ordem sugerida:** 7F.1 (ADR) pode iniciar em paralelo à F7F-Local — não bloqueia. 7F.2–7F.4 após F7A pronto (HTTPS + subdomain `ops.mathoms.ai`). 7F.5 junto com 7C.7 (RUNBOOK). 7F.6–7F.7 pós-F7B (audit log persistido). 7F.8 quando billing real existir (F10).
+
+| #     | Tarefa | Prio | Est. | Status |
+| ----- | ------ | ---- | ---- | ------ |
+| 7F.1  | **ADR + política interna:** identidade staff vs `User` cliente; impersonation proibida por padrão ou "break glass" com TTL + audit + ADR em [DECISIONS.md](DECISIONS.md) | P0 | 3h | ☐ |
 | 7F.2  | **Auth interna MVP:** credencial separada do JWT cliente (ex.: allowlist email + senha/secret rotativo, ou OAuth Google Workspace restrito a domínio da empresa); sessão não reutiliza cookie do app | P0 | 8h | ☐ |
 | 7F.3  | **RBAC interno** (`internal_ops`, `internal_support`, …) + dependency FastAPI + testes 403 entre papéis | P1 | 6h | ☐ |
 | 7F.4  | **Prefixo `/api/internal/`** (ou equivalente) protegido por env + testes; nenhuma rota interna em build do cliente sem flag explícita | P0 | 4h | ☐ |
@@ -1198,17 +1242,20 @@ lógicos — a defesa é app-level + audit + retenção.
 | 7F.6  | **CS:** busca por email / `user_id` → workspaces, roles, convites (somente metadados); toda consulta auditada | P2 | 8h | ☐ |
 | 7F.7  | **CS:** endpoint + UI para **support bundle** JSON (diagnóstico redigido, sem valores/PII por padrão) | P2 | 6h | ☐ |
 | 7F.8  | **Financeiro (pós-billing):** links read-only Stripe + export CSV contábil — depende de billing real (F10 / roadmap) | P2 | TBD | ☐ |
-| 7F.9  | **IA-0 — CLI interno:** entrypoint documentado (ex.: `python -m app.scripts.internal_ops` ou target em `Makefile`) + guardrails: `--dry-run` ou confirmação explícita em deletes; bloqueio se ambiente produção sem flag + env explícitos; append de linha de audit em `logs/` (operador, ação, alvo, timestamp) | P0 | 4h | ☐ |
-| 7F.10 | **IA-0 — Exclusão de usuário:** cascata coerente no BD (memberships, convites, ownership de workspace conforme política); documentar hard delete vs anonimização; testes com fixture SQLite | P0 | 6h | ☐ |
-| 7F.11 | **IA-0 — Reset de senha manual:** CLI atualiza hash no modelo `User` (mesmo algoritmo do app); senha via prompt quando possível, não via shell history | P0 | 2h | ☐ |
-| 7F.12 | **IA-0 — Purge de documentos:** por `user_id` ou `workspace_id`, remove registros e blobs em storage (`stored_path` / [storage.py](../backend/app/services/storage.py)); `--dry-run` lista arquivos e linhas afetadas | P0 | 6h | ☐ |
-| 7F.13 | **IA-0 — Métricas de utilização:** script agrega uploads/runs/workspaces/volume storage → stdout ou CSV (base para **7D.9**) | P1 | 4h | ☐ |
-| 7F.14 | **IA-0 — Relatórios read-only:** lista ou dump JSON dos últimos `Report` (ou pipeline runs) por conta; sem mutação nem reexecução de pipeline pelo mesmo comando | P1 | 4h | ☐ |
-| 7F.15 | **IA-0 — UI web local:** páginas mínimas (Next dev e/ou rotas FastAPI) em **127.0.0.1** apenas, habilitadas por env explícito; reutilizam a mesma camada de serviço que o CLI (**7F.9**); confirmação em tela para deletes; mesmo bloqueio de produção que o CLI; documentar URL e flag no runbook | P0 | 6h | ☐ |
 
-**Checkpoint IA-0:** 7F.9–7F.12 concluídos (operador executa exclusão de conta, purge e troca de senha localmente com documentação) • 7F.13–7F.14 desejáveis antes de portar tudo para `/api/internal/` • **7F.15** concluído se a v1 incluir interface web rodando só em localhost.
+**Dependências externas da F7F-Remote:**
 
-**Checkpoint F7F (MVP remoto):** 7F.1–7F.4 concluídos • **7E.7** renderizando para papel `internal_ops` • zero exposição de rotas internas em deploy sem config explícita.
+- **7A.7b** — Traefik `ipAllowList` para `ops.mathoms.ai` (pré-requisito de rede).
+- **7A.11b** — teste Playwright valida isolamento de cookie entre `app.` e `ops.`.
+- **7B.5** — audit log persistido em tabela `AuditEntry` (mutations internas gravam em DB em vez do log de arquivo da IA-0).
+- **7C.4** — Sentry tags (`environment=ops`) separando erros de staff vs cliente.
+- **7E.7** — dashboard `/admin/metrics` é o **núcleo visual da IA-2**; evolui as métricas já calculadas em 7F.13; protegido por 7F.2–7F.4.
+
+**Checkpoint F7F-Remote (MVP IA-1 + IA-2):** 7F.1–7F.4 concluídos • **7E.7** renderizando para papel `internal_ops` • **7A.7b + 7A.11b** passando • zero exposição de rotas internas em deploy sem config explícita • audit log persistido (7B.5) cobre mutações internas.
+
+**Checkpoint F7F-Remote (IA-3 CS Lite, pré-beta):** 7F.6–7F.7 concluídos • support bundle redigido testado em incidente real • time de CS triado ≥1 ticket sem escalar para engenharia.
+
+**Checkpoint F7F-Remote (IA-4 Financeiro/Legal, pós-billing):** 7F.8 + fila DSAR (7B.18) integrada no console • export CSV contábil validado com contador externo.
 
 ---
 
