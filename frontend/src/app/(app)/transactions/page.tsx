@@ -1,19 +1,8 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  listTransactions,
-  listCategories,
-  listMembers,
-  overrideTransactionCategory,
-  removeTransactionOverride,
-  type TransactionItem,
-  type TransactionListResponse,
-  type CategoryConfig,
-  type FamilyMemberConfig,
-  ApiError,
-} from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
@@ -21,6 +10,7 @@ import { Spinner } from "@/components/Spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import type { TransactionListResponse } from "@/lib/api";
 import {
   ChevronDown,
   ChevronUp,
@@ -37,8 +27,31 @@ import { SummaryBar } from "./_components/SummaryBar";
 import { TransactionsTable } from "./_components/TransactionsTable";
 import { Pagination } from "./_components/Pagination";
 import { exportTransactions } from "./_components/exportTransactions";
+import { useTransactionsFetch } from "./_components/useTransactionsFetch";
+import { useCategoriesAndMembers } from "./_components/useCategoriesAndMembers";
+import { useCategoryOverride } from "./_components/useCategoryOverride";
 
 const PAGE_SIZE = 50;
+
+const EMPTY_FILTERS: FilterState = {
+  bank: "",
+  category: "",
+  member: "",
+  dateFrom: "",
+  dateTo: "",
+  valueMin: "",
+  valueMax: "",
+};
+
+const FILTER_KEY_TO_FIELD: Record<FilterKey, keyof FilterState> = {
+  bank: "bank",
+  category: "category",
+  member: "member",
+  date_from: "dateFrom",
+  date_to: "dateTo",
+  value_min: "valueMin",
+  value_max: "valueMax",
+};
 
 export default function TransactionsPage() {
   const { workspace } = useWorkspace();
@@ -80,6 +93,33 @@ function hasAnyFilter(state: FilterState, search: string) {
     state.valueMin ||
     state.valueMax
   );
+}
+
+function buildUrlParams(
+  search: string,
+  filters: FilterState,
+  page: number,
+  overrides: Record<string, string | number | undefined>,
+): URLSearchParams {
+  const params = new URLSearchParams();
+  const merged: Record<string, string | number | undefined> = {
+    search,
+    bank: filters.bank,
+    category: filters.category,
+    member: filters.member,
+    date_from: filters.dateFrom,
+    date_to: filters.dateTo,
+    value_min: filters.valueMin,
+    value_max: filters.valueMax,
+    page,
+    ...overrides,
+  };
+  Object.entries(merged).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "" && v !== 0 && !(k === "page" && v === 1)) {
+      params.set(k, String(v));
+    }
+  });
+  return params;
 }
 
 function ExportActions({
@@ -185,6 +225,31 @@ function FilterToggleBar({
   );
 }
 
+function TransactionsEmptyState({
+  hasActiveFilters,
+  onClear,
+}: {
+  hasActiveFilters: boolean;
+  onClear: () => void;
+}) {
+  return (
+    <EmptyState
+      variant="no-data"
+      title="Nenhuma transação encontrada"
+      description={
+        hasActiveFilters
+          ? "Tente ajustar os filtros para encontrar transações."
+          : "Execute o pipeline para processar documentos e gerar transações."
+      }
+      action={
+        hasActiveFilters
+          ? { label: "Limpar filtros", onClick: onClear }
+          : { label: "Ir para Pipeline", href: "/pipeline" }
+      }
+    />
+  );
+}
+
 function TransactionsContent() {
   const { workspace } = useWorkspace();
   const router = useRouter();
@@ -194,87 +259,30 @@ function TransactionsContent() {
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [page, setPage] = useState(Number(searchParams.get("page") ?? "1"));
   const [filters, setFilters] = useState<FilterState>(initial);
-
-  const [data, setData] = useState<TransactionListResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(hasAnyFilter(initial, ""));
-
-  const [categories, setCategories] = useState<CategoryConfig[]>([]);
-  const [members, setMembers] = useState<FamilyMemberConfig[]>([]);
-
-  const [editingHash, setEditingHash] = useState<string | null>(null);
-  const [editCategory, setEditCategory] = useState("");
-  const [savingOverride, setSavingOverride] = useState(false);
-
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    listCategories(workspace!.id).then((r) => setCategories(r.categories)).catch(() => {});
-    listMembers(workspace!.id).then((r) => setMembers(r.members)).catch(() => {});
-  }, [workspace]);
+  const { categories, members } = useCategoriesAndMembers(workspace!.id);
+  const { data, loading, error, setError, fetchData } = useTransactionsFetch({
+    workspaceId: workspace!.id,
+    search,
+    filters,
+    page,
+    pageSize: PAGE_SIZE,
+  });
+  const override = useCategoryOverride({
+    workspaceId: workspace!.id,
+    onAfterChange: fetchData,
+    onError: setError,
+  });
 
   const pushParams = useCallback(
     (overrides: Record<string, string | number | undefined>) => {
-      const params = new URLSearchParams();
-      const merged: Record<string, string | number | undefined> = {
-        search,
-        bank: filters.bank,
-        category: filters.category,
-        member: filters.member,
-        date_from: filters.dateFrom,
-        date_to: filters.dateTo,
-        value_min: filters.valueMin,
-        value_max: filters.valueMax,
-        page,
-        ...overrides,
-      };
-      Object.entries(merged).forEach(([k, v]) => {
-        if (v !== undefined && v !== null && v !== "" && v !== 0 && !(k === "page" && v === 1)) {
-          params.set(k, String(v));
-        }
-      });
-      const qs = params.toString();
+      const qs = buildUrlParams(search, filters, page, overrides).toString();
       router.replace(`/transactions${qs ? `?${qs}` : ""}`, { scroll: false });
     },
     [search, filters, page, router],
   );
-
-  const fetchData = useCallback(async () => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setLoading(true);
-    setError("");
-    try {
-      const result = await listTransactions(workspace!.id, {
-        search: search || undefined,
-        bank: filters.bank || undefined,
-        category: filters.category || undefined,
-        member: filters.member || undefined,
-        date_from: filters.dateFrom || undefined,
-        date_to: filters.dateTo || undefined,
-        value_min: filters.valueMin ? Number(filters.valueMin) : undefined,
-        value_max: filters.valueMax ? Number(filters.valueMax) : undefined,
-        page,
-        page_size: PAGE_SIZE,
-      });
-      if (!controller.signal.aborted) setData(result);
-    } catch (err) {
-      if (!controller.signal.aborted) {
-        setError(err instanceof ApiError ? err.detail : "Erro ao carregar transações");
-      }
-    } finally {
-      if (!controller.signal.aborted) setLoading(false);
-    }
-  }, [search, filters, page, workspace]);
-
-  useEffect(() => {
-    fetchData();
-    return () => abortRef.current?.abort();
-  }, [fetchData]);
 
   function handleSearchChange(value: string) {
     setSearch(value);
@@ -285,18 +293,8 @@ function TransactionsContent() {
     }, 300);
   }
 
-  const filterKeyToField: Record<FilterKey, keyof FilterState> = {
-    bank: "bank",
-    category: "category",
-    member: "member",
-    date_from: "dateFrom",
-    date_to: "dateTo",
-    value_min: "valueMin",
-    value_max: "valueMax",
-  };
-
   function applyFilter(key: FilterKey, value: string) {
-    const field = filterKeyToField[key];
+    const field = FILTER_KEY_TO_FIELD[key];
     setFilters((prev) => ({ ...prev, [field]: value }));
     setPage(1);
     pushParams({ [key]: value, page: 1 });
@@ -304,67 +302,28 @@ function TransactionsContent() {
 
   function clearAllFilters() {
     setSearch("");
-    setFilters({
-      bank: "",
-      category: "",
-      member: "",
-      dateFrom: "",
-      dateTo: "",
-      valueMin: "",
-      valueMax: "",
-    });
+    setFilters(EMPTY_FILTERS);
     setPage(1);
     router.replace("/transactions", { scroll: false });
   }
-
-  const hasActiveFilters = hasAnyFilter(filters, search);
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 
   function goPage(p: number) {
     setPage(p);
     pushParams({ page: p });
   }
 
-  function startEdit(tx: TransactionItem) {
-    setEditingHash(tx.transaction_hash);
-    setEditCategory(tx.categoria);
+  function handleExport(format: "csv" | "xlsx") {
+    exportTransactions(format, data?.transactions ?? [], search, filters);
   }
 
-  async function saveOverride(hash: string) {
-    if (!editCategory) return;
-    setSavingOverride(true);
-    try {
-      await overrideTransactionCategory(workspace!.id, hash, { new_category: editCategory });
-      setEditingHash(null);
-      await fetchData();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.detail : "Erro ao salvar override");
-    } finally {
-      setSavingOverride(false);
-    }
-  }
-
-  async function removeOverride(hash: string) {
-    setSavingOverride(true);
-    try {
-      await removeTransactionOverride(workspace!.id, hash);
-      await fetchData();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.detail : "Erro ao remover override");
-    } finally {
-      setSavingOverride(false);
-    }
-  }
+  const hasActiveFilters = hasAnyFilter(filters, search);
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 
   const categoryOptions = useMemo(() => {
     const fromConfig = categories.map((c) => c.code);
     const fromData = data?.transactions.map((t) => t.categoria) ?? [];
     return [...new Set([...fromConfig, ...fromData])].filter(Boolean).sort();
   }, [categories, data]);
-
-  function handleExport(format: "csv" | "xlsx") {
-    exportTransactions(format, data?.transactions ?? [], search, filters);
-  }
 
   const summary = data?.summary;
 
@@ -409,33 +368,23 @@ function TransactionsContent() {
           <Spinner size="lg" />
         </div>
       ) : !data || data.transactions.length === 0 ? (
-        <EmptyState
-          variant="no-data"
-          title="Nenhuma transação encontrada"
-          description={
-            hasActiveFilters
-              ? "Tente ajustar os filtros para encontrar transações."
-              : "Execute o pipeline para processar documentos e gerar transações."
-          }
-          action={
-            hasActiveFilters
-              ? { label: "Limpar filtros", onClick: clearAllFilters }
-              : { label: "Ir para Pipeline", href: "/pipeline" }
-          }
+        <TransactionsEmptyState
+          hasActiveFilters={hasActiveFilters}
+          onClear={clearAllFilters}
         />
       ) : (
         <>
           <TransactionsTable
             transactions={data.transactions}
             categoryOptions={categoryOptions}
-            editingHash={editingHash}
-            editCategory={editCategory}
-            savingOverride={savingOverride}
-            onStartEdit={startEdit}
-            onCancelEdit={() => setEditingHash(null)}
-            onEditCategoryChange={setEditCategory}
-            onSaveOverride={saveOverride}
-            onRemoveOverride={removeOverride}
+            editingHash={override.editingHash}
+            editCategory={override.editCategory}
+            savingOverride={override.savingOverride}
+            onStartEdit={override.startEdit}
+            onCancelEdit={() => override.setEditingHash(null)}
+            onEditCategoryChange={override.setEditCategory}
+            onSaveOverride={override.saveOverride}
+            onRemoveOverride={override.clearOverride}
           />
           <Pagination
             total={data.total}
