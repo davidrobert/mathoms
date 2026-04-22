@@ -8,6 +8,65 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6e.3b — application layer completa (ConfigBlob + Task + Document) (2026-04-22 · ADR-101 R15 · ADR-112):**
+  Fecha a superfície DDD começada em A6e.3 — os 3 agregados deferidos
+  (ConfigBlob, Task, Document) ganham use cases em
+  `backend/app/application/<agg>/`, seguindo o padrão 1 endpoint = 1
+  use case com Protocol + fake + testes puros. Desbloqueia **A6e.4
+  fase 4b** (thin routers finos para `config.py`, `documents.py`,
+  `tasks.py`).
+  - **ConfigBlob (slice 1) — 6 use cases, 9 testes:**
+    `get/update_pipeline_config`, `get/update_institution_config`,
+    `get/update_report_layout`. `ConfigBlobRepositoryProtocol`
+    paramétrico (mesmo repo atende 3 modelos isomórficos);
+    `GlobalDefaultsLoaderProtocol` isola reads de `config/*.json|yaml`
+    do disco (fake devolve dict fixo). `reset_config_to_defaults` e
+    `validate_config_schema` do prompt original ficam fora do escopo
+    — nenhum endpoint os expõe hoje. Composites `/import`, `/export`
+    e `/workspace` settings continuam no router por serem
+    cross-aggregate (ADR-112 rollback criteria).
+  - **Task + sub-agregados (slice 2) — 13 use cases, 32 testes:**
+    Task core (6): `list_workspace_tasks`, `get_task`, `create_task`,
+    `update_task`, `transition_task_status`, `cancel_task`.
+    TaskSuggestion (5): `list/create/approve/reject`, `merge_into_task`
+    (cross-agg: approve materializa Task via `create_task`).
+    TaskAttachment (2): `list_task_attachments`,
+    `delete_task_attachment` (só a row; arquivo em disco fica no
+    composite). `_rules.py` declara `ALLOWED_TRANSITIONS` como fonte
+    de verdade do novo layer — duplica `task_service.py`
+    temporariamente até A6e.4 4b apagar a versão antiga. Erros de
+    domínio tipados (ValidationError → 422, ConflictError → 409,
+    NotFoundError → 404). Composites deferidos: upload/download de
+    attachment (Storage), `scan_deadlines` (cross-agg Notification),
+    `export_markdown` (PlainText), `get_task_progress`.
+  - **Document (slice 3) — 6 use cases, 20 testes:**
+    `list_workspace_documents` (filtros status/doc_type com CSV),
+    `get_document` (retorna entity para callers composite),
+    `update_document_classification` (manual_override + invalida E2
+    quando doc_type/bank_code mudam), `delete_document` (só a row),
+    `list_duplicate_candidates` (fuzzy ADR-081),
+    `reclassify_document` (per-doc; bulk fica no router).
+    `ClassificationServiceProtocol` envolve
+    `document_classification.classify_document` (ADR-081) — teste
+    injeta `FakeClassificationService` com resultado fixo; zero LLM
+    real. Composites deferidos: `POST /upload` (storage+classify+
+    audit+fuzzy dedup+IntegrityError savepoint), `/retry-unlock`,
+    `GET /{id}/file`, `/extract-json`, `/reclassify` bulk.
+  - **Total nos 3 slices:** 25 use cases, 61 testes puros rodando em
+    <8s sem DB, sem LLM (`pytest backend/tests/application/ -q`). Com
+    A6e.3, a application layer cobre 6 agregados (category,
+    family_member, goal, config_blob, task, document) e 47 use cases.
+  - **Fakes nomeados** em `backend/tests/fakes/{config_blob,task,document}.py`
+    seguindo política A6g.5 — zero `MagicMock` inline.
+  - **Gates empíricos:** `pytest backend/tests -q` 1054 passed + 4
+    skipped (baseline pré-A6e.3b: 997); `grep -rn "from fastapi|
+    HTTPException|Depends(" backend/app/application/` = 0 (boundary
+    ADR-101 R15); `grep "pipeline_task|celery"
+    backend/app/application/` = 0 (A6f.1 boundary enforçado).
+  - **Out of scope explícito (A6e.3b):** thin routers (A6e.4 4b),
+    emissão de domain events (A6e.6), refactor de services (A6g.3),
+    enforcement AST (A6e.4).
+
 - **A6e.4 — Routers finos (início, 2026-04-22 · ADR-101 R15/R16):**
   Primeiros 2 routers convertidos para padrão thin (delegação pura a
   use case) + teste AST que enforça o padrão.
@@ -38,7 +97,7 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     (`pipeline`, `workspaces`, `reports`, `transactions`, `llm`,
     `invitations`, `notifications`, `ws`, `vault`, `auth`,
     `feature_flags`, `config`/`documents`/`tasks` — os últimos 3
-    aguardam A6e.3b). Exception handlers globais
+    destravados por A6e.3b ✅). Exception handlers globais
     (`NotFoundError`/`ConflictError`/`ValidationError`) já em
     `main.py` desde A6e.3 — esta lane apenas usa.
 
