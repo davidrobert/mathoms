@@ -1,8 +1,11 @@
-// ESLint flat config (v9) — A6g.6 slice 2, ADR-114.
+// ESLint flat config (v9) — A6g.6 slice 2 + A6g.6b, ADR-114.
 //
 // Propósito: gate bloqueante de TypeScript para impedir regressão do sweep
-// A6g.4 (T1 `any`). Rules progressivas (max-lines, max-lines-per-function)
-// ficam em `warn` — não bloqueiam hoje; sweep A6g.6b decide promoção.
+// A6g.4 (T1 `any` + T2 files >500 linhas). `max-lines` foi promovido a
+// error em A6g.6b após zero offenders no baseline. `max-lines-per-function`
+// continua em warn — 59 arquivos (64 offenders) em React components de
+// tasks/report/config precisam sweep dedicado (lane futura) antes de
+// promover.
 //
 // Excluídos: src/generated/ (codegen), .next/, coverage/, dist/.
 //
@@ -84,12 +87,15 @@ export default [
       "react/no-direct-mutation-state": "error",
       "react-hooks/rules-of-hooks": "error",
 
-      // Progressivos (warn) — promovidos a error em A6g.6b via sweep.
+      // Progressivos → decididos em A6g.6b.
       "react-hooks/exhaustive-deps": "warn",
+      // Promovido a error em A6g.6b (zero offenders após A6g.4).
       "max-lines": [
-        "warn",
+        "error",
         { max: 500, skipBlankLines: true, skipComments: true },
       ],
+      // Mantido em warn — 59 arquivos (64 offenders) em components React
+      // de tasks/report/config; promoção depende de sweep refactor dedicado.
       "max-lines-per-function": [
         "warn",
         { max: 60, skipBlankLines: true, skipComments: true, IIFEs: true },

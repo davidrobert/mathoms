@@ -47,9 +47,9 @@ extend-exclude = [
 ]
 
 [tool.ruff.lint]
-# Seleção inicial conservadora (A6g.6 slice 1). Rules adicionais (B, UP, C90, N)
-# entram em A6g.6b com sweep dedicado. Meta aqui é estabelecer gate bloqueante
-# sem forçar refactor massivo agora.
+# Seleção conservadora (E/F/I/W). Rules adicionais (B, UP, C90, N) podem vir
+# em sweeps futuros se necessário. I001/F541 passaram a ser bloqueantes em
+# A6g.6b após sweep `ruff --fix I001,F541 .` zerar os 361 offenders.
 select = [
     "E",   # pycodestyle errors
     "F",   # pyflakes
@@ -67,12 +67,9 @@ ignore = [
     "F841",  # unused variable — comum em testes (placeholder)
     "F401",  # unused imports — regulado por editors
     "F811",  # redefinition — comum em testes com pytest fixtures
-    "F541",  # f-string missing placeholders — sweep dedicado em A6g.6b
-    "I001",  # unsorted imports — sweep dedicado em A6g.6b (auto-fix toca 285 arquivos, conflita com agentes paralelos)
 ]
 
-# ruff format disponível via `ruff format .` mas NÃO no pre-commit hook
-# (422 arquivos reformatariam agora — sweep dedicado em A6g.6b).
+# ruff format ativo como gate bloqueante (A6g.6b) após sweep de 435 arquivos.
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

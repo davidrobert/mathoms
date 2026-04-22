@@ -26,13 +26,10 @@ repos:
       - id: detect-private-key
 
   # ----------------------------------------------------------------------
-  # Ruff — linter Python (A6g.6 slice 1, ADR-114)
+  # Ruff — linter + formatter Python (A6g.6 slice 1 + A6g.6b, ADR-114)
   #
-  # Config em pyproject.toml [tool.ruff]. Seleção conservadora (E/F/I/W);
-  # UP rules, B, C90 virão em A6g.6b com sweep dedicado.
-  #
-  # NOTA: ruff-format NÃO ativado como hook — 422 arquivos reformatariam
-  # agora. Rodar manualmente via `ruff format .` em sweep dedicado.
+  # Config em pyproject.toml [tool.ruff]. Seleção E/F/I/W.
+  # ruff-format ativado como gate bloqueante após sweep A6g.6b.
   # ----------------------------------------------------------------------
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.0
@@ -40,6 +37,9 @@ repos:
       - id: ruff
         # Sem --fix: gate bloqueante; dev roda `ruff check --fix .` manual.
         args: []
+      - id: ruff-format
+        # --check: bloqueia commits com formatação fora do padrão.
+        args: [--check]
 
   # ----------------------------------------------------------------------
   # Hooks locais — regras específicas do Fin
