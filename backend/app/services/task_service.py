@@ -175,6 +175,57 @@ async def update_task(
     return await repo.save(task)
 
 
+def _validate_transition(current_status: str, new_status: str) -> None:
+    """Enforça VALID_STATUSES + ALLOWED_TRANSITIONS. Raise HTTPException."""
+    if new_status not in VALID_STATUSES:
+        raise HTTPException(
+            status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Status inválido: {new_status}",
+        )
+    allowed = ALLOWED_TRANSITIONS.get(current_status, frozenset())
+    if new_status not in allowed:
+        raise HTTPException(
+            status_code=http_status.HTTP_409_CONFLICT,
+            detail=(
+                f"Transição não permitida: {current_status} → {new_status}. "
+                f"Aceitas a partir de '{current_status}': {sorted(allowed)}"
+            ),
+        )
+
+
+async def _assert_parent_done_before_completing(
+    task: Task,
+    *,
+    repo: TaskRepository,
+    workspace_id: str,
+) -> None:
+    """Se task.parent_task_id existe, parent precisa estar em done/cancelled."""
+    if not task.parent_task_id:
+        return
+    parent = await repo.get_by_id(workspace_id, task.parent_task_id)
+    if parent is not None and parent.status not in ("done", "cancelled"):
+        raise HTTPException(
+            status_code=http_status.HTTP_409_CONFLICT,
+            detail=(
+                f"Parent task #{parent.number} ({parent.status}) não "
+                f"está concluída. Conclua a dependência primeiro."
+            ),
+        )
+
+
+def _apply_status_timestamps(task: Task, new_status: str) -> None:
+    """Ajusta completed_at/cancelled_at conforme destino da transição."""
+    now = datetime.now(timezone.utc)
+    if new_status == "done":
+        task.completed_at = now
+    elif new_status == "cancelled":
+        task.cancelled_at = now
+    elif new_status in ("pending", "in_progress"):
+        # Reabrir de done/cancelled → zera timestamps correspondentes
+        task.completed_at = None
+        task.cancelled_at = None
+
+
 async def transition_status(
     workspace_id: str,
     task_id: str,
@@ -183,57 +234,22 @@ async def transition_status(
     db: AsyncSession,
     reason: Optional[str] = None,
 ) -> Task:
-    """Transição validada de status. Enforça:
-
-    - status de destino é válido (``VALID_STATUSES``)
-    - transição é aceita (``ALLOWED_TRANSITIONS``)
-    - se ``done`` e há ``parent_task_id``, parent precisa estar em
-      ``{done, cancelled}``
-    """
-    if new_status not in VALID_STATUSES:
-        raise HTTPException(
-            status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Status inválido: {new_status}",
-        )
-
+    """Transição validada de status. Enforça valores válidos + transições
+    aceitas + parent done quando completando filha."""
     repo = TaskRepository(db)
     task = await get_task(workspace_id, task_id, db=db)
     if task.status == new_status:
         return task
 
-    allowed = ALLOWED_TRANSITIONS.get(task.status, frozenset())
-    if new_status not in allowed:
-        raise HTTPException(
-            status_code=http_status.HTTP_409_CONFLICT,
-            detail=(
-                f"Transição não permitida: {task.status} → {new_status}. "
-                f"Aceitas a partir de '{task.status}': {sorted(allowed)}"
-            ),
+    _validate_transition(task.status, new_status)
+    if new_status == "done":
+        await _assert_parent_done_before_completing(
+            task, repo=repo, workspace_id=workspace_id
         )
-
-    if new_status == "done" and task.parent_task_id:
-        parent = await repo.get_by_id(workspace_id, task.parent_task_id)
-        if parent is not None and parent.status not in ("done", "cancelled"):
-            raise HTTPException(
-                status_code=http_status.HTTP_409_CONFLICT,
-                detail=(
-                    f"Parent task #{parent.number} ({parent.status}) não "
-                    f"está concluída. Conclua a dependência primeiro."
-                ),
-            )
 
     task.status = new_status
     task.status_reason = reason
-    now = datetime.now(timezone.utc)
-    if new_status == "done":
-        task.completed_at = now
-    if new_status == "cancelled":
-        task.cancelled_at = now
-    # Reabrir de done/cancelled → zera timestamps correspondentes
-    if new_status in ("pending", "in_progress"):
-        task.completed_at = None
-        task.cancelled_at = None
-
+    _apply_status_timestamps(task, new_status)
     return await repo.save(task)
 
 
@@ -257,6 +273,61 @@ _STATUS_MD_LABEL = {
 }
 
 
+def _md_export_header_lines() -> list[str]:
+    return [
+        "# Tarefas — Pipeline (export do DB)",
+        "",
+        "> Gerado por `task_service.export_markdown`. "
+        "Fonte de verdade: tabela `tasks` (ADR-074).",
+        "",
+        "---",
+        "",
+    ]
+
+
+def _md_priority_block_lines(priority: str, tasks: list[Task]) -> list[str]:
+    """Bloco de seção S/R/O. Vazio se não há tasks."""
+    if not tasks:
+        return []
+    lines = [
+        f"## {_PRIORITY_SECTION[priority]}",
+        "",
+        "| # | Tarefa | Categoria | Prazo | Status | Ref |",
+        "|---|---|---|---|---|---|",
+    ]
+    for t in tasks:
+        prazo = t.deadline_label or (
+            t.deadline_date.isoformat() if t.deadline_date else "—"
+        )
+        title = t.title.replace("|", "\\|")
+        lines.append(
+            f"| {t.number} | {title} | {t.category} | {prazo} | "
+            f"{_STATUS_MD_LABEL.get(t.status, t.status)} | {t.ref or '—'} |"
+        )
+    lines.extend(["", "---", ""])
+    return lines
+
+
+def _md_done_block_lines(done_tasks: list[Task]) -> list[str]:
+    """Bloco histórico de concluídas. Vazio se não há."""
+    if not done_tasks:
+        return []
+    lines = [
+        "## Concluídas (histórico)",
+        "",
+        "| # | Tarefa | Data conclusão | Detalhe |",
+        "|---|---|---|---|",
+    ]
+    for t in done_tasks:
+        completed = t.completed_at.date().isoformat() if t.completed_at else "—"
+        title = t.title.replace("|", "\\|")
+        lines.append(
+            f"| {t.number} | {title} | {completed} | {t.status_reason or '—'} |"
+        )
+    lines.append("")
+    return lines
+
+
 async def export_markdown(
     workspace_id: str,
     *,
@@ -266,60 +337,14 @@ async def export_markdown(
     formato do arquivo legado (tabelas por prioridade + histórico)."""
     repo = TaskRepository(db)
     all_tasks = await repo.list_all(workspace_id)
-
-    lines: list[str] = []
-    lines.append("# Tarefas — Pipeline (export do DB)")
-    lines.append("")
-    lines.append(
-        "> Gerado por `task_service.export_markdown`. "
-        "Fonte de verdade: tabela `tasks` (ADR-074)."
-    )
-    lines.append("")
-    lines.append("---")
-    lines.append("")
-
     active = [t for t in all_tasks if t.status not in ("done", "cancelled")]
     done = [t for t in all_tasks if t.status == "done"]
 
+    lines: list[str] = _md_export_header_lines()
     for prio in ("S", "R", "O"):
         section_tasks = [t for t in active if t.priority == prio]
-        if not section_tasks:
-            continue
-        lines.append(f"## {_PRIORITY_SECTION[prio]}")
-        lines.append("")
-        lines.append("| # | Tarefa | Categoria | Prazo | Status | Ref |")
-        lines.append("|---|---|---|---|---|---|")
-        for t in section_tasks:
-            prazo = (
-                t.deadline_label
-                or (t.deadline_date.isoformat() if t.deadline_date else "—")
-            )
-            ref = t.ref or "—"
-            title = t.title.replace("|", "\\|")
-            lines.append(
-                f"| {t.number} | {title} | {t.category} | {prazo} | "
-                f"{_STATUS_MD_LABEL.get(t.status, t.status)} | {ref} |"
-            )
-        lines.append("")
-        lines.append("---")
-        lines.append("")
-
-    if done:
-        lines.append("## Concluídas (histórico)")
-        lines.append("")
-        lines.append("| # | Tarefa | Data conclusão | Detalhe |")
-        lines.append("|---|---|---|---|")
-        for t in done:
-            completed = (
-                t.completed_at.date().isoformat() if t.completed_at else "—"
-            )
-            title = t.title.replace("|", "\\|")
-            lines.append(
-                f"| {t.number} | {title} | {completed} | "
-                f"{t.status_reason or '—'} |"
-            )
-        lines.append("")
-
+        lines.extend(_md_priority_block_lines(prio, section_tasks))
+    lines.extend(_md_done_block_lines(done))
     return "\n".join(lines) + "\n"
 
 
