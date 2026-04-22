@@ -1,14 +1,23 @@
-"""Vault API — CRUD for encrypted PDF passwords (tenant-scoped, ADR-072)."""
+"""Vault router fino — CRUD de passwords cifrados (A6e.4 · ADR-072 · ADR-101 R15/R16)."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.application.vault import (
+    create_password as _create_password,
+    delete_password as _delete_password,
+    list_passwords as _list_passwords,
+)
 from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.workspace import Workspace
-from backend.app.models.password_vault import PasswordVault
-from backend.app.schemas.vault import VaultCreateRequest, VaultListResponse, VaultResponse
+from backend.app.schemas.vault import (
+    VaultCreateRequest,
+    VaultListResponse,
+    VaultResponse,
+)
 from backend.app.services.vault import get_vault
 
 router = APIRouter(
@@ -21,17 +30,8 @@ router = APIRouter(
 async def list_passwords(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    result = await db.execute(
-        select(PasswordVault)
-        .where(PasswordVault.workspace_id == workspace.id)
-        .order_by(PasswordVault.created_at.desc())
-    )
-    entries = result.scalars().all()
-    return VaultListResponse(
-        passwords=[VaultResponse.model_validate(e) for e in entries],
-        total=len(entries),
-    )
+) -> VaultListResponse:
+    return await _list_passwords(workspace.id, db=db)
 
 
 @router.post(
@@ -44,17 +44,8 @@ async def create_password(
     body: VaultCreateRequest,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    vault_service = get_vault()
-    entry = PasswordVault(
-        workspace_id=workspace.id,
-        label=body.label,
-        encrypted_password=vault_service.encrypt(body.password),
-    )
-    db.add(entry)
-    await db.commit()
-    await db.refresh(entry)
-    return VaultResponse.model_validate(entry)
+) -> VaultResponse:
+    return await _create_password(workspace.id, body, db=db, vault=get_vault())
 
 
 @router.delete(
@@ -66,15 +57,5 @@ async def delete_password(
     password_id: str,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
-):
-    result = await db.execute(
-        select(PasswordVault).where(
-            PasswordVault.id == password_id,
-            PasswordVault.workspace_id == workspace.id,
-        )
-    )
-    entry = result.scalar_one_or_none()
-    if not entry:
-        raise HTTPException(status_code=404, detail="Senha não encontrada")
-    await db.delete(entry)
-    await db.commit()
+) -> None:
+    await _delete_password(workspace.id, password_id, db=db)
